@@ -1,0 +1,13 @@
+# ignore only *contents* of input/output
+/input/*
+/output/*
+
+# but do *not* ignore the link file itself
+!/input
+!/output
+.DS_Store
+*.log
+.Rhistory
+__pycache__/
+node_modules/
+
