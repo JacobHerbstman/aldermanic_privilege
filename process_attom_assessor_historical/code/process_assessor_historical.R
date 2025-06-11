@@ -8,13 +8,9 @@ source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
 #───────────────────────────────────────────────────────────────────────────────
 keep_vars_history <- c(
   # ─ Identifiers & Geography ──────────────────────────────────────────────────
-  "sa_property_id",
   "attom_id",
   "ah_history_yr",            
-  "ah_history_yr_version",    
-  "mm_muni_name",
-  # standard property‐use code
-  
+
   # ─ Value & Tax History ──────────────────────────────────────────────────────
   "sa_val_assd",              # total assessed value
   "sa_val_assd_land",
@@ -24,17 +20,26 @@ keep_vars_history <- c(
   "sa_val_market_imprv",
   "sa_tax_val",               # tax‐assessed value
   "taxyear",
-  "sa_imprv_pct_appraise",    # % improvements in appraised value
   
+  # ─ Address stuff ───────────────────────────────────────────────────────────────
+  "sa_mail_house_nbr", 
+  "sa_mail_dir", 
+  "sa_mail_street_name",
+  "sa_mail_suf",
+  "sa_mail_post_dir",
+  "sa_mail_city",
+  "sa_mail_state",
+  "sa_mail_zip",
+  "sa_mail_plus_4",
+  
+
   # ─ Exemptions ───────────────────────────────────────────────────────────────
-  "sa_exemp_val_1","sa_exemp_val_2", "sa_exemp_val_3",
-  "sa_exemp_val_4", "sa_exemp_val_5", "sa_exemp_val_6",
+  # "sa_exemp_val_1","sa_exemp_val_2", "sa_exemp_val_3",
+  # "sa_exemp_val_4", "sa_exemp_val_5", "sa_exemp_val_6",
   
   # ─ Lot & Building Areas ────────────────────────────────────────────────────
   "sa_lotsize",
   "sa_bldg_sqft",
-  "sa_bsmt_fin_sqft",
-  "sa_bsmt_unfin_sqft",
   "sa_fin_sqft_tot",
   "sa_sqft",
   
@@ -42,8 +47,6 @@ keep_vars_history <- c(
   "sa_nbr_bedrms",
   "sa_nbr_rms",
   "sa_nbr_bath", 
-  "sa_nbr_bath_half",
-  "sa_nbr_bath_1qtr",
   "sa_nbr_stories",
   "sa_nbr_units",
   
@@ -67,12 +70,12 @@ con     <- dbConnect(duckdb(), dbdir = db_file)
 #   CREATE TABLE assessor_history AS
 #     SELECT *
 #     FROM read_csv_auto(
-#       '%s/raw_data/assessor_history/*.csv',
+#       '%sprocess_attom_assessor_historical/input/assessor_history/*.csv',
 #       IGNORE_ERRORS=TRUE    -- drop rows with conversion problems
 #     )
 #     WHERE SA_SITE_CITY = 'CHICAGO';
 # ", root)
-
+# 
 # dbExecute(con, sql)
 
 # 3a. Now pull just Chicago rows

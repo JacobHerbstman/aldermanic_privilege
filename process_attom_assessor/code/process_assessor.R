@@ -66,25 +66,16 @@ keep_vars <- c(
   "taxfiscalyear",
   "taxratearea",
   "taxbilledamount",
-  "taxdelinquentyear",
   "lastassessortaxrollupdate",
   "assrlastupdated",
   "taxexemptionhomeownerflag",
-  "taxexemptiondisabledflag",
-  "taxexemptionseniorflag",
-  "taxexemptionveteranflag",
-  "taxexemptionwidowflag",
   "taxexemptionadditional",
   "deedlastsaledate",
   "deedlastsaleprice",
   "zonedcodelocal",
   "propertyusemuni",
   "yearbuilt",
-  "yearbuilteffective",
-  "areabuildingdefinitioncode",
-  "foundation",
   "construction",
-  "interiorstructure",
   "bathcount",
   "bathpartialcount",
   "bedroomscount",
@@ -108,9 +99,9 @@ tax_df <- tax_df %>%
 
 
 
-# write_csv(tax_df, paste0(root, "data/chicago_attom_2023.csv"))
-write_parquet(tax_df, paste0(root, "process_attom_accessor/output/chicago_attom_2023.parquet"))
-
+# write_csv(tax_df, paste0(root, "process_attom_accessor/output/chicago_attom_2023.parquet"))
+write_parquet(tax_df, paste0(root, "process_attom_assessor/output/chicago_attom_2023.parquet"))
+?write_parquet
 
 
 

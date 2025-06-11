@@ -24,6 +24,7 @@ library(writexl)
 library(arrow)
 library(DBI)
 library(duckdb)
+library(stringr)
 ## load census api key
 
 ##comment out since it is loaded permanently
