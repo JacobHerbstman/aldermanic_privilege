@@ -1,9 +1,8 @@
 ### this code cleans the public building permits data from https://data.cityofchicago.org/Buildings/Building-Permits/ydr8-5enu/about_data
 
+# source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
 
-source("/Users/jacobherbstman/Desktop/aldermanic_privelege/source_script.R")
-
-building_permits <- read_csv(paste0(root, "clean_building_permits/input/Building_Permits_20250109.csv"))
+building_permits <- read_csv("../input/Building_Permits_20250109.csv")
 
 ## remove contact columns and clean up names
 building_permits_clean <- building_permits %>% 
@@ -41,51 +40,62 @@ building_permits_clean2 <- building_permits_clean2 %>%
                                    "PERMIT - WRECKING/DEMOLITION ", "PERMIT - NEW CONSTRUCTION")) %>% 
   filter(!is.na(pin))
 
+
+## convert to sf for writing
+building_permits_sf <- st_as_sf(
+  building_permits_clean2,
+  coords = c("longitude", "latitude"),   # adjust to your column names
+  crs    = 4326,              # or whatever CRS your coords use
+  remove = FALSE              # keep the lon/lat columns if you still want them
+)
+
 ## write clean data
-st_write(building_permits_clean2, paste0(root, "clean_building_permits/output/building_permits_clean.shp"), append = F)
-
-
+st_write(
+  building_permits_sf,
+  "../output/building_permits_clean.shp",
+  delete_layer = TRUE         # overwrite any existing files cleanly
+)
 ######################
 ## basic summary stats
 ######################
 
-
-summary_stats <- building_permits_clean2 %>% 
-  group_by(ward) %>% 
-  summarise(zone_fees = mean(zoning_fee_paid, na.rm = T),
-            building_fees = mean(building_fee_paid, na.rm = T),
-            processing_time = mean(processing_time, na.rm = T), 
-            total_fees = mean(total_fee, na.rm = T), 
-            num_permits = n()) 
-
-##proportion of pins missing (54 percent)
-building_permits_clean2 %>% 
-  dplyr::mutate(pin_na = is.na(pin)) %>% 
-  dplyr::summarize(prop_na = mean(pin_na))
-
-## amount of na pins by permit type (mostly non-construction stuff)
-building_permits_clean2 %>% 
-  dplyr::mutate(pin_na = is.na(pin)) %>% 
-  dplyr::group_by(permit_type) %>% 
-  dplyr::summarize(prop_na = mean(pin_na)) %>% 
-  dplyr::arrange(prop_na)
-
-
-## unique permit types
-building_permits_clean2 %>% 
-  dplyr::select(permit_type) %>% 
-  dplyr::distinct() %>% 
-  dplyr::arrange(permit_type)
-
-
-
-
-
-
-##find proportion with non-NA latitude
-building_permits_clean2 %>% 
-  dplyr::mutate(lat_na = is.na(latitude)) %>% 
-  dplyr::summarize(prop_na = mean(lat_na))
-
-
-
+# 
+# summary_stats <- building_permits_clean2 %>% 
+#   group_by(ward) %>% 
+#   summarise(zone_fees = mean(zoning_fee_paid, na.rm = T),
+#             building_fees = mean(building_fee_paid, na.rm = T),
+#             processing_time = mean(processing_time, na.rm = T), 
+#             total_fees = mean(total_fee, na.rm = T), 
+#             num_permits = n()) 
+# 
+# ##proportion of pins missing (54 percent)
+# building_permits_clean2 %>% 
+#   dplyr::mutate(pin_na = is.na(pin)) %>% 
+#   dplyr::summarize(prop_na = mean(pin_na))
+# 
+# ## amount of na pins by permit type (mostly non-construction stuff)
+# building_permits_clean2 %>% 
+#   dplyr::mutate(pin_na = is.na(pin)) %>% 
+#   dplyr::group_by(permit_type) %>% 
+#   dplyr::summarize(prop_na = mean(pin_na)) %>% 
+#   dplyr::arrange(prop_na)
+# 
+# 
+# ## unique permit types
+# building_permits_clean2 %>% 
+#   dplyr::select(permit_type) %>% 
+#   dplyr::distinct() %>% 
+#   dplyr::arrange(permit_type)
+# 
+# 
+# 
+# 
+# 
+# 
+# ##find proportion with non-NA latitude
+# building_permits_clean2 %>% 
+#   dplyr::mutate(lat_na = is.na(latitude)) %>% 
+#   dplyr::summarize(prop_na = mean(lat_na))
+# 
+# 
+# 

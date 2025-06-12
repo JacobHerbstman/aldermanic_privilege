@@ -52,6 +52,11 @@ parcel_data_historical_addresses <- parcel_data_historical %>%
 parcel_data_historical_addresses <- parcel_data_historical_addresses %>% 
   select(attom_id, address)
 
+write_csv(
+  parcel_data_historical_addresses,
+  paste0(root, "geocode_assessor_history/output/chi_addresses_for_geocoding.csv")
+)
+
 
 
 

@@ -1,6 +1,9 @@
 ### this code writes in census tracts from tidycensus, cleans them, and makes them compatible with ward data
 
-source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+# source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+
+## set census api key
+census_api_key("29d8cfa2c622f7074d57c85ac2a64eff9835820b")
 
 ## get tracts for each year 2000, 2010, and 2020 with purrr
 years <- c(2000, 2010, 2020)
@@ -22,14 +25,15 @@ tracts_all <- tracts_all %>%
 )
 )
 
+## harmonize years
 tracts_all <- tracts_all %>% 
   mutate(year = as.numeric(year)) %>% 
   mutate(tract_id = ifelse(year == 2020, TRACTCE, TRACT)) %>% 
   dplyr::select(year, tract_id, geometry)
 
 
-
-st_write(tracts_all, paste0(root, "clean_tract_data/output/census_tracts.shp"), append = F)
+## write to .shp file
+st_write(tracts_all, "../output/census_tracts.shp", append = F)
 
 
 
