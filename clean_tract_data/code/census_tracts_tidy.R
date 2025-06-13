@@ -2,6 +2,7 @@
 
 ## run this line when editing code in Rstudio
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+# source(here::here("setup_environment", "code", "packages.R"))
 source("../../setup_environment/code/packages.R")
 
 ## set census api key

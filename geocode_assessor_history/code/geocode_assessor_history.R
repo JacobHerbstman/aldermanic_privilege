@@ -1,6 +1,10 @@
 ### this script preps the assessor history dataset for geocoding by the Uchicago RCC-GIS Geocoding Service
 
-# source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+## run this line when editing code in Rstudio
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+# source(here::here("setup_environment", "code", "packages.R"))
+source("../../setup_environment/code/packages.R")
+
 
 ## parcel data historical 
 parcel_data_historical <- read_parquet("../input/chicago_attom_history.parquet") %>% 
@@ -52,9 +56,10 @@ parcel_data_historical_addresses <- parcel_data_historical %>%
 parcel_data_historical_addresses <- parcel_data_historical_addresses %>% 
   select(attom_id, address)
 
+
 write_csv(
   parcel_data_historical_addresses,
-  paste0(root, "../output/chi_addresses_for_geocoding.csv")
+   "../output/chi_addresses_for_geocoding.csv"
 )
 
 

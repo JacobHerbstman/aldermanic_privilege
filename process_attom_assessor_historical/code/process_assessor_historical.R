@@ -1,4 +1,8 @@
 # source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+
+## run this line when editing code in Rstudio
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+# source(here::here("setup_environment", "code", "packages.R"))
 source("../../setup_environment/code/packages.R")
 
 
@@ -72,12 +76,16 @@ CREATE TABLE assessor_history AS
   WHERE SA_SITE_CITY = 'CHICAGO';
 "
 
+# 2. setup db file
+db_file <- "../temp/assessor_history/assessor_history.duckdb"
+dir.create(dirname(db_file), showWarnings = FALSE, recursive = TRUE)
+
+
 con     <- dbConnect(duckdb(), dbdir = db_file)
 dbExecute(con, sql)
 
 
-#2. take duckdb and connect to it 
-db_file <- "../temp/assessor_historyassessor_history.duckdb"
+
 
 
 

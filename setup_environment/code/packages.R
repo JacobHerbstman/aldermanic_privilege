@@ -1,8 +1,8 @@
 rm(list = ls())
 
 packages <- c(
-  "DBI", "readr","fixest","haven","stringr", "ipumsr", "tidycensus","dplyr","sf", "furrr", "nngeo", "data.table", 
-  "tigris", "zoo", "patchwork", "glue", "writexl", "arrow", "duckdb", "ptaxsim", "ggplot2", "here"
+  "DBI", "readr","fixest","haven","stringr", "ipumsr", "tidycensus","dplyr","sf", "furrr", "purrr", "nngeo", "data.table", 
+  "tigris", "zoo", "patchwork", "glue", "writexl", "arrow", "duckdb", "ptaxsim", "ggplot2", "here", "tidyr"
 )
 
 # Create a directory for  packages
@@ -78,5 +78,5 @@ for (package in packages) {
 output <- paste(output, collapse = "\n")
 output <- paste("Packages installed: ", output, sep = "\n")
 
-write.table(output, "../output/R_packages.txt",
-            col.names = FALSE, row.names = FALSE)
+# write.table(output, "../output/R_packages.txt",
+#             col.names = FALSE, row.names = FALSE)

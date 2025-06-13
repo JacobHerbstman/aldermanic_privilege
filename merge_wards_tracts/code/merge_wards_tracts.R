@@ -1,10 +1,13 @@
 ## this code takes chicago ward shapefiles from the uchicago justice project and merges them for a panel with census tracts from 2005-2023
 ## (https://img.shields.io/github/repo-size/uchicago-justice-project/data)
 
-# source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+## run this line when editing code in Rstudio
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+# source(here::here("setup_environment", "code", "packages.R"))
+source("../../setup_environment/code/packages.R")
 
 ## bring in ward boundary data
-ward_bound2005 <- st_read(paste0(root, "../input/CHI_2005/CHI_2005.shp"))
+ward_bound2005 <- st_read("../input/CHI_2005/CHI_2005.shp")
 
 ## make panel from 2005-2014
 ward_bound2005 <- ward_bound2005 %>%
@@ -17,7 +20,7 @@ ward_bound2005 <- ward_bound2005 %>%
   dplyr::select(year, ward, geometry)
 
 
-ward_bound2015 <- st_read(paste0(root, "../input/CHI_2015/CHI_2015.shp"))
+ward_bound2015 <- st_read("../input/CHI_2015/CHI_2015.shp")
 ## make panel from 2015-2024
 ward_bound2015 <- ward_bound2015 %>%
   mutate(start_year = 2015, end_year = 2024)
@@ -38,7 +41,7 @@ ward_panel <- rbind(ward_bound2005, ward_bound2015)
 
 ##bring in census tracts and harmonize with ward boundaries (requires cleaned census tract data)
 
-census_tracts <- st_read(paste0(root, "../input/census_tracts.shp"))
+census_tracts <- st_read("../input/census_tracts.shp")
 census_tracts <- st_transform(census_tracts, st_crs(ward_panel))
 
 ## make tract panel for merge 
@@ -103,7 +106,7 @@ joined_panel %>%
 
 
 ##write to shapefile
-st_write(joined_panel, paste0(root, "../output/census_tract_panel_wards.shp"), append = F)
+st_write(joined_panel,"../output/census_tract_panel_wards.shp", append = F)
 
 
 

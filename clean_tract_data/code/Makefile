@@ -1,11 +1,10 @@
 SHELL := bash
 
 # pull in the generic rules (which also exports PROJECT_ROOT for R if you need it)
-include ../../generic.make
-
+include ../../shell_functions.make
 
 # default target
-all: ../output/census_tracts.shp
+.DEFAULT_GOAL := ../output/census_tracts.shp
 
 # produce the tract‐shapefile output
 # ──────────────────────────────────────────────────────────────────────────────
@@ -15,4 +14,7 @@ all: ../output/census_tracts.shp
 # ensure the output directory exists
 ../output:
 	mkdir -p $@
+
+include ../../generic.make
+
 

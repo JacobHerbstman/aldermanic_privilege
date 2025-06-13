@@ -1,15 +1,19 @@
-# ignore only *contents* of input/output
+# ignore only *contents* of input/output/data_link/temp
 /input/*
 /output/*
 /data_link/*
+/temp/*
 
-# but do *not* ignore the link file itself
+# but do *not* ignore the link file or the directory itself
 !/input
 !/output
-/!data_link
+!/data_link
+!/temp
+
 .DS_Store
 *.log
 .Rhistory
 __pycache__/
 node_modules/
+
 
