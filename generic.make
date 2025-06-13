@@ -2,24 +2,31 @@
 # generic.make  (to be included from each task’s code/Makefile)
 # ─────────────────────────────────────────────────────────────────────────────
 
-# 1) detect project root as two levels above whatever code/ subdir we’re in
-PROJECT_ROOT := $(abspath $(CURDIR)/../..)
-export PROJECT_ROOT
+SHELL := bash
 
-#.PHONY: print-root
-#print-root:
-#	@echo PROJECT_ROOT = $(PROJECT_ROOT)
-
-# 2) make sure each task has its sibling folders
-../output ../temp ../input slurmlogs:
+# ----------------------------------------------------------------------------
+# Create the standard folders if they don’t exist
+# ----------------------------------------------------------------------------
+../input ../output ../temp slurmlogs:
 	mkdir -p $@
 
-# 3) link in the sbatch wrapper from setup_environment
-#    now using PROJECT_ROOT so we never rely on ../../ in R code either
-run.sbatch: $(PROJECT_ROOT)/setup_environment/code/run.sbatch | slurmlogs
+# ----------------------------------------------------------------------------
+# SLURM wrapper (path is still relative to each task’s code/ folder)
+# ----------------------------------------------------------------------------
+run.sbatch: ../../setup_environment/code/run.sbatch | slurmlogs
 	ln -sf $< $@
 
-# 4) generic “build upstream” rule kept exactly as before
-../../%:
+# ----------------------------------------------------------------------------
+# Generic upstream rule — *only* for artefacts located in an output folder
+# (prevents make from trying to rebuild helper files like generic.make itself)
+# ----------------------------------------------------------------------------
+../../output/%:
 	$(MAKE) -C $(subst output/,code/,$(dir $@)) \
-	         ../output/$(notdir $@)
+	        ../output/$(notdir $@)
+
+# If you ever need to depend on files created in another task’s input folder,
+# uncomment the rule below.
+# ../../input/%:
+# 	$(MAKE) -C $(subst input/,code/,$(dir $@)) \
+# 	        ../input/$(notdir $@)
+

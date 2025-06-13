@@ -1,0 +1,22 @@
+"Packages installed: 
+DBI : 1.2.3
+readr : 2.1.5
+fixest : 0.12.1
+haven : 2.5.4
+stringr : 1.5.1
+ipumsr : 0.8.2
+tidycensus : 1.6.7
+dplyr : 1.1.4
+sf : 1.0-19
+furrr : 0.3.1
+nngeo : 0.4.8
+data.table : 1.16.4
+tigris : 2.1
+zoo : 1.8-12
+patchwork : 1.2.0
+glue : 1.8.0
+writexl : 1.5.1
+arrow : 20.0.0
+duckdb : 1.2.2
+ptaxsim : 0.6.2
+ggplot2 : 3.5.1"

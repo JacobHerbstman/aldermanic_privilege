@@ -1,6 +1,8 @@
 ### this code writes in census tracts from tidycensus, cleans them, and makes them compatible with ward data
 
-# source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+## run this line when editing code in Rstudio
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+source("../../setup_environment/code/packages.R")
 
 ## set census api key
 census_api_key("29d8cfa2c622f7074d57c85ac2a64eff9835820b")

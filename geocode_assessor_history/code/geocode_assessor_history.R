@@ -1,9 +1,9 @@
 ### this script preps the assessor history dataset for geocoding by the Uchicago RCC-GIS Geocoding Service
 
-source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+# source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
 
 ## parcel data historical 
-parcel_data_historical <- read_parquet(paste0(root, "geocode_assessor_history/input/chicago_attom_history.parquet")) %>% 
+parcel_data_historical <- read_parquet("../input/chicago_attom_history.parquet") %>% 
   slice_sample(n = 50000, replace = FALSE) %>% ## sample for testing
   filter(sa_mail_city == "CHICAGO") %>% ## chicago only
   filter(!str_detect(sa_mail_street_name, "PO BOX")) %>% ## no PO boxes
@@ -54,7 +54,7 @@ parcel_data_historical_addresses <- parcel_data_historical_addresses %>%
 
 write_csv(
   parcel_data_historical_addresses,
-  paste0(root, "geocode_assessor_history/output/chi_addresses_for_geocoding.csv")
+  paste0(root, "../output/chi_addresses_for_geocoding.csv")
 )
 
 

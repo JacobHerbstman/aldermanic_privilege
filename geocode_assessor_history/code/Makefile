@@ -1,5 +1,5 @@
 SHELL := bash
-include ../../shell_functions.make
+include ../../generic.make
 
 all: ../output/chi_addresses_for_geocoding.csv
 
@@ -15,4 +15,3 @@ setup_input: | ../input
 	@echo "→ Generating chi_addresses_for_geocoding.csv…"
 	Rscript $<
 
-include ../../generic.make

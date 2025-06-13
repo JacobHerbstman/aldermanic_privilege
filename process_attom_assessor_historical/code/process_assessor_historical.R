@@ -1,4 +1,5 @@
-source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+# source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+source("../../setup_environment/code/packages.R")
 
 
 ####################################################################################
@@ -60,23 +61,25 @@ keep_vars_history <- c(
 
 
 ####################################################################################
+# 1. Create a single table over all 64 CSVs in that folder
+sql <- "
+CREATE TABLE assessor_history AS
+  SELECT *
+  FROM read_csv_auto(
+    '../input/assessor_history/*.csv',
+    IGNORE_ERRORS = TRUE
+  )
+  WHERE SA_SITE_CITY = 'CHICAGO';
+"
 
-
-db_file <- file.path(root, "process_attom_assessor_historical/input/assessor_history.duckdb")
 con     <- dbConnect(duckdb(), dbdir = db_file)
+dbExecute(con, sql)
 
-# 2. Create a single table over all 64 CSVs in that folder
-# sql <- sprintf("
-#   CREATE TABLE assessor_history AS
-#     SELECT *
-#     FROM read_csv_auto(
-#       '%sprocess_attom_assessor_historical/input/assessor_history/*.csv',
-#       IGNORE_ERRORS=TRUE    -- drop rows with conversion problems
-#     )
-#     WHERE SA_SITE_CITY = 'CHICAGO';
-# ", root)
-# 
-# dbExecute(con, sql)
+
+#2. take duckdb and connect to it 
+db_file <- "../temp/assessor_historyassessor_history.duckdb"
+
+
 
 # 3a. Now pull just Chicago rows
 df_chicago <- dbGetQuery(con, "
@@ -89,7 +92,7 @@ df_chicago <- df_chicago %>%
   janitor::clean_names() %>% 
   select(keep_vars_history)
 
-write_parquet(df_chicago, paste0(root, "process_attom_assessor_historical/output/chicago_attom_history.parquet"))
+write_parquet(df_chicago,  "../output/chicago_attom_history.parquet")
 
 ## counts of observations by year with small x axis text
 # df_chicago %>% 

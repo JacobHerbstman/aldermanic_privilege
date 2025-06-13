@@ -1,8 +1,8 @@
 rm(list = ls())
 
 packages <- c(
-  "DBI", "readr","fixest","haven","stringr", "ipumsr", "tidycensus","collapse","dplyr","sf", "furrr", "nngeo", "data.table", 
-  "tigris", "zoo", "patchwork", "glue", "writexl", "arrow", "duckdb", "ptaxsim", "ggplot2"
+  "DBI", "readr","fixest","haven","stringr", "ipumsr", "tidycensus","dplyr","sf", "furrr", "nngeo", "data.table", 
+  "tigris", "zoo", "patchwork", "glue", "writexl", "arrow", "duckdb", "ptaxsim", "ggplot2", "here"
 )
 
 # Create a directory for  packages
