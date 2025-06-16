@@ -1,7 +1,7 @@
 ### this script preps the assessor history dataset for geocoding by the Uchicago RCC-GIS Geocoding Service
 
 ## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/geocode_assessor_history/code")
 # source(here::here("setup_environment", "code", "packages.R"))
 source("../../setup_environment/code/packages.R")
 
