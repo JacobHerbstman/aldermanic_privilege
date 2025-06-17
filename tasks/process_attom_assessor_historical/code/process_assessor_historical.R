@@ -1,8 +1,8 @@
 # source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
 
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
-# source(here::here("setup_environment", "code", "packages.R"))
+## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+
 source("../../setup_environment/code/packages.R")
 
 
@@ -65,7 +65,6 @@ keep_vars_history <- c(
 
 
 ####################################################################################
-# 1. Create a single table over all 64 CSVs in that folder
 sql <- "
 CREATE TABLE assessor_history AS
   SELECT *
@@ -77,16 +76,12 @@ CREATE TABLE assessor_history AS
 "
 
 # 2. setup db file
-db_file <- "../temp/assessor_history/assessor_history.duckdb"
+db_file <- "../temp/assessor_history.duckdb"
 dir.create(dirname(db_file), showWarnings = FALSE, recursive = TRUE)
 
 
 con     <- dbConnect(duckdb(), dbdir = db_file)
 dbExecute(con, sql)
-
-
-
-
 
 
 # 3a. Now pull just Chicago rows
@@ -98,9 +93,11 @@ df_chicago <- dbGetQuery(con, "
 
 df_chicago <- df_chicago %>% 
   janitor::clean_names() %>% 
-  select(keep_vars_history)
+  dplyr::select(any_of(keep_vars_history)) # Use any_of() for robustness
 
 write_parquet(df_chicago,  "../output/chicago_attom_history.parquet")
+
+dbDisconnect(con, shutdown = TRUE)
 
 ## counts of observations by year with small x axis text
 # df_chicago %>% 

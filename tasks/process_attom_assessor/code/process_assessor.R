@@ -2,16 +2,15 @@
 # https://app.deweydata.io/products?categories%5B0%5D%5Btitle%5D=ATTOM%20Data&categories%5B0%5D%5Bvalue%5D=7395056b-2d7d-454a-a258-565344ff61d7&page=1
 
 
-source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 
+source("../../setup_environment/code/packages.R")
 
-# data <- read_csv(paste0(root, "raw_data/Tax_Assessor_Cook_Country-0.csv")) %>%
-#   janitor::clean_names() %>% 
-#   filter(minorcivildivisionname == "CHICAGO")
 
 tax_files <- list.files(
-  path   = paste0(root, "process_attom_assessor/input/assessor"),          # folder to search
-  pattern = "^Tax_Assessor_Cook_Country-\\d+\\.csv$",  # the 64 files
+  path   = "../input/assessor",          # folder to search
+  pattern = "^Tax_Assessor_Cook_County-\\d+\\.csv$",  # the 64 files
   full.names = TRUE,                              # return full paths
   ignore.case = FALSE
 )
@@ -94,14 +93,13 @@ tax_df <- tax_df %>%
   filter(!is.na(propertylatitude) & !is.na(propertylongitude)) %>% 
   filter(arealotacres > 0) %>% 
   filter(areabuilding > 0 ) %>% 
-  select(keep_vars) %>% 
+  select(all_of(keep_vars)) %>% 
   mutate(FAR = areabuilding / arealotsf) 
 
 
 
 # write_csv(tax_df, paste0(root, "process_attom_accessor/output/chicago_attom_2023.parquet"))
-write_parquet(tax_df, paste0(root, "process_attom_assessor/output/chicago_attom_2023.parquet"))
-?write_parquet
+write_parquet(tax_df,  "../output/chicago_attom_2023.parquet")
 
 
 

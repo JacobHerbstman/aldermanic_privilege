@@ -1,9 +1,9 @@
 ## this code takes chicago ward shapefiles from the uchicago justice project and merges them for a panel with census tracts from 2005-2023
 ## (https://img.shields.io/github/repo-size/uchicago-justice-project/data)
 
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
-# source(here::here("setup_environment", "code", "packages.R"))
+## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+
 source("../../setup_environment/code/packages.R")
 
 ## bring in ward boundary data

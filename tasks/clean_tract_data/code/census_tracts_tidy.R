@@ -1,7 +1,7 @@
 ### this code writes in census tracts from tidycensus, cleans them, and makes them compatible with ward data
 
-## run this line when editing code in Rstudio (replace task with the name of this particular task)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/code")
+## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 
 source("../../setup_environment/code/packages.R")
 

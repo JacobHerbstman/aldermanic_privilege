@@ -1,8 +1,9 @@
-### this script preps the assessor history dataset for geocoding by the Uchicago RCC-GIS Geocoding Service
+### this script merges the historical attom data with the current 2023 version, 
+# since the match rate is high and gives me latitude/longitude for 8.8 million out of 13.5 million observations
 
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/geocode_assessor_history/code")
-# source(here::here("setup_environment", "code", "packages.R"))
+## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+
 source("../../setup_environment/code/packages.R")
 
 
@@ -33,56 +34,3 @@ sfarrow::st_write_parquet(hist_geo, "../output/attom_historical_with_address.shp
 write_parquet(missing_address,  "../output/attom_historical_missing_address.parquet")
 
 
-
-# 
-# address_cols <- c("sa_mail_house_nbr", "sa_mail_dir",   "sa_mail_street_name",
-#                   "sa_mail_suf",        "sa_mail_post_dir", "sa_mail_city",
-#                   "sa_mail_state",      "sa_mail_zip",      "sa_mail_plus_4")
-# 
-# ## create address name
-# parcel_data_historical_addresses <- parcel_data_historical %>% 
-#   unite(
-#     col    = "street_line",
-#     c(
-#       sa_mail_house_nbr,
-#       sa_mail_dir,
-#       sa_mail_street_name,
-#       sa_mail_suf,
-#       sa_mail_post_dir
-#     ),
-#     sep    = " ",
-#     na.rm  = TRUE,   # drop any NA pieces
-#     remove = FALSE   # keep originals around
-#   ) %>% 
-#   mutate(
-#     across(c(sa_mail_zip, sa_mail_plus_4), as.character),
-#     
-#     zip4 = case_when(
-#       !is.na(sa_mail_plus_4) & sa_mail_plus_4 != "" & sa_mail_plus_4 != "0" ~ 
-#         str_c(sa_mail_zip, "-", sa_mail_plus_4),
-#       TRUE ~ sa_mail_zip
-#     )
-#   ) %>% 
-#   mutate(
-#     address = str_c(
-#       street_line,   ", ",
-#       sa_mail_city,  ", ",
-#       sa_mail_state, ", ",
-#       zip4
-#     )
-#   )
-# 
-# parcel_data_historical_addresses <- parcel_data_historical_addresses %>% 
-#   select(attom_id, address)
-# 
-# 
-# write_csv(
-#   parcel_data_historical_addresses,
-#   "../output/chi_addresses_for_geocoding.csv"
-# )
-# 
-# 
-# 
-# 
-# 
-# 
