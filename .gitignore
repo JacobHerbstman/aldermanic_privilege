@@ -24,3 +24,6 @@ tasks/*/temp/
 
 # --- User-specific files ---
 # (Add any local configuration files here if needed)
+# --- Secrets ---
+# Ignore file containing API keys and other secrets
+.Renviron

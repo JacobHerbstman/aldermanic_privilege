@@ -1,12 +1,12 @@
 ### this code writes in census tracts from tidycensus, cleans them, and makes them compatible with ward data
 
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
-# source(here::here("setup_environment", "code", "packages.R"))
+## run this line when editing code in Rstudio (replace task with the name of this particular task)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/code")
+
 source("../../setup_environment/code/packages.R")
 
 ## set census api key
-census_api_key("29d8cfa2c622f7074d57c85ac2a64eff9835820b")
+census_api_key(Sys.getenv("CENSUS_API_KEY"))
 
 ## get tracts for each year 2000, 2010, and 2020 with purrr
 years <- c(2000, 2010, 2020)

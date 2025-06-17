@@ -1,8 +1,8 @@
 ### this code cleans the public building permits data from https://data.cityofchicago.org/Buildings/Building-Permits/ydr8-5enu/about_data
 
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
-# source(here::here("setup_environment", "code", "packages.R"))
+## run this line when editing code in Rstudio (replace task with the name of this particular task)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/code")
+
 source("../../setup_environment/code/packages.R")
 
 
