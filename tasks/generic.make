@@ -17,16 +17,10 @@ run.sbatch: ../../setup_environment/code/run.sbatch | slurmlogs
 	ln -sf $< $@
 
 # ----------------------------------------------------------------------------
-# Generic upstream rule — *only* for artefacts located in an output folder
-# (prevents make from trying to rebuild helper files like generic.make itself)
+# Generic upstream rule — This is a powerful but advanced feature.
+# For now, we will rely on explicit symbolic linking rules in each Makefile
+# to make the workflow as clear as possible.
 # ----------------------------------------------------------------------------
-../../output/%:
-	$(MAKE) -C $(subst output/,code/,$(dir $@)) \
-	        ../output/$(notdir $@)
-
-# If you ever need to depend on files created in another task’s input folder,
-# uncomment the rule below.
-# ../../input/%:
-# 	$(MAKE) -C $(subst input/,code/,$(dir $@)) \
-# 	        ../input/$(notdir $@)
-
+# ../../output/%:
+#	$(MAKE) -C $(subst output/,code/,$(dir $@)) \
+#	        ../output/$(notdir $@)

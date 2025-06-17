@@ -1,19 +1,26 @@
-# ignore only *contents* of input/output/data_link/temp
-/input/*
-/output/*
-/data_link/*
-/temp/*
+# #################################################
+# ## Generic gitignore for a task-based workflow
+# #################################################
 
-# but do *not* ignore the link file or the directory itself
-!/input
-!/output
-!/data_link
-!/temp
-
+# --- System & Editor Files ---
 .DS_Store
-*.log
 .Rhistory
 __pycache__/
 node_modules/
 
+# --- Log files ---
+*.log
+slurmlogs/
 
+# --- Raw & Intermediate Data ---
+# Ignore the entire raw data directory
+data_raw/
+
+# Ignore the contents of ALL input, output, and temp folders
+# for every task. The trailing slash is important.
+tasks/*/input/
+tasks/*/output/
+tasks/*/temp/
+
+# --- User-specific files ---
+# (Add any local configuration files here if needed)
