@@ -1,4 +1,4 @@
-# source("/Users/jacobherbstman/Desktop/aldermanic_privilege/source_script.R")
+#This script processes the attom historical transactions dataset for chicago and writes it to a geoparquet file
 
 ## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
@@ -44,8 +44,6 @@ keep_vars_history <- c(
   
   # ─ Lot & Building Areas ────────────────────────────────────────────────────
   "sa_lotsize",
-  "sa_bldg_sqft",
-  "sa_fin_sqft_tot",
   "sa_sqft",
   
   # ─ Rooms, Baths & Units ─────────────────────────────────────────────────────
