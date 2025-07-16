@@ -34,7 +34,7 @@ ward_bound2015 <- ward_bound2015 %>%
 ##join to one large panel
 ward_panel <- rbind(ward_bound2005, ward_bound2015)
 
-# st_write(ward_panel, paste0(root, "clean_tract_data/output/ward_panel.shp"), append = F)
+st_write(ward_panel, "../output/ward_panel.shp", append = F)
 
 
 
