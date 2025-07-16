@@ -43,15 +43,13 @@ merged_parcels <- merged_parcels %>%
 merged_parcels <- merged_parcels %>% 
   dplyr::select(
     attom_id, 
+    taxyear,
     sa_yr_blt, 
     sa_lotsize,
     sa_sqft,
     geometry
   )
 
-  
-  
-# rm(data, parcel_data_historical)
 
 st_write(merged_parcels, "../output/year_built_sample.shp", delete_dsn = TRUE)
              
