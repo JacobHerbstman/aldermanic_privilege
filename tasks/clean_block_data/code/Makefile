@@ -6,10 +6,10 @@ include ../../shell_functions.make
 # ─────────────────────────────────────────────────────────────────────────────
 
 # This is the REAL file this task will create.
-OUTPUT_FILE := ../output/census_tracts.shp
+OUTPUT_FILE := ../output/census_blocks.shp
 
 # The R script that does the work.
-SCRIPT_FILE := census_tracts_tidy.R
+SCRIPT_FILE := census_blocks_tidy.R
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Define Goals
@@ -25,7 +25,7 @@ all: $(OUTPUT_FILE)
 # It does not need any linked inputs from other tasks.
 # ─────────────────────────────────────────────────────────────────────────────
 $(OUTPUT_FILE): $(SCRIPT_FILE) | ../output
-	@echo "→ [clean_tract_data] Running R script to download census tracts..."
+	@echo "→ [clean_block_data] Running R script to download census blocks..."
 	$(R) $(SCRIPT_FILE)
 
 # ─────────────────────────────────────────────────────────────────────────────
