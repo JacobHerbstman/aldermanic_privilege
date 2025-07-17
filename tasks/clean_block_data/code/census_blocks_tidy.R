@@ -48,10 +48,12 @@ blocks_all <- blocks_all %>%
 )
 )
 
+
 ## harmonize years
 blocks_all <- blocks_all %>% 
   mutate(year = as.numeric(year)) %>% 
-  rename(block_id = BLOCKCE) %>% 
+  mutate(GEOID = if_else(year == 2000, BLKIDFP, GEOID)) %>%
+  rename(block_id = GEOID) %>% 
   dplyr::select(year, block_id, geometry)
 
 

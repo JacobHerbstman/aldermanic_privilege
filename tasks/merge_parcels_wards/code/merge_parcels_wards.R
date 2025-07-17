@@ -54,35 +54,44 @@ merged_parcels <- merged_parcels %>%
   select(-year.y) %>% 
   rename(year = year.x) 
 
+st_write(merged_parcels, 
+         "../output/matched_parcels_wards.shp", 
+         delete_dsn = TRUE)
+
+
 
 
 ## identify parcels that switch wards
 
-merged_parcels <- merged_parcels %>%
-  group_by(attom_id) %>%
-  mutate(
-    # Check if ward in 2014 differs from ward in 2015
-    ward_changed = {
-      ward_2014 <- ward[year == 2014][1]
-      ward_2016 <- ward[year == 2016][1]
-      if(is.na(ward_2014) | is.na(ward_2016)) {
-        NA
-      } else {
-        ward_2014 != ward_2016
-      }
-    },
-    
-    # Create the indicator: 1 if changed and year >= 2015, 0 otherwise
-    ward_change = case_when(
-      is.na(ward_changed) ~ NA_real_,
-      ward_changed == TRUE & year >= 2015 ~ 1,
-      TRUE ~ 0
-    )
-  ) %>%
-  select(-ward_changed) %>%
-  ungroup()
-
-ward_switchers <- merged_parcels %>%
-  group_by(attom_id) %>%
-  filter(any(ward_change == 1, na.rm = TRUE)) %>%
-  ungroup()
+# merged_parcels <- merged_parcels %>%
+#   group_by(attom_id) %>%
+#   mutate(
+#     # Check if ward in 2014 differs from ward in 2015
+#     ward_changed = {
+#       ward_2014 <- ward[year == 2014][1]
+#       ward_2016 <- ward[year == 2016][1]
+#       if(is.na(ward_2014) | is.na(ward_2016)) {
+#         NA
+#       } else {
+#         ward_2014 != ward_2016
+#       }
+#     },
+#     
+#     # Create the indicator: 1 if changed and year >= 2015, 0 otherwise
+#     ward_change = case_when(
+#       is.na(ward_changed) ~ NA_real_,
+#       ward_changed == TRUE & year >= 2015 ~ 1,
+#       TRUE ~ 0
+#     )
+#   ) %>%
+#   select(-ward_changed) %>%
+#   ungroup()
+# 
+# ward_switchers <- merged_parcels %>%
+#   group_by(attom_id) %>%
+#   filter(any(ward_change == 1, na.rm = TRUE)) %>%
+#   ungroup()
+# 
+# st_write(ward_switchers, 
+#          "../output/ward_switchers.shp", 
+#          delete_dsn = TRUE)

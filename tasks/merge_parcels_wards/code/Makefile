@@ -22,7 +22,7 @@ WARD_INPUT := $(INPUT_DIR)/ward_panel.shp
 
 # Processing script and final output
 SCRIPT := merge_parcels_wards.R
-OUTPUT := $(OUTPUT_DIR)/parcel_panel.shp
+OUTPUT := $(OUTPUT_DIR)/matched_parcels_wards.shp
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Main Target
