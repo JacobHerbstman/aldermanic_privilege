@@ -107,15 +107,17 @@ joined_panel_switch <- joined_panel %>%
 ##write to shapefile
 st_write(joined_panel_switch,"../output/census_blocks_ward_switchers.shp", append = F, delete_dsn = TRUE)
 
+
+
 ## see which blocks switched
-switching_blocks <- joined_panel %>%
-  st_drop_geometry() %>%
-  group_by(block_id) %>%
-  summarise(
-    number_of_wards = n_distinct(ward),
-    wards_assigned = paste(sort(unique(ward)), collapse = " -> ")
-  ) %>%
-  filter(number_of_wards > 1)
+# switching_blocks <- joined_panel %>%
+#   st_drop_geometry() %>%
+#   group_by(block_id) %>%
+#   summarise(
+#     number_of_wards = n_distinct(ward),
+#     wards_assigned = paste(sort(unique(ward)), collapse = " -> ")
+#   ) %>%
+#   filter(number_of_wards > 1)
 
 
 
