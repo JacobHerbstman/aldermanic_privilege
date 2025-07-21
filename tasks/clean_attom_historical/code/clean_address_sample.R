@@ -15,7 +15,8 @@ unique_spatial_data <- data %>%
 
 ## historical parcel data 
 parcel_data_historical <- read_parquet("../input/chicago_attom_history.parquet") %>% 
-  filter(sa_yr_blt >= 2003) 
+  filter(sa_yr_blt >= 2010 & sa_yr_blt <= 2019) %>% 
+  filter(sa_mail_city == "CHICAGO") ## chicago only
   # slice_sample(n = 100000, replace = FALSE) 
 
 
@@ -43,7 +44,6 @@ merged_parcels <- merged_parcels %>%
 merged_parcels <- merged_parcels %>% 
   dplyr::select(
     attom_id, 
-    taxyear,
     sa_yr_blt, 
     sa_lotsize,
     sa_sqft,

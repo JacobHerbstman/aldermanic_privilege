@@ -5,8 +5,6 @@
 
 source("../../setup_environment/code/packages.R")
 
-
-
 building_permits <- read_csv("../input/Building_Permits_20250109.csv")
 
 ## remove contact columns and clean up names
@@ -45,6 +43,9 @@ building_permits_clean2 <- building_permits_clean2 %>%
                                    "PERMIT - WRECKING/DEMOLITION ", "PERMIT - NEW CONSTRUCTION")) %>% 
   filter(!is.na(pin))
 
+## keep just 2010-2019 permits for current census block analysis 
+building_permits_clean2 <- building_permits_clean2 %>% 
+  dplyr::filter(application_start_date_ym >= as.yearmon("Jan 2010") & application_start_date_ym <= as.yearmon("Dec 2019")) 
 
 ## convert to sf for writing
 building_permits_sf <- st_as_sf(
