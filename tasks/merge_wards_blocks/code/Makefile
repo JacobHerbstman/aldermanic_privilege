@@ -6,7 +6,7 @@ include ../../shell_functions.make
 # ─────────────────────────────────────────────────────────────────────────────
 
 # This is the REAL file this task will create.
-OUTPUT_FILE_1 := ../output/census_block_panel_wards.shp
+OUTPUT_FILE_1 := ../output/census_blocks_ward_switchers.shp
 OUTPUT_FILE_2 := ../output/ward_panel.shp
 
 # The R script that does the work.
@@ -14,7 +14,7 @@ SCRIPT_FILE := merge_wards_blocks.R
 
 # Define the INPUTS. These will all be created as symbolic links.
 # Note: For shapefiles, we make the .shp file the "representative" target.
-INPUT_BLOCKS    := ../input/census_blocks.shp
+INPUT_BLOCKS    := ../input/census_blocks_2010.csv
 INPUT_WARD_2005  := ../input/CHI_2005/CHI_2005.shp
 INPUT_WARD_2015  := ../input/CHI_2015/CHI_2015.shp
 
@@ -38,11 +38,11 @@ $(OUTPUT_FILE_1) $(OUTPUT_FILE_2): $(SCRIPT_FILE) $(INPUT_BLOCKS) $(INPUT_WARD_2
 # Rules to create the input symbolic links
 # -----------------------------------------------------------------------------
 
-# Rule for linking the intermediate data from the 'clean_block_data' task.
-# The recipe uses a wildcard (*) to link all shapefile components (.shp, .shx, .dbf, etc).
-$(INPUT_BLOCKS): ../../clean_block_data/output/census_blocks.shp | ../input
-	@echo "→ [merge_wards_blocks] Linking intermediate input: census_blocks"
-	ln -sf ../../clean_block_data/output/census_blocks.* ../input/
+# Rule for linking the raw 2010 Census Block CSV data.
+# The recipe now links the specific CSV file from the data_raw directory.
+$(INPUT_BLOCKS): ../../../data_raw/CensusBlockTIGER2010_20250721.csv | ../input
+	@echo "→ [merge_wards_blocks] Linking raw input: census_blocks_2010.csv"
+	ln -sf ../../../data_raw/CensusBlockTIGER2010_20250721.csv $@
 
 # Rule for linking the raw 2005 ward data from the 'data_raw' directory.
 # This links the entire directory.
