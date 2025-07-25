@@ -34,8 +34,6 @@ building_permits_clean2 <- building_permits_clean2 %>%
   dplyr::filter(!is.na(longitude)) 
 
 ##keep permit types renovation, easy permit process, elevator, wrecking, new construction
-## fix whitespace in permit_type column
-
 
 ## keep housing related stuff and then keep those with pins I can merge to ptax data
 building_permits_clean2 <- building_permits_clean2 %>% 
@@ -53,14 +51,17 @@ building_permits_sf <- st_as_sf(
   coords = c("longitude", "latitude"),   # adjust to your column names
   crs    = 4326,              # or whatever CRS your coords use
   remove = FALSE              # keep the lon/lat columns if you still want them
-)
-
+) %>% 
+  mutate(across(c(application_start_date_ym, issue_date_ym), 
+        function(x) as.Date(x)))
+        
 ## write clean data
 st_write(
   building_permits_sf,
-  "../output/building_permits_clean.shp",
+  "../output/building_permits_clean.gpkg",
   delete_layer = TRUE         # overwrite any existing files cleanly
 )
+
 ######################
 ## basic summary stats
 ######################

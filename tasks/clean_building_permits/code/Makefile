@@ -6,7 +6,7 @@ include ../../shell_functions.make
 # ─────────────────────────────────────────────────────────────────────────────
 
 # This is the REAL file this task will create in its own output folder.
-OUTPUT_FILE := ../output/building_permits_clean.shp
+OUTPUT_FILE := ../output/building_permits_clean.gpkg
 
 # This is the SYMBOLIC LINK this task needs in its input folder.
 INPUT_FILE := ../input/Building_Permits_20250109.csv
