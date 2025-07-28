@@ -58,12 +58,23 @@ block_level_aggregates <- permits_with_block_id %>%
 ## bring in panel of ward switches at the block level to merge in treatment variable
 joined_panel_switch <- st_read("../input/census_blocks_ward_switchers.gpkg") 
 
-final_regression_panel <- left_join(
+joined_panel_switch <- left_join(
   joined_panel_switch,
   block_level_aggregates,
   by = c("block_id", "year")
 ) %>% 
   st_drop_geometry()
+
+##bring in alderman data and restrictiveness scores
+
+alderman_restrictiveness_scores <- read_csv("../input/alderman_restrictiveness_score_test.csv") 
+
+final_regression_panel <- left_join(
+  joined_panel_switch,
+  alderman_restrictiveness_scores, 
+  by = "ward"
+  )
+
 
 # Save the final regression panel
 write_csv(final_regression_panel, "../output/permit_regression_panel_blocks_unbalanced.csv")

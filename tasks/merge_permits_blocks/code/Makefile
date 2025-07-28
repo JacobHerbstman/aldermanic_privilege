@@ -19,6 +19,8 @@ INPUT_BLOCKS    := ../input/census_blocks_2010.csv
 INPUT_PERMITS   := ../input/building_permits_clean.gpkg
 INPUT_WARD_PANEL := ../input/ward_panel.gpkg
 INPUT_BLOCK_PANEL := ../input/census_blocks_ward_switchers.gpkg
+INPUT_ALDERMAN_PANEL := ../input/chicago_alderman_panel.csv
+INPUT_RESTRICTIVENESS_SCORES := ../input/alderman_restrictiveness_score.csv
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Define Goals
@@ -63,6 +65,15 @@ $(INPUT_BLOCK_PANEL): ../../merge_wards_blocks/output/census_blocks_ward_switche
 	@echo "→ [merge_parcels_blocks] Linking intermediate input: census_block_group_panel_wards"
 	ln -sf ../../merge_wards_blocks/output/census_blocks_ward_switchers.gpkg ../input/
 
+# Rule for linking aldermen panel
+$(INPUT_ALDERMAN_PANEL): ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
+	@echo "→ [merge_parcels_blocks] Linking intermediate input: census_block_group_panel_wards"
+	ln -sf ../../create_alderman_data/output/chicago_alderman_panel.csv ../input/
+
+# Rule for linking restrictiveness scores
+$(INPUT_RESTRICTIVENESS_SCORES): ../../create_alderman_strictness_scores_test/output/alderman_restrictiveness_score_test.csv | ../input
+	@echo "→ [merge_parcels_blocks] Linking intermediate input: census_block_group_panel_wards"
+	ln -sf ../../create_alderman_strictness_scores_test/output/alderman_restrictiveness_score_test.csv ../input/
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -74,4 +85,4 @@ include ../../generic.make
 # Utility Targets
 # ─────────────────────────────────────────────────────────────────────────────
 
-link-inputs: $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL)
+link-inputs: $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) $(INPUT_ALDERMAN_PANEL) $(INPUT_RESTRICTIVENESS_SCORES)
