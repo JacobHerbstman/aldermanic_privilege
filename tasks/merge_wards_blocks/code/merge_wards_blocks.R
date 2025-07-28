@@ -6,135 +6,113 @@
 
 source("../../setup_environment/code/packages.R")
 
+# -----------------------------------------------------------------------------
+# 1. CREATE ANNUAL WARD PANEL
+# -----------------------------------------------------------------------------
+
 ## bring in old ward boundary data
 ward_bound2005 <- st_read("../input/CHI_2005/CHI_2005.shp")
 
-## make monthly panel for the pre-2015 ward map
-# Define start and end dates in yearmon format
-start_date_old <- as.yearmon("Jan 2005")
-end_date_old   <- as.yearmon("Apr 2015") # Ends the month before the cutoff
-
+## make annual panel for the pre-2015 ward map
 ward_bound2005 <- ward_bound2005 %>%
   rowwise() %>%
-  mutate(month = list(seq(from = start_date_old, to = end_date_old, by = 1/12))) %>%
-  unnest(month) %>%
+  mutate(year = list(2005:2014)) %>% # Switched to annual sequence
+  unnest(year) %>%
   rename(ward = ward2005) %>%
-  select(month, ward, geometry)
-
+  select(year, ward, geometry)
 
 ## bring in new ward boundary data
 ward_bound2015 <- st_read("../input/CHI_2015/CHI_2015.shp")
 
-## make monthly panel for the post-2015 ward map
-# Define start and end dates in yearmon format
-start_date_new <- as.yearmon("May 2015") # Starts at the cutoff
-end_date_new   <- as.yearmon("Dec 2024") # Goes to end of original panel period
-
+## make annual panel for the post-2015 ward map
 ward_bound2015 <- ward_bound2015 %>%
   rowwise() %>%
-  mutate(month = list(seq(from = start_date_new, to = end_date_new, by = 1/12))) %>%
-  unnest(month) %>%
+  mutate(year = list(2015:2024)) %>% # Switched to annual sequence
+  unnest(year) %>%
   rename(ward = ward2015) %>%
-  select(month, ward, geometry)
+  select(year, ward, geometry)
 
-## join to one large monthly panel
-ward_panel_monthly <- rbind(ward_bound2005, ward_bound2015) %>% 
-  arrange(ward, month)
+## join to one large annual panel
+ward_panel_annual <- rbind(ward_bound2005, ward_bound2015) %>%
+  arrange(ward, year)
 
-# To save the file correctly, convert the 'yearmon' column to a standard Date
-# and write to a modern GeoPackage (.gpkg) file.
-ward_panel_to_write <- ward_panel_monthly %>%
-  mutate(date = as.Date(month)) %>% # Represents each month as the first day
-  select(-month)                   # Remove the original yearmon column before saving
-
-st_write(ward_panel_to_write, "../output/ward_panel_monthly.gpkg", delete_layer = TRUE)
+# Save the annual ward panel
+st_write(ward_panel_annual, "../output/ward_panel.gpkg", delete_layer = TRUE)
 
 
+# -----------------------------------------------------------------------------
+# 2. PREPARE CROSS-SECTIONAL CENSUS BLOCK DATA
+# -----------------------------------------------------------------------------
 
-
-##bring in census block and harmonize with ward boundaries
-census_blocks <- read_csv("../input/census_blocks_2010.csv") %>% 
+## bring in census block data and harmonize CRS
+census_blocks <- read_csv("../input/census_blocks_2010.csv") %>%
   rename(geometry = the_geom)
-census_blocks <- st_as_sf(census_blocks, wkt = "geometry", crs = 4269) %>% 
-  st_transform(st_crs(ward_panel_monthly))
 
-# Create a monthly panel of census blocks and their geometries
-start_date <- as.yearmon("Jan 2010")
-end_date   <- as.yearmon("Dec 2019")
-
-## create yearly panel of census blocks and their geometries
-census_blocks_monthly <- census_blocks %>%
+census_blocks <- st_as_sf(census_blocks, wkt = "geometry", crs = 4269) %>%
+  st_transform(st_crs(ward_panel_annual)) %>% # Use the new annual panel for CRS
   rename(block_id = GEOID10) %>%
-  mutate(block_id = as.character(block_id)) %>%
-  rowwise() %>%
-  mutate(month = list(seq(from = start_date, to = end_date, by = 1/12))) %>%
-  unnest(month) %>%
-  select(month, block_id, geometry) %>%
-  arrange(block_id, month)
+  mutate(block_id = as.character(block_id))
+
+## filter ward panel to the desired 2010-2019 period
+ward_panel <- ward_panel_annual %>%
+  filter(year >= 2010 & year <= 2019) %>%
+  arrange(ward, year)
 
 
-# --- Merge Panels using Centroid Method ---
+# -----------------------------------------------------------------------------
+# 3. EFFICIENTLY MERGE BLOCKS AND WARDS
+# -----------------------------------------------------------------------------
 
-# 1. Split both panel datasets into a list of data frames, one for each year.
-## keep just ward panel years 2010-2019
-ward_panel <- ward_panel_monthly %>%
-  filter(month >= as.yearmon("Jan 2010") & month <= as.yearmon("Dec 2019")) %>%
-  arrange(ward, month)
+# Create two simple cross-sections of the ward maps
+ward_map_pre_2015 <- ward_panel %>%
+  filter(year == 2014) %>% # Use a representative year
+  select(ward, geometry)
 
-blocks_by_month <- group_split(census_blocks_monthly, month)
-wards_by_month  <- group_split(ward_panel, month)
+ward_map_post_2015 <- ward_panel %>%
+  filter(year == 2015) %>% # Use a representative year
+  select(ward, geometry)
 
-joined_panel <- map2_dfr(
-  blocks_by_month,
-  wards_by_month,
-  ~ st_join(
-    st_centroid(.x), # Use the centroid of the blocks for the join
-    .y,              # The ward polygons
-    join = st_within
+block_centroids <- st_centroid(census_blocks)
+
+# For each block, find the index of the NEAREST pre- and post-2015 ward
+nearest_pre_idx <- st_nearest_feature(block_centroids, ward_map_pre_2015)
+nearest_post_idx <- st_nearest_feature(block_centroids, ward_map_post_2015)
+
+blocks_cross_section <- tibble(
+  block_id = census_blocks$block_id,
+  ward_pre = ward_map_pre_2015$ward[nearest_pre_idx],
+  ward_post = ward_map_post_2015$ward[nearest_post_idx]
+)
+
+# Expand this small data frame into a full ANNUAL panel.
+start_year <- 2010
+end_year   <- 2019
+
+joined_panel <- blocks_cross_section %>%
+  mutate(year = list(start_year:end_year)) %>%
+  unnest(year) %>%
+  mutate(
+    ward = ifelse(year < 2015, ward_pre, ward_post)
   ) %>%
-    select(
-      month = month.x, # Select and rename the month column
-      block_id,
-      ward
-    )
-) %>%
-  arrange(block_id, month)
+  select(year, block_id, ward) %>%
+  arrange(block_id, year)
 
+# -----------------------------------------------------------------------------
+# 4. CALCULATE SWITCH INDICATOR AND SAVE
+# -----------------------------------------------------------------------------
 
 joined_panel_switch <- joined_panel %>%
-  # arrange by the grouping and time variables
   arrange(block_id, year) %>%
-  # Group by each individual census block
   group_by(block_id) %>%
   mutate(
-    # Find the very first year a switch occurs for this block.
-    # If a block never switches, this will result in 'Inf' (infinity).
     first_switch_year = min(year[ward != lag(ward, default = first(ward))], na.rm = TRUE),
-    # Create the indicator:
     ward_switch = as.integer(year >= first_switch_year)
   ) %>%
   ungroup() %>%
-  select(-first_switch_year) #remove the helper column
+  select(-first_switch_year)
 
-joined_panel_switch <- joined_panel %>%
-  arrange(block_id, month) %>%
-  group_by(block_id) %>%
-  mutate(
-    # Find the first month a switch occurs.
-    first_switch_month = min(month[ward != lag(ward, default = first(ward))], na.rm = TRUE),
-    # Create the indicator
-    ward_switch = as.integer(month >= first_switch_month)
-  ) %>%
-  ungroup() %>%
-  select(-first_switch_month) # Remove the helper column
-
-joined_panel_to_write <- joined_panel_switch %>%
-  mutate(month = as.Date(month))
-
-##write to shapefile
-st_write(joined_panel_switch,"../output/census_blocks_ward_switchers.gpkg", delete_dsn = TRUE)
-
-
+# Write to GeoPackage (no date conversion is needed for integer years)
+st_write(joined_panel_switch, "../output/census_blocks_ward_switchers.gpkg", delete_dsn = TRUE)
 
 ## see which blocks switched
 # switching_blocks <- joined_panel %>%

@@ -7,7 +7,7 @@ include ../../shell_functions.make
 
 # This is the REAL file this task will create.
 OUTPUT_FILE_1 := ../output/census_blocks_ward_switchers.gpkg
-OUTPUT_FILE_2 := ../output/ward_panel.shp
+OUTPUT_FILE_2 := ../output/ward_panel.gpkg
 
 # The R script that does the work.
 SCRIPT_FILE := merge_wards_blocks.R
