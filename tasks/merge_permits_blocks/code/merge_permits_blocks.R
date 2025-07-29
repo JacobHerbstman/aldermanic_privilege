@@ -69,17 +69,32 @@ joined_panel_switch <- left_join(
 
 alderman_restrictiveness_scores <- read_csv("../input/alderman_restrictiveness_score_test.csv") 
 
-final_regression_panel <- left_join(
+joined_panel_switch <- left_join(
   joined_panel_switch,
   alderman_restrictiveness_scores, 
   by = "ward"
   )
 
 
+##bring in block-group level controls
+
+bg_controls <-  read_csv("../input/block_group_controls.csv") %>% 
+  rename(block_group_id = GEOID) %>% 
+  mutate(block_group_id = as.character(block_group_id)) 
+
+# Create the block group ID
+joined_panel_switch <- joined_panel_switch %>%
+  mutate(block_group_id = substr(block_id, 1, 12))
+
+final_regression_panel <- left_join(
+  joined_panel_switch,
+  bg_controls,
+  by = c("block_group_id", "year")
+) %>% 
+  select(-block_group_id)
+
 # Save the final regression panel
 write_csv(final_regression_panel, "../output/permit_regression_panel_blocks_unbalanced.csv")
-
-
 
 balanced_panel <- final_regression_panel %>%
   group_by(block_id) %>%

@@ -21,6 +21,7 @@ INPUT_WARD_PANEL := ../input/ward_panel.gpkg
 INPUT_BLOCK_PANEL := ../input/census_blocks_ward_switchers.gpkg
 INPUT_ALDERMAN_PANEL := ../input/chicago_alderman_panel.csv
 INPUT_RESTRICTIVENESS_SCORES := ../input/alderman_restrictiveness_score.csv
+INPUT_CONTROLS := ../input/block_group_controls.csv
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Define Goals
@@ -34,7 +35,7 @@ all: $(OUTPUT_UNBALANCED) $(OUTPUT_BALANCED)
 # Main rule to create the final output
 # This rule depends on the script and all three sets of input shapefiles.
 # -----------------------------------------------------------------------------
-$(OUTPUT_UNBALANCED) $(OUTPUT_BALANCED): $(SCRIPT_FILE) $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) | ../output
+$(OUTPUT_UNBALANCED) $(OUTPUT_BALANCED): $(SCRIPT_FILE) $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) $(INPUT_RESTRICTIVENESS_SCORES) $(INPUT_CONTROLS) | ../output
 	@echo "→ [merge_wards_blocks] Running R script to merge parcels with census blocks"
 	$(R) $(SCRIPT_FILE)
 
@@ -75,6 +76,11 @@ $(INPUT_RESTRICTIVENESS_SCORES): ../../create_alderman_strictness_scores_test/ou
 	@echo "→ [merge_parcels_blocks] Linking intermediate input: census_block_group_panel_wards"
 	ln -sf ../../create_alderman_strictness_scores_test/output/alderman_restrictiveness_score_test.csv ../input/
 
+# Rule for linking demographic controls
+$(INPUT_RESTRICTIVENESS_SCORES): ../../create_block_group_controls/output/block_group_controls.csv | ../input
+	@echo "→ [merge_parcels_blocks] Linking intermediate input: census_block_group_panel_wards"
+	ln -sf ../../create_block_group_controls/output/block_group_controls.csv ../input/
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Generic rules
@@ -85,4 +91,4 @@ include ../../generic.make
 # Utility Targets
 # ─────────────────────────────────────────────────────────────────────────────
 
-link-inputs: $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) $(INPUT_ALDERMAN_PANEL) $(INPUT_RESTRICTIVENESS_SCORES)
+link-inputs: $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) $(INPUT_ALDERMAN_PANEL) $(INPUT_RESTRICTIVENESS_SCORES) $(INPUT_CONTROLS)

@@ -25,8 +25,8 @@ prepare_panel <- function(df) {
       ## create an indicator for being post-treatment (to be interacted with treated_unit)
       post = ifelse(relative_year >= 0, 1, 0),
       
-      score_pre = first(restrictiveness_score[year == 2014]),
-      score_post = first(restrictiveness_score[year == 2015]),
+      score_pre = first(restrictiveness_score_pca[year == 2014]),
+      score_post = first(restrictiveness_score_pca[year == 2015]),
       
       # Create a category for the type of switch
       switch_type = case_when(
@@ -41,6 +41,7 @@ prepare_panel <- function(df) {
 unbalanced_panel <- unbalanced_panel %>% group_by(block_id) %>% prepare_panel() %>% ungroup()
 balanced_panel <- balanced_panel %>% group_by(block_id) %>% prepare_panel() %>% ungroup()
 
+controls <- c("homeownership_rate", "population_density", "median_income", "percent_black", "percent_hispanic", "avg_household_size") 
 
 # -----------------------------------------------------------------------------
 # 3. STANDARD DIFFERENCE-IN-DIFFERENCES ANALYSIS
@@ -50,33 +51,34 @@ balanced_panel <- balanced_panel %>% group_by(block_id) %>% prepare_panel() %>% 
 
 # Run the regression on the unbalanced panel
 did_unbalanced_permits <- feols(
-  log(n_permits + 1) ~ restrictiveness_score | block_id + year,
+  log(n_permits + 1) ~ restrictiveness_score_pca  | block_id + year,
   data = unbalanced_panel
 )
 
 did_unbalanced_process_time <- feols(
-  log(avg_processing_time) ~ restrictiveness_score  | block_id + year,
+  log(avg_processing_time) ~ restrictiveness_score_pca  | block_id + year,
   weights = ~n_permits, 
   data = unbalanced_panel
 )
 
 did_unbalanced_reported_cost <- feols(
-  log(avg_reported_cost) ~ restrictiveness_score | block_id + year,
+  log(avg_reported_cost) ~ restrictiveness_score_pca  | block_id + year,
   weights = ~n_permits, 
   data = unbalanced_panel
 )
 
 did_unbalanced_total_fee <- feols(
-  log(avg_total_fee) ~ restrictiveness_score | block_id + year,
+  log(avg_total_fee) ~ restrictiveness_score_pca  | block_id + year,
   weights = ~n_permits, 
   data = unbalanced_panel
 )
 
 etable(did_unbalanced_permits, did_unbalanced_process_time, 
        did_unbalanced_reported_cost, did_unbalanced_total_fee,
-       headers = list("Permits" = 1, "Processing Times" = 1),
+       headers = list("Permits" = 1, "Processing Times" = 1, "Reported Costs" =1, "Total Fees" = 1),
        title = "DiD Estimate of Ward Switch on Permit Counts", 
-       vcov = ~block_id)
+       vcov = ~block_id, 
+       signif.code = c("***"=0.01, "**"=0.05, "*"=0.1))
 
 
 
@@ -99,16 +101,17 @@ did_balanced_reported_cost <- feols(
 )
 
 did_balanced_total_fee <- feols(
-  log(avg_total_fee) ~ restrictiveness_score_pca | block_id + year,
+  log(avg_total_fee) ~ restrictiveness_score_pca  | block_id + year,
   weights = ~n_permits, 
   data = balanced_panel
 )
 
 etable(did_balanced_permits,did_balanced_process_time,
        did_balanced_reported_cost, did_balanced_total_fee,
-       headers = list("Permits" = 1, "Processing Times" = 1),
+       headers = list("Permits" = 1, "Processing Times" = 1, "Reported Costs" =1, "Total Fees" = 1),
        title = "DiD Estimate of Ward Switch on Permit Counts", 
-       vcov = ~block_id)
+       vcov = ~block_id, 
+       signif.code = c("***"=0.01, "**"=0.05, "*"=0.1))
 
 
 
@@ -117,7 +120,7 @@ etable(did_balanced_permits,did_balanced_process_time,
 ## unbalanced, processing time
 
 event_study_stricter_unbalanced_process_time <- feols(
-  log(avg_processing_time) ~ i(relative_year, treat, ref = -1) | block_id + year,
+  log(avg_processing_time) ~ i(relative_year, treat, ref = -1)  | block_id + year,
   data = unbalanced_panel %>% filter(switch_type %in% c("Control", "Moved to Stricter")),
   weights = ~n_permits
 )
@@ -141,7 +144,7 @@ legend("bottomleft", col = 1:2, pch = 20, legend = c("Moved to Stricter", "Moved
 ## unbalanced, reported costs
 
 event_study_stricter_unbalanced_reported_cost <- feols(
-  log(avg_reported_cost) ~ i(relative_year, treat, ref = -1) | block_id + year,
+  log(avg_reported_cost) ~ i(relative_year, treat, ref = -1)| block_id + year,
   data = unbalanced_panel %>% filter(switch_type %in% c("Control", "Moved to Stricter")),
   weights = ~n_permits
 )
@@ -178,7 +181,7 @@ event_study_less_strict_unbalanced_total_fee <- feols(
 )
 
 iplot(
-  list(event_study_stricter_unbalanced_total_fee, event_study_less_strict_unbalanced_reported_cost),
+  list(event_study_stricter_unbalanced_total_fee, event_study_less_strict_unbalanced_total_fee),
   main =  "Effect on Total Fees",
   sub = "Unbalanced Panel",
   xlab = "Years Relative to Ward Switch",
@@ -189,7 +192,7 @@ legend("bottomleft", col = 1:2, pch = 20, legend = c("Moved to Stricter", "Moved
 
 
 ###########################
-#### balanced #############
+#### balanced panel #######
 ###########################
 
 

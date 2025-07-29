@@ -115,5 +115,8 @@ ward_demographics <- ward_demographics %>%
     restrictiveness_score = as.numeric(scale(homeownership_rate) + scale(median_income) - scale(population_density))
   ) 
 
+ward_demographics <- ward_demographics %>% 
+  select(ward, restrictiveness_score_pca, restrictiveness_score)
+
 write_csv(ward_demographics, "../output/alderman_restrictiveness_score_test.csv")
 
