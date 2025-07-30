@@ -102,179 +102,221 @@ all_models <- regression_grid %>%
 # -----------------------------------------------------------------------------
 ### Display Results
 # -----------------------------------------------------------------------------
+# --- Define clean headers to replace the long dependent variable names ---
+clean_headers <- c(
+  "Log(Permit Count + 1)", 
+  "Log(Processing Time)", 
+  "Log(Reported Cost)", 
+  "Log(Total Fees)"
+)
 
-# Unbalanced panel results
+
+rename_dict <- c(
+  "restrictiveness_score_pca" = "Restrictiveness Score",
+  "block_id"                  = "Census Block", 
+  "year"                      = "Year"
+)
+
 etable(
   all_models %>% filter(panel_name == "unbalanced") %>% pull(model),
-  headers = all_models %>% filter(panel_name == "unbalanced") %>% pull(outcome),
-  title = "DiD Estimates (Unbalanced Panel)",
-  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1)
+  
+  # Formatting options
+  headers     = clean_headers,
+  keep        = "Restrictiveness Score",
+  style.tex = style.tex("aer"),
+  fitstat     = ~n,
+  depvar      = FALSE,
+  digits = 2,
+  dict        = rename_dict,
+  # General options
+  title       = "DiD Estimates (Unbalanced Panel)",
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
+  file      = "../output/table_did_unbalanced.tex", 
+  replace = T
 )
+
 
 # Balanced panel results
 etable(
   all_models %>% filter(panel_name == "balanced") %>% pull(model),
-  headers = all_models %>% filter(panel_name == "balanced") %>% pull(outcome),
-  title = "DiD Estimates (Balanced Panel)",
-  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1)
+  
+  # Formatting options
+  headers     = clean_headers,
+  keep        = "Restrictiveness Score",
+  style.tex = style.tex("aer"),
+  fitstat     = ~n,
+  depvar      = FALSE,
+  digits = 2,
+  dict        = rename_dict,
+  # General options
+  title       = "DiD Estimates (Balanced Panel)",
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
+  file      = "../output/table_did_balanced.tex",
+  replace = T
 )
 
 
+# -----------------------------------------------------------------------------
+### event studies #########
+# -----------------------------------------------------------------------------
 
+event_study_specs <- model_specs %>%
+  filter(str_detect(outcome, "avg_"))
 
-### event studies 
-
-## unbalanced, processing time
-
-event_study_stricter_unbalanced_process_time <- feols(
-  log(avg_processing_time) ~ i(relative_year, treat, ref = -1)  | block_id + year,
-  data = unbalanced_panel %>% filter(switch_type %in% c("Control", "Moved to Stricter")),
-  weights = ~n_permits
+# Now, create every combination of panel and outcome.
+event_study_grid <- crossing(
+  panel_name = names(panel_list),
+  event_study_specs
 )
 
-event_study_less_strict_unbalanced_process_time <- feols(
-  log(avg_processing_time) ~ i(relative_year, treat, ref = -1) | block_id + year,
-  data = unbalanced_panel %>% filter(switch_type %in% c("Control", "Moved to Less Strict")),
-  weights = ~n_permits
-)
 
-iplot(
-  list(event_study_stricter_unbalanced_process_time, event_study_less_strict_unbalanced_process_time),
-  main =  "Effect on Permit Processing Time",
-  sub = "Unbalanced Panel",
-  xlab = "Years Relative to Ward Switch",
-  ylab = "Log(Avg. Processing Time)"
-)
-legend("bottomleft", col = 1:2, pch = 20, legend = c("Moved to Stricter", "Moved to Less Strict"))
-
-
-## unbalanced, reported costs
-
-event_study_stricter_unbalanced_reported_cost <- feols(
-  log(avg_reported_cost) ~ i(relative_year, treat, ref = -1)| block_id + year,
-  data = unbalanced_panel %>% filter(switch_type %in% c("Control", "Moved to Stricter")),
-  weights = ~n_permits
-)
-
-event_study_less_strict_unbalanced_reported_cost <- feols(
-  log(avg_reported_cost) ~ i(relative_year, treat, ref = -1) | block_id + year,
-  data = unbalanced_panel %>% filter(switch_type %in% c("Control", "Moved to Less Strict")),
-  weights = ~n_permits
-)
-
-iplot(
-  list(event_study_stricter_unbalanced_reported_cost, event_study_less_strict_unbalanced_reported_cost),
-  main =  "Effect on Reported Costs",
-  sub = "Unbalanced Panel",
-  xlab = "Years Relative to Ward Switch",
-  ylab = "Log(Avg. Reported Cost)"
-)
-legend("bottomleft", col = 1:2, pch = 20, legend = c("Moved to Stricter", "Moved to Less Strict"))
+# --- Function to run a pair of event study models ---
+run_event_study_pair <- function(panel_name, outcome, weights) {
+  
+  fml_event <- as.formula(
+    sprintf("%s ~ i(relative_year, treat, ref = -1) + %s | block_id + year",
+            outcome, paste(controls, collapse = " + "))
+  )
+  
+  panel_data <- panel_list[[panel_name]]
+  w_formula <- as.formula(paste0("~", weights))
+  
+  # Model 1: Moved to Stricter
+  model_stricter <- feols(
+    fml = fml_event,
+    data = panel_data %>% filter(switch_type %in% c("Control", "Moved to Stricter")),
+    weights = w_formula, vcov = ~block_id
+  )
+  
+  # Model 2: Moved to Less Strict
+  model_less_strict <- feols(
+    fml = fml_event,
+    data = panel_data %>% filter(switch_type %in% c("Control", "Moved to Less Strict")),
+    weights = w_formula, vcov = ~block_id
+  )
+  
+  # Return both models as a named list
+  list(stricter = model_stricter, less_strict = model_less_strict)
+}
 
 
-## unbalanced, total fees
-
-
-event_study_stricter_unbalanced_total_fee <- feols(
-  log(avg_total_fee) ~ i(relative_year, treat, ref = -1) | block_id + year,
-  data = unbalanced_panel %>% filter(switch_type %in% c("Control", "Moved to Stricter")),
-  weights = ~n_permits
-)
-
-event_study_less_strict_unbalanced_total_fee <- feols(
-  log(avg_total_fee) ~ i(relative_year, treat, ref = -1) | block_id + year,
-  data = unbalanced_panel %>% filter(switch_type %in% c("Control", "Moved to Less Strict")),
-  weights = ~n_permits
-)
-
-iplot(
-  list(event_study_stricter_unbalanced_total_fee, event_study_less_strict_unbalanced_total_fee),
-  main =  "Effect on Total Fees",
-  sub = "Unbalanced Panel",
-  xlab = "Years Relative to Ward Switch",
-  ylab = "Log(Avg. Total Fee)"
-)
-legend("bottomleft", col = 1:2, pch = 20, legend = c("Moved to Stricter", "Moved to Less Strict"))
+# --- Run all models and store them in the grid ---
+all_event_studies <- event_study_grid %>%
+  mutate(model_pair = pmap(
+    list(panel_name, outcome, weights),
+    run_event_study_pair
+  ))
 
 
 
-###########################
-#### balanced panel #######
-###########################
+# --- Final, corrected plotting function ---
+plot_event_study_ggplot <- function(model_pair, outcome, panel_name, ...) {
+  
+  # 1. Safely extract data using the iplot() list output
+  # iplot() returns a list, so we grab the first element [[1]]
+  
+  stricter_data <- tryCatch({
+    iplot(model_pair$stricter, .plot = FALSE)[[1]] %>% 
+      mutate(group = "Moved to Stricter Alderman")
+  }, error = function(e) NULL) # Return NULL if it fails
+  
+  less_strict_data <- tryCatch({
+    iplot(model_pair$less_strict, .plot = FALSE)[[1]] %>% 
+      mutate(group = "Moved to Less Strict Alderman")
+  }, error = function(e) NULL) # Return NULL if it fails
+  
+  # 2. Combine any data that was successfully extracted
+  plot_data <- bind_rows(stricter_data, less_strict_data)
+  
+  if (nrow(plot_data) > 0) {
+    plot_data <- plot_data %>% 
+      filter(x != -5) %>%
+      # THE FIX: Multiply the correct columns by 100
+      mutate(across(c(estimate, ci_low, ci_high), ~ .x * 100))
+  }
+  
+  # 3. Check if we have any data to plot
+  if (is.null(plot_data) || nrow(plot_data) == 0) {
+    message(sprintf("--> SKIPPING PLOT for '%s' on '%s' panel (no coefficients found).", 
+                    outcome, panel_name))
+    return(invisible(NULL))
+  }
+  
+  # 4. Build the ggplot
+  main_title <- case_when(
+    str_detect(outcome, "processing_time") ~ "Effect on Permit Processing Time",
+    str_detect(outcome, "reported_cost") ~ "Effect on Reported Costs",
+    str_detect(outcome, "total_fee") ~ "Effect on Total Fees",
+    TRUE ~ outcome
+  )
+  
+  p <- ggplot(plot_data, aes(x = factor(x), y = estimate, color = group)) + # Using factor(x) fixes the axis
+    geom_vline(xintercept = "-1", linetype = "dashed", color = "gray60") +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
+    geom_errorbar(aes(ymin = ci_low, ymax = ci_high), width = 0.2, alpha = 0.7) +
+    geom_point(size = 2.5) +
+    facet_wrap(~ group) +
+    scale_color_manual(values = c("Moved to Stricter Alderman" = "#D55E00", "Moved to Less Strict Alderman" = "#0072B2")) +
+    labs(
+      title = main_title,
+      subtitle = paste(str_to_title(panel_name), "Panel"),
+      x = "Years Relative to Ward Switch",
+      y = "Percent Change"
+    ) +
+    theme_minimal(base_size = 14) +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(face = "bold"),
+      panel.grid = element_blank(),
+      strip.text = element_text(face = "bold")
+    )
+  
+  return(p)
+}
 
 
+# generate all plots
+for (i in 1:nrow(all_event_studies)) {
+  
+  params <- all_event_studies[i, ]
+  
+  message(sprintf("--- Processing spec %d/%d: %s (%s) ---", 
+                  i, nrow(all_event_studies), 
+                  params$outcome, 
+                  params$panel_name))
+  
+  tryCatch({
+    # 1. Generate the ggplot object by calling the function
+    my_plot <- plot_event_study_ggplot(
+      model_pair = params$model_pair[[1]],
+      outcome    = params$outcome,
+      panel_name = params$panel_name
+    )
+    
+    # 2. Check if the plot object is valid before proceeding
+    if (!is.null(my_plot)) {
+      # 3. Display the plot in your R session
+      print(my_plot)
+      
+      # 4. Create a clean filename (e.g., "plots/event_study_unbalanced_avg_total_fee.png")
+      outcome_shortname <- str_extract(params$outcome, "avg_\\w+")
+      filename <- sprintf("../output/event_study_%s_%s.pdf", 
+                          params$panel_name, 
+                          outcome_shortname)
+      
+      # 5. Save the plot to the file
+      cowplot::save_plot(filename, my_plot, base_height = 6, base_width = 10, bg = "white")
+      
+      message(sprintf("      -> Plot saved to %s", filename))
+    }
+    
+  }, error = function(e) {
+    message(sprintf("!!! An error occurred for plot %d. Skipping. !!!", i))
+    message("The error was:")
+    print(e$message)
+  })
+}
 
-## balanced, processing time
-
-event_study_stricter_balanced_process_time <- feols(
-  log(avg_processing_time) ~ i(relative_year, treat, ref = -1) | block_id + year,
-  data = balanced_panel %>% filter(switch_type %in% c("Control", "Moved to Stricter")),
-  weights = ~n_permits
-)
-
-event_study_less_strict_balanced_process_time <- feols(
-  log(avg_processing_time) ~ i(relative_year, treat, ref = -1) | block_id + year,
-  data = balanced_panel %>% filter(switch_type %in% c("Control", "Moved to Less Strict")),
-  weights = ~n_permits
-)
-
-iplot(
-  list(event_study_stricter_balanced_process_time, event_study_less_strict_balanced_process_time),
-  main =  "Effect on Permit Processing Time",
-  sub = "balanced Panel",
-  xlab = "Years Relative to Ward Switch",
-  ylab = "Log(Avg. Processing Time)"
-)
-legend("bottomleft", col = 1:2, pch = 20, legend = c("Moved to Stricter", "Moved to Less Strict"))
-
-
-## balanced, reported costs
-
-event_study_stricter_balanced_reported_cost <- feols(
-  log(avg_reported_cost) ~ i(relative_year, treat, ref = -1) | block_id + year,
-  data = balanced_panel %>% filter(switch_type %in% c("Control", "Moved to Stricter")),
-  weights = ~n_permits
-)
-
-event_study_less_strict_balanced_reported_cost <- feols(
-  log(avg_reported_cost) ~ i(relative_year, treat, ref = -1) | block_id + year,
-  data = balanced_panel %>% filter(switch_type %in% c("Control", "Moved to Less Strict")),
-  weights = ~n_permits
-)
-
-iplot(
-  list(event_study_stricter_balanced_reported_cost, event_study_less_strict_balanced_reported_cost),
-  main =  "Effect on Reported Costs",
-  sub = "balanced Panel",
-  xlab = "Years Relative to Ward Switch",
-  ylab = "Log(Avg. Reported Cost)"
-)
-legend("bottomleft", col = 1:2, pch = 20, legend = c("Moved to Stricter", "Moved to Less Strict"))
-
-
-## balanced, total fees
-
-
-event_study_stricter_balanced_total_fee <- feols(
-  log(avg_total_fee) ~ i(relative_year, treat, ref = -1) | block_id + year,
-  data = balanced_panel %>% filter(switch_type %in% c("Control", "Moved to Stricter")),
-  weights = ~n_permits
-)
-
-event_study_less_strict_balanced_total_fee <- feols(
-  log(avg_total_fee) ~ i(relative_year, treat, ref = -1) | block_id + year,
-  data = balanced_panel %>% filter(switch_type %in% c("Control", "Moved to Less Strict")),
-  weights = ~n_permits
-)
-
-iplot(
-  list(event_study_stricter_balanced_total_fee, event_study_less_strict_balanced_reported_cost),
-  main =  "Effect on Total Fees",
-  sub = "balanced Panel",
-  xlab = "Years Relative to Ward Switch",
-  ylab = "Log(Avg. Total Fee)"
-)
-legend("bottomleft", col = 1:2, pch = 20, legend = c("Moved to Stricter", "Moved to Less Strict"))
 
 
 
