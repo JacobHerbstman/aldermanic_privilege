@@ -41,77 +41,84 @@ prepare_panel <- function(df) {
 unbalanced_panel <- unbalanced_panel %>% group_by(block_id) %>% prepare_panel() %>% ungroup()
 balanced_panel <- balanced_panel %>% group_by(block_id) %>% prepare_panel() %>% ungroup()
 
-controls <- c("homeownership_rate", "population_density", "median_income", "percent_black", "percent_hispanic", "avg_household_size") 
 
 # -----------------------------------------------------------------------------
-# 3. STANDARD DIFFERENCE-IN-DIFFERENCES ANALYSIS
+### Setup Regression Specifications
 # -----------------------------------------------------------------------------
-# We regress the outcome on 'ward_switch', which is 1 for treated blocks in
-# the post-period and 0 otherwise. We include block and year fixed effects.
 
-# Run the regression on the unbalanced panel
-did_unbalanced_permits <- feols(
-  log(n_permits + 1) ~ restrictiveness_score_pca  | block_id + year,
-  data = unbalanced_panel
+# List of panel datasets to use
+panel_list <- list(
+  unbalanced = unbalanced_panel,
+  balanced = balanced_panel
 )
 
-did_unbalanced_process_time <- feols(
-  log(avg_processing_time) ~ restrictiveness_score_pca  | block_id + year,
-  weights = ~n_permits, 
-  data = unbalanced_panel
+# Define all model specifications in a single, clear data frame
+controls <- c(
+  "homeownership_rate", "population_density", "median_income",
+  "percent_black", "percent_hispanic", "avg_household_size"
 )
 
-did_unbalanced_reported_cost <- feols(
-  log(avg_reported_cost) ~ restrictiveness_score_pca  | block_id + year,
-  weights = ~n_permits, 
-  data = unbalanced_panel
+model_specs <- tibble(
+  outcome = c(
+    "log(n_permits + 1)", # Use +1 to handle zeroes
+    "log(avg_processing_time)",
+    "log(avg_reported_cost)",
+    "log(avg_total_fee)"
+  ),
+  weights = c(NA, "n_permits", "n_permits", "n_permits")
 )
 
-did_unbalanced_total_fee <- feols(
-  log(avg_total_fee) ~ restrictiveness_score_pca  | block_id + year,
-  weights = ~n_permits, 
-  data = unbalanced_panel
+# -----------------------------------------------------------------------------
+### Run All Regressions
+# -----------------------------------------------------------------------------
+
+# Create a grid of every combination of panel and model spec
+regression_grid <- crossing(
+  panel_name = names(panel_list),
+  model_specs
 )
 
-etable(did_unbalanced_permits, did_unbalanced_process_time, 
-       did_unbalanced_reported_cost, did_unbalanced_total_fee,
-       headers = list("Permits" = 1, "Processing Times" = 1, "Reported Costs" =1, "Total Fees" = 1),
-       title = "DiD Estimate of Ward Switch on Permit Counts", 
-       vcov = ~block_id, 
-       signif.code = c("***"=0.01, "**"=0.05, "*"=0.1))
+# Define a function to run a single regression
+run_feols <- function(panel_name, outcome, weights) {
+  
+  fml_string <- sprintf("%s ~ restrictiveness_score_pca + %s | block_id + year",
+                        outcome, paste(controls, collapse = " + "))
+  
+  feols(
+    fml = as.formula(fml_string),
+    data = panel_list[[panel_name]],
+    # CORRECTED LINE: Convert the string name into a formula
+    weights = if (!is.na(weights)) as.formula(paste0("~", weights)) else NULL,
+    vcov = ~block_id
+  )
+}
+
+# Use pmap to iterate over the grid and run all regressions,
+# storing the results in a new list-column called 'model'.
+all_models <- regression_grid %>%
+  mutate(model = pmap(list(panel_name, outcome, weights), run_feols))
 
 
+# -----------------------------------------------------------------------------
+### Display Results
+# -----------------------------------------------------------------------------
 
-# Run the same regression on the balanced panel as a robustness check
-did_balanced_permits <- feols(
-  log(n_permits + 1) ~  restrictiveness_score_pca | block_id + year,
-  data = balanced_panel
+# Unbalanced panel results
+etable(
+  all_models %>% filter(panel_name == "unbalanced") %>% pull(model),
+  headers = all_models %>% filter(panel_name == "unbalanced") %>% pull(outcome),
+  title = "DiD Estimates (Unbalanced Panel)",
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1)
 )
 
-did_balanced_process_time <- feols(
-  log(avg_processing_time) ~ restrictiveness_score_pca | block_id + year,
-  weights = ~n_permits, 
-  data = balanced_panel
+# Balanced panel results
+etable(
+  all_models %>% filter(panel_name == "balanced") %>% pull(model),
+  headers = all_models %>% filter(panel_name == "balanced") %>% pull(outcome),
+  title = "DiD Estimates (Balanced Panel)",
+  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1)
 )
 
-did_balanced_reported_cost <- feols(
-  log(avg_reported_cost) ~ restrictiveness_score_pca | block_id + year,
-  weights = ~n_permits, 
-  data = balanced_panel
-)
-
-did_balanced_total_fee <- feols(
-  log(avg_total_fee) ~ restrictiveness_score_pca  | block_id + year,
-  weights = ~n_permits, 
-  data = balanced_panel
-)
-
-etable(did_balanced_permits,did_balanced_process_time,
-       did_balanced_reported_cost, did_balanced_total_fee,
-       headers = list("Permits" = 1, "Processing Times" = 1, "Reported Costs" =1, "Total Fees" = 1),
-       title = "DiD Estimate of Ward Switch on Permit Counts", 
-       vcov = ~block_id, 
-       signif.code = c("***"=0.01, "**"=0.05, "*"=0.1))
 
 
 
