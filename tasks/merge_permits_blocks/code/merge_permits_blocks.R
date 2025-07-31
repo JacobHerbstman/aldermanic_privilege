@@ -32,8 +32,20 @@ if (st_crs(permits) != st_crs(census_blocks)) {
   message("CRS mismatch detected. Transforming parcels CRS to match census_block groups.")
   permits <- st_transform(permits, st_crs(census_blocks))
 }
+
+################################################
+###### filter to HIGH DISCRETION_PERMITS_ONLY
+permits_high_discretion <- permits %>%
+  filter(high_discretion == 1) 
+##############################################
+
 ## join permits to blocks
-permits_with_block_id <- st_join(permits, census_blocks, join = st_within)
+permits_with_block_id <- st_join(permits_high_discretion, census_blocks, join = st_within)
+
+## 16 duplicates, they look fine and normal so I am keeping them and just dropping the duplicated version
+permits_with_block_id <- permits_with_block_id %>%
+  distinct(id, .keep_all = TRUE)
+
 
 ## aggregate to block level since this is the unit of analysis
 block_level_aggregates <- permits_with_block_id %>%
@@ -43,12 +55,31 @@ block_level_aggregates <- permits_with_block_id %>%
   group_by(block_id, application_start_date) %>%
   # Calculate summary statistics for each block-year
   summarise(
+    # Original variables
     n_permits = n(),
     avg_processing_time = mean(processing_time, na.rm = TRUE),
     avg_reported_cost = mean(reported_cost, na.rm = TRUE),
     avg_total_fee = mean(total_fee, na.rm = TRUE),
-    # Add any other aggregations you need here
-    .groups = 'drop' # avoid downstream grouping issues
+    
+    # --- Added Variables ---
+    
+    # Proportions for your binary (0/1) dummy variables
+    prop_permit_issued = mean(permit_issued, na.rm = TRUE),
+    prop_corporate_applicant = mean(corporate_applicant, na.rm = TRUE),
+    
+    # Averages for fee components
+    avg_building_fee_paid = mean(building_fee_paid, na.rm = TRUE),
+    avg_zoning_fee_paid = mean(zoning_fee_paid, na.rm = TRUE),
+    avg_building_fee_subtotal = mean(building_fee_subtotal, na.rm = TRUE),
+    avg_zoning_fee_subtotal = mean(zoning_fee_subtotal, na.rm = TRUE),
+    
+    # Averages for waived fees
+    avg_zoning_fee_waived = mean(zoning_fee_waived, na.rm = TRUE),
+    avg_other_fee_waived = mean(other_fee_waived, na.rm = TRUE),
+    avg_subtotal_waived = mean(subtotal_waived, na.rm = TRUE),
+    
+    # It's good practice to specify how to handle groups after summarizing
+    .groups = 'drop' 
   ) %>%
   # Rename taxyear to year for merging with your main panel
   arrange(block_id, application_start_date) %>% 
