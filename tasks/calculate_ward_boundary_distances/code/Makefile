@@ -23,7 +23,7 @@ include ../../generic.make
 # Link inputs from upstream tasks
 link-inputs:
 	@ln -sf ../../clean_attom_historical/output/year_built_sample.gpkg ../input/year_built_sample.gpkg
-	@ln -sf ../../merge_wards_blocks/output/ward_panel.gpkg ../input/ward_panel.gpkg
+	@ln -sf ../../ward_panel_create/output/ward_panel.gpkg ../input/ward_panel.gpkg
 	@ln -sf ../../create_alderman_data/output/chicago_alderman_panel.csv ../input/chicago_alderman_panel.csv
 
 # Main processing rule
