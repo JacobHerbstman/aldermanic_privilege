@@ -25,8 +25,7 @@ census_blocks <- census_blocks %>%
 ## bring in parcels built after 2003
 permits <- st_read("../input/building_permits_clean.gpkg") %>% 
   mutate(application_start_date = year(application_start_date_ym)) %>% 
-  mutate(issue_date = year(issue_date_ym)) %>%
-  filter(application_start_date >= 2010 & application_start_date <= 2019)
+  mutate(issue_date = year(issue_date_ym))
 
 if (st_crs(permits) != st_crs(census_blocks)) {
   message("CRS mismatch detected. Transforming parcels CRS to match census_block groups.")
@@ -35,8 +34,8 @@ if (st_crs(permits) != st_crs(census_blocks)) {
 
 ################################################
 ###### filter to HIGH DISCRETION_PERMITS_ONLY
-permits_high_discretion <- permits %>%
-  filter(high_discretion == 1) 
+permits_high_discretion <- permits %>% 
+  filter(high_discretion == 1)
 ##############################################
 
 ## join permits to blocks
@@ -66,17 +65,16 @@ block_level_aggregates <- permits_with_block_id %>%
     # Proportions for your binary (0/1) dummy variables
     prop_permit_issued = mean(permit_issued, na.rm = TRUE),
     prop_corporate_applicant = mean(corporate_applicant, na.rm = TRUE),
+    # Waived fees indicator
+    prop_had_zoning_fee_waiver = mean(zoning_fee_waived > 0, na.rm = TRUE),
+    prop_had_other_fee_waiver = mean(other_fee_waived > 0, na.rm = TRUE),
+    prop_had_any_fee_waiver = mean(subtotal_waived > 0, na.rm = TRUE),
     
     # Averages for fee components
     avg_building_fee_paid = mean(building_fee_paid, na.rm = TRUE),
     avg_zoning_fee_paid = mean(zoning_fee_paid, na.rm = TRUE),
     avg_building_fee_subtotal = mean(building_fee_subtotal, na.rm = TRUE),
     avg_zoning_fee_subtotal = mean(zoning_fee_subtotal, na.rm = TRUE),
-    
-    # Averages for waived fees
-    avg_zoning_fee_waived = mean(zoning_fee_waived, na.rm = TRUE),
-    avg_other_fee_waived = mean(other_fee_waived, na.rm = TRUE),
-    avg_subtotal_waived = mean(subtotal_waived, na.rm = TRUE),
     
     # It's good practice to specify how to handle groups after summarizing
     .groups = 'drop' 

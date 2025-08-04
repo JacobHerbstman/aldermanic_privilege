@@ -53,7 +53,8 @@ high_discretion_permits <- c(
   "PERMIT - RENOVATION/ALTERATION",
   "PERMIT - WRECKING/DEMOLITION",
   "PERMIT - PORCH CONSTRUCTION",
-  "PERMIT - REINSTATE REVOKED PMT"
+  "PERMIT - REINSTATE REVOKED PMT", 
+  "PERMIT - EASY PERMIT PROCESS"
 )
 
 building_permits_clean2 <- building_permits_clean %>%
@@ -97,7 +98,7 @@ building_permits_final <- building_permits_clean2 %>%
 
 ## keep just 2010-2019 permits for current census block analysis 
 building_permits_final <- building_permits_final %>% 
-  dplyr::filter(application_start_date_ym >= as.yearmon("Jan 2010") & application_start_date_ym <= as.yearmon("Dec 2019")) 
+  dplyr::filter(application_start_date_ym >= as.yearmon("Jan 2010") & application_start_date_ym <= as.yearmon("Dec 2019"))
 
 ## convert to sf for writing
 building_permits_sf <- st_as_sf(

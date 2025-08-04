@@ -15,7 +15,7 @@ unique_spatial_data <- data %>%
 
 ## historical parcel data 
 parcel_data_historical <- read_parquet("../input/chicago_attom_history.parquet") %>% 
-  filter(sa_yr_blt >= 2010 & sa_yr_blt <= 2019) %>% 
+  filter(sa_yr_blt >= 2006) %>%
   filter(sa_mail_city == "CHICAGO") ## chicago only
   # slice_sample(n = 100000, replace = FALSE) 
 
@@ -23,6 +23,8 @@ parcel_data_historical <- read_parquet("../input/chicago_attom_history.parquet")
 ## merge geometry and parcel info
 merged_parcels <- unique_spatial_data %>% 
   inner_join(parcel_data_historical, by = "attom_id")
+
+gc()
 
 
 # fix inconsistencies in year built by using majority vote
@@ -40,17 +42,17 @@ merged_parcels <- merged_parcels %>%
   select(-majority_year_built) %>%  # Remove the helper column
   ungroup()
 
-## just keep essential columns
-merged_parcels <- merged_parcels %>% 
-  dplyr::select(
-    attom_id, 
-    sa_yr_blt, 
-    sa_lotsize,
-    sa_sqft,
-    geometry
-  )
+# ## just keep essential columns
+# merged_parcels <- merged_parcels %>% 
+#   dplyr::select(
+#     attom_id, 
+#     sa_yr_blt, 
+#     sa_lotsize,
+#     sa_sqft,
+#     geometry
+#   )
 
 
-st_write(merged_parcels, "../output/year_built_sample.shp", delete_dsn = TRUE)
+st_write(merged_parcels, "../output/year_built_sample.gpkg", delete_dsn = TRUE)
              
 

@@ -1,4 +1,5 @@
 ## this code generates a simple alderman restrictiveness score based on pop. density, homeonwer rates, and incomes at the ward level
+## currently using basic restrictiveness score not PCA
 
 ## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
@@ -9,22 +10,21 @@ unbalanced_panel <- read_csv("../input/permit_regression_panel_blocks_unbalanced
 
 balanced_panel <- read_csv("../input/permit_regression_panel_blocks_balanced.csv")
 
+policy_year <- 2015
+
 prepare_panel <- function(df) {
   df %>%
     mutate(
-      # Convert NAs for permit counts to 0
-      # n_permits = ifelse(is.na(n_permits), 0, n_permits),
+      # Look ahead to see if this block ever switches in the future
+      treat = as.numeric(any(ward_switch == 1, na.rm = TRUE)),
       
-      # Create an indicator for the treated group (blocks that ever switch)
-      treat = as.numeric(max(ward_switch, na.rm = TRUE) == 1),
+      # Create a relative time variable using policy announcement year (2012)
+      relative_year = year - policy_year,
       
-      # Create a relative time variable for the event study (-4, -3, ..., 0, 1, ..., 4)
-      # The treatment year is 2015
-      relative_year = year - 2015,
-      
-      ## create an indicator for being post-treatment (to be interacted with treated_unit)
+      ## create an indicator for being post-announcement
       post = ifelse(relative_year >= 0, 1, 0),
       
+      # Use the actual implementation year (2015) for score comparison
       score_pre = first(restrictiveness_score_pca[year == 2014]),
       score_post = first(restrictiveness_score_pca[year == 2015]),
       
@@ -33,13 +33,21 @@ prepare_panel <- function(df) {
         treat == 0 ~ "Control",
         score_post > score_pre ~ "Moved to Stricter",
         score_post < score_pre ~ "Moved to Less Strict",
-        TRUE ~ "No Change in Score" # Default case for treated blocks with no score change
+        TRUE ~ "No Change in Score"
       )
     )
 }
 
-unbalanced_panel <- unbalanced_panel %>% group_by(block_id) %>% prepare_panel() %>% ungroup()
-balanced_panel <- balanced_panel %>% group_by(block_id) %>% prepare_panel() %>% ungroup()
+unbalanced_panel <- unbalanced_panel %>% 
+  group_by(block_id) %>%
+  prepare_panel() %>%
+  ungroup()
+
+  
+balanced_panel <- balanced_panel %>% 
+  group_by(block_id) %>% 
+  prepare_panel() %>% 
+  ungroup()
 
 
 # -----------------------------------------------------------------------------
@@ -60,13 +68,25 @@ controls <- c(
 
 model_specs <- tibble(
   outcome = c(
-    "log(n_permits + 1)", # Use +1 to handle zeroes
+    "log(n_permits)", # Use +1 to handle zeroes
     "log(avg_processing_time)",
     "log(avg_reported_cost)",
-    "log(avg_total_fee)"
-  ),
-  weights = c(NA, "n_permits", "n_permits", "n_permits")
-)
+    "log(avg_total_fee)",
+    "log(avg_building_fee_paid)",
+    "log(avg_zoning_fee_paid)",
+    "log(avg_building_fee_subtotal)", 
+    "log(avg_zoning_fee_subtotal)",
+    "prop_had_zoning_fee_waiver",
+    "prop_had_other_fee_waiver",
+    "prop_had_any_fee_waiver",
+    "prop_corporate_applicant"
+  ))
+
+## weights are all n_permits except for n_permits itself
+model_specs <- model_specs %>% 
+  mutate(weights = c(NA, rep("n_permits", nrow(model_specs) - 1)))
+
+
 
 # -----------------------------------------------------------------------------
 ### Run All Regressions
@@ -104,10 +124,18 @@ all_models <- regression_grid %>%
 # -----------------------------------------------------------------------------
 # --- Define clean headers to replace the long dependent variable names ---
 clean_headers <- c(
-  "Log(Permit Count + 1)", 
+  "Log(Permit Count)", 
   "Log(Processing Time)", 
   "Log(Reported Cost)", 
-  "Log(Total Fees)"
+  "Log(Total Fees)",
+  "Log(Building Fee Paid)",
+  "Log(Zoning Fee Paid)",
+  "Log(Building Fee Subtotal)",
+  "Log(Zoning Fee Subtotal)",
+  "Prop. w/ Zoning Fee Waiver",
+  "Prop. w/ Other Fee Waiver",
+  "Prop. w/ Any Fee Waiver",
+  "Prop. Corporate Applicant"
 )
 
 
@@ -117,9 +145,15 @@ rename_dict <- c(
   "year"                      = "Year"
 )
 
+unbalanced_models <- all_models %>% 
+  filter(panel_name == "unbalanced") %>%
+  # Ensure the order matches model_specs by joining
+  right_join(model_specs %>% mutate(row_id = row_number()), by = "outcome") %>%
+  arrange(row_id) %>%
+  pull(model) 
+
 etable(
-  all_models %>% filter(panel_name == "unbalanced") %>% pull(model),
-  
+  unbalanced_models,
   # Formatting options
   headers     = clean_headers,
   keep        = "Restrictiveness Score",
@@ -131,15 +165,21 @@ etable(
   # General options
   title       = "DiD Estimates (Unbalanced Panel)",
   signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
-  file      = "../output/table_did_unbalanced.tex", 
+  # file      = "../output/table_did_unbalanced.tex", 
   replace = T
 )
+
+balanced_models <- all_models %>% 
+  filter(panel_name == "balanced") %>%
+  # Ensure the order matches model_specs by joining
+  right_join(model_specs %>% mutate(row_id = row_number()), by = "outcome") %>%
+  arrange(row_id) %>%
+  pull(model)
 
 
 # Balanced panel results
 etable(
-  all_models %>% filter(panel_name == "balanced") %>% pull(model),
-  
+  balanced_models,
   # Formatting options
   headers     = clean_headers,
   keep        = "Restrictiveness Score",
@@ -151,7 +191,7 @@ etable(
   # General options
   title       = "DiD Estimates (Balanced Panel)",
   signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
-  file      = "../output/table_did_balanced.tex",
+  # file      = "../output/table_did_balanced.tex",
   replace = T
 )
 
@@ -160,8 +200,7 @@ etable(
 ### event studies #########
 # -----------------------------------------------------------------------------
 
-event_study_specs <- model_specs %>%
-  filter(str_detect(outcome, "avg_"))
+event_study_specs <- model_specs 
 
 # Now, create every combination of panel and outcome.
 event_study_grid <- crossing(
@@ -179,7 +218,7 @@ run_event_study_pair <- function(panel_name, outcome, weights) {
   )
   
   panel_data <- panel_list[[panel_name]]
-  w_formula <- as.formula(paste0("~", weights))
+  w_formula <-if (!is.na(weights)) as.formula(paste0("~", weights)) else NULL
   
   # Model 1: Moved to Stricter
   model_stricter <- feols(
@@ -243,12 +282,12 @@ plot_event_study_ggplot <- function(model_pair, outcome, panel_name, ...) {
   }
   
   # 4. Build the ggplot
-  main_title <- case_when(
-    str_detect(outcome, "processing_time") ~ "Effect on Permit Processing Time",
-    str_detect(outcome, "reported_cost") ~ "Effect on Reported Costs",
-    str_detect(outcome, "total_fee") ~ "Effect on Total Fees",
-    TRUE ~ outcome
+  outcome_to_title <- setNames(
+    paste("Effect on", clean_headers),
+    model_specs$outcome
   )
+  
+  main_title <- outcome_to_title[outcome]
   
   p <- ggplot(plot_data, aes(x = factor(x), y = estimate, color = group)) + # Using factor(x) fixes the axis
     geom_vline(xintercept = "-1", linetype = "dashed", color = "gray60") +
@@ -299,7 +338,12 @@ for (i in 1:nrow(all_event_studies)) {
       print(my_plot)
       
       # 4. Create a clean filename (e.g., "plots/event_study_unbalanced_avg_total_fee.png")
-      outcome_shortname <- str_extract(params$outcome, "avg_\\w+")
+      # Simple approach: remove log() and parentheses, replace spaces with underscores
+      outcome_shortname <- params$outcome %>%
+        str_remove("log\\(") %>%
+        str_remove("\\)") %>%
+        str_replace_all("[^a-zA-Z0-9_]", "_") %>%
+        str_remove("^_+|_+$") # remove leading/trailing underscores
       filename <- sprintf("../output/event_study_%s_%s.pdf", 
                           params$panel_name, 
                           outcome_shortname)

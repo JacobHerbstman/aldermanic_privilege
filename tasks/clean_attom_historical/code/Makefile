@@ -22,7 +22,7 @@ ATTOM_INPUT := $(INPUT_DIR)/chicago_attom_history.parquet
 
 # Processing script and final output
 SCRIPT := clean_address_sample.R
-OUTPUT := $(OUTPUT_DIR)/year_built_sample.shp
+OUTPUT := $(OUTPUT_DIR)/year_built_sample.gpkg
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Main Target
