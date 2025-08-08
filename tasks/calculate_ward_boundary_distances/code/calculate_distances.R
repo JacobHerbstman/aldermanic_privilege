@@ -119,10 +119,6 @@ parcels_with_wards <- map_dfr(1:n_batches, function(i) {
 # 4. IDENTIFY ADJACENT WARD PAIRS
 # -----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
-# 4. IDENTIFY ADJACENT WARD PAIRS
-# -----------------------------------------------------------------------------
-
 cat("Identifying adjacent ward pairs...\n")
 
 get_adjacent_ward_pairs <- function(ward_boundaries) {

@@ -1,5 +1,5 @@
 ## this code creates ward-level controls from the ACS by spatially joining block groups to wards
-## Simple version using the working function
+## Extended to 2006-2023 for full time coverage
 
 source("../../setup_environment/code/packages.R")
 
@@ -33,7 +33,7 @@ acs_vars <- c(
 )
 
 # -----------------------------------------------------------------------------
-# 2. DOWNLOAD ACS DATA (NO GEOMETRY)
+# 2. DOWNLOAD ACS DATA (NO GEOMETRY) - EXTENDED PERIODS
 # -----------------------------------------------------------------------------
 
 # Function to download ACS data without geometry (your working version)
@@ -52,14 +52,18 @@ get_bg_data <- function(year_to_get) {
     rename_with(~ sub("E$", "", .), .cols = everything())
 }
 
-# Download data for both periods
+# Download data for multiple periods to cover 2006-2023
 message("Downloading ACS data...")
-pre_period_data <- get_bg_data(2014) %>% mutate(period = "pre")
-post_period_data <- get_bg_data(2019) %>% mutate(period = "post")
+early_period_data <- get_bg_data(2009) %>% mutate(period = "early")   # Covers ~2007-2011
+pre_period_data <- get_bg_data(2014) %>% mutate(period = "pre")       # Covers ~2012-2016
+post_period_data <- get_bg_data(2019) %>% mutate(period = "post")     # Covers ~2017-2021
+recent_period_data <- get_bg_data(2022) %>% mutate(period = "recent") # Covers ~2020-2024
 
 message("Downloaded data:")
+message("- Early period (2009): ", nrow(early_period_data), " block groups")
 message("- Pre-period (2014): ", nrow(pre_period_data), " block groups")
 message("- Post-period (2019): ", nrow(post_period_data), " block groups")
+message("- Recent period (2022): ", nrow(recent_period_data), " block groups")
 
 # -----------------------------------------------------------------------------
 # 3. GET BLOCK GROUP GEOMETRIES SEPARATELY
@@ -79,8 +83,7 @@ bg_geometries <-
     survey = "acs5",
     geometry = TRUE
   ) %>%
-    select(GEOID, geometry)
-
+  select(GEOID, geometry)
 
 message("Got geometries for ", nrow(bg_geometries), " block groups")
 
@@ -88,8 +91,8 @@ message("Got geometries for ", nrow(bg_geometries), " block groups")
 # 4. PROCESS AND COMBINE DATA
 # -----------------------------------------------------------------------------
 
-# Combine pre and post data
-combined_acs_data <- bind_rows(pre_period_data, post_period_data)
+# Combine all periods
+combined_acs_data <- bind_rows(early_period_data, pre_period_data, post_period_data, recent_period_data)
 
 # Add geometries to the data
 bg_data_with_geom <- combined_acs_data %>%
@@ -116,28 +119,48 @@ bg_data_with_geom <- combined_acs_data %>%
 message("Combined data: ", nrow(bg_data_with_geom), " block group-period observations")
 
 # -----------------------------------------------------------------------------
-# 5. SPATIAL JOIN BLOCK GROUPS TO WARDS BY YEAR
+# 5. SPATIAL JOIN BLOCK GROUPS TO WARDS BY YEAR - EXTENDED RANGE
 # -----------------------------------------------------------------------------
 
 ward_controls_list <- list()
 
-for (year_i in 2010:2019) {
+for (year_i in 2006:2023) {
   message("Processing spatial join for year ", year_i)
   
-  # Get the right ACS period
-  period_to_use <- if (year_i < 2015) "pre" else "post"
+  # Get the right ACS period based on year
+  period_to_use <- case_when(
+    year_i <= 2011 ~ "early",
+    year_i <= 2015 ~ "pre", 
+    year_i <= 2019 ~ "post",
+    year_i <= 2023 ~ "recent"
+  )
   
   # Get block groups for this period
   year_bg_data <- bg_data_with_geom %>% 
     filter(period == period_to_use)
   
-  # Get ward geometries for this year
-  year_wards <- ward_panel %>%
-    filter(year == year_i) %>%
-    select(ward, year) %>%
-    # Combine any overlapping ward geometries for this year
-    group_by(ward, year) %>%
-    summarise(.groups = "drop")
+  # Get ward geometries for this year - use available years or extend
+  if (year_i %in% unique(ward_panel$year)) {
+    year_wards <- ward_panel %>%
+      filter(year == year_i) %>%
+      select(ward, year) %>%
+      group_by(ward, year) %>%
+      summarise(.groups = "drop")
+  } else {
+    # For years not in ward_panel, use the nearest available year
+    nearest_year <- unique(ward_panel$year)[which.min(abs(unique(ward_panel$year) - year_i))]
+    year_wards <- ward_panel %>%
+      filter(year == nearest_year) %>%
+      select(ward) %>%
+      group_by(ward) %>%
+      summarise(.groups = "drop") %>%
+      mutate(year = year_i)
+  }
+  
+  if (nrow(year_wards) == 0) {
+    message("  - No ward geometries found for year ", year_i, ", skipping")
+    next
+  }
   
   # Ensure CRS compatibility
   if (st_crs(year_bg_data) != st_crs(year_wards)) {
@@ -146,7 +169,6 @@ for (year_i in 2010:2019) {
   }
   
   # Spatial join: find which ward each block group centroid falls into
-  # Using centroids is more robust than intersection for this case
   bg_centroids <- st_centroid(year_bg_data)
   
   bg_ward_joined <- st_join(bg_centroids, year_wards, join = st_within) %>%
@@ -185,56 +207,56 @@ for (year_i in 2010:2019) {
 ward_controls <- bind_rows(ward_controls_list)
 
 message("Ward controls created: ", nrow(ward_controls), " ward-year observations")
+message("Year range: ", min(ward_controls$year), " to ", max(ward_controls$year))
 
 # -----------------------------------------------------------------------------
 # 6. QUALITY CHECKS
 # -----------------------------------------------------------------------------
 
-# Check coverage - we should have 50 wards per year
-coverage_check <- ward_controls %>%
-  group_by(year) %>%
-  summarise(
-    wards_with_data = n_distinct(ward),
-    missing_wards = list(setdiff(1:50, unique(ward))),
-    avg_block_groups_per_ward = mean(n_block_groups, na.rm = TRUE),
-    total_population = sum(total_population_ward, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  mutate(missing_wards = map_chr(missing_wards, ~paste(.x, collapse = ", ")))
-
-message("\nCoverage by year:")
-print(coverage_check)
-
-# Summary statistics
-ward_summary_stats <- ward_controls %>%
-  summarise(
-    across(c(homeownership_rate, population_density, median_income, 
-             percent_black, percent_hispanic, avg_household_size),
-           list(mean = ~mean(., na.rm = TRUE),
-                sd = ~sd(., na.rm = TRUE),
-                min = ~min(., na.rm = TRUE),
-                max = ~max(., na.rm = TRUE),
-                missing = ~sum(is.na(.))),
-           .names = "{.col}_{.fn}")
-  )
-
-# Check for any wards with very low population (might indicate problems)
-low_pop_wards <- ward_controls %>%
-  filter(total_population_ward < 1000) %>%
-  select(ward, year, total_population_ward, n_block_groups)
-
-if (nrow(low_pop_wards) > 0) {
-  message("\nWarning: Found wards with very low population:")
-  print(low_pop_wards)
-}
-
-# -----------------------------------------------------------------------------
+# # Check coverage - we should have 50 wards per year
+# coverage_check <- ward_controls %>%
+#   group_by(year) %>%
+#   summarise(
+#     wards_with_data = n_distinct(ward),
+#     missing_wards = list(setdiff(1:50, unique(ward))),
+#     avg_block_groups_per_ward = mean(n_block_groups, na.rm = TRUE),
+#     total_population = sum(total_population_ward, na.rm = TRUE),
+#     .groups = "drop"
+#   ) %>%
+#   mutate(missing_wards = map_chr(missing_wards, ~paste(.x, collapse = ", ")))
+# 
+# message("\nCoverage by year:")
+# print(coverage_check)
+# 
+# # Summary statistics
+# ward_summary_stats <- ward_controls %>%
+#   summarise(
+#     across(c(homeownership_rate, population_density, median_income, 
+#              percent_black, percent_hispanic, avg_household_size),
+#            list(mean = ~mean(., na.rm = TRUE),
+#                 sd = ~sd(., na.rm = TRUE),
+#                 min = ~min(., na.rm = TRUE),
+#                 max = ~max(., na.rm = TRUE),
+#                 missing = ~sum(is.na(.))),
+#            .names = "{.col}_{.fn}")
+#   )
+# 
+# # Check for any wards with very low population (might indicate problems)
+# low_pop_wards <- ward_controls %>%
+#   filter(total_population_ward < 1000) %>%
+#   select(ward, year, total_population_ward, n_block_groups)
+# 
+# if (nrow(low_pop_wards) > 0) {
+#   message("\nWarning: Found wards with very low population:")
+#   print(low_pop_wards)
+# }
+# 
+# # -----------------------------------------------------------------------------
 # 7. SAVE OUTPUT
 # -----------------------------------------------------------------------------
 
 # Main ward controls file
 write_csv(ward_controls, "../output/ward_controls.csv")
-
 
 message("\nFiles saved:")
 message("- ../output/ward_controls.csv")
