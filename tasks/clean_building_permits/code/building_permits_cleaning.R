@@ -53,8 +53,7 @@ high_discretion_permits <- c(
   "PERMIT - RENOVATION/ALTERATION",
   "PERMIT - WRECKING/DEMOLITION",
   "PERMIT - PORCH CONSTRUCTION",
-  "PERMIT - REINSTATE REVOKED PMT", 
-  "PERMIT - EASY PERMIT PROCESS"
+  "PERMIT - REINSTATE REVOKED PMT"
 )
 
 building_permits_clean2 <- building_permits_clean %>%

@@ -313,7 +313,7 @@ final_dataset <- parcels_with_distances %>%
     ward = assigned_ward, ward_pair, dist_to_boundary,
     alderman = alderman.x, alderman_tenure_months,
     finance_chair, zoning_chair, budget_chair,
-    sa_lotsize, sa_sqft
+    sa_lotsize, sa_sqft, sa_nbr_bedrms, sa_nbr_bath, sa_nbr_rms, sa_nbr_stories, sa_nbr_units
   )
 
 cat("Final dataset creation completed!\n")
@@ -345,109 +345,6 @@ summary_stats <- final_dataset %>%
 cat("Task completed successfully!\n")
 print(summary_stats)
 
-
-
-
-# -----------------------------------------------------------------------------
-# 7. ADD ALDERMAN INFORMATION
-# -----------------------------------------------------------------------------
-
-cat("Adding alderman information...\n")
-
-# Add alderman information for each parcel
-parcels_final <- parcels_with_pairs %>%
-  rowwise() %>%
-  mutate(
-    alderman_info = list(get_alderman_for_parcel(assigned_ward, construction_date, alderman_panel)),
-    alderman = alderman_info$alderman,
-    finance_chair = alderman_info$finance_chair,
-    zoning_chair = alderman_info$zoning_chair,
-    budget_chair = alderman_info$budget_chair
-  ) %>%
-  select(-alderman_info) %>%
-  ungroup()
-
-# -----------------------------------------------------------------------------
-# 8. CREATE FINAL VARIABLES
-# -----------------------------------------------------------------------------
-
-cat("Creating final variables...\n")
-
-final_dataset <- parcels_final %>%
-  mutate(
-    # Create signed distance (positive for one ward, negative for the other in each pair)
-    # This will be refined in the RDD analysis step
-    signed_dist_to_boundary = dist_to_boundary,
-    
-    # Clean up variable names
-    ward = assigned_ward,
-    construction_year = sa_yr_blt,
-    
-    # Add alderman tenure (months in office by construction date)
-    construction_yearmon = as.yearmon(construction_date)
-  ) %>%
-  
-  # Calculate alderman tenure
-  left_join(
-    alderman_panel %>%
-      group_by(ward, alderman) %>%
-      summarise(
-        first_month = min(month),
-        .groups = "drop"
-      ),
-    by = c("ward", "alderman")
-  ) %>%
-  mutate(
-    alderman_tenure_months = as.numeric((construction_yearmon - first_month) * 12)
-  ) %>%
-  
-  # Select final variables
-  select(
-    attom_id,
-    geometry,
-    construction_year,
-    construction_date,
-    boundary_year,
-    ward,
-    ward_pair,
-    dist_to_boundary,
-    signed_dist_to_boundary,
-    alderman,
-    alderman_tenure_months,
-    finance_chair,
-    zoning_chair,
-    budget_chair,
-    sa_lotsize,
-    sa_sqft
-  ) %>%
-  
-  # Remove parcels without ward assignments
-  filter(!is.na(ward))
-
-# -----------------------------------------------------------------------------
-# 8. SAVE OUTPUT
-# -----------------------------------------------------------------------------
-
-cat("Saving output...\n")
-
-# Save as spatial file
-st_write(final_dataset, "../output/parcels_with_ward_distances.gpkg", delete_dsn = TRUE)
-
-# Also save as parquet for faster loading
-write_parquet(st_drop_geometry(final_dataset), "../output/parcels_with_ward_distances.parquet")
-
-# Save summary statistics
-summary_stats <- final_dataset %>%
-  st_drop_geometry() %>%
-  summarise(
-    n_parcels = n(),
-    n_wards = n_distinct(ward),
-    n_ward_pairs = n_distinct(ward_pair, na.rm = TRUE),
-    n_aldermen = n_distinct(alderman, na.rm = TRUE),
-    mean_dist_to_boundary = mean(dist_to_boundary, na.rm = TRUE),
-    median_dist_to_boundary = median(dist_to_boundary, na.rm = TRUE),
-    .by = c(boundary_year, construction_year)
-  )
 
 write_csv(summary_stats, "../output/boundary_distance_summary.csv")
 
