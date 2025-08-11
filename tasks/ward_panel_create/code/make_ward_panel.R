@@ -20,7 +20,9 @@ ward_bound2005 <- ward_bound2005 %>%
   mutate(year = list(2005:2014)) %>% # Switched to annual sequence
   unnest(year) %>%
   select(year, ward, geometry) %>% 
-  arrange(ward, year)
+  arrange(ward, year) %>% 
+  st_transform(crs = 3435) ## change to chicago coordinate system
+
 
 ## bring in new ward boundary data
 ward_bound2015 <-st_read("../input/Wards_2015.geojson") 
@@ -33,7 +35,9 @@ ward_bound2015 <- ward_bound2015 %>%
   mutate(year = list(2015:2023)) %>% # Switched to annual sequence
   unnest(year) %>%
   select(year, ward, geometry) %>% 
-  arrange(ward, year)
+  arrange(ward, year) %>% 
+  st_transform(crs = 3435) ## change to chicago coordinate system
+
 
 ## join to one large annual panel
 ward_panel_annual <- rbind(ward_bound2005, ward_bound2015) %>%
