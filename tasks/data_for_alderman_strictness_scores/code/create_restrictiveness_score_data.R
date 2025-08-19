@@ -162,15 +162,12 @@ ward_monthly_panel <- permits_analysis %>%
     # Processing time variables
     mean_processing_time = mean(processing_time, na.rm = TRUE),
     median_processing_time = median(processing_time, na.rm = TRUE),
-    log_mean_processing_time = mean(log_processing_time, na.rm = TRUE),
     
     # Fee variables
     mean_total_fee = mean(total_fee, na.rm = TRUE),
-    log_mean_total_fee = mean(log_total_fee, na.rm = TRUE),
-    
+
     # Project characteristics (for controls)
     mean_reported_cost = mean(reported_cost, na.rm = TRUE),
-    log_mean_reported_cost = mean(log_reported_cost, na.rm = TRUE),
     pct_corporate_applicant = mean(corporate_applicant, na.rm = TRUE),
     
     # Ward controls (should be constant within ward-month)
