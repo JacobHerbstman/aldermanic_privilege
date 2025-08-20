@@ -8,6 +8,9 @@
 source("../../setup_environment/code/packages.R")
 data <- read_csv("../input/ward_monthly_panel_for_alderman_fe.csv")
 
+data <- data %>% 
+  filter(alderman != "Dorothy Tillman") ## she shouldnt be identified yet is, removing manually for now
+
 # =============================================================================
 # 1. FUNCTION DEFINITION FOR FEs
 # =============================================================================
@@ -148,6 +151,8 @@ calculate_alderman_scores <- function(data,
 
 create_all_score_charts <- function(scores_list, spec_name) {
   
+  spec_name_clean <- gsub(" \\+ ", "_", spec_name) %>% gsub(" ", "_", .)
+  
   # =============================================================================
   # A. PLOT THE FINAL, AGGREGATED STRICTNESS INDEX
   # =============================================================================
@@ -246,6 +251,14 @@ create_all_score_charts <- function(scores_list, spec_name) {
   all_plots <- c(list(final_strictness_index = p_final_index), individual_plots)
   
   message(paste("\n✓ Generated", length(all_plots), "plots for the '", spec_name, "' specification."))
+  
+  # --- NEW: Use iwalk to loop through the named list of plots and save each one ---
+  iwalk(all_plots, function(plot, name) {
+    # Create a dynamic filename for each plot
+    filename <- file.path("../output", paste0(spec_name_clean, "_", name, ".png"))    
+    # Save the plot
+    ggsave(filename, plot = plot, width = 8, height = 5, bg = "white")
+  })
   
   return(all_plots)
 }
