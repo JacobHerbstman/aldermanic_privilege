@@ -27,6 +27,9 @@ ward_panel <- st_read("../input/ward_panel.gpkg")
 cat("Loading alderman panel...\n")
 alderman_panel <- read_csv("../input/chicago_alderman_panel.csv")
 
+cat("Loading alderman strictness scores... \n")
+alderman_scores <- read_csv("../input/alderman_strictness_scores.csv")
+
 if (st_crs(parcels) != st_crs(ward_panel)) {
   message("CRS mismatch detected. Transforming parcels CRS to match ward boundaries.")
   parcels <- st_transform(parcels, st_crs(ward_panel))
@@ -312,10 +315,21 @@ final_dataset <- parcels_with_distances %>%
     sa_lotsize, sa_sqft, sa_nbr_bedrms, sa_nbr_bath, sa_nbr_rms, sa_nbr_stories, sa_nbr_units
   )
 
-cat("Final dataset creation completed!\n")
+
 
 # -----------------------------------------------------------------------------
-# 7. SAVE OUTPUT
+# 7. MERGE IN ALDERMAN STRICTNESS SCORES
+# -----------------------------------------------------------------------------
+
+final_dataset <- final_dataset %>%
+  left_join(alderman_scores, by = "alderman") 
+
+
+cat("Final dataset creation completed!\n")
+
+
+# -----------------------------------------------------------------------------
+# 8. SAVE OUTPUT
 # -----------------------------------------------------------------------------
 
 cat("Saving output...\n")
