@@ -1,198 +1,180 @@
-## this code generates a simple alderman restrictiveness score based on pop. density, homeonwer rates, and incomes at the ward level
+## this code creates alderman strictness scores. The first function, which creates the scores, runs the regressions, 
+## applies empirical bayes shrinkage to the raw estimates, and then uses PCA to generate a strictness index. 
 
 ## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 
+# Load data and packages
 source("../../setup_environment/code/packages.R")
-
 data <- read_csv("../input/ward_monthly_panel_for_alderman_fe.csv")
 
 # =============================================================================
-# 1. DEFINE OUTCOME VARIABLES AND CONTROLS
+# 1. FUNCTION DEFINITION FOR FEs
 # =============================================================================
+#' Calculate Alderman Restrictiveness Scores
+#'
+#' This function runs a series of regressions, applies Empirical Bayes shrinkage,
+#' and uses PCA to generate a single alderman restrictiveness index.
+#'
+#' @param data The input data frame (e.g., your monthly ward panel).
+#' @param outcome_vars A named list of outcome variables for the regressions.
+#' @param control_vars A character vector of control variables.
+#' @param fe_spec A string defining the fixed effects (e.g., "month" or "ward+month").
+#' @param ref_alderman The name of the alderman to use as the reference category.
+#' @param output_filepath The full path to save the final CSV file.
+#' @param permit_outcomes A character vector of outcomes that should not be weighted.
+#'
+#' @return A data frame with two columns: 'alderman' and 'strictness_index'.
 
-# Primary outcome variables of interest
-outcome_vars <- list(
-  # Permit outcomes
-  "log_n_permits_issued" = "log(n_permits_issued)", 
+calculate_alderman_scores <- function(data,
+                                      outcome_vars,
+                                      control_vars,
+                                      fe_spec,
+                                      ref_alderman,
+                                      output_filepath,
+                                      permit_outcomes = c("log_n_permits_issued")) {
   
-  "permit_approval_rate" = "permit_approval_rate",
+  message(paste("\n--- Running analysis for FE spec:", fe_spec, "---"))
   
-  # Processing time outcomes (log)
-  "log_median_processing_time" = "log(mean_processing_time)", 
-  
-  # Fee outcomes (log)
-  "log_mean_total_fee" = "log(mean_total_fee)"
-)
-
-# Control variables (consistent across models)
-control_vars <- c(
-  "homeownership_rate",
-  "population_density", 
-  "median_income",
-  "percent_black",
-  "percent_hispanic"
-)
-
-# Fixed effects specification
-fe_spec <- "ward+month"  # Start simple to avoid collinearity
-
-# Reference alderman for dummy variables
-ref_alderman <- "Andre Vasquez"  # Or choose most common/neutral
-
-permit_outcomes <- c("log_n_permits_issued")
-
-# =============================================================================
-# 2. RUN REGRESSIONS FOR ALL OUTCOMES
-# =============================================================================
-
-# Initialize storage for results
-all_scores <- list()
-all_models <- list()
-
-# Loop through outcomes
-for (outcome_name in names(outcome_vars)) {
-  outcome_var <- outcome_vars[[outcome_name]]
-  
-  message("Running regression for: ", outcome_name)
-  
-  if (outcome_name %in% permit_outcomes) {  # Fixed: use outcome_name not outcome_var
-    # For permit outcomes: no weights, no n_permits_applied control
-    controls_to_use <- control_vars
-    weight_formula <- NULL
-    weight_str <- ""
-  } else {
-    # For rate/time/fee outcomes: weight by n_permits_applied, no control
-    controls_to_use <- control_vars
-    weight_formula <- ~n_permits_applied
-    weight_str <- " [weighted]"
+  # =============================================================================
+  # A. RUN REGRESSIONS
+  # =============================================================================
+  all_scores <- list()
+  for (outcome_name in names(outcome_vars)) {
+    outcome_var <- outcome_vars[[outcome_name]]
+    message("   ...regressing on ", outcome_name)
+    
+    weight_formula <- if (!outcome_name %in% permit_outcomes) ~n_permits_applied else NULL
+    
+    formula_str <- paste0(
+      outcome_var, " ~ ",
+      paste(control_vars, collapse = " + "), " + ",
+      paste0("i(alderman, ref = '", ref_alderman, "')"), " | ",
+      fe_spec
+    )
+    
+    model <- feols(as.formula(formula_str), data = data, vcov = ~alderman, weights = weight_formula)
+    
+    coefs <- enframe(coef(model), name = "term", value = "alderman_fe")
+    ses <- enframe(se(model), name = "term", value = "alderman_se")
+    
+    alderman_effects <- coefs %>%
+      filter(str_detect(term, "alderman::")) %>%
+      mutate(alderman = str_remove(term, "alderman::")) %>%
+      left_join(ses %>%
+                  filter(str_detect(term, "alderman::")) %>%
+                  mutate(alderman = str_remove(term, "alderman::")) %>%
+                  select(alderman, alderman_se), by = "alderman")
+    
+    ref_row <- tibble(term = ref_alderman, alderman_fe = 0, alderman_se = 0, alderman = ref_alderman)
+    
+    scores_df <- bind_rows(alderman_effects, ref_row) %>%
+      mutate(outcome_variable = outcome_name) %>%
+      select(alderman, alderman_fe, alderman_se, outcome_variable)
+    
+    all_scores[[outcome_name]] <- scores_df
   }
+  all_alderman_scores <- bind_rows(all_scores)
   
-  # Build formula
-  controls_str <- paste(controls_to_use, collapse = " + ")
-  alderman_str <- paste0("i(alderman, ref = '", ref_alderman, "')")
+  # =============================================================================
+  # B. APPLY EMPIRICAL BAYES SHRINKAGE
+  # =============================================================================
+  message("   ...applying Empirical Bayes shrinkage.")
+  alderman_scores_shrunk <- all_alderman_scores %>%
+    group_by(outcome_variable) %>%
+    mutate(
+      sigma2_alpha = max(0, mean(alderman_fe^2) - mean(alderman_se^2)),
+      shrinkage_factor_B = sigma2_alpha / (sigma2_alpha + alderman_se^2),
+      alderman_fe = alderman_fe * shrinkage_factor_B
+    ) %>%
+    ungroup()
   
-  formula_str <- paste0(
-    outcome_var, " ~ ", 
-    controls_str, " + ",
-    alderman_str, " | ",
-    fe_spec
+  # =============================================================================
+  # C. USE PCA TO GET FINAL SCORE
+  # =============================================================================
+  message("   ...running PCA to create final index.")
+  sign_flip_pattern <- "fee|time|cost"
+  
+  pca_data_wide <- alderman_scores_shrunk %>%
+    mutate(
+      signed_fe = if_else(
+        grepl(sign_flip_pattern, outcome_variable),
+        alderman_fe * -1,
+        alderman_fe
+      )
+    ) %>%
+    select(alderman, outcome_variable, signed_fe) %>%
+    pivot_wider(names_from = outcome_variable, values_from = signed_fe)
+  
+  pca_data_for_prcomp <- pca_data_wide %>%
+    column_to_rownames("alderman")
+  
+  pca_results <- prcomp(pca_data_for_prcomp, scale = TRUE, center = TRUE)
+  
+  final_scores <- as.data.frame(pca_results$x) %>%
+    rownames_to_column("alderman") %>%
+    select(alderman, strictness_index = PC1) %>%
+    arrange(strictness_index)
+  
+  # =============================================================================
+  # D. SAVE AND RETURN
+  # =============================================================================
+
+  write_csv(final_scores, output_filepath)
+  message(paste("✓ Scores saved to:", output_filepath))
+  
+  # Create a list to return both final scores and the individual shrunken FEs
+  results <- list(
+    final_scores = final_scores,
+    individual_effects = alderman_scores_shrunk 
   )
   
-  reg_formula <- as.formula(formula_str)
-  
-  # Run regression
-  model <- feols(
-    reg_formula,
-    data = data,
-    vcov = ~alderman
-  )
-  
-  # Store model
-  all_models[[outcome_name]] <- model
-  
-  # Extract alderman coefficients and standard errors
-  alderman_coefs <- coef(model)
-  alderman_ses <- se(model)
-  
-  # Get alderman effects
-  alderman_effects <- alderman_coefs[grepl("alderman::", names(alderman_coefs))]
-  alderman_se_vals <- alderman_ses[grepl("alderman::", names(alderman_ses))]
-  
-  # Clean names and add reference alderman
-  names(alderman_effects) <- gsub("alderman::", "", names(alderman_effects))
-  names(alderman_se_vals) <- gsub("alderman::", "", names(alderman_se_vals))
-  
-  # Add reference alderman (coefficient = 0, se = 0)
-  alderman_scores <- c(setNames(0, ref_alderman), alderman_effects)
-  alderman_se_all <- c(setNames(0, ref_alderman), alderman_se_vals)
-  
-  # Create results data frame for this outcome
-  scores_df <- data.frame(
-    alderman = names(alderman_scores),
-    alderman_fe = as.numeric(alderman_scores),
-    alderman_se = as.numeric(alderman_se_all),
-    outcome_variable = outcome_name,
-    n_obs = nobs(model),
-    weighted = !is.null(weight_formula),
-    stringsAsFactors = FALSE
-  )
-  
-  # Store in list
-  all_scores[[outcome_name]] <- scores_df
-  
-  message("✓ ", outcome_name, weight_str, " (n=", nobs(model), ")")
+  return(results)
 }
 
-# Combine all results into one long data frame
-all_alderman_scores <- bind_rows(all_scores)
-
-# Create wide format for coefficients
-alderman_scores_wide <- all_alderman_scores %>%
-  select(alderman, alderman_fe, outcome_variable) %>%
-  pivot_wider(
-    names_from = outcome_variable,
-    values_from = alderman_fe,
-    names_prefix = "fe_"
-  )
-
 
 # =============================================================================
-# 3. DESCRIPTIVE PLOTS OF FEs
+# 2. PLOTTING FUNCTION 
 # =============================================================================
 
-outcome_names <- unique(all_alderman_scores$outcome_variable)
+#' Create a suite of charts for alderman restrictiveness scores
+#'
+#' @param scores_list The list output from `calculate_alderman_scores()`, 
+#'   containing `final_scores` and `individual_effects`.
+#' @param spec_name A string to identify the model specification in plot titles 
+#'   (e.g., "Month FEs" or "Ward + Month FEs").
+#'
+#' @return A named list of ggplot objects.
 
-
-# Create a function to make individual bar charts
-create_restrictiveness_chart <- function(outcome_var, data) {
+create_all_score_charts <- function(scores_list, spec_name) {
   
-  # Filter and order data for this outcome
-  plot_data <- data %>%
-    filter(outcome_variable == outcome_var) %>%
-    arrange(alderman_fe) %>%
-    mutate(alderman = factor(alderman, levels = alderman))  # Keep order
+  # =============================================================================
+  # A. PLOT THE FINAL, AGGREGATED STRICTNESS INDEX
+  # =============================================================================
+  final_scores_df <- scores_list$final_scores
   
-  # Determine color scheme (red for more restrictive, blue for less)
-  robust_pattern <- "time|fee|cost"
-  
-  plot_data <- plot_data %>%
+  plot_data_final <- final_scores_df %>%
+    arrange(strictness_index) %>%
     mutate(
-      restrictive_color = case_when(
-        alderman_fe == 0 ~ "Reference",
-        grepl(robust_pattern, outcome_var) & alderman_fe > 0 ~ "More Restrictive",
-        grepl(robust_pattern, outcome_var) & alderman_fe < 0 ~ "Less Restrictive",
-        !grepl(robust_pattern, outcome_var) & alderman_fe > 0 ~ "Less Restrictive",
-        !grepl(robust_pattern, outcome_var) & alderman_fe < 0 ~ "More Restrictive",
-        TRUE ~ "Reference"
-      )
+      alderman = factor(alderman, levels = alderman),
+      restrictive_color = if_else(strictness_index > 0, "More Restrictive", "Less Restrictive")
     )
   
-  # Clean up the title
-  clean_title <- outcome_var %>%
-    gsub("log_", "Log ", .) %>%      # Handle log_ prefix
-    gsub("_", " ", .) %>%            # Replace underscores with spaces
-    str_to_title()                   # Title case
-  
-  # Create the plot
-  p <- ggplot(plot_data, aes(x = alderman, y = alderman_fe, fill = restrictive_color)) +
+  p_final_index <- ggplot(plot_data_final, aes(x = alderman, y = strictness_index, fill = restrictive_color)) +
     geom_col() +
     scale_fill_manual(
-      values = c("More Restrictive" = "#d73027", 
-                 "Less Restrictive" = "#4575b4", 
-                 "Reference" = "#999999"),
+      values = c("More Restrictive" = "#d73027", "Less Restrictive" = "#4575b4"),
       name = ""
     ) +
     labs(
-      title = paste("Alderman Restrictiveness:", clean_title),
-      subtitle = "Ordered from least restrictive (left) to most restrictive (right)",
+      title = paste("Alderman Restrictiveness Index"),
+      subtitle = paste("Based on PCA of all outcome variables with", spec_name),
       x = "Alderman",
-      y = "Fixed Effect Coefficient",
-      caption = "Reference alderman (Andre Vasquez) set to 0"
+      y = "Strictness Index"
     ) +
     theme_minimal() +
     theme(
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 6),  # Very small font
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
       panel.grid = element_blank(),
       legend.position = "bottom",
       plot.title = element_text(size = 12, face = "bold"),
@@ -200,149 +182,122 @@ create_restrictiveness_chart <- function(outcome_var, data) {
     ) +
     geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.7)
   
-  return(p)
+  # =============================================================================
+  # B. PLOT THE INDIVIDUAL FIXED EFFECTS (ADAPTED FROM YOUR CODE)
+  # =============================================================================
+  individual_effects_df <- scores_list$individual_effects
+  outcome_names <- unique(individual_effects_df$outcome_variable)
+  
+  # Internal helper function for plotting each FE
+  create_fe_chart <- function(outcome_var, data) {
+    plot_data <- data %>%
+      filter(outcome_variable == outcome_var) %>%
+      arrange(alderman_fe) %>%
+      mutate(alderman = factor(alderman, levels = alderman))
+    
+    robust_pattern <- "time|fee|cost"
+    
+    plot_data <- plot_data %>%
+      mutate(
+        restrictive_color = case_when(
+          alderman_fe == 0 ~ "Reference",
+          grepl(robust_pattern, outcome_var) & alderman_fe > 0 ~ "More Restrictive",
+          grepl(robust_pattern, outcome_var) & alderman_fe < 0 ~ "Less Restrictive",
+          !grepl(robust_pattern, outcome_var) & alderman_fe > 0 ~ "Less Restrictive",
+          !grepl(robust_pattern, outcome_var) & alderman_fe < 0 ~ "More Restrictive",
+          TRUE ~ "Reference"
+        )
+      )
+    
+    clean_title <- str_to_title(gsub("_", " ", gsub("log_", "Log ", outcome_var)))
+    
+    p <- ggplot(plot_data, aes(x = alderman, y = alderman_fe, fill = restrictive_color)) +
+      geom_col() +
+      scale_fill_manual(
+        values = c("More Restrictive" = "#d73027", "Less Restrictive" = "#4575b4", "Reference" = "#999999"),
+        name = ""
+      ) +
+      labs(
+        title = paste("Alderman Fixed Effect:", clean_title),
+        subtitle = paste("Model includes", spec_name),
+        x = "Alderman",
+        y = "Shrunken Fixed Effect Coefficient"
+      ) +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+        panel.grid = element_blank(),
+        legend.position = "bottom",
+        plot.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 10, color = "gray60")
+      ) +
+      geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.7)
+    
+    return(p)
+  }
+  
+  # Create a list of plots for each individual outcome
+  individual_plots <- map(outcome_names, ~create_fe_chart(.x, individual_effects_df))
+  names(individual_plots) <- outcome_names
+  
+  # =============================================================================
+  # C. COMBINE AND RETURN ALL PLOTS
+  # =============================================================================
+  all_plots <- c(list(final_strictness_index = p_final_index), individual_plots)
+  
+  message(paste("\n✓ Generated", length(all_plots), "plots for the '", spec_name, "' specification."))
+  
+  return(all_plots)
 }
 
-# Create all charts using ACTUAL outcome variable names from data
-charts <- map(outcome_names, ~create_restrictiveness_chart(.x, all_alderman_scores))
-
-# Use the actual outcome names for the list names
-names(charts) <- outcome_names
-
-# Now access charts with the correct names:
-# charts[["permit_approval_rate"]]
-# charts[["log_mean_total_fee"]]      # These should match what's actually in your data
-# charts[["log_n_permits_issued"]]
-# charts[["log_median_processing_time"]]
-
-
 # =============================================================================
-# 4. APPLY EMPIRICAL BAYES SHRINKAGE
-# =============================================================================
-message("Applying Empirical Bayes shrinkage to alderman fixed effects...")
-
-alderman_scores_shrunk <- all_alderman_scores %>%
-  # Group by outcome, as shrinkage must be applied to each set of FEs separately
-  group_by(outcome_variable) %>%
-  mutate(
-    # Step 1: Estimate the variance of the TRUE alderman effects (sigma_alpha^2).
-    # This is the average squared FE minus the average estimation variance.
-    sigma2_alpha = max(0, mean(alderman_fe^2) - mean(alderman_se^2)),
-    
-    # Step 2: Calculate the shrinkage factor B for each alderman.
-    # B = (true variance) / (true variance + estimation variance)
-    shrinkage_factor_B = sigma2_alpha / (sigma2_alpha + alderman_se^2),
-    
-    # Step 3: Compute the shrunken fixed effect.
-    # Shrunken FE = Original FE * Shrinkage Factor
-    alderman_fe = alderman_fe * shrinkage_factor_B
-  ) %>%
-  ungroup() # Always ungroup after a grouped mutation
-
-message("✓ Shrinkage complete.")
-
-
-
-
-charts <- map(outcome_names, ~create_restrictiveness_chart(.x, alderman_scores_shrunk))
-
-# Use the actual outcome names for the list names
-names(charts) <- outcome_names
-
-# Now access charts with the correct names:
-# charts[["permit_approval_rate"]]
-# charts[["log_mean_total_fee"]]      # These should match what's actually in your data
-# charts[["log_n_permits_issued"]]
-# charts[["log_median_processing_time"]]
-
-
-
-# =============================================================================
-# 4. USE PCA TO GET FINAL STRICTNESS SCORE
+# 3. DEFINE INPUTS
 # =============================================================================
 
-sign_flip_pattern <- "fee|time|cost"
+# Define model parameters
+outcome_vars <- list(
+  "log_n_permits_issued" = "log(n_permits_issued)",
+  "permit_approval_rate" = "permit_approval_rate",
+  "log_median_processing_time" = "log(mean_processing_time)",
+  "log_mean_total_fee" = "log(mean_total_fee)"
+)
 
-pca_data_wide <- alderman_scores_shrunk %>%
-  mutate(
-    signed_fe = if_else(
-      # Condition: If the variable is one where "positive = less strict"
-      grepl(sign_flip_pattern, outcome_variable),
-      # Action if TRUE: Flip the sign to make "positive = more strict"
-      alderman_fe * -1,
-      # Action if FALSE: Keep the original sign (it's already correct)
-      alderman_fe
-    )
-  ) %>%
-  # Step 2: Pivot to a wide format
-  select(alderman, outcome_variable, signed_fe) %>%
-  pivot_wider(
-    names_from = outcome_variable,
-    values_from = signed_fe
-  ) 
+control_vars <- c(
+  "homeownership_rate", "population_density", "median_income",
+  "percent_black", "percent_hispanic"
+)
 
-pca_data_for_prcomp <- pca_data_wide %>%
-  column_to_rownames("alderman")
+ref_alderman <- "Andre Vasquez"
 
-pca_results <- prcomp(pca_data_for_prcomp, scale = TRUE, center = TRUE)
+# =============================================================================
+# 4. CALL THE FUNCTION FOR EACH SPECIFICATION
+# =============================================================================
 
-pc1_loadings <- pca_results$rotation
-print(pc1_loadings)
+# --- Run model with Month FEs ---
+scores_month_fe <- calculate_alderman_scores(
+  data = data,
+  outcome_vars = outcome_vars,
+  control_vars = control_vars,
+  fe_spec = "month",
+  ref_alderman = ref_alderman,
+  output_filepath = "../output/alderman_restrictiveness_scores_month_FEs.csv"
+)
 
-# Convert the results matrix (pca_results$x) to a data frame.
-# The alderman names will be carried over as row names.
-final_scores <- as.data.frame(pca_results$x) %>%
-  
-  # Use tibble::rownames_to_column() to safely move the row names
-  # into a new column called "alderman".
-  rownames_to_column("alderman") %>%
-  
-  # Select and rename the columns you want.
-  select(alderman, strictness_index = PC1) %>%
-  
-  # Now you can safely arrange the results.
-  arrange(strictness_index)
-
-message("✓ PCA complete. Final strictness index created robustly.")
-
-write_csv(final_scores, "../output/alderman_restrictiveness_scores.csv")
+charts_month_fe <- create_all_score_charts(scores_month_fe, "Month FEs")
 
 
+# --- Run model with Ward + Month FEs ---
+scores_ward_month_fe <- calculate_alderman_scores(
+  data = data,
+  outcome_vars = outcome_vars,
+  control_vars = control_vars,
+  fe_spec = "ward+month",
+  ref_alderman = ref_alderman,
+  output_filepath = "../output/alderman_restrictiveness_scores_ward_month_FEs.csv"
+)
 
-# permits issued: positive = better
-# approval rate: positive = better
-# processing time: negative = better
-# total fees: negative = better
+charts_ward_month_fe <- create_all_score_charts(scores_ward_month_fe, "Ward + Month FEs")
 
 
-
-
-
-
-# # =============================================================================
-# # 5. CREATE STRICTNESS INDEX VIA AVERAGING (ALTERNATIVE TO PCA)
-# # =============================================================================
-# message("PCA is not interpretable. Creating an index by averaging Z-scores...")
-# 
-# # We'll use the 'pca_data_wide' since it's already correctly signed.
-# # Note: The data frame MUST NOT have non-numeric columns (like alderman) for the next step.
-# alderman_names <- rownames(pca_data_wide)
-# numeric_data <- as.data.frame(scale(pca_data_wide[,-1])) # scale() creates Z-scores
-# 
-# # Calculate the average Z-score for each alderman
-# numeric_data$strictness_index <- rowMeans(numeric_data, na.rm = TRUE)
-# 
-# # Create the final, clean data frame
-# final_scores_avg <- data.frame(
-#   alderman = alderman_names,
-#   strictness_index = numeric_data$strictness_index
-# ) %>%
-#   arrange(strictness_index)
-# 
-# message("✓ Average Z-score index created.")
-# 
-# # View the results
-# head(final_scores_avg)
-# tail(final_scores_avg)
 
 
