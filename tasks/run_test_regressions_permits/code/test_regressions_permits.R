@@ -10,6 +10,7 @@ unbalanced_panel <- read_csv("../input/permit_regression_panel_blocks_unbalanced
 
 balanced_panel <- read_csv("../input/permit_regression_panel_blocks_balanced.csv")
 
+
 policy_year <- 2015
 
 prepare_panel <- function(df) {
@@ -25,8 +26,8 @@ prepare_panel <- function(df) {
       post = ifelse(relative_year >= 0, 1, 0),
       
       # Use the actual implementation year (2015) for score comparison
-      score_pre = first(restrictiveness_score_pca[year == 2014]),
-      score_post = first(restrictiveness_score_pca[year == 2015]),
+      score_pre = first(strictness_index[year == 2014]),
+      score_post = first(strictness_index[year == 2015]),
       
       # Create a category for the type of switch
       switch_type = case_when(
@@ -101,7 +102,7 @@ regression_grid <- crossing(
 # Define a function to run a single regression
 run_feols <- function(panel_name, outcome, weights) {
   
-  fml_string <- sprintf("%s ~ restrictiveness_score_pca + %s | block_id + year",
+  fml_string <- sprintf("%s ~ strictness_index + %s | block_id + year",
                         outcome, paste(controls, collapse = " + "))
   
   feols(
@@ -140,7 +141,7 @@ clean_headers <- c(
 
 
 rename_dict <- c(
-  "restrictiveness_score_pca" = "Restrictiveness Score",
+  "strictness_index" = "Restrictiveness Score",
   "block_id"                  = "Census Block", 
   "year"                      = "Year"
 )

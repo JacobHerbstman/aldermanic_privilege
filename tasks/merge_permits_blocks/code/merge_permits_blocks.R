@@ -96,13 +96,27 @@ joined_panel_switch <- left_join(
 
 ##bring in alderman data and restrictiveness scores
 
-alderman_restrictiveness_scores <- read_csv("../input/alderman_restrictiveness_score_test.csv") 
+alderman_restrictiveness_scores <- read_csv("../input/alderman_restrictiveness_score.csv") 
+alderman_panel <- read_csv("../input/alderman_panel.csv") 
+
+alderman_panel <- alderman_panel %>% 
+  filter(month(year_month_date) == 6) %>% 
+  mutate(year = year(year_month_date)) %>% 
+  select(year, ward, alderman, finance_chair, zoning_chair, budget_chair)
+
+
+alderman_scores <- alderman_panel %>% 
+  left_join(
+    alderman_restrictiveness_scores, 
+    by = c("alderman")
+    ) 
+
 
 joined_panel_switch <- left_join(
   joined_panel_switch,
-  alderman_restrictiveness_scores, 
-  by = "ward"
-  )
+  alderman_scores, 
+  by = c("ward", "year")
+  ) 
 
 
 ##bring in block-group level controls
