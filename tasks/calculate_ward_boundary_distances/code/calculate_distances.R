@@ -312,7 +312,7 @@ final_dataset <- parcels_with_distances %>%
     ward = assigned_ward, ward_pair, dist_to_boundary,
     alderman = alderman.x, alderman_tenure_months,
     finance_chair, zoning_chair, budget_chair,
-    sa_lotsize, sa_sqft, sa_nbr_bedrms, sa_nbr_bath, sa_nbr_rms, sa_nbr_stories, sa_nbr_units
+    sa_lotsize, sa_sqft, sa_nbr_bedrms, sa_nbr_bath, sa_nbr_stories, sa_nbr_units
   )
 
 
