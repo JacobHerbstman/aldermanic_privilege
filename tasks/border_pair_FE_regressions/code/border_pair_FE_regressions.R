@@ -27,7 +27,8 @@ bandwidths      <- c(100, 250, 400, 500, 800)
 # =======================================================================================
 cat("Loading and preparing data...\n")
 parcels <- st_read("../input/parcels_with_ward_distances.gpkg")
-parcels <- as_tibble(st_drop_geometry(parcels))
+parcels <- as_tibble(st_drop_geometry(parcels)) %>% 
+  mutate(strictness_index = strictness_index / sd(strictness_index, na.rm = TRUE)) ## divide by standard deviation to interpret regressions
 
 
 # --- 3. LOOP THROUGH BANDWIDTHS AND RUN REGRESSIONS ---
