@@ -10,7 +10,7 @@ source("../../setup_environment/code/packages.R")
 # --- Interactive Test Block (uncomment to run in RStudio) ---
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
 # yvar                   <- "density_far"
-# bw                     <- 50
+# bw                     <- 500
 # kernel                 <- "epanechnikov"
 # output_filename_rdplot   <- sprintf("../output/TEST_rd_plot_%s_bw%d_%s.png", yvar, bw, kernel)
 # output_filename_scatter  <- sprintf("../output/TEST_rd_scatter_%s_bw%d_%s.png", yvar, bw, kernel)
@@ -31,14 +31,7 @@ output_filename_scatter  <- args[5]
 
 cat("Loading and preparing data...\n")
 parcels <- st_read("../input/parcels_with_ward_distances.gpkg")
-parcels <- as_tibble(st_drop_geometry(parcels))
-
-parcels_analysis <- parcels %>%
-  mutate(
-    density_far = if_else(sa_lotsize > 0, sa_sqft / sa_lotsize, NA_real_),
-    density_lapu = if_else(sa_nbr_units > 0, sa_lotsize / sa_nbr_units, NA_real_)
-  ) %>%
-  filter(!is.na(dist_to_boundary) & !is.na(ward_pair) & !is.na(strictness_index))
+parcels_analysis <- as_tibble(st_drop_geometry(parcels))
 
 strictness_lookup <- parcels_analysis %>%
   group_by(ward, boundary_year) %>%
@@ -78,14 +71,22 @@ rd_robust_result <- rdrobust(
   h = bw,
   cluster = parcels_signed$ward_pair
 )
-summary(rd_robust_result)
+# summary(rd_robust_result)
 
 # Extract Bias-Corrected coefficient and Standard Error
 coef_bc <- rd_robust_result$coef[3]
 se_bc   <- rd_robust_result$se[3]
+z_bc <- rd_robust_result$z[3]
+
+stars <- case_when(
+  abs(z_bc) > 2.576 ~ "***", # p < 0.01
+  abs(z_bc) > 1.960 ~ "**",  # p < 0.05
+  abs(z_bc) > 1.645 ~ "*",   # p < 0.10
+  TRUE ~ ""
+)
 
 # Create a formatted string for the plot annotation
-annotation_text <- sprintf("Estimate: %.3f (%.3f)", coef_bc, se_bc)
+annotation_text <- sprintf("Estimate: %.3f%s (%.3f)", coef_bc, stars, se_bc)
 
 
 # --- 4. GENERATE PLOTS ---
@@ -97,6 +98,15 @@ if (yvar == "density_far") {
   ylim = c(0,2.5)
 } else if (yvar == "density_lapu") {
   y_axis_label <- "Lot Area Per Unit (LAPU)"
+  ylim = c(0,5000)
+} else if (yvar == "density_bcr") {
+  y_axis_label <- "Building Coverage Ratio (BCR)"
+  ylim = c(0,1)
+} else if (yvar == "density_lps") {
+  y_axis_label <- "Lot Size Per Story (LPS)"
+  ylim = c(0,5000)
+} else if (yvar == "density_spu") {
+  y_axis_label <- "Square Feet Per Unit (SPU)"
   ylim = c(0,5000)
 } else {
   y_axis_label <- yvar # Fallback to the raw variable name if it's something else
@@ -127,6 +137,7 @@ plot1 <- ggplot() +
   coord_cartesian(xlim = c(-bw, bw), ylim = ylim) +
   theme_bw() + 
   theme(panel.grid.major = element_blank())
+# plot1
 
 ## --- Plot 2: Smoothed Scatterplot ---
 cat("Generating smoothed scatterplot...\n")
@@ -138,12 +149,14 @@ plot2 <- ggplot(data = parcels_signed, aes_string(x = "signed_distance", y = yva
   annotate("text", x = -Inf, y = 0, label = annotation_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold") +
   labs(
     title = plot_title,
-    subtitle = paste("Bandwidth:", bw, "m"),
+    subtitle = paste0("bw: ", bw, "m | kernel: ", kernel),
     y = y_axis_label, x = "Distance to Stricter Ward Boundary (meters)"
   ) +
   coord_cartesian(xlim = c(-bw, bw), ylim = ylim) +
   theme_bw() +
-  theme(panel.grid = element_blank())
+  theme(panel.grid = element_blank(), 
+        plot.title = element_text(size = 12))
+# plot2
 
 # --- 5. SAVE BOTH PLOTS ---
 ggsave(output_filename_rdplot, plot = plot1, width = 8, height = 6, dpi = 300)

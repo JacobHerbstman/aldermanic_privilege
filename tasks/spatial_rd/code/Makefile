@@ -2,9 +2,9 @@ SHELL := bash
 include ../../shell_functions.make
 
 # --- Analysis Parameters ---
-BANDWIDTHS := 50 100 150 200 250 300 400 500
+BANDWIDTHS := 250 400 500 800 1000
 KERNELS    := triangular epanechnikov uniform
-YVARS      := density_far
+YVARS      := density_far density_lapu density_bcr density_lps density_spu
 
 # --- Key Files ---
 INPUT_PARCELS := ../input/parcels_with_ward_distances.gpkg

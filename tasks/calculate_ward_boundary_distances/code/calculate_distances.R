@@ -329,7 +329,24 @@ cat("Final dataset creation completed!\n")
 
 
 # -----------------------------------------------------------------------------
-# 8. SAVE OUTPUT
+# 8. MAKE OUTCOME VARIABLES
+# -----------------------------------------------------------------------------
+
+final_dataset <- final_dataset %>%
+  mutate(
+    density_far = if_else(sa_lotsize > 0, sa_sqft / sa_lotsize, NA_real_), ## floor area ratio 
+    density_lapu = if_else(sa_nbr_units > 0, sa_lotsize / sa_nbr_units, NA_real_), ## lot area per unit
+    density_bcr = if_else(sa_nbr_stories > 0 & sa_lotsize > 0, 
+                          (sa_sqft / sa_nbr_stories) / sa_lotsize, NA_real_), ## building coverage ratio
+    density_lps = if_else(sa_nbr_stories > 0, sa_lotsize / sa_nbr_stories, NA_real_), ## lotsize per story
+    density_spu = if_else(sa_nbr_units > 0, sa_sqft / sa_nbr_units, NA_real_) ## square feet per unit
+  ) %>%
+  filter(!is.na(dist_to_boundary) & !is.na(ward_pair) & !is.na(strictness_index))
+
+
+
+# -----------------------------------------------------------------------------
+# 9. SAVE OUTPUT
 # -----------------------------------------------------------------------------
 
 cat("Saving output...\n")
