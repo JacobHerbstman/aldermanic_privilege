@@ -31,13 +31,13 @@ output_filename_scatter  <- args[5]
 
 cat("Loading and preparing data...\n")
 parcels <- st_read("../input/parcels_with_ward_distances.gpkg")
-parcels_analysis <- as_tibble(st_drop_geometry(parcels))
+parcels <- as_tibble(st_drop_geometry(parcels))
 
-strictness_lookup <- parcels_analysis %>%
+strictness_lookup <- parcels %>%
   group_by(ward, boundary_year) %>%
   summarise(strictness_index = mean(strictness_index, na.rm = TRUE), .groups = "drop")
 
-parcels_signed <- parcels_analysis %>%
+parcels_signed <- parcels %>%
   mutate(
     wards_in_pair = str_split_fixed(ward_pair, "_", 2),
     ward_a = as.integer(wards_in_pair[, 1]),
