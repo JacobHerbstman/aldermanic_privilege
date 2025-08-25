@@ -313,7 +313,7 @@ final_dataset <- parcels_with_distances %>%
     alderman = alderman.x, alderman_tenure_months,
     finance_chair, zoning_chair, budget_chair,
     arealotsf, areabuilding, bedroomscount, bathcount, bathpartialcount, roomscount, storiescount, unitscount, 
-    assessorpriorsaleamount, deedlastsaleprice,
+    assessorpriorsaleamount, deedlastsaleprice, construction, foundation
   )
 
 
@@ -345,12 +345,6 @@ final_dataset <- final_dataset %>%
     # Square Feet Per Unit
     density_spu = if_else(unitscount > 0, areabuilding / unitscount, NA_real_)
   ) %>%
-  mutate(log_density_far = log(density_far),
-         log_density_lapu = log(density_lapu),
-         log_density_bcr = log(density_bcr),
-         log_density_lps = log(density_lps),
-         log_density_spu = log(density_spu)
-  ) %>% 
   filter(!is.na(dist_to_boundary) & !is.na(ward_pair) & !is.na(strictness_index)) 
 
 

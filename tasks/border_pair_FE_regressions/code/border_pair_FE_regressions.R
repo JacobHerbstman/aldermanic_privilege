@@ -8,7 +8,7 @@ source("../../setup_environment/code/packages.R")
 # --- 1. PARAMETERS ---
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-# yvar       <- "log(density_far)"
+# yvar       <- "log(density_lps)"
 # bandwidths <- c(264, 528, 792, 1056, 1320, 1584, 2112, 2640) # Define all bandwidths here
 # =======================================================================================
 
@@ -41,7 +41,7 @@ model_list <- lapply(bandwidths, function(bw) {
   fe_model <- feols(
     fml = as.formula(paste0(
       yvar,
-      " ~ strictness_index | construction_year + ward_pair"
+      " ~ strictness_index + assessorpriorsaleamount + alderman_tenure_months | construction_year + ward_pair"
     )),
     data = parcels_fe,
     cluster = ~ward_pair
@@ -116,7 +116,7 @@ etable(
   title       = table_title,
   signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
   fixef.group = TRUE,
-  # file = output_filename, # Save to the specified file
+  file = output_filename, # Save to the specified file
   replace = TRUE
 )
 
