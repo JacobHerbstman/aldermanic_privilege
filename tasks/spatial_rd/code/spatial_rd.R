@@ -10,21 +10,23 @@ source("../../setup_environment/code/packages.R")
 # --- Interactive Test Block (uncomment to run in RStudio) ---
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
 # yvar                   <- "density_far"
-# bw                     <- 500
+# use_log                 <- FALSE
+# bw                     <- 1320
 # kernel                 <- "epanechnikov"
 # output_filename_rdplot   <- sprintf("../output/TEST_rd_plot_%s_bw%d_%s.png", yvar, bw, kernel)
 # output_filename_scatter  <- sprintf("../output/TEST_rd_scatter_%s_bw%d_%s.png", yvar, bw, kernel)
-# =======================================================================================
+# # =======================================================================================
 # --- Command-Line Arguments (uncomment for Makefile) ---
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 5) {
+if (length(args) != 6) {
   stop("FATAL: Script requires 5 arguments: <yvar> <bw> <kernel> <rd_plot_outfile> <rd_scatter_outfile>", call. = FALSE)
 }
 yvar                   <- args[1]
-bw                     <- as.numeric(args[2])
-kernel                 <- args[3]
-output_filename_rdplot   <- args[4]
-output_filename_scatter  <- args[5]
+use_log                 <- as.logical(args[2])
+bw                     <- as.numeric(args[3])
+kernel                 <- args[4]
+output_filename_rdplot   <- args[5]
+output_filename_scatter  <- args[6]
 # =======================================================================================
 
 # --- 2. LOAD AND PREPARE DATA ---
@@ -54,15 +56,22 @@ parcels_signed <- parcels %>%
     ),
     signed_distance = dist_to_boundary * sign
   ) %>%
-  filter(!is.na(signed_distance))
+  filter(!is.na(signed_distance)) 
+
+parcels_signed <- parcels_signed[parcels_signed[[yvar]] > 0, ]
+
+if (use_log) {
+  parcels_signed$outcome <- log(parcels_signed[[yvar]])
+} else {
+  parcels_signed$outcome <- parcels_signed[[yvar]]
+}
 
 cat("Data preparation complete.\n")
 
-
 # --- 3. RUN RDROBUST & EXTRACT ESTIMATES ---
-cat("Running rdrobust for:", yvar, "...\n")
+cat("Running rdrobust for:", yvar, "(log =", use_log, ")...\n")
 rd_robust_result <- rdrobust(
-  y = parcels_signed[[yvar]],
+  y = parcels_signed$outcome, # <-- CHANGE 4: Use the new 'outcome' column
   x = parcels_signed$signed_distance,
   c = 0,
   kernel = kernel,
@@ -71,45 +80,71 @@ rd_robust_result <- rdrobust(
   h = bw,
   cluster = parcels_signed$ward_pair
 )
-# summary(rd_robust_result)
+summary(rd_robust_result)
 
 # Extract Bias-Corrected coefficient and Standard Error
 coef_bc <- rd_robust_result$coef[3]
 se_bc   <- rd_robust_result$se[3]
-z_bc <- rd_robust_result$z[3]
+p_bc <- rd_robust_result$pv[3]
 
+# Determine significance stars based on z-value
 stars <- case_when(
-  abs(z_bc) > 2.576 ~ "***", # p < 0.01
-  abs(z_bc) > 1.960 ~ "**",  # p < 0.05
-  abs(z_bc) > 1.645 ~ "*",   # p < 0.10
+  p_bc <= .10 & p_bc > .05 ~ "*", # p < 0.10
+  p_bc <= .05 & p_bc > .01  ~ "**",  # p < 0.05
+  p_bc <= .01 ~ "***",   # p < 0.01
   TRUE ~ ""
 )
 
 # Create a formatted string for the plot annotation
 annotation_text <- sprintf("Estimate: %.3f%s (%.3f)", coef_bc, stars, se_bc)
 
-
 # --- 4. GENERATE PLOTS ---
 
 # =======================================================================================
 # Create better labels based on the yvar
+# Create better labels and dynamic y-axis limits based on yvar and log status
 if (yvar == "density_far") {
   y_axis_label <- "Floor-Area Ratio (FAR)"
-  ylim = c(0,2.5)
+  if (use_log) {
+    ylim <- c(-2, 1.5)
+  } else {
+    ylim <- c(0, 2.5)
+  }
 } else if (yvar == "density_lapu") {
   y_axis_label <- "Lot Area Per Unit (LAPU)"
-  ylim = c(0,5000)
+  if (use_log) {
+    ylim <- c(6, 9.5)
+  } else {
+    ylim <- c(0, 5000)
+  }
 } else if (yvar == "density_bcr") {
   y_axis_label <- "Building Coverage Ratio (BCR)"
-  ylim = c(0,1)
+  if (use_log) {
+    ylim <- c(-3, 0.5)
+  } else {
+    ylim <- c(0, 1)
+  }
 } else if (yvar == "density_lps") {
   y_axis_label <- "Lot Size Per Story (LPS)"
-  ylim = c(0,5000)
+  if (use_log) {
+    ylim <- c(5, 10)
+  } else {
+    ylim <- c(0, 5000)
+  }
 } else if (yvar == "density_spu") {
   y_axis_label <- "Square Feet Per Unit (SPU)"
-  ylim = c(0,5000)
+  if (use_log) {
+    ylim <- c(6, 9)
+  } else {
+    ylim <- c(0, 5000)
+  }
 } else {
-  y_axis_label <- yvar # Fallback to the raw variable name if it's something else
+  y_axis_label <- yvar
+  ylim <- NULL # Let ggplot decide the limits for unknown variables
+}
+
+if (use_log) {
+  y_axis_label <- paste("Log(", y_axis_label, ")")
 }
 
 plot_title <- "Discontinuity in Development Density at Ward Boundary"
@@ -118,8 +153,8 @@ plot_title <- "Discontinuity in Development Density at Ward Boundary"
 ## --- Plot 1: Binned rdplot ---
 cat("Generating binned rdplot...\n")
 rd_plot_object <- rdplot(
-  y = parcels_signed[[yvar]], x = parcels_signed$signed_distance, c = 0,
-  h = bw, p = 1, kernel = kernel,
+  y = parcels_signed$outcome, x = parcels_signed$signed_distance, 
+  c = 0, h = bw, p = 1, kernel = kernel,
   title = "", y.label = "", x.label = ""
 )
 
@@ -128,37 +163,43 @@ plot1 <- ggplot() +
   geom_point(data = rd_plot_object$vars_bins, aes(x = rdplot_mean_x, y = rdplot_mean_y), color = "darkblue", size = 2.5) +
   geom_line(data = rd_plot_object$vars_poly, aes(x = rdplot_x, y = rdplot_y), color = "red", linewidth = 1) +
   geom_vline(xintercept = 0, color = "black", linewidth = 1.2) +
-  annotate("text", x = -Inf, y = 0, label = annotation_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold") +
+  annotate("text", x = -Inf, y = ylim[1], label = annotation_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold") +
   labs(
     title = plot_title,
-    subtitle = paste0("bw: ", bw, "m | kernel: ", kernel),
-    y = y_axis_label, x = "Distance to Stricter Ward Boundary (meters)"
+    subtitle = paste0("bw: ", round((bw/5280), 2), " miles | kernel: ", kernel),
+    y = y_axis_label, x = "Distance to Stricter Ward Boundary (feet)"
   ) +
   coord_cartesian(xlim = c(-bw, bw), ylim = ylim) +
-  theme_bw() + 
+  theme_bw() +
   theme(panel.grid.major = element_blank())
-# plot1
+plot1
 
 ## --- Plot 2: Smoothed Scatterplot ---
 cat("Generating smoothed scatterplot...\n")
-plot2 <- ggplot(data = parcels_signed, aes_string(x = "signed_distance", y = yvar)) +
+plot2 <- ggplot(data = parcels_signed, aes(x = signed_distance, y = outcome)) +
   geom_point(color = "grey60", alpha = 0.3, shape = 16) +
   geom_smooth(data = . %>% filter(signed_distance >= 0), method = "loess", se = TRUE, color = "#d14949", fill = "#d14949", alpha = 0.4) +
   geom_smooth(data = . %>% filter(signed_distance < 0), method = "loess", se = TRUE, color = "#496dd1", fill = "#496dd1", alpha = 0.4) +
   geom_vline(xintercept = 0, color = "black", linewidth = 0.8) +
-  annotate("text", x = -Inf, y = 0, label = annotation_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold") +
+  annotate("text", x = -Inf, y = ylim[1], label = annotation_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold") +
   labs(
     title = plot_title,
-    subtitle = paste0("bw: ", bw, "m | kernel: ", kernel),
-    y = y_axis_label, x = "Distance to Stricter Ward Boundary (meters)"
+    subtitle = paste0("bw: ", round((bw/5280), 2), " miles | kernel: ", kernel),
+    y = y_axis_label, x = "Distance to Stricter Ward Boundary (feet)"
   ) +
   coord_cartesian(xlim = c(-bw, bw), ylim = ylim) +
   theme_bw() +
   theme(panel.grid = element_blank(), 
         plot.title = element_text(size = 12))
-# plot2
+plot2
 
 # --- 5. SAVE BOTH PLOTS ---
+if (!exists("output_filename_rdplot")) {
+  log_suffix <- if (use_log) "_log" else ""
+  output_filename_rdplot  <- sprintf("../output/rd_plot_%s_bw%d%s_%s.png", yvar, bw, log_suffix, kernel)
+  output_filename_scatter <- sprintf("../output/rd_scatter_%s_bw%d%s_%s.png", yvar, bw, log_suffix, kernel)
+}
+
 ggsave(output_filename_rdplot, plot = plot1, width = 8, height = 6, dpi = 300)
 cat("✓ Binned plot saved to:", output_filename_rdplot, "\n")
 

@@ -18,8 +18,8 @@ REDISTRICTING_END <- as.Date("2015-05-01")     # For gradual rule
 
 cat("Loading parcel data...\n")
 parcels <- st_read("../input/year_built_sample.gpkg") %>%
-  filter(!is.na(sa_yr_blt), sa_yr_blt >= 2006 & sa_yr_blt <= 2023) %>%
-  mutate(construction_date = as.Date(paste0(sa_yr_blt, "-06-15")))
+  filter(!is.na(yearbuilt), yearbuilt >= 2006 & yearbuilt <= 2023) %>%
+  mutate(construction_date = as.Date(paste0(yearbuilt, "-06-15")))
 
 cat("Loading ward boundaries...\n")
 ward_panel <- st_read("../input/ward_panel.gpkg")
@@ -86,7 +86,7 @@ cat("Assigning wards to parcels based on construction year...\n")
 assign_ward_and_distances <- function(parcel_batch) {
   results <- parcel_batch %>%
     rowwise() %>%
-    mutate(boundary_year = get_ward_boundaries_for_year(sa_yr_blt, REDISTRICTING_RULE)) %>%
+    mutate(boundary_year = get_ward_boundaries_for_year(yearbuilt, REDISTRICTING_RULE)) %>%
     ungroup()
   
   results_with_wards <- results %>%
@@ -308,11 +308,12 @@ final_dataset <- parcels_with_distances %>%
   ) %>% 
   select(
     attom_id, geom,
-    construction_year = sa_yr_blt, construction_date, boundary_year,
+    construction_year = yearbuilt, construction_date, boundary_year,
     ward = assigned_ward, ward_pair, dist_to_boundary,
     alderman = alderman.x, alderman_tenure_months,
     finance_chair, zoning_chair, budget_chair,
-    sa_lotsize, sa_sqft, sa_nbr_bedrms, sa_nbr_bath, sa_nbr_stories, sa_nbr_units
+    arealotsf, areabuilding, bedroomscount, bathcount, bathpartialcount, roomscount, storiescount, unitscount, 
+    assessorpriorsaleamount, deedlastsaleprice,
   )
 
 
@@ -325,8 +326,6 @@ final_dataset <- final_dataset %>%
   left_join(alderman_scores, by = "alderman") 
 
 
-cat("Final dataset creation completed!\n")
-
 
 # -----------------------------------------------------------------------------
 # 8. MAKE OUTCOME VARIABLES
@@ -334,17 +333,28 @@ cat("Final dataset creation completed!\n")
 
 final_dataset <- final_dataset %>%
   mutate(
-    density_far = if_else(sa_lotsize > 0, sa_sqft / sa_lotsize, NA_real_), ## floor area ratio 
-    density_lapu = if_else(sa_nbr_units > 0, sa_lotsize / sa_nbr_units, NA_real_), ## lot area per unit
-    density_bcr = if_else(sa_nbr_stories > 0 & sa_lotsize > 0, 
-                          (sa_sqft / sa_nbr_stories) / sa_lotsize, NA_real_), ## building coverage ratio
-    density_lps = if_else(sa_nbr_stories > 0, sa_lotsize / sa_nbr_stories, NA_real_), ## lotsize per story
-    density_spu = if_else(sa_nbr_units > 0, sa_sqft / sa_nbr_units, NA_real_) ## square feet per unit
+    # Floor Area Ratio
+    density_far = if_else(arealotsf > 0, areabuilding / arealotsf, NA_real_),
+    # Lot Area Per Unit
+    density_lapu = if_else(unitscount > 0, arealotsf / unitscount, NA_real_),
+    # Building Coverage Ratio
+    density_bcr = if_else(storiescount > 0 & arealotsf > 0, 
+                          (areabuilding / storiescount) / arealotsf, NA_real_),
+    # Lot Size Per Story
+    density_lps = if_else(storiescount > 0, arealotsf / storiescount, NA_real_),
+    # Square Feet Per Unit
+    density_spu = if_else(unitscount > 0, areabuilding / unitscount, NA_real_)
   ) %>%
-  filter(!is.na(dist_to_boundary) & !is.na(ward_pair) & !is.na(strictness_index))
+  mutate(log_density_far = log(density_far),
+         log_density_lapu = log(density_lapu),
+         log_density_bcr = log(density_bcr),
+         log_density_lps = log(density_lps),
+         log_density_spu = log(density_spu)
+  ) %>% 
+  filter(!is.na(dist_to_boundary) & !is.na(ward_pair) & !is.na(strictness_index)) 
 
 
-
+cat("Final dataset creation completed!\n")
 # -----------------------------------------------------------------------------
 # 9. SAVE OUTPUT
 # -----------------------------------------------------------------------------

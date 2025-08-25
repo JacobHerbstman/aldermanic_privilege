@@ -25,7 +25,7 @@ $(PARCELS_WITH_DISTANCES) $(PARCELS_PARQUET) $(SUMMARY_STATS): $(YEAR_BUILT_SAMP
 
 # Link inputs from upstream tasks
 link-inputs:
-	@ln -sf ../../clean_attom_historical/output/year_built_sample.gpkg ../input/year_built_sample.gpkg
+	@ln -sf ../../process_attom_assessor/output/chicago_attom_2023.gpkg ../input/year_built_sample.gpkg
 	@ln -sf ../../ward_panel_create/output/ward_panel.gpkg ../input/ward_panel.gpkg
 	@ln -sf ../../create_alderman_data/output/chicago_alderman_panel.csv ../input/chicago_alderman_panel.csv
 	@ln -sf ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_ward_month_FEs.csv ../input/alderman_strictness_scores.csv

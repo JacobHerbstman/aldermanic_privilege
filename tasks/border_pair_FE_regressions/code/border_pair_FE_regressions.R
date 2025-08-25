@@ -9,7 +9,7 @@ source("../../setup_environment/code/packages.R")
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # yvar       <- "log(density_far)"
-# bandwidths <- c(100, 250, 400, 500, 800) # Define all bandwidths here
+# bandwidths <- c(264, 528, 792, 1056, 1320, 1584, 2112, 2640) # Define all bandwidths here
 # =======================================================================================
 
 # =======================================================================================
@@ -20,7 +20,7 @@ if (length(args) != 2) {
 }
 yvar            <- args[1]
 output_filename <- args[2]
-bandwidths      <- c(100, 250, 400, 500, 800)
+bandwidths      <- c(264, 528, 792, 1056, 1320, 1584, 2112, 2640)
 # =======================================================================================
 
 # --- 2. DATA PREPARATION ---
@@ -28,8 +28,7 @@ bandwidths      <- c(100, 250, 400, 500, 800)
 cat("Loading and preparing data...\n")
 parcels <- st_read("../input/parcels_with_ward_distances.gpkg")
 parcels <- as_tibble(st_drop_geometry(parcels)) %>% 
-  mutate(strictness_index = strictness_index / sd(strictness_index, na.rm = TRUE)) ## divide by standard deviation to interpret regressions
-
+  mutate(strictness_index = strictness_index / sd(strictness_index, na.rm = TRUE))  ## divide by standard deviation to interpret regressions 
 
 # --- 3. LOOP THROUGH BANDWIDTHS AND RUN REGRESSIONS ---
 # =======================================================================================
@@ -57,7 +56,7 @@ model_list <- lapply(bandwidths, function(bw) {
 # =======================================================================================
 
 # Assign names to the models for clean column headers
-names(model_list) <- paste0(bandwidths, "m")
+names(model_list) <- paste0(round((bandwidths/ 5280), 2), "mi")
 
 # Helper function for mean of the original (level) dependent variable
 mean_y_level <- function(x) {
@@ -90,7 +89,7 @@ rename_dict <- c(
   "density_lapu" = "Lot Area Per Unit (LAPU)",
   "density_bcr" = "Building Coverage Ratio (BCR)",
   "density_lps" = "Lot Size Per Story (LPS)",
-  "density_spu" = "Stories Per Unit (SPU)"
+  "density_spu" = "Sq. Feet Per Unit (SPU)"
 )
 
 # --- Create a dynamic title for the table ---
@@ -117,7 +116,7 @@ etable(
   title       = table_title,
   signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
   fixef.group = TRUE,
-  file = output_filename, # Save to the specified file
+  # file = output_filename, # Save to the specified file
   replace = TRUE
 )
 

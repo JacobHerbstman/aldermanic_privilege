@@ -6,7 +6,7 @@ include ../../shell_functions.make
 # ─────────────────────────────────────────────────────────────────────────────
 
 # The final, real output file this task will create.
-OUTPUT_FILE := ../output/chicago_attom_2023.parquet
+OUTPUT_FILE := ../output/chicago_attom_2023.gpkg
 
 # The R script that will perform the work.
 SCRIPT_FILE := process_assessor.R
@@ -39,12 +39,6 @@ $(OUTPUT_FILE): $(SCRIPT_FILE) | setup-inputs ../output
 setup-inputs: | $(INPUT_DIR)
 	@echo "→ [process_assessor] Linking all raw CSV inputs..."
 	ln -sf $(CURDIR)/../../../data_raw/assessor/*.csv $(INPUT_DIR)/
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Rule to create the specific subdirectory for this task's inputs
-# -----------------------------------------------------------------------------
-$(INPUT_DIR):
-	mkdir -p $@
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Generic rules for cleanup and other common tasks

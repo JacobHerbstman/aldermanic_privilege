@@ -1,83 +1,67 @@
+# --- Package bootstrap script ---
+
 rm(list = ls())
 
+# Packages required for the project
 packages <- c(
   "DBI", "readr","fixest","haven","stringr", "ipumsr", "tidycensus","dplyr","sf", "furrr", "purrr", "nngeo", "data.table", 
-  "tigris", "zoo", "patchwork", "glue", "writexl", "arrow", "duckdb", "ptaxsim", "ggplot2", "here", "tidyr", "sfarrow", "geoarrow", 
+  "tigris", "zoo", "patchwork", "glue", "writexl", "arrow", "duckdb", "ggplot2", "here", "tidyr", "sfarrow", "geoarrow", 
   "tibble", "rdrobust"
 )
 
-# Create a directory for  packages
-dir.create(path = Sys.getenv("R_LIBS_USER"), showWarnings = FALSE, recursive = TRUE)
-
-i = 1
-output <- NA
-for (package in packages) {
-  if (require(package, character.only = TRUE) == FALSE) {
-
-    message(paste("Installing ", package, sep = ""))
+# --- Step 1: ensure library paths are aligned ---
+# Create user lib dir if needed, and prepend it to .libPaths()
+user_lib <- Sys.getenv("R_LIBS_USER")
+dir.create(user_lib, showWarnings = FALSE, recursive = TRUE)
+.libPaths(c(user_lib, .libPaths()))
 
 
-        install.packages(package, lib = Sys.getenv("R_LIBS_USER"), repos = "http://cran.us.r-project.org")
+# --- Step 2: choose a reliable CRAN mirror ---
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+
+# --- Step 3: install & load packages robustly ---
+output <- character()
+
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE)) {
+    message(sprintf("Installing %s ...", pkg))
     
- 
-    attempt <- 1
-
-    # I am leaving the debugging code within this section, because this section will
-    # only run if something goes wrong and causes a need for debugging.
-    while(package %in% rownames(installed.packages()) == FALSE){
-      if (attempt == 6){
-      try(install.packages(package))
-
-      writeLines(paste("\n"))
-      writeLines(paste("Exceeded 6 attempts without success when attempting to install", package))
-      break
-      }
- 
-      attempt <- attempt + 1
-
-      writeLines(paste("\n"))
-      writeLines(paste("Installing ", package, sep = ""))
-      writeLines(paste("attempt number: ", attempt))
-
-
-      writeLines(paste("\n"))
-      writeLines(paste("Standard Install Attempt"))
-
+    # Try binary first
+    success <- FALSE
+    tryCatch({
+      install.packages(pkg, dependencies = TRUE, type = "binary")
+      success <- TRUE
+    }, error = function(e) {
+      message(sprintf("Binary install failed for %s: %s", pkg, e$message))
+    })
+    
+    # If binary fails, try source
+    if (!success) {
       tryCatch({
-        install.packages(package, lib = Sys.getenv("R_LIBS_USER"), repos = "http://cran.us.r-project.org")
-        }, error = function(e) {
-        writeLines(paste("Error message: ", e$message)) 
-        }, warning = function(w) {
-        writeLines(paste("Warning message: ", w$message))
-        }
-      )
-
-      writeLines(paste("\n"))
-      writeLines(paste("Alternative Install Attempt"))
-      tryCatch({
-        install.packages(package, dependencies=TRUE, repos='http://cran.rstudio.com/')
-        }, error = function(e) {
-        writeLines(paste("Error message: ", e$message)) 
-        }, warning = function(w) {
-        writeLines(paste("Warning message: ", w$message))
-        }
-      )      
-
-      }
-
-
+        install.packages(pkg, dependencies = TRUE, type = "source")
+      }, error = function(e) {
+        message(sprintf("Source install failed for %s: %s", pkg, e$message))
+      })
+    }
+    
+    # Load after install attempt
+    if (!require(pkg, character.only = TRUE)) {
+      warning(sprintf("Package %s could not be installed or loaded.", pkg))
+    }
   }
-
-
-  version <- packageDescription(package, fields = "Version")
-  output[i] <- paste(package, version, sep = " : ")
-  print(output)
-
-  i = i + 1
+  
+  # Record version
+  version <- tryCatch({
+    packageDescription(pkg, fields = "Version")
+  }, error = function(e) NA)
+  
+  output <- c(output, paste(pkg, version, sep = " : "))
 }
 
-output <- paste(output, collapse = "\n")
-output <- paste("Packages installed: ", output, sep = "\n")
+# --- Step 4: log output ---
+output <- paste("Packages installed:", paste(output, collapse = "\n"), sep = "\n")
+cat(output)
 
-# write.table(output, "../output/R_packages.txt",
-#             col.names = FALSE, row.names = FALSE)
+# Optionally write to file in repo (uncomment if desired)
+# writeLines(output, "../output/R_packages.txt")
