@@ -1,33 +1,29 @@
-# calculate_ward_boundary_distances/Makefile
-
 SHELL := bash
 include ../../shell_functions.make
 
 .PHONY: all link-inputs
 
-# Input files
-YEAR_BUILT_SAMPLE := ../input/year_built_sample.gpkg
-WARD_PANEL := ../input/ward_panel.gpkg  
-ALDERMAN_PANEL := ../input/chicago_alderman_panel.csv
-ALDERMAN_SCORES := ../input/alderman_strictness_scores.csv
+# --- Main Goal ---
+all: ../output/parcels_with_ward_distances.gpkg
 
-# Output files
-PARCELS_WITH_DISTANCES := ../output/parcels_with_ward_distances.gpkg
-
-# Main target
-all: $(PARCELS_WITH_DISTANCES)
-
-include ../../generic.make
-
-# Main processing rule
-$(PARCELS_WITH_DISTANCES) $(PARCELS_PARQUET) $(SUMMARY_STATS): $(YEAR_BUILT_SAMPLE) $(WARD_PANEL) $(ALDERMAN_PANEL) $(ALDERMAN_SCORES) | ../output 
+# --- Main processing rule ---
+../output/parcels_with_ward_distances.gpkg: calculate_distances.R ../input/year_built_sample.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/alderman_strictness_scores.csv | ../output
 	Rscript calculate_distances.R
 
-# Link inputs from upstream tasks
-link-inputs:
-	@ln -sf ../../process_attom_assessor/output/chicago_attom_2023.gpkg ../input/year_built_sample.gpkg
-	@ln -sf ../../ward_panel_create/output/ward_panel.gpkg ../input/ward_panel.gpkg
-	@ln -sf ../../create_alderman_data/output/chicago_alderman_panel.csv ../input/chicago_alderman_panel.csv
-	@ln -sf ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_ward_month_FEs.csv ../input/alderman_strictness_scores.csv
+# --- Rules that make each symlink depend on its source file ---
+../input/year_built_sample.gpkg: ../../process_attom_assessor/output/chicago_attom_2023.gpkg | ../input
+	@ln -sf $< $@
 
+../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
+	@ln -sf $< $@
 
+../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
+	@ln -sf $< $@
+
+../input/alderman_strictness_scores.csv: ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
+	@ln -sf $< $@
+
+# --- The link-inputs target is a helper to create all links at once ---
+link-inputs: ../input/year_built_sample.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/alderman_strictness_scores.csv
+
+include ../../generic.make

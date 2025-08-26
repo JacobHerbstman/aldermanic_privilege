@@ -8,25 +8,25 @@ source("../../setup_environment/code/packages.R")
 # --- 1. ARGUMENT HANDLING ---
 # =======================================================================================
 # --- Interactive Test Block (uncomment to run in RStudio) ---
-cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
-yvar                   <- "density_far"
-use_log                 <- FALSE
-bw                     <- 1320
-kernel                 <- "epanechnikov"
-output_filename_rdplot   <- sprintf("../output/TEST_rd_plot_%s_bw%d_%s.png", yvar, bw, kernel)
-output_filename_scatter  <- sprintf("../output/TEST_rd_scatter_%s_bw%d_%s.png", yvar, bw, kernel)
+# cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
+# yvar                   <- "density_far"
+# use_log                 <- FALSE
+# bw                     <- 264
+# kernel                 <- "epanechnikov"
+# output_filename_rdplot   <- sprintf("../output/TEST_rd_plot_%s_bw%d_%s.png", yvar, bw, kernel)
+# output_filename_scatter  <- sprintf("../output/TEST_rd_scatter_%s_bw%d_%s.png", yvar, bw, kernel)
 # # =======================================================================================
 # --- Command-Line Arguments (uncomment for Makefile) ---
-# args <- commandArgs(trailingOnly = TRUE)
-# if (length(args) != 6) {
-#   stop("FATAL: Script requires 5 arguments: <yvar> <bw> <kernel> <rd_plot_outfile> <rd_scatter_outfile>", call. = FALSE)
-# }
-# yvar                   <- args[1]
-# use_log                 <- as.logical(args[2])
-# bw                     <- as.numeric(args[3])
-# kernel                 <- args[4]
-# output_filename_rdplot   <- args[5]
-# output_filename_scatter  <- args[6]
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) != 6) {
+  stop("FATAL: Script requires 5 arguments: <yvar> <bw> <kernel> <rd_plot_outfile> <rd_scatter_outfile>", call. = FALSE)
+}
+yvar                   <- args[1]
+use_log                 <- as.logical(args[2])
+bw                     <- as.numeric(args[3])
+kernel                 <- args[4]
+output_filename_rdplot   <- args[5]
+output_filename_scatter  <- args[6]
 # =======================================================================================
 
 # --- 2. LOAD AND PREPARE DATA ---
@@ -97,7 +97,7 @@ stars <- case_when(
 
 # Create a formatted string for the plot annotation
 annotation_text <- sprintf("Estimate: %.3f%s (%.3f)", coef_bc, stars, se_bc)
-
+annotation_text
 # --- 4. GENERATE PLOTS ---
 
 # =======================================================================================

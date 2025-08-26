@@ -2,9 +2,9 @@ SHELL := bash
 include ../../shell_functions.make
 
 # --- Analysis Parameters ---
-BANDWIDTHS := 528 792 1056 1320 1584 2112 2640
+BANDWIDTHS := 264 528 792 1056 1320 1584 2112 2640
 KERNELS    := triangular epanechnikov uniform
-YVARS      := density_far 
+YVARS      := density_far density_lapu density_bcr density_lps density_spu
 LOG_STATUS := TRUE FALSE
 
 # --- Prefix helper for filenames ---

@@ -1,14 +1,14 @@
 # This script runs border-pair FE regressions across multiple bandwidths.
 
 ## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 
 source("../../setup_environment/code/packages.R")
 
 # --- 1. PARAMETERS ---
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-# yvar       <- "log(density_lps)"
+# yvar       <- "log(density_far)"
 # bandwidths <- c(264, 528, 792, 1056, 1320, 1584, 2112, 2640) # Define all bandwidths here
 # =======================================================================================
 
@@ -41,7 +41,7 @@ model_list <- lapply(bandwidths, function(bw) {
   fe_model <- feols(
     fml = as.formula(paste0(
       yvar,
-      " ~ strictness_index + assessorpriorsaleamount + alderman_tenure_months | construction_year + ward_pair"
+      " ~ strictness_index + alderman_tenure_months + finance_chair + zoning_chair + budget_chair | ward + construction_year + ward_pair"
     )),
     data = parcels_fe,
     cluster = ~ward_pair
