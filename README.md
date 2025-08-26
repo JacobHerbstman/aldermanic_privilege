@@ -25,13 +25,10 @@ The other is the regression discontinuity plots in `spatial_rd`.
 
 Using raw data (these can be run in any order): 
 `process_attom_assessor`
-`process_attom_assessor_historical`
 `ward_panel_create`
 `create_alderman_data`
 
 Using intermediate inputs (run in this order): 
-`geocode_assessor_history`
-`clean_attom_historical`
 `data_for_alderman_strictness_scores`
 `create_alderman_strictness_scores`
 `calculate_ward_boundary_distances`
