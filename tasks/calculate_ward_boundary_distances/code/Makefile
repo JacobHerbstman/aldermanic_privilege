@@ -4,10 +4,10 @@ include ../../shell_functions.make
 .PHONY: all link-inputs
 
 # --- Main Goal ---
-all: ../output/parcels_with_ward_distances.gpkg
+all: ../output/parcels_with_ward_distances.csv
 
 # --- Main processing rule ---
-../output/parcels_with_ward_distances.gpkg: calculate_distances.R ../input/year_built_sample.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/alderman_strictness_scores.csv | ../output
+../output/parcels_with_ward_distances.csv: calculate_distances.R ../input/year_built_sample.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/alderman_strictness_scores.csv | ../output
 	Rscript calculate_distances.R
 
 # --- Rules that make each symlink depend on its source file ---

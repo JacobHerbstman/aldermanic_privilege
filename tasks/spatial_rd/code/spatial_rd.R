@@ -11,15 +11,15 @@ source("../../setup_environment/code/packages.R")
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
 # yvar                   <- "density_far"
 # use_log                 <- FALSE
-# bw                     <- 264
+# bw                     <- 512
 # kernel                 <- "epanechnikov"
 # output_filename_rdplot   <- sprintf("../output/TEST_rd_plot_%s_bw%d_%s.png", yvar, bw, kernel)
 # output_filename_scatter  <- sprintf("../output/TEST_rd_scatter_%s_bw%d_%s.png", yvar, bw, kernel)
-# # =======================================================================================
+# =======================================================================================
 # --- Command-Line Arguments (uncomment for Makefile) ---
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 6) {
-  stop("FATAL: Script requires 5 arguments: <yvar> <bw> <kernel> <rd_plot_outfile> <rd_scatter_outfile>", call. = FALSE)
+  stop("FATAL: Script requires 6 arguments: <yvar> <bw> <kernel> <rd_plot_outfile> <rd_scatter_outfile>", call. = FALSE)
 }
 yvar                   <- args[1]
 use_log                 <- as.logical(args[2])
@@ -27,43 +27,20 @@ bw                     <- as.numeric(args[3])
 kernel                 <- args[4]
 output_filename_rdplot   <- args[5]
 output_filename_scatter  <- args[6]
-# =======================================================================================
+# # =======================================================================================
 
 # --- 2. LOAD AND PREPARE DATA ---
-
 cat("Loading and preparing data...\n")
-parcels <- st_read("../input/parcels_with_ward_distances.gpkg")
-parcels <- as_tibble(st_drop_geometry(parcels))
+parcels_signed <- read_csv("../input/parcels_with_ward_distances.csv")
 
-strictness_lookup <- parcels %>%
-  group_by(ward, boundary_year) %>%
-  summarise(strictness_index = mean(strictness_index, na.rm = TRUE), .groups = "drop")
-
-parcels_signed <- parcels %>%
-  mutate(
-    wards_in_pair = str_split_fixed(ward_pair, "_", 2),
-    ward_a = as.integer(wards_in_pair[, 1]),
-    ward_b = as.integer(wards_in_pair[, 2]),
-    other_ward = if_else(ward == ward_a, ward_b, ward_a)
-  ) %>%
-  left_join(strictness_lookup, by = c("other_ward" = "ward", "boundary_year" = "boundary_year")) %>%
-  rename(strictness_own = strictness_index.x, strictness_neighbor = strictness_index.y) %>%
-  mutate(
-    sign = case_when(
-      strictness_own > strictness_neighbor ~ 1,
-      strictness_own < strictness_neighbor ~ -1,
-      TRUE ~ NA_real_
-    ),
-    signed_distance = dist_to_boundary * sign
-  ) %>%
-  filter(!is.na(signed_distance)) 
-
+# Filter out zero values and apply log if specified
 parcels_signed <- parcels_signed[parcels_signed[[yvar]] > 0, ]
-
 if (use_log) {
   parcels_signed$outcome <- log(parcels_signed[[yvar]])
+  log_suffix <- "_log"
 } else {
   parcels_signed$outcome <- parcels_signed[[yvar]]
+  log_suffix <- ""
 }
 
 cat("Data preparation complete.\n")

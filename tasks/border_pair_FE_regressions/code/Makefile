@@ -14,7 +14,7 @@ get_stem = $(shell echo "$(1)" | sed 's/log(/log_/g' | sed 's/)//g')
 OUTPUT_FILES := $(foreach yvar,$(YVARS),../output/fe_table_$(call get_stem,$(yvar)).tex)
 
 # --- Key Files ---
-INPUT_PARCELS := ../input/parcels_with_ward_distances.gpkg
+INPUT_PARCELS := ../input/parcels_with_ward_distances.csv
 SCRIPT_FILE   := border_pair_FE_regressions.R
 
 # --- Goals ---
@@ -32,7 +32,7 @@ endef
 $(foreach yvar,$(YVARS),$(eval $(call GEN_RULE,$(yvar))))
 
 # --- Input Linking ---
-$(INPUT_PARCELS): ../../calculate_ward_boundary_distances/output/parcels_with_ward_distances.gpkg | ../input
+$(INPUT_PARCELS): ../../calculate_ward_boundary_distances/output/parcels_with_ward_distances.csv | ../input
 	@echo "→ [FE Regressions] Linking input: $@ ← $<"
 	ln -sf $< $@
 

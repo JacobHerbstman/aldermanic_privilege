@@ -2,8 +2,8 @@ SHELL := bash
 include ../../shell_functions.make
 
 # --- Analysis Parameters ---
-BANDWIDTHS := 264 528 792 1056 1320 1584 2112 2640
-KERNELS    := triangular epanechnikov uniform
+BANDWIDTHS := 528 792 1056 1320 1584 2640
+KERNELS    := epanechnikov 
 YVARS      := density_far density_lapu density_bcr density_lps density_spu
 LOG_STATUS := TRUE FALSE
 
@@ -12,7 +12,7 @@ LOG_PREFIX_TRUE  := log_
 LOG_PREFIX_FALSE :=
 
 # --- Key Files ---
-INPUT_PARCELS := ../input/parcels_with_ward_distances.gpkg
+INPUT_PARCELS := ../input/parcels_with_ward_distances.csv
 SCRIPT_FILE   := spatial_rd.R
 
 # --- Generate all output filenames for both plot types and log statuses ---
@@ -53,5 +53,9 @@ $(foreach log_stat,$(LOG_STATUS), \
     $(eval $(GEN_PLOTTING_RULES)) \
 ))))
 
+$(INPUT_PARCELS): ../../calculate_ward_boundary_distances/output/parcels_with_ward_distances.csv | ../input
+	@ln -sf $< $@
+
 # --- Input Linking & Generic Rules ---
+link-inputs: $(INPUT_PARCELS)
 include ../../generic.make

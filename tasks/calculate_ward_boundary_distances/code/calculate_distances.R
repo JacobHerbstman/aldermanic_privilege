@@ -316,16 +316,11 @@ final_dataset <- parcels_with_distances %>%
     assessorpriorsaleamount, deedlastsaleprice, construction, foundation
   )
 
-
-
 # -----------------------------------------------------------------------------
 # 7. MERGE IN ALDERMAN STRICTNESS SCORES
 # -----------------------------------------------------------------------------
-
 final_dataset <- final_dataset %>%
   left_join(alderman_scores, by = "alderman") 
-
-
 
 # -----------------------------------------------------------------------------
 # 8. MAKE OUTCOME VARIABLES
@@ -348,14 +343,44 @@ final_dataset <- final_dataset %>%
   filter(!is.na(dist_to_boundary) & !is.na(ward_pair) & !is.na(strictness_index)) 
 
 
-cat("Final dataset creation completed!\n")
 # -----------------------------------------------------------------------------
-# 9. SAVE OUTPUT
+# 9. SIGN DISTANCES BASED ON STRICTNESS 
+# -----------------------------------------------------------------------------
+final_dataset <- as_tibble(st_drop_geometry(final_dataset))
+
+strictness_lookup <- final_dataset %>%
+  group_by(ward, boundary_year) %>%
+  summarise(strictness_index = mean(strictness_index, na.rm = TRUE), .groups = "drop")
+
+final_dataset_signed <- final_dataset %>%
+  mutate(
+    wards_in_pair = str_split_fixed(ward_pair, "_", 2),
+    ward_a = as.integer(wards_in_pair[, 1]),
+    ward_b = as.integer(wards_in_pair[, 2]),
+    other_ward = if_else(ward == ward_a, ward_b, ward_a)
+  ) %>%
+  left_join(strictness_lookup, by = c("other_ward" = "ward", "boundary_year" = "boundary_year")) %>%
+  rename(strictness_own = strictness_index.x, strictness_neighbor = strictness_index.y) %>%
+  mutate(
+    sign = case_when(
+      strictness_own > strictness_neighbor ~ 1,
+      strictness_own < strictness_neighbor ~ -1,
+      TRUE ~ NA_real_
+    ),
+    signed_distance = dist_to_boundary * sign
+  ) %>%
+  filter(!is.na(signed_distance)) %>% 
+  dplyr::select(-contains("wards_in_pair"))
+
+cat("Final Dataset Created!\n")
+
+# -----------------------------------------------------------------------------
+# 10. SAVE OUTPUT
 # -----------------------------------------------------------------------------
 
 cat("Saving output...\n")
 
-st_write(final_dataset, "../output/parcels_with_ward_distances.gpkg", delete_dsn = TRUE)
+write_csv(final_dataset_signed, "../output/parcels_with_ward_distances.csv")
 # write_parquet(st_drop_geometry(final_dataset), "../output/parcels_with_ward_distances.parquet")
 
 summary_stats <- final_dataset %>%
@@ -371,11 +396,8 @@ summary_stats <- final_dataset %>%
   ) %>% 
   arrange(construction_year)
 
-# write_csv(summary_stats, "../output/boundary_distance_summary.csv")
-
 cat("Task completed successfully!\n")
 print(summary_stats)
-
 
 write_csv(summary_stats, "../output/boundary_distance_summary.csv")
 

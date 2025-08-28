@@ -26,9 +26,9 @@ bandwidths      <- c(264, 528, 792, 1056, 1320, 1584, 2112, 2640)
 # --- 2. DATA PREPARATION ---
 # =======================================================================================
 cat("Loading and preparing data...\n")
-parcels <- st_read("../input/parcels_with_ward_distances.gpkg")
-parcels <- as_tibble(st_drop_geometry(parcels)) %>% 
-  mutate(strictness_index = strictness_index / sd(strictness_index, na.rm = TRUE))  ## divide by standard deviation to interpret regressions 
+parcels <- read_csv("../input/parcels_with_ward_distances.csv")
+parcels <- parcels %>%
+  mutate(strictness_own_std = strictness_own / sd(strictness_own, na.rm = TRUE))  ## divide by standard deviation to interpret regressions 
 
 # --- 3. LOOP THROUGH BANDWIDTHS AND RUN REGRESSIONS ---
 # =======================================================================================
@@ -41,7 +41,7 @@ model_list <- lapply(bandwidths, function(bw) {
   fe_model <- feols(
     fml = as.formula(paste0(
       yvar,
-      " ~ strictness_index + alderman_tenure_months + finance_chair + zoning_chair + budget_chair | ward + construction_year + ward_pair"
+      " ~ strictness_own_std + alderman_tenure_months + finance_chair + zoning_chair + budget_chair | ward + construction_year + ward_pair"
     )),
     data = parcels_fe,
     cluster = ~ward_pair
@@ -82,7 +82,7 @@ fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
 # Define dictionary for renaming
 rename_dict <- c(
-  "strictness_index" = "Restrictiveness Score",
+  "strictness_own_std" = "Restrictiveness Score",
   "construction_year"      = "Year",
   'ward_pair' = "Ward Pair",
   "density_far" = "Floor Area Ratio (FAR)",
@@ -105,7 +105,7 @@ table_title <- if (grepl("log\\(", yvar)) {
 # Create and save the table
 etable(
   model_list,
-  keep = "%strictness_index",
+  keep = "Restrictiveness Score",
   # Formatting options
   fitstat = ~ n + myo + nwp,
   style.tex = style.tex("aer"),
