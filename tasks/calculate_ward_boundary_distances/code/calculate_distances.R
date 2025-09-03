@@ -342,6 +342,11 @@ final_dataset <- final_dataset %>%
   ) %>%
   filter(!is.na(dist_to_boundary) & !is.na(ward_pair) & !is.na(strictness_index)) 
 
+# -----------------------------------------------------------------------------
+# 8.5. SAVE GEOSPATIAL OUTPUT
+# -----------------------------------------------------------------------------
+cat("Saving geospatial output before dropping geometry...\n")
+st_write(final_dataset, "../output/parcels_with_geometry.gpkg", delete_dsn = TRUE)
 
 # -----------------------------------------------------------------------------
 # 9. SIGN DISTANCES BASED ON STRICTNESS 
