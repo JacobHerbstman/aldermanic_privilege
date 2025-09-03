@@ -67,7 +67,7 @@ $(INPUT_BLOCK_PANEL): ../../merge_wards_blocks/output/census_blocks_ward_switche
 	ln -sf $< $@
 
 # Rule for linking restrictiveness scores
-$(INPUT_RESTRICTIVENESS_SCORES): ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_ward_month_FEs.csv | ../input
+$(INPUT_RESTRICTIVENESS_SCORES): ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
 	@echo "→ [merge_parcels_blocks] Linking intermediate input: alderman restrictiveness scores"
 	ln -sf $< $@
 

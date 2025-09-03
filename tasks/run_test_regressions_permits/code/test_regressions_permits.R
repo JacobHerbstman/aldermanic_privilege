@@ -10,7 +10,6 @@ unbalanced_panel <- read_csv("../input/permit_regression_panel_blocks_unbalanced
 
 balanced_panel <- read_csv("../input/permit_regression_panel_blocks_balanced.csv")
 
-
 policy_year <- 2015
 
 prepare_panel <- function(df) {
