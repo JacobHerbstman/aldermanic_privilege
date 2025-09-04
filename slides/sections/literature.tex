@@ -1,23 +1,35 @@
 \begin{frame}
+    \frametitle{Related Literature}
 	\begin{itemize}
-        \item \textbf{Decentralized Urban Governance}
-        \begin{itemize}
-            \item {\scriptsize \cite{levine_effects_1999, khan_decentralized_2021,brueckner_bunching_2024, 
-            mast_warding_2024,bordeu_commuting_2025}}
-        \end{itemize}
+        % Item 1: Appears on slide 1 and stays visible on all subsequent slides.
+        \item<1-> \textbf{Decentralized Urban Governance}
+        % The details (nested itemize) will ONLY appear on slide 1.
+        \only<1>{
+            \begin{itemize} 
+                \item {\scriptsize \cite{levine_effects_1999, 
+                mast_warding_2024,bordeu_commuting_2025}}
+            \end{itemize}
+        }
         \vspace{1em} 
 
-        \item \textbf{Incumbent Residents' Influence on Development}
-        \begin{itemize}
-            \item \scriptsize{\cite{fischel_homevoter_2009, rossihansberg_housing_2010, ortalo-magne_political_2014,freemark_upzoning_2020}}
-        \end{itemize}
+        % Item 2: Appears on slide 2 and stays visible.
+        \item<2-> \textbf{Incumbent Residents' Influence on Development}
+        % The details will ONLY appear on slide 2.
+        \only<2>{
+            \begin{itemize}
+                \item \scriptsize{\cite{fischel_homevoter_2009, rossihansberg_housing_2010, hilber_origins_2013, ortalo-magne_political_2014,duranton_urban_2023}}
+            \end{itemize}
+        }
         \vspace{1em}
-    
-        \item \textbf{Spatial Regression Discontinuity Designs}
-        \begin{itemize}
-            \item \scriptsize{\cite{black_better_1999,bayer_unified_2007,turner_land_2014,monarrez_dividing_2023}}
-        \end{itemize}
-        \vspace{1em}
-    
+
+        % Item 3: Appears on slide 3 and stays visible.
+        \item<3-> \textbf{Spatial Regression Discontinuity Designs}
+        % The details will ONLY appear on slide 3.
+        \only<3>{
+            \begin{itemize}
+                \item \scriptsize{\cite{black_better_1999,bayer_unified_2007,turner_land_2014,monarrez_dividing_2023}}
+            \end{itemize}
+        }
+        % No need for \vspace{1em} on the last item, but you can add it if you like.
     \end{itemize}
 \end{frame}
