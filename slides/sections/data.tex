@@ -1,0 +1,46 @@
+\begin{frame}
+    \frametitle{Data Sources}
+	\begin{itemize}
+        % Item 1: Appears on slide 1 and stays visible.
+        \item<1-> \textbf{Attom Data}
+        % Details for item 1: Only appear on slide 1.
+        \only<1>{
+            \begin{itemize} 
+                \item I use parcel-level data from Attom to create a sample of all new residential developments in Chicago from 2006-2023
+                \item Contains exact geocoded location, lot size, square footage, number of units, and many other characteristics
+                \item My final analysis sample contains $\approx 15,000$ unique developments
+            \end{itemize}
+        }
+        \vspace{1em} 
+
+        % Item 2: Appears on slide 2 and stays visible.
+        \item<2-> \textbf{Chicago Building Permits Data}
+        % Details for item 2: Only appear on slide 2.
+        \only<2>{
+            \begin{itemize}
+                \item To create alderman fixed effects for the RD design, I use publicly-available permit data from the City of Chicago
+                \item Includes over $800,000$ permits from 2006-2023, with exact geocoded location and permit type
+                \item I also obtain ward shapefiles from the City of Chicago Data Portal
+            \end{itemize}
+        }
+        \vspace{1em}
+    
+        % Item 3: Appears on slide 3 and stays visible.
+        \item<3-> \textbf{Demographic Data}
+        % Details for item 3: Only appear on slide 3.
+        \only<3>{
+            \begin{itemize}
+                \item I obtain demographic variables at the block-group level from the American Community Survey (ACS)
+                \item Used to create ward-level control variables for alderman fixed-effects regressions
+                \item Include median income, population density, homeownership rate, and racial composition of each ward
+            \end{itemize}
+        }
+        % No vspace needed after the last item, but you can add it if you want.
+    \end{itemize}
+\end{frame}
+
+
+
+
+
+

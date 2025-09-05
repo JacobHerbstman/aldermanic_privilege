@@ -7,26 +7,15 @@ IMG_INPUTS := $(shell grep '\\includegraphics' $(SLIDES_SECTIONS) | grep -v '%.*
 all: slides.pdf
 
 clean:
-	rm *.log *.aux
+	rm -f *.log *.aux *.out *.toc *.snm *.nav *.bbl *.blg
 
-input/:
-	mkdir $@
+# --- DEBUGGING LINE (you can keep or remove this) ---
+# $(info The following image dependencies were found: [$(IMG_INPUTS)])
 
 slides.pdf: slides.tex $(SLIDES_SECTIONS) $(TEX_INPUTS) $(IMG_INPUTS)
-	#module load texlive
-	#pdflatex -draftmode $<
-	#bibtex slides.aux
-	pdflatex -draftmode $<
-	pdflatex $<
-	rm slides.log slides.aux slides.out slides.toc
-	rm slides.snm slides.nav
-	#rm slides.blg slides.bbl	
-	#module unload texlive
-
-slides_notesonly.pdf: slides.tex $(SLIDES_SECTIONS) $(TEX_INPUTS) $(IMG_INPUTS)
-	sed 's/notes=hide/notes=only/' slides.tex  > slides_notesonly.tex
-	pdflatex slides_notesonly.tex #This will fail due to natbib's bug with notes-only beamer
-	rm slides_notesonly.tex slides_notesonly.log  
-
-#INPUT RECIPES
-inputs: $(TEX_INPUTS) $(IMG_INPUTS)
+	# First pass to generate .aux files, etc.
+	pdflatex -interaction=nonstopmode -draftmode $<
+	# Second pass to resolve cross-references and place images correctly
+	pdflatex -interaction=nonstopmode $<
+	# Clean up temporary files
+	rm -f slides.log slides.aux slides.out slides.toc slides.snm *.nav

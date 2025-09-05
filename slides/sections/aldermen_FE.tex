@@ -1,0 +1,38 @@
+\begin{frame}
+    \frametitle{Empirical Strategy: Alderman Fixed Effects} 
+        % Details for item 1: Only appear on slide 1.
+        \only<1>{
+            \begin{itemize} 
+                \item For my stacked RD design, I need to "sign" each ward border to create a negative and positive side
+                \item To do so, I use the permit dataset to create a measure of alderman "strictness" by running the following regressions at the montly level: 
+                \[
+                \begin{aligned}
+                    Y_{it} = \beta_0 + \sum_{j=1}^{N-1} \delta_j \cdot \text{Alderman}_j + \mathbf{X}{it}'\boldsymbol{\gamma} + \lambda_t + \epsilon_{it}
+                \end{aligned}
+                \]
+                \item $Y_{it}$ contains 4 outcome variables: (1) log permits issued, (2) permit approval rate, (3) log average permit processing time, and (4) log average total fee for each project
+                \item $\delta_j$ are the $N-1$ alderman fixed effects, all referenced to Andre Vasquez (40th Ward), but this is arbitrary
+            \end{itemize}
+        }
+\end{frame}
+
+\begin{frame}
+    \frametitle{Empirical Strategy: Alderman Fixed Effects} 
+        % Details for item 1: Only appear on slide 1.
+        \only<1>{
+            \begin{itemize} 
+                \item Results are robust to a ward + month fixed effects, but lose a lot of power in the RD since many wards don't have any variation in representation
+                \item I then take the first principal component of the 4 $\hat{\delta}_j$ estimates to create a single "strictness" score for each alderman
+            \end{itemize}
+        }
+\end{frame}
+
+
+%\begin{frame}
+%    \frametitle{Results: Alderman Fixed Effects} 
+%        \begin{figure}
+ %           \centering
+  %          \includegraphics[width=0.8\textwidth]{../../tasks/create_alderman_strictness_scores/output/Month_FEs_final_strictness_index.png}
+   %         \label{fig:alderman_effects}
+    %    \end{figure}
+%\end{frame} 
