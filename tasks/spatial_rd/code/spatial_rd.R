@@ -10,23 +10,21 @@ source("../../setup_environment/code/packages.R")
 # --- Interactive Test Block (uncomment to run in RStudio) ---
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
 # yvar                   <- "density_far"
-# use_log                 <- FALSE
-# bw                     <- 512
-# kernel                 <- "epanechnikov"
-# output_filename_rdplot   <- sprintf("../output/TEST_rd_plot_%s_bw%d_%s.png", yvar, bw, kernel)
-# output_filename_scatter  <- sprintf("../output/TEST_rd_scatter_%s_bw%d_%s.png", yvar, bw, kernel)
+# use_log                 <- TRUE
+# bw                     <- 1056
+# kernel                 <- "triangular"
+# output_filename_rdplot <- sprintf( "../output/rd_plot%s_%s_bw%d_%s.png", yvar, bw, kernel)
 # =======================================================================================
 # --- Command-Line Arguments (uncomment for Makefile) ---
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 6) {
-  stop("FATAL: Script requires 6 arguments: <yvar> <bw> <kernel> <rd_plot_outfile> <rd_scatter_outfile>", call. = FALSE)
+if (length(args) != 5) {
+  stop("FATAL: Script requires 5 arguments: <yvar> <use_log> <bw> <kernel> <rd_plot_outfile>", call. = FALSE)
 }
 yvar                   <- args[1]
-use_log                 <- as.logical(args[2])
+use_log                <- as.logical(args[2])
 bw                     <- as.numeric(args[3])
 kernel                 <- args[4]
-output_filename_rdplot   <- args[5]
-output_filename_scatter  <- args[6]
+output_filename_rdplot <- args[5]
 # # =======================================================================================
 
 # --- 2. LOAD AND PREPARE DATA ---
@@ -83,37 +81,37 @@ annotation_text
 if (yvar == "density_far") {
   y_axis_label <- "Floor-Area Ratio (FAR)"
   if (use_log) {
-    ylim <- c(-2, 1.5)
+    ylim <- c(-1, 1)
   } else {
-    ylim <- c(0, 2.5)
+    ylim <- c(0, 2)
   }
 } else if (yvar == "density_lapu") {
   y_axis_label <- "Lot Area Per Unit (LAPU)"
   if (use_log) {
-    ylim <- c(6, 9.5)
+    ylim <- c(6, 8)
   } else {
-    ylim <- c(0, 5000)
+    ylim <- c(0, 2500)
   }
 } else if (yvar == "density_bcr") {
   y_axis_label <- "Building Coverage Ratio (BCR)"
   if (use_log) {
-    ylim <- c(-3, 0.5)
+    ylim <- c(-2, 0)
   } else {
     ylim <- c(0, 1)
   }
 } else if (yvar == "density_lps") {
   y_axis_label <- "Lot Size Per Story (LPS)"
   if (use_log) {
-    ylim <- c(5, 10)
+    ylim <- c(6, 8)
   } else {
-    ylim <- c(0, 5000)
+    ylim <- c(0, 3000)
   }
 } else if (yvar == "density_spu") {
   y_axis_label <- "Square Feet Per Unit (SPU)"
   if (use_log) {
-    ylim <- c(6, 9)
+    ylim <- c(6.5, 8)
   } else {
-    ylim <- c(0, 5000)
+    ylim <- c(0, 3000)
   }
 } else {
   y_axis_label <- yvar
@@ -129,56 +127,74 @@ plot_title <- "Discontinuity in Development Density at Ward Boundary"
 
 ## --- Plot 1: Binned rdplot ---
 cat("Generating binned rdplot...\n")
+
+df_bw  <- parcels_signed %>% dplyr::filter(abs(signed_distance) <= bw)
+
+K=30
 rd_plot_object <- rdplot(
-  y = parcels_signed$outcome, x = parcels_signed$signed_distance, 
-  c = 0, h = bw, p = 1, kernel = kernel,
+  y = df_bw$outcome,
+  x = df_bw$signed_distance,
+  c = 0,
+  h = bw,
+  p = 1,
+  # kernel is irrelevant for bins; keep it if you like for consistency
+  kernel = kernel,
+  # force the same number of bins on each side:
+  nbins = c(K,K),
+  # pick spacing: "es" = evenly spaced in x, "qs" = quantile spaced
+  binselect = "es",
+  # keep your limits so bins are inside the RD window
+  x.lim = c(-bw, bw),
+  y.lim = ylim,
   title = "", y.label = "", x.label = ""
 )
 
-plot1 <- ggplot() +
-  geom_errorbar(data = rd_plot_object$vars_bins, aes(x = rdplot_mean_x, ymin = rdplot_ci_l, ymax = rdplot_ci_r), width = 10, color = "black", linewidth = 0.8) +
-  geom_point(data = rd_plot_object$vars_bins, aes(x = rdplot_mean_x, y = rdplot_mean_y), color = "darkblue", size = 2.5) +
-  geom_line(data = rd_plot_object$vars_poly, aes(x = rdplot_x, y = rdplot_y), color = "red", linewidth = 1) +
-  geom_vline(xintercept = 0, color = "black", linewidth = 1.2) +
-  annotate("text", x = -Inf, y = ylim[1], label = annotation_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold") +
-  labs(
-    title = plot_title,
-    subtitle = paste0("bw: ", round((bw/5280), 2), " miles | kernel: ", kernel),
-    y = y_axis_label, x = "Distance to Stricter Ward Boundary (feet)"
-  ) +
-  coord_cartesian(xlim = c(-bw, bw), ylim = ylim) +
-  theme_bw() +
-  theme(panel.grid.major = element_blank())
-plot1
+## get bins for ggplot
+bins   <- rd_plot_object$vars_bins
 
-## --- Plot 2: Smoothed Scatterplot ---
-cat("Generating smoothed scatterplot...\n")
-plot2 <- ggplot(data = parcels_signed, aes(x = signed_distance, y = outcome)) +
-  geom_point(color = "grey60", alpha = 0.3, shape = 16) +
-  geom_smooth(data = . %>% filter(signed_distance >= 0), method = "loess", se = TRUE, color = "#d14949", fill = "#d14949", alpha = 0.4) +
-  geom_smooth(data = . %>% filter(signed_distance < 0), method = "loess", se = TRUE, color = "#496dd1", fill = "#496dd1", alpha = 0.4) +
-  geom_vline(xintercept = 0, color = "black", linewidth = 0.8) +
-  annotate("text", x = -Inf, y = ylim[1], label = annotation_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold") +
+plot2 <- ggplot() +
+  # binned means (points only)
+  geom_point(data = bins,
+             aes(x = rdplot_mean_x, y = rdplot_mean_y),
+             color = "darkblue", size = 1.5, alpha = 0.7) +
+  
+  # LOESS fits (se=TRUE draws the ribbons around the fitted line)
+  geom_smooth(
+    data = df_bw %>% dplyr::filter(signed_distance < 0),
+    aes(x = signed_distance, y = outcome),
+    method = "loess", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
+    color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
+  ) +
+  geom_smooth(
+    data = df_bw %>% dplyr::filter(signed_distance >= 0),
+    aes(x = signed_distance, y = outcome),
+    method = "loess", formula = y ~ x, se = TRUE,
+    span = 0.75, level = 0.95, na.rm = TRUE,
+    color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
+  ) +
+  
+  geom_vline(xintercept = 0, color = "black", linewidth = .5) +
+  annotate("text", x = -Inf, y = ylim[1], label = annotation_text,
+           hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold") +
   labs(
-    title = plot_title,
-    subtitle = paste0("bw: ", round((bw/5280), 2), " miles | kernel: ", kernel),
-    y = y_axis_label, x = "Distance to Stricter Ward Boundary (feet)"
+    title    = plot_title,
+    subtitle = paste0("bw: ", round(bw/5280, 2),
+                      " miles", " | kernel: ", kernel),
+    y = y_axis_label,
+    x = "Distance to Stricter Ward Boundary (feet)"
   ) +
   coord_cartesian(xlim = c(-bw, bw), ylim = ylim) +
   theme_bw() +
-  theme(panel.grid = element_blank(), 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
         plot.title = element_text(size = 12))
-plot2
+# plot2
 
-# --- 5. SAVE BOTH PLOTS ---
+# --- 5. SAVE PLOT ---
 if (!exists("output_filename_rdplot")) {
   log_suffix <- if (use_log) "_log" else ""
-  output_filename_rdplot  <- sprintf("../output/rd_plot_%s_bw%d%s_%s.png", yvar, bw, log_suffix, kernel)
-  output_filename_scatter <- sprintf("../output/rd_scatter_%s_bw%d%s_%s.png", yvar, bw, log_suffix, kernel)
+  output_filename_rdplot <- sprintf( "../output/rd_plot%s_%s_bw%d_%s.png", log_suffix, yvar, bw, kernel)
 }
 
-ggsave(output_filename_rdplot, plot = plot1, width = 8, height = 6, dpi = 300)
-cat("✓ Binned plot saved to:", output_filename_rdplot, "\n")
-
-ggsave(output_filename_scatter, plot = plot2, width = 8, height = 6, dpi = 300)
-cat("✓ Scatterplot saved to:", output_filename_scatter, "\n")
+ggsave(output_filename_rdplot, plot = plot2, width = 8, height = 6, dpi = 300)
+cat("✓ RD plot saved to:", output_filename_rdplot, "\n")
