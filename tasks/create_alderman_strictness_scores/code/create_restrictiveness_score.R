@@ -154,7 +154,7 @@ create_all_score_charts <- function(scores_list, spec_name) {
   spec_name_clean <- gsub(" \\+ ", "_", spec_name) %>% gsub(" ", "_", .)
   
   # =============================================================================
-  # A. PLOT THE FINAL, AGGREGATED STRICTNESS INDEX
+  # PLOT THE FINAL, AGGREGATED STRICTNESS INDEX
   # =============================================================================
   final_scores_df <- scores_list$final_scores
   
@@ -162,24 +162,29 @@ create_all_score_charts <- function(scores_list, spec_name) {
     arrange(strictness_index) %>%
     mutate(
       alderman = factor(alderman, levels = alderman),
-      restrictive_color = if_else(strictness_index > 0, "More Restrictive", "Less Restrictive")
+      restrictive_color = if_else(strictness_index > 0, "More Strict", "Less Strict")
     )
   
   p_final_index <- ggplot(plot_data_final, aes(x = alderman, y = strictness_index, fill = restrictive_color)) +
     geom_col() +
     scale_fill_manual(
-      values = c("More Restrictive" = "#d73027", "Less Restrictive" = "#4575b4"),
+      values = c("More Strict" = "#d73027", "Less Strict" = "#4575b4"),
       name = ""
     ) +
     labs(
-      title = paste("Alderman Restrictiveness Index"),
+      title = "Alderman Strictness Index",
       subtitle = paste("Based on PCA of all outcome variables with", spec_name),
       x = "Alderman",
       y = "Strictness Index"
     ) +
+    # ⬇️ split labels onto two rows, slightly smaller angle; trim side padding
+    scale_x_discrete(
+      guide = guide_axis(angle = 55, n.dodge = 2),
+      expand = expansion(mult = c(0.01, 0.01))
+    ) +
     theme_minimal() +
     theme(
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+      axis.text.x = element_text(size = 6, lineheight = 0.8, margin = margin(t = 0)),
       panel.grid = element_blank(),
       legend.position = "bottom",
       plot.title = element_text(size = 12, face = "bold"),
@@ -188,7 +193,7 @@ create_all_score_charts <- function(scores_list, spec_name) {
     geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.7)
   
   # =============================================================================
-  # B. PLOT THE INDIVIDUAL FIXED EFFECTS (ADAPTED FROM YOUR CODE)
+  # PLOT THE INDIVIDUAL FIXED EFFECTS
   # =============================================================================
   individual_effects_df <- scores_list$individual_effects
   outcome_names <- unique(individual_effects_df$outcome_variable)
@@ -228,9 +233,11 @@ create_all_score_charts <- function(scores_list, spec_name) {
         x = "Alderman",
         y = "Shrunken Fixed Effect Coefficient"
       ) +
+      # ⬇️ dodge the x labels onto two rows and rotate them
+      scale_x_discrete(guide = guide_axis(angle = 45, n.dodge = 2)) +
       theme_minimal() +
       theme(
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+        axis.text.x = element_text(size = 6),  # no angle here so it doesn't override
         panel.grid = element_blank(),
         legend.position = "bottom",
         plot.title = element_text(size = 12, face = "bold"),
@@ -246,7 +253,7 @@ create_all_score_charts <- function(scores_list, spec_name) {
   names(individual_plots) <- outcome_names
   
   # =============================================================================
-  # C. COMBINE AND RETURN ALL PLOTS
+  # COMBINE AND RETURN ALL PLOTS
   # =============================================================================
   all_plots <- c(list(final_strictness_index = p_final_index), individual_plots)
   
@@ -254,10 +261,10 @@ create_all_score_charts <- function(scores_list, spec_name) {
   
   # --- NEW: Use iwalk to loop through the named list of plots and save each one ---
   iwalk(all_plots, function(plot, name) {
-    # Create a dynamic filename for each plot
-    filename <- file.path("../output", paste0(spec_name_clean, "_", name, ".png"))    
-    # Save the plot
-    ggsave(filename, plot = plot, width = 8, height = 5, bg = "white")
+    base <- file.path("../output", paste0(spec_name_clean, "_", name))
+    # Vector export (best for slides)
+    ggsave(paste0(base, ".pdf"), plot = plot,
+           width = 14, height = 7.875, device = "pdf", bg = "white")
   })
   
   return(all_plots)
