@@ -1,0 +1,36 @@
+\begin{frame}
+    \frametitle{Empirical Strategy: Border Pair Fixed Effects} 
+            \begin{itemize} 
+                \item I complement my spatial RD strategy with ward-border-pair fixed effects regressions  {\scriptsize{\citep{black_better_1999}}} of the form:
+                \[
+                \begin{aligned}
+                    y_i =\beta \text{strictness}_i + \theta X_{w(i)} + \gamma_{w(i)} + \lambda_{t(i)} + \psi_{p(i)} + \varepsilon_{p(i)}
+                \end{aligned}
+                \]
+                \item where $y_i$ is a (logged) density measure for parcel $i$, $\text{strictness}_i$ is the alderman strictness score for alderman $i$ (scaled by standard deviation), $X_i$ is a vector of alderman controls such as tenure and committee membership, $\gamma_{w(i)}$ are ward fixed effects, $\lambda_{t(i)}$ are year fixed effects, and $\psi_{p(i)}$ are border-pair fixed effects
+                \item $\beta$ is the coefficient of interest, and I cluster standard errors by ward-border-pair to account for arbitrary correlation within border-pairs
+            \end{itemize}
+\end{frame}
+
+
+\begin{frame}[t,label=main_FAR_table]{Results: Log( Floor Area Ratio (FAR))}
+    \centering
+    % include a table saved as pure \begin{tabular}...\end{tabular}
+    \scriptsize{\input{../tasks/border_pair_FE_regressions/output/fe_table_log_density_far.tex}}
+    \vfill\hfill
+    \hyperlink{levels_table}{\beamergotobutton{Levels}}
+    \hspace{0.2em}\hyperlink{lapu_table}{\beamergotobutton{Lot Area Per Unit (LAPU)}}
+    \hspace{0.2em}\hyperlink{bcr_table}{\beamergotobutton{Building Coverage Ratio (BCR)}}
+    \hspace{0.2em}\hyperlink{lps_table}{\beamergotobutton{Lot Size Per Story (LPS)}}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Results ctd.} 
+        \begin{itemize}
+            \item Interpretation: A one standard deviation increase in alderman strictness causes an average decrease in FAR of new construction of $11-18\%$ within a quarter-mile of a ward boundary
+            \item Qualitatively consistent results with the effect again persisting up until $\approx .3$ miles
+        \end{itemize}
+ \end{frame} 
+
+

@@ -11,6 +11,7 @@
 \usepackage{etoolbox}  %Supports toggle commands
 \usepackage{datetime}
 \usepackage{bm}	%Supports bold math \bm
+\usepackage{enumitem}
 
 % PACKAGES (that should already be included by your LyX document settings)
 \usepackage{amsfonts}  % Lots of stuff, including \mathbb 
@@ -20,6 +21,10 @@
 % CUSTOM DEFINITIONS
 \def\newblock{} %Get beamer to cooperate with BibTeX
 \linespread{1.2}
+
+\setlist[itemize,1]{label=\usebeamertemplate{itemize item}}
+\setlist[itemize,2]{label=\usebeamertemplate{itemize subitem}}
+\setlist[itemize,3]{label=\usebeamertemplate{itemize subsubitem}}
 
 % IDENTIFYING INFORMATION
 \title[Aldermanic Privilege]{Does Local Control Affect Density? Evidence from Chicago's Aldermanic Privilege}
@@ -55,12 +60,20 @@
 \input{sections/literature.tex}
 \input{sections/data.tex}
 \input{sections/aldermen_FE.tex}
+\input{sections/bunching.tex}
+\input{sections/spatial_rd.tex}
+\input{sections/border_pair_FE.tex}
 %---------------------------------------------------------------------
 
 %---------------------------------------------------------------------
 \begin{frame}[plain]
-    \begin{center}{\LARGE Thank you}\end{center}
+    \begin{center}{\LARGE Thank you!}\end{center}
     \end{frame}
+%---------------------------------------------------------------------
+
+%---------------------------------------------------------------------
+% Start appendix section
+\appendix
 %---------------------------------------------------------------------
 
 %---------------------------------------------------------------------
@@ -75,9 +88,8 @@
 
 
 
-%\beginbackup
-\appendix
-%\input{sections/appendix.tex}
+% BACKUP SLIDES
+\input{sections/appendix.tex}
 
 %\bibliographystyle{../bib/aeanobold}
 %\nobibliography{../bib/bib.bib}

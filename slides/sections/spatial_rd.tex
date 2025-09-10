@@ -1,0 +1,55 @@
+\begin{frame}
+    \frametitle{Empirical Strategy: Spatial Regression Discontinuity} 
+        % Details for item 1: Only appear on slide 1.
+            \begin{itemize} 
+                \item Equipped with aldermen FEs, I can compare parcels just on either side of a ward boundary using a regression discontinuity design 
+                \item My preferred specification is a $.1$ mile bandwidth, triangular kernel, and linear control function to avoid sensitivity of results to functional form
+                \item Plots are binned and have a loess smoother for illustration
+            \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Empirical Strategy: Spatial Regression Discontinuity} 
+            \begin{itemize} 
+                \item Formally, I run: 
+                \[
+                \begin{aligned}
+                    y_i=\beta_0+\tau D_i+\beta_1 x_i+\beta_2(D_i x_i)+\varepsilon_i, \quad |x_i| < h
+                \end{aligned}
+                \]
+                \item where $y_i$ is a (logged) density measure for parcel $i$, $D_i$ is a treatment indicator for whether parcel $i$ is on the "strict" side of the border, $x_i$ is the distance from parcel $i$ to the nearest ward boundary, and $h$ is the bandwidth
+                \item $\tau$ is the coefficient of interest, and I use the bias-corrected estimate and robust standard errors from {\scriptsize \citep{calonico_robust_2014,calonico_rdrobust_2015}}
+                \item Standard errors are clustered by ward-border-pair
+            \end{itemize}
+\end{frame}
+
+
+
+\begin{frame}[t,label=far-main]
+    \frametitle{Results: Log (Floor Area Ratio (FAR))} 
+        \begin{figure}
+            \centering
+            \includegraphics[width=\textwidth,height=0.75\textheight,keepaspectratio]{../tasks/spatial_rd/output/rd_plot_log_density_far_bw528_triangular.pdf}
+            \label{fig:spatial_rd_log_far}
+        \end{figure}
+        \vfill\hfill
+    \hyperlink{levels}{\beamergotobutton{Levels}}
+    \hspace{0.2em}
+    \hyperlink{lapu}{\beamergotobutton{Lot Area Per Unit (LAPU)}}
+    \hspace{0.2em}
+    \hyperlink{bcr}{\beamergotobutton{Building Coverage Ratio (BCR)}}
+    \hspace{0.2em}
+    \hyperlink{lps}{\beamergotobutton{Lot Size Per Story (LPS)}}
+    \hspace{0.2em}
+ \end{frame} 
+
+ \begin{frame}
+    \frametitle{Results ctd.} 
+        \begin{itemize}
+            \item Point estimate implies a drop in average FAR of $\approx 31\%$ relative to the sample mean of $.81$
+            \item Results robust to Epanchikov and uniform kernels, using logs instead of levels, as well as bandwidths from $.05$ to $.25$ miles
+            \item Effect fades out slightly after $\approx .3$ miles, which is consistent with rapid spatial decay effects in the literature \scriptsize{\cite{baum-snow_local_2024}}
+        \end{itemize}
+ \end{frame} 
+
+

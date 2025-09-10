@@ -9,7 +9,7 @@ source("../../setup_environment/code/packages.R")
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # yvar       <- "log(density_far)"
-# bandwidths <- c(264, 528, 792, 1056, 1320, 1584, 2112, 2640) # Define all bandwidths here
+# bandwidths <- c(264, 528, 792, 1056, 1320, 1584, 2640) # Define all bandwidths here
 # =======================================================================================
 
 # =======================================================================================
@@ -20,7 +20,7 @@ if (length(args) != 2) {
 }
 yvar            <- args[1]
 output_filename <- args[2]
-bandwidths      <- c(264, 528, 792, 1056, 1320, 1584, 2112, 2640)
+bandwidths      <- c(264, 528, 792, 1056, 1320, 1584, 2640)
 # =======================================================================================
 
 # --- 2. DATA PREPARATION ---
@@ -85,6 +85,7 @@ rename_dict <- c(
   "strictness_own_std" = "Restrictiveness Score",
   "construction_year"      = "Year",
   'ward_pair' = "Ward Pair",
+  'ward' = "Ward",
   "density_far" = "Floor Area Ratio (FAR)",
   "density_lapu" = "Lot Area Per Unit (LAPU)",
   "density_bcr" = "Building Coverage Ratio (BCR)",
@@ -108,12 +109,12 @@ etable(
   keep = "Restrictiveness Score",
   # Formatting options
   fitstat = ~ n + myo + nwp,
-  style.tex = style.tex("aer"),
+  style.tex = style.tex("aer", model.format = ""),
   depvar      = FALSE,
   digits = 2,
   dict        = rename_dict,
   # General options
-  title       = table_title,
+  headers     = names(model_list),
   signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
   fixef.group = TRUE,
   file = output_filename, # Save to the specified file

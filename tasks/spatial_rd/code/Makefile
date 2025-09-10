@@ -21,7 +21,7 @@ define GEN_FILENAMES
     $(foreach bw,$(BANDWIDTHS), \
     $(foreach kernel,$(KERNELS), \
     $(foreach log_stat,$(LOG_STATUS), \
-        ../output/rd_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(kernel).png \
+        ../output/rd_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(kernel).pdf \
     ))))
 endef
 
@@ -33,7 +33,7 @@ all: $(ALL_RD_PLOTS)
 
 # --- Rule Generation Template (single output & single path passed to R) ---
 define GEN_PLOTTING_RULES
-../output/rd_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(kernel).png: $(SCRIPT_FILE) $(INPUT_PARCELS) | ../output
+../output/rd_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(kernel).pdf: $(SCRIPT_FILE) $(INPUT_PARCELS) | ../output
 	@echo "→ Generating plot for: $(LOG_PREFIX_$(log_stat))$(yvar) | bw=$(bw) | kernel=$(kernel)"
 	Rscript $(SCRIPT_FILE) $(yvar) $(log_stat) $(bw) $(kernel) $$@
 endef

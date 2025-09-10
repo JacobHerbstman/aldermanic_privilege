@@ -193,7 +193,7 @@ plot2 <- ggplot() +
 # --- 5. SAVE PLOT ---
 if (!exists("output_filename_rdplot")) {
   log_suffix <- if (use_log) "_log" else ""
-  output_filename_rdplot <- sprintf( "../output/rd_plot%s_%s_bw%d_%s.png", log_suffix, yvar, bw, kernel)
+  output_filename_rdplot <- sprintf( "../output/rd_plot%s_%s_bw%d_%s.pdf", log_suffix, yvar, bw, kernel)
 }
 
 ggsave(output_filename_rdplot, plot = plot2, width = 8, height = 6, dpi = 300)
