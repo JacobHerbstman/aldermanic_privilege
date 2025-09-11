@@ -16,30 +16,30 @@ source("../../setup_environment/code/packages.R")
 # 1) Interactive arguments (comment out when using makefile)
 # Usage: Rscript bunching_analysis.R <max_dist> <bin_width> <inner_window> <poly_degree> <boot_B> <plot_outfile>
 # ------------------------------------------------------------------------------
-# max_dist    <- 1500
-# bin_width   <- 100
-# inner_win   <- 300
-# poly_degree <- 2
-# boot_B      <- 250
-# 
-# set.seed(123)
+max_dist    <- 1500
+bin_width   <- 50
+inner_win   <- 200
+poly_degree <- 2
+boot_B      <- 250
+
+set.seed(123)
 
 # ------------------------------------------------------------------------------
 # 1) ARGUMENTS (explicit, Makefile-style) comment out when runnign interactively. 
 # Usage: Rscript bunching_analysis.R <max_dist> <bin_width> <inner_window> <poly_degree> <boot_B> <plot_outfile>
 # ------------------------------------------------------------------------------
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 6) {
-  stop("Usage: Rscript bunching_analysis.R <max_dist> <bin_width> <inner_window> <poly_degree> <boot_B> <plot_outfile>", call. = FALSE)
-}
-max_dist    <- as.numeric(args[1])
-bin_width   <- as.numeric(args[2])
-inner_win   <- as.numeric(args[3])   # 0 => no donut
-poly_degree <- as.integer(args[4])
-boot_B      <- as.integer(args[5])
-outfile     <- args[6]
-set.seed(1234)
-
+# args <- commandArgs(trailingOnly = TRUE)
+# if (length(args) != 6) {
+#   stop("Usage: Rscript bunching_analysis.R <max_dist> <bin_width> <inner_window> <poly_degree> <boot_B> <plot_outfile>", call. = FALSE)
+# }
+# max_dist    <- as.numeric(args[1])
+# bin_width   <- as.numeric(args[2])
+# inner_win   <- as.numeric(args[3])   # 0 => no donut
+# poly_degree <- as.integer(args[4])
+# boot_B      <- as.integer(args[5])
+# outfile     <- args[6]
+# set.seed(1234)
+# 
 
 # ------------------------------
 # 1) Load & prep

@@ -10,8 +10,8 @@ source("../../setup_environment/code/packages.R")
 # --- Interactive Test Block (uncomment to run in RStudio) ---
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
 # yvar                   <- "density_far"
-# use_log                 <- TRUE
-# bw                     <- 1056
+# use_log                 <- FALSE
+# bw                     <- 792
 # kernel                 <- "triangular"
 # output_filename_rdplot <- sprintf( "../output/rd_plot%s_%s_bw%d_%s.png", yvar, bw, kernel)
 # =======================================================================================
@@ -51,7 +51,6 @@ rd_robust_result <- rdrobust(
   c = 0,
   kernel = kernel,
   p = 1,
-  q = 2,
   h = bw,
   cluster = parcels_signed$ward_pair
 )
@@ -188,7 +187,7 @@ plot2 <- ggplot() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         plot.title = element_text(size = 12))
-# plot2
+plot2
 
 # --- 5. SAVE PLOT ---
 if (!exists("output_filename_rdplot")) {

@@ -8,7 +8,13 @@ all: ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.g
 
 # --- Main processing rule ---
 # This rule now generates both output files from the single R script execution.
-../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.gpkg: calculate_distances.R ../input/year_built_sample.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/alderman_strictness_scores.csv | ../output
+../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.gpkg: \
+  calculate_distances.R \
+  ../input/year_built_sample.gpkg \
+  ../input/ward_panel.gpkg \
+  ../input/chicago_alderman_panel.csv \
+  ../input/alderman_strictness_scores.csv \
+  ../input/zoning_data_clean.gpkg | ../output
 	Rscript calculate_distances.R
 
 # --- Rules that make each symlink depend on its source file ---
@@ -24,7 +30,15 @@ all: ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.g
 ../input/alderman_strictness_scores.csv: ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
 	@ln -sf $< $@
 
-# --- The link-inputs target is a helper to create all links at once ---
-link-inputs: ../input/year_built_sample.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/alderman_strictness_scores.csv
+../input/zoning_data_clean.gpkg: ../../zoning_data_cleaning/output/zoning_data_clean.gpkg | ../input
+	@ln -sf $< $@
+
+# --- Helper to create all links at once ---
+link-inputs: \
+  ../input/year_built_sample.gpkg \
+  ../input/ward_panel.gpkg \
+  ../input/chicago_alderman_panel.csv \
+  ../input/alderman_strictness_scores.csv \
+  ../input/zoning_data_clean.gpkg
 
 include ../../generic.make

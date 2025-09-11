@@ -46,5 +46,7 @@ $(foreach md,$(MAX_DISTS), \
 $(INPUT_PARCELS): ../../calculate_ward_boundary_distances/output/parcels_with_ward_distances.csv | ../input
 	@ln -sf $< $@
 
+link-inputs: $(INPUT_PARCELS)
+
 # Directories, etc.
 include ../../generic.make

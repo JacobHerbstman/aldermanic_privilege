@@ -94,14 +94,14 @@ keep_vars <- c(
 ## clean names, chicago only
 tax_df_new <- tax_df %>% 
   janitor::clean_names() %>% 
-  filter(yearbuilt >= 2006) %>% ## year built lining up with permit data
-  filter(minorcivildivisionname == "CHICAGO") %>% #chicago only
+  filter(yearbuilt >= 2003) %>% ## year built lining up with permit data
+  filter(propertyaddresscity == "CHICAGO") %>% #chicago only
   filter(!is.na(propertylatitude) & !is.na(propertylongitude)) %>% ##need lat/lon for border discontinuity
   mutate(deedlastsaleprice = na_if(deedlastsaleprice, -1)) %>% ## -1 means missing
   filter(propertyusegroup %in% c("Residential")) %>% # residential only
   select(all_of(keep_vars)) %>% ## keep vars of interest for memory reason
   st_as_sf(coords = c("propertylongitude", "propertylatitude"), crs = 4326) %>% 
-  st_transform(crs = 3435) # convert to chicago-specific geom
+  st_transform(crs = 3435) ## state plane illinois east
 
 st_write(tax_df_new,  "../output/chicago_attom_2023.gpkg", delete_dsn = TRUE)
 
