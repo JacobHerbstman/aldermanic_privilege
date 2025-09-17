@@ -1,0 +1,183 @@
+# nonparametric_RD.R
+# Stacked nonparametric RD (Eq. 9) with boundary FE and binned distance.
+# Produces: (1) CSV of bin coefficients (clustered + robust SEs)
+#           (2) PNG plot mimicking Kulka (2022) nonparametric panels.
+
+# --- 1. ARGUMENT HANDLING ---
+# =======================================================================================
+# --- Interactive Test Block (uncomment to run in RStudio) ---
+# yvar            <- "density_far"
+# use_log         <- F
+# bw              <- 1320
+# bins            <- bw/10 
+# =======================================================================================
+# --- Command-Line Arguments (uncomment for Makefile) ---
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) != 5) {
+  stop("FATAL: need 6 args: <yvar> <use_log> <window_miles> <bin_miles> <output_prefix>", call. = FALSE)
+}
+yvar            <- args[1]
+use_log         <- as.logical(args[2])
+window_miles    <- as.numeric(args[3])  # e.g., 1056 (.2 miles in feet)
+bin_miles       <- as.numeric(args[4])  # e.g., 1056 (.02 miles in feet)
+outprefix       <- args[5]
+
+bw_mi   <- bw   / 5280
+bins_mi <- bins / 5280
+cat(sprintf("→ Nonparametric stacked RD | y=%s | log=%s | bw=%.0fft (%.2f mi) | bin=%.1fft (%.2f mi)\n",
+            yvar, as.character(use_log), bw, bw_mi, bins, bins_mi))
+
+# ------------------------- 2) LOAD -------------------------
+cat("Loading data...\n")
+df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE)
+
+# ------------------------- 3) OUTCOME ----------------------
+if (use_log) {
+  df <- df %>% filter(.data[[yvar]] > 0)
+  df <- df %>% mutate(outcome = log(.data[[yvar]]))
+} else {
+  df <- df %>% filter(.data[[yvar]] > 0)
+  df <- df %>% mutate(outcome = .data[[yvar]])
+}
+
+# Pretty label
+pretty_y <- function(v, is_log) {
+  lab <- switch(v,
+                "density_far"  = "Floor-Area Ratio (FAR)",
+                "density_lapu" = "Lot Area Per Unit (LAPU)",
+                "density_bcr"  = "Building Coverage Ratio (BCR)",
+                "density_lps"  = "Lot Size Per Story (LPS)",
+                "density_spu"  = "Square Feet Per Unit (SPU)",
+                v
+  )
+  if (is_log) paste0("Log(", lab, ")") else lab
+}
+y_axis_label <- pretty_y(yvar, isTRUE(use_log))
+
+# ------------------------- 4) RUNNING VAR (FEET) ----------
+# Window in feet
+df <- df %>% filter(abs(signed_distance) <= bw)
+
+# Minimal columns
+keep_cols <- c("outcome", "signed_distance", "ward_pair", "construction_year")
+df <- df[, intersect(names(df), keep_cols)]
+
+N_full <- nrow(df)
+Ey     <- mean(df$outcome, na.rm = TRUE)
+
+# ------------------------- 5) BINS (FEET) ------------------
+df <- df %>%
+  mutate(
+    bindex      = floor(signed_distance / bins),
+    bin_center_ft = (bindex + 0.5) * bins,
+    bin_center_mi = bin_center_ft / 5280,
+    on_right    = bindex >= 0,
+    on_left     = bindex <  0
+  )
+
+# Reference bin = [-bins,0) (less-restrictive side nearest zero) ⇒ index -1
+ref_bin <- -1L
+
+# ------------------------- 6) FIXED EFFECTS ----------------
+fe_part <- "ward_pair"
+if ("construction_year" %in% names(df)) fe_part <- paste(fe_part, "construction_year", sep = " + ")
+
+# ------------------------- 7) ESTIMATION -------------------
+fml <- as.formula(paste0("outcome ~ i(bindex, ref = ", ref_bin, ") | ", fe_part))
+
+cat("Estimating (clustered by ward_pair)...\n")
+est_clu <- feols(fml, data = df, cluster = ~ ward_pair)
+etable(est_clu)
+
+cat("Estimating (heteroskedastic-robust)...\n")
+est_rob <- feols(fml, data = df, vcov = "hetero")
+
+tidy_extract <- function(est, se_label) {
+  broom::tidy(est) %>%
+    dplyr::filter(str_starts(term, "bindex::")) %>%
+    dplyr::mutate(bin = suppressWarnings(as.integer(str_remove(term, "bindex::"))),
+                  {{se_label}} := std.error) %>%
+    dplyr::select(bin, estimate, {{se_label}})
+}
+
+bins_clu <- tidy_extract(est_clu, se_clu)
+bins_rob <- tidy_extract(est_rob, se_rob)
+
+bins_all <- bins_clu %>%
+  dplyr::rename(coef_clu = estimate) %>%
+  dplyr::full_join(bins_rob %>% dplyr::rename(coef_rob = estimate), by = "bin") %>%
+  dplyr::mutate(
+    bin_center_ft = (bin + 0.5) * bins,
+    bin_center_mi = bin_center_ft / 5280,
+    on_right = bin >= 0, on_left = bin < 0,
+    lo95 = coef_clu - 1.96 * se_clu,
+    hi95 = coef_clu + 1.96 * se_clu
+  ) %>%
+  dplyr::arrange(bin_center_ft)
+
+# RD estimate = bin adjacent to zero on STRICT side (RIGHT) ⇒ bin == 0
+rd_row   <- bins_all %>% dplyr::filter(bin == 0L) %>% dplyr::slice(1)
+rd_tau   <- if (nrow(rd_row)) rd_row$coef_clu else NA_real_
+rd_seclu <- if (nrow(rd_row)) rd_row$se_clu   else NA_real_
+rd_serob <- if (nrow(rd_row)) rd_row$se_rob   else NA_real_
+
+# --- exact p-value for the RD bin (clustered model) and stars ---
+tt_clu <- broom::tidy(est_clu)
+rd_p_exact <- tt_clu %>%
+  dplyr::filter(term == "bindex::0") %>%
+  dplyr::pull(p.value) %>%
+  { if (length(.) == 0) NA_real_ else .[1] }
+
+stars <- if (is.na(rd_p_exact)) "" else
+  if (rd_p_exact <= 0.01) "***" else
+    if (rd_p_exact <= 0.05) "**"  else
+      if (rd_p_exact <= 0.10) "*"   else ""
+
+# ------------------------- 8) SAVE COEFS -------------------
+# coef_outfile <- paste0(outprefix, "_bins.csv")
+# readr::write_csv(bins_all, coef_outfile)
+# cat("✓ Bin coefficient table:", coef_outfile, "\n")
+
+# ------------------------- 9) PLOT -------------------------
+bins_L <- bins_all %>% dplyr::filter(on_left)
+bins_R <- bins_all %>% dplyr::filter(on_right)
+
+# Colors to match line & ribbon
+col_left  <- "#1f77b4"  # blue
+col_right <- "#d62728"  # red
+
+subtitle_txt <- sprintf(
+  "RD est (clustered) = %.3f%s (SE %.3f) |  N = %s, E(y) = %.3f |  bw=%.2f mi, bin=%.2f mi",
+  rd_tau, stars, rd_seclu, N_full, Ey, bw/5280, bins/5280
+)
+
+p <- ggplot() +
+  # ribbons (95% CI, colored to match the lines)
+  geom_ribbon(data = bins_L, aes(x = bin_center_mi, ymin = lo95, ymax = hi95),
+              fill = col_left, alpha = 0.25, color = NA) +
+  geom_ribbon(data = bins_R, aes(x = bin_center_mi, ymin = lo95, ymax = hi95),
+              fill = col_right, alpha = 0.25, color = NA) +
+  # lines (clustered coefficients)
+  geom_line(data = bins_L, aes(x = bin_center_mi, y = coef_clu),
+            linewidth = 1, color = col_left) +
+  geom_line(data = bins_R, aes(x = bin_center_mi, y = coef_clu),
+            linewidth = 1, color = col_right) +
+  geom_hline(yintercept = 0, linetype = "dotted", color = "grey50") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  labs(
+    title    = paste0("Nonparametric Stacked RD for ", y_axis_label),
+    subtitle = subtitle_txt,
+    x = "Distance to boundary (miles)",
+    y = y_axis_label, 
+    caption  = "Reference bin = [-bin, 0) (less-restrictive). Shaded = 95% CI (clustered by border)."
+  ) +
+  theme_bw(base_size = 12) +
+  theme(
+    plot.subtitle = element_text(size = 9)  # smaller subtitle
+  )+
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank())
+p
+
+# ggsave(output_pdf, plot = p, width = 8.2, height = 6.0, dpi = 300, device = cairo_pdf)
+# cat("✓ Plot saved to:", output_pdf, "\n")
