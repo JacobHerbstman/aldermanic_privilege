@@ -18,7 +18,7 @@ REDISTRICTING_END <- as.Date("2015-05-01")     # For gradual rule
 
 cat("Loading parcel data...\n")
 parcels <- st_read("../input/year_built_sample.gpkg") %>%
-  filter(!is.na(yearbuilt), yearbuilt >= 2003 & yearbuilt <= 2023) %>%
+  filter(!is.na(yearbuilt), yearbuilt >= 2003 & yearbuilt <= 2014) %>%
   mutate(construction_date = as.Date(paste0(yearbuilt, "-06-15")))
 
 cat("Loading ward boundaries...\n")

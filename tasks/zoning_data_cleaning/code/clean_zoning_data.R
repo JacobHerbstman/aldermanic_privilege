@@ -51,7 +51,7 @@ message("Unmatched zone codes: ", nrow(unmatched))
 ## keep just columns I want 
 zones_with_regs <- zones_with_regs %>%
   select(zone_code, geometry, 
-         floor_area_ratio = floor_area_ratio_raw, 
+         floor_area_ratio = floor_area_ratio_num, 
          lot_area_per_unit = lot_area_per_unit_sqft, 
          maximum_building_height = max_building_height_ft)
 

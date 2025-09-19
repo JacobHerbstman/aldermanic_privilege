@@ -12,11 +12,11 @@ ward_panel <- st_read("../input/ward_panel.gpkg")
 
 # Filter parcels for construction years between 2006 and 2014
 parcels_2006_2014 <- parcels %>%
-  filter(construction_year >= 2006 & construction_year <= 2014) %>% 
+  filter(construction_year >= 2003 & construction_year <= 2014) %>% 
   filter(density_far > 0)
 
 parcels_2015_2023 <- parcels %>%
-  filter(construction_year >= 2015) %>% 
+  filter(construction_year >= 2015 & construction_year) %>% 
   filter(density_far > 0)
 
 # Use the 2014 ward boundaries, which were in effect for the 2006-2014 period
@@ -42,7 +42,7 @@ construction_map <- ggplot() +
   
   # Use a capped color scale to handle outliers and show more variation
   scale_color_viridis_c(
-    option = "plasma", 
+    option = "turbo", 
     name = "Floor Area Ratio (FAR)",
     limits = c(0, 2),  # Set the range of the color scale
     oob = scales::squish # "Squish" out-of-bounds values to the limits

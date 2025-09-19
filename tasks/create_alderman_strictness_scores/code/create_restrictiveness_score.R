@@ -55,6 +55,7 @@ calculate_alderman_scores <- function(data,
       paste0("i(alderman, ref = '", ref_alderman, "')"), " | ",
       fe_spec
     )
+    print(formula_str)
     
     model <- feols(as.formula(formula_str), data = data, vcov = ~alderman, weights = weight_formula)
     

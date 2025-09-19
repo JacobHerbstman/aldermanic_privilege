@@ -20,7 +20,7 @@ $(foreach pair,$(PAIRS), \
   $(eval bins := $(word 2,$(subst :, ,$(pair)))) \
   $(foreach yvar,$(YVARS), \
   $(foreach log_stat,$(LOG_STATUS), \
-    ../output/npRD_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_bin$(bins).pdf \
+    ../output/nonparametric_rd_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw).pdf \
   )) \
 )
 endef
@@ -32,10 +32,10 @@ all: $(ALL_FIGS)
 # ───────── Rule template: call Rscript with positional args ─────────
 # Args: <yvar> <use_log> <bw_ft> <bins_ft> <output_pdf>
 define GEN_RULE
-../output/npRD_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_bin$(bins).pdf: $(SCRIPT_FILE) $(INPUT_PARCELS) | ../output
-	@echo "→ [npRD] y=$(yvar) | log=$(log_stat) | bw=$(bw) ft | bins=$(bins) ft"
-	Rscript $(SCRIPT_FILE) $(yvar) $(log_stat) $(bw) $(bins) $$@
-	@echo "✓ wrote $$@ and matching _bins.csv"
+../output/nonparametric_rd_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw).pdf: $(SCRIPT_FILE) $(INPUT_PARCELS) | ../output
+	@echo "→ [npRD] y=$(yvar) | log=$(log_stat) | bw=$(bw) ft"
+	Rscript $(SCRIPT_FILE) $(yvar) $(log_stat) $(bw)
+	@echo "✓ wrote $$@"
 endef
 
 # ───────── Expand concrete rules ─────────

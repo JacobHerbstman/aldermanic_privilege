@@ -3,24 +3,29 @@
 # Produces: (1) CSV of bin coefficients (clustered + robust SEs)
 #           (2) PNG plot mimicking Kulka (2022) nonparametric panels.
 
+## run this line when editing code in Rstudio
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+
+source("../../setup_environment/code/packages.R")
+
+
 # --- 1. ARGUMENT HANDLING ---
 # =======================================================================================
 # --- Interactive Test Block (uncomment to run in RStudio) ---
 # yvar            <- "density_far"
 # use_log         <- F
 # bw              <- 1320
-# bins            <- bw/10 
+# bins            <- bw/10
 # =======================================================================================
 # --- Command-Line Arguments (uncomment for Makefile) ---
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 5) {
-  stop("FATAL: need 6 args: <yvar> <use_log> <window_miles> <bin_miles> <output_prefix>", call. = FALSE)
+if (length(args) != 3) {
+  stop("FATAL: need 5 args: <yvar> <use_log> <window_miles> <bin_miles>", call. = FALSE)
 }
 yvar            <- args[1]
 use_log         <- as.logical(args[2])
-window_miles    <- as.numeric(args[3])  # e.g., 1056 (.2 miles in feet)
-bin_miles       <- as.numeric(args[4])  # e.g., 1056 (.02 miles in feet)
-outprefix       <- args[5]
+bw              <- as.numeric(args[3])
+bins            <- bw / 10
 
 bw_mi   <- bw   / 5280
 bins_mi <- bins / 5280
@@ -89,7 +94,7 @@ cat("Estimating (clustered by ward_pair)...\n")
 est_clu <- feols(fml, data = df, cluster = ~ ward_pair)
 etable(est_clu)
 
-cat("Estimating (heteroskedastic-robust)...\n")
+# cat("Estimating (heteroskedastic-robust)...\n")
 est_rob <- feols(fml, data = df, vcov = "hetero")
 
 tidy_extract <- function(est, se_label) {
@@ -179,5 +184,12 @@ p <- ggplot() +
         panel.grid.major = element_blank())
 p
 
-# ggsave(output_pdf, plot = p, width = 8.2, height = 6.0, dpi = 300, device = cairo_pdf)
-# cat("✓ Plot saved to:", output_pdf, "\n")
+
+### save plot 
+log_prefix <- if (isTRUE(use_log)) "log_" else ""
+outfile <- file.path("../output",
+                     sprintf("nonparametric_rd_%s%s_bw%s.pdf", log_prefix, yvar, bw)
+)
+
+cowplot::save_plot(outfile, plot = p, base_width = 8.2, base_height = 6.0, dpi = 300, device = "pdf")
+cat("✓ Plot saved to:", outfile, "\n")

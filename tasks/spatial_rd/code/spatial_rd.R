@@ -9,11 +9,10 @@ source("../../setup_environment/code/packages.R")
 # =======================================================================================
 # --- Interactive Test Block (uncomment to run in RStudio) ---
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
-# yvar                   <- "density_far"
-# use_log                 <- FALSE
-# bw                     <- 792
+# yvar                   <- "density_lps"
+# use_log                 <- F
+# bw                     <- 2112
 # kernel                 <- "triangular"
-# output_filename_rdplot <- sprintf( "../output/rd_plot%s_%s_bw%d_%s.png", yvar, bw, kernel)
 # =======================================================================================
 # --- Command-Line Arguments (uncomment for Makefile) ---
 args <- commandArgs(trailingOnly = TRUE)
@@ -57,9 +56,9 @@ rd_robust_result <- rdrobust(
 summary(rd_robust_result)
 
 # Extract Bias-Corrected coefficient and Standard Error
-coef_bc <- rd_robust_result$coef[3]
-se_bc   <- rd_robust_result$se[3]
-p_bc <- rd_robust_result$pv[3]
+coef_bc <- rd_robust_result$coef[1]
+se_bc   <- rd_robust_result$se[1]
+p_bc <- rd_robust_result$pv[1]
 
 # Determine significance stars based on z-value
 stars <- case_when(
@@ -161,13 +160,13 @@ plot2 <- ggplot() +
   geom_smooth(
     data = df_bw %>% dplyr::filter(signed_distance < 0),
     aes(x = signed_distance, y = outcome),
-    method = "loess", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
+    method = "lm", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
     color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
   ) +
   geom_smooth(
     data = df_bw %>% dplyr::filter(signed_distance >= 0),
     aes(x = signed_distance, y = outcome),
-    method = "loess", formula = y ~ x, se = TRUE,
+    method = "lm", formula = y ~ x, se = TRUE,
     span = 0.75, level = 0.95, na.rm = TRUE,
     color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
   ) +
@@ -187,7 +186,7 @@ plot2 <- ggplot() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         plot.title = element_text(size = 12))
-plot2
+# plot2
 
 # --- 5. SAVE PLOT ---
 if (!exists("output_filename_rdplot")) {

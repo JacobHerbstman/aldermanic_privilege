@@ -4,7 +4,7 @@ SHELL := bash
 include ../../shell_functions.make
 
 # --- Analysis Parameters ---
-YVARS := density_far log(density_far) density_lapu log(density_lapu) density_bcr log(density_bcr) density_lps log(density_lps) density_spu log(density_spu)
+YVARS := density_far log(density_far) density_lapu log(density_lapu) density_bcr log(density_bcr) density_lps log(density_lps) density_spu log(density_spu) arealotsf log(arealotsf) storiescount log(storiescount) unitscount log(unitscount)
 
 # --- Helper function to create clean filenames from yvar strings ---
 # This function converts variable names to valid filenames

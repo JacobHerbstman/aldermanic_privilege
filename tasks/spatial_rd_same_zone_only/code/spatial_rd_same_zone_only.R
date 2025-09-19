@@ -9,9 +9,9 @@ source("../../setup_environment/code/packages.R")
 # =======================================================================================
 # --- Interactive Test Block (comment out if using Make) ---
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
-# yvar    <- "density_lapu"
-# use_log <- FALSE
-# bw      <- 792             # outer bandwidth in feet
+# yvar    <- "density_bcr"
+# use_log <- F
+# bw      <- 2640             # outer bandwidth in feet
 # kernel  <- "triangular"
 # =======================================================================================
 # --- Command-Line Arguments (backward compatible) ---
@@ -39,34 +39,46 @@ dat <- dat_raw[dat_raw[[yvar]] > 0, ] %>%
     within_bw = abs(signed_distance) <= bw
   )
 
-# --- 2a) Identify ward-pair segments where zoning is the same on BOTH sides ----
-# We look within the outer bandwidth only (donut is applied later).
-samezone_segments <- dat %>%
-  filter(within_bw, !is.na(zone_code)) %>%                    # window + have zoning
-  group_by(boundary_year, ward_pair, zone_code) %>%           # segment = pair + zone
-  summarise(n_wards = n_distinct(ward), .groups = "drop") %>%
-  filter(n_wards == 2)                                        # appears on both sides
 
-if (nrow(samezone_segments) == 0) {
+dat_bw <- dat %>%
+  filter(within_bw, abs(signed_distance) >= donut, !is.na(zone_code))
+
+# Count parcels by zone within each (boundary_year, ward_pair) window
+zone_counts <- dat_bw %>%
+  group_by(boundary_year, ward_pair, zone_code) %>%
+  summarise(
+    n        = n(),
+    n_sides  = n_distinct(sign(signed_distance)),  # ensure it exists on both sides
+    .groups  = "drop"
+  ) %>%
+  filter(n_sides == 2)  # modal candidate must be present on both sides
+
+# Pick the modal zone per (boundary_year, ward_pair); deterministic tie-breaker by zone_code
+modal_zone <- zone_counts %>%
+  arrange(boundary_year, ward_pair, desc(n), zone_code) %>%
+  group_by(boundary_year, ward_pair) %>%
+  slice_head(n = 1) %>%
+  ungroup() %>%
+  select(boundary_year, ward_pair, zone_code)
+
+# Keep only parcels in-bandwidth (and outside donut) with that modal zone
+dat <- dat %>%
+  filter(within_bw, abs(signed_distance) >= donut) %>%
+  inner_join(modal_zone, by = c("boundary_year", "ward_pair", "zone_code")) %>%
+  mutate(
+    side       = as.integer(signed_distance > 0),
+    abs_dist   = abs(signed_distance),
+    cluster_id = paste(boundary_year, ward_pair, zone_code, sep = "_")
+  )
+
+                               # appears on both sides
+
+if (nrow(dat) == 0) {
   stop("No ward-pair segments with the same zoning on both sides inside the chosen bandwidth.")
 }
 
-# --- 2b) Keep only parcels in those same-zoning segments; define cluster --------
-dat <- dat %>%
-  semi_join(samezone_segments,
-            by = c("boundary_year", "ward_pair", "zone_code")) %>%
-  filter(within_bw) %>%
-  mutate(cluster_id = paste(boundary_year, ward_pair, zone_code, sep = "_"))
-
-# --- 2c) Apply DONUT: donut ≤ |x| ≤ bw -----------------------------------------
-dat <- dat %>% filter(abs(signed_distance) >= donut)
-
-if (nrow(dat) == 0) {
-  stop("No observations after applying same-zoning restriction and donut/bandwidth filter.")
-}
-
 cat("Sample size after restrictions:", nrow(dat),
-    " | donut window [", donut, ", ", bw, "] feet.\n")
+    " | window [", donut, ", ", bw, "] feet.\n")
 
 # --- 3) RD ESTIMATION -----------------------------------------------------------
 cat("Running rdrobust for:", yvar, "(log =", use_log, ")...\n")
@@ -95,7 +107,6 @@ annotation_text
 # --- 4. GENERATE PLOTS ---
 
 # =======================================================================================
-# Create better labels based on the yvar
 # Create better labels and dynamic y-axis limits based on yvar and log status
 if (yvar == "density_far") {
   y_axis_label <- "Floor-Area Ratio (FAR)"
@@ -169,13 +180,13 @@ plot2 <- ggplot() +
   geom_smooth(
     data = dat %>% filter(signed_distance < 0),
     aes(x = signed_distance, y = outcome),
-    method = "loess", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
+    method = "lm", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
     color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
   ) +
   geom_smooth(
     data = dat %>% filter(signed_distance >= 0),
     aes(x = signed_distance, y = outcome),
-    method = "loess", formula = y ~ x, se = TRUE, span = 0.75, level = 0.95, na.rm = TRUE,
+    method = "lm", formula = y ~ x, se = TRUE, span = 0.75, level = 0.95, na.rm = TRUE,
     color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
   ) +
   geom_vline(xintercept = 0, color = "black", linewidth = .5) +
