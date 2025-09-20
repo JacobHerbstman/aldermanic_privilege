@@ -8,7 +8,67 @@
 source("../../setup_environment/code/packages.R")
 data <- read_csv("../input/ward_monthly_panel_for_alderman_fe.csv")
 
-data <- data %>% 
+# ----------------------------
+# A) Build outcome columns
+# ----------------------------
+data <- data %>%
+  mutate(
+    # mirror your formula transforms as explicit columns
+    log_n_permits_issued      = if_else(n_permits_issued > 0, log(n_permits_issued), NA_real_),
+    log_mean_processing_time  = if_else(mean_processing_time > 0, log(mean_processing_time), NA_real_),
+    log_mean_total_fee        = if_else(mean_total_fee > 0, log(mean_total_fee), NA_real_)
+  )
+
+# ----------------------------
+# B) Pre-residualize each outcome on ward fundamentals + month FE
+#     (NO alderman dummies here)
+# ----------------------------
+# Fundamentals added earlier in data prep:
+geo_vars <- c(
+  "dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m",
+  grep("^ca_share_", names(data), value = TRUE)  # community-area shares
+)
+
+# You already have these ward controls; include them as predetermined fundamentals
+demo_vars <- c("homeownership_rate", "population_density", "median_income",
+               "percent_black", "percent_hispanic")
+
+fundamentals <- c(geo_vars, demo_vars)
+
+residualize_var <- function(df, yvar, fundamentals, weight_var = NULL) {
+  # keep only rows with all inputs present
+  vars_needed <- c(yvar, fundamentals, "month")
+  if (!is.null(weight_var)) vars_needed <- c(vars_needed, weight_var)
+  ok <- stats::complete.cases(df[, vars_needed])
+  
+  if (!any(ok)) {
+    df[[paste0("resid_", yvar)]] <- NA_real_
+    return(df)
+  }
+  
+  rhs <- if (length(fundamentals)) paste(fundamentals, collapse = " + ") else "1"
+  fml <- as.formula(paste0(yvar, " ~ ", rhs, " | month"))
+  
+  w_form <- if (!is.null(weight_var)) as.formula(paste0("~", weight_var)) else NULL
+  fit <- feols(fml, data = df[ok, ], weights = w_form)
+  
+  # in-sample residuals for the rows used; NA elsewhere
+  res <- rep(NA_real_, nrow(df))
+  res[ok] <- resid(fit)
+  df[[paste0("resid_", yvar)]] <- res
+  df
+}
+
+# Residualize each outcome according to your weighting rule:
+#  - DO NOT weight "log_n_permits_issued"
+#  - Weight others by n_permits_applied
+data <- residualize_var(data, "log_n_permits_issued",     fundamentals, weight_var = NULL)
+data <- residualize_var(data, "permit_approval_rate",      fundamentals, weight_var = "n_permits_applied")
+data <- residualize_var(data, "log_mean_processing_time",  fundamentals, weight_var = "n_permits_applied")
+data <- residualize_var(data, "log_mean_total_fee",        fundamentals, weight_var = "n_permits_applied")
+
+
+data <- data %>%
   filter(alderman != "Dorothy Tillman") ## she shouldnt be identified yet is, removing manually for now
 
 # =============================================================================
@@ -275,20 +335,20 @@ create_all_score_charts <- function(scores_list, spec_name) {
 # 3. DEFINE INPUTS
 # =============================================================================
 
-# Define model parameters
+# Use the residualized outcome columns for stage-2 FE estimation
 outcome_vars <- list(
-  "log_n_permits_issued" = "log(n_permits_issued)",
-  "permit_approval_rate" = "permit_approval_rate",
-  "log_median_processing_time" = "log(mean_processing_time)",
-  "log_mean_total_fee" = "log(mean_total_fee)"
+  "log_n_permits_issued"      = "resid_log_n_permits_issued",
+  "permit_approval_rate"      = "resid_permit_approval_rate",
+  "log_median_processing_time"= "resid_log_mean_processing_time",
+  "log_mean_total_fee"        = "resid_log_mean_total_fee"
 )
 
-control_vars <- c(
-  "homeownership_rate", "population_density", "median_income",
-  "percent_black", "percent_hispanic"
-)
+# After pre-residualization, don’t re-include controls in stage 2
+# (set to "1" so the formula parser remains valid with your existing code)
+control_vars <- "1"
 
 ref_alderman <- "Andre Vasquez"
+
 
 # =============================================================================
 # 4. CALL THE FUNCTION FOR EACH SPECIFICATION
@@ -298,7 +358,7 @@ ref_alderman <- "Andre Vasquez"
 scores_month_fe <- calculate_alderman_scores(
   data = data,
   outcome_vars = outcome_vars,
-  control_vars = control_vars,
+  control_vars = control_vars,      # now just "1"
   fe_spec = "month",
   ref_alderman = ref_alderman,
   output_filepath = "../output/alderman_restrictiveness_scores_month_FEs.csv"
@@ -311,7 +371,7 @@ charts_month_fe <- create_all_score_charts(scores_month_fe, "Month FEs")
 scores_ward_month_fe <- calculate_alderman_scores(
   data = data,
   outcome_vars = outcome_vars,
-  control_vars = control_vars,
+  control_vars = control_vars,      # now just "1"
   fe_spec = "ward+month",
   ref_alderman = ref_alderman,
   output_filepath = "../output/alderman_restrictiveness_scores_ward_month_FEs.csv"
