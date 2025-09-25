@@ -11,10 +11,10 @@ all: ../output/cta_stops.gpkg ../output/major_streets.gpkg ../output/parks.gpkg 
 # Symlink raw data into ../input (directory + specific files your script references)
 .PHONY: link-inputs
 link-inputs: ../input
-	ln -s ../../../data_raw ../input/data_raw
-	ln -s ../../../data_raw/cta_stations.geojson ../input/cta_stations.geojson
-	ln -s ../../../data_raw/CPD_Facilities_20250925.geojson ../input/CPD_Facilities_20250925.geojson
-	ln -s ../../../data_raw/CPS_School_Locations_SY1415_20250925.geojson ../input/CPS_School_Locations_SY1415_20250925.geojson
+	ln -sf ../../../data_raw/Major_Streets.* ../input/
+	ln -sf ../../../data_raw/cta_stations.geojson ../input/cta_stations.geojson
+	ln -sf ../../../data_raw/CPD_Facilities_20250925.geojson ../input/CPD_Facilities_20250925.geojson
+	ln -sf ../../../data_raw/CPS_School_Locations_SY1415_20250925.geojson ../input/CPS_School_Locations_SY1415_20250925.geojson
 	@echo "Linked inputs into ../input"
 
 include ../../generic.make
