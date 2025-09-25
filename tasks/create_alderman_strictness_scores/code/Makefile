@@ -18,7 +18,8 @@ OUTPUT_FILES := \
 	../output/Ward_Month_FEs_log_mean_total_fee.png \
 	../output/Ward_Month_FEs_log_median_processing_time.png \
 	../output/Ward_Month_FEs_log_n_permits_issued.png \
-	../output/Ward_Month_FEs_permit_approval_rate.png
+	../output/Ward_Month_FEs_permit_approval_rate.png \
+	../output/stage1_residualization_models.tex
 
 # The R script that does the work.
 SCRIPT_FILE := create_restrictiveness_score.R
@@ -34,7 +35,7 @@ all: $(OUTPUT_FILES)
 # ─────────────────────────────────────────────────────────────────────────────
 # Main rule to create the final output
 # ─────────────────────────────────────────────────────────────────────────────
-$(OUTPUT_FILES): $(SCRIPT_FILE) | ../output
+$(OUTPUT_FILES): $(SCRIPT_FILE) $(INPUT_WARD_PANEL) | ../output
 	@echo "→ [create_strictness_score] Running R script to create all strictness scores and plots"
 	$(R) $(SCRIPT_FILE)
 

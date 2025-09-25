@@ -3,7 +3,7 @@ include ../../shell_functions.make
 
 # ───────── User-settable month (YYYY-MM) ─────────
 # Override on the command line, e.g.:  make DATE=2014-05
-DATE := 2022-05
+DATE := 2014-01
 
 .PHONY: all link-inputs
 

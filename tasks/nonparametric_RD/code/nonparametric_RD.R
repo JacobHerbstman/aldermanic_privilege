@@ -20,7 +20,7 @@ source("../../setup_environment/code/packages.R")
 # --- Command-Line Arguments (uncomment for Makefile) ---
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 3) {
-  stop("FATAL: need 5 args: <yvar> <use_log> <window_miles> <bin_miles>", call. = FALSE)
+  stop("FATAL: need 3 args: <yvar> <use_log> <window_miles> <bin_miles>", call. = FALSE)
 }
 yvar            <- args[1]
 use_log         <- as.logical(args[2])

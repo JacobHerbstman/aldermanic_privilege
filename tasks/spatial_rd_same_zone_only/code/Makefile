@@ -6,6 +6,7 @@ BANDWIDTHS := 264 528 792 1056 1320 1584 2112 2640
 KERNELS    := triangular
 YVARS      := density_far density_lapu density_bcr density_lps density_spu
 LOG_STATUS := TRUE FALSE
+DONUT := 50
 
 # --- Prefix helper for filenames ---
 LOG_PREFIX_TRUE  := log_

@@ -13,10 +13,10 @@ data <- read_csv("../input/ward_monthly_panel_for_alderman_fe.csv")
 # ----------------------------
 data <- data %>%
   mutate(
-    # mirror your formula transforms as explicit columns
     log_n_permits_issued      = if_else(n_permits_issued > 0, log(n_permits_issued), NA_real_),
     log_mean_processing_time  = if_else(mean_processing_time > 0, log(mean_processing_time), NA_real_),
-    log_mean_total_fee        = if_else(mean_total_fee > 0, log(mean_total_fee), NA_real_)
+    log_mean_total_fee        = if_else(mean_total_fee > 0, log(mean_total_fee), NA_real_), 
+    log_sum_total_fee         = if_else(sum_total_fee  > 0, log(sum_total_fee),  NA_real_)   
   )
 
 # ----------------------------
@@ -63,6 +63,7 @@ residualize_var <- function(df, yvar, fundamentals, weight_var = NULL) {
 #  - DO NOT weight "log_n_permits_issued"
 #  - Weight others by n_permits_applied
 data <- residualize_var(data, "log_n_permits_issued",     fundamentals, weight_var = NULL)
+data <- residualize_var(data, "log_sum_total_fee",        fundamentals, weight_var = NULL)
 data <- residualize_var(data, "permit_approval_rate",      fundamentals, weight_var = "n_permits_applied")
 data <- residualize_var(data, "log_mean_processing_time",  fundamentals, weight_var = "n_permits_applied")
 data <- residualize_var(data, "log_mean_total_fee",        fundamentals, weight_var = "n_permits_applied")
@@ -70,6 +71,72 @@ data <- residualize_var(data, "log_mean_total_fee",        fundamentals, weight_
 
 data <- data %>%
   filter(alderman != "Dorothy Tillman") ## she shouldnt be identified yet is, removing manually for now
+
+
+# Build the RHS used in residualization
+ca_cols   <- grep("^ca_share_", names(data), value = TRUE)
+geo_vars  <- c("dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m")
+demo_vars <- c("homeownership_rate", "population_density", "median_income",
+               "percent_black", "percent_hispanic")
+fundamentals <- c(geo_vars, demo_vars, ca_cols)
+
+rhs <- if (length(fundamentals)) paste(fundamentals, collapse = " + ") else "1"
+
+# Helper to fit the displayed models (same spec as residualization)
+fit_disp <- function(y, w = NULL) {
+  fml <- as.formula(paste0(y, " ~ ", rhs, " | month"))
+  wgt <- if (is.null(w)) NULL else as.formula(paste0("~", w))
+  feols(fml, data = data, weights = wgt)
+}
+
+m1 <- fit_disp("log_n_permits_issued")                       # unweighted
+m2 <- fit_disp("log_sum_total_fee")          # unweighted
+m3 <- fit_disp("permit_approval_rate",     "n_permits_applied")
+m4 <- fit_disp("log_mean_processing_time", "n_permits_applied")
+m5 <- fit_disp("log_mean_total_fee",       "n_permits_applied")
+
+etable(
+  m1, m2, m3, m4, m5,
+  drop   = "^ca_share_",                 # hide community-area shares
+  digits = 3, se.below = TRUE,
+  dict = c(
+    `(Intercept)` = "Constant",
+    dist_cbd_km = "Dist. to CBD (km)",
+    lakefront_share_1km = "Lakefront share (≤1km)",
+    n_rail_stations_800m = "CTA stations (≤800m)",
+    homeownership_rate = "Homeownership rate",
+    population_density = "Population density",
+    median_income = "Median income",
+    percent_black = "% Black",
+    percent_hispanic = "% Hispanic"
+  ),
+  fitstat = ~ n + r2,
+  title = "Stage-1 residualization models (month FE included)",
+  notes = "CA shares included in estimation but omitted from display; weights used for cols 3–5."
+)
+
+etable(
+  m1, m2, m3, m4, m5,
+  drop   = "^ca_share_",                 # hide community-area shares
+  digits = 3, se.below = TRUE,
+  dict = c(
+    `(Intercept)` = "Constant",
+    dist_cbd_km = "Dist. to CBD (km)",
+    lakefront_share_1km = "Lakefront share (≤1km)",
+    n_rail_stations_800m = "CTA stations (≤800m)",
+    homeownership_rate = "Homeownership rate",
+    population_density = "Population density",
+    median_income = "Median income",
+    percent_black = "% Black",
+    percent_hispanic = "% Hispanic"
+  ),
+  fitstat = ~ n + r2,
+  title = "Stage-1 residualization models (month FE included)",
+  notes = "CA shares included in estimation but omitted from display; weights used for cols 3–5.",
+  file = "../output/stage1_residualization_models.tex"
+)
+
+
 
 # =============================================================================
 # 1. FUNCTION DEFINITION FOR FEs
@@ -111,9 +178,7 @@ calculate_alderman_scores <- function(data,
     
     formula_str <- paste0(
       outcome_var, " ~ ",
-      paste(control_vars, collapse = " + "), " + ",
-      paste0("i(alderman, ref = '", ref_alderman, "')"), " | ",
-      fe_spec
+      "i(alderman, ref = '", ref_alderman, "')"
     )
     print(formula_str)
     
@@ -337,11 +402,13 @@ create_all_score_charts <- function(scores_list, spec_name) {
 
 # Use the residualized outcome columns for stage-2 FE estimation
 outcome_vars <- list(
-  "log_n_permits_issued"      = "resid_log_n_permits_issued",
-  "permit_approval_rate"      = "resid_permit_approval_rate",
-  "log_median_processing_time"= "resid_log_mean_processing_time",
-  "log_mean_total_fee"        = "resid_log_mean_total_fee"
+  "log_n_permits_issued"       = "resid_log_n_permits_issued",
+  "permit_approval_rate"       = "resid_permit_approval_rate",
+  "log_median_processing_time" = "resid_log_mean_processing_time",
+  "log_mean_total_fee"         = "resid_log_mean_total_fee",
+  "log_sum_total_fee"          = "resid_log_sum_total_fee"     
 )
+
 
 # After pre-residualization, don’t re-include controls in stage 2
 # (set to "1" so the formula parser remains valid with your existing code)
@@ -361,6 +428,7 @@ scores_month_fe <- calculate_alderman_scores(
   control_vars = control_vars,      # now just "1"
   fe_spec = "month",
   ref_alderman = ref_alderman,
+  permit_outcomes = c("log_n_permits_issued", "log_sum_total_fee"),
   output_filepath = "../output/alderman_restrictiveness_scores_month_FEs.csv"
 )
 
@@ -374,6 +442,7 @@ scores_ward_month_fe <- calculate_alderman_scores(
   control_vars = control_vars,      # now just "1"
   fe_spec = "ward+month",
   ref_alderman = ref_alderman,
+  permit_outcomes = c("log_n_permits_issued", "log_sum_total_fee"),
   output_filepath = "../output/alderman_restrictiveness_scores_ward_month_FEs.csv"
 )
 

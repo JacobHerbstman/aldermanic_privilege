@@ -155,6 +155,8 @@ ward_monthly_panel <- permits_analysis %>%
     year                  = first(year),
     month_index           = first(month_index),
     post_boundary_change  = first(post_boundary_change),
+    sum_total_fee         = sum(total_fee, na.rm = TRUE),
+    n_total_fee_nonmiss   = sum(!is.na(total_fee)),
     .groups = "drop"
   ) %>%
   # Add permit type composition

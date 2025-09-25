@@ -83,7 +83,9 @@ restrict_to_modal_zone <- function(df, bw) {
     select(-modal_zone_code)
 }
 
-parcels_fe <- restrict_to_modal_zone(parcels, 264)
+# parcels_fe <- restrict_to_modal_zone(parcels, 264)
+# parcels_fe <- parcels_fe %>% 
+#   filter(abs(strictness_own - strictness_neighbor) > 1) # Drop parcels where the two sides are too similar in strictness
 
 
 # --- 3. LOOP THROUGH BANDWIDTHS AND RUN REGRESSIONS ---
@@ -91,8 +93,12 @@ parcels_fe <- restrict_to_modal_zone(parcels, 264)
 cat("Running regressions for yvar:", yvar, "across", length(bandwidths), "bandwidths...\n")
 
 model_list <- lapply(bandwidths, function(bw) {
-  parcels_fe <- restrict_to_modal_zone(parcels, bw)
-  
+  parcels_fe <- parcels %>% 
+    filter(dist_to_boundary <= bw, !is.na(zone_code))
+  # parcels_fe <- restrict_to_modal_zone(parcels, bw)
+  # parcels_fe <- parcels_fe %>%
+  # filter(abs(strictness_own - strictness_neighbor) > .1) # Drop parcels where the two sides are too similar in strictness
+
   fe_model <- feols(
     fml = as.formula(paste0(
       yvar,

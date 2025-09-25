@@ -56,9 +56,9 @@ rd_robust_result <- rdrobust(
 summary(rd_robust_result)
 
 # Extract Bias-Corrected coefficient and Standard Error
-coef_bc <- rd_robust_result$coef[1]
-se_bc   <- rd_robust_result$se[1]
-p_bc <- rd_robust_result$pv[1]
+coef_bc <- rd_robust_result$coef[3]
+se_bc   <- rd_robust_result$se[3]
+p_bc <- rd_robust_result$pv[3]
 
 # Determine significance stars based on z-value
 stars <- case_when(
