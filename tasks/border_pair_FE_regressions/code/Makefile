@@ -1,41 +1,40 @@
-# border_pair_FE_regressions/Makefile
-
 SHELL := bash
 include ../../shell_functions.make
 
-# --- Analysis Parameters ---
-YVARS := density_far log(density_far) density_lapu log(density_lapu) density_bcr log(density_bcr) density_lps log(density_lps) density_spu log(density_spu) arealotsf log(arealotsf) storiescount log(storiescount) unitscount log(unitscount)
+# --- Adjustable lists ---
+# Bandwidths in FEET
+BWS_FT := 528 792 1056 1320 1584
 
-# --- Helper function to create clean filenames from yvar strings ---
-# This function converts variable names to valid filenames
-get_stem = $(shell echo "$(1)" | sed 's/log(/log_/g' | sed 's/)//g')
-
-# --- Generate Output Filenames ---
-OUTPUT_FILES := $(foreach yvar,$(YVARS),../output/fe_table_$(call get_stem,$(yvar)).tex)
+# Outcomes shown as columns in each table (logs allowed too)
+# Pass these to R as space-separated args (no commas).
+YVARS_TABLE := density_far density_lapu areabuilding unitscount
 
 # --- Key Files ---
 INPUT_PARCELS := ../input/parcels_with_ward_distances.csv
 SCRIPT_FILE   := border_pair_FE_regressions.R
 
-# --- Goals ---
+# --- Outputs (one per bandwidth) ---
+OUTPUT_FILES := $(foreach bw,$(BWS_FT),../output/fe_table_bw$(bw).tex)
+
 .PHONY: all link-inputs
 all: $(OUTPUT_FILES)
 
-# --- Dynamic Rule Generation Template ---
-define GEN_RULE
-../output/fe_table_$(call get_stem,$(1)).tex: $(SCRIPT_FILE) $(INPUT_PARCELS) | ../output
-	@echo "→ [FE Regressions] Generating table for outcome: $(1)"
-	Rscript $(SCRIPT_FILE) "$(1)" $$@
+# Generate explicit rules for each bandwidth (avoids brittle pattern pitfalls)
+define FE_template
+../output/fe_table_bw$(1).tex: $(SCRIPT_FILE) $(INPUT_PARCELS) | ../output
+	@echo "→ [FE Tables] Generating table at bandwidth: $(1) ft with outcomes: $(YVARS_TABLE)"
+	Rscript $(SCRIPT_FILE) "$(1)" "$$@" $(YVARS_TABLE)
 endef
+$(foreach bw,$(BWS_FT),$(eval $(call FE_template,$(bw))))
 
-# --- Instantiate a rule for each YVAR ---
-$(foreach yvar,$(YVARS),$(eval $(call GEN_RULE,$(yvar))))
 
-# --- Input Linking ---
+# --- Link input from upstream task (symlink), ensure ../input exists first ---
 $(INPUT_PARCELS): ../../calculate_ward_boundary_distances/output/parcels_with_ward_distances.csv | ../input
-	@echo "→ [FE Regressions] Linking input: $@ ← $<"
-	ln -sf $< $@
+	@echo "→ [FE Tables] Linking input: $@ ← $<"
+	ln -sf "$<" "$@"
 
-# --- Generic Rules & Utilities ---
-include ../../generic.make
+# Convenience
 link-inputs: $(INPUT_PARCELS)
+
+# Generic helpers (ok to keep; our explicit dir rules above already cover mkdir)
+include ../../generic.make

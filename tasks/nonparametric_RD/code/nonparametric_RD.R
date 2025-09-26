@@ -12,25 +12,25 @@ source("../../setup_environment/code/packages.R")
 # --- 1. ARGUMENT HANDLING ---
 # =======================================================================================
 # --- Interactive Test Block (uncomment to run in RStudio) ---
-# yvar            <- "density_far"
-# use_log         <- F
-# bw              <- 1320
-# bins            <- bw/10
+yvar            <- "density_far"
+use_log         <- F
+bw              <- 1056
+bins            <- bw/10
 # =======================================================================================
 # --- Command-Line Arguments (uncomment for Makefile) ---
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 3) {
-  stop("FATAL: need 3 args: <yvar> <use_log> <window_miles> <bin_miles>", call. = FALSE)
-}
-yvar            <- args[1]
-use_log         <- as.logical(args[2])
-bw              <- as.numeric(args[3])
-bins            <- bw / 10
-
-bw_mi   <- bw   / 5280
-bins_mi <- bins / 5280
-cat(sprintf("→ Nonparametric stacked RD | y=%s | log=%s | bw=%.0fft (%.2f mi) | bin=%.1fft (%.2f mi)\n",
-            yvar, as.character(use_log), bw, bw_mi, bins, bins_mi))
+# args <- commandArgs(trailingOnly = TRUE)
+# if (length(args) != 3) {
+#   stop("FATAL: need 3 args: <yvar> <use_log> <window_miles> <bin_miles>", call. = FALSE)
+# }
+# yvar            <- args[1]
+# use_log         <- as.logical(args[2])
+# bw              <- as.numeric(args[3])
+# bins            <- bw / 10
+# 
+# bw_mi   <- bw   / 5280
+# bins_mi <- bins / 5280
+# cat(sprintf("→ Nonparametric stacked RD | y=%s | log=%s | bw=%.0fft (%.2f mi) | bin=%.1fft (%.2f mi)\n",
+#             yvar, as.character(use_log), bw, bw_mi, bins, bins_mi))
 
 # ------------------------- 2) LOAD -------------------------
 cat("Loading data...\n")
@@ -64,7 +64,7 @@ y_axis_label <- pretty_y(yvar, isTRUE(use_log))
 df <- df %>% filter(abs(signed_distance) <= bw)
 
 # Minimal columns
-keep_cols <- c("outcome", "signed_distance", "ward_pair", "construction_year")
+keep_cols <- c("outcome", "signed_distance", "ward_pair", "construction_year", "ward")
 df <- df[, intersect(names(df), keep_cols)]
 
 N_full <- nrow(df)

@@ -1,185 +1,147 @@
-# This script runs border-pair FE regressions across multiple bandwidths.
+# border_pair_FE_tables_by_bw.R
+# One table per bandwidth (in miles) with multiple outcomes as columns.
+# Regressions: y ~ strictness_own_std | construction_year + ward_pair, clustered by ward_pair
 
 ## run this line when editing code in Rstudio
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 
 source("../../setup_environment/code/packages.R")
 
-# --- 1. PARAMETERS ---
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-# yvar       <- "density_far"
-# bandwidths <- c(264, 528, 792, 1056, 1320, 1584, 2112, 2640) # Define all bandwidths here
+# bw_ft           <- 1056
+# yvars           <- c("density_far", "density_lapu", "areabuilding", "unitscount")
+# output_filename  <- "../output/fe_table_bw1056.tex"
 # =======================================================================================
 
-# =======================================================================================
-# --- Command-Line Arguments (for Makefile) ---
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+# Args: <bw_feet> <output_filename> <yvar1> [<yvar2> ...]
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 2) {
-  stop("FATAL: Script requires 2 arguments: <yvar> <output_filename>", call. = FALSE)
-}
-yvar            <- args[1]
-output_filename <- args[2]
-bandwidths      <- c(264, 528, 792, 1056, 1320, 1584, 2640)
-# =======================================================================================
+if (length(args) >= 3) {
+  bw_ft           <- suppressWarnings(as.integer(args[1]))
+  output_filename <- args[2]
+  # space-separated yvars
+  yvars <- args[3:length(args)]
 
-# --- 2. DATA PREPARATION ---
-# =======================================================================================
-cat("Loading and preparing data...\n")
-parcels <- read_csv("../input/parcels_with_ward_distances.csv")
-parcels <- parcels %>%
-  mutate(strictness_own_std = strictness_own / sd(strictness_own, na.rm = TRUE))  ## divide by standard deviation to interpret regressions 
-
-# keep strictly positive outcomes (for logs)
-y_name_original <- gsub("log|\\(|\\)", "", yvar)
-parcels <- parcels[parcels[[y_name_original]] > 0, ]
-
-# --- Sample restriction helper: keep modal zone that exists on both sides within the bw ---
-restrict_to_modal_zone <- function(df, bw) {
-  # 1) limit to current bandwidth + non-missing zone
-  df_bw <- df %>%
-    filter(dist_to_boundary <= bw, !is.na(zone_code))
-  
-  # 2) grouping keys: use (boundary_year, ward_pair) when available, else ward_pair
-  group_keys <- intersect(c("boundary_year", "ward_pair"), names(df_bw))
-  
-  # 3) count parcels by zone within each group, requiring presence on BOTH sides
-  #    prefer signed distance if available; else fall back to ward on each side
-  zone_counts <-
-    if ("signed_distance" %in% names(df_bw)) {
-      df_bw %>%
-        group_by(across(all_of(c(group_keys, "zone_code")))) %>%
-        summarise(n = n(),
-                  n_sides = n_distinct(sign(signed_distance)),
-                  .groups = "drop") %>%
-        filter(n_sides == 2)
-    } else if ("ward" %in% names(df_bw)) {
-      df_bw %>%
-        group_by(across(all_of(c(group_keys, "zone_code")))) %>%
-        summarise(n = n(),
-                  n_sides = n_distinct(ward),
-                  .groups = "drop") %>%
-        filter(n_sides == 2)
-    } else {
-      # if neither side indicator is present, just compute modal zone
-      df_bw %>%
-        group_by(across(all_of(c(group_keys, "zone_code")))) %>%
-        summarise(n = n(), .groups = "drop")
-    }
-  
-  # 4) pick the modal zone (tie-breaker: alphabetical zone_code)
-  modal_zone <- zone_counts %>%
-    arrange(across(all_of(group_keys)), desc(n), zone_code) %>%
-    group_by(across(all_of(group_keys))) %>%
-    slice_head(n = 1) %>%
-    ungroup() %>%
-    select(all_of(group_keys), zone_code) %>%
-    rename(modal_zone_code = zone_code)
-  
-  # 5) keep parcels in the modal zone for each group
-  df_bw %>%
-    inner_join(modal_zone, by = group_keys) %>%
-    filter(zone_code == modal_zone_code) %>%
-    select(-modal_zone_code)
-}
-
-# parcels_fe <- restrict_to_modal_zone(parcels, 264)
-# parcels_fe <- parcels_fe %>% 
-#   filter(abs(strictness_own - strictness_neighbor) > 1) # Drop parcels where the two sides are too similar in strictness
-
-
-# --- 3. LOOP THROUGH BANDWIDTHS AND RUN REGRESSIONS ---
-# =======================================================================================
-cat("Running regressions for yvar:", yvar, "across", length(bandwidths), "bandwidths...\n")
-
-model_list <- lapply(bandwidths, function(bw) {
-  parcels_fe <- parcels %>% 
-    filter(dist_to_boundary <= bw, !is.na(zone_code))
-  # parcels_fe <- restrict_to_modal_zone(parcels, bw)
-  # parcels_fe <- parcels_fe %>%
-  # filter(abs(strictness_own - strictness_neighbor) > .1) # Drop parcels where the two sides are too similar in strictness
-
-  fe_model <- feols(
-    fml = as.formula(paste0(
-      yvar,
-      " ~ strictness_own_std | construction_year + ward_pair"
-    )),
-    data = parcels_fe,
-    cluster = ~ward_pair
-  )
-  
-  fe_model$custom_data <- parcels_fe
-  return(fe_model)
-})
-
-
-# --- 4. CREATE AND SAVE RESULTS TABLE ---
-# =======================================================================================
-
-# Assign names to the models for clean column headers
-names(model_list) <- paste0(round((bandwidths/ 5280), 2), "mi")
-
-# Helper function for mean of the original (level) dependent variable
-mean_y_level <- function(x) {
-  model_data <- x$custom_data
-  fml <- x$fml
-  y_name_str <- deparse(fml[[2]])
-  
-  if (grepl("log\\(", y_name_str)) {
-    y_name_original <- gsub("log|\\(|\\)", "", y_name_str)
-    mean(model_data[[y_name_original]], na.rm = TRUE)
-  } else {
-    mean(model_data[[y_name_str]], na.rm = TRUE)
+  # backward-compat: if exactly 3 args and the 3rd has commas, split them
+  if (length(args) == 3 && grepl(",", args[3])) {
+    yvars <- strsplit(args[3], ",")[[1]] |> trimws()
   }
+} else {
+  # allow interactive testing with objects already defined in the session
+  if (!exists("bw_ft") || !exists("output_filename") || !exists("yvars")) {
+    stop("FATAL: need args: <bw_feet> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
+  }
+}
+
+if (!is.finite(bw_ft) || bw_ft <= 0) stop("bw_feet must be a positive integer/numeric.")
+if (length(yvars) == 0) stop("No yvars provided.")
+
+bw_mi <- round(bw_ft / 5280, 2)
+
+
+# ── 2) DATA ──────────────────────────────────────────────────────────────────
+parcels <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
+  mutate(strictness_own_std = strictness_own / sd(strictness_own, na.rm = TRUE))
+
+
+# ── 3) HELPERS ───────────────────────────────────────────────────────────────
+is_log_spec <- function(v) str_detect(v, "^log\\(.+\\)$")
+base_name   <- function(v) gsub("^log\\(|\\)$", "", v)
+
+pretty_label <- function(v) {
+  b <- base_name(v)
+  dict <- c(
+    "density_far"  = "Floor Area Ratio (FAR)",
+    "density_lapu" = "Lot Area Per Unit (LAPU)",
+    "density_bcr"  = "Building Coverage Ratio (BCR)",
+    "density_lps"  = "Lot Size Per Story (LPS)",
+    "density_spu"  = "Square Feet Per Unit (SPU)",
+    "arealotsf"    = "Lot Area (sf)",
+    "areabuilding" = "Building Area (sf)",
+    "storiescount" = "Stories",
+    "unitscount"   = "Units"
+  )
+  lab <- ifelse(b %in% names(dict), dict[[b]], b)
+  if (is_log_spec(v)) paste("Log", lab) else lab
+}
+
+# fitstat: mean of *level* DV for the estimation sample
+mean_y_level <- function(x) {
+  dat <- x$custom_data
+  y_lhs <- deparse(x$fml[[2]])
+  y0 <- if (grepl("^log\\(", y_lhs)) gsub("^log\\(|\\)$", "", y_lhs) else y_lhs
+  mean(dat[[y0]], na.rm = TRUE)
 }
 fitstat_register("myo", mean_y_level, alias = "Dep. Var. Mean")
 
-# Helper function for number of ward pairs
-n_ward_pairs <- function(x) {
-  x$fixef_sizes["ward_pair"]
-}
+# fitstat: number of ward pairs used
+n_ward_pairs <- function(x) x$fixef_sizes["ward_pair"]
 fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
-
-# Define dictionary for renaming
 rename_dict <- c(
-  "strictness_own_std" = "Restrictiveness Score",
-  "construction_year"      = "Year",
-  'ward_pair' = "Ward Pair",
-  'ward' = "Ward",
-  "density_far" = "Floor Area Ratio (FAR)",
-  "density_lapu" = "Lot Area Per Unit (LAPU)",
-  "density_bcr" = "Building Coverage Ratio (BCR)",
-  "density_lps" = "Lot Size Per Story (LPS)",
-  "density_spu" = "Sq. Feet Per Unit (SPU)"
+  "strictness_own_std" = "Strictness Score",
+  "construction_year"  = "Year",
+  "ward_pair"          = "Ward Pair",
+  "ward"               = "Ward",
+  "density_far"        = "Floor Area Ratio (FAR)",
+  "density_lapu"       = "Lot Area Per Unit (LAPU)",
+  "density_bcr"        = "Building Coverage Ratio (BCR)",
+  "density_lps"        = "Lot Size Per Story (LPS)",
+  "density_spu"        = "Square Feet Per Unit (SPU)",
+  "arealotsf"          = "Lot Area (sf)",
+  "areabuilding"       = "Building Area (sf)",
+  "storiescount"       = "Stories",
+  "unitscount"         = "Units"
 )
 
-# --- Create a dynamic title for the table ---
-base_yvar <- gsub("log|\\(|\\)", "", yvar)
-clean_label <- rename_dict[base_yvar]
+# ── 4) MODELS (ONE PER OUTCOME), SAME BW ─────────────────────────────────────
+models <- list()
+col_headers <- c()
 
-table_title <- if (grepl("log\\(", yvar)) {
-  paste("Border-Pair FE estimates: Log", clean_label)
-} else {
-  paste("Border-Pair FE estimates:", clean_label)
+for (yv in yvars) {
+  b <- base_name(yv)
+  if (!b %in% names(parcels)) {
+    warning(sprintf("Skipping '%s' (base var '%s' not found).", yv, b))
+    next
+  }
+  
+  df <- parcels %>%
+    filter(dist_to_boundary <= bw_ft) %>%
+    filter(.data[[b]] > 0) %>% 
+    filter(!is.na(zone_code))
+  
+  if (nrow(df) == 0) {
+    warning(sprintf("Skipping '%s' (no rows after filtering).", yv))
+    next
+  }
+  
+  fml_txt <- paste0(yv, " ~ strictness_own_std | construction_year + ward_pair")
+  m <- feols(as.formula(fml_txt), data = df, cluster = ~ ward_pair)
+  m$custom_data <- df
+  
+  models[[length(models) + 1]] <- m
+  col_headers <- c(col_headers, pretty_label(yv))
 }
 
-# Create and save the table
-etable(
-  model_list,
-  keep = "Restrictiveness Score",
-  # Formatting options
-  fitstat = ~ n + myo + nwp,
-  style.tex = style.tex("aer", model.format = ""),
-  depvar      = FALSE,
-  digits = 2,
-  dict        = rename_dict,
-  # General options
-  headers     = names(model_list),
-  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
-  fixef.group = TRUE,
-  file = output_filename, # Save to the specified file
-  replace = TRUE
-)
+if (length(models) == 0) stop("No models estimated; check yvars and data.")
+names(models) <- col_headers
+
+# ── 5) TITLE & TABLE OUTPUT ──────────────────────────────────────────────────
+table_title <- sprintf("Border-Pair FE estimates (bw = %f mi)", bw_mi)
+
+etable(models,
+       keep         = "Strictness Score",
+       fitstat      = ~ n + myo + nwp,
+       style.tex    = style.tex("aer", model.format = ""),
+       depvar       = FALSE,
+       digits       = 2,
+       dict         = rename_dict,
+       headers      = names(models),
+       signif.code  = c("***"=0.01, "**"=0.05, "*"=0.1),
+       fixef.group  = TRUE,
+       title        = table_title,
+       file         = output_filename,
+       replace      = TRUE)
 
 cat("✓ Table saved to:", output_filename, "\n")

@@ -14,8 +14,13 @@ all: ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.g
   ../input/ward_panel.gpkg \
   ../input/chicago_alderman_panel.csv \
   ../input/alderman_strictness_scores.csv \
-  ../input/zoning_data_clean.gpkg | ../output
+  ../input/zoning_data_clean.gpkg \
+  ../input/cta_stops.gpkg \
+  ../input/major_streets.gpkg \
+  ../input/parks.gpkg \
+  ../input/schools_2015.gpkg | ../output
 	Rscript calculate_distances.R
+
 
 # --- Rules that make each symlink depend on its source file ---
 ../input/year_built_sample.gpkg: ../../process_attom_assessor/output/chicago_attom_2023.gpkg | ../input
@@ -33,12 +38,30 @@ all: ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.g
 ../input/zoning_data_clean.gpkg: ../../zoning_data_cleaning/output/zoning_data_clean.gpkg | ../input
 	@ln -sf $< $@
 
+../input/cta_stops.gpkg: ../../download_amenities_data/output/cta_stops.gpkg | ../input
+	@ln -sf $< $@
+
+../input/major_streets.gpkg: ../../download_amenities_data/output/major_streets.gpkg | ../input
+	@ln -sf $< $@
+
+../input/parks.gpkg: ../../download_amenities_data/output/parks.gpkg | ../input
+	@ln -sf $< $@
+
+../input/schools_2015.gpkg: ../../download_amenities_data/output/schools_2015.gpkg | ../input
+	@ln -sf $< $@
+
+
 # --- Helper to create all links at once ---
 link-inputs: \
   ../input/year_built_sample.gpkg \
   ../input/ward_panel.gpkg \
   ../input/chicago_alderman_panel.csv \
   ../input/alderman_strictness_scores.csv \
-  ../input/zoning_data_clean.gpkg
+  ../input/zoning_data_clean.gpkg \
+  ../input/cta_stops.gpkg \
+  ../input/major_streets.gpkg \
+  ../input/parks.gpkg \
+  ../input/schools_2015.gpkg
+
 
 include ../../generic.make

@@ -38,6 +38,18 @@ if (st_crs(parcels) != st_crs(ward_panel)) {
 cat("Loading zoning data...\n")
 zoning_data <- st_read("../input/zoning_data_clean.gpkg")
 
+cat("Loading amenities...\n")
+cta_stops      <- st_read("../input/cta_stops.gpkg", quiet = TRUE)
+major_streets  <- st_read("../input/major_streets.gpkg", quiet = TRUE)
+parks          <- st_read("../input/parks.gpkg", quiet = TRUE)
+schools        <- st_read("../input/schools_2015.gpkg", quiet = TRUE)
+
+# match CRS to parcels/ward_panel if needed
+if (st_crs(cta_stops) != st_crs(parcels))     cta_stops     <- st_transform(cta_stops,     st_crs(parcels))
+if (st_crs(major_streets) != st_crs(parcels)) major_streets <- st_transform(major_streets, st_crs(parcels))
+if (st_crs(parks) != st_crs(parcels))         parks         <- st_transform(parks,         st_crs(parcels))
+if (st_crs(schools) != st_crs(parcels))       schools       <- st_transform(schools,       st_crs(parcels))
+
 if (st_crs(zoning_data) != st_crs(ward_panel)) {
   zoning_data <- st_transform(zoning_data, st_crs(ward_panel))
 }
@@ -304,6 +316,37 @@ parcels_with_distances <- calculate_boundary_distances_simple(parcels_with_wards
 cat("Distance calculation completed!\n")
 
 # -----------------------------------------------------------------------------
+# 5.5. CALCULATE AMENITY DISTANCES FOR PLACEBO RDs
+# -----------------------------------------------------------------------------
+
+cat("Computing distances to amenities...\n")
+
+# CTA stops (points)
+idx_cta <- st_nearest_feature(parcels_with_distances, cta_stops)
+parcels_with_distances$dist_cta_stop <- as.numeric(
+  st_distance(st_geometry(parcels_with_distances), st_geometry(cta_stops)[idx_cta], by_element = TRUE)
+)
+
+# Major streets (lines)
+idx_st <- st_nearest_feature(parcels_with_distances, major_streets)
+parcels_with_distances$dist_major_street <- as.numeric(
+  st_distance(st_geometry(parcels_with_distances), st_geometry(major_streets)[idx_st], by_element = TRUE)
+)
+
+# Parks (polygons) — distance is 0 if inside
+idx_pk <- st_nearest_feature(parcels_with_distances, parks)
+parcels_with_distances$dist_park <- as.numeric(
+  st_distance(st_geometry(parcels_with_distances), st_geometry(parks)[idx_pk], by_element = TRUE)
+)
+
+# Schools (points)
+idx_sc <- st_nearest_feature(parcels_with_distances, schools)
+parcels_with_distances$dist_school <- as.numeric(
+  st_distance(st_geometry(parcels_with_distances), st_geometry(schools)[idx_sc], by_element = TRUE)
+)
+cat("Amenity distance calculation completed!\n")
+
+# -----------------------------------------------------------------------------
 # 6. ADD WARD PAIRS AND ALDERMAN INFO (EFFICIENT VERSION)
 # -----------------------------------------------------------------------------
 
@@ -375,6 +418,7 @@ final_dataset <- parcels_with_distances %>%
     attom_id, geom,
     construction_year = yearbuilt, construction_date, boundary_year,
     ward = assigned_ward, ward_pair, dist_to_boundary,
+    dist_cta_stop, dist_major_street, dist_park, dist_school,
     alderman = alderman.x, alderman_tenure_months,
     finance_chair, zoning_chair, budget_chair,
     arealotsf, areabuilding, bedroomscount, bathcount, bathpartialcount, roomscount, storiescount, unitscount, 
