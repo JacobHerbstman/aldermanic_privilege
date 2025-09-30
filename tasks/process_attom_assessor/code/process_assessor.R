@@ -89,7 +89,9 @@ keep_vars <- c(
   "foundation",
   "buildingscount",
   "parkingspacecount",
-  "propertyusestandardized"
+  "propertyusestandardized", 
+  "propertyaddressunitprefix", 
+  "legalsubdivision"
 )
 
 
@@ -99,8 +101,8 @@ tax_df_new <- tax_df %>%
   janitor::clean_names() %>% 
   filter(yearbuilt >= 2003) %>% ## year built lining up with permit data
   filter(propertyaddresscity == "CHICAGO") %>% #chicago only
-  filter(!is.na(propertylatitude) & !is.na(propertylongitude)) %>% ##need lat/lon for border discontinuity
-  mutate(deedlastsaleprice = na_if(deedlastsaleprice, -1)) %>% ## -1 means missing
+  filter(!is.na(propertylatitude) & !is.na(propertylongitude)) %>%  ##need lat/lon for border discontinuity
+  # filter(!is.na(propertyaddressunitprefix) & !propertyaddressunitprefix == "") %>% # multifamily only (apt, #, or unit labels)
   filter(propertyusegroup %in% c("Residential")) %>% # residential only
   select(all_of(keep_vars)) %>% ## keep vars of interest for memory reason
   st_as_sf(coords = c("propertylongitude", "propertylatitude"), crs = 4326) %>% 

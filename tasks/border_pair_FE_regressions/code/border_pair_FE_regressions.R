@@ -9,8 +9,9 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-# bw_ft           <- 1056
-# yvars           <- c("density_far", "density_lapu", "areabuilding", "unitscount")
+# bw_ft           <- 2112
+# yvars           <- c("density_far", "density_lapu", "density_bcr", "density_lps", 
+  #  "unitscount", "storiescount", "areabuilding", "arealotsf", "bedroomscount")
 # output_filename  <- "../output/fe_table_bw1056.tex"
 # =======================================================================================
 
@@ -44,6 +45,60 @@ bw_mi <- round(bw_ft / 5280, 2)
 parcels <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
   mutate(strictness_own_std = strictness_own / sd(strictness_own, na.rm = TRUE))
 
+# --- Sample restriction helper: keep modal zone that exists on both sides within the bw ---
+restrict_to_modal_zone <- function(df, bw) {
+  # 1) limit to current bandwidth + non-missing zone
+  df_bw <- df %>%
+    filter(dist_to_boundary <= bw, !is.na(zone_code))
+  
+  # 2) grouping keys: use (boundary_year, ward_pair) when available, else ward_pair
+  group_keys <- intersect(c("boundary_year", "ward_pair"), names(df_bw))
+  
+  # 3) count parcels by zone within each group, requiring presence on BOTH sides
+  #    prefer signed distance if available; else fall back to ward on each side
+  zone_counts <-
+    if ("signed_distance" %in% names(df_bw)) {
+      df_bw %>%
+        group_by(across(all_of(c(group_keys, "zone_code")))) %>%
+        summarise(n = n(),
+                  n_sides = n_distinct(sign(signed_distance)),
+                  .groups = "drop") %>%
+        filter(n_sides == 2)
+    } else if ("ward" %in% names(df_bw)) {
+      df_bw %>%
+        group_by(across(all_of(c(group_keys, "zone_code")))) %>%
+        summarise(n = n(),
+                  n_sides = n_distinct(ward),
+                  .groups = "drop") %>%
+        filter(n_sides == 2)
+    } else {
+      # if neither side indicator is present, just compute modal zone
+      df_bw %>%
+        group_by(across(all_of(c(group_keys, "zone_code")))) %>%
+        summarise(n = n(), .groups = "drop")
+    }
+  
+  # 4) pick the modal zone (tie-breaker: alphabetical zone_code)
+  modal_zone <- zone_counts %>%
+    arrange(across(all_of(group_keys)), desc(n), zone_code) %>%
+    group_by(across(all_of(group_keys))) %>%
+    slice_head(n = 1) %>%
+    ungroup() %>%
+    select(all_of(group_keys), zone_code) %>%
+    rename(modal_zone_code = zone_code)
+  
+  # 5) keep parcels in the modal zone for each group
+  df_bw %>%
+    inner_join(modal_zone, by = group_keys) %>%
+    filter(zone_code == modal_zone_code) %>%
+    select(-modal_zone_code)
+}
+
+parcels_fe <- parcels
+parcels_fe <- restrict_to_modal_zone(parcels_fe, bw_ft)
+# parcels_fe <- parcels_fe %>%
+#   filter(abs(strictness_own - strictness_neighbor) > .1) # Drop parcels where the two sides are too similar in strictness
+
 
 # ── 3) HELPERS ───────────────────────────────────────────────────────────────
 is_log_spec <- function(v) str_detect(v, "^log\\(.+\\)$")
@@ -60,7 +115,9 @@ pretty_label <- function(v) {
     "arealotsf"    = "Lot Area (sf)",
     "areabuilding" = "Building Area (sf)",
     "storiescount" = "Stories",
-    "unitscount"   = "Units"
+    "unitscount"   = "Units", 
+    "bedroomscount"= "Bedrooms", 
+    "bathcount"= "Bathrooms"
   )
   lab <- ifelse(b %in% names(dict), dict[[b]], b)
   if (is_log_spec(v)) paste("Log", lab) else lab
@@ -92,7 +149,9 @@ rename_dict <- c(
   "arealotsf"          = "Lot Area (sf)",
   "areabuilding"       = "Building Area (sf)",
   "storiescount"       = "Stories",
-  "unitscount"         = "Units"
+  "unitscount"         = "Units", 
+  "bedroomscount"      = "Bedrooms", 
+  "bathcount"          = "Bathrooms"
 )
 
 # ── 4) MODELS (ONE PER OUTCOME), SAME BW ─────────────────────────────────────
@@ -106,10 +165,11 @@ for (yv in yvars) {
     next
   }
   
-  df <- parcels %>%
-    filter(dist_to_boundary <= bw_ft) %>%
-    filter(.data[[b]] > 0) %>% 
-    filter(!is.na(zone_code))
+  df <- parcels_fe %>%
+    filter(dist_to_boundary <= bw_ft) %>% 
+    filter(unitscount > 0)
+    # filter(density_far > 0) 
+    # filter(!is.na(zone_code))
   
   if (nrow(df) == 0) {
     warning(sprintf("Skipping '%s' (no rows after filtering).", yv))

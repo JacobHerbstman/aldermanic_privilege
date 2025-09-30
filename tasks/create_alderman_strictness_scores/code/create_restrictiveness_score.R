@@ -19,11 +19,21 @@ data <- data %>%
     log_sum_total_fee         = if_else(sum_total_fee  > 0, log(sum_total_fee),  NA_real_)   
   )
 
+coverage <- data %>%
+  dplyr::group_by(alderman) %>%
+  dplyr::summarise(n_months = dplyr::n_distinct(month),
+                   permits  = sum(n_permits_applied, na.rm = TRUE),
+                   .groups = "drop")
+
+keep_aldermen <- coverage %>% dplyr::filter(n_months > 1) %>% dplyr::pull(alderman) ## need > 3 months of data
+
+data <- data %>% dplyr::filter(alderman %in% keep_aldermen)
+
 # ----------------------------
-# B) Pre-residualize each outcome on ward fundamentals + month FE
+# B) Pre-residualize each outcome on ward fundamentals + month FEs
 #     (NO alderman dummies here)
 # ----------------------------
-# Fundamentals added earlier in data prep:
+# Fundamentals:
 geo_vars <- c(
   "dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m",
   grep("^ca_share_", names(data), value = TRUE)  # community-area shares
@@ -59,8 +69,8 @@ residualize_var <- function(df, yvar, fundamentals, weight_var = NULL) {
   df
 }
 
-# Residualize each outcome according to your weighting rule:
-#  - DO NOT weight "log_n_permits_issued"
+# Residualize each outcome according to weighting rule:
+#  - DO NOT weight "log_n_permits_issued, log_sum_total_fee"
 #  - Weight others by n_permits_applied
 data <- residualize_var(data, "log_n_permits_issued",     fundamentals, weight_var = NULL)
 data <- residualize_var(data, "log_sum_total_fee",        fundamentals, weight_var = NULL)
@@ -68,9 +78,6 @@ data <- residualize_var(data, "permit_approval_rate",      fundamentals, weight_
 data <- residualize_var(data, "log_mean_processing_time",  fundamentals, weight_var = "n_permits_applied")
 data <- residualize_var(data, "log_mean_total_fee",        fundamentals, weight_var = "n_permits_applied")
 
-
-data <- data %>%
-  filter(alderman != "Dorothy Tillman") ## she shouldnt be identified yet is, removing manually for now
 
 
 # Build the RHS used in residualization
@@ -96,7 +103,7 @@ m4 <- fit_disp("log_mean_processing_time", "n_permits_applied")
 m5 <- fit_disp("log_mean_total_fee",       "n_permits_applied")
 
 etable(
-  m1, m2, m3, m4, m5,
+  m1, m3, m4,
   drop   = "^ca_share_",                 # hide community-area shares
   digits = 3, se.below = TRUE,
   dict = c(
@@ -112,11 +119,11 @@ etable(
   ),
   fitstat = ~ n + r2,
   title = "Stage-1 residualization models (month FE included)",
-  notes = "CA shares included in estimation but omitted from display; weights used for cols 3–5."
+  notes = "CA shares included in estimation but omitted from display; weights used for cols 2 and 3."
 )
 
 etable(
-  m1, m2, m3, m4, m5,
+  m1, m3, m4,
   drop   = "^ca_share_",                 # hide community-area shares
   digits = 3, se.below = TRUE,
   dict = c(
@@ -132,7 +139,7 @@ etable(
   ),
   fitstat = ~ n + r2,
   title = "Stage-1 residualization models (month FE included)",
-  notes = "CA shares included in estimation but omitted from display; weights used for cols 3–5.",
+  notes = "CA shares included in estimation but omitted from display; weights used for cols 2 and 3.",
   file = "../output/stage1_residualization_models.tex"
 )
 
@@ -155,6 +162,21 @@ etable(
 #' @param permit_outcomes A character vector of outcomes that should not be weighted.
 #'
 #' @return A data frame with two columns: 'alderman' and 'strictness_index'.
+
+
+# # ## test vars
+# outcome_vars <- list(
+#   "log_n_permits_issued"       = "resid_log_n_permits_issued",
+#   "permit_approval_rate"       = "resid_permit_approval_rate",
+#   "log_mean_processing_time" = "resid_log_mean_processing_time"
+#   # "log_mean_total_fee"         = "resid_log_mean_total_fee",
+#   # "log_sum_total_fee"        = "resid_log_sum_total_fee"
+# )
+# outcome_name <- "log_n_permits_issued"
+# control_vars <- "1"
+# fe_spec <- "month"
+# ref_alderman <- "Andre Vasquez"
+# permit_outcomes = c("log_n_permits_issued")
 
 calculate_alderman_scores <- function(data,
                                       outcome_vars,
@@ -182,7 +204,7 @@ calculate_alderman_scores <- function(data,
     )
     print(formula_str)
     
-    model <- feols(as.formula(formula_str), data = data, vcov = ~alderman, weights = weight_formula)
+    model <- feols(as.formula(formula_str), data = data, vcov = ~ward+month, weights = weight_formula)
     
     coefs <- enframe(coef(model), name = "term", value = "alderman_fe")
     ses <- enframe(se(model), name = "term", value = "alderman_se")
@@ -210,40 +232,36 @@ calculate_alderman_scores <- function(data,
   # =============================================================================
   message("   ...applying Empirical Bayes shrinkage.")
   alderman_scores_shrunk <- all_alderman_scores %>%
-    group_by(outcome_variable) %>%
-    mutate(
-      sigma2_alpha = max(0, mean(alderman_fe^2) - mean(alderman_se^2)),
-      shrinkage_factor_B = sigma2_alpha / (sigma2_alpha + alderman_se^2),
+    dplyr::group_by(outcome_variable) %>%
+    dplyr::mutate(
+      tau2 = pmax(0, stats::var(alderman_fe, na.rm = TRUE) -
+                    mean(alderman_se^2, na.rm = TRUE)),
+      shrinkage_factor_B = tau2 / (tau2 + alderman_se^2),
       alderman_fe = alderman_fe * shrinkage_factor_B
     ) %>%
-    ungroup()
-  
+    dplyr::ungroup()
+
   # =============================================================================
-  # C. USE PCA TO GET FINAL SCORE
+  # C. BUILD STRICTNESS INDEX (reliability-weighted PCA)
   # =============================================================================
-  message("   ...running PCA to create final index.")
-  sign_flip_pattern <- "fee|time|cost"
+  message("   ...computing reliability-weighted PC1 with enforced signs.")
   
-  pca_data_wide <- alderman_scores_shrunk %>%
-    mutate(
-      signed_fe = if_else(
-        grepl(sign_flip_pattern, outcome_variable),
-        alderman_fe * -1,
-        alderman_fe
-      )
-    ) %>%
-    select(alderman, outcome_variable, signed_fe) %>%
-    pivot_wider(names_from = outcome_variable, values_from = signed_fe)
+  W <- alderman_scores_shrunk %>%
+    dplyr::filter(outcome_variable %in% names(outcome_vars)) %>%
+    dplyr::select(alderman, outcome_variable, alderman_fe) %>%
+    tidyr::pivot_wider(names_from = outcome_variable, values_from = alderman_fe) %>%
+    tibble::column_to_rownames("alderman") %>%
+    as.matrix()
   
-  pca_data_for_prcomp <- pca_data_wide %>%
-    column_to_rownames("alderman")
+  # plain PCA; PC1 sign is arbitrary by definition
+  pca_fit <- prcomp(W, center = TRUE, scale. = TRUE)
+  pc1     <- pca_fit$x[, 1]
   
-  pca_results <- prcomp(pca_data_for_prcomp, scale = TRUE, center = TRUE)
+  final_scores <- tibble::tibble(
+    alderman = rownames(W),
+    strictness_index = pc1
+  ) %>% dplyr::arrange(strictness_index)
   
-  final_scores <- as.data.frame(pca_results$x) %>%
-    rownames_to_column("alderman") %>%
-    select(alderman, strictness_index = PC1) %>%
-    arrange(strictness_index)
   
   # =============================================================================
   # D. SAVE AND RETURN
@@ -404,9 +422,9 @@ create_all_score_charts <- function(scores_list, spec_name) {
 outcome_vars <- list(
   "log_n_permits_issued"       = "resid_log_n_permits_issued",
   "permit_approval_rate"       = "resid_permit_approval_rate",
-  "log_median_processing_time" = "resid_log_mean_processing_time",
-  "log_mean_total_fee"         = "resid_log_mean_total_fee",
-  "log_sum_total_fee"          = "resid_log_sum_total_fee"     
+  "log_mean_processing_time"   = "resid_log_mean_processing_time",
+  "log_mean_total_fee"         = "resid_log_mean_total_fee"
+  # "log_sum_total_fee"          = "resid_log_sum_total_fee"
 )
 
 
@@ -428,7 +446,7 @@ scores_month_fe <- calculate_alderman_scores(
   control_vars = control_vars,      # now just "1"
   fe_spec = "month",
   ref_alderman = ref_alderman,
-  permit_outcomes = c("log_n_permits_issued", "log_sum_total_fee"),
+  permit_outcomes = c("log_n_permits_issued"),
   output_filepath = "../output/alderman_restrictiveness_scores_month_FEs.csv"
 )
 
@@ -442,7 +460,7 @@ scores_ward_month_fe <- calculate_alderman_scores(
   control_vars = control_vars,      # now just "1"
   fe_spec = "ward+month",
   ref_alderman = ref_alderman,
-  permit_outcomes = c("log_n_permits_issued", "log_sum_total_fee"),
+  permit_outcomes = c("log_n_permits_issued"),
   output_filepath = "../output/alderman_restrictiveness_scores_ward_month_FEs.csv"
 )
 

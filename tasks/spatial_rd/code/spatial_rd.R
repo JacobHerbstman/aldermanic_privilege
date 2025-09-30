@@ -9,7 +9,7 @@ source("../../setup_environment/code/packages.R")
 # =======================================================================================
 # --- Interactive Test Block (uncomment to run in RStudio) ---
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
-# yvar                   <- "density_lps"
+# yvar                   <- "density_far"
 # use_log                 <- F
 # bw                     <- 2112
 # kernel                 <- "triangular"
@@ -39,6 +39,9 @@ if (use_log) {
   parcels_signed$outcome <- parcels_signed[[yvar]]
   log_suffix <- ""
 }
+
+parcels_signed <- parcels_signed %>%
+  filter(unitscount > 0) 
 
 cat("Data preparation complete.\n")
 
@@ -186,7 +189,7 @@ plot2 <- ggplot() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         plot.title = element_text(size = 12))
-# plot2
+plot2
 
 # --- 5. SAVE PLOT ---
 if (!exists("output_filename_rdplot")) {

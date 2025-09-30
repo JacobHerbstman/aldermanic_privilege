@@ -39,9 +39,10 @@ dat <- dat_raw[dat_raw[[yvar]] > 0, ] %>%
     within_bw = abs(signed_distance) <= bw
   )
 
-
+# Restrict to parcels within bandwidth and outside donut with non-missing units
 dat_bw <- dat %>%
-  filter(within_bw, abs(signed_distance) >= donut, !is.na(zone_code))
+  filter(within_bw, abs(signed_distance) >= donut) %>% 
+  filter(unitscount > 0) 
 
 # Count parcels by zone within each (boundary_year, ward_pair) window
 zone_counts <- dat_bw %>%
