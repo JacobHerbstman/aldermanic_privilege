@@ -24,6 +24,17 @@ tasks/*/temp/
 
 # --- User-specific files ---
 # (Add any local configuration files here if needed)
+
 # --- Secrets ---
 # Ignore file containing API keys and other secrets
 .Renviron
+
+
+# ================== ADDITIONS ==================
+
+# Slides: ignore everything in slides/ except the source TeX
+slides/*
+!slides/slides.tex
+
+# Ignore auto-generated R graphics in any code/ folder
+**/code/Rplots.pdf
