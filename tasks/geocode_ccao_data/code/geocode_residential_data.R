@@ -82,7 +82,37 @@ res_with_geo  <- res_with_geo %>% select(any_of(cols_union))
 condo_h       <- condo_h      %>% select(any_of(cols_union))
 
 # 4) Row bind
-all_parcels <- data.table::rbindlist(list(res_with_geo, condo_h), fill = TRUE, use.names = TRUE)
+all_parcels <- data.table::rbindlist(list(res_with_geo, condo_h), fill = TRUE, use.names = TRUE) %>%
+  mutate(
+    storiescount = case_when(
+      is.na(type_of_residence) ~ NA_real_,
+      str_detect(type_of_residence, regex("^1\\s*Story$", ignore_case = TRUE))    ~ 1,
+      str_detect(type_of_residence, regex("^1\\.5\\s*Story$", ignore_case = TRUE))~ 1.5,
+      str_detect(type_of_residence, regex("^2\\s*Story$", ignore_case = TRUE))    ~ 2,
+      str_detect(type_of_residence, regex("^3\\s*Story\\s*\\+$", ignore_case=TRUE)) ~ 3,   # lower bound
+      str_detect(type_of_residence, regex("Split\\s*Level", ignore_case = TRUE))  ~ 2,     # or NA_real_
+      TRUE ~ NA_real_
+    )
+  ) %>% 
+  rename(yearbuilt = year_built, 
+         arealotsf = land_sqft,
+         areabuilding = building_sqft,
+         unitscount = num_apartments, 
+         roomscount = num_rooms,
+         bedroomscount = num_bedrooms,
+         fullbathcount = num_full_baths,
+         halfbathcount = num_half_baths) %>% 
+  mutate(
+    # heuristic: residential table has single_v_multi_family; condos typically don't
+    is_sf = (residential == TRUE) & (
+      (!is.na(single_v_multi_family) &
+         grepl("^single", single_v_multi_family, ignore.case = TRUE)) |
+        (!is.na(type_of_residence) &
+           type_of_residence %in% c("1 Story","1.5 Story","2 Story","3 Story +","Split Level"))
+    ),
+    unitscount = ifelse(is_sf & (is.na(unitscount) | unitscount == 0L), 1L, unitscount)
+  )
+  
 
 has_xy <- is.finite(all_parcels$lon) & is.finite(all_parcels$lat)
 sf_pts <- st_as_sf(all_parcels[has_xy, ], coords = c("longitude", "latitude"), crs = 4326)

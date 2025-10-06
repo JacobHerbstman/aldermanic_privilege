@@ -17,7 +17,7 @@ REDISTRICTING_END <- as.Date("2015-05-01")     # For gradual rule
 # -----------------------------------------------------------------------------
 
 cat("Loading parcel data...\n")
-parcels <- st_read("../input/year_built_sample.gpkg") %>%
+parcels <- st_read("../input/geocoded_residential_data.gpkg") %>%
   filter(!is.na(yearbuilt), yearbuilt >= 2003 & yearbuilt <= 2023) %>%
   mutate(construction_date = as.Date(paste0(yearbuilt, "-06-15")))
 
@@ -415,15 +415,14 @@ final_dataset <- parcels_with_distances %>%
     )
   ) %>% 
   select(
-    attom_id, geom,
+    pin, geom,
     construction_year = yearbuilt, construction_date, boundary_year,
     ward = assigned_ward, ward_pair, dist_to_boundary,
     dist_cta_stop, dist_major_street, dist_park, dist_school,
     alderman = alderman.x, alderman_tenure_months,
     finance_chair, zoning_chair, budget_chair,
-    arealotsf, areabuilding, bedroomscount, bathcount, bathpartialcount, roomscount, storiescount, unitscount, 
-    assessorpriorsaleamount, deedlastsaleprice, construction, foundation, 
-    zone_code, floor_area_ratio, lot_area_per_unit, maximum_building_height,
+    arealotsf, areabuilding, bedroomscount, fullbathcount, halfbathcount, roomscount, storiescount, unitscount, 
+    construction_quality, central_heating, central_air, zone_code, residential, single_v_multi_family
   )
 
 # -----------------------------------------------------------------------------
@@ -448,7 +447,12 @@ final_dataset <- final_dataset %>%
     # Lot Size Per Story
     density_lps = if_else(storiescount > 0, arealotsf / storiescount, NA_real_),
     # Square Feet Per Unit
-    density_spu = if_else(unitscount > 0, areabuilding / unitscount, NA_real_)
+    density_spu = if_else(unitscount > 0, areabuilding / unitscount, NA_real_), 
+    ## Dwelling units per acre (DUPAC) as in kulka et al (2022)
+    density_dupac = if_else(
+      arealotsf > 0 & unitscount > 0,
+      43560 * unitscount / arealotsf,  # 1 acre = 43,560 sqft
+      NA_real_)
   ) %>%
   filter(!is.na(dist_to_boundary) & !is.na(ward_pair) & !is.na(strictness_index)) 
 

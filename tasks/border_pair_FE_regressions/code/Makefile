@@ -3,11 +3,11 @@ include ../../shell_functions.make
 
 # --- Adjustable lists ---
 # Bandwidths in FEET
-BWS_FT := 256 528 792 1056 1320 1584 2112 2640
+BWS_FT := 528 792 1056 1320 1584 2112 2640
 
 # Outcomes shown as columns in each table (logs allowed too)
 # Pass these to R as space-separated args (no commas).
-YVARS_TABLE := density_far density_lapu density_bcr density_lps unitscount storiescount bedroomscount areabuilding arealotsf
+YVARS_TABLE := density_dupac density_far density_lapu density_bcr density_lps unitscount storiescount bedroomscount areabuilding arealotsf
 
 # --- Key Files ---
 INPUT_PARCELS := ../input/parcels_with_ward_distances.csv

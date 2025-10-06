@@ -12,9 +12,9 @@ source("../../setup_environment/code/packages.R")
 # --- 1. ARGUMENT HANDLING ---
 # =======================================================================================
 # --- Interactive Test Block (uncomment to run in RStudio) ---
-# yvar            <- "density_lapu"
+# yvar            <- "density_dupac"
 # use_log         <- F
-# bw              <- 1056
+# bw              <- 264
 # bins            <- bw/10
 # =======================================================================================
 # --- Command-Line Arguments (uncomment for Makefile) ---
@@ -34,28 +34,78 @@ cat(sprintf("→ Nonparametric stacked RD | y=%s | log=%s | bw=%.0fft (%.2f mi) 
 
 # ------------------------- 2) LOAD -------------------------
 cat("Loading data...\n")
-df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE)
+df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>% 
+  filter(unitscount > 1)
+  
+  # --- Sample restriction helper: keep modal zone that exists on both sides within the bw ---
+  restrict_to_modal_zone <- function(df, bw) {
+    # 1) limit to current bandwidth + non-missing zone
+    df_bw <- df %>%
+      filter(dist_to_boundary <= bw, !is.na(zone_code))
+    
+    # 2) grouping keys: use (boundary_year, ward_pair) when available, else ward_pair
+    group_keys <- intersect(c("boundary_year", "ward_pair"), names(df_bw))
+    
+    # 3) count parcels by zone within each group, requiring presence on BOTH sides
+    #    prefer signed distance if available; else fall back to ward on each side
+    zone_counts <-
+      if ("signed_distance" %in% names(df_bw)) {
+        df_bw %>%
+          group_by(across(all_of(c(group_keys, "zone_code")))) %>%
+          summarise(n = n(),
+                    n_sides = n_distinct(sign(signed_distance)),
+                    .groups = "drop") %>%
+          filter(n_sides == 2)
+      } else if ("ward" %in% names(df_bw)) {
+        df_bw %>%
+          group_by(across(all_of(c(group_keys, "zone_code")))) %>%
+          summarise(n = n(),
+                    n_sides = n_distinct(ward),
+                    .groups = "drop") %>%
+          filter(n_sides == 2)
+      } else {
+        # if neither side indicator is present, just compute modal zone
+        df_bw %>%
+          group_by(across(all_of(c(group_keys, "zone_code")))) %>%
+          summarise(n = n(), .groups = "drop")
+      }
+    
+    # 4) pick the modal zone (tie-breaker: alphabetical zone_code)
+    modal_zone <- zone_counts %>%
+      arrange(across(all_of(group_keys)), desc(n), zone_code) %>%
+      group_by(across(all_of(group_keys))) %>%
+      slice_head(n = 1) %>%
+      ungroup() %>%
+      select(all_of(group_keys), zone_code) %>%
+      rename(modal_zone_code = zone_code)
+    
+    # 5) keep parcels in the modal zone for each group
+    df_bw %>%
+      inner_join(modal_zone, by = group_keys) %>%
+      filter(zone_code == modal_zone_code) %>%
+      select(-modal_zone_code)
+  }
+  
+df <- restrict_to_modal_zone(df, bw)
 
 # ------------------------- 3) OUTCOME ----------------------
 if (use_log) {
-  df <- df %>% filter(unitscount > 0)
+  # df <- df %>% filter(unitscount > 0)
   df <- df %>% mutate(outcome = log(.data[[yvar]]))
 } else {
-  df <- df %>% filter(unitscount > 0)
+  # df <- df %>% filter(unitscount > 0)
   df <- df %>% mutate(outcome = .data[[yvar]])
 }
-
-
 
 
 # Pretty label
 pretty_y <- function(v, is_log) {
   lab <- switch(v,
+                "density_dupac" = "Dwelling Units Per Acre (DUPAC)",
                 "density_far"  = "Floor-Area Ratio (FAR)",
                 "density_lapu" = "Lot Area Per Unit (LAPU)",
                 "density_bcr"  = "Building Coverage Ratio (BCR)",
                 "density_lps"  = "Lot Size Per Story (LPS)",
-                "density_spu"  = "Square Feet Per Unit (SPU)",
                 v
   )
   if (is_log) paste0("Log(", lab, ")") else lab
@@ -88,7 +138,7 @@ ref_bin <- -1L
 
 # ------------------------- 6) FIXED EFFECTS ----------------
 fe_part <- "ward_pair"
-if ("construction_year" %in% names(df)) fe_part <- paste(fe_part, "construction_year", sep = " + ")
+if ("construction_year" %in% names(df)) fe_part <- paste(fe_part, "construction_year", sep = "^")
 
 # ------------------------- 7) ESTIMATION -------------------
 fml <- as.formula(paste0("outcome ~ i(bindex, ref = ", ref_bin, ") | ", fe_part))

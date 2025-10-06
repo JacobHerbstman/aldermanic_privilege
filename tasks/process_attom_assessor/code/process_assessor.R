@@ -8,7 +8,7 @@ source("../../setup_environment/code/packages.R")
 
 
 tax_files <- list.files(
-  path   = "../input/assessor",          # folder to search
+  path   = "../input",          # folder to search
   pattern = "^Tax_Assessor_Cook_County-\\d+\\.csv$",  # the 64 files
   full.names = TRUE,                              # return full paths
   ignore.case = FALSE

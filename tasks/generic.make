@@ -21,6 +21,6 @@ run.sbatch: ../../setup_environment/code/run.sbatch | slurmlogs
 # For now, we will rely on explicit symbolic linking rules in each Makefile
 # to make the workflow as clear as possible.
 # ----------------------------------------------------------------------------
-# ../../output/%:
-#	$(MAKE) -C $(subst output/,code/,$(dir $@)) \
-#	        ../output/$(notdir $@)
+ ../../output/%:
+	$(MAKE) -C $(subst output/,code/,$(dir $@)) \
+	        ../output/$(notdir $@)

@@ -6,11 +6,12 @@ include ../../shell_functions.make
 # --- Main Goal ---
 all: ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.gpkg
 
+include ../../generic.make
+
 # --- Main processing rule ---
-# This rule now generates both output files from the single R script execution.
 ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.gpkg: \
   calculate_distances.R \
-  ../input/year_built_sample.gpkg \
+  ../input/geocoded_residential_data.gpkg \
   ../input/ward_panel.gpkg \
   ../input/chicago_alderman_panel.csv \
   ../input/alderman_strictness_scores.csv \
@@ -19,11 +20,13 @@ all: ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.g
   ../input/major_streets.gpkg \
   ../input/parks.gpkg \
   ../input/schools_2015.gpkg | ../output
-	Rscript calculate_distances.R
-
+	@Rscript calculate_distances.R
 
 # --- Rules that make each symlink depend on its source file ---
 ../input/year_built_sample.gpkg: ../../process_attom_assessor/output/chicago_attom_2023.gpkg | ../input
+	@ln -sf $< $@
+
+../input/geocoded_residential_data.gpkg: ../../geocode_ccao_data/output/geocoded_residential_data.gpkg | ../input
 	@ln -sf $< $@
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
@@ -50,10 +53,10 @@ all: ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.g
 ../input/schools_2015.gpkg: ../../download_amenities_data/output/schools_2015.gpkg | ../input
 	@ln -sf $< $@
 
-
 # --- Helper to create all links at once ---
 link-inputs: \
   ../input/year_built_sample.gpkg \
+  ../input/geocoded_residential_data.gpkg \
   ../input/ward_panel.gpkg \
   ../input/chicago_alderman_panel.csv \
   ../input/alderman_strictness_scores.csv \
@@ -63,5 +66,3 @@ link-inputs: \
   ../input/parks.gpkg \
   ../input/schools_2015.gpkg
 
-
-include ../../generic.make

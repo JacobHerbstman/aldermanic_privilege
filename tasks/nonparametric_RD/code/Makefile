@@ -4,8 +4,8 @@ include ../../shell_functions.make
 # ───────── Parameters (feet) ─────────
 # Pairs are bw_ft:bins_ft (bins_ft shown literally in filenames)
 PAIRS     := 528:52.8 792:79.2 1056:105.6 1320:132 1584:158.4 2640:264
-YVARS     := density_far density_lapu density_bcr density_lps density_spu
-LOG_STATUS:= TRUE FALSE
+YVARS     := density_dupac density_far density_lapu density_bcr density_lps
+LOG_STATUS:= FALSE
 
 LOG_PREFIX_TRUE  := log_
 LOG_PREFIX_FALSE :=

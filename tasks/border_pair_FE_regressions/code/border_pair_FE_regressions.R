@@ -9,9 +9,9 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-# bw_ft           <- 2112
-# yvars           <- c("density_far", "density_lapu", "density_bcr", "density_lps", 
-  #  "unitscount", "storiescount", "areabuilding", "arealotsf", "bedroomscount")
+# bw_ft           <- 1056
+# yvars           <- c("density_dupac", "density_far", "density_lapu", "density_bcr", "density_lps",
+#  "unitscount", "storiescount", "areabuilding", "arealotsf", "bedroomscount")
 # output_filename  <- "../output/fe_table_bw1056.tex"
 # =======================================================================================
 
@@ -43,7 +43,9 @@ bw_mi <- round(bw_ft / 5280, 2)
 
 # ── 2) DATA ──────────────────────────────────────────────────────────────────
 parcels <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
-  mutate(strictness_own_std = strictness_own / sd(strictness_own, na.rm = TRUE))
+  mutate(strictness_own_std = strictness_own / sd(strictness_own, na.rm = TRUE)) %>% 
+  filter(unitscount > 1)
+
 
 # --- Sample restriction helper: keep modal zone that exists on both sides within the bw ---
 restrict_to_modal_zone <- function(df, bw) {
@@ -97,7 +99,7 @@ restrict_to_modal_zone <- function(df, bw) {
 parcels_fe <- parcels
 parcels_fe <- restrict_to_modal_zone(parcels_fe, bw_ft)
 # parcels_fe <- parcels_fe %>%
-#   filter(abs(strictness_own - strictness_neighbor) > .1) # Drop parcels where the two sides are too similar in strictness
+  # filter(abs(strictness_own - strictness_neighbor) > .1) # Drop parcels where the two sides are too similar in strictness
 
 
 # ── 3) HELPERS ───────────────────────────────────────────────────────────────
@@ -132,8 +134,22 @@ mean_y_level <- function(x) {
 }
 fitstat_register("myo", mean_y_level, alias = "Dep. Var. Mean")
 
-# fitstat: number of ward pairs used
-n_ward_pairs <- function(x) x$fixef_sizes["ward_pair"]
+#fitstat: n ward pairs
+n_ward_pairs <- function(x) {
+  mf <- tryCatch(model.frame(x), error = function(e) NULL)
+  if (!is.null(mf) && "ward_pair" %in% names(mf)) {
+    return(length(unique(mf$ward_pair)))
+  }
+  # Fallbacks if needed:
+  if (!is.null(x$cluster) && "ward_pair" %in% names(x$cluster)) {
+    return(length(unique(x$cluster$ward_pair)))
+  }
+  if (!is.null(x$custom_data) && "ward_pair" %in% names(x$custom_data)) {
+    return(length(unique(stats::na.omit(x$custom_data$ward_pair))))
+  }
+  NA_integer_
+}
+
 fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
 rename_dict <- c(
@@ -166,17 +182,16 @@ for (yv in yvars) {
   }
   
   df <- parcels_fe %>%
-    filter(dist_to_boundary <= bw_ft) %>% 
-    filter(unitscount > 0)
-    # filter(density_far > 0) 
-    # filter(!is.na(zone_code))
+    filter(dist_to_boundary <= bw_ft)
+    # filter(.data[[b]] > 0) %>% 
+    # filter(density_far > 0 & density_lapu > 0)
   
   if (nrow(df) == 0) {
     warning(sprintf("Skipping '%s' (no rows after filtering).", yv))
     next
   }
   
-  fml_txt <- paste0(yv, " ~ strictness_own_std | construction_year + ward_pair")
+  fml_txt <- paste0(yv, " ~ strictness_own_std + factor(central_air) + factor(central_heating) + factor(construction_quality) | construction_year^ward_pair ")
   m <- feols(as.formula(fml_txt), data = df, cluster = ~ ward_pair)
   m$custom_data <- df
   
@@ -199,7 +214,7 @@ etable(models,
        dict         = rename_dict,
        headers      = names(models),
        signif.code  = c("***"=0.01, "**"=0.05, "*"=0.1),
-       fixef.group  = TRUE,
+       fixef.group = list("Ward-pair × Year FE" = "construction_year\\^ward_pair"),
        title        = table_title,
        file         = output_filename,
        replace      = TRUE)

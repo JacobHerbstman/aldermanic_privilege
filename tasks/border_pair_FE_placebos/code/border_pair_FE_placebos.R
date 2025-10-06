@@ -3,7 +3,7 @@
 source("../../setup_environment/code/packages.R")
 
 # --- Defaults for interactive testing (optional) ---
-# bw_ft           <- 1056
+# bw_ft           <- 528
 # yvars           <- c("dist_cta_stop","dist_park","dist_school","dist_major_street")
 # output_filename <- "../output/placebo_bw1056.tex"
 
@@ -25,7 +25,60 @@ if (length(yvars) == 0) stop("No yvars provided.")
 # --- 2) DATA ------------------------------------------------------------------
 cat("Loading parcel/distances dataset...\n")
 parcels <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
-  mutate(strictness_own_std = strictness_own / sd(strictness_own, na.rm = TRUE))
+  mutate(strictness_own_std = strictness_own / sd(strictness_own, na.rm = TRUE)) %>% 
+  filter(unitscount > 1)
+
+# --- Sample restriction helper: keep modal zone that exists on both sides within the bw ---
+restrict_to_modal_zone <- function(df, bw) {
+  # 1) limit to current bandwidth + non-missing zone
+  df_bw <- df %>%
+    filter(dist_to_boundary <= bw, !is.na(zone_code))
+  
+  # 2) grouping keys: use (boundary_year, ward_pair) when available, else ward_pair
+  group_keys <- intersect(c("boundary_year", "ward_pair"), names(df_bw))
+  
+  # 3) count parcels by zone within each group, requiring presence on BOTH sides
+  #    prefer signed distance if available; else fall back to ward on each side
+  zone_counts <-
+    if ("signed_distance" %in% names(df_bw)) {
+      df_bw %>%
+        group_by(across(all_of(c(group_keys, "zone_code")))) %>%
+        summarise(n = n(),
+                  n_sides = n_distinct(sign(signed_distance)),
+                  .groups = "drop") %>%
+        filter(n_sides == 2)
+    } else if ("ward" %in% names(df_bw)) {
+      df_bw %>%
+        group_by(across(all_of(c(group_keys, "zone_code")))) %>%
+        summarise(n = n(),
+                  n_sides = n_distinct(ward),
+                  .groups = "drop") %>%
+        filter(n_sides == 2)
+    } else {
+      # if neither side indicator is present, just compute modal zone
+      df_bw %>%
+        group_by(across(all_of(c(group_keys, "zone_code")))) %>%
+        summarise(n = n(), .groups = "drop")
+    }
+  
+  # 4) pick the modal zone (tie-breaker: alphabetical zone_code)
+  modal_zone <- zone_counts %>%
+    arrange(across(all_of(group_keys)), desc(n), zone_code) %>%
+    group_by(across(all_of(group_keys))) %>%
+    slice_head(n = 1) %>%
+    ungroup() %>%
+    select(all_of(group_keys), zone_code) %>%
+    rename(modal_zone_code = zone_code)
+  
+  # 5) keep parcels in the modal zone for each group
+  df_bw %>%
+    inner_join(modal_zone, by = group_keys) %>%
+    filter(zone_code == modal_zone_code) %>%
+    select(-modal_zone_code)
+}
+
+parcels_fe <- parcels
+parcels_fe <- restrict_to_modal_zone(parcels_fe, bw_ft)
 
 # --- 3) Helpers ---------------------------------------------------------------
 is_log_spec <- function(v) grepl("^log\\(", v)
@@ -71,9 +124,9 @@ headers <- c()
 
 for (yv in yvars) {
   b <- base_name(yv)
-  df <- parcels %>%
-    filter(dist_to_boundary <= bw_ft, !is.na(zone_code))
-  if (is_log_spec(yv)) df <- df[df[[b]] > 0, ]  # only if log-spec
+  df <- parcels_fe %>%
+    filter(dist_to_boundary <= bw_ft)
+  # if (is_log_spec(yv)) df <- df[df[[b]] > 0, ]  # only if log-spec
   
   if (!b %in% names(df)) {
     warning(sprintf("Skipping '%s' (base var '%s' not found).", yv, b))
@@ -84,7 +137,7 @@ for (yv in yvars) {
     next
   }
   
-  fml_txt <- paste0(yv, " ~ strictness_own_std | construction_year + ward_pair")
+  fml_txt <- paste0(yv, " ~ strictness_own_std + factor(central_air) + factor(central_heating) + factor(construction_quality) | construction_year^ward_pair ")
   m <- fixest::feols(as.formula(fml_txt), data = df, cluster = ~ ward_pair)
   m$custom_data <- df
   models[[length(models) + 1]] <- m
@@ -108,9 +161,9 @@ fixest::etable(
   dict        = rename_dict,
   headers     = names(models),
   signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
-  fixef.group = TRUE,
+  fixef.group = list("Ward-pair × Year FE" = "construction_year\\^ward_pair"),
   title       = table_title,
-  file        = output_filename,
+  # file        = output_filename,
   replace     = TRUE
 )
 
