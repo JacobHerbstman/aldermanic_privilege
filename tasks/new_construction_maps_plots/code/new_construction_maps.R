@@ -12,19 +12,18 @@ ward_panel <- st_read("../input/ward_panel.gpkg")
 
 # Filter parcels for construction years between 2006 and 2014
 parcels_2006_2014 <- parcels %>%
-  filter(construction_year >= 2003 & construction_year <= 2014) %>% 
-  filter(unitscount > 0)
+  filter(construction_year >= 2003 & construction_year <= 2014) 
 
 parcels_2015_2023 <- parcels %>%
-  filter(construction_year >= 2015) %>% 
-  filter(unitscount > 0)
+  filter(construction_year >= 2016) %>% 
+  filter(residential == T)
 
 # Use the 2014 ward boundaries, which were in effect for the 2006-2014 period
 wards_2014 <- ward_panel %>%
-  filter(year == 2014)
+  filter(year == 2014) 
 
 wards_2015 <- ward_panel %>%
-  filter(year == 2015)
+  filter(year == 2015) 
 
 # -----------------------------------------------------------------------------
 # 2. CREATE AND SAVE THE MAP
@@ -86,7 +85,7 @@ construction_map <- ggplot() +
   
   # Use a capped color scale to handle outliers and show more variation
   scale_color_viridis_c(
-    option = "plasma", 
+    option = "turbo", 
     name = "Floor Area Ratio (FAR)",
     limits = c(0, 2),  # Set the range of the color scale
     oob = scales::squish # "Squish" out-of-bounds values to the limits
@@ -107,9 +106,18 @@ construction_map <- ggplot() +
 
 construction_map
 
-ggsave("../output/construction_map_2015_2023_w_density.pdf", plot = construction_map, width = 8, height = 10, dpi = 300)
+ggsave("../output/construction_map_2016_2023_w_density.pdf", plot = construction_map, width = 8, height = 10, dpi = 300)
+
+
+parcels <- parcels %>% filter(ward == 25) 
+parcels %>% group_by(construction_year) %>% summarise(n = n()) %>% View()
+
+
+
 
 # cat("Map saved to ../output/construction_map_2015_2023_w_density.pdf\n")
+
+
 
 
 

@@ -37,6 +37,8 @@ $(INPUT_FILE): ../../../data_raw/Building_Permits_20250109.csv | ../input
 	@echo "→ [clean_building_permits] Linking raw data input..."
 	ln -s $< $@
 
+link-inputs: $(INPUT_FILE)
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Generic rules and includes
 # The 'generic.make' file should handle creating the ../input and ../output
