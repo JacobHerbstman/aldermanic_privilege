@@ -8,6 +8,22 @@ source("../../setup_environment/code/packages.R")
 # -----------------------------------------------------------------------------
 # 1. CREATE ANNUAL WARD PANEL
 # -----------------------------------------------------------------------------
+ward_bound1998 <- st_read("../input/ward1998.shp")
+
+## make annual panel for the pre-2005 ward map
+ward_bound1998 <- ward_bound1998 %>%
+  janitor::clean_names() %>% 
+  mutate(ward = as.numeric(ward)) %>%
+  arrange(ward) %>% 
+  select(ward, geometry) %>%
+  rowwise() %>%
+  mutate(year = list(1998:2004)) %>% # Switched to annual sequence
+  unnest(year) %>%
+  select(year, ward, geometry) %>% 
+  arrange(ward, year) %>% 
+  st_transform(crs = 3435) ## change to chicago coordinate system
+
+
 
 ## bring in old ward boundary data
 ward_bound2005 <- st_read("../input/Wards_2014.geojson") 
@@ -40,7 +56,7 @@ ward_bound2015 <- ward_bound2015 %>%
 
 
 ## join to one large annual panel
-ward_panel_annual <- rbind(ward_bound2005, ward_bound2015) %>%
+ward_panel_annual <- rbind(ward_bound1998, ward_bound2005, ward_bound2015) %>%
   mutate(ward = as.numeric(ward)) %>% 
   arrange(ward, year)
 

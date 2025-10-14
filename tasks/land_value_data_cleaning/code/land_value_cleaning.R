@@ -2,8 +2,6 @@
 
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 source("../../setup_environment/code/packages.R")
-library(sf)        # already installed via setup; load explicitly for clarity
-library(sfarrow)   # for st_write_parquet
 
 # ---- Load ----
 data    <- read_csv("../input/land_value_raw.csv", show_col_types = FALSE)
@@ -102,3 +100,15 @@ sfarrow::st_write_parquet(
   "../output/land_values_geo.parquet",
   compression = "zstd"
 )
+
+## make 1 percent sample by year and pin
+merged_sf_sample <- dplyr::slice_sample(
+  merged_sf, prop = 0.01, by = tax_year)
+
+sfarrow::st_write_parquet(
+  merged_sf_sample,
+  "../output/land_values_geo_sample1.parquet",
+  compression = "zstd"
+)
+
+
