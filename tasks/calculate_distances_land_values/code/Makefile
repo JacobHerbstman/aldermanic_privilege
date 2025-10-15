@@ -5,7 +5,8 @@ include ../../shell_functions.make
 
 ALL_INPUTS := \
   ../input/land_values_geo.parquet \
-  ../input/ward_panel.gpkg
+  ../input/ward_panel.gpkg \
+  ../input/alderman_panel.csv
 
 # build the Parquet output used in your spatial analysis
 all: ../output/land_values_w_distances.parquet
@@ -15,6 +16,7 @@ all: ../output/land_values_w_distances.parquet
 	$(R) calculate_distances_land_values.R \
 	  ../input/land_values_geo.parquet \
 	  ../input/ward_panel.gpkg \
+	  ../input/alderman_panel.csv
 	  $@
 
 # -------------------- Symlinks --------------------
@@ -23,6 +25,10 @@ all: ../output/land_values_w_distances.parquet
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	ln -sf "$<" "$@"
+
+../input/alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
+	ln -sf "$<" "$@"
+
 
 # Convenience
 link-inputs: $(ALL_INPUTS)

@@ -4,8 +4,9 @@
 source("../../setup_environment/code/packages.R")
 
 # ---- Load ----
-land_values    <- sfarrow::st_read_parquet("../input/land_values_geo.parquet", show_col_types = FALSE)
+land_values    <- sfarrow::st_read_parquet("../input/land_values_geo.parquet", show_col_types = FALSE) 
 ward_panel <- st_read("../input/ward_panel.gpkg")
+alderman_panel <- read_csv("../input/alderman_panel.csv") 
 
 # -------------------------------------------------------------------
 # 1) Choose one geometry per pin (most recent)
@@ -144,8 +145,6 @@ pin_ward_map <- pin_year_ward %>%
 # -------------------------------------------------------------------
 # 6) Merge back to your land_values panel (choose a mapping rule)
 # -------------------------------------------------------------------
-# If you want a simple mapping from tax_year → ward-map year, define it here.
-# Edit these cutoffs to your preferred convention.
 map_year_for <- function(tax_year) {
   case_when(
     tax_year <= 2003 ~ 1998L,
@@ -160,15 +159,47 @@ land_values_aug <- land_values %>%
     pin_ward_map %>%
       rename(ward_map_year = year),
     by = c("pin10", "ward_map_year")
-  )
+  ) 
 
-
-# land_values_aug now has ward, ward_pair, and dist_to_boundary_ft for each row,
-# computed once per pin geometry and re-used via your mapping rule.
+land_values_aug <- land_values_aug %>% 
+  distinct(pin10, tax_year, .keep_all = TRUE)
 
 # -------------------------------------------------------------------
-# (Optional) Save artifacts
+# 7) Merge in alderman 
+# -------------------------------------------------------------------
+# land_values_aug <- st_read_parquet("../output/land_values_aug.parquet")
+
+
+alderman_year <- alderman_panel %>%
+  mutate(
+    month = as.yearmon(month),
+    tax_year = as.integer(format(as.Date(month), "%Y")),
+    ward     = as.integer(ward)
+  ) %>%
+  group_by(ward, tax_year, alderman) %>%
+  summarise(
+    months_held = n(),
+    last_month  = max(month), 
+    .groups = "drop"
+  ) %>%
+  arrange(ward, tax_year, desc(months_held), desc(last_month)) %>%
+  group_by(ward, tax_year) %>%
+  slice_head(n = 1) %>%
+  ungroup() %>%
+  select(ward, tax_year, alderman)
+
+
+land_values_aug <- land_values_aug %>%
+  mutate(ward = as.integer(ward)) %>%
+  left_join(alderman_year, by = c("ward", "tax_year"))
+
+# -------------------------------------------------------------------
+# 8) Save outputs
 # -------------------------------------------------------------------
 st_write(ward_borders, "../output/ward_borders.gpkg", delete_dsn = TRUE)
-arrow::write_feather(st_drop_geometry(pin_ward_map), "../output/pin_ward_map.feather")
 sfarrow::st_write_parquet(land_values_aug, "../output/land_values_aug.parquet")
+
+
+# arrow::write_feather(st_drop_geometry(pin_ward_map), "../output/pin_ward_map.feather")
+
+
