@@ -196,10 +196,10 @@ land_values_aug <- land_values_aug %>%
 # -------------------------------------------------------------------
 # 8) Save outputs
 # -------------------------------------------------------------------
-st_write(ward_borders, "../output/ward_borders.gpkg", delete_dsn = TRUE)
 sfarrow::st_write_parquet(land_values_aug, "../output/land_values_aug.parquet")
+
+st_write(ward_borders, "../output/ward_borders.gpkg", delete_dsn = TRUE)
 
 
 # arrow::write_feather(st_drop_geometry(pin_ward_map), "../output/pin_ward_map.feather")
-
 
