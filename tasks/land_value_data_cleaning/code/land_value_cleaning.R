@@ -103,11 +103,11 @@ sfarrow::st_write_parquet(
 
 ## make 1 percent sample by year and pin
 merged_sf_sample <- dplyr::slice_sample(
-  merged_sf, prop = 0.01, by = tax_year)
+  merged_sf, prop = 0.05, by = tax_year)
 
 sfarrow::st_write_parquet(
   merged_sf_sample,
-  "../output/land_values_geo_sample1.parquet",
+  "../output/land_values_geo_sample5.parquet",
   compression = "zstd"
 )
 
