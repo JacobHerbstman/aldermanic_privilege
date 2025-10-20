@@ -15,9 +15,7 @@ land_values_aug <- land_values %>%
       # tax_year < 2003 ~ 1998,
       tax_year >= 2003 & tax_year < 2015 ~ 2003,
       tax_year >= 2015 ~ 2015
-    )) %>% 
-  mutate(land_share_pin10 = pmin(land_share_pin10, quantile(land_share_pin10, 0.99, na.rm = TRUE)))
-  
+    )) 
 
 EVENT_YEARS <- c(2015)
 
