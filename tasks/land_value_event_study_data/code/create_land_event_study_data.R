@@ -7,8 +7,23 @@ source("../../setup_environment/code/packages.R")
 land_values   <- sfarrow::st_read_parquet("../input/land_values_aug.parquet", show_col_types = FALSE) 
 ward_panel <- st_read("../input/ward_panel.gpkg")
 
+land_values <- land_values %>% mutate(.rowid = row_number())
 
-land_values_aug <- land_values %>%
+DT <- as.data.table(st_drop_geometry(land_values))
+DT[, id := .rowid]
+setorder(DT, pin10, tax_year)
+
+# Keep first row of each PIN or when land_sum changes vs previous row
+keep_ids <- DT[, .rowid[!duplicated(land_sum)], by = pin10]$V1
+
+# Subset original sf using original row ids (fast)
+land_values_rcs <- land_values[match(keep_ids, land_values$.rowid), ]
+land_values_rcs$.rowid <- NULL
+
+
+rm(land_values, DT)
+
+land_values_aug <- land_values_rcs %>%
   filter(tax_year >= 2003) %>% 
   mutate(
     ward_map_year = case_when(
@@ -16,6 +31,9 @@ land_values_aug <- land_values %>%
       tax_year >= 2003 & tax_year < 2015 ~ 2003,
       tax_year >= 2015 ~ 2015
     ))
+
+
+
 
 EVENT_YEARS <- 2015L
 MAP_YEAR_LOOKUP <- list(`2015` = list(before = 2014L, after = 2015L))
