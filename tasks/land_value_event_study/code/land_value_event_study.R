@@ -7,16 +7,23 @@ source("../../setup_environment/code/packages.R")
 event_study_df <- read_csv("../input/land_event_study_data.csv")
 
 # ---- Define Outcome Variables and Prepare Data ----
-OUTCOME_VARS <- c("land_share_pin10", "log_land_sum")
+OUTCOME_VARS <- c("land_share_pin10")
 
 event_study_df <- event_study_df %>%
   mutate(
     # Create the log land sum variable, adding 1 to avoid log(0)
     log_land_sum = log(land_sum)
-  ) 
+  ) %>%
+  # Remove any infinite values that might result if land_sum is -1
+  filter(is.finite(log_land_sum))
+
 
 ## loop and regressions
 all_ward_pairs <- unique(event_study_df$ward_pair)
+
+current_pair = "2-3"
+outcome_variable = "land_share_pin10"
+current_switch = "38 -> 45"
 
 message(paste("Found", length(all_ward_pairs), "unique ward pairs. Starting analysis loop..."))
 
@@ -40,7 +47,7 @@ for (outcome_variable in OUTCOME_VARS) {
       mutate(
         switch_direction = if_else(
           is_treated == 1,
-          paste(ward_2003, "->", ward_2015),
+          paste(ward_2014, "->", ward_2015),
           NA_character_
         )
       )
@@ -50,7 +57,7 @@ for (outcome_variable in OUTCOME_VARS) {
     
     for (current_switch in c(switch1, switch2)) {
       
-      message(paste("...analyzing switch:", current_switch))
+      message(paste(" ...analyzing switch:", current_switch))
       
       # MODIFIED: Define the correct control group for each switch direction.
       # The control group should consist of non-switching parcels from the switch's "origin" ward.
@@ -59,7 +66,7 @@ for (outcome_variable in OUTCOME_VARS) {
       switch_df <- border_df %>%
         filter(
           switch_direction == current_switch |
-            (is_treated == 0 & ward_2003 == origin_ward)
+            (is_treated == 0 & ward_2014 == origin_ward)
         )
       
       # ADDED: Bin endpoints to improve model stability with sparse data
@@ -73,17 +80,17 @@ for (outcome_variable in OUTCOME_VARS) {
         )
       
       if (!any(switch_df$switch_direction == current_switch, na.rm = TRUE)) {
-        message("Skipping switch: No parcels made this switch.")
+        message(" Skipping switch: No parcels made this switch.")
         next
       }
       
       # MODIFIED: More robust pre-flight checks
       if (length(unique(switch_df$is_treated)) < 2 || nrow(switch_df) < 100) {
-        message("Skipping switch: Not enough data or no treatment variation.")
+        message(" Skipping switch: Not enough data or no treatment variation.")
         next
       }
       if(!(-1 %in% switch_df$time_to_event[switch_df$is_treated == 1])) {
-        message("Skipping switch: Baseline period (t=-1) is missing for the treated group.")
+        message(" Skipping switch: Baseline period (t=-1) is missing for the treated group.")
         next
       }
       
@@ -96,8 +103,11 @@ for (outcome_variable in OUTCOME_VARS) {
       res <- feols(
         formula,
         data = switch_df,
-        cluster = ~block_id
+        cluster = ~pin10
       )
+      
+      # --- NEW: Extract number of observations from the model ---
+      n_obs <- res$nobs
       
       # --- CUSTOM ggplot BLOCK ---
       results_df <- as.data.frame(res$coeftable)
@@ -136,7 +146,9 @@ for (outcome_variable in OUTCOME_VARS) {
         labs(
           x = "Years Relative to Remap",
           y = y_axis_label,
-          title = paste("Switch:", current_switch)
+          title = paste("Switch:", current_switch),
+          # --- NEW: Add subtitle with N obs and bandwidth ---
+          subtitle = paste("Bandwidth: 1056 ft | N =", n_obs)
         ) +
         scale_x_continuous(breaks = scales::pretty_breaks())
       
@@ -166,5 +178,5 @@ for (outcome_variable in OUTCOME_VARS) {
   }
 }
 
-message("Analysis complete. Plots are saved in ../output/")
 
+message("Analysis complete. Plots are saved in ../output/")

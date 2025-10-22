@@ -15,13 +15,10 @@ land_values_aug <- land_values %>%
       # tax_year < 2003 ~ 1998,
       tax_year >= 2003 & tax_year < 2015 ~ 2003,
       tax_year >= 2015 ~ 2015
-    )) 
+    ))
 
-EVENT_YEARS <- c(2015)
-
-MAP_YEAR_LOOKUP <- list(
-  `2015` = list(before = 2003, after = 2015)
-)
+EVENT_YEARS <- 2015L
+MAP_YEAR_LOOKUP <- list(`2015` = list(before = 2014L, after = 2015L))
 
 # 1. Get unique parcel geometries.
 pins_latest_geom <- land_values_aug %>%
@@ -49,11 +46,11 @@ ward_crosswalk <- ward_crosswalk %>% st_drop_geometry()
 # 3. Define treatment status and event-time variables for ALL parcels.
 event_study_df <- land_values_aug %>%
   # Join the crosswalk to get pre/post wards for defining treatment.
-  left_join(ward_crosswalk %>% select(pin10, ward_2003, ward_2015), by = "pin10") %>%
+  left_join(ward_crosswalk %>% select(pin10, ward_2014, ward_2015), by = "pin10") %>%
   # Redefine is_treated based on actual ward change.
   mutate(
     is_treated = if_else(
-      !is.na(ward_2003) & !is.na(ward_2015) & ward_2003 != ward_2015, 
+      !is.na(ward_2014) & !is.na(ward_2015) & ward_2014 != ward_2015, 
       1, 
       0
     )
@@ -62,8 +59,8 @@ event_study_df <- land_values_aug %>%
   mutate(event_year = EVENT_YEARS) %>%
   # Now, calculate time_to_event for ALL parcels.
   mutate(
-    land_share_pin10 = land_sum / (land_sum + bldg_sum + 1),
-    time_to_event = tax_year - event_year, # No longer NA for controls
+    land_share_pin10 = land_sum / (land_sum + bldg_sum),
+    time_to_event = tax_year - event_year,
     block_id = substr(pin10, 1, 7)
   ) %>%
   # Filter to analysis window and remove missing values.
