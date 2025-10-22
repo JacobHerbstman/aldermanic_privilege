@@ -109,9 +109,6 @@ construction_map
 ggsave("../output/construction_map_2016_2023_w_density.pdf", plot = construction_map, width = 8, height = 10, dpi = 300)
 
 
-parcels <- parcels %>% filter(ward == 25) 
-parcels %>% group_by(construction_year) %>% summarise(n = n()) %>% View()
-
 
 
 

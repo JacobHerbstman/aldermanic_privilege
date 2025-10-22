@@ -112,13 +112,15 @@ city_outline <- st_union(st_geometry(census_blocks))
 # Plot: blocks filled by mean land share; ward outlines on top
 cat("Drawing block map...\n")
 p_blocks <- ggplot() +
+  geom_sf(data = ward_panel, fill = "white", color = "grey20", linewidth = 0.25) +
   geom_sf(data = blocks_map, aes(fill = land_share_mean), color = NA) +
-  geom_sf(data = ward_panel, fill = NA, color = "white", linewidth = 0.25) +
-  geom_sf(data = city_outline, fill = NA, color = "grey50", linewidth = 0.25)+ 
+  # geom_sf(data = city_outline, fill = NA, color = "grey50", linewidth = 0.25)+ 
   scale_fill_viridis_c(
     name   = "Mean land share",
     labels = scales::percent_format(accuracy = 1),
-    na.value = "white"
+    na.value = "white", 
+    limits = c(0, .9),  # Set the range of the color scale
+    oob = scales::squish
   ) +
   labs(
     title    = "Land Share by Census Block (2020)",

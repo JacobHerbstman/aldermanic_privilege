@@ -1,4 +1,4 @@
-#this code assigns wards + distance to nearest ward border for all parcels in the assessor panel 
+#this code assigns wards + distance to nearest ward border for all parcels in the assessor panel
 
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 source("../../setup_environment/code/packages.R")
@@ -21,9 +21,9 @@ event_study_df <- event_study_df %>%
 ## loop and regressions
 all_ward_pairs <- unique(event_study_df$ward_pair)
 
-current_pair = "2-3"
-outcome_variable = "land_share_pin10"
-current_switch = "38 -> 45"
+# current_pair = "2-3"
+# outcome_variable = "land_share_pin10"
+# current_switch = "38 -> 45"
 
 message(paste("Found", length(all_ward_pairs), "unique ward pairs. Starting analysis loop..."))
 
@@ -96,7 +96,7 @@ for (outcome_variable in OUTCOME_VARS) {
       
       # --- MODIFIED: Create formula dynamically for the current outcome variable ---
       formula <- as.formula(
-        paste(outcome_variable, "~ i(time_to_event, is_treated, ref = -1) | block_id + tax_year")
+        paste(outcome_variable, "~ i(time_to_event, is_treated, ref = -1) + dist_to_boundary_ft | pin10 + tax_year")
       )
       
       # Canonical DiD model with interaction terms.

@@ -61,6 +61,8 @@ p1 <- ggplot() +
 
 p1
 
+
+
 p3 <- ggplot() +
   geom_sf(data = zoning_3435,
           aes(fill = floor_area_ratio),
@@ -81,6 +83,13 @@ p3 <- ggplot() +
 
 p3
 
+cowplot::save_plot(
+  "../output/chicago_zoning_districts_map_FAR.pdf",
+  p3,
+  base_height = 6,
+  base_width = 8
+)
+
 
 
 # -------- (Optional) Map 2: by broad class (cleaner legend) --------
@@ -98,3 +107,10 @@ p2 <- ggplot() +
   theme_map
 
 p2
+
+cowplot::save_plot(
+  "../output/chicago_zoning_districts_map_broad_class.pdf",
+  p2,
+  base_height = 6,
+  base_width = 8
+)
