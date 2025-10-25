@@ -87,3 +87,5 @@ DT[, pair_id := paste(ward_pair, ald_lo, ald_hi, sep = " | ")]
 DT[, signed_distance := data.table::fifelse(side_hi == 1L, dist_abs, -dist_abs)]
 
 write_csv(DT, "../output/land_values_rd_data.csv")
+
+write_csv(episode_meta, "../output/episode_metadata.csv")

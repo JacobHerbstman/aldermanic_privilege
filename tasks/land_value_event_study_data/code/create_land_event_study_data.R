@@ -6,6 +6,7 @@ source("../../setup_environment/code/packages.R")
 # ---- Load ----
 land_values   <- sfarrow::st_read_parquet("../input/land_values_aug.parquet", show_col_types = FALSE) 
 ward_panel <- st_read("../input/ward_panel.gpkg")
+census_blocks <- st_read("../input/census_blocks_ward_switchers.gpkg")
 
 land_values <- land_values %>% mutate(.rowid = row_number())
 
@@ -82,10 +83,59 @@ event_study_df <- land_values_aug %>%
     block_id = substr(pin10, 1, 7)
   ) %>%
   # Filter to analysis window and remove missing values.
-  filter(dist_to_boundary_ft <= 1056) %>%
-  filter(!is.na(ward_pair)) %>%
-  filter(tax_year >= (EVENT_YEARS - 5) & tax_year <= (EVENT_YEARS + 5)) %>% 
+  # filter(dist_to_boundary_ft <= 1056) %>%
+  filter(!is.na(ward_pair))
+  # filter(tax_year >= (EVENT_YEARS - 5) & tax_year <= (EVENT_YEARS + 5))
+
+event_study_df_final <- event_study_df %>% 
   st_drop_geometry()
 
 # Save the prepared dataset for event study analysis.
-write_csv(event_study_df, "../output/land_event_study_data.csv")
+write_csv(event_study_df_final, "../output/land_event_study_data.csv")
+
+
+# ============================================================
+# Collapse to Census-block × year using a spatial crosswalk
+# ============================================================
+cat("Building parcel-census-block crosswalk and collapsing...\n")
+
+# 0) Ensure CRS compatibility
+census_blocks <- census_blocks %>%
+  sf::st_make_valid()
+
+if (!sf::st_crs(census_blocks) == sf::st_crs(land_values_rcs)) {
+  census_blocks <- sf::st_transform(census_blocks, sf::st_crs(land_values_rcs))
+}
+
+
+parcels_with_blocks <- sf::st_join(
+  event_study_df %>% select(-c(block_id, ward)),
+  census_blocks,
+  left = TRUE,            # keep all parcels; some may be NA if outside city mask
+  join = sf::st_within
+)
+
+
+block_year_panel <- parcels_with_blocks %>%
+  sf::st_drop_geometry() %>%
+  dplyr::filter(!is.na(block_id), !is.na(year)) %>%
+  dplyr::group_by(year, block_id) %>%
+  dplyr::summarise(
+    n_parcels              = dplyr::n(),
+    land_share_mean        = mean(land_share_pin10, na.rm = TRUE),
+    land_value_sum         = sum(land_sum, na.rm = TRUE),
+    bldg_value_sum         = sum(bldg_sum, na.rm = TRUE),
+    total_value_sum        = sum(land_sum + bldg_sum, na.rm = TRUE),
+    land_share_value_weighted = ifelse(
+      total_value_sum > 0,
+      sum(land_share_pin10 * (land_sum + bldg_sum), na.rm = TRUE) / total_value_sum,
+      NA_real_
+    ),
+    ward        = dplyr::first(ward),        # ward, ward_switch should be constant within (year, block)
+    ward_switch = dplyr::first(ward_switch),
+    .groups = "drop"
+  )
+
+write_csv(block_year_panel, "../output/land_value_event_study_census_block.csv")
+
+

@@ -11,11 +11,13 @@ OUTCOME_VARS <- c("land_share_pin10")
 
 event_study_df <- event_study_df %>%
   mutate(
-    # Create the log land sum variable, adding 1 to avoid log(0)
+    # Create the log land sum variable
     log_land_sum = log(land_sum)
   ) %>%
   # Remove any infinite values that might result if land_sum is -1
-  filter(is.finite(log_land_sum))
+  filter(is.finite(log_land_sum)) %>% 
+    # filter(dist_to_boundary_ft <= 1056) %>%
+  # filter(tax_year >= (EVENT_YEARS - 5) & tax_year <= (EVENT_YEARS + 5)) 
 
 
 ## loop and regressions

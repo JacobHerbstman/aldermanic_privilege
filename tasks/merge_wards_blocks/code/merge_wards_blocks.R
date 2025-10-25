@@ -11,35 +11,7 @@ source("../../setup_environment/code/packages.R")
 # -----------------------------------------------------------------------------
 
 ## bring in old ward boundary data
-ward_bound2005 <- st_read("../input/CHI_2005/CHI_2005.shp")
-
-## make annual panel for the pre-2015 ward map
-ward_bound2005 <- ward_bound2005 %>%
-  rowwise() %>%
-  mutate(year = list(2005:2014)) %>% # Switched to annual sequence
-  unnest(year) %>%
-  rename(ward = ward2005) %>%
-  select(year, ward, geometry)
-
-## bring in new ward boundary data
-ward_bound2015 <- st_read("../input/CHI_2015/CHI_2015.shp")
-
-## make annual panel for the post-2015 ward map
-ward_bound2015 <- ward_bound2015 %>%
-  rowwise() %>%
-  mutate(year = list(2015:2024)) %>% # Switched to annual sequence
-  unnest(year) %>%
-  rename(ward = ward2015) %>%
-  select(year, ward, geometry)
-
-## join to one large annual panel
-ward_panel_annual <- rbind(ward_bound2005, ward_bound2015) %>%
-  arrange(ward, year)
-
-# Save the annual ward panel
-st_write(ward_panel_annual, "../output/ward_panel.gpkg", delete_layer = TRUE)
-
-
+ward_panel_annual <- st_read("../input/ward_panel.gpkg")
 # -----------------------------------------------------------------------------
 # 2. PREPARE CROSS-SECTIONAL CENSUS BLOCK DATA
 # -----------------------------------------------------------------------------
@@ -66,11 +38,11 @@ ward_panel <- ward_panel_annual %>%
 # Create two simple cross-sections of the ward maps
 ward_map_pre_2015 <- ward_panel %>%
   filter(year == 2014) %>% # Use a representative year
-  select(ward, geometry)
+  select(ward, geom)
 
 ward_map_post_2015 <- ward_panel %>%
   filter(year == 2015) %>% # Use a representative year
-  select(ward, geometry)
+  select(ward, geom)
 
 block_centroids <- st_centroid(census_blocks)
 
@@ -80,6 +52,7 @@ nearest_post_idx <- st_nearest_feature(block_centroids, ward_map_post_2015)
 
 blocks_cross_section <- tibble(
   block_id = census_blocks$block_id,
+  geometry = census_blocks$geometry,
   ward_pre = ward_map_pre_2015$ward[nearest_pre_idx],
   ward_post = ward_map_post_2015$ward[nearest_post_idx]
 )
@@ -94,7 +67,7 @@ joined_panel <- blocks_cross_section %>%
   mutate(
     ward = ifelse(year < 2015, ward_pre, ward_post)
   ) %>%
-  select(year, block_id, ward) %>%
+  select(year, block_id, ward, geometry) %>%
   arrange(block_id, year)
 
 # -----------------------------------------------------------------------------
@@ -113,6 +86,7 @@ joined_panel_switch <- joined_panel %>%
 
 # Write to GeoPackage (no date conversion is needed for integer years)
 st_write(joined_panel_switch, "../output/census_blocks_ward_switchers.gpkg", delete_dsn = TRUE)
+
 
 ## see which blocks switched
 # switching_blocks <- joined_panel %>%

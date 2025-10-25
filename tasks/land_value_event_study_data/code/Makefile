@@ -7,6 +7,7 @@ include ../../shell_functions.make
 ALL_INPUTS := \
 	../input/land_values_aug.parquet \
 	../input/ward_panel.gpkg \
+	../input/census_blocks_ward_switchers.gpkg \
 
 # The main target for this task is the final CSV output
 all: ../output/land_event_study_data.csv
@@ -21,6 +22,10 @@ all: ../output/land_event_study_data.csv
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	ln -sf "$<" "$@"
+
+../input/census_blocks_ward_switchers.gpkg: ../../merge_wards_blocks/output/census_blocks_ward_switchers.gpkg | ../input
+	@echo "→ [merge_wards_blocks] Linking raw input: census_blocks.csv"
+	ln -sf ../../merge_wards_blocks/output/census_blocks_ward_switchers.gpkg  $@
 
 # Convenience target to create all symlinks
 link-inputs: $(ALL_INPUTS)
