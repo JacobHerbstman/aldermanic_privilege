@@ -12,6 +12,8 @@ alderman_panel <- read_csv("../input/alderman_panel.csv")
 message(sprintf("    land_values rows: %s | ward_panel rows: %s | alderman_panel rows: %s",
                 nrow(land_values), nrow(ward_panel), nrow(alderman_panel)))
 
+UNIQUE_MAP_YEARS <- c(1998, 2003, 2015)
+
 # -------------------------------------------------------------------
 # 1) Choose one geometry per pin (most recent)
 # -------------------------------------------------------------------
@@ -33,7 +35,7 @@ if (st_crs(pins_latest) != st_crs(ward_panel)) {
   ward_panel <- st_transform(ward_panel, st_crs(pins_latest))
 }
 
-years <- sort(unique(ward_panel$year))
+years <- UNIQUE_MAP_YEARS
 message(sprintf("    Years found in ward_panel: %s", paste(years, collapse = ", ")))
 
 pin_year_ward <- purrr::map_dfr(
@@ -68,7 +70,7 @@ message(sprintf("    pin_year_ward complete: %s rows (expected %s)",
 # 3) Build ward internal border lines and ward pairs per year (simple loop)
 # -------------------------------------------------------------------
 message("==> Step 3: Building ward internal border lines per year...")
-years <- sort(unique(ward_panel$year))
+years <- UNIQUE_MAP_YEARS
 
 build_borders_one_year <- function(polys) {
   message(sprintf("    [borders] polygons: %s", nrow(polys)))
@@ -115,7 +117,8 @@ ward_borders <- purrr::map_dfr(
 # De-duplicate while keeping sf+CRS
 message("    Unioning border segments within (year, ward_pair)...")
 ward_borders <- ward_borders %>%
-  group_by(year, ward_pair) %>%
+  # Add ward_a and ward_b to group_by to preserve them for the join
+  group_by(year, ward_pair, ward_a, ward_b) %>% 
   summarise(geometry = st_union(geometry), .groups = "drop") %>%
   st_cast("MULTILINESTRING")
 message(sprintf("    ward_borders final rows: %s", nrow(ward_borders)))
@@ -127,81 +130,90 @@ if (is.na(st_crs(ward_borders))) {
 }
 
 # -------------------------------------------------------------------
-# 4) MODIFIED: Calculate a single, definitive nearest border for each parcel
-#    This replaces the old year-by-year loop which was the source of the bug.
+# 4) MODIFIED: Calculate nearest border for each parcel *within each map year*
+#    This replaces the 2014-2015 event logic.
 # -------------------------------------------------------------------
-message("==> Step 4: Calculating definitive nearest border for each unique parcel...")
+message("==> Step 4: Calculating nearest border for each (pin, year) pair...")
 
-# First, create a wide history of ward assignments for each pin
-pin_ward_history <- pin_year_ward %>%
-  tidyr::pivot_wider(names_from = year, values_from = ward, names_prefix = "ward_")
+# We already have pin_year_ward from Step 2. Get pin geometries.
+pts_geom <- pins_latest %>% st_transform(3435)
 
-pin_groups <- pin_ward_history %>%
-  mutate(is_treated = !is.na(ward_2014) & !is.na(ward_2015) & ward_2014 != ward_2015) %>%
-  select(pin10, ward_1998, ward_2014, ward_2015, is_treated)
+# We already have ward_borders from Step 3.
+# Ensure it has ward_a, ward_b for filtering.
+if (!all(c("ward_a", "ward_b") %in% names(ward_borders))) {
+  stop("Step 3 must preserve ward_a and ward_b in ward_borders")
+}
 
-treated_pins  <- pin_groups %>% filter(is_treated)
-control_pins  <- pin_groups %>% filter(!is_treated)
-message(sprintf("    treated pins: %s | control pins: %s", nrow(treated_pins), nrow(control_pins)))
+years <- UNIQUE_MAP_YEARS
+pin_border_map_list <- list()
 
-# --- Process TREATED parcels ---
-# For these, the relevant border is the one they actually crossed.
-# -- Treated: distance to the border they crossed, measured on the 2014 map
-if (nrow(treated_pins) > 0) {
-  message("    Computing treated distances (using 2014 borders)...")
-  treated_borders <- treated_pins %>%
-    mutate(ward_pair = paste0(pmin(ward_2014, ward_2015), "-", pmax(ward_2014, ward_2015))) %>%
-    left_join(
-      ward_borders %>% filter(year == 2014) %>% select(ward_pair, border_geom = geometry),
-      by = "ward_pair"
+for (y in years) {
+  message(sprintf("Processing year: %s", y))
+  
+  # Get all borders for this year
+  borders_y <- ward_borders %>% filter(year == y)
+  
+  # Get all pins with their ward assignment *for this year*
+  pts_y <- pts_geom %>%
+    inner_join(
+      pin_year_ward %>% filter(year == y),
+      by = "pin10"
     )
   
-  pts_treated <- pins_latest %>% semi_join(treated_borders, by = "pin10") %>% st_transform(3435)
-  borders_treated_geom <- st_as_sf(treated_borders, sf_column_name = "border_geom", crs = 3435)
+  # Loop over each pin for this year
+  # --- NEW VECTORIZED APPROACH ---
+  # Group pins by their ward and run one vectorized query per ward
+  # (replaces the pin-by-pin loop)
+  pin_year_info <- pts_y %>%
+    group_by(ward, year) %>% # 'year' is from the inner_join
+    group_modify(function(pins_in_ward_group, key) {
+      
+      # This is your new progress message
+      message(sprintf("     ...processing year %s, ward %s (%s pins)", 
+                      key$year, key$ward, nrow(pins_in_ward_group)))
+      
+      # Filter borders to ONLY those touching this group's ward
+      relevant_borders <- borders_y %>%
+        filter(ward_a == key$ward | ward_b == key$ward)
+      
+      if (nrow(relevant_borders) == 0) {
+        # This ward has no internal borders, return NAs
+        return(tibble(
+          pin10 = pins_in_ward_group$pin10,
+          ward_pair = NA_character_,
+          dist_to_boundary_ft = NA_real_
+        ))
+      }
+      
+      # Run ONE vectorized nearest_feature call for all pins in this group
+      nearest_idx <- st_nearest_feature(pins_in_ward_group, relevant_borders)
+      
+      # Run ONE vectorized distance call
+      distances <- st_distance(pins_in_ward_group, 
+                               relevant_borders[nearest_idx, ], 
+                               by_element = TRUE)
+      
+      # Return the results for this group
+      tibble(
+        pin10 = pins_in_ward_group$pin10,
+        ward_pair = relevant_borders$ward_pair[nearest_idx],
+        dist_to_boundary_ft = as.numeric(units::set_units(distances, "ft"))
+      )
+      
+    }, .keep = FALSE) %>% # .keep=FALSE is fine, we just want the new tibble
+    ungroup()
   
-  valid_borders <- borders_treated_geom %>% filter(!st_is_empty(border_geom))
-  valid_pts <- pts_treated %>% semi_join(valid_borders %>% st_drop_geometry(), by = "pin10")
-  message(sprintf("       valid treated pins: %s", nrow(valid_pts)))
-  
-  # No manual reordering needed if you pass geometry explicitly:
-  distances <- st_distance(valid_pts, st_geometry(valid_borders), by_element = TRUE)
-  message("       treated distances computed.")
-  
-  treated_info <- valid_borders %>%
-    st_drop_geometry() %>%
-    select(pin10, ward_pair) %>%
-    mutate(dist_to_boundary_ft = as.numeric(units::set_units(distances, "ft")))
-} else {
-  treated_info <- tibble(pin10=character(), ward_pair=character(), dist_to_boundary_ft=numeric())
+  pin_border_map_list[[as.character(y)]] <- pin_year_info
 }
 
-# --- Process CONTROL parcels ---
-# For these, the relevant border is their closest border on the most recent map (2015).
-if (nrow(control_pins) > 0) {
-  message("    Computing control distances (nearest 2015 border)...")
-  pts_control <- pins_latest %>% semi_join(control_pins, by = "pin10") %>% st_transform(3435)
-  borders_2015 <- ward_borders %>% filter(year == 2015)
-  
-  nearest_idx <- st_nearest_feature(pts_control, borders_2015)
-  distances <- st_distance(pts_control, borders_2015[nearest_idx,], by_element = TRUE)
-  message("       control distances computed.")
-  
-  control_info <- tibble(
-    pin10 = pts_control$pin10,
-    ward_pair = borders_2015$ward_pair[nearest_idx],
-    dist_to_boundary_ft = as.numeric(units::set_units(distances, "ft"))
-  )
-} else {
-  control_info <- tibble(pin10=character(), ward_pair=character(), dist_to_boundary_ft=numeric())
-}
+pin_border_map <- bind_rows(pin_border_map_list)
 
-# --- Combine and create the final pin-level mapping table ---
-pin_border_map <- bind_rows(treated_info, control_info)
-stopifnot(!anyDuplicated(pin_border_map$pin10))
-message(sprintf("    pin_border_map rows: %s", nrow(pin_border_map)))
+stopifnot(!anyDuplicated(pin_border_map[, c("pin10", "year")]))
+message(sprintf(" pin_border_map rows: %s", nrow(pin_border_map)))
 
-st_write(pin_border_map, "../output/pin_border_map.gpkg", delete_dsn = TRUE)
-
+# Save this new dynamic map
+# Note: This is no longer a spatial file
+write_csv(pin_border_map, "../output/pin_border_map.csv")
 
 # -------------------------------------------------------------------
 # 5) MODIFIED: Merge the new, corrected border info back to the main panel
@@ -210,8 +222,8 @@ message("==> Step 5: Joining wards & borders back to repeated cross-section...")
 
 map_year_for <- function(tax_year) {
   dplyr::case_when(
-    tax_year <= 2003 ~ 1998L,
-    tax_year <= 2014 ~ 2014L, 
+    tax_year <= 2002 ~ 1998L,
+    tax_year <= 2014 ~ 2003L,
     TRUE             ~ 2015L
   )
 }
@@ -221,9 +233,14 @@ land_values_aug <- land_values %>%
   left_join(
     pin_year_ward %>% rename(ward_map_year = year),
     by = c("pin10","ward_map_year"),
-    relationship = "many-to-one"   # one row per (pin10, ward_map_year) on RHS
+    relationship = "many-to-one"  # one row per (pin10, ward_map_year) on RHS
   ) %>%
-  left_join(pin_border_map, by = "pin10", relationship = "many-to-one") %>%  # one border per pin
+  # --- THIS JOIN IS NOW DYNAMIC ---
+  left_join(
+    pin_border_map %>% rename(ward_map_year = year), 
+    by = c("pin10", "ward_map_year"), 
+    relationship = "many-to-one"
+  ) %>%
   distinct(pin10, tax_year, .keep_all = TRUE)
 
 message(sprintf("    land_values_aug rows: %s", nrow(land_values_aug)))
@@ -258,6 +275,8 @@ alderman_year <- alderman_panel %>%
   select(ward, tax_year, alderman)
 
 land_values_aug <- land_values_aug %>%
+  select(-ward.y) %>% 
+  rename(ward = ward.x) %>%
   mutate(ward = as.integer(ward)) %>%
   left_join(alderman_year, by = c("ward","tax_year"), relationship = "many-to-one")
 

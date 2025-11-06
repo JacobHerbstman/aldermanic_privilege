@@ -5,7 +5,7 @@ source("../../setup_environment/code/packages.R")
 
 # ---- Load + narrow to RD window (0.1 mi) ----
 land_values <- sfarrow::st_read_parquet("../input/land_values_aug.parquet", show_col_types = FALSE) %>%
-  dplyr::filter(dist_to_boundary_ft <= 528)
+  dplyr::filter(dist_to_boundary_ft <= 1056)
 
 DT <- data.table::as.data.table(sf::st_drop_geometry(land_values))
 rm(land_values); gc()
