@@ -7,7 +7,7 @@ include ../../shell_functions.make
 all: ../output/alderman_sentiment_scores.csv
 
 # Build rule: The output depends on the script and all its inputs.
-../output/alderman_sentiment_scores.csv: sentiment_alderman_statements.R ../input/alderman_prerogative_statements.csv aldermen_strictness_scores.csv  | ../output
+../output/alderman_sentiment_scores.csv: sentiment_alderman_statements.R ../input/alderman_prerogative_statements.csv ../input/aldermen_strictness_scores.csv  | ../output
 	$(R) $<
 
 ## symlink
