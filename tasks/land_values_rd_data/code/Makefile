@@ -12,7 +12,7 @@ ALL_INPUTS := \
 
 # Build rule: The output depends on the script and all its inputs.
 ../output/land_values_rd_data.csv: land_values_rd_data.R $(ALL_INPUTS) | ../output
-	$(R) land_values_rd_data.R
+	$(R) $<
 
 # -------------------- Symlinks to bring in data from other tasks --------------------
 ../input/land_values_aug.parquet ../output/episode_metadata.csv: ../../calculate_distances_land_values/output/land_values_aug.parquet | ../input

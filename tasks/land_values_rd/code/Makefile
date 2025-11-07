@@ -13,7 +13,7 @@ ALL_INPUTS := \
 
 # Build rule: The output depends on the script and all its inputs.
 ../output/rd_alderman_pair_episodes.csv: land_values_rd.R $(ALL_INPUTS) | ../output
-	$(R) land_values_rd.R
+	$(R) $<
 
 # -------------------- Symlinks to bring in data from other tasks --------------------
 ../input/land_values_rd_data.csv: ../../land_values_rd_data/output/land_values_rd_data.csv | ../input

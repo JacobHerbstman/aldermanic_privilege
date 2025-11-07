@@ -165,7 +165,7 @@ alderman_data <- tribble(
   # 31st Ward
   31, "Ray Suarez",         "1998-01-01", "2015-05-17",
   31, "Milagros Santiago",  "2015-05-18", "2019-05-19",
-  31, "Felix Cardona, Jr.", "2019-05-20", "2025-06-24",
+  31, "Felix Cardona Jr.", "2019-05-20", "2025-06-24",
   
   # 32nd Ward
   32, "Terry Gabinski",     "1998-01-01", "1998-05-20",

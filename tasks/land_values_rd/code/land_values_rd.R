@@ -220,8 +220,8 @@ run_one_rd <- function(df, ep_id) {
 
 # Define the grid of analyses to run
 analysis_grid <- expand.grid(
-  # yvar_run = c("land_share_pin10"),
-  yvar_run = c("land_sum"),
+  yvar_run = c("land_share_pin10"),
+  # yvar_run = c("land_sum"),
   use_log_run = c(FALSE),
   stringsAsFactors = FALSE
 )
