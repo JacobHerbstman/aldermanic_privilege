@@ -133,6 +133,7 @@ alderman_data <- tribble(
   24, "Sharon Denise Dixon","2007-05-21", "2011-05-15",
   24, "Michael Chandler",   "2011-05-16", "2015-05-17",
   24, "Michael Scott Jr.",  "2015-05-18", "2022-06-15",
+  24, "Monique Scott",      "2022-07-05", "2025-06-24",
   
   # 25th Ward
   25, "Daniel Solis",       "1998-01-01", "2019-05-19",
