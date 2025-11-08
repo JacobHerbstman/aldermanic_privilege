@@ -136,8 +136,8 @@ correlation_df <- scores %>% inner_join(strictness_scores, by = "alderman") %>%
 corr<- cor.test(correlation_df$strictness_sd, correlation_df$hot_cold_01)
 b <- corr$estimate
 
-# reg <- lm(hot_cold_01 ~ strictness_sd, data = correlation_df) %>% summary()
-# reg
+reg <- feols(hot_cold_01 ~ strictness_sd | 0, data = correlation_df)
+etable(reg, vcov = "HC1")
 
 # b  <- unname(coef_tab[2, "Estimate"])
 # se <- unname(coef_tab[2, "Std. Error"])
@@ -174,7 +174,11 @@ p <- ggplot(correlation_df, aes(x = strictness_sd, y = hot_cold_01)) +
   ) +
   coord_cartesian(clip = "off") +        # allow drawing outside the panel
   theme_minimal()  + 
-  theme(panel.grid.minor = element_blank())
+  theme(
+    panel.grid = element_blank(),           # remove all grid lines
+    axis.line = element_line(color = "black", linewidth = 0.4),  # keep axes
+    panel.border = element_blank()
+  )
 
 p
 # 
