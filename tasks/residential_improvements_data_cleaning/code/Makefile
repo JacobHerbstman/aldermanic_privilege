@@ -11,7 +11,7 @@ all: ../output/residential_cross_section.csv
 include ../../generic.make
 
 # Symlink from ../../../data_raw/ -> ../input/
-../input/residential_improvement_characteristics.csv: ../../../data_raw/Assessor_-_Single_and_Multi-Family_Improvement_Characteristics_20251003.csv | ../input
+../input/residential_improvement_characteristics.csv: ../../../data_raw/Assessor_-_Single_and_Multi-Family_Improvement_Characteristics_20251111.csv | ../input
 	ln -sf "$<" "$@"
 
 link-inputs: ../input/residential_improvement_characteristics.csv
