@@ -14,6 +14,7 @@ OUTPUT_FILE := ../output/ward_panel.gpkg
 INPUT_WARD_1998  := ../input/ward1998.shp
 INPUT_WARD_2014  := ../input/Wards_2014.geojson
 INPUT_WARD_2015  := ../input/Wards_2015.geojson
+INPUT_WARD_2024  := ../input/Wards_2024.geojson
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Define Goals
@@ -27,7 +28,7 @@ all: $(OUTPUT_FILE)
 # Main rule to create the final output
 # This rule depends on the script and both input ward files.
 # ─────────────────────────────────────────────────────────────────────────────
-$(OUTPUT_FILE): $(SCRIPT_FILE) $(INPUT_WARD_1998) $(INPUT_WARD_2014) $(INPUT_WARD_2015) | ../output
+$(OUTPUT_FILE): $(SCRIPT_FILE) $(INPUT_WARD_1998) $(INPUT_WARD_2014) $(INPUT_WARD_2015) $(INPUT_WARD_2024) | ../output
 	@echo "→ [make_ward_panel] Running R script to create ward panel..."
 	$(R) $(SCRIPT_FILE)
 
@@ -49,6 +50,11 @@ $(INPUT_WARD_2015): ../../../data_raw/Wards_2015.geojson | ../input
 	@echo "→ [make_ward_panel] Linking raw input: Wards_2015.geojson"
 	ln -sf ../../../data_raw/Wards_2015.geojson $@
 
+# Rule for linking the 2015 ward data from the 'data_raw' directory.
+$(INPUT_WARD_2024): ../../../data_raw/Wards_2024.geojson | ../input
+	@echo "→ [make_ward_panel] Linking raw input: Wards_2024.geojson"
+	ln -sf ../../../data_raw/Wards_2024.geojson $@
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Generic rules
 # ─────────────────────────────────────────────────────────────────────────────
@@ -59,4 +65,4 @@ include ../../generic.make
 # ─────────────────────────────────────────────────────────────────────────────
 
 .PHONY: link-inputs
-link-inputs: $(INPUT_WARD_1998) $(INPUT_WARD_2014) $(INPUT_WARD_2015)
+link-inputs: $(INPUT_WARD_1998) $(INPUT_WARD_2014) $(INPUT_WARD_2015) $(INPUT_WARD_2024)
