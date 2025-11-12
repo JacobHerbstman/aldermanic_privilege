@@ -14,7 +14,7 @@ include ../../generic.make
   ../input/geocoded_residential_data.gpkg \
   ../input/ward_panel.gpkg \
   ../input/chicago_alderman_panel.csv \
-  ../input/alderman_strictness_scores.csv \
+  ../input/aldermen_strictness_scores.csv \
   ../input/zoning_data_clean.gpkg \
   ../input/cta_stops.gpkg \
   ../input/major_streets.gpkg \
@@ -35,7 +35,7 @@ include ../../generic.make
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
 	@ln -sf $< $@
 
-../input/alderman_strictness_scores.csv: ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
+../input/aldermen_strictness_scores.csv: ../../rank_aldermen/output/aldermen_strictness_scores.csv | ../input
 	@ln -sf $< $@
 
 ../input/zoning_data_clean.gpkg: ../../zoning_data_cleaning/output/zoning_data_clean.gpkg | ../input
@@ -59,7 +59,7 @@ link-inputs: \
   ../input/geocoded_residential_data.gpkg \
   ../input/ward_panel.gpkg \
   ../input/chicago_alderman_panel.csv \
-  ../input/alderman_strictness_scores.csv \
+  ../input/aldermen_strictness_scores.csv \
   ../input/zoning_data_clean.gpkg \
   ../input/cta_stops.gpkg \
   ../input/major_streets.gpkg \

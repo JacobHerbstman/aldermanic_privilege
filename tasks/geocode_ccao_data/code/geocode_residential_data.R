@@ -5,9 +5,10 @@ source("../../setup_environment/code/packages.R")
 
 
 # ---- Load ----
-condos <- read_csv("../input/condos_cross_section.csv", show_col_types = FALSE)
 residential    <- read_csv("../input/residential_cross_section.csv",   show_col_types = FALSE)
 parcels   <- read_csv("../input/parcels.csv",  show_col_types = FALSE)
+parcel_proximity <- read_csv("../input/parcel_proximity.csv", show_col_types = FALSE)
+
 
 parcels <- parcels %>%
   mutate(pin = as.character(pin)) %>%
@@ -15,30 +16,23 @@ parcels <- parcels %>%
   distinct(pin, .keep_all = TRUE) %>% 
   select(pin, pin10, latitude, longitude, cmap_walkability_total_score, cmap_walkability_no_transit_score)
 
-# ---- Residential: join by 14-digit PIN ----
+parcel_proximity <- parcel_proximity %>%
+  select(pin10, nearest_cta_route_dist_ft, nearest_hospital_dist_ft, nearest_major_road_dist_ft,
+         nearest_metra_stop_dist_ft, nearest_park_dist_ft, nearest_water_dist_ft, nearest_neighbor_1_dist_ft)
+
+
+
 res_with_geo <- residential %>%
+  mutate(pin    = as.character(pin),
+         tax_year   = suppressWarnings(as.integer(tax_year)),
+         card_num   = suppressWarnings(as.integer(card_num)),
+         year_built = suppressWarnings(as.integer(year_built))) %>%
   left_join(parcels, by = "pin") %>%
-  mutate(residential = T) %>% 
-  filter(!is.na(latitude) & !is.na(longitude)) 
-  
-
-
-
-# pin -> pin10 rollup from parcels, then median lat/lon per pin10
-parc_pin10 <- parcels %>%
-  mutate(pin10 = substr(pin, 1, 10)) %>%
-  group_by(pin10) %>%
-  summarise(
-    latitude = if (all(is.na(latitude))) NA_real_ else median(latitude, na.rm = TRUE),
-    longitude = if (all(is.na(longitude))) NA_real_ else median(longitude, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-condo_with_geo <- condos %>%
-  left_join(parc_pin10, by = "pin10") %>%
-  mutate(residential = F) %>% 
-  filter(!is.na(latitude) & !is.na(longitude))
-
+  mutate(residential = TRUE) %>%
+  # drop rows without coordinates
+  filter(!is.na(latitude) & !is.na(longitude)) %>% 
+  left_join(parcel_proximity, by = "pin10") %>% 
+  relocate(pin, pin10)
 
 # 1) Harmonize RES types (keep residential names)
 res_with_geo <- res_with_geo %>%
@@ -56,33 +50,8 @@ res_with_geo <- res_with_geo %>%
     residential   = as.logical(residential)
   )
 
-# 2) Rename + harmonize CONDO to residential naming
-#    - built_year  -> year_built
-#    - units       -> num_apartments
-condo_h <- condo_with_geo %>%
-  rename(
-    year_built     = built_year,
-    num_apartments = units
-  ) %>%
-  mutate(
-    pin10         = as.character(pin10),
-    tax_year      = as.integer(tax_year),
-    year_built    = as.integer(year_built),
-    building_sqft = as.numeric(building_sqft),
-    land_sqft     = as.numeric(land_sqft),
-    num_apartments= as.integer(num_apartments),
-    latitude      = as.numeric(latitude),
-    longitude     = as.numeric(longitude),
-    residential   = as.logical(residential)
-  )
-
-# 3) Select a unified column order (residential names win)
-cols_union <- union(names(res_with_geo), names(condo_h))
-res_with_geo  <- res_with_geo %>% select(any_of(cols_union))
-condo_h       <- condo_h      %>% select(any_of(cols_union))
-
 # 4) Row bind
-all_parcels <- data.table::rbindlist(list(res_with_geo, condo_h), fill = TRUE, use.names = TRUE) %>%
+all_parcels <- res_with_geo %>%
   mutate(
     storiescount = case_when(
       is.na(type_of_residence) ~ NA_real_,
@@ -103,18 +72,15 @@ all_parcels <- data.table::rbindlist(list(res_with_geo, condo_h), fill = TRUE, u
          fullbathcount = num_full_baths,
          halfbathcount = num_half_baths) %>% 
   mutate(
-    # heuristic: residential table has single_v_multi_family; condos typically don't
-    is_sf = (residential == TRUE) & (
-      (!is.na(single_v_multi_family) &
-         grepl("^single", single_v_multi_family, ignore.case = TRUE)) |
-        (!is.na(type_of_residence) &
-           type_of_residence %in% c("1 Story","1.5 Story","2 Story","3 Story +","Split Level"))
-    ),
+    is_sf = (!is.na(single_v_multi_family) & grepl("^single", single_v_multi_family, ignore.case=TRUE)) |
+      (!is.na(type_of_residence) & type_of_residence %in% c("1 Story","1.5 Story","2 Story","3 Story +","Split Level")),
     unitscount = ifelse(is_sf & (is.na(unitscount) | unitscount == 0L), 1L, unitscount)
-  )
+  ) %>% 
+  relocate(pin, pin10, unitscount, storiescount, is_sf, single_v_multi_family)
   
 
-has_xy <- is.finite(all_parcels$lon) & is.finite(all_parcels$lat)
+has_xy <- is.finite(all_parcels$longitude) & is.finite(all_parcels$latitude)
+has_xy[is.na(has_xy)] <- FALSE
 sf_pts <- st_as_sf(all_parcels[has_xy, ], coords = c("longitude", "latitude"), crs = 4326)
 sf_chi <- st_transform(sf_pts, 3435)
 

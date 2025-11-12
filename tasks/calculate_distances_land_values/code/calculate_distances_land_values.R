@@ -12,7 +12,7 @@ alderman_panel <- read_csv("../input/alderman_panel.csv")
 message(sprintf("    land_values rows: %s | ward_panel rows: %s | alderman_panel rows: %s",
                 nrow(land_values), nrow(ward_panel), nrow(alderman_panel)))
 
-UNIQUE_MAP_YEARS <- c(1998, 2003, 2015)
+UNIQUE_MAP_YEARS <- c(1998, 2003, 2015, 2024)
 
 # -------------------------------------------------------------------
 # 1) Choose one geometry per pin (most recent)
@@ -224,7 +224,8 @@ map_year_for <- function(tax_year) {
   dplyr::case_when(
     tax_year <= 2002 ~ 1998L,
     tax_year <= 2014 ~ 2003L,
-    TRUE             ~ 2015L
+    tax_year <= 2023 ~ 2015L,
+    TRUE             ~ 2024L
   )
 }
 

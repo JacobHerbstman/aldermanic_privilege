@@ -165,7 +165,7 @@ p <- ggplot(correlation_df, aes(x = strictness_sd, y = hot_cold_01)) +
   # place text just outside the top-right corner of the panel
   annotate("text",
            x = Inf, y = Inf, label = lbl,
-           hjust = 1, vjust = 3,  # nudge right/up into the margin
+           hjust = 1, vjust = 2,  # nudge right/up into the margin
            size = 3) +                   # smaller font
   labs(
     title = "Alderman Strictness Validation",
