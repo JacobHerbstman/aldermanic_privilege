@@ -56,7 +56,7 @@ $(INPUT_PERMITS): ../../clean_building_permits/output/building_permits_clean.gpk
 
 # Rule for linking the intermediate ward panel data.
 # The recipe uses a wildcard (*) to link all shapefile components.
-$(INPUT_WARD_PANEL): ../../merge_wards_blocks/output/ward_panel.gpkg | ../input
+$(INPUT_WARD_PANEL): ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@echo "→ [merge_parcels_blocks] Linking intermediate input: ward_panel"
 	ln -sf $< $@
 
@@ -67,7 +67,7 @@ $(INPUT_BLOCK_PANEL): ../../merge_wards_blocks/output/census_blocks_ward_switche
 	ln -sf $< $@
 
 # Rule for linking restrictiveness scores
-$(INPUT_RESTRICTIVENESS_SCORES): ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
+$(INPUT_RESTRICTIVENESS_SCORES): ../../rank_alderman/output/aldermen_strictness_scores.csv | ../input
 	@echo "→ [merge_parcels_blocks] Linking intermediate input: alderman restrictiveness scores"
 	ln -sf $< $@
 

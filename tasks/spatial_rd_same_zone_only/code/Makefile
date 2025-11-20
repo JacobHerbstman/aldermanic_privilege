@@ -2,11 +2,12 @@ SHELL := bash
 include ../../shell_functions.make
 
 # --- Analysis Parameters ---
-BANDWIDTHS := 264 528 792 1056 1320 1584 2112 2640
+BANDWIDTHS := 264 528 792 1056 1320
 KERNELS    := triangular
-YVARS      := density_far density_lapu density_bcr density_lps density_spu
+YVARS      := density_far density_dupac density_lapu 
+#density_bcr density_lps
 LOG_STATUS := TRUE FALSE
-DONUT := 50
+DONUT := 0
 
 # --- Prefix helper for filenames ---
 LOG_PREFIX_TRUE  := log_

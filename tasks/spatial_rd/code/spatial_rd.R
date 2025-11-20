@@ -11,7 +11,7 @@ source("../../setup_environment/code/packages.R")
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
 # yvar                   <- "density_far"
 # use_log                 <- F
-# bw                     <- 2112
+# bw                     <- 264
 # kernel                 <- "triangular"
 # =======================================================================================
 # --- Command-Line Arguments (uncomment for Makefile) ---
@@ -40,8 +40,8 @@ if (use_log) {
   log_suffix <- ""
 }
 
-parcels_signed <- parcels_signed %>%
-  filter(unitscount > 0) 
+# parcels_signed <- parcels_signed %>%
+#   filter(unitscount > 0) 
 
 cat("Data preparation complete.\n")
 
@@ -107,12 +107,12 @@ if (yvar == "density_far") {
   } else {
     ylim <- c(0, 3000)
   }
-} else if (yvar == "density_spu") {
-  y_axis_label <- "Square Feet Per Unit (SPU)"
+} else if (yvar == "density_dupac") {
+  y_axis_label <- "Dwelling Units Per Acre (DUPAC)"
   if (use_log) {
     ylim <- c(6.5, 8)
   } else {
-    ylim <- c(0, 3000)
+    ylim <- c(0, 50)
   }
 } else {
   y_axis_label <- yvar

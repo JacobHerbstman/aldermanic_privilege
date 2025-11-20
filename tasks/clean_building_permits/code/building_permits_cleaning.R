@@ -120,6 +120,9 @@ st_write(
 ## basic summary stats
 ######################
 
+permits <- st_read("../output/building_permits_clean.gpkg")
+
+
 # 
 # summary_stats <- building_permits_clean2 %>% 
 #   group_by(ward) %>% 

@@ -121,7 +121,7 @@ if (yvar == "density_far") {
   if (use_log) {
     ylim <- c(6, 8)
   } else {
-    ylim <- c(0, 2500)
+    ylim <- c(500, 5000)
   }
 } else if (yvar == "density_bcr") {
   y_axis_label <- "Building Coverage Ratio (BCR)"
@@ -137,12 +137,12 @@ if (yvar == "density_far") {
   } else {
     ylim <- c(0, 3000)
   }
-} else if (yvar == "density_spu") {
-  y_axis_label <- "Square Feet Per Unit (SPU)"
+} else if (yvar == "density_dupac") {
+  y_axis_label <- "Dwelling Units Per Acre (DUPAC)"
   if (use_log) {
-    ylim <- c(6.5, 8)
+    ylim <- c(2, 5)
   } else {
-    ylim <- c(0, 3000)
+    ylim <- c(0, 50)
   }
 } else {
   y_axis_label <- yvar
