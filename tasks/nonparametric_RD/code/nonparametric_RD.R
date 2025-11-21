@@ -35,6 +35,7 @@ cat(sprintf("→ Nonparametric stacked RD | y=%s | log=%s | bw=%.0fft (%.2f mi) 
 # ------------------------- 2) LOAD -------------------------
 cat("Loading data...\n")
 df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>% 
+  filter(arealotsf > 1) %>%
   filter(unitscount > 1)
   
   # --- Sample restriction helper: keep modal zone that exists on both sides within the bw ---
@@ -246,5 +247,5 @@ outfile <- file.path("../output",
                      sprintf("nonparametric_rd_%s%s_bw%s.pdf", log_prefix, yvar, bw)
 )
 
-# cowplot::save_plot(outfile, plot = p, base_width = 8.2, base_height = 6.0, dpi = 300, device = "pdf")
+cowplot::save_plot(outfile, plot = p, base_width = 8.2, base_height = 6.0, dpi = 300, device = "pdf")
 cat("✓ Plot saved to:", outfile, "\n")

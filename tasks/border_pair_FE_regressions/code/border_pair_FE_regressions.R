@@ -43,8 +43,9 @@ bw_mi <- round(bw_ft / 5280, 2)
 
 # ── 2) DATA ──────────────────────────────────────────────────────────────────
 parcels <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
-  mutate(strictness_own_std = strictness_own / sd(strictness_own, na.rm = TRUE)) 
-  # filter(unitscount > 1)
+  mutate(strictness_own_std = strictness_own / sd(strictness_own, na.rm = TRUE)) %>% 
+  filter(arealotsf > 1) %>% 
+  filter(unitscount > 1)
 
 
 # --- Sample restriction helper: keep modal zone that exists on both sides within the bw ---
@@ -97,7 +98,7 @@ restrict_to_modal_zone <- function(df, bw) {
 }
 
 parcels_fe <- parcels
-# parcels_fe <- restrict_to_modal_zone(parcels_fe, bw_ft)
+parcels_fe <- restrict_to_modal_zone(parcels_fe, bw_ft)
 # parcels_fe <- parcels_fe %>%
 # filter(abs(strictness_own - strictness_neighbor) > .1) # Drop parcels where the two sides are too similar in strictness
 

@@ -19,26 +19,26 @@
   dt <- as.data.table(aldermen_pairs)
   
   # keep usable BC estimates
-  dt <- dt[is.finite(coef_bc) & is.finite(se_bc) & se_bc > 0]
+  dt <- dt[is.finite(coef_na) & is.finite(se_na) & se_na > 0]
   
   # (optional) drop episodes that fail your own quality gates
   dt <- dt[ok_min_sideN == TRUE]
   
   # orient an unordered pair label, but KEEP the hi/lo orientation for y
   dt[, pair := paste(pmin(ald_lo, ald_hi), pmax(ald_lo, ald_hi), sep = " | ")]
-  dt[, v := se_bc^2]
+  dt[, v := se_na^2]
   
   # Inverse-variance collapse to ONE edge per pair (keeps orientation hi−lo)
   pair_dt <- dt[, .(
-    coef_bc = sum(coef_bc / v) / sum(1 / v),
-    se_bc   = sqrt( 1 / sum(1 / v) ),
+    coef_na = sum(coef_na / v) / sum(1 / v),
+    se_na   = sqrt( 1 / sum(1 / v) ),
     n_ep    = .N,
     ald_i   = ald_hi[1],  # orientation: i = ald_hi, j = ald_lo
     ald_j   = ald_lo[1]
   ), by = pair]
   
   # weights
-  pair_dt[, `:=`(y = coef_bc, v = se_bc^2, w = 1 / (se_bc^2))]
+  pair_dt[, `:=`(y = coef_na, v = se_na^2, w = 1 / (se_na^2))]
   
   
   edges <- pair_dt

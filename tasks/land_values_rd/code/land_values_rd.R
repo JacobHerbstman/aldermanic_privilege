@@ -11,7 +11,7 @@ episode_meta <- read_csv("../input/episode_metadata.csv")
 # 4) Analysis: preferred rdrobust style
 # ---------------------------
 
-# Controls for this run
+# parameters
 kernel <- "triangular"
 bw     <- 1056
 
@@ -116,9 +116,9 @@ make_rd_plot <- function(df, bw, kernel, yvar, use_log, ep_id,
 
 
 # Single-episode runner 
-ep_id = "3-12_003"
-df = land_values %>%
-filter(episode_id == ep_id)
+# ep_id = "3-12_003"
+# df = land_values %>%
+# filter(episode_id == ep_id)
 
 run_one_rd <- function(df, ep_id) {
   df <- df[is.finite(df[[yvar]]) & df[[yvar]] > 0, , drop = FALSE]
