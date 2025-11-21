@@ -12,25 +12,25 @@ source("../../setup_environment/code/packages.R")
 # --- 1. ARGUMENT HANDLING ---
 # =======================================================================================
 # --- Interactive Test Block (uncomment to run in RStudio) ---
-yvar            <- "density_far"
-use_log         <- T
-bw              <- 1056
-bins            <- bw/10
+# yvar            <- "density_far"
+# use_log         <- F
+# bw              <- 1056
+# bins            <- bw/10
 # =======================================================================================
 # --- Command-Line Arguments (uncomment for Makefile) ---
-# args <- commandArgs(trailingOnly = TRUE)
-# if (length(args) != 3) {
-#   stop("FATAL: need 3 args: <yvar> <use_log> <window_miles> <bin_miles>", call. = FALSE)
-# }
-# yvar            <- args[1]
-# use_log         <- as.logical(args[2])
-# bw              <- as.numeric(args[3])
-# bins            <- bw / 10
-# 
-# bw_mi   <- bw   / 5280
-# bins_mi <- bins / 5280
-# cat(sprintf("→ Nonparametric stacked RD | y=%s | log=%s | bw=%.0fft (%.2f mi) | bin=%.1fft (%.2f mi)\n",
-#             yvar, as.character(use_log), bw, bw_mi, bins, bins_mi))
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) != 3) {
+  stop("FATAL: need 3 args: <yvar> <use_log> <window_miles> <bin_miles>", call. = FALSE)
+}
+yvar            <- args[1]
+use_log         <- as.logical(args[2])
+bw              <- as.numeric(args[3])
+bins            <- bw / 10
+
+bw_mi   <- bw   / 5280
+bins_mi <- bins / 5280
+cat(sprintf("→ Nonparametric stacked RD | y=%s | log=%s | bw=%.0fft (%.2f mi) | bin=%.1fft (%.2f mi)\n",
+            yvar, as.character(use_log), bw, bw_mi, bins, bins_mi))
 
 # ------------------------- 2) LOAD -------------------------
 cat("Loading data...\n")
@@ -41,7 +41,7 @@ df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALS
   restrict_to_modal_zone <- function(df, bw) {
     # 1) limit to current bandwidth + non-missing zone
     df_bw <- df %>%
-      filter(dist_to_boundary <= bw, !is.na(zone_code))
+      filter(dist_to_boundary <= bw)
     
     # 2) grouping keys: use (boundary_year, ward_pair) when available, else ward_pair
     group_keys <- intersect(c("boundary_year", "ward_pair"), names(df_bw))

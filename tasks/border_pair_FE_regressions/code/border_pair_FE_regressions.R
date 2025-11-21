@@ -1,6 +1,6 @@
-# border_pair_FE_volume_interaction.R
-# 1. Interaction Model: Tests for "Jump at Zero" using linear interaction
-# 2. Volume Model: Tests if strictness reduces TOTAL quantity (SqFt/Units)
+# border_pair_FE_tables_by_bw.R
+# One table per bandwidth (in miles) with multiple outcomes as columns.
+# Regressions: y ~ strictness_own_std | construction_year + ward_pair, clustered by ward_pair
 
 ## run this line when editing code in Rstudio
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
@@ -8,37 +8,79 @@
 source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
-# --- PARAMETERS ---
-# =======================================================================================
-bw_ft           <- 750  # 0.2 miles (Use a wider bandwidth for interaction models to get slope)
-output_filename <- "../output/fe_table_volume_interaction.tex"
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+bw_ft           <- 500
+yvars           <- c("density_dupac", "density_far", "density_lapu", "density_bcr", "density_lps",
+ "unitscount", "storiescount", "areabuilding", "arealotsf", "bedroomscount")
+output_filename  <- "../output/fe_table_bw1056.tex"
 # =======================================================================================
 
-# ── 1) LOAD DATA ───────────────────────────────────────────────────────────────
-# We keep ALL new construction (unitscount > 0) to capture the full market effect.
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+# Args: <bw_feet> <output_filename> <yvar1> [<yvar2> ...]
+# args <- commandArgs(trailingOnly = TRUE)
+# if (length(args) >= 3) {
+#   bw_ft           <- suppressWarnings(as.integer(args[1]))
+#   output_filename <- args[2]
+#   # space-separated yvars
+#   yvars <- args[3:length(args)]
+#   
+#   # backward-compat: if exactly 3 args and the 3rd has commas, split them
+#   if (length(args) == 3 && grepl(",", args[3])) {
+#     yvars <- strsplit(args[3], ",")[[1]] |> trimws()
+#   }
+# } else {
+#   # allow interactive testing with objects already defined in the session
+#   if (!exists("bw_ft") || !exists("output_filename") || !exists("yvars")) {
+#     stop("FATAL: need args: <bw_feet> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
+#   }
+# }
+
+if (!is.finite(bw_ft) || bw_ft <= 0) stop("bw_feet must be a positive integer/numeric.")
+if (length(yvars) == 0) stop("No yvars provided.")
+
+bw_mi <- round(bw_ft / 5280, 2)
+
+
+# ── 2) DATA ──────────────────────────────────────────────────────────────────
 parcels <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
-  mutate(
-    strictness_own_std = strictness_own / sd(strictness_own, na.rm = TRUE),
-    abs_dist = abs(dist_to_boundary) # Absolute distance for the interaction term
-  ) %>%
-  filter(unitscount > 0) %>% 
-  filter(dist_to_boundary <= bw_ft)
+  mutate(strictness_own_std = strictness_own / sd(strictness_own, na.rm = TRUE)) 
+  # filter(unitscount > 1)
 
-# Helper: Keep modal zone that exists on both sides (Optional - comment out to run on full sample)
+
+# --- Sample restriction helper: keep modal zone that exists on both sides within the bw ---
 restrict_to_modal_zone <- function(df, bw) {
-  df_bw <- df %>% filter(dist_to_boundary <= bw, !is.na(zone_code))
+  # 1) limit to current bandwidth + non-missing zone
+  df_bw <- df %>%
+    filter(dist_to_boundary <= bw, !is.na(zone_code))
+  
+  # 2) grouping keys: use (boundary_year, ward_pair) when available, else ward_pair
   group_keys <- intersect(c("boundary_year", "ward_pair"), names(df_bw))
   
-  zone_counts <- if ("signed_distance" %in% names(df_bw)) {
-    df_bw %>%
-      group_by(across(all_of(c(group_keys, "zone_code")))) %>%
-      summarise(n = n(), n_sides = n_distinct(sign(signed_distance)), .groups = "drop") %>%
-      filter(n_sides == 2)
-  } else {
-    df_bw %>%
-      group_by(across(all_of(c(group_keys, "zone_code")))) %>%
-      summarise(n = n(), .groups = "drop")
-  }
+  # 3) count parcels by zone within each group, requiring presence on BOTH sides
+  #    prefer signed distance if available; else fall back to ward on each side
+  zone_counts <-
+    if ("signed_distance" %in% names(df_bw)) {
+      df_bw %>%
+        group_by(across(all_of(c(group_keys, "zone_code")))) %>%
+        summarise(n = n(),
+                  n_sides = n_distinct(sign(signed_distance)),
+                  .groups = "drop") %>%
+        filter(n_sides == 2)
+    } else if ("ward" %in% names(df_bw)) {
+      df_bw %>%
+        group_by(across(all_of(c(group_keys, "zone_code")))) %>%
+        summarise(n = n(),
+                  n_sides = n_distinct(ward),
+                  .groups = "drop") %>%
+        filter(n_sides == 2)
+    } else {
+      # if neither side indicator is present, just compute modal zone
+      df_bw %>%
+        group_by(across(all_of(c(group_keys, "zone_code")))) %>%
+        summarise(n = n(), .groups = "drop")
+    }
+  
+  # 4) pick the modal zone (tie-breaker: alphabetical zone_code)
   modal_zone <- zone_counts %>%
     arrange(across(all_of(group_keys)), desc(n), zone_code) %>%
     group_by(across(all_of(group_keys))) %>%
@@ -47,93 +89,134 @@ restrict_to_modal_zone <- function(df, bw) {
     select(all_of(group_keys), zone_code) %>%
     rename(modal_zone_code = zone_code)
   
+  # 5) keep parcels in the modal zone for each group
   df_bw %>%
     inner_join(modal_zone, by = group_keys) %>%
     filter(zone_code == modal_zone_code) %>%
     select(-modal_zone_code)
 }
 
-# Apply Restriction (You can skip this line if you want to test the "Legislative" channel)
 parcels_fe <- parcels
 # parcels_fe <- restrict_to_modal_zone(parcels_fe, bw_ft)
+# parcels_fe <- parcels_fe %>%
+# filter(abs(strictness_own - strictness_neighbor) > .1) # Drop parcels where the two sides are too similar in strictness
 
 
-# ── 2) MODEL 1: INTERACTION (Jump at Zero) ─────────────────────────────────────
-# We interact strictness with distance.
-# The coefficient on `strictness_own_std` is the effect at dist=0.
-# The coefficient on `strictness:abs_dist` allows the density gradient to differ.
+# ── 3) HELPERS ───────────────────────────────────────────────────────────────
+is_log_spec <- function(v) str_detect(v, "^log\\(.+\\)$")
+base_name   <- function(v) gsub("^log\\(|\\)$", "", v)
 
-m_interact_dupac <- feols(
-  log(density_dupac) ~ strictness_own_std * abs_dist + factor(construction_quality) | construction_year^ward_pair,
-  data = parcels_fe,
-  cluster = ~ward_pair
-)
-
-m_interact_far <- feols(
-  log(density_far) ~ strictness_own_std * abs_dist + factor(construction_quality) | construction_year^ward_pair,
-  data = parcels_fe,
-  cluster = ~ward_pair
-)
-
-
-# ── 3) MODEL 2: AGGREGATE VOLUME (Total Supply) ────────────────────────────────
-# Collapse data to the Border-Pair-Year-Side level.
-# "Does the strict side produce less TOTAL housing?"
-
-df_volume <- parcels_fe %>%
-  # Group by the "Experiment" unit: Pair-Year-Side
-  group_by(ward_pair, boundary_year, construction_year, strictness_own_std) %>%
-  summarise(
-    total_units = sum(unitscount, na.rm = TRUE),
-    total_sqft  = sum(areabuilding, na.rm = TRUE),
-    n_projects  = n(), 
-    .groups = "drop"
-  ) %>%
-  mutate(
-    log_total_units = log(total_units), # Use log(x) since volume > 0 by definition of sample
-    log_total_sqft  = log(total_sqft)
+pretty_label <- function(v) {
+  b <- base_name(v)
+  dict <- c(
+    "density_far"  = "Floor Area Ratio (FAR)",
+    "density_lapu" = "Lot Area Per Unit (LAPU)",
+    "density_bcr"  = "Building Coverage Ratio (BCR)",
+    "density_lps"  = "Lot Size Per Story (LPS)",
+    "density_spu"  = "Square Feet Per Unit (SPU)",
+    "arealotsf"    = "Lot Area (sf)",
+    "areabuilding" = "Building Area (sf)",
+    "storiescount" = "Stories",
+    "unitscount"   = "Units", 
+    "bedroomscount"= "Bedrooms", 
+    "bathcount"= "Bathrooms"
   )
+  lab <- ifelse(b %in% names(dict), dict[[b]], b)
+  if (is_log_spec(v)) paste("Log", lab) else lab
+}
 
-m_vol_sqft <- feols(
-  log_total_sqft ~ strictness_own_std | construction_year^ward_pair,
-  data = df_volume,
-  cluster = ~ward_pair
-)
+# fitstat: mean of *level* DV for the estimation sample
+mean_y_level <- function(x) {
+  dat <- x$custom_data
+  y_lhs <- deparse(x$fml[[2]])
+  y0 <- if (grepl("^log\\(", y_lhs)) gsub("^log\\(|\\)$", "", y_lhs) else y_lhs
+  mean(dat[[y0]], na.rm = TRUE)
+}
+fitstat_register("myo", mean_y_level, alias = "Dep. Var. Mean")
 
-m_vol_units <- feols(
-  log_total_units ~ strictness_own_std | construction_year^ward_pair,
-  data = df_volume,
-  cluster = ~ward_pair
-)
+#fitstat: n ward pairs
+n_ward_pairs <- function(x) {
+  mf <- tryCatch(model.frame(x), error = function(e) NULL)
+  if (!is.null(mf) && "ward_pair" %in% names(mf)) {
+    return(length(unique(mf$ward_pair)))
+  }
+  # Fallbacks if needed:
+  if (!is.null(x$cluster) && "ward_pair" %in% names(x$cluster)) {
+    return(length(unique(x$cluster$ward_pair)))
+  }
+  if (!is.null(x$custom_data) && "ward_pair" %in% names(x$custom_data)) {
+    return(length(unique(stats::na.omit(x$custom_data$ward_pair))))
+  }
+  NA_integer_
+}
 
-
-# ── 4) OUTPUT ──────────────────────────────────────────────────────────────────
-
-# Create a nice table combining both approaches
-models <- list(
-  "Interaction: DUPAC" = m_interact_dupac,
-  "Interaction: FAR"   = m_interact_far,
-  "Volume: Total SqFt" = m_vol_sqft,
-  "Volume: Total Units"= m_vol_units
-)
-
-# Custom fitstat to show N obs
-n_ward_pairs <- function(x) length(unique(x$cluster[[1]]))
 fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
+rename_dict <- c(
+  "strictness_own_std" = "Strictness Score",
+  "construction_year"  = "Year",
+  "ward_pair"          = "Ward Pair",
+  "ward"               = "Ward",
+  "density_far"        = "Floor Area Ratio (FAR)",
+  "density_lapu"       = "Lot Area Per Unit (LAPU)",
+  "density_bcr"        = "Building Coverage Ratio (BCR)",
+  "density_lps"        = "Lot Size Per Story (LPS)",
+  "density_spu"        = "Square Feet Per Unit (SPU)",
+  "arealotsf"          = "Lot Area (sf)",
+  "areabuilding"       = "Building Area (sf)",
+  "storiescount"       = "Stories",
+  "unitscount"         = "Units", 
+  "bedroomscount"      = "Bedrooms", 
+  "bathcount"          = "Bathrooms"
+)
+
+# ── 4) MODELS (ONE PER OUTCOME), SAME BW ─────────────────────────────────────
+models <- list()
+col_headers <- c()
+
+for (yv in yvars) {
+  b <- base_name(yv)
+  if (!b %in% names(parcels)) {
+    warning(sprintf("Skipping '%s' (base var '%s' not found).", yv, b))
+    next
+  }
+  
+  df <- parcels_fe %>%
+    filter(dist_to_boundary <= bw_ft)
+  # filter(.data[[b]] > 0) %>% 
+  # filter(density_far > 0 & density_lapu > 0)
+  
+  if (nrow(df) == 0) {
+    warning(sprintf("Skipping '%s' (no rows after filtering).", yv))
+    next
+  }
+  
+  fml_txt <- paste0(yv, " ~ strictness_own_std | construction_year^ward_pair ")
+  m <- feols(as.formula(fml_txt), data = df, cluster = ~ ward_pair)
+  m$custom_data <- df
+  
+  models[[length(models) + 1]] <- m
+  col_headers <- c(col_headers, pretty_label(yv))
+}
+
+if (length(models) == 0) stop("No models estimated; check yvars and data.")
+names(models) <- col_headers
+
+# ── 5) TITLE & TABLE OUTPUT ──────────────────────────────────────────────────
+table_title <- sprintf("Border-Pair FE estimates (bw = %f mi)", bw_mi)
+
 etable(models,
-       keep         = c("Strictness Score" = "strictness_own_std"), # Keep only the main effect
-       # order        = c("Strictness", "Distance"), 
-       fitstat      = ~ n + r2 + nwp,
+       keep         = "Strictness Score",
+       fitstat      = ~ n + myo + nwp,
        style.tex    = style.tex("aer", model.format = ""),
-       digits       = 3,
+       depvar       = FALSE,
+       digits       = 2,
+       dict         = rename_dict,
+       headers      = names(models),
        signif.code  = c("***"=0.01, "**"=0.05, "*"=0.1),
-       fixef.group  = list("Ward-pair × Year FE" = "construction_year\\^ward_pair"),
-       title        = "Robustness: Interaction & Volume Models",
+       fixef.group = list("Ward-pair × Year FE" = "construction_year\\^ward_pair"),
+       title        = table_title,
        # file         = output_filename,
        replace      = TRUE)
 
-cat("✓ Table saved to:", output_filename, "\n")
 
-# Print to console for immediate check
-etable(models, keep = "strictness_own_std", digits=3)

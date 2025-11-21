@@ -1,23 +1,23 @@
 # This script calculates signed distances from parcels to ward boundaries
 # and assigns aldermen based on construction year and redistricting events
-
-## run this line when editing code in Rstudio 
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 
 source("../../setup_environment/code/packages.R")
 
 # Configuration parameters for redistricting handling
-REDISTRICTING_2003   <- as.Date("2003-05-01") # 2003 map becomes active
-REDISTRICTING_2015   <- as.Date("2015-05-01") # 2015 map becomes active
-REDISTRICTING_2024 <- as.Date("2024-05-01")  # 2024 map becomes active
-BOUNDARY_YEARS <- c(1998L, 2003L, 2015L, 2024L)  
+REDISTRICTING_2003 <- as.Date("2003-05-01") # 2003 map becomes active
+REDISTRICTING_2015 <- as.Date("2015-05-01") # 2015 map becomes active
+REDISTRICTING_2024 <- as.Date("2024-05-01") # 2024 map becomes active
+BOUNDARY_YEARS     <- c(1998L, 2003L, 2015L, 2024L)
+
 # -----------------------------------------------------------------------------
 # 1. LOAD DATA
 # -----------------------------------------------------------------------------
 
 cat("Loading parcel data...\n")
 parcels <- st_read("../input/geocoded_residential_data.gpkg") %>%
-  filter(!is.na(yearbuilt), yearbuilt >= 1999 & yearbuilt <= 2025) %>%  
+  # Note: This filter excludes older multifamily buildings if they exist in the input
+  filter(!is.na(yearbuilt), yearbuilt >= 1999 & yearbuilt <= 2025) %>%
   mutate(construction_date = as.Date(paste0(yearbuilt, "-06-15")))
 
 cat("Loading ward boundaries...\n")
@@ -36,12 +36,13 @@ if (st_crs(parcels) != st_crs(ward_panel)) {
 
 cat("Loading zoning data...\n")
 zoning_data <- st_read("../input/zoning_data_clean.gpkg")
-#
 
 if (st_crs(zoning_data) != st_crs(ward_panel)) {
   zoning_data <- st_transform(zoning_data, st_crs(ward_panel))
 }
 
+# Spatial join for zoning
+# Note: This works for multifamily too, as they are now point geometries
 parcels <- parcels %>%
   st_join(
     zoning_data %>% dplyr::select(
@@ -57,8 +58,8 @@ get_boundary_year <- function(construction_date) {
   case_when(
     construction_date < REDISTRICTING_2003 ~ 1998L,
     construction_date < REDISTRICTING_2015 ~ 2003L,
-    construction_date < REDISTRICTING_2024 ~ 2015L,  # ← NEW middle branch
-    TRUE                                   ~ 2024L    # ← NEW
+    construction_date < REDISTRICTING_2024 ~ 2015L,
+    TRUE                                   ~ 2024L
   )
 }
 
@@ -177,6 +178,7 @@ shared_borders_all <- purrr::map_dfr(YEARS_FOR_MAPS, function(yy) {
   if (nrow(wb) == 0 || nrow(ap) == 0) return(NULL)
   build_shared_borders(wb, ap)
 })
+
 # -----------------------------------------------------------------------------
 # 5. CALCULATE DISTANCES TO WARD BOUNDARIES (SIMPLIFIED APPROACH)
 # -----------------------------------------------------------------------------
@@ -241,13 +243,12 @@ cat("Pre-processing alderman lookup tables...\n")
 alderman_lookup <- alderman_panel %>%
   select(ward, month, alderman) %>%
   mutate(
-    # Convert "Jan 2003" format to yearmon first, then extract year
     month_yearmon = as.yearmon(month, format = "%b %Y"),
     year = year(as.Date(month_yearmon)),
     yearmon_key = as.character(month_yearmon)
   )
 
-# Create tenure lookup (calculate once per alderman-ward combo)
+# Create tenure lookup
 alderman_tenure_lookup <- alderman_panel %>%
   mutate(month_yearmon = as.yearmon(month, format = "%b %Y")) %>%
   group_by(ward, alderman) %>%
@@ -257,23 +258,12 @@ alderman_tenure_lookup <- alderman_panel %>%
   ) %>%
   mutate(alderman_ward_key = paste(ward, alderman, sep = "_"))
 
-# Simplified ward pair lookup (one record per ward)
-ward_pair_simple <- bind_rows(
-  adjacent_pairs_all %>% transmute(ward = ward_a, ward_pair, boundary_year = year),
-  adjacent_pairs_all %>% transmute(ward = ward_b, ward_pair, boundary_year = year)
-) %>%
-  distinct() %>%
-  group_by(ward, boundary_year) %>%
-  summarise(ward_pair = first(ward_pair), .groups = "drop")
-
-
 # Efficient processing
 final_dataset <- parcels_with_distances %>%
   mutate(
     construction_yearmon = as.yearmon(construction_date),
     yearmon_key = as.character(construction_yearmon)
   ) %>%
-  # Simple left joins instead of complex operations
   left_join(alderman_lookup, 
             by = c("assigned_ward" = "ward", "yearmon_key")) %>%
   mutate(
@@ -290,11 +280,19 @@ final_dataset <- parcels_with_distances %>%
   ) %>% 
   select(
     pin, geom,
-    construction_year = yearbuilt, construction_date, boundary_year,dist_to_boundary,
+    construction_year = yearbuilt, construction_date, boundary_year, dist_to_boundary,
     ward = assigned_ward, ward_pair,
     alderman = alderman.x, alderman_tenure_months,
-    arealotsf, areabuilding, bedroomscount, fullbathcount, halfbathcount, roomscount, storiescount, unitscount, 
-    construction_quality, central_heating, central_air, zone_code, residential, single_v_multi_family
+    # NOTE: These columns were kept in your previous script (res + multi)
+    arealotsf, areabuilding, bedroomscount, unitscount, storiescount, residential,
+    
+    # NOTE: The following columns were DROPPED in the previous geocoding script.
+    # I have commented them out to prevent crashes. If you need them, 
+    # add them to the select() in geocode_residential_data.R.
+    # fullbathcount, halfbathcount, roomscount, 
+    # construction_quality, central_heating, central_air, single_v_multi_family,
+    
+    zone_code 
   )
 
 # -----------------------------------------------------------------------------
@@ -313,20 +311,21 @@ final_dataset <- final_dataset %>%
     density_far = if_else(arealotsf > 0, areabuilding / arealotsf, NA_real_),
     # Lot Area Per Unit
     density_lapu = if_else(unitscount > 0, arealotsf / unitscount, NA_real_),
-    # Building Coverage Ratio
-    density_bcr = if_else(storiescount > 0 & arealotsf > 0, 
+    
+    # Building Coverage Ratio (requires stories; will be NA for multifamily where storiescount is NA)
+    density_bcr = if_else(!is.na(storiescount) & storiescount > 0 & arealotsf > 0, 
                           (areabuilding / storiescount) / arealotsf, NA_real_),
-    # Lot Size Per Story
-    density_lps = if_else(storiescount > 0, arealotsf / storiescount, NA_real_),
+    # Lot Size Per Story (will be NA for multifamily)
+    density_lps = if_else(!is.na(storiescount) & storiescount > 0, arealotsf / storiescount, NA_real_),
+    
     # Square Feet Per Unit
     density_spu = if_else(unitscount > 0, areabuilding / unitscount, NA_real_), 
-    ## Dwelling units per acre (DUPAC) as in kulka et al (2022)
+    ## Dwelling units per acre (DUPAC)
     density_dupac = if_else(
       arealotsf > 0 & unitscount > 0,
-      43560 * unitscount / arealotsf,  # 1 acre = 43,560 sqft
+      43560 * unitscount / arealotsf, 
       NA_real_)
   ) 
-  # filter(!is.na(dist_to_boundary) & !is.na(ward_pair) & !is.na(strictness_index)) 
 
 # -----------------------------------------------------------------------------
 # 8.5. SAVE GEOSPATIAL OUTPUT
@@ -372,7 +371,6 @@ cat("Final Dataset Created!\n")
 cat("Saving output...\n")
 
 write_csv(final_dataset_signed, "../output/parcels_with_ward_distances.csv")
-# write_parquet(st_drop_geometry(final_dataset), "../output/parcels_with_ward_distances.parquet")
 
 summary_stats <- final_dataset_signed %>%
   summarise(
