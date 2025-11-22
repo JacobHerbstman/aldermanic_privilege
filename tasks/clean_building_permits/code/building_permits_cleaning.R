@@ -5,7 +5,7 @@
 
 source("../../setup_environment/code/packages.R")
 
-building_permits <- read_csv("../input/Building_Permits_20250109.csv")
+building_permits <- read_csv("../input/Building_Permits_20251121.csv")
 
 ## remove contact columns and clean up names
 building_permits <- building_permits %>% 

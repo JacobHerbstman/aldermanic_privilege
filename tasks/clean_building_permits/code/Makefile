@@ -9,7 +9,7 @@ include ../../shell_functions.make
 OUTPUT_FILE := ../output/building_permits_clean.gpkg
 
 # This is the SYMBOLIC LINK this task needs in its input folder.
-INPUT_FILE := ../input/Building_Permits_20250109.csv
+INPUT_FILE := ../input/Building_Permits_20251121.csv
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Define Goals
@@ -33,7 +33,7 @@ $(OUTPUT_FILE): building_permits_cleaning.R $(INPUT_FILE) | ../output
 # This rule's target is the symlink. Its prerequisite is the REAL raw data
 # file. The recipe is the command to create the link.
 # ─────────────────────────────────────────────────────────────────────────────
-$(INPUT_FILE): ../../../data_raw/Building_Permits_20250109.csv | ../input
+$(INPUT_FILE): ../../../data_raw/Building_Permits_20251121.csv | ../input
 	@echo "→ [clean_building_permits] Linking raw data input..."
 	ln -s $< $@
 
