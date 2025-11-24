@@ -83,6 +83,7 @@ data_pin10 <- data %>%
   dplyr::mutate(pin10 = substr(pin, 1, 10)) %>%
   dplyr::group_by(pin10, tax_year) %>%
   dplyr::summarise(
+    class    = dplyr::first(class),
     land_sum = sum(certified_land, na.rm = TRUE),
     bldg_sum = sum(certified_bldg, na.rm = TRUE),
     n_units  = dplyr::n_distinct(pin),     # approx units for condos
@@ -157,7 +158,9 @@ sfarrow::st_write_parquet(
 )
 message(sprintf("    WROTE ../output/land_values_geo.parquet with %s rows and %s unique pin10×tax_year.",
                 nrow(merged_sf),
+                names(merged_sf),
                 nrow(dplyr::distinct(merged_sf, pin10, tax_year))))
+
 
 # 5% sample by year (comment fixed)
 merged_sf_sample <- dplyr::slice_sample(merged_sf, prop = 0.05, by = tax_year)

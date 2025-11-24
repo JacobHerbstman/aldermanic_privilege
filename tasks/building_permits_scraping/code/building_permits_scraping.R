@@ -221,8 +221,9 @@ for (col in cols_to_clean) {
 
 # 3. EXTRACT REPRESENTATIVE ROWS
 # Primary IDs (Highest Fee)
+# NOTE: Only get lat/lon here - ward already in project_metrics
 setorder(building_permits_filtered, project_id, -total_fee_clean)
-primary_ids <- building_permits_filtered[, .SD[1], by = project_id, .SDcols = c("ward", "latitude", "longitude")]
+primary_ids <- building_permits_filtered[, .SD[1], by = project_id, .SDcols = c("latitude", "longitude")]
 
 # Best Descriptions (Longest)
 setorder(building_permits_filtered, project_id, -desc_len)
@@ -232,16 +233,37 @@ setnames(best_descriptions, "work_description", "project_description_orig")
 # 4. JOIN EVERYTHING TOGETHER
 # data.table merge is fast
 projects_clean <- merge(project_metrics, primary_ids, by = "project_id", all.x = TRUE)
-# We already have aggregated description, but let's keep the "best" original one too if needed, 
-# or just rely on the aggregated one. The original script joined `best_descriptions`.
-# Let's join it to be consistent.
 projects_clean <- merge(projects_clean, best_descriptions, by = "project_id", all.x = TRUE)
 
-# Filter
+# Filter to relevant projects
 projects_clean <- projects_clean[
   (is_new_construction_project == 1) |
     (units_added != 0 & !is.na(units_added))
 ]
+
+# Clean up columns before export
+# Remove internal calculation columns and ensure clean names
+columns_to_keep <- c(
+  # Core identifiers
+  "project_id", "pin", "ward",
+  # Geography
+  "latitude", "longitude",
+  # Dates
+  "application_start_date", "issue_date",
+  # Project type flags
+  "is_new_construction_project", "is_adu_project", "is_deconversion_project",
+  "has_reduction", "is_single_family_project",
+  # Key metrics
+  "units_added",
+  "stories_final", "sqft_final", "parking_final",
+  # Process metrics
+  "permit_count", "avg_processing_time",
+  # Context
+  "project_description_orig"
+)
+
+# Select only the columns we want to keep (in this specific order)
+projects_clean <- projects_clean[, ..columns_to_keep]
 
 print("Project Summary:")
 print(projects_clean[, .(
@@ -250,15 +272,20 @@ print(projects_clean[, .(
   avg_stories = mean(stories_final, na.rm = TRUE)
 ), by = is_new_construction_project])
 
+cat("\nFinal dataset structure:\n")
+cat(sprintf("  Rows: %d\n", nrow(projects_clean)))
+cat(sprintf("  Columns: %d\n", ncol(projects_clean)))
+cat("\nColumn names:\n")
+print(names(projects_clean))
+
 ## convert to sf for writing
 building_permits_sf <- st_as_sf(
-  as.data.frame(projects_clean), # st_as_sf needs data.frame usually
+  as.data.frame(projects_clean),
   coords = c("longitude", "latitude"),
   crs    = 4326,
   remove = FALSE
 ) %>% 
-  select(-ward.y) %>% 
-  rename(ward = ward.x)
+  arrange(desc(units_added))
 
 ## write clean data
 st_write(
@@ -266,5 +293,16 @@ st_write(
   "../output/building_permits_clean.gpkg",
   delete_layer = TRUE
 )
+
+# 
+# cat("\n✓ Clean dataset written to building_permits_clean.gpkg\n")
+# deconvs <- projects_clean %>% 
+#   filter(is_deconversion_project == 1 | is_new_construction_project == 1) %>% 
+#   group_by(year(issue_date), ward) %>% summarise(n = n(), deconv = mean(is_deconversion_project, na.rm = T)) %>% 
+#   group_by(ward) %>% 
+#   mutate(mean_deconv_rate = mean(deconv, na.rm = T)) %>% 
+#   arrange(ward, `year(issue_date)`)
+
+
 
 
