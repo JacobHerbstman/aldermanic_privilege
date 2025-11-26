@@ -2,29 +2,42 @@
     \frametitle{Data Sources}
 	\begin{itemize}
         % Item 1: Appears on slide 1 and stays visible.
-        \item<1-> \textbf{Attom Data}
+        \item<1-> \textbf{Cook County Assessor Open Data}
         % Details for item 1: Only appear on slide 1.
         \only<1>{
             \begin{itemize} 
-                \item I use parcel-level data from Attom to create a sample of all new residential developments in Chicago from 2006-2023
-                \item Contains exact geocoded location, lot size, square footage, number of units, and many other characteristics
-                \item My final analysis sample contains $\approx 15,000$ unique developments
+               \item Primary data source is the universe of parcel assessments, 1999-2023
+               \item Calculate distances to ward borders using geolocated parcels dataset, matched on pin10
+               \item Control variables such as amenities come from the "Parcel Proximity" dataset
             \end{itemize}
         }
         \vspace{1em} 
 
-        % Item 2: Appears on slide 2 and stays visible.
-        \item<2-> \textbf{Chicago Building Permits Data}
-        % Details for item 2: Only appear on slide 2.
+        \item<2-> \textbf{Other Data Sources I can use}
+        % Details for item 1: Only appear on slide 1.
         \only<2>{
-            \begin{itemize}
-                \item To create alderman fixed effects for the RD design, I use publicly-available permit data from the City of Chicago
-                \item Includes over $800,000$ permits from 2006-2023, with exact geocoded location and permit type
-                \item I also obtain ward shapefiles from the City of Chicago Data Portal
+            \begin{itemize} 
+                \item Used in other tasks: new residential construction data from "Single and Multi-Family Improvement Characteristics"
+                \item Gives me units, stories, density metrics such as Floor Area Ratio (FAR)/ Lot Area Per Unit (LAPU)
+                \item Building Permits Data as another source for calculating alderman strictness
             \end{itemize}
         }
+        \vspace{1em} 
+
+        % Item 3: Appears on slide 2 and stays visible.
+        \item<3-> \textbf{Shapefiles}
+        % Details for item 2: Only appear on slide 3.
+        \only<3>{
+            \begin{itemize}
+                \item I get 2003-2014 and 2015-2023 ward boundaries from the city open data portal
+                \item 1998-2003 shapefiles available from UIUC, haven't incorporated into event study yet 
+            \end{itemize}
+        }
+    \end{itemize}
+\end{frame}
+
         \vspace{1em}
-    
+        \begin{comment} 
         % Item 3: Appears on slide 3 and stays visible.
         \item<3-> \textbf{Demographic Data}
         % Details for item 3: Only appear on slide 3.
@@ -39,6 +52,7 @@
     \end{itemize}
 \end{frame}
 
+
 \begin{frame}
     \frametitle{ATTOM Parcel Data} 
         \begin{figure}
@@ -47,7 +61,7 @@
             \label{fig:alderman_effects}
         \end{figure}
  \end{frame} 
-
+\end{comment}
 
 
 

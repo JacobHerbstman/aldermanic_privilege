@@ -8,6 +8,8 @@
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{setspace}
+\usepackage{footnote}
+\usepackage{verbatim}
 
 % SETTINGS
 \doublespacing
@@ -21,16 +23,13 @@
 
 \maketitle
 
-\begin{abstract}
-Abstract goes here.
-\end{abstract}
-
 \input{sections/intro.tex}
-\input{sections/literature_review.tex}
-\input{sections/results.tex}
-\input{sections/conclusion.tex}
+\input{sections/data.tex}
+\input{sections/model.tex}
+
+\newpage
 
 \bibliographystyle{aer}
-\bibliography{../slides/sections/aldermanic_privilege}
+\bibliography{sections/aldermanic_privilege.bib}
 
 \end{document}
