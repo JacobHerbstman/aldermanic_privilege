@@ -10,6 +10,9 @@ unbalanced_panel <- read_csv("../input/permit_regression_panel_blocks_unbalanced
 
 balanced_panel <- read_csv("../input/permit_regression_panel_blocks_balanced.csv")
 
+ward_controls <- read_csv("../input/ward_controls.csv") %>%
+  select(ward, year, ward_homeownership_rate = homeownership_rate)
+
 policy_year <- 2015
 
 prepare_panel <- function(df) {
@@ -17,36 +20,39 @@ prepare_panel <- function(df) {
     mutate(
       # Look ahead to see if this block ever switches in the future
       treat = as.numeric(any(ward_switch == 1, na.rm = TRUE)),
-      
+
       # Create a relative time variable using policy announcement year (2012)
       relative_year = year - policy_year,
-      
+
       ## create an indicator for being post-announcement
       post = ifelse(relative_year >= 0, 1, 0),
-      
+
       # Use the actual implementation year (2015) for score comparison
-      score_pre = first(strictness_index[year == 2014]),
-      score_post = first(strictness_index[year == 2015]),
-      
+      score_pre = first(ward_homeownership_rate[year == 2014]),
+      score_post = first(ward_homeownership_rate[year == 2015]),
+
       # Create a category for the type of switch
       switch_type = case_when(
         treat == 0 ~ "Control",
-        score_post > score_pre ~ "Moved to Stricter",
-        score_post < score_pre ~ "Moved to Less Strict",
+        score_post > score_pre ~ "Moved to Higher Homeownership",
+        score_post < score_pre ~ "Moved to Lower Homeownership",
         TRUE ~ "No Change in Score"
       )
     )
 }
 
-unbalanced_panel <- unbalanced_panel %>% 
+unbalanced_panel <- unbalanced_panel %>%
+  left_join(ward_controls, by = c("ward", "year")) %>%
   group_by(block_id) %>%
   prepare_panel() %>%
-  ungroup()
+  ungroup() %>% 
+  filter(avg_processing_time > 0)
 
-  
-balanced_panel <- balanced_panel %>% 
-  group_by(block_id) %>% 
-  prepare_panel() %>% 
+
+balanced_panel <- balanced_panel %>%
+  left_join(ward_controls, by = c("ward", "year")) %>%
+  group_by(block_id) %>%
+  prepare_panel() %>%
   ungroup()
 
 
@@ -74,18 +80,18 @@ model_specs <- tibble(
     "log(avg_total_fee)",
     "log(avg_building_fee_paid)",
     "log(avg_zoning_fee_paid)",
-    "log(avg_building_fee_subtotal)", 
+    "log(avg_building_fee_subtotal)",
     "log(avg_zoning_fee_subtotal)",
     "prop_had_zoning_fee_waiver",
     "prop_had_other_fee_waiver",
     "prop_had_any_fee_waiver",
     "prop_corporate_applicant"
-  ))
+  )
+)
 
 ## weights are all n_permits except for n_permits itself
-model_specs <- model_specs %>% 
+model_specs <- model_specs %>%
   mutate(weights = c(NA, rep("n_permits", nrow(model_specs) - 1)))
-
 
 
 # -----------------------------------------------------------------------------
@@ -93,17 +99,18 @@ model_specs <- model_specs %>%
 # -----------------------------------------------------------------------------
 
 # Create a grid of every combination of panel and model spec
-regression_grid <- crossing(
+regression_grid <- expand_grid(
   panel_name = names(panel_list),
   model_specs
 )
 
 # Define a function to run a single regression
 run_feols <- function(panel_name, outcome, weights) {
-  
-  fml_string <- sprintf("%s ~ strictness_index + %s | block_id + year",
-                        outcome, paste(controls, collapse = " + "))
-  
+  fml_string <- sprintf(
+    "%s ~ ward_homeownership_rate + %s | block_id + year",
+    outcome, paste(controls, collapse = " + ")
+  )
+
   feols(
     fml = as.formula(fml_string),
     data = panel_list[[panel_name]],
@@ -124,9 +131,9 @@ all_models <- regression_grid %>%
 # -----------------------------------------------------------------------------
 # --- Define clean headers to replace the long dependent variable names ---
 clean_headers <- c(
-  "Log(Permit Count)", 
-  "Log(Processing Time)", 
-  "Log(Reported Cost)", 
+  "Log(Permit Count)",
+  "Log(Processing Time)",
+  "Log(Reported Cost)",
   "Log(Total Fees)",
   "Log(Building Fee Paid)",
   "Log(Zoning Fee Paid)",
@@ -140,36 +147,36 @@ clean_headers <- c(
 
 
 rename_dict <- c(
-  "strictness_index" = "Restrictiveness Score",
-  "block_id"                  = "Census Block", 
-  "year"                      = "Year"
+  "ward_homeownership_rate" = "Ward Homeownership Rate",
+  "block_id" = "Census Block",
+  "year" = "Year"
 )
 
-unbalanced_models <- all_models %>% 
+unbalanced_models <- all_models %>%
   filter(panel_name == "unbalanced") %>%
   # Ensure the order matches model_specs by joining
   right_join(model_specs %>% mutate(row_id = row_number()), by = "outcome") %>%
   arrange(row_id) %>%
-  pull(model) 
+  pull(model)
 
 etable(
   unbalanced_models,
   # Formatting options
-  headers     = clean_headers,
-  keep        = "Restrictiveness Score",
+  headers = clean_headers,
+  keep = "Ward Homeownership Rate",
   style.tex = style.tex("aer"),
-  fitstat     = ~n,
-  depvar      = FALSE,
+  fitstat = ~n,
+  depvar = FALSE,
   digits = 2,
-  dict        = rename_dict,
+  dict = rename_dict,
   # General options
-  title       = "DiD Estimates (Unbalanced Panel)",
-  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
-  # file      = "../output/table_did_unbalanced.tex", 
+  title = "DiD Estimates (Unbalanced Panel)",
+  signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+  # file = "../output/table_did_unbalanced.tex",
   replace = T
 )
 
-balanced_models <- all_models %>% 
+balanced_models <- all_models %>%
   filter(panel_name == "balanced") %>%
   # Ensure the order matches model_specs by joining
   right_join(model_specs %>% mutate(row_id = row_number()), by = "outcome") %>%
@@ -181,17 +188,17 @@ balanced_models <- all_models %>%
 etable(
   balanced_models,
   # Formatting options
-  headers     = clean_headers,
-  keep        = "Restrictiveness Score",
+  headers = clean_headers,
+  keep = "Ward Homeownership Rate",
   style.tex = style.tex("aer"),
-  fitstat     = ~n,
-  depvar      = FALSE,
+  fitstat = ~n,
+  depvar = FALSE,
   digits = 2,
-  dict        = rename_dict,
+  dict = rename_dict,
   # General options
-  title       = "DiD Estimates (Balanced Panel)",
-  signif.code = c("***"=0.01, "**"=0.05, "*"=0.1),
-  # file      = "../output/table_did_balanced.tex",
+  title = "DiD Estimates (Balanced Panel)",
+  signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+  # file = "../output/table_did_balanced.tex",
   replace = T
 )
 
@@ -200,10 +207,10 @@ etable(
 ### event studies #########
 # -----------------------------------------------------------------------------
 
-event_study_specs <- model_specs 
+event_study_specs <- model_specs
 
 # Now, create every combination of panel and outcome.
-event_study_grid <- crossing(
+event_study_grid <- expand_grid(
   panel_name = names(panel_list),
   event_study_specs
 )
@@ -211,29 +218,30 @@ event_study_grid <- crossing(
 
 # --- Function to run a pair of event study models ---
 run_event_study_pair <- function(panel_name, outcome, weights) {
-  
   fml_event <- as.formula(
-    sprintf("%s ~ i(relative_year, treat, ref = -1) + %s | block_id + year",
-            outcome, paste(controls, collapse = " + "))
+    sprintf(
+      "%s ~ i(relative_year, treat, ref = -1) + %s | block_id + year",
+      outcome, paste(controls, collapse = " + ")
+    )
   )
-  
+
   panel_data <- panel_list[[panel_name]]
-  w_formula <-if (!is.na(weights)) as.formula(paste0("~", weights)) else NULL
-  
-  # Model 1: Moved to Stricter
+  w_formula <- if (!is.na(weights)) as.formula(paste0("~", weights)) else NULL
+
+  # Model 1: Moved to Higher Homeownership
   model_stricter <- feols(
     fml = fml_event,
-    data = panel_data %>% filter(switch_type %in% c("Control", "Moved to Stricter")),
+    data = panel_data %>% filter(switch_type %in% c("Control", "Moved to Higher Homeownership")),
     weights = w_formula, vcov = ~block_id
   )
-  
-  # Model 2: Moved to Less Strict
+
+  # Model 2: Moved to Lower Homeownership
   model_less_strict <- feols(
     fml = fml_event,
-    data = panel_data %>% filter(switch_type %in% c("Control", "Moved to Less Strict")),
+    data = panel_data %>% filter(switch_type %in% c("Control", "Moved to Lower Homeownership")),
     weights = w_formula, vcov = ~block_id
   )
-  
+
   # Return both models as a named list
   list(stricter = model_stricter, less_strict = model_less_strict)
 }
@@ -247,55 +255,61 @@ all_event_studies <- event_study_grid %>%
   ))
 
 
-
-# --- Final, corrected plotting function ---
+# ---  plotting function ---
 plot_event_study_ggplot <- function(model_pair, outcome, panel_name, ...) {
-  
   # 1. Safely extract data using the iplot() list output
   # iplot() returns a list, so we grab the first element [[1]]
-  
-  stricter_data <- tryCatch({
-    iplot(model_pair$stricter, .plot = FALSE)[[1]] %>% 
-      mutate(group = "Moved to Stricter Alderman")
-  }, error = function(e) NULL) # Return NULL if it fails
-  
-  less_strict_data <- tryCatch({
-    iplot(model_pair$less_strict, .plot = FALSE)[[1]] %>% 
-      mutate(group = "Moved to Less Strict Alderman")
-  }, error = function(e) NULL) # Return NULL if it fails
-  
+
+  stricter_data <- tryCatch(
+    {
+      iplot(model_pair$stricter, .plot = FALSE)[[1]] %>%
+        mutate(group = "Moved to Higher Homeownership")
+    },
+    error = function(e) NULL
+  ) # Return NULL if it fails
+
+  less_strict_data <- tryCatch(
+    {
+      iplot(model_pair$less_strict, .plot = FALSE)[[1]] %>%
+        mutate(group = "Moved to Lower Homeownership")
+    },
+    error = function(e) NULL
+  ) # Return NULL if it fails
+
   # 2. Combine any data that was successfully extracted
   plot_data <- bind_rows(stricter_data, less_strict_data)
-  
+
   if (nrow(plot_data) > 0) {
-    plot_data <- plot_data %>% 
+    plot_data <- plot_data %>%
       filter(x != -5) %>%
       # THE FIX: Multiply the correct columns by 100
       mutate(across(c(estimate, ci_low, ci_high), ~ .x * 100))
   }
-  
+
   # 3. Check if we have any data to plot
   if (is.null(plot_data) || nrow(plot_data) == 0) {
-    message(sprintf("--> SKIPPING PLOT for '%s' on '%s' panel (no coefficients found).", 
-                    outcome, panel_name))
+    message(sprintf(
+      "--> SKIPPING PLOT for '%s' on '%s' panel (no coefficients found).",
+      outcome, panel_name
+    ))
     return(invisible(NULL))
   }
-  
+
   # 4. Build the ggplot
   outcome_to_title <- setNames(
     paste("Effect on", clean_headers),
     model_specs$outcome
   )
-  
+
   main_title <- outcome_to_title[outcome]
-  
+
   p <- ggplot(plot_data, aes(x = factor(x), y = estimate, color = group)) + # Using factor(x) fixes the axis
     geom_vline(xintercept = "-1", linetype = "dashed", color = "gray60") +
     geom_hline(yintercept = 0, linetype = "dashed", color = "gray60") +
     geom_errorbar(aes(ymin = ci_low, ymax = ci_high), width = 0.2, alpha = 0.7) +
     geom_point(size = 2.5) +
-    facet_wrap(~ group) +
-    scale_color_manual(values = c("Moved to Stricter Alderman" = "#D55E00", "Moved to Less Strict Alderman" = "#0072B2")) +
+    facet_wrap(~group) +
+    scale_color_manual(values = c("Moved to Higher Homeownership" = "#D55E00", "Moved to Lower Homeownership" = "#0072B2")) +
     labs(
       title = main_title,
       subtitle = paste(str_to_title(panel_name), "Panel"),
@@ -309,59 +323,59 @@ plot_event_study_ggplot <- function(model_pair, outcome, panel_name, ...) {
       panel.grid = element_blank(),
       strip.text = element_text(face = "bold")
     )
-  
+
   return(p)
 }
 
 
 # generate all plots
 for (i in 1:nrow(all_event_studies)) {
-  
   params <- all_event_studies[i, ]
-  
-  message(sprintf("--- Processing spec %d/%d: %s (%s) ---", 
-                  i, nrow(all_event_studies), 
-                  params$outcome, 
-                  params$panel_name))
-  
-  tryCatch({
-    # 1. Generate the ggplot object by calling the function
-    my_plot <- plot_event_study_ggplot(
-      model_pair = params$model_pair[[1]],
-      outcome    = params$outcome,
-      panel_name = params$panel_name
-    )
-    
-    # 2. Check if the plot object is valid before proceeding
-    if (!is.null(my_plot)) {
-      # 3. Display the plot in your R session
-      print(my_plot)
-      
-      # 4. Create a clean filename (e.g., "plots/event_study_unbalanced_avg_total_fee.png")
-      # Simple approach: remove log() and parentheses, replace spaces with underscores
-      outcome_shortname <- params$outcome %>%
-        str_remove("log\\(") %>%
-        str_remove("\\)") %>%
-        str_replace_all("[^a-zA-Z0-9_]", "_") %>%
-        str_remove("^_+|_+$") # remove leading/trailing underscores
-      filename <- sprintf("../output/event_study_%s_%s.pdf", 
-                          params$panel_name, 
-                          outcome_shortname)
-      
-      # 5. Save the plot to the file
-      cowplot::save_plot(filename, my_plot, base_height = 6, base_width = 10, bg = "white")
-      
-      message(sprintf("      -> Plot saved to %s", filename))
+
+  message(sprintf(
+    "--- Processing spec %d/%d: %s (%s) ---",
+    i, nrow(all_event_studies),
+    params$outcome,
+    params$panel_name
+  ))
+
+  tryCatch(
+    {
+      # 1. Generate the ggplot object by calling the function
+      my_plot <- plot_event_study_ggplot(
+        model_pair = params$model_pair[[1]],
+        outcome    = params$outcome,
+        panel_name = params$panel_name
+      )
+
+      # 2. Check if the plot object is valid before proceeding
+      if (!is.null(my_plot)) {
+        # 3. Display the plot in your R session
+        print(my_plot)
+
+        # 4. Create a clean filename (e.g., "plots/event_study_unbalanced_avg_total_fee.png")
+        # Simple approach: remove log() and parentheses, replace spaces with underscores
+        outcome_shortname <- params$outcome %>%
+          str_remove("log\\(") %>%
+          str_remove("\\)") %>%
+          str_replace_all("[^a-zA-Z0-9_]", "_") %>%
+          str_remove("^_+|_+$") # remove leading/trailing underscores
+        filename <- sprintf(
+          "../output/event_study_%s_%s.pdf",
+          params$panel_name,
+          outcome_shortname
+        )
+
+        # 5. Save the plot to the file
+        cowplot::save_plot(filename, my_plot, base_height = 6, base_width = 10, bg = "white")
+
+        message(sprintf("      -> Plot saved to %s", filename))
+      }
+    },
+    error = function(e) {
+      message(sprintf("!!! An error occurred for plot %d. Skipping. !!!", i))
+      message("The error was:")
+      print(e$message)
     }
-    
-  }, error = function(e) {
-    message(sprintf("!!! An error occurred for plot %d. Skipping. !!!", i))
-    message("The error was:")
-    print(e$message)
-  })
+  )
 }
-
-
-
-
-

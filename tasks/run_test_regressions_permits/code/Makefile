@@ -24,7 +24,8 @@ OUTPUT_FILES := $(TABLES) $(PLOTS)
 SCRIPT_FILE := test_regressions_permits.R
 INPUT_UNBALANCED_PANEL := ../input/permit_regression_panel_blocks_unbalanced.csv
 INPUT_BALANCED_PANEL := ../input/permit_regression_panel_blocks_balanced.csv
-INPUT_FILES := $(INPUT_UNBALANCED_PANEL) $(INPUT_BALANCED_PANEL)
+INPUT_WARD_CONTROLS := ../input/ward_controls.csv
+INPUT_FILES := $(INPUT_UNBALANCED_PANEL) $(INPUT_BALANCED_PANEL) $(INPUT_WARD_CONTROLS)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -56,6 +57,10 @@ $(INPUT_UNBALANCED_PANEL): ../../merge_permits_blocks/output/permit_regression_p
 
 $(INPUT_BALANCED_PANEL): ../../merge_permits_blocks/output/permit_regression_panel_blocks_balanced.csv | ../input
 	@echo "→ [linking] Linking balanced regression panel"
+	ln -sf $< $@
+
+$(INPUT_WARD_CONTROLS): ../../create_homeownership_share/output/ward_controls_2000_2023.csv | ../input
+	@echo "→ [linking] Linking ward controls"
 	ln -sf $< $@
 
 

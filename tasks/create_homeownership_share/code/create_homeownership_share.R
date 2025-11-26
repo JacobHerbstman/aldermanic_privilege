@@ -1,135 +1,220 @@
-## This code creates a Block Group level panel (2010-2025)
-## It fetches ACS demographics annually and spatially joins them to the correct Ward for each year.
+## This code creates a comprehensive Ward-Year Panel (2000-2023) with Controls
+## Sources: 2000 Decennial, 2010 Decennial, and Annual ACS 5-Year Estimates
+
+## run this line when editing code in Rstudio
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 
 source("../../setup_environment/code/packages.R")
+library(tigris) # Required for the geometry fix
 
 # 1. SETUP & INPUTS
 # -----------------------------------------------------------------------------
+if (Sys.getenv("CENSUS_API_KEY") == "") {
+  stop("Error: CENSUS_API_KEY not found in .Renviron")
+}
 census_api_key(Sys.getenv("CENSUS_API_KEY"))
 
-# Load the Ward Panel and ensure CRS is correct
-ward_panel <- st_read("../input/ward_panel.gpkg") %>%
-  st_transform(3435)
+# Set tigris cache to avoid re-downloading good files
+options(tigris_use_cache = TRUE)
 
-# Define ACS Variables
-acs_vars <- c(
-  total_population = "B01003_001",
-  total_units      = "B25003_001",
-  owner_occupied   = "B25003_002",
-  median_income    = "B19013_001"
+# Load Ward Panel (CRS 3435)
+ward_panel <- st_read("../input/ward_panel.gpkg") %>% st_transform(3435)
+
+# 2. VARIABLE DICTIONARIES
+# -----------------------------------------------------------------------------
+
+# A. ACS Variables (2013+) & 2013 Proxy for 2010-2012 Econ
+vars_acs <- c(
+  tot_pop       = "B01003_001",
+  tot_hhs       = "B11001_001",
+  tot_units     = "B25003_001",
+  owner_occ     = "B25003_002",
+  renter_occ    = "B25003_003",
+  pop_white     = "B02001_002",
+  pop_black     = "B02001_003",
+  pop_hisp      = "B03003_003",
+  agg_income    = "B19025_001",
+  agg_value     = "B25079_001",
+  agg_rent      = "B25065_001",
+  pop_25plus    = "B15003_001",
+  educ_bach     = "B15003_022",
+  educ_mast     = "B15003_023",
+  educ_prof     = "B15003_024",
+  educ_doc      = "B15003_025"
 )
 
-# 2. PRE-FETCH GEOMETRIES (The Fix)
+# B. 2000 Decennial (SF3) - Has Econ Data
+vars_2000 <- c(
+  tot_pop       = "P001001",
+  tot_hhs       = "P010001",
+  tot_units     = "H001001",
+  owner_occ     = "H007002",
+  renter_occ    = "H007003",
+  pop_white     = "P006002",
+  pop_black     = "P006003",
+  pop_hisp      = "P007010",
+  agg_income    = "P054001",
+  agg_value     = "H081001",
+  agg_rent      = "H065001",
+  pop_25plus    = "P037001"
+)
+
+# C. 2010 Decennial (SF1) - Counts Only (No Econ)
+vars_2010_sf1 <- c(
+  tot_pop       = "P001001",
+  tot_hhs       = "P018001",
+  tot_units     = "H001001",
+  owner_occ     = "H004002",
+  renter_occ    = "H004003",
+  pop_white     = "P003002",
+  pop_black     = "P003003",
+  pop_hisp      = "P004003"
+)
+
+# 3. PRE-FETCH STATIC DATASETS (Regimes 1 & 2)
 # -----------------------------------------------------------------------------
-# Instead of downloading shapes every loop (which caused your error),
-# we download the "Master Map" for each Census era once.
 
-message("Fetching 2010-era Block Group Shapes (using 2019)...")
-bg_geo_2010 <- get_acs(
-  geography = "block group", variables = "B01003_001", 
-  state = "IL", county = "Cook", year = 2019, geometry = TRUE
-) %>% 
-  select(GEOID, geometry) %>% 
-  st_transform(3435)
+# --- REGIME 1: 2000 DECENNIAL (2000-2009) ---
+message("Fetching 2000 Decennial Data...")
+data_2000 <- get_decennial(
+  geography = "block group", variables = vars_2000,
+  state = "IL", county = "Cook", year = 2000, sumfile = "sf3", geometry = TRUE
+) %>%
+  st_transform(3435) %>%
+  select(GEOID, variable, value, geometry) %>%
+  pivot_wider(names_from = variable, values_from = value) %>%
+  mutate(educ_bach_plus = 0) # Placeholder
 
-message("Fetching 2020-era Block Group Shapes (using 2022)...")
-bg_geo_2020 <- get_acs(
-  geography = "block group", variables = "B01003_001", 
-  state = "IL", county = "Cook", year = 2022, geometry = TRUE
-) %>% 
-  select(GEOID, geometry) %>% 
-  st_transform(3435)
+# --- REGIME 2: 2010 HYBRID (2010-2012) ---
+message("Building 2010 Hybrid Dataset...")
+
+# A. Get Geometry using tigris (Avoids 'zip file' error)
+geo_2010 <- tigris::block_groups(state = "IL", county = "Cook", year = 2010, cb = FALSE) %>%
+  st_transform(3435) %>%
+  select(GEOID = GEOID10, geometry)
+
+# B. Get 2010 Demographics (SF1)
+data_2010_sf1 <- get_decennial(
+  geography = "block group", variables = vars_2010_sf1,
+  state = "IL", county = "Cook", year = 2010, geometry = FALSE
+) %>%
+  select(GEOID, variable, value) %>%
+  pivot_wider(names_from = variable, values_from = value)
+
+# C. Get 2013 ACS Economics (Proxy for 2010-2012 Econ)
+data_2013_econ <- get_acs(
+  geography = "block group", variables = vars_acs,
+  state = "IL", county = "Cook", year = 2013, survey = "acs5", geometry = FALSE
+) %>%
+  select(GEOID, variable, estimate) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(
+    educ_bach_plus = rowSums(across(c(educ_bach, educ_mast, educ_prof, educ_doc)), na.rm = TRUE)
+  ) %>%
+  select(GEOID, agg_income, agg_value, agg_rent, educ_bach_plus, pop_25plus)
+
+# D. Merge to create the Hybrid 2010 Dataset
+data_2010_hybrid <- geo_2010 %>%
+  left_join(data_2010_sf1, by = "GEOID") %>%
+  left_join(data_2013_econ, by = "GEOID")
+
+# --- REGIME 3 PREP: 2020 GEOMETRY ---
+message("Fetching 2020 Geometry...")
+geo_2020 <- tigris::block_groups(state = "IL", county = "Cook", year = 2020, cb = FALSE) %>%
+  st_transform(3435) %>%
+  select(GEOID, geometry)
 
 
-# 3. THE "GRAND LOOP"
+# 4. THE PANEL CONSTRUCTION LOOP
 # -----------------------------------------------------------------------------
-years_to_process <- 2013:2023
-LATEST_ACS_YEAR <- 2023 # Update this as needed
+years <- 2000:2023
 final_panel_list <- list()
 
-message(glue("Starting Annual Fetch & Join for years {min(years_to_process)} to {max(years_to_process)}..."))
+message(glue("Starting Panel Construction ({min(years)}-{max(years)})..."))
 
-for (y in years_to_process) {
+for (y in years) {
   
-  # --- A. Determine Data Year ---
-  fetch_year <- min(y, LATEST_ACS_YEAR)
-  message(glue("Panel Year: {y} | Using ACS Data from: {fetch_year}"))
+  message(glue("Processing Year: {y}"))
   
-  # --- B. Fetch Data Only (No Geometry) ---
-  # This is fast and won't crash on shapefile errors
-  current_data <- get_acs(
-    geography = "block group",
-    variables = acs_vars,
-    state = "IL",
-    county = "Cook",
-    year = fetch_year, 
-    survey = "acs5",
-    geometry = FALSE  # <--- IMPORTANT: Data only!
-  ) %>%
-    select(GEOID, variable, estimate) %>%
-    pivot_wider(names_from = variable, values_from = estimate) %>%
-    mutate(
-      homeownership_share = owner_occupied / total_units    
-      )
-  
-  # --- C. Join to Correct Geography ---
-  if (fetch_year < 2020) {
-    # Use 2010 shapes for 2010-2019 data
-    current_bgs <- left_join(bg_geo_2010, current_data, by = "GEOID")
+  # --- A. Select Data Source ---
+  if (y <= 2009) {
+    # Regime 1: 2000 Decennial
+    current_bgs <- data_2000
+    
+  } else if (y >= 2010 & y <= 2012) {
+    # Regime 2: 2010 Hybrid (Decennial Counts + 2013 ACS Econ)
+    current_bgs <- data_2010_hybrid
+    
   } else {
-    # Use 2020 shapes for 2020+ data
-    current_bgs <- left_join(bg_geo_2020, current_data, by = "GEOID")
+    # Regime 3: Annual ACS (2013+)
+    current_data <- get_acs(
+      geography = "block group", variables = vars_acs,
+      state = "IL", county = "Cook", year = y, survey = "acs5", geometry = FALSE
+    ) %>%
+      select(GEOID, variable, estimate) %>%
+      pivot_wider(names_from = variable, values_from = estimate) %>%
+      mutate(
+        educ_bach_plus = rowSums(across(c(educ_bach, educ_mast, educ_prof, educ_doc)), na.rm = TRUE)
+      )
+    
+    # Attach correct geometry
+    if (y < 2020) {
+      current_bgs <- geo_2010 %>% left_join(current_data, by = "GEOID")
+    } else {
+      current_bgs <- geo_2020 %>% left_join(current_data, by = "GEOID")
+    }
   }
   
-  # --- D. Select the Correct Ward Map ---
+  # --- B. Spatial Join to Ward ---
+  # Pick Ward Map
   current_wards <- ward_panel %>% filter(year == y)
+  if (nrow(current_wards) == 0) next
   
-  if (nrow(current_wards) == 0) {
-    warning(glue("No Ward boundaries found for year {y}! Skipping..."))
-    next
-  }
-  
-  # --- E. Spatial Join (Centroids) ---
+  # Centroid Join
   bg_centroids <- st_centroid(current_bgs)
-  
   joined_data <- st_join(bg_centroids, current_wards, join = st_within) %>%
     st_drop_geometry() %>%
-    mutate(data_year = y) %>%
-    select(
-      GEOID,
-      year = data_year,
-      ward,
-      homeownership_share,
-      median_income,
-      total_population,
-      total_units
-    )
+    mutate(year = y) %>%
+    filter(!is.na(ward))
   
   final_panel_list[[as.character(y)]] <- joined_data
 }
 
-# 4. COMBINE AND SAVE
+# 5. AGGREGATE TO WARD LEVEL
 # -----------------------------------------------------------------------------
-final_bg_panel <- bind_rows(final_panel_list) %>%
-  filter(!is.na(ward))
+message("Aggregating to Ward-Year Level...")
 
-ward_year_panel <- final_bg_panel %>%
+final_bg_panel <- bind_rows(final_panel_list)
+
+ward_controls <- final_bg_panel %>%
   group_by(ward, year) %>%
   summarize(
-    # 1. Reconstruct the raw counts to get the true rate
-    # (We sum the owner-occupied units and divide by the sum of total units)
-    ward_total_units = sum(total_units, na.rm = TRUE),
-    ward_owner_units = sum(total_units * homeownership_share, na.rm = TRUE),
+    # --- Universe Sums ---
+    pop_total = sum(tot_pop, na.rm = TRUE),
+    hh_total  = sum(tot_hhs, na.rm = TRUE),
+    hu_total  = sum(tot_units, na.rm = TRUE),
     
-    # 2. Calculate the Ward-Level Homeownership Rate
-    ward_homeownership_rate = ward_owner_units / ward_total_units,
+    # --- Demographics (Weighted Shares) ---
+    share_black = sum(pop_black, na.rm = TRUE) / sum(tot_pop, na.rm = TRUE),
+    share_hisp  = sum(pop_hisp, na.rm = TRUE) / sum(tot_pop, na.rm = TRUE),
+    share_white = sum(pop_white, na.rm = TRUE) / sum(tot_pop, na.rm = TRUE),
+    homeownership_rate = sum(owner_occ, na.rm = TRUE) / sum(tot_units, na.rm = TRUE),
+    share_bach_plus = sum(educ_bach_plus, na.rm = TRUE) / sum(pop_25plus, na.rm = TRUE),
     
-    # 3. Aggregate other useful controls (weighted by population/units)
-    ward_total_population = sum(total_population, na.rm = TRUE),
-    ward_median_income = weighted.mean(median_income, w = total_units, na.rm = TRUE),
+    # --- Economics (Weighted Means) ---
+    # Mean = Sum(Aggregates) / Sum(Universe)
+    avg_hh_income = sum(agg_income, na.rm = TRUE) / sum(tot_hhs, na.rm = TRUE),
+    avg_home_value = sum(agg_value, na.rm = TRUE) / sum(owner_occ, na.rm = TRUE),
+    avg_rent = sum(agg_rent, na.rm = TRUE) / sum(renter_occ, na.rm = TRUE),
     
     .groups = "drop"
   ) %>%
-  filter(ward_total_units > 0)
+  filter(pop_total > 0) %>% 
+  arrange(ward, year)
 
-write_csv(final_bg_panel, "../output/ward_year_panel.csv")
+# 6. SAVE
+# -----------------------------------------------------------------------------
+write_csv(ward_controls, "../output/ward_controls_2000_2023.csv")
+# write_parquet(ward_controls, "../output/ward_controls_2000_2023.parquet")
+
+message("Done! Ward Panel Created.")

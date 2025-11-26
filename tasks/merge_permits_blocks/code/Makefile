@@ -19,9 +19,7 @@ INPUT_BLOCKS    := ../input/census_blocks_2010.csv
 INPUT_PERMITS   := ../input/building_permits_clean.gpkg
 INPUT_WARD_PANEL := ../input/ward_panel.gpkg
 INPUT_BLOCK_PANEL := ../input/census_blocks_ward_switchers.gpkg
-INPUT_RESTRICTIVENESS_SCORES := ../input/alderman_restrictiveness_score.csv
 INPUT_CONTROLS := ../input/block_group_controls.csv
-INPUT_ALDERMAN_PANEL := ../input/alderman_panel.csv
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Define Goals
@@ -35,7 +33,7 @@ all: $(OUTPUT_UNBALANCED) $(OUTPUT_BALANCED)
 # Main rule to create the final output
 # This rule depends on the script and all three sets of input shapefiles.
 # -----------------------------------------------------------------------------
-$(OUTPUT_UNBALANCED) $(OUTPUT_BALANCED): $(SCRIPT_FILE) $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) $(INPUT_RESTRICTIVENESS_SCORES) $(INPUT_CONTROLS) $(INPUT_ALDERMAN_PANEL) | ../output
+$(OUTPUT_UNBALANCED) $(OUTPUT_BALANCED): $(SCRIPT_FILE) $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) $(INPUT_CONTROLS) | ../output
 	@echo "→ [merge_wards_blocks] Running R script to merge parcels with census blocks"
 	$(R) $(SCRIPT_FILE)
 
@@ -66,24 +64,19 @@ $(INPUT_BLOCK_PANEL): ../../merge_wards_blocks/output/census_blocks_ward_switche
 	@echo "→ [merge_parcels_blocks] Linking intermediate input: census_block_group_panel_wards"
 	ln -sf $< $@
 
-# Rule for linking restrictiveness scores
-$(INPUT_RESTRICTIVENESS_SCORES): ../../rank_alderman/output/aldermen_strictness_scores.csv | ../input
-	@echo "→ [merge_parcels_blocks] Linking intermediate input: alderman restrictiveness scores"
-	ln -sf $< $@
+
 
 # Rule for linking demographic controls
 $(INPUT_CONTROLS): ../../create_block_group_controls/output/block_group_controls.csv | ../input
 	@echo "→ [merge_parcels_blocks] Linking intermediate input: census_block_group_panel_wards"
 	ln -sf $< $@
 
-$(INPUT_ALDERMAN_PANEL): ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
-	@echo "→ [merge_parcels_blocks] Linking intermediate input: alderman panel"
-	ln -sf $< $@
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Utility Targets
 # ─────────────────────────────────────────────────────────────────────────────
 
-link-inputs: $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) $(INPUT_RESTRICTIVENESS_SCORES) $(INPUT_CONTROLS) $(INPUT_ALDERMAN_PANEL)
+link-inputs: $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) $(INPUT_CONTROLS)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Generic rules

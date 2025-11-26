@@ -12,31 +12,34 @@ source("../../setup_environment/code/packages.R")
 # --- 1. ARGUMENT HANDLING ---
 # =======================================================================================
 # --- Interactive Test Block (uncomment to run in RStudio) ---
-# yvar            <- "density_far"
-# use_log         <- F
-# bw              <- 1056
-# bins            <- bw/10
+yvar            <- "density_dupac"
+use_log         <- F
+bw              <- 1056
+bins            <- bw/10
 # =======================================================================================
 # --- Command-Line Arguments (uncomment for Makefile) ---
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 3) {
-  stop("FATAL: need 3 args: <yvar> <use_log> <window_miles> <bin_miles>", call. = FALSE)
-}
-yvar            <- args[1]
-use_log         <- as.logical(args[2])
-bw              <- as.numeric(args[3])
-bins            <- bw / 10
-
-bw_mi   <- bw   / 5280
-bins_mi <- bins / 5280
-cat(sprintf("→ Nonparametric stacked RD | y=%s | log=%s | bw=%.0fft (%.2f mi) | bin=%.1fft (%.2f mi)\n",
-            yvar, as.character(use_log), bw, bw_mi, bins, bins_mi))
+# if (length(args) != 3) {
+#   stop("FATAL: need 3 args: <yvar> <use_log> <window_miles> <bin_miles>", call. = FALSE)
+# }
+# yvar            <- args[1]
+# use_log         <- as.logical(args[2])
+# bw              <- as.numeric(args[3])
+# bins            <- bw / 10
+# 
+# bw_mi   <- bw   / 5280
+# bins_mi <- bins / 5280
+# cat(sprintf("→ Nonparametric stacked RD | y=%s | log=%s | bw=%.0fft (%.2f mi) | bin=%.1fft (%.2f mi)\n",
+#             yvar, as.character(use_log), bw, bw_mi, bins, bins_mi))
 
 # ------------------------- 2) LOAD -------------------------
 cat("Loading data...\n")
 df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>% 
-  filter(arealotsf > 1) %>%
-  filter(unitscount > 1)
+  mutate(homeownership_own = homeownership_own*100) %>% 
+  filter(arealotsf > 1) %>% 
+  # filter(unitscount > 1) %>% 
+  filter(construction_year > 2006)
+
   
   # --- Sample restriction helper: keep modal zone that exists on both sides within the bw ---
   restrict_to_modal_zone <- function(df, bw) {

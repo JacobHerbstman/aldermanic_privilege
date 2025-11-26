@@ -15,6 +15,7 @@ include ../../generic.make
   ../input/ward_panel.gpkg \
   ../input/chicago_alderman_panel.csv \
   ../input/aldermen_strictness_scores.csv \
+  ../input/ward_controls.csv \
   ../input/zoning_data_clean.gpkg \
   ../input/cta_stops.gpkg \
   ../input/major_streets.gpkg \
@@ -38,6 +39,9 @@ include ../../generic.make
 ../input/aldermen_strictness_scores.csv: ../../rank_aldermen/output/aldermen_strictness_scores.csv | ../input
 	@ln -sf $< $@
 
+../input/ward_controls.csv: ../../create_homeownership_share/output/ward_controls_2000_2023.csv | ../input
+	@ln -sf $< $@
+
 ../input/zoning_data_clean.gpkg: ../../zoning_data_cleaning/output/zoning_data_clean.gpkg | ../input
 	@ln -sf $< $@
 
@@ -53,6 +57,7 @@ include ../../generic.make
 ../input/schools_2015.gpkg: ../../download_amenities_data/output/schools_2015.gpkg | ../input
 	@ln -sf $< $@
 
+
 # --- Helper to create all links at once ---
 link-inputs: \
   ../input/year_built_sample.gpkg \
@@ -60,9 +65,11 @@ link-inputs: \
   ../input/ward_panel.gpkg \
   ../input/chicago_alderman_panel.csv \
   ../input/aldermen_strictness_scores.csv \
+  ../input/ward_controls.csv \
   ../input/zoning_data_clean.gpkg \
   ../input/cta_stops.gpkg \
   ../input/major_streets.gpkg \
   ../input/parks.gpkg \
   ../input/schools_2015.gpkg
+
 
