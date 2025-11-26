@@ -1,0 +1,66 @@
+\section{Toy Model}
+\label{sec:model}
+
+To illustrate the mechanism through which local political control restricts housing supply, I present a stylized model of housing development in a city divided into two wards, $A$ and $B$. This framework adapts the infrastructure misallocation model of \cite{bordeu2025} to the context of housing supply.
+
+The core tension in this model is between concentrated local costs and diffuse citywide benefits. While new housing creates positive spillovers for the city (lower prices, higher tax revenue, agglomeration effects), the ``nuisance'' costs (construction noise, parking congestion, change in neighborhood character) are borne almost entirely by the immediate neighbors.
+
+\subsection{Setup and Variable Definitions}
+
+The total housing stock in the city is $H = h_A + h_B$, where $h_g$ is the housing built in ward $g \in \{A, B\}$. The welfare of the city and the local wards is determined by the following components:
+
+\begin{itemize}
+    \item \textbf{$A(H)$ - Citywide Agglomeration Benefits:} This function represents the total value created by housing density, including increased property tax revenue, labor market pooling, and aggregate affordability. We assume $A'(H) > 0$ and $A''(H) < 0$ (diminishing marginal returns to density). Importantly, these benefits are \textbf{diffuse}; they are shared by the city as a whole.
+    
+    \item \textbf{$C(h_g)$ - Local Congestion Costs:} This represents the ``NIMBY'' costs associated with density—traffic, loss of light, or strain on local amenities. We assume these costs are concentrated entirely within the ward where construction occurs, with $C'(h_g) > 0$ and $C''(h_g) > 0$ (convex costs).
+    
+    \item \textbf{$\kappa$ - Private Construction Costs:} The marginal cost of construction borne by developers.
+    
+    \item \textbf{$\lambda$ - The ``Local Capture'' Parameter:} This parameter, where $0 < \lambda < 1$, represents the fraction of citywide benefits ($A(H)$) that the local Alderman internalizes. Because an Alderman only answers to constituents within their specific ward boundaries, they heavily discount benefits that spill over into the rest of the city (such as citywide tax revenue or regional affordability).
+\end{itemize}
+
+\subsection{The Decentralized Problem (The Alderman)}
+
+Under ``Aldermanic Privilege,'' the Alderman in ward $g$ has the de facto power to determine the level of housing $h_g$. They maximize a local welfare function that accounts for the full local costs ($C$) but only their specific share ($\lambda$) of the citywide benefits ($A$).
+
+Taking the other ward's housing decision ($h_{-g}$) as given, the Alderman solves:
+\begin{equation}
+    \max_{h_g \ge 0} \quad V_g(h_g; h_{-g}) = \lambda A(h_g + h_{-g}) - C(h_g) - \kappa h_g
+\end{equation}
+
+The Alderman's first-order condition (FOC) equates the \textit{local share} of the marginal benefit to the full marginal cost:
+\begin{equation}
+    \underbrace{\lambda A'(H)}_{\text{Perceived Local Benefit}} = \underbrace{C'(h_g) + \kappa}_{\text{Full Marginal Cost}}
+    \label{eq:alderman_foc}
+\end{equation}
+
+\subsection{The Planner's Problem}
+
+Conversely, a citywide social planner (e.g., a ``Strong Mayor'' or central planning board) seeks to maximize total city welfare. They internalize that benefits generated in Ward A help residents in Ward B (and vice versa). The Planner solves:
+\begin{equation}
+    \max_{h_A, h_B \ge 0} \quad W = A(H) - \sum_{g \in \{A,B\}} [C(h_g) + \kappa h_g]
+\end{equation}
+
+The Planner’s FOC equates the \textit{full} marginal benefit to the marginal cost:
+\begin{equation}
+    \underbrace{A'(H)}_{\text{True Citywide Benefit}} = \underbrace{C'(h_g) + \kappa}_{\text{Full Marginal Cost}}
+    \label{eq:planner_foc}
+\end{equation}
+
+\subsection{The Under-Provision Result}
+
+Comparing the two first-order conditions reveals the structural inefficiency of decentralized control. Because $\lambda < 1$, the Alderman perceives a lower marginal benefit curve than the Planner. Since the benefit function $A(\cdot)$ exhibits diminishing returns, the Alderman's optimal quantity intersects the cost curve at a lower level of housing supply:
+\begin{equation}
+    h^{\text{Decentralized}} < h^{\text{Social Planner}}
+\end{equation}
+
+The intuition is straightforward: The Alderman stops approving housing once the \textit{local} annoyances (congestion) outweigh the \textit{local} share of the benefits (tax revenue/amenities). The Planner would continue building until the \textit{total} citywide benefits are exhausted. The wedge $(1-\lambda)$ represents the positive externalities of housing that are left on the table due to political fragmentation.
+
+\begin{comment}
+\subsection{Differentiation from Prior Literature}
+
+This framework highlights how my contribution differs from \cite{khan_decentralized_2021}. Khan models the zoning process on the \textbf{intensive margin} as a negotiation, where the Alderman extracts rents or amenities from developers in exchange for spot-zoning approval. His empirical strategy relies on rezoning applications. 
+
+In contrast, my model focuses on the \textbf{extensive margin} of the housing stock. Even if no developer applies for a rezoning, this model predicts that the \textit{as-of-right} zoning envelope is set inefficiently low because Aldermen do not internalize the benefits of the citywide tax base. 
+By defining $A(H)$ to include fiscal externalities, this paper connects the legal institution of Aldermanic Privilege to the fiscal health of the municipality.
+\end{comment}

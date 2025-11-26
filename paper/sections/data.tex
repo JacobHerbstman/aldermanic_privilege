@@ -1,0 +1,19 @@
+\section{Data and Institutional Background}
+\label{sec:data}
+
+I use various publicly-accessible datasets from the Cook County Assessor's Office in this project.
+In order to measure the density and frequency of new construction,
+I first use data on Single and Multi-Family Improvement Characteristics which allows me to observe every ``improvement'' for each parcel in Cook County. 
+I merge this with the ``Parcel Universe'' dataset which gives me precise location coordinates. 
+This allows me to limit my sample to just parcels within the City of Chicago, and to assign each parcel to its respective ward using shapefiles from the City of Chicago's data portal.\footnote{https://data.cityofchicago.org/}
+I then collapse this data to the first date I observe the parcel and consider that to be the construction date of the property, and create a cross-section of properties constructed between 2006 and 2023. 
+Since this data only includes units that have at most 6 units of housing, I then use the Commerical Valuation dataset from Cook County to infer multifamily housing density 
+for buildings with more than 6 units and merge this with my residential conversion dataset to get the universe of new construction in Chicago between 2006 and 2023.
+
+Other data products I use are the census and American Community Survey (ACS) data to create my independent variable, homeownership rate, at the ward level, and 
+to control for various ward-level demographic characteristics in my regressions. I use zoning code data from 2nd city zoning \footnote{https://secondcityzoning.org/zones/} 
+to include zoning code fixed effects in my regressions as well to ensure that changes in density at political borders do not come from mechanical changes in zoning. 
+
+In additon, I have cleaned parcel-level sales data, parcel-level property valuation data, and have scraped the publicly available building permits dataset from the City of Chicago for details on the proposed units, square footage, and other characteristics of all permits in the city. 
+I also have unit level detailed rental posting data from RentHub which I want to look at as an outcome variable.
+While I do not have results today using any of that data, my plan is to incorporate those datasets into my analysis in the near future. 
