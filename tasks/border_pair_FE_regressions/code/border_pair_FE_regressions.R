@@ -9,7 +9,7 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-bw_ft <- 250
+bw_ft <- 100
 yvars <- c(
   "log(density_dupac)", "log(density_far)", "log(unitscount)", "log(storiescount)"
 )
@@ -24,7 +24,7 @@ output_filename <- "../output/fe_table_bw1056.tex"
 #   output_filename <- args[2]
 #   # space-separated yvars
 #   yvars <- args[3:length(args)]
-# 
+#
 #   # backward-compat: if exactly 3 args and the 3rd has commas, split them
 #   if (length(args) == 3 && grepl(",", args[3])) {
 #     yvars <- strsplit(args[3], ",")[[1]] |> trimws()
@@ -35,7 +35,7 @@ output_filename <- "../output/fe_table_bw1056.tex"
 #     stop("FATAL: need args: <bw_feet> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
 #   }
 # }
-# 
+#
 if (!is.finite(bw_ft) || bw_ft <= 0) stop("bw_feet must be a positive integer/numeric.")
 if (length(yvars) == 0) stop("No yvars provided.")
 
@@ -43,11 +43,11 @@ bw_mi <- round(bw_ft / 5280, 2)
 
 
 # ── 2) DATA ──────────────────────────────────────────────────────────────────
-parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>% 
-  mutate(homeownership_rate_own = log(homeownership_rate_own)) %>% 
-  filter(arealotsf > 1) %>% 
-  filter(areabuilding > 1) %>% 
-  # filter(unitscount > 1) %>%
+parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
+  mutate(strictness_own = strictness_own/sd(strictness_own, na.rm =T)) %>%
+  filter(arealotsf > 1) %>%
+  filter(areabuilding > 1) %>%
+  filter(unitscount > 1) %>%
   filter(construction_year > 2006)
 
 
@@ -102,22 +102,22 @@ n_ward_pairs <- function(x) {
 fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
 rename_dict <- c(
-  "homeownership_rate_own"  = "Ward Homeownership Rate",
-  "zone_code"          = "Zoning Code",
-  "construction_year"  = "Year",
-  "ward_pair"          = "Ward Pair",
-  "ward"               = "Ward",
-  "density_far"        = "Floor Area Ratio (FAR)",
-  "density_lapu"       = "Lot Area Per Unit (LAPU)",
-  "density_bcr"        = "Building Coverage Ratio (BCR)",
-  "density_lps"        = "Lot Size Per Story (LPS)",
-  "density_spu"        = "Square Feet Per Unit (SPU)",
-  "arealotsf"          = "Lot Area (sf)",
-  "areabuilding"       = "Building Area (sf)",
-  "storiescount"       = "Stories",
-  "unitscount"         = "Units",
-  "bedroomscount"      = "Bedrooms",
-  "bathcount"          = "Bathrooms"
+  "strictness_own" = "Strictness Score",
+  "zone_code" = "Zoning Code",
+  "construction_year" = "Year",
+  "ward_pair" = "Ward Pair",
+  "ward" = "Ward",
+  "density_far" = "Floor Area Ratio (FAR)",
+  "density_lapu" = "Lot Area Per Unit (LAPU)",
+  "density_bcr" = "Building Coverage Ratio (BCR)",
+  "density_lps" = "Lot Size Per Story (LPS)",
+  "density_spu" = "Square Feet Per Unit (SPU)",
+  "arealotsf" = "Lot Area (sf)",
+  "areabuilding" = "Building Area (sf)",
+  "storiescount" = "Stories",
+  "unitscount" = "Units",
+  "bedroomscount" = "Bedrooms",
+  "bathcount" = "Bathrooms"
 )
 
 
@@ -142,7 +142,7 @@ for (yv in yvars) {
     next
   }
 
-  fml_txt <- paste0(yv, " ~ homeownership_rate_own + abs(dist_to_boundary) | zone_code + construction_year^ward_pair ")
+  fml_txt <- paste0(yv, " ~ strictness_own + abs(dist_to_boundary) | zone_code + construction_year^ward_pair ")
   m <- feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
   m$custom_data <- df
 
@@ -157,7 +157,7 @@ names(models) <- col_headers
 table_title <- sprintf("Border-Pair FE estimates (bw = %f mi)", bw_mi)
 
 etable(models,
-  keep = "Homeownership Rate",
+  keep = "Strictness Score",
   fitstat = ~ n + myo + nwp,
   style.tex = style.tex("aer", model.format = ""),
   depvar = FALSE,

@@ -29,6 +29,9 @@ alderman_panel <- read_csv("../input/chicago_alderman_panel.csv")
 cat("Loading ward controls (homeownership rates)...\n")
 ward_controls <- read_csv("../input/ward_controls.csv")
 
+cat("Loading alderman strictness scores...\n")
+alderman_scores <- read_csv("../input/aldermen_strictness_scores.csv")
+
 if (st_crs(parcels) != st_crs(ward_panel)) {
   message("CRS mismatch detected. Transforming parcels CRS to match ward boundaries.")
   parcels <- st_transform(parcels, st_crs(ward_panel))
@@ -337,7 +340,8 @@ final_dataset <- parcels_with_distances %>%
     # fullbathcount, halfbathcount, roomscount,
     # construction_quality, central_heating, central_air, single_v_multi_family,
 
-    zone_code
+    zone_code,
+    yearmon_key
   )
 
 # -----------------------------------------------------------------------------
@@ -394,6 +398,7 @@ final_dataset <- as_tibble(st_drop_geometry(final_dataset))
 # Let's use construction_year to match the "treatment" at the time of construction.
 
 # Ensure ward_controls has the columns we need
+# Ensure ward_controls has the columns we need
 ward_controls_clean <- ward_controls
 
 final_dataset_signed <- final_dataset %>%
@@ -404,27 +409,32 @@ final_dataset_signed <- final_dataset %>%
     other_ward = if_else(ward == ward_a, ward_b, ward_a),
     match_year = construction_year
   ) %>%
-  
   # --- JOIN 1: Own Ward Data ---
   # This adds columns like 'share_black', 'homeownership_rate', etc.
   left_join(ward_controls_clean, by = c("ward" = "ward", "match_year" = "year")) %>%
-  
   # --- JOIN 2: Neighbor Ward Data (The Fix) ---
-  # The 'suffix' argument tells dplyr: 
-  # "If you see a column name that already exists (from Join 1), 
+  # The 'suffix' argument tells dplyr:
+  # "If you see a column name that already exists (from Join 1),
   #  rename the existing one with '_own' and the new one with '_neighbor'."
   left_join(
-    ward_controls_clean, 
+    ward_controls_clean,
     by = c("other_ward" = "ward", "match_year" = "year"),
-    suffix = c("_own", "_neighbor") 
+    suffix = c("_own", "_neighbor")
   ) %>%
-  
-  # Now you have variables like: homeownership_rate_own, homeownership_rate_neighbor
+  # --- JOIN 3: Neighbor Alderman ---
+  left_join(alderman_lookup, by = c("other_ward" = "ward", "yearmon_key")) %>%
+  rename(alderman_neighbor = alderman.y, alderman_own = alderman.x) %>%
+  # --- JOIN 4: Strictness Scores ---
+  left_join(alderman_scores, by = c("alderman_own" = "alderman")) %>%
+  rename(strictness_own = strictness_index) %>%
+  left_join(alderman_scores, by = c("alderman_neighbor" = "alderman")) %>%
+  rename(strictness_neighbor = strictness_index) %>%
+  # Now you have variables like: strictness_own, strictness_neighbor
   mutate(
     sign = case_when(
-      homeownership_rate_own > homeownership_rate_neighbor ~ 1,
-      homeownership_rate_own < homeownership_rate_neighbor ~ -1,
-      TRUE ~ NA_real_ 
+      strictness_own > strictness_neighbor ~ 1,
+      strictness_own < strictness_neighbor ~ -1,
+      TRUE ~ NA_real_
     ),
     signed_distance = dist_to_boundary * sign
   ) %>%
@@ -445,7 +455,7 @@ summary_stats <- final_dataset_signed %>%
     n_parcels = n(),
     n_wards = n_distinct(ward),
     n_ward_pairs = n_distinct(ward_pair, na.rm = TRUE),
-    n_aldermen = n_distinct(alderman, na.rm = TRUE),
+    n_aldermen = n_distinct(alderman_own, na.rm = TRUE),
     mean_dist_to_boundary = mean(signed_distance, na.rm = TRUE),
     median_dist_to_boundary = median(signed_distance, na.rm = TRUE),
     .by = c(boundary_year, construction_year)

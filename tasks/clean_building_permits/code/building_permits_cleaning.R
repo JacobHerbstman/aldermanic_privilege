@@ -8,7 +8,7 @@ source("../../setup_environment/code/packages.R")
 building_permits <- read_csv("../input/Building_Permits_20251121.csv")
 
 ## remove contact columns and clean up names
-building_permits <- building_permits %>% 
+building_permits_clean <- building_permits %>% 
   janitor::clean_names() 
 
 
@@ -56,8 +56,16 @@ high_discretion_permits <- c(
   "PERMIT - REINSTATE REVOKED PMT"
 )
 
+minor_permits <- c(
+  "PERMIT - EASY PERMIT PROCESS",
+  "PERMIT – EXPRESS PERMIT PROGRAM",
+  "PERMIT - SIGNS",
+  "PERMIT - SCAFFOLDING"
+)
+
 building_permits_clean2 <- building_permits_clean %>%
-  mutate(high_discretion = ifelse(permit_type %in% high_discretion_permits, 1, 0))
+  mutate(high_discretion = ifelse(permit_type %in% high_discretion_permits, 1, 0)) %>% 
+  mutate(minor_permit = ifelse(permit_type %in% minor_permits, 1, 0))
 
 
 ## remove negative processing times and NA processing times

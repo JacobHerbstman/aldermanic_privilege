@@ -37,7 +37,7 @@ water_osm        <- read_to_ward_crs("../input/gis_osm_water_a_free_1.shp")     
 ################################################
 ###### filter to HIGH DISCRETION PERMITS ONLY
 permits_high_discretion <- permits %>% 
-  filter(high_discretion == 1)
+  filter(minor_permit == 1)
 ##############################################
 
 # 1. SPATIAL JOIN PERMITS TO WARDS BY MONTH ================================

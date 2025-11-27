@@ -36,11 +36,15 @@ include ../../generic.make
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
 	@ln -sf $< $@
 
-../input/aldermen_strictness_scores.csv: ../../rank_aldermen/output/aldermen_strictness_scores.csv | ../input
-	@ln -sf $< $@
+../input/aldermen_strictness_scores.csv: ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
+	@echo "→ [calculate_distances] Linking intermediate input: strictness scores"
+	ln -sf $< $@
 
 ../input/ward_controls.csv: ../../create_homeownership_share/output/ward_controls_2000_2023.csv | ../input
-	@ln -sf $< $@
+	@echo "→ [calculate_distances] Linking intermediate input: ward controls"
+	ln -sf $< $@
+
+
 
 ../input/zoning_data_clean.gpkg: ../../zoning_data_cleaning/output/zoning_data_clean.gpkg | ../input
 	@ln -sf $< $@
