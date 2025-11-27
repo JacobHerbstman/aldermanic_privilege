@@ -61,17 +61,34 @@ which allows for a maximum FAR of 2.5, there will be a mechanical difference in 
 In addition, following \cite{black_better_1999,bayer_unified_2007,kulka_how_2022}, I include border-pair by construction-year fixed effects $\mu_{bt}$, which require that comparisons are only made between parcels that are located along the same border-pair and were constructed in the same year.
 While this is very strict and limits the amount of variation in my sample, differential trends in development density across different parts of the city (i.e. the west loop boom) could otherwise confound my estimates. 
 
-The main results are presented in Table~\ref{tab:fe_estimates_250}.
+And finally, I limit the sample to parcels with between 2 and 9 units to focus on mid-size multifamily housing. 
+Single family housing is the vast majority of new construction and does not have significant differences across political borders, and large developments (10+ units) are relatively rare and typically go through a more complicated planned development (PD) process with more oversight from the city and alderman.
+
+The main results are presented in Table~\ref{tab:fe_estimates_250}. 
+I limit the sample to parcels within 250 feet of a ward border to specifically test if different alderman effect density at a very fine scale where local demand shocks and neighborhood characteristics are likely to be very similar on either side of the border.
+The results are quite substantial and consistent across all three density measures. 
+A one standard deviation increase in my alderman strictness measure is associated with a 15\% decrease in DUPAC, a 9\% decrease in FAR, and a 13\% decrease in the number of units in the building, among new construction built in the same year and zoned the same on either side of the border.
+In addition, to show that these differences are not driven by area characteristics and appear to be hyper-localized to the border where alderman differences are likely to have the most effect, 
+I also run the same regressions but limit the sample to parcels within 1000 feet of a ward border. The differences are negative but much smaller and not significantly different from zero, as shown in Table~\ref{tab:fe_estimates_1000}.
+As a result, I interpret these results as strong evidence that aldermanic privilege and the bureaucratic frictions they create have a significant effect on development density in their wards.
 
 \begin{table}[htbp]
     \caption{Border-Pair FE Estimates (bw = 250 ft)}
     \label{tab:fe_estimates_250}
-    \centering
     
-    % 2. Input the file directly (NO \resizebox)
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250.tex}
     
     \footnotesize
-    \textit{Notes:} Standard errors are clustered at the ward-pair level. 
-    The outcome variables are logged to interpret coefficients as percentage changes.
- \end{table}
+    \textit{Notes:} Standard errors clustered at the ward-pair level.
+\end{table}
+
+
+\begin{table}[htbp]
+    \caption{Border-Pair FE Estimates (bw = 1000 ft)}
+    \label{tab:fe_estimates_1000}
+
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw1000.tex}
+    
+    \footnotesize
+    \textit{Notes:} Standard errors clustered at the ward-pair level.
+\end{table}

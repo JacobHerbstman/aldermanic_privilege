@@ -1,5 +1,4 @@
-## this code takes chicago ward shapefiles from the uchicago justice project and merges them for a panel with census blocks from 2010-2019
-## (https://img.shields.io/github/repo-size/uchicago-justice-project/data)
+## this code takes chicago ward shapefiles and merges them for a panel with census blocks from 2010-2019
 
 ## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
@@ -13,6 +12,9 @@ census_blocks <- read_csv("../input/census_blocks_2010.csv") %>%
   rename(geometry = the_geom)
 census_blocks <- st_as_sf(census_blocks, wkt = "geometry", crs = 4269) %>%
   st_transform(st_crs(ward_panel))
+
+# Optimization: Filter census blocks to those intersecting with wards
+census_blocks <- census_blocks[st_as_sfc(st_bbox(ward_panel)), ]
 
 ## create yearly panel of census blocks and their geometries
 census_blocks <- census_blocks %>%
@@ -47,9 +49,8 @@ permits_with_block_id <- permits_with_block_id %>%
 
 ## aggregate to block level since this is the unit of analysis
 block_level_aggregates <- permits_with_block_id %>%
-  # Drop geometry for much faster non-spatial aggregation
   st_drop_geometry() %>%
-  # Group by the block identifier and the year
+  as.data.frame() %>% # Explicitly break the sf/tibble connection
   group_by(block_id, application_start_date) %>%
   # Calculate summary statistics for each block-year
   summarise(
@@ -94,27 +95,28 @@ joined_panel_switch <- left_join(
   st_drop_geometry()
 
 ## bring in alderman data (chairs etc)
-# alderman_restrictiveness_scores <- read_csv("../input/alderman_restrictiveness_score.csv")
-# alderman_panel <- read_csv("../input/alderman_panel.csv")
-#
-# alderman_panel <- alderman_panel %>%
-#   filter(month(year_month_date) == 6) %>%
-#   mutate(year = year(year_month_date)) %>%
-#   select(year, ward, alderman, finance_chair, zoning_chair, budget_chair)
+alderman_restrictiveness_scores <- read_csv("../input/alderman_restrictiveness_scores_month_FEs.csv")
+alderman_panel <- read_csv("../input/chicago_alderman_panel.csv")
+
+alderman_panel <- alderman_panel %>%
+  mutate(month_date = as.Date(paste("01", month), format = "%d %b %Y")) %>%
+  filter(month(month_date) == 6) %>%
+  mutate(year = year(month_date)) %>%
+  select(year, ward, alderman)
 
 
-# alderman_scores <- alderman_panel %>%
-#   left_join(
-#     alderman_restrictiveness_scores,
-#     by = c("alderman")
-#     )
+alderman_scores <- alderman_panel %>%
+  left_join(
+    alderman_restrictiveness_scores,
+    by = c("alderman")
+  )
 
 
-# joined_panel_switch <- left_join(
-#   joined_panel_switch,
-#   alderman_panel,
-#   by = c("ward", "year")
-# )
+joined_panel_switch <- left_join(
+  joined_panel_switch,
+  alderman_scores,
+  by = c("ward", "year")
+)
 
 
 ## bring in block-group level controls

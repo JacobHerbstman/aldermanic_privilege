@@ -28,14 +28,14 @@ prepare_panel <- function(df) {
       post = ifelse(relative_year >= 0, 1, 0),
 
       # Use the actual implementation year (2015) for score comparison
-      score_pre = first(ward_homeownership_rate[year == 2014]),
-      score_post = first(ward_homeownership_rate[year == 2015]),
+      score_pre = first(strictness_index[year == 2014]),
+      score_post = first(strictness_index[year == 2015]),
 
       # Create a category for the type of switch
       switch_type = case_when(
         treat == 0 ~ "Control",
-        score_post > score_pre ~ "Moved to Higher Homeownership",
-        score_post < score_pre ~ "Moved to Lower Homeownership",
+        score_post > score_pre ~ "Moved to Higher Strictness",
+        score_post < score_pre ~ "Moved to Lower Strictness",
         TRUE ~ "No Change in Score"
       )
     )
@@ -45,7 +45,7 @@ unbalanced_panel <- unbalanced_panel %>%
   left_join(ward_controls, by = c("ward", "year")) %>%
   group_by(block_id) %>%
   prepare_panel() %>%
-  ungroup() %>% 
+  ungroup() %>%
   filter(avg_processing_time > 0)
 
 
@@ -107,7 +107,7 @@ regression_grid <- expand_grid(
 # Define a function to run a single regression
 run_feols <- function(panel_name, outcome, weights) {
   fml_string <- sprintf(
-    "%s ~ ward_homeownership_rate + %s | block_id + year",
+    "%s ~ strictness_index + %s | block_id + year",
     outcome, paste(controls, collapse = " + ")
   )
 
@@ -147,7 +147,7 @@ clean_headers <- c(
 
 
 rename_dict <- c(
-  "ward_homeownership_rate" = "Ward Homeownership Rate",
+  "strictness_index" = "Alderman Strictness Index",
   "block_id" = "Census Block",
   "year" = "Year"
 )
@@ -163,7 +163,7 @@ etable(
   unbalanced_models,
   # Formatting options
   headers = clean_headers,
-  keep = "Ward Homeownership Rate",
+  keep = "Alderman Strictness Index",
   style.tex = style.tex("aer"),
   fitstat = ~n,
   depvar = FALSE,
@@ -189,7 +189,7 @@ etable(
   balanced_models,
   # Formatting options
   headers = clean_headers,
-  keep = "Ward Homeownership Rate",
+  keep = "Alderman Strictness Index",
   style.tex = style.tex("aer"),
   fitstat = ~n,
   depvar = FALSE,
@@ -231,14 +231,14 @@ run_event_study_pair <- function(panel_name, outcome, weights) {
   # Model 1: Moved to Higher Homeownership
   model_stricter <- feols(
     fml = fml_event,
-    data = panel_data %>% filter(switch_type %in% c("Control", "Moved to Higher Homeownership")),
+    data = panel_data %>% filter(switch_type %in% c("Control", "Moved to Higher Strictness")),
     weights = w_formula, vcov = ~block_id
   )
 
   # Model 2: Moved to Lower Homeownership
   model_less_strict <- feols(
     fml = fml_event,
-    data = panel_data %>% filter(switch_type %in% c("Control", "Moved to Lower Homeownership")),
+    data = panel_data %>% filter(switch_type %in% c("Control", "Moved to Lower Strictness")),
     weights = w_formula, vcov = ~block_id
   )
 
@@ -263,7 +263,7 @@ plot_event_study_ggplot <- function(model_pair, outcome, panel_name, ...) {
   stricter_data <- tryCatch(
     {
       iplot(model_pair$stricter, .plot = FALSE)[[1]] %>%
-        mutate(group = "Moved to Higher Homeownership")
+        mutate(group = "Moved to Higher Strictness")
     },
     error = function(e) NULL
   ) # Return NULL if it fails
@@ -271,7 +271,7 @@ plot_event_study_ggplot <- function(model_pair, outcome, panel_name, ...) {
   less_strict_data <- tryCatch(
     {
       iplot(model_pair$less_strict, .plot = FALSE)[[1]] %>%
-        mutate(group = "Moved to Lower Homeownership")
+        mutate(group = "Moved to Lower Strictness")
     },
     error = function(e) NULL
   ) # Return NULL if it fails
@@ -309,7 +309,7 @@ plot_event_study_ggplot <- function(model_pair, outcome, panel_name, ...) {
     geom_errorbar(aes(ymin = ci_low, ymax = ci_high), width = 0.2, alpha = 0.7) +
     geom_point(size = 2.5) +
     facet_wrap(~group) +
-    scale_color_manual(values = c("Moved to Higher Homeownership" = "#D55E00", "Moved to Lower Homeownership" = "#0072B2")) +
+    scale_color_manual(values = c("Moved to Higher Strictness" = "#D55E00", "Moved to Lower Strictness" = "#0072B2")) +
     labs(
       title = main_title,
       subtitle = paste(str_to_title(panel_name), "Panel"),

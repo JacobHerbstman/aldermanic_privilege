@@ -20,6 +20,8 @@ INPUT_PERMITS   := ../input/building_permits_clean.gpkg
 INPUT_WARD_PANEL := ../input/ward_panel.gpkg
 INPUT_BLOCK_PANEL := ../input/census_blocks_ward_switchers.gpkg
 INPUT_CONTROLS := ../input/block_group_controls.csv
+INPUT_STRICTNESS := ../input/alderman_restrictiveness_scores_month_FEs.csv
+INPUT_ALD_PANEL := ../input/chicago_alderman_panel.csv
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Define Goals
@@ -33,7 +35,7 @@ all: $(OUTPUT_UNBALANCED) $(OUTPUT_BALANCED)
 # Main rule to create the final output
 # This rule depends on the script and all three sets of input shapefiles.
 # -----------------------------------------------------------------------------
-$(OUTPUT_UNBALANCED) $(OUTPUT_BALANCED): $(SCRIPT_FILE) $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) $(INPUT_CONTROLS) | ../output
+$(OUTPUT_UNBALANCED) $(OUTPUT_BALANCED): $(SCRIPT_FILE) $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) $(INPUT_CONTROLS) $(INPUT_STRICTNESS) $(INPUT_ALD_PANEL) | ../output
 	@echo "→ [merge_wards_blocks] Running R script to merge parcels with census blocks"
 	$(R) $(SCRIPT_FILE)
 
@@ -71,12 +73,22 @@ $(INPUT_CONTROLS): ../../create_block_group_controls/output/block_group_controls
 	@echo "→ [merge_parcels_blocks] Linking intermediate input: census_block_group_panel_wards"
 	ln -sf $< $@
 
+# Rule for linking strictness scores
+$(INPUT_STRICTNESS): ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
+	@echo "→ [merge_parcels_blocks] Linking intermediate input: strictness scores"
+	ln -sf $< $@
+
+# Rule for linking alderman panel
+$(INPUT_ALD_PANEL): ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
+	@echo "→ [merge_parcels_blocks] Linking intermediate input: alderman panel"
+	ln -sf $< $@
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Utility Targets
 # ─────────────────────────────────────────────────────────────────────────────
 
-link-inputs: $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) $(INPUT_CONTROLS)
+link-inputs: $(INPUT_BLOCKS) $(INPUT_PERMITS) $(INPUT_WARD_PANEL) $(INPUT_BLOCK_PANEL) $(INPUT_CONTROLS) $(INPUT_STRICTNESS) $(INPUT_ALD_PANEL)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Generic rules

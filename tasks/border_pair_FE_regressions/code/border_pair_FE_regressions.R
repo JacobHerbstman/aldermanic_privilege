@@ -59,7 +59,8 @@ base_name <- function(v) gsub("^log\\(|\\)$", "", v)
 pretty_label <- function(v) {
   b <- base_name(v)
   dict <- c(
-    "density_far" = "Floor Area Ratio (FAR)",
+    "density_dupac" = "DUPAC",
+    "density_far" = "FAR",
     "density_lapu" = "Lot Area Per Unit (LAPU)",
     "density_bcr" = "Building Coverage Ratio (BCR)",
     "density_lps" = "Lot Size Per Story (LPS)",
@@ -72,15 +73,19 @@ pretty_label <- function(v) {
     "bathcount" = "Bathrooms"
   )
   lab <- ifelse(b %in% names(dict), dict[[b]], b)
-  if (is_log_spec(v)) paste("Log", lab) else lab
-}
+  if (is_log_spec(v)) paste0("ln(", lab, ")") else lab
+  }
 
 # fitstat: mean of *level* DV for the estimation sample
 mean_y_level <- function(x) {
   dat <- x$custom_data
   y_lhs <- deparse(x$fml[[2]])
   y0 <- if (grepl("^log\\(", y_lhs)) gsub("^log\\(|\\)$", "", y_lhs) else y_lhs
-  mean(dat[[y0]], na.rm = TRUE)
+  
+  val <- mean(dat[[y0]], na.rm = TRUE)
+  
+  # Return a formatted string to force the display you want
+  sprintf("%.2f", val) 
 }
 fitstat_register("myo", mean_y_level, alias = "Dep. Var. Mean")
 
@@ -108,6 +113,7 @@ rename_dict <- c(
   "construction_year" = "Year",
   "ward_pair" = "Ward Pair",
   "ward" = "Ward",
+  "density_dupac" = "Dwelling Units Per Acre (DUPAC)",
   "density_far" = "Floor Area Ratio (FAR)",
   "density_lapu" = "Lot Area Per Unit (LAPU)",
   "density_bcr" = "Building Coverage Ratio (BCR)",
@@ -154,21 +160,25 @@ if (length(models) == 0) stop("No models estimated; check yvars and data.")
 names(models) <- col_headers
 
 # ── 5) TITLE & TABLE OUTPUT ──────────────────────────────────────────────────
-table_title <- sprintf("Border-Pair FE estimates (bw = %f mi)", bw_mi)
+table_title <- sprintf("Border-Pair FE estimates (bw = %.0f ft)", bw_ft)
 
 etable(models,
-  keep = "Strictness Score",
-  fitstat = ~ n + myo + nwp,
-  style.tex = style.tex("aer", model.format = ""),
-  depvar = FALSE,
-  digits = 2,
-  dict = rename_dict,
-  headers = names(models),
-  signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-  fixef.group = list("Ward-pair × Year FE" = "construction_year\\^ward_pair"),
-  title = table_title,
-  file         = output_filename,
-  replace = TRUE
+       keep = "Strictness Score",
+       fitstat = ~ n + myo + nwp,
+       style.tex = style.tex("aer", model.format = ""),
+       depvar = FALSE,
+       digits = 2,
+       dict = rename_dict,
+       headers = names(models),
+       signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+       fixef.group = list("Ward-pair × Year FE" = "construction_year\\^ward_pair"),
+       
+       # --- CHANGE THESE LINES ---
+       title = NULL,
+       float = FALSE,
+       # --------------------------
+       
+       file = output_filename,
+       replace = TRUE
 )
-
 

@@ -9,7 +9,11 @@ building_permits <- read_csv("../input/Building_Permits_20251121.csv")
 
 ## remove contact columns and clean up names
 building_permits_clean <- building_permits %>% 
-  janitor::clean_names() 
+  janitor::clean_names() %>% 
+  mutate(across(
+    .cols = matches("cost|fee|paid|waived|subtotal"),
+    .fns = ~ as.numeric(gsub("[^0-9.-]", "", .x))
+  ))
 
 
 # Identify rows that are missing lat/lon but have x/y coordinates
