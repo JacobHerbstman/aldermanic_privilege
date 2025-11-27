@@ -9,33 +9,33 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-bw_ft <- 100
-yvars <- c(
-  "log(density_dupac)", "log(density_far)", "log(unitscount)", "log(storiescount)"
-)
-output_filename <- "../output/fe_table_bw1056.tex"
+# bw_ft <- 250
+# yvars <- c(
+#   "log(density_dupac)", "log(density_far)", "log(unitscount)"
+# )
+# output_filename <- "../output/fe_table_bw1056.tex"
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 # Args: <bw_feet> <output_filename> <yvar1> [<yvar2> ...]
-# args <- commandArgs(trailingOnly = TRUE)
-# if (length(args) >= 3) {
-#   bw_ft           <- suppressWarnings(as.integer(args[1]))
-#   output_filename <- args[2]
-#   # space-separated yvars
-#   yvars <- args[3:length(args)]
-#
-#   # backward-compat: if exactly 3 args and the 3rd has commas, split them
-#   if (length(args) == 3 && grepl(",", args[3])) {
-#     yvars <- strsplit(args[3], ",")[[1]] |> trimws()
-#   }
-# } else {
-#   # allow interactive testing with objects already defined in the session
-#   if (!exists("bw_ft") || !exists("output_filename") || !exists("yvars")) {
-#     stop("FATAL: need args: <bw_feet> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
-#   }
-# }
-#
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) >= 3) {
+  bw_ft           <- suppressWarnings(as.integer(args[1]))
+  output_filename <- args[2]
+  # space-separated yvars
+  yvars <- args[3:length(args)]
+
+  # backward-compat: if exactly 3 args and the 3rd has commas, split them
+  if (length(args) == 3 && grepl(",", args[3])) {
+    yvars <- strsplit(args[3], ",")[[1]] |> trimws()
+  }
+} else {
+  # allow interactive testing with objects already defined in the session
+  if (!exists("bw_ft") || !exists("output_filename") || !exists("yvars")) {
+    stop("FATAL: need args: <bw_feet> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
+  }
+}
+
 if (!is.finite(bw_ft) || bw_ft <= 0) stop("bw_feet must be a positive integer/numeric.")
 if (length(yvars) == 0) stop("No yvars provided.")
 
@@ -47,8 +47,9 @@ parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_type
   mutate(strictness_own = strictness_own/sd(strictness_own, na.rm =T)) %>%
   filter(arealotsf > 1) %>%
   filter(areabuilding > 1) %>%
-  filter(unitscount > 1) %>%
-  filter(construction_year > 2006)
+  filter(unitscount > 1) %>% 
+  filter(unitscount > 1 & unitscount < 10) 
+  # filter(construction_year > 2006)
 
 
 # ── 3) HELPERS ───────────────────────────────────────────────────────────────
@@ -134,15 +135,14 @@ for (yv in yvars) {
 
   df <- parcels_fe %>%
     filter(dist_to_boundary <= bw_ft)
-  # filter(.data[[b]] > 0) %>%
-  # filter(density_far > 0 & density_lapu > 0)
 
   if (nrow(df) == 0) {
     warning(sprintf("Skipping '%s' (no rows after filtering).", yv))
     next
   }
 
-  fml_txt <- paste0(yv, " ~ strictness_own + abs(dist_to_boundary) | zone_code + construction_year^ward_pair ")
+  fml_txt <- paste0(yv, " ~ strictness_own + abs(dist_to_boundary) + avg_rent_own + share_white_own + avg_hh_income_own + share_bach_plus_own | 
+                    zone_code + construction_year^ward_pair")
   m <- feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
   m$custom_data <- df
 
@@ -167,6 +167,8 @@ etable(models,
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
   fixef.group = list("Ward-pair × Year FE" = "construction_year\\^ward_pair"),
   title = table_title,
-  # file         = output_filename,
+  file         = output_filename,
   replace = TRUE
 )
+
+

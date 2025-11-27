@@ -12,20 +12,20 @@ source("../../setup_environment/code/packages.R")
 # --- 1. ARGUMENT HANDLING ---
 # =======================================================================================
 # --- Interactive Test Block (uncomment to run in RStudio) ---
-# yvar            <- "density_dupac"
-# use_log         <- F
-# bw              <- 500
-# bins            <- bw/10
+yvar            <- "density_far"
+use_log         <- F
+bw              <- 1056
+bins            <- bw/10
 # =======================================================================================
 # --- Command-Line Arguments (uncomment for Makefile) ---
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 3) {
-  stop("FATAL: need 3 args: <yvar> <use_log> <window_miles> <bin_miles>", call. = FALSE)
-}
-yvar <- args[1]
-use_log <- as.logical(args[2])
-bw <- as.numeric(args[3])
-bins <- bw / 10
+# args <- commandArgs(trailingOnly = TRUE)
+# if (length(args) != 3) {
+#   stop("FATAL: need 3 args: <yvar> <use_log> <window_miles> <bin_miles>", call. = FALSE)
+# }
+# yvar <- args[1]
+# use_log <- as.logical(args[2])
+# bw <- as.numeric(args[3])
+# bins <- bw / 10
 
 bw_mi <- bw / 5280
 bins_mi <- bins / 5280
@@ -37,9 +37,11 @@ cat(sprintf(
 # ------------------------- 2) LOAD -------------------------
 cat("Loading data...\n")
 df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
-  mutate(strictness_own = strictness_own / sd(strictness_own, na.rm = T)) %>%
+  mutate(strictness_own = strictness_own/sd(strictness_own, na.rm =T)) %>%
   filter(arealotsf > 1) %>%
-  # filter(unitscount > 1) %>%
+  filter(areabuilding > 1) %>%
+  filter(unitscount > 1) %>% 
+  # filter(unitscount > 1 & unitscount < 10) %>% 
   filter(construction_year > 2006)
 
 
@@ -96,7 +98,7 @@ restrict_to_modal_zone <- function(df, bw) {
     select(-modal_zone_code)
 }
 
-df <- restrict_to_modal_zone(df, bw)
+# df <- restrict_to_modal_zone(df, bw)
 
 # ------------------------- 3) OUTCOME ----------------------
 if (use_log) {
@@ -129,7 +131,7 @@ y_axis_label <- pretty_y(yvar, isTRUE(use_log))
 df <- df %>% filter(abs(signed_distance) <= bw)
 
 # Minimal columns
-keep_cols <- c("outcome", "signed_distance", "ward_pair", "construction_year", "ward")
+keep_cols <- c("outcome", "signed_distance", "ward_pair", "construction_year", "ward", "zone_code")
 df <- df[, intersect(names(df), keep_cols)]
 
 N_full <- nrow(df)
@@ -149,8 +151,8 @@ df <- df %>%
 ref_bin <- -1L
 
 # ------------------------- 6) FIXED EFFECTS ----------------
-fe_part <- "ward_pair"
-if ("construction_year" %in% names(df)) fe_part <- paste(fe_part, "construction_year", sep = "^")
+fe_part <- "zone_code + ward_pair^construction_year"
+# if ("construction_year" %in% names(df)) fe_part <- paste(fe_part, "construction_year", sep = "^")
 
 # ------------------------- 7) ESTIMATION -------------------
 fml <- as.formula(paste0("outcome ~ i(bindex, ref = ", ref_bin, ") | ", fe_part))
@@ -270,5 +272,5 @@ outfile <- file.path(
   sprintf("nonparametric_rd_%s%s_bw%s.pdf", log_prefix, yvar, bw)
 )
 
-cowplot::save_plot(outfile, plot = p, base_width = 8.2, base_height = 6.0, dpi = 300, device = "pdf")
+# cowplot::save_plot(outfile, plot = p, base_width = 8.2, base_height = 6.0, dpi = 300, device = "pdf")
 cat("✓ Plot saved to:", outfile, "\n")
