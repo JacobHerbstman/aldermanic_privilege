@@ -61,5 +61,17 @@ which allows for a maximum FAR of 2.5, there will be a mechanical difference in 
 In addition, following \cite{black_better_1999,bayer_unified_2007,kulka_how_2022}, I include border-pair by construction-year fixed effects $\mu_{bt}$, which require that comparisons are only made between parcels that are located along the same border-pair and were constructed in the same year.
 While this is very strict and limits the amount of variation in my sample, differential trends in development density across different parts of the city (i.e. the west loop boom) could otherwise confound my estimates. 
 
-The main results are presented in.
-\input{../tasks/border_pair_FE_regressions/output/fe_table_bw250.tex}
+The main results are presented in Table~\ref{tab:fe_estimates_250}.
+
+\begin{table}[htbp]
+    \caption{Border-Pair FE Estimates (bw = 250 ft)}
+    \label{tab:fe_estimates_250}
+    \centering
+    
+    % 2. Input the file directly (NO \resizebox)
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250.tex}
+    
+    \footnotesize
+    \textit{Notes:} Standard errors are clustered at the ward-pair level. 
+    The outcome variables are logged to interpret coefficients as percentage changes.
+ \end{table}
