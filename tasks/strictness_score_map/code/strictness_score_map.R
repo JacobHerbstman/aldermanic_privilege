@@ -7,10 +7,14 @@ source("../../setup_environment/code/packages.R")
 
 
 args <- commandArgs(trailingOnly = TRUE)
-date_str <- if (length(args) >= 1) args[1] else "2014-05"
+date_str <- if (length(args) >= 1) args[1] else "2025-01"
 month_dt <- as.Date(paste0(date_str, "-01"))
-use_year <- if (month_dt < as.Date("2015-05-01")) 2014 else 2015
+use_year <- as.integer(format(month_dt, "%Y"))
 
+# date_str <-  "2025-01"
+# month_dt <- as.Date(paste0(date_str, "-01"))
+# #extract year from date_str directly
+# use_year <- as.integer(format(month_dt, "%Y"))
 
 # Shapes for the chosen year
 wards <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
@@ -25,7 +29,7 @@ scores <- read_csv("../input/alderman_restrictiveness_scores_month_FEs.csv",
 # Alderman → Ward mapping for the chosen year
 panel <- read_csv("../input/chicago_alderman_panel.csv",
                   show_col_types = FALSE) %>%
-  filter(year_month_date == month_dt) %>%
+  filter(month == as.yearmon(month_dt)) %>%
   transmute(ward,
             alderman = str_squish(str_to_lower(alderman)))
 
@@ -41,7 +45,7 @@ p <- ggplot(ward_map) +
   geom_sf(aes(fill = score), color = "grey20", linewidth = 0.2) +
   scale_fill_viridis_c(option = "turbo", name = "Strictness index", na.value = "grey90") +
   labs(
-    title   = paste0("Alderman Strictness Index by Ward (", date_str, ")")
+    title   = paste0("Alderman Strictness Index by Ward (", as.yearmon(date_str), ")")
   ) +
   theme_void() +
   theme(legend.position = "bottom",
