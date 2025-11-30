@@ -1,7 +1,7 @@
 \section{Toy Model}
 \label{sec:model}
 
-To illustrate the mechanism through which local political control restricts housing supply, I present a stylized model of housing development in a city divided into two wards, $A$ and $B$. This framework adapts the infrastructure misallocation model of \cite{bordeu2025} to the context of housing supply.
+To illustrate the mechanism through which local political control restricts housing supply, I present a stylized model of housing development in a city divided into two wards, $A$ and $B$. This framework adapts the infrastructure misallocation model of \cite{bordeu_commuting_2025} to the context of housing supply.
 
 The core tension in this model is between concentrated local costs and diffuse citywide benefits. While new housing creates positive spillovers for the city (lower prices, higher tax revenue, agglomeration effects), the ``nuisance'' costs (construction noise, parking congestion, change in neighborhood character) are borne almost entirely by the immediate neighbors.
 
@@ -56,11 +56,17 @@ Comparing the two first-order conditions reveals the structural inefficiency of 
 
 The intuition is straightforward: The Alderman stops approving housing once the \textit{local} annoyances (congestion) outweigh the \textit{local} share of the benefits (tax revenue/amenities). The Planner would continue building until the \textit{total} citywide benefits are exhausted. The wedge $(1-\lambda)$ represents the positive externalities of housing that are left on the table due to political fragmentation.
 
-\begin{comment}
-\subsection{Differentiation from Prior Literature}
 
-This framework highlights how my contribution differs from \cite{khan_decentralized_2021}. Khan models the zoning process on the \textbf{intensive margin} as a negotiation, where the Alderman extracts rents or amenities from developers in exchange for spot-zoning approval. His empirical strategy relies on rezoning applications. 
+\subsection{Comparative Statics: Frictions vs. Preferences}
+\label{subsec:comparative_statics}
 
-In contrast, my model focuses on the \textbf{extensive margin} of the housing stock. Even if no developer applies for a rezoning, this model predicts that the \textit{as-of-right} zoning envelope is set inefficiently low because Aldermen do not internalize the benefits of the citywide tax base. 
-By defining $A(H)$ to include fiscal externalities, this paper connects the legal institution of Aldermanic Privilege to the fiscal health of the municipality.
-\end{comment}
+The equilibrium level of housing in the alderman's ward, $h_g^*$, is implicitly defined by the Alderman's first-order condition (Equation \ref{eq:alderman_foc}): $\lambda A'(H) = C'(h_g) + \kappa$. 
+By differentiating with respect to our parameters of interest, we can see that housing supply is decreasing in the bureaucratic friction parameter $\kappa$ and increasing in the local capture parameter $\lambda$:
+
+\begin{equation}
+    \frac{\partial h_g^*}{\partial \kappa} < 0 \quad \text{and} \quad \frac{\partial h_g^*}{\partial \lambda} > 0
+\end{equation}
+
+Empirically, this implies that observing lower density in a ward could result from either an Alderman who heavily discounts citywide benefits (low $\lambda$) 
+or one who imposes high private costs on developers (high $\kappa$). 
+While local control is typically viewed as a preference parameter ($\lambda$), heterogeneity in bureaucratic frictions ($\kappa$) can generate similar outcomes, motivating the empirical strategy outlined in Section~\ref{sec:empirical_results} where I directly create a measure of bureaucratic frictions induced by each Alderman.

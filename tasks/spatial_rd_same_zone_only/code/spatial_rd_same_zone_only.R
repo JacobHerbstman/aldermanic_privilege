@@ -30,7 +30,11 @@ stopifnot(donut >= 0, donut < bw)
 
 # --- 2) LOAD & PREPARE DATA ----------------------------------------------------
 cat("Loading and preparing data...\n")
-dat_raw <- read_csv("../input/parcels_with_ward_distances.csv")
+dat_raw <- read_csv("../input/parcels_with_ward_distances.csv") %>% 
+  filter(arealotsf > 1) %>%
+  filter(areabuilding > 1) %>%
+  filter(unitscount > 1) %>% 
+  filter(unitscount > 1 & unitscount <= 50)
 
 # keep strictly positive outcomes (for logs) and build 'outcome'
 dat <- dat_raw[dat_raw[[yvar]] > 0, ] %>%
@@ -41,8 +45,7 @@ dat <- dat_raw[dat_raw[[yvar]] > 0, ] %>%
 
 # Restrict to parcels within bandwidth and outside donut with non-missing units
 dat_bw <- dat %>%
-  filter(within_bw, abs(signed_distance) >= donut) %>% 
-  filter(unitscount > 0) 
+  filter(within_bw, abs(signed_distance) >= donut)
 
 # Count parcels by zone within each (boundary_year, ward_pair) window
 zone_counts <- dat_bw %>%
@@ -112,9 +115,9 @@ annotation_text
 if (yvar == "density_far") {
   y_axis_label <- "Floor-Area Ratio (FAR)"
   if (use_log) {
-    ylim <- c(-1, 1)
+    ylim <- c(-2, 2)
   } else {
-    ylim <- c(0, 2)
+    ylim <- c(0, 4)
   }
 } else if (yvar == "density_lapu") {
   y_axis_label <- "Lot Area Per Unit (LAPU)"
@@ -198,10 +201,8 @@ plot2 <- ggplot() +
            label = annotation_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold") +
   labs(
     title    = plot_title,
-    subtitle = paste0("bw: ", round(bw/5280, 2),
-                      " mi | donut: ", round(donut/5280, 3),
-                      " mi | kernel: ", kernel,
-                      " | same zoning across border"),
+    subtitle = paste0("bw: ", round(bw, 2),
+                      " ft | kernel: ", kernel),
     y = y_axis_label,
     x = "Distance to Stricter Ward Boundary (feet)"
   ) +

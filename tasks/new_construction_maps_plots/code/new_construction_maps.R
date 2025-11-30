@@ -12,11 +12,16 @@ ward_panel <- st_read("../input/ward_panel.gpkg")
 
 # Filter parcels for construction years between 2006 and 2014
 parcels_2006_2014 <- parcels %>%
-  filter(construction_year >= 2003 & construction_year <= 2014) 
+  filter(unitscount > 1) %>% 
+  filter(construction_year >= 2006 & construction_year <= 2014) 
 
 parcels_2015_2023 <- parcels %>%
-  filter(construction_year >= 2016) %>% 
-  filter(residential == T)
+  filter(unitscount > 1) %>% 
+  filter(construction_year >= 2016 & construction_year <= 2023)
+
+parcels_2023_2025 <- parcels %>%
+  filter(unitscount > 1) %>% 
+  filter(construction_year >= 2023 & construction_year <= 2025)
 
 # Use the 2014 ward boundaries, which were in effect for the 2006-2014 period
 wards_2014 <- ward_panel %>%
@@ -24,6 +29,9 @@ wards_2014 <- ward_panel %>%
 
 wards_2015 <- ward_panel %>%
   filter(year == 2015) 
+
+wards_2025 <- ward_panel %>%
+  filter(year == 2025) 
 
 # -----------------------------------------------------------------------------
 # 2. CREATE AND SAVE THE MAP
@@ -112,7 +120,48 @@ ggsave("../output/construction_map_2016_2023_w_density.pdf", plot = construction
 
 
 
-# cat("Map saved to ../output/construction_map_2015_2023_w_density.pdf\n")
+
+
+# -----------------------------------------------------------------------------
+# 2. CREATE AND SAVE THE MAP
+# -----------------------------------------------------------------------------
+
+cat("Generating map of new construction...\n")
+
+# Create the plot with ggplot2
+construction_map <- ggplot() +
+  # Add the ward boundaries with a white fill and clear, dark gray outlines
+  geom_sf(data = wards_2025, fill = "white", color = "gray20") +
+  
+  # Add the parcel locations, with color mapped to Floor Area Ratio (FAR)
+  geom_sf(data = parcels_2023_2025, aes(color = density_far), size = 0.3, alpha = 0.5) +
+  
+  # Use a capped color scale to handle outliers and show more variation
+  scale_color_viridis_c(
+    option = "turbo", 
+    name = "Floor Area Ratio (FAR)",
+    limits = c(0, 2),  # Set the range of the color scale
+    oob = scales::squish # "Squish" out-of-bounds values to the limits
+  ) +
+  
+  # Add labels and a clean theme
+  labs(
+    title = "New Residential Construction in Chicago (2015-2023)",
+    subtitle = "Construction locations colored by density (FAR)"
+  ) +
+  theme_void() +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+
+
+construction_map
+
+ggsave("../output/construction_map_2023_2025_w_density.pdf", plot = construction_map, width = 8, height = 10, dpi = 300)
+
+
 
 
 
@@ -265,3 +314,6 @@ ggsave("../output/construction_map_2016_2023_w_density.pdf", plot = construction
 #        width = 7, height = 7)
 # 
 # 
+
+
+parcels_2023_2025 %>% filter(str_detect(ward_pair, "34"))

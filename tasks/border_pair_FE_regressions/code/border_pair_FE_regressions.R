@@ -48,7 +48,7 @@ parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_type
   filter(arealotsf > 1) %>%
   filter(areabuilding > 1) %>%
   filter(unitscount > 1) %>% 
-  filter(unitscount > 1 & unitscount < 10) 
+  filter(unitscount > 1 & unitscount <= 50) 
   # filter(construction_year > 2006)
 
 
@@ -178,7 +178,7 @@ etable(models,
        float = FALSE,
        # --------------------------
        
-       # file = output_filename,
+       file = output_filename,
        replace = TRUE
 )
 

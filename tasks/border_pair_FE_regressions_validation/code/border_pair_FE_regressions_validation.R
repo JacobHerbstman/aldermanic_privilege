@@ -42,7 +42,7 @@ parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_type
   filter(arealotsf > 1) %>%
   filter(areabuilding > 1) %>%
   filter(unitscount > 1) %>% 
-  filter(unitscount > 1 & unitscount < 10) 
+  filter(unitscount > 1 & unitscount < 50) 
 # filter(construction_year > 2006)
 
 
@@ -174,3 +174,29 @@ etable(models,
        file = output_filename,
        replace = TRUE
 )
+
+
+
+# x <- lm(strictness_own ~ strictness_neighbor + homeownership_rate_own + share_white_own + share_bach_plus_own, data = parcels_fe)
+# summary(x)
+# 
+# 
+# m_resid <- feols(log(density_far) ~ 1 | construction_year^ward_pair, data = parcels_fe)
+# parcels_fe$density_resid <- residuals(m_resid)
+
+# Run a quick model to residualize strictness (removing location fixed effects)
+# This isolates the *variation* in strictness within the pair
+# m_strict <- feols(strictness_own ~ 1 | construction_year^ward_pair, data = parcels_fe)
+# parcels_fe$strictness_resid <- residuals(m_strict)
+# 
+# # Plot
+# ggplot(parcels_fe, aes(x = strictness_resid, y = density_resid)) +
+#   geom_bin2d(bins = 30) + # Or geom_point(alpha=0.1)
+#   geom_smooth(method = "lm", color = "red") +
+#   labs(
+#     x = "Aldermanic Strictness (Residualized by Border Pair)",
+#     y = "Housing Density (Residualized by Border Pair)",
+#     title = "Figure 1: Stricter Wards have Lower Density within Border Pairs"
+#   ) +
+#   theme_minimal()
+

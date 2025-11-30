@@ -3,10 +3,10 @@ SHELL := bash
 .DEFAULT_GOAL := all
 
 # ---------------- Tunable grids (override via `make VAR="..."`) ----------------
-MAX_DISTS     ?= 1000 1500 2000
-BIN_WIDTHS    ?= 50 100
-INNER_WINDOWS ?= 0 200 300
-POLY_DEGREES  ?= 2 4
+MAX_DISTS     ?= 250 500 1000 1500 2000
+BIN_WIDTHS    ?= 25 50 100
+INNER_WINDOWS ?= 0 50 200 300
+POLY_DEGREES  ?= 1 2 4
 BOOT_B        ?= 250
 
 # ---------------- Files ----------------

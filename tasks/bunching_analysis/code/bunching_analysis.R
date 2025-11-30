@@ -44,7 +44,11 @@ set.seed(1234)
 # ------------------------------
 # 1) Load & prep
 # ------------------------------
-parcels <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE)
+parcels <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>% 
+  filter(arealotsf > 1) %>%
+  filter(areabuilding > 1) %>%
+  filter(unitscount > 1) %>% 
+  filter(unitscount > 1 & unitscount < 10) 
 
 req <- c("ward_pair","dist_to_boundary","strictness_own","strictness_neighbor","construction_year")
 miss <- setdiff(req, names(parcels))
