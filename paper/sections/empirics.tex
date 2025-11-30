@@ -4,11 +4,10 @@
 \subsection{Measuring Aldermanic Frictions}
 
 In order to examine the effects of aldermanic privilege I need a way to measure how much each alderman uses their privilege to influence development in their ward. 
-I use publicly available building permits data to construct this measure by measuring how long average processing times for \textit{minor} permits only. 
-Minor permits are those designated as  ``signs, scaffolding, express permit programs, or easy permit process'' permits. 
-I have excluded new construction, renovations, demolitions, porch construction \footnote{While these may seem minor, they have received extra scrutiny since the 2003 balcony collapse.}, 
-and permits that were reinstating previously revoked permits. The goal is to capture aldermen that use their influence to delay even small, uncontroversial modifications and to avoid threats to identification that 
-could come from reverse causality, since aldermen that are known to cause delays for large projects may also be the ones that large developers choose to avoid.
+I use publicly available building permits data to construct this measure by measuring how long average processing times for \textit{high-discretion} permits only. 
+High-discretion permits are those designated as  ``New Construction, Renovation, Demolition, Porch Construction\footnote{While these may seem minor, they have received extra scrutiny since the 2003 balcony collapse.}'' permits and permits that were reinstated after being previously revoked. 
+I have excluded permits in the easy permit process and express permit program, along with signs and scaffolding permits. 
+The goal is to target the specific permit types that tend to draw community opposition and are more likely to face delays due to community meetings and aldermanic discretion on behalf of their constituents. 
 
 Once I have my sample of permits, I construct the ``aldermen strictness score" as follows. 
 First, I attempt to residualize out ward-specific characteristics by regressing the raw permit processing times 
@@ -29,8 +28,7 @@ $\gamma_{a}$ are the aldermen fixed effects that I use as my dependent variable 
 The scores are standardized to have mean zero and standard deviation one, and the results of my regressions can be found in Figure~\ref{fig:aldermanic_strictness_scores}.
 In addition, a map of the aldermanic strictness scores can be found in Figure~\ref{fig:alderman_strictness_map}. 
 There are strict and lenient aldermen all over the city, confirming I am not just picking up geographic patterns or neighborhood characteristics, but am actually capturing differences in the bureaucratic frictions created by each alderman.
-In the context of the model in Section~\ref{sec:model}, I interpret these permit delays as an increase in the private marginal cost of construction ($\kappa$), 
-representing a bureaucratic tax on development.
+In the context of the model in Section~\ref{sec:model}, I interpret alderman who have high strictness scores as having a lower $\lambda$ (local capture parameter) leading to lower housing supply in their wards.
 
 \begin{figure}[htbp]
     \centering
@@ -61,7 +59,7 @@ To answer this question I run regressions of the following form:
 
 My three density outcomes of interest are common in the literature: Dwelling Units Per Acre (DUPAC), which is defined as the number of dwelling units on the parcel divided by the parcel's acreage; Floor Area Ratio (FAR), defined as the total building square footage on the parcel divided by the parcel's land area; and Units in the building.
 
-The variable of interest is $\text{Strictness}_{w}$, which denotes the standardized bureaucratic friction score for the alderman of ward $w$. To control for spatial trends, we include $|D_{i}|$, the absolute distance of the parcel to the ward boundary. The vector $\mathbf{X}_{w}$ includes time-varying ward-level controls, including median household income, racial composition, and average rents. 
+The variable of interest is $\text{Strictness}_{w}$, which denotes the standardized bureaucratic friction score for the alderman of ward $w$. To control for spatial trends, we include $|D_{i}|$, the absolute distance of the parcel to the ward boundary. The vector $\mathbf{X}_{w}$ includes time-varying ward-level controls, including median household income, racial composition, and education levels.
 
 Critically, I include a stringent set of fixed effects to isolate the causal effect of aldermanic strictness on development density.
 $\alpha_z$ are zoning classification fixed effects, which ensure that comparisons are only made within the same zoning classification on each side of the border. 
@@ -77,14 +75,15 @@ Single family housing is the vast majority of new construction and does not have
 The main results are presented in Table~\ref{tab:fe_estimates_250}. 
 I limit the sample to parcels within 250 feet of a ward border to specifically test if different aldermen effect density at a very fine scale where local demand shocks and neighborhood characteristics are likely to be very similar on either side of the border.
 The results are quite substantial and consistent across all three density measures. 
-A one standard deviation increase in my aldermen strictness measure is associated with a 18\% decrease in DUPAC, a 9\% decrease in FAR, and a 15\% decrease in the number of units in the building, among new construction built in the same year and zoned the same on either side of the border.
+A one standard deviation increase in my aldermen strictness measure is associated with a 19\% decrease in DUPAC, a 12\% decrease in FAR, and a 13\% decrease in the number of units in the building, among new construction built in the same year and zoned the same on either side of the border.
 
 In addition, to show that these differences are not driven by area characteristics and appear to be hyper-localized to the border where alderman differences are likely to have the most effect, 
-I also run the same regressions but limit the sample to parcels within 1000 feet of a ward border. The differences are negative but much smaller and not significantly different from zero, as shown in Table~\ref{tab:fe_estimates_1000}.
+I also run the same regressions but limit the sample to parcels within 1000 feet of a ward border. There is still some effect of aldermen strictness on DUPAC, but the magnitude is substantially smaller and I can reject that it is the same as in the 250 ft. bandwidth specification. 
+The other coefficents are still negative but much smaller and not significantly different from zero, as shown in Table~\ref{tab:fe_estimates_1000}.
 As a result, I interpret these results as strong evidence that aldermanic privilege and the bureaucratic frictions they create have a significant effect on development density in their wards.
 
 I also remove the demographic controls from my regressions and run the same specifications, but with demographics as the outcome variables, in Table~\ref{tab:fe_balance_250} to see if aldermen strictness is correlated with changes in ward demographics that could be driving my results.
-I find null results across average rents, the share of residents that are white, avarage household income, and the share of residents with a bachelor's degree or higher, suggesting that the differences in density at the ward borders are partly being driven by aldermenn behavior and not purely by demographic sorting.
+I find null results across the share of residents that are white, avarage household income, and the share of residents with a bachelor's degree or higher, suggesting that the differences in density at the ward borders are partly being driven by aldermenn behavior and not purely by demographic sorting.
 
 \begin{table}[htbp]
     \caption{Border-Pair FE Estimates (bw = 250 ft)}

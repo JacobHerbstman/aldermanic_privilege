@@ -1,18 +1,16 @@
 ## this code creates a panel to be used to estimate aldermen fixed effects
 
-## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
-
 source("../../setup_environment/code/packages.R")
 
 # --- Core inputs ---
-ward_panel     <- st_read("../input/ward_panel.gpkg")
+ward_panel     <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
+
 ward_controls  <- read_csv("../input/ward_controls.csv")
 alderman_panel <- read_csv("../input/chicago_alderman_panel.csv") %>%
   mutate(month = as.yearmon(month))
 
 # Permits (geospatial)
-permits <- st_read("../input/building_permits_clean.gpkg") %>%
+permits <- st_read("../input/building_permits_clean.gpkg", quiet = TRUE) %>%
   mutate(application_start_date = year(application_start_date_ym),
          issue_date            = year(issue_date_ym))
 
@@ -29,61 +27,76 @@ read_to_ward_crs <- function(path) {
 }
 
 # --- NEW external layers (already symlinked) ---
-cta_stations     <- read_to_ward_crs("../input/cta_stations.geojson")           # points
-city_boundary    <- read_to_ward_crs("../input/city_boundary.geojson")          # polygon
-community_areas  <- read_to_ward_crs("../input/community_areas.geojson")        # polygons (77)
-water_osm        <- read_to_ward_crs("../input/gis_osm_water_a_free_1.shp")     # polygons (OSM water); will filter to Lake Michigan
+cta_stations    <- read_to_ward_crs("../input/cta_stations.geojson")          # points
+city_boundary   <- read_to_ward_crs("../input/city_boundary.geojson")         # polygon
+community_areas <- read_to_ward_crs("../input/community_areas.geojson")       # polygons (77)
+water_osm       <- read_to_ward_crs("../input/gis_osm_water_a_free_1.shp")    # polygons (OSM water)
 
 ################################################
 ###### filter to HIGH DISCRETION PERMITS ONLY
 permits_high_discretion <- permits %>% 
-  filter(minor_permit == 1)
+  filter(high_discretion == 1)
 ##############################################
 
-# 1. SPATIAL JOIN PERMITS TO WARDS BY MONTH ================================
+# 1. SPATIAL JOIN PERMITS TO WARDS BY MONTH (UPDATED FOR 3 MAPS) ===========
 
-# Create ward geometries by period (pre and post May 2015)
-ward_geoms_pre <- ward_panel %>%
-  filter(year <= 2014) %>%  # Use 2014 boundaries for pre-May 2015
+# Map 1: Pre-2015 (Use 2014 shape)
+ward_geoms_map1 <- ward_panel %>%
+  filter(year == 2014) %>%
   select(ward) %>%
-  group_by(ward) %>%
-  summarise(.groups = "drop") %>%
-  mutate(period = "pre")
+  group_by(ward) %>% summarise(.groups = "drop") %>%
+  mutate(map_version = 1)
 
-ward_geoms_post <- ward_panel %>%
-  filter(year >= 2016) %>%  # Use 2016+ boundaries for post-May 2015
+# Map 2: 2015-2023 (Use 2016 shape to represent this era)
+ward_geoms_map2 <- ward_panel %>%
+  filter(year == 2016) %>%
   select(ward) %>%
-  group_by(ward) %>%
-  summarise(.groups = "drop") %>%
-  mutate(period = "post")
+  group_by(ward) %>% summarise(.groups = "drop") %>%
+  mutate(map_version = 2)
 
-# Function to assign ward based on application month
+# Map 3: 2023-Present (Use 2024 shape to represent this era)
+ward_geoms_map3 <- ward_panel %>%
+  filter(year == max(year)) %>% 
+  select(ward) %>%
+  group_by(ward) %>% summarise(.groups = "drop") %>%
+  mutate(map_version = 3)
+
+# Function to assign ward based on 3 time intervals
 assign_ward_by_month <- function(permits_data) {
-  permits_pre <- permits_data %>%
+  
+  # Period 1: Before May 2015
+  permits_p1 <- permits_data %>%
     filter(as.yearmon(application_start_date_ym) < as.yearmon("2015-05"))
   
-  permits_post <- permits_data %>%
-    filter(as.yearmon(application_start_date_ym) >= as.yearmon("2015-05"))
+  # Period 2: May 2015 to April 2023
+  permits_p2 <- permits_data %>%
+    filter(as.yearmon(application_start_date_ym) >= as.yearmon("2015-05") &
+             as.yearmon(application_start_date_ym) < as.yearmon("2023-05"))
   
-  permits_pre_joined <- st_join(permits_pre, ward_geoms_pre, join = st_within) %>%
-    select(-ward.y) %>% 
-    rename(ward = ward.x) %>% 
-    filter(!is.na(ward)) %>%
-    st_drop_geometry()
+  # Period 3: May 2023 onwards
+  permits_p3 <- permits_data %>%
+    filter(as.yearmon(application_start_date_ym) >= as.yearmon("2023-05"))
   
-  permits_post_joined <- st_join(permits_post, ward_geoms_post, join = st_within) %>%
-    select(-ward.y) %>% 
-    rename(ward = ward.x) %>% 
-    filter(!is.na(ward)) %>%
-    st_drop_geometry()
+  # Helper for joining
+  do_join <- function(pts, polys) {
+    st_join(pts, polys, join = st_within) %>%
+      select(-ward.y) %>% 
+      rename(ward = ward.x) %>% 
+      filter(!is.na(ward)) %>%
+      st_drop_geometry()
+  }
   
-  bind_rows(permits_pre_joined, permits_post_joined)
+  bind_rows(
+    do_join(permits_p1, ward_geoms_map1),
+    do_join(permits_p2, ward_geoms_map2),
+    do_join(permits_p3, ward_geoms_map3)
+  )
 }
 
 permits_ward_data <- assign_ward_by_month(permits_high_discretion)
 message("Permits spatially joined to wards: ", nrow(permits_ward_data), " observations")
 
-# 2. ADD ALDERMAN INFORMATION (ALREADY MONTHLY) =============================
+# 2. ADD ALDERMAN INFORMATION ==============================================
 
 permits_with_alderman <- permits_ward_data %>%
   mutate(application_start_date_ym = as.yearmon(application_start_date_ym)) %>% 
@@ -92,10 +105,32 @@ permits_with_alderman <- permits_ward_data %>%
 
 message("Permits with alderman info: ", nrow(permits_with_alderman), " observations")
 
-# 3. ADD WARD CONTROLS (INTERPOLATE FROM ANNUAL TO MONTHLY) =================
+# 3. ADD WARD CONTROLS (WITH FAST FILL-FORWARD) ============================
+
+# Detect years
+max_permit_year  <- max(permits$application_start_date, na.rm = TRUE)
+max_control_year <- max(ward_controls$year, na.rm = TRUE)
+
+# Sanity check: Ensure we don't create 100 years of data due to a typo
+if (max_permit_year > 2030) {
+  warning("Found permit year > 2030. Capping fill-forward at 2030 to prevent freeze.")
+  max_permit_year <- 2030
+}
+
+if (max_permit_year > max_control_year) {
+  message(paste0("Extending ward controls from ", max_control_year, " to ", max_permit_year))
+  
+  # Fast vectorized fill using crossing
+  filled_data <- ward_controls %>% 
+    filter(year == max_control_year) %>% 
+    select(-year) %>% 
+    tidyr::crossing(year = (max_control_year + 1):max_permit_year)
+  
+  ward_controls <- bind_rows(ward_controls, filled_data)
+}
 
 ward_controls_monthly <- ward_controls %>%
-  crossing(month_num = 1:12) %>%
+  tidyr::crossing(month_num = 1:12) %>%
   mutate(month_date = as.yearmon(paste(year, month_num, sep = "-"))) %>%
   select(-month_num, -year) %>%
   rename(month = month_date)
@@ -111,12 +146,11 @@ permits_analysis <- permits_panel %>%
     month = application_start_date_ym,
     month_index = as.numeric(month - as.yearmon("2010-01")),
     year = year(as.Date(month)),
-    log_processing_time = log(processing_time),
+    log_processing_time = log(processing_time), 
     log_reported_cost   = log(reported_cost),
     log_total_fee       = log(total_fee),
     permit_denied       = if_else(!is.na(permit_issued), 1L - permit_issued, NA_integer_),
-    corporate_applicant = as.numeric(corporate_applicant),
-    post_boundary_change= as.numeric(month >= as.yearmon("2015-05"))
+    corporate_applicant = as.numeric(corporate_applicant)
   ) %>%
   filter(
     !is.na(alderman),
@@ -129,10 +163,9 @@ permits_analysis <- permits_panel %>%
   st_drop_geometry()
 
 message("Final permit panel: ", nrow(permits_analysis), " observations")
-
 write_csv(permits_analysis, "../output/alderman_restrictiveness_scores_data.csv")
 
-# 5. AGGREGATE TO WARD-MONTH LEVEL ==============================================
+# 5. AGGREGATE TO WARD-MONTH LEVEL ==========================================
 
 ward_monthly_panel <- permits_analysis %>%
   group_by(ward, month, alderman) %>%
@@ -154,12 +187,11 @@ ward_monthly_panel <- permits_analysis %>%
     percent_hispanic      = first(percent_hispanic),
     year                  = first(year),
     month_index           = first(month_index),
-    post_boundary_change  = first(post_boundary_change),
+    map_version           = first(map_version), 
     sum_total_fee         = sum(total_fee, na.rm = TRUE),
     n_total_fee_nonmiss   = sum(!is.na(total_fee)),
     .groups = "drop"
   ) %>%
-  # Add permit type composition
   left_join(
     permits_analysis %>%
       group_by(ward, month) %>%
@@ -173,50 +205,52 @@ ward_monthly_panel <- permits_analysis %>%
     by = c("ward", "month")
   )
 
-# 6. LEAN GEOGRAPHY FEATURES (pre/post) ========================================
+# 6. LEAN GEOGRAPHY FEATURES (3 MAPS) =======================================
 
-# Prepare ward geoms again (validity)
-ward_geoms_pre  <- st_make_valid(ward_geoms_pre)
-ward_geoms_post <- st_make_valid(ward_geoms_post)
+# Validity check
+ward_geoms_map1 <- st_make_valid(ward_geoms_map1)
+ward_geoms_map2 <- st_make_valid(ward_geoms_map2)
+ward_geoms_map3 <- st_make_valid(ward_geoms_map3)
 
-# 6a) Distance to CBD (City Hall ~ 121 N LaSalle: -87.6313, 41.8837)
+# 6a) Distance to CBD
 cbd <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>% st_transform(st_crs(ward_panel))
 
-dist_feat <- function(ward_sf, post_flag) {
+dist_feat <- function(ward_sf, ver) {
   cent <- st_centroid(ward_sf)
   tibble(
     ward = ward_sf$ward,
-    post_boundary_change = post_flag,
+    map_version = ver,
     dist_cbd_km = as.numeric(units::set_units(st_distance(cent, cbd), "km"))
   )
 }
-dist_pre  <- dist_feat(ward_geoms_pre, 0L)
-dist_post <- dist_feat(ward_geoms_post, 1L)
-dist_feats <- bind_rows(dist_pre, dist_post)
+dist_feats <- bind_rows(
+  dist_feat(ward_geoms_map1, 1),
+  dist_feat(ward_geoms_map2, 2),
+  dist_feat(ward_geoms_map3, 3)
+)
 
-# 6b) CTA access: # stations within 800m (no buffering required)
-cta_feat <- function(ward_sf, post_flag) {
+# 6b) CTA access
+cta_feat <- function(ward_sf, ver) {
   idx <- st_is_within_distance(ward_sf, cta_stations, dist = 800)
   tibble(
     ward = ward_sf$ward,
-    post_boundary_change = post_flag,
+    map_version = ver,
     n_rail_stations_800m = lengths(idx)
   )
 }
-cta_pre  <- cta_feat(ward_geoms_pre, 0L)
-cta_post <- cta_feat(ward_geoms_post, 1L)
-cta_feats <- bind_rows(cta_pre, cta_post)
+cta_feats <- bind_rows(
+  cta_feat(ward_geoms_map1, 1),
+  cta_feat(ward_geoms_map2, 2),
+  cta_feat(ward_geoms_map3, 3)
+)
 
-# 6c) Lakefront share within 1km of Lake Michigan
-lake_poly <- water_osm %>%
-  filter(!is.na(name) & tolower(name) == "lake michigan")
-
-# limit to area around Chicago to speed up ops
+# 6c) Lakefront share
+lake_poly <- water_osm %>% filter(!is.na(name) & tolower(name) == "lake michigan")
 city_buf2km <- st_buffer(st_make_valid(city_boundary), 2000)
 lake_near   <- suppressWarnings(st_intersection(st_make_valid(lake_poly), city_buf2km))
 lake_1km    <- st_buffer(lake_near, 1000)
 
-lake_feat <- function(ward_sf, post_flag) {
+lake_feat <- function(ward_sf, ver) {
   ward_sf <- st_make_valid(ward_sf)
   inter   <- suppressWarnings(st_intersection(ward_sf, lake_1km))
   share   <- rep(0, nrow(ward_sf))
@@ -230,24 +264,26 @@ lake_feat <- function(ward_sf, post_flag) {
   }
   tibble(
     ward = ward_sf$ward,
-    post_boundary_change = post_flag,
+    map_version = ver,
     lakefront_share_1km = pmin(1, pmax(0, share / as.numeric(st_area(ward_sf))))
   )
 }
-lake_pre  <- lake_feat(ward_geoms_pre, 0L)
-lake_post <- lake_feat(ward_geoms_post, 1L)
-lake_feats <- bind_rows(lake_pre, lake_post)
+lake_feats <- bind_rows(
+  lake_feat(ward_geoms_map1, 1),
+  lake_feat(ward_geoms_map2, 2),
+  lake_feat(ward_geoms_map3, 3)
+)
 
-# 6d) Community Area area-weighted shares
+# 6d) Community Area shares
 community_areas <- community_areas %>%
   rename(ca_id = area_numbe, ca_name = community) %>%
   mutate(ca_id = as.integer(ca_id))
 
-ca_shares_fun <- function(ward_sf, post_flag) {
+ca_shares_fun <- function(ward_sf, ver) {
   inter <- suppressWarnings(st_intersection(st_make_valid(ward_sf %>% select(ward)),
                                             st_make_valid(community_areas %>% select(ca_id))))
   if (nrow(inter) == 0) {
-    return(tibble(ward = ward_sf$ward, post_boundary_change = post_flag))
+    return(tibble(ward = ward_sf$ward, map_version = ver))
   }
   inter2 <- inter %>%
     mutate(a = as.numeric(st_area(inter))) %>%
@@ -261,143 +297,25 @@ ca_shares_fun <- function(ward_sf, post_flag) {
     select(ward, ca_id, share) %>%
     pivot_wider(names_from = ca_id, values_from = share,
                 names_prefix = "ca_share_", values_fill = 0) %>%
-    mutate(post_boundary_change = post_flag)
+    mutate(map_version = ver)
   shares
 }
-ca_pre  <- ca_shares_fun(ward_geoms_pre, 0L)
-ca_post <- ca_shares_fun(ward_geoms_post, 1L)
-ca_feats <- bind_rows(ca_pre, ca_post)
+ca_feats <- bind_rows(
+  ca_shares_fun(ward_geoms_map1, 1),
+  ca_shares_fun(ward_geoms_map2, 2),
+  ca_shares_fun(ward_geoms_map3, 3)
+)
 
 # 6e) Merge all geo features to the ward-month panel
 ward_monthly_panel <- ward_monthly_panel %>%
-  left_join(dist_feats, by = c("ward","post_boundary_change")) %>%
-  left_join(cta_feats,  by = c("ward","post_boundary_change")) %>%
-  left_join(lake_feats, by = c("ward","post_boundary_change")) %>%
-  left_join(ca_feats,   by = c("ward","post_boundary_change"))
+  left_join(dist_feats, by = c("ward","map_version")) %>%
+  left_join(cta_feats,  by = c("ward","map_version")) %>%
+  left_join(lake_feats, by = c("ward","map_version")) %>%
+  left_join(ca_feats,   by = c("ward","map_version"))
 
 # --- Diagnostics ---
 message("Ward-monthly panel created: ", nrow(ward_monthly_panel), " ward-month observations")
 message("Date range: ", min(ward_monthly_panel$month), " to ", max(ward_monthly_panel$month))
-message("Average permits per ward-month: ", round(mean(ward_monthly_panel$n_permits_applied), 2))
-
-permit_count_summary <- ward_monthly_panel %>%
-  summarise(
-    min_permits = min(n_permits_applied),
-    q25_permits = quantile(n_permits_applied, 0.25),
-    median_permits = median(n_permits_applied),
-    mean_permits = mean(n_permits_applied),
-    q75_permits = quantile(n_permits_applied, 0.75),
-    max_permits = max(n_permits_applied),
-    months_with_1_permit  = sum(n_permits_applied == 1),
-    months_with_2plus_permits = sum(n_permits_applied >= 2),
-    months_with_5plus_permits = sum(n_permits_applied >= 5)
-  )
 
 # Save the ward-monthly panel
 write_csv(ward_monthly_panel, "../output/ward_monthly_panel_for_alderman_fe.csv")
-
-
-
-
-### QUALITY CONTROL CHECKS ####
-
-
-# 
-# qc <- ward_monthly_panel %>%
-#   select(ward, post_boundary_change, dist_cbd_km, lakefront_share_1km, starts_with("ca_share_")) %>%
-#   distinct()
-# 
-# # ---- 1) Community Area shares ----
-# ca_cols <- grep("^ca_share_", names(qc), value = TRUE)
-# 
-# if (length(ca_cols) > 0) {
-#   qc_ca <- qc %>%
-#     mutate(ca_sum = rowSums(across(all_of(ca_cols)), na.rm = TRUE),
-#            ca_max = pmax(!!!rlang::syms(ca_cols), na.rm = TRUE))
-#   
-#   # (a) Should sum to ~1 (small numeric tolerances OK)
-#   cat("\n[QC] Community area shares — sums by ward/post (expect ~1.0):\n")
-#   print(qc_ca %>%
-#           group_by(post_boundary_change) %>%
-#           summarise(min_sum = min(ca_sum),
-#                     q10_sum = quantile(ca_sum, 0.10),
-#                     median_sum = median(ca_sum),
-#                     q90_sum = quantile(ca_sum, 0.90),
-#                     max_sum = max(ca_sum),
-#                     .groups = "drop"))
-#   
-#   prob_ca <- qc_ca %>%
-#     filter(ca_sum < 0.98 | ca_sum > 1.02)
-#   if (nrow(prob_ca) > 0) {
-#     cat("\n[QC WARNING] Wards with CA shares not summing to ~1 (outside [0.98, 1.02]):\n")
-#     print(prob_ca %>% arrange(ca_sum) %>% select(ward, post_boundary_change, ca_sum) %>% head(20))
-#   } else {
-#     cat("\n[QC] CA share sums look good (all within [0.98, 1.02]).\n")
-#   }
-#   
-#   # (b) Dominance: top CA share should usually be sizable
-#   cat("\n[QC] Top CA share per ward/post (bigger is cleaner membership):\n")
-#   print(qc_ca %>%
-#           group_by(post_boundary_change) %>%
-#           summarise(min_top = min(ca_max),
-#                     q25_top = quantile(ca_max, 0.25),
-#                     median_top = median(ca_max),
-#                     q75_top = quantile(ca_max, 0.75),
-#                     max_top = max(ca_max),
-#                     .groups = "drop"))
-#   
-#   low_dom <- qc_ca %>% filter(ca_max < 0.4)
-#   if (nrow(low_dom) > 0) {
-#     cat("\n[QC NOTE] Wards with diffuse CA membership (top share < 0.4):\n")
-#     print(low_dom %>% select(ward, post_boundary_change, ca_max) %>% head(20))
-#   }
-# } else {
-#   cat("\n[QC] No CA share columns found (ca_share_*). Skipping CA checks.\n")
-# }
-# 
-# # ---- 2) Lakefront share (1km) ----
-# if ("lakefront_share_1km" %in% names(qc)) {
-#   cat("\n[QC] Lakefront share within 1km — summary:\n")
-#   print(qc %>%
-#           group_by(post_boundary_change) %>%
-#           summarise(min = min(lakefront_share_1km, na.rm = TRUE),
-#                     q25 = quantile(lakefront_share_1km, 0.25, na.rm = TRUE),
-#                     median = median(lakefront_share_1km, na.rm = TRUE),
-#                     q75 = quantile(lakefront_share_1km, 0.75, na.rm = TRUE),
-#                     max = max(lakefront_share_1km, na.rm = TRUE),
-#                     .groups = "drop"))
-#   
-#   out_range <- qc %>% filter(lakefront_share_1km < -1e-6 | lakefront_share_1km > 1 + 1e-6)
-#   if (nrow(out_range) > 0) {
-#     cat("\n[QC WARNING] lakefront_share_1km outside [0,1]:\n")
-#     print(out_range %>% select(ward, post_boundary_change, lakefront_share_1km))
-#   }
-#   
-#   lakey <- qc %>% filter(lakefront_share_1km >= 0.20) %>%
-#     arrange(desc(lakefront_share_1km))
-#   cat("\n[QC] Wards with substantial lakefront (>= 0.20 of area within 1km):\n")
-#   print(lakey %>% select(ward, post_boundary_change, lakefront_share_1km) %>% head(20))
-# } else {
-#   cat("\n[QC] lakefront_share_1km not found. Skipping lakefront checks.\n")
-# }
-# 
-# # ---- 3) Distance to CBD (km) ----
-# if ("dist_cbd_km" %in% names(qc)) {
-#   cat("\n[QC] Distance to CBD (km) — summary:\n")
-#   print(qc %>%
-#           group_by(post_boundary_change) %>%
-#           summarise(min = min(dist_cbd_km, na.rm = TRUE),
-#                     q25 = quantile(dist_cbd_km, 0.25, na.rm = TRUE),
-#                     median = median(dist_cbd_km, na.rm = TRUE),
-#                     q75 = quantile(dist_cbd_km, 0.75, na.rm = TRUE),
-#                     max = max(dist_cbd_km, na.rm = TRUE),
-#                     .groups = "drop"))
-#   
-#   cat("\n[QC] Nearest 10 wards to CBD:\n")
-#   print(qc %>% arrange(dist_cbd_km) %>% select(ward, post_boundary_change, dist_cbd_km) %>% head(10))
-#   
-#   cat("\n[QC] Farthest 10 wards from CBD:\n")
-#   print(qc %>% arrange(desc(dist_cbd_km)) %>% select(ward, post_boundary_change, dist_cbd_km) %>% head(10))
-# } else {
-#   cat("\n[QC] dist_cbd_km not found. Skipping CBD checks.\n")
-# }
