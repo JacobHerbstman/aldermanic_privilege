@@ -10,6 +10,10 @@ cat("Loading and preparing data...\n")
 parcels <- st_read("../input/parcels_with_geometry.gpkg")
 ward_panel <- st_read("../input/ward_panel.gpkg")
 
+
+parcels <- parcels %>% 
+  filter(abs(dist_to_boundary) <= 500) %>% 
+  filter(!is.na(density_far))
 # Filter parcels for construction years between 2006 and 2014
 parcels_2006_2014 <- parcels %>%
   filter(unitscount > 1) %>% 
@@ -71,9 +75,9 @@ construction_map <- ggplot() +
 construction_map
 
 # Save the plot to the output directory
-ggsave("../output/construction_map_2003_2014_w_density.pdf", plot = construction_map, width = 8, height = 10, dpi = 300)
+ggsave("../output/construction_map_2006_2014_w_density.pdf", plot = construction_map, width = 8, height = 10, dpi = 300)
 
-cat("Map saved to ../output/construction_map_2003_2014_w_density.pdf\n")
+cat("Map saved to ../output/construction_map_2006_2014_w_density.pdf\n")
 
 
 
@@ -146,7 +150,7 @@ construction_map <- ggplot() +
   
   # Add labels and a clean theme
   labs(
-    title = "New Residential Construction in Chicago (2015-2023)",
+    title = "New Residential Construction in Chicago (2023-2025)",
     subtitle = "Construction locations colored by density (FAR)"
   ) +
   theme_void() +
