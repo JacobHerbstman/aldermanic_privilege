@@ -4,8 +4,8 @@ include ../../shell_functions.make
 # --- Analysis Parameters ---
 BANDWIDTHS := 200 250 264 500 528 792 1056 1320
 KERNELS    := triangular
-YVARS      := density_far density_dupac density_lapu unitscount
-#density_bcr density_lps
+YVARS      := density_far density_dupac unitscount
+#density_bcr density_lps density_lapu
 LOG_STATUS := TRUE FALSE
 DONUT := 0
 

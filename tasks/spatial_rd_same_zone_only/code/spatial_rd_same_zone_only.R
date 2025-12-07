@@ -9,9 +9,9 @@ source("../../setup_environment/code/packages.R")
 # =======================================================================================
 # --- Interactive Test Block (comment out if using Make) ---
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
-# yvar    <- "density_bcr"
-# use_log <- F
-# bw      <- 2640             # outer bandwidth in feet
+# yvar    <- "density_dupac"
+# use_log <- T
+# bw      <- 500             # outer bandwidth in feet
 # kernel  <- "triangular"
 # =======================================================================================
 # --- Command-Line Arguments (backward compatible) ---
@@ -37,12 +37,12 @@ dat_raw <- read_csv("../input/parcels_with_ward_distances.csv") %>%
   filter(unitscount > 1 & unitscount <= 50)
 
 # keep strictly positive outcomes (for logs) and build 'outcome'
-dat <- dat_raw[dat_raw[[yvar]] > 0, ] %>%
+dat <- dat_raw %>%
   mutate(
     outcome = if (use_log) log(.data[[yvar]]) else .data[[yvar]],
     within_bw = abs(signed_distance) <= bw
   )
-
+# dat_raw[dat_raw[[yvar]] > 0, 
 # Restrict to parcels within bandwidth and outside donut with non-missing units
 dat_bw <- dat %>%
   filter(within_bw, abs(signed_distance) >= donut)
@@ -143,10 +143,17 @@ if (yvar == "density_far") {
 } else if (yvar == "density_dupac") {
   y_axis_label <- "Dwelling Units Per Acre (DUPAC)"
   if (use_log) {
-    ylim <- c(2, 5)
+    ylim <- c(2, 6)
   } else {
-    ylim <- c(0, 50)
+    ylim <- c(0, 150)
   }
+} else if (yvar == "unitscount") {
+    y_axis_label <- "Units"
+    if (use_log) {
+      ylim <- c(0, 5)
+    } else {
+      ylim <- c(2, 20)
+    }
 } else {
   y_axis_label <- yvar
   ylim <- NULL # Let ggplot decide the limits for unknown variables
@@ -202,7 +209,8 @@ plot2 <- ggplot() +
   labs(
     title    = plot_title,
     subtitle = paste0("bw: ", round(bw, 2),
-                      " ft | kernel: ", kernel),
+                      " ft | kernel: ", kernel, 
+                      " | N = ", nrow(dat)),
     y = y_axis_label,
     x = "Distance to Stricter Ward Boundary (feet)"
   ) +

@@ -30,7 +30,8 @@ df_clean <- df %>%
         arealotsf > 1,
         areabuilding > 1,
         unitscount > 0
-    )
+    ) %>% 
+  filter(construction_year >= 2006)
 
 # Define Multifamily (Units >= 2)
 df_mf <- df_clean %>%
