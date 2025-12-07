@@ -1,7 +1,7 @@
 \section{Data and Institutional Background}
 \label{sec:data}
 
-I use various publicly-accessible datasets from the Cook County Assessor's Office in this project.
+I construct a novel dataset of all new construction in Chicago linked to every alderman-pair episode since 2006 using various publicly-accessible datasets from the Cook County Assessor's Office.
 In order to measure the density and frequency of new construction,
 I first use data on Single and Multi-Family Improvement Characteristics which allows me to observe every ``improvement'' for each parcel in Cook County. 
 I merge this with the ``Parcel Universe'' dataset which gives me precise location coordinates. 
@@ -14,6 +14,17 @@ Other data products I use are the census and American Community Survey (ACS) dat
 to control for various ward-level demographic characteristics in my regressions. I use zoning code data from 2nd city zoning \footnote{https://secondcityzoning.org/zones/} 
 to include zoning code fixed effects in my regressions as well to ensure that changes in density at political borders do not come from mechanical changes in zoning. 
 
-In addition, I have cleaned parcel-level sales data, parcel-level property valuation data, and have scraped the publicly available building permits dataset from the City of Chicago for details on the proposed units, square footage, and other characteristics of all permits in the city. 
-I also have unit level detailed rental posting data from RentHub which I want to look at as an outcome variable.
-While I do not have results today using any of that data, my plan is to incorporate those datasets into my analysis in the near future. 
+In Table~\ref{tab:summary_stats}, I present summary statistics for my sample of new residential construction. 
+I present statistics for my full sample in column (1), and then for multifamily buildings in column (2). 
+In total, there are 13,236 new residential buildings constructed in Chicago between 2006 and 2025, 
+and 2,469 of them were multifamily buildings with 2 or more units.
+
+The total new housing stock has an average of $6.5$ dwelling units and $2.3$ stories, with an average Floor Area Ratio (FAR) of $1.22$ and Dwelling Units Per Acre of $28.47$. 
+Multifamily buildings are denser on average, with $31.3$ dwelling units, $2.8$ stories, a FAR of $2.3$, and $74.5$ dwelling units per acre. 
+They are similar distances to their closest ward boundary at a median distance of $930$ feet overall and $887$ feet for multifamily buildings.
+In addition, both have positive average ``strictness scores'' as defined in Section~\ref{sec:empirical_results}. 
+While this could be evidence that my strictness scores are not caputuring pro vs. anti-development sentiment, 
+it is also possible that demand is substantially higher in wards with stricter alderman, which is why the community elects them in an attempt to preserve ward character. 
+In order to distentangle the effect of aldermanic influence from demand-side factors and neighborhood trends, more sophisticated empirical strategies are needed, as I discuss in Section~\ref{sec:empirical_results}.
+
+\input{../tasks/summary_stats_new_construction/output/summary_stats.tex}

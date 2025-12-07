@@ -1,0 +1,25 @@
+\section{Robustness Checks}
+\label{sec:appendixa}
+
+\begin{table}[H]
+    \caption{Border-Pair FE Estimates (bw = 1000 ft)}
+    \label{tab:fe_estimates_1000}
+
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw1000.tex}
+    
+    \footnotesize
+    \textit{Notes:} Standard errors clustered at the ward-pair level.
+\end{table}
+
+
+\begin{table}[H]
+    \caption{Identification Check: Covariate Balance (bw = 250 ft)}
+    \label{tab:fe_balance_250}
+
+    \resizebox{\textwidth}{!}{
+        \input{../tasks/border_pair_FE_regressions_validation/output/fe_validation_table_bw250.tex}
+    }
+    
+    \footnotesize
+    \textit{Notes:} Standard errors clustered at the ward-pair level.
+\end{table}

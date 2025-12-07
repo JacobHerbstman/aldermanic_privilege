@@ -44,10 +44,47 @@ In the context of the model in Section~\ref{sec:model}, I interpret alderman who
     \label{fig:alderman_strictness_map}
 \end{figure}
 
+\subsection{Visual Evidence of Density Discontinuities at Ward Borders}
+
+Before moving to my formal causal results using border-pair fixed effects, I first present some visual evidence of discontinuities in development density at ward borders. 
+I employ a regression discontinuity design with a linear control function and triangular weights to estimate the gap in development density of new construction at the ward cutoff. 
+I stack all ward borders together to have enough power to get precise estimates by placing wards with more lenient aldermen on the left side of the border (negative distance) and wards with stricter aldermen on the right side of the border (positive distance).
+I use the rdrobust package \cite{calonico_rdrobust_2015} to implement this design with bias-corrected point estimates and robust standard errors. 
+
+In Figure~\ref{fig:rd_plots} I present regression discontinuity plots for my two primary measures of density, DUPAC and FAR.
+I choose a bandwidth of 500 feet on either side of the border to focus on parcels that are the most likely to be similar in terms of neighborhood characteristics and local demand shocks, 
+while still having enough observations to get precise estimates.
+In order to make them comparable, I plot the log of each density measure and estimate the discontinuity at the border. 
+I find large and statistically significant drops in both measures of density when moving from the lenient side of the border to the strict side.
+Specifically, I estimate a $57\%$ decrease in DUPAC and a $51\%$ decrease in FAR when moving from the lenient side of the border to the strict side of a ward border.
+
+They key assumption, as in any RD design, is that nothing else changes at the border except for the alderman that the developer has to work with.
+If I were to claim causality from this design alone, I would need to claim that parcels cannot manipulate which side of the ward border they are on, 
+but clearly developers can choose which ward to build in when considering development projects. 
+This explains the large magnitude of the effects, as developers likely self-select into building in the more lenient wards if all other characteristics are equal between the two sides of the border.
+Regardless, these results are still suggestive that aldermanic behavior is affecting development density in their wards and potentially driving down aggregate densities in the city. 
+ 
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_dupac_bw500_triangular.pdf}
+        \label{fig:rd_density_log_dupac}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_far_bw500_triangular.pdf}
+        \label{fig:rd_density_log_far}
+    \end{minipage}
+    \caption{RD Plots}
+    \label{fig:rd_plots}
+\end{figure}
+
 
 \subsection{Do Stricter Aldermen Reduce Development Density?}
 
-Armed with these ``strictness scores'', I turn now to my main empirical question: do stricter aldermen reduce development density in their wards?
+Armed with these ``strictness scores'' and the visual motivating evidence from Figure~\ref{fig:rd_plots}, I turn now to my main empirical question: do stricter aldermen reduce development density in their wards?
 
 To answer this question I run regressions of the following form:
 
