@@ -9,7 +9,7 @@ cran_packages <- c(
   "furrr", "purrr", "nngeo", "data.table", "tigris", "zoo", "patchwork", "glue", 
   "writexl", "arrow", "duckdb", "ggplot2", "here", "tidyr", "sfarrow", "geoarrow", 
   "tibble", "rdrobust", "forcats", "binsreg", "did", "igraph", "sentimentr", 
-  "tidytext", "textdata", "Matrix", "devtools" # devtools is required for step 2
+  "tidytext", "textdata", "Matrix", "devtools", "scico", "RColorBrewer", "palaetteer"
 )
 
 # --- Step 1: ensure library paths are aligned ---

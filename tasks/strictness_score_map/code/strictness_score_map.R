@@ -43,7 +43,7 @@ ward_map <- wards %>%
 
 p <- ggplot(ward_map) +
   geom_sf(aes(fill = score), color = "grey20", linewidth = 0.2) +
-  scale_fill_viridis_c(option = "turbo", name = "Strictness index", na.value = "grey90") +
+  scale_fill_distiller(palette = "RdYlBu", direction = -1, name = "Strictness index", na.value = "grey90") +
   labs(
     title   = paste0("Alderman Strictness Index by Ward (", as.yearmon(date_str), ")")
   ) +
