@@ -12,24 +12,24 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block (comment out if using Make) ---
-cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
-yvar    <- "rent_price"
-use_log <- T
-bw      <- 250             # outer bandwidth in feet
-kernel  <- "triangular"
+# cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
+# yvar    <- "rent_price"
+# use_log <- T
+# bw      <- 100             # outer bandwidth in feet
+# kernel  <- "triangular"
 # =======================================================================================
 
-# args <- commandArgs(trailingOnly = TRUE)
-# 
-# if (length(args) < 4) {
-#   stop("Usage: Rscript rental_spatial_rd.R <yvar> <use_log> <bw> <kernel> [output_file]")
-# }
-# 
-# yvar       <- args[1]
-# use_log    <- as.logical(args[2])
-# bw         <- as.numeric(args[3])
-# kernel     <- args[4]
-# output_file <- if (length(args) >= 5) args[5] else NULL
+args <- commandArgs(trailingOnly = TRUE)
+
+if (length(args) < 4) {
+  stop("Usage: Rscript rental_spatial_rd.R <yvar> <use_log> <bw> <kernel> [output_file]")
+}
+
+yvar       <- args[1]
+use_log    <- as.logical(args[2])
+bw         <- as.numeric(args[3])
+kernel     <- args[4]
+output_file <- if (length(args) >= 5) args[5] else NULL
 
 # -----------------------------------------------------------------------------
 # 2. LOAD DATA
@@ -44,8 +44,8 @@ df <- read_parquet("../input/rent_with_ward_distances.parquet")
 # Filter to bandwidth window immediately to save memory
 df_bw <- df %>% 
   filter(abs(signed_dist) <= bw) %>%
-  filter(!is.na(rent_price), rent_price > 0) %>% 
-  filter(building_type_clean == "multi_family")
+  filter(!is.na(rent_price), rent_price > 0) 
+# filter(building_type_clean == "multi_family")
 
 # Construct Outcome Variable
 if (use_log) {
@@ -94,8 +94,8 @@ stars <- case_when(
   TRUE        ~ ""
 )
 
-annot_text <- sprintf("Estimate: %.3f%s (SE: %.3f)\nN: %s", 
-                      coef, stars, se, format(n_obs, big.mark=","))
+annot_text <- sprintf("Estimate: %.3f%s (SE: %.3f)", 
+                      coef, stars, se)
 
 # -----------------------------------------------------------------------------
 # 5. GENERATE PLOT
@@ -116,40 +116,52 @@ rd_plot <- rdplot(
 
 bin_data <- rd_plot$vars_bins
 
+# Professional / Pastel-like Palette
+# Muted "Seaborn" style colors
+col_points <- "#4C72B0"  # Muted Deep Blue
+col_lines  <- "#C44E52"  # Muted Deep Red/Rose
+col_ci     <- "grey85"   # Light grey for confidence intervals
+
 p <- ggplot() +
   # Binned Means
   geom_point(data = bin_data, aes(x = rdplot_mean_x, y = rdplot_mean_y),
-             color = "darkblue", alpha = 0.7, size = 2) +
+             color = col_points, alpha = 0.9, size = 2) +
   # Linear Fit (Left)
   geom_smooth(data = df_bw %>% filter(signed_dist < 0),
               aes(x = signed_dist, y = outcome),
-              method = "lm", color = "#d14949", fill = "grey80", alpha = 0.5) +
+              method = "lm", color = col_lines, fill = col_ci, alpha = 0.5, linewidth = 1.2) +
   # Linear Fit (Right)
   geom_smooth(data = df_bw %>% filter(signed_dist >= 0),
               aes(x = signed_dist, y = outcome),
-              method = "lm", color = "#d14949", fill = "grey80", alpha = 0.5) +
+              method = "lm", color = col_lines, fill = col_ci, alpha = 0.5, linewidth = 1.2) +
   # Cutoff Line
-  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey30", linewidth = 0.6) +
   # Labels
   labs(
     title = paste0("Rental Price Discontinuity (BW = ", bw, " ft)"),
-    subtitle = paste0("Outcome: ", y_lab, " | Kernel: ", kernel),
+    subtitle = paste0("Outcome: ", y_lab, " | Kernel: ", kernel, " | N = ", format(n_obs, big.mark=",")),
     x = "Distance to Stricter Ward Boundary (ft)",
     y = y_lab
   ) +
-  # Annotation
-  annotate("text", x = -Inf, y = Inf, label = annot_text, 
-           hjust = -0.1, vjust = 1.5, fontface = "bold", size = 4) +
-  theme_minimal() +
-  theme(panel.grid.minor = element_blank())
+  # Use a wider Y-axis range based on quantiles to "zoom out"
+  scale_y_continuous(limits = quantile(df_bw$outcome, c(0.01, 0.99))) + 
+  # Annotation (Moved to Bottom Left)
+  annotate("text", x = -Inf, y = -Inf, label = annot_text, 
+           hjust = -0.1, vjust = -0.5, fontface = "bold", size = 4) +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "grey92"),
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12, color = "grey40"),
+    axis.title = element_text(face = "bold", size = 12)
+  )
 
-p
 # -----------------------------------------------------------------------------
 # 6. SAVE
 # -----------------------------------------------------------------------------
-if (!exists("output_filename_rdplot")) {
-  log_suffix <- if (use_log) "_log" else ""
-  output_filename_rdplot <- sprintf("../output/rd_plot%s_%s_bw%d_%s.pdf", log_suffix, yvar, bw, kernel)
+if (!is.null(output_file)) {
+  ggsave(output_file, plot = p, width = 8, height = 6)
+  message("Saved plot to ", output_file)
 }
-ggsave(output_filename_rdplot, plot = p, width = 8, height = 6, dpi = 300)
 

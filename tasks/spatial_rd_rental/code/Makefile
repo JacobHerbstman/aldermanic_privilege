@@ -10,7 +10,7 @@ SCRIPT_FILE := spatial_rd_rental.R
 # Params
 YVARS := rent_price
 LOGS  := TRUE
-BWS   := 200 500 1000 1320 2640
+BWS   := 50 100 200 250 500 750 1000 1320 2640
 KERNELS := triangular
 
 # -----------------------------------------------------------------------------
