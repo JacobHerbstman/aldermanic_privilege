@@ -10,7 +10,7 @@ source("../../setup_environment/code/packages.R")
 # --- Interactive Test Block (comment out if using Make) ---
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
 # yvar    <- "density_dupac"
-# use_log <- T
+# use_log <- F
 # bw      <- 500             # outer bandwidth in feet
 # kernel  <- "triangular"
 # =======================================================================================
@@ -68,7 +68,7 @@ modal_zone <- zone_counts %>%
 # Keep only parcels in-bandwidth (and outside donut) with that modal zone
 dat <- dat %>%
   filter(within_bw, abs(signed_distance) >= donut) %>%
-  inner_join(modal_zone, by = c("boundary_year", "ward_pair", "zone_code")) %>%
+  # inner_join(modal_zone, by = c("boundary_year", "ward_pair", "zone_code")) %>%
   mutate(
     side       = as.integer(signed_distance > 0),
     abs_dist   = abs(signed_distance),
