@@ -9,13 +9,12 @@ source("../../setup_environment/code/packages.R")
 # -----------------------------------------------------------------------------
 # 1. SETUP & ARGUMENTS
 # -----------------------------------------------------------------------------
-# option_list <- list(
-#   make_option(c("-s", "--sample"), type = "character", default = "TRUE",
-#               help = "Run on sample? (TRUE/FALSE)")
-# )
-# opt <- parse_args(OptionParser(option_list = option_list))
-# run_sample <- as.logical(opt$sample)
-run_sample <- TRUE  # Set to FALSE to run full dataset
+option_list <- list(
+  make_option(c("-s", "--sample"), type = "character", default = "TRUE",
+              help = "Run on sample? (TRUE/FALSE)")
+)
+opt <- parse_args(OptionParser(option_list = option_list))
+run_sample <- as.logical(opt$sample)
 
 # Core CRS for distance calc (Illinois East ftUS)
 crs_projected <- 3435 
@@ -262,12 +261,7 @@ final_df <- final_df %>%
 
 # 6c. Sign the Distance
 # Positive distance = Strict side (Higher strictness)
-# Or define: Positive = Lenient side?
-# Looking at your previous tasks (spatial_rd), you usually want:
 # Treatment = Strict. 
-# Usually, standard RD is: x < 0 is control, x > 0 is treated.
-# Let's align with your Density RD:
-# "wards with more lenient aldermen on the left (neg), stricter on right (pos)"
 final_df <- final_df %>% 
   filter(!is.na(strictness_own), !is.na(strictness_neighbor)) %>% 
   mutate(
@@ -311,7 +305,10 @@ final_df <- final_df %>%
 # -----------------------------------------------------------------------------
 # 8. SAVE
 # -----------------------------------------------------------------------------
-output_path <- "../output/rent_with_ward_distances.parquet"
+# Dynamically determine output filename
+suffix <- if (run_sample) "_sample" else "_full"
+output_path <- sprintf("../output/rent_with_ward_distances%s.parquet", suffix)
+
 write_parquet(final_df, output_path)
 
 message("Done! Saved ", nrow(final_df), " rows to ", output_path)
