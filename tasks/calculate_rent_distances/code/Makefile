@@ -21,7 +21,7 @@ ALL_INPUTS := $(INPUT_RENT_PANEL) $(INPUT_WARD_PANEL) $(INPUT_ALD_PANEL) \
 
 # Set to TRUE to run on a 5% sample for testing, FALSE for full run
 # You can override this from the command line: make SAMPLE=TRUE
-SAMPLE ?= FALSE
+SAMPLE := TRUE
 
 # Determine output filename based on SAMPLE flag
 ifeq ($(SAMPLE),TRUE)

@@ -1,6 +1,6 @@
 # This script runs spatial RD analyses on the dataset from the calculate_ward_boundary_distances task
 
-## run this line when editing code in Rstudio 
+## run this line when editing code in Rstudio
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 
 source("../../setup_environment/code/packages.R")
@@ -19,10 +19,10 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 5) {
   stop("FATAL: Script requires 5 arguments: <yvar> <use_log> <bw> <kernel> <rd_plot_outfile>", call. = FALSE)
 }
-yvar                   <- args[1]
-use_log                <- as.logical(args[2])
-bw                     <- as.numeric(args[3])
-kernel                 <- args[4]
+yvar <- args[1]
+use_log <- as.logical(args[2])
+bw <- as.numeric(args[3])
+kernel <- args[4]
 output_filename_rdplot <- args[5]
 # # =======================================================================================
 
@@ -41,7 +41,7 @@ if (use_log) {
 }
 
 # parcels_signed <- parcels_signed %>%
-#   filter(unitscount > 0) 
+#   filter(unitscount > 0)
 
 cat("Data preparation complete.\n")
 
@@ -58,22 +58,39 @@ rd_robust_result <- rdrobust(
 )
 summary(rd_robust_result)
 
-# Extract Bias-Corrected coefficient and Standard Error
+# Extract Conventional coefficient and Standard Error
+coef_conv <- rd_robust_result$coef[1]
+se_conv <- rd_robust_result$se[1]
+p_conv <- rd_robust_result$pv[1]
+
+# Extract Bias-Corrected (Robust) coefficient and Standard Error
 coef_bc <- rd_robust_result$coef[3]
-se_bc   <- rd_robust_result$se[3]
+se_bc <- rd_robust_result$se[3]
 p_bc <- rd_robust_result$pv[3]
 
-# Determine significance stars based on z-value
-stars <- case_when(
-  p_bc <= .10 & p_bc > .05 ~ "*", # p < 0.10
-  p_bc <= .05 & p_bc > .01  ~ "**",  # p < 0.05
-  p_bc <= .01 ~ "***",   # p < 0.01
+# Determine significance stars for conventional
+stars_conv <- case_when(
+  p_conv <= .01 ~ "***",
+  p_conv <= .05 ~ "**",
+  p_conv <= .10 ~ "*",
   TRUE ~ ""
 )
 
-# Create a formatted string for the plot annotation
-annotation_text <- sprintf("Estimate: %.3f%s (%.3f)", coef_bc, stars, se_bc)
-annotation_text
+# Determine significance stars for robust
+stars_bc <- case_when(
+  p_bc <= .01 ~ "***",
+  p_bc <= .05 ~ "**",
+  p_bc <= .10 ~ "*",
+  TRUE ~ ""
+)
+
+# Create a formatted string for the plot annotation (two lines)
+annotation_text <- sprintf(
+  "Conventional: %.3f%s (%.3f)\nRobust: %.3f%s (%.3f)",
+  coef_conv, stars_conv, se_conv,
+  coef_bc, stars_bc, se_bc
+)
+
 # --- 4. GENERATE PLOTS ---
 
 # =======================================================================================
@@ -129,9 +146,9 @@ plot_title <- "Discontinuity in Development Density at Ward Boundary"
 ## --- Plot 1: Binned rdplot ---
 cat("Generating binned rdplot...\n")
 
-df_bw  <- parcels_signed %>% dplyr::filter(abs(signed_distance) <= bw)
+df_bw <- parcels_signed %>% dplyr::filter(abs(signed_distance) <= bw)
 
-K=30
+K <- 30
 rd_plot_object <- rdplot(
   y = df_bw$outcome,
   x = df_bw$signed_distance,
@@ -141,7 +158,7 @@ rd_plot_object <- rdplot(
   # kernel is irrelevant for bins; keep it if you like for consistency
   kernel = kernel,
   # force the same number of bins on each side:
-  nbins = c(K,K),
+  nbins = c(K, K),
   # pick spacing: "es" = evenly spaced in x, "qs" = quantile spaced
   binselect = "es",
   # keep your limits so bins are inside the RD window
@@ -151,14 +168,16 @@ rd_plot_object <- rdplot(
 )
 
 ## get bins for ggplot
-bins   <- rd_plot_object$vars_bins
+bins <- rd_plot_object$vars_bins
 
 plot2 <- ggplot() +
   # binned means (points only)
-  geom_point(data = bins,
-             aes(x = rdplot_mean_x, y = rdplot_mean_y),
-             color = "darkblue", size = 1.5, alpha = 0.7) +
-  
+  geom_point(
+    data = bins,
+    aes(x = rdplot_mean_x, y = rdplot_mean_y),
+    color = "darkblue", size = 1.5, alpha = 0.7
+  ) +
+
   # LOESS fits (se=TRUE draws the ribbons around the fitted line)
   geom_smooth(
     data = df_bw %>% dplyr::filter(signed_distance < 0),
@@ -173,28 +192,33 @@ plot2 <- ggplot() +
     span = 0.75, level = 0.95, na.rm = TRUE,
     color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
   ) +
-  
   geom_vline(xintercept = 0, color = "black", linewidth = .5) +
-  annotate("text", x = -Inf, y = ylim[1], label = annotation_text,
-           hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold") +
+  annotate("text",
+    x = -Inf, y = ylim[1], label = annotation_text,
+    hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold"
+  ) +
   labs(
-    title    = plot_title,
-    subtitle = paste0("bw: ", round(bw/5280, 2),
-                      " miles", " | kernel: ", kernel),
+    title = plot_title,
+    subtitle = paste0(
+      "bw: ", round(bw / 5280, 2),
+      " miles", " | kernel: ", kernel
+    ),
     y = y_axis_label,
     x = "Distance to Stricter Ward Boundary (feet)"
   ) +
   coord_cartesian(xlim = c(-bw, bw), ylim = ylim) +
   theme_bw() +
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        plot.title = element_text(size = 12))
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(size = 12)
+  )
 plot2
 
 # --- 5. SAVE PLOT ---
 if (!exists("output_filename_rdplot")) {
   log_suffix <- if (use_log) "_log" else ""
-  output_filename_rdplot <- sprintf( "../output/rd_plot%s_%s_bw%d_%s.pdf", log_suffix, yvar, bw, kernel)
+  output_filename_rdplot <- sprintf("../output/rd_plot%s_%s_bw%d_%s.pdf", log_suffix, yvar, bw, kernel)
 }
 
 ggsave(output_filename_rdplot, plot = plot2, width = 8, height = 6, dpi = 300)

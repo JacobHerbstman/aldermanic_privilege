@@ -47,8 +47,8 @@ parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_type
   mutate(strictness_own = strictness_own/sd(strictness_own, na.rm =T)) %>%
   filter(arealotsf > 1) %>%
   filter(areabuilding > 1) %>%
-  filter(unitscount > 1) %>% 
-  filter(unitscount > 1 & unitscount <= 50) 
+  filter(unitscount > 1)
+  # filter(unitscount > 1 & unitscount <= 50) 
   # filter(construction_year < 2024)
 
 
@@ -147,8 +147,8 @@ for (yv in yvars) {
     next
   }
 
-  fml_txt <- paste0(yv, " ~ strictness_own + abs(dist_to_boundary) + share_white_own + avg_hh_income_own + share_bach_plus_own | 
-                    zone_code + construction_year^ward_pair")
+  fml_txt <- paste0(yv, " ~ strictness_own + share_white_own + avg_hh_income_own + share_bach_plus_own | 
+                    zone_code^construction_year^ward_pair")
   m <- feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
   m$custom_data <- df
 
