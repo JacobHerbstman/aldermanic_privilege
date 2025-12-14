@@ -5,10 +5,6 @@ include ../../shell_functions.make
 # Bandwidths in FEET
 BWS_FT := 100 150 200 250 264 500 528 750 792 1000 1056 1320
 
-# Outcomes shown as columns in each table (logs allowed too)
-# Pass these to R as space-separated args (no commas).
-# Outcomes shown as columns in each table (logs allowed too)
-# Pass these to R as space-separated args (no commas).
 YVARS_TABLE := 'log(density_dupac)' 'log(density_far)' 'log(unitscount)'
 
 #density_bcr density_lps areabuilding arealotsf bedroomscount density_lapu storiescount

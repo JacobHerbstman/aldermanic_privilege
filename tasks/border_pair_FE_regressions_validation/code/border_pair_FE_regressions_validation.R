@@ -10,8 +10,8 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-# bw_ft <- 250
-# output_filename <- "../output/fe_validation_table_bw250.tex"
+bw_ft <- 250
+output_filename <- "../output/fe_validation_table_bw250.tex"
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
@@ -19,7 +19,7 @@ source("../../setup_environment/code/packages.R")
 # Note: We don't need yvars as arguments anymore, as we are pre-defining the validation vars
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) >= 2) {
-  bw_ft           <- suppressWarnings(as.integer(args[1]))
+  bw_ft <- suppressWarnings(as.integer(args[1]))
   output_filename <- args[2]
 } else {
   # allow interactive testing with objects already defined in the session
@@ -38,11 +38,11 @@ bw_mi <- round(bw_ft / 5280, 2)
 # ── 2) DATA ──────────────────────────────────────────────────────────────────
 # Loading the same dataset, applying same filters to ensure sample consistency
 parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
-  mutate(strictness_own = strictness_own/sd(strictness_own, na.rm =T)) %>%
+  mutate(strictness_own = strictness_own / sd(strictness_own, na.rm = T)) %>%
   filter(arealotsf > 1) %>%
   filter(areabuilding > 1) %>%
-  filter(unitscount > 1) %>% 
-  filter(unitscount > 1 & unitscount <= 50) 
+  filter(unitscount > 1) %>%
+  filter(unitscount > 1 & unitscount <= 50)
 # filter(construction_year > 2006)
 
 
@@ -59,12 +59,12 @@ pretty_label <- function(v) {
     "density_dupac" = "Dwelling Units Per Acre (DUPAC)",
     "density_far" = "Floor Area Ratio (FAR)",
     "unitscount" = "Units",
-    
+
     # Validation Variables
     "avg_rent_own" = "Avg. Rent",
     "share_white_own" = "Share White",
     "avg_hh_income_own" = "Avg. HH Income",
-    "share_bach_plus_own" = "Share Bachelor's+", 
+    "share_bach_plus_own" = "Share Bachelor's+",
     "avg_home_value_own" = "Avg. Home Value"
   )
   lab <- ifelse(b %in% names(dict), dict[[b]], b)
@@ -76,11 +76,11 @@ mean_y_level <- function(x) {
   dat <- x$custom_data
   y_lhs <- deparse(x$fml[[2]])
   y0 <- if (grepl("^log\\(", y_lhs)) gsub("^log\\(|\\)$", "", y_lhs) else y_lhs
-  
+
   val <- mean(dat[[y0]], na.rm = TRUE)
-  
+
   # Return a formatted string to force the display you want
-  sprintf("%.2f", val) 
+  sprintf("%.2f", val)
 }
 fitstat_register("myo", mean_y_level, alias = "Dep. Var. Mean")
 
@@ -103,7 +103,9 @@ n_ward_pairs <- function(x) {
 fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
 rename_dict <- c(
-  "strictness_own" = "Strictness Score"
+  "strictness_own" = "Strictness Score",
+  "zone_code^ward_pair" = "Zoning Code $\\times$ Ward-Pair FE",
+  "construction_year" = "Year FE"
 )
 
 
@@ -111,8 +113,8 @@ rename_dict <- c(
 # Instead of density outcomes, we use the demographic controls as Dependent Variables
 # We remove them from the RHS to test for raw balance at the border
 balance_vars <- c(
-  "share_white_own",    
-  "avg_hh_income_own",  
+  "share_white_own",
+  "avg_hh_income_own",
   "share_bach_plus_own"
 )
 
@@ -125,25 +127,25 @@ for (yv in balance_vars) {
     warning(sprintf("Skipping '%s' (base var '%s' not found).", yv, b))
     next
   }
-  
+
   # Filter to bandwidth
   df <- parcels_fe %>%
     filter(dist_to_boundary <= bw_ft)
-  
+
   if (nrow(df) == 0) {
     warning(sprintf("Skipping '%s' (no rows after filtering).", yv))
     next
   }
-  
+
   # THE KEY CHANGE:
   # 1. Demographic variable is now LHS (yv)
   # 2. RHS only has strictness + distance + FEs (no other controls)
-  fml_txt <- paste0(yv, " ~ strictness_own + abs(dist_to_boundary) | 
-                    zone_code + construction_year^ward_pair")
-  
+  fml_txt <- paste0(yv, " ~ strictness_own |
+                    zone_code^ward_pair + construction_year")
+
   m <- feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
   m$custom_data <- df
-  
+
   models[[length(models) + 1]] <- m
   col_headers <- c(col_headers, pretty_label(yv))
 }
@@ -155,47 +157,24 @@ names(models) <- col_headers
 table_title <- sprintf("Identification Check: Covariate Balance at Ward Boundaries (bw = %.0f ft)", bw_ft)
 
 etable(models,
-       keep = "Strictness Score",
-       fitstat = ~ n + myo + nwp,
-       style.tex = style.tex("aer", model.format = ""),
-       depvar = FALSE,
-       digits = 3, # Increased digits for balance checks to see small coefficients
-       dict = rename_dict,
-       headers = names(models),
-       signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-       fixef.group = list("Ward-pair × Year FE" = "construction_year\\^ward_pair"),
-       
-       # --- OUTPUT SETTINGS ---
-       title = table_title,
-       float = FALSE,
-       # -----------------------
-       
-       file = output_filename,
-       replace = TRUE
+  keep = "Strictness Score",
+  fitstat = ~ n + myo + nwp,
+  style.tex = style.tex("aer",
+    model.format = "",
+    fixef.title = "",
+    fixef.suffix = "",
+    yesNo = c("$\\checkmark$", "")
+  ),
+  depvar = FALSE,
+  digits = 3,
+  dict = rename_dict,
+  headers = names(models),
+  signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+  fixef.group = list(
+    "Zoning Code $\\times$ Ward-Pair FE" = "zone_code",
+    "Year FE" = "construction_year"
+  ),
+  float = FALSE,
+  file = output_filename,
+  replace = TRUE
 )
-
-
-
-# x <- lm(strictness_own ~ strictness_neighbor + homeownership_rate_own + share_white_own + share_bach_plus_own, data = parcels_fe)
-# summary(x)
-# 
-# 
-# m_resid <- feols(log(density_far) ~ 1 | construction_year^ward_pair, data = parcels_fe)
-# parcels_fe$density_resid <- residuals(m_resid)
-
-# Run a quick model to residualize strictness (removing location fixed effects)
-# This isolates the *variation* in strictness within the pair
-# m_strict <- feols(strictness_own ~ 1 | construction_year^ward_pair, data = parcels_fe)
-# parcels_fe$strictness_resid <- residuals(m_strict)
-# 
-# # Plot
-# ggplot(parcels_fe, aes(x = strictness_resid, y = density_resid)) +
-#   geom_bin2d(bins = 30) + # Or geom_point(alpha=0.1)
-#   geom_smooth(method = "lm", color = "red") +
-#   labs(
-#     x = "Aldermanic Strictness (Residualized by Border Pair)",
-#     y = "Housing Density (Residualized by Border Pair)",
-#     title = "Figure 1: Stricter Wards have Lower Density within Border Pairs"
-#   ) +
-#   theme_minimal()
-

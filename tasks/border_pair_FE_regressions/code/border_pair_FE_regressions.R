@@ -13,14 +13,14 @@ source("../../setup_environment/code/packages.R")
 # yvars <- c(
 #   "log(density_dupac)", "log(density_far)", "log(unitscount)"
 # )
-# output_filename <- "../output/fe_table_bw1056.tex"
+# output_filename <- "../output/fe_table_bw250.tex"
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 # Args: <bw_feet> <output_filename> <yvar1> [<yvar2> ...]
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) >= 3) {
-  bw_ft           <- suppressWarnings(as.integer(args[1]))
+  bw_ft <- suppressWarnings(as.integer(args[1]))
   output_filename <- args[2]
   # space-separated yvars
   yvars <- args[3:length(args)]
@@ -44,12 +44,12 @@ bw_mi <- round(bw_ft / 5280, 2)
 
 # ── 2) DATA ──────────────────────────────────────────────────────────────────
 parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
-  mutate(strictness_own = strictness_own/sd(strictness_own, na.rm =T)) %>%
+  mutate(strictness_own = strictness_own / sd(strictness_own, na.rm = T)) %>%
   filter(arealotsf > 1) %>%
   filter(areabuilding > 1) %>%
-  filter(unitscount > 1)
-  # filter(unitscount > 1 & unitscount <= 50) 
-  # filter(construction_year < 2024)
+  filter(unitscount > 1) %>%
+  filter(unitscount > 1 & unitscount <= 50)
+# filter(construction_year < 2024)
 
 
 # ── 3) HELPERS ───────────────────────────────────────────────────────────────
@@ -74,18 +74,18 @@ pretty_label <- function(v) {
   )
   lab <- ifelse(b %in% names(dict), dict[[b]], b)
   if (is_log_spec(v)) paste0("ln(", lab, ")") else lab
-  }
+}
 
 # fitstat: mean of *level* DV for the estimation sample
 mean_y_level <- function(x) {
   dat <- x$custom_data
   y_lhs <- deparse(x$fml[[2]])
   y0 <- if (grepl("^log\\(", y_lhs)) gsub("^log\\(|\\)$", "", y_lhs) else y_lhs
-  
+
   val <- mean(dat[[y0]], na.rm = TRUE)
-  
+
   # Return a formatted string to force the display you want
-  sprintf("%.2f", val) 
+  sprintf("%.2f", val)
 }
 fitstat_register("myo", mean_y_level, alias = "Dep. Var. Mean")
 
@@ -110,9 +110,10 @@ fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 rename_dict <- c(
   "strictness_own" = "Strictness Score",
   "zone_code" = "Zoning Code",
-  "construction_year" = "Year",
-  "ward_pair" = "Ward Pair",
+  "construction_year" = "Year FE",
+  "ward_pair" = "Ward-Pair",
   "ward" = "Ward",
+  "zone_code^ward_pair" = "Zoning Code $\\times$ Ward-Pair FE",
   "density_dupac" = "Dwelling Units Per Acre (DUPAC)",
   "density_far" = "Floor Area Ratio (FAR)",
   "density_lapu" = "Lot Area Per Unit (LAPU)",
@@ -142,13 +143,33 @@ for (yv in yvars) {
   df <- parcels_fe %>%
     filter(dist_to_boundary <= bw_ft)
 
+  check_df_additive <- df %>%
+    mutate(fe_group_id = paste(ward_pair, zone_code, sep = "_"))
+
+  # 2. Calculate variation within each group
+  identifying_variation_additive <- check_df_additive %>%
+    group_by(fe_group_id) %>%
+    summarize(
+      n_obs = n(),
+      # Check if there is variation in strictness (are there properties on BOTH sides?)
+      sd_strictness = sd(strictness_own, na.rm = TRUE)
+    ) %>%
+    # Filter to keep only useful groups
+    filter(n_obs > 1 & !is.na(sd_strictness) & sd_strictness > 0)
+
+  # 3. View Results
+  message("--- Additive Specification Checks (Zone^Pair + Year) ---")
+  message("Number of useful groups: ", nrow(identifying_variation_additive))
+  message("Number of useful observations: ", sum(identifying_variation_additive$n_obs))
+  message("Total observations in dataset: ", nrow(df))
+
   if (nrow(df) == 0) {
     warning(sprintf("Skipping '%s' (no rows after filtering).", yv))
     next
   }
 
-  fml_txt <- paste0(yv, " ~ strictness_own + share_white_own + avg_hh_income_own + share_bach_plus_own | 
-                    zone_code^construction_year^ward_pair")
+  fml_txt <- paste0(yv, " ~ strictness_own + share_white_own + share_black_own + avg_hh_income_own + share_bach_plus_own +
+  homeownership_rate_own + avg_rent_own | zone_code^ward_pair + construction_year")
   m <- feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
   m$custom_data <- df
 
@@ -163,22 +184,25 @@ names(models) <- col_headers
 table_title <- sprintf("Border-Pair FE estimates (bw = %.0f ft)", bw_ft)
 
 etable(models,
-       keep = "Strictness Score",
-       fitstat = ~ n + myo + nwp,
-       style.tex = style.tex("aer", model.format = ""),
-       depvar = FALSE,
-       digits = 2,
-       dict = rename_dict,
-       headers = names(models),
-       signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-       fixef.group = list("Ward-pair × Year FE" = "construction_year\\^ward_pair"),
-       
-       # --- CHANGE THESE LINES ---
-       title = NULL,
-       float = FALSE,
-       # --------------------------
-       
-       file = output_filename,
-       replace = TRUE
+  keep = "Strictness Score",
+  fitstat = ~ n + myo + nwp,
+  style.tex = style.tex("aer",
+    model.format = "",
+    fixef.title = "",
+    fixef.suffix = "",
+    yesNo = c("$\\checkmark$", "")
+  ),
+  depvar = FALSE,
+  digits = 2,
+  headers = names(models),
+  signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+  dict = rename_dict,
+  fixef.group = list(
+    "Zoning Code $\\times$ Ward-Pair FE" = "zone_code",
+    "Year FE" = "construction_year"
+  ),
+  float = FALSE,
+  tex = TRUE,
+  file = output_filename,
+  replace = TRUE
 )
-

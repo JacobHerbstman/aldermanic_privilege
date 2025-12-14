@@ -50,8 +50,8 @@ rentals <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
     # Create month variable for FE (year-month)
     mutate(year_month = zoo::as.yearmon(file_date)) %>%
     # Ward pair for clustering
-    mutate(ward_pair = ward_pair_id) 
-    # filter(building_type_clean == "multi_family") %>% 
+    mutate(ward_pair = ward_pair_id)
+# filter(building_type_clean == "multi_family") %>%
 
 
 
@@ -106,7 +106,8 @@ rename_dict <- c(
     "ward_pair" = "Ward Pair",
     "ward" = "Ward",
     "rent_price" = "Rent Price",
-    "year_month" = "Month"
+    "year_month" = "Month",
+    "building_type_clean^year_month^ward_pair" = "Building Type $\\times$ Month $\\times$ Ward-Pair FE"
 )
 
 
@@ -151,15 +152,22 @@ table_title <- sprintf("Border-Pair FE Rental Estimates (bw = %.0f ft)", bw_ft)
 etable(models,
     keep = "Strictness Score",
     fitstat = ~ n + myo + nwp,
-    style.tex = style.tex("aer", model.format = ""),
+    style.tex = style.tex("aer",
+        model.format = "",
+        fixef.title = "",
+        fixef.suffix = "",
+        yesNo = c("$\\checkmark$", "")
+    ),
     depvar = FALSE,
     digits = 2,
     dict = rename_dict,
     headers = names(models),
     signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-    fixef.group = list("Building Type FE × Ward-pair × Month FE" = "building_type_clean\\^year_month\\^ward_pair"),
-    title = NULL,
+    fixef.group = list(
+        "Building Type $\\times$ Month $\\times$ Ward-Pair FE" = "building_type_clean"
+    ),
     float = FALSE,
+    tex = TRUE,
     file = output_filename,
     replace = TRUE
 )
