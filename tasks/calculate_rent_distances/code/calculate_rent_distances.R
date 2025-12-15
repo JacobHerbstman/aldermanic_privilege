@@ -182,7 +182,7 @@ input_file <- "../input/chicago_rent_panel.parquet"
 # Open dataset
 ds <- arrow::open_dataset(input_file)
 
-years <- 2014:2014
+years <- 2014:2025
 results_list <- list()
 
 if (run_sample) {

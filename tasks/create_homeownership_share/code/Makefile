@@ -1,16 +1,21 @@
 SHELL := bash
 include ../../shell_functions.make
 
-# Output file
-OUTPUT_FILE := ../output/ward_year_panel.csv
+# Output files
+OUTPUT_WARD := ../output/ward_controls_2000_2023.csv
+OUTPUT_BG := ../output/block_group_controls_2000_2023.csv
 
 # Inputs
 INPUT_WARD_PANEL := ../input/ward_panel.gpkg
 
-.DEFAULT_GOAL := $(OUTPUT_FILE)
+.DEFAULT_GOAL := all
 
-# Run the R script
-$(OUTPUT_FILE): create_homeownership_share.R $(INPUT_WARD_PANEL) | ../output
+.PHONY: all
+all: $(OUTPUT_WARD) $(OUTPUT_BG)
+
+# Both outputs are created by a single R script run
+# Use a sentinel file to avoid running twice
+$(OUTPUT_WARD) $(OUTPUT_BG): create_homeownership_share.R $(INPUT_WARD_PANEL) | ../output
 	$(R) $<
 
 # Link the Ward Panel from the previous task

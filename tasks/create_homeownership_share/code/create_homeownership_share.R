@@ -133,18 +133,15 @@ final_panel_list <- list()
 message(glue("Starting Panel Construction ({min(years)}-{max(years)})..."))
 
 for (y in years) {
-  
   message(glue("Processing Year: {y}"))
-  
+
   # --- A. Select Data Source ---
   if (y <= 2009) {
     # Regime 1: 2000 Decennial
     current_bgs <- data_2000
-    
   } else if (y >= 2010 & y <= 2012) {
     # Regime 2: 2010 Hybrid (Decennial Counts + 2013 ACS Econ)
     current_bgs <- data_2010_hybrid
-    
   } else {
     # Regime 3: Annual ACS (2013+)
     current_data <- get_acs(
@@ -156,7 +153,7 @@ for (y in years) {
       mutate(
         educ_bach_plus = rowSums(across(c(educ_bach, educ_mast, educ_prof, educ_doc)), na.rm = TRUE)
       )
-    
+
     # Attach correct geometry
     if (y < 2020) {
       current_bgs <- geo_2010 %>% left_join(current_data, by = "GEOID")
@@ -164,19 +161,19 @@ for (y in years) {
       current_bgs <- geo_2020 %>% left_join(current_data, by = "GEOID")
     }
   }
-  
+
   # --- B. Spatial Join to Ward ---
   # Pick Ward Map
   current_wards <- ward_panel %>% filter(year == y)
   if (nrow(current_wards) == 0) next
-  
+
   # Centroid Join
   bg_centroids <- st_centroid(current_bgs)
   joined_data <- st_join(bg_centroids, current_wards, join = st_within) %>%
     st_drop_geometry() %>%
     mutate(year = y) %>%
     filter(!is.na(ward))
-  
+
   final_panel_list[[as.character(y)]] <- joined_data
 }
 
@@ -191,30 +188,34 @@ ward_controls <- final_bg_panel %>%
   summarize(
     # --- Universe Sums ---
     pop_total = sum(tot_pop, na.rm = TRUE),
-    hh_total  = sum(tot_hhs, na.rm = TRUE),
-    hu_total  = sum(tot_units, na.rm = TRUE),
-    
+    hh_total = sum(tot_hhs, na.rm = TRUE),
+    hu_total = sum(tot_units, na.rm = TRUE),
+
     # --- Demographics (Weighted Shares) ---
     share_black = sum(pop_black, na.rm = TRUE) / sum(tot_pop, na.rm = TRUE),
-    share_hisp  = sum(pop_hisp, na.rm = TRUE) / sum(tot_pop, na.rm = TRUE),
+    share_hisp = sum(pop_hisp, na.rm = TRUE) / sum(tot_pop, na.rm = TRUE),
     share_white = sum(pop_white, na.rm = TRUE) / sum(tot_pop, na.rm = TRUE),
     homeownership_rate = sum(owner_occ, na.rm = TRUE) / sum(tot_units, na.rm = TRUE),
     share_bach_plus = sum(educ_bach_plus, na.rm = TRUE) / sum(pop_25plus, na.rm = TRUE),
-    
+
     # --- Economics (Weighted Means) ---
     # Mean = Sum(Aggregates) / Sum(Universe)
     avg_hh_income = sum(agg_income, na.rm = TRUE) / sum(tot_hhs, na.rm = TRUE),
     avg_home_value = sum(agg_value, na.rm = TRUE) / sum(owner_occ, na.rm = TRUE),
     avg_rent = sum(agg_rent, na.rm = TRUE) / sum(renter_occ, na.rm = TRUE),
-    
     .groups = "drop"
   ) %>%
-  filter(pop_total > 0) %>% 
+  filter(pop_total > 0) %>%
   arrange(ward, year)
 
 # 6. SAVE
 # -----------------------------------------------------------------------------
-write_csv(ward_controls, "../output/ward_controls_2000_2023.csv")
-# write_parquet(ward_controls, "../output/ward_controls_2000_2023.parquet")
+# Save block group level controls (before aggregation)
+write_csv(final_bg_panel, "../output/block_group_controls_2000_2023.csv")
+message("Block Group Panel saved to: ../output/block_group_controls_2000_2023.csv")
 
-message("Done! Ward Panel Created.")
+# Save ward-level aggregated controls
+write_csv(ward_controls, "../output/ward_controls_2000_2023.csv")
+message("Ward Panel saved to: ../output/ward_controls_2000_2023.csv")
+
+message("Done! Both Block Group and Ward Panels Created.")
