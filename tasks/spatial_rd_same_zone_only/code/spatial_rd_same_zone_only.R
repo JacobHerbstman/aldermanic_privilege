@@ -19,10 +19,10 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 5) {
   stop("FATAL: Script requires 5 args: <yvar> <use_log> <bw> <kernel> <rd_plot_outfile> [donut]", call. = FALSE)
 }
-yvar                   <- args[1]
-use_log                <- as.logical(args[2])
-bw                     <- as.numeric(args[3])
-kernel                 <- args[4]
+yvar <- args[1]
+use_log <- as.logical(args[2])
+bw <- as.numeric(args[3])
+kernel <- args[4]
 output_filename_rdplot <- args[5]
 # =======================================================================================
 if (!exists("donut")) donut <- 0
@@ -30,10 +30,10 @@ stopifnot(donut >= 0, donut < bw)
 
 # --- 2) LOAD & PREPARE DATA ----------------------------------------------------
 cat("Loading and preparing data...\n")
-dat_raw <- read_csv("../input/parcels_with_ward_distances.csv") %>% 
+dat_raw <- read_csv("../input/parcels_with_ward_distances.csv") %>%
   filter(arealotsf > 1) %>%
   filter(areabuilding > 1) %>%
-  filter(unitscount > 1) %>% 
+  filter(unitscount > 1) %>%
   filter(unitscount > 1 & unitscount <= 100)
 
 # keep strictly positive outcomes (for logs) and build 'outcome'
@@ -42,7 +42,7 @@ dat <- dat_raw %>%
     outcome = if (use_log) log(.data[[yvar]]) else .data[[yvar]],
     within_bw = abs(signed_distance) <= bw
   )
-# dat_raw[dat_raw[[yvar]] > 0, 
+# dat_raw[dat_raw[[yvar]] > 0,
 # Restrict to parcels within bandwidth and outside donut with non-missing units
 dat_bw <- dat %>%
   filter(within_bw, abs(signed_distance) >= donut)
@@ -52,10 +52,10 @@ zone_counts <- dat_bw %>%
   group_by(boundary_year, ward_pair, zone_code) %>%
   summarise(
     n        = n(),
-    n_sides  = n_distinct(sign(signed_distance)),  # ensure it exists on both sides
+    n_sides  = n_distinct(sign(signed_distance)), # ensure it exists on both sides
     .groups  = "drop"
   ) %>%
-  filter(n_sides == 2)  # modal candidate must be present on both sides
+  filter(n_sides == 2) # modal candidate must be present on both sides
 
 # Pick the modal zone per (boundary_year, ward_pair); deterministic tie-breaker by zone_code
 modal_zone <- zone_counts %>%
@@ -75,14 +75,16 @@ dat <- dat %>%
     cluster_id = paste(boundary_year, ward_pair, zone_code, sep = "_")
   )
 
-                               # appears on both sides
+# appears on both sides
 
 if (nrow(dat) == 0) {
   stop("No ward-pair segments with the same zoning on both sides inside the chosen bandwidth.")
 }
 
-cat("Sample size after restrictions:", nrow(dat),
-    " | window [", donut, ", ", bw, "] feet.\n")
+cat(
+  "Sample size after restrictions:", nrow(dat),
+  " | window [", donut, ", ", bw, "] feet.\n"
+)
 
 # --- 3) RD ESTIMATION -----------------------------------------------------------
 cat("Running rdrobust for:", yvar, "(log =", use_log, ")...\n")
@@ -93,21 +95,42 @@ rd_robust_result <- rdrobust(
   kernel  = kernel,
   p       = 1,
   h       = bw,
-  cluster = dat$cluster_id   # cluster by (pair × zone), consistent with restriction
+  cluster = dat$cluster_id # cluster by (pair × zone), consistent with restriction
 )
 summary(rd_robust_result)
 
-coef_bc <- rd_robust_result$coef[3]
-se_bc   <- rd_robust_result$se[3]
-p_bc    <- rd_robust_result$pv[3]
-stars <- case_when(
-  p_bc <= .10 & p_bc > .05 ~ "*",
-  p_bc <= .05 & p_bc > .01 ~ "**",
-  p_bc <= .01              ~ "***",
+# Extract Results - Conventional
+coef_conv <- rd_robust_result$coef[1]
+se_conv <- rd_robust_result$se[1]
+pval_conv <- rd_robust_result$pv[1]
+
+# Extract Results - Robust
+coef_robust <- rd_robust_result$coef[3]
+se_robust <- rd_robust_result$se[3]
+pval_robust <- rd_robust_result$pv[3]
+
+# Stars for conventional
+stars_conv <- case_when(
+  pval_conv < 0.01 ~ "***",
+  pval_conv < 0.05 ~ "**",
+  pval_conv < 0.1 ~ "*",
   TRUE ~ ""
 )
-annotation_text <- sprintf("Estimate: %.3f%s (%.3f)", coef_bc, stars, se_bc)
-annotation_text
+
+# Stars for robust
+stars_robust <- case_when(
+  pval_robust < 0.01 ~ "***",
+  pval_robust < 0.05 ~ "**",
+  pval_robust < 0.1 ~ "*",
+  TRUE ~ ""
+)
+
+# Two-line annotation
+annotation_text <- sprintf(
+  "Conventional: %.3f%s (%.3f)\nRobust: %.3f%s (%.3f)",
+  coef_conv, stars_conv, se_conv,
+  coef_robust, stars_robust, se_robust
+)
 # --- 4. GENERATE PLOTS ---
 
 # =======================================================================================
@@ -148,12 +171,12 @@ if (yvar == "density_far") {
     ylim <- c(0, 150)
   }
 } else if (yvar == "unitscount") {
-    y_axis_label <- "Units"
-    if (use_log) {
-      ylim <- c(0, 5)
-    } else {
-      ylim <- c(2, 20)
-    }
+  y_axis_label <- "Units"
+  if (use_log) {
+    ylim <- c(0, 5)
+  } else {
+    ylim <- c(2, 20)
+  }
 } else {
   y_axis_label <- yvar
   ylim <- NULL # Let ggplot decide the limits for unknown variables
@@ -175,19 +198,21 @@ rd_plot_object <- rdplot(
   c = 0,
   h = bw,
   p = 1,
-  kernel    = kernel,
-  nbins     = c(K, K),
+  kernel = kernel,
+  nbins = c(K, K),
   binselect = "es",
-  x.lim     = c(-bw, bw),
-  y.lim     = ylim,
+  x.lim = c(-bw, bw),
+  y.lim = ylim,
   title = "", y.label = "", x.label = ""
 )
 bins <- rd_plot_object$vars_bins
 
 plot2 <- ggplot() +
-  geom_point(data = bins,
-             aes(x = rdplot_mean_x, y = rdplot_mean_y),
-             color = "darkblue", size = 1.5, alpha = 0.7) +
+  geom_point(
+    data = bins,
+    aes(x = rdplot_mean_x, y = rdplot_mean_y),
+    color = "darkblue", size = 1.5, alpha = 0.7
+  ) +
   geom_smooth(
     data = dat %>% filter(signed_distance < 0),
     aes(x = signed_distance, y = outcome),
@@ -201,24 +226,31 @@ plot2 <- ggplot() +
     color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
   ) +
   geom_vline(xintercept = 0, color = "black", linewidth = .5) +
-  geom_vline(xintercept = c(-donut, donut), linetype = "dashed",
-             linewidth = .4, color = "grey40") +
+  geom_vline(
+    xintercept = c(-donut, donut), linetype = "dashed",
+    linewidth = .4, color = "grey40"
+  ) +
   annotate("text",
-           x = -Inf, y = if (is.null(ylim)) -Inf else ylim[1],
-           label = annotation_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold") +
+    x = -Inf, y = if (is.null(ylim)) Inf else ylim[2],
+    label = annotation_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold"
+  ) +
   labs(
-    title    = plot_title,
-    subtitle = paste0("bw: ", round(bw, 2),
-                      " ft | kernel: ", kernel, 
-                      " | N = ", nrow(dat)),
+    title = plot_title,
+    subtitle = paste0(
+      "bw: ", round(bw, 2),
+      " ft | kernel: ", kernel,
+      " | N = ", nrow(dat)
+    ),
     y = y_axis_label,
     x = "Distance to Stricter Ward Boundary (feet)"
   ) +
   coord_cartesian(xlim = c(-bw, bw), ylim = ylim) +
   theme_bw() +
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        plot.title = element_text(size = 12))
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(size = 12)
+  )
 
 plot2
 

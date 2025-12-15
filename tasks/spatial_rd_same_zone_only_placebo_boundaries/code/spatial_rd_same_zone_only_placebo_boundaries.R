@@ -194,7 +194,7 @@ p <- ggplot() +
     ) +
     geom_vline(xintercept = 0, color = "black", linewidth = 0.5) +
     annotate("text",
-        x = -Inf, y = ylim[1], label = annot_text,
+        x = -Inf, y = ylim[2], label = annot_text,
         hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold"
     ) +
     labs(

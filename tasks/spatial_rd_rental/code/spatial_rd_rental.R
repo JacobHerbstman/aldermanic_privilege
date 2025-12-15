@@ -11,10 +11,10 @@ source("../../setup_environment/code/packages.R")
 # -----------------------------------------------------------------------------
 # =======================================================================================
 # --- Interactive Test Block (Uncomment to run in RStudio without Make) ---
-input_file  <- "../input/rent_with_ward_distances.parquet" # Adjust if you have a sample file
+input_file  <- "../input/rent_with_ward_distances_sample.parquet" # Adjust if you have a sample file
 yvar        <- "rent_price"
 use_log     <- TRUE
-bw          <- 25
+bw          <- 250
 kernel      <- "triangular"
 output_file <- "../output/test_plot.pdf"
 # =======================================================================================
@@ -33,7 +33,7 @@ output_file <- "../output/test_plot.pdf"
   
 # -----------------------------------------------------------------------------
 # 2. LOAD DATA
-# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------girt
 message(sprintf("Loading rental data from: %s", input_file))
 # We use arrow to read the parquet file efficiently
 df <- read_parquet(input_file)
@@ -44,8 +44,8 @@ df <- read_parquet(input_file)
 # Filter to bandwidth window immediately to save memory
 df_bw <- df %>%
   filter(abs(signed_dist) <= bw) %>%
-  filter(!is.na(rent_price), rent_price > 0)
-# filter(building_type_clean == "multi_family")
+  filter(!is.na(rent_price), rent_price > 0) %>% 
+filter(building_type_clean == "multi_family")
 
 # ## robustness check on if bigger gap gives bigger effects 
 # df_bw <- df_bw %>%
@@ -84,7 +84,7 @@ est <- rdrobust(
   h = bw,
   kernel = kernel,
   cluster = cluster_var,
-  p = 1 # Linear local regression is standard
+  p = 2 # Linear local regression is standard
 )
 
 summary(est)
@@ -135,7 +135,7 @@ rd_plot <- rdplot(
   x = df_bw$signed_dist,
   c = 0,
   h = bw,
-  p = 1,
+  p = 2,
   kernel = kernel,
   binselect = "es",
   nbins = c(30, 30), # Adjust bin count as needed
@@ -192,7 +192,7 @@ p <- ggplot() +
     plot.subtitle = element_text(size = 12, color = "grey40"),
     axis.title = element_text(face = "bold", size = 12)
   )
-
+p
 # -----------------------------------------------------------------------------
 # 6. SAVE
 # -----------------------------------------------------------------------------

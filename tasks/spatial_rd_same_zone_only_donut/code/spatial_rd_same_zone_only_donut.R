@@ -100,17 +100,38 @@ rd_robust_result <- rdrobust(
 )
 summary(rd_robust_result)
 
-coef_bc <- rd_robust_result$coef[3]
-se_bc <- rd_robust_result$se[3]
-p_bc <- rd_robust_result$pv[3]
-stars <- case_when(
-    p_bc <= .10 & p_bc > .05 ~ "*",
-    p_bc <= .05 & p_bc > .01 ~ "**",
-    p_bc <= .01 ~ "***",
+# Extract Results - Conventional
+coef_conv <- rd_robust_result$coef[1]
+se_conv <- rd_robust_result$se[1]
+pval_conv <- rd_robust_result$pv[1]
+
+# Extract Results - Robust
+coef_robust <- rd_robust_result$coef[3]
+se_robust <- rd_robust_result$se[3]
+pval_robust <- rd_robust_result$pv[3]
+
+# Stars for conventional
+stars_conv <- case_when(
+    pval_conv < 0.01 ~ "***",
+    pval_conv < 0.05 ~ "**",
+    pval_conv < 0.1 ~ "*",
     TRUE ~ ""
 )
-annotation_text <- sprintf("Estimate: %.3f%s (%.3f)", coef_bc, stars, se_bc)
-annotation_text
+
+# Stars for robust
+stars_robust <- case_when(
+    pval_robust < 0.01 ~ "***",
+    pval_robust < 0.05 ~ "**",
+    pval_robust < 0.1 ~ "*",
+    TRUE ~ ""
+)
+
+# Two-line annotation
+annotation_text <- sprintf(
+    "Conventional: %.3f%s (%.3f)\nRobust: %.3f%s (%.3f)",
+    coef_conv, stars_conv, se_conv,
+    coef_robust, stars_robust, se_robust
+)
 # --- 4. GENERATE PLOTS ---
 
 # =======================================================================================
@@ -217,7 +238,7 @@ plot2 <- ggplot() +
         linewidth = .4, color = "grey40"
     ) +
     annotate("text",
-        x = -Inf, y = if (is.null(ylim)) -Inf else ylim[1],
+        x = -Inf, y = if (is.null(ylim)) Inf else ylim[2],
         label = annotation_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold"
     ) +
     labs(

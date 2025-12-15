@@ -10,22 +10,22 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block ---
-# placebo_shift <- 250  # shift cutoff by 250 ft to the right (positive side)
+placebo_shift <- 100  # shift cutoff by 250 ft to the right (positive side)
 # =======================================================================================
 
-args <- commandArgs(trailingOnly = TRUE)
-
-if (length(args) < 1) {
-    stop("Usage: Rscript spatial_rd_rental_placebo_boundaries.R <placebo_shift>")
-}
-
-placebo_shift <- as.numeric(args[1]) # e.g., -500, -250, 250, 500
+# args <- commandArgs(trailingOnly = TRUE)
+# 
+# if (length(args) < 1) {
+#     stop("Usage: Rscript spatial_rd_rental_placebo_boundaries.R <placebo_shift>")
+# }
+# 
+# placebo_shift <- as.numeric(args[1]) # e.g., -500, -250, 250, 500
 
 # Fixed parameters for this placebo analysis
-bw <- 250 # fixed bandwidth
+bw <- 50 # fixed bandwidth
 kernel <- "triangular"
 yvar <- "rent_price"
-use_log <- TRUE
+use_log <- F
 
 message(sprintf("=== Placebo Boundary Test: Cutoff shifted by %d ft ===", placebo_shift))
 
@@ -43,6 +43,7 @@ df <- read_parquet("../input/rent_with_ward_distances.parquet")
 df <- df %>%
     filter(!is.na(rent_price), rent_price > 0) %>%
     filter(!is.na(signed_dist)) %>%
+  # filter(building_type_clean == "multi_family") %>%
     # Shift the running variable so the new "cutoff" is at 0
     mutate(signed_dist_shifted = signed_dist - placebo_shift)
 
@@ -195,7 +196,7 @@ p <- ggplot() +
         plot.subtitle = element_text(size = 12, color = "grey40"),
         axis.title = element_text(face = "bold", size = 12)
     )
-
+p
 # -----------------------------------------------------------------------------
 # 5. SAVE OUTPUT
 # -----------------------------------------------------------------------------

@@ -9,15 +9,15 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block ---
-poly_order <- 1  # polynomial order: 1=linear, 2=quadratic, 3=cubic
+poly_order <- 1 # polynomial order: 1=linear, 2=quadratic, 3=cubic
 # =======================================================================================
 
 # args <- commandArgs(trailingOnly = TRUE)
-# 
+#
 # if (length(args) < 1) {
 #     stop("Usage: Rscript spatial_rd_same_zone_only_function_robustness.R <poly_order>")
 # }
-# 
+#
 # poly_order <- as.integer(args[1]) # 1, 2, or 3
 
 # Fixed parameters
@@ -131,7 +131,8 @@ stars_robust <- case_when(
 )
 
 annot_text <- sprintf(
-    "Estimate: %.3f%s (%.3f)",
+    "Conventional: %.3f%s (%.3f)\nRobust: %.3f%s (%.3f)",
+    coef_conv, stars_conv, se_conv,
     coef_robust, stars_robust, se_robust
 )
 
@@ -191,7 +192,7 @@ p <- ggplot() +
     ) +
     geom_vline(xintercept = 0, color = "black", linewidth = 0.5) +
     annotate("text",
-        x = -Inf, y = ylim[1], label = annot_text,
+        x = -Inf, y = ylim[2], label = annot_text,
         hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold"
     ) +
     labs(
