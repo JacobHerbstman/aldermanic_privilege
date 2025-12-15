@@ -22,7 +22,7 @@ if (length(args) < 1) {
 placebo_shift <- as.numeric(args[1]) # e.g., -500, -250, 250, 500
 
 # Fixed parameters for this placebo analysis
-bw <- 250 # fixed bandwidth
+bw <- 500 # fixed bandwidth
 kernel <- "triangular"
 yvar <- "density_dupac" # same outcome as original
 use_log <- TRUE
@@ -38,7 +38,7 @@ dat_raw <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types =
     filter(arealotsf > 1) %>%
     filter(areabuilding > 1) %>%
     filter(unitscount > 1) %>%
-    filter(unitscount > 1 & unitscount <= 50)
+    filter(unitscount > 1 & unitscount <= 100)
 
 # Create outcome and shifted running variable
 dat <- dat_raw %>%

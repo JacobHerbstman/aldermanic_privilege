@@ -2,10 +2,10 @@ SHELL := bash
 include ../../shell_functions.make
 
 # --- Placebo Shifts (in feet) ---
-PLACEBO_SHIFTS := -500 -250 250 500
+PLACEBO_SHIFTS := -1000 -500 -250 250 500 1000
 
 # --- Fixed bandwidth for placebo tests ---
-BW := 250
+BW := 500
 
 # --- Key Files ---
 INPUT_FILE := ../input/parcels_with_ward_distances.csv

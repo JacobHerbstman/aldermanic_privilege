@@ -6,7 +6,7 @@ include ../../shell_functions.make
 PLACEBO_SHIFTS := -500 -250 250 500
 
 # --- Fixed bandwidth for placebo tests ---
-BW := 250
+BW := 50
 
 # --- Key Files ---
 INPUT_FILE := ../input/rent_with_ward_distances.parquet
