@@ -10,7 +10,7 @@ source("../../setup_environment/code/packages.R")
 # --- Interactive Test Block (comment out if using Make) ---
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
 # yvar    <- "density_dupac"
-# use_log <- F
+# use_log <- T
 # bw      <- 500             # outer bandwidth in feet
 # kernel  <- "triangular"
 # =======================================================================================
@@ -34,7 +34,7 @@ dat_raw <- read_csv("../input/parcels_with_ward_distances.csv") %>%
   filter(arealotsf > 1) %>%
   filter(areabuilding > 1) %>%
   filter(unitscount > 1) %>% 
-  filter(unitscount > 1 & unitscount <= 50)
+  filter(unitscount > 1 & unitscount <= 100)
 
 # keep strictly positive outcomes (for logs) and build 'outcome'
 dat <- dat_raw %>%
