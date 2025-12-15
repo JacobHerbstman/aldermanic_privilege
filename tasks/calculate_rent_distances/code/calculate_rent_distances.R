@@ -182,7 +182,7 @@ input_file <- "../input/chicago_rent_panel.parquet"
 # Open dataset
 ds <- arrow::open_dataset(input_file)
 
-years <- 2014:2025
+years <- 2014:2014
 results_list <- list()
 
 if (run_sample) {
@@ -200,7 +200,7 @@ for (i in seq_along(years)) {
   # Read chunk for the year
   df_chunk <- ds %>% 
     filter(year(file_date) == yr) %>% 
-    select(id, file_date, rent_price, latitude, longitude, building_type, beds) %>% 
+    select(id, rent_price, building_type, beds, baths, laundry, gym, year_built, available_date, file_date, latitude, longitude) %>%
     collect()
   
   # Apply sampling if needed

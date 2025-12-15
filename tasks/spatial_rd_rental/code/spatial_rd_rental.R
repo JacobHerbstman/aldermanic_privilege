@@ -11,25 +11,25 @@ source("../../setup_environment/code/packages.R")
 # -----------------------------------------------------------------------------
 # =======================================================================================
 # --- Interactive Test Block (Uncomment to run in RStudio without Make) ---
-# input_file  <- "../input/rent_with_ward_distances_sample.parquet" # Adjust if you have a sample file
-# yvar        <- "rent_price"
-# use_log     <- TRUE
-# bw          <- 250
-# kernel      <- "triangular"
-# output_file <- "../output/test_plot.pdf"
+input_file  <- "../input/rent_with_ward_distances.parquet" # Adjust if you have a sample file
+yvar        <- "rent_price"
+use_log     <- TRUE
+bw          <- 25
+kernel      <- "triangular"
+output_file <- "../output/test_plot.pdf"
 # =======================================================================================
-args <- commandArgs(trailingOnly = TRUE)
-
-if (length(args) < 5) {
-  stop("Usage: Rscript rental_spatial_rd.R <input_file> <yvar> <use_log> <bw> <kernel> [output_file]")
-}
-
-input_file <- args[1]
-yvar       <- args[2]
-use_log    <- as.logical(args[3])
-bw         <- as.numeric(args[4])
-kernel     <- args[5]
-output_file <- if (length(args) >= 6) args[6] else NULL
+# args <- commandArgs(trailingOnly = TRUE)
+# 
+# if (length(args) < 5) {
+#   stop("Usage: Rscript rental_spatial_rd.R <input_file> <yvar> <use_log> <bw> <kernel> [output_file]")
+# }
+# 
+# input_file <- args[1]
+# yvar       <- args[2]
+# use_log    <- as.logical(args[3])
+# bw         <- as.numeric(args[4])
+# kernel     <- args[5]
+# output_file <- if (length(args) >= 6) args[6] else NULL
   
 # -----------------------------------------------------------------------------
 # 2. LOAD DATA
@@ -75,7 +75,7 @@ message(sprintf(
 
 # Cluster by ward_pair_id if available, otherwise just robust
 # cluster_var <- if ("ward_pair_id" %in% names(df_bw)) df_bw$ward_pair_id else NULL
-cluster_var <- df_bw$ward
+cluster_var <- df_bw$ward_pair_id
 
 est <- rdrobust(
   y = df_bw$outcome,
