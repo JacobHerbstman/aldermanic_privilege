@@ -1,339 +1,221 @@
-## this code creates ward-level controls from the ACS by spatially joining census tracts to wards
-## Annual census tract data for 2006-2023 with proper tract boundary handling (2010 and 2020 changes)
+## This code creates a comprehensive Ward-Year Panel (2000-2023) with Controls
+## Sources: 2000 Decennial, 2010 Decennial, and Annual ACS 5-Year Estimates
+
+## run this line when editing code in Rstudio
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 
 source("../../setup_environment/code/packages.R")
+library(tigris) # Required for the geometry fix
 
-# Set census api key if not already done
+# 1. SETUP & INPUTS
+# -----------------------------------------------------------------------------
+if (Sys.getenv("CENSUS_API_KEY") == "") {
+  stop("Error: CENSUS_API_KEY not found in .Renviron")
+}
 census_api_key(Sys.getenv("CENSUS_API_KEY"))
 
-# Read ward panel for spatial boundaries
-ward_panel <- st_read("../input/ward_panel.gpkg")
+# Set tigris cache to avoid re-downloading good files
+options(tigris_use_cache = TRUE)
 
-# Create output directory
-dir.create("../output", showWarnings = FALSE, recursive = TRUE)
+# Load Ward Panel (CRS 3435)
+ward_panel <- st_read("../input/ward_panel.gpkg") %>% st_transform(3435)
 
+# 2. VARIABLE DICTIONARIES
 # -----------------------------------------------------------------------------
-# 1. DEFINE VARIABLES
-# -----------------------------------------------------------------------------
-acs_vars <- c(
-  # Population and Race/Ethnicity
-  total_population = "B01003_001",
-  hispanic_population = "B03003_003", 
-  black_population = "B03002_004",
-  
-  # Housing Tenure
-  total_units = "B25003_001",
-  owner_occupied = "B25003_002",
-  
-  # Income
-  median_income = "B19013_001",
-  
-  # Average Household Size
-  avg_household_size = "B25010_001"
+
+# A. ACS Variables (2013+) & 2013 Proxy for 2010-2012 Econ
+vars_acs <- c(
+  tot_pop       = "B01003_001",
+  tot_hhs       = "B11001_001",
+  tot_units     = "B25003_001",
+  owner_occ     = "B25003_002",
+  renter_occ    = "B25003_003",
+  pop_white     = "B02001_002",
+  pop_black     = "B02001_003",
+  pop_hisp      = "B03003_003",
+  agg_income    = "B19025_001",
+  agg_value     = "B25079_001",
+  agg_rent      = "B25065_001",
+  pop_25plus    = "B15003_001",
+  educ_bach     = "B15003_022",
+  educ_mast     = "B15003_023",
+  educ_prof     = "B15003_024",
+  educ_doc      = "B15003_025"
 )
 
-# -----------------------------------------------------------------------------
-# 2. DOWNLOAD ANNUAL CENSUS TRACT DATA
-# -----------------------------------------------------------------------------
+# B. 2000 Decennial (SF3) - Has Econ Data
+vars_2000 <- c(
+  tot_pop       = "P001001",
+  tot_hhs       = "P010001",
+  tot_units     = "H001001",
+  owner_occ     = "H007002",
+  renter_occ    = "H007003",
+  pop_white     = "P006002",
+  pop_black     = "P006003",
+  pop_hisp      = "P007010",
+  agg_income    = "P054001",
+  agg_value     = "H081001",
+  agg_rent      = "H065001",
+  pop_25plus    = "P037001"
+)
 
-# Function to download annual tract data
-get_tract_data <- function(year_to_get) {
-  # For 2006-2008, use 2009 ACS 5-year (earliest available)
-  # For 2009+, use actual year
-  acs_year <- max(year_to_get, 2009)
-  
-  message("  - Downloading tract data for year ", year_to_get, " (using ACS ", acs_year, ")")
-  
-  get_acs(
-    geography = "tract",
-    variables = acs_vars,
-    state = "IL",
-    county = "Cook",
-    year = acs_year,
-    survey = "acs5",
-    output = "wide"
-  ) %>%
-    st_drop_geometry() %>%
-    select(GEOID, ends_with("E")) %>%
-    rename_with(~ sub("E$", "", .), .cols = everything()) %>%
-    mutate(year = year_to_get)  # Assign the target year
-}
+# C. 2010 Decennial (SF1) - Counts Only (No Econ)
+vars_2010_sf1 <- c(
+  tot_pop       = "P001001",
+  tot_hhs       = "P018001",
+  tot_units     = "H001001",
+  owner_occ     = "H004002",
+  renter_occ    = "H004003",
+  pop_white     = "P003002",
+  pop_black     = "P003003",
+  pop_hisp      = "P004003"
+)
 
-# Download data for all years
-message("Downloading annual census tract data...")
-all_tract_data <- map_dfr(2006:2023, get_tract_data)
-
-message("Downloaded tract data for ", length(unique(all_tract_data$year)), " years")
-message("Total tract-year observations: ", nrow(all_tract_data))
-
-# -----------------------------------------------------------------------------
-# 3. GET TRACT GEOMETRIES FOR ALL THREE PERIODS
+# 3. PRE-FETCH STATIC DATASETS (Regimes 1 & 2)
 # -----------------------------------------------------------------------------
 
-message("Getting census tract geometries for all vintages...")
-
-# Get pre-2010 tract geometries (2000-2009)
-tract_geom_2000 <- get_acs(
-  geography = "tract",
-  variables = "B01003_001",
-  state = "IL",
-  county = "Cook",
-  year = 2009,
-  survey = "acs5",
-  geometry = TRUE
+# --- REGIME 1: 2000 DECENNIAL (2000-2009) ---
+message("Fetching 2000 Decennial Data...")
+data_2000 <- get_decennial(
+  geography = "block group", variables = vars_2000,
+  state = "IL", county = "Cook", year = 2000, sumfile = "sf3", geometry = TRUE
 ) %>%
-  select(GEOID, geometry) %>%
-  mutate(tract_vintage = "2000")
+  st_transform(3435) %>%
+  select(GEOID, variable, value, geometry) %>%
+  pivot_wider(names_from = variable, values_from = value) %>%
+  mutate(educ_bach_plus = 0) # Placeholder
 
-# Get 2010 tract geometries (2010-2019)
-tract_geom_2010 <- get_acs(
-  geography = "tract",
-  variables = "B01003_001",
-  state = "IL",
-  county = "Cook",
-  year = 2015,  # Use mid-period year for stability
-  survey = "acs5",
-  geometry = TRUE
+# --- REGIME 2: 2010 HYBRID (2010-2012) ---
+message("Building 2010 Hybrid Dataset...")
+
+# A. Get Geometry using tigris (Avoids 'zip file' error)
+geo_2010 <- tigris::block_groups(state = "IL", county = "Cook", year = 2010, cb = FALSE) %>%
+  st_transform(3435) %>%
+  select(GEOID = GEOID10, geometry)
+
+# B. Get 2010 Demographics (SF1)
+data_2010_sf1 <- get_decennial(
+  geography = "block group", variables = vars_2010_sf1,
+  state = "IL", county = "Cook", year = 2010, geometry = FALSE
 ) %>%
-  select(GEOID, geometry) %>%
-  mutate(tract_vintage = "2010")
+  select(GEOID, variable, value) %>%
+  pivot_wider(names_from = variable, values_from = value)
 
-# Get 2020 tract geometries (2020-2023)
-tract_geom_2020 <- get_acs(
-  geography = "tract",
-  variables = "B01003_001",
-  state = "IL",
-  county = "Cook",
-  year = 2022,
-  survey = "acs5",
-  geometry = TRUE
+# C. Get 2013 ACS Economics (Proxy for 2010-2012 Econ)
+data_2013_econ <- get_acs(
+  geography = "block group", variables = vars_acs,
+  state = "IL", county = "Cook", year = 2013, survey = "acs5", geometry = FALSE
 ) %>%
-  select(GEOID, geometry) %>%
-  mutate(tract_vintage = "2020")
-
-message("Got geometries for:")
-message("- 2000 vintage (2006-2009): ", nrow(tract_geom_2000), " census tracts")
-message("- 2010 vintage (2010-2019): ", nrow(tract_geom_2010), " census tracts")
-message("- 2020 vintage (2020-2023): ", nrow(tract_geom_2020), " census tracts")
-
-# -----------------------------------------------------------------------------
-# 4. PROCESS TRACT DATA WITH APPROPRIATE BOUNDARIES
-# -----------------------------------------------------------------------------
-
-# Function to assign tract geometries based on year
-assign_tract_geometries <- function(tract_data_year) {
-  year_val <- unique(tract_data_year$year)
-  
-  if (year_val <= 2009) {
-    # Use 2000 vintage boundaries
-    tract_data_year %>%
-      left_join(tract_geom_2000 %>% select(GEOID, geometry), by = "GEOID") %>%
-      filter(!is.na(geometry)) %>%
-      mutate(tract_vintage_used = "2000")
-  } else if (year_val <= 2019) {
-    # Use 2010 vintage boundaries
-    tract_data_year %>%
-      left_join(tract_geom_2010 %>% select(GEOID, geometry), by = "GEOID") %>%
-      filter(!is.na(geometry)) %>%
-      mutate(tract_vintage_used = "2010")
-  } else {
-    # Use 2020 vintage boundaries
-    tract_data_year %>%
-      left_join(tract_geom_2020 %>% select(GEOID, geometry), by = "GEOID") %>%
-      filter(!is.na(geometry)) %>%
-      mutate(tract_vintage_used = "2020")
-  }
-}
-
-# Process all data with appropriate geometries
-tract_data_with_geom <- all_tract_data %>%
-  group_by(year) %>%
-  group_split() %>%
-  map_dfr(assign_tract_geometries) %>%
-  st_as_sf() %>%
+  select(GEOID, variable, estimate) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
   mutate(
-    # Calculate derived variables
-    land_area_sqkm = as.numeric(st_area(.)) / 1e6,
-    homeownership_rate = ifelse(total_units > 0, owner_occupied / total_units, NA),
-    population_density = ifelse(land_area_sqkm > 0, total_population / land_area_sqkm, NA),
-    percent_black = ifelse(total_population > 0, black_population / total_population, NA),
-    percent_hispanic = ifelse(total_population > 0, hispanic_population / total_population, NA)
+    educ_bach_plus = rowSums(across(c(educ_bach, educ_mast, educ_prof, educ_doc)), na.rm = TRUE)
   ) %>%
-  # Filter out problematic tracts
-  filter(!is.na(total_population), total_population > 0) %>%
-  # Keep only what we need
-  select(
-    GEOID, year, tract_vintage_used, total_population, homeownership_rate, 
-    population_density, median_income, percent_black, 
-    percent_hispanic, avg_household_size, geometry
-  )
+  select(GEOID, agg_income, agg_value, agg_rent, educ_bach_plus, pop_25plus)
 
-message("Processed tract data: ", nrow(tract_data_with_geom), " tract-year observations")
+# D. Merge to create the Hybrid 2010 Dataset
+data_2010_hybrid <- geo_2010 %>%
+  left_join(data_2010_sf1, by = "GEOID") %>%
+  left_join(data_2013_econ, by = "GEOID")
 
-# Check tract vintage usage
-vintage_summary <- tract_data_with_geom %>%
-  st_drop_geometry() %>%
-  group_by(year, tract_vintage_used) %>%
-  summarise(n_tracts = n(), .groups = "drop")
+# --- REGIME 3 PREP: 2020 GEOMETRY ---
+message("Fetching 2020 Geometry...")
+geo_2020 <- tigris::block_groups(state = "IL", county = "Cook", year = 2020, cb = FALSE) %>%
+  st_transform(3435) %>%
+  select(GEOID, geometry)
 
-message("\nTract vintage usage by year:")
-print(vintage_summary)
 
+# 4. THE PANEL CONSTRUCTION LOOP
 # -----------------------------------------------------------------------------
-# 5. SPATIAL JOIN TRACTS TO WARDS BY YEAR
-# -----------------------------------------------------------------------------
+years <- 2000:2023
+final_panel_list <- list()
 
-ward_controls_list <- list()
+message(glue("Starting Panel Construction ({min(years)}-{max(years)})..."))
 
-for (year_i in 2006:2023) {
-  message("Processing spatial join for year ", year_i)
-  
-  # Get tract data for this year
-  year_tract_data <- tract_data_with_geom %>% 
-    filter(year == year_i)
-  
-  if (nrow(year_tract_data) == 0) {
-    message("  - No tract data found for year ", year_i, ", skipping")
-    next
-  }
-  
-  # Get ward geometries for this year - use available years or extend
-  if (year_i %in% unique(ward_panel$year)) {
-    year_wards <- ward_panel %>%
-      filter(year == year_i) %>%
-      select(ward, year) %>%
-      group_by(ward, year) %>%
-      summarise(.groups = "drop")
+for (y in years) {
+  message(glue("Processing Year: {y}"))
+
+  # --- A. Select Data Source ---
+  if (y <= 2009) {
+    # Regime 1: 2000 Decennial
+    current_bgs <- data_2000
+  } else if (y >= 2010 & y <= 2012) {
+    # Regime 2: 2010 Hybrid (Decennial Counts + 2013 ACS Econ)
+    current_bgs <- data_2010_hybrid
   } else {
-    # For years not in ward_panel, use the nearest available year
-    available_years <- unique(ward_panel$year)
-    nearest_year <- available_years[which.min(abs(available_years - year_i))]
-    year_wards <- ward_panel %>%
-      filter(year == nearest_year) %>%
-      select(ward) %>%
-      group_by(ward) %>%
-      summarise(.groups = "drop") %>%
-      mutate(year = year_i)
-  }
-  
-  if (nrow(year_wards) == 0) {
-    message("  - No ward geometries found for year ", year_i, ", skipping")
-    next
-  }
-  
-  # Ensure CRS compatibility
-  if (st_crs(year_tract_data) != st_crs(ward_panel)) {
-    message("  - Transforming CRS for compatibility")
-    year_tract_data <- st_transform(year_tract_data, st_crs(ward_panel))
-  }
-  
-  # Spatial join using tract centroids
-  tract_centroids <- st_centroid(year_tract_data)
-  
-  tract_ward_joined <- st_join(tract_centroids, year_wards, join = st_within) %>%
-    filter(!is.na(ward)) %>%  # Keep only tracts that fall within a ward
-    st_drop_geometry() %>% 
-    select(-year.y) %>% 
-    rename(year = year.x)
-  
-  tract_vintage <- unique(year_tract_data$tract_vintage_used)[1]
-  message("  - Successfully joined ", nrow(tract_ward_joined), " tracts to wards (using ", tract_vintage, " vintage)")
-  
-  # Aggregate to ward level using population weighting
-  ward_year_controls <- tract_ward_joined %>%
-    group_by(ward, year) %>%
-    summarise(
-      # Population-weighted averages
-      homeownership_rate = weighted.mean(homeownership_rate, total_population, na.rm = TRUE),
-      median_income = weighted.mean(median_income, total_population, na.rm = TRUE),
-      percent_black = weighted.mean(percent_black, total_population, na.rm = TRUE),
-      percent_hispanic = weighted.mean(percent_hispanic, total_population, na.rm = TRUE),
-      avg_household_size = weighted.mean(avg_household_size, total_population, na.rm = TRUE),
-      population_density = weighted.mean(population_density, total_population, na.rm = TRUE),
-      
-      # Ward totals
-      total_population_ward = sum(total_population, na.rm = TRUE),
-      n_tracts = n_distinct(GEOID),
-      tract_vintage_used = first(tract_vintage_used),
-      
-      .groups = "drop"
+    # Regime 3: Annual ACS (2013+)
+    current_data <- get_acs(
+      geography = "block group", variables = vars_acs,
+      state = "IL", county = "Cook", year = y, survey = "acs5", geometry = FALSE
     ) %>%
-    mutate(
-      # Clean up problematic values
-      across(where(is.numeric), ~ifelse(is.nan(.) | is.infinite(.), NA, .))
-    )
-  
-  ward_controls_list[[as.character(year_i)]] <- ward_year_controls
+      select(GEOID, variable, estimate) %>%
+      pivot_wider(names_from = variable, values_from = estimate) %>%
+      mutate(
+        educ_bach_plus = rowSums(across(c(educ_bach, educ_mast, educ_prof, educ_doc)), na.rm = TRUE)
+      )
+
+    # Attach correct geometry
+    if (y < 2020) {
+      current_bgs <- geo_2010 %>% left_join(current_data, by = "GEOID")
+    } else {
+      current_bgs <- geo_2020 %>% left_join(current_data, by = "GEOID")
+    }
+  }
+
+  # --- B. Spatial Join to Ward ---
+  # Pick Ward Map
+  current_wards <- ward_panel %>% filter(year == y)
+  if (nrow(current_wards) == 0) next
+
+  # Centroid Join
+  bg_centroids <- st_centroid(current_bgs)
+  joined_data <- st_join(bg_centroids, current_wards, join = st_within) %>%
+    st_drop_geometry() %>%
+    mutate(year = y) %>%
+    filter(!is.na(ward))
+
+  final_panel_list[[as.character(y)]] <- joined_data
 }
 
-# Combine all years
-ward_controls <- bind_rows(ward_controls_list)
-
-message("Ward controls created: ", nrow(ward_controls), " ward-year observations")
-message("Year range: ", min(ward_controls$year), " to ", max(ward_controls$year))
-
+# 5. AGGREGATE TO WARD LEVEL
 # -----------------------------------------------------------------------------
-# 6. QUALITY CHECKS
-# -----------------------------------------------------------------------------
+message("Aggregating to Ward-Year Level...")
 
-# Check coverage - we should have 50 wards per year
-coverage_check <- ward_controls %>%
-  group_by(year) %>%
-  summarise(
-    wards_with_data = n_distinct(ward),
-    missing_wards = list(setdiff(1:50, unique(ward))),
-    avg_tracts_per_ward = mean(n_tracts, na.rm = TRUE),
-    total_population = sum(total_population_ward, na.rm = TRUE),
-    tract_vintage = first(tract_vintage_used),
+final_bg_panel <- bind_rows(final_panel_list)
+
+ward_controls <- final_bg_panel %>%
+  group_by(ward, year) %>%
+  summarize(
+    # --- Universe Sums ---
+    pop_total = sum(tot_pop, na.rm = TRUE),
+    hh_total = sum(tot_hhs, na.rm = TRUE),
+    hu_total = sum(tot_units, na.rm = TRUE),
+
+    # --- Demographics (Weighted Shares) ---
+    share_black = sum(pop_black, na.rm = TRUE) / sum(tot_pop, na.rm = TRUE),
+    share_hisp = sum(pop_hisp, na.rm = TRUE) / sum(tot_pop, na.rm = TRUE),
+    share_white = sum(pop_white, na.rm = TRUE) / sum(tot_pop, na.rm = TRUE),
+    homeownership_rate = sum(owner_occ, na.rm = TRUE) / sum(tot_units, na.rm = TRUE),
+    share_bach_plus = sum(educ_bach_plus, na.rm = TRUE) / sum(pop_25plus, na.rm = TRUE),
+
+    # --- Economics (Weighted Means) ---
+    # Mean = Sum(Aggregates) / Sum(Universe)
+    avg_hh_income = sum(agg_income, na.rm = TRUE) / sum(tot_hhs, na.rm = TRUE),
+    avg_home_value = sum(agg_value, na.rm = TRUE) / sum(owner_occ, na.rm = TRUE),
+    avg_rent = sum(agg_rent, na.rm = TRUE) / sum(renter_occ, na.rm = TRUE),
     .groups = "drop"
   ) %>%
-  mutate(missing_wards = map_chr(missing_wards, ~paste(.x, collapse = ", ")))
+  filter(pop_total > 0) %>%
+  arrange(ward, year)
 
-message("\nCoverage by year:")
-print(coverage_check)
-
-# Check for tract boundary changes around 2010 and 2020
-tract_count_by_year <- ward_controls %>%
-  group_by(year, tract_vintage_used) %>%
-  summarise(
-    total_tracts = sum(n_tracts, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-message("\nTotal tracts by year and vintage (should see changes in 2010 and 2020):")
-print(tract_count_by_year)
-
-# Summary statistics
-ward_summary_stats <- ward_controls %>%
-  summarise(
-    across(c(homeownership_rate, population_density, median_income,
-             percent_black, percent_hispanic, avg_household_size),
-           list(mean = ~mean(., na.rm = TRUE),
-                sd = ~sd(., na.rm = TRUE),
-                min = ~min(., na.rm = TRUE),
-                max = ~max(., na.rm = TRUE),
-                missing = ~sum(is.na(.))),
-           .names = "{.col}_{.fn}")
-  )
-
-# Check for any wards with very low population (might indicate problems)
-low_pop_wards <- ward_controls %>%
-  filter(total_population_ward < 1000) %>%
-  select(ward, year, total_population_ward, n_tracts, tract_vintage_used)
-
-if (nrow(low_pop_wards) > 0) {
-  message("\nWarning: Found wards with very low population:")
-  print(low_pop_wards)
-}
-
+# 6. SAVE
 # -----------------------------------------------------------------------------
-# 7. SAVE OUTPUT
-# -----------------------------------------------------------------------------
+# Save block group level controls (before aggregation)
+write_csv(final_bg_panel, "../output/block_group_controls_2000_2023.csv")
+message("Block Group Panel saved to: ../output/block_group_controls_2000_2023.csv")
 
-# Main ward controls file
-write_csv(ward_controls, "../output/ward_controls.csv")
+# Save ward-level aggregated controls
+write_csv(ward_controls, "../output/ward_controls_2000_2023.csv")
+message("Ward Panel saved to: ../output/ward_controls_2000_2023.csv")
 
-message("\nFiles saved:")
-message("- ../output/ward_controls.csv")
-
-message("\nScript completed successfully!")
+message("Done! Both Block Group and Ward Panels Created.")

@@ -57,7 +57,7 @@ $(INPUT_ALDERMEN): ../../create_alderman_data/output/chicago_alderman_panel.csv 
 	@echo "→ [create_restrictiveness_score] Linking: $@ ← $<"
 	ln -sf $< $@
 
-$(INPUT_CONTROLS): ../../create_ward_controls/output/ward_controls.csv | ../input
+$(INPUT_CONTROLS): ../../create_ward_controls/output/ward_controls_2000_2023.csv | ../input
 	@echo "→ [create_restrictiveness_score] Linking: $@ ← $<"
 	ln -sf $< $@
 

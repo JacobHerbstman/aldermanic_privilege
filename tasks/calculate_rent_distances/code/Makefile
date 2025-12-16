@@ -68,7 +68,7 @@ $(INPUT_ALD_PANEL): ../../create_alderman_data/output/chicago_alderman_panel.csv
 $(INPUT_STRICTNESS): ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
 	ln -sf $< $@
 
-$(INPUT_CONTROLS): ../../create_ward_controls/output/ward_controls.csv | ../input
+$(INPUT_CONTROLS): ../../create_ward_controls/output/ward_controls_2000_2023.csv | ../input
 	ln -sf $< $@
 
 include ../../generic.make

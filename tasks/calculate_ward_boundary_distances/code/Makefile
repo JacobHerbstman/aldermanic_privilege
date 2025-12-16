@@ -40,7 +40,7 @@ include ../../generic.make
 	@echo "→ [calculate_distances] Linking intermediate input: strictness scores"
 	ln -sf $< $@
 
-../input/ward_controls.csv: ../../create_homeownership_share/output/ward_controls_2000_2023.csv | ../input
+../input/ward_controls.csv: ../../create_ward_controls/output/ward_controls_2000_2023.csv | ../input
 	@echo "→ [calculate_distances] Linking intermediate input: ward controls"
 	ln -sf $< $@
 

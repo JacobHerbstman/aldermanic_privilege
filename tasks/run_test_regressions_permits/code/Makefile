@@ -59,7 +59,7 @@ $(INPUT_BALANCED_PANEL): ../../merge_permits_blocks/output/permit_regression_pan
 	@echo "→ [linking] Linking balanced regression panel"
 	ln -sf $< $@
 
-$(INPUT_WARD_CONTROLS): ../../create_homeownership_share/output/ward_controls_2000_2023.csv | ../input
+$(INPUT_WARD_CONTROLS): ../../create_ward_controls/output/ward_controls_2000_2023.csv | ../input
 	@echo "→ [linking] Linking ward controls"
 	ln -sf $< $@
 
