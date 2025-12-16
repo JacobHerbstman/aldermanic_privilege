@@ -68,8 +68,8 @@ panel_list <- list(
 
 # Define all model specifications in a single, clear data frame
 controls <- c(
-  "homeownership_rate", "population_density", "median_income",
-  "percent_black", "percent_hispanic", "avg_household_size"
+  "homeownership_rate", "pop_total", "avg_hh_income",
+  "share_black", "share_hisp"
 )
 
 model_specs <- tibble(
