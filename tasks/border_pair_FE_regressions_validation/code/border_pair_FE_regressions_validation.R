@@ -63,7 +63,7 @@ pretty_label <- function(v) {
     # Validation Variables
     "avg_rent_own" = "Avg. Rent",
     "share_white_own" = "Share White",
-    "avg_hh_income_own" = "Avg. HH Income",
+    "median_hh_income_own" = "Median HH Income",
     "share_bach_plus_own" = "Share Bachelor's+",
     "avg_home_value_own" = "Avg. Home Value"
   )
@@ -114,7 +114,7 @@ rename_dict <- c(
 # We remove them from the RHS to test for raw balance at the border
 balance_vars <- c(
   "share_white_own",
-  "avg_hh_income_own",
+  "median_hh_income_own",
   "share_bach_plus_own"
 )
 

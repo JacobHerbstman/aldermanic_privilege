@@ -33,7 +33,7 @@ vars_acs <- c(
   pop_white     = "B02001_002",
   pop_black     = "B02001_003",
   pop_hisp      = "B03003_003",
-  agg_income    = "B19025_001",
+  median_income = "B19013_001",
   agg_value     = "B25079_001",
   agg_rent      = "B25065_001",
   pop_25plus    = "B15003_001",
@@ -53,7 +53,7 @@ vars_2000 <- c(
   pop_white     = "P006002",
   pop_black     = "P006003",
   pop_hisp      = "P007010",
-  agg_income    = "P054001",
+  median_income = "P053001",
   agg_value     = "H081001",
   agg_rent      = "H065001",
   pop_25plus    = "P037001"
@@ -111,7 +111,7 @@ data_2013_econ <- get_acs(
   mutate(
     educ_bach_plus = rowSums(across(c(educ_bach, educ_mast, educ_prof, educ_doc)), na.rm = TRUE)
   ) %>%
-  select(GEOID, agg_income, agg_value, agg_rent, educ_bach_plus, pop_25plus)
+  select(GEOID, median_income, agg_value, agg_rent, educ_bach_plus, pop_25plus)
 
 # D. Merge to create the Hybrid 2010 Dataset
 data_2010_hybrid <- geo_2010 %>%
@@ -198,9 +198,9 @@ ward_controls <- final_bg_panel %>%
     homeownership_rate = sum(owner_occ, na.rm = TRUE) / sum(tot_units, na.rm = TRUE),
     share_bach_plus = sum(educ_bach_plus, na.rm = TRUE) / sum(pop_25plus, na.rm = TRUE),
 
-    # --- Economics (Weighted Means) ---
-    # Mean = Sum(Aggregates) / Sum(Universe)
-    avg_hh_income = sum(agg_income, na.rm = TRUE) / sum(tot_hhs, na.rm = TRUE),
+    # --- Economics (Weighted Means/Medians) ---
+    # Median income: household-weighted average of block group medians
+    median_hh_income = weighted.mean(median_income, tot_hhs, na.rm = TRUE),
     avg_home_value = sum(agg_value, na.rm = TRUE) / sum(owner_occ, na.rm = TRUE),
     avg_rent = sum(agg_rent, na.rm = TRUE) / sum(renter_occ, na.rm = TRUE),
     .groups = "drop"

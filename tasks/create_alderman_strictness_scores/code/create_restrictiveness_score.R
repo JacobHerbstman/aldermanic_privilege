@@ -45,7 +45,7 @@ geo_vars <- c(
 
 # You already have these ward controls; include them as predetermined fundamentals
 demo_vars <- c(
-  "homeownership_rate", "pop_total", "avg_hh_income",
+  "homeownership_rate", "pop_total", "median_hh_income",
   "share_black", "share_hisp"
 )
 
@@ -89,7 +89,7 @@ data <- residualize_var(data, "log_mean_total_fee", fundamentals, weight_var = "
 ca_cols <- grep("^ca_share_", names(data), value = TRUE)
 geo_vars <- c("dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m")
 demo_vars <- c(
-  "homeownership_rate", "pop_total", "avg_hh_income",
+  "homeownership_rate", "pop_total", "median_hh_income",
   "share_black", "share_hisp"
 )
 fundamentals <- c(geo_vars, demo_vars, ca_cols)
@@ -120,7 +120,7 @@ etable(
     n_rail_stations_800m = "CTA stations (≤800m)",
     homeownership_rate = "Homeownership rate",
     pop_total = "Population",
-    avg_hh_income = "Avg. household income",
+    median_hh_income = "Median household income",
     share_black = "% Black",
     share_hisp = "% Hispanic"
   ),
@@ -140,7 +140,7 @@ etable(
     n_rail_stations_800m = "CTA stations (≤800m)",
     homeownership_rate = "Homeownership rate",
     pop_total = "Population",
-    avg_hh_income = "Avg. household income",
+    median_hh_income = "Median household income",
     share_black = "% Black",
     share_hisp = "% Hispanic"
   ),

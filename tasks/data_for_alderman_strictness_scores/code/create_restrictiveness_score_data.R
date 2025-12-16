@@ -186,7 +186,7 @@ ward_monthly_panel <- permits_analysis %>%
     pct_corporate_applicant = mean(corporate_applicant, na.rm = TRUE),
     homeownership_rate = first(homeownership_rate),
     pop_total = first(pop_total),
-    avg_hh_income = first(avg_hh_income),
+    median_hh_income = first(median_hh_income),
     share_black = first(share_black),
     share_hisp = first(share_hisp),
     year = first(year),

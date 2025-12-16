@@ -168,7 +168,7 @@ for (yv in yvars) {
     next
   }
 
-  fml_txt <- paste0(yv, " ~ strictness_own + share_white_own + share_black_own + avg_hh_income_own + share_bach_plus_own +
+  fml_txt <- paste0(yv, " ~ strictness_own + share_white_own + share_black_own + median_hh_income_own + share_bach_plus_own +
   homeownership_rate_own + avg_rent_own | zone_code^ward_pair + construction_year")
   m <- feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
   m$custom_data <- df
