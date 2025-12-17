@@ -11,12 +11,12 @@ source("../../setup_environment/code/packages.R")
 # -----------------------------------------------------------------------------
 # =======================================================================================
 # --- Interactive Test Block (Uncomment to run in RStudio without Make) ---
-# input_file  <- "../input/rent_with_ward_distances_sample.parquet" # Adjust if you have a sample file
-# yvar        <- "rent_price"
-# use_log     <- TRUE
-# bw          <- 250
-# kernel      <- "triangular"
-# output_file <- "../output/test_plot.pdf"
+input_file  <- "../input/rent_with_ward_distances_full.parquet" # Adjust if you have a sample file
+yvar        <- "rent_price"
+use_log     <- TRUE
+bw          <- 250
+kernel      <- "triangular"
+output_file <- "../output/test_plot.pdf"
 # =======================================================================================
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -44,8 +44,8 @@ df <- read_parquet(input_file)
 # Filter to bandwidth window immediately to save memory
 df_bw <- df %>%
   filter(abs(signed_dist) <= bw) %>%
-  filter(!is.na(rent_price), rent_price > 0) %>% 
-filter(building_type_clean == "multi_family")
+  filter(!is.na(rent_price), rent_price > 0) 
+# filter(building_type_clean == "multi_family")
 
 # ## robustness check on if bigger gap gives bigger effects 
 # df_bw <- df_bw %>%

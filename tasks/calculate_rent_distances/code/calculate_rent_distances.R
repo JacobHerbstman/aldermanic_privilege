@@ -186,7 +186,7 @@ years <- 2014:2025
 results_list <- list()
 
 if (run_sample) {
-  message("RUNNING ON SAMPLE MODE (5% by year)")
+  message("RUNNING ON SAMPLE MODE (1% by year)")
 } else {
   message("RUNNING FULL DATASET (Batch Mode)")
 }
@@ -205,7 +205,7 @@ for (i in seq_along(years)) {
   
   # Apply sampling if needed
   if (run_sample) {
-    df_chunk <- df_chunk %>% slice_sample(prop = 0.05)
+    df_chunk <- df_chunk %>% slice_sample(prop = 0.01)
   }
   
   # Process chunk
@@ -227,7 +227,13 @@ results_sf <- bind_rows(results_list)
 message("Attaching Alderman data and calculating signed distances...")
 
 # We convert back to tibble for the merge
+# Extract lat/lon before dropping geometry (transform back to WGS84 first)
 final_df <- results_sf %>% 
+  st_transform(4326) %>%  # Back to WGS84 for proper lat/lon
+  mutate(
+    longitude = st_coordinates(.)[, 1],
+    latitude = st_coordinates(.)[, 2]
+  ) %>%
   st_drop_geometry() %>% 
   as_tibble()
 

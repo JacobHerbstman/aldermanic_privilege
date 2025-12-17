@@ -5,7 +5,7 @@ include ../../shell_functions.make
 # Configuration
 # -----------------------------------------------------------------------------
 # Sample toggle (Override with `make SAMPLE=FALSE` for full run)
-SAMPLE := TRUE
+SAMPLE := FALSE
 
 ifeq ($(SAMPLE),TRUE)
   INPUT_NAME := rent_with_ward_distances_sample.parquet
