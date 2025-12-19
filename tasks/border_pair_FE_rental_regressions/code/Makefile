@@ -28,7 +28,7 @@ $(foreach bw,$(BWS_FT),$(eval $(call FE_template,$(bw))))
 
 
 # --- Link input from upstream task (symlink), ensure ../input exists first ---
-$(INPUT_PARCELS): ../../calculate_rent_distances/output/rent_with_ward_distances.parquet | ../input
+$(INPUT_PARCELS): ../../calculate_rent_distances/output/rent_with_ward_distances_full.parquet | ../input
 	@echo "→ [FE Rental Tables] Linking input: $@ ← $<"
 	ln -sf "$<" "$@"
 

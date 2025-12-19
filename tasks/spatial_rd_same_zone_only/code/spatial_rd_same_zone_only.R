@@ -34,7 +34,8 @@ dat_raw <- read_csv("../input/parcels_with_ward_distances.csv") %>%
   filter(arealotsf > 1) %>%
   filter(areabuilding > 1) %>%
   filter(unitscount > 1) %>%
-  filter(unitscount > 1 & unitscount <= 100)
+  filter(unitscount > 1 & unitscount <= 100) %>% 
+  filter(construction_year >= 2006)
 
 # keep strictly positive outcomes (for logs) and build 'outcome'
 dat <- dat_raw %>%

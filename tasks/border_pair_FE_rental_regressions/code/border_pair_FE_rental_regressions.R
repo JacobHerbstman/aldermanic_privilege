@@ -9,9 +9,9 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-# bw_ft <- 250
-# yvars <- c("log(rent_price)")
-# output_filename <- "../output/fe_table_bw250.tex"
+bw_ft <- 250
+yvars <- c("log(rent_price)")
+output_filename <- "../output/fe_table_bw250.tex"
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
@@ -50,7 +50,7 @@ rentals <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
     # Create month variable for FE (year-month)
     mutate(year_month = zoo::as.yearmon(file_date)) %>%
     # Ward pair for clustering
-    mutate(ward_pair = ward_pair_id)
+    mutate(ward_pair = ward_pair_id) 
 # filter(building_type_clean == "multi_family") %>%
 
 
