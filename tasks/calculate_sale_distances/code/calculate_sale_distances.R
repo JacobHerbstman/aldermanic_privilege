@@ -62,10 +62,15 @@ message("Filtering to market transactions...")
 
 sales <- sales_raw %>%
     # Filter for residential classes (single-family + small multi-family, no condos)
+    # 202: one-story <1000 sqft
     # 203: one-story 1000-1800 sqft
     # 204: one-story 1800+ sqft
+    # 205-208: two-story single-family (various sizes)
+    # 209: split-level
+    # 210: old-style row house
     # 211: 2-6 unit apartment buildings
-    filter(class %in% c(203, 204, 211)) %>%
+    # Excluding: 212 (mixed-use), 299/399 (condos)
+    filter(class %in% c(202, 203, 204, 205, 206, 207, 208, 209, 210, 211)) %>%
     # Clean Price
     mutate(
         sale_price = as.numeric(gsub("[$,]", "", sale_price)),
@@ -89,6 +94,17 @@ sales <- sales_raw %>%
     filter(num_parcels_sale == 1)
 
 message(sprintf("Filtered to %s market sales", format(nrow(sales), big.mark = ",")))
+
+# Winsorize prices at 1st and 99th percentiles to handle outliers
+p01 <- quantile(sales$sale_price, 0.01, na.rm = TRUE)
+p99 <- quantile(sales$sale_price, 0.99, na.rm = TRUE)
+message(sprintf("Winsorizing prices: p1 = $%s, p99 = $%s", 
+                format(p01, big.mark = ","), format(p99, big.mark = ",")))
+
+sales <- sales %>%
+    mutate(sale_price = pmin(pmax(sale_price, p01), p99))
+
+message(sprintf("After winsorizing: %s sales", format(nrow(sales), big.mark = ",")))
 
 # Apply sampling if needed
 if (run_sample) {

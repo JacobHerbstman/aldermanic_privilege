@@ -9,7 +9,7 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-bw_ft <- 250
+bw_ft <- 1000
 yvars <- c("log(rent_price)")
 output_filename <- "../output/fe_table_bw250.tex"
 # =======================================================================================
@@ -48,10 +48,10 @@ rentals <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
     # Standardize strictness score
     mutate(strictness_own = strictness_own / sd(strictness_own, na.rm = TRUE)) %>%
     # Create month variable for FE (year-month)
-    mutate(year_month = zoo::as.yearmon(file_date)) %>%
+    mutate(year_month = zoo::as.yearmon(available_date)) %>%
     # Ward pair for clustering
     mutate(ward_pair = ward_pair_id) 
-# filter(building_type_clean == "multi_family") %>%
+    # filter(building_type_clean == "multi_family")
 
 
 
@@ -136,7 +136,7 @@ for (yv in yvars) {
     # Regression formula: y ~ strictness_own + distance | year_month^ward_pair
     # Using ward-pair × month fixed effects (not year as in construction)
     fml_txt <- paste0(yv, " ~ strictness_own | building_type_clean^year_month^ward_pair")
-    m <- feols(as.formula(fml_txt), data = df, cluster = ~ward)
+    m <- feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
     m$custom_data <- df
 
     models[[length(models) + 1]] <- m
@@ -168,7 +168,7 @@ etable(models,
     ),
     float = FALSE,
     tex = TRUE,
-    file = output_filename,
+    # file = output_filename,
     replace = TRUE
 )
 
