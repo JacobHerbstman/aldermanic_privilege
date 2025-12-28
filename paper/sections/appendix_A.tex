@@ -23,3 +23,114 @@
     \footnotesize
     \textit{Notes:} Standard errors clustered at the ward-pair level.
 \end{table}
+
+\subsection{RD Robustness Figures}
+
+\subsubsection{Donut Hole Specification}
+
+One concern with spatial RD designs is that observations precisely at the boundary may be unusual in ways that drive the results---for example, if ward boundaries tend to follow major streets or other geographic features that independently affect development patterns. To address this, I implement a ``donut hole'' specification that excludes parcels within 25 or 50 feet of the ward boundary. Figure~\ref{fig:rd_donut} shows that the discontinuity persists even when dropping observations closest to the cutoff, suggesting the results are not driven by idiosyncratic features of parcels located precisely on ward boundaries.
+
+\begin{figure}[H]
+    \centering
+    % Log FAR donut
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_far_bw500_triangular_donut25.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_far_bw500_triangular_donut50.pdf}
+    \end{minipage}
+    
+    \vspace{0.5cm}
+    
+    % Log DUPAC donut
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_dupac_bw500_triangular_donut25.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_dupac_bw500_triangular_donut50.pdf}
+    \end{minipage}
+    \caption{Donut Hole Robustness: Log(FAR) (top) and Log(DUPAC) (bottom) excluding parcels within 25ft (left column) and 50ft (right column) of the boundary}
+    \label{fig:rd_donut}
+\end{figure}
+
+\subsubsection{Functional Form}
+
+The baseline RD specification uses a local linear regression. However, results could be sensitive to this functional form assumption, particularly if the underlying relationship between distance and density is nonlinear. Figure~\ref{fig:rd_polynomial} presents estimates using linear, quadratic, and cubic polynomial specifications. The discontinuity is evident under all three specifications. Notably, the higher-order polynomials yield larger point estimates, suggesting that if anything, the linear specification provides a conservative estimate of the treatment effect.
+
+\begin{figure}[H]
+    \centering
+    % Log FAR polynomial
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_linear_p1_bw500_triangular.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_quadratic_p2_bw500_triangular.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_cubic_p3_bw500_triangular.pdf}
+    \end{minipage}
+    
+    \vspace{0.5cm}
+    
+    % Log DUPAC polynomial
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_linear_p1_bw500_triangular.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_quadratic_p2_bw500_triangular.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_cubic_p3_bw500_triangular.pdf}
+    \end{minipage}
+    \caption{Functional Form Robustness: Log(FAR) (top row) and Log(DUPAC) (bottom row) with Linear (p=1), Quadratic (p=2), and Cubic (p=3) specifications}
+    \label{fig:rd_polynomial}
+\end{figure}
+
+\subsubsection{Placebo Boundary Tests}
+
+A key identifying assumption of the RD design is that the discontinuity occurs precisely at the ward boundary and not at other arbitrary distances. To test this, I conduct placebo tests by artificially shifting the ``cutoff'' to locations 500 feet inside each ward (both toward the stricter and more lenient sides). If the discontinuity is truly driven by the ward boundary rather than some other spatial pattern, we should observe no discontinuity at these placebo cutoffs. Figure~\ref{fig:rd_placebo} confirms this prediction: the placebo boundaries show no significant discontinuity, while the true boundary (at zero) exhibits the large drop documented in the main results.
+
+\begin{figure}[H]
+    \centering
+    % Log FAR placebo
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_far_shift_minus500_bw500_triangular.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_far_shift_plus500_bw500_triangular.pdf}
+    \end{minipage}
+    
+    \vspace{0.5cm}
+    
+    % Log DUPAC placebo
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_dupac_shift_minus500_bw500_triangular.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_dupac_shift_plus500_bw500_triangular.pdf}
+    \end{minipage}
+    \caption{Placebo Boundary Tests: Log(FAR) (top) and Log(DUPAC) (bottom) at artificial cutoffs -500ft (left column) and +500ft (right column) from true boundary}
+    \label{fig:rd_placebo}
+\end{figure}

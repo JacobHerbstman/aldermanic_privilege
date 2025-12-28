@@ -5,7 +5,7 @@ include ../../shell_functions.make
 # Bandwidths in FEET
 BWS_FT := 100 150 200 250 264 500 528 750 792 1000 1056 1320
 
-YVARS_TABLE := 'log(density_dupac)' 'log(density_far)' 'log(unitscount)'
+YVARS_TABLE := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)'
 
 #density_bcr density_lps areabuilding arealotsf bedroomscount density_lapu storiescount
 

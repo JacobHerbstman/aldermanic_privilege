@@ -10,25 +10,30 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block ---
-# placebo_shift <- 250  # shift cutoff by 250 ft to the right
+# yvar          <- "density_dupac"
+# use_log       <- TRUE
+# bw            <- 500
+# kernel        <- "triangular"
+# placebo_shift <- 250
+# output_filename <- "../output/test.pdf"
 # =======================================================================================
 
+# --- Command-Line Arguments ---
 args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) < 1) {
-    stop("Usage: Rscript spatial_rd_same_zone_only_placebo_boundaries.R <placebo_shift>")
+if (length(args) < 6) {
+    stop("Usage: Rscript spatial_rd_same_zone_only_placebo_boundaries.R <yvar> <use_log> <bw> <kernel> <placebo_shift> <output_file>")
 }
 
-placebo_shift <- as.numeric(args[1]) # e.g., -500, -250, 250, 500
-
-# Fixed parameters for this placebo analysis
-bw <- 500 # fixed bandwidth
-kernel <- "triangular"
-yvar <- "density_dupac" # same outcome as original
-use_log <- TRUE
+yvar <- args[1]
+use_log <- as.logical(args[2])
+bw <- as.numeric(args[3])
+kernel <- args[4]
+placebo_shift <- as.numeric(args[5])
+output_filename <- args[6]
 donut <- 0
 
-message(sprintf("=== Placebo Boundary Test (Same Zone): Cutoff shifted by %d ft ===", placebo_shift))
+message(sprintf("=== Placebo Boundary Test (Same Zone): %s (log=%s) | Shift = %d ft ===", yvar, use_log, placebo_shift))
 
 # -----------------------------------------------------------------------------
 # 1. LOAD & PREPARE DATA
@@ -150,8 +155,60 @@ annot_text <- sprintf(
 message("Generating placebo RD plot...")
 
 K <- 30
-y_axis_label <- if (use_log) "Log(DUPAC)" else "DUPAC"
-ylim <- if (use_log) c(2, 6) else c(0, 150)
+
+# =======================================================================================
+# Dynamic y-axis labels and limits based on yvar (matches main spatial_rd_same_zone_only.R)
+if (yvar == "density_far") {
+    y_axis_label <- "Floor-Area Ratio (FAR)"
+    if (use_log) {
+        ylim <- c(-2, 2)
+    } else {
+        ylim <- c(0, 4)
+    }
+} else if (yvar == "density_lapu") {
+    y_axis_label <- "Lot Area Per Unit (LAPU)"
+    if (use_log) {
+        ylim <- c(6, 8)
+    } else {
+        ylim <- c(500, 5000)
+    }
+} else if (yvar == "density_bcr") {
+    y_axis_label <- "Building Coverage Ratio (BCR)"
+    if (use_log) {
+        ylim <- c(-2, 0)
+    } else {
+        ylim <- c(0, 1)
+    }
+} else if (yvar == "density_lps") {
+    y_axis_label <- "Lot Size Per Story (LPS)"
+    if (use_log) {
+        ylim <- c(6, 8)
+    } else {
+        ylim <- c(0, 3000)
+    }
+} else if (yvar == "density_dupac") {
+    y_axis_label <- "Dwelling Units Per Acre (DUPAC)"
+    if (use_log) {
+        ylim <- c(2, 6)
+    } else {
+        ylim <- c(0, 150)
+    }
+} else if (yvar == "unitscount") {
+    y_axis_label <- "Units"
+    if (use_log) {
+        ylim <- c(0, 5)
+    } else {
+        ylim <- c(2, 20)
+    }
+} else {
+    y_axis_label <- yvar
+    ylim <- NULL # Let ggplot decide the limits for unknown variables
+}
+
+if (use_log) {
+    y_axis_label <- paste("Log(", y_axis_label, ")")
+}
+# =======================================================================================
 
 rd_plot <- rdplot(
     y = dat$outcome,
@@ -185,17 +242,19 @@ p <- ggplot() +
     geom_smooth(
         data = dat %>% filter(signed_distance_shifted < 0),
         aes(x = signed_distance_shifted, y = outcome),
-        method = "lm", color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
+        method = "lm", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
+        color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
     ) +
     geom_smooth(
         data = dat %>% filter(signed_distance_shifted >= 0),
         aes(x = signed_distance_shifted, y = outcome),
-        method = "lm", color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
+        method = "lm", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
+        color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
     ) +
     geom_vline(xintercept = 0, color = "black", linewidth = 0.5) +
     annotate("text",
-        x = -Inf, y = ylim[2], label = annot_text,
-        hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold"
+        x = -Inf, y = if (is.null(ylim)) Inf else ylim[2],
+        label = annot_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold"
     ) +
     labs(
         title = cutoff_label,
@@ -214,16 +273,16 @@ p <- ggplot() +
 # -----------------------------------------------------------------------------
 # 4. SAVE OUTPUT
 # -----------------------------------------------------------------------------
-shift_label <- if (placebo_shift >= 0) sprintf("plus%d", placebo_shift) else sprintf("minus%d", abs(placebo_shift))
-output_file <- sprintf("../output/placebo_rd_same_zone_shift_%s_bw%d.pdf", shift_label, bw)
-
-ggsave(output_file, plot = p, width = 8, height = 6)
-message(sprintf("✓ Placebo plot saved to: %s", output_file))
+ggsave(output_filename, plot = p, width = 8, height = 6)
+message(sprintf("✓ Placebo plot saved to: %s", output_filename))
 
 # Save summary statistics to CSV
 results_df <- data.frame(
+    yvar = yvar,
+    use_log = use_log,
     placebo_shift = placebo_shift,
     bandwidth = bw,
+    kernel = kernel,
     n_obs = n_obs,
     coef_conv = coef_conv,
     se_conv = se_conv,
@@ -233,6 +292,7 @@ results_df <- data.frame(
     pval_robust = pval_robust
 )
 
-results_file <- sprintf("../output/placebo_results_same_zone_shift_%s_bw%d.csv", shift_label, bw)
+# Derive CSV filename from output_filename
+results_file <- gsub("\\.pdf$", ".csv", output_filename)
 write_csv(results_df, results_file)
 message(sprintf("✓ Results saved to: %s", results_file))
