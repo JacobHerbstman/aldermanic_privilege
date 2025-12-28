@@ -120,8 +120,10 @@ I also run the same regressions but limit the sample to parcels within 1000 feet
 The other coefficients are still negative but much smaller and not significantly different from zero, as shown in Table~\ref{tab:fe_estimates_1000} in the Appendix.
 As a result, I interpret these results as strong evidence that aldermanic privilege and the bureaucratic frictions they create have a significant effect on development density in their wards.
 
-I also remove the demographic controls from my regressions and run the same specifications, but with demographics as the outcome variables, in Table~\ref{tab:fe_balance_250} in the Appendix to see if aldermanic strictness is correlated with changes in ward demographics that could be driving my results.
-I find null results across the share of residents that are white, average household income, and the share of residents with a bachelor's degree or higher, suggesting that the differences in density at the ward borders are being driven by aldermanic behavior and not purely by demographic sorting.
+To test whether aldermanic strictness is correlated with smoothly varying neighborhood characteristics at the ward border, I regress block group-level demographics on the strictness score using the same fixed effects specification. 
+I assign each parcel to a census block group via spatial intersection with 2019 American Community Survey geographies and merge demographics from the corresponding block group.
+Table~\ref{tab:fe_balance_250} in the Appendix presents balance tests for eight demographic variables: racial composition, median income, education levels, homeownership rates, median rent, home values, and population density.
+I find null results across all variables, suggesting that the differences in density at ward borders are driven by aldermanic behavior rather than demographic sorting.
 
 \begin{table}[htbp]
     \caption{Border-Pair FE Estimates (bw = 250 ft)}
@@ -137,11 +139,14 @@ I find null results across the share of residents that are white, average househ
 \subsection{Robustness of the Spatial Discontinuity}
 \label{subsec:robustness}
 
-The spatial regression discontinuity results presented in Section 4.2 are subject to several potential concerns common to RD designs. In this section, I present bandwidth sensitivity in the main text and provide additional robustness checks in Appendix~\ref{sec:appendixa} that address concerns about observations precisely at the boundary, functional form assumptions, and the validity of the discontinuity itself.
+The spatial regression discontinuity results presented in Section 4.2 are subject to several potential concerns common to RD designs. 
+In this section, I present bandwidth sensitivity in the main text and provide additional robustness checks in Appendix~\ref{sec:appendixa} that address concerns about observations precisely at the boundary, functional form assumptions, and the validity of the discontinuity itself.
 
 \subsubsection{Bandwidth Sensitivity}
 
-A key choice in any RD design is the bandwidth---the window around the cutoff within which observations are used for estimation. My main specification uses a 500-foot bandwidth, but results should be robust to reasonable alternatives. Figure~\ref{fig:rd_bandwidth_robust} presents RD plots for both log(DUPAC) and log(FAR) at bandwidths of 250, 500, and 1,000 feet. The discontinuity remains visible and statistically significant across all bandwidth choices for both density measures, though precision naturally decreases with narrower bandwidths due to smaller sample sizes. The point estimates are relatively stable, suggesting the results are not driven by a particular bandwidth choice.
+A key choice in any RD design is the bandwidth, which is the window around the cutoff within which observations are used for estimation. My main specification uses a 500-foot bandwidth, but results should be robust to reasonable alternatives. Figure~\ref{fig:rd_bandwidth_robust} presents RD plots for both log(DUPAC) and log(FAR) at bandwidths of 250, 500, and 1,000 feet. 
+The discontinuity remains visible and statistically significant across all bandwidth choices for both density measures, though precision naturally decreases with narrower bandwidths due to smaller sample sizes. 
+The point estimates are relatively stable, suggesting the results are not driven by a particular bandwidth choice.
 
 \begin{figure}[htbp]
     \centering
@@ -184,7 +189,7 @@ A key choice in any RD design is the bandwidth---the window around the cutoff wi
 
 \subsubsection{Additional Robustness Checks}
 
-Additional robustness checks are presented in Appendix~\ref{sec:appendixa}. These include: (1) a ``donut hole'' specification that excludes parcels within 25 or 50 feet of the ward boundary to address concerns about observations precisely at the boundary (Figure~\ref{fig:rd_donut}); (2) alternative functional forms using quadratic and cubic polynomial specifications (Figure~\ref{fig:rd_polynomial}); and (3) placebo boundary tests at artificial cutoffs 500 feet inside each ward (Figure~\ref{fig:rd_placebo}). All robustness checks support the main findings.
+Additional robustness checks are presented in Appendix~\ref{sec:appendixa}. These include: (1) a ``donut RD'' specification that excludes parcels within 25 or 50 feet of the ward boundary to address concerns about observations precisely at the boundary (Figure~\ref{fig:rd_donut}); (2) alternative functional forms using quadratic and cubic polynomial specifications (Figure~\ref{fig:rd_polynomial}); and (3) placebo boundary tests at artificial cutoffs 500 feet inside each ward (Figure~\ref{fig:rd_placebo}). All robustness checks support the main findings.
 
-Taken together, these robustness checks provide strong evidence that the density discontinuity at ward boundaries is a genuine phenomenon rather than an artifact of bandwidth selection, boundary-specific idiosyncrasies, functional form assumptions, or spurious spatial patterns. Combined with the covariate balance tests in Table~\ref{tab:fe_balance_250} showing no discontinuity in demographic characteristics, these results support the interpretation that aldermanic strictness causally affects development density near ward boundaries.
+Taken together, these robustness checks provide strong evidence that the density discontinuity at ward boundaries is a genuine phenomenon rather than an artifact of bandwidth selection, boundary-specific idiosyncrasies, functional form assumptions, or spurious spatial patterns. Combined with the covariate balance tests in Table~\ref{tab:fe_balance_250} showing no discontinuity in demographic characteristics, these results support the interpretation that aldermanic behavior causally affects development density near ward boundaries.
 

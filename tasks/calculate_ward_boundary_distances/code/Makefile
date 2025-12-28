@@ -16,6 +16,7 @@ include ../../generic.make
   ../input/chicago_alderman_panel.csv \
   ../input/aldermen_strictness_scores.csv \
   ../input/ward_controls.csv \
+  ../input/block_group_controls.csv \
   ../input/zoning_data_clean.gpkg \
   ../input/cta_stops.gpkg \
   ../input/major_streets.gpkg \
@@ -49,6 +50,10 @@ include ../../generic.make
 ../input/zoning_data_clean.gpkg: ../../zoning_data_cleaning/output/zoning_data_clean.gpkg | ../input
 	@ln -sf $< $@
 
+../input/block_group_controls.csv: ../../create_block_group_controls/output/block_group_controls.csv | ../input
+	@echo "→ [calculate_distances] Linking block group controls"
+	ln -sf $< $@
+
 ../input/cta_stops.gpkg: ../../download_amenities_data/output/cta_stops.gpkg | ../input
 	@ln -sf $< $@
 
@@ -70,10 +75,10 @@ link-inputs: \
   ../input/chicago_alderman_panel.csv \
   ../input/aldermen_strictness_scores.csv \
   ../input/ward_controls.csv \
+  ../input/block_group_controls.csv \
   ../input/zoning_data_clean.gpkg \
   ../input/cta_stops.gpkg \
   ../input/major_streets.gpkg \
   ../input/parks.gpkg \
   ../input/schools_2015.gpkg
-
 

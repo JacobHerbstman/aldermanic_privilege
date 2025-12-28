@@ -12,23 +12,65 @@
 \end{table}
 
 
-\begin{table}[H]
-    \caption{Identification Check: Covariate Balance (bw = 250 ft)}
-    \label{tab:fe_balance_250}
+\subsection{Covariate Balance Test}
 
-    \resizebox{\textwidth}{!}{
-        \input{../tasks/border_pair_FE_regressions_validation/output/fe_validation_table_bw250.tex}
-    }
+A key identifying assumption in the border-pair fixed effects design is that neighborhood characteristics vary smoothly across ward boundaries, so any discontinuity in development outcomes can be attributed to differences in aldermanic behavior rather than underlying area characteristics.
+
+To test this assumption, I assign each parcel to a census block group via spatial intersection with 2019 American Community Survey (ACS) geographies. Block groups are small geographic units (typically 600--3,000 residents) that provide demographic variation at a much finer scale than wards. I then merge block group-level demographics from the five-year ACS estimates corresponding to each parcel's construction year (using 2010--2014 estimates for pre-2015 construction and 2015--2019 estimates for later construction).
+
+I regress each demographic variable on the aldermanic strictness score using the same fixed effects specification as my main regressions (zone code $\times$ ward-pair and year fixed effects), restricting to parcels within 250 feet of the border.
+
+\begin{table}[H]
+    \caption{Identification Check: Covariate Balance at Census Block Group Level (bw = 250 ft)}
+    \label{tab:fe_balance_250}
+    
+    \textit{Panel A: Race, Income, and Education}
+    \vspace{0.2cm}
+    
+    \input{../tasks/border_pair_FE_regressions_validation/output/fe_validation_table_bw250_panel_a.tex}
+    
+    \vspace{0.5cm}
+    
+    \textit{Panel B: Housing and Density}
+    \vspace{0.2cm}
+    
+    \input{../tasks/border_pair_FE_regressions_validation/output/fe_validation_table_bw250_panel_b.tex}
     
     \footnotesize
-    \textit{Notes:} Standard errors clustered at the ward-pair level.
+    \textit{Notes:} Each column regresses a block group-level demographic variable on the strictness score. Standard errors clustered at the ward-pair level.
+\end{table}
+
+\clearpage
+
+\subsection{FE Donut Robustness}
+
+As an additional robustness check for the border-pair fixed effects results, I exclude parcels within 25 or 50 feet of the ward boundary. This addresses concerns that observations precisely at the border may be unusual in ways that drive the results.
+
+\begin{table}[H]
+    \caption{Border-Pair FE Estimates --- Donut Robustness (bw = 250 ft, donut = 25 ft)}
+    \label{tab:fe_donut_25}
+
+    \input{../tasks/border_pair_FE_regressions_donut/output/fe_table_bw250_donut25.tex}
+    
+    \footnotesize
+    \textit{Notes:} Excludes parcels within 25 ft of ward boundary. Standard errors clustered at the ward-pair level.
+\end{table}
+
+\begin{table}[H]
+    \caption{Border-Pair FE Estimates --- Donut Robustness (bw = 250 ft, donut = 50 ft)}
+    \label{tab:fe_donut_50}
+
+    \input{../tasks/border_pair_FE_regressions_donut/output/fe_table_bw250_donut50.tex}
+    
+    \footnotesize
+    \textit{Notes:} Excludes parcels within 50 ft of ward boundary. Standard errors clustered at the ward-pair level.
 \end{table}
 
 \subsection{RD Robustness Figures}
 
 \subsubsection{Donut Hole Specification}
 
-One concern with spatial RD designs is that observations precisely at the boundary may be unusual in ways that drive the results---for example, if ward boundaries tend to follow major streets or other geographic features that independently affect development patterns. To address this, I implement a ``donut hole'' specification that excludes parcels within 25 or 50 feet of the ward boundary. Figure~\ref{fig:rd_donut} shows that the discontinuity persists even when dropping observations closest to the cutoff, suggesting the results are not driven by idiosyncratic features of parcels located precisely on ward boundaries.
+One concern with spatial RD designs is that observations precisely at the boundary may be unusual in ways that drive the results---for example, if ward boundaries tend to follow major streets or other geographic features that independently affect development patterns. To address this, I implement a ``donut RD'' specification that excludes parcels within 25 or 50 feet of the ward boundary. Figure~\ref{fig:rd_donut} shows that the discontinuity persists even when dropping observations closest to the cutoff, suggesting the results are not driven by idiosyncratic features of parcels located precisely on ward boundaries.
 
 \begin{figure}[H]
     \centering
@@ -65,40 +107,43 @@ The baseline RD specification uses a local linear regression. However, results c
 
 \begin{figure}[H]
     \centering
-    % Log FAR polynomial
-    \begin{minipage}{0.32\textwidth}
+    % Row 1: Linear (p=1)
+    \begin{minipage}{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_linear_p1_bw500_triangular.pdf}
     \end{minipage}
     \hfill
-    \begin{minipage}{0.32\textwidth}
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_linear_p1_bw500_triangular.pdf}
+    \end{minipage}
+    
+    \vspace{0.3cm}
+    
+    % Row 2: Quadratic (p=2)
+    \begin{minipage}{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_quadratic_p2_bw500_triangular.pdf}
     \end{minipage}
     \hfill
-    \begin{minipage}{0.32\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_cubic_p3_bw500_triangular.pdf}
-    \end{minipage}
-    
-    \vspace{0.5cm}
-    
-    % Log DUPAC polynomial
-    \begin{minipage}{0.32\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_linear_p1_bw500_triangular.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.32\textwidth}
+    \begin{minipage}{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_quadratic_p2_bw500_triangular.pdf}
     \end{minipage}
+    
+    \vspace{0.3cm}
+    
+    % Row 3: Cubic (p=3)
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_cubic_p3_bw500_triangular.pdf}
+    \end{minipage}
     \hfill
-    \begin{minipage}{0.32\textwidth}
+    \begin{minipage}{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_cubic_p3_bw500_triangular.pdf}
     \end{minipage}
-    \caption{Functional Form Robustness: Log(FAR) (top row) and Log(DUPAC) (bottom row) with Linear (p=1), Quadratic (p=2), and Cubic (p=3) specifications}
+    \caption{Functional Form Robustness: Log(FAR) (left) and Log(DUPAC) (right) with Linear (p=1, top row), Quadratic (p=2, middle row), and Cubic (p=3, bottom row) specifications}
     \label{fig:rd_polynomial}
 \end{figure}
 

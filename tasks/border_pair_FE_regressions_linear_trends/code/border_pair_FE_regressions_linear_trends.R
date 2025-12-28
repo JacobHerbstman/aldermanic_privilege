@@ -1,36 +1,21 @@
-# border_pair_FE_tables_by_bw.R
-# One table per bandwidth (in miles) with multiple outcomes as columns.
-# Regressions: y ~ homeownership_own | construction_year + ward_pair, clustered by ward_pair
-
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+# border_pair_FE_regressions_linear_trends.R
+# Robustness check: Adding border-pair-specific linear time trends
+# Specification: y ~ strictness + controls + ward_pair:year_num | zone_code^ward_pair + construction_year
+# This allows for differential linear trends across border pairs while keeping city-wide year FEs
 
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
-# bw_ft <- 250
-# yvars <- c(
-#   "log(density_far)", "log(density_dupac)", "log(unitscount)"
-# )
-# output_filename <- "../output/fe_table_bw250.tex"
-# =======================================================================================
-
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
-# Args: <bw_feet> <output_filename> <yvar1> [<yvar2> ...]
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) >= 3) {
   bw_ft <- suppressWarnings(as.integer(args[1]))
   output_filename <- args[2]
-  # space-separated yvars
   yvars <- args[3:length(args)]
 
-  # backward-compat: if exactly 3 args and the 3rd has commas, split them
   if (length(args) == 3 && grepl(",", args[3])) {
     yvars <- strsplit(args[3], ",")[[1]] |> trimws()
   }
 } else {
-  # allow interactive testing with objects already defined in the session
   if (!exists("bw_ft") || !exists("output_filename") || !exists("yvars")) {
     stop("FATAL: need args: <bw_feet> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
   }
@@ -48,9 +33,10 @@ parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_type
   filter(arealotsf > 1) %>%
   filter(areabuilding > 1) %>%
   filter(unitscount > 1) %>%
-  filter(unitscount > 1 & unitscount <= 100) %>%
-  filter(construction_year >= 2006)
-# filter(construction_year < 2024)
+  filter(unitscount > 1 & unitscount <= 100) %>% 
+  filter(construction_year >= 2006) %>%
+  # KEY ADDITION: Create numeric year for linear trends
+  mutate(year_num = construction_year - min(construction_year, na.rm = TRUE))
 
 
 # ── 3) HELPERS ───────────────────────────────────────────────────────────────
@@ -84,8 +70,6 @@ mean_y_level <- function(x) {
   y0 <- if (grepl("^log\\(", y_lhs)) gsub("^log\\(|\\)$", "", y_lhs) else y_lhs
 
   val <- mean(dat[[y0]], na.rm = TRUE)
-
-  # Return a formatted string to force the display you want
   sprintf("%.2f", val)
 }
 fitstat_register("myo", mean_y_level, alias = "Dep. Var. Mean")
@@ -96,7 +80,6 @@ n_ward_pairs <- function(x) {
   if (!is.null(mf) && "ward_pair" %in% names(mf)) {
     return(length(unique(mf$ward_pair)))
   }
-  # Fallbacks if needed:
   if (!is.null(x$cluster) && "ward_pair" %in% names(x$cluster)) {
     return(length(unique(x$cluster$ward_pair)))
   }
@@ -130,7 +113,7 @@ rename_dict <- c(
 )
 
 
-# ── 4) MODELS (ONE PER OUTCOME), SAME BW ─────────────────────────────────────
+# ── 4) MODELS WITH LINEAR TRENDS ─────────────────────────────────────────────
 models <- list()
 col_headers <- c()
 
@@ -144,34 +127,46 @@ for (yv in yvars) {
   df <- parcels_fe %>%
     filter(dist_to_boundary <= bw_ft)
 
-  check_df_additive <- df %>%
-    mutate(fe_group_id = paste(ward_pair, zone_code, sep = "_"))
-
-  # 2. Calculate variation within each group
-  identifying_variation_additive <- check_df_additive %>%
-    group_by(fe_group_id) %>%
-    summarize(
-      n_obs = n(),
-      # Check if there is variation in strictness (are there properties on BOTH sides?)
-      sd_strictness = sd(strictness_own, na.rm = TRUE)
-    ) %>%
-    # Filter to keep only useful groups
-    filter(n_obs > 1 & !is.na(sd_strictness) & sd_strictness > 0)
-
-  # 3. View Results
-  message("--- Additive Specification Checks (Zone^Pair + Year) ---")
-  message("Number of useful groups: ", nrow(identifying_variation_additive))
-  message("Number of useful observations: ", sum(identifying_variation_additive$n_obs))
-  message("Total observations in dataset: ", nrow(df))
-
   if (nrow(df) == 0) {
     warning(sprintf("Skipping '%s' (no rows after filtering).", yv))
     next
   }
 
-  fml_txt <- paste0(yv, " ~ strictness_own + share_white_own + share_black_own + median_hh_income_own + share_bach_plus_own +
-  homeownership_rate_own + avg_rent_own | zone_code^ward_pair + construction_year")
-  m <- feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
+  # Count ward pairs with variation
+  check_df <- df %>%
+    mutate(fe_group_id = paste(ward_pair, zone_code, sep = "_")) %>%
+    group_by(fe_group_id) %>%
+    summarize(
+      n_obs = n(),
+      sd_strictness = sd(strictness_own, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    filter(n_obs > 1 & !is.na(sd_strictness) & sd_strictness > 0)
+
+  message("--- Linear Trends Specification ---")
+  message("Bandwidth: ", bw_ft, " ft")
+  message("Outcome: ", yv)
+  message("Number of useful groups: ", nrow(check_df))
+  message("Total observations in dataset: ", nrow(df))
+  message("Number of ward pairs: ", length(unique(df$ward_pair)))
+
+  # KEY CHANGE: Add ward_pair:year_num for border-pair-specific linear trends
+  # This estimates one slope per ward_pair while keeping year FEs for city-wide nonlinear time effects
+  fml_txt <- paste0(
+    yv, " ~ strictness_own + share_white_own + share_black_own + median_hh_income_own + ",
+    "share_bach_plus_own + homeownership_rate_own + avg_rent_own + ",
+    "ward_pair:year_num | zone_code^ward_pair + construction_year"
+  )
+  
+  m <- tryCatch({
+    feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
+  }, error = function(e) {
+    warning(sprintf("Model estimation failed for '%s': %s", yv, e$message))
+    return(NULL)
+  })
+  
+  if (is.null(m)) next
+  
   m$custom_data <- df
 
   models[[length(models) + 1]] <- m
@@ -182,7 +177,7 @@ if (length(models) == 0) stop("No models estimated; check yvars and data.")
 names(models) <- col_headers
 
 # ── 5) TITLE & TABLE OUTPUT ──────────────────────────────────────────────────
-table_title <- sprintf("Border-Pair FE estimates (bw = %.0f ft)", bw_ft)
+table_title <- sprintf("Border-Pair FE estimates with Linear Trends (bw = %.0f ft)", bw_ft)
 
 etable(models,
   keep = "Strictness Score",
@@ -202,8 +197,24 @@ etable(models,
     "Zoning Code $\\times$ Ward-Pair FE" = "zone_code",
     "Year FE" = "construction_year"
   ),
+  extralines = list(
+    "_Border-Pair Linear Trends" = rep("$\\checkmark$", length(models))
+  ),
   float = FALSE,
   tex = TRUE,
   file = output_filename,
   replace = TRUE
 )
+
+# Also output a summary comparison CSV
+comparison_summary <- data.frame(
+  outcome = col_headers,
+  coefficient = sapply(models, function(m) coef(m)["strictness_own"]),
+  se = sapply(models, function(m) se(m)["strictness_own"]),
+  n_obs = sapply(models, function(m) nobs(m)),
+  n_ward_pairs = sapply(models, function(m) n_ward_pairs(m))
+)
+
+csv_filename <- gsub("\\.tex$", ".csv", output_filename)
+write_csv(comparison_summary, csv_filename)
+message("Summary saved to: ", csv_filename)

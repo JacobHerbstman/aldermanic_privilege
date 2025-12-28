@@ -32,6 +32,9 @@ ward_controls <- read_csv("../input/ward_controls.csv")
 cat("Loading alderman strictness scores...\n")
 alderman_scores <- read_csv("../input/aldermen_strictness_scores.csv")
 
+cat("Loading block group controls...\n")
+bg_controls <- read_csv("../input/block_group_controls.csv", show_col_types = FALSE)
+
 if (st_crs(parcels) != st_crs(ward_panel)) {
   message("CRS mismatch detected. Transforming parcels CRS to match ward boundaries.")
   parcels <- st_transform(parcels, st_crs(ward_panel))
@@ -53,6 +56,30 @@ parcels <- parcels %>%
     ),
     left = TRUE, largest = TRUE
   )
+
+# -----------------------------------------------------------------------------
+# 1.5. GEOCODE PARCELS TO CENSUS BLOCK GROUPS
+# -----------------------------------------------------------------------------
+cat("Loading block group geometries from Census...\n")
+block_groups <- get_acs(
+  geography = "block group",
+  variables = "B01003_001", # Just need the geometry
+  state = "IL",
+  county = "Cook",
+  year = 2019,
+  geometry = TRUE
+) %>%
+  st_transform(st_crs(parcels)) %>%
+  dplyr::select(GEOID, geometry)
+
+cat("Spatial join: assigning parcels to block groups...\n")
+parcels <- parcels %>%
+  st_join(block_groups, left = TRUE)
+
+cat(sprintf(
+  "Block group assignment complete. %d of %d parcels have GEOID.\n",
+  sum(!is.na(parcels$GEOID)), nrow(parcels)
+))
 
 # -----------------------------------------------------------------------------
 # 2. REDISTRICTING LOGIC FUNCTIONS
@@ -327,7 +354,7 @@ final_dataset <- parcels_with_distances %>%
     )
   ) %>%
   select(
-    pin, geom,
+    pin, geom, GEOID,
     construction_year = yearbuilt, construction_date, boundary_year, dist_to_boundary,
     ward = assigned_ward, ward_pair,
     alderman = alderman.x, alderman_tenure_months,
@@ -439,8 +466,22 @@ final_dataset_signed <- final_dataset %>%
     signed_distance = dist_to_boundary * sign
   ) %>%
   filter(!is.na(signed_distance)) %>%
-  dplyr::select(-contains("wards_in_pair"), -match_year)
+  dplyr::select(-contains("wards_in_pair"), -match_year) %>%
+  # --- JOIN 5: Block Group Demographics ---
+  # Merge block group-level demographics by GEOID and construction_year
+  # Ensure GEOID is character type in both datasets
+  left_join(
+    bg_controls %>%
+      mutate(GEOID = as.character(GEOID)) %>%
+      rename_with(~ paste0(., "_bg"), -c(GEOID, year)),
+    by = c("GEOID", "construction_year" = "year")
+  )
+
 cat("Final Dataset Created!\n")
+cat(sprintf(
+  "Block group demographics merged: %d of %d parcels have block group data.\n",
+  sum(!is.na(final_dataset_signed$percent_white_bg)), nrow(final_dataset_signed)
+))
 
 # -----------------------------------------------------------------------------
 # 10. SAVE OUTPUT
