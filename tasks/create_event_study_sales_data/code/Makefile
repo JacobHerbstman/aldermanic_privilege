@@ -51,26 +51,26 @@ link-inputs: $(ALL_INPUTS)
 
 $(INPUT_SALES): ../../calculate_sale_distances/output/sales_with_ward_distances.csv | ../input
 	@echo "→ Linking sales data..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_WARD_PANEL): ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@echo "→ Linking ward panel..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_BLOCKS): ../../../data_raw/CensusBlockTIGER2010_20250721.csv | ../input
 	@echo "→ Linking census blocks..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_ALD_PANEL): ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
 	@echo "→ Linking alderman panel..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_STRICTNESS): ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
 	@echo "→ Linking strictness scores..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_BG_CONTROLS): ../../create_block_group_controls/output/block_group_controls.csv | ../input
 	@echo "→ Linking block group controls..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 include ../../generic.make

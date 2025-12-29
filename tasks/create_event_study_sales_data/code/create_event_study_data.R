@@ -430,7 +430,83 @@ message(sprintf(
 ))
 
 # =============================================================================
-# 10. SAVE OUTPUTS
+# 10. CREATE STACKED MONTHLY PANEL
+# =============================================================================
+message("Creating stacked monthly panel...")
+
+# Use sales_block_month which already has monthly aggregation
+# 2015 cohort monthly: event window 2010-2020 (May 2015 is event time 0)
+cohort_2015_monthly <- sales_block_month %>%
+    filter(year >= 2010, year <= 2020) %>%
+    left_join(block_treatment_2015, by = "block_id") %>%
+    left_join(
+        block_year_base %>%
+            filter(year == 2015) %>%
+            distinct(block_id, switched_2015),
+        by = "block_id"
+    ) %>%
+    filter(!is.na(switched_2015)) %>%
+    mutate(
+        cohort = "2015",
+        treat = as.integer(switched_2015),
+        # Relative month: May 2015 (month 5, year 2015) = 0
+        relative_month = (year - 2015) * 12 + (month - 5),
+        switch_type = switch_type_2015,
+        strictness_change = strictness_change_2015,
+        has_sales = TRUE,
+        year_month = paste(year, sprintf("%02d", month), sep = "-")
+    ) %>%
+    select(
+        block_id, year, month, year_month, cohort, treat, relative_month,
+        switch_type, strictness_change,
+        n_sales, mean_price, median_price, has_sales,
+        ward_pair_id, mean_dist_to_boundary
+    )
+
+# 2023 cohort monthly: event window 2018-2025 (May 2023 is event time 0)
+cohort_2023_monthly <- sales_block_month %>%
+    filter(year >= 2018, year <= 2025) %>%
+    left_join(block_treatment_2023, by = "block_id") %>%
+    left_join(
+        block_year_base %>%
+            filter(year == 2023) %>%
+            distinct(block_id, switched_2023),
+        by = "block_id"
+    ) %>%
+    filter(!is.na(switched_2023)) %>%
+    mutate(
+        cohort = "2023",
+        treat = as.integer(switched_2023),
+        # Relative month: May 2023 (month 5, year 2023) = 0
+        relative_month = (year - 2023) * 12 + (month - 5),
+        switch_type = switch_type_2023,
+        strictness_change = strictness_change_2023,
+        has_sales = TRUE,
+        year_month = paste(year, sprintf("%02d", month), sep = "-")
+    ) %>%
+    select(
+        block_id, year, month, year_month, cohort, treat, relative_month,
+        switch_type, strictness_change,
+        n_sales, mean_price, median_price, has_sales,
+        ward_pair_id, mean_dist_to_boundary
+    )
+
+# Stack monthly cohorts
+stacked_monthly_panel <- bind_rows(cohort_2015_monthly, cohort_2023_monthly) %>%
+    mutate(
+        cohort_block_id = paste(cohort, block_id, sep = "_"),
+        cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_")
+    )
+
+message(sprintf(
+    "Stacked monthly panel: %s rows (%s from 2015, %s from 2023)",
+    format(nrow(stacked_monthly_panel), big.mark = ","),
+    format(nrow(cohort_2015_monthly), big.mark = ","),
+    format(nrow(cohort_2023_monthly), big.mark = ",")
+))
+
+# =============================================================================
+# 11. SAVE OUTPUTS
 # =============================================================================
 message("Saving outputs...")
 
@@ -445,6 +521,9 @@ message(sprintf("Saved stacked cohort panel: %s rows", format(nrow(stacked_panel
 
 write_csv(stacked_quarterly_panel, "../output/sales_stacked_quarterly_panel.csv")
 message(sprintf("Saved stacked quarterly panel: %s rows", format(nrow(stacked_quarterly_panel), big.mark = ",")))
+
+write_csv(stacked_monthly_panel, "../output/sales_stacked_monthly_panel.csv")
+message(sprintf("Saved stacked monthly panel: %s rows", format(nrow(stacked_monthly_panel), big.mark = ",")))
 
 # Summary stats
 message("\nSummary by cohort and treatment status:")

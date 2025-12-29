@@ -19,8 +19,9 @@ INPUT_BLOCK_YEAR  := ../input/sales_block_year_panel.csv
 INPUT_BLOCK_MONTH := ../input/sales_block_month_panel.csv
 INPUT_STACKED     := ../input/sales_stacked_panel.csv
 INPUT_STACKED_Q   := ../input/sales_stacked_quarterly_panel.csv
+INPUT_STACKED_M   := ../input/sales_stacked_monthly_panel.csv
 
-ALL_INPUTS := $(INPUT_BLOCK_YEAR) $(INPUT_BLOCK_MONTH) $(INPUT_STACKED) $(INPUT_STACKED_Q)
+ALL_INPUTS := $(INPUT_BLOCK_YEAR) $(INPUT_BLOCK_MONTH) $(INPUT_STACKED) $(INPUT_STACKED_Q) $(INPUT_STACKED_M)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Generate All Target Names
@@ -104,18 +105,22 @@ link-inputs: $(ALL_INPUTS)
 
 $(INPUT_BLOCK_YEAR): ../../create_event_study_sales_data/output/sales_block_year_panel.csv | ../input
 	@echo "→ Linking block-year panel..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_BLOCK_MONTH): ../../create_event_study_sales_data/output/sales_block_month_panel.csv | ../input
 	@echo "→ Linking block-month panel..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_STACKED): ../../create_event_study_sales_data/output/sales_stacked_panel.csv | ../input
 	@echo "→ Linking stacked panel..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_STACKED_Q): ../../create_event_study_sales_data/output/sales_stacked_quarterly_panel.csv | ../input
 	@echo "→ Linking stacked quarterly panel..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
+
+$(INPUT_STACKED_M): ../../create_event_study_sales_data/output/sales_stacked_monthly_panel.csv | ../input
+	@echo "→ Linking stacked monthly panel..."
+	ln -sf $< $@
 
 include ../../generic.make

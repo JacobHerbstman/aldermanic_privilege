@@ -137,26 +137,43 @@ if (FREQUENCY == "yearly") {
     time_var <- "relative_time_capped"
     time_label <- "Quarters"
 } else if (FREQUENCY == "monthly") {
-    data <- read_csv("../input/sales_block_month_panel.csv", show_col_types = FALSE) %>%
-        filter(!is.na(switched_2015), !is.na(strictness_change_2015)) %>%
-        # Restrict to blocks near ward boundaries (within 2000 ft)
-        filter(!is.na(ward_pair_id), mean_dist_to_boundary < 2000) %>%
-        mutate(
-            treatment_continuous = strictness_change_2015,
-            treat_stricter = as.integer(strictness_change_2015 > 0.1),
-            treat_lenient = as.integer(strictness_change_2015 < -0.1),
-            relative_month = case_when(
-                TREATMENT_YEAR == 2015 ~ (year - 2015) * 12 + (month - 5),
-                TREATMENT_YEAR == 2012 ~ (year - 2012) * 12 + (month - 4)
-            ),
-            relative_time_capped = pmax(pmin(relative_month, 36), -36),
-            year_month = paste(year, sprintf("%02d", month), sep = "-")
-        )
+    if (STACKED) {
+        data <- read_csv("../input/sales_stacked_monthly_panel.csv", show_col_types = FALSE) %>%
+            filter(n_sales > 0, !is.na(strictness_change)) %>%
+            # Restrict to blocks near ward boundaries (within 2000 ft)
+            filter(!is.na(ward_pair_id), mean_dist_to_boundary < 2000) %>%
+            mutate(
+                treatment_continuous = strictness_change,
+                treat_stricter = as.integer(strictness_change > 0.1),
+                treat_lenient = as.integer(strictness_change < -0.1),
+                relative_time = relative_month,
+                relative_time_capped = pmax(pmin(relative_month, 36), -36)
+            )
+        # Border-pair × cohort FE + month seasonality
+        fe_formula <- "cohort_ward_pair + cohort^year + month"
+        cluster_var <- "cohort_block_id"
+    } else {
+        data <- read_csv("../input/sales_block_month_panel.csv", show_col_types = FALSE) %>%
+            filter(!is.na(switched_2015), !is.na(strictness_change_2015)) %>%
+            # Restrict to blocks near ward boundaries (within 2000 ft)
+            filter(!is.na(ward_pair_id), mean_dist_to_boundary < 2000) %>%
+            mutate(
+                treatment_continuous = strictness_change_2015,
+                treat_stricter = as.integer(strictness_change_2015 > 0.1),
+                treat_lenient = as.integer(strictness_change_2015 < -0.1),
+                relative_month = case_when(
+                    TREATMENT_YEAR == 2015 ~ (year - 2015) * 12 + (month - 5),
+                    TREATMENT_YEAR == 2012 ~ (year - 2012) * 12 + (month - 4)
+                ),
+                relative_time_capped = pmax(pmin(relative_month, 36), -36),
+                year_month = paste(year, sprintf("%02d", month), sep = "-")
+            )
+        # Border-pair FE + month seasonality
+        fe_formula <- "ward_pair_id + year + month"
+        cluster_var <- "block_id"
+    }
     time_var <- "relative_time_capped"
     time_label <- "Months"
-    # Border-pair FE: compare within ward boundary pairs
-    fe_formula <- "ward_pair_id + year_month"
-    cluster_var <- "block_id"
 }
 
 message(sprintf("Loaded %s observations", format(nrow(data), big.mark = ",")))

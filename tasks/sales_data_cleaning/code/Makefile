@@ -33,15 +33,15 @@ $(OUTPUT_FILE): clean_sales_data.R $(INPUT_FILES) | ../output
 # ─────────────────────────────────────────────────────────────────────────────
 ../input/Assessor_-_Parcel_Sales_20251123.csv: ../../../data_raw/Assessor_-_Parcel_Sales_20251123.csv | ../input
 	@echo "→ [sales_data_cleaning] Linking sales data..."
-	ln -sF $(abspath $<) $@
+	ln -sF $< $@
 
 ../input/Assessor_-_Parcel_Universe__Current_Year_Only__20251004.csv: ../../../data_raw/Assessor_-_Parcel_Universe__Current_Year_Only__20251004.csv | ../input
 	@echo "→ [sales_data_cleaning] Linking parcel universe data..."
-	ln -sF $(abspath $<) $@
+	ln -sF $< $@
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@echo "→ [sales_data_cleaning] Linking ward panel..."
-	ln -sF $(abspath $<) $@
+	ln -sF $< $@
 
 link-inputs: $(INPUT_FILES)
 

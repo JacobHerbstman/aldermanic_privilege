@@ -58,26 +58,26 @@ link-inputs: $(ALL_INPUTS)
 
 $(INPUT_SALES): ../../../data_raw/Assessor_-_Parcel_Sales_20251123.csv | ../input
 	@echo "→ [calculate_sale_distances] Linking sales data..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_PARCELS): ../../../data_raw/Assessor_-_Parcel_Universe__Current_Year_Only__20251004.csv | ../input
 	@echo "→ [calculate_sale_distances] Linking parcel universe..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_WARD_PANEL): ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@echo "→ [calculate_sale_distances] Linking ward panel..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_ALD_PANEL): ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
 	@echo "→ [calculate_sale_distances] Linking alderman panel..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_STRICTNESS): ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
 	@echo "→ [calculate_sale_distances] Linking strictness scores..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 $(INPUT_CONTROLS): ../../create_ward_controls/output/ward_controls_2000_2023.csv | ../input
 	@echo "→ [calculate_sale_distances] Linking ward controls..."
-	ln -sf $(abspath $<) $@
+	ln -sf $< $@
 
 include ../../generic.make
