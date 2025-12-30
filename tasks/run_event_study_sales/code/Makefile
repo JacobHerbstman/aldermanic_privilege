@@ -1,6 +1,15 @@
 SHELL := bash
 include ../../shell_functions.make
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Parameters
+# ─────────────────────────────────────────────────────────────────────────────
+
+FREQUENCIES     := yearly quarterly
+WEIGHTINGS      := TRUE FALSE
+STACKINGS       := TRUE FALSE
+TREATMENT_TYPES := continuous binary_direction
+
 SCRIPT := run_event_study.R
 
 # Inputs
@@ -11,31 +20,52 @@ INPUT_STACKED_Q  := ../input/sales_stacked_quarterly_panel.csv
 ALL_INPUTS := $(INPUT_BLOCK_YEAR) $(INPUT_STACKED) $(INPUT_STACKED_Q)
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Generate Output Filenames
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Helper for weighted prefix
+WEIGHT_PREFIX_TRUE  := weighted
+WEIGHT_PREFIX_FALSE := unweighted
+
+# Helper for stacked prefix
+STACK_PREFIX_TRUE  := stacked
+STACK_PREFIX_FALSE := unstacked
+
+define GEN_OUTPUTS
+$(foreach freq,$(FREQUENCIES), \
+$(foreach wt,$(WEIGHTINGS), \
+$(foreach st,$(STACKINGS), \
+$(foreach tt,$(TREATMENT_TYPES), \
+	../output/event_study_$(freq)_$(WEIGHT_PREFIX_$(wt))_$(STACK_PREFIX_$(st))_$(tt).pdf \
+))))
+endef
+
+ALL_OUTPUTS := $(call GEN_OUTPUTS)
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Targets
 # ─────────────────────────────────────────────────────────────────────────────
 
 .DEFAULT_GOAL := all
 .PHONY: all link-inputs
 
-# All outputs: yearly & quarterly × weighted/unweighted × stacked/unstacked × continuous/binary
-all: $(ALL_INPUTS)
-	@echo "=== Running all event study specifications ==="
-	$(R) $(SCRIPT) --frequency=yearly    --weighted=TRUE  --stacked=TRUE  --treatment_type=continuous
-	$(R) $(SCRIPT) --frequency=yearly    --weighted=TRUE  --stacked=TRUE  --treatment_type=binary_direction
-	$(R) $(SCRIPT) --frequency=yearly    --weighted=TRUE  --stacked=FALSE --treatment_type=continuous
-	$(R) $(SCRIPT) --frequency=yearly    --weighted=TRUE  --stacked=FALSE --treatment_type=binary_direction
-	$(R) $(SCRIPT) --frequency=yearly    --weighted=FALSE --stacked=TRUE  --treatment_type=continuous
-	$(R) $(SCRIPT) --frequency=yearly    --weighted=FALSE --stacked=TRUE  --treatment_type=binary_direction
-	$(R) $(SCRIPT) --frequency=yearly    --weighted=FALSE --stacked=FALSE --treatment_type=continuous
-	$(R) $(SCRIPT) --frequency=yearly    --weighted=FALSE --stacked=FALSE --treatment_type=binary_direction
-	$(R) $(SCRIPT) --frequency=quarterly --weighted=TRUE  --stacked=TRUE  --treatment_type=continuous
-	$(R) $(SCRIPT) --frequency=quarterly --weighted=TRUE  --stacked=TRUE  --treatment_type=binary_direction
-	$(R) $(SCRIPT) --frequency=quarterly --weighted=TRUE  --stacked=FALSE --treatment_type=continuous
-	$(R) $(SCRIPT) --frequency=quarterly --weighted=TRUE  --stacked=FALSE --treatment_type=binary_direction
-	$(R) $(SCRIPT) --frequency=quarterly --weighted=FALSE --stacked=TRUE  --treatment_type=continuous
-	$(R) $(SCRIPT) --frequency=quarterly --weighted=FALSE --stacked=TRUE  --treatment_type=binary_direction
-	$(R) $(SCRIPT) --frequency=quarterly --weighted=FALSE --stacked=FALSE --treatment_type=continuous
-	$(R) $(SCRIPT) --frequency=quarterly --weighted=FALSE --stacked=FALSE --treatment_type=binary_direction
+all: $(ALL_OUTPUTS)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Rule Generation
+# ─────────────────────────────────────────────────────────────────────────────
+
+define GEN_RULE
+../output/event_study_$(freq)_$(WEIGHT_PREFIX_$(wt))_$(STACK_PREFIX_$(st))_$(tt).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	$(R) $(SCRIPT) --frequency=$(freq) --weighted=$(wt) --stacked=$(st) --treatment_type=$(tt)
+endef
+
+$(foreach freq,$(FREQUENCIES), \
+$(foreach wt,$(WEIGHTINGS), \
+$(foreach st,$(STACKINGS), \
+$(foreach tt,$(TREATMENT_TYPES), \
+	$(eval $(GEN_RULE)) \
+))))
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Input Linking

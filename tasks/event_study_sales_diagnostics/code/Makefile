@@ -21,7 +21,7 @@ ALL_INPUTS := $(INPUT_STACKED) $(INPUT_STACKED_Q) $(INPUT_BLOCKS) $(INPUT_WARD_P
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: all summary-stats maps link-inputs help clean-outputs
+.PHONY: all link-inputs
 
 # Main outputs
 SUMMARY_TEX      := ../output/sample_summary.tex
@@ -38,23 +38,6 @@ all: $(SUMMARY_TEX) $(BALANCE_TEX) $(WARD_PAIR_TEX) $(PRETREND_TEX) $(MAP_2015) 
 $(SUMMARY_TEX) $(BALANCE_TEX) $(WARD_PAIR_TEX) $(PRETREND_TEX) $(MAP_2015) $(MAP_2023) $(PRETREND_PLOT): $(SCRIPT) $(ALL_INPUTS) | ../output
 	@echo "→ Running diagnostics..."
 	$(R) $(SCRIPT)
-
-summary-stats: $(SUMMARY_TEX)
-
-maps: $(MAP_2015) $(MAP_2023)
-
-clean-outputs:
-	rm -f ../output/*.pdf ../output/*.tex ../output/*.csv
-
-help:
-	@echo "Event Study Sales Diagnostics Makefile"
-	@echo ""
-	@echo "Targets:"
-	@echo "  make all           - Run all diagnostics"
-	@echo "  make summary-stats - Sample summary tables only"
-	@echo "  make maps          - Treatment/control maps only"
-	@echo "  make link-inputs   - Create input symlinks"
-	@echo "  make clean-outputs - Remove output files"
 
 # =============================================================================
 # Input Linking
