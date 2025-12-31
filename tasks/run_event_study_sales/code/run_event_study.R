@@ -103,17 +103,18 @@ if (FREQUENCY == "yearly") {
         fe_formula <- "cohort_ward_pair + cohort^year_quarter"
         cluster_var <- "cohort_block_id"
     } else {
-        data <- read_csv("../input/sales_block_year_panel.csv", show_col_types = FALSE) %>%
-            filter(n_sales > 0, !is.na(strictness_change), year >= 2010, year <= 2020) %>%
+        # For unstacked quarterly, use the stacked quarterly panel but filter to 2015 cohort only
+        data <- read_csv("../input/sales_stacked_quarterly_panel.csv", show_col_types = FALSE) %>%
+            filter(cohort == "2015") %>% # Single cohort for unstacked
+            filter(n_sales > 0, !is.na(strictness_change)) %>%
             filter(!is.na(ward_pair_id), mean_dist_to_boundary < 1000) %>%
             mutate(
                 treatment_continuous = strictness_change,
                 treat_stricter = as.integer(strictness_change > 0),
                 treat_lenient = as.integer(strictness_change < 0),
-                relative_quarter = relative_year * 4,
                 relative_time_capped = pmax(pmin(relative_quarter, 12), -12)
             )
-        fe_formula <- "ward_pair_id + year"
+        fe_formula <- "ward_pair_id + year_quarter"
         cluster_var <- "block_id"
     }
     time_var <- "relative_time_capped"
