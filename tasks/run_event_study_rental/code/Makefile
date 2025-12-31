@@ -56,7 +56,7 @@ all: $(ALL_OUTPUTS)
 
 define GEN_RULE
 ../output/event_study_$(freq)_$(WEIGHT_PREFIX_$(wt))_$(STACK_PREFIX_$(st))_$(tt).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
-	$(R) $(SCRIPT) --frequency=$(freq) --weighted=$(wt) --stacked=$(st) --treatment_type=$(tt)
+	Rscript $(SCRIPT) --frequency=$(freq) --weighted=$(wt) --stacked=$(st) --treatment_type=$(tt)
 endef
 
 $(foreach freq,$(FREQUENCIES), \

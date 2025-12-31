@@ -111,6 +111,89 @@ Strictness change calculated as post-redistricting alderman strictness minus pre
 message("Saved: ../output/sample_summary.tex")
 
 # =============================================================================
+# 2.5 REDISTRICTING VS ELECTORAL TURNOVER ANALYSIS
+# =============================================================================
+message("\nAnalyzing sources of strictness variation: redistricting vs electoral turnover...")
+
+# Categorize blocks by source of strictness change
+source_analysis <- stacked_yearly %>%
+    filter(relative_year == 0) %>% # Focus on treatment year
+    mutate(
+        has_strictness_change = abs(strictness_change) > 0.1,
+        change_source = case_when(
+            !has_strictness_change ~ "No Significant Change",
+            redistricted == TRUE ~ "Redistricting (Ward Changed)",
+            redistricted == FALSE ~ "Electoral Turnover (Same Ward)"
+        )
+    )
+
+# Summary by source
+source_summary <- source_analysis %>%
+    group_by(cohort, change_source) %>%
+    summarise(
+        n_blocks = n_distinct(block_id),
+        total_sales = sum(n_sales),
+        mean_strictness_change = mean(strictness_change, na.rm = TRUE),
+        mean_price = weighted.mean(mean_price, n_sales, na.rm = TRUE),
+        .groups = "drop"
+    ) %>%
+    arrange(cohort, change_source)
+
+# Print to console for quick reference
+message("\nSummary by change source:")
+print(source_summary)
+
+# LaTeX table
+cat("\\begin{table}[htbp]
+\\centering
+\\caption{Sources of Strictness Variation: Redistricting vs Electoral Turnover}
+\\label{tab:redistricting_vs_turnover}
+\\begin{tabular}{llrrrr}
+\\toprule
+Cohort & Source of Change & Blocks & Sales & Mean $\\Delta$Strict & Mean Price \\\\
+\\midrule
+", file = "../output/redistricting_vs_turnover.tex")
+
+for (i in seq_len(nrow(source_summary))) {
+    row <- source_summary[i, ]
+    cat(
+        sprintf(
+            "%s & %s & %s & %s & %.3f & %s \\\\\n",
+            row$cohort, row$change_source,
+            format(row$n_blocks, big.mark = ","),
+            format(row$total_sales, big.mark = ","),
+            row$mean_strictness_change,
+            scales::dollar(row$mean_price, accuracy = 1)
+        ),
+        file = "../output/redistricting_vs_turnover.tex", append = TRUE
+    )
+}
+
+cat("\\bottomrule
+\\end{tabular}
+\\begin{tablenotes}
+\\small
+\\item \\textit{Notes:} ``Redistricting'' indicates blocks whose ward assignment changed due to boundary redrawing.
+``Electoral Turnover'' indicates blocks in the same ward where a new alderman was elected.
+Only blocks with $|\\Delta\\text{Strict}| > 0.1$ are counted as having a strictness change.
+\\end{tablenotes}
+\\end{table}
+", file = "../output/redistricting_vs_turnover.tex", append = TRUE)
+
+message("Saved: ../output/redistricting_vs_turnover.tex")
+
+# Also save detailed CSV for manual inspection
+source_by_block <- source_analysis %>%
+    select(
+        block_id, cohort, redistricted, strictness_change, change_source,
+        n_sales, mean_price, ward_pair_id
+    ) %>%
+    arrange(cohort, change_source, desc(abs(strictness_change)))
+
+write_csv(source_by_block, "../output/strictness_change_sources.csv")
+message("Saved: ../output/strictness_change_sources.csv")
+
+# =============================================================================
 # 3. WARD PAIR DIAGNOSTICS
 # =============================================================================
 message("\nCreating ward pair diagnostics...")
