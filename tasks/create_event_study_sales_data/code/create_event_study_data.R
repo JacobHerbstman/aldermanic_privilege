@@ -547,6 +547,13 @@ message(sprintf("Saved block-month panel: %s rows", format(nrow(block_month_pane
 write_csv(stacked_panel, "../output/sales_stacked_panel.csv")
 message(sprintf("Saved stacked cohort panel: %s rows", format(nrow(stacked_panel), big.mark = ",")))
 
+# Save unstacked cohort panels (same generic column structure as stacked)
+write_csv(cohort_2015, "../output/sales_unstacked_2015_panel.csv")
+message(sprintf("Saved unstacked 2015 panel: %s rows", format(nrow(cohort_2015), big.mark = ",")))
+
+write_csv(cohort_2023, "../output/sales_unstacked_2023_panel.csv")
+message(sprintf("Saved unstacked 2023 panel: %s rows", format(nrow(cohort_2023), big.mark = ",")))
+
 write_csv(stacked_quarterly_panel, "../output/sales_stacked_quarterly_panel.csv")
 message(sprintf("Saved stacked quarterly panel: %s rows", format(nrow(stacked_quarterly_panel), big.mark = ",")))
 

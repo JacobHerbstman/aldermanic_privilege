@@ -13,11 +13,12 @@ TREATMENT_TYPES := continuous binary_direction
 SCRIPT := run_event_study.R
 
 # Inputs
-INPUT_BLOCK_YEAR := ../input/sales_block_year_panel.csv
-INPUT_STACKED    := ../input/sales_stacked_panel.csv
-INPUT_STACKED_Q  := ../input/sales_stacked_quarterly_panel.csv
+INPUT_BLOCK_YEAR     := ../input/sales_block_year_panel.csv
+INPUT_STACKED        := ../input/sales_stacked_panel.csv
+INPUT_STACKED_Q      := ../input/sales_stacked_quarterly_panel.csv
+INPUT_UNSTACKED_2015 := ../input/sales_unstacked_2015_panel.csv
 
-ALL_INPUTS := $(INPUT_BLOCK_YEAR) $(INPUT_STACKED) $(INPUT_STACKED_Q)
+ALL_INPUTS := $(INPUT_BLOCK_YEAR) $(INPUT_STACKED) $(INPUT_STACKED_Q) $(INPUT_UNSTACKED_2015)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Generate Output Filenames
@@ -80,6 +81,9 @@ $(INPUT_STACKED): ../../create_event_study_sales_data/output/sales_stacked_panel
 	ln -sf $< $@
 
 $(INPUT_STACKED_Q): ../../create_event_study_sales_data/output/sales_stacked_quarterly_panel.csv | ../input
+	ln -sf $< $@
+
+$(INPUT_UNSTACKED_2015): ../../create_event_study_sales_data/output/sales_unstacked_2015_panel.csv | ../input
 	ln -sf $< $@
 
 include ../../generic.make

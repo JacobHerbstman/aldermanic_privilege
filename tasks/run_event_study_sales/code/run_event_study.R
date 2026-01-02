@@ -74,8 +74,9 @@ if (FREQUENCY == "yearly") {
         fe_formula <- "cohort_ward_pair + cohort^year"
         cluster_var <- "cohort_block_id"
     } else {
-        data <- read_csv("../input/sales_block_year_panel.csv", show_col_types = FALSE) %>%
-            filter(n_sales > 0, !is.na(strictness_change), year >= 2010, year <= 2020) %>%
+        # Unstacked 2015 cohort only - uses file with generic column names
+        data <- read_csv("../input/sales_unstacked_2015_panel.csv", show_col_types = FALSE) %>%
+            filter(n_sales > 0, !is.na(strictness_change)) %>%
             filter(!is.na(ward_pair_id), mean_dist_to_boundary < 1000) %>%
             mutate(
                 treatment_continuous = strictness_change,
