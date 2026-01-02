@@ -103,7 +103,8 @@ cat("\\bottomrule
 \\begin{tablenotes}
 \\small
 \\item \\textit{Notes:} Sample restricted to blocks within 2000 feet of ward boundaries with positive sales.
-Strictness change calculated as post-redistricting alderman strictness minus pre-redistricting strictness.
+Strictness change uses predetermined approach: both origin and destination ward strictness measured in year before redistricting.
+Controls are blocks that stayed in same ward where the alderman did not change; non-switchers in wards with electoral turnover are excluded.
 \\end{tablenotes}
 \\end{table}
 ", file = "../output/sample_summary.tex", append = TRUE)
@@ -111,25 +112,32 @@ Strictness change calculated as post-redistricting alderman strictness minus pre
 message("Saved: ../output/sample_summary.tex")
 
 # =============================================================================
-# 2.5 REDISTRICTING VS ELECTORAL TURNOVER ANALYSIS
+# 2.5 IDENTIFICATION STRATEGY VALIDATION
 # =============================================================================
-message("\nAnalyzing sources of strictness variation: redistricting vs electoral turnover...")
+message("\nValidating identification strategy (predetermined strictness approach)...")
 
-# Categorize blocks by source of strictness change
-source_analysis <- stacked_yearly %>%
+# With predetermined strictness:
+# - Treatment = strictly redistricted blocks (ward changed)
+# - Controls = non-switchers whose ward had NO electoral turnover
+# - Contaminated controls (non-switchers in turnover wards) are already EXCLUDED
+
+# Validate that all significant strictness changes come from redistricted blocks
+id_validation <- stacked_yearly %>%
     filter(relative_year == 0) %>% # Focus on treatment year
     mutate(
         has_strictness_change = abs(strictness_change) > 0.1,
-        change_source = case_when(
-            !has_strictness_change ~ "No Significant Change",
-            redistricted == TRUE ~ "Redistricting (Ward Changed)",
-            redistricted == FALSE ~ "Electoral Turnover (Same Ward)"
+        # redistricted indicates ward boundary changed
+        status = case_when(
+            redistricted == TRUE & has_strictness_change ~ "Treated (Redistricted)",
+            redistricted == TRUE & !has_strictness_change ~ "Redistricted, No Strictness Change",
+            redistricted == FALSE & !has_strictness_change ~ "Control (Clean)",
+            redistricted == FALSE & has_strictness_change ~ "ERROR: Non-switcher with change"
         )
     )
 
-# Summary by source
-source_summary <- source_analysis %>%
-    group_by(cohort, change_source) %>%
+# Summary by identification status
+id_summary <- id_validation %>%
+    group_by(cohort, status) %>%
     summarise(
         n_blocks = n_distinct(block_id),
         total_sales = sum(n_sales),
@@ -137,35 +145,43 @@ source_summary <- source_analysis %>%
         mean_price = weighted.mean(mean_price, n_sales, na.rm = TRUE),
         .groups = "drop"
     ) %>%
-    arrange(cohort, change_source)
+    arrange(cohort, status)
 
-# Print to console for quick reference
-message("\nSummary by change source:")
-print(source_summary)
+# Print to console for validation
+message("\nIdentification Strategy Validation:")
+print(id_summary)
+
+# Check for any errors (non-switchers with strictness change)
+n_errors <- sum(id_validation$status == "ERROR: Non-switcher with change", na.rm = TRUE)
+if (n_errors > 0) {
+    warning(sprintf("IDENTIFICATION ERROR: %d non-switching blocks have strictness change!", n_errors))
+} else {
+    message("✓ Identification validated: all strictness changes come from redistricted blocks only")
+}
 
 # LaTeX table
 cat("\\begin{table}[htbp]
 \\centering
-\\caption{Sources of Strictness Variation: Redistricting vs Electoral Turnover}
-\\label{tab:redistricting_vs_turnover}
+\\caption{Identification Strategy Validation}
+\\label{tab:identification_validation}
 \\begin{tabular}{llrrrr}
 \\toprule
-Cohort & Source of Change & Blocks & Sales & Mean $\\Delta$Strict & Mean Price \\\\
+Cohort & Status & Blocks & Sales & Mean $\\Delta$Strict & Mean Price \\\\
 \\midrule
-", file = "../output/redistricting_vs_turnover.tex")
+", file = "../output/identification_validation.tex")
 
-for (i in seq_len(nrow(source_summary))) {
-    row <- source_summary[i, ]
+for (i in seq_len(nrow(id_summary))) {
+    row <- id_summary[i, ]
     cat(
         sprintf(
-            "%s & %s & %s & %s & %.3f & %s \\\\\n",
-            row$cohort, row$change_source,
+            "%s & %s & %s & %s & %.3f & %s \\\\\\n",
+            row$cohort, row$status,
             format(row$n_blocks, big.mark = ","),
             format(row$total_sales, big.mark = ","),
             row$mean_strictness_change,
             scales::dollar(row$mean_price, accuracy = 1)
         ),
-        file = "../output/redistricting_vs_turnover.tex", append = TRUE
+        file = "../output/identification_validation.tex", append = TRUE
     )
 }
 
@@ -173,25 +189,27 @@ cat("\\bottomrule
 \\end{tabular}
 \\begin{tablenotes}
 \\small
-\\item \\textit{Notes:} ``Redistricting'' indicates blocks whose ward assignment changed due to boundary redrawing.
-``Electoral Turnover'' indicates blocks in the same ward where a new alderman was elected.
-Only blocks with $|\\Delta\\text{Strict}| > 0.1$ are counted as having a strictness change.
+\\item \\textit{Notes:} Validates the predetermined strictness identification strategy.
+``Treated'' = blocks whose ward changed due to redistricting.
+``Control (Clean)'' = blocks that stayed in same ward where the alderman did not change.
+Non-switchers in wards with electoral turnover are excluded from the sample.
+Strictness change uses predetermined approach: both origin and destination ward strictness measured in year before redistricting.
 \\end{tablenotes}
 \\end{table}
-", file = "../output/redistricting_vs_turnover.tex", append = TRUE)
+", file = "../output/identification_validation.tex", append = TRUE)
 
-message("Saved: ../output/redistricting_vs_turnover.tex")
+message("Saved: ../output/identification_validation.tex")
 
-# Also save detailed CSV for manual inspection
-source_by_block <- source_analysis %>%
+# Also save detailed CSV
+id_by_block <- id_validation %>%
     select(
-        block_id, cohort, redistricted, strictness_change, change_source,
+        block_id, cohort, redistricted, strictness_change, status,
         n_sales, mean_price, ward_pair_id
     ) %>%
-    arrange(cohort, change_source, desc(abs(strictness_change)))
+    arrange(cohort, status, desc(abs(strictness_change)))
 
-write_csv(source_by_block, "../output/strictness_change_sources.csv")
-message("Saved: ../output/strictness_change_sources.csv")
+write_csv(id_by_block, "../output/identification_validation_detail.csv")
+message("Saved: ../output/identification_validation_detail.csv")
 
 # =============================================================================
 # 3. WARD PAIR DIAGNOSTICS
@@ -355,6 +373,7 @@ cat("\\bottomrule
 \\small
 \\item \\textit{Notes:} Balance measured at $t = -1$ (one year before redistricting).
 $p$-values from two-sample $t$-tests comparing blocks moving to stricter vs.~more lenient alderman.
+Strictness change uses predetermined approach (both wards measured pre-redistricting).
 \\end{tablenotes}
 \\end{table}
 ", file = "../output/covariate_balance.tex", append = TRUE)

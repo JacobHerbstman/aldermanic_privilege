@@ -64,7 +64,7 @@ if (FREQUENCY == "yearly") {
     if (STACKED) {
         data <- read_csv("../input/rental_stacked_panel.csv", show_col_types = FALSE) %>%
             filter(n_listings > 0, !is.na(strictness_change)) %>%
-            filter(!is.na(ward_pair_id), mean_dist_to_boundary < 500) %>%
+            filter(!is.na(ward_pair_id), mean_dist_to_boundary < 1000) %>%
             mutate(
                 treatment_continuous = strictness_change,
                 treat_stricter = as.integer(strictness_change > 0),
@@ -76,7 +76,7 @@ if (FREQUENCY == "yearly") {
     } else {
         data <- read_csv("../input/rental_stacked_panel.csv", show_col_types = FALSE) %>%
             filter(n_listings > 0, !is.na(strictness_change), cohort == "2015") %>%
-            filter(!is.na(ward_pair_id), mean_dist_to_boundary < 500) %>%
+            filter(!is.na(ward_pair_id), mean_dist_to_boundary < 1000) %>%
             mutate(
                 treatment_continuous = strictness_change,
                 treat_stricter = as.integer(strictness_change > 0),
@@ -94,7 +94,7 @@ if (FREQUENCY == "yearly") {
     if (STACKED) {
         data <- read_csv("../input/rental_stacked_quarterly_panel.csv", show_col_types = FALSE) %>%
             filter(n_listings > 0, !is.na(strictness_change)) %>%
-            filter(!is.na(ward_pair_id), mean_dist_to_boundary < 500) %>%
+            filter(!is.na(ward_pair_id), mean_dist_to_boundary < 1000) %>%
             mutate(
                 treatment_continuous = strictness_change,
                 treat_stricter = as.integer(strictness_change > 0),
@@ -106,7 +106,7 @@ if (FREQUENCY == "yearly") {
     } else {
         data <- read_csv("../input/rental_stacked_quarterly_panel.csv", show_col_types = FALSE) %>%
             filter(n_listings > 0, !is.na(strictness_change), cohort == "2015") %>%
-            filter(!is.na(ward_pair_id), mean_dist_to_boundary < 500) %>%
+            filter(!is.na(ward_pair_id), mean_dist_to_boundary < 1000) %>%
             mutate(
                 treatment_continuous = strictness_change,
                 treat_stricter = as.integer(strictness_change > 0),
