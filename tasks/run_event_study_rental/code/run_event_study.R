@@ -74,15 +74,15 @@ if (FREQUENCY == "yearly") {
         fe_formula <- "cohort_ward_pair + cohort^year"
         cluster_var <- "cohort_block_id"
     } else {
-        data <- read_csv("../input/rental_stacked_panel.csv", show_col_types = FALSE) %>%
-            filter(n_listings > 0, !is.na(strictness_change), cohort == "2015") %>%
+        # Unstacked 2015 cohort only - uses file with generic column names
+        data <- read_csv("../input/rental_unstacked_2015_panel.csv", show_col_types = FALSE) %>%
+            filter(n_listings > 0, !is.na(strictness_change)) %>%
             filter(!is.na(ward_pair_id), mean_dist_to_boundary < 1000) %>%
             mutate(
                 treatment_continuous = strictness_change,
                 treat_stricter = as.integer(strictness_change > 0),
                 treat_lenient = as.integer(strictness_change < 0),
-                relative_time_capped = pmax(pmin(relative_year, 5), -5),
-                block_id = sub("^2015_", "", cohort_block_id)
+                relative_time_capped = pmax(pmin(relative_year, 5), -5)
             )
         fe_formula <- "ward_pair_id + year"
         cluster_var <- "block_id"
@@ -123,6 +123,10 @@ if (FREQUENCY == "yearly") {
 }
 
 message(sprintf("Loaded %s observations", format(nrow(data), big.mark = ",")))
+
+# Note: strictness_change is the difference between destination and origin alderman strictness.
+# Since the underlying strictness_index is already standardized (SD=1), a 1-unit change in
+# strictness_change represents moving to an alderman who is 1-SD stricter/more lenient.
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -184,7 +188,7 @@ if (TREATMENT_TYPE == "continuous") {
                     ifelse(STACKED, "Stacked", "Unstacked")
                 ),
                 x = sprintf("%s Relative to May 2015", time_label),
-                y = "Effect per 1-Unit Increase in Strictness (%)",
+                y = "Effect of Moving to 1-SD Stricter Alderman (%)",
                 caption = "Positive = stricter alderman raises rents."
             ) +
             theme_minimal(base_size = 12) +
@@ -199,6 +203,7 @@ if (TREATMENT_TYPE == "continuous") {
         style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "", yesNo = c("$\\checkmark$", "")),
         depvar = FALSE, digits = 3, headers = c("Continuous"),
         signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+        notes = "Alderman strictness is standardized (mean 0, SD 1). Coefficients represent the effect of moving to an alderman who is 1-SD stricter.",
         float = FALSE, file = sprintf("../output/did_table_%s.tex", suffix), replace = TRUE
     )
     message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
@@ -264,6 +269,94 @@ if (TREATMENT_TYPE == "continuous") {
         float = FALSE, file = sprintf("../output/did_table_%s.tex", suffix), replace = TRUE
     )
     message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
+
+    # =============================================================================
+    # PUBLICATION-QUALITY COMBINED PLOT (both series on same axes)
+    # =============================================================================
+    if (nrow(plot_data) > 0) {
+        # Set up publication-quality aesthetics
+        # Stricter: bold, saturated color with thicker elements
+        # Lenient: lighter, more muted with thinner elements
+
+        p_combined <- ggplot(plot_data, aes(x = x, y = estimate_pct, color = group, fill = group)) +
+            # Reference lines
+            geom_hline(yintercept = 0, linetype = "solid", color = "gray40", linewidth = 0.4) +
+            geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
+            # Lenient series first (so stricter is on top)
+            geom_ribbon(
+                data = plot_data %>% filter(group == "Moved to More Lenient"),
+                aes(ymin = ci_low_pct, ymax = ci_high_pct),
+                alpha = 0.15, color = NA
+            ) +
+            geom_line(
+                data = plot_data %>% filter(group == "Moved to More Lenient"),
+                linewidth = 0.8, alpha = 0.7
+            ) +
+            geom_point(
+                data = plot_data %>% filter(group == "Moved to More Lenient"),
+                size = 2, alpha = 0.7, shape = 21, stroke = 0.5
+            ) +
+            # Stricter series on top (emphasized)
+            geom_ribbon(
+                data = plot_data %>% filter(group == "Moved to Stricter"),
+                aes(ymin = ci_low_pct, ymax = ci_high_pct),
+                alpha = 0.2, color = NA
+            ) +
+            geom_line(
+                data = plot_data %>% filter(group == "Moved to Stricter"),
+                linewidth = 1.2
+            ) +
+            geom_point(
+                data = plot_data %>% filter(group == "Moved to Stricter"),
+                size = 3, shape = 21, stroke = 0.8
+            ) +
+            # Colors: Stricter = dark red/orange, Lenient = muted blue/gray
+            scale_color_manual(
+                values = c("Moved to Stricter" = "#c23616", "Moved to More Lenient" = "#7f8fa6"),
+                labels = c("Moved to Stricter" = "Moved to Stricter Alderman", "Moved to More Lenient" = "Moved to More Lenient Alderman"),
+                name = NULL
+            ) +
+            scale_fill_manual(
+                values = c("Moved to Stricter" = "#c23616", "Moved to More Lenient" = "#7f8fa6"),
+                labels = c("Moved to Stricter" = "Moved to Stricter Alderman", "Moved to More Lenient" = "Moved to More Lenient Alderman"),
+                name = NULL
+            ) +
+            scale_x_continuous(breaks = x_breaks, expand = expansion(mult = c(0.02, 0.02))) +
+            scale_y_continuous(labels = function(x) paste0(x, "%")) +
+            labs(
+                x = sprintf("%s Relative to Redistricting", time_label),
+                y = "Effect on Rents"
+            ) +
+            theme_minimal(base_size = 11, base_family = "") +
+            theme(
+                # Clean, minimal appearance for publication
+                panel.grid.major.x = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
+                # Axis styling
+                axis.line = element_line(color = "gray40", linewidth = 0.3),
+                axis.ticks = element_line(color = "gray40", linewidth = 0.3),
+                axis.ticks.length = unit(0.15, "cm"),
+                axis.title = element_text(size = 10, color = "gray20"),
+                axis.text = element_text(size = 9, color = "gray30"),
+                # Legend at bottom, horizontal
+                legend.position = "bottom",
+                legend.direction = "horizontal",
+                legend.text = element_text(size = 9),
+                legend.key.width = unit(1.5, "cm"),
+                legend.margin = margin(t = 5, b = 0),
+                # Margins
+                plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
+            ) +
+            guides(
+                color = guide_legend(override.aes = list(linewidth = c(1.2, 0.8), size = c(3, 2))),
+                fill = guide_legend(override.aes = list(alpha = c(0.2, 0.15)))
+            )
+
+        outfile_combined <- sprintf("../output/event_study_combined_%s.pdf", suffix)
+        ggsave(outfile_combined, p_combined, width = 7, height = 4.5, bg = "white")
+        message(sprintf("Saved: %s", outfile_combined))
+    }
 }
 
 message("\n\nDone!")

@@ -13,10 +13,11 @@ TREATMENT_TYPES := continuous binary_direction
 SCRIPT := run_event_study.R
 
 # Inputs
-INPUT_STACKED   := ../input/rental_stacked_panel.csv
-INPUT_STACKED_Q := ../input/rental_stacked_quarterly_panel.csv
+INPUT_STACKED        := ../input/rental_stacked_panel.csv
+INPUT_STACKED_Q      := ../input/rental_stacked_quarterly_panel.csv
+INPUT_UNSTACKED_2015 := ../input/rental_unstacked_2015_panel.csv
 
-ALL_INPUTS := $(INPUT_STACKED) $(INPUT_STACKED_Q)
+ALL_INPUTS := $(INPUT_STACKED) $(INPUT_STACKED_Q) $(INPUT_UNSTACKED_2015)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Generate Output Filenames
@@ -76,6 +77,9 @@ $(INPUT_STACKED): ../../create_event_study_rental_data/output/rental_stacked_pan
 	ln -sf $< $@
 
 $(INPUT_STACKED_Q): ../../create_event_study_rental_data/output/rental_stacked_quarterly_panel.csv | ../input
+	ln -sf $< $@
+
+$(INPUT_UNSTACKED_2015): ../../create_event_study_rental_data/output/rental_unstacked_2015_panel.csv | ../input
 	ln -sf $< $@
 
 include ../../generic.make

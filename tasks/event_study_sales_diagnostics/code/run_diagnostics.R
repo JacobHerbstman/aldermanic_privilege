@@ -14,13 +14,13 @@ message("Loading data...")
 stacked_yearly <- read_csv("../input/sales_stacked_panel.csv", show_col_types = FALSE) %>%
     mutate(block_id = as.character(block_id)) %>%
     filter(n_sales > 0, !is.na(strictness_change)) %>%
-    filter(!is.na(ward_pair_id), mean_dist_to_boundary < 2000)
+    filter(!is.na(ward_pair_id), mean_dist_to_boundary < 1000)
 
 # Quarterly stacked panel
 stacked_quarterly <- read_csv("../input/sales_stacked_quarterly_panel.csv", show_col_types = FALSE) %>%
     mutate(block_id = as.character(block_id)) %>%
     filter(n_sales > 0, !is.na(strictness_change)) %>%
-    filter(!is.na(ward_pair_id), mean_dist_to_boundary < 2000)
+    filter(!is.na(ward_pair_id), mean_dist_to_boundary < 1000)
 
 # Census blocks for mapping
 census_blocks <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
@@ -31,6 +31,13 @@ census_blocks <- read_csv("../input/census_blocks_2010.csv", show_col_types = FA
 
 # Ward boundaries
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
+
+# Transform census blocks to match ward panel CRS
+census_blocks <- st_transform(census_blocks, st_crs(ward_panel))
+
+# Treatment panel for additional diagnostics
+treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
+    mutate(block_id = as.character(block_id))
 
 message(sprintf("Yearly panel: %s observations", format(nrow(stacked_yearly), big.mark = ",")))
 message(sprintf("Quarterly panel: %s observations", format(nrow(stacked_quarterly), big.mark = ",")))
@@ -446,66 +453,157 @@ ggsave("../output/treatment_control_map_2023.pdf", p_2023, width = 10, height = 
 message("Saved: ../output/treatment_control_map_2023.pdf")
 
 # =============================================================================
-# 6. ZOOMED WARD PAIR MAPS
+# 6. BEFORE/AFTER WARD PAIR MAPS
 # =============================================================================
-message("\nCreating zoomed ward pair example maps...")
+message("\nCreating before/after ward pair maps...")
 
-# Pick top 3 ward pairs by variation
+# For before/after maps, use treatment_panel directly to get blocks
+# Join with census_blocks for geometry
+treatment_2015 <- treatment_panel %>%
+    filter(cohort == "2015") %>%
+    mutate(treatment_group = categorize_treatment(strictness_change))
+
+# Get block distances from stacked panel (blocks near boundaries)
+# Filter to 1000 ft from boundary
+block_distances <- stacked_yearly %>%
+    filter(cohort == "2015") %>%
+    group_by(block_id) %>%
+    summarise(
+        mean_dist_to_boundary = mean(mean_dist_to_boundary, na.rm = TRUE),
+        ward_pair_id = first(ward_pair_id),
+        .groups = "drop"
+    ) %>%
+    filter(mean_dist_to_boundary < 1000) # 1000 ft filter
+
+# Join treatment data with distance-filtered blocks
+all_blocks_for_map <- census_blocks %>%
+    inner_join(treatment_2015, by = "block_id") %>%
+    inner_join(block_distances, by = "block_id")
+
+message(sprintf("  Blocks within 1000 ft of boundary: %d", nrow(all_blocks_for_map)))
+
+# Ward pairs to map - top 3 by variation plus extras
 top_3_pairs <- head(ward_pair_diag$ward_pair_id, 3)
+extra_pairs <- c("44-46") # Additional ward pairs to include
+all_pairs_to_map <- unique(c(top_3_pairs, extra_pairs))
 
-for (wp in top_3_pairs) {
-    # Get blocks in this ward pair
-    wp_blocks <- blocks_for_map %>%
-        filter(cohort == "2015", ward_pair_id == wp)
+# Get ward polygons for before/after
+wards_2014 <- ward_panel %>% filter(year == 2014) # Pre-redistricting
+wards_2015 <- ward_panel %>% filter(year == 2015) # Post-redistricting
 
-    if (nrow(wp_blocks) == 0) next
+for (wp in all_pairs_to_map) {
+    # Parse ward pair
+    wards_in_pair <- as.numeric(strsplit(wp, "-")[[1]])
+    ward_a <- wards_in_pair[1]
+    ward_b <- wards_in_pair[2]
+
+    # Get blocks that are in this ward pair (either origin or destination is one of these wards)
+    wp_blocks <- all_blocks_for_map %>%
+        filter(
+            (ward_origin == ward_a & ward_dest == ward_b) |
+                (ward_origin == ward_b & ward_dest == ward_a) |
+                (ward_origin %in% c(ward_a, ward_b) & ward_dest %in% c(ward_a, ward_b))
+        )
+
+    message(sprintf("  Processing ward pair %s: %d blocks found", wp, nrow(wp_blocks)))
+
+    if (nrow(wp_blocks) == 0) {
+        message("    No blocks found, skipping...")
+        next
+    }
+
+    # Debug info
+    n_switchers <- sum(wp_blocks$switched, na.rm = TRUE)
+    n_controls <- sum(!wp_blocks$switched, na.rm = TRUE)
+    message(sprintf("    Switchers: %d, Non-switchers: %d", n_switchers, n_controls))
 
     # Get bounding box with buffer
     bbox <- st_bbox(wp_blocks)
-    buffer <- 500 # 500 ft buffer
-    bbox_expanded <- c(
-        xmin = bbox["xmin"] - buffer,
-        ymin = bbox["ymin"] - buffer,
-        xmax = bbox["xmax"] + buffer,
-        ymax = bbox["ymax"] + buffer
-    )
+    x_range <- as.numeric(bbox["xmax"]) - as.numeric(bbox["xmin"])
+    y_range <- as.numeric(bbox["ymax"]) - as.numeric(bbox["ymin"])
+    buffer <- max(x_range, y_range) * 0.3
 
-    # Get clipped wards
-    wards_2015 <- ward_panel %>% filter(year == 2015)
+    xmin_exp <- as.numeric(bbox["xmin"]) - buffer
+    ymin_exp <- as.numeric(bbox["ymin"]) - buffer
+    xmax_exp <- as.numeric(bbox["xmax"]) + buffer
+    ymax_exp <- as.numeric(bbox["ymax"]) + buffer
 
-    p <- ggplot() +
-        geom_sf(data = wards_2015, fill = NA, color = "gray40", linewidth = 0.8) +
-        geom_sf(data = wp_blocks, aes(fill = treatment_group), color = "white", linewidth = 0.2, alpha = 0.8) +
-        scale_fill_manual(
-            values = c(
-                "Moved to Stricter" = "#D55E00",
-                "Moved to Lenient" = "#0072B2",
-                "Control (No Change)" = "#999999"
-            ),
-            name = "Treatment Group"
-        ) +
-        coord_sf(
-            xlim = c(bbox_expanded["xmin"], bbox_expanded["xmax"]),
-            ylim = c(bbox_expanded["ymin"], bbox_expanded["ymax"])
-        ) +
+    # Crop ward polygons to view area
+    wards_2014_crop <- st_crop(wards_2014, xmin = xmin_exp, ymin = ymin_exp, xmax = xmax_exp, ymax = ymax_exp)
+    wards_2015_crop <- st_crop(wards_2015, xmin = xmin_exp, ymin = ymin_exp, xmax = xmax_exp, ymax = ymax_exp)
+
+    # Color blocks by their ward assignment (for before/after) and by treatment group
+    # BEFORE: color by origin ward
+    p_before <- ggplot() +
+        geom_sf(data = wards_2014_crop, fill = NA, color = "gray40", linewidth = 0.8) +
+        geom_sf(data = wp_blocks, aes(fill = factor(ward_origin)), color = "black", linewidth = 0.2, alpha = 0.8) +
+        scale_fill_brewer(palette = "Set2", name = "Ward (2014)") +
         labs(
-            title = sprintf("Ward Pair %s: Treatment Variation", wp),
-            subtitle = sprintf(
-                "N = %d blocks | SD(ΔStrict) = %.3f",
-                nrow(wp_blocks),
-                ward_pair_diag$sd_strictness_change[ward_pair_diag$ward_pair_id == wp]
-            )
+            title = "BEFORE Redistricting (2014 Wards)",
+            subtitle = sprintf("Blocks colored by 2014 ward assignment")
         ) +
-        theme_void() +
+        theme_void(base_size = 11) +
         theme(
             legend.position = "bottom",
             plot.title = element_text(hjust = 0.5, face = "bold"),
             plot.subtitle = element_text(hjust = 0.5)
         )
 
-    outfile <- sprintf("../output/ward_pair_example_%s.pdf", gsub("_", "-", wp))
-    ggsave(outfile, p, width = 8, height = 8, bg = "white")
-    message(sprintf("Saved: %s", outfile))
+    # AFTER: color by destination ward
+    p_after <- ggplot() +
+        geom_sf(data = wards_2015_crop, fill = NA, color = "gray40", linewidth = 0.8) +
+        geom_sf(data = wp_blocks, aes(fill = factor(ward_dest)), color = "black", linewidth = 0.2, alpha = 0.8) +
+        scale_fill_brewer(palette = "Set2", name = "Ward (2015)") +
+        labs(
+            title = "AFTER Redistricting (2015 Wards)",
+            subtitle = sprintf("Blocks colored by 2015 ward assignment")
+        ) +
+        theme_void(base_size = 11) +
+        theme(
+            legend.position = "bottom",
+            plot.title = element_text(hjust = 0.5, face = "bold"),
+            plot.subtitle = element_text(hjust = 0.5)
+        )
+
+    # TREATMENT: color by treatment group
+    p_treatment <- ggplot() +
+        geom_sf(data = wards_2015_crop, fill = NA, color = "gray40", linewidth = 0.5) +
+        geom_sf(data = wp_blocks, aes(fill = treatment_group), color = "black", linewidth = 0.2, alpha = 0.9) +
+        scale_fill_manual(
+            values = c(
+                "Moved to Stricter" = "#D55E00",
+                "Moved to Lenient" = "#0072B2",
+                "Control (No Change)" = "#999999"
+            ),
+            name = "Treatment",
+            drop = FALSE
+        ) +
+        labs(
+            title = "Treatment Status",
+            subtitle = sprintf("Based on change in alderman strictness")
+        ) +
+        theme_void(base_size = 11) +
+        theme(
+            legend.position = "bottom",
+            plot.title = element_text(hjust = 0.5, face = "bold"),
+            plot.subtitle = element_text(hjust = 0.5)
+        )
+
+    # Combine into a 3-panel figure
+    combined <- p_before + p_after + p_treatment +
+        plot_layout(ncol = 3) +
+        plot_annotation(
+            title = sprintf("Ward Pair %s: Before vs After Redistricting", wp),
+            subtitle = sprintf("%d blocks total | %d switched wards | %d stayed", nrow(wp_blocks), n_switchers, n_controls),
+            theme = theme(
+                plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+                plot.subtitle = element_text(hjust = 0.5, size = 11)
+            )
+        )
+
+    outfile <- sprintf("../output/ward_pair_before_after_%s.pdf", gsub("_", "-", wp))
+    ggsave(outfile, combined, width = 15, height = 6, bg = "white")
+    message(sprintf("    Saved: %s", outfile))
 }
 
 # =============================================================================
