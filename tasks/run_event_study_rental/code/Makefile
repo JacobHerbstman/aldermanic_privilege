@@ -7,7 +7,7 @@ include ../../shell_functions.make
 
 FREQUENCIES       := yearly quarterly
 WEIGHTINGS        := TRUE FALSE
-STACKINGS         := TRUE FALSE
+STACKINGS         := TRUE
 TREATMENT_TYPES   := continuous binary_direction
 INCLUDE_CONTROLS  := TRUE FALSE
 

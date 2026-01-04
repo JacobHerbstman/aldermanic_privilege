@@ -113,7 +113,7 @@ if (FREQUENCY == "yearly") {
                 treatment_continuous = strictness_change,
                 treat_stricter = as.integer(strictness_change > 0),
                 treat_lenient = as.integer(strictness_change < 0),
-                relative_time_capped = pmax(pmin(relative_quarter, 12), -12)
+                relative_time_capped = pmax(pmin(relative_quarter, 16), -8)
             )
         fe_formula <- "cohort_ward_pair + cohort^year_quarter"
         cluster_var <- "cohort_block_id"
@@ -125,7 +125,7 @@ if (FREQUENCY == "yearly") {
                 treatment_continuous = strictness_change,
                 treat_stricter = as.integer(strictness_change > 0),
                 treat_lenient = as.integer(strictness_change < 0),
-                relative_time_capped = pmax(pmin(relative_quarter, 12), -12),
+                relative_time_capped = pmax(pmin(relative_quarter, 16), -8),
                 block_id = sub("^2015_", "", cohort_block_id)
             )
         fe_formula <- "ward_pair_id + year_quarter"
@@ -133,7 +133,7 @@ if (FREQUENCY == "yearly") {
     }
     time_var <- "relative_time_capped"
     time_label <- "Quarters"
-    x_breaks <- seq(-12, 12, 4)
+    x_breaks <- seq(-8, 16, 4)
 }
 
 message(sprintf("Loaded %s observations", format(nrow(data), big.mark = ",")))
