@@ -33,6 +33,10 @@ parser <- add_option(parser, c("-x", "--treatment_type"),
     type = "character", default = "continuous",
     help = "Treatment type: continuous or binary_direction [default: continuous]"
 )
+parser <- add_option(parser, c("-c", "--include_controls"),
+    type = "logical", default = FALSE,
+    help = "Include demographic controls [default: FALSE]"
+)
 
 args <- parse_args(parser)
 
@@ -40,20 +44,30 @@ FREQUENCY <- args$frequency
 WEIGHTED <- args$weighted
 STACKED <- args$stacked
 TREATMENT_TYPE <- args$treatment_type
+INCLUDE_CONTROLS <- args$include_controls
 
 message("\n=== Event Study Configuration ===")
 message(sprintf("Frequency: %s", FREQUENCY))
 message(sprintf("Weighted: %s", WEIGHTED))
 message(sprintf("Stacked: %s", STACKED))
 message(sprintf("Treatment Type: %s", TREATMENT_TYPE))
+message(sprintf("Include Controls: %s", INCLUDE_CONTROLS))
 
 # Output suffix
 suffix <- sprintf(
-    "%s_%s_%s_%s", FREQUENCY,
+    "%s_%s_%s_%s%s", FREQUENCY,
     ifelse(WEIGHTED, "weighted", "unweighted"),
     ifelse(STACKED, "stacked", "unstacked"),
-    TREATMENT_TYPE
+    TREATMENT_TYPE,
+    ifelse(INCLUDE_CONTROLS, "_with_controls", "")
 )
+
+# Control variables formula component
+control_vars <- if (INCLUDE_CONTROLS) {
+    "+ homeownership_rate + share_white + share_black + share_bach_plus + median_hh_income_1000s"
+} else {
+    ""
+}
 
 # =============================================================================
 # LOAD DATA
@@ -165,7 +179,7 @@ run_model <- function(formula_str, data_subset) {
 if (TREATMENT_TYPE == "continuous") {
     message("\n=== Continuous Treatment ===")
 
-    formula_str <- sprintf("log(mean_rent) ~ i(%s, treatment_continuous, ref = -1) | %s", time_var, fe_formula)
+    formula_str <- sprintf("log(mean_rent) ~ i(%s, treatment_continuous, ref = -1) %s | %s", time_var, control_vars, fe_formula)
     m <- run_model(formula_str, data)
     summary(m)
 
@@ -213,14 +227,14 @@ if (TREATMENT_TYPE == "continuous") {
     # Stricter
     message("\n--- Moved to Stricter ---")
     data_for_stricter <- data %>% filter(treat_lenient == 0)
-    formula_stricter <- sprintf("log(mean_rent) ~ i(%s, treat_stricter, ref = -1) | %s", time_var, fe_formula)
+    formula_stricter <- sprintf("log(mean_rent) ~ i(%s, treat_stricter, ref = -1) %s | %s", time_var, control_vars, fe_formula)
     m_stricter <- run_model(formula_stricter, data_for_stricter)
     summary(m_stricter)
 
     # Lenient
     message("\n--- Moved to More Lenient ---")
     data_for_lenient <- data %>% filter(treat_stricter == 0)
-    formula_lenient <- sprintf("log(mean_rent) ~ i(%s, treat_lenient, ref = -1) | %s", time_var, fe_formula)
+    formula_lenient <- sprintf("log(mean_rent) ~ i(%s, treat_lenient, ref = -1) %s | %s", time_var, control_vars, fe_formula)
     m_lenient <- run_model(formula_lenient, data_for_lenient)
     summary(m_lenient)
 

@@ -36,6 +36,19 @@ message("Loading treatment panel...")
 treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
     mutate(block_id = as.character(block_id))
 
+message("Loading block group controls...")
+block_group_controls <- read_csv("../input/block_group_controls.csv", show_col_types = FALSE) %>%
+    mutate(GEOID = as.character(GEOID)) %>%
+    rename(
+        share_white = percent_white,
+        share_black = percent_black,
+        median_hh_income_1000s = median_income
+    ) %>%
+    mutate(
+        median_hh_income_1000s = median_hh_income_1000s / 1000
+    ) %>%
+    select(GEOID, year, homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s)
+
 # =============================================================================
 # 2. ASSIGN RENTALS TO CENSUS BLOCKS
 # =============================================================================
@@ -157,6 +170,17 @@ block_year_panel <- block_year_base %>%
         has_listings = n_listings > 0
     )
 
+# Derive block group ID from block ID (first 12 characters of 15-char block GEOID)
+block_year_panel <- block_year_panel %>%
+    mutate(block_group_id = substr(block_id, 1, 12))
+
+# Merge demographic controls
+block_year_panel <- block_year_panel %>%
+    left_join(
+        block_group_controls %>% rename(block_group_id = GEOID),
+        by = c("block_group_id", "year")
+    )
+
 message(sprintf("Block-year panel: %s rows", format(nrow(block_year_panel), big.mark = ",")))
 
 # =============================================================================
@@ -196,7 +220,8 @@ cohort_2015 <- block_year_panel %>%
     select(
         block_id, year, cohort, treat, redistricted, relative_year, switch_type, strictness_change,
         n_listings, mean_rent, median_rent, has_listings,
-        ward_pair_id, mean_dist_to_boundary
+        ward_pair_id, mean_dist_to_boundary,
+        homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
 # 2023 cohort: valid units only
@@ -214,7 +239,8 @@ cohort_2023 <- block_year_panel %>%
     select(
         block_id, year, cohort, treat, redistricted, relative_year, switch_type, strictness_change,
         n_listings, mean_rent, median_rent, has_listings,
-        ward_pair_id, mean_dist_to_boundary
+        ward_pair_id, mean_dist_to_boundary,
+        homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
 # Stack cohorts
@@ -250,12 +276,18 @@ cohort_2015_quarterly <- rental_block_quarter %>%
         relative_quarter = (year - 2015) * 4 + (quarter - 2),
         switch_type = switch_type_2015,
         strictness_change = strictness_change_2015,
-        has_listings = TRUE
+        has_listings = TRUE,
+        block_group_id = substr(block_id, 1, 12)
+    ) %>%
+    left_join(
+        block_group_controls %>% rename(block_group_id = GEOID),
+        by = c("block_group_id", "year")
     ) %>%
     select(
         block_id, year, quarter, year_quarter, cohort, treat, relative_quarter,
         switch_type, strictness_change, n_listings, mean_rent, median_rent, has_listings,
-        ward_pair_id, mean_dist_to_boundary
+        ward_pair_id, mean_dist_to_boundary,
+        homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
 # 2023 cohort quarterly
@@ -272,12 +304,18 @@ cohort_2023_quarterly <- rental_block_quarter %>%
         relative_quarter = (year - 2023) * 4 + (quarter - 2),
         switch_type = switch_type_2023,
         strictness_change = strictness_change_2023,
-        has_listings = TRUE
+        has_listings = TRUE,
+        block_group_id = substr(block_id, 1, 12)
+    ) %>%
+    left_join(
+        block_group_controls %>% rename(block_group_id = GEOID),
+        by = c("block_group_id", "year")
     ) %>%
     select(
         block_id, year, quarter, year_quarter, cohort, treat, relative_quarter,
         switch_type, strictness_change, n_listings, mean_rent, median_rent, has_listings,
-        ward_pair_id, mean_dist_to_boundary
+        ward_pair_id, mean_dist_to_boundary,
+        homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
 # Stack quarterly cohorts
