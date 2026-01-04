@@ -187,28 +187,30 @@ if (TREATMENT_TYPE == "continuous") {
 
     if (!is.null(plot_data) && nrow(plot_data) > 0) {
         p <- ggplot(plot_data, aes(x = x, y = estimate_pct)) +
-            geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
-            geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray70") +
-            geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.2, fill = "#009E73") +
+            geom_hline(yintercept = 0, linetype = "solid", color = "gray40", linewidth = 0.4) +
+            geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
+            geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.2, fill = "#009E73", color = NA) +
             geom_line(color = "#009E73", linewidth = 1) +
             geom_point(size = 2.5, color = "#009E73") +
             scale_x_continuous(breaks = x_breaks) +
+            scale_y_continuous(labels = function(x) paste0(x, "%")) +
             labs(
-                title = "Event Study: Effect of Alderman Strictness on Rents",
-                subtitle = sprintf(
-                    "%s, %s, %s | Continuous Treatment",
-                    tools::toTitleCase(FREQUENCY),
-                    ifelse(WEIGHTED, "Weighted", "Unweighted"),
-                    ifelse(STACKED, "Stacked", "Unstacked")
-                ),
-                x = sprintf("%s Relative to May 2015", time_label),
-                y = "Effect of Moving to 1-SD Stricter Alderman (%)",
-                caption = "Positive = stricter alderman raises rents."
+                x = sprintf("%s Relative to Alderman Switch", time_label),
+                y = "Effect on Rents"
             ) +
-            theme_minimal(base_size = 12) +
-            theme(plot.title = element_text(face = "bold"), panel.grid.minor = element_blank())
+            theme_minimal(base_size = 11) +
+            theme(
+                panel.grid.major.x = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
+                axis.line = element_line(color = "gray40", linewidth = 0.3),
+                axis.ticks = element_line(color = "gray40", linewidth = 0.3),
+                axis.title = element_text(size = 10, color = "gray20"),
+                axis.text = element_text(size = 9, color = "gray30"),
+                plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
+            )
 
-        ggsave(sprintf("../output/event_study_%s.pdf", suffix), p, width = 10, height = 6, bg = "white")
+        ggsave(sprintf("../output/event_study_%s.pdf", suffix), p, width = 7, height = 4.5, bg = "white")
         message(sprintf("Saved: ../output/event_study_%s.pdf", suffix))
     }
 
@@ -244,34 +246,44 @@ if (TREATMENT_TYPE == "continuous") {
     ) %>% filter(!is.na(estimate))
 
     if (nrow(plot_data) > 0) {
-        p <- ggplot(plot_data, aes(x = x, y = estimate_pct, color = group)) +
-            geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
-            geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray70") +
-            geom_errorbar(aes(ymin = ci_low_pct, ymax = ci_high_pct), width = 0.2, alpha = 0.6) +
-            geom_point(size = 2) +
-            geom_line(alpha = 0.5) +
-            facet_wrap(~group, ncol = 1) +
-            scale_color_manual(values = c("Moved to Stricter" = "#D55E00", "Moved to More Lenient" = "#0072B2")) +
-            scale_x_continuous(breaks = x_breaks) +
-            labs(
-                title = "Event Study: Effect of Alderman Strictness on Rents",
-                subtitle = sprintf(
-                    "%s, %s, %s | Binary Direction",
-                    tools::toTitleCase(FREQUENCY),
-                    ifelse(WEIGHTED, "Weighted", "Unweighted"),
-                    ifelse(STACKED, "Stacked", "Unstacked")
-                ),
-                x = sprintf("%s Relative to May 2015", time_label),
-                y = "Effect on Log(Rent) (%)",
-                caption = "Binary treatment: switched to stricter/lenient vs all other blocks."
+        p <- ggplot(plot_data, aes(x = x, y = estimate_pct, color = group, fill = group)) +
+            geom_hline(yintercept = 0, linetype = "solid", color = "gray40", linewidth = 0.4) +
+            geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
+            geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.15, color = NA) +
+            geom_line(linewidth = 1) +
+            geom_point(size = 2.5, shape = 21, stroke = 0.5) +
+            scale_color_manual(
+                values = c("Moved to Stricter" = "#c23616", "Moved to More Lenient" = "#7f8fa6"),
+                labels = c("Moved to Stricter" = "Moved to Stricter Alderman", "Moved to More Lenient" = "Moved to More Lenient Alderman"),
+                name = NULL
             ) +
-            theme_minimal(base_size = 12) +
+            scale_fill_manual(
+                values = c("Moved to Stricter" = "#c23616", "Moved to More Lenient" = "#7f8fa6"),
+                labels = c("Moved to Stricter" = "Moved to Stricter Alderman", "Moved to More Lenient" = "Moved to More Lenient Alderman"),
+                name = NULL
+            ) +
+            scale_x_continuous(breaks = x_breaks) +
+            scale_y_continuous(labels = function(x) paste0(x, "%")) +
+            facet_wrap(~group, ncol = 1) +
+            labs(
+                x = sprintf("%s Relative to Alderman Switch", time_label),
+                y = "Effect on Rents"
+            ) +
+            theme_minimal(base_size = 11) +
             theme(
-                legend.position = "none", plot.title = element_text(face = "bold"),
-                panel.grid.minor = element_blank(), strip.text = element_text(face = "bold")
+                panel.grid.major.x = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
+                axis.line = element_line(color = "gray40", linewidth = 0.3),
+                axis.ticks = element_line(color = "gray40", linewidth = 0.3),
+                axis.title = element_text(size = 10, color = "gray20"),
+                axis.text = element_text(size = 9, color = "gray30"),
+                legend.position = "none",
+                strip.text = element_text(face = "bold", size = 10),
+                plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
             )
 
-        ggsave(sprintf("../output/event_study_%s.pdf", suffix), p, width = 10, height = 8, bg = "white")
+        ggsave(sprintf("../output/event_study_%s.pdf", suffix), p, width = 7, height = 6, bg = "white")
         message(sprintf("Saved: ../output/event_study_%s.pdf", suffix))
     }
 
@@ -338,7 +350,7 @@ if (TREATMENT_TYPE == "continuous") {
             scale_x_continuous(breaks = x_breaks, expand = expansion(mult = c(0.02, 0.02))) +
             scale_y_continuous(labels = function(x) paste0(x, "%")) +
             labs(
-                x = sprintf("%s Relative to Redistricting", time_label),
+                x = sprintf("%s Relative to Alderman Switch", time_label),
                 y = "Effect on Rents"
             ) +
             theme_minimal(base_size = 11, base_family = "") +

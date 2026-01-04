@@ -109,7 +109,7 @@ cat("\\bottomrule
 \\end{tabular}
 \\begin{tablenotes}
 \\small
-\\item \\textit{Notes:} Sample restricted to blocks within 2000 feet of ward boundaries with positive sales.
+\\item \\textit{Notes:} Sample restricted to blocks within 1000 feet of ward boundaries with positive sales.
 Strictness change uses predetermined approach: both origin and destination ward strictness measured in year before redistricting.
 Controls are blocks that stayed in same ward where the alderman did not change; non-switchers in wards with electoral turnover are excluded.
 \\end{tablenotes}
@@ -428,7 +428,7 @@ create_treatment_map <- function(cohort_year, ward_year) {
         labs(
             title = sprintf("Treatment and Control Blocks: %d Redistricting", cohort_year),
             subtitle = sprintf(
-                "Blocks within 2000 ft of ward boundaries | N = %s blocks",
+                "Blocks within 1000 ft of ward boundaries | N = %s blocks",
                 format(nrow(cohort_blocks), big.mark = ",")
             )
         ) +
