@@ -13,6 +13,7 @@
 \usepackage{verbatim}
 \usepackage{float}
 \usepackage{caption}
+\usepackage{threeparttable}
 \usepackage[nomarkers, nolists]{endfloat}
 \renewcommand{\efloatseparator}{\bigskip}
 
@@ -50,7 +51,9 @@
 \numberwithin{figure}{section}
 \numberwithin{table}{section}
 \numberwithin{equation}{section}
-% Create a new file: sections/app_balance.tex and input it here
-\input{sections/appendix_A.tex}
+
+\input{sections/appendix_A_data.tex}
+\input{sections/appendix_B_density.tex}
+\input{sections/appendix_C_sales_rental.tex}
 
 \end{document}
