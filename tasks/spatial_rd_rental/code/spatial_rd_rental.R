@@ -11,11 +11,11 @@ source("../../setup_environment/code/packages.R")
 # -----------------------------------------------------------------------------
 # =======================================================================================
 # --- Interactive Test Block (Uncomment to run in RStudio without Make) ---
-input_file  <- "../input/rent_with_ward_distances_full.parquet" # Adjust if you have a sample file
-yvar        <- "rent_price"
-use_log     <- TRUE
-bw          <- 250
-kernel      <- "triangular"
+input_file <- "../input/rent_with_ward_distances_full.parquet" # Adjust if you have a sample file
+yvar <- "rent_price"
+use_log <- TRUE
+bw <- 250
+kernel <- "triangular"
 output_file <- "../output/test_plot.pdf"
 # =======================================================================================
 args <- commandArgs(trailingOnly = TRUE)
@@ -25,10 +25,10 @@ if (length(args) < 5) {
 }
 
 input_file <- args[1]
-yvar       <- args[2]
-use_log    <- as.logical(args[3])
-bw         <- as.numeric(args[4])
-kernel     <- args[5]
+yvar <- args[2]
+use_log <- as.logical(args[3])
+bw <- as.numeric(args[4])
+kernel <- args[5]
 output_file <- if (length(args) >= 6) args[6] else NULL
 
 # -----------------------------------------------------------------------------
@@ -44,10 +44,10 @@ df <- read_parquet(input_file)
 # Filter to bandwidth window immediately to save memory
 df_bw <- df %>%
   filter(abs(signed_dist) <= bw) %>%
-  filter(!is.na(rent_price), rent_price > 0) 
+  filter(!is.na(rent_price), rent_price > 0)
 # filter(building_type_clean == "multi_family")
 
-# ## robustness check on if bigger gap gives bigger effects 
+# ## robustness check on if bigger gap gives bigger effects
 # df_bw <- df_bw %>%
 #   mutate(diff = strictness_own - strictness_neighbor) %>%
 #   filter(abs(diff) > quantile(abs(diff), 0.5, na.rm = TRUE))
@@ -119,7 +119,7 @@ stars_robust <- case_when(
 
 # Two-line annotation
 annot_text <- sprintf(
-  "Conventional: %.3f%s (%.3f)\nRobust: %.3f%s (%.3f)",
+  "Conventional: %.3f%s (%.3f)\nRobust:       %.3f%s (%.3f)",
   coef_conv, stars_conv, se_conv,
   coef_robust, stars_robust, se_robust
 )
@@ -154,22 +154,22 @@ p <- ggplot() +
   # Binned Means
   geom_point(
     data = bin_data, aes(x = rdplot_mean_x, y = rdplot_mean_y),
-    color = col_points, alpha = 0.9, size = 2
+    fill = "#2C3E50", shape = 21, color = "white", size = 2.5, stroke = 0.3
   ) +
-  # Linear Fit (Left)
+  # Linear Fit (Left - lenient side)
   geom_smooth(
     data = df_bw %>% filter(signed_dist < 0),
     aes(x = signed_dist, y = outcome),
-    method = "lm", color = col_lines, fill = col_ci, alpha = 0.5, linewidth = 1.2
+    method = "lm", color = "#4575B4", fill = "#4575B4", alpha = 0.2, linewidth = 1.2
   ) +
-  # Linear Fit (Right)
+  # Linear Fit (Right - strict side)
   geom_smooth(
     data = df_bw %>% filter(signed_dist >= 0),
     aes(x = signed_dist, y = outcome),
-    method = "lm", color = col_lines, fill = col_ci, alpha = 0.5, linewidth = 1.2
+    method = "lm", color = "#D73027", fill = "#D73027", alpha = 0.2, linewidth = 1.2
   ) +
   # Cutoff Line
-  geom_vline(xintercept = 0, linetype = "dashed", color = "grey30", linewidth = 0.6) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey30", linewidth = 0.8) +
   # Labels
   labs(
     title = paste0("Rental Price Discontinuity (BW = ", bw, " ft)"),
@@ -181,15 +181,15 @@ p <- ggplot() +
   scale_y_continuous(limits = quantile(df_bw$outcome, c(0.01, 0.99))) +
   # Annotation (Moved to Bottom Left)
   annotate("text",
-           x = -Inf, y = -Inf, label = annot_text,
-           hjust = -0.1, vjust = -0.5, fontface = "bold", size = 4
+    x = -Inf, y = -Inf, label = annot_text,
+    hjust = -0.05, vjust = -0.5, fontface = "bold", size = 4
   ) +
   theme_minimal(base_size = 14) +
   theme(
     panel.grid.minor = element_blank(),
-    panel.grid.major = element_line(color = "grey92"),
+    panel.grid.major = element_line(color = "grey90"),
     plot.title = element_text(face = "bold", size = 16),
-    plot.subtitle = element_text(size = 12, color = "grey40"),
+    plot.subtitle = element_text(size = 12, color = "grey50"),
     axis.title = element_text(face = "bold", size = 12)
   )
 p

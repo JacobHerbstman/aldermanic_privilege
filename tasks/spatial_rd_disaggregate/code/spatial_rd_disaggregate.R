@@ -1,7 +1,7 @@
 # This script runs disaggregated spatial RD analyses for each unique ward boundary pair.
 # It iterates through each pair, runs an RD, and saves a unique plot.
 
-## run this line when editing code in Rstudio 
+## run this line when editing code in Rstudio
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 
 source("../../setup_environment/code/packages.R")
@@ -20,10 +20,10 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 4) {
   stop("FATAL: Script requires 4 arguments: <yvar> <use_log> <bw> <kernel>", call. = FALSE)
 }
-yvar       <- args[1]
-use_log    <- as.logical(args[2])
-bw         <- as.numeric(args[3])
-kernel     <- args[4]
+yvar <- args[1]
+use_log <- as.logical(args[2])
+bw <- as.numeric(args[3])
+kernel <- args[4]
 # =======================================================================================
 
 # --- 2. LOAD & PREP DATA ------------------------------------------------------
@@ -65,45 +65,49 @@ if (use_log) y_axis_label <- paste0("Log(", y_axis_label, ")")
 
 # --- 4. LOOP OVER PAIRS -------------------------------------------------------
 unique_ward_pairs <- unique(na.omit(parcels_signed$ward_pair))
-cat(sprintf("Found %d unique ward pairs. Starting analysis loop...\n",
-            length(unique_ward_pairs)))
+cat(sprintf(
+  "Found %d unique ward pairs. Starting analysis loop...\n",
+  length(unique_ward_pairs)
+))
 
-K <- 30  # equal bins per side
-pair = unique_ward_pairs[12]  # for testing
+K <- 30 # equal bins per side
+pair <- unique_ward_pairs[12] # for testing
 for (pair in unique_ward_pairs) {
-  
   cat(sprintf("--- Processing pair: %s ---\n", pair))
-  
+
   # Pair slice
   pair_data <- dplyr::filter(parcels_signed, ward_pair == pair)
-  
+
   # Within-window data (what we plot)
   df_bw <- dplyr::filter(pair_data, abs(signed_distance) <= bw)
-  
+
   # Skip if insufficient observations on either side *within the RD window*
-  n_left  <- sum(df_bw$signed_distance < 0, na.rm = TRUE)
+  n_left <- sum(df_bw$signed_distance < 0, na.rm = TRUE)
   n_right <- sum(df_bw$signed_distance >= 0, na.rm = TRUE)
   if (n_left < 10 || n_right < 10) {
     cat("Skipping pair (too few obs within bandwidth on one/both sides).\n")
     next
   }
-  
+
   # rdrobust for annotation (BC estimate)
-  rd_robust_result <- tryCatch({
-    rdrobust::rdrobust(
-      y = pair_data$outcome,
-      x = pair_data$signed_distance,
-      c = 0, kernel = kernel, p = 1, q = 2, h = bw
-    )
-  }, error = function(e) {
-    cat(sprintf("Error running rdrobust for pair %s: %s\n", pair, e$message))
-    return(NULL)
-  })
+  rd_robust_result <- tryCatch(
+    {
+      rdrobust::rdrobust(
+        y = pair_data$outcome,
+        x = pair_data$signed_distance,
+        c = 0, kernel = kernel, p = 1, q = 2, h = bw
+      )
+    },
+    error = function(e) {
+      cat(sprintf("Error running rdrobust for pair %s: %s\n", pair, e$message))
+      return(NULL)
+    }
+  )
   if (is.null(rd_robust_result)) next
-  
+
   coef_bc <- rd_robust_result$coef[3]
-  se_bc   <- rd_robust_result$se[3]
-  p_bc    <- rd_robust_result$pv[3]
+  se_bc <- rd_robust_result$se[3]
+  p_bc <- rd_robust_result$pv[3]
   stars <- dplyr::case_when(
     p_bc <= .01 ~ "***",
     p_bc <= .05 ~ "**",
@@ -111,7 +115,7 @@ for (pair in unique_ward_pairs) {
     TRUE ~ ""
   )
   annotation_text <- sprintf("Estimate: %.3f%s (%.3f)", coef_bc, stars, se_bc)
-  
+
   # rdplot for equal bins per side (points only)
   rd_plot_object <- rdrobust::rdplot(
     y = df_bw$outcome,
@@ -119,61 +123,67 @@ for (pair in unique_ward_pairs) {
     c = 0,
     h = bw,
     p = 1,
-    kernel = kernel,     # irrelevant for bins, kept for consistency
-    nbins = c(K, K),     # equal number of bins per side
+    kernel = kernel, # irrelevant for bins, kept for consistency
+    nbins = c(K, K), # equal number of bins per side
     binselect = "es",
     x.lim = c(-bw, bw),
     y.lim = ylim,
     title = "", y.label = "", x.label = ""
   )
   bins <- rd_plot_object$vars_bins
-  
+
   # Title for this pair
-  plot_title <- sprintf("Discontinuity at Boundary: Wards %s",
-                        gsub("_", " & ", pair))
-  
+  plot_title <- sprintf(
+    "Discontinuity at Boundary: Wards %s",
+    gsub("_", " & ", pair)
+  )
+
   # Safe y for annotation if ylim is NULL
   y_annot <- if (is.null(ylim)) min(df_bw$outcome, na.rm = TRUE) else ylim[1]
-  
-  # Build figure: binned dots + LOESS w/ ribbons on each side
+
+  # Build figure: binned dots + linear fits w/ ribbons on each side
   p <- ggplot2::ggplot() +
     ggplot2::geom_point(
       data = bins,
       ggplot2::aes(x = rdplot_mean_x, y = rdplot_mean_y),
-      color = "darkblue", size = 1.5, alpha = 0.7
+      fill = "#2C3E50", shape = 21, color = "white", size = 2.5, stroke = 0.3
     ) +
     ggplot2::geom_smooth(
       data = dplyr::filter(df_bw, signed_distance < 0),
       ggplot2::aes(x = signed_distance, y = outcome),
-      method = "loess", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
-      color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
+      method = "lm", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
+      color = "#4575B4", fill = "#4575B4", alpha = 0.2, linewidth = 1.2
     ) +
     ggplot2::geom_smooth(
       data = dplyr::filter(df_bw, signed_distance >= 0),
       ggplot2::aes(x = signed_distance, y = outcome),
-      method = "loess", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
-      color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1, span = 0.75
+      method = "lm", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
+      color = "#D73027", fill = "#D73027", alpha = 0.2, linewidth = 1.2
     ) +
-    ggplot2::geom_vline(xintercept = 0, color = "black", linewidth = 0.5) +
+    ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.8) +
     ggplot2::annotate(
-      "text", x = -Inf, y = y_annot, label = annotation_text,
-      hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold"
+      "text",
+      x = -Inf, y = y_annot, label = annotation_text,
+      hjust = -0.05, vjust = 1.5, size = 3, fontface = "bold"
     ) +
     ggplot2::labs(
-      title    = plot_title,
-      subtitle = paste0("bw: ", round(bw / 5280, 2), " miles",
-                        " | kernel: ", kernel),
+      title = plot_title,
+      subtitle = paste0(
+        "bw: ", round(bw / 5280, 2), " miles",
+        " | kernel: ", kernel
+      ),
       y = y_axis_label,
       x = "Distance to Stricter Ward Boundary (feet)"
     ) +
     ggplot2::coord_cartesian(xlim = c(-bw, bw), ylim = ylim) +
-    ggplot2::theme_bw() +
+    ggplot2::theme_minimal() +
     ggplot2::theme(
-      panel.grid.major = ggplot2::element_blank(),
       panel.grid.minor = ggplot2::element_blank(),
-      plot.title = ggplot2::element_text(size = 12)
+      panel.grid.major = ggplot2::element_line(color = "gray90"),
+      plot.title = ggplot2::element_text(size = 12, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 10, color = "gray50")
     )
-  
+
   # Save
   out_file <- file.path(
     "../output",

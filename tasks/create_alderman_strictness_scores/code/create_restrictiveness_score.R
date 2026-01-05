@@ -332,36 +332,31 @@ create_all_score_charts <- function(scores_list, spec_name) {
   plot_data_final <- final_scores_df %>%
     arrange(strictness_index) %>%
     mutate(
-      alderman = factor(alderman, levels = alderman),
-      restrictive_color = if_else(strictness_index > 0, "More Strict", "Less Strict")
+      alderman = factor(alderman, levels = alderman)
     )
 
-  p_final_index <- ggplot(plot_data_final, aes(x = alderman, y = strictness_index, fill = restrictive_color)) +
+  p_final_index <- ggplot(plot_data_final, aes(x = strictness_index, y = alderman, fill = strictness_index)) +
     geom_col() +
-    scale_fill_manual(
-      values = c("More Strict" = "#d73027", "Less Strict" = "#4575b4"),
-      name = ""
+    scale_fill_distiller(
+      palette = "RdYlBu",
+      direction = -1,
+      name = "Strictness Index"
     ) +
     labs(
       title = "Alderman Strictness Index",
-      subtitle = paste("Based on PCA of all outcome variables with", spec_name),
-      x = "Alderman",
-      y = "Strictness Index"
+      x = NULL,
+      y = "Alderman"
     ) +
-    # ⬇️ split labels onto two rows, slightly smaller angle; trim side padding
-    scale_x_discrete(
-      guide = guide_axis(angle = 55, n.dodge = 2),
-      expand = expansion(mult = c(0.01, 0.01))
-    ) +
+    scale_y_discrete(expand = expansion(mult = c(0.01, 0.01))) +
     theme_minimal() +
     theme(
-      axis.text.x = element_text(size = 6, lineheight = 0.8, margin = margin(t = 0)),
+      axis.text.y = element_text(size = 4),
+      axis.text.x = element_text(size = 8),
       panel.grid = element_blank(),
       legend.position = "bottom",
-      plot.title = element_text(size = 12, face = "bold"),
-      plot.subtitle = element_text(size = 10, color = "gray60")
+      plot.title = element_text(size = 12, face = "bold")
     ) +
-    geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.7)
+    geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.7)
 
   # =============================================================================
   # PLOT THE INDIVIDUAL FIXED EFFECTS
@@ -433,11 +428,19 @@ create_all_score_charts <- function(scores_list, spec_name) {
   # --- NEW: Use iwalk to loop through the named list of plots and save each one ---
   iwalk(all_plots, function(plot, name) {
     base <- file.path("../output", paste0(spec_name_clean, "_", name))
-    # Vector export (best for slides)
-    ggsave(paste0(base, ".pdf"),
-      plot = plot,
-      width = 14, height = 7.875, device = "pdf", bg = "white"
-    )
+    # Use taller dimensions for the final strictness index (horizontal bar chart)
+    if (name == "final_strictness_index") {
+      ggsave(paste0(base, ".pdf"),
+        plot = plot,
+        width = 8, height = 12, device = "pdf", bg = "white"
+      )
+    } else {
+      # Vector export (best for slides)
+      ggsave(paste0(base, ".pdf"),
+        plot = plot,
+        width = 14, height = 7.875, device = "pdf", bg = "white"
+      )
+    }
   })
 
   return(all_plots)

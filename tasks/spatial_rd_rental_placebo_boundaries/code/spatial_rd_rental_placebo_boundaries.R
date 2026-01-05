@@ -10,15 +10,15 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block ---
-placebo_shift <- 100  # shift cutoff by 250 ft to the right (positive side)
+placebo_shift <- 100 # shift cutoff by 250 ft to the right (positive side)
 # =======================================================================================
 
 # args <- commandArgs(trailingOnly = TRUE)
-# 
+#
 # if (length(args) < 1) {
 #     stop("Usage: Rscript spatial_rd_rental_placebo_boundaries.R <placebo_shift>")
 # }
-# 
+#
 # placebo_shift <- as.numeric(args[1]) # e.g., -500, -250, 250, 500
 
 # Fixed parameters for this placebo analysis
@@ -43,7 +43,7 @@ df <- read_parquet("../input/rent_with_ward_distances.parquet")
 df <- df %>%
     filter(!is.na(rent_price), rent_price > 0) %>%
     filter(!is.na(signed_dist)) %>%
-  # filter(building_type_clean == "multi_family") %>%
+    # filter(building_type_clean == "multi_family") %>%
     # Shift the running variable so the new "cutoff" is at 0
     mutate(signed_dist_shifted = signed_dist - placebo_shift)
 
@@ -121,7 +121,7 @@ stars_robust <- case_when(
 )
 
 annot_text <- sprintf(
-    "Conventional: %.3f%s (%.3f)\nRobust: %.3f%s (%.3f)",
+    "Conventional: %.3f%s (%.3f)\nRobust:       %.3f%s (%.3f)",
     coef_conv, stars_conv, se_conv,
     coef_robust, stars_robust, se_robust
 )
@@ -164,19 +164,19 @@ if (placebo_shift > 0) {
 p <- ggplot() +
     geom_point(
         data = bin_data, aes(x = rdplot_mean_x, y = rdplot_mean_y),
-        color = col_points, alpha = 0.9, size = 2
+        fill = "#2C3E50", shape = 21, color = "white", size = 2.5, stroke = 0.3
     ) +
     geom_smooth(
         data = df_bw %>% filter(signed_dist_shifted < 0),
         aes(x = signed_dist_shifted, y = outcome),
-        method = "lm", color = col_lines, fill = col_ci, alpha = 0.5, linewidth = 1.2
+        method = "lm", color = "#4575B4", fill = "#4575B4", alpha = 0.2, linewidth = 1.2
     ) +
     geom_smooth(
         data = df_bw %>% filter(signed_dist_shifted >= 0),
         aes(x = signed_dist_shifted, y = outcome),
-        method = "lm", color = col_lines, fill = col_ci, alpha = 0.5, linewidth = 1.2
+        method = "lm", color = "#D73027", fill = "#D73027", alpha = 0.2, linewidth = 1.2
     ) +
-    geom_vline(xintercept = 0, linetype = "dashed", color = "grey30", linewidth = 0.6) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "grey30", linewidth = 0.8) +
     labs(
         title = cutoff_label,
         subtitle = sprintf("BW = %d ft | N = %s | Kernel = %s", bw, format(n_obs, big.mark = ","), kernel),
@@ -186,14 +186,14 @@ p <- ggplot() +
     scale_y_continuous(limits = y_quantiles) +
     annotate("text",
         x = -Inf, y = -Inf, label = annot_text,
-        hjust = -0.1, vjust = -0.5, fontface = "bold", size = 4
+        hjust = -0.05, vjust = -0.5, fontface = "bold", size = 4
     ) +
     theme_minimal(base_size = 14) +
     theme(
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(color = "grey92"),
+        panel.grid.major = element_line(color = "grey90"),
         plot.title = element_text(face = "bold", size = 16),
-        plot.subtitle = element_text(size = 12, color = "grey40"),
+        plot.subtitle = element_text(size = 12, color = "grey50"),
         axis.title = element_text(face = "bold", size = 12)
     )
 p

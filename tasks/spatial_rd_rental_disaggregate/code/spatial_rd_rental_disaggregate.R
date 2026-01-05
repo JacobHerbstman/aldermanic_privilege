@@ -250,7 +250,7 @@ for (ep in unique_episodes) {
 
     # Two-line annotation
     annot_text <- sprintf(
-        "Conventional: %.3f%s (%.3f)\nRobust: %.3f%s (%.3f)",
+        "Conventional: %.3f%s (%.3f)\nRobust:       %.3f%s (%.3f)",
         coef_conv, stars_conv, se_conv,
         coef_robust, stars_robust, se_robust
     )
@@ -287,22 +287,22 @@ for (ep in unique_episodes) {
         # Binned Means
         geom_point(
             data = bin_data, aes(x = rdplot_mean_x, y = rdplot_mean_y),
-            color = col_points, alpha = 0.9, size = 2
+            fill = "#2C3E50", shape = 21, color = "white", size = 2.5, stroke = 0.3
         ) +
-        # Linear Fit (Left)
+        # Linear Fit (Left - lenient side)
         geom_smooth(
             data = as.data.frame(df_bw[signed_dist < 0]),
             aes(x = signed_dist, y = outcome),
-            method = "lm", color = col_lines, fill = col_ci, alpha = 0.5, linewidth = 1.2
+            method = "lm", color = "#4575B4", fill = "#4575B4", alpha = 0.2, linewidth = 1.2
         ) +
-        # Linear Fit (Right)
+        # Linear Fit (Right - strict side)
         geom_smooth(
             data = as.data.frame(df_bw[signed_dist >= 0]),
             aes(x = signed_dist, y = outcome),
-            method = "lm", color = col_lines, fill = col_ci, alpha = 0.5, linewidth = 1.2
+            method = "lm", color = "#D73027", fill = "#D73027", alpha = 0.2, linewidth = 1.2
         ) +
         # Cutoff Line
-        geom_vline(xintercept = 0, linetype = "dashed", color = "grey30", linewidth = 0.6) +
+        geom_vline(xintercept = 0, linetype = "dashed", color = "grey30", linewidth = 0.8) +
         # Labels
         labs(
             title = plot_title,
@@ -315,14 +315,14 @@ for (ep in unique_episodes) {
         # Annotation
         annotate("text",
             x = -Inf, y = -Inf, label = annot_text,
-            hjust = -0.1, vjust = -0.5, fontface = "bold", size = 4
+            hjust = -0.05, vjust = -0.5, fontface = "bold", size = 4
         ) +
         theme_minimal(base_size = 14) +
         theme(
             panel.grid.minor = element_blank(),
-            panel.grid.major = element_line(color = "grey92"),
+            panel.grid.major = element_line(color = "grey90"),
             plot.title = element_text(face = "bold", size = 16),
-            plot.subtitle = element_text(size = 12, color = "grey40"),
+            plot.subtitle = element_text(size = 12, color = "grey50"),
             axis.title = element_text(face = "bold", size = 12)
         )
 

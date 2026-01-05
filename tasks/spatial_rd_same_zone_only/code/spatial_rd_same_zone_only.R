@@ -34,7 +34,7 @@ dat_raw <- read_csv("../input/parcels_with_ward_distances.csv") %>%
   filter(arealotsf > 1) %>%
   filter(areabuilding > 1) %>%
   filter(unitscount > 1) %>%
-  filter(unitscount > 1 & unitscount <= 100) %>% 
+  filter(unitscount > 1 & unitscount <= 100) %>%
   filter(construction_year >= 2006)
 
 # keep strictly positive outcomes (for logs) and build 'outcome'
@@ -128,7 +128,7 @@ stars_robust <- case_when(
 
 # Two-line annotation
 annotation_text <- sprintf(
-  "Conventional: %.3f%s (%.3f)\nRobust: %.3f%s (%.3f)",
+  "Conventional: %.3f%s (%.3f)\nRobust:       %.3f%s (%.3f)",
   coef_conv, stars_conv, se_conv,
   coef_robust, stars_robust, se_robust
 )
@@ -212,28 +212,28 @@ plot2 <- ggplot() +
   geom_point(
     data = bins,
     aes(x = rdplot_mean_x, y = rdplot_mean_y),
-    color = "darkblue", size = 1.5, alpha = 0.7
+    fill = "#2C3E50", shape = 21, color = "white", size = 2.5, stroke = 0.3
   ) +
   geom_smooth(
     data = dat %>% filter(signed_distance < 0),
     aes(x = signed_distance, y = outcome),
     method = "lm", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
-    color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
+    color = "#4575B4", fill = "#4575B4", alpha = 0.2, linewidth = 1.2
   ) +
   geom_smooth(
     data = dat %>% filter(signed_distance >= 0),
     aes(x = signed_distance, y = outcome),
-    method = "lm", formula = y ~ x, se = TRUE, span = 0.75, level = 0.95, na.rm = TRUE,
-    color = "#d14949", fill = "grey", alpha = 0.5, linewidth = 1
+    method = "lm", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE,
+    color = "#D73027", fill = "#D73027", alpha = 0.2, linewidth = 1.2
   ) +
-  geom_vline(xintercept = 0, color = "black", linewidth = .5) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.8) +
   geom_vline(
     xintercept = c(-donut, donut), linetype = "dashed",
     linewidth = .4, color = "grey40"
   ) +
   annotate("text",
     x = -Inf, y = if (is.null(ylim)) Inf else ylim[2],
-    label = annotation_text, hjust = -0.1, vjust = 1.5, size = 3, fontface = "bold"
+    label = annotation_text, hjust = -0.05, vjust = 1.5, size = 3, fontface = "bold"
   ) +
   labs(
     title = plot_title,
@@ -246,11 +246,12 @@ plot2 <- ggplot() +
     x = "Distance to Stricter Ward Boundary (feet)"
   ) +
   coord_cartesian(xlim = c(-bw, bw), ylim = ylim) +
-  theme_bw() +
+  theme_minimal() +
   theme(
-    panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
-    plot.title = element_text(size = 12)
+    panel.grid.major = element_line(color = "gray90"),
+    plot.title = element_text(size = 12, face = "bold"),
+    plot.subtitle = element_text(size = 10, color = "gray50")
   )
 
 plot2
