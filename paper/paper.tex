@@ -21,7 +21,7 @@
 \doublespacing
 
 % IDENTIFYING INFORMATION
-\title{Does Local Control Affect Density? Evidence from Chicago's Aldermanic Privilege}
+\title{Fragmented Local Government, Density, and Housing Prices: Evidence from Chicago's Aldermanic Privilege}
 \author{Jacob Herbstman \\ University of Chicago}
 \date{\today}
 
@@ -41,19 +41,29 @@
 \bibliography{sections/aldermanic_privilege.bib}
 
 \newpage
-\appendix
 
-
+% Process main text floats before appendices
 \processdelayedfloats
 \clearpage
 
+\appendix
 
 \numberwithin{figure}{section}
 \numberwithin{table}{section}
 \numberwithin{equation}{section}
 
+% Appendix A
 \input{sections/appendix_A_data.tex}
+\processdelayedfloats
+\clearpage
+
+% Appendix B
 \input{sections/appendix_B_density.tex}
+\processdelayedfloats
+\clearpage
+
+% Appendix C
 \input{sections/appendix_C_sales_rental.tex}
+\processdelayedfloats
 
 \end{document}
