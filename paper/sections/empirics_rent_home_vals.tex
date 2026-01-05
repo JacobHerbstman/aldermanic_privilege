@@ -21,10 +21,10 @@ I conduct the analysis at the census block level rather than the parcel level fo
 I stack both redistricting events to maximize statistical power. For each event, I restrict the sample to census blocks where the mean distance of transacted parcels (or rental listings) is less than 1,000 feet to ensure that treated and control blocks are in close geographic proximity and thus subject to similar local demand shocks and neighborhood trends.
 
 \begin{equation}
-y_{bpet} = \alpha_b + \lambda_{et} + \sum_{\tau=-5, \tau \neq -1}^{5} \beta_\tau \left( \text{Strictness}_b \times \mathbf{1}[t = \tau] \right) + \varepsilon_{bpet}
+y_{bpet} = \alpha_{pe} + \lambda_{et} + \sum_{\tau=-5, \tau \neq -1}^{5} \beta_\tau \left( \Delta\text{Strictness}_b \times \mathbf{1}[t = \tau] \right) + \varepsilon_{bpet}
 \end{equation}
 
-\noindent where $y_{bpet}$ is the outcome (log mean sale price or log mean rent) for census block $b$ along border-pair $p$ in event cohort $e$ (2015 or 2023 remap) at time $t$. $\text{Strictness}_b$ is the strictness score of the post-remap alderman for block $b$, as defined in Section \ref{sec:empirical_results_density}. In the continuous treatment specification, this enters as a continuous variable; I also present binary specifications below. $\alpha_b$ are census block fixed effects, which absorb time-invariant neighborhood characteristics. $\lambda_{et}$ are event-by-year fixed effects, allowing for different time trends across the two redistricting episodes. 
+\noindent where $y_{bpet}$ is the outcome (log mean sale price or log mean rent) for census block $b$ along border-pair $p$ in event cohort $e$ (2015 or 2023 remap) at time $t$. $\Delta\text{Strictness}_b$ is the change in strictness for block $b$, defined as the strictness score of the destination alderman minus the strictness score of the origin alderman. In the continuous treatment specification, this enters as a continuous variable; I also present binary specifications below. $\alpha_{pe}$ are cohort-by-ward-pair fixed effects, which ensure comparisons are made between treated and control blocks along the same ward boundary within each redistricting event. $\lambda_{et}$ are event-by-year fixed effects, allowing for different time trends across the two redistricting episodes.
 Standard errors are clustered at the census block level to account for serial correlation.
 
 The coefficients $\beta_\tau$ trace out the effect of aldermanic strictness on housing costs in event time, with $\tau = -1$ (the year before each remap took effect) as the omitted reference period. The identifying assumption implies $\beta_\tau = 0$ for $\tau < 0$: prior to each remap, there should be no systematic relationship between future alderman strictness and housing cost trends.
@@ -91,7 +91,7 @@ These results are robust to alternative specifications. Weighting observations b
         \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_yearly_unweighted_stacked_binary_direction.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Effect of Alderman Strictness on Home Sale Prices. Panel A shows the effect of a one standard deviation increase in alderman strictness on log home prices. Panel B shows separate effects for census blocks that switched to stricter versus more lenient aldermen. Both specifications use the unweighted stacked estimator with census block and event-by-year fixed effects. Sample restricted to blocks within 1,000 feet of ward boundaries. Standard errors clustered at the census block level.}
+    \caption{Event Study: Effect of Alderman Strictness on Home Sale Prices. Panel A shows the effect of a one standard deviation increase in alderman strictness on log home prices. Panel B shows separate effects for census blocks that switched to stricter versus more lenient aldermen. Both specifications use the unweighted stacked estimator with cohort-by-ward-pair and event-by-year fixed effects. Sample restricted to blocks within 1,000 feet of ward boundaries. Standard errors clustered at the census block level.}
     \label{fig:event_study_sales}
 \end{figure}
 
@@ -130,6 +130,6 @@ These specifications are reported in Appendix~\ref{sec:appendix_sales_rental}.
         \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_yearly_unweighted_stacked_binary_direction.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Effect of Alderman Strictness on Rents. Panel A shows the effect of a one standard deviation increase in alderman strictness on log rents. Panel B shows separate effects for census blocks that switched to stricter versus more lenient aldermen. Both specifications use the unweighted stacked estimator with census block and event-by-year fixed effects. Sample restricted to blocks within 1,000 feet of ward boundaries. Standard errors clustered at the census block level.}
+    \caption{Event Study: Effect of Alderman Strictness on Rents. Panel A shows the effect of a one standard deviation increase in alderman strictness on log rents. Panel B shows separate effects for census blocks that switched to stricter versus more lenient aldermen. Both specifications use the unweighted stacked estimator with cohort-by-ward-pair and event-by-year fixed effects. Sample restricted to blocks within 1,000 feet of ward boundaries. Standard errors clustered at the census block level.}
     \label{fig:event_study_rents}
 \end{figure}

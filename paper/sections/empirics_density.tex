@@ -52,12 +52,12 @@ I stack all ward borders together to have enough power to get precise estimates 
 Importantly, I restrict the sample to parcels that share the same zoning classification on both sides of the border, ensuring that differences in density are not mechanically driven by differences in allowable FAR across zoning districts.
 I use the rdrobust package \cite{calonico_rdrobust_2015} to implement this design with bias-corrected point estimates and robust standard errors. 
 
-In Figure~\ref{fig:rd} I present regression discontinuity plots for my two primary measures of density, DUPAC and FAR.
+In Figure~\ref{fig:rd_plots} I present regression discontinuity plots for my two primary measures of density, DUPAC and FAR.
 I choose a bandwidth of 500 feet on either side of the border to focus on parcels that are the most likely to be similar in terms of neighborhood characteristics and local demand shocks, 
 while still having enough observations to get precise estimates.
 In order to make them comparable, I plot the log of each density measure and estimate the discontinuity at the border. 
 I find large and statistically significant drops in both measures of density when moving from the lenient side of the border to the strict side.
-Specifically, I estimate a $57\%$ decrease in DUPAC and a $51\%$ decrease in FAR when moving from the lenient side of the border to the strict side of a ward border.
+Using the bias-corrected estimates from rdrobust, I estimate a $50\%$ decrease in FAR and a $29\%$ decrease in DUPAC when moving from the lenient side of the border to the strict side of a ward border.
 
 The key assumption, as in any RD design, is that nothing else changes at the border except for the alderman that the developer has to work with.
 If I were to claim causality from this design alone, I would need to claim that parcels cannot manipulate which side of the ward border they are on, 
@@ -90,21 +90,22 @@ Armed with these ``strictness scores'' and the visual motivating evidence from F
 To answer this question I run regressions of the following form:
 
 \begin{equation} \label{eq:boundary_reg}
-    \ln(Y_{iwbt}) = \beta \cdot \text{Strictness}_{w} + \gamma \cdot |D_{i}| + \mathbf{X}_{w}'\Theta + \alpha_{z} + \mu_{bt} + \varepsilon_{iwbt}
+    \ln(Y_{iwbt}) = \beta \cdot \text{Strictness}_{w} + \mathbf{X}_{w}'\Theta + \alpha_{z} + \mu_{b} + \gamma_t + \varepsilon_{iwbt}
 \end{equation}
 
 \noindent where $Y_{iwbt}$ represents the density outcome for parcel $i$ located in ward $w$ along border-pair $b$, constructed in year $t$. 
 
 My three density outcomes of interest are common in the literature: Dwelling Units Per Acre (DUPAC), which is defined as the number of dwelling units on the parcel divided by the parcel's acreage; Floor Area Ratio (FAR), defined as the total building square footage on the parcel divided by the parcel's land area; and Units in the building.
 
-The variable of interest is $\text{Strictness}_{w}$, which denotes the standardized bureaucratic friction score for the alderman of ward $w$. To control for spatial trends, I include $|D_{i}|$, the absolute distance of the parcel to the ward boundary. The vector $\mathbf{X}_{w}$ includes time-varying ward-level controls, including median household income, racial composition, and education levels.
+The variable of interest is $\text{Strictness}_{w}$, which denotes the standardized bureaucratic friction score for the alderman of ward $w$. The vector $\mathbf{X}_{w}$ includes time-varying ward-level controls, including median household income, racial composition, and education levels.
 
 Critically, I include a stringent set of fixed effects to isolate the causal effect of aldermanic strictness on development density.
 $\alpha_z$ are zoning classification fixed effects, which ensure that comparisons are only made within the same zoning classification on each side of the border. 
 For example, if one side of the border is zoned for RT-3.5, which allows a maximum FAR of 1.05, and the other side is zoned for RM-5.5, 
 which allows for a maximum FAR of 2.5, there will be a mechanical difference in densities at the border that is not the result of aldermanic influence.
 
-In addition, following \cite{black_better_1999,bayer_unified_2007,kulka_how_2022}, I include border-pair fixed effects $\mu_{bt}$, which are interacted with zoning code fixed effects to ensure comparisons are being made within border-pairs and within zoning classifications.
+In addition, following \cite{black_better_1999,bayer_unified_2007,kulka_how_2022}, I include border-pair fixed effects $\mu_{b}$, which are interacted with zoning code fixed effects to ensure comparisons are being made within border-pairs and within zoning classifications.
+I also include construction year fixed effects $\gamma_t$ to absorb city-wide trends in development density over time.
 While this is very strict and limits the amount of variation in my sample, differential trends in development density across different parts of the city (i.e. the west loop boom) could otherwise confound my estimates. 
 
 And finally, I limit the sample to parcels with between 2 and 100 units to focus on mid-size multifamily housing. 
