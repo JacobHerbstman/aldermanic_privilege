@@ -52,7 +52,7 @@ I stack all ward borders together to have enough power to get precise estimates 
 Importantly, I restrict the sample to parcels that share the same zoning classification on both sides of the border, ensuring that differences in density are not mechanically driven by differences in allowable FAR across zoning districts.
 I use the rdrobust package \cite{calonico_rdrobust_2015} to implement this design with bias-corrected point estimates and robust standard errors. 
 
-In Figure~\ref{fig:rd_plots} I present regression discontinuity plots for my two primary measures of density, DUPAC and FAR.
+In Figure~\ref{fig:rd} I present regression discontinuity plots for my two primary measures of density, DUPAC and FAR.
 I choose a bandwidth of 500 feet on either side of the border to focus on parcels that are the most likely to be similar in terms of neighborhood characteristics and local demand shocks, 
 while still having enough observations to get precise estimates.
 In order to make them comparable, I plot the log of each density measure and estimate the discontinuity at the border. 
