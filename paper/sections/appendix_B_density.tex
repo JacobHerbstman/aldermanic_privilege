@@ -1,5 +1,9 @@
-\section{Robustness Checks}
-\label{sec:appendixa}
+\section{Additional Density Results}
+\label{sec:appendix_density}
+
+\subsection{Bandwidth Robustness: Border-Pair Fixed Effects}
+
+Table~\ref{tab:fe_estimates_1000} presents border-pair fixed effects estimates using a 1,000 foot bandwidth, compared to the 250 foot bandwidth in the main text. The coefficients are smaller in magnitude and less precisely estimated, consistent with the interpretation that aldermanic effects are most pronounced very close to ward boundaries where treated and control parcels are most comparable.
 
 \begin{table}[H]
     \caption{Border-Pair FE Estimates (bw = 1000 ft)}
@@ -42,9 +46,10 @@ I regress each demographic variable on the aldermanic strictness score using the
 
 \clearpage
 
-\subsection{FE Donut Robustness}
+\subsection{Donut Robustness: Border-Pair Fixed Effects}
 
-As an additional robustness check for the border-pair fixed effects results, I exclude parcels within 25 or 50 feet of the ward boundary. This addresses concerns that observations precisely at the border may be unusual in ways that drive the results.
+As an additional robustness check for the border-pair fixed effects results, I exclude parcels within 25 or 50 feet of the ward boundary. 
+This addresses concerns that measurement error or other idiosyncratic features of parcels located precisely at the border may be unusual in ways that drive the results.
 
 \begin{table}[H]
     \caption{Border-Pair FE Estimates --- Donut Robustness (bw = 250 ft, donut = 25 ft)}

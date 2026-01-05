@@ -1,0 +1,216 @@
+\section{Additional Home Sales and Rental Results}
+\label{sec:appendix_sales_rental}
+
+This appendix presents additional results for home sale prices and rents, complementing the event study analysis in Section~\ref{sec:empirical_results_rent_home_vals}.
+
+\subsection{Quarterly Event Study Results}
+
+The main text presents yearly event study estimates. Figures~\ref{fig:event_study_sales_quarterly} and~\ref{fig:event_study_rental_quarterly} present analogous quarterly specifications, which allow for a more granular examination of the timing of effects around the 2015 ward redistricting.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_quarterly_unweighted_stacked_continuous.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_quarterly_unweighted_stacked_binary_direction.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Home Sale Prices (Quarterly)}
+    \label{fig:event_study_sales_quarterly}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_quarterly_unweighted_stacked_continuous.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_quarterly_unweighted_stacked_binary_direction.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Rents (Quarterly)}
+    \label{fig:event_study_rental_quarterly}
+\end{figure}
+
+
+\subsection{Event Study Robustness: Yearly Specification}
+
+This subsection presents robustness checks for the yearly event study results in Section~\ref{sec:empirical_results_rent_home_vals}. I consider two alternative specifications: (1) weighting observations by the number of transactions in each census block-year cell, and (2) including time-varying demographic controls for median household income, racial composition, and homeownership rates.
+
+\subsubsection{Home Sale Prices: Weighted Specification (Yearly)}
+
+Figure~\ref{fig:event_study_sales_weighted} presents the event study results for home sale prices using observation weights proportional to the number of sales in each census block-year cell. The results are qualitatively similar to the unweighted specification in the main text.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_yearly_weighted_stacked_continuous.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_yearly_weighted_stacked_binary_direction.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Home Sale Prices --- Weighted (Yearly)}
+    \label{fig:event_study_sales_weighted}
+\end{figure}
+
+\subsubsection{Home Sale Prices: With Demographic Controls (Yearly)}
+
+Figure~\ref{fig:event_study_sales_controls} presents event study results including time-varying demographic controls at the census block group level.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_yearly_unweighted_stacked_continuous_with_controls.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_yearly_unweighted_stacked_binary_direction_with_controls.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Home Sale Prices --- With Demographic Controls (Yearly)}
+    \label{fig:event_study_sales_controls}
+\end{figure}
+
+
+\subsubsection{Rents: Weighted Specification (Yearly)}
+
+Figure~\ref{fig:event_study_rental_weighted} presents the event study results for rents using observation weights.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_yearly_weighted_stacked_continuous.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_yearly_weighted_stacked_binary_direction.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Rents --- Weighted (Yearly)}
+    \label{fig:event_study_rental_weighted}
+\end{figure}
+
+\subsubsection{Rents: With Demographic Controls (Yearly)}
+
+Figure~\ref{fig:event_study_rental_controls} presents event study results for rents including time-varying demographic controls.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_yearly_unweighted_stacked_continuous_with_controls.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_yearly_unweighted_stacked_binary_direction_with_controls.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Rents --- With Demographic Controls (Yearly)}
+    \label{fig:event_study_rental_controls}
+\end{figure}
+
+
+
+\subsection{Event Study Robustness: Quarterly Specification}
+
+This subsection presents the same robustness checks using the quarterly specification.
+
+\subsubsection{Home Sale Prices: Weighted Specification (Quarterly)}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_quarterly_weighted_stacked_continuous.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_quarterly_weighted_stacked_binary_direction.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Home Sale Prices --- Weighted (Quarterly)}
+    \label{fig:event_study_sales_weighted_quarterly}
+\end{figure}
+
+\subsubsection{Home Sale Prices: With Demographic Controls (Quarterly)}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_quarterly_unweighted_stacked_continuous_with_controls.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_quarterly_unweighted_stacked_binary_direction_with_controls.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Home Sale Prices --- With Demographic Controls (Quarterly)}
+    \label{fig:event_study_sales_controls_quarterly}
+\end{figure}
+
+
+
+\subsubsection{Rents: Weighted Specification (Quarterly)}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_quarterly_weighted_stacked_continuous.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_quarterly_weighted_stacked_binary_direction.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Rents --- Weighted (Quarterly)}
+    \label{fig:event_study_rental_weighted_quarterly}
+\end{figure}
+
+\subsubsection{Rents: With Demographic Controls (Quarterly)}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_quarterly_unweighted_stacked_continuous_with_controls.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_quarterly_unweighted_stacked_binary_direction_with_controls.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Rents --- With Demographic Controls (Quarterly)}
+    \label{fig:event_study_rental_controls_quarterly}
+\end{figure}
