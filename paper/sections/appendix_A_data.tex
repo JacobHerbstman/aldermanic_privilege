@@ -21,13 +21,13 @@ The analysis draws on several administrative and proprietary datasets:
 The rental listings data contain daily snapshots of active listings from RentHub. Raw variables include listing price, unit characteristics (bedrooms, bathrooms, year built), building type, amenity indicators (laundry, gym), and geographic coordinates.
 
 \paragraph{Sample Restrictions.}
-We apply the following restrictions to construct the analysis sample: (1) valid rental price (non-missing and positive); (2) valid geographic coordinates (non-missing latitude and longitude); and (3) successfully geocoded to a Chicago ward.
+I apply the following restrictions to construct the analysis sample: (1) valid rental price (non-missing and positive); (2) valid geographic coordinates (non-missing latitude and longitude); and (3) successfully geocoded to a Chicago ward.
 
 \paragraph{Spatial Assignment.}
 Each listing is assigned to the relevant ward based on its file date and the ward boundaries in effect at that time. The ward map changes on May 18, 2015 (following the 2015 aldermanic elections) and May 15, 2023 (following the 2023 redistricting). Census block assignment uses 2010 blocks for the 2015 cohort and 2020 blocks for the 2023 cohort.
 
 \paragraph{Distance to Ward Boundary.}
-For each listing, we calculate the distance to the nearest ward boundary. Shared ward boundaries are constructed via polygon intersection, and the nearest boundary segment is identified using spatial indexing. Distance is computed in the Illinois East State Plane coordinate system (EPSG:3435) and expressed in feet. The signed distance is positive when the listing is in the stricter alderman's ward and negative otherwise.
+For each listing, I calculate the distance to the nearest ward boundary. Shared ward boundaries are constructed via polygon intersection, and the nearest boundary segment is identified using spatial indexing. Distance is computed in the Illinois East State Plane coordinate system (EPSG:3435) and expressed in feet. The signed distance is positive when the listing is in the stricter alderman's ward and negative otherwise.
 
 \paragraph{Building Type Classification.}
 Raw building type strings are classified as: Single-family (matches SFR, Single-family, house); Multi-family (matches APT, Apartment, Multi-family, duplex, triplex, fourplex); Condo (matches CON, Condo, Condominium); Townhouse (matches TH, Townhouse); and Other (all remaining).
@@ -41,19 +41,19 @@ Table~\ref{tab:rental_sumstats} presents summary statistics for the rental listi
 \subsection{Event Study Panel Construction}
 \label{subsec:event_study_panel}
 
-For the event study analysis, we construct block-level panels around the 2015 and 2023 redistricting events.
+For the event study analysis, I construct block-level panels around the 2015 and 2023 redistricting events.
 
 \paragraph{Treatment Assignment.}
-Blocks are classified as treated if they were redistricted from one ward to another. For the 2015 cohort, we compare ward assignments under the pre-2015 map (2014 boundaries) to post-2015 (2015 boundaries). For the 2023 cohort, we compare 2022 boundaries to 2024 boundaries. Census blocks are assigned to wards based on their centroid location.
+Blocks are classified as treated if they were redistricted from one ward to another. For the 2015 cohort, I compare ward assignments under the pre-2015 map (2014 boundaries) to post-2015 (2015 boundaries). For the 2023 cohort, I compare 2022 boundaries to 2024 boundaries. Census blocks are assigned to wards based on their centroid location.
 
 \paragraph{Predetermined Strictness.}
-Treatment intensity is measured using predetermined alderman strictness scores---scores computed from permit data in the year before redistricting takes effect. For the 2015 cohort, we use 2014 strictness scores for both origin and destination wards. For the 2023 cohort, we use 2022 scores. This ensures treatment intensity is not affected by post-treatment changes in aldermanic behavior. The change in strictness for block $i$ is: $\Delta\text{Strictness}_i = \text{Strictness}_{\text{dest}} - \text{Strictness}_{\text{origin}}$.
+Treatment intensity is measured using predetermined alderman strictness scores---scores computed from permit data in the year before redistricting takes effect. For the 2015 cohort, I use 2014 strictness scores for both origin and destination wards. For the 2023 cohort, I use 2022 scores. This ensures treatment intensity is not affected by post-treatment changes in aldermanic behavior. The change in strictness for block $i$ is: $\Delta\text{Strictness}_i = \text{Strictness}_{\text{dest}} - \text{Strictness}_{\text{origin}}$. For binary treatment specifications, blocks are classified as ``moved to stricter'' if $\Delta\text{Strictness}_i > 0$ and ``moved to more lenient'' if $\Delta\text{Strictness}_i < 0$.
 
 \paragraph{Contaminated Control Exclusion.}
-Control blocks may experience treatment through electoral turnover (alderman changed via election rather than redistricting). We identify wards with alderman turnover between 2014--2015 and 2022--2023 and exclude non-switching blocks in these wards from the control group.
+Control blocks may experience treatment through electoral turnover (alderman changed via election rather than redistricting). I identify wards with alderman turnover between 2014--2015 and 2022--2023 and exclude non-switching blocks in these wards from the control group.
 
 \paragraph{Panel Aggregation.}
-Rental listings are aggregated to block-year and block-quarter levels. For each block-period, we compute number of listings, mean rent, and median rent. The final panel stacks the 2015 and 2023 cohorts with cohort-specific fixed effects.
+Rental listings and home sales are aggregated separately to block-year and block-quarter levels. For rentals, I compute number of listings, mean rent, and median rent. For sales, I compute number of sales, mean price, and median price. The final panels stack the 2015 and 2023 cohorts with cohort-specific fixed effects. The 2015 cohort includes years 2010--2020, while the 2023 cohort includes years 2018--2025, providing a symmetric five-year window around each redistricting event.
 
 \subsection{Alderman Strictness Scores}
 \label{subsec:strictness_scores}
@@ -61,7 +61,7 @@ Rental listings are aggregated to block-year and block-quarter levels. For each 
 Alderman strictness is measured using permit processing times, residualized to remove the influence of ward characteristics.
 
 \paragraph{Stage 1: Residualization.}
-We regress log mean processing time on ward geographic fundamentals (distance to CBD, lakefront share, CTA station density, community area shares), demographic controls (homeownership rate, population, median household income, racial composition), and month fixed effects.
+I regress log mean processing time on ward geographic fundamentals (distance to CBD, lakefront share, CTA station density, community area shares), demographic controls (homeownership rate, population, median household income, racial composition), and month fixed effects.
 
 \paragraph{Stage 2: Alderman Fixed Effects.}
 Residualized processing times are regressed on alderman fixed effects, with observations weighted by the number of permits. The alderman fixed effect captures the systematic component of processing time attributable to the alderman.
@@ -72,9 +72,43 @@ Raw alderman fixed effects are shrunk toward the grand mean using an empirical B
 \paragraph{Index Standardization.}
 The final strictness index is standardized to have mean zero across aldermen. Higher values indicate stricter aldermen.
 
+\subsection{Home Sales: Sample Construction}
+\label{subsec:sales_sample}
+
+The home sales data come from the Cook County Assessor's Office and include all residential property transactions in Chicago from 1999--2025.
+
+\paragraph{Sample Restrictions.}
+I apply the following restrictions to construct the analysis sample: (1) residential property classes only, including single-family homes (classes 202--210) and small multifamily buildings with 2--6 units (class 211), excluding mixed-use properties (class 212) and condominiums (classes 299, 399); (2) sale price exceeds \$10,000 to exclude nominal transfers and gifts; (3) market transactions only, defined as warranty or trustee deeds; (4) excludes land-only sales; (5) seller and buyer names are valid and non-identical, excluding intrafamily transfers; and (6) single-parcel transactions only.
+
+\paragraph{Price Winsorization.}
+Sale prices are winsorized at the 1st and 99th percentiles to limit the influence of outliers on mean calculations.
+
+\paragraph{Geocoding.}
+Each sale is geocoded by joining the property identification number (PIN) to the Cook County parcel universe, which contains latitude and longitude coordinates. Sales that cannot be matched on the full 14-digit PIN are matched on the first 10 digits (PIN10).
+
+\paragraph{Ward Assignment.}
+Sales are assigned to wards based on the ward boundaries in effect at the exact sale date. The ward map changes on May 18, 2015 and May 15, 2023. For the event study analysis, sales before May 18, 2015 use pre-2015 boundaries; sales between May 18, 2015 and May 15, 2023 use 2015 boundaries; and sales after May 15, 2023 use post-2023 boundaries.
+
+\paragraph{Distance to Ward Boundary.}
+Distance calculations follow the same procedure as for rental listings (Section~\ref{subsec:rental_sample}), using the Illinois East State Plane coordinate system (EPSG:3435) and computing signed distance based on relative alderman strictness.
+
+\subsection{New Construction: Sample Construction}
+\label{subsec:new_construction_sample}
+
+The new construction sample for the density analysis is drawn from the Cook County Assessor's parcel-level data.
+
+\paragraph{Sample Restrictions.}
+I apply the following restrictions: (1) lot area exceeds 1 square foot; (2) building area exceeds 1 square foot; (3) at least one dwelling unit; and (4) construction year is 2006 or later. These restrictions exclude vacant parcels, data errors, and older buildings that predate the sample period.
+
+\paragraph{Density Measures.}
+For each parcel, I compute two density measures: Floor Area Ratio (FAR), defined as total building square footage divided by lot area; and Dwelling Units Per Acre (DUPAC), defined as the number of dwelling units divided by lot acreage.
+
+\paragraph{Ward and Boundary Assignment.}
+Each parcel is assigned to a ward based on its centroid location and the ward boundaries in effect at the time of construction. Distance to the nearest ward boundary is computed in feet using the Illinois East State Plane coordinate system.
+
 \subsection{Summary Statistics: New Construction Sample}
 
-Table~\ref{tab:summary_stats} presents summary statistics for the new residential construction sample used in the density analysis. The sample includes all new residential buildings constructed in Chicago between 2006 and 2025. Column (1) reports statistics for the full sample, while Column (2) restricts to multifamily buildings with 2 or more units.
+Table~\ref{tab:summary_stats} presents summary statistics for the new residential construction sample used in the density analysis. The sample includes all new residential buildings constructed in Chicago between 2006 and 2025 that meet the restrictions described in Section~\ref{subsec:new_construction_sample}. Column (1) reports statistics for the full sample, while Column (2) restricts to multifamily buildings with 2 or more units.
 
 The full sample contains 13,236 new residential buildings with an average of 6.65 dwelling units and 2.27 stories. The average Floor Area Ratio (FAR) is 1.22 and the average Dwelling Units Per Acre (DUPAC) is 28.47. Multifamily buildings are substantially denser, with an average of 31.27 units, 2.75 stories, FAR of 2.32, and DUPAC of 74.54. Both samples have similar median distances to the nearest ward boundary (approximately 900 feet).
 

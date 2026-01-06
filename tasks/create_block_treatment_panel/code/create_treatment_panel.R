@@ -145,9 +145,9 @@ treatment_2015 <- assignments_2010 %>%
         strictness_change_2015 = strictness_dest_2015 - strictness_origin_2015,
         switch_type_2015 = case_when(
             is.na(strictness_change_2015) ~ "No Data",
-            strictness_change_2015 > 0.1 ~ "Moved to Stricter",
-            strictness_change_2015 < -0.1 ~ "Moved to More Lenient",
-            TRUE ~ "No Significant Change"
+            strictness_change_2015 > 0 ~ "Moved to Stricter",
+            strictness_change_2015 < 0 ~ "Moved to More Lenient",
+            TRUE ~ "No Change"
         )
     )
 
@@ -172,9 +172,9 @@ treatment_2023 <- assignments_2020 %>%
         strictness_change_2023 = strictness_dest_2023 - strictness_origin_2023,
         switch_type_2023 = case_when(
             is.na(strictness_change_2023) ~ "No Data",
-            strictness_change_2023 > 0.1 ~ "Moved to Stricter",
-            strictness_change_2023 < -0.1 ~ "Moved to More Lenient",
-            TRUE ~ "No Significant Change"
+            strictness_change_2023 > 0 ~ "Moved to Stricter",
+            strictness_change_2023 < 0 ~ "Moved to More Lenient",
+            TRUE ~ "No Change"
         )
     )
 

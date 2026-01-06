@@ -50,8 +50,8 @@ message("\nCreating sample summary statistics...")
 # Treatment categories
 categorize_treatment <- function(strictness_change) {
     case_when(
-        strictness_change > 0.1 ~ "Moved to Stricter",
-        strictness_change < -0.1 ~ "Moved to Lenient",
+        strictness_change > 0 ~ "Moved to Stricter",
+        strictness_change < 0 ~ "Moved to Lenient",
         TRUE ~ "Control (No Change)"
     )
 }
@@ -132,7 +132,7 @@ message("\nValidating identification strategy (predetermined strictness approach
 id_validation <- stacked_yearly %>%
     filter(relative_year == 0) %>% # Focus on treatment year
     mutate(
-        has_strictness_change = abs(strictness_change) > 0.1,
+        has_strictness_change = abs(strictness_change) > 0,
         # redistricted indicates ward boundary changed
         status = case_when(
             redistricted == TRUE & has_strictness_change ~ "Treated (Redistricted)",
@@ -234,9 +234,9 @@ ward_pair_diag <- stacked_yearly %>%
         mean_strictness_change = mean(strictness_change, na.rm = TRUE),
         sd_strictness_change = sd(strictness_change, na.rm = TRUE),
         range_strictness = max(strictness_change) - min(strictness_change),
-        n_stricter = sum(strictness_change > 0.1),
-        n_lenient = sum(strictness_change < -0.1),
-        n_control = sum(abs(strictness_change) <= 0.1),
+        n_stricter = sum(strictness_change > 0),
+        n_lenient = sum(strictness_change < 0),
+        n_control = sum(strictness_change == 0),
         .groups = "drop"
     ) %>%
     filter(!is.na(sd_strictness_change), sd_strictness_change > 0) %>%
@@ -275,7 +275,7 @@ cat("\\bottomrule
 \\begin{tablenotes}
 \\small
 \\item \\textit{Notes:} Top 15 ward pairs ranked by standard deviation of strictness change within pair.
-``Stricter'' = $\\Delta$Strict $> 0.1$, ``Lenient'' = $\\Delta$Strict $< -0.1$, ``Control'' = $|\\Delta$Strict$| \\leq 0.1$.
+``Stricter'' = $\\Delta$Strict $> 0$, ``Lenient'' = $\\Delta$Strict $< 0$, ``Control'' = $\\Delta$Strict $= 0$.
 \\end{tablenotes}
 \\end{table}
 ", file = "../output/ward_pair_diagnostics.tex", append = TRUE)
@@ -416,12 +416,12 @@ create_treatment_map <- function(cohort_year, ward_year) {
     # Create map
     p <- ggplot() +
         geom_sf(data = wards, fill = NA, color = "gray40", linewidth = 0.5) +
-        geom_sf(data = cohort_blocks, aes(fill = treatment_group), color = NA, alpha = 0.7) +
+        geom_sf(data = cohort_blocks, aes(fill = treatment_group), color = NA, alpha = 1) +
         scale_fill_manual(
             values = c(
-                "Moved to Stricter" = "#D55E00",
-                "Moved to Lenient" = "#0072B2",
-                "Control (No Change)" = "#999999"
+                "Moved to Stricter" = "#E63900",
+                "Moved to Lenient" = "#0055CC",
+                "Control (No Change)" = "#777777"
             ),
             name = "Treatment Group"
         ) +
@@ -533,11 +533,15 @@ for (wp in all_pairs_to_map) {
     wards_2015_crop <- st_crop(wards_2015, xmin = xmin_exp, ymin = ymin_exp, xmax = xmax_exp, ymax = ymax_exp)
 
     # Color blocks by their ward assignment (for before/after) and by treatment group
+    # Get the two ward numbers for consistent coloring across all panels
+    ward_nums <- sort(unique(c(wp_blocks$ward_origin, wp_blocks$ward_dest)))
+    ward_colors <- setNames(c("#E63900", "#0055CC"), as.character(ward_nums))
+
     # BEFORE: color by origin ward
     p_before <- ggplot() +
         geom_sf(data = wards_2014_crop, fill = NA, color = "gray40", linewidth = 0.8) +
-        geom_sf(data = wp_blocks, aes(fill = factor(ward_origin)), color = "black", linewidth = 0.2, alpha = 0.8) +
-        scale_fill_brewer(palette = "Set2", name = "Ward (2014)") +
+        geom_sf(data = wp_blocks, aes(fill = factor(ward_origin)), color = "gray85", linewidth = 0.05, alpha = 1) +
+        scale_fill_manual(values = ward_colors, name = "Ward (2014)") +
         labs(
             title = "BEFORE Redistricting (2014 Wards)",
             subtitle = sprintf("Blocks colored by 2014 ward assignment")
@@ -552,8 +556,8 @@ for (wp in all_pairs_to_map) {
     # AFTER: color by destination ward
     p_after <- ggplot() +
         geom_sf(data = wards_2015_crop, fill = NA, color = "gray40", linewidth = 0.8) +
-        geom_sf(data = wp_blocks, aes(fill = factor(ward_dest)), color = "black", linewidth = 0.2, alpha = 0.8) +
-        scale_fill_brewer(palette = "Set2", name = "Ward (2015)") +
+        geom_sf(data = wp_blocks, aes(fill = factor(ward_dest)), color = "gray85", linewidth = 0.05, alpha = 1) +
+        scale_fill_manual(values = ward_colors, name = "Ward (2015)") +
         labs(
             title = "AFTER Redistricting (2015 Wards)",
             subtitle = sprintf("Blocks colored by 2015 ward assignment")
@@ -568,12 +572,12 @@ for (wp in all_pairs_to_map) {
     # TREATMENT: color by treatment group
     p_treatment <- ggplot() +
         geom_sf(data = wards_2015_crop, fill = NA, color = "gray40", linewidth = 0.5) +
-        geom_sf(data = wp_blocks, aes(fill = treatment_group), color = "black", linewidth = 0.2, alpha = 0.9) +
+        geom_sf(data = wp_blocks, aes(fill = treatment_group), color = "gray85", linewidth = 0.05, alpha = 1) +
         scale_fill_manual(
             values = c(
-                "Moved to Stricter" = "#D55E00",
-                "Moved to Lenient" = "#0072B2",
-                "Control (No Change)" = "#999999"
+                "Moved to Stricter" = "#E63900",
+                "Moved to Lenient" = "#0055CC",
+                "Control (No Change)" = "#777777"
             ),
             name = "Treatment",
             drop = FALSE

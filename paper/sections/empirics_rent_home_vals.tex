@@ -55,7 +55,8 @@ I restrict the sample to census blocks where the average parcel distance to a wa
         \caption*{Panel C: Treatment and Control Blocks (2023)}
     \end{minipage}
     
-    \caption{Identification Strategy Illustration. Panel A shows the ward pair 13--23 before redistricting (left), after redistricting (center), and the resulting treatment status (right). Blocks that switched wards are classified as treated based on the change in alderman strictness; blocks that remained serve as controls. Panels B and C show the city-wide distribution of treatment and control blocks for the 2015 and 2023 redistricting events. Sample restricted to blocks within 1,000 feet of ward boundaries.}
+    \caption{Event Study Identification Strategy}
+    \figurenotes{Panel A illustrates treatment assignment for ward pair 13--23 during the 2015 redistricting: ward assignments before (left), after (center), and treatment status based on the change in alderman strictness (right). Panels B and C show the city-wide distribution of treated and control blocks for 2015 and 2023. Sample restricted to blocks within 1,000 feet of ward boundaries. Controls exclude blocks in wards with alderman turnover via election.}
     \label{fig:identification_illustration}
 \end{figure}
 
@@ -91,7 +92,8 @@ These results are robust to alternative specifications. Weighting observations b
         \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_yearly_unweighted_stacked_binary_direction.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Effect of Alderman Strictness on Home Sale Prices. Panel A shows the effect of a one standard deviation increase in alderman strictness on log home prices. Panel B shows separate effects for census blocks that switched to stricter versus more lenient aldermen. Both specifications use the unweighted stacked estimator with cohort-by-ward-pair and event-by-year fixed effects. Sample restricted to blocks within 1,000 feet of ward boundaries. Standard errors clustered at the census block level.}
+    \caption{Event Study: Effect of Alderman Strictness on Home Sale Prices}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). Stacked estimator with cohort-by-ward-pair and event-by-year fixed effects. Year $-1$ omitted as reference. Sample: blocks within 1,000 feet of ward boundaries. 95\% confidence intervals based on standard errors clustered at the census block level.}
     \label{fig:event_study_sales}
 \end{figure}
 
@@ -130,6 +132,7 @@ These specifications are reported in Appendix~\ref{sec:appendix_sales_rental}.
         \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_yearly_unweighted_stacked_binary_direction.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Effect of Alderman Strictness on Rents. Panel A shows the effect of a one standard deviation increase in alderman strictness on log rents. Panel B shows separate effects for census blocks that switched to stricter versus more lenient aldermen. Both specifications use the unweighted stacked estimator with cohort-by-ward-pair and event-by-year fixed effects. Sample restricted to blocks within 1,000 feet of ward boundaries. Standard errors clustered at the census block level.}
+    \caption{Event Study: Effect of Alderman Strictness on Rents}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). Stacked estimator with cohort-by-ward-pair and event-by-year fixed effects. Year $-1$ omitted as reference. Sample: blocks within 1,000 feet of ward boundaries. 95\% confidence intervals based on standard errors clustered at the census block level.}
     \label{fig:event_study_rents}
 \end{figure}

@@ -21,6 +21,7 @@ The main text presents yearly event study estimates. Figures~\ref{fig:event_stud
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Home Sale Prices (Quarterly)}
+    \figurenotes{Quarterly analog to Figure 6. Panel A: continuous treatment; Panel B: binary treatment. Quarter $-1$ omitted. Stacked estimator with cohort-by-ward-pair and event-by-quarter fixed effects. Standard errors clustered at census block level.}
     \label{fig:event_study_sales_quarterly}
 \end{figure}
 
@@ -38,6 +39,7 @@ The main text presents yearly event study estimates. Figures~\ref{fig:event_stud
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Rents (Quarterly)}
+    \figurenotes{Quarterly analog to Figure 7. Panel A: continuous treatment; Panel B: binary treatment. Quarter $-1$ omitted. Stacked estimator with cohort-by-ward-pair and event-by-quarter fixed effects. Standard errors clustered at census block level.}
     \label{fig:event_study_rental_quarterly}
 \end{figure}
 
@@ -63,7 +65,8 @@ Figure~\ref{fig:event_study_sales_weighted} presents the event study results for
         \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_yearly_weighted_stacked_binary_direction.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Home Sale Prices --- Weighted (Yearly)}
+    \caption{Event Study: Home Sale Prices --- Weighted}
+    \figurenotes{Same specification as Figure 6 but weighting observations by number of sales in each block-year cell.}
     \label{fig:event_study_sales_weighted}
 \end{figure}
 
@@ -84,7 +87,8 @@ Figure~\ref{fig:event_study_sales_controls} presents event study results includi
         \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_yearly_unweighted_stacked_binary_direction_with_controls.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Home Sale Prices --- With Demographic Controls (Yearly)}
+    \caption{Event Study: Home Sale Prices --- With Controls}
+    \figurenotes{Same specification as Figure 6 but including time-varying block group controls: median household income, share white, share Black, share bachelor's degree or higher, and homeownership rate.}
     \label{fig:event_study_sales_controls}
 \end{figure}
 
@@ -106,7 +110,8 @@ Figure~\ref{fig:event_study_rental_weighted} presents the event study results fo
         \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_yearly_weighted_stacked_binary_direction.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Rents --- Weighted (Yearly)}
+    \caption{Event Study: Rents --- Weighted}
+    \figurenotes{Same specification as Figure 7 but weighting observations by number of listings in each block-year cell.}
     \label{fig:event_study_rental_weighted}
 \end{figure}
 
@@ -127,7 +132,8 @@ Figure~\ref{fig:event_study_rental_controls} presents event study results for re
         \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_yearly_unweighted_stacked_binary_direction_with_controls.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Rents --- With Demographic Controls (Yearly)}
+    \caption{Event Study: Rents --- With Controls}
+    \figurenotes{Same specification as Figure 7 but including time-varying block group controls: median household income, share white, share Black, share bachelor's degree or higher, and homeownership rate.}
     \label{fig:event_study_rental_controls}
 \end{figure}
 
@@ -153,6 +159,7 @@ This subsection presents the same robustness checks using the quarterly specific
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Home Sale Prices --- Weighted (Quarterly)}
+    \figurenotes{Quarterly analog to Figure C.3, weighting by number of sales per block-quarter.}
     \label{fig:event_study_sales_weighted_quarterly}
 \end{figure}
 
@@ -171,7 +178,8 @@ This subsection presents the same robustness checks using the quarterly specific
         \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_quarterly_unweighted_stacked_binary_direction_with_controls.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Home Sale Prices --- With Demographic Controls (Quarterly)}
+    \caption{Event Study: Home Sale Prices --- With Controls (Quarterly)}
+    \figurenotes{Quarterly analog to Figure C.4, including time-varying demographic controls.}
     \label{fig:event_study_sales_controls_quarterly}
 \end{figure}
 
@@ -193,6 +201,7 @@ This subsection presents the same robustness checks using the quarterly specific
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Rents --- Weighted (Quarterly)}
+    \figurenotes{Quarterly analog to Figure C.5, weighting by number of listings per block-quarter.}
     \label{fig:event_study_rental_weighted_quarterly}
 \end{figure}
 
@@ -211,6 +220,7 @@ This subsection presents the same robustness checks using the quarterly specific
         \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_quarterly_unweighted_stacked_binary_direction_with_controls.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Rents --- With Demographic Controls (Quarterly)}
+    \caption{Event Study: Rents --- With Controls (Quarterly)}
+    \figurenotes{Quarterly analog to Figure C.6, including time-varying demographic controls.}
     \label{fig:event_study_rental_controls_quarterly}
 \end{figure}

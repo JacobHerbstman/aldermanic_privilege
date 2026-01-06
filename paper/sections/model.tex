@@ -10,9 +10,9 @@ The core tension in this model is between concentrated local costs and diffuse c
 The total housing stock in the city is $H = h_A + h_B$, where $h_g$ is the housing built in ward $g \in \{A, B\}$. The welfare of the city and the local wards is determined by the following components:
 
 \begin{itemize}
-    \item \textbf{$A(H)$ - Citywide Agglomeration Benefits:} This function represents the total value created by housing density, including increased property tax revenue, labor market pooling, and aggregate affordability. We assume $A'(H) > 0$ and $A''(H) < 0$ (diminishing marginal returns to density). Importantly, these benefits are \textbf{diffuse}; they are shared by the city as a whole.
+    \item \textbf{$A(H)$ - Citywide Agglomeration Benefits:} This function represents the total value created by housing density, including increased property tax revenue, labor market pooling, and aggregate affordability. I assume $A'(H) > 0$ and $A''(H) < 0$ (diminishing marginal returns to density). Importantly, these benefits are \textbf{diffuse}; they are shared by the city as a whole.
     
-    \item \textbf{$C(h_g)$ - Local Congestion Costs:} This represents the ``NIMBY'' costs associated with density—traffic, loss of light, or strain on local amenities. We assume these costs are concentrated entirely within the ward where construction occurs, with $C'(h_g) > 0$ and $C''(h_g) > 0$ (convex costs).
+    \item \textbf{$C(h_g)$ - Local Congestion Costs:} This represents the ``NIMBY'' costs associated with density—traffic, loss of light, or strain on local amenities. I assume these costs are concentrated entirely within the ward where construction occurs, with $C'(h_g) > 0$ and $C''(h_g) > 0$ (convex costs).
     
     \item \textbf{$\kappa$ - Private Construction Costs:} The marginal cost of construction borne by developers.
     
@@ -61,7 +61,7 @@ The intuition is straightforward: The Alderman stops approving housing once the 
 \label{subsec:comparative_statics}
 
 The equilibrium level of housing in the alderman's ward, $h_g^*$, is implicitly defined by the Alderman's first-order condition (Equation \ref{eq:alderman_foc}): $\lambda A'(H) = C'(h_g) + \kappa$. 
-By differentiating with respect to our parameters of interest, we can see that housing supply is decreasing in the bureaucratic friction parameter $\kappa$ and increasing in the local capture parameter $\lambda$:
+By differentiating with respect to our parameters of interest, one can see that housing supply is decreasing in the bureaucratic friction parameter $\kappa$ and increasing in the local capture parameter $\lambda$:
 
 \begin{equation}
     \frac{\partial h_g^*}{\partial \kappa} < 0 \quad \text{and} \quad \frac{\partial h_g^*}{\partial \lambda} > 0
