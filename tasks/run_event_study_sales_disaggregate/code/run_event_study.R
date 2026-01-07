@@ -36,6 +36,14 @@ parser <- add_option(parser, c("-s", "--stacked"),
   type = "logical", default = TRUE,
   help = "Use stacked design with 2015+2023 cohorts [default: TRUE]"
 )
+parser <- add_option(parser, c("-k", "--stack_type"),
+  type = "character", default = "implementation",
+  help = "Stacking type: announcement (2012+2022) or implementation (2015+2023) [default: implementation]. Only used if stacked=TRUE."
+)
+parser <- add_option(parser, c("-o", "--cohort"),
+  type = "character", default = "2015",
+  help = "Cohort for unstacked analysis: 2012, 2015, 2022, or 2023 [default: 2015]. Ignored if stacked=TRUE."
+)
 
 args <- parse_args(parser)
 
@@ -46,15 +54,22 @@ FE_TYPE <- args$fe_type
 WEIGHTING <- args$weighting
 BANDWIDTH <- args$bandwidth
 STACKED <- args$stacked
+STACK_TYPE <- args$stack_type
+COHORT <- args$cohort
 
 message("\n=== Disaggregate Sales Event Study ===")
+message(sprintf("Stacked: %s", STACKED))
+if (STACKED) {
+  message(sprintf("Stack Type: %s", STACK_TYPE))
+} else {
+  message(sprintf("Cohort: %s", COHORT))
+}
 message(sprintf("Treatment Type: %s", TREATMENT_TYPE))
 message(sprintf("Include Hedonics: %s", INCLUDE_HEDONICS))
 message(sprintf("Time Unit: %s", TIME_UNIT))
 message(sprintf("FE Type: %s", FE_TYPE))
 message(sprintf("Weighting: %s", WEIGHTING))
 message(sprintf("Bandwidth: %d ft", BANDWIDTH))
-message(sprintf("Stacked: %s", STACKED))
 
 # Output suffix
 fe_suffix <- switch(FE_TYPE,
@@ -62,10 +77,18 @@ fe_suffix <- switch(FE_TYPE,
   "block" = "_block_fe",
   "block_group" = "_bg_fe"
 )
+
+# Stack suffix depends on mode
+if (STACKED) {
+  stack_suffix <- sprintf("_stacked_%s", STACK_TYPE)
+} else {
+  stack_suffix <- sprintf("_unstacked_%s", COHORT)
+}
+
 suffix <- sprintf(
-  "disaggregate_%s_%s%s_%s_%dft%s%s",
+  "disaggregate_%s%s%s_%s_%dft%s%s",
   TIME_UNIT,
-  ifelse(STACKED, "stacked", "unstacked"),
+  stack_suffix,
   ifelse(TREATMENT_TYPE == "continuous", "_continuous", "_binary"),
   WEIGHTING,
   as.integer(BANDWIDTH),
@@ -79,8 +102,20 @@ suffix <- sprintf(
 message("\nLoading transaction panel...")
 
 if (STACKED) {
-  data <- read_parquet("../input/sales_transaction_panel.parquet")
+  # Choose stacked panel based on stack_type
+  input_file <- switch(STACK_TYPE,
+    "announcement" = "../input/sales_transaction_panel_announcement.parquet",
+    "implementation" = "../input/sales_transaction_panel.parquet",
+    stop(sprintf("Unknown stack_type: %s. Must be 'announcement' or 'implementation'.", STACK_TYPE))
+  )
+
+  message(sprintf("Loading stacked panel (%s): %s", STACK_TYPE, input_file))
+  data <- read_parquet(input_file)
   setDT(data)
+
+  # Report which cohorts are included
+  cohorts_in_data <- unique(data$cohort)
+  message(sprintf("Cohorts in data: %s", paste(cohorts_in_data, collapse = " + ")))
 
   # FE structure for stacked design
   unit_fe <- switch(FE_TYPE,
@@ -95,8 +130,17 @@ if (STACKED) {
 
   cluster_var <- "cohort_block_id"
 } else {
-  # Unstacked: use 2015 cohort only (longer pre/post period, cleaner identification)
-  data <- read_parquet("../input/sales_transaction_panel_2015.parquet")
+  # Unstacked: load cohort-specific panel
+  input_file <- switch(COHORT,
+    "2012" = "../input/sales_transaction_panel_2012.parquet",
+    "2015" = "../input/sales_transaction_panel_2015.parquet",
+    "2022" = "../input/sales_transaction_panel_2022.parquet",
+    "2023" = "../input/sales_transaction_panel_2023.parquet",
+    stop(sprintf("Unknown cohort: %s. Must be 2012, 2015, 2022, or 2023.", COHORT))
+  )
+
+  message(sprintf("Loading %s cohort panel: %s", COHORT, input_file))
+  data <- read_parquet(input_file)
   setDT(data)
 
   # FE structure for unstacked design (no cohort prefix needed)
@@ -201,7 +245,6 @@ if (TIME_UNIT == "quarterly") {
 
   data[, relative_period := relative_qtr_capped]
   time_fe <- if (STACKED) "cohort^sale_yearqtr" else "sale_yearqtr"
-  x_label <- "Quarters Relative to Redistricting"
   x_breaks <- seq(-12, 12, by = 2)
 
   message(sprintf(
@@ -212,10 +255,36 @@ if (TIME_UNIT == "quarterly") {
 } else {
   data[, relative_period := relative_year_capped]
   time_fe <- if (STACKED) "cohort^sale_year" else "sale_year"
-  x_label <- "Years Relative to Redistricting"
   x_breaks <- -5:5
 }
 
+# =============================================================================
+# SET X-AXIS LABEL BASED ON TIMING
+# =============================================================================
+# Announcement timing: 2012, 2022, or stacked_announcement
+# Implementation timing: 2015, 2023, or stacked_implementation
+
+if (STACKED) {
+  is_announcement_timing <- (STACK_TYPE == "announcement")
+} else {
+  is_announcement_timing <- (COHORT %in% c("2012", "2022"))
+}
+
+if (TIME_UNIT == "quarterly") {
+  if (is_announcement_timing) {
+    x_label <- "Quarters Relative to Redistricting Announcement"
+  } else {
+    x_label <- "Quarters Relative to Redistricting"
+  }
+} else {
+  if (is_announcement_timing) {
+    x_label <- "Years Relative to Redistricting Announcement"
+  } else {
+    x_label <- "Years Relative to Redistricting"
+  }
+}
+
+message(sprintf("X-axis label: %s", x_label))
 message(sprintf("Time FE: %s", time_fe))
 
 
@@ -318,25 +387,25 @@ if (TREATMENT_TYPE == "continuous") {
   }
 
   # Save regression table
-  etable(list(m),
-    fitstat = ~ n + r2,
-    style.tex = style.tex("aer",
-      model.format = "", fixef.title = "", fixef.suffix = "",
-      yesNo = c("$\\checkmark$", "")
-    ),
-    depvar = FALSE,
-    digits = 3,
-    headers = c("Continuous"),
-    signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-    notes = sprintf(
-      "Transaction-level regression. %s weighting with %dft bandwidth. Hedonics in logs, no imputation.",
-      tools::toTitleCase(WEIGHTING), as.integer(BANDWIDTH)
-    ),
-    float = FALSE,
-    file = sprintf("../output/did_table_%s.tex", suffix),
-    replace = TRUE
-  )
-  message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
+  # etable(list(m),
+  #   fitstat = ~ n + r2,
+  #   style.tex = style.tex("aer",
+  #     model.format = "", fixef.title = "", fixef.suffix = "",
+  #     yesNo = c("$\\checkmark$", "")
+  #   ),
+  #   depvar = FALSE,
+  #   digits = 3,
+  #   headers = c("Continuous"),
+  #   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+  #   notes = sprintf(
+  #     "Transaction-level regression. %s weighting with %dft bandwidth. Hedonics in logs, no imputation.",
+  #     tools::toTitleCase(WEIGHTING), as.integer(BANDWIDTH)
+  #   ),
+  #   float = FALSE,
+  #   file = sprintf("../output/did_table_%s.tex", suffix),
+  #   replace = TRUE
+  # )
+  # message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
 } else if (TREATMENT_TYPE == "binary_direction") {
   message("\n=== Binary Direction Treatment ===")
 
@@ -482,25 +551,25 @@ if (TREATMENT_TYPE == "continuous") {
   }
 
   # Save regression table
-  etable(list(m_stricter, m_lenient),
-    fitstat = ~ n + r2,
-    style.tex = style.tex("aer",
-      model.format = "", fixef.title = "", fixef.suffix = "",
-      yesNo = c("$\\checkmark$", "")
-    ),
-    depvar = FALSE,
-    digits = 3,
-    headers = c("To Stricter", "To More Lenient"),
-    signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-    notes = sprintf(
-      "Transaction-level regression. %s weighting with %dft bandwidth. Hedonics in logs, no imputation.",
-      tools::toTitleCase(WEIGHTING), as.integer(BANDWIDTH)
-    ),
-    float = FALSE,
-    file = sprintf("../output/did_table_%s.tex", suffix),
-    replace = TRUE
-  )
-  message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
+  # etable(list(m_stricter, m_lenient),
+  #   fitstat = ~ n + r2,
+  #   style.tex = style.tex("aer",
+  #     model.format = "", fixef.title = "", fixef.suffix = "",
+  #     yesNo = c("$\\checkmark$", "")
+  #   ),
+  #   depvar = FALSE,
+  #   digits = 3,
+  #   headers = c("To Stricter", "To More Lenient"),
+  #   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+  #   notes = sprintf(
+  #     "Transaction-level regression. %s weighting with %dft bandwidth. Hedonics in logs, no imputation.",
+  #     tools::toTitleCase(WEIGHTING), as.integer(BANDWIDTH)
+  #   ),
+  #   float = FALSE,
+  #   file = sprintf("../output/did_table_%s.tex", suffix),
+  #   replace = TRUE
+  # )
+  # message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
 }
 
 message("\n\nDone!")

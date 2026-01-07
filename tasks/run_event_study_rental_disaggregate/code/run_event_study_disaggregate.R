@@ -273,19 +273,19 @@ if (TREATMENT_TYPE == "continuous") {
         message(sprintf("Saved: ../output/event_study_%s.pdf", suffix))
     }
 
-    etable(list(m),
-        fitstat = ~ n + r2,
-        style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "", yesNo = c("$\\checkmark$", "")),
-        depvar = FALSE, digits = 3, headers = c("Continuous"),
-        signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-        notes = sprintf(
-            "Listing-level regression. %s weighting with %dft bandwidth. SEs clustered by block.%s",
-            tools::toTitleCase(WEIGHTING), as.integer(BANDWIDTH),
-            ifelse(SAMPLE_FILTER == "multifamily_only", " Multifamily buildings only.", "")
-        ),
-        float = FALSE, file = sprintf("../output/did_table_%s.tex", suffix), replace = TRUE
-    )
-    message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
+    # etable(list(m),
+    #     fitstat = ~ n + r2,
+    #     style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "", yesNo = c("$\\checkmark$", "")),
+    #     depvar = FALSE, digits = 3, headers = c("Continuous"),
+    #     signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+    #     notes = sprintf(
+    #         "Listing-level regression. %s weighting with %dft bandwidth. SEs clustered by block.%s",
+    #         tools::toTitleCase(WEIGHTING), as.integer(BANDWIDTH),
+    #         ifelse(SAMPLE_FILTER == "multifamily_only", " Multifamily buildings only.", "")
+    #     ),
+    #     float = FALSE, file = sprintf("../output/did_table_%s.tex", suffix), replace = TRUE
+    # )
+    # message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
 } else if (TREATMENT_TYPE == "binary_direction") {
     message("\n=== Binary Direction Treatment ===")
 
@@ -432,18 +432,18 @@ if (TREATMENT_TYPE == "continuous") {
         message(sprintf("Saved: ../output/event_study_combined_%s.pdf", suffix))
     }
 
-    etable(list(m_stricter, m_lenient),
-        fitstat = ~ n + r2,
-        style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "", yesNo = c("$\\checkmark$", "")),
-        depvar = FALSE, digits = 3, headers = c("To Stricter", "To More Lenient"),
-        signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-        notes = sprintf(
-            "Listing-level regression. %s weighting with %dft bandwidth. SEs clustered by block.%s",
-            tools::toTitleCase(WEIGHTING), as.integer(BANDWIDTH),
-            ifelse(SAMPLE_FILTER == "multifamily_only", " Multifamily buildings only.", "")
-        ),
-        float = FALSE, file = sprintf("../output/did_table_%s.tex", suffix), replace = TRUE
-    )
+    # etable(list(m_stricter, m_lenient),
+    #     fitstat = ~ n + r2,
+    #     style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "", yesNo = c("$\\checkmark$", "")),
+    #     depvar = FALSE, digits = 3, headers = c("To Stricter", "To More Lenient"),
+    #     signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+    #     notes = sprintf(
+    #         "Listing-level regression. %s weighting with %dft bandwidth. SEs clustered by block.%s",
+    #         tools::toTitleCase(WEIGHTING), as.integer(BANDWIDTH),
+    #         ifelse(SAMPLE_FILTER == "multifamily_only", " Multifamily buildings only.", "")
+    #     ),
+    #     float = FALSE, file = sprintf("../output/did_table_%s.tex", suffix), replace = TRUE
+    # )
     message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
 }
 

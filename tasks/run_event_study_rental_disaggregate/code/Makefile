@@ -9,9 +9,9 @@ FREQUENCIES       := yearly
 STACKINGS         := TRUE
 TREATMENT_TYPES   := continuous binary_direction
 INCLUDE_CONTROLS  := TRUE FALSE
-WEIGHTINGS        := uniform triangular
-BANDWIDTHS        := 500 1000 1500 2000
-SAMPLE_FILTERS    := full_sample multifamily_only
+WEIGHTINGS        := uniform
+BANDWIDTHS        := 1000 2000
+SAMPLE_FILTERS    := full_sample
 
 SCRIPT := run_event_study_disaggregate.R
 
@@ -103,5 +103,23 @@ $(INPUT_LISTING_2015): ../../create_event_study_rental_data_disaggregate/output/
 
 $(INPUT_LISTING_2023): ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel_2023.parquet | ../input
 	ln -sf $< $@
+
+# =============================================================================
+# DiD Table
+# =============================================================================
+
+DID_SCRIPT := run_did_rental_disaggregate.R
+DID_OUTPUT := ../output/did_table_rental.tex
+
+.PHONY: did-table main
+
+did-table: $(DID_OUTPUT)
+
+$(DID_OUTPUT): $(DID_SCRIPT) $(INPUT_LISTING_PANEL) | ../output
+	@echo "→ [rental] Creating pooled DiD table"
+	Rscript $(DID_SCRIPT)
+
+# Main outputs including DiD table
+main: main-specs did-table
 
 include ../../generic.make

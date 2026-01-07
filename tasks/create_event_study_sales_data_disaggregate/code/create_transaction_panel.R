@@ -195,9 +195,109 @@ message(sprintf(
 ))
 
 # =============================================================================
-# 6. CREATE STACKED COHORT PANELS
+# 6. CREATE COHORT PANELS
 # =============================================================================
-message("\n=== CREATING STACKED COHORT PANEL ===")
+
+# =============================================================================
+# 6a. CREATE 2012 COHORT (Anticipation Analysis)
+# =============================================================================
+# The 2012 cohort uses the SAME treatment definition as 2015 (which blocks switched
+# in the 2015 redistricting), but centers the event study on the announcement date
+# (2012) rather than implementation (May 2015).
+#
+# This allows testing whether market effects began at announcement or implementation.
+# Uses sales from 2007-2017 for a balanced 5-year pre/post window around 2012.
+
+message("\n=== CREATING 2012 COHORT (Anticipation) ===")
+
+cohort_2012 <- sales_with_treatment[
+  sale_year >= 2007 & sale_year <= 2017 &
+    valid_2015 == TRUE &
+    !is.na(ward_pair_id) &
+    abs(as.numeric(signed_dist)) <= 2000
+][, `:=`(
+  cohort = "2012",
+  relative_year = sale_year - 2012,
+  relative_year_capped = pmax(pmin(sale_year - 2012, 5), -5),
+  treat = as.integer(switched_2015),
+  strictness_change = strictness_change_2015,
+  ward_origin = ward_origin_2015,
+  ward_dest = ward_dest_2015
+)]
+
+# Add dist_ft for filtering/weighting in regression script
+cohort_2012[, dist_ft := abs(as.numeric(signed_dist))]
+
+# FIX: For treated blocks, use the boundary they crossed (time-invariant)
+cohort_2012[
+  switched_2015 == TRUE,
+  ward_pair_id := paste(pmin(ward_origin_2015, ward_dest_2015),
+    pmax(ward_origin_2015, ward_dest_2015),
+    sep = "-"
+  )
+]
+
+# Construct ward_pair_side from the (potentially fixed) ward_pair_id
+cohort_2012[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
+
+message(sprintf("2012 cohort: %s transactions", format(nrow(cohort_2012), big.mark = ",")))
+message(sprintf("  Year range: %d to %d", min(cohort_2012$sale_year), max(cohort_2012$sale_year)))
+message(sprintf("  Treated transactions: %s", format(sum(cohort_2012$treat == 1), big.mark = ",")))
+message(sprintf("  Control transactions: %s", format(sum(cohort_2012$treat == 0), big.mark = ",")))
+
+# =============================================================================
+# 6b. CREATE 2022 COHORT (Anticipation for 2023 Redistricting)
+# =============================================================================
+# The 2022 cohort uses the SAME treatment definition as 2023 (which blocks switched
+# in the 2023 redistricting), but centers the event study on the announcement date
+# (2022) rather than implementation (May 2023).
+#
+# Uses sales from 2017-2025 for pre/post window around 2022.
+
+message("\n=== CREATING 2022 COHORT (Anticipation for 2023 Redistricting) ===")
+
+cohort_2022 <- sales_with_treatment[
+  sale_year >= 2017 & sale_year <= 2025 &
+    valid_2023 == TRUE &
+    !is.na(ward_pair_id) &
+    abs(as.numeric(signed_dist)) <= 2000
+][, `:=`(
+  cohort = "2022",
+  relative_year = sale_year - 2022,
+  relative_year_capped = pmax(pmin(sale_year - 2022, 5), -5),
+  treat = as.integer(switched_2023),
+  strictness_change = strictness_change_2023,
+  ward_origin = ward_origin_2023,
+  ward_dest = ward_dest_2023
+)]
+
+# Add dist_ft for filtering/weighting in regression script
+cohort_2022[, dist_ft := abs(as.numeric(signed_dist))]
+
+# FIX: For treated blocks, use the boundary they crossed (time-invariant)
+cohort_2022[
+  switched_2023 == TRUE,
+  ward_pair_id := paste(pmin(ward_origin_2023, ward_dest_2023),
+    pmax(ward_origin_2023, ward_dest_2023),
+    sep = "-"
+  )
+]
+
+# Construct ward_pair_side from the (potentially fixed) ward_pair_id
+cohort_2022[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
+
+message(sprintf("2022 cohort: %s transactions", format(nrow(cohort_2022), big.mark = ",")))
+message(sprintf("  Year range: %d to %d", min(cohort_2022$sale_year), max(cohort_2022$sale_year)))
+message(sprintf("  Treated transactions: %s", format(sum(cohort_2022$treat == 1), big.mark = ",")))
+message(sprintf("  Control transactions: %s", format(sum(cohort_2022$treat == 0), big.mark = ",")))
+
+# =============================================================================
+# 6c. CREATE 2015 COHORT (Implementation)
+# =============================================================================
+# The 2015 cohort centers on the actual implementation date (May 2015).
+# Uses sales from 2010-2020.
+
+message("\n=== CREATING 2015 COHORT (Implementation) ===")
 
 # 2015 cohort: sales from 2010-2020
 cohort_2015 <- sales_with_treatment[
@@ -232,6 +332,10 @@ cohort_2015[
 cohort_2015[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
 
 message(sprintf("2015 cohort: %s transactions", format(nrow(cohort_2015), big.mark = ",")))
+# =============================================================================
+# 6d. CREATE 2023 COHORT
+# =============================================================================
+message("\n=== CREATING 2023 COHORT ===")
 
 # 2023 cohort: sales from 2018-2025
 cohort_2023 <- sales_with_treatment[
@@ -266,71 +370,84 @@ cohort_2023[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
 
 message(sprintf("2023 cohort: %s transactions", format(nrow(cohort_2023), big.mark = ",")))
 
-# Stack cohorts
-stacked_panel <- rbindlist(list(cohort_2015, cohort_2023), fill = TRUE)
-
-# Create cohort-specific identifiers for FEs
-stacked_panel[, `:=`(
+# Add cohort-specific identifiers for all cohorts
+cohort_2012[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
   cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
 )]
 
-message(sprintf("\nStacked panel: %s total transactions", format(nrow(stacked_panel), big.mark = ",")))
+cohort_2022[, `:=`(
+  cohort_block_id = paste(cohort, block_id, sep = "_"),
+  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
+)]
+
+cohort_2015[, `:=`(
+  cohort_block_id = paste(cohort, block_id, sep = "_"),
+  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
+)]
+
+cohort_2023[, `:=`(
+  cohort_block_id = paste(cohort, block_id, sep = "_"),
+  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
+)]
 
 # =============================================================================
-# 7. SELECT FINAL COLUMNS
+# 7. CREATE STACKED PANELS
+# =============================================================================
+message("\n=== CREATING STACKED PANELS ===")
+
+# Announcement timing: 2012 + 2022
+stacked_announcement <- rbindlist(list(cohort_2012, cohort_2022), fill = TRUE)
+stacked_announcement[, `:=`(
+  cohort_block_id = paste(cohort, block_id, sep = "_"),
+  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
+)]
+message(sprintf(
+  "Stacked (announcement): %s transactions (2012 + 2022)",
+  format(nrow(stacked_announcement), big.mark = ",")
+))
+
+# Implementation timing: 2015 + 2023
+stacked_implementation <- rbindlist(list(cohort_2015, cohort_2023), fill = TRUE)
+stacked_implementation[, `:=`(
+  cohort_block_id = paste(cohort, block_id, sep = "_"),
+  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
+)]
+message(sprintf(
+  "Stacked (implementation): %s transactions (2015 + 2023)",
+  format(nrow(stacked_implementation), big.mark = ",")
+))
+
+# =============================================================================
+# 8. SELECT FINAL COLUMNS
 # =============================================================================
 message("\n=== SELECTING FINAL COLUMNS ===")
 
-final_panel <- stacked_panel[, .(
-  # Identifiers
-  pin,
-  block_id,
-  cohort,
-  cohort_block_id,
+# Define column selection function to avoid repetition
+select_final_cols <- function(dt) {
+  dt[, .(
+    pin, block_id, cohort, cohort_block_id,
+    sale_date, sale_year, relative_year, relative_year_capped,
+    sale_price,
+    log_sqft, log_land_sqft, log_building_age, log_bedrooms, log_baths, has_garage,
+    building_sqft, land_sqft, year_built, building_age, num_bedrooms,
+    num_full_baths, baths_total, garage_size, hedonic_tax_year, years_gap,
+    ward, ward_pair_id, ward_origin, ward_pair_side, cohort_ward_pair_side,
+    signed_dist, dist_ft,
+    treat, strictness_change
+  )]
+}
 
-  # Time
-  sale_date,
-  sale_year,
-  relative_year,
-  relative_year_capped,
+# Apply to all panels
+cohort_2012_final <- select_final_cols(cohort_2012)
+cohort_2022_final <- select_final_cols(cohort_2022)
+cohort_2015_final <- select_final_cols(cohort_2015)
+cohort_2023_final <- select_final_cols(cohort_2023)
+stacked_announcement_final <- select_final_cols(stacked_announcement)
+stacked_implementation_final <- select_final_cols(stacked_implementation)
 
-  # Outcome
-  sale_price,
-
-  # Hedonic controls (log-transformed, NO imputation)
-  log_sqft,
-  log_land_sqft,
-  log_building_age,
-  log_bedrooms,
-  log_baths,
-  has_garage,
-
-  # Raw hedonics (for diagnostics)
-  building_sqft,
-  land_sqft,
-  year_built,
-  building_age,
-  num_bedrooms,
-  num_full_baths,
-  baths_total,
-  garage_size,
-  hedonic_tax_year,
-  years_gap,
-
-  # Geography/FEs
-  ward,
-  ward_pair_id,
-  ward_origin,
-  ward_pair_side,
-  cohort_ward_pair_side,
-  signed_dist,
-  dist_ft,
-
-  # Treatment
-  treat,
-  strictness_change
-)]
+# Use implementation as "final_panel" for backwards compatibility with diagnostics
+final_panel <- stacked_implementation_final
 
 # =============================================================================
 # 8. DIAGNOSTICS
@@ -383,22 +500,34 @@ message(sprintf(
 ))
 
 # =============================================================================
-# 9. SAVE
+# 10. SAVE ALL PANELS
 # =============================================================================
 message("\n=== SAVING ===")
 
-write_parquet(final_panel, "../output/sales_transaction_panel.parquet")
-
+# Stacked panels
+write_parquet(stacked_implementation_final, "../output/sales_transaction_panel.parquet")
 message(sprintf(
-  "Saved: ../output/sales_transaction_panel.parquet (%s rows)",
-  format(nrow(final_panel), big.mark = ",")
+  "Saved stacked (implementation 2015+2023): %s rows",
+  format(nrow(stacked_implementation_final), big.mark = ",")
 ))
 
-# Also save cohort-specific panels for unstacked analysis
-write_parquet(cohort_2015, "../output/sales_transaction_panel_2015.parquet")
-message(sprintf("Saved 2015 cohort panel: %s rows", format(nrow(cohort_2015), big.mark = ",")))
+write_parquet(stacked_announcement_final, "../output/sales_transaction_panel_announcement.parquet")
+message(sprintf(
+  "Saved stacked (announcement 2012+2022): %s rows",
+  format(nrow(stacked_announcement_final), big.mark = ",")
+))
 
-write_parquet(cohort_2023, "../output/sales_transaction_panel_2023.parquet")
-message(sprintf("Saved 2023 cohort panel: %s rows", format(nrow(cohort_2023), big.mark = ",")))
+# Individual cohort panels (for unstacked analysis)
+write_parquet(cohort_2012_final, "../output/sales_transaction_panel_2012.parquet")
+message(sprintf("Saved 2012 cohort: %s rows", format(nrow(cohort_2012_final), big.mark = ",")))
+
+write_parquet(cohort_2022_final, "../output/sales_transaction_panel_2022.parquet")
+message(sprintf("Saved 2022 cohort: %s rows", format(nrow(cohort_2022_final), big.mark = ",")))
+
+write_parquet(cohort_2015_final, "../output/sales_transaction_panel_2015.parquet")
+message(sprintf("Saved 2015 cohort: %s rows", format(nrow(cohort_2015_final), big.mark = ",")))
+
+write_parquet(cohort_2023_final, "../output/sales_transaction_panel_2023.parquet")
+message(sprintf("Saved 2023 cohort: %s rows", format(nrow(cohort_2023_final), big.mark = ",")))
 
 message("\nDone!")
