@@ -1,0 +1,354 @@
+# run_event_study_disaggregate.R
+# Disaggregate (listing-level) event study for rental prices around ward redistricting
+# Uses hedonic controls and individual listing observations instead of block-level aggregation
+#
+# Usage: Rscript run_event_study_disaggregate.R --frequency="yearly" --stacked=TRUE --treatment_type="continuous" --include_controls=TRUE
+
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
+source("../../setup_environment/code/packages.R")
+
+# =============================================================================
+# TEST ARGUMENTS
+# =============================================================================
+# For testing in interactive R session
+
+# FREQUENCY <- "yearly"          # "yearly" or "quarterly"
+# STACKED <- T                 # TRUE or FALSE
+# TREATMENT_TYPE <- "continuous"  # "continuous" or "binary_direction"
+# INCLUDE_CONTROLS <- T        # TRUE or FALSE
+
+# =============================================================================
+# COMMAND LINE ARGUMENTS
+# =============================================================================
+parser <- OptionParser()
+parser <- add_option(parser, c("-f", "--frequency"),
+    type = "character", default = "yearly",
+    help = "Analysis frequency: yearly or quarterly [default: yearly]"
+)
+parser <- add_option(parser, c("-s", "--stacked"),
+    type = "logical", default = TRUE,
+    help = "Use stacked design with 2015+2023 cohorts [default: TRUE]"
+)
+parser <- add_option(parser, c("-x", "--treatment_type"),
+    type = "character", default = "continuous",
+    help = "Treatment type: continuous or binary_direction [default: continuous]"
+)
+parser <- add_option(parser, c("-c", "--include_controls"),
+    type = "logical", default = TRUE,
+    help = "Include hedonic controls [default: TRUE]"
+)
+
+args <- parse_args(parser)
+
+FREQUENCY <- args$frequency
+STACKED <- args$stacked
+TREATMENT_TYPE <- args$treatment_type
+INCLUDE_CONTROLS <- args$include_controls
+
+message("\n=== Disaggregate Event Study Configuration ===")
+message(sprintf("Frequency: %s", FREQUENCY))
+message(sprintf("Stacked: %s", STACKED))
+message(sprintf("Treatment Type: %s", TREATMENT_TYPE))
+message(sprintf("Include Hedonic Controls: %s", INCLUDE_CONTROLS))
+
+# Output suffix
+suffix <- sprintf(
+    "disaggregate_%s_%s_%s%s",
+    FREQUENCY,
+    ifelse(STACKED, "stacked", "unstacked"),
+    TREATMENT_TYPE,
+    ifelse(INCLUDE_CONTROLS, "_with_hedonics", "")
+)
+
+# Hedonic controls formula component
+# Available: beds_factor, beds_missing, baths_factor, baths_missing, has_gym, has_laundry, building_type_factor
+hedonic_controls <- if (INCLUDE_CONTROLS) {
+    "+ beds + baths + as.factor(building_type_clean)"
+} else {
+    ""
+}
+
+# =============================================================================
+# LOAD DATA
+# =============================================================================
+message("\nLoading listing-level panel data...")
+
+if (STACKED) {
+    data <- read_parquet("../input/rental_listing_panel.parquet") %>%
+        filter(!is.na(strictness_change), !is.na(rent_price), rent_price > 0)
+
+    if (FREQUENCY == "yearly") {
+        fe_formula <- "cohort_ward_pair_side + cohort^year"
+        time_var <- "relative_year_capped"
+    } else {
+        fe_formula <- "cohort_ward_pair_side + cohort^year_quarter"
+        time_var <- "relative_quarter_capped"
+    }
+    cluster_var <- "cohort_block_id"
+} else {
+    # Unstacked: use 2015 cohort only
+    data <- read_parquet("../input/rental_listing_panel_2015.parquet") %>%
+        filter(!is.na(strictness_change), !is.na(rent_price), rent_price > 0)
+
+    if (FREQUENCY == "yearly") {
+        fe_formula <- "ward_pair_side + year"
+        time_var <- "relative_year_capped"
+    } else {
+        fe_formula <- "ward_pair_side + year_quarter"
+        time_var <- "relative_quarter_capped"
+    }
+    cluster_var <- "block_id"
+}
+
+message(sprintf("Loaded %s observations", format(nrow(data), big.mark = ",")))
+message(sprintf("Unique blocks: %s", format(n_distinct(data$block_id), big.mark = ",")))
+message(sprintf("Unique listings: %s", format(n_distinct(data$id), big.mark = ",")))
+
+# Set time axis parameters
+if (FREQUENCY == "yearly") {
+    time_label <- "Years"
+    x_breaks <- -5:5
+} else {
+    time_label <- "Quarters"
+    x_breaks <- seq(-8, 16, 4)
+}
+
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+extract_iplot_data <- function(model, group_label) {
+    iplot_data <- tryCatch(iplot(model, .plot = FALSE)[[1]], error = function(e) NULL)
+    if (is.null(iplot_data) || nrow(iplot_data) == 0) {
+        return(NULL)
+    }
+    iplot_data %>% mutate(
+        group = group_label,
+        estimate_pct = estimate * 100,
+        ci_low_pct = ci_low * 100,
+        ci_high_pct = ci_high * 100
+    )
+}
+
+run_model <- function(formula_str, data_subset) {
+    message(sprintf("Running regression with %s observations...", format(nrow(data_subset), big.mark = ",")))
+    message(sprintf("Formula: %s", formula_str))
+
+    feols(as.formula(formula_str),
+        data = data_subset,
+        cluster = as.formula(sprintf("~%s", cluster_var))
+    )
+}
+
+# =============================================================================
+# RUN REGRESSIONS
+# =============================================================================
+
+if (TREATMENT_TYPE == "continuous") {
+    message("\n=== Continuous Treatment ===")
+
+    formula_str <- sprintf(
+        "log(rent_price) ~ i(%s, treatment_continuous, ref = -1) %s | %s",
+        time_var, hedonic_controls, fe_formula
+    )
+    m <- run_model(formula_str, data)
+    print(summary(m))
+
+    plot_data <- extract_iplot_data(m, "All Listings")
+
+    if (!is.null(plot_data) && nrow(plot_data) > 0) {
+        p <- ggplot(plot_data, aes(x = x, y = estimate_pct)) +
+            geom_hline(yintercept = 0, linetype = "solid", color = "gray40", linewidth = 0.4) +
+            geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
+            geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.2, fill = "#009E73", color = NA) +
+            geom_line(color = "#009E73", linewidth = 1) +
+            geom_point(size = 2.5, color = "#009E73") +
+            scale_x_continuous(breaks = x_breaks) +
+            scale_y_continuous(labels = function(x) paste0(x, "%")) +
+            labs(
+                x = sprintf("%s Relative to Alderman Switch", time_label),
+                y = "Effect on Rents"
+            ) +
+            theme_minimal(base_size = 11) +
+            theme(
+                panel.grid.major.x = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
+                axis.line = element_line(color = "gray40", linewidth = 0.3),
+                axis.ticks = element_line(color = "gray40", linewidth = 0.3),
+                axis.title = element_text(size = 10, color = "gray20"),
+                axis.text = element_text(size = 9, color = "gray30"),
+                plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
+            )
+
+        ggsave(sprintf("../output/event_study_%s.pdf", suffix), p, width = 7, height = 4.5, bg = "white")
+        message(sprintf("Saved: ../output/event_study_%s.pdf", suffix))
+    }
+
+    etable(list(m),
+        fitstat = ~ n + r2,
+        style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "", yesNo = c("$\\checkmark$", "")),
+        depvar = FALSE, digits = 3, headers = c("Continuous"),
+        signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+        notes = "Listing-level regressions with hedonic controls. Alderman strictness is standardized (mean 0, SD 1).",
+        float = FALSE, file = sprintf("../output/did_table_%s.tex", suffix), replace = TRUE
+    )
+    message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
+} else if (TREATMENT_TYPE == "binary_direction") {
+    message("\n=== Binary Direction Treatment ===")
+
+    # Stricter: compare stricter-bound listings to control listings
+    message("\n--- Moved to Stricter ---")
+    data_for_stricter <- data %>%
+        filter(strictness_change > 0 | treat == 0)
+    formula_stricter <- sprintf(
+        "log(rent_price) ~ i(%s, treat_stricter, ref = -1) %s | %s",
+        time_var, hedonic_controls, fe_formula
+    )
+    m_stricter <- run_model(formula_stricter, data_for_stricter)
+    print(summary(m_stricter))
+
+    # Lenient: compare lenient-bound listings to control listings
+    message("\n--- Moved to More Lenient ---")
+    data_for_lenient <- data %>%
+        filter(strictness_change < 0 | treat == 0)
+    formula_lenient <- sprintf(
+        "log(rent_price) ~ i(%s, treat_lenient, ref = -1) %s | %s",
+        time_var, hedonic_controls, fe_formula
+    )
+    m_lenient <- run_model(formula_lenient, data_for_lenient)
+    print(summary(m_lenient))
+
+    plot_data <- bind_rows(
+        extract_iplot_data(m_stricter, "Moved to Stricter"),
+        extract_iplot_data(m_lenient, "Moved to More Lenient")
+    ) %>% filter(!is.na(estimate))
+
+    if (nrow(plot_data) > 0) {
+        # Faceted plot
+        p <- ggplot(plot_data, aes(x = x, y = estimate_pct, color = group, fill = group)) +
+            geom_hline(yintercept = 0, linetype = "solid", color = "gray40", linewidth = 0.4) +
+            geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
+            geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.15, color = NA) +
+            geom_line(linewidth = 1) +
+            geom_point(size = 2.5, shape = 21, stroke = 0.5) +
+            scale_color_manual(
+                values = c("Moved to Stricter" = "#c23616", "Moved to More Lenient" = "#7f8fa6"),
+                labels = c("Moved to Stricter" = "Moved to Stricter Alderman", "Moved to More Lenient" = "Moved to More Lenient Alderman"),
+                name = NULL
+            ) +
+            scale_fill_manual(
+                values = c("Moved to Stricter" = "#c23616", "Moved to More Lenient" = "#7f8fa6"),
+                labels = c("Moved to Stricter" = "Moved to Stricter Alderman", "Moved to More Lenient" = "Moved to More Lenient Alderman"),
+                name = NULL
+            ) +
+            scale_x_continuous(breaks = x_breaks) +
+            scale_y_continuous(labels = function(x) paste0(x, "%")) +
+            facet_wrap(~group, ncol = 1) +
+            labs(
+                x = sprintf("%s Relative to Alderman Switch", time_label),
+                y = "Effect on Rents"
+            ) +
+            theme_minimal(base_size = 11) +
+            theme(
+                panel.grid.major.x = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
+                axis.line = element_line(color = "gray40", linewidth = 0.3),
+                axis.ticks = element_line(color = "gray40", linewidth = 0.3),
+                axis.title = element_text(size = 10, color = "gray20"),
+                axis.text = element_text(size = 9, color = "gray30"),
+                legend.position = "none",
+                strip.text = element_text(face = "bold", size = 10),
+                plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
+            )
+
+        ggsave(sprintf("../output/event_study_%s.pdf", suffix), p, width = 7, height = 6, bg = "white")
+        message(sprintf("Saved: ../output/event_study_%s.pdf", suffix))
+
+        # Combined plot (both series on same axes)
+        p_combined <- ggplot(plot_data, aes(x = x, y = estimate_pct, color = group, fill = group)) +
+            geom_hline(yintercept = 0, linetype = "solid", color = "gray40", linewidth = 0.4) +
+            geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
+            # Lenient series first (so stricter is on top)
+            geom_ribbon(
+                data = plot_data %>% filter(group == "Moved to More Lenient"),
+                aes(ymin = ci_low_pct, ymax = ci_high_pct),
+                alpha = 0.15, color = NA
+            ) +
+            geom_line(
+                data = plot_data %>% filter(group == "Moved to More Lenient"),
+                linewidth = 0.8, alpha = 0.7
+            ) +
+            geom_point(
+                data = plot_data %>% filter(group == "Moved to More Lenient"),
+                size = 2, alpha = 0.7, shape = 21, stroke = 0.5
+            ) +
+            # Stricter series on top (emphasized)
+            geom_ribbon(
+                data = plot_data %>% filter(group == "Moved to Stricter"),
+                aes(ymin = ci_low_pct, ymax = ci_high_pct),
+                alpha = 0.2, color = NA
+            ) +
+            geom_line(
+                data = plot_data %>% filter(group == "Moved to Stricter"),
+                linewidth = 1.2
+            ) +
+            geom_point(
+                data = plot_data %>% filter(group == "Moved to Stricter"),
+                size = 3, shape = 21, stroke = 0.8
+            ) +
+            scale_color_manual(
+                values = c("Moved to Stricter" = "#c23616", "Moved to More Lenient" = "#7f8fa6"),
+                labels = c("Moved to Stricter" = "Moved to Stricter Alderman", "Moved to More Lenient" = "Moved to More Lenient Alderman"),
+                name = NULL
+            ) +
+            scale_fill_manual(
+                values = c("Moved to Stricter" = "#c23616", "Moved to More Lenient" = "#7f8fa6"),
+                labels = c("Moved to Stricter" = "Moved to Stricter Alderman", "Moved to More Lenient" = "Moved to More Lenient Alderman"),
+                name = NULL
+            ) +
+            scale_x_continuous(breaks = x_breaks, expand = expansion(mult = c(0.02, 0.02))) +
+            scale_y_continuous(labels = function(x) paste0(x, "%")) +
+            labs(
+                x = sprintf("%s Relative to Alderman Switch", time_label),
+                y = "Effect on Rents"
+            ) +
+            theme_minimal(base_size = 11) +
+            theme(
+                panel.grid.major.x = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
+                axis.line = element_line(color = "gray40", linewidth = 0.3),
+                axis.ticks = element_line(color = "gray40", linewidth = 0.3),
+                axis.ticks.length = unit(0.15, "cm"),
+                axis.title = element_text(size = 10, color = "gray20"),
+                axis.text = element_text(size = 9, color = "gray30"),
+                legend.position = "bottom",
+                legend.direction = "horizontal",
+                legend.text = element_text(size = 9),
+                legend.key.width = unit(1.5, "cm"),
+                legend.margin = margin(t = 5, b = 0),
+                plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
+            ) +
+            guides(
+                color = guide_legend(override.aes = list(linewidth = c(1.2, 0.8), size = c(3, 2))),
+                fill = guide_legend(override.aes = list(alpha = c(0.2, 0.15)))
+            )
+
+        ggsave(sprintf("../output/event_study_combined_%s.pdf", suffix), p_combined, width = 7, height = 4.5, bg = "white")
+        message(sprintf("Saved: ../output/event_study_combined_%s.pdf", suffix))
+    }
+
+    etable(list(m_stricter, m_lenient),
+        fitstat = ~ n + r2,
+        style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "", yesNo = c("$\\checkmark$", "")),
+        depvar = FALSE, digits = 3, headers = c("To Stricter", "To More Lenient"),
+        signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+        notes = "Listing-level regressions with hedonic controls. Standard errors clustered at block level.",
+        float = FALSE, file = sprintf("../output/did_table_%s.tex", suffix), replace = TRUE
+    )
+    message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
+}
+
+message("\n\nDone!")
+
