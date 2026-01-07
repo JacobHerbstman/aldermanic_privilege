@@ -15,6 +15,90 @@ The analysis draws on several administrative and proprietary datasets:
 \item \textbf{Census Data}: American Community Survey block group demographics and 2010/2020 decennial census block boundaries.
 \end{itemize}
 
+\subsection{High-Discretion Permits: Sample Construction}
+\label{subsec:permits_sample}
+
+The building permits data come from the City of Chicago's open data portal and include all permit applications and processing records.
+
+\paragraph{Sample Restrictions.}
+I restrict the sample to ``high-discretion'' permit types that are most likely to require aldermanic engagement and face delays due to community meetings or aldermanic intervention. Specifically, I include permits designated as: (1) New Construction; (2) Renovation; (3) Demolition; (4) Porch Construction; and (5) permits that were reinstated after being previously revoked.
+
+I exclude permits that follow expedited review processes: (1) permits in the ``Easy Permit Process''; (2) permits in the ``Express Permit Program''; (3) signs permits; and (4) scaffolding permits. These exclusions target permit types that bypass standard aldermanic review and thus do not reflect aldermanic influence on development.
+
+\paragraph{Processing Time.}
+For each permit, I compute processing time as the number of days between the application date and the issue date. Permits with missing dates or negative processing times are excluded.
+
+\paragraph{Ward Assignment.}
+Permits are assigned to wards based on the permit's geographic coordinates and the ward boundaries in effect at the time of application.
+
+\subsection{Alderman Strictness Scores}
+\label{subsec:strictness_scores}
+
+Alderman strictness is measured using permit processing times from the high-discretion permit sample described in Section~\ref{subsec:permits_sample}, residualized to remove the influence of ward characteristics.
+
+\paragraph{Stage 1: Residualization.}
+I regress log mean processing time on ward geographic fundamentals (distance to CBD, lakefront share, CTA station density, community area shares), demographic controls (homeownership rate, population, median household income, racial composition), and month fixed effects.
+
+\paragraph{Stage 2: Alderman Fixed Effects.}
+Residualized processing times are regressed on alderman fixed effects, with observations weighted by the number of permits. The alderman fixed effect captures the systematic component of processing time attributable to the alderman.
+
+\paragraph{Empirical Bayes Shrinkage.}
+Raw alderman fixed effects are shrunk toward the grand mean using an empirical Bayes procedure: $\hat{\theta}_j^{\text{EB}} = B_j \cdot \hat{\theta}_j$, where $B_j = \hat{\tau}^2/(\hat{\tau}^2 + \hat{\sigma}_j^2)$ is the shrinkage factor.
+
+\paragraph{Index Standardization.}
+The final strictness index is standardized to have mean zero across aldermen. Higher values indicate stricter aldermen.
+
+Table~\ref{tab:stage1_residualization} reports the Stage 1 residualization regression. The dependent variable is log mean processing time at the ward-month level, weighted by the number of permits. The coefficients reveal systematic relationships between ward characteristics and permit processing times. Wards closer to the CBD and with higher median incomes have shorter processing times, while wards with greater lakefront exposure, more CTA stations, and higher homeownership rates have longer processing times. These patterns are absorbed in the residualization, ensuring that the alderman fixed effects capture only the component of processing time attributable to the alderman rather than ward characteristics.
+
+\begin{table}[htbp]
+    \caption{Stage 1 Residualization: Log Mean Processing Time on Ward Fundamentals}
+    \label{tab:stage1_residualization}
+    \input{../tasks/create_alderman_strictness_scores/output/stage1_residualization_models.tex}
+
+    \footnotesize
+    \textit{Notes:} Dependent variable is log mean permit processing time at the ward-month level. Observations weighted by the number of high-discretion permits. Community area fixed effects (77 areas) included but not shown. Month fixed effects absorb city-wide temporal variation in processing times.
+\end{table}
+
+\subsection{New Construction: Sample Construction}
+\label{subsec:new_construction_sample}
+
+The new construction sample for the density analysis is drawn from the Cook County Assessor's parcel-level data.
+
+\paragraph{Sample Restrictions.}
+I apply the following restrictions: (1) lot area exceeds 1 square foot; (2) building area exceeds 1 square foot; (3) at least one dwelling unit; and (4) construction year is 2006 or later. These restrictions exclude vacant parcels, data errors, and older buildings that predate the sample period.
+
+\paragraph{Density Measures.}
+For each parcel, I compute two density measures: Floor Area Ratio (FAR), defined as total building square footage divided by lot area; and Dwelling Units Per Acre (DUPAC), defined as the number of dwelling units divided by lot acreage.
+
+\paragraph{Ward and Boundary Assignment.}
+Each parcel is assigned to a ward based on its centroid location and the ward boundaries in effect at the time of construction. Distance to the nearest ward boundary is computed in feet using the Illinois East State Plane coordinate system.
+
+\subsection{Summary Statistics: New Construction Sample}
+
+Table~\ref{tab:summary_stats} presents summary statistics for the new residential construction sample used in the density analysis. The sample includes all new residential buildings constructed in Chicago between 2006 and 2025 that meet the restrictions described in Section~\ref{subsec:new_construction_sample}. Column (1) reports statistics for the full sample, while Column (2) restricts to multifamily buildings with 2 or more units.
+
+The full sample contains 13,236 new residential buildings with an average of 6.65 dwelling units and 2.27 stories. The average Floor Area Ratio (FAR) is 1.22 and the average Dwelling Units Per Acre (DUPAC) is 28.47. Multifamily buildings are substantially denser, with an average of 31.27 units, 2.75 stories, FAR of 2.32, and DUPAC of 74.54. Both samples have similar median distances to the nearest ward boundary (approximately 900 feet).
+
+\subsection{Home Sales: Sample Construction}
+\label{subsec:sales_sample}
+
+The home sales data come from the Cook County Assessor's Office and include all residential property transactions in Chicago from 1999--2025.
+
+\paragraph{Sample Restrictions.}
+I apply the following restrictions to construct the analysis sample: (1) residential property classes only, including single-family homes (classes 202--210) and small multifamily buildings with 2--6 units (class 211), excluding mixed-use properties (class 212) and condominiums (classes 299, 399); (2) sale price exceeds \$10,000 to exclude nominal transfers and gifts; (3) market transactions only, defined as warranty or trustee deeds; (4) excludes land-only sales; (5) seller and buyer names are valid and non-identical, excluding intrafamily transfers; and (6) single-parcel transactions only.
+
+\paragraph{Price Winsorization.}
+Sale prices are winsorized at the 1st and 99th percentiles to limit the influence of outliers on mean calculations.
+
+\paragraph{Geocoding.}
+Each sale is geocoded by joining the property identification number (PIN) to the Cook County parcel universe, which contains latitude and longitude coordinates. Sales that cannot be matched on the full 14-digit PIN are matched on the first 10 digits (PIN10).
+
+\paragraph{Ward Assignment.}
+Sales are assigned to wards based on the ward boundaries in effect at the exact sale date. The ward map changes on May 18, 2015 and May 15, 2023. For the event study analysis, sales before May 18, 2015 use pre-2015 boundaries; sales between May 18, 2015 and May 15, 2023 use 2015 boundaries; and sales after May 15, 2023 use post-2023 boundaries.
+
+\paragraph{Distance to Ward Boundary.}
+Distance calculations follow the same procedure as for new construction (Section~\ref{subsec:new_construction_sample}), using the Illinois East State Plane coordinate system (EPSG:3435) and computing signed distance based on relative alderman strictness.
+
 \subsection{Rental Listings: Sample Construction}
 \label{subsec:rental_sample}
 
@@ -54,61 +138,4 @@ Control blocks may experience treatment through electoral turnover (alderman cha
 
 \paragraph{Panel Aggregation.}
 Rental listings and home sales are aggregated separately to block-year and block-quarter levels. For rentals, I compute number of listings, mean rent, and median rent. For sales, I compute number of sales, mean price, and median price. The final panels stack the 2015 and 2023 cohorts with cohort-specific fixed effects. The 2015 cohort includes years 2010--2020, while the 2023 cohort includes years 2018--2025, providing a symmetric five-year window around each redistricting event.
-
-\subsection{Alderman Strictness Scores}
-\label{subsec:strictness_scores}
-
-Alderman strictness is measured using permit processing times, residualized to remove the influence of ward characteristics.
-
-\paragraph{Stage 1: Residualization.}
-I regress log mean processing time on ward geographic fundamentals (distance to CBD, lakefront share, CTA station density, community area shares), demographic controls (homeownership rate, population, median household income, racial composition), and month fixed effects.
-
-\paragraph{Stage 2: Alderman Fixed Effects.}
-Residualized processing times are regressed on alderman fixed effects, with observations weighted by the number of permits. The alderman fixed effect captures the systematic component of processing time attributable to the alderman.
-
-\paragraph{Empirical Bayes Shrinkage.}
-Raw alderman fixed effects are shrunk toward the grand mean using an empirical Bayes procedure: $\hat{\theta}_j^{\text{EB}} = B_j \cdot \hat{\theta}_j$, where $B_j = \hat{\tau}^2/(\hat{\tau}^2 + \hat{\sigma}_j^2)$ is the shrinkage factor.
-
-\paragraph{Index Standardization.}
-The final strictness index is standardized to have mean zero across aldermen. Higher values indicate stricter aldermen.
-
-\subsection{Home Sales: Sample Construction}
-\label{subsec:sales_sample}
-
-The home sales data come from the Cook County Assessor's Office and include all residential property transactions in Chicago from 1999--2025.
-
-\paragraph{Sample Restrictions.}
-I apply the following restrictions to construct the analysis sample: (1) residential property classes only, including single-family homes (classes 202--210) and small multifamily buildings with 2--6 units (class 211), excluding mixed-use properties (class 212) and condominiums (classes 299, 399); (2) sale price exceeds \$10,000 to exclude nominal transfers and gifts; (3) market transactions only, defined as warranty or trustee deeds; (4) excludes land-only sales; (5) seller and buyer names are valid and non-identical, excluding intrafamily transfers; and (6) single-parcel transactions only.
-
-\paragraph{Price Winsorization.}
-Sale prices are winsorized at the 1st and 99th percentiles to limit the influence of outliers on mean calculations.
-
-\paragraph{Geocoding.}
-Each sale is geocoded by joining the property identification number (PIN) to the Cook County parcel universe, which contains latitude and longitude coordinates. Sales that cannot be matched on the full 14-digit PIN are matched on the first 10 digits (PIN10).
-
-\paragraph{Ward Assignment.}
-Sales are assigned to wards based on the ward boundaries in effect at the exact sale date. The ward map changes on May 18, 2015 and May 15, 2023. For the event study analysis, sales before May 18, 2015 use pre-2015 boundaries; sales between May 18, 2015 and May 15, 2023 use 2015 boundaries; and sales after May 15, 2023 use post-2023 boundaries.
-
-\paragraph{Distance to Ward Boundary.}
-Distance calculations follow the same procedure as for rental listings (Section~\ref{subsec:rental_sample}), using the Illinois East State Plane coordinate system (EPSG:3435) and computing signed distance based on relative alderman strictness.
-
-\subsection{New Construction: Sample Construction}
-\label{subsec:new_construction_sample}
-
-The new construction sample for the density analysis is drawn from the Cook County Assessor's parcel-level data.
-
-\paragraph{Sample Restrictions.}
-I apply the following restrictions: (1) lot area exceeds 1 square foot; (2) building area exceeds 1 square foot; (3) at least one dwelling unit; and (4) construction year is 2006 or later. These restrictions exclude vacant parcels, data errors, and older buildings that predate the sample period.
-
-\paragraph{Density Measures.}
-For each parcel, I compute two density measures: Floor Area Ratio (FAR), defined as total building square footage divided by lot area; and Dwelling Units Per Acre (DUPAC), defined as the number of dwelling units divided by lot acreage.
-
-\paragraph{Ward and Boundary Assignment.}
-Each parcel is assigned to a ward based on its centroid location and the ward boundaries in effect at the time of construction. Distance to the nearest ward boundary is computed in feet using the Illinois East State Plane coordinate system.
-
-\subsection{Summary Statistics: New Construction Sample}
-
-Table~\ref{tab:summary_stats} presents summary statistics for the new residential construction sample used in the density analysis. The sample includes all new residential buildings constructed in Chicago between 2006 and 2025 that meet the restrictions described in Section~\ref{subsec:new_construction_sample}. Column (1) reports statistics for the full sample, while Column (2) restricts to multifamily buildings with 2 or more units.
-
-The full sample contains 13,236 new residential buildings with an average of 6.65 dwelling units and 2.27 stories. The average Floor Area Ratio (FAR) is 1.22 and the average Dwelling Units Per Acre (DUPAC) is 28.47. Multifamily buildings are substantially denser, with an average of 31.27 units, 2.75 stories, FAR of 2.32, and DUPAC of 74.54. Both samples have similar median distances to the nearest ward boundary (approximately 900 feet).
 

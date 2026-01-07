@@ -9,9 +9,9 @@ High-discretion permits are those designated as  ``New Construction, Renovation,
 I have excluded permits in the easy permit process and express permit program, along with signs and scaffolding permits. 
 The goal is to target the specific permit types that tend to draw community opposition and are more likely to face delays due to community meetings and aldermanic discretion on behalf of their constituents. 
 
-Once I have my sample of permits, I construct the ``aldermanic strictness score" as follows. 
-First, I attempt to residualize out ward-specific characteristics by regressing the raw permit processing times 
-on ward-level fundamentals such as median incomes, demographic characteristics, distance to the CBD and various other amenities, and month fixed-effects.
+Once I have my sample of permits, I construct the ``aldermanic strictness score" as follows.
+First, I attempt to residualize out ward-specific characteristics by regressing the raw permit processing times
+on ward-level fundamentals such as median incomes, demographic characteristics, distance to the CBD and various other amenities, and month fixed-effects (Table~\ref{tab:stage1_residualization} in Appendix~\ref{sec:appendix_data} reports the first-stage regression).
 I then estimate aldermanic fixed effects on these residualized processing times. 
 Finally, since these estimates are a noisy signal of the ``true'' bureaucratic frictions caused by each alderman, 
 I use empirical Bayes methods \citep{kline_systemic_2022, kline_discrimination_2024} to shrink these estimates towards zero based on how noisy each one is. 

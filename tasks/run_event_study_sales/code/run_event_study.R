@@ -37,6 +37,10 @@ parser <- add_option(parser, c("-c", "--include_controls"),
     type = "logical", default = FALSE,
     help = "Include demographic controls [default: FALSE]"
 )
+parser <- add_option(parser, c("-e", "--fe_type"),
+    type = "character", default = "ward_pair_side",
+    help = "Fixed effects type: ward_pair_side or block [default: ward_pair_side]"
+)
 
 args <- parse_args(parser)
 
@@ -45,6 +49,7 @@ WEIGHTED <- args$weighted
 STACKED <- args$stacked
 TREATMENT_TYPE <- args$treatment_type
 INCLUDE_CONTROLS <- args$include_controls
+FE_TYPE <- args$fe_type
 
 message("\n=== Event Study Configuration ===")
 message(sprintf("Frequency: %s", FREQUENCY))
@@ -52,14 +57,17 @@ message(sprintf("Weighted: %s", WEIGHTED))
 message(sprintf("Stacked: %s", STACKED))
 message(sprintf("Treatment Type: %s", TREATMENT_TYPE))
 message(sprintf("Include Controls: %s", INCLUDE_CONTROLS))
+message(sprintf("FE Type: %s", FE_TYPE))
 
-# Output suffix
+# Output suffix - include fe_type in suffix for block FE (ward_pair_side is the default, so omit for backwards compat)
+fe_suffix <- if (FE_TYPE == "block") "_block_fe" else ""
 suffix <- sprintf(
-    "%s_%s_%s_%s%s", FREQUENCY,
+    "%s_%s_%s_%s%s%s", FREQUENCY,
     ifelse(WEIGHTED, "weighted", "unweighted"),
     ifelse(STACKED, "stacked", "unstacked"),
     TREATMENT_TYPE,
-    ifelse(INCLUDE_CONTROLS, "_with_controls", "")
+    ifelse(INCLUDE_CONTROLS, "_with_controls", ""),
+    fe_suffix
 )
 
 # Control variables formula component
@@ -85,7 +93,12 @@ if (FREQUENCY == "yearly") {
                 treat_lenient = as.integer(strictness_change < 0),
                 relative_time_capped = pmax(pmin(relative_year, 5), -5)
             )
-        fe_formula <- "cohort_ward_pair + cohort^year"
+        # Set FE formula based on fe_type
+        if (FE_TYPE == "block") {
+            fe_formula <- "cohort_block_id + cohort^year"
+        } else {
+            fe_formula <- "cohort_ward_pair_side + cohort^year"
+        }
         cluster_var <- "cohort_block_id"
     } else {
         # Unstacked 2015 cohort only - uses file with generic column names
@@ -96,9 +109,16 @@ if (FREQUENCY == "yearly") {
                 treatment_continuous = strictness_change,
                 treat_stricter = as.integer(strictness_change > 0),
                 treat_lenient = as.integer(strictness_change < 0),
-                relative_time_capped = pmax(pmin(relative_year, 5), -5)
+                relative_time_capped = pmax(pmin(relative_year, 5), -5),
+                # Create ward_pair_side FE: controls only from same origin ward
+                ward_pair_side = paste(ward_pair_id, ward_origin, sep = "_")
             )
-        fe_formula <- "ward_pair_id + year"
+        # Set FE formula based on fe_type
+        if (FE_TYPE == "block") {
+            fe_formula <- "block_id + year"
+        } else {
+            fe_formula <- "ward_pair_side + year"
+        }
         cluster_var <- "block_id"
     }
     time_var <- "relative_time_capped"
@@ -115,7 +135,12 @@ if (FREQUENCY == "yearly") {
                 treat_lenient = as.integer(strictness_change < 0),
                 relative_time_capped = pmax(pmin(relative_quarter, 16), -8)
             )
-        fe_formula <- "cohort_ward_pair + cohort^year_quarter"
+        # Set FE formula based on fe_type
+        if (FE_TYPE == "block") {
+            fe_formula <- "cohort_block_id + cohort^year_quarter"
+        } else {
+            fe_formula <- "cohort_ward_pair_side + cohort^year_quarter"
+        }
         cluster_var <- "cohort_block_id"
     } else {
         # For unstacked quarterly, use the stacked quarterly panel but filter to 2015 cohort only
@@ -127,9 +152,16 @@ if (FREQUENCY == "yearly") {
                 treatment_continuous = strictness_change,
                 treat_stricter = as.integer(strictness_change > 0),
                 treat_lenient = as.integer(strictness_change < 0),
-                relative_time_capped = pmax(pmin(relative_quarter, 16), -8)
+                relative_time_capped = pmax(pmin(relative_quarter, 16), -8),
+                # Create ward_pair_side FE: controls only from same origin ward
+                ward_pair_side = paste(ward_pair_id, ward_origin, sep = "_")
             )
-        fe_formula <- "ward_pair_id + year_quarter"
+        # Set FE formula based on fe_type
+        if (FE_TYPE == "block") {
+            fe_formula <- "block_id + year_quarter"
+        } else {
+            fe_formula <- "ward_pair_side + year_quarter"
+        }
         cluster_var <- "block_id"
     }
     time_var <- "relative_time_capped"

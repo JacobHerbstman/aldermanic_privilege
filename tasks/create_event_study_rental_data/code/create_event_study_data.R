@@ -94,6 +94,7 @@ treatment_2023 <- treatment_panel %>%
     filter(cohort == "2023") %>%
     select(
         block_id,
+        ward_origin_2023 = ward_origin,
         ward_post_2023 = ward_dest,
         switched_2023 = switched,
         strictness_origin_2023 = strictness_origin,
@@ -215,16 +216,18 @@ cohort_2015 <- block_year_panel %>%
         redistricted = switched_2015,
         relative_year = relative_year_2015,
         switch_type = switch_type_2015,
-        strictness_change = strictness_change_2015
+        strictness_change = strictness_change_2015,
+        ward_origin = ward_pre_2015
     ) %>%
     select(
         block_id, year, cohort, treat, redistricted, relative_year, switch_type, strictness_change,
         n_listings, mean_rent, median_rent, has_listings,
-        ward_pair_id, mean_dist_to_boundary,
+        ward_pair_id, ward_origin, mean_dist_to_boundary,
         homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
 # 2023 cohort: valid units only
+# For 2023 cohort, ward_origin is the pre-2023 ward (ward_origin_2023 from treatment panel)
 cohort_2023 <- block_year_panel %>%
     filter(year >= 2018, year <= 2025) %>%
     filter(valid_2023) %>% # DROP CONTAMINATED CONTROLS
@@ -234,12 +237,13 @@ cohort_2023 <- block_year_panel %>%
         redistricted = switched_2023,
         relative_year = relative_year_2023,
         switch_type = switch_type_2023,
-        strictness_change = strictness_change_2023
+        strictness_change = strictness_change_2023,
+        ward_origin = ward_origin_2023
     ) %>%
     select(
         block_id, year, cohort, treat, redistricted, relative_year, switch_type, strictness_change,
         n_listings, mean_rent, median_rent, has_listings,
-        ward_pair_id, mean_dist_to_boundary,
+        ward_pair_id, ward_origin, mean_dist_to_boundary,
         homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
@@ -247,7 +251,8 @@ cohort_2023 <- block_year_panel %>%
 stacked_panel <- bind_rows(cohort_2015, cohort_2023) %>%
     mutate(
         cohort_block_id = paste(cohort, block_id, sep = "_"),
-        cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_")
+        cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
+        cohort_ward_pair_side = paste(cohort, ward_pair_id, ward_origin, sep = "_")
     )
 
 message(sprintf(
@@ -276,6 +281,7 @@ cohort_2015_quarterly <- rental_block_quarter %>%
         relative_quarter = (year - 2015) * 4 + (quarter - 2),
         switch_type = switch_type_2015,
         strictness_change = strictness_change_2015,
+        ward_origin = ward_pre_2015,
         has_listings = TRUE,
         block_group_id = substr(block_id, 1, 12)
     ) %>%
@@ -286,7 +292,7 @@ cohort_2015_quarterly <- rental_block_quarter %>%
     select(
         block_id, year, quarter, year_quarter, cohort, treat, relative_quarter,
         switch_type, strictness_change, n_listings, mean_rent, median_rent, has_listings,
-        ward_pair_id, mean_dist_to_boundary,
+        ward_pair_id, ward_origin, mean_dist_to_boundary,
         homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
@@ -304,6 +310,7 @@ cohort_2023_quarterly <- rental_block_quarter %>%
         relative_quarter = (year - 2023) * 4 + (quarter - 2),
         switch_type = switch_type_2023,
         strictness_change = strictness_change_2023,
+        ward_origin = ward_origin_2023,
         has_listings = TRUE,
         block_group_id = substr(block_id, 1, 12)
     ) %>%
@@ -314,7 +321,7 @@ cohort_2023_quarterly <- rental_block_quarter %>%
     select(
         block_id, year, quarter, year_quarter, cohort, treat, relative_quarter,
         switch_type, strictness_change, n_listings, mean_rent, median_rent, has_listings,
-        ward_pair_id, mean_dist_to_boundary,
+        ward_pair_id, ward_origin, mean_dist_to_boundary,
         homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
@@ -322,7 +329,8 @@ cohort_2023_quarterly <- rental_block_quarter %>%
 stacked_quarterly_panel <- bind_rows(cohort_2015_quarterly, cohort_2023_quarterly) %>%
     mutate(
         cohort_block_id = paste(cohort, block_id, sep = "_"),
-        cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_")
+        cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
+        cohort_ward_pair_side = paste(cohort, ward_pair_id, ward_origin, sep = "_")
     )
 
 message(sprintf(

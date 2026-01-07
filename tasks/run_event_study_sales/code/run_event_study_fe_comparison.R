@@ -84,10 +84,10 @@ if (FE_TYPE == "block") {
     cluster_var <- "cohort_block_id"
     fe_label <- "Block-Group-by-Cohort FE"
 } else if (FE_TYPE == "ward_pair") {
-    # Ward pair FEs: within-border-segment variation (least stringent)
-    fe_formula <- "cohort_ward_pair + cohort^year"
+    # Ward pair side FEs: within-border-segment-side variation (consistent with main run_event_study.R)
+    fe_formula <- "cohort_ward_pair_side + cohort^year"
     cluster_var <- "cohort_block_id"
-    fe_label <- "Ward-Pair-by-Cohort FE"
+    fe_label <- "Ward-Pair-Side-by-Cohort FE"
 } else {
     stop("Invalid fe_type. Choose from: block, block_group, ward_pair")
 }
@@ -99,7 +99,7 @@ message(sprintf("Loaded %s observations", format(nrow(data), big.mark = ",")))
 # Check how many FE groups we have
 n_fe_groups <- n_distinct(data[[ifelse(FE_TYPE == "block", "cohort_block_id",
     ifelse(FE_TYPE == "block_group", "cohort_block_group_id",
-        "cohort_ward_pair"
+        "cohort_ward_pair_side"
     )
 )]])
 message(sprintf("Number of %s groups: %s", FE_TYPE, format(n_fe_groups, big.mark = ",")))

@@ -109,45 +109,72 @@ m3 <- fit_disp("permit_approval_rate", "n_permits_applied")
 m4 <- fit_disp("log_mean_processing_time", "n_permits_applied")
 m5 <- fit_disp("log_mean_total_fee", "n_permits_applied")
 
-etable(
-  m1, m3, m4,
-  drop = "^ca_share_", # hide community-area shares
-  digits = 3, se.below = TRUE,
-  dict = c(
-    `(Intercept)` = "Constant",
-    dist_cbd_km = "Dist. to CBD (km)",
-    lakefront_share_1km = "Lakefront share (≤1km)",
-    n_rail_stations_800m = "CTA stations (≤800m)",
-    homeownership_rate = "Homeownership rate",
-    pop_total = "Population",
-    median_hh_income = "Median household income",
-    share_black = "% Black",
-    share_hisp = "% Hispanic"
-  ),
-  fitstat = ~ n + r2,
-  title = "Stage-1 residualization models (month FE included)",
-  notes = "CA shares included in estimation but omitted from display; weights used for cols 2 and 3."
+# ----------------------------
+# Stage-1 table for appendix: scale variables for interpretability
+# ----------------------------
+# Create scaled versions of population and income (in 10,000s)
+data <- data %>%
+  mutate(
+    pop_10k = pop_total / 10000,
+    income_10k = median_hh_income / 10000
+  )
+
+# Build formula with scaled variables for display table
+ca_cols_disp <- grep("^ca_share_", names(data), value = TRUE)
+geo_vars_disp <- c("dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m")
+demo_vars_disp <- c("homeownership_rate", "pop_10k", "income_10k", "share_black", "share_hisp")
+fundamentals_disp <- c(geo_vars_disp, demo_vars_disp, ca_cols_disp)
+rhs_disp <- paste(fundamentals_disp, collapse = " + ")
+
+# Fit model with scaled variables for display (same regression, just rescaled coefficients)
+fml_disp <- as.formula(paste0("log_mean_processing_time ~ ", rhs_disp, " | month + ca_id"))
+
+# We need to create a ca_id variable from the ca_shares (pick the dominant one)
+data <- data %>%
+  mutate(ca_id = {
+    ca_mat <- select(., starts_with("ca_share_"))
+    max_col <- max.col(ca_mat, ties.method = "first")
+    as.factor(gsub("ca_share_", "", names(ca_mat)[max_col]))
+  })
+
+# Fit with month + community area FEs for display
+m4_disp <- feols(
+  log_mean_processing_time ~ dist_cbd_km + lakefront_share_1km + n_rail_stations_800m +
+    homeownership_rate + pop_10k + income_10k + share_black + share_hisp | month + ca_id,
+  data = data,
+  weights = ~n_permits_applied
 )
 
+# Stage-1 table: only log_mean_processing_time (the outcome used for strictness scores)
 etable(
-  m1, m3, m4,
-  drop = "^ca_share_", # hide community-area shares
+  m4_disp,
   digits = 3, se.below = TRUE,
+  depvar = FALSE,
+  headers = c("Log Processing Time"),
   dict = c(
-    `(Intercept)` = "Constant",
     dist_cbd_km = "Dist. to CBD (km)",
-    lakefront_share_1km = "Lakefront share (≤1km)",
-    n_rail_stations_800m = "CTA stations (≤800m)",
+    lakefront_share_1km = "Lakefront share ($\\leq$1km)",
+    n_rail_stations_800m = "CTA stations ($\\leq$800m)",
     homeownership_rate = "Homeownership rate",
-    pop_total = "Population",
-    median_hh_income = "Median household income",
-    share_black = "% Black",
-    share_hisp = "% Hispanic"
+    pop_10k = "Population (10,000s)",
+    income_10k = "Median HH income (\\$10,000s)",
+    share_black = "Share Black",
+    share_hisp = "Share Hispanic"
+  ),
+  fixef.group = list(
+    "Month FE" = "month",
+    "Community Area FE" = "ca_id"
   ),
   fitstat = ~ n + r2,
-  title = "Stage-1 residualization models (month FE included)",
-  notes = "CA shares included in estimation but omitted from display; weights used for cols 2 and 3.",
-  file = "../output/stage1_residualization_models.tex"
+  file = "../output/stage1_residualization_models.tex",
+  replace = TRUE,
+  style.tex = style.tex(
+    main = "aer",
+    model.format = "",
+    fixef.title = "",
+    fixef.suffix = "",
+    yesNo = c("$\\checkmark$", "")
+  )
 )
 
 

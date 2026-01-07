@@ -51,8 +51,17 @@ treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types
 
 message("Loading block group controls...")
 bg_controls <- read_csv("../input/block_group_controls.csv", show_col_types = FALSE) %>%
-    rename(block_group_id = GEOID) %>%
-    mutate(block_group_id = as.character(block_group_id))
+    rename(
+        block_group_id = GEOID,
+        share_white = percent_white,
+        share_black = percent_black,
+        median_hh_income_1000s = median_income
+    ) %>%
+    mutate(
+        block_group_id = as.character(block_group_id),
+        median_hh_income_1000s = median_hh_income_1000s / 1000
+    ) %>%
+    select(block_group_id, year, homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s)
 
 # =============================================================================
 # 2. ASSIGN SALES TO CENSUS BLOCKS
@@ -101,6 +110,7 @@ treatment_2023 <- treatment_panel %>%
     filter(cohort == "2023") %>%
     select(
         block_id,
+        ward_pre_2023 = ward_origin,
         ward_post_2023 = ward_dest,
         switched_2023 = switched,
         strictness_origin_2023 = strictness_origin,
@@ -195,9 +205,9 @@ block_year_panel <- block_year_base %>%
 block_year_panel <- block_year_panel %>%
     left_join(bg_controls, by = c("block_group_id", "year"))
 
-# Drop geometry columns if any remain
+# Drop ward_post columns (keep ward_pre for ward_origin in stacked panels)
 block_year_panel <- block_year_panel %>%
-    select(-starts_with("ward_pre"), -starts_with("ward_post"))
+    select(-starts_with("ward_post"))
 
 # =============================================================================
 # 6. AGGREGATE SALES TO BLOCK-MONTH (Observed sales only, cover both events)
@@ -263,12 +273,14 @@ cohort_2015 <- block_year_panel %>%
         redistricted = switched_2015, # TRUE = ward boundary changed, FALSE = same ward but alderman changed
         relative_year = relative_year_2015,
         switch_type = switch_type_2015,
-        strictness_change = strictness_change_2015
+        strictness_change = strictness_change_2015,
+        ward_origin = ward_pre_2015
     ) %>%
     select(
         block_id, year, cohort, treat, redistricted, relative_year, switch_type, strictness_change,
         n_sales, mean_price, median_price, has_sales,
-        ward_pair_id, mean_dist_to_boundary
+        ward_pair_id, mean_dist_to_boundary, ward_origin,
+        homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
 # 2023 cohort: valid units only (switchers + non-switchers in wards without turnover)
@@ -281,12 +293,14 @@ cohort_2023 <- block_year_panel %>%
         redistricted = switched_2023, # TRUE = ward boundary changed, FALSE = same ward but alderman changed
         relative_year = relative_year_2023,
         switch_type = switch_type_2023,
-        strictness_change = strictness_change_2023
+        strictness_change = strictness_change_2023,
+        ward_origin = ward_pre_2023
     ) %>%
     select(
         block_id, year, cohort, treat, redistricted, relative_year, switch_type, strictness_change,
         n_sales, mean_price, median_price, has_sales,
-        ward_pair_id, mean_dist_to_boundary
+        ward_pair_id, mean_dist_to_boundary, ward_origin,
+        homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
 # Stack cohorts
@@ -294,7 +308,9 @@ stacked_panel <- bind_rows(cohort_2015, cohort_2023) %>%
     # Create cohort-block identifier for FE
     mutate(
         cohort_block_id = paste(cohort, block_id, sep = "_"),
-        cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_")
+        cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
+        # New FE: cohort x ward_pair x ward_origin ensures controls come from same origin ward
+        cohort_ward_pair_side = paste(cohort, ward_pair_id, ward_origin, sep = "_")
     )
 
 message(sprintf(
@@ -332,6 +348,8 @@ cohort_2015_quarterly <- sales_block_quarter %>%
         treatment_2015 %>% distinct(block_id, .keep_all = TRUE),
         by = "block_id"
     ) %>%
+    mutate(block_group_id = substr(block_id, 1, 12)) %>%
+    left_join(bg_controls, by = c("block_group_id", "year")) %>%
     filter(!is.na(switched_2015), valid_2015) %>% # DROP CONTAMINATED CONTROLS
     mutate(
         cohort = "2015",
@@ -341,13 +359,15 @@ cohort_2015_quarterly <- sales_block_quarter %>%
         relative_quarter = (year - 2015) * 4 + (quarter - 2),
         switch_type = switch_type_2015,
         strictness_change = strictness_change_2015,
-        has_sales = TRUE
+        has_sales = TRUE,
+        ward_origin = ward_pre_2015
     ) %>%
     select(
         block_id, year, quarter, year_quarter, cohort, treat, redistricted, relative_quarter,
         switch_type, strictness_change,
         n_sales, mean_price, median_price, has_sales,
-        ward_pair_id, mean_dist_to_boundary
+        ward_pair_id, mean_dist_to_boundary, ward_origin,
+        homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
 # 2023 cohort quarterly: valid units only (Q2 2023 is event time 0)
@@ -357,6 +377,8 @@ cohort_2023_quarterly <- sales_block_quarter %>%
         treatment_2023 %>% distinct(block_id, .keep_all = TRUE),
         by = "block_id"
     ) %>%
+    mutate(block_group_id = substr(block_id, 1, 12)) %>%
+    left_join(bg_controls, by = c("block_group_id", "year")) %>%
     filter(!is.na(switched_2023), valid_2023) %>% # DROP CONTAMINATED CONTROLS
     mutate(
         cohort = "2023",
@@ -366,20 +388,24 @@ cohort_2023_quarterly <- sales_block_quarter %>%
         relative_quarter = (year - 2023) * 4 + (quarter - 2),
         switch_type = switch_type_2023,
         strictness_change = strictness_change_2023,
-        has_sales = TRUE
+        has_sales = TRUE,
+        ward_origin = ward_pre_2023
     ) %>%
     select(
         block_id, year, quarter, year_quarter, cohort, treat, redistricted, relative_quarter,
         switch_type, strictness_change,
         n_sales, mean_price, median_price, has_sales,
-        ward_pair_id, mean_dist_to_boundary
+        ward_pair_id, mean_dist_to_boundary, ward_origin,
+        homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
 # Stack quarterly cohorts
 stacked_quarterly_panel <- bind_rows(cohort_2015_quarterly, cohort_2023_quarterly) %>%
     mutate(
         cohort_block_id = paste(cohort, block_id, sep = "_"),
-        cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_")
+        cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
+        # New FE: cohort x ward_pair x ward_origin ensures controls come from same origin ward
+        cohort_ward_pair_side = paste(cohort, ward_pair_id, ward_origin, sep = "_")
     )
 
 message(sprintf(
@@ -402,6 +428,8 @@ cohort_2015_monthly <- sales_block_month %>%
         treatment_2015 %>% distinct(block_id, .keep_all = TRUE),
         by = "block_id"
     ) %>%
+    mutate(block_group_id = substr(block_id, 1, 12)) %>%
+    left_join(bg_controls, by = c("block_group_id", "year")) %>%
     filter(!is.na(switched_2015), valid_2015) %>% # DROP CONTAMINATED CONTROLS
     mutate(
         cohort = "2015",
@@ -411,13 +439,15 @@ cohort_2015_monthly <- sales_block_month %>%
         switch_type = switch_type_2015,
         strictness_change = strictness_change_2015,
         has_sales = TRUE,
-        year_month = paste(year, sprintf("%02d", month), sep = "-")
+        year_month = paste(year, sprintf("%02d", month), sep = "-"),
+        ward_origin = ward_pre_2015
     ) %>%
     select(
         block_id, year, month, year_month, cohort, treat, relative_month,
         switch_type, strictness_change,
         n_sales, mean_price, median_price, has_sales,
-        ward_pair_id, mean_dist_to_boundary
+        ward_pair_id, mean_dist_to_boundary, ward_origin,
+        homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
 # 2023 cohort monthly: valid units only (May 2023 is event time 0)
@@ -427,6 +457,8 @@ cohort_2023_monthly <- sales_block_month %>%
         treatment_2023 %>% distinct(block_id, .keep_all = TRUE),
         by = "block_id"
     ) %>%
+    mutate(block_group_id = substr(block_id, 1, 12)) %>%
+    left_join(bg_controls, by = c("block_group_id", "year")) %>%
     filter(!is.na(switched_2023), valid_2023) %>% # DROP CONTAMINATED CONTROLS
     mutate(
         cohort = "2023",
@@ -436,20 +468,24 @@ cohort_2023_monthly <- sales_block_month %>%
         switch_type = switch_type_2023,
         strictness_change = strictness_change_2023,
         has_sales = TRUE,
-        year_month = paste(year, sprintf("%02d", month), sep = "-")
+        year_month = paste(year, sprintf("%02d", month), sep = "-"),
+        ward_origin = ward_pre_2023
     ) %>%
     select(
         block_id, year, month, year_month, cohort, treat, relative_month,
         switch_type, strictness_change,
         n_sales, mean_price, median_price, has_sales,
-        ward_pair_id, mean_dist_to_boundary
+        ward_pair_id, mean_dist_to_boundary, ward_origin,
+        homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
 # Stack monthly cohorts
 stacked_monthly_panel <- bind_rows(cohort_2015_monthly, cohort_2023_monthly) %>%
     mutate(
         cohort_block_id = paste(cohort, block_id, sep = "_"),
-        cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_")
+        cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
+        # New FE: cohort x ward_pair x ward_origin ensures controls come from same origin ward
+        cohort_ward_pair_side = paste(cohort, ward_pair_id, ward_origin, sep = "_")
     )
 
 message(sprintf(

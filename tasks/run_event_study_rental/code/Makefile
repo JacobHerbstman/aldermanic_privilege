@@ -9,7 +9,8 @@ FREQUENCIES       := yearly quarterly
 WEIGHTINGS        := TRUE FALSE
 STACKINGS         := TRUE
 TREATMENT_TYPES   := continuous binary_direction
-INCLUDE_CONTROLS  := TRUE FALSE
+INCLUDE_CONTROLS  := TRUE
+FE_TYPES          := cohort_ward_pair_side block
 
 SCRIPT := run_event_study.R
 
@@ -36,14 +37,19 @@ STACK_PREFIX_FALSE := unstacked
 CONTROLS_SUFFIX_TRUE  := _with_controls
 CONTROLS_SUFFIX_FALSE :=
 
+# Helper for FE suffix (block adds suffix, ward_pair_side is default so no suffix)
+FE_SUFFIX_block           := _block_fe
+FE_SUFFIX_ward_pair_side  :=
+
 define GEN_OUTPUTS
 $(foreach freq,$(FREQUENCIES), \
 $(foreach wt,$(WEIGHTINGS), \
 $(foreach st,$(STACKINGS), \
 $(foreach tt,$(TREATMENT_TYPES), \
 $(foreach ic,$(INCLUDE_CONTROLS), \
-	../output/event_study_$(freq)_$(WEIGHT_PREFIX_$(wt))_$(STACK_PREFIX_$(st))_$(tt)$(CONTROLS_SUFFIX_$(ic)).pdf \
-)))))
+$(foreach fe,$(FE_TYPES), \
+	../output/event_study_$(freq)_$(WEIGHT_PREFIX_$(wt))_$(STACK_PREFIX_$(st))_$(tt)$(CONTROLS_SUFFIX_$(ic))$(FE_SUFFIX_$(fe)).pdf \
+))))))
 endef
 
 ALL_OUTPUTS := $(call GEN_OUTPUTS)
@@ -62,8 +68,8 @@ all: $(ALL_OUTPUTS)
 # ─────────────────────────────────────────────────────────────────────────────
 
 define GEN_RULE
-../output/event_study_$(freq)_$(WEIGHT_PREFIX_$(wt))_$(STACK_PREFIX_$(st))_$(tt)$(CONTROLS_SUFFIX_$(ic)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
-	Rscript $(SCRIPT) --frequency=$(freq) --weighted=$(wt) --stacked=$(st) --treatment_type=$(tt) --include_controls=$(ic)
+../output/event_study_$(freq)_$(WEIGHT_PREFIX_$(wt))_$(STACK_PREFIX_$(st))_$(tt)$(CONTROLS_SUFFIX_$(ic))$(FE_SUFFIX_$(fe)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) --frequency=$(freq) --weighted=$(wt) --stacked=$(st) --treatment_type=$(tt) --include_controls=$(ic) --fe_type=$(fe)
 endef
 
 $(foreach freq,$(FREQUENCIES), \
@@ -71,8 +77,9 @@ $(foreach wt,$(WEIGHTINGS), \
 $(foreach st,$(STACKINGS), \
 $(foreach tt,$(TREATMENT_TYPES), \
 $(foreach ic,$(INCLUDE_CONTROLS), \
+$(foreach fe,$(FE_TYPES), \
 	$(eval $(GEN_RULE)) \
-)))))
+))))))
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Input Linking
