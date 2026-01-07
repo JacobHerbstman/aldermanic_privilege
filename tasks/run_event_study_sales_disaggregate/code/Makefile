@@ -1,82 +1,89 @@
 SHELL := bash
 include ../../shell_functions.make
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Parameters - Edit these to add/remove specifications
+# ─────────────────────────────────────────────────────────────────────────────
+
+FREQUENCIES       := yearly quarterly
+TREATMENT_TYPES   := continuous binary_direction
+INCLUDE_HEDONICS  := TRUE FALSE
+FE_TYPES          := ward_pair_side
+
+SCRIPT := run_event_study.R
+
+# Inputs
 INPUT_PANEL := ../input/sales_transaction_panel.parquet
 
-# Define all specifications
-TREATMENT_TYPES := continuous binary_direction
-TIME_UNITS := yearly quarterly
-HEDONIC_OPTIONS := with_hedonics no_hedonics
+# ─────────────────────────────────────────────────────────────────────────────
+# Suffix Helpers for Output Filename Generation
+# ─────────────────────────────────────────────────────────────────────────────
 
-# Primary outputs (with hedonics, main specifications)
-MAIN_OUTPUTS := \
-    ../output/event_study_disaggregate_yearly_continuous.pdf \
-    ../output/event_study_disaggregate_yearly_binary.pdf \
-    ../output/event_study_disaggregate_quarterly_continuous.pdf \
-    ../output/event_study_disaggregate_quarterly_binary.pdf
+# Treatment type suffix
+TREAT_SUFFIX_continuous        := _continuous
+TREAT_SUFFIX_binary_direction  := _binary
 
-# Pattern rule for running specifications
-# Yearly with hedonics
-../output/event_study_disaggregate_yearly_continuous.pdf ../output/did_table_disaggregate_yearly_continuous.tex: run_event_study.R $(INPUT_PANEL) | ../output
-	@echo "→ [run_event_study_sales_disaggregate] yearly + continuous + hedonics"
-	$(R) $< --treatment_type=continuous --time_unit=yearly --include_hedonics=TRUE
+# Hedonics suffix
+HEDONICS_SUFFIX_TRUE  :=
+HEDONICS_SUFFIX_FALSE := _no_hedonics
 
-../output/event_study_disaggregate_yearly_binary.pdf ../output/did_table_disaggregate_yearly_binary.tex: run_event_study.R $(INPUT_PANEL) | ../output
-	@echo "→ [run_event_study_sales_disaggregate] yearly + binary + hedonics"
-	$(R) $< --treatment_type=binary_direction --time_unit=yearly --include_hedonics=TRUE
+# FE type suffix
+FE_SUFFIX_ward_pair_side :=
+FE_SUFFIX_block          := _block_fe
+FE_SUFFIX_block_group    := _bg_fe
 
-# Quarterly with hedonics
-../output/event_study_disaggregate_quarterly_continuous.pdf ../output/did_table_disaggregate_quarterly_continuous.tex: run_event_study.R $(INPUT_PANEL) | ../output
-	@echo "→ [run_event_study_sales_disaggregate] quarterly + continuous + hedonics"
-	$(R) $< --treatment_type=continuous --time_unit=quarterly --include_hedonics=TRUE
+# ─────────────────────────────────────────────────────────────────────────────
+# Generate Output Filenames
+# ─────────────────────────────────────────────────────────────────────────────
 
-../output/event_study_disaggregate_quarterly_binary.pdf ../output/did_table_disaggregate_quarterly_binary.tex: run_event_study.R $(INPUT_PANEL) | ../output
-	@echo "→ [run_event_study_sales_disaggregate] quarterly + binary + hedonics"
-	$(R) $< --treatment_type=binary_direction --time_unit=quarterly --include_hedonics=TRUE
+define GEN_OUTPUTS
+$(foreach freq,$(FREQUENCIES), \
+$(foreach tt,$(TREATMENT_TYPES), \
+$(foreach hc,$(INCLUDE_HEDONICS), \
+$(foreach fe,$(FE_TYPES), \
+	../output/event_study_disaggregate_$(freq)$(TREAT_SUFFIX_$(tt))$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc)).pdf \
+))))
+endef
 
-# No hedonics versions (yearly)
-../output/event_study_disaggregate_yearly_continuous_no_hedonics.pdf: run_event_study.R $(INPUT_PANEL) | ../output
-	@echo "→ [run_event_study_sales_disaggregate] yearly + continuous + no hedonics"
-	$(R) $< --treatment_type=continuous --time_unit=yearly --include_hedonics=FALSE
+ALL_OUTPUTS := $(call GEN_OUTPUTS)
 
-../output/event_study_disaggregate_yearly_binary_no_hedonics.pdf: run_event_study.R $(INPUT_PANEL) | ../output
-	@echo "→ [run_event_study_sales_disaggregate] yearly + binary + no hedonics"
-	$(R) $< --treatment_type=binary_direction --time_unit=yearly --include_hedonics=FALSE
+# ─────────────────────────────────────────────────────────────────────────────
+# Targets
+# ─────────────────────────────────────────────────────────────────────────────
 
-# No hedonics versions (quarterly)
-../output/event_study_disaggregate_quarterly_continuous_no_hedonics.pdf: run_event_study.R $(INPUT_PANEL) | ../output
-	@echo "→ [run_event_study_sales_disaggregate] quarterly + continuous + no hedonics"
-	$(R) $< --treatment_type=continuous --time_unit=quarterly --include_hedonics=FALSE
+.DEFAULT_GOAL := all
+.PHONY: all main block_fe bg_fe yearly quarterly hedonics no_hedonics link-inputs
 
-../output/event_study_disaggregate_quarterly_binary_no_hedonics.pdf: run_event_study.R $(INPUT_PANEL) | ../output
-	@echo "→ [run_event_study_sales_disaggregate] quarterly + binary + no hedonics"
-	$(R) $< --treatment_type=binary_direction --time_unit=quarterly --include_hedonics=FALSE
+all: $(ALL_OUTPUTS)
 
-# Convenience targets
-.PHONY: main all yearly quarterly with_hedonics no_hedonics
+# Convenience: main specifications (ward_pair_side FE, with hedonics only)
+main: $(filter ../output/event_study_disaggregate_%_continuous.pdf ../output/event_study_disaggregate_%_binary.pdf, \
+      $(filter-out %_no_hedonics.pdf %_block_fe.pdf %_bg_fe.pdf, $(ALL_OUTPUTS)))
 
-# Main specifications (with hedonics)
-main: $(MAIN_OUTPUTS)
+# ─────────────────────────────────────────────────────────────────────────────
+# Rule Generation
+# ─────────────────────────────────────────────────────────────────────────────
 
-# All specifications including no hedonics
-all: main \
-    ../output/event_study_disaggregate_yearly_continuous_no_hedonics.pdf \
-    ../output/event_study_disaggregate_yearly_binary_no_hedonics.pdf \
-    ../output/event_study_disaggregate_quarterly_continuous_no_hedonics.pdf \
-    ../output/event_study_disaggregate_quarterly_binary_no_hedonics.pdf
+define GEN_RULE
+../output/event_study_disaggregate_$(freq)$(TREAT_SUFFIX_$(tt))$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc)).pdf: $(SCRIPT) $(INPUT_PANEL) | ../output
+	@echo "→ [run_event_study_sales_disaggregate] $(freq) + $(tt) + fe=$(fe) + hedonics=$(hc)"
+	Rscript $(SCRIPT) --treatment_type=$(tt) --time_unit=$(freq) --include_hedonics=$(hc) --fe_type=$(fe)
+endef
 
-# Yearly only (both with and without hedonics)
-yearly: \
-    ../output/event_study_disaggregate_yearly_continuous.pdf \
-    ../output/event_study_disaggregate_yearly_binary.pdf \
-    ../output/event_study_disaggregate_yearly_continuous_no_hedonics.pdf \
-    ../output/event_study_disaggregate_yearly_binary_no_hedonics.pdf
+$(foreach freq,$(FREQUENCIES), \
+$(foreach tt,$(TREATMENT_TYPES), \
+$(foreach hc,$(INCLUDE_HEDONICS), \
+$(foreach fe,$(FE_TYPES), \
+	$(eval $(GEN_RULE)) \
+))))
 
-# Quarterly only (both with and without hedonics)
-quarterly: \
-    ../output/event_study_disaggregate_quarterly_continuous.pdf \
-    ../output/event_study_disaggregate_quarterly_binary.pdf \
-    ../output/event_study_disaggregate_quarterly_continuous_no_hedonics.pdf \
-    ../output/event_study_disaggregate_quarterly_binary_no_hedonics.pdf
+# ─────────────────────────────────────────────────────────────────────────────
+# Input Linking
+# ─────────────────────────────────────────────────────────────────────────────
+
+link-inputs: $(INPUT_PANEL)
+
+$(INPUT_PANEL): ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../input
+	ln -sf $< $@
 
 include ../../generic.make
