@@ -5,10 +5,12 @@ include ../../shell_functions.make
 # Parameters - Edit these to add/remove specifications
 # ─────────────────────────────────────────────────────────────────────────────
 
-FREQUENCIES       := yearly quarterly
+FREQUENCIES       := yearly
 TREATMENT_TYPES   := continuous binary_direction
 INCLUDE_HEDONICS  := TRUE FALSE
 FE_TYPES          := ward_pair_side
+WEIGHTINGS        := uniform triangular
+BANDWIDTHS        := 500 1000 1500 2000
 
 SCRIPT := run_event_study.R
 
@@ -41,8 +43,10 @@ $(foreach freq,$(FREQUENCIES), \
 $(foreach tt,$(TREATMENT_TYPES), \
 $(foreach hc,$(INCLUDE_HEDONICS), \
 $(foreach fe,$(FE_TYPES), \
-	../output/event_study_disaggregate_$(freq)$(TREAT_SUFFIX_$(tt))$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc)).pdf \
-))))
+$(foreach wt,$(WEIGHTINGS), \
+$(foreach bw,$(BANDWIDTHS), \
+	../output/event_study_disaggregate_$(freq)$(TREAT_SUFFIX_$(tt))_$(wt)_$(bw)ft$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc)).pdf \
+))))))
 endef
 
 ALL_OUTPUTS := $(call GEN_OUTPUTS)
@@ -52,30 +56,35 @@ ALL_OUTPUTS := $(call GEN_OUTPUTS)
 # ─────────────────────────────────────────────────────────────────────────────
 
 .DEFAULT_GOAL := all
-.PHONY: all main block_fe bg_fe yearly quarterly hedonics no_hedonics link-inputs
+.PHONY: all main-specs link-inputs
 
 all: $(ALL_OUTPUTS)
 
-# Convenience: main specifications (ward_pair_side FE, with hedonics only)
-main: $(filter ../output/event_study_disaggregate_%_continuous.pdf ../output/event_study_disaggregate_%_binary.pdf, \
-      $(filter-out %_no_hedonics.pdf %_block_fe.pdf %_bg_fe.pdf, $(ALL_OUTPUTS)))
+# Convenience target for main specifications only
+main-specs: \
+	../output/event_study_disaggregate_yearly_continuous_uniform_1000ft.pdf \
+	../output/event_study_disaggregate_yearly_continuous_triangular_2000ft.pdf \
+	../output/event_study_disaggregate_yearly_binary_uniform_1000ft.pdf \
+	../output/event_study_disaggregate_yearly_binary_triangular_2000ft.pdf
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Rule Generation
 # ─────────────────────────────────────────────────────────────────────────────
 
 define GEN_RULE
-../output/event_study_disaggregate_$(freq)$(TREAT_SUFFIX_$(tt))$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc)).pdf: $(SCRIPT) $(INPUT_PANEL) | ../output
-	@echo "→ [run_event_study_sales_disaggregate] $(freq) + $(tt) + fe=$(fe) + hedonics=$(hc)"
-	Rscript $(SCRIPT) --treatment_type=$(tt) --time_unit=$(freq) --include_hedonics=$(hc) --fe_type=$(fe)
+../output/event_study_disaggregate_$(freq)$(TREAT_SUFFIX_$(tt))_$(wt)_$(bw)ft$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc)).pdf: $(SCRIPT) $(INPUT_PANEL) | ../output
+	@echo "→ [run_event_study_sales_disaggregate] $(freq) + $(tt) + $(wt) + $(bw)ft + fe=$(fe) + hedonics=$(hc)"
+	Rscript $(SCRIPT) --treatment_type=$(tt) --time_unit=$(freq) --include_hedonics=$(hc) --fe_type=$(fe) --weighting=$(wt) --bandwidth=$(bw)
 endef
 
 $(foreach freq,$(FREQUENCIES), \
 $(foreach tt,$(TREATMENT_TYPES), \
 $(foreach hc,$(INCLUDE_HEDONICS), \
 $(foreach fe,$(FE_TYPES), \
+$(foreach wt,$(WEIGHTINGS), \
+$(foreach bw,$(BANDWIDTHS), \
 	$(eval $(GEN_RULE)) \
-))))
+))))))
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Input Linking

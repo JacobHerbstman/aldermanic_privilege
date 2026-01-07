@@ -9,20 +9,28 @@ source("../../setup_environment/code/packages.R")
 # =============================================================================
 parser <- OptionParser()
 parser <- add_option(parser, c("-x", "--treatment_type"),
-                     type = "character", default = "continuous",
-                     help = "Treatment type: continuous or binary_direction [default: continuous]"
+  type = "character", default = "continuous",
+  help = "Treatment type: continuous or binary_direction [default: continuous]"
 )
 parser <- add_option(parser, c("-c", "--include_hedonics"),
-                     type = "logical", default = TRUE,
-                     help = "Include hedonic controls [default: TRUE]"
+  type = "logical", default = TRUE,
+  help = "Include hedonic controls [default: TRUE]"
 )
 parser <- add_option(parser, c("-t", "--time_unit"),
-                     type = "character", default = "yearly",
-                     help = "Time unit: yearly or quarterly [default: yearly]"
+  type = "character", default = "yearly",
+  help = "Time unit: yearly or quarterly [default: yearly]"
 )
 parser <- add_option(parser, c("-f", "--fe_type"),
-                     type = "character", default = "ward_pair_side",
-                     help = "Fixed effect type: ward_pair_side, block, or block_group [default: ward_pair_side]"
+  type = "character", default = "ward_pair_side",
+  help = "Fixed effect type: ward_pair_side, block, or block_group [default: ward_pair_side]"
+)
+parser <- add_option(parser, c("-w", "--weighting"),
+  type = "character", default = "uniform",
+  help = "Weighting scheme: uniform or triangular [default: uniform]"
+)
+parser <- add_option(parser, c("-b", "--bandwidth"),
+  type = "numeric", default = 1000,
+  help = "Bandwidth in feet for distance weighting [default: 1000]"
 )
 
 args <- parse_args(parser)
@@ -31,23 +39,29 @@ TREATMENT_TYPE <- args$treatment_type
 INCLUDE_HEDONICS <- args$include_hedonics
 TIME_UNIT <- args$time_unit
 FE_TYPE <- args$fe_type
+WEIGHTING <- args$weighting
+BANDWIDTH <- args$bandwidth
 
 message("\n=== Disaggregate Sales Event Study ===")
 message(sprintf("Treatment Type: %s", TREATMENT_TYPE))
 message(sprintf("Include Hedonics: %s", INCLUDE_HEDONICS))
 message(sprintf("Time Unit: %s", TIME_UNIT))
 message(sprintf("FE Type: %s", FE_TYPE))
+message(sprintf("Weighting: %s", WEIGHTING))
+message(sprintf("Bandwidth: %d ft", BANDWIDTH))
 
 # Output suffix
 fe_suffix <- switch(FE_TYPE,
-                    "ward_pair_side" = "",
-                    "block" = "_block_fe",
-                    "block_group" = "_bg_fe"
+  "ward_pair_side" = "",
+  "block" = "_block_fe",
+  "block_group" = "_bg_fe"
 )
 suffix <- sprintf(
-  "disaggregate_%s%s%s%s",
+  "disaggregate_%s%s_%s_%dft%s%s",
   TIME_UNIT,
   ifelse(TREATMENT_TYPE == "continuous", "_continuous", "_binary"),
+  WEIGHTING,
+  as.integer(BANDWIDTH),
   fe_suffix,
   ifelse(INCLUDE_HEDONICS, "", "_no_hedonics")
 )
@@ -69,6 +83,36 @@ data[, `:=`(
 )]
 
 # =============================================================================
+# APPLY BANDWIDTH AND CONSTRUCT WEIGHTS
+# =============================================================================
+message(sprintf("\nApplying bandwidth filter: %d ft", BANDWIDTH))
+message(sprintf("Observations before filter: %s", format(nrow(data), big.mark = ",")))
+
+data <- data[dist_ft <= BANDWIDTH]
+data[, weight := if (WEIGHTING == "triangular") pmax(0, 1 - dist_ft / BANDWIDTH) else 1]
+
+message(sprintf("Observations after filter: %s", format(nrow(data), big.mark = ",")))
+
+# Weighting diagnostics
+message("\n=== WEIGHTING DIAGNOSTICS ===")
+message(sprintf("Sum of weights (effective N): %.0f", sum(data$weight)))
+message(sprintf("Efficiency ratio: %.1f%%", 100 * sum(data$weight) / nrow(data)))
+
+message("\nWeight distribution by treatment status:")
+data[, .(
+  n = .N,
+  sum_weights = sum(weight),
+  mean_weight = mean(weight),
+  mean_dist_ft = mean(dist_ft)
+), by = treat] %>% print()
+
+message("\nWeight distribution by distance bins:")
+bin_width <- min(250, BANDWIDTH / 4)
+data[, dist_bin := cut(dist_ft, breaks = seq(0, BANDWIDTH, by = bin_width), include.lowest = TRUE)]
+data[, .(n = .N, mean_weight = mean(weight)), by = dist_bin][order(dist_bin)] %>% print()
+data[, dist_bin := NULL]
+
+# =============================================================================
 # REPORT HEDONIC COVERAGE
 # =============================================================================
 message("\n=== HEDONIC VARIABLE COVERAGE ===")
@@ -81,12 +125,13 @@ message(sprintf("has_garage: %.1f%%", 100 * mean(!is.na(data$has_garage))))
 
 # Complete hedonic cases
 n_total <- nrow(data)
-n_complete <- data[!is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) & 
-                     !is.na(log_bedrooms) & !is.na(log_baths) & !is.na(has_garage), .N]
-message(sprintf("\nComplete hedonic cases: %s of %s (%.1f%%)",
-                format(n_complete, big.mark = ","),
-                format(n_total, big.mark = ","),
-                100 * n_complete / n_total
+n_complete <- data[!is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
+  !is.na(log_bedrooms) & !is.na(log_baths) & !is.na(has_garage), .N]
+message(sprintf(
+  "\nComplete hedonic cases: %s of %s (%.1f%%)",
+  format(n_complete, big.mark = ","),
+  format(n_total, big.mark = ","),
+  100 * n_complete / n_total
 ))
 
 if (INCLUDE_HEDONICS) {
@@ -98,21 +143,21 @@ if (INCLUDE_HEDONICS) {
 # =============================================================================
 if (TIME_UNIT == "quarterly") {
   message("\nCreating quarterly relative periods...")
-  
+
   data[, `:=`(
     sale_quarter = quarter(sale_date),
     sale_yearqtr = year(sale_date) + (quarter(sale_date) - 1) / 4
   )]
-  
+
   data[, cohort_yearqtr := as.numeric(cohort)]
   data[, relative_qtr := round((sale_yearqtr - cohort_yearqtr) * 4)]
   data[, relative_qtr_capped := pmax(pmin(relative_qtr, 12), -12)]
-  
+
   data[, relative_period := relative_qtr_capped]
   time_fe <- "cohort^sale_yearqtr"
   x_label <- "Quarters Relative to Redistricting"
   x_breaks <- seq(-12, 12, by = 2)
-  
+
   message(sprintf(
     "Relative quarter range: %d to %d",
     min(data$relative_qtr, na.rm = TRUE),
@@ -209,107 +254,116 @@ make_event_study_plot <- function(plot_data, title = NULL) {
 
 if (TREATMENT_TYPE == "continuous") {
   message("\n=== Continuous Treatment ===")
-  
+
   formula_str <- sprintf(
     "log(sale_price) ~ i(relative_period, treatment_continuous, ref = -1) %s | %s + %s",
     hedonic_formula, unit_fe, time_fe
   )
   message(sprintf("Formula: %s", formula_str))
-  
+
   message("\nEstimating model...")
   t0 <- Sys.time()
-  
+
   m <- feols(
     as.formula(formula_str),
     data = data,
+    weights = ~weight,
     cluster = as.formula(sprintf("~%s", cluster_var))
   )
-  
+
   t1 <- Sys.time()
   message(sprintf("Estimation time: %.1f seconds", difftime(t1, t0, units = "secs")))
   message(sprintf("Observations used: %s", format(m$nobs, big.mark = ",")))
-  
+
   message("\n--- Regression Summary ---")
   print(summary(m))
-  
+
   # Extract and plot
   plot_data <- extract_iplot_data(m, "Continuous Treatment")
-  
+
   if (!is.null(plot_data) && nrow(plot_data) > 0) {
     p <- make_event_study_plot(plot_data)
-    
+
     outfile <- sprintf("../output/event_study_%s.pdf", suffix)
     ggsave(outfile, p, width = 7, height = 4.5, bg = "white")
     message(sprintf("\nSaved: %s", outfile))
   }
-  
+
   # Save regression table
   etable(list(m),
-         fitstat = ~ n + r2,
-         style.tex = style.tex("aer",
-                               model.format = "", fixef.title = "", fixef.suffix = "",
-                               yesNo = c("$\\checkmark$", "")
-         ),
-         depvar = FALSE,
-         digits = 3,
-         headers = c("Continuous"),
-         signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-         notes = "Transaction-level regression. Hedonics in logs, no imputation.",
-         float = FALSE,
-         file = sprintf("../output/did_table_%s.tex", suffix),
-         replace = TRUE
+    fitstat = ~ n + r2,
+    style.tex = style.tex("aer",
+      model.format = "", fixef.title = "", fixef.suffix = "",
+      yesNo = c("$\\checkmark$", "")
+    ),
+    depvar = FALSE,
+    digits = 3,
+    headers = c("Continuous"),
+    signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+    notes = sprintf(
+      "Transaction-level regression. %s weighting with %dft bandwidth. Hedonics in logs, no imputation.",
+      tools::toTitleCase(WEIGHTING), as.integer(BANDWIDTH)
+    ),
+    float = FALSE,
+    file = sprintf("../output/did_table_%s.tex", suffix),
+    replace = TRUE
   )
   message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
-  
 } else if (TREATMENT_TYPE == "binary_direction") {
   message("\n=== Binary Direction Treatment ===")
-  
+
   # --- Moved to Stricter ---
   message("\n--- Estimating: Moved to Stricter ---")
-  
+
   data_stricter <- data[treat_lenient == 0]
   message(sprintf("Stricter sample: %s transactions", format(nrow(data_stricter), big.mark = ",")))
-  
+
   formula_stricter <- sprintf(
     "log(sale_price) ~ i(relative_period, treat_stricter, ref = -1) %s | %s + %s",
     hedonic_formula, unit_fe, time_fe
   )
-  
+
   t0 <- Sys.time()
-  m_stricter <- feols(as.formula(formula_stricter), data = data_stricter, 
-                      cluster = as.formula(sprintf("~%s", cluster_var)))
+  m_stricter <- feols(as.formula(formula_stricter),
+    data = data_stricter,
+    weights = ~weight,
+    cluster = as.formula(sprintf("~%s", cluster_var))
+  )
   t1 <- Sys.time()
   message(sprintf("Estimation time: %.1f seconds", difftime(t1, t0, units = "secs")))
   message(sprintf("Observations used: %s", format(m_stricter$nobs, big.mark = ",")))
-  
+
   print(summary(m_stricter))
-  
+
   # --- Moved to More Lenient ---
   message("\n--- Estimating: Moved to More Lenient ---")
-  
+
   data_lenient <- data[treat_stricter == 0]
   message(sprintf("Lenient sample: %s transactions", format(nrow(data_lenient), big.mark = ",")))
-  
+
   formula_lenient <- sprintf(
     "log(sale_price) ~ i(relative_period, treat_lenient, ref = -1) %s | %s + %s",
     hedonic_formula, unit_fe, time_fe
   )
-  
+
   t0 <- Sys.time()
-  m_lenient <- feols(as.formula(formula_lenient), data = data_lenient, 
-                     cluster = as.formula(sprintf("~%s", cluster_var)))
+  m_lenient <- feols(as.formula(formula_lenient),
+    data = data_lenient,
+    weights = ~weight,
+    cluster = as.formula(sprintf("~%s", cluster_var))
+  )
   t1 <- Sys.time()
   message(sprintf("Estimation time: %.1f seconds", difftime(t1, t0, units = "secs")))
   message(sprintf("Observations used: %s", format(m_lenient$nobs, big.mark = ",")))
-  
+
   print(summary(m_lenient))
-  
+
   # --- Combined Plot ---
   plot_data <- bind_rows(
     extract_iplot_data(m_stricter, "Moved to Stricter"),
     extract_iplot_data(m_lenient, "Moved to More Lenient")
   ) %>% filter(!is.na(estimate))
-  
+
   if (nrow(plot_data) > 0) {
     # Faceted plot
     p_facet <- ggplot(plot_data, aes(x = x, y = estimate_pct, color = group, fill = group)) +
@@ -346,11 +400,11 @@ if (TREATMENT_TYPE == "continuous") {
         strip.text = element_text(face = "bold", size = 10),
         plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
       )
-    
+
     outfile <- sprintf("../output/event_study_%s.pdf", suffix)
     ggsave(outfile, p_facet, width = 7, height = 6, bg = "white")
     message(sprintf("\nSaved: %s", outfile))
-    
+
     # Combined (overlaid) plot
     p_combined <- ggplot(plot_data, aes(x = x, y = estimate_pct, color = group, fill = group)) +
       geom_hline(yintercept = 0, linetype = "solid", color = "gray40", linewidth = 0.4) +
@@ -393,27 +447,30 @@ if (TREATMENT_TYPE == "continuous") {
         legend.direction = "horizontal",
         plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
       )
-    
+
     outfile_combined <- sprintf("../output/event_study_combined_%s.pdf", suffix)
     ggsave(outfile_combined, p_combined, width = 7, height = 4.5, bg = "white")
     message(sprintf("Saved: %s", outfile_combined))
   }
-  
+
   # Save regression table
   etable(list(m_stricter, m_lenient),
-         fitstat = ~ n + r2,
-         style.tex = style.tex("aer",
-                               model.format = "", fixef.title = "", fixef.suffix = "",
-                               yesNo = c("$\\checkmark$", "")
-         ),
-         depvar = FALSE,
-         digits = 3,
-         headers = c("To Stricter", "To More Lenient"),
-         signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-         notes = "Transaction-level regression. Hedonics in logs, no imputation.",
-         float = FALSE,
-         file = sprintf("../output/did_table_%s.tex", suffix),
-         replace = TRUE
+    fitstat = ~ n + r2,
+    style.tex = style.tex("aer",
+      model.format = "", fixef.title = "", fixef.suffix = "",
+      yesNo = c("$\\checkmark$", "")
+    ),
+    depvar = FALSE,
+    digits = 3,
+    headers = c("To Stricter", "To More Lenient"),
+    signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+    notes = sprintf(
+      "Transaction-level regression. %s weighting with %dft bandwidth. Hedonics in logs, no imputation.",
+      tools::toTitleCase(WEIGHTING), as.integer(BANDWIDTH)
+    ),
+    float = FALSE,
+    file = sprintf("../output/did_table_%s.tex", suffix),
+    replace = TRUE
   )
   message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
 }

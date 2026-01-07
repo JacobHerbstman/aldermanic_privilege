@@ -204,7 +204,7 @@ cohort_2015 <- sales_with_treatment[
   sale_year >= 2010 & sale_year <= 2020 &
     valid_2015 == TRUE &
     !is.na(ward_pair_id) &
-    abs(as.numeric(signed_dist)) < 1000
+    abs(as.numeric(signed_dist)) <= 2000
 ][, `:=`(
   cohort = "2015",
   relative_year = sale_year - 2015,
@@ -214,6 +214,9 @@ cohort_2015 <- sales_with_treatment[
   ward_origin = ward_origin_2015,
   ward_dest = ward_dest_2015
 )]
+
+# Add dist_ft for filtering/weighting in regression script
+cohort_2015[, dist_ft := abs(as.numeric(signed_dist))]
 
 # FIX: For treated blocks, use the boundary they crossed (time-invariant)
 # This ensures ward_pair_id doesn't change pre vs post treatment
@@ -235,7 +238,7 @@ cohort_2023 <- sales_with_treatment[
   sale_year >= 2018 & sale_year <= 2025 &
     valid_2023 == TRUE &
     !is.na(ward_pair_id) &
-    abs(as.numeric(signed_dist)) < 1000
+    abs(as.numeric(signed_dist)) <= 2000
 ][, `:=`(
   cohort = "2023",
   relative_year = sale_year - 2023,
@@ -245,6 +248,9 @@ cohort_2023 <- sales_with_treatment[
   ward_origin = ward_origin_2023,
   ward_dest = ward_dest_2023
 )]
+
+# Add dist_ft for filtering/weighting in regression script
+cohort_2023[, dist_ft := abs(as.numeric(signed_dist))]
 
 # FIX: For treated blocks, use the boundary they crossed (time-invariant)
 cohort_2023[
@@ -319,6 +325,7 @@ final_panel <- stacked_panel[, .(
   ward_pair_side,
   cohort_ward_pair_side,
   signed_dist,
+  dist_ft,
 
   # Treatment
   treat,

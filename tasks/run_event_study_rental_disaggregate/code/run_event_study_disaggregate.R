@@ -37,6 +37,18 @@ parser <- add_option(parser, c("-c", "--include_controls"),
     type = "logical", default = TRUE,
     help = "Include hedonic controls [default: TRUE]"
 )
+parser <- add_option(parser, c("-w", "--weighting"),
+    type = "character", default = "uniform",
+    help = "Weighting scheme: uniform or triangular [default: uniform]"
+)
+parser <- add_option(parser, c("-b", "--bandwidth"),
+    type = "numeric", default = 1000,
+    help = "Bandwidth in feet for distance weighting [default: 1000]"
+)
+parser <- add_option(parser, c("-m", "--sample_filter"),
+    type = "character", default = "full_sample",
+    help = "Sample filter: full_sample or multifamily_only [default: full_sample]"
+)
 
 args <- parse_args(parser)
 
@@ -44,26 +56,37 @@ FREQUENCY <- args$frequency
 STACKED <- args$stacked
 TREATMENT_TYPE <- args$treatment_type
 INCLUDE_CONTROLS <- args$include_controls
+WEIGHTING <- args$weighting
+BANDWIDTH <- args$bandwidth
+SAMPLE_FILTER <- args$sample_filter
 
 message("\n=== Disaggregate Event Study Configuration ===")
 message(sprintf("Frequency: %s", FREQUENCY))
 message(sprintf("Stacked: %s", STACKED))
 message(sprintf("Treatment Type: %s", TREATMENT_TYPE))
 message(sprintf("Include Hedonic Controls: %s", INCLUDE_CONTROLS))
+message(sprintf("Weighting: %s", WEIGHTING))
+message(sprintf("Bandwidth: %d ft", BANDWIDTH))
+message(sprintf("Sample Filter: %s", SAMPLE_FILTER))
 
 # Output suffix
+sample_suffix <- ifelse(SAMPLE_FILTER == "multifamily_only", "_mf", "")
+
 suffix <- sprintf(
-    "disaggregate_%s_%s_%s%s",
+    "disaggregate_%s_%s_%s_%s_%dft%s%s",
     FREQUENCY,
     ifelse(STACKED, "stacked", "unstacked"),
     TREATMENT_TYPE,
+    WEIGHTING,
+    as.integer(BANDWIDTH),
+    sample_suffix,
     ifelse(INCLUDE_CONTROLS, "_with_hedonics", "")
 )
 
 # Hedonic controls formula component
 # Available: beds_factor, beds_missing, baths_factor, baths_missing, has_gym, has_laundry, building_type_factor
 hedonic_controls <- if (INCLUDE_CONTROLS) {
-    "+ log_sqft + log_beds + log_baths + factor(building_type_clean) "
+    "+ building_type_factor + log_sqft + log_beds+log_baths"
 } else {
     ""
 }
@@ -104,6 +127,67 @@ message(sprintf("Loaded %s observations", format(nrow(data), big.mark = ",")))
 message(sprintf("Unique blocks: %s", format(n_distinct(data$block_id), big.mark = ",")))
 message(sprintf("Unique listings: %s", format(n_distinct(data$id), big.mark = ",")))
 
+# =============================================================================
+# APPLY SAMPLE FILTER
+# =============================================================================
+if (SAMPLE_FILTER == "multifamily_only") {
+    message("\nFiltering to multifamily buildings only...")
+    message(sprintf("Observations before filter: %s", format(nrow(data), big.mark = ",")))
+
+    data <- data %>% filter(building_type_clean == "multi_family")
+
+    message(sprintf("Observations after filter: %s", format(nrow(data), big.mark = ",")))
+} else {
+    message("\nUsing full sample (all building types)")
+}
+
+# =============================================================================
+# APPLY BANDWIDTH AND CONSTRUCT WEIGHTS
+# =============================================================================
+message(sprintf("\nApplying bandwidth filter: %d ft", BANDWIDTH))
+message(sprintf("Observations before filter: %s", format(nrow(data), big.mark = ",")))
+
+data <- data %>%
+    filter(dist_ft <= BANDWIDTH) %>%
+    mutate(
+        weight = case_when(
+            WEIGHTING == "uniform" ~ 1,
+            WEIGHTING == "triangular" ~ pmax(0, 1 - dist_ft / BANDWIDTH),
+            TRUE ~ 1
+        )
+    )
+
+message(sprintf("Observations after filter: %s", format(nrow(data), big.mark = ",")))
+
+# Weighting diagnostics
+message("\n=== WEIGHTING DIAGNOSTICS ===")
+message(sprintf("Sum of weights (effective N): %.0f", sum(data$weight)))
+message(sprintf("Efficiency ratio: %.1f%%", 100 * sum(data$weight) / nrow(data)))
+
+message("\nWeight distribution by treatment status:")
+data %>%
+    group_by(treat) %>%
+    summarise(
+        n = n(),
+        sum_weights = sum(weight),
+        mean_weight = mean(weight),
+        mean_dist_ft = mean(dist_ft),
+        .groups = "drop"
+    ) %>%
+    print()
+
+message("\nWeight distribution by distance bins:")
+bin_width <- min(250, BANDWIDTH / 4)
+data %>%
+    mutate(dist_bin = cut(dist_ft, breaks = seq(0, BANDWIDTH, by = bin_width), include.lowest = TRUE)) %>%
+    group_by(dist_bin) %>%
+    summarise(
+        n = n(),
+        mean_weight = mean(weight),
+        .groups = "drop"
+    ) %>%
+    print()
+
 # Set time axis parameters
 if (FREQUENCY == "yearly") {
     time_label <- "Years"
@@ -130,11 +214,16 @@ extract_iplot_data <- function(model, group_label) {
 }
 
 run_model <- function(formula_str, data_subset) {
-    message(sprintf("Running regression with %s observations...", format(nrow(data_subset), big.mark = ",")))
+    message(sprintf(
+        "Running regression with %s observations (effective N: %.0f)...",
+        format(nrow(data_subset), big.mark = ","),
+        sum(data_subset$weight)
+    ))
     message(sprintf("Formula: %s", formula_str))
 
     feols(as.formula(formula_str),
         data = data_subset,
+        weights = ~weight,
         cluster = as.formula(sprintf("~%s", cluster_var))
     )
 }
@@ -189,7 +278,11 @@ if (TREATMENT_TYPE == "continuous") {
         style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "", yesNo = c("$\\checkmark$", "")),
         depvar = FALSE, digits = 3, headers = c("Continuous"),
         signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-        notes = "Listing-level regressions with hedonic controls. Alderman strictness is standardized (mean 0, SD 1).",
+        notes = sprintf(
+            "Listing-level regression. %s weighting with %dft bandwidth. SEs clustered by block.%s",
+            tools::toTitleCase(WEIGHTING), as.integer(BANDWIDTH),
+            ifelse(SAMPLE_FILTER == "multifamily_only", " Multifamily buildings only.", "")
+        ),
         float = FALSE, file = sprintf("../output/did_table_%s.tex", suffix), replace = TRUE
     )
     message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
@@ -344,11 +437,14 @@ if (TREATMENT_TYPE == "continuous") {
         style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "", yesNo = c("$\\checkmark$", "")),
         depvar = FALSE, digits = 3, headers = c("To Stricter", "To More Lenient"),
         signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-        notes = "Listing-level regressions with hedonic controls. Standard errors clustered at block level.",
+        notes = sprintf(
+            "Listing-level regression. %s weighting with %dft bandwidth. SEs clustered by block.%s",
+            tools::toTitleCase(WEIGHTING), as.integer(BANDWIDTH),
+            ifelse(SAMPLE_FILTER == "multifamily_only", " Multifamily buildings only.", "")
+        ),
         float = FALSE, file = sprintf("../output/did_table_%s.tex", suffix), replace = TRUE
     )
     message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
 }
 
 message("\n\nDone!")
-

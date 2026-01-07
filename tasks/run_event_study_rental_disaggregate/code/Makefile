@@ -5,10 +5,13 @@ include ../../shell_functions.make
 # Parameters
 # ─────────────────────────────────────────────────────────────────────────────
 
-FREQUENCIES       := yearly quarterly
+FREQUENCIES       := yearly
 STACKINGS         := TRUE
 TREATMENT_TYPES   := continuous binary_direction
 INCLUDE_CONTROLS  := TRUE FALSE
+WEIGHTINGS        := uniform triangular
+BANDWIDTHS        := 500 1000 1500 2000
+SAMPLE_FILTERS    := full_sample multifamily_only
 
 SCRIPT := run_event_study_disaggregate.R
 
@@ -31,13 +34,20 @@ STACK_PREFIX_FALSE := unstacked
 CONTROLS_SUFFIX_TRUE  := _with_hedonics
 CONTROLS_SUFFIX_FALSE :=
 
+# Sample filter suffix
+SAMPLE_SUFFIX_full_sample      :=
+SAMPLE_SUFFIX_multifamily_only := _mf
+
 define GEN_OUTPUTS
 $(foreach freq,$(FREQUENCIES), \
 $(foreach st,$(STACKINGS), \
 $(foreach tt,$(TREATMENT_TYPES), \
 $(foreach ic,$(INCLUDE_CONTROLS), \
-	../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)$(CONTROLS_SUFFIX_$(ic)).pdf \
-))))
+$(foreach wt,$(WEIGHTINGS), \
+$(foreach bw,$(BANDWIDTHS), \
+$(foreach sf,$(SAMPLE_FILTERS), \
+	../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)_$(wt)_$(bw)ft$(SAMPLE_SUFFIX_$(sf))$(CONTROLS_SUFFIX_$(ic)).pdf \
+)))))))
 endef
 
 ALL_OUTPUTS := $(call GEN_OUTPUTS)
@@ -47,25 +57,37 @@ ALL_OUTPUTS := $(call GEN_OUTPUTS)
 # ─────────────────────────────────────────────────────────────────────────────
 
 .DEFAULT_GOAL := all
-.PHONY: all link-inputs
+.PHONY: all link-inputs main-specs
 
 all: $(ALL_OUTPUTS)
+
+# Convenience target for main specifications only
+main-specs: \
+	../output/event_study_disaggregate_yearly_stacked_continuous_uniform_1000ft_with_hedonics.pdf \
+	../output/event_study_disaggregate_yearly_stacked_continuous_triangular_2000ft_with_hedonics.pdf \
+	../output/event_study_disaggregate_yearly_stacked_binary_direction_uniform_1000ft_with_hedonics.pdf \
+	../output/event_study_disaggregate_yearly_stacked_binary_direction_triangular_2000ft_with_hedonics.pdf \
+	../output/event_study_disaggregate_yearly_stacked_continuous_triangular_2000ft_mf_with_hedonics.pdf \
+	../output/event_study_disaggregate_yearly_stacked_binary_direction_triangular_2000ft_mf_with_hedonics.pdf
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Rule Generation
 # ─────────────────────────────────────────────────────────────────────────────
 
 define GEN_RULE
-../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)$(CONTROLS_SUFFIX_$(ic)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
-	Rscript $(SCRIPT) --frequency=$(freq) --stacked=$(st) --treatment_type=$(tt) --include_controls=$(ic)
+../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)_$(wt)_$(bw)ft$(SAMPLE_SUFFIX_$(sf))$(CONTROLS_SUFFIX_$(ic)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) --frequency=$(freq) --stacked=$(st) --treatment_type=$(tt) --include_controls=$(ic) --weighting=$(wt) --bandwidth=$(bw) --sample_filter=$(sf)
 endef
 
 $(foreach freq,$(FREQUENCIES), \
 $(foreach st,$(STACKINGS), \
 $(foreach tt,$(TREATMENT_TYPES), \
 $(foreach ic,$(INCLUDE_CONTROLS), \
+$(foreach wt,$(WEIGHTINGS), \
+$(foreach bw,$(BANDWIDTHS), \
+$(foreach sf,$(SAMPLE_FILTERS), \
 	$(eval $(GEN_RULE)) \
-))))
+)))))))
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Input Linking
@@ -83,4 +105,3 @@ $(INPUT_LISTING_2023): ../../create_event_study_rental_data_disaggregate/output/
 	ln -sf $< $@
 
 include ../../generic.make
-

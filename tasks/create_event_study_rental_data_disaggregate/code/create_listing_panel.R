@@ -48,7 +48,7 @@ treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types
 # =============================================================================
 message("Assigning rentals to census blocks via spatial join...")
 
-crs_projected <- 3435  # Illinois East State Plane (feet)
+crs_projected <- 3435 # Illinois East State Plane (feet)
 
 rentals_sf <- rentals %>%
   filter(!is.na(latitude), !is.na(longitude)) %>%
@@ -116,11 +116,11 @@ rentals_with_controls <- rentals_with_blocks %>%
     log_sqft = if_else(!is.na(sqft) & sqft > 0, log(sqft), NA_real_),
     log_beds = if_else(!is.na(beds) & beds > 0, log(beds), NA_real_),
     log_baths = if_else(!is.na(baths) & baths > 0, log(baths), NA_real_),
-    
+
     # Amenities: convert to binary (0/1), treat NA as 0
     has_gym = coalesce(as.integer(gym), 0L),
     has_laundry = coalesce(as.integer(laundry), 0L),
-    
+
     # Building type factor
     building_type_factor = factor(
       coalesce(building_type_clean, "other"),
@@ -148,18 +148,18 @@ cohort_2015 <- rentals_with_controls %>%
   filter(!is.na(switched_2015)) %>%
   # Drop contaminated controls
   filter(valid_2015) %>%
-  # Apply 1000ft distance restriction
-  filter(!is.na(ward_pair_id), dist_ft < 1000) %>%
+  # Apply 2000ft distance restriction (filtering/weighting by bandwidth happens in regression script)
+  filter(!is.na(ward_pair_id), dist_ft <= 2000) %>%
   mutate(
     # Cohort identifier
     cohort = "2015",
-    
+
     # Time variables
     relative_year = year - 2015,
     relative_year_capped = pmax(pmin(relative_year, 5), -5),
     relative_quarter = (year - 2015) * 4 + (quarter - 2),
     relative_quarter_capped = pmax(pmin(relative_quarter, 16), -8),
-    
+
     # Treatment variables
     treat = as.integer(switched_2015),
     switched = switched_2015,
@@ -167,21 +167,22 @@ cohort_2015 <- rentals_with_controls %>%
     ward_origin = ward_origin_2015,
     ward_dest = ward_dest_2015,
     treatment_continuous = strictness_change_2015,
-    
+
     # Binary direction indicators
     treat_stricter = as.integer(strictness_change > 0),
     treat_lenient = as.integer(strictness_change < 0),
-    
+
     # FIX: For treated blocks, override ward_pair_id with the boundary they crossed
     # This ensures ward_pair_id is stable across pre/post periods
     ward_pair_id_fixed = if_else(
       switched_2015,
       paste(pmin(ward_origin_2015, ward_dest_2015),
-            pmax(ward_origin_2015, ward_dest_2015),
-            sep = "-"),
+        pmax(ward_origin_2015, ward_dest_2015),
+        sep = "-"
+      ),
       ward_pair_id
     ),
-    
+
     # Construct ward_pair_side from the fixed ward_pair_id
     ward_pair_side = paste(ward_pair_id_fixed, ward_origin, sep = "_")
   ) %>%
@@ -190,27 +191,27 @@ cohort_2015 <- rentals_with_controls %>%
   select(
     # Identifiers
     id, block_id, cohort,
-    
+
     # Time
     file_date, year, month, quarter, year_month, year_quarter,
     relative_year, relative_year_capped,
     relative_quarter, relative_quarter_capped,
-    
+
     # Outcome
     rent_price,
-    
+
     # Hedonic controls (log-transformed, NO imputation)
     log_sqft, log_beds, log_baths,
     has_gym, has_laundry,
     building_type_clean, building_type_factor,
-    
+
     # Raw hedonics for diagnostics
     sqft, beds, baths,
-    
+
     # Geography/FEs
     ward_pair_id, ward_origin, ward_dest, ward_pair_side,
     dist_ft, signed_dist,
-    
+
     # Treatment
     treat, switched, strictness_change, treatment_continuous,
     treat_stricter, treat_lenient
@@ -226,9 +227,11 @@ treated_wp_check_2015 <- cohort_2015 %>%
     n_ward_pairs = n_distinct(ward_pair_id),
     .groups = "drop"
   )
-message(sprintf("2015 treated blocks with multiple ward_pair_ids: %d (%.1f%%)",
-                sum(treated_wp_check_2015$n_ward_pairs > 1),
-                100 * mean(treated_wp_check_2015$n_ward_pairs > 1)))
+message(sprintf(
+  "2015 treated blocks with multiple ward_pair_ids: %d (%.1f%%)",
+  sum(treated_wp_check_2015$n_ward_pairs > 1),
+  100 * mean(treated_wp_check_2015$n_ward_pairs > 1)
+))
 
 # =============================================================================
 # 6. CREATE 2023 COHORT LISTING PANEL
@@ -244,18 +247,18 @@ cohort_2023 <- rentals_with_controls %>%
   filter(!is.na(switched_2023)) %>%
   # Drop contaminated controls
   filter(valid_2023) %>%
-  # Apply 1000ft distance restriction
-  filter(!is.na(ward_pair_id), dist_ft < 1000) %>%
+  # Apply 2000ft distance restriction (filtering/weighting by bandwidth happens in regression script)
+  filter(!is.na(ward_pair_id), dist_ft <= 2000) %>%
   mutate(
     # Cohort identifier
     cohort = "2023",
-    
+
     # Time variables
     relative_year = year - 2023,
     relative_year_capped = pmax(pmin(relative_year, 5), -5),
     relative_quarter = (year - 2023) * 4 + (quarter - 2),
     relative_quarter_capped = pmax(pmin(relative_quarter, 16), -8),
-    
+
     # Treatment variables
     treat = as.integer(switched_2023),
     switched = switched_2023,
@@ -263,20 +266,21 @@ cohort_2023 <- rentals_with_controls %>%
     ward_origin = ward_origin_2023,
     ward_dest = ward_dest_2023,
     treatment_continuous = strictness_change_2023,
-    
+
     # Binary direction indicators
     treat_stricter = as.integer(strictness_change > 0),
     treat_lenient = as.integer(strictness_change < 0),
-    
+
     # FIX: For treated blocks, override ward_pair_id with the boundary they crossed
     ward_pair_id_fixed = if_else(
       switched_2023,
       paste(pmin(ward_origin_2023, ward_dest_2023),
-            pmax(ward_origin_2023, ward_dest_2023),
-            sep = "-"),
+        pmax(ward_origin_2023, ward_dest_2023),
+        sep = "-"
+      ),
       ward_pair_id
     ),
-    
+
     # Construct ward_pair_side from the fixed ward_pair_id
     ward_pair_side = paste(ward_pair_id_fixed, ward_origin, sep = "_")
   ) %>%
@@ -284,27 +288,27 @@ cohort_2023 <- rentals_with_controls %>%
   select(
     # Identifiers
     id, block_id, cohort,
-    
+
     # Time
     file_date, year, month, quarter, year_month, year_quarter,
     relative_year, relative_year_capped,
     relative_quarter, relative_quarter_capped,
-    
+
     # Outcome
     rent_price,
-    
+
     # Hedonic controls (log-transformed, NO imputation)
     log_sqft, log_beds, log_baths,
     has_gym, has_laundry,
     building_type_clean, building_type_factor,
-    
+
     # Raw hedonics for diagnostics
     sqft, beds, baths,
-    
+
     # Geography/FEs
     ward_pair_id, ward_origin, ward_dest, ward_pair_side,
     dist_ft, signed_dist,
-    
+
     # Treatment
     treat, switched, strictness_change, treatment_continuous,
     treat_stricter, treat_lenient
@@ -320,9 +324,11 @@ treated_wp_check_2023 <- cohort_2023 %>%
     n_ward_pairs = n_distinct(ward_pair_id),
     .groups = "drop"
   )
-message(sprintf("2023 treated blocks with multiple ward_pair_ids: %d (%.1f%%)",
-                sum(treated_wp_check_2023$n_ward_pairs > 1),
-                100 * mean(treated_wp_check_2023$n_ward_pairs > 1)))
+message(sprintf(
+  "2023 treated blocks with multiple ward_pair_ids: %d (%.1f%%)",
+  sum(treated_wp_check_2023$n_ward_pairs > 1),
+  100 * mean(treated_wp_check_2023$n_ward_pairs > 1)
+))
 
 # =============================================================================
 # 7. STACK COHORTS AND CREATE FINAL PANEL
@@ -368,12 +374,14 @@ message(sprintf("  has_gym: %.1f%% (of listings)", 100 * mean(listing_panel$has_
 message(sprintf("  has_laundry: %.1f%% (of listings)", 100 * mean(listing_panel$has_laundry)))
 
 # Complete hedonic cases
-n_complete <- sum(!is.na(listing_panel$log_sqft) & 
-                    !is.na(listing_panel$log_beds) & 
-                    !is.na(listing_panel$log_baths))
-message(sprintf("\nListings with complete hedonics (sqft, beds, baths): %s (%.1f%%)",
-                format(n_complete, big.mark = ","),
-                100 * n_complete / nrow(listing_panel)))
+n_complete <- sum(!is.na(listing_panel$log_sqft) &
+  !is.na(listing_panel$log_beds) &
+  !is.na(listing_panel$log_baths))
+message(sprintf(
+  "\nListings with complete hedonics (sqft, beds, baths): %s (%.1f%%)",
+  format(n_complete, big.mark = ","),
+  100 * n_complete / nrow(listing_panel)
+))
 
 message("\nBuilding type distribution:")
 table(listing_panel$building_type_factor) %>% print()
@@ -405,9 +413,11 @@ wp_stability <- listing_panel %>%
     .groups = "drop"
   )
 message(sprintf("Total treated blocks: %d", nrow(wp_stability)))
-message(sprintf("Treated blocks with unstable ward_pair_id: %d (%.1f%%)",
-                sum(wp_stability$n_ward_pairs > 1),
-                100 * mean(wp_stability$n_ward_pairs > 1)))
+message(sprintf(
+  "Treated blocks with unstable ward_pair_id: %d (%.1f%%)",
+  sum(wp_stability$n_ward_pairs > 1),
+  100 * mean(wp_stability$n_ward_pairs > 1)
+))
 
 # =============================================================================
 # 9. SAVE OUTPUT
