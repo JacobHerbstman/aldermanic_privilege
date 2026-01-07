@@ -63,7 +63,7 @@ suffix <- sprintf(
 # Hedonic controls formula component
 # Available: beds_factor, beds_missing, baths_factor, baths_missing, has_gym, has_laundry, building_type_factor
 hedonic_controls <- if (INCLUDE_CONTROLS) {
-    "+ beds + baths + as.factor(building_type_clean)"
+    "+ log_sqft + log_beds + log_baths + factor(building_type_clean) "
 } else {
     ""
 }
