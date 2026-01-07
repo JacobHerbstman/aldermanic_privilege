@@ -394,4 +394,11 @@ message(sprintf(
   format(nrow(final_panel), big.mark = ",")
 ))
 
+# Also save cohort-specific panels for unstacked analysis
+write_parquet(cohort_2015, "../output/sales_transaction_panel_2015.parquet")
+message(sprintf("Saved 2015 cohort panel: %s rows", format(nrow(cohort_2015), big.mark = ",")))
+
+write_parquet(cohort_2023, "../output/sales_transaction_panel_2023.parquet")
+message(sprintf("Saved 2023 cohort panel: %s rows", format(nrow(cohort_2023), big.mark = ",")))
+
 message("\nDone!")

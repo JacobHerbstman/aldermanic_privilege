@@ -32,6 +32,10 @@ parser <- add_option(parser, c("-b", "--bandwidth"),
   type = "numeric", default = 1000,
   help = "Bandwidth in feet for distance weighting [default: 1000]"
 )
+parser <- add_option(parser, c("-s", "--stacked"),
+  type = "logical", default = TRUE,
+  help = "Use stacked design with 2015+2023 cohorts [default: TRUE]"
+)
 
 args <- parse_args(parser)
 
@@ -41,6 +45,7 @@ TIME_UNIT <- args$time_unit
 FE_TYPE <- args$fe_type
 WEIGHTING <- args$weighting
 BANDWIDTH <- args$bandwidth
+STACKED <- args$stacked
 
 message("\n=== Disaggregate Sales Event Study ===")
 message(sprintf("Treatment Type: %s", TREATMENT_TYPE))
@@ -49,6 +54,7 @@ message(sprintf("Time Unit: %s", TIME_UNIT))
 message(sprintf("FE Type: %s", FE_TYPE))
 message(sprintf("Weighting: %s", WEIGHTING))
 message(sprintf("Bandwidth: %d ft", BANDWIDTH))
+message(sprintf("Stacked: %s", STACKED))
 
 # Output suffix
 fe_suffix <- switch(FE_TYPE,
@@ -57,8 +63,9 @@ fe_suffix <- switch(FE_TYPE,
   "block_group" = "_bg_fe"
 )
 suffix <- sprintf(
-  "disaggregate_%s%s_%s_%dft%s%s",
+  "disaggregate_%s_%s%s_%s_%dft%s%s",
   TIME_UNIT,
+  ifelse(STACKED, "stacked", "unstacked"),
   ifelse(TREATMENT_TYPE == "continuous", "_continuous", "_binary"),
   WEIGHTING,
   as.integer(BANDWIDTH),
@@ -71,9 +78,43 @@ suffix <- sprintf(
 # =============================================================================
 message("\nLoading transaction panel...")
 
-data <- read_parquet("../input/sales_transaction_panel.parquet")
-setDT(data)
+if (STACKED) {
+  data <- read_parquet("../input/sales_transaction_panel.parquet")
+  setDT(data)
+
+  # FE structure for stacked design
+  unit_fe <- switch(FE_TYPE,
+    "ward_pair_side" = "cohort_ward_pair_side",
+    "block" = "cohort_block_id",
+    "block_group" = {
+      data[, block_group_id := substr(block_id, 1, 12)]
+      data[, cohort_block_group_id := paste(cohort, block_group_id, sep = "_")]
+      "cohort_block_group_id"
+    }
+  )
+
+  cluster_var <- "cohort_block_id"
+} else {
+  # Unstacked: use 2015 cohort only (longer pre/post period, cleaner identification)
+  data <- read_parquet("../input/sales_transaction_panel_2015.parquet")
+  setDT(data)
+
+  # FE structure for unstacked design (no cohort prefix needed)
+  unit_fe <- switch(FE_TYPE,
+    "ward_pair_side" = "ward_pair_side",
+    "block" = "block_id",
+    "block_group" = {
+      data[, block_group_id := substr(block_id, 1, 12)]
+      "block_group_id"
+    }
+  )
+
+  cluster_var <- "block_id"
+}
+
 message(sprintf("Loaded %s transactions", format(nrow(data), big.mark = ",")))
+message(sprintf("Unit FE: %s", unit_fe))
+message(sprintf("Cluster var: %s", cluster_var))
 
 # Create treatment indicators for binary analysis
 data[, `:=`(
@@ -149,12 +190,17 @@ if (TIME_UNIT == "quarterly") {
     sale_yearqtr = year(sale_date) + (quarter(sale_date) - 1) / 4
   )]
 
-  data[, cohort_yearqtr := as.numeric(cohort)]
-  data[, relative_qtr := round((sale_yearqtr - cohort_yearqtr) * 4)]
+  if (STACKED) {
+    data[, cohort_yearqtr := as.numeric(cohort)]
+    data[, relative_qtr := round((sale_yearqtr - cohort_yearqtr) * 4)]
+  } else {
+    # For 2015 cohort only, hardcode the reference year
+    data[, relative_qtr := round((sale_yearqtr - 2015) * 4)]
+  }
   data[, relative_qtr_capped := pmax(pmin(relative_qtr, 12), -12)]
 
   data[, relative_period := relative_qtr_capped]
-  time_fe <- "cohort^sale_yearqtr"
+  time_fe <- if (STACKED) "cohort^sale_yearqtr" else "sale_yearqtr"
   x_label <- "Quarters Relative to Redistricting"
   x_breaks <- seq(-12, 12, by = 2)
 
@@ -165,31 +211,13 @@ if (TIME_UNIT == "quarterly") {
   ))
 } else {
   data[, relative_period := relative_year_capped]
-  time_fe <- "cohort^sale_year"
+  time_fe <- if (STACKED) "cohort^sale_year" else "sale_year"
   x_label <- "Years Relative to Redistricting"
   x_breaks <- -5:5
 }
 
-# =============================================================================
-# SET UNIT FIXED EFFECTS BASED ON FE_TYPE
-# =============================================================================
-message(sprintf("\nSetting unit FE: %s", FE_TYPE))
+message(sprintf("Time FE: %s", time_fe))
 
-if (FE_TYPE == "block") {
-  unit_fe <- "cohort_block_id"
-  cluster_var <- "cohort_block_id"
-} else if (FE_TYPE == "block_group") {
-  data[, block_group_id := substr(block_id, 1, 12)]
-  data[, cohort_block_group_id := paste(cohort, block_group_id, sep = "_")]
-  unit_fe <- "cohort_block_group_id"
-  cluster_var <- "cohort_block_id"
-} else {
-  unit_fe <- "cohort_ward_pair_side"
-  cluster_var <- "cohort_block_id"
-}
-
-message(sprintf("Unit FE: %s", unit_fe))
-message(sprintf("Cluster var: %s", cluster_var))
 
 # =============================================================================
 # SPECIFY HEDONIC CONTROLS (NO IMPUTATION - NAs will be dropped)
