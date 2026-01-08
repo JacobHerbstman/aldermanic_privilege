@@ -3,224 +3,59 @@
 
 This appendix presents additional results for home sale prices and rents, complementing the event study analysis in Section~\ref{sec:empirical_results_rent_home_vals}.
 
-\subsection{Quarterly Event Study Results}
+\subsection{Pooled Difference-in-Differences Estimates}
 
-The main text presents yearly event study estimates. Figures~\ref{fig:event_study_sales_quarterly} and~\ref{fig:event_study_rental_quarterly} present analogous quarterly specifications, which allow for a more granular examination of the timing of effects around the 2015 ward redistricting.
+Table~\ref{tab:did_sales} presents pooled difference-in-differences estimates that collapse the post-period effects into a single coefficient. Panel A reports results for home sales, comparing announcement timing (2012) to implementation timing (2015). The cleaner pre-trends with announcement timing in Figure~\ref{fig:event_study_sales} are reflected in larger and more precisely estimated coefficients. Panel B reports results for rents using implementation timing. Across all specifications, moving to a stricter alderman is associated with higher housing costs.
+
+\input{../tasks/run_event_study_sales_disaggregate/output/did_table_sales.tex}
+
+% If you have a separate rental DiD table:
+\input{../tasks/run_event_study_rental_disaggregate/output/did_table_rental.tex}
+
+\subsection{Event Study with Hedonic Controls}
+
+The main text presents event study results without property-level controls to capture the total effect of aldermanic strictness on housing costs, including any composition effects operating through changes in the housing stock. This subsection presents results controlling for property characteristics to isolate the pure price effect holding quality constant.
+
+\subsubsection{Home Sale Prices with Hedonic Controls}
+
+Figure~\ref{fig:event_study_sales_hedonics} presents event study results for home sales including hedonic controls for building square footage, land square footage, building age, number of bedrooms, number of bathrooms, and garage presence. Point estimates are somewhat attenuated relative to the main specification, consistent with the interpretation that part of the price effect operates through changes in housing stock composition. The post-period coefficients remain positive, though less precisely estimated.
 
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_quarterly_unweighted_stacked_continuous.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2012_continuous_uniform_1000ft.pdf}
         \caption*{Panel A: Continuous Treatment}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_quarterly_unweighted_stacked_binary_direction.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2012_binary_uniform_1000ft.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Home Sale Prices (Quarterly)}
-    \figurenotes{Quarterly analog to Figure 6. Panel A: continuous treatment; Panel B: binary treatment. Quarter $-1$ omitted. Stacked estimator with cohort-by-ward-pair and event-by-quarter fixed effects. Standard errors clustered at census block level.}
-    \label{fig:event_study_sales_quarterly}
+    \caption{Event Study: Home Sale Prices --- With Hedonic Controls}
+    \figurenotes{Same specification as Figure~\ref{fig:event_study_sales} but including property-level hedonic controls: log building square footage, log land square footage, log building age, log bedrooms, log bathrooms, and garage indicator. Year $-1$ omitted as reference. Sample: transactions within 1,000 feet of ward boundaries. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \label{fig:event_study_sales_hedonics}
 \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_quarterly_unweighted_stacked_continuous.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_quarterly_unweighted_stacked_binary_direction.pdf}
-        \caption*{Panel B: Binary Treatment}
-    \end{minipage}
-    \caption{Event Study: Rents (Quarterly)}
-    \figurenotes{Quarterly analog to Figure 7. Panel A: continuous treatment; Panel B: binary treatment. Quarter $-1$ omitted. Stacked estimator with cohort-by-ward-pair and event-by-quarter fixed effects. Standard errors clustered at census block level.}
-    \label{fig:event_study_rental_quarterly}
-\end{figure}
+\subsubsection{Rents with Hedonic Controls}
 
-
-\subsection{Event Study Robustness: Yearly Specification}
-
-This subsection presents robustness checks for the yearly event study results in Section~\ref{sec:empirical_results_rent_home_vals}. I consider two alternative specifications: (1) weighting observations by the number of transactions in each census block-year cell, and (2) including time-varying demographic controls for median household income, racial composition, and homeownership rates.
-
-\subsubsection{Home Sale Prices: Weighted Specification (Yearly)}
-
-Figure~\ref{fig:event_study_sales_weighted} presents the event study results for home sale prices using observation weights proportional to the number of sales in each census block-year cell. The results are qualitatively similar to the unweighted specification in the main text.
+Figure~\ref{fig:event_study_rental_hedonics} presents event study results for rents including hedonic controls for building type, square footage, bedrooms, and bathrooms. As with home sales, point estimates are attenuated relative to the main specification, suggesting that composition effects account for part of the total rent response to aldermanic strictness.
 
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_yearly_weighted_stacked_continuous.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_uniform_1000ft_with_hedonics.pdf}
         \caption*{Panel A: Continuous Treatment}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_yearly_weighted_stacked_binary_direction.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_uniform_1000ft_with_hedonics.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Home Sale Prices --- Weighted}
-    \figurenotes{Same specification as Figure 6 but weighting observations by number of sales in each block-year cell.}
-    \label{fig:event_study_sales_weighted}
-\end{figure}
-
-\subsubsection{Home Sale Prices: With Demographic Controls (Yearly)}
-
-Figure~\ref{fig:event_study_sales_controls} presents event study results including time-varying demographic controls at the census block group level.
-
-\begin{figure}[H]
-    \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_yearly_unweighted_stacked_continuous_with_controls.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_yearly_unweighted_stacked_binary_direction_with_controls.pdf}
-        \caption*{Panel B: Binary Treatment}
-    \end{minipage}
-    \caption{Event Study: Home Sale Prices --- With Controls}
-    \figurenotes{Same specification as Figure 6 but including time-varying block group controls: median household income, share white, share Black, share bachelor's degree or higher, and homeownership rate.}
-    \label{fig:event_study_sales_controls}
-\end{figure}
-
-
-\subsubsection{Rents: Weighted Specification (Yearly)}
-
-Figure~\ref{fig:event_study_rental_weighted} presents the event study results for rents using observation weights.
-
-\begin{figure}[H]
-    \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_yearly_weighted_stacked_continuous.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_yearly_weighted_stacked_binary_direction.pdf}
-        \caption*{Panel B: Binary Treatment}
-    \end{minipage}
-    \caption{Event Study: Rents --- Weighted}
-    \figurenotes{Same specification as Figure 7 but weighting observations by number of listings in each block-year cell.}
-    \label{fig:event_study_rental_weighted}
-\end{figure}
-
-\subsubsection{Rents: With Demographic Controls (Yearly)}
-
-Figure~\ref{fig:event_study_rental_controls} presents event study results for rents including time-varying demographic controls.
-
-\begin{figure}[H]
-    \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_yearly_unweighted_stacked_continuous_with_controls.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_yearly_unweighted_stacked_binary_direction_with_controls.pdf}
-        \caption*{Panel B: Binary Treatment}
-    \end{minipage}
-    \caption{Event Study: Rents --- With Controls}
-    \figurenotes{Same specification as Figure 7 but including time-varying block group controls: median household income, share white, share Black, share bachelor's degree or higher, and homeownership rate.}
-    \label{fig:event_study_rental_controls}
-\end{figure}
-
-
-
-\subsection{Event Study Robustness: Quarterly Specification}
-
-This subsection presents the same robustness checks using the quarterly specification.
-
-\subsubsection{Home Sale Prices: Weighted Specification (Quarterly)}
-
-\begin{figure}[H]
-    \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_quarterly_weighted_stacked_continuous.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_quarterly_weighted_stacked_binary_direction.pdf}
-        \caption*{Panel B: Binary Treatment}
-    \end{minipage}
-    \caption{Event Study: Home Sale Prices --- Weighted (Quarterly)}
-    \figurenotes{Quarterly analog to Figure C.3, weighting by number of sales per block-quarter.}
-    \label{fig:event_study_sales_weighted_quarterly}
-\end{figure}
-
-\subsubsection{Home Sale Prices: With Demographic Controls (Quarterly)}
-
-\begin{figure}[H]
-    \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_quarterly_unweighted_stacked_continuous_with_controls.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_quarterly_unweighted_stacked_binary_direction_with_controls.pdf}
-        \caption*{Panel B: Binary Treatment}
-    \end{minipage}
-    \caption{Event Study: Home Sale Prices --- With Controls (Quarterly)}
-    \figurenotes{Quarterly analog to Figure C.4, including time-varying demographic controls.}
-    \label{fig:event_study_sales_controls_quarterly}
-\end{figure}
-
-
-
-\subsubsection{Rents: Weighted Specification (Quarterly)}
-
-\begin{figure}[H]
-    \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_quarterly_weighted_stacked_continuous.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_quarterly_weighted_stacked_binary_direction.pdf}
-        \caption*{Panel B: Binary Treatment}
-    \end{minipage}
-    \caption{Event Study: Rents --- Weighted (Quarterly)}
-    \figurenotes{Quarterly analog to Figure C.5, weighting by number of listings per block-quarter.}
-    \label{fig:event_study_rental_weighted_quarterly}
-\end{figure}
-
-\subsubsection{Rents: With Demographic Controls (Quarterly)}
-
-\begin{figure}[H]
-    \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_quarterly_unweighted_stacked_continuous_with_controls.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_quarterly_unweighted_stacked_binary_direction_with_controls.pdf}
-        \caption*{Panel B: Binary Treatment}
-    \end{minipage}
-    \caption{Event Study: Rents --- With Controls (Quarterly)}
-    \figurenotes{Quarterly analog to Figure C.6, including time-varying demographic controls.}
-    \label{fig:event_study_rental_controls_quarterly}
+    \caption{Event Study: Rents --- With Hedonic Controls}
+    \figurenotes{Same specification as Figure~\ref{fig:event_study_rents} but including listing-level hedonic controls: building type, log square footage, log bedrooms, and log bathrooms. Year $-1$ omitted as reference. Sample: listings within 1,000 feet of ward boundaries. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \label{fig:event_study_rental_hedonics}
 \end{figure}

@@ -10,7 +10,7 @@ STACKINGS         := TRUE
 TREATMENT_TYPES   := continuous binary_direction
 INCLUDE_CONTROLS  := TRUE FALSE
 WEIGHTINGS        := uniform
-BANDWIDTHS        := 1000 2000
+BANDWIDTHS        := 1000
 SAMPLE_FILTERS    := full_sample
 
 SCRIPT := run_event_study_disaggregate.R
@@ -59,7 +59,7 @@ ALL_OUTPUTS := $(call GEN_OUTPUTS)
 .DEFAULT_GOAL := all
 .PHONY: all link-inputs main-specs
 
-all: $(ALL_OUTPUTS)
+all: $(ALL_OUTPUTS) did-table
 
 # Convenience target for main specifications only
 main-specs: \

@@ -7,29 +7,38 @@ While density on its own is an important outcome, policymakers tend to be more i
 To look at downstream effects on home values and rents, I exploit the 2015 and 2023 ward redistrictings as natural experiments to examine how home prices and rents respond when parcels are reassigned to aldermen with different levels of strictness.
 
 \subsection{Identification Strategy and Empirical Specification}
-Ward boundaries in Chicago are redrawn following each decennial census to equalize populations across the city's 50 wards. The 2015 remap (based on the 2010 Census) and the 2023 remap (based on the 2020 Census) each reassigned many parcels to new aldermen while leaving nearby parcels under the same ward. This creates a difference-in-differences style comparison: census blocks that switched aldermen (treated) versus blocks near the same ward boundary that did not switch (control). The identifying assumption is that, absent the change in aldermanic representation, treated and control blocks would have followed parallel trends in housing costs.
+\label{sec:identification_strategy}
+
+Ward boundaries in Chicago are redrawn following each decennial census to equalize populations across the city's 50 wards. The 2015 remap (based on the 2010 Census) and the 2023 remap (based on the 2020 Census) each reassigned many parcels to new aldermen while leaving nearby parcels under the same ward. This creates a difference-in-differences style comparison: census blocks that switched aldermen (treated) versus nearby blocks that remained under the same alderman (control). The identifying assumption is that, absent the change in aldermanic representation, treated and control blocks would have followed parallel trends in housing costs.
 
 This design exploits the fact that ward boundaries shift for reasons unrelated to housing market conditions in specific census blocks. Redistricting in Chicago occurs every ten years following the decennial census, with boundaries redrawn to equalize population across wards. The resulting boundary changes create quasi-random variation in alderman assignment for blocks near the old and new boundaries.
 
-Figure~\ref{fig:identification_illustration} illustrates this design. Panel A shows a concrete example for a single ward pair (Wards 13 and 23) during the 2015 redistricting. The left subpanel shows ward assignments before redistricting, the center subpanel shows assignments after, and the right subpanel shows the resulting treatment status based on the change in alderman strictness. Blocks that switched from Ward 13 to Ward 23 are classified as ``moved to stricter'' or ``moved to lenient'' depending on the relative strictness scores of the two aldermen, while blocks that did not switch wards serve as controls.
+\paragraph{Announcement versus Implementation Timing.} A key feature of Chicago's redistricting process is that new ward maps are announced well in advance of taking effect. The 2015 ward boundaries were finalized in 2012, three years before the May 2015 aldermanic elections when the new map became effective. Similarly, the 2023 boundaries were finalized in 2022. If housing markets are forward-looking, prices may begin responding when redistricting maps are announced rather than when they are implemented.
 
-Panels B and C of Figure~\ref{fig:identification_illustration} show the geographic distribution of treatment and control blocks for the 2015 and 2023 redistricting events, respectively. In both cases, treated blocks (those that switched aldermen) are dispersed throughout the city, interspersed with control blocks that did not switch. This spatial dispersion supports the assumption that treated and control blocks are comparable conditional on location near ward boundaries.
+For home sales, where transaction data extend back to 1999, I use the 2012 ward redistricting announcement as the event date for the 2015 remap. Since home prices take into account forward looking information about future restrictions on housing supply, announcement timing is more appropriate for capturing home price responses to exogenous shifts in the regulatory environment. Defining the treatment event at implementation shows substantial pre-trends in home prices prior to redistricting, confirming that 2012 is the more relevant treatment date for home sales.
 
+As a result, my main estimates present results for home sales using announcement timing, which provides stronger support for the identifying assumption and suggests that housing markets incorporate information about future aldermanic representation once redistricting maps become public. For rental listings, data availability beginning in 2014 precludes analysis around the 2012 announcement. 
 
-I conduct the analysis at the census block level rather than the parcel level for a practical reason: individual parcels rarely transact more than once within my sample window, making it impossible to construct a balanced panel at the parcel level. By aggregating to census blocks, I can track average prices and rents over time within small, relatively homogeneous geographic units while maintaining sufficient observations in each period.
+I therefore use implementation timing (2015 and 2023) for the rental analysis, stacking both redistricting events to maximize statistical power.\footnote{Appendix~\ref{sec:appendix_sales_rental} shows that results for home sales are qualitatively similar using implementation timing, though with less clean pre-trends due to the delay between announcement and implementation.}
 
-I stack both redistricting events to maximize statistical power. For each event, I restrict the sample to census blocks where the mean distance of transacted parcels (or rental listings) is less than 1,000 feet to ensure that treated and control blocks are in close geographic proximity and thus subject to similar local demand shocks and neighborhood trends.
+\paragraph{Control Group Construction.} A treated block that switches from Ward $A$ to Ward $B$ could potentially be compared to control blocks that remained in either ward. However, blocks that remained in Ward $B$ were never subject to Ward $A$'s alderman, making them a poor counterfactual for how the treated block would have evolved absent redistricting. I therefore restrict the control group to blocks that remained in the \emph{origin} ward---that is, blocks near the same ward boundary that did not switch and thus experienced the same pre-treatment aldermanic policies as the treated blocks. This ensures that treated and control blocks share a common policy environment in the pre-period. To avoid contamination from electoral turnover, I also exclude control blocks in wards where the alderman changed via election (rather than redistricting) during the sample window.
 
+Figure~\ref{fig:identification_illustration} illustrates this design. Panel A shows a concrete example for Wards 13 and 23 during the 2015 redistricting. The left subpanel shows ward assignments before redistricting, the center subpanel shows assignments after, and the right subpanel shows the resulting treatment status based on the change in alderman strictness. Blocks that switched from Ward 13 to Ward 23 are compared only to control blocks that remained in Ward 13, not to blocks that remained in Ward 23. Panels B and C show the citywide distribution of treatment and control blocks for the 2015 and 2023 redistricting events, respectively.
+
+\paragraph{Empirical Specification.} I estimate the following event study specification at the transaction level (for sales) and listing level (for rentals):
+%
 \begin{equation}
-y_{bpet} = \alpha_{pe} + \lambda_{et} + \sum_{\tau=-5, \tau \neq -1}^{5} \beta_\tau \left( \Delta\text{Strictness}_b \times \mathbf{1}[t = \tau] \right) + \varepsilon_{bpet}
+\label{eq:event_study}
+y_{it} = \alpha_{eps} + \lambda_{et} + \sum_{\tau=-5, \tau \neq -1}^{5} \beta_\tau \left( \Delta\text{Strictness}_i \times \mathbf{1}[t = \tau] \right) + \varepsilon_{it}
 \end{equation}
+%
+\noindent where $y_{it}$ is the log sale price or log rent for transaction (or listing) $i$ at event time $t$. $\Delta\text{Strictness}_i$ is the change in alderman strictness for the block containing transaction $i$, defined as the strictness score of the destination alderman minus the origin alderman. To ensure treatment intensity is predetermined, strictness scores are measured in the year prior to redistricting (2014 for the 2015 redistricting cohort; 2022 for the 2023 cohort).
 
-\noindent where $y_{bpet}$ is the outcome (log mean sale price or log mean rent) for census block $b$ along border-pair $p$ in event cohort $e$ (2015 or 2023 remap) at time $t$. $\Delta\text{Strictness}_b$ is the change in strictness for block $b$, defined as the strictness score of the destination alderman minus the strictness score of the origin alderman. In the continuous treatment specification, this enters as a continuous variable; I also present binary specifications below. $\alpha_{pe}$ are cohort-by-ward-pair fixed effects, which ensure comparisons are made between treated and control blocks along the same ward boundary within each redistricting event. $\lambda_{et}$ are event-by-year fixed effects, allowing for different time trends across the two redistricting episodes.
-Standard errors are clustered at the census block level to account for serial correlation.
+The key fixed effect $\alpha_{eps}$ is a cohort-by-ward-pair-by-origin-side fixed effect. This ensures that comparisons are made between treated and control transactions that (i) are near the same ward boundary, (ii) are in the same redistricting cohort, and (iii) were in the same origin ward prior to redistricting. $\lambda_{et}$ are cohort-by-year fixed effects, allowing for flexible time trends within each redistricting episode. Standard errors are clustered at the census block level to account for serial correlation within geographic units.
 
-The coefficients $\beta_\tau$ trace out the effect of aldermanic strictness on housing costs in event time, with $\tau = -1$ (the year before each remap took effect) as the omitted reference period. The identifying assumption implies $\beta_\tau = 0$ for $\tau < 0$: prior to each remap, there should be no systematic relationship between future alderman strictness and housing cost trends.
+The coefficients $\beta_\tau$ trace out the effect of aldermanic strictness on housing costs in event time, with $\tau = -1$ (the year before redistricting, or its announcement for home sales) as the omitted reference period. The identifying assumption implies $\beta_\tau = 0$ for $\tau < 0$: prior to redistricting, there should be no systematic relationship between future changes in alderman strictness and housing cost trends within the same ward-pair-side cell.
 
-I restrict the sample to census blocks where the average parcel distance to a ward boundary is within 1000 feet to focus on locations where treated and control blocks are most comparable in terms of neighborhood characteristics and local demand conditions.
+I restrict the sample to transactions within 1,000 feet of ward boundaries to focus on locations where treated and control observations are most comparable in terms of neighborhood characteristics and local demand conditions. In the continuous treatment specification, $\Delta\text{Strictness}$ enters as a continuous variable; I also present binary specifications that allow for separate effects by treatment direction (moved to stricter versus moved to more lenient).
 
 \begin{figure}[htbp]
     \centering
@@ -56,11 +65,11 @@ I restrict the sample to census blocks where the average parcel distance to a wa
     \end{minipage}
     
     \caption{Event Study Identification Strategy}
-    \figurenotes{Panel A illustrates treatment assignment for ward pair 13--23 during the 2015 redistricting: ward assignments before (left), after (center), and treatment status based on the change in alderman strictness (right). Panels B and C show the city-wide distribution of treated and control blocks for 2015 and 2023. Sample restricted to blocks within 1,000 feet of ward boundaries. Controls exclude blocks in wards with alderman turnover via election.}
+    \figurenotes{Panel A illustrates treatment assignment for ward pair 13--23 during the 2015 redistricting: ward assignments before (left), after (center), and treatment status based on the change in alderman strictness (right). Blocks switching from Ward 13 to Ward 23 are compared to controls that remained in Ward 13 (the origin ward), not to blocks that remained in Ward 23. Panels B and C show the citywide distribution of treated and control blocks for the 2015 and 2023 redistrictings. Sample restricted to blocks within 1,000 feet of ward boundaries. Controls exclude wards with aldermanic turnover via election.}
     \label{fig:identification_illustration}
 \end{figure}
 
-If stricter aldermen constrain housing supply, standard urban economics predicts that both home prices and rents should rise in affected areas. I test this prediction using two complementary data sources: home sale prices from the Cook County Assessor's Office and rental listings from RentHub.
+\paragraph{Predictions.} If stricter aldermen constrain housing supply, standard urban economics predicts that both home prices and rents should rise when blocks are reassigned to stricter aldermen. The event study design allows me to trace out the dynamics of this response and verify that effects emerge only after redistricting (or its announcement), supporting a causal interpretation.
 
 Table~\ref{tab:summary_stats_event_study} presents summary statistics for the event study sample. The sample includes over 25,000 block-cohort pairs for home sales and over 24,000 for rentals, observed over an 11-year window around each redistricting event. Treated blocks that moved to stricter aldermen have slightly lower mean sale prices and homeownership rates than controls, while blocks that moved to more lenient aldermen are broadly similar to controls on observables. The balance across treatment groups supports the identifying assumption that redistricting-induced changes in alderman assignment are orthogonal to pre-existing neighborhood trends.
 
@@ -77,19 +86,19 @@ Panel B presents the binary specification, which relaxes the linearity assumptio
 
 The binary results reveal a striking divergence. Census blocks reassigned to stricter aldermen experience roughly 8--10\% higher home prices in the post-period, while blocks reassigned to more lenient aldermen experience flat or slightly declining prices. This asymmetry is difficult to reconcile with confounding explanations that would predict symmetric effects, and supports the interpretation that aldermanic strictness causally affects housing costs through the supply restriction channel documented in Section \ref{sec:empirical_results_density}.
 
-These results are robust to alternative specifications. Weighting observations by the number of sales in each census block-year cell yields similar point estimates, as does including time-varying demographic controls for median household income, racial composition, and homeownership rates. These robustness checks are reported in Appendix~\ref{sec:appendix_sales_rental}.
+These results are robust to including property-level hedonic controls for building characteristics, as reported in Appendix~\ref{sec:appendix_sales_rental}. Point estimates are somewhat attenuated with hedonic controls, consistent with part of the effect operating through changes in housing stock composition induced by aldermanic supply restrictions.
 
 \begin{figure}[htbp]
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_yearly_unweighted_stacked_continuous.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2012_continuous_uniform_1000ft_no_hedonics.pdf}
         \caption*{Panel A: Continuous Treatment}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales/output/event_study_combined_yearly_unweighted_stacked_binary_direction.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2012_binary_uniform_1000ft_no_hedonics.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Effect of Alderman Strictness on Home Sale Prices}
@@ -112,24 +121,24 @@ The rental estimates are less precise than the home price estimates. Nevertheles
 
 Panel B shows the binary specification for rents. While the estimates are noisier, the pattern is again consistent with a gradual divergence between blocks reassigned to stricter versus more lenient aldermen. While I cannot reject the effects are equivalent between blocks that switched to stricter versus more lenient aldermen, the same $\approx 3\%$ increase in rents still opens up by year 5 in the post-period. 
 
-The rental results are more suggestive than definitive, but are robust to different specifications as can be seen in appendix \ref{sec:appendix_sales_rental}. 
+The rental results are more suggestive than definitive, but are robust to including listing-level hedonic controls as shown in Appendix~\ref{sec:appendix_sales_rental}.
 Combined with the evidence on home prices, these results suggest that alderman that induce more restrictions on housing supply through their aldermanic privilege ultimately raise housing costs and rents. 
 However, the amenity channel through which home prices rise due to implicit future restrictions on multifamily development in that ward could explain why home prices rise more than rents.
 
-As with the home price results, weighting by the number of listings in each census block-year cell and including demographic controls yields similar estimates. 
-These specifications are reported in Appendix~\ref{sec:appendix_sales_rental}.
+Table~\ref{tab:did_pooled} in Appendix~\ref{sec:appendix_sales_rental} presents pooled difference-in-differences estimates that summarize the average post-period effect.
+
 
 \begin{figure}[htbp]
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_yearly_unweighted_stacked_continuous.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_uniform_1000ft.pdf}
         \caption*{Panel A: Continuous Treatment}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental/output/event_study_combined_yearly_unweighted_stacked_binary_direction.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_uniform_1000ft.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Effect of Alderman Strictness on Rents}
