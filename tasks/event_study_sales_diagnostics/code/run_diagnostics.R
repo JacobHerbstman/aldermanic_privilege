@@ -404,7 +404,7 @@ blocks_for_map <- census_blocks %>%
     inner_join(block_treatment, by = "block_id")
 
 # Get ward boundaries for overlay
-create_treatment_map <- function(cohort_year, ward_year) {
+create_treatment_map <- function(cohort_year, ward_year, include_title = TRUE) {
     # Filter to cohort
     cohort_blocks <- blocks_for_map %>%
         filter(cohort == as.character(cohort_year))
@@ -415,42 +415,80 @@ create_treatment_map <- function(cohort_year, ward_year) {
 
     # Create map
     p <- ggplot() +
-        geom_sf(data = wards, fill = NA, color = "gray40", linewidth = 0.5) +
+        geom_sf(data = wards, fill = NA, color = "gray50", linewidth = 0.3) +
         geom_sf(data = cohort_blocks, aes(fill = treatment_group), color = NA, alpha = 1) +
         scale_fill_manual(
             values = c(
-                "Moved to Stricter" = "#E63900",
-                "Moved to Lenient" = "#0055CC",
-                "Control (No Change)" = "#777777"
+                "Control (No Change)" = "#D9D9D9",
+                "Moved to Lenient" = "#4DABF7",
+                "Moved to Stricter" = "#E63946"
             ),
-            name = "Treatment Group"
+            name = NULL
         ) +
-        labs(
-            title = sprintf("Treatment and Control Blocks: %d Redistricting", cohort_year),
-            subtitle = sprintf(
-                "Blocks within 1000 ft of ward boundaries | N = %s blocks",
-                format(nrow(cohort_blocks), big.mark = ",")
-            )
-        ) +
-        theme_void() +
+        coord_sf(expand = FALSE) +
+        theme_void(base_size = 11) +
         theme(
             legend.position = "bottom",
-            plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
-            plot.subtitle = element_text(hjust = 0.5, size = 10)
+            plot.title = element_text(hjust = 0.5, face = "bold", size = 12),
+            plot.subtitle = element_text(hjust = 0.5, size = 10),
+            plot.margin = margin(2, 2, 2, 2)
         )
+
+    if (include_title) {
+        p <- p + labs(
+            title = sprintf("%d Redistricting", cohort_year),
+            subtitle = sprintf(
+                "N = %s blocks within 1,000 ft of ward boundaries",
+                format(nrow(cohort_blocks), big.mark = ",")
+            )
+        )
+    }
 
     p
 }
 
-# 2015 Cohort Map
+# Individual maps (for reference)
 p_2015 <- create_treatment_map(2015, 2015)
-ggsave("../output/treatment_control_map_2015.pdf", p_2015, width = 10, height = 12, bg = "white")
+ggsave("../output/treatment_control_map_2015.pdf", p_2015, width = 8, height = 10, bg = "white")
 message("Saved: ../output/treatment_control_map_2015.pdf")
 
-# 2023 Cohort Map
 p_2023 <- create_treatment_map(2023, 2024)
-ggsave("../output/treatment_control_map_2023.pdf", p_2023, width = 10, height = 12, bg = "white")
+ggsave("../output/treatment_control_map_2023.pdf", p_2023, width = 8, height = 10, bg = "white")
 message("Saved: ../output/treatment_control_map_2023.pdf")
+
+# =========================================================================
+# Combined citywide figure: both years side by side (simple approach)
+# =========================================================================
+
+# Create maps - hide legend on first, show on second for shared effect
+p_2015_for_combine <- create_treatment_map(2015, 2015, include_title = FALSE) +
+    labs(title = "2015 Redistricting") +
+    theme(
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 10, margin = margin(b = 10)),
+        legend.position = "none",
+        plot.margin = margin(5, 5, 15, 5)
+    )
+
+p_2023_for_combine <- create_treatment_map(2023, 2024, include_title = FALSE) +
+    labs(title = "2023 Redistricting") +
+    theme(
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 10, margin = margin(b = 15)),
+        legend.position = "bottom",
+        legend.justification = "right",
+        legend.text = element_text(size = 8),
+        legend.margin = margin(t = 10),
+        plot.margin = margin(5, 5, 5, 5)
+    ) +
+    guides(fill = guide_legend(nrow = 1))
+
+# Simple side by side combination
+combined_citywide <- p_2015_for_combine + p_2023_for_combine
+
+# Save - use dimensions that match Chicago's tall/narrow shape (wider to fit legend)
+ggsave("../output/treatment_control_maps_combined.pdf", combined_citywide,
+    width = 5, height = 4, bg = "white"
+)
+message("Saved: ../output/treatment_control_maps_combined.pdf")
 
 # =============================================================================
 # 6. BEFORE/AFTER WARD PAIR MAPS
@@ -517,11 +555,11 @@ for (wp in all_pairs_to_map) {
     n_controls <- sum(!wp_blocks$switched, na.rm = TRUE)
     message(sprintf("    Switchers: %d, Non-switchers: %d", n_switchers, n_controls))
 
-    # Get bounding box with buffer
+    # Get bounding box with small buffer
     bbox <- st_bbox(wp_blocks)
     x_range <- as.numeric(bbox["xmax"]) - as.numeric(bbox["xmin"])
     y_range <- as.numeric(bbox["ymax"]) - as.numeric(bbox["ymin"])
-    buffer <- max(x_range, y_range) * 0.3
+    buffer <- max(x_range, y_range) * 0.1 # Small buffer for tighter zoom
 
     xmin_exp <- as.numeric(bbox["xmin"]) - buffer
     ymin_exp <- as.numeric(bbox["ymin"]) - buffer
@@ -532,82 +570,102 @@ for (wp in all_pairs_to_map) {
     wards_2014_crop <- st_crop(wards_2014, xmin = xmin_exp, ymin = ymin_exp, xmax = xmax_exp, ymax = ymax_exp)
     wards_2015_crop <- st_crop(wards_2015, xmin = xmin_exp, ymin = ymin_exp, xmax = xmax_exp, ymax = ymax_exp)
 
-    # Color blocks by their ward assignment (for before/after) and by treatment group
-    # Get the two ward numbers for consistent coloring across all panels
+    # Color blocks by their ward assignment
     ward_nums <- sort(unique(c(wp_blocks$ward_origin, wp_blocks$ward_dest)))
-    ward_colors <- setNames(c("#E63900", "#0055CC"), as.character(ward_nums))
+    ward_colors <- setNames(c("#D62728", "#1F77B4"), as.character(ward_nums))
+
+    # Common theme for all panels
+    map_theme <- theme_void(base_size = 12) +
+        theme(
+            legend.position = "right",
+            legend.title = element_text(size = 11, face = "bold"),
+            legend.text = element_text(size = 10),
+            plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+            plot.subtitle = element_text(hjust = 0.5, size = 11),
+            plot.margin = margin(10, 10, 10, 10)
+        )
 
     # BEFORE: color by origin ward
     p_before <- ggplot() +
-        geom_sf(data = wards_2014_crop, fill = NA, color = "gray40", linewidth = 0.8) +
-        geom_sf(data = wp_blocks, aes(fill = factor(ward_origin)), color = "gray85", linewidth = 0.05, alpha = 1) +
-        scale_fill_manual(values = ward_colors, name = "Ward (2014)") +
+        geom_sf(data = wards_2014_crop, fill = NA, color = "black", linewidth = 1.0) +
+        geom_sf(data = wp_blocks, aes(fill = factor(ward_origin)), color = "gray30", linewidth = 0.2, alpha = 1) +
+        scale_fill_manual(values = ward_colors, name = "Ward") +
         labs(
-            title = "BEFORE Redistricting (2014 Wards)",
-            subtitle = sprintf("Blocks colored by 2014 ward assignment")
+            title = "Before Redistricting (2014 Ward Boundaries)",
+            subtitle = "Blocks colored by pre-redistricting ward assignment"
         ) +
-        theme_void(base_size = 11) +
-        theme(
-            legend.position = "bottom",
-            plot.title = element_text(hjust = 0.5, face = "bold"),
-            plot.subtitle = element_text(hjust = 0.5)
-        )
+        map_theme
 
     # AFTER: color by destination ward
     p_after <- ggplot() +
-        geom_sf(data = wards_2015_crop, fill = NA, color = "gray40", linewidth = 0.8) +
-        geom_sf(data = wp_blocks, aes(fill = factor(ward_dest)), color = "gray85", linewidth = 0.05, alpha = 1) +
-        scale_fill_manual(values = ward_colors, name = "Ward (2015)") +
+        geom_sf(data = wards_2015_crop, fill = NA, color = "black", linewidth = 1.0) +
+        geom_sf(data = wp_blocks, aes(fill = factor(ward_dest)), color = "gray30", linewidth = 0.2, alpha = 1) +
+        scale_fill_manual(values = ward_colors, name = "Ward") +
         labs(
-            title = "AFTER Redistricting (2015 Wards)",
-            subtitle = sprintf("Blocks colored by 2015 ward assignment")
+            title = "After Redistricting (2015 Ward Boundaries)",
+            subtitle = "Blocks colored by post-redistricting ward assignment"
         ) +
-        theme_void(base_size = 11) +
-        theme(
-            legend.position = "bottom",
-            plot.title = element_text(hjust = 0.5, face = "bold"),
-            plot.subtitle = element_text(hjust = 0.5)
-        )
+        map_theme
 
     # TREATMENT: color by treatment group
     p_treatment <- ggplot() +
-        geom_sf(data = wards_2015_crop, fill = NA, color = "gray40", linewidth = 0.5) +
-        geom_sf(data = wp_blocks, aes(fill = treatment_group), color = "gray85", linewidth = 0.05, alpha = 1) +
+        geom_sf(data = wards_2015_crop, fill = NA, color = "black", linewidth = 1.0) +
+        geom_sf(data = wp_blocks, aes(fill = treatment_group), color = "gray30", linewidth = 0.2, alpha = 1) +
         scale_fill_manual(
             values = c(
-                "Moved to Stricter" = "#E63900",
-                "Moved to Lenient" = "#0055CC",
-                "Control (No Change)" = "#777777"
+                "Moved to Stricter" = "#D62728",
+                "Moved to Lenient" = "#1F77B4",
+                "Control (No Change)" = "#999999"
             ),
-            name = "Treatment",
-            drop = FALSE
+            name = "Treatment"
         ) +
         labs(
             title = "Treatment Status",
-            subtitle = sprintf("Based on change in alderman strictness")
+            subtitle = "Based on change in alderman strictness"
         ) +
-        theme_void(base_size = 11) +
-        theme(
-            legend.position = "bottom",
-            plot.title = element_text(hjust = 0.5, face = "bold"),
-            plot.subtitle = element_text(hjust = 0.5)
+        map_theme
+
+    # =========================================================================
+    # VERTICAL LAYOUT: Stack 3 maps vertically for full-width display
+    # =========================================================================
+    combined_vertical <- p_before / p_after / p_treatment +
+        plot_annotation(
+            title = sprintf("Identification Example: Ward Pair %d–%d (2015 Redistricting)", ward_a, ward_b),
+            subtitle = sprintf(
+                "%d blocks total: %d switched wards, %d remained in place",
+                nrow(wp_blocks), n_switchers, n_controls
+            ),
+            theme = theme(
+                plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+                plot.subtitle = element_text(hjust = 0.5, size = 12)
+            )
         )
 
-    # Combine into a 3-panel figure
-    combined <- p_before + p_after + p_treatment +
+    # Save VERTICAL version (full page width, fits on single page)
+    outfile_vertical <- sprintf("../output/ward_pair_vertical_%s.pdf", gsub("_", "-", wp))
+    ggsave(outfile_vertical, combined_vertical, width = 8, height = 10, bg = "white")
+    message(sprintf("    Saved: %s", outfile_vertical))
+
+    # =========================================================================
+    # Also save original HORIZONTAL layout for reference
+    # =========================================================================
+    combined_horizontal <- p_before + p_after + p_treatment +
         plot_layout(ncol = 3) +
         plot_annotation(
             title = sprintf("Ward Pair %s: Before vs After Redistricting", wp),
-            subtitle = sprintf("%d blocks total | %d switched wards | %d stayed", nrow(wp_blocks), n_switchers, n_controls),
+            subtitle = sprintf(
+                "%d blocks total | %d switched wards | %d stayed",
+                nrow(wp_blocks), n_switchers, n_controls
+            ),
             theme = theme(
                 plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
                 plot.subtitle = element_text(hjust = 0.5, size = 11)
             )
         )
 
-    outfile <- sprintf("../output/ward_pair_before_after_%s.pdf", gsub("_", "-", wp))
-    ggsave(outfile, combined, width = 15, height = 6, bg = "white")
-    message(sprintf("    Saved: %s", outfile))
+    outfile_horizontal <- sprintf("../output/ward_pair_before_after_%s.pdf", gsub("_", "-", wp))
+    ggsave(outfile_horizontal, combined_horizontal, width = 15, height = 6, bg = "white")
+    message(sprintf("    Saved: %s", outfile_horizontal))
 }
 
 # =============================================================================

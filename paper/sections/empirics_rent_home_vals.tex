@@ -23,7 +23,7 @@ I therefore use implementation timing (2015 and 2023) for the rental analysis, s
 
 \paragraph{Control Group Construction.} A treated block that switches from Ward $A$ to Ward $B$ could potentially be compared to control blocks that remained in either ward. However, blocks that remained in Ward $B$ were never subject to Ward $A$'s alderman, making them a poor counterfactual for how the treated block would have evolved absent redistricting. I therefore restrict the control group to blocks that remained in the \emph{origin} ward---that is, blocks near the same ward boundary that did not switch and thus experienced the same pre-treatment aldermanic policies as the treated blocks. This ensures that treated and control blocks share a common policy environment in the pre-period. To avoid contamination from electoral turnover, I also exclude control blocks in wards where the alderman changed via election (rather than redistricting) during the sample window.
 
-Figure~\ref{fig:identification_illustration} illustrates this design. Panel A shows a concrete example for Wards 13 and 23 during the 2015 redistricting. The left subpanel shows ward assignments before redistricting, the center subpanel shows assignments after, and the right subpanel shows the resulting treatment status based on the change in alderman strictness. Blocks that switched from Ward 13 to Ward 23 are compared only to control blocks that remained in Ward 13, not to blocks that remained in Ward 23. Panels B and C show the citywide distribution of treatment and control blocks for the 2015 and 2023 redistricting events, respectively.
+Figure~\ref{fig:identification_example} illustrates this design with a concrete example for Wards 13 and 23 during the 2015 redistricting. The top panel shows ward assignments before redistricting, the middle panel shows assignments after, and the bottom panel shows the resulting treatment status based on the change in alderman strictness. Blocks that switched from Ward 13 to Ward 23 are compared only to control blocks that remained in Ward 13, not to blocks that remained in Ward 23. Figure~\ref{fig:treatment_control_maps} shows the citywide distribution of treatment and control blocks for the 2015 and 2023 redistricting events.
 
 \paragraph{Empirical Specification.} I estimate the following event study specification at the transaction level (for sales) and listing level (for rentals):
 %
@@ -40,33 +40,26 @@ The coefficients $\beta_\tau$ trace out the effect of aldermanic strictness on h
 
 I restrict the sample to transactions within 1,000 feet of ward boundaries to focus on locations where treated and control observations are most comparable in terms of neighborhood characteristics and local demand conditions. In the continuous treatment specification, $\Delta\text{Strictness}$ enters as a continuous variable; I also present binary specifications that allow for separate effects by treatment direction (moved to stricter versus moved to more lenient).
 
+% =============================================================================
+% FIGURE 5: Ward Pair Example (Vertical Layout - Full Width)
+% =============================================================================
 \begin{figure}[htbp]
     \centering
-    % Panel A: Ward pair example (full width)
-    \begin{minipage}{\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/ward_pair_before_after_13-23.pdf}
-        \caption*{Panel A: Example of Identification Strategy (Ward Pair 13--23, 2015 Redistricting)}
-    \end{minipage}
-    
-    \vspace{0.5cm}
-    
-    % Panel B and C: City-wide maps side by side
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/treatment_control_map_2015.pdf}
-        \caption*{Panel B: Treatment and Control Blocks (2015)}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/treatment_control_map_2023.pdf}
-        \caption*{Panel C: Treatment and Control Blocks (2023)}
-    \end{minipage}
-    
-    \caption{Event Study Identification Strategy}
-    \figurenotes{Panel A illustrates treatment assignment for ward pair 13--23 during the 2015 redistricting: ward assignments before (left), after (center), and treatment status based on the change in alderman strictness (right). Blocks switching from Ward 13 to Ward 23 are compared to controls that remained in Ward 13 (the origin ward), not to blocks that remained in Ward 23. Panels B and C show the citywide distribution of treated and control blocks for the 2015 and 2023 redistrictings. Sample restricted to blocks within 1,000 feet of ward boundaries. Controls exclude wards with aldermanic turnover via election.}
-    \label{fig:identification_illustration}
+    \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/ward_pair_vertical_13-23.pdf}
+    \caption{Identification Example: Ward Pair 13--23 (2015 Redistricting)}
+    \figurenotes{Top panel shows ward assignments before redistricting (2014 boundaries), middle panel shows assignments after redistricting (2015 boundaries), and bottom panel shows treatment status based on the change in alderman strictness. Blocks switching from Ward 13 to Ward 23 are compared to controls that remained in Ward 13 (the origin ward), and vice versa. Sample restricted to blocks within 1,000 feet of ward boundaries.}
+    \label{fig:identification_example}
+\end{figure}
+
+% =============================================================================
+% FIGURE 6: Citywide Treatment/Control Maps
+% =============================================================================
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/treatment_control_maps_combined.pdf}
+    \caption{Treatment and Control Blocks: Citywide Distribution}
+    \figurenotes{Geographic distribution of treated and control blocks for the 2015 redistricting (left) and 2023 redistricting (right). Red indicates blocks that moved to a stricter alderman, blue indicates blocks that moved to a more lenient alderman, and gray indicates control blocks that did not switch wards. Sample restricted to blocks within 1,000 feet of ward boundaries. Controls exclude wards with aldermanic turnover via election.}
+    \label{fig:treatment_control_maps}
 \end{figure}
 
 \paragraph{Predictions.} If stricter aldermen constrain housing supply, standard urban economics predicts that both home prices and rents should rise when blocks are reassigned to stricter aldermen. The event study design allows me to trace out the dynamics of this response and verify that effects emerge only after redistricting (or its announcement), supporting a causal interpretation.

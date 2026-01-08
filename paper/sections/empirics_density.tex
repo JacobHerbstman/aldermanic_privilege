@@ -69,12 +69,12 @@ Regardless, these results are still suggestive that aldermanic behavior is affec
  
 \begin{figure}[htbp]
     \centering
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.46\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_far_bw500_triangular.pdf}
     \end{minipage}
     \hfill
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.46\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_dupac_bw500_triangular.pdf}
     \end{minipage}
@@ -134,7 +134,7 @@ I find null results across all variables, suggesting that the differences in den
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250.tex}
 
     \footnotesize
-    \textit{Notes:} Sample includes new multifamily construction (2--100 units) within 250 feet of ward boundaries, 2006--2024. All specifications include border-pair $\times$ zoning fixed effects and construction year fixed effects. Strictness is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Sample includes new multifamily construction (2-100 units) within 250 feet of ward boundaries, 2006-2024. All specifications include border-pair $\times$ zoning fixed effects and construction year fixed effects. Strictness is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 
@@ -152,29 +152,29 @@ The point estimates are relatively stable, suggesting the results are not driven
 
 \begin{figure}[htbp]
     \centering
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.4\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_far_bw250_triangular.pdf}
     \end{minipage}
     \hfill
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.4\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_far_bw1000_triangular.pdf}
     \end{minipage}
 
-    \vspace{0.5cm}
+    \vspace{0.2cm}
 
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.4\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_dupac_bw250_triangular.pdf}
     \end{minipage}
     \hfill
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.4\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_dupac_bw1000_triangular.pdf}
     \end{minipage}
     \caption{Bandwidth Sensitivity for RD Estimates}
-    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column: 250-foot bandwidth; right column: 1,000-foot bandwidth. Main specification uses 500-foot bandwidth (Figure 3). * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
+    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column: 250-foot bandwidth; right column: 1,000-foot bandwidth. Main specification uses 500-foot bandwidth (Figure \ref{fig:rd_plots}). * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
     \label{fig:rd_bandwidth_robust}
 \end{figure}
 
