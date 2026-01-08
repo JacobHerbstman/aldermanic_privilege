@@ -159,6 +159,22 @@ data <- data %>%
 
 message(sprintf("Observations after filter: %s", format(nrow(data), big.mark = ",")))
 
+# =============================================================================
+# RESTRICT TO COMPLETE HEDONIC SAMPLE (for comparability across specs)
+# =============================================================================
+hedonic_vars_list <- c("log_sqft", "log_beds", "log_baths", "building_type_clean")
+
+n_before <- nrow(data)
+data <- data[complete.cases(data[, hedonic_vars_list]), ]
+n_after <- nrow(data)
+
+message(sprintf(
+    "Restricted to complete hedonic sample: %s -> %s listings (dropped %s)",
+    format(n_before, big.mark = ","),
+    format(n_after, big.mark = ","),
+    format(n_before - n_after, big.mark = ",")
+))
+
 # Weighting diagnostics
 message("\n=== WEIGHTING DIAGNOSTICS ===")
 message(sprintf("Sum of weights (effective N): %.0f", sum(data$weight)))

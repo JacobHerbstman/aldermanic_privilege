@@ -61,6 +61,27 @@ message(sprintf("After bandwidth filter - 2012: %s", format(nrow(data_2012), big
 message(sprintf("After bandwidth filter - 2015: %s", format(nrow(data_2015), big.mark = ",")))
 
 # =============================================================================
+# RESTRICT TO COMPLETE HEDONIC SAMPLE (for comparability across specs)
+# =============================================================================
+hedonic_vars_list <- c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")
+
+n_before_2012 <- nrow(data_2012)
+data_2012 <- data_2012[complete.cases(data_2012[, ..hedonic_vars_list])]
+message(sprintf(
+    "After complete cases - 2012: %s (dropped %s)",
+    format(nrow(data_2012), big.mark = ","),
+    format(n_before_2012 - nrow(data_2012), big.mark = ",")
+))
+
+n_before_2015 <- nrow(data_2015)
+data_2015 <- data_2015[complete.cases(data_2015[, ..hedonic_vars_list])]
+message(sprintf(
+    "After complete cases - 2015: %s (dropped %s)",
+    format(nrow(data_2015), big.mark = ","),
+    format(n_before_2015 - nrow(data_2015), big.mark = ",")
+))
+
+# =============================================================================
 # RUN REGRESSIONS
 # =============================================================================
 message("\nRunning regressions...")
@@ -145,7 +166,7 @@ etable(
     ),
     se.below = TRUE,
     signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-    notes = "Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Columns (1)--(2) use 2012 announcement timing; columns (3)--(4) use 2015 implementation timing. Sample restricted to transactions within 1,000 feet of ward boundaries. Standard errors clustered by census block in parentheses.",
+    notes = "Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Columns (1)--(2) use 2012 announcement timing; columns (3)--(4) use 2015 implementation timing. Sample restricted to transactions within 1,000 feet of ward boundaries with non-missing hedonic characteristics. Standard errors clustered by census block in parentheses.",
     label = "tab:did_sales",
     float = TRUE,
     file = "../output/did_table_sales.tex",
