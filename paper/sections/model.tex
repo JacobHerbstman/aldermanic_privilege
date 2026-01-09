@@ -1,72 +1,127 @@
 \section{Toy Model}
 \label{sec:model}
 
-To illustrate the mechanism through which local political control restricts housing supply, I present a stylized model of housing development in a city divided into two wards, $A$ and $B$. This framework adapts the infrastructure misallocation model of \cite{bordeu_commuting_2025} to the context of housing supply.
+This framework adapts the infrastructure under-provision model of \citet{bordeu_commuting_2025} to the context of housing supply, building on \citet{khan_decentralized_2021} who studies the same Chicago institutional setting.
 
-The core tension in this model is between concentrated local costs and diffuse citywide benefits. While new housing creates positive spillovers for the city (lower prices, higher tax revenue, agglomeration effects), the ``nuisance'' costs (construction noise, parking congestion, change in neighborhood character) are borne almost entirely by the immediate neighbors.
+The core tension in this model is between concentrated local costs and diffuse citywide benefits. While new housing creates positive spillovers for the city as a whole in the form of lower prices, increased tax revenue, agglomeration effects, the costs of development (construction disruption, congestion, neighborhood change) are borne primarily by immediate neighbors in the same ward.
 
-\subsection{Setup and Variable Definitions}
+\subsection{Setup}
 
-The total housing stock in the city is $H = h_A + h_B$, where $h_g$ is the housing built in ward $g \in \{A, B\}$. The welfare of the city and the local wards is determined by the following components:
+Consider a city with two wards, $A$ and $B$, each controlled by an alderman who determines the housing supply in their ward, denoted $h_A$ and $h_B$ respectively. Total citywide housing is $H = h_A + h_B$. The welfare of each ward depends on the following components:
 
 \begin{itemize}
-    \item \textbf{$A(H)$ - Citywide Agglomeration Benefits:} This function represents the total value created by housing density, including increased property tax revenue, labor market pooling, and aggregate affordability. I assume $A'(H) > 0$ and $A''(H) < 0$ (diminishing marginal returns to density). Importantly, these benefits are \textbf{diffuse}; they are shared by the city as a whole.
+    \item \textbf{Local Benefits} $b \cdot h_g$: Direct benefits from housing in ward $g$, including property tax revenue and local retail demand. These accrue entirely to the ward where construction occurs.
     
-    \item \textbf{$C(h_g)$ - Local Congestion Costs:} This represents the ``NIMBY'' costs associated with density—traffic, loss of light, or strain on local amenities. I assume these costs are concentrated entirely within the ward where construction occurs, with $C'(h_g) > 0$ and $C''(h_g) > 0$ (convex costs).
+    \item \textbf{Citywide Spillovers} $\phi(H)$: Aggregate benefits from total housing supply, including improved affordability, labor market pooling, and agglomeration economies. We assume $\phi'(H) > 0$ and $\phi''(H) < 0$ (diminishing marginal returns). Importantly, these benefits are diffuse---they are shared across the entire city.
     
-    \item \textbf{$\kappa$ - Private Construction Costs:} The marginal cost of construction borne by developers.
+    \item \textbf{Local Costs} $C(h_g)$: Congestion and nuisance costs from development, including traffic, noise, and strain on local amenities. These costs are concentrated in the ward where construction occurs, with $C'(h_g) > 0$ and $C''(h_g) > 0$ (convex costs).
     
-    \item \textbf{$\lambda$ - The ``Local Capture'' Parameter:} This parameter, where $0 < \lambda < 1$, represents the fraction of citywide benefits ($A(H)$) that the local Alderman internalizes. Because an Alderman only answers to constituents within their specific ward boundaries, they heavily discount benefits that spill over into the rest of the city (such as citywide tax revenue or regional affordability).
+    \item \textbf{Spillover Share} $\lambda_g \in (0,1)$: The fraction of citywide spillover benefits $\phi(H)$ that accrue to residents of ward $g$. Because each ward contains only a subset of city residents, $\lambda_A + \lambda_B = 1$ and each $\lambda_g < 1$.
 \end{itemize}
 
 \subsection{The Decentralized Problem (The Alderman)}
 
-Under ``Aldermanic Privilege,'' the Alderman in ward $g$ has the de facto power to determine the level of housing $h_g$. They maximize a local welfare function that accounts for the full local costs ($C$) but only their specific share ($\lambda$) of the citywide benefits ($A$).
+Under aldermanic privilege, the alderman in ward $g$ controls housing supply $h_g$ to maximize local welfare. Crucially, the alderman internalizes the full local costs but only their ward's share of the citywide benefits. Taking the other ward's housing $h_{-g}$ as given, the alderman solves:
+%
+\begin{align}
+    \max_{h_g \geq 0} \quad V_g(h_g; h_{-g}) = b \cdot h_g + \lambda_g \cdot \phi(h_g + h_{-g}) - C(h_g) \label{eq:alderman}
+\end{align}
 
-Taking the other ward's housing decision ($h_{-g}$) as given, the Alderman solves:
-\begin{equation}
-    \max_{h_g \ge 0} \quad V_g(h_g; h_{-g}) = \lambda A(h_g + h_{-g}) - C(h_g) - \kappa h_g
-\end{equation}
+The first-order condition equates the alderman's perceived marginal benefit to the marginal cost:
+%
+\begin{align}
+    \underbrace{b + \lambda_g \cdot \phi'(H)}_{\text{Perceived Marginal Benefit}} = \underbrace{C'(h_g)}_{\text{Marginal Cost}} \label{eq:alderman_foc}
+\end{align}
 
-The Alderman's first-order condition (FOC) equates the \textit{local share} of the marginal benefit to the full marginal cost:
-\begin{equation}
-    \underbrace{\lambda A'(H)}_{\text{Perceived Local Benefit}} = \underbrace{C'(h_g) + \kappa}_{\text{Full Marginal Cost}}
-    \label{eq:alderman_foc}
-\end{equation}
+The alderman perceives only fraction $\lambda_g$ of the marginal spillover benefit $\phi'(H)$ because the remainder accrues to the other ward's residents.
 
 \subsection{The Planner's Problem}
 
-Conversely, a citywide social planner (e.g., a ``Strong Mayor'' or central planning board) seeks to maximize total city welfare. They internalize that benefits generated in Ward A help residents in Ward B (and vice versa). The Planner solves:
-\begin{equation}
-    \max_{h_A, h_B \ge 0} \quad W = A(H) - \sum_{g \in \{A,B\}} [C(h_g) + \kappa h_g]
-\end{equation}
+A citywide social planner internalizes that benefits generated in ward $A$ also help residents in ward $B$. The planner chooses housing in both wards to maximize total welfare:
+%
+\begin{align}
+    \max_{h_A, h_B \geq 0} \quad W = b \cdot (h_A + h_B) + \phi(H) - C(h_A) - C(h_B) \label{eq:planner}
+\end{align}
 
-The Planner’s FOC equates the \textit{full} marginal benefit to the marginal cost:
-\begin{equation}
-    \underbrace{A'(H)}_{\text{True Citywide Benefit}} = \underbrace{C'(h_g) + \kappa}_{\text{Full Marginal Cost}}
-    \label{eq:planner_foc}
-\end{equation}
+The planner's first-order condition equates the \textit{full} marginal benefit to the marginal cost:
+%
+\begin{align}
+    \underbrace{b + \phi'(H)}_{\text{True Marginal Benefit}} = \underbrace{C'(h_g)}_{\text{Marginal Cost}} \label{eq:planner_foc}
+\end{align}
 
 \subsection{The Under-Provision Result}
 
-Comparing the two first-order conditions reveals the structural inefficiency of decentralized control. Because $\lambda < 1$, the Alderman perceives a lower marginal benefit curve than the Planner. Since the benefit function $A(\cdot)$ exhibits diminishing returns, the Alderman's optimal quantity intersects the cost curve at a lower level of housing supply:
-\begin{equation}
-    h^{\text{Decentralized}} < h^{\text{Social Planner}}
-\end{equation}
+Comparing equations \eqref{eq:alderman_foc} and \eqref{eq:planner_foc} reveals the structural inefficiency of decentralized control. Because $\lambda_g < 1$, the alderman perceives a lower marginal benefit than the planner:
+%
+\begin{align}
+    b + \lambda_g \cdot \phi'(H) < b + \phi'(H)
+\end{align}
 
-The intuition is straightforward: The Alderman stops approving housing once the \textit{local} annoyances (congestion) outweigh the \textit{local} share of the benefits (tax revenue/amenities). The Planner would continue building until the \textit{total} citywide benefits are exhausted. The wedge $(1-\lambda)$ represents the positive externalities of housing that are left on the table due to political fragmentation.
+Since the benefit function exhibits diminishing returns and costs are convex, the alderman's optimum occurs at a lower level of housing supply:
+%
+\begin{align}
+    h_g^{\text{Alderman}} < h_g^{\text{Planner}} \label{eq:underprovision}
+\end{align}
 
+The intuition is straightforward: the alderman stops approving housing once the local costs outweigh the \textit{locally-captured} benefits, even though additional housing would generate positive spillovers to the rest of the city. The gap $(1 - \lambda_g)$ represents the share of benefits left on the table due to political fragmentation.
 
-\subsection{Comparative Statics: Frictions vs. Preferences}
-\label{subsec:comparative_statics}
+\subsection{Spatial Variation: Why Borders Matter}
 
-The equilibrium level of housing in the alderman's ward, $h_g^*$, is implicitly defined by the Alderman's first-order condition (Equation \ref{eq:alderman_foc}): $\lambda A'(H) = C'(h_g) + \kappa$. 
-By differentiating with respect to our parameters of interest, one can see that housing supply is decreasing in the bureaucratic friction parameter $\kappa$ and increasing in the local capture parameter $\lambda$:
+The spillover share $\lambda_g$ is not constant within a ward and varies by location. For housing built near the center of a ward, most of the neighborhood amenities and local spillovers accrue to fellow ward residents, so $\lambda_g$ is relatively high. For housing built near the ward boundary, a larger share of spillovers (e.g., improved retail options, reduced congestion on shared roads) accrue to residents of the adjacent ward, so $\lambda_g$ is lower.
 
-\begin{equation}
-    \frac{\partial h_g^*}{\partial \kappa} < 0 \quad \text{and} \quad \frac{\partial h_g^*}{\partial \lambda} > 0
-\end{equation}
+Since the alderman's optimal housing supply is increasing in $\lambda_g$, this generates a spatial prediction within wards:
+%
+\begin{align}
+    \frac{\partial h_g^*}{\partial \lambda_g} > 0 \quad \Longrightarrow \quad \text{Density is lower near ward boundaries} \label{eq:border_effect}
+\end{align}
 
-Empirically, this implies that observing lower density in a ward could result from either an Alderman who heavily discounts citywide benefits (low $\lambda$) 
-or one who imposes high private costs on developers (high $\kappa$). 
-While local control is typically viewed as a preference parameter ($\lambda$), heterogeneity in bureaucratic frictions ($\kappa$) can generate similar outcomes, motivating the empirical strategy outlined in Section~\ref{sec:empirical_results_density} where I directly create a measure of bureaucratic frictions induced by each Alderman.
+This prediction is consistent with the regression discontinuity evidence in Figure \ref{fig:rd_plots}, which shows a sharp drop in development density when moving from the lenient to the strict side of ward boundaries.
+
+\subsection{Heterogeneous Aldermanic Frictions}
+
+Aldermen may differ in the regulatory frictions they impose on the development process. Let $\kappa_g \geq 0$ represent alderman-specific costs of approving development---including bureaucratic delays, political costs from anti-development constituents, or personal preferences over neighborhood character. The alderman's problem becomes:
+%
+\begin{align}
+    \max_{h_g \geq 0} \quad V_g = b \cdot h_g + \lambda_g \cdot \phi(H) - C(h_g) - \kappa_g \cdot h_g \label{eq:alderman_kappa}
+\end{align}
+
+The first-order condition is now:
+%
+\begin{align}
+    b + \lambda_g \cdot \phi'(H) = C'(h_g) + \kappa_g \label{eq:alderman_foc_kappa}
+\end{align}
+
+Higher $\kappa_g$ raises the effective marginal cost of development, reducing equilibrium housing:
+%
+\begin{align}
+    \frac{\partial h_g^*}{\partial \kappa_g} < 0 \label{eq:strictness_effect}
+\end{align}
+
+Empirically, I construct a ``strictness score'' for each alderman based on permit processing times for high-discretion permits (Section \ref{sec:empirical_results_density}). In the context of this model, the strictness score captures cross-alderman variation in $\kappa_g$. The border-pair fixed effects estimates in Table \ref{tab:fe_estimates_250} test prediction \eqref{eq:strictness_effect} by comparing density on opposite sides of ward boundaries, finding that a one standard deviation increase in aldermanic strictness is associated with 10--16\% lower density in new construction.
+
+\subsection{Implications for Housing Prices}
+
+If housing supply is restricted, standard urban economics predicts that equilibrium prices rise. Suppose housing demand in ward $g$ is characterized by an inverse demand function $p_g = P(h_g)$ with $P'(h) < 0$. From \eqref{eq:strictness_effect}, higher aldermanic frictions reduce housing supply. Combined with downward-sloping demand:
+%
+\begin{align}
+    \frac{\partial p_g}{\partial \kappa_g} = P'(h_g) \cdot \frac{\partial h_g}{\partial \kappa_g} > 0 \label{eq:price_effect}
+\end{align}
+
+Stricter aldermen restrict supply, which raises equilibrium prices. The event study in Section \ref{sec:empirical_results_rent_home_vals} tests this prediction by exploiting ward redistricting as a natural experiment. Census blocks reassigned to stricter aldermen experience approximately 4\% higher home prices relative to nearby blocks that did not switch aldermen, consistent with the supply restriction channel.
+
+\subsection{Discussion}
+
+This framework generates four testable predictions that map directly to the empirical analysis:
+
+\begin{enumerate}
+    \item \textbf{Under-provision} (eq. \ref{eq:underprovision}): Decentralized control leads to less housing than the social optimum.
+    
+    \item \textbf{Border effects} (eq. \ref{eq:border_effect}): Density is lower near ward boundaries where spillovers to other wards are largest.
+    
+    \item \textbf{Strictness effects} (eq. \ref{eq:strictness_effect}): Aldermen with higher regulatory frictions approve less housing.
+    
+    \item \textbf{Price effects} (eq. \ref{eq:price_effect}): Supply restrictions from stricter aldermen raise housing prices.
+\end{enumerate}
+
+The model clarifies the interpretation of the different empirical designs. The spatial RD estimates in Section \ref{sec:empirical_results_density} capture the total equilibrium difference in density across ward boundaries, which reflects both aldermanic approval decisions and developer sorting. 
+The border-pair fixed effects estimates in Section \ref{sec:empirical_results_density} isolate the effect of aldermanic strictness conditional on location by comparing parcels within narrow bands of the same boundary. The redistricting event study in Section \ref{sec:empirical_results_rent_home_vals} provides the cleanest identification of the price effects, as parcels cannot select their alderman when boundaries are redrawn for population balancing.
