@@ -4,7 +4,7 @@
 Housing Prices are skyrocketing in major US cities and across the globe. 
 Given the scarcity of vacant lots in dense urban areas, the primary way to add more housing supply is to construct taller 
 and denser buildings that allow more people to live on the same-sized parcel of land. 
-Density not only makes housing more affordable, but cities have long-known positive agglomeration spillovers from having people and firms in close proximity, 
+Density not only makes housing more affordable, but there are well-documented positive agglomeration spillovers from density, 
 implying indirect benefits on top of the direct benefits of lower housing prices \citep{rossihansberg_housing_2010,ahlfeldt_economic_2019,baum-snow_local_2024}.
 
 However, recent research in economics and other fields has highlighted that local 
@@ -23,12 +23,12 @@ In this paper, I study the effect of within-municipality political fragmentation
 While many cities have fragmented decision-making, no major city in the United States gives as much power to its city council members (Aldermen) as Chicago. 
 Importantly, Chicago lacks a city charter that clearly lays out the powers and restrictions of various elected offices of the city, so much of the power of the Aldermen is derived from tradition and informal norms.
 This unique level of power is often called ``Aldermanic Privilege,'' and it allows Aldermen to exert significant control over land-use decisions in their wards \citep{thale_aldermanic_2005}.
-This privilege is so strong, in fact, that aldermen have been referred to as ``little mayors" ruling their Wards as fiefdoms \cite{einhorn_property_1991}.
+This privilege is so strong, in fact, that aldermen have been referred to as ``little mayors" ruling their Wards as fiefdoms \citep{einhorn_property_1991}.
 
 While this power has existed for many decades, it only recently has come under scrutiny as Chicago has faced a housing affordability crisis similar to many other major cities, with the 
-Department of Housing and Urban Development alleging that the power has been used to ensure affordable housing is not built in certain affluent wards \cite{chase_chicago_2023}.
-In response to these allegations, Mayor Lightfoot signed an executive order attempting to limit the power of aldermanic privilege as part of a larger ethics reform package \cite{mayors_press_office_mayor_2019},
-but in practice not much has changed in the years since \cite{cherone_developer_2025}. 
+Department of Housing and Urban Development alleging that the power has been used to ensure affordable housing is not built in certain affluent wards \citep{chase_chicago_2023}.
+In response to these allegations, Mayor Lightfoot signed an executive order attempting to limit the power of aldermanic privilege as part of a larger ethics reform package \citep{mayors_press_office_mayor_2019},
+but in practice not much has changed in the years since \citep{cherone_developer_2025}. 
 As a result, the debate continues today as to whether this power should be curtailed, or whether aldermen are still the best suited to make land-use decisions in their wards.\footnote{See this link, where each city council candidate was asked specifically about their stance on ``aldermanic prerogative": https://news.wttw.com/elections/voters-guide/2023/races/city-council}
 
 To my knowledge, only one other paper has studied the effect of aldermanic privilege on housing supply in the city. 
@@ -45,3 +45,12 @@ My empirical strategy proceeds in two stages. First, I construct an ``aldermanic
 Second, I use these strictness scores to examine how development density varies at ward boundaries. Using a spatial regression discontinuity design that compares parcels on opposite sides of ward boundaries within the same zoning classification, I find that new construction is approximately 50-60\% less dense on the stricter side of ward boundaries. These visual discontinuities are large and statistically significant, though they likely reflect both the causal effect of aldermanic behavior and developer self-selection into more lenient wards.
 
 To isolate the causal effect of aldermanic strictness, I employ a border-pair fixed effects design that compares new construction within 250 feet of ward boundaries, controlling for zoning classification and construction-year by border-pair fixed effects. I find that a one standard deviation increase in aldermanic strictness is associated with a 10\% decrease in dwelling units per acre, a 13\% decrease in floor-area ratio, and a 16\% decrease in total units. These effects attenuate substantially at greater distances from ward boundaries and the results are robust to a battery of specification checks including bandwidth sensitivity, donut-hole exclusions, alternative polynomial orders, and placebo boundary tests, as documented in Section~\ref{subsec:robustness}.
+
+To examine whether these supply restrictions pass through into housing affordability, I exploit the 2015 and 2023 ward redistrictings as natural experiments. When ward boundaries are redrawn for population balancing, some census blocks are reassigned to new aldermen while nearby blocks remain under the same representation. This creates a difference-in-differences comparison where the identifying assumption is that reassigned and non-reassigned blocks would have followed parallel trends absent the change in aldermanic representation. Crucially, this design circumvents the selection problem inherent in the cross-sectional analysis: developers cannot anticipate or sort in response to redistricting that has not yet occurred.
+
+I find that census blocks reassigned to stricter aldermen experience approximately 4\% higher home sale prices and 3–4\% higher rents relative to nearby blocks that did not switch aldermen. These effects emerge gradually over the post-redistricting period, consistent with a supply restriction channel where reduced new construction slowly tightens the housing market. The price and rent results complement the density findings: stricter aldermen approve less housing (Section \ref{sec:empirical_results_density}), which restricts supply and raises equilibrium housing costs (Section \ref{sec:empirical_results_rent_home_vals}).
+
+The rest of the paper is organized as follows: Section \ref{sec:data} describes the data and institutional background of aldermanic privilege in Chicago.
+Section \ref{sec:model} presents a toy model of fragmented land-use authority and derives testable predictions.
+Section \ref{sec:empirical_results_density} presents the empirical results on development density at ward boundaries, and Section \ref{sec:empirical_results_rent_home_vals} presents the results on home prices and rents following ward redistricting.
+Section \ref{sec:discussion} discusses the policy implications of these findings, and Section \ref{sec:conclusion} concludes.
