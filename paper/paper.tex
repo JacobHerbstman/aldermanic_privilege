@@ -24,22 +24,35 @@
 % Custom command for figure notes
 \newcommand{\figurenotes}[1]{\par\vspace{0.5em}\footnotesize\textit{Notes:} #1}
 
-% IDENTIFYING INFORMATION
-\title{Fragmented Governance, Density, and Housing Prices: Evidence from Chicago's Aldermanic Privilege}
-\author{Jacob Herbstman \\ University of Chicago}
-\date{\today}
-
 \begin{document}
 
-\maketitle
+\begin{center}
+{\Large Fragmented Governance, Density, and Housing Affordability: \\ 
+Evidence from Chicago's Aldermanic Privilege}
+
+\vspace{1.5em}
+Jacob Herbstman$^\dagger$
+
+\vspace{0.5em}
+\today
+\end{center}
+
+\renewcommand{\thefootnote}{$\dagger$}
+\footnotetext{University of Chicago, Harris School of Public Policy. Email: \url{jherbstman@uchicago.edu}.}
+\renewcommand{\thefootnote}{\arabic{footnote}}
+\setcounter{footnote}{0}
+
+\vspace{1em}
 
 \begin{abstract}
 Local land use regulation restricts housing supply and raises prices, but most research focuses on variation across municipalities. 
 This paper examines how fragmentation of land use authority within cities affects housing markets, studying Chicago's ``aldermanic privilege'': an informal institution granting each of 50 aldermen effective veto power over development in their ward. 
-I construct aldermanic strictness scores from permit processing times and employ two empirical strategies: a spatial discontinuity design comparing density at ward boundaries, and event studies exploiting ward redistricting that quasi-randomly reassigned parcels to different aldermen.
+I construct aldermanic ``strictness scores" from permit processing times as a proxy for ward-level regulatory stringency and employ two empirical strategies: a spatial discontinuity design comparing density at ward boundaries, and event studies exploiting ward redistricting that quasi-randomly reassigned parcels to different aldermen.
 New construction is 10-16\% less dense on the stricter side of ward boundaries. Home prices rise approximately 4\% when blocks are reassigned to stricter aldermen, with effects beginning at redistricting announcement rather than implementation. Rents rise 3-4\% following reassignment. 
 These findings demonstrate that within-city fragmentation creates coordination failures: individual aldermen rationally restrict development, but the collective outcome is undersupply of housing relative to the social optimum.
-\end{abstract}
+\end{abstract} 
+
+\clearpage
 
 \input{sections/intro.tex}
 \input{sections/data.tex}
