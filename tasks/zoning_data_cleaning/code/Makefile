@@ -1,28 +1,17 @@
 SHELL := bash
 include ../../shell_functions.make
 
-INPUT_SHAPEFILE := ../input/raw_zoning_data.geojson
-INPUT_ZONING := ../input/zoning-code-summary-district-types.csv
-SCRIPT := clean_zoning_data.R
-OUTPUT_FILE := ../output/zoning_data_clean.gpkg
+all: ../output/zoning_data_clean.gpkg
 
-.DEFAULT_GOAL := $(OUTPUT_FILE)
-.PHONY: all
-all: $(OUTPUT_FILE)
+../output/zoning_data_clean.gpkg: clean_zoning_data.R ../input/raw_zoning_data.geojson ../input/zoning-code-summary-district-types.csv | ../output
+	$(R) clean_zoning_data.R
 
-# 2) Run the cleaner to produce the GPKG
-$(OUTPUT_FILE): clean_zoning_data.R $(INPUT_SHAPEFILE) $(INPUT_ZONING) | ../output
-	@echo "→ [clean_zoning_data] Running R script to clean zoning data..."
-	$(R) $<
+../input/raw_zoning_data.geojson: ../../../data_raw/Boundaries_-_Zoning_Districts_20250910.geojson | ../input
+	ln -sf $< $@
 
-$(INPUT_SHAPEFILE): ../../../data_raw/Boundaries_-_Zoning_Districts_20250910.geojson | ../input
-	@echo "→ [clean_zoning_data] Linking raw data input..."
-	ln -s $< $@
-
-$(INPUT_ZONING): ../../../data_raw/zoning-code-summary-district-types.csv | ../input
-	@echo "→ [clean_zoning_data] Linking raw data input..."
-	ln -s $< $@
-
-link-inputs: $(INPUT_SHAPEFILE) $(INPUT_ZONING)
+../input/zoning-code-summary-district-types.csv: ../../../data_raw/zoning-code-summary-district-types.csv | ../input
+	ln -sf $< $@
 
 include ../../generic.make
+
+link-inputs: ../input/raw_zoning_data.geojson ../input/zoning-code-summary-district-types.csv

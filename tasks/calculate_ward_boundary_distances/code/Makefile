@@ -1,84 +1,44 @@
 SHELL := bash
 include ../../shell_functions.make
 
-.PHONY: all link-inputs
-
-# --- Main Goal ---
 all: ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.gpkg
 
-include ../../generic.make
-
-# --- Main processing rule ---
-../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.gpkg: \
-  calculate_distances.R \
-  ../input/geocoded_residential_data.gpkg \
-  ../input/ward_panel.gpkg \
-  ../input/chicago_alderman_panel.csv \
-  ../input/aldermen_strictness_scores.csv \
-  ../input/ward_controls.csv \
-  ../input/block_group_controls.csv \
-  ../input/zoning_data_clean.gpkg \
-  ../input/cta_stops.gpkg \
-  ../input/major_streets.gpkg \
-  ../input/parks.gpkg \
-  ../input/schools_2015.gpkg | ../output
-	@Rscript calculate_distances.R
-
-# --- Rules that make each symlink depend on its source file ---
-../input/year_built_sample.gpkg: ../../process_attom_assessor/output/chicago_attom_2023.gpkg | ../input
-	@ln -sf $< $@
+../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.gpkg: calculate_distances.R ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/aldermen_strictness_scores.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/zoning_data_clean.gpkg ../input/cta_stops.gpkg ../input/major_streets.gpkg ../input/parks.gpkg ../input/schools_2015.gpkg | ../output
+	$(R) calculate_distances.R
 
 ../input/geocoded_residential_data.gpkg: ../../geocode_ccao_data/output/geocoded_residential_data.gpkg | ../input
-	@ln -sf $< $@
+	ln -sf $< $@
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
-	@ln -sf $< $@
+	ln -sf $< $@
 
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
-	@ln -sf $< $@
+	ln -sf $< $@
 
 ../input/aldermen_strictness_scores.csv: ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
-	@echo "→ [calculate_distances] Linking intermediate input: strictness scores"
 	ln -sf $< $@
 
 ../input/ward_controls.csv: ../../create_ward_controls/output/ward_controls_2000_2023.csv | ../input
-	@echo "→ [calculate_distances] Linking intermediate input: ward controls"
 	ln -sf $< $@
 
-
+../input/block_group_controls.csv: ../../create_block_group_controls/output/block_group_controls.csv | ../input
+	ln -sf $< $@
 
 ../input/zoning_data_clean.gpkg: ../../zoning_data_cleaning/output/zoning_data_clean.gpkg | ../input
-	@ln -sf $< $@
-
-../input/block_group_controls.csv: ../../create_block_group_controls/output/block_group_controls.csv | ../input
-	@echo "→ [calculate_distances] Linking block group controls"
 	ln -sf $< $@
 
 ../input/cta_stops.gpkg: ../../download_amenities_data/output/cta_stops.gpkg | ../input
-	@ln -sf $< $@
+	ln -sf $< $@
 
 ../input/major_streets.gpkg: ../../download_amenities_data/output/major_streets.gpkg | ../input
-	@ln -sf $< $@
+	ln -sf $< $@
 
 ../input/parks.gpkg: ../../download_amenities_data/output/parks.gpkg | ../input
-	@ln -sf $< $@
+	ln -sf $< $@
 
 ../input/schools_2015.gpkg: ../../download_amenities_data/output/schools_2015.gpkg | ../input
-	@ln -sf $< $@
+	ln -sf $< $@
 
+include ../../generic.make
 
-# --- Helper to create all links at once ---
-link-inputs: \
-  ../input/year_built_sample.gpkg \
-  ../input/geocoded_residential_data.gpkg \
-  ../input/ward_panel.gpkg \
-  ../input/chicago_alderman_panel.csv \
-  ../input/aldermen_strictness_scores.csv \
-  ../input/ward_controls.csv \
-  ../input/block_group_controls.csv \
-  ../input/zoning_data_clean.gpkg \
-  ../input/cta_stops.gpkg \
-  ../input/major_streets.gpkg \
-  ../input/parks.gpkg \
-  ../input/schools_2015.gpkg
-
+link-inputs: ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/aldermen_strictness_scores.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/zoning_data_clean.gpkg ../input/cta_stops.gpkg ../input/major_streets.gpkg ../input/parks.gpkg ../input/schools_2015.gpkg

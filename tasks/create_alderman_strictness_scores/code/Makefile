@@ -1,11 +1,6 @@
 SHELL := bash
 include ../../shell_functions.make
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Define key files for this task
-# ─────────────────────────────────────────────────────────────────────────────
-
-# All the files this task will create.
 OUTPUT_FILES := \
 	../output/alderman_restrictiveness_scores_month_FEs.csv \
 	../output/alderman_restrictiveness_scores_ward_month_FEs.csv \
@@ -21,41 +16,14 @@ OUTPUT_FILES := \
 	../output/Ward_Month_FEs_permit_approval_rate.png \
 	../output/stage1_residualization_models.tex
 
-# The R script that does the work.
-SCRIPT_FILE := create_restrictiveness_score.R
-
-INPUT_WARD_PANEL := ../input/ward_monthly_panel_for_alderman_fe.csv
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Define Goals
-# ─────────────────────────────────────────────────────────────────────────────
-
 all: $(OUTPUT_FILES)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Main rule to create the final output
-# ─────────────────────────────────────────────────────────────────────────────
-$(OUTPUT_FILES): $(SCRIPT_FILE) $(INPUT_WARD_PANEL) | ../output
-	@echo "→ [create_strictness_score] Running R script to create all strictness scores and plots"
-	$(R) $(SCRIPT_FILE)
+$(OUTPUT_FILES): create_restrictiveness_score.R ../input/ward_monthly_panel_for_alderman_fe.csv | ../output
+	$(R) create_restrictiveness_score.R
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Rules to create the input symbolic links
-# -----------------------------------------------------------------------------
-
-# Rule for linking ward monthly panel
-$(INPUT_WARD_PANEL): ../../data_for_alderman_strictness_scores/output/ward_monthly_panel_for_alderman_fe.csv | ../input
-	@echo "→ [create_strictness_score] Linking: $@ ← $<"
+../input/ward_monthly_panel_for_alderman_fe.csv: ../../data_for_alderman_strictness_scores/output/ward_monthly_panel_for_alderman_fe.csv | ../input
 	ln -sf $< $@
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Generic rules
-# ─────────────────────────────────────────────────────────────────────────────
 include ../../generic.make
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Utility Targets
-# ─────────────────────────────────────────────────────────────────────────────
-
-link-inputs: $(INPUT_WARD_PANEL)
+link-inputs: ../input/ward_monthly_panel_for_alderman_fe.csv

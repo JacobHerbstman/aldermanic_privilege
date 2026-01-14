@@ -15,26 +15,18 @@ SAMPLE_FILTERS    := full_sample
 
 SCRIPT := run_event_study_disaggregate.R
 
-# Inputs
-INPUT_LISTING_PANEL  := ../input/rental_listing_panel.parquet
-INPUT_LISTING_2015   := ../input/rental_listing_panel_2015.parquet
-INPUT_LISTING_2023   := ../input/rental_listing_panel_2023.parquet
-
-ALL_INPUTS := $(INPUT_LISTING_PANEL) $(INPUT_LISTING_2015) $(INPUT_LISTING_2023)
+ALL_INPUTS := ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Generate Output Filenames
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Helper for stacked prefix
 STACK_PREFIX_TRUE  := stacked
 STACK_PREFIX_FALSE := unstacked
 
-# Helper for controls suffix
 CONTROLS_SUFFIX_TRUE  := _with_hedonics
 CONTROLS_SUFFIX_FALSE :=
 
-# Sample filter suffix
 SAMPLE_SUFFIX_full_sample      :=
 SAMPLE_SUFFIX_multifamily_only := _mf
 
@@ -61,7 +53,6 @@ ALL_OUTPUTS := $(call GEN_OUTPUTS)
 
 all: $(ALL_OUTPUTS) did-table
 
-# Convenience target for main specifications only
 main-specs: \
 	../output/event_study_disaggregate_yearly_stacked_continuous_uniform_1000ft_with_hedonics.pdf \
 	../output/event_study_disaggregate_yearly_stacked_continuous_triangular_2000ft_with_hedonics.pdf \
@@ -90,23 +81,23 @@ $(foreach sf,$(SAMPLE_FILTERS), \
 )))))))
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Input Linking
+# Input Linking - Explicit symlink rules
 # ─────────────────────────────────────────────────────────────────────────────
 
-link-inputs: $(ALL_INPUTS)
-
-$(INPUT_LISTING_PANEL): ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel.parquet | ../input
+../input/rental_listing_panel.parquet: ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel.parquet | ../input
 	ln -sf $< $@
 
-$(INPUT_LISTING_2015): ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel_2015.parquet | ../input
+../input/rental_listing_panel_2015.parquet: ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel_2015.parquet | ../input
 	ln -sf $< $@
 
-$(INPUT_LISTING_2023): ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel_2023.parquet | ../input
+../input/rental_listing_panel_2023.parquet: ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel_2023.parquet | ../input
 	ln -sf $< $@
 
-# =============================================================================
+link-inputs: ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet
+
+# ─────────────────────────────────────────────────────────────────────────────
 # DiD Table
-# =============================================================================
+# ─────────────────────────────────────────────────────────────────────────────
 
 DID_SCRIPT := run_did_rental_disaggregate.R
 DID_OUTPUT := ../output/did_table_rental.tex
@@ -115,11 +106,9 @@ DID_OUTPUT := ../output/did_table_rental.tex
 
 did-table: $(DID_OUTPUT)
 
-$(DID_OUTPUT): $(DID_SCRIPT) $(INPUT_LISTING_PANEL) | ../output
-	@echo "→ [rental] Creating pooled DiD table"
+$(DID_OUTPUT): $(DID_SCRIPT) ../input/rental_listing_panel.parquet | ../output
 	Rscript $(DID_SCRIPT)
 
-# Main outputs including DiD table
 main: main-specs did-table
 
 include ../../generic.make
