@@ -30,6 +30,11 @@ tasks/*/temp/
 .Renviron
 
 
+# Archive task folders (two levels deep)
+tasks/archive/*/input/
+tasks/archive/*/output/
+tasks/archive/*/temp/
+
 # ================== ADDITIONS ==================
 
 # Slides: ignore everything in slides/ except the source TeX
