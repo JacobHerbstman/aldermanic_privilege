@@ -3,6 +3,15 @@
 This repository contains code and data pipelines for analyzing the effects of aldermanic discretion on housing development in Chicago.
 
 
+## Code Organization
+
+The workflow is organized as a series of tasks. Each task folder contains three folders: `input`, `code`, `output`. A task's output is used as an input by one or more downstream tasks. This graph depicts the input-output relationships between tasks:
+
+![Task Flow](tasks/symlink_graph/output/task_flow.png)
+
+We use the `make` utility to automate this workflow. Each task is run by calling `make` from its `code/` subdirectory. The paper is compiled by running `make` in `paper/`.
+
+
 ## Project Structure
 
 All raw data lives in `data_raw/` (not tracked in git). Analysis tasks are in `tasks/`, each with its own `code/`, `input/`, and `output/` subfolders. The LaTeX paper is in `paper/` and slides are in `slides/`.

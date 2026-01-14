@@ -1,0 +1,73 @@
+digraph G {
+    rankdir=LR;
+    node [shape=box, fontname="Helvetica"];
+    edge [color=gray40];
+    
+    // Style the data_raw node specially
+    data_raw [style=filled, fillcolor=lightgray, label="data_raw"];
+    calculate_rent_distances -> create_appendix_a_sumstats
+    calculate_rent_distances -> create_event_study_rental_data_disaggregate
+    calculate_sale_distances -> create_event_study_sales_data_disaggregate
+    calculate_ward_boundary_distances -> border_pair_FE_regressions
+    calculate_ward_boundary_distances -> border_pair_FE_regressions_donut
+    calculate_ward_boundary_distances -> spatial_rd_same_zone_only
+    calculate_ward_boundary_distances -> spatial_rd_same_zone_only_donut
+    calculate_ward_boundary_distances -> spatial_rd_same_zone_only_function_robustness
+    calculate_ward_boundary_distances -> spatial_rd_same_zone_only_placebo_boundaries
+    census_block_2020_cleaning -> create_block_treatment_panel
+    clean_building_permits -> data_for_alderman_strictness_scores
+    commercial_value_data_cleaning -> geocode_ccao_data
+    create_alderman_data -> calculate_rent_distances
+    create_alderman_data -> calculate_sale_distances
+    create_alderman_data -> calculate_ward_boundary_distances
+    create_alderman_data -> create_block_treatment_panel
+    create_alderman_data -> data_for_alderman_strictness_scores
+    create_alderman_data -> strictness_score_map
+    create_alderman_strictness_scores -> calculate_rent_distances
+    create_alderman_strictness_scores -> calculate_sale_distances
+    create_alderman_strictness_scores -> calculate_ward_boundary_distances
+    create_alderman_strictness_scores -> create_block_treatment_panel
+    create_alderman_strictness_scores -> strictness_score_map
+    create_block_group_controls -> calculate_ward_boundary_distances
+    create_block_treatment_panel -> create_event_study_rental_data_disaggregate
+    create_block_treatment_panel -> create_event_study_sales_data_disaggregate
+    create_block_treatment_panel -> event_study_sales_diagnostics
+    create_event_study_rental_data_disaggregate -> run_event_study_rental_disaggregate
+    create_event_study_rental_data_disaggregate -> summary_stats_event_study
+    create_event_study_sales_data -> event_study_sales_diagnostics
+    create_event_study_sales_data_disaggregate -> run_event_study_sales_disaggregate
+    create_event_study_sales_data_disaggregate -> summary_stats_event_study
+    create_ward_controls -> calculate_rent_distances
+    create_ward_controls -> calculate_sale_distances
+    create_ward_controls -> calculate_ward_boundary_distances
+    create_ward_controls -> data_for_alderman_strictness_scores
+    data_for_alderman_strictness_scores -> create_alderman_strictness_scores
+    data_raw -> calculate_sale_distances
+    data_raw -> census_block_2020_cleaning
+    data_raw -> clean_building_permits
+    data_raw -> commercial_value_data_cleaning
+    data_raw -> create_block_treatment_panel
+    data_raw -> create_event_study_rental_data_disaggregate
+    data_raw -> create_event_study_sales_data_disaggregate
+    data_raw -> data_for_alderman_strictness_scores
+    data_raw -> download_amenities_data
+    data_raw -> geocode_ccao_data
+    data_raw -> residential_improvements_data_cleaning
+    data_raw -> ward_panel_create
+    data_raw -> zoning_data_cleaning
+    download_amenities_data -> calculate_ward_boundary_distances
+    download_rent_data -> process_rent_data
+    geocode_ccao_data -> calculate_ward_boundary_distances
+    process_rent_data -> calculate_rent_distances
+    process_residential_improvements_full -> create_event_study_sales_data_disaggregate
+    residential_improvements_data_cleaning -> geocode_ccao_data
+    ward_panel_create -> calculate_rent_distances
+    ward_panel_create -> calculate_sale_distances
+    ward_panel_create -> calculate_ward_boundary_distances
+    ward_panel_create -> create_block_treatment_panel
+    ward_panel_create -> create_ward_controls
+    ward_panel_create -> data_for_alderman_strictness_scores
+    ward_panel_create -> event_study_sales_diagnostics
+    ward_panel_create -> strictness_score_map
+    zoning_data_cleaning -> calculate_ward_boundary_distances
+}

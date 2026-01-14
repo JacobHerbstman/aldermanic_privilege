@@ -35,6 +35,10 @@ tasks/archive/*/input/
 tasks/archive/*/output/
 tasks/archive/*/temp/
 
+# Exception: track the task flow graph for README
+!tasks/symlink_graph/output/
+!tasks/symlink_graph/output/task_flow.png
+
 # ================== ADDITIONS ==================
 
 # Slides: ignore everything in slides/ except the source TeX
