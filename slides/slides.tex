@@ -13,6 +13,19 @@
 \usepackage{bm}	%Supports bold math \bm
 \usepackage{enumitem}
 
+% Citation styling - smaller and light grey
+\definecolor{citegray}{gray}{0.5}
+
+% Save original citation commands
+\let\origcitep\citep
+\let\origcite\cite
+\let\origcitet\citet
+
+% Redefine with smaller size and grey color
+\renewcommand{\citep}[2][]{\begingroup\scriptsize\color{citegray}\origcitep[#1]{#2}\endgroup}
+\renewcommand{\cite}[2][]{\begingroup\scriptsize\color{citegray}\origcite[#1]{#2}\endgroup}
+\renewcommand{\citet}[2][]{\begingroup\scriptsize\color{citegray}\origcitet[#1]{#2}\endgroup}
+
 % TikZ for figures
 \usepackage{tikz}
 \usetikzlibrary{calc,3d,positioning}
