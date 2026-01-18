@@ -147,6 +147,63 @@ results_df$ci_high_pct <- (results_df$estimate + 1.96 * results_df$std_error) * 
 write_csv(results_df, "../output/did_table_rental.csv")
 message("Saved: ../output/did_table_rental.csv")
 
+# =============================================================================
+# CREATE CLEAN SLIDE TABLE (minimal format for slides)
+# =============================================================================
+message("\nCreating clean slide table...")
+
+# Format coefficient and SE nicely
+format_coef <- function(est, se, digits = 3) {
+    stars <- ifelse(abs(est/se) > 2.576, "***",
+             ifelse(abs(est/se) > 1.96, "**",
+             ifelse(abs(est/se) > 1.645, "*", "")))
+    sprintf("%.*f%s", digits, est, stars)
+}
+
+format_se <- function(se, digits = 3) {
+    sprintf("(%.*f)", digits, se)
+}
+
+format_n_millions <- function(n) {
+    sprintf("%.2fM", n / 1e6)
+}
+
+# Extract values
+est_no_ctrl <- coef(m_no_ctrl)["post_treat"]
+se_no_ctrl <- se(m_no_ctrl)["post_treat"]
+est_ctrl <- coef(m_ctrl)["post_treat"]
+se_ctrl <- se(m_ctrl)["post_treat"]
+n_obs <- m_no_ctrl$nobs
+r2_no_ctrl <- fitstat(m_no_ctrl, "r2")$r2
+r2_ctrl <- fitstat(m_ctrl, "r2")$r2
+
+# Create minimal LaTeX table for slides
+slide_table <- sprintf('
+\\begin{tabular}{lcc}
+\\toprule
+ & No Hedonics & Hedonics \\\\
+\\midrule
+Post $\\times$ $\\Delta$Strict & %s & %s \\\\
+ & %s & %s \\\\
+\\midrule
+N & %s & %s \\\\
+$R^2$ & %.2f & %.2f \\\\
+\\bottomrule
+\\end{tabular}
+',
+    format_coef(est_no_ctrl, se_no_ctrl),
+    format_coef(est_ctrl, se_ctrl),
+    format_se(se_no_ctrl),
+    format_se(se_ctrl),
+    format_n_millions(n_obs),
+    format_n_millions(n_obs),
+    r2_no_ctrl,
+    r2_ctrl
+)
+
+writeLines(slide_table, "../output/did_table_rental_clean.tex")
+message("Saved: ../output/did_table_rental_clean.tex")
+
 message("\n=== Summary (Percentage Points) ===")
 print(results_df[, c("specification", "estimate_pct", "ci_low_pct", "ci_high_pct", "n_obs")])
 

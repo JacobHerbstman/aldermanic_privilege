@@ -200,6 +200,64 @@ results_df$ci_high_pct <- (results_df$estimate + 1.96 * results_df$std_error) * 
 write_csv(results_df, "../output/did_table_sales.csv")
 message("Saved: ../output/did_table_sales.csv")
 
+# =============================================================================
+# CREATE CLEAN SLIDE TABLE (Just 2012 cohort, minimal format)
+# =============================================================================
+message("\nCreating clean slide table...")
+
+# For slides: Just show 2012 (announcement timing) with no hedonics vs hedonics
+# Format coefficient and SE nicely
+format_coef <- function(est, se, digits = 3) {
+    stars <- ifelse(abs(est/se) > 2.576, "***",
+             ifelse(abs(est/se) > 1.96, "**",
+             ifelse(abs(est/se) > 1.645, "*", "")))
+    sprintf("%.*f%s", digits, est, stars)
+}
+
+format_se <- function(se, digits = 3) {
+    sprintf("(%.*f)", digits, se)
+}
+
+format_n <- function(n) {
+    format(n, big.mark = ",")
+}
+
+# Extract values
+est_no_ctrl <- coef(m_2012_no_ctrl)["post_treat"]
+se_no_ctrl <- se(m_2012_no_ctrl)["post_treat"]
+est_ctrl <- coef(m_2012_ctrl)["post_treat"]
+se_ctrl <- se(m_2012_ctrl)["post_treat"]
+n_obs <- m_2012_no_ctrl$nobs
+r2_no_ctrl <- fitstat(m_2012_no_ctrl, "r2")$r2
+r2_ctrl <- fitstat(m_2012_ctrl, "r2")$r2
+
+# Create minimal LaTeX table for slides
+slide_table <- sprintf('
+\\begin{tabular}{lcc}
+\\toprule
+ & No Hedonics & Hedonics \\\\
+\\midrule
+Post $\\times$ $\\Delta$Strict & %s & %s \\\\
+ & %s & %s \\\\
+\\midrule
+N & %s & %s \\\\
+$R^2$ & %.2f & %.2f \\\\
+\\bottomrule
+\\end{tabular}
+',
+    format_coef(est_no_ctrl, se_no_ctrl),
+    format_coef(est_ctrl, se_ctrl),
+    format_se(se_no_ctrl),
+    format_se(se_ctrl),
+    format_n(n_obs),
+    format_n(n_obs),
+    r2_no_ctrl,
+    r2_ctrl
+)
+
+writeLines(slide_table, "../output/did_table_sales_clean.tex")
+message("Saved: ../output/did_table_sales_clean.tex")
+
 message("\n=== Summary (Percentage Points) ===")
 print(results_df[, c("specification", "estimate_pct", "ci_low_pct", "ci_high_pct", "n_obs")])
 

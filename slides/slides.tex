@@ -69,18 +69,23 @@ Evidence from Chicago's Aldermanic Privilege}
 % PART 1: MOTIVATION & INSTITUTIONAL SETTING (Slides 2-6)
 \input{sections/intro.tex}
 
-% PART 2: SIMPLE THEORY (Slides 7-8)
+% PART 2: RELATED LITERATURE (Slide 7)
+\input{sections/literature.tex}
+
+% PART 3: SIMPLE THEORY (Slides 8-9)
 \input{sections/theory.tex}
 
-% PART 3: MEASURING ALDERMAN STRICTNESS (Slides 9-11)
+% PART 4: MEASURING ALDERMAN STRICTNESS (Slides 10-12)
 \input{sections/aldermen_FE.tex}
 
-% PART 4: DENSITY ANALYSIS (Slides 12-17)
+% PART 5: DENSITY ANALYSIS (Slides 13-18)
 \input{sections/density_analysis.tex}
 
-% PART 5: PRICE & RENT ANALYSIS (Slides 18-24)
-% TODO: Create new sections for event study
-%\input{sections/event_study.tex}
+% PART 6: PRICE & RENT ANALYSIS (Slides 19-24)
+\input{sections/event_study.tex}
+
+% PART 7: CONCLUSION (Slides 25-26)
+\input{sections/conclusion.tex}
 
 %---------------------------------------------------------------------
 \begin{frame}[plain]
@@ -91,11 +96,6 @@ Evidence from Chicago's Aldermanic Privilege}
 %---------------------------------------------------------------------
 % Start appendix section
 \appendix
-%---------------------------------------------------------------------
-
-%---------------------------------------------------------------------
-% Literature Review (moved to appendix)
-\input{sections/literature.tex}
 %---------------------------------------------------------------------
 
 %---------------------------------------------------------------------
@@ -146,6 +146,29 @@ Evidence from Chicago's Aldermanic Privilege}
     
     \vspace{1em}
     Demographics smooth across ward boundaries.
+\end{frame}
+
+%---------------------------------------------------------------------
+% BACKUP SLIDES: Price/Rent Robustness
+%---------------------------------------------------------------------
+\begin{frame}[label=price-robustness]
+    \frametitle{Robustness: Pre-Trends and Placebo Tests}
+    \begin{center}
+    \includegraphics[width=0.8\textwidth,height=0.6\textheight,keepaspectratio]{../tasks/event_study_sales_diagnostics/output/pre_trend_coefficients.pdf}
+    \end{center}
+    
+    \vspace{0.5em}
+    Joint test of pre-period coefficients: Cannot reject null of zero pre-trends.
+\end{frame}
+
+\begin{frame}[label=price-hedonics]
+    \frametitle{Robustness: With and Without Hedonic Controls}
+    \begin{center}
+    \textit{[Results stable with/without hedonic controls --- see main tables]}
+    \end{center}
+    
+    \vspace{1em}
+    Adding building characteristics (sqft, age, bedrooms, bathrooms, garage) does not substantially change point estimates.
 \end{frame}
 
 %---------------------------------------------------------------------
