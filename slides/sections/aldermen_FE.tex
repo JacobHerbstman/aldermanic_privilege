@@ -1,38 +1,66 @@
+% ==============================================================================
+% SLIDE 9: THE CHALLENGE - MEASURING STRICTNESS
+% ==============================================================================
 \begin{frame}
-    \frametitle{Empirical Strategy: Alderman Fixed Effects} 
-        % Details for item 1: Only appear on slide 1.
-        \only<1>{
-            \begin{itemize} 
-                \item For my stacked RD design, I need to "sign" each ward border to create a negative and positive side
-                \item To do so, I use the permit dataset to create a measure of alderman "strictness" by running the following regressions at the montly level: 
-                \[
-                \begin{aligned}
-                    Y_{it} = \beta_0 + \sum_{j=1}^{N-1} \delta_j \cdot \text{Alderman}_j + \mathbf{X}{it}'\boldsymbol{\gamma} + \lambda_t + \epsilon_{it}
-                \end{aligned}
-                \]
-                \item $Y_{it}$ contains 4 outcome variables: (1) log permits issued, (2) permit approval rate, (3) log average permit processing time, and (4) log average total fee for each project
-                \item $\delta_j$ are the $N-1$ alderman fixed effects, all referenced to Andre Vasquez (40th Ward), but this is arbitrary
-            \end{itemize}
-        }
-\end{frame}
-
-\begin{frame}
-    \frametitle{Empirical Strategy: Alderman Fixed Effects} 
-        % Details for item 1: Only appear on slide 1.
-        \only<1>{
-            \begin{itemize} 
-                \item Results are robust to a ward + month fixed effects, but lose a lot of power in the RD since many wards don't have any variation in representation
-                \item I then take the first principal component of the 4 $\hat{\delta}_j$ estimates to create a single "strictness" score for each alderman
-            \end{itemize}
-        }
+	\frametitle{The Challenge: Measuring Alderman Strictness}
+	\begin{itemize}
+		\item Alderman preferences/frictions are latent --- no published ``strictness score''
+		\item \textbf{Key problem}: I can't observe what \textit{doesn't happen}
+		\begin{itemize}
+			\item Projects that never apply because developer knows alderman will block
+			\item Projects rejected in early conversations before formal application
+			\item Concessions extracted that reduce project scope
+		\end{itemize}
+		\item What I \textit{can} observe: Processing times for permits that \textit{do} get approved
+		\item \textbf{Idea}: Use permit processing times as a \textbf{crude proxy} for strictness
+		\begin{itemize}
+			\item Longer processing $\rightarrow$ more back-and-forth, more friction
+			\item Not a perfect measure, but transparent and observable
+		\end{itemize}
+		\item Focus on \textbf{high-discretion permits}: new construction, renovation, demolition
+	\end{itemize}
 \end{frame}
 
 
+% ==============================================================================
+% SLIDE 10: STRICTNESS SCORE CONSTRUCTION
+% ==============================================================================
 \begin{frame}
-   \frametitle{Results: Alderman Fixed Effects} 
+	\frametitle{Strictness Score Construction}
+	\begin{enumerate}
+		\item \textbf{Residualize} processing times on ward characteristics + month FEs
+		\begin{itemize}
+			\item Controls for baseline differences across wards (income, development activity, etc.)
+		\end{itemize}
+		\item \textbf{Estimate alderman fixed effects} on residualized processing times
+		\[
+			\widehat{\epsilon}_{it} = \mu + \delta_a + \eta_{it}
+		\]
+		\vspace{-0.5em}
+		\item \textbf{Empirical Bayes shrinkage} to reduce noise {\scriptsize \citep{kline_systemic_2022,kline_discrimination_2024}} then standardize to mean 0, SD 1
+	\end{enumerate}
+	
+	\vspace{0.5em}
+	\textbf{Interpretation}: High score = alderman associated with longer processing times
+	
+	\vspace{0.3em}
+	\textbf{Caveat}: This is a \textit{proxy} --- likely understates true variation
+	\begin{itemize}
+		\item Misses projects that never apply or are discouraged early
+	\end{itemize}
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE 11: ALDERMAN STRICTNESS RESULTS
+% ==============================================================================
+\begin{frame}
+   \frametitle{Alderman Strictness Scores} 
        \begin{figure}
            \centering
-           \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{../tasks/create_alderman_strictness_scores/output/Month_FEs_final_strictness_index.pdf}
-           \label{fig:alderman_effects}
+           \includegraphics[width=\textwidth,height=0.75\textheight,keepaspectratio]{../tasks/create_alderman_strictness_scores/output/Month_FEs_final_strictness_index.pdf}
        \end{figure}
-\end{frame} 
+	   \vspace{-0.5em}
+	   \small
+	   Substantial heterogeneity; strict and lenient aldermen dispersed across city
+\end{frame}

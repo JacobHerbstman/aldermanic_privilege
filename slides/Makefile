@@ -21,6 +21,8 @@ clean:
 
 slides.pdf: slides.tex $(SLIDES_SECTIONS) $(TEX_INPUTS) $(IMG_INPUTS)
 	pdflatex -interaction=nonstopmode -draftmode $<
+	bibtex slides
+	pdflatex -interaction=nonstopmode -draftmode $<
 	pdflatex -interaction=nonstopmode $<
 	rm -f slides.log slides.aux slides.out slides.toc slides.snm *.nav
 

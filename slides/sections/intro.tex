@@ -1,15 +1,30 @@
+% ==============================================================================
+% SLIDE 2: MOTIVATION
+% ==============================================================================
 \begin{frame}
 	\frametitle{Motivation}
 	\begin{itemize}
-		\item Chicago alderman have substantial power to shape local land use and development decisions
-		\item It has received increased scrutiny in recent years, from both local politicians and the federal government \\ 
-		{\scriptsize \cite{chase_chicago_2023,freemark_zoning_2024}}
-		\item Very little existing work on the effects of this unique power on development outcomes \\
-		{\scriptsize \cite{khan_decentralized_2021}}
+		\item Zoning is locally controlled across the US
+		\begin{itemize}
+			\item Local decision-makers don't fully internalize citywide benefits of housing
+			\item Affordability, tax base, agglomeration effects spill beyond jurisdictional boundaries
+		\end{itemize}
+		\item Empirical challenge: How much does \textit{who} makes the decision matter?
+		\begin{itemize}
+			\item Hard to study because decision-making authority is often diffuse
+			\item Multiple actors: planning commissions, city councils, mayors, community boards
+		\end{itemize}
+		\item \textbf{Chicago}: Extreme informal norm of aldermanic control over zoning
+		\begin{itemize}
+			\item Clear ward boundaries $\rightarrow$ tractable setting for identification
+		\end{itemize}
 	\end{itemize}
 \end{frame}
 
 
+% ==============================================================================
+% SLIDE 3: NEWS HEADLINES (existing slide, kept)
+% ==============================================================================
 \begin{frame}
 	\frametitle{Aldermanic Privilege is a Hotly Contested Issue in Chicago} 
     \begin{minipage}{0.5\textwidth}
@@ -40,11 +55,75 @@
 \end{frame}
 
 
+% ==============================================================================
+% SLIDE 4: WHAT IS ALDERMANIC PRIVILEGE?
+% ==============================================================================
 \begin{frame}
-	\frametitle{Roadmap}
+	\frametitle{What is Aldermanic Privilege?}
 	\begin{itemize}
-		\item Literature Review
-		\item Data 
-		\item Land-Value Regressions
+		\item \textbf{Not written in any law} --- Chicago has no city charter
+		\item An informal but extraordinarily powerful norm
+		\item Core feature: \textbf{Deference}
+		\begin{itemize}
+			\item Other aldermen \textit{never} override a colleague's decision in their ward
+			\item ``Very few things happen that the aldermen don't want to happen.'' {\scriptsize \citep{yue_zhang_boundaries_2011}}
+		\end{itemize}
+		\item Encyclopedia of Chicago: ``little mayors'' ruling wards as ``fiefdoms''
+		\item \textbf{Contrast with other cities}: 
+		\begin{itemize}
+			\item Elsewhere, planning commissions or mayors retain real authority
+			\item In Chicago, the alderman's word is effectively final
+		\end{itemize}
 	\end{itemize}
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE 5: HOW ZONING WORKS IN CHICAGO
+% ==============================================================================
+\begin{frame}
+	\frametitle{How Zoning Works in Chicago}
+	\textbf{Formal Process:}
+	\begin{enumerate}
+		\item Developer wants more density than as-of-right $\rightarrow$ requests rezone
+		\item Application goes to Zoning Administrator $\rightarrow$ Dept.\ of Planning $\rightarrow$ Committee on Zoning $\rightarrow$ City Council vote
+	\end{enumerate}
+	
+	\vspace{0.5em}
+	\textbf{Informal Reality:}
+	\begin{itemize}
+		\item Alderman consulted at \textit{every} step (even though not formally required)
+		\item Many aldermen have their own ward application forms
+		\item Alderman says yes $\rightarrow$ passes unanimously
+		\item Alderman says no $\rightarrow$ dead on arrival (colleagues defer)
+	\end{itemize}
+	
+	\vspace{0.5em}
+	\textbf{Key for identification:} 50 wards with clear geographic boundaries
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE 6: THIS PAPER
+% ==============================================================================
+\begin{frame}
+	\frametitle{This Paper}
+	\textbf{Question}: Does aldermanic control affect housing supply and prices?
+	
+	\vspace{0.5em}
+	\textbf{Two complementary empirical strategies:}
+	\begin{enumerate}
+		\item \textit{Density at ward borders}: Compare new multifamily construction on opposite sides of ward boundaries
+		\item \textit{Prices \& rents after redistricting}: Event study when census blocks are reassigned to different aldermen
+	\end{enumerate}
+	
+	\vspace{0.5em}
+	\textbf{Why two approaches?}
+	\begin{itemize}
+		\item Density: Border design works spatially, but construction volume too low for event study
+		\item Prices/rents: High transaction volume enables event study around redistricting
+	\end{itemize}
+	
+	\vspace{0.5em}
+	\textbf{Preview}: Stricter aldermen $\rightarrow$ lower multifamily density $\rightarrow$ higher housing costs
 \end{frame}

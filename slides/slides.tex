@@ -13,6 +13,10 @@
 \usepackage{bm}	%Supports bold math \bm
 \usepackage{enumitem}
 
+% TikZ for figures
+\usepackage{tikz}
+\usetikzlibrary{calc,3d,positioning}
+
 % PACKAGES (that should already be included by your LyX document settings)
 \usepackage{amsfonts}  % Lots of stuff, including \mathbb 
 \usepackage{amsmath}   % Standard math package
@@ -26,9 +30,13 @@
 \setlist[itemize,1]{label=\usebeamertemplate{itemize item}}
 \setlist[itemize,2]{label=\usebeamertemplate{itemize subitem}}
 \setlist[itemize,3]{label=\usebeamertemplate{itemize subsubitem}}
+\setlist[enumerate,1]{label=\insertenumlabel.}
+\setlist[enumerate,2]{label=\insertsubenumlabel.}
+\setlist[enumerate,3]{label=\insertsubsubenumlabel.}
 
 % IDENTIFYING INFORMATION
-\title[Aldermanic Privilege]{Does Local Control Affect Density? Evidence from Chicago's Aldermanic Privilege}
+\title[Aldermanic Privilege]{Fragmented Governance, Density, and Housing Affordability:
+Evidence from Chicago's Aldermanic Privilege}
 \author[Jacob Herbstman]{Jacob Herbstman (University of Chicago)}
 \date{\monthname[\the\month] \the\year}
 
@@ -57,19 +65,27 @@
 }
 \end{frame}
 %---------------------------------------------------------------------
+
+% PART 1: MOTIVATION & INSTITUTIONAL SETTING (Slides 2-6)
 \input{sections/intro.tex}
-\input{sections/literature.tex}
-\input{sections/data.tex}
-\input{sections/maps.tex}
-\input{sections/land_value_regs.tex}
+
+% PART 2: SIMPLE THEORY (Slides 7-8)
+\input{sections/theory.tex}
+
+% PART 3: MEASURING ALDERMAN STRICTNESS (Slides 9-11)
 \input{sections/aldermen_FE.tex}
-\input{sections/spatial_rd.tex}
-%---------------------------------------------------------------------
+
+% PART 4: DENSITY ANALYSIS (Slides 12-17)
+\input{sections/density_analysis.tex}
+
+% PART 5: PRICE & RENT ANALYSIS (Slides 18-24)
+% TODO: Create new sections for event study
+%\input{sections/event_study.tex}
 
 %---------------------------------------------------------------------
 \begin{frame}[plain]
     \begin{center}{\LARGE Thank you!}\end{center}
-    \end{frame}
+\end{frame}
 %---------------------------------------------------------------------
 
 %---------------------------------------------------------------------
@@ -78,22 +94,66 @@
 %---------------------------------------------------------------------
 
 %---------------------------------------------------------------------
+% Literature Review (moved to appendix)
+\input{sections/literature.tex}
+%---------------------------------------------------------------------
+
+%---------------------------------------------------------------------
+% BACKUP SLIDES: Density Robustness
+%---------------------------------------------------------------------
+\begin{frame}[label=density-robustness]
+    \frametitle{Robustness: Bandwidth Sensitivity}
+    \begin{center}
+    \textit{[Insert bandwidth sensitivity figure here]}
+    \end{center}
+    
+    \vspace{1em}
+    Effects stable across 250 ft, 500 ft, 1000 ft bandwidths.
+    
+    \vfill\hfill
+    \hyperlink{density-donut}{\beamergotobutton{Donut RD}}
+    \hspace{0.2em}
+    \hyperlink{density-functional}{\beamergotobutton{Functional Form}}
+    \hspace{0.2em}
+    \hyperlink{density-balance}{\beamergotobutton{Covariate Balance}}
+\end{frame}
+
+\begin{frame}[label=density-donut]
+    \frametitle{Robustness: Donut RD}
+    \begin{center}
+    \textit{[Insert donut RD figure here]}
+    \end{center}
+    
+    \vspace{1em}
+    Excluding parcels within 25--50 ft of border does not change results.
+\end{frame}
+
+\begin{frame}[label=density-functional]
+    \frametitle{Robustness: Functional Form}
+    \begin{center}
+    \textit{[Insert functional form comparison here]}
+    \end{center}
+    
+    \vspace{1em}
+    Results robust to linear, quadratic, and cubic polynomial specifications.
+\end{frame}
+
+\begin{frame}[label=density-balance]
+    \frametitle{Covariate Balance at Ward Borders}
+    \begin{center}
+    \textit{[Insert balance table here]}
+    \end{center}
+    
+    \vspace{1em}
+    Demographics smooth across ward boundaries.
+\end{frame}
+
+%---------------------------------------------------------------------
 % A frame to display the bibliography
 \begin{frame}[allowframebreaks]{}
     \bibliographystyle{aer}
     \bibliography{sections/aldermanic_privilege}
 \end{frame}
 %---------------------------------------------------------------------
-
-
-
-
-
-% BACKUP SLIDES
-
-%\bibliographystyle{../bib/aeanobold}
-%\nobibliography{../bib/bib.bib}
-%\backupend
-
 
 \end{document}
