@@ -25,8 +25,8 @@ ALL_INPUTS := ../input/rental_listing_panel.parquet ../input/rental_listing_pane
 STACK_PREFIX_TRUE  := stacked
 STACK_PREFIX_FALSE := unstacked
 
-CONTROLS_SUFFIX_TRUE  := _with_hedonics
-CONTROLS_SUFFIX_FALSE :=
+CONTROLS_SUFFIX_TRUE  :=
+CONTROLS_SUFFIX_FALSE := _no_hedonics
 
 SAMPLE_SUFFIX_full_sample      :=
 SAMPLE_SUFFIX_multifamily_only := _mf

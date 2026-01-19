@@ -1,10 +1,10 @@
-\section{Event Study Evidence: Home Prices and Rents}
+\section{Event Study Evidence: Rents and Home Prices}
 \label{sec:empirical_results_rent_home_vals}
 
 \subsection{Event Study Design}
 The cross-sectional evidence in Section \ref{sec:empirical_results_density} establishes that new construction is less dense on the stricter side of ward boundaries.
 While density on its own is an important outcome, policymakers tend to be more interested in its implications for housing affordability.
-To look at downstream effects on home values and rents, I exploit the 2015 and 2023 ward redistrictings as natural experiments to examine how home prices and rents respond when parcels are reassigned to aldermen with different levels of strictness.
+To look at downstream effects on rents and home values, I exploit the 2015 and 2023 ward redistrictings as natural experiments to examine how housing costs respond when parcels are reassigned to aldermen with different levels of strictness.
 
 \subsection{Identification Strategy and Empirical Specification}
 \label{sec:identification_strategy}
@@ -13,32 +13,24 @@ Ward boundaries in Chicago are redrawn following each decennial census to equali
 
 This design exploits the fact that ward boundaries shift for reasons unrelated to housing market conditions in specific census blocks. Redistricting in Chicago occurs every ten years following the decennial census, with boundaries redrawn to equalize population across wards. The resulting boundary changes create quasi-random variation in alderman assignment for blocks near the old and new boundaries.
 
-\paragraph{Announcement versus Implementation Timing.} A key feature of Chicago's redistricting process is that new ward maps are announced well in advance of taking effect. The 2015 ward boundaries were finalized in 2012, three years before the May 2015 aldermanic elections when the new map became effective. Similarly, the 2023 boundaries were finalized in 2022. If housing markets are forward-looking, prices may begin responding when redistricting maps are announced rather than when they are implemented.
-
-For home sales, where transaction data extend back to 1999, I use the 2012 ward redistricting announcement as the event date for the 2015 remap. Since home prices take into account forward looking information about future restrictions on housing supply, announcement timing is more appropriate for capturing home price responses to exogenous shifts in the regulatory environment. Defining the treatment event at implementation shows substantial pre-trends in home prices prior to redistricting, confirming that 2012 is the more relevant treatment date for home sales.
-
-As a result, my main estimates present results for home sales using announcement timing, which provides stronger support for the identifying assumption and suggests that housing markets incorporate information about future aldermanic representation once redistricting maps become public. For rental listings, data availability beginning in 2014 precludes analysis around the 2012 announcement. 
-
-I therefore use implementation timing (2015 and 2023) for the rental analysis, stacking both redistricting events to maximize statistical power.\footnote{Appendix~\ref{sec:appendix_sales_rental} shows that results for home sales are qualitatively similar using implementation timing, though with less clean pre-trends due to the delay between announcement and implementation.}
-
 \paragraph{Control Group Construction.} A treated block that switches from Ward $A$ to Ward $B$ could potentially be compared to control blocks that remained in either ward. However, blocks that remained in Ward $B$ were never subject to Ward $A$'s alderman, making them a poor counterfactual for how the treated block would have evolved absent redistricting. I therefore restrict the control group to blocks that remained in the \emph{origin} ward---that is, blocks near the same ward boundary that did not switch and thus experienced the same pre-treatment aldermanic policies as the treated blocks. This ensures that treated and control blocks share a common policy environment in the pre-period. To avoid contamination from electoral turnover, I also exclude control blocks in wards where the alderman changed via election (rather than redistricting) during the sample window.
 
 Figure~\ref{fig:identification_example} illustrates this design with a concrete example for Wards 13 and 23 during the 2015 redistricting. The top panel shows ward assignments before redistricting, the middle panel shows assignments after, and the bottom panel shows the resulting treatment status based on the change in alderman strictness. Blocks that switched from Ward 13 to Ward 23 are compared only to control blocks that remained in Ward 13, not to blocks that remained in Ward 23. Figure~\ref{fig:treatment_control_maps} shows the citywide distribution of treatment and control blocks for the 2015 and 2023 redistricting events.
 
-\paragraph{Empirical Specification.} I estimate the following event study specification at the transaction level (for sales) and listing level (for rentals):
+\paragraph{Empirical Specification.} I estimate the following event study specification at the listing level (for rentals) and transaction level (for sales):
 %
 \begin{equation}
 \label{eq:event_study}
-y_{it} = \alpha_{eps} + \lambda_{et} + \sum_{\tau=-5, \tau \neq -1}^{5} \beta_\tau \left( \Delta\text{Strictness}_i \times \mathbf{1}[t = \tau] \right) + \varepsilon_{it}
+y_{it} = \alpha_{ps} + \lambda_{pt} + X_{it}'\gamma + \sum_{\tau=-5, \tau \neq -1}^{T} \beta_\tau \left( \Delta\text{Strictness}_i \times \mathbf{1}[t = \tau] \right) + \varepsilon_{it}
 \end{equation}
 %
-\noindent where $y_{it}$ is the log sale price or log rent for transaction (or listing) $i$ at event time $t$. $\Delta\text{Strictness}_i$ is the change in alderman strictness for the block containing transaction $i$, defined as the strictness score of the destination alderman minus the origin alderman. To ensure treatment intensity is predetermined, strictness scores are measured in the year prior to redistricting (2014 for the 2015 redistricting cohort; 2022 for the 2023 cohort).
+\noindent where $y_{it}$ is the log rent or log sale price for listing (or transaction) $i$ at event time $t$. $\Delta\text{Strictness}_i$ is the change in alderman strictness for the block containing the observation, defined as the strictness score of the destination alderman minus the origin alderman. To ensure treatment intensity is predetermined, strictness scores are measured in the year prior to redistricting (2014 for the 2015 redistricting cohort; 2022 for the 2023 cohort). $X_{it}$ is a vector of property-level hedonic controls.
 
-The key fixed effect $\alpha_{eps}$ is a cohort-by-ward-pair-by-origin-side fixed effect. This ensures that comparisons are made between treated and control transactions that (i) are near the same ward boundary, (ii) are in the same redistricting cohort, and (iii) were in the same origin ward prior to redistricting. $\lambda_{et}$ are cohort-by-year fixed effects, allowing for flexible time trends within each redistricting episode. Standard errors are clustered at the census block level to account for serial correlation within geographic units.
+The key fixed effects ensure that comparisons are made between nearby observations experiencing the same local shocks. $\alpha_{ps}$ is a border-pair-by-origin-side fixed effect, ensuring that treated and control observations (i) are near the same ward boundary and (ii) were in the same origin ward prior to redistricting. $\lambda_{pt}$ is a border-pair-by-year fixed effect, which allows for flexible time-varying shocks at each ward boundary---a stronger control than simple year fixed effects, as it absorbs any local trends (e.g., gentrification, new transit) that affect both sides of a given boundary. For the stacked rental specification, these fixed effects are interacted with cohort indicators. Standard errors are clustered at the census block level to account for serial correlation within geographic units.
 
-The coefficients $\beta_\tau$ trace out the effect of aldermanic strictness on housing costs in event time, with $\tau = -1$ (the year before redistricting, or its announcement for home sales) as the omitted reference period. The identifying assumption implies $\beta_\tau = 0$ for $\tau < 0$: prior to redistricting, there should be no systematic relationship between future changes in alderman strictness and housing cost trends within the same ward-pair-side cell.
+The coefficients $\beta_\tau$ trace out the effect of aldermanic strictness on housing costs in event time, with $\tau = -1$ (the year before redistricting takes effect) as the omitted reference period. The identifying assumption implies $\beta_\tau = 0$ for $\tau < 0$: prior to redistricting, there should be no systematic relationship between future changes in alderman strictness and housing cost trends within the same border-pair-side cell.
 
-I restrict the sample to transactions within 1,000 feet of ward boundaries to focus on locations where treated and control observations are most comparable in terms of neighborhood characteristics and local demand conditions. In the continuous treatment specification, $\Delta\text{Strictness}$ enters as a continuous variable; I also present binary specifications that allow for separate effects by treatment direction (moved to stricter versus moved to more lenient).
+I restrict the sample to observations within 1,000 feet of ward boundaries and apply triangular kernel weights that give more weight to observations closer to the boundary, where treated and control units are most comparable. In the continuous treatment specification, $\Delta\text{Strictness}$ enters as a continuous variable; I also present binary specifications that allow for separate effects by treatment direction (moved to stricter versus moved to more lenient).
 
 % =============================================================================
 % FIGURE 5: Ward Pair Example (Vertical Layout - Full Width)
@@ -62,83 +54,80 @@ I restrict the sample to transactions within 1,000 feet of ward boundaries to fo
     \label{fig:treatment_control_maps}
 \end{figure}
 
-\paragraph{Predictions.} If stricter aldermen constrain housing supply, standard urban economics predicts that both home prices and rents should rise when blocks are reassigned to stricter aldermen. The event study design allows me to trace out the dynamics of this response and verify that effects emerge only after redistricting (or its announcement), supporting a causal interpretation.
+\paragraph{Predictions.} If stricter aldermen constrain housing supply, standard urban economics predicts that both rents and home prices should rise when blocks are reassigned to stricter aldermen. The event study design allows me to trace out the dynamics of this response and verify that effects emerge only after redistricting, supporting a causal interpretation.
 
+\paragraph{Data and Sample.} For rental listings, I use scraped listing data from 2014--2025, which allows me to stack both the 2015 and 2023 redistricting events. This stacked design maximizes statistical power by pooling two natural experiments. The rental sample includes approximately 3.9 million listings within 1,000 feet of ward boundaries. For home sales, I use transaction data from the Cook County Recorder of Deeds for the 2015 redistricting cohort, with a sample window from 2010--2020. The home sales sample includes approximately 27,000 transactions near ward boundaries.\footnote{I focus on the 2015 redistricting for home sales because the 2023 redistricting provides limited post-period data. Appendix~\ref{sec:appendix_sales_rental} presents additional robustness checks.}
 
 Table~\ref{tab:summary_stats_event_study} presents summary statistics for the event study samples. 
-The home sales sample includes $37,000$ transactions from the 2012 announcement cohort, while the rental sample includes $3.8$ million listings pooling the 2015 and 2023 implementation cohorts.
-Treated and control groups are broadly similar on observable property characteristics: mean building size, age, and bedroom counts are comparable across treatment groups for home sales, as are unit sizes and building type distributions for rentals. 
+Treated and control groups are broadly similar on observable property characteristics: unit sizes and building type distributions are comparable across treatment groups for rentals, as are mean building size, age, and bedroom counts for home sales. 
 This balance supports the identifying assumption that redistricting-induced changes in alderman assignment are orthogonal to pre-existing neighborhood characteristics.
 
 \input{../tasks/summary_stats_event_study/output/summary_stats_event_study.tex}
 
-\subsection{Results: Home Sale Prices}
-\label{sec:results_home_prices}
-
-Figure \ref{fig:event_study_sales} presents the main event study results for home sale prices. Panel A shows the continuous treatment specification, where treatment intensity is measured by the strictness score of the post-remap alderman. The coefficients trace out the effect of moving to an alderman who is one standard deviation stricter, relative to prices in the year before the remap.
-
-Following the redistricting announcement, home prices in areas assigned to stricter aldermen diverge from the reference period. By year 5 after the announcement (and 2 years after the implementation of the new maps), moving to a ward with an alderman who is one standard deviation more ``strict'' is associated with approximately 4\% higher home prices. This effect is persistent, suggesting a permanent level shift rather than a transitory response.
-
-Panel B presents the binary specification, which relaxes the linearity assumption and allows for separate effects by treatment direction. Here, treatment is defined as switching to an alderman with a higher ``strictness score'' (``moved to stricter''), or the reverse (``moved to more lenient''), with the control group consisting of census blocks that did not switch aldermen.
-This specification is inherently noisier since it does not use variation in treatment intensity, but the pattern is qualitatively similar. Blocks that switched to stricter aldermen experience a roughly 5\% increase in home prices by year 5, while blocks that switched to more lenient aldermen see no significant change on average.
-
-These results are robust to including property-level hedonic controls for building characteristics, as reported in Appendix~\ref{sec:appendix_sales_rental}. Point estimates are somewhat attenuated with hedonic controls, consistent with part of the effect operating through changes in housing stock composition induced by aldermanic supply restrictions.
-
-\begin{figure}[htbp]
-    \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2012_continuous_uniform_1000ft_no_hedonics.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2012_binary_uniform_1000ft_no_hedonics.pdf}
-        \caption*{Panel B: Binary Treatment}
-    \end{minipage}
-    \caption{Event Study: Effect of Alderman Strictness on Home Sale Prices}
-    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). 
-    Cohort-by-ward-pair-by-side and year fixed effects. Year $-1$ omitted as reference. Sample: transactions within 1,000 feet of ward boundaries. 95\% confidence intervals based on standard errors clustered at the census block level.}
-    \label{fig:event_study_sales}
-\end{figure}
-
-
-\paragraph{Interpretation.} The event study estimates complement the cross-sectional density results from Section \ref{sec:empirical_results_density}. The border discontinuity estimates showed that new construction is 10--16\% less dense on the stricter side of ward boundaries. If supply restrictions bind, standard urban economics models predict that reduced housing supply should capitalize into higher prices. The event study confirms this prediction: census blocks exogenously reassigned to stricter aldermen experience rising home prices relative to nearby blocks that were not reassigned.
-
-The magnitude is economically meaningful. A 4\% increase in home prices corresponds to approximately \$9,000 for the median home in my sample, representing a substantial transfer from buyers to incumbent homeowners. Combined with the density results, these findings suggest that aldermanic privilege has quantitatively important effects on both housing supply and affordability and allows incumbent homeowners to extract rents through political channels.
-
 \subsection{Results: Rents}
 \label{sec:results_rents}
 
-Figure \ref{fig:event_study_rents} presents the analogous event study results for rental listings. Panel A shows the continuous treatment specification. The pattern is qualitatively similar to the home price results: pre-period coefficients, while noisy, are not significantly different from zero in the years immediately preceding alderman reassignment and then gradually rise over the post period. 
-5 years after being reassigned to an alderman one standard deviation stricter, rents increase roughly $5-8\%$ on average relative to census blocks in the same ward-border pair that did not switch aldermen.
+Figure \ref{fig:event_study_rents} presents the main event study results for rental listings, stacking the 2015 and 2023 redistricting cohorts. Panel A shows the continuous treatment specification, where treatment intensity is measured by the change in alderman strictness. The coefficients trace out the effect of moving to an alderman who is one standard deviation stricter, relative to rents in the year before redistricting takes effect.
 
-The rental estimates are less precise than the home price estimates and I cannot formally reject the null hypothesis of no effect at the $5\%$ level, but I can at the $10\%$ level. Nevertheless, the pre-period coefficients are stable around $0$, and the post-period coefficients steadily increase. This pattern is consistent with the gradual restriction of housing supply slowly translating into higher rents over time.
+The pre-period coefficients are stable around zero, supporting the parallel trends assumption. Following redistricting, rents in areas assigned to stricter aldermen diverge from the reference period. By two years after redistricting, moving to an alderman one standard deviation stricter is associated with approximately 3--5\% higher rents. This effect is persistent and grows slightly over time, consistent with a supply restriction channel where reduced new construction slowly tightens the rental market.
 
-Panel B shows the binary specification for rents. While the estimates are noisier, the pattern is again consistent with a gradual divergence between blocks reassigned to stricter versus more lenient aldermen. While I cannot reject the effects are equivalent between blocks that switched to stricter versus more lenient aldermen, the same $\approx 5\%$ increase in rents still opens up by year 5 in the post-period. 
-
-The rental results are more suggestive than definitive, but are robust to including listing-level hedonic controls as shown in Appendix~\ref{sec:appendix_sales_rental} and using different bandwidths and weighting schemes.
-Combined with the evidence on home prices, these results suggest that alderman that induce more restrictions on housing supply through their aldermanic privilege ultimately raise housing costs and rents. 
-
-Table~\ref{tab:did_sales} in Appendix~\ref{sec:appendix_sales_rental} presents pooled difference-in-differences estimates that summarize the average post-period effect, and table \ref{tab:did_rental} presents analogous results for rents. Across all specifications, moving to a stricter alderman is associated with higher housing costs.
-Both tables include specifications with and without property-level hedonic controls, confirming that the results are not driven solely by changes in housing stock composition, though part of the effect does appear to operate through this channel, consistent with the density results in Section~\ref{sec:empirical_results_density}.
-
+Panel B presents the binary specification, which relaxes the linearity assumption and allows for separate effects by treatment direction. Here, treatment is defined as switching to an alderman with a higher strictness score (``moved to stricter'') or the reverse (``moved to more lenient''), with the control group consisting of census blocks that did not switch aldermen. The results are striking: blocks that moved to stricter aldermen experience rising rents, while blocks that moved to more lenient aldermen see rents \emph{fall} by approximately 5--7\%. This symmetric pattern---with effects in opposite directions matching theoretical predictions---provides strong evidence against the results being driven by specification search or unobserved confounds. It is difficult to p-hack one's way into two effects with opposite signs that both align with theory.
 
 \begin{figure}[htbp]
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_uniform_1000ft.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_short.pdf}
         \caption*{Panel A: Continuous Treatment}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_uniform_1000ft.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_triangular_1000ft_short.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Effect of Alderman Strictness on Rents}
-    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). Stacked estimator with cohort-by-ward-pair and event-by-year fixed effects. Year $-1$ omitted as reference. Sample: blocks within 1,000 feet of ward boundaries. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-border-pair-by-side and cohort-by-border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building type, square footage, bedrooms, and bathrooms. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals based on standard errors clustered at the census block level.}
     \label{fig:event_study_rents}
 \end{figure}
+
+\paragraph{Interpretation.} The rental results provide clean evidence that aldermanic strictness affects housing costs. The flat pre-trends, sharp break at redistricting, and symmetric effects by treatment direction all support a causal interpretation. The magnitude is economically meaningful: a 3--5\% increase in rents corresponds to approximately \$40--70 per month for the median rental unit in my sample. Combined with the density results from Section~\ref{sec:empirical_results_density}, these findings suggest that aldermanic privilege has quantitatively important effects on both housing supply and affordability.
+
+\subsection{Results: Home Sale Prices}
+\label{sec:results_home_prices}
+
+Figure \ref{fig:event_study_sales} presents event study results for home sale prices using the 2015 redistricting. Panel A shows the continuous treatment specification. The pattern is qualitatively consistent with the rental results, though noisier due to the smaller sample size and greater volatility of home prices relative to rents.
+
+The pre-period coefficients show some variation but are generally centered around zero. Following redistricting, home prices in areas assigned to stricter aldermen rise relative to the reference period, reaching approximately 2\% higher by year 5. The post-period trajectory shows a gradual increase rather than a sharp level shift, which may reflect the slower capitalization of expected future supply restrictions into asset prices.
+
+Panel B presents the binary specification for home sales. Despite larger confidence intervals, the pattern is directionally consistent with theory: blocks that moved to stricter aldermen show positive price effects, while blocks that moved to more lenient aldermen show slight declines. The effects are less precisely estimated than for rents, and I cannot reject that the two groups have equal price trajectories at conventional significance levels.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_continuous_triangular_1000ft.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_binary_triangular_1000ft.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Effect of Alderman Strictness on Home Sale Prices}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \label{fig:event_study_sales}
+\end{figure}
+
+\paragraph{Interpretation.} The home sales results are more suggestive than definitive, reflecting the inherent challenges of studying asset prices: smaller sample sizes, greater price volatility, and the difficulty of isolating supply-side effects from demand-side factors that may correlate with aldermanic strictness. Nevertheless, the directional consistency with the rental results---and with the theoretical prediction that supply restrictions raise prices---provides supporting evidence that aldermanic privilege affects housing costs across both the rental and owner-occupied segments of the market.
+
+The magnitude of the home price effect, while imprecisely estimated, is economically plausible. A 2\% increase in home prices corresponds to approximately \$5,000 for the median home in my sample, representing a transfer from buyers to incumbent homeowners.
+
+\subsection{Pooled Difference-in-Differences Estimates}
+
+Table~\ref{tab:did_rental} presents pooled difference-in-differences estimates for rents that collapse the post-period effects into a single coefficient, and Table~\ref{tab:did_sales} presents analogous results for home sales. The pooled estimates confirm the event study patterns: moving to a stricter alderman is associated with 3--4\% higher rents and approximately 2\% higher home prices. Both tables include specifications with and without property-level hedonic controls. Point estimates are somewhat attenuated with hedonic controls, consistent with part of the effect operating through changes in housing stock composition induced by aldermanic supply restrictions---but the results remain positive and economically meaningful even after controlling for observable property characteristics.
+
+\input{../tasks/run_event_study_rental_disaggregate/output/did_table_rental.tex}
+
+\input{../tasks/run_event_study_sales_disaggregate/output/did_table_sales.tex}

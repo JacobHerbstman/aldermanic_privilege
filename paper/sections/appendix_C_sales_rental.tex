@@ -3,59 +3,50 @@
 
 This appendix presents additional results for home sale prices and rents, complementing the event study analysis in Section~\ref{sec:empirical_results_rent_home_vals}.
 
-\subsection{Pooled Difference-in-Differences Estimates}
+\subsection{Event Study Without Hedonic Controls}
 
-Table~\ref{tab:did_sales} presents pooled difference-in-differences estimates that collapse the post-period effects into a single coefficient. Panel A reports results for home sales, comparing announcement timing (2012) to implementation timing (2015). The cleaner pre-trends with announcement timing in Figure~\ref{fig:event_study_sales} are reflected in larger and more precisely estimated coefficients. Panel B reports results for rents using implementation timing. Across all specifications, moving to a stricter alderman is associated with higher housing costs.
+The main text presents event study results including property-level hedonic controls to isolate the pure price effect holding quality constant. This subsection presents results without hedonic controls to capture the total effect of aldermanic strictness on housing costs, including any composition effects operating through changes in the housing stock. Point estimates are generally similar or slightly larger without hedonic controls, suggesting that composition effects account for only a modest portion of the total price response.
 
-\input{../tasks/run_event_study_sales_disaggregate/output/did_table_sales.tex}
+\subsubsection{Rents Without Hedonic Controls}
 
-% If you have a separate rental DiD table:
-\input{../tasks/run_event_study_rental_disaggregate/output/did_table_rental.tex}
-
-\subsection{Event Study with Hedonic Controls}
-
-The main text presents event study results without property-level controls to capture the total effect of aldermanic strictness on housing costs, including any composition effects operating through changes in the housing stock. This subsection presents results controlling for property characteristics to isolate the pure price effect holding quality constant.
-
-\subsubsection{Home Sale Prices with Hedonic Controls}
-
-Figure~\ref{fig:event_study_sales_hedonics} presents event study results for home sales including hedonic controls for building square footage, land square footage, building age, number of bedrooms, number of bathrooms, and garage presence. Point estimates are somewhat attenuated relative to the main specification, consistent with the interpretation that part of the price effect operates through changes in housing stock composition. The post-period coefficients remain positive, though less precisely estimated.
+Figure~\ref{fig:event_study_rental_no_hedonics} presents event study results for rents without hedonic controls. The pattern is qualitatively similar to the main specification: flat pre-trends followed by a clear break at redistricting. Point estimates are slightly larger, consistent with part of the effect operating through changes in housing stock composition.
 
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2012_continuous_uniform_1000ft.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_no_hedonics_short.pdf}
         \caption*{Panel A: Continuous Treatment}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2012_binary_uniform_1000ft.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_combined_disaggregate_yearly_stacked_binary_direction_triangular_1000ft_no_hedonics_short.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Home Sale Prices --- With Hedonic Controls}
-    \figurenotes{Same specification as Figure~\ref{fig:event_study_sales} but including property-level hedonic controls: log building square footage, log land square footage, log building age, log bedrooms, log bathrooms, and garage indicator. Year $-1$ omitted as reference. Sample: transactions within 1,000 feet of ward boundaries. 95\% confidence intervals based on standard errors clustered at the census block level.}
-    \label{fig:event_study_sales_hedonics}
+    \caption{Event Study: Rents --- Without Hedonic Controls}
+    \figurenotes{Same specification as Figure~\ref{fig:event_study_rents} but excluding listing-level hedonic controls. Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-border-pair-by-side and cohort-by-border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \label{fig:event_study_rental_no_hedonics}
 \end{figure}
 
-\subsubsection{Rents with Hedonic Controls}
+\subsubsection{Home Sale Prices Without Hedonic Controls}
 
-Figure~\ref{fig:event_study_rental_hedonics} presents event study results for rents including hedonic controls for building type, square footage, bedrooms, and bathrooms. As with home sales, point estimates are attenuated relative to the main specification, suggesting that composition effects account for part of the total rent response to aldermanic strictness.
+Figure~\ref{fig:event_study_sales_no_hedonics} presents event study results for home sales without hedonic controls for building square footage, land square footage, building age, number of bedrooms, number of bathrooms, and garage presence. The pattern is qualitatively similar to the main specification with hedonic controls.
 
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_uniform_1000ft_with_hedonics.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_continuous_triangular_1000ft_no_hedonics.pdf}
         \caption*{Panel A: Continuous Treatment}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_uniform_1000ft_with_hedonics.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_binary_triangular_1000ft_no_hedonics.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Rents --- With Hedonic Controls}
-    \figurenotes{Same specification as Figure~\ref{fig:event_study_rents} but including listing-level hedonic controls: building type, log square footage, log bedrooms, and log bathrooms. Year $-1$ omitted as reference. Sample: listings within 1,000 feet of ward boundaries. 95\% confidence intervals based on standard errors clustered at the census block level.}
-    \label{fig:event_study_rental_hedonics}
+    \caption{Event Study: Home Sale Prices --- Without Hedonic Controls}
+    \figurenotes{Same specification as Figure~\ref{fig:event_study_sales} but excluding property-level hedonic controls. 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \label{fig:event_study_sales_no_hedonics}
 \end{figure}

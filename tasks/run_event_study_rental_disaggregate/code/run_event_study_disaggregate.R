@@ -86,7 +86,7 @@ suffix <- sprintf(
     WEIGHTING,
     as.integer(BANDWIDTH),
     sample_suffix,
-    ifelse(INCLUDE_CONTROLS, "_with_hedonics", ""),
+    ifelse(INCLUDE_CONTROLS, "", "_no_hedonics"),
     ifelse(POST_WINDOW == "short", "_short", "")
 )
 
