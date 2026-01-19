@@ -9,7 +9,7 @@ source("../../setup_environment/code/packages.R")
 # CONFIGURATION
 # =============================================================================
 BANDWIDTH <- 1000
-WEIGHTING <- "uniform"
+WEIGHTING <- "triangular"
 
 message("\n=== Pooled DiD: Rentals ===")
 message(sprintf("Bandwidth: %d ft", BANDWIDTH))
@@ -62,6 +62,46 @@ message(sprintf("After complete cases filter: %s listings", format(nrow(data), b
 # =============================================================================
 message("\nRunning regressions...")
 
+# =============================================================================
+# CREATE COHORT_WARD_PAIR VARIABLE AND EFFECTIVE OBSERVATIONS DIAGNOSTIC
+# =============================================================================
+# cohort_ward_pair_side looks like "2015_13_23_13" (cohort, border between 13-23, on side 13)
+# cohort_ward_pair should be "2015_13_23" (cohort + border, not the side)
+data[, ward_pair_side := sub("^[0-9]+_", "", cohort_ward_pair_side)]  # Remove cohort prefix
+data[, ward_pair := sub("_[0-9]+$", "", ward_pair_side)]  # Remove side suffix
+data[, cohort_ward_pair := paste(cohort, ward_pair, sep = "_")]  # Add cohort back
+
+message("\n=== EFFECTIVE OBSERVATIONS DIAGNOSTIC ===")
+message(sprintf("Cohort_ward_pairs: %d, Cohort_ward_pair_sides: %d", 
+    uniqueN(data$cohort_ward_pair), uniqueN(data$cohort_ward_pair_side)))
+
+# Create switcher indicator
+data[, is_switcher := abs(strictness_change) > 0]
+
+# Count by cohort_ward_pair: need observations on BOTH sides
+pair_summary <- data[, .(
+    n_sides = uniqueN(cohort_ward_pair_side),
+    n_obs = .N,
+    n_switcher = sum(is_switcher),
+    n_stayer = sum(!is_switcher)
+), by = cohort_ward_pair]
+
+# Pairs with observations on both sides contribute to identification
+identifying_pairs <- pair_summary[n_sides == 2]
+
+# Observations in identifying pairs
+effective_obs <- data[cohort_ward_pair %in% identifying_pairs$cohort_ward_pair, .N]
+
+message(sprintf("Total cohort_ward_pairs: %d", nrow(pair_summary)))
+message(sprintf("Pairs with observations on BOTH sides: %d (%.1f%%)", 
+    nrow(identifying_pairs), 100 * nrow(identifying_pairs) / nrow(pair_summary)))
+message(sprintf("Effective observations (in identifying pairs): %s of %s (%.1f%%)",
+    format(effective_obs, big.mark = ","),
+    format(nrow(data), big.mark = ","),
+    100 * effective_obs / nrow(data)))
+message(sprintf("Listings in switcher blocks: %s", format(sum(data$is_switcher), big.mark = ",")))
+message(sprintf("Listings in stayer blocks: %s", format(sum(!data$is_switcher), big.mark = ",")))
+
 # Hedonic controls (matching the event study script)
 hedonic_vars <- "+ building_type_factor + log_sqft + log_beds + log_baths"
 
@@ -69,7 +109,7 @@ hedonic_vars <- "+ building_type_factor + log_sqft + log_beds + log_baths"
 message("\n--- Without Hedonic Controls ---")
 
 m_no_ctrl <- feols(
-    log(rent_price) ~ post_treat | cohort_ward_pair_side + cohort^year,
+    log(rent_price) ~ post_treat | cohort_ward_pair_side + cohort_ward_pair^year,
     data = data,
     weights = ~weight,
     cluster = ~cohort_block_id
@@ -80,7 +120,7 @@ message(sprintf("No controls: N = %s", format(m_no_ctrl$nobs, big.mark = ",")))
 message("\n--- With Hedonic Controls ---")
 
 m_ctrl <- feols(
-    as.formula(paste("log(rent_price) ~ post_treat", hedonic_vars, "| cohort_ward_pair_side + cohort^year")),
+    as.formula(paste("log(rent_price) ~ post_treat", hedonic_vars, "| cohort_ward_pair_side + cohort_ward_pair^year")),
     data = data,
     weights = ~weight,
     cluster = ~cohort_block_id
@@ -118,11 +158,11 @@ etable(
     extralines = list(
         "_Hedonic Controls" = c("", "$\\checkmark$"),
         "_Border Pair $\\times$ Side FE" = c("$\\checkmark$", "$\\checkmark$"),
-        "_Cohort $\\times$ Year FE" = c("$\\checkmark$", "$\\checkmark$")
+        "_Border Pair $\\times$ Year FE" = c("$\\checkmark$", "$\\checkmark$")
     ),
     se.below = TRUE,
     signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-    notes = "Listing-level regressions of log rent on post-redistricting indicator interacted with change in alderman strictness. Stacked estimator combining 2015 and 2023 redistricting events (implementation timing). Sample restricted to listings within 1,000 feet of ward boundaries with non-missing hedonic characteristics. Standard errors clustered by census block in parentheses.",
+    notes = "Listing-level regressions of log rent on post-redistricting indicator interacted with change in alderman strictness. Stacked estimator combining 2015 and 2023 redistricting events (implementation timing). Sample restricted to listings within 1,000 feet of ward boundaries with non-missing hedonic characteristics. Triangular kernel weighting. Standard errors clustered by census block in parentheses.",
     label = "tab:did_rental",
     float = TRUE,
     file = "../output/did_table_rental.tex",

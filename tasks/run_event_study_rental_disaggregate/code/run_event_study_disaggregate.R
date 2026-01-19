@@ -49,6 +49,10 @@ parser <- add_option(parser, c("-m", "--sample_filter"),
     type = "character", default = "full_sample",
     help = "Sample filter: full_sample or multifamily_only [default: full_sample]"
 )
+parser <- add_option(parser, c("-p", "--post_window"),
+    type = "character", default = "full",
+    help = "Post-period window: 'short' (truncated) or 'full' [default: full]"
+)
 
 args <- parse_args(parser)
 
@@ -59,6 +63,7 @@ INCLUDE_CONTROLS <- args$include_controls
 WEIGHTING <- args$weighting
 BANDWIDTH <- args$bandwidth
 SAMPLE_FILTER <- args$sample_filter
+POST_WINDOW <- args$post_window
 
 message("\n=== Disaggregate Event Study Configuration ===")
 message(sprintf("Frequency: %s", FREQUENCY))
@@ -68,19 +73,21 @@ message(sprintf("Include Hedonic Controls: %s", INCLUDE_CONTROLS))
 message(sprintf("Weighting: %s", WEIGHTING))
 message(sprintf("Bandwidth: %d ft", BANDWIDTH))
 message(sprintf("Sample Filter: %s", SAMPLE_FILTER))
+message(sprintf("Post Window: %s", POST_WINDOW))
 
 # Output suffix
 sample_suffix <- ifelse(SAMPLE_FILTER == "multifamily_only", "_mf", "")
 
 suffix <- sprintf(
-    "disaggregate_%s_%s_%s_%s_%dft%s%s",
+    "disaggregate_%s_%s_%s_%s_%dft%s%s%s",
     FREQUENCY,
     ifelse(STACKED, "stacked", "unstacked"),
     TREATMENT_TYPE,
     WEIGHTING,
     as.integer(BANDWIDTH),
     sample_suffix,
-    ifelse(INCLUDE_CONTROLS, "_with_hedonics", "")
+    ifelse(INCLUDE_CONTROLS, "_with_hedonics", ""),
+    ifelse(POST_WINDOW == "short", "_short", "")
 )
 
 # Hedonic controls formula component
@@ -101,26 +108,28 @@ if (STACKED) {
         filter(!is.na(strictness_change), !is.na(rent_price), rent_price > 0)
 
     if (FREQUENCY == "yearly") {
-        fe_formula <- "cohort_ward_pair_side + cohort^year"
+        time_fe_var <- "year"
         time_var <- "relative_year_capped"
     } else {
-        fe_formula <- "cohort_ward_pair_side + cohort^year_quarter"
+        time_fe_var <- "year_quarter"
         time_var <- "relative_quarter_capped"
     }
     cluster_var <- "cohort_block_id"
+    fe_group_var <- "cohort_ward_pair"
 } else {
     # Unstacked: use 2015 cohort only
     data <- read_parquet("../input/rental_listing_panel_2015.parquet") %>%
         filter(!is.na(strictness_change), !is.na(rent_price), rent_price > 0)
 
     if (FREQUENCY == "yearly") {
-        fe_formula <- "ward_pair_side + year"
+        time_fe_var <- "year"
         time_var <- "relative_year_capped"
     } else {
-        fe_formula <- "ward_pair_side + year_quarter"
+        time_fe_var <- "year_quarter"
         time_var <- "relative_quarter_capped"
     }
     cluster_var <- "block_id"
+    fe_group_var <- "ward_pair"
 }
 
 message(sprintf("Loaded %s observations", format(nrow(data), big.mark = ",")))
@@ -204,14 +213,106 @@ data %>%
     ) %>%
     print()
 
-# Set time axis parameters
 if (FREQUENCY == "yearly") {
     time_label <- "Years"
-    x_breaks <- -5:5
+    # Set window based on post_window argument
+    if (POST_WINDOW == "short") {
+        min_period <- -5
+        max_period <- 2
+        x_breaks <- -5:2
+    } else {
+        min_period <- -5
+        max_period <- 5
+        x_breaks <- -5:5
+    }
 } else {
     time_label <- "Quarters"
-    x_breaks <- seq(-8, 16, 4)
+    # Set window based on post_window argument
+    if (POST_WINDOW == "short") {
+        min_period <- -20
+        max_period <- 8
+        x_breaks <- seq(-20, 8, by = 4)
+    } else {
+        min_period <- -8
+        max_period <- 16
+        x_breaks <- seq(-8, 16, by = 4)
+    }
 }
+
+message(sprintf("Post-period window: [%d, %d]", min_period, max_period))
+
+# =============================================================================
+# CREATE WARD_PAIR VARIABLE AND BUILD FE FORMULA
+# =============================================================================
+message("\n=== CREATING WARD_PAIR VARIABLE ===")
+
+if (STACKED) {
+    # cohort_ward_pair_side looks like "2015_13_23_13" (cohort, border, side)
+    data <- data %>%
+        mutate(
+            ward_pair_side_temp = sub("^[0-9]+_", "", cohort_ward_pair_side),  # Remove cohort prefix
+            ward_pair = sub("_[0-9]+$", "", ward_pair_side_temp),  # Remove side suffix
+            cohort_ward_pair = paste(cohort, ward_pair, sep = "_")  # Add cohort back
+        )
+    fe_formula <- sprintf("cohort_ward_pair_side + cohort_ward_pair^%s", time_fe_var)
+} else {
+    data <- data %>%
+        mutate(
+            ward_pair = sub("_[0-9]+$", "", ward_pair_side)  # Remove side suffix
+        )
+    fe_formula <- sprintf("ward_pair_side + ward_pair^%s", time_fe_var)
+}
+
+message(sprintf("FE formula: %s", fe_formula))
+
+# =============================================================================
+# EFFECTIVE OBSERVATIONS DIAGNOSTIC
+# =============================================================================
+message("\n=== EFFECTIVE OBSERVATIONS DIAGNOSTIC ===")
+
+# Create switcher indicator
+data$is_switcher <- abs(data$strictness_change) > 0
+
+# Count by ward_pair: need observations on BOTH sides
+if (STACKED) {
+    pair_summary <- data %>%
+        group_by(cohort_ward_pair) %>%
+        summarise(
+            n_sides = n_distinct(cohort_ward_pair_side),
+            n_obs = n(),
+            n_switcher = sum(is_switcher),
+            n_stayer = sum(!is_switcher),
+            .groups = "drop"
+        )
+    identifying_pairs <- pair_summary %>% filter(n_sides == 2)
+    effective_obs <- data %>%
+        filter(cohort_ward_pair %in% identifying_pairs$cohort_ward_pair) %>%
+        nrow()
+} else {
+    pair_summary <- data %>%
+        group_by(ward_pair) %>%
+        summarise(
+            n_sides = n_distinct(ward_pair_side),
+            n_obs = n(),
+            n_switcher = sum(is_switcher),
+            n_stayer = sum(!is_switcher),
+            .groups = "drop"
+        )
+    identifying_pairs <- pair_summary %>% filter(n_sides == 2)
+    effective_obs <- data %>%
+        filter(ward_pair %in% identifying_pairs$ward_pair) %>%
+        nrow()
+}
+
+message(sprintf("Total %s groups: %d", fe_group_var, nrow(pair_summary)))
+message(sprintf("Pairs with observations on BOTH sides: %d (%.1f%%)", 
+    nrow(identifying_pairs), 100 * nrow(identifying_pairs) / nrow(pair_summary)))
+message(sprintf("Effective observations (in identifying pairs): %s of %s (%.1f%%)",
+    format(effective_obs, big.mark = ","),
+    format(nrow(data), big.mark = ","),
+    100 * effective_obs / nrow(data)))
+message(sprintf("Listings in switcher blocks: %s", format(sum(data$is_switcher), big.mark = ",")))
+message(sprintf("Listings in stayer blocks: %s", format(sum(!data$is_switcher), big.mark = ",")))
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -221,12 +322,14 @@ extract_iplot_data <- function(model, group_label) {
     if (is.null(iplot_data) || nrow(iplot_data) == 0) {
         return(NULL)
     }
-    iplot_data %>% mutate(
-        group = group_label,
-        estimate_pct = estimate * 100,
-        ci_low_pct = ci_low * 100,
-        ci_high_pct = ci_high * 100
-    )
+    iplot_data %>% 
+        filter(x >= min_period & x <= max_period) %>%  # Apply window filtering
+        mutate(
+            group = group_label,
+            estimate_pct = estimate * 100,
+            ci_low_pct = ci_low * 100,
+            ci_high_pct = ci_high * 100
+        )
 }
 
 run_model <- function(formula_str, data_subset) {

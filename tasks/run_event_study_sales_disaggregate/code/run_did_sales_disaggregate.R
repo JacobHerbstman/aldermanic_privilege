@@ -9,7 +9,7 @@ source("../../setup_environment/code/packages.R")
 # CONFIGURATION
 # =============================================================================
 BANDWIDTH <- 1000
-WEIGHTING <- "uniform"
+WEIGHTING <- "triangular"
 
 message("\n=== Pooled DiD: Home Sales ===")
 message(sprintf("Bandwidth: %d ft", BANDWIDTH))
@@ -75,11 +75,58 @@ message(sprintf(
 
 n_before_2015 <- nrow(data_2015)
 data_2015 <- data_2015[complete.cases(data_2015[, ..hedonic_vars_list])]
-message(sprintf(
-    "After complete cases - 2015: %s (dropped %s)",
+message(sprintf("After complete cases - 2015: %s (dropped %s)",
     format(nrow(data_2015), big.mark = ","),
     format(n_before_2015 - nrow(data_2015), big.mark = ",")
 ))
+
+# =============================================================================
+# CREATE WARD_PAIR VARIABLE AND EFFECTIVE OBSERVATIONS DIAGNOSTIC
+# =============================================================================
+# ward_pair_side looks like "13_23_13" (border between 13-23, on side 13)
+# ward_pair is "13_23" (just the border, not the side)
+data_2012[, ward_pair := sub("_[0-9]+$", "", ward_pair_side)]
+data_2015[, ward_pair := sub("_[0-9]+$", "", ward_pair_side)]
+
+message("\n=== EFFECTIVE OBSERVATIONS DIAGNOSTIC ===")
+message(sprintf("2012 Cohort: %d ward_pairs, %d ward_pair_sides", 
+    uniqueN(data_2012$ward_pair), uniqueN(data_2012$ward_pair_side)))
+message(sprintf("2015 Cohort: %d ward_pairs, %d ward_pair_sides", 
+    uniqueN(data_2015$ward_pair), uniqueN(data_2015$ward_pair_side)))
+
+# Count observations with variation across sides within each ward_pair
+calc_effective_obs <- function(dt, cohort_label) {
+    # Create switcher indicator
+    dt[, is_switcher := abs(strictness_change) > 0]
+    
+    # Count by ward_pair: need observations on BOTH sides
+    pair_summary <- dt[, .(
+        n_sides = uniqueN(ward_pair_side),
+        n_obs = .N,
+        n_switcher = sum(is_switcher),
+        n_stayer = sum(!is_switcher)
+    ), by = ward_pair]
+    
+    # Pairs with observations on both sides contribute to identification
+    identifying_pairs <- pair_summary[n_sides == 2]
+    
+    # Observations in identifying pairs
+    effective_obs <- dt[ward_pair %in% identifying_pairs$ward_pair, .N]
+    
+    message(sprintf("\n%s Cohort:", cohort_label))
+    message(sprintf("  Total ward_pairs: %d", nrow(pair_summary)))
+    message(sprintf("  Pairs with observations on BOTH sides: %d (%.1f%%)", 
+        nrow(identifying_pairs), 100 * nrow(identifying_pairs) / nrow(pair_summary)))
+    message(sprintf("  Effective observations (in identifying pairs): %s of %s (%.1f%%)",
+        format(effective_obs, big.mark = ","),
+        format(nrow(dt), big.mark = ","),
+        100 * effective_obs / nrow(dt)))
+    message(sprintf("  Transactions in switcher blocks: %s", format(sum(dt$is_switcher), big.mark = ",")))
+    message(sprintf("  Transactions in stayer blocks: %s", format(sum(!dt$is_switcher), big.mark = ",")))
+}
+
+calc_effective_obs(data_2012, "2012")
+calc_effective_obs(data_2015, "2015")
 
 # =============================================================================
 # RUN REGRESSIONS
@@ -94,7 +141,7 @@ message("\n--- 2012 Cohort (Announcement Timing) ---")
 
 # Without controls
 m_2012_no_ctrl <- feols(
-    log(sale_price) ~ post_treat | ward_pair_side + sale_year,
+    log(sale_price) ~ post_treat | ward_pair_side + ward_pair^sale_year,
     data = data_2012,
     weights = ~weight,
     cluster = ~block_id
@@ -103,7 +150,7 @@ message(sprintf("2012 (no controls): N = %s", format(m_2012_no_ctrl$nobs, big.ma
 
 # With controls
 m_2012_ctrl <- feols(
-    as.formula(paste("log(sale_price) ~ post_treat", hedonic_vars, "| ward_pair_side + sale_year")),
+    as.formula(paste("log(sale_price) ~ post_treat", hedonic_vars, "| ward_pair_side + ward_pair^sale_year")),
     data = data_2012,
     weights = ~weight,
     cluster = ~block_id
@@ -115,7 +162,7 @@ message("\n--- 2015 Cohort (Implementation Timing) ---")
 
 # Without controls
 m_2015_no_ctrl <- feols(
-    log(sale_price) ~ post_treat | ward_pair_side + sale_year,
+    log(sale_price) ~ post_treat | ward_pair_side + ward_pair^sale_year,
     data = data_2015,
     weights = ~weight,
     cluster = ~block_id
@@ -124,7 +171,7 @@ message(sprintf("2015 (no controls): N = %s", format(m_2015_no_ctrl$nobs, big.ma
 
 # With controls
 m_2015_ctrl <- feols(
-    as.formula(paste("log(sale_price) ~ post_treat", hedonic_vars, "| ward_pair_side + sale_year")),
+    as.formula(paste("log(sale_price) ~ post_treat", hedonic_vars, "| ward_pair_side + ward_pair^sale_year")),
     data = data_2015,
     weights = ~weight,
     cluster = ~block_id
@@ -162,11 +209,11 @@ etable(
         "_Timing" = c("Announcement", "Announcement", "Implementation", "Implementation"),
         "_Hedonic Controls" = c("", "$\\checkmark$", "", "$\\checkmark$"),
         "_Border Pair $\\times$ Side FE" = c("$\\checkmark$", "$\\checkmark$", "$\\checkmark$", "$\\checkmark$"),
-        "_Year FE" = c("$\\checkmark$", "$\\checkmark$", "$\\checkmark$", "$\\checkmark$")
+        "_Border Pair $\\times$ Year FE" = c("$\\checkmark$", "$\\checkmark$", "$\\checkmark$", "$\\checkmark$")
     ),
     se.below = TRUE,
     signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-    notes = "Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Columns (1)--(2) use 2012 announcement timing; columns (3)--(4) use 2015 implementation timing. Sample restricted to transactions within 1,000 feet of ward boundaries with non-missing hedonic characteristics. Standard errors clustered by census block in parentheses.",
+    notes = "Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Columns (1)--(2) use 2012 announcement timing; columns (3)--(4) use 2015 implementation timing. Sample restricted to transactions within 1,000 feet of ward boundaries with non-missing hedonic characteristics. Triangular kernel weighting. Standard errors clustered by census block in parentheses.",
     label = "tab:did_sales",
     float = TRUE,
     file = "../output/did_table_sales.tex",
@@ -201,11 +248,11 @@ write_csv(results_df, "../output/did_table_sales.csv")
 message("Saved: ../output/did_table_sales.csv")
 
 # =============================================================================
-# CREATE CLEAN SLIDE TABLE (Just 2012 cohort, minimal format)
+# CREATE CLEAN SLIDE TABLE (Just 2015 cohort, minimal format)
 # =============================================================================
 message("\nCreating clean slide table...")
 
-# For slides: Just show 2012 (announcement timing) with no hedonics vs hedonics
+# For slides: Just show 2015 (implementation timing) with no hedonics vs hedonics
 # Format coefficient and SE nicely
 format_coef <- function(est, se, digits = 3) {
     stars <- ifelse(abs(est/se) > 2.576, "***",
@@ -222,14 +269,14 @@ format_n <- function(n) {
     format(n, big.mark = ",")
 }
 
-# Extract values
-est_no_ctrl <- coef(m_2012_no_ctrl)["post_treat"]
-se_no_ctrl <- se(m_2012_no_ctrl)["post_treat"]
-est_ctrl <- coef(m_2012_ctrl)["post_treat"]
-se_ctrl <- se(m_2012_ctrl)["post_treat"]
-n_obs <- m_2012_no_ctrl$nobs
-r2_no_ctrl <- fitstat(m_2012_no_ctrl, "r2")$r2
-r2_ctrl <- fitstat(m_2012_ctrl, "r2")$r2
+# Extract values (using 2015 implementation timing to match figures)
+est_no_ctrl <- coef(m_2015_no_ctrl)["post_treat"]
+se_no_ctrl <- se(m_2015_no_ctrl)["post_treat"]
+est_ctrl <- coef(m_2015_ctrl)["post_treat"]
+se_ctrl <- se(m_2015_ctrl)["post_treat"]
+n_obs <- m_2015_no_ctrl$nobs
+r2_no_ctrl <- fitstat(m_2015_no_ctrl, "r2")$r2
+r2_ctrl <- fitstat(m_2015_ctrl, "r2")$r2
 
 # Create minimal LaTeX table for slides
 slide_table <- sprintf('

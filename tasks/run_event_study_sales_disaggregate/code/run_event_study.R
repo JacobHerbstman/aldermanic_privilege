@@ -44,6 +44,10 @@ parser <- add_option(parser, c("-o", "--cohort"),
   type = "character", default = "2015",
   help = "Cohort for unstacked analysis: 2012, 2015, 2022, or 2023 [default: 2015]. Ignored if stacked=TRUE."
 )
+parser <- add_option(parser, c("-p", "--post_window"),
+  type = "character", default = "full",
+  help = "Post-period window: 'short' (truncated) or 'full' [default: full]"
+)
 
 args <- parse_args(parser)
 
@@ -56,6 +60,7 @@ BANDWIDTH <- args$bandwidth
 STACKED <- args$stacked
 STACK_TYPE <- args$stack_type
 COHORT <- args$cohort
+POST_WINDOW <- args$post_window
 
 message("\n=== Disaggregate Sales Event Study ===")
 message(sprintf("Stacked: %s", STACKED))
@@ -70,6 +75,7 @@ message(sprintf("Time Unit: %s", TIME_UNIT))
 message(sprintf("FE Type: %s", FE_TYPE))
 message(sprintf("Weighting: %s", WEIGHTING))
 message(sprintf("Bandwidth: %d ft", BANDWIDTH))
+message(sprintf("Post Window: %s", POST_WINDOW))
 
 # Output suffix
 fe_suffix <- switch(FE_TYPE,
@@ -86,14 +92,15 @@ if (STACKED) {
 }
 
 suffix <- sprintf(
-  "disaggregate_%s%s%s_%s_%dft%s%s",
+  "disaggregate_%s%s%s_%s_%dft%s%s%s",
   TIME_UNIT,
   stack_suffix,
   ifelse(TREATMENT_TYPE == "continuous", "_continuous", "_binary"),
   WEIGHTING,
   as.integer(BANDWIDTH),
   fe_suffix,
-  ifelse(INCLUDE_HEDONICS, "", "_no_hedonics")
+  ifelse(INCLUDE_HEDONICS, "", "_no_hedonics"),
+  ifelse(POST_WINDOW == "short", "_short", "")
 )
 
 # =============================================================================
@@ -260,8 +267,18 @@ if (TIME_UNIT == "quarterly") {
   data[, relative_qtr_capped := pmax(pmin(relative_qtr, 12), -12)]
 
   data[, relative_period := relative_qtr_capped]
-  time_fe <- if (STACKED) "cohort^sale_yearqtr" else "sale_yearqtr"
-  x_breaks <- seq(-12, 12, by = 2)
+  time_var <- "sale_yearqtr"
+  
+  # Set window based on post_window argument
+  if (POST_WINDOW == "short") {
+    min_period <- -20
+    max_period <- 8
+    x_breaks <- seq(-20, 8, by = 4)
+  } else {
+    min_period <- -12
+    max_period <- 12
+    x_breaks <- seq(-12, 12, by = 2)
+  }
 
   message(sprintf(
     "Relative quarter range: %d to %d",
@@ -270,9 +287,21 @@ if (TIME_UNIT == "quarterly") {
   ))
 } else {
   data[, relative_period := relative_year_capped]
-  time_fe <- if (STACKED) "cohort^sale_year" else "sale_year"
-  x_breaks <- -5:5
+  time_var <- "sale_year"
+  
+  # Set window based on post_window argument
+  if (POST_WINDOW == "short") {
+    min_period <- -5
+    max_period <- 2
+    x_breaks <- -5:2
+  } else {
+    min_period <- -5
+    max_period <- 5
+    x_breaks <- -5:5
+  }
 }
+
+message(sprintf("Post-period window: [%d, %d]", min_period, max_period))
 
 # =============================================================================
 # SET X-AXIS LABEL BASED ON TIMING
@@ -301,7 +330,67 @@ if (TIME_UNIT == "quarterly") {
 }
 
 message(sprintf("X-axis label: %s", x_label))
-message(sprintf("Time FE: %s", time_fe))
+
+# =============================================================================
+# CREATE WARD_PAIR VARIABLE FOR FE
+# =============================================================================
+# ward_pair_side looks like "13_23_13" (border between 13-23, on side 13)
+# ward_pair is "13_23" (just the border, not the side)
+if (STACKED) {
+  # cohort_ward_pair_side looks like "2015_13_23_13"
+  data[, ward_pair_side_temp := sub("^[0-9]+_", "", cohort_ward_pair_side)]  # Remove cohort prefix
+  data[, ward_pair := sub("_[0-9]+$", "", ward_pair_side_temp)]  # Remove side suffix
+  data[, cohort_ward_pair := paste(cohort, ward_pair, sep = "_")]  # Add cohort back
+  pair_fe <- "cohort_ward_pair"
+  pair_var <- "cohort_ward_pair"
+} else {
+  data[, ward_pair := sub("_[0-9]+$", "", ward_pair_side)]  # Remove side suffix
+  pair_fe <- "ward_pair"
+  pair_var <- "ward_pair"
+}
+
+# Build FE formula: unit_fe + ward_pair^time_var
+fe_formula <- sprintf("%s + %s^%s", unit_fe, pair_fe, time_var)
+message(sprintf("FE formula: %s", fe_formula))
+
+# =============================================================================
+# EFFECTIVE OBSERVATIONS DIAGNOSTIC
+# =============================================================================
+message("\n=== EFFECTIVE OBSERVATIONS DIAGNOSTIC ===")
+
+# Create switcher indicator
+data[, is_switcher := abs(strictness_change) > 0]
+
+# Count by ward_pair: need observations on BOTH sides
+if (STACKED) {
+  pair_summary <- data[, .(
+    n_sides = uniqueN(cohort_ward_pair_side),
+    n_obs = .N,
+    n_switcher = sum(is_switcher),
+    n_stayer = sum(!is_switcher)
+  ), by = cohort_ward_pair]
+  identifying_pairs <- pair_summary[n_sides == 2]
+  effective_obs <- data[cohort_ward_pair %in% identifying_pairs$cohort_ward_pair, .N]
+} else {
+  pair_summary <- data[, .(
+    n_sides = uniqueN(ward_pair_side),
+    n_obs = .N,
+    n_switcher = sum(is_switcher),
+    n_stayer = sum(!is_switcher)
+  ), by = ward_pair]
+  identifying_pairs <- pair_summary[n_sides == 2]
+  effective_obs <- data[ward_pair %in% identifying_pairs$ward_pair, .N]
+}
+
+message(sprintf("Total %s groups: %d", pair_var, nrow(pair_summary)))
+message(sprintf("Pairs with observations on BOTH sides: %d (%.1f%%)", 
+  nrow(identifying_pairs), 100 * nrow(identifying_pairs) / nrow(pair_summary)))
+message(sprintf("Effective observations (in identifying pairs): %s of %s (%.1f%%)",
+  format(effective_obs, big.mark = ","),
+  format(nrow(data), big.mark = ","),
+  100 * effective_obs / nrow(data)))
+message(sprintf("Transactions in switcher blocks: %s", format(sum(data$is_switcher), big.mark = ",")))
+message(sprintf("Transactions in stayer blocks: %s", format(sum(!data$is_switcher), big.mark = ",")))
 
 
 # =============================================================================
@@ -325,6 +414,7 @@ extract_iplot_data <- function(model, group_label) {
   }
   iplot_data %>%
     as_tibble() %>%
+    filter(x >= min_period & x <= max_period) %>%  # Apply window filtering
     mutate(
       group = group_label,
       estimate_pct = estimate * 100,
@@ -369,8 +459,8 @@ if (TREATMENT_TYPE == "continuous") {
   message("\n=== Continuous Treatment ===")
 
   formula_str <- sprintf(
-    "log(sale_price) ~ i(relative_period, treatment_continuous, ref = -1) %s | %s + %s",
-    hedonic_formula, unit_fe, time_fe
+    "log(sale_price) ~ i(relative_period, treatment_continuous, ref = -1) %s | %s",
+    hedonic_formula, fe_formula
   )
   message(sprintf("Formula: %s", formula_str))
 
@@ -432,8 +522,8 @@ if (TREATMENT_TYPE == "continuous") {
   message(sprintf("Stricter sample: %s transactions", format(nrow(data_stricter), big.mark = ",")))
 
   formula_stricter <- sprintf(
-    "log(sale_price) ~ i(relative_period, treat_stricter, ref = -1) %s | %s + %s",
-    hedonic_formula, unit_fe, time_fe
+    "log(sale_price) ~ i(relative_period, treat_stricter, ref = -1) %s | %s",
+    hedonic_formula, fe_formula
   )
 
   t0 <- Sys.time()
@@ -455,8 +545,8 @@ if (TREATMENT_TYPE == "continuous") {
   message(sprintf("Lenient sample: %s transactions", format(nrow(data_lenient), big.mark = ",")))
 
   formula_lenient <- sprintf(
-    "log(sale_price) ~ i(relative_period, treat_lenient, ref = -1) %s | %s + %s",
-    hedonic_formula, unit_fe, time_fe
+    "log(sale_price) ~ i(relative_period, treat_lenient, ref = -1) %s | %s",
+    hedonic_formula, fe_formula
   )
 
   t0 <- Sys.time()

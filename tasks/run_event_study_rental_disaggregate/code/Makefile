@@ -9,9 +9,10 @@ FREQUENCIES       := yearly
 STACKINGS         := TRUE
 TREATMENT_TYPES   := continuous binary_direction
 INCLUDE_CONTROLS  := TRUE FALSE
-WEIGHTINGS        := uniform
-BANDWIDTHS        := 1000
+WEIGHTINGS        := triangular
+BANDWIDTHS        := 500 1000
 SAMPLE_FILTERS    := full_sample
+POST_WINDOWS      := short
 
 SCRIPT := run_event_study_disaggregate.R
 
@@ -30,6 +31,9 @@ CONTROLS_SUFFIX_FALSE :=
 SAMPLE_SUFFIX_full_sample      :=
 SAMPLE_SUFFIX_multifamily_only := _mf
 
+POST_SUFFIX_full  :=
+POST_SUFFIX_short := _short
+
 define GEN_OUTPUTS
 $(foreach freq,$(FREQUENCIES), \
 $(foreach st,$(STACKINGS), \
@@ -38,8 +42,9 @@ $(foreach ic,$(INCLUDE_CONTROLS), \
 $(foreach wt,$(WEIGHTINGS), \
 $(foreach bw,$(BANDWIDTHS), \
 $(foreach sf,$(SAMPLE_FILTERS), \
-	../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)_$(wt)_$(bw)ft$(SAMPLE_SUFFIX_$(sf))$(CONTROLS_SUFFIX_$(ic)).pdf \
-)))))))
+$(foreach pw,$(POST_WINDOWS), \
+	../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)_$(wt)_$(bw)ft$(SAMPLE_SUFFIX_$(sf))$(CONTROLS_SUFFIX_$(ic))$(POST_SUFFIX_$(pw)).pdf \
+))))))))
 endef
 
 ALL_OUTPUTS := $(call GEN_OUTPUTS)
@@ -66,8 +71,8 @@ main-specs: \
 # ─────────────────────────────────────────────────────────────────────────────
 
 define GEN_RULE
-../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)_$(wt)_$(bw)ft$(SAMPLE_SUFFIX_$(sf))$(CONTROLS_SUFFIX_$(ic)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
-	Rscript $(SCRIPT) --frequency=$(freq) --stacked=$(st) --treatment_type=$(tt) --include_controls=$(ic) --weighting=$(wt) --bandwidth=$(bw) --sample_filter=$(sf)
+../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)_$(wt)_$(bw)ft$(SAMPLE_SUFFIX_$(sf))$(CONTROLS_SUFFIX_$(ic))$(POST_SUFFIX_$(pw)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) --frequency=$(freq) --stacked=$(st) --treatment_type=$(tt) --include_controls=$(ic) --weighting=$(wt) --bandwidth=$(bw) --sample_filter=$(sf) --post_window=$(pw)
 endef
 
 $(foreach freq,$(FREQUENCIES), \
@@ -77,8 +82,9 @@ $(foreach ic,$(INCLUDE_CONTROLS), \
 $(foreach wt,$(WEIGHTINGS), \
 $(foreach bw,$(BANDWIDTHS), \
 $(foreach sf,$(SAMPLE_FILTERS), \
+$(foreach pw,$(POST_WINDOWS), \
 	$(eval $(GEN_RULE)) \
-)))))))
+))))))))
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Input Linking - Explicit symlink rules

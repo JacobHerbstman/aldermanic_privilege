@@ -5,15 +5,16 @@ include ../../shell_functions.make
 # Parameters - Edit these to add/remove specifications
 # ─────────────────────────────────────────────────────────────────────────────
 
-FREQUENCIES       := yearly
+FREQUENCIES       := yearly 
 STACKINGS         := FALSE
-STACK_TYPES       := announcement implementation
-COHORTS           := 2012 2015
+STACK_TYPES       := implementation
+COHORTS           := 2015
 TREATMENT_TYPES   := continuous binary_direction
 INCLUDE_HEDONICS  := TRUE FALSE
 FE_TYPES          := ward_pair_side
-WEIGHTINGS        := uniform
+WEIGHTINGS        := triangular
 BANDWIDTHS        := 1000 
+POST_WINDOWS      := full
 
 SCRIPT := run_event_study.R
 
@@ -33,6 +34,9 @@ FE_SUFFIX_ward_pair_side :=
 FE_SUFFIX_block          := _block_fe
 FE_SUFFIX_block_group    := _bg_fe
 
+POST_SUFFIX_full  :=
+POST_SUFFIX_short := _short
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Generate Output Filenames
 # ─────────────────────────────────────────────────────────────────────────────
@@ -45,8 +49,9 @@ $(foreach hc,$(INCLUDE_HEDONICS), \
 $(foreach fe,$(FE_TYPES), \
 $(foreach wt,$(WEIGHTINGS), \
 $(foreach bw,$(BANDWIDTHS), \
-	../output/event_study_disaggregate_$(freq)_stacked_$(st)$(TREAT_SUFFIX_$(tt))_$(wt)_$(bw)ft$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc)).pdf \
-)))))))
+$(foreach pw,$(POST_WINDOWS), \
+	../output/event_study_disaggregate_$(freq)_stacked_$(st)$(TREAT_SUFFIX_$(tt))_$(wt)_$(bw)ft$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc))$(POST_SUFFIX_$(pw)).pdf \
+))))))))
 endef
 
 define GEN_UNSTACKED_OUTPUTS
@@ -57,8 +62,9 @@ $(foreach hc,$(INCLUDE_HEDONICS), \
 $(foreach fe,$(FE_TYPES), \
 $(foreach wt,$(WEIGHTINGS), \
 $(foreach bw,$(BANDWIDTHS), \
-	../output/event_study_disaggregate_$(freq)_unstacked_$(coh)$(TREAT_SUFFIX_$(tt))_$(wt)_$(bw)ft$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc)).pdf \
-)))))))
+$(foreach pw,$(POST_WINDOWS), \
+	../output/event_study_disaggregate_$(freq)_unstacked_$(coh)$(TREAT_SUFFIX_$(tt))_$(wt)_$(bw)ft$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc))$(POST_SUFFIX_$(pw)).pdf \
+))))))))
 endef
 
 STACKED_OUTPUTS := $(if $(filter TRUE,$(STACKINGS)),$(call GEN_STACKED_OUTPUTS),)
@@ -106,8 +112,8 @@ all-cohorts: \
 # ─────────────────────────────────────────────────────────────────────────────
 
 define GEN_STACKED_RULE
-../output/event_study_disaggregate_$(freq)_stacked_$(st)$(TREAT_SUFFIX_$(tt))_$(wt)_$(bw)ft$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
-	Rscript $(SCRIPT) --stacked=TRUE --stack_type=$(st) --treatment_type=$(tt) --time_unit=$(freq) --include_hedonics=$(hc) --fe_type=$(fe) --weighting=$(wt) --bandwidth=$(bw)
+../output/event_study_disaggregate_$(freq)_stacked_$(st)$(TREAT_SUFFIX_$(tt))_$(wt)_$(bw)ft$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc))$(POST_SUFFIX_$(pw)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) --stacked=TRUE --stack_type=$(st) --treatment_type=$(tt) --time_unit=$(freq) --include_hedonics=$(hc) --fe_type=$(fe) --weighting=$(wt) --bandwidth=$(bw) --post_window=$(pw)
 endef
 
 $(foreach freq,$(FREQUENCIES), \
@@ -117,16 +123,17 @@ $(foreach hc,$(INCLUDE_HEDONICS), \
 $(foreach fe,$(FE_TYPES), \
 $(foreach wt,$(WEIGHTINGS), \
 $(foreach bw,$(BANDWIDTHS), \
+$(foreach pw,$(POST_WINDOWS), \
 	$(eval $(GEN_STACKED_RULE)) \
-)))))))
+))))))))
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Rule Generation - Unstacked (with cohort parameter)
 # ─────────────────────────────────────────────────────────────────────────────
 
 define GEN_UNSTACKED_RULE
-../output/event_study_disaggregate_$(freq)_unstacked_$(coh)$(TREAT_SUFFIX_$(tt))_$(wt)_$(bw)ft$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
-	Rscript $(SCRIPT) --stacked=FALSE --cohort=$(coh) --treatment_type=$(tt) --time_unit=$(freq) --include_hedonics=$(hc) --fe_type=$(fe) --weighting=$(wt) --bandwidth=$(bw)
+../output/event_study_disaggregate_$(freq)_unstacked_$(coh)$(TREAT_SUFFIX_$(tt))_$(wt)_$(bw)ft$(FE_SUFFIX_$(fe))$(HEDONICS_SUFFIX_$(hc))$(POST_SUFFIX_$(pw)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) --stacked=FALSE --cohort=$(coh) --treatment_type=$(tt) --time_unit=$(freq) --include_hedonics=$(hc) --fe_type=$(fe) --weighting=$(wt) --bandwidth=$(bw) --post_window=$(pw)
 endef
 
 $(foreach freq,$(FREQUENCIES), \
@@ -136,8 +143,9 @@ $(foreach hc,$(INCLUDE_HEDONICS), \
 $(foreach fe,$(FE_TYPES), \
 $(foreach wt,$(WEIGHTINGS), \
 $(foreach bw,$(BANDWIDTHS), \
+$(foreach pw,$(POST_WINDOWS), \
 	$(eval $(GEN_UNSTACKED_RULE)) \
-)))))))
+))))))))
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Input Linking - Explicit symlink rules
