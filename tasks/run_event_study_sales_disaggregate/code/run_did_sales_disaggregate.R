@@ -248,6 +248,57 @@ write_csv(results_df, "../output/did_table_sales.csv")
 message("Saved: ../output/did_table_sales.csv")
 
 # =============================================================================
+# EXPORT FULL COEFFICIENTS FOR COMBINED TABLE
+# =============================================================================
+# 2012 Announcement timing
+coef_2012_no_ctrl <- data.frame(
+    variable = names(coef(m_2012_no_ctrl)),
+    estimate = coef(m_2012_no_ctrl),
+    se = se(m_2012_no_ctrl)
+)
+coef_2012_no_ctrl$specification <- "2012_no_ctrl"
+
+coef_2012_ctrl <- data.frame(
+    variable = names(coef(m_2012_ctrl)),
+    estimate = coef(m_2012_ctrl),
+    se = se(m_2012_ctrl)
+)
+coef_2012_ctrl$specification <- "2012_ctrl"
+
+# 2015 Implementation timing
+coef_2015_no_ctrl <- data.frame(
+    variable = names(coef(m_2015_no_ctrl)),
+    estimate = coef(m_2015_no_ctrl),
+    se = se(m_2015_no_ctrl)
+)
+coef_2015_no_ctrl$specification <- "2015_no_ctrl"
+
+coef_2015_ctrl <- data.frame(
+    variable = names(coef(m_2015_ctrl)),
+    estimate = coef(m_2015_ctrl),
+    se = se(m_2015_ctrl)
+)
+coef_2015_ctrl$specification <- "2015_ctrl"
+
+# Combine all
+coef_all <- rbind(coef_2012_no_ctrl, coef_2012_ctrl, coef_2015_no_ctrl, coef_2015_ctrl)
+
+# Add sample sizes and R2
+coef_all$n_obs <- NA
+coef_all$r2 <- NA
+coef_all$n_obs[coef_all$specification == "2012_no_ctrl"] <- m_2012_no_ctrl$nobs
+coef_all$n_obs[coef_all$specification == "2012_ctrl"] <- m_2012_ctrl$nobs
+coef_all$n_obs[coef_all$specification == "2015_no_ctrl"] <- m_2015_no_ctrl$nobs
+coef_all$n_obs[coef_all$specification == "2015_ctrl"] <- m_2015_ctrl$nobs
+coef_all$r2[coef_all$specification == "2012_no_ctrl"] <- fitstat(m_2012_no_ctrl, "r2")$r2
+coef_all$r2[coef_all$specification == "2012_ctrl"] <- fitstat(m_2012_ctrl, "r2")$r2
+coef_all$r2[coef_all$specification == "2015_no_ctrl"] <- fitstat(m_2015_no_ctrl, "r2")$r2
+coef_all$r2[coef_all$specification == "2015_ctrl"] <- fitstat(m_2015_ctrl, "r2")$r2
+
+write_csv(coef_all, "../output/did_coefficients_sales.csv")
+message("Saved: ../output/did_coefficients_sales.csv")
+
+# =============================================================================
 # CREATE CLEAN SLIDE TABLE (Just 2015 cohort, minimal format)
 # =============================================================================
 message("\nCreating clean slide table...")

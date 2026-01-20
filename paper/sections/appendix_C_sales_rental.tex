@@ -50,3 +50,9 @@ Figure~\ref{fig:event_study_sales_no_hedonics} presents event study results for 
     \figurenotes{Same specification as Figure~\ref{fig:event_study_sales} but excluding property-level hedonic controls. 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
     \label{fig:event_study_sales_no_hedonics}
 \end{figure}
+
+\subsection{Alternative Event Timing: Announcement vs.\ Implementation}
+
+Table~\ref{tab:did_sales_announcement} presents difference-in-differences estimates for home sales using 2012 announcement timing rather than 2015 implementation timing. If housing markets are forward-looking, prices may begin responding when redistricting maps are announced. The point estimates are slightly larger with announcement timing, though the difference is not statistically significant.
+
+\input{../tasks/combine_did_tables/output/did_table_sales_announcement.tex}

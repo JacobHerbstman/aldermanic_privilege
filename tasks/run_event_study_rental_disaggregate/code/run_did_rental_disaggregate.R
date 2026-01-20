@@ -188,6 +188,27 @@ write_csv(results_df, "../output/did_table_rental.csv")
 message("Saved: ../output/did_table_rental.csv")
 
 # =============================================================================
+# EXPORT FULL COEFFICIENTS FOR COMBINED TABLE
+# =============================================================================
+coef_no_ctrl <- data.frame(
+    variable = names(coef(m_no_ctrl)),
+    estimate_no_ctrl = coef(m_no_ctrl),
+    se_no_ctrl = se(m_no_ctrl)
+)
+coef_ctrl <- data.frame(
+    variable = names(coef(m_ctrl)),
+    estimate_ctrl = coef(m_ctrl),
+    se_ctrl = se(m_ctrl)
+)
+coef_all <- merge(coef_no_ctrl, coef_ctrl, by = "variable", all = TRUE)
+coef_all$n_obs_no_ctrl <- m_no_ctrl$nobs
+coef_all$n_obs_ctrl <- m_ctrl$nobs
+coef_all$r2_no_ctrl <- fitstat(m_no_ctrl, "r2")$r2
+coef_all$r2_ctrl <- fitstat(m_ctrl, "r2")$r2
+write_csv(coef_all, "../output/did_coefficients_rental.csv")
+message("Saved: ../output/did_coefficients_rental.csv")
+
+# =============================================================================
 # CREATE CLEAN SLIDE TABLE (minimal format for slides)
 # =============================================================================
 message("\nCreating clean slide table...")
