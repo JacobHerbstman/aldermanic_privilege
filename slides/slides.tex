@@ -8,6 +8,7 @@
 \usepackage{bibentry}  % Includes the \nobibliography command
 \usepackage{verbatim}  %Supports comments
 \usepackage{booktabs} %Supports \toprule, \bottomrule, etc in tables
+\usepackage{threeparttable} %Supports tablenotes in tables
 \usepackage{etoolbox}  %Supports toggle commands
 \usepackage{datetime}
 \usepackage{bm}	%Supports bold math \bm
@@ -120,76 +121,324 @@ Evidence from Chicago's Aldermanic Privilege}
 %---------------------------------------------------------------------
 
 %---------------------------------------------------------------------
-% BACKUP SLIDES: Density Robustness
+% APPENDIX: Strictness Score Validation
 %---------------------------------------------------------------------
-\begin{frame}[label=density-robustness]
-    \frametitle{Robustness: Bandwidth Sensitivity}
+\begin{frame}[label=score-validation]
+    \frametitle{Within-Ward Strictness Score Variation}
     \begin{center}
-    \textit{[Insert bandwidth sensitivity figure here]}
+    \includegraphics[width=0.65\textwidth,height=0.78\textheight,keepaspectratio]{../tasks/within_ward_strictness/output/within_ward_dotplot.pdf}
     \end{center}
-    
-    \vspace{1em}
-    Effects stable across 250 ft, 500 ft, 1000 ft bandwidths.
-    
-    \vfill\hfill
-    \hyperlink{density-donut}{\beamergotobutton{Donut RD}}
-    \hspace{0.2em}
-    \hyperlink{density-functional}{\beamergotobutton{Functional Form}}
-    \hspace{0.2em}
-    \hyperlink{density-balance}{\beamergotobutton{Covariate Balance}}
+    \vfill\hfill \hyperlink{strictness-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
-\begin{frame}[label=density-donut]
-    \frametitle{Robustness: Donut RD}
+\begin{frame}
+    \frametitle{Predecessor-Successor Score Correlation}
     \begin{center}
-    \textit{[Insert donut RD figure here]}
+    \includegraphics[width=0.7\textwidth,height=0.7\textheight,keepaspectratio]{../tasks/within_ward_strictness/output/predecessor_successor_scatter.pdf}
     \end{center}
     
-    \vspace{1em}
-    Excluding parcels within 25--50 ft of border does not change results.
-\end{frame}
-
-\begin{frame}[label=density-functional]
-    \frametitle{Robustness: Functional Form}
-    \begin{center}
-    \textit{[Insert functional form comparison here]}
-    \end{center}
+    \small
+    Ward FEs explain only 17\% of strictness score variance. \\
+    Predecessor-successor correlation: $\rho = -0.38$ (scores do not persist across turnovers).
     
-    \vspace{1em}
-    Results robust to linear, quadratic, and cubic polynomial specifications.
+    \vfill\hfill \hyperlink{strictness-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
-\begin{frame}[label=density-balance]
+%---------------------------------------------------------------------
+% APPENDIX: Visual RD - Placebo Boundaries
+%---------------------------------------------------------------------
+\begin{frame}[label=visual-rd-placebo]
+    \frametitle{Placebo: Boundary Shifted 250ft into Lenient Side}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(FAR)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_far_shift_minus250_bw500_triangular.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(DUPAC)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_dupac_shift_minus250_bw500_triangular.pdf}
+    \end{column}
+    \end{columns}
+    \small No discontinuity at placebo boundary.
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Placebo: Boundary Shifted 500ft into Lenient Side}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(FAR)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_far_shift_minus500_bw500_triangular.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(DUPAC)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_dupac_shift_minus500_bw500_triangular.pdf}
+    \end{column}
+    \end{columns}
+    \small No discontinuity at placebo boundary.
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Placebo: Boundary Shifted 250ft into Strict Side}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(FAR)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_far_shift_plus250_bw500_triangular.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(DUPAC)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_dupac_shift_plus250_bw500_triangular.pdf}
+    \end{column}
+    \end{columns}
+    \small No discontinuity at placebo boundary.
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Placebo: Boundary Shifted 500ft into Strict Side}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(FAR)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_far_shift_plus500_bw500_triangular.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(DUPAC)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_dupac_shift_plus500_bw500_triangular.pdf}
+    \end{column}
+    \end{columns}
+    \small No discontinuity at placebo boundary.
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+%---------------------------------------------------------------------
+% APPENDIX: Visual RD - Functional Form
+%---------------------------------------------------------------------
+\begin{frame}[label=visual-rd-functional]
+    \frametitle{Functional Form: Linear}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(FAR)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_linear_p1_bw500_triangular.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(DUPAC)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_linear_p1_bw500_triangular.pdf}
+    \end{column}
+    \end{columns}
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Functional Form: Quadratic}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(FAR)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_quadratic_p2_bw500_triangular.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(DUPAC)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_quadratic_p2_bw500_triangular.pdf}
+    \end{column}
+    \end{columns}
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Functional Form: Cubic}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(FAR)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_cubic_p3_bw500_triangular.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(DUPAC)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_cubic_p3_bw500_triangular.pdf}
+    \end{column}
+    \end{columns}
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+%---------------------------------------------------------------------
+% APPENDIX: Visual RD - Donut
+%---------------------------------------------------------------------
+\begin{frame}[label=visual-rd-donut]
+    \frametitle{Donut RD: Excluding Parcels Within 25ft of Border}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(FAR)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_far_bw500_triangular_donut25.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(DUPAC)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_dupac_bw500_triangular_donut25.pdf}
+    \end{column}
+    \end{columns}
+    \small Discontinuity persists after excluding parcels closest to border.
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Donut RD: Excluding Parcels Within 50ft of Border}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(FAR)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_far_bw500_triangular_donut50.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(DUPAC)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_dupac_bw500_triangular_donut50.pdf}
+    \end{column}
+    \end{columns}
+    \small Discontinuity persists after excluding parcels closest to border.
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+%---------------------------------------------------------------------
+% APPENDIX: Density Regression - Bandwidth Sensitivity
+%---------------------------------------------------------------------
+\begin{frame}[label=density-reg-bw500]
+    \frametitle{Bandwidth Sensitivity: 500ft}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500.tex}
+    \end{center}
+    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=density-reg-bw1000]
+    \frametitle{Bandwidth Sensitivity: 1000ft}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw1000.tex}
+    \end{center}
+    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+%---------------------------------------------------------------------
+% APPENDIX: Density Regression - Donut
+%---------------------------------------------------------------------
+\begin{frame}[label=density-reg-donut]
+    \frametitle{Donut Regression: Excluding 25ft from Border}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions_donut/output/fe_table_bw250_donut25.tex}
+    \end{center}
+    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Donut Regression: Excluding 50ft from Border}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions_donut/output/fe_table_bw250_donut50.tex}
+    \end{center}
+    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+%---------------------------------------------------------------------
+% APPENDIX: Rent Event Study - 500ft Bandwidth
+%---------------------------------------------------------------------
+\begin{frame}[label=rent-bw500]
+    \frametitle{Rent Event Study: 500ft Bandwidth}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Continuous Treatment}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_triangular_500ft_short.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Binary: Stricter vs.\ Lenient}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_triangular_500ft_short.pdf}
+    \end{column}
+    \end{columns}
+    \vfill\hfill \hyperlink{rent-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+%---------------------------------------------------------------------
+% APPENDIX: Rent Event Study - No Hedonic Controls
+%---------------------------------------------------------------------
+\begin{frame}[label=rent-no-hedonics]
+    \frametitle{Rent Event Study: Without Hedonic Controls}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Continuous Treatment}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_no_hedonics_short.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Binary: Stricter vs.\ Lenient}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_triangular_1000ft_no_hedonics_short.pdf}
+    \end{column}
+    \end{columns}
+    \small Results robust to excluding hedonic controls.
+    \vfill\hfill \hyperlink{rent-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+%---------------------------------------------------------------------
+% APPENDIX: Home Price Event Study - No Hedonic Controls
+%---------------------------------------------------------------------
+\begin{frame}[label=price-no-hedonics]
+    \frametitle{Home Price Event Study: Without Hedonic Controls}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Continuous Treatment}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_continuous_triangular_1000ft_no_hedonics.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Binary: Stricter vs.\ Lenient}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_binary_triangular_1000ft_no_hedonics.pdf}
+    \end{column}
+    \end{columns}
+    \small Results robust to excluding hedonic controls.
+    \vfill\hfill \hyperlink{price-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+%---------------------------------------------------------------------
+% APPENDIX: Covariate Balance
+%---------------------------------------------------------------------
+\begin{frame}[label=price-balance]
     \frametitle{Covariate Balance at Ward Borders}
     \begin{center}
-    \textit{[Insert balance table here]}
+    \scriptsize
+    \begin{threeparttable}
+    \begin{tabular}{lrrrrr}
+    \toprule
+     & \multicolumn{3}{c}{Mean by Group} & \multicolumn{2}{c}{Stricter vs Lenient} \\
+    \cmidrule(lr){2-4} \cmidrule(lr){5-6}
+    Variable & Stricter & Lenient & Control & Diff & $p$-value \\
+    \midrule
+    Sale Price (\$) & \$375,060 & \$370,964 & \$371,456 & \$4,097 & 0.726 \\
+    N Sales & 1.32 & 1.29 & 1.32 & 0.04 & 0.166 \\
+    Dist to Boundary (ft) & 451 & 457 & 507 & -5 & 0.616 \\
+    N Blocks & 1251 & 1303 & 4133 & -- & -- \\
+    \bottomrule
+    \end{tabular}
+    \begin{tablenotes}
+    \tiny
+    \item \textit{Notes:} Balance measured at $t = -1$ (one year before redistricting).
+    \end{tablenotes}
+    \end{threeparttable}
     \end{center}
-    
-    \vspace{1em}
-    Demographics smooth across ward boundaries.
-\end{frame}
-
-%---------------------------------------------------------------------
-% BACKUP SLIDES: Price/Rent Robustness
-%---------------------------------------------------------------------
-\begin{frame}[label=price-robustness]
-    \frametitle{Robustness: Pre-Trends and Placebo Tests}
-    \begin{center}
-    \includegraphics[width=0.8\textwidth,height=0.6\textheight,keepaspectratio]{../tasks/event_study_sales_diagnostics/output/pre_trend_coefficients.pdf}
-    \end{center}
-    
-    \vspace{0.5em}
-    Joint test of pre-period coefficients: Cannot reject null of zero pre-trends.
-\end{frame}
-
-\begin{frame}[label=price-hedonics]
-    \frametitle{Robustness: With and Without Hedonic Controls}
-    \begin{center}
-    \textit{[Results stable with/without hedonic controls --- see main tables]}
-    \end{center}
-    
-    \vspace{1em}
-    Adding building characteristics (sqft, age, bedrooms, bathrooms, garage) does not substantially change point estimates.
+    \vfill\hfill \hyperlink{price-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
 
