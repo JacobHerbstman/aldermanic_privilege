@@ -6,9 +6,9 @@ include ../../shell_functions.make
 # ─────────────────────────────────────────────────────────────────────────────
 
 FREQUENCIES       := yearly 
-STACKINGS         := FALSE
-STACK_TYPES       := implementation
-COHORTS           := 2015
+STACKINGS         := FALSE TRUE
+STACK_TYPES       := announcement implementation
+COHORTS           := 2012 2015
 TREATMENT_TYPES   := continuous binary_direction
 INCLUDE_HEDONICS  := TRUE FALSE
 FE_TYPES          := ward_pair_side

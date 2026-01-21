@@ -7,7 +7,7 @@
 # Load data and packages
 source("../../setup_environment/code/packages.R")
 data <- read_csv("../input/ward_monthly_panel_for_alderman_fe.csv")
-
+View(data)
 # ----------------------------
 # A) Build outcome columns
 # ----------------------------

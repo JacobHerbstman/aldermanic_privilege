@@ -4,18 +4,11 @@
 \begin{frame}
 	\frametitle{The Challenge: Measuring Alderman Strictness}
 	\begin{itemize}
-		\item Alderman preferences/frictions are latent --- no published ``strictness score''
-		\item \textbf{Key problem}: I can't observe what \textit{doesn't happen}
+		\item Alderman preferences/frictions are latent: need to infer from observed behavior
+		\item \textbf{Idea}: Use permit processing times as a \textbf{proxy} for regulatory strictness
 		\begin{itemize}
-			\item Projects that never apply because developer knows alderman will block
-			\item Projects rejected in early conversations before formal application
-			\item Concessions extracted that reduce project scope
-		\end{itemize}
-		\item What I \textit{can} observe: Processing times for permits that \textit{do} get approved
-		\item \textbf{Idea}: Use permit processing times as a \textbf{crude proxy} for strictness
-		\begin{itemize}
-			\item Longer processing $\rightarrow$ more back-and-forth, more friction
-			\item Not a perfect measure, but transparent and observable
+			\item Data: Universe of Permits in Chicago (2006-2025) from Department of Buildings
+			\item Longer average processing time $\rightarrow$ more back-and-forth, more friction 
 		\end{itemize}
 		\item Focus on \textbf{high-discretion permits}: new construction, renovation, demolition
 	\end{itemize}

@@ -4,22 +4,45 @@
 \begin{frame}
 	\frametitle{Motivation}
 	\begin{itemize}
-		\item Zoning is locally controlled across the US
+		\item Housing prices and rents are skyrocketing in many U.S.\ cities, including Chicago
 		\begin{itemize}
-			\item Local decision-makers don't fully internalize citywide benefits of housing
-			\item Affordability, tax base, agglomeration effects spill beyond jurisdictional boundaries
+			\item Limited housing supply in high demand areas is widely accepted as the key driver of these price increases
+			\item Land use regulations and local control are often blamed for limiting supply
 		\end{itemize}
-		\item Empirical challenge: How much does \textit{who} makes the decision matter?
+		\item Most research focuses on formal institutions such as by-right zoning laws or planning commissions
 		\begin{itemize}
-			\item Hard to study because decision-making authority is often diffuse
-			\item Multiple actors: planning commissions, city councils, mayors, community boards
+			\item But uncertainty and discretion are also key determinates of housing supply and are far less studied
 		\end{itemize}
-		\item \textbf{Chicago}: Extreme informal norm of aldermanic control over zoning
+		\item \textbf{Chicago}: Unique informal institution of \textit{aldermanic privilege}
 		\begin{itemize}
-			\item Clear ward boundaries $\rightarrow$ tractable setting for identification
+			\item Offers a unique setting where de facto regulatory environment changes discretely at ward boundaries
 		\end{itemize}
 	\end{itemize}
 \end{frame}
+
+% ==============================================================================
+% SLIDE 4: WHAT IS ALDERMANIC PRIVILEGE?
+% ==============================================================================
+\begin{frame}
+	\frametitle{What is Aldermanic Privilege?}
+	\begin{itemize}
+		\item \textbf{Not written in any law} --- Chicago has no city charter
+		\item An informal but extraordinarily powerful norm
+		\item Core feature: \textbf{Deference}
+		\begin{itemize}
+			\item Other aldermen \textit{never} override a colleague's decision in their ward
+			\item ``Very few things happen that the aldermen don't want to happen.'' {\scriptsize \citep{yue_zhang_boundaries_2011}}
+		\item Encyclopedia of Chicago: ``little mayors'' ruling wards as ``fiefdoms''
+		\end{itemize}
+		\item \textbf{Chicago gives more power to local politicians than many other U.S.\ cities}: 
+		\begin{itemize}
+			\item Houston has no explicit zoning code and centralized development approvals
+			\item Minneapolis has reduced councilmember discretion in recent years
+			\item Both cities have seen below-median rent and home price growth compared to peer cities
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
 
 
 % ==============================================================================
@@ -54,30 +77,6 @@
         \end{minipage}
 \end{frame}
 
-
-% ==============================================================================
-% SLIDE 4: WHAT IS ALDERMANIC PRIVILEGE?
-% ==============================================================================
-\begin{frame}
-	\frametitle{What is Aldermanic Privilege?}
-	\begin{itemize}
-		\item \textbf{Not written in any law} --- Chicago has no city charter
-		\item An informal but extraordinarily powerful norm
-		\item Core feature: \textbf{Deference}
-		\begin{itemize}
-			\item Other aldermen \textit{never} override a colleague's decision in their ward
-			\item ``Very few things happen that the aldermen don't want to happen.'' {\scriptsize \citep{yue_zhang_boundaries_2011}}
-		\end{itemize}
-		\item Encyclopedia of Chicago: ``little mayors'' ruling wards as ``fiefdoms''
-		\item \textbf{Contrast with other cities}: 
-		\begin{itemize}
-			\item Elsewhere, planning commissions or mayors retain real authority
-			\item In Chicago, the alderman's word is effectively final
-		\end{itemize}
-	\end{itemize}
-\end{frame}
-
-
 % ==============================================================================
 % SLIDE 5: HOW ZONING WORKS IN CHICAGO
 % ==============================================================================
@@ -89,17 +88,18 @@
 		\item Application goes to Zoning Administrator $\rightarrow$ Dept.\ of Planning $\rightarrow$ Committee on Zoning $\rightarrow$ City Council vote
 	\end{enumerate}
 	
-	\vspace{0.5em}
+	\vspace{0.1em}
 	\textbf{Informal Reality:}
 	\begin{itemize}
 		\item Alderman consulted at \textit{every} step (even though not formally required)
 		\item Many aldermen have their own ward application forms
 		\item Alderman says yes $\rightarrow$ passes unanimously
-		\item Alderman says no $\rightarrow$ dead on arrival (colleagues defer)
+		\item Alderman says no $\rightarrow$ dead on arrival (colleagues defer, often no city council vote)
 	\end{itemize}
-	
-	\vspace{0.5em}
-	\textbf{Key for identification:} 50 wards with clear geographic boundaries
+	\textbf{Result:}
+	\begin{itemize}
+		\item De facto veto power creates a tremendous amount of uncertainty for developers
+	\end{itemize}
 \end{frame}
 
 
@@ -108,7 +108,7 @@
 % ==============================================================================
 \begin{frame}
 	\frametitle{This Paper}
-	\textbf{Question}: Does aldermanic control affect housing supply and prices?
+	\textbf{Research Question}: Does aldermanic privilege affect housing supply and affordability?
 	
 	\vspace{0.5em}
 	\textbf{Two complementary empirical strategies:}
@@ -116,14 +116,10 @@
 		\item \textit{Density at ward borders}: Compare new multifamily construction on opposite sides of ward boundaries
 		\item \textit{Prices \& rents after redistricting}: Event study when census blocks are reassigned to different aldermen
 	\end{enumerate}
-	
-	\vspace{0.5em}
-	\textbf{Why two approaches?}
-	\begin{itemize}
-		\item Density: Border design works spatially, but construction volume too low for event study
-		\item Prices/rents: High transaction volume enables event study around redistricting
-	\end{itemize}
-	
-	\vspace{0.5em}
-	\textbf{Preview}: Stricter aldermen $\rightarrow$ lower multifamily density $\rightarrow$ higher housing costs
+
+	\textbf{Preview of Results}
+	\begin{enumerate}
+		\item Stricter aldermen lower multifamily density by $10-16\%$ near ward borders
+		\item Census blocks that are redistricted to stricter aldermen see rent increases of $3-5\%$ and home price increases of $2\%$
+	\end{enumerate}
 \end{frame}
