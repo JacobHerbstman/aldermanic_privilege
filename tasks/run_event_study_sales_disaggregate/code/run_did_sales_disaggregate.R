@@ -299,11 +299,53 @@ write_csv(coef_all, "../output/did_coefficients_sales.csv")
 message("Saved: ../output/did_coefficients_sales.csv")
 
 # =============================================================================
-# CREATE CLEAN SLIDE TABLE (Just 2015 cohort, minimal format)
+# CREATE CLEAN SLIDE TABLE (Stacked Announcement Timing)
 # =============================================================================
 message("\nCreating clean slide table...")
 
-# For slides: Just show 2015 (implementation timing) with no hedonics vs hedonics
+# Load stacked announcement panel
+data_ann <- read_parquet("../input/sales_transaction_panel_announcement.parquet")
+setDT(data_ann)
+message(sprintf("Stacked announcement panel: %s transactions", format(nrow(data_ann), big.mark = ",")))
+
+# Prepare data
+data_ann <- data_ann[dist_ft <= BANDWIDTH]
+if (WEIGHTING == "triangular") {
+    data_ann[, weight := pmax(0, 1 - dist_ft / BANDWIDTH)]
+} else {
+    data_ann[, weight := 1]
+}
+data_ann[, `:=`(
+    post = as.integer(relative_year >= 0),
+    post_treat = as.integer(relative_year >= 0) * strictness_change
+)]
+
+# Restrict to complete hedonic sample
+data_ann <- data_ann[complete.cases(data_ann[, ..hedonic_vars_list])]
+message(sprintf("After complete cases filter: %s transactions", format(nrow(data_ann), big.mark = ",")))
+
+# Create cohort_ward_pair variable for stacked FE
+data_ann[, ward_pair_side_temp := sub("^[0-9]+_", "", cohort_ward_pair_side)]
+data_ann[, ward_pair := sub("_[0-9]+$", "", ward_pair_side_temp)]
+data_ann[, cohort_ward_pair := paste(cohort, ward_pair, sep = "_")]
+
+# Run regressions with stacked FE structure
+m_ann_no_ctrl <- feols(
+    log(sale_price) ~ post_treat | cohort_ward_pair_side + cohort_ward_pair^sale_year,
+    data = data_ann,
+    weights = ~weight,
+    cluster = ~cohort_block_id
+)
+message(sprintf("Stacked announcement (no controls): N = %s", format(m_ann_no_ctrl$nobs, big.mark = ",")))
+
+m_ann_ctrl <- feols(
+    as.formula(paste("log(sale_price) ~ post_treat", hedonic_vars, "| cohort_ward_pair_side + cohort_ward_pair^sale_year")),
+    data = data_ann,
+    weights = ~weight,
+    cluster = ~cohort_block_id
+)
+message(sprintf("Stacked announcement (with controls): N = %s", format(m_ann_ctrl$nobs, big.mark = ",")))
+
 # Format coefficient and SE nicely
 format_coef <- function(est, se, digits = 3) {
     stars <- ifelse(abs(est/se) > 2.576, "***",
@@ -320,14 +362,14 @@ format_n <- function(n) {
     format(n, big.mark = ",")
 }
 
-# Extract values (using 2015 implementation timing to match figures)
-est_no_ctrl <- coef(m_2015_no_ctrl)["post_treat"]
-se_no_ctrl <- se(m_2015_no_ctrl)["post_treat"]
-est_ctrl <- coef(m_2015_ctrl)["post_treat"]
-se_ctrl <- se(m_2015_ctrl)["post_treat"]
-n_obs <- m_2015_no_ctrl$nobs
-r2_no_ctrl <- fitstat(m_2015_no_ctrl, "r2")$r2
-r2_ctrl <- fitstat(m_2015_ctrl, "r2")$r2
+# Extract values (using stacked announcement timing to match figures)
+est_no_ctrl <- coef(m_ann_no_ctrl)["post_treat"]
+se_no_ctrl <- se(m_ann_no_ctrl)["post_treat"]
+est_ctrl <- coef(m_ann_ctrl)["post_treat"]
+se_ctrl <- se(m_ann_ctrl)["post_treat"]
+n_obs <- m_ann_no_ctrl$nobs
+r2_no_ctrl <- fitstat(m_ann_no_ctrl, "r2")$r2
+r2_ctrl <- fitstat(m_ann_ctrl, "r2")$r2
 
 # Create minimal LaTeX table for slides
 slide_table <- sprintf('

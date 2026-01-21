@@ -6,10 +6,10 @@ include ../../shell_functions.make
 # ─────────────────────────────────────────────────────────────────────────────
 
 FREQUENCIES       := yearly 
-STACKINGS         := FALSE TRUE
-STACK_TYPES       := announcement implementation
-COHORTS           := 2012 2015
-TREATMENT_TYPES   := continuous binary_direction
+STACKINGS         := TRUE
+STACK_TYPES       := announcement
+COHORTS           := 2012
+TREATMENT_TYPES   := continuous continuous_split
 INCLUDE_HEDONICS  := TRUE FALSE
 FE_TYPES          := ward_pair_side
 WEIGHTINGS        := triangular

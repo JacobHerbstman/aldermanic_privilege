@@ -31,7 +31,7 @@ parser <- add_option(parser, c("-s", "--stacked"),
 )
 parser <- add_option(parser, c("-x", "--treatment_type"),
     type = "character", default = "continuous",
-    help = "Treatment type: continuous or binary_direction [default: continuous]"
+    help = "Treatment type: continuous, binary_direction, or continuous_split [default: continuous]"
 )
 parser <- add_option(parser, c("-c", "--include_controls"),
     type = "logical", default = TRUE,
@@ -167,6 +167,13 @@ data <- data %>%
     )
 
 message(sprintf("Observations after filter: %s", format(nrow(data), big.mark = ",")))
+
+# Create continuous split treatment variables
+data <- data %>%
+    mutate(
+        treatment_stricter_continuous = pmax(strictness_change, 0),
+        treatment_lenient_continuous = pmax(-strictness_change, 0)
+    )
 
 # =============================================================================
 # RESTRICT TO COMPLETE HEDONIC SAMPLE (for comparability across specs)
@@ -564,6 +571,128 @@ if (TREATMENT_TYPE == "continuous") {
     #     float = FALSE, file = sprintf("../output/did_table_%s.tex", suffix), replace = TRUE
     # )
     message(sprintf("Saved: ../output/did_table_%s.tex", suffix))
+} else if (TREATMENT_TYPE == "continuous_split") {
+    message("\n=== Continuous Split Treatment ===")
+    message("Running two regressions on FULL sample with continuous treatment intensity")
+    message(sprintf("Full sample size: %s observations", format(nrow(data), big.mark = ",")))
+    message(sprintf("  - Stricter-movers (Δ > 0): %s", format(sum(data$strictness_change > 0), big.mark = ",")))
+    message(sprintf("  - Lenient-movers (Δ < 0): %s", format(sum(data$strictness_change < 0), big.mark = ",")))
+    message(sprintf("  - Controls (Δ = 0): %s", format(sum(data$strictness_change == 0), big.mark = ",")))
+
+    # Stricter regression: full sample, continuous treatment
+    message("\n--- Moved to Stricter (Continuous) ---")
+    formula_stricter <- sprintf(
+        "log(rent_price) ~ i(%s, treatment_stricter_continuous, ref = -1) %s | %s",
+        time_var, hedonic_controls, fe_formula
+    )
+    m_stricter <- run_model(formula_stricter, data)  # Note: full data, no subsetting
+    print(summary(m_stricter))
+
+    # Lenient regression: full sample, continuous treatment
+    message("\n--- Moved to More Lenient (Continuous) ---")
+    formula_lenient <- sprintf(
+        "log(rent_price) ~ i(%s, treatment_lenient_continuous, ref = -1) %s | %s",
+        time_var, hedonic_controls, fe_formula
+    )
+    m_lenient <- run_model(formula_lenient, data)  # Note: full data, no subsetting
+    print(summary(m_lenient))
+
+    # Extract plot data
+    plot_data <- bind_rows(
+        extract_iplot_data(m_stricter, "Moved to Stricter (Continuous)"),
+        extract_iplot_data(m_lenient, "Moved to More Lenient (Continuous)")
+    ) %>% filter(!is.na(estimate))
+
+    if (nrow(plot_data) > 0) {
+        # Faceted plot
+        p <- ggplot(plot_data, aes(x = x, y = estimate_pct, color = group, fill = group)) +
+            geom_hline(yintercept = 0, linetype = "solid", color = "gray40", linewidth = 0.4) +
+            geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
+            geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.15, color = NA) +
+            geom_line(linewidth = 1) +
+            geom_point(size = 2.5, shape = 21, stroke = 0.5) +
+            scale_color_manual(
+                values = c("Moved to Stricter (Continuous)" = "#c23616", 
+                          "Moved to More Lenient (Continuous)" = "#7f8fa6"),
+                name = NULL
+            ) +
+            scale_fill_manual(
+                values = c("Moved to Stricter (Continuous)" = "#c23616", 
+                          "Moved to More Lenient (Continuous)" = "#7f8fa6"),
+                name = NULL
+            ) +
+            scale_x_continuous(breaks = x_breaks) +
+            scale_y_continuous(labels = function(x) paste0(x, "%")) +
+            facet_wrap(~group, ncol = 1) +
+            labs(
+                x = sprintf("%s Relative to Alderman Switch", time_label),
+                y = "Effect on Rents"
+            ) +
+            theme_minimal(base_size = 11) +
+            theme(
+                panel.grid.major.x = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
+                axis.line = element_line(color = "gray40", linewidth = 0.3),
+                axis.ticks = element_line(color = "gray40", linewidth = 0.3),
+                axis.title = element_text(size = 10, color = "gray20"),
+                axis.text = element_text(size = 9, color = "gray30"),
+                legend.position = "none",
+                strip.text = element_text(face = "bold", size = 10),
+                plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
+            )
+
+        ggsave(sprintf("../output/event_study_%s.pdf", suffix), p, width = 7, height = 6, bg = "white")
+        message(sprintf("Saved: ../output/event_study_%s.pdf", suffix))
+
+        # Combined plot (both series on same axes)
+        p_combined <- ggplot(plot_data, aes(x = x, y = estimate_pct, color = group, fill = group)) +
+            geom_hline(yintercept = 0, linetype = "solid", color = "gray40", linewidth = 0.4) +
+            geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
+            geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.15, color = NA) +
+            geom_line(linewidth = 1) +
+            geom_point(size = 2.5, shape = 21, stroke = 0.5) +
+            scale_color_manual(
+                values = c("Moved to Stricter (Continuous)" = "#c23616", 
+                          "Moved to More Lenient (Continuous)" = "#7f8fa6"),
+                labels = c("Moved to Stricter (Continuous)" = "Moved to Stricter Alderman", 
+                          "Moved to More Lenient (Continuous)" = "Moved to More Lenient Alderman"),
+                name = NULL
+            ) +
+            scale_fill_manual(
+                values = c("Moved to Stricter (Continuous)" = "#c23616", 
+                          "Moved to More Lenient (Continuous)" = "#7f8fa6"),
+                labels = c("Moved to Stricter (Continuous)" = "Moved to Stricter Alderman", 
+                          "Moved to More Lenient (Continuous)" = "Moved to More Lenient Alderman"),
+                name = NULL
+            ) +
+            scale_x_continuous(breaks = x_breaks, expand = expansion(mult = c(0.02, 0.02))) +
+            scale_y_continuous(labels = function(x) paste0(x, "%")) +
+            labs(
+                x = sprintf("%s Relative to Alderman Switch", time_label),
+                y = "Effect on Rents"
+            ) +
+            theme_minimal(base_size = 11) +
+            theme(
+                panel.grid.major.x = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
+                axis.line = element_line(color = "gray40", linewidth = 0.3),
+                axis.ticks = element_line(color = "gray40", linewidth = 0.3),
+                axis.ticks.length = unit(0.15, "cm"),
+                axis.title = element_text(size = 10, color = "gray20"),
+                axis.text = element_text(size = 9, color = "gray30"),
+                legend.position = "bottom",
+                legend.direction = "horizontal",
+                legend.text = element_text(size = 9),
+                legend.key.width = unit(1.5, "cm"),
+                legend.margin = margin(t = 5, b = 0),
+                plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
+            )
+
+        ggsave(sprintf("../output/event_study_combined_%s.pdf", suffix), p_combined, width = 7, height = 4.5, bg = "white")
+        message(sprintf("Saved: ../output/event_study_combined_%s.pdf", suffix))
+    }
 }
 
 message("\n\nDone!")

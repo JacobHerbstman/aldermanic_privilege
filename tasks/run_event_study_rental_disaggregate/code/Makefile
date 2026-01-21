@@ -7,7 +7,7 @@ include ../../shell_functions.make
 
 FREQUENCIES       := yearly
 STACKINGS         := TRUE
-TREATMENT_TYPES   := continuous binary_direction
+TREATMENT_TYPES   := continuous continuous_split
 INCLUDE_CONTROLS  := TRUE FALSE
 WEIGHTINGS        := triangular
 BANDWIDTHS        := 500 1000
