@@ -236,16 +236,6 @@ if (nrow(turnover_pairs) >= 3) {
         geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray50") +
         geom_smooth(method = "lm", se = TRUE, color = "#2171B5", alpha = 0.2) +
         geom_point(size = 3, alpha = 0.7, color = "#E41A1C") +
-        # Annotate notable outliers
-        geom_text_repel(
-            data = top_outliers,
-            aes(label = sprintf("Ward %s", ward)),
-            size = 3, color = "gray30", max.overlaps = 10
-        ) +
-        annotate("text", x = min(turnover_pairs$predecessor_score) + 0.5, 
-                 y = max(turnover_pairs$successor_score) - 0.2,
-                 label = sprintf("ρ = %.2f", pred_succ_cor),
-                 size = 5, fontface = "bold") +
         labs(
             x = "Predecessor Strictness Score",
             y = "Successor Strictness Score",

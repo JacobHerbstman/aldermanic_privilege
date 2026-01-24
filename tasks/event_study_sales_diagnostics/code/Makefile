@@ -1,7 +1,10 @@
 SHELL := bash
 include ../../shell_functions.make
 
-all: ../output/diagnostics.done
+all: ../output/diagnostics.done ../output/treatment_summary_stats.csv
+
+../output/treatment_summary_stats.csv: treatment_summary_stats.R ../input/block_treatment_panel.csv | ../output
+	$(R) treatment_summary_stats.R
 
 ../output/diagnostics.done: run_diagnostics.R ../input/sales_stacked_panel.csv ../input/sales_stacked_quarterly_panel.csv ../input/census_blocks_2010.csv ../input/ward_panel.gpkg ../input/block_treatment_panel.csv | ../output
 	$(R) run_diagnostics.R

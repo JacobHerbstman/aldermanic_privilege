@@ -7,7 +7,6 @@
 # Load data and packages
 source("../../setup_environment/code/packages.R")
 data <- read_csv("../input/ward_monthly_panel_for_alderman_fe.csv")
-View(data)
 # ----------------------------
 # A) Build outcome columns
 # ----------------------------
@@ -377,7 +376,8 @@ create_all_score_charts <- function(scores_list, spec_name) {
     scale_y_discrete(expand = expansion(mult = c(0.01, 0.01))) +
     theme_minimal() +
     theme(
-      axis.text.y = element_text(size = 4),
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank(),
       axis.text.x = element_text(size = 8),
       panel.grid = element_blank(),
       legend.position = "bottom",
