@@ -117,8 +117,8 @@ if (STACKED) {
     cluster_var <- "cohort_block_id"
     fe_group_var <- "cohort_ward_pair"
 } else {
-    # Unstacked: use 2015 cohort only
-    data <- read_parquet("../input/rental_listing_panel_2015.parquet") %>%
+    # Unstacked: use 2023 cohort only
+    data <- read_parquet("../input/rental_listing_panel_2023.parquet") %>%
         filter(!is.na(strictness_change), !is.na(rent_price), rent_price > 0)
 
     if (FREQUENCY == "yearly") {

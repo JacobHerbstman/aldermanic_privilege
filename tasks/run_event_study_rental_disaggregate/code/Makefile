@@ -6,11 +6,11 @@ include ../../shell_functions.make
 # ─────────────────────────────────────────────────────────────────────────────
 
 FREQUENCIES       := yearly
-STACKINGS         := TRUE
+STACKINGS         := FALSE
 TREATMENT_TYPES   := continuous continuous_split
 INCLUDE_CONTROLS  := TRUE FALSE
 WEIGHTINGS        := triangular
-BANDWIDTHS        := 500 1000
+BANDWIDTHS        := 1000
 SAMPLE_FILTERS    := full_sample
 POST_WINDOWS      := short
 
