@@ -368,8 +368,8 @@ se_no_ctrl <- se(m_ann_no_ctrl)["post_treat"]
 est_ctrl <- coef(m_ann_ctrl)["post_treat"]
 se_ctrl <- se(m_ann_ctrl)["post_treat"]
 n_obs <- m_ann_no_ctrl$nobs
-r2_no_ctrl <- fitstat(m_ann_no_ctrl, "r2")$r2
-r2_ctrl <- fitstat(m_ann_ctrl, "r2")$r2
+mean_price <- mean(data_ann$sale_price, na.rm = TRUE)
+median_price <- median(data_ann$sale_price, na.rm = TRUE)
 
 # Create minimal LaTeX table for slides
 slide_table <- sprintf('
@@ -381,7 +381,7 @@ Post $\\times$ $\\Delta$Strict & %s & %s \\\\
  & %s & %s \\\\
 \\midrule
 N & %s & %s \\\\
-$R^2$ & %.2f & %.2f \\\\
+Dep.\\ Var. & \\multicolumn{2}{c}{\\footnotesize Mean: \\$%s / Median: \\$%s} \\\\
 \\bottomrule
 \\end{tabular}
 ',
@@ -391,8 +391,8 @@ $R^2$ & %.2f & %.2f \\\\
     format_se(se_ctrl),
     format_n(n_obs),
     format_n(n_obs),
-    r2_no_ctrl,
-    r2_ctrl
+    sprintf("%.0fK", mean_price / 1000),
+    sprintf("%.0fK", median_price / 1000)
 )
 
 writeLines(slide_table, "../output/did_table_sales_clean.tex")

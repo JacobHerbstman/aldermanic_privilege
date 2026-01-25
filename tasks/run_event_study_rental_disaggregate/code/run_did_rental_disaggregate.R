@@ -235,8 +235,8 @@ se_no_ctrl <- se(m_no_ctrl)["post_treat"]
 est_ctrl <- coef(m_ctrl)["post_treat"]
 se_ctrl <- se(m_ctrl)["post_treat"]
 n_obs <- m_no_ctrl$nobs
-r2_no_ctrl <- fitstat(m_no_ctrl, "r2")$r2
-r2_ctrl <- fitstat(m_ctrl, "r2")$r2
+mean_rent <- mean(data$rent_price, na.rm = TRUE)
+median_rent <- median(data$rent_price, na.rm = TRUE)
 
 # Create minimal LaTeX table for slides
 slide_table <- sprintf('
@@ -248,7 +248,7 @@ Post $\\times$ $\\Delta$Strict & %s & %s \\\\
  & %s & %s \\\\
 \\midrule
 N & %s & %s \\\\
-$R^2$ & %.2f & %.2f \\\\
+Dep.\\ Var. & \\multicolumn{2}{c}{\\footnotesize Mean: \\$%s / Median: \\$%s} \\\\
 \\bottomrule
 \\end{tabular}
 ',
@@ -258,8 +258,8 @@ $R^2$ & %.2f & %.2f \\\\
     format_se(se_ctrl),
     format_n_millions(n_obs),
     format_n_millions(n_obs),
-    r2_no_ctrl,
-    r2_ctrl
+    format(round(mean_rent, 0), big.mark = ","),
+    format(round(median_rent, 0), big.mark = ",")
 )
 
 writeLines(slide_table, "../output/did_table_rental_clean.tex")
