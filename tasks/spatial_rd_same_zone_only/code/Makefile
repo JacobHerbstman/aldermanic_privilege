@@ -3,7 +3,7 @@ include ../../shell_functions.make
 
 BANDWIDTHS := 200 250 264 500 528 792 1000 1056 1320
 KERNELS    := triangular
-YVARS      := density_far density_dupac unitscount density_lapu
+YVARS      := density_far density_dupac unitscount
 LOG_STATUS := TRUE FALSE
 DONUT := 0
 

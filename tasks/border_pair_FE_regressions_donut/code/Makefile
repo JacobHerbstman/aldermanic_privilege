@@ -1,7 +1,7 @@
 SHELL := bash
 include ../../shell_functions.make
 
-BWS_FT := 250
+BWS_FT := 500
 DONUTS_FT := 25 50
 YVARS_TABLE := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)'
 

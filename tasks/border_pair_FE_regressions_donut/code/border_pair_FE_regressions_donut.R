@@ -114,11 +114,12 @@ fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
 rename_dict <- c(
     "strictness_own" = "Strictness Score",
-    "zone_code" = "Zoning Code",
+    "zone_code" = "Zoning Code FE",
     "construction_year" = "Year FE",
-    "ward_pair" = "Ward-Pair",
+    "ward_pair" = "Ward-Pair FE",
     "ward" = "Ward",
     "zone_code^ward_pair" = "Zoning Code $\\times$ Ward-Pair FE",
+    "ward_pair^construction_year" = "Ward-Pair $\\times$ Year FE",
     "density_dupac" = "Dwelling Units Per Acre (DUPAC)",
     "density_far" = "Floor Area Ratio (FAR)",
     "density_lapu" = "Lot Area Per Unit (LAPU)",
@@ -175,7 +176,7 @@ for (yv in yvars) {
     }
 
     fml_txt <- paste0(yv, " ~ strictness_own + share_white_own + share_black_own + median_hh_income_own + share_bach_plus_own +
-  homeownership_rate_own + avg_rent_own | zone_code^ward_pair + construction_year")
+  homeownership_rate_own + avg_rent_own | ward_pair^construction_year")
     m <- feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
     m$custom_data <- df
 
@@ -204,8 +205,7 @@ etable(models,
     signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
     dict = rename_dict,
     fixef.group = list(
-        "Zoning Code $\\times$ Ward-Pair FE" = "zone_code",
-        "Year FE" = "construction_year"
+        "Ward-Pair $\\times$ Year FE" = "ward_pair"
     ),
     float = FALSE,
     tex = TRUE,
