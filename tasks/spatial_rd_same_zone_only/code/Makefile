@@ -1,7 +1,7 @@
 SHELL := bash
 include ../../shell_functions.make
 
-BANDWIDTHS := 200 250 264 500 528 792 1000 1056 1320
+BANDWIDTHS := 250 500 1000
 KERNELS    := triangular
 YVARS      := density_far density_dupac unitscount
 LOG_STATUS := TRUE FALSE

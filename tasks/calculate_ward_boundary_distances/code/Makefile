@@ -15,7 +15,7 @@ all: ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.g
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
 	ln -sf $< $@
 
-../input/aldermen_strictness_scores.csv: ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
+../input/aldermen_strictness_scores.csv: ../../create_alderman_strictness_scores_disaggregated/output/alderman_strictness_scores_disaggregated.csv | ../input
 	ln -sf $< $@
 
 ../input/ward_controls.csv: ../../create_ward_controls/output/ward_controls_2000_2023.csv | ../input

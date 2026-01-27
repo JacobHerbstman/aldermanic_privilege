@@ -18,7 +18,7 @@ all: ../output/block_treatment_panel.csv
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
 	ln -sf $< $@
 
-../input/alderman_restrictiveness_scores_month_FEs.csv: ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
+../input/alderman_restrictiveness_scores_month_FEs.csv: ../../create_alderman_strictness_scores_disaggregated/output/alderman_strictness_scores_disaggregated.csv | ../input
 	ln -sf $< $@
 
 include ../../generic.make
