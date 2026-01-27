@@ -1,0 +1,35 @@
+% ==============================================================================
+% APPENDIX: STRICTNESS SCORE VALIDATION
+% Contains slides validating the aldermanic strictness score construction
+% ==============================================================================
+
+% ==============================================================================
+% Within-Ward Variation (Alderman Turnover)
+% ==============================================================================
+
+\begin{frame}[label=score-validation]
+    \frametitle{Predecessor-Successor Score Correlation}
+    \begin{center}
+    \includegraphics[width=0.7\textwidth,height=0.7\textheight,keepaspectratio]{../tasks/within_ward_strictness/output/predecessor_successor_scatter.pdf}
+    \end{center}
+    
+    \small
+    Ward FEs explain only 17\% of strictness score variance. \\
+    Predecessor-successor correlation: $\rho = -0.38$ (scores do not persist across turnovers).
+    
+    \vfill\hfill \hyperlink{score-validation}{\beamerreturnbutton{Back}}
+\end{frame}
+
+% ==============================================================================
+% Stage 1 Residualization Regression
+% ==============================================================================
+\begin{frame}[label=score-regression]
+    \frametitle{Permit Processing Time Residualization}
+    \begin{center}
+    \tiny
+    \input{../tasks/create_alderman_strictness_scores/output/stage1_residualization_models.tex}
+    \end{center}
+    \vspace{-.1em}
+    
+    \vfill\hfill \hyperlink{strictness-main}{\beamerreturnbutton{Back}}
+\end{frame}

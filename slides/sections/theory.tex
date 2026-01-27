@@ -1,0 +1,60 @@
+% ==============================================================================
+% SLIDE 7: TOY MODEL - SETUP
+% ==============================================================================
+\begin{frame}
+	\frametitle{A Toy Model of Aldermanic Behavior}
+	\small
+	Adapts \cite{bordeu_commuting_2025} framework for infrastructure misallocation
+	
+	\vspace{0.5em}
+	\textbf{Setup:} City divided into wards; total housing $H = \sum_g h_g$
+	
+	\vspace{0.5em}
+	\begin{itemize}
+		\item $A(H)$: \textbf{Citywide benefits} of housing --- tax revenue, affordability, agglomeration
+		\begin{itemize}
+			\item \textit{Diffuse}: shared across the whole city
+			\item $A'(H) > 0$, $A''(H) < 0$
+		\end{itemize}
+		\vspace{0.3em}
+		\item $C(h_g)$: \textbf{Local congestion costs} --- traffic, parking, neighborhood character
+		\begin{itemize}
+			\item \textit{Concentrated}: borne by ward $g$ where construction occurs
+			\item $C'(h) > 0$, $C''(h) > 0$
+		\end{itemize}
+		\vspace{0.3em}
+		\item $\lambda \in (0,1)$: Fraction of citywide benefits the alderman internalizes
+	\end{itemize}
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE 8: TOY MODEL - UNDERPROVISION AND PREDICTIONS
+% ==============================================================================
+\begin{frame}
+	\frametitle{Under-Provision and Testable Predictions}
+	\small
+	\textbf{Alderman} maximizes: $V = \lambda A(H) - C(h)$ \quad $\Rightarrow$ FOC: $\lambda A'(H) = C'(h)$
+	
+	\vspace{0.3em}
+	\textbf{Planner} maximizes: $W = A(H) - C(h)$ \quad $\Rightarrow$ FOC: $A'(H) = C'(h)$
+	
+	\vspace{0.5em}
+	Since $\lambda < 1$: \quad $\boxed{h^{\text{decentralized}} < h^{\text{planner}}}$
+	
+	\vspace{0.3em}
+	\textit{Intuition}: Alderman stops building when local costs outweigh \textit{their share} of benefits
+	
+	\vspace{0.5em}
+	\textbf{Comparative statics:}
+	\begin{itemize}
+		\item $\partial h^* / \partial \lambda > 0$ \quad (more internalization $\rightarrow$ more housing)
+	\end{itemize}
+	
+	\vspace{0.3em}
+	\textbf{Testable predictions:}
+	\begin{enumerate}
+		\item Stricter aldermen (low $\lambda$, as proxied by permit processing times) $\rightarrow$ lower density
+		\item Lower density $\rightarrow$ higher rents and home prices
+	\end{enumerate}
+\end{frame}

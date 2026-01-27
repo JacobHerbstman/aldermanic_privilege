@@ -1,0 +1,220 @@
+% ==============================================================================
+% EVENT STUDY SECTION
+% Slides: From supply to prices, ID strategy, Data, Results
+% ==============================================================================
+
+% ==============================================================================
+% SLIDE: FROM SUPPLY TO PRICES
+% ==============================================================================
+\begin{frame}
+    \frametitle{From Density to Prices}
+    
+    \textbf{So far}: Stricter aldermen $\rightarrow$ lower multifamily density
+    
+    \vspace{0.5em}
+    \textbf{Next question}: Does restricted supply affect housing costs?
+    
+    \vspace{0.5em}
+    Exploit redistricting as natural experiment
+    \begin{itemize}
+        \item Ward boundaries redrawn after each decennial census (2015, 2023)
+        \item Some census blocks reassigned to a new alderman while neighboring blocks do not
+        \item Compare prices before vs.\ after reassignment
+    \end{itemize}
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE: EVENT STUDY DESIGN
+% ==============================================================================
+\begin{frame}
+    \frametitle{Event Study Design}
+    
+    \textbf{Intuition}: When a block switches from lenient $\rightarrow$ strict alderman, \\
+    \hspace{4em} expected future supply $\downarrow$ $\Rightarrow$ prices should $\uparrow$
+    
+    \vspace{0.5em}
+    \textbf{Specification}:
+    \[
+    \ln(P_{it}) = \sum_{\tau \neq -1} \beta_\tau \cdot \mathbf{1}[t = \tau] \cdot \Delta\text{Strictness}_i + X_{it}'\gamma + \alpha_{ps} + \lambda_{pt} + \varepsilon_{it}
+    \]
+    
+    \vspace{-0.3em}
+    \begin{itemize}
+        \item $\Delta\text{Strictness}_i = \text{Strictness}_{\text{dest}} - \text{Strictness}_{\text{origin}}$ 
+        \item $X_{it}$: Hedonic controls (sqft, beds, baths, building type/age)
+        \item $\alpha_{ps}$: Border-pair $\times$ origin-side FE
+        \item $\lambda_{pt}$: Border-pair $\times$ year FE
+    \end{itemize}
+    
+    \vspace{0.5em}
+    \textbf{Key assumption}: Parallel trends within each border-pair $\times$ side cell
+    
+    \vspace{0.3em}
+    \small
+    Sample: Within 1,000 ft of boundaries; triangular weights $w_i = 1 - \frac{d_i}{1000}$; SEs clustered by block
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE: IDENTIFICATION EXAMPLE
+% ==============================================================================
+\begin{frame}
+    \frametitle{Identification: Example from Wards 13 \& 23}
+    
+    \begin{figure}
+        \centering
+        \includegraphics[width=1.1\textwidth,height=0.70\textheight,keepaspectratio]{../tasks/event_study_sales_diagnostics/output/ward_pair_before_after_13-23.pdf}
+    \end{figure}
+    
+    \vspace{-0.5em}
+    \small
+    Blocks reassigned between wards with different strictness scores provide identifying variation.
+    \hfill
+    \hyperlink{treatment-maps}{\beamergotobutton{Citywide Maps}}
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE: EVENT STUDY DATA
+% ==============================================================================
+\begin{frame}[label=event-data]
+    \frametitle{Event Study Data}
+    
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+    \textbf{Rental Listings}
+    \begin{itemize}
+        \item Scraped rental listings from Renthub, 2014-2025
+        \item Asking rents
+        \item \textbf{Stacked design}: 2015 + 2023 cohorts (implementation date)
+        \item N $\approx$ 3.9 million near borders
+    \end{itemize}
+    \end{column}
+    
+    \begin{column}{0.48\textwidth}
+    \textbf{Home Sales}
+    \begin{itemize}
+        \item Cook County Assessor Data from Illinois Department of Revenue, 2007-2025
+        \item Arms-length transactions only
+        \item \textbf{Stacked design}: 2012 + 2022 cohorts (announcement date)
+        \item N $\approx$ 78,000 near borders
+    \end{itemize}
+    \end{column}
+    \end{columns}
+    
+    \vspace{0.5em}
+    \textbf{Sample}: Transactions/listings within 1,000 ft of ward boundaries
+    
+    \vfill\hfill
+    \hyperlink{treatment-details}{\beamergotobutton{Full Treatment \& Control Details}}
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE: RENT RESULTS - CONTINUOUS AND BINARY
+% ==============================================================================
+\begin{frame}[label=rent-main]
+    \frametitle{Effect on Log(Rents)}
+    
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Aggregate Treatment Effect}
+        \begin{figure}
+            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_short.pdf}
+        \end{figure}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Stricter vs. Lenient}
+        \begin{figure}
+            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_split_triangular_1000ft_short.pdf}
+        \end{figure}
+    \end{column}
+    \end{columns}
+    
+    \vspace{0.2em}
+    \small
+    5\% rent increase two years after implementation \\
+    Binary split confirms: stricter $\rightarrow$ rents rise; lenient $\rightarrow$ rents fall.
+    
+    \vfill\hfill
+    \hyperlink{rent-bw500}{\beamergotobutton{500ft}}
+    \hspace{0.2em}
+    \hyperlink{rent-no-hedonics}{\beamergotobutton{No Controls}}
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE: HOME PRICE RESULTS - CONTINUOUS AND BINARY
+% ==============================================================================
+\begin{frame}[label=price-main]
+    \frametitle{Effect on Log(Home Prices)}
+    
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Aggregate Treatment Effect}
+        \begin{figure}
+            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_stacked_announcement_continuous_triangular_1000ft.pdf}
+        \end{figure}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Stricter vs. Lenient}
+        \begin{figure}
+            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_stacked_announcement_continuous_split_triangular_1000ft.pdf}
+        \end{figure}
+    \end{column}
+    \end{columns}
+    
+    \vspace{0.2em}
+    \small
+    Home prices show consistent but more muted patterns: $\sim$2\% increase five years after announcement \\
+    
+    \vfill\hfill
+    \hyperlink{price-no-hedonics}{\beamergotobutton{No Controls}}
+    \hspace{0.2em}
+    \hyperlink{price-balance}{\beamergotobutton{Covariate Balance}}
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE: EVENT STUDY RESULTS - MAGNITUDES (DiD Tables)
+% ==============================================================================
+\begin{frame}
+    \frametitle{Difference-in-Differences Estimates}
+    
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+    \centering
+    \textbf{Log(Rents)}
+    \scriptsize
+    \input{../tasks/run_event_study_rental_disaggregate/output/did_table_rental_clean.tex}
+    \normalsize
+    
+    \vspace{0.5em}
+    $\Rightarrow$ 1 SD $\uparrow$ strictness \\
+    $\approx$ 3-5\% $\uparrow$ in rents
+    \end{column}
+    
+    \begin{column}{0.48\textwidth}
+    \centering
+    \textbf{Log(Home Prices)}
+    \scriptsize
+    \input{../tasks/run_event_study_sales_disaggregate/output/did_table_sales_clean.tex}
+    \normalsize
+    
+    \vspace{0.5em}
+    $\Rightarrow$ 1 SD $\uparrow$ strictness \\
+    $\approx$ 1.3\% $\uparrow$ in prices
+    \end{column}
+    \end{columns}
+    
+    \vspace{0.5em}
+    \small
+    Border-pair $\times$ side FE and border-pair $\times$ year FE. Triangular kernel, 1000 ft bandwidth.
+    
+    \hfill \hyperlink{price-balance}{\beamergotobutton{Covariate Balance}}
+\end{frame}
