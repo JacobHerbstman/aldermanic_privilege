@@ -28,7 +28,7 @@ $(foreach bw,$(BWS_FT),$(eval $(call VAL_template,$(bw))))
 
 
 # --- Link input from upstream task ---
-$(INPUT_PARCELS): ../../calculate_ward_boundary_distances/output/parcels_with_ward_distances.csv | ../input
+$(INPUT_PARCELS): ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@echo "→ [Validation Checks] Linking input: $@ ← $<"
 	ln -sf "$<" "$@"
 

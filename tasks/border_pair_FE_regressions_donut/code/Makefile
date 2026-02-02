@@ -18,7 +18,7 @@ define FE_template
 endef
 $(foreach bw,$(BWS_FT),$(foreach donut,$(DONUTS_FT),$(eval $(call FE_template,$(bw),$(donut)))))
 
-../input/parcels_with_ward_distances.csv: ../../calculate_ward_boundary_distances/output/parcels_with_ward_distances.csv | ../input
+../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	ln -sf $< $@
 
 include ../../generic.make

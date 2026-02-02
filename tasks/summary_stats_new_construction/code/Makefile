@@ -15,7 +15,7 @@ $(OUTPUT_FILE): $(SCRIPT_FILE) $(INPUT_PARCELS) | ../output
 	Rscript $(SCRIPT_FILE) $(INPUT_PARCELS) $(OUTPUT_FILE)
 
 # --- Link input from upstream task ---
-$(INPUT_PARCELS): ../../calculate_ward_boundary_distances/output/parcels_with_ward_distances.csv | ../input
+$(INPUT_PARCELS): ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@echo "→ [Summary Stats] Linking input: $@ ← $<"
 	ln -sf "$<" "$@"
 

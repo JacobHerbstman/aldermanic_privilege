@@ -1,9 +1,9 @@
 SHELL := bash
 include ../../shell_functions.make
 
-all: ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.gpkg
+all: ../output/parcels_pre_scores.csv ../output/parcels_with_geometry.gpkg
 
-../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.gpkg: calculate_distances.R ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/aldermen_strictness_scores.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/zoning_data_clean.gpkg ../input/cta_stops.gpkg ../input/major_streets.gpkg ../input/parks.gpkg ../input/schools_2015.gpkg | ../output
+../output/parcels_pre_scores.csv ../output/parcels_with_geometry.gpkg: calculate_distances.R ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/zoning_data_clean.gpkg ../input/cta_stops.gpkg ../input/major_streets.gpkg ../input/parks.gpkg ../input/schools_2015.gpkg | ../output
 	$(R) calculate_distances.R
 
 ../input/geocoded_residential_data.gpkg: ../../geocode_ccao_data/output/geocoded_residential_data.gpkg | ../input
@@ -13,9 +13,6 @@ all: ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.g
 	ln -sf $< $@
 
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
-	ln -sf $< $@
-
-../input/aldermen_strictness_scores.csv: ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
 	ln -sf $< $@
 
 ../input/ward_controls.csv: ../../create_ward_controls/output/ward_controls_2000_2023.csv | ../input
@@ -41,4 +38,4 @@ all: ../output/parcels_with_ward_distances.csv ../output/parcels_with_geometry.g
 
 include ../../generic.make
 
-link-inputs: ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/aldermen_strictness_scores.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/zoning_data_clean.gpkg ../input/cta_stops.gpkg ../input/major_streets.gpkg ../input/parks.gpkg ../input/schools_2015.gpkg
+link-inputs: ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/zoning_data_clean.gpkg ../input/cta_stops.gpkg ../input/major_streets.gpkg ../input/parks.gpkg ../input/schools_2015.gpkg

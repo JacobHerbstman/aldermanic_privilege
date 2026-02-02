@@ -29,9 +29,6 @@ alderman_panel <- read_csv("../input/chicago_alderman_panel.csv")
 cat("Loading ward controls (homeownership rates)...\n")
 ward_controls <- read_csv("../input/ward_controls.csv")
 
-cat("Loading alderman strictness scores...\n")
-alderman_scores <- read_csv("../input/aldermen_strictness_scores.csv")
-
 cat("Loading block group controls...\n")
 bg_controls <- read_csv("../input/block_group_controls.csv", show_col_types = FALSE)
 
@@ -451,23 +448,9 @@ final_dataset_signed <- final_dataset %>%
   # --- JOIN 3: Neighbor Alderman ---
   left_join(alderman_lookup, by = c("other_ward" = "ward", "yearmon_key")) %>%
   rename(alderman_neighbor = alderman.y, alderman_own = alderman.x) %>%
-  # --- JOIN 4: Strictness Scores ---
-  left_join(alderman_scores, by = c("alderman_own" = "alderman")) %>%
-  rename(strictness_own = strictness_index) %>%
-  left_join(alderman_scores, by = c("alderman_neighbor" = "alderman")) %>%
-  rename(strictness_neighbor = strictness_index) %>%
-  # Now you have variables like: strictness_own, strictness_neighbor
-  mutate(
-    sign = case_when(
-      strictness_own > strictness_neighbor ~ 1,
-      strictness_own < strictness_neighbor ~ -1,
-      TRUE ~ NA_real_
-    ),
-    signed_distance = dist_to_boundary * sign
-  ) %>%
-  filter(!is.na(signed_distance)) %>%
+  # NOTE: Score merging moved to merge_in_scores task for faster iteration
   dplyr::select(-contains("wards_in_pair"), -match_year) %>%
-  # --- JOIN 5: Block Group Demographics ---
+  # --- JOIN 4: Block Group Demographics ---
   # Merge block group-level demographics by GEOID and construction_year
   # Ensure GEOID is character type in both datasets
   left_join(
@@ -484,12 +467,12 @@ cat(sprintf(
 ))
 
 # -----------------------------------------------------------------------------
-# 10. SAVE OUTPUT
+# 10. SAVE OUTPUT (Pre-scores - unsigned distances)
 # -----------------------------------------------------------------------------
 
-cat("Saving output...\n")
+cat("Saving output (pre-scores, unsigned)...\n")
 
-write_csv(final_dataset_signed, "../output/parcels_with_ward_distances.csv")
+write_csv(final_dataset_signed, "../output/parcels_pre_scores.csv")
 
 summary_stats <- final_dataset_signed %>%
   summarise(
@@ -497,8 +480,8 @@ summary_stats <- final_dataset_signed %>%
     n_wards = n_distinct(ward),
     n_ward_pairs = n_distinct(ward_pair, na.rm = TRUE),
     n_aldermen = n_distinct(alderman_own, na.rm = TRUE),
-    mean_dist_to_boundary = mean(signed_distance, na.rm = TRUE),
-    median_dist_to_boundary = median(signed_distance, na.rm = TRUE),
+    mean_dist_to_boundary = mean(dist_to_boundary, na.rm = TRUE),
+    median_dist_to_boundary = median(dist_to_boundary, na.rm = TRUE),
     .by = c(boundary_year, construction_year)
   ) %>%
   arrange(construction_year)
