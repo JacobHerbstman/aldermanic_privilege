@@ -118,7 +118,7 @@ covariates <- c(
   "homeownership_rate", "share_bach_plus", "pop_total",
 
   # Legacy place controls from ward geometry (map-version specific)
-  "dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m",
+  "dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m"
 )
 
 # Fixed effects (conditional)
