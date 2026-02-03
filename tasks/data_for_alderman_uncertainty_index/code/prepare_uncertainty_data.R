@@ -1,5 +1,6 @@
 ## Prepare permit-level dataset for alderman uncertainty index
-## This script merges permits with ward, alderman, demographic, and parcel proximity data
+## This script merges permits with ward, alderman, demographics, and hand-built
+## ward-level place controls (legacy-style, no parcel proximity dependency).
 
 source("../../setup_environment/code/packages.R")
 
@@ -28,38 +29,25 @@ alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types
 # Ward-level demographics
 ward_controls <- read_csv("../input/ward_controls.csv", show_col_types = FALSE)
 
-# Parcel proximity data (large file - read only needed columns)
-message("Loading parcel proximity data (this may take a moment)...")
-proximity_cols <- c(
-  "pin10",
-  # Transit
-  "nearest_cta_stop_dist_ft", "nearest_metra_stop_dist_ft", "num_bus_stop_in_half_mile",
-  # Amenities
-  "lake_michigan_dist_ft", "nearest_park_dist_ft", "num_school_in_half_mile",
-  # Disamenities
-  "airport_dnl_total", "nearest_railroad_dist_ft", "num_foreclosure_in_half_mile_past_5_years",
-  # Density
-  "num_pin_in_half_mile"
-)
-
-parcel_proximity <- read_csv(
-  "../input/parcel_proximity.csv",
-  col_select = all_of(proximity_cols),
-  show_col_types = FALSE
-) %>%
-  # Keep only latest year per PIN (deduplicate)
-  group_by(pin10) %>%
-  slice_tail(n = 1) %>%
-  ungroup()
-
-message("Parcel proximity: ", nrow(parcel_proximity), " unique PINs")
-
 # Community areas (for CA fixed effects)
 community_areas <- st_read("../input/community_areas.geojson", quiet = TRUE) %>%
   select(area_numbe, community) %>%
   rename(ca_id = area_numbe, ca_name = community)
 
 message("Community areas loaded: ", nrow(community_areas), " areas")
+
+# Helper to read and transform to ward CRS
+read_to_ward_crs <- function(path) {
+  obj <- st_read(path, quiet = TRUE)
+  if (st_crs(obj) != st_crs(ward_panel)) obj <- st_transform(obj, st_crs(ward_panel))
+  obj
+}
+
+# Legacy place-control layers used in strictness-score task
+cta_stations <- read_to_ward_crs("../input/cta_stations.geojson")
+city_boundary <- read_to_ward_crs("../input/city_boundary.geojson")
+water_osm <- read_to_ward_crs("../input/gis_osm_water_a_free_1.shp")
+message("Legacy place layers loaded (CTA, city boundary, water).")
 
 # Ensure CRS alignment
 if (st_crs(permits) != st_crs(ward_panel)) {
@@ -149,6 +137,22 @@ assign_ward_by_month <- function(permits_data) {
 permits_ward_data <- assign_ward_by_month(permits_high_discretion)
 message("Permits after spatial join: ", nrow(permits_ward_data))
 
+# Ensure map_version is always populated by month-era rule (legacy behavior)
+permits_ward_data <- permits_ward_data %>%
+  mutate(
+    map_version = coalesce(
+      as.integer(map_version),
+      case_when(
+        application_start_date_ym < as.yearmon("2015-05") ~ 1L,
+        application_start_date_ym < as.yearmon("2023-05") ~ 2L,
+        TRUE ~ 3L
+      )
+    )
+  )
+message("Permits with map_version: ",
+        sum(!is.na(permits_ward_data$map_version)),
+        " (", round(mean(!is.na(permits_ward_data$map_version)) * 100, 1), "%)")
+
 # -----------------------------------------------------------------------------
 # 3b. SPATIAL JOIN PERMITS TO COMMUNITY AREAS
 # -----------------------------------------------------------------------------
@@ -212,24 +216,86 @@ permits_with_controls <- permits_with_alderman %>%
 message("Permits with ward controls: ", sum(!is.na(permits_with_controls$homeownership_rate)))
 
 # -----------------------------------------------------------------------------
-# 6. MERGE PARCEL PROXIMITY BY PIN
+# 6. BUILD + MERGE LEGACY PLACE CONTROLS (WARD x MAP VERSION)
 # -----------------------------------------------------------------------------
 
-message("Merging parcel proximity by PIN...")
+message("Building legacy place controls from ward geometries...")
 
-# Check PIN availability before merge
-n_with_pin <- sum(!is.na(permits_with_controls$pin))
-message("Permits with PIN before merge: ", n_with_pin, 
-        " (", round(n_with_pin / nrow(permits_with_controls) * 100, 1), "%)")
+# Keep legacy values exactly as in strictness task (CRS units are US survey feet)
+ward_geoms_map1 <- st_make_valid(ward_geoms_map1)
+ward_geoms_map2 <- st_make_valid(ward_geoms_map2)
+ward_geoms_map3 <- st_make_valid(ward_geoms_map3)
 
-# Left join to keep all permits (NAs for missing PINs)
-permits_with_proximity <- permits_with_controls %>%
-  left_join(parcel_proximity, by = c("pin" = "pin10"))
+# Distance to CBD (km from ward centroid)
+cbd <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>%
+  st_transform(st_crs(ward_panel))
 
-# Check merge success
-n_with_proximity <- sum(!is.na(permits_with_proximity$nearest_cta_stop_dist_ft))
-message("Permits with proximity data after merge: ", n_with_proximity,
-        " (", round(n_with_proximity / nrow(permits_with_proximity) * 100, 1), "%)")
+dist_feat <- function(ward_sf, ver) {
+  cent <- st_centroid(ward_sf)
+  tibble(
+    ward = ward_sf$ward,
+    map_version = ver,
+    dist_cbd_km = as.numeric(units::set_units(st_distance(cent, cbd), "km"))
+  )
+}
+
+# CTA stations near ward polygon (legacy threshold value)
+cta_feat <- function(ward_sf, ver) {
+  idx <- st_is_within_distance(ward_sf, cta_stations, dist = 800)
+  tibble(
+    ward = ward_sf$ward,
+    map_version = ver,
+    n_rail_stations_800m = lengths(idx)
+  )
+}
+
+# Lakefront share within legacy buffer construction
+lake_poly <- water_osm %>%
+  filter(!is.na(name) & tolower(name) == "lake michigan")
+city_buf2km <- st_buffer(st_make_valid(city_boundary), 2000)
+lake_near <- suppressWarnings(st_intersection(st_make_valid(lake_poly), city_buf2km))
+lake_1km <- st_buffer(lake_near, 1000)
+
+lake_feat <- function(ward_sf, ver) {
+  ward_sf <- st_make_valid(ward_sf)
+  inter <- suppressWarnings(st_intersection(ward_sf, lake_1km))
+  share <- rep(0, nrow(ward_sf))
+  if (nrow(inter) > 0) {
+    tmp <- inter %>%
+      mutate(a = as.numeric(st_area(inter))) %>%
+      st_drop_geometry() %>%
+      group_by(ward) %>%
+      summarise(a_sum = sum(a), .groups = "drop")
+    share[match(tmp$ward, ward_sf$ward)] <- tmp$a_sum
+  }
+  tibble(
+    ward = ward_sf$ward,
+    map_version = ver,
+    lakefront_share_1km = pmin(1, pmax(0, share / as.numeric(st_area(ward_sf))))
+  )
+}
+
+place_controls <- bind_rows(
+  left_join(dist_feat(ward_geoms_map1, 1), cta_feat(ward_geoms_map1, 1), by = c("ward", "map_version")) %>%
+    left_join(lake_feat(ward_geoms_map1, 1), by = c("ward", "map_version")),
+  left_join(dist_feat(ward_geoms_map2, 2), cta_feat(ward_geoms_map2, 2), by = c("ward", "map_version")) %>%
+    left_join(lake_feat(ward_geoms_map2, 2), by = c("ward", "map_version")),
+  left_join(dist_feat(ward_geoms_map3, 3), cta_feat(ward_geoms_map3, 3), by = c("ward", "map_version")) %>%
+    left_join(lake_feat(ward_geoms_map3, 3), by = c("ward", "map_version"))
+)
+
+permits_with_controls <- permits_with_controls %>%
+  left_join(place_controls, by = c("ward", "map_version"))
+
+message("Permits with dist_cbd_km: ",
+        sum(!is.na(permits_with_controls$dist_cbd_km)),
+        " (", round(mean(!is.na(permits_with_controls$dist_cbd_km)) * 100, 1), "%)")
+message("Permits with lakefront_share_1km: ",
+        sum(!is.na(permits_with_controls$lakefront_share_1km)),
+        " (", round(mean(!is.na(permits_with_controls$lakefront_share_1km)) * 100, 1), "%)")
+message("Permits with n_rail_stations_800m: ",
+        sum(!is.na(permits_with_controls$n_rail_stations_800m)),
+        " (", round(mean(!is.na(permits_with_controls$n_rail_stations_800m)) * 100, 1), "%)")
 
 # -----------------------------------------------------------------------------
 # 7. CREATE ANALYSIS VARIABLES
@@ -237,7 +303,7 @@ message("Permits with proximity data after merge: ", n_with_proximity,
 
 message("Creating analysis variables...")
 
-permits_analysis <- permits_with_proximity %>%
+permits_analysis <- permits_with_controls %>%
   mutate(
     # Time variables
     month = application_start_date_ym,
@@ -296,17 +362,8 @@ output_data <- permits_analysis %>%
     pop_total, median_hh_income, share_black, share_hisp, share_white,
     homeownership_rate, share_bach_plus,
     
-    # Parcel proximity - Transit
-    nearest_cta_stop_dist_ft, nearest_metra_stop_dist_ft, num_bus_stop_in_half_mile,
-    
-    # Parcel proximity - Amenities
-    lake_michigan_dist_ft, nearest_park_dist_ft, num_school_in_half_mile,
-    
-    # Parcel proximity - Disamenities
-    airport_dnl_total, nearest_railroad_dist_ft, num_foreclosure_in_half_mile_past_5_years,
-    
-    # Parcel proximity - Density
-    num_pin_in_half_mile,
+    # Legacy place controls (ward-level, map-version specific)
+    dist_cbd_km, lakefront_share_1km, n_rail_stations_800m,
     
     # Metadata
     map_version

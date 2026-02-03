@@ -8,8 +8,10 @@ all: ../output/permits_for_uncertainty_index.csv
 	../input/building_permits_clean.gpkg \
 	../input/chicago_alderman_panel.csv \
 	../input/ward_controls.csv \
-	../input/parcel_proximity.csv \
-	../input/community_areas.geojson | ../output
+	../input/community_areas.geojson \
+	../input/cta_stations.geojson \
+	../input/city_boundary.geojson \
+	../input/gis_osm_water_a_free_1.shp | ../output
 	$(R) $<
 
 # Symlinks to upstream data
@@ -25,13 +27,18 @@ all: ../output/permits_for_uncertainty_index.csv
 ../input/ward_controls.csv: ../../create_ward_controls/output/ward_controls_2000_2023.csv | ../input
 	ln -sf $< $@
 
-../input/parcel_proximity.csv: ../../../data_raw/Assessor_-_Parcel_Proximity_20251007.csv | ../input
-	ln -sf $< $@
-
 ../input/community_areas.geojson: ../../../data_raw/Boundaries_-_Community_Areas_20250920.geojson | ../input
 	ln -sf $< $@
 
+../input/cta_stations.geojson: ../../../data_raw/cta_stations.geojson | ../input
+	ln -sf $< $@
+
+../input/city_boundary.geojson: ../../../data_raw/Boundaries_-_City_20250920.geojson | ../input
+	ln -sf $< $@
+
+../input/gis_osm_water_a_free_1.shp: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shp | ../input
+	ln -sf ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.* $(dir $@)
+
 include ../../generic.make
 
-link-inputs: ../input/ward_panel.gpkg ../input/building_permits_clean.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/parcel_proximity.csv ../input/community_areas.geojson
-
+link-inputs: ../input/ward_panel.gpkg ../input/building_permits_clean.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/community_areas.geojson ../input/cta_stations.geojson ../input/city_boundary.geojson ../input/gis_osm_water_a_free_1.shp

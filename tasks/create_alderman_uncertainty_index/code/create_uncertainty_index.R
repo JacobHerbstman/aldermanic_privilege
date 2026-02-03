@@ -10,11 +10,11 @@ library(fixest)
 # -----------------------------------------------------------------------------
 # ARGUMENTS FOR MANUAL TESTING (uncomment when running make)
 # -----------------------------------------------------------------------------
-PERMIT_TYPE_FE <- FALSE
-REVIEW_TYPE_FE <- TRUE
-INCLUDE_PORCH <- TRUE
-CA_FE <- TRUE
-TWO_STAGE <- TRUE
+# PERMIT_TYPE_FE <- FALSE
+# REVIEW_TYPE_FE <- TRUE
+# INCLUDE_PORCH <- TRUE
+# CA_FE <- TRUE
+# TWO_STAGE <- TRUE
 
 # -----------------------------------------------------------------------------
 # PARSE COMMAND LINE ARGUMENTS
@@ -111,27 +111,14 @@ message("  Permits after: ", n_after)
 # BUILD REGRESSION FORMULA
 # -----------------------------------------------------------------------------
 
-# Covariates (ward demographics + proximity controls + permit cost)
+# Covariates (ward demographics + place controls)
 covariates <- c(
   # Ward demographics
   "median_hh_income", "share_black", "share_hisp", "share_white",
   "homeownership_rate", "share_bach_plus", "pop_total",
-  
-  # Parcel proximity - Transit
-  "nearest_cta_stop_dist_ft",
-  
-  # Parcel proximity - Amenities
-  "lake_michigan_dist_ft", "nearest_park_dist_ft", "num_school_in_half_mile"
-  
-  # Parcel proximity - Disamenities
-  # "airport_dnl_total", "nearest_railroad_dist_ft", 
-  # "num_foreclosure_in_half_mile_past_5_years", "nearest_metra_stop_dist_ft", "num_bus_stop_in_half_mile",
-  
-  # Parcel proximity - Density
-  # "num_pin_in_half_mile",
-  
-  # Permit cost
-  # "log_reported_cost"
+
+  # Legacy place controls from ward geometry (map-version specific)
+  "dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m",
 )
 
 # Fixed effects (conditional)
@@ -217,7 +204,6 @@ permits_for_reg <- permits_complete %>%
   mutate(.row_idx = row_number()) %>%
   # First filter infinite values in log columns
   filter(is.finite(log_processing_time)) %>%
-  filter(is.finite(log_reported_cost) | is.na(log_reported_cost)) %>%
   # Then filter complete cases for the subset of columns that exist
   filter(if_all(all_of(required_cols[required_cols %in% names(.)]), 
                 ~ !is.na(.) & is.finite(.)))
@@ -300,7 +286,7 @@ if (TWO_STAGE) {
     mean_resid_wm ~ i(alderman, ref = ref_alderman),
     data = ward_month_resid,
     weights = ~n_permits_wm,
-    vcov = ~ward + month,  # Cluster by ward and month
+    vcov = ~ward,  # Cluster by ward and month
     warn = FALSE
   )
 
@@ -481,17 +467,9 @@ etable(
     homeownership_rate = "Homeownership Rate",
     share_bach_plus = "Share Bachelor's+",
     pop_total = "Population",
-    nearest_cta_stop_dist_ft = "Dist. to CTA (ft)",
-    nearest_metra_stop_dist_ft = "Dist. to Metra (ft)",
-    num_bus_stop_in_half_mile = "Bus Stops (0.5 mi)",
-    lake_michigan_dist_ft = "Dist. to Lake (ft)",
-    nearest_park_dist_ft = "Dist. to Park (ft)",
-    num_school_in_half_mile = "Schools (0.5 mi)",
-    airport_dnl_total = "Airport Noise (DNL)",
-    nearest_railroad_dist_ft = "Dist. to Railroad (ft)",
-    num_foreclosure_in_half_mile_past_5_years = "Foreclosures (0.5 mi, 5yr)",
-    num_pin_in_half_mile = "Properties (0.5 mi)",
-    log_reported_cost = "Log Reported Cost"
+    dist_cbd_km = "Dist. to CBD (km)",
+    lakefront_share_1km = "Lakefront Share (legacy)",
+    n_rail_stations_800m = "CTA Stations (legacy 800)"
   ),
   fixef.group = list(
     "Month FE" = "month",
@@ -568,4 +546,3 @@ message("Output file: ", output_file)
 message("Aldermen: ", nrow(alderman_index))
 message("Plot saved: 1")
 message("Stage 1 table saved: 1")
-
