@@ -1,11 +1,20 @@
 ## Create Alderman Uncertainty Index
 ## This script runs permit-level residualization and computes alderman-level moments
 ## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_uncertainty_index/code")
 
 source("../../setup_environment/code/packages.R")
 library(optparse)
 library(fixest)
+
+# -----------------------------------------------------------------------------
+# ARGUMENTS FOR MANUAL TESTING (uncomment when running make)
+# -----------------------------------------------------------------------------
+PERMIT_TYPE_FE <- FALSE
+REVIEW_TYPE_FE <- TRUE
+INCLUDE_PORCH <- TRUE
+CA_FE <- TRUE
+TWO_STAGE <- TRUE
 
 # -----------------------------------------------------------------------------
 # PARSE COMMAND LINE ARGUMENTS
@@ -109,19 +118,20 @@ covariates <- c(
   "homeownership_rate", "share_bach_plus", "pop_total",
   
   # Parcel proximity - Transit
-  "nearest_cta_stop_dist_ft", "nearest_metra_stop_dist_ft", "num_bus_stop_in_half_mile",
+  "nearest_cta_stop_dist_ft",
   
   # Parcel proximity - Amenities
-  "lake_michigan_dist_ft", "nearest_park_dist_ft", "num_school_in_half_mile",
+  "lake_michigan_dist_ft", "nearest_park_dist_ft", "num_school_in_half_mile"
   
   # Parcel proximity - Disamenities
-  "airport_dnl_total", "nearest_railroad_dist_ft", "num_foreclosure_in_half_mile_past_5_years",
+  # "airport_dnl_total", "nearest_railroad_dist_ft", 
+  # "num_foreclosure_in_half_mile_past_5_years", "nearest_metra_stop_dist_ft", "num_bus_stop_in_half_mile",
   
   # Parcel proximity - Density
-  "num_pin_in_half_mile",
+  # "num_pin_in_half_mile",
   
   # Permit cost
-  "log_reported_cost"
+  # "log_reported_cost"
 )
 
 # Fixed effects (conditional)

@@ -14,7 +14,7 @@ include ../../shell_functions.make
 
 PERMIT_TYPE_FE ?= FALSE
 REVIEW_TYPE_FE ?= TRUE
-INCLUDE_PORCH  ?= TRUE
+INCLUDE_PORCH  ?= TRUE FALSE
 CA_FE          ?= TRUE
 TWO_STAGE      ?= TRUE
 
