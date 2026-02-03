@@ -6,13 +6,13 @@ include ../../shell_functions.make
 # ─────────────────────────────────────────────────────────────────────────────
 
 FREQUENCIES       := yearly
-STACKINGS         := FALSE
+STACKINGS         := TRUE 
 TREATMENT_TYPES   := continuous continuous_split
 INCLUDE_CONTROLS  := TRUE FALSE
-WEIGHTINGS        := triangular
+WEIGHTINGS        := triangular uniform
 BANDWIDTHS        := 1000
 SAMPLE_FILTERS    := full_sample
-POST_WINDOWS      := short
+POST_WINDOWS      := short full
 
 SCRIPT := run_event_study_disaggregate.R
 

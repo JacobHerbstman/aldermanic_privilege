@@ -1,6 +1,7 @@
 # create_treatment_panel.R
 # Creates master block-level treatment panel for event study analysis
-# Output: block_treatment_panel.csv with ward assignments and predetermined strictness
+# Output: block_treatment_pre_scores.csv with block-to-ward treatment geometry.
+# Score merge happens in merge_event_study_scores.
 
 source("../../setup_environment/code/packages.R")
 
@@ -15,18 +16,12 @@ message("Loading data...")
 # Ward panel
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 
-# Alderman panel and strictness scores
+# Alderman panel
 alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
     mutate(month_date = as.Date(paste("01", month), format = "%d %b %Y")) %>%
     filter(month(month_date) == 6) %>%
     mutate(year = year(month_date)) %>%
     select(year, ward, alderman)
-
-strictness <- read_csv("../input/alderman_restrictiveness_scores_month_FEs.csv", show_col_types = FALSE) %>%
-    select(alderman, strictness_index)
-
-alderman_scores <- alderman_panel %>%
-    left_join(strictness, by = "alderman")
 
 # 2010 Census blocks (for 2015 cohort)
 message("Loading 2010 census blocks...")
@@ -125,61 +120,7 @@ assignments_2020 <- tibble(block_id = blocks_2020$block_id) %>%
 message(sprintf("  2020 blocks switching in 2023: %d", sum(assignments_2020$switched_2023, na.rm = TRUE)))
 
 # =============================================================================
-# 4. CALCULATE PREDETERMINED STRICTNESS - 2015 COHORT
-# =============================================================================
-message("\nCalculating predetermined strictness for 2015 cohort...")
-
-# Use 2014 strictness for BOTH origin and destination
-strictness_2014 <- alderman_scores %>%
-    filter(year == 2014) %>%
-    select(ward, strictness_index)
-
-treatment_2015 <- assignments_2010 %>%
-    left_join(strictness_2014 %>% rename(strictness_origin_2015 = strictness_index),
-        by = c("ward_pre_2015" = "ward")
-    ) %>%
-    left_join(strictness_2014 %>% rename(strictness_dest_2015 = strictness_index),
-        by = c("ward_post_2015" = "ward")
-    ) %>%
-    mutate(
-        strictness_change_2015 = strictness_dest_2015 - strictness_origin_2015,
-        switch_type_2015 = case_when(
-            is.na(strictness_change_2015) ~ "No Data",
-            strictness_change_2015 > 0 ~ "Moved to Stricter",
-            strictness_change_2015 < 0 ~ "Moved to More Lenient",
-            TRUE ~ "No Change"
-        )
-    )
-
-# =============================================================================
-# 5. CALCULATE PREDETERMINED STRICTNESS - 2023 COHORT
-# =============================================================================
-message("Calculating predetermined strictness for 2023 cohort...")
-
-# Use 2022 strictness for BOTH origin and destination
-strictness_2022 <- alderman_scores %>%
-    filter(year == 2022) %>%
-    select(ward, strictness_index)
-
-treatment_2023 <- assignments_2020 %>%
-    left_join(strictness_2022 %>% rename(strictness_origin_2023 = strictness_index),
-        by = c("ward_post_2015" = "ward")
-    ) %>%
-    left_join(strictness_2022 %>% rename(strictness_dest_2023 = strictness_index),
-        by = c("ward_post_2023" = "ward")
-    ) %>%
-    mutate(
-        strictness_change_2023 = strictness_dest_2023 - strictness_origin_2023,
-        switch_type_2023 = case_when(
-            is.na(strictness_change_2023) ~ "No Data",
-            strictness_change_2023 > 0 ~ "Moved to Stricter",
-            strictness_change_2023 < 0 ~ "Moved to More Lenient",
-            TRUE ~ "No Change"
-        )
-    )
-
-# =============================================================================
-# 6. IDENTIFY WARD TURNOVER (FOR CONTROL GROUP FILTERING)
+# 4. IDENTIFY WARD TURNOVER (FOR CONTROL GROUP FILTERING)
 # =============================================================================
 message("Identifying wards with electoral turnover...")
 
@@ -200,14 +141,14 @@ ward_turnover_2023 <- alderman_panel %>%
     select(ward, ward_had_turnover_2023)
 
 # Add turnover flags and compute valid flags
-treatment_2015 <- treatment_2015 %>%
+treatment_2015 <- assignments_2010 %>%
     left_join(ward_turnover_2015, by = c("ward_pre_2015" = "ward")) %>%
     mutate(
         valid_2015 = switched_2015 | (!switched_2015 & !ward_had_turnover_2015),
         valid_2015 = replace_na(valid_2015, FALSE)
     )
 
-treatment_2023 <- treatment_2023 %>%
+treatment_2023 <- assignments_2020 %>%
     left_join(ward_turnover_2023, by = c("ward_post_2015" = "ward")) %>%
     mutate(
         valid_2023 = switched_2023 | (!switched_2023 & !ward_had_turnover_2023),
@@ -215,9 +156,9 @@ treatment_2023 <- treatment_2023 %>%
     )
 
 # =============================================================================
-# 7. COMBINE AND SAVE
+# 5. COMBINE AND SAVE PRE-SCORES PANEL
 # =============================================================================
-message("\nCombining treatment panels...")
+message("\nCombining treatment panels (pre-scores)...")
 
 # Select columns for 2015 cohort output
 panel_2015 <- treatment_2015 %>%
@@ -225,8 +166,6 @@ panel_2015 <- treatment_2015 %>%
         block_id, block_vintage,
         ward_pre_2015, ward_post_2015,
         switched_2015,
-        strictness_origin_2015, strictness_dest_2015, strictness_change_2015,
-        switch_type_2015,
         ward_had_turnover_2015, valid_2015
     ) %>%
     mutate(cohort = "2015")
@@ -237,8 +176,6 @@ panel_2023 <- treatment_2023 %>%
         block_id, block_vintage,
         ward_post_2015, ward_post_2023,
         switched_2023,
-        strictness_origin_2023, strictness_dest_2023, strictness_change_2023,
-        switch_type_2023,
         ward_had_turnover_2023, valid_2023
     ) %>%
     mutate(cohort = "2023")
@@ -249,10 +186,6 @@ panel_2015_renamed <- panel_2015 %>%
         ward_origin = ward_pre_2015,
         ward_dest = ward_post_2015,
         switched = switched_2015,
-        strictness_origin = strictness_origin_2015,
-        strictness_dest = strictness_dest_2015,
-        strictness_change = strictness_change_2015,
-        switch_type = switch_type_2015,
         ward_had_turnover = ward_had_turnover_2015,
         valid = valid_2015
     )
@@ -262,24 +195,20 @@ panel_2023_renamed <- panel_2023 %>%
         ward_origin = ward_post_2015,
         ward_dest = ward_post_2023,
         switched = switched_2023,
-        strictness_origin = strictness_origin_2023,
-        strictness_dest = strictness_dest_2023,
-        strictness_change = strictness_change_2023,
-        switch_type = switch_type_2023,
         ward_had_turnover = ward_had_turnover_2023,
         valid = valid_2023
     )
 
 # Stack cohorts
-block_treatment_panel <- bind_rows(panel_2015_renamed, panel_2023_renamed)
+block_treatment_pre_scores <- bind_rows(panel_2015_renamed, panel_2023_renamed)
 
 # =============================================================================
-# 8. DIAGNOSTICS
+# 6. DIAGNOSTICS
 # =============================================================================
-message("\n=== TREATMENT PANEL DIAGNOSTICS ===")
+message("\n=== TREATMENT PRE-SCORES DIAGNOSTICS ===")
 
 for (coh in c("2015", "2023")) {
-    cohort_data <- block_treatment_panel %>% filter(cohort == coh)
+    cohort_data <- block_treatment_pre_scores %>% filter(cohort == coh)
 
     n_total <- nrow(cohort_data)
     n_treated <- sum(cohort_data$switched, na.rm = TRUE)
@@ -295,15 +224,15 @@ for (coh in c("2015", "2023")) {
 }
 
 # =============================================================================
-# 9. SAVE OUTPUT
+# 7. SAVE OUTPUT
 # =============================================================================
 message("\nSaving output...")
 
-write_csv(block_treatment_panel, "../output/block_treatment_panel.csv")
+write_csv(block_treatment_pre_scores, "../output/block_treatment_pre_scores.csv")
 
 message(sprintf(
-    "Saved: ../output/block_treatment_panel.csv (%s rows)",
-    format(nrow(block_treatment_panel), big.mark = ",")
+    "Saved: ../output/block_treatment_pre_scores.csv (%s rows)",
+    format(nrow(block_treatment_pre_scores), big.mark = ",")
 ))
 
 message("\nDone!")

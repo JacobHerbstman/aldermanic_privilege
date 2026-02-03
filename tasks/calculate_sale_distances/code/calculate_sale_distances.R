@@ -1,6 +1,7 @@
 # calculate_sale_distances.R
-# Calculates signed distance to nearest ward boundary for home sales.
+# Calculates unsigned distance to nearest ward boundary for home sales.
 # Includes all four ward map eras (1998, 2003, 2015, 2024).
+# Score/sign merge happens in merge_event_study_scores.
 
 ## run this line when editing code in Rstudio
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
@@ -42,12 +43,6 @@ ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
 # Alderman Data
 alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
     mutate(month = as.yearmon(month))
-
-strictness <- read_csv("../input/alderman_restrictiveness_scores_month_FEs.csv", show_col_types = FALSE) %>%
-    select(alderman, strictness_index)
-
-# Ward Controls
-ward_controls <- read_csv("../input/ward_controls.csv", show_col_types = FALSE)
 
 # -----------------------------------------------------------------------------
 # 3. LOAD AND CLEAN SALES DATA
@@ -354,9 +349,9 @@ rm(pts_era1, pts_era2, pts_era3, pts_era4, res1, res2, res3, res4, sales_sf)
 gc()
 
 # -----------------------------------------------------------------------------
-# 7. POST-PROCESS: ALDERMAN & SIGNING
+# 7. POST-PROCESS: ALDERMAN LOOKUPS (PRE-SCORES)
 # -----------------------------------------------------------------------------
-message("Attaching Alderman data and calculating signed distances...")
+message("Attaching Alderman data (pre-scores output)...")
 
 # Extract lat/lon before dropping geometry
 final_df <- results_sf %>%
@@ -385,28 +380,7 @@ final_df <- final_df %>%
     left_join(ald_lookup, by = c("neighbor_ward" = "ward", "month_join" = "month")) %>%
     rename(alderman_neighbor = alderman)
 
-# Attach Strictness
-final_df <- final_df %>%
-    left_join(strictness, by = c("alderman_own" = "alderman")) %>%
-    rename(strictness_own = strictness_index) %>%
-    left_join(strictness, by = c("alderman_neighbor" = "alderman")) %>%
-    rename(strictness_neighbor = strictness_index)
-
-# Sign the Distance
-# Positive distance = Strict side (Higher strictness)
-final_df <- final_df %>%
-    filter(!is.na(strictness_own), !is.na(strictness_neighbor)) %>%
-    mutate(
-        sign = case_when(
-            strictness_own > strictness_neighbor ~ 1,
-            strictness_own < strictness_neighbor ~ -1,
-            TRUE ~ 0
-        ),
-        signed_dist = dist_ft * sign
-    ) %>%
-    filter(sign != 0)
-
-message(sprintf("After strictness filtering: %s sales", format(nrow(final_df), big.mark = ",")))
+message(sprintf("Pre-score sales rows: %s", format(nrow(final_df), big.mark = ",")))
 
 # -----------------------------------------------------------------------------
 # 8. SELECT FINAL COLUMNS AND SAVE
@@ -422,16 +396,15 @@ final_output <- final_df %>%
         sale_price, class,
         # Location
         latitude, longitude, ward, neighbor_ward, ward_pair_id,
-        # Distance
-        dist_ft, signed_dist, sign,
+        # Distance (unsigned)
+        dist_ft,
         # Alderman info
-        alderman_own, alderman_neighbor,
-        strictness_own, strictness_neighbor
+        alderman_own, alderman_neighbor
     )
 
 # Output path
 suffix <- if (run_sample) "_sample" else ""
-output_path <- sprintf("../output/sales_with_ward_distances%s.csv", suffix)
+output_path <- sprintf("../output/sales_pre_scores%s.csv", suffix)
 
 write_csv(final_output, output_path)
 
@@ -443,8 +416,7 @@ summary_stats <- final_output %>%
     summarise(
         n_sales = n(),
         mean_price = mean(sale_price, na.rm = TRUE),
-        mean_dist_ft = mean(abs(dist_ft), na.rm = TRUE),
-        pct_strict_side = mean(sign > 0, na.rm = TRUE) * 100,
+        mean_dist_ft = mean(dist_ft, na.rm = TRUE),
         .groups = "drop"
     )
 

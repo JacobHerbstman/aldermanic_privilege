@@ -6,14 +6,14 @@ include ../../shell_functions.make
 # ─────────────────────────────────────────────────────────────────────────────
 
 FREQUENCIES       := yearly 
-STACKINGS         := TRUE
-STACK_TYPES       := announcement
+STACKINGS         := TRUE FALSE
+STACK_TYPES       := announcement 
 COHORTS           := 2012 
 TREATMENT_TYPES   := continuous continuous_split
 INCLUDE_HEDONICS  := TRUE FALSE
 FE_TYPES          := ward_pair_side
-WEIGHTINGS        := triangular
-BANDWIDTHS        := 500 1000 
+WEIGHTINGS        := triangular uniform
+BANDWIDTHS        := 1000 
 POST_WINDOWS      := full
 
 SCRIPT := run_event_study.R

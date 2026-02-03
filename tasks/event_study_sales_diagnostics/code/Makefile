@@ -22,7 +22,7 @@ all: ../output/diagnostics.done ../output/treatment_summary_stats.csv
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	ln -sf $< $@
 
-../input/block_treatment_panel.csv: ../../create_block_treatment_panel/output/block_treatment_panel.csv | ../input
+../input/block_treatment_panel.csv: ../../merge_event_study_scores/output/block_treatment_panel.csv | ../input
 	ln -sf $< $@
 
 include ../../generic.make

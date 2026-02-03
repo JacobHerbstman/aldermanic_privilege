@@ -12,8 +12,8 @@ library(fixest)
 # -----------------------------------------------------------------------------
 # PERMIT_TYPE_FE <- FALSE
 # REVIEW_TYPE_FE <- TRUE
-# INCLUDE_PORCH <- TRUE
-# CA_FE <- TRUE
+# INCLUDE_PORCH <- FALSE
+# CA_FE <- FALSE
 # TWO_STAGE <- TRUE
 
 # -----------------------------------------------------------------------------

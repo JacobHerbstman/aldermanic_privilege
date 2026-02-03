@@ -23,6 +23,10 @@ parser <- add_option(parser, c("-b", "--bw_ft"),
   type = "integer", default = 250,
   help = "Bandwidth in feet [default: 250]"
 )
+parser <- add_option(parser, c("-u", "--units_cap"),
+  type = "integer", default = -1,
+  help = "Optional max unitscount cap; <=0 disables cap [default: -1]"
+)
 parser <- add_option(parser, c("-f", "--fe_spec"),
   type = "character", default = "zone_x_pair_year",
   help = "Fixed effects specification: zone_x_pair_year, zone_pair_x_year, triple, pair_year_only [default: zone_x_pair_year]"
@@ -64,11 +68,18 @@ if (length(pos_args) > 0) {
 }
 
 if (!is.finite(bw_ft) || bw_ft <= 0) stop("bw_feet must be a positive integer/numeric.")
+units_cap <- opts$units_cap
+if (is.null(units_cap) || !is.finite(units_cap)) units_cap <- -1
 if (length(yvars) == 0) stop("No yvars provided.")
 
 message(sprintf("\n=== Border-Pair FE Configuration ==="))
 message(sprintf("Bandwidth: %d ft", bw_ft))
 message(sprintf("FE Specification: %s", fe_spec))
+if (units_cap > 0) {
+  message(sprintf("Units cap: unitscount <= %d", units_cap))
+} else {
+  message("Units cap: none")
+}
 message(sprintf("Output: %s", output_filename))
 message(sprintf("Y variables: %s", paste(yvars, collapse = ", ")))
 
@@ -82,6 +93,10 @@ parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_type
   filter(areabuilding > 1) %>%
   filter(unitscount > 1) %>%
   filter(construction_year >= 2006)
+
+if (units_cap > 0) {
+  parcels_fe <- parcels_fe %>% filter(unitscount <= units_cap)
+}
 # filter(construction_year < 2024)
 
 

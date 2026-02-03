@@ -367,7 +367,8 @@ est_no_ctrl <- coef(m_ann_no_ctrl)["post_treat"]
 se_no_ctrl <- se(m_ann_no_ctrl)["post_treat"]
 est_ctrl <- coef(m_ann_ctrl)["post_treat"]
 se_ctrl <- se(m_ann_ctrl)["post_treat"]
-n_obs <- m_ann_no_ctrl$nobs
+n_obs_no_ctrl <- m_ann_no_ctrl$nobs
+n_obs_ctrl <- m_ann_ctrl$nobs
 mean_price <- mean(data_ann$sale_price, na.rm = TRUE)
 median_price <- median(data_ann$sale_price, na.rm = TRUE)
 
@@ -389,8 +390,8 @@ Dep.\\ Var. & \\multicolumn{2}{c}{\\footnotesize Mean: \\$%s / Median: \\$%s} \\
     format_coef(est_ctrl, se_ctrl),
     format_se(se_no_ctrl),
     format_se(se_ctrl),
-    format_n(n_obs),
-    format_n(n_obs),
+    format_n(n_obs_no_ctrl),
+    format_n(n_obs_ctrl),
     sprintf("%.0fK", mean_price / 1000),
     sprintf("%.0fK", median_price / 1000)
 )

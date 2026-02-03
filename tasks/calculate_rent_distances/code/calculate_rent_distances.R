@@ -1,6 +1,7 @@
 # calculate_rent_distances.R
-# Calculates signed distance to nearest ward boundary for rental listings.
+# Calculates unsigned distance to nearest ward boundary for rental listings.
 # Optimized for large datasets using batching and spatial indexing.
+# Score/sign merge happens in merge_event_study_scores.
 
 ## run this line when editing code in Rstudio
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
@@ -40,14 +41,6 @@ ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
 # Alderman Data
 alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
   mutate(month = as.yearmon(month))
-
-strictness <- read_csv("../input/alderman_restrictiveness_scores_month_FEs.csv", show_col_types = FALSE) %>%
-  select(alderman, strictness_index)
-
-# Controls (for signing the border based on strictness)
-# We need strictness scores attached to the ward-year level
-# This is a bit complex since strictness is static per alderman, but aldermen move.
-# We will attach strictness *after* the spatial join using the date/ward.
 
 # -----------------------------------------------------------------------------
 # 3. HELPER: BUILD BOUNDARY LINES
@@ -237,9 +230,9 @@ close(pb)
 results_sf <- bind_rows(results_list)
 
 # -----------------------------------------------------------------------------
-# 6. POST-PROCESS: ALDERMAN & SIGNING
+# 6. POST-PROCESS: ALDERMAN LOOKUPS (PRE-SCORES)
 # -----------------------------------------------------------------------------
-message("Attaching Alderman data and calculating signed distances...")
+message("Attaching Alderman data (pre-scores output)...")
 
 # We convert back to tibble for the merge
 # Extract lat/lon before dropping geometry (transform back to WGS84 first)
@@ -273,30 +266,6 @@ final_df <- final_df %>%
   left_join(ald_lookup, by = c("neighbor_ward" = "ward", "month_join" = "month")) %>%
   rename(alderman_neighbor = alderman)
 
-# 6b. Attach Strictness
-final_df <- final_df %>%
-  left_join(strictness, by = c("alderman_own" = "alderman")) %>%
-  rename(strictness_own = strictness_index) %>%
-  left_join(strictness, by = c("alderman_neighbor" = "alderman")) %>%
-  rename(strictness_neighbor = strictness_index)
-
-# 6c. Sign the Distance
-# Positive distance = Strict side (Higher strictness)
-# Treatment = Strict.
-final_df <- final_df %>%
-  filter(!is.na(strictness_own), !is.na(strictness_neighbor)) %>%
-  mutate(
-    # If Own > Neighbor, we are on strict side -> Positive Distance
-    # If Own < Neighbor, we are on lenient side -> Negative Distance
-    sign = case_when(
-      strictness_own > strictness_neighbor ~ 1,
-      strictness_own < strictness_neighbor ~ -1,
-      TRUE ~ 0 # Equal strictness (drop?)
-    ),
-    signed_dist = dist_ft * sign
-  ) %>%
-  filter(sign != 0)
-
 # -----------------------------------------------------------------------------
 # 7. CLEAN BUILDING TYPES
 # -----------------------------------------------------------------------------
@@ -328,7 +297,7 @@ final_df <- final_df %>%
 # -----------------------------------------------------------------------------
 # Dynamically determine output filename
 suffix <- if (run_sample) "_sample" else "_full"
-output_path <- sprintf("../output/rent_with_ward_distances%s.parquet", suffix)
+output_path <- sprintf("../output/rent_pre_scores%s.parquet", suffix)
 
 write_parquet(final_df, output_path)
 

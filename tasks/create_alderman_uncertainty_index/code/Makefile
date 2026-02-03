@@ -12,10 +12,10 @@ include ../../shell_functions.make
 #   make all-specs                                    # All combinations
 # ─────────────────────────────────────────────────────────────────────────────
 
-PERMIT_TYPE_FE ?= FALSE
+PERMIT_TYPE_FE ?= TRUE
 REVIEW_TYPE_FE ?= TRUE
 INCLUDE_PORCH  ?= TRUE
-CA_FE          ?= TRUE
+CA_FE          ?= FALSE
 TWO_STAGE      ?= TRUE
 
 SCRIPT := create_uncertainty_index.R
