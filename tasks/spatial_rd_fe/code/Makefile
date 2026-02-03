@@ -4,7 +4,7 @@ include ../../shell_functions.make
 BANDWIDTHS := 500
 FE_SPECS := pair_x_year pair_year
 YVARS := density_far density_dupac unitscount
-LOG_STATUS := TRUE
+LOG_STATUS := TRUE FALSE
 
 LOG_PREFIX_TRUE := log_
 LOG_PREFIX_FALSE :=
