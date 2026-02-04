@@ -6,13 +6,14 @@ include ../../shell_functions.make
 # ─────────────────────────────────────────────────────────────────────────────
 
 FREQUENCIES       := yearly
-STACKINGS         := TRUE 
+STACKINGS         := TRUE FALSE
 TREATMENT_TYPES   := continuous continuous_split
 INCLUDE_CONTROLS  := TRUE FALSE
 WEIGHTINGS        := triangular uniform
 BANDWIDTHS        := 1000
-SAMPLE_FILTERS    := full_sample
+SAMPLE_FILTERS    := multifamily_only
 POST_WINDOWS      := short full
+FE_TYPES          ?= strict_pair_x_year
 
 SCRIPT := run_event_study_disaggregate.R
 
@@ -34,6 +35,10 @@ SAMPLE_SUFFIX_multifamily_only := _mf
 POST_SUFFIX_full  :=
 POST_SUFFIX_short := _short
 
+FE_SUFFIX_strict_pair_x_year :=
+FE_SUFFIX_pair_trend_plus_year := _pairtrend
+FE_SUFFIX_side_plus_year := _yearfe
+
 define GEN_OUTPUTS
 $(foreach freq,$(FREQUENCIES), \
 $(foreach st,$(STACKINGS), \
@@ -42,9 +47,10 @@ $(foreach ic,$(INCLUDE_CONTROLS), \
 $(foreach wt,$(WEIGHTINGS), \
 $(foreach bw,$(BANDWIDTHS), \
 $(foreach sf,$(SAMPLE_FILTERS), \
+$(foreach fe,$(FE_TYPES), \
 $(foreach pw,$(POST_WINDOWS), \
-	../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)_$(wt)_$(bw)ft$(SAMPLE_SUFFIX_$(sf))$(CONTROLS_SUFFIX_$(ic))$(POST_SUFFIX_$(pw)).pdf \
-))))))))
+	../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)_$(wt)_$(bw)ft$(SAMPLE_SUFFIX_$(sf))$(CONTROLS_SUFFIX_$(ic))$(FE_SUFFIX_$(fe))$(POST_SUFFIX_$(pw)).pdf \
+)))))))))
 endef
 
 ALL_OUTPUTS := $(call GEN_OUTPUTS)
@@ -71,8 +77,8 @@ main-specs: \
 # ─────────────────────────────────────────────────────────────────────────────
 
 define GEN_RULE
-../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)_$(wt)_$(bw)ft$(SAMPLE_SUFFIX_$(sf))$(CONTROLS_SUFFIX_$(ic))$(POST_SUFFIX_$(pw)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
-	Rscript $(SCRIPT) --frequency=$(freq) --stacked=$(st) --treatment_type=$(tt) --include_controls=$(ic) --weighting=$(wt) --bandwidth=$(bw) --sample_filter=$(sf) --post_window=$(pw)
+../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)_$(wt)_$(bw)ft$(SAMPLE_SUFFIX_$(sf))$(CONTROLS_SUFFIX_$(ic))$(FE_SUFFIX_$(fe))$(POST_SUFFIX_$(pw)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) --frequency=$(freq) --stacked=$(st) --treatment_type=$(tt) --include_controls=$(ic) --weighting=$(wt) --bandwidth=$(bw) --sample_filter=$(sf) --fe_type=$(fe) --post_window=$(pw)
 endef
 
 $(foreach freq,$(FREQUENCIES), \
@@ -82,9 +88,10 @@ $(foreach ic,$(INCLUDE_CONTROLS), \
 $(foreach wt,$(WEIGHTINGS), \
 $(foreach bw,$(BANDWIDTHS), \
 $(foreach sf,$(SAMPLE_FILTERS), \
+$(foreach fe,$(FE_TYPES), \
 $(foreach pw,$(POST_WINDOWS), \
 	$(eval $(GEN_RULE)) \
-))))))))
+)))))))))
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Input Linking - Explicit symlink rules
@@ -106,14 +113,36 @@ link-inputs: ../input/rental_listing_panel.parquet ../input/rental_listing_panel
 # ─────────────────────────────────────────────────────────────────────────────
 
 DID_SCRIPT := run_did_rental_disaggregate.R
-DID_OUTPUT := ../output/did_table_rental.tex
+DID_FE_TYPE ?= strict_pair_x_year
+DID_WEIGHTING ?= triangular
+DID_BANDWIDTH ?= 1000
 
-.PHONY: did-table main
+DID_SUFFIX_strict_pair_x_year :=
+DID_SUFFIX_pair_trend_plus_year := _pairtrend
+DID_SUFFIX_side_plus_year := _yearfe
+
+DID_OUTPUT := ../output/did_table_rental$(DID_SUFFIX_$(DID_FE_TYPE)).tex
+
+.PHONY: did-table did-table-strict did-table-pairtrend did-table-yearfe did-table-all main
 
 did-table: $(DID_OUTPUT)
 
 $(DID_OUTPUT): $(DID_SCRIPT) ../input/rental_listing_panel.parquet | ../output
-	Rscript $(DID_SCRIPT)
+	Rscript $(DID_SCRIPT) --bandwidth=$(DID_BANDWIDTH) --weighting=$(DID_WEIGHTING) --fe_type=$(DID_FE_TYPE)
+
+did-table-strict:
+	$(MAKE) did-table DID_FE_TYPE=strict_pair_x_year
+
+did-table-pairtrend:
+	$(MAKE) did-table DID_FE_TYPE=pair_trend_plus_year
+
+did-table-yearfe:
+	$(MAKE) did-table DID_FE_TYPE=side_plus_year
+
+did-table-all:
+	$(MAKE) did-table-strict
+	$(MAKE) did-table-pairtrend
+	$(MAKE) did-table-yearfe
 
 main: main-specs did-table
 

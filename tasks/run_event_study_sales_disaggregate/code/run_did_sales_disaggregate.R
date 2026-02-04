@@ -4,16 +4,65 @@
 # Produces a clean, publication-ready table
 
 source("../../setup_environment/code/packages.R")
+library(optparse)
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
-BANDWIDTH <- 1000
-WEIGHTING <- "triangular"
+option_list <- list(
+    make_option(c("-b", "--bandwidth"), type = "numeric", default = 1000,
+        help = "Bandwidth in feet [default: 1000]"),
+    make_option(c("-w", "--weighting"), type = "character", default = "triangular",
+        help = "Weighting: triangular or uniform [default: triangular]"),
+    make_option(c("-e", "--fe_type"), type = "character", default = "strict_pair_x_year",
+        help = "FE type: strict_pair_x_year, pair_trend_plus_year, side_plus_year [default: strict_pair_x_year]")
+)
+opt <- parse_args(OptionParser(option_list = option_list))
+
+BANDWIDTH <- opt$bandwidth
+WEIGHTING <- opt$weighting
+FE_TYPE <- opt$fe_type
+
+if (!FE_TYPE %in% c("strict_pair_x_year", "pair_trend_plus_year", "side_plus_year")) {
+    stop("--fe_type must be one of: strict_pair_x_year, pair_trend_plus_year, side_plus_year")
+}
+
+if (!WEIGHTING %in% c("triangular", "uniform")) {
+    stop("--weighting must be one of: triangular, uniform")
+}
+
+fe_suffix <- ifelse(
+    FE_TYPE == "strict_pair_x_year",
+    "",
+    ifelse(FE_TYPE == "pair_trend_plus_year", "_pairtrend", "_yearfe")
+)
+did_output <- sprintf("../output/did_table_sales%s.tex", fe_suffix)
+did_csv_output <- sprintf("../output/did_table_sales%s.csv", fe_suffix)
+did_coef_output <- sprintf("../output/did_coefficients_sales%s.csv", fe_suffix)
+did_clean_output <- sprintf("../output/did_table_sales_clean%s.tex", fe_suffix)
+
+fe_formula_unstacked <- switch(FE_TYPE,
+    "strict_pair_x_year" = "ward_pair_side + ward_pair^sale_year",
+    "pair_trend_plus_year" = "ward_pair_side + sale_year + ward_pair[sale_year]",
+    "side_plus_year" = "ward_pair_side + sale_year"
+)
+
+fe_formula_stacked <- switch(FE_TYPE,
+    "strict_pair_x_year" = "cohort_ward_pair_side + cohort_ward_pair^sale_year",
+    "pair_trend_plus_year" = "cohort_ward_pair_side + cohort^sale_year + cohort_ward_pair[sale_year]",
+    "side_plus_year" = "cohort_ward_pair_side + cohort^sale_year"
+)
+
+fe_label <- switch(FE_TYPE,
+    "strict_pair_x_year" = "Border Pair $\\times$ Year FE",
+    "pair_trend_plus_year" = "Year FE + Border-Pair Trends",
+    "side_plus_year" = "Year FE"
+)
 
 message("\n=== Pooled DiD: Home Sales ===")
 message(sprintf("Bandwidth: %d ft", BANDWIDTH))
 message(sprintf("Weighting: %s", WEIGHTING))
+message(sprintf("FE Type: %s", FE_TYPE))
 
 # =============================================================================
 # LOAD DATA - Individual Cohorts (Not Stacked)
@@ -121,8 +170,9 @@ calc_effective_obs <- function(dt, cohort_label) {
         format(effective_obs, big.mark = ","),
         format(nrow(dt), big.mark = ","),
         100 * effective_obs / nrow(dt)))
-    message(sprintf("  Transactions in switcher blocks: %s", format(sum(dt$is_switcher), big.mark = ",")))
-    message(sprintf("  Transactions in stayer blocks: %s", format(sum(!dt$is_switcher), big.mark = ",")))
+    message(sprintf("  Transactions in switcher blocks: %s", format(sum(dt$is_switcher, na.rm = TRUE), big.mark = ",")))
+    message(sprintf("  Transactions in stayer blocks: %s", format(sum(!dt$is_switcher, na.rm = TRUE), big.mark = ",")))
+    message(sprintf("  Transactions with missing switcher flag: %s", format(sum(is.na(dt$is_switcher)), big.mark = ",")))
 }
 
 calc_effective_obs(data_2012, "2012")
@@ -141,7 +191,7 @@ message("\n--- 2012 Cohort (Announcement Timing) ---")
 
 # Without controls
 m_2012_no_ctrl <- feols(
-    log(sale_price) ~ post_treat | ward_pair_side + ward_pair^sale_year,
+    as.formula(sprintf("log(sale_price) ~ post_treat | %s", fe_formula_unstacked)),
     data = data_2012,
     weights = ~weight,
     cluster = ~block_id
@@ -150,7 +200,7 @@ message(sprintf("2012 (no controls): N = %s", format(m_2012_no_ctrl$nobs, big.ma
 
 # With controls
 m_2012_ctrl <- feols(
-    as.formula(paste("log(sale_price) ~ post_treat", hedonic_vars, "| ward_pair_side + ward_pair^sale_year")),
+    as.formula(sprintf("log(sale_price) ~ post_treat %s | %s", hedonic_vars, fe_formula_unstacked)),
     data = data_2012,
     weights = ~weight,
     cluster = ~block_id
@@ -162,7 +212,7 @@ message("\n--- 2015 Cohort (Implementation Timing) ---")
 
 # Without controls
 m_2015_no_ctrl <- feols(
-    log(sale_price) ~ post_treat | ward_pair_side + ward_pair^sale_year,
+    as.formula(sprintf("log(sale_price) ~ post_treat | %s", fe_formula_unstacked)),
     data = data_2015,
     weights = ~weight,
     cluster = ~block_id
@@ -171,7 +221,7 @@ message(sprintf("2015 (no controls): N = %s", format(m_2015_no_ctrl$nobs, big.ma
 
 # With controls
 m_2015_ctrl <- feols(
-    as.formula(paste("log(sale_price) ~ post_treat", hedonic_vars, "| ward_pair_side + ward_pair^sale_year")),
+    as.formula(sprintf("log(sale_price) ~ post_treat %s | %s", hedonic_vars, fe_formula_unstacked)),
     data = data_2015,
     weights = ~weight,
     cluster = ~block_id
@@ -209,18 +259,22 @@ etable(
         "_Timing" = c("Announcement", "Announcement", "Implementation", "Implementation"),
         "_Hedonic Controls" = c("", "$\\checkmark$", "", "$\\checkmark$"),
         "_Border Pair $\\times$ Side FE" = c("$\\checkmark$", "$\\checkmark$", "$\\checkmark$", "$\\checkmark$"),
-        "_Border Pair $\\times$ Year FE" = c("$\\checkmark$", "$\\checkmark$", "$\\checkmark$", "$\\checkmark$")
+        "_Fixed Effects Spec" = c(fe_label, fe_label, fe_label, fe_label)
     ),
     se.below = TRUE,
     signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-    notes = "Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Columns (1)--(2) use 2012 announcement timing; columns (3)--(4) use 2015 implementation timing. Sample restricted to transactions within 1,000 feet of ward boundaries with non-missing hedonic characteristics. Triangular kernel weighting. Standard errors clustered by census block in parentheses.",
+    notes = sprintf(
+        "Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Columns (1)--(2) use 2012 announcement timing; columns (3)--(4) use 2015 implementation timing. Sample restricted to transactions within %d feet of ward boundaries with non-missing hedonic characteristics. %s kernel weighting. Standard errors clustered by census block in parentheses.",
+        as.integer(BANDWIDTH),
+        tools::toTitleCase(WEIGHTING)
+    ),
     label = "tab:did_sales",
     float = TRUE,
-    file = "../output/did_table_sales.tex",
+    file = did_output,
     replace = TRUE
 )
 
-message("Saved: ../output/did_table_sales.tex")
+message(sprintf("Saved: %s", did_output))
 
 # =============================================================================
 # ALSO SAVE CSV FOR QUICK INSPECTION
@@ -244,8 +298,8 @@ results_df$estimate_pct <- results_df$estimate * 100
 results_df$ci_low_pct <- (results_df$estimate - 1.96 * results_df$std_error) * 100
 results_df$ci_high_pct <- (results_df$estimate + 1.96 * results_df$std_error) * 100
 
-write_csv(results_df, "../output/did_table_sales.csv")
-message("Saved: ../output/did_table_sales.csv")
+write_csv(results_df, did_csv_output)
+message(sprintf("Saved: %s", did_csv_output))
 
 # =============================================================================
 # EXPORT FULL COEFFICIENTS FOR COMBINED TABLE
@@ -295,8 +349,8 @@ coef_all$r2[coef_all$specification == "2012_ctrl"] <- fitstat(m_2012_ctrl, "r2")
 coef_all$r2[coef_all$specification == "2015_no_ctrl"] <- fitstat(m_2015_no_ctrl, "r2")$r2
 coef_all$r2[coef_all$specification == "2015_ctrl"] <- fitstat(m_2015_ctrl, "r2")$r2
 
-write_csv(coef_all, "../output/did_coefficients_sales.csv")
-message("Saved: ../output/did_coefficients_sales.csv")
+write_csv(coef_all, did_coef_output)
+message(sprintf("Saved: %s", did_coef_output))
 
 # =============================================================================
 # CREATE CLEAN SLIDE TABLE (Stacked Announcement Timing)
@@ -331,7 +385,7 @@ data_ann[, cohort_ward_pair := paste(cohort, ward_pair, sep = "_")]
 
 # Run regressions with stacked FE structure
 m_ann_no_ctrl <- feols(
-    log(sale_price) ~ post_treat | cohort_ward_pair_side + cohort_ward_pair^sale_year,
+    as.formula(sprintf("log(sale_price) ~ post_treat | %s", fe_formula_stacked)),
     data = data_ann,
     weights = ~weight,
     cluster = ~cohort_block_id
@@ -339,7 +393,7 @@ m_ann_no_ctrl <- feols(
 message(sprintf("Stacked announcement (no controls): N = %s", format(m_ann_no_ctrl$nobs, big.mark = ",")))
 
 m_ann_ctrl <- feols(
-    as.formula(paste("log(sale_price) ~ post_treat", hedonic_vars, "| cohort_ward_pair_side + cohort_ward_pair^sale_year")),
+    as.formula(sprintf("log(sale_price) ~ post_treat %s | %s", hedonic_vars, fe_formula_stacked)),
     data = data_ann,
     weights = ~weight,
     cluster = ~cohort_block_id
@@ -396,8 +450,8 @@ Dep.\\ Var. & \\multicolumn{2}{c}{\\footnotesize Mean: \\$%s / Median: \\$%s} \\
     sprintf("%.0fK", median_price / 1000)
 )
 
-writeLines(slide_table, "../output/did_table_sales_clean.tex")
-message("Saved: ../output/did_table_sales_clean.tex")
+writeLines(slide_table, did_clean_output)
+message(sprintf("Saved: %s", did_clean_output))
 
 message("\n=== Summary (Percentage Points) ===")
 print(results_df[, c("specification", "estimate_pct", "ci_low_pct", "ci_high_pct", "n_obs")])

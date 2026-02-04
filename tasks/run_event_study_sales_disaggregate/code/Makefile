@@ -11,7 +11,7 @@ STACK_TYPES       := announcement
 COHORTS           := 2012 
 TREATMENT_TYPES   := continuous continuous_split
 INCLUDE_HEDONICS  := TRUE FALSE
-FE_TYPES          := ward_pair_side
+FE_TYPES          ?= strict_pair_x_year
 WEIGHTINGS        := triangular uniform
 BANDWIDTHS        := 1000 
 POST_WINDOWS      := full
@@ -33,6 +33,9 @@ HEDONICS_SUFFIX_FALSE := _no_hedonics
 FE_SUFFIX_ward_pair_side :=
 FE_SUFFIX_block          := _block_fe
 FE_SUFFIX_block_group    := _bg_fe
+FE_SUFFIX_strict_pair_x_year :=
+FE_SUFFIX_pair_trend_plus_year := _pairtrend
+FE_SUFFIX_side_plus_year := _yearfe
 
 POST_SUFFIX_full  :=
 POST_SUFFIX_short := _short
@@ -176,14 +179,36 @@ link-inputs: ../input/sales_transaction_panel.parquet ../input/sales_transaction
 # ─────────────────────────────────────────────────────────────────────────────
 
 DID_SCRIPT := run_did_sales_disaggregate.R
-DID_OUTPUT := ../output/did_table_sales.tex
+DID_FE_TYPE ?= strict_pair_x_year
+DID_WEIGHTING ?= triangular
+DID_BANDWIDTH ?= 1000
 
-.PHONY: did-table main
+DID_SUFFIX_strict_pair_x_year :=
+DID_SUFFIX_pair_trend_plus_year := _pairtrend
+DID_SUFFIX_side_plus_year := _yearfe
+
+DID_OUTPUT := ../output/did_table_sales$(DID_SUFFIX_$(DID_FE_TYPE)).tex
+
+.PHONY: did-table did-table-strict did-table-pairtrend did-table-yearfe did-table-all main
 
 did-table: $(DID_OUTPUT)
 
 $(DID_OUTPUT): $(DID_SCRIPT) ../input/sales_transaction_panel.parquet ../input/sales_transaction_panel_announcement.parquet | ../output
-	Rscript $(DID_SCRIPT)
+	Rscript $(DID_SCRIPT) --bandwidth=$(DID_BANDWIDTH) --weighting=$(DID_WEIGHTING) --fe_type=$(DID_FE_TYPE)
+
+did-table-strict:
+	$(MAKE) did-table DID_FE_TYPE=strict_pair_x_year
+
+did-table-pairtrend:
+	$(MAKE) did-table DID_FE_TYPE=pair_trend_plus_year
+
+did-table-yearfe:
+	$(MAKE) did-table DID_FE_TYPE=side_plus_year
+
+did-table-all:
+	$(MAKE) did-table-strict
+	$(MAKE) did-table-pairtrend
+	$(MAKE) did-table-yearfe
 
 main: main-specs did-table
 

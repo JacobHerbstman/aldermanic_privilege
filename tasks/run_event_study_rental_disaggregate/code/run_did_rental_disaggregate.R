@@ -4,16 +4,47 @@
 # Produces a clean, publication-ready table
 
 source("../../setup_environment/code/packages.R")
+library(optparse)
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
-BANDWIDTH <- 1000
-WEIGHTING <- "triangular"
+option_list <- list(
+    make_option(c("-b", "--bandwidth"), type = "numeric", default = 1000,
+        help = "Bandwidth in feet [default: 1000]"),
+    make_option(c("-w", "--weighting"), type = "character", default = "triangular",
+        help = "Weighting: triangular or uniform [default: triangular]"),
+    make_option(c("-e", "--fe_type"), type = "character", default = "strict_pair_x_year",
+        help = "FE type: strict_pair_x_year, pair_trend_plus_year, side_plus_year [default: strict_pair_x_year]")
+)
+opt <- parse_args(OptionParser(option_list = option_list))
+
+BANDWIDTH <- opt$bandwidth
+WEIGHTING <- opt$weighting
+FE_TYPE <- opt$fe_type
+
+if (!FE_TYPE %in% c("strict_pair_x_year", "pair_trend_plus_year", "side_plus_year")) {
+    stop("--fe_type must be one of: strict_pair_x_year, pair_trend_plus_year, side_plus_year")
+}
+
+if (!WEIGHTING %in% c("triangular", "uniform")) {
+    stop("--weighting must be one of: triangular, uniform")
+}
+
+fe_suffix <- ifelse(
+    FE_TYPE == "strict_pair_x_year",
+    "",
+    ifelse(FE_TYPE == "pair_trend_plus_year", "_pairtrend", "_yearfe")
+)
+did_output <- sprintf("../output/did_table_rental%s.tex", fe_suffix)
+did_csv_output <- sprintf("../output/did_table_rental%s.csv", fe_suffix)
+did_coef_output <- sprintf("../output/did_coefficients_rental%s.csv", fe_suffix)
+did_clean_output <- sprintf("../output/did_table_rental_clean%s.tex", fe_suffix)
 
 message("\n=== Pooled DiD: Rentals ===")
 message(sprintf("Bandwidth: %d ft", BANDWIDTH))
 message(sprintf("Weighting: %s", WEIGHTING))
+message(sprintf("FE Type: %s", FE_TYPE))
 
 # =============================================================================
 # LOAD DATA
@@ -71,6 +102,20 @@ data[, ward_pair_side := sub("^[0-9]+_", "", cohort_ward_pair_side)]  # Remove c
 data[, ward_pair := sub("_[0-9]+$", "", ward_pair_side)]  # Remove side suffix
 data[, cohort_ward_pair := paste(cohort, ward_pair, sep = "_")]  # Add cohort back
 
+fe_formula <- switch(FE_TYPE,
+    "strict_pair_x_year" = "cohort_ward_pair_side + cohort_ward_pair^year",
+    "pair_trend_plus_year" = "cohort_ward_pair_side + cohort^year + cohort_ward_pair[year]",
+    "side_plus_year" = "cohort_ward_pair_side + cohort^year"
+)
+
+fe_label <- switch(FE_TYPE,
+    "strict_pair_x_year" = "Cohort Border-Pair $\\times$ Year FE",
+    "pair_trend_plus_year" = "Cohort Year FE + Cohort Border-Pair Trends",
+    "side_plus_year" = "Cohort Year FE"
+)
+
+message(sprintf("FE formula: %s", fe_formula))
+
 message("\n=== EFFECTIVE OBSERVATIONS DIAGNOSTIC ===")
 message(sprintf("Cohort_ward_pairs: %d, Cohort_ward_pair_sides: %d", 
     uniqueN(data$cohort_ward_pair), uniqueN(data$cohort_ward_pair_side)))
@@ -99,8 +144,9 @@ message(sprintf("Effective observations (in identifying pairs): %s of %s (%.1f%%
     format(effective_obs, big.mark = ","),
     format(nrow(data), big.mark = ","),
     100 * effective_obs / nrow(data)))
-message(sprintf("Listings in switcher blocks: %s", format(sum(data$is_switcher), big.mark = ",")))
-message(sprintf("Listings in stayer blocks: %s", format(sum(!data$is_switcher), big.mark = ",")))
+message(sprintf("Listings in switcher blocks: %s", format(sum(data$is_switcher, na.rm = TRUE), big.mark = ",")))
+message(sprintf("Listings in stayer blocks: %s", format(sum(!data$is_switcher, na.rm = TRUE), big.mark = ",")))
+message(sprintf("Listings with missing switcher flag: %s", format(sum(is.na(data$is_switcher)), big.mark = ",")))
 
 # Hedonic controls (matching the event study script)
 hedonic_vars <- "+ building_type_factor + log_sqft + log_beds + log_baths"
@@ -109,7 +155,7 @@ hedonic_vars <- "+ building_type_factor + log_sqft + log_beds + log_baths"
 message("\n--- Without Hedonic Controls ---")
 
 m_no_ctrl <- feols(
-    log(rent_price) ~ post_treat | cohort_ward_pair_side + cohort_ward_pair^year,
+    as.formula(sprintf("log(rent_price) ~ post_treat | %s", fe_formula)),
     data = data,
     weights = ~weight,
     cluster = ~cohort_block_id
@@ -120,7 +166,7 @@ message(sprintf("No controls: N = %s", format(m_no_ctrl$nobs, big.mark = ",")))
 message("\n--- With Hedonic Controls ---")
 
 m_ctrl <- feols(
-    as.formula(paste("log(rent_price) ~ post_treat", hedonic_vars, "| cohort_ward_pair_side + cohort_ward_pair^year")),
+    as.formula(sprintf("log(rent_price) ~ post_treat %s | %s", hedonic_vars, fe_formula)),
     data = data,
     weights = ~weight,
     cluster = ~cohort_block_id
@@ -158,18 +204,18 @@ etable(
     extralines = list(
         "_Hedonic Controls" = c("", "$\\checkmark$"),
         "_Border Pair $\\times$ Side FE" = c("$\\checkmark$", "$\\checkmark$"),
-        "_Border Pair $\\times$ Year FE" = c("$\\checkmark$", "$\\checkmark$")
+        "_Fixed Effects Spec" = c(fe_label, fe_label)
     ),
     se.below = TRUE,
     signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
     notes = "Listing-level regressions of log rent on post-redistricting indicator interacted with change in alderman strictness. Stacked estimator combining 2015 and 2023 redistricting events (implementation timing). Sample restricted to listings within 1,000 feet of ward boundaries with non-missing hedonic characteristics. Triangular kernel weighting. Standard errors clustered by census block in parentheses.",
     label = "tab:did_rental",
     float = TRUE,
-    file = "../output/did_table_rental.tex",
+    file = did_output,
     replace = TRUE
 )
 
-message("Saved: ../output/did_table_rental.tex")
+message(sprintf("Saved: %s", did_output))
 
 # =============================================================================
 # ALSO SAVE CSV FOR QUICK INSPECTION
@@ -184,8 +230,8 @@ results_df$estimate_pct <- results_df$estimate * 100
 results_df$ci_low_pct <- (results_df$estimate - 1.96 * results_df$std_error) * 100
 results_df$ci_high_pct <- (results_df$estimate + 1.96 * results_df$std_error) * 100
 
-write_csv(results_df, "../output/did_table_rental.csv")
-message("Saved: ../output/did_table_rental.csv")
+write_csv(results_df, did_csv_output)
+message(sprintf("Saved: %s", did_csv_output))
 
 # =============================================================================
 # EXPORT FULL COEFFICIENTS FOR COMBINED TABLE
@@ -205,8 +251,8 @@ coef_all$n_obs_no_ctrl <- m_no_ctrl$nobs
 coef_all$n_obs_ctrl <- m_ctrl$nobs
 coef_all$r2_no_ctrl <- fitstat(m_no_ctrl, "r2")$r2
 coef_all$r2_ctrl <- fitstat(m_ctrl, "r2")$r2
-write_csv(coef_all, "../output/did_coefficients_rental.csv")
-message("Saved: ../output/did_coefficients_rental.csv")
+write_csv(coef_all, did_coef_output)
+message(sprintf("Saved: %s", did_coef_output))
 
 # =============================================================================
 # CREATE CLEAN SLIDE TABLE (minimal format for slides)
@@ -262,8 +308,8 @@ Dep.\\ Var. & \\multicolumn{2}{c}{\\footnotesize Mean: \\$%s / Median: \\$%s} \\
     format(round(median_rent, 0), big.mark = ",")
 )
 
-writeLines(slide_table, "../output/did_table_rental_clean.tex")
-message("Saved: ../output/did_table_rental_clean.tex")
+writeLines(slide_table, did_clean_output)
+message(sprintf("Saved: %s", did_clean_output))
 
 message("\n=== Summary (Percentage Points) ===")
 print(results_df[, c("specification", "estimate_pct", "ci_low_pct", "ci_high_pct", "n_obs")])

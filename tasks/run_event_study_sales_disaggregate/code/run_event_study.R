@@ -21,8 +21,8 @@ parser <- add_option(parser, c("-t", "--time_unit"),
   help = "Time unit: yearly or quarterly [default: yearly]"
 )
 parser <- add_option(parser, c("-f", "--fe_type"),
-  type = "character", default = "ward_pair_side",
-  help = "Fixed effect type: ward_pair_side, block, or block_group [default: ward_pair_side]"
+  type = "character", default = "strict_pair_x_year",
+  help = "FE type: ward_pair_side, block, block_group, strict_pair_x_year, pair_trend_plus_year, side_plus_year [default: strict_pair_x_year]"
 )
 parser <- add_option(parser, c("-w", "--weighting"),
   type = "character", default = "uniform",
@@ -77,11 +77,28 @@ message(sprintf("Weighting: %s", WEIGHTING))
 message(sprintf("Bandwidth: %d ft", BANDWIDTH))
 message(sprintf("Post Window: %s", POST_WINDOW))
 
+valid_fe_types <- c(
+  "ward_pair_side", "block", "block_group",
+  "strict_pair_x_year", "pair_trend_plus_year", "side_plus_year"
+)
+if (!FE_TYPE %in% valid_fe_types) {
+  stop(sprintf(
+    "--fe_type must be one of: %s",
+    paste(valid_fe_types, collapse = ", ")
+  ))
+}
+
+use_new_fe_spec <- FE_TYPE %in% c("strict_pair_x_year", "pair_trend_plus_year", "side_plus_year")
+unit_fe_mode <- if (use_new_fe_spec) "ward_pair_side" else FE_TYPE
+
 # Output suffix
 fe_suffix <- switch(FE_TYPE,
   "ward_pair_side" = "",
   "block" = "_block_fe",
-  "block_group" = "_bg_fe"
+  "block_group" = "_bg_fe",
+  "strict_pair_x_year" = "",
+  "pair_trend_plus_year" = "_pairtrend",
+  "side_plus_year" = "_yearfe"
 )
 
 # Stack suffix depends on mode
@@ -125,7 +142,7 @@ if (STACKED) {
   message(sprintf("Cohorts in data: %s", paste(cohorts_in_data, collapse = " + ")))
 
   # FE structure for stacked design
-  unit_fe <- switch(FE_TYPE,
+  unit_fe <- switch(unit_fe_mode,
     "ward_pair_side" = "cohort_ward_pair_side",
     "block" = "cohort_block_id",
     "block_group" = {
@@ -151,7 +168,7 @@ if (STACKED) {
   setDT(data)
 
   # FE structure for unstacked design (no cohort prefix needed)
-  unit_fe <- switch(FE_TYPE,
+  unit_fe <- switch(unit_fe_mode,
     "ward_pair_side" = "ward_pair_side",
     "block" = "block_id",
     "block_group" = {
@@ -351,8 +368,25 @@ if (STACKED) {
   pair_var <- "ward_pair"
 }
 
-# Build FE formula: unit_fe + ward_pair^time_var
-fe_formula <- sprintf("%s + %s^%s", unit_fe, pair_fe, time_var)
+# Build FE formula
+trend_var <- "sale_year"
+if (use_new_fe_spec) {
+  if (STACKED) {
+    fe_formula <- switch(FE_TYPE,
+      "strict_pair_x_year" = sprintf("%s + %s^%s", unit_fe, pair_fe, time_var),
+      "pair_trend_plus_year" = sprintf("%s + cohort^%s + %s[%s]", unit_fe, time_var, pair_fe, trend_var),
+      "side_plus_year" = sprintf("%s + cohort^%s", unit_fe, time_var)
+    )
+  } else {
+    fe_formula <- switch(FE_TYPE,
+      "strict_pair_x_year" = sprintf("%s + %s^%s", unit_fe, pair_fe, time_var),
+      "pair_trend_plus_year" = sprintf("%s + %s + %s[%s]", unit_fe, time_var, pair_fe, trend_var),
+      "side_plus_year" = sprintf("%s + %s", unit_fe, time_var)
+    )
+  }
+} else {
+  fe_formula <- sprintf("%s + %s^%s", unit_fe, pair_fe, time_var)
+}
 message(sprintf("FE formula: %s", fe_formula))
 
 # =============================================================================

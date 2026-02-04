@@ -1,0 +1,35 @@
+\efloatseparator
+ 
+\begin{table}[htbp]
+\caption{Effect of Alderman Strictness on Home Sale Prices: Announcement Timing}
+\label{tab:did_sales_announcement}
+\centering
+
+\begin{tabular}{lcc}
+   \toprule
+                                       & (1)           & (2) \\
+   \midrule
+      Post $\times$ Strictness $\Delta$ & 0.028*** & 0.028*** \\
+       & (0.011) & (0.009) \\
+      Log Building Sqft &  & 0.349*** \\
+       &  & (0.015) \\
+      Log Land Sqft &  & 0.235*** \\
+       &  & (0.017) \\
+      Log Building Age &  & -0.170*** \\
+       &  & (0.006) \\
+      Log Bedrooms &  & -0.046*** \\
+       &  & (0.015) \\
+      Log Bathrooms &  & 0.043*** \\
+       &  & (0.012) \\
+      Has Garage &  & 0.017** \\
+       &  & (0.008) \\
+   \\
+   Observations                        & 37,876        & 37,876 \\
+   R$^2$                               & 0.67          & 0.71 \\
+   \bottomrule
+\end{tabular}
+
+\vspace{0.5em}
+\par \raggedright \footnotesize
+\textit{Notes:} Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Uses 2012 announcement timing as robustness check (main results use 2015 implementation timing). All specifications include border-pair $\times$ origin-side and border-pair $\times$ year fixed effects. Sample restricted to within 1,000 feet of ward boundaries. Triangular kernel weighting. Standard errors clustered by census block in parentheses. Column (1) excludes hedonic controls; column (2) includes hedonic controls. *** p$<$0.01, ** p$<$0.05, * p$<$0.1.
+\end{table}

@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d (TeX Live 2024)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: paper.aux
+The style file: aer.bst
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: sections/aldermanic_privilege.bib
+You've used 27 entries,
+            2984 wiz_defined-function locations,
+            803 strings with 8728 characters,
+and the built_in function-call counts, 23063 in all, are:
+= -- 3738
+> -- 1262
+< -- 370
++ -- 395
+- -- 220
+* -- 1449
+:= -- 5230
+add.period$ -- 27
+call.type$ -- 27
+change.case$ -- 189
+chr.to.int$ -- 27
+cite$ -- 27
+duplicate$ -- 290
+empty$ -- 695
+format.name$ -- 622
+if$ -- 5731
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 27
+newline$ -- 87
+num.names$ -- 324
+pop$ -- 380
+preamble$ -- 1
+purify$ -- 216
+quote$ -- 0
+skip$ -- 0
+stack$ -- 0
+substring$ -- 771
+swap$ -- 95
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 104
+warning$ -- 0
+while$ -- 305
+width$ -- 0
+write$ -- 453

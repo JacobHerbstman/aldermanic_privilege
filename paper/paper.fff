@@ -1,0 +1,38 @@
+\efloatseparator
+ 
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_no_hedonics_short.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_triangular_1000ft_no_hedonics_short.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Rents --- Without Hedonic Controls}
+    \figurenotes{Same specification as Figure~\ref{fig:event_study_rents} but excluding listing-level hedonic controls. Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-border-pair-by-side and cohort-by-border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \label{fig:event_study_rental_no_hedonics}
+\end{figure}
+\efloatseparator
+ 
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_continuous_triangular_1000ft_no_hedonics.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_binary_triangular_1000ft_no_hedonics.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Home Sale Prices --- Without Hedonic Controls}
+    \figurenotes{Same specification as Figure~\ref{fig:event_study_sales} but excluding property-level hedonic controls. 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \label{fig:event_study_sales_no_hedonics}
+\end{figure}

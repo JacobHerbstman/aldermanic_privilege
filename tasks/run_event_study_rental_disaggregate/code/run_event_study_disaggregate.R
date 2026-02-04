@@ -49,6 +49,10 @@ parser <- add_option(parser, c("-m", "--sample_filter"),
     type = "character", default = "full_sample",
     help = "Sample filter: full_sample or multifamily_only [default: full_sample]"
 )
+parser <- add_option(parser, c("-e", "--fe_type"),
+    type = "character", default = "strict_pair_x_year",
+    help = "FE type: strict_pair_x_year, pair_trend_plus_year, or side_plus_year [default: strict_pair_x_year]"
+)
 parser <- add_option(parser, c("-p", "--post_window"),
     type = "character", default = "full",
     help = "Post-period window: 'short' (truncated) or 'full' [default: full]"
@@ -63,7 +67,12 @@ INCLUDE_CONTROLS <- args$include_controls
 WEIGHTING <- args$weighting
 BANDWIDTH <- args$bandwidth
 SAMPLE_FILTER <- args$sample_filter
+FE_TYPE <- args$fe_type
 POST_WINDOW <- args$post_window
+
+if (!FE_TYPE %in% c("strict_pair_x_year", "pair_trend_plus_year", "side_plus_year")) {
+    stop("--fe_type must be one of: strict_pair_x_year, pair_trend_plus_year, side_plus_year")
+}
 
 message("\n=== Disaggregate Event Study Configuration ===")
 message(sprintf("Frequency: %s", FREQUENCY))
@@ -73,13 +82,20 @@ message(sprintf("Include Hedonic Controls: %s", INCLUDE_CONTROLS))
 message(sprintf("Weighting: %s", WEIGHTING))
 message(sprintf("Bandwidth: %d ft", BANDWIDTH))
 message(sprintf("Sample Filter: %s", SAMPLE_FILTER))
+message(sprintf("FE Type: %s", FE_TYPE))
 message(sprintf("Post Window: %s", POST_WINDOW))
 
 # Output suffix
 sample_suffix <- ifelse(SAMPLE_FILTER == "multifamily_only", "_mf", "")
+fe_suffix <- case_when(
+    FE_TYPE == "strict_pair_x_year" ~ "",
+    FE_TYPE == "pair_trend_plus_year" ~ "_pairtrend",
+    FE_TYPE == "side_plus_year" ~ "_yearfe",
+    TRUE ~ ""
+)
 
 suffix <- sprintf(
-    "disaggregate_%s_%s_%s_%s_%dft%s%s%s",
+    "disaggregate_%s_%s_%s_%s_%dft%s%s%s%s",
     FREQUENCY,
     ifelse(STACKED, "stacked", "unstacked"),
     TREATMENT_TYPE,
@@ -87,6 +103,7 @@ suffix <- sprintf(
     as.integer(BANDWIDTH),
     sample_suffix,
     ifelse(INCLUDE_CONTROLS, "", "_no_hedonics"),
+    fe_suffix,
     ifelse(POST_WINDOW == "short", "_short", "")
 )
 
@@ -248,6 +265,9 @@ if (FREQUENCY == "yearly") {
 
 message(sprintf("Post-period window: [%d, %d]", min_period, max_period))
 
+# Use calendar year as the trend variable in pair-specific trend FE.
+trend_var <- "year"
+
 # =============================================================================
 # CREATE WARD_PAIR VARIABLE AND BUILD FE FORMULA
 # =============================================================================
@@ -261,13 +281,23 @@ if (STACKED) {
             ward_pair = sub("_[0-9]+$", "", ward_pair_side_temp),  # Remove side suffix
             cohort_ward_pair = paste(cohort, ward_pair, sep = "_")  # Add cohort back
         )
-    fe_formula <- sprintf("cohort_ward_pair_side + cohort_ward_pair^%s", time_fe_var)
+    fe_formula <- case_when(
+        FE_TYPE == "strict_pair_x_year" ~ sprintf("cohort_ward_pair_side + cohort_ward_pair^%s", time_fe_var),
+        FE_TYPE == "pair_trend_plus_year" ~ sprintf("cohort_ward_pair_side + cohort^%s + cohort_ward_pair[%s]", time_fe_var, trend_var),
+        FE_TYPE == "side_plus_year" ~ sprintf("cohort_ward_pair_side + cohort^%s", time_fe_var),
+        TRUE ~ sprintf("cohort_ward_pair_side + cohort_ward_pair^%s", time_fe_var)
+    )
 } else {
     data <- data %>%
         mutate(
             ward_pair = sub("_[0-9]+$", "", ward_pair_side)  # Remove side suffix
         )
-    fe_formula <- sprintf("ward_pair_side + ward_pair^%s", time_fe_var)
+    fe_formula <- case_when(
+        FE_TYPE == "strict_pair_x_year" ~ sprintf("ward_pair_side + ward_pair^%s", time_fe_var),
+        FE_TYPE == "pair_trend_plus_year" ~ sprintf("ward_pair_side + %s + ward_pair[%s]", time_fe_var, trend_var),
+        FE_TYPE == "side_plus_year" ~ sprintf("ward_pair_side + %s", time_fe_var),
+        TRUE ~ sprintf("ward_pair_side + ward_pair^%s", time_fe_var)
+    )
 }
 
 message(sprintf("FE formula: %s", fe_formula))
