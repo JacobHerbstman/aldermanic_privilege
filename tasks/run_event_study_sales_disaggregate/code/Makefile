@@ -13,7 +13,7 @@ TREATMENT_TYPES   := continuous continuous_split
 INCLUDE_HEDONICS  := TRUE FALSE
 FE_TYPES          ?= strict_pair_x_year
 WEIGHTINGS        := triangular uniform
-BANDWIDTHS        := 1000 
+BANDWIDTHS        := 500 1000
 POST_WINDOWS      := full
 
 SCRIPT := run_event_study.R

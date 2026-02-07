@@ -3,6 +3,7 @@ include ../../shell_functions.make
 
 SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage
 SCORE_COLUMN ?= uncertainty_index
+SCORE_FILE_UPSTREAM ?= ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(SCORE_SPEC).csv
 
 all: ../output/sales_with_ward_distances.csv ../output/rent_with_ward_distances_full.parquet ../output/block_treatment_panel.csv
 
@@ -26,9 +27,14 @@ all: ../output/sales_with_ward_distances.csv ../output/rent_with_ward_distances_
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
 	ln -sf $< $@
 
-../input/aldermen_uncertainty_scores.csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(SCORE_SPEC).csv | ../input
+../input/aldermen_uncertainty_scores.csv: $(SCORE_FILE_UPSTREAM) | ../input
 	ln -sf $< $@
 
 include ../../generic.make
 
 link-inputs: ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores.csv
+
+.PHONY: with-strictness
+
+with-strictness:
+	$(MAKE) SCORE_FILE_UPSTREAM=../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv SCORE_COLUMN=uncertainty_index

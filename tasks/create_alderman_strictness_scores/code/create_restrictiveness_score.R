@@ -50,7 +50,9 @@ message("Reference alderman: ", opt$ref_alderman)
 df <- read_csv(opt$input_csv, show_col_types = FALSE) %>%
   mutate(
     month = as.yearmon(month),
-    log_mean_processing_time = if_else(mean_processing_time > 0, log(mean_processing_time), NA_real_)
+    log_mean_processing_time = if_else(mean_processing_time > 0, log(mean_processing_time), NA_real_),
+    pop_total_10k = pop_total / 10000,
+    median_hh_income_10k = median_hh_income / 10000
   ) %>%
   filter(!is.na(alderman), !is.na(ward), !is.na(month), n_permits_applied > 0)
 
@@ -76,7 +78,7 @@ ca_share_vars <- grep("^ca_share_", names(df), value = TRUE)
 
 candidate_controls <- c(
   "dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m",
-  "homeownership_rate", "pop_total", "median_hh_income",
+  "homeownership_rate", "pop_total_10k", "median_hh_income_10k",
   "share_black", "share_hisp", "share_white",
   ca_share_vars
 )
@@ -213,6 +215,26 @@ scores <- effects %>%
 # -----------------------------------------------------------------------------
 
 fe_label <- if (fe_spec == "month") "Month FE" else "Ward + Month FE"
+stage1_fixef_group <- if (fe_spec == "month") {
+  list("Month FE" = "month")
+} else {
+  list(
+    "Ward FE" = "ward",
+    "Month FE" = "month"
+  )
+}
+
+stage1_dict <- c(
+  "dist_cbd_km" = "Distance to CBD (km)",
+  "lakefront_share_1km" = "Lakefront Share (1km)",
+  "n_rail_stations_800m" = "Rail Stations (800m)",
+  "homeownership_rate" = "Homeownership Rate",
+  "pop_total_10k" = "Population (10,000s)",
+  "median_hh_income_10k" = "Median HH Income ($10,000s)",
+  "share_black" = "Black Share",
+  "share_hisp" = "Hispanic Share",
+  "share_white" = "White Share"
+)
 
 etable(
   stage1_model,
@@ -221,6 +243,8 @@ etable(
   depvar = FALSE,
   headers = c("Log Mean Processing Time"),
   fitstat = ~ n + r2,
+  drop = "^ca_share_",
+  dict = stage1_dict,
   file = opt$output_stage1_tex,
   replace = TRUE,
   style.tex = style.tex(
@@ -230,10 +254,19 @@ etable(
     fixef.suffix = "",
     yesNo = c("$\\checkmark$", "")
   ),
-  fixef.group = list(
-    "Stage-1 FE" = stage1_fe_rhs
-  )
+  fixef.group = stage1_fixef_group
 )
+
+insert_ca_controls_row <- function(path) {
+  lines <- readLines(path, warn = FALSE)
+  if (any(grepl("Community Area Share Controls", lines, fixed = TRUE))) return(invisible(NULL))
+  anchor_idx <- which(grepl("Month FE", lines, fixed = TRUE))
+  if (length(anchor_idx) == 0) anchor_idx <- which(grepl("Stage-1 FE", lines, fixed = TRUE))
+  if (length(anchor_idx) == 0) return(invisible(NULL))
+  lines <- append(lines, "   Community Area Share Controls    & $\\checkmark$\\\\   ", after = anchor_idx[1])
+  writeLines(lines, path)
+}
+insert_ca_controls_row(opt$output_stage1_tex)
 
 etable(
   stage2_model,

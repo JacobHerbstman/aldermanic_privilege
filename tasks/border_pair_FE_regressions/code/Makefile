@@ -8,7 +8,7 @@ include ../../shell_functions.make
 FE_SPECS := zone_x_pair_year zone_pair_x_year triple pair_year_only pair_x_year
 BWS_FT := 250 500 1000
 YVARS_TABLE := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)'
-UNITS_CAP ?= -1
+UNITS_CAP ?= 100
 OUTPUT_SUFFIX ?=
 
 # ─────────────────────────────────────────────────────────────────────────────

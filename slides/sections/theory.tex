@@ -1,60 +1,57 @@
 % ==============================================================================
-% SLIDE 7: TOY MODEL - SETUP
+% SLIDE 7: TIME-TO-BUILD MODEL - SETUP
 % ==============================================================================
 \begin{frame}
-	\frametitle{A Toy Model of Aldermanic Behavior}
+	\frametitle{A ``Time-to-Build'' Model of Regulatory Stringency}
 	\small
-	Adapts \cite{bordeu_commuting_2025} framework for infrastructure misallocation
-	
+	\textbf{Key idea}: Regulatory environment $\rightarrow$ effective delay $T(s)$ $\rightarrow$ discounts developer revenue
+
 	\vspace{0.5em}
-	\textbf{Setup:} City divided into $g$ wards; total housing $H = \sum_g h_g$
-	
+	\textbf{Developer's problem.} A project chooses density $q \geq 0$ with cost $C(q) = F + cq + \frac{\gamma}{2}q^2$.
+	\vspace{0.2em}
+
+	Revenue arrives upon completion, discounted by regulatory delay:
+	\vspace{-0.3em}
+	\[
+		\max_{q \geq 0} \quad e^{-rT(s)}\, p\, q \;-\; C(q)
+	\]
+	\vspace{-0.8em}
+
+	where $r$ = discount rate, $T(s)$ = time-to-build under regulatory environment $s$
+
 	\vspace{0.5em}
-	\begin{itemize}
-		\item $A(H)$: \textbf{Citywide benefits} of housing --- tax revenue, affordability, agglomeration
-		\begin{itemize}
-			\item \textit{Diffuse}: shared across the whole city
-			\item $A'(H) > 0$, $A''(H) < 0$
-		\end{itemize}
-		\vspace{0.3em}
-		\item $C(h_g)$: \textbf{Local congestion costs} --- traffic, parking, neighborhood character
-		\begin{itemize}
-			\item \textit{Concentrated}: borne by ward $g$ where construction occurs
-			\item $C'(h) > 0$, $C''(h) > 0$
-		\end{itemize}
-		\vspace{0.3em}
-		\item $\lambda \in (0,1)$: Fraction of citywide benefits the alderman internalizes
-	\end{itemize}
+	\textbf{Optimal density} (interior solution):
+	\vspace{-0.3em}
+	\[
+		q^*(T, p) = \frac{e^{-rT(s)}\, p - c}{\gamma} \qquad \text{if } e^{-rT(s)} p > c, \;\text{else } q^* = 0
+	\]
+	\vspace{-0.5em}
+
+	\textbf{Sufficient statistic}: $rT(s)$ summarizes the regulatory wedge --- captures delay, redesign, negotiation, financing frictions, and regulatory uncertainty
 \end{frame}
 
 
 % ==============================================================================
-% SLIDE 8: TOY MODEL - UNDERPROVISION AND PREDICTIONS
+% SLIDE 8: TIME-TO-BUILD MODEL - PREDICTIONS
 % ==============================================================================
 \begin{frame}
-	\frametitle{Under-Provision and Testable Predictions}
+	\frametitle{Testable Predictions}
 	\small
-	\textbf{Alderman} maximizes: $V = \lambda A(H) - C(h)$ \quad $\Rightarrow$ FOC: $\lambda A'(H) = C'(h)$
-	
+	\textbf{Core comparative static}: $\;\partial q^* / \partial T(s) < 0$, which implies:
 	\vspace{0.3em}
-	\textbf{Planner} maximizes: $W = A(H) - C(h)$ \quad $\Rightarrow$ FOC: $A'(H) = C'(h)$
-	
-	\vspace{0.5em}
-	Since $\lambda < 1$: \quad $\boxed{h^{\text{decentralized}} < h^{\text{planner}}}$
-	
-	\vspace{0.3em}
-	\textit{Intuition}: Alderman stops building when local costs outweigh \textit{their share} of benefits
-	
-	\vspace{0.5em}
-	\textbf{Comparative statics:}
-	\begin{itemize}
-		\item $\partial h^* / \partial \lambda > 0$ \quad (more internalization $\rightarrow$ more housing)
-	\end{itemize}
-	
-	\vspace{0.3em}
-	\textbf{Testable predictions:}
 	\begin{enumerate}
-		\item Stricter aldermen (low $\lambda$, as proxied by permit processing times) $\rightarrow$ lower density
-		\item Lower density $\rightarrow$ higher rents and home prices
+		\item \textbf{Lower density} --- completed projects have fewer units \hfill {\scriptsize\textcolor{gray}{$\rightarrow$ Border-pair FE}}
+		\item \textbf{Fewer projects} --- more sites flipped from ``build'' to ``don't build'' \hfill {\scriptsize\textcolor{gray}{$\rightarrow$ Border-pair FE}}
+		\item \textbf{Higher prices/rents} --- lower aggregate supply $Q = \sum_i q_i^{*}$, $\;p'(Q) < 0$ \hfill {\scriptsize\textcolor{gray}{$\rightarrow$ Event study}}
+		%\item \textbf{Amplified by financing costs} --- effects scale with $r$ \hfill {\scriptsize\textcolor{gray}{$\rightarrow$ Heterogeneity}}
+		%\item \textbf{Selection} --- surviving projects are higher-return on observables
 	\end{enumerate}
+
+	\vspace{0.5em}
+	\textbf{Mapping to data}:
+	\begin{itemize}
+		\item $T(s)$ proxied by observed permit-to-completion times
+		\item Aldermanic strictness score $\approx$ alderman-specific component of $T(s)$
+		\item Cross-boundary variation: different aldermen $\Rightarrow$ different $T(s)$ on each side
+	\end{itemize}
 \end{frame}
