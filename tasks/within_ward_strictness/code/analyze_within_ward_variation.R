@@ -1,6 +1,25 @@
 source("../../setup_environment/code/packages.R")
 library(ggrepel)
 
+args <- commandArgs(trailingOnly = TRUE)
+score_file <- if (length(args) >= 1) args[1] else "../input/alderman_restrictiveness_scores_month_FEs.csv"
+score_col <- if (length(args) >= 2) args[2] else "strictness_index"
+score_name <- if (length(args) >= 3) args[3] else "Strictness Score"
+output_tag <- if (length(args) >= 4) args[4] else ""
+
+out_path <- function(base_name) {
+  if (identical(output_tag, "")) {
+    return(paste0("../output/", base_name))
+  }
+  parts <- strsplit(base_name, "\\.", fixed = FALSE)[[1]]
+  if (length(parts) < 2) {
+    return(paste0("../output/", base_name, "_", output_tag))
+  }
+  ext <- tail(parts, 1)
+  stem <- substr(base_name, 1, nchar(base_name) - nchar(ext) - 1)
+  paste0("../output/", stem, "_", output_tag, ".", ext)
+}
+
 # =============================================================================
 # WITHIN-WARD STRICTNESS SCORE VALIDATION
 # Validates whether strictness scores capture alderman-specific behavior
@@ -15,7 +34,13 @@ message("\n=== Within-Ward Strictness Score Validation ===")
 message("\n=== Loading Data ===")
 
 # Load strictness scores
-scores <- read_csv("../input/alderman_restrictiveness_scores_month_FEs.csv", show_col_types = FALSE)
+scores_raw <- read_csv(score_file, show_col_types = FALSE)
+if (!score_col %in% names(scores_raw)) {
+    stop(sprintf("Score column '%s' not found in %s", score_col, score_file))
+}
+scores <- scores_raw %>%
+    mutate(strictness_index = suppressWarnings(as.numeric(.data[[score_col]]))) %>%
+    filter(!is.na(strictness_index))
 message(sprintf("Loaded %d aldermen with strictness scores", nrow(scores)))
 
 # Load alderman-ward panel
@@ -121,8 +146,9 @@ summary_df <- data.frame(
               wards_in_sample, aldermen_in_sample,
               overall_mean, overall_sd, mean_within_ward_sd, ratio_within_to_overall)
 )
-write_csv(summary_df, "../output/ward_alderman_summary.csv")
-message("\nSaved: ../output/ward_alderman_summary.csv")
+summary_out <- out_path("ward_alderman_summary.csv")
+write_csv(summary_df, summary_out)
+message("\nSaved: ", summary_out)
 
 # =============================================================================
 # 3. WITHIN-WARD DOT PLOT
@@ -170,9 +196,9 @@ p_dotplot <- ggplot(plot_data, aes(x = strictness_index, y = reorder(factor(ward
         name = "Ward has:"
     ) +
     labs(
-        x = "Strictness Score (higher = stricter)",
+        x = paste0(score_name, " (higher = stricter)"),
         y = "Ward (ordered by mean strictness)",
-        title = "Alderman Strictness Scores by Ward",
+        title = paste0("Alderman ", score_name, " by Ward"),
         subtitle = "Each dot is one alderman; horizontal segments show within-ward range"
     ) +
     theme_minimal() +
@@ -183,8 +209,9 @@ p_dotplot <- ggplot(plot_data, aes(x = strictness_index, y = reorder(factor(ward
         plot.subtitle = element_text(size = 10, color = "gray40")
     )
 
-ggsave("../output/within_ward_dotplot.pdf", p_dotplot, width = 8, height = 11)
-message("Saved: ../output/within_ward_dotplot.pdf")
+dotplot_out <- out_path("within_ward_dotplot.pdf")
+ggsave(dotplot_out, p_dotplot, width = 8, height = 11)
+message("Saved: ", dotplot_out)
 
 # =============================================================================
 # 4. PREDECESSOR-SUCCESSOR ANALYSIS
@@ -237,9 +264,9 @@ if (nrow(turnover_pairs) >= 3) {
         geom_smooth(method = "lm", se = TRUE, color = "#2171B5", alpha = 0.2) +
         geom_point(size = 3, alpha = 0.7, color = "#E41A1C") +
         labs(
-            x = "Predecessor Strictness Score",
-            y = "Successor Strictness Score",
-            title = "Strictness Score Persistence Across Alderman Turnovers",
+            x = paste0("Predecessor ", score_name),
+            y = paste0("Successor ", score_name),
+            title = paste0(score_name, " Persistence Across Alderman Turnovers"),
             subtitle = "If scores were ward-driven, points would cluster on the 45° line"
         ) +
         coord_fixed() +
@@ -249,8 +276,9 @@ if (nrow(turnover_pairs) >= 3) {
             plot.subtitle = element_text(size = 10, color = "gray40")
         )
     
-    ggsave("../output/predecessor_successor_scatter.pdf", p_scatter, width = 6, height = 6)
-    message("Saved: ../output/predecessor_successor_scatter.pdf")
+    scatter_out <- out_path("predecessor_successor_scatter.pdf")
+    ggsave(scatter_out, p_scatter, width = 6, height = 6)
+    message("Saved: ", scatter_out)
 } else {
     pred_succ_cor <- NA
     message("Not enough turnover pairs to calculate correlation")
@@ -293,8 +321,9 @@ variance_summary <- data.frame(
               overall_sd, mean_within_ward_sd, ratio_within_to_overall)
 )
 
-write_csv(variance_summary, "../output/variance_decomposition.csv")
-message("\nSaved: ../output/variance_decomposition.csv")
+variance_out <- out_path("variance_decomposition.csv")
+write_csv(variance_summary, variance_out)
+message("\nSaved: ", variance_out)
 
 # Print interpretive summary
 cat("\n")

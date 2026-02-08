@@ -2,13 +2,20 @@ SHELL := bash
 include ../../shell_functions.make
 
 DATE := 2025-01
+UNCERTAINTY_SPEC := ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage
 
-all: ../output/strictness_score_map_$(DATE).pdf
+all: ../output/strictness_score_map_$(DATE).pdf ../output/uncertainty_score_map_$(UNCERTAINTY_SPEC)_$(DATE).pdf
 
 ../output/strictness_score_map_$(DATE).pdf: strictness_score_map.R ../input/alderman_restrictiveness_scores_month_FEs.csv ../input/chicago_alderman_panel.csv ../input/ward_panel.gpkg | ../output
 	Rscript strictness_score_map.R $(DATE)
 
+../output/uncertainty_score_map_$(UNCERTAINTY_SPEC)_$(DATE).pdf: strictness_score_map.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv ../input/ward_panel.gpkg | ../output
+	Rscript strictness_score_map.R $(DATE) ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv uncertainty_index ../output/uncertainty_score_map_$(UNCERTAINTY_SPEC)_$(DATE).pdf "Regulatory uncertainty index" "Regulatory Uncertainty Index by Ward ($(DATE))"
+
 ../input/alderman_restrictiveness_scores_month_FEs.csv: ../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_month_FEs.csv | ../input
+	ln -sf $< $@
+
+../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv | ../input
 	ln -sf $< $@
 
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
@@ -19,4 +26,4 @@ all: ../output/strictness_score_map_$(DATE).pdf
 
 include ../../generic.make
 
-link-inputs: ../input/alderman_restrictiveness_scores_month_FEs.csv ../input/chicago_alderman_panel.csv ../input/ward_panel.gpkg
+link-inputs: ../input/alderman_restrictiveness_scores_month_FEs.csv ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv ../input/ward_panel.gpkg

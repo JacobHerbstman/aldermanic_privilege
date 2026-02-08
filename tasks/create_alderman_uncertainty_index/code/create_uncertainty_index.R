@@ -30,7 +30,13 @@ option_list <- list(
   make_option("--ca_fe", type = "character", default = "FALSE",
               help = "Include community area fixed effects [default: FALSE]"),
   make_option("--two_stage", type = "character", default = "FALSE",
-              help = "Use two-stage estimation with ward-month aggregation [default: FALSE]")
+              help = "Use two-stage estimation with ward-month aggregation [default: FALSE]"),
+  make_option("--stage2_weight", type = "character", default = "N_PERMITS",
+              help = "Stage-2 weighting: N_PERMITS, SQRT_N_PERMITS, NONE [default: N_PERMITS]"),
+  make_option("--volume_ctrl", type = "character", default = "NONE",
+              help = "Permit volume control: NONE, CURRENT, LAG1 [default: NONE]"),
+  make_option("--volume_stage", type = "character", default = "STAGE1",
+              help = "Where to include volume control: STAGE1, STAGE2, BOTH [default: STAGE1]")
 )
 
 opt_parser <- OptionParser(option_list = option_list)
@@ -42,6 +48,19 @@ REVIEW_TYPE_FE <- toupper(opt$review_type_fe) == "TRUE"
 INCLUDE_PORCH <- toupper(opt$include_porch) == "TRUE"
 CA_FE <- toupper(opt$ca_fe) == "TRUE"
 TWO_STAGE <- toupper(opt$two_stage) == "TRUE"
+STAGE2_WEIGHT <- toupper(opt$stage2_weight)
+VOLUME_CTRL <- toupper(opt$volume_ctrl)
+VOLUME_STAGE <- toupper(opt$volume_stage)
+
+if (!STAGE2_WEIGHT %in% c("N_PERMITS", "SQRT_N_PERMITS", "NONE")) {
+  stop("stage2_weight must be one of: N_PERMITS, SQRT_N_PERMITS, NONE")
+}
+if (!VOLUME_CTRL %in% c("NONE", "CURRENT", "LAG1")) {
+  stop("volume_ctrl must be one of: NONE, CURRENT, LAG1")
+}
+if (!VOLUME_STAGE %in% c("STAGE1", "STAGE2", "BOTH")) {
+  stop("volume_stage must be one of: STAGE1, STAGE2, BOTH")
+}
 
 message("=== Creating Alderman Uncertainty Index ===")
 message("Parameters:")
@@ -50,6 +69,9 @@ message("  REVIEW_TYPE_FE: ", REVIEW_TYPE_FE)
 message("  INCLUDE_PORCH: ", INCLUDE_PORCH)
 message("  CA_FE: ", CA_FE)
 message("  TWO_STAGE: ", TWO_STAGE)
+message("  STAGE2_WEIGHT: ", STAGE2_WEIGHT)
+message("  VOLUME_CTRL: ", VOLUME_CTRL)
+message("  VOLUME_STAGE: ", VOLUME_STAGE)
 
 # Construct output filename
 output_suffix <- paste0(
@@ -59,6 +81,12 @@ output_suffix <- paste0(
   "_cafe", ifelse(CA_FE, "TRUE", "FALSE"),
   ifelse(TWO_STAGE, "_2stage", "")
 )
+if (TWO_STAGE && STAGE2_WEIGHT != "N_PERMITS") {
+  output_suffix <- paste0(output_suffix, "_w", STAGE2_WEIGHT)
+}
+if (VOLUME_CTRL != "NONE") {
+  output_suffix <- paste0(output_suffix, "_vol", VOLUME_CTRL, "_", VOLUME_STAGE)
+}
 output_file <- paste0("../output/alderman_uncertainty_index_", output_suffix, ".csv")
 
 # -----------------------------------------------------------------------------
@@ -108,6 +136,53 @@ message("  Aldermen dropped: ", n_aldermen_before - n_aldermen_after)
 message("  Permits after: ", n_after)
 
 # -----------------------------------------------------------------------------
+# BUILD WARD-MONTH PERMIT VOLUME CONTROLS
+# -----------------------------------------------------------------------------
+
+permits <- permits %>%
+  mutate(
+    ward = as.character(ward),
+    month_date = as.Date(month)
+  )
+
+wm_counts <- permits %>%
+  count(ward, month_date, name = "n_permits_wm")
+
+all_months <- seq(min(wm_counts$month_date), max(wm_counts$month_date), by = "month")
+wm_grid <- expand_grid(
+  ward = sort(unique(wm_counts$ward)),
+  month_date = all_months
+) %>%
+  left_join(wm_counts, by = c("ward", "month_date")) %>%
+  mutate(n_permits_wm = replace_na(n_permits_wm, 0L)) %>%
+  group_by(ward) %>%
+  arrange(month_date, .by_group = TRUE) %>%
+  mutate(n_permits_wm_l1 = lag(n_permits_wm, 1)) %>%
+  ungroup() %>%
+  mutate(month = as.yearmon(month_date)) %>%
+  select(ward, month, n_permits_wm, n_permits_wm_l1)
+
+permits <- permits %>%
+  left_join(wm_grid, by = c("ward", "month"))
+
+volume_var <- case_when(
+  VOLUME_CTRL == "CURRENT" ~ "n_permits_wm",
+  VOLUME_CTRL == "LAG1" ~ "n_permits_wm_l1",
+  TRUE ~ ""
+)
+include_volume_stage1 <- VOLUME_CTRL != "NONE" && VOLUME_STAGE %in% c("STAGE1", "BOTH")
+include_volume_stage2 <- VOLUME_CTRL != "NONE" && VOLUME_STAGE %in% c("STAGE2", "BOTH")
+
+if (VOLUME_CTRL != "NONE") {
+  message("\\nPermit volume control:")
+  message("  Variable: ", volume_var)
+  message("  Included in stage 1: ", include_volume_stage1)
+  message("  Included in stage 2: ", include_volume_stage2)
+  message("  Missing share in selected control: ",
+          round(mean(is.na(permits[[volume_var]])), 4))
+}
+
+# -----------------------------------------------------------------------------
 # BUILD REGRESSION FORMULA
 # -----------------------------------------------------------------------------
 
@@ -120,6 +195,10 @@ covariates <- c(
   # Legacy place controls from ward geometry (map-version specific)
   "dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m"
 )
+
+if (include_volume_stage1) {
+  covariates <- c(covariates, volume_var)
+}
 
 # Fixed effects (conditional)
 fe_terms <- c("month")  # Always include month FE
@@ -271,6 +350,7 @@ if (TWO_STAGE) {
       sd_resid_wm = sd(resid, na.rm = TRUE),
       var_resid_wm = var(resid, na.rm = TRUE),
       n_permits_wm = n(),
+      n_permits_wm_l1 = first(n_permits_wm_l1),
       .groups = "drop"
     )
 
@@ -282,13 +362,37 @@ if (TWO_STAGE) {
 
   # Step 2: Run Stage 2 regression with alderman as predictor (not FE absorber)
   # This gives us coefficients and standard errors for EB shrinkage
-  stage2_model <- feols(
-    mean_resid_wm ~ i(alderman, ref = ref_alderman),
-    data = ward_month_resid,
-    weights = ~n_permits_wm,
-    vcov = ~ward,  # Cluster by ward and month
-    warn = FALSE
-  )
+  stage2_formula <- as.formula(paste0(
+    "mean_resid_wm ~ i(alderman, ref = ref_alderman)",
+    if (include_volume_stage2) paste0(" + ", volume_var) else ""
+  ))
+  message("  Stage 2 formula: ", deparse(stage2_formula))
+  stage2_data <- ward_month_resid
+  weights_formula <- NULL
+  if (STAGE2_WEIGHT == "N_PERMITS") {
+    weights_formula <- ~n_permits_wm
+  } else if (STAGE2_WEIGHT == "SQRT_N_PERMITS") {
+    stage2_data <- stage2_data %>%
+      mutate(stage2_weight = sqrt(n_permits_wm))
+    weights_formula <- ~stage2_weight
+  }
+
+  if (is.null(weights_formula)) {
+    stage2_model <- feols(
+      stage2_formula,
+      data = stage2_data,
+      vcov = ~ward,  # Cluster by ward and month
+      warn = FALSE
+    )
+  } else {
+    stage2_model <- feols(
+      stage2_formula,
+      data = stage2_data,
+      weights = weights_formula,
+      vcov = ~ward,  # Cluster by ward and month
+      warn = FALSE
+    )
+  }
 
   message("  Stage 2 observations: ", stage2_model$nobs)
   message("  Stage 2 R-squared: ", round(r2(stage2_model, type = "ar2"), 4))

@@ -1,0 +1,105 @@
+% ==============================================================================
+% APPENDIX: DENSITY ANALYSIS
+% FE-adjusted spatial RD robustness + border FE robustness
+% ==============================================================================
+
+% ==============================================================================
+% FE-adjusted Spatial RD - Alternative FE
+% ==============================================================================
+\begin{frame}[label=visual-rd-placebo]
+    \frametitle{FE-Adjusted Spatial RD: Pair + Year FE}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(FAR)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_pair_year.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(DUPAC)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_pair_year.pdf}
+    \end{column}
+    \end{columns}
+    \small Additive pair + year FE version.
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+% ==============================================================================
+% FE-adjusted Spatial RD - Levels
+% ==============================================================================
+\begin{frame}[label=visual-rd-functional]
+    \frametitle{FE-Adjusted Spatial RD: Levels}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{FAR (levels)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_density_far_bw500_pair_x_year.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{DUPAC (levels)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_density_dupac_bw500_pair_x_year.pdf}
+    \end{column}
+    \end{columns}
+    \small Pair $\times$ year FE in levels.
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+% ==============================================================================
+% FE-adjusted Spatial RD - Units
+% ==============================================================================
+\begin{frame}[label=visual-rd-donut]
+    \frametitle{FE-Adjusted Spatial RD: Units}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Log(Units)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_unitscount_bw500_pair_x_year.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \centering
+        \textbf{Units (levels)}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_unitscount_bw500_pair_x_year.pdf}
+    \end{column}
+    \end{columns}
+    \small Pair $\times$ year FE with units outcomes.
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+% ==============================================================================
+% Density Regression - Bandwidth Sensitivity
+% ==============================================================================
+\begin{frame}[label=density-reg-bw250]
+    \frametitle{Bandwidth Sensitivity: 250ft}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250_pair_x_year.tex}
+    \end{center}
+    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=density-reg-bw1000]
+    \frametitle{Bandwidth Sensitivity: 1000ft}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw1000_pair_x_year.tex}
+    \end{center}
+    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+% ==============================================================================
+% Density Regression - Donut
+% ==============================================================================
+\begin{frame}[label=density-reg-donut]
+    \frametitle{Donut Regression: Excluding 25ft from Border}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions_donut/output/fe_table_bw500_donut25.tex}
+    \end{center}
+    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Donut Regression: Excluding 50ft from Border}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions_donut/output/fe_table_bw500_donut50.tex}
+    \end{center}
+    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+\end{frame}

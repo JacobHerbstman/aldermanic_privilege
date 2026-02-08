@@ -25,6 +25,7 @@ ALL_INPUTS := ../input/sales_transaction_panel.parquet ../input/sales_transactio
 # ─────────────────────────────────────────────────────────────────────────────
 
 TREAT_SUFFIX_continuous        := _continuous
+TREAT_SUFFIX_continuous_split  := _continuous_split
 TREAT_SUFFIX_binary_direction  := _binary
 
 HEDONICS_SUFFIX_TRUE  :=

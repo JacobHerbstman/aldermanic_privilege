@@ -17,6 +17,7 @@ REVIEW_TYPE_FE ?= TRUE
 INCLUDE_PORCH  ?= TRUE
 CA_FE          ?= FALSE
 TWO_STAGE      ?= TRUE
+STAGE2_WEIGHT  ?= N_PERMITS
 
 SCRIPT := create_uncertainty_index.R
 INPUT := ../input/permits_for_uncertainty_index.csv
@@ -27,6 +28,8 @@ INPUT := ../input/permits_for_uncertainty_index.csv
 
 # Helper to generate 2stage suffix
 twostage_suffix = $(if $(filter TRUE,$(1)),_2stage,)
+weight_suffix = $(if $(filter TRUE,$(1)),$(if $(filter N_PERMITS,$(2)),,_w$(2)),)
+weights_for_ts = $(if $(filter TRUE,$(1)),$(STAGE2_WEIGHT),N_PERMITS)
 
 define GEN_OUTPUTS
 $(foreach ptfe,$(PERMIT_TYPE_FE), \
@@ -34,7 +37,9 @@ $(foreach rtfe,$(REVIEW_TYPE_FE), \
 $(foreach porch,$(INCLUDE_PORCH), \
 $(foreach cafe,$(CA_FE), \
 $(foreach ts,$(TWO_STAGE), \
-	../output/alderman_uncertainty_index_ptfe$(ptfe)_rtfe$(rtfe)_porch$(porch)_cafe$(cafe)$(call twostage_suffix,$(ts)).csv \
+$(foreach wt,$(call weights_for_ts,$(ts)), \
+	../output/alderman_uncertainty_index_ptfe$(ptfe)_rtfe$(rtfe)_porch$(porch)_cafe$(cafe)$(call twostage_suffix,$(ts))$(call weight_suffix,$(ts),$(wt)).csv \
+ ) \
 )))))
 endef
 
@@ -54,8 +59,8 @@ all: $(ALL_OUTPUTS)
 # ─────────────────────────────────────────────────────────────────────────────
 
 define GEN_RULE
-../output/alderman_uncertainty_index_ptfe$(ptfe)_rtfe$(rtfe)_porch$(porch)_cafe$(cafe)$(call twostage_suffix,$(ts)).csv: $(SCRIPT) $(INPUT) | ../output
-	Rscript $(SCRIPT) --permit_type_fe=$(ptfe) --review_type_fe=$(rtfe) --include_porch=$(porch) --ca_fe=$(cafe) --two_stage=$(ts)
+../output/alderman_uncertainty_index_ptfe$(ptfe)_rtfe$(rtfe)_porch$(porch)_cafe$(cafe)$(call twostage_suffix,$(ts))$(call weight_suffix,$(ts),$(wt)).csv: $(SCRIPT) $(INPUT) | ../output
+	Rscript $(SCRIPT) --permit_type_fe=$(ptfe) --review_type_fe=$(rtfe) --include_porch=$(porch) --ca_fe=$(cafe) --two_stage=$(ts) --stage2_weight=$(wt)
 endef
 
 # Expand rules for all possible combinations
@@ -64,7 +69,9 @@ $(foreach rtfe,TRUE FALSE, \
 $(foreach porch,TRUE FALSE, \
 $(foreach cafe,TRUE FALSE, \
 $(foreach ts,TRUE FALSE, \
+$(foreach wt,$(if $(filter TRUE,$(ts)),N_PERMITS SQRT_N_PERMITS NONE,N_PERMITS), \
 	$(eval $(GEN_RULE)) \
+ ) \
 )))))
 
 # ─────────────────────────────────────────────────────────────────────────────

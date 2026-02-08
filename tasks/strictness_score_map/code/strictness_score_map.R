@@ -8,6 +8,12 @@ source("../../setup_environment/code/packages.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 date_str <- if (length(args) >= 1) args[1] else "2025-01"
+scores_file <- if (length(args) >= 2) args[2] else "../input/alderman_restrictiveness_scores_month_FEs.csv"
+score_col <- if (length(args) >= 3) args[3] else "strictness_index"
+outfile <- if (length(args) >= 4) args[4] else file.path("../output", paste0("strictness_score_map_", date_str, ".pdf"))
+legend_title <- if (length(args) >= 5) args[5] else "Strictness index"
+plot_title <- if (length(args) >= 6) args[6] else paste0("Alderman Strictness Index by Ward (", as.yearmon(date_str), ")")
+
 month_dt <- as.Date(paste0(date_str, "-01"))
 use_year <- as.integer(format(month_dt, "%Y"))
 
@@ -21,10 +27,17 @@ wards <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
   filter(year == use_year)
 
 # Scores (alderman-level, time-invariant)
-scores <- read_csv("../input/alderman_restrictiveness_scores_month_FEs.csv",
+scores_raw <- read_csv(scores_file,
                    show_col_types = FALSE) %>%
-  transmute(alderman = str_squish(str_to_lower(alderman)),
-            score    = strictness_index)
+  mutate(alderman = str_squish(str_to_lower(alderman)))
+
+if (!score_col %in% names(scores_raw)) {
+  stop(paste0("Score column not found: ", score_col))
+}
+
+scores <- scores_raw %>%
+  transmute(alderman,
+            score = suppressWarnings(as.numeric(.data[[score_col]])))
 
 # Alderman → Ward mapping for the chosen year
 panel <- read_csv("../input/chicago_alderman_panel.csv",
@@ -43,9 +56,9 @@ ward_map <- wards %>%
 
 p <- ggplot(ward_map) +
   geom_sf(aes(fill = score), color = "grey20", linewidth = 0.2) +
-  scale_fill_distiller(palette = "RdYlBu", direction = -1, name = "Strictness index", na.value = "grey90") +
+  scale_fill_distiller(palette = "RdYlBu", direction = -1, name = legend_title, na.value = "grey90") +
   labs(
-    title   = paste0("Alderman Strictness Index by Ward (", as.yearmon(date_str), ")")
+    title   = plot_title
   ) +
   theme_void() +
   theme(legend.position = "bottom",
@@ -53,6 +66,5 @@ p <- ggplot(ward_map) +
 
 p
 
-outfile <- file.path("../output", paste0("strictness_score_map_", date_str, ".pdf"))
 ggsave(outfile, plot = p, width = 8, height = 10, dpi = 300)
 cat("Map saved to", outfile, "\n")
