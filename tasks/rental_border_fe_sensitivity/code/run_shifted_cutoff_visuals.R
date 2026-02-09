@@ -32,7 +32,7 @@ apply_window <- function(df, window_name) {
   if (window_name == "full") return(df)
   if (window_name == "pre_covid") return(df %>% filter(year <= 2019))
   if (window_name == "pre_2021") return(df %>% filter(year <= 2020))
-  if (window_name == "drop_mid") return(df %>% filter(year <= 2018 | year >= 2024))
+  if (window_name == "drop_mid") return(df %>% filter(year <= 2020 | year >= 2024))
   df
 }
 
@@ -219,8 +219,8 @@ ann_pos <- bins_df %>%
   ) %>%
   left_join(label_df %>% select(shift_ft, annotation), by = "shift_ft")
 
-write_csv(summary_df, opt$output_csv)
-write_csv(bins_df, opt$output_bins_csv)
+# write_csv(summary_df, opt$output_csv)
+# write_csv(bins_df, opt$output_bins_csv)
 
 p <- ggplot() +
   geom_hline(yintercept = 0, linetype = "dashed", color = "gray55") +

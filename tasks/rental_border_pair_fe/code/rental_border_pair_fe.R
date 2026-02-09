@@ -33,7 +33,7 @@ window_rule <- function(df, window_name) {
     return(df %>% filter(year <= 2020))
   }
   if (window_name == "drop_mid") {
-    return(df %>% filter(year <= 2018 | year >= 2024))
+    return(df %>% filter(year <= 2020 | year >= 2024))
   }
   df
 }
@@ -42,7 +42,7 @@ window_label <- c(
   full = "All years (2014-2025)",
   pre_covid = "Pre-COVID (2014-2019)",
   pre_2021 = "Through 2020 (2014-2020)",
-  drop_mid = "Drop transition years (2019-2023)"
+  drop_mid = "Skip 2021-2023"
 )
 
 message("=== Rental Border Pair FE ===")
@@ -74,7 +74,7 @@ year_diag <- rent_raw %>%
     opt$window == "full" ~ TRUE,
     opt$window == "pre_covid" ~ year <= 2019,
     opt$window == "pre_2021" ~ year <= 2020,
-    opt$window == "drop_mid" ~ (year <= 2018 | year >= 2024),
+    opt$window == "drop_mid" ~ (year <= 2020 | year >= 2024),
     TRUE ~ FALSE
   )) %>%
   group_by(year) %>%

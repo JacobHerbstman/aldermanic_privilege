@@ -23,7 +23,7 @@ apply_window <- function(df, window_name) {
   if (window_name == "full") return(df)
   if (window_name == "pre_covid") return(df %>% filter(year <= 2019))
   if (window_name == "pre_2021") return(df %>% filter(year <= 2020))
-  if (window_name == "drop_mid") return(df %>% filter(year <= 2018 | year >= 2024))
+  if (window_name == "drop_mid") return(df %>% filter(year <= 2020 | year >= 2024))
   df
 }
 
@@ -120,7 +120,7 @@ for (i in seq_len(nrow(rings))) {
 out <- bind_rows(results) %>% arrange(midpoint_ft)
 if (nrow(out) == 0) stop("No distance-decay models estimated.", call. = FALSE)
 
-write_csv(out, opt$output_csv)
+# write_csv(out, opt$output_csv)
 
 p <- out %>%
   mutate(
