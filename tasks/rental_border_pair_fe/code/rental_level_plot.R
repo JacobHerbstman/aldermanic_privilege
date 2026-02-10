@@ -19,6 +19,7 @@ apply_window <- function(df, window_name) {
   if (window_name == "full") return(df)
   if (window_name == "pre_covid") return(df %>% filter(year <= 2019))
   if (window_name == "pre_2021") return(df %>% filter(year <= 2020))
+  if (window_name == "pre_2023") return(df %>% filter(year <= 2022))
   if (window_name == "drop_mid") return(df %>% filter(year <= 2020 | year >= 2024))
   df
 }
@@ -126,7 +127,7 @@ bins <- aug %>%
     n = n(),
     mean_y = mean(y_adj, na.rm = TRUE),
     se_y = sd(y_adj, na.rm = TRUE) / sqrt(n),
-    side = if_else(first(bin_center) >= 0, "Stricter side", "Less strict side"),
+    side = if_else(first(bin_center) >= 0, "More Uncertain", "Less Uncertain"),
     .groups = "drop"
   )
 
@@ -135,13 +136,13 @@ mean_left <- mean(aug$y_adj[aug$right == 0], na.rm = TRUE)
 mean_right <- mean(aug$y_adj[aug$right == 1], na.rm = TRUE)
 
 line_df <- bind_rows(
-  tibble(x = c(-opt$bw_ft, 0), y = mean_left, side = "Less strict side"),
-  tibble(x = c(0, opt$bw_ft), y = mean_right, side = "Stricter side")
+  tibble(x = c(-opt$bw_ft, 0), y = mean_left, side = "Less Uncertain"),
+  tibble(x = c(0, opt$bw_ft), y = mean_right, side = "More Uncertain")
 )
 
 gap_label <- sprintf(
-  "Gap = %.4f%s (SE %.4f, p = %.3f)\nN = %s | Ward pairs = %d",
-  b_right, stars(p_right), se_right, p_right,
+  "Gap = %.4f%s (SE %.4f)\nN = %s | Ward pairs = %d",
+  b_right, stars(p_right), se_right,
   format(nobs(m), big.mark = ","), n_distinct(aug$ward_pair)
 )
 
@@ -159,7 +160,7 @@ p <- ggplot() +
     linewidth = 1.1
   ) +
   scale_color_manual(
-    values = c("Less strict side" = "#1f77b4", "Stricter side" = "#d62728"),
+    values = c("Less Uncertain" = "#1f77b4", "More Uncertain" = "#d62728"),
     name = ""
   ) +
   annotate("text",
@@ -168,16 +169,16 @@ p <- ggplot() +
     hjust = -0.05, vjust = 1.5, size = 3.3, fontface = "bold"
   ) +
   labs(
-    title = "Rental Prices by Side of Ward Boundary (FE-Adjusted)",
-    subtitle = sprintf("bw=%d ft | window=%s | controls=%s%s",
-                        opt$bw_ft, opt$window, opt$use_controls,
+    title = "Rental Prices by Side of Ward Boundary",
+    subtitle = sprintf("bw=%d ft | controls=%s%s",
+                        opt$bw_ft, opt$use_controls,
                         if (opt$min_strictness_diff_pctile > 0) sprintf(" | top %d%% pairs", 100 - opt$min_strictness_diff_pctile) else ""),
-    x = "Distance to Ward Boundary (feet; positive = stricter side)",
+    x = "Distance to Ward Boundary (feet; positive = more uncertain side)",
     y = "FE-Adjusted Log(Rent)",
     caption = "Points: binned means. Lines: side-level means."
   ) +
   theme_bw(base_size = 11) +
-  theme(legend.position = "top", panel.grid.minor = element_blank())
+  theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
 ggsave(opt$output_pdf, p, width = 8.6, height = 6, dpi = 300, bg = "white")
 

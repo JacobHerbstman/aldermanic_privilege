@@ -23,7 +23,7 @@
     \small
     Red = switched to stricter; Blue = switched to lenient; Gray = control (no switch)
     
-    \vfill\hfill \hyperlink{price-main}{\beamerreturnbutton{Back}}
+    \vfill\hfill \hyperlink{treatment-maps}{\beamerreturnbutton{Back}}
 \end{frame}
 
 % ==============================================================================
@@ -56,28 +56,9 @@
     Treatment defined as blocks that switched aldermen during redistricting. \\
     Control blocks are near ward boundaries but did not switch.
     
-    \vfill\hfill \hyperlink{event-data}{\beamerreturnbutton{Back}}
+    \vfill\hfill \hyperlink{treatment-maps}{\beamerreturnbutton{Back}}
 \end{frame}
 
-% ==============================================================================
-% Home Price Event Study - 500 ft Bandwidth
-% ==============================================================================
-\begin{frame}[label=sales-bw500]
-    \frametitle{Home Price Event Study: 500 ft Bandwidth}
-    \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Aggregate Treatment Effect}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_stacked_announcement_continuous_triangular_500ft.pdf}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Stricter vs. Lenient}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_stacked_announcement_continuous_split_triangular_500ft.pdf}
-    \end{column}
-    \end{columns}.
-    \vfill\hfill \hyperlink{price-main}{\beamerreturnbutton{Back}}
-\end{frame}
 
 % ==============================================================================
 % Home Price Event Study - Without Hedonic Controls
@@ -88,42 +69,14 @@
     \begin{column}{0.48\textwidth}
         \centering
         \textbf{Aggregate Treatment Effect}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_stacked_announcement_continuous_triangular_1000ft_no_hedonics.pdf}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_stacked_announcement_continuous_uniform_1000ft_no_hedonics.pdf}
     \end{column}
     \begin{column}{0.48\textwidth}
         \centering
         \textbf{Stricter vs. Lenient}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_stacked_announcement_continuous_split_triangular_1000ft_no_hedonics.pdf}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_stacked_announcement_continuous_split_uniform_1000ft_no_hedonics.pdf}
     \end{column}
     \end{columns}
-    \vfill\hfill \hyperlink{price-main}{\beamerreturnbutton{Back}}
+    \vfill\hfill \hyperlink{sales-bw500}{\beamerreturnbutton{Back}}
 \end{frame}
 
-% ==============================================================================
-% Covariate Balance
-% ==============================================================================
-\begin{frame}[label=price-balance]
-    \frametitle{Covariate Balance at Ward Borders}
-    \begin{center}
-    \scriptsize
-    \begin{threeparttable}
-    \begin{tabular}{lrrrrr}
-    \toprule
-     & \multicolumn{3}{c}{Mean by Group} & \multicolumn{2}{c}{Stricter vs Lenient} \\
-    \cmidrule(lr){2-4} \cmidrule(lr){5-6}
-    Variable & Stricter & Lenient & Control & Diff & $p$-value \\
-    \midrule
-    Sale Price (\$) & \$375,060 & \$370,964 & \$371,456 & \$4,097 & 0.726 \\
-    N Sales & 1.32 & 1.29 & 1.32 & 0.04 & 0.166 \\
-    Dist to Boundary (ft) & 451 & 457 & 507 & -5 & 0.616 \\
-    N Blocks & 1251 & 1303 & 4133 & -- & -- \\
-    \bottomrule
-    \end{tabular}
-    \begin{tablenotes}
-    \tiny
-    \item \textit{Notes:} Balance measured at $t = -1$ (one year before redistricting).
-    \end{tablenotes}
-    \end{threeparttable}
-    \end{center}
-    \vfill\hfill \hyperlink{price-main}{\beamerreturnbutton{Back}}
-\end{frame}

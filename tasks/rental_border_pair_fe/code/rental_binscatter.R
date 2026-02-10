@@ -19,6 +19,7 @@ apply_window <- function(df, window_name) {
   if (window_name == "full") return(df)
   if (window_name == "pre_covid") return(df %>% filter(year <= 2019))
   if (window_name == "pre_2021") return(df %>% filter(year <= 2020))
+  if (window_name == "pre_2023") return(df %>% filter(year <= 2022))
   if (window_name == "drop_mid") return(df %>% filter(year <= 2020 | year >= 2024))
   df
 }

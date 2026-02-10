@@ -37,6 +37,7 @@ stars <- function(p) {
 apply_window <- function(df, w) {
   if (w == "full") return(df)
   if (w == "pre_2021") return(df %>% filter(year <= 2020))
+  if (w == "pre_2023") return(df %>% filter(year <= 2022))
   if (w == "pre_covid") return(df %>% filter(year <= 2019))
   df
 }
@@ -90,19 +91,19 @@ bin_w <- opt$bw_ft / opt$bins_per_side
 bins <- aug %>%
   mutate(bin_center = (floor(signed_dist / bin_w) + 0.5) * bin_w) %>%
   group_by(bin_center) %>%
-  summarise(mean_y = mean(y_adj), side = if_else(first(bin_center) >= 0, "Stricter", "Less strict"),
+  summarise(mean_y = mean(y_adj), side = if_else(first(bin_center) >= 0, "More Uncertain", "Less Uncertain"),
             .groups = "drop")
 
 mean_left <- mean(aug$y_adj[aug$right == 0])
 mean_right <- mean(aug$y_adj[aug$right == 1])
 
 line_df <- bind_rows(
-  tibble(x = c(-opt$bw_ft, 0), y = mean_left, side = "Less strict"),
-  tibble(x = c(0, opt$bw_ft), y = mean_right, side = "Stricter")
+  tibble(x = c(-opt$bw_ft, 0), y = mean_left, side = "Less Uncertain"),
+  tibble(x = c(0, opt$bw_ft), y = mean_right, side = "More Uncertain")
 )
 
-gap_label <- sprintf("Gap = %.4f%s (SE %.4f, p = %.3f)\nN = %s | %d pairs",
-                     b_right, stars(p_right), se_right, p_right,
+gap_label <- sprintf("Gap = %.4f%s (SE %.4f)\nN = %s | %d pairs",
+                     b_right, stars(p_right), se_right,
                      format(nobs(m), big.mark = ","), n_distinct(aug$ward_pair))
 
 ggplot() +
@@ -110,12 +111,12 @@ ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.8) +
   geom_point(data = bins, aes(x = bin_center, y = mean_y, color = side), size = 2.5, alpha = 0.9) +
   geom_line(data = line_df, aes(x = x, y = y, color = side), linewidth = 1.1) +
-  scale_color_manual(values = c("Less strict" = "#1f77b4", "Stricter" = "#d62728"), name = "") +
+  scale_color_manual(values = c("Less Uncertain" = "#1f77b4", "More Uncertain" = "#d62728"), name = "") +
   annotate("text", x = -Inf, y = Inf, label = gap_label,
            hjust = -0.05, vjust = 1.5, size = 3.3, fontface = "bold") +
   labs(title = sprintf("%s by Side of Ward Boundary (FE-Adjusted)", cfg$label),
        subtitle = sprintf("bw=%d ft | window=%s", opt$bw_ft, opt$window),
-       x = "Distance to Ward Boundary (feet; positive = stricter side)",
+       x = "Distance to Ward Boundary (feet; positive = more uncertain side)",
        y = sprintf("FE-Adjusted %s", cfg$label)) +
   theme_bw(base_size = 11) +
   theme(legend.position = "top", panel.grid.minor = element_blank())

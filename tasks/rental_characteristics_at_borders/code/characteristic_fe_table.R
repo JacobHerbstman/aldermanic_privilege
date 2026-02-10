@@ -13,11 +13,17 @@ opt <- parse_args(OptionParser(option_list = option_list))
 apply_window <- function(df, w) {
   if (w == "full") return(df)
   if (w == "pre_2021") return(df %>% filter(year <= 2020))
+  if (w == "pre_2023") return(df %>% filter(year <= 2022))
   if (w == "pre_covid") return(df %>% filter(year <= 2019))
   df
 }
 
-window_label <- c(full = "All years", pre_covid = "Pre-COVID (2014-2019)", pre_2021 = "Through 2020")
+window_label <- c(
+  full = "All years",
+  pre_covid = "Pre-COVID (2014-2019)",
+  pre_2021 = "Through 2020",
+  pre_2023 = "Through 2022 (2014-2022)"
+)
 
 message(sprintf("=== Characteristic FE Table | bw=%d | window=%s ===", opt$bw_ft, opt$window))
 
@@ -41,7 +47,6 @@ dat <- read_parquet(opt$input) %>%
 # ── Outcomes to estimate ──
 outcomes <- list(
   list(name = "sqft",       var = "sqft",           label = "Sqft",            log = FALSE),
-  list(name = "log_sqft",   var = "sqft",           label = "Log(Sqft)",       log = TRUE),
   list(name = "beds",       var = "beds",           label = "Beds",            log = FALSE),
   list(name = "baths",      var = "baths",          label = "Baths",           log = FALSE),
   list(name = "multifamily",var = "is_multifamily", label = "Multi-Family",    log = FALSE),
@@ -99,7 +104,7 @@ header <- paste0("\\begingroup\n\\centering\n\\begin{tabular}{l", paste(rep("c",
 col_headers <- paste0("   ", paste(sprintf("& %s", coef_tbl$label), collapse = " "), "\\\\  \n")
 midrule <- "   \\midrule \n"
 
-coef_row <- paste0("   Stricter Side ",
+coef_row <- paste0("   More Uncertain Side ",
   paste(sapply(seq_len(ncol), function(i) {
     sprintf("& %.4f%s", coef_tbl$estimate[i], stars(coef_tbl$p_value[i]))
   }), collapse = " "), "\\\\   \n")
@@ -116,13 +121,11 @@ mean_row <- paste0("   Dep. Var. Mean ",
   paste(sapply(coef_tbl$dep_var_mean, function(m) sprintf("& %.2f", m)), collapse = " "), "\\\\  \n")
 fe_row <- paste0("   Ward-Pair $\\times$ Year-Month FE ",
   paste(rep("& $\\checkmark$", ncol), collapse = " "), "\\\\   \n")
-window_row <- paste0("   Window ",
-  paste(rep(sprintf("& %s", window_label[[opt$window]]), ncol), collapse = " "), "\\\\  \n")
 
 footer <- "   \\bottomrule\n\\end{tabular}\n\\par\\endgroup\n"
 
 tex <- paste0(header, col_headers, midrule, coef_row, se_row, blank,
-              obs_row, mean_row, fe_row, window_row, footer)
+              obs_row, mean_row, fe_row, footer)
 writeLines(tex, opt$output_tex)
 
 message(sprintf("Saved: %s", opt$output_tex))

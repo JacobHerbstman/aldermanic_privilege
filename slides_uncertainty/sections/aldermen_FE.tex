@@ -1,14 +1,14 @@
 % ==============================================================================
-% SLIDE 9: THE CHALLENGE - MEASURING STRICTNESS
+% SLIDE 9: THE CHALLENGE - MEASURING REGULATORY UNCERTAINTY
 % ==============================================================================
 \begin{frame}
-	\frametitle{The Challenge: Measuring Alderman Strictness}
+	\frametitle{The Challenge: Measuring Regulatory Uncertainty}
 	\begin{itemize}
 		\item Alderman preferences/frictions are latent: need to infer from observed behavior
-		\item \textbf{Idea}: Use permit processing times as a \textbf{proxy} for regulatory strictness
+		\item \textbf{Idea}: Use permit processing times as a \textbf{proxy} for regulatory uncertainty and variation in time to build
 		\begin{itemize}
 			\item Data: Universe of Permits in Chicago (2006-2025) from Department of Buildings
-			\item Longer average processing time $\rightarrow$ more back-and-forth, more friction 
+			\item Longer average processing time $\rightarrow$ more back-and-forth, more frictions, more uncertainty
 		\end{itemize}
 		\item Focus on \textbf{high-discretion permits}: new construction, renovation, demolition
 	\end{itemize}
@@ -16,10 +16,10 @@
 
 
 % ==============================================================================
-% SLIDE 10: STRICTNESS SCORE CONSTRUCTION
+% SLIDE 10: UNCERTAINTY INDEX CONSTRUCTION
 % ==============================================================================
 \begin{frame}
-	\frametitle{Strictness Score Construction}
+	\frametitle{Uncertainty Index Construction}
 	\begin{enumerate}
 		\item \textbf{Residualize} processing times on ward characteristics + year $\times$ month FEs
 		\begin{itemize}
@@ -37,7 +37,7 @@
 	\textbf{Interpretation}: High score = alderman associated with longer processing times
 	
 	\vspace{0.3em}
-	\textbf{Caveat}: This is a \textit{proxy}: likely understates true variation in bureaucratic frictions
+	\textbf{Caveat}: This is a \textit{proxy}: likely understates true variation in bureaucratic frictions 
 	\begin{itemize}
 		\item Misses projects that never apply or are discouraged early
 	\end{itemize}
@@ -45,7 +45,7 @@
 
 
 % ==============================================================================
-% SLIDE 11: ALDERMAN STRICTNESS RESULTS
+% SLIDE 11: ALDERMAN REGULATORY UNCERTAINTY INDEX
 % ==============================================================================
 \begin{frame}[label=strictness-main]
    \frametitle{Alderman Regulatory Uncertainty Index} 
@@ -72,43 +72,3 @@
    \hyperlink{strictness-validation-main}{\beamergotobutton{Validation Checks}}
 \end{frame}
 
-\begin{frame}[label=strictness-validation-main]
-    \frametitle{Validation Checks: Permits and Within-Ward Correlation}
-    \begin{columns}[T]
-    \begin{column}{0.50\textwidth}
-    \centering
-    \scriptsize
-    \begin{threeparttable}
-    \begin{tabular}{lc}
-    \toprule
-    Outcome (Ward-Month) & Coef. on Uncertainty \\
-    \midrule
-    N permits (all high-discretion) & $-10.29^{***}$ \\
-                                     & $(0.42)$ \\
-    Share with any unit change       & $0.0059^{***}$ \\
-                                     & $(0.0009)$ \\
-    Units reduced per permit (text)  & $0.0061^{**}$ \\
-                                     & $(0.0029)$ \\
-    \midrule
-    Ward-month observations          & 10,746--10,753 \\
-    \bottomrule
-    \end{tabular}
-    \begin{tablenotes}
-    \tiny
-    \item \textit{Notes:} Score spec is \texttt{ptfeFALSE\_rtfeFALSE\_porchTRUE\_cafeFALSE\_2stage}. 
-    Coefficients pulled from ward-month validation outputs in the strictness\_score\_validation task.
-    \end{tablenotes}
-    \end{threeparttable}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth,height=0.60\textheight,keepaspectratio]{../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage.pdf}
-
-    \vspace{0.2em}
-    \small
-    Predecessor-successor correlation: $\rho = 0.27$\\
-    Within-ward SD is 0.72 of overall SD.
-    \end{column}
-    \end{columns}
-    \vfill\hfill \hyperlink{strictness-main}{\beamerreturnbutton{Back}}
-\end{frame}

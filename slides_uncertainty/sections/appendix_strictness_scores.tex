@@ -7,29 +7,58 @@
 % Within-Ward Variation (Alderman Turnover)
 % ==============================================================================
 
-\begin{frame}[label=score-validation]
-    \frametitle{Predecessor-Successor Score Correlation}
+% ==============================================================================
+% Stage 1 Residualization Regression
+% ==============================================================================
+\begin{frame}[label=score-regression,shrink=12]
+    \frametitle{Permit Processing Time Residualization}
     \begin{center}
-    \includegraphics[width=0.7\textwidth,height=0.7\textheight,keepaspectratio]{../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage.pdf}
+    {\tiny
+    \setlength{\tabcolsep}{2pt}
+    \renewcommand{\arraystretch}{0.9}
+    \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage.tex}}
     \end{center}
-    
-    \small
-    Ward effects explain 56\% of score variance (44\% within-ward). \\
-    Predecessor-successor correlation: $\rho = 0.27$.
-    
+    \vspace{-.1em}
+
     \vfill\hfill \hyperlink{strictness-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
 % ==============================================================================
-% Stage 1 Residualization Regression
+% Validation Checks: Permits and Within-Ward Correlation
 % ==============================================================================
-\begin{frame}[label=score-regression]
-    \frametitle{Permit Processing Time Residualization}
-    \begin{center}
-    \tiny
-    \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage.tex}
-    \end{center}
-    \vspace{-.1em}
-    
+
+\begin{frame}[label=strictness-validation-main]
+    \frametitle{Validation Checks: Permits and Within-Ward Correlation}
+    \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+    \centering
+    \scriptsize
+    \begin{threeparttable}
+    \begin{tabular}{lc}
+    \toprule
+    Outcome (Ward-Month) & Coef. on Uncertainty \\
+    \midrule
+    N permits (all high-discretion) & $-10.29^{***}$ \\
+                                     & $(0.42)$ \\
+    Share with any unit change       & $0.0059^{***}$ \\
+                                     & $(0.0009)$ \\
+    Units reduced per permit (text)  & $0.0061^{**}$ \\
+                                     & $(0.0029)$ \\
+    \midrule
+    Ward-month observations          & 10,746--10,753 \\
+    \bottomrule
+    \end{tabular}
+    \end{threeparttable}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth,height=0.60\textheight,keepaspectratio]{../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage.pdf}
+
+    \vspace{0.2em}
+    \small
+    Predecessor-successor correlation: $\rho = 0.27$\\
+    Within-ward SD is 0.72 of overall SD.
+    \end{column}
+    \end{columns}
     \vfill\hfill \hyperlink{strictness-main}{\beamerreturnbutton{Back}}
 \end{frame}

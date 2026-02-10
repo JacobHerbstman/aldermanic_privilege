@@ -23,6 +23,7 @@ stars <- function(p) {
 apply_window <- function(df, w) {
   if (w == "full") return(df)
   if (w == "pre_2021") return(df %>% filter(year <= 2020))
+  if (w == "pre_2023") return(df %>% filter(year <= 2022))
   if (w == "pre_covid") return(df %>% filter(year <= 2019))
   df
 }
@@ -52,10 +53,12 @@ if (opt$sample_filter == "multifamily_only") {
 }
 
 if (opt$min_strictness_diff_pctile > 0) {
+  # Within-pair strictness differences can vary across months/years; use the
+  # pair-level median so the percentile filter is stable and order-invariant.
   pair_diffs <- dat %>%
     group_by(ward_pair) %>%
-    summarise(diff = first(abs(strictness_own - strictness_neighbor)), .groups = "drop")
-  cutoff <- quantile(pair_diffs$diff, opt$min_strictness_diff_pctile / 100)
+    summarise(diff = median(abs(strictness_own - strictness_neighbor), na.rm = TRUE), .groups = "drop")
+  cutoff <- quantile(pair_diffs$diff, opt$min_strictness_diff_pctile / 100, na.rm = TRUE)
   keep_pairs <- pair_diffs %>% filter(diff >= cutoff) %>% pull(ward_pair)
   dat <- dat %>% filter(ward_pair %in% keep_pairs)
   message(sprintf("  After p%d filter (cutoff=%.3f): %d obs, %d pairs",
@@ -101,19 +104,19 @@ aug$y_adj <- as.numeric(resid(m_bin)) + b_right * aug$right
 # Bin-level means
 bins <- aug %>%
   group_by(bin_center) %>%
-  summarise(mean_y = mean(y_adj), side = if_else(first(bin_center) >= 0, "Stricter", "Less strict"),
+  summarise(mean_y = mean(y_adj), side = if_else(first(bin_center) >= 0, "More Uncertain", "Less Uncertain"),
             .groups = "drop")
 
 mean_left <- mean(aug$y_adj[aug$right == 0])
 mean_right <- mean(aug$y_adj[aug$right == 1])
 
 line_df <- bind_rows(
-  tibble(x = c(-opt$bw_ft, 0), y = mean_left, side = "Less strict"),
-  tibble(x = c(0, opt$bw_ft), y = mean_right, side = "Stricter")
+  tibble(x = c(-opt$bw_ft, 0), y = mean_left, side = "Less Uncertain"),
+  tibble(x = c(0, opt$bw_ft), y = mean_right, side = "More Uncertain")
 )
 
-gap_label <- sprintf("Gap = %.4f%s (SE %.4f, p = %.3f)\nN = %s pair-side-months | %d pairs",
-                     b_right, stars(p_right), se_right, p_right,
+gap_label <- sprintf("Gap = %.4f%s (SE %.4f)\nN = %s pair-side-months | %d pairs",
+                     b_right, stars(p_right), se_right,
                      format(nobs(m), big.mark = ","), n_distinct(side_cells$ward_pair))
 
 ggplot() +
@@ -121,17 +124,17 @@ ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.8) +
   geom_point(data = bins, aes(x = bin_center, y = mean_y, color = side), size = 2.5, alpha = 0.9) +
   geom_line(data = line_df, aes(x = x, y = y, color = side), linewidth = 1.1) +
-  scale_color_manual(values = c("Less strict" = "#1f77b4", "Stricter" = "#d62728"), name = "") +
+  scale_color_manual(values = c("Less Uncertain" = "#1f77b4", "More Uncertain" = "#d62728"), name = "") +
   annotate("text", x = -Inf, y = Inf, label = gap_label,
            hjust = -0.05, vjust = 1.5, size = 3.3, fontface = "bold") +
-  labs(title = "Rental Listing Density by Side of Ward Boundary (FE-Adjusted)",
-       subtitle = sprintf("bw=%d ft | window=%s | sample=%s%s",
-                        opt$bw_ft, opt$window, opt$sample_filter,
+  labs(title = "Rental Listing Density by Side of Ward Boundary",
+       subtitle = sprintf("bw=%d ft | sample=%s%s",
+                        opt$bw_ft, opt$sample_filter,
                         if (opt$min_strictness_diff_pctile > 0) sprintf(" | top %d%% pairs", 100 - opt$min_strictness_diff_pctile) else ""),
-       x = "Distance to Ward Boundary (feet; positive = stricter side)",
+       x = "Distance to Ward Boundary (feet; positive = more uncertain side)",
        y = "FE-Adjusted Log(Distinct Listings per Bin)") +
   theme_bw(base_size = 11) +
-  theme(legend.position = "top", panel.grid.minor = element_blank())
+  theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
 ggsave(opt$output_pdf, width = 8.6, height = 6, dpi = 300, bg = "white")
 message(sprintf("Saved: %s", opt$output_pdf))

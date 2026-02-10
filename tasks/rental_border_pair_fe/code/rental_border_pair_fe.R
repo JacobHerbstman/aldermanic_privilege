@@ -12,8 +12,8 @@ option_list <- list(
 )
 opt <- parse_args(OptionParser(option_list = option_list))
 
-if (!opt$window %in% c("full", "pre_covid", "pre_2021", "drop_mid")) {
-  stop("--window must be one of: full, pre_covid, pre_2021, drop_mid", call. = FALSE)
+if (!opt$window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
+  stop("--window must be one of: full, pre_covid, pre_2021, pre_2023, drop_mid", call. = FALSE)
 }
 if (!opt$sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
@@ -32,6 +32,9 @@ window_rule <- function(df, window_name) {
   if (window_name == "pre_2021") {
     return(df %>% filter(year <= 2020))
   }
+  if (window_name == "pre_2023") {
+    return(df %>% filter(year <= 2022))
+  }
   if (window_name == "drop_mid") {
     return(df %>% filter(year <= 2020 | year >= 2024))
   }
@@ -42,6 +45,7 @@ window_label <- c(
   full = "All years (2014-2025)",
   pre_covid = "Pre-COVID (2014-2019)",
   pre_2021 = "Through 2020 (2014-2020)",
+  pre_2023 = "Through 2022 (2014-2022)",
   drop_mid = "Skip 2021-2023"
 )
 
@@ -74,6 +78,7 @@ year_diag <- rent_raw %>%
     opt$window == "full" ~ TRUE,
     opt$window == "pre_covid" ~ year <= 2019,
     opt$window == "pre_2021" ~ year <= 2020,
+    opt$window == "pre_2023" ~ year <= 2022,
     opt$window == "drop_mid" ~ (year <= 2020 | year >= 2024),
     TRUE ~ FALSE
   )) %>%
@@ -156,7 +161,7 @@ m_hed <- feols(
 m_hed$custom_data <- rent_hedonics
 
 setFixest_dict(c(
-  strictness_std = "Strictness Score",
+  strictness_std = "Uncertainty Index",
   ward_pair = "Ward Pair",
   year_month = "Year-Month",
   log_sqft = "Log Sqft",
@@ -166,7 +171,7 @@ setFixest_dict(c(
 
 etable(
   list(m_no_hed, m_hed),
-  keep = "Strictness Score",
+  keep = "Uncertainty Index",
   fitstat = ~ n + myo + nwp,
   style.tex = style.tex("aer",
     model.format = "",
@@ -180,9 +185,7 @@ etable(
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
   extralines = list(
     "_Hedonic Controls" = c("", "$\\checkmark$"),
-    "_Ward-Pair $\\times$ Year-Month FE" = c("$\\checkmark$", "$\\checkmark$"),
-    "_Window" = c(window_label[[opt$window]], window_label[[opt$window]]),
-    "_Sample" = c(opt$sample_filter, opt$sample_filter)
+    "_Ward-Pair $\\times$ Year-Month FE" = c("$\\checkmark$", "$\\checkmark$")
   ),
   file = opt$output_tex,
   replace = TRUE

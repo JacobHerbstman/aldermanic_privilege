@@ -2,7 +2,7 @@
 % SLIDE 7: TIME-TO-BUILD MODEL - SETUP
 % ==============================================================================
 \begin{frame}
-	\frametitle{A ``Time-to-Build'' Model of Regulatory Stringency}
+	\frametitle{A ``Time-to-Build'' Model of Regulatory Uncertainty}
 	\small
 	\textbf{Key idea}: Regulatory environment $\rightarrow$ effective delay $T(s)$ $\rightarrow$ discounts developer revenue
 
@@ -37,12 +37,12 @@
 \begin{frame}
 	\frametitle{Testable Predictions}
 	\small
-	\textbf{Core comparative static}: $\;\partial q^* / \partial T(s) < 0$, which implies:
+	\textbf{Main comparative static}: $\;\partial q^* / \partial T(s) < 0$, which implies:
 	\vspace{0.3em}
 	\begin{enumerate}
-		\item \textbf{Lower density} --- completed projects have fewer units \hfill {\scriptsize\textcolor{gray}{$\rightarrow$ Border-pair FE}}
-		\item \textbf{Fewer projects} --- more sites flipped from ``build'' to ``don't build'' \hfill {\scriptsize\textcolor{gray}{$\rightarrow$ Border-pair FE}}
-		\item \textbf{Higher prices/rents} --- lower aggregate supply $Q = \sum_i q_i^{*}$, $\;p'(Q) < 0$ \hfill {\scriptsize\textcolor{gray}{$\rightarrow$ Event study}}
+		\item \textbf{Less density} --- completed projects have fewer units \hfill {\scriptsize\textcolor{gray}{$\rightarrow$ Density border-pair FE}}
+		\item \textbf{Lower Supply} --- more sites flipped from ``build'' to ``don't build'' \hfill {\scriptsize\textcolor{gray}{$\rightarrow$ Listing density}}
+		\item \textbf{Higher rents} --- lower aggregate supply $Q = \sum_i q_i^{*}$, $\;p'(Q) < 0$ \hfill {\scriptsize\textcolor{gray}{$\rightarrow$ Rental border-pair FE}}
 		%\item \textbf{Amplified by financing costs} --- effects scale with $r$ \hfill {\scriptsize\textcolor{gray}{$\rightarrow$ Heterogeneity}}
 		%\item \textbf{Selection} --- surviving projects are higher-return on observables
 	\end{enumerate}
@@ -51,7 +51,7 @@
 	\textbf{Mapping to data}:
 	\begin{itemize}
 		\item $T(s)$ proxied by observed permit-to-completion times
-		\item Aldermanic strictness score $\approx$ alderman-specific component of $T(s)$
-		\item Cross-boundary variation: different aldermen $\Rightarrow$ different $T(s)$ on each side
+		\item Regulatory uncertainty index $\approx$ alderman-specific component of $T(s)$
+		\item Cross-boundary variation: different aldermen $\Rightarrow$ discrete changes in $T(s)$
 	\end{itemize}
 \end{frame}

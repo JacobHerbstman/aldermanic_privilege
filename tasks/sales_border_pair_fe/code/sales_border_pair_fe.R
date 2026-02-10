@@ -82,7 +82,7 @@ m2$custom_data <- sales_hed
 
 # ── Output table ──
 setFixest_dict(c(
-  strictness_std = "Strictness Score", ward_pair = "Ward Pair",
+  strictness_std = "Uncertainty Index", ward_pair = "Ward Pair",
   year_factor = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month"
 ))
 
@@ -90,7 +90,7 @@ fe_label <- paste0("Ward-Pair $\\times$ ", fe_time_label[[opt$fe_time]], " FE")
 
 etable(
   list(m1, m2),
-  keep = "Strictness Score",
+  keep = "Uncertainty Index",
   fitstat = ~ n + myo + nwp,
   style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "",
                          yesNo = c("$\\checkmark$", "")),
@@ -98,8 +98,7 @@ etable(
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
   extralines = c(
     list("_Hedonic Controls" = c("", "$\\checkmark$")),
-    setNames(list(c("$\\checkmark$", "$\\checkmark$")), paste0("_", fe_label)),
-    list("_Sample" = c("All years (2006-2025)", "All years (2006-2025)"))
+    setNames(list(c("$\\checkmark$", "$\\checkmark$")), paste0("_", fe_label))
   ),
   file = opt$output_tex, replace = TRUE
 )

@@ -165,6 +165,13 @@ wm_grid <- expand_grid(
 permits <- permits %>%
   left_join(wm_grid, by = c("ward", "month"))
 
+# Scale large-magnitude demographics for interpretable coefficients in Stage 1
+permits <- permits %>%
+  mutate(
+    median_hh_income_10k = median_hh_income / 10000,
+    pop_total_10k = pop_total / 10000
+  )
+
 volume_var <- case_when(
   VOLUME_CTRL == "CURRENT" ~ "n_permits_wm",
   VOLUME_CTRL == "LAG1" ~ "n_permits_wm_l1",
@@ -189,8 +196,8 @@ if (VOLUME_CTRL != "NONE") {
 # Covariates (ward demographics + place controls)
 covariates <- c(
   # Ward demographics
-  "median_hh_income", "share_black", "share_hisp", "share_white",
-  "homeownership_rate", "share_bach_plus", "pop_total",
+  "median_hh_income_10k", "share_black", "share_hisp", "share_white",
+  "homeownership_rate", "share_bach_plus", "pop_total_10k",
 
   # Legacy place controls from ward geometry (map-version specific)
   "dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m"
@@ -564,16 +571,16 @@ etable(
   depvar = FALSE,
   headers = c("Log Processing Time"),
   dict = c(
-    median_hh_income = "Median HH Income",
+    median_hh_income_10k = "Median HH Income ($10k)",
     share_black = "Share Black",
     share_hisp = "Share Hispanic",
     share_white = "Share White",
     homeownership_rate = "Homeownership Rate",
     share_bach_plus = "Share Bachelor's+",
-    pop_total = "Population",
+    pop_total_10k = "Population (10k)",
     dist_cbd_km = "Dist. to CBD (km)",
-    lakefront_share_1km = "Lakefront Share (legacy)",
-    n_rail_stations_800m = "CTA Stations (legacy 800)"
+    lakefront_share_1km = "Lakefront Share",
+    n_rail_stations_800m = "CTA Stations (800m)"
   ),
   fixef.group = list(
     "Month FE" = "month",

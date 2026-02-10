@@ -11,8 +11,8 @@ option_list <- list(
 )
 opt <- parse_args(OptionParser(option_list = option_list))
 
-if (!opt$window %in% c("full", "pre_covid", "pre_2021", "drop_mid")) {
-  stop("--window must be one of: full, pre_covid, pre_2021, drop_mid", call. = FALSE)
+if (!opt$window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
+  stop("--window must be one of: full, pre_covid, pre_2021, pre_2023, drop_mid", call. = FALSE)
 }
 if (!opt$sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
@@ -22,6 +22,7 @@ apply_window <- function(df, window_name) {
   if (window_name == "full") return(df)
   if (window_name == "pre_covid") return(df %>% filter(year <= 2019))
   if (window_name == "pre_2021") return(df %>% filter(year <= 2020))
+  if (window_name == "pre_2023") return(df %>% filter(year <= 2022))
   if (window_name == "drop_mid") return(df %>% filter(year <= 2020 | year >= 2024))
   df
 }

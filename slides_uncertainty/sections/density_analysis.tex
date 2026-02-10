@@ -225,13 +225,13 @@
     \end{itemize}
     
     \vspace{0.3em}
-    \textbf{Identifying variation}: At the same border in the same year, does the stricter side have less dense construction?
+    \textbf{Identifying variation}: At the same border in the same year, does the more uncertain side have less dense construction?
     
     \vspace{0.3em}
     Two specifications:
     \begin{itemize}
         \item \textbf{Visual RD}: Descriptive, visual evidence of discontinuities at ward borders
-        \item \textbf{Regressions}: Regression with continuous strictness measure and stringent FEs
+        \item \textbf{Regressions}: Regression with continuous uncertainty measure and stringent FEs
     \end{itemize}
 \end{frame}
 
@@ -279,7 +279,7 @@
     
     \small
     \textbf{Specification}: 
-    $\ln(Y_i) = \beta \cdot \text{Strictness}_i + \alpha_{\text{border} \times \text{year} } + \varepsilon_i$\\
+    $\ln(Y_i) = \beta \cdot \text{Uncertainty}_i + \alpha_{\text{border} \times \text{year} } + \varepsilon_i$\\
     Sample: Within 500 ft, 2-100 units. Standard errors clustered at border-pair level.
     
     \begin{center}
@@ -287,12 +287,14 @@
     \end{center}
     
     \vspace{0.1em}
-    \textbf{Interpretation}: A 1 SD $\uparrow$ in uncertainty is associated with lower FAR/Units; DUPAC is less precisely estimated
+    \textbf{Interpretation}: A 1 SD $\uparrow$ in regulatory uncertainty is associated with lower FAR/DUPAC
     
     \vspace{-0.4em}
     \vfill\hfill
     \hyperlink{density-reg-bw250}{\beamergotobutton{250ft}}
     \hspace{0.1em}
     \hyperlink{density-reg-bw1000}{\beamergotobutton{1000ft}}
+    \hspace{0.1em}
+    \hyperlink{density-reg-donut}{\beamergotobutton{Donut}}
 
 \end{frame}
