@@ -618,11 +618,11 @@ INPUT ../tasks/border_pair_FE_regressions_donut/output/fe_table_bw500_donut25.te
 INPUT ../tasks/border_pair_FE_regressions_donut/output/fe_table_bw500_donut50.tex
 INPUT ../tasks/border_pair_FE_regressions_donut/output/fe_table_bw500_donut50.tex
 INPUT ../tasks/border_pair_FE_regressions_donut/output/fe_table_bw500_donut50.tex
-INPUT ../tasks/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_noctrl.pdf
-INPUT ../tasks/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_noctrl.pdf
-INPUT ../tasks/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_noctrl.pdf
-INPUT ../tasks/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_noctrl.pdf
-INPUT ../tasks/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_noctrl.pdf
+INPUT ../tasks/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_ctrl.pdf
+INPUT ../tasks/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_ctrl.pdf
+INPUT ../tasks/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_ctrl.pdf
+INPUT ../tasks/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_ctrl.pdf
+INPUT ../tasks/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_ctrl.pdf
 INPUT ./sections/appendix_event_study.tex
 INPUT ./sections/appendix_event_study.tex
 INPUT sections/appendix_event_study.tex

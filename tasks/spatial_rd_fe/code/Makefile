@@ -18,13 +18,22 @@ $(foreach log_stat,$(LOG_STATUS), \
 ))))
 endef
 
-ALL_OUTPUTS := $(call GEN_FILES)
+define GEN_LEVEL_FILES
+$(foreach yvar,$(YVARS), \
+$(foreach bw,$(BANDWIDTHS), \
+$(foreach fe,$(FE_SPECS), \
+$(foreach log_stat,$(LOG_STATUS), \
+../output/rd_fe_plot_level_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(fe).pdf \
+))))
+endef
+
+ALL_OUTPUTS := $(call GEN_FILES) $(call GEN_LEVEL_FILES)
 
 all: $(ALL_OUTPUTS)
 
 define GEN_RULE
 ../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(fe).pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript spatial_rd_fe.R $(yvar) $(log_stat) $(bw) $(fe) $$@
+	Rscript spatial_rd_fe.R $(yvar) $(log_stat) $(bw) $(fe) $$@ slope
 endef
 
 $(foreach yvar,$(YVARS), \
@@ -32,6 +41,18 @@ $(foreach bw,$(BANDWIDTHS), \
 $(foreach fe,$(FE_SPECS), \
 $(foreach log_stat,$(LOG_STATUS), \
 $(eval $(GEN_RULE)) \
+))))
+
+define GEN_LEVEL_RULE
+../output/rd_fe_plot_level_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(fe).pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
+	Rscript spatial_rd_fe.R $(yvar) $(log_stat) $(bw) $(fe) $$@ level
+endef
+
+$(foreach yvar,$(YVARS), \
+$(foreach bw,$(BANDWIDTHS), \
+$(foreach fe,$(FE_SPECS), \
+$(foreach log_stat,$(LOG_STATUS), \
+$(eval $(GEN_LEVEL_RULE)) \
 ))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input

@@ -215,12 +215,6 @@ p <- ggplot(plot_df, aes(x = coef)) +
   geom_histogram(bins = 40, fill = "gray70", color = "gray50", alpha = 0.8) +
   geom_vline(xintercept = real_coef, color = "#d62728", linewidth = 1.2, linetype = "solid") +
   geom_vline(xintercept = 0, color = "gray30", linewidth = 0.5, linetype = "dashed") +
-  annotate("text",
-    x = real_coef, y = Inf,
-    label = sprintf("Real = %.4f\np(two-sided) = %.3f\np(one-sided) = %.3f",
-                    real_coef, p_two_sided, p_one_sided),
-    hjust = -0.1, vjust = 1.5, size = 3.5, fontface = "bold", color = "#d62728"
-  ) +
   labs(
     title = "Permutation Test: Shuffled Strictness Scores Across Aldermen",
     subtitle = sprintf("bw = %d ft | window = %s | %d aldermen | %d permutations",
