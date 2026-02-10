@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex slides"] 1770707013.78905 "slides.aux" "slides.bbl" "slides" 1770707018.10215 0
+["bibtex slides"] 1770742127.26459 "slides.aux" "slides.bbl" "slides" 1770742130.29608 0
   "./sections/aldermanic_privilege.bib" 1770699547.43032 58909 b8626b5a5be7c45818f5a5ccbd72ddc2 ""
   "/usr/local/texlive/2024/texmf-dist/bibtex/bst/economic/aer.bst" 1389482635 26812 2ae6e48450a8c17a93d98067b7084a7a ""
-  "slides.aux" 1770707017.72032 14212 3760ad4cd59531835319c3cc2792b84f "pdflatex"
+  "slides.aux" 1770742129.91912 14316 52c4776723a9e4f56717f186b59b79eb "pdflatex"
   (generated)
   "slides.bbl"
   "slides.blg"
   (rewritten before read)
-["pdflatex"] 1770707013.97407 "/Users/jacobherbstman/Desktop/aldermanic_privilege/slides_uncertainty/slides.tex" "slides.pdf" "slides" 1770707018.10233 0
+["pdflatex"] 1770742127.40184 "/Users/jacobherbstman/Desktop/aldermanic_privilege/slides_uncertainty/slides.tex" "slides.pdf" "slides" 1770742130.29626 0
   "../tasks/border_pair_FE_regressions/output/fe_table_bw1000_pair_x_year.tex" 1770703559.06946 734 1a1bf2ea1ac8ff6f386dd3b867cb1caf ""
   "../tasks/border_pair_FE_regressions/output/fe_table_bw250_pair_x_year.tex" 1770703555.72773 733 14fea6ac8e3e4375a78bed553cd29792 ""
   "../tasks/border_pair_FE_regressions/output/fe_table_bw500_pair_x_year.tex" 1770703484.28376 740 dd377dfb05ced5b76992178da4eeaacf ""
@@ -38,7 +38,7 @@
   "../tasks/spatial_rd_fe/output/rd_fe_plot_unitscount_bw500_pair_x_year.pdf" 1770703698.30534 11882 6fdc247008a0c31f941d388853fa577b ""
   "../tasks/strictness_score_map/output/uncertainty_score_map_ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage_2025-01.pdf" 1770703570.40452 354474 f5332a3ea7fb1e2abd93b36a942da7b0 ""
   "../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage.pdf" 1770521217.24194 11154 759d12fb81d50824c2b2db4294dda8bd ""
-  "/Users/jacobherbstman/Desktop/aldermanic_privilege/slides_uncertainty/slides.tex" 1770707011.19656 4228 591a4b6fb4ae0c29bd7821c73ec89899 ""
+  "/Users/jacobherbstman/Desktop/aldermanic_privilege/slides_uncertainty/slides.tex" 1770707146.40229 4228 591a4b6fb4ae0c29bd7821c73ec89899 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/tfm/jknappen/ec/tcss0600.tfm" 1136768653 1536 d1b127de7ce318d6eac2b01aea48d7ed ""
@@ -324,14 +324,14 @@
   "sections/conclusion.tex" 1770707005.67233 2605 cf39f108abcbc0fd70775f33f7628e64 ""
   "sections/density_analysis.tex" 1770706024.95903 13330 92cfdda62f6d24f3fd260100e0b63124 ""
   "sections/intro.tex" 1770697015.49794 5466 feef06e3e8a2446d2279c940d14d875b ""
-  "sections/literature.tex" 1770699551.20986 1222 e9dfa7fcaef0d968c845743f37ac33ba ""
+  "sections/literature.tex" 1770742120.51156 1221 b6cd6dfef991ab3b6e8ec2354c268abb ""
   "sections/rental_market.tex" 1770706029.61974 5275 34e092491b0483a6d0743c9e29b7af34 ""
   "sections/theory.tex" 1770699691.43523 2624 0353b30f29d3266b5d5cc68955529983 ""
-  "slides.aux" 1770707017.72032 14212 3760ad4cd59531835319c3cc2792b84f "pdflatex"
-  "slides.bbl" 1770707013.96893 5908 1940e3bf3625fe968a58a42c16fe00f1 "bibtex slides"
-  "slides.nav" 1770707017.72208 5005 62410a2794698d5f5b52a8d012fd59ed "pdflatex"
-  "slides.out" 1770707017.72185 174 ee5c8c062c5abb6159ee6f477980c97a "pdflatex"
-  "slides.tex" 1770707011.19656 4228 591a4b6fb4ae0c29bd7821c73ec89899 ""
+  "slides.aux" 1770742129.91912 14316 52c4776723a9e4f56717f186b59b79eb "pdflatex"
+  "slides.bbl" 1770742127.3964 6135 5a2782b7b38895556c88f595c996d987 "bibtex slides"
+  "slides.nav" 1770742129.92079 5005 62410a2794698d5f5b52a8d012fd59ed "pdflatex"
+  "slides.out" 1770742129.92057 174 ee5c8c062c5abb6159ee6f477980c97a "pdflatex"
+  "slides.tex" 1770707146.40229 4228 591a4b6fb4ae0c29bd7821c73ec89899 ""
   (generated)
   "slides.aux"
   "slides.log"
