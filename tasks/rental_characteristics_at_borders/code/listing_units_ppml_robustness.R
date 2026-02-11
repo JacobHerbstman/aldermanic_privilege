@@ -88,6 +88,7 @@ run_spec <- function(spec_row) {
   min_strictness_diff_pctile <- as.integer(spec_row$min_strictness_diff_pctile[[1]])
   avail_mode <- as.character(spec_row$avail_filter[[1]])
   add_covars <- as.logical(spec_row$add_covars[[1]])
+  two_sided_only <- as.logical(spec_row$two_sided_only[[1]])
 
   message(sprintf("  Running: %s", label))
 
@@ -136,6 +137,14 @@ run_spec <- function(spec_row) {
   panel <- side_template %>%
     left_join(side_counts, by = c("ward_pair", "right", "year_month")) %>%
     mutate(n_units = as.integer(coalesce(n_units, 0L)))
+
+  if (isTRUE(two_sided_only)) {
+    two_sided_pm <- side_counts %>%
+      count(ward_pair, year_month, name = "n_sides_obs") %>%
+      filter(n_sides_obs == 2)
+    panel <- panel %>%
+      semi_join(two_sided_pm, by = c("ward_pair", "year_month"))
+  }
 
   if (nrow(panel) == 0 || n_distinct(panel$ward_pair) < 2) {
     return(tibble(spec = label, estimate = NA_real_, std_error = NA_real_, p_value = NA_real_))
@@ -194,6 +203,7 @@ run_spec <- function(spec_row) {
       min_strictness_diff_pctile = min_strictness_diff_pctile,
       avail_filter = avail_mode,
       add_covars = add_covars,
+      two_sided_only = two_sided_only,
       estimate = NA_real_,
       std_error = NA_real_,
       p_value = NA_real_,
@@ -217,6 +227,7 @@ run_spec <- function(spec_row) {
       min_strictness_diff_pctile = min_strictness_diff_pctile,
       avail_filter = avail_mode,
       add_covars = add_covars,
+      two_sided_only = two_sided_only,
       estimate = NA_real_,
       std_error = NA_real_,
       p_value = NA_real_,
@@ -248,6 +259,7 @@ run_spec <- function(spec_row) {
     min_strictness_diff_pctile = min_strictness_diff_pctile,
     avail_filter = avail_mode,
     add_covars = add_covars,
+    two_sided_only = two_sided_only,
     estimate = ct["strictness_std", "Estimate"],
     std_error = ct["strictness_std", "Std. Error"],
     p_value = if (is.na(p_name)) NA_real_ else ct["strictness_std", p_name],
@@ -262,16 +274,17 @@ run_spec <- function(spec_row) {
 }
 
 specs <- tribble(
-  ~label, ~unit_def, ~sample_filter, ~bw_ft, ~min_strictness_diff_pctile, ~avail_filter, ~add_covars,
-  "Baseline (ID key)", "id", "all", opt$bw_ft, 0L, "all", FALSE,
-  "Add composition controls", "id", "all", opt$bw_ft, 0L, "all", TRUE,
-  "Alt unit key: Location (5dp)", "loc_key", "all", opt$bw_ft, 0L, "all", FALSE,
-  "Alt unit key: Unit proxy", "unit_proxy", "all", opt$bw_ft, 0L, "all", FALSE,
-  "Sample: Multifamily only", "id", "multifamily_only", opt$bw_ft, 0L, "all", FALSE,
-  "Sample: BW 250ft", "id", "all", 250L, 0L, "all", FALSE,
-  "Sample: Top 50% uncertainty-gap pairs", "id", "all", opt$bw_ft, 50L, "all", FALSE,
-  "Availability proxy: known available_date", "id", "all", opt$bw_ft, 0L, "known_available_date", FALSE,
-  "Availability proxy: available <= 30d", "id", "all", opt$bw_ft, 0L, "available_within_30d", FALSE
+  ~label, ~unit_def, ~sample_filter, ~bw_ft, ~min_strictness_diff_pctile, ~avail_filter, ~add_covars, ~two_sided_only,
+  "Baseline (unit proxy)", "unit_proxy", "all", opt$bw_ft, 0L, "all", FALSE, FALSE,
+  "Add composition controls", "unit_proxy", "all", opt$bw_ft, 0L, "all", TRUE, FALSE,
+  "Alt unit key: Listing ID", "id", "all", opt$bw_ft, 0L, "all", FALSE, FALSE,
+  "Alt unit key: Location (5dp)", "loc_key", "all", opt$bw_ft, 0L, "all", FALSE, FALSE,
+  "Two-sided pair-months only", "unit_proxy", "all", opt$bw_ft, 0L, "all", FALSE, TRUE,
+  "Sample: Multifamily only", "unit_proxy", "multifamily_only", opt$bw_ft, 0L, "all", FALSE, FALSE,
+  "Sample: BW 250ft", "unit_proxy", "all", 250L, 0L, "all", FALSE, FALSE,
+  "Sample: Top 50% uncertainty-gap pairs", "unit_proxy", "all", opt$bw_ft, 50L, "all", FALSE, FALSE,
+  "Availability proxy: known available_date", "unit_proxy", "all", opt$bw_ft, 0L, "known_available_date", FALSE, FALSE,
+  "Availability proxy: available <= 30d", "unit_proxy", "all", opt$bw_ft, 0L, "available_within_30d", FALSE, FALSE
 )
 
 results <- bind_rows(lapply(seq_len(nrow(specs)), function(i) run_spec(specs[i, ])))

@@ -119,22 +119,22 @@
     \frametitle{Supply Channel: Fewer Available Rentals}
 
     \begin{columns}[T]
-    \begin{column}{0.55\textwidth}
+    \begin{column}{0.58\textwidth}
         \centering
         \begin{figure}
-            \includegraphics[width=\textwidth,height=0.65\textheight,keepaspectratio]{../tasks/rental_characteristics_at_borders/output/listing_density_bw500_pre_2023_all_pct0.pdf}
+            \includegraphics[width=\textwidth,height=0.64\textheight,keepaspectratio]{../tasks/rental_characteristics_at_borders/output/listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf}
         \end{figure}
     \end{column}
-    \begin{column}{0.45\textwidth}
-        \vspace{1em}
-        \small
-        \textbf{Outcome}: Log(distinct listings) per ward-pair $\times$ side $\times$ year-month cell
+    \begin{column}{0.42\textwidth}
+        \scriptsize
+        \begin{center}
+        \input{../tasks/rental_characteristics_at_borders/output/listing_units_ppml_main_bw500_pre_2023.tex}
+        \end{center}
 
-        \vspace{0.5em}
-        $\Rightarrow$ $\sim$10\% fewer distinct rental listings on the more uncertain side
-
-        \vspace{0.5em}
-        \textbf{Chain}: Regulatory uncertainty $\rightarrow$ fewer units built $\rightarrow$ fewer available rentals $\rightarrow$ higher rents
+        \vspace{0.15em}
+        \scriptsize
+        \textbf{Outcome}: Distinct listed units (unit-proxy key), ward-pair $\times$ side $\times$ month\\
+        \textbf{Interpretation}: 1 SD $\uparrow$ in uncertainty $\Rightarrow$ $\sim$12\% fewer listed units
     \end{column}
     \end{columns}
 \end{frame}
