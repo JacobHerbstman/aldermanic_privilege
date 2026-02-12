@@ -1,0 +1,89 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage[T1]{fontenc}
+\usepackage{enumitem}
+
+\title{BFI Public Economics Initiative Grant Application \\ Draft Responses}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent\textit{Each section below corresponds to a field on the application form. The field prompt is in italics, followed by the draft response.}
+
+\bigskip
+
+\subsection*{Is this proposal related to topics discussed at the CBO conference or CBO's posted requests for research?}
+
+Yes
+
+\subsection*{Did you attend the CBO conference?}
+
+Yes
+
+\subsection*{Affiliation}
+
+University of Chicago, Kenneth C. Griffin Department of Economics
+
+\subsection*{Proposed project title}
+
+The Regulatory Pipeline: Permitting Frictions and Housing Development under Aldermanic Prerogative in Chicago
+
+\subsection*{Proposal abstract (100-word limit)}
+
+\textit{Provide a summary of the goals of your project, methodology, and the outcomes you hope to achieve.}
+
+\medskip
+
+This project seeks to acquire internal administrative records from the Chicago Department of Buildings and the Department of Planning and Development to trace proposed housing developments through the full regulatory pipeline, from pre-application meetings through zoning approval, permitting, and construction. These records would allow me to observe projects that fail or are withdrawn at each stage, which is not possible with publicly available data. Combined with a border discontinuity design exploiting Chicago's ward boundaries, this data would support a structural model of developer entry and regulatory friction, quantifying how local permitting discretion affects housing supply.
+
+\subsection*{Project description (1,300-word limit)}
+
+\textit{Project description including the research question, possible research designs, plan for using the data.}
+
+\medskip
+
+At the January 2026 BFI Conference on Budget Analysis and Public Policy, Jeffrey Kling and Heidi Williams delivered a public lecture on how economists can help inform the economic and budget analysis used by Congress. A recurring theme was the shortage of micro-level empirical evidence on how permitting and regulatory processes affect private investment. In December 2025, the CBO published a blog post titled ``A Call for New Research in the Area of Permitting Requirements for Investments in Physical Infrastructure,'' noting that CBO would benefit from additional data and research that would broaden and deepen its basis for modeling the effects of permitting-related legislative proposals. In February 2026, the CBO followed up with a report on estimating the effects of changes in permitting requirements on private investment, describing its analytical framework for translating permitting frictions into changes in the capital stock and economic output. Both documents highlight that the existing research literature provides very little guidance on some of the key parameters CBO needs, including how permitting delays and uncertainty affect the volume and location of private investment, and how those effects differ across regulatory environments.
+
+This project aims to contribute directly to filling that gap. I study how aldermanic prerogative, the informal norm by which Chicago's City Council defers to the local alderman on land use decisions within their ward, affects housing development. The alderman's support is effectively required at multiple stages of the development approval process, and aldermen vary substantially in how much friction they impose on proposed projects. I am building a structural model of this process in which developers choose where to propose projects, anticipating the regulatory cost they will face, and the observed spatial distribution of development reflects the equilibrium of developer location decisions and aldermanic gatekeeping. The data I am seeking to acquire would make this model estimable.
+
+The key empirical challenge is that publicly available data only captures projects that survived the full pipeline. The Chicago Data Portal's building permit dataset, which I currently use, includes only permits that remain valid and explicitly excludes those that were voided, revoked, or withdrawn. This means I can study how aldermanic friction affects the density and scale of completed construction, but I cannot observe the extensive margin: projects that were proposed but killed before reaching the permit stage, or permit applications that were filed but never approved. This is a first-order problem, both for measuring the total effect of regulatory discretion on housing supply and for estimating the structural model, which requires data on the developer's full choice set including locations where projects were attempted but failed.
+
+I am requesting internal administrative records from two City of Chicago departments. From the Department of Buildings, I need the full universe of building permit applications, including those that were denied, withdrawn, voided, revoked, or allowed to expire. The public dataset begins in 2006 and contains roughly 800,000 records, but it reflects only currently valid permits. The complete application file would allow me to measure permit denial and withdrawal rates by ward and year, and to examine whether these rates vary with the alderman in office. Even within the public data, project-level descriptions of proposed work are embedded in unstructured text fields that require scraping and natural language processing to extract usable information about project type, scale, and intended use, so substantial data cleaning work is needed regardless.
+
+From the Department of Planning and Development, I am requesting three categories of records. First, pre-application and concept meeting records. DPD staff conduct concept and land use review meetings with prospective developers before formal applications are filed. If DPD maintains records of these meetings, they would provide a direct measure of the extensive margin of development proposals, which is the most valuable object for the structural entry model. Second, the internal zoning application tracking database, which should include all zoning change applications from the point of filing through final disposition, including those withdrawn before the alderman introduced the ordinance to City Council. The City Clerk's Legistar system records legislation from 2010 onward, but only captures projects that reached the stage of formal introduction. The gap between DPD's application records and Legistar's legislative records would directly measure the alderman's gatekeeping function. Third, zoning plan examination records from DPD's Bureau of Zoning, which reviews building permit applications for zoning code compliance before the Department of Buildings conducts its building code review.
+
+These data would support three components of the research design. First, I would extend my existing reduced-form analysis to new outcome variables. I currently estimate the effect of aldermanic friction on new construction outcomes using a border-pair fixed effects design, comparing multifamily projects within narrow bandwidths of ward boundaries. With pipeline data, I could estimate effects on the number of proposed projects, application survival rates at each stage, and total time from concept to permit. Second, the pipeline data would allow me to decompose the sources of regulatory friction. The current analysis cannot distinguish between an alderman who deters development through informal pre-application pressure and one who creates friction through slow processing after applications are filed. Observing projects at each stage would allow me to estimate stage-specific transition probabilities as a function of the alderman in office, identifying where in the pipeline the friction binds. Third, and most ambitiously, the pre-application data would support estimation of a structural model of developer location choice. Developers choose among candidate sites across wards, and their payoffs depend on construction fundamentals and the expected regulatory cost. Observing the full set of sites where developers proposed projects, including those that failed, identifies the developer's sensitivity to regulatory friction. This is the parameter needed to evaluate counterfactual policies such as eliminating aldermanic prerogative or moving to a by-right zoning regime.
+
+I plan to acquire the data through a combination of direct outreach to department leadership, framing the request as an academic research partnership, and FOIA requests where necessary. I have identified the relevant contacts at both departments, including the commissioners and deputy commissioners responsible for the relevant data systems. Some of the records, particularly from DPD, may exist only as unstructured PDFs or scanned documents rather than structured databases, which would require substantial processing and cleaning effort. The requested funding would primarily support research assistant time for this data processing work.
+
+The timeline for the project is approximately 12 months. I expect the data acquisition process to take two to four months, including initial outreach, formal requests, and any necessary FOIA proceedings. Data cleaning and processing would take an additional two to three months, with the reduced-form analysis and structural estimation occupying the remaining time. Preliminary reduced-form results using the publicly available permit data already exist and would be updated with the new data as it becomes available.
+
+\subsection*{Data Source}
+
+\textit{Vendor, publisher, foundation, government, web, research, subscription or one-time, etc.}
+
+\medskip
+
+Government (City of Chicago). Internal administrative records from the Department of Buildings and the Department of Planning and Development, obtained through a combination of direct research partnerships with department leadership and FOIA requests under the Illinois Freedom of Information Act.
+
+\subsection*{Description of dataset including domain, size, format, raw or processed, required analysis tools, and known use restrictions, etc.}
+
+The data spans two city departments. From the Department of Buildings, I am seeking the full building permit application file (2006 to present), which likely contains over one million records including denied, withdrawn, voided, and expired applications that are excluded from the roughly 800,000-record public dataset. The public data is available as structured CSV through the Chicago Data Portal, but even there, critical project-level information such as work descriptions and project scope is embedded in free-text fields requiring natural language processing to extract. The internal data may arrive in a similar tabular format or as raw database exports. From the Department of Planning and Development, I am seeking zoning application records, concept/intake meeting logs, and zoning plan examination records. The format of these records is uncertain. Some may be in structured databases, but based on conversations with people familiar with city operations, much of this is likely stored as scanned PDFs, individual case files, or semi-structured spreadsheets rather than clean relational tables. Processing will require OCR, PDF parsing, and manual validation against known permit records. Required analysis tools include R and Python for data cleaning, geocoding, and spatial analysis, as well as standard econometric and structural estimation software. I am not currently aware of formal use restrictions beyond those that may be imposed as conditions of a data sharing agreement, though FOIA-obtained records are generally unrestricted for research use.
+
+\subsection*{Period of agreement and estimated cost for acquisition}
+
+12 months. The data itself is likely available at no cost through FOIA or a research data sharing agreement with the City of Chicago. The primary costs are research assistant time for processing raw administrative records, which may arrive as unstructured PDFs or messy database exports requiring substantial cleaning, OCR, text extraction, geocoding, and validation work. Estimated total cost for data processing: \$2,000 to \$3,000.
+
+\subsection*{Amount requested}
+
+\$3,000
+
+\subsection*{List of project co-leaders from UChicago and/or externally}
+
+N/A
+
+\end{document}
