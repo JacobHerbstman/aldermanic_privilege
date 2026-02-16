@@ -12,6 +12,14 @@ node_modules/
 *.log
 slurmlogs/
 
+# --- LaTeX build artifacts ---
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+
 # --- Raw & Intermediate Data ---
 # Ignore the entire raw data directory
 data_raw/
@@ -47,3 +55,7 @@ slides/*
 
 # Ignore auto-generated R graphics in any code/ folder
 **/code/Rplots.pdf
+
+# Local standalone LaTeX compile outputs
+bfi_grant_application.pdf
+paper/time_to_build_model_standalone.pdf
