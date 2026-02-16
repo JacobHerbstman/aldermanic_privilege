@@ -213,6 +213,7 @@ message("\n=== CREATING 2012 COHORT (Anticipation) ===")
 cohort_2012 <- sales_with_treatment[
   sale_year >= 2007 & sale_year <= 2017 &
     valid_2015 == TRUE &
+    !is.na(ward) &
     !is.na(ward_pair_id) &
     abs(as.numeric(signed_dist)) <= 2000
 ][, `:=`(
@@ -221,8 +222,8 @@ cohort_2012 <- sales_with_treatment[
   relative_year_capped = pmax(pmin(sale_year - 2012, 5), -5),
   treat = as.integer(switched_2015),
   strictness_change = strictness_change_2015,
-  ward_origin = ward_origin_2015,
-  ward_dest = ward_dest_2015
+  ward_origin = fifelse(switched_2015 == TRUE, ward_origin_2015, ward),
+  ward_dest = fifelse(switched_2015 == TRUE, ward_dest_2015, ward)
 )]
 
 # Add dist_ft for filtering/weighting in regression script
@@ -231,8 +232,8 @@ cohort_2012[, dist_ft := abs(as.numeric(signed_dist))]
 # FIX: For treated blocks, use the boundary they crossed (time-invariant)
 cohort_2012[
   switched_2015 == TRUE,
-  ward_pair_id := paste(pmin(ward_origin_2015, ward_dest_2015),
-    pmax(ward_origin_2015, ward_dest_2015),
+  ward_pair_id := paste(pmin(ward_origin, ward_dest),
+    pmax(ward_origin, ward_dest),
     sep = "-"
   )
 ]
@@ -259,6 +260,7 @@ message("\n=== CREATING 2022 COHORT (Anticipation for 2023 Redistricting) ===")
 cohort_2022 <- sales_with_treatment[
   sale_year >= 2017 & sale_year <= 2025 &
     valid_2023 == TRUE &
+    !is.na(ward) &
     !is.na(ward_pair_id) &
     abs(as.numeric(signed_dist)) <= 2000
 ][, `:=`(
@@ -267,8 +269,8 @@ cohort_2022 <- sales_with_treatment[
   relative_year_capped = pmax(pmin(sale_year - 2022, 5), -5),
   treat = as.integer(switched_2023),
   strictness_change = strictness_change_2023,
-  ward_origin = ward_origin_2023,
-  ward_dest = ward_dest_2023
+  ward_origin = fifelse(switched_2023 == TRUE, ward_origin_2023, ward),
+  ward_dest = fifelse(switched_2023 == TRUE, ward_dest_2023, ward)
 )]
 
 # Add dist_ft for filtering/weighting in regression script
@@ -277,8 +279,8 @@ cohort_2022[, dist_ft := abs(as.numeric(signed_dist))]
 # FIX: For treated blocks, use the boundary they crossed (time-invariant)
 cohort_2022[
   switched_2023 == TRUE,
-  ward_pair_id := paste(pmin(ward_origin_2023, ward_dest_2023),
-    pmax(ward_origin_2023, ward_dest_2023),
+  ward_pair_id := paste(pmin(ward_origin, ward_dest),
+    pmax(ward_origin, ward_dest),
     sep = "-"
   )
 ]
@@ -303,6 +305,7 @@ message("\n=== CREATING 2015 COHORT (Implementation) ===")
 cohort_2015 <- sales_with_treatment[
   sale_year >= 2010 & sale_year <= 2020 &
     valid_2015 == TRUE &
+    !is.na(ward) &
     !is.na(ward_pair_id) &
     abs(as.numeric(signed_dist)) <= 2000
 ][, `:=`(
@@ -311,8 +314,8 @@ cohort_2015 <- sales_with_treatment[
   relative_year_capped = pmax(pmin(sale_year - 2015, 5), -5),
   treat = as.integer(switched_2015),
   strictness_change = strictness_change_2015,
-  ward_origin = ward_origin_2015,
-  ward_dest = ward_dest_2015
+  ward_origin = fifelse(switched_2015 == TRUE, ward_origin_2015, ward),
+  ward_dest = fifelse(switched_2015 == TRUE, ward_dest_2015, ward)
 )]
 
 # Add dist_ft for filtering/weighting in regression script
@@ -322,8 +325,8 @@ cohort_2015[, dist_ft := abs(as.numeric(signed_dist))]
 # This ensures ward_pair_id doesn't change pre vs post treatment
 cohort_2015[
   switched_2015 == TRUE,
-  ward_pair_id := paste(pmin(ward_origin_2015, ward_dest_2015),
-    pmax(ward_origin_2015, ward_dest_2015),
+  ward_pair_id := paste(pmin(ward_origin, ward_dest),
+    pmax(ward_origin, ward_dest),
     sep = "-"
   )
 ]
@@ -341,6 +344,7 @@ message("\n=== CREATING 2023 COHORT ===")
 cohort_2023 <- sales_with_treatment[
   sale_year >= 2018 & sale_year <= 2025 &
     valid_2023 == TRUE &
+    !is.na(ward) &
     !is.na(ward_pair_id) &
     abs(as.numeric(signed_dist)) <= 2000
 ][, `:=`(
@@ -349,8 +353,8 @@ cohort_2023 <- sales_with_treatment[
   relative_year_capped = pmax(pmin(sale_year - 2023, 5), -5),
   treat = as.integer(switched_2023),
   strictness_change = strictness_change_2023,
-  ward_origin = ward_origin_2023,
-  ward_dest = ward_dest_2023
+  ward_origin = fifelse(switched_2023 == TRUE, ward_origin_2023, ward),
+  ward_dest = fifelse(switched_2023 == TRUE, ward_dest_2023, ward)
 )]
 
 # Add dist_ft for filtering/weighting in regression script
@@ -359,8 +363,8 @@ cohort_2023[, dist_ft := abs(as.numeric(signed_dist))]
 # FIX: For treated blocks, use the boundary they crossed (time-invariant)
 cohort_2023[
   switched_2023 == TRUE,
-  ward_pair_id := paste(pmin(ward_origin_2023, ward_dest_2023),
-    pmax(ward_origin_2023, ward_dest_2023),
+  ward_pair_id := paste(pmin(ward_origin, ward_dest),
+    pmax(ward_origin, ward_dest),
     sep = "-"
   )
 ]

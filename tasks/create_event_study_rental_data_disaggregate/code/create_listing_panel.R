@@ -149,7 +149,7 @@ cohort_2015 <- rentals_with_controls %>%
   # Drop contaminated controls
   filter(valid_2015) %>%
   # Apply 2000ft distance restriction (filtering/weighting by bandwidth happens in regression script)
-  filter(!is.na(ward_pair_id), dist_ft <= 2000) %>%
+  filter(!is.na(ward_pair_id), !is.na(ward), dist_ft <= 2000) %>%
   mutate(
     # Cohort identifier
     cohort = "2015",
@@ -164,8 +164,8 @@ cohort_2015 <- rentals_with_controls %>%
     treat = as.integer(switched_2015),
     switched = switched_2015,
     strictness_change = strictness_change_2015,
-    ward_origin = ward_origin_2015,
-    ward_dest = ward_dest_2015,
+    ward_origin = if_else(switched_2015, ward_origin_2015, ward),
+    ward_dest = if_else(switched_2015, ward_dest_2015, ward),
     treatment_continuous = strictness_change_2015,
 
     # Binary direction indicators
@@ -176,8 +176,8 @@ cohort_2015 <- rentals_with_controls %>%
     # This ensures ward_pair_id is stable across pre/post periods
     ward_pair_id_fixed = if_else(
       switched_2015,
-      paste(pmin(ward_origin_2015, ward_dest_2015),
-        pmax(ward_origin_2015, ward_dest_2015),
+      paste(pmin(ward_origin, ward_dest),
+        pmax(ward_origin, ward_dest),
         sep = "-"
       ),
       ward_pair_id
@@ -248,7 +248,7 @@ cohort_2023 <- rentals_with_controls %>%
   # Drop contaminated controls
   filter(valid_2023) %>%
   # Apply 2000ft distance restriction (filtering/weighting by bandwidth happens in regression script)
-  filter(!is.na(ward_pair_id), dist_ft <= 2000) %>%
+  filter(!is.na(ward_pair_id), !is.na(ward), dist_ft <= 2000) %>%
   mutate(
     # Cohort identifier
     cohort = "2023",
@@ -263,8 +263,8 @@ cohort_2023 <- rentals_with_controls %>%
     treat = as.integer(switched_2023),
     switched = switched_2023,
     strictness_change = strictness_change_2023,
-    ward_origin = ward_origin_2023,
-    ward_dest = ward_dest_2023,
+    ward_origin = if_else(switched_2023, ward_origin_2023, ward),
+    ward_dest = if_else(switched_2023, ward_dest_2023, ward),
     treatment_continuous = strictness_change_2023,
 
     # Binary direction indicators
@@ -274,8 +274,8 @@ cohort_2023 <- rentals_with_controls %>%
     # FIX: For treated blocks, override ward_pair_id with the boundary they crossed
     ward_pair_id_fixed = if_else(
       switched_2023,
-      paste(pmin(ward_origin_2023, ward_dest_2023),
-        pmax(ward_origin_2023, ward_dest_2023),
+      paste(pmin(ward_origin, ward_dest),
+        pmax(ward_origin, ward_dest),
         sep = "-"
       ),
       ward_pair_id

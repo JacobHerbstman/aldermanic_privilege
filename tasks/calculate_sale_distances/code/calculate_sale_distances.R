@@ -284,21 +284,43 @@ calc_dist <- function(points, polys, lines) {
         return(NULL)
     }
 
-    # B. Distance to Nearest Border
-    nearest_idx <- st_nearest_feature(joined, lines)
-    nearest_geoms <- lines[nearest_idx, ]
-    dists <- st_distance(joined, nearest_geoms, by_element = TRUE)
+    # B. Distance to Nearest Border touching assigned ward
+    joined$dist_ft <- NA_real_
+    joined$ward_pair_a <- NA_integer_
+    joined$ward_pair_b <- NA_integer_
 
-    # C. Metadata
-    joined$dist_ft <- as.numeric(dists)
-    joined$ward_pair_a <- nearest_geoms$ward_a
-    joined$ward_pair_b <- nearest_geoms$ward_b
+    ward_vals <- sort(unique(joined$ward))
+    for (w in ward_vals) {
+        idx <- which(joined$ward == w)
+        edges_w <- lines[lines$ward_a == w | lines$ward_b == w, ]
+
+        if (length(idx) == 0 || nrow(edges_w) == 0) {
+            next
+        }
+
+        nearest_idx <- st_nearest_feature(joined[idx, ], edges_w)
+        nearest_geoms <- edges_w[nearest_idx, ]
+        dists <- st_distance(joined[idx, ], nearest_geoms, by_element = TRUE)
+
+        joined$dist_ft[idx] <- as.numeric(dists)
+        joined$ward_pair_a[idx] <- as.integer(nearest_geoms$ward_a)
+        joined$ward_pair_b[idx] <- as.integer(nearest_geoms$ward_b)
+    }
+
+    joined <- joined %>% filter(!is.na(ward_pair_a), !is.na(ward_pair_b))
+    if (nrow(joined) == 0) {
+        return(NULL)
+    }
 
     # Identify neighbor ward
     joined <- joined %>%
         mutate(
-            neighbor_ward = if_else(ward == ward_pair_a, ward_pair_b, ward_pair_a),
-            ward_pair_id = paste(pmin(ward, neighbor_ward), pmax(ward, neighbor_ward), sep = "-")
+            neighbor_ward = if_else(ward == ward_pair_a, ward_pair_b, ward_pair_a, missing = NA_integer_),
+            ward_pair_id = if_else(
+                !is.na(neighbor_ward),
+                paste(pmin(ward, neighbor_ward), pmax(ward, neighbor_ward), sep = "-"),
+                NA_character_
+            )
         ) %>%
         select(-ward_pair_a, -ward_pair_b)
 

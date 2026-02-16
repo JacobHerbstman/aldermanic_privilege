@@ -1,4 +1,4 @@
-## this code takes chicago ward shapefiles merges them for a panel from 2003-2023
+## this code takes chicago ward shapefiles merges them for an annual panel
 
 ## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
@@ -10,14 +10,14 @@ source("../../setup_environment/code/packages.R")
 # -----------------------------------------------------------------------------
 ward_bound1998 <- st_read("../input/ward1998.shp")
 
-## make annual panel for the pre-2005 ward map
+## make annual panel for the pre-2003 ward map
 ward_bound1998 <- ward_bound1998 %>%
   janitor::clean_names() %>% 
   mutate(ward = as.numeric(ward)) %>%
   arrange(ward) %>% 
   select(ward, geometry) %>%
   rowwise() %>%
-  mutate(year = list(1998:2004)) %>% # Switched to annual sequence
+  mutate(year = list(1998:2002)) %>%
   unnest(year) %>%
   select(year, ward, geometry) %>% 
   arrange(ward, year) %>% 
@@ -26,14 +26,14 @@ ward_bound1998 <- ward_bound1998 %>%
 
 
 ## bring in old ward boundary data
-ward_bound2005 <- st_read("../input/Wards_2014.geojson") 
+ward_bound2003 <- st_read("../input/Wards_2014.geojson") 
 
-## make annual panel for the pre-2015 ward map
-ward_bound2005 <- ward_bound2005 %>%
+## make annual panel for the 2003-2014 ward map
+ward_bound2003 <- ward_bound2003 %>%
   filter(ward != "OUT") %>% 
   select(ward, geometry) %>%
   rowwise() %>%
-  mutate(year = list(2005:2014)) %>% # Switched to annual sequence
+  mutate(year = list(2003:2014)) %>%
   unnest(year) %>%
   select(year, ward, geometry) %>% 
   arrange(ward, year) %>% 
@@ -69,7 +69,7 @@ ward_bound2024 <- ward_bound2024 %>%
 
 
 ## join to one large annual panel
-ward_panel_annual <- rbind(ward_bound1998, ward_bound2005, ward_bound2015, ward_bound2024) %>%
+ward_panel_annual <- rbind(ward_bound1998, ward_bound2003, ward_bound2015, ward_bound2024) %>%
   mutate(ward = as.numeric(ward)) %>% 
   arrange(ward, year)
 

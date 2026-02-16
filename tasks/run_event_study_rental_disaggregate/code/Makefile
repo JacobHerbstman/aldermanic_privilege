@@ -106,7 +106,10 @@ $(foreach pw,$(POST_WINDOWS), \
 ../input/rental_listing_panel_2023.parquet: ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel_2023.parquet | ../input
 	ln -sf $< $@
 
-link-inputs: ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet
+../input/rent_with_ward_distances.parquet: ../../create_event_study_rental_data_disaggregate/input/rent_with_ward_distances.parquet | ../input
+	ln -sf $< $@
+
+link-inputs: ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet ../input/rent_with_ward_distances.parquet
 
 # ─────────────────────────────────────────────────────────────────────────────
 # DiD Table
@@ -143,6 +146,58 @@ did-table-all:
 	$(MAKE) did-table-strict
 	$(MAKE) did-table-pairtrend
 	$(MAKE) did-table-yearfe
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Effect Source Diagnostics
+# ─────────────────────────────────────────────────────────────────────────────
+
+EFFECT_SCRIPT := diagnose_rental_effect_sources.R
+EFFECT_BANDWIDTH ?= 1000
+EFFECT_WEIGHTING ?= triangular
+EFFECT_SAMPLE_FILTER ?= multifamily_only
+EFFECT_FE_TYPE ?= strict_pair_x_year
+EFFECT_TOP_N ?= 50
+EFFECT_TOP_BLOCKS ?= 200
+EFFECT_TOP_BUILDINGS ?= 200
+
+EFFECT_SUMMARY := ../output/rental_effect_source_summary.csv
+EFFECT_EVENT_COEFFS := ../output/rental_effect_source_event_study_coefficients.csv
+EFFECT_COUNTERFACTUAL := ../output/rental_effect_source_counterfactuals.csv
+EFFECT_BOUNDARIES := ../output/rental_effect_source_boundaries.csv
+EFFECT_BOUNDARIES_TOP := ../output/rental_effect_source_boundaries_top50.csv
+EFFECT_WARDS := ../output/rental_effect_source_wards.csv
+EFFECT_WARDS_TOP := ../output/rental_effect_source_wards_top50.csv
+EFFECT_BLOCKS_TOP := ../output/rental_effect_source_blocks_top200.csv
+EFFECT_BUILDINGS := ../output/rental_effect_source_buildings.csv
+EFFECT_BUILDINGS_TOP := ../output/rental_effect_source_buildings_top200.csv
+
+EFFECT_OUTPUTS := $(EFFECT_SUMMARY) $(EFFECT_EVENT_COEFFS) $(EFFECT_COUNTERFACTUAL) $(EFFECT_BOUNDARIES) $(EFFECT_BOUNDARIES_TOP) $(EFFECT_WARDS) $(EFFECT_WARDS_TOP) $(EFFECT_BLOCKS_TOP) $(EFFECT_BUILDINGS) $(EFFECT_BUILDINGS_TOP)
+
+.PHONY: effect-sources
+
+effect-sources: $(EFFECT_OUTPUTS)
+
+$(EFFECT_OUTPUTS): $(EFFECT_SCRIPT) ../input/rental_listing_panel.parquet ../input/rent_with_ward_distances.parquet | ../output
+	Rscript $(EFFECT_SCRIPT) \
+		--input=../input/rental_listing_panel.parquet \
+		--geo_input=../input/rent_with_ward_distances.parquet \
+		--bandwidth=$(EFFECT_BANDWIDTH) \
+		--weighting=$(EFFECT_WEIGHTING) \
+		--sample_filter=$(EFFECT_SAMPLE_FILTER) \
+		--fe_type=$(EFFECT_FE_TYPE) \
+		--top_n=$(EFFECT_TOP_N) \
+		--top_blocks=$(EFFECT_TOP_BLOCKS) \
+		--top_buildings=$(EFFECT_TOP_BUILDINGS) \
+		--out_summary=$(EFFECT_SUMMARY) \
+		--out_event_coeffs=$(EFFECT_EVENT_COEFFS) \
+		--out_counterfactual=$(EFFECT_COUNTERFACTUAL) \
+		--out_boundaries=$(EFFECT_BOUNDARIES) \
+		--out_boundaries_top=$(EFFECT_BOUNDARIES_TOP) \
+		--out_wards=$(EFFECT_WARDS) \
+		--out_wards_top=$(EFFECT_WARDS_TOP) \
+		--out_blocks_top=$(EFFECT_BLOCKS_TOP) \
+		--out_buildings=$(EFFECT_BUILDINGS) \
+		--out_buildings_top=$(EFFECT_BUILDINGS_TOP)
 
 main: main-specs did-table
 
