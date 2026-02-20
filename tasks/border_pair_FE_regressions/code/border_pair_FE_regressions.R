@@ -92,7 +92,7 @@ parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_type
   filter(arealotsf > 1) %>%
   filter(areabuilding > 1) %>%
   filter(unitscount > 1) %>%
-  filter(construction_year >= 2006)
+  filter(construction_year >= 1999)
 
 if (units_cap > 0) {
   parcels_fe <- parcels_fe %>% filter(unitscount <= units_cap)
