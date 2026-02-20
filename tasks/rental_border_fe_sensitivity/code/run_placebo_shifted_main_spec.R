@@ -1,25 +1,43 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 1000),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--shifts", type = "character", default = "-750,-500,-250,0,250,500,750"),
-  make_option("--use_controls", type = "logical", default = TRUE),
-  make_option("--output_csv", type = "character", default = "../output/placebo_main_spec_pre_2021_all_bw1000.csv"),
-  make_option("--output_pdf", type = "character", default = "../output/placebo_main_spec_pre_2021_all_bw1000.pdf")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 1000
+# window <- "pre_2021"
+# sample_filter <- "all"
+# shifts <- "-750,-500,-250,0,250,500,750"
+# use_controls <- TRUE
+# output_csv <- "../output/placebo_main_spec_pre_2021_all_bw1000.csv"
+# output_pdf <- "../output/placebo_main_spec_pre_2021_all_bw1000.pdf"
+# Rscript run_placebo_shifted_main_spec.R "../input/rent_with_ward_distances.parquet" 1000 "pre_2021" "all" "-750,-500,-250,0,250,500,750" TRUE "../output/placebo_main_spec_pre_2021_all_bw1000.csv" "../output/placebo_main_spec_pre_2021_all_bw1000.pdf"
+# =======================================================================================
 
-if (!opt$window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 8) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  shifts <- cli_args[5]
+  use_controls <- tolower(cli_args[6]) %in% c("true", "t", "1", "yes")
+  output_csv <- cli_args[7]
+  output_pdf <- cli_args[8]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("shifts") || !exists("use_controls") || !exists("output_csv") || !exists("output_pdf")) {
+    stop("FATAL: Script requires 8 args: <input> <bw_ft> <window> <sample_filter> <shifts> <use_controls> <output_csv> <output_pdf>", call. = FALSE)
+  }
+}
+
+if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, pre_2023, drop_mid", call. = FALSE)
 }
-if (!opt$sample_filter %in% c("all", "multifamily_only")) {
+if (!sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
 }
-if (!is.finite(opt$bw_ft) || opt$bw_ft <= 0) {
+if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("--bw_ft must be positive", call. = FALSE)
 }
 
@@ -32,7 +50,7 @@ apply_window <- function(df, window_name) {
   df
 }
 
-shift_values <- as.numeric(trimws(strsplit(opt$shifts, ",")[[1]]))
+shift_values <- as.numeric(trimws(strsplit(shifts, ",")[[1]]))
 shift_values <- shift_values[is.finite(shift_values)]
 shift_values <- sort(unique(shift_values))
 if (length(shift_values) == 0) {
@@ -42,9 +60,9 @@ max_shift <- max(abs(shift_values))
 
 message("=== Placebo Shifted Main Spec ===")
 message(sprintf("Bandwidth: %d ft | Window: %s | Shifts: %s",
-                opt$bw_ft, opt$window, paste(shift_values, collapse = ", ")))
+                bw_ft, window, paste(shift_values, collapse = ", ")))
 
-dat <- read_parquet(opt$input) %>%
+dat <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -58,11 +76,11 @@ dat <- read_parquet(opt$input) %>%
     !is.na(rent_price), rent_price > 0,
     !is.na(signed_dist),
     !is.na(strictness_own),
-    abs(signed_dist) <= (opt$bw_ft + max_shift)
+    abs(signed_dist) <= (bw_ft + max_shift)
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   dat <- dat %>% filter(building_type_clean == "multi_family")
 }
 
@@ -79,9 +97,9 @@ results <- list()
 for (s in shift_values) {
   df_s <- dat %>%
     mutate(shifted_dist = signed_dist - s) %>%
-    filter(abs(shifted_dist) <= opt$bw_ft)
+    filter(abs(shifted_dist) <= bw_ft)
 
-  if (opt$use_controls) {
+  if (use_controls) {
     df_s <- df_s %>%
       filter(!is.na(log_sqft), !is.na(log_beds), !is.na(log_baths), !is.na(building_type_factor))
   }
@@ -96,7 +114,7 @@ for (s in shift_values) {
 
   # Run the SAME regression as the main table
   n_type_levels <- n_distinct(df_s$building_type_factor)
-  if (opt$use_controls) {
+  if (use_controls) {
     rhs <- "strictness_std + log_sqft + log_beds + log_baths"
     if (n_type_levels >= 2) rhs <- paste0(rhs, " + building_type_factor")
   } else {
@@ -122,7 +140,7 @@ for (s in shift_values) {
     n_obs = m$nobs,
     ward_pairs = length(unique(df_s$ward_pair)),
     sd_strictness = sd_strict,
-    controls = opt$use_controls
+    controls = use_controls
   )
 
   message(sprintf("  shift=%+5d: coef=%.4f (SE=%.4f, p=%.3f) N=%d pairs=%d sd_strict=%.3f",
@@ -134,7 +152,7 @@ for (s in shift_values) {
 out <- bind_rows(results) %>% arrange(shift_ft)
 if (nrow(out) == 0) stop("No models estimated.", call. = FALSE)
 
-write_csv(out, opt$output_csv)
+write_csv(out, output_csv)
 
 plot_df <- out %>%
   mutate(
@@ -152,7 +170,7 @@ p <- ggplot(plot_df, aes(x = shift_ft, y = estimate, color = type)) +
   labs(
     title = "Placebo Test: Main Spec at Shifted Boundaries",
     subtitle = sprintf("bw = %d ft | window = %s | sample = %s | controls = %s",
-                        opt$bw_ft, opt$window, opt$sample_filter, opt$use_controls),
+                        bw_ft, window, sample_filter, use_controls),
     x = "Boundary shift (feet; 0 = true boundary)",
     y = "Coefficient on standardized strictness score",
     color = ""
@@ -163,7 +181,7 @@ p <- ggplot(plot_df, aes(x = shift_ft, y = estimate, color = type)) +
     panel.grid.minor = element_blank()
   )
 
-ggsave(opt$output_pdf, p, width = 9, height = 5.5, dpi = 300, bg = "white")
+ggsave(output_pdf, p, width = 9, height = 5.5, dpi = 300, bg = "white")
 
-message(sprintf("Saved: %s", opt$output_csv))
-message(sprintf("Saved: %s", opt$output_pdf))
+message(sprintf("Saved: %s", output_csv))
+message(sprintf("Saved: %s", output_pdf))

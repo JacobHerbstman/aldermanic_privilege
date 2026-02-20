@@ -4,37 +4,58 @@ library(data.table)
 library(arrow)
 library(sf)
 library(ggplot2)
-library(optparse)
 library(patchwork)
 
 sf_use_s2(FALSE)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--ward_panel", type = "character", default = "../input/ward_panel.gpkg"),
-  make_option("--flags_csv", type = "character", default = "../output/rent_fe_lop_flags_top_boundaries.csv"),
-  make_option("--bw_ft", type = "integer", default = 500),
-  make_option("--window", type = "character", default = "pre_2023"),
-  make_option("--top_n_per_spec", type = "integer", default = 8),
-  make_option("--map_year", type = "integer", default = 2015),
-  make_option("--zoom_margin_ft", type = "double", default = 1500),
-  make_option("--point_sample_per_boundary", type = "integer", default = 6000),
-  make_option("--output_dir", type = "character", default = "../output"),
-  make_option("--smoke", type = "logical", default = FALSE)
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_pair_fe_diagnostics/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# ward_panel <- "../input/ward_panel.gpkg"
+# flags_csv <- "../output/rent_fe_lop_flags_top_boundaries.csv"
+# bw_ft <- 500
+# window <- "pre_2023"
+# top_n_per_spec <- 8
+# map_year <- 2015
+# zoom_margin_ft <- 1500
+# point_sample_per_boundary <- 6000
+# output_dir <- "../output"
+# smoke <- FALSE
+# Rscript run_rental_fe_flagged_boundary_zoom.R "../input/rent_with_ward_distances.parquet" "../input/ward_panel.gpkg" "../output/rent_fe_lop_flags_top_boundaries.csv" 500 "pre_2023" 8 2015 1500 6000 "../output" FALSE
+# =======================================================================================
 
-if (!opt$window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 11) {
+  input <- cli_args[1]
+  ward_panel <- cli_args[2]
+  flags_csv <- cli_args[3]
+  bw_ft <- suppressWarnings(as.integer(cli_args[4]))
+  window <- cli_args[5]
+  top_n_per_spec <- suppressWarnings(as.integer(cli_args[6]))
+  map_year <- suppressWarnings(as.integer(cli_args[7]))
+  zoom_margin_ft <- as.numeric(cli_args[8])
+  point_sample_per_boundary <- suppressWarnings(as.integer(cli_args[9]))
+  output_dir <- cli_args[10]
+  smoke <- tolower(cli_args[11]) %in% c("true", "t", "1", "yes")
+} else {
+  if (!exists("input") || !exists("ward_panel") || !exists("flags_csv") || !exists("bw_ft") || !exists("window") || !exists("top_n_per_spec") || !exists("map_year") || !exists("zoom_margin_ft") || !exists("point_sample_per_boundary") || !exists("output_dir") || !exists("smoke")) {
+    stop("FATAL: Script requires 11 args: <input> <ward_panel> <flags_csv> <bw_ft> <window> <top_n_per_spec> <map_year> <zoom_margin_ft> <point_sample_per_boundary> <output_dir> <smoke>", call. = FALSE)
+  }
+}
+
+if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, pre_2023, drop_mid", call. = FALSE)
 }
-if (!is.finite(opt$bw_ft) || opt$bw_ft <= 0) {
+if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("--bw_ft must be positive", call. = FALSE)
 }
-if (!is.finite(opt$top_n_per_spec) || opt$top_n_per_spec <= 0) {
+if (!is.finite(top_n_per_spec) || top_n_per_spec <= 0) {
   stop("--top_n_per_spec must be positive", call. = FALSE)
 }
-if (!dir.exists(opt$output_dir)) {
-  dir.create(opt$output_dir, recursive = TRUE)
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir, recursive = TRUE)
 }
 
 apply_window_filter <- function(dt, window_name) {
@@ -113,13 +134,13 @@ safe_quantile <- function(x, p) {
 }
 
 message("=== Flagged Boundary Zoom Drilldown ===")
-message("input: ", opt$input)
-message("ward_panel: ", opt$ward_panel)
-message("flags_csv: ", opt$flags_csv)
-message("output_dir: ", opt$output_dir)
-message("smoke: ", opt$smoke)
+message("input: ", input)
+message("ward_panel: ", ward_panel)
+message("flags_csv: ", flags_csv)
+message("output_dir: ", output_dir)
+message("smoke: ", smoke)
 
-flags <- as.data.table(fread(opt$flags_csv))
+flags <- as.data.table(fread(flags_csv))
 if (!"severe_flag" %in% names(flags)) {
   stop("flags_csv must include severe_flag", call. = FALSE)
 }
@@ -130,8 +151,8 @@ if (nrow(flags) == 0) {
 
 flags[, sort_abs_infl := fifelse(!is.na(abs_influence_exact), abs_influence_exact, abs_influence_fast)]
 setorder(flags, spec, -sort_abs_infl, -max_abs_implied_gap_pct, -max_abs_raw_gap_pct)
-selected <- flags[, head(.SD, opt$top_n_per_spec), by = spec]
-if (opt$smoke && nrow(selected) > 6) {
+selected <- flags[, head(.SD, top_n_per_spec), by = spec]
+if (smoke && nrow(selected) > 6) {
   selected <- selected[1:6]
 }
 selected_pairs <- unique(selected$ward_pair_id)
@@ -143,14 +164,14 @@ keep_cols <- c(
   "strictness_own", "beds", "baths", "sqft", "building_type_clean",
   "longitude", "latitude"
 )
-parquet_cols <- names(read_parquet(opt$input, as_data_frame = FALSE))
+parquet_cols <- names(read_parquet(input, as_data_frame = FALSE))
 col_select <- intersect(keep_cols, parquet_cols)
 missing_cols <- setdiff(c("id", "file_date", "rent_price", "ward_pair_id", "ward", "signed_dist", "strictness_own"), col_select)
 if (length(missing_cols) > 0) {
   stop(sprintf("Input is missing required columns: %s", paste(missing_cols, collapse = ", ")), call. = FALSE)
 }
 
-dt <- as.data.table(read_parquet(opt$input, col_select = tidyselect::all_of(col_select)))
+dt <- as.data.table(read_parquet(input, col_select = tidyselect::all_of(col_select)))
 if (!"beds" %in% names(dt)) dt[, beds := NA_real_]
 if (!"baths" %in% names(dt)) dt[, baths := NA_real_]
 if (!"sqft" %in% names(dt)) dt[, sqft := NA_real_]
@@ -178,9 +199,9 @@ dt <- dt[
     !is.na(ward) &
     !is.na(signed_dist) &
     !is.na(strictness_own) &
-    abs_dist <= opt$bw_ft
+    abs_dist <= bw_ft
 ]
-dt <- apply_window_filter(dt, opt$window)
+dt <- apply_window_filter(dt, window)
 dt <- dt[ward_pair_id %in% selected_pairs]
 
 if (nrow(dt) == 0) {
@@ -276,27 +297,27 @@ selection_out <- selected[, .(
   influence_exact, abs_influence_exact, rank_abs_exact, geometry_clean, geometry_flag
 )]
 
-selection_csv <- file.path(opt$output_dir, "rent_fe_flagged_boundary_selection.csv")
-side_csv <- file.path(opt$output_dir, "rent_fe_flagged_boundary_side_summary.csv")
-pair_csv <- file.path(opt$output_dir, "rent_fe_flagged_boundary_pair_summary.csv")
-type_csv <- file.path(opt$output_dir, "rent_fe_flagged_boundary_type_shares.csv")
-map_pdf <- file.path(opt$output_dir, "rent_fe_flagged_boundary_unit_maps.pdf")
-char_pdf <- file.path(opt$output_dir, "rent_fe_flagged_boundary_characteristics.pdf")
-summary_md <- file.path(opt$output_dir, "rent_fe_flagged_boundary_zoom_summary.md")
+selection_csv <- file.path(output_dir, "rent_fe_flagged_boundary_selection.csv")
+side_csv <- file.path(output_dir, "rent_fe_flagged_boundary_side_summary.csv")
+pair_csv <- file.path(output_dir, "rent_fe_flagged_boundary_pair_summary.csv")
+type_csv <- file.path(output_dir, "rent_fe_flagged_boundary_type_shares.csv")
+map_pdf <- file.path(output_dir, "rent_fe_flagged_boundary_unit_maps.pdf")
+char_pdf <- file.path(output_dir, "rent_fe_flagged_boundary_characteristics.pdf")
+summary_md <- file.path(output_dir, "rent_fe_flagged_boundary_zoom_summary.md")
 
 fwrite(selection_out, selection_csv)
 fwrite(side_summary, side_csv)
 fwrite(pair_summary, pair_csv)
 fwrite(type_shares, type_csv)
 
-ward_panel <- st_read(opt$ward_panel, quiet = TRUE)
+ward_panel <- st_read(ward_panel, quiet = TRUE)
 ward_panel$ward <- as.integer(ward_panel$ward)
 ward_panel$year <- as.integer(ward_panel$year)
 if (isTRUE(st_is_longlat(ward_panel))) {
   ward_panel <- st_transform(ward_panel, 26971)
 }
 years <- sort(unique(ward_panel$year))
-map_year <- if (opt$map_year %in% years) opt$map_year else years[which.min(abs(years - opt$map_year))]
+map_year <- if (map_year %in% years) map_year else years[which.min(abs(years - map_year))]
 ward_map <- ward_panel[ward_panel$year == map_year, c("ward")]
 boundary_lines <- build_boundary_lines(ward_map)
 boundary_lines <- boundary_lines[boundary_lines$pair_id %in% selected_pairs, ]
@@ -313,9 +334,9 @@ make_pair_map <- function(pid) {
   pair_dt <- dt[ward_pair_id == pid & is.finite(longitude) & is.finite(latitude)]
   if (nrow(pair_dt) == 0) return(NULL)
 
-  if (nrow(pair_dt) > opt$point_sample_per_boundary) {
+  if (nrow(pair_dt) > point_sample_per_boundary) {
     set.seed(20260216)
-    pair_dt <- pair_dt[sample(.N, opt$point_sample_per_boundary)]
+    pair_dt <- pair_dt[sample(.N, point_sample_per_boundary)]
   }
 
   pts <- st_as_sf(pair_dt, coords = c("longitude", "latitude"), crs = 4326)
@@ -328,10 +349,10 @@ make_pair_map <- function(pid) {
     st_bbox(pts)
   }
   bbox_exp <- bbox
-  bbox_exp["xmin"] <- bbox_exp["xmin"] - opt$zoom_margin_ft
-  bbox_exp["xmax"] <- bbox_exp["xmax"] + opt$zoom_margin_ft
-  bbox_exp["ymin"] <- bbox_exp["ymin"] - opt$zoom_margin_ft
-  bbox_exp["ymax"] <- bbox_exp["ymax"] + opt$zoom_margin_ft
+  bbox_exp["xmin"] <- bbox_exp["xmin"] - zoom_margin_ft
+  bbox_exp["xmax"] <- bbox_exp["xmax"] + zoom_margin_ft
+  bbox_exp["ymin"] <- bbox_exp["ymin"] - zoom_margin_ft
+  bbox_exp["ymax"] <- bbox_exp["ymax"] + zoom_margin_ft
 
   wards_clip <- suppressWarnings(st_crop(ward_map, bbox_exp))
   if (nrow(wards_clip) == 0) wards_clip <- ward_map
@@ -439,8 +460,8 @@ md <- c(
   "# Flagged Boundary Zoom Summary",
   "",
   sprintf("- generated: `%s`", as.character(Sys.time())),
-  sprintf("- bw_ft: `%d`", opt$bw_ft),
-  sprintf("- window: `%s`", opt$window),
+  sprintf("- bw_ft: `%d`", bw_ft),
+  sprintf("- window: `%s`", window),
   sprintf("- selected boundaries: `%d`", length(selected_pairs)),
   sprintf("- map_year: `%d`", map_year),
   "",

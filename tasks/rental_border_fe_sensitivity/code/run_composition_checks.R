@@ -1,20 +1,36 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 500),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--output_tex", type = "character", default = "../output/composition_checks_pre_2021_all_bw500.tex"),
-  make_option("--output_csv", type = "character", default = "../output/composition_checks_pre_2021_all_bw500.csv")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 500
+# window <- "pre_2021"
+# sample_filter <- "all"
+# output_tex <- "../output/composition_checks_pre_2021_all_bw500.tex"
+# output_csv <- "../output/composition_checks_pre_2021_all_bw500.csv"
+# Rscript run_composition_checks.R "../input/rent_with_ward_distances.parquet" 500 "pre_2021" "all" "../output/composition_checks_pre_2021_all_bw500.tex" "../output/composition_checks_pre_2021_all_bw500.csv"
+# =======================================================================================
 
-if (!opt$window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 6) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  output_tex <- cli_args[5]
+  output_csv <- cli_args[6]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("output_tex") || !exists("output_csv")) {
+    stop("FATAL: Script requires 6 args: <input> <bw_ft> <window> <sample_filter> <output_tex> <output_csv>", call. = FALSE)
+  }
+}
+
+if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, pre_2023, drop_mid", call. = FALSE)
 }
-if (!opt$sample_filter %in% c("all", "multifamily_only")) {
+if (!sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
 }
 
@@ -27,7 +43,7 @@ apply_window <- function(df, window_name) {
   df
 }
 
-dat <- read_parquet(opt$input) %>%
+dat <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -39,12 +55,12 @@ dat <- read_parquet(opt$input) %>%
     !is.na(file_date),
     !is.na(ward_pair),
     !is.na(signed_dist),
-    abs(signed_dist) <= opt$bw_ft,
+    abs(signed_dist) <= bw_ft,
     !is.na(strictness_own)
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   dat <- dat %>% filter(building_type_clean == "multi_family")
 }
 
@@ -105,9 +121,9 @@ for (i in seq_len(nrow(specs))) {
     n_obs = m$nobs,
     dep_var_mean = mean(df_i[[yv]], na.rm = TRUE),
     ward_pairs = length(unique(df_i$ward_pair)),
-    bw_ft = opt$bw_ft,
-    window = opt$window,
-    sample_filter = opt$sample_filter
+    bw_ft = bw_ft,
+    window = window,
+    sample_filter = sample_filter
   )
 }
 
@@ -115,7 +131,7 @@ if (length(models) == 0) {
   stop("No composition models estimated.", call. = FALSE)
 }
 
-write_csv(bind_rows(rows), opt$output_csv)
+write_csv(bind_rows(rows), output_csv)
 
 setFixest_dict(c(
   strictness_std = "Strictness Score"
@@ -137,12 +153,12 @@ etable(
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
   extralines = list(
     "_Ward-Pair $\\times$ Year-Month FE" = rep("$\\checkmark$", length(models)),
-    "_Window" = rep(opt$window, length(models)),
-    "_Sample" = rep(opt$sample_filter, length(models))
+    "_Window" = rep(window, length(models)),
+    "_Sample" = rep(sample_filter, length(models))
   ),
-  file = opt$output_tex,
+  file = output_tex,
   replace = TRUE
 )
 
-message(sprintf("Saved: %s", opt$output_tex))
-message(sprintf("Saved: %s", opt$output_csv))
+message(sprintf("Saved: %s", output_tex))
+message(sprintf("Saved: %s", output_csv))

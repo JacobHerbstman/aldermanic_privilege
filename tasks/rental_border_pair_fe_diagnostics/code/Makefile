@@ -42,23 +42,25 @@ INPUTS := \
 all: $(FULL_STAMP)
 
 $(FULL_STAMP): run_rental_fe_driver_forensics.R $(INPUTS) | ../output
+	# arg order: input ward_panel bw_ft window sample_filter top_n_fast top_n_exact_boundary top_n_exact_ward_side top_n_exact_building building_round lop_bins near_boundary_ft reference_csv cert_gates anomaly_samples output_dir smoke
 	$(R) run_rental_fe_driver_forensics.R \
-		--input=../input/rent_with_ward_distances.parquet \
-		--ward_panel=../input/ward_panel.gpkg \
-		--bw_ft=500 \
-		--window=pre_2023 \
-		--sample_filter=all \
-		--top_n_fast=200 \
-		--top_n_exact_boundary=30 \
-		--top_n_exact_ward_side=30 \
-		--top_n_exact_building=50 \
-		--building_round=5 \
-		--lop_bins=0.05,0.10,0.20 \
-		--near_boundary_ft=250,500 \
-		--reference_csv=../input/reference_fe_table_rental_bw500_pre_2023.csv \
-		--cert_gates=../input/border_certification_gates.csv \
-		--anomaly_samples=../input/border_pair_anomaly_samples.csv \
-		--output_dir=../output
+		../input/rent_with_ward_distances.parquet \
+		../input/ward_panel.gpkg \
+		500 \
+		pre_2023 \
+		all \
+		200 \
+		30 \
+		30 \
+		50 \
+		5 \
+		0.05,0.10,0.20 \
+		250,500 \
+		../input/reference_fe_table_rental_bw500_pre_2023.csv \
+		../input/border_certification_gates.csv \
+		../input/border_pair_anomaly_samples.csv \
+		../output \
+		FALSE
 	@for f in $(OUTPUTS); do \
 		test -f $$f || (echo "Missing expected output: $$f" && exit 1); \
 	done
@@ -68,24 +70,25 @@ diagnostics-smoke: $(SMOKE_STAMP)
 
 $(SMOKE_STAMP): run_rental_fe_driver_forensics.R $(INPUTS) | ../output
 	@mkdir -p ../output/smoke
+	# arg order: input ward_panel bw_ft window sample_filter top_n_fast top_n_exact_boundary top_n_exact_ward_side top_n_exact_building building_round lop_bins near_boundary_ft reference_csv cert_gates anomaly_samples output_dir smoke
 	$(R) run_rental_fe_driver_forensics.R \
-		--input=../input/rent_with_ward_distances.parquet \
-		--ward_panel=../input/ward_panel.gpkg \
-		--bw_ft=500 \
-		--window=pre_2023 \
-		--sample_filter=all \
-		--top_n_fast=40 \
-		--top_n_exact_boundary=8 \
-		--top_n_exact_ward_side=8 \
-		--top_n_exact_building=12 \
-		--building_round=5 \
-		--lop_bins=0.05,0.10,0.20 \
-		--near_boundary_ft=250,500 \
-		--reference_csv=../input/reference_fe_table_rental_bw500_pre_2023.csv \
-		--cert_gates=../input/border_certification_gates.csv \
-		--anomaly_samples=../input/border_pair_anomaly_samples.csv \
-		--output_dir=../output/smoke \
-		--smoke=TRUE
+		../input/rent_with_ward_distances.parquet \
+		../input/ward_panel.gpkg \
+		500 \
+		pre_2023 \
+		all \
+		40 \
+		8 \
+		8 \
+		12 \
+		5 \
+		0.05,0.10,0.20 \
+		250,500 \
+		../input/reference_fe_table_rental_bw500_pre_2023.csv \
+		../input/border_certification_gates.csv \
+		../input/border_pair_anomaly_samples.csv \
+		../output/smoke \
+		TRUE
 	@for f in $(SMOKE_OUTPUTS); do \
 		test -f $$f || (echo "Missing expected output: $$f" && exit 1); \
 	done
@@ -94,17 +97,19 @@ $(SMOKE_STAMP): run_rental_fe_driver_forensics.R $(INPUTS) | ../output
 flagged-zoom: $(FLAGGED_ZOOM_STAMP)
 
 $(FLAGGED_ZOOM_STAMP): run_rental_fe_flagged_boundary_zoom.R $(INPUTS) $(FULL_STAMP) | ../output
+	# arg order: input ward_panel flags_csv bw_ft window top_n_per_spec map_year zoom_margin_ft point_sample_per_boundary output_dir smoke
 	$(R) run_rental_fe_flagged_boundary_zoom.R \
-		--input=../input/rent_with_ward_distances.parquet \
-		--ward_panel=../input/ward_panel.gpkg \
-		--flags_csv=../output/rent_fe_lop_flags_top_boundaries.csv \
-		--bw_ft=500 \
-		--window=pre_2023 \
-		--top_n_per_spec=8 \
-		--map_year=2015 \
-		--zoom_margin_ft=1500 \
-		--point_sample_per_boundary=6000 \
-		--output_dir=../output
+		../input/rent_with_ward_distances.parquet \
+		../input/ward_panel.gpkg \
+		../output/rent_fe_lop_flags_top_boundaries.csv \
+		500 \
+		pre_2023 \
+		8 \
+		2015 \
+		1500 \
+		6000 \
+		../output \
+		FALSE
 	@for f in $(FLAGGED_ZOOM_OUTPUTS); do \
 		test -f $$f || (echo "Missing expected output: $$f" && exit 1); \
 	done
@@ -114,18 +119,19 @@ flagged-zoom-smoke: $(FLAGGED_ZOOM_SMOKE_STAMP)
 
 $(FLAGGED_ZOOM_SMOKE_STAMP): run_rental_fe_flagged_boundary_zoom.R $(INPUTS) $(SMOKE_STAMP) | ../output
 	@mkdir -p ../output/smoke
+	# arg order: input ward_panel flags_csv bw_ft window top_n_per_spec map_year zoom_margin_ft point_sample_per_boundary output_dir smoke
 	$(R) run_rental_fe_flagged_boundary_zoom.R \
-		--input=../input/rent_with_ward_distances.parquet \
-		--ward_panel=../input/ward_panel.gpkg \
-		--flags_csv=../output/smoke/rent_fe_lop_flags_top_boundaries.csv \
-		--bw_ft=500 \
-		--window=pre_2023 \
-		--top_n_per_spec=3 \
-		--map_year=2015 \
-		--zoom_margin_ft=1500 \
-		--point_sample_per_boundary=3000 \
-		--output_dir=../output/smoke \
-		--smoke=TRUE
+		../input/rent_with_ward_distances.parquet \
+		../input/ward_panel.gpkg \
+		../output/smoke/rent_fe_lop_flags_top_boundaries.csv \
+		500 \
+		pre_2023 \
+		3 \
+		2015 \
+		1500 \
+		3000 \
+		../output/smoke \
+		TRUE
 	@for f in $(FLAGGED_ZOOM_SMOKE_OUTPUTS); do \
 		test -f $$f || (echo "Missing expected output: $$f" && exit 1); \
 	done

@@ -13,9 +13,8 @@ PERM_CSV := ../output/permutation_test_2014_2022_all_bw500_ctrl.csv
 all: $(PERM_PDF)
 
 $(PERM_PDF): run_permutation_test.R $(INPUT_FILE) | ../output
-	Rscript $< --input=$(INPUT_FILE) --bw_ft=500 --window=pre_2023 --sample_filter=all \
-		--use_controls=TRUE --n_perms=500 --seed=42 \
-		--output_csv=$(PERM_CSV) --output_pdf=$@
+	# arg order: input bw_ft window sample_filter use_controls n_perms seed min_date output_csv output_pdf
+	Rscript $< $(INPUT_FILE) 500 pre_2023 all TRUE 500 42 2015-05-18 $(PERM_CSV) $@
 
 $(INPUT_FILE): ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
 	ln -sf "$<" "$@"

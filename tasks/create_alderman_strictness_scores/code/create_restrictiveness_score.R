@@ -6,48 +6,51 @@
 #   4) Standardize shrunk effects to form the strictness index.
 
 source("../../setup_environment/code/packages.R")
-library(optparse)
 library(fixest)
 
-option_list <- list(
-  make_option("--fe_spec", type = "character", default = "month",
-    help = "Stage-1 FE spec: month or ward_month [default: month]"
-  ),
-  make_option("--ref_alderman", type = "character", default = "Andre Vasquez",
-    help = "Reference alderman in stage 2 [default: Andre Vasquez]"
-  ),
-  make_option("--input_csv", type = "character", default = "../input/ward_monthly_panel_for_alderman_fe.csv",
-    help = "Input ward-month panel [default: ../input/ward_monthly_panel_for_alderman_fe.csv]"
-  ),
-  make_option("--output_csv", type = "character", default = "../output/alderman_restrictiveness_scores_month_FEs.csv",
-    help = "Output score CSV [default: ../output/alderman_restrictiveness_scores_month_FEs.csv]"
-  ),
-  make_option("--output_plot", type = "character", default = "../output/Month_FEs_final_strictness_index.pdf",
-    help = "Output score plot [default: ../output/Month_FEs_final_strictness_index.pdf]"
-  ),
-  make_option("--output_stage1_tex", type = "character", default = "../output/stage1_residualization_models.tex",
-    help = "Output stage-1 table [default: ../output/stage1_residualization_models.tex]"
-  ),
-  make_option("--output_stage2_tex", type = "character", default = "../output/stage2_alderman_dummies_month_FEs.tex",
-    help = "Output stage-2 table [default: ../output/stage2_alderman_dummies_month_FEs.tex]"
-  )
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_strictness_scores/code")
+# fe_spec <- "month"
+# ref_alderman <- "Andre Vasquez"
+# input_csv <- "../input/ward_monthly_panel_for_alderman_fe.csv"
+# output_csv <- "../output/alderman_restrictiveness_scores_month_FEs.csv"
+# output_plot <- "../output/Month_FEs_final_strictness_index.pdf"
+# output_stage1_tex <- "../output/stage1_residualization_models.tex"
+# output_stage2_tex <- "../output/stage2_alderman_dummies_month_FEs.tex"
+# Rscript create_restrictiveness_score.R "month" "Andre Vasquez" "../input/ward_monthly_panel_for_alderman_fe.csv" "../output/alderman_restrictiveness_scores_month_FEs.csv" "../output/Month_FEs_final_strictness_index.pdf" "../output/stage1_residualization_models.tex" "../output/stage2_alderman_dummies_month_FEs.tex"
+# =======================================================================================
 
-fe_spec <- tolower(opt$fe_spec)
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 7) {
+  fe_spec <- cli_args[1]
+  ref_alderman <- cli_args[2]
+  input_csv <- cli_args[3]
+  output_csv <- cli_args[4]
+  output_plot <- cli_args[5]
+  output_stage1_tex <- cli_args[6]
+  output_stage2_tex <- cli_args[7]
+} else {
+  if (!exists("fe_spec") || !exists("ref_alderman") || !exists("input_csv") || !exists("output_csv") || !exists("output_plot") || !exists("output_stage1_tex") || !exists("output_stage2_tex")) {
+    stop("FATAL: Script requires 7 args: <fe_spec> <ref_alderman> <input_csv> <output_csv> <output_plot> <output_stage1_tex> <output_stage2_tex>", call. = FALSE)
+  }
+}
+
+fe_spec <- tolower(fe_spec)
 if (!fe_spec %in% c("month", "ward_month")) {
   stop("--fe_spec must be one of: month, ward_month", call. = FALSE)
 }
 
 message("=== Create alderman strictness scores ===")
 message("Stage-1 FE spec: ", fe_spec)
-message("Reference alderman: ", opt$ref_alderman)
+message("Reference alderman: ", ref_alderman)
 
 # -----------------------------------------------------------------------------
 # Load and prepare ward-month panel
 # -----------------------------------------------------------------------------
 
-df <- read_csv(opt$input_csv, show_col_types = FALSE) %>%
+df <- read_csv(input_csv, show_col_types = FALSE) %>%
   mutate(
     month = as.yearmon(month),
     log_mean_processing_time = if_else(mean_processing_time > 0, log(mean_processing_time), NA_real_),
@@ -114,7 +117,7 @@ stage2_df <- df %>%
   filter(!is.na(resid_log_mean_processing_time))
 
 stage2_formula <- as.formula(
-  paste0("resid_log_mean_processing_time ~ i(alderman, ref = '", opt$ref_alderman, "')")
+  paste0("resid_log_mean_processing_time ~ i(alderman, ref = '", ref_alderman, "')")
 )
 
 stage2_model <- feols(
@@ -147,11 +150,11 @@ effects <- coef_dt %>%
   ) %>%
   select(alderman, alderman_fe_raw, alderman_se)
 
-if (!opt$ref_alderman %in% effects$alderman) {
+if (!ref_alderman %in% effects$alderman) {
   effects <- bind_rows(
     effects,
     tibble(
-      alderman = opt$ref_alderman,
+      alderman = ref_alderman,
       alderman_fe_raw = 0,
       alderman_se = 0
     )
@@ -245,7 +248,7 @@ etable(
   fitstat = ~ n + r2,
   drop = "^ca_share_",
   dict = stage1_dict,
-  file = opt$output_stage1_tex,
+  file = output_stage1_tex,
   replace = TRUE,
   style.tex = style.tex(
     main = "aer",
@@ -266,7 +269,7 @@ insert_ca_controls_row <- function(path) {
   lines <- append(lines, "   Community Area Share Controls    & $\\checkmark$\\\\   ", after = anchor_idx[1])
   writeLines(lines, path)
 }
-insert_ca_controls_row(opt$output_stage1_tex)
+insert_ca_controls_row(output_stage1_tex)
 
 etable(
   stage2_model,
@@ -275,7 +278,7 @@ etable(
   depvar = FALSE,
   headers = c("Residualized Processing Time"),
   fitstat = ~ n + r2,
-  file = opt$output_stage2_tex,
+  file = output_stage2_tex,
   replace = TRUE,
   style.tex = style.tex(
     main = "aer",
@@ -320,17 +323,17 @@ p <- ggplot(plot_df, aes(x = strictness_index, y = alderman, fill = strictness_i
     plot.subtitle = element_text(size = 10, color = "gray40")
   )
 
-ggsave(opt$output_plot, plot = p, width = 9, height = 13, device = "pdf", bg = "white")
+ggsave(output_plot, plot = p, width = 9, height = 13, device = "pdf", bg = "white")
 
 # -----------------------------------------------------------------------------
 # Save scores
 # -----------------------------------------------------------------------------
 
-write_csv(scores, opt$output_csv)
+write_csv(scores, output_csv)
 
 message("\n=== Strictness score build complete ===")
-message("Output CSV: ", opt$output_csv)
-message("Stage-1 table: ", opt$output_stage1_tex)
-message("Stage-2 table: ", opt$output_stage2_tex)
-message("Plot: ", opt$output_plot)
+message("Output CSV: ", output_csv)
+message("Stage-1 table: ", output_stage1_tex)
+message("Stage-2 table: ", output_stage2_tex)
+message("Plot: ", output_plot)
 message("Signal variance tau^2: ", round(tau2, 6))

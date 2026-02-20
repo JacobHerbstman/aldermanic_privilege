@@ -3,26 +3,32 @@
 # to create signed distances for RD analysis
 
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
 # -----------------------------------------------------------------------------
 # PARSE COMMAND LINE ARGUMENTS
 # -----------------------------------------------------------------------------
 
-option_list <- list(
-  make_option("--score_file", type = "character", 
-              default = "../input/aldermen_uncertainty_scores.csv",
-              help = "Path to uncertainty scores file [default: ../input/aldermen_uncertainty_scores.csv]"),
-  make_option("--score_column", type = "character", 
-              default = "uncertainty_index",
-              help = "Column name for the score to use [default: uncertainty_index]")
-)
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_in_scores/code")
+# score_file <- "../input/aldermen_uncertainty_scores.csv"
+# score_column <- "uncertainty_index"
+# Rscript merge_scores.R "../input/aldermen_uncertainty_scores.csv" "uncertainty_index"
+# =======================================================================================
 
-opt_parser <- OptionParser(option_list = option_list)
-opt <- parse_args(opt_parser)
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 2) {
+  score_file <- cli_args[1]
+  score_column <- cli_args[2]
+} else {
+  if (!exists("score_file") || !exists("score_column")) {
+    stop("FATAL: Script requires 2 args: <score_file> <score_column>", call. = FALSE)
+  }
+}
 
-SCORE_FILE <- opt$score_file
-SCORE_COLUMN <- opt$score_column
+SCORE_FILE <- score_file
+SCORE_COLUMN <- score_column
 
 cat("=== Merging Alderman Scores ===\n")
 cat("Score file:", SCORE_FILE, "\n")

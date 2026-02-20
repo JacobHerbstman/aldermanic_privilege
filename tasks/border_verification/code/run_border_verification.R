@@ -3,19 +3,32 @@ source("../../setup_environment/code/packages.R")
 library(data.table)
 library(sf)
 library(arrow)
-library(optparse)
 library(ggplot2)
 
 sf_use_s2(FALSE)
 
-option_list <- list(
-  make_option("--certify_only", type = "logical", default = FALSE),
-  make_option("--skip_thresholds", type = "logical", default = FALSE),
-  make_option("--output_dir", type = "character", default = "../output")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_verification/code")
+# certify_only <- FALSE
+# skip_thresholds <- FALSE
+# output_dir <- "../output"
+# Rscript run_border_verification.R FALSE FALSE "../output"
+# =======================================================================================
 
-OUT_DIR <- opt$output_dir
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 3) {
+  certify_only <- tolower(cli_args[1]) %in% c("true", "t", "1", "yes")
+  skip_thresholds <- tolower(cli_args[2]) %in% c("true", "t", "1", "yes")
+  output_dir <- cli_args[3]
+} else {
+  if (!exists("certify_only") || !exists("skip_thresholds") || !exists("output_dir")) {
+    stop("FATAL: Script requires 3 args: <certify_only> <skip_thresholds> <output_dir>", call. = FALSE)
+  }
+}
+
+OUT_DIR <- output_dir
 if (!dir.exists(OUT_DIR)) dir.create(OUT_DIR, recursive = TRUE)
 
 severity_from_rate <- function(rate) {
@@ -603,8 +616,8 @@ fwrite(gates, file.path(OUT_DIR, "border_certification_gates.csv"))
 gate_lines <- c(
   "# Border Certification Report",
   "",
-  sprintf("- `certify_only`: %s", opt$certify_only),
-  sprintf("- `skip_thresholds`: %s", opt$skip_thresholds),
+  sprintf("- `certify_only`: %s", certify_only),
+  sprintf("- `skip_thresholds`: %s", skip_thresholds),
   sprintf("- generated: %s", as.character(Sys.time())),
   "",
   "## Gate Results"
@@ -699,7 +712,7 @@ message("Saved: ", file.path(OUT_DIR, "border_pair_anomaly_maps.pdf"))
 message("Saved: ", file.path(OUT_DIR, "border_certification_gates.csv"))
 message("Saved: ", file.path(OUT_DIR, "border_certification_report.md"))
 
-if (opt$certify_only && !opt$skip_thresholds && nrow(failed) > 0) {
+if (certify_only && !skip_thresholds && nrow(failed) > 0) {
   message("Certification failed. See border_certification_failed.md")
   quit(status = 1)
 }

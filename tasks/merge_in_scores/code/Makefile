@@ -23,7 +23,8 @@ SCORE_FILE := ../input/aldermen_uncertainty_scores.csv
 all: ../output/parcels_with_ward_distances.csv
 
 ../output/parcels_with_ward_distances.csv: merge_scores.R ../input/parcels_pre_scores.csv $(SCORE_FILE) | ../output
-	$(R) merge_scores.R --score_file=$(SCORE_FILE) --score_column=$(SCORE_COLUMN)
+	# arg order: score_file score_column
+	$(R) merge_scores.R $(SCORE_FILE) $(SCORE_COLUMN)
 
 # -----------------------------------------------------------------------------
 # Input Symlinks

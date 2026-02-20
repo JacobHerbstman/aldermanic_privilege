@@ -1,7 +1,7 @@
 # This script runs spatial RD analyses with a donut specification (excludes observations near border)
 
 ## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/spatial_rd_same_zone_only_donut/code")
 
 source("../../setup_environment/code/packages.R")
 
@@ -10,22 +10,27 @@ source("../../setup_environment/code/packages.R")
 # --- Interactive Test Block (comment out if using Make) ---
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
 # yvar    <- "density_dupac"
-# use_log <- T
+# use_log <- TRUE
 # bw      <- 500             # outer bandwidth in feet
 # kernel  <- "triangular"
 # donut   <- 25              # inner donut exclusion in feet
+# output_filename_rdplot <- "../output/rd_plot_log_density_dupac_bw500_triangular_donut25.pdf"
+# Rscript spatial_rd_same_zone_only_donut.R density_dupac TRUE 500 triangular 25 ../output/rd_plot_log_density_dupac_bw500_triangular_donut25.pdf
 # =======================================================================================
 # --- Command-Line Arguments ---
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 6) {
-    stop("FATAL: Script requires 6 args: <yvar> <use_log> <bw> <kernel> <donut> <rd_plot_outfile>", call. = FALSE)
+if (length(args) >= 6) {
+    yvar <- args[1]
+    use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
+    bw <- as.numeric(args[3])
+    kernel <- args[4]
+    donut <- as.numeric(args[5])
+    output_filename_rdplot <- args[6]
+} else {
+    if (!exists("yvar") || !exists("use_log") || !exists("bw") || !exists("kernel") || !exists("donut") || !exists("output_filename_rdplot")) {
+        stop("FATAL: Script requires 6 args: <yvar> <use_log> <bw> <kernel> <donut> <rd_plot_outfile>", call. = FALSE)
+    }
 }
-yvar <- args[1]
-use_log <- as.logical(args[2])
-bw <- as.numeric(args[3])
-kernel <- args[4]
-donut <- as.numeric(args[5])
-output_filename_rdplot <- args[6]
 # =======================================================================================
 stopifnot(donut >= 0, donut < bw)
 

@@ -20,55 +20,48 @@ source("../../setup_environment/code/packages.R")
 # =============================================================================
 # COMMAND LINE ARGUMENTS
 # =============================================================================
-parser <- OptionParser()
-parser <- add_option(parser, c("-f", "--frequency"),
-    type = "character", default = "yearly",
-    help = "Analysis frequency: yearly or quarterly [default: yearly]"
-)
-parser <- add_option(parser, c("-s", "--stacked"),
-    type = "logical", default = TRUE,
-    help = "Use stacked design with 2015+2023 cohorts [default: TRUE]"
-)
-parser <- add_option(parser, c("-x", "--treatment_type"),
-    type = "character", default = "continuous",
-    help = "Treatment type: continuous, binary_direction, or continuous_split [default: continuous]"
-)
-parser <- add_option(parser, c("-c", "--include_controls"),
-    type = "logical", default = TRUE,
-    help = "Include hedonic controls [default: TRUE]"
-)
-parser <- add_option(parser, c("-w", "--weighting"),
-    type = "character", default = "uniform",
-    help = "Weighting scheme: uniform or triangular [default: uniform]"
-)
-parser <- add_option(parser, c("-b", "--bandwidth"),
-    type = "numeric", default = 1000,
-    help = "Bandwidth in feet for distance weighting [default: 1000]"
-)
-parser <- add_option(parser, c("-m", "--sample_filter"),
-    type = "character", default = "full_sample",
-    help = "Sample filter: full_sample or multifamily_only [default: full_sample]"
-)
-parser <- add_option(parser, c("-e", "--fe_type"),
-    type = "character", default = "strict_pair_x_year",
-    help = "FE type: strict_pair_x_year, pair_trend_plus_year, or side_plus_year [default: strict_pair_x_year]"
-)
-parser <- add_option(parser, c("-p", "--post_window"),
-    type = "character", default = "full",
-    help = "Post-period window: 'short' (truncated) or 'full' [default: full]"
-)
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
+# frequency <- "yearly"
+# stacked <- TRUE
+# treatment_type <- "continuous"
+# include_controls <- TRUE
+# weighting <- "uniform"
+# bandwidth <- 1000
+# sample_filter <- "full_sample"
+# fe_type <- "strict_pair_x_year"
+# post_window <- "full"
+# Rscript run_event_study_disaggregate.R "yearly" TRUE "continuous" TRUE "uniform" 1000 "full_sample" "strict_pair_x_year" "full"
+# =======================================================================================
 
-args <- parse_args(parser)
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 9) {
+  frequency <- cli_args[1]
+  stacked <- tolower(cli_args[2]) %in% c("true", "t", "1", "yes")
+  treatment_type <- cli_args[3]
+  include_controls <- tolower(cli_args[4]) %in% c("true", "t", "1", "yes")
+  weighting <- cli_args[5]
+  bandwidth <- as.numeric(cli_args[6])
+  sample_filter <- cli_args[7]
+  fe_type <- cli_args[8]
+  post_window <- cli_args[9]
+} else {
+  if (!exists("frequency") || !exists("stacked") || !exists("treatment_type") || !exists("include_controls") || !exists("weighting") || !exists("bandwidth") || !exists("sample_filter") || !exists("fe_type") || !exists("post_window")) {
+    stop("FATAL: Script requires 9 args: <frequency> <stacked> <treatment_type> <include_controls> <weighting> <bandwidth> <sample_filter> <fe_type> <post_window>", call. = FALSE)
+  }
+}
 
-FREQUENCY <- args$frequency
-STACKED <- args$stacked
-TREATMENT_TYPE <- args$treatment_type
-INCLUDE_CONTROLS <- args$include_controls
-WEIGHTING <- args$weighting
-BANDWIDTH <- args$bandwidth
-SAMPLE_FILTER <- args$sample_filter
-FE_TYPE <- args$fe_type
-POST_WINDOW <- args$post_window
+FREQUENCY <- frequency
+STACKED <- stacked
+TREATMENT_TYPE <- treatment_type
+INCLUDE_CONTROLS <- include_controls
+WEIGHTING <- weighting
+BANDWIDTH <- bandwidth
+SAMPLE_FILTER <- sample_filter
+FE_TYPE <- fe_type
+POST_WINDOW <- post_window
 
 if (!FE_TYPE %in% c("strict_pair_x_year", "pair_trend_plus_year", "side_plus_year")) {
     stop("--fe_type must be one of: strict_pair_x_year, pair_trend_plus_year, side_plus_year")

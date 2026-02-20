@@ -3,10 +3,24 @@
 
 source("../../setup_environment/code/packages.R")
 
-# Get command line arguments
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/process_rent_data/code")
+# input_file <- "../input/2025-11-11--data_example.parquet"
+# output_file <- "../temp/2025-11-11.csv"
+# Rscript process_rent_data.R ../input/2025-11-11--data_example.parquet ../temp/2025-11-11.csv
+# =======================================================================================
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 args <- commandArgs(trailingOnly = TRUE)
-input_file <- args[1]
-output_file <- args[2]
+if (length(args) >= 2) {
+  input_file <- args[1]
+  output_file <- args[2]
+} else {
+  if (!exists("input_file") || !exists("output_file")) {
+    stop("FATAL: Script requires 2 args: <input_file> <output_file>", call. = FALSE)
+  }
+}
 
 # Read and process
 data <- read_parquet(input_file) %>% 

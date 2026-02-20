@@ -35,30 +35,34 @@ all: $(ALL_FIGS) $(SUMMARY_OUT)
 
 define GEN_FAR_RULE
 ../output/nonparametric_rd_$(LOG_PREFIX_$(log_stat))density_far_bw$(bw)_$(mode)_$(fe).pdf: nonparametric_rd_focused.R ../input/parcels_with_ward_distances.csv | ../output
+	# arg order: yvar use_log bw_ft bin_mode bin_ft fe_spec kernel output_pdf output_csv
 	OUT="$$@"; \
 	Rscript nonparametric_rd_focused.R \
-		--yvar=density_far \
-		--use_log=$(log_stat) \
-		--bw_ft=$(bw) \
-		--bin_mode=$(mode) \
-		--bin_ft=105.6 \
-		--fe_spec=$(fe) \
-		--output_pdf="$$$$OUT" \
-		--output_csv="$$$${OUT%.pdf}_bins.csv"
+		density_far \
+		$(log_stat) \
+		$(bw) \
+		$(mode) \
+		105.6 \
+		$(fe) \
+		triangular \
+		"$$$$OUT" \
+		"$$$${OUT%.pdf}_bins.csv"
 endef
 
 define GEN_DUPAC_RULE
 ../output/nonparametric_rd_log_density_dupac_bw$(bw)_$(mode)_$(fe).pdf: nonparametric_rd_focused.R ../input/parcels_with_ward_distances.csv | ../output
+	# arg order: yvar use_log bw_ft bin_mode bin_ft fe_spec kernel output_pdf output_csv
 	OUT="$$@"; \
 	Rscript nonparametric_rd_focused.R \
-		--yvar=density_dupac \
-		--use_log=TRUE \
-		--bw_ft=$(bw) \
-		--bin_mode=$(mode) \
-		--bin_ft=105.6 \
-		--fe_spec=$(fe) \
-		--output_pdf="$$$$OUT" \
-		--output_csv="$$$${OUT%.pdf}_bins.csv"
+		density_dupac \
+		TRUE \
+		$(bw) \
+		$(mode) \
+		105.6 \
+		$(fe) \
+		triangular \
+		"$$$$OUT" \
+		"$$$${OUT%.pdf}_bins.csv"
 endef
 
 $(foreach bw,$(BWS), \

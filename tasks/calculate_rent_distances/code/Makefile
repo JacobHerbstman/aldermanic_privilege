@@ -6,7 +6,8 @@ SAMPLE := FALSE
 all: ../output/rent_pre_scores_full.parquet
 
 ../output/rent_pre_scores_full.parquet: calculate_rent_distances.R ../input/chicago_rent_panel.parquet ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv | ../output
-	$(R) calculate_rent_distances.R --sample=$(SAMPLE)
+	# arg order: sample
+	$(R) calculate_rent_distances.R $(SAMPLE)
 
 ../input/chicago_rent_panel.parquet: ../../process_rent_data/output/chicago_rent_panel.parquet | ../input
 	ln -sf $< $@

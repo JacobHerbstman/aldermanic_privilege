@@ -6,8 +6,10 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-bw_ft <- 250
-output_filename <- "../output/fe_validation_table_bw250.tex"
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions_validation/code")
+# bw_ft <- 250
+# output_filename <- "../output/fe_validation_table_bw250.tex"
+# Rscript border_pair_FE_regressions_validation.R 250 ../output/fe_validation_table_bw250.tex
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────

@@ -1,24 +1,43 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--yvar", type = "character", default = "density_far"),
-  make_option("--use_log", type = "character", default = "TRUE"),
-  make_option("--bw_ft", type = "double", default = 500),
-  make_option("--bin_mode", type = "character", default = "kulka_fixed"),
-  make_option("--bin_ft", type = "double", default = NA_real_),
-  make_option("--fe_spec", type = "character", default = "pair_x_year"),
-  make_option("--kernel", type = "character", default = "triangular"),
-  make_option("--output_pdf", type = "character", default = "../output/nonparametric_rd_log_density_far_bw500_kulka_fixed_pair_x_year.pdf"),
-  make_option("--output_csv", type = "character", default = "../output/nonparametric_rd_log_density_far_bw500_kulka_fixed_pair_x_year_bins.csv")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_focused/code")
+# yvar <- "density_far"
+# use_log <- "TRUE"
+# bw_ft <- 500
+# bin_mode <- "kulka_fixed"
+# bin_ft <- NA_real_
+# fe_spec <- "pair_x_year"
+# kernel <- "triangular"
+# output_pdf <- "../output/nonparametric_rd_log_density_far_bw500_kulka_fixed_pair_x_year.pdf"
+# output_csv <- "../output/nonparametric_rd_log_density_far_bw500_kulka_fixed_pair_x_year_bins.csv"
+# Rscript nonparametric_rd_focused.R "density_far" "TRUE" 500 "kulka_fixed" NA_real_ "pair_x_year" "triangular" "../output/nonparametric_rd_log_density_far_bw500_kulka_fixed_pair_x_year.pdf" "../output/nonparametric_rd_log_density_far_bw500_kulka_fixed_pair_x_year_bins.csv"
+# =======================================================================================
 
-use_log <- tolower(opt$use_log) %in% c("true", "t", "1", "yes")
-bw_ft <- as.numeric(opt$bw_ft)
-bin_mode <- opt$bin_mode
-fe_requested <- opt$fe_spec
-kernel <- opt$kernel
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 9) {
+  yvar <- cli_args[1]
+  use_log <- cli_args[2]
+  bw_ft <- as.numeric(cli_args[3])
+  bin_mode <- cli_args[4]
+  bin_ft <- as.numeric(cli_args[5])
+  fe_spec <- cli_args[6]
+  kernel <- cli_args[7]
+  output_pdf <- cli_args[8]
+  output_csv <- cli_args[9]
+} else {
+  if (!exists("yvar") || !exists("use_log") || !exists("bw_ft") || !exists("bin_mode") || !exists("bin_ft") || !exists("fe_spec") || !exists("kernel") || !exists("output_pdf") || !exists("output_csv")) {
+    stop("FATAL: Script requires 9 args: <yvar> <use_log> <bw_ft> <bin_mode> <bin_ft> <fe_spec> <kernel> <output_pdf> <output_csv>", call. = FALSE)
+  }
+}
+
+use_log <- tolower(use_log) %in% c("true", "t", "1", "yes")
+bw_ft <- as.numeric(bw_ft)
+bin_mode <- bin_mode
+fe_requested <- fe_spec
+kernel <- kernel
 
 if (!bin_mode %in% c("kulka_fixed", "data_driven")) {
   stop("bin_mode must be one of: kulka_fixed, data_driven", call. = FALSE)
@@ -31,7 +50,7 @@ if (!is.finite(bw_ft) || bw_ft <= 0) {
 }
 
 message("=== Nonparametric RD Focused ===")
-message(sprintf("Outcome: %s | use_log=%s | bw=%.1fft", opt$yvar, use_log, bw_ft))
+message(sprintf("Outcome: %s | use_log=%s | bw=%.1fft", yvar, use_log, bw_ft))
 message(sprintf("bin_mode=%s | fe_requested=%s", bin_mode, fe_requested))
 
 fe_formulas <- list(
@@ -166,18 +185,18 @@ df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALS
     abs(signed_distance) <= bw_ft
   )
 
-if (!opt$yvar %in% names(df)) {
-  stop(sprintf("yvar '%s' not found in data.", opt$yvar), call. = FALSE)
+if (!yvar %in% names(df)) {
+  stop(sprintf("yvar '%s' not found in data.", yvar), call. = FALSE)
 }
 
 if (use_log) {
   df <- df %>%
-    filter(is.finite(.data[[opt$yvar]]), .data[[opt$yvar]] > 0) %>%
-    mutate(outcome = log(.data[[opt$yvar]]))
+    filter(is.finite(.data[[yvar]]), .data[[yvar]] > 0) %>%
+    mutate(outcome = log(.data[[yvar]]))
 } else {
   df <- df %>%
-    filter(is.finite(.data[[opt$yvar]])) %>%
-    mutate(outcome = .data[[opt$yvar]])
+    filter(is.finite(.data[[yvar]])) %>%
+    mutate(outcome = .data[[yvar]])
 }
 
 df <- df %>% filter(!is.na(ward_pair), !is.na(construction_year))
@@ -191,7 +210,7 @@ bin_choice <- choose_bin(
   outcome = df$outcome,
   bw_ft = bw_ft,
   bin_mode = bin_mode,
-  bin_ft = opt$bin_ft,
+  bin_ft = bin_ft,
   kernel = kernel
 )
 
@@ -314,22 +333,22 @@ p <- ggplot() +
   geom_hline(yintercept = 0, linetype = "dotted", color = "gray50") +
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
   labs(
-    title = paste0("Nonparametric Border RD: ", pretty_outcome(opt$yvar, use_log)),
+    title = paste0("Nonparametric Border RD: ", pretty_outcome(yvar, use_log)),
     subtitle = subtitle,
     x = "Distance to boundary (miles; right is stricter side)",
-    y = pretty_outcome(opt$yvar, use_log),
+    y = pretty_outcome(yvar, use_log),
     caption = "Reference bin = [-bin, 0). Shaded bands are 95% CI; SE clustered by ward pair."
   ) +
   theme_bw(base_size = 11)
 
-ggsave(opt$output_pdf, p, width = 8.5, height = 5.8, dpi = 300)
+ggsave(output_pdf, p, width = 8.5, height = 5.8, dpi = 300)
 
 meta <- tibble(
-  yvar = opt$yvar,
+  yvar = yvar,
   use_log = use_log,
   bw_ft = bw_ft,
   bin_mode = bin_mode,
-  bin_ft_requested = opt$bin_ft,
+  bin_ft_requested = bin_ft,
   bin_ft_used = bin_ft_used,
   bin_source = bin_choice$source,
   j_left = bin_choice$j_left,
@@ -373,16 +392,16 @@ bins_write <- bins_plot %>%
     rd_label = meta$rd_label
   )
 
-write_csv(bins_write, opt$output_csv)
+write_csv(bins_write, output_csv)
 
-meta_path <- if (str_detect(opt$output_csv, "\\.csv$")) {
-  str_replace(opt$output_csv, "\\.csv$", "_meta.csv")
+meta_path <- if (str_detect(output_csv, "\\.csv$")) {
+  str_replace(output_csv, "\\.csv$", "_meta.csv")
 } else {
-  paste0(opt$output_csv, "_meta.csv")
+  paste0(output_csv, "_meta.csv")
 }
 write_csv(meta, meta_path)
 
 message("Saved:")
-message(sprintf("  - %s", opt$output_pdf))
-message(sprintf("  - %s", opt$output_csv))
+message(sprintf("  - %s", output_pdf))
+message(sprintf("  - %s", output_csv))
 message(sprintf("  - %s", meta_path))

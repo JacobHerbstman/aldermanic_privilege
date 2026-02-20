@@ -14,7 +14,8 @@ all: $(OUTPUT_FILES)
 
 define FE_template
 ../output/fe_table_bw$(1)_$(2)$(OUTPUT_SUFFIX).tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript border_pair_FE_regressions.R --bw_ft=$(1) --units_cap=$(UNITS_CAP) --fe_spec=$(2) --output="$$@" $(YVARS_TABLE)
+	# arg order: bw_ft units_cap fe_spec output_filename yvars...
+	Rscript border_pair_FE_regressions.R $(1) $(UNITS_CAP) $(2) "$$@" $(YVARS_TABLE)
 endef
 $(foreach bw,$(BWS_FT),$(foreach fe,$(FE_SPECS),$(eval $(call FE_template,$(bw),$(fe)))))
 

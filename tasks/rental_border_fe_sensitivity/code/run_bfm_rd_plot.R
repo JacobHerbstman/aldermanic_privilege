@@ -1,30 +1,50 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 1000),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--use_controls", type = "logical", default = TRUE),
-  make_option("--bins_per_side", type = "integer", default = 10),
-  make_option("--min_strictness_diff", type = "double", default = 0),
-  make_option("--output_csv", type = "character", default = "../output/bfm_rd_plot_pre_2021_all_bw1000.csv"),
-  make_option("--output_bins_csv", type = "character", default = "../output/bfm_rd_plot_bins_pre_2021_all_bw1000.csv"),
-  make_option("--output_pdf", type = "character", default = "../output/bfm_rd_plot_pre_2021_all_bw1000.pdf")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 1000
+# window <- "pre_2021"
+# sample_filter <- "all"
+# use_controls <- TRUE
+# bins_per_side <- 10
+# min_strictness_diff <- 0
+# output_csv <- "../output/bfm_rd_plot_pre_2021_all_bw1000.csv"
+# output_bins_csv <- "../output/bfm_rd_plot_bins_pre_2021_all_bw1000.csv"
+# output_pdf <- "../output/bfm_rd_plot_pre_2021_all_bw1000.pdf"
+# Rscript run_bfm_rd_plot.R "../input/rent_with_ward_distances.parquet" 1000 "pre_2021" "all" TRUE 10 0 "../output/bfm_rd_plot_pre_2021_all_bw1000.csv" "../output/bfm_rd_plot_bins_pre_2021_all_bw1000.csv" "../output/bfm_rd_plot_pre_2021_all_bw1000.pdf"
+# =======================================================================================
 
-if (!opt$window %in% c("full", "pre_covid", "pre_2021", "drop_mid")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 10) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  use_controls <- tolower(cli_args[5]) %in% c("true", "t", "1", "yes")
+  bins_per_side <- suppressWarnings(as.integer(cli_args[6]))
+  min_strictness_diff <- as.numeric(cli_args[7])
+  output_csv <- cli_args[8]
+  output_bins_csv <- cli_args[9]
+  output_pdf <- cli_args[10]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("use_controls") || !exists("bins_per_side") || !exists("min_strictness_diff") || !exists("output_csv") || !exists("output_bins_csv") || !exists("output_pdf")) {
+    stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <use_controls> <bins_per_side> <min_strictness_diff> <output_csv> <output_bins_csv> <output_pdf>", call. = FALSE)
+  }
+}
+
+if (!window %in% c("full", "pre_covid", "pre_2021", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, drop_mid", call. = FALSE)
 }
-if (!opt$sample_filter %in% c("all", "multifamily_only")) {
+if (!sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
 }
-if (!is.finite(opt$bw_ft) || opt$bw_ft <= 0) {
+if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("--bw_ft must be positive", call. = FALSE)
 }
-if (!is.finite(opt$bins_per_side) || opt$bins_per_side < 2) {
+if (!is.finite(bins_per_side) || bins_per_side < 2) {
   stop("--bins_per_side must be >= 2", call. = FALSE)
 }
 
@@ -46,9 +66,9 @@ stars <- function(p) {
 
 message("=== BFM-Style RD Plot ===")
 message(sprintf("Bandwidth: %d ft | Window: %s | Sample: %s | Controls: %s",
-                opt$bw_ft, opt$window, opt$sample_filter, opt$use_controls))
+                bw_ft, window, sample_filter, use_controls))
 
-dat <- read_parquet(opt$input) %>%
+dat <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -62,20 +82,20 @@ dat <- read_parquet(opt$input) %>%
     !is.na(rent_price), rent_price > 0,
     !is.na(signed_dist),
     !is.na(strictness_own),
-    abs(signed_dist) <= opt$bw_ft
+    abs(signed_dist) <= bw_ft
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   dat <- dat %>% filter(building_type_clean == "multi_family")
 }
 
-if (opt$min_strictness_diff > 0) {
+if (min_strictness_diff > 0) {
   dat <- dat %>%
     mutate(strictness_diff = abs(strictness_own - strictness_neighbor)) %>%
-    filter(strictness_diff >= opt$min_strictness_diff)
+    filter(strictness_diff >= min_strictness_diff)
   message(sprintf("After strictness_diff >= %.3f filter: %d obs, %d ward pairs",
-                  opt$min_strictness_diff, nrow(dat), n_distinct(dat$ward_pair)))
+                  min_strictness_diff, nrow(dat), n_distinct(dat$ward_pair)))
 }
 
 dat <- dat %>%
@@ -87,7 +107,7 @@ dat <- dat %>%
     right = as.integer(signed_dist >= 0)
   )
 
-if (opt$use_controls) {
+if (use_controls) {
   dat <- dat %>%
     filter(!is.na(log_sqft), !is.na(log_beds), !is.na(log_baths), !is.na(building_type_factor))
 }
@@ -99,7 +119,7 @@ if (nrow(dat) == 0 || length(unique(dat$ward_pair)) < 2) {
 # Frisch-Waugh approach: include RD components + controls in one model
 n_type_levels <- n_distinct(dat$building_type_factor)
 rd_rhs <- "right + signed_dist + right:signed_dist"
-if (opt$use_controls) {
+if (use_controls) {
   ctrl_terms <- "log_sqft + log_beds + log_baths"
   if (n_type_levels >= 2) ctrl_terms <- paste0(ctrl_terms, " + building_type_factor")
   rd_rhs <- paste0(rd_rhs, " + ", ctrl_terms)
@@ -142,7 +162,7 @@ aug <- aug %>%
   )
 
 # Binning
-bin_w <- opt$bw_ft / opt$bins_per_side
+bin_w <- bw_ft / bins_per_side
 bins <- aug %>%
   mutate(
     bin_id = floor(signed_dist / bin_w),
@@ -158,8 +178,8 @@ bins <- aug %>%
   )
 
 # Fitted lines from model coefficients
-x_left <- seq(-opt$bw_ft, 0, length.out = 200)
-x_right <- seq(0, opt$bw_ft, length.out = 200)
+x_left <- seq(-bw_ft, 0, length.out = 200)
+x_right <- seq(0, bw_ft, length.out = 200)
 line_df <- bind_rows(
   tibble(
     signed_dist = x_left,
@@ -194,15 +214,15 @@ p <- ggplot() +
   ) +
   scale_color_manual(values = c("Lenient side" = "#1f77b4", "Strict side" = "#d62728")) +
   annotate("text",
-    x = -opt$bw_ft * 0.95, y = max(bins$mean_y, na.rm = TRUE),
+    x = -bw_ft * 0.95, y = max(bins$mean_y, na.rm = TRUE),
     label = jump_label,
     hjust = 0, vjust = 1, size = 3.3, fontface = "bold", color = "#1f2d3d"
   ) +
   labs(
     title = "Rent Discontinuity at Ward Boundary (FE-Adjusted)",
     subtitle = sprintf("bw = %d ft | window = %s | sample = %s | controls = %s%s",
-                        opt$bw_ft, opt$window, opt$sample_filter, opt$use_controls,
-                        if (opt$min_strictness_diff > 0) sprintf(" | min diff = %.1f", opt$min_strictness_diff) else ""),
+                        bw_ft, window, sample_filter, use_controls,
+                        if (min_strictness_diff > 0) sprintf(" | min diff = %.1f", min_strictness_diff) else ""),
     x = "Signed distance to boundary (feet; right is stricter side)",
     y = "FE+Controls-Adjusted Log(Rent)",
     color = "",
@@ -214,15 +234,15 @@ p <- ggplot() +
     panel.grid.minor = element_blank()
   )
 
-ggsave(opt$output_pdf, p, width = 9, height = 6, dpi = 300, bg = "white")
+ggsave(output_pdf, p, width = 9, height = 6, dpi = 300, bg = "white")
 
 # Save outputs
 summary_df <- tibble(
-  bw_ft = opt$bw_ft,
-  window = opt$window,
-  sample_filter = opt$sample_filter,
-  use_controls = opt$use_controls,
-  min_strictness_diff = opt$min_strictness_diff,
+  bw_ft = bw_ft,
+  window = window,
+  sample_filter = sample_filter,
+  use_controls = use_controls,
+  min_strictness_diff = min_strictness_diff,
   jump_estimate = b_side["estimate"],
   jump_se = b_side["se"],
   jump_p = b_side["p"],
@@ -231,7 +251,7 @@ summary_df <- tibble(
   n_obs = nobs(m),
   ward_pairs = dplyr::n_distinct(aug$ward_pair)
 )
-# write_csv(summary_df, opt$output_csv)
-# write_csv(bins, opt$output_bins_csv)
+# write_csv(summary_df, output_csv)
+# write_csv(bins, output_bins_csv)
 
-message(sprintf("Saved: %s", opt$output_pdf))
+message(sprintf("Saved: %s", output_pdf))

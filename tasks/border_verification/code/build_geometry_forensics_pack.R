@@ -4,7 +4,6 @@ library(data.table)
 library(sf)
 library(arrow)
 library(ggplot2)
-library(optparse)
 library(dplyr)
 
 sf_use_s2(FALSE)
@@ -19,34 +18,52 @@ if (Sys.getenv("TRACE_ERRORS") == "1") {
 # -----------------------------------------------------------------------------
 # CLI
 # -----------------------------------------------------------------------------
-option_list <- list(
-  make_option("--mode_before", type = "character", default = "legacy_before"),
-  make_option("--mode_after", type = "character", default = "certified_after"),
-  make_option("--top_n_pairs", type = "integer", default = 20),
-  make_option("--top_n_points", type = "integer", default = 50000),
-  make_option("--output_dir", type = "character", default = "../output"),
-  make_option("--smoke", type = "logical", default = FALSE),
-  make_option("--seed", type = "integer", default = 20260216)
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_verification/code")
+# mode_before <- "legacy_before"
+# mode_after <- "certified_after"
+# top_n_pairs <- 20
+# top_n_points <- 50000
+# output_dir <- "../output"
+# smoke <- FALSE
+# seed <- 20260216
+# Rscript build_geometry_forensics_pack.R "legacy_before" "certified_after" 20 50000 "../output" FALSE 20260216
+# =======================================================================================
 
-if (!opt$mode_before %in% c("legacy_before")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 7) {
+  mode_before <- cli_args[1]
+  mode_after <- cli_args[2]
+  top_n_pairs <- suppressWarnings(as.integer(cli_args[3]))
+  top_n_points <- suppressWarnings(as.integer(cli_args[4]))
+  output_dir <- cli_args[5]
+  smoke <- tolower(cli_args[6]) %in% c("true", "t", "1", "yes")
+  seed <- suppressWarnings(as.integer(cli_args[7]))
+} else {
+  if (!exists("mode_before") || !exists("mode_after") || !exists("top_n_pairs") || !exists("top_n_points") || !exists("output_dir") || !exists("smoke") || !exists("seed")) {
+    stop("FATAL: Script requires 7 args: <mode_before> <mode_after> <top_n_pairs> <top_n_points> <output_dir> <smoke> <seed>", call. = FALSE)
+  }
+}
+
+if (!mode_before %in% c("legacy_before")) {
   stop("--mode_before must be legacy_before", call. = FALSE)
 }
-if (!opt$mode_after %in% c("certified_after")) {
+if (!mode_after %in% c("certified_after")) {
   stop("--mode_after must be certified_after", call. = FALSE)
 }
-if (!dir.exists(opt$output_dir)) {
-  dir.create(opt$output_dir, recursive = TRUE)
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir, recursive = TRUE)
 }
-set.seed(opt$seed)
+set.seed(seed)
 
 message("=== Build Geometry Forensics Pack ===")
-message("mode_before: ", opt$mode_before)
-message("mode_after: ", opt$mode_after)
-message("top_n_pairs: ", opt$top_n_pairs)
-message("top_n_points: ", opt$top_n_points)
-message("smoke: ", opt$smoke)
+message("mode_before: ", mode_before)
+message("mode_after: ", mode_after)
+message("top_n_pairs: ", top_n_pairs)
+message("top_n_points: ", top_n_points)
+message("smoke: ", smoke)
 
 # -----------------------------------------------------------------------------
 # Paths
@@ -72,13 +89,13 @@ PATHS <- list(
 )
 
 OUT <- list(
-  maps_pdf = file.path(opt$output_dir, "geometry_forensics_maps_before_after.pdf"),
-  summary_csv = file.path(opt$output_dir, "geometry_forensics_summary_before_after.csv"),
-  summary_md = file.path(opt$output_dir, "geometry_forensics_summary_before_after.md"),
-  pair_flow_csv = file.path(opt$output_dir, "geometry_forensics_pair_flow_before_after.csv"),
-  ledger_csv = file.path(opt$output_dir, "geometry_forensics_code_change_ledger.csv"),
-  ledger_md = file.path(opt$output_dir, "geometry_forensics_code_change_ledger.md"),
-  checklist_md = file.path(opt$output_dir, "geometry_forensics_approval_checklist.md")
+  maps_pdf = file.path(output_dir, "geometry_forensics_maps_before_after.pdf"),
+  summary_csv = file.path(output_dir, "geometry_forensics_summary_before_after.csv"),
+  summary_md = file.path(output_dir, "geometry_forensics_summary_before_after.md"),
+  pair_flow_csv = file.path(output_dir, "geometry_forensics_pair_flow_before_after.csv"),
+  ledger_csv = file.path(output_dir, "geometry_forensics_code_change_ledger.csv"),
+  ledger_md = file.path(output_dir, "geometry_forensics_code_change_ledger.md"),
+  checklist_md = file.path(output_dir, "geometry_forensics_approval_checklist.md")
 )
 
 # -----------------------------------------------------------------------------
@@ -421,12 +438,12 @@ rent_pre[, era := fifelse(file_date < as.Date("2015-05-18"), "pre2015",
 rent_pre <- rent_pre[!is.na(longitude) & !is.na(latitude)]
 rent_pre[, `:=`(dataset = "rent", row_id = .I)]
 
-if (opt$smoke) {
+if (smoke) {
   sales_sample_n <- min(12000L, nrow(sales_pre))
   rent_sample_n <- min(30000L, nrow(rent_pre))
 } else {
-  sales_sample_n <- min(as.integer(opt$top_n_points), nrow(sales_pre))
-  rent_sample_n <- min(as.integer(opt$top_n_points), nrow(rent_pre))
+  sales_sample_n <- min(as.integer(top_n_points), nrow(sales_pre))
+  rent_sample_n <- min(as.integer(top_n_points), nrow(rent_pre))
 }
 
 sales_map_sample <- sample_per_group(sales_pre, "era", sales_sample_n)
@@ -442,11 +459,11 @@ if (nrow(sales_map_sample_focus) == 0) sales_map_sample_focus <- sales_map_sampl
 # Recompute before/after pairs for sampled point sets (for maps + pair-flow)
 # -----------------------------------------------------------------------------
 message("[step] recompute legacy/certified pairs on map samples")
-sales_before <- recompute_pairs_mode(sales_map_sample_focus, "sales", opt$mode_before, polys_by_year, lines_by_year, pair_sets)
-sales_after <- recompute_pairs_mode(sales_map_sample_focus, "sales", opt$mode_after, polys_by_year, lines_by_year, pair_sets)
+sales_before <- recompute_pairs_mode(sales_map_sample_focus, "sales", mode_before, polys_by_year, lines_by_year, pair_sets)
+sales_after <- recompute_pairs_mode(sales_map_sample_focus, "sales", mode_after, polys_by_year, lines_by_year, pair_sets)
 
-rent_before <- recompute_pairs_mode(rent_map_sample_focus, "rent", opt$mode_before, polys_by_year, lines_by_year, pair_sets)
-rent_after <- recompute_pairs_mode(rent_map_sample_focus, "rent", opt$mode_after, polys_by_year, lines_by_year, pair_sets)
+rent_before <- recompute_pairs_mode(rent_map_sample_focus, "rent", mode_before, polys_by_year, lines_by_year, pair_sets)
+rent_after <- recompute_pairs_mode(rent_map_sample_focus, "rent", mode_after, polys_by_year, lines_by_year, pair_sets)
 
 recomp_all <- rbindlist(list(sales_before, sales_after, rent_before, rent_after), fill = TRUE)
 message(sprintf(
@@ -461,12 +478,12 @@ message("[step] build pair-flow table")
 if (!"logic_mode" %in% names(recomp_all)) {
   recomp_all[, logic_mode := character()]
 }
-before_pairs <- recomp_all[logic_mode == opt$mode_before, .(
+before_pairs <- recomp_all[logic_mode == mode_before, .(
   dataset, era, row_id, id, longitude, latitude,
   pair_before = pair_mode,
   map_year_before = map_year
 )]
-after_pairs <- recomp_all[logic_mode == opt$mode_after, .(
+after_pairs <- recomp_all[logic_mode == mode_after, .(
   dataset, era, row_id,
   pair_after = pair_mode,
   map_year_after = map_year
@@ -481,7 +498,7 @@ pair_flow_agg <- pair_flow[, .(
   latitude_mean = mean(latitude, na.rm = TRUE)
 ), by = .(dataset, era, map_year_before, map_year_after, pair_before, pair_after)][order(-n_points)]
 
-pair_flow_top <- pair_flow_agg[1:min(.N, as.integer(opt$top_n_pairs))]
+pair_flow_top <- pair_flow_agg[1:min(.N, as.integer(top_n_pairs))]
 fwrite(pair_flow_top, OUT$pair_flow_csv)
 
 # -----------------------------------------------------------------------------
@@ -554,7 +571,7 @@ setcolorder(rent_after_rates, c("dataset", "era", "after_numerator", "after_deno
 
 after_tbl1 <- rbindlist(list(sales_after_rates, rent_after_rates), fill = TRUE)
 
-sample_before_rates <- recomp_all[logic_mode == opt$mode_before, .(
+sample_before_rates <- recomp_all[logic_mode == mode_before, .(
   before_sample_numerator = sum(issue_invalid_original, na.rm = TRUE),
   before_sample_denominator = .N,
   before_sample_rate = safe_div(sum(issue_invalid_original, na.rm = TRUE), .N)
@@ -1014,8 +1031,8 @@ pA <- ggplot() +
 ward_panel_ll <- st_transform(ward_panel, 4326)
 
 # Prepare invalid point layers for maps B/C
-legacy_points <- recomp_all[logic_mode == opt$mode_before]
-after_points <- recomp_all[logic_mode == opt$mode_after]
+legacy_points <- recomp_all[logic_mode == mode_before]
+after_points <- recomp_all[logic_mode == mode_after]
 
 rent_B <- rbindlist(list(
   legacy_points[dataset == "rent" & era == "pre2015", .(dataset, mode_label = "Legacy Before", era, longitude, latitude, issue_invalid = issue_invalid_original, pair_label = pair_original)],
@@ -1073,7 +1090,7 @@ sales_top_pairs_label <- if (nrow(sales_top_pairs) > 0) {
 }
 
 # Map B
-wp2014 <- ward_panel_ll[ward_panel_ll$year == get_map_year("rent", "pre2015", opt$mode_after, ward_years), c("ward")]
+wp2014 <- ward_panel_ll[ward_panel_ll$year == get_map_year("rent", "pre2015", mode_after, ward_years), c("ward")]
 wp2014_before <- wp2014
 wp2014_before$mode_label <- "Legacy Before"
 wp2014_after <- wp2014
@@ -1101,9 +1118,9 @@ pB <- ggplot() +
   theme_minimal()
 
 # Map C
-sales_base_pre <- ward_panel_ll[ward_panel_ll$year == get_map_year("sales", "pre2003", opt$mode_before, ward_years), c("ward")]
+sales_base_pre <- ward_panel_ll[ward_panel_ll$year == get_map_year("sales", "pre2003", mode_before, ward_years), c("ward")]
 sales_base_pre$era <- "pre2003"
-sales_base_mid <- ward_panel_ll[ward_panel_ll$year == get_map_year("sales", "2003_2015", opt$mode_before, ward_years), c("ward")]
+sales_base_mid <- ward_panel_ll[ward_panel_ll$year == get_map_year("sales", "2003_2015", mode_before, ward_years), c("ward")]
 sales_base_mid$era <- "2003_2015"
 sales_base <- rbind(sales_base_pre, sales_base_mid)
 
@@ -1177,8 +1194,8 @@ before_mismatch_pts[, mode_label := "Legacy Before"]
 after_mismatch_pts[, mode_label := "Certified After"]
 ctrl_mismatch_pts <- rbindlist(list(before_mismatch_pts, after_mismatch_pts), fill = TRUE)
 
-if (nrow(ctrl_mismatch_pts) > opt$top_n_points) {
-  ctrl_mismatch_pts <- ctrl_mismatch_pts[sample.int(.N, opt$top_n_points)]
+if (nrow(ctrl_mismatch_pts) > top_n_points) {
+  ctrl_mismatch_pts <- ctrl_mismatch_pts[sample.int(.N, top_n_points)]
 }
 
 ward_d <- ward_panel_ll[ward_panel_ll$year == 2024, c("ward")]
@@ -1218,7 +1235,7 @@ invalid_pairs_now <- invalid_pairs_now[!is.na(invalid_pairs_now)]
 
 if (nrow(boundaries_top) > 0) {
   boundaries_top[, geometry_clean := !(ward_pair_id %in% invalid_pairs_now)]
-  boundaries_top <- boundaries_top[1:min(.N, opt$top_n_pairs)]
+  boundaries_top <- boundaries_top[1:min(.N, top_n_pairs)]
 
   # Attach geometry from 2015/2024 lines based on cohort
   b_geoms <- list()
@@ -1245,7 +1262,7 @@ if (nrow(boundaries_sf) > 0) {
 }
 
 if (nrow(buildings_top) > 0) {
-  buildings_top <- buildings_top[1:min(.N, opt$top_n_pairs)]
+  buildings_top <- buildings_top[1:min(.N, top_n_pairs)]
 }
 
 pE <- ggplot() +
@@ -1339,9 +1356,9 @@ md <- c(
   "# Geometry Forensics Summary (Before vs After)",
   "",
   sprintf("- generated: `%s`", as.character(Sys.time())),
-  sprintf("- mode_before: `%s`", opt$mode_before),
-  sprintf("- mode_after: `%s`", opt$mode_after),
-  sprintf("- smoke: `%s`", opt$smoke),
+  sprintf("- mode_before: `%s`", mode_before),
+  sprintf("- mode_after: `%s`", mode_after),
+  sprintf("- smoke: `%s`", smoke),
   "",
   "## Table 1: Raw Invalid-Pair Rates by Dataset/Era",
   "| Dataset | Era | Before (Archived Full) | After (Current Full) | Before (Reconstructed Sample) |",

@@ -15,6 +15,7 @@ source("../../setup_environment/code/packages.R")
 #   "log(density_far)", "log(density_dupac)", "log(unitscount)"
 # )
 # output_filename <- "../output/fe_table_bw250_donut25.tex"
+# Rscript border_pair_FE_regressions_donut.R 250 25 "../output/fe_table_bw250_donut25.tex" "log(density_far)" "log(density_dupac)" "log(unitscount)"
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────

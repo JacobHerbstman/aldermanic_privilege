@@ -1,14 +1,29 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 1000),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--output_tex", type = "character"),
-  make_option("--output_csv", type = "character")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 1000
+# window <- "pre_2021"
+# output_tex <- NA
+# output_csv <- NA
+# Rscript characteristic_fe_table.R "../input/rent_with_ward_distances.parquet" 1000 "pre_2021" NA NA
+# =======================================================================================
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 5) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  output_tex <- cli_args[4]
+  output_csv <- cli_args[5]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("output_tex") || !exists("output_csv")) {
+    stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv>", call. = FALSE)
+  }
+}
 
 apply_window <- function(df, w) {
   if (w == "full") return(df)
@@ -25,10 +40,10 @@ window_label <- c(
   pre_2023 = "Through 2022 (2014-2022)"
 )
 
-message(sprintf("=== Characteristic FE Table | bw=%d | window=%s ===", opt$bw_ft, opt$window))
+message(sprintf("=== Characteristic FE Table | bw=%d | window=%s ===", bw_ft, window))
 
 # ── Load and filter ──
-dat <- read_parquet(opt$input) %>%
+dat <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -40,9 +55,9 @@ dat <- read_parquet(opt$input) %>%
   ) %>%
   filter(
     !is.na(file_date), !is.na(ward_pair), !is.na(signed_dist), !is.na(strictness_own),
-    abs(signed_dist) <= opt$bw_ft
+    abs(signed_dist) <= bw_ft
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
 # ── Outcomes to estimate ──
 outcomes <- list(
@@ -79,8 +94,8 @@ for (oc in outcomes) {
     n_obs = nobs(m),
     dep_var_mean = mean(d$Y, na.rm = TRUE),
     ward_pairs = n_distinct(d$ward_pair[d$ward_pair %in% names(which(table(d$ward_pair) > 0))]),
-    bandwidth_ft = opt$bw_ft,
-    window = opt$window
+    bandwidth_ft = bw_ft,
+    window = window
   )
   message(sprintf("  %s: b=%.4f (SE %.4f, p=%.3f), N=%s",
                   oc$label, ct["right", "Estimate"], ct["right", "Std. Error"],
@@ -88,7 +103,7 @@ for (oc in outcomes) {
 }
 
 coef_tbl <- bind_rows(results)
-write_csv(coef_tbl, opt$output_csv)
+write_csv(coef_tbl, output_csv)
 
 # ── LaTeX table ──
 stars <- function(p) {
@@ -126,7 +141,7 @@ footer <- "   \\bottomrule\n\\end{tabular}\n\\par\\endgroup\n"
 
 tex <- paste0(header, col_headers, midrule, coef_row, se_row, blank,
               obs_row, mean_row, fe_row, footer)
-writeLines(tex, opt$output_tex)
+writeLines(tex, output_tex)
 
-message(sprintf("Saved: %s", opt$output_tex))
-message(sprintf("Saved: %s", opt$output_csv))
+message(sprintf("Saved: %s", output_tex))
+message(sprintf("Saved: %s", output_csv))

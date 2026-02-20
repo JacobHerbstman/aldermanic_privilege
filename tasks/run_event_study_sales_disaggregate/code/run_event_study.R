@@ -7,60 +7,51 @@ source("../../setup_environment/code/packages.R")
 # =============================================================================
 # COMMAND LINE ARGUMENTS
 # =============================================================================
-parser <- OptionParser()
-parser <- add_option(parser, c("-x", "--treatment_type"),
-  type = "character", default = "continuous",
-  help = "Treatment type: continuous, binary_direction, or continuous_split [default: continuous]"
-)
-parser <- add_option(parser, c("-c", "--include_hedonics"),
-  type = "logical", default = TRUE,
-  help = "Include hedonic controls [default: TRUE]"
-)
-parser <- add_option(parser, c("-t", "--time_unit"),
-  type = "character", default = "yearly",
-  help = "Time unit: yearly or quarterly [default: yearly]"
-)
-parser <- add_option(parser, c("-f", "--fe_type"),
-  type = "character", default = "strict_pair_x_year",
-  help = "FE type: ward_pair_side, block, block_group, strict_pair_x_year, pair_trend_plus_year, side_plus_year [default: strict_pair_x_year]"
-)
-parser <- add_option(parser, c("-w", "--weighting"),
-  type = "character", default = "uniform",
-  help = "Weighting scheme: uniform or triangular [default: uniform]"
-)
-parser <- add_option(parser, c("-b", "--bandwidth"),
-  type = "numeric", default = 1000,
-  help = "Bandwidth in feet for distance weighting [default: 1000]"
-)
-parser <- add_option(parser, c("-s", "--stacked"),
-  type = "logical", default = TRUE,
-  help = "Use stacked design with 2015+2023 cohorts [default: TRUE]"
-)
-parser <- add_option(parser, c("-k", "--stack_type"),
-  type = "character", default = "implementation",
-  help = "Stacking type: announcement (2012+2022) or implementation (2015+2023) [default: implementation]. Only used if stacked=TRUE."
-)
-parser <- add_option(parser, c("-o", "--cohort"),
-  type = "character", default = "2015",
-  help = "Cohort for unstacked analysis: 2012, 2015, 2022, or 2023 [default: 2015]. Ignored if stacked=TRUE."
-)
-parser <- add_option(parser, c("-p", "--post_window"),
-  type = "character", default = "full",
-  help = "Post-period window: 'short' (truncated) or 'full' [default: full]"
-)
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
+# treatment_type <- "continuous"
+# include_hedonics <- TRUE
+# time_unit <- "yearly"
+# fe_type <- "strict_pair_x_year"
+# weighting <- "uniform"
+# bandwidth <- 1000
+# stacked <- TRUE
+# stack_type <- "implementation"
+# cohort <- "2015"
+# post_window <- "full"
+# Rscript run_event_study.R "continuous" TRUE "yearly" "strict_pair_x_year" "uniform" 1000 TRUE "implementation" "2015" "full"
+# =======================================================================================
 
-args <- parse_args(parser)
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 10) {
+  treatment_type <- cli_args[1]
+  include_hedonics <- tolower(cli_args[2]) %in% c("true", "t", "1", "yes")
+  time_unit <- cli_args[3]
+  fe_type <- cli_args[4]
+  weighting <- cli_args[5]
+  bandwidth <- as.numeric(cli_args[6])
+  stacked <- tolower(cli_args[7]) %in% c("true", "t", "1", "yes")
+  stack_type <- cli_args[8]
+  cohort <- cli_args[9]
+  post_window <- cli_args[10]
+} else {
+  if (!exists("treatment_type") || !exists("include_hedonics") || !exists("time_unit") || !exists("fe_type") || !exists("weighting") || !exists("bandwidth") || !exists("stacked") || !exists("stack_type") || !exists("cohort") || !exists("post_window")) {
+    stop("FATAL: Script requires 10 args: <treatment_type> <include_hedonics> <time_unit> <fe_type> <weighting> <bandwidth> <stacked> <stack_type> <cohort> <post_window>", call. = FALSE)
+  }
+}
 
-TREATMENT_TYPE <- args$treatment_type
-INCLUDE_HEDONICS <- args$include_hedonics
-TIME_UNIT <- args$time_unit
-FE_TYPE <- args$fe_type
-WEIGHTING <- args$weighting
-BANDWIDTH <- args$bandwidth
-STACKED <- args$stacked
-STACK_TYPE <- args$stack_type
-COHORT <- args$cohort
-POST_WINDOW <- args$post_window
+TREATMENT_TYPE <- treatment_type
+INCLUDE_HEDONICS <- include_hedonics
+TIME_UNIT <- time_unit
+FE_TYPE <- fe_type
+WEIGHTING <- weighting
+BANDWIDTH <- bandwidth
+STACKED <- stacked
+STACK_TYPE <- stack_type
+COHORT <- cohort
+POST_WINDOW <- post_window
 
 message("\n=== Disaggregate Sales Event Study ===")
 message(sprintf("Stacked: %s", STACKED))

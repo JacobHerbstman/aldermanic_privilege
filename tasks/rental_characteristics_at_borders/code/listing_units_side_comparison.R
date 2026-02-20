@@ -1,16 +1,33 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 1000),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--unit_def", type = "character", default = "unit_proxy"),
-  make_option("--min_strictness_diff_pctile", type = "integer", default = 0),
-  make_option("--output_pdf", type = "character")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 1000
+# window <- "pre_2021"
+# sample_filter <- "all"
+# unit_def <- "unit_proxy"
+# min_strictness_diff_pctile <- 0
+# output_pdf <- NA
+# Rscript listing_units_side_comparison.R "../input/rent_with_ward_distances.parquet" 1000 "pre_2021" "all" "unit_proxy" 0 NA
+# =======================================================================================
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 7) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  unit_def <- cli_args[5]
+  min_strictness_diff_pctile <- suppressWarnings(as.integer(cli_args[6]))
+  output_pdf <- cli_args[7]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("unit_def") || !exists("min_strictness_diff_pctile") || !exists("output_pdf")) {
+    stop("FATAL: Script requires 7 args: <input> <bw_ft> <window> <sample_filter> <unit_def> <min_strictness_diff_pctile> <output_pdf>", call. = FALSE)
+  }
+}
 
 stars <- function(p) {
   if (!is.finite(p)) return("")
@@ -29,11 +46,11 @@ apply_window <- function(df, w) {
 }
 
 message(sprintf("=== Side Comparison Plot | bw=%d | window=%s | sample=%s | pctile=%d | unit_def=%s ===",
-                opt$bw_ft, opt$window, opt$sample_filter, opt$min_strictness_diff_pctile, opt$unit_def))
+                bw_ft, window, sample_filter, min_strictness_diff_pctile, unit_def))
 
-stopifnot(opt$unit_def %in% c("id", "loc_key", "unit_proxy"))
+stopifnot(unit_def %in% c("id", "loc_key", "unit_proxy"))
 
-dat <- read_parquet(opt$input) %>%
+dat <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -57,27 +74,27 @@ dat <- read_parquet(opt$input) %>%
     !is.na(file_date), !is.na(ward_pair), !is.na(signed_dist),
     !is.na(strictness_own), !is.na(strictness_neighbor),
     !is.na(latitude), !is.na(longitude),
-    abs(signed_dist) <= opt$bw_ft
+    abs(signed_dist) <= bw_ft
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
 dat <- dat %>%
   mutate(unit_key = case_when(
-    opt$unit_def == "id" ~ if_else(!is.na(listing_id) & listing_id != "", listing_id, unit_proxy_key),
-    opt$unit_def == "loc_key" ~ loc_key,
-    opt$unit_def == "unit_proxy" ~ unit_proxy_key
+    unit_def == "id" ~ if_else(!is.na(listing_id) & listing_id != "", listing_id, unit_proxy_key),
+    unit_def == "loc_key" ~ loc_key,
+    unit_def == "unit_proxy" ~ unit_proxy_key
   )) %>%
   filter(!is.na(unit_key), unit_key != "")
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   dat <- dat %>% filter(building_type_clean == "multi_family")
 }
 
-if (opt$min_strictness_diff_pctile > 0) {
+if (min_strictness_diff_pctile > 0) {
   pair_diffs <- dat %>%
     group_by(ward_pair) %>%
     summarise(diff = median(abs(strictness_own - strictness_neighbor), na.rm = TRUE), .groups = "drop")
-  cutoff <- quantile(pair_diffs$diff, opt$min_strictness_diff_pctile / 100, na.rm = TRUE)
+  cutoff <- quantile(pair_diffs$diff, min_strictness_diff_pctile / 100, na.rm = TRUE)
   keep_pairs <- pair_diffs %>% filter(diff >= cutoff) %>% pull(ward_pair)
   dat <- dat %>% filter(ward_pair %in% keep_pairs)
 }
@@ -170,5 +187,5 @@ p <- ggplot(side_stats, aes(x = side, y = mean_y, color = side)) +
     plot.title = element_blank()
   )
 
-ggsave(opt$output_pdf, p, width = 5, height = 5, dpi = 300, bg = "white")
-message(sprintf("Saved: %s", opt$output_pdf))
+ggsave(output_pdf, p, width = 5, height = 5, dpi = 300, bg = "white")
+message(sprintf("Saved: %s", output_pdf))

@@ -2,7 +2,6 @@
 ## This is a one-off test to compare with old strictness scores
 
 source("../../setup_environment/code/packages.R")
-library(optparse)
 library(fixest)
 
 message("=== Testing MINIMAL CONTROLS specification ===")

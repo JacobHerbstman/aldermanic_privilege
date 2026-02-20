@@ -3,73 +3,40 @@
 # Regressions: y ~ homeownership_own | construction_year + ward_pair, clustered by ward_pair
 
 ## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
 
 source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
 # bw_ft <- 250
-# fe_spec <- "zone_x_pair_year"
-# yvars <- c(
-#   "log(density_far)", "log(density_dupac)", "log(unitscount)"
-# )
-# output_filename <- "../output/fe_table_bw250_zone_x_pair_year.tex"
+# units_cap <- 100
+# fe_spec <- "pair_x_year"
+# output_filename <- "../output/fe_table_bw250_pair_x_year.tex"
+# yvars <- c("log(density_far)", "log(density_dupac)", "log(unitscount)")
+# Rscript border_pair_FE_regressions.R 250 100 pair_x_year ../output/fe_table_bw250_pair_x_year.tex "log(density_far)" "log(density_dupac)" "log(unitscount)"
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
-parser <- OptionParser()
-parser <- add_option(parser, c("-b", "--bw_ft"),
-  type = "integer", default = 250,
-  help = "Bandwidth in feet [default: 250]"
-)
-parser <- add_option(parser, c("-u", "--units_cap"),
-  type = "integer", default = -1,
-  help = "Optional max unitscount cap; <=0 disables cap [default: -1]"
-)
-parser <- add_option(parser, c("-f", "--fe_spec"),
-  type = "character", default = "zone_x_pair_year",
-  help = "Fixed effects specification: zone_x_pair_year, zone_pair_x_year, triple, pair_year_only [default: zone_x_pair_year]"
-)
-parser <- add_option(parser, c("-o", "--output"),
-  type = "character", default = NULL,
-  help = "Output filename [default: auto-generated]"
-)
-
-# Parse known options, remaining args are yvars
-args <- parse_args(parser, positional_arguments = TRUE)
-opts <- args$options
-pos_args <- args$args
-
-# Allow interactive testing with objects already defined in the session
-if (!is.null(opts$bw_ft)) {
-  bw_ft <- opts$bw_ft
-} else if (!exists("bw_ft")) {
-  stop("FATAL: bw_ft not provided", call. = FALSE)
-}
-
-if (!is.null(opts$fe_spec)) {
-  fe_spec <- opts$fe_spec
-} else if (!exists("fe_spec")) {
-  fe_spec <- "zone_x_pair_year"
-}
-
-if (!is.null(opts$output) && opts$output != "") {
-  output_filename <- opts$output
-} else if (!exists("output_filename")) {
-  output_filename <- sprintf("../output/fe_table_bw%d_%s.tex", bw_ft, fe_spec)
-}
-
-# Parse yvars from positional arguments
-if (length(pos_args) > 0) {
-  yvars <- pos_args
-} else if (!exists("yvars")) {
-  stop("FATAL: no yvars provided", call. = FALSE)
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) >= 5) {
+  bw_ft <- suppressWarnings(as.integer(args[1]))
+  units_cap <- suppressWarnings(as.integer(args[2]))
+  fe_spec <- args[3]
+  output_filename <- args[4]
+  yvars <- args[5:length(args)]
+  if (length(args) == 5 && grepl(",", args[5])) {
+    yvars <- strsplit(args[5], ",")[[1]] |> trimws()
+  }
+} else {
+  if (!exists("bw_ft") || !exists("units_cap") || !exists("fe_spec") || !exists("output_filename") || !exists("yvars")) {
+    stop("FATAL: Script requires args: <bw_ft> <units_cap> <fe_spec> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
+  }
 }
 
 if (!is.finite(bw_ft) || bw_ft <= 0) stop("bw_feet must be a positive integer/numeric.")
-units_cap <- opts$units_cap
-if (is.null(units_cap) || !is.finite(units_cap)) units_cap <- -1
+if (!is.finite(units_cap)) units_cap <- -1
 if (length(yvars) == 0) stop("No yvars provided.")
 
 message(sprintf("\n=== Border-Pair FE Configuration ==="))

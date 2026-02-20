@@ -1,34 +1,56 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 library(data.table)
 library(fixest)
 library(arrow)
 
-option_list <- list(
-  make_option("--rental_panel", type = "character", default = "../input/rental_listing_panel.parquet"),
-  make_option("--block_treatment_pre", type = "character", default = "../../create_block_treatment_panel/output/block_treatment_pre_scores.csv"),
-  make_option("--alderman_panel", type = "character", default = "../../create_alderman_data/output/chicago_alderman_panel.csv"),
-  make_option("--old_score_file", type = "character", default = "../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_ward_month_FEs.csv"),
-  make_option("--new_score_file", type = "character", default = "../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeFALSE_rtfeTRUE_porchTRUE_cafeFALSE_2stage.csv"),
-  make_option("--old_score_column", type = "character", default = "uncertainty_index"),
-  make_option("--new_score_column", type = "character", default = "uncertainty_index"),
-  make_option("--bandwidth", type = "integer", default = 1000),
-  make_option("--weighting", type = "character", default = "triangular"),
-  make_option("--output_block", type = "character", default = "../output/old_vs_new_score_block_influence.csv"),
-  make_option("--output_top", type = "character", default = "../output/old_vs_new_score_block_influence_top50.csv"),
-  make_option("--output_summary", type = "character", default = "../output/old_vs_new_score_summary.csv")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
+# rental_panel <- "../input/rental_listing_panel.parquet"
+# block_treatment_pre <- "../../create_block_treatment_panel/output/block_treatment_pre_scores.csv"
+# alderman_panel <- "../../create_alderman_data/output/chicago_alderman_panel.csv"
+# old_score_file <- "../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_ward_month_FEs.csv"
+# new_score_file <- "../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeFALSE_rtfeTRUE_porchTRUE_cafeFALSE_2stage.csv"
+# old_score_column <- "uncertainty_index"
+# new_score_column <- "uncertainty_index"
+# bandwidth <- 1000
+# weighting <- "triangular"
+# output_block <- "../output/old_vs_new_score_block_influence.csv"
+# output_top <- "../output/old_vs_new_score_block_influence_top50.csv"
+# output_summary <- "../output/old_vs_new_score_summary.csv"
+# Rscript diagnose_old_vs_new_score_leverage.R "../input/rental_listing_panel.parquet" "../../create_block_treatment_panel/output/block_treatment_pre_scores.csv" "../../create_alderman_data/output/chicago_alderman_panel.csv" "../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_ward_month_FEs.csv" "../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeFALSE_rtfeTRUE_porchTRUE_cafeFALSE_2stage.csv" "uncertainty_index" "uncertainty_index" 1000 "triangular" "../output/old_vs_new_score_block_influence.csv" "../output/old_vs_new_score_block_influence_top50.csv" "../output/old_vs_new_score_summary.csv"
+# =======================================================================================
 
-if (!opt$weighting %in% c("triangular", "uniform")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 12) {
+  rental_panel <- cli_args[1]
+  block_treatment_pre <- cli_args[2]
+  alderman_panel <- cli_args[3]
+  old_score_file <- cli_args[4]
+  new_score_file <- cli_args[5]
+  old_score_column <- cli_args[6]
+  new_score_column <- cli_args[7]
+  bandwidth <- suppressWarnings(as.integer(cli_args[8]))
+  weighting <- cli_args[9]
+  output_block <- cli_args[10]
+  output_top <- cli_args[11]
+  output_summary <- cli_args[12]
+} else {
+  if (!exists("rental_panel") || !exists("block_treatment_pre") || !exists("alderman_panel") || !exists("old_score_file") || !exists("new_score_file") || !exists("old_score_column") || !exists("new_score_column") || !exists("bandwidth") || !exists("weighting") || !exists("output_block") || !exists("output_top") || !exists("output_summary")) {
+    stop("FATAL: Script requires 12 args: <rental_panel> <block_treatment_pre> <alderman_panel> <old_score_file> <new_score_file> <old_score_column> <new_score_column> <bandwidth> <weighting> <output_block> <output_top> <output_summary>", call. = FALSE)
+  }
+}
+
+if (!weighting %in% c("triangular", "uniform")) {
   stop("--weighting must be one of: triangular, uniform", call. = FALSE)
 }
 
 message("=== Diagnose old vs new rental score leverage ===")
-message("Bandwidth: ", opt$bandwidth, " ft")
-message("Weighting: ", opt$weighting)
-message("Old score file: ", opt$old_score_file)
-message("New score file: ", opt$new_score_file)
+message("Bandwidth: ", bandwidth, " ft")
+message("Weighting: ", weighting)
+message("Old score file: ", old_score_file)
+message("New score file: ", new_score_file)
 
 read_score <- function(path, score_column, out_name) {
   dt <- fread(path)
@@ -40,10 +62,10 @@ read_score <- function(path, score_column, out_name) {
   out
 }
 
-scores_old <- read_score(opt$old_score_file, opt$old_score_column, "score_old")
-scores_new <- read_score(opt$new_score_file, opt$new_score_column, "score_new")
+scores_old <- read_score(old_score_file, old_score_column, "score_old")
+scores_new <- read_score(new_score_file, new_score_column, "score_new")
 
-treat_pre <- fread(opt$block_treatment_pre)
+treat_pre <- fread(block_treatment_pre)
 treat_pre[, `:=`(
   block_id = as.character(block_id),
   cohort = as.character(cohort),
@@ -54,7 +76,7 @@ treat_pre[, `:=`(
   )
 )]
 
-alderman_panel <- fread(opt$alderman_panel)
+alderman_panel <- fread(alderman_panel)
 alderman_panel[, month_date := as.Date(paste("01", month), format = "%d %b %Y")]
 alderman_lookup <- unique(
   alderman_panel[
@@ -113,7 +135,7 @@ keep_cols <- c(
   "log_sqft", "log_beds", "log_baths", "building_type_factor",
   "cohort_block_id", "cohort_ward_pair", "cohort_ward_pair_side"
 )
-rental <- as.data.table(read_parquet(opt$rental_panel, col_select = keep_cols))
+rental <- as.data.table(read_parquet(rental_panel, col_select = keep_cols))
 rental[, `:=`(block_id = as.character(block_id), cohort = as.character(cohort))]
 
 rental <- merge(
@@ -125,7 +147,7 @@ rental <- merge(
 )
 
 rental <- rental[
-  dist_ft <= opt$bandwidth &
+  dist_ft <= bandwidth &
     !is.na(strictness_change_old) &
     !is.na(strictness_change_new) &
     !is.na(log_sqft) &
@@ -141,7 +163,7 @@ if (!is.factor(rental$building_type_factor)) {
 
 rental[, `:=`(
   post = as.integer(relative_year_capped >= 0),
-  weight = if (opt$weighting == "triangular") pmax(0, 1 - dist_ft / opt$bandwidth) else 1
+  weight = if (weighting == "triangular") pmax(0, 1 - dist_ft / bandwidth) else 1
 )]
 rental[, `:=`(
   post_treat_old = post * strictness_change_old,
@@ -263,13 +285,13 @@ summary_dt <- data.table(
   )
 )
 
-fwrite(block_stats, opt$output_block)
-fwrite(top_dt, opt$output_top)
-fwrite(summary_dt, opt$output_summary)
+fwrite(block_stats, output_block)
+fwrite(top_dt, output_top)
+fwrite(summary_dt, output_summary)
 
-message("Saved full block influence: ", opt$output_block)
-message("Saved top-50 block influence: ", opt$output_top)
-message("Saved summary: ", opt$output_summary)
+message("Saved full block influence: ", output_block)
+message("Saved top-50 block influence: ", output_top)
+message("Saved summary: ", output_summary)
 
 message("\nTop 10 blocks by absolute influence on old-vs-new beta gap:")
 print(top_dt[1:min(10L, .N), .(

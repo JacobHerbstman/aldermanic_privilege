@@ -9,6 +9,7 @@ ALL_INPUTS := ../input/sales_transaction_panel.parquet ../input/sales_transactio
 ES_CONT := ../output/event_study_disaggregate_yearly_stacked_announcement_continuous_uniform_1000ft_no_hedonics.pdf
 ES_SPLIT := ../output/event_study_disaggregate_yearly_stacked_announcement_continuous_split_uniform_1000ft_no_hedonics.pdf
 DID_CLEAN_TARGET := ../output/did_table_sales_clean_uniform_1000ft.tex
+COHORT ?= 2015
 
 .DEFAULT_GOAL := all
 .PHONY: all link-inputs
@@ -16,17 +17,16 @@ DID_CLEAN_TARGET := ../output/did_table_sales_clean_uniform_1000ft.tex
 all: $(ES_CONT) $(ES_SPLIT) $(DID_CLEAN_TARGET)
 
 $(ES_CONT): $(SCRIPT) $(ALL_INPUTS) | ../output
-	Rscript $(SCRIPT) --stacked=TRUE --stack_type=announcement --treatment_type=continuous \
-		--time_unit=yearly --include_hedonics=FALSE --fe_type=strict_pair_x_year \
-		--weighting=uniform --bandwidth=1000 --post_window=full
+	# arg order: treatment_type include_hedonics time_unit fe_type weighting bandwidth stacked stack_type cohort post_window
+	Rscript $(SCRIPT) continuous FALSE yearly strict_pair_x_year uniform 1000 TRUE announcement $(COHORT) full
 
 $(ES_SPLIT): $(SCRIPT) $(ALL_INPUTS) | ../output
-	Rscript $(SCRIPT) --stacked=TRUE --stack_type=announcement --treatment_type=continuous_split \
-		--time_unit=yearly --include_hedonics=FALSE --fe_type=strict_pair_x_year \
-		--weighting=uniform --bandwidth=1000 --post_window=full
+	# arg order: treatment_type include_hedonics time_unit fe_type weighting bandwidth stacked stack_type cohort post_window
+	Rscript $(SCRIPT) continuous_split FALSE yearly strict_pair_x_year uniform 1000 TRUE announcement $(COHORT) full
 
 $(DID_CLEAN_TARGET): $(DID_SCRIPT) ../input/sales_transaction_panel.parquet ../input/sales_transaction_panel_announcement.parquet | ../output
-	Rscript $(DID_SCRIPT) --bandwidth=1000 --weighting=uniform --fe_type=strict_pair_x_year
+	# arg order: bandwidth weighting fe_type
+	Rscript $(DID_SCRIPT) 1000 uniform strict_pair_x_year
 	cp ../output/did_table_sales_clean.tex $@
 
 ../input/sales_transaction_panel.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../input

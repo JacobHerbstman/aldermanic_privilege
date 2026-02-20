@@ -9,27 +9,31 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/spatial_rd_same_zone_only_function_robustness/code")
 # yvar      <- "density_dupac"
 # use_log   <- TRUE
 # bw        <- 500
 # kernel    <- "triangular"
 # poly_order <- 1
 # output_filename <- "../output/test.pdf"
+# Rscript spatial_rd_same_zone_only_function_robustness.R density_dupac TRUE 500 triangular 1 ../output/test.pdf
 # =======================================================================================
 
 # --- Command-Line Arguments ---
 args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) < 6) {
-    stop("Usage: Rscript spatial_rd_same_zone_only_function_robustness.R <yvar> <use_log> <bw> <kernel> <poly_order> <output_file>")
+if (length(args) >= 6) {
+    yvar <- args[1]
+    use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
+    bw <- as.numeric(args[3])
+    kernel <- args[4]
+    poly_order <- as.integer(args[5])
+    output_filename <- args[6]
+} else {
+    if (!exists("yvar") || !exists("use_log") || !exists("bw") || !exists("kernel") || !exists("poly_order") || !exists("output_filename")) {
+        stop("FATAL: Script requires args: <yvar> <use_log> <bw> <kernel> <poly_order> <output_file>", call. = FALSE)
+    }
 }
-
-yvar <- args[1]
-use_log <- as.logical(args[2])
-bw <- as.numeric(args[3])
-kernel <- args[4]
-poly_order <- as.integer(args[5])
-output_filename <- args[6]
 donut <- 0
 
 # Polynomial order label

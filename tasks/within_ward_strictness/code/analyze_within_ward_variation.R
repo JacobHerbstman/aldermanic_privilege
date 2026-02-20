@@ -1,11 +1,28 @@
 source("../../setup_environment/code/packages.R")
 library(ggrepel)
 
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
+# score_file <- "../input/alderman_restrictiveness_scores_month_FEs.csv"
+# score_col <- "strictness_index"
+# score_name <- "Strictness Score"
+# output_tag <- ""
+# Rscript analyze_within_ward_variation.R ../input/alderman_restrictiveness_scores_month_FEs.csv strictness_index "Strictness Score" ""
+# =======================================================================================
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 args <- commandArgs(trailingOnly = TRUE)
-score_file <- if (length(args) >= 1) args[1] else "../input/alderman_restrictiveness_scores_month_FEs.csv"
-score_col <- if (length(args) >= 2) args[2] else "strictness_index"
-score_name <- if (length(args) >= 3) args[3] else "Strictness Score"
-output_tag <- if (length(args) >= 4) args[4] else ""
+if (length(args) >= 4) {
+  score_file <- args[1]
+  score_col <- args[2]
+  score_name <- args[3]
+  output_tag <- args[4]
+} else {
+  if (!exists("score_file") || !exists("score_col") || !exists("score_name") || !exists("output_tag")) {
+    stop("FATAL: Script requires 4 args: <score_file> <score_col> <score_name> <output_tag>", call. = FALSE)
+  }
+}
 
 out_path <- function(base_name) {
   if (identical(output_tag, "")) {

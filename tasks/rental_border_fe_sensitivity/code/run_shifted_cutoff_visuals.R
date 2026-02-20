@@ -1,30 +1,50 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 250),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--shifts", type = "character", default = "-750,0,750"),
-  make_option("--use_controls", type = "logical", default = TRUE),
-  make_option("--bins_per_side", type = "integer", default = 6),
-  make_option("--output_csv", type = "character", default = "../output/shifted_cutoff_visuals_pre_2021_all_bw250_shift750.csv"),
-  make_option("--output_bins_csv", type = "character", default = "../output/shifted_cutoff_visuals_bins_pre_2021_all_bw250_shift750.csv"),
-  make_option("--output_pdf", type = "character", default = "../output/shifted_cutoff_visuals_pre_2021_all_bw250_shift750.pdf")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 250
+# window <- "pre_2021"
+# sample_filter <- "all"
+# shifts <- "-750,0,750"
+# use_controls <- TRUE
+# bins_per_side <- 6
+# output_csv <- "../output/shifted_cutoff_visuals_pre_2021_all_bw250_shift750.csv"
+# output_bins_csv <- "../output/shifted_cutoff_visuals_bins_pre_2021_all_bw250_shift750.csv"
+# output_pdf <- "../output/shifted_cutoff_visuals_pre_2021_all_bw250_shift750.pdf"
+# Rscript run_shifted_cutoff_visuals.R "../input/rent_with_ward_distances.parquet" 250 "pre_2021" "all" "-750,0,750" TRUE 6 "../output/shifted_cutoff_visuals_pre_2021_all_bw250_shift750.csv" "../output/shifted_cutoff_visuals_bins_pre_2021_all_bw250_shift750.csv" "../output/shifted_cutoff_visuals_pre_2021_all_bw250_shift750.pdf"
+# =======================================================================================
 
-if (!opt$window %in% c("full", "pre_covid", "pre_2021", "drop_mid")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 10) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  shifts <- cli_args[5]
+  use_controls <- tolower(cli_args[6]) %in% c("true", "t", "1", "yes")
+  bins_per_side <- suppressWarnings(as.integer(cli_args[7]))
+  output_csv <- cli_args[8]
+  output_bins_csv <- cli_args[9]
+  output_pdf <- cli_args[10]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("shifts") || !exists("use_controls") || !exists("bins_per_side") || !exists("output_csv") || !exists("output_bins_csv") || !exists("output_pdf")) {
+    stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <shifts> <use_controls> <bins_per_side> <output_csv> <output_bins_csv> <output_pdf>", call. = FALSE)
+  }
+}
+
+if (!window %in% c("full", "pre_covid", "pre_2021", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, drop_mid", call. = FALSE)
 }
-if (!opt$sample_filter %in% c("all", "multifamily_only")) {
+if (!sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
 }
-if (!is.finite(opt$bw_ft) || opt$bw_ft <= 0) {
+if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("--bw_ft must be positive", call. = FALSE)
 }
-if (!is.finite(opt$bins_per_side) || opt$bins_per_side < 2) {
+if (!is.finite(bins_per_side) || bins_per_side < 2) {
   stop("--bins_per_side must be >= 2", call. = FALSE)
 }
 
@@ -44,7 +64,7 @@ star_code <- function(p) {
   ""
 }
 
-shift_values <- as.numeric(trimws(strsplit(opt$shifts, ",")[[1]]))
+shift_values <- as.numeric(trimws(strsplit(shifts, ",")[[1]]))
 shift_values <- shift_values[is.finite(shift_values)]
 shift_values <- sort(unique(shift_values))
 if (length(shift_values) == 0) {
@@ -52,7 +72,7 @@ if (length(shift_values) == 0) {
 }
 max_shift <- max(abs(shift_values))
 
-dat <- read_parquet(opt$input) %>%
+dat <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -65,11 +85,11 @@ dat <- read_parquet(opt$input) %>%
     !is.na(ward_pair),
     !is.na(rent_price), rent_price > 0,
     !is.na(signed_dist),
-    abs(signed_dist) <= (opt$bw_ft + max_shift)
+    abs(signed_dist) <= (bw_ft + max_shift)
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   dat <- dat %>% filter(building_type_clean == "multi_family")
 }
 
@@ -85,10 +105,10 @@ summary_rows <- list()
 bin_rows <- list()
 fit_rows <- list()
 
-bin_ft <- opt$bw_ft / opt$bins_per_side
-bin_breaks <- seq(-opt$bw_ft, opt$bw_ft, by = bin_ft)
-if (tail(bin_breaks, 1) < opt$bw_ft) {
-  bin_breaks <- c(bin_breaks, opt$bw_ft)
+bin_ft <- bw_ft / bins_per_side
+bin_breaks <- seq(-bw_ft, bw_ft, by = bin_ft)
+if (tail(bin_breaks, 1) < bw_ft) {
+  bin_breaks <- c(bin_breaks, bw_ft)
 }
 
 for (s in shift_values) {
@@ -96,11 +116,11 @@ for (s in shift_values) {
     mutate(
       shift_ft = s,
       shifted_dist = signed_dist - s,
-      weight = pmax(0, 1 - abs(shifted_dist) / opt$bw_ft)
+      weight = pmax(0, 1 - abs(shifted_dist) / bw_ft)
     ) %>%
-    filter(abs(shifted_dist) <= opt$bw_ft)
+    filter(abs(shifted_dist) <= bw_ft)
 
-  if (opt$use_controls) {
+  if (use_controls) {
     df_s <- df_s %>%
       filter(!is.na(log_sqft), !is.na(log_beds), !is.na(log_baths), !is.na(building_type_factor))
   }
@@ -109,7 +129,7 @@ for (s in shift_values) {
     next
   }
 
-  if (opt$use_controls) {
+  if (use_controls) {
     m_y <- feols(
       log(rent_price) ~ log_sqft + log_beds + log_baths + building_type_factor | ward_pair^year_month,
       data = df_s,
@@ -148,13 +168,13 @@ for (s in shift_values) {
 
   fit_left <- tibble(
     shift_ft = s,
-    shifted_dist = seq(-opt$bw_ft, 0, length.out = 120),
+    shifted_dist = seq(-bw_ft, 0, length.out = 120),
     fit = b0 + b_dist * shifted_dist,
     side = "Lenient side"
   )
   fit_right <- tibble(
     shift_ft = s,
-    shifted_dist = seq(0, opt$bw_ft, length.out = 120),
+    shifted_dist = seq(0, bw_ft, length.out = 120),
     fit = b0 + jump + (b_dist + b_int) * shifted_dist,
     side = "Strict side"
   )
@@ -219,8 +239,8 @@ ann_pos <- bins_df %>%
   ) %>%
   left_join(label_df %>% select(shift_ft, annotation), by = "shift_ft")
 
-# write_csv(summary_df, opt$output_csv)
-# write_csv(bins_df, opt$output_bins_csv)
+# write_csv(summary_df, output_csv)
+# write_csv(bins_df, output_bins_csv)
 
 p <- ggplot() +
   geom_hline(yintercept = 0, linetype = "dashed", color = "gray55") +
@@ -248,7 +268,7 @@ p <- ggplot() +
   scale_color_manual(values = c("Lenient side" = "#2C7FB8", "Strict side" = "#D95F02")) +
   labs(
     title = "Residualized Rent Border RD with Shifted-Cutoff Placebos",
-    subtitle = sprintf("bw = %d ft | window = %s | sample = %s | controls = %s", opt$bw_ft, opt$window, opt$sample_filter, opt$use_controls),
+    subtitle = sprintf("bw = %d ft | window = %s | sample = %s | controls = %s", bw_ft, window, sample_filter, use_controls),
     x = "Signed distance to tested cutoff (feet; right is stricter side)",
     y = "Residualized log(rent)",
     color = ""
@@ -260,8 +280,8 @@ p <- ggplot() +
     strip.text = element_text(face = "bold")
   )
 
-ggsave(opt$output_pdf, p, width = 9.5, height = 11, bg = "white")
+ggsave(output_pdf, p, width = 9.5, height = 11, bg = "white")
 
-message(sprintf("Saved: %s", opt$output_csv))
-message(sprintf("Saved: %s", opt$output_bins_csv))
-message(sprintf("Saved: %s", opt$output_pdf))
+message(sprintf("Saved: %s", output_csv))
+message(sprintf("Saved: %s", output_bins_csv))
+message(sprintf("Saved: %s", output_pdf))

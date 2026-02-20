@@ -1,35 +1,52 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--score_file", type = "character",
-    default = "../input/aldermen_uncertainty_scores.csv"
-  ),
-  make_option("--score_column", type = "character", default = "uncertainty_index"),
-  make_option("--sales_input", type = "character", default = "../input/sales_pre_scores.csv"),
-  make_option("--rent_input", type = "character", default = "../input/rent_pre_scores_full.parquet"),
-  make_option("--treatment_input", type = "character", default = "../input/block_treatment_pre_scores.csv"),
-  make_option("--alderman_panel", type = "character", default = "../input/chicago_alderman_panel.csv"),
-  make_option("--sales_output", type = "character", default = "../output/sales_with_ward_distances.csv"),
-  make_option("--rent_output", type = "character", default = "../output/rent_with_ward_distances_full.parquet"),
-  make_option("--treatment_output", type = "character", default = "../output/block_treatment_panel.csv")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_event_study_scores/code")
+# score_file <- "../input/aldermen_uncertainty_scores.csv"
+# score_column <- "uncertainty_index"
+# sales_input <- "../input/sales_pre_scores.csv"
+# rent_input <- "../input/rent_pre_scores_full.parquet"
+# treatment_input <- "../input/block_treatment_pre_scores.csv"
+# alderman_panel <- "../input/chicago_alderman_panel.csv"
+# sales_output <- "../output/sales_with_ward_distances.csv"
+# rent_output <- "../output/rent_with_ward_distances_full.parquet"
+# treatment_output <- "../output/block_treatment_panel.csv"
+# Rscript merge_event_study_scores.R "../input/aldermen_uncertainty_scores.csv" "uncertainty_index" "../input/sales_pre_scores.csv" "../input/rent_pre_scores_full.parquet" "../input/block_treatment_pre_scores.csv" "../input/chicago_alderman_panel.csv" "../output/sales_with_ward_distances.csv" "../output/rent_with_ward_distances_full.parquet" "../output/block_treatment_panel.csv"
+# =======================================================================================
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 9) {
+  score_file <- cli_args[1]
+  score_column <- cli_args[2]
+  sales_input <- cli_args[3]
+  rent_input <- cli_args[4]
+  treatment_input <- cli_args[5]
+  alderman_panel <- cli_args[6]
+  sales_output <- cli_args[7]
+  rent_output <- cli_args[8]
+  treatment_output <- cli_args[9]
+} else {
+  if (!exists("score_file") || !exists("score_column") || !exists("sales_input") || !exists("rent_input") || !exists("treatment_input") || !exists("alderman_panel") || !exists("sales_output") || !exists("rent_output") || !exists("treatment_output")) {
+    stop("FATAL: Script requires 9 args: <score_file> <score_column> <sales_input> <rent_input> <treatment_input> <alderman_panel> <sales_output> <rent_output> <treatment_output>", call. = FALSE)
+  }
+}
 
 cat("=== Merge Event Study Scores ===\n")
-cat("Score file:", opt$score_file, "\n")
-cat("Score column:", opt$score_column, "\n")
+cat("Score file:", score_file, "\n")
+cat("Score column:", score_column, "\n")
 
-scores_raw <- read_csv(opt$score_file, show_col_types = FALSE)
-if (!opt$score_column %in% names(scores_raw)) {
+scores_raw <- read_csv(score_file, show_col_types = FALSE)
+if (!score_column %in% names(scores_raw)) {
   stop(sprintf(
     "Score column '%s' not found. Available: %s",
-    opt$score_column, paste(names(scores_raw), collapse = ", ")
+    score_column, paste(names(scores_raw), collapse = ", ")
   ), call. = FALSE)
 }
 
 scores <- scores_raw %>%
-  select(alderman, score = all_of(opt$score_column)) %>%
+  select(alderman, score = all_of(score_column)) %>%
   distinct()
 
 merge_border_scores <- function(df, dist_col = "dist_ft") {
@@ -59,7 +76,7 @@ merge_border_scores <- function(df, dist_col = "dist_ft") {
 }
 
 cat("\nMerging scores into sales pre-scores...\n")
-sales_pre <- read_csv(opt$sales_input, show_col_types = FALSE)
+sales_pre <- read_csv(sales_input, show_col_types = FALSE)
 sales <- merge_border_scores(sales_pre, "dist_ft") %>%
   select(
     pin, year, sale_date, sale_price, class,
@@ -68,19 +85,19 @@ sales <- merge_border_scores(sales_pre, "dist_ft") %>%
     alderman_own, alderman_neighbor,
     strictness_own, strictness_neighbor
   )
-write_csv(sales, opt$sales_output)
+write_csv(sales, sales_output)
 cat("Sales output rows:", nrow(sales), "\n")
 
 cat("\nMerging scores into rent pre-scores...\n")
-rent_pre <- read_parquet(opt$rent_input) %>% as_tibble()
+rent_pre <- read_parquet(rent_input) %>% as_tibble()
 rent <- merge_border_scores(rent_pre, "dist_ft")
-write_parquet(rent, opt$rent_output)
+write_parquet(rent, rent_output)
 cat("Rent output rows:", nrow(rent), "\n")
 
 cat("\nMerging scores into block treatment pre-scores...\n")
-treat_pre <- read_csv(opt$treatment_input, show_col_types = FALSE)
+treat_pre <- read_csv(treatment_input, show_col_types = FALSE)
 
-alderman_lookup <- read_csv(opt$alderman_panel, show_col_types = FALSE) %>%
+alderman_lookup <- read_csv(alderman_panel, show_col_types = FALSE) %>%
   mutate(
     month_date = as.Date(paste("01", month), format = "%d %b %Y"),
     year = as.integer(format(month_date, "%Y"))
@@ -123,10 +140,10 @@ treat_panel <- treat_pre %>%
     ward_had_turnover, valid, cohort
   )
 
-write_csv(treat_panel, opt$treatment_output)
+write_csv(treat_panel, treatment_output)
 cat("Block treatment output rows:", nrow(treat_panel), "\n")
 
 cat("\n=== Merge complete ===\n")
-cat("Sales output:", opt$sales_output, "\n")
-cat("Rent output:", opt$rent_output, "\n")
-cat("Block treatment output:", opt$treatment_output, "\n")
+cat("Sales output:", sales_output, "\n")
+cat("Rent output:", rent_output, "\n")
+cat("Block treatment output:", treatment_output, "\n")

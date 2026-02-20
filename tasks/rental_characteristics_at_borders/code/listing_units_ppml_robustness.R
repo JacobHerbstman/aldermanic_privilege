@@ -1,14 +1,29 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 500),
-  make_option("--window", type = "character", default = "pre_2023"),
-  make_option("--output_tex", type = "character"),
-  make_option("--output_csv", type = "character")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 500
+# window <- "pre_2023"
+# output_tex <- NA
+# output_csv <- NA
+# Rscript listing_units_ppml_robustness.R "../input/rent_with_ward_distances.parquet" 500 "pre_2023" NA NA
+# =======================================================================================
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 5) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  output_tex <- cli_args[4]
+  output_csv <- cli_args[5]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("output_tex") || !exists("output_csv")) {
+    stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv>", call. = FALSE)
+  }
+}
 
 stars <- function(p) {
   if (!is.finite(p)) return("")
@@ -26,9 +41,9 @@ apply_window <- function(df, w) {
   df
 }
 
-message(sprintf("=== Listing Units PPML Robustness | bw=%d | window=%s ===", opt$bw_ft, opt$window))
+message(sprintf("=== Listing Units PPML Robustness | bw=%d | window=%s ===", bw_ft, window))
 
-base <- read_parquet(opt$input) %>%
+base <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -43,7 +58,7 @@ base <- read_parquet(opt$input) %>%
     !is.na(strictness_own), !is.na(strictness_neighbor),
     !is.na(latitude), !is.na(longitude)
   ) %>%
-  apply_window(opt$window) %>%
+  apply_window(window) %>%
   mutate(
     strict_more = pmax(strictness_own, strictness_neighbor),
     strict_less = pmin(strictness_own, strictness_neighbor),
@@ -275,20 +290,20 @@ run_spec <- function(spec_row) {
 
 specs <- tribble(
   ~label, ~unit_def, ~sample_filter, ~bw_ft, ~min_strictness_diff_pctile, ~avail_filter, ~add_covars, ~two_sided_only,
-  "Baseline (unit proxy)", "unit_proxy", "all", opt$bw_ft, 0L, "all", FALSE, FALSE,
-  "Add composition controls", "unit_proxy", "all", opt$bw_ft, 0L, "all", TRUE, FALSE,
-  "Alt unit key: Listing ID", "id", "all", opt$bw_ft, 0L, "all", FALSE, FALSE,
-  "Alt unit key: Location (5dp)", "loc_key", "all", opt$bw_ft, 0L, "all", FALSE, FALSE,
-  "Two-sided pair-months only", "unit_proxy", "all", opt$bw_ft, 0L, "all", FALSE, TRUE,
-  "Sample: Multifamily only", "unit_proxy", "multifamily_only", opt$bw_ft, 0L, "all", FALSE, FALSE,
+  "Baseline (unit proxy)", "unit_proxy", "all", bw_ft, 0L, "all", FALSE, FALSE,
+  "Add composition controls", "unit_proxy", "all", bw_ft, 0L, "all", TRUE, FALSE,
+  "Alt unit key: Listing ID", "id", "all", bw_ft, 0L, "all", FALSE, FALSE,
+  "Alt unit key: Location (5dp)", "loc_key", "all", bw_ft, 0L, "all", FALSE, FALSE,
+  "Two-sided pair-months only", "unit_proxy", "all", bw_ft, 0L, "all", FALSE, TRUE,
+  "Sample: Multifamily only", "unit_proxy", "multifamily_only", bw_ft, 0L, "all", FALSE, FALSE,
   "Sample: BW 250ft", "unit_proxy", "all", 250L, 0L, "all", FALSE, FALSE,
-  "Sample: Top 50% uncertainty-gap pairs", "unit_proxy", "all", opt$bw_ft, 50L, "all", FALSE, FALSE,
-  "Availability proxy: known available_date", "unit_proxy", "all", opt$bw_ft, 0L, "known_available_date", FALSE, FALSE,
-  "Availability proxy: available <= 30d", "unit_proxy", "all", opt$bw_ft, 0L, "available_within_30d", FALSE, FALSE
+  "Sample: Top 50% uncertainty-gap pairs", "unit_proxy", "all", bw_ft, 50L, "all", FALSE, FALSE,
+  "Availability proxy: known available_date", "unit_proxy", "all", bw_ft, 0L, "known_available_date", FALSE, FALSE,
+  "Availability proxy: available <= 30d", "unit_proxy", "all", bw_ft, 0L, "available_within_30d", FALSE, FALSE
 )
 
 results <- bind_rows(lapply(seq_len(nrow(specs)), function(i) run_spec(specs[i, ])))
-write_csv(results, opt$output_csv)
+write_csv(results, output_csv)
 
 tex_lines <- c(
   "\\begingroup",
@@ -318,7 +333,7 @@ tex_lines <- c(
   "\\par\\endgroup"
 )
 
-writeLines(tex_lines, opt$output_tex)
+writeLines(tex_lines, output_tex)
 
-message(sprintf("Saved: %s", opt$output_tex))
-message(sprintf("Saved: %s", opt$output_csv))
+message(sprintf("Saved: %s", output_tex))
+message(sprintf("Saved: %s", output_csv))

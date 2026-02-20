@@ -1,7 +1,7 @@
 # This script runs spatial RD analyses on the dataset from the calculate_ward_boundary_distances task
 
 ## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/spatial_rd_same_zone_only/code")
 
 source("../../setup_environment/code/packages.R")
 
@@ -10,20 +10,26 @@ source("../../setup_environment/code/packages.R")
 # --- Interactive Test Block (comment out if using Make) ---
 # cat("--- RUNNING IN INTERACTIVE TEST MODE ---\n")
 # yvar    <- "density_dupac"
-# use_log <- T
+# use_log <- TRUE
 # bw      <- 500             # outer bandwidth in feet
 # kernel  <- "triangular"
+# output_filename_rdplot <- "../output/rd_plot_log_density_dupac_bw500_triangular.pdf"
+# donut <- 0
+# Rscript spatial_rd_same_zone_only.R density_dupac TRUE 500 triangular ../output/rd_plot_log_density_dupac_bw500_triangular.pdf
 # =======================================================================================
 # --- Command-Line Arguments (backward compatible) ---
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 5) {
-  stop("FATAL: Script requires 5 args: <yvar> <use_log> <bw> <kernel> <rd_plot_outfile> [donut]", call. = FALSE)
+if (length(args) >= 5) {
+  yvar <- args[1]
+  use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
+  bw <- as.numeric(args[3])
+  kernel <- args[4]
+  output_filename_rdplot <- args[5]
+} else {
+  if (!exists("yvar") || !exists("use_log") || !exists("bw") || !exists("kernel") || !exists("output_filename_rdplot")) {
+    stop("FATAL: Script requires 5 args: <yvar> <use_log> <bw> <kernel> <rd_plot_outfile>", call. = FALSE)
+  }
 }
-yvar <- args[1]
-use_log <- as.logical(args[2])
-bw <- as.numeric(args[3])
-kernel <- args[4]
-output_filename_rdplot <- args[5]
 # =======================================================================================
 if (!exists("donut")) donut <- 0
 stopifnot(donut >= 0, donut < bw)

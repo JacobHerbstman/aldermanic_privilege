@@ -1,22 +1,34 @@
 source("../../setup_environment/code/packages.R")
 
 library(data.table)
-library(optparse)
 
-option_list <- list(
-  make_option("--snapshot_dir", type = "character", default = NULL),
-  make_option("--output_dir", type = "character", default = "../output")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_verification/code")
+# snapshot_dir <- NULL
+# output_dir <- "../output"
+# Rscript compare_density_rental_before_after.R NULL "../output"
+# =======================================================================================
 
-if (is.null(opt$snapshot_dir) || opt$snapshot_dir == "") {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 2) {
+  snapshot_dir <- cli_args[1]
+  output_dir <- cli_args[2]
+} else {
+  if (!exists("snapshot_dir") || !exists("output_dir")) {
+    stop("FATAL: Script requires 2 args: <snapshot_dir> <output_dir>", call. = FALSE)
+  }
+}
+
+if (is.null(snapshot_dir) || snapshot_dir == "") {
   stop("--snapshot_dir is required")
 }
-if (!dir.exists(opt$snapshot_dir)) {
-  stop(sprintf("Snapshot directory does not exist: %s", opt$snapshot_dir))
+if (!dir.exists(snapshot_dir)) {
+  stop(sprintf("Snapshot directory does not exist: %s", snapshot_dir))
 }
-if (!dir.exists(opt$output_dir)) {
-  dir.create(opt$output_dir, recursive = TRUE)
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir, recursive = TRUE)
 }
 
 strip_num <- function(x) {
@@ -297,8 +309,8 @@ collect_side <- function(snapshot_dir, when_label) {
   rbindlist(list(density_dt, rental_did_dt, rental_effect_dt, sales_dt), fill = TRUE)
 }
 
-before_dt <- collect_side(opt$snapshot_dir, "before")
-after_dt <- collect_side(opt$snapshot_dir, "after")
+before_dt <- collect_side(snapshot_dir, "before")
+after_dt <- collect_side(snapshot_dir, "after")
 
 cmp <- merge(
   before_dt,
@@ -325,7 +337,7 @@ cmp[, comparison_status := fifelse(
 )]
 
 setorder(cmp, component, specification, term)
-fwrite(cmp, file.path(opt$output_dir, "density_rental_change_summary.csv"))
+fwrite(cmp, file.path(output_dir, "density_rental_change_summary.csv"))
 
 fmt <- function(x, digits = 4) {
   ifelse(is.na(x), "NA", format(round(x, digits), nsmall = digits, trim = TRUE))
@@ -334,7 +346,7 @@ fmt <- function(x, digits = 4) {
 md <- c(
   "# Density and Rental Before/After Change Summary",
   "",
-  sprintf("- snapshot_dir: `%s`", opt$snapshot_dir),
+  sprintf("- snapshot_dir: `%s`", snapshot_dir),
   sprintf("- generated: `%s`", as.character(Sys.time())),
   ""
 )
@@ -410,7 +422,7 @@ if (nrow(sales_cmp) == 0) {
   md <- c(md, "")
 }
 
-writeLines(md, file.path(opt$output_dir, "density_rental_change_summary.md"))
+writeLines(md, file.path(output_dir, "density_rental_change_summary.md"))
 
 # -----------------------------------------------------------------------------
 # Rental concentration explanation report with certification cleanliness tags
@@ -418,8 +430,8 @@ writeLines(md, file.path(opt$output_dir, "density_rental_change_summary.md"))
 bound_path <- "../../run_event_study_rental_disaggregate/output/rental_effect_source_boundaries_top50.csv"
 ward_path <- "../../run_event_study_rental_disaggregate/output/rental_effect_source_wards_top50.csv"
 build_path <- "../../run_event_study_rental_disaggregate/output/rental_effect_source_buildings_top200.csv"
-anom_path <- file.path(opt$output_dir, "border_pair_anomaly_samples.csv")
-gates_path <- file.path(opt$output_dir, "border_certification_gates.csv")
+anom_path <- file.path(output_dir, "border_pair_anomaly_samples.csv")
+gates_path <- file.path(output_dir, "border_certification_gates.csv")
 
 bounds <- if (file.exists(bound_path)) fread(bound_path) else data.table()
 wards <- if (file.exists(ward_path)) fread(ward_path) else data.table()
@@ -571,9 +583,9 @@ if (nrow(buildings) == 0) {
   conc_lines <- c(conc_lines, "")
 }
 
-writeLines(conc_lines, file.path(opt$output_dir, "rental_effect_concentration_report.md"))
+writeLines(conc_lines, file.path(output_dir, "rental_effect_concentration_report.md"))
 
-message("Saved: ", file.path(opt$output_dir, "density_rental_change_summary.csv"))
-message("Saved: ", file.path(opt$output_dir, "density_rental_change_summary.md"))
-message("Saved: ", file.path(opt$output_dir, "rental_effect_concentration_report.md"))
+message("Saved: ", file.path(output_dir, "density_rental_change_summary.csv"))
+message("Saved: ", file.path(output_dir, "density_rental_change_summary.md"))
+message("Saved: ", file.path(output_dir, "rental_effect_concentration_report.md"))
 message("Done.")

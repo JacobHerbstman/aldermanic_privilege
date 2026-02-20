@@ -18,7 +18,8 @@ OUTPUTS := \
 all: $(OUTPUTS)
 
 $(OUTPUTS): $(SCRIPT) $(INPUT) | ../output
-	Rscript $(SCRIPT) --input="$(INPUT)" --output_dir="../output"
+	# arg order: input output_dir
+	Rscript $(SCRIPT) "$(INPUT)" "../output"
 
 $(INPUT): ../../data_for_alderman_uncertainty_index/output/permits_for_uncertainty_index.csv | ../input
 	ln -sf "$<" "$@"

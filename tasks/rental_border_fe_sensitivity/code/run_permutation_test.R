@@ -1,26 +1,44 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 1000),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--use_controls", type = "logical", default = TRUE),
-  make_option("--n_perms", type = "integer", default = 500),
-  make_option("--seed", type = "integer", default = 42),
-  make_option("--min_date", type = "character", default = "2015-05-18"),
-  make_option("--output_csv", type = "character",
-              default = "../output/permutation_test_pre_2021_all_bw1000.csv"),
-  make_option("--output_pdf", type = "character",
-              default = "../output/permutation_test_pre_2021_all_bw1000.pdf")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 1000
+# window <- "pre_2021"
+# sample_filter <- "all"
+# use_controls <- TRUE
+# n_perms <- 500
+# seed <- 42
+# min_date <- "2015-05-18"
+# output_csv <- "../output/permutation_test_pre_2021_all_bw1000.csv"
+# output_pdf <- "../output/permutation_test_pre_2021_all_bw1000.pdf"
+# Rscript run_permutation_test.R "../input/rent_with_ward_distances.parquet" 1000 "pre_2021" "all" TRUE 500 42 "2015-05-18" "../output/permutation_test_pre_2021_all_bw1000.csv" "../output/permutation_test_pre_2021_all_bw1000.pdf"
+# =======================================================================================
 
-if (!opt$window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 10) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  use_controls <- tolower(cli_args[5]) %in% c("true", "t", "1", "yes")
+  n_perms <- suppressWarnings(as.integer(cli_args[6]))
+  seed <- suppressWarnings(as.integer(cli_args[7]))
+  min_date <- cli_args[8]
+  output_csv <- cli_args[9]
+  output_pdf <- cli_args[10]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("use_controls") || !exists("n_perms") || !exists("seed") || !exists("min_date") || !exists("output_csv") || !exists("output_pdf")) {
+    stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <use_controls> <n_perms> <seed> <min_date> <output_csv> <output_pdf>", call. = FALSE)
+  }
+}
+
+if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, pre_2023, drop_mid", call. = FALSE)
 }
-if (!opt$sample_filter %in% c("all", "multifamily_only")) {
+if (!sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
 }
 
@@ -33,14 +51,14 @@ apply_window <- function(df, window_name) {
   df
 }
 
-set.seed(opt$seed)
+set.seed(seed)
 
 message("=== Permutation Test: Shuffle Strictness Across Aldermen ===")
 message(sprintf("bw=%d | window=%s | sample=%s | n_perms=%d | seed=%d | min_date=%s",
-                opt$bw_ft, opt$window, opt$sample_filter, opt$n_perms, opt$seed, opt$min_date))
+                bw_ft, window, sample_filter, n_perms, seed, min_date))
 
 # ── Load and filter data ──
-dat_raw <- read_parquet(opt$input) %>%
+dat_raw <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -51,17 +69,17 @@ dat_raw <- read_parquet(opt$input) %>%
   ) %>%
   filter(
     !is.na(file_date),
-    file_date >= as.Date(opt$min_date),
+    file_date >= as.Date(min_date),
     !is.na(ward_pair),
     !is.na(rent_price), rent_price > 0,
     !is.na(signed_dist),
     !is.na(strictness_own), !is.na(strictness_neighbor),
     !is.na(alderman_own), !is.na(alderman_neighbor),
-    abs_dist <= opt$bw_ft
+    abs_dist <= bw_ft
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   dat_raw <- dat_raw %>% filter(building_type_clean == "multi_family")
 }
 
@@ -73,7 +91,7 @@ dat_raw <- dat_raw %>%
     building_type_factor = factor(coalesce(building_type_clean, "other"))
   )
 
-if (opt$use_controls) {
+if (use_controls) {
   dat_raw <- dat_raw %>%
     filter(!is.na(log_sqft), !is.na(log_beds), !is.na(log_baths))
 }
@@ -121,7 +139,7 @@ run_regression <- function(df) {
   df <- df %>% mutate(strictness_std = strictness_own_perm / sd_strict)
 
   n_types <- n_distinct(df$building_type_factor)
-  if (opt$use_controls) {
+  if (use_controls) {
     rhs <- "strictness_std + log_sqft + log_beds + log_baths"
     if (n_types >= 2) rhs <- paste0(rhs, " + building_type_factor")
   } else {
@@ -152,14 +170,14 @@ real_coef <- run_regression(dat_real)
 message(sprintf("Real coefficient: %.6f", real_coef))
 
 # ── Run permutations: shuffle alderman -> score mapping ──
-perm_coefs <- numeric(opt$n_perms)
+perm_coefs <- numeric(n_perms)
 aldermen_vec <- ald_map$alderman
 scores_vec <- ald_map$score
 
-message(sprintf("Running %d permutations...", opt$n_perms))
+message(sprintf("Running %d permutations...", n_perms))
 
-for (i in seq_len(opt$n_perms)) {
-  if (i %% 50 == 0) message(sprintf("  permutation %d / %d", i, opt$n_perms))
+for (i in seq_len(n_perms)) {
+  if (i %% 50 == 0) message(sprintf("  permutation %d / %d", i, n_perms))
 
   shuffled_scores <- sample(scores_vec)
   perm_map <- tibble(alderman = aldermen_vec, perm_score = shuffled_scores)
@@ -175,7 +193,7 @@ for (i in seq_len(opt$n_perms)) {
 
 valid_perms <- perm_coefs[is.finite(perm_coefs)]
 n_valid <- length(valid_perms)
-message(sprintf("Valid permutations: %d / %d", n_valid, opt$n_perms))
+message(sprintf("Valid permutations: %d / %d", n_valid, n_perms))
 
 if (n_valid == 0) stop("No valid permutation estimates.", call. = FALSE)
 
@@ -188,11 +206,11 @@ message(sprintf("Permutation p-value (one-sided): %.4f", p_one_sided))
 
 # ── Save results ──
 out <- tibble(
-  bw_ft = opt$bw_ft,
-  window = opt$window,
-  sample_filter = opt$sample_filter,
-  use_controls = opt$use_controls,
-  n_perms = opt$n_perms,
+  bw_ft = bw_ft,
+  window = window,
+  sample_filter = sample_filter,
+  use_controls = use_controls,
+  n_perms = n_perms,
   n_valid = n_valid,
   n_aldermen = n_aldermen,
   real_coefficient = real_coef,
@@ -203,10 +221,10 @@ out <- tibble(
   p_one_sided = p_one_sided,
   perm_q025 = quantile(valid_perms, 0.025),
   perm_q975 = quantile(valid_perms, 0.975),
-  seed = opt$seed,
-  min_date = opt$min_date
+  seed = seed,
+  min_date = min_date
 )
-write_csv(out, opt$output_csv)
+write_csv(out, output_csv)
 
 # ── Plot ──
 plot_df <- tibble(coef = valid_perms)
@@ -218,7 +236,7 @@ p <- ggplot(plot_df, aes(x = coef)) +
   labs(
     title = "Permutation Test: Shuffled Strictness Scores Across Aldermen",
     subtitle = sprintf("bw = %d ft | window = %s | %d aldermen | %d permutations",
-                        opt$bw_ft, opt$window, n_aldermen, n_valid),
+                        bw_ft, window, n_aldermen, n_valid),
     x = "Coefficient on standardized strictness score",
     y = "Count",
     caption = "Gray histogram: distribution under random alderman-score assignment.\nRed line: actual estimate."
@@ -226,7 +244,7 @@ p <- ggplot(plot_df, aes(x = coef)) +
   theme_bw(base_size = 12) +
   theme(panel.grid.minor = element_blank())
 
-ggsave(opt$output_pdf, p, width = 9, height = 6, dpi = 300, bg = "white")
+ggsave(output_pdf, p, width = 9, height = 6, dpi = 300, bg = "white")
 
-message(sprintf("Saved: %s", opt$output_csv))
-message(sprintf("Saved: %s", opt$output_pdf))
+message(sprintf("Saved: %s", output_csv))
+message(sprintf("Saved: %s", output_pdf))

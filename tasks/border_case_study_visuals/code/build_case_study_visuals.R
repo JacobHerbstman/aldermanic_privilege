@@ -1,18 +1,33 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--bw_ft", type = "double", default = 500),
-  make_option("--borders", type = "character", default = "1_26,11_25"),
-  make_option("--bin_ft", type = "double", default = 50),
-  make_option("--output_pdf", type = "character", default = "../output/case_study_far_panel_bw500.pdf"),
-  make_option("--output_csv", type = "character", default = "../output/case_study_summary_bw500.csv")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_case_study_visuals/code")
+# bw_ft <- 500
+# borders <- "1_26,11_25"
+# bin_ft <- 50
+# output_pdf <- "../output/case_study_far_panel_bw500.pdf"
+# output_csv <- "../output/case_study_summary_bw500.csv"
+# Rscript build_case_study_visuals.R 500 "1_26,11_25" 50 "../output/case_study_far_panel_bw500.pdf" "../output/case_study_summary_bw500.csv"
+# =======================================================================================
 
-bw_ft <- as.numeric(opt$bw_ft)
-bin_ft <- as.numeric(opt$bin_ft)
-borders <- str_split(opt$borders, ",", simplify = TRUE) %>%
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 5) {
+  bw_ft <- as.numeric(cli_args[1])
+  borders <- cli_args[2]
+  bin_ft <- as.numeric(cli_args[3])
+  output_pdf <- cli_args[4]
+  output_csv <- cli_args[5]
+} else {
+  if (!exists("bw_ft") || !exists("borders") || !exists("bin_ft") || !exists("output_pdf") || !exists("output_csv")) {
+    stop("FATAL: Script requires 5 args: <bw_ft> <borders> <bin_ft> <output_pdf> <output_csv>", call. = FALSE)
+  }
+}
+
+bw_ft <- as.numeric(bw_ft)
+bin_ft <- as.numeric(bin_ft)
+borders <- str_split(borders, ",", simplify = TRUE) %>%
   as.character() %>%
   trimws()
 borders <- borders[borders != ""]
@@ -138,7 +153,7 @@ write_csv(
       p_log_dupac,
       stars_log_dupac
     ),
-  opt$output_csv
+  output_csv
 )
 
 plot_df <- df %>%
@@ -212,8 +227,8 @@ p <- ggplot() +
     panel.grid.minor = element_blank()
   )
 
-ggsave(opt$output_pdf, p, width = 11, height = 5.8, dpi = 300)
+ggsave(output_pdf, p, width = 11, height = 5.8, dpi = 300)
 
 message("Saved:")
-message(sprintf("  - %s", opt$output_pdf))
-message(sprintf("  - %s", opt$output_csv))
+message(sprintf("  - %s", output_pdf))
+message(sprintf("  - %s", output_csv))

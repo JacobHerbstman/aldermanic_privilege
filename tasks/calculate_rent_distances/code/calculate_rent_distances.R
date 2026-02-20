@@ -10,14 +10,23 @@ source("../../setup_environment/code/packages.R")
 # -----------------------------------------------------------------------------
 # 1. SETUP & ARGUMENTS
 # -----------------------------------------------------------------------------
-option_list <- list(
-  make_option(c("-s", "--sample"),
-    type = "character", default = "TRUE",
-    help = "Run on sample? (TRUE/FALSE)"
-  )
-)
-opt <- parse_args(OptionParser(option_list = option_list))
-run_sample <- as.logical(opt$sample)
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_rent_distances/code")
+# sample <- "TRUE"
+# Rscript calculate_rent_distances.R "TRUE"
+# =======================================================================================
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 1) {
+  sample <- cli_args[1]
+} else {
+  if (!exists("sample")) {
+    stop("FATAL: Script requires 1 args: <sample>", call. = FALSE)
+  }
+}
+run_sample <- as.logical(sample)
 
 # Core CRS for distance calc (Illinois East ftUS)
 crs_projected <- 3435

@@ -10,27 +10,31 @@ source("../../setup_environment/code/packages.R")
 
 # =======================================================================================
 # --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/spatial_rd_same_zone_only_placebo_boundaries/code")
 # yvar          <- "density_dupac"
 # use_log       <- TRUE
 # bw            <- 500
 # kernel        <- "triangular"
 # placebo_shift <- 250
 # output_filename <- "../output/test.pdf"
+# Rscript spatial_rd_same_zone_only_placebo_boundaries.R density_dupac TRUE 500 triangular 250 ../output/test.pdf
 # =======================================================================================
 
 # --- Command-Line Arguments ---
 args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) < 6) {
-    stop("Usage: Rscript spatial_rd_same_zone_only_placebo_boundaries.R <yvar> <use_log> <bw> <kernel> <placebo_shift> <output_file>")
+if (length(args) >= 6) {
+    yvar <- args[1]
+    use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
+    bw <- as.numeric(args[3])
+    kernel <- args[4]
+    placebo_shift <- as.numeric(args[5])
+    output_filename <- args[6]
+} else {
+    if (!exists("yvar") || !exists("use_log") || !exists("bw") || !exists("kernel") || !exists("placebo_shift") || !exists("output_filename")) {
+        stop("FATAL: Script requires args: <yvar> <use_log> <bw> <kernel> <placebo_shift> <output_file>", call. = FALSE)
+    }
 }
-
-yvar <- args[1]
-use_log <- as.logical(args[2])
-bw <- as.numeric(args[3])
-kernel <- args[4]
-placebo_shift <- as.numeric(args[5])
-output_filename <- args[6]
 donut <- 0
 
 message(sprintf("=== Placebo Boundary Test (Same Zone): %s (log=%s) | Shift = %d ft ===", yvar, use_log, placebo_shift))

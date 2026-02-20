@@ -1,19 +1,39 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 1000),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--use_controls", type = "logical", default = TRUE),
-  make_option("--bins_per_side", type = "integer", default = 5),
-  make_option("--min_strictness_diff_pctile", type = "integer", default = 0),
-  make_option("--output_pdf", type = "character"),
-  make_option("--output_meta_csv", type = "character"),
-  make_option("--output_bins_csv", type = "character")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_pair_fe/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 1000
+# window <- "pre_2021"
+# sample_filter <- "all"
+# use_controls <- TRUE
+# bins_per_side <- 5
+# min_strictness_diff_pctile <- 0
+# output_pdf <- NA
+# output_meta_csv <- NA
+# output_bins_csv <- NA
+# Rscript rental_level_plot.R "../input/rent_with_ward_distances.parquet" 1000 "pre_2021" "all" TRUE 5 0 NA NA NA
+# =======================================================================================
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 10) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  use_controls <- tolower(cli_args[5]) %in% c("true", "t", "1", "yes")
+  bins_per_side <- suppressWarnings(as.integer(cli_args[6]))
+  min_strictness_diff_pctile <- suppressWarnings(as.integer(cli_args[7]))
+  output_pdf <- cli_args[8]
+  output_meta_csv <- cli_args[9]
+  output_bins_csv <- cli_args[10]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("use_controls") || !exists("bins_per_side") || !exists("min_strictness_diff_pctile") || !exists("output_pdf") || !exists("output_meta_csv") || !exists("output_bins_csv")) {
+    stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <use_controls> <bins_per_side> <min_strictness_diff_pctile> <output_pdf> <output_meta_csv> <output_bins_csv>", call. = FALSE)
+  }
+}
 
 apply_window <- function(df, window_name) {
   if (window_name == "full") return(df)
@@ -34,10 +54,10 @@ stars <- function(p) {
 
 message("=== Side-Level Comparison Plot ===")
 message(sprintf("bw=%d | window=%s | sample=%s | controls=%s",
-                opt$bw_ft, opt$window, opt$sample_filter, opt$use_controls))
+                bw_ft, window, sample_filter, use_controls))
 
 # Load and filter data
-dat <- read_parquet(opt$input) %>%
+dat <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -51,23 +71,23 @@ dat <- read_parquet(opt$input) %>%
     !is.na(rent_price), rent_price > 0,
     !is.na(signed_dist),
     !is.na(strictness_own),
-    abs(signed_dist) <= opt$bw_ft
+    abs(signed_dist) <= bw_ft
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   dat <- dat %>% filter(building_type_clean == "multi_family")
 }
 
-if (opt$min_strictness_diff_pctile > 0) {
+if (min_strictness_diff_pctile > 0) {
   pair_diffs <- dat %>%
     group_by(ward_pair) %>%
     summarise(diff = first(abs(strictness_own - strictness_neighbor)), .groups = "drop")
-  cutoff <- quantile(pair_diffs$diff, opt$min_strictness_diff_pctile / 100)
+  cutoff <- quantile(pair_diffs$diff, min_strictness_diff_pctile / 100)
   keep_pairs <- pair_diffs %>% filter(diff >= cutoff) %>% pull(ward_pair)
   dat <- dat %>% filter(ward_pair %in% keep_pairs)
   message(sprintf("After p%d filter (cutoff=%.3f): %d obs, %d ward pairs",
-                  opt$min_strictness_diff_pctile, cutoff, nrow(dat), n_distinct(dat$ward_pair)))
+                  min_strictness_diff_pctile, cutoff, nrow(dat), n_distinct(dat$ward_pair)))
 }
 
 dat <- dat %>%
@@ -79,7 +99,7 @@ dat <- dat %>%
     right = as.integer(signed_dist >= 0)
   )
 
-if (opt$use_controls) {
+if (use_controls) {
   dat <- dat %>%
     filter(!is.na(log_sqft), !is.na(log_beds), !is.na(log_baths))
 }
@@ -89,7 +109,7 @@ stopifnot(nrow(dat) > 0, length(unique(dat$ward_pair)) >= 2)
 # Model: just a side indicator (no distance terms)
 n_type_levels <- n_distinct(dat$building_type_factor)
 rhs <- "right"
-if (opt$use_controls) {
+if (use_controls) {
   ctrl <- "log_sqft + log_beds + log_baths"
   if (n_type_levels >= 2) ctrl <- paste0(ctrl, " + building_type_factor")
   rhs <- paste0(rhs, " + ", ctrl)
@@ -116,7 +136,7 @@ aug$.resid <- as.numeric(resid(m))
 aug <- aug %>% mutate(y_adj = .resid + b_right * right)
 
 # Binning by distance
-bin_w <- opt$bw_ft / opt$bins_per_side
+bin_w <- bw_ft / bins_per_side
 bins <- aug %>%
   mutate(
     bin_id = floor(signed_dist / bin_w),
@@ -136,8 +156,8 @@ mean_left <- mean(aug$y_adj[aug$right == 0], na.rm = TRUE)
 mean_right <- mean(aug$y_adj[aug$right == 1], na.rm = TRUE)
 
 line_df <- bind_rows(
-  tibble(x = c(-opt$bw_ft, 0), y = mean_left, side = "Less Uncertain"),
-  tibble(x = c(0, opt$bw_ft), y = mean_right, side = "More Uncertain")
+  tibble(x = c(-bw_ft, 0), y = mean_left, side = "Less Uncertain"),
+  tibble(x = c(0, bw_ft), y = mean_right, side = "More Uncertain")
 )
 
 gap_label <- sprintf(
@@ -171,8 +191,8 @@ p <- ggplot() +
   labs(
     title = "Rental Prices by Side of Ward Boundary",
     subtitle = sprintf("bw=%d ft | controls=%s%s",
-                        opt$bw_ft, opt$use_controls,
-                        if (opt$min_strictness_diff_pctile > 0) sprintf(" | top %d%% pairs", 100 - opt$min_strictness_diff_pctile) else ""),
+                        bw_ft, use_controls,
+                        if (min_strictness_diff_pctile > 0) sprintf(" | top %d%% pairs", 100 - min_strictness_diff_pctile) else ""),
     x = "Distance to Ward Boundary (feet; positive = more uncertain side)",
     y = "FE-Adjusted Log(Rent)",
     caption = "Points: binned means. Lines: side-level means."
@@ -180,18 +200,18 @@ p <- ggplot() +
   theme_bw(base_size = 11) +
   theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
-ggsave(opt$output_pdf, p, width = 8.6, height = 6, dpi = 300, bg = "white")
+ggsave(output_pdf, p, width = 8.6, height = 6, dpi = 300, bg = "white")
 
-# write_csv(bins, opt$output_bins_csv)
+# write_csv(bins, output_bins_csv)
 # write_csv(
 #   tibble(
-#     bw_ft = opt$bw_ft, window = opt$window, sample_filter = opt$sample_filter,
-#     use_controls = opt$use_controls, min_strictness_diff = opt$min_strictness_diff,
+#     bw_ft = bw_ft, window = window, sample_filter = sample_filter,
+#     use_controls = use_controls, min_strictness_diff = opt$min_strictness_diff,
 #     gap_estimate = b_right, gap_se = se_right, gap_p = p_right,
 #     mean_left = mean_left, mean_right = mean_right,
 #     n_obs = nobs(m), ward_pairs = n_distinct(aug$ward_pair)
 #   ),
-#   opt$output_meta_csv
+#   output_meta_csv
 # )
 
-message(sprintf("Saved: %s", opt$output_pdf))
+message(sprintf("Saved: %s", output_pdf))

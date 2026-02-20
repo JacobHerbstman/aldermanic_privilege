@@ -78,7 +78,8 @@ main-specs: \
 
 define GEN_RULE
 ../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)_$(wt)_$(bw)ft$(SAMPLE_SUFFIX_$(sf))$(CONTROLS_SUFFIX_$(ic))$(FE_SUFFIX_$(fe))$(POST_SUFFIX_$(pw)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
-	Rscript $(SCRIPT) --frequency=$(freq) --stacked=$(st) --treatment_type=$(tt) --include_controls=$(ic) --weighting=$(wt) --bandwidth=$(bw) --sample_filter=$(sf) --fe_type=$(fe) --post_window=$(pw)
+	# arg order: frequency stacked treatment_type include_controls weighting bandwidth sample_filter fe_type post_window
+	Rscript $(SCRIPT) $(freq) $(st) $(tt) $(ic) $(wt) $(bw) $(sf) $(fe) $(pw)
 endef
 
 $(foreach freq,$(FREQUENCIES), \
@@ -131,7 +132,8 @@ DID_OUTPUT := ../output/did_table_rental$(DID_SUFFIX_$(DID_FE_TYPE)).tex
 did-table: $(DID_OUTPUT)
 
 $(DID_OUTPUT): $(DID_SCRIPT) ../input/rental_listing_panel.parquet | ../output
-	Rscript $(DID_SCRIPT) --bandwidth=$(DID_BANDWIDTH) --weighting=$(DID_WEIGHTING) --fe_type=$(DID_FE_TYPE)
+	# arg order: bandwidth weighting fe_type
+	Rscript $(DID_SCRIPT) $(DID_BANDWIDTH) $(DID_WEIGHTING) $(DID_FE_TYPE)
 
 did-table-strict:
 	$(MAKE) did-table DID_FE_TYPE=strict_pair_x_year
@@ -178,26 +180,27 @@ EFFECT_OUTPUTS := $(EFFECT_SUMMARY) $(EFFECT_EVENT_COEFFS) $(EFFECT_COUNTERFACTU
 effect-sources: $(EFFECT_OUTPUTS)
 
 $(EFFECT_OUTPUTS): $(EFFECT_SCRIPT) ../input/rental_listing_panel.parquet ../input/rent_with_ward_distances.parquet | ../output
+	# arg order: input geo_input bandwidth weighting sample_filter fe_type top_n top_blocks top_buildings out_summary out_event_coeffs out_counterfactual out_boundaries out_boundaries_top out_wards out_wards_top out_blocks_top out_buildings out_buildings_top
 	Rscript $(EFFECT_SCRIPT) \
-		--input=../input/rental_listing_panel.parquet \
-		--geo_input=../input/rent_with_ward_distances.parquet \
-		--bandwidth=$(EFFECT_BANDWIDTH) \
-		--weighting=$(EFFECT_WEIGHTING) \
-		--sample_filter=$(EFFECT_SAMPLE_FILTER) \
-		--fe_type=$(EFFECT_FE_TYPE) \
-		--top_n=$(EFFECT_TOP_N) \
-		--top_blocks=$(EFFECT_TOP_BLOCKS) \
-		--top_buildings=$(EFFECT_TOP_BUILDINGS) \
-		--out_summary=$(EFFECT_SUMMARY) \
-		--out_event_coeffs=$(EFFECT_EVENT_COEFFS) \
-		--out_counterfactual=$(EFFECT_COUNTERFACTUAL) \
-		--out_boundaries=$(EFFECT_BOUNDARIES) \
-		--out_boundaries_top=$(EFFECT_BOUNDARIES_TOP) \
-		--out_wards=$(EFFECT_WARDS) \
-		--out_wards_top=$(EFFECT_WARDS_TOP) \
-		--out_blocks_top=$(EFFECT_BLOCKS_TOP) \
-		--out_buildings=$(EFFECT_BUILDINGS) \
-		--out_buildings_top=$(EFFECT_BUILDINGS_TOP)
+		../input/rental_listing_panel.parquet \
+		../input/rent_with_ward_distances.parquet \
+		$(EFFECT_BANDWIDTH) \
+		$(EFFECT_WEIGHTING) \
+		$(EFFECT_SAMPLE_FILTER) \
+		$(EFFECT_FE_TYPE) \
+		$(EFFECT_TOP_N) \
+		$(EFFECT_TOP_BLOCKS) \
+		$(EFFECT_TOP_BUILDINGS) \
+		$(EFFECT_SUMMARY) \
+		$(EFFECT_EVENT_COEFFS) \
+		$(EFFECT_COUNTERFACTUAL) \
+		$(EFFECT_BOUNDARIES) \
+		$(EFFECT_BOUNDARIES_TOP) \
+		$(EFFECT_WARDS) \
+		$(EFFECT_WARDS_TOP) \
+		$(EFFECT_BLOCKS_TOP) \
+		$(EFFECT_BUILDINGS) \
+		$(EFFECT_BUILDINGS_TOP)
 
 main: main-specs did-table
 

@@ -1,14 +1,26 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 library(fixest)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/permits_for_uncertainty_index.csv"),
-  make_option("--output_dir", type = "character", default = "../output")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/permit_summary_stats/code")
+# input <- "../input/permits_for_uncertainty_index.csv"
+# output_dir <- "../output"
+# Rscript permit_summary_stats.R "../input/permits_for_uncertainty_index.csv" "../output"
+# =======================================================================================
 
-dir.create(opt$output_dir, recursive = TRUE, showWarnings = FALSE)
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 2) {
+  input <- cli_args[1]
+  output_dir <- cli_args[2]
+} else {
+  if (!exists("input") || !exists("output_dir")) {
+    stop("FATAL: Script requires 2 args: <input> <output_dir>", call. = FALSE)
+  }
+}
+
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 high_discretion_types <- c("new_construction", "renovation", "demolition")
 
@@ -18,7 +30,7 @@ covariates <- c(
   "dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m"
 )
 
-permits <- read_csv(opt$input, show_col_types = FALSE) %>%
+permits <- read_csv(input, show_col_types = FALSE) %>%
   mutate(
     month = as.yearmon(month),
     median_hh_income_10k = median_hh_income / 10000,
@@ -60,10 +72,10 @@ counts_with_total <- bind_rows(
 
 write_csv(
   counts_with_total %>% mutate(share_pct = 100 * share),
-  file.path(opt$output_dir, "high_discretion_permit_counts.csv")
+  file.path(output_dir, "high_discretion_permit_counts.csv")
 )
 
-counts_tex <- file.path(opt$output_dir, "high_discretion_permit_counts.tex")
+counts_tex <- file.path(output_dir, "high_discretion_permit_counts.tex")
 cat(
   "\\begin{tabular}{lrr}\n",
   "\\toprule\n",
@@ -155,7 +167,7 @@ plot_distribution(
   x_label = "Log processing time",
   title = "Raw Log Processing Time Distribution",
   subtitle = sprintf("All high-discretion permits | N = %s", format(nrow(raw_high_discretion), big.mark = ",")),
-  output_file = file.path(opt$output_dir, "processing_time_raw_high_discretion.pdf")
+  output_file = file.path(output_dir, "processing_time_raw_high_discretion.pdf")
 )
 
 plot_distribution(
@@ -164,7 +176,7 @@ plot_distribution(
   x_label = "Log processing time",
   title = "Raw Log Processing Time Distribution",
   subtitle = sprintf("New construction only | N = %s", format(nrow(raw_new_construction), big.mark = ",")),
-  output_file = file.path(opt$output_dir, "processing_time_raw_new_construction.pdf")
+  output_file = file.path(output_dir, "processing_time_raw_new_construction.pdf")
 )
 
 plot_distribution(
@@ -173,7 +185,7 @@ plot_distribution(
   x_label = "Residualized log processing time",
   title = "Residualized Processing Time Distribution",
   subtitle = sprintf("All high-discretion permits | N = %s", format(nrow(resid_high_discretion), big.mark = ",")),
-  output_file = file.path(opt$output_dir, "processing_time_residualized_high_discretion.pdf")
+  output_file = file.path(output_dir, "processing_time_residualized_high_discretion.pdf")
 )
 
 plot_distribution(
@@ -182,7 +194,7 @@ plot_distribution(
   x_label = "Residualized log processing time",
   title = "Residualized Processing Time Distribution",
   subtitle = sprintf("New construction only | N = %s", format(nrow(resid_new_construction), big.mark = ",")),
-  output_file = file.path(opt$output_dir, "processing_time_residualized_new_construction.pdf")
+  output_file = file.path(output_dir, "processing_time_residualized_new_construction.pdf")
 )
 
-message("Saved outputs in: ", opt$output_dir)
+message("Saved outputs in: ", output_dir)

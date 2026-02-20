@@ -4,24 +4,34 @@
 # Produces a clean, publication-ready table
 
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
-option_list <- list(
-    make_option(c("-b", "--bandwidth"), type = "numeric", default = 1000,
-        help = "Bandwidth in feet [default: 1000]"),
-    make_option(c("-w", "--weighting"), type = "character", default = "triangular",
-        help = "Weighting: triangular or uniform [default: triangular]"),
-    make_option(c("-e", "--fe_type"), type = "character", default = "strict_pair_x_year",
-        help = "FE type: strict_pair_x_year, pair_trend_plus_year, side_plus_year [default: strict_pair_x_year]")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
+# bandwidth <- 1000
+# weighting <- "triangular"
+# fe_type <- "strict_pair_x_year"
+# Rscript run_did_sales_disaggregate.R 1000 "triangular" "strict_pair_x_year"
+# =======================================================================================
 
-BANDWIDTH <- opt$bandwidth
-WEIGHTING <- opt$weighting
-FE_TYPE <- opt$fe_type
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 3) {
+  bandwidth <- as.numeric(cli_args[1])
+  weighting <- cli_args[2]
+  fe_type <- cli_args[3]
+} else {
+  if (!exists("bandwidth") || !exists("weighting") || !exists("fe_type")) {
+    stop("FATAL: Script requires 3 args: <bandwidth> <weighting> <fe_type>", call. = FALSE)
+  }
+}
+
+BANDWIDTH <- bandwidth
+WEIGHTING <- weighting
+FE_TYPE <- fe_type
 
 if (!FE_TYPE %in% c("strict_pair_x_year", "pair_trend_plus_year", "side_plus_year")) {
     stop("--fe_type must be one of: strict_pair_x_year, pair_trend_plus_year, side_plus_year")

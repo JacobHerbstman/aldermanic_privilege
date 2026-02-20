@@ -4,7 +4,6 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_uncertainty_index/code")
 
 source("../../setup_environment/code/packages.R")
-library(optparse)
 library(fixest)
 
 # -----------------------------------------------------------------------------
@@ -20,37 +19,46 @@ library(fixest)
 # PARSE COMMAND LINE ARGUMENTS
 # -----------------------------------------------------------------------------
 
-option_list <- list(
-  make_option("--permit_type_fe", type = "character", default = "TRUE",
-              help = "Include permit type fixed effects [default: TRUE]"),
-  make_option("--review_type_fe", type = "character", default = "TRUE",
-              help = "Include review type fixed effects [default: TRUE]"),
-  make_option("--include_porch", type = "character", default = "TRUE",
-              help = "Include porch permits [default: TRUE]"),
-  make_option("--ca_fe", type = "character", default = "FALSE",
-              help = "Include community area fixed effects [default: FALSE]"),
-  make_option("--two_stage", type = "character", default = "FALSE",
-              help = "Use two-stage estimation with ward-month aggregation [default: FALSE]"),
-  make_option("--stage2_weight", type = "character", default = "N_PERMITS",
-              help = "Stage-2 weighting: N_PERMITS, SQRT_N_PERMITS, NONE [default: N_PERMITS]"),
-  make_option("--volume_ctrl", type = "character", default = "NONE",
-              help = "Permit volume control: NONE, CURRENT, LAG1 [default: NONE]"),
-  make_option("--volume_stage", type = "character", default = "STAGE1",
-              help = "Where to include volume control: STAGE1, STAGE2, BOTH [default: STAGE1]")
-)
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_uncertainty_index/code")
+# permit_type_fe <- "TRUE"
+# review_type_fe <- "TRUE"
+# include_porch <- "TRUE"
+# ca_fe <- "FALSE"
+# two_stage <- "FALSE"
+# stage2_weight <- "N_PERMITS"
+# volume_ctrl <- "NONE"
+# volume_stage <- "STAGE1"
+# Rscript create_uncertainty_index.R "TRUE" "TRUE" "TRUE" "FALSE" "FALSE" "N_PERMITS" "NONE" "STAGE1"
+# =======================================================================================
 
-opt_parser <- OptionParser(option_list = option_list)
-opt <- parse_args(opt_parser)
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 8) {
+  permit_type_fe <- cli_args[1]
+  review_type_fe <- cli_args[2]
+  include_porch <- cli_args[3]
+  ca_fe <- cli_args[4]
+  two_stage <- cli_args[5]
+  stage2_weight <- cli_args[6]
+  volume_ctrl <- cli_args[7]
+  volume_stage <- cli_args[8]
+} else {
+  if (!exists("permit_type_fe") || !exists("review_type_fe") || !exists("include_porch") || !exists("ca_fe") || !exists("two_stage") || !exists("stage2_weight") || !exists("volume_ctrl") || !exists("volume_stage")) {
+    stop("FATAL: Script requires 8 args: <permit_type_fe> <review_type_fe> <include_porch> <ca_fe> <two_stage> <stage2_weight> <volume_ctrl> <volume_stage>", call. = FALSE)
+  }
+}
 
 # Convert string to logical
-PERMIT_TYPE_FE <- toupper(opt$permit_type_fe) == "TRUE"
-REVIEW_TYPE_FE <- toupper(opt$review_type_fe) == "TRUE"
-INCLUDE_PORCH <- toupper(opt$include_porch) == "TRUE"
-CA_FE <- toupper(opt$ca_fe) == "TRUE"
-TWO_STAGE <- toupper(opt$two_stage) == "TRUE"
-STAGE2_WEIGHT <- toupper(opt$stage2_weight)
-VOLUME_CTRL <- toupper(opt$volume_ctrl)
-VOLUME_STAGE <- toupper(opt$volume_stage)
+PERMIT_TYPE_FE <- toupper(permit_type_fe) == "TRUE"
+REVIEW_TYPE_FE <- toupper(review_type_fe) == "TRUE"
+INCLUDE_PORCH <- toupper(include_porch) == "TRUE"
+CA_FE <- toupper(ca_fe) == "TRUE"
+TWO_STAGE <- toupper(two_stage) == "TRUE"
+STAGE2_WEIGHT <- toupper(stage2_weight)
+VOLUME_CTRL <- toupper(volume_ctrl)
+VOLUME_STAGE <- toupper(volume_stage)
 
 if (!STAGE2_WEIGHT %in% c("N_PERMITS", "SQRT_N_PERMITS", "NONE")) {
   stop("stage2_weight must be one of: N_PERMITS, SQRT_N_PERMITS, NONE")

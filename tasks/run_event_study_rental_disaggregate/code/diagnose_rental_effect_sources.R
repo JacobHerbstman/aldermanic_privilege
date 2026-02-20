@@ -1,49 +1,78 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 library(data.table)
 library(fixest)
 library(arrow)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rental_listing_panel.parquet"),
-  make_option("--geo_input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bandwidth", type = "integer", default = 1000),
-  make_option("--weighting", type = "character", default = "triangular"),
-  make_option("--sample_filter", type = "character", default = "multifamily_only"),
-  make_option("--fe_type", type = "character", default = "strict_pair_x_year"),
-  make_option("--top_n", type = "integer", default = 50),
-  make_option("--top_blocks", type = "integer", default = 200),
-  make_option("--top_buildings", type = "integer", default = 200),
-  make_option("--out_summary", type = "character", default = "../output/rental_effect_source_summary.csv"),
-  make_option("--out_event_coeffs", type = "character", default = "../output/rental_effect_source_event_study_coefficients.csv"),
-  make_option("--out_counterfactual", type = "character", default = "../output/rental_effect_source_counterfactuals.csv"),
-  make_option("--out_boundaries", type = "character", default = "../output/rental_effect_source_boundaries.csv"),
-  make_option("--out_boundaries_top", type = "character", default = "../output/rental_effect_source_boundaries_top50.csv"),
-  make_option("--out_wards", type = "character", default = "../output/rental_effect_source_wards.csv"),
-  make_option("--out_wards_top", type = "character", default = "../output/rental_effect_source_wards_top50.csv"),
-  make_option("--out_blocks_top", type = "character", default = "../output/rental_effect_source_blocks_top200.csv"),
-  make_option("--out_buildings", type = "character", default = "../output/rental_effect_source_buildings.csv"),
-  make_option("--out_buildings_top", type = "character", default = "../output/rental_effect_source_buildings_top200.csv")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
+# input <- "../input/rental_listing_panel.parquet"
+# geo_input <- "../input/rent_with_ward_distances.parquet"
+# bandwidth <- 1000
+# weighting <- "triangular"
+# sample_filter <- "multifamily_only"
+# fe_type <- "strict_pair_x_year"
+# top_n <- 50
+# top_blocks <- 200
+# top_buildings <- 200
+# out_summary <- "../output/rental_effect_source_summary.csv"
+# out_event_coeffs <- "../output/rental_effect_source_event_study_coefficients.csv"
+# out_counterfactual <- "../output/rental_effect_source_counterfactuals.csv"
+# out_boundaries <- "../output/rental_effect_source_boundaries.csv"
+# out_boundaries_top <- "../output/rental_effect_source_boundaries_top50.csv"
+# out_wards <- "../output/rental_effect_source_wards.csv"
+# out_wards_top <- "../output/rental_effect_source_wards_top50.csv"
+# out_blocks_top <- "../output/rental_effect_source_blocks_top200.csv"
+# out_buildings <- "../output/rental_effect_source_buildings.csv"
+# out_buildings_top <- "../output/rental_effect_source_buildings_top200.csv"
+# Rscript diagnose_rental_effect_sources.R "../input/rental_listing_panel.parquet" "../input/rent_with_ward_distances.parquet" 1000 "triangular" "multifamily_only" "strict_pair_x_year" 50 200 200 "../output/rental_effect_source_summary.csv" "../output/rental_effect_source_event_study_coefficients.csv" "../output/rental_effect_source_counterfactuals.csv" "../output/rental_effect_source_boundaries.csv" "../output/rental_effect_source_boundaries_top50.csv" "../output/rental_effect_source_wards.csv" "../output/rental_effect_source_wards_top50.csv" "../output/rental_effect_source_blocks_top200.csv" "../output/rental_effect_source_buildings.csv" "../output/rental_effect_source_buildings_top200.csv"
+# =======================================================================================
 
-if (!opt$weighting %in% c("triangular", "uniform")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 19) {
+  input <- cli_args[1]
+  geo_input <- cli_args[2]
+  bandwidth <- suppressWarnings(as.integer(cli_args[3]))
+  weighting <- cli_args[4]
+  sample_filter <- cli_args[5]
+  fe_type <- cli_args[6]
+  top_n <- suppressWarnings(as.integer(cli_args[7]))
+  top_blocks <- suppressWarnings(as.integer(cli_args[8]))
+  top_buildings <- suppressWarnings(as.integer(cli_args[9]))
+  out_summary <- cli_args[10]
+  out_event_coeffs <- cli_args[11]
+  out_counterfactual <- cli_args[12]
+  out_boundaries <- cli_args[13]
+  out_boundaries_top <- cli_args[14]
+  out_wards <- cli_args[15]
+  out_wards_top <- cli_args[16]
+  out_blocks_top <- cli_args[17]
+  out_buildings <- cli_args[18]
+  out_buildings_top <- cli_args[19]
+} else {
+  if (!exists("input") || !exists("geo_input") || !exists("bandwidth") || !exists("weighting") || !exists("sample_filter") || !exists("fe_type") || !exists("top_n") || !exists("top_blocks") || !exists("top_buildings") || !exists("out_summary") || !exists("out_event_coeffs") || !exists("out_counterfactual") || !exists("out_boundaries") || !exists("out_boundaries_top") || !exists("out_wards") || !exists("out_wards_top") || !exists("out_blocks_top") || !exists("out_buildings") || !exists("out_buildings_top")) {
+    stop("FATAL: Script requires 19 args: <input> <geo_input> <bandwidth> <weighting> <sample_filter> <fe_type> <top_n> <top_blocks> <top_buildings> <out_summary> <out_event_coeffs> <out_counterfactual> <out_boundaries> <out_boundaries_top> <out_wards> <out_wards_top> <out_blocks_top> <out_buildings> <out_buildings_top>", call. = FALSE)
+  }
+}
+
+if (!weighting %in% c("triangular", "uniform")) {
   stop("--weighting must be one of: triangular, uniform", call. = FALSE)
 }
-if (!opt$sample_filter %in% c("multifamily_only", "full_sample")) {
+if (!sample_filter %in% c("multifamily_only", "full_sample")) {
   stop("--sample_filter must be one of: multifamily_only, full_sample", call. = FALSE)
 }
-if (!opt$fe_type %in% c("strict_pair_x_year", "pair_trend_plus_year", "side_plus_year")) {
+if (!fe_type %in% c("strict_pair_x_year", "pair_trend_plus_year", "side_plus_year")) {
   stop("--fe_type must be one of: strict_pair_x_year, pair_trend_plus_year, side_plus_year", call. = FALSE)
 }
 
 message("=== Diagnose Rental Effect Sources ===")
-message("Input: ", opt$input)
-message("Geo input: ", opt$geo_input)
-message("Bandwidth: ", opt$bandwidth)
-message("Weighting: ", opt$weighting)
-message("Sample filter: ", opt$sample_filter)
-message("FE type: ", opt$fe_type)
+message("Input: ", input)
+message("Geo input: ", geo_input)
+message("Bandwidth: ", bandwidth)
+message("Weighting: ", weighting)
+message("Sample filter: ", sample_filter)
+message("FE type: ", fe_type)
 
 keep_cols <- c(
   "id", "block_id", "cohort", "year", "relative_year_capped",
@@ -55,7 +84,7 @@ keep_cols <- c(
 )
 
 message("Loading rental listing panel...")
-dt <- as.data.table(read_parquet(opt$input, col_select = keep_cols))
+dt <- as.data.table(read_parquet(input, col_select = keep_cols))
 message("Rows loaded: ", format(nrow(dt), big.mark = ","))
 
 if (!is.factor(dt$building_type_factor)) {
@@ -65,14 +94,14 @@ if (!is.factor(dt$building_type_factor)) {
 dt <- dt[
   !is.na(strictness_change) &
     !is.na(rent_price) & rent_price > 0 &
-    dist_ft <= opt$bandwidth &
+    dist_ft <= bandwidth &
     !is.na(log_sqft) &
     !is.na(log_beds) &
     !is.na(log_baths) &
     !is.na(building_type_factor)
 ]
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   dt <- dt[building_type_clean == "multi_family"]
 }
 
@@ -86,7 +115,7 @@ message("Unique listings: ", format(uniqueN(dt$id), big.mark = ","))
 
 dt[, `:=`(
   post = as.integer(relative_year_capped >= 0),
-  weight = if (opt$weighting == "triangular") pmax(0, 1 - dist_ft / opt$bandwidth) else 1
+  weight = if (weighting == "triangular") pmax(0, 1 - dist_ft / bandwidth) else 1
 )]
 dt[, post_treat := post * strictness_change]
 
@@ -101,9 +130,9 @@ if (!"cohort_ward_pair" %in% names(dt) || any(is.na(dt$cohort_ward_pair))) {
 }
 
 # Bring in coordinates so we can aggregate to building proxies
-if (file.exists(opt$geo_input)) {
+if (file.exists(geo_input)) {
   message("Loading listing coordinates for building-level attribution...")
-  geo <- as.data.table(read_parquet(opt$geo_input, col_select = c("id", "latitude", "longitude")))
+  geo <- as.data.table(read_parquet(geo_input, col_select = c("id", "latitude", "longitude")))
   geo <- geo[!is.na(latitude) & !is.na(longitude)]
   if (nrow(geo) > 0) {
     setorder(geo, id)
@@ -124,7 +153,7 @@ if (file.exists(opt$geo_input)) {
   message("Geo input file not found. Building-level outputs will be empty.")
 }
 
-fe_formula <- switch(opt$fe_type,
+fe_formula <- switch(fe_type,
   "strict_pair_x_year" = "cohort_ward_pair_side + cohort_ward_pair^year",
   "pair_trend_plus_year" = "cohort_ward_pair_side + cohort^year + cohort_ward_pair[year]",
   "side_plus_year" = "cohort_ward_pair_side + cohort^year"
@@ -307,10 +336,10 @@ if (sum(!is.na(dt$building_proxy)) > 0) {
   buildings <- data.table()
 }
 
-boundary_top <- head(boundaries, opt$top_n)
-ward_top <- head(wards, opt$top_n)
-block_top <- head(blocks, opt$top_blocks)
-building_top <- if (nrow(buildings) > 0) head(buildings, opt$top_buildings) else buildings
+boundary_top <- head(boundaries, top_n)
+ward_top <- head(wards, top_n)
+block_top <- head(blocks, top_blocks)
+building_top <- if (nrow(buildings) > 0) head(buildings, top_buildings) else buildings
 
 counterfactuals <- rbindlist(list(
   counterfactual_table(boundaries, "boundary"),
@@ -403,33 +432,33 @@ summary_dt <- data.table(
   )
 )
 
-fwrite(summary_dt, opt$out_summary)
-fwrite(event_coefs, opt$out_event_coeffs)
-fwrite(counterfactuals, opt$out_counterfactual)
-fwrite(boundaries, opt$out_boundaries)
-fwrite(boundary_top, opt$out_boundaries_top)
-fwrite(wards, opt$out_wards)
-fwrite(ward_top, opt$out_wards_top)
-fwrite(block_top, opt$out_blocks_top)
+fwrite(summary_dt, out_summary)
+fwrite(event_coefs, out_event_coeffs)
+fwrite(counterfactuals, out_counterfactual)
+fwrite(boundaries, out_boundaries)
+fwrite(boundary_top, out_boundaries_top)
+fwrite(wards, out_wards)
+fwrite(ward_top, out_wards_top)
+fwrite(block_top, out_blocks_top)
 
 if (nrow(buildings) > 0) {
-  fwrite(buildings, opt$out_buildings)
-  fwrite(building_top, opt$out_buildings_top)
+  fwrite(buildings, out_buildings)
+  fwrite(building_top, out_buildings_top)
 } else {
-  fwrite(data.table(), opt$out_buildings)
-  fwrite(data.table(), opt$out_buildings_top)
+  fwrite(data.table(), out_buildings)
+  fwrite(data.table(), out_buildings_top)
 }
 
-message("Saved summary: ", opt$out_summary)
-message("Saved event-study coefficients: ", opt$out_event_coeffs)
-message("Saved counterfactuals: ", opt$out_counterfactual)
-message("Saved boundaries: ", opt$out_boundaries)
-message("Saved boundary top table: ", opt$out_boundaries_top)
-message("Saved wards: ", opt$out_wards)
-message("Saved ward top table: ", opt$out_wards_top)
-message("Saved block top table: ", opt$out_blocks_top)
-message("Saved buildings: ", opt$out_buildings)
-message("Saved building top table: ", opt$out_buildings_top)
+message("Saved summary: ", out_summary)
+message("Saved event-study coefficients: ", out_event_coeffs)
+message("Saved counterfactuals: ", out_counterfactual)
+message("Saved boundaries: ", out_boundaries)
+message("Saved boundary top table: ", out_boundaries_top)
+message("Saved wards: ", out_wards)
+message("Saved ward top table: ", out_wards_top)
+message("Saved block top table: ", out_blocks_top)
+message("Saved buildings: ", out_buildings)
+message("Saved building top table: ", out_buildings_top)
 
 message("\nTop 10 boundaries by absolute influence:")
 print(boundary_top[1:min(10L, .N), .(

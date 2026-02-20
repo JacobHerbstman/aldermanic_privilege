@@ -8,7 +8,8 @@ SCORE_FILE_UPSTREAM ?= ../../create_alderman_uncertainty_index/output/alderman_u
 all: ../output/sales_with_ward_distances.csv ../output/rent_with_ward_distances_full.parquet ../output/block_treatment_panel.csv
 
 ../output/.merge_done.stamp: merge_event_study_scores.R ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores.csv | ../output
-	$(R) merge_event_study_scores.R --score_file=../input/aldermen_uncertainty_scores.csv --score_column=$(SCORE_COLUMN) --sales_input=../input/sales_pre_scores.csv --rent_input=../input/rent_pre_scores_full.parquet --treatment_input=../input/block_treatment_pre_scores.csv --alderman_panel=../input/chicago_alderman_panel.csv --sales_output=../output/sales_with_ward_distances.csv --rent_output=../output/rent_with_ward_distances_full.parquet --treatment_output=../output/block_treatment_panel.csv
+	# arg order: score_file score_column sales_input rent_input treatment_input alderman_panel sales_output rent_output treatment_output
+	$(R) merge_event_study_scores.R ../input/aldermen_uncertainty_scores.csv $(SCORE_COLUMN) ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../output/sales_with_ward_distances.csv ../output/rent_with_ward_distances_full.parquet ../output/block_treatment_panel.csv
 	touch $@
 
 ../output/sales_with_ward_distances.csv: ../output/.merge_done.stamp

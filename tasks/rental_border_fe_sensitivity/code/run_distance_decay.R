@@ -1,21 +1,38 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--rings", type = "character", default = "0-250,250-500,500-1000,1000-1500"),
-  make_option("--use_controls", type = "logical", default = TRUE),
-  make_option("--output_csv", type = "character", default = "../output/distance_decay_pre_2021_all.csv"),
-  make_option("--output_pdf", type = "character", default = "../output/distance_decay_pre_2021_all.pdf")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# window <- "pre_2021"
+# sample_filter <- "all"
+# rings <- "0-250,250-500,500-1000,1000-1500"
+# use_controls <- TRUE
+# output_csv <- "../output/distance_decay_pre_2021_all.csv"
+# output_pdf <- "../output/distance_decay_pre_2021_all.pdf"
+# Rscript run_distance_decay.R "../input/rent_with_ward_distances.parquet" "pre_2021" "all" "0-250,250-500,500-1000,1000-1500" TRUE "../output/distance_decay_pre_2021_all.csv" "../output/distance_decay_pre_2021_all.pdf"
+# =======================================================================================
 
-if (!opt$window %in% c("full", "pre_covid", "pre_2021", "drop_mid")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 7) {
+  input <- cli_args[1]
+  window <- cli_args[2]
+  sample_filter <- cli_args[3]
+  rings <- cli_args[4]
+  use_controls <- tolower(cli_args[5]) %in% c("true", "t", "1", "yes")
+  output_csv <- cli_args[6]
+  output_pdf <- cli_args[7]
+} else {
+  if (!exists("input") || !exists("window") || !exists("sample_filter") || !exists("rings") || !exists("use_controls") || !exists("output_csv") || !exists("output_pdf")) {
+    stop("FATAL: Script requires 7 args: <input> <window> <sample_filter> <rings> <use_controls> <output_csv> <output_pdf>", call. = FALSE)
+  }
+}
+
+if (!window %in% c("full", "pre_covid", "pre_2021", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, drop_mid", call. = FALSE)
 }
-if (!opt$sample_filter %in% c("all", "multifamily_only")) {
+if (!sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
 }
 
@@ -35,11 +52,11 @@ parse_ring <- function(x) {
   tibble(lower = vals[1], upper = vals[2], label = sprintf("%d-%d", vals[1], vals[2]))
 }
 
-ring_list <- strsplit(opt$rings, ",", fixed = TRUE)[[1]]
+ring_list <- strsplit(rings, ",", fixed = TRUE)[[1]]
 rings <- bind_rows(lapply(ring_list, parse_ring))
 max_outer <- max(rings$upper)
 
-dat <- read_parquet(opt$input) %>%
+dat <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -55,9 +72,9 @@ dat <- read_parquet(opt$input) %>%
     !is.na(strictness_own),
     abs(signed_dist) <= max_outer
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   dat <- dat %>% filter(building_type_clean == "multi_family")
 }
 
@@ -83,13 +100,13 @@ for (i in seq_len(nrow(rings))) {
   hi <- rings$upper[i]
 
   df_i <- dat %>% filter(abs_dist > lo, abs_dist <= hi)
-  if (opt$use_controls) {
+  if (use_controls) {
     df_i <- df_i %>% filter(!is.na(log_sqft), !is.na(log_beds), !is.na(log_baths), !is.na(building_type_factor))
   }
 
   if (nrow(df_i) == 0 || length(unique(df_i$ward_pair)) < 2) next
 
-  if (opt$use_controls) {
+  if (use_controls) {
     m <- feols(
       log(rent_price) ~ strictness_std + log_sqft + log_beds + log_baths + building_type_factor | ward_pair^year_month,
       data = df_i,
@@ -113,14 +130,14 @@ for (i in seq_len(nrow(rings))) {
     p_value = pvalue(m)[["strictness_std"]],
     n_obs = m$nobs,
     ward_pairs = length(unique(df_i$ward_pair)),
-    controls = opt$use_controls
+    controls = use_controls
   )
 }
 
 out <- bind_rows(results) %>% arrange(midpoint_ft)
 if (nrow(out) == 0) stop("No distance-decay models estimated.", call. = FALSE)
 
-# write_csv(out, opt$output_csv)
+# write_csv(out, output_csv)
 
 p <- out %>%
   mutate(
@@ -135,13 +152,13 @@ p <- out %>%
   scale_x_continuous(breaks = out$midpoint_ft, labels = out$ring) +
   labs(
     title = "Distance-Decay Check: Rent Border FE Coefficient by Ring",
-    subtitle = sprintf("window = %s | sample = %s | controls = %s", opt$window, opt$sample_filter, opt$use_controls),
+    subtitle = sprintf("window = %s | sample = %s | controls = %s", window, sample_filter, use_controls),
     x = "Distance ring (feet)",
     y = "Coefficient on strictness score"
   ) +
   theme_minimal(base_size = 12)
 
-ggsave(opt$output_pdf, p, width = 8, height = 5, bg = "white")
+ggsave(output_pdf, p, width = 8, height = 5, bg = "white")
 
-message(sprintf("Saved: %s", opt$output_csv))
-message(sprintf("Saved: %s", opt$output_pdf))
+message(sprintf("Saved: %s", output_csv))
+message(sprintf("Saved: %s", output_pdf))

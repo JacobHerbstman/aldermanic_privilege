@@ -1,27 +1,43 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/sales_with_hedonics.parquet"),
-  make_option("--bw_ft", type = "integer", default = 1000),
-  make_option("--fe_time", type = "character", default = "year_quarter"),
-  make_option("--output_tex", type = "character", default = "../output/fe_table_sales_bw1000.tex"),
-  make_option("--output_csv", type = "character", default = "../output/fe_table_sales_bw1000.csv"),
-  make_option("--output_year_diag", type = "character", default = "../output/year_diagnostics_sales_bw1000.csv")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_border_pair_fe/code")
+# input <- "../input/sales_with_hedonics.parquet"
+# bw_ft <- 1000
+# fe_time <- "year_quarter"
+# output_tex <- "../output/fe_table_sales_bw1000.tex"
+# output_csv <- "../output/fe_table_sales_bw1000.csv"
+# output_year_diag <- "../output/year_diagnostics_sales_bw1000.csv"
+# Rscript sales_border_pair_fe.R "../input/sales_with_hedonics.parquet" 1000 "year_quarter" "../output/fe_table_sales_bw1000.tex" "../output/fe_table_sales_bw1000.csv" "../output/year_diagnostics_sales_bw1000.csv"
+# =======================================================================================
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 6) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  fe_time <- cli_args[3]
+  output_tex <- cli_args[4]
+  output_csv <- cli_args[5]
+  output_year_diag <- cli_args[6]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("fe_time") || !exists("output_tex") || !exists("output_csv") || !exists("output_year_diag")) {
+    stop("FATAL: Script requires 6 args: <input> <bw_ft> <fe_time> <output_tex> <output_csv> <output_year_diag>", call. = FALSE)
+  }
+}
 
 stopifnot(
-  is.finite(opt$bw_ft), opt$bw_ft > 0,
-  opt$fe_time %in% c("year", "year_quarter", "year_month")
+  is.finite(bw_ft), bw_ft > 0,
+  fe_time %in% c("year", "year_quarter", "year_month")
 )
 
 fe_time_label <- c(year = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month")
 
-message(sprintf("=== Sales Border Pair FE | bw=%d | fe=%s ===", opt$bw_ft, opt$fe_time))
+message(sprintf("=== Sales Border Pair FE | bw=%d | fe=%s ===", bw_ft, fe_time))
 
 # ── Load and filter ──
-sales <- read_parquet(opt$input) %>%
+sales <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     ward_pair = as.character(ward_pair_id),
@@ -30,7 +46,7 @@ sales <- read_parquet(opt$input) %>%
   filter(
     !is.na(sale_price), sale_price > 0,
     !is.na(ward_pair), !is.na(signed_dist),
-    abs(signed_dist) <= opt$bw_ft,
+    abs(signed_dist) <= bw_ft,
     !is.na(strictness_own)
   )
 
@@ -46,7 +62,7 @@ year_diag <- sales %>%
     coverage_baths = mean(!is.na(log_baths)),
     .groups = "drop"
   )
-write_csv(year_diag, opt$output_year_diag)
+write_csv(year_diag, output_year_diag)
 
 # Standardize strictness
 strictness_sd <- sd(sales$strictness_own, na.rm = TRUE)
@@ -69,7 +85,7 @@ fitstat_register("nwp", function(x) length(unique(stats::na.omit(x$custom_data$w
                  alias = "Ward Pairs")
 
 # ── Regressions ──
-fe_var <- switch(opt$fe_time, year = "year_factor", year_quarter = "year_quarter", year_month = "year_month")
+fe_var <- switch(fe_time, year = "year_factor", year_quarter = "year_quarter", year_month = "year_month")
 
 m1 <- feols(as.formula(paste0("log(sale_price) ~ strictness_std | ward_pair^", fe_var)),
             data = sales, cluster = ~ward_pair)
@@ -86,7 +102,7 @@ setFixest_dict(c(
   year_factor = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month"
 ))
 
-fe_label <- paste0("Ward-Pair $\\times$ ", fe_time_label[[opt$fe_time]], " FE")
+fe_label <- paste0("Ward-Pair $\\times$ ", fe_time_label[[fe_time]], " FE")
 
 etable(
   list(m1, m2),
@@ -100,7 +116,7 @@ etable(
     list("_Hedonic Controls" = c("", "$\\checkmark$")),
     setNames(list(c("$\\checkmark$", "$\\checkmark$")), paste0("_", fe_label))
   ),
-  file = opt$output_tex, replace = TRUE
+  file = output_tex, replace = TRUE
 )
 
 # ── Coefficient CSV ──
@@ -112,7 +128,7 @@ write_csv(tibble(
   n_obs = c(m1$nobs, m2$nobs),
   dep_var_mean = c(mean(sales$sale_price, na.rm = TRUE), mean(sales_hed$sale_price, na.rm = TRUE)),
   ward_pairs = c(n_distinct(sales$ward_pair), n_distinct(sales_hed$ward_pair)),
-  bandwidth_ft = opt$bw_ft, fe_time = opt$fe_time
-), opt$output_csv)
+  bandwidth_ft = bw_ft, fe_time = fe_time
+), output_csv)
 
-message(sprintf("Saved: %s", opt$output_tex))
+message(sprintf("Saved: %s", output_tex))

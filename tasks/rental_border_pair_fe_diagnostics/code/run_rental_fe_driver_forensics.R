@@ -5,44 +5,71 @@ library(arrow)
 library(fixest)
 library(sf)
 library(ggplot2)
-library(optparse)
 library(dplyr)
 
 sf_use_s2(FALSE)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--ward_panel", type = "character", default = "../input/ward_panel.gpkg"),
-  make_option("--bw_ft", type = "integer", default = 500),
-  make_option("--window", type = "character", default = "pre_2023"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--top_n_fast", type = "integer", default = 200),
-  make_option("--top_n_exact_boundary", type = "integer", default = 30),
-  make_option("--top_n_exact_ward_side", type = "integer", default = 30),
-  make_option("--top_n_exact_building", type = "integer", default = 50),
-  make_option("--building_round", type = "integer", default = 5),
-  make_option("--lop_bins", type = "character", default = "0.05,0.10,0.20"),
-  make_option("--near_boundary_ft", type = "character", default = "250,500"),
-  make_option("--reference_csv", type = "character", default = "../input/reference_fe_table_rental_bw500_pre_2023.csv"),
-  make_option("--cert_gates", type = "character", default = "../input/border_certification_gates.csv"),
-  make_option("--anomaly_samples", type = "character", default = "../input/border_pair_anomaly_samples.csv"),
-  make_option("--output_dir", type = "character", default = "../output"),
-  make_option("--smoke", type = "logical", default = FALSE)
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_pair_fe_diagnostics/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# ward_panel <- "../input/ward_panel.gpkg"
+# bw_ft <- 500
+# window <- "pre_2023"
+# sample_filter <- "all"
+# top_n_fast <- 200
+# top_n_exact_boundary <- 30
+# top_n_exact_ward_side <- 30
+# top_n_exact_building <- 50
+# building_round <- 5
+# lop_bins <- "0.05,0.10,0.20"
+# near_boundary_ft <- "250,500"
+# reference_csv <- "../input/reference_fe_table_rental_bw500_pre_2023.csv"
+# cert_gates <- "../input/border_certification_gates.csv"
+# anomaly_samples <- "../input/border_pair_anomaly_samples.csv"
+# output_dir <- "../output"
+# smoke <- FALSE
+# Rscript run_rental_fe_driver_forensics.R "../input/rent_with_ward_distances.parquet" "../input/ward_panel.gpkg" 500 "pre_2023" "all" 200 30 30 50 5 "0.05,0.10,0.20" "250,500" "../input/reference_fe_table_rental_bw500_pre_2023.csv" "../input/border_certification_gates.csv" "../input/border_pair_anomaly_samples.csv" "../output" FALSE
+# =======================================================================================
 
-if (!opt$window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 17) {
+  input <- cli_args[1]
+  ward_panel <- cli_args[2]
+  bw_ft <- suppressWarnings(as.integer(cli_args[3]))
+  window <- cli_args[4]
+  sample_filter <- cli_args[5]
+  top_n_fast <- suppressWarnings(as.integer(cli_args[6]))
+  top_n_exact_boundary <- suppressWarnings(as.integer(cli_args[7]))
+  top_n_exact_ward_side <- suppressWarnings(as.integer(cli_args[8]))
+  top_n_exact_building <- suppressWarnings(as.integer(cli_args[9]))
+  building_round <- suppressWarnings(as.integer(cli_args[10]))
+  lop_bins <- cli_args[11]
+  near_boundary_ft <- cli_args[12]
+  reference_csv <- cli_args[13]
+  cert_gates <- cli_args[14]
+  anomaly_samples <- cli_args[15]
+  output_dir <- cli_args[16]
+  smoke <- tolower(cli_args[17]) %in% c("true", "t", "1", "yes")
+} else {
+  if (!exists("input") || !exists("ward_panel") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("top_n_fast") || !exists("top_n_exact_boundary") || !exists("top_n_exact_ward_side") || !exists("top_n_exact_building") || !exists("building_round") || !exists("lop_bins") || !exists("near_boundary_ft") || !exists("reference_csv") || !exists("cert_gates") || !exists("anomaly_samples") || !exists("output_dir") || !exists("smoke")) {
+    stop("FATAL: Script requires 17 args: <input> <ward_panel> <bw_ft> <window> <sample_filter> <top_n_fast> <top_n_exact_boundary> <top_n_exact_ward_side> <top_n_exact_building> <building_round> <lop_bins> <near_boundary_ft> <reference_csv> <cert_gates> <anomaly_samples> <output_dir> <smoke>", call. = FALSE)
+  }
+}
+
+if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, pre_2023, drop_mid", call. = FALSE)
 }
-if (!opt$sample_filter %in% c("all", "multifamily_only")) {
+if (!sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
 }
-if (!is.finite(opt$bw_ft) || opt$bw_ft <= 0) {
+if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("--bw_ft must be a positive integer", call. = FALSE)
 }
 
-if (!dir.exists(opt$output_dir)) {
-  dir.create(opt$output_dir, recursive = TRUE)
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir, recursive = TRUE)
 }
 
 parse_num_vec <- function(x) {
@@ -65,15 +92,15 @@ apply_window_filter <- function(dt, window_name) {
 }
 
 message("=== Rental Border-Pair FE Driver Forensics ===")
-message("input: ", opt$input)
-message("ward_panel: ", opt$ward_panel)
-message("bw_ft: ", opt$bw_ft)
-message("window: ", opt$window)
-message("sample_filter: ", opt$sample_filter)
-message("smoke: ", opt$smoke)
+message("input: ", input)
+message("ward_panel: ", ward_panel)
+message("bw_ft: ", bw_ft)
+message("window: ", window)
+message("sample_filter: ", sample_filter)
+message("smoke: ", smoke)
 
-lop_bins <- sort(unique(parse_num_vec(opt$lop_bins)))
-near_ft <- sort(unique(as.integer(parse_num_vec(opt$near_boundary_ft))))
+lop_bins <- sort(unique(parse_num_vec(lop_bins)))
+near_ft <- sort(unique(as.integer(parse_num_vec(near_boundary_ft))))
 
 if (length(lop_bins) < 3) {
   stop("--lop_bins must include at least three comma-separated thresholds", call. = FALSE)
@@ -101,7 +128,7 @@ optional_cols <- c(
 )
 
 message("[step] loading rental border data")
-parquet_cols <- names(read_parquet(opt$input, as_data_frame = FALSE))
+parquet_cols <- names(read_parquet(input, as_data_frame = FALSE))
 missing_required <- setdiff(required_cols, parquet_cols)
 if (length(missing_required) > 0) {
   stop(
@@ -110,7 +137,7 @@ if (length(missing_required) > 0) {
   )
 }
 col_select <- c(required_cols, intersect(optional_cols, parquet_cols))
-dt_raw <- as.data.table(read_parquet(opt$input, col_select = tidyselect::all_of(col_select)))
+dt_raw <- as.data.table(read_parquet(input, col_select = tidyselect::all_of(col_select)))
 
 if (!"sqft" %in% names(dt_raw)) dt_raw[, sqft := NA_real_]
 if (!"beds" %in% names(dt_raw)) dt_raw[, beds := NA_real_]
@@ -167,12 +194,12 @@ base_dt <- dt_raw[
     !is.na(ward_pair_id) &
     !is.na(ward) &
     !is.na(signed_dist) &
-    abs_dist <= opt$bw_ft &
+    abs_dist <= bw_ft &
     !is.na(strictness_own)
 ]
-base_dt <- apply_window_filter(base_dt, opt$window)
+base_dt <- apply_window_filter(base_dt, window)
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   base_dt <- base_dt[building_type_clean == "multi_family"]
 }
 
@@ -180,7 +207,7 @@ if (nrow(base_dt) == 0) {
   stop("No observations remain after applying base filters.", call. = FALSE)
 }
 
-if (opt$smoke) {
+if (smoke) {
   set.seed(20260216)
   smoke_n <- min(300000L, nrow(base_dt))
   base_dt <- base_dt[, .SD[sample.int(.N, min(.N, max(1L, smoke_n %/% max(1L, uniqueN(base_dt$year)))) )], by = year]
@@ -552,7 +579,7 @@ attach_pair_geometry <- function(df, pair_col, lines_by_year, year_priority, crs
 
 run_spec <- function(base_dt, spec_name) {
   message("[step] fitting spec: ", spec_name)
-  spec_prep <- prepare_spec_dt(base_dt, spec_name, opt$building_round, strictness_sd_base)
+  spec_prep <- prepare_spec_dt(base_dt, spec_name, building_round, strictness_sd_base)
   dt <- spec_prep$dt
   formulas <- build_formulas(spec_name, include_building_factor = spec_prep$include_building_factor)
 
@@ -596,14 +623,14 @@ run_spec <- function(base_dt, spec_name) {
     building_full <- merge(building_full, loc, by = "building_proxy", all.x = TRUE)
   }
 
-  boundary_fast <- copy(boundary_full[1:min(.N, opt$top_n_fast)])
-  ward_side_fast <- copy(ward_side_full[1:min(.N, opt$top_n_fast)])
-  building_fast <- copy(building_full[1:min(.N, opt$top_n_fast)])
+  boundary_fast <- copy(boundary_full[1:min(.N, top_n_fast)])
+  ward_side_fast <- copy(ward_side_full[1:min(.N, top_n_fast)])
+  building_fast <- copy(building_full[1:min(.N, top_n_fast)])
 
   # Exact leave-one-out for top groups
-  top_b <- if (opt$smoke) min(8L, opt$top_n_exact_boundary) else opt$top_n_exact_boundary
-  top_w <- if (opt$smoke) min(8L, opt$top_n_exact_ward_side) else opt$top_n_exact_ward_side
-  top_g <- if (opt$smoke) min(12L, opt$top_n_exact_building) else opt$top_n_exact_building
+  top_b <- if (smoke) min(8L, top_n_exact_boundary) else top_n_exact_boundary
+  top_w <- if (smoke) min(8L, top_n_exact_ward_side) else top_n_exact_ward_side
+  top_g <- if (smoke) min(12L, top_n_exact_building) else top_n_exact_building
 
   boundary_exact <- run_exact_loo(dt_fwl, formulas, spec_name, "ward_pair_id", boundary_full, top_b)
   ward_side_exact <- run_exact_loo(dt_fwl, formulas, spec_name, "ward_side", ward_side_full, top_w)
@@ -679,14 +706,14 @@ names(res_list) <- specs
 
 # Geometry tags from certification + anomalies
 cert_pass_global <- TRUE
-if (file.exists(opt$cert_gates)) {
-  gates <- fread(opt$cert_gates)
+if (file.exists(cert_gates)) {
+  gates <- fread(cert_gates)
   if ("pass" %in% names(gates)) cert_pass_global <- all(as.logical(gates$pass))
 }
 
 anomaly_pairs <- character()
-if (file.exists(opt$anomaly_samples)) {
-  anom <- fread(opt$anomaly_samples)
+if (file.exists(anomaly_samples)) {
+  anom <- fread(anomaly_samples)
   if ("ward_pair_id" %in% names(anom)) {
     anomaly_pairs <- unique(as.character(anom$ward_pair_id[!is.na(anom$ward_pair_id)]))
   }
@@ -707,7 +734,7 @@ for (s in specs) {
 }
 
 message("[step] preparing ward boundary geometry")
-ward_panel <- st_read(opt$ward_panel, quiet = TRUE)
+ward_panel <- st_read(ward_panel, quiet = TRUE)
 ward_panel <- ward_panel %>%
   mutate(ward = as.integer(ward), year = as.integer(year))
 
@@ -736,8 +763,8 @@ ward_base <- st_transform(ward_panel[ward_panel$year == ward_base_year, c("ward"
 
 # Replication check against current rental border pair FE output
 ref_dt <- data.table()
-if (file.exists(opt$reference_csv)) {
-  ref_dt <- fread(opt$reference_csv)
+if (file.exists(reference_csv)) {
+  ref_dt <- fread(reference_csv)
   ref_dt[, spec := as.character(specification)]
 }
 
@@ -906,7 +933,7 @@ if (nrow(lop_flags) > 0) {
   lop_flags[, sort_abs_influence := fifelse(!is.na(abs_influence_exact), abs_influence_exact, abs_influence_fast)]
   setorder(lop_flags, -sort_abs_influence, -max_abs_implied_gap_pct, -max_abs_raw_gap_pct)
   lop_flags[, sort_abs_influence := NULL]
-  lop_flags <- lop_flags[1:min(.N, opt$top_n_fast)]
+  lop_flags <- lop_flags[1:min(.N, top_n_fast)]
 }
 
 # Build maps
@@ -1040,13 +1067,13 @@ p3 <- ggplot() +
   facet_wrap(~spec) +
   labs(
     title = "Top Building-Cluster Contributors",
-    subtitle = sprintf("Building proxy = rounded lat/lon (%d decimals)", opt$building_round),
+    subtitle = sprintf("Building proxy = rounded lat/lon (%d decimals)", building_round),
     color = "Influence",
     size = "Abs influence"
   ) +
   theme_minimal()
 
-maps_pdf <- file.path(opt$output_dir, "rent_fe_driver_maps.pdf")
+maps_pdf <- file.path(output_dir, "rent_fe_driver_maps.pdf")
 pdf(maps_pdf, width = 12, height = 9)
 print(p1)
 print(p2)
@@ -1054,26 +1081,26 @@ print(p3)
 dev.off()
 
 # Write CSV outputs
-fwrite(main_summary, file.path(opt$output_dir, "rent_fe_driver_main_summary.csv"))
-fwrite(boundary_fast_all, file.path(opt$output_dir, "rent_fe_boundary_influence_fast.csv"))
-fwrite(ward_side_fast_all, file.path(opt$output_dir, "rent_fe_ward_side_influence_fast.csv"))
-fwrite(building_fast_all, file.path(opt$output_dir, "rent_fe_building_influence_fast.csv"))
-fwrite(boundary_exact_all, file.path(opt$output_dir, "rent_fe_boundary_influence_exact_loo.csv"))
-fwrite(ward_side_exact_all, file.path(opt$output_dir, "rent_fe_ward_side_influence_exact_loo.csv"))
-fwrite(building_exact_all, file.path(opt$output_dir, "rent_fe_building_influence_exact_loo.csv"))
-fwrite(lop_pair_month_all, file.path(opt$output_dir, "rent_fe_lop_pair_month_metrics.csv"))
-fwrite(lop_boundary_all, file.path(opt$output_dir, "rent_fe_lop_boundary_summary.csv"))
-fwrite(lop_flags, file.path(opt$output_dir, "rent_fe_lop_flags_top_boundaries.csv"))
+fwrite(main_summary, file.path(output_dir, "rent_fe_driver_main_summary.csv"))
+fwrite(boundary_fast_all, file.path(output_dir, "rent_fe_boundary_influence_fast.csv"))
+fwrite(ward_side_fast_all, file.path(output_dir, "rent_fe_ward_side_influence_fast.csv"))
+fwrite(building_fast_all, file.path(output_dir, "rent_fe_building_influence_fast.csv"))
+fwrite(boundary_exact_all, file.path(output_dir, "rent_fe_boundary_influence_exact_loo.csv"))
+fwrite(ward_side_exact_all, file.path(output_dir, "rent_fe_ward_side_influence_exact_loo.csv"))
+fwrite(building_exact_all, file.path(output_dir, "rent_fe_building_influence_exact_loo.csv"))
+fwrite(lop_pair_month_all, file.path(output_dir, "rent_fe_lop_pair_month_metrics.csv"))
+fwrite(lop_boundary_all, file.path(output_dir, "rent_fe_lop_boundary_summary.csv"))
+fwrite(lop_flags, file.path(output_dir, "rent_fe_lop_flags_top_boundaries.csv"))
 
 # Main summary markdown
 summary_md <- c(
   "# Rental Border-Pair FE Driver Main Summary",
   "",
   sprintf("- generated: `%s`", as.character(Sys.time())),
-  sprintf("- bw_ft: `%d`", opt$bw_ft),
-  sprintf("- window: `%s`", opt$window),
-  sprintf("- sample_filter: `%s`", opt$sample_filter),
-  sprintf("- smoke: `%s`", opt$smoke),
+  sprintf("- bw_ft: `%d`", bw_ft),
+  sprintf("- window: `%s`", window),
+  sprintf("- sample_filter: `%s`", sample_filter),
+  sprintf("- smoke: `%s`", smoke),
   "",
   "## Core FE Estimates",
   "| Spec | Estimate | SE | p-value | N | Ward Pairs | Mean Rent | FWL Diff | Replication Diff |",
@@ -1118,7 +1145,7 @@ summary_md <- c(summary_md, "", "## Output Files",
   "- `rent_fe_driver_maps.pdf`"
 )
 
-writeLines(summary_md, file.path(opt$output_dir, "rent_fe_driver_main_summary.md"))
+writeLines(summary_md, file.path(output_dir, "rent_fe_driver_main_summary.md"))
 
 # Takeaways markdown
 concentration_line <- function(dt, value_col, top_n = 10L) {
@@ -1191,19 +1218,19 @@ for (s in specs) {
   )
 }
 
-writeLines(takeaways, file.path(opt$output_dir, "rent_fe_driver_takeaways.md"))
+writeLines(takeaways, file.path(output_dir, "rent_fe_driver_takeaways.md"))
 
-message("Saved: ", file.path(opt$output_dir, "rent_fe_driver_main_summary.csv"))
-message("Saved: ", file.path(opt$output_dir, "rent_fe_driver_main_summary.md"))
-message("Saved: ", file.path(opt$output_dir, "rent_fe_boundary_influence_fast.csv"))
-message("Saved: ", file.path(opt$output_dir, "rent_fe_ward_side_influence_fast.csv"))
-message("Saved: ", file.path(opt$output_dir, "rent_fe_building_influence_fast.csv"))
-message("Saved: ", file.path(opt$output_dir, "rent_fe_boundary_influence_exact_loo.csv"))
-message("Saved: ", file.path(opt$output_dir, "rent_fe_ward_side_influence_exact_loo.csv"))
-message("Saved: ", file.path(opt$output_dir, "rent_fe_building_influence_exact_loo.csv"))
-message("Saved: ", file.path(opt$output_dir, "rent_fe_lop_pair_month_metrics.csv"))
-message("Saved: ", file.path(opt$output_dir, "rent_fe_lop_boundary_summary.csv"))
-message("Saved: ", file.path(opt$output_dir, "rent_fe_lop_flags_top_boundaries.csv"))
-message("Saved: ", file.path(opt$output_dir, "rent_fe_driver_maps.pdf"))
-message("Saved: ", file.path(opt$output_dir, "rent_fe_driver_takeaways.md"))
+message("Saved: ", file.path(output_dir, "rent_fe_driver_main_summary.csv"))
+message("Saved: ", file.path(output_dir, "rent_fe_driver_main_summary.md"))
+message("Saved: ", file.path(output_dir, "rent_fe_boundary_influence_fast.csv"))
+message("Saved: ", file.path(output_dir, "rent_fe_ward_side_influence_fast.csv"))
+message("Saved: ", file.path(output_dir, "rent_fe_building_influence_fast.csv"))
+message("Saved: ", file.path(output_dir, "rent_fe_boundary_influence_exact_loo.csv"))
+message("Saved: ", file.path(output_dir, "rent_fe_ward_side_influence_exact_loo.csv"))
+message("Saved: ", file.path(output_dir, "rent_fe_building_influence_exact_loo.csv"))
+message("Saved: ", file.path(output_dir, "rent_fe_lop_pair_month_metrics.csv"))
+message("Saved: ", file.path(output_dir, "rent_fe_lop_boundary_summary.csv"))
+message("Saved: ", file.path(output_dir, "rent_fe_lop_flags_top_boundaries.csv"))
+message("Saved: ", file.path(output_dir, "rent_fe_driver_maps.pdf"))
+message("Saved: ", file.path(output_dir, "rent_fe_driver_takeaways.md"))
 message("Done.")

@@ -24,51 +24,48 @@ MATCHED_RATIO_CSV := ../output/listing_units_matched_pair_ratio_bw500_pre_2023_a
 all: $(CHAR_TEX) $(LISTING_PDF) $(LISTING_UNITS_PDF) $(SIDE_COMP_PDF) $(MATCHED_RATIO_PDF) $(MATCHED_RATIO_CSV) $(LISTING_UNITS_TEX) $(LISTING_UNITS_CSV) $(LISTING_UNITS_PPML_TEX) $(LISTING_UNITS_PPML_CSV) $(LISTING_UNITS_PPML_ROBUST_TEX) $(LISTING_UNITS_PPML_ROBUST_CSV) $(LISTING_UNITS_PPML_MAIN_TEX) $(LISTING_UNITS_PPML_MAIN_CSV)
 
 $(CHAR_TEX): characteristic_fe_table.R $(INPUT) | ../output
-	Rscript characteristic_fe_table.R --bw_ft=500 --window=pre_2023 \
-		--output_tex="$@" --output_csv="../output/char_fe_table_bw500.csv"
+	# arg order: input bw_ft window output_tex output_csv
+	Rscript characteristic_fe_table.R "$(INPUT)" 500 pre_2023 "$@" "../output/char_fe_table_bw500.csv"
 
 $(LISTING_PDF): listing_density_plot.R $(INPUT) | ../output
-	Rscript listing_density_plot.R --bw_ft=500 --window=pre_2023 --sample_filter=all \
-		--min_strictness_diff_pctile=0 --bins_per_side=15 --output_pdf="$@"
+	# arg order: input bw_ft window sample_filter min_strictness_diff_pctile bins_per_side output_pdf
+	Rscript listing_density_plot.R "$(INPUT)" 500 pre_2023 all 0 15 "$@"
 
 $(LISTING_UNITS_PDF): listing_units_plot.R $(INPUT) | ../output
-	Rscript listing_units_plot.R --bw_ft=500 --window=pre_2023 --sample_filter=all \
-		--unit_def=unit_proxy --min_strictness_diff_pctile=0 --bins_per_side=8 \
-		--output_pdf="$@"
+	# arg order: input bw_ft window sample_filter unit_def min_strictness_diff_pctile bins_per_side output_pdf
+	Rscript listing_units_plot.R "$(INPUT)" 500 pre_2023 all unit_proxy 0 8 "$@"
 
 $(SIDE_COMP_PDF): listing_units_side_comparison.R $(INPUT) | ../output
-	Rscript listing_units_side_comparison.R --bw_ft=500 --window=pre_2023 --sample_filter=all \
-		--unit_def=unit_proxy --min_strictness_diff_pctile=0 --output_pdf="$@"
+	# arg order: input bw_ft window sample_filter unit_def min_strictness_diff_pctile output_pdf
+	Rscript listing_units_side_comparison.R "$(INPUT)" 500 pre_2023 all unit_proxy 0 "$@"
 
 $(MATCHED_RATIO_PDF): listing_units_matched_pair_ratio_plot.R $(INPUT) | ../output
-	Rscript listing_units_matched_pair_ratio_plot.R --bw_ft=500 --window=pre_2023 --sample_filter=all \
-		--unit_def=unit_proxy --min_strictness_diff_pctile=0 --output_pdf="$@" \
-		--output_csv="$(MATCHED_RATIO_CSV)"
+	# arg order: input bw_ft window sample_filter unit_def min_strictness_diff_pctile output_pdf output_csv
+	Rscript listing_units_matched_pair_ratio_plot.R "$(INPUT)" 500 pre_2023 all unit_proxy 0 "$@" "$(MATCHED_RATIO_CSV)"
 
 $(MATCHED_RATIO_CSV): $(MATCHED_RATIO_PDF)
 
 $(LISTING_UNITS_TEX): listing_units_fe_table.R $(INPUT) | ../output
-	Rscript listing_units_fe_table.R --bw_ft=500 --window=pre_2023 --sample_filter=all \
-		--min_strictness_diff_pctile=0 --output_tex="$@" --output_csv="$(LISTING_UNITS_CSV)"
+	# arg order: input bw_ft window sample_filter min_strictness_diff_pctile output_tex output_csv
+	Rscript listing_units_fe_table.R "$(INPUT)" 500 pre_2023 all 0 "$@" "$(LISTING_UNITS_CSV)"
 
 $(LISTING_UNITS_CSV): $(LISTING_UNITS_TEX)
 
 $(LISTING_UNITS_PPML_TEX): listing_units_ppml_fe_table.R $(INPUT) | ../output
-	Rscript listing_units_ppml_fe_table.R --bw_ft=500 --window=pre_2023 --sample_filter=all \
-		--min_strictness_diff_pctile=0 --unit_def=unit_proxy \
-		--output_tex="$@" --output_csv="$(LISTING_UNITS_PPML_CSV)"
+	# arg order: input bw_ft window sample_filter min_strictness_diff_pctile unit_def output_tex output_csv
+	Rscript listing_units_ppml_fe_table.R "$(INPUT)" 500 pre_2023 all 0 unit_proxy "$@" "$(LISTING_UNITS_PPML_CSV)"
 
 $(LISTING_UNITS_PPML_CSV): $(LISTING_UNITS_PPML_TEX)
 
 $(LISTING_UNITS_PPML_ROBUST_TEX): listing_units_ppml_robustness.R $(INPUT) | ../output
-	Rscript listing_units_ppml_robustness.R --bw_ft=500 --window=pre_2023 \
-		--output_tex="$@" --output_csv="$(LISTING_UNITS_PPML_ROBUST_CSV)"
+	# arg order: input bw_ft window output_tex output_csv
+	Rscript listing_units_ppml_robustness.R "$(INPUT)" 500 pre_2023 "$@" "$(LISTING_UNITS_PPML_ROBUST_CSV)"
 
 $(LISTING_UNITS_PPML_ROBUST_CSV): $(LISTING_UNITS_PPML_ROBUST_TEX)
 
 $(LISTING_UNITS_PPML_MAIN_TEX): listing_units_ppml_main_table.R $(INPUT) | ../output
-	Rscript listing_units_ppml_main_table.R --bw_ft=500 --window=pre_2023 --sample_filter=all \
-		--unit_def=unit_proxy --output_tex="$@" --output_csv="$(LISTING_UNITS_PPML_MAIN_CSV)"
+	# arg order: input bw_ft window sample_filter unit_def output_tex output_csv
+	Rscript listing_units_ppml_main_table.R "$(INPUT)" 500 pre_2023 all unit_proxy "$@" "$(LISTING_UNITS_PPML_MAIN_CSV)"
 
 $(LISTING_UNITS_PPML_MAIN_CSV): $(LISTING_UNITS_PPML_MAIN_TEX)
 

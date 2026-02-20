@@ -10,10 +10,8 @@ FE_TEX := ../output/fe_table_sales_bw1000_year_quarter.tex
 all: $(FE_TEX)
 
 $(FE_TEX): sales_border_pair_fe.R $(INPUT) | ../output
-	Rscript sales_border_pair_fe.R --bw_ft=1000 --fe_time=year_quarter \
-		--output_tex="$@" \
-		--output_csv="../output/fe_table_sales_bw1000_year_quarter.csv" \
-		--output_year_diag="../output/year_diagnostics_sales_bw1000_year_quarter.csv"
+	# arg order: input bw_ft fe_time output_tex output_csv output_year_diag
+	Rscript sales_border_pair_fe.R "$(INPUT)" 1000 year_quarter "$@" "../output/fe_table_sales_bw1000_year_quarter.csv" "../output/year_diagnostics_sales_bw1000_year_quarter.csv"
 
 $(INPUT): ../../prep_sales_border_data/output/sales_with_hedonics.parquet | ../input
 	ln -sf "$<" "$@"

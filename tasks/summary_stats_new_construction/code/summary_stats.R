@@ -2,11 +2,19 @@
 
 
 ## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/summary_stats_new_construction/code")
 
 
 # Load packages
 source("../../setup_environment/code/packages.R")
+
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/summary_stats_new_construction/code")
+# input_file <- "../input/parcels_with_ward_distances.csv"
+# output_file <- "../output/summary_stats.tex"
+# Rscript summary_stats.R ../input/parcels_with_ward_distances.csv ../output/summary_stats.tex
+# =======================================================================================
 
 # 1. CLI ARGS
 args <- commandArgs(trailingOnly = TRUE)
@@ -14,9 +22,9 @@ if (length(args) >= 2) {
     input_file <- args[1]
     output_file <- args[2]
 } else {
-    # Default for interactive testing
-    input_file <- "../input/parcels_with_ward_distances.csv"
-    output_file <- "../output/summary_stats.tex"
+    if (!exists("input_file") || !exists("output_file")) {
+        stop("FATAL: Script requires 2 args: <input_file> <output_file>", call. = FALSE)
+    }
 }
 
 # 2. LOAD DATA

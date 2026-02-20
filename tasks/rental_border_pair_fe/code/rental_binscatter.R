@@ -1,19 +1,39 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 1000),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--use_controls", type = "logical", default = TRUE),
-  make_option("--n_bins", type = "integer", default = 40),
-  make_option("--min_strictness_diff_pctile", type = "integer", default = 0),
-  make_option("--output_pdf", type = "character"),
-  make_option("--output_meta_csv", type = "character"),
-  make_option("--output_bins_csv", type = "character")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_pair_fe/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 1000
+# window <- "pre_2021"
+# sample_filter <- "all"
+# use_controls <- TRUE
+# n_bins <- 40
+# min_strictness_diff_pctile <- 0
+# output_pdf <- NA
+# output_meta_csv <- NA
+# output_bins_csv <- NA
+# Rscript rental_binscatter.R "../input/rent_with_ward_distances.parquet" 1000 "pre_2021" "all" TRUE 40 0 NA NA NA
+# =======================================================================================
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 10) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  use_controls <- tolower(cli_args[5]) %in% c("true", "t", "1", "yes")
+  n_bins <- suppressWarnings(as.integer(cli_args[6]))
+  min_strictness_diff_pctile <- suppressWarnings(as.integer(cli_args[7]))
+  output_pdf <- cli_args[8]
+  output_meta_csv <- cli_args[9]
+  output_bins_csv <- cli_args[10]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("use_controls") || !exists("n_bins") || !exists("min_strictness_diff_pctile") || !exists("output_pdf") || !exists("output_meta_csv") || !exists("output_bins_csv")) {
+    stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <use_controls> <n_bins> <min_strictness_diff_pctile> <output_pdf> <output_meta_csv> <output_bins_csv>", call. = FALSE)
+  }
+}
 
 apply_window <- function(df, window_name) {
   if (window_name == "full") return(df)
@@ -34,10 +54,10 @@ stars <- function(p) {
 
 message("=== Strictness Binscatter ===")
 message(sprintf("bw=%d | window=%s | sample=%s | controls=%s",
-                opt$bw_ft, opt$window, opt$sample_filter, opt$use_controls))
+                bw_ft, window, sample_filter, use_controls))
 
 # Load and filter data
-dat <- read_parquet(opt$input) %>%
+dat <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -51,23 +71,23 @@ dat <- read_parquet(opt$input) %>%
     !is.na(rent_price), rent_price > 0,
     !is.na(signed_dist),
     !is.na(strictness_own),
-    abs(signed_dist) <= opt$bw_ft
+    abs(signed_dist) <= bw_ft
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   dat <- dat %>% filter(building_type_clean == "multi_family")
 }
 
-if (opt$min_strictness_diff_pctile > 0) {
+if (min_strictness_diff_pctile > 0) {
   pair_diffs <- dat %>%
     group_by(ward_pair) %>%
     summarise(diff = first(abs(strictness_own - strictness_neighbor)), .groups = "drop")
-  cutoff <- quantile(pair_diffs$diff, opt$min_strictness_diff_pctile / 100)
+  cutoff <- quantile(pair_diffs$diff, min_strictness_diff_pctile / 100)
   keep_pairs <- pair_diffs %>% filter(diff >= cutoff) %>% pull(ward_pair)
   dat <- dat %>% filter(ward_pair %in% keep_pairs)
   message(sprintf("After p%d filter (cutoff=%.3f): %d obs, %d ward pairs",
-                  opt$min_strictness_diff_pctile, cutoff, nrow(dat), n_distinct(dat$ward_pair)))
+                  min_strictness_diff_pctile, cutoff, nrow(dat), n_distinct(dat$ward_pair)))
 }
 
 dat <- dat %>%
@@ -78,7 +98,7 @@ dat <- dat %>%
     building_type_factor = factor(coalesce(building_type_clean, "other"))
   )
 
-if (opt$use_controls) {
+if (use_controls) {
   dat <- dat %>%
     filter(!is.na(log_sqft), !is.na(log_beds), !is.na(log_baths))
 }
@@ -88,7 +108,7 @@ stopifnot(nrow(dat) > 0, length(unique(dat$ward_pair)) >= 2)
 # Main model — use strictness_own directly
 n_type_levels <- n_distinct(dat$building_type_factor)
 rhs <- "strictness_own"
-if (opt$use_controls) {
+if (use_controls) {
   ctrl <- "log_sqft + log_beds + log_baths"
   if (n_type_levels >= 2) ctrl <- paste0(ctrl, " + building_type_factor")
   rhs <- paste0(rhs, " + ", ctrl)
@@ -118,7 +138,7 @@ y_resid <- as.numeric(resid(m_main))
 aug$y_adj <- y_resid + b_strict * aug$strictness_own
 
 # Quantile bins of raw strictness
-aug$bin <- ntile(aug$strictness_own, opt$n_bins)
+aug$bin <- ntile(aug$strictness_own, n_bins)
 
 bins <- aug %>%
   group_by(bin) %>%
@@ -163,8 +183,8 @@ p <- ggplot() +
   labs(
     title = "Alderman Strictness and Rental Prices",
     subtitle = sprintf("bw=%d ft | window=%s | controls=%s%s",
-                        opt$bw_ft, opt$window, opt$use_controls,
-                        if (opt$min_strictness_diff_pctile > 0) sprintf(" | top %d%% pairs", 100 - opt$min_strictness_diff_pctile) else ""),
+                        bw_ft, window, use_controls,
+                        if (min_strictness_diff_pctile > 0) sprintf(" | top %d%% pairs", 100 - min_strictness_diff_pctile) else ""),
     x = "Alderman Strictness Index",
     y = "Adjusted Log(Rent)",
     caption = "Quantile bins of alderman strictness. Y residualized on ward-pair x year-month FE and controls."
@@ -172,17 +192,17 @@ p <- ggplot() +
   theme_bw(base_size = 11) +
   theme(panel.grid.minor = element_blank())
 
-ggsave(opt$output_pdf, p, width = 8.6, height = 6, dpi = 300, bg = "white")
+ggsave(output_pdf, p, width = 8.6, height = 6, dpi = 300, bg = "white")
 
-# write_csv(bins, opt$output_bins_csv)
+# write_csv(bins, output_bins_csv)
 # write_csv(
 #   tibble(
-#     bw_ft = opt$bw_ft, window = opt$window, sample_filter = opt$sample_filter,
-#     use_controls = opt$use_controls, min_strictness_diff = opt$min_strictness_diff,
+#     bw_ft = bw_ft, window = window, sample_filter = sample_filter,
+#     use_controls = use_controls, min_strictness_diff = opt$min_strictness_diff,
 #     coef_estimate = b_strict, coef_se = se_strict, coef_p = p_strict,
 #     n_obs = nobs(m_main), ward_pairs = n_distinct(aug$ward_pair)
 #   ),
-#   opt$output_meta_csv
+#   output_meta_csv
 # )
 
-message(sprintf("Saved: %s", opt$output_pdf))
+message(sprintf("Saved: %s", output_pdf))

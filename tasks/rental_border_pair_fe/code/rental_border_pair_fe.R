@@ -1,24 +1,41 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 1000),
-  make_option("--window", type = "character", default = "pre_covid"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--output_tex", type = "character", default = "../output/fe_table_rental_bw1000_pre_covid_all.tex"),
-  make_option("--output_csv", type = "character", default = "../output/fe_table_rental_bw1000_pre_covid_all.csv"),
-  make_option("--output_year_diag", type = "character", default = "../output/year_diagnostics_bw1000_pre_covid_all.csv")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_pair_fe/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 1000
+# window <- "pre_covid"
+# sample_filter <- "all"
+# output_tex <- "../output/fe_table_rental_bw1000_pre_covid_all.tex"
+# output_csv <- "../output/fe_table_rental_bw1000_pre_covid_all.csv"
+# output_year_diag <- "../output/year_diagnostics_bw1000_pre_covid_all.csv"
+# Rscript rental_border_pair_fe.R "../input/rent_with_ward_distances.parquet" 1000 "pre_covid" "all" "../output/fe_table_rental_bw1000_pre_covid_all.tex" "../output/fe_table_rental_bw1000_pre_covid_all.csv" "../output/year_diagnostics_bw1000_pre_covid_all.csv"
+# =======================================================================================
 
-if (!opt$window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 7) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  output_tex <- cli_args[5]
+  output_csv <- cli_args[6]
+  output_year_diag <- cli_args[7]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("output_tex") || !exists("output_csv") || !exists("output_year_diag")) {
+    stop("FATAL: Script requires 7 args: <input> <bw_ft> <window> <sample_filter> <output_tex> <output_csv> <output_year_diag>", call. = FALSE)
+  }
+}
+
+if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, pre_2023, drop_mid", call. = FALSE)
 }
-if (!opt$sample_filter %in% c("all", "multifamily_only")) {
+if (!sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
 }
-if (!is.finite(opt$bw_ft) || opt$bw_ft <= 0) {
+if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("--bw_ft must be a positive integer", call. = FALSE)
 }
 
@@ -50,12 +67,12 @@ window_label <- c(
 )
 
 message("=== Rental Border Pair FE ===")
-message(sprintf("Input: %s", opt$input))
-message(sprintf("Bandwidth: %d ft", opt$bw_ft))
-message(sprintf("Window: %s", window_label[[opt$window]]))
-message(sprintf("Sample filter: %s", opt$sample_filter))
+message(sprintf("Input: %s", input))
+message(sprintf("Bandwidth: %d ft", bw_ft))
+message(sprintf("Window: %s", window_label[[window]]))
+message(sprintf("Sample filter: %s", sample_filter))
 
-rent_raw <- read_parquet(opt$input) %>%
+rent_raw <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -69,17 +86,17 @@ rent_raw <- read_parquet(opt$input) %>%
     rent_price > 0,
     !is.na(ward_pair),
     !is.na(signed_dist),
-    abs(signed_dist) <= opt$bw_ft,
+    abs(signed_dist) <= bw_ft,
     !is.na(strictness_own)
   )
 
 year_diag <- rent_raw %>%
   mutate(in_window = case_when(
-    opt$window == "full" ~ TRUE,
-    opt$window == "pre_covid" ~ year <= 2019,
-    opt$window == "pre_2021" ~ year <= 2020,
-    opt$window == "pre_2023" ~ year <= 2022,
-    opt$window == "drop_mid" ~ (year <= 2020 | year >= 2024),
+    window == "full" ~ TRUE,
+    window == "pre_covid" ~ year <= 2019,
+    window == "pre_2021" ~ year <= 2020,
+    window == "pre_2023" ~ year <= 2022,
+    window == "drop_mid" ~ (year <= 2020 | year >= 2024),
     TRUE ~ FALSE
   )) %>%
   group_by(year) %>%
@@ -96,10 +113,10 @@ year_diag <- rent_raw %>%
     .groups = "drop"
   )
 
-write_csv(year_diag, opt$output_year_diag)
+write_csv(year_diag, output_year_diag)
 
-rent <- window_rule(rent_raw, opt$window)
-if (opt$sample_filter == "multifamily_only") {
+rent <- window_rule(rent_raw, window)
+if (sample_filter == "multifamily_only") {
   rent <- rent %>% filter(building_type_clean == "multi_family")
 }
 
@@ -187,7 +204,7 @@ etable(
     "_Hedonic Controls" = c("", "$\\checkmark$"),
     "_Ward-Pair $\\times$ Year-Month FE" = c("$\\checkmark$", "$\\checkmark$")
   ),
-  file = opt$output_tex,
+  file = output_tex,
   replace = TRUE
 )
 
@@ -199,13 +216,13 @@ coef_tbl <- tibble(
   n_obs = c(m_no_hed$nobs, m_hed$nobs),
   dep_var_mean = c(mean(rent$rent_price, na.rm = TRUE), mean(rent_hedonics$rent_price, na.rm = TRUE)),
   ward_pairs = c(length(unique(rent$ward_pair)), length(unique(rent_hedonics$ward_pair))),
-  bandwidth_ft = opt$bw_ft,
-  window = opt$window,
-  sample_filter = opt$sample_filter
+  bandwidth_ft = bw_ft,
+  window = window,
+  sample_filter = sample_filter
 )
 
-write_csv(coef_tbl, opt$output_csv)
+write_csv(coef_tbl, output_csv)
 
-message(sprintf("Saved table: %s", opt$output_tex))
-message(sprintf("Saved coefficients: %s", opt$output_csv))
-message(sprintf("Saved year diagnostics: %s", opt$output_year_diag))
+message(sprintf("Saved table: %s", output_tex))
+message(sprintf("Saved coefficients: %s", output_csv))
+message(sprintf("Saved year diagnostics: %s", output_year_diag))

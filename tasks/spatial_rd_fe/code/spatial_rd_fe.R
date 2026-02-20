@@ -1,19 +1,38 @@
 source("../../setup_environment/code/packages.R")
 
-# Usage:
-# Rscript spatial_rd_fe.R <yvar> <use_log> <bw_ft> <fe_spec> <output_pdf> [plot_style]
-# plot_style: "slope" (default) or "level"
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 5) {
-  stop("FATAL: expected at least 5 args: <yvar> <use_log> <bw_ft> <fe_spec> <output_pdf> [plot_style]", call. = FALSE)
-}
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/spatial_rd_fe/code")
+# yvar <- "density_far"
+# use_log <- TRUE
+# bw_ft <- 500
+# fe_spec <- "pair_x_year"
+# output_pdf <- "../output/rd_fe_plot_log_density_far_bw500_pair_x_year.pdf"
+# plot_style <- "slope"
+# Rscript spatial_rd_fe.R density_far TRUE 500 pair_x_year ../output/rd_fe_plot_log_density_far_bw500_pair_x_year.pdf slope
+# =======================================================================================
 
-yvar <- args[1]
-use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
-bw_ft <- as.numeric(args[3])
-fe_spec <- args[4]
-output_pdf <- args[5]
-plot_style <- if (length(args) >= 6) tolower(args[6]) else "slope"
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) >= 6) {
+  yvar <- args[1]
+  use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
+  bw_ft <- as.numeric(args[3])
+  fe_spec <- args[4]
+  output_pdf <- args[5]
+  plot_style <- tolower(args[6])
+} else if (length(args) >= 5) {
+  yvar <- args[1]
+  use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
+  bw_ft <- as.numeric(args[3])
+  fe_spec <- args[4]
+  output_pdf <- args[5]
+  plot_style <- "slope"
+} else {
+  if (!exists("yvar") || !exists("use_log") || !exists("bw_ft") || !exists("fe_spec") || !exists("output_pdf") || !exists("plot_style")) {
+    stop("FATAL: Script requires args: <yvar> <use_log> <bw_ft> <fe_spec> <output_pdf> <plot_style>", call. = FALSE)
+  }
+}
 
 if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("bw_ft must be a positive number.", call. = FALSE)

@@ -1,22 +1,40 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 250),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--shifts", type = "character", default = "-750,750"),
-  make_option("--use_controls", type = "logical", default = TRUE),
-  make_option("--output_csv", type = "character", default = "../output/placebo_shifted_pre_2021_all_bw250.csv"),
-  make_option("--output_pdf", type = "character", default = "../output/placebo_shifted_pre_2021_all_bw250.pdf")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 250
+# window <- "pre_2021"
+# sample_filter <- "all"
+# shifts <- "-750,750"
+# use_controls <- TRUE
+# output_csv <- "../output/placebo_shifted_pre_2021_all_bw250.csv"
+# output_pdf <- "../output/placebo_shifted_pre_2021_all_bw250.pdf"
+# Rscript run_placebo_shifted_boundary.R "../input/rent_with_ward_distances.parquet" 250 "pre_2021" "all" "-750,750" TRUE "../output/placebo_shifted_pre_2021_all_bw250.csv" "../output/placebo_shifted_pre_2021_all_bw250.pdf"
+# =======================================================================================
 
-if (!opt$window %in% c("full", "pre_covid", "pre_2021", "drop_mid")) {
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 8) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  shifts <- cli_args[5]
+  use_controls <- tolower(cli_args[6]) %in% c("true", "t", "1", "yes")
+  output_csv <- cli_args[7]
+  output_pdf <- cli_args[8]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("shifts") || !exists("use_controls") || !exists("output_csv") || !exists("output_pdf")) {
+    stop("FATAL: Script requires 8 args: <input> <bw_ft> <window> <sample_filter> <shifts> <use_controls> <output_csv> <output_pdf>", call. = FALSE)
+  }
+}
+
+if (!window %in% c("full", "pre_covid", "pre_2021", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, drop_mid", call. = FALSE)
 }
-if (!opt$sample_filter %in% c("all", "multifamily_only")) {
+if (!sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
 }
 
@@ -28,7 +46,7 @@ apply_window <- function(df, window_name) {
   df
 }
 
-shift_values <- as.numeric(trimws(strsplit(opt$shifts, ",")[[1]]))
+shift_values <- as.numeric(trimws(strsplit(shifts, ",")[[1]]))
 shift_values <- shift_values[is.finite(shift_values)]
 if (length(shift_values) == 0) {
   stop("No valid placebo shifts provided.", call. = FALSE)
@@ -36,7 +54,7 @@ if (length(shift_values) == 0) {
 all_shifts <- c(0, shift_values)
 max_shift <- max(abs(all_shifts))
 
-dat <- read_parquet(opt$input) %>%
+dat <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -50,11 +68,11 @@ dat <- read_parquet(opt$input) %>%
     !is.na(rent_price), rent_price > 0,
     !is.na(signed_dist),
     !is.na(strictness_own), !is.na(strictness_neighbor),
-    abs(signed_dist) <= (max_shift + opt$bw_ft)
+    abs(signed_dist) <= (max_shift + bw_ft)
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   dat <- dat %>% filter(building_type_clean == "multi_family")
 }
 
@@ -79,11 +97,11 @@ for (s in all_shifts) {
   df_s <- dat %>%
     mutate(
       shifted_dist = signed_dist - s,
-      weight = pmax(0, 1 - abs(shifted_dist) / opt$bw_ft)
+      weight = pmax(0, 1 - abs(shifted_dist) / bw_ft)
     ) %>%
-    filter(abs(shifted_dist) <= opt$bw_ft)
+    filter(abs(shifted_dist) <= bw_ft)
 
-  if (opt$use_controls) {
+  if (use_controls) {
     df_s <- df_s %>%
       filter(!is.na(log_sqft), !is.na(log_beds), !is.na(log_baths), !is.na(building_type_factor))
   }
@@ -95,7 +113,7 @@ for (s in all_shifts) {
       placebo_score = if_else(shifted_dist >= 0, strict_high, strict_low) / sd_strict
     )
 
-  if (opt$use_controls) {
+  if (use_controls) {
     m_y <- feols(
       log(rent_price) ~ log_sqft + log_beds + log_baths + building_type_factor | ward_pair^year_month,
       data = df_s,
@@ -150,14 +168,14 @@ for (s in all_shifts) {
     abs_diff_resid_vs_direct = abs(b_res - b_dir),
     n_obs = nrow(df_s),
     ward_pairs = length(unique(df_s$ward_pair)),
-    controls = opt$use_controls
+    controls = use_controls
   )
 }
 
 out <- bind_rows(results) %>% arrange(shift_ft)
 if (nrow(out) == 0) stop("No placebo models estimated.", call. = FALSE)
 
-# write_csv(out, opt$output_csv)
+# write_csv(out, output_csv)
 
 plot_df <- out %>%
   mutate(
@@ -174,14 +192,14 @@ p <- ggplot(plot_df, aes(x = shift_ft, y = estimate_residualized, color = type))
   scale_color_manual(values = c("True cutoff" = "#2C3E50", "Shifted placebo" = "#C44E52")) +
   labs(
     title = "Shifted-Cutoff Placebo Test (Residualized Border FE)",
-    subtitle = sprintf("bw = %d ft | window = %s | sample = %s", opt$bw_ft, opt$window, opt$sample_filter),
+    subtitle = sprintf("bw = %d ft | window = %s | sample = %s", bw_ft, window, sample_filter),
     x = "Cutoff shift (feet)",
     y = "Coefficient on placebo strictness score"
   ) +
   theme_minimal(base_size = 12) +
   theme(legend.position = "bottom")
 
-ggsave(opt$output_pdf, p, width = 8, height = 5, bg = "white")
+ggsave(output_pdf, p, width = 8, height = 5, bg = "white")
 
-message(sprintf("Saved: %s", opt$output_csv))
-message(sprintf("Saved: %s", opt$output_pdf))
+message(sprintf("Saved: %s", output_csv))
+message(sprintf("Saved: %s", output_pdf))

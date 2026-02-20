@@ -1,16 +1,33 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--bw_ft", type = "integer", default = 1000),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--sample_filter", type = "character", default = "all"),
-  make_option("--min_strictness_diff_pctile", type = "integer", default = 0),
-  make_option("--output_tex", type = "character"),
-  make_option("--output_csv", type = "character")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 1000
+# window <- "pre_2021"
+# sample_filter <- "all"
+# min_strictness_diff_pctile <- 0
+# output_tex <- NA
+# output_csv <- NA
+# Rscript listing_units_fe_table.R "../input/rent_with_ward_distances.parquet" 1000 "pre_2021" "all" 0 NA NA
+# =======================================================================================
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 7) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  min_strictness_diff_pctile <- suppressWarnings(as.integer(cli_args[5]))
+  output_tex <- cli_args[6]
+  output_csv <- cli_args[7]
+} else {
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("min_strictness_diff_pctile") || !exists("output_tex") || !exists("output_csv")) {
+    stop("FATAL: Script requires 7 args: <input> <bw_ft> <window> <sample_filter> <min_strictness_diff_pctile> <output_tex> <output_csv>", call. = FALSE)
+  }
+}
 
 stars <- function(p) {
   if (!is.finite(p)) return("")
@@ -29,9 +46,9 @@ apply_window <- function(df, w) {
 }
 
 message(sprintf("=== Listing Units FE Table | bw=%d | window=%s | sample=%s | pctile=%d ===",
-                opt$bw_ft, opt$window, opt$sample_filter, opt$min_strictness_diff_pctile))
+                bw_ft, window, sample_filter, min_strictness_diff_pctile))
 
-dat <- read_parquet(opt$input) %>%
+dat <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -52,23 +69,23 @@ dat <- read_parquet(opt$input) %>%
   filter(
     !is.na(file_date), !is.na(ward_pair), !is.na(signed_dist), !is.na(strictness_own),
     !is.na(latitude), !is.na(longitude), !is.na(listing_key),
-    abs(signed_dist) <= opt$bw_ft
+    abs(signed_dist) <= bw_ft
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
-if (opt$sample_filter == "multifamily_only") {
+if (sample_filter == "multifamily_only") {
   dat <- dat %>% filter(building_type_clean == "multi_family")
 }
 
-if (opt$min_strictness_diff_pctile > 0) {
+if (min_strictness_diff_pctile > 0) {
   pair_diffs <- dat %>%
     group_by(ward_pair) %>%
     summarise(diff = median(abs(strictness_own - strictness_neighbor), na.rm = TRUE), .groups = "drop")
-  cutoff <- quantile(pair_diffs$diff, opt$min_strictness_diff_pctile / 100, na.rm = TRUE)
+  cutoff <- quantile(pair_diffs$diff, min_strictness_diff_pctile / 100, na.rm = TRUE)
   keep_pairs <- pair_diffs %>% filter(diff >= cutoff) %>% pull(ward_pair)
   dat <- dat %>% filter(ward_pair %in% keep_pairs)
   message(sprintf("  After p%d filter (cutoff=%.3f): %d obs, %d pairs",
-                  opt$min_strictness_diff_pctile, cutoff, nrow(dat), n_distinct(dat$ward_pair)))
+                  min_strictness_diff_pctile, cutoff, nrow(dat), n_distinct(dat$ward_pair)))
 }
 
 strictness_sd <- sd(dat$strictness_own, na.rm = TRUE)
@@ -111,13 +128,13 @@ out <- tibble(
   dep_var_mean = mean(side_cells$log_n, na.rm = TRUE),
   mean_units_per_cell = mean(side_cells$n_units, na.rm = TRUE),
   strictness_sd = strictness_sd,
-  bandwidth_ft = opt$bw_ft,
-  window = opt$window,
-  sample_filter = opt$sample_filter,
-  min_strictness_diff_pctile = opt$min_strictness_diff_pctile
+  bandwidth_ft = bw_ft,
+  window = window,
+  sample_filter = sample_filter,
+  min_strictness_diff_pctile = min_strictness_diff_pctile
 )
 
-write_csv(out, opt$output_csv)
+write_csv(out, output_csv)
 
 coef_str <- sprintf("%.4f%s", out$estimate, stars(out$p_value))
 se_str <- sprintf("(%.4f)", out$std_error)
@@ -144,9 +161,9 @@ tex <- c(
   "\\end{tabular}",
   "\\par\\endgroup"
 )
-writeLines(tex, opt$output_tex)
+writeLines(tex, output_tex)
 
 message(sprintf("  b=%.4f (SE %.4f, p=%.3f), implied=%.2f%%",
                 out$estimate, out$std_error, out$p_value, out$implied_pct_change))
-message(sprintf("Saved: %s", opt$output_tex))
-message(sprintf("Saved: %s", opt$output_csv))
+message(sprintf("Saved: %s", output_tex))
+message(sprintf("Saved: %s", output_csv))

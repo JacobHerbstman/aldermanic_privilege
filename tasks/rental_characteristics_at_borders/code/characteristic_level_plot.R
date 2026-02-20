@@ -1,15 +1,31 @@
 source("../../setup_environment/code/packages.R")
-library(optparse)
 
-option_list <- list(
-  make_option("--input", type = "character", default = "../input/rent_with_ward_distances.parquet"),
-  make_option("--outcome", type = "character"),
-  make_option("--bw_ft", type = "integer", default = 1000),
-  make_option("--window", type = "character", default = "pre_2021"),
-  make_option("--bins_per_side", type = "integer", default = 15),
-  make_option("--output_pdf", type = "character")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
+# =======================================================================================
+# --- Interactive Test Block --- (uncomment to run in RStudio)
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
+# input <- "../input/rent_with_ward_distances.parquet"
+# outcome <- NA
+# bw_ft <- 1000
+# window <- "pre_2021"
+# bins_per_side <- 15
+# output_pdf <- NA
+# Rscript characteristic_level_plot.R "../input/rent_with_ward_distances.parquet" NA 1000 "pre_2021" 15 NA
+# =======================================================================================
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) >= 6) {
+  input <- cli_args[1]
+  outcome <- cli_args[2]
+  bw_ft <- suppressWarnings(as.integer(cli_args[3]))
+  window <- cli_args[4]
+  bins_per_side <- suppressWarnings(as.integer(cli_args[5]))
+  output_pdf <- cli_args[6]
+} else {
+  if (!exists("input") || !exists("outcome") || !exists("bw_ft") || !exists("window") || !exists("bins_per_side") || !exists("output_pdf")) {
+    stop("FATAL: Script requires 6 args: <input> <outcome> <bw_ft> <window> <bins_per_side> <output_pdf>", call. = FALSE)
+  }
+}
 
 # Outcome configuration
 outcome_config <- list(
@@ -22,9 +38,9 @@ outcome_config <- list(
   gym        = list(var = "gym",        label = "Has Gym",             log = FALSE)
 )
 
-cfg <- outcome_config[[opt$outcome]]
+cfg <- outcome_config[[outcome]]
 if (is.null(cfg)) stop(sprintf("Unknown outcome: %s. Options: %s",
-                                opt$outcome, paste(names(outcome_config), collapse = ", ")))
+                                outcome, paste(names(outcome_config), collapse = ", ")))
 
 stars <- function(p) {
   if (!is.finite(p)) return("")
@@ -42,10 +58,10 @@ apply_window <- function(df, w) {
   df
 }
 
-message(sprintf("=== Characteristic Level Plot | %s | bw=%d ===", opt$outcome, opt$bw_ft))
+message(sprintf("=== Characteristic Level Plot | %s | bw=%d ===", outcome, bw_ft))
 
 # ── Load and filter ──
-dat <- read_parquet(opt$input) %>%
+dat <- read_parquet(input) %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -56,9 +72,9 @@ dat <- read_parquet(opt$input) %>%
   ) %>%
   filter(
     !is.na(file_date), !is.na(ward_pair), !is.na(signed_dist), !is.na(strictness_own),
-    abs(signed_dist) <= opt$bw_ft
+    abs(signed_dist) <= bw_ft
   ) %>%
-  apply_window(opt$window)
+  apply_window(window)
 
 # Build outcome variable
 if (cfg$log) {
@@ -87,7 +103,7 @@ stopifnot(nrow(aug) == nobs(m))
 aug$y_adj <- as.numeric(resid(m)) + b_right * aug$right
 
 # ── Bin and plot ──
-bin_w <- opt$bw_ft / opt$bins_per_side
+bin_w <- bw_ft / bins_per_side
 bins <- aug %>%
   mutate(bin_center = (floor(signed_dist / bin_w) + 0.5) * bin_w) %>%
   group_by(bin_center) %>%
@@ -98,8 +114,8 @@ mean_left <- mean(aug$y_adj[aug$right == 0])
 mean_right <- mean(aug$y_adj[aug$right == 1])
 
 line_df <- bind_rows(
-  tibble(x = c(-opt$bw_ft, 0), y = mean_left, side = "Less Uncertain"),
-  tibble(x = c(0, opt$bw_ft), y = mean_right, side = "More Uncertain")
+  tibble(x = c(-bw_ft, 0), y = mean_left, side = "Less Uncertain"),
+  tibble(x = c(0, bw_ft), y = mean_right, side = "More Uncertain")
 )
 
 gap_label <- sprintf("Gap = %.4f%s (SE %.4f)\nN = %s | %d pairs",
@@ -115,11 +131,11 @@ ggplot() +
   annotate("text", x = -Inf, y = Inf, label = gap_label,
            hjust = -0.05, vjust = 1.5, size = 3.3, fontface = "bold") +
   labs(title = sprintf("%s by Side of Ward Boundary (FE-Adjusted)", cfg$label),
-       subtitle = sprintf("bw=%d ft | window=%s", opt$bw_ft, opt$window),
+       subtitle = sprintf("bw=%d ft | window=%s", bw_ft, window),
        x = "Distance to Ward Boundary (feet; positive = more uncertain side)",
        y = sprintf("FE-Adjusted %s", cfg$label)) +
   theme_bw(base_size = 11) +
   theme(legend.position = "top", panel.grid.minor = element_blank())
 
-ggsave(opt$output_pdf, width = 8.6, height = 6, dpi = 300, bg = "white")
-message(sprintf("Saved: %s", opt$output_pdf))
+ggsave(output_pdf, width = 8.6, height = 6, dpi = 300, bg = "white")
+message(sprintf("Saved: %s", output_pdf))

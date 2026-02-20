@@ -56,17 +56,21 @@ $(OUTPUTS): run_border_verification.R $(INPUTS) | ../output
 	$(R) run_border_verification.R
 
 certify: run_border_verification.R $(INPUTS) | ../output
-	$(R) run_border_verification.R --certify_only=TRUE --skip_thresholds=$(SKIP_THRESHOLDS)
+	# arg order: certify_only skip_thresholds output_dir
+	$(R) run_border_verification.R TRUE $(SKIP_THRESHOLDS) ../output
 
 compare: compare_density_rental_before_after.R $(CERT_OUTPUTS) | ../output
 	@if [ -z "$(SNAPSHOT_DIR)" ]; then echo "SNAPSHOT_DIR is required for compare target"; exit 1; fi
-	$(R) compare_density_rental_before_after.R --snapshot_dir="$(SNAPSHOT_DIR)"
+	# arg order: snapshot_dir output_dir
+	$(R) compare_density_rental_before_after.R "$(SNAPSHOT_DIR)" ../output
 
 forensics-pack: build_geometry_forensics_pack.R $(INPUTS) $(CERT_OUTPUTS) | ../output
-	$(R) build_geometry_forensics_pack.R --mode_before=legacy_before --mode_after=certified_after --top_n_pairs=20 --top_n_points=50000 --output_dir=../output --smoke=FALSE
+	# arg order: mode_before mode_after top_n_pairs top_n_points output_dir smoke seed
+	$(R) build_geometry_forensics_pack.R legacy_before certified_after 20 50000 ../output FALSE 20260216
 
 forensics-smoke: build_geometry_forensics_pack.R $(INPUTS) $(CERT_OUTPUTS) | ../output
-	$(R) build_geometry_forensics_pack.R --mode_before=legacy_before --mode_after=certified_after --top_n_pairs=10 --top_n_points=8000 --output_dir=../output --smoke=TRUE
+	# arg order: mode_before mode_after top_n_pairs top_n_points output_dir smoke seed
+	$(R) build_geometry_forensics_pack.R legacy_before certified_after 10 8000 ../output TRUE 20260216
 
 ../input/parcels_pre_scores.csv: ../../calculate_ward_boundary_distances/output/parcels_pre_scores.csv | ../input
 	ln -sf $< $@
