@@ -1,184 +1,51 @@
-# border_pair_FE_tables_by_bw.R
-# One table per bandwidth (in miles) with multiple outcomes as columns.
-# Regressions: y ~ homeownership_own | construction_year + ward_pair, clustered by ward_pair
-
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
-
 source("../../setup_environment/code/packages.R")
+library(optparse)
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
-# bw_ft <- 250
-# fe_spec <- "zone_x_pair_year"
-# yvars <- c(
-#   "log(density_far)", "log(density_dupac)", "log(unitscount)"
-# )
-# output_filename <- "../output/fe_table_bw250_zone_x_pair_year.tex"
-# =======================================================================================
-
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 parser <- OptionParser()
-parser <- add_option(parser, c("-b", "--bw_ft"),
-  type = "integer", default = 250,
-  help = "Bandwidth in feet [default: 250]"
-)
-parser <- add_option(parser, c("-u", "--units_cap"),
-  type = "integer", default = -1,
-  help = "Optional max unitscount cap; <=0 disables cap [default: -1]"
-)
-parser <- add_option(parser, c("-f", "--fe_spec"),
-  type = "character", default = "zone_x_pair_year",
-  help = "Fixed effects specification: zone_x_pair_year, zone_pair_x_year, triple, pair_year_only [default: zone_x_pair_year]"
-)
-parser <- add_option(parser, c("-o", "--output"),
-  type = "character", default = NULL,
-  help = "Output filename [default: auto-generated]"
-)
+parser <- add_option(parser, c("-b", "--bw_ft"), type = "integer", default = 250)
+parser <- add_option(parser, c("-u", "--units_cap"), type = "integer", default = 100)
+parser <- add_option(parser, c("-f", "--fe_spec"), type = "character", default = "pair_x_year")
+parser <- add_option(parser, c("-o", "--output"), type = "character", default = "")
 
-# Parse known options, remaining args are yvars
 args <- parse_args(parser, positional_arguments = TRUE)
 opts <- args$options
-pos_args <- args$args
+yvars <- args$args
 
-# Allow interactive testing with objects already defined in the session
-if (!is.null(opts$bw_ft)) {
-  bw_ft <- opts$bw_ft
-} else if (!exists("bw_ft")) {
-  stop("FATAL: bw_ft not provided", call. = FALSE)
+if (!is.finite(opts$bw_ft) || opts$bw_ft <= 0) {
+  stop("bw_ft must be positive.")
+}
+if (length(yvars) == 0) {
+  yvars <- c("log(density_far)", "log(density_dupac)", "log(unitscount)")
 }
 
-if (!is.null(opts$fe_spec)) {
-  fe_spec <- opts$fe_spec
-} else if (!exists("fe_spec")) {
-  fe_spec <- "zone_x_pair_year"
-}
+base_name <- function(x) gsub("^log\\(|\\)$", "", x)
+is_log_spec <- function(x) str_detect(x, "^log\\(.+\\)$")
 
-if (!is.null(opts$output) && opts$output != "") {
-  output_filename <- opts$output
-} else if (!exists("output_filename")) {
-  output_filename <- sprintf("../output/fe_table_bw%d_%s.tex", bw_ft, fe_spec)
-}
-
-# Parse yvars from positional arguments
-if (length(pos_args) > 0) {
-  yvars <- pos_args
-} else if (!exists("yvars")) {
-  stop("FATAL: no yvars provided", call. = FALSE)
-}
-
-if (!is.finite(bw_ft) || bw_ft <= 0) stop("bw_feet must be a positive integer/numeric.")
-units_cap <- opts$units_cap
-if (is.null(units_cap) || !is.finite(units_cap)) units_cap <- -1
-if (length(yvars) == 0) stop("No yvars provided.")
-
-message(sprintf("\n=== Border-Pair FE Configuration ==="))
-message(sprintf("Bandwidth: %d ft", bw_ft))
-message(sprintf("FE Specification: %s", fe_spec))
-if (units_cap > 0) {
-  message(sprintf("Units cap: unitscount <= %d", units_cap))
-} else {
-  message("Units cap: none")
-}
-message(sprintf("Output: %s", output_filename))
-message(sprintf("Y variables: %s", paste(yvars, collapse = ", ")))
-
-bw_mi <- round(bw_ft / 5280, 2)
-
-
-# ── 2) DATA ──────────────────────────────────────────────────────────────────
-parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
-  mutate(strictness_own = strictness_own / sd(strictness_own, na.rm = T)) %>%
-  filter(arealotsf > 1) %>%
-  filter(areabuilding > 1) %>%
-  filter(unitscount > 1) %>%
-  filter(construction_year >= 1999)
-
-if (units_cap > 0) {
-  parcels_fe <- parcels_fe %>% filter(unitscount <= units_cap)
-}
-# filter(construction_year < 2024)
-
-
-# ── 3) HELPERS ───────────────────────────────────────────────────────────────
-is_log_spec <- function(v) str_detect(v, "^log\\(.+\\)$")
-base_name <- function(v) gsub("^log\\(|\\)$", "", v)
-
-pretty_label <- function(v) {
-  b <- base_name(v)
-  dict <- c(
-    "density_dupac" = "DUPAC",
-    "density_far" = "FAR",
-    "density_lapu" = "Lot Area Per Unit (LAPU)",
-    "density_bcr" = "Building Coverage Ratio (BCR)",
-    "density_lps" = "Lot Size Per Story (LPS)",
-    "density_spu" = "Square Feet Per Unit (SPU)",
-    "arealotsf" = "Lot Area (sf)",
-    "areabuilding" = "Building Area (sf)",
-    "storiescount" = "Stories",
-    "unitscount" = "Units",
-    "bedroomscount" = "Bedrooms",
-    "bathcount" = "Bathrooms"
+pretty_label <- function(x) {
+  labels <- c(
+    density_far = "FAR",
+    density_dupac = "DUPAC",
+    unitscount = "Units"
   )
-  lab <- ifelse(b %in% names(dict), dict[[b]], b)
-  if (is_log_spec(v)) paste0("ln(", lab, ")") else lab
+  b <- base_name(x)
+  core <- ifelse(b %in% names(labels), labels[[b]], b)
+  if (is_log_spec(x)) paste0("ln(", core, ")") else core
 }
 
-# fitstat: mean of *level* DV for the estimation sample
-mean_y_level <- function(x) {
-  dat <- x$custom_data
-  y_lhs <- deparse(x$fml[[2]])
-  y0 <- if (grepl("^log\\(", y_lhs)) gsub("^log\\(|\\)$", "", y_lhs) else y_lhs
-
-  val <- mean(dat[[y0]], na.rm = TRUE)
-
-  # Return a formatted string to force the display you want
-  sprintf("%.2f", val)
+mean_y_level <- function(model) {
+  dat <- model$custom_data
+  lhs <- deparse(model$fml[[2]])
+  level_var <- if (is_log_spec(lhs)) base_name(lhs) else lhs
+  sprintf("%.2f", mean(dat[[level_var]], na.rm = TRUE))
 }
 fitstat_register("myo", mean_y_level, alias = "Dep. Var. Mean")
 
-# fitstat: n ward pairs
-n_ward_pairs <- function(x) {
-  mf <- tryCatch(model.frame(x), error = function(e) NULL)
-  if (!is.null(mf) && "ward_pair" %in% names(mf)) {
-    return(length(unique(mf$ward_pair)))
-  }
-  # Fallbacks if needed:
-  if (!is.null(x$cluster) && "ward_pair" %in% names(x$cluster)) {
-    return(length(unique(x$cluster$ward_pair)))
-  }
-  if (!is.null(x$custom_data) && "ward_pair" %in% names(x$custom_data)) {
-    return(length(unique(stats::na.omit(x$custom_data$ward_pair))))
-  }
-  NA_integer_
+n_ward_pairs <- function(model) {
+  dat <- model$custom_data
+  length(unique(dat$ward_pair))
 }
-
 fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
-rename_dict <- c(
-  "strictness_own" = "Uncertainty Index",
-  "zone_code" = "Zoning Code FE",
-  "construction_year" = "Year FE",
-  "ward_pair" = "Ward-Pair FE",
-  "ward" = "Ward",
-  "zone_code^ward_pair" = "Zoning Code $\\times$ Ward-Pair FE",
-  "ward_pair^construction_year" = "Ward-Pair $\\times$ Year FE",
-  "zone_code^ward_pair^construction_year" = "Zoning $\\times$ Ward-Pair $\\times$ Year FE",
-  "density_dupac" = "Dwelling Units Per Acre (DUPAC)",
-  "density_far" = "Floor Area Ratio (FAR)",
-  "density_lapu" = "Lot Area Per Unit (LAPU)",
-  "density_bcr" = "Building Coverage Ratio (BCR)",
-  "density_lps" = "Lot Size Per Story (LPS)",
-  "density_spu" = "Square Feet Per Unit (SPU)",
-  "arealotsf" = "Lot Area (sf)",
-  "areabuilding" = "Building Area (sf)",
-  "storiescount" = "Stories",
-  "unitscount" = "Units",
-  "bedroomscount" = "Bedrooms",
-  "bathcount" = "Bathrooms"
-)
-
-# ── FE SPECIFICATION MAPPINGS ─────────────────────────────────────────────────
 fe_formulas <- list(
   zone_x_pair_year = "zone_code^ward_pair + construction_year",
   zone_pair_x_year = "zone_code + ward_pair^construction_year",
@@ -208,75 +75,102 @@ fe_labels <- list(
   )
 )
 
-# Validate FE spec
-if (!fe_spec %in% names(fe_formulas)) {
-  stop(sprintf("Invalid fe_spec '%s'. Must be one of: %s", 
-    fe_spec, paste(names(fe_formulas), collapse = ", ")), call. = FALSE)
+if (!opts$fe_spec %in% names(fe_formulas)) {
+  stop("Invalid fe_spec: ", opts$fe_spec)
 }
 
-fe_formula_str <- fe_formulas[[fe_spec]]
-fe_label_list <- fe_labels[[fe_spec]]
-message(sprintf("Using FE formula: | %s", fe_formula_str))
+output_file <- opts$output
+if (output_file == "") {
+  output_file <- paste0("../output/fe_table_bw", opts$bw_ft, "_", opts$fe_spec, ".tex")
+}
 
+parcels <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
+  mutate(strictness_own = strictness_own / sd(strictness_own, na.rm = TRUE)) %>%
+  filter(
+    arealotsf > 1,
+    areabuilding > 1,
+    unitscount > 1,
+    construction_year >= 1999
+  )
 
-# ── 4) MODELS (ONE PER OUTCOME), SAME BW ─────────────────────────────────────
+if (is.finite(opts$units_cap) && opts$units_cap > 0) {
+  parcels <- parcels %>% filter(unitscount <= opts$units_cap)
+}
+
 models <- list()
-col_headers <- c()
+model_meta <- tibble()
 
 for (yv in yvars) {
   b <- base_name(yv)
-  if (!b %in% names(parcels_fe)) {
-    warning(sprintf("Skipping '%s' (base var '%s' not found).", yv, b))
+  if (!b %in% names(parcels)) {
     next
   }
 
-  df <- parcels_fe %>%
-    filter(dist_to_boundary <= bw_ft)
-
-  check_df_additive <- df %>%
-    mutate(fe_group_id = paste(ward_pair, zone_code, sep = "_"))
-
-  # 2. Calculate variation within each group
-  identifying_variation_additive <- check_df_additive %>%
-    group_by(fe_group_id) %>%
-    summarize(
-      n_obs = n(),
-      # Check if there is variation in strictness (are there properties on BOTH sides?)
-      sd_strictness = sd(strictness_own, na.rm = TRUE)
-    ) %>%
-    # Filter to keep only useful groups
-    filter(n_obs > 1 & !is.na(sd_strictness) & sd_strictness > 0)
-
-  # 3. View Results
-  message("--- Additive Specification Checks (Zone^Pair + Year) ---")
-  message("Number of useful groups: ", nrow(identifying_variation_additive))
-  message("Number of useful observations: ", sum(identifying_variation_additive$n_obs))
-  message("Total observations in dataset: ", nrow(df))
-
-  if (nrow(df) == 0) {
-    warning(sprintf("Skipping '%s' (no rows after filtering).", yv))
+  run_data <- parcels %>% filter(dist_to_boundary <= opts$bw_ft)
+  if (is_log_spec(yv)) {
+    run_data <- run_data %>% filter(.data[[b]] > 0)
+  }
+  if (nrow(run_data) == 0) {
     next
   }
 
-  fml_txt <- paste0(yv, " ~ strictness_own + share_white_own + share_black_own + median_hh_income_own + share_bach_plus_own +
-  homeownership_rate_own + avg_rent_own | ", fe_formula_str)
-  m <- feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
-  m$custom_data <- df
+  fml <- as.formula(
+    paste0(
+      yv,
+      " ~ strictness_own + share_white_own + share_black_own + median_hh_income_own + ",
+      "share_bach_plus_own + homeownership_rate_own + avg_rent_own | ",
+      fe_formulas[[opts$fe_spec]]
+    )
+  )
 
-  models[[length(models) + 1]] <- m
-  col_headers <- c(col_headers, pretty_label(yv))
+  model <- feols(fml, data = run_data, cluster = ~ward_pair)
+  model$custom_data <- run_data
+
+  models[[length(models) + 1]] <- model
+  names(models)[length(models)] <- pretty_label(yv)
+
+  coef_table <- coeftable(model)
+  has_coef <- "strictness_own" %in% rownames(coef_table)
+
+  model_meta <- bind_rows(
+    model_meta,
+    tibble(
+      output_file = basename(output_file),
+      bw_ft = opts$bw_ft,
+      units_cap = opts$units_cap,
+      fe_spec = opts$fe_spec,
+      yvar = yv,
+      n_obs = nobs(model),
+      n_ward_pairs = length(unique(run_data$ward_pair)),
+      coef_strictness = if (has_coef) coef_table["strictness_own", "Estimate"] else NA_real_,
+      se_strictness = if (has_coef) coef_table["strictness_own", "Std. Error"] else NA_real_,
+      p_strictness = if (has_coef) coef_table["strictness_own", "Pr(>|t|)"] else NA_real_,
+      coef_negative = if (has_coef) as.numeric(coef_table["strictness_own", "Estimate"] < 0) else NA_real_,
+      run_timestamp = as.character(Sys.time())
+    )
+  )
 }
 
-if (length(models) == 0) stop("No models estimated; check yvars and data.")
-names(models) <- col_headers
+if (length(models) == 0) {
+  stop("No models estimated.")
+}
 
-# ── 5) TITLE & TABLE OUTPUT ──────────────────────────────────────────────────
-table_title <- sprintf("Border-Pair FE estimates (bw = %.0f ft)", bw_ft)
+rename_dict <- c(
+  strictness_own = "Uncertainty Index",
+  zone_code = "Zoning Code FE",
+  construction_year = "Year FE",
+  ward_pair = "Ward-Pair FE",
+  "zone_code^ward_pair" = "Zoning Code $\\times$ Ward-Pair FE",
+  "ward_pair^construction_year" = "Ward-Pair $\\times$ Year FE",
+  "zone_code^ward_pair^construction_year" = "Zoning $\\times$ Ward-Pair $\\times$ Year FE"
+)
 
-etable(models,
+etable(
+  models,
   keep = "Uncertainty Index",
   fitstat = ~ n + myo + nwp,
-  style.tex = style.tex("aer",
+  style.tex = style.tex(
+    "aer",
     model.format = "",
     fixef.title = "",
     fixef.suffix = "",
@@ -287,9 +181,60 @@ etable(models,
   headers = names(models),
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
   dict = rename_dict,
-  fixef.group = fe_label_list,
+  fixef.group = fe_labels[[opts$fe_spec]],
   float = FALSE,
   tex = TRUE,
-  file = output_filename,
+  file = output_file,
   replace = TRUE
 )
+
+qc_path <- "../output/fe_run_qc.csv"
+existing_qc <- if (file.exists(qc_path)) {
+  read_csv(qc_path, show_col_types = FALSE)
+} else {
+  tibble()
+}
+
+output_file_base <- basename(output_file)
+yvars_in_run <- unique(model_meta$yvar)
+
+if (nrow(existing_qc) > 0 && "run_timestamp" %in% names(existing_qc)) {
+  existing_qc <- existing_qc %>% mutate(run_timestamp = as.character(run_timestamp))
+}
+
+if (nrow(existing_qc) > 0) {
+  existing_qc <- existing_qc %>%
+    filter(!(output_file == output_file_base & yvar %in% yvars_in_run))
+}
+
+updated_qc <- bind_rows(existing_qc, model_meta) %>%
+  arrange(output_file, yvar)
+write_csv(updated_qc, qc_path)
+
+negative_count <- sum(updated_qc$coef_negative == 1, na.rm = TRUE)
+coef_count <- sum(!is.na(updated_qc$coef_negative))
+
+txt_lines <- c(
+  "border pair fe qc summary",
+  paste0("rows_in_qc: ", nrow(updated_qc)),
+  paste0("strictness_negative_count: ", negative_count),
+  paste0("strictness_coef_count: ", coef_count),
+  paste0("strictness_negative_share: ", round(negative_count / max(coef_count, 1), 4)),
+  paste0("latest_output_file: ", basename(output_file)),
+  paste0("latest_bw_ft: ", opts$bw_ft),
+  paste0("latest_units_cap: ", opts$units_cap),
+  paste0("latest_fe_spec: ", opts$fe_spec),
+  "latest_rows:",
+  paste0(
+    "  ",
+    model_meta$yvar,
+    " | n=", model_meta$n_obs,
+    " | coef=", round(model_meta$coef_strictness, 4),
+    " | p=", round(model_meta$p_strictness, 4)
+  )
+)
+writeLines(txt_lines, "../output/fe_run_qc.txt")
+
+message("Wrote ", output_file)
+message("Wrote ../output/fe_run_qc.csv")
+message("Wrote ../output/fe_run_qc.txt")

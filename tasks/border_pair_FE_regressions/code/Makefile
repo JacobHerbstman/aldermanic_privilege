@@ -1,22 +1,21 @@
-SHELL := bash
-include ../../shell_functions.make
+fe_specs ?= pair_x_year
+bws_ft := 250 500 1000
+yvars_table := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)'
+units_cap ?= 100
+output_suffix ?=
 
-# Active uncertainty-spec FE table set used by slides_uncertainty.
-FE_SPECS := pair_x_year
-BWS_FT := 250 500 1000
-YVARS_TABLE := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)'
-UNITS_CAP ?= 100
-OUTPUT_SUFFIX ?=
+table_outputs := $(foreach bw,$(bws_ft),$(foreach fe,$(fe_specs),../output/fe_table_bw$(bw)_$(fe)$(output_suffix).tex))
+qc_outputs := ../output/fe_run_qc.csv ../output/fe_run_qc.txt
 
-OUTPUT_FILES := $(foreach bw,$(BWS_FT),$(foreach fe,$(FE_SPECS),../output/fe_table_bw$(bw)_$(fe)$(OUTPUT_SUFFIX).tex))
+all: $(table_outputs) $(qc_outputs)
 
-all: $(OUTPUT_FILES)
+$(qc_outputs): $(firstword $(table_outputs))
 
-define FE_template
-../output/fe_table_bw$(1)_$(2)$(OUTPUT_SUFFIX).tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript border_pair_FE_regressions.R --bw_ft=$(1) --units_cap=$(UNITS_CAP) --fe_spec=$(2) --output="$$@" $(YVARS_TABLE)
+define fe_rule
+../output/fe_table_bw$(1)_$(2)$(output_suffix).tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
+	Rscript border_pair_FE_regressions.R --bw_ft=$(1) --units_cap=$(units_cap) --fe_spec=$(2) --output="$$@" $(yvars_table)
 endef
-$(foreach bw,$(BWS_FT),$(foreach fe,$(FE_SPECS),$(eval $(call FE_template,$(bw),$(fe)))))
+$(foreach bw,$(bws_ft),$(foreach fe,$(fe_specs),$(eval $(call fe_rule,$(bw),$(fe)))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	ln -sf "$<" "$@"

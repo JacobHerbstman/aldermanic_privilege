@@ -1,66 +1,43 @@
-SHELL := bash
-include ../../shell_functions.make
+bandwidths := 500
+fe_specs := pair_x_year pair_year
+yvars := density_far density_dupac unitscount
+log_status := true false
 
-BANDWIDTHS := 500
-FE_SPECS := pair_x_year pair_year
-YVARS := density_far density_dupac unitscount
-LOG_STATUS := TRUE FALSE
+log_prefix_true := log_
+log_prefix_false :=
 
-LOG_PREFIX_TRUE := log_
-LOG_PREFIX_FALSE :=
-
-SLOPE_OUTPUTS := \
-../output/rd_fe_plot_log_density_far_bw500_pair_x_year.pdf \
-../output/rd_fe_plot_log_density_dupac_bw500_pair_x_year.pdf \
-../output/rd_fe_plot_density_far_bw500_pair_x_year.pdf \
-../output/rd_fe_plot_density_dupac_bw500_pair_x_year.pdf \
-../output/rd_fe_plot_log_unitscount_bw500_pair_x_year.pdf \
-../output/rd_fe_plot_unitscount_bw500_pair_x_year.pdf \
-../output/rd_fe_plot_log_density_far_bw500_pair_year.pdf \
-../output/rd_fe_plot_log_density_dupac_bw500_pair_year.pdf
-
-define GEN_LEVEL_FILES
-$(foreach yvar,$(YVARS), \
-$(foreach bw,$(BANDWIDTHS), \
-$(foreach fe,$(FE_SPECS), \
-$(foreach log_stat,$(LOG_STATUS), \
-../output/rd_fe_plot_level_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(fe).pdf \
-))))
+define gen_slope_files
+$(foreach yvar,$(yvars),$(foreach bw,$(bandwidths),$(foreach fe,$(fe_specs),$(foreach log_stat,$(log_status),../output/rd_fe_plot_$(log_prefix_$(log_stat))$(yvar)_bw$(bw)_$(fe).pdf))))
 endef
 
-LEVEL_OUTPUTS := $(call GEN_LEVEL_FILES)
-ALL_OUTPUTS := $(SLOPE_OUTPUTS) $(LEVEL_OUTPUTS)
+define gen_level_files
+$(foreach yvar,$(yvars),$(foreach bw,$(bandwidths),$(foreach fe,$(fe_specs),$(foreach log_stat,$(log_status),../output/rd_fe_plot_level_$(log_prefix_$(log_stat))$(yvar)_bw$(bw)_$(fe).pdf))))
+endef
 
-all: $(ALL_OUTPUTS)
+slope_outputs := $(call gen_slope_files)
+level_outputs := $(call gen_level_files)
+qc_outputs := ../output/spatial_rd_fe_qc.csv ../output/spatial_rd_fe_qc.txt
 
-define GEN_RULE
-../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(fe).pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
+all: $(slope_outputs) $(level_outputs) $(qc_outputs)
+
+$(qc_outputs): $(firstword $(slope_outputs))
+
+define slope_rule
+../output/rd_fe_plot_$(log_prefix_$(log_stat))$(yvar)_bw$(bw)_$(fe).pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
 	Rscript spatial_rd_fe.R $(yvar) $(log_stat) $(bw) $(fe) $$@ slope
-	rm -f "$$(@:.pdf=_bins.csv)" "$$(@:.pdf=_meta.csv)"
 endef
 
-$(foreach yvar,$(YVARS), \
-$(foreach bw,$(BANDWIDTHS), \
-$(foreach fe,$(FE_SPECS), \
-$(foreach log_stat,$(LOG_STATUS), \
-$(eval $(GEN_RULE)) \
-))))
+$(foreach yvar,$(yvars),$(foreach bw,$(bandwidths),$(foreach fe,$(fe_specs),$(foreach log_stat,$(log_status),$(eval $(slope_rule))))))
 
-define GEN_LEVEL_RULE
-../output/rd_fe_plot_level_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(fe).pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
+define level_rule
+../output/rd_fe_plot_level_$(log_prefix_$(log_stat))$(yvar)_bw$(bw)_$(fe).pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
 	Rscript spatial_rd_fe.R $(yvar) $(log_stat) $(bw) $(fe) $$@ level
-	rm -f "$$(@:.pdf=_bins.csv)" "$$(@:.pdf=_meta.csv)"
 endef
 
-$(foreach yvar,$(YVARS), \
-$(foreach bw,$(BANDWIDTHS), \
-$(foreach fe,$(FE_SPECS), \
-$(foreach log_stat,$(LOG_STATUS), \
-$(eval $(GEN_LEVEL_RULE)) \
-))))
+$(foreach yvar,$(yvars),$(foreach bw,$(bandwidths),$(foreach fe,$(fe_specs),$(foreach log_stat,$(log_status),$(eval $(level_rule))))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf $< $@
+	ln -sf "$<" "$@"
 
 include ../../generic.make
 

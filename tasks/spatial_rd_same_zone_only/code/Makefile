@@ -1,42 +1,31 @@
-SHELL := bash
-include ../../shell_functions.make
+bandwidths := 250 500 1000
+kernels := triangular
+yvars := density_far density_dupac unitscount
+log_status := true false
 
-BANDWIDTHS := 250 500 1000 
-KERNELS    := triangular
-YVARS      := density_far density_dupac unitscount
-LOG_STATUS := TRUE FALSE
-DONUT := 0
+log_prefix_true := log_
+log_prefix_false :=
 
-LOG_PREFIX_TRUE  := log_
-LOG_PREFIX_FALSE :=
-
-define GEN_FILENAMES
-    $(foreach yvar,$(YVARS), \
-    $(foreach bw,$(BANDWIDTHS), \
-    $(foreach kernel,$(KERNELS), \
-    $(foreach log_stat,$(LOG_STATUS), \
-        ../output/rd_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(kernel).pdf \
-    ))))
+define gen_filenames
+$(foreach yvar,$(yvars),$(foreach bw,$(bandwidths),$(foreach kernel,$(kernels),$(foreach log_stat,$(log_status),../output/rd_plot_$(log_prefix_$(log_stat))$(yvar)_bw$(bw)_$(kernel).pdf))))
 endef
 
-ALL_RD_PLOTS := $(call GEN_FILENAMES)
+rd_plots := $(call gen_filenames)
+qc_outputs := ../output/rd_run_qc.csv ../output/rd_run_qc.txt
 
-all: $(ALL_RD_PLOTS)
+all: $(rd_plots) $(qc_outputs)
 
-define GEN_PLOTTING_RULES
-../output/rd_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(kernel).pdf: spatial_rd_same_zone_only.R ../input/parcels_with_ward_distances.csv | ../output
+$(qc_outputs): $(firstword $(rd_plots))
+
+define run_rd
+../output/rd_plot_$(log_prefix_$(log_stat))$(yvar)_bw$(bw)_$(kernel).pdf: spatial_rd_same_zone_only.R ../input/parcels_with_ward_distances.csv | ../output
 	Rscript spatial_rd_same_zone_only.R $(yvar) $(log_stat) $(bw) $(kernel) $$@
 endef
 
-$(foreach yvar,$(YVARS), \
-$(foreach bw,$(BANDWIDTHS), \
-$(foreach kernel,$(KERNELS), \
-$(foreach log_stat,$(LOG_STATUS), \
-    $(eval $(GEN_PLOTTING_RULES)) \
-))))
+$(foreach yvar,$(yvars),$(foreach bw,$(bandwidths),$(foreach kernel,$(kernels),$(foreach log_stat,$(log_status),$(eval $(run_rd))))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf $< $@
+	ln -sf "$<" "$@"
 
 include ../../generic.make
 
