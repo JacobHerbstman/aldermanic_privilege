@@ -202,13 +202,20 @@ if (VOLUME_CTRL != "NONE") {
 # -----------------------------------------------------------------------------
 
 # Covariates (ward demographics + place controls)
+place_covariates <- c("dist_cbd_km", "dist_lake_km", "n_rail_stations_800m")
+if (!all(place_covariates %in% names(permits))) {
+  # Backward compatibility with legacy uncertainty input
+  place_covariates <- c("dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m")
+  message("Using legacy lakefront_share_1km place control (dist_lake_km not found in input).")
+}
+
 covariates <- c(
   # Ward demographics
   "median_hh_income_10k", "share_black", "share_hisp", "share_white",
   "homeownership_rate", "share_bach_plus", "pop_total_10k",
 
-  # Legacy place controls from ward geometry (map-version specific)
-  "dist_cbd_km", "lakefront_share_1km", "n_rail_stations_800m"
+  # Place controls
+  place_covariates
 )
 
 if (include_volume_stage1) {
@@ -587,6 +594,7 @@ etable(
     share_bach_plus = "Share Bachelor's+",
     pop_total_10k = "Population (10k)",
     dist_cbd_km = "Dist. to CBD (km)",
+    dist_lake_km = "Dist. to Lake (km)",
     lakefront_share_1km = "Lakefront Share",
     n_rail_stations_800m = "CTA Stations (800m)"
   ),

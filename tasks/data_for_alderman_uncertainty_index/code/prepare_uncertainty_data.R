@@ -1,6 +1,6 @@
 ## Prepare permit-level dataset for alderman uncertainty index
-## This script merges permits with ward, alderman, demographics, and hand-built
-## ward-level place controls (legacy-style, no parcel proximity dependency).
+## This script merges permits with ward, alderman, demographics, and
+## parcel-level place controls from permit-point geometry.
 
 source("../../setup_environment/code/packages.R")
 
@@ -118,7 +118,8 @@ assign_ward_by_month <- function(permits_data) {
     # Handle potential duplicate ward columns
     if ("ward.x" %in% names(result) && "ward.y" %in% names(result)) {
       result <- result %>%
-        mutate(ward = coalesce(ward.y, ward.x)) %>%
+        # Keep only spatially matched ward from polygon join.
+        mutate(ward = ward.y) %>%
         select(-ward.x, -ward.y)
     }
     
@@ -216,83 +217,108 @@ permits_with_controls <- permits_with_alderman %>%
 message("Permits with ward controls: ", sum(!is.na(permits_with_controls$homeownership_rate)))
 
 # -----------------------------------------------------------------------------
-# 6. BUILD + MERGE LEGACY PLACE CONTROLS (WARD x MAP VERSION)
+# 6. BUILD + MERGE PLACE CONTROLS (PARCEL / PERMIT POINT LEVEL)
 # -----------------------------------------------------------------------------
 
-message("Building legacy place controls from ward geometries...")
+message("Building parcel-level place controls from permit-point geometries...")
 
-# Keep legacy values exactly as in strictness task (CRS units are US survey feet)
-ward_geoms_map1 <- st_make_valid(ward_geoms_map1)
-ward_geoms_map2 <- st_make_valid(ward_geoms_map2)
-ward_geoms_map3 <- st_make_valid(ward_geoms_map3)
+# Bring back permit point geometry via id and keep only permits that made it into sample
+permit_points <- permits_high_discretion %>%
+  select(id) %>%
+  semi_join(permits_with_controls %>% select(id), by = "id")
 
-# Distance to CBD (km from ward centroid)
-cbd <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>%
-  st_transform(st_crs(ward_panel))
+# Use a meter-based CRS for consistent distance/buffer calculations
+metric_crs <- 26916
+permit_points_m <- st_transform(permit_points, metric_crs)
+cta_stations_m <- st_transform(cta_stations, metric_crs)
+water_osm_m <- st_transform(water_osm, metric_crs)
 
-dist_feat <- function(ward_sf, ver) {
-  cent <- st_centroid(ward_sf)
-  tibble(
-    ward = ward_sf$ward,
-    map_version = ver,
-    dist_cbd_km = as.numeric(units::set_units(st_distance(cent, cbd), "km"))
-  )
+# CBD reference point (downtown Chicago)
+cbd_m <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>%
+  st_transform(metric_crs)
+
+# Distance to CBD (km)
+dist_cbd_km <- as.numeric(units::set_units(st_distance(permit_points_m, cbd_m), "m")) / 1000
+
+# Number of CTA stations within 800 meters of permit point
+n_rail_stations_800m <- lengths(st_is_within_distance(permit_points_m, cta_stations_m, dist = 800))
+
+# Distance to Lake Michigan shoreline / polygon (km)
+lake_michigan_m <- water_osm_m %>%
+  filter(!is.na(name) & tolower(name) == "lake michigan") %>%
+  st_make_valid() %>%
+  st_union()
+
+if (length(lake_michigan_m) == 0) {
+  stop("Could not construct Lake Michigan geometry for distance calculation.", call. = FALSE)
 }
 
-# CTA stations near ward polygon (legacy threshold value)
-cta_feat <- function(ward_sf, ver) {
-  idx <- st_is_within_distance(ward_sf, cta_stations, dist = 800)
-  tibble(
-    ward = ward_sf$ward,
-    map_version = ver,
-    n_rail_stations_800m = lengths(idx)
-  )
-}
+dist_lake_km <- as.numeric(units::set_units(st_distance(permit_points_m, lake_michigan_m), "m")) / 1000
 
-# Lakefront share within legacy buffer construction
-lake_poly <- water_osm %>%
-  filter(!is.na(name) & tolower(name) == "lake michigan")
-city_buf2km <- st_buffer(st_make_valid(city_boundary), 2000)
-lake_near <- suppressWarnings(st_intersection(st_make_valid(lake_poly), city_buf2km))
-lake_1km <- st_buffer(lake_near, 1000)
-
-lake_feat <- function(ward_sf, ver) {
-  ward_sf <- st_make_valid(ward_sf)
-  inter <- suppressWarnings(st_intersection(ward_sf, lake_1km))
-  share <- rep(0, nrow(ward_sf))
-  if (nrow(inter) > 0) {
-    tmp <- inter %>%
-      mutate(a = as.numeric(st_area(inter))) %>%
-      st_drop_geometry() %>%
-      group_by(ward) %>%
-      summarise(a_sum = sum(a), .groups = "drop")
-    share[match(tmp$ward, ward_sf$ward)] <- tmp$a_sum
-  }
-  tibble(
-    ward = ward_sf$ward,
-    map_version = ver,
-    lakefront_share_1km = pmin(1, pmax(0, share / as.numeric(st_area(ward_sf))))
-  )
-}
-
-place_controls <- bind_rows(
-  left_join(dist_feat(ward_geoms_map1, 1), cta_feat(ward_geoms_map1, 1), by = c("ward", "map_version")) %>%
-    left_join(lake_feat(ward_geoms_map1, 1), by = c("ward", "map_version")),
-  left_join(dist_feat(ward_geoms_map2, 2), cta_feat(ward_geoms_map2, 2), by = c("ward", "map_version")) %>%
-    left_join(lake_feat(ward_geoms_map2, 2), by = c("ward", "map_version")),
-  left_join(dist_feat(ward_geoms_map3, 3), cta_feat(ward_geoms_map3, 3), by = c("ward", "map_version")) %>%
-    left_join(lake_feat(ward_geoms_map3, 3), by = c("ward", "map_version"))
+permit_place_controls <- tibble(
+  id = permit_points$id,
+  dist_cbd_km = dist_cbd_km,
+  dist_lake_km = dist_lake_km,
+  n_rail_stations_800m = n_rail_stations_800m
 )
 
 permits_with_controls <- permits_with_controls %>%
-  left_join(place_controls, by = c("ward", "map_version"))
+  left_join(permit_place_controls, by = "id")
+
+# Strict QC: parcel-level controls should be complete and reasonable
+missing_dist_cbd <- sum(is.na(permits_with_controls$dist_cbd_km))
+missing_dist_lake <- sum(is.na(permits_with_controls$dist_lake_km))
+missing_cta <- sum(is.na(permits_with_controls$n_rail_stations_800m))
+
+if (missing_dist_cbd > 0 || missing_dist_lake > 0 || missing_cta > 0) {
+  stop(
+    paste0(
+      "Missing parcel-level place controls after join. ",
+      "dist_cbd_km missing=", missing_dist_cbd, ", ",
+      "dist_lake_km missing=", missing_dist_lake, ", ",
+      "n_rail_stations_800m missing=", missing_cta
+    ),
+    call. = FALSE
+  )
+}
+
+bad_dist_cbd <- sum(!is.na(permits_with_controls$dist_cbd_km) & permits_with_controls$dist_cbd_km < 0)
+bad_dist_lake <- sum(!is.na(permits_with_controls$dist_lake_km) & permits_with_controls$dist_lake_km < 0)
+bad_cta <- sum(!is.na(permits_with_controls$n_rail_stations_800m) & permits_with_controls$n_rail_stations_800m < 0)
+
+if (bad_dist_cbd > 0 || bad_dist_lake > 0 || bad_cta > 0) {
+  stop(
+    paste0(
+      "Invalid parcel-level control values found. ",
+      "dist_cbd_km<0: ", bad_dist_cbd, ", ",
+      "dist_lake_km<0: ", bad_dist_lake, ", ",
+      "n_rail_stations_800m<0: ", bad_cta
+    ),
+    call. = FALSE
+  )
+}
+
+# Broad plausibility checks for Chicago-area geometry
+plausibly_far_cbd <- sum(permits_with_controls$dist_cbd_km > 80, na.rm = TRUE)
+plausibly_far_lake <- sum(permits_with_controls$dist_lake_km > 80, na.rm = TRUE)
+
+if (plausibly_far_cbd > 0 || plausibly_far_lake > 0) {
+  stop(
+    paste0(
+      "Plausibility check failed: distances too large for Chicago permits. ",
+      "dist_cbd_km>80: ", plausibly_far_cbd, ", ",
+      "dist_lake_km>80: ", plausibly_far_lake
+    ),
+    call. = FALSE
+  )
+}
 
 message("Permits with dist_cbd_km: ",
         sum(!is.na(permits_with_controls$dist_cbd_km)),
         " (", round(mean(!is.na(permits_with_controls$dist_cbd_km)) * 100, 1), "%)")
-message("Permits with lakefront_share_1km: ",
-        sum(!is.na(permits_with_controls$lakefront_share_1km)),
-        " (", round(mean(!is.na(permits_with_controls$lakefront_share_1km)) * 100, 1), "%)")
+message("Permits with dist_lake_km: ",
+        sum(!is.na(permits_with_controls$dist_lake_km)),
+        " (", round(mean(!is.na(permits_with_controls$dist_lake_km)) * 100, 1), "%)")
 message("Permits with n_rail_stations_800m: ",
         sum(!is.na(permits_with_controls$n_rail_stations_800m)),
         " (", round(mean(!is.na(permits_with_controls$n_rail_stations_800m)) * 100, 1), "%)")
@@ -362,8 +388,8 @@ output_data <- permits_analysis %>%
     pop_total, median_hh_income, share_black, share_hisp, share_white,
     homeownership_rate, share_bach_plus,
     
-    # Legacy place controls (ward-level, map-version specific)
-    dist_cbd_km, lakefront_share_1km, n_rail_stations_800m,
+    # Place controls (permit-point level)
+    dist_cbd_km, dist_lake_km, n_rail_stations_800m,
     
     # Metadata
     map_version

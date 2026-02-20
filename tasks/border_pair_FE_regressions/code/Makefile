@@ -2,10 +2,10 @@ SHELL := bash
 include ../../shell_functions.make
 
 # Active uncertainty-spec FE table set used by slides_uncertainty.
-FE_SPECS := pair_x_year
+FE_SPECS := pair_x_year pair_year_only zone_pair_x_year zone_pair_year_additive
 BWS_FT := 250 500 1000
 YVARS_TABLE := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)'
-UNITS_CAP ?= 100
+UNITS_CAP ?= 40
 OUTPUT_SUFFIX ?=
 
 OUTPUT_FILES := $(foreach bw,$(BWS_FT),$(foreach fe,$(FE_SPECS),../output/fe_table_bw$(bw)_$(fe)$(OUTPUT_SUFFIX).tex))

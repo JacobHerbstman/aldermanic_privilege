@@ -11,7 +11,7 @@ source("../../setup_environment/code/packages.R")
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
 # bw_ft <- 250
-# units_cap <- 100
+# units_cap <- 40
 # fe_spec <- "pair_x_year"
 # output_filename <- "../output/fe_table_bw250_pair_x_year.tex"
 # yvars <- c("log(density_far)", "log(density_dupac)", "log(unitscount)")
@@ -147,6 +147,7 @@ rename_dict <- c(
 
 # ── FE SPECIFICATION MAPPINGS ─────────────────────────────────────────────────
 fe_formulas <- list(
+  zone_pair_year_additive = "zone_code + ward_pair + construction_year",
   zone_x_pair_year = "zone_code^ward_pair + construction_year",
   zone_pair_x_year = "zone_code + ward_pair^construction_year",
   triple = "zone_code^ward_pair^construction_year",
@@ -155,6 +156,11 @@ fe_formulas <- list(
 )
 
 fe_labels <- list(
+  zone_pair_year_additive = list(
+    "Zoning Code FE" = "zone_code",
+    "Ward-Pair FE" = "ward_pair",
+    "Year FE" = "construction_year"
+  ),
   zone_x_pair_year = list(
     "Zoning Code $\\times$ Ward-Pair FE" = "zone_code\\^ward_pair",
     "Year FE" = "construction_year"
