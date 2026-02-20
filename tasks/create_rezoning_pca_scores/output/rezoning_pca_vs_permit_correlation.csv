@@ -1,0 +1,5 @@
+score_variant,target,n_match,pearson,spearman
+unweighted,permit_month,116,0.032308477413986604,0.04604797789040173
+unweighted,permit_ward_month,116,-0.11164635371818361,-0.08603721365730427
+weighted_sqrt_n,permit_month,116,0.03375877801503884,-0.0154774719474668
+weighted_sqrt_n,permit_ward_month,116,-0.05159199713668201,-0.043633707551850025

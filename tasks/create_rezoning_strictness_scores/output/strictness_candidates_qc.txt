@@ -1,0 +1,13 @@
+strictness candidates qc
+rezoning_rows_raw: 4530
+rezoning_rows_base: 4528
+rezoning_rows_scoring: 4528
+rezoning_rows_unmapped: 0
+canonical_aldermen_in_panel: 145
+candidate_rows: 145
+zero_rezoning_imputed: 27
+trusted_mismatch_rows: 0
+top_3_eb_down_share_t0:
+  Monique Scott | score=0.5358 | n=33
+  Marty Quinn | score=0.5076 | n=39
+  Michael Scott Jr. | score=0.4967 | n=40

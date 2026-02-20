@@ -1,0 +1,33 @@
+rezoning pca qc summary
+rows_with_alderman_and_far_change: 4528
+aldermen_in_panel: 145
+aldermen_with_feature_rows: 118
+aldermen_used_in_pca_complete_case: 118
+pc1_prop_variance_unweighted: 0.3484
+pc1_prop_variance_weighted_sqrt_n: 0.3524
+corr_unweighted_permit_month_spearman: 0.046
+corr_weighted_permit_month_spearman: -0.0155
+corr_unweighted_permit_ward_month_spearman: -0.086
+corr_weighted_permit_ward_month_spearman: -0.0436
+top_10_strictness_pca_weighted:
+  1. Mary Ann Smith | n=3 | score=5.9379
+  2. Brendan Reilly | n=29 | score=5.653
+  3. Jesse Granato | n=1 | score=2.6632
+  4. James Cappleman | n=41 | score=2.5535
+  5. Michael Scott Jr. | n=40 | score=2.125
+  6. Eugene Schulter | n=2 | score=2.0971
+  7. Carlos Ramirez-Rosa | n=66 | score=1.7963
+  8. Helen Shiller | n=4 | score=1.7803
+  9. John Rice | n=2 | score=1.45
+  10. Harry Osterman | n=23 | score=1.414
+bottom_10_strictness_pca_weighted:
+  1. Burton Natarus | n=2 | score=-2.5007
+  2. Anthony Napolitano | n=20 | score=-2.4378
+  3. Derrick Curtis | n=14 | score=-2.3428
+  4. Felix Cardona Jr. | n=33 | score=-2.3367
+  5. Charles Bernardini | n=1 | score=-2.314
+  6. Gregory Mitchell | n=8 | score=-2.2557
+  7. Julia Ramirez | n=7 | score=-2.0868
+  8. Lona Lane | n=11 | score=-2.0308
+  9. Maria Hadden | n=21 | score=-1.9584
+  10. Jessie Fuentes | n=27 | score=-1.8692

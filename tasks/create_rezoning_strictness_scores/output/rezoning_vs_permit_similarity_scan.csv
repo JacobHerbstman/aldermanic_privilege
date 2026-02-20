@@ -1,0 +1,11 @@
+variant,target,n_match,pearson,spearman,abs_spearman,abs_pearson
+old_fe_approved_year_month,permit_month,110,-0.078737213,-0.127638184,0.127638184,0.078737213
+old_fe_all_rezonings_year_month,permit_month,111,-0.062192911,-0.11648411,0.11648411,0.062192911
+old_fe_approved_year,permit_month,110,-0.041123983,-0.097964741,0.097964741,0.041123983
+old_fe_all_rezonings_year,permit_month,111,-0.032282924,-0.090343301,0.090343301,0.032282924
+current_pipeline_score,permit_month,111,0.096843592,0.04440788,0.04440788,0.096843592
+old_fe_all_rezonings_year_month,permit_ward_month,111,-0.141553046,-0.101338411,0.101338411,0.141553046
+old_fe_approved_year_month,permit_ward_month,110,-0.135017939,-0.100300025,0.100300025,0.135017939
+old_fe_all_rezonings_year,permit_ward_month,111,-0.121334563,-0.068897133,0.068897133,0.121334563
+old_fe_approved_year,permit_ward_month,110,-0.105063897,-0.065901914,0.065901914,0.105063897
+current_pipeline_score,permit_ward_month,111,0.059668373,0.018634549,0.018634549,0.059668373

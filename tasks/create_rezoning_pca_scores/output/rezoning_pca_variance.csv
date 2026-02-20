@@ -1,0 +1,9 @@
+method,component,prop_variance,cum_variance
+unweighted,PC1,0.34837,0.34837
+unweighted,PC2,0.27127,0.61964
+unweighted,PC3,0.23825,0.8579
+unweighted,PC4,0.1421,1
+weighted_sqrt_n,PC1,0.3524102876542733,0.3524102876542733
+weighted_sqrt_n,PC2,0.2613943580523186,0.6138046457065919
+weighted_sqrt_n,PC3,0.22531874651579167,0.8391233922223835
+weighted_sqrt_n,PC4,0.16087660777761648,1

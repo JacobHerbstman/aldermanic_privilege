@@ -1,0 +1,4 @@
+point_id,lon,lat,ward,nearest_segment_id,distance_to_segment_ft,nearest_ward_pair_id,segment_type,ward_a,ward_b,side,era
+lincoln_park_near_2_43,-87.6515,41.925,43,2_43_2015_2023_3,2222.6612290635353,2_43,collector,2,43,ward_b,2015_2023
+hyde_park,-87.5955,41.793,5,4_5_2015_2023_7,775.8094026752204,4_5,arterial,4,5,ward_b,2015_2023
+far_point,-87.82,41.62,NA,19_34_2015_2023_13,45226.429310183186,19_34,arterial,19,34,NA,2015_2023

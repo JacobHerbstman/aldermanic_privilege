@@ -1,0 +1,18 @@
+check,value_numeric,value_text,alderman,n_rezonings,strictness_index,rank,rank_group
+scope_all_rows,4528,rows with alderman and far_change,NA,NA,NA,NA,NA
+scope_approved_rows,3990,"rows with alderman, far_change, and passed_date",NA,NA,NA,NA,NA
+unmatched_assigned_names,0,assigned_alderman names unmatched to panel after alias mapping,NA,NA,NA,NA,NA
+panel_aldermen,145,unique aldermen in panel,NA,NA,NA,NA,NA
+scored_aldermen,118,aldermen with strictness score,NA,NA,NA,NA,NA
+strictness_non_missing_coverage,0.8137931034482758,share of panel aldermen with non-missing strictness,NA,NA,NA,NA,NA
+city_downzone_share_all,0.170273851590106,citywide downzone share in all-status scope,NA,NA,NA,NA,NA
+strictness_rank,1,top_1,Monique Scott,33,0.5358480730888059,1,top
+strictness_rank,2,top_2,Marty Quinn,39,0.5075704594607243,2,top
+strictness_rank,3,top_3,Michael Scott Jr.,40,0.4966820335392036,3,top
+strictness_rank,4,top_4,Anthony Beale,65,0.49003648365125874,4,top
+strictness_rank,5,top_5,Brendan Reilly,29,0.4043939031653151,5,top
+strictness_rank,114,bottom_114,Maria Hadden,21,0.006642814571359991,114,bottom
+strictness_rank,115,bottom_115,Samantha Nugent,21,0.006642814571359991,115,bottom
+strictness_rank,116,bottom_116,Timmy Knudsen,22,0.006103917611433106,116,bottom
+strictness_rank,117,bottom_117,Jessie Fuentes,27,0.004183305130754952,117,bottom
+strictness_rank,118,bottom_118,Felix Cardona Jr.,33,0.002868750462655273,118,bottom

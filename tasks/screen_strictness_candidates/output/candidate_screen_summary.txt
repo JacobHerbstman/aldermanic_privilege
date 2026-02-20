@@ -1,0 +1,15 @@
+candidate screen summary
+status: success
+winner_candidate: eb_down_share_t0
+winner_rule: both_signs_ok_max_rank_score
+winner_fe_coef: -0.031177
+winner_fe_p: 0.181016
+winner_rd_coef_main: -0.248567
+winner_rd_p_main: 0.111771
+winner_rank_score: 1.444892
+top_candidates:
+  eb_down_share_t0 | rank_score=1.4449 | fe_p=0.181 | rd_p=0.1118
+  eb_down_share_t01 | rank_score=1.4449 | fe_p=0.181 | rd_p=0.1118
+  raw_down_share_t0 | rank_score=1.3893 | fe_p=0.2184 | rd_p=0.1065
+  raw_down_share_t01 | rank_score=1.3893 | fe_p=0.2184 | rd_p=0.1065
+  eb_far_down_share_t0 | rank_score=1.3302 | fe_p=0.317 | rd_p=0.0693

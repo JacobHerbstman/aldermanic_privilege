@@ -2,8 +2,20 @@ source("../../setup_environment/code/packages.R")
 
 score_column <- "strictness_index"
 
+name_aliases <- c(
+  "Felix Cardona Jr" = "Felix Cardona Jr.",
+  "Michael Scott Jr" = "Michael Scott Jr.",
+  "Walter Burnett, Jr" = "Walter Burnett, Jr."
+)
+
 parcels <- read_csv("../input/parcels_pre_scores.csv", show_col_types = FALSE)
 scores <- read_csv("../input/aldermen_strictness_scores.csv", show_col_types = FALSE)
+
+parcels <- parcels %>%
+  mutate(
+    alderman_own = recode(str_squish(as.character(alderman_own)), !!!name_aliases),
+    alderman_neighbor = recode(str_squish(as.character(alderman_neighbor)), !!!name_aliases)
+  )
 
 if (!score_column %in% names(scores)) {
   stop("Score column not found in score file: ", score_column)

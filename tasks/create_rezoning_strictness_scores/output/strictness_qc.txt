@@ -1,0 +1,20 @@
+strictness qc summary
+scope_all_rows: 4528
+scope_approved_rows: 3990
+unmatched_assigned_names: 0
+panel_aldermen: 145
+scored_aldermen: 118
+strictness_non_missing_coverage: 0.8138
+city_downzone_share_all: 0.1703
+top_5_strictness:
+  1. Monique Scott | n=33 | s=0.5358
+  2. Marty Quinn | n=39 | s=0.5076
+  3. Michael Scott Jr. | n=40 | s=0.4967
+  4. Anthony Beale | n=65 | s=0.49
+  5. Brendan Reilly | n=29 | s=0.4044
+bottom_5_strictness:
+  114. Maria Hadden | n=21 | s=0.0066
+  115. Samantha Nugent | n=21 | s=0.0066
+  116. Timmy Knudsen | n=22 | s=0.0061
+  117. Jessie Fuentes | n=27 | s=0.0042
+  118. Felix Cardona Jr. | n=33 | s=0.0029

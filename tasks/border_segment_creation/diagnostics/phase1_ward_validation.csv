@@ -1,0 +1,5 @@
+era,n_rows,n_unique_wards,invalid_before,invalid_after,epsg,units
+1998_2002,50,50,0,0,3435,US survey foot
+2003_2014,50,50,0,0,3435,US survey foot
+2015_2023,50,50,0,0,3435,US survey foot
+post_2023,50,50,0,0,3435,US survey foot

@@ -1,28 +1,34 @@
 script := create_rezoning_strictness_score.R
 
-score_csv := ../output/alderman_rezoning_strictness_scores.csv
-score_plot := ../output/rezoning_strictness_index.pdf
-qc_csv := ../output/strictness_qc.csv
-qc_txt := ../output/strictness_qc.txt
+candidate_csv := ../output/alderman_strictness_candidates.csv
+winner_csv := ../output/alderman_rezoning_strictness_scores.csv
+rank_plot := ../output/strictness_candidates_rank_plot.pdf
+qc_csv := ../output/strictness_candidates_qc.csv
+qc_txt := ../output/strictness_candidates_qc.txt
 
 rezoning_input := ../input/rezoning_dataset_usable_19990101_20260212.csv
-alderman_panel_input := ../input/chicago_alderman_panel.csv
+panel_input := ../input/chicago_alderman_panel.csv
+trusted_summary_input := ../input/alderman_rezoning_summary_19990101_20260212.csv
 
-all: $(score_csv) $(score_plot) $(qc_csv) $(qc_txt)
+all: $(candidate_csv) $(winner_csv) $(rank_plot) $(qc_csv) $(qc_txt)
 
-$(score_csv): $(script) $(rezoning_input) $(alderman_panel_input) | ../output
+$(candidate_csv): $(script) $(rezoning_input) $(panel_input) $(trusted_summary_input) | ../output
 	Rscript $(script)
 
-$(score_plot): $(score_csv)
-$(qc_csv): $(score_csv)
-$(qc_txt): $(score_csv)
+$(winner_csv): $(candidate_csv)
+$(rank_plot): $(candidate_csv)
+$(qc_csv): $(candidate_csv)
+$(qc_txt): $(candidate_csv)
 
 $(rezoning_input): /Users/jacobherbstman/Desktop/alderman_data/tasks/rezoning_dataset/output/rezoning_dataset_usable_19990101_20260212.csv | ../input
 	ln -sf "$<" "$@"
 
-$(alderman_panel_input): ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
+$(panel_input): ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
+	ln -sf "$<" "$@"
+
+$(trusted_summary_input): /Users/jacobherbstman/Desktop/alderman_data/tasks/rezoning_summary_stats/output/alderman_rezoning_summary_19990101_20260212.csv | ../input
 	ln -sf "$<" "$@"
 
 include ../../generic.make
 
-link-inputs: $(rezoning_input) $(alderman_panel_input)
+link-inputs: $(rezoning_input) $(panel_input) $(trusted_summary_input)
