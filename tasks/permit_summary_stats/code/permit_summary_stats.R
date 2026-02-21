@@ -20,8 +20,6 @@ if (length(cli_args) >= 2) {
   }
 }
 
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-
 high_discretion_types <- c("new_construction", "renovation", "demolition")
 small_sample_threshold <- 30L
 min_alderman_month_n <- 3L
