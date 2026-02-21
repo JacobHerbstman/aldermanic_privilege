@@ -21,8 +21,7 @@ num_ft    <- function(x){ raw <- str_extract(x %||% "", regex("([0-9]+(?:,[0-9]{
 
 # --- read + normalize/drop in one go ---
 zones_sf <- st_read("../input/raw_zoning_data.geojson") %>%
-  transmute(zone_code = norm_code(zone_class), geometry) %>%
-  filter(!str_detect(zone_code, "^(?:PD|PMD|POS)"))                   # catch PMD13, PD 123, etc.
+  transmute(zone_code = norm_code(zone_class), geometry)
 
 regs <- read_csv("../input/zoning-code-summary-district-types.csv", show_col_types = FALSE) %>%
   transmute(
@@ -32,7 +31,6 @@ regs <- read_csv("../input/zoning-code-summary-district-types.csv", show_col_typ
     minimum_lot_area,                                   # keep as-is (often text)
     maximum_building_height_raw  = maximum_building_height
   ) %>%
-  filter(!str_detect(zone_code, "^(?:PD|PMD|POS)")) %>%
   distinct(zone_code, .keep_all = TRUE) %>%
   mutate(
     floor_area_ratio             = na_none(floor_area_ratio_raw),

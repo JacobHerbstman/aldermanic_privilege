@@ -40,11 +40,12 @@ if (!is.finite(bw_ft) || bw_ft <= 0) {
 
 fe_map <- list(
   pair_x_year = "ward_pair^construction_year",
-  pair_year = "ward_pair + construction_year"
+  pair_year = "ward_pair + construction_year",
+  zone_pair_year_additive = "zone_code + ward_pair + construction_year"
 )
 
 if (!fe_spec %in% names(fe_map)) {
-  stop("fe_spec must be one of: pair_x_year, pair_year", call. = FALSE)
+  stop("fe_spec must be one of: pair_x_year, pair_year, zone_pair_year_additive", call. = FALSE)
 }
 if (!plot_style %in% c("slope", "level")) {
   stop("plot_style must be one of: slope, level", call. = FALSE)
@@ -62,12 +63,16 @@ dat <- raw %>%
   filter(
     arealotsf > 1,
     areabuilding > 1,
-    unitscount > 1,
+    # unitscount > 1,
     construction_year >= 2006,
     dist_to_boundary <= bw_ft,
     !is.na(ward_pair),
     !is.na(construction_year)
   )
+
+if (fe_spec == "zone_pair_year_additive") {
+  dat <- dat %>% filter(!is.na(zone_code))
+}
 
 if (use_log) {
   dat <- dat %>%
