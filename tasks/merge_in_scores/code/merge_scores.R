@@ -80,13 +80,18 @@ parcels_with_scores <- parcels %>%
   )
 
 # Report merge stats
-n_with_own <- sum(!is.na(parcels_with_scores$strictness_own))
-n_with_neighbor <- sum(!is.na(parcels_with_scores$strictness_neighbor))
-n_with_signed <- sum(!is.na(parcels_with_scores$signed_distance))
+n_in            <- nrow(parcels_with_scores)
+n_missing_own   <- sum(is.na(parcels_with_scores$strictness_own))
+n_missing_nbr   <- sum(is.na(parcels_with_scores$strictness_neighbor))
+n_tied          <- sum(!is.na(parcels_with_scores$strictness_own) &
+                         !is.na(parcels_with_scores$strictness_neighbor) &
+                         parcels_with_scores$strictness_own == parcels_with_scores$strictness_neighbor)
+n_dropped       <- sum(is.na(parcels_with_scores$signed_distance))
 
-cat(sprintf("Parcels with own score: %d (%.1f%%)\n", n_with_own, 100*n_with_own/nrow(parcels)))
-cat(sprintf("Parcels with neighbor score: %d (%.1f%%)\n", n_with_neighbor, 100*n_with_neighbor/nrow(parcels)))
-cat(sprintf("Parcels with valid signed distance: %d (%.1f%%)\n", n_with_signed, 100*n_with_signed/nrow(parcels)))
+cat(sprintf("Parcels with own score:      %d (%.1f%%)\n", n_in - n_missing_own,  100*(n_in - n_missing_own)/n_in))
+cat(sprintf("Parcels with neighbor score: %d (%.1f%%)\n", n_in - n_missing_nbr,  100*(n_in - n_missing_nbr)/n_in))
+cat(sprintf("Tied (equal scores, dropped): %d\n", n_tied))
+cat(sprintf("Total dropped (NA sign):     %d (%.1f%%)\n", n_dropped, 100*n_dropped/n_in))
 
 # Filter to valid signed distances
 parcels_final <- parcels_with_scores %>%

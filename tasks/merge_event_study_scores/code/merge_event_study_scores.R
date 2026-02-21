@@ -69,9 +69,20 @@ merge_border_scores <- function(df, dist_col = "dist_ft") {
         TRUE ~ NA_real_
       ),
       signed_dist = .data[[dist_col]] * sign
-    ) %>%
-    filter(!is.na(sign))
+    )
 
+  n_in <- nrow(out)
+  n_missing_own   <- sum(is.na(out$strictness_own))
+  n_missing_nbr   <- sum(is.na(out$strictness_neighbor))
+  n_tied          <- sum(!is.na(out$strictness_own) & !is.na(out$strictness_neighbor) &
+                           out$strictness_own == out$strictness_neighbor)
+  n_dropped       <- sum(is.na(out$sign))
+  cat(sprintf(
+    "  Score merge: %d in | missing own score: %d | missing neighbor score: %d | tied (equal scores): %d | total dropped: %d (%.1f%%)\n",
+    n_in, n_missing_own, n_missing_nbr, n_tied, n_dropped, 100 * n_dropped / n_in
+  ))
+
+  out <- filter(out, !is.na(sign))
   out
 }
 

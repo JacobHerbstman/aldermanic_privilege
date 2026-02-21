@@ -529,7 +529,12 @@ message("\nCreating uncertainty indices...")
 
 # Standardization function
 standardize <- function(x) {
-  (x - mean(x, na.rm = TRUE)) / sd(x, na.rm = TRUE)
+  s <- sd(x, na.rm = TRUE)
+  if (is.na(s) || s == 0) {
+    warning("standardize(): SD is zero or NA — returning zeros instead of NaN")
+    return(rep(0, length(x)))
+  }
+  (x - mean(x, na.rm = TRUE)) / s
 }
 
 # Simplified index: use standardized mean residual (strictness index)

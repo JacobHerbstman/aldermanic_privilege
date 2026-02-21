@@ -284,10 +284,17 @@ calc_dist <- function(points, polys, lines) {
         return(NULL)
     }
 
+    n_in <- nrow(points)
+
     # A. Assign Ward (Point in Polygon)
     joined <- st_join(points, polys %>% select(ward), join = st_within)
 
     # Drop points outside Chicago wards
+    n_outside <- sum(is.na(joined$ward))
+    if (n_outside > 0) {
+        message(sprintf("  Dropped %d points outside ward boundaries (%.1f%%)",
+                        n_outside, 100 * n_outside / n_in))
+    }
     joined <- joined %>% filter(!is.na(ward))
     if (nrow(joined) == 0) {
         return(NULL)
@@ -316,6 +323,11 @@ calc_dist <- function(points, polys, lines) {
         joined$ward_pair_b[idx] <- as.integer(nearest_geoms$ward_b)
     }
 
+    n_no_border <- sum(is.na(joined$ward_pair_a) | is.na(joined$ward_pair_b))
+    if (n_no_border > 0) {
+        message(sprintf("  Dropped %d points with no nearest border (%.1f%% of ward-assigned)",
+                        n_no_border, 100 * n_no_border / nrow(joined)))
+    }
     joined <- joined %>% filter(!is.na(ward_pair_a), !is.na(ward_pair_b))
     if (nrow(joined) == 0) {
         return(NULL)

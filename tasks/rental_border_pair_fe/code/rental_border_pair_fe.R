@@ -90,31 +90,6 @@ rent_raw <- read_parquet(input) %>%
     !is.na(strictness_own)
   )
 
-year_diag <- rent_raw %>%
-  mutate(in_window = case_when(
-    window == "full" ~ TRUE,
-    window == "pre_covid" ~ year <= 2019,
-    window == "pre_2021" ~ year <= 2020,
-    window == "pre_2023" ~ year <= 2022,
-    window == "drop_mid" ~ (year <= 2020 | year >= 2024),
-    TRUE ~ FALSE
-  )) %>%
-  group_by(year) %>%
-  summarise(
-    n = n(),
-    in_window = first(in_window),
-    median_rent = median(rent_price, na.rm = TRUE),
-    mean_rent = mean(rent_price, na.rm = TRUE),
-    share_multifamily = mean(building_type_clean == "multi_family", na.rm = TRUE),
-    coverage_sqft = mean(!is.na(sqft) & sqft > 0),
-    coverage_beds = mean(!is.na(beds) & beds > 0),
-    coverage_baths = mean(!is.na(baths) & baths > 0),
-    coverage_available_date = mean(!is.na(available_date)),
-    .groups = "drop"
-  )
-
-write_csv(year_diag, output_year_diag)
-
 rent <- window_rule(rent_raw, window)
 if (sample_filter == "multifamily_only") {
   rent <- rent %>% filter(building_type_clean == "multi_family")
@@ -144,6 +119,28 @@ rent_hedonics <- rent %>%
 if (nrow(rent_hedonics) == 0) {
   stop("No complete-case rows for hedonic model.", call. = FALSE)
 }
+
+message(sprintf(
+  "Sample sizes: no-hedonics = %d, with-hedonics = %d (%.1f%% hedonic coverage)",
+  nrow(rent), nrow(rent_hedonics), 100 * nrow(rent_hedonics) / nrow(rent)
+))
+
+# Year diagnostics computed on the hedonic sample (complete-case)
+year_diag <- rent_hedonics %>%
+  group_by(year) %>%
+  summarise(
+    n = n(),
+    median_rent = median(rent_price, na.rm = TRUE),
+    mean_rent = mean(rent_price, na.rm = TRUE),
+    share_multifamily = mean(building_type_clean == "multi_family", na.rm = TRUE),
+    coverage_sqft = mean(!is.na(sqft) & sqft > 0),
+    coverage_beds = mean(!is.na(beds) & beds > 0),
+    coverage_baths = mean(!is.na(baths) & baths > 0),
+    coverage_available_date = mean(!is.na(available_date)),
+    .groups = "drop"
+  )
+
+write_csv(year_diag, output_year_diag)
 
 mean_y_level <- function(x) {
   dat <- x$custom_data

@@ -335,9 +335,9 @@ permits_analysis <- permits_with_controls %>%
     month = application_start_date_ym,
     year = application_year,
     
-    # Log transforms
-    log_processing_time = log(processing_time),
-    log_reported_cost = log(reported_cost),
+    # Log transforms (NA for zero/negative; downstream is.finite() filter handles removal)
+    log_processing_time = if_else(processing_time > 0, log(processing_time), NA_real_),
+    log_reported_cost   = if_else(reported_cost   > 0, log(reported_cost),   NA_real_),
     
     # Clean permit type for FE
     permit_type_clean = case_when(
