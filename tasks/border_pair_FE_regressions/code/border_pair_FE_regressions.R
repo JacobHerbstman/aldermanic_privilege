@@ -11,18 +11,20 @@ source("../../setup_environment/code/packages.R")
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
 # bw_ft <- 250
-# units_cap <- 40
+# sample_filter <- "all"  # "all" | "single_family" | "multifamily"
 # fe_spec <- "pair_x_year"
-# output_filename <- "../output/fe_table_bw250_pair_x_year.tex"
 # yvars <- c("log(density_far)", "log(density_dupac)", "log(unitscount)")
-# Rscript border_pair_FE_regressions.R 250 100 pair_x_year ../output/fe_table_bw250_pair_x_year.tex "log(density_far)" "log(density_dupac)" "log(unitscount)"
+# output_filename <- sprintf("../output/fe_table_bw%d_%s_%s.tex", bw_ft, sample_filter, fe_spec)
+# Rscript border_pair_FE_regressions.R 250 multifamily pair_x_year ../output/fe_table_bw250_multifamily_pair_x_year.tex "log(density_far)" "log(density_dupac)" "log(unitscount)"
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+# arg order: bw_ft sample fe_spec output_filename yvar1 [yvar2 ...]
+# sample: "all" | "single_family" (unitscount == 1) | "multifamily" (unitscount > 1)
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) >= 5) {
   bw_ft <- suppressWarnings(as.integer(args[1]))
-  units_cap <- suppressWarnings(as.integer(args[2]))
+  sample_filter <- args[2]
   fe_spec <- args[3]
   output_filename <- args[4]
   yvars <- args[5:length(args)]
@@ -30,23 +32,21 @@ if (length(args) >= 5) {
     yvars <- strsplit(args[5], ",")[[1]] |> trimws()
   }
 } else {
-  if (!exists("bw_ft") || !exists("units_cap") || !exists("fe_spec") || !exists("output_filename") || !exists("yvars")) {
-    stop("FATAL: Script requires args: <bw_ft> <units_cap> <fe_spec> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
+  if (!exists("bw_ft") || !exists("sample_filter") || !exists("fe_spec") || !exists("output_filename") || !exists("yvars")) {
+    stop("FATAL: Script requires args: <bw_ft> <sample> <fe_spec> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
   }
 }
 
 if (!is.finite(bw_ft) || bw_ft <= 0) stop("bw_feet must be a positive integer/numeric.")
-if (!is.finite(units_cap)) units_cap <- -1
+if (!sample_filter %in% c("all", "single_family", "multifamily")) {
+  stop("sample must be one of: all, single_family, multifamily", call. = FALSE)
+}
 if (length(yvars) == 0) stop("No yvars provided.")
 
 message(sprintf("\n=== Border-Pair FE Configuration ==="))
 message(sprintf("Bandwidth: %d ft", bw_ft))
+message(sprintf("Sample: %s", sample_filter))
 message(sprintf("FE Specification: %s", fe_spec))
-if (units_cap > 0) {
-  message(sprintf("Units cap: unitscount <= %d", units_cap))
-} else {
-  message("Units cap: none")
-}
 message(sprintf("Output: %s", output_filename))
 message(sprintf("Y variables: %s", paste(yvars, collapse = ", ")))
 
@@ -56,15 +56,14 @@ bw_mi <- round(bw_ft / 5280, 2)
 # ── 2) DATA ──────────────────────────────────────────────────────────────────
 parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
   mutate(strictness_own = strictness_own / sd(strictness_own, na.rm = T)) %>%
-  filter(arealotsf > 1) %>%
-  filter(areabuilding > 1) %>%
-  # filter(unitscount > 1) %>%
-  filter(construction_year >= 2006)
+  filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006)
 
-# if (units_cap > 0) {
-#   parcels_fe <- parcels_fe %>% filter(unitscount <= units_cap)
-# }
-# filter(construction_year < 2024)
+if (sample_filter == "single_family") {
+  parcels_fe <- parcels_fe %>% filter(unitscount == 1)
+} else if (sample_filter == "multifamily") {
+  parcels_fe <- parcels_fe %>% filter(unitscount > 1 & unitscount <= 100)
+}
+message(sprintf("Observations after sample filter (%s): %d", sample_filter, nrow(parcels_fe)))
 
 
 # ── 3) HELPERS ───────────────────────────────────────────────────────────────
@@ -124,6 +123,7 @@ fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
 rename_dict <- c(
   "strictness_own" = "Uncertainty Index",
+  "floor_area_ratio" = "Zoning FAR (Numeric)",
   "zone_code" = "Zoning Code FE",
   "construction_year" = "Year FE",
   "ward_pair" = "Ward-Pair FE",
@@ -152,7 +152,9 @@ fe_formulas <- list(
   zone_pair_x_year = "zone_code + ward_pair^construction_year",
   triple = "zone_code^ward_pair^construction_year",
   pair_year_only = "ward_pair + construction_year",
-  pair_x_year = "ward_pair^construction_year"
+  pair_x_year = "ward_pair^construction_year",
+  pair_year_far = "ward_pair + construction_year",
+  pair_x_year_far = "ward_pair^construction_year"
 )
 
 fe_labels <- list(
@@ -178,6 +180,13 @@ fe_labels <- list(
   ),
   pair_x_year = list(
     "Ward-Pair $\\times$ Year FE" = "ward_pair\\^construction_year"
+  ),
+  pair_year_far = list(
+    "Ward-Pair FE" = "ward_pair",
+    "Year FE" = "construction_year"
+  ),
+  pair_x_year_far = list(
+    "Ward-Pair $\\times$ Year FE" = "ward_pair\\^construction_year"
   )
 )
 
@@ -190,6 +199,10 @@ if (!fe_spec %in% names(fe_formulas)) {
 fe_formula_str <- fe_formulas[[fe_spec]]
 fe_label_list <- fe_labels[[fe_spec]]
 message(sprintf("Using FE formula: | %s", fe_formula_str))
+use_far_control <- fe_spec %in% c("pair_year_far", "pair_x_year_far")
+if (use_far_control) {
+  message("Including numeric zoning FAR control: floor_area_ratio")
+}
 
 
 # ── 4) MODELS (ONE PER OUTCOME), SAME BW ─────────────────────────────────────
@@ -205,6 +218,11 @@ for (yv in yvars) {
 
   df <- parcels_fe %>%
     filter(dist_to_boundary <= bw_ft)
+
+  if (use_far_control) {
+    df <- df %>%
+      filter(is.finite(floor_area_ratio))
+  }
 
   check_df_additive <- df %>%
     mutate(fe_group_id = paste(ward_pair, zone_code, sep = "_"))
@@ -231,8 +249,27 @@ for (yv in yvars) {
     next
   }
 
-  fml_txt <- paste0(yv, " ~ strictness_own + share_white_own + share_black_own + median_hh_income_own + share_bach_plus_own +
-  homeownership_rate_own + avg_rent_own | ", fe_formula_str)
+  # Skip outcomes that are constant in this sample (e.g., log(unitscount) for single_family)
+  y_vals <- if (is_log_spec(yv)) log(df[[b]]) else df[[b]]
+  y_vals <- y_vals[is.finite(y_vals)]
+  if (length(unique(y_vals)) <= 1) {
+    warning(sprintf("Skipping '%s' (constant in %s sample).", yv, sample_filter))
+    next
+  }
+
+  rhs_controls <- c(
+    "strictness_own",
+    "share_white_own",
+    "share_black_own",
+    "median_hh_income_own",
+    "share_bach_plus_own",
+    "homeownership_rate_own",
+    "avg_rent_own"
+  )
+  if (use_far_control) {
+    rhs_controls <- c(rhs_controls, "floor_area_ratio")
+  }
+  fml_txt <- paste0(yv, " ~ ", paste(rhs_controls, collapse = " + "), " | ", fe_formula_str)
   m <- feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
   m$custom_data <- df
 

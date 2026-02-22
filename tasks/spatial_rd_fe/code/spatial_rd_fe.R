@@ -6,46 +6,61 @@ source("../../setup_environment/code/packages.R")
 # yvar <- "density_far"
 # use_log <- TRUE
 # bw_ft <- 500
+# sample_filter <- "all"  # "all" | "single_family" | "multifamily"
 # fe_spec <- "pair_x_year"
-# output_pdf <- "../output/rd_fe_plot_log_density_far_bw500_pair_x_year.pdf"
 # plot_style <- "slope"
-# Rscript spatial_rd_fe.R density_far TRUE 500 pair_x_year ../output/rd_fe_plot_log_density_far_bw500_pair_x_year.pdf slope
+# output_pdf <- sprintf(
+#   "../output/rd_fe_plot_%s%s_bw%d_%s_%s.pdf",
+#   ifelse(use_log, "log_", ""), yvar, bw_ft, sample_filter, fe_spec
+# )
+# source("spatial_rd_fe.R")
+# Rscript spatial_rd_fe.R density_far TRUE 500 all pair_x_year ../output/rd_fe_plot_log_density_far_bw500_all_pair_x_year.pdf slope
+# Rscript spatial_rd_fe.R density_far TRUE 500 multifamily pair_x_year ../output/rd_fe_plot_log_density_far_bw500_multifamily_pair_x_year.pdf slope
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+# arg order: yvar use_log bw_ft sample fe_spec output_pdf [plot_style]
+# sample: "all" | "single_family" (unitscount == 1) | "multifamily" (unitscount > 1)
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) >= 6) {
+if (length(args) >= 7) {
   yvar <- args[1]
   use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
   bw_ft <- as.numeric(args[3])
-  fe_spec <- args[4]
-  output_pdf <- args[5]
-  plot_style <- tolower(args[6])
-} else if (length(args) >= 5) {
+  sample_filter <- args[4]
+  fe_spec <- args[5]
+  output_pdf <- args[6]
+  plot_style <- tolower(args[7])
+} else if (length(args) >= 6) {
   yvar <- args[1]
   use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
   bw_ft <- as.numeric(args[3])
-  fe_spec <- args[4]
-  output_pdf <- args[5]
+  sample_filter <- args[4]
+  fe_spec <- args[5]
+  output_pdf <- args[6]
   plot_style <- "slope"
 } else {
-  if (!exists("yvar") || !exists("use_log") || !exists("bw_ft") || !exists("fe_spec") || !exists("output_pdf") || !exists("plot_style")) {
-    stop("FATAL: Script requires args: <yvar> <use_log> <bw_ft> <fe_spec> <output_pdf> <plot_style>", call. = FALSE)
+  if (!exists("yvar") || !exists("use_log") || !exists("bw_ft") || !exists("sample_filter") || !exists("fe_spec") || !exists("output_pdf") || !exists("plot_style")) {
+    stop("FATAL: Script requires args: <yvar> <use_log> <bw_ft> <sample> <fe_spec> <output_pdf> [<plot_style>]", call. = FALSE)
   }
 }
 
 if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("bw_ft must be a positive number.", call. = FALSE)
 }
+if (!sample_filter %in% c("all", "single_family", "multifamily")) {
+  stop("sample must be one of: all, single_family, multifamily", call. = FALSE)
+}
 
 fe_map <- list(
-  pair_x_year = "ward_pair^construction_year",
-  pair_year = "ward_pair + construction_year",
-  zone_pair_year_additive = "zone_code + ward_pair + construction_year"
+  pair_x_year = list(fe = "ward_pair^construction_year", use_far = FALSE, need_zone = FALSE),
+  pair_year = list(fe = "ward_pair + construction_year", use_far = FALSE, need_zone = FALSE),
+  zone_pair_year_additive = list(fe = "zone_code + ward_pair + construction_year", use_far = FALSE, need_zone = TRUE),
+  pair_x_year_far = list(fe = "ward_pair^construction_year", use_far = TRUE, need_zone = FALSE),
+  pair_year_far = list(fe = "ward_pair + construction_year", use_far = TRUE, need_zone = FALSE)
 )
 
 if (!fe_spec %in% names(fe_map)) {
-  stop("fe_spec must be one of: pair_x_year, pair_year, zone_pair_year_additive", call. = FALSE)
+  stop("fe_spec must be one of: pair_x_year, pair_year, zone_pair_year_additive, pair_x_year_far, pair_year_far", call. = FALSE)
 }
 if (!plot_style %in% c("slope", "level")) {
   stop("plot_style must be one of: slope, level", call. = FALSE)
@@ -63,15 +78,24 @@ dat <- raw %>%
   filter(
     arealotsf > 1,
     areabuilding > 1,
-    # unitscount > 1,
     construction_year >= 2006,
     dist_to_boundary <= bw_ft,
     !is.na(ward_pair),
     !is.na(construction_year)
   )
 
-if (fe_spec == "zone_pair_year_additive") {
+if (sample_filter == "single_family") {
+  dat <- dat %>% filter(unitscount == 1)
+} else if (sample_filter == "multifamily") {
+  dat <- dat %>% filter(unitscount > 1)
+}
+message(sprintf("Observations after sample filter (%s): %d", sample_filter, nrow(dat)))
+
+if (fe_map[[fe_spec]]$need_zone) {
   dat <- dat %>% filter(!is.na(zone_code))
+}
+if (fe_map[[fe_spec]]$use_far) {
+  dat <- dat %>% filter(is.finite(floor_area_ratio))
 }
 
 if (use_log) {
@@ -88,13 +112,16 @@ controls <- c(
   "share_white_own", "share_black_own", "median_hh_income_own",
   "share_bach_plus_own", "homeownership_rate_own"
 )
+if (fe_map[[fe_spec]]$use_far) {
+  controls <- c(controls, "floor_area_ratio")
+}
 
 # Keep explicit side variable for discontinuity model
 # right side (signed_distance > 0) is stricter side by construction
 dat <- dat %>% mutate(side = as.integer(signed_distance > 0))
 
 rhs_rd <- paste(c("side", "signed_distance", "side:signed_distance", controls), collapse = " + ")
-fml_rd <- as.formula(sprintf("outcome ~ %s | %s", rhs_rd, fe_map[[fe_spec]]))
+fml_rd <- as.formula(sprintf("outcome ~ %s | %s", rhs_rd, fe_map[[fe_spec]]$fe))
 
 m_rd <- feols(fml_rd, data = dat, cluster = ~ward_pair)
 ct_rd <- coeftable(m_rd)
@@ -120,7 +147,7 @@ stars <- function(p) {
 if (plot_style == "level") {
   # Residualize on FE + controls only (no side or distance terms).
   rhs_resid <- paste(controls, collapse = " + ")
-  fml_resid <- as.formula(sprintf("outcome ~ %s | %s", rhs_resid, fe_map[[fe_spec]]))
+  fml_resid <- as.formula(sprintf("outcome ~ %s | %s", rhs_resid, fe_map[[fe_spec]]$fe))
   m_resid <- feols(fml_resid, data = dat, cluster = ~ward_pair)
 
   removed <- m_resid$obs_selection$obsRemoved

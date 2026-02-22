@@ -403,7 +403,7 @@ if (TWO_STAGE) {
     stage2_model <- feols(
       stage2_formula,
       data = stage2_data,
-      vcov = ~ward,  # Cluster by ward and month
+      se = "hetero",  # HC1 heteroskedasticity-robust SEs for alderman-level estimates
       warn = FALSE
     )
   } else {
@@ -411,7 +411,7 @@ if (TWO_STAGE) {
       stage2_formula,
       data = stage2_data,
       weights = weights_formula,
-      vcov = ~ward,  # Cluster by ward and month
+      se = "hetero",  # HC1 heteroskedasticity-robust SEs for alderman-level estimates
       warn = FALSE
     )
   }

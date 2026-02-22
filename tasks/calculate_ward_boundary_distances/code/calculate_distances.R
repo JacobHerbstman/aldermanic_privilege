@@ -57,17 +57,34 @@ parcels <- parcels %>%
 # -----------------------------------------------------------------------------
 # 1.5. GEOCODE PARCELS TO CENSUS BLOCK GROUPS
 # -----------------------------------------------------------------------------
-cat("Loading block group geometries from Census...\n")
-block_groups <- get_acs(
-  geography = "block group",
-  variables = "B01003_001", # Just need the geometry
-  state = "IL",
-  county = "Cook",
-  year = 2019,
-  geometry = TRUE
-) %>%
-  st_transform(st_crs(parcels)) %>%
-  dplyr::select(GEOID, geometry)
+cat("Loading canonical block-group geometries (ACS 2019)...\n")
+block_groups <- st_read("../input/block_group_geometry_2019.gpkg", quiet = TRUE)
+
+if (!("GEOID" %in% names(block_groups))) {
+  stop("Block-group geometry input is missing GEOID.", call. = FALSE)
+}
+block_groups <- block_groups[, "GEOID", drop = FALSE]
+
+geometry_column <- attr(block_groups, "sf_column")
+if (is.null(geometry_column) || !(geometry_column %in% names(block_groups))) {
+  stop("Block-group geometry input has no valid geometry column.", call. = FALSE)
+}
+
+if (nrow(block_groups) == 0) {
+  stop("No block-group geometries found in ../input/block_group_geometry_2019.gpkg", call. = FALSE)
+}
+if (any(is.na(block_groups$GEOID) | block_groups$GEOID == "")) {
+  stop("Block-group geometry input has missing GEOID values.", call. = FALSE)
+}
+if (any(duplicated(block_groups$GEOID))) {
+  stop("Block-group geometry input GEOID values are not unique.", call. = FALSE)
+}
+if (any(st_is_empty(st_geometry(block_groups)))) {
+  stop("Block-group geometry input contains empty geometries.", call. = FALSE)
+}
+if (st_crs(block_groups) != st_crs(parcels)) {
+  block_groups <- st_transform(block_groups, st_crs(parcels))
+}
 
 cat("Spatial join: assigning parcels to block groups...\n")
 parcels <- parcels %>%
@@ -364,7 +381,7 @@ final_dataset <- parcels_with_distances %>%
     # fullbathcount, halfbathcount, roomscount,
     # construction_quality, central_heating, central_air, single_v_multi_family,
 
-    zone_code,
+    zone_code, floor_area_ratio, lot_area_per_unit, maximum_building_height,
     yearmon_key
   )
 

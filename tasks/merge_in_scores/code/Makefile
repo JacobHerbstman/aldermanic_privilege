@@ -6,7 +6,7 @@ include ../../shell_functions.make
 # -----------------------------------------------------------------------------
 
 # Default score specification
-SCORE_SPEC ?= ptfeFALSE_rtfeTRUE_porchFALSE_cafeFALSE_2stage
+SCORE_SPEC ?= ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage
 
 # Column to use from the score file
 SCORE_COLUMN ?= uncertainty_index

@@ -97,11 +97,39 @@ bg_controls_raw <- panel_template %>%
 # -----------------------------------------------------------------------------
 # Population density requires area, which is time-invariant
 message("Getting block group geometries for area calculation...")
-block_group_areas <- get_acs(
+block_group_geometry_2019 <- get_acs(
   geography = "block group", variables = "B01003_001",
   state = "IL", county = "Cook", year = 2019, geometry = TRUE
 ) %>%
-  mutate(land_area_sqkm = as.numeric(st_area(.)) / 1e6) %>%
+  select(GEOID, geometry)
+
+if (nrow(block_group_geometry_2019) == 0) {
+  stop("No block-group geometries retrieved from ACS 2019.", call. = FALSE)
+}
+empty_geometry_count <- sum(st_is_empty(block_group_geometry_2019$geometry))
+if (empty_geometry_count > 0) {
+  message(sprintf(
+    "Dropping %d block groups with empty ACS geometries.",
+    empty_geometry_count
+  ))
+  block_group_geometry_2019 <- block_group_geometry_2019 %>%
+    filter(!st_is_empty(geometry))
+}
+if (any(is.na(block_group_geometry_2019$GEOID) | block_group_geometry_2019$GEOID == "")) {
+  stop("Block-group geometry has missing GEOID values.", call. = FALSE)
+}
+if (any(duplicated(block_group_geometry_2019$GEOID))) {
+  stop("Block-group geometry GEOID values are not unique.", call. = FALSE)
+}
+if (nrow(block_group_geometry_2019) == 0) {
+  stop("No non-empty block-group geometries remain after filtering.", call. = FALSE)
+}
+if (any(st_is_empty(block_group_geometry_2019$geometry))) {
+  stop("Block-group geometry contains empty geometries.", call. = FALSE)
+}
+
+block_group_areas <- block_group_geometry_2019 %>%
+  mutate(land_area_sqkm = as.numeric(st_area(geometry)) / 1e6) %>%
   st_drop_geometry() %>%
   select(GEOID, land_area_sqkm)
 
@@ -153,3 +181,11 @@ message(sprintf("Years: %s to %s", min(bg_controls$year), max(bg_controls$year))
 
 write_csv(bg_controls, "../output/block_group_controls.csv")
 message("Saved to ../output/block_group_controls.csv")
+
+st_write(
+  block_group_geometry_2019,
+  "../output/block_group_geometry_2019.gpkg",
+  delete_dsn = TRUE,
+  quiet = TRUE
+)
+message("Saved to ../output/block_group_geometry_2019.gpkg")
