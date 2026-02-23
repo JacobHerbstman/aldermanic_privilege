@@ -11,7 +11,7 @@ source("../../setup_environment/code/packages.R")
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
 # bw_ft <- 250
-# sample_filter <- "all"  # "all" | "single_family" | "multifamily"
+# sample_filter <- "all"  # "all" | "multifamily"
 # fe_spec <- "pair_x_year"
 # yvars <- c("log(density_far)", "log(density_dupac)", "log(unitscount)")
 # output_filename <- sprintf("../output/fe_table_bw%d_%s_%s.tex", bw_ft, sample_filter, fe_spec)
@@ -20,7 +20,7 @@ source("../../setup_environment/code/packages.R")
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 # arg order: bw_ft sample fe_spec output_filename yvar1 [yvar2 ...]
-# sample: "all" | "single_family" (unitscount == 1) | "multifamily" (unitscount > 1)
+# sample: "all" (unitscount > 0) | "multifamily" (unitscount > 1)
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) >= 5) {
   bw_ft <- suppressWarnings(as.integer(args[1]))
@@ -38,8 +38,8 @@ if (length(args) >= 5) {
 }
 
 if (!is.finite(bw_ft) || bw_ft <= 0) stop("bw_feet must be a positive integer/numeric.")
-if (!sample_filter %in% c("all", "single_family", "multifamily")) {
-  stop("sample must be one of: all, single_family, multifamily", call. = FALSE)
+if (!sample_filter %in% c("all", "multifamily")) {
+  stop("sample must be one of: all, multifamily", call. = FALSE)
 }
 if (length(yvars) == 0) stop("No yvars provided.")
 
@@ -58,10 +58,10 @@ parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_type
   mutate(strictness_own = strictness_own / sd(strictness_own, na.rm = T)) %>%
   filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006)
 
-if (sample_filter == "single_family") {
-  parcels_fe <- parcels_fe %>% filter(unitscount == 1)
+if (sample_filter == "all") {
+  parcels_fe <- parcels_fe %>% filter(unitscount > 0)
 } else if (sample_filter == "multifamily") {
-  parcels_fe <- parcels_fe %>% filter(unitscount > 1 & unitscount <= 100)
+  parcels_fe <- parcels_fe %>% filter(unitscount > 1)
 }
 message(sprintf("Observations after sample filter (%s): %d", sample_filter, nrow(parcels_fe)))
 
@@ -249,7 +249,7 @@ for (yv in yvars) {
     next
   }
 
-  # Skip outcomes that are constant in this sample (e.g., log(unitscount) for single_family)
+  # Skip outcomes that are constant in this sample
   y_vals <- if (is_log_spec(yv)) log(df[[b]]) else df[[b]]
   y_vals <- y_vals[is.finite(y_vals)]
   if (length(unique(y_vals)) <= 1) {
@@ -263,8 +263,7 @@ for (yv in yvars) {
     "share_black_own",
     "median_hh_income_own",
     "share_bach_plus_own",
-    "homeownership_rate_own",
-    "avg_rent_own"
+    "homeownership_rate_own"
   )
   if (use_far_control) {
     rhs_controls <- c(rhs_controls, "floor_area_ratio")

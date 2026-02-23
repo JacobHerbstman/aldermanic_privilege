@@ -22,7 +22,7 @@ STAGE2_OUT := ../output/stage2_regression_$(SPEC).tex
 STAMP := ../output/.build_$(SPEC).done
 
 .DEFAULT_GOAL := all
-.PHONY: all link-inputs
+.PHONY: all link-inputs sweep-fe16-lag1-both
 
 all: $(CSV_OUT) $(PLOT_OUT) $(STAGE1_OUT) $(STAGE2_OUT)
 
@@ -45,5 +45,17 @@ $(INPUT): ../../data_for_alderman_uncertainty_index/output/permits_for_uncertain
 	ln -sf "$<" "$@"
 
 link-inputs: $(INPUT)
+
+sweep-fe16-lag1-both: $(SCRIPT) $(INPUT) | ../output
+	@for ptfe in FALSE TRUE; do \
+		for rtfe in FALSE TRUE; do \
+			for cafe in FALSE TRUE; do \
+				for porch in FALSE TRUE; do \
+					echo "Running spec: ptfe=$$ptfe rtfe=$$rtfe porch=$$porch cafe=$$cafe volume=LAG1 stage=BOTH"; \
+					Rscript $(SCRIPT) "$$ptfe" "$$rtfe" "$$porch" "$$cafe" TRUE N_PERMITS LAG1 BOTH; \
+				done; \
+			done; \
+		done; \
+	done
 
 include ../../generic.make

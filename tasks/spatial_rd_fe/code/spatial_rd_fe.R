@@ -6,9 +6,10 @@ source("../../setup_environment/code/packages.R")
 # yvar <- "density_far"
 # use_log <- TRUE
 # bw_ft <- 500
-# sample_filter <- "all"  # "all" | "single_family" | "multifamily"
+# sample_filter <- "all"  # "all" | "multifamily"
 # fe_spec <- "pair_x_year"
 # plot_style <- "slope"
+# gap_split <- "all" # "all" | "above_median" | "below_median"
 # output_pdf <- sprintf(
 #   "../output/rd_fe_plot_%s%s_bw%d_%s_%s.pdf",
 #   ifelse(use_log, "log_", ""), yvar, bw_ft, sample_filter, fe_spec
@@ -16,13 +17,14 @@ source("../../setup_environment/code/packages.R")
 # source("spatial_rd_fe.R")
 # Rscript spatial_rd_fe.R density_far TRUE 500 all pair_x_year ../output/rd_fe_plot_log_density_far_bw500_all_pair_x_year.pdf slope
 # Rscript spatial_rd_fe.R density_far TRUE 500 multifamily pair_x_year ../output/rd_fe_plot_log_density_far_bw500_multifamily_pair_x_year.pdf slope
+# Rscript spatial_rd_fe.R density_far TRUE 500 all pair_year ../output/rd_fe_plot_log_density_far_bw500_all_pair_year_gap_above_median.pdf slope above_median
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
-# arg order: yvar use_log bw_ft sample fe_spec output_pdf [plot_style]
-# sample: "all" | "single_family" (unitscount == 1) | "multifamily" (unitscount > 1)
+# arg order: yvar use_log bw_ft sample fe_spec output_pdf [plot_style] [gap_split]
+# sample: "all" (unitscount > 0) | "multifamily" (unitscount > 1)
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) >= 7) {
+if (length(args) >= 8) {
   yvar <- args[1]
   use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
   bw_ft <- as.numeric(args[3])
@@ -30,6 +32,16 @@ if (length(args) >= 7) {
   fe_spec <- args[5]
   output_pdf <- args[6]
   plot_style <- tolower(args[7])
+  gap_split <- tolower(args[8])
+} else if (length(args) >= 7) {
+  yvar <- args[1]
+  use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
+  bw_ft <- as.numeric(args[3])
+  sample_filter <- args[4]
+  fe_spec <- args[5]
+  output_pdf <- args[6]
+  plot_style <- tolower(args[7])
+  gap_split <- "all"
 } else if (length(args) >= 6) {
   yvar <- args[1]
   use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
@@ -38,17 +50,18 @@ if (length(args) >= 7) {
   fe_spec <- args[5]
   output_pdf <- args[6]
   plot_style <- "slope"
+  gap_split <- "all"
 } else {
-  if (!exists("yvar") || !exists("use_log") || !exists("bw_ft") || !exists("sample_filter") || !exists("fe_spec") || !exists("output_pdf") || !exists("plot_style")) {
-    stop("FATAL: Script requires args: <yvar> <use_log> <bw_ft> <sample> <fe_spec> <output_pdf> [<plot_style>]", call. = FALSE)
+  if (!exists("yvar") || !exists("use_log") || !exists("bw_ft") || !exists("sample_filter") || !exists("fe_spec") || !exists("output_pdf") || !exists("plot_style") || !exists("gap_split")) {
+    stop("FATAL: Script requires args: <yvar> <use_log> <bw_ft> <sample> <fe_spec> <output_pdf> [<plot_style>] [<gap_split>]", call. = FALSE)
   }
 }
 
 if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("bw_ft must be a positive number.", call. = FALSE)
 }
-if (!sample_filter %in% c("all", "single_family", "multifamily")) {
-  stop("sample must be one of: all, single_family, multifamily", call. = FALSE)
+if (!sample_filter %in% c("all", "multifamily")) {
+  stop("sample must be one of: all, multifamily", call. = FALSE)
 }
 
 fe_map <- list(
@@ -65,6 +78,9 @@ if (!fe_spec %in% names(fe_map)) {
 if (!plot_style %in% c("slope", "level")) {
   stop("plot_style must be one of: slope, level", call. = FALSE)
 }
+if (!gap_split %in% c("all", "above_median", "below_median")) {
+  stop("gap_split must be one of: all, above_median, below_median", call. = FALSE)
+}
 
 # 1) Load + sample filters aligned with border-pair FE table spec
 raw <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE)
@@ -73,8 +89,16 @@ if (!yvar %in% names(raw)) {
   stop(sprintf("yvar '%s' not found in data.", yvar), call. = FALSE)
 }
 
+strictness_sd <- sd(raw$strictness_own, na.rm = TRUE)
+if (!is.finite(strictness_sd) || strictness_sd <= 0) {
+  stop("Could not compute a valid strictness standard deviation.", call. = FALSE)
+}
+
 dat <- raw %>%
-  mutate(strictness_own = strictness_own / sd(strictness_own, na.rm = TRUE)) %>%
+  mutate(
+    strictness_own = strictness_own / strictness_sd,
+    strictness_neighbor = strictness_neighbor / strictness_sd
+  ) %>%
   filter(
     arealotsf > 1,
     areabuilding > 1,
@@ -84,10 +108,10 @@ dat <- raw %>%
     !is.na(construction_year)
   )
 
-if (sample_filter == "single_family") {
-  dat <- dat %>% filter(unitscount == 1)
+if (sample_filter == "all") {
+  dat <- dat %>% filter(unitscount > 0 )
 } else if (sample_filter == "multifamily") {
-  dat <- dat %>% filter(unitscount > 1)
+  dat <- dat %>% filter(unitscount > 1 )
 }
 message(sprintf("Observations after sample filter (%s): %d", sample_filter, nrow(dat)))
 
@@ -106,6 +130,35 @@ if (use_log) {
   dat <- dat %>%
     filter(is.finite(.data[[yvar]])) %>%
     mutate(outcome = .data[[yvar]])
+}
+
+pair_count_before_gap_split <- dplyr::n_distinct(dat$ward_pair)
+median_gap <- NA_real_
+if (gap_split != "all") {
+  pair_gaps <- dat %>%
+    filter(is.finite(strictness_own), is.finite(strictness_neighbor)) %>%
+    group_by(ward_pair) %>%
+    summarise(strictness_gap = median(abs(strictness_own - strictness_neighbor), na.rm = TRUE), .groups = "drop")
+
+  median_gap <- median(pair_gaps$strictness_gap, na.rm = TRUE)
+  if (!is.finite(median_gap)) {
+    stop("Median strictness gap is not finite; cannot split sample.", call. = FALSE)
+  }
+
+  keep_pairs <- if (gap_split == "above_median") {
+    pair_gaps %>% filter(strictness_gap >= median_gap) %>% pull(ward_pair)
+  } else {
+    pair_gaps %>% filter(strictness_gap < median_gap) %>% pull(ward_pair)
+  }
+
+  dat <- dat %>% filter(ward_pair %in% keep_pairs)
+  message(sprintf(
+    "Gap split (%s): cutoff=%.3f | pairs %d -> %d | obs=%d",
+    gap_split, median_gap, pair_count_before_gap_split, dplyr::n_distinct(dat$ward_pair), nrow(dat)
+  ))
+}
+if (nrow(dat) == 0) {
+  stop("No observations remain after filtering.", call. = FALSE)
 }
 
 controls <- c(
@@ -233,8 +286,13 @@ line_df <- if (plot_style == "level") {
 }
 
 jump_label <- sprintf(
-  "Jump at cutoff = %.3f%s (SE %.3f)",
+  "Jump = %.3f%s (SE %.3f)",
   b_side_plot["estimate"], stars(b_side_plot["p"]), b_side_plot["se"]
+)
+gap_split_label <- dplyr::case_when(
+  gap_split == "above_median" ~ "above-median gap pairs",
+  gap_split == "below_median" ~ "below-median gap pairs",
+  TRUE ~ "all pairs"
 )
 
 outcome_label <- c(
@@ -266,8 +324,8 @@ p <- ggplot() +
       ylab
     ),
     subtitle = sprintf(
-      "%s | bw=%d ft | FE=%s | N=%d | Ward pairs=%d",
-      jump_label, as.integer(bw_ft), fe_spec, n_obs_plot, dplyr::n_distinct(aug$ward_pair)
+      "%s | bw=%d ft | FE=%s | gap=%s | N=%d | Ward pairs=%d",
+      jump_label, as.integer(bw_ft), fe_spec, gap_split_label, n_obs_plot, dplyr::n_distinct(aug$ward_pair)
     ),
     x = "Signed distance to boundary (feet; right is stricter side)",
     y = ylab,
@@ -293,6 +351,10 @@ write_csv(
     bw_ft = bw_ft,
     fe_spec = fe_spec,
     plot_style = plot_style,
+    gap_split = gap_split,
+    gap_split_label = gap_split_label,
+    median_gap = median_gap,
+    n_pairs_before_gap_split = pair_count_before_gap_split,
     n_obs = n_obs_plot,
     n_pairs = dplyr::n_distinct(aug$ward_pair),
     jump_estimate = b_side_plot["estimate"],
