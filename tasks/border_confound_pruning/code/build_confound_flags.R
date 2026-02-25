@@ -55,6 +55,7 @@ stopifnot(file.exists(segment_path))
 segments <- fread(segment_path)
 
 required_cols <- c(
+  "segment_id",
   "ward_pair_id",
   "era",
   "segment_length_ft",
@@ -62,7 +63,8 @@ required_cols <- c(
   "water_area_share",
   "park_area_share",
   "waterway_overlap_ft",
-  "major_overlap_arterial_ft"
+  "major_overlap_arterial_ft",
+  "target_length_ft"
 )
 
 missing_cols <- setdiff(required_cols, names(segments))
@@ -81,6 +83,20 @@ segments[, segment_length_ft := pmax(0, as.numeric(segment_length_ft))]
 segments[!is.finite(segment_length_ft), segment_length_ft := 0]
 segments[, major_overlap_arterial_ft := pmax(0, as.numeric(major_overlap_arterial_ft))]
 segments[!is.finite(major_overlap_arterial_ft), major_overlap_arterial_ft := 0]
+segments[, target_length_ft := as.numeric(target_length_ft)]
+segments <- segments[is.finite(target_length_ft)]
+
+# Restrict to the intended 1320ft segment layer to avoid mixing bandwidth products.
+segments <- segments[abs(target_length_ft - 1320) < 1e-8]
+
+if (nrow(segments) == 0) {
+  stop("No rows remained after filtering to target_length_ft == 1320.", call. = FALSE)
+}
+
+if (anyDuplicated(segments$segment_id) > 0) {
+  stop("Duplicate segment_id rows remain after target_length_ft filtering.", call. = FALSE)
+}
+
 segments[, water_area_share := as.numeric(water_area_share)]
 segments[, park_area_share := as.numeric(park_area_share)]
 segments[, waterway_overlap_ft := as.numeric(waterway_overlap_ft)]
@@ -167,6 +183,7 @@ if (nrow(reason_summary) == 0) {
 lines <- c(
   "# Confound Pruning Summary",
   "",
+  sprintf("- segment rows used after target_length_ft == 1320 filter: %s", format(nrow(segments), big.mark = ",")),
   sprintf("- pair-era rows: %s", format(nrow(flags), big.mark = ",")),
   sprintf("- dropped pair-era rows: %s (%s)", format(nrow(drop), big.mark = ","), fmt_pct(nrow(drop) / max(nrow(flags), 1))),
   sprintf("- kept pair-era rows: %s", format(nrow(keep), big.mark = ",")),

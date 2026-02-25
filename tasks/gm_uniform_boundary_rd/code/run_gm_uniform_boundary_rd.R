@@ -7,6 +7,11 @@ library(ggplot2)
 sales_path <- "../input/sales_with_hedonics.parquet"
 flags_path <- "../input/confounded_pair_era_flags.csv"
 out_dir <- "../output"
+include_units_dupac <- tolower(Sys.getenv("INCLUDE_UNITS_DUPAC", "FALSE")) %in% c("true", "t", "1", "yes")
+run_tag <- trimws(Sys.getenv("RUN_TAG", ""))
+if (nchar(run_tag) > 0 && substr(run_tag, 1, 1) != "_") {
+  run_tag <- paste0("_", run_tag)
+}
 
 if (!dir.exists(out_dir)) {
   dir.create(out_dir, recursive = TRUE)
@@ -23,8 +28,13 @@ outcomes <- c("lot_size_ft2", "density_far", "sale_price_usd")
 outcome_labels <- c(
   lot_size_ft2 = "Lot size (ft^2)",
   density_far = "Density FAR",
-  sale_price_usd = "Sale price (USD)"
+  sale_price_usd = "Sale price (USD)",
+  density_dupac = "Density DUPAC",
+  units_count = "Units"
 )
+if (include_units_dupac) {
+  outcomes <- c(outcomes, "density_dupac", "units_count")
+}
 
 d_2003 <- as.Date("2003-05-01")
 d_2015 <- as.Date("2015-05-18")
@@ -329,7 +339,7 @@ sales <- as.data.table(read_parquet(
   sales_path,
   col_select = c(
     "ward_pair_id", "sale_date", "year", "signed_dist",
-    "sale_price", "land_sqft", "building_sqft"
+    "sale_price", "land_sqft", "building_sqft", "num_apartments"
   )
 ))
 
@@ -354,6 +364,13 @@ sales <- sales[
 sales[, lot_size_ft2 := as.numeric(land_sqft)]
 sales[, density_far := as.numeric(building_sqft) / as.numeric(land_sqft)]
 sales[, sale_price_usd := as.numeric(sale_price)]
+sales[, units_count := as.numeric(num_apartments)]
+sales[, density_dupac := fifelse(
+  is.finite(as.numeric(land_sqft)) & as.numeric(land_sqft) > 0 &
+    is.finite(as.numeric(num_apartments)),
+  43560 * as.numeric(num_apartments) / as.numeric(land_sqft),
+  NA_real_
+)]
 sales[, side := as.integer(signed_dist >= 0)]
 sales[, signed_dist_m := as.numeric(signed_dist) / 3.28084]
 sales[, boundary_area_id := paste(ward_pair_id, era, sep = "__")]
@@ -386,8 +403,16 @@ sales[is.na(drop_confound), drop_confound := FALSE]
 detail_all <- run_grid(sales, "all")
 detail_pruned <- run_grid(sales, "pruned")
 
-path_detail_all <- file.path(out_dir, "gm_uniform_boundary_rd_detail_all.csv")
-path_detail_pruned <- file.path(out_dir, "gm_uniform_boundary_rd_detail_pruned.csv")
+tag_file <- function(filename) {
+  full <- file.path(out_dir, filename)
+  if (nchar(run_tag) == 0) {
+    return(full)
+  }
+  sub("(\\.[^.]+)$", paste0(run_tag, "\\1"), full)
+}
+
+path_detail_all <- tag_file("gm_uniform_boundary_rd_detail_all.csv")
+path_detail_pruned <- tag_file("gm_uniform_boundary_rd_detail_pruned.csv")
 fwrite(detail_all, path_detail_all)
 fwrite(detail_pruned, path_detail_pruned)
 
@@ -429,23 +454,27 @@ table_pruned <- build_table_csv(detail_pruned)
 
 path_table_all_csv <- file.path(out_dir, "gm_uniform_boundary_rd_table_all.csv")
 path_table_pruned_csv <- file.path(out_dir, "gm_uniform_boundary_rd_table_pruned.csv")
+path_table_all_csv <- tag_file("gm_uniform_boundary_rd_table_all.csv")
+path_table_pruned_csv <- tag_file("gm_uniform_boundary_rd_table_pruned.csv")
 fwrite(table_all, path_table_all_csv)
 fwrite(table_pruned, path_table_pruned_csv)
 
-path_table_all_tex <- file.path(out_dir, "gm_uniform_boundary_rd_table_all.tex")
-path_table_pruned_tex <- file.path(out_dir, "gm_uniform_boundary_rd_table_pruned.tex")
+path_table_all_tex <- tag_file("gm_uniform_boundary_rd_table_all.tex")
+path_table_pruned_tex <- tag_file("gm_uniform_boundary_rd_table_pruned.tex")
 write_latex_table(detail_all, path_table_all_tex, "GM-style uniform-kernel boundary RD (all sample)")
 write_latex_table(detail_pruned, path_table_pruned_tex, "GM-style uniform-kernel boundary RD (pruned sample)")
 
-path_plot_all <- file.path(out_dir, "gm_uniform_distance_gradients_bw1000m_all.pdf")
-path_plot_pruned <- file.path(out_dir, "gm_uniform_distance_gradients_bw1000m_pruned.pdf")
-path_bins_all <- file.path(out_dir, "gm_uniform_distance_gradients_bw1000m_all_bins.csv")
-path_bins_pruned <- file.path(out_dir, "gm_uniform_distance_gradients_bw1000m_pruned_bins.csv")
+path_plot_all <- tag_file("gm_uniform_distance_gradients_bw1000m_all.pdf")
+path_plot_pruned <- tag_file("gm_uniform_distance_gradients_bw1000m_pruned.pdf")
+path_bins_all <- tag_file("gm_uniform_distance_gradients_bw1000m_all_bins.csv")
+path_bins_pruned <- tag_file("gm_uniform_distance_gradients_bw1000m_pruned_bins.csv")
 
 make_bins_and_plot(sales, "all", path_bins_all, path_plot_all)
 make_bins_and_plot(sales, "pruned", path_bins_pruned, path_plot_pruned)
 
 message("Saved:")
+message(sprintf("  - include_units_dupac = %s", include_units_dupac))
+message(sprintf("  - run_tag = '%s'", run_tag))
 message(sprintf("  - %s", path_detail_all))
 message(sprintf("  - %s", path_detail_pruned))
 message(sprintf("  - %s", path_table_all_csv))

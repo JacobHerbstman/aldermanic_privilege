@@ -8,8 +8,10 @@ SAMPLES := all multifamily
 YVARS_TABLE := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)'
 
 OUTPUT_FILES := $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(FE_SPECS),../output/fe_table_bw$(bw)_$(sample)_$(fe).tex)))
+OUTPUT_FILES_PRUNED := $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(FE_SPECS),../output/fe_table_bw$(bw)_$(sample)_$(fe)_pruned.tex)))
 
 all: $(OUTPUT_FILES)
+pruned: $(OUTPUT_FILES_PRUNED)
 
 define FE_template
 ../output/fe_table_bw$(1)_$(2)_$(3).tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
@@ -18,9 +20,19 @@ define FE_template
 endef
 $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(FE_SPECS),$(eval $(call FE_template,$(bw),$(sample),$(fe))))))
 
+define FE_template_pruned
+../output/fe_table_bw$(1)_$(2)_$(3)_pruned.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv | ../output
+	# arg order: bw_ft sample fe_spec output_filename yvars...
+	PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv Rscript border_pair_FE_regressions.R $(1) $(2) $(3) "$$@" $(YVARS_TABLE)
+endef
+$(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(FE_SPECS),$(eval $(call FE_template_pruned,$(bw),$(sample),$(fe))))))
+
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
+	ln -sf "$<" "$@"
+
+../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
 	ln -sf "$<" "$@"
 
 include ../../generic.make
 
-link-inputs: ../input/parcels_with_ward_distances.csv
+link-inputs: ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv
