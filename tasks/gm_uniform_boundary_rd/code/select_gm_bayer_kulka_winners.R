@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("rd_label_utils.R")
 
 library(data.table)
 library(ggplot2)
@@ -155,13 +156,14 @@ for (i in seq_len(nrow(candidates))) {
     )
   )
   candidate_title <- sprintf(
-    "%s | %s sample | %s | bw=%s | FE=%s | kernel=%s",
+    "%s | %s sample | %s | bw=%s | FE=%s | kernel=%s | %s",
     y_label(rr$outcome, rr$transform),
     rr$sample_tag,
     rr$transform,
     fmt_bw(rr),
     rr$fe_spec,
-    rr$kernel_selected
+    rr$kernel_selected,
+    gm_jump_label(rr$estimate, rr$std_error, rr$p_value)
   )
   p <- build_bins_plot(rr, candidate_title)
   ggsave(candidate_pdf_path, p, width = 8.4, height = 4.8, dpi = 300)
@@ -194,13 +196,14 @@ for (i in seq_len(nrow(winners))) {
     sprintf("gm_bayer_kulka_winner_%s.pdf", sanitize(rr$outcome))
   )
   winner_title <- sprintf(
-    "Winner: %s | %s sample | %s | bw=%s | FE=%s | kernel=%s",
+    "Winner: %s | %s sample | %s | bw=%s | FE=%s | kernel=%s | %s",
     y_label(rr$outcome, rr$transform),
     rr$sample_tag,
     rr$transform,
     fmt_bw(rr),
     rr$fe_spec,
-    rr$kernel_selected
+    rr$kernel_selected,
+    gm_jump_label(rr$estimate, rr$std_error, rr$p_value)
   )
   p <- build_bins_plot(rr, winner_title)
   ggsave(winner_pdf_path, p, width = 8.4, height = 4.8, dpi = 300)
@@ -231,23 +234,25 @@ if (nrow(far_winner) != 1 || nrow(dupac_winner) != 1) {
 p_far <- build_bins_plot(
   far_winner,
   sprintf(
-    "FAR winner | %s sample | %s | bw=%s | FE=%s | kernel=%s",
+    "FAR winner | %s sample | %s | bw=%s | FE=%s | kernel=%s | %s",
     far_winner$sample_tag,
     far_winner$transform,
     fmt_bw(far_winner),
     far_winner$fe_spec,
-    far_winner$kernel_selected
+    far_winner$kernel_selected,
+    gm_jump_label(far_winner$estimate, far_winner$std_error, far_winner$p_value)
   )
 )
 p_dupac <- build_bins_plot(
   dupac_winner,
   sprintf(
-    "DUPAC winner | %s sample | %s | bw=%s | FE=%s | kernel=%s",
+    "DUPAC winner | %s sample | %s | bw=%s | FE=%s | kernel=%s | %s",
     dupac_winner$sample_tag,
     dupac_winner$transform,
     fmt_bw(dupac_winner),
     dupac_winner$fe_spec,
-    dupac_winner$kernel_selected
+    dupac_winner$kernel_selected,
+    gm_jump_label(dupac_winner$estimate, dupac_winner$std_error, dupac_winner$p_value)
   )
 )
 
@@ -322,7 +327,7 @@ for (i in seq_len(nrow(winners_export))) {
   summary_lines <- c(
     summary_lines,
     sprintf(
-      "- %s: sample=%s, transform=%s, bw=%s, FE=%s, kernel=%s, est=%.4f, p=%.4f, jump_over_rmse=%s",
+      "- %s: sample=%s, transform=%s, bw=%s, FE=%s, kernel=%s, est=%.4f, p %.4f, jump_over_rmse=%s",
       rr$outcome,
       rr$sample_tag,
       rr$transform,
@@ -353,7 +358,7 @@ for (i in seq_len(nrow(candidates))) {
   summary_lines <- c(
     summary_lines,
     sprintf(
-      "- rank %d: %s | sample=%s | %s | bw=%s | FE=%s | kernel=%s | p=%.4f | `%s`",
+      "- rank %d: %s | sample=%s | %s | bw=%s | FE=%s | kernel=%s | p %.4f | `%s`",
       as.integer(rr$candidate_rank),
       rr$outcome,
       rr$sample_tag,

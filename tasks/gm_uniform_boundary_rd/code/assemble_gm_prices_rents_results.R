@@ -1,6 +1,7 @@
 library(data.table)
 library(ggplot2)
 library(patchwork)
+source("rd_label_utils.R")
 
 out_dir <- "../output/bayer_kulka_prices_rents"
 spec_inference_dir <- file.path(out_dir, "spec_inference")
@@ -63,10 +64,12 @@ build_panel <- function(bin_dt, spec_row, y_col = "y_bin_allbins") {
   d <- d[is.finite(get(y_col))]
 
   title_stub <- sprintf(
-    "%s | %s | p=%s",
+    "%s | %s | %s FE | bw=%dft | %s",
     if (spec_row$outcome == "home_price") "Home price" else "Rent",
     spec_row$dataset,
-    ifelse(is.finite(spec_row$p_value), sprintf("%.4f", spec_row$p_value), "NA")
+    spec_row$fe_structure,
+    as.integer(spec_row$bandwidth_ft),
+    gm_jump_label(spec_row$estimate, spec_row$std_error, spec_row$p_value)
   )
 
   ggplot(d, aes(x = bin_mid_m, y = get(y_col))) +

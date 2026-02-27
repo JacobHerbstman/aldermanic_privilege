@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("rd_label_utils.R")
 
 library(data.table)
 library(readr)
@@ -147,18 +148,18 @@ build_bins <- function(d, bin_width_m, fe_formula) {
   )
 }
 
-plot_bins <- function(bins, outcome, donut_m, p_value) {
+plot_bins <- function(bins, outcome, donut_m, estimate, std_error, p_value) {
   ggplot(bins, aes(x = bin_center_m, y = mean_y)) +
     geom_point(size = 1.8, alpha = 0.95, color = "#1f4e79") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "gray35", linewidth = 0.6) +
     coord_cartesian(xlim = c(-bandwidth_m, bandwidth_m)) +
     labs(
       title = sprintf(
-        "%s | bw=%dft | donut=%dm | p=%s",
+        "%s | bw=%dft | donut=%dm | %s",
         outcome_label[[outcome]],
         as.integer(bandwidth_ft),
         as.integer(donut_m),
-        ifelse(is.finite(p_value), sprintf("%.4f", p_value), "NA")
+        gm_jump_label(estimate, std_error, p_value)
       ),
       x = "Distance to border (meters)",
       y = paste0("Log(", outcome_label[[outcome]], ")")
@@ -304,7 +305,7 @@ for (outcome in outcomes) {
       bins_csv = bins_out
     )
 
-    plots[[paste(outcome, donut_m, sep = "__")]] <- plot_bins(bins, outcome, donut_m, est$p_value)
+    plots[[paste(outcome, donut_m, sep = "__")]] <- plot_bins(bins, outcome, donut_m, est$estimate, est$std_error, est$p_value)
   }
 }
 
@@ -363,7 +364,7 @@ for (outcome in outcomes) {
     summary_lines <- c(
       summary_lines,
       sprintf(
-        "- donut=%dm: est=%.6f, se=%.6f, p=%.4f, t=%.3f, n=%d, pairs=%d, bins(L/R)=%d/%d, diff_vs_0m=%.6f (%s%%)",
+        "- donut=%dm: est=%.6f, se=%.6f, p %.4f, t=%.3f, n=%d, pairs=%d, bins(L/R)=%d/%d, diff_vs_0m=%.6f (%s%%)",
         as.integer(r$donut_m),
         r$estimate,
         r$std_error,

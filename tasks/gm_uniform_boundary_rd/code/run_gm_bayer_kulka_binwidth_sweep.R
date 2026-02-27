@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("rd_label_utils.R")
 
 library(data.table)
 library(readr)
@@ -75,22 +76,18 @@ panel_y_label <- function(outcome) {
   }
 }
 
-panel_title <- function(outcome, bw_label, bin_width_m, p_value) {
+panel_title <- function(outcome, bw_label, bin_width_m, estimate, std_error, p_value) {
   base <- sprintf("%s | bw=%s | bin=%dm", outcome_label[[outcome]], bw_label, as.integer(bin_width_m))
-  if (is.finite(p_value)) {
-    paste0(base, sprintf(" | p=%.4f", p_value))
-  } else {
-    paste0(base, " | p=NA")
-  }
+  paste0(base, " | ", gm_jump_label(estimate, std_error, p_value))
 }
 
-build_panel <- function(bin_dt, outcome, bw_m, bw_label, bin_width_m, p_value) {
+build_panel <- function(bin_dt, outcome, bw_m, bw_label, bin_width_m, estimate, std_error, p_value) {
   ggplot(bin_dt, aes(x = bin_center_m, y = mean_y)) +
     geom_point(size = 1.8, alpha = 0.95, color = "#1f4e79") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "gray35", linewidth = 0.6) +
     coord_cartesian(xlim = c(-bw_m, bw_m)) +
     labs(
-      title = panel_title(outcome, bw_label, bin_width_m, p_value),
+      title = panel_title(outcome, bw_label, bin_width_m, estimate, std_error, p_value),
       x = "Distance to border (meters)",
       y = panel_y_label(outcome)
     ) +
@@ -338,8 +335,8 @@ for (bw_i in seq_len(nrow(bandwidths))) {
       next
     }
 
-    p_far <- build_panel(far_bins, "density_far", bw_m, bw_label, bin_w, far_row$p_value)
-    p_dupac <- build_panel(dupac_bins, "density_dupac", bw_m, bw_label, bin_w, dupac_row$p_value)
+    p_far <- build_panel(far_bins, "density_far", bw_m, bw_label, bin_w, far_row$estimate, far_row$std_error, far_row$p_value)
+    p_dupac <- build_panel(dupac_bins, "density_dupac", bw_m, bw_label, bin_w, dupac_row$estimate, dupac_row$std_error, dupac_row$p_value)
 
     stacked <- p_far / p_dupac + plot_annotation(
       title = sprintf("Pruned log additive FE (zone + pair + year), %s", bw_label)
@@ -384,14 +381,14 @@ for (bw_i in seq_len(nrow(bandwidths))) {
 
     if (nrow(far_row) == 1L && file.exists(far_row$bins_csv)) {
       far_bins <- fread(far_row$bins_csv)
-      far_panels[[j]] <- build_panel(far_bins, "density_far", bw_m, bw_label, bin_w, far_row$p_value)
+      far_panels[[j]] <- build_panel(far_bins, "density_far", bw_m, bw_label, bin_w, far_row$estimate, far_row$std_error, far_row$p_value)
     } else {
       far_panels[[j]] <- ggplot() + theme_void()
     }
 
     if (nrow(dupac_row) == 1L && file.exists(dupac_row$bins_csv)) {
       dupac_bins <- fread(dupac_row$bins_csv)
-      dupac_panels[[j]] <- build_panel(dupac_bins, "density_dupac", bw_m, bw_label, bin_w, dupac_row$p_value)
+      dupac_panels[[j]] <- build_panel(dupac_bins, "density_dupac", bw_m, bw_label, bin_w, dupac_row$estimate, dupac_row$std_error, dupac_row$p_value)
     } else {
       dupac_panels[[j]] <- ggplot() + theme_void()
     }

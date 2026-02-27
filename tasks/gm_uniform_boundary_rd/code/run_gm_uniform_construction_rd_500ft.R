@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("rd_label_utils.R")
 
 library(data.table)
 library(readr)
@@ -63,14 +64,6 @@ extract_side_term <- function(model) {
   out
 }
 
-stars <- function(p) {
-  if (!is.finite(p)) return("")
-  if (p <= 0.01) return("***")
-  if (p <= 0.05) return("**")
-  if (p <= 0.10) return("*")
-  ""
-}
-
 fit_plot <- function(d, model, sample_tag, transform_tag, outcome, out_pdf, out_bins, bw_ft) {
   d_plot <- copy(d)
   b_side <- c(estimate = NA_real_, se = NA_real_, p = NA_real_)
@@ -130,19 +123,7 @@ fit_plot <- function(d, model, sample_tag, transform_tag, outcome, out_pdf, out_
   }
 
   coef_side <- extract_side_term(model)
-  jump_txt <- if (transform_tag == "log") {
-    ifelse(
-      is.finite(coef_side$estimate),
-      sprintf("Jump = %.4f%s (SE %.4f; p=%.3f) ~ %.1f%%", coef_side$estimate, stars(coef_side$p_value), coef_side$std_error, coef_side$p_value, 100 * (exp(coef_side$estimate) - 1)),
-      "Jump = NA"
-    )
-  } else {
-    ifelse(
-      is.finite(coef_side$estimate),
-      sprintf("Jump = %.4f%s (SE %.4f; p=%.3f)", coef_side$estimate, stars(coef_side$p_value), coef_side$std_error, coef_side$p_value),
-      "Jump = NA"
-    )
-  }
+  jump_txt <- gm_jump_label(coef_side$estimate, coef_side$std_error, coef_side$p_value)
 
   p <- ggplot() +
     geom_point(

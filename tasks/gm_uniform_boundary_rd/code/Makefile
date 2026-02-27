@@ -70,7 +70,7 @@ $(GM_PRICES_RENTS_RUN_STAMP): run_gm_prices_rents_spec.R ../input/sales_with_hed
 	rm -f ../output/bayer_kulka_prices_rents/spec_plot/*.csv
 	rm -f ../output/bayer_kulka_prices_rents/plots/gm_prices_rents_*.pdf
 	rm -f ../output/bayer_kulka_prices_rents/qc_unmapped_pair_era_*.csv
-	@spec_grid=../output/bayer_kulka_prices_rents/spec_grid.tsv; \
+	@spec_grid=../output/bayer_kulka_prices_rents/.spec_grid.tsv.tmp; \
 	: > $$spec_grid; \
 	for dataset in sales rent; do \
 		for transform in level log; do \
@@ -85,7 +85,8 @@ $(GM_PRICES_RENTS_RUN_STAMP): run_gm_prices_rents_spec.R ../input/sales_with_hed
 			done; \
 		done; \
 	done; \
-	cat $$spec_grid | xargs -n 6 -P 6 bash -lc 'echo "Running prices/rents spec: $$1 $$2 $$3 $$4 $$5 $$6"; Rscript run_gm_prices_rents_spec.R "$$1" "$$2" "$$3" "$$4" "$$5" "$$6"' _
+	cat $$spec_grid | xargs -n 6 -P 6 bash -lc 'echo "Running prices/rents spec: $$1 $$2 $$3 $$4 $$5 $$6"; Rscript run_gm_prices_rents_spec.R "$$1" "$$2" "$$3" "$$4" "$$5" "$$6"' _; \
+	rm -f $$spec_grid
 	touch "$@"
 
 $(GM_PRICES_RENTS_ASSEMBLE_STAMP): assemble_gm_prices_rents_results.R $(GM_PRICES_RENTS_RUN_STAMP) | ../output

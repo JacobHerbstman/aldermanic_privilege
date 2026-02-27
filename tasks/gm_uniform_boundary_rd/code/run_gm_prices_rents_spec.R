@@ -2,6 +2,7 @@ library(arrow)
 library(data.table)
 library(fixest)
 library(ggplot2)
+source("rd_label_utils.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 6L) {
@@ -481,14 +482,13 @@ obs_lock_signature <- if (n_obs_input == 0L) {
   )
 }
 
-p_val_label <- if (is.finite(est$p_value)) sprintf("%.4f", est$p_value) else "NA"
 title_stub <- sprintf(
-  "%s | %s | %s FE | %s | p=%s",
+  "%s | %s | %s FE | %s | %s",
   if (spec_outcome == "home_price") "Home price" else "Rent",
   transform,
   fe_structure,
   paste0("bw=", as.integer(bandwidth_ft), "ft"),
-  p_val_label
+  gm_jump_label(est$estimate, est$std_error, est$p_value)
 )
 
 plot_allbins_pdf <- file.path(plots_dir, sprintf("gm_prices_rents_%s_allbins.pdf", spec_id))

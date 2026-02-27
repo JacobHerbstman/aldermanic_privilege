@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("rd_label_utils.R")
 
 library(arrow)
 library(data.table)
@@ -39,19 +40,6 @@ if (include_units_dupac) {
 d_2003 <- as.Date("2003-05-01")
 d_2015 <- as.Date("2015-05-18")
 d_2023 <- as.Date("2023-05-15")
-
-fmt_num <- function(x, digits = 3) {
-  ifelse(is.finite(x), format(round(x, digits), nsmall = digits, trim = TRUE), "NA")
-}
-
-star_code <- function(p) {
-  p_num <- suppressWarnings(as.numeric(p))
-  out <- rep("", length(p_num))
-  out[is.finite(p_num) & p_num < 0.10] <- "*"
-  out[is.finite(p_num) & p_num < 0.05] <- "**"
-  out[is.finite(p_num) & p_num < 0.01] <- "***"
-  out
-}
 
 normalize_pair_dash <- function(x) {
   x <- as.character(x)
@@ -106,7 +94,7 @@ write_latex_table <- function(detail_dt, path_tex, caption) {
   dt[, bw_label := as.character(bandwidth_m)]
   dt[, cell := ifelse(
     is.finite(estimate),
-    sprintf("%s%s (%s)", fmt_num(estimate), star_code(p_value), fmt_num(std_error)),
+    sprintf("%s%s (%s)", gm_fmt3(estimate), gm_stars(p_value), gm_fmt3(std_error)),
     "NA"
   )]
 
@@ -221,7 +209,7 @@ run_grid <- function(base_dt, sample_tag) {
   res
 }
 
-make_bins_and_plot <- function(base_dt, sample_tag, out_bins_csv, out_pdf) {
+make_bins_and_plot <- function(base_dt, sample_tag, detail_dt, out_bins_csv, out_pdf) {
   bw_1000_ft <- bandwidths[bandwidth_m == 1000L, bandwidth_ft][1]
   d <- base_dt[
     abs(signed_dist) <= bw_1000_ft &
@@ -280,9 +268,30 @@ make_bins_and_plot <- function(base_dt, sample_tag, out_bins_csv, out_pdf) {
   }
   fit_dt <- if (length(fit_lines) > 0) rbindlist(fit_lines, fill = TRUE) else data.table()
 
-  bins[, outcome_label := outcome_labels[outcome]]
+  label_lookup <- detail_dt[bandwidth_m == 1000L, .(
+    outcome,
+    jump_label = gm_jump_label(estimate, std_error, p_value)
+  )]
+  label_lookup <- unique(label_lookup, by = "outcome")
+  bins <- merge(
+    bins,
+    label_lookup,
+    by = "outcome",
+    all.x = TRUE,
+    sort = FALSE
+  )
+  bins[is.na(jump_label), jump_label := "Jump = NA"]
+  bins[, outcome_label := paste0(outcome_labels[outcome], " | ", jump_label)]
   if (nrow(fit_dt) > 0) {
-    fit_dt[, outcome_label := outcome_labels[outcome]]
+    fit_dt <- merge(
+      fit_dt,
+      label_lookup,
+      by = "outcome",
+      all.x = TRUE,
+      sort = FALSE
+    )
+    fit_dt[is.na(jump_label), jump_label := "Jump = NA"]
+    fit_dt[, outcome_label := paste0(outcome_labels[outcome], " | ", jump_label)]
   }
 
   bins_out <- bins[, .(
@@ -422,7 +431,7 @@ build_table_csv <- function(detail_dt) {
   dt[, bw_label := as.character(bandwidth_m)]
   dt[, est_se := ifelse(
     is.finite(estimate),
-    sprintf("%s%s (%s)", fmt_num(estimate), star_code(p_value), fmt_num(std_error)),
+    sprintf("%s%s (%s)", gm_fmt3(estimate), gm_stars(p_value), gm_fmt3(std_error)),
     "NA"
   )]
 
@@ -469,8 +478,8 @@ path_plot_pruned <- tag_file("gm_uniform_distance_gradients_bw1000m_pruned.pdf")
 path_bins_all <- tag_file("gm_uniform_distance_gradients_bw1000m_all_bins.csv")
 path_bins_pruned <- tag_file("gm_uniform_distance_gradients_bw1000m_pruned_bins.csv")
 
-make_bins_and_plot(sales, "all", path_bins_all, path_plot_all)
-make_bins_and_plot(sales, "pruned", path_bins_pruned, path_plot_pruned)
+make_bins_and_plot(sales, "all", detail_all, path_bins_all, path_plot_all)
+make_bins_and_plot(sales, "pruned", detail_pruned, path_bins_pruned, path_plot_pruned)
 
 message("Saved:")
 message(sprintf("  - include_units_dupac = %s", include_units_dupac))
