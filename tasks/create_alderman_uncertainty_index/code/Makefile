@@ -5,16 +5,16 @@ SCRIPT := create_uncertainty_index.R
 INPUT := ../input/permits_for_uncertainty_index.csv
 
 # Active uncertainty specification used throughout slides_uncertainty.
-PTFE := FALSE
-RTFE := FALSE
+PTFE := TRUE
+RTFE := TRUE
 PORCH := TRUE
 CAFE := FALSE
 TWO_STAGE := TRUE
 STAGE2_WEIGHT := N_PERMITS
-VOLUME_CTRL := NONE
-VOLUME_STAGE := STAGE1
+VOLUME_CTRL := LAG1
+VOLUME_STAGE := BOTH
 
-SPEC := ptfe$(PTFE)_rtfe$(RTFE)_porch$(PORCH)_cafe$(CAFE)_2stage
+SPEC := ptfe$(PTFE)_rtfe$(RTFE)_porch$(PORCH)_cafe$(CAFE)_2stage_vol$(VOLUME_CTRL)_$(VOLUME_STAGE)
 CSV_OUT := ../output/alderman_uncertainty_index_$(SPEC).csv
 PLOT_OUT := ../output/uncertainty_index_$(SPEC).pdf
 STAGE1_OUT := ../output/stage1_regression_$(SPEC).tex

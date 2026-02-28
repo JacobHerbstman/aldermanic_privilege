@@ -1,38 +1,118 @@
-\efloatseparator
- 
-\begin{figure}[H]
+\begin{figure}[htbp]
     \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_no_hedonics_short.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_triangular_1000ft_no_hedonics_short.pdf}
-        \caption*{Panel B: Binary Treatment}
-    \end{minipage}
-    \caption{Event Study: Rents --- Without Hedonic Controls}
-    \figurenotes{Same specification as Figure~\ref{fig:event_study_rents} but excluding listing-level hedonic controls. Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-border-pair-by-side and cohort-by-border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals based on standard errors clustered at the census block level.}
-    \label{fig:event_study_rental_no_hedonics}
+    \includegraphics[width=0.8\textwidth]{../tasks/create_alderman_strictness_scores/output/Month_FEs_final_strictness_index.pdf}
+    \caption{Distribution of Aldermanic Strictness Scores}
+    \figurenotes{Strictness scores are constructed from residualized permit processing times with empirical Bayes shrinkage. Scores are standardized to mean zero. Higher values indicate aldermen associated with longer permit processing times after controlling for ward characteristics and month fixed effects.}
+    \label{fig:aldermanic_strictness_scores}
 \end{figure}
 \efloatseparator
  
-\begin{figure}[H]
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../tasks/strictness_score_map/output/strictness_score_map_2025-01.pdf}
+    \caption{Geographic Distribution of Aldermanic Strictness}
+    \figurenotes{Map shows strictness scores by ward. Darker shades indicate stricter aldermen.}
+    \label{fig:alderman_strictness_map}
+\end{figure}
+\efloatseparator
+ 
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_far_bw500_triangular.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_dupac_bw500_triangular.pdf}
+    \end{minipage}
+    \caption{Regression Discontinuity at Ward Boundaries: Log(FAR) and Log(DUPAC)}
+    \figurenotes{Sample restricted to new multifamily construction (2--100 units) within 500 feet of ward boundaries where both sides share the same zoning classification. Negative distance indicates the more lenient alderman's side; positive distance indicates the stricter side. Local linear regression with triangular kernel weights. Bias-corrected point estimates and robust confidence intervals from rdrobust. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
+    \label{fig:rd_plots}
+\end{figure}
+\efloatseparator
+ 
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.4\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_far_bw250_triangular.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.4\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_far_bw1000_triangular.pdf}
+    \end{minipage}
+
+    \vspace{0.2cm}
+
+    \begin{minipage}{0.4\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_dupac_bw250_triangular.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.4\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only/output/rd_plot_log_density_dupac_bw1000_triangular.pdf}
+    \end{minipage}
+    \caption{Bandwidth Sensitivity for RD Estimates}
+    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column: 250-foot bandwidth; right column: 1,000-foot bandwidth. Main specification uses 500-foot bandwidth (Figure \ref{fig:rd_plots}). * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
+    \label{fig:rd_bandwidth_robust}
+\end{figure}
+\efloatseparator
+ 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/ward_pair_vertical_13-23.pdf}
+    \caption{Identification Example: Ward Pair 13--23 (2015 Redistricting)}
+    \figurenotes{Top panel shows ward assignments before redistricting (2014 boundaries), middle panel shows assignments after redistricting (2015 boundaries), and bottom panel shows treatment status based on the change in alderman strictness. Blocks switching from Ward 13 to Ward 23 are compared to controls that remained in Ward 13 (the origin ward), and vice versa. Sample restricted to blocks within 1,000 feet of ward boundaries.}
+    \label{fig:identification_example}
+\end{figure}
+\efloatseparator
+ 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/treatment_control_maps_combined.pdf}
+    \caption{Treatment and Control Blocks: Citywide Distribution}
+    \figurenotes{Geographic distribution of treated and control blocks for the 2015 redistricting (left) and 2023 redistricting (right). Red indicates blocks that moved to a stricter alderman, blue indicates blocks that moved to a more lenient alderman, and gray indicates control blocks that did not switch wards. Sample restricted to blocks within 1,000 feet of ward boundaries. Controls exclude wards with aldermanic turnover via election.}
+    \label{fig:treatment_control_maps}
+\end{figure}
+\efloatseparator
+ 
+\begin{figure}[htbp]
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_continuous_triangular_1000ft_no_hedonics.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_short.pdf}
         \caption*{Panel A: Continuous Treatment}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_binary_triangular_1000ft_no_hedonics.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_triangular_1000ft_short.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
-    \caption{Event Study: Home Sale Prices --- Without Hedonic Controls}
-    \figurenotes{Same specification as Figure~\ref{fig:event_study_sales} but excluding property-level hedonic controls. 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
-    \label{fig:event_study_sales_no_hedonics}
+    \caption{Event Study: Effect of Alderman Strictness on Rents}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-border-pair-by-side and cohort-by-border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building type, square footage, bedrooms, and bathrooms. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \label{fig:event_study_rents}
+\end{figure}
+\efloatseparator
+ 
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_continuous_triangular_1000ft.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_binary_triangular_1000ft.pdf}
+        \caption*{Panel B: Binary Treatment}
+    \end{minipage}
+    \caption{Event Study: Effect of Alderman Strictness on Home Sale Prices}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \label{fig:event_study_sales}
 \end{figure}

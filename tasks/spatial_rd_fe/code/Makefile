@@ -1,7 +1,7 @@
 SHELL := bash
 include ../../shell_functions.make
 
-BANDWIDTHS := 500
+BANDWIDTHS := 250 500 1000
 FE_SPECS := pair_year zone_pair_year_additive
 YVARS := density_far density_dupac unitscount
 LOG_STATUS := TRUE

@@ -1,35 +1,112 @@
+\begin{table}[htbp]
+\centering
+\caption{Summary Statistics of New Residential Construction}
+\label{tab:summary_stats}
+\begin{tabular}{lcc}
+\toprule
+ & (1) & (2) \\
+ & All New Construction & Multifamily Only \\
+\midrule
+Average FAR & 1.22 & 2.32 \\
+Average Units & 6.65 & 31.27 \\
+Average Stories & 2.27 & 2.75 \\
+Average DUPAC & 28.47 & 74.54 \\
+Median Dist. to Boundary (ft) & 928.57 & 887.16 \\
+Average Strictness Score & 0.154 & 0.285 \\
+\midrule
+Observations & 13,236 & 2,469 \\
+\bottomrule
+\end{tabular}
+\end{table}
 \efloatseparator
  
 \begin{table}[htbp]
-\caption{Effect of Alderman Strictness on Home Sale Prices: Announcement Timing}
-\label{tab:did_sales_announcement}
+    \caption{Effect of Aldermanic Strictness on Development Density}
+    \label{tab:fe_estimates_250}
+
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250.tex}
+
+    \footnotesize
+    \textit{Notes:} Sample includes new multifamily construction (2-100 units) within 250 feet of ward boundaries, 2006-2024. All specifications include border-pair $\times$ zoning fixed effects and construction year fixed effects. Strictness is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
+\efloatseparator
+ 
+\begin{table}[htbp]
 \centering
-
-\begin{tabular}{lcc}
-   \toprule
-                                       & (1)           & (2) \\
-   \midrule
-      Post $\times$ Strictness $\Delta$ & 0.028*** & 0.028*** \\
-       & (0.011) & (0.009) \\
-      Log Building Sqft &  & 0.349*** \\
-       &  & (0.015) \\
-      Log Land Sqft &  & 0.235*** \\
-       &  & (0.017) \\
-      Log Building Age &  & -0.170*** \\
-       &  & (0.006) \\
-      Log Bedrooms &  & -0.046*** \\
-       &  & (0.015) \\
-      Log Bathrooms &  & 0.043*** \\
-       &  & (0.012) \\
-      Has Garage &  & 0.017** \\
-       &  & (0.008) \\
-   \\
-   Observations                        & 37,876        & 37,876 \\
-   R$^2$                               & 0.67          & 0.71 \\
-   \bottomrule
+\caption{Summary Statistics: Event Study Samples}
+\label{tab:summary_stats_event_study}
+\begin{tabular}{lrrrr}
+\toprule
+ & Full Sample & Control & To Stricter & To Lenient \\
+\midrule
+\addlinespace
+\multicolumn{5}{l}{\textit{Panel A: Home Sales (2012 Announcement Cohort)}} \\
+\addlinespace
+Transactions & 37,891 & 21,171 & 8,098 & 8,622 \\
+Census blocks & 11,964 & 6,738 & 2,498 & 2,728 \\
+Ward boundary pairs & 145 & 125 & 63 & 75 \\
+\addlinespace
+Mean sale price (\$) & \$308,367 & \$320,524 & \$259,205 & \$324,690 \\
+Median sale price (\$) & \$226,000 & \$228,000 & \$220,000 & \$235,000 \\
+Mean $\Delta$ strictness & --- & 0.000 & 0.688 & -0.539 \\
+Mean dist.\ to boundary (ft) & 487 & 509 & 462 & 454 \\
+\addlinespace
+Mean building sqft & 1,942 & 1,993 & 1,828 & 1,923 \\
+Mean building age (years) & 92.4 & 92.8 & 91.3 & 92.3 \\
+Mean bedrooms & 4.02 & 4.09 & 3.87 & 3.96 \\
+\addlinespace
+\midrule
+\addlinespace
+\multicolumn{5}{l}{\textit{Panel B: Rental Listings (Stacked 2015 + 2023 Cohorts)}} \\
+\addlinespace
+Listings & 3,880,857 & 1,830,997 & 918,679 & 1,131,181 \\
+Census blocks & 13,568 & 9,544 & 3,220 & 3,784 \\
+Ward boundary pairs & 161 & 147 & 97 & 103 \\
+\addlinespace
+Mean rent (\$) & \$2,540 & \$2,551 & \$2,620 & \$2,456 \\
+Median rent (\$) & \$2,345 & \$2,395 & \$2,365 & \$2,258 \\
+Mean $\Delta$ strictness & --- & 0.000 & 1.099 & -0.484 \\
+Mean dist.\ to boundary (ft) & 440 & 507 & 318 & 430 \\
+\addlinespace
+Mean sqft & 979 & 990 & 968 & 971 \\
+Mean bedrooms & 1.58 & 1.63 & 1.53 & 1.54 \\
+Share single-family (\%) & 5.0 & 5.9 & 3.1 & 5.2 \\
+Share multi-family (\%) & 82.5 & 81.0 & 84.4 & 83.3 \\
+Share condo (\%) & 5.5 & 6.8 & 3.9 & 4.5 \\
+\addlinespace
+\bottomrule
 \end{tabular}
-
-\vspace{0.5em}
-\par \raggedright \footnotesize
-\textit{Notes:} Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Uses 2012 announcement timing as robustness check (main results use 2015 implementation timing). All specifications include border-pair $\times$ origin-side and border-pair $\times$ year fixed effects. Sample restricted to within 1,000 feet of ward boundaries. Triangular kernel weighting. Standard errors clustered by census block in parentheses. Column (1) excludes hedonic controls; column (2) includes hedonic controls. *** p$<$0.01, ** p$<$0.05, * p$<$0.1.
+\begin{tablenotes}
+\small
+\item \textit{Notes:} Sample restricted to transactions/listings within 1,000 feet of ward boundaries.
+Panel A uses the 2012 announcement cohort for the 2015 redistricting (sales 2007--2017).
+Panel B pools the 2015 and 2023 redistricting cohorts using implementation timing;
+rental sample restricted to listings with non-missing hedonic characteristics.
+Control units did not switch aldermen during redistricting.
+Strictness is standardized (mean 0, SD 1) based on permit processing times.
+\end{tablenotes}
+\end{table}
+\efloatseparator
+ 
+\begin{table}[htbp]
+\caption{Effect of Alderman Strictness on Housing Costs}
+\label{tab:did_simple}
+\centering
+\begin{tabular}{l*{4}{c}}
+\toprule
+ & \multicolumn{2}{c}{Rents} & \multicolumn{2}{c}{Home Sale Prices} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+ & (1) & (2) & (3) & (4) \\
+\midrule
+Post $\times$ Strictness $\Delta$ & 0.055*** & 0.037** & 0.022*** & 0.022*** \\
+ & (0.020) & (0.015) & (0.009) & (0.007) \\
+\midrule
+Observations & 3,877,588 & 3,877,588 & 43,895 & 43,892 \\
+R$^2$ & 0.40 & 0.80 & 0.69 & 0.74 \\
+Hedonic Controls & & $\checkmark$ & & $\checkmark$ \\
+Border Pair $\times$ Side FE & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+Border Pair $\times$ Year FE & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+\bottomrule
+\end{tabular}
+\figurenotes{Columns (1)--(2): listing-level regressions of log rent on post-redistricting indicator interacted with change in alderman strictness; stacked estimator combining 2015 and 2023 redistricting cohorts. Columns (3)--(4): transaction-level regressions of log sale price using 2015 implementation timing. Rental hedonic controls include log sqft, log bedrooms, log bathrooms, and building type. Sales hedonic controls include log building sqft, log land sqft, log building age, log bedrooms, log bathrooms, and garage indicator. Sample restricted to observations within 1,000 feet of ward boundaries. Triangular kernel weights. Standard errors clustered by census block in parentheses. $^{*}$ $p<0.10$, $^{**}$ $p<0.05$, $^{***}$ $p<0.01$.}
 \end{table}

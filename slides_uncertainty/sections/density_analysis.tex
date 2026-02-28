@@ -247,14 +247,14 @@
         \centering
         \textbf{Log(FAR)}
         \begin{figure}
-            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_pair_x_year.pdf}
+            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_all_pair_year.pdf}
         \end{figure}
     \end{column}
     \begin{column}{0.48\textwidth}
         \centering
         \textbf{Log(DUPAC)}
         \begin{figure}
-            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_pair_x_year.pdf}
+            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_all_pair_year.pdf}
         \end{figure}
     \end{column}
     \end{columns}
@@ -280,10 +280,10 @@
     \small
     \textbf{Specification}: 
     $\ln(Y_i) = \beta \cdot \text{Uncertainty}_i + \alpha_{\text{border} \times \text{year} } + \varepsilon_i$\\
-    Sample: Within 500 ft, 2-100 units. Standard errors clustered at border-pair level.
+    Sample: Within 500 ft, multifamily buildings only. Standard errors clustered at border-pair level.
     
     \begin{center}
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_pair_x_year.tex}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_pair_x_year_pruned.tex}
     \end{center}
     
     \vspace{0.1em}
