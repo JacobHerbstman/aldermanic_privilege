@@ -15,6 +15,7 @@ SCORE_COLUMN ?= uncertainty_index
 SCORE_FILE_UPSTREAM ?= ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(SCORE_SPEC).csv
 
 SCORE_FILE := ../input/aldermen_uncertainty_scores.csv
+SEGMENT_LOOKUP := ../input/parcel_segment_ids.csv
 
 # -----------------------------------------------------------------------------
 # Main Targets
@@ -22,7 +23,7 @@ SCORE_FILE := ../input/aldermen_uncertainty_scores.csv
 
 all: ../output/parcels_with_ward_distances.csv
 
-../output/parcels_with_ward_distances.csv: merge_scores.R ../input/parcels_pre_scores.csv $(SCORE_FILE) | ../output
+../output/parcels_with_ward_distances.csv: merge_scores.R ../input/parcels_pre_scores.csv $(SCORE_FILE) $(SEGMENT_LOOKUP) | ../output
 	# arg order: score_file score_column
 	$(R) merge_scores.R $(SCORE_FILE) $(SCORE_COLUMN)
 
@@ -33,13 +34,16 @@ all: ../output/parcels_with_ward_distances.csv
 ../input/parcels_pre_scores.csv: ../../calculate_ward_boundary_distances/output/parcels_pre_scores.csv | ../input
 	ln -sf $< $@
 
+../input/parcel_segment_ids.csv: ../../assign_segment_ids/output/parcel_segment_ids.csv | ../input
+	ln -sf $< $@
+
 # Note: Score file symlink - change the source to test different score specifications
 ../input/aldermen_uncertainty_scores.csv: $(SCORE_FILE_UPSTREAM) | ../input
 	ln -sf $< $@
 
 include ../../generic.make
 
-link-inputs: ../input/parcels_pre_scores.csv $(SCORE_FILE)
+link-inputs: ../input/parcels_pre_scores.csv $(SCORE_FILE) $(SEGMENT_LOOKUP)
 
 # -----------------------------------------------------------------------------
 # Helper targets for common score specifications

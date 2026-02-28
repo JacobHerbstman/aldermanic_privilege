@@ -221,17 +221,18 @@
     \textbf{Idea}: Compare new multifamily construction on opposite sides of ward boundaries
     \begin{itemize}
         \item Focus on parcels \textbf{within 500 feet} of border 
-        \item Use stringent border-pair $\times$ year FEs to remove unobserved heterogeneity
+        \item Main FE stack: \textbf{zoning code + boundary segment + construction year}
+        \item Main inference: standard errors clustered by \textbf{boundary segment}
     \end{itemize}
     
     \vspace{0.3em}
-    \textbf{Identifying variation}: At the same border in the same year, does the more uncertain side have less dense construction?
+    \textbf{Identifying variation}: Within the same boundary segment-year, does the more uncertain side have less dense construction?
     
     \vspace{0.3em}
     Two specifications:
     \begin{itemize}
-        \item \textbf{Visual RD}: Descriptive, visual evidence of discontinuities at ward borders
-        \item \textbf{Regressions}: Regression with continuous uncertainty measure and stringent FEs
+        \item \textbf{Visual RD}: FE-adjusted discontinuity plots under the same FE stack
+        \item \textbf{Regressions}: Border FE table with continuous uncertainty index
     \end{itemize}
 \end{frame}
 
@@ -247,27 +248,27 @@
         \centering
         \textbf{Log(FAR)}
         \begin{figure}
-            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_all_pair_year.pdf}
+            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment.pdf}
         \end{figure}
     \end{column}
     \begin{column}{0.48\textwidth}
         \centering
         \textbf{Log(DUPAC)}
         \begin{figure}
-            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_all_pair_year.pdf}
+            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zone_segment_year_additive_clust_segment.pdf}
         \end{figure}
     \end{column}
     \end{columns}
     
     \scriptsize
-    \textit{Notes}: FE-adjusted outcome bins with ward-pair $\times$ year FE; 500 ft bandwidth.
+    \textit{Notes}: Multifamily sample, 500 ft bandwidth, zoning + segment + year FE, segment-clustered SEs.
     
     \vfill\hfill
-    \hyperlink{visual-rd-placebo}{\beamergotobutton{Pair + Year FE}}
+    \hyperlink{visual-rd-placebo}{\beamergotobutton{Ward-Pair Cluster}}
     \hspace{0.2em}
-    \hyperlink{visual-rd-functional}{\beamergotobutton{Levels}}
+    \hyperlink{visual-rd-functional}{\beamergotobutton{All Sample}}
     \hspace{0.2em}
-    \hyperlink{visual-rd-donut}{\beamergotobutton{Units}}
+    \hyperlink{visual-rd-donut}{\beamergotobutton{Segment + Year FE}}
 \end{frame}
 
 
@@ -275,26 +276,26 @@
 % SLIDE 17: BORDER-PAIR FE RESULTS
 % ==============================================================================
 \begin{frame}[label=density-reg-main]
-    \frametitle{Main Results: Border-Pair Fixed Effects}
+    \frametitle{Main Results: Segment-Localized Border FE}
     
     \small
     \textbf{Specification}: 
-    $\ln(Y_i) = \beta \cdot \text{Uncertainty}_i + \alpha_{\text{border} \times \text{year} } + \varepsilon_i$\\
-    Sample: Within 500 ft, multifamily buildings only. Standard errors clustered at border-pair level.
+    $\ln(Y_i) = \beta \cdot \text{Uncertainty}_i + \alpha_{\text{zone}} + \alpha_{\text{segment}} + \alpha_{\text{year}} + \varepsilon_i$\\
+    Sample: Within 500 ft, multifamily only. Main SEs clustered at boundary segment level.
     
     \begin{center}
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_pair_x_year_pruned.tex}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zone_segment_year_additive_clust_segment.tex}
     \end{center}
     
     \vspace{0.1em}
-    \textbf{Interpretation}: A 1 SD $\uparrow$ in regulatory uncertainty is associated with lower FAR/DUPAC
-    
+    \textbf{Interpretation}: A 1 SD $\uparrow$ in uncertainty is associated with lower multifamily FAR and DUPAC.
+
     \vspace{-0.4em}
     \vfill\hfill
-    \hyperlink{density-reg-bw250}{\beamergotobutton{250ft}}
+    \hyperlink{density-reg-bw250}{\beamergotobutton{Ward-Pair Cluster}}
     \hspace{0.1em}
-    \hyperlink{density-reg-bw1000}{\beamergotobutton{1000ft}}
+    \hyperlink{density-reg-bw1000}{\beamergotobutton{Segment + Year FE}}
     \hspace{0.1em}
-    \hyperlink{density-reg-donut}{\beamergotobutton{Donut}}
+    \hyperlink{density-reg-donut}{\beamergotobutton{All-Sample FE}}
 
 \end{frame}

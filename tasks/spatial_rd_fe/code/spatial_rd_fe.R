@@ -65,15 +65,17 @@ if (!sample_filter %in% c("all", "multifamily")) {
 }
 
 fe_map <- list(
-  pair_x_year = list(fe = "ward_pair^construction_year", use_far = FALSE, need_zone = FALSE),
-  pair_year = list(fe = "ward_pair + construction_year", use_far = FALSE, need_zone = FALSE),
-  zone_pair_year_additive = list(fe = "zone_code + ward_pair + construction_year", use_far = FALSE, need_zone = TRUE),
-  pair_x_year_far = list(fe = "ward_pair^construction_year", use_far = TRUE, need_zone = FALSE),
-  pair_year_far = list(fe = "ward_pair + construction_year", use_far = TRUE, need_zone = FALSE)
+  pair_x_year = list(fe = "ward_pair^construction_year", use_far = FALSE, need_zone = FALSE, need_segment = FALSE),
+  pair_year = list(fe = "ward_pair + construction_year", use_far = FALSE, need_zone = FALSE, need_segment = FALSE),
+  zone_pair_year_additive = list(fe = "zone_code + ward_pair + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = FALSE),
+  segment_year = list(fe = "segment_id + construction_year", use_far = FALSE, need_zone = FALSE, need_segment = TRUE),
+  zone_segment_year_additive = list(fe = "zone_code + segment_id + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = TRUE),
+  pair_x_year_far = list(fe = "ward_pair^construction_year", use_far = TRUE, need_zone = FALSE, need_segment = FALSE),
+  pair_year_far = list(fe = "ward_pair + construction_year", use_far = TRUE, need_zone = FALSE, need_segment = FALSE)
 )
 
 if (!fe_spec %in% names(fe_map)) {
-  stop("fe_spec must be one of: pair_x_year, pair_year, zone_pair_year_additive, pair_x_year_far, pair_year_far", call. = FALSE)
+  stop(sprintf("fe_spec must be one of: %s", paste(names(fe_map), collapse = ", ")), call. = FALSE)
 }
 if (!plot_style %in% c("slope", "level")) {
   stop("plot_style must be one of: slope, level", call. = FALSE)
@@ -91,6 +93,16 @@ if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
   stop("PRUNE_SAMPLE must map to one of: all/false/0 or pruned/true/1", call. = FALSE)
 }
 confound_flags_path <- Sys.getenv("CONFOUND_FLAGS_PATH", "../input/confounded_pair_era_flags.csv")
+
+cluster_level_raw <- tolower(Sys.getenv("CLUSTER_LEVEL", "ward_pair"))
+if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
+  cluster_level <- "ward_pair"
+} else if (cluster_level_raw %in% c("segment", "segment_id")) {
+  cluster_level <- "segment"
+} else {
+  stop("CLUSTER_LEVEL must be one of: ward_pair, segment", call. = FALSE)
+}
+cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 
 normalize_pair_dash <- function(x) {
   x <- as.character(x)
@@ -198,6 +210,9 @@ message(sprintf("Observations after sample filter (%s): %d", sample_filter, nrow
 if (fe_map[[fe_spec]]$need_zone) {
   dat <- dat %>% filter(!is.na(zone_code))
 }
+if (fe_map[[fe_spec]]$need_segment || cluster_level == "segment") {
+  dat <- dat %>% filter(!is.na(segment_id), segment_id != "")
+}
 if (fe_map[[fe_spec]]$use_far) {
   dat <- dat %>% filter(is.finite(floor_area_ratio))
 }
@@ -256,7 +271,7 @@ dat <- dat %>% mutate(side = as.integer(signed_distance > 0))
 rhs_rd <- paste(c("side", "signed_distance", "side:signed_distance", controls), collapse = " + ")
 fml_rd <- as.formula(sprintf("outcome ~ %s | %s", rhs_rd, fe_map[[fe_spec]]$fe))
 
-m_rd <- feols(fml_rd, data = dat, cluster = ~ward_pair)
+m_rd <- feols(fml_rd, data = dat, cluster = cluster_formula)
 ct_rd <- coeftable(m_rd)
 
 get_coef <- function(ct, names_vec) {
@@ -281,7 +296,7 @@ if (plot_style == "level") {
   # Residualize on FE + controls only (no side or distance terms).
   rhs_resid <- paste(controls, collapse = " + ")
   fml_resid <- as.formula(sprintf("outcome ~ %s | %s", rhs_resid, fe_map[[fe_spec]]$fe))
-  m_resid <- feols(fml_resid, data = dat, cluster = ~ward_pair)
+  m_resid <- feols(fml_resid, data = dat, cluster = cluster_formula)
 
   removed <- m_resid$obs_selection$obsRemoved
   if (is.null(removed)) {
@@ -296,7 +311,7 @@ if (plot_style == "level") {
   }
   aug <- aug %>% mutate(y_adj = as.numeric(resid(m_resid)))
 
-  m_gap <- feols(y_adj ~ side, data = aug, cluster = ~ward_pair)
+  m_gap <- feols(y_adj ~ side, data = aug, cluster = cluster_formula)
   b_side_plot <- get_coef(coeftable(m_gap), c("side"))
   n_obs_plot <- nobs(m_resid)
 } else {
@@ -430,6 +445,7 @@ write_csv(
     use_log = use_log,
     bw_ft = bw_ft,
     prune_sample = prune_sample,
+    cluster_level = cluster_level,
     fe_spec = fe_spec,
     plot_style = plot_style,
     gap_split = gap_split,

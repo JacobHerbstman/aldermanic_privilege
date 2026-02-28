@@ -42,6 +42,10 @@ cat("\nLoading pre-scores parcel data...\n")
 parcels <- read_csv("../input/parcels_pre_scores.csv", show_col_types = FALSE)
 cat("Parcels loaded:", nrow(parcels), "\n")
 
+cat("Loading parcel segment lookup...\n")
+segment_lookup <- read_csv("../input/parcel_segment_ids.csv", show_col_types = FALSE)
+cat("Segment lookup rows:", nrow(segment_lookup), "\n")
+
 cat("Loading uncertainty scores...\n")
 scores <- read_csv(SCORE_FILE, show_col_types = FALSE)
 cat("Aldermen with scores:", nrow(scores), "\n")
@@ -51,6 +55,19 @@ if (!SCORE_COLUMN %in% names(scores)) {
   stop(paste("Score column", SCORE_COLUMN, "not found in scores file. Available columns:", 
              paste(names(scores), collapse = ", ")))
 }
+
+if (!all(c("pin", "segment_id") %in% names(segment_lookup))) {
+  stop("Segment lookup must contain columns: pin, segment_id", call. = FALSE)
+}
+if (anyDuplicated(segment_lookup$pin) > 0) {
+  stop("Segment lookup has duplicate pin values; expected one row per pin.", call. = FALSE)
+}
+
+segment_lookup <- segment_lookup %>%
+  mutate(pin = as.character(pin), segment_id = as.character(segment_id))
+parcels <- parcels %>%
+  mutate(pin = as.character(pin)) %>%
+  left_join(segment_lookup, by = "pin")
 
 # -----------------------------------------------------------------------------
 # MERGE SCORES AND CALCULATE SIGNED DISTANCES

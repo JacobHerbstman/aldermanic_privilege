@@ -53,6 +53,15 @@ if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
 }
 confound_flags_path <- Sys.getenv("CONFOUND_FLAGS_PATH", "../input/confounded_pair_era_flags.csv")
 
+cluster_level_raw <- tolower(Sys.getenv("CLUSTER_LEVEL", "ward_pair"))
+if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
+  cluster_level <- "ward_pair"
+} else if (cluster_level_raw %in% c("segment", "segment_id")) {
+  cluster_level <- "segment"
+} else {
+  stop("CLUSTER_LEVEL must be one of: ward_pair, segment", call. = FALSE)
+}
+
 normalize_pair_dash <- function(x) {
   x <- as.character(x)
   x <- gsub("_", "-", x, fixed = TRUE)
@@ -83,6 +92,7 @@ message(sprintf("Bandwidth: %d ft", bw_ft))
 message(sprintf("Sample: %s", sample_filter))
 message(sprintf("FE Specification: %s", fe_spec))
 message(sprintf("Pruning spec: %s", prune_sample))
+message(sprintf("Cluster level: %s", cluster_level))
 message(sprintf("Output: %s", output_filename))
 message(sprintf("Y variables: %s", paste(yvars, collapse = ", ")))
 
@@ -206,6 +216,7 @@ rename_dict <- c(
   "strictness_own" = "Uncertainty Index",
   "floor_area_ratio" = "Zoning FAR (Numeric)",
   "zone_code" = "Zoning Code FE",
+  "segment_id" = "Segment FE",
   "construction_year" = "Year FE",
   "ward_pair" = "Ward-Pair FE",
   "ward" = "Ward",
@@ -229,10 +240,12 @@ rename_dict <- c(
 # ── FE SPECIFICATION MAPPINGS ─────────────────────────────────────────────────
 fe_formulas <- list(
   zone_pair_year_additive = "zone_code + ward_pair + construction_year",
+  zone_segment_year_additive = "zone_code + segment_id + construction_year",
   zone_x_pair_year = "zone_code^ward_pair + construction_year",
   zone_pair_x_year = "zone_code + ward_pair^construction_year",
   triple = "zone_code^ward_pair^construction_year",
   pair_year_only = "ward_pair + construction_year",
+  segment_year = "segment_id + construction_year",
   pair_x_year = "ward_pair^construction_year",
   pair_year_far = "ward_pair + construction_year",
   pair_x_year_far = "ward_pair^construction_year"
@@ -242,6 +255,11 @@ fe_labels <- list(
   zone_pair_year_additive = list(
     "Zoning Code FE" = "zone_code",
     "Ward-Pair FE" = "ward_pair",
+    "Year FE" = "construction_year"
+  ),
+  zone_segment_year_additive = list(
+    "Zoning Code FE" = "zone_code",
+    "Segment FE" = "segment_id",
     "Year FE" = "construction_year"
   ),
   zone_x_pair_year = list(
@@ -257,6 +275,10 @@ fe_labels <- list(
   ),
   pair_year_only = list(
     "Ward-Pair FE" = "ward_pair",
+    "Year FE" = "construction_year"
+  ),
+  segment_year = list(
+    "Segment FE" = "segment_id",
     "Year FE" = "construction_year"
   ),
   pair_x_year = list(
@@ -284,6 +306,11 @@ use_far_control <- fe_spec %in% c("pair_year_far", "pair_x_year_far")
 if (use_far_control) {
   message("Including numeric zoning FAR control: floor_area_ratio")
 }
+need_segment <- fe_spec %in% c("segment_year", "zone_segment_year_additive") || cluster_level == "segment"
+if (need_segment) {
+  message("Segment ID required: dropping rows with missing segment_id.")
+}
+cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 
 
 # ── 4) MODELS (ONE PER OUTCOME), SAME BW ─────────────────────────────────────
@@ -303,6 +330,10 @@ for (yv in yvars) {
   if (use_far_control) {
     df <- df %>%
       filter(is.finite(floor_area_ratio))
+  }
+  if (need_segment) {
+    df <- df %>%
+      filter(!is.na(segment_id), segment_id != "")
   }
 
   check_df_additive <- df %>%
@@ -350,7 +381,7 @@ for (yv in yvars) {
     rhs_controls <- c(rhs_controls, "floor_area_ratio")
   }
   fml_txt <- paste0(yv, " ~ ", paste(rhs_controls, collapse = " + "), " | ", fe_formula_str)
-  m <- feols(as.formula(fml_txt), data = df, cluster = ~ward_pair)
+  m <- feols(as.formula(fml_txt), data = df, cluster = cluster_formula)
   m$custom_data <- df
 
   models[[length(models) + 1]] <- m

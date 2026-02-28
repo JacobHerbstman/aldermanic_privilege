@@ -7,6 +7,9 @@ YVARS := density_far density_dupac unitscount
 LOG_STATUS := TRUE
 SAMPLES := all multifamily
 GAP_SPLITS := above_median below_median
+SEG_FE_SPECS := segment_year zone_segment_year_additive
+SEG_CLUSTERS := ward_pair segment
+SEG_YVARS := density_far density_dupac
 
 LOG_PREFIX_TRUE := log_
 LOG_PREFIX_FALSE :=
@@ -38,6 +41,15 @@ $(foreach gap,$(GAP_SPLITS),\
 ../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(sample)_$(fe)_gap_$(gap).pdf))))))
 
 gap-split: $(GAP_OUTPUTS)
+
+SEG_OUTPUTS := $(foreach yvar,$(SEG_YVARS),\
+$(foreach sample,$(SAMPLES),\
+$(foreach fe,$(SEG_FE_SPECS),\
+$(foreach cluster,$(SEG_CLUSTERS),\
+$(foreach log_stat,$(LOG_STATUS),\
+../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw500_$(sample)_$(fe)_clust_$(cluster).pdf)))))
+
+segment-robustness: $(SEG_OUTPUTS)
 
 define GEN_RULE
 ../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(sample)_$(fe).pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
@@ -78,6 +90,18 @@ $(foreach fe,$(FE_SPECS),\
 $(foreach log_stat,$(LOG_STATUS),\
 $(foreach gap,$(GAP_SPLITS),\
 $(eval $(GEN_GAP_RULE))))))))
+
+define GEN_SEG_RULE
+../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw500_$(sample)_$(fe)_clust_$(cluster).pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
+	CLUSTER_LEVEL=$(cluster) Rscript spatial_rd_fe.R $(yvar) $(log_stat) 500 $(sample) $(fe) $$@ slope
+endef
+
+$(foreach yvar,$(SEG_YVARS),\
+$(foreach sample,$(SAMPLES),\
+$(foreach fe,$(SEG_FE_SPECS),\
+$(foreach cluster,$(SEG_CLUSTERS),\
+$(foreach log_stat,$(LOG_STATUS),\
+$(eval $(GEN_SEG_RULE)))))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	ln -sf $< $@
