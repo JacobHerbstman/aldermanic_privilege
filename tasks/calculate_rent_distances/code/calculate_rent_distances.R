@@ -28,6 +28,83 @@ if (length(cli_args) >= 1) {
 }
 run_sample <- as.logical(sample)
 
+load_cpi_deflator <- function(start_date,
+                              end_date,
+                              base_year = 2022L,
+                              series_id = "CUURA207SA0L2") {
+  fred_url <- sprintf("https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s", series_id)
+  message(sprintf("Fetching CPI series %s from FRED...", series_id))
+
+  cpi_raw <- read_csv(fred_url, show_col_types = FALSE)
+  if (!all(c("observation_date", series_id) %in% names(cpi_raw))) {
+    stop(sprintf("FRED response missing expected columns for series %s.", series_id), call. = FALSE)
+  }
+
+  cpi <- cpi_raw %>%
+    transmute(
+      observation_date = as.Date(observation_date),
+      cpi_value = suppressWarnings(as.numeric(.data[[series_id]]))
+    ) %>%
+    filter(!is.na(observation_date))
+
+  start_month <- as.Date(format(start_date, "%Y-%m-01"))
+  end_month <- as.Date(format(end_date, "%Y-%m-01"))
+  month_grid <- tibble(observation_date = seq(start_month, end_month, by = "month"))
+
+  cpi <- month_grid %>%
+    left_join(cpi, by = "observation_date") %>%
+    arrange(observation_date)
+
+  n_missing_pre <- sum(is.na(cpi$cpi_value))
+  if (n_missing_pre > 0) {
+    idx_known <- which(!is.na(cpi$cpi_value))
+    if (length(idx_known) < 2) {
+      stop("Not enough non-missing CPI observations to interpolate.", call. = FALSE)
+    }
+    cpi_interp <- approx(
+      x = idx_known,
+      y = cpi$cpi_value[idx_known],
+      xout = seq_len(nrow(cpi)),
+      method = "linear",
+      rule = 1
+    )$y
+    cpi$cpi_value <- if_else(is.na(cpi$cpi_value), cpi_interp, cpi$cpi_value)
+  }
+
+  if (anyNA(cpi$cpi_value)) {
+    stop("CPI has unresolved endpoint gaps after interpolation.", call. = FALSE)
+  }
+
+  base_vals <- cpi %>%
+    filter(format(observation_date, "%Y") == as.character(base_year)) %>%
+    pull(cpi_value)
+
+  if (length(base_vals) == 0 || !all(is.finite(base_vals))) {
+    stop(sprintf("Unable to compute base CPI for year %d.", base_year), call. = FALSE)
+  }
+
+  base_cpi <- mean(base_vals)
+  if (!is.finite(base_cpi) || base_cpi <= 0) {
+    stop(sprintf("Computed invalid base CPI for year %d.", base_year), call. = FALSE)
+  }
+
+  message(sprintf(
+    "CPI window %s to %s | base (%d avg) = %.3f | interpolated %d month(s)",
+    format(start_month, "%Y-%m"),
+    format(end_month, "%Y-%m"),
+    base_year,
+    base_cpi,
+    n_missing_pre
+  ))
+
+  cpi %>%
+    transmute(
+      rent_year_month = format(observation_date, "%Y-%m"),
+      rent_price_cpi_chi_ex_shelter = cpi_value,
+      rent_price_deflator_to_2022 = base_cpi / cpi_value
+    )
+}
+
 # Core CRS for distance calc (Illinois East ftUS)
 crs_projected <- 3435
 
@@ -303,6 +380,33 @@ final_df <- final_df %>%
 final_df <- final_df %>%
   left_join(ald_lookup, by = c("neighbor_ward" = "ward", "month_join" = "month")) %>%
   rename(alderman_neighbor = alderman)
+
+# 6b. Deflate rent prices to 2022 dollars
+final_df <- final_df %>%
+  mutate(rent_year_month = format(file_date, "%Y-%m"))
+
+cpi_deflator <- load_cpi_deflator(
+  start_date = min(final_df$file_date, na.rm = TRUE),
+  end_date = max(final_df$file_date, na.rm = TRUE),
+  base_year = 2022L
+)
+
+final_df <- final_df %>%
+  left_join(cpi_deflator, by = "rent_year_month")
+
+n_missing_deflator <- sum(!is.finite(final_df$rent_price_deflator_to_2022))
+if (n_missing_deflator > 0) {
+  stop(sprintf(
+    "Missing/invalid rent CPI deflator for %d observations.",
+    n_missing_deflator
+  ), call. = FALSE)
+}
+
+final_df <- final_df %>%
+  mutate(
+    rent_price_nominal = rent_price,
+    rent_price = rent_price_nominal * rent_price_deflator_to_2022
+  )
 
 # -----------------------------------------------------------------------------
 # 7. CLEAN BUILDING TYPES

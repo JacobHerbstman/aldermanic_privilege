@@ -90,7 +90,14 @@ cat("\nMerging scores into sales pre-scores...\n")
 sales_pre <- read_csv(sales_input, show_col_types = FALSE)
 sales <- merge_border_scores(sales_pre, "dist_ft") %>%
   select(
-    pin, year, sale_date, sale_price, class,
+    pin, year, sale_date, sale_price,
+    any_of(c(
+      "sale_price_nominal",
+      "sale_price_real_2022_raw",
+      "sale_price_cpi_chi_ex_shelter",
+      "sale_price_deflator_to_2022"
+    )),
+    class,
     latitude, longitude, ward, neighbor_ward, ward_pair_id,
     dist_ft, signed_dist, sign,
     alderman_own, alderman_neighbor,
