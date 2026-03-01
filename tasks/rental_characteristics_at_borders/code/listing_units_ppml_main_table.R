@@ -275,7 +275,7 @@ tex <- c(
   "  \\\\",
   sprintf("  Obs. & %s \\\\", format(out$n_obs, big.mark = ",")),
   "  Hedonic Controls & $\\checkmark$ \\\\",
-  "  Segment $\\times$ Month FE & $\\checkmark$ \\\\",
+  "  Segment $\\times$ Year-Month FE & $\\checkmark$ \\\\",
   "  Clustered by Segment & $\\checkmark$ \\\\",
   "  \\bottomrule",
   "\\end{tabular}",

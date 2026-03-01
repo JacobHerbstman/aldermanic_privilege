@@ -4,31 +4,10 @@
 % ==============================================================================
 
 % ==============================================================================
-% FE-adjusted Spatial RD - Alternative FE
+% FE-adjusted Spatial RD - Robustness Menu
 % ==============================================================================
-\begin{frame}[label=visual-rd-placebo]
-    \frametitle{FE-Adjusted Spatial RD: Ward-Pair Cluster}
-    \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(FAR)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_ward_pair.pdf}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(DUPAC)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zone_segment_year_additive_clust_ward_pair.pdf}
-    \end{column}
-    \end{columns}
-    \small Same multifamily + zoning + segment + year FE; SEs clustered by ward pair.
-    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-% ==============================================================================
-% FE-adjusted Spatial RD - Levels
-% ==============================================================================
-\begin{frame}[label=visual-rd-functional]
-    \frametitle{FE-Adjusted Spatial RD: All-Sample Version}
+\begin{frame}[label=visual-rd-allunits]
+    \frametitle{FE-Adjusted Spatial RD: All Units}
     \begin{columns}[T]
     \begin{column}{0.48\textwidth}
         \centering
@@ -41,28 +20,74 @@
         \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_all_zone_segment_year_additive_clust_segment.pdf}
     \end{column}
     \end{columns}
-    \small Same FE/cluster stack as main slide, but using all parcels with unitscount $>0$.
+    \small Same FE/cluster stack as main visual RD, but with all new-construction permits.
     \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
-% ==============================================================================
-% FE-adjusted Spatial RD - Units
-% ==============================================================================
+\begin{frame}[label=visual-rd-median]
+    \frametitle{FE-Adjusted Spatial RD: Below/Above Median Gap}
+    \begin{center}
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{cc}
+        \textbf{FAR: Below Median} & \textbf{FAR: Above Median} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment_gap_below_median.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment_gap_above_median.pdf} \\
+        \textbf{DUPAC: Below Median} & \textbf{DUPAC: Above Median} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zone_segment_year_additive_clust_segment_gap_below_median.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zone_segment_year_additive_clust_segment_gap_above_median.pdf}
+    \end{tabular}
+    \end{center}
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
 \begin{frame}[label=visual-rd-donut]
-    \frametitle{FE-Adjusted Spatial RD: Segment + Year FE}
-    \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(FAR)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_segment_year_clust_segment.pdf}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(DUPAC)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_segment_year_clust_segment.pdf}
-    \end{column}
-    \end{columns}
-    \small Removes zoning FE; signs remain negative.
+    \frametitle{FE-Adjusted Spatial RD: Donut RD}
+    \begin{center}
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{cc}
+        \textbf{FAR: Donut 25 ft} & \textbf{FAR: Donut 50 ft} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment_donut25.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment_donut50.pdf} \\
+        \textbf{DUPAC: Donut 25 ft} & \textbf{DUPAC: Donut 50 ft} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zone_segment_year_additive_clust_segment_donut25.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zone_segment_year_additive_clust_segment_donut50.pdf}
+    \end{tabular}
+    \end{center}
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=visual-rd-placebo-far]
+    \frametitle{FE-Adjusted Spatial RD: Boundary Placebo (FAR)}
+    \begin{center}
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{cc}
+        \textbf{Shift -500 ft} & \textbf{Shift -250 ft} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment_shift-500.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment_shift-250.pdf} \\
+        \textbf{Shift +250 ft} & \textbf{Shift +500 ft} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment_shift250.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment_shift500.pdf}
+    \end{tabular}
+    \end{center}
+    \vfill\hfill
+    \hyperlink{visual-rd-placebo-dupac}{\beamergotobutton{DUPAC Placebo}}
+    \hspace{0.2em}
+    \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=visual-rd-placebo-dupac]
+    \frametitle{FE-Adjusted Spatial RD: Boundary Placebo (DUPAC)}
+    \begin{center}
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{cc}
+        \textbf{Shift -500 ft} & \textbf{Shift -250 ft} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zone_segment_year_additive_clust_segment_shift-500.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zone_segment_year_additive_clust_segment_shift-250.pdf} \\
+        \textbf{Shift +250 ft} & \textbf{Shift +500 ft} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zone_segment_year_additive_clust_segment_shift250.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zone_segment_year_additive_clust_segment_shift500.pdf}
+    \end{tabular}
+    \end{center}
     \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
 \end{frame}
 

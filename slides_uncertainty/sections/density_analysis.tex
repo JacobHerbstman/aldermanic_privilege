@@ -220,11 +220,11 @@
     \textbf{Idea}: Compare new multifamily construction on opposite sides of ward boundary segments
     \begin{itemize}
         \item Focus on parcels \textbf{within 500 feet} of a segment
-        \item Fixed effects: ward-pair $\times$ year (interacted)
+        \item Fixed effects: zoning code, boundary segment, and year
     \end{itemize}
     
     \vspace{0.3em}
-    \textbf{Identifying variation}: Within the same ward pair in the same year, does the more stringent side have less dense new multifamily construction?
+    \textbf{Identifying variation}: Within the same boundary segment, controlling for zoning code and citywide year fixed effects, does the more stringent side have less dense new multifamily construction?
     
     \vspace{0.3em}
     Two specifications:
@@ -246,27 +246,29 @@
         \centering
         \textbf{Log(FAR)}
         \begin{figure}
-            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_pair_x_year_clust_segment.pdf}
+            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment.pdf}
         \end{figure}
     \end{column}
     \begin{column}{0.48\textwidth}
         \centering
         \textbf{Log(DUPAC)}
         \begin{figure}
-            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_pair_x_year_clust_segment.pdf}
+            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zone_segment_year_additive_clust_segment.pdf}
         \end{figure}
     \end{column}
     \end{columns}
     
     \scriptsize
-    \textit{Notes}: Multifamily sample, 500 ft bandwidth, ward-pair $\times$ year FE, segment-clustered SEs.
+    \textit{Notes}: Multifamily sample, 500 ft bandwidth, zoning + segment + year FE, segment-clustered SEs.
     
     \vfill\hfill
-    \hyperlink{visual-rd-placebo}{\beamergotobutton{Ward-Pair Cluster}}
+    \hyperlink{visual-rd-allunits}{\beamergotobutton{All Units}}
     \hspace{0.2em}
-    \hyperlink{visual-rd-functional}{\beamergotobutton{All Sample}}
+    \hyperlink{visual-rd-median}{\beamergotobutton{Median Split}}
     \hspace{0.2em}
-    \hyperlink{visual-rd-donut}{\beamergotobutton{Additive FE}}
+    \hyperlink{visual-rd-donut}{\beamergotobutton{Donut RD}}
+    \hspace{0.2em}
+    \hyperlink{visual-rd-placebo-far}{\beamergotobutton{Boundary Placebo}}
 \end{frame}
 
 
@@ -274,25 +276,25 @@
 % SLIDE 17: BORDER-PAIR FE RESULTS
 % ==============================================================================
 \begin{frame}[label=density-reg-main]
-    \frametitle{Main Results: Interacted Border FE}
+    \frametitle{Main Results: Segment-Localized Border FE}
     
     \small
     \textbf{Specification}: 
-    $\ln(Y_i) = \beta \cdot \text{Stringency}_i + \alpha_{\text{ward-pair} \times \text{year}} + \varepsilon_i$\\
+    $\ln(Y_i) = \beta \cdot \text{Stringency}_i + \alpha_{\text{zone}} + \alpha_{\text{segment}} + \alpha_{\text{year}} + \varepsilon_i$\\
     Sample: Within 500 ft, multifamily only. Main SEs clustered at boundary segment level.
     
     \begin{center}
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_pair_x_year.tex}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zone_segment_year_additive_clust_segment.tex}
     \end{center}
     
     \vspace{0.1em}
-    \textbf{Interpretation}: Under interacted FE, density estimates attenuate substantially.
+    \textbf{Interpretation}: A 1 SD $\uparrow$ in stringency is associated with lower multifamily FAR and DUPAC.
 
     \vspace{-0.4em}
     \vfill\hfill
     \hyperlink{density-reg-bw250}{\beamergotobutton{Ward-Pair Cluster}}
     \hspace{0.1em}
-    \hyperlink{density-reg-bw1000}{\beamergotobutton{Additive FE}}
+    \hyperlink{density-reg-bw1000}{\beamergotobutton{Segment + Year FE}}
     \hspace{0.1em}
     \hyperlink{density-reg-donut}{\beamergotobutton{All-Sample FE}}
 
