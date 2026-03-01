@@ -86,27 +86,3 @@ Control units did not switch aldermen during redistricting.
 Strictness is standardized (mean 0, SD 1) based on permit processing times.
 \end{tablenotes}
 \end{table}
-\efloatseparator
- 
-\begin{table}[htbp]
-\caption{Effect of Alderman Strictness on Housing Costs}
-\label{tab:did_simple}
-\centering
-\begin{tabular}{l*{4}{c}}
-\toprule
- & \multicolumn{2}{c}{Rents} & \multicolumn{2}{c}{Home Sale Prices} \\
-\cmidrule(lr){2-3} \cmidrule(lr){4-5}
- & (1) & (2) & (3) & (4) \\
-\midrule
-Post $\times$ Strictness $\Delta$ & 0.055*** & 0.037** & 0.022*** & 0.022*** \\
- & (0.020) & (0.015) & (0.009) & (0.007) \\
-\midrule
-Observations & 3,877,588 & 3,877,588 & 43,895 & 43,892 \\
-R$^2$ & 0.40 & 0.80 & 0.69 & 0.74 \\
-Hedonic Controls & & $\checkmark$ & & $\checkmark$ \\
-Border Pair $\times$ Side FE & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
-Border Pair $\times$ Year FE & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
-\bottomrule
-\end{tabular}
-\figurenotes{Columns (1)--(2): listing-level regressions of log rent on post-redistricting indicator interacted with change in alderman strictness; stacked estimator combining 2015 and 2023 redistricting cohorts. Columns (3)--(4): transaction-level regressions of log sale price using 2015 implementation timing. Rental hedonic controls include log sqft, log bedrooms, log bathrooms, and building type. Sales hedonic controls include log building sqft, log land sqft, log building age, log bedrooms, log bathrooms, and garage indicator. Sample restricted to observations within 1,000 feet of ward boundaries. Triangular kernel weights. Standard errors clustered by census block in parentheses. $^{*}$ $p<0.10$, $^{**}$ $p<0.05$, $^{***}$ $p<0.01$.}
-\end{table}

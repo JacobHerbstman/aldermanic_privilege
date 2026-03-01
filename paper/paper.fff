@@ -94,7 +94,7 @@
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Effect of Alderman Strictness on Rents}
-    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-border-pair-by-side and cohort-by-border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building type, square footage, bedrooms, and bathrooms. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-segment-by-side and cohort-by-segment-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building type, square footage, bedrooms, and bathrooms. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals use two-way clustering by census block and segment.}
     \label{fig:event_study_rents}
 \end{figure}
 \efloatseparator
@@ -113,6 +113,6 @@
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Effect of Alderman Strictness on Home Sale Prices}
-    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). 2015 redistricting cohort. Segment-by-side and segment-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage. Year $-1$ omitted as reference. 95\% confidence intervals use two-way clustering by census block and segment.}
     \label{fig:event_study_sales}
 \end{figure}
