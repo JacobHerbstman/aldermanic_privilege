@@ -4,6 +4,9 @@ message("=== Prep Sales Border Data: Merge Hedonics via Rolling Join ===")
 
 # ── Load data ──
 sales <- fread("../input/sales_with_ward_distances.csv")
+if (!"segment_id" %in% names(sales)) {
+  stop("Input sales_with_ward_distances.csv is missing segment_id. Rebuild merge_event_study_scores after segment assignment.", call. = FALSE)
+}
 sales[, `:=`(
   pin = as.character(pin),
   sale_date = as.Date(sale_date),

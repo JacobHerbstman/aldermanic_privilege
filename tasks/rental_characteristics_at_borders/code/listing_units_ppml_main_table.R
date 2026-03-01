@@ -95,6 +95,7 @@ dat <- read_parquet(input) %>%
     year = lubridate::year(file_date),
     year_month = format(file_date, "%Y-%m"),
     ward_pair = as.character(ward_pair_id),
+    segment_id = as.character(segment_id),
     right = as.integer(signed_dist >= 0),
     listing_id = as.character(id),
     loc_key = paste(round(latitude, 5), round(longitude, 5), sep = "_"),
@@ -110,7 +111,8 @@ dat <- read_parquet(input) %>%
     strict_less = pmin(strictness_own, strictness_neighbor)
   ) %>%
   filter(
-    !is.na(file_date), !is.na(ward_pair), !is.na(signed_dist),
+    !is.na(file_date), !is.na(ward_pair), !is.na(segment_id), segment_id != "",
+    !is.na(signed_dist),
     !is.na(strictness_own), !is.na(strictness_neighbor),
     !is.na(latitude), !is.na(longitude),
     abs(signed_dist) <= bw_ft
@@ -176,7 +178,7 @@ dat <- dat %>%
   filter(!is.na(unit_key), unit_key != "")
 
 pair_month_map <- dat %>%
-  group_by(ward_pair, year_month) %>%
+  group_by(segment_id, year_month) %>%
   summarise(
     strict_more = max(strict_more, na.rm = TRUE),
     strict_less = min(strict_less, na.rm = TRUE),
@@ -184,21 +186,21 @@ pair_month_map <- dat %>%
   )
 
 side_template <- bind_rows(
-  pair_month_map %>% transmute(ward_pair, year_month, right = 0L, strictness_own = strict_less),
-  pair_month_map %>% transmute(ward_pair, year_month, right = 1L, strictness_own = strict_more)
+  pair_month_map %>% transmute(segment_id, year_month, right = 0L, strictness_own = strict_less),
+  pair_month_map %>% transmute(segment_id, year_month, right = 1L, strictness_own = strict_more)
 )
 
 side_counts <- dat %>%
-  distinct(ward_pair, right, year_month, unit_key) %>%
-  count(ward_pair, right, year_month, name = "n_units")
+  distinct(segment_id, right, year_month, unit_key) %>%
+  count(segment_id, right, year_month, name = "n_units")
 
 panel <- side_template %>%
-  left_join(side_counts, by = c("ward_pair", "right", "year_month")) %>%
+  left_join(side_counts, by = c("segment_id", "right", "year_month")) %>%
   mutate(n_units = as.integer(coalesce(n_units, 0L)))
 
 cov_side <- dat %>%
-  distinct(ward_pair, right, year_month, unit_key, .keep_all = TRUE) %>%
-  group_by(ward_pair, right, year_month) %>%
+  distinct(segment_id, right, year_month, unit_key, .keep_all = TRUE) %>%
+  group_by(segment_id, right, year_month) %>%
   summarise(
     mean_log_sqft = mean(if_else(!is.na(sqft) & sqft > 0, log(sqft), NA_real_), na.rm = TRUE),
     mean_beds = mean(beds, na.rm = TRUE),
@@ -209,7 +211,7 @@ cov_side <- dat %>%
     .groups = "drop"
   )
 
-panel <- panel %>% left_join(cov_side, by = c("ward_pair", "right", "year_month"))
+panel <- panel %>% left_join(cov_side, by = c("segment_id", "right", "year_month"))
 
 covars <- c("mean_log_sqft", "mean_beds", "mean_baths", "share_multifamily", "share_laundry", "share_gym")
 for (v in covars) {
@@ -225,8 +227,8 @@ if (!is.finite(strictness_sd) || strictness_sd <= 0) {
 panel <- panel %>% mutate(strictness_std = strictness_own / strictness_sd)
 
 rhs <- paste(c("strictness_std", covars, paste0("miss_", covars)), collapse = " + ")
-fml <- as.formula(paste0("n_units ~ ", rhs, " | ward_pair^year_month"))
-m <- fepois(fml, data = panel, cluster = ~ward_pair)
+fml <- as.formula(paste0("n_units ~ ", rhs, " | segment_id^year_month"))
+m <- fepois(fml, data = panel, cluster = ~segment_id)
 ct <- coeftable(m)
 p_col <- grep("^Pr\\(", colnames(ct), value = TRUE)
 if (length(p_col) == 0) {
@@ -234,9 +236,9 @@ if (length(p_col) == 0) {
 }
 
 pair_month_obs <- side_counts %>%
-  count(ward_pair, year_month, name = "n_sides_obs")
+  count(segment_id, year_month, name = "n_sides_obs")
 pair_month_diag <- pair_month_map %>%
-  left_join(pair_month_obs, by = c("ward_pair", "year_month")) %>%
+  left_join(pair_month_obs, by = c("segment_id", "year_month")) %>%
   mutate(n_sides_obs = coalesce(n_sides_obs, 0L))
 
 out <- tibble(
@@ -245,7 +247,7 @@ out <- tibble(
   p_value = ct["strictness_std", p_col[1]],
   implied_pct_change = 100 * (exp(ct["strictness_std", "Estimate"]) - 1),
   n_obs = nobs(m),
-  ward_pairs = n_distinct(panel$ward_pair),
+  segments = n_distinct(panel$segment_id),
   pair_month_cells = nrow(pair_month_map),
   share_single_sided_pair_month = mean(pair_month_diag$n_sides_obs == 1),
   share_zero_cells = mean(panel$n_units == 0),
@@ -273,7 +275,8 @@ tex <- c(
   "  \\\\",
   sprintf("  Obs. & %s \\\\", format(out$n_obs, big.mark = ",")),
   "  Hedonic Controls & $\\checkmark$ \\\\",
-  "  Pair $\\times$ Month FE & $\\checkmark$ \\\\",
+  "  Segment $\\times$ Month FE & $\\checkmark$ \\\\",
+  "  Clustered by Segment & $\\checkmark$ \\\\",
   "  \\bottomrule",
   "\\end{tabular}",
   "\\par\\endgroup"

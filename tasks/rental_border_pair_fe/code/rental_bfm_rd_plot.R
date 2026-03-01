@@ -18,7 +18,7 @@ source("../../setup_environment/code/packages.R")
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 10) {
+if (length(cli_args) >= 12) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))
   window <- cli_args[3]
@@ -29,11 +29,31 @@ if (length(cli_args) >= 10) {
   output_pdf <- cli_args[8]
   output_meta_csv <- cli_args[9]
   output_bins_csv <- cli_args[10]
+  fe_geo <- tolower(cli_args[11])
+  cluster_level <- tolower(cli_args[12])
+} else if (length(cli_args) >= 10) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  use_controls <- tolower(cli_args[5]) %in% c("true", "t", "1", "yes")
+  bins_per_side <- suppressWarnings(as.integer(cli_args[6]))
+  min_strictness_diff_pctile <- suppressWarnings(as.integer(cli_args[7]))
+  output_pdf <- cli_args[8]
+  output_meta_csv <- cli_args[9]
+  output_bins_csv <- cli_args[10]
+  fe_geo <- tolower(Sys.getenv("FE_GEO", "segment"))
+  cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
 } else {
-  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("use_controls") || !exists("bins_per_side") || !exists("min_strictness_diff_pctile") || !exists("output_pdf") || !exists("output_meta_csv") || !exists("output_bins_csv")) {
-    stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <use_controls> <bins_per_side> <min_strictness_diff_pctile> <output_pdf> <output_meta_csv> <output_bins_csv>", call. = FALSE)
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") ||
+      !exists("use_controls") || !exists("bins_per_side") || !exists("min_strictness_diff_pctile") ||
+      !exists("output_pdf") || !exists("output_meta_csv") || !exists("output_bins_csv") ||
+      !exists("fe_geo") || !exists("cluster_level")) {
+    stop("FATAL: Script requires args: <input> <bw_ft> <window> <sample_filter> <use_controls> <bins_per_side> <min_strictness_diff_pctile> <output_pdf> <output_meta_csv> <output_bins_csv> [<fe_geo> <cluster_level>]", call. = FALSE)
   }
 }
+if (!fe_geo %in% c("segment", "ward_pair")) stop("--fe_geo must be one of: segment, ward_pair", call. = FALSE)
+if (!cluster_level %in% c("segment", "ward_pair")) stop("--cluster_level must be one of: segment, ward_pair", call. = FALSE)
 
 if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, pre_2023, drop_mid", call. = FALSE)
@@ -85,6 +105,10 @@ dat <- read_parquet(input) %>%
 if (sample_filter == "multifamily_only") {
   dat <- dat %>% filter(building_type_clean == "multi_family")
 }
+need_segment <- fe_geo == "segment" || cluster_level == "segment"
+if (need_segment) {
+  dat <- dat %>% filter(!is.na(segment_id), segment_id != "")
+}
 
 if (min_strictness_diff_pctile > 0) {
   pair_diffs <- dat %>%
@@ -125,9 +149,12 @@ if (use_controls) {
 }
 
 m <- feols(
-  as.formula(paste0("log(rent_price) ~ ", rd_rhs, " | ward_pair^year_month")),
+  as.formula(paste0(
+    "log(rent_price) ~ ", rd_rhs, " | ",
+    ifelse(fe_geo == "segment", "segment_id + year_month", "ward_pair^year_month")
+  )),
   data = dat,
-  cluster = ~ward_pair
+  cluster = if (cluster_level == "segment") ~segment_id else ~ward_pair
 )
 ct <- coeftable(m)
 
@@ -213,8 +240,9 @@ p <- ggplot() +
   ) +
   labs(
     title = "Rental Prices at Ward Boundary (FE-Adjusted)",
-    subtitle = sprintf("%s | bw=%d ft | N=%s | Ward pairs=%d%s",
+    subtitle = sprintf("%s | bw=%d ft | fe=%s | clust=%s | N=%s | Ward pairs=%d%s",
                         jump_label, bw_ft,
+                        fe_geo, cluster_level,
                         format(nobs(m), big.mark = ","),
                         dplyr::n_distinct(aug$ward_pair),
                         if (min_strictness_diff_pctile > 0) sprintf(" | top %d%% pairs", 100 - min_strictness_diff_pctile) else ""),

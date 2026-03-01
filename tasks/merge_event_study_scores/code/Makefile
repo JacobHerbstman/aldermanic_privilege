@@ -16,10 +16,10 @@ all: ../output/sales_with_ward_distances.csv ../output/rent_with_ward_distances_
 ../output/rent_with_ward_distances_full.parquet: ../output/.merge_done.stamp
 ../output/block_treatment_panel.csv: ../output/.merge_done.stamp
 
-../input/sales_pre_scores.csv: ../../calculate_sale_distances/output/sales_pre_scores.csv | ../input
+../input/sales_pre_scores.csv: ../../assign_segment_ids_sales_rental/output/sales_pre_scores_with_segments.csv | ../input
 	ln -sf $< $@
 
-../input/rent_pre_scores_full.parquet: ../../calculate_rent_distances/output/rent_pre_scores_full.parquet | ../input
+../input/rent_pre_scores_full.parquet: ../../assign_segment_ids_sales_rental/output/rent_pre_scores_full_with_segments.parquet | ../input
 	ln -sf $< $@
 
 ../input/block_treatment_pre_scores.csv: ../../create_block_treatment_panel/output/block_treatment_pre_scores.csv | ../input

@@ -50,11 +50,13 @@ dat <- read_parquet(input) %>%
     year = lubridate::year(file_date),
     year_month = format(file_date, "%Y-%m"),
     ward_pair = as.character(ward_pair_id),
+    segment_id = as.character(segment_id),
     is_multifamily = as.integer(building_type_clean == "multi_family"),
     right = as.integer(signed_dist >= 0)
   ) %>%
   filter(
-    !is.na(file_date), !is.na(ward_pair), !is.na(signed_dist), !is.na(strictness_own),
+    !is.na(file_date), !is.na(ward_pair), !is.na(segment_id), segment_id != "",
+    !is.na(signed_dist), !is.na(strictness_own),
     abs(signed_dist) <= bw_ft
   ) %>%
   apply_window(window)
@@ -76,14 +78,14 @@ for (oc in outcomes) {
     d <- d %>% mutate(Y = if_else(!is.na(.data[[oc$var]]) & .data[[oc$var]] > 0,
                                    log(.data[[oc$var]]), NA_real_))
   } else {
-    d <- d %>% mutate(Y = as.numeric(.data[[oc$var]]))
+  d <- d %>% mutate(Y = as.numeric(.data[[oc$var]]))
   }
   d <- d %>% filter(!is.na(Y))
-  if (nrow(d) < 10 || n_distinct(d$ward_pair) < 2) {
+  if (nrow(d) < 10 || n_distinct(d$segment_id) < 2) {
     message(sprintf("  Skipping %s: too few obs (%d)", oc$name, nrow(d)))
     next
   }
-  m <- feols(Y ~ right | ward_pair^year_month, data = d, cluster = ~ward_pair)
+  m <- feols(Y ~ right | segment_id^year_month, data = d, cluster = ~segment_id)
   ct <- coeftable(m)
   results[[length(results) + 1]] <- tibble(
     outcome = oc$name,
@@ -93,7 +95,7 @@ for (oc in outcomes) {
     p_value = ct["right", "Pr(>|t|)"],
     n_obs = nobs(m),
     dep_var_mean = mean(d$Y, na.rm = TRUE),
-    ward_pairs = n_distinct(d$ward_pair[d$ward_pair %in% names(which(table(d$ward_pair) > 0))]),
+    segments = n_distinct(d$segment_id[d$segment_id %in% names(which(table(d$segment_id) > 0))]),
     bandwidth_ft = bw_ft,
     window = window
   )
@@ -134,13 +136,15 @@ obs_row <- paste0("   Observations ",
   paste(sapply(coef_tbl$n_obs, function(n) sprintf("& %s", format(n, big.mark = ","))), collapse = " "), "\\\\  \n")
 mean_row <- paste0("   Dep. Var. Mean ",
   paste(sapply(coef_tbl$dep_var_mean, function(m) sprintf("& %.2f", m)), collapse = " "), "\\\\  \n")
-fe_row <- paste0("   Ward-Pair $\\times$ Year-Month FE ",
+fe_row <- paste0("   Segment $\\times$ Year-Month FE ",
+  paste(rep("& $\\checkmark$", ncol), collapse = " "), "\\\\   \n")
+cluster_row <- paste0("   Clustered by Segment ",
   paste(rep("& $\\checkmark$", ncol), collapse = " "), "\\\\   \n")
 
 footer <- "   \\bottomrule\n\\end{tabular}\n\\par\\endgroup\n"
 
 tex <- paste0(header, col_headers, midrule, coef_row, se_row, blank,
-              obs_row, mean_row, fe_row, footer)
+              obs_row, mean_row, fe_row, cluster_row, footer)
 writeLines(tex, output_tex)
 
 message(sprintf("Saved: %s", output_tex))

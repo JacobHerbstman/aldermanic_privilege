@@ -60,7 +60,7 @@ ALL_OUTPUTS := $(call GEN_OUTPUTS)
 # ─────────────────────────────────────────────────────────────────────────────
 
 .DEFAULT_GOAL := all
-.PHONY: all link-inputs main-specs
+.PHONY: all link-inputs main-specs segment-robustness did-table did-table-strict did-table-pairtrend did-table-yearfe did-table-all main
 
 all: $(ALL_OUTPUTS) did-table
 
@@ -78,8 +78,8 @@ main-specs: \
 
 define GEN_RULE
 ../output/event_study_disaggregate_$(freq)_$(STACK_PREFIX_$(st))_$(tt)_$(wt)_$(bw)ft$(SAMPLE_SUFFIX_$(sf))$(CONTROLS_SUFFIX_$(ic))$(FE_SUFFIX_$(fe))$(POST_SUFFIX_$(pw)).pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
-	# arg order: frequency stacked treatment_type include_controls weighting bandwidth sample_filter fe_type post_window
-	Rscript $(SCRIPT) $(freq) $(st) $(tt) $(ic) $(wt) $(bw) $(sf) $(fe) $(pw)
+	# arg order: frequency stacked treatment_type include_controls weighting bandwidth sample_filter fe_type post_window geo_fe_level cluster_level
+	Rscript $(SCRIPT) $(freq) $(st) $(tt) $(ic) $(wt) $(bw) $(sf) $(fe) $(pw) segment twoway_block_segment
 endef
 
 $(foreach freq,$(FREQUENCIES), \
@@ -132,8 +132,8 @@ DID_OUTPUT := ../output/did_table_rental$(DID_SUFFIX_$(DID_FE_TYPE)).tex
 did-table: $(DID_OUTPUT)
 
 $(DID_OUTPUT): $(DID_SCRIPT) ../input/rental_listing_panel.parquet | ../output
-	# arg order: bandwidth weighting fe_type
-	Rscript $(DID_SCRIPT) $(DID_BANDWIDTH) $(DID_WEIGHTING) $(DID_FE_TYPE)
+	# arg order: bandwidth weighting fe_type geo_fe_level cluster_level
+	Rscript $(DID_SCRIPT) $(DID_BANDWIDTH) $(DID_WEIGHTING) $(DID_FE_TYPE) segment twoway_block_segment
 
 did-table-strict:
 	$(MAKE) did-table DID_FE_TYPE=strict_pair_x_year
@@ -148,6 +148,37 @@ did-table-all:
 	$(MAKE) did-table-strict
 	$(MAKE) did-table-pairtrend
 	$(MAKE) did-table-yearfe
+
+# -----------------------------------------------------------------------------
+# Segment-main robustness variants
+# -----------------------------------------------------------------------------
+ROBUST_OUTPUTS := \
+	../output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_mf_short_geo_wardpair.pdf \
+	../output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_mf_short_clust_block.pdf \
+	../output/event_study_disaggregate_yearly_stacked_continuous_split_triangular_1000ft_mf_short_geo_wardpair.pdf \
+	../output/event_study_disaggregate_yearly_stacked_continuous_split_triangular_1000ft_mf_short_clust_block.pdf \
+	../output/did_table_rental_clean_geo_wardpair.tex \
+	../output/did_table_rental_clean_clust_block.tex
+
+segment-robustness: $(ROBUST_OUTPUTS)
+
+../output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_mf_short_geo_wardpair.pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) yearly TRUE continuous TRUE triangular 1000 multifamily_only strict_pair_x_year short ward_pair twoway_block_segment
+
+../output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_mf_short_clust_block.pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) yearly TRUE continuous TRUE triangular 1000 multifamily_only strict_pair_x_year short segment block
+
+../output/event_study_disaggregate_yearly_stacked_continuous_split_triangular_1000ft_mf_short_geo_wardpair.pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) yearly TRUE continuous_split TRUE triangular 1000 multifamily_only strict_pair_x_year short ward_pair twoway_block_segment
+
+../output/event_study_disaggregate_yearly_stacked_continuous_split_triangular_1000ft_mf_short_clust_block.pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) yearly TRUE continuous_split TRUE triangular 1000 multifamily_only strict_pair_x_year short segment block
+
+../output/did_table_rental_clean_geo_wardpair.tex: $(DID_SCRIPT) ../input/rental_listing_panel.parquet | ../output
+	Rscript $(DID_SCRIPT) $(DID_BANDWIDTH) $(DID_WEIGHTING) $(DID_FE_TYPE) ward_pair twoway_block_segment
+
+../output/did_table_rental_clean_clust_block.tex: $(DID_SCRIPT) ../input/rental_listing_panel.parquet | ../output
+	Rscript $(DID_SCRIPT) $(DID_BANDWIDTH) $(DID_WEIGHTING) $(DID_FE_TYPE) segment block
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Effect Source Diagnostics

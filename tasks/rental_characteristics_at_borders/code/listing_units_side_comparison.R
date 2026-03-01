@@ -29,12 +29,47 @@ if (length(cli_args) >= 7) {
   }
 }
 
+prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
+if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
+  prune_sample <- "all"
+} else if (prune_sample_raw %in% c("pruned", "true", "t", "1", "yes", "on")) {
+  prune_sample <- "pruned"
+} else {
+  stop("PRUNE_SAMPLE must map to one of: all/false/0 or pruned/true/1", call. = FALSE)
+}
+confound_flags_path <- Sys.getenv("CONFOUND_FLAGS_PATH", "../input/confounded_pair_era_flags.csv")
+
 stars <- function(p) {
   if (!is.finite(p)) return("")
   if (p < 0.01) return("***")
   if (p < 0.05) return("**")
   if (p < 0.1) return("*")
   ""
+}
+
+normalize_pair_dash <- function(x) {
+  x <- as.character(x)
+  x <- gsub("_", "-", x, fixed = TRUE)
+  x <- trimws(x)
+  ok <- grepl("^[0-9]+-[0-9]+$", x)
+  out <- rep(NA_character_, length(x))
+  if (!any(ok)) return(out)
+  parts <- strsplit(x[ok], "-", fixed = TRUE)
+  out[ok] <- vapply(parts, function(v) {
+    a <- suppressWarnings(as.integer(v[1]))
+    b <- suppressWarnings(as.integer(v[2]))
+    if (!is.finite(a) || !is.finite(b)) return(NA_character_)
+    paste(min(a, b), max(a, b), sep = "-")
+  }, character(1))
+  out
+}
+
+era_from_year <- function(y) {
+  y <- as.integer(y)
+  ifelse(
+    y < 2003L, "1998_2002",
+    ifelse(y < 2015L, "2003_2014", ifelse(y < 2023L, "2015_2023", "post_2023"))
+  )
 }
 
 apply_window <- function(df, w) {
@@ -47,6 +82,7 @@ apply_window <- function(df, w) {
 
 message(sprintf("=== Side Comparison Plot | bw=%d | window=%s | sample=%s | pctile=%d | unit_def=%s ===",
                 bw_ft, window, sample_filter, min_strictness_diff_pctile, unit_def))
+message(sprintf("Pruning spec: %s", prune_sample))
 
 stopifnot(unit_def %in% c("id", "loc_key", "unit_proxy"))
 
@@ -57,6 +93,7 @@ dat <- read_parquet(input) %>%
     year = lubridate::year(file_date),
     year_month = format(file_date, "%Y-%m"),
     ward_pair = as.character(ward_pair_id),
+    segment_id = as.character(segment_id),
     right = as.integer(signed_dist >= 0),
     listing_id = as.character(id),
     loc_key = paste(round(latitude, 5), round(longitude, 5), sep = "_"),
@@ -71,7 +108,8 @@ dat <- read_parquet(input) %>%
     strict_less = pmin(strictness_own, strictness_neighbor)
   ) %>%
   filter(
-    !is.na(file_date), !is.na(ward_pair), !is.na(signed_dist),
+    !is.na(file_date), !is.na(ward_pair), !is.na(segment_id), segment_id != "",
+    !is.na(signed_dist),
     !is.na(strictness_own), !is.na(strictness_neighbor),
     !is.na(latitude), !is.na(longitude),
     abs(signed_dist) <= bw_ft
@@ -90,18 +128,63 @@ if (sample_filter == "multifamily_only") {
   dat <- dat %>% filter(building_type_clean == "multi_family")
 }
 
+if (prune_sample == "pruned") {
+  if (!file.exists(confound_flags_path)) {
+    stop(sprintf("Missing confound flags file for pruned run: %s", confound_flags_path), call. = FALSE)
+  }
+
+  conf_flags <- read_csv(
+    confound_flags_path,
+    show_col_types = FALSE,
+    col_select = c("ward_pair_id_dash", "era", "drop_confound")
+  ) %>%
+    transmute(
+      pair_dash = normalize_pair_dash(ward_pair_id_dash),
+      era = as.character(era),
+      keep_pair_era = !as.logical(drop_confound)
+    ) %>%
+    distinct()
+
+  if (anyNA(conf_flags$pair_dash) || anyNA(conf_flags$era)) {
+    stop("Confound flags have invalid pair/era keys.", call. = FALSE)
+  }
+  if (anyDuplicated(conf_flags[, c("pair_dash", "era")]) > 0) {
+    stop("Confound flags contain duplicate pair-era keys.", call. = FALSE)
+  }
+
+  dat <- dat %>%
+    mutate(
+      pair_dash = normalize_pair_dash(ward_pair),
+      era = era_from_year(year)
+    ) %>%
+    left_join(conf_flags, by = c("pair_dash", "era"))
+
+  n_missing <- sum(is.na(dat$keep_pair_era))
+  if (n_missing > 0) {
+    message(sprintf(
+      "Pruned run: %d observations have no pair-era pruning flag and will be dropped.",
+      n_missing
+    ))
+    dat <- dat %>% mutate(keep_pair_era = if_else(is.na(keep_pair_era), FALSE, keep_pair_era))
+  }
+
+  n_before_prune <- nrow(dat)
+  dat <- dat %>% filter(keep_pair_era)
+  message(sprintf("Observations after pair-era pruning: %d -> %d", n_before_prune, nrow(dat)))
+}
+
 if (min_strictness_diff_pctile > 0) {
-  pair_diffs <- dat %>%
-    group_by(ward_pair) %>%
+  segment_diffs <- dat %>%
+    group_by(segment_id) %>%
     summarise(diff = median(abs(strictness_own - strictness_neighbor), na.rm = TRUE), .groups = "drop")
-  cutoff <- quantile(pair_diffs$diff, min_strictness_diff_pctile / 100, na.rm = TRUE)
-  keep_pairs <- pair_diffs %>% filter(diff >= cutoff) %>% pull(ward_pair)
-  dat <- dat %>% filter(ward_pair %in% keep_pairs)
+  cutoff <- quantile(segment_diffs$diff, min_strictness_diff_pctile / 100, na.rm = TRUE)
+  keep_segments <- segment_diffs %>% filter(diff >= cutoff) %>% pull(segment_id)
+  dat <- dat %>% filter(segment_id %in% keep_segments)
 }
 
 # --- Build balanced panel (same as PPML spec) ---
 pair_month_map <- dat %>%
-  group_by(ward_pair, year_month) %>%
+  group_by(segment_id, year_month) %>%
   summarise(
     strict_more = max(strict_more, na.rm = TRUE),
     strict_less = min(strict_less, na.rm = TRUE),
@@ -109,23 +192,23 @@ pair_month_map <- dat %>%
   )
 
 side_template <- bind_rows(
-  pair_month_map %>% transmute(ward_pair, year_month, right = 0L, strictness_own = strict_less),
-  pair_month_map %>% transmute(ward_pair, year_month, right = 1L, strictness_own = strict_more)
+  pair_month_map %>% transmute(segment_id, year_month, right = 0L, strictness_own = strict_less),
+  pair_month_map %>% transmute(segment_id, year_month, right = 1L, strictness_own = strict_more)
 )
 
 side_counts <- dat %>%
-  distinct(ward_pair, right, year_month, unit_key) %>%
-  count(ward_pair, right, year_month, name = "n_units")
+  distinct(segment_id, right, year_month, unit_key) %>%
+  count(segment_id, right, year_month, name = "n_units")
 
 panel <- side_template %>%
-  left_join(side_counts, by = c("ward_pair", "right", "year_month")) %>%
+  left_join(side_counts, by = c("segment_id", "right", "year_month")) %>%
   mutate(n_units = as.integer(coalesce(n_units, 0L)))
 
 strictness_sd <- sd(panel$strictness_own, na.rm = TRUE)
 panel <- panel %>% mutate(strictness_std = strictness_own / strictness_sd)
 
 # --- PPML regression (matches main table) ---
-m <- fepois(n_units ~ strictness_std | ward_pair^year_month, data = panel, cluster = ~ward_pair)
+m <- fepois(n_units ~ strictness_std | segment_id^year_month, data = panel, cluster = ~segment_id)
 ct <- coeftable(m)
 p_col <- grep("^Pr\\(", colnames(ct), value = TRUE)
 b <- ct["strictness_std", "Estimate"]
@@ -138,7 +221,7 @@ message(sprintf("  PPML: b=%.4f (SE %.4f, p=%.3f), implied=%.2f%%", b, se, pv, i
 # --- Residualize for plot ---
 # Use OLS on log(n_units+1) for Frisch-Waugh visual (PPML has no clean residuals)
 panel_pos <- panel %>% filter(n_units > 0) %>% mutate(log_n = log(n_units))
-m_ols <- feols(log_n ~ right | ward_pair^year_month, data = panel_pos, cluster = ~ward_pair)
+m_ols <- feols(log_n ~ right | segment_id^year_month, data = panel_pos, cluster = ~segment_id)
 ct_ols <- coeftable(m_ols)
 b_ols <- ct_ols["right", "Estimate"]
 

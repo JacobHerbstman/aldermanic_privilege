@@ -25,7 +25,7 @@ Figure~\ref{fig:event_study_rental_no_hedonics} presents event study results for
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Rents --- Without Hedonic Controls}
-    \figurenotes{Same specification as Figure~\ref{fig:event_study_rents} but excluding listing-level hedonic controls. Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-border-pair-by-side and cohort-by-border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \figurenotes{Same specification as Figure~\ref{fig:event_study_rents} but excluding listing-level hedonic controls. Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-segment-by-side and cohort-by-segment-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals use two-way clustering by census block and segment.}
     \label{fig:event_study_rental_no_hedonics}
 \end{figure}
 
@@ -47,7 +47,7 @@ Figure~\ref{fig:event_study_sales_no_hedonics} presents event study results for 
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Home Sale Prices --- Without Hedonic Controls}
-    \figurenotes{Same specification as Figure~\ref{fig:event_study_sales} but excluding property-level hedonic controls. 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \figurenotes{Same specification as Figure~\ref{fig:event_study_sales} but excluding property-level hedonic controls. 2015 redistricting cohort. Segment-by-side and segment-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. 95\% confidence intervals use two-way clustering by census block and segment.}
     \label{fig:event_study_sales_no_hedonics}
 \end{figure}
 

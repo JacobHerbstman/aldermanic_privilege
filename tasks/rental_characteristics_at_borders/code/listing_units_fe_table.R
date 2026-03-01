@@ -55,6 +55,7 @@ dat <- read_parquet(input) %>%
     year = lubridate::year(file_date),
     year_month = format(file_date, "%Y-%m"),
     ward_pair = as.character(ward_pair_id),
+    segment_id = as.character(segment_id),
     listing_id = as.character(id),
     listing_fallback = paste(
       round(latitude, 5),
@@ -67,7 +68,8 @@ dat <- read_parquet(input) %>%
     listing_key = if_else(!is.na(listing_id) & listing_id != "", listing_id, listing_fallback)
   ) %>%
   filter(
-    !is.na(file_date), !is.na(ward_pair), !is.na(signed_dist), !is.na(strictness_own),
+    !is.na(file_date), !is.na(ward_pair), !is.na(segment_id), segment_id != "",
+    !is.na(signed_dist), !is.na(strictness_own),
     !is.na(latitude), !is.na(longitude), !is.na(listing_key),
     abs(signed_dist) <= bw_ft
   ) %>%
@@ -78,14 +80,14 @@ if (sample_filter == "multifamily_only") {
 }
 
 if (min_strictness_diff_pctile > 0) {
-  pair_diffs <- dat %>%
-    group_by(ward_pair) %>%
+  segment_diffs <- dat %>%
+    group_by(segment_id) %>%
     summarise(diff = median(abs(strictness_own - strictness_neighbor), na.rm = TRUE), .groups = "drop")
-  cutoff <- quantile(pair_diffs$diff, min_strictness_diff_pctile / 100, na.rm = TRUE)
-  keep_pairs <- pair_diffs %>% filter(diff >= cutoff) %>% pull(ward_pair)
-  dat <- dat %>% filter(ward_pair %in% keep_pairs)
-  message(sprintf("  After p%d filter (cutoff=%.3f): %d obs, %d pairs",
-                  min_strictness_diff_pctile, cutoff, nrow(dat), n_distinct(dat$ward_pair)))
+  cutoff <- quantile(segment_diffs$diff, min_strictness_diff_pctile / 100, na.rm = TRUE)
+  keep_segments <- segment_diffs %>% filter(diff >= cutoff) %>% pull(segment_id)
+  dat <- dat %>% filter(segment_id %in% keep_segments)
+  message(sprintf("  After p%d filter (cutoff=%.3f): %d obs, %d segments",
+                  min_strictness_diff_pctile, cutoff, nrow(dat), n_distinct(dat$segment_id)))
 }
 
 strictness_sd <- sd(dat$strictness_own, na.rm = TRUE)
@@ -98,8 +100,8 @@ side_cells <- dat %>%
     right = as.integer(signed_dist >= 0),
     strictness_std = strictness_own / strictness_sd
   ) %>%
-  distinct(ward_pair, right, year_month, listing_key, strictness_own, strictness_std) %>%
-  group_by(ward_pair, right, year_month) %>%
+  distinct(segment_id, right, year_month, listing_key, strictness_own, strictness_std) %>%
+  group_by(segment_id, right, year_month) %>%
   summarise(
     n_units = n(),
     strictness_own = mean(strictness_own, na.rm = TRUE),
@@ -108,13 +110,13 @@ side_cells <- dat %>%
   ) %>%
   mutate(log_n = log(n_units))
 
-stopifnot(nrow(side_cells) > 0, n_distinct(side_cells$ward_pair) >= 2)
+stopifnot(nrow(side_cells) > 0, n_distinct(side_cells$segment_id) >= 2)
 
-m <- feols(log_n ~ strictness_std | ward_pair^year_month, data = side_cells, cluster = ~ward_pair)
+m <- feols(log_n ~ strictness_std | segment_id^year_month, data = side_cells, cluster = ~segment_id)
 ct <- coeftable(m)
 
 pair_month_sides <- side_cells %>%
-  count(ward_pair, year_month, name = "n_sides")
+  count(segment_id, year_month, name = "n_sides")
 
 out <- tibble(
   estimate = ct["strictness_std", "Estimate"],
@@ -122,7 +124,7 @@ out <- tibble(
   p_value = ct["strictness_std", "Pr(>|t|)"],
   implied_pct_change = 100 * (exp(ct["strictness_std", "Estimate"]) - 1),
   n_obs = nobs(m),
-  ward_pairs = n_distinct(side_cells$ward_pair),
+  segments = n_distinct(side_cells$segment_id),
   pair_month_cells = nrow(pair_month_sides),
   share_single_sided_pair_month = mean(pair_month_sides$n_sides == 1),
   dep_var_mean = mean(side_cells$log_n, na.rm = TRUE),
@@ -151,12 +153,13 @@ tex <- c(
   "  \\\\",
   sprintf("  Implied \\%% change (1 SD) & %.2f\\%% \\\\", out$implied_pct_change),
   sprintf("  Observations & %s \\\\", format(out$n_obs, big.mark = ",")),
-  sprintf("  Ward Pairs & %s \\\\", format(out$ward_pairs, big.mark = ",")),
-  sprintf("  Pair-Month Cells & %s \\\\", format(out$pair_month_cells, big.mark = ",")),
-  sprintf("  Single-Sided Pair-Month Share & %.1f\\%% \\\\", 100 * out$share_single_sided_pair_month),
+  sprintf("  Segments & %s \\\\", format(out$segments, big.mark = ",")),
+  sprintf("  Segment-Month Cells & %s \\\\", format(out$pair_month_cells, big.mark = ",")),
+  sprintf("  Single-Sided Segment-Month Share & %.1f\\%% \\\\", 100 * out$share_single_sided_pair_month),
   sprintf("  Dep. Var. Mean & %.3f \\\\", out$dep_var_mean),
   sprintf("  Mean Units per Cell & %.2f \\\\", out$mean_units_per_cell),
-  "  Ward-Pair $\\times$ Year-Month FE & $\\checkmark$ \\\\",
+  "  Segment $\\times$ Year-Month FE & $\\checkmark$ \\\\",
+  "  Clustered by Segment & $\\checkmark$ \\\\",
   "  \\bottomrule",
   "\\end{tabular}",
   "\\par\\endgroup"

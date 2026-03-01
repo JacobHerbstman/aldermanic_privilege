@@ -2,6 +2,7 @@ SHELL := bash
 include ../../shell_functions.make
 
 INPUT := ../input/rent_with_ward_distances.parquet
+CONFOUND_FLAGS := ../input/confounded_pair_era_flags.csv
 
 CHAR_TEX := ../output/char_fe_table_bw500.tex
 LISTING_PDF := ../output/listing_density_bw500_pre_2023_all_pct0.pdf
@@ -27,19 +28,19 @@ $(CHAR_TEX): characteristic_fe_table.R $(INPUT) | ../output
 	# arg order: input bw_ft window output_tex output_csv
 	Rscript characteristic_fe_table.R "$(INPUT)" 500 pre_2023 "$@" "../output/char_fe_table_bw500.csv"
 
-$(LISTING_PDF): listing_density_plot.R $(INPUT) | ../output
+$(LISTING_PDF): listing_density_plot.R $(INPUT) $(CONFOUND_FLAGS) | ../output
 	# arg order: input bw_ft window sample_filter min_strictness_diff_pctile bins_per_side output_pdf
 	Rscript listing_density_plot.R "$(INPUT)" 500 pre_2023 all 0 15 "$@"
 
-$(LISTING_UNITS_PDF): listing_units_plot.R $(INPUT) | ../output
+$(LISTING_UNITS_PDF): listing_units_plot.R $(INPUT) $(CONFOUND_FLAGS) | ../output
 	# arg order: input bw_ft window sample_filter unit_def min_strictness_diff_pctile bins_per_side output_pdf
 	Rscript listing_units_plot.R "$(INPUT)" 500 pre_2023 all unit_proxy 0 8 "$@"
 
-$(SIDE_COMP_PDF): listing_units_side_comparison.R $(INPUT) | ../output
+$(SIDE_COMP_PDF): listing_units_side_comparison.R $(INPUT) $(CONFOUND_FLAGS) | ../output
 	# arg order: input bw_ft window sample_filter unit_def min_strictness_diff_pctile output_pdf
 	Rscript listing_units_side_comparison.R "$(INPUT)" 500 pre_2023 all unit_proxy 0 "$@"
 
-$(MATCHED_RATIO_PDF): listing_units_matched_pair_ratio_plot.R $(INPUT) | ../output
+$(MATCHED_RATIO_PDF): listing_units_matched_pair_ratio_plot.R $(INPUT) $(CONFOUND_FLAGS) | ../output
 	# arg order: input bw_ft window sample_filter unit_def min_strictness_diff_pctile output_pdf output_csv
 	Rscript listing_units_matched_pair_ratio_plot.R "$(INPUT)" 500 pre_2023 all unit_proxy 0 "$@" "$(MATCHED_RATIO_CSV)"
 
@@ -72,6 +73,9 @@ $(LISTING_UNITS_PPML_MAIN_CSV): $(LISTING_UNITS_PPML_MAIN_TEX)
 $(INPUT): ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
 	ln -sf "$<" "$@"
 
-link-inputs: $(INPUT)
+$(CONFOUND_FLAGS): ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
+	ln -sf "$<" "$@"
+
+link-inputs: $(INPUT) $(CONFOUND_FLAGS)
 
 include ../../generic.make

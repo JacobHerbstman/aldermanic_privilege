@@ -14,6 +14,97 @@ source("../../setup_environment/code/packages.R")
 # Disable s2 spherical geometry to avoid validation errors with census block geometries
 sf_use_s2(FALSE)
 
+normalize_pair_dash <- function(x) {
+  x <- as.character(x)
+  x <- gsub("_", "-", x, fixed = TRUE)
+  x <- trimws(x)
+  out <- rep(NA_character_, length(x))
+  ok <- grepl("^[0-9]+-[0-9]+$", x)
+  if (!any(ok)) return(out)
+  parts <- strsplit(x[ok], "-", fixed = TRUE)
+  out[ok] <- vapply(parts, function(v) {
+    a <- suppressWarnings(as.integer(v[1]))
+    b <- suppressWarnings(as.integer(v[2]))
+    if (!is.finite(a) || !is.finite(b)) return(NA_character_)
+    paste(min(a, b), max(a, b), sep = "-")
+  }, character(1))
+  out
+}
+
+assign_cohort_segments <- function(df, seg_sf, cohort_label, chunk_n = 80000L) {
+  if (nrow(df) == 0) {
+    return(df %>%
+      mutate(
+        segment_id_cohort = NA_character_,
+        segment_side = NA_character_,
+        cohort_segment = NA_character_,
+        cohort_segment_side = NA_character_
+      ))
+  }
+
+  out <- df
+  pair_dash <- normalize_pair_dash(out$ward_pair_id)
+  seg_id <- rep(NA_character_, nrow(out))
+
+  valid <- !is.na(pair_dash) & is.finite(out$longitude) & is.finite(out$latitude)
+  valid_pairs <- intersect(unique(pair_dash[valid]), unique(seg_sf$pair_dash))
+
+  for (j in seq_along(valid_pairs)) {
+    pair_j <- valid_pairs[j]
+    idx_pair <- which(valid & pair_dash == pair_j)
+    seg_pair <- seg_sf[seg_sf$pair_dash == pair_j, ]
+    if (length(idx_pair) == 0 || nrow(seg_pair) == 0) next
+
+    starts <- seq(1L, length(idx_pair), by = chunk_n)
+    for (s in starts) {
+      e <- min(s + chunk_n - 1L, length(idx_pair))
+      chunk_idx <- idx_pair[s:e]
+
+      pts <- st_as_sf(
+        data.frame(
+          longitude = out$longitude[chunk_idx],
+          latitude = out$latitude[chunk_idx]
+        ),
+        coords = c("longitude", "latitude"),
+        crs = 4326
+      )
+      if (st_crs(pts) != st_crs(seg_pair)) {
+        pts <- st_transform(pts, st_crs(seg_pair))
+      }
+
+      hits <- st_within(pts, seg_pair)
+      hit_idx <- vapply(hits, function(v) {
+        if (length(v) == 0) return(NA_integer_)
+        v[1]
+      }, integer(1))
+      ok <- !is.na(hit_idx)
+      if (any(ok)) {
+        seg_id[chunk_idx[ok]] <- as.character(seg_pair$segment_id[hit_idx[ok]])
+      }
+    }
+
+    if (j %% 25L == 0L || j == length(valid_pairs)) {
+      message(sprintf("[%s] segment assignment progress: %d/%d pairs", cohort_label, j, length(valid_pairs)))
+    }
+  }
+
+  out <- out %>%
+    mutate(
+      segment_id_cohort = seg_id,
+      segment_side = if_else(!is.na(segment_id_cohort) & !is.na(ward_origin), paste(segment_id_cohort, ward_origin, sep = "_"), NA_character_),
+      cohort_segment = if_else(!is.na(segment_id_cohort), paste(cohort_label, segment_id_cohort, sep = "_"), NA_character_),
+      cohort_segment_side = if_else(!is.na(segment_side), paste(cohort_label, segment_side, sep = "_"), NA_character_)
+    )
+
+  message(sprintf(
+    "[%s] segment coverage within cohort panel: %.2f%%",
+    cohort_label,
+    100 * mean(!is.na(out$segment_id_cohort))
+  ))
+
+  out
+}
+
 # =============================================================================
 # 1. LOAD DATA
 # =============================================================================
@@ -43,6 +134,15 @@ message("Loading treatment panel...")
 treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
   mutate(block_id = as.character(block_id))
 
+message("Loading segment layers for cohort-baseline assignment...")
+segments_2003 <- st_read("../input/boundary_segments_1320ft.gpkg", layer = "2003_2014_bw1000", quiet = TRUE) %>%
+  mutate(pair_dash = normalize_pair_dash(ward_pair_id)) %>%
+  filter(!is.na(pair_dash))
+
+segments_2015 <- st_read("../input/boundary_segments_1320ft.gpkg", layer = "2015_2023_bw1000", quiet = TRUE) %>%
+  mutate(pair_dash = normalize_pair_dash(ward_pair_id)) %>%
+  filter(!is.na(pair_dash))
+
 # =============================================================================
 # 2. ASSIGN RENTALS TO CENSUS BLOCKS
 # =============================================================================
@@ -52,7 +152,7 @@ crs_projected <- 3435 # Illinois East State Plane (feet)
 
 rentals_sf <- rentals %>%
   filter(!is.na(latitude), !is.na(longitude)) %>%
-  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) %>%
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) %>%
   st_transform(crs_projected)
 
 census_blocks_proj <- census_blocks %>%
@@ -188,6 +288,7 @@ cohort_2015 <- rentals_with_controls %>%
   ) %>%
   # Replace ward_pair_id with the fixed version
   mutate(ward_pair_id = ward_pair_id_fixed) %>%
+  assign_cohort_segments(segments_2003, "2015") %>%
   select(
     # Identifiers
     id, block_id, cohort,
@@ -210,6 +311,7 @@ cohort_2015 <- rentals_with_controls %>%
 
     # Geography/FEs
     ward_pair_id, ward_origin, ward_dest, ward_pair_side,
+    segment_id_cohort, segment_side, cohort_segment, cohort_segment_side,
     dist_ft, signed_dist,
 
     # Treatment
@@ -285,6 +387,7 @@ cohort_2023 <- rentals_with_controls %>%
     ward_pair_side = paste(ward_pair_id_fixed, ward_origin, sep = "_")
   ) %>%
   mutate(ward_pair_id = ward_pair_id_fixed) %>%
+  assign_cohort_segments(segments_2015, "2023") %>%
   select(
     # Identifiers
     id, block_id, cohort,
@@ -307,6 +410,7 @@ cohort_2023 <- rentals_with_controls %>%
 
     # Geography/FEs
     ward_pair_id, ward_origin, ward_dest, ward_pair_side,
+    segment_id_cohort, segment_side, cohort_segment, cohort_segment_side,
     dist_ft, signed_dist,
 
     # Treatment
@@ -340,7 +444,9 @@ listing_panel <- bind_rows(cohort_2015, cohort_2023) %>%
     # Cohort-specific identifiers for FEs
     cohort_block_id = paste(cohort, block_id, sep = "_"),
     cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
-    cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
+    cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
+    cohort_segment = if_else(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
+    cohort_segment_side = if_else(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
   )
 
 message(sprintf(

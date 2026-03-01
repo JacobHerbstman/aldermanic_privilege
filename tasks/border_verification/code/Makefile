@@ -5,6 +5,10 @@ OUTPUTS := \
 	../output/border_verification_dataset_overview.csv \
 	../output/border_verification_summary.csv \
 	../output/border_verification_panel_checks.csv \
+	../output/border_verification_segment_coverage.csv \
+	../output/border_verification_segment_consistency.csv \
+	../output/border_verification_segment_stability.csv \
+	../output/border_verification_segment_spotcheck_queue.csv \
 	../output/border_verification_invalid_pairs_sales.csv \
 	../output/border_verification_invalid_pairs_rent.csv \
 	../output/border_verification_findings.md \
@@ -78,13 +82,13 @@ forensics-smoke: build_geometry_forensics_pack.R $(INPUTS) $(CERT_OUTPUTS) | ../
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	ln -sf $< $@
 
-../input/sales_pre_scores.csv: ../../calculate_sale_distances/output/sales_pre_scores.csv | ../input
+../input/sales_pre_scores.csv: ../../assign_segment_ids_sales_rental/output/sales_pre_scores_with_segments.csv | ../input
 	ln -sf $< $@
 
 ../input/sales_with_ward_distances.csv: ../../merge_event_study_scores/output/sales_with_ward_distances.csv | ../input
 	ln -sf $< $@
 
-../input/rent_pre_scores_full.parquet: ../../calculate_rent_distances/output/rent_pre_scores_full.parquet | ../input
+../input/rent_pre_scores_full.parquet: ../../assign_segment_ids_sales_rental/output/rent_pre_scores_full_with_segments.parquet | ../input
 	ln -sf $< $@
 
 ../input/rent_with_ward_distances_full.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input

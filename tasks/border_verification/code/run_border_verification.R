@@ -23,9 +23,9 @@ if (length(cli_args) >= 3) {
   skip_thresholds <- tolower(cli_args[2]) %in% c("true", "t", "1", "yes")
   output_dir <- cli_args[3]
 } else {
-  if (!exists("certify_only") || !exists("skip_thresholds") || !exists("output_dir")) {
-    stop("FATAL: Script requires 3 args: <certify_only> <skip_thresholds> <output_dir>", call. = FALSE)
-  }
+  if (!exists("certify_only")) certify_only <- FALSE
+  if (!exists("skip_thresholds")) skip_thresholds <- FALSE
+  if (!exists("output_dir")) output_dir <- "../output"
 }
 
 OUT_DIR <- output_dir
@@ -60,6 +60,15 @@ add_check <- function(dataset, check_id, n_issue, n_total, note = "") {
 parse_pair <- function(x, sep = "-") {
   sp <- tstrsplit(as.character(x), sep, fixed = TRUE)
   list(as.integer(sp[[1]]), as.integer(sp[[2]]))
+}
+
+segment_pair_from_id <- function(seg_id) {
+  x <- as.character(seg_id)
+  parts <- tstrsplit(x, "_", fixed = TRUE)
+  a <- suppressWarnings(as.integer(parts[[1]]))
+  b <- suppressWarnings(as.integer(parts[[2]]))
+  out <- ifelse(is.na(a) | is.na(b), NA_character_, sprintf("%d-%d", pmin(a, b), pmax(a, b)))
+  out
 }
 
 build_boundary_lines <- function(ward_sf) {
@@ -307,7 +316,7 @@ add_check("parcels_with_ward_distances", "signed_distance_identity_fail", sum(ab
 # -----------------------------------------------------------------------------
 # 4) SALES PRE-SCORES + SCORED CHECKS
 # -----------------------------------------------------------------------------
-sales_pre <- fread("../input/sales_pre_scores.csv", select = c("pin", "sale_date", "year", "ward", "neighbor_ward", "ward_pair_id", "dist_ft", "latitude", "longitude"))
+sales_pre <- fread("../input/sales_pre_scores.csv", select = c("pin", "sale_date", "year", "ward", "neighbor_ward", "ward_pair_id", "segment_id", "dist_ft", "latitude", "longitude"))
 sales_pre[, sale_date := as.Date(sale_date)]
 sales_pre[is.na(sale_date), sale_date := as.Date(sprintf("%d-06-15", year))]
 
@@ -337,6 +346,13 @@ sales_pre[, pair_adjacent := fcase(
 
 add_check("sales_pre_scores", "non_adjacent_ward_pairs_by_era_map", sum(!sales_pre$pair_adjacent, na.rm = TRUE), nrow(sales_pre), sprintf("Map years used: pre=%d, mid=%d, post2015=%d, post2023=%d", sales_year_1998, sales_year_2003, sales_year_2015, sales_year_2024))
 
+sales_pre[, segment_pair := segment_pair_from_id(segment_id)]
+sales_pre[, segment_pair_match := is.na(segment_pair) | (segment_pair == ward_pair_id)]
+add_check("sales_pre_scores", "segment_pair_mismatch", sum(!sales_pre$segment_pair_match, na.rm = TRUE), nrow(sales_pre), "Segment-derived ward pair should match ward_pair_id.")
+add_check("sales_pre_scores", "missing_segment_id_bw1000", sum((is.na(sales_pre$segment_id) | sales_pre$segment_id == "") & is.finite(sales_pre$dist_ft) & sales_pre$dist_ft <= 1000, na.rm = TRUE), sum(is.finite(sales_pre$dist_ft) & sales_pre$dist_ft <= 1000))
+add_check("sales_pre_scores", "missing_segment_id_bw500", sum((is.na(sales_pre$segment_id) | sales_pre$segment_id == "") & is.finite(sales_pre$dist_ft) & sales_pre$dist_ft <= 500, na.rm = TRUE), sum(is.finite(sales_pre$dist_ft) & sales_pre$dist_ft <= 500))
+add_check("sales_pre_scores", "missing_segment_id_bw250", sum((is.na(sales_pre$segment_id) | sales_pre$segment_id == "") & is.finite(sales_pre$dist_ft) & sales_pre$dist_ft <= 250, na.rm = TRUE), sum(is.finite(sales_pre$dist_ft) & sales_pre$dist_ft <= 250))
+
 sales_invalid <- sales_pre[era == "2003_2015" & !pair_adjacent]
 sales_invalid_corr <- compute_corrected_pairs(sales_invalid, lines_sales_2003)
 add_check("sales_pre_scores", "invalid_mid_era_pairs_with_correctable_neighbor", sum(!is.na(sales_invalid_corr$corrected_pair), na.rm = TRUE), nrow(sales_invalid_corr), "Rows where nearest boundary touching assigned ward gives an alternate pair.")
@@ -347,7 +363,7 @@ fwrite(sales_invalid_pairs, file.path(OUT_DIR, "border_verification_invalid_pair
 # -----------------------------------------------------------------------------
 # 5) RENT PRE-SCORES + SCORED CHECKS
 # -----------------------------------------------------------------------------
-rent_pre <- as.data.table(read_parquet("../input/rent_pre_scores_full.parquet", col_select = c("id", "file_date", "ward", "neighbor_ward", "ward_pair_id", "dist_ft", "latitude", "longitude")))
+rent_pre <- as.data.table(read_parquet("../input/rent_pre_scores_full.parquet", col_select = c("id", "file_date", "ward", "neighbor_ward", "ward_pair_id", "segment_id", "dist_ft", "latitude", "longitude")))
 rent_pre[, file_date := as.Date(file_date)]
 rent_sc <- as.data.table(read_parquet("../input/rent_with_ward_distances_full.parquet", col_select = c("id", "file_date", "dist_ft", "signed_dist", "sign", "strictness_own", "strictness_neighbor")))
 rent_sc[, file_date := as.Date(file_date)]
@@ -373,12 +389,117 @@ rent_pre[, pair_adjacent := fcase(
 
 add_check("rent_pre_scores_full", "non_adjacent_ward_pairs_by_era_map", sum(!rent_pre$pair_adjacent, na.rm = TRUE), nrow(rent_pre), sprintf("Map years used: pre=%d, post2015=%d, post2023=%d", rent_year_2014, rent_year_2016, rent_year_2024))
 
+rent_pre[, segment_pair := segment_pair_from_id(segment_id)]
+rent_pre[, segment_pair_match := is.na(segment_pair) | (segment_pair == ward_pair_id)]
+add_check("rent_pre_scores_full", "segment_pair_mismatch", sum(!rent_pre$segment_pair_match, na.rm = TRUE), nrow(rent_pre), "Segment-derived ward pair should match ward_pair_id.")
+add_check("rent_pre_scores_full", "missing_segment_id_bw1000", sum((is.na(rent_pre$segment_id) | rent_pre$segment_id == "") & is.finite(rent_pre$dist_ft) & rent_pre$dist_ft <= 1000, na.rm = TRUE), sum(is.finite(rent_pre$dist_ft) & rent_pre$dist_ft <= 1000))
+add_check("rent_pre_scores_full", "missing_segment_id_bw500", sum((is.na(rent_pre$segment_id) | rent_pre$segment_id == "") & is.finite(rent_pre$dist_ft) & rent_pre$dist_ft <= 500, na.rm = TRUE), sum(is.finite(rent_pre$dist_ft) & rent_pre$dist_ft <= 500))
+add_check("rent_pre_scores_full", "missing_segment_id_bw250", sum((is.na(rent_pre$segment_id) | rent_pre$segment_id == "") & is.finite(rent_pre$dist_ft) & rent_pre$dist_ft <= 250, na.rm = TRUE), sum(is.finite(rent_pre$dist_ft) & rent_pre$dist_ft <= 250))
+
 rent_invalid <- rent_pre[era == "pre2015" & !pair_adjacent]
 rent_invalid_corr <- compute_corrected_pairs(rent_invalid, lines_rent_2014)
 add_check("rent_pre_scores_full", "invalid_pre2015_pairs_with_correctable_neighbor", sum(!is.na(rent_invalid_corr$corrected_pair), na.rm = TRUE), nrow(rent_invalid_corr), "Rows where nearest boundary touching assigned ward gives an alternate pair.")
 
 rent_invalid_pairs <- rent_invalid_corr[, .N, by = .(ward_pair_id, corrected_pair)][order(-N)]
 fwrite(rent_invalid_pairs, file.path(OUT_DIR, "border_verification_invalid_pairs_rent.csv"))
+
+# -----------------------------------------------------------------------------
+# 5b) SEGMENT COVERAGE + CONSISTENCY TABLES
+# -----------------------------------------------------------------------------
+coverage_rows <- list()
+coverage_block <- function(dataset, dt, era_col, dist_col) {
+  eras <- sort(unique(na.omit(dt[[era_col]])))
+  scopes <- list(
+    list(name = "all", idx = rep(TRUE, nrow(dt))),
+    list(name = "bw1000", idx = is.finite(dt[[dist_col]]) & dt[[dist_col]] <= 1000),
+    list(name = "bw500", idx = is.finite(dt[[dist_col]]) & dt[[dist_col]] <= 500),
+    list(name = "bw250", idx = is.finite(dt[[dist_col]]) & dt[[dist_col]] <= 250)
+  )
+  for (sc in scopes) {
+    dd <- dt[sc$idx]
+    n_total <- nrow(dd)
+    n_match <- if (n_total > 0) sum(!is.na(dd$segment_id) & dd$segment_id != "") else 0L
+    coverage_rows[[length(coverage_rows) + 1L]] <<- data.table(
+      dataset = dataset, era = "all", scope = sc$name,
+      n_obs = n_total, n_matched = n_match,
+      coverage_rate = ifelse(n_total > 0, n_match / n_total, NA_real_)
+    )
+    if (length(eras) > 0) {
+      for (ee in eras) {
+        dde <- dd[get(era_col) == ee]
+        n_tot_e <- nrow(dde)
+        n_mat_e <- if (n_tot_e > 0) sum(!is.na(dde$segment_id) & dde$segment_id != "") else 0L
+        coverage_rows[[length(coverage_rows) + 1L]] <<- data.table(
+          dataset = dataset, era = as.character(ee), scope = sc$name,
+          n_obs = n_tot_e, n_matched = n_mat_e,
+          coverage_rate = ifelse(n_tot_e > 0, n_mat_e / n_tot_e, NA_real_)
+        )
+      }
+    }
+  }
+}
+coverage_block("sales_pre_scores", sales_pre, "era", "dist_ft")
+coverage_block("rent_pre_scores_full", rent_pre, "era", "dist_ft")
+segment_coverage <- rbindlist(coverage_rows, fill = TRUE)
+setorder(segment_coverage, dataset, scope, era)
+fwrite(segment_coverage, file.path(OUT_DIR, "border_verification_segment_coverage.csv"))
+
+segment_consistency <- rbindlist(list(
+  sales_pre[, .(
+    dataset = "sales_pre_scores",
+    n_obs = .N,
+    n_with_segment = sum(!is.na(segment_id) & segment_id != ""),
+    n_segment_pair_mismatch = sum(!segment_pair_match, na.rm = TRUE),
+    mismatch_rate = mean(!segment_pair_match, na.rm = TRUE)
+  )],
+  rent_pre[, .(
+    dataset = "rent_pre_scores_full",
+    n_obs = .N,
+    n_with_segment = sum(!is.na(segment_id) & segment_id != ""),
+    n_segment_pair_mismatch = sum(!segment_pair_match, na.rm = TRUE),
+    mismatch_rate = mean(!segment_pair_match, na.rm = TRUE)
+  )]
+), fill = TRUE)
+fwrite(segment_consistency, file.path(OUT_DIR, "border_verification_segment_consistency.csv"))
+
+spot_sales <- sales_pre[
+  is.finite(dist_ft) & dist_ft <= 500 &
+    ((is.na(segment_id) | segment_id == "") | !segment_pair_match),
+  .(
+    dataset = "sales_pre_scores",
+    record_id = as.character(pin),
+    obs_date = as.character(sale_date),
+    era = as.character(era),
+    ward_pair_id = as.character(ward_pair_id),
+    segment_id = as.character(segment_id),
+    flag = fifelse(is.na(segment_id) | segment_id == "", "missing_segment", "segment_pair_mismatch"),
+    dist_ft = as.numeric(dist_ft),
+    longitude = as.numeric(longitude),
+    latitude = as.numeric(latitude)
+  )
+]
+setorder(spot_sales, flag, dist_ft)
+
+spot_rent <- rent_pre[
+  is.finite(dist_ft) & dist_ft <= 500 &
+    ((is.na(segment_id) | segment_id == "") | !segment_pair_match),
+  .(
+    dataset = "rent_pre_scores_full",
+    record_id = as.character(id),
+    obs_date = as.character(file_date),
+    era = as.character(era),
+    ward_pair_id = as.character(ward_pair_id),
+    segment_id = as.character(segment_id),
+    flag = fifelse(is.na(segment_id) | segment_id == "", "missing_segment", "segment_pair_mismatch"),
+    dist_ft = as.numeric(dist_ft),
+    longitude = as.numeric(longitude),
+    latitude = as.numeric(latitude)
+  )
+]
+setorder(spot_rent, flag, dist_ft)
+
+spotcheck_queue <- rbindlist(list(head(spot_sales, 20), head(spot_rent, 20)), fill = TRUE)
+fwrite(spotcheck_queue, file.path(OUT_DIR, "border_verification_segment_spotcheck_queue.csv"))
 
 # -----------------------------------------------------------------------------
 # 6) TREATMENT PANEL CHECKS
@@ -394,7 +515,7 @@ add_check("block_treatment_panel", "strictness_change_identity_fail", sum(abs(tr
 # 7) ANALYSIS PANEL CHECKS
 # -----------------------------------------------------------------------------
 sales_schema <- open_dataset("../input/sales_transaction_panel.parquet")$schema$names
-sales_cols <- intersect(c("cohort", "treat", "ward_pair_id", "ward_origin", "strictness_change", "dist_ft"), sales_schema)
+sales_cols <- intersect(c("cohort", "treat", "ward_pair_id", "ward_origin", "strictness_change", "dist_ft", "block_id", "segment_id_cohort"), sales_schema)
 if ("ward_dest" %in% sales_schema) sales_cols <- c(sales_cols, "ward_dest")
 sales_panel <- as.data.table(read_parquet("../input/sales_transaction_panel.parquet", col_select = sales_cols))
 sp2 <- parse_pair(sales_panel$ward_pair_id, "-")
@@ -408,9 +529,12 @@ sales_panel[, treated_pair_exact := treat == 1 & ward_pair_id == sprintf("%d-%d"
 add_check("sales_transaction_panel", "origin_ward_not_in_pair", sum(!sales_panel$origin_in_pair, na.rm = TRUE), nrow(sales_panel))
 add_check("sales_transaction_panel", "treated_zero_strictness_change", sum(sales_panel$treated_zero_strictness, na.rm = TRUE), sum(sales_panel$treat == 1, na.rm = TRUE))
 add_check("sales_transaction_panel", "treated_pair_not_equal_to_origin_dest_pair", sum(sales_panel$treat == 1 & !sales_panel$treated_pair_exact, na.rm = TRUE), sum(sales_panel$treat == 1, na.rm = TRUE))
+if ("segment_id_cohort" %in% names(sales_panel)) {
+  add_check("sales_transaction_panel", "treated_missing_segment_id_cohort", sum(sales_panel$treat == 1 & (is.na(sales_panel$segment_id_cohort) | sales_panel$segment_id_cohort == ""), na.rm = TRUE), sum(sales_panel$treat == 1, na.rm = TRUE))
+}
 
 rent_schema <- open_dataset("../input/rental_listing_panel.parquet")$schema$names
-rent_cols <- intersect(c("cohort", "treat", "ward_pair_id", "ward_origin", "strictness_change", "dist_ft"), rent_schema)
+rent_cols <- intersect(c("cohort", "treat", "ward_pair_id", "ward_origin", "strictness_change", "dist_ft", "block_id", "segment_id_cohort"), rent_schema)
 if ("ward_dest" %in% rent_schema) rent_cols <- c(rent_cols, "ward_dest")
 rent_panel <- as.data.table(read_parquet("../input/rental_listing_panel.parquet", col_select = rent_cols))
 rp2 <- parse_pair(rent_panel$ward_pair_id, "-")
@@ -422,6 +546,9 @@ rent_panel[, treated_pair_exact := treat == 1 & ward_pair_id == sprintf("%d-%d",
 
 add_check("rental_listing_panel", "origin_ward_not_in_pair", sum(!rent_panel$origin_in_pair, na.rm = TRUE), nrow(rent_panel))
 add_check("rental_listing_panel", "treated_pair_not_equal_to_origin_dest_pair", sum(rent_panel$treat == 1 & !rent_panel$treated_pair_exact, na.rm = TRUE), sum(rent_panel$treat == 1, na.rm = TRUE))
+if ("segment_id_cohort" %in% names(rent_panel)) {
+  add_check("rental_listing_panel", "treated_missing_segment_id_cohort", sum(rent_panel$treat == 1 & (is.na(rent_panel$segment_id_cohort) | rent_panel$segment_id_cohort == ""), na.rm = TRUE), sum(rent_panel$treat == 1, na.rm = TRUE))
+}
 
 panel_checks <- rbindlist(list(
   sales_panel[, .(
@@ -443,6 +570,47 @@ panel_checks <- rbindlist(list(
   ), by = .(cohort, treat)]
 ), fill = TRUE)
 fwrite(panel_checks, file.path(OUT_DIR, "border_verification_panel_checks.csv"))
+
+segment_stability_parts <- list()
+if ("segment_id_cohort" %in% names(sales_panel) && "block_id" %in% names(sales_panel)) {
+  sales_block_seg <- sales_panel[treat == 1, .(
+    n_segments = uniqueN(na.omit(segment_id_cohort)),
+    has_segment = any(!is.na(segment_id_cohort) & segment_id_cohort != "")
+  ), by = .(cohort, block_id)]
+  segment_stability_parts[[length(segment_stability_parts) + 1L]] <- sales_block_seg[, .(
+    dataset = "sales_transaction_panel",
+    cohort = as.character(cohort),
+    n_blocks = .N,
+    blocks_multi_segment = sum(n_segments > 1),
+    multi_segment_rate = mean(n_segments > 1),
+    segment_coverage = mean(has_segment)
+  ), by = cohort]
+}
+if ("segment_id_cohort" %in% names(rent_panel) && "block_id" %in% names(rent_panel)) {
+  rent_block_seg <- rent_panel[treat == 1, .(
+    n_segments = uniqueN(na.omit(segment_id_cohort)),
+    has_segment = any(!is.na(segment_id_cohort) & segment_id_cohort != "")
+  ), by = .(cohort, block_id)]
+  segment_stability_parts[[length(segment_stability_parts) + 1L]] <- rent_block_seg[, .(
+    dataset = "rental_listing_panel",
+    cohort = as.character(cohort),
+    n_blocks = .N,
+    blocks_multi_segment = sum(n_segments > 1),
+    multi_segment_rate = mean(n_segments > 1),
+    segment_coverage = mean(has_segment)
+  ), by = cohort]
+}
+segment_stability <- rbindlist(segment_stability_parts, fill = TRUE)
+
+if (nrow(segment_stability) > 0) {
+  fwrite(segment_stability, file.path(OUT_DIR, "border_verification_segment_stability.csv"))
+  sales_stab_rate <- segment_stability[dataset == "sales_transaction_panel", weighted.mean(multi_segment_rate, w = n_blocks, na.rm = TRUE)]
+  rent_stab_rate <- segment_stability[dataset == "rental_listing_panel", weighted.mean(multi_segment_rate, w = n_blocks, na.rm = TRUE)]
+  if (is.finite(sales_stab_rate)) add_check("sales_transaction_panel", "treated_block_multi_segment_rate", sales_stab_rate, 1, "Share of treated blocks mapped to >1 cohort segment.")
+  if (is.finite(rent_stab_rate)) add_check("rental_listing_panel", "treated_block_multi_segment_rate", rent_stab_rate, 1, "Share of treated blocks mapped to >1 cohort segment.")
+} else {
+  fwrite(data.table(), file.path(OUT_DIR, "border_verification_segment_stability.csv"))
+}
 
 # -----------------------------------------------------------------------------
 # 8) MAP YEAR SENSITIVITY CHECK (PARCELS WITH boundary_year=2003)
@@ -522,6 +690,10 @@ rent_nonadj <- summary_dt[dataset == "rent_pre_scores_full" & check_id == "non_a
 sales_panel_issue <- summary_dt[dataset == "sales_transaction_panel" & check_id == "origin_ward_not_in_pair", issue_rate][1]
 rent_panel_issue <- summary_dt[dataset == "rental_listing_panel" & check_id == "origin_ward_not_in_pair", issue_rate][1]
 map_2003_2005_diff <- summary_dt[dataset == "parcels_pre_scores" & check_id == "boundary_year2003_assignment_diff_between_2003_and_2005_maps", issue_rate][1]
+sales_seg_cov_1000 <- segment_coverage[dataset == "sales_pre_scores" & scope == "bw1000" & era == "all", coverage_rate][1]
+rent_seg_cov_1000 <- segment_coverage[dataset == "rent_pre_scores_full" & scope == "bw1000" & era == "all", coverage_rate][1]
+sales_seg_mismatch <- summary_dt[dataset == "sales_pre_scores" & check_id == "segment_pair_mismatch", issue_rate][1]
+rent_seg_mismatch <- summary_dt[dataset == "rent_pre_scores_full" & check_id == "segment_pair_mismatch", issue_rate][1]
 
 findings <- c(
   "# Border Verification Findings",
@@ -531,6 +703,7 @@ findings <- c(
     100 * safe_rate(overview[dataset == "sales_pre_scores", rows] - overview[dataset == "sales_with_ward_distances", rows], overview[dataset == "sales_pre_scores", rows]),
     100 * safe_rate(overview[dataset == "rent_pre_scores_full", rows] - overview[dataset == "rent_with_ward_distances_full", rows], overview[dataset == "rent_pre_scores_full", rows])
   ),
+  sprintf("- Segment coverage within 1,000ft: sales = %.2f%%, rent = %.2f%%.", 100 * sales_seg_cov_1000, 100 * rent_seg_cov_1000),
   "- Signed distance algebra and strictness-sign consistency checks pass in scored sales/rent and parcel border files.",
   "",
   "## What Is Broken / Risky",
@@ -538,9 +711,15 @@ findings <- c(
   sprintf("- Non-adjacent border pairs in `rent_pre_scores_full`: %.2f%% of rows.", 100 * rent_nonadj),
   sprintf("- `sales_transaction_panel` rows where `ward_origin` is not in `ward_pair_id`: %.2f%%.", 100 * sales_panel_issue),
   sprintf("- `rental_listing_panel` rows where `ward_origin` is not in `ward_pair_id`: %.2f%%.", 100 * rent_panel_issue),
+  sprintf("- Segment-derived pair mismatch in `sales_pre_scores`: %.3f%%.", 100 * sales_seg_mismatch),
+  sprintf("- Segment-derived pair mismatch in `rent_pre_scores_full`: %.3f%%.", 100 * rent_seg_mismatch),
   sprintf("- Parcels with `boundary_year=2003` that change ward assignment under 2003 vs 2005 map: %.2f%%.", 100 * map_2003_2005_diff),
   "",
   "## Additional Spatial Outputs",
+  "- `border_verification_segment_coverage.csv`",
+  "- `border_verification_segment_consistency.csv`",
+  "- `border_verification_segment_stability.csv`",
+  "- `border_verification_segment_spotcheck_queue.csv`",
   "- `border_pair_anomaly_samples.csv`",
   "- `border_pair_anomaly_maps.pdf`"
 )
@@ -554,6 +733,13 @@ control_rent_rate <- rent_panel[treat == 0, mean(!origin_in_pair, na.rm = TRUE)]
 
 sales_post_rate <- sales_pre[era %in% c("2015_2023", "post2023"), mean(!pair_adjacent, na.rm = TRUE)]
 rent_post_rate <- rent_pre[era %in% c("2015_2023", "post2023"), mean(!pair_adjacent, na.rm = TRUE)]
+
+sales_seg_missing_1000 <- summary_dt[dataset == "sales_pre_scores" & check_id == "missing_segment_id_bw1000", issue_rate][1]
+rent_seg_missing_1000 <- summary_dt[dataset == "rent_pre_scores_full" & check_id == "missing_segment_id_bw1000", issue_rate][1]
+sales_seg_pair_mismatch <- summary_dt[dataset == "sales_pre_scores" & check_id == "segment_pair_mismatch", issue_rate][1]
+rent_seg_pair_mismatch <- summary_dt[dataset == "rent_pre_scores_full" & check_id == "segment_pair_mismatch", issue_rate][1]
+sales_multi_segment_rate <- summary_dt[dataset == "sales_transaction_panel" & check_id == "treated_block_multi_segment_rate", issue_rate][1]
+rent_multi_segment_rate <- summary_dt[dataset == "rental_listing_panel" & check_id == "treated_block_multi_segment_rate", issue_rate][1]
 
 sales_treated_mismatch <- sales_panel[treat == 1, sum(!treated_pair_exact, na.rm = TRUE)]
 rent_treated_mismatch <- rent_panel[treat == 1, sum(!treated_pair_exact, na.rm = TRUE)]
@@ -603,6 +789,12 @@ gates <- rbindlist(list(
   data.table(gate_id = "rental_post_redistricting_invalid_rate", value = rent_post_rate, threshold = 0.0005, comparator = "<=", pass = rent_post_rate <= 0.0005, note = "Raw-pair adjacency failure post-2015."),
   data.table(gate_id = "sales_control_origin_not_in_pair_rate", value = control_sales_rate, threshold = 0.001, comparator = "<=", pass = control_sales_rate <= 0.001, note = "Controls only."),
   data.table(gate_id = "rental_control_origin_not_in_pair_rate", value = control_rent_rate, threshold = 0.001, comparator = "<=", pass = control_rent_rate <= 0.001, note = "Controls only."),
+  data.table(gate_id = "sales_segment_missing_rate_bw1000", value = sales_seg_missing_1000, threshold = 0.05, comparator = "<=", pass = is.finite(sales_seg_missing_1000) && sales_seg_missing_1000 <= 0.05, note = "Sales pre-score segment assignment coverage within 1,000ft."),
+  data.table(gate_id = "rental_segment_missing_rate_bw1000", value = rent_seg_missing_1000, threshold = 0.05, comparator = "<=", pass = is.finite(rent_seg_missing_1000) && rent_seg_missing_1000 <= 0.05, note = "Rental pre-score segment assignment coverage within 1,000ft."),
+  data.table(gate_id = "sales_segment_pair_mismatch_rate", value = sales_seg_pair_mismatch, threshold = 0.001, comparator = "<=", pass = is.finite(sales_seg_pair_mismatch) && sales_seg_pair_mismatch <= 0.001, note = "Segment pair key should match row ward_pair_id."),
+  data.table(gate_id = "rental_segment_pair_mismatch_rate", value = rent_seg_pair_mismatch, threshold = 0.001, comparator = "<=", pass = is.finite(rent_seg_pair_mismatch) && rent_seg_pair_mismatch <= 0.001, note = "Segment pair key should match row ward_pair_id."),
+  data.table(gate_id = "sales_treated_block_multi_segment_rate", value = sales_multi_segment_rate, threshold = 0.10, comparator = "<=", pass = is.finite(sales_multi_segment_rate) && sales_multi_segment_rate <= 0.10, note = "Treated blocks should be cohort-segment stable."),
+  data.table(gate_id = "rental_treated_block_multi_segment_rate", value = rent_multi_segment_rate, threshold = 0.10, comparator = "<=", pass = is.finite(rent_multi_segment_rate) && rent_multi_segment_rate <= 0.10, note = "Treated blocks should be cohort-segment stable."),
   data.table(gate_id = "ward_topology_invalid_geometries", value = invalid_geoms_total, threshold = 0, comparator = "<=", pass = invalid_geoms_total <= 0, note = "All years."),
   data.table(gate_id = "ward_topology_overlap_share_max", value = overlap_share_max, threshold = 1e-4, comparator = "<=", pass = overlap_share_max <= 1e-4, note = "Allows tiny source-map slivers; threshold is 0.01% max annual overlap share."),
   data.table(gate_id = "ward_count_inconsistent_years", value = ward_inconsistent_years, threshold = 0, comparator = "<=", pass = ward_inconsistent_years <= 0, note = sprintf("Mode ward count = %d", ward_count_mode)),
@@ -705,6 +897,10 @@ if (nrow(failed) > 0) {
 message("Saved: ", file.path(OUT_DIR, "border_verification_dataset_overview.csv"))
 message("Saved: ", file.path(OUT_DIR, "border_verification_summary.csv"))
 message("Saved: ", file.path(OUT_DIR, "border_verification_panel_checks.csv"))
+message("Saved: ", file.path(OUT_DIR, "border_verification_segment_coverage.csv"))
+message("Saved: ", file.path(OUT_DIR, "border_verification_segment_consistency.csv"))
+message("Saved: ", file.path(OUT_DIR, "border_verification_segment_stability.csv"))
+message("Saved: ", file.path(OUT_DIR, "border_verification_segment_spotcheck_queue.csv"))
 message("Saved: ", file.path(OUT_DIR, "border_verification_invalid_pairs_sales.csv"))
 message("Saved: ", file.path(OUT_DIR, "border_verification_invalid_pairs_rent.csv"))
 message("Saved: ", file.path(OUT_DIR, "border_pair_anomaly_samples.csv"))

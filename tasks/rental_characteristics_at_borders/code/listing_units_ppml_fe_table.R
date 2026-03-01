@@ -57,6 +57,7 @@ dat <- read_parquet(input) %>%
     year = lubridate::year(file_date),
     year_month = format(file_date, "%Y-%m"),
     ward_pair = as.character(ward_pair_id),
+    segment_id = as.character(segment_id),
     right = as.integer(signed_dist >= 0),
     listing_id = as.character(id),
     loc_key = paste(round(latitude, 5), round(longitude, 5)),
@@ -73,7 +74,8 @@ dat <- read_parquet(input) %>%
     strict_less = pmin(strictness_own, strictness_neighbor)
   ) %>%
   filter(
-    !is.na(file_date), !is.na(ward_pair), !is.na(signed_dist),
+    !is.na(file_date), !is.na(ward_pair), !is.na(segment_id), segment_id != "",
+    !is.na(signed_dist),
     !is.na(strictness_own), !is.na(strictness_neighbor),
     !is.na(latitude), !is.na(longitude), !is.na(listing_key),
     abs(signed_dist) <= bw_ft
@@ -85,14 +87,14 @@ if (sample_filter == "multifamily_only") {
 }
 
 if (min_strictness_diff_pctile > 0) {
-  pair_diffs <- dat %>%
-    group_by(ward_pair) %>%
+  segment_diffs <- dat %>%
+    group_by(segment_id) %>%
     summarise(diff = median(abs(strictness_own - strictness_neighbor), na.rm = TRUE), .groups = "drop")
-  cutoff <- quantile(pair_diffs$diff, min_strictness_diff_pctile / 100, na.rm = TRUE)
-  keep_pairs <- pair_diffs %>% filter(diff >= cutoff) %>% pull(ward_pair)
-  dat <- dat %>% filter(ward_pair %in% keep_pairs)
-  message(sprintf("  After p%d filter (cutoff=%.3f): %d obs, %d pairs",
-                  min_strictness_diff_pctile, cutoff, nrow(dat), n_distinct(dat$ward_pair)))
+  cutoff <- quantile(segment_diffs$diff, min_strictness_diff_pctile / 100, na.rm = TRUE)
+  keep_segments <- segment_diffs %>% filter(diff >= cutoff) %>% pull(segment_id)
+  dat <- dat %>% filter(segment_id %in% keep_segments)
+  message(sprintf("  After p%d filter (cutoff=%.3f): %d obs, %d segments",
+                  min_strictness_diff_pctile, cutoff, nrow(dat), n_distinct(dat$segment_id)))
 }
 
 dat <- dat %>%
@@ -105,7 +107,7 @@ dat <- dat %>%
   filter(!is.na(unit_key), unit_key != "")
 
 pair_month_map <- dat %>%
-  group_by(ward_pair, year_month) %>%
+  group_by(segment_id, year_month) %>%
   summarise(
     strict_more = max(strict_more, na.rm = TRUE),
     strict_less = min(strict_less, na.rm = TRUE),
@@ -113,19 +115,19 @@ pair_month_map <- dat %>%
   )
 
 side_template <- bind_rows(
-  pair_month_map %>% transmute(ward_pair, year_month, right = 0L, strictness_own = strict_less),
-  pair_month_map %>% transmute(ward_pair, year_month, right = 1L, strictness_own = strict_more)
+  pair_month_map %>% transmute(segment_id, year_month, right = 0L, strictness_own = strict_less),
+  pair_month_map %>% transmute(segment_id, year_month, right = 1L, strictness_own = strict_more)
 )
 
 side_counts <- dat %>%
-  distinct(ward_pair, right, year_month, unit_key) %>%
-  count(ward_pair, right, year_month, name = "n_units")
+  distinct(segment_id, right, year_month, unit_key) %>%
+  count(segment_id, right, year_month, name = "n_units")
 
 panel <- side_template %>%
-  left_join(side_counts, by = c("ward_pair", "right", "year_month")) %>%
+  left_join(side_counts, by = c("segment_id", "right", "year_month")) %>%
   mutate(n_units = as.integer(coalesce(n_units, 0L)))
 
-stopifnot(nrow(panel) > 0, n_distinct(panel$ward_pair) >= 2)
+stopifnot(nrow(panel) > 0, n_distinct(panel$segment_id) >= 2)
 
 strictness_sd <- sd(panel$strictness_own, na.rm = TRUE)
 if (!is.finite(strictness_sd) || strictness_sd <= 0) {
@@ -133,17 +135,17 @@ if (!is.finite(strictness_sd) || strictness_sd <= 0) {
 }
 
 within_pair_gap <- panel %>%
-  group_by(ward_pair, year_month) %>%
+  group_by(segment_id, year_month) %>%
   summarise(gap = max(strictness_own) - min(strictness_own), .groups = "drop")
 mean_within_pair_gap <- mean(within_pair_gap$gap, na.rm = TRUE)
 within_pair_sd <- sd(within_pair_gap$gap, na.rm = TRUE)
-message(sprintf("  Panel SD: %.4f | Mean within-pair gap: %.4f | SD of within-pair gap: %.4f",
+message(sprintf("  Panel SD: %.4f | Mean within-segment gap: %.4f | SD of within-segment gap: %.4f",
                 strictness_sd, mean_within_pair_gap, within_pair_sd))
 
 panel <- panel %>%
   mutate(strictness_std = strictness_own / strictness_sd)
 
-m <- fepois(n_units ~ strictness_std | ward_pair^year_month, data = panel, cluster = ~ward_pair)
+m <- fepois(n_units ~ strictness_std | segment_id^year_month, data = panel, cluster = ~segment_id)
 ct <- coeftable(m)
 p_col <- grep("^Pr\\(", colnames(ct), value = TRUE)
 if (length(p_col) == 0) {
@@ -151,10 +153,10 @@ if (length(p_col) == 0) {
 }
 
 pair_month_obs <- side_counts %>%
-  count(ward_pair, year_month, name = "n_sides_obs")
+  count(segment_id, year_month, name = "n_sides_obs")
 
 pair_month_diag <- pair_month_map %>%
-  left_join(pair_month_obs, by = c("ward_pair", "year_month")) %>%
+  left_join(pair_month_obs, by = c("segment_id", "year_month")) %>%
   mutate(n_sides_obs = coalesce(n_sides_obs, 0L))
 
 out <- tibble(
@@ -163,7 +165,7 @@ out <- tibble(
   p_value = ct["strictness_std", p_col[1]],
   implied_pct_change = 100 * (exp(ct["strictness_std", "Estimate"]) - 1),
   n_obs = nobs(m),
-  ward_pairs = n_distinct(panel$ward_pair),
+  segments = n_distinct(panel$segment_id),
   pair_month_cells = nrow(pair_month_map),
   share_single_sided_pair_month = mean(pair_month_diag$n_sides_obs == 1),
   share_zero_cells = mean(panel$n_units == 0),
@@ -194,12 +196,13 @@ tex <- c(
   "  \\\\",
   sprintf("  Implied \\%% change (1 SD) & %.2f\\%% \\\\", out$implied_pct_change),
   sprintf("  Observations & %s \\\\", format(out$n_obs, big.mark = ",")),
-  sprintf("  Ward Pairs & %s \\\\", format(out$ward_pairs, big.mark = ",")),
-  sprintf("  Pair-Month Cells & %s \\\\", format(out$pair_month_cells, big.mark = ",")),
+  sprintf("  Segments & %s \\\\", format(out$segments, big.mark = ",")),
+  sprintf("  Segment-Month Cells & %s \\\\", format(out$pair_month_cells, big.mark = ",")),
   sprintf("  Mean Units per Cell & %.2f \\\\", out$mean_units_per_cell),
-  sprintf("  Mean Within-Pair Gap & %.3f \\\\", out$mean_within_pair_gap),
+  sprintf("  Mean Within-Segment Gap & %.3f \\\\", out$mean_within_pair_gap),
   "  Estimator & PPML \\\\",
-  "  Ward-Pair $\\times$ Year-Month FE & $\\checkmark$ \\\\",
+  "  Segment $\\times$ Year-Month FE & $\\checkmark$ \\\\",
+  "  Clustered by Segment & $\\checkmark$ \\\\",
   "  \\bottomrule",
   "\\end{tabular}",
   "\\par\\endgroup"

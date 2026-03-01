@@ -36,23 +36,23 @@
     \vspace{0.5em}
     \textbf{Specification}:
     \[
-    \ln(P_{it}) = \sum_{\tau \neq -1} \beta_\tau \cdot \mathbf{1}[t = \tau] \cdot \Delta\text{Strictness}_i + X_{it}'\gamma + \alpha_{ps} + \lambda_{pt} + \varepsilon_{it}
+    \ln(P_{it}) = \sum_{\tau \neq -1} \beta_\tau \cdot \mathbf{1}[t = \tau] \cdot \Delta\text{Strictness}_i + X_{it}'\gamma + \alpha_{gs} + \lambda_{gt} + \varepsilon_{it}
     \]
     
     \vspace{-0.3em}
     \begin{itemize}
         \item $\Delta\text{Strictness}_i = \text{Strictness}_{\text{dest}} - \text{Strictness}_{\text{origin}}$ 
         \item $X_{it}$: Hedonic controls (sqft, beds, baths, building type/age)
-        \item $\alpha_{ps}$: Border-pair $\times$ origin-side FE
-        \item $\lambda_{pt}$: Border-pair $\times$ year FE
+        \item $\alpha_{gs}$: Segment $\times$ origin-side FE
+        \item $\lambda_{gt}$: Segment $\times$ year FE
     \end{itemize}
     
     \vspace{0.5em}
-    \textbf{Key assumption}: Parallel trends within each border-pair $\times$ side cell
+    \textbf{Key assumption}: Parallel trends within each segment $\times$ side cell
     
     \vspace{0.3em}
     \small
-    Sample: Within 1,000 ft of boundaries; triangular weights $w_i = 1 - \frac{d_i}{1000}$; SEs clustered by block
+    Sample: Within 1,000 ft of boundaries; triangular weights $w_i = 1 - \frac{d_i}{1000}$; two-way clustered SEs (block + segment)
 \end{frame}
 
 
@@ -214,7 +214,7 @@
     
     \vspace{0.5em}
     \small
-    Border-pair $\times$ side FE and border-pair $\times$ year FE. Triangular kernel, 1000 ft bandwidth.
+    Segment $\times$ side FE and segment $\times$ year FE. Triangular kernel, 1000 ft bandwidth, two-way clustering (block + segment).
     
     \hfill \hyperlink{price-balance}{\beamergotobutton{Covariate Balance}}
 \end{frame}

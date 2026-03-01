@@ -20,12 +20,14 @@ source("../../setup_environment/code/packages.R")
 # stack_type <- "implementation"
 # cohort <- "2015"
 # post_window <- "full"
-# Rscript run_event_study.R "continuous" TRUE "yearly" "strict_pair_x_year" "uniform" 1000 TRUE "implementation" "2015" "full"
+# geo_fe_level <- "segment"
+# cluster_level <- "twoway_block_segment"
+# Rscript run_event_study.R "continuous" TRUE "yearly" "strict_pair_x_year" "uniform" 1000 TRUE "implementation" "2015" "full" "segment" "twoway_block_segment"
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 10) {
+if (length(cli_args) >= 12) {
   treatment_type <- cli_args[1]
   include_hedonics <- tolower(cli_args[2]) %in% c("true", "t", "1", "yes")
   time_unit <- cli_args[3]
@@ -36,9 +38,24 @@ if (length(cli_args) >= 10) {
   stack_type <- cli_args[8]
   cohort <- cli_args[9]
   post_window <- cli_args[10]
+  geo_fe_level <- tolower(cli_args[11])
+  cluster_level <- tolower(cli_args[12])
+} else if (length(cli_args) >= 10) {
+  treatment_type <- cli_args[1]
+  include_hedonics <- tolower(cli_args[2]) %in% c("true", "t", "1", "yes")
+  time_unit <- cli_args[3]
+  fe_type <- cli_args[4]
+  weighting <- cli_args[5]
+  bandwidth <- as.numeric(cli_args[6])
+  stacked <- tolower(cli_args[7]) %in% c("true", "t", "1", "yes")
+  stack_type <- cli_args[8]
+  cohort <- cli_args[9]
+  post_window <- cli_args[10]
+  geo_fe_level <- tolower(Sys.getenv("GEO_FE_LEVEL", "segment"))
+  cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "twoway_block_segment"))
 } else {
-  if (!exists("treatment_type") || !exists("include_hedonics") || !exists("time_unit") || !exists("fe_type") || !exists("weighting") || !exists("bandwidth") || !exists("stacked") || !exists("stack_type") || !exists("cohort") || !exists("post_window")) {
-    stop("FATAL: Script requires 10 args: <treatment_type> <include_hedonics> <time_unit> <fe_type> <weighting> <bandwidth> <stacked> <stack_type> <cohort> <post_window>", call. = FALSE)
+  if (!exists("treatment_type") || !exists("include_hedonics") || !exists("time_unit") || !exists("fe_type") || !exists("weighting") || !exists("bandwidth") || !exists("stacked") || !exists("stack_type") || !exists("cohort") || !exists("post_window") || !exists("geo_fe_level") || !exists("cluster_level")) {
+    stop("FATAL: Script requires args: <treatment_type> <include_hedonics> <time_unit> <fe_type> <weighting> <bandwidth> <stacked> <stack_type> <cohort> <post_window> [<geo_fe_level> <cluster_level>]", call. = FALSE)
   }
 }
 
@@ -52,6 +69,8 @@ STACKED <- stacked
 STACK_TYPE <- stack_type
 COHORT <- cohort
 POST_WINDOW <- post_window
+GEO_FE_LEVEL <- geo_fe_level
+CLUSTER_LEVEL <- cluster_level
 
 message("\n=== Disaggregate Sales Event Study ===")
 message(sprintf("Stacked: %s", STACKED))
@@ -67,6 +86,8 @@ message(sprintf("FE Type: %s", FE_TYPE))
 message(sprintf("Weighting: %s", WEIGHTING))
 message(sprintf("Bandwidth: %d ft", BANDWIDTH))
 message(sprintf("Post Window: %s", POST_WINDOW))
+message(sprintf("Geo FE Level: %s", GEO_FE_LEVEL))
+message(sprintf("Cluster Level: %s", CLUSTER_LEVEL))
 
 valid_fe_types <- c(
   "ward_pair_side", "block", "block_group",
@@ -78,9 +99,17 @@ if (!FE_TYPE %in% valid_fe_types) {
     paste(valid_fe_types, collapse = ", ")
   ))
 }
+if (!GEO_FE_LEVEL %in% c("segment", "ward_pair")) {
+  stop("--geo_fe_level must be one of: segment, ward_pair", call. = FALSE)
+}
+if (!CLUSTER_LEVEL %in% c("twoway_block_segment", "block", "segment")) {
+  stop("--cluster_level must be one of: twoway_block_segment, block, segment", call. = FALSE)
+}
+if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 1000) {
+  stop("Segment FE requested with bandwidth > 1000. Use bandwidth <= 1000.", call. = FALSE)
+}
 
 use_new_fe_spec <- FE_TYPE %in% c("strict_pair_x_year", "pair_trend_plus_year", "side_plus_year")
-unit_fe_mode <- if (use_new_fe_spec) "ward_pair_side" else FE_TYPE
 
 # Output suffix
 fe_suffix <- switch(FE_TYPE,
@@ -110,6 +139,14 @@ suffix <- sprintf(
   ifelse(INCLUDE_HEDONICS, "", "_no_hedonics"),
   ifelse(POST_WINDOW == "short", "_short", "")
 )
+if (GEO_FE_LEVEL != "segment") {
+  suffix <- paste0(suffix, "_geo_wardpair")
+}
+if (CLUSTER_LEVEL == "block") {
+  suffix <- paste0(suffix, "_clust_block")
+} else if (CLUSTER_LEVEL == "segment") {
+  suffix <- paste0(suffix, "_clust_segment")
+}
 
 # =============================================================================
 # LOAD DATA
@@ -131,19 +168,6 @@ if (STACKED) {
   # Report which cohorts are included
   cohorts_in_data <- unique(data$cohort)
   message(sprintf("Cohorts in data: %s", paste(cohorts_in_data, collapse = " + ")))
-
-  # FE structure for stacked design
-  unit_fe <- switch(unit_fe_mode,
-    "ward_pair_side" = "cohort_ward_pair_side",
-    "block" = "cohort_block_id",
-    "block_group" = {
-      data[, block_group_id := substr(block_id, 1, 12)]
-      data[, cohort_block_group_id := paste(cohort, block_group_id, sep = "_")]
-      "cohort_block_group_id"
-    }
-  )
-
-  cluster_var <- "cohort_block_id"
 } else {
   # Unstacked: load cohort-specific panel
   input_file <- switch(COHORT,
@@ -157,23 +181,23 @@ if (STACKED) {
   message(sprintf("Loading %s cohort panel: %s", COHORT, input_file))
   data <- read_parquet(input_file)
   setDT(data)
-
-  # FE structure for unstacked design (no cohort prefix needed)
-  unit_fe <- switch(unit_fe_mode,
-    "ward_pair_side" = "ward_pair_side",
-    "block" = "block_id",
-    "block_group" = {
-      data[, block_group_id := substr(block_id, 1, 12)]
-      "block_group_id"
-    }
-  )
-
-  cluster_var <- "block_id"
 }
 
 message(sprintf("Loaded %s transactions", format(nrow(data), big.mark = ",")))
-message(sprintf("Unit FE: %s", unit_fe))
-message(sprintf("Cluster var: %s", cluster_var))
+
+needs_segment <- GEO_FE_LEVEL == "segment" || CLUSTER_LEVEL %in% c("segment", "twoway_block_segment")
+if (needs_segment) {
+  required_segment_cols <- if (STACKED) {
+    c("segment_id_cohort", "segment_side", "cohort_segment", "cohort_segment_side")
+  } else {
+    c("segment_id_cohort", "segment_side")
+  }
+  missing_cols <- setdiff(required_segment_cols, names(data))
+  if (length(missing_cols) > 0) {
+    stop(sprintf("Missing required segment columns: %s", paste(missing_cols, collapse = ", ")), call. = FALSE)
+  }
+  data <- data[!is.na(segment_id_cohort) & segment_id_cohort != ""]
+}
 
 # Create treatment indicators for binary analysis
 data[, `:=`(
@@ -342,77 +366,115 @@ if (TIME_UNIT == "quarterly") {
 message(sprintf("X-axis label: %s", x_label))
 
 # =============================================================================
-# CREATE WARD_PAIR VARIABLE FOR FE
+# BUILD FE / CLUSTER STRUCTURE
 # =============================================================================
-# ward_pair_side looks like "13_23_13" (border between 13-23, on side 13)
-# ward_pair is "13_23" (just the border, not the side)
+trend_var <- "sale_year"
+
 if (STACKED) {
-  # cohort_ward_pair_side looks like "2015_13_23_13"
-  data[, ward_pair_side_temp := sub("^[0-9]+_", "", cohort_ward_pair_side)]  # Remove cohort prefix
-  data[, ward_pair := sub("_[0-9]+$", "", ward_pair_side_temp)]  # Remove side suffix
-  data[, cohort_ward_pair := paste(cohort, ward_pair, sep = "_")]  # Add cohort back
-  pair_fe <- "cohort_ward_pair"
-  pair_var <- "cohort_ward_pair"
+  data[, ward_pair_side_temp := sub("^[0-9]+_", "", cohort_ward_pair_side)]
+  data[, ward_pair := sub("_[0-9]+$", "", ward_pair_side_temp)]
+  data[, cohort_ward_pair := paste(cohort, ward_pair, sep = "_")]
+
+  if (GEO_FE_LEVEL == "segment") {
+    fe_side_var <- "cohort_segment_side"
+    fe_group_var <- "cohort_segment"
+  } else {
+    fe_side_var <- "cohort_ward_pair_side"
+    fe_group_var <- "cohort_ward_pair"
+  }
+
+  if (FE_TYPE == "block_group") {
+    data[, block_group_id := substr(block_id, 1, 12)]
+    data[, cohort_block_group_id := paste(cohort, block_group_id, sep = "_")]
+    unit_fe <- "cohort_block_group_id"
+  } else if (FE_TYPE == "block") {
+    unit_fe <- "cohort_block_id"
+  } else {
+    unit_fe <- fe_side_var
+  }
+
+  block_cluster_var <- "cohort_block_id"
+  segment_cluster_var <- "cohort_segment"
 } else {
-  data[, ward_pair := sub("_[0-9]+$", "", ward_pair_side)]  # Remove side suffix
-  pair_fe <- "ward_pair"
-  pair_var <- "ward_pair"
+  data[, ward_pair := sub("_[0-9]+$", "", ward_pair_side)]
+
+  if (GEO_FE_LEVEL == "segment") {
+    fe_side_var <- "segment_side"
+    fe_group_var <- "segment_id_cohort"
+  } else {
+    fe_side_var <- "ward_pair_side"
+    fe_group_var <- "ward_pair"
+  }
+
+  if (FE_TYPE == "block_group") {
+    data[, block_group_id := substr(block_id, 1, 12)]
+    unit_fe <- "block_group_id"
+  } else if (FE_TYPE == "block") {
+    unit_fe <- "block_id"
+  } else {
+    unit_fe <- fe_side_var
+  }
+
+  block_cluster_var <- "block_id"
+  segment_cluster_var <- "segment_id_cohort"
 }
 
-# Build FE formula
-trend_var <- "sale_year"
+if (GEO_FE_LEVEL == "segment" || CLUSTER_LEVEL %in% c("segment", "twoway_block_segment")) {
+  data <- data[!is.na(get(segment_cluster_var)) & get(segment_cluster_var) != ""]
+}
+if (GEO_FE_LEVEL == "segment") {
+  data <- data[!is.na(get(fe_side_var)) & get(fe_side_var) != ""]
+}
+
 if (use_new_fe_spec) {
   if (STACKED) {
     fe_formula <- switch(FE_TYPE,
-      "strict_pair_x_year" = sprintf("%s + %s^%s", unit_fe, pair_fe, time_var),
-      "pair_trend_plus_year" = sprintf("%s + cohort^%s + %s[%s]", unit_fe, time_var, pair_fe, trend_var),
-      "side_plus_year" = sprintf("%s + cohort^%s", unit_fe, time_var)
+      "strict_pair_x_year" = sprintf("%s + %s^%s", fe_side_var, fe_group_var, time_var),
+      "pair_trend_plus_year" = sprintf("%s + cohort^%s + %s[%s]", fe_side_var, time_var, fe_group_var, trend_var),
+      "side_plus_year" = sprintf("%s + cohort^%s", fe_side_var, time_var)
     )
   } else {
     fe_formula <- switch(FE_TYPE,
-      "strict_pair_x_year" = sprintf("%s + %s^%s", unit_fe, pair_fe, time_var),
-      "pair_trend_plus_year" = sprintf("%s + %s + %s[%s]", unit_fe, time_var, pair_fe, trend_var),
-      "side_plus_year" = sprintf("%s + %s", unit_fe, time_var)
+      "strict_pair_x_year" = sprintf("%s + %s^%s", fe_side_var, fe_group_var, time_var),
+      "pair_trend_plus_year" = sprintf("%s + %s + %s[%s]", fe_side_var, time_var, fe_group_var, trend_var),
+      "side_plus_year" = sprintf("%s + %s", fe_side_var, time_var)
     )
   }
 } else {
-  fe_formula <- sprintf("%s + %s^%s", unit_fe, pair_fe, time_var)
+  fe_formula <- sprintf("%s + %s^%s", unit_fe, fe_group_var, time_var)
 }
+
+if (CLUSTER_LEVEL == "twoway_block_segment") {
+  cluster_formula <- as.formula(sprintf("~%s + %s", block_cluster_var, segment_cluster_var))
+} else if (CLUSTER_LEVEL == "segment") {
+  cluster_formula <- as.formula(sprintf("~%s", segment_cluster_var))
+} else {
+  cluster_formula <- as.formula(sprintf("~%s", block_cluster_var))
+}
+
 message(sprintf("FE formula: %s", fe_formula))
+message(sprintf("Cluster formula: %s", paste(deparse(cluster_formula), collapse = "")))
 
 # =============================================================================
 # EFFECTIVE OBSERVATIONS DIAGNOSTIC
 # =============================================================================
 message("\n=== EFFECTIVE OBSERVATIONS DIAGNOSTIC ===")
-
-# Create switcher indicator
 data[, is_switcher := abs(strictness_change) > 0]
 
-# Count by ward_pair: need observations on BOTH sides
-if (STACKED) {
-  pair_summary <- data[, .(
-    n_sides = uniqueN(cohort_ward_pair_side),
-    n_obs = .N,
-    n_switcher = sum(is_switcher),
-    n_stayer = sum(!is_switcher)
-  ), by = cohort_ward_pair]
-  identifying_pairs <- pair_summary[n_sides == 2]
-  effective_obs <- data[cohort_ward_pair %in% identifying_pairs$cohort_ward_pair, .N]
-} else {
-  pair_summary <- data[, .(
-    n_sides = uniqueN(ward_pair_side),
-    n_obs = .N,
-    n_switcher = sum(is_switcher),
-    n_stayer = sum(!is_switcher)
-  ), by = ward_pair]
-  identifying_pairs <- pair_summary[n_sides == 2]
-  effective_obs <- data[ward_pair %in% identifying_pairs$ward_pair, .N]
-}
+pair_summary <- data[, .(
+  n_sides = uniqueN(get(fe_side_var)),
+  n_obs = .N,
+  n_switcher = sum(is_switcher),
+  n_stayer = sum(!is_switcher)
+), by = c(fe_group_var)]
 
-message(sprintf("Total %s groups: %d", pair_var, nrow(pair_summary)))
-message(sprintf("Pairs with observations on BOTH sides: %d (%.1f%%)", 
+identifying_pairs <- pair_summary[n_sides == 2]
+effective_obs <- data[get(fe_group_var) %in% identifying_pairs[[fe_group_var]], .N]
+
+message(sprintf("Total %s groups: %d", fe_group_var, nrow(pair_summary)))
+message(sprintf("Pairs with observations on BOTH sides: %d (%.1f%%)",
   nrow(identifying_pairs), 100 * nrow(identifying_pairs) / nrow(pair_summary)))
-message(sprintf("Effective observations (in identifying pairs): %s of %s (%.1f%%)",
+message(sprintf("Effective observations (in identifying groups): %s of %s (%.1f%%)",
   format(effective_obs, big.mark = ","),
   format(nrow(data), big.mark = ","),
   100 * effective_obs / nrow(data)))
@@ -498,7 +560,7 @@ if (TREATMENT_TYPE == "continuous") {
     as.formula(formula_str),
     data = data,
     weights = ~weight,
-    cluster = as.formula(sprintf("~%s", cluster_var))
+    cluster = cluster_formula
   )
 
   t1 <- Sys.time()
@@ -557,7 +619,7 @@ if (TREATMENT_TYPE == "continuous") {
   m_stricter <- feols(as.formula(formula_stricter),
     data = data_stricter,
     weights = ~weight,
-    cluster = as.formula(sprintf("~%s", cluster_var))
+    cluster = cluster_formula
   )
   t1 <- Sys.time()
   message(sprintf("Estimation time: %.1f seconds", difftime(t1, t0, units = "secs")))
@@ -580,7 +642,7 @@ if (TREATMENT_TYPE == "continuous") {
   m_lenient <- feols(as.formula(formula_lenient),
     data = data_lenient,
     weights = ~weight,
-    cluster = as.formula(sprintf("~%s", cluster_var))
+    cluster = cluster_formula
   )
   t1 <- Sys.time()
   message(sprintf("Estimation time: %.1f seconds", difftime(t1, t0, units = "secs")))
@@ -724,7 +786,7 @@ if (TREATMENT_TYPE == "continuous") {
   m_stricter <- feols(as.formula(formula_stricter),
     data = data,  # full sample
     weights = ~weight,
-    cluster = as.formula(sprintf("~%s", cluster_var))
+    cluster = cluster_formula
   )
   t1 <- Sys.time()
   message(sprintf("Estimation time: %.1f seconds", difftime(t1, t0, units = "secs")))
@@ -743,7 +805,7 @@ if (TREATMENT_TYPE == "continuous") {
   m_lenient <- feols(as.formula(formula_lenient),
     data = data,  # full sample
     weights = ~weight,
-    cluster = as.formula(sprintf("~%s", cluster_var))
+    cluster = cluster_formula
   )
   t1 <- Sys.time()
   message(sprintf("Estimation time: %.1f seconds", difftime(t1, t0, units = "secs")))

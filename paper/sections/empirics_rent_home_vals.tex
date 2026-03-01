@@ -21,14 +21,14 @@ Figure~\ref{fig:identification_example} illustrates this design with a concrete 
 %
 \begin{equation}
 \label{eq:event_study}
-y_{it} = \alpha_{ps} + \lambda_{pt} + X_{it}'\gamma + \sum_{\tau=-5, \tau \neq -1}^{T} \beta_\tau \left( \Delta\text{Strictness}_i \times \mathbf{1}[t = \tau] \right) + \varepsilon_{it}
+y_{it} = \alpha_{gs} + \lambda_{gt} + X_{it}'\gamma + \sum_{\tau=-5, \tau \neq -1}^{T} \beta_\tau \left( \Delta\text{Strictness}_i \times \mathbf{1}[t = \tau] \right) + \varepsilon_{it}
 \end{equation}
 %
 \noindent where $y_{it}$ is the log rent or log sale price for listing (or transaction) $i$ at event time $t$. $\Delta\text{Strictness}_i$ is the change in alderman strictness for the block containing the observation, defined as the strictness score of the destination alderman minus the origin alderman. To ensure treatment intensity is predetermined, strictness scores are measured in the year prior to redistricting (2014 for the 2015 redistricting cohort; 2022 for the 2023 cohort). $X_{it}$ is a vector of property-level hedonic controls.
 
-The key fixed effects ensure that comparisons are made between nearby observations experiencing the same local shocks. $\alpha_{ps}$ is a border-pair-by-origin-side fixed effect, ensuring that treated and control observations (i) are near the same ward boundary and (ii) were in the same origin ward prior to redistricting. $\lambda_{pt}$ is a border-pair-by-year fixed effect, which allows for flexible time-varying shocks at each ward boundary---a stronger control than simple year fixed effects, as it absorbs any local trends (e.g., gentrification, new transit) that affect both sides of a given boundary. For the stacked rental specification, these fixed effects are interacted with cohort indicators. Standard errors are clustered at the census block level to account for serial correlation within geographic units.
+The key fixed effects ensure that comparisons are made within localized boundary segments. $\alpha_{gs}$ is a segment-by-origin-side fixed effect, ensuring that treated and control observations are compared on the same boundary segment and origin side. $\lambda_{gt}$ is a segment-by-year fixed effect, which absorbs time-varying shocks at the segment level rather than pooling along full ward-pair boundaries. For stacked specifications, these fixed effects are cohort-indexed. Standard errors use two-way clustering by block and segment to account for serial correlation within blocks and shared segment-level shocks.
 
-The coefficients $\beta_\tau$ trace out the effect of aldermanic strictness on housing costs in event time, with $\tau = -1$ (the year before redistricting takes effect) as the omitted reference period. The identifying assumption implies $\beta_\tau = 0$ for $\tau < 0$: prior to redistricting, there should be no systematic relationship between future changes in alderman strictness and housing cost trends within the same border-pair-side cell.
+The coefficients $\beta_\tau$ trace out the effect of aldermanic strictness on housing costs in event time, with $\tau = -1$ (the year before redistricting takes effect) as the omitted reference period. The identifying assumption implies $\beta_\tau = 0$ for $\tau < 0$: prior to redistricting, there should be no systematic relationship between future changes in alderman strictness and housing cost trends within the same segment-side cell.
 
 I restrict the sample to observations within 1,000 feet of ward boundaries and apply triangular kernel weights that give more weight to observations closer to the boundary, where treated and control units are most comparable. In the continuous treatment specification, $\Delta\text{Strictness}$ enters as a continuous variable; I also present binary specifications that allow for separate effects by treatment direction (moved to stricter versus moved to more lenient).
 
@@ -87,7 +87,7 @@ Panel B presents the binary specification, which relaxes the linearity assumptio
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Effect of Alderman Strictness on Rents}
-    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-border-pair-by-side and cohort-by-border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building type, square footage, bedrooms, and bathrooms. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-segment-by-side and cohort-by-segment-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building type, square footage, bedrooms, and bathrooms. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals use two-way clustering by census block and segment.}
     \label{fig:event_study_rents}
 \end{figure}
 
@@ -116,7 +116,7 @@ Panel B presents the binary specification for home sales. Despite larger confide
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Effect of Alderman Strictness on Home Sale Prices}
-    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). 2015 redistricting cohort. Segment-by-side and segment-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage. Year $-1$ omitted as reference. 95\% confidence intervals use two-way clustering by census block and segment.}
     \label{fig:event_study_sales}
 \end{figure}
 

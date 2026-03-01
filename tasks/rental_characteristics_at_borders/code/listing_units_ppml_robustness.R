@@ -51,10 +51,12 @@ base <- read_parquet(input) %>%
     year = lubridate::year(file_date),
     year_month = format(file_date, "%Y-%m"),
     ward_pair = as.character(ward_pair_id),
+    segment_id = as.character(segment_id),
     right = as.integer(signed_dist >= 0)
   ) %>%
   filter(
-    !is.na(file_date), !is.na(ward_pair), !is.na(signed_dist),
+    !is.na(file_date), !is.na(ward_pair), !is.na(segment_id), segment_id != "",
+    !is.na(signed_dist),
     !is.na(strictness_own), !is.na(strictness_neighbor),
     !is.na(latitude), !is.na(longitude)
   ) %>%
@@ -116,12 +118,12 @@ run_spec <- function(spec_row) {
   }
 
   if (min_strictness_diff_pctile > 0) {
-    pair_diffs <- dat %>%
-      group_by(ward_pair) %>%
+    segment_diffs <- dat %>%
+      group_by(segment_id) %>%
       summarise(diff = median(abs(strictness_own - strictness_neighbor), na.rm = TRUE), .groups = "drop")
-    cutoff <- quantile(pair_diffs$diff, min_strictness_diff_pctile / 100, na.rm = TRUE)
-    keep_pairs <- pair_diffs %>% filter(diff >= cutoff) %>% pull(ward_pair)
-    dat <- dat %>% filter(ward_pair %in% keep_pairs)
+    cutoff <- quantile(segment_diffs$diff, min_strictness_diff_pctile / 100, na.rm = TRUE)
+    keep_segments <- segment_diffs %>% filter(diff >= cutoff) %>% pull(segment_id)
+    dat <- dat %>% filter(segment_id %in% keep_segments)
   }
 
   if (nrow(dat) == 0) {
@@ -133,7 +135,7 @@ run_spec <- function(spec_row) {
     filter(!is.na(unit_key), unit_key != "")
 
   pair_month_map <- dat %>%
-    group_by(ward_pair, year_month) %>%
+    group_by(segment_id, year_month) %>%
     summarise(
       strict_more = max(strict_more, na.rm = TRUE),
       strict_less = min(strict_less, na.rm = TRUE),
@@ -141,27 +143,27 @@ run_spec <- function(spec_row) {
     )
 
   side_template <- bind_rows(
-    pair_month_map %>% transmute(ward_pair, year_month, right = 0L, strictness_own = strict_less),
-    pair_month_map %>% transmute(ward_pair, year_month, right = 1L, strictness_own = strict_more)
+    pair_month_map %>% transmute(segment_id, year_month, right = 0L, strictness_own = strict_less),
+    pair_month_map %>% transmute(segment_id, year_month, right = 1L, strictness_own = strict_more)
   )
 
   side_counts <- dat %>%
-    distinct(ward_pair, right, year_month, unit_key) %>%
-    count(ward_pair, right, year_month, name = "n_units")
+    distinct(segment_id, right, year_month, unit_key) %>%
+    count(segment_id, right, year_month, name = "n_units")
 
   panel <- side_template %>%
-    left_join(side_counts, by = c("ward_pair", "right", "year_month")) %>%
+    left_join(side_counts, by = c("segment_id", "right", "year_month")) %>%
     mutate(n_units = as.integer(coalesce(n_units, 0L)))
 
   if (isTRUE(two_sided_only)) {
     two_sided_pm <- side_counts %>%
-      count(ward_pair, year_month, name = "n_sides_obs") %>%
+      count(segment_id, year_month, name = "n_sides_obs") %>%
       filter(n_sides_obs == 2)
     panel <- panel %>%
-      semi_join(two_sided_pm, by = c("ward_pair", "year_month"))
+      semi_join(two_sided_pm, by = c("segment_id", "year_month"))
   }
 
-  if (nrow(panel) == 0 || n_distinct(panel$ward_pair) < 2) {
+  if (nrow(panel) == 0 || n_distinct(panel$segment_id) < 2) {
     return(tibble(spec = label, estimate = NA_real_, std_error = NA_real_, p_value = NA_real_))
   }
 
@@ -175,8 +177,8 @@ run_spec <- function(spec_row) {
   rhs <- "strictness_std"
   if (isTRUE(add_covars)) {
     cov_side <- dat %>%
-      distinct(ward_pair, right, year_month, unit_key, .keep_all = TRUE) %>%
-      group_by(ward_pair, right, year_month) %>%
+      distinct(segment_id, right, year_month, unit_key, .keep_all = TRUE) %>%
+      group_by(segment_id, right, year_month) %>%
       summarise(
         mean_log_sqft = mean(if_else(!is.na(sqft) & sqft > 0, log(sqft), NA_real_), na.rm = TRUE),
         mean_beds = mean(beds, na.rm = TRUE),
@@ -187,7 +189,7 @@ run_spec <- function(spec_row) {
         .groups = "drop"
       )
 
-    panel <- panel %>% left_join(cov_side, by = c("ward_pair", "right", "year_month"))
+    panel <- panel %>% left_join(cov_side, by = c("segment_id", "right", "year_month"))
 
     covars <- c(
       "mean_log_sqft", "mean_beds", "mean_baths",
@@ -204,9 +206,9 @@ run_spec <- function(spec_row) {
     )
   }
 
-  fml <- as.formula(paste0("n_units ~ ", rhs, " | ward_pair^year_month"))
+  fml <- as.formula(paste0("n_units ~ ", rhs, " | segment_id^year_month"))
   m <- tryCatch(
-    fepois(fml, data = panel, cluster = ~ward_pair),
+    fepois(fml, data = panel, cluster = ~segment_id),
     error = function(e) NULL
   )
   if (is.null(m)) {
@@ -224,7 +226,7 @@ run_spec <- function(spec_row) {
       p_value = NA_real_,
       implied_pct_change = NA_real_,
       n_obs = NA_integer_,
-      ward_pairs = n_distinct(panel$ward_pair),
+      segments = n_distinct(panel$segment_id),
       pair_month_cells = nrow(pair_month_map),
       share_single_sided_pair_month = NA_real_,
       share_zero_cells = mean(panel$n_units == 0),
@@ -248,7 +250,7 @@ run_spec <- function(spec_row) {
       p_value = NA_real_,
       implied_pct_change = NA_real_,
       n_obs = nobs(m),
-      ward_pairs = n_distinct(panel$ward_pair),
+      segments = n_distinct(panel$segment_id),
       pair_month_cells = nrow(pair_month_map),
       share_single_sided_pair_month = NA_real_,
       share_zero_cells = mean(panel$n_units == 0),
@@ -260,10 +262,10 @@ run_spec <- function(spec_row) {
   p_name <- if (length(p_col) == 0) NA_character_ else p_col[1]
 
   pair_month_obs <- side_counts %>%
-    count(ward_pair, year_month, name = "n_sides_obs")
+    count(segment_id, year_month, name = "n_sides_obs")
 
   pair_month_diag <- pair_month_map %>%
-    left_join(pair_month_obs, by = c("ward_pair", "year_month")) %>%
+    left_join(pair_month_obs, by = c("segment_id", "year_month")) %>%
     mutate(n_sides_obs = coalesce(n_sides_obs, 0L))
 
   tibble(
@@ -280,7 +282,7 @@ run_spec <- function(spec_row) {
     p_value = if (is.na(p_name)) NA_real_ else ct["strictness_std", p_name],
     implied_pct_change = 100 * (exp(ct["strictness_std", "Estimate"]) - 1),
     n_obs = nobs(m),
-    ward_pairs = n_distinct(panel$ward_pair),
+    segments = n_distinct(panel$segment_id),
     pair_month_cells = nrow(pair_month_map),
     share_single_sided_pair_month = mean(pair_month_diag$n_sides_obs == 1),
     share_zero_cells = mean(panel$n_units == 0),
@@ -294,10 +296,10 @@ specs <- tribble(
   "Add composition controls", "unit_proxy", "all", bw_ft, 0L, "all", TRUE, FALSE,
   "Alt unit key: Listing ID", "id", "all", bw_ft, 0L, "all", FALSE, FALSE,
   "Alt unit key: Location (5dp)", "loc_key", "all", bw_ft, 0L, "all", FALSE, FALSE,
-  "Two-sided pair-months only", "unit_proxy", "all", bw_ft, 0L, "all", FALSE, TRUE,
+  "Two-sided segment-months only", "unit_proxy", "all", bw_ft, 0L, "all", FALSE, TRUE,
   "Sample: Multifamily only", "unit_proxy", "multifamily_only", bw_ft, 0L, "all", FALSE, FALSE,
   "Sample: BW 250ft", "unit_proxy", "all", 250L, 0L, "all", FALSE, FALSE,
-  "Sample: Top 50% uncertainty-gap pairs", "unit_proxy", "all", bw_ft, 50L, "all", FALSE, FALSE,
+  "Sample: Top 50% uncertainty-gap segments", "unit_proxy", "all", bw_ft, 50L, "all", FALSE, FALSE,
   "Availability proxy: known available_date", "unit_proxy", "all", bw_ft, 0L, "known_available_date", FALSE, FALSE,
   "Availability proxy: available <= 30d", "unit_proxy", "all", bw_ft, 0L, "available_within_30d", FALSE, FALSE
 )

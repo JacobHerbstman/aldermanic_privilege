@@ -12,22 +12,50 @@ DID_CLEAN_TARGET := ../output/did_table_sales_clean_uniform_1000ft.tex
 COHORT ?= 2015
 
 .DEFAULT_GOAL := all
-.PHONY: all link-inputs
+.PHONY: all link-inputs segment-robustness
 
 all: $(ES_CONT) $(ES_SPLIT) $(DID_CLEAN_TARGET)
 
 $(ES_CONT): $(SCRIPT) $(ALL_INPUTS) | ../output
-	# arg order: treatment_type include_hedonics time_unit fe_type weighting bandwidth stacked stack_type cohort post_window
-	Rscript $(SCRIPT) continuous FALSE yearly strict_pair_x_year uniform 1000 TRUE announcement $(COHORT) full
+	# arg order: treatment_type include_hedonics time_unit fe_type weighting bandwidth stacked stack_type cohort post_window geo_fe_level cluster_level
+	Rscript $(SCRIPT) continuous FALSE yearly strict_pair_x_year uniform 1000 TRUE announcement $(COHORT) full segment twoway_block_segment
 
 $(ES_SPLIT): $(SCRIPT) $(ALL_INPUTS) | ../output
-	# arg order: treatment_type include_hedonics time_unit fe_type weighting bandwidth stacked stack_type cohort post_window
-	Rscript $(SCRIPT) continuous_split FALSE yearly strict_pair_x_year uniform 1000 TRUE announcement $(COHORT) full
+	# arg order: treatment_type include_hedonics time_unit fe_type weighting bandwidth stacked stack_type cohort post_window geo_fe_level cluster_level
+	Rscript $(SCRIPT) continuous_split FALSE yearly strict_pair_x_year uniform 1000 TRUE announcement $(COHORT) full segment twoway_block_segment
 
 $(DID_CLEAN_TARGET): $(DID_SCRIPT) ../input/sales_transaction_panel.parquet ../input/sales_transaction_panel_announcement.parquet | ../output
-	# arg order: bandwidth weighting fe_type
-	Rscript $(DID_SCRIPT) 1000 uniform strict_pair_x_year
+	# arg order: bandwidth weighting fe_type geo_fe_level cluster_level
+	Rscript $(DID_SCRIPT) 1000 uniform strict_pair_x_year segment twoway_block_segment
 	cp ../output/did_table_sales_clean.tex $@
+
+ROBUST_ES_OUTPUTS := \
+	../output/event_study_disaggregate_yearly_stacked_announcement_continuous_uniform_1000ft_no_hedonics_geo_wardpair.pdf \
+	../output/event_study_disaggregate_yearly_stacked_announcement_continuous_uniform_1000ft_no_hedonics_clust_block.pdf \
+	../output/event_study_disaggregate_yearly_stacked_announcement_continuous_split_uniform_1000ft_no_hedonics_geo_wardpair.pdf \
+	../output/event_study_disaggregate_yearly_stacked_announcement_continuous_split_uniform_1000ft_no_hedonics_clust_block.pdf \
+	../output/did_table_sales_clean_geo_wardpair.tex \
+	../output/did_table_sales_clean_clust_block.tex
+
+segment-robustness: $(ROBUST_ES_OUTPUTS)
+
+../output/event_study_disaggregate_yearly_stacked_announcement_continuous_uniform_1000ft_no_hedonics_geo_wardpair.pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) continuous FALSE yearly strict_pair_x_year uniform 1000 TRUE announcement $(COHORT) full ward_pair twoway_block_segment
+
+../output/event_study_disaggregate_yearly_stacked_announcement_continuous_uniform_1000ft_no_hedonics_clust_block.pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) continuous FALSE yearly strict_pair_x_year uniform 1000 TRUE announcement $(COHORT) full segment block
+
+../output/event_study_disaggregate_yearly_stacked_announcement_continuous_split_uniform_1000ft_no_hedonics_geo_wardpair.pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) continuous_split FALSE yearly strict_pair_x_year uniform 1000 TRUE announcement $(COHORT) full ward_pair twoway_block_segment
+
+../output/event_study_disaggregate_yearly_stacked_announcement_continuous_split_uniform_1000ft_no_hedonics_clust_block.pdf: $(SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(SCRIPT) continuous_split FALSE yearly strict_pair_x_year uniform 1000 TRUE announcement $(COHORT) full segment block
+
+../output/did_table_sales_clean_geo_wardpair.tex: $(DID_SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(DID_SCRIPT) 1000 uniform strict_pair_x_year ward_pair twoway_block_segment
+
+../output/did_table_sales_clean_clust_block.tex: $(DID_SCRIPT) $(ALL_INPUTS) | ../output
+	Rscript $(DID_SCRIPT) 1000 uniform strict_pair_x_year segment block
 
 ../input/sales_transaction_panel.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../input
 	ln -sf "$<" "$@"

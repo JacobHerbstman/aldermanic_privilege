@@ -15,7 +15,7 @@ source("../../setup_environment/code/packages.R")
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 7) {
+if (length(cli_args) >= 9) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))
   window <- cli_args[3]
@@ -23,9 +23,26 @@ if (length(cli_args) >= 7) {
   output_tex <- cli_args[5]
   output_csv <- cli_args[6]
   output_year_diag <- cli_args[7]
+  fe_geo <- tolower(cli_args[8])
+  cluster_level <- tolower(cli_args[9])
+} else if (length(cli_args) >= 7) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  sample_filter <- cli_args[4]
+  output_tex <- cli_args[5]
+  output_csv <- cli_args[6]
+  output_year_diag <- cli_args[7]
+  fe_geo <- tolower(Sys.getenv("FE_GEO", "segment"))
+  cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
 } else {
-  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("output_tex") || !exists("output_csv") || !exists("output_year_diag")) {
-    stop("FATAL: Script requires 7 args: <input> <bw_ft> <window> <sample_filter> <output_tex> <output_csv> <output_year_diag>", call. = FALSE)
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") ||
+      !exists("output_tex") || !exists("output_csv") || !exists("output_year_diag") ||
+      !exists("fe_geo") || !exists("cluster_level")) {
+    stop(
+      "FATAL: Script requires args: <input> <bw_ft> <window> <sample_filter> <output_tex> <output_csv> <output_year_diag> [<fe_geo> <cluster_level>]",
+      call. = FALSE
+    )
   }
 }
 
@@ -37,6 +54,12 @@ if (!sample_filter %in% c("all", "multifamily_only")) {
 }
 if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("--bw_ft must be a positive integer", call. = FALSE)
+}
+if (!fe_geo %in% c("segment", "ward_pair")) {
+  stop("--fe_geo must be one of: segment, ward_pair", call. = FALSE)
+}
+if (!cluster_level %in% c("segment", "ward_pair")) {
+  stop("--cluster_level must be one of: segment, ward_pair", call. = FALSE)
 }
 
 window_rule <- function(df, window_name) {
@@ -71,6 +94,8 @@ message(sprintf("Input: %s", input))
 message(sprintf("Bandwidth: %d ft", bw_ft))
 message(sprintf("Window: %s", window_label[[window]]))
 message(sprintf("Sample filter: %s", sample_filter))
+message(sprintf("Geo FE: %s", fe_geo))
+message(sprintf("Cluster level: %s", cluster_level))
 
 rent_raw <- read_parquet(input) %>%
   as_tibble() %>%
@@ -93,6 +118,11 @@ rent_raw <- read_parquet(input) %>%
 rent <- window_rule(rent_raw, window)
 if (sample_filter == "multifamily_only") {
   rent <- rent %>% filter(building_type_clean == "multi_family")
+}
+
+need_segment <- fe_geo == "segment" || cluster_level == "segment"
+if (need_segment) {
+  rent <- rent %>% filter(!is.na(segment_id), segment_id != "")
 }
 
 if (nrow(rent) == 0) {
@@ -155,9 +185,13 @@ n_ward_pairs <- function(x) {
 fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
 m_no_hed <- feols(
-  log(rent_price) ~ strictness_std | ward_pair^year_month,
+  if (fe_geo == "segment") {
+    log(rent_price) ~ strictness_std | segment_id + year_month
+  } else {
+    log(rent_price) ~ strictness_std | ward_pair^year_month
+  },
   data = rent,
-  cluster = ~ward_pair
+  cluster = if (cluster_level == "segment") ~segment_id else ~ward_pair
 )
 m_no_hed$custom_data <- rent
 
@@ -168,9 +202,12 @@ if (n_type_levels >= 2) {
 }
 
 m_hed <- feols(
-  as.formula(paste0("log(rent_price) ~ ", hedonic_rhs, " | ward_pair^year_month")),
+  as.formula(paste0(
+    "log(rent_price) ~ ", hedonic_rhs, " | ",
+    ifelse(fe_geo == "segment", "segment_id + year_month", "ward_pair^year_month")
+  )),
   data = rent_hedonics,
-  cluster = ~ward_pair
+  cluster = if (cluster_level == "segment") ~segment_id else ~ward_pair
 )
 m_hed$custom_data <- rent_hedonics
 
@@ -199,7 +236,14 @@ etable(
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
   extralines = list(
     "_Hedonic Controls" = c("", "$\\checkmark$"),
-    "_Ward-Pair $\\times$ Year-Month FE" = c("$\\checkmark$", "$\\checkmark$")
+    "_FE Structure" = c(
+      ifelse(fe_geo == "segment", "Segment + Year-Month FE", "Ward-Pair $\\times$ Year-Month FE"),
+      ifelse(fe_geo == "segment", "Segment + Year-Month FE", "Ward-Pair $\\times$ Year-Month FE")
+    ),
+    "_Cluster Level" = c(
+      ifelse(cluster_level == "segment", "Segment", "Ward Pair"),
+      ifelse(cluster_level == "segment", "Segment", "Ward Pair")
+    )
   ),
   file = output_tex,
   replace = TRUE
@@ -215,7 +259,9 @@ coef_tbl <- tibble(
   ward_pairs = c(length(unique(rent$ward_pair)), length(unique(rent_hedonics$ward_pair))),
   bandwidth_ft = bw_ft,
   window = window,
-  sample_filter = sample_filter
+  sample_filter = sample_filter,
+  fe_geo = fe_geo,
+  cluster_level = cluster_level
 )
 
 write_csv(coef_tbl, output_csv)

@@ -14,16 +14,32 @@ source("../../setup_environment/code/packages.R")
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 6) {
+if (length(cli_args) >= 8) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))
   fe_time <- cli_args[3]
   output_tex <- cli_args[4]
   output_csv <- cli_args[5]
   output_year_diag <- cli_args[6]
+  fe_geo <- tolower(cli_args[7])
+  cluster_level <- tolower(cli_args[8])
+} else if (length(cli_args) >= 6) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  fe_time <- cli_args[3]
+  output_tex <- cli_args[4]
+  output_csv <- cli_args[5]
+  output_year_diag <- cli_args[6]
+  fe_geo <- tolower(Sys.getenv("FE_GEO", "segment"))
+  cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
 } else {
-  if (!exists("input") || !exists("bw_ft") || !exists("fe_time") || !exists("output_tex") || !exists("output_csv") || !exists("output_year_diag")) {
-    stop("FATAL: Script requires 6 args: <input> <bw_ft> <fe_time> <output_tex> <output_csv> <output_year_diag>", call. = FALSE)
+  if (!exists("input") || !exists("bw_ft") || !exists("fe_time") ||
+      !exists("output_tex") || !exists("output_csv") || !exists("output_year_diag") ||
+      !exists("fe_geo") || !exists("cluster_level")) {
+    stop(
+      "FATAL: Script requires args: <input> <bw_ft> <fe_time> <output_tex> <output_csv> <output_year_diag> [<fe_geo> <cluster_level>]",
+      call. = FALSE
+    )
   }
 }
 
@@ -31,10 +47,16 @@ stopifnot(
   is.finite(bw_ft), bw_ft > 0,
   fe_time %in% c("year", "year_quarter", "year_month")
 )
+if (!fe_geo %in% c("segment", "ward_pair")) {
+  stop("--fe_geo must be one of: segment, ward_pair", call. = FALSE)
+}
+if (!cluster_level %in% c("segment", "ward_pair")) {
+  stop("--cluster_level must be one of: segment, ward_pair", call. = FALSE)
+}
 
 fe_time_label <- c(year = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month")
 
-message(sprintf("=== Sales Border Pair FE | bw=%d | fe=%s ===", bw_ft, fe_time))
+message(sprintf("=== Sales Border Pair FE | bw=%d | fe=%s | geo=%s | cluster=%s ===", bw_ft, fe_time, fe_geo, cluster_level))
 
 # ── Load and filter ──
 sales <- read_parquet(input) %>%
@@ -49,6 +71,11 @@ sales <- read_parquet(input) %>%
     abs(signed_dist) <= bw_ft,
     !is.na(strictness_own)
   )
+
+need_segment <- fe_geo == "segment" || cluster_level == "segment"
+if (need_segment) {
+  sales <- sales %>% filter(!is.na(segment_id), segment_id != "")
+}
 
 # Year diagnostics
 year_diag <- sales %>%
@@ -86,14 +113,16 @@ fitstat_register("nwp", function(x) length(unique(stats::na.omit(x$custom_data$w
 
 # ── Regressions ──
 fe_var <- switch(fe_time, year = "year_factor", year_quarter = "year_quarter", year_month = "year_month")
+fe_term <- ifelse(fe_geo == "segment", paste0("segment_id + ", fe_var), paste0("ward_pair^", fe_var))
+cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 
-m1 <- feols(as.formula(paste0("log(sale_price) ~ strictness_std | ward_pair^", fe_var)),
-            data = sales, cluster = ~ward_pair)
+m1 <- feols(as.formula(paste0("log(sale_price) ~ strictness_std | ", fe_term)),
+            data = sales, cluster = cluster_formula)
 m1$custom_data <- sales
 
 hedonic_rhs <- "strictness_std + log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage"
-m2 <- feols(as.formula(paste0("log(sale_price) ~ ", hedonic_rhs, " | ward_pair^", fe_var)),
-            data = sales_hed, cluster = ~ward_pair)
+m2 <- feols(as.formula(paste0("log(sale_price) ~ ", hedonic_rhs, " | ", fe_term)),
+            data = sales_hed, cluster = cluster_formula)
 m2$custom_data <- sales_hed
 
 # ── Output table ──
@@ -102,7 +131,11 @@ setFixest_dict(c(
   year_factor = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month"
 ))
 
-fe_label <- paste0("Ward-Pair $\\times$ ", fe_time_label[[fe_time]], " FE")
+fe_label <- ifelse(
+  fe_geo == "segment",
+  paste0("Segment + ", fe_time_label[[fe_time]], " FE"),
+  paste0("Ward-Pair $\\times$ ", fe_time_label[[fe_time]], " FE")
+)
 
 etable(
   list(m1, m2),
@@ -114,7 +147,11 @@ etable(
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
   extralines = c(
     list("_Hedonic Controls" = c("", "$\\checkmark$")),
-    setNames(list(c("$\\checkmark$", "$\\checkmark$")), paste0("_", fe_label))
+    setNames(list(c("$\\checkmark$", "$\\checkmark$")), paste0("_", fe_label)),
+    list("_Cluster Level" = c(
+      ifelse(cluster_level == "segment", "Segment", "Ward Pair"),
+      ifelse(cluster_level == "segment", "Segment", "Ward Pair")
+    ))
   ),
   file = output_tex, replace = TRUE
 )
@@ -128,7 +165,7 @@ write_csv(tibble(
   n_obs = c(m1$nobs, m2$nobs),
   dep_var_mean = c(mean(sales$sale_price, na.rm = TRUE), mean(sales_hed$sale_price, na.rm = TRUE)),
   ward_pairs = c(n_distinct(sales$ward_pair), n_distinct(sales_hed$ward_pair)),
-  bandwidth_ft = bw_ft, fe_time = fe_time
+  bandwidth_ft = bw_ft, fe_time = fe_time, fe_geo = fe_geo, cluster_level = cluster_level
 ), output_csv)
 
 message(sprintf("Saved: %s", output_tex))

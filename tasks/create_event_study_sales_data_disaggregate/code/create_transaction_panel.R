@@ -5,6 +5,92 @@
 
 source("../../setup_environment/code/packages.R")
 
+normalize_pair_dash <- function(x) {
+  x <- as.character(x)
+  x <- gsub("_", "-", x, fixed = TRUE)
+  x <- trimws(x)
+  out <- rep(NA_character_, length(x))
+  ok <- grepl("^[0-9]+-[0-9]+$", x)
+  if (!any(ok)) return(out)
+  parts <- strsplit(x[ok], "-", fixed = TRUE)
+  out[ok] <- vapply(parts, function(v) {
+    a <- suppressWarnings(as.integer(v[1]))
+    b <- suppressWarnings(as.integer(v[2]))
+    if (!is.finite(a) || !is.finite(b)) return(NA_character_)
+    paste(min(a, b), max(a, b), sep = "-")
+  }, character(1))
+  out
+}
+
+assign_cohort_segments_dt <- function(dt, seg_sf, cohort_label, chunk_n = 50000L) {
+  if (nrow(dt) == 0) {
+    dt[, `:=`(
+      segment_id_cohort = NA_character_,
+      segment_side = NA_character_,
+      cohort_segment = NA_character_,
+      cohort_segment_side = NA_character_
+    )]
+    return(dt)
+  }
+
+  dt <- copy(dt)
+  pair_dash <- normalize_pair_dash(dt$ward_pair_id)
+  seg_id <- rep(NA_character_, nrow(dt))
+  valid <- !is.na(pair_dash) & is.finite(dt$longitude) & is.finite(dt$latitude)
+  valid_pairs <- intersect(unique(pair_dash[valid]), unique(seg_sf$pair_dash))
+
+  for (j in seq_along(valid_pairs)) {
+    pair_j <- valid_pairs[j]
+    idx_pair <- which(valid & pair_dash == pair_j)
+    seg_pair <- seg_sf[seg_sf$pair_dash == pair_j, ]
+    if (length(idx_pair) == 0 || nrow(seg_pair) == 0) next
+
+    starts <- seq(1L, length(idx_pair), by = chunk_n)
+    for (s in starts) {
+      e <- min(s + chunk_n - 1L, length(idx_pair))
+      chunk_idx <- idx_pair[s:e]
+
+      pts <- st_as_sf(
+        data.frame(
+          longitude = dt$longitude[chunk_idx],
+          latitude = dt$latitude[chunk_idx]
+        ),
+        coords = c("longitude", "latitude"),
+        crs = 4326
+      )
+      if (st_crs(pts) != st_crs(seg_pair)) {
+        pts <- st_transform(pts, st_crs(seg_pair))
+      }
+      hits <- st_within(pts, seg_pair)
+      hit_idx <- vapply(hits, function(v) {
+        if (length(v) == 0) return(NA_integer_)
+        v[1]
+      }, integer(1))
+      ok <- !is.na(hit_idx)
+      if (any(ok)) {
+        seg_id[chunk_idx[ok]] <- as.character(seg_pair$segment_id[hit_idx[ok]])
+      }
+    }
+
+    if (j %% 25L == 0L || j == length(valid_pairs)) {
+      message(sprintf("[%s] segment assignment progress: %d/%d pairs", cohort_label, j, length(valid_pairs)))
+    }
+  }
+
+  dt[, segment_id_cohort := seg_id]
+  dt[, segment_side := fifelse(!is.na(segment_id_cohort) & !is.na(ward_origin), paste(segment_id_cohort, ward_origin, sep = "_"), NA_character_)]
+  dt[, cohort_segment := fifelse(!is.na(segment_id_cohort), paste(cohort_label, segment_id_cohort, sep = "_"), NA_character_)]
+  dt[, cohort_segment_side := fifelse(!is.na(segment_side), paste(cohort_label, segment_side, sep = "_"), NA_character_)]
+
+  message(sprintf(
+    "[%s] segment coverage within cohort panel: %.2f%%",
+    cohort_label,
+    100 * mean(!is.na(dt$segment_id_cohort))
+  ))
+
+  dt
+}
+
 # =============================================================================
 # 1. LOAD DATA
 # =============================================================================
@@ -40,6 +126,15 @@ census_blocks <- read_csv("../input/census_blocks_2010.csv", show_col_types = FA
 message("Loading treatment panel...")
 treatment_panel <- fread("../input/block_treatment_panel.csv")
 treatment_panel[, block_id := as.character(block_id)]
+
+message("Loading segment layers for cohort-baseline assignment...")
+segments_2003 <- st_read("../input/boundary_segments_1320ft.gpkg", layer = "2003_2014_bw1000", quiet = TRUE)
+segments_2003$pair_dash <- normalize_pair_dash(segments_2003$ward_pair_id)
+segments_2003 <- segments_2003[!is.na(segments_2003$pair_dash), ]
+
+segments_2015 <- st_read("../input/boundary_segments_1320ft.gpkg", layer = "2015_2023_bw1000", quiet = TRUE)
+segments_2015$pair_dash <- normalize_pair_dash(segments_2015$ward_pair_id)
+segments_2015 <- segments_2015[!is.na(segments_2015$pair_dash), ]
 
 # =============================================================================
 # 2. TEMPORAL MERGE: SALES TO HEDONICS (ROLLING JOIN)
@@ -99,7 +194,7 @@ message("\n=== SPATIAL ASSIGNMENT TO BLOCKS ===")
 sales_sf <- sales_with_hedonics %>%
   as_tibble() %>%
   filter(!is.na(latitude), !is.na(longitude)) %>%
-  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) %>%
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) %>%
   st_transform(st_crs(census_blocks))
 
 message(sprintf("Sales with valid coordinates: %s", format(nrow(sales_sf), big.mark = ",")))
@@ -240,6 +335,7 @@ cohort_2012[
 
 # Construct ward_pair_side from the (potentially fixed) ward_pair_id
 cohort_2012[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
+cohort_2012 <- assign_cohort_segments_dt(cohort_2012, segments_2003, "2012")
 
 message(sprintf("2012 cohort: %s transactions", format(nrow(cohort_2012), big.mark = ",")))
 message(sprintf("  Year range: %d to %d", min(cohort_2012$sale_year), max(cohort_2012$sale_year)))
@@ -287,6 +383,7 @@ cohort_2022[
 
 # Construct ward_pair_side from the (potentially fixed) ward_pair_id
 cohort_2022[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
+cohort_2022 <- assign_cohort_segments_dt(cohort_2022, segments_2015, "2022")
 
 message(sprintf("2022 cohort: %s transactions", format(nrow(cohort_2022), big.mark = ",")))
 message(sprintf("  Year range: %d to %d", min(cohort_2022$sale_year), max(cohort_2022$sale_year)))
@@ -333,6 +430,7 @@ cohort_2015[
 
 # Now construct ward_pair_side from the (potentially fixed) ward_pair_id
 cohort_2015[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
+cohort_2015 <- assign_cohort_segments_dt(cohort_2015, segments_2003, "2015")
 
 message(sprintf("2015 cohort: %s transactions", format(nrow(cohort_2015), big.mark = ",")))
 # =============================================================================
@@ -371,28 +469,37 @@ cohort_2023[
 
 # Now construct ward_pair_side from the (potentially fixed) ward_pair_id
 cohort_2023[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
+cohort_2023 <- assign_cohort_segments_dt(cohort_2023, segments_2015, "2023")
 
 message(sprintf("2023 cohort: %s transactions", format(nrow(cohort_2023), big.mark = ",")))
 
 # Add cohort-specific identifiers for all cohorts
 cohort_2012[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
-  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
+  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
+  cohort_segment = fifelse(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
+  cohort_segment_side = fifelse(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
 )]
 
 cohort_2022[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
-  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
+  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
+  cohort_segment = fifelse(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
+  cohort_segment_side = fifelse(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
 )]
 
 cohort_2015[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
-  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
+  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
+  cohort_segment = fifelse(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
+  cohort_segment_side = fifelse(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
 )]
 
 cohort_2023[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
-  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
+  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
+  cohort_segment = fifelse(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
+  cohort_segment_side = fifelse(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
 )]
 
 # =============================================================================
@@ -404,7 +511,9 @@ message("\n=== CREATING STACKED PANELS ===")
 stacked_announcement <- rbindlist(list(cohort_2012, cohort_2022), fill = TRUE)
 stacked_announcement[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
-  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
+  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
+  cohort_segment = fifelse(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
+  cohort_segment_side = fifelse(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
 )]
 message(sprintf(
   "Stacked (announcement): %s transactions (2012 + 2022)",
@@ -415,7 +524,9 @@ message(sprintf(
 stacked_implementation <- rbindlist(list(cohort_2015, cohort_2023), fill = TRUE)
 stacked_implementation[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
-  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_")
+  cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
+  cohort_segment = fifelse(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
+  cohort_segment_side = fifelse(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
 )]
 message(sprintf(
   "Stacked (implementation): %s transactions (2015 + 2023)",
@@ -437,6 +548,7 @@ select_final_cols <- function(dt) {
     building_sqft, land_sqft, year_built, building_age, num_bedrooms,
     num_full_baths, baths_total, garage_size, hedonic_tax_year, years_gap,
     ward, ward_pair_id, ward_origin, ward_pair_side, cohort_ward_pair_side,
+    segment_id_cohort, segment_side, cohort_segment, cohort_segment_side,
     signed_dist, dist_ft,
     treat, strictness_change
   )]

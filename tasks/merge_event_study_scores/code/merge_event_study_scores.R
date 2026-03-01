@@ -71,6 +71,13 @@ merge_border_scores <- function(df, dist_col = "dist_ft") {
       signed_dist = .data[[dist_col]] * sign
     )
 
+  if (nrow(out) != nrow(df)) {
+    stop(sprintf(
+      "Row-count mismatch after score merge: input=%d output=%d",
+      nrow(df), nrow(out)
+    ), call. = FALSE)
+  }
+
   n_in <- nrow(out)
   n_missing_own   <- sum(is.na(out$strictness_own))
   n_missing_nbr   <- sum(is.na(out$strictness_neighbor))
@@ -98,7 +105,7 @@ sales <- merge_border_scores(sales_pre, "dist_ft") %>%
       "sale_price_deflator_to_2022"
     )),
     class,
-    latitude, longitude, ward, neighbor_ward, ward_pair_id,
+    latitude, longitude, ward, neighbor_ward, ward_pair_id, any_of("segment_id"),
     dist_ft, signed_dist, sign,
     alderman_own, alderman_neighbor,
     strictness_own, strictness_neighbor

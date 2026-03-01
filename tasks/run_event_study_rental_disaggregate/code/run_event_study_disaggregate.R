@@ -37,7 +37,7 @@ source("../../setup_environment/code/packages.R")
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 9) {
+if (length(cli_args) >= 11) {
   frequency <- cli_args[1]
   stacked <- tolower(cli_args[2]) %in% c("true", "t", "1", "yes")
   treatment_type <- cli_args[3]
@@ -47,9 +47,25 @@ if (length(cli_args) >= 9) {
   sample_filter <- cli_args[7]
   fe_type <- cli_args[8]
   post_window <- cli_args[9]
+  geo_fe_level <- tolower(cli_args[10])
+  cluster_level <- tolower(cli_args[11])
+} else if (length(cli_args) >= 9) {
+  frequency <- cli_args[1]
+  stacked <- tolower(cli_args[2]) %in% c("true", "t", "1", "yes")
+  treatment_type <- cli_args[3]
+  include_controls <- tolower(cli_args[4]) %in% c("true", "t", "1", "yes")
+  weighting <- cli_args[5]
+  bandwidth <- as.numeric(cli_args[6])
+  sample_filter <- cli_args[7]
+  fe_type <- cli_args[8]
+  post_window <- cli_args[9]
+  geo_fe_level <- tolower(Sys.getenv("GEO_FE_LEVEL", "segment"))
+  cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "twoway_block_segment"))
 } else {
-  if (!exists("frequency") || !exists("stacked") || !exists("treatment_type") || !exists("include_controls") || !exists("weighting") || !exists("bandwidth") || !exists("sample_filter") || !exists("fe_type") || !exists("post_window")) {
-    stop("FATAL: Script requires 9 args: <frequency> <stacked> <treatment_type> <include_controls> <weighting> <bandwidth> <sample_filter> <fe_type> <post_window>", call. = FALSE)
+  if (!exists("frequency") || !exists("stacked") || !exists("treatment_type") || !exists("include_controls") ||
+      !exists("weighting") || !exists("bandwidth") || !exists("sample_filter") || !exists("fe_type") ||
+      !exists("post_window") || !exists("geo_fe_level") || !exists("cluster_level")) {
+    stop("FATAL: Script requires args: <frequency> <stacked> <treatment_type> <include_controls> <weighting> <bandwidth> <sample_filter> <fe_type> <post_window> [<geo_fe_level> <cluster_level>]", call. = FALSE)
   }
 }
 
@@ -62,9 +78,20 @@ BANDWIDTH <- bandwidth
 SAMPLE_FILTER <- sample_filter
 FE_TYPE <- fe_type
 POST_WINDOW <- post_window
+GEO_FE_LEVEL <- geo_fe_level
+CLUSTER_LEVEL <- cluster_level
 
 if (!FE_TYPE %in% c("strict_pair_x_year", "pair_trend_plus_year", "side_plus_year")) {
     stop("--fe_type must be one of: strict_pair_x_year, pair_trend_plus_year, side_plus_year")
+}
+if (!GEO_FE_LEVEL %in% c("segment", "ward_pair")) {
+    stop("--geo_fe_level must be one of: segment, ward_pair", call. = FALSE)
+}
+if (!CLUSTER_LEVEL %in% c("twoway_block_segment", "block", "segment")) {
+    stop("--cluster_level must be one of: twoway_block_segment, block, segment", call. = FALSE)
+}
+if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 1000) {
+    stop("Segment FE requested with bandwidth > 1000. Use bandwidth <= 1000.", call. = FALSE)
 }
 
 message("\n=== Disaggregate Event Study Configuration ===")
@@ -77,6 +104,8 @@ message(sprintf("Bandwidth: %d ft", BANDWIDTH))
 message(sprintf("Sample Filter: %s", SAMPLE_FILTER))
 message(sprintf("FE Type: %s", FE_TYPE))
 message(sprintf("Post Window: %s", POST_WINDOW))
+message(sprintf("Geo FE Level: %s", GEO_FE_LEVEL))
+message(sprintf("Cluster Level: %s", CLUSTER_LEVEL))
 
 # Output suffix
 sample_suffix <- ifelse(SAMPLE_FILTER == "multifamily_only", "_mf", "")
@@ -99,6 +128,14 @@ suffix <- sprintf(
     fe_suffix,
     ifelse(POST_WINDOW == "short", "_short", "")
 )
+if (GEO_FE_LEVEL != "segment") {
+    suffix <- paste0(suffix, "_geo_wardpair")
+}
+if (CLUSTER_LEVEL == "block") {
+    suffix <- paste0(suffix, "_clust_block")
+} else if (CLUSTER_LEVEL == "segment") {
+    suffix <- paste0(suffix, "_clust_segment")
+}
 
 # Hedonic controls formula component
 # Available: beds_factor, beds_missing, baths_factor, baths_missing, has_gym, has_laundry, building_type_factor
@@ -124,8 +161,6 @@ if (STACKED) {
         time_fe_var <- "year_quarter"
         time_var <- "relative_quarter_capped"
     }
-    cluster_var <- "cohort_block_id"
-    fe_group_var <- "cohort_ward_pair"
 } else {
     # Unstacked: use 2023 cohort only
     data <- read_parquet("../input/rental_listing_panel_2023.parquet") %>%
@@ -138,8 +173,6 @@ if (STACKED) {
         time_fe_var <- "year_quarter"
         time_var <- "relative_quarter_capped"
     }
-    cluster_var <- "block_id"
-    fe_group_var <- "ward_pair"
 }
 
 message(sprintf("Loaded %s observations", format(nrow(data), big.mark = ",")))
@@ -158,6 +191,19 @@ if (SAMPLE_FILTER == "multifamily_only") {
     message(sprintf("Observations after filter: %s", format(nrow(data), big.mark = ",")))
 } else {
     message("\nUsing full sample (all building types)")
+}
+
+if (GEO_FE_LEVEL == "segment") {
+    required_segment_cols <- if (STACKED) {
+        c("segment_id_cohort", "segment_side", "cohort_segment", "cohort_segment_side")
+    } else {
+        c("segment_id_cohort", "segment_side")
+    }
+    missing_cols <- setdiff(required_segment_cols, names(data))
+    if (length(missing_cols) > 0) {
+        stop(sprintf("Missing required segment columns: %s", paste(missing_cols, collapse = ", ")), call. = FALSE)
+    }
+    data <- data %>% filter(!is.na(segment_id_cohort), segment_id_cohort != "")
 }
 
 # =============================================================================
@@ -262,38 +308,70 @@ message(sprintf("Post-period window: [%d, %d]", min_period, max_period))
 trend_var <- "year"
 
 # =============================================================================
-# CREATE WARD_PAIR VARIABLE AND BUILD FE FORMULA
+# BUILD FE/CLUSTER STRUCTURE
 # =============================================================================
-message("\n=== CREATING WARD_PAIR VARIABLE ===")
+message("\n=== BUILDING FE STRUCTURE ===")
 
 if (STACKED) {
-    # cohort_ward_pair_side looks like "2015_13_23_13" (cohort, border, side)
-    data <- data %>%
-        mutate(
-            ward_pair_side_temp = sub("^[0-9]+_", "", cohort_ward_pair_side),  # Remove cohort prefix
-            ward_pair = sub("_[0-9]+$", "", ward_pair_side_temp),  # Remove side suffix
-            cohort_ward_pair = paste(cohort, ward_pair, sep = "_")  # Add cohort back
-        )
+    if (GEO_FE_LEVEL == "ward_pair") {
+        data <- data %>%
+            mutate(
+                ward_pair_side_temp = sub("^[0-9]+_", "", cohort_ward_pair_side),
+                ward_pair = sub("_[0-9]+$", "", ward_pair_side_temp),
+                cohort_ward_pair = paste(cohort, ward_pair, sep = "_")
+            )
+        fe_side_var <- "cohort_ward_pair_side"
+        fe_group_var <- "cohort_ward_pair"
+    } else {
+        fe_side_var <- "cohort_segment_side"
+        fe_group_var <- "cohort_segment"
+        data <- data %>% filter(!is.na(.data[[fe_side_var]]), !is.na(.data[[fe_group_var]]))
+    }
+
     fe_formula <- case_when(
-        FE_TYPE == "strict_pair_x_year" ~ sprintf("cohort_ward_pair_side + cohort_ward_pair^%s", time_fe_var),
-        FE_TYPE == "pair_trend_plus_year" ~ sprintf("cohort_ward_pair_side + cohort^%s + cohort_ward_pair[%s]", time_fe_var, trend_var),
-        FE_TYPE == "side_plus_year" ~ sprintf("cohort_ward_pair_side + cohort^%s", time_fe_var),
-        TRUE ~ sprintf("cohort_ward_pair_side + cohort_ward_pair^%s", time_fe_var)
+        FE_TYPE == "strict_pair_x_year" ~ sprintf("%s + %s^%s", fe_side_var, fe_group_var, time_fe_var),
+        FE_TYPE == "pair_trend_plus_year" ~ sprintf("%s + cohort^%s + %s[%s]", fe_side_var, time_fe_var, fe_group_var, trend_var),
+        FE_TYPE == "side_plus_year" ~ sprintf("%s + cohort^%s", fe_side_var, time_fe_var),
+        TRUE ~ sprintf("%s + %s^%s", fe_side_var, fe_group_var, time_fe_var)
     )
+    if (CLUSTER_LEVEL == "twoway_block_segment") {
+        cluster_formula <- ~cohort_block_id + cohort_segment
+    } else if (CLUSTER_LEVEL == "segment") {
+        cluster_formula <- ~cohort_segment
+    } else {
+        cluster_formula <- ~cohort_block_id
+    }
 } else {
-    data <- data %>%
-        mutate(
-            ward_pair = sub("_[0-9]+$", "", ward_pair_side)  # Remove side suffix
-        )
+    if (GEO_FE_LEVEL == "ward_pair") {
+        data <- data %>%
+            mutate(
+                ward_pair = sub("_[0-9]+$", "", ward_pair_side)
+            )
+        fe_side_var <- "ward_pair_side"
+        fe_group_var <- "ward_pair"
+    } else {
+        fe_side_var <- "segment_side"
+        fe_group_var <- "segment_id_cohort"
+        data <- data %>% filter(!is.na(.data[[fe_side_var]]), !is.na(.data[[fe_group_var]]))
+    }
+
     fe_formula <- case_when(
-        FE_TYPE == "strict_pair_x_year" ~ sprintf("ward_pair_side + ward_pair^%s", time_fe_var),
-        FE_TYPE == "pair_trend_plus_year" ~ sprintf("ward_pair_side + %s + ward_pair[%s]", time_fe_var, trend_var),
-        FE_TYPE == "side_plus_year" ~ sprintf("ward_pair_side + %s", time_fe_var),
-        TRUE ~ sprintf("ward_pair_side + ward_pair^%s", time_fe_var)
+        FE_TYPE == "strict_pair_x_year" ~ sprintf("%s + %s^%s", fe_side_var, fe_group_var, time_fe_var),
+        FE_TYPE == "pair_trend_plus_year" ~ sprintf("%s + %s + %s[%s]", fe_side_var, time_fe_var, fe_group_var, trend_var),
+        FE_TYPE == "side_plus_year" ~ sprintf("%s + %s", fe_side_var, time_fe_var),
+        TRUE ~ sprintf("%s + %s^%s", fe_side_var, fe_group_var, time_fe_var)
     )
+    if (CLUSTER_LEVEL == "twoway_block_segment") {
+        cluster_formula <- ~block_id + segment_id_cohort
+    } else if (CLUSTER_LEVEL == "segment") {
+        cluster_formula <- ~segment_id_cohort
+    } else {
+        cluster_formula <- ~block_id
+    }
 }
 
 message(sprintf("FE formula: %s", fe_formula))
+message(sprintf("Cluster formula: %s", format(cluster_formula)))
 
 # =============================================================================
 # EFFECTIVE OBSERVATIONS DIAGNOSTIC
@@ -303,36 +381,19 @@ message("\n=== EFFECTIVE OBSERVATIONS DIAGNOSTIC ===")
 # Create switcher indicator
 data$is_switcher <- abs(data$strictness_change) > 0
 
-# Count by ward_pair: need observations on BOTH sides
-if (STACKED) {
-    pair_summary <- data %>%
-        group_by(cohort_ward_pair) %>%
-        summarise(
-            n_sides = n_distinct(cohort_ward_pair_side),
-            n_obs = n(),
-            n_switcher = sum(is_switcher),
-            n_stayer = sum(!is_switcher),
-            .groups = "drop"
-        )
-    identifying_pairs <- pair_summary %>% filter(n_sides == 2)
-    effective_obs <- data %>%
-        filter(cohort_ward_pair %in% identifying_pairs$cohort_ward_pair) %>%
-        nrow()
-} else {
-    pair_summary <- data %>%
-        group_by(ward_pair) %>%
-        summarise(
-            n_sides = n_distinct(ward_pair_side),
-            n_obs = n(),
-            n_switcher = sum(is_switcher),
-            n_stayer = sum(!is_switcher),
-            .groups = "drop"
-        )
-    identifying_pairs <- pair_summary %>% filter(n_sides == 2)
-    effective_obs <- data %>%
-        filter(ward_pair %in% identifying_pairs$ward_pair) %>%
-        nrow()
-}
+pair_summary <- data %>%
+    group_by(.data[[fe_group_var]]) %>%
+    summarise(
+        n_sides = n_distinct(.data[[fe_side_var]]),
+        n_obs = n(),
+        n_switcher = sum(is_switcher),
+        n_stayer = sum(!is_switcher),
+        .groups = "drop"
+    )
+identifying_pairs <- pair_summary %>% filter(n_sides == 2)
+effective_obs <- data %>%
+    filter(.data[[fe_group_var]] %in% identifying_pairs[[fe_group_var]]) %>%
+    nrow()
 
 message(sprintf("Total %s groups: %d", fe_group_var, nrow(pair_summary)))
 message(sprintf("Pairs with observations on BOTH sides: %d (%.1f%%)", 
@@ -373,7 +434,7 @@ run_model <- function(formula_str, data_subset) {
     feols(as.formula(formula_str),
         data = data_subset,
         weights = ~weight,
-        cluster = as.formula(sprintf("~%s", cluster_var))
+        cluster = cluster_formula
     )
 }
 

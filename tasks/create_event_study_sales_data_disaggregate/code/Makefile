@@ -3,7 +3,7 @@ include ../../shell_functions.make
 
 all: ../output/sales_transaction_panel.parquet
 
-../output/sales_transaction_panel.parquet: create_transaction_panel.R ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv | ../output
+../output/sales_transaction_panel.parquet: create_transaction_panel.R ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/boundary_segments_1320ft.gpkg | ../output
 	$(R) $<
 
 ../input/sales_with_ward_distances.csv: ../../merge_event_study_scores/output/sales_with_ward_distances.csv | ../input
@@ -18,6 +18,9 @@ all: ../output/sales_transaction_panel.parquet
 ../input/census_blocks_2010.csv: ../../../data_raw/CensusBlockTIGER2010_20250721.csv | ../input
 	ln -sf $< $@
 
+../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
+	ln -sf $< $@
+
 include ../../generic.make
 
-link-inputs: ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv
+link-inputs: ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/boundary_segments_1320ft.gpkg
