@@ -186,7 +186,7 @@ fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
 m_no_hed <- feols(
   if (fe_geo == "segment") {
-    log(rent_price) ~ strictness_std | segment_id + year_month
+    log(rent_price) ~ strictness_std | segment_id^year_month
   } else {
     log(rent_price) ~ strictness_std | ward_pair^year_month
   },
@@ -204,7 +204,7 @@ if (n_type_levels >= 2) {
 m_hed <- feols(
   as.formula(paste0(
     "log(rent_price) ~ ", hedonic_rhs, " | ",
-    ifelse(fe_geo == "segment", "segment_id + year_month", "ward_pair^year_month")
+    ifelse(fe_geo == "segment", "segment_id^year_month", "ward_pair^year_month")
   )),
   data = rent_hedonics,
   cluster = if (cluster_level == "segment") ~segment_id else ~ward_pair
@@ -237,8 +237,8 @@ etable(
   extralines = list(
     "_Hedonic Controls" = c("", "$\\checkmark$"),
     "_FE Structure" = c(
-      ifelse(fe_geo == "segment", "Segment + Year-Month FE", "Ward-Pair $\\times$ Year-Month FE"),
-      ifelse(fe_geo == "segment", "Segment + Year-Month FE", "Ward-Pair $\\times$ Year-Month FE")
+      ifelse(fe_geo == "segment", "Segment $\\times$ Year-Month FE", "Ward-Pair $\\times$ Year-Month FE"),
+      ifelse(fe_geo == "segment", "Segment $\\times$ Year-Month FE", "Ward-Pair $\\times$ Year-Month FE")
     ),
     "_Cluster Level" = c(
       ifelse(cluster_level == "segment", "Segment", "Ward Pair"),

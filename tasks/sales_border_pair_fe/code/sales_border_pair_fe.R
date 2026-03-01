@@ -113,7 +113,7 @@ fitstat_register("nwp", function(x) length(unique(stats::na.omit(x$custom_data$w
 
 # ── Regressions ──
 fe_var <- switch(fe_time, year = "year_factor", year_quarter = "year_quarter", year_month = "year_month")
-fe_term <- ifelse(fe_geo == "segment", paste0("segment_id + ", fe_var), paste0("ward_pair^", fe_var))
+fe_term <- ifelse(fe_geo == "segment", paste0("segment_id^", fe_var), paste0("ward_pair^", fe_var))
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 
 m1 <- feols(as.formula(paste0("log(sale_price) ~ strictness_std | ", fe_term)),
@@ -133,7 +133,7 @@ setFixest_dict(c(
 
 fe_label <- ifelse(
   fe_geo == "segment",
-  paste0("Segment + ", fe_time_label[[fe_time]], " FE"),
+  paste0("Segment $\\times$ ", fe_time_label[[fe_time]], " FE"),
   paste0("Ward-Pair $\\times$ ", fe_time_label[[fe_time]], " FE")
 )
 

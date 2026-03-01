@@ -17,18 +17,32 @@
 % ==============================================================================
 % SLIDE 10: Do permits matter?
 % ==============================================================================
-\begin{frame}
-	\frametitle{Do permits matter?}
+
+\begin{frame}[label=permits-main]
+   \frametitle{Do permits Matter?} 
+   \begin{columns}[T]
+   \begin{column}{0.48\textwidth}
+       \centering
+       \begin{figure}
+           \includegraphics[width=\textwidth,height=0.75\textheight,keepaspectratio]{../tasks/permit_summary_stats/output/processing_time_residualized_high_discretion.pdf}
+       \end{figure}
+   \end{column}
+   \begin{column}{0.48\textwidth}
+       \centering
+       \begin{figure}
+           \includegraphics[width=\textwidth,height=0.75\textheight,keepaspectratio]{../tasks/permit_summary_stats/output/processing_time_residualized_new_construction.pdf}
+       \end{figure}
+   \end{column}
+   \end{columns}
 \end{frame}
 
-
 % ==============================================================================
-% SLIDE 11: UNCERTAINTY INDEX CONSTRUCTION
+% SLIDE 11: STRINGENCY INDEX CONSTRUCTION
 % ==============================================================================
 \begin{frame}
-	\frametitle{Uncertainty Index Construction}
+	\frametitle{Stringency Index Construction}
 	\begin{enumerate}
-		\item \textbf{Residualize} processing times on ward characteristics + year $\times$ month FEs
+		\item \textbf{Residualize} processing times on permit-level characteristics and a rich set of fixed effects (permit type, review type, and year $\times$ month)
 		\begin{itemize}
 			\item Controls for baseline differences across wards (income, demographics, etc.)
 		\end{itemize}
@@ -54,14 +68,15 @@
 % ==============================================================================
 % SLIDE 11: ALDERMAN REGULATORY UNCERTAINTY INDEX
 % ==============================================================================
-\begin{frame}[label=strictness-main]
-   \frametitle{Alderman Regulatory Uncertainty Index} 
+\begin{frame}[label=strictness-main,shrink=6]
+   \frametitle{Alderman Regulatory Stringency Index} 
    \begin{columns}[T]
    \begin{column}{0.48\textwidth}
        \centering
-       \begin{figure}
-           \includegraphics[width=\textwidth,height=0.75\textheight,keepaspectratio]{../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf}
-       \end{figure}
+       {\tiny
+       \setlength{\tabcolsep}{2pt}
+       \renewcommand{\arraystretch}{0.9}
+       \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex}}
    \end{column}
    \begin{column}{0.48\textwidth}
        \centering
@@ -74,7 +89,25 @@
    \small
    \centering
    \vfill\hfill 
-   \hyperlink{score-regression}{\beamergotobutton{Regression}}
-   \hspace{0.2em}
-   \hyperlink{strictness-validation-main}{\beamergotobutton{Validation Checks}}
+   \hyperlink{score-plot-appendix}{\beamergotobutton{Final Stringency Scores}}
+\end{frame}
+
+
+
+% ==============================================================================
+% SLIDE 12: INDEX VALIDATION
+% ==============================================================================
+\begin{frame}[label=strictness-validation-main]
+    \frametitle{Validation Checks: Permits and Within-Ward Correlation}
+    \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+    \centering
+    \scriptsize
+    \input{../tasks/uncertainty_validation_checks/output/permit_validation_table_uncertainty_ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage.tex}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth,height=0.60\textheight,keepaspectratio]{../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf}
+    \end{column}
+    \end{columns}
 \end{frame}

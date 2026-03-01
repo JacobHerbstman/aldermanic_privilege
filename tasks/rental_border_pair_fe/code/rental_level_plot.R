@@ -141,7 +141,7 @@ if (use_controls) {
 
 fml <- as.formula(paste0(
   "log(rent_price) ~ ", rhs, " | ",
-  ifelse(fe_geo == "segment", "segment_id + year_month", "ward_pair^year_month")
+  ifelse(fe_geo == "segment", "segment_id^year_month", "ward_pair^year_month")
 ))
 m <- feols(
   fml,

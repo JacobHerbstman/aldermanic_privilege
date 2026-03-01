@@ -8,57 +8,13 @@
 % ==============================================================================
 
 % ==============================================================================
-% Stage 1 Residualization Regression
+% Alderman Score Plot
 % ==============================================================================
-\begin{frame}[label=score-regression,shrink=12]
-    \frametitle{Permit Processing Time Residualization}
+\begin{frame}[label=score-plot-appendix]
+    \frametitle{Alderman Regulatory Uncertainty Index}
     \begin{center}
-    {\tiny
-    \setlength{\tabcolsep}{2pt}
-    \renewcommand{\arraystretch}{0.9}
-    \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex}}
+    \includegraphics[width=0.72\textwidth,height=0.72\textheight,keepaspectratio]{../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf}
     \end{center}
-    \vspace{0.4em}
-    \hfill \hyperlink{strictness-main}{\beamergotobutton{Back}}
-\end{frame}
-
-% ==============================================================================
-% Validation Checks: Permits and Within-Ward Correlation
-% ==============================================================================
-
-\begin{frame}[label=strictness-validation-main]
-    \frametitle{Validation Checks: Permits and Within-Ward Correlation}
-    \begin{columns}[T]
-    \begin{column}{0.50\textwidth}
-    \centering
-    \scriptsize
-    \begin{threeparttable}
-    \begin{tabular}{lc}
-    \toprule
-    Outcome (Ward-Month) & Coef. on Uncertainty \\
-    \midrule
-    N permits (all high-discretion) & $-10.29^{***}$ \\
-                                     & $(0.42)$ \\
-    Share with any unit change       & $0.0059^{***}$ \\
-                                     & $(0.0009)$ \\
-    Units reduced per permit (text)  & $0.0061^{**}$ \\
-                                     & $(0.0029)$ \\
-    \midrule
-    Ward-month observations          & 10,746--10,753 \\
-    \bottomrule
-    \end{tabular}
-    \end{threeparttable}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth,height=0.60\textheight,keepaspectratio]{../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf}
-
-    \vspace{0.2em}
-    \small
-    Predecessor-successor correlation: $\rho = 0.27$\\
-    Within-ward SD is 0.72 of overall SD.
-    \end{column}
-    \end{columns}
     \vspace{0.4em}
     \hfill \hyperlink{strictness-main}{\beamergotobutton{Back}}
 \end{frame}

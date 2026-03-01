@@ -97,7 +97,7 @@ rhs <- if (use_controls) {
 m <- feols(
   as.formula(paste0(
     "log(sale_price) ~ ", rhs, " | ",
-    ifelse(fe_geo == "segment", "segment_id + year_quarter", "ward_pair^year_quarter")
+    ifelse(fe_geo == "segment", "segment_id^year_quarter", "ward_pair^year_quarter")
   )),
   data = dat,
   cluster = if (cluster_level == "segment") ~segment_id else ~ward_pair

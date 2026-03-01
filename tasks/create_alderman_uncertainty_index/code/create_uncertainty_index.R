@@ -601,10 +601,12 @@ etable(
     dist_cbd_km = "Dist. to CBD (km)",
     dist_lake_km = "Dist. to Lake (km)",
     lakefront_share_1km = "Lakefront Share",
-    n_rail_stations_800m = "CTA Stations (800m)"
+    n_rail_stations_800m = "CTA Stations (800m)",
+    n_permits_wm = "Current Permits",
+    n_permits_wm_l1 = "Lag Permits"
   ),
   fixef.group = list(
-    "Month FE" = "month",
+    "Year $\\times$ Month FE" = "month",
     "Permit Type FE" = "permit_type_clean",
     "Review Type FE" = "review_type_clean"
   ),

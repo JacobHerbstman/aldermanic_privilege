@@ -19,7 +19,7 @@
     \begin{itemize}
         \item Data: RentHub rental listings, 2014-2022
         \item 2.67 million listing observations, 141 ward pairs, BW = 500 ft
-        \item Ward-pair $\times$ year-month FE; SEs clustered at ward-pair level
+        \item Segment $\times$ year-month FE; SEs clustered at segment level
     \end{itemize}
 \end{frame}
 
@@ -37,7 +37,7 @@
 
     \vspace{0.3em}
     \small
-    $\Rightarrow$ A 1 SD $\uparrow$ in uncertainty $\Rightarrow$ 3.2\% higher rents (no controls) or 1.5\% (with controls).
+    $\Rightarrow$ A 1 SD $\uparrow$ in uncertainty $\Rightarrow$ 3.4\% higher rents (no controls) or 2.9\% (with controls).
 
     \vfill\hfill \hyperlink{rental-permutation-noctrl}{\beamergotobutton{Permutation Test}}
 \end{frame}
@@ -70,19 +70,15 @@
 
 
 % ==============================================================================
-% SLIDE: HOME SALES — PRECISE NULL
+% SLIDE: HOME SALES
 % ==============================================================================
 \begin{frame}[label=sales-null]
-    \frametitle{Home Sale Prices: Precise Null}
+    \frametitle{Home Sale Prices}
 
     \begin{center}
     \scriptsize
     \input{../tasks/sales_border_pair_fe/output/fe_table_sales_bw1000_year_quarter.tex}
     \end{center}
-
-    \vspace{0.3em}
-    \small
-    $\Rightarrow$ Same design applied to home sales $\rightarrow$ precisely estimated null. \\
 
     \vfill\hfill \hyperlink{treatment-details}{\beamergotobutton{Event Study}}
 \end{frame}
