@@ -2,6 +2,8 @@ SHELL := bash
 include ../../shell_functions.make
 
 OUTPUTS := \
+	../output/pruned_boundaries_all_segments_by_era.pdf \
+	../output/pruned_boundaries_kept_segments_by_era.pdf \
 	../output/pruned_boundaries_status_by_era.pdf \
 	../output/pruned_boundaries_kept_strictness_gap_by_era.pdf \
 	../output/pruned_boundaries_drop_reason_by_era.pdf \
@@ -53,10 +55,10 @@ $(OUTPUTS): plot_pruned_boundary_maps.R $(INPUTS) | ../output
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	ln -sf "$<" "$@"
 
-../input/border_verification_invalid_pairs_sales.csv: ../../border_verification/output/border_verification_invalid_pairs_sales.csv | ../input
+../input/border_verification_invalid_pairs_sales.csv: ../../_archived_outputs/border_verification/border_verification_invalid_pairs_sales.csv | ../input
 	ln -sf "$<" "$@"
 
-../input/border_verification_invalid_pairs_rent.csv: ../../border_verification/output/border_verification_invalid_pairs_rent.csv | ../input
+../input/border_verification_invalid_pairs_rent.csv: ../../_archived_outputs/border_verification/border_verification_invalid_pairs_rent.csv | ../input
 	ln -sf "$<" "$@"
 
 ../input/gis_osm_water_a_free_1.cpg: ../../border_segment_creation/input/gis_osm_water_a_free_1.cpg | ../input

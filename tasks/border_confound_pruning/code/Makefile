@@ -20,10 +20,10 @@ $(OUTPUTS): build_confound_flags.R $(INPUTS) | ../output
 ../input/segment_classification.csv: ../../border_segment_creation/output/segment_classification.csv | ../input
 	ln -sf "$<" "$@"
 
-../input/border_verification_invalid_pairs_sales.csv: ../../border_verification/output/border_verification_invalid_pairs_sales.csv | ../input
+../input/border_verification_invalid_pairs_sales.csv: ../../_archived_outputs/border_verification/border_verification_invalid_pairs_sales.csv | ../input
 	ln -sf "$<" "$@"
 
-../input/border_verification_invalid_pairs_rent.csv: ../../border_verification/output/border_verification_invalid_pairs_rent.csv | ../input
+../input/border_verification_invalid_pairs_rent.csv: ../../_archived_outputs/border_verification/border_verification_invalid_pairs_rent.csv | ../input
 	ln -sf "$<" "$@"
 
 link-inputs: $(INPUTS)

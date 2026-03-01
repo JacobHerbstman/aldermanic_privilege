@@ -94,7 +94,7 @@ if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
 }
 confound_flags_path <- Sys.getenv("CONFOUND_FLAGS_PATH", "../input/confounded_pair_era_flags.csv")
 
-cluster_level_raw <- tolower(Sys.getenv("CLUSTER_LEVEL", "ward_pair"))
+cluster_level_raw <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
 if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
   cluster_level <- "ward_pair"
 } else if (cluster_level_raw %in% c("segment", "segment_id")) {
@@ -103,6 +103,21 @@ if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
   stop("CLUSTER_LEVEL must be one of: ward_pair, segment", call. = FALSE)
 }
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
+
+donut_ft_raw <- Sys.getenv("DONUT_FT", "0")
+donut_ft <- suppressWarnings(as.numeric(donut_ft_raw))
+if (!is.finite(donut_ft) || donut_ft < 0) {
+  stop("DONUT_FT must be a non-negative number.", call. = FALSE)
+}
+if (donut_ft >= bw_ft) {
+  stop("DONUT_FT must be strictly smaller than bandwidth.", call. = FALSE)
+}
+
+placebo_shift_raw <- Sys.getenv("PLACEBO_SHIFT_FT", "0")
+placebo_shift_ft <- suppressWarnings(as.numeric(placebo_shift_raw))
+if (!is.finite(placebo_shift_ft)) {
+  stop("PLACEBO_SHIFT_FT must be numeric.", call. = FALSE)
+}
 
 normalize_pair_dash <- function(x) {
   x <- as.character(x)
@@ -150,9 +165,9 @@ dat <- raw %>%
     arealotsf > 1,
     areabuilding > 1,
     construction_year >= 2006,
-    dist_to_boundary <= bw_ft,
     !is.na(ward_pair),
-    !is.na(construction_year)
+    !is.na(construction_year),
+    is.finite(signed_distance)
   )
 
 if (prune_sample == "pruned") {
@@ -217,6 +232,15 @@ if (fe_map[[fe_spec]]$use_far) {
   dat <- dat %>% filter(is.finite(floor_area_ratio))
 }
 
+dat <- dat %>%
+  mutate(running_distance = signed_distance - placebo_shift_ft) %>%
+  filter(abs(running_distance) <= bw_ft, abs(running_distance) >= donut_ft)
+
+message(sprintf(
+  "RD config: FE=%s | cluster=%s | bw=%d | donut>=%.0f | placebo_shift=%+.0f | sample=%s | prune=%s | obs=%d",
+  fe_spec, cluster_level, as.integer(bw_ft), donut_ft, placebo_shift_ft, sample_filter, prune_sample, nrow(dat)
+))
+
 if (use_log) {
   dat <- dat %>%
     filter(is.finite(.data[[yvar]]), .data[[yvar]] > 0) %>%
@@ -264,11 +288,10 @@ if (fe_map[[fe_spec]]$use_far) {
   controls <- c(controls, "floor_area_ratio")
 }
 
-# Keep explicit side variable for discontinuity model
-# right side (signed_distance > 0) is stricter side by construction
-dat <- dat %>% mutate(side = as.integer(signed_distance > 0))
+# Keep explicit side variable for discontinuity model after placebo shift.
+dat <- dat %>% mutate(side = as.integer(running_distance > 0))
 
-rhs_rd <- paste(c("side", "signed_distance", "side:signed_distance", controls), collapse = " + ")
+rhs_rd <- paste(c("side", "running_distance", "side:running_distance", controls), collapse = " + ")
 fml_rd <- as.formula(sprintf("outcome ~ %s | %s", rhs_rd, fe_map[[fe_spec]]$fe))
 
 m_rd <- feols(fml_rd, data = dat, cluster = cluster_formula)
@@ -281,8 +304,8 @@ get_coef <- function(ct, names_vec) {
 }
 
 b_side <- get_coef(ct_rd, c("side"))
-b_x <- get_coef(ct_rd, c("signed_distance"))
-b_int <- get_coef(ct_rd, c("side:signed_distance", "signed_distance:side"))
+b_x <- get_coef(ct_rd, c("running_distance"))
+b_int <- get_coef(ct_rd, c("side:running_distance", "running_distance:side"))
 
 stars <- function(p) {
   if (!is.finite(p)) return("")
@@ -331,8 +354,8 @@ if (plot_style == "level") {
   aug <- aug %>%
     mutate(
       xb = b_side["estimate"] * side +
-        b_x["estimate"] * signed_distance +
-        b_int["estimate"] * (side * signed_distance),
+        b_x["estimate"] * running_distance +
+        b_int["estimate"] * (side * running_distance),
       y_adj = .resid + xb
     )
 
@@ -344,7 +367,7 @@ if (plot_style == "level") {
 K <- 30
 bin_w <- bw_ft / K
 bins <- aug %>%
-  mutate(bin_id = floor(signed_distance / bin_w),
+  mutate(bin_id = floor(running_distance / bin_w),
          bin_center = (bin_id + 0.5) * bin_w) %>%
   group_by(bin_center, side) %>%
   summarise(
@@ -360,20 +383,20 @@ line_df <- if (plot_style == "level") {
   mean_left <- mean(aug$y_adj[aug$side == 0], na.rm = TRUE)
   mean_right <- mean(aug$y_adj[aug$side == 1], na.rm = TRUE)
   bind_rows(
-    tibble(signed_distance = c(-bw_ft, 0), side = 0, fit = mean_left),
-    tibble(signed_distance = c(0, bw_ft), side = 1, fit = mean_right)
+    tibble(running_distance = c(-bw_ft, 0), side = 0, fit = mean_left),
+    tibble(running_distance = c(0, bw_ft), side = 1, fit = mean_right)
   )
 } else {
   x_left <- seq(-bw_ft, 0, length.out = 200)
   x_right <- seq(0, bw_ft, length.out = 200)
   bind_rows(
     tibble(
-      signed_distance = x_left,
+      running_distance = x_left,
       side = 0,
       fit = b_x["estimate"] * x_left
     ),
     tibble(
-      signed_distance = x_right,
+      running_distance = x_right,
       side = 1,
       fit = b_side["estimate"] + (b_x["estimate"] + b_int["estimate"]) * x_right
     )
@@ -407,7 +430,7 @@ p <- ggplot() +
   ) +
   geom_line(
     data = line_df,
-    aes(x = signed_distance, y = fit, color = factor(side)),
+    aes(x = running_distance, y = fit, color = factor(side)),
     linewidth = 1.1
   ) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30") +
@@ -419,10 +442,10 @@ p <- ggplot() +
       ylab
     ),
     subtitle = sprintf(
-      "%s | bw=%d ft | FE=%s | gap=%s | N=%d | Ward pairs=%d",
-      jump_label, as.integer(bw_ft), fe_spec, gap_split_label, n_obs_plot, dplyr::n_distinct(aug$ward_pair)
+      "%s | bw=%d ft | donut>=%.0f | placebo=%+.0fft | FE=%s | cluster=%s | gap=%s | N=%d | Ward pairs=%d",
+      jump_label, as.integer(bw_ft), donut_ft, placebo_shift_ft, fe_spec, cluster_level, gap_split_label, n_obs_plot, dplyr::n_distinct(aug$ward_pair)
     ),
-    x = "Signed distance to boundary (feet; right is stricter side)",
+    x = "Running distance (ft) relative to cutoff; right side is stricter side",
     y = ylab,
     caption = ifelse(
       plot_style == "level",
@@ -444,6 +467,8 @@ write_csv(
     yvar = yvar,
     use_log = use_log,
     bw_ft = bw_ft,
+    donut_ft = donut_ft,
+    placebo_shift_ft = placebo_shift_ft,
     prune_sample = prune_sample,
     cluster_level = cluster_level,
     fe_spec = fe_spec,

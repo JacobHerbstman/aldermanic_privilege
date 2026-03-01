@@ -135,6 +135,8 @@ segments$era <- factor(segments$era, levels = eras)
 segments_ll <- st_transform(segments, 4326)
 
 status_map_pdf <- file.path(out_dir, "pruned_boundaries_status_by_era.pdf")
+all_segments_map_pdf <- file.path(out_dir, "pruned_boundaries_all_segments_by_era.pdf")
+kept_segments_map_pdf <- file.path(out_dir, "pruned_boundaries_kept_segments_by_era.pdf")
 gap_map_pdf <- file.path(out_dir, "pruned_boundaries_kept_strictness_gap_by_era.pdf")
 reason_map_pdf <- file.path(out_dir, "pruned_boundaries_drop_reason_by_era.pdf")
 summary_csv <- file.path(out_dir, "pruned_boundaries_map_summary.csv")
@@ -163,6 +165,48 @@ summary_dt <- as.data.table(st_drop_geometry(segments))[, .(
 ), by = .(era, status)]
 setorder(summary_dt, era, status)
 fwrite(summary_dt, summary_csv)
+
+# Segment index parity alternates along each ward-pair boundary and makes
+# line-segment partitioning visible in citywide maps.
+segments_ll$segment_parity <- factor(
+  ifelse(as.integer(segments_ll$segment_number) %% 2L == 0L, "Even segment", "Odd segment"),
+  levels = c("Odd segment", "Even segment")
+)
+
+p_all_segments <- ggplot(segments_ll) +
+  geom_sf(aes(color = segment_parity), linewidth = 0.25, alpha = 0.95) +
+  facet_wrap(~era, ncol = 2) +
+  scale_color_manual(values = c("Odd segment" = "#1f77b4", "Even segment" = "#ff7f0e")) +
+  labs(
+    title = "All Ward Boundaries Divided into Segments",
+    subtitle = "Chicago-wide map; alternating segment index parity highlights segment-level FE geography",
+    color = NULL
+  ) +
+  theme_void(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    strip.text = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+ggsave(all_segments_map_pdf, p_all_segments, width = 11, height = 8.5, dpi = 300)
+
+kept_segments_ll <- segments_ll[segments_ll$status == "Kept", ]
+p_kept_segments <- ggplot(kept_segments_ll) +
+  geom_sf(aes(color = segment_parity), linewidth = 0.25, alpha = 0.95) +
+  facet_wrap(~era, ncol = 2) +
+  scale_color_manual(values = c("Odd segment" = "#1f77b4", "Even segment" = "#ff7f0e")) +
+  labs(
+    title = "Pruned Sample: Remaining Boundary Segments",
+    subtitle = "Chicago-wide map after pair-era pruning; segment geography shown using index parity",
+    color = NULL
+  ) +
+  theme_void(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    strip.text = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+ggsave(kept_segments_map_pdf, p_kept_segments, width = 11, height = 8.5, dpi = 300)
 
 p_status <- ggplot(segments_ll) +
   geom_sf(aes(color = status), linewidth = 0.2, alpha = 0.9) +

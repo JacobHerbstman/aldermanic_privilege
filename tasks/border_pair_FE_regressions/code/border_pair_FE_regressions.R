@@ -62,6 +62,15 @@ if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
   stop("CLUSTER_LEVEL must be one of: ward_pair, segment", call. = FALSE)
 }
 
+donut_ft_raw <- Sys.getenv("DONUT_FT", "0")
+donut_ft <- suppressWarnings(as.numeric(donut_ft_raw))
+if (!is.finite(donut_ft) || donut_ft < 0) {
+  stop("DONUT_FT must be a non-negative number.", call. = FALSE)
+}
+if (donut_ft >= bw_ft) {
+  stop("DONUT_FT must be strictly smaller than bandwidth.", call. = FALSE)
+}
+
 normalize_pair_dash <- function(x) {
   x <- as.character(x)
   x <- gsub("_", "-", x, fixed = TRUE)
@@ -93,6 +102,7 @@ message(sprintf("Sample: %s", sample_filter))
 message(sprintf("FE Specification: %s", fe_spec))
 message(sprintf("Pruning spec: %s", prune_sample))
 message(sprintf("Cluster level: %s", cluster_level))
+message(sprintf("Donut exclusion: >= %.0f ft", donut_ft))
 message(sprintf("Output: %s", output_filename))
 message(sprintf("Y variables: %s", paste(yvars, collapse = ", ")))
 
@@ -325,7 +335,7 @@ for (yv in yvars) {
   }
 
   df <- parcels_fe %>%
-    filter(dist_to_boundary <= bw_ft)
+    filter(dist_to_boundary <= bw_ft, dist_to_boundary >= donut_ft)
 
   if (use_far_control) {
     df <- df %>%
@@ -392,7 +402,10 @@ if (length(models) == 0) stop("No models estimated; check yvars and data.")
 names(models) <- col_headers
 
 # ── 5) TITLE & TABLE OUTPUT ──────────────────────────────────────────────────
-table_title <- sprintf("Border-Pair FE estimates (bw = %.0f ft)", bw_ft)
+table_title <- sprintf(
+  "Border FE estimates (bw = %.0f ft, donut >= %.0f ft, FE: %s, cluster: %s)",
+  bw_ft, donut_ft, fe_spec, cluster_level
+)
 
 etable(models,
   keep = "Uncertainty Index",

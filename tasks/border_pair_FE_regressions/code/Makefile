@@ -1,43 +1,56 @@
 SHELL := bash
 include ../../shell_functions.make
 
-# Active uncertainty-spec FE table set used by slides_uncertainty.
-FE_SPECS := pair_year_only pair_x_year zone_pair_year_additive
 BWS_FT := 250 500 1000
 SAMPLES := all multifamily
-YVARS_TABLE := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)'
-SEG_FE_SPECS := segment_year zone_segment_year_additive
-SEG_CLUSTERS := ward_pair segment
-SEG_YVARS := 'log(density_far)' 'log(density_dupac)'
+MAIN_FE_SPECS := segment_year zone_segment_year_additive
+ALT_FE_SPECS := pair_year_only pair_x_year zone_pair_year_additive
+MAIN_YVARS := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)'
+DONUTS_FT := 25 50
 
-OUTPUT_FILES := $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(FE_SPECS),../output/fe_table_bw$(bw)_$(sample)_$(fe).tex)))
-OUTPUT_FILES_PRUNED := $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(FE_SPECS),../output/fe_table_bw$(bw)_$(sample)_$(fe)_pruned.tex)))
-SEG_OUTPUT_FILES := $(foreach sample,$(SAMPLES),$(foreach fe,$(SEG_FE_SPECS),$(foreach cluster,$(SEG_CLUSTERS),../output/fe_table_bw500_$(sample)_$(fe)_clust_$(cluster).tex)))
+MAIN_OUTPUTS := $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),../output/fe_table_bw$(bw)_$(sample)_$(fe)_clust_segment.tex)))
+MAIN_OUTPUTS_PRUNED := $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),../output/fe_table_bw$(bw)_$(sample)_$(fe)_clust_segment_pruned.tex)))
+ROBUST_CLUSTER_OUTPUTS := $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),../output/fe_table_bw$(bw)_$(sample)_$(fe)_clust_ward_pair.tex)))
+ALT_FE_OUTPUTS := $(foreach sample,$(SAMPLES),$(foreach fe,$(ALT_FE_SPECS),../output/fe_table_bw500_$(sample)_$(fe)_clust_segment.tex))
+DONUT_OUTPUTS := $(foreach donut,$(DONUTS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),../output/fe_table_bw500_$(sample)_$(fe)_clust_segment_donut$(donut).tex)))
 
-all: $(OUTPUT_FILES)
-pruned: $(OUTPUT_FILES_PRUNED)
-segment-robustness: $(SEG_OUTPUT_FILES)
+all: $(MAIN_OUTPUTS)
+pruned: $(MAIN_OUTPUTS_PRUNED)
+robust-cluster: $(ROBUST_CLUSTER_OUTPUTS)
+alt-fe: $(ALT_FE_OUTPUTS)
+donut: $(DONUT_OUTPUTS)
+segment-robustness: robust-cluster
+legacy-all: $(ALT_FE_OUTPUTS)
 
-define FE_template
-../output/fe_table_bw$(1)_$(2)_$(3).tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
-	# arg order: bw_ft sample fe_spec output_filename yvars...
-	Rscript border_pair_FE_regressions.R $(1) $(2) $(3) "$$@" $(YVARS_TABLE)
+define MAIN_RULE
+../output/fe_table_bw$(1)_$(2)_$(3)_clust_segment.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
+	CLUSTER_LEVEL=segment Rscript border_pair_FE_regressions.R $(1) $(2) $(3) "$$@" $(MAIN_YVARS)
 endef
-$(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(FE_SPECS),$(eval $(call FE_template,$(bw),$(sample),$(fe))))))
+$(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),$(eval $(call MAIN_RULE,$(bw),$(sample),$(fe))))))
 
-define FE_template_pruned
-../output/fe_table_bw$(1)_$(2)_$(3)_pruned.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv | ../output
-	# arg order: bw_ft sample fe_spec output_filename yvars...
-	PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv Rscript border_pair_FE_regressions.R $(1) $(2) $(3) "$$@" $(YVARS_TABLE)
+define MAIN_RULE_PRUNED
+../output/fe_table_bw$(1)_$(2)_$(3)_clust_segment_pruned.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv | ../output
+	PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CLUSTER_LEVEL=segment Rscript border_pair_FE_regressions.R $(1) $(2) $(3) "$$@" $(MAIN_YVARS)
 endef
-$(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(FE_SPECS),$(eval $(call FE_template_pruned,$(bw),$(sample),$(fe))))))
+$(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),$(eval $(call MAIN_RULE_PRUNED,$(bw),$(sample),$(fe))))))
 
-define FE_template_segment
-../output/fe_table_bw500_$(1)_$(2)_clust_$(3).tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
-	# arg order: bw_ft sample fe_spec output_filename yvars...
-	CLUSTER_LEVEL=$(3) Rscript border_pair_FE_regressions.R 500 $(1) $(2) "$$@" $(SEG_YVARS)
+define ROBUST_CLUSTER_RULE
+../output/fe_table_bw$(1)_$(2)_$(3)_clust_ward_pair.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
+	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R $(1) $(2) $(3) "$$@" $(MAIN_YVARS)
 endef
-$(foreach sample,$(SAMPLES),$(foreach fe,$(SEG_FE_SPECS),$(foreach cluster,$(SEG_CLUSTERS),$(eval $(call FE_template_segment,$(sample),$(fe),$(cluster))))))
+$(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),$(eval $(call ROBUST_CLUSTER_RULE,$(bw),$(sample),$(fe))))))
+
+define ALT_FE_RULE
+../output/fe_table_bw500_$(1)_$(2)_clust_segment.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
+	CLUSTER_LEVEL=segment Rscript border_pair_FE_regressions.R 500 $(1) $(2) "$$@" $(MAIN_YVARS)
+endef
+$(foreach sample,$(SAMPLES),$(foreach fe,$(ALT_FE_SPECS),$(eval $(call ALT_FE_RULE,$(sample),$(fe)))))
+
+define DONUT_RULE
+../output/fe_table_bw500_$(1)_$(2)_clust_segment_donut$(3).tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
+	DONUT_FT=$(3) CLUSTER_LEVEL=segment Rscript border_pair_FE_regressions.R 500 $(1) $(2) "$$@" $(MAIN_YVARS)
+endef
+$(foreach donut,$(DONUTS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),$(eval $(call DONUT_RULE,$(sample),$(fe),$(donut))))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	ln -sf "$<" "$@"
