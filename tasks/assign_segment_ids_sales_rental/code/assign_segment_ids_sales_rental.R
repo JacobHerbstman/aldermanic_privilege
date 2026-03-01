@@ -9,14 +9,7 @@ sf_use_s2(FALSE)
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids_sales_rental/code")
-# sales_input <- "../input/sales_pre_scores.csv"
-# rent_input <- "../input/rent_pre_scores_full.parquet"
-# segment_gpkg <- "../input/boundary_segments_1320ft.gpkg"
-# out_sales <- "../output/sales_pre_scores_with_segments.csv"
-# out_rent <- "../output/rent_pre_scores_full_with_segments.parquet"
-# out_coverage <- "../output/segment_assignment_coverage_summary.csv"
-# out_spotcheck <- "../output/segment_assignment_spotcheck_queue.csv"
-# source("assign_segment_ids_sales_rental.R")
+# Rscript assign_segment_ids_sales_rental.R ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/boundary_segments_1320ft.gpkg ../output/sales_pre_scores_with_segments.csv ../output/rent_pre_scores_full_with_segments.parquet ../output/segment_assignment_coverage_summary.csv ../output/segment_assignment_spotcheck_queue.csv
 # =======================================================================================
 
 cli_args <- commandArgs(trailingOnly = TRUE)

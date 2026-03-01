@@ -1,36 +1,22 @@
 SHELL := bash
 include ../../shell_functions.make
 
-SCRIPT := run_diagnostics.R
-SUMMARY_SCRIPT := treatment_summary_stats.R
+all: ../output/treatment_control_map_2015.pdf ../output/treatment_control_map_2023.pdf ../output/ward_pair_before_after_13-23.pdf ../output/treatment_summary_stats.csv
 
-DIAG_INPUTS := ../input/sales_stacked_panel.csv ../input/sales_stacked_quarterly_panel.csv ../input/census_blocks_2010.csv ../input/ward_panel.gpkg ../input/block_treatment_panel.csv
+../output/treatment_control_map_2015.pdf ../output/treatment_control_map_2023.pdf ../output/ward_pair_before_after_13-23.pdf: ../output/.diagnostics.done
 
-MAP_2015 := ../output/treatment_control_map_2015.pdf
-MAP_2023 := ../output/treatment_control_map_2023.pdf
-PAIR_13_23 := ../output/ward_pair_before_after_13-23.pdf
-SUMMARY_CSV := ../output/treatment_summary_stats.csv
-STAMP := ../output/.diagnostics.done
-
-.DEFAULT_GOAL := all
-.PHONY: all link-inputs
-
-all: $(MAP_2015) $(MAP_2023) $(PAIR_13_23) $(SUMMARY_CSV)
-
-$(MAP_2015) $(MAP_2023) $(PAIR_13_23): $(STAMP)
-
-$(STAMP): $(SCRIPT) $(DIAG_INPUTS) | ../output
-	$(R) $(SCRIPT)
+../output/.diagnostics.done: run_diagnostics.R ../input/sales_stacked_panel.csv ../input/sales_stacked_quarterly_panel.csv ../input/census_blocks_2010.csv ../input/ward_panel.gpkg ../input/block_treatment_panel.csv | ../output
+	$(R) run_diagnostics.R
 	find ../output -maxdepth 1 -type f \
-		! -name "$(notdir $(MAP_2015))" \
-		! -name "$(notdir $(MAP_2023))" \
-		! -name "$(notdir $(PAIR_13_23))" \
-		! -name "$(notdir $(STAMP))" \
+		! -name treatment_control_map_2015.pdf \
+		! -name treatment_control_map_2023.pdf \
+		! -name ward_pair_before_after_13-23.pdf \
+		! -name .diagnostics.done \
 		-delete
 	touch "$@"
 
-$(SUMMARY_CSV): $(SUMMARY_SCRIPT) ../input/block_treatment_panel.csv | ../output
-	$(R) $(SUMMARY_SCRIPT)
+../output/treatment_summary_stats.csv: treatment_summary_stats.R ../input/block_treatment_panel.csv | ../output
+	$(R) treatment_summary_stats.R
 	rm -f ../output/treatment_summary_presentation.txt
 
 ../input/sales_stacked_panel.csv: ../../create_event_study_sales_data/output/sales_stacked_panel.csv | ../input
@@ -48,6 +34,6 @@ $(SUMMARY_CSV): $(SUMMARY_SCRIPT) ../input/block_treatment_panel.csv | ../output
 ../input/block_treatment_panel.csv: ../../create_block_treatment_panel/output/block_treatment_panel.csv | ../input
 	ln -sf "$<" "$@"
 
-link-inputs: $(DIAG_INPUTS)
+link-inputs: ../input/sales_stacked_panel.csv ../input/sales_stacked_quarterly_panel.csv ../input/census_blocks_2010.csv ../input/ward_panel.gpkg ../input/block_treatment_panel.csv
 
 include ../../generic.make

@@ -3,8 +3,6 @@
 # Optimized for large datasets using batching and spatial indexing.
 # Score/sign merge happens in merge_event_study_scores.
 
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 source("../../setup_environment/code/packages.R")
 
 # -----------------------------------------------------------------------------
@@ -13,7 +11,6 @@ source("../../setup_environment/code/packages.R")
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_rent_distances/code")
-# sample <- "TRUE"
 # Rscript calculate_rent_distances.R "TRUE"
 # =======================================================================================
 

@@ -1,24 +1,14 @@
 SHELL := bash
 include ../../shell_functions.make
 
-# --- Key Files ---
-INPUT_PARCELS := ../input/parcels_with_ward_distances.csv
-SCRIPT_FILE   := summary_stats.R
-OUTPUT_FILE   := ../output/summary_stats.tex
+all: ../output/summary_stats.tex
 
-.PHONY: all link-inputs
+../output/summary_stats.tex: summary_stats.R ../input/parcels_with_ward_distances.csv | ../output
+	Rscript summary_stats.R ../input/parcels_with_ward_distances.csv ../output/summary_stats.tex
 
-all: $(OUTPUT_FILE)
-
-$(OUTPUT_FILE): $(SCRIPT_FILE) $(INPUT_PARCELS) | ../output
-	@echo "→ [Summary Stats] Generating table..."
-	Rscript $(SCRIPT_FILE) $(INPUT_PARCELS) $(OUTPUT_FILE)
-
-# --- Link input from upstream task ---
-$(INPUT_PARCELS): ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	@echo "→ [Summary Stats] Linking input: $@ ← $<"
+../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	ln -sf "$<" "$@"
 
-link-inputs: $(INPUT_PARCELS)
+link-inputs: ../input/parcels_with_ward_distances.csv
 
 include ../../generic.make

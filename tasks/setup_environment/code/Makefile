@@ -1,15 +1,14 @@
-SHELL=bash
+SHELL := bash
 include ../../shell_functions.make
 
-all: $(foreach lang,stata R,../output/$(lang)_packages.txt) #python
+all: ../output/stata_packages.txt ../output/R_packages.txt
 
-#Recipes
-../output/stata_packages.txt: packages.do | ../output run.sbatch
+../output/stata_packages.txt: packages.do | ../output
 	$(STATA) $<
-../output/R_packages.txt: packages.R | ../output run.sbatch
+
+../output/R_packages.txt: packages.R | ../output
 	$(R) $<
 
-../input ../output slurmlogs:
-	mkdir $@
-run.sbatch: ../../setup_environment/code/run.sbatch | slurmlogs
-	ln -s $< $@
+link-inputs:
+
+include ../../generic.make

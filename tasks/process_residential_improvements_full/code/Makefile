@@ -1,9 +1,14 @@
 SHELL := bash
 include ../../shell_functions.make
 
+all: ../output/residential_improvements_panel.parquet
+
 ../output/residential_improvements_panel.parquet: process_improvements.R ../input/residential_improvement_characteristics_full.csv | ../output
-	@echo "→ [process_residential_improvements_full] Processing residential improvements to panel..."
-	$(R) $<
-	@echo "→ [process_residential_improvements_full] Done"
+	$(R) process_improvements.R
+
+../input/residential_improvement_characteristics_full.csv: ../../archive/download_residential_improvements_full/output/residential_improvement_characteristics_full.csv | ../input
+	ln -sf "$<" "$@"
+
+link-inputs: ../input/residential_improvement_characteristics_full.csv
 
 include ../../generic.make

@@ -6,8 +6,6 @@ source("../../setup_environment/code/packages.R")
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/process_rent_data/code")
-# input_file <- "../input/2025-11-11--data_example.parquet"
-# output_file <- "../temp/2025-11-11.csv"
 # Rscript process_rent_data.R ../input/2025-11-11--data_example.parquet ../temp/2025-11-11.csv
 # =======================================================================================
 
@@ -38,23 +36,3 @@ data <- read_parquet(input_file) %>%
 
 # Write output
 write_csv(data, output_file)
-
-
-
-# processing renthub chicago data
-
-## run this line when editing code in Rstudio 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
-# 
-# source("../../setup_environment/code/packages.R")
-# 
-# data <- read_parquet("../input/2025-11-11--data_01c09c08-0107-1cbd-0042-fa07047ca0a6_507_6_0.snappy.parquet", show_col_types = FALSE) %>% 
-#   janitor::clean_names()
-# 
-# data <- data %>% 
-#   filter(city == "Chicago") %>% 
-#   mutate(available_date = as.Date(str_sub(available_at, 1, 10)), 
-#          file_date = as.Date(str_sub(scraped_timestamp, 1, 10))) %>% 
-#   select(id, property_id, rent_price, building_type, beds, baths, sqft, 
-#          availability_status, doorman, furnished, gym, laundry, pool, 
-#          year_built,  latitude, longitude, available_date, file_date) 

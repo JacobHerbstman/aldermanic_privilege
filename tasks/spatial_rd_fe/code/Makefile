@@ -31,8 +31,6 @@ $(foreach fe,$(MAIN_FE_SPECS),\
 $(foreach log_stat,$(LOG_STATUS),\
 ../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(sample)_$(fe)_clust_segment_pruned.pdf)))))
 
-pruned: $(PRUNED_OUTPUTS)
-
 ROBUST_CLUSTER_OUTPUTS := $(foreach yvar,$(YVARS),\
 $(foreach bw,$(BANDWIDTHS),\
 $(foreach sample,$(SAMPLES),\
@@ -60,11 +58,6 @@ $(foreach log_stat,$(LOG_STATUS),\
 $(foreach shift,$(PLACEBO_SHIFTS_FT),\
 ../output/placebo_rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw500_$(sample)_$(fe)_clust_segment_shift$(shift).pdf)))))
 
-robust-cluster: $(ROBUST_CLUSTER_OUTPUTS)
-alt-fe: $(ALT_FE_OUTPUTS)
-donut: $(DONUT_OUTPUTS)
-placebo: $(PLACEBO_OUTPUTS)
-
 GAP_OUTPUTS := $(foreach yvar,$(YVARS),\
 $(foreach bw,$(BANDWIDTHS),\
 $(foreach sample,$(SAMPLES),\
@@ -72,10 +65,6 @@ $(foreach fe,$(MAIN_FE_SPECS),\
 $(foreach log_stat,$(LOG_STATUS),\
 $(foreach gap,$(GAP_SPLITS),\
 ../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(sample)_$(fe)_clust_segment_gap_$(gap).pdf))))))
-
-gap-split: $(GAP_OUTPUTS)
-
-segment-robustness: robust-cluster
 
 define GEN_RULE
 ../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(sample)_$(fe)_clust_segment.pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output

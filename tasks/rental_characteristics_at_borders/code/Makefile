@@ -1,81 +1,65 @@
 SHELL := bash
 include ../../shell_functions.make
 
-INPUT := ../input/rent_with_ward_distances.parquet
-CONFOUND_FLAGS := ../input/confounded_pair_era_flags.csv
+all: \
+	../output/char_fe_table_bw500.tex \
+	../output/listing_density_bw500_pre_2023_all_pct0.pdf \
+	../output/listing_units_bw500_pre_2023_all_pct0.pdf \
+	../output/listing_units_side_comparison_bw500_pre_2023.pdf \
+	../output/listing_units_matched_pair_ratio_bw500_pre_2023_all_pct0_unit_proxy.pdf \
+	../output/listing_units_matched_pair_ratio_bw500_pre_2023_all_pct0_unit_proxy.csv \
+	../output/listing_units_fe_table_bw500_pre_2023_all_pct0.tex \
+	../output/listing_units_fe_table_bw500_pre_2023_all_pct0.csv \
+	../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.tex \
+	../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.csv \
+	../output/listing_units_ppml_robustness_bw500_pre_2023.tex \
+	../output/listing_units_ppml_robustness_bw500_pre_2023.csv \
+	../output/listing_units_ppml_main_bw500_pre_2023.tex \
+	../output/listing_units_ppml_main_bw500_pre_2023.csv
 
-CHAR_TEX := ../output/char_fe_table_bw500.tex
-LISTING_PDF := ../output/listing_density_bw500_pre_2023_all_pct0.pdf
-LISTING_UNITS_PDF := ../output/listing_units_bw500_pre_2023_all_pct0.pdf
-LISTING_UNITS_TEX := ../output/listing_units_fe_table_bw500_pre_2023_all_pct0.tex
-LISTING_UNITS_CSV := ../output/listing_units_fe_table_bw500_pre_2023_all_pct0.csv
-LISTING_UNITS_PPML_TEX := ../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.tex
-LISTING_UNITS_PPML_CSV := ../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.csv
-LISTING_UNITS_PPML_ROBUST_TEX := ../output/listing_units_ppml_robustness_bw500_pre_2023.tex
-LISTING_UNITS_PPML_ROBUST_CSV := ../output/listing_units_ppml_robustness_bw500_pre_2023.csv
-LISTING_UNITS_PPML_MAIN_TEX := ../output/listing_units_ppml_main_bw500_pre_2023.tex
-LISTING_UNITS_PPML_MAIN_CSV := ../output/listing_units_ppml_main_bw500_pre_2023.csv
-SIDE_COMP_PDF := ../output/listing_units_side_comparison_bw500_pre_2023.pdf
-MATCHED_RATIO_PDF := ../output/listing_units_matched_pair_ratio_bw500_pre_2023_all_pct0_unit_proxy.pdf
-MATCHED_RATIO_CSV := ../output/listing_units_matched_pair_ratio_bw500_pre_2023_all_pct0_unit_proxy.csv
+../output/char_fe_table_bw500.tex: characteristic_fe_table.R ../input/rent_with_ward_distances.parquet | ../output
+	Rscript characteristic_fe_table.R ../input/rent_with_ward_distances.parquet 500 pre_2023 "$@" ../output/char_fe_table_bw500.csv
 
-.DEFAULT_GOAL := all
-.PHONY: all link-inputs
+../output/listing_density_bw500_pre_2023_all_pct0.pdf: listing_density_plot.R ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv | ../output
+	Rscript listing_density_plot.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all 0 15 "$@"
 
-all: $(CHAR_TEX) $(LISTING_PDF) $(LISTING_UNITS_PDF) $(SIDE_COMP_PDF) $(MATCHED_RATIO_PDF) $(MATCHED_RATIO_CSV) $(LISTING_UNITS_TEX) $(LISTING_UNITS_CSV) $(LISTING_UNITS_PPML_TEX) $(LISTING_UNITS_PPML_CSV) $(LISTING_UNITS_PPML_ROBUST_TEX) $(LISTING_UNITS_PPML_ROBUST_CSV) $(LISTING_UNITS_PPML_MAIN_TEX) $(LISTING_UNITS_PPML_MAIN_CSV)
+../output/listing_units_bw500_pre_2023_all_pct0.pdf: listing_units_plot.R ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv | ../output
+	Rscript listing_units_plot.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all unit_proxy 0 8 "$@"
 
-$(CHAR_TEX): characteristic_fe_table.R $(INPUT) | ../output
-	# arg order: input bw_ft window output_tex output_csv
-	Rscript characteristic_fe_table.R "$(INPUT)" 500 pre_2023 "$@" "../output/char_fe_table_bw500.csv"
+../output/listing_units_side_comparison_bw500_pre_2023.pdf: listing_units_side_comparison.R ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv | ../output
+	Rscript listing_units_side_comparison.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all unit_proxy 0 "$@"
 
-$(LISTING_PDF): listing_density_plot.R $(INPUT) $(CONFOUND_FLAGS) | ../output
-	# arg order: input bw_ft window sample_filter min_strictness_diff_pctile bins_per_side output_pdf
-	Rscript listing_density_plot.R "$(INPUT)" 500 pre_2023 all 0 15 "$@"
+../output/listing_units_matched_pair_ratio_bw500_pre_2023_all_pct0_unit_proxy.pdf: listing_units_matched_pair_ratio_plot.R ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv | ../output
+	Rscript listing_units_matched_pair_ratio_plot.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all unit_proxy 0 "$@" ../output/listing_units_matched_pair_ratio_bw500_pre_2023_all_pct0_unit_proxy.csv
 
-$(LISTING_UNITS_PDF): listing_units_plot.R $(INPUT) $(CONFOUND_FLAGS) | ../output
-	# arg order: input bw_ft window sample_filter unit_def min_strictness_diff_pctile bins_per_side output_pdf
-	Rscript listing_units_plot.R "$(INPUT)" 500 pre_2023 all unit_proxy 0 8 "$@"
+../output/listing_units_matched_pair_ratio_bw500_pre_2023_all_pct0_unit_proxy.csv: ../output/listing_units_matched_pair_ratio_bw500_pre_2023_all_pct0_unit_proxy.pdf
 
-$(SIDE_COMP_PDF): listing_units_side_comparison.R $(INPUT) $(CONFOUND_FLAGS) | ../output
-	# arg order: input bw_ft window sample_filter unit_def min_strictness_diff_pctile output_pdf
-	Rscript listing_units_side_comparison.R "$(INPUT)" 500 pre_2023 all unit_proxy 0 "$@"
+../output/listing_units_fe_table_bw500_pre_2023_all_pct0.tex: listing_units_fe_table.R ../input/rent_with_ward_distances.parquet | ../output
+	Rscript listing_units_fe_table.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all 0 "$@" ../output/listing_units_fe_table_bw500_pre_2023_all_pct0.csv
 
-$(MATCHED_RATIO_PDF): listing_units_matched_pair_ratio_plot.R $(INPUT) $(CONFOUND_FLAGS) | ../output
-	# arg order: input bw_ft window sample_filter unit_def min_strictness_diff_pctile output_pdf output_csv
-	Rscript listing_units_matched_pair_ratio_plot.R "$(INPUT)" 500 pre_2023 all unit_proxy 0 "$@" "$(MATCHED_RATIO_CSV)"
+../output/listing_units_fe_table_bw500_pre_2023_all_pct0.csv: ../output/listing_units_fe_table_bw500_pre_2023_all_pct0.tex
 
-$(MATCHED_RATIO_CSV): $(MATCHED_RATIO_PDF)
+../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.tex: listing_units_ppml_fe_table.R ../input/rent_with_ward_distances.parquet | ../output
+	Rscript listing_units_ppml_fe_table.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all 0 unit_proxy "$@" ../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.csv
 
-$(LISTING_UNITS_TEX): listing_units_fe_table.R $(INPUT) | ../output
-	# arg order: input bw_ft window sample_filter min_strictness_diff_pctile output_tex output_csv
-	Rscript listing_units_fe_table.R "$(INPUT)" 500 pre_2023 all 0 "$@" "$(LISTING_UNITS_CSV)"
+../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.csv: ../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.tex
 
-$(LISTING_UNITS_CSV): $(LISTING_UNITS_TEX)
+../output/listing_units_ppml_robustness_bw500_pre_2023.tex: listing_units_ppml_robustness.R ../input/rent_with_ward_distances.parquet | ../output
+	Rscript listing_units_ppml_robustness.R ../input/rent_with_ward_distances.parquet 500 pre_2023 "$@" ../output/listing_units_ppml_robustness_bw500_pre_2023.csv
 
-$(LISTING_UNITS_PPML_TEX): listing_units_ppml_fe_table.R $(INPUT) | ../output
-	# arg order: input bw_ft window sample_filter min_strictness_diff_pctile unit_def output_tex output_csv
-	Rscript listing_units_ppml_fe_table.R "$(INPUT)" 500 pre_2023 all 0 unit_proxy "$@" "$(LISTING_UNITS_PPML_CSV)"
+../output/listing_units_ppml_robustness_bw500_pre_2023.csv: ../output/listing_units_ppml_robustness_bw500_pre_2023.tex
 
-$(LISTING_UNITS_PPML_CSV): $(LISTING_UNITS_PPML_TEX)
+../output/listing_units_ppml_main_bw500_pre_2023.tex: listing_units_ppml_main_table.R ../input/rent_with_ward_distances.parquet | ../output
+	Rscript listing_units_ppml_main_table.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all unit_proxy "$@" ../output/listing_units_ppml_main_bw500_pre_2023.csv
 
-$(LISTING_UNITS_PPML_ROBUST_TEX): listing_units_ppml_robustness.R $(INPUT) | ../output
-	# arg order: input bw_ft window output_tex output_csv
-	Rscript listing_units_ppml_robustness.R "$(INPUT)" 500 pre_2023 "$@" "$(LISTING_UNITS_PPML_ROBUST_CSV)"
+../output/listing_units_ppml_main_bw500_pre_2023.csv: ../output/listing_units_ppml_main_bw500_pre_2023.tex
 
-$(LISTING_UNITS_PPML_ROBUST_CSV): $(LISTING_UNITS_PPML_ROBUST_TEX)
-
-$(LISTING_UNITS_PPML_MAIN_TEX): listing_units_ppml_main_table.R $(INPUT) | ../output
-	# arg order: input bw_ft window sample_filter unit_def output_tex output_csv
-	Rscript listing_units_ppml_main_table.R "$(INPUT)" 500 pre_2023 all unit_proxy "$@" "$(LISTING_UNITS_PPML_MAIN_CSV)"
-
-$(LISTING_UNITS_PPML_MAIN_CSV): $(LISTING_UNITS_PPML_MAIN_TEX)
-
-$(INPUT): ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
+../input/rent_with_ward_distances.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
 	ln -sf "$<" "$@"
 
-$(CONFOUND_FLAGS): ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
+../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
 	ln -sf "$<" "$@"
 
-link-inputs: $(INPUT) $(CONFOUND_FLAGS)
+link-inputs: ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv
 
 include ../../generic.make

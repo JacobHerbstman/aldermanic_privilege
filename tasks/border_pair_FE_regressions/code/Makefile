@@ -15,12 +15,6 @@ ALT_FE_OUTPUTS := $(foreach sample,$(SAMPLES),$(foreach fe,$(ALT_FE_SPECS),../ou
 DONUT_OUTPUTS := $(foreach donut,$(DONUTS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),../output/fe_table_bw500_$(sample)_$(fe)_clust_segment_donut$(donut).tex)))
 
 all: $(MAIN_OUTPUTS)
-pruned: $(MAIN_OUTPUTS_PRUNED)
-robust-cluster: $(ROBUST_CLUSTER_OUTPUTS)
-alt-fe: $(ALT_FE_OUTPUTS)
-donut: $(DONUT_OUTPUTS)
-segment-robustness: robust-cluster
-legacy-all: $(ALT_FE_OUTPUTS)
 
 define MAIN_RULE
 ../output/fe_table_bw$(1)_$(2)_$(3)_clust_segment.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output

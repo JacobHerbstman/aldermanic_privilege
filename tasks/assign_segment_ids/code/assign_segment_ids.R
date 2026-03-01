@@ -6,12 +6,7 @@ library(sf)
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids/code")
-# in_pre_scores <- "../input/parcels_pre_scores.csv"
-# in_geom <- "../input/parcels_with_geometry.gpkg"
-# in_segments <- "../input/boundary_segments_1320ft.gpkg"
-# out_lookup <- "../output/parcel_segment_ids.csv"
-# out_coverage <- "../output/parcel_segment_ids_coverage.csv"
-# source("assign_segment_ids.R")
+# Rscript assign_segment_ids.R ../input/parcels_pre_scores.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_1320ft.gpkg ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv
 # =======================================================================================
 
 args <- commandArgs(trailingOnly = TRUE)

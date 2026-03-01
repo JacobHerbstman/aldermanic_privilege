@@ -1,70 +1,25 @@
 SHELL := bash
 include ../../shell_functions.make
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Directories & Config
-# ─────────────────────────────────────────────────────────────────────────────
-SINGLE_SCRIPT := process_rent_data.R
-AGG_SCRIPT    := aggregate_rents.R
+raw_files := $(wildcard ../../download_rent_data/output/*.parquet)
+input_links := $(patsubst ../../download_rent_data/output/%,../input/%,$(raw_files))
+dates := $(sort $(foreach f,$(raw_files),$(firstword $(subst --, ,$(notdir $(f))))))
+temp_csvs := $(patsubst %,../temp/%.csv,$(dates))
 
-# ─────────────────────────────────────────────────────────────────────────────
-# File Lists
-# ─────────────────────────────────────────────────────────────────────────────
+all: ../output/chicago_rent_panel.parquet
 
-# 1. Identify raw files in the upstream task
-RAW_FILES := $(wildcard ../../download_rent_data/output/*.parquet)
+../output/chicago_rent_panel.parquet: aggregate_rents.R $(temp_csvs) | ../output
+	Rscript aggregate_rents.R
 
-# 2. Define Symlinks needed in ../input
-SOURCES := $(patsubst ../../download_rent_data/output/%, ../input/%, $(RAW_FILES))
-
-# 3. Extract Dates for intermediate targets
-#    (e.g., 2025-11-11--data_xx.parquet -> 2025-11-11)
-DATES := $(sort $(foreach f,$(RAW_FILES),$(firstword $(subst --, ,$(notdir $f)))))
-
-# 4. Define Intermediate Targets (Daily CSVs in ../temp)
-TEMP_TARGETS := $(patsubst %,../temp/%.csv,$(DATES))
-
-# 5. Define Final Output
-FINAL_TARGET := ../output/chicago_rent_panel.parquet
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Goals
-# ─────────────────────────────────────────────────────────────────────────────
-.DEFAULT_GOAL := all
-.PHONY: all link-inputs clean-temp
-
-all: $(FINAL_TARGET)
-
-link-inputs: $(SOURCES)
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 1. Aggregation Rule
-#    Depends on ALL temp CSVs. If any CSV changes, re-run aggregation.
-# ─────────────────────────────────────────────────────────────────────────────
-$(FINAL_TARGET): $(AGG_SCRIPT) $(TEMP_TARGETS) | ../output
-	@echo "→ [Aggregation] Combining $(words $(TEMP_TARGETS)) daily files into panel..."
-	$(R) $(AGG_SCRIPT)
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 2. Single Day Processing Rules (Dynamically Generated)
-#    Maps: ../input/2025-11-11--data_xxx.parquet → ../temp/2025-11-11.csv
-# ─────────────────────────────────────────────────────────────────────────────
-define make_rule
-../temp/$(firstword $(subst --, ,$(notdir $(1)))).csv: $(1) $(SINGLE_SCRIPT) | ../temp
-	@echo "→ [Single Day] Processing $$(notdir $$<)"
-	$$(R) $$(SINGLE_SCRIPT) "$$<" "$$@"
+define single_day_rule
+../temp/$(firstword $(subst --, ,$(notdir $(1)))).csv: $(1) process_rent_data.R | ../temp
+	Rscript process_rent_data.R "$$<" "$$@"
 endef
+$(foreach f,$(input_links),$(eval $(call single_day_rule,$(f))))
 
-$(foreach f,$(SOURCES),$(eval $(call make_rule,$f)))
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 3. Input Symlinks - Explicit path pattern rule
-# ─────────────────────────────────────────────────────────────────────────────
 ../input/%.parquet: ../../download_rent_data/output/%.parquet | ../input
 	ln -sf "$<" "$@"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Maintenance Rules
-# ─────────────────────────────────────────────────────────────────────────────
+link-inputs: $(input_links)
 
 include ../../generic.make

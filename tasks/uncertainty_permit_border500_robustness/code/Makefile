@@ -1,56 +1,44 @@
 SHELL := bash
 include ../../shell_functions.make
 
-FILTER_SCRIPT := filter_high_discretion_permits_near_boundary.R
-FILTERED_PERMITS := ../output/building_permits_clean_border500_filtered.gpkg
-FILTER_SUMMARY := ../output/high_discretion_boundary_filter_summary.csv
-FILTER_DETAIL := ../output/high_discretion_boundary_distances.csv
-FILTER_STAMP := ../output/.filter_border500.done
-
-PREP_SCRIPT := ../../data_for_alderman_uncertainty_index/code/prepare_uncertainty_data.R
-PREP_OUTPUT := ../output/permits_for_uncertainty_index.csv
-
-UNCERTAINTY_SCRIPT := ../../create_alderman_uncertainty_index/code/create_uncertainty_index.R
 UNCERTAINTY_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH
-UNCERTAINTY_CSV := ../output/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv
-UNCERTAINTY_PLOT := ../output/uncertainty_index_$(UNCERTAINTY_SPEC).pdf
-UNCERTAINTY_STAGE1 := ../output/stage1_regression_$(UNCERTAINTY_SPEC).tex
-UNCERTAINTY_STAGE2 := ../output/stage2_regression_$(UNCERTAINTY_SPEC).tex
-UNCERTAINTY_STAMP := ../output/.uncertainty_border500.done
-
-MERGE_SCRIPT := ../../merge_in_scores/code/merge_scores.R
-MERGED_PARCELS := ../output/parcels_with_ward_distances.csv
-
-SPATIAL_RD_FE_SCRIPT := ../../spatial_rd_fe/code/spatial_rd_fe.R
 RD_FE_SPEC := zone_pair_year_additive
-RD_FE_FAR_OUTPUT := ../output/rd_fe_plot_log_density_far_bw500_all_$(RD_FE_SPEC)_permit_border500.pdf
-RD_FE_DUPAC_OUTPUT := ../output/rd_fe_plot_log_density_dupac_bw500_all_$(RD_FE_SPEC)_permit_border500.pdf
 
-all: $(FILTERED_PERMITS) $(FILTER_SUMMARY) $(FILTER_DETAIL) $(PREP_OUTPUT) $(UNCERTAINTY_CSV) $(UNCERTAINTY_PLOT) $(UNCERTAINTY_STAGE1) $(UNCERTAINTY_STAGE2) $(MERGED_PARCELS) $(RD_FE_FAR_OUTPUT) $(RD_FE_DUPAC_OUTPUT)
+all: ../output/building_permits_clean_border500_filtered.gpkg \
+	../output/high_discretion_boundary_filter_summary.csv \
+	../output/high_discretion_boundary_distances.csv \
+	../output/permits_for_uncertainty_index.csv \
+	../output/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv \
+	../output/uncertainty_index_$(UNCERTAINTY_SPEC).pdf \
+	../output/stage1_regression_$(UNCERTAINTY_SPEC).tex \
+	../output/stage2_regression_$(UNCERTAINTY_SPEC).tex \
+	../output/parcels_with_ward_distances.csv \
+	../output/rd_fe_plot_log_density_far_bw500_all_$(RD_FE_SPEC)_permit_border500.pdf \
+	../output/rd_fe_plot_log_density_dupac_bw500_all_$(RD_FE_SPEC)_permit_border500.pdf
 
-$(FILTERED_PERMITS) $(FILTER_SUMMARY) $(FILTER_DETAIL): $(FILTER_STAMP)
+../output/building_permits_clean_border500_filtered.gpkg ../output/high_discretion_boundary_filter_summary.csv ../output/high_discretion_boundary_distances.csv: ../output/.filter_border500.done
 
-$(FILTER_STAMP): $(FILTER_SCRIPT) ../input/building_permits_clean_raw.gpkg ../input/ward_panel.gpkg | ../output
-	$(R) $(FILTER_SCRIPT)
+../output/.filter_border500.done: filter_high_discretion_permits_near_boundary.R ../input/building_permits_clean_raw.gpkg ../input/ward_panel.gpkg | ../output
+	$(R) filter_high_discretion_permits_near_boundary.R
 	touch "$@"
 
-$(PREP_OUTPUT): $(PREP_SCRIPT) ../input/ward_panel.gpkg ../input/building_permits_clean.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/community_areas.geojson ../input/cta_stations.geojson ../input/city_boundary.geojson ../input/gis_osm_water_a_free_1.shp | ../output
-	$(R) $(PREP_SCRIPT)
+../output/permits_for_uncertainty_index.csv: ../../data_for_alderman_uncertainty_index/code/prepare_uncertainty_data.R ../input/ward_panel.gpkg ../input/building_permits_clean.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/community_areas.geojson ../input/cta_stations.geojson ../input/city_boundary.geojson ../input/gis_osm_water_a_free_1.shp | ../output
+	$(R) ../../data_for_alderman_uncertainty_index/code/prepare_uncertainty_data.R
 
-$(UNCERTAINTY_CSV) $(UNCERTAINTY_PLOT) $(UNCERTAINTY_STAGE1) $(UNCERTAINTY_STAGE2): $(UNCERTAINTY_STAMP)
+../output/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../output/uncertainty_index_$(UNCERTAINTY_SPEC).pdf ../output/stage1_regression_$(UNCERTAINTY_SPEC).tex ../output/stage2_regression_$(UNCERTAINTY_SPEC).tex: ../output/.uncertainty_border500.done
 
-$(UNCERTAINTY_STAMP): $(UNCERTAINTY_SCRIPT) ../input/permits_for_uncertainty_index.csv | ../output
-	$(R) $(UNCERTAINTY_SCRIPT) TRUE TRUE TRUE FALSE TRUE N_PERMITS LAG1 BOTH
+../output/.uncertainty_border500.done: ../../create_alderman_uncertainty_index/code/create_uncertainty_index.R ../input/permits_for_uncertainty_index.csv | ../output
+	$(R) ../../create_alderman_uncertainty_index/code/create_uncertainty_index.R TRUE TRUE TRUE FALSE TRUE N_PERMITS LAG1 BOTH
 	touch "$@"
 
-$(MERGED_PARCELS): $(MERGE_SCRIPT) ../input/parcels_pre_scores.csv ../input/aldermen_uncertainty_scores.csv | ../output
-	$(R) $(MERGE_SCRIPT) ../input/aldermen_uncertainty_scores.csv uncertainty_index
+../output/parcels_with_ward_distances.csv: ../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/aldermen_uncertainty_scores.csv | ../output
+	$(R) ../../merge_in_scores/code/merge_scores.R ../input/aldermen_uncertainty_scores.csv uncertainty_index
 
-$(RD_FE_FAR_OUTPUT): $(SPATIAL_RD_FE_SCRIPT) ../input/parcels_with_ward_distances.csv | ../output
-	$(R) $(SPATIAL_RD_FE_SCRIPT) density_far TRUE 500 all $(RD_FE_SPEC) $@ slope
+../output/rd_fe_plot_log_density_far_bw500_all_$(RD_FE_SPEC)_permit_border500.pdf: ../../spatial_rd_fe/code/spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
+	$(R) ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE 500 all $(RD_FE_SPEC) $@ slope
 
-$(RD_FE_DUPAC_OUTPUT): $(SPATIAL_RD_FE_SCRIPT) ../input/parcels_with_ward_distances.csv | ../output
-	$(R) $(SPATIAL_RD_FE_SCRIPT) density_dupac TRUE 500 all $(RD_FE_SPEC) $@ slope
+../output/rd_fe_plot_log_density_dupac_bw500_all_$(RD_FE_SPEC)_permit_border500.pdf: ../../spatial_rd_fe/code/spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
+	$(R) ../../spatial_rd_fe/code/spatial_rd_fe.R density_dupac TRUE 500 all $(RD_FE_SPEC) $@ slope
 
 ../input/building_permits_clean_raw.gpkg: ../../clean_building_permits/output/building_permits_clean.gpkg | ../input
 	ln -sf $< $@
@@ -58,7 +46,7 @@ $(RD_FE_DUPAC_OUTPUT): $(SPATIAL_RD_FE_SCRIPT) ../input/parcels_with_ward_distan
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	ln -sf $< $@
 
-../input/building_permits_clean.gpkg: $(FILTERED_PERMITS) | ../input
+../input/building_permits_clean.gpkg: ../output/building_permits_clean_border500_filtered.gpkg | ../input
 	ln -sf $< $@
 
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
@@ -79,18 +67,18 @@ $(RD_FE_DUPAC_OUTPUT): $(SPATIAL_RD_FE_SCRIPT) ../input/parcels_with_ward_distan
 ../input/gis_osm_water_a_free_1.shp: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shp | ../input
 	ln -sf ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.* $(dir $@)
 
-../input/permits_for_uncertainty_index.csv: $(PREP_OUTPUT) | ../input
+../input/permits_for_uncertainty_index.csv: ../output/permits_for_uncertainty_index.csv | ../input
 	ln -sf $< $@
 
 ../input/parcels_pre_scores.csv: ../../calculate_ward_boundary_distances/output/parcels_pre_scores.csv | ../input
 	ln -sf $< $@
 
-../input/aldermen_uncertainty_scores.csv: $(UNCERTAINTY_CSV) | ../input
+../input/aldermen_uncertainty_scores.csv: ../output/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv | ../input
 	ln -sf $< $@
 
-../input/parcels_with_ward_distances.csv: $(MERGED_PARCELS) | ../input
+../input/parcels_with_ward_distances.csv: ../output/parcels_with_ward_distances.csv | ../input
 	ln -sf $< $@
-
-include ../../generic.make
 
 link-inputs: ../input/building_permits_clean_raw.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/community_areas.geojson ../input/cta_stations.geojson ../input/city_boundary.geojson ../input/gis_osm_water_a_free_1.shp ../input/parcels_pre_scores.csv
+
+include ../../generic.make
