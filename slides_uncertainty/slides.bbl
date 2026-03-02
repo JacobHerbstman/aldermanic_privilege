@@ -1,0 +1,75 @@
+\ifx\undefined\bysame
+\newcommand{\bysame}{\leavevmode\hbox to\leftmargin{\hrulefill\,\,}}
+\fi
+\begin{thebibliography}{xx}
+
+\harvarditem[Bayer et al.]{Bayer, Ferreira and McMillan}{2007}{bayer_unified_2007}
+{\bf Bayer, Patrick, Fernando Ferreira, and Robert McMillan}, ``A {Unified} {Framework} for {Measuring} {Preferences} for {Schools} and {Neighborhoods},'' {\it Journal of Political Economy}, August 2007, {\it 115} (4), 588--638.
+
+\harvarditem[Black]{Black}{1999}{black_better_1999}
+{\bf Black, S.~E.}, ``Do {Better} {Schools} {Matter}? {Parental} {Valuation} of {Elementary} {Education},'' {\it The Quarterly Journal of Economics}, May 1999, {\it 114} (2), 577--599.
+
+\harvarditem[Bloom]{Bloom}{2009}{bloom_impact_2009}
+{\bf Bloom, Nicholas}, ``The {Impact} of {Uncertainty} {Shocks},'' {\it Econometrica}, 2009, {\it 77} (3), 623--685.
+
+\harvarditem[Budish et al.]{Budish, Roin and Williams}{2015}{budish_firms_2015}
+{\bf Budish, Eric, Benjamin~N. Roin, and Heidi Williams}, ``Do {Firms} {Underinvest} in {Long}-{Term} {Research}? {Evidence} from {Cancer} {Clinical} {Trials},'' {\it American Economic Review}, July 2015, {\it 105} (7), 2044--2085.
+
+\harvarditem[Cunningham]{Cunningham}{2006}{cunningham_house_2006}
+{\bf Cunningham, Christopher~R.}, ``House price uncertainty, timing of development, and vacant land prices: {Evidence} for real options in {Seattle},'' {\it Journal of Urban Economics}, January 2006, {\it 59} (1), 1--31.
+
+\harvarditem[Diamond et al.]{Diamond, McQuade and Qian}{2019}{diamond_effects_2019}
+{\bf Diamond, Rebecca, Tim McQuade, and Franklin Qian}, ``The {Effects} of {Rent} {Control} {Expansion} on {Tenants}, {Landlords}, and {Inequality}: {Evidence} from {San} {Francisco},'' {\it American Economic Review}, September 2019, {\it 109} (9), 3365--3394.
+
+\harvarditem[Duranton and Puga]{Duranton and Puga}{2023}{duranton_urban_2023}
+{\bf Duranton, Gilles and Diego Puga}, ``Urban {Growth} and {Its} {Aggregate} {Implications},'' {\it Econometrica}, 2023, {\it 91} (6), 2219--2259.
+
+\harvarditem[Einstein et al.]{Einstein, Glick and Palmer}{2019}{einstein_neighborhood_2019}
+{\bf Einstein, Katherine~Levine, David~M. Glick, and Maxwell Palmer}, {\it Neighborhood {Defenders}: {Participatory} {Politics} and {America}'s {Housing} {Crisis}}, 1 ed., Cambridge University Press, December 2019.
+
+\harvarditem[Fischel]{Fischel}{2009}{fischel_homevoter_2009}
+{\bf Fischel, William~A.}, {\it The {Homevoter} {Hypothesis}: {How} {Home} {Values} {Influence} {Local} {Government} {Taxation}, {School} {Finance}, and {Land}-{Use} {Policies}}, Harvard University Press, July 2009.
+
+\harvarditem[Gyourko et al.]{Gyourko, Hartley and Krimmel}{2021}{gyourko_local_2021}
+{\bf Gyourko, Joseph, Jonathan~S. Hartley, and Jacob Krimmel}, ``The local residential land use regulatory environment across {U}.{S}. housing markets: {Evidence} from a new {Wharton} index,'' {\it Journal of Urban Economics}, July 2021, {\it 124}, 103337.
+
+\harvarditem[Heckler]{Heckler}{2026}{heckler_this_2026}
+{\bf Heckler, Amber}, ``This is how much {Houston} home prices have fallen since 2024,'' January 2026.
+
+\harvarditem[Hembre et al.]{Hembre, Horowitz, Starling and Xu}{2025}{hembre_unpacking_2025}
+{\bf Hembre, Erik, Ben Horowitz, Libby Starling, and Maxine Xu}, ``Unpacking supply and demand in rent trends since the {Minneapolis} 2040 {Plan},'' Technical Report, Federal Reserve Bank of Minneapolis August 2025.
+
+\harvarditem[Hsieh and Moretti]{Hsieh and Moretti}{2019}{hsieh_housing_2019}
+{\bf Hsieh, Chang-Tai and Enrico Moretti}, ``Housing {Constraints} and {Spatial} {Misallocation},'' {\it American Economic Journal: Macroeconomics}, April 2019, {\it 11} (2), 1--39.
+
+\harvarditem[Khan]{Khan}{2021}{khan_decentralized_2021}
+{\bf Khan, Asad~R}, ``Decentralized {Land}-{Use} {Regulation} with {Agglomeration} {Spillovers}: {Evidence} from {Aldermanic} {Privilege} in {Chicago},'' {\it Job Market Paper}, 2021.
+
+\harvarditem[Kline et al.]{Kline, Rose and Walters}{2022}{kline_systemic_2022}
+{\bf Kline, Patrick, Evan~K Rose, and Christopher~R Walters}, ``Systemic {Discrimination} {Among} {Large} {U}.{S}. {Employers},'' {\it The Quarterly Journal of Economics}, September 2022, {\it 137} (4), 1963--2036.
+
+\harvarditem[Kline et al.]{Kline, Rose and Walters}{2024}{kline_discrimination_2024}
+{\bf \bysame{}, Evan~K. Rose, and Christopher~R. Walters}, ``A {Discrimination} {Report} {Card},'' {\it American Economic Review}, August 2024, {\it 114} (8), 2472--2525.
+
+\harvarditem[Kulka et al.]{Kulka, Sood and Chiumenti}{2022}{kulka_how_2022}
+{\bf Kulka, Amrita, Aradhya Sood, and Nicholas Chiumenti}, ``How to {Increase} {Housing} {Affordability}? {Understanding} {Local} {Deterrents} to {Building} {Multifamily} {Housing},'' {\it SSRN Electronic Journal}, 2022.
+
+\harvarditem[Molloy et al.]{Molloy, Nathanson and Paciorek}{2022}{molloy_housing_2022}
+{\bf Molloy, Raven, Charles~G. Nathanson, and Andrew Paciorek}, ``Housing supply and affordability: {Evidence} from rents, housing consumption and household location,'' {\it Journal of Urban Economics}, May 2022, {\it 129}, 103427.
+
+\harvarditem[Ortalo-Magné and Prat]{Ortalo-Magné and Prat}{2014}{ortalo-magne_political_2014}
+{\bf Ortalo-Magné, François and Andrea Prat}, ``On the {Political} {Economy} of {Urban} {Growth}: {Homeownership} versus {Affordability},'' {\it American Economic Journal: Microeconomics}, February 2014, {\it 6} (1), 154--181.
+
+\harvarditem[Paciorek]{Paciorek}{2013}{paciorek_supply_2013}
+{\bf Paciorek, Andrew}, ``Supply constraints and housing market dynamics,'' {\it Journal of Urban Economics}, September 2013, {\it 77}, 11--26.
+
+\harvarditem[Soltas and Gruber]{Soltas and Gruber}{2026}{soltas_how_2026}
+{\bf Soltas, Evan and Jonathan Gruber}, ``How {Costly} {Is} {Permitting} in {Housing} {Development}?,'' Technical Report February 2026.
+
+\harvarditem[Turner et al.]{Turner, Haughwout and Van Der~Klaauw}{2014}{turner_land_2014}
+{\bf Turner, Matthew, Andrew Haughwout, and Wilbert Van~Der Klaauw}, ``Land {Use} {Regulation} and {Welfare},'' {\it Econometrica}, 2014, {\it 82} (4), 1341--1403.
+
+\harvarditem[Zhang]{Zhang}{2011}{zhang_boundaries_2011}
+{\bf Zhang, Yue}, ``Boundaries of {Power}: {Politics} of {Urban} {Preservation} in {Two} {Chicago} {Neighborhoods},'' {\it Urban Affairs Review}, July 2011, {\it 47} (4), 511--540.
+
+\end{thebibliography}
