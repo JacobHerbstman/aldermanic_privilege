@@ -231,14 +231,7 @@ message(sprintf("  Side-level PPML: b=%.4f (SE %.4f, p=%.3f), N cells=%s, %d seg
                 b_right, se_right, p_right,
                 format(nobs(m), big.mark = ","), n_distinct(ppml_panel$segment_id)))
 
-# --- Keep bin visual construction as before ---
-side_cells <- dat %>%
-  distinct(segment_id, right, year_month, listing_key) %>%
-  group_by(segment_id, right, year_month) %>%
-  summarise(n_units = n(), .groups = "drop") %>%
-  mutate(log_n = log(n_units))
-
-# --- Bin-level aggregation for visual ---
+# --- Bin-level visual panel (log residualized bins; visual only) ---
 bin_w <- bw_ft / bins_per_side
 stopifnot(is.finite(bin_w), bin_w > 0)
 
@@ -249,7 +242,6 @@ bin_cells <- dat %>%
   summarise(n_units = n(), .groups = "drop") %>%
   mutate(right = as.integer(bin_center >= 0), log_n = log(n_units))
 
-# Frisch-Waugh: residualize within FE, add back the gap
 m_bin <- feols(log_n ~ right | segment_id^year_month, data = bin_cells, cluster = ~segment_id)
 removed <- m_bin$obs_selection$obsRemoved
 keep_idx <- if (is.null(removed)) seq_len(nrow(bin_cells)) else setdiff(seq_len(nrow(bin_cells)), abs(as.integer(removed)))
@@ -268,33 +260,14 @@ bins <- aug %>%
     .groups = "drop"
   )
 
-# Flat mean lines per side (matches the side-level regression)
-mean_left <- mean(aug$y_adj[aug$right == 0])
-mean_right <- mean(aug$y_adj[aug$right == 1])
-
-line_df <- bind_rows(
-  tibble(x = c(-bw_ft, 0), y = mean_left, side = "Less Stringent"),
-  tibble(x = c(0, bw_ft), y = mean_right, side = "More Stringent")
-)
-
-jump_label <- sprintf("Jump = %.3f%s (SE %.3f) | bw=%d ft | N=%s",
-                      b_right, stars(p_right), se_right, bw_ft, format(nobs(m), big.mark = ","))
-
 p <- ggplot() +
   geom_hline(yintercept = 0, linetype = "dotted", color = "gray60") +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.7) +
-  geom_errorbar(
-    data = bins,
-    aes(x = bin_center, ymin = mean_y - 1.96 * se_y, ymax = mean_y + 1.96 * se_y, color = side),
-    width = bin_w * 0.3, alpha = 0.4, linewidth = 0.4
-  ) +
   geom_point(data = bins, aes(x = bin_center, y = mean_y, color = side), size = 2.5) +
-  geom_line(data = line_df, aes(x = x, y = y, color = side), linewidth = 1) +
   scale_color_manual(values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"), name = "") +
   labs(
     x = "Distance to Ward Boundary (feet; positive = more stringent side)",
-    y = "Log(Distinct Listed Units), Residualized",
-    subtitle = jump_label
+    y = "Log(Distinct Listed Units), Residualized"
   ) +
   theme_bw(base_size = 12) +
   theme(

@@ -576,9 +576,9 @@ INPUT ../tasks/rental_characteristics_at_borders/output/listing_units_unit_proxy
 INPUT ../tasks/rental_characteristics_at_borders/output/listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf
 INPUT ../tasks/rental_characteristics_at_borders/output/listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf
 INPUT ../tasks/rental_characteristics_at_borders/output/listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf
-INPUT ../tasks/rental_characteristics_at_borders/output/listing_units_ppml_main_bw500_pre_2023.tex
-INPUT ../tasks/rental_characteristics_at_borders/output/listing_units_ppml_main_bw500_pre_2023.tex
-INPUT ../tasks/rental_characteristics_at_borders/output/listing_units_ppml_main_bw500_pre_2023.tex
+INPUT ../tasks/rental_characteristics_at_borders/output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.tex
+INPUT ../tasks/rental_characteristics_at_borders/output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.tex
+INPUT ../tasks/rental_characteristics_at_borders/output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.tex
 INPUT /usr/local/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmssbx10.tfm
 INPUT ./sections/conclusion.tex
 INPUT ./sections/conclusion.tex
