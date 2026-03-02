@@ -260,9 +260,23 @@ bins <- aug %>%
     .groups = "drop"
   )
 
+side_means <- bins %>%
+  group_by(side) %>%
+  summarise(
+    x_min = min(bin_center),
+    x_max = max(bin_center),
+    y_mean = mean(mean_y),
+    .groups = "drop"
+  )
+
 p <- ggplot() +
   geom_hline(yintercept = 0, linetype = "dotted", color = "gray60") +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.7) +
+  geom_segment(
+    data = side_means,
+    aes(x = x_min, xend = x_max, y = y_mean, yend = y_mean, color = side),
+    linewidth = 1.0
+  ) +
   geom_point(data = bins, aes(x = bin_center, y = mean_y, color = side), size = 2.5) +
   scale_color_manual(values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"), name = "") +
   labs(
