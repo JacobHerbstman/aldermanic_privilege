@@ -58,6 +58,11 @@ all: \
 
 ../output/listing_units_ppml_main_bw500_pre_2023.csv: ../output/listing_units_ppml_main_bw500_pre_2023.tex
 
+../output/listing_units_ppml_main_bw500_pre_2023_pruned.tex: listing_units_ppml_main_table.R ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv | ../output
+	PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv Rscript listing_units_ppml_main_table.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all unit_proxy "$@" ../output/listing_units_ppml_main_bw500_pre_2023_pruned.csv
+
+../output/listing_units_ppml_main_bw500_pre_2023_pruned.csv: ../output/listing_units_ppml_main_bw500_pre_2023_pruned.tex
+
 ../input/rent_with_ward_distances.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
 	ln -sf "$<" "$@"
 

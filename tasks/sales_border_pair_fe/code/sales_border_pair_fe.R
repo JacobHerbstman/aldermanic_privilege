@@ -54,9 +54,45 @@ if (!cluster_level %in% c("segment", "ward_pair")) {
   stop("--cluster_level must be one of: segment, ward_pair", call. = FALSE)
 }
 
+prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
+if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
+  prune_sample <- "all"
+} else if (prune_sample_raw %in% c("pruned", "true", "t", "1", "yes", "on")) {
+  prune_sample <- "pruned"
+} else {
+  stop("PRUNE_SAMPLE must map to one of: all/false/0 or pruned/true/1", call. = FALSE)
+}
+confound_flags_path <- Sys.getenv("CONFOUND_FLAGS_PATH", "../input/confounded_pair_era_flags.csv")
+
+normalize_pair_dash <- function(x) {
+  x <- as.character(x)
+  x <- gsub("_", "-", x, fixed = TRUE)
+  x <- trimws(x)
+  ok <- grepl("^[0-9]+-[0-9]+$", x)
+  out <- rep(NA_character_, length(x))
+  if (!any(ok)) return(out)
+  parts <- strsplit(x[ok], "-", fixed = TRUE)
+  out[ok] <- vapply(parts, function(v) {
+    a <- suppressWarnings(as.integer(v[1]))
+    b <- suppressWarnings(as.integer(v[2]))
+    if (!is.finite(a) || !is.finite(b)) return(NA_character_)
+    paste(min(a, b), max(a, b), sep = "-")
+  }, character(1))
+  out
+}
+
+era_from_year <- function(y) {
+  y <- as.integer(y)
+  ifelse(
+    y < 2003L, "1998_2002",
+    ifelse(y < 2015L, "2003_2014", ifelse(y < 2023L, "2015_2023", "post_2023"))
+  )
+}
+
 fe_time_label <- c(year = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month")
 
 message(sprintf("=== Sales Border Pair FE | bw=%d | fe=%s | geo=%s | cluster=%s ===", bw_ft, fe_time, fe_geo, cluster_level))
+message(sprintf("Pruning spec: %s", prune_sample))
 
 # ── Load and filter ──
 sales <- read_parquet(input) %>%
@@ -75,6 +111,51 @@ sales <- read_parquet(input) %>%
 need_segment <- fe_geo == "segment" || cluster_level == "segment"
 if (need_segment) {
   sales <- sales %>% filter(!is.na(segment_id), segment_id != "")
+}
+
+if (prune_sample == "pruned") {
+  if (!file.exists(confound_flags_path)) {
+    stop(sprintf("Missing confound flags file for pruned run: %s", confound_flags_path), call. = FALSE)
+  }
+
+  conf_flags <- read_csv(
+    confound_flags_path,
+    show_col_types = FALSE,
+    col_select = c("ward_pair_id_dash", "era", "drop_confound")
+  ) %>%
+    transmute(
+      pair_dash = normalize_pair_dash(ward_pair_id_dash),
+      era = as.character(era),
+      keep_pair_era = !as.logical(drop_confound)
+    ) %>%
+    distinct()
+
+  if (anyNA(conf_flags$pair_dash) || anyNA(conf_flags$era)) {
+    stop("Confound flags have invalid pair/era keys.", call. = FALSE)
+  }
+  if (anyDuplicated(conf_flags[, c("pair_dash", "era")]) > 0) {
+    stop("Confound flags contain duplicate pair-era keys.", call. = FALSE)
+  }
+
+  sales <- sales %>%
+    mutate(
+      pair_dash = normalize_pair_dash(ward_pair),
+      era = era_from_year(year)
+    ) %>%
+    left_join(conf_flags, by = c("pair_dash", "era"))
+
+  n_missing <- sum(is.na(sales$keep_pair_era))
+  if (n_missing > 0) {
+    message(sprintf(
+      "Pruned run: %d observations have no pair-era pruning flag and will be dropped.",
+      n_missing
+    ))
+    sales <- sales %>% mutate(keep_pair_era = if_else(is.na(keep_pair_era), FALSE, keep_pair_era))
+  }
+
+  n_before_prune <- nrow(sales)
+  sales <- sales %>% filter(keep_pair_era)
+  message(sprintf("Observations after pair-era pruning: %d -> %d", n_before_prune, nrow(sales)))
 }
 
 # Year diagnostics

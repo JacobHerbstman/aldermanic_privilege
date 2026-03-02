@@ -91,41 +91,44 @@
 \end{frame}
 
 % ==============================================================================
-% Density Regression - Bandwidth Sensitivity
+% Density Regression - Requested Robustness Buttons
 % ==============================================================================
-\begin{frame}[label=density-reg-bw250]
-    \frametitle{Border FE Robustness: Ward-Pair Cluster}
+\begin{frame}[label=density-reg-pruned]
+    \frametitle{Border FE Robustness: Pruned Sample}
     \begin{center}
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zone_segment_year_additive_clust_ward_pair.tex}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zone_segment_year_additive_clust_segment_pruned.tex}
     \end{center}
     \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=density-reg-zone-pair-year]
+    \frametitle{Border FE Robustness: Zone + Ward-Pair + Year FE}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zone_pair_year_additive.tex}
+    \end{center}
+    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=density-reg-bw250]
+    \frametitle{Border FE Robustness: Bandwidth = 250 ft}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250_multifamily_zone_segment_year_additive_clust_segment.tex}
+    \end{center}
+    \vfill\hfill
+    \hyperlink{density-reg-bw1000}{\beamergotobutton{1000 ft}}
+    \hspace{0.2em}
+    \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
 \begin{frame}[label=density-reg-bw1000]
-    \frametitle{Border FE Robustness: Segment + Year FE}
+    \frametitle{Border FE Robustness: Bandwidth = 1000 ft}
     \begin{center}
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_segment_year_clust_segment.tex}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw1000_multifamily_zone_segment_year_additive_clust_segment.tex}
     \end{center}
-    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-% ==============================================================================
-% Density Regression - Donut
-% ==============================================================================
-\begin{frame}[label=density-reg-donut]
-    \frametitle{Border FE Robustness: All-Sample FE Stack}
-    \begin{center}
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_all_zone_segment_year_additive_clust_segment.tex}
-    \end{center}
-    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Border FE Robustness: All-Sample + Ward-Pair Cluster}
-    \begin{center}
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_all_zone_segment_year_additive_clust_ward_pair.tex}
-    \end{center}
-    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+    \vfill\hfill
+    \hyperlink{density-reg-bw250}{\beamergotobutton{250 ft}}
+    \hspace{0.2em}
+    \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
 % ==============================================================================
@@ -139,6 +142,6 @@
     \vspace{0.2em}
     \small
     2014--2022 sample, 500 ft bandwidth, controls included. \\
-    Permutation p-values: two-sided = 0.02; one-sided = 0.01.
+    Permutation p-values: two-sided = 0.006; one-sided = 0.004.
     \vfill\hfill \hyperlink{rental-fe-main}{\beamerreturnbutton{Back}}
 \end{frame}
