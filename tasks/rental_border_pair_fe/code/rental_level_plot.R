@@ -178,7 +178,7 @@ bins <- aug %>%
     n = n(),
     mean_y = mean(y_adj, na.rm = TRUE),
     se_y = sd(y_adj, na.rm = TRUE) / sqrt(n),
-    side = if_else(first(bin_center) >= 0, "More Uncertain", "Less Uncertain"),
+    side = if_else(first(bin_center) >= 0, "More Stringent", "Less Stringent"),
     .groups = "drop"
   )
 
@@ -187,14 +187,13 @@ mean_left <- mean(aug$y_adj[aug$right == 0], na.rm = TRUE)
 mean_right <- mean(aug$y_adj[aug$right == 1], na.rm = TRUE)
 
 line_df <- bind_rows(
-  tibble(x = c(-bw_ft, 0), y = mean_left, side = "Less Uncertain"),
-  tibble(x = c(0, bw_ft), y = mean_right, side = "More Uncertain")
+  tibble(x = c(-bw_ft, 0), y = mean_left, side = "Less Stringent"),
+  tibble(x = c(0, bw_ft), y = mean_right, side = "More Stringent")
 )
 
-gap_label <- sprintf(
-  "Gap = %.4f%s (SE %.4f)\nN = %s | Ward pairs = %d",
-  b_right, stars(p_right), se_right,
-  format(nobs(m), big.mark = ","), n_distinct(aug$ward_pair)
+jump_label <- sprintf(
+  "Jump = %.4f%s (SE %.4f) | bw=%d ft | N=%s",
+  b_right, stars(p_right), se_right, bw_ft, format(nobs(m), big.mark = ",")
 )
 
 p <- ggplot() +
@@ -211,22 +210,14 @@ p <- ggplot() +
     linewidth = 1.1
   ) +
   scale_color_manual(
-    values = c("Less Uncertain" = "#1f77b4", "More Uncertain" = "#d62728"),
+    values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"),
     name = ""
-  ) +
-  annotate("text",
-    x = -Inf, y = Inf,
-    label = gap_label,
-    hjust = -0.05, vjust = 1.5, size = 3.3, fontface = "bold"
   ) +
   labs(
     title = "Rental Prices by Side of Ward Boundary",
-    subtitle = sprintf("bw=%d ft | controls=%s | fe=%s | clust=%s%s",
-                        bw_ft, use_controls, fe_geo, cluster_level,
-                        if (min_strictness_diff_pctile > 0) sprintf(" | top %d%% pairs", 100 - min_strictness_diff_pctile) else ""),
-    x = "Distance to Ward Boundary (feet; positive = more uncertain side)",
-    y = "FE-Adjusted Log(Rent)",
-    caption = "Points: binned means. Lines: side-level means."
+    subtitle = jump_label,
+    x = "Distance to Ward Boundary (feet; positive = more stringent side)",
+    y = "FE-Adjusted Log(Rent)"
   ) +
   theme_bw(base_size = 11) +
   theme(legend.position = "bottom", panel.grid.minor = element_blank())

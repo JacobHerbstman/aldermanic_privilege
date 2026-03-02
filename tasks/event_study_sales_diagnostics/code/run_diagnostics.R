@@ -430,17 +430,14 @@ create_treatment_map <- function(cohort_year, ward_year, include_title = TRUE) {
         theme(
             legend.position = "bottom",
             plot.title = element_text(hjust = 0.5, face = "bold", size = 12),
-            plot.subtitle = element_text(hjust = 0.5, size = 10),
+            plot.subtitle = element_blank(),
             plot.margin = margin(2, 2, 2, 2)
         )
 
     if (include_title) {
         p <- p + labs(
             title = sprintf("%d Redistricting", cohort_year),
-            subtitle = sprintf(
-                "N = %s blocks within 1,000 ft of ward boundaries",
-                format(nrow(cohort_blocks), big.mark = ",")
-            )
+            subtitle = NULL
         )
     }
 
@@ -592,7 +589,7 @@ for (wp in all_pairs_to_map) {
         scale_fill_manual(values = ward_colors, name = "Ward") +
         labs(
             title = "Before Redistricting (2014 Ward Boundaries)",
-            subtitle = "Blocks colored by pre-redistricting ward assignment"
+            subtitle = NULL
         ) +
         map_theme
 
@@ -603,7 +600,7 @@ for (wp in all_pairs_to_map) {
         scale_fill_manual(values = ward_colors, name = "Ward") +
         labs(
             title = "After Redistricting (2015 Ward Boundaries)",
-            subtitle = "Blocks colored by post-redistricting ward assignment"
+            subtitle = NULL
         ) +
         map_theme
 
@@ -621,7 +618,7 @@ for (wp in all_pairs_to_map) {
         ) +
         labs(
             title = "Treatment Status",
-            subtitle = "Based on change in alderman strictness"
+            subtitle = NULL
         ) +
         map_theme
 
@@ -631,13 +628,9 @@ for (wp in all_pairs_to_map) {
     combined_vertical <- p_before / p_after / p_treatment +
         plot_annotation(
             title = sprintf("Identification Example: Ward Pair %d–%d (2015 Redistricting)", ward_a, ward_b),
-            subtitle = sprintf(
-                "%d blocks total: %d switched wards, %d remained in place",
-                nrow(wp_blocks), n_switchers, n_controls
-            ),
             theme = theme(
                 plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
-                plot.subtitle = element_text(hjust = 0.5, size = 12)
+                plot.subtitle = element_blank()
             )
         )
 
@@ -653,13 +646,9 @@ for (wp in all_pairs_to_map) {
         plot_layout(ncol = 3) +
         plot_annotation(
             title = sprintf("Ward Pair %s: Before vs After Redistricting", wp),
-            subtitle = sprintf(
-                "%d blocks total | %d switched wards | %d stayed",
-                nrow(wp_blocks), n_switchers, n_controls
-            ),
             theme = theme(
                 plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
-                plot.subtitle = element_text(hjust = 0.5, size = 11)
+                plot.subtitle = element_blank()
             )
         )
 
@@ -763,7 +752,7 @@ p_pretrend <- ggplot(coef_table, aes(x = time, y = estimate * 100)) +
     scale_x_continuous(breaks = -5:5) +
     labs(
         title = "Pre-Trend Check: Event Study Coefficients",
-        subtitle = sprintf("Joint F-test of pre-trends = 0: F = %.2f, p = %.4f", f_stat, f_pval),
+        subtitle = NULL,
         x = "Years Relative to Redistricting",
         y = "Effect per 1-Unit Increase in Strictness (%)"
     ) +

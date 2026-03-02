@@ -270,7 +270,7 @@ tex <- c(
   "  \\toprule",
   "  & PPML: Distinct Units \\\\",
   "  \\midrule",
-  sprintf("  Uncertainty Index & %s \\\\", coef_str),
+  sprintf("  Stringency Index & %s \\\\", coef_str),
   sprintf("  & %s \\\\", se_str),
   "  \\\\",
   sprintf("  Obs. & %s \\\\", format(out$n_obs, big.mark = ",")),

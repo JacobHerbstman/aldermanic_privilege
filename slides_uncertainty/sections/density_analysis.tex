@@ -234,6 +234,20 @@
     \end{itemize}
 \end{frame}
 
+% ==============================================================================
+% SLIDE 15: Border visuals
+% ==============================================================================
+\begin{frame}[label=border-segments]
+    \frametitle{Border Segments}
+    
+    \centering
+    \begin{figure}
+        \includegraphics[width=1.05\textwidth,height=1\textheight,keepaspectratio]{../tasks/pruned_boundary_maps/output/pruned_boundaries_all_segments_by_era.pdf}
+    \end{figure}
+
+\end{frame}
+
+
 
 % ==============================================================================
 % SLIDE 16: VISUAL RD RESULTS
@@ -281,14 +295,13 @@
     \small
     \textbf{Specification}: 
     $\ln(Y_i) = \beta \cdot \text{Stringency}_i + \alpha_{\text{zone}} + \alpha_{\text{segment}} + \alpha_{\text{year}} + \varepsilon_i$\\
-    Sample: Within 500 ft, multifamily only. Main SEs clustered at boundary segment level.
     
     \begin{center}
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zone_segment_year_additive_clust_segment.tex}
     \end{center}
     
     \vspace{0.1em}
-    \textbf{Interpretation}: A 1 SD $\uparrow$ in stringency is associated with lower multifamily FAR and DUPAC.
+    \textbf{Interpretation}: A 1 SD $\uparrow$ in stringency is associated with $7-10$\% lower multifamily density.
 
     \vspace{-0.4em}
     \vfill\hfill

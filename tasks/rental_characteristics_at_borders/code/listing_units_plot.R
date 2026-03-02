@@ -264,7 +264,7 @@ bins <- aug %>%
     mean_y = mean(y_adj),
     se_y = sd(y_adj) / sqrt(n()),
     n = n(),
-    side = if_else(first(bin_center) >= 0, "More Uncertain", "Less Uncertain"),
+    side = if_else(first(bin_center) >= 0, "More Stringent", "Less Stringent"),
     .groups = "drop"
   )
 
@@ -273,12 +273,12 @@ mean_left <- mean(aug$y_adj[aug$right == 0])
 mean_right <- mean(aug$y_adj[aug$right == 1])
 
 line_df <- bind_rows(
-  tibble(x = c(-bw_ft, 0), y = mean_left, side = "Less Uncertain"),
-  tibble(x = c(0, bw_ft), y = mean_right, side = "More Uncertain")
+  tibble(x = c(-bw_ft, 0), y = mean_left, side = "Less Stringent"),
+  tibble(x = c(0, bw_ft), y = mean_right, side = "More Stringent")
 )
 
-gap_label <- sprintf("Gap = %.3f%s (SE %.3f)",
-                     b_right, stars(p_right), se_right)
+jump_label <- sprintf("Jump = %.3f%s (SE %.3f) | bw=%d ft | N=%s",
+                      b_right, stars(p_right), se_right, bw_ft, format(nobs(m), big.mark = ","))
 
 p <- ggplot() +
   geom_hline(yintercept = 0, linetype = "dotted", color = "gray60") +
@@ -290,17 +290,11 @@ p <- ggplot() +
   ) +
   geom_point(data = bins, aes(x = bin_center, y = mean_y, color = side), size = 2.5) +
   geom_line(data = line_df, aes(x = x, y = y, color = side), linewidth = 1) +
-  scale_color_manual(values = c("Less Uncertain" = "#1f77b4", "More Uncertain" = "#d62728"), name = "") +
-  annotate("text", x = -Inf, y = Inf, label = gap_label,
-           hjust = -0.05, vjust = 1.4, size = 3.3, fontface = "bold") +
+  scale_color_manual(values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"), name = "") +
   labs(
-    x = "Distance to Ward Boundary (feet)",
+    x = "Distance to Ward Boundary (feet; positive = more stringent side)",
     y = "Log(Distinct Listed Units), Residualized",
-    subtitle = sprintf(
-      "bw = %d, sample = %s",
-      bw_ft,
-      if (prune_sample == "pruned") paste0(sample_filter, "_pruned") else sample_filter
-    )
+    subtitle = jump_label
   ) +
   theme_bw(base_size = 12) +
   theme(

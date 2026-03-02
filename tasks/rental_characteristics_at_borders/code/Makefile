@@ -4,6 +4,7 @@ include ../../shell_functions.make
 all: \
 	../output/char_fe_table_bw500.tex \
 	../output/listing_density_bw500_pre_2023_all_pct0.pdf \
+	../output/listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf \
 	../output/listing_units_bw500_pre_2023_all_pct0.pdf \
 	../output/listing_units_side_comparison_bw500_pre_2023.pdf \
 	../output/listing_units_matched_pair_ratio_bw500_pre_2023_all_pct0_unit_proxy.pdf \
@@ -23,8 +24,11 @@ all: \
 ../output/listing_density_bw500_pre_2023_all_pct0.pdf: listing_density_plot.R ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv | ../output
 	Rscript listing_density_plot.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all 0 15 "$@"
 
-../output/listing_units_bw500_pre_2023_all_pct0.pdf: listing_units_plot.R ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv | ../output
+../output/listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf: listing_units_plot.R ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv | ../output
 	Rscript listing_units_plot.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all unit_proxy 0 8 "$@"
+
+../output/listing_units_bw500_pre_2023_all_pct0.pdf: ../output/listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf | ../output
+	ln -sf "listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf" "$@"
 
 ../output/listing_units_side_comparison_bw500_pre_2023.pdf: listing_units_side_comparison.R ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv | ../output
 	Rscript listing_units_side_comparison.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all unit_proxy 0 "$@"

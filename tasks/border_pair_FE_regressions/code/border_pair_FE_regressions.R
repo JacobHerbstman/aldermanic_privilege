@@ -223,7 +223,7 @@ n_ward_pairs <- function(x) {
 fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
 rename_dict <- c(
-  "strictness_own" = "Uncertainty Index",
+  "strictness_own" = "Stringency Index",
   "floor_area_ratio" = "Zoning FAR (Numeric)",
   "zone_code" = "Zoning Code FE",
   "segment_id" = "Segment FE",
@@ -408,7 +408,7 @@ table_title <- sprintf(
 )
 
 etable(models,
-  keep = "Uncertainty Index",
+  keep = "Stringency Index",
   fitstat = ~ n + myo + nwp,
   style.tex = style.tex("aer",
     model.format = "",

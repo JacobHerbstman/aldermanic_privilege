@@ -640,12 +640,12 @@ p <- ggplot(plot_data, aes(x = uncertainty_index, y = alderman, fill = uncertain
   scale_fill_distiller(
     palette = "RdYlBu",
     direction = -1,
-    name = "Index"
+    name = "Stringency Index"
   ) +
   labs(
-    title = "Alderman Strictness Index",
-    subtitle = paste0("Higher = longer processing times | Spec: ", gsub("_", " ", output_suffix)),
-    x = "Strictness Index (standardized mean residual)",
+    title = "Alderman Stringency Index",
+    subtitle = NULL,
+    x = "Stringency Index (standardized mean residual)",
     y = NULL
   ) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.01))) +
@@ -657,7 +657,7 @@ p <- ggplot(plot_data, aes(x = uncertainty_index, y = alderman, fill = uncertain
     panel.grid.minor = element_blank(),
     legend.position = "bottom",
     plot.title = element_text(size = 12, face = "bold"),
-    plot.subtitle = element_text(size = 10, color = "gray60")
+    plot.subtitle = element_blank()
   ) +
   geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.7)
 

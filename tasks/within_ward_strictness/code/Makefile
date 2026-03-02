@@ -9,7 +9,7 @@ all: ../output/predecessor_successor_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf
 	../output/variance_decomposition_uncertainty_$(UNCERTAINTY_SPEC).csv
 
 ../output/predecessor_successor_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf: analyze_within_ward_variation.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv | ../output
-	Rscript analyze_within_ward_variation.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv uncertainty_index "Regulatory Uncertainty Index" uncertainty_$(UNCERTAINTY_SPEC)
+	Rscript analyze_within_ward_variation.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv uncertainty_index "Regulatory Stringency Index" uncertainty_$(UNCERTAINTY_SPEC)
 
 ../output/ward_alderman_summary_uncertainty_$(UNCERTAINTY_SPEC).csv ../output/within_ward_dotplot_uncertainty_$(UNCERTAINTY_SPEC).pdf ../output/variance_decomposition_uncertainty_$(UNCERTAINTY_SPEC).csv: ../output/predecessor_successor_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf
 

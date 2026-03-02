@@ -213,17 +213,17 @@ p_dotplot <- ggplot(plot_data, aes(x = strictness_index, y = reorder(factor(ward
         name = "Ward has:"
     ) +
     labs(
-        x = paste0(score_name, " (higher = stricter)"),
-        y = "Ward (ordered by mean strictness)",
+        x = paste0(score_name, " (higher = more stringent)"),
+        y = "Ward (ordered by mean stringency)",
         title = paste0("Alderman ", score_name, " by Ward"),
-        subtitle = "Each dot is one alderman; horizontal segments show within-ward range"
+        subtitle = NULL
     ) +
     theme_minimal() +
     theme(
         legend.position = "bottom",
         axis.text.y = element_text(size = 7),
         plot.title = element_text(face = "bold", size = 14),
-        plot.subtitle = element_text(size = 10, color = "gray40")
+        plot.subtitle = element_blank()
     )
 
 dotplot_out <- out_path("within_ward_dotplot.pdf")
@@ -284,13 +284,13 @@ if (nrow(turnover_pairs) >= 3) {
             x = paste0("Predecessor ", score_name),
             y = paste0("Successor ", score_name),
             title = paste0(score_name, " Persistence Across Alderman Turnovers"),
-            subtitle = "If scores were ward-driven, points would cluster on the 45° line"
+            subtitle = NULL
         ) +
         coord_fixed() +
         theme_minimal() +
         theme(
             plot.title = element_text(face = "bold", size = 12),
-            plot.subtitle = element_text(size = 10, color = "gray40")
+            plot.subtitle = element_blank()
         )
     
     scatter_out <- out_path("predecessor_successor_scatter.pdf")

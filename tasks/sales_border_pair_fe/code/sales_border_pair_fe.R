@@ -127,7 +127,7 @@ m2$custom_data <- sales_hed
 
 # ── Output table ──
 setFixest_dict(c(
-  strictness_std = "Uncertainty Index", ward_pair = "Ward Pair",
+  strictness_std = "Stringency Index", ward_pair = "Ward Pair",
   year_factor = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month"
 ))
 
@@ -139,7 +139,7 @@ fe_label <- ifelse(
 
 etable(
   list(m1, m2),
-  keep = "Uncertainty Index",
+  keep = "Stringency Index",
   fitstat = ~ n + myo + nwp,
   style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "",
                          yesNo = c("$\\checkmark$", "")),

@@ -535,6 +535,11 @@ INPUT ../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncer
 INPUT ./sections/density_analysis.tex
 INPUT ./sections/density_analysis.tex
 INPUT sections/density_analysis.tex
+INPUT ../tasks/pruned_boundary_maps/output/pruned_boundaries_all_segments_by_era.pdf
+INPUT ../tasks/pruned_boundary_maps/output/pruned_boundaries_all_segments_by_era.pdf
+INPUT ../tasks/pruned_boundary_maps/output/pruned_boundaries_all_segments_by_era.pdf
+INPUT ../tasks/pruned_boundary_maps/output/pruned_boundaries_all_segments_by_era.pdf
+INPUT ../tasks/pruned_boundary_maps/output/pruned_boundaries_all_segments_by_era.pdf
 INPUT ../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment.pdf
 INPUT ../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment.pdf
 INPUT ../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zone_segment_year_additive_clust_segment.pdf

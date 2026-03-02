@@ -119,36 +119,29 @@ bin_w <- bw_ft / bins_per_side
 bins <- aug %>%
   mutate(bin_center = (floor(signed_dist / bin_w) + 0.5) * bin_w) %>%
   group_by(bin_center) %>%
-  summarise(mean_y = mean(y_adj), side = if_else(first(bin_center) >= 0, "More Uncertain", "Less Uncertain"),
+  summarise(mean_y = mean(y_adj), side = if_else(first(bin_center) >= 0, "More Stringent", "Less Stringent"),
             .groups = "drop")
 
 mean_left <- mean(aug$y_adj[aug$right == 0])
 mean_right <- mean(aug$y_adj[aug$right == 1])
 
 line_df <- bind_rows(
-  tibble(x = c(-bw_ft, 0), y = mean_left, side = "Less Uncertain"),
-  tibble(x = c(0, bw_ft), y = mean_right, side = "More Uncertain")
+  tibble(x = c(-bw_ft, 0), y = mean_left, side = "Less Stringent"),
+  tibble(x = c(0, bw_ft), y = mean_right, side = "More Stringent")
 )
 
-gap_label <- sprintf("Gap = %.4f%s (SE %.4f, p = %.3f)\nN = %s | %d pairs",
-                     b_right, stars(p_right), se_right, p_right,
-                     format(nobs(m), big.mark = ","), n_distinct(aug$ward_pair))
-
-pctile_label <- if (min_strictness_diff_pctile > 0) {
-  sprintf(" | top %d%% pairs", 100 - min_strictness_diff_pctile)
-} else ""
+jump_label <- sprintf("Jump = %.4f%s (SE %.4f) | bw=%d ft | N=%s",
+                      b_right, stars(p_right), se_right, bw_ft, format(nobs(m), big.mark = ","))
 
 ggplot() +
   geom_hline(yintercept = 0, linetype = "dotted", color = "gray55") +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.8) +
   geom_point(data = bins, aes(x = bin_center, y = mean_y, color = side), size = 2.5, alpha = 0.9) +
   geom_line(data = line_df, aes(x = x, y = y, color = side), linewidth = 1.1) +
-  scale_color_manual(values = c("Less Uncertain" = "#1f77b4", "More Uncertain" = "#d62728"), name = "") +
-  annotate("text", x = -Inf, y = Inf, label = gap_label,
-           hjust = -0.05, vjust = 1.5, size = 3.3, fontface = "bold") +
+  scale_color_manual(values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"), name = "") +
   labs(title = "Sale Prices by Side of Ward Boundary (FE-Adjusted)",
-       subtitle = sprintf("bw=%d ft | controls=%s | fe=%s | clust=%s%s", bw_ft, use_controls, fe_geo, cluster_level, pctile_label),
-       x = "Distance to Ward Boundary (feet; positive = more uncertain side)",
+       subtitle = jump_label,
+       x = "Distance to Ward Boundary (feet; positive = more stringent side)",
        y = "FE-Adjusted Log(Sale Price)") +
   theme_bw(base_size = 11) +
   theme(legend.position = "top", panel.grid.minor = element_blank())

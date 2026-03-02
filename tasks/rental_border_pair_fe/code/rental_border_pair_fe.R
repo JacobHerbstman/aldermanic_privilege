@@ -212,7 +212,7 @@ m_hed <- feols(
 m_hed$custom_data <- rent_hedonics
 
 setFixest_dict(c(
-  strictness_std = "Uncertainty Index",
+  strictness_std = "Stringency Index",
   ward_pair = "Ward Pair",
   year_month = "Year-Month",
   log_sqft = "Log Sqft",
@@ -222,7 +222,7 @@ setFixest_dict(c(
 
 etable(
   list(m_no_hed, m_hed),
-  keep = "Uncertainty Index",
+  keep = "Stringency Index",
   fitstat = ~ n + myo + nwp,
   style.tex = style.tex("aer",
     model.format = "",

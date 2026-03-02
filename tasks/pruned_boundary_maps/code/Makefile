@@ -26,6 +26,7 @@ OUTPUTS := \
 
 INPUTS := \
 	../input/boundary_segments_1320ft.gpkg \
+	../input/ward_panel.gpkg \
 	../input/confounded_pair_era_flags.csv \
 	../input/parcels_with_ward_distances.csv \
 	../input/border_verification_invalid_pairs_sales.csv \
@@ -47,6 +48,9 @@ $(OUTPUTS): plot_pruned_boundary_maps.R $(INPUTS) | ../output
 	Rscript plot_pruned_boundary_maps.R
 
 ../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
+	ln -sf "$<" "$@"
+
+../input/ward_panel.gpkg: ../../border_segment_creation/input/ward_panel.gpkg | ../input
 	ln -sf "$<" "$@"
 
 ../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input

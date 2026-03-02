@@ -160,14 +160,14 @@ residualize_processing <- function(df) {
     mutate(residual_log_processing_time = as.numeric(resid(model)))
 }
 
-plot_distribution <- function(df, x_var, x_label, title, subtitle, output_file) {
+plot_distribution <- function(df, x_var, x_label, title, output_file) {
   p <- ggplot(df, aes(x = .data[[x_var]])) +
     geom_histogram(aes(y = after_stat(density)), bins = 60, fill = "#88b2ac", color = NA, alpha = 0.9) +
     geom_density(color = "#1f3c4a", linewidth = 1) +
     theme_bw(base_size = 12) +
     labs(
       title = title,
-      subtitle = subtitle,
+      subtitle = NULL,
       x = x_label,
       y = "Density"
     )
@@ -203,7 +203,6 @@ plot_distribution(
   x_var = "log_processing_time",
   x_label = "Log processing time",
   title = "Raw Log Processing Time Distribution",
-  subtitle = sprintf("All high-discretion permits | N = %s", format(nrow(raw_high_discretion), big.mark = ",")),
   output_file = file.path(output_dir, "processing_time_raw_high_discretion.pdf")
 )
 
@@ -212,7 +211,6 @@ plot_distribution(
   x_var = "log_processing_time",
   x_label = "Log processing time",
   title = "Raw Log Processing Time Distribution",
-  subtitle = sprintf("New construction only | N = %s", format(nrow(raw_new_construction), big.mark = ",")),
   output_file = file.path(output_dir, "processing_time_raw_new_construction.pdf")
 )
 
@@ -221,7 +219,6 @@ plot_distribution(
   x_var = "residual_log_processing_time",
   x_label = "Residualized log processing time",
   title = "Residualized Processing Time Distribution",
-  subtitle = sprintf("All high-discretion permits | N = %s", format(nrow(resid_high_discretion), big.mark = ",")),
   output_file = file.path(output_dir, "processing_time_residualized_high_discretion.pdf")
 )
 
@@ -230,7 +227,6 @@ plot_distribution(
   x_var = "residual_log_processing_time",
   x_label = "Residualized log processing time",
   title = "Residualized Processing Time Distribution",
-  subtitle = sprintf("New construction only | N = %s", format(nrow(resid_new_construction), big.mark = ",")),
   output_file = file.path(output_dir, "processing_time_residualized_new_construction.pdf")
 )
 
@@ -651,7 +647,7 @@ p_convergence <- ggplot(plot_df, aes(x = as.Date(month), y = value, color = type
   scale_color_manual(values = c("#1f77b4", "#d62728", "#2ca02c", "#9467bd")) +
   labs(
     title = "Permit Processing Dispersion Around July 1, 2019",
-    subtitle = "Dashed line: July 2019 cutoff. Gray band: March 2020-December 2021.",
+    subtitle = NULL,
     x = "Month",
     y = "Dispersion",
     color = "Type group"

@@ -234,10 +234,9 @@ p <- ggplot(plot_df, aes(x = coef)) +
   geom_vline(xintercept = real_coef, color = "#d62728", linewidth = 1.2, linetype = "solid") +
   geom_vline(xintercept = 0, color = "gray30", linewidth = 0.5, linetype = "dashed") +
   labs(
-    title = "Permutation Test: Shuffled Strictness Scores Across Aldermen",
-    subtitle = sprintf("bw = %d ft | window = %s | %d aldermen | %d permutations",
-                        bw_ft, window, n_aldermen, n_valid),
-    x = "Coefficient on standardized strictness score",
+    title = "Permutation Test: Shuffled Stringency Scores Across Aldermen",
+    subtitle = NULL,
+    x = "Coefficient on standardized stringency score",
     y = "Count",
     caption = "Gray histogram: distribution under random alderman-score assignment.\nRed line: actual estimate."
   ) +

@@ -5,6 +5,7 @@ library(sf)
 library(ggplot2)
 
 segments_gpkg <- "../input/boundary_segments_1320ft.gpkg"
+ward_panel_gpkg <- "../input/ward_panel.gpkg"
 flags_csv <- "../input/confounded_pair_era_flags.csv"
 parcels_csv <- "../input/parcels_with_ward_distances.csv"
 invalid_sales_csv <- "../input/border_verification_invalid_pairs_sales.csv"
@@ -19,6 +20,7 @@ if (!dir.exists(out_dir)) {
 
 stopifnot(
   file.exists(segments_gpkg),
+  file.exists(ward_panel_gpkg),
   file.exists(flags_csv),
   file.exists(parcels_csv),
   file.exists(invalid_sales_csv),
@@ -52,6 +54,12 @@ era_from_year <- function(y) {
 }
 
 eras <- c("1998_2002", "2003_2014", "2015_2023", "post_2023")
+map_eras <- c("2003_2014", "2015_2023", "post_2023")
+map_era_labels <- c(
+  "2003_2014" = "2003-2015",
+  "2015_2023" = "2015-2023",
+  "post_2023" = "2023-present"
+)
 
 flags <- fread(flags_csv)
 flags[, pair_dash := normalize_pair_dash(ward_pair_id_dash)]
@@ -134,6 +142,21 @@ segments$status <- ifelse(segments$drop_confound, "Dropped", "Kept")
 segments$era <- factor(segments$era, levels = eras)
 segments_ll <- st_transform(segments, 4326)
 
+ward_panel <- st_read(ward_panel_gpkg, quiet = TRUE)
+ward_panel <- st_transform(ward_panel, st_crs(segments))
+ward_year_ref <- max(as.integer(ward_panel$year), na.rm = TRUE)
+city_outline_geom <- st_boundary(
+  st_union(st_geometry(ward_panel[as.integer(ward_panel$year) == ward_year_ref, ]))
+)
+city_outline <- st_sf(
+  era = map_eras,
+  geometry = st_sfc(
+    lapply(map_eras, function(x) city_outline_geom[[1]]),
+    crs = st_crs(ward_panel)
+  )
+)
+city_outline_ll <- st_transform(city_outline, 4326)
+
 status_map_pdf <- file.path(out_dir, "pruned_boundaries_status_by_era.pdf")
 all_segments_map_pdf <- file.path(out_dir, "pruned_boundaries_all_segments_by_era.pdf")
 kept_segments_map_pdf <- file.path(out_dir, "pruned_boundaries_kept_segments_by_era.pdf")
@@ -172,14 +195,29 @@ segments_ll$segment_parity <- factor(
   ifelse(as.integer(segments_ll$segment_number) %% 2L == 0L, "Even segment", "Odd segment"),
   levels = c("Odd segment", "Even segment")
 )
+segments_ll_map <- segments_ll[as.character(segments_ll$era) %in% map_eras, ]
+segments_ll_map$era_facet <- factor(
+  unname(map_era_labels[as.character(segments_ll_map$era)]),
+  levels = unname(map_era_labels[map_eras])
+)
+city_outline_ll$era_facet <- factor(
+  unname(map_era_labels[as.character(city_outline_ll$era)]),
+  levels = unname(map_era_labels[map_eras])
+)
 
-p_all_segments <- ggplot(segments_ll) +
-  geom_sf(aes(color = segment_parity), linewidth = 0.25, alpha = 0.95) +
-  facet_wrap(~era, ncol = 2) +
+p_all_segments <- ggplot() +
+  geom_sf(
+    data = city_outline_ll,
+    color = "#111111",
+    linewidth = 0.40,
+    inherit.aes = FALSE
+  ) +
+  geom_sf(data = segments_ll_map, aes(color = segment_parity), linewidth = 0.25, alpha = 0.95) +
+  facet_wrap(~era_facet, ncol = 3) +
   scale_color_manual(values = c("Odd segment" = "#1f77b4", "Even segment" = "#ff7f0e")) +
   labs(
-    title = "All Ward Boundaries Divided into Segments",
-    subtitle = "Chicago-wide map; alternating segment index parity highlights segment-level FE geography",
+    title = "Ward Boundaries Divided into Segments",
+    subtitle = "Alternating segment parity highlights segment-level FE geography",
     color = NULL
   ) +
   theme_void(base_size = 11) +

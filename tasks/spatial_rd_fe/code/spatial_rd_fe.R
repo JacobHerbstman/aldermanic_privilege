@@ -441,17 +441,9 @@ p <- ggplot() +
       if (plot_style == "level") "Spatial RD (FE-Adjusted Levels): " else "Spatial RD (FE-Adjusted): ",
       ylab
     ),
-    subtitle = sprintf(
-      "%s | bw=%d ft | donut>=%.0f | placebo=%+.0fft | FE=%s | cluster=%s | gap=%s | N=%d | Ward pairs=%d",
-      jump_label, as.integer(bw_ft), donut_ft, placebo_shift_ft, fe_spec, cluster_level, gap_split_label, n_obs_plot, dplyr::n_distinct(aug$ward_pair)
-    ),
-    x = "Running distance (ft) relative to cutoff; right side is stricter side",
-    y = ylab,
-    caption = ifelse(
-      plot_style == "level",
-      "Points: binned means of outcome residualized on FE+controls only. Lines: side-level means.",
-      "Points: binned means of FE+controls-adjusted outcome. Lines: fitted side-jump model component."
-    )
+    subtitle = sprintf("%s | bw=%d ft | N=%d", jump_label, as.integer(bw_ft), n_obs_plot),
+    x = "Running distance (ft) relative to cutoff; right side is more stringent side",
+    y = ylab
   ) +
   theme_bw(base_size = 11)
 

@@ -7,7 +7,7 @@ UNCERTAINTY_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH
 all: ../output/uncertainty_score_map_$(UNCERTAINTY_SPEC)_$(DATE).pdf
 
 ../output/uncertainty_score_map_$(UNCERTAINTY_SPEC)_$(DATE).pdf: strictness_score_map.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv ../input/ward_panel.gpkg | ../output
-	Rscript strictness_score_map.R $(DATE) ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv uncertainty_index ../output/uncertainty_score_map_$(UNCERTAINTY_SPEC)_$(DATE).pdf "Regulatory uncertainty index" "Regulatory Uncertainty Index by Ward ($(DATE))"
+	Rscript strictness_score_map.R $(DATE) ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv uncertainty_index ../output/uncertainty_score_map_$(UNCERTAINTY_SPEC)_$(DATE).pdf "Regulatory Stringency Index" "Regulatory Stringency Index by Ward ($(DATE))"
 
 ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv | ../input
 	ln -sf $< $@

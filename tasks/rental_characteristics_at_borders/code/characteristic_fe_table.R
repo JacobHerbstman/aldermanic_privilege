@@ -121,7 +121,7 @@ header <- paste0("\\begingroup\n\\centering\n\\begin{tabular}{l", paste(rep("c",
 col_headers <- paste0("   ", paste(sprintf("& %s", coef_tbl$label), collapse = " "), "\\\\  \n")
 midrule <- "   \\midrule \n"
 
-coef_row <- paste0("   More Uncertain Side ",
+coef_row <- paste0("   More Stringent Side ",
   paste(sapply(seq_len(ncol), function(i) {
     sprintf("& %.4f%s", coef_tbl$estimate[i], stars(coef_tbl$p_value[i]))
   }), collapse = " "), "\\\\   \n")
