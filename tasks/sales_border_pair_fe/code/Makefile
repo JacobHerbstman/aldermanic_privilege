@@ -10,11 +10,20 @@ all: ../output/fe_table_sales_bw1000_year_quarter.tex $(ROBUST_FE_OUTPUTS)
 ../output/fe_table_sales_bw1000_year_quarter.tex: sales_border_pair_fe.R ../input/sales_with_hedonics.parquet | ../output
 	Rscript sales_border_pair_fe.R ../input/sales_with_hedonics.parquet 1000 year_quarter "$@" ../output/fe_table_sales_bw1000_year_quarter.csv ../output/year_diagnostics_sales_bw1000_year_quarter.csv segment segment
 
+../output/fe_table_sales_bw1000_year_quarter_zonegroup.tex: sales_border_pair_fe.R ../input/sales_with_hedonics.parquet ../input/zoning_data_clean.gpkg | ../output
+	USE_ZONE_GROUP_FE=TRUE ZONING_GPKG=../input/zoning_data_clean.gpkg Rscript sales_border_pair_fe.R ../input/sales_with_hedonics.parquet 1000 year_quarter "$@" ../output/fe_table_sales_bw1000_year_quarter_zonegroup.csv ../output/year_diagnostics_sales_bw1000_year_quarter_zonegroup.csv segment segment
+
 ../output/fe_table_sales_bw500_year_quarter.tex: sales_border_pair_fe.R ../input/sales_with_hedonics.parquet | ../output
 	Rscript sales_border_pair_fe.R ../input/sales_with_hedonics.parquet 500 year_quarter "$@" ../output/fe_table_sales_bw500_year_quarter.csv ../output/year_diagnostics_sales_bw500_year_quarter.csv segment segment
 
+../output/fe_table_sales_bw500_year_quarter_zonegroup.tex: sales_border_pair_fe.R ../input/sales_with_hedonics.parquet ../input/zoning_data_clean.gpkg | ../output
+	USE_ZONE_GROUP_FE=TRUE ZONING_GPKG=../input/zoning_data_clean.gpkg Rscript sales_border_pair_fe.R ../input/sales_with_hedonics.parquet 500 year_quarter "$@" ../output/fe_table_sales_bw500_year_quarter_zonegroup.csv ../output/year_diagnostics_sales_bw500_year_quarter_zonegroup.csv segment segment
+
 ../output/fe_table_sales_bw500_year_quarter_pruned.tex: sales_border_pair_fe.R ../input/sales_with_hedonics.parquet ../input/confounded_pair_era_flags.csv | ../output
 	PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv Rscript sales_border_pair_fe.R ../input/sales_with_hedonics.parquet 500 year_quarter "$@" ../output/fe_table_sales_bw500_year_quarter_pruned.csv ../output/year_diagnostics_sales_bw500_year_quarter_pruned.csv segment segment
+
+../output/fe_table_sales_bw500_year_quarter_pruned_zonegroup.tex: sales_border_pair_fe.R ../input/sales_with_hedonics.parquet ../input/confounded_pair_era_flags.csv ../input/zoning_data_clean.gpkg | ../output
+	PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv USE_ZONE_GROUP_FE=TRUE ZONING_GPKG=../input/zoning_data_clean.gpkg Rscript sales_border_pair_fe.R ../input/sales_with_hedonics.parquet 500 year_quarter "$@" ../output/fe_table_sales_bw500_year_quarter_pruned_zonegroup.csv ../output/year_diagnostics_sales_bw500_year_quarter_pruned_zonegroup.csv segment segment
 
 define FE_ROBUST_RULE
 ../output/fe_table_sales_bw1000_year_quarter_geo_$(1)_clust_$(2).tex: sales_border_pair_fe.R ../input/sales_with_hedonics.parquet | ../output
@@ -28,6 +37,9 @@ $(foreach geo,$(FE_GEOS),$(foreach cl,$(CLUSTERS),$(if $(and $(filter segment,$(
 ../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
 	ln -sf "$<" "$@"
 
-link-inputs: ../input/sales_with_hedonics.parquet ../input/confounded_pair_era_flags.csv
+../input/zoning_data_clean.gpkg: ../../zoning_data_cleaning/output/zoning_data_clean.gpkg | ../input
+	ln -sf "$<" "$@"
+
+link-inputs: ../input/sales_with_hedonics.parquet ../input/confounded_pair_era_flags.csv ../input/zoning_data_clean.gpkg
 
 include ../../generic.make

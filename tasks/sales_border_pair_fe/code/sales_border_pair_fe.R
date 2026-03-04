@@ -63,6 +63,9 @@ if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
   stop("PRUNE_SAMPLE must map to one of: all/false/0 or pruned/true/1", call. = FALSE)
 }
 confound_flags_path <- Sys.getenv("CONFOUND_FLAGS_PATH", "../input/confounded_pair_era_flags.csv")
+use_zone_group_fe_raw <- tolower(Sys.getenv("USE_ZONE_GROUP_FE", "false"))
+use_zone_group_fe <- use_zone_group_fe_raw %in% c("true", "t", "1", "yes", "on")
+zoning_gpkg <- Sys.getenv("ZONING_GPKG", "../input/zoning_data_clean.gpkg")
 
 normalize_pair_dash <- function(x) {
   x <- as.character(x)
@@ -89,10 +92,81 @@ era_from_year <- function(y) {
   )
 }
 
+zone_group_from_code <- function(z) {
+  z <- str_to_upper(as.character(z))
+  case_when(
+    str_starts(z, "RS-") ~ "Single-Family Residential",
+    str_starts(z, "RT-") | str_starts(z, "RM-") ~ "Multi-Family Residential",
+    str_starts(z, "B-") ~ "Neighborhood Mixed-Use",
+    str_starts(z, "C-") ~ "Commercial",
+    str_starts(z, "M-") ~ "Industrial",
+    str_starts(z, "DX-") | str_starts(z, "DR-") | str_starts(z, "DS-") | str_starts(z, "DC-") ~ "Downtown",
+    str_starts(z, "PD") ~ "Planned Development",
+    TRUE ~ "Other"
+  )
+}
+
+attach_zone_group <- function(df, lon_col, lat_col, zoning_path, chunk_n = 50000L) {
+  if ("zone_group" %in% names(df)) return(df)
+
+  if ("zone_code" %in% names(df)) {
+    return(df %>% mutate(zone_group = zone_group_from_code(zone_code)))
+  }
+
+  if (!(lon_col %in% names(df) && lat_col %in% names(df))) {
+    stop("USE_ZONE_GROUP_FE=TRUE requires either zone_code or longitude/latitude columns.", call. = FALSE)
+  }
+  if (!file.exists(zoning_path)) {
+    stop(sprintf("Zoning file not found: %s", zoning_path), call. = FALSE)
+  }
+
+  layers <- st_layers(zoning_path)$name
+  zoning <- st_read(zoning_path, layer = layers[1], quiet = TRUE)
+  if (!"zone_code" %in% names(zoning)) {
+    stop("Zoning layer missing zone_code column.", call. = FALSE)
+  }
+  zoning <- zoning %>%
+    st_make_valid() %>%
+    st_transform(3435) %>%
+    select(zone_code)
+
+  coords <- df %>%
+    filter(is.finite(.data[[lon_col]]), is.finite(.data[[lat_col]])) %>%
+    distinct(
+      longitude = .data[[lon_col]],
+      latitude = .data[[lat_col]]
+    )
+
+  if (nrow(coords) == 0) {
+    stop("No finite coordinates available for zoning join.", call. = FALSE)
+  }
+
+  coords <- as.data.table(coords)
+  coords[, zone_code := NA_character_]
+  starts <- seq(1L, nrow(coords), by = chunk_n)
+
+  for (s in starts) {
+    e <- min(s + chunk_n - 1L, nrow(coords))
+    idx <- s:e
+    pts <- st_as_sf(coords[idx], coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) %>%
+      st_transform(st_crs(zoning))
+    hits <- st_intersects(pts, zoning)
+    hit_idx <- vapply(hits, function(v) if (length(v) == 0) NA_integer_ else v[1], integer(1))
+    coords[idx, zone_code := zoning$zone_code[hit_idx]]
+  }
+
+  coords <- as_tibble(coords) %>%
+    mutate(zone_group = zone_group_from_code(zone_code))
+
+  df %>%
+    left_join(coords, by = setNames(c("longitude", "latitude"), c(lon_col, lat_col)))
+}
+
 fe_time_label <- c(year = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month")
 
 message(sprintf("=== Sales Border Pair FE | bw=%d | fe=%s | geo=%s | cluster=%s ===", bw_ft, fe_time, fe_geo, cluster_level))
 message(sprintf("Pruning spec: %s", prune_sample))
+message(sprintf("Use zone-group FE: %s", ifelse(use_zone_group_fe, "TRUE", "FALSE")))
 
 # ── Load and filter ──
 sales <- read_parquet(input) %>%
@@ -177,10 +251,19 @@ strictness_sd <- sd(sales$strictness_own, na.rm = TRUE)
 stopifnot(is.finite(strictness_sd), strictness_sd > 0)
 sales <- sales %>% mutate(strictness_std = strictness_own / strictness_sd)
 
+if (use_zone_group_fe) {
+  sales <- attach_zone_group(sales, "longitude", "latitude", zoning_gpkg)
+  sales <- sales %>% filter(!is.na(zone_group), zone_group != "")
+}
+
 # Hedonic sample
 sales_hed <- sales %>%
   filter(!is.na(log_sqft), !is.na(log_land_sqft), !is.na(log_building_age),
          !is.na(log_bedrooms), !is.na(log_baths), !is.na(has_garage))
+
+if (use_zone_group_fe) {
+  sales_hed <- sales_hed %>% filter(!is.na(zone_group), zone_group != "")
+}
 
 message(sprintf("Full: %s obs, %d pairs | Hedonic: %s obs, %d pairs",
                 format(nrow(sales), big.mark = ","), n_distinct(sales$ward_pair),
@@ -194,7 +277,10 @@ fitstat_register("nwp", function(x) length(unique(stats::na.omit(x$custom_data$w
 
 # ── Regressions ──
 fe_var <- switch(fe_time, year = "year_factor", year_quarter = "year_quarter", year_month = "year_month")
-fe_term <- ifelse(fe_geo == "segment", paste0("segment_id^", fe_var), paste0("ward_pair^", fe_var))
+fe_term <- paste0(
+  ifelse(fe_geo == "segment", paste0("segment_id^", fe_var), paste0("ward_pair^", fe_var)),
+  ifelse(use_zone_group_fe, " + zone_group", "")
+)
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 
 m1 <- feols(as.formula(paste0("log(sale_price) ~ strictness_std | ", fe_term)),
@@ -209,7 +295,8 @@ m2$custom_data <- sales_hed
 # ── Output table ──
 setFixest_dict(c(
   strictness_std = "Stringency Index", ward_pair = "Ward Pair",
-  year_factor = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month"
+  year_factor = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month",
+  zone_group = "Zoning Group FE"
 ))
 
 fe_label <- ifelse(
@@ -232,6 +319,10 @@ etable(
     list("_Cluster Level" = c(
       ifelse(cluster_level == "segment", "Segment", "Ward Pair"),
       ifelse(cluster_level == "segment", "Segment", "Ward Pair")
+    )),
+    list("_Zoning Group FE" = c(
+      ifelse(use_zone_group_fe, "$\\checkmark$", ""),
+      ifelse(use_zone_group_fe, "$\\checkmark$", "")
     ))
   ),
   file = output_tex, replace = TRUE
@@ -246,7 +337,7 @@ write_csv(tibble(
   n_obs = c(m1$nobs, m2$nobs),
   dep_var_mean = c(mean(sales$sale_price, na.rm = TRUE), mean(sales_hed$sale_price, na.rm = TRUE)),
   ward_pairs = c(n_distinct(sales$ward_pair), n_distinct(sales_hed$ward_pair)),
-  bandwidth_ft = bw_ft, fe_time = fe_time, fe_geo = fe_geo, cluster_level = cluster_level
+  bandwidth_ft = bw_ft, fe_time = fe_time, fe_geo = fe_geo, cluster_level = cluster_level, use_zone_group_fe = use_zone_group_fe
 ), output_csv)
 
 message(sprintf("Saved: %s", output_tex))

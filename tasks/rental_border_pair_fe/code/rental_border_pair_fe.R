@@ -71,6 +71,9 @@ if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
   stop("PRUNE_SAMPLE must map to one of: all/false/0 or pruned/true/1", call. = FALSE)
 }
 confound_flags_path <- Sys.getenv("CONFOUND_FLAGS_PATH", "../input/confounded_pair_era_flags.csv")
+use_zone_group_fe_raw <- tolower(Sys.getenv("USE_ZONE_GROUP_FE", "false"))
+use_zone_group_fe <- use_zone_group_fe_raw %in% c("true", "t", "1", "yes", "on")
+zoning_gpkg <- Sys.getenv("ZONING_GPKG", "../input/zoning_data_clean.gpkg")
 
 normalize_pair_dash <- function(x) {
   x <- as.character(x)
@@ -95,6 +98,76 @@ era_from_year <- function(y) {
     y < 2003L, "1998_2002",
     ifelse(y < 2015L, "2003_2014", ifelse(y < 2023L, "2015_2023", "post_2023"))
   )
+}
+
+zone_group_from_code <- function(z) {
+  z <- str_to_upper(as.character(z))
+  case_when(
+    str_starts(z, "RS-") ~ "Single-Family Residential",
+    str_starts(z, "RT-") | str_starts(z, "RM-") ~ "Multi-Family Residential",
+    str_starts(z, "B-") ~ "Neighborhood Mixed-Use",
+    str_starts(z, "C-") ~ "Commercial",
+    str_starts(z, "M-") ~ "Industrial",
+    str_starts(z, "DX-") | str_starts(z, "DR-") | str_starts(z, "DS-") | str_starts(z, "DC-") ~ "Downtown",
+    str_starts(z, "PD") ~ "Planned Development",
+    TRUE ~ "Other"
+  )
+}
+
+attach_zone_group <- function(df, lon_col, lat_col, zoning_path, chunk_n = 100000L) {
+  if ("zone_group" %in% names(df)) return(df)
+
+  if ("zone_code" %in% names(df)) {
+    return(df %>% mutate(zone_group = zone_group_from_code(zone_code)))
+  }
+
+  if (!(lon_col %in% names(df) && lat_col %in% names(df))) {
+    stop("USE_ZONE_GROUP_FE=TRUE requires either zone_code or longitude/latitude columns.", call. = FALSE)
+  }
+  if (!file.exists(zoning_path)) {
+    stop(sprintf("Zoning file not found: %s", zoning_path), call. = FALSE)
+  }
+
+  layers <- st_layers(zoning_path)$name
+  zoning <- st_read(zoning_path, layer = layers[1], quiet = TRUE)
+  if (!"zone_code" %in% names(zoning)) {
+    stop("Zoning layer missing zone_code column.", call. = FALSE)
+  }
+  zoning <- zoning %>%
+    st_make_valid() %>%
+    st_transform(3435) %>%
+    select(zone_code)
+
+  coords <- df %>%
+    filter(is.finite(.data[[lon_col]]), is.finite(.data[[lat_col]])) %>%
+    distinct(
+      longitude = .data[[lon_col]],
+      latitude = .data[[lat_col]]
+    )
+
+  if (nrow(coords) == 0) {
+    stop("No finite coordinates available for zoning join.", call. = FALSE)
+  }
+
+  coords <- as.data.table(coords)
+  coords[, zone_code := NA_character_]
+  starts <- seq(1L, nrow(coords), by = chunk_n)
+
+  for (s in starts) {
+    e <- min(s + chunk_n - 1L, nrow(coords))
+    idx <- s:e
+    pts <- st_as_sf(coords[idx], coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) %>%
+      st_transform(st_crs(zoning))
+    hits <- st_intersects(pts, zoning)
+    hit_idx <- vapply(hits, function(v) if (length(v) == 0) NA_integer_ else v[1], integer(1))
+    coords[idx, zone_code := zoning$zone_code[hit_idx]]
+  }
+
+  coords <- as_tibble(coords) %>%
+    mutate(zone_group = zone_group_from_code(zone_code))
+
+  df %>%
+    left_join(coords, by = setNames(c("longitude", "latitude"), c(lon_col, lat_col)))
 }
 
 window_rule <- function(df, window_name) {
@@ -132,6 +205,7 @@ message(sprintf("Sample filter: %s", sample_filter))
 message(sprintf("Geo FE: %s", fe_geo))
 message(sprintf("Cluster level: %s", cluster_level))
 message(sprintf("Pruning spec: %s", prune_sample))
+message(sprintf("Use zone-group FE: %s", ifelse(use_zone_group_fe, "TRUE", "FALSE")))
 
 rent_raw <- read_parquet(input) %>%
   as_tibble() %>%
@@ -231,6 +305,16 @@ if (nrow(rent_hedonics) == 0) {
   stop("No complete-case rows for hedonic model.", call. = FALSE)
 }
 
+if (use_zone_group_fe) {
+  rent <- attach_zone_group(rent, "longitude", "latitude", zoning_gpkg)
+  rent_hedonics <- attach_zone_group(rent_hedonics, "longitude", "latitude", zoning_gpkg)
+  rent <- rent %>% filter(!is.na(zone_group), zone_group != "")
+  rent_hedonics <- rent_hedonics %>% filter(!is.na(zone_group), zone_group != "")
+  if (nrow(rent) == 0 || nrow(rent_hedonics) == 0) {
+    stop("No observations remain after requiring zone_group.", call. = FALSE)
+  }
+}
+
 message(sprintf(
   "Sample sizes: no-hedonics = %d, with-hedonics = %d (%.1f%% hedonic coverage)",
   nrow(rent), nrow(rent_hedonics), 100 * nrow(rent_hedonics) / nrow(rent)
@@ -266,11 +350,11 @@ n_ward_pairs <- function(x) {
 fitstat_register("nwp", n_ward_pairs, alias = "Ward Pairs")
 
 m_no_hed <- feols(
-  if (fe_geo == "segment") {
-    log(rent_price) ~ strictness_std | segment_id^year_month
-  } else {
-    log(rent_price) ~ strictness_std | ward_pair^year_month
-  },
+  as.formula(paste0(
+    "log(rent_price) ~ strictness_std | ",
+    ifelse(fe_geo == "segment", "segment_id^year_month", "ward_pair^year_month"),
+    ifelse(use_zone_group_fe, " + zone_group", "")
+  )),
   data = rent,
   cluster = if (cluster_level == "segment") ~segment_id else ~ward_pair
 )
@@ -285,7 +369,8 @@ if (n_type_levels >= 2) {
 m_hed <- feols(
   as.formula(paste0(
     "log(rent_price) ~ ", hedonic_rhs, " | ",
-    ifelse(fe_geo == "segment", "segment_id^year_month", "ward_pair^year_month")
+    ifelse(fe_geo == "segment", "segment_id^year_month", "ward_pair^year_month"),
+    ifelse(use_zone_group_fe, " + zone_group", "")
   )),
   data = rent_hedonics,
   cluster = if (cluster_level == "segment") ~segment_id else ~ward_pair
@@ -298,7 +383,8 @@ setFixest_dict(c(
   year_month = "Year-Month",
   log_sqft = "Log Sqft",
   log_beds = "Log Beds",
-  log_baths = "Log Baths"
+  log_baths = "Log Baths",
+  zone_group = "Zoning Group FE"
 ))
 
 etable(
@@ -324,6 +410,10 @@ etable(
     "_Cluster Level" = c(
       ifelse(cluster_level == "segment", "Segment", "Ward Pair"),
       ifelse(cluster_level == "segment", "Segment", "Ward Pair")
+    ),
+    "_Zoning Group FE" = c(
+      ifelse(use_zone_group_fe, "$\\checkmark$", ""),
+      ifelse(use_zone_group_fe, "$\\checkmark$", "")
     )
   ),
   file = output_tex,
@@ -342,7 +432,8 @@ coef_tbl <- tibble(
   window = window,
   sample_filter = sample_filter,
   fe_geo = fe_geo,
-  cluster_level = cluster_level
+  cluster_level = cluster_level,
+  use_zone_group_fe = use_zone_group_fe
 )
 
 write_csv(coef_tbl, output_csv)

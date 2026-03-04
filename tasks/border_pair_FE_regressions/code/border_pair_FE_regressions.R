@@ -96,6 +96,20 @@ era_from_year <- function(y) {
   )
 }
 
+zone_group_from_code <- function(z) {
+  z <- toupper(as.character(z))
+  case_when(
+    str_starts(z, "RS-") ~ "Single-Family Residential",
+    str_starts(z, "RT-") | str_starts(z, "RM-") ~ "Multi-Family Residential",
+    str_starts(z, "B-") ~ "Neighborhood Mixed-Use",
+    str_starts(z, "C-") ~ "Commercial",
+    str_starts(z, "M-") ~ "Industrial",
+    str_starts(z, "DX-") | str_starts(z, "DR-") | str_starts(z, "DS-") | str_starts(z, "DC-") ~ "Downtown",
+    str_starts(z, "PD") ~ "Planned Development",
+    TRUE ~ "Other"
+  )
+}
+
 message(sprintf("\n=== Border-Pair FE Configuration ==="))
 message(sprintf("Bandwidth: %d ft", bw_ft))
 message(sprintf("Sample: %s", sample_filter))
@@ -111,7 +125,10 @@ bw_mi <- round(bw_ft / 5280, 2)
 
 # ── 2) DATA ──────────────────────────────────────────────────────────────────
 parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
-  mutate(strictness_own = strictness_own / sd(strictness_own, na.rm = T)) %>%
+  mutate(
+    strictness_own = strictness_own / sd(strictness_own, na.rm = T),
+    zone_group = zone_group_from_code(zone_code)
+  ) %>%
   filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006)
 
 if (sample_filter == "all") {
@@ -226,6 +243,7 @@ rename_dict <- c(
   "strictness_own" = "Stringency Index",
   "floor_area_ratio" = "Zoning FAR (Numeric)",
   "zone_code" = "Zoning Code FE",
+  "zone_group" = "Zoning Group FE",
   "segment_id" = "Segment FE",
   "construction_year" = "Year FE",
   "ward_pair" = "Ward-Pair FE",
@@ -251,6 +269,10 @@ rename_dict <- c(
 fe_formulas <- list(
   zone_pair_year_additive = "zone_code + ward_pair + construction_year",
   zone_segment_year_additive = "zone_code + segment_id + construction_year",
+  zonegroup_segment_year_additive = "zone_group + segment_id + construction_year",
+  segment_year_far = "segment_id + construction_year",
+  segment_x_year = "segment_id^construction_year",
+  segment_x_year_far = "segment_id^construction_year",
   zone_x_pair_year = "zone_code^ward_pair + construction_year",
   zone_pair_x_year = "zone_code + ward_pair^construction_year",
   triple = "zone_code^ward_pair^construction_year",
@@ -271,6 +293,21 @@ fe_labels <- list(
     "Zoning Code FE" = "zone_code",
     "Segment FE" = "segment_id",
     "Year FE" = "construction_year"
+  ),
+  zonegroup_segment_year_additive = list(
+    "Zoning Group FE" = "zone_group",
+    "Segment FE" = "segment_id",
+    "Year FE" = "construction_year"
+  ),
+  segment_year_far = list(
+    "Segment FE" = "segment_id",
+    "Year FE" = "construction_year"
+  ),
+  segment_x_year = list(
+    "Segment $\\times$ Year FE" = "segment_id\\^construction_year"
+  ),
+  segment_x_year_far = list(
+    "Segment $\\times$ Year FE" = "segment_id\\^construction_year"
   ),
   zone_x_pair_year = list(
     "Zoning Code $\\times$ Ward-Pair FE" = "zone_code\\^ward_pair",
@@ -312,7 +349,7 @@ if (!fe_spec %in% names(fe_formulas)) {
 fe_formula_str <- fe_formulas[[fe_spec]]
 fe_label_list <- fe_labels[[fe_spec]]
 message(sprintf("Using FE formula: | %s", fe_formula_str))
-use_far_control <- fe_spec %in% c("pair_year_far", "pair_x_year_far")
+use_far_control <- fe_spec %in% c("segment_year_far", "segment_x_year_far", "pair_year_far", "pair_x_year_far")
 if (use_far_control) {
   message("Including numeric zoning FAR control: floor_area_ratio")
 }
