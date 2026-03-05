@@ -18,6 +18,8 @@ all: \
 	../output/processing_time_residualized_new_construction.pdf \
 	../output/permit_processing_time_days_distribution.pdf \
 	../output/permit_right_tail_top_entities_p95.pdf \
+	../output/permit_right_tail_rate_vs_stringency_p95.pdf \
+	../output/permit_right_tail_excess_vs_stringency_p95.pdf \
 	../output/processing_time_distribution_by_alderman.csv \
 	../output/processing_time_distribution_by_permit_type.csv \
 	../output/processing_time_distribution_by_alderman_type.csv \
@@ -43,6 +45,8 @@ all: \
 ../output/processing_time_residualized_new_construction.pdf \
 ../output/permit_processing_time_days_distribution.pdf \
 ../output/permit_right_tail_top_entities_p95.pdf \
+../output/permit_right_tail_rate_vs_stringency_p95.pdf \
+../output/permit_right_tail_excess_vs_stringency_p95.pdf \
 ../output/processing_time_distribution_by_alderman.csv \
 ../output/processing_time_distribution_by_permit_type.csv \
 ../output/processing_time_distribution_by_alderman_type.csv \

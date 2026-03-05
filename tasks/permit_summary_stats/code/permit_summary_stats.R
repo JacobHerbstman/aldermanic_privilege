@@ -569,6 +569,71 @@ write_csv(
   file.path(output_dir, "permit_right_tail_by_ward.csv")
 )
 
+tail_scatter_df <- tail_entity_all %>%
+  filter(entity_level == "alderman", tail_id == "p95") %>%
+  left_join(
+    scores %>% rename(entity_value = alderman, stringency_score = uncertainty_index),
+    by = "entity_value"
+  ) %>%
+  filter(is.finite(stringency_score))
+
+build_tail_scatter_plot <- function(metric_name, y_label, title_text, output_file) {
+  plot_df <- tail_scatter_df %>%
+    mutate(metric_value = .data[[metric_name]])
+
+  cor_df <- plot_df %>%
+    group_by(sample) %>%
+    summarise(
+      r = cor(stringency_score, metric_value, use = "complete.obs"),
+      x_min = min(stringency_score, na.rm = TRUE),
+      x_max = max(stringency_score, na.rm = TRUE),
+      y_min = min(metric_value, na.rm = TRUE),
+      y_max = max(metric_value, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      x = x_min + 0.05 * pmax(x_max - x_min, 1),
+      y = y_max - 0.05 * pmax(y_max - y_min, 1),
+      label = sprintf("r = %.2f", r)
+    )
+
+  p <- ggplot(plot_df, aes(x = stringency_score, y = metric_value)) +
+    geom_point(color = "#1f3c4a", alpha = 0.7, size = 2) +
+    geom_smooth(method = "lm", se = FALSE, color = "#b74d2c", linewidth = 0.9) +
+    geom_text(
+      data = cor_df,
+      aes(x = x, y = y, label = label),
+      inherit.aes = FALSE,
+      hjust = 0,
+      vjust = 1,
+      size = 3.6
+    ) +
+    facet_wrap(~sample, scales = "free_y") +
+    theme_bw(base_size = 12) +
+    labs(
+      title = title_text,
+      subtitle = "Alderman-level p95 tail metric versus current numeric stringency score",
+      x = "Stringency score",
+      y = y_label
+    )
+
+  ggsave(output_file, p, width = 10, height = 5.5, dpi = 300)
+}
+
+build_tail_scatter_plot(
+  metric_name = "tail_rate",
+  y_label = "Share of permits at or above sample-specific p95",
+  title_text = "Right-Tail Rate and Stringency",
+  output_file = file.path(output_dir, "permit_right_tail_rate_vs_stringency_p95.pdf")
+)
+
+build_tail_scatter_plot(
+  metric_name = "excess_tail_permits",
+  y_label = "Excess permits at or above sample-specific p95",
+  title_text = "Excess Right-Tail Permits and Stringency",
+  output_file = file.path(output_dir, "permit_right_tail_excess_vs_stringency_p95.pdf")
+)
+
 p95_top_entities <- tail_entity_all %>%
   filter(tail_id == "p95") %>%
   group_by(sample, entity_level_label) %>%
