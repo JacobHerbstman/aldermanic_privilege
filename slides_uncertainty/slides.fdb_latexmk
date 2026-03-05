@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex slides"] 1772646445.92495 "slides.aux" "slides.bbl" "slides" 1772656327.29421 0
+["bibtex slides"] 1772657627.61871 "slides.aux" "slides.bbl" "slides" 1772657639.18559 0
   "./sections/aldermanic_privilege.bib" 1772420943.73002 61783 ed7a922c503e8033dc6521559293385a ""
   "/usr/local/texlive/2024/texmf-dist/bibtex/bst/economic/aer.bst" 1389482635 26812 2ae6e48450a8c17a93d98067b7084a7a ""
-  "slides.aux" 1772656326.67711 14721 51b2f89bcc3fac9d4d3e20925422bc49 "pdflatex"
+  "slides.aux" 1772657637.83454 14721 51b2f89bcc3fac9d4d3e20925422bc49 "pdflatex"
   (generated)
   "slides.bbl"
   "slides.blg"
   (rewritten before read)
-["pdflatex"] 1772656321.03017 "/Users/jacobherbstman/Desktop/aldermanic_privilege/slides_uncertainty/slides.tex" "slides.pdf" "slides" 1772656327.29449 0
+["pdflatex"] 1772657628.09313 "/Users/jacobherbstman/Desktop/aldermanic_privilege/slides_uncertainty/slides.tex" "slides.pdf" "slides" 1772657639.18631 0
   "../tasks/border_pair_FE_regressions/output/fe_table_bw1000_multifamily_zone_segment_year_additive_clust_segment.tex" 1772422193.94022 792 7742229706f866aecdc59f63f6001d95 ""
   "../tasks/border_pair_FE_regressions/output/fe_table_bw250_multifamily_zone_segment_year_additive_clust_segment.tex" 1772422189.23902 788 b407a47986d7923f1e68b8aec69d7d6c ""
   "../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zone_pair_year_additive.tex" 1772418471.87978 789 87425b3bb089e4dbad51cb66b79685be ""
@@ -325,19 +325,19 @@
   "images/old_town_towers.png" 1770521511.0852 163404 5130144b1671a08282b29046710ae89f ""
   "images/rent_growth_headline.png" 1772655872.03907 750559 117f1f58288bdb86a64fd51a2a2a639f ""
   "images/sterling_bay_fight.png" 1770521511.09027 181205 f2054c370515e3d92e6ac424adbd6ad6 ""
-  "sections/aldermen_FE.tex" 1772646435.43899 6283 6e810acdd34b84bb141c624c2e98a086 ""
+  "sections/aldermen_FE.tex" 1772657319.74051 6287 0801601d0d9ad22e5327a2a9e7bc4ee2 ""
   "sections/appendix_density.tex" 1772418419.58118 9177 74e05afc9dd49c03b680e99a27e4960e ""
-  "sections/appendix_strictness_scores.tex" 1772406295.57535 1107 290df0109e411e8cf74137cd1b9cf576 ""
+  "sections/appendix_strictness_scores.tex" 1772657329.66551 1151 adaf40711e7531360b45f3504915a92d ""
   "sections/conclusion.tex" 1772420698.71403 2326 960d56aa56565adc41b49b570e8dbedc ""
   "sections/density_analysis.tex" 1772420081.30696 13937 b825176bd38592b8e2cb293a19f63c5c ""
-  "sections/intro.tex" 1772656320.65408 6298 8c0abaa63e145d72151fb5450efa7365 ""
+  "sections/intro.tex" 1772657607.45375 6298 8c0abaa63e145d72151fb5450efa7365 ""
   "sections/literature.tex" 1772421035.58776 1239 69dac423ece6726e0c0fd11bce913841 ""
   "sections/rental_market.tex" 1772421982.0246 4460 309e591f0741bce8a1a31e23cef7d879 ""
   "sections/theory.tex" 1772406272.46302 2466 a2ab8a940b7e4fc56695c73a834b0810 ""
-  "slides.aux" 1772656326.67711 14721 51b2f89bcc3fac9d4d3e20925422bc49 "pdflatex"
-  "slides.bbl" 1772646446.26793 6346 d7cae5eb6664f604c69420ab1150d435 "bibtex slides"
-  "slides.nav" 1772656326.67977 5100 65042126071c0de6c65a682f3e7db363 "pdflatex"
-  "slides.out" 1772656326.67949 182 2dab1b3a3d2723d16ebc9d0696b3ed4a "pdflatex"
+  "slides.aux" 1772657637.83454 14721 51b2f89bcc3fac9d4d3e20925422bc49 "pdflatex"
+  "slides.bbl" 1772657628.07943 6346 d7cae5eb6664f604c69420ab1150d435 "bibtex slides"
+  "slides.nav" 1772657637.83882 5100 65042126071c0de6c65a682f3e7db363 "pdflatex"
+  "slides.out" 1772657637.83669 182 2dab1b3a3d2723d16ebc9d0696b3ed4a "pdflatex"
   "slides.tex" 1772497359.86082 4146 8b52b7420e0bc40142559512c78b14f6 ""
   (generated)
   "slides.aux"

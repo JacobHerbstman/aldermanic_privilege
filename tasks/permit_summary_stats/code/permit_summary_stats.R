@@ -4,25 +4,41 @@ library(fixest)
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/permit_summary_stats/code")
-# input <- "../input/permits_for_uncertainty_index.csv"
-# output_dir <- "../output"
-# Rscript permit_summary_stats.R "../input/permits_for_uncertainty_index.csv" "../output"
+# Rscript permit_summary_stats.R "../input/permits_for_uncertainty_index.csv" "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv" "../output"
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 2) {
-  input <- cli_args[1]
-  output_dir <- cli_args[2]
+if (length(cli_args) >= 3) {
+  permits_input <- cli_args[1]
+  scores_input <- cli_args[2]
+  output_dir <- cli_args[3]
 } else {
-  if (!exists("input") || !exists("output_dir")) {
-    stop("FATAL: Script requires 2 args: <input> <output_dir>", call. = FALSE)
+  if (!exists("permits_input") || !exists("scores_input") || !exists("output_dir")) {
+    stop("FATAL: Script requires 3 args: <permits_input> <scores_input> <output_dir>", call. = FALSE)
   }
 }
 
 high_discretion_types <- c("new_construction", "renovation", "demolition")
+sample_levels <- c("all_high_discretion", "new_construction")
+sample_label <- c(
+  all_high_discretion = "All high-discretion permits",
+  new_construction = "New construction only"
+)
+series_label <- c(
+  processing_time_days = "Raw days",
+  processing_time_days_w99 = "Winsorized days (p99 upper-tail cap)",
+  log_processing_time = "Log days"
+)
+tail_probabilities <- c(p95 = 0.95, p99 = 0.99)
+entity_levels <- c("alderman", "ward")
+entity_level_label <- c(
+  alderman = "Alderman",
+  ward = "Ward"
+)
 small_sample_threshold <- 30L
 min_alderman_month_n <- 3L
+winsor_prob <- 0.99
 cutoff_month <- as.yearmon("2019-07")
 covid_start_month <- as.yearmon("2020-03")
 covid_end_month <- as.yearmon("2021-12")
@@ -41,6 +57,13 @@ safe_quantile <- function(x, prob) {
   as.numeric(quantile(x, probs = prob, na.rm = TRUE, names = FALSE))
 }
 
+safe_mean <- function(x) {
+  if (!any(is.finite(x))) {
+    return(NA_real_)
+  }
+  as.numeric(mean(x, na.rm = TRUE))
+}
+
 safe_sd <- function(x) {
   if (length(x) <= 1) {
     return(NA_real_)
@@ -48,20 +71,144 @@ safe_sd <- function(x) {
   as.numeric(sd(x, na.rm = TRUE))
 }
 
+safe_min <- function(x) {
+  if (!any(is.finite(x))) {
+    return(NA_real_)
+  }
+  as.numeric(min(x, na.rm = TRUE))
+}
+
+safe_max <- function(x) {
+  if (!any(is.finite(x))) {
+    return(NA_real_)
+  }
+  as.numeric(max(x, na.rm = TRUE))
+}
+
 safe_iqr <- function(x) {
   as.numeric(IQR(x, na.rm = TRUE))
+}
+
+safe_skewness <- function(x) {
+  x <- x[is.finite(x)]
+  if (length(x) <= 2) {
+    return(NA_real_)
+  }
+
+  x_sd <- sd(x)
+  if (!is.finite(x_sd) || x_sd == 0) {
+    return(0)
+  }
+
+  as.numeric(mean((x - mean(x))^3) / (x_sd^3))
+}
+
+safe_share <- function(num, denom) {
+  out <- num / denom
+  out[!is.finite(denom) | denom == 0] <- NA_real_
+  as.numeric(out)
 }
 
 trim_alderman <- function(x) {
   gsub("\\s+", " ", trimws(as.character(x)))
 }
 
-permits <- read_csv(input, show_col_types = FALSE) %>%
+winsorize_upper <- function(x, prob = winsor_prob) {
+  pmin(x, safe_quantile(x, prob))
+}
+
+fmt_num <- function(x, digits = 1) {
+  if (!is.finite(x)) {
+    return("")
+  }
+  formatC(x, format = "f", digits = digits, big.mark = ",")
+}
+
+extract_term_stats <- function(model, term) {
+  coef_tbl <- as.data.frame(coeftable(model))
+  if (!term %in% rownames(coef_tbl)) {
+    return(tibble(estimate = NA_real_, std_error = NA_real_, p_value = NA_real_))
+  }
+
+  tibble(
+    estimate = as.numeric(coef_tbl[term, "Estimate"]),
+    std_error = as.numeric(coef_tbl[term, "Std. Error"]),
+    p_value = as.numeric(coef_tbl[term, "Pr(>|t|)"])
+  )
+}
+
+compute_hhi <- function(x) {
+  total_x <- sum(x, na.rm = TRUE)
+  if (!is.finite(total_x) || total_x <= 0) {
+    return(NA_real_)
+  }
+
+  shares <- x / total_x
+  as.numeric(sum(shares^2, na.rm = TRUE))
+}
+
+compute_top_share <- function(x, n_top) {
+  total_x <- sum(x, na.rm = TRUE)
+  if (!is.finite(total_x) || total_x <= 0) {
+    return(NA_real_)
+  }
+
+  as.numeric(sum(sort(x, decreasing = TRUE)[seq_len(min(n_top, length(x)))], na.rm = TRUE) / total_x)
+}
+
+format_entity_display <- function(entity_level, entity_value) {
+  if (entity_level == "ward") {
+    return(paste("Ward", entity_value))
+  }
+  str_trunc(entity_value, width = 28)
+}
+
+summarize_series <- function(x, sample_id, sample_name, series_id, series_name, winsor_cap = NA_real_) {
+  tibble(
+    sample_id = sample_id,
+    sample = sample_name,
+    series_id = series_id,
+    series = series_name,
+    n = sum(is.finite(x)),
+    mean = safe_mean(x),
+    sd = safe_sd(x),
+    min = safe_min(x),
+    p01 = safe_quantile(x, 0.01),
+    p05 = safe_quantile(x, 0.05),
+    p10 = safe_quantile(x, 0.10),
+    p25 = safe_quantile(x, 0.25),
+    median = safe_quantile(x, 0.50),
+    p75 = safe_quantile(x, 0.75),
+    p90 = safe_quantile(x, 0.90),
+    p95 = safe_quantile(x, 0.95),
+    p99 = safe_quantile(x, 0.99),
+    max = safe_max(x),
+    iqr = safe_iqr(x),
+    skewness = safe_skewness(x),
+    winsor_cap_99 = winsor_cap
+  )
+}
+
+permits <- read_csv(permits_input, show_col_types = FALSE) %>%
   mutate(
+    alderman = trim_alderman(alderman),
     month = as.yearmon(month),
     median_hh_income_10k = median_hh_income / 10000,
     pop_total_10k = pop_total / 10000
   )
+
+scores <- read_csv(scores_input, show_col_types = FALSE) %>%
+  transmute(
+    alderman = trim_alderman(alderman),
+    uncertainty_index = as.numeric(uncertainty_index)
+  ) %>%
+  filter(is.finite(uncertainty_index)) %>%
+  group_by(alderman) %>%
+  summarise(uncertainty_index = mean(uncertainty_index, na.rm = TRUE), .groups = "drop")
+
+if (nrow(scores) == 0) {
+  stop("No non-missing uncertainty_index values found in score input.", call. = FALSE)
+}
 
 place_covariates <- c("dist_cbd_km", "dist_lake_km", "n_rail_stations_800m")
 if (!all(place_covariates %in% names(permits))) {
@@ -86,6 +233,29 @@ if (nrow(high_discretion) == 0) {
 if (nrow(new_construction) == 0) {
   stop("No new construction permits found.", call. = FALSE)
 }
+
+sample_data <- list(
+  all_high_discretion = high_discretion,
+  new_construction = new_construction
+)
+
+sample_frames <- setNames(
+  lapply(names(sample_data), function(sample_id) {
+    df <- sample_data[[sample_id]] %>%
+      filter(processing_time > 0, is.finite(processing_time), is.finite(log_processing_time))
+
+    cap_99 <- safe_quantile(df$processing_time, winsor_prob)
+
+    df %>%
+      mutate(
+        sample_id = sample_id,
+        sample = unname(sample_label[sample_id]),
+        processing_time_days_w99 = pmin(processing_time, cap_99),
+        winsor_cap_99 = cap_99
+      )
+  }),
+  names(sample_data)
+)
 
 # ==============================================================================
 # Existing count outputs (kept)
@@ -133,6 +303,374 @@ for (i in seq_len(nrow(counts_with_total))) {
 }
 
 cat("\\bottomrule\n\\end{tabular}\n", file = counts_tex, append = TRUE)
+
+# ==============================================================================
+# New overall summaries and skew diagnostics
+# ==============================================================================
+overall_summary_stats <- bind_rows(
+  lapply(names(sample_frames), function(sample_id) {
+    df <- sample_frames[[sample_id]]
+    bind_rows(
+      summarize_series(
+        x = df$processing_time,
+        sample_id = sample_id,
+        sample_name = unname(sample_label[sample_id]),
+        series_id = "processing_time_days",
+        series_name = unname(series_label["processing_time_days"]),
+        winsor_cap = unique(df$winsor_cap_99)[1]
+      ),
+      summarize_series(
+        x = df$processing_time_days_w99,
+        sample_id = sample_id,
+        sample_name = unname(sample_label[sample_id]),
+        series_id = "processing_time_days_w99",
+        series_name = unname(series_label["processing_time_days_w99"]),
+        winsor_cap = unique(df$winsor_cap_99)[1]
+      ),
+      summarize_series(
+        x = df$log_processing_time,
+        sample_id = sample_id,
+        sample_name = unname(sample_label[sample_id]),
+        series_id = "log_processing_time",
+        series_name = unname(series_label["log_processing_time"])
+      )
+    )
+  })
+) %>%
+  mutate(
+    sample_id = factor(sample_id, levels = sample_levels),
+    series_id = factor(series_id, levels = c("processing_time_days", "processing_time_days_w99", "log_processing_time"))
+  ) %>%
+  arrange(sample_id, series_id) %>%
+  mutate(
+    sample_id = as.character(sample_id),
+    series_id = as.character(series_id)
+  )
+
+write_csv(
+  overall_summary_stats,
+  file.path(output_dir, "permit_processing_time_summary_stats.csv")
+)
+
+summary_tex <- file.path(output_dir, "permit_processing_time_summary_stats.tex")
+cat(
+  "\\begin{tabular}{llrrrrrrrrrr}\n",
+  "\\toprule\n",
+  "Sample & Series & N & Mean & SD & Min & P25 & Median & P75 & P90 & P95 & P99 & Max \\\\\n",
+  "\\midrule\n",
+  file = summary_tex
+)
+
+for (i in seq_len(nrow(overall_summary_stats))) {
+  row <- overall_summary_stats[i, ]
+  cat(
+    sprintf(
+      "%s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s \\\\\n",
+      row$sample,
+      row$series,
+      format(row$n, big.mark = ","),
+      fmt_num(row$mean, 1),
+      fmt_num(row$sd, 1),
+      fmt_num(row$min, 1),
+      fmt_num(row$p25, 1),
+      fmt_num(row$median, 1),
+      fmt_num(row$p75, 1),
+      fmt_num(row$p90, 1),
+      fmt_num(row$p95, 1),
+      fmt_num(row$p99, 1),
+      fmt_num(row$max, 1)
+    ),
+    file = summary_tex,
+    append = TRUE
+  )
+}
+
+cat("\\bottomrule\n\\end{tabular}\n", file = summary_tex, append = TRUE)
+
+skew_diagnostics <- bind_rows(
+  lapply(names(sample_frames), function(sample_id) {
+    df <- sample_frames[[sample_id]]
+    cap_99 <- unique(df$winsor_cap_99)[1]
+    winsor_mean <- mean(df$processing_time_days_w99, na.rm = TRUE)
+
+    tibble(
+      sample_id = sample_id,
+      sample = unname(sample_label[sample_id]),
+      n = nrow(df),
+      mean_days = safe_mean(df$processing_time),
+      median_days = safe_quantile(df$processing_time, 0.50),
+      p95_days = safe_quantile(df$processing_time, 0.95),
+      p99_days = cap_99,
+      max_days = safe_max(df$processing_time),
+      mean_over_median = safe_mean(df$processing_time) / safe_quantile(df$processing_time, 0.50),
+      p99_over_median = cap_99 / safe_quantile(df$processing_time, 0.50),
+      max_over_p99 = safe_max(df$processing_time) / cap_99,
+      skewness_days = safe_skewness(df$processing_time),
+      share_over_180_days = mean(df$processing_time > 180, na.rm = TRUE),
+      share_over_365_days = mean(df$processing_time > 365, na.rm = TRUE),
+      share_over_p99 = mean(df$processing_time > cap_99, na.rm = TRUE),
+      winsor_cap_99 = cap_99,
+      winsorized_mean_days = winsor_mean,
+      raw_minus_winsorized_mean_days = safe_mean(df$processing_time) - winsor_mean
+    )
+  })
+) %>%
+  mutate(sample_id = factor(sample_id, levels = sample_levels)) %>%
+  arrange(sample_id) %>%
+  mutate(sample_id = as.character(sample_id))
+
+write_csv(
+  skew_diagnostics,
+  file.path(output_dir, "permit_processing_time_skew_diagnostics.csv")
+)
+
+build_tail_entity_summary <- function(df, sample_id, entity_level, tail_id, tail_prob) {
+  threshold_days <- safe_quantile(df$processing_time, tail_prob)
+  entity_col <- rlang::sym(entity_level)
+
+  entity_df <- df %>%
+    filter(!is.na(!!entity_col), !!entity_col != "") %>%
+    mutate(
+      entity_value = as.character(!!entity_col),
+      entity_display = format_entity_display(entity_level, entity_value),
+      is_tail = processing_time >= threshold_days
+    ) %>%
+    group_by(entity_value, entity_display) %>%
+    summarise(
+      total_permits = n(),
+      tail_permits = sum(is_tail, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      sample_id = sample_id,
+      sample = unname(sample_label[sample_id]),
+      entity_level = entity_level,
+      entity_level_label = unname(entity_level_label[entity_level]),
+      tail_id = tail_id,
+      tail_prob = tail_prob,
+      threshold_days = threshold_days,
+      total_permits_all = sum(total_permits, na.rm = TRUE),
+      total_tail_permits = sum(tail_permits, na.rm = TRUE),
+      overall_tail_rate = safe_share(sum(tail_permits, na.rm = TRUE), sum(total_permits, na.rm = TRUE)),
+      permit_share = safe_share(total_permits, sum(total_permits, na.rm = TRUE)),
+      tail_share = safe_share(tail_permits, sum(tail_permits, na.rm = TRUE)),
+      tail_rate = safe_share(tail_permits, total_permits),
+      expected_tail_permits = total_permits * overall_tail_rate,
+      excess_tail_permits = tail_permits - expected_tail_permits,
+      location_quotient = safe_share(tail_rate, overall_tail_rate)
+    ) %>%
+    arrange(desc(tail_permits), desc(excess_tail_permits), desc(total_permits), entity_display) %>%
+    mutate(
+      rank_tail_permits = min_rank(desc(tail_permits)),
+      rank_excess_tail = min_rank(desc(excess_tail_permits)),
+      rank_tail_rate = min_rank(desc(tail_rate))
+    )
+
+  summary_row <- entity_df %>%
+    {
+      tibble(
+        sample_id = first(.$sample_id),
+        sample = first(.$sample),
+        entity_level = first(.$entity_level),
+        entity_level_label = first(.$entity_level_label),
+        tail_id = first(.$tail_id),
+        tail_prob = first(.$tail_prob),
+        threshold_days = first(.$threshold_days),
+        total_permits = first(.$total_permits_all),
+        total_tail_permits = first(.$total_tail_permits),
+        realized_tail_share = first(.$overall_tail_rate),
+        n_entities = nrow(.),
+        n_entities_with_tail = sum(.$tail_permits > 0, na.rm = TRUE),
+        tail_hhi = compute_hhi(.$tail_permits),
+        total_hhi = compute_hhi(.$total_permits),
+        tail_top1_share = compute_top_share(.$tail_permits, 1),
+        tail_top3_share = compute_top_share(.$tail_permits, 3),
+        tail_top5_share = compute_top_share(.$tail_permits, 5),
+        total_top1_share = compute_top_share(.$total_permits, 1),
+        total_top3_share = compute_top_share(.$total_permits, 3),
+        total_top5_share = compute_top_share(.$total_permits, 5),
+        effective_n_tail = safe_share(1, compute_hhi(.$tail_permits)),
+        effective_n_total = safe_share(1, compute_hhi(.$total_permits)),
+        top_entity = entity_df$entity_display[1],
+        top_entity_tail_permits = entity_df$tail_permits[1],
+        top_entity_tail_share = entity_df$tail_share[1],
+        top_entity_tail_rate = entity_df$tail_rate[1],
+        top_entity_excess_tail_permits = entity_df$excess_tail_permits[1],
+        top_entity_location_quotient = entity_df$location_quotient[1]
+      )
+    }
+
+  list(entity = entity_df, summary = summary_row)
+}
+
+tail_outputs <- lapply(names(sample_frames), function(sample_id) {
+  sample_df <- sample_frames[[sample_id]]
+
+  lapply(entity_levels, function(entity_level) {
+    lapply(names(tail_probabilities), function(tail_id) {
+      build_tail_entity_summary(
+        df = sample_df,
+        sample_id = sample_id,
+        entity_level = entity_level,
+        tail_id = tail_id,
+        tail_prob = tail_probabilities[[tail_id]]
+      )
+    })
+  })
+})
+
+tail_entity_all <- bind_rows(
+  lapply(tail_outputs, function(sample_list) {
+    bind_rows(
+      lapply(sample_list, function(entity_list) {
+        bind_rows(lapply(entity_list, `[[`, "entity"))
+      })
+    )
+  })
+)
+
+tail_concentration_summary <- bind_rows(
+  lapply(tail_outputs, function(sample_list) {
+    bind_rows(
+      lapply(sample_list, function(entity_list) {
+        bind_rows(lapply(entity_list, `[[`, "summary"))
+      })
+    )
+  })
+) %>%
+  mutate(
+    sample_id = factor(sample_id, levels = sample_levels),
+    entity_level = factor(entity_level, levels = entity_levels),
+    tail_id = factor(tail_id, levels = names(tail_probabilities))
+  ) %>%
+  arrange(sample_id, entity_level, tail_id) %>%
+  mutate(
+    sample_id = as.character(sample_id),
+    entity_level = as.character(entity_level),
+    tail_id = as.character(tail_id)
+  )
+
+write_csv(
+  tail_concentration_summary,
+  file.path(output_dir, "permit_right_tail_concentration_summary.csv")
+)
+
+write_csv(
+  tail_entity_all %>%
+    filter(entity_level == "alderman") %>%
+    arrange(sample_id, tail_id, desc(tail_permits), desc(excess_tail_permits)),
+  file.path(output_dir, "permit_right_tail_by_alderman.csv")
+)
+
+write_csv(
+  tail_entity_all %>%
+    filter(entity_level == "ward") %>%
+    arrange(sample_id, tail_id, desc(tail_permits), desc(excess_tail_permits)),
+  file.path(output_dir, "permit_right_tail_by_ward.csv")
+)
+
+p95_top_entities <- tail_entity_all %>%
+  filter(tail_id == "p95") %>%
+  group_by(sample, entity_level_label) %>%
+  arrange(desc(excess_tail_permits), desc(tail_permits), .by_group = TRUE) %>%
+  slice_head(n = 12) %>%
+  ungroup() %>%
+  mutate(
+    facet_entity = paste(entity_display, sample, entity_level_label, sep = "___")
+  )
+
+p_tail <- ggplot(
+  p95_top_entities,
+  aes(x = reorder(facet_entity, excess_tail_permits), y = excess_tail_permits, fill = location_quotient)
+) +
+  geom_col() +
+  coord_flip() +
+  facet_grid(entity_level_label ~ sample, scales = "free_y", space = "free_y") +
+  scale_x_discrete(labels = function(x) sub("___.*$", "", x)) +
+  scale_fill_gradient2(
+    low = "#92c5de",
+    mid = "#f7f7f7",
+    high = "#d6604d",
+    midpoint = 1,
+    na.value = "gray85"
+  ) +
+  theme_bw(base_size = 11) +
+  labs(
+    title = "Who Accounts for the Longest Permit Delays?",
+    subtitle = "Top entities ranked by excess permits at or above the sample-specific 95th percentile",
+    x = NULL,
+    y = "Excess right-tail permits relative to permit volume",
+    fill = "Tail rate /\noverall tail rate"
+  ) +
+  theme(
+    legend.position = "bottom",
+    strip.background = element_rect(fill = "white")
+  )
+
+ggsave(
+  filename = file.path(output_dir, "permit_right_tail_top_entities_p95.pdf"),
+  plot = p_tail,
+  width = 11,
+  height = 8.5,
+  dpi = 300
+)
+
+days_plot_df <- bind_rows(
+  lapply(names(sample_frames), function(sample_id) {
+    df <- sample_frames[[sample_id]]
+    tibble(
+      sample = unname(sample_label[sample_id]),
+      processing_time_display = pmin(df$processing_time, df$winsor_cap_99),
+      winsor_cap_99 = df$winsor_cap_99
+    )
+  })
+)
+
+days_plot_refs <- bind_rows(
+  lapply(names(sample_frames), function(sample_id) {
+    df <- sample_frames[[sample_id]]
+    tibble(
+      sample = unname(sample_label[sample_id]),
+      stat = c("Median", "Mean", "P99"),
+      value = c(
+        safe_quantile(df$processing_time, 0.50),
+        safe_mean(df$processing_time),
+        unique(df$winsor_cap_99)[1]
+      )
+    )
+  })
+)
+
+p_days <- ggplot(days_plot_df, aes(x = processing_time_display)) +
+  geom_histogram(bins = 60, fill = "#9fc1b7", color = NA, alpha = 0.95) +
+  geom_vline(
+    data = days_plot_refs,
+    aes(xintercept = value, color = stat, linetype = stat),
+    linewidth = 0.7,
+    alpha = 0.95
+  ) +
+  facet_wrap(~sample, scales = "free_y") +
+  scale_color_manual(values = c(Mean = "#8c2d04", Median = "#1f3c4a", P99 = "#7b3294")) +
+  scale_linetype_manual(values = c(Mean = "dashed", Median = "solid", P99 = "dotdash")) +
+  scale_x_continuous(labels = scales::comma) +
+  theme_bw(base_size = 12) +
+  labs(
+    title = "Permit Processing Time in Days",
+    subtitle = "Each panel caps the upper 1% at the sample-specific 99th percentile for display only",
+    x = "Processing time (days)",
+    y = "Number of permits",
+    color = NULL,
+    linetype = NULL
+  ) +
+  theme(legend.position = "bottom")
+
+ggsave(
+  filename = file.path(output_dir, "permit_processing_time_days_distribution.pdf"),
+  plot = p_days,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
 
 # ==============================================================================
 # Existing distribution plots (kept)
@@ -229,6 +767,116 @@ plot_distribution(
   title = "Residualized Processing Time Distribution",
   output_file = file.path(output_dir, "processing_time_residualized_new_construction.pdf")
 )
+
+# ==============================================================================
+# New stringency-to-days translation outputs
+# ==============================================================================
+build_stringency_translation <- function(df, sample_id) {
+  include_type_control <- identical(sample_id, "all_high_discretion")
+
+  reg_df <- df %>%
+    left_join(scores, by = "alderman") %>%
+    filter(
+      !is.na(month),
+      is.finite(uncertainty_index),
+      if_all(all_of(covariates), ~ is.finite(.x))
+    ) %>%
+    mutate(
+      processing_time_days_w99 = winsorize_upper(processing_time, winsor_prob)
+    )
+
+  rhs_terms <- c("uncertainty_index", covariates)
+  if (include_type_control) {
+    rhs_terms <- c(rhs_terms, "permit_type_clean")
+  }
+
+  rhs_string <- paste(rhs_terms, collapse = " + ")
+  model_log <- feols(
+    as.formula(paste0("log_processing_time ~ ", rhs_string, " | month")),
+    data = reg_df,
+    vcov = ~alderman,
+    warn = FALSE
+  )
+  model_days_w99 <- feols(
+    as.formula(paste0("processing_time_days_w99 ~ ", rhs_string, " | month")),
+    data = reg_df,
+    vcov = ~alderman,
+    warn = FALSE
+  )
+
+  log_term <- extract_term_stats(model_log, "uncertainty_index")
+  days_term <- extract_term_stats(model_days_w99, "uncertainty_index")
+  pct_change <- exp(log_term$estimate) - 1
+
+  tibble(
+    sample_id = sample_id,
+    sample = unname(sample_label[sample_id]),
+    n_permits = nrow(reg_df),
+    n_aldermen = n_distinct(reg_df$alderman),
+    lookup_score_mean = safe_mean(scores$uncertainty_index),
+    lookup_score_sd = safe_sd(scores$uncertainty_index),
+    permit_weighted_score_mean = safe_mean(reg_df$uncertainty_index),
+    permit_weighted_score_sd = safe_sd(reg_df$uncertainty_index),
+    includes_permit_type_control = include_type_control,
+    beta_log_days = log_term$estimate,
+    se_log_days = log_term$std_error,
+    p_value_log_days = log_term$p_value,
+    pct_change_days = 100 * pct_change,
+    baseline_mean_days = safe_mean(reg_df$processing_time),
+    baseline_median_days = safe_quantile(reg_df$processing_time, 0.50),
+    baseline_winsor99_mean_days = safe_mean(reg_df$processing_time_days_w99),
+    implied_days_at_mean = safe_mean(reg_df$processing_time) * pct_change,
+    implied_days_at_median = safe_quantile(reg_df$processing_time, 0.50) * pct_change,
+    implied_days_at_winsor99_mean = safe_mean(reg_df$processing_time_days_w99) * pct_change,
+    beta_days_winsor99 = days_term$estimate,
+    se_days_winsor99 = days_term$std_error,
+    p_value_days_winsor99 = days_term$p_value,
+    winsor_cap_99 = safe_quantile(reg_df$processing_time, winsor_prob)
+  )
+}
+
+stringency_translation <- bind_rows(
+  lapply(names(sample_frames), function(sample_id) {
+    build_stringency_translation(sample_frames[[sample_id]], sample_id)
+  })
+) %>%
+  mutate(sample_id = factor(sample_id, levels = sample_levels)) %>%
+  arrange(sample_id) %>%
+  mutate(sample_id = as.character(sample_id))
+
+write_csv(
+  stringency_translation,
+  file.path(output_dir, "permit_stringency_score_translation.csv")
+)
+
+translation_tex <- file.path(output_dir, "permit_stringency_score_translation.tex")
+cat(
+  "\\begin{tabular}{lrrrrrr}\n",
+  "\\toprule\n",
+  "Sample & N & Aldermen & \\%$\\Delta$ days & $\\Delta$ days @ median & $\\Delta$ days @ winsorized mean & Direct $\\Delta$ days (winsorized) \\\\\n",
+  "\\midrule\n",
+  file = translation_tex
+)
+
+for (i in seq_len(nrow(stringency_translation))) {
+  row <- stringency_translation[i, ]
+  cat(
+    sprintf(
+      "%s & %s & %s & %s & %s & %s & %s \\\\\n",
+      row$sample,
+      format(row$n_permits, big.mark = ","),
+      format(row$n_aldermen, big.mark = ","),
+      fmt_num(row$pct_change_days, 1),
+      fmt_num(row$implied_days_at_median, 1),
+      fmt_num(row$implied_days_at_winsor99_mean, 1),
+      fmt_num(row$beta_days_winsor99, 1)
+    ),
+    file = translation_tex,
+    append = TRUE
+  )
+}
+
+cat("\\bottomrule\n\\end{tabular}\n", file = translation_tex, append = TRUE)
 
 # ==============================================================================
 # New raw summary outputs
