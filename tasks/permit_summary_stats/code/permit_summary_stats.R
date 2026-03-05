@@ -1027,6 +1027,180 @@ write_csv(
   file.path(output_dir, "processing_time_distribution_by_alderman.csv")
 )
 
+raw_sample_core <- bind_rows(
+  lapply(names(sample_data), function(sample_id) {
+    sample_data[[sample_id]] %>%
+      filter(
+        permit_type_clean %in% high_discretion_types,
+        processing_time > 0,
+        is.finite(log_processing_time)
+      ) %>%
+      mutate(
+        sample_id = sample_id,
+        sample = unname(sample_label[sample_id]),
+        alderman = trim_alderman(alderman),
+        permit_type = type_label[permit_type_clean]
+      ) %>%
+      filter(!is.na(alderman), alderman != "")
+  })
+)
+
+alderman_distribution_by_sample <- summarize_distribution(
+  raw_sample_core,
+  c("sample_id", "sample", "alderman"),
+  threshold = small_sample_threshold
+) %>%
+  arrange(sample_id, desc(n_permits), alderman)
+
+write_csv(
+  alderman_distribution_by_sample,
+  file.path(output_dir, "processing_time_distribution_by_alderman_sample.csv")
+)
+
+alderman_plot_df <- alderman_distribution_by_sample %>%
+  filter(n_permits >= small_sample_threshold) %>%
+  group_by(sample_id, sample) %>%
+  arrange(processing_time_median, alderman, .by_group = TRUE) %>%
+  mutate(alderman_plot = factor(alderman, levels = alderman)) %>%
+  ungroup()
+
+p_alderman_raw <- ggplot(alderman_plot_df, aes(y = alderman_plot)) +
+  geom_linerange(
+    aes(xmin = processing_time_p25, xmax = processing_time_p75),
+    color = "#8fb3a5",
+    linewidth = 0.8,
+    alpha = 0.9
+  ) +
+  geom_point(
+    aes(x = processing_time_median, size = n_permits),
+    color = "#1f3c4a",
+    alpha = 0.9
+  ) +
+  geom_point(
+    aes(x = processing_time_mean),
+    shape = 1,
+    stroke = 0.9,
+    color = "#b74d2c",
+    size = 2.3,
+    alpha = 0.95
+  ) +
+  facet_wrap(~sample, scales = "free_y", ncol = 1) +
+  scale_size_continuous(range = c(1.8, 5.5)) +
+  scale_x_continuous(labels = scales::comma) +
+  theme_bw(base_size = 11) +
+  labs(
+    title = "Raw Permit Processing Time by Alderman",
+    subtitle = sprintf(
+      "Median days shown as filled points, IQR as horizontal bars, mean as open circles; aldermen with at least %d permits per sample",
+      small_sample_threshold
+    ),
+    x = "Processing time (days)",
+    y = NULL,
+    size = "Permits"
+  ) +
+  theme(
+    legend.position = "bottom",
+    strip.background = element_rect(fill = "white")
+  )
+
+ggsave(
+  filename = file.path(output_dir, "permit_processing_time_by_alderman_raw.pdf"),
+  plot = p_alderman_raw,
+  width = 10.5,
+  height = 16,
+  dpi = 300
+)
+
+alderman_score_scatter_df <- alderman_distribution_by_sample %>%
+  filter(n_permits >= small_sample_threshold) %>%
+  left_join(scores, by = "alderman") %>%
+  filter(is.finite(uncertainty_index)) %>%
+  pivot_longer(
+    cols = c(processing_time_mean, processing_time_median, processing_time_p90),
+    names_to = "metric_name",
+    values_to = "metric_value"
+  ) %>%
+  mutate(
+    metric_label = recode(
+      metric_name,
+      processing_time_mean = "Mean days",
+      processing_time_median = "Median days",
+      processing_time_p90 = "P90 days"
+    )
+  )
+
+alderman_score_correlation <- alderman_score_scatter_df %>%
+  group_by(sample_id, sample, metric_name, metric_label) %>%
+  summarise(
+    n_aldermen = n(),
+    pearson_r = cor(uncertainty_index, metric_value, use = "complete.obs"),
+    spearman_rho = cor(uncertainty_index, metric_value, use = "complete.obs", method = "spearman"),
+    .groups = "drop"
+  ) %>%
+  arrange(sample_id, match(metric_name, c("processing_time_median", "processing_time_mean", "processing_time_p90")))
+
+write_csv(
+  alderman_score_correlation,
+  file.path(output_dir, "permit_processing_time_by_alderman_score_correlation.csv")
+)
+
+cor_labels <- alderman_score_scatter_df %>%
+  group_by(sample_id, sample, metric_name, metric_label) %>%
+  summarise(
+    x_min = min(uncertainty_index, na.rm = TRUE),
+    x_max = max(uncertainty_index, na.rm = TRUE),
+    y_min = min(metric_value, na.rm = TRUE),
+    y_max = max(metric_value, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  left_join(
+    alderman_score_correlation,
+    by = c("sample_id", "sample", "metric_name", "metric_label")
+  ) %>%
+  mutate(
+    x = x_min + 0.05 * pmax(x_max - x_min, 1),
+    y = y_max - 0.05 * pmax(y_max - y_min, 1),
+    label = sprintf("r = %.2f\nrho = %.2f", pearson_r, spearman_rho)
+  )
+
+p_alderman_score <- ggplot(
+  alderman_score_scatter_df,
+  aes(x = uncertainty_index, y = metric_value, size = n_permits)
+) +
+  geom_point(color = "#1f3c4a", alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "#b74d2c", linewidth = 0.9) +
+  geom_text(
+    data = cor_labels,
+    aes(x = x, y = y, label = label),
+    inherit.aes = FALSE,
+    hjust = 0,
+    vjust = 1,
+    size = 3.2,
+    lineheight = 0.95
+  ) +
+  facet_grid(metric_label ~ sample, scales = "free_y") +
+  scale_size_continuous(range = c(1.8, 5.5)) +
+  theme_bw(base_size = 11) +
+  labs(
+    title = "Raw Permit Processing Time and Stringency",
+    subtitle = sprintf("Aldermen with at least %d permits per sample", small_sample_threshold),
+    x = "Current stringency score",
+    y = "Raw processing time (days)",
+    size = "Permits"
+  ) +
+  theme(
+    legend.position = "bottom",
+    strip.background = element_rect(fill = "white")
+  )
+
+ggsave(
+  filename = file.path(output_dir, "permit_processing_time_by_alderman_vs_stringency.pdf"),
+  plot = p_alderman_score,
+  width = 10.5,
+  height = 9,
+  dpi = 300
+)
+
 permit_type_distribution <- summarize_distribution(raw_core, "permit_type_clean", threshold = small_sample_threshold) %>%
   mutate(permit_type = type_label[permit_type_clean]) %>%
   relocate(permit_type, .after = permit_type_clean) %>%

@@ -64,12 +64,29 @@ if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample must be one of: all, multifamily", call. = FALSE)
 }
 
+rd_input_path <- Sys.getenv("RD_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
+
+zone_group_from_code <- function(z) {
+  z <- toupper(as.character(z))
+  case_when(
+    str_starts(z, "RS-") ~ "Single-Family Residential",
+    str_starts(z, "RT-") | str_starts(z, "RM-") ~ "Multi-Family Residential",
+    str_starts(z, "B-") ~ "Neighborhood Mixed-Use",
+    str_starts(z, "C-") ~ "Commercial",
+    str_starts(z, "M-") ~ "Industrial",
+    str_starts(z, "DX-") | str_starts(z, "DR-") | str_starts(z, "DS-") | str_starts(z, "DC-") ~ "Downtown",
+    str_starts(z, "PD") ~ "Planned Development",
+    TRUE ~ "Other"
+  )
+}
+
 fe_map <- list(
   pair_x_year = list(fe = "ward_pair^construction_year", use_far = FALSE, need_zone = FALSE, need_segment = FALSE),
   pair_year = list(fe = "ward_pair + construction_year", use_far = FALSE, need_zone = FALSE, need_segment = FALSE),
   zone_pair_year_additive = list(fe = "zone_code + ward_pair + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = FALSE),
   segment_year = list(fe = "segment_id + construction_year", use_far = FALSE, need_zone = FALSE, need_segment = TRUE),
   zone_segment_year_additive = list(fe = "zone_code + segment_id + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = TRUE),
+  zonegroup_segment_year_additive = list(fe = "zone_group + segment_id + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = TRUE),
   pair_x_year_far = list(fe = "ward_pair^construction_year", use_far = TRUE, need_zone = FALSE, need_segment = FALSE),
   pair_year_far = list(fe = "ward_pair + construction_year", use_far = TRUE, need_zone = FALSE, need_segment = FALSE)
 )
@@ -145,7 +162,8 @@ era_from_year <- function(y) {
 }
 
 # 1) Load + sample filters aligned with border-pair FE table spec
-raw <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE)
+message(sprintf("Input: %s", rd_input_path))
+raw <- read_csv(rd_input_path, show_col_types = FALSE)
 
 if (!yvar %in% names(raw)) {
   stop(sprintf("yvar '%s' not found in data.", yvar), call. = FALSE)
@@ -159,7 +177,8 @@ if (!is.finite(strictness_sd) || strictness_sd <= 0) {
 dat <- raw %>%
   mutate(
     strictness_own = strictness_own / strictness_sd,
-    strictness_neighbor = strictness_neighbor / strictness_sd
+    strictness_neighbor = strictness_neighbor / strictness_sd,
+    zone_group = zone_group_from_code(zone_code)
   ) %>%
   filter(
     arealotsf > 1,
@@ -459,10 +478,13 @@ write_csv(
     yvar = yvar,
     use_log = use_log,
     bw_ft = bw_ft,
+    sample_filter = sample_filter,
     donut_ft = donut_ft,
     placebo_shift_ft = placebo_shift_ft,
     prune_sample = prune_sample,
     cluster_level = cluster_level,
+    input_path = rd_input_path,
+    output_pdf = output_pdf,
     fe_spec = fe_spec,
     plot_style = plot_style,
     gap_split = gap_split,

@@ -43,6 +43,9 @@ if (!sample_filter %in% c("all", "multifamily")) {
 }
 if (length(yvars) == 0) stop("No yvars provided.")
 
+fe_input_path <- Sys.getenv("FE_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
+fe_summary_output_path <- Sys.getenv("FE_SUMMARY_OUTPUT_PATH", "")
+
 prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
 if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
   prune_sample <- "all"
@@ -117,14 +120,18 @@ message(sprintf("FE Specification: %s", fe_spec))
 message(sprintf("Pruning spec: %s", prune_sample))
 message(sprintf("Cluster level: %s", cluster_level))
 message(sprintf("Donut exclusion: >= %.0f ft", donut_ft))
+message(sprintf("Input: %s", fe_input_path))
 message(sprintf("Output: %s", output_filename))
 message(sprintf("Y variables: %s", paste(yvars, collapse = ", ")))
+if (nzchar(fe_summary_output_path)) {
+  message(sprintf("Summary CSV: %s", fe_summary_output_path))
+}
 
 bw_mi <- round(bw_ft / 5280, 2)
 
 
 # ── 2) DATA ──────────────────────────────────────────────────────────────────
-parcels_fe <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
+parcels_fe <- read_csv(fe_input_path, show_col_types = FALSE) %>%
   mutate(
     strictness_own = strictness_own / sd(strictness_own, na.rm = T),
     zone_group = zone_group_from_code(zone_code)
@@ -359,10 +366,23 @@ if (need_segment) {
 }
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 
+get_coef <- function(ct, term) {
+  idx <- which(rownames(ct) == term)
+  if (length(idx) == 0) {
+    return(c(estimate = NA_real_, se = NA_real_, p = NA_real_))
+  }
+  c(
+    estimate = ct[idx[1], "Estimate"],
+    se = ct[idx[1], "Std. Error"],
+    p = ct[idx[1], "Pr(>|t|)"]
+  )
+}
+
 
 # ── 4) MODELS (ONE PER OUTCOME), SAME BW ─────────────────────────────────────
 models <- list()
 col_headers <- c()
+model_summaries <- list()
 
 for (yv in yvars) {
   b <- base_name(yv)
@@ -433,6 +453,25 @@ for (yv in yvars) {
 
   models[[length(models) + 1]] <- m
   col_headers <- c(col_headers, pretty_label(yv))
+  coef_info <- get_coef(coeftable(m), "strictness_own")
+  model_summaries[[length(model_summaries) + 1]] <- tibble(
+    yvar = yv,
+    outcome_label = pretty_label(yv),
+    estimate = unname(coef_info["estimate"]),
+    se = unname(coef_info["se"]),
+    p_value = unname(coef_info["p"]),
+    n_obs = nobs(m),
+    depvar_mean = mean(df[[b]], na.rm = TRUE),
+    n_ward_pairs = dplyr::n_distinct(df$ward_pair),
+    bw_ft = bw_ft,
+    sample_filter = sample_filter,
+    fe_spec = fe_spec,
+    prune_sample = prune_sample,
+    cluster_level = cluster_level,
+    donut_ft = donut_ft,
+    input_path = fe_input_path,
+    table_output = output_filename
+  )
 }
 
 if (length(models) == 0) stop("No models estimated; check yvars and data.")
@@ -464,3 +503,7 @@ etable(models,
   file = output_filename,
   replace = TRUE
 )
+
+if (nzchar(fe_summary_output_path)) {
+  write_csv(bind_rows(model_summaries), fe_summary_output_path)
+}

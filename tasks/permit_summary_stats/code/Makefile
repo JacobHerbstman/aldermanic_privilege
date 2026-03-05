@@ -21,9 +21,13 @@ all: \
 	../output/permit_right_tail_rate_vs_stringency_p95.pdf \
 	../output/permit_right_tail_excess_vs_stringency_p95.pdf \
 	../output/processing_time_distribution_by_alderman.csv \
+	../output/processing_time_distribution_by_alderman_sample.csv \
 	../output/processing_time_distribution_by_permit_type.csv \
 	../output/processing_time_distribution_by_alderman_type.csv \
 	../output/processing_time_variation_across_aldermen_by_type.csv \
+	../output/permit_processing_time_by_alderman_raw.pdf \
+	../output/permit_processing_time_by_alderman_vs_stringency.pdf \
+	../output/permit_processing_time_by_alderman_score_correlation.csv \
 	../output/permit_stringency_score_translation.csv \
 	../output/permit_stringency_score_translation.tex \
 	../output/permit_processing_convergence_monthly_cross_alderman.csv \
@@ -48,9 +52,13 @@ all: \
 ../output/permit_right_tail_rate_vs_stringency_p95.pdf \
 ../output/permit_right_tail_excess_vs_stringency_p95.pdf \
 ../output/processing_time_distribution_by_alderman.csv \
+../output/processing_time_distribution_by_alderman_sample.csv \
 ../output/processing_time_distribution_by_permit_type.csv \
 ../output/processing_time_distribution_by_alderman_type.csv \
 ../output/processing_time_variation_across_aldermen_by_type.csv \
+../output/permit_processing_time_by_alderman_raw.pdf \
+../output/permit_processing_time_by_alderman_vs_stringency.pdf \
+../output/permit_processing_time_by_alderman_score_correlation.csv \
 ../output/permit_stringency_score_translation.csv \
 ../output/permit_stringency_score_translation.tex \
 ../output/permit_processing_convergence_monthly_cross_alderman.csv \
