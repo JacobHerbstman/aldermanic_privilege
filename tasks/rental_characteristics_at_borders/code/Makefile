@@ -3,6 +3,16 @@ include ../../shell_functions.make
 
 all: \
 	../output/char_fe_table_bw500.tex \
+	../output/rent_with_ward_distances_amenities.parquet \
+	../output/rental_amenity_distance_diagnostics.csv \
+	../output/amenity_char_fe_table_bw500_pre_2023.tex \
+	../output/amenity_char_fe_table_bw500_pre_2023.csv \
+	../output/amenity_char_fe_table_bwall_pre_2023.tex \
+	../output/amenity_char_fe_table_bwall_pre_2023.csv \
+	../output/rent_amenity_attenuation_bw500_pre_2023.tex \
+	../output/rent_amenity_attenuation_bw500_pre_2023.csv \
+	../output/rent_amenity_attenuation_bwall_pre_2023.tex \
+	../output/rent_amenity_attenuation_bwall_pre_2023.csv \
 	../output/listing_density_bw500_pre_2023_all_pct0.pdf \
 	../output/listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf \
 	../output/listing_units_bw500_pre_2023_all_pct0.pdf \
@@ -20,6 +30,32 @@ all: \
 
 ../output/char_fe_table_bw500.tex: characteristic_fe_table.R ../input/rent_with_ward_distances.parquet | ../output
 	Rscript characteristic_fe_table.R ../input/rent_with_ward_distances.parquet 500 pre_2023 "$@" ../output/char_fe_table_bw500.csv
+
+../output/rent_with_ward_distances_amenities.parquet: enrich_rent_with_amenity_distances.R ../input/rent_with_ward_distances.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
+	Rscript enrich_rent_with_amenity_distances.R ../input/rent_with_ward_distances.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp "$@" ../output/rental_amenity_distance_diagnostics.csv
+
+../output/rental_amenity_distance_diagnostics.csv: ../output/rent_with_ward_distances_amenities.parquet
+	test -f "$@"
+
+../output/amenity_char_fe_table_bw500_pre_2023.tex: amenity_characteristic_fe_table.R ../output/rent_with_ward_distances_amenities.parquet | ../output
+	Rscript amenity_characteristic_fe_table.R ../output/rent_with_ward_distances_amenities.parquet 500 pre_2023 "$@" ../output/amenity_char_fe_table_bw500_pre_2023.csv
+
+../output/amenity_char_fe_table_bw500_pre_2023.csv: ../output/amenity_char_fe_table_bw500_pre_2023.tex
+
+../output/amenity_char_fe_table_bwall_pre_2023.tex: amenity_characteristic_fe_table.R ../output/rent_with_ward_distances_amenities.parquet | ../output
+	Rscript amenity_characteristic_fe_table.R ../output/rent_with_ward_distances_amenities.parquet all pre_2023 "$@" ../output/amenity_char_fe_table_bwall_pre_2023.csv
+
+../output/amenity_char_fe_table_bwall_pre_2023.csv: ../output/amenity_char_fe_table_bwall_pre_2023.tex
+
+../output/rent_amenity_attenuation_bw500_pre_2023.tex: rent_amenity_attenuation.R ../output/rent_with_ward_distances_amenities.parquet | ../output
+	Rscript rent_amenity_attenuation.R ../output/rent_with_ward_distances_amenities.parquet 500 pre_2023 "$@" ../output/rent_amenity_attenuation_bw500_pre_2023.csv
+
+../output/rent_amenity_attenuation_bw500_pre_2023.csv: ../output/rent_amenity_attenuation_bw500_pre_2023.tex
+
+../output/rent_amenity_attenuation_bwall_pre_2023.tex: rent_amenity_attenuation.R ../output/rent_with_ward_distances_amenities.parquet | ../output
+	Rscript rent_amenity_attenuation.R ../output/rent_with_ward_distances_amenities.parquet all pre_2023 "$@" ../output/rent_amenity_attenuation_bwall_pre_2023.csv
+
+../output/rent_amenity_attenuation_bwall_pre_2023.csv: ../output/rent_amenity_attenuation_bwall_pre_2023.tex
 
 ../output/listing_density_bw500_pre_2023_all_pct0.pdf: listing_density_plot.R ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv | ../output
 	Rscript listing_density_plot.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all 0 15 "$@"
@@ -69,6 +105,30 @@ all: \
 ../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
 	ln -sf "$<" "$@"
 
-link-inputs: ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv
+../input/schools_2015.gpkg: ../../download_amenities_data/output/schools_2015.gpkg | ../input
+	ln -sf "$<" "$@"
+
+../input/parks.gpkg: ../../download_amenities_data/output/parks.gpkg | ../input
+	ln -sf "$<" "$@"
+
+../input/major_streets.gpkg: ../../download_amenities_data/output/major_streets.gpkg | ../input
+	ln -sf "$<" "$@"
+
+../input/gis_osm_water_a_free_1.shp: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shp | ../input
+	ln -sf "$<" "$@"
+
+../input/gis_osm_water_a_free_1.dbf: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.dbf | ../input
+	ln -sf "$<" "$@"
+
+../input/gis_osm_water_a_free_1.prj: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.prj | ../input
+	ln -sf "$<" "$@"
+
+../input/gis_osm_water_a_free_1.shx: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shx | ../input
+	ln -sf "$<" "$@"
+
+../input/gis_osm_water_a_free_1.cpg: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.cpg | ../input
+	ln -sf "$<" "$@"
+
+link-inputs: ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
 include ../../generic.make

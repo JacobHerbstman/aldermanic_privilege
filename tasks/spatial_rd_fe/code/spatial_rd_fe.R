@@ -84,6 +84,7 @@ fe_map <- list(
   pair_x_year = list(fe = "ward_pair^construction_year", use_far = FALSE, need_zone = FALSE, need_segment = FALSE),
   pair_year = list(fe = "ward_pair + construction_year", use_far = FALSE, need_zone = FALSE, need_segment = FALSE),
   zone_pair_year_additive = list(fe = "zone_code + ward_pair + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = FALSE),
+  zonegroup_pair_year_additive = list(fe = "zone_group + ward_pair + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = FALSE),
   segment_year = list(fe = "segment_id + construction_year", use_far = FALSE, need_zone = FALSE, need_segment = TRUE),
   zone_segment_year_additive = list(fe = "zone_code + segment_id + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = TRUE),
   zonegroup_segment_year_additive = list(fe = "zone_group + segment_id + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = TRUE),

@@ -1,210 +1,147 @@
 % ==============================================================================
 % APPENDIX: DENSITY ANALYSIS
-% Contains robustness slides for density RD and regression results
+% FE-adjusted spatial RD robustness + border FE robustness
 % ==============================================================================
 
 % ==============================================================================
-% Visual RD - Placebo Boundaries
+% FE-adjusted Spatial RD - Robustness Menu
 % ==============================================================================
-\begin{frame}[label=visual-rd-placebo]
-    \frametitle{Placebo: Boundary Shifted 250ft into Lenient Side}
+\begin{frame}[label=visual-rd-allunits]
+    \frametitle{FE-Adjusted Spatial RD: All Units}
     \begin{columns}[T]
     \begin{column}{0.48\textwidth}
         \centering
         \textbf{Log(FAR)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_far_shift_minus250_bw500_triangular.pdf}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_all_zonegroup_segment_year_additive_clust_segment.pdf}
     \end{column}
     \begin{column}{0.48\textwidth}
         \centering
         \textbf{Log(DUPAC)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_dupac_shift_minus250_bw500_triangular.pdf}
-    \end{column}
-    \end{columns}
-    \small No discontinuity at placebo boundary.
-    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Placebo: Boundary Shifted 500ft into Lenient Side}
-    \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(FAR)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_far_shift_minus500_bw500_triangular.pdf}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(DUPAC)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_dupac_shift_minus500_bw500_triangular.pdf}
-    \end{column}
-    \end{columns}
-    \small No discontinuity at placebo boundary.
-    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Placebo: Boundary Shifted 250ft into Strict Side}
-    \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(FAR)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_far_shift_plus250_bw500_triangular.pdf}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(DUPAC)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_dupac_shift_plus250_bw500_triangular.pdf}
-    \end{column}
-    \end{columns}
-    \small No discontinuity at placebo boundary.
-    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Placebo: Boundary Shifted 500ft into Strict Side}
-    \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(FAR)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_far_shift_plus500_bw500_triangular.pdf}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(DUPAC)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_dupac_shift_plus500_bw500_triangular.pdf}
-    \end{column}
-    \end{columns}
-    \small No discontinuity at placebo boundary.
-    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-% ==============================================================================
-% Visual RD - Functional Form
-% ==============================================================================
-\begin{frame}[label=visual-rd-functional]
-    \frametitle{Functional Form: Linear}
-    \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(FAR)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_linear_p1_bw500_triangular.pdf}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(DUPAC)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_linear_p1_bw500_triangular.pdf}
+        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_all_zonegroup_segment_year_additive_clust_segment.pdf}
     \end{column}
     \end{columns}
     \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Functional Form: Quadratic}
-    \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(FAR)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_quadratic_p2_bw500_triangular.pdf}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(DUPAC)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_quadratic_p2_bw500_triangular.pdf}
-    \end{column}
-    \end{columns}
-    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Functional Form: Cubic}
-    \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(FAR)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_cubic_p3_bw500_triangular.pdf}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(DUPAC)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_cubic_p3_bw500_triangular.pdf}
-    \end{column}
-    \end{columns}
-    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-% ==============================================================================
-% Visual RD - Donut
-% ==============================================================================
-\begin{frame}[label=visual-rd-donut]
-    \frametitle{Donut RD: Excluding Parcels Within 25ft of Border}
-    \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(FAR)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_far_bw500_triangular_donut25.pdf}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(DUPAC)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_dupac_bw500_triangular_donut25.pdf}
-    \end{column}
-    \end{columns}
-    \small Discontinuity persists after excluding parcels closest to border.
-    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Donut RD: Excluding Parcels Within 50ft of Border}
-    \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(FAR)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_far_bw500_triangular_donut50.pdf}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(DUPAC)}
-        \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_dupac_bw500_triangular_donut50.pdf}
-    \end{column}
-    \end{columns}
-    \small Discontinuity persists after excluding parcels closest to border.
-    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-% ==============================================================================
-% Density Regression - Bandwidth Sensitivity
-% ==============================================================================
-\begin{frame}[label=density-reg-bw250]
-    \frametitle{Bandwidth Sensitivity: 250ft}
+\begin{frame}[label=visual-rd-median]
+    \frametitle{FE-Adjusted Spatial RD: Below/Above Median Gap}
     \begin{center}
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250_pair_x_year.tex}
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{cc}
+        \textbf{FAR: Below Median} & \textbf{FAR: Above Median} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_gap_below_median.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_gap_above_median.pdf} \\
+        \textbf{DUPAC: Below Median} & \textbf{DUPAC: Above Median} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_gap_below_median.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_gap_above_median.pdf}
+    \end{tabular}
+    \end{center}
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=visual-rd-donut]
+    \frametitle{FE-Adjusted Spatial RD: Donut RD}
+    \begin{center}
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{cc}
+        \textbf{FAR: Donut 25 ft} & \textbf{FAR: Donut 50 ft} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_donut25.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_donut50.pdf} \\
+        \textbf{DUPAC: Donut 25 ft} & \textbf{DUPAC: Donut 50 ft} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_donut25.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_donut50.pdf}
+    \end{tabular}
+    \end{center}
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=visual-rd-placebo-far]
+    \frametitle{FE-Adjusted Spatial RD: Boundary Placebo (FAR)}
+    \begin{center}
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{cc}
+        \textbf{Shift -500 ft} & \textbf{Shift -250 ft} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift-500.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift-250.pdf} \\
+        \textbf{Shift +250 ft} & \textbf{Shift +500 ft} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift250.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift500.pdf}
+    \end{tabular}
+    \end{center}
+    \vfill\hfill
+    \hyperlink{visual-rd-placebo-dupac}{\beamergotobutton{DUPAC Placebo}}
+    \hspace{0.2em}
+    \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=visual-rd-placebo-dupac]
+    \frametitle{FE-Adjusted Spatial RD: Boundary Placebo (DUPAC)}
+    \begin{center}
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{cc}
+        \textbf{Shift -500 ft} & \textbf{Shift -250 ft} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift-500.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift-250.pdf} \\
+        \textbf{Shift +250 ft} & \textbf{Shift +500 ft} \\
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift250.pdf} &
+        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift500.pdf}
+    \end{tabular}
+    \end{center}
+    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+% ==============================================================================
+% Density Regression - Requested Robustness Buttons
+% ==============================================================================
+\begin{frame}[label=density-reg-pruned]
+    \frametitle{Border FE Robustness: Pruned Sample}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_pruned.tex}
     \end{center}
     \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=density-reg-zone-pair-year]
+    \frametitle{Border FE Robustness: Zoning Group + Ward-Pair + Year FE}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_pair_year_additive_clust_segment.tex}
+    \end{center}
+    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=density-reg-bw250]
+    \frametitle{Border FE Robustness: Bandwidth = 250 ft}
+    \begin{center}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_segment.tex}
+    \end{center}
+    \vfill\hfill
+    \hyperlink{density-reg-bw1000}{\beamergotobutton{1000 ft}}
+    \hspace{0.2em}
+    \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
 \begin{frame}[label=density-reg-bw1000]
-    \frametitle{Bandwidth Sensitivity: 1000ft}
+    \frametitle{Border FE Robustness: Bandwidth = 1000 ft}
     \begin{center}
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw1000_pair_x_year.tex}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw1000_multifamily_zonegroup_segment_year_additive_clust_segment.tex}
     \end{center}
-    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+    \vfill\hfill
+    \hyperlink{density-reg-bw250}{\beamergotobutton{250 ft}}
+    \hspace{0.2em}
+    \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
 % ==============================================================================
-% Density Regression - Donut
+% Rental FE Permutation Test (Controls)
 % ==============================================================================
-\begin{frame}[label=density-reg-donut]
-    \frametitle{Donut Regression: Excluding 25ft from Border}
+\begin{frame}[label=rental-permutation-noctrl]
+    \frametitle{Permutation Test: Rental FE (Controls)}
     \begin{center}
-    \input{../tasks/border_pair_FE_regressions_donut/output/fe_table_bw500_donut25.tex}
+        \includegraphics[width=0.92\textwidth,height=0.72\textheight,keepaspectratio]{../tasks/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_ctrl.pdf}
     \end{center}
-    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Donut Regression: Excluding 50ft from Border}
-    \begin{center}
-    \input{../tasks/border_pair_FE_regressions_donut/output/fe_table_bw500_donut50.tex}
-    \end{center}
-    \vfill\hfill \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
+    \vspace{0.2em}
+    \small
+    2014--2022 sample, 500 ft bandwidth, controls included. \\
+    Permutation p-values: two-sided = 0.006; one-sided = 0.004.
+    \vfill\hfill \hyperlink{rental-fe-main}{\beamerreturnbutton{Back}}
 \end{frame}

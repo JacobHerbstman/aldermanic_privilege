@@ -10,12 +10,12 @@ source("../../setup_environment/code/packages.R")
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
-# bw_ft <- 250
+# bw_ft <- "all"
 # sample_filter <- "all"  # "all" | "multifamily"
-# fe_spec <- "pair_x_year"
-# yvars <- c("log(density_far)", "log(density_dupac)", "log(unitscount)")
-# output_filename <- sprintf("../output/fe_table_bw%d_%s_%s.tex", bw_ft, sample_filter, fe_spec)
-# Rscript border_pair_FE_regressions.R 250 multifamily pair_x_year ../output/fe_table_bw250_multifamily_pair_x_year.tex "log(density_far)" "log(density_dupac)" "log(unitscount)"
+# fe_spec <- "zonegroup_segment_year_additive"
+# yvars <- c("log(density_far)", "log(density_dupac)")
+# output_filename <- "../output/fe_table_bwall_all_zonegroup_segment_year_additive.tex"
+# Rscript border_pair_FE_regressions.R all all zonegroup_segment_year_additive ../output/fe_table_bwall_all_zonegroup_segment_year_additive.tex "log(density_far)" "log(density_dupac)"
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
@@ -23,7 +23,7 @@ source("../../setup_environment/code/packages.R")
 # sample: "all" (unitscount > 0) | "multifamily" (unitscount > 1)
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) >= 5) {
-  bw_ft <- suppressWarnings(as.integer(args[1]))
+  bw_arg <- args[1]
   sample_filter <- args[2]
   fe_spec <- args[3]
   output_filename <- args[4]
@@ -35,9 +35,26 @@ if (length(args) >= 5) {
   if (!exists("bw_ft") || !exists("sample_filter") || !exists("fe_spec") || !exists("output_filename") || !exists("yvars")) {
     stop("FATAL: Script requires args: <bw_ft> <sample> <fe_spec> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
   }
+  bw_arg <- bw_ft
 }
 
-if (!is.finite(bw_ft) || bw_ft <= 0) stop("bw_feet must be a positive integer/numeric.")
+parse_bw_ft <- function(x) {
+  if (length(x) != 1) {
+    stop("bw_ft must be a single value.", call. = FALSE)
+  }
+  if (is.character(x) && tolower(x) %in% c("all", "full", "none", "inf", "infinity")) {
+    return(Inf)
+  }
+  out <- suppressWarnings(as.numeric(x))
+  if (!is.finite(out) || out <= 0) {
+    stop("bw_ft must be a positive number or one of: all, full, none, inf.", call. = FALSE)
+  }
+  out
+}
+
+bw_ft <- parse_bw_ft(bw_arg)
+bw_label <- if (is.finite(bw_ft)) as.character(as.integer(round(bw_ft))) else "all"
+
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample must be one of: all, multifamily", call. = FALSE)
 }
@@ -70,7 +87,7 @@ donut_ft <- suppressWarnings(as.numeric(donut_ft_raw))
 if (!is.finite(donut_ft) || donut_ft < 0) {
   stop("DONUT_FT must be a non-negative number.", call. = FALSE)
 }
-if (donut_ft >= bw_ft) {
+if (is.finite(bw_ft) && donut_ft >= bw_ft) {
   stop("DONUT_FT must be strictly smaller than bandwidth.", call. = FALSE)
 }
 
@@ -114,7 +131,7 @@ zone_group_from_code <- function(z) {
 }
 
 message(sprintf("\n=== Border-Pair FE Configuration ==="))
-message(sprintf("Bandwidth: %d ft", bw_ft))
+message(sprintf("Bandwidth: %s", if (is.finite(bw_ft)) sprintf("%.0f ft", bw_ft) else "all distances"))
 message(sprintf("Sample: %s", sample_filter))
 message(sprintf("FE Specification: %s", fe_spec))
 message(sprintf("Pruning spec: %s", prune_sample))
@@ -127,7 +144,7 @@ if (nzchar(fe_summary_output_path)) {
   message(sprintf("Summary CSV: %s", fe_summary_output_path))
 }
 
-bw_mi <- round(bw_ft / 5280, 2)
+bw_mi <- if (is.finite(bw_ft)) round(bw_ft / 5280, 2) else NA_real_
 
 
 # ── 2) DATA ──────────────────────────────────────────────────────────────────
@@ -275,6 +292,7 @@ rename_dict <- c(
 # ── FE SPECIFICATION MAPPINGS ─────────────────────────────────────────────────
 fe_formulas <- list(
   zone_pair_year_additive = "zone_code + ward_pair + construction_year",
+  zonegroup_pair_year_additive = "zone_group + ward_pair + construction_year",
   zone_segment_year_additive = "zone_code + segment_id + construction_year",
   zonegroup_segment_year_additive = "zone_group + segment_id + construction_year",
   segment_year_far = "segment_id + construction_year",
@@ -293,6 +311,11 @@ fe_formulas <- list(
 fe_labels <- list(
   zone_pair_year_additive = list(
     "Zoning Code FE" = "zone_code",
+    "Ward-Pair FE" = "ward_pair",
+    "Year FE" = "construction_year"
+  ),
+  zonegroup_pair_year_additive = list(
+    "Zoning Group FE" = "zone_group",
     "Ward-Pair FE" = "ward_pair",
     "Year FE" = "construction_year"
   ),
@@ -360,7 +383,7 @@ use_far_control <- fe_spec %in% c("segment_year_far", "segment_x_year_far", "pai
 if (use_far_control) {
   message("Including numeric zoning FAR control: floor_area_ratio")
 }
-need_segment <- fe_spec %in% c("segment_year", "zone_segment_year_additive") || cluster_level == "segment"
+need_segment <- fe_spec %in% c("segment_year", "zone_segment_year_additive", "zonegroup_segment_year_additive") || cluster_level == "segment"
 if (need_segment) {
   message("Segment ID required: dropping rows with missing segment_id.")
 }
@@ -392,7 +415,10 @@ for (yv in yvars) {
   }
 
   df <- parcels_fe %>%
-    filter(dist_to_boundary <= bw_ft, dist_to_boundary >= donut_ft)
+    filter(dist_to_boundary >= donut_ft)
+  if (is.finite(bw_ft)) {
+    df <- df %>% filter(dist_to_boundary <= bw_ft)
+  }
 
   if (use_far_control) {
     df <- df %>%
@@ -403,8 +429,9 @@ for (yv in yvars) {
       filter(!is.na(segment_id), segment_id != "")
   }
 
+  additive_zone_var <- if (fe_spec %in% c("zonegroup_pair_year_additive", "zonegroup_segment_year_additive")) "zone_group" else "zone_code"
   check_df_additive <- df %>%
-    mutate(fe_group_id = paste(ward_pair, zone_code, sep = "_"))
+    mutate(fe_group_id = paste(ward_pair, .data[[additive_zone_var]], sep = "_"))
 
   # 2. Calculate variation within each group
   identifying_variation_additive <- check_df_additive %>%
@@ -418,7 +445,7 @@ for (yv in yvars) {
     filter(n_obs > 1 & !is.na(sd_strictness) & sd_strictness > 0)
 
   # 3. View Results
-  message("--- Additive Specification Checks (Zone^Pair + Year) ---")
+  message(sprintf("--- Additive Specification Checks (%s + Ward-Pair) ---", additive_zone_var))
   message("Number of useful groups: ", nrow(identifying_variation_additive))
   message("Number of useful observations: ", sum(identifying_variation_additive$n_obs))
   message("Total observations in dataset: ", nrow(df))
@@ -464,6 +491,7 @@ for (yv in yvars) {
     depvar_mean = mean(df[[b]], na.rm = TRUE),
     n_ward_pairs = dplyr::n_distinct(df$ward_pair),
     bw_ft = bw_ft,
+    bw_label = bw_label,
     sample_filter = sample_filter,
     fe_spec = fe_spec,
     prune_sample = prune_sample,
@@ -479,8 +507,9 @@ names(models) <- col_headers
 
 # ── 5) TITLE & TABLE OUTPUT ──────────────────────────────────────────────────
 table_title <- sprintf(
-  "Border FE estimates (bw = %.0f ft, donut >= %.0f ft, FE: %s, cluster: %s)",
-  bw_ft, donut_ft, fe_spec, cluster_level
+  "Border FE estimates (bw = %s, donut >= %.0f ft, FE: %s, cluster: %s)",
+  if (is.finite(bw_ft)) sprintf("%.0f ft", bw_ft) else "all distances",
+  donut_ft, fe_spec, cluster_level
 )
 
 etable(models,

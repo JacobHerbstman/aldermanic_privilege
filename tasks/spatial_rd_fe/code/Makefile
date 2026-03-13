@@ -2,8 +2,8 @@ SHELL := bash
 include ../../shell_functions.make
 
 BANDWIDTHS := 250 500 1000
-MAIN_FE_SPECS := segment_year zone_segment_year_additive
-ALT_FE_SPECS := pair_year zone_pair_year_additive pair_x_year
+MAIN_FE_SPECS := segment_year zone_segment_year_additive zonegroup_segment_year_additive
+ALT_FE_SPECS := pair_year zone_pair_year_additive zonegroup_pair_year_additive pair_x_year
 YVARS := density_far density_dupac unitscount
 LOG_STATUS := TRUE
 SAMPLES := all multifamily

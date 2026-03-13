@@ -4,20 +4,20 @@ source("../../setup_environment/code/packages.R")
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_pair_fe/code")
 # input <- "../input/rent_with_ward_distances.parquet"
-# bw_ft <- 1000
+# bw_ft <- "all"
 # window <- "pre_covid"
 # sample_filter <- "all"
-# output_tex <- "../output/fe_table_rental_bw1000_pre_covid_all.tex"
-# output_csv <- "../output/fe_table_rental_bw1000_pre_covid_all.csv"
-# output_year_diag <- "../output/year_diagnostics_bw1000_pre_covid_all.csv"
-# Rscript rental_border_pair_fe.R "../input/rent_with_ward_distances.parquet" 1000 "pre_covid" "all" "../output/fe_table_rental_bw1000_pre_covid_all.tex" "../output/fe_table_rental_bw1000_pre_covid_all.csv" "../output/year_diagnostics_bw1000_pre_covid_all.csv"
+# output_tex <- "../output/fe_table_rental_bwall_pre_covid_all.tex"
+# output_csv <- "../output/fe_table_rental_bwall_pre_covid_all.csv"
+# output_year_diag <- "../output/year_diagnostics_bwall_pre_covid_all.csv"
+# Rscript rental_border_pair_fe.R "../input/rent_with_ward_distances.parquet" all "pre_covid" "all" "../output/fe_table_rental_bwall_pre_covid_all.tex" "../output/fe_table_rental_bwall_pre_covid_all.csv" "../output/year_diagnostics_bwall_pre_covid_all.csv"
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) >= 9) {
   input <- cli_args[1]
-  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  bw_arg <- cli_args[2]
   window <- cli_args[3]
   sample_filter <- cli_args[4]
   output_tex <- cli_args[5]
@@ -27,7 +27,7 @@ if (length(cli_args) >= 9) {
   cluster_level <- tolower(cli_args[9])
 } else if (length(cli_args) >= 7) {
   input <- cli_args[1]
-  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  bw_arg <- cli_args[2]
   window <- cli_args[3]
   sample_filter <- cli_args[4]
   output_tex <- cli_args[5]
@@ -46,14 +46,28 @@ if (length(cli_args) >= 9) {
   }
 }
 
+parse_bw_ft <- function(x) {
+  if (length(x) != 1) {
+    stop("bw_ft must be a single value.", call. = FALSE)
+  }
+  if (is.character(x) && tolower(x) %in% c("all", "full", "none", "inf", "infinity")) {
+    return(Inf)
+  }
+  out <- suppressWarnings(as.numeric(x))
+  if (!is.finite(out) || out <= 0) {
+    stop("--bw_ft must be a positive number or one of: all, full, none, inf", call. = FALSE)
+  }
+  out
+}
+
+bw_ft <- parse_bw_ft(bw_arg)
+bw_label <- if (is.finite(bw_ft)) as.character(as.integer(round(bw_ft))) else "all"
+
 if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, pre_2023, drop_mid", call. = FALSE)
 }
 if (!sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
-}
-if (!is.finite(bw_ft) || bw_ft <= 0) {
-  stop("--bw_ft must be a positive integer", call. = FALSE)
 }
 if (!fe_geo %in% c("segment", "ward_pair")) {
   stop("--fe_geo must be one of: segment, ward_pair", call. = FALSE)
@@ -199,7 +213,7 @@ window_label <- c(
 
 message("=== Rental Border Pair FE ===")
 message(sprintf("Input: %s", input))
-message(sprintf("Bandwidth: %d ft", bw_ft))
+message(sprintf("Bandwidth: %s", if (is.finite(bw_ft)) sprintf("%.0f ft", bw_ft) else "all distances"))
 message(sprintf("Window: %s", window_label[[window]]))
 message(sprintf("Sample filter: %s", sample_filter))
 message(sprintf("Geo FE: %s", fe_geo))
@@ -221,9 +235,12 @@ rent_raw <- read_parquet(input) %>%
     rent_price > 0,
     !is.na(ward_pair),
     !is.na(signed_dist),
-    abs(signed_dist) <= bw_ft,
     !is.na(strictness_own)
   )
+
+if (is.finite(bw_ft)) {
+  rent_raw <- rent_raw %>% filter(abs(signed_dist) <= bw_ft)
+}
 
 rent <- window_rule(rent_raw, window)
 if (sample_filter == "multifamily_only") {
@@ -429,6 +446,7 @@ coef_tbl <- tibble(
   dep_var_mean = c(mean(rent$rent_price, na.rm = TRUE), mean(rent_hedonics$rent_price, na.rm = TRUE)),
   ward_pairs = c(length(unique(rent$ward_pair)), length(unique(rent_hedonics$ward_pair))),
   bandwidth_ft = bw_ft,
+  bandwidth_label = bw_label,
   window = window,
   sample_filter = sample_filter,
   fe_geo = fe_geo,

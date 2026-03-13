@@ -7,29 +7,15 @@
 % Within-Ward Variation (Alderman Turnover)
 % ==============================================================================
 
-\begin{frame}[label=score-validation]
-    \frametitle{Predecessor-Successor Score Correlation}
-    \begin{center}
-    \includegraphics[width=0.7\textwidth,height=0.7\textheight,keepaspectratio]{../tasks/within_ward_strictness/output/predecessor_successor_scatter.pdf}
-    \end{center}
-    
-    \small
-    Ward FEs explain only 17\% of strictness score variance. \\
-    Predecessor-successor correlation: $\rho = -0.38$ (scores do not persist across turnovers).
-    
-    \vfill\hfill \hyperlink{strictness-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
 % ==============================================================================
-% Stage 1 Residualization Regression
+% Alderman Score Plot
 % ==============================================================================
-\begin{frame}[label=score-regression]
-    \frametitle{Permit Processing Time Residualization}
+\begin{frame}[label=score-plot-appendix]
+    \frametitle{Alderman Regulatory Stringency Index}
+    \hypertarget{final-stringency-scores}{}
     \begin{center}
-    \tiny
-    \input{../tasks/create_alderman_strictness_scores/output/stage1_residualization_models.tex}
+    \includegraphics[width=0.72\textwidth,height=0.72\textheight,keepaspectratio]{../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf}
     \end{center}
-    \vspace{-.1em}
-    
-    \vfill\hfill \hyperlink{strictness-main}{\beamerreturnbutton{Back}}
+    \vspace{0.4em}
+    \hfill \hyperlink{strictness-main}{\beamergotobutton{Back}}
 \end{frame}

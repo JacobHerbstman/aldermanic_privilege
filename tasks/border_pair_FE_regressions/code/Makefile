@@ -3,8 +3,8 @@ include ../../shell_functions.make
 
 BWS_FT := 250 500 1000
 SAMPLES := all multifamily
-MAIN_FE_SPECS := segment_year zone_segment_year_additive
-ALT_FE_SPECS := pair_year_only pair_x_year zone_pair_year_additive
+MAIN_FE_SPECS := segment_year zone_segment_year_additive zonegroup_segment_year_additive
+ALT_FE_SPECS := pair_year_only pair_x_year zone_pair_year_additive zonegroup_pair_year_additive
 MAIN_YVARS := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)'
 DONUTS_FT := 25 50
 
