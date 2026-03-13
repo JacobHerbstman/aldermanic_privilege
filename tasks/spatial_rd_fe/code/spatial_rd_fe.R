@@ -427,6 +427,35 @@ jump_label <- sprintf(
   "Jump = %.3f%s (SE %.3f)",
   b_side_plot["estimate"], stars(b_side_plot["p"]), b_side_plot["se"]
 )
+
+placebo_side_label <- dplyr::case_when(
+  placebo_shift_ft > 0 ~ "sample lies inside the original more-stringent side",
+  placebo_shift_ft < 0 ~ "sample lies inside the original less-stringent side",
+  TRUE ~ "right side is the more-stringent side"
+)
+
+distance_label <- if (placebo_shift_ft == 0) {
+  "Running distance (ft) relative to cutoff; right side is the more-stringent side"
+} else {
+  sprintf(
+    "Running distance (ft) relative to placebo cutoff shifted %+.0f ft; %s",
+    placebo_shift_ft,
+    placebo_side_label
+  )
+}
+
+subtitle_label <- if (placebo_shift_ft == 0) {
+  sprintf("%s | bw=%d ft | N=%d", jump_label, as.integer(bw_ft), n_obs_plot)
+} else {
+  sprintf(
+    "%s | placebo shift=%+.0f ft | bw=%d ft | N=%d",
+    jump_label,
+    placebo_shift_ft,
+    as.integer(bw_ft),
+    n_obs_plot
+  )
+}
+
 gap_split_label <- dplyr::case_when(
   gap_split == "above_median" ~ "above-median gap pairs",
   gap_split == "below_median" ~ "below-median gap pairs",
@@ -461,8 +490,8 @@ p <- ggplot() +
       if (plot_style == "level") "Spatial RD (FE-Adjusted Levels): " else "Spatial RD (FE-Adjusted): ",
       ylab
     ),
-    subtitle = sprintf("%s | bw=%d ft | N=%d", jump_label, as.integer(bw_ft), n_obs_plot),
-    x = "Running distance (ft) relative to cutoff; right side is more stringent side",
+    subtitle = subtitle_label,
+    x = distance_label,
     y = ylab
   ) +
   theme_bw(base_size = 11)

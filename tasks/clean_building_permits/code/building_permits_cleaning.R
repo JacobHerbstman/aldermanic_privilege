@@ -42,6 +42,7 @@ building_permits_clean <- building_permits_clean %>%
 building_permits_clean <- building_permits_clean %>% 
   dplyr::mutate(issue_date = as.Date(issue_date, format = "%m/%d/%Y")) %>% 
   dplyr::mutate(application_start_date = as.Date(application_start_date, format = "%m/%d/%Y")) %>% 
+  dplyr::filter(application_start_date >= as.Date("2006-01-01")) %>% 
   dplyr::mutate(issue_date_ym = zoo::as.yearmon(issue_date)) %>% 
   dplyr::mutate(application_start_date_ym = zoo::as.yearmon(application_start_date)) %>% 
   arrange(application_start_date) %>% 

@@ -1,9 +1,22 @@
 SHELL := bash
 include ../../shell_functions.make
 
-all: ../output/rental_listing_panel.parquet
+all: \
+	../output/rental_listing_panel.parquet \
+	../output/rental_listing_panel_2015.parquet \
+	../output/rental_listing_panel_2023.parquet \
+	../output/rental_listing_panel_support_by_event_time.csv \
+	../output/rental_listing_panel_support_by_calendar_time.csv \
+	../output/rental_listing_panel_repeat_listing_diagnostics.csv \
+	../output/rental_listing_panel_assignment_stability.csv
 
-../output/rental_listing_panel.parquet: create_listing_panel.R ../input/rent_with_ward_distances.parquet ../input/census_blocks_2010.csv ../input/block_treatment_panel.csv ../input/boundary_segments_1320ft.gpkg | ../output
+../output/rental_listing_panel.parquet \
+../output/rental_listing_panel_2015.parquet \
+../output/rental_listing_panel_2023.parquet \
+../output/rental_listing_panel_support_by_event_time.csv \
+../output/rental_listing_panel_support_by_calendar_time.csv \
+../output/rental_listing_panel_repeat_listing_diagnostics.csv \
+../output/rental_listing_panel_assignment_stability.csv: create_listing_panel.R ../input/rent_with_ward_distances.parquet ../input/census_blocks_2010.csv ../input/block_treatment_panel.csv ../input/boundary_segments_1320ft.gpkg | ../output
 	$(R) create_listing_panel.R
 
 ../input/rent_with_ward_distances.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input

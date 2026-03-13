@@ -91,6 +91,73 @@ assign_cohort_segments_dt <- function(dt, seg_sf, cohort_label, chunk_n = 50000L
   dt
 }
 
+summarize_event_support_dt <- function(dt, panel_mode, filter_stage) {
+  if (nrow(dt) == 0) {
+    return(data.table(
+      panel_mode = character(),
+      filter_stage = character(),
+      cohort = character(),
+      event_time = integer(),
+      n_transactions = integer(),
+      n_blocks = integer(),
+      n_treated = integer(),
+      n_control = integer()
+    ))
+  }
+
+  out <- dt[, .(
+    n_transactions = .N,
+    n_blocks = uniqueN(block_id),
+    n_treated = sum(treat == 1, na.rm = TRUE),
+    n_control = sum(treat == 0, na.rm = TRUE)
+  ), by = .(cohort, event_time = relative_year_capped)]
+  out[, `:=`(panel_mode = panel_mode, filter_stage = filter_stage)]
+  setcolorder(out, c("panel_mode", "filter_stage", "cohort", "event_time", "n_transactions", "n_blocks", "n_treated", "n_control"))
+  out[order(panel_mode, filter_stage, cohort, event_time)]
+}
+
+summarize_calendar_support_dt <- function(dt, panel_mode) {
+  if (nrow(dt) == 0) {
+    return(data.table(
+      panel_mode = character(),
+      cohort = character(),
+      year = integer(),
+      treat = integer(),
+      n_transactions = integer(),
+      n_blocks = integer(),
+      n_pins = integer()
+    ))
+  }
+
+  out <- dt[, .(
+    n_transactions = .N,
+    n_blocks = uniqueN(block_id),
+    n_pins = uniqueN(pin)
+  ), by = .(cohort, year = sale_year, treat)]
+  out[, panel_mode := panel_mode]
+  setcolorder(out, c("panel_mode", "cohort", "year", "treat", "n_transactions", "n_blocks", "n_pins"))
+  out[order(panel_mode, cohort, year, treat)]
+}
+
+summarize_assignment_stability_dt <- function(dt, panel_mode) {
+  treated_blocks <- dt[treat == 1, .(
+    n_ward_pairs = uniqueN(ward_pair_id),
+    n_segments = uniqueN(segment_id_cohort[!is.na(segment_id_cohort)])
+  ), by = block_id]
+
+  data.table(
+    panel_mode = panel_mode,
+    n_rows = nrow(dt),
+    n_treated_blocks = nrow(treated_blocks),
+    segment_coverage_pct = 100 * mean(!is.na(dt$segment_id_cohort)),
+    n_missing_segment_rows = sum(is.na(dt$segment_id_cohort)),
+    n_blocks_multi_ward_pair = sum(treated_blocks$n_ward_pairs > 1),
+    pct_blocks_multi_ward_pair = 100 * mean(treated_blocks$n_ward_pairs > 1),
+    n_blocks_multi_segment = sum(treated_blocks$n_segments > 1),
+    pct_blocks_multi_segment = 100 * mean(treated_blocks$n_segments > 1)
+  )
+}
+
 # =============================================================================
 # 1. LOAD DATA
 # =============================================================================
@@ -305,37 +372,34 @@ message(sprintf(
 
 message("\n=== CREATING 2012 COHORT (Anticipation) ===")
 
-cohort_2012 <- sales_with_treatment[
+cohort_2012_window <- copy(sales_with_treatment[
   sale_year >= 2007 & sale_year <= 2017 &
-    valid_2015 == TRUE &
     !is.na(ward) &
     !is.na(ward_pair_id) &
     abs(as.numeric(signed_dist)) <= 2000
-][, `:=`(
+])
+cohort_2012_window[, `:=`(
   cohort = "2012",
   relative_year = sale_year - 2012,
   relative_year_capped = pmax(pmin(sale_year - 2012, 5), -5),
-  treat = as.integer(switched_2015),
-  strictness_change = strictness_change_2015,
-  ward_origin = fifelse(switched_2015 == TRUE, ward_origin_2015, ward),
-  ward_dest = fifelse(switched_2015 == TRUE, ward_dest_2015, ward)
+  treat = as.integer(switched_2015)
 )]
 
-# Add dist_ft for filtering/weighting in regression script
-cohort_2012[, dist_ft := abs(as.numeric(signed_dist))]
-
-# FIX: For treated blocks, use the boundary they crossed (time-invariant)
-cohort_2012[
+cohort_2012_nonmissing <- cohort_2012_window[!is.na(switched_2015)]
+cohort_2012_valid <- cohort_2012_nonmissing[valid_2015 == TRUE]
+cohort_2012_pre_segment <- copy(cohort_2012_valid)
+cohort_2012_pre_segment[, `:=`(
+  strictness_change = strictness_change_2015,
+  ward_origin = fifelse(switched_2015 == TRUE, ward_origin_2015, ward),
+  ward_dest = fifelse(switched_2015 == TRUE, ward_dest_2015, ward),
+  dist_ft = abs(as.numeric(signed_dist))
+)]
+cohort_2012_pre_segment[
   switched_2015 == TRUE,
-  ward_pair_id := paste(pmin(ward_origin, ward_dest),
-    pmax(ward_origin, ward_dest),
-    sep = "-"
-  )
+  ward_pair_id := paste(pmin(ward_origin, ward_dest), pmax(ward_origin, ward_dest), sep = "-")
 ]
-
-# Construct ward_pair_side from the (potentially fixed) ward_pair_id
-cohort_2012[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
-cohort_2012 <- assign_cohort_segments_dt(cohort_2012, segments_2003, "2012")
+cohort_2012_pre_segment[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
+cohort_2012 <- assign_cohort_segments_dt(cohort_2012_pre_segment, segments_2003, "2012")
 
 message(sprintf("2012 cohort: %s transactions", format(nrow(cohort_2012), big.mark = ",")))
 message(sprintf("  Year range: %d to %d", min(cohort_2012$sale_year), max(cohort_2012$sale_year)))
@@ -353,37 +417,34 @@ message(sprintf("  Control transactions: %s", format(sum(cohort_2012$treat == 0)
 
 message("\n=== CREATING 2022 COHORT (Anticipation for 2023 Redistricting) ===")
 
-cohort_2022 <- sales_with_treatment[
+cohort_2022_window <- copy(sales_with_treatment[
   sale_year >= 2017 & sale_year <= 2025 &
-    valid_2023 == TRUE &
     !is.na(ward) &
     !is.na(ward_pair_id) &
     abs(as.numeric(signed_dist)) <= 2000
-][, `:=`(
+])
+cohort_2022_window[, `:=`(
   cohort = "2022",
   relative_year = sale_year - 2022,
   relative_year_capped = pmax(pmin(sale_year - 2022, 5), -5),
-  treat = as.integer(switched_2023),
-  strictness_change = strictness_change_2023,
-  ward_origin = fifelse(switched_2023 == TRUE, ward_origin_2023, ward),
-  ward_dest = fifelse(switched_2023 == TRUE, ward_dest_2023, ward)
+  treat = as.integer(switched_2023)
 )]
 
-# Add dist_ft for filtering/weighting in regression script
-cohort_2022[, dist_ft := abs(as.numeric(signed_dist))]
-
-# FIX: For treated blocks, use the boundary they crossed (time-invariant)
-cohort_2022[
+cohort_2022_nonmissing <- cohort_2022_window[!is.na(switched_2023)]
+cohort_2022_valid <- cohort_2022_nonmissing[valid_2023 == TRUE]
+cohort_2022_pre_segment <- copy(cohort_2022_valid)
+cohort_2022_pre_segment[, `:=`(
+  strictness_change = strictness_change_2023,
+  ward_origin = fifelse(switched_2023 == TRUE, ward_origin_2023, ward),
+  ward_dest = fifelse(switched_2023 == TRUE, ward_dest_2023, ward),
+  dist_ft = abs(as.numeric(signed_dist))
+)]
+cohort_2022_pre_segment[
   switched_2023 == TRUE,
-  ward_pair_id := paste(pmin(ward_origin, ward_dest),
-    pmax(ward_origin, ward_dest),
-    sep = "-"
-  )
+  ward_pair_id := paste(pmin(ward_origin, ward_dest), pmax(ward_origin, ward_dest), sep = "-")
 ]
-
-# Construct ward_pair_side from the (potentially fixed) ward_pair_id
-cohort_2022[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
-cohort_2022 <- assign_cohort_segments_dt(cohort_2022, segments_2015, "2022")
+cohort_2022_pre_segment[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
+cohort_2022 <- assign_cohort_segments_dt(cohort_2022_pre_segment, segments_2015, "2022")
 
 message(sprintf("2022 cohort: %s transactions", format(nrow(cohort_2022), big.mark = ",")))
 message(sprintf("  Year range: %d to %d", min(cohort_2022$sale_year), max(cohort_2022$sale_year)))
@@ -399,38 +460,34 @@ message(sprintf("  Control transactions: %s", format(sum(cohort_2022$treat == 0)
 message("\n=== CREATING 2015 COHORT (Implementation) ===")
 
 # 2015 cohort: sales from 2010-2020
-cohort_2015 <- sales_with_treatment[
+cohort_2015_window <- copy(sales_with_treatment[
   sale_year >= 2010 & sale_year <= 2020 &
-    valid_2015 == TRUE &
     !is.na(ward) &
     !is.na(ward_pair_id) &
     abs(as.numeric(signed_dist)) <= 2000
-][, `:=`(
+])
+cohort_2015_window[, `:=`(
   cohort = "2015",
   relative_year = sale_year - 2015,
   relative_year_capped = pmax(pmin(sale_year - 2015, 5), -5),
-  treat = as.integer(switched_2015),
-  strictness_change = strictness_change_2015,
-  ward_origin = fifelse(switched_2015 == TRUE, ward_origin_2015, ward),
-  ward_dest = fifelse(switched_2015 == TRUE, ward_dest_2015, ward)
+  treat = as.integer(switched_2015)
 )]
 
-# Add dist_ft for filtering/weighting in regression script
-cohort_2015[, dist_ft := abs(as.numeric(signed_dist))]
-
-# FIX: For treated blocks, use the boundary they crossed (time-invariant)
-# This ensures ward_pair_id doesn't change pre vs post treatment
-cohort_2015[
+cohort_2015_nonmissing <- cohort_2015_window[!is.na(switched_2015)]
+cohort_2015_valid <- cohort_2015_nonmissing[valid_2015 == TRUE]
+cohort_2015_pre_segment <- copy(cohort_2015_valid)
+cohort_2015_pre_segment[, `:=`(
+  strictness_change = strictness_change_2015,
+  ward_origin = fifelse(switched_2015 == TRUE, ward_origin_2015, ward),
+  ward_dest = fifelse(switched_2015 == TRUE, ward_dest_2015, ward),
+  dist_ft = abs(as.numeric(signed_dist))
+)]
+cohort_2015_pre_segment[
   switched_2015 == TRUE,
-  ward_pair_id := paste(pmin(ward_origin, ward_dest),
-    pmax(ward_origin, ward_dest),
-    sep = "-"
-  )
+  ward_pair_id := paste(pmin(ward_origin, ward_dest), pmax(ward_origin, ward_dest), sep = "-")
 ]
-
-# Now construct ward_pair_side from the (potentially fixed) ward_pair_id
-cohort_2015[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
-cohort_2015 <- assign_cohort_segments_dt(cohort_2015, segments_2003, "2015")
+cohort_2015_pre_segment[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
+cohort_2015 <- assign_cohort_segments_dt(cohort_2015_pre_segment, segments_2003, "2015")
 
 message(sprintf("2015 cohort: %s transactions", format(nrow(cohort_2015), big.mark = ",")))
 # =============================================================================
@@ -439,37 +496,34 @@ message(sprintf("2015 cohort: %s transactions", format(nrow(cohort_2015), big.ma
 message("\n=== CREATING 2023 COHORT ===")
 
 # 2023 cohort: sales from 2018-2025
-cohort_2023 <- sales_with_treatment[
+cohort_2023_window <- copy(sales_with_treatment[
   sale_year >= 2018 & sale_year <= 2025 &
-    valid_2023 == TRUE &
     !is.na(ward) &
     !is.na(ward_pair_id) &
     abs(as.numeric(signed_dist)) <= 2000
-][, `:=`(
+])
+cohort_2023_window[, `:=`(
   cohort = "2023",
   relative_year = sale_year - 2023,
   relative_year_capped = pmax(pmin(sale_year - 2023, 5), -5),
-  treat = as.integer(switched_2023),
-  strictness_change = strictness_change_2023,
-  ward_origin = fifelse(switched_2023 == TRUE, ward_origin_2023, ward),
-  ward_dest = fifelse(switched_2023 == TRUE, ward_dest_2023, ward)
+  treat = as.integer(switched_2023)
 )]
 
-# Add dist_ft for filtering/weighting in regression script
-cohort_2023[, dist_ft := abs(as.numeric(signed_dist))]
-
-# FIX: For treated blocks, use the boundary they crossed (time-invariant)
-cohort_2023[
+cohort_2023_nonmissing <- cohort_2023_window[!is.na(switched_2023)]
+cohort_2023_valid <- cohort_2023_nonmissing[valid_2023 == TRUE]
+cohort_2023_pre_segment <- copy(cohort_2023_valid)
+cohort_2023_pre_segment[, `:=`(
+  strictness_change = strictness_change_2023,
+  ward_origin = fifelse(switched_2023 == TRUE, ward_origin_2023, ward),
+  ward_dest = fifelse(switched_2023 == TRUE, ward_dest_2023, ward),
+  dist_ft = abs(as.numeric(signed_dist))
+)]
+cohort_2023_pre_segment[
   switched_2023 == TRUE,
-  ward_pair_id := paste(pmin(ward_origin, ward_dest),
-    pmax(ward_origin, ward_dest),
-    sep = "-"
-  )
+  ward_pair_id := paste(pmin(ward_origin, ward_dest), pmax(ward_origin, ward_dest), sep = "-")
 ]
-
-# Now construct ward_pair_side from the (potentially fixed) ward_pair_id
-cohort_2023[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
-cohort_2023 <- assign_cohort_segments_dt(cohort_2023, segments_2015, "2023")
+cohort_2023_pre_segment[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
+cohort_2023 <- assign_cohort_segments_dt(cohort_2023_pre_segment, segments_2015, "2023")
 
 message(sprintf("2023 cohort: %s transactions", format(nrow(cohort_2023), big.mark = ",")))
 
@@ -615,6 +669,45 @@ message(sprintf(
   100 * n_complete / nrow(final_panel)
 ))
 
+sales_support_by_event_time <- rbindlist(list(
+  summarize_event_support_dt(cohort_2012_window, "cohort_2012", "post_time_and_geo_filter"),
+  summarize_event_support_dt(cohort_2012_nonmissing, "cohort_2012", "post_drop_missing_treatment"),
+  summarize_event_support_dt(cohort_2012_valid, "cohort_2012", "post_valid_controls"),
+  summarize_event_support_dt(cohort_2012_final, "cohort_2012", "final_assigned_segments"),
+  summarize_event_support_dt(cohort_2022_window, "cohort_2022", "post_time_and_geo_filter"),
+  summarize_event_support_dt(cohort_2022_nonmissing, "cohort_2022", "post_drop_missing_treatment"),
+  summarize_event_support_dt(cohort_2022_valid, "cohort_2022", "post_valid_controls"),
+  summarize_event_support_dt(cohort_2022_final, "cohort_2022", "final_assigned_segments"),
+  summarize_event_support_dt(cohort_2015_window, "cohort_2015", "post_time_and_geo_filter"),
+  summarize_event_support_dt(cohort_2015_nonmissing, "cohort_2015", "post_drop_missing_treatment"),
+  summarize_event_support_dt(cohort_2015_valid, "cohort_2015", "post_valid_controls"),
+  summarize_event_support_dt(cohort_2015_final, "cohort_2015", "final_assigned_segments"),
+  summarize_event_support_dt(cohort_2023_window, "cohort_2023", "post_time_and_geo_filter"),
+  summarize_event_support_dt(cohort_2023_nonmissing, "cohort_2023", "post_drop_missing_treatment"),
+  summarize_event_support_dt(cohort_2023_valid, "cohort_2023", "post_valid_controls"),
+  summarize_event_support_dt(cohort_2023_final, "cohort_2023", "final_assigned_segments"),
+  summarize_event_support_dt(stacked_announcement_final, "stacked_announcement", "final_assigned_segments"),
+  summarize_event_support_dt(stacked_implementation_final, "stacked_implementation", "final_assigned_segments")
+), fill = TRUE)
+
+sales_support_by_calendar_time <- rbindlist(list(
+  summarize_calendar_support_dt(cohort_2012_final, "cohort_2012"),
+  summarize_calendar_support_dt(cohort_2022_final, "cohort_2022"),
+  summarize_calendar_support_dt(cohort_2015_final, "cohort_2015"),
+  summarize_calendar_support_dt(cohort_2023_final, "cohort_2023"),
+  summarize_calendar_support_dt(stacked_announcement_final, "stacked_announcement"),
+  summarize_calendar_support_dt(stacked_implementation_final, "stacked_implementation")
+), fill = TRUE)
+
+sales_assignment_stability <- rbindlist(list(
+  summarize_assignment_stability_dt(cohort_2012_final, "cohort_2012"),
+  summarize_assignment_stability_dt(cohort_2022_final, "cohort_2022"),
+  summarize_assignment_stability_dt(cohort_2015_final, "cohort_2015"),
+  summarize_assignment_stability_dt(cohort_2023_final, "cohort_2023"),
+  summarize_assignment_stability_dt(stacked_announcement_final, "stacked_announcement"),
+  summarize_assignment_stability_dt(stacked_implementation_final, "stacked_implementation")
+), fill = TRUE)
+
 # =============================================================================
 # 10. SAVE ALL PANELS
 # =============================================================================
@@ -645,5 +738,14 @@ message(sprintf("Saved 2015 cohort: %s rows", format(nrow(cohort_2015_final), bi
 
 write_parquet(cohort_2023_final, "../output/sales_transaction_panel_2023.parquet")
 message(sprintf("Saved 2023 cohort: %s rows", format(nrow(cohort_2023_final), big.mark = ",")))
+
+write_csv(as_tibble(sales_support_by_event_time), "../output/sales_transaction_panel_support_by_event_time.csv")
+message("Saved sales event-time support diagnostics")
+
+write_csv(as_tibble(sales_support_by_calendar_time), "../output/sales_transaction_panel_support_by_calendar_time.csv")
+message("Saved sales calendar-time support diagnostics")
+
+write_csv(as_tibble(sales_assignment_stability), "../output/sales_transaction_panel_assignment_stability.csv")
+message("Saved sales assignment-stability diagnostics")
 
 message("\nDone!")

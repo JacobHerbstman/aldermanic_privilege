@@ -11,19 +11,18 @@ source("../../setup_environment/code/packages.R")
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/summary_stats_new_construction/code")
-# input_file <- "../input/parcels_with_ward_distances.csv"
-# output_file <- "../output/summary_stats.tex"
-# Rscript summary_stats.R ../input/parcels_with_ward_distances.csv ../output/summary_stats.tex
+# Rscript summary_stats.R ../input/parcels_with_ward_distances.csv ../output/summary_stats.tex ../output/summary_stats_tabular.tex
 # =======================================================================================
 
 # 1. CLI ARGS
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) >= 2) {
+if (length(args) >= 3) {
     input_file <- args[1]
-    output_file <- args[2]
+    table_output_file <- args[2]
+    tabular_output_file <- args[3]
 } else {
-    if (!exists("input_file") || !exists("output_file")) {
-        stop("FATAL: Script requires 2 args: <input_file> <output_file>", call. = FALSE)
+    if (!exists("input_file") || !exists("table_output_file") || !exists("tabular_output_file")) {
+        stop("FATAL: Script requires 3 args: <input_file> <table_output_file> <tabular_output_file>", call. = FALSE)
     }
 }
 
@@ -73,12 +72,7 @@ fmt_int <- function(x) {
     formatC(x, format = "d", big.mark = ",")
 }
 
-# Create LaTeX content
-tex_content <- paste0(
-    "\\begin{table}[htbp]\n",
-    "\\centering\n",
-    "\\caption{Summary Statistics of New Residential Construction}\n",
-    "\\label{tab:summary_stats}\n",
+tabular_content <- paste0(
     "\\begin{tabular}{lcc}\n",
     "\\toprule\n",
     " & (1) & (2) \\\\\n",
@@ -93,12 +87,23 @@ tex_content <- paste0(
     "\\midrule\n",
     "Observations & ", fmt_int(stats_all$n), " & ", fmt_int(stats_mf$n), " \\\\\n",
     "\\bottomrule\n",
-    "\\end{tabular}\n",
+    "\\end{tabular}\n"
+)
+
+table_content <- paste0(
+    "\\begin{table}[htbp]\n",
+    "\\centering\n",
+    "\\caption{Summary Statistics of New Residential Construction}\n",
+    "\\label{tab:summary_stats}\n",
+    tabular_content,
     "\\end{table}\n"
 )
 
 # 6. SAVE OUTPUT
-cat("Writing table to:", output_file, "\n")
-writeLines(tex_content, output_file)
+cat("Writing table to:", table_output_file, "\n")
+writeLines(table_content, table_output_file)
+
+cat("Writing tabular to:", tabular_output_file, "\n")
+writeLines(tabular_content, tabular_output_file)
 
 cat("Done!\n")
