@@ -16,7 +16,7 @@ palette_50 <- rep(RColorBrewer::brewer.pal(10, "Set3"), 5)[1:50]
 color_map  <- tibble(ward = 1:50, fill_color = sample(palette_50))
 
 wards <- left_join(wards, color_map, by = "ward")
-centroids <- st_centroid(wards)
+centroids <- st_point_on_surface(wards)
 
 p <- ggplot(wards) +
   geom_sf(aes(fill = fill_color), color = "white", linewidth = 0.3) +
