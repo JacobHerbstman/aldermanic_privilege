@@ -19,7 +19,7 @@ all: ../output/alderman_uncertainty_index_$(SPEC).csv ../output/uncertainty_inde
 ../output/stage1_regression_$(SPEC).tex \
 ../output/stage2_regression_$(SPEC).tex: ../output/.build_$(SPEC).done
 
-../output/.build_$(SPEC).done: create_uncertainty_index.R ../input/permits_for_uncertainty_index.csv | ../output
+../output/.build_$(SPEC).done: create_uncertainty_index.R uncertainty_index_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
 	Rscript create_uncertainty_index.R $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE)
 	touch "$@"
 
