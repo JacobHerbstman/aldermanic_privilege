@@ -203,37 +203,24 @@
 % ==============================================================================
 % SLIDE 15: IDENTIFICATION STRATEGY
 % ==============================================================================
-\begin{frame}
+\begin{frame}[label=identification-strategy]
     \frametitle{Identification Strategy: Border Discontinuity}
-    
+
     \textbf{Idea}: Compare new multifamily construction on opposite sides of ward boundary segments
     \begin{itemize}
         \item Focus on parcels \textbf{within 500 feet} of a segment
         \item Fixed effects: zoning group, boundary segment, and year
     \end{itemize}
-    
+
     \vspace{0.3em}
-    \textbf{Identifying variation}: Within the same boundary segment, controlling for zoning group and citywide year fixed effects, does the more stringent side have less dense new multifamily construction?
-    
+    \textbf{Identifying variation}: Within the same boundary segment, controlling for zoning group and citywide year fixed effects, does the more stringent side have less dense new multifamily construction? \hyperlink{border-segments}{\beamergotobutton{Border Segments}}
+
     \vspace{0.3em}
     Two specifications:
     \begin{itemize}
         \item \textbf{Visual RD}: FE-adjusted discontinuity plots
         \item \textbf{Regressions}: FE regressions using continuous variation in the stringency index
     \end{itemize}
-\end{frame}
-
-% ==============================================================================
-% SLIDE 15: Border visuals
-% ==============================================================================
-\begin{frame}[label=border-segments]
-    \frametitle{Border Segments}
-    
-    \centering
-    \begin{figure}
-        \includegraphics[width=1.05\textwidth,height=1\textheight,keepaspectratio]{../tasks/pruned_boundary_maps/output/pruned_boundaries_all_segments_by_era.pdf}
-    \end{figure}
-
 \end{frame}
 
 

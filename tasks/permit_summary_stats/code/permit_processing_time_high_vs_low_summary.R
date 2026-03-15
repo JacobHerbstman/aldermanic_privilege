@@ -181,19 +181,12 @@ save_density_plot <- function(entity_means, entity_label, mean_col, figure_outpu
     aes(x = .data[[mean_col]], color = group, fill = group)
   ) +
     geom_density(alpha = 0.28, linewidth = 0.95, adjust = 1.1) +
-    geom_vline(
-      data = mean_refs,
-      aes(xintercept = mean_processing_time, color = group),
-      linewidth = 0.85,
-      linetype = "dashed",
-      show.legend = FALSE
-    ) +
     scale_color_manual(values = c("High-Discretion" = "#b74d2c", "Low-Discretion" = "#1f3c4a")) +
     scale_fill_manual(values = c("High-Discretion" = "#b74d2c", "Low-Discretion" = "#1f3c4a")) +
     theme_bw(base_size = 12) +
     labs(
       title = paste0(entity_label, "-Level Mean Permit Processing Times"),
-      subtitle = paste0("One observation per ", tolower(entity_label), " after geometry-based ward assignment and alderman matching"),
+      subtitle = NULL,
       x = paste0(entity_label, "-level mean processing time (days)"),
       y = "Density",
       color = NULL,

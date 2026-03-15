@@ -1,7 +1,19 @@
 % ==============================================================================
-% APPENDIX: DENSITY ANALYSIS
-% FE-adjusted spatial RD robustness + border FE robustness
+% APPENDIX C: DENSITY ANALYSIS
+% Border segments map + FE-adjusted spatial RD robustness + border FE robustness
 % ==============================================================================
+
+% ==============================================================================
+% Border Segments Map
+% ==============================================================================
+\begin{frame}[label=border-segments]
+    \frametitle{Border Segments}
+    \centering
+    \begin{figure}
+        \includegraphics[width=1.05\textwidth,height=1\textheight,keepaspectratio]{../tasks/pruned_boundary_maps/output/pruned_boundaries_all_segments_by_era.pdf}
+    \end{figure}
+    \vfill\hfill\hyperlink{identification-strategy}{\beamerreturnbutton{Back}}
+\end{frame}
 
 % ==============================================================================
 % FE-adjusted Spatial RD - Robustness Menu
@@ -137,17 +149,3 @@
     \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
-% ==============================================================================
-% Rental FE Permutation Test (Controls)
-% ==============================================================================
-\begin{frame}[label=rental-permutation-noctrl]
-    \frametitle{Permutation Test: Rental FE (Controls)}
-    \begin{center}
-        \includegraphics[width=0.92\textwidth,height=0.72\textheight,keepaspectratio]{../tasks/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_ctrl.pdf}
-    \end{center}
-    \vspace{0.2em}
-    \small
-    2014--2022 sample, 500 ft bandwidth, controls included. \\
-    Permutation p-values: two-sided = 0.006; one-sided = 0.004.
-    \vfill\hfill \hyperlink{rental-fe-main}{\beamerreturnbutton{Back}}
-\end{frame}

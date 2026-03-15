@@ -38,23 +38,25 @@
 - Avoid bloated helper targets; keep Makefiles focused.
 
 ## Make Incrementality Rules
-- Do not call recursive upstream builds inside task Makefiles (no `$(MAKE) -C ../../...` in symlink/input rules).
-- `link-inputs` should only create symlinks, not orchestrate upstream task execution.
-- Each symlink input should depend on the specific upstream output file, not broad gate files.
-- Prefer narrow dependency edges. Avoid stamp-file workflows unless there is no clearer file-target alternative.
+- Do not call recursive upstream builds inside active task Makefiles (for example, no `$(MAKE) -C ../../...` inside symlink/input rules).
+- `link-inputs` should only create symlinks and should not orchestrate upstream task execution.
+- Each symlink input should depend on the specific upstream output file path, not on broad/coarse gate files when avoidable.
+- Prefer narrow dependency edges over single-report anchors that can trigger unnecessary relinking and downstream invalidation.
+- Stamp-file workflows can obscure real dependency edges; use them sparingly and only when there is no clearer file-target alternative.
 - Before expensive runs, prefer `make -n` to inspect what will rebuild.
 
 ## Makefile Readability Rules
 - Keep Makefiles minimal, linear, and easy to scan.
 - Keep comments brief and structural only.
-- Keep default workflow targets limited to essentials (`all`, `link-inputs`, task-specific essentials only).
-- One concise recipe per logical output producer.
+- Keep default workflow targets limited to essentials (`all`, `link-inputs`, and task-specific essential file targets).
+- Keep one concise recipe per logical output producer.
+- Keep output and input names explicit and traceable.
+- Favor readability over clever Make metaprogramming unless scale requires it.
 
 ## Makefile Path Style
 - Write file paths directly in targets and recipes.
-- Do NOT use path alias variables like `*_IN`, `*_UP`, `*_OUT`.
-- Only scalar/config variables in Makefiles (dates, thresholds, flags, tool executables).
-- This keeps filenames short and the pipeline easy to trace.
+- Do not use path indirection blocks like `*_IN`, `*_UP`, `*_OUT`, `INPUT`, `OUTPUTS`, or similar path alias variables.
+- Keep only scalar/config variables in Makefiles (dates, thresholds, flags, spec lists, tool executables).
 
 ## RStudio Interactive Block Standard
 - Every R script that accepts CLI arguments must include a top-of-file commented interactive block with:
@@ -63,16 +65,22 @@
 - Do NOT include `args <- c(...)` blocks.
 - Do NOT include commented path-variable assignments (e.g., `in_csv <- "../input/..."` lines).
 - Interactive examples must mirror current Makefile defaults and run end-to-end when uncommented after `cd` into `code/`.
+- CLI parsing remains canonical for non-interactive runs; interactive blocks are for readability/debugging only.
 
-## Script Path Style (R)
-- No path alias variables (e.g., no `in_csv <- opt$in_csv` when the variable is used once).
-- Prefer direct call-site reads/writes: `read_csv(opt$in_csv)`, `write_csv(df, opt$out_csv)`.
-- Keep path handling explicit and local to each read/write call.
+## Script Path Style (R + Python)
+- Avoid path alias variables for simple I/O handoff when direct use is clear.
+- Prefer direct call-site reads/writes: `read_csv(opt$in_csv)`, `write_csv(df, opt$out_csv)`, and Python equivalents.
+- Keep path handling explicit and local to each read/write call unless reuse materially improves clarity.
 
 ## JSON Minimalism Policy
 - JSON outputs only for operational gate/audit files that gate or verify the pipeline.
 - Default task outputs should be CSV/PDF.
 - Optional debug JSON flags must not be part of default `make` targets.
+
+## Environment Setup Conventions
+- Keep `tasks/setup_environment/code/` as the bootstrap entry point.
+- Keep package bootstrap scripts (R/Stata) current and log installed package versions.
+- Reuse `run.sbatch` where SLURM execution is needed; symlink it only in tasks that actually require it.
 
 ## Terse/Clear Code Preference
 - Keep scripts short, direct, and clearly mapped to Makefile arguments and outputs.
@@ -80,10 +88,11 @@
 - Fewer scripts and fewer task outputs are better where possible.
 
 ## Root-Cause First (No Shortcuts)
-- Do not bypass missing dependencies with `$(wildcard ...)`, dummy target hacks, or optionalized prerequisite checks.
+- Do not bypass missing dependencies with wildcard hacks, dummy targets, or optionalized prerequisite checks.
 - Do not use forwarding wrapper scripts (e.g., an R script that only calls `python3 some_script.py`).
-- No silent fallback branches. If a secondary source is needed, make it explicit with reason codes and deterministic unresolved/manual-review outputs.
-- Fix upstream root data issues rather than suppressing validation downstream.
+- Do not add placeholder smoke targets.
+- No silent fallback branches. If a secondary source is needed, make source-priority logic explicit with row-level reason codes and deterministic unresolved/manual-review outputs.
+- Fix producer/root data issues upstream rather than suppressing validation downstream.
 
 ## Collaboration Preferences
 - Keep commit messages clear and minimal.

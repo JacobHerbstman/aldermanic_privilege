@@ -15,7 +15,7 @@
 % ==============================================================================
 % SLIDE: WHY PERMIT PROCESSING TIMES? (New summary stats slide)
 % ==============================================================================
-\begin{frame}
+\begin{frame}[label=permit-stats-main]
     \frametitle{Why Permit Processing Times?}
     \begin{columns}[T]
     \begin{column}{0.48\textwidth}
@@ -24,28 +24,17 @@
         \begin{itemize}
             \item Permitting is the primary driver of supply inelasticity \citep{soltas_how_2026}
             \item Focus on \textbf{high-discretion} permits: new construction, renovation, demolition
-            \item Exclude easy/express permits, signs, scaffolding
+            \item High-discretion processing times are \textbf{negatively} correlated with permit volume; low-discretion times are \textbf{positively} correlated \hyperlink{permit-vol-corr-appendix}{\beamergotobutton{Permit Volume}}
         \end{itemize}
-
-        \vspace{0.5em}
-        {\footnotesize
-        \setlength{\tabcolsep}{4pt}
-        \renewcommand{\arraystretch}{1.05}
-        \input{../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex}
-        }
-
-        \vspace{0.3em}
-        {\scriptsize \textit{Cross-alderman IQR is 2$\times$ larger for high-discretion permits --- variation is concentrated where aldermanic intervention has bite.}}
     \end{column}
     \begin{column}{0.50\textwidth}
         \centering
         \vspace{0.3em}
         \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{figures/alderman_mean_processing_time_high_vs_low_density.pdf}
-
-        \vspace{0.2em}
-        {\scriptsize Distribution of alderman-level mean processing times by permit type.}
     \end{column}
     \end{columns}
+    \vfill
+    \hfill\hyperlink{permit-summary-stats-appendix}{\beamergotobutton{More Summary Stats}}
 \end{frame}
 
 
