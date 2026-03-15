@@ -1,9 +1,9 @@
 # Fdb version 4
-["pdflatex"] 1772381243.61071 "/Users/jacobherbstman/Desktop/aldermanic_privilege/paper/paper.tex" "paper.pdf" "paper" 1772381244.3317 2
+["pdflatex"] 1773612165.74784 "/Users/jacobherbstman/Desktop/aldermanic_privilege/paper/paper.tex" "paper.pdf" "paper" 1773612166.71006 2
   "../tasks/combine_did_tables/output/did_table_simple.tex" 0 -1 0 ""
   "../tasks/summary_stats_event_study/output/summary_stats_event_study.tex" 1767852232.52808 2283 bd901598e717d2a5f86ab4dab21302fd ""
-  "../tasks/summary_stats_new_construction/output/summary_stats.tex" 1765076603.39572 522 b4f14359d4ae2544462e01c373d3388b ""
-  "/Users/jacobherbstman/Desktop/aldermanic_privilege/paper/paper.tex" 1768872874.55525 3009 0d2d5af98dbddf1ec566bc522cdda506 ""
+  "../tasks/summary_stats_new_construction/output/summary_stats.tex" 1773381937.79945 522 0af7c7ff72b0a501361adde0269e4ddf ""
+  "/Users/jacobherbstman/Desktop/aldermanic_privilege/paper/paper.tex" 1773612162.35186 3009 0d2d5af98dbddf1ec566bc522cdda506 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/tfm/jknappen/ec/tcrm1200.tfm" 1136768653 1536 74b7293ec3713bb7fdca8dd1bd1f469c ""
@@ -102,10 +102,10 @@
   "/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1726594085.70282 5467645 128b85b7cde5f5edc5cb7f1dd7ff8736 ""
   "/usr/local/texlive/2024/texmf-var/web2c/pdftex/pdflatex.fmt" 1726593974 8221424 af03b3a9530f2a8094510f273665fefc ""
   "/usr/local/texlive/2024/texmf.cnf" 1710266656 577 e590dabc9e28c5b61546e15f63eebcdf ""
-  "paper.aux" 1772381244.29407 6617 2cb4a1d2aa969e5259c4e02b200907c8 "pdflatex"
-  "paper.fff" 1772381244.29429 7535 52996e8ec6dc57859a1f0b5542c61be7 "pdflatex"
-  "paper.tex" 1768872874.55525 3009 0d2d5af98dbddf1ec566bc522cdda506 ""
-  "paper.ttt" 1772381244.29446 3451 4a831842886b1ebd4b0716c9244ef1b2 "pdflatex"
+  "paper.aux" 1773612166.61986 6617 2cb4a1d2aa969e5259c4e02b200907c8 "pdflatex"
+  "paper.fff" 1773612166.62002 7535 52996e8ec6dc57859a1f0b5542c61be7 "pdflatex"
+  "paper.tex" 1773612162.35186 3009 0d2d5af98dbddf1ec566bc522cdda506 ""
+  "paper.ttt" 1773612166.62015 3451 ff2338be8bffa94013e910fb6268fb36 "pdflatex"
   "sections/data.tex" 1767917691.64054 3440 47cd417026453369f348d44bf4c58b9a ""
   "sections/empirics_density.tex" 1767917569.32553 17614 535f9c01c356c55a3677c2ba4182cecf ""
   "sections/empirics_rent_home_vals.tex" 1772322754.86217 17687 8304b470ed4c3c5903f8e969f73ab181 ""

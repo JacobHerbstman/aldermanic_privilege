@@ -1,60 +1,56 @@
 % ==============================================================================
-% SLIDE 9: THE CHALLENGE - MEASURING REGULATORY STRINGENCY
+% PART 4: MEASURING REGULATORY STRINGENCY
+% ==============================================================================
+
+% ==============================================================================
+% SLIDE: HOW ALDERMEN INFLUENCE DEVELOPMENT (Pipeline - 4 overlays)
+% ==============================================================================
+\begin{frame}[label=permits-pipeline]
+   \frametitle{How Aldermen Influence the Development Process}
+   \vspace{-0.3em}
+   \centering
+   \input{figures/pipeline_tikz.tex}
+\end{frame}
+
+% ==============================================================================
+% SLIDE: WHY PERMIT PROCESSING TIMES? (New summary stats slide)
 % ==============================================================================
 \begin{frame}
-	\frametitle{The Challenge: Measuring Regulatory Stringency}
-	\begin{itemize}
-		\item Alderman preferences/frictions are latent: need to infer from observed behavior
-		\item \textbf{Idea}: Use permit processing times as a \textbf{proxy} for regulatory stringency and variation in time to build
-		\begin{itemize}
-			\item Data: Universe of Permits in Chicago (2006-2025) from Department of Buildings
-			\item Longer average processing time $\rightarrow$ more back-and-forth, more frictions $\implies$ more stringent alderman 
-		\end{itemize}
-		\item Focus on \textbf{high-discretion permits}: new construction, renovation, demolition
-	\end{itemize}
+    \frametitle{Why Permit Processing Times?}
+    \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+        \vspace{0.5em}
+        \textbf{Permits are the binding constraint}
+        \begin{itemize}
+            \item Permitting is the primary driver of supply inelasticity \citep{soltas_how_2026}
+            \item Focus on \textbf{high-discretion} permits: new construction, renovation, demolition
+            \item Exclude easy/express permits, signs, scaffolding
+        \end{itemize}
+
+        \vspace{0.5em}
+        {\footnotesize
+        \setlength{\tabcolsep}{4pt}
+        \renewcommand{\arraystretch}{1.05}
+        \input{../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex}
+        }
+
+        \vspace{0.3em}
+        {\scriptsize \textit{Cross-alderman IQR is 2$\times$ larger for high-discretion permits --- variation is concentrated where aldermanic intervention has bite.}}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+        \centering
+        \vspace{0.3em}
+        \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{figures/alderman_mean_processing_time_high_vs_low_density.pdf}
+
+        \vspace{0.2em}
+        {\scriptsize Distribution of alderman-level mean processing times by permit type.}
+    \end{column}
+    \end{columns}
 \end{frame}
 
-% ==============================================================================
-% SLIDE 10: Do permits matter?
-% ==============================================================================
-
-\begin{frame}[label=permits-quotes]
-   \frametitle{Can Aldermen Affect Permitting Outcomes?} 
-   \begin{itemize}
-    \item ``If the alderman doesn't want it to happen, it won't happen. They can hold up anything they want.
- All it takes is one call to a city inspector, saying 'Don't give him his occupancy permit.'" - anonymous developer
- \item ``We were gonna talk about the real estate tax representation, and you were gonna have somebody get in touch with me so we can expedite your permits.'' -Evidence from Ed Burke corruption trial
- \item ``A thumb up or thumb down from an alderman can mean all the difference to even the most code-compliant zoning application.'' - Dalton and Tomich, land use attorneys
- \item ``As a matter of courtesy,
-Aldermen continue to receive nightly e-mailed reports of building permits applied for and issued in their respective
-wards and have access to a password-protected website to access the data which is contained in the nightly reports'' - City of Chicago, Department of Buildings
-   \end{itemize}
-\end{frame}
 
 % ==============================================================================
-% SLIDE 10: Do permits matter?
-% ==============================================================================
-
-\begin{frame}[label=permits-main]
-   \frametitle{Do permits Matter?} 
-   \begin{columns}[T]
-   \begin{column}{0.48\textwidth}
-       \centering
-       \begin{figure}
-           \includegraphics[width=\textwidth,height=0.75\textheight,keepaspectratio]{../tasks/permit_summary_stats/output/processing_time_residualized_high_discretion.pdf}
-       \end{figure}
-   \end{column}
-   \begin{column}{0.48\textwidth}
-       \centering
-       \begin{figure}
-           \includegraphics[width=\textwidth,height=0.75\textheight,keepaspectratio]{../tasks/permit_summary_stats/output/processing_time_residualized_new_construction.pdf}
-       \end{figure}
-   \end{column}
-   \end{columns}
-\end{frame}
-
-% ==============================================================================
-% SLIDE 12: STRINGENCY INDEX CONSTRUCTION
+% SLIDE: STRINGENCY INDEX CONSTRUCTION
 % ==============================================================================
 \begin{frame}
 	\frametitle{Stringency Index Construction}
@@ -83,7 +79,7 @@ wards and have access to a password-protected website to access the data which i
 
 
 % ==============================================================================
-% SLIDE 11: ALDERMAN REGULATORY STRINGENCY INDEX
+% SLIDE: ALDERMAN REGULATORY STRINGENCY INDEX
 % ==============================================================================
 \begin{frame}[label=strictness-main,shrink=6]
    \frametitle{Alderman Regulatory Stringency Index} 
@@ -112,7 +108,7 @@ wards and have access to a password-protected website to access the data which i
 
 
 % ==============================================================================
-% SLIDE 12: INDEX VALIDATION
+% SLIDE: INDEX VALIDATION
 % ==============================================================================
 \begin{frame}[label=strictness-validation-main]
     \frametitle{Validation Checks: Permits and Within-Ward Correlation}
