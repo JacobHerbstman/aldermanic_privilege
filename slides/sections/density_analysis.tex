@@ -94,7 +94,7 @@
     \end{column}
     
     % RIGHT COLUMN: Table (top) + Why both (bottom)
-    \begin{column}{0.50\textwidth}
+    \begin{column}{0.47\textwidth}
         \footnotesize
         \textbf{Chicago zoning caps FAR:}
         \vspace{-0.3em}
@@ -137,28 +137,27 @@
 \begin{frame}
     \frametitle{Data: New Multifamily Construction}
     
-    \begin{columns}[T]
-    \begin{column}{0.55\textwidth}
+    \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.50\textwidth}
     \textbf{Source}: Cook County Assessor parcel data, 2006-2025
     
     \vspace{0.5em}
     \textbf{Sample}: Multifamily buildings
-    \begin{itemize}
+    \begin{itemize}[itemsep=0.2em, topsep=0.25em]
         \item \textbf{Single family}: Majority of construction but less variation in density
     \end{itemize}
     
     \vspace{0.5em}
     \textbf{Why multifamily matters}: 
-    \begin{itemize}
+    \begin{itemize}[itemsep=0.2em, topsep=0.25em]
         \item Only $\sim$19\% of new construction but a disproportionate share of total housing supply
     \end{itemize}
     \end{column}
     
-    \begin{column}{0.43\textwidth}
+    \begin{column}{0.51\textwidth}
     \textbf{Summary statistics}:
-    \vspace{0.3em}
-    \small
-    \resizebox{\linewidth}{!}{\input{../tasks/summary_stats_new_construction/output/summary_stats_tabular.tex}}
+    \vspace{0.2em}
+    \makebox[\linewidth][l]{\resizebox{1.10\linewidth}{!}{\input{../tasks/summary_stats_new_construction/output/summary_stats_tabular.tex}}}
     \end{column}
     \end{columns}
 \end{frame}
