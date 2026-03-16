@@ -8,7 +8,7 @@ source("../../setup_environment/code/packages.R")
 # window <- "pre_2021"
 # output_tex <- NA
 # output_csv <- NA
-# Rscript characteristic_fe_table.R "../input/rent_with_ward_distances.parquet" 1000 "pre_2021" NA NA
+# Rscript characteristic_fe_table.R "../input/rent_with_ward_distances.parquet" 1000 "pre_2021" NA NA ward_pair
 # =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
@@ -39,6 +39,8 @@ if (!cluster_level %in% c("segment", "ward_pair")) {
 
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 cluster_label <- if (cluster_level == "segment") "Segment" else "Ward Pair"
+treatment_var <- "strictness_std"
+treatment_label <- "Stringency Index"
 
 apply_window <- function(df, w) {
   if (w == "full") return(df)
@@ -55,7 +57,10 @@ window_label <- c(
   pre_2023 = "Through 2022 (2014-2022)"
 )
 
-message(sprintf("=== Characteristic FE Table | bw=%d | window=%s | cluster=%s ===", bw_ft, window, cluster_level))
+message(sprintf(
+  "=== Characteristic FE Table | bw=%d | window=%s | cluster=%s | treatment=stringency ===",
+  bw_ft, window, cluster_level
+))
 
 # ── Load and filter ──
 dat <- read_parquet(input) %>%
@@ -75,6 +80,12 @@ dat <- read_parquet(input) %>%
     abs(signed_dist) <= bw_ft
   ) %>%
   apply_window(window)
+
+strictness_sd <- sd(dat$strictness_own, na.rm = TRUE)
+if (!is.finite(strictness_sd) || strictness_sd <= 0) {
+  stop("strictness_own has zero or invalid SD in the filtered sample.", call. = FALSE)
+}
+dat <- dat %>% mutate(strictness_std = strictness_own / strictness_sd)
 
 # ── Outcomes to estimate ──
 outcomes <- list(
@@ -100,14 +111,19 @@ for (oc in outcomes) {
     message(sprintf("  Skipping %s: too few obs (%d)", oc$name, nrow(d)))
     next
   }
-  m <- feols(Y ~ right | segment_id^year_month, data = d, cluster = cluster_formula)
+  rhs_formula <- as.formula(paste0("Y ~ ", treatment_var, " | segment_id^year_month"))
+  m <- feols(rhs_formula, data = d, cluster = cluster_formula)
   ct <- coeftable(m)
+  p_col <- grep("^Pr\\(", colnames(ct), value = TRUE)
+  if (length(p_col) == 0) {
+    stop("Could not find p-value column in coeftable output.", call. = FALSE)
+  }
   results[[length(results) + 1]] <- tibble(
     outcome = oc$name,
     label = oc$label,
-    estimate = ct["right", "Estimate"],
-    std_error = ct["right", "Std. Error"],
-    p_value = ct["right", "Pr(>|t|)"],
+    estimate = ct[treatment_var, "Estimate"],
+    std_error = ct[treatment_var, "Std. Error"],
+    p_value = ct[treatment_var, p_col[1]],
     n_obs = nobs(m),
     dep_var_mean = mean(d$Y, na.rm = TRUE),
     segments = n_distinct(d$segment_id[d$segment_id %in% names(which(table(d$segment_id) > 0))]),
@@ -116,8 +132,8 @@ for (oc in outcomes) {
     cluster_level = cluster_level
   )
   message(sprintf("  %s: b=%.4f (SE %.4f, p=%.3f), N=%s",
-                  oc$label, ct["right", "Estimate"], ct["right", "Std. Error"],
-                  ct["right", "Pr(>|t|)"], format(nobs(m), big.mark = ",")))
+                  oc$label, ct[treatment_var, "Estimate"], ct[treatment_var, "Std. Error"],
+                  ct[treatment_var, p_col[1]], format(nobs(m), big.mark = ",")))
 }
 
 coef_tbl <- bind_rows(results)
@@ -137,7 +153,7 @@ header <- paste0("\\begingroup\n\\centering\n\\begin{tabular}{l", paste(rep("c",
 col_headers <- paste0("   ", paste(sprintf("& %s", coef_tbl$label), collapse = " "), "\\\\  \n")
 midrule <- "   \\midrule \n"
 
-coef_row <- paste0("   More Stringent Side ",
+coef_row <- paste0("   ", treatment_label, " ",
   paste(sapply(seq_len(ncol), function(i) {
     sprintf("& %.4f%s", coef_tbl$estimate[i], stars(coef_tbl$p_value[i]))
   }), collapse = " "), "\\\\   \n")
