@@ -17,8 +17,8 @@
     \vspace{0.5em}
     \textbf{Approach}: Apply the same border-pair FE design to rental listings
     \begin{itemize}
-        \item Data: RentHub rental listings; 9.94 million listings overall
-        \item Estimation sample: 2.71 million listings within 500 ft in 2014--2022, spanning 141 ward pairs
+        \item Data: RentHub rental listings; 9.94 million listings overall, 2014-2022
+        \item Estimation sample: 2.71 million listings within 500 ft of a ward border
         \item Baseline specification: $\log(\mathrm{Rent}_{ist}) = \beta\,\mathrm{StringencyIndex}_{is} + \alpha_{st} + \varepsilon_{ist}$
     \end{itemize}
     \footnotesize Here, $\mathrm{Rent}_{ist}$ is listed rent for parcel $i$ in border segment $s$ and year-month $t$, and $\alpha_{st}$ are segment $\times$ year-month FE.
@@ -109,7 +109,7 @@
 
     \vspace{0.2em}
     \small
-    $\Rightarrow$ Distances to schools, parks, major roads, and the lake are imprecisely estimated and close to zero. \\
+    $\Rightarrow$ Distances to schools, parks, major roads, and the lake are close to zero. \\
     Large amenity differences are unlikely to drive the rent premium.
 \end{frame}
 
