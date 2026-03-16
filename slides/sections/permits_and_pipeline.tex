@@ -1,0 +1,37 @@
+% ==============================================================================
+% PART 3: INSTITUTIONAL SETTING + PERMIT DATA
+% ==============================================================================
+
+% ==============================================================================
+% SLIDE: HOW ALDERMEN INFLUENCE DEVELOPMENT (Pipeline - 4 overlays)
+% ==============================================================================
+\begin{frame}[label=permits-pipeline]
+   \frametitle{How Aldermen Influence the Development Process}
+   \vspace{-0.3em}
+   \centering
+   \input{figures/pipeline_tikz.tex}
+\end{frame}
+
+% ==============================================================================
+% SLIDE: WHY PERMIT PROCESSING TIMES? (New summary stats slide)
+% ==============================================================================
+\begin{frame}[label=permit-stats-main]
+    \frametitle{Why Permit Processing Times?}
+    \begin{columns}[c]
+    \begin{column}{0.46\textwidth}
+        \begin{itemize}[itemsep=0.2em, topsep=0.25em]
+            \item Permitting is a primary driver of supply inelasticity \citep{soltas_how_2026}
+            \item Focus on \textbf{high-discretion} permits: new construction, renovation, demolition, porch construction, and reinstated permits
+            \item High-discretion processing times are \textbf{negatively} correlated with permit volume; low-discretion times are \textbf{positively} correlated
+        \end{itemize}
+        \vspace{0.05em}
+        \hyperlink{permit-vol-corr-appendix}{\beamergotobutton{Permit Volume}}
+        \hspace{0.4em}
+        \hyperlink{permit-summary-stats-appendix}{\beamergotobutton{More Summary Stats}}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+        \centering
+        \includegraphics[width=1.01\textwidth,height=0.67\textheight,keepaspectratio,trim=0.15cm 0.35cm 0.15cm 0.18cm,clip]{../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf}
+    \end{column}
+    \end{columns}
+\end{frame}

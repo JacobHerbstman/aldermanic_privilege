@@ -1,0 +1,87 @@
+% ==============================================================================
+% PART 5: MEASURING REGULATORY STRINGENCY
+% ==============================================================================
+
+% ==============================================================================
+% SLIDE: STRINGENCY INDEX CONSTRUCTION
+% ==============================================================================
+\begin{frame}
+	\frametitle{Stringency Index Construction}
+	\begin{enumerate}
+		\item \textbf{Residualize} processing times on permit-level characteristics and a rich set of fixed effects (permit type, review type, and year $\times$ month)
+		\begin{itemize}
+			\item Controls for baseline differences across wards (income, demographics, etc.)
+		\end{itemize}
+		\item \textbf{Estimate alderman fixed effects} on residualized processing times
+		\[
+			\widehat{\epsilon}_{it} = \mu + \delta_a + \eta_{it}
+		\]
+		\vspace{-0.5em}
+		\item \textbf{Empirical Bayes shrinkage} to reduce noise {\scriptsize \citep{kline_systemic_2022,kline_discrimination_2024}} then standardize to mean 0, SD 1
+	\end{enumerate}
+
+	\vspace{0.5em}
+	\textbf{Interpretation}: High score = alderman associated with longer processing times
+
+	\vspace{0.3em}
+	\textbf{Caveat}: This is a \textit{proxy}: likely understates true variation in bureaucratic frictions
+	\begin{itemize}
+		\item Misses projects that never apply or are discouraged early
+	\end{itemize}
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE: ALDERMAN REGULATORY STRINGENCY INDEX
+% ==============================================================================
+\begin{frame}[label=strictness-main,shrink=6]
+   \frametitle{Alderman Regulatory Stringency Index}
+   \begin{columns}[T]
+   \begin{column}{0.43\textwidth}
+       \centering
+       \textbf{First-stage residualization:}
+       
+       \vspace{0.2em}
+       {\tiny
+       \setlength{\tabcolsep}{2pt}
+       \renewcommand{\arraystretch}{0.9}
+       \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex}}
+   \end{column}
+   \begin{column}{0.53\textwidth}
+       \centering
+       \includegraphics[width=1.06\textwidth,height=0.84\textheight,keepaspectratio,trim=0.12cm 0cm 0.12cm 0cm,clip]{../tasks/strictness_score_map/output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_2025-01.pdf}
+   \end{column}
+   \end{columns}
+   \vspace{-0.3em}
+   \small
+   \centering
+   \vfill\hfill
+   \hyperlink{final-stringency-scores}{\beamergotobutton{Final Stringency Scores}}
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE: INDEX VALIDATION
+% ==============================================================================
+\begin{frame}[label=strictness-validation-main]
+    \frametitle{Validation Checks: Permits and Within-Ward Correlation}
+    \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+    \centering
+    \scriptsize
+    \input{../tasks/uncertainty_validation_checks/output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex}
+    
+    \vspace{0.5em}
+    \raggedright
+    \footnotesize
+    \begin{itemize}\setlength{\itemsep}{2pt}\setlength{\topsep}{2pt}
+        \item Higher stringency predicts fewer permits and more regulatory friction
+        \item Successor-predecessor correlation is only $0.18$: stringency is not just a ward-level effect
+    \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth,height=0.60\textheight,keepaspectratio]{../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf}
+    \end{column}
+    \end{columns}
+\end{frame}
