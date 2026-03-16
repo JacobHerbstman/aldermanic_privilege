@@ -1,0 +1,146 @@
+% ==============================================================================
+% RENTAL MARKET EFFECTS SECTION
+% Slides: Transition, Rental FE, Home Sales Null, Characteristics, Listing Density
+% ==============================================================================
+
+% ==============================================================================
+% SLIDE: FROM DENSITY TO RENTS
+% ==============================================================================
+\begin{frame}
+    \frametitle{From Density to Rents}
+
+    \textbf{So far}: More stringent aldermen $\rightarrow$ lower multifamily density
+
+    \vspace{0.5em}
+    \textbf{Next question}: Does this supply constraint feed into higher housing costs?
+
+    \vspace{0.5em}
+    \textbf{Approach}: Apply the same border-pair FE design to rental listings
+    \begin{itemize}
+        \item Data: RentHub rental listings, 2014-2022
+        \item 2.71 million listing observations, 141 ward pairs, BW = 500 ft
+        \item Segment $\times$ year-month FE; SEs clustered at segment level
+    \end{itemize}
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE: RENTAL BORDER-PAIR FE RESULTS
+% ==============================================================================
+\begin{frame}[label=rental-fe-main]
+    \frametitle{Effect on Rental Prices}
+
+    \begin{center}
+    \scriptsize
+    \input{../tasks/rental_characteristics_at_borders/output/rent_amenity_attenuation_bw500_pre_2023.tex}
+    \end{center}
+
+    \vspace{0.3em}
+    \small
+    $\Rightarrow$ A 1 SD $\uparrow$ in stringency $\Rightarrow$ 3.6\% higher rents with no controls, 3.2\% with hedonics, and 2.5\% after adding amenity controls.
+
+    \vfill\hfill \hyperlink{rental-permutation-noctrl}{\beamergotobutton{Permutation Test}}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Spatial RD: Rental Prices at Ward Borders}
+
+    \begin{center}
+        \begin{figure}
+            \includegraphics[width=0.80\textwidth,height=0.75\textheight,keepaspectratio]{../tasks/rental_border_pair_fe/output/level_plot_bw500_pct0_ctrl.pdf}
+        \end{figure}
+    \end{center}
+
+\end{frame} 
+
+
+% ==============================================================================
+% SLIDE: HOME SALES
+% ==============================================================================
+\begin{frame}[label=sales-null]
+    \frametitle{Home Sale Prices}
+
+    \begin{center}
+    \scriptsize
+    \input{../tasks/sales_border_pair_fe/output/fe_table_sales_bw500_year_quarter.tex}
+    \end{center}
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE: RULING OUT QUALITY SORTING
+% ==============================================================================
+\begin{frame}
+    \frametitle{Ruling Out Quality Sorting}
+
+    \textbf{Concern}: Rent premium could reflect \textit{better} units on the more stringent side
+
+    \vspace{0.3em}
+    \textbf{Test}: Same border-pair FE on unit characteristics (BW = 500 ft, 2014--2022)
+
+    \vspace{0.3em}
+    \begin{center}
+    \scriptsize
+    \input{../tasks/rental_characteristics_at_borders/output/char_fe_table_bw500.tex}
+    \end{center}
+
+    \vspace{0.3em}
+    \small
+    $\Rightarrow$ Core size/bed/bath margins are close to zero; composition shifts are small. \\
+    Quality sorting is unlikely to explain the full rent premium at ward boundaries.
+\end{frame}
+
+
+\begin{frame}[shrink=8]
+    \frametitle{Ruling Out Amenity Sorting}
+
+    \textbf{Concern}: Rent premium could reflect \textit{better neighborhood amenities} on the more stringent side
+
+    \vspace{0.2em}
+    \textbf{Test}: Same border-pair FE on amenity access (BW = 500 ft, 2014--2022)
+
+    \vspace{0.2em}
+    \begin{center}
+    {\tiny
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{0.95}
+    \input{../tasks/rental_characteristics_at_borders/output/amenity_char_fe_table_bw500_pre_2023.tex}
+    }
+    \end{center}
+
+    \vspace{0.2em}
+    \small
+    $\Rightarrow$ Distances to schools, parks, major roads, and the lake are imprecisely estimated and close to zero. \\
+    Large amenity differences are unlikely to drive the rent premium.
+\end{frame}
+
+
+% ==============================================================================
+% SLIDE: SUPPLY CHANNEL — LISTING DENSITY
+% ==============================================================================
+\begin{frame}[label=supply-mf-main]
+    \frametitle{Supply Channel: Fewer Available Multifamily Rentals}
+
+    \begin{columns}[T]
+    \begin{column}{0.58\textwidth}
+        \centering
+        \begin{figure}
+            \includegraphics[width=\textwidth,height=0.64\textheight,keepaspectratio]{../tasks/rental_characteristics_at_borders/output/listing_units_unit_proxy_bw500_pre_2023_multifamily_only_pct0.pdf}
+        \end{figure}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+        \scriptsize
+        \begin{center}
+        \input{../tasks/rental_characteristics_at_borders/output/listing_units_ppml_fe_table_bw500_pre_2023_multifamily_only_pct0.tex}
+        \end{center}
+
+        \vspace{0.15em}
+        \scriptsize
+        \textbf{Outcome}: Distinct multifamily listed units, segment $\times$ side $\times$ year-month cells\\
+        \textbf{Interpretation}: 1 SD $\uparrow$ in stringency $\Rightarrow$ $\sim$11\% fewer listed units
+    \end{column}
+    \end{columns}
+
+    \vfill\hfill \hyperlink{supply-all-units-appendix}{\beamergotobutton{All Units}}
+\end{frame}
