@@ -194,7 +194,9 @@ save_density_plot <- function(entity_means, entity_label, mean_col, figure_outpu
     ) +
     theme(
       legend.position = "bottom",
-      strip.background = element_rect(fill = "white")
+      strip.background = element_rect(fill = "white"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank()
     )
 
   ggsave(

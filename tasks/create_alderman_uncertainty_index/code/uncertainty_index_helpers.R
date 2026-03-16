@@ -616,8 +616,8 @@ write_uncertainty_plot <- function(score_df, output_path) {
   ggsave(
     output_path,
     plot = p,
-    width = 10,
-    height = 14,
+    width = 11.5,
+    height = 8,
     device = "pdf",
     bg = "white"
   )
