@@ -10,9 +10,10 @@ args <- commandArgs(trailingOnly = TRUE)
 wards <- st_read(args[1], quiet = TRUE) %>%
   mutate(ward = as.integer(ward))
 
-# 50 distinct colors cycling through a qualitative palette
+# 50 distinct non-grey colors for an illustrative ward map
 set.seed(42)
-palette_50 <- rep(RColorBrewer::brewer.pal(10, "Set3"), 5)[1:50]
+hues <- seq(15, 375, length.out = 51)[1:50]
+palette_50 <- grDevices::hcl(h = hues, c = 75, l = 72)
 color_map  <- tibble(ward = 1:50, fill_color = sample(palette_50))
 
 wards <- left_join(wards, color_map, by = "ward")

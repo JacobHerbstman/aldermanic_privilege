@@ -14,7 +14,7 @@ source("../../setup_environment/code/packages.R")
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 8) {
+if (length(cli_args) >= 9) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))
   fe_time <- cli_args[3]
@@ -23,6 +23,17 @@ if (length(cli_args) >= 8) {
   output_year_diag <- cli_args[6]
   fe_geo <- tolower(cli_args[7])
   cluster_level <- tolower(cli_args[8])
+  table_mode <- tolower(cli_args[9])
+} else if (length(cli_args) >= 8) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  fe_time <- cli_args[3]
+  output_tex <- cli_args[4]
+  output_csv <- cli_args[5]
+  output_year_diag <- cli_args[6]
+  fe_geo <- tolower(cli_args[7])
+  cluster_level <- tolower(cli_args[8])
+  table_mode <- tolower(Sys.getenv("TABLE_MODE", "baseline"))
 } else if (length(cli_args) >= 6) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))
@@ -32,12 +43,13 @@ if (length(cli_args) >= 8) {
   output_year_diag <- cli_args[6]
   fe_geo <- tolower(Sys.getenv("FE_GEO", "segment"))
   cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
+  table_mode <- tolower(Sys.getenv("TABLE_MODE", "baseline"))
 } else {
   if (!exists("input") || !exists("bw_ft") || !exists("fe_time") ||
       !exists("output_tex") || !exists("output_csv") || !exists("output_year_diag") ||
-      !exists("fe_geo") || !exists("cluster_level")) {
+      !exists("fe_geo") || !exists("cluster_level") || !exists("table_mode")) {
     stop(
-      "FATAL: Script requires args: <input> <bw_ft> <fe_time> <output_tex> <output_csv> <output_year_diag> [<fe_geo> <cluster_level>]",
+      "FATAL: Script requires args: <input> <bw_ft> <fe_time> <output_tex> <output_csv> <output_year_diag> [<fe_geo> <cluster_level> <table_mode>]",
       call. = FALSE
     )
   }
@@ -52,6 +64,9 @@ if (!fe_geo %in% c("segment", "ward_pair")) {
 }
 if (!cluster_level %in% c("segment", "ward_pair")) {
   stop("--cluster_level must be one of: segment, ward_pair", call. = FALSE)
+}
+if (!table_mode %in% c("baseline", "amenity")) {
+  stop("--table_mode must be one of: baseline, amenity", call. = FALSE)
 }
 
 prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
@@ -164,7 +179,7 @@ attach_zone_group <- function(df, lon_col, lat_col, zoning_path, chunk_n = 50000
 
 fe_time_label <- c(year = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month")
 
-message(sprintf("=== Sales Border Pair FE | bw=%d | fe=%s | geo=%s | cluster=%s ===", bw_ft, fe_time, fe_geo, cluster_level))
+message(sprintf("=== Sales Border Pair FE | bw=%d | fe=%s | geo=%s | cluster=%s | mode=%s ===", bw_ft, fe_time, fe_geo, cluster_level, table_mode))
 message(sprintf("Pruning spec: %s", prune_sample))
 message(sprintf("Use zone-group FE: %s", ifelse(use_zone_group_fe, "TRUE", "FALSE")))
 
@@ -265,9 +280,35 @@ if (use_zone_group_fe) {
   sales_hed <- sales_hed %>% filter(!is.na(zone_group), zone_group != "")
 }
 
+if (table_mode == "amenity") {
+  amenity_cols <- c(
+    "nearest_school_dist_ft",
+    "nearest_park_dist_ft",
+    "nearest_major_road_dist_ft",
+    "lake_michigan_dist_ft"
+  )
+  missing_amenity_cols <- setdiff(amenity_cols, names(sales_hed))
+  if (length(missing_amenity_cols) > 0) {
+    stop(sprintf("Amenity mode requires columns: %s", paste(missing_amenity_cols, collapse = ", ")), call. = FALSE)
+  }
+  sales_amenity <- sales_hed %>%
+    filter(
+      !is.na(nearest_school_dist_ft),
+      !is.na(nearest_park_dist_ft),
+      !is.na(nearest_major_road_dist_ft),
+      !is.na(lake_michigan_dist_ft)
+    )
+} else {
+  sales_amenity <- NULL
+}
+
 message(sprintf("Full: %s obs, %d pairs | Hedonic: %s obs, %d pairs",
                 format(nrow(sales), big.mark = ","), n_distinct(sales$ward_pair),
                 format(nrow(sales_hed), big.mark = ","), n_distinct(sales_hed$ward_pair)))
+if (table_mode == "amenity") {
+  message(sprintf("Amenity complete-case: %s obs, %d pairs",
+                  format(nrow(sales_amenity), big.mark = ","), n_distinct(sales_amenity$ward_pair)))
+}
 
 # ── Custom fit stats ──
 fitstat_register("myo", function(x) sprintf("%.0f", mean(x$custom_data$sale_price, na.rm = TRUE)),
@@ -292,6 +333,16 @@ m2 <- feols(as.formula(paste0("log(sale_price) ~ ", hedonic_rhs, " | ", fe_term)
             data = sales_hed, cluster = cluster_formula)
 m2$custom_data <- sales_hed
 
+if (table_mode == "amenity") {
+  amenity_rhs <- paste0(
+    hedonic_rhs,
+    " + nearest_school_dist_ft + nearest_park_dist_ft + nearest_major_road_dist_ft + lake_michigan_dist_ft"
+  )
+  m3 <- feols(as.formula(paste0("log(sale_price) ~ ", amenity_rhs, " | ", fe_term)),
+              data = sales_amenity, cluster = cluster_formula)
+  m3$custom_data <- sales_amenity
+}
+
 # ── Output table ──
 setFixest_dict(c(
   strictness_std = "Stringency Index", ward_pair = "Ward Pair",
@@ -306,7 +357,7 @@ fe_label <- ifelse(
 )
 
 etable(
-  list(m1, m2),
+  if (table_mode == "amenity") list(m1, m2, m3) else list(m1, m2),
   keep = "Stringency Index",
   fitstat = ~ n + myo + nwp,
   style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "",
@@ -314,16 +365,23 @@ etable(
   depvar = FALSE, drop.section = "fixef", digits = 3,
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
   extralines = {
+    n_cols <- if (table_mode == "amenity") 3 else 2
+    cluster_entries <- rep(ifelse(cluster_level == "segment", "Segment", "Ward Pair"), n_cols)
+    fe_entries <- rep("$\\checkmark$", n_cols)
+    hedonic_entries <- if (table_mode == "amenity") c("", "$\\checkmark$", "$\\checkmark$") else c("", "$\\checkmark$")
     out <- c(
-      list("_Hedonic Controls" = c("", "$\\checkmark$")),
-      setNames(list(c("$\\checkmark$", "$\\checkmark$")), paste0("_", fe_label)),
-      list("_Cluster Level" = c(
-        ifelse(cluster_level == "segment", "Segment", "Ward Pair"),
-        ifelse(cluster_level == "segment", "Segment", "Ward Pair")
-      ))
+      list("_Hedonic Controls" = hedonic_entries)
+    )
+    if (table_mode == "amenity") {
+      out <- c(out, list("_Amenity Controls" = c("", "", "$\\checkmark$")))
+    }
+    out <- c(
+      out,
+      setNames(list(fe_entries), paste0("_", fe_label)),
+      list("_Cluster Level" = cluster_entries)
     )
     if (use_zone_group_fe) {
-      out <- c(out, list("_Zoning Group FE" = c("$\\checkmark$", "$\\checkmark$")))
+      out <- c(out, list("_Zoning Group FE" = rep("$\\checkmark$", n_cols)))
     }
     out
   },
@@ -331,15 +389,60 @@ etable(
 )
 
 # ── Coefficient CSV ──
-write_csv(tibble(
-  specification = c("no_hedonics", "with_hedonics"),
-  estimate = c(coef(m1)[["strictness_std"]], coef(m2)[["strictness_std"]]),
-  std_error = c(se(m1)[["strictness_std"]], se(m2)[["strictness_std"]]),
-  p_value = c(pvalue(m1)[["strictness_std"]], pvalue(m2)[["strictness_std"]]),
-  n_obs = c(m1$nobs, m2$nobs),
-  dep_var_mean = c(mean(sales$sale_price, na.rm = TRUE), mean(sales_hed$sale_price, na.rm = TRUE)),
-  ward_pairs = c(n_distinct(sales$ward_pair), n_distinct(sales_hed$ward_pair)),
-  bandwidth_ft = bw_ft, fe_time = fe_time, fe_geo = fe_geo, cluster_level = cluster_level, use_zone_group_fe = use_zone_group_fe
-), output_csv)
+coef_tbl <- bind_rows(
+  tibble(
+    specification = "no_hedonics",
+    estimate = coef(m1)[["strictness_std"]],
+    std_error = se(m1)[["strictness_std"]],
+    p_value = pvalue(m1)[["strictness_std"]],
+    n_obs = m1$nobs,
+    dep_var_mean = mean(sales$sale_price, na.rm = TRUE),
+    ward_pairs = n_distinct(sales$ward_pair),
+    bandwidth_ft = bw_ft,
+    fe_time = fe_time,
+    fe_geo = fe_geo,
+    cluster_level = cluster_level,
+    use_zone_group_fe = use_zone_group_fe,
+    use_amenity_controls = FALSE
+  ),
+  tibble(
+    specification = "with_hedonics",
+    estimate = coef(m2)[["strictness_std"]],
+    std_error = se(m2)[["strictness_std"]],
+    p_value = pvalue(m2)[["strictness_std"]],
+    n_obs = m2$nobs,
+    dep_var_mean = mean(sales_hed$sale_price, na.rm = TRUE),
+    ward_pairs = n_distinct(sales_hed$ward_pair),
+    bandwidth_ft = bw_ft,
+    fe_time = fe_time,
+    fe_geo = fe_geo,
+    cluster_level = cluster_level,
+    use_zone_group_fe = use_zone_group_fe,
+    use_amenity_controls = FALSE
+  )
+)
+
+if (table_mode == "amenity") {
+  coef_tbl <- bind_rows(
+    coef_tbl,
+    tibble(
+      specification = "with_hedonics_and_amenities",
+      estimate = coef(m3)[["strictness_std"]],
+      std_error = se(m3)[["strictness_std"]],
+      p_value = pvalue(m3)[["strictness_std"]],
+      n_obs = m3$nobs,
+      dep_var_mean = mean(sales_amenity$sale_price, na.rm = TRUE),
+      ward_pairs = n_distinct(sales_amenity$ward_pair),
+      bandwidth_ft = bw_ft,
+      fe_time = fe_time,
+      fe_geo = fe_geo,
+      cluster_level = cluster_level,
+      use_zone_group_fe = use_zone_group_fe,
+      use_amenity_controls = TRUE
+    )
+  )
+}
+
+write_csv(coef_tbl, output_csv)
 
 message(sprintf("Saved: %s", output_tex))

@@ -604,7 +604,7 @@ write_uncertainty_plot <- function(score_df, output_path) {
     scale_y_discrete(expand = expansion(mult = c(0.01, 0.01))) +
     theme_minimal() +
     theme(
-      axis.text.y = element_text(size = 6),
+      axis.text.y = element_blank(),
       axis.text.x = element_text(size = 8),
       panel.grid.major.y = element_blank(),
       panel.grid.minor = element_blank(),

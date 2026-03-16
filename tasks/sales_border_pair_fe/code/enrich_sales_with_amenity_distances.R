@@ -3,8 +3,8 @@ source("../../_lib/amenity_distance_helpers.R")
 
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
-# Rscript enrich_rent_with_amenity_distances.R ../input/rent_with_ward_distances.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../output/rent_with_ward_distances_amenities.parquet ../output/rental_amenity_distance_diagnostics.csv
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_border_pair_fe/code")
+# Rscript enrich_sales_with_amenity_distances.R ../input/sales_with_hedonics.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../output/sales_with_hedonics_amenities.parquet ../output/sales_amenity_distance_diagnostics.csv
 # =======================================================================================
 
 cli_args <- commandArgs(trailingOnly = TRUE)
@@ -29,12 +29,12 @@ if (length(cli_args) >= 7) {
 
 chunk_n <- 100000L
 
-message("Loading rental listings...")
-rent <- read_parquet(input_parquet) %>% as_tibble()
-message(sprintf("Listings loaded: %s", format(nrow(rent), big.mark = ",")))
+message("Loading sales...")
+sales <- read_parquet(input_parquet) %>% as_tibble()
+message(sprintf("Sales loaded: %s", format(nrow(sales), big.mark = ",")))
 
 message("Building unique coordinate table...")
-coords <- rent %>%
+coords <- sales %>%
   transmute(longitude, latitude) %>%
   filter(is.finite(longitude), is.finite(latitude)) %>%
   distinct()
@@ -42,7 +42,7 @@ message(sprintf("Unique coordinates: %s", format(nrow(coords), big.mark = ",")))
 
 message("Loading amenity layers...")
 coords <- build_unique_coordinate_amenity_table(
-  rent,
+  sales,
   "longitude",
   "latitude",
   schools_gpkg,
@@ -52,11 +52,11 @@ coords <- build_unique_coordinate_amenity_table(
   chunk_n
 )
 
-rent_out <- append_amenity_distances(rent, coords, "longitude", "latitude")
-diagnostics <- amenity_distance_diagnostics(rent_out, coords, "rent_listings") %>%
-  rename(n_listings = n_rows)
+sales_out <- append_amenity_distances(sales, coords, "longitude", "latitude")
+diagnostics <- amenity_distance_diagnostics(sales_out, coords, "sales") %>%
+  rename(n_sales = n_rows)
 
-write_parquet(as.data.frame(rent_out), output_parquet)
+write_parquet(as.data.frame(sales_out), output_parquet)
 write_csv(diagnostics, output_diag_csv)
 
 message(sprintf("Saved: %s", output_parquet))
