@@ -17,9 +17,9 @@
     \vspace{0.5em}
     \textbf{Approach}: Apply the same border-pair FE design to rental listings
     \begin{itemize}
-        \item Data: RentHub rental listings, 2014-2022
-        \item 2.71 million listing observations, 141 ward pairs, BW = 500 ft
-        \item Segment $\times$ year-month FE; SEs clustered at ward-pair level
+        \item Data: RentHub rental listings; 9.94 million listings overall
+        \item Estimation sample: 2.71 million listings within 500 ft in 2014--2022, spanning 141 ward pairs
+        \item Baseline specification: $\log(\mathrm{Rent}_{ist}) = \beta\,\mathrm{StringencyIndex}_{is} + \alpha_{st} + \varepsilon_{ist}$, SEs clustered by ward pair
     \end{itemize}
 \end{frame}
 
