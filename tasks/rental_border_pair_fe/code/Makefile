@@ -4,11 +4,17 @@ include ../../shell_functions.make
 FE_GEOS := segment ward_pair
 CLUSTERS := segment ward_pair
 ROBUST_FE_OUTPUTS := $(foreach geo,$(FE_GEOS),$(foreach cl,$(CLUSTERS),$(if $(filter segment,$(geo)),$(if $(filter segment,$(cl)),,../output/fe_table_rental_bw500_pre_2023_geo_$(geo)_clust_$(cl).tex),../output/fe_table_rental_bw500_pre_2023_geo_$(geo)_clust_$(cl).tex)))
+SLIDE_WARD_PAIR_OUTPUTS := \
+	../output/fe_table_rental_bw500_pre_2023_clust_ward_pair.tex \
+	../output/level_plot_bw500_pct0_ctrl_clust_ward_pair.pdf
 
-all: ../output/fe_table_rental_bw500_pre_2023.tex $(ROBUST_FE_OUTPUTS) ../output/level_plot_bw500_pct0_ctrl.pdf ../output/level_plot_bw500_pct50_ctrl.pdf
+all: $(SLIDE_WARD_PAIR_OUTPUTS) $(ROBUST_FE_OUTPUTS) ../output/fe_table_rental_bw500_pre_2023.tex ../output/level_plot_bw500_pct0_ctrl.pdf ../output/level_plot_bw500_pct50_ctrl.pdf
 
 ../output/fe_table_rental_bw500_pre_2023.tex: rental_border_pair_fe.R ../input/rent_with_ward_distances.parquet | ../output
 	Rscript rental_border_pair_fe.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all "$@" ../output/fe_table_rental_bw500_pre_2023.csv ../output/year_diagnostics_bw500_pre_2023.csv segment segment
+
+../output/fe_table_rental_bw500_pre_2023_clust_ward_pair.tex: rental_border_pair_fe.R ../input/rent_with_ward_distances.parquet | ../output
+	Rscript rental_border_pair_fe.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all "$@" ../output/fe_table_rental_bw500_pre_2023_clust_ward_pair.csv ../output/year_diagnostics_bw500_pre_2023_clust_ward_pair.csv segment ward_pair
 
 ../output/fe_table_rental_bw500_pre_2023_zonegroup.tex: rental_border_pair_fe.R ../input/rent_with_ward_distances.parquet ../input/zoning_data_clean.gpkg | ../output
 	USE_ZONE_GROUP_FE=TRUE ZONING_GPKG=../input/zoning_data_clean.gpkg Rscript rental_border_pair_fe.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all "$@" ../output/fe_table_rental_bw500_pre_2023_zonegroup.csv ../output/year_diagnostics_bw500_pre_2023_zonegroup.csv segment segment
@@ -27,6 +33,9 @@ $(foreach geo,$(FE_GEOS),$(foreach cl,$(CLUSTERS),$(if $(and $(filter segment,$(
 
 ../output/level_plot_bw500_pct0_ctrl.pdf: rental_level_plot.R ../input/rent_with_ward_distances.parquet | ../output
 	Rscript rental_level_plot.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all TRUE 15 0 "$@" NA NA segment segment
+
+../output/level_plot_bw500_pct0_ctrl_clust_ward_pair.pdf: rental_level_plot.R ../input/rent_with_ward_distances.parquet | ../output
+	Rscript rental_level_plot.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all TRUE 15 0 "$@" NA NA segment ward_pair
 
 ../output/level_plot_bw500_pct50_ctrl.pdf: rental_level_plot.R ../input/rent_with_ward_distances.parquet | ../output
 	Rscript rental_level_plot.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all TRUE 15 50 "$@" NA NA segment segment

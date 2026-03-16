@@ -13,17 +13,32 @@ source("../../setup_environment/code/packages.R")
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 5) {
+if (length(cli_args) >= 6) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))
   window <- cli_args[3]
   output_tex <- cli_args[4]
   output_csv <- cli_args[5]
+  cluster_level <- tolower(cli_args[6])
+} else if (length(cli_args) >= 5) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  window <- cli_args[3]
+  output_tex <- cli_args[4]
+  output_csv <- cli_args[5]
+  cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
 } else {
-  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("output_tex") || !exists("output_csv")) {
-    stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv>", call. = FALSE)
+  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("output_tex") || !exists("output_csv") || !exists("cluster_level")) {
+    stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv> [<cluster_level>]", call. = FALSE)
   }
 }
+
+if (!cluster_level %in% c("segment", "ward_pair")) {
+  stop("cluster_level must be one of: segment, ward_pair", call. = FALSE)
+}
+
+cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
+cluster_label <- if (cluster_level == "segment") "Segment" else "Ward Pair"
 
 apply_window <- function(df, w) {
   if (w == "full") return(df)
@@ -40,7 +55,7 @@ window_label <- c(
   pre_2023 = "Through 2022 (2014-2022)"
 )
 
-message(sprintf("=== Characteristic FE Table | bw=%d | window=%s ===", bw_ft, window))
+message(sprintf("=== Characteristic FE Table | bw=%d | window=%s | cluster=%s ===", bw_ft, window, cluster_level))
 
 # ── Load and filter ──
 dat <- read_parquet(input) %>%
@@ -85,7 +100,7 @@ for (oc in outcomes) {
     message(sprintf("  Skipping %s: too few obs (%d)", oc$name, nrow(d)))
     next
   }
-  m <- feols(Y ~ right | segment_id^year_month, data = d, cluster = ~segment_id)
+  m <- feols(Y ~ right | segment_id^year_month, data = d, cluster = cluster_formula)
   ct <- coeftable(m)
   results[[length(results) + 1]] <- tibble(
     outcome = oc$name,
@@ -97,7 +112,8 @@ for (oc in outcomes) {
     dep_var_mean = mean(d$Y, na.rm = TRUE),
     segments = n_distinct(d$segment_id[d$segment_id %in% names(which(table(d$segment_id) > 0))]),
     bandwidth_ft = bw_ft,
-    window = window
+    window = window,
+    cluster_level = cluster_level
   )
   message(sprintf("  %s: b=%.4f (SE %.4f, p=%.3f), N=%s",
                   oc$label, ct["right", "Estimate"], ct["right", "Std. Error"],
@@ -138,7 +154,7 @@ mean_row <- paste0("   Dep. Var. Mean ",
   paste(sapply(coef_tbl$dep_var_mean, function(m) sprintf("& %.2f", m)), collapse = " "), "\\\\  \n")
 fe_row <- paste0("   Segment $\\times$ Year-Month FE ",
   paste(rep("& $\\checkmark$", ncol), collapse = " "), "\\\\   \n")
-cluster_row <- paste0("   Clustered by Segment ",
+cluster_row <- paste0("   Clustered by ", cluster_label, " ",
   paste(rep("& $\\checkmark$", ncol), collapse = " "), "\\\\   \n")
 
 footer <- "   \\bottomrule\n\\end{tabular}\n\\par\\endgroup\n"

@@ -7,15 +7,23 @@ source("../../setup_environment/code/packages.R")
 # =======================================================================================
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 5) {
+if (length(cli_args) >= 6) {
   input <- cli_args[1]
   bw_arg <- cli_args[2]
   window <- cli_args[3]
   output_tex <- cli_args[4]
   output_csv <- cli_args[5]
+  cluster_level <- tolower(cli_args[6])
+} else if (length(cli_args) >= 5) {
+  input <- cli_args[1]
+  bw_arg <- cli_args[2]
+  window <- cli_args[3]
+  output_tex <- cli_args[4]
+  output_csv <- cli_args[5]
+  cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
 } else {
-  if (!exists("input") || !exists("bw_arg") || !exists("window") || !exists("output_tex") || !exists("output_csv")) {
-    stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv>", call. = FALSE)
+  if (!exists("input") || !exists("bw_arg") || !exists("window") || !exists("output_tex") || !exists("output_csv") || !exists("cluster_level")) {
+    stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv> [<cluster_level>]", call. = FALSE)
   }
 }
 
@@ -45,7 +53,11 @@ window_rule <- function(df, window_name) {
 bw_ft <- parse_bw_ft(bw_arg)
 bw_label <- if (is.finite(bw_ft)) as.character(as.integer(round(bw_ft))) else "all"
 
-message(sprintf("=== Rent Amenity Attenuation | bw=%s | window=%s ===", bw_label, window))
+if (!cluster_level %in% c("segment", "ward_pair")) {
+  stop("cluster_level must be one of: segment, ward_pair", call. = FALSE)
+}
+
+message(sprintf("=== Rent Amenity Attenuation | bw=%s | window=%s | cluster=%s ===", bw_label, window, cluster_level))
 
 rent_raw <- read_parquet(input) %>%
   as_tibble() %>%
@@ -97,6 +109,9 @@ rent_amenities <- rent_hedonics %>%
     !is.na(lake_michigan_dist_ft)
   )
 
+cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
+cluster_label <- if (cluster_level == "segment") "Segment" else "Ward Pair"
+
 n_type_levels <- n_distinct(rent_hedonics$building_type_factor)
 hedonic_rhs <- "strictness_std + log_sqft + log_beds + log_baths"
 if (n_type_levels >= 2) {
@@ -106,14 +121,14 @@ if (n_type_levels >= 2) {
 m_no_hed <- feols(
   log(rent_price) ~ strictness_std | segment_id^year_month,
   data = rent,
-  cluster = ~segment_id
+  cluster = cluster_formula
 )
 m_no_hed$custom_data <- rent
 
 m_hed <- feols(
   as.formula(paste0("log(rent_price) ~ ", hedonic_rhs, " | segment_id^year_month")),
   data = rent_hedonics,
-  cluster = ~segment_id
+  cluster = cluster_formula
 )
 m_hed$custom_data <- rent_hedonics
 
@@ -123,7 +138,7 @@ m_amenity <- feols(
     " + nearest_school_dist_ft + nearest_park_dist_ft + nearest_major_road_dist_ft + lake_michigan_dist_ft | segment_id^year_month"
   )),
   data = rent_amenities,
-  cluster = ~segment_id
+  cluster = cluster_formula
 )
 m_amenity$custom_data <- rent_amenities
 
@@ -147,7 +162,7 @@ etable(
     "_Hedonic Controls" = c("", "$\\checkmark$", "$\\checkmark$"),
     "_Amenity Controls" = c("", "", "$\\checkmark$"),
     "_FE Structure" = c("Segment $\\times$ Year-Month FE", "Segment $\\times$ Year-Month FE", "Segment $\\times$ Year-Month FE"),
-    "_Cluster Level" = c("Segment", "Segment", "Segment")
+    "_Cluster Level" = c(cluster_label, cluster_label, cluster_label)
   ),
   file = output_tex,
   replace = TRUE
@@ -167,7 +182,7 @@ extract_model_row <- function(model, specification, sample_name) {
     bandwidth_label = bw_label,
     window = window,
     sample_filter = "all",
-    cluster_level = "segment",
+    cluster_level = cluster_level,
     fe_geo = "segment",
     use_amenity_controls = specification == "amenity_hedonic"
   )

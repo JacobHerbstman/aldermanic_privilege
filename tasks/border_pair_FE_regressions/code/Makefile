@@ -8,19 +8,20 @@ ALT_FE_SPECS := pair_year_only pair_x_year zone_pair_year_additive zonegroup_pai
 MAIN_YVARS := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)'
 DONUTS_FT := 25 50
 
+SLIDE_WARD_PAIR_OUTPUTS := \
+../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex \
+../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex \
+../output/fe_table_bw500_multifamily_zonegroup_pair_year_additive_clust_ward_pair.tex \
+../output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex \
+../output/fe_table_bw1000_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex
+
 MAIN_OUTPUTS := $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),../output/fe_table_bw$(bw)_$(sample)_$(fe)_clust_segment.tex)))
 MAIN_OUTPUTS_PRUNED := $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),../output/fe_table_bw$(bw)_$(sample)_$(fe)_clust_segment_pruned.tex)))
 ROBUST_CLUSTER_OUTPUTS := $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),../output/fe_table_bw$(bw)_$(sample)_$(fe)_clust_ward_pair.tex)))
 ALT_FE_OUTPUTS := $(foreach sample,$(SAMPLES),$(foreach fe,$(ALT_FE_SPECS),../output/fe_table_bw500_$(sample)_$(fe)_clust_segment.tex))
 DONUT_OUTPUTS := $(foreach donut,$(DONUTS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),../output/fe_table_bw500_$(sample)_$(fe)_clust_segment_donut$(donut).tex)))
 
-SLIDE_APPENDIX_OUTPUTS := \
-../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_pruned.tex \
-../output/fe_table_bw500_multifamily_zonegroup_pair_year_additive_clust_segment.tex \
-../output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_segment.tex \
-../output/fe_table_bw1000_multifamily_zonegroup_segment_year_additive_clust_segment.tex
-
-all: $(MAIN_OUTPUTS) $(SLIDE_APPENDIX_OUTPUTS)
+all: $(SLIDE_WARD_PAIR_OUTPUTS)
 
 define MAIN_RULE
 ../output/fe_table_bw$(1)_$(2)_$(3)_clust_segment.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
@@ -34,6 +35,12 @@ define MAIN_RULE_PRUNED
 endef
 $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),$(eval $(call MAIN_RULE_PRUNED,$(bw),$(sample),$(fe))))))
 
+define MAIN_RULE_PRUNED_WARD
+../output/fe_table_bw$(1)_$(2)_$(3)_clust_ward_pair_pruned.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv | ../output
+	PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R $(1) $(2) $(3) "$$@" $(MAIN_YVARS)
+endef
+$(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),$(eval $(call MAIN_RULE_PRUNED_WARD,$(bw),$(sample),$(fe))))))
+
 define ROBUST_CLUSTER_RULE
 ../output/fe_table_bw$(1)_$(2)_$(3)_clust_ward_pair.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
 	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R $(1) $(2) $(3) "$$@" $(MAIN_YVARS)
@@ -45,6 +52,12 @@ define ALT_FE_RULE
 	CLUSTER_LEVEL=segment Rscript border_pair_FE_regressions.R 500 $(1) $(2) "$$@" $(MAIN_YVARS)
 endef
 $(foreach sample,$(SAMPLES),$(foreach fe,$(ALT_FE_SPECS),$(eval $(call ALT_FE_RULE,$(sample),$(fe)))))
+
+define ALT_FE_RULE_WARD
+../output/fe_table_bw500_$(1)_$(2)_clust_ward_pair.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
+	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R 500 $(1) $(2) "$$@" $(MAIN_YVARS)
+endef
+$(foreach sample,$(SAMPLES),$(foreach fe,$(ALT_FE_SPECS),$(eval $(call ALT_FE_RULE_WARD,$(sample),$(fe)))))
 
 define DONUT_RULE
 ../output/fe_table_bw500_$(1)_$(2)_clust_segment_donut$(3).tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output

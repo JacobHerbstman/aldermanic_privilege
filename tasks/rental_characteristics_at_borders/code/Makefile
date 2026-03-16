@@ -1,7 +1,21 @@
 SHELL := bash
 include ../../shell_functions.make
 
-all: \
+SLIDE_WARD_PAIR_OUTPUTS := \
+	../output/char_fe_table_bw500_clust_ward_pair.tex \
+	../output/char_fe_table_bw500_clust_ward_pair.csv \
+	../output/amenity_char_fe_table_bw500_pre_2023_clust_ward_pair.tex \
+	../output/amenity_char_fe_table_bw500_pre_2023_clust_ward_pair.csv \
+	../output/rent_amenity_attenuation_bw500_pre_2023_clust_ward_pair.tex \
+	../output/rent_amenity_attenuation_bw500_pre_2023_clust_ward_pair.csv \
+	../output/listing_units_unit_proxy_bw500_pre_2023_all_pct0_clust_ward_pair.pdf \
+	../output/listing_units_unit_proxy_bw500_pre_2023_multifamily_only_pct0_clust_ward_pair.pdf \
+	../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0_clust_ward_pair.tex \
+	../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0_clust_ward_pair.csv \
+	../output/listing_units_ppml_fe_table_bw500_pre_2023_multifamily_only_pct0_clust_ward_pair.tex \
+	../output/listing_units_ppml_fe_table_bw500_pre_2023_multifamily_only_pct0_clust_ward_pair.csv
+
+all: $(SLIDE_WARD_PAIR_OUTPUTS) \
 	../output/char_fe_table_bw500.tex \
 	../output/rent_with_ward_distances_amenities.parquet \
 	../output/rental_amenity_distance_diagnostics.csv \
@@ -34,6 +48,11 @@ all: \
 ../output/char_fe_table_bw500.tex: characteristic_fe_table.R ../input/rent_with_ward_distances.parquet | ../output
 	Rscript characteristic_fe_table.R ../input/rent_with_ward_distances.parquet 500 pre_2023 "$@" ../output/char_fe_table_bw500.csv
 
+../output/char_fe_table_bw500_clust_ward_pair.tex: characteristic_fe_table.R ../input/rent_with_ward_distances.parquet | ../output
+	CLUSTER_LEVEL=ward_pair Rscript characteristic_fe_table.R ../input/rent_with_ward_distances.parquet 500 pre_2023 "$@" ../output/char_fe_table_bw500_clust_ward_pair.csv
+
+../output/char_fe_table_bw500_clust_ward_pair.csv: ../output/char_fe_table_bw500_clust_ward_pair.tex
+
 ../output/rent_with_ward_distances_amenities.parquet: enrich_rent_with_amenity_distances.R ../input/rent_with_ward_distances.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
 	Rscript enrich_rent_with_amenity_distances.R ../input/rent_with_ward_distances.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp "$@" ../output/rental_amenity_distance_diagnostics.csv
 
@@ -45,6 +64,11 @@ all: \
 
 ../output/amenity_char_fe_table_bw500_pre_2023.csv: ../output/amenity_char_fe_table_bw500_pre_2023.tex
 
+../output/amenity_char_fe_table_bw500_pre_2023_clust_ward_pair.tex: amenity_characteristic_fe_table.R ../output/rent_with_ward_distances_amenities.parquet | ../output
+	CLUSTER_LEVEL=ward_pair Rscript amenity_characteristic_fe_table.R ../output/rent_with_ward_distances_amenities.parquet 500 pre_2023 "$@" ../output/amenity_char_fe_table_bw500_pre_2023_clust_ward_pair.csv
+
+../output/amenity_char_fe_table_bw500_pre_2023_clust_ward_pair.csv: ../output/amenity_char_fe_table_bw500_pre_2023_clust_ward_pair.tex
+
 ../output/amenity_char_fe_table_bwall_pre_2023.tex: amenity_characteristic_fe_table.R ../output/rent_with_ward_distances_amenities.parquet | ../output
 	Rscript amenity_characteristic_fe_table.R ../output/rent_with_ward_distances_amenities.parquet all pre_2023 "$@" ../output/amenity_char_fe_table_bwall_pre_2023.csv
 
@@ -54,6 +78,11 @@ all: \
 	Rscript rent_amenity_attenuation.R ../output/rent_with_ward_distances_amenities.parquet 500 pre_2023 "$@" ../output/rent_amenity_attenuation_bw500_pre_2023.csv
 
 ../output/rent_amenity_attenuation_bw500_pre_2023.csv: ../output/rent_amenity_attenuation_bw500_pre_2023.tex
+
+../output/rent_amenity_attenuation_bw500_pre_2023_clust_ward_pair.tex: rent_amenity_attenuation.R ../output/rent_with_ward_distances_amenities.parquet | ../output
+	CLUSTER_LEVEL=ward_pair Rscript rent_amenity_attenuation.R ../output/rent_with_ward_distances_amenities.parquet 500 pre_2023 "$@" ../output/rent_amenity_attenuation_bw500_pre_2023_clust_ward_pair.csv
+
+../output/rent_amenity_attenuation_bw500_pre_2023_clust_ward_pair.csv: ../output/rent_amenity_attenuation_bw500_pre_2023_clust_ward_pair.tex
 
 ../output/rent_amenity_attenuation_bwall_pre_2023.tex: rent_amenity_attenuation.R ../output/rent_with_ward_distances_amenities.parquet | ../output
 	Rscript rent_amenity_attenuation.R ../output/rent_with_ward_distances_amenities.parquet all pre_2023 "$@" ../output/rent_amenity_attenuation_bwall_pre_2023.csv
@@ -66,11 +95,17 @@ all: \
 ../output/listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf: listing_units_plot_cached.R ../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.parquet | ../output
 	Rscript listing_units_plot_cached.R ../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.parquet "$@"
 
+../output/listing_units_unit_proxy_bw500_pre_2023_all_pct0_clust_ward_pair.pdf: listing_units_plot_cached.R ../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.parquet | ../output
+	CLUSTER_LEVEL=ward_pair Rscript listing_units_plot_cached.R ../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.parquet "$@"
+
 ../output/listing_units_bw500_pre_2023_all_pct0.pdf: ../output/listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf | ../output
 	ln -sf "listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf" "$@"
 
 ../output/listing_units_unit_proxy_bw500_pre_2023_multifamily_only_pct0.pdf: listing_units_plot_cached.R ../output/listing_units_side_panel_bw500_pre_2023_multifamily_only_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_multifamily_only_pct0_unit_proxy_bins8_all.parquet | ../output
 	Rscript listing_units_plot_cached.R ../output/listing_units_side_panel_bw500_pre_2023_multifamily_only_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_multifamily_only_pct0_unit_proxy_bins8_all.parquet "$@"
+
+../output/listing_units_unit_proxy_bw500_pre_2023_multifamily_only_pct0_clust_ward_pair.pdf: listing_units_plot_cached.R ../output/listing_units_side_panel_bw500_pre_2023_multifamily_only_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_multifamily_only_pct0_unit_proxy_bins8_all.parquet | ../output
+	CLUSTER_LEVEL=ward_pair Rscript listing_units_plot_cached.R ../output/listing_units_side_panel_bw500_pre_2023_multifamily_only_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_multifamily_only_pct0_unit_proxy_bins8_all.parquet "$@"
 
 ../output/listing_units_side_comparison_bw500_pre_2023.pdf: listing_units_side_comparison.R ../input/rent_with_ward_distances.parquet ../input/confounded_pair_era_flags.csv | ../output
 	Rscript listing_units_side_comparison.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all unit_proxy 0 "$@"
@@ -99,6 +134,11 @@ all: \
 
 ../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.csv: ../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.tex
 
+../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0_clust_ward_pair.tex: listing_units_ppml_fe_table_cached.R ../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet | ../output
+	CLUSTER_LEVEL=ward_pair Rscript listing_units_ppml_fe_table_cached.R ../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet "$@" ../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0_clust_ward_pair.csv
+
+../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0_clust_ward_pair.csv: ../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0_clust_ward_pair.tex
+
 ../output/listing_units_cache_bw500_pre_2023_multifamily_only_pct0_unit_proxy_bins8_all.csv: build_listing_units_cache.R ../input/rent_with_ward_distances.parquet | ../output
 	Rscript build_listing_units_cache.R ../input/rent_with_ward_distances.parquet 500 pre_2023 multifamily_only unit_proxy 0 8 all NA ../output/listing_units_side_panel_bw500_pre_2023_multifamily_only_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_multifamily_only_pct0_unit_proxy_bins8_all.parquet "$@"
 
@@ -112,6 +152,11 @@ all: \
 	Rscript listing_units_ppml_fe_table_cached.R ../output/listing_units_side_panel_bw500_pre_2023_multifamily_only_pct0_unit_proxy_all.parquet "$@" ../output/listing_units_ppml_fe_table_bw500_pre_2023_multifamily_only_pct0.csv
 
 ../output/listing_units_ppml_fe_table_bw500_pre_2023_multifamily_only_pct0.csv: ../output/listing_units_ppml_fe_table_bw500_pre_2023_multifamily_only_pct0.tex
+
+../output/listing_units_ppml_fe_table_bw500_pre_2023_multifamily_only_pct0_clust_ward_pair.tex: listing_units_ppml_fe_table_cached.R ../output/listing_units_side_panel_bw500_pre_2023_multifamily_only_pct0_unit_proxy_all.parquet | ../output
+	CLUSTER_LEVEL=ward_pair Rscript listing_units_ppml_fe_table_cached.R ../output/listing_units_side_panel_bw500_pre_2023_multifamily_only_pct0_unit_proxy_all.parquet "$@" ../output/listing_units_ppml_fe_table_bw500_pre_2023_multifamily_only_pct0_clust_ward_pair.csv
+
+../output/listing_units_ppml_fe_table_bw500_pre_2023_multifamily_only_pct0_clust_ward_pair.csv: ../output/listing_units_ppml_fe_table_bw500_pre_2023_multifamily_only_pct0_clust_ward_pair.tex
 
 ../output/listing_units_ppml_robustness_bw500_pre_2023.tex: listing_units_ppml_robustness.R ../input/rent_with_ward_distances.parquet | ../output
 	Rscript listing_units_ppml_robustness.R ../input/rent_with_ward_distances.parquet 500 pre_2023 "$@" ../output/listing_units_ppml_robustness_bw500_pre_2023.csv

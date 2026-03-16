@@ -21,6 +21,20 @@ dir.create(user_lib, showWarnings = FALSE, recursive = TRUE)
 # --- Step 2: choose a reliable CRAN mirror ---
 options(repos = c(CRAN = "https://cloud.r-project.org"))
 
+# --- Step 2b: repair stale Fortran linker paths on Homebrew R setups ---
+if (!dir.exists("/opt/gfortran/lib")) {
+  gcc_main <- "/opt/homebrew/opt/gcc/lib/gcc/current"
+  gcc_aux <- Sys.glob("/opt/homebrew/Cellar/gcc/*/lib/gcc/current/gcc/*/*")
+  gcc_aux <- if (length(gcc_aux) > 0) gcc_aux[[length(gcc_aux)]] else NA_character_
+  if (dir.exists(gcc_main) && is.character(gcc_aux) && dir.exists(gcc_aux)) {
+    gcc_lib_paths <- c(gcc_main, gcc_aux)
+    Sys.setenv(
+      LIBRARY_PATH = paste(gcc_lib_paths, collapse = ":"),
+      LDFLAGS = paste(sprintf("-L%s", gcc_lib_paths), collapse = " ")
+    )
+  }
+}
+
 # --- Step 3: install & load CRAN packages ---
 output <- character()
 
@@ -57,6 +71,30 @@ for (pkg in cran_packages) {
 
 # --- Step 4: Install GitHub Packages (Dewey) ---
 # This must run AFTER the loop so 'devtools' is available
+if (!require("summclust", character.only = TRUE)) {
+  message("Installing summclust from GitHub...")
+  tryCatch({
+    devtools::install_github("s3alfisc/summclust", upgrade = "never", dependencies = TRUE)
+  }, error = function(e) {
+    message(sprintf("GitHub install failed for summclust: %s", e$message))
+  })
+}
+
+version_summclust <- tryCatch({ packageDescription("summclust", fields = "Version") }, error = function(e) NA)
+output <- c(output, paste("summclust", version_summclust, sep = " : "))
+
+if (!require("fwildclusterboot", character.only = TRUE)) {
+  message("Installing fwildclusterboot from GitHub...")
+  tryCatch({
+    devtools::install_github("s3alfisc/fwildclusterboot", upgrade = "never", dependencies = TRUE)
+  }, error = function(e) {
+    message(sprintf("GitHub install failed for fwildclusterboot: %s", e$message))
+  })
+}
+
+version_fwild <- tryCatch({ packageDescription("fwildclusterboot", fields = "Version") }, error = function(e) NA)
+output <- c(output, paste("fwildclusterboot", version_fwild, sep = " : "))
+
 if (!require("deweydatar", character.only = TRUE)) {
   message("Installing deweydatar from GitHub...")
   tryCatch({

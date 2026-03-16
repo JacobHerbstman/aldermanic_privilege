@@ -7,15 +7,23 @@ source("../../setup_environment/code/packages.R")
 # =======================================================================================
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 5) {
+if (length(cli_args) >= 6) {
   input <- cli_args[1]
   bw_arg <- cli_args[2]
   window <- cli_args[3]
   output_tex <- cli_args[4]
   output_csv <- cli_args[5]
+  cluster_level <- tolower(cli_args[6])
+} else if (length(cli_args) >= 5) {
+  input <- cli_args[1]
+  bw_arg <- cli_args[2]
+  window <- cli_args[3]
+  output_tex <- cli_args[4]
+  output_csv <- cli_args[5]
+  cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
 } else {
-  if (!exists("input") || !exists("bw_arg") || !exists("window") || !exists("output_tex") || !exists("output_csv")) {
-    stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv>", call. = FALSE)
+  if (!exists("input") || !exists("bw_arg") || !exists("window") || !exists("output_tex") || !exists("output_csv") || !exists("cluster_level")) {
+    stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv> [<cluster_level>]", call. = FALSE)
   }
 }
 
@@ -44,7 +52,11 @@ apply_window <- function(df, w) {
 bw_ft <- parse_bw_ft(bw_arg)
 bw_label <- if (is.finite(bw_ft)) as.character(as.integer(round(bw_ft))) else "all"
 
-message(sprintf("=== Amenity Characteristic FE Table | bw=%s | window=%s ===", bw_label, window))
+if (!cluster_level %in% c("segment", "ward_pair")) {
+  stop("cluster_level must be one of: segment, ward_pair", call. = FALSE)
+}
+
+message(sprintf("=== Amenity Characteristic FE Table | bw=%s | window=%s | cluster=%s ===", bw_label, window, cluster_level))
 
 dat <- read_parquet(input) %>%
   as_tibble() %>%
@@ -66,6 +78,9 @@ if (is.finite(bw_ft)) {
   dat <- dat %>% filter(abs(signed_dist) <= bw_ft)
 }
 
+cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
+cluster_label <- if (cluster_level == "segment") "Segment" else "Ward Pair"
+
 outcomes <- list(
   list(name = "nearest_school_dist_ft", label = "Dist. to School (ft)"),
   list(name = "nearest_park_dist_ft", label = "Dist. to Park (ft)"),
@@ -84,7 +99,7 @@ for (oc in outcomes) {
     next
   }
 
-  m <- feols(Y ~ right | segment_id^year_month, data = d, cluster = ~segment_id)
+  m <- feols(Y ~ right | segment_id^year_month, data = d, cluster = cluster_formula)
   ct <- coeftable(m)
 
   results[[length(results) + 1]] <- tibble(
@@ -98,7 +113,8 @@ for (oc in outcomes) {
     segments = n_distinct(d$segment_id),
     bandwidth_ft = bw_ft,
     bandwidth_label = bw_label,
-    window = window
+    window = window,
+    cluster_level = cluster_level
   )
 }
 
@@ -133,7 +149,7 @@ mean_row <- paste0("   Dep. Var. Mean ",
 fe_row <- paste0("   Segment $\\times$ Year-Month FE ",
   paste(rep("& $\\checkmark$", ncol), collapse = " "),
   "\\\\   \n")
-cluster_row <- paste0("   Clustered by Segment ",
+cluster_row <- paste0("   Clustered by ", cluster_label, " ",
   paste(rep("& $\\checkmark$", ncol), collapse = " "),
   "\\\\   \n")
 footer <- "   \\bottomrule\n\\end{tabular}\n\\par\\endgroup\n"

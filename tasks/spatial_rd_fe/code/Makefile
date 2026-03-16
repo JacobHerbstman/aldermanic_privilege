@@ -12,6 +12,24 @@ ROBUST_YVARS := density_far density_dupac
 DONUTS_FT := 25 50
 PLACEBO_SHIFTS_FT := -500 -250 250 500
 
+SLIDE_WARD_PAIR_OUTPUTS := \
+../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf \
+../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf \
+../output/rd_fe_plot_log_density_far_bw500_all_zonegroup_segment_year_additive_clust_ward_pair.pdf \
+../output/rd_fe_plot_log_density_dupac_bw500_all_zonegroup_segment_year_additive_clust_ward_pair.pdf \
+../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_gap_below_median.pdf \
+../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_gap_above_median.pdf \
+../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_gap_below_median.pdf \
+../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_gap_above_median.pdf \
+../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_donut25.pdf \
+../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_donut50.pdf \
+../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_donut25.pdf \
+../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_donut50.pdf \
+../output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_shift-500.pdf \
+../output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_shift500.pdf \
+../output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_shift-500.pdf \
+../output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_shift500.pdf
+
 LOG_PREFIX_TRUE := log_
 LOG_PREFIX_FALSE :=
 
@@ -22,21 +40,7 @@ $(foreach fe,$(MAIN_FE_SPECS),\
 $(foreach log_stat,$(LOG_STATUS),\
 ../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(sample)_$(fe)_clust_segment.pdf)))))
 
-SLIDE_APPENDIX_OUTPUTS := \
-../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_gap_below_median.pdf \
-../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_gap_above_median.pdf \
-../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_gap_below_median.pdf \
-../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_gap_above_median.pdf \
-../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_donut25.pdf \
-../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_donut50.pdf \
-../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_donut25.pdf \
-../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_donut50.pdf \
-../output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift-500.pdf \
-../output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift500.pdf \
-../output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift-500.pdf \
-../output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift500.pdf
-
-all: $(ALL_OUTPUTS) $(SLIDE_APPENDIX_OUTPUTS)
+all: $(SLIDE_WARD_PAIR_OUTPUTS)
 
 PRUNED_OUTPUTS := $(foreach yvar,$(YVARS),\
 $(foreach bw,$(BANDWIDTHS),\
@@ -120,6 +124,20 @@ $(foreach log_stat,$(LOG_STATUS),\
 $(foreach gap,$(GAP_SPLITS),\
 $(eval $(GEN_GAP_RULE))))))))
 
+define GEN_GAP_RULE_WARD
+../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(sample)_$(fe)_clust_ward_pair_gap_$(gap).pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
+	CLUSTER_LEVEL=ward_pair Rscript spatial_rd_fe.R $(yvar) $(log_stat) $(bw) $(sample) $(fe) $$@ slope $(gap)
+	rm -f "$$(@:.pdf=_bins.csv)" "$$(@:.pdf=_meta.csv)"
+endef
+
+$(foreach yvar,$(YVARS),\
+$(foreach bw,$(BANDWIDTHS),\
+$(foreach sample,$(SAMPLES),\
+$(foreach fe,$(MAIN_FE_SPECS),\
+$(foreach log_stat,$(LOG_STATUS),\
+$(foreach gap,$(GAP_SPLITS),\
+$(eval $(GEN_GAP_RULE_WARD))))))))
+
 define GEN_ROBUST_CLUSTER_RULE
 ../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(sample)_$(fe)_clust_ward_pair.pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
 	CLUSTER_LEVEL=ward_pair Rscript spatial_rd_fe.R $(yvar) $(log_stat) $(bw) $(sample) $(fe) $$@ slope
@@ -158,6 +176,19 @@ $(foreach log_stat,$(LOG_STATUS),\
 $(foreach donut,$(DONUTS_FT),\
 $(eval $(GEN_DONUT_RULE)))))))
 
+define GEN_DONUT_RULE_WARD
+../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw500_$(sample)_$(fe)_clust_ward_pair_donut$(donut).pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
+	DONUT_FT=$(donut) CLUSTER_LEVEL=ward_pair Rscript spatial_rd_fe.R $(yvar) $(log_stat) 500 $(sample) $(fe) $$@ slope
+	rm -f "$$(@:.pdf=_bins.csv)" "$$(@:.pdf=_meta.csv)"
+endef
+
+$(foreach yvar,$(ROBUST_YVARS),\
+$(foreach sample,$(SAMPLES),\
+$(foreach fe,$(MAIN_FE_SPECS),\
+$(foreach log_stat,$(LOG_STATUS),\
+$(foreach donut,$(DONUTS_FT),\
+$(eval $(GEN_DONUT_RULE_WARD)))))))
+
 define GEN_PLACEBO_RULE
 ../output/placebo_rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw500_$(sample)_$(fe)_clust_segment_shift$(shift).pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
 	PLACEBO_SHIFT_FT=$(shift) CLUSTER_LEVEL=segment Rscript spatial_rd_fe.R $(yvar) $(log_stat) 500 $(sample) $(fe) $$@ slope
@@ -170,6 +201,19 @@ $(foreach fe,$(MAIN_FE_SPECS),\
 $(foreach log_stat,$(LOG_STATUS),\
 $(foreach shift,$(PLACEBO_SHIFTS_FT),\
 $(eval $(GEN_PLACEBO_RULE)))))))
+
+define GEN_PLACEBO_RULE_WARD
+../output/placebo_rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw500_$(sample)_$(fe)_clust_ward_pair_shift$(shift).pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output
+	PLACEBO_SHIFT_FT=$(shift) CLUSTER_LEVEL=ward_pair Rscript spatial_rd_fe.R $(yvar) $(log_stat) 500 $(sample) $(fe) $$@ slope
+	rm -f "$$(@:.pdf=_bins.csv)" "$$(@:.pdf=_meta.csv)"
+endef
+
+$(foreach yvar,$(ROBUST_YVARS),\
+$(foreach sample,$(SAMPLES),\
+$(foreach fe,$(MAIN_FE_SPECS),\
+$(foreach log_stat,$(LOG_STATUS),\
+$(foreach shift,$(PLACEBO_SHIFTS_FT),\
+$(eval $(GEN_PLACEBO_RULE_WARD)))))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	ln -sf $< $@

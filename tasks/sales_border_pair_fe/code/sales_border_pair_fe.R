@@ -313,18 +313,20 @@ etable(
                          yesNo = c("$\\checkmark$", "")),
   depvar = FALSE, drop.section = "fixef", digits = 3,
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-  extralines = c(
-    list("_Hedonic Controls" = c("", "$\\checkmark$")),
-    setNames(list(c("$\\checkmark$", "$\\checkmark$")), paste0("_", fe_label)),
-    list("_Cluster Level" = c(
-      ifelse(cluster_level == "segment", "Segment", "Ward Pair"),
-      ifelse(cluster_level == "segment", "Segment", "Ward Pair")
-    )),
-    list("_Zoning Group FE" = c(
-      ifelse(use_zone_group_fe, "$\\checkmark$", ""),
-      ifelse(use_zone_group_fe, "$\\checkmark$", "")
-    ))
-  ),
+  extralines = {
+    out <- c(
+      list("_Hedonic Controls" = c("", "$\\checkmark$")),
+      setNames(list(c("$\\checkmark$", "$\\checkmark$")), paste0("_", fe_label)),
+      list("_Cluster Level" = c(
+        ifelse(cluster_level == "segment", "Segment", "Ward Pair"),
+        ifelse(cluster_level == "segment", "Segment", "Ward Pair")
+      ))
+    )
+    if (use_zone_group_fe) {
+      out <- c(out, list("_Zoning Group FE" = c("$\\checkmark$", "$\\checkmark$")))
+    }
+    out
+  },
   file = output_tex, replace = TRUE
 )
 

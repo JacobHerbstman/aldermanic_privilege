@@ -418,21 +418,23 @@ etable(
   drop.section = "fixef",
   digits = 3,
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-  extralines = list(
-    "_Hedonic Controls" = c("", "$\\checkmark$"),
-    "_FE Structure" = c(
-      ifelse(fe_geo == "segment", "Segment $\\times$ Year-Month FE", "Ward-Pair $\\times$ Year-Month FE"),
-      ifelse(fe_geo == "segment", "Segment $\\times$ Year-Month FE", "Ward-Pair $\\times$ Year-Month FE")
-    ),
-    "_Cluster Level" = c(
-      ifelse(cluster_level == "segment", "Segment", "Ward Pair"),
-      ifelse(cluster_level == "segment", "Segment", "Ward Pair")
-    ),
-    "_Zoning Group FE" = c(
-      ifelse(use_zone_group_fe, "$\\checkmark$", ""),
-      ifelse(use_zone_group_fe, "$\\checkmark$", "")
+  extralines = {
+    out <- list(
+      "_Hedonic Controls" = c("", "$\\checkmark$"),
+      "_FE Structure" = c(
+        ifelse(fe_geo == "segment", "Segment $\\times$ Year-Month FE", "Ward-Pair $\\times$ Year-Month FE"),
+        ifelse(fe_geo == "segment", "Segment $\\times$ Year-Month FE", "Ward-Pair $\\times$ Year-Month FE")
+      ),
+      "_Cluster Level" = c(
+        ifelse(cluster_level == "segment", "Segment", "Ward Pair"),
+        ifelse(cluster_level == "segment", "Segment", "Ward Pair")
+      )
     )
-  ),
+    if (use_zone_group_fe) {
+      out <- c(out, list("_Zoning Group FE" = c("$\\checkmark$", "$\\checkmark$")))
+    }
+    out
+  },
   file = output_tex,
   replace = TRUE
 )
