@@ -24,10 +24,12 @@ default_uncertainty_config <- function() {
 
 variant_construction_rule <- function(variant_id) {
   dplyr::case_when(
-    variant_id == "baseline" ~ "Baseline residualized score",
+    variant_id == "baseline" ~ "Baseline residualized score dropping share_bach_plus",
     variant_id == "raw_rank_days" ~ "Rank aldermen on raw mean processing_time",
     variant_id == "days_unlogged" ~ "Baseline score with unlogged processing_time in stage 1",
     variant_id == "reduced_ses" ~ "Baseline score dropping share_bach_plus and median_hh_income_10k",
+    variant_id == "drop_bach" ~ "Baseline score dropping share_bach_plus",
+    variant_id == "drop_bach_pop" ~ "Baseline score dropping share_bach_plus and pop_total_10k",
     TRUE ~ variant_id
   )
 }
@@ -38,6 +40,8 @@ variant_display_label <- function(variant_id) {
     variant_id == "raw_rank_days" ~ "Raw mean-days rank",
     variant_id == "days_unlogged" ~ "Unlogged days",
     variant_id == "reduced_ses" ~ "Reduced SES controls",
+    variant_id == "drop_bach" ~ "Drop bachelors",
+    variant_id == "drop_bach_pop" ~ "Drop bachelors + pop",
     TRUE ~ variant_id
   )
 }

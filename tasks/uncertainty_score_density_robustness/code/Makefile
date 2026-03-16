@@ -1,8 +1,8 @@
 SHELL := bash
 include ../../shell_functions.make
 
-VARIANTS := baseline raw_rank_days days_unlogged reduced_ses
-RESIDUALIZED_VARIANTS := baseline days_unlogged reduced_ses
+VARIANTS := baseline raw_rank_days days_unlogged reduced_ses drop_bach drop_bach_pop
+RESIDUALIZED_VARIANTS := baseline days_unlogged reduced_ses drop_bach drop_bach_pop
 BASELINE_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH
 
 SCORE_OUTPUTS := $(foreach variant,$(VARIANTS),../output/alderman_uncertainty_index_$(variant).csv)

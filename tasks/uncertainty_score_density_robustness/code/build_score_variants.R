@@ -62,6 +62,22 @@ result <- switch(
     drop_covariates = c("share_bach_plus", "median_hh_income_10k"),
     construction_rule = variant_construction_rule(variant_id)
   ),
+  drop_bach = build_residualized_uncertainty_index(
+    permits = permits,
+    config = baseline_config,
+    variant_id = variant_id,
+    stage1_outcome = "log_processing_time",
+    drop_covariates = c("share_bach_plus"),
+    construction_rule = variant_construction_rule(variant_id)
+  ),
+  drop_bach_pop = build_residualized_uncertainty_index(
+    permits = permits,
+    config = baseline_config,
+    variant_id = variant_id,
+    stage1_outcome = "log_processing_time",
+    drop_covariates = c("share_bach_plus", "pop_total_10k"),
+    construction_rule = variant_construction_rule(variant_id)
+  ),
   stop("Unknown variant_id: ", variant_id, call. = FALSE)
 )
 

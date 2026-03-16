@@ -13,7 +13,14 @@ if (length(args) >= 1) {
   stop("FATAL: Script requires 1 arg: <output_dir>", call. = FALSE)
 }
 
-variant_ids <- c("baseline", "raw_rank_days", "days_unlogged", "reduced_ses")
+variant_ids <- c(
+  "baseline",
+  "raw_rank_days",
+  "days_unlogged",
+  "reduced_ses",
+  "drop_bach",
+  "drop_bach_pop"
+)
 
 fmt_num <- function(x, digits = 3) {
   ifelse(

@@ -62,8 +62,8 @@ result <- build_residualized_uncertainty_index(
   config = config,
   variant_id = "baseline",
   stage1_outcome = "log_processing_time",
-  drop_covariates = character(),
-  construction_rule = "Baseline residualized score"
+  drop_covariates = c("share_bach_plus"),
+  construction_rule = "Baseline residualized score dropping share_bach_plus"
 )
 
 message("Stage 1 observations: ", result$metadata$stage1_nobs)
