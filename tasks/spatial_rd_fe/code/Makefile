@@ -22,7 +22,21 @@ $(foreach fe,$(MAIN_FE_SPECS),\
 $(foreach log_stat,$(LOG_STATUS),\
 ../output/rd_fe_plot_$(LOG_PREFIX_$(log_stat))$(yvar)_bw$(bw)_$(sample)_$(fe)_clust_segment.pdf)))))
 
-all: $(ALL_OUTPUTS)
+SLIDE_APPENDIX_OUTPUTS := \
+../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_gap_below_median.pdf \
+../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_gap_above_median.pdf \
+../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_gap_below_median.pdf \
+../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_gap_above_median.pdf \
+../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_donut25.pdf \
+../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_donut50.pdf \
+../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_donut25.pdf \
+../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_donut50.pdf \
+../output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift-500.pdf \
+../output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift500.pdf \
+../output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift-500.pdf \
+../output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_shift500.pdf
+
+all: $(ALL_OUTPUTS) $(SLIDE_APPENDIX_OUTPUTS)
 
 PRUNED_OUTPUTS := $(foreach yvar,$(YVARS),\
 $(foreach bw,$(BANDWIDTHS),\

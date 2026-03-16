@@ -14,7 +14,13 @@ ROBUST_CLUSTER_OUTPUTS := $(foreach bw,$(BWS_FT),$(foreach sample,$(SAMPLES),$(f
 ALT_FE_OUTPUTS := $(foreach sample,$(SAMPLES),$(foreach fe,$(ALT_FE_SPECS),../output/fe_table_bw500_$(sample)_$(fe)_clust_segment.tex))
 DONUT_OUTPUTS := $(foreach donut,$(DONUTS_FT),$(foreach sample,$(SAMPLES),$(foreach fe,$(MAIN_FE_SPECS),../output/fe_table_bw500_$(sample)_$(fe)_clust_segment_donut$(donut).tex)))
 
-all: $(MAIN_OUTPUTS)
+SLIDE_APPENDIX_OUTPUTS := \
+../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment_pruned.tex \
+../output/fe_table_bw500_multifamily_zonegroup_pair_year_additive_clust_segment.tex \
+../output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_segment.tex \
+../output/fe_table_bw1000_multifamily_zonegroup_segment_year_additive_clust_segment.tex
+
+all: $(MAIN_OUTPUTS) $(SLIDE_APPENDIX_OUTPUTS)
 
 define MAIN_RULE
 ../output/fe_table_bw$(1)_$(2)_$(3)_clust_segment.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
