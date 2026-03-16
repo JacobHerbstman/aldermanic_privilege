@@ -29,8 +29,6 @@ INPUTS := \
 	../input/ward_panel.gpkg \
 	../input/confounded_pair_era_flags.csv \
 	../input/parcels_with_ward_distances.csv \
-	../input/border_verification_invalid_pairs_sales.csv \
-	../input/border_verification_invalid_pairs_rent.csv \
 	../input/gis_osm_water_a_free_1.cpg \
 	../input/gis_osm_water_a_free_1.dbf \
 	../input/gis_osm_water_a_free_1.prj \
@@ -57,12 +55,6 @@ $(OUTPUTS): plot_pruned_boundary_maps.R $(INPUTS) | ../output
 	ln -sf "$<" "$@"
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf "$<" "$@"
-
-../input/border_verification_invalid_pairs_sales.csv: ../../_archived_outputs/border_verification/border_verification_invalid_pairs_sales.csv | ../input
-	ln -sf "$<" "$@"
-
-../input/border_verification_invalid_pairs_rent.csv: ../../_archived_outputs/border_verification/border_verification_invalid_pairs_rent.csv | ../input
 	ln -sf "$<" "$@"
 
 ../input/gis_osm_water_a_free_1.cpg: ../../border_segment_creation/input/gis_osm_water_a_free_1.cpg | ../input

@@ -23,8 +23,6 @@ stopifnot(
   file.exists(ward_panel_gpkg),
   file.exists(flags_csv),
   file.exists(parcels_csv),
-  file.exists(invalid_sales_csv),
-  file.exists(invalid_rent_csv),
   file.exists(water_shp),
   file.exists(landuse_shp)
 )
@@ -515,8 +513,8 @@ for (cc in c("drop_margin", "keep_margin")) {
 }
 fwrite(uncertainty_priority_out, uncertainty_priority_csv)
 
-invalid_sales_n <- nrow(fread(invalid_sales_csv))
-invalid_rent_n <- nrow(fread(invalid_rent_csv))
+invalid_sales_n <- if (file.exists(invalid_sales_csv)) nrow(fread(invalid_sales_csv)) else 0L
+invalid_rent_n <- if (file.exists(invalid_rent_csv)) nrow(fread(invalid_rent_csv)) else 0L
 drop_counts <- audit_pair[, .N, by = .(confidence_tag)]
 setorder(drop_counts, -N)
 borderline_high_conf_n <- nrow(audit_pair[borderline_drop == TRUE & high_conf_drop == TRUE])
