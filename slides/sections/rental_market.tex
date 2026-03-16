@@ -19,8 +19,10 @@
     \begin{itemize}
         \item Data: RentHub rental listings; 9.94 million listings overall
         \item Estimation sample: 2.71 million listings within 500 ft in 2014--2022, spanning 141 ward pairs
-        \item Baseline specification: $\log(\mathrm{Rent}_{ist}) = \beta\,\mathrm{StringencyIndex}_{is} + \alpha_{st} + \varepsilon_{ist}$, SEs clustered by ward pair
+        \item Baseline specification: $\log(\mathrm{Rent}_{ist}) = \beta\,\mathrm{StringencyIndex}_{is} + \alpha_{st} + \varepsilon_{ist}$
     \end{itemize}
+    \footnotesize Here, $\mathrm{Rent}_{ist}$ is listed rent for parcel $i$ in border segment $s$ and year-month $t$, and $\alpha_{st}$ are segment $\times$ year-month FE.
+    Standard errors are clustered at the ward-pair level.
 \end{frame}
 
 
