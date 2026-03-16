@@ -4,9 +4,18 @@
 # Score merge happens in merge_event_study_scores.
 
 source("../../setup_environment/code/packages.R")
+source("../../_lib/canonical_geometry_helpers.R")
 
 # Disable s2 for geometry operations
 sf_use_s2(FALSE)
+
+assign_block_centroids_to_map <- function(block_centroids, ward_panel, era) {
+    ward_map <- aggregate_ward_map(ward_panel, canonical_map_year_for_era(era))
+    tibble(
+        block_id = block_centroids$block_id,
+        ward = assign_points_to_wards(block_centroids, ward_map)
+    )
+}
 
 # =============================================================================
 # 1. LOAD DATA
@@ -54,20 +63,10 @@ message("\nAssigning 2010 blocks to ward maps...")
 
 block_centroids_2010 <- st_centroid(blocks_2010)
 
-# Pre-2015 ward map (2014)
-ward_2014 <- ward_panel %>% filter(year == 2014)
-joined_2014 <- st_join(block_centroids_2010, ward_2014, join = st_within) %>%
-    st_drop_geometry() %>%
-    select(block_id, ward) %>%
-    distinct(block_id, .keep_all = TRUE) %>%
+joined_2014 <- assign_block_centroids_to_map(block_centroids_2010, ward_panel, "2003_2014") %>%
     rename(ward_pre_2015 = ward)
 
-# Post-2015 ward map (2015)
-ward_2015 <- ward_panel %>% filter(year == 2015)
-joined_2015 <- st_join(block_centroids_2010, ward_2015, join = st_within) %>%
-    st_drop_geometry() %>%
-    select(block_id, ward) %>%
-    distinct(block_id, .keep_all = TRUE) %>%
+joined_2015 <- assign_block_centroids_to_map(block_centroids_2010, ward_panel, "2015_2023") %>%
     rename(ward_post_2015 = ward)
 
 # Combine 2010 block assignments
@@ -89,22 +88,10 @@ message("\nAssigning 2020 blocks to ward maps...")
 
 block_centroids_2020 <- st_centroid(blocks_2020)
 
-# Post-2015 ward map (use 2022 as reference for origin)
-ward_2022 <- ward_panel %>% filter(year == 2022)
-if (nrow(ward_2022) == 0) ward_2022 <- ward_panel %>% filter(year == 2021)
-joined_2022 <- st_join(block_centroids_2020, ward_2022, join = st_within) %>%
-    st_drop_geometry() %>%
-    select(block_id, ward) %>%
-    distinct(block_id, .keep_all = TRUE) %>%
-    rename(ward_post_2015 = ward) # Origin ward for 2023 event
+joined_2022 <- assign_block_centroids_to_map(block_centroids_2020, ward_panel, "2015_2023") %>%
+    rename(ward_post_2015 = ward)
 
-# Post-2023 ward map (2024)
-ward_2024 <- ward_panel %>% filter(year == 2024)
-if (nrow(ward_2024) == 0) ward_2024 <- ward_panel %>% filter(year == max(ward_panel$year))
-joined_2024 <- st_join(block_centroids_2020, ward_2024, join = st_within) %>%
-    st_drop_geometry() %>%
-    select(block_id, ward) %>%
-    distinct(block_id, .keep_all = TRUE) %>%
+joined_2024 <- assign_block_centroids_to_map(block_centroids_2020, ward_panel, "post_2023") %>%
     rename(ward_post_2023 = ward)
 
 # Combine 2020 block assignments
@@ -230,9 +217,31 @@ message("\nSaving output...")
 
 write_csv(block_treatment_pre_scores, "../output/block_treatment_pre_scores.csv")
 
+block_treatment_geometry_diagnostics <- bind_rows(
+    assignments_2010 %>%
+        summarise(
+            cohort = "2015",
+            n_blocks = n(),
+            n_with_origin_ward = sum(!is.na(ward_pre_2015)),
+            n_with_dest_ward = sum(!is.na(ward_post_2015)),
+            n_switched = sum(switched_2015, na.rm = TRUE)
+        ),
+    assignments_2020 %>%
+        summarise(
+            cohort = "2023",
+            n_blocks = n(),
+            n_with_origin_ward = sum(!is.na(ward_post_2015)),
+            n_with_dest_ward = sum(!is.na(ward_post_2023)),
+            n_switched = sum(switched_2023, na.rm = TRUE)
+        )
+)
+
+write_csv(block_treatment_geometry_diagnostics, "../output/block_treatment_geometry_diagnostics.csv")
+
 message(sprintf(
     "Saved: ../output/block_treatment_pre_scores.csv (%s rows)",
     format(nrow(block_treatment_pre_scores), big.mark = ",")
 ))
+message("Saved: ../output/block_treatment_geometry_diagnostics.csv")
 
 message("\nDone!")

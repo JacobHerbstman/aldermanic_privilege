@@ -1,11 +1,15 @@
 SHELL := bash
 include ../../shell_functions.make
 
-all: ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv
+all: ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv ../output/parcel_segment_ids_reason_summary.csv
 
-../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv: assign_segment_ids.R ../input/parcels_pre_scores.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_1320ft.gpkg | ../output
-	# arg order: parcels_pre_scores parcels_with_geometry segment_gpkg output_lookup output_coverage
-	$(R) assign_segment_ids.R ../input/parcels_pre_scores.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_1320ft.gpkg ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv
+../output/parcel_segment_ids.csv: assign_segment_ids.R ../../_lib/canonical_geometry_helpers.R ../input/parcels_pre_scores.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_1320ft.gpkg | ../output
+	# arg order: parcels_pre_scores parcels_with_geometry segment_gpkg output_lookup output_coverage output_reason
+	$(R) assign_segment_ids.R ../input/parcels_pre_scores.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_1320ft.gpkg ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv ../output/parcel_segment_ids_reason_summary.csv
+
+../output/parcel_segment_ids_coverage.csv \
+../output/parcel_segment_ids_reason_summary.csv: ../output/parcel_segment_ids.csv
+	test -f ../output/parcel_segment_ids_coverage.csv
 
 ../input/parcels_pre_scores.csv: ../../calculate_ward_boundary_distances/output/parcels_pre_scores.csv | ../input
 	ln -sf $< $@

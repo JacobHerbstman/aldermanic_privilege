@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("../../_lib/canonical_geometry_helpers.R")
 
 library(data.table)
 library(sf)
@@ -6,28 +7,33 @@ library(sf)
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids/code")
-# Rscript assign_segment_ids.R ../input/parcels_pre_scores.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_1320ft.gpkg ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv
+# Rscript assign_segment_ids.R ../input/parcels_pre_scores.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_1320ft.gpkg ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv ../output/parcel_segment_ids_reason_summary.csv
 # =======================================================================================
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) >= 5) {
+if (length(args) >= 6) {
   in_pre_scores <- args[1]
   in_geom <- args[2]
   in_segments <- args[3]
   out_lookup <- args[4]
   out_coverage <- args[5]
+  out_reason <- args[6]
 } else if (length(args) >= 4) {
   in_pre_scores <- args[1]
   in_geom <- args[2]
   in_segments <- args[3]
   out_lookup <- args[4]
   out_coverage <- "../output/parcel_segment_ids_coverage.csv"
+  out_reason <- "../output/parcel_segment_ids_reason_summary.csv"
 } else {
   if (!exists("in_pre_scores") || !exists("in_geom") || !exists("in_segments") || !exists("out_lookup")) {
-    stop("FATAL: Script requires args: <parcels_pre_scores_csv> <parcels_with_geometry_gpkg> <segment_gpkg> <out_lookup_csv> [<out_coverage_csv>]", call. = FALSE)
+    stop("FATAL: Script requires args: <parcels_pre_scores_csv> <parcels_with_geometry_gpkg> <segment_gpkg> <out_lookup_csv> [<out_coverage_csv>] [<out_reason_csv>]", call. = FALSE)
   }
   if (!exists("out_coverage")) {
     out_coverage <- "../output/parcel_segment_ids_coverage.csv"
+  }
+  if (!exists("out_reason")) {
+    out_reason <- "../output/parcel_segment_ids_reason_summary.csv"
   }
 }
 
@@ -36,34 +42,6 @@ stopifnot(
   file.exists(in_geom),
   file.exists(in_segments)
 )
-
-normalize_pair_dash <- function(x) {
-  x <- as.character(x)
-  x <- gsub("_", "-", x, fixed = TRUE)
-  x <- trimws(x)
-  out <- rep(NA_character_, length(x))
-  ok <- grepl("^[0-9]+-[0-9]+$", x)
-  if (!any(ok)) return(out)
-  parts <- strsplit(x[ok], "-", fixed = TRUE)
-  out[ok] <- vapply(parts, function(v) {
-    a <- suppressWarnings(as.integer(v[1]))
-    b <- suppressWarnings(as.integer(v[2]))
-    if (!is.finite(a) || !is.finite(b)) return(NA_character_)
-    paste(min(a, b), max(a, b), sep = "-")
-  }, character(1))
-  out
-}
-
-map_era <- function(boundary_year) {
-  boundary_year <- as.integer(boundary_year)
-  fifelse(
-    boundary_year == 1998L, "1998_2002",
-    fifelse(
-      boundary_year == 2003L, "2003_2014",
-      fifelse(boundary_year == 2015L, "2015_2023", fifelse(boundary_year == 2024L, "post_2023", NA_character_))
-    )
-  )
-}
 
 coverage_row <- function(scope, era, dt) {
   matched <- !is.na(dt$segment_id) & dt$segment_id != ""
@@ -98,6 +76,7 @@ cat("Geometry:", in_geom, "\n")
 cat("Segments:", in_segments, "\n")
 cat("Output lookup:", out_lookup, "\n")
 cat("Output coverage:", out_coverage, "\n")
+cat("Output reasons:", out_reason, "\n")
 
 pre <- fread(in_pre_scores)
 required_pre_cols <- c("pin", "boundary_year", "ward_pair")
@@ -132,82 +111,44 @@ geom_sf <- geom_sf[, c("pin"), drop = FALSE]
 joined <- geom_sf %>%
   right_join(pre, by = "pin") %>%
   mutate(
-    row_id = row_number(),
     pair_dash = normalize_pair_dash(ward_pair),
-    era = map_era(boundary_year)
+    era = canonical_era_from_boundary_year(boundary_year)
   )
 
-segment_layers <- st_layers(in_segments)$name
+joined$segment_reason <- case_when(
+  is.na(joined$boundary_year) | is.na(joined$era) ~ "missing_boundary_year_or_era",
+  is.na(joined$pair_dash) ~ "missing_pair",
+  sf::st_is_empty(joined) ~ "missing_geometry",
+  TRUE ~ "pending"
+)
+
 needed_eras <- unique(na.omit(joined$era))
-needed_layers <- paste0(needed_eras, "_bw1000")
-missing_layers <- setdiff(needed_layers, segment_layers)
-if (length(missing_layers) > 0) {
-  stop(sprintf("Segment GPKG missing expected bw1000 layers: %s", paste(missing_layers, collapse = ", ")), call. = FALSE)
-}
+segments_by_era <- load_segment_layers(in_segments, buffer_ft = 1000, eras = needed_eras)
+segment_id_by_row <- assign_points_to_segments(joined, joined$era, joined$pair_dash, segments_by_era, chunk_n = 50000L)
+joined$segment_id <- segment_id_by_row
 
-segments_by_era <- list()
-for (era_i in needed_eras) {
-  layer_name <- paste0(era_i, "_bw1000")
-  seg <- st_read(in_segments, layer = layer_name, quiet = TRUE)
-  if (!all(c("segment_id", "ward_pair_id") %in% names(seg))) {
-    stop(sprintf("Layer '%s' missing required columns segment_id/ward_pair_id.", layer_name), call. = FALSE)
-  }
-  seg <- seg[, c("segment_id", "ward_pair_id"), drop = FALSE]
-  seg$segment_id <- as.character(seg$segment_id)
-  seg$pair_dash <- normalize_pair_dash(seg$ward_pair_id)
-  seg <- seg[!is.na(seg$pair_dash), ]
-  segments_by_era[[era_i]] <- seg
-}
-
-geometry_ok <- !is.na(st_is_empty(joined)) & !st_is_empty(joined)
-assignable <- joined[geometry_ok & !is.na(joined$era) & !is.na(joined$pair_dash), ]
-
-segment_id_by_row <- rep(NA_character_, nrow(joined))
-
-for (era_i in needed_eras) {
-  seg_era <- segments_by_era[[era_i]]
-  d_era <- assignable[assignable$era == era_i, ]
-  if (nrow(d_era) == 0 || is.null(seg_era) || nrow(seg_era) == 0) {
-    next
+pending_idx <- which(joined$segment_reason == "pending")
+if (length(pending_idx) > 0) {
+  pair_available <- logical(length(pending_idx))
+  for (era_i in unique(joined$era[pending_idx])) {
+    seg_era <- segments_by_era[[era_i]]
+    idx_era <- which(joined$era[pending_idx] == era_i)
+    if (length(idx_era) == 0) next
+    if (is.null(seg_era) || nrow(seg_era) == 0) next
+    pair_available[idx_era] <- joined$pair_dash[pending_idx[idx_era]] %in% unique(seg_era$pair_dash)
   }
 
-  if (st_crs(d_era) != st_crs(seg_era)) {
-    d_era <- st_transform(d_era, st_crs(seg_era))
-  }
-
-  valid_pairs <- intersect(unique(d_era$pair_dash), unique(seg_era$pair_dash))
-  pair_count <- length(valid_pairs)
-  if (pair_count == 0) next
-
-  cat(sprintf("Assigning segments for era %s across %d ward-pairs...\n", era_i, pair_count))
-
-  for (j in seq_along(valid_pairs)) {
-    pair_j <- valid_pairs[j]
-    pts_pair <- d_era[d_era$pair_dash == pair_j, ]
-    seg_pair <- seg_era[seg_era$pair_dash == pair_j, ]
-    if (nrow(pts_pair) == 0 || nrow(seg_pair) == 0) next
-
-    hits <- st_within(pts_pair, seg_pair)
-    hit_idx <- vapply(hits, function(v) {
-      if (length(v) == 0) return(NA_integer_)
-      v[1]
-    }, integer(1))
-
-    ok <- !is.na(hit_idx)
-    if (any(ok)) {
-      row_ids <- pts_pair$row_id[ok]
-      segment_id_by_row[row_ids] <- as.character(seg_pair$segment_id[hit_idx[ok]])
-    }
-
-    if (j %% 25L == 0L || j == pair_count) {
-      cat(sprintf("  era %s: processed %d / %d pairs\n", era_i, j, pair_count))
-    }
-  }
+  joined$segment_reason[pending_idx] <- ifelse(
+    !is.na(joined$segment_id[pending_idx]) & joined$segment_id[pending_idx] != "",
+    "matched",
+    ifelse(pair_available, "no_polygon_hit", "pair_not_in_segment_layer")
+  )
 }
 
 lookup <- data.table(
   pin = as.character(joined$pin),
-  segment_id = segment_id_by_row
+  segment_id = joined$segment_id,
+  segment_reason = joined$segment_reason
 )
 
 if (nrow(lookup) != nrow(pre)) {
@@ -226,7 +167,7 @@ diag_dt <- merge(
   all.x = TRUE,
   sort = FALSE
 )
-diag_dt[, era := map_era(boundary_year)]
+diag_dt[, era := canonical_era_from_boundary_year(boundary_year)]
 
 coverage_parts <- list(
   coverage_block(diag_dt, "all"),
@@ -241,9 +182,14 @@ coverage <- coverage[!is.na(scope)]
 setorder(coverage, scope, era)
 fwrite(coverage, out_coverage)
 
+reason_summary <- diag_dt[, .(n_obs = .N), by = .(era, segment_reason)]
+setorder(reason_summary, era, segment_reason)
+fwrite(reason_summary, out_reason)
+
 cat("\nCoverage diagnostics:\n")
 print(coverage[scope %in% c("all", "regression_bw1000", "regression_bw500", "regression_bw250")])
 
 cat("\nSaved:\n")
 cat(" -", out_lookup, "\n")
 cat(" -", out_coverage, "\n")
+cat(" -", out_reason, "\n")

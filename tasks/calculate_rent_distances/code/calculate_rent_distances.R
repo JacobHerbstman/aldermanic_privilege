@@ -4,6 +4,7 @@
 # Score/sign merge happens in merge_event_study_scores.
 
 source("../../setup_environment/code/packages.R")
+source("../../_lib/canonical_geometry_helpers.R")
 
 # -----------------------------------------------------------------------------
 # 1. SETUP & ARGUMENTS
@@ -31,7 +32,11 @@ load_cpi_deflator <- function(start_date,
                               series_id = "CUURA207SA0L2") {
   fred_url <- sprintf("https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s", series_id)
   message(sprintf("Fetching CPI series %s from FRED...", series_id))
-
+  old_http_ua <- getOption("HTTPUserAgent")
+  on.exit(options(HTTPUserAgent = old_http_ua), add = TRUE)
+  # As of March 16, 2026, FRED's edge responds poorly to R's default UA
+  # over libcurl HTTP/2, while the same URL works with a curl-style UA.
+  options(HTTPUserAgent = paste0("curl/", curl::curl_version()$version))
   cpi_raw <- read_csv(fred_url, show_col_types = FALSE)
   if (!all(c("observation_date", series_id) %in% names(cpi_raw))) {
     stop(sprintf("FRED response missing expected columns for series %s.", series_id), call. = FALSE)
@@ -105,13 +110,6 @@ load_cpi_deflator <- function(start_date,
 # Core CRS for distance calc (Illinois East ftUS)
 crs_projected <- 3435
 
-# Map Change Dates (Crucial for correct assignment)
-# Map 1 (2003-2015): Ends May 2015
-# Map 2 (2015-2023): Starts May 2015, Ends May 2023
-# Map 3 (2023-Present): Starts May 2023
-date_switch_2015 <- as.Date("2015-05-18") # Inauguration day 2015
-date_switch_2023 <- as.Date("2023-05-15") # Inauguration day 2023
-
 # -----------------------------------------------------------------------------
 # 2. LOAD & PREP ANCILLARY DATA
 # -----------------------------------------------------------------------------
@@ -120,178 +118,61 @@ message("Loading ancillary data...")
 # Wards
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
   st_transform(crs_projected)
+canonical_ward_maps <- load_canonical_ward_maps(ward_panel)
+canonical_boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg")
 
 # Alderman Data
 alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
   mutate(month = as.yearmon(month))
 
 # -----------------------------------------------------------------------------
-# 3. HELPER: BUILD BOUNDARY LINES
-# -----------------------------------------------------------------------------
-# We need line segments for each map version to calculate distance to *border*
-get_boundaries <- function(ward_sf) {
-  # Create shared boundaries by intersecting polygons
-  # This is computationally expensive, so we do it once per map version
-
-  # Buffer 0 to fix topology
-  ward_sf <- st_buffer(ward_sf, 0)
-
-  # Find touching pairs
-  adj <- st_touches(ward_sf)
-
-  edges <- imap_dfr(adj, function(nb, i) {
-    if (length(nb) == 0) {
-      return(NULL)
-    }
-
-    # Iterate through neighbors (only j > i to avoid duplicates)
-    nb_valid <- nb[nb > i]
-    if (length(nb_valid) == 0) {
-      return(NULL)
-    }
-
-    map_dfr(nb_valid, function(j) {
-      geom_i <- st_geometry(ward_sf[i, ])
-      geom_j <- st_geometry(ward_sf[j, ])
-
-      # Intersection is the shared border
-      shared <- st_intersection(geom_i, geom_j)
-
-      # Keep only lines (ignore points if corners touch)
-      if (st_dimension(shared) != 1) {
-        return(NULL)
-      }
-
-      tibble(
-        ward_a = ward_sf$ward[i],
-        ward_b = ward_sf$ward[j],
-        geometry = shared
-      )
-    })
-  }) %>%
-    st_as_sf(crs = st_crs(ward_sf))
-
-  return(edges)
-}
-
-message("Preparing ward maps...")
-# Map 1: 2014 (Representative of pre-2015 era)
-map_2014_poly <- ward_panel %>% filter(year == 2014)
-map_2014_lines <- get_boundaries(map_2014_poly)
-
-# Map 2: 2016 (Representative of 2015-2023 era)
-map_2015_poly <- ward_panel %>% filter(year == 2016)
-map_2015_lines <- get_boundaries(map_2015_poly)
-
-# Map 3: 2024 (Representative of current era)
-map_2023_poly <- ward_panel %>% filter(year == 2024)
-map_2023_lines <- get_boundaries(map_2023_poly)
-
-message(sprintf(
-  "Generated boundaries: 2014 (%d), 2015 (%d), 2023 (%d)",
-  nrow(map_2014_lines), nrow(map_2015_lines), nrow(map_2023_lines)
-))
-
-# -----------------------------------------------------------------------------
-# 4. RENT PROCESSING FUNCTION
+# 3. RENT PROCESSING FUNCTION
 # -----------------------------------------------------------------------------
 
 process_batch <- function(df_batch) {
-  # 1. Prep
-  # Filter invalid coords
+  n_input <- nrow(df_batch)
+  n_valid_coords <- sum(!is.na(df_batch$latitude) & !is.na(df_batch$longitude) & !is.na(df_batch$file_date))
+
   df_batch <- df_batch %>%
     filter(!is.na(latitude), !is.na(longitude), !is.na(file_date))
 
   if (nrow(df_batch) == 0) {
-    return(NULL)
+    return(list(
+      data = NULL,
+      diagnostics = tibble(
+        n_input = n_input,
+        n_valid_coords = n_valid_coords,
+        n_with_ward_pair = 0L
+      )
+    ))
   }
 
-  # Convert to SF
   pts <- st_as_sf(df_batch, coords = c("longitude", "latitude"), crs = 4326) %>%
-    st_transform(crs_projected)
+    st_transform(crs_projected) %>%
+    mutate(
+      boundary_year = canonical_boundary_year_from_date(file_date),
+      era = canonical_era_from_date(file_date, allow_pre_2003 = FALSE)
+    )
 
-  # 2. Split by Era
-  pts_p1 <- pts %>% filter(file_date < date_switch_2015)
-  pts_p2 <- pts %>% filter(file_date >= date_switch_2015, file_date < date_switch_2023)
-  pts_p3 <- pts %>% filter(file_date >= date_switch_2023)
+  boundary_assignments <- assign_points_to_boundaries(
+    points_sf = pts,
+    era_values = pts$era,
+    ward_maps = canonical_ward_maps,
+    boundary_lines = canonical_boundaries,
+    chunk_n = 5000L
+  )
 
-  # Helper to process a subset against a specific map
-  calc_dist <- function(points, polys, lines) {
-    if (nrow(points) == 0) {
-      return(NULL)
-    }
+  out <- bind_cols(pts, boundary_assignments) %>%
+    filter(!is.na(ward), !is.na(ward_pair_id))
 
-    n_in <- nrow(points)
-
-    # A. Assign Ward (Point in Polygon)
-    # This is fast
-    joined <- st_join(points, polys %>% select(ward), join = st_within)
-
-    # Drop points outside Chicago wards
-    n_outside <- sum(is.na(joined$ward))
-    if (n_outside > 0) {
-      message(sprintf("  Dropped %d points outside ward boundaries (%.1f%%)",
-                      n_outside, 100 * n_outside / n_in))
-    }
-    joined <- joined %>% filter(!is.na(ward))
-    if (nrow(joined) == 0) {
-      return(NULL)
-    }
-
-    # B. Distance to nearest boundary touching assigned ward
-    joined$dist_ft <- NA_real_
-    joined$ward_pair_a <- NA_integer_
-    joined$ward_pair_b <- NA_integer_
-
-    ward_vals <- sort(unique(joined$ward))
-    for (w in ward_vals) {
-      idx <- which(joined$ward == w)
-      edges_w <- lines[lines$ward_a == w | lines$ward_b == w, ]
-
-      if (length(idx) == 0 || nrow(edges_w) == 0) {
-        next
-      }
-
-      nearest_idx <- st_nearest_feature(joined[idx, ], edges_w)
-      nearest_geoms <- edges_w[nearest_idx, ]
-      dists <- st_distance(joined[idx, ], nearest_geoms, by_element = TRUE)
-
-      joined$dist_ft[idx] <- as.numeric(dists)
-      joined$ward_pair_a[idx] <- as.integer(nearest_geoms$ward_a)
-      joined$ward_pair_b[idx] <- as.integer(nearest_geoms$ward_b)
-    }
-
-    n_no_border <- sum(is.na(joined$ward_pair_a) | is.na(joined$ward_pair_b))
-    if (n_no_border > 0) {
-      message(sprintf("  Dropped %d points with no nearest border (%.1f%% of ward-assigned)",
-                      n_no_border, 100 * n_no_border / nrow(joined)))
-    }
-    joined <- joined %>% filter(!is.na(ward_pair_a), !is.na(ward_pair_b))
-    if (nrow(joined) == 0) {
-      return(NULL)
-    }
-
-    # Identify neighbor ward
-    joined <- joined %>%
-      mutate(
-        neighbor_ward = if_else(ward == ward_pair_a, ward_pair_b, ward_pair_a, missing = NA_integer_),
-        ward_pair_id = if_else(
-          !is.na(neighbor_ward),
-          paste(pmin(ward, neighbor_ward), pmax(ward, neighbor_ward), sep = "-"),
-          NA_character_
-        )
-      ) %>%
-      select(-ward_pair_a, -ward_pair_b)
-
-    return(joined)
-  }
-
-  # Run calculations
-  res1 <- calc_dist(pts_p1, map_2014_poly, map_2014_lines)
-  res2 <- calc_dist(pts_p2, map_2015_poly, map_2015_lines)
-  res3 <- calc_dist(pts_p3, map_2023_poly, map_2023_lines)
-
-  bind_rows(res1, res2, res3)
+  list(
+    data = out,
+    diagnostics = tibble(
+      n_input = n_input,
+      n_valid_coords = n_valid_coords,
+      n_with_ward_pair = nrow(out)
+    )
+  )
 }
 
 # -----------------------------------------------------------------------------
@@ -304,6 +185,7 @@ ds <- arrow::open_dataset(input_file)
 
 years <- 2014:2025
 results_list <- list()
+batch_diag_list <- list()
 
 if (run_sample) {
   message("RUNNING ON SAMPLE MODE (1% by year)")
@@ -331,7 +213,10 @@ for (i in seq_along(years)) {
   # Process chunk
   if (nrow(df_chunk) > 0) {
     res <- process_batch(df_chunk)
-    if (!is.null(res)) results_list[[length(results_list) + 1]] <- res
+    if (!is.null(res$data)) {
+      results_list[[length(results_list) + 1]] <- res$data
+    }
+    batch_diag_list[[length(batch_diag_list) + 1]] <- mutate(res$diagnostics, year = yr)
   }
 
   gc()
@@ -340,6 +225,7 @@ for (i in seq_along(years)) {
 close(pb)
 
 results_sf <- bind_rows(results_list)
+batch_diagnostics <- bind_rows(batch_diag_list)
 
 # -----------------------------------------------------------------------------
 # 6. POST-PROCESS: ALDERMAN LOOKUPS (PRE-SCORES)
@@ -437,7 +323,56 @@ final_df <- final_df %>%
 # Dynamically determine output filename
 suffix <- if (run_sample) "_sample" else "_full"
 output_path <- sprintf("../output/rent_pre_scores%s.parquet", suffix)
+diag_path <- sprintf("../output/rent_geometry_diagnostics%s.csv", suffix)
 
 write_parquet(final_df, output_path)
 
+rent_geometry_diagnostics <- bind_rows(
+  tibble(
+    scope = "overall",
+    boundary_year = NA_integer_,
+    metric = c(
+      "n_rows_read",
+      "n_valid_coords",
+      "n_with_ward_pair"
+    ),
+    value = c(
+      sum(batch_diagnostics$n_input),
+      sum(batch_diagnostics$n_valid_coords),
+      sum(batch_diagnostics$n_with_ward_pair)
+    )
+  ),
+  batch_diagnostics %>%
+    summarise(
+      n_rows_read = sum(n_input),
+      n_valid_coords = sum(n_valid_coords),
+      n_with_ward_pair = sum(n_with_ward_pair),
+      .by = year
+    ) %>%
+    pivot_longer(
+      cols = c(n_rows_read, n_valid_coords, n_with_ward_pair),
+      names_to = "metric",
+      values_to = "value"
+    ) %>%
+    mutate(scope = "calendar_year", boundary_year = NA_integer_) %>%
+    select(scope, boundary_year, year, metric, value),
+  final_df %>%
+    summarise(
+      n_obs = n(),
+      mean_dist_ft = mean(dist_ft, na.rm = TRUE),
+      median_dist_ft = median(dist_ft, na.rm = TRUE),
+      .by = boundary_year
+    ) %>%
+    pivot_longer(
+      cols = c(n_obs, mean_dist_ft, median_dist_ft),
+      names_to = "metric",
+      values_to = "value"
+    ) %>%
+    mutate(scope = "boundary_year", year = NA_integer_) %>%
+    select(scope, boundary_year, year, metric, value)
+)
+
+write_csv(rent_geometry_diagnostics, diag_path)
+
 message("Done! Saved ", nrow(final_df), " rows to ", output_path)
+message("Saved diagnostics to ", diag_path)

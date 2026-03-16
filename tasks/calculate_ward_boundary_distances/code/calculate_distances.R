@@ -3,12 +3,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 
 source("../../setup_environment/code/packages.R")
-
-# Configuration parameters for redistricting handling
-REDISTRICTING_2003 <- as.Date("2003-05-01") # 2003 map becomes active
-REDISTRICTING_2015 <- as.Date("2015-05-01") # 2015 map becomes active
-REDISTRICTING_2024 <- as.Date("2024-05-01") # 2024 map becomes active
-BOUNDARY_YEARS <- c(1998L, 2003L, 2015L, 2024L)
+source("../../_lib/canonical_geometry_helpers.R")
 
 # -----------------------------------------------------------------------------
 # 1. LOAD DATA
@@ -22,6 +17,10 @@ parcels <- st_read("../input/geocoded_residential_data.gpkg") %>%
 
 cat("Loading ward boundaries...\n")
 ward_panel <- st_read("../input/ward_panel.gpkg")
+canonical_ward_maps <- load_canonical_ward_maps(ward_panel)
+
+cat("Loading canonical ward-pair boundaries...\n")
+canonical_boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg")
 
 cat("Loading alderman panel...\n")
 alderman_panel <- read_csv("../input/chicago_alderman_panel.csv")
@@ -96,231 +95,38 @@ cat(sprintf(
 ))
 
 # -----------------------------------------------------------------------------
-# 2. REDISTRICTING LOGIC FUNCTIONS
+# 2. CANONICAL WARD ASSIGNMENT AND BOUNDARY DISTANCES
 # -----------------------------------------------------------------------------
-get_boundary_year <- function(construction_date) {
-  case_when(
-    construction_date < REDISTRICTING_2003 ~ 1998L,
-    construction_date < REDISTRICTING_2015 ~ 2003L,
-    construction_date < REDISTRICTING_2024 ~ 2015L,
-    TRUE ~ 2024L
+
+cat("Assigning canonical ward pairs and distances to parcels...\n")
+
+parcels <- parcels %>%
+  mutate(
+    boundary_year = canonical_boundary_year_from_date(construction_date),
+    era = canonical_era_from_boundary_year(boundary_year)
   )
-}
 
-# -----------------------------------------------------------------------------
-# 3. WARD ASSIGNMENT
-# -----------------------------------------------------------------------------
+boundary_assignments <- assign_points_to_boundaries(
+  points_sf = parcels,
+  era_values = parcels$era,
+  ward_maps = canonical_ward_maps,
+  boundary_lines = canonical_boundaries,
+  chunk_n = 2000L
+) %>%
+  rename(
+    assigned_ward = ward,
+    ward_pair = ward_pair_id,
+    dist_to_boundary = dist_ft
+  )
 
-cat("Assigning wards to parcels based on construction year...\n")
+parcels_with_distances <- bind_cols(parcels, boundary_assignments)
 
-assign_ward_and_distances <- function(parcel_batch) {
-  results <- parcel_batch %>%
-    mutate(boundary_year = get_boundary_year(construction_date)) %>%
-    ungroup()
-
-  results_with_wards <- results %>%
-    st_join(
-      ward_panel %>%
-        filter(year %in% unique(results$boundary_year)) %>%
-        dplyr::select(year, ward, geom),
-      suffix = c("", "_ward")
-    ) %>%
-    filter(boundary_year == year) %>%
-    dplyr::select(-year) %>%
-    rename(assigned_ward = ward)
-
-  results_with_wards
-}
-
-batch_size <- 5000
-n_batches <- ceiling(nrow(parcels) / batch_size)
-
-cat(sprintf("Processing %d parcels in %d batches...\n", nrow(parcels), n_batches))
-
-parcels_with_wards <- map_dfr(1:n_batches, function(i) {
-  cat(sprintf("Processing batch %d of %d...\n", i, n_batches))
-
-  start_idx <- (i - 1) * batch_size + 1
-  end_idx <- min(i * batch_size, nrow(parcels))
-  batch <- parcels[start_idx:end_idx, ]
-
-  assign_ward_and_distances(batch)
-})
-
-# -----------------------------------------------------------------------------
-# 4. IDENTIFY ADJACENT WARD PAIRS + BUILD SHARED BORDERS (ALL MAP YEARS)
-# -----------------------------------------------------------------------------
-
-cat("Identifying adjacent ward pairs...\n")
-
-get_adjacent_ward_pairs <- function(ward_boundaries) {
-  wards <- unique(ward_boundaries$ward)
-  adjacent_pairs <- tibble()
-  for (i in 1:(length(wards) - 1)) {
-    for (j in (i + 1):length(wards)) {
-      ward_a <- wards[i]
-      ward_b <- wards[j]
-      geom_a <- ward_boundaries %>%
-        filter(ward == ward_a) %>%
-        st_geometry()
-      geom_b <- ward_boundaries %>%
-        filter(ward == ward_b) %>%
-        st_geometry()
-      touches <- st_touches(geom_a, geom_b, sparse = FALSE)[1, 1]
-      if (!touches) touches <- st_intersects(st_buffer(geom_a, 1), geom_b, sparse = FALSE)[1, 1]
-      if (touches) {
-        adjacent_pairs <- bind_rows(
-          adjacent_pairs,
-          tibble(
-            ward_a = ward_a, ward_b = ward_b,
-            ward_pair = paste(min(ward_a, ward_b), max(ward_a, ward_b), sep = "_")
-          )
-        )
-      }
-    }
-  }
-  adjacent_pairs
-}
-
-build_shared_borders <- function(ward_boundaries, pairs_df) {
-  yr <- unique(ward_boundaries$year)[1]
-  wb <- ward_boundaries %>%
-    dplyr::select(ward, geom) %>%
-    st_make_valid() %>%
-    dplyr::group_by(ward) %>%
-    dplyr::summarise(geometry = st_union(geom), .groups = "drop") %>%
-    st_as_sf(crs = st_crs(ward_boundaries))
-
-  out <- purrr::map_dfr(seq_len(nrow(pairs_df)), function(i) {
-    wa <- pairs_df$ward_a[i]
-    wb_ <- pairs_df$ward_b[i]
-    ga <- wb %>%
-      dplyr::filter(ward == wa) %>%
-      st_geometry()
-    gb <- wb %>%
-      dplyr::filter(ward == wb_) %>%
-      st_geometry()
-    shared <- suppressWarnings(st_intersection(st_boundary(ga), st_boundary(gb)))
-    if (length(shared) == 0 || all(st_is_empty(shared))) {
-      return(NULL)
-    }
-    gtypes <- unique(as.character(st_geometry_type(shared)))
-    shared_lines <- if (all(gtypes %in% c("LINESTRING", "MULTILINESTRING"))) {
-      st_cast(shared, "LINESTRING")
-    } else if ("GEOMETRYCOLLECTION" %in% gtypes) {
-      suppressWarnings(st_collection_extract(shared, "LINESTRING"))
-    } else {
-      return(NULL)
-    }
-    if (length(shared_lines) == 0 || all(st_is_empty(shared_lines))) {
-      return(NULL)
-    }
-    shared_lines <- shared_lines[as.numeric(st_length(shared_lines)) > 0, ]
-    if (length(shared_lines) == 0) {
-      return(NULL)
-    }
-    st_sf(
-      year = yr, ward_a = wa, ward_b = wb_,
-      ward_pair = paste(min(wa, wb_), max(wa, wb_), sep = "_"),
-      geometry = shared_lines
-    )
-  })
-  if (nrow(out) == 0) {
-    return(st_sf(
-      year = integer(), ward_a = integer(), ward_b = integer(),
-      ward_pair = character(), geometry = st_sfc(), crs = st_crs(ward_boundaries)
-    ))
-  }
-  st_as_sf(out, crs = st_crs(ward_boundaries))
-}
-
-YEARS_FOR_MAPS <- c(1998L, 2003L, 2015L, 2024L)
-
-adjacent_pairs_all <- purrr::map_dfr(YEARS_FOR_MAPS, function(yy) {
-  wb <- ward_panel %>% filter(year == yy)
-  if (nrow(wb) == 0) {
-    return(tibble(year = yy, ward_a = integer(), ward_b = integer(), ward_pair = character()))
-  }
-  ap <- get_adjacent_ward_pairs(wb)
-  if (nrow(ap) == 0) {
-    return(tibble(year = yy, ward_a = integer(), ward_b = integer(), ward_pair = character()))
-  }
-  mutate(ap, year = yy, .before = 1)
-})
-
-shared_borders_all <- purrr::map_dfr(YEARS_FOR_MAPS, function(yy) {
-  wb <- ward_panel %>% filter(year == yy)
-  ap <- adjacent_pairs_all %>%
-    filter(year == yy) %>%
-    dplyr::select(-year)
-  if (nrow(wb) == 0 || nrow(ap) == 0) {
-    return(NULL)
-  }
-  build_shared_borders(wb, ap)
-})
-
-# -----------------------------------------------------------------------------
-# 5. CALCULATE DISTANCES TO WARD BOUNDARIES (SIMPLIFIED APPROACH)
-# -----------------------------------------------------------------------------
-
-cat("Calculating distances to ward boundaries (simplified approach)...\n")
-
-calculate_boundary_distances_simple <- function(parcels_df, batch_size = 2000) {
-  boundary_years <- unique(parcels_df$boundary_year)
-
-  results_list <- purrr::map(boundary_years, function(by) {
-    cat(sprintf("Processing boundary year %d...\n", by))
-    year_parcels <- parcels_df %>% filter(boundary_year == by)
-    if (nrow(year_parcels) == 0) {
-      return(NULL)
-    }
-
-    borders_year <- shared_borders_all %>% filter(year == by)
-    if (nrow(borders_year) == 0) {
-      return(NULL)
-    }
-
-    n_batches <- ceiling(nrow(year_parcels) / batch_size)
-    cat(sprintf("Processing %d parcels in %d batches...\n", nrow(year_parcels), n_batches))
-
-    purrr::map_dfr(1:n_batches, function(batch_i) {
-      cat(sprintf("  Distance batch %d of %d...\n", batch_i, n_batches))
-      start_idx <- (batch_i - 1) * batch_size + 1
-      end_idx <- min(batch_i * batch_size, nrow(year_parcels))
-      batch_parcels <- year_parcels[start_idx:end_idx, ]
-
-      uw <- unique(batch_parcels$assigned_ward)
-      edges <- borders_year %>% filter(ward_a %in% uw | ward_b %in% uw)
-      if (nrow(edges) == 0) {
-        batch_parcels$dist_to_boundary <- NA_real_
-        batch_parcels$ward_pair <- NA_character_
-        return(batch_parcels)
-      }
-
-      nearest_idx <- st_nearest_feature(batch_parcels, edges)
-      nearest_edges <- edges[nearest_idx, ]
-      dists <- st_distance(st_geometry(batch_parcels), st_geometry(nearest_edges), by_element = TRUE)
-
-      neighbor <- ifelse(batch_parcels$assigned_ward == nearest_edges$ward_a,
-        nearest_edges$ward_b, nearest_edges$ward_a
-      )
-
-      batch_parcels$ward_pair <- paste(pmin(batch_parcels$assigned_ward, neighbor),
-        pmax(batch_parcels$assigned_ward, neighbor),
-        sep = "_"
-      )
-      batch_parcels$dist_to_boundary <- as.numeric(dists)
-      batch_parcels
-    })
-  })
-
-  bind_rows(results_list)
-}
-
-# Use simplified function
-parcels_with_distances <- calculate_boundary_distances_simple(parcels_with_wards, batch_size = 2000)
-
-cat("Distance calculation completed!\n")
+cat(sprintf(
+  "Canonical ward assignment coverage: %d of %d parcels have ward, %d have ward_pair.\n",
+  sum(!is.na(parcels_with_distances$assigned_ward)),
+  nrow(parcels_with_distances),
+  sum(!is.na(parcels_with_distances$ward_pair))
+))
 
 # -----------------------------------------------------------------------------
 # 6. ADD WARD PAIRS AND ALDERMAN INFO (EFFICIENT VERSION)
@@ -490,6 +296,20 @@ cat(sprintf(
 cat("Saving output (pre-scores, unsigned)...\n")
 
 write_csv(final_dataset_signed, "../output/parcels_pre_scores.csv")
+
+parcel_geometry_diagnostics <- final_dataset_signed %>%
+  summarise(
+    n_obs = n(),
+    n_with_ward = sum(!is.na(ward)),
+    n_with_ward_pair = sum(!is.na(ward_pair)),
+    n_with_neighbor_alderman = sum(!is.na(alderman_neighbor)),
+    mean_dist_to_boundary = mean(dist_to_boundary, na.rm = TRUE),
+    median_dist_to_boundary = median(dist_to_boundary, na.rm = TRUE),
+    .by = boundary_year
+  ) %>%
+  arrange(boundary_year)
+
+write_csv(parcel_geometry_diagnostics, "../output/parcel_geometry_diagnostics.csv")
 
 summary_stats <- final_dataset_signed %>%
   summarise(

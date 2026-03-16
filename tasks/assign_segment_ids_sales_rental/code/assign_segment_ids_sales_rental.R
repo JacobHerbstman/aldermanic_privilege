@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("../../_lib/canonical_geometry_helpers.R")
 
 library(arrow)
 library(data.table)
@@ -9,11 +10,11 @@ sf_use_s2(FALSE)
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids_sales_rental/code")
-# Rscript assign_segment_ids_sales_rental.R ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/boundary_segments_1320ft.gpkg ../output/sales_pre_scores_with_segments.csv ../output/rent_pre_scores_full_with_segments.parquet ../output/segment_assignment_coverage_summary.csv ../output/segment_assignment_spotcheck_queue.csv
+# Rscript assign_segment_ids_sales_rental.R ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/boundary_segments_1320ft.gpkg ../output/sales_pre_scores_with_segments.csv ../output/rent_pre_scores_full_with_segments.parquet ../output/segment_assignment_coverage_summary.csv ../output/segment_assignment_spotcheck_queue.csv ../output/segment_assignment_reason_summary.csv
 # =======================================================================================
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 7) {
+if (length(cli_args) >= 8) {
   sales_input <- cli_args[1]
   rent_input <- cli_args[2]
   segment_gpkg <- cli_args[3]
@@ -21,11 +22,13 @@ if (length(cli_args) >= 7) {
   out_rent <- cli_args[5]
   out_coverage <- cli_args[6]
   out_spotcheck <- cli_args[7]
+  out_reason <- cli_args[8]
 } else {
   if (!exists("sales_input") || !exists("rent_input") || !exists("segment_gpkg") ||
-      !exists("out_sales") || !exists("out_rent") || !exists("out_coverage") || !exists("out_spotcheck")) {
+      !exists("out_sales") || !exists("out_rent") || !exists("out_coverage") || !exists("out_spotcheck") ||
+      !exists("out_reason")) {
     stop(
-      "FATAL: Script requires 7 args: <sales_input_csv> <rent_input_parquet> <segment_gpkg> <out_sales_csv> <out_rent_parquet> <out_coverage_csv> <out_spotcheck_csv>",
+      "FATAL: Script requires 8 args: <sales_input_csv> <rent_input_parquet> <segment_gpkg> <out_sales_csv> <out_rent_parquet> <out_coverage_csv> <out_spotcheck_csv> <out_reason_csv>",
       call. = FALSE
     )
   }
@@ -33,78 +36,7 @@ if (length(cli_args) >= 7) {
 
 stopifnot(file.exists(sales_input), file.exists(rent_input), file.exists(segment_gpkg))
 
-d_2003 <- as.Date("2003-05-01")
-d_2015 <- as.Date("2015-05-18")
-d_2023 <- as.Date("2023-05-15")
-
-normalize_pair_dash <- function(x) {
-  x <- as.character(x)
-  x <- gsub("_", "-", x, fixed = TRUE)
-  x <- trimws(x)
-  out <- rep(NA_character_, length(x))
-  ok <- grepl("^[0-9]+-[0-9]+$", x)
-  if (!any(ok)) return(out)
-
-  parts <- strsplit(x[ok], "-", fixed = TRUE)
-  out[ok] <- vapply(parts, function(v) {
-    a <- suppressWarnings(as.integer(v[1]))
-    b <- suppressWarnings(as.integer(v[2]))
-    if (!is.finite(a) || !is.finite(b)) return(NA_character_)
-    paste(min(a, b), max(a, b), sep = "-")
-  }, character(1))
-  out
-}
-
-sales_era_from_date <- function(d) {
-  d <- as.Date(d)
-  fifelse(
-    is.na(d),
-    NA_character_,
-    fifelse(
-      d < d_2003,
-      "1998_2002",
-      fifelse(d < d_2015, "2003_2014", fifelse(d < d_2023, "2015_2023", "post_2023"))
-    )
-  )
-}
-
-rent_era_from_date <- function(d) {
-  d <- as.Date(d)
-  fifelse(
-    is.na(d),
-    NA_character_,
-    fifelse(d < d_2015, "2003_2014", fifelse(d < d_2023, "2015_2023", "post_2023"))
-  )
-}
-
-load_segments_for_era <- function(gpkg_path, era_label) {
-  layer_name <- sprintf("%s_bw1000", era_label)
-  seg <- st_read(gpkg_path, layer = layer_name, quiet = TRUE)
-  if (!all(c("segment_id", "ward_pair_id") %in% names(seg))) {
-    stop(sprintf("Layer '%s' missing required columns segment_id/ward_pair_id.", layer_name), call. = FALSE)
-  }
-
-  seg <- seg[, c("segment_id", "ward_pair_id"), drop = FALSE]
-  seg <- st_make_valid(seg)
-  seg$segment_id <- as.character(seg$segment_id)
-  seg$pair_dash <- normalize_pair_dash(seg$ward_pair_id)
-  seg <- seg[!is.na(seg$pair_dash), ]
-  seg
-}
-
-layer_names <- st_layers(segment_gpkg)$name
-required_layers <- paste0(c("1998_2002", "2003_2014", "2015_2023", "post_2023"), "_bw1000")
-missing_layers <- setdiff(required_layers, layer_names)
-if (length(missing_layers) > 0) {
-  stop(sprintf("Missing required segment layers: %s", paste(missing_layers, collapse = ", ")), call. = FALSE)
-}
-
-segments_by_era <- list(
-  "1998_2002" = load_segments_for_era(segment_gpkg, "1998_2002"),
-  "2003_2014" = load_segments_for_era(segment_gpkg, "2003_2014"),
-  "2015_2023" = load_segments_for_era(segment_gpkg, "2015_2023"),
-  "post_2023" = load_segments_for_era(segment_gpkg, "post_2023")
-)
+segments_by_era <- load_segment_layers(segment_gpkg, buffer_ft = 1000)
 
 coverage_row <- function(dataset, scope, era, dt) {
   n_total <- nrow(dt)
@@ -130,13 +62,22 @@ coverage_block <- function(dataset, dt, scope_name) {
   rbindlist(out, fill = TRUE)
 }
 
-assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_col, dist_col, era_fn, chunk_n = 50000L) {
+assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_col, dist_col, allow_pre_2003, chunk_n = 50000L) {
   dt <- copy(dt)
   dt[, row_id := .I]
   dt[, pair_dash := normalize_pair_dash(get(pair_col))]
   dt[, obs_date := as.Date(get(date_col))]
-  dt[, era := era_fn(obs_date)]
+  dt[, era := canonical_era_from_date(obs_date, allow_pre_2003 = allow_pre_2003)]
   dt[, segment_id := NA_character_]
+  dt[, segment_reason := fifelse(
+    !is.finite(get(lon_col)) | !is.finite(get(lat_col)),
+    "missing_coords",
+    fifelse(
+      is.na(obs_date) | is.na(era),
+      "missing_date_or_era",
+      fifelse(is.na(pair_dash), "missing_pair", "pending")
+    )
+  )]
 
   assignable_idx <- which(
     !is.na(dt$era) &
@@ -146,65 +87,44 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
   )
 
   if (length(assignable_idx) > 0) {
-    eras <- sort(unique(dt$era[assignable_idx]))
+    pts <- st_as_sf(
+      data.table(
+        row_id = assignable_idx,
+        lon = dt[[lon_col]][assignable_idx],
+        lat = dt[[lat_col]][assignable_idx]
+      ),
+      coords = c("lon", "lat"),
+      crs = 4326,
+      remove = FALSE
+    )
 
-    for (era_i in eras) {
+    seg_ids <- assign_points_to_segments(
+      points_sf = pts,
+      era_values = dt$era[assignable_idx],
+      pair_values = dt$pair_dash[assignable_idx],
+      segment_layers = segments_by_era,
+      chunk_n = chunk_n
+    )
+
+    set(dt, i = assignable_idx, j = "segment_id", value = seg_ids)
+  }
+
+  pending_idx <- which(dt$segment_reason == "pending")
+  if (length(pending_idx) > 0) {
+    pair_available <- logical(length(pending_idx))
+    for (era_i in unique(dt$era[pending_idx])) {
       seg_era <- segments_by_era[[era_i]]
-      idx_era <- assignable_idx[dt$era[assignable_idx] == era_i]
-      if (length(idx_era) == 0 || is.null(seg_era) || nrow(seg_era) == 0) next
-
-      pairs_era <- unique(dt$pair_dash[idx_era])
-      valid_pairs <- intersect(pairs_era, unique(seg_era$pair_dash))
-      if (length(valid_pairs) == 0) next
-
-      message(sprintf("[%s] assigning era %s across %d pairs...", dataset_name, era_i, length(valid_pairs)))
-
-      for (j in seq_along(valid_pairs)) {
-        pair_j <- valid_pairs[j]
-        idx_pair <- idx_era[dt$pair_dash[idx_era] == pair_j]
-        if (length(idx_pair) == 0) next
-
-        seg_pair <- seg_era[seg_era$pair_dash == pair_j, ]
-        if (nrow(seg_pair) == 0) next
-
-        starts <- seq(1L, length(idx_pair), by = chunk_n)
-        for (s in starts) {
-          e <- min(s + chunk_n - 1L, length(idx_pair))
-          chunk_idx <- idx_pair[s:e]
-
-          chunk_dt <- data.table(
-            row_id = chunk_idx,
-            lon = dt[[lon_col]][chunk_idx],
-            lat = dt[[lat_col]][chunk_idx]
-          )
-
-          pts <- st_as_sf(chunk_dt, coords = c("lon", "lat"), crs = 4326, remove = FALSE)
-          if (st_crs(pts) != st_crs(seg_pair)) {
-            pts <- st_transform(pts, st_crs(seg_pair))
-          }
-
-          hits <- st_within(pts, seg_pair)
-          hit_idx <- vapply(hits, function(v) {
-            if (length(v) == 0) return(NA_integer_)
-            v[1]
-          }, integer(1))
-
-          ok <- !is.na(hit_idx)
-          if (any(ok)) {
-            set(
-              dt,
-              i = chunk_idx[ok],
-              j = "segment_id",
-              value = as.character(seg_pair$segment_id[hit_idx[ok]])
-            )
-          }
-        }
-
-        if (j %% 25L == 0L || j == length(valid_pairs)) {
-          message(sprintf("[%s] era %s: %d/%d pairs complete", dataset_name, era_i, j, length(valid_pairs)))
-        }
-      }
+      idx_era <- which(dt$era[pending_idx] == era_i)
+      if (length(idx_era) == 0) next
+      if (is.null(seg_era) || nrow(seg_era) == 0) next
+      pair_available[idx_era] <- dt$pair_dash[pending_idx[idx_era]] %in% unique(seg_era$pair_dash)
     }
+
+    dt[pending_idx, segment_reason := fifelse(
+      !is.na(segment_id) & segment_id != "",
+      "matched",
+      fifelse(pair_available, "no_polygon_hit", "pair_not_in_segment_layer")
+    )]
   }
 
   cov <- rbindlist(list(
@@ -214,9 +134,14 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
     coverage_block(dataset_name, dt[is.finite(get(dist_col)) & get(dist_col) <= 250], "bw250")
   ), fill = TRUE)
 
+  reason_summary <- dt[, .(n_obs = .N), by = .(era, segment_reason)]
+  reason_summary[, dataset := dataset_name]
+  setcolorder(reason_summary, c("dataset", "era", "segment_reason", "n_obs"))
+  setorder(reason_summary, era, segment_reason)
+
   out <- copy(dt)
   out[, c("row_id", "pair_dash", "obs_date", "era") := NULL]
-  list(data = out, coverage = cov)
+  list(data = out, coverage = cov, reason_summary = reason_summary)
 }
 
 build_spotcheck <- function(dt_sales, dt_rent, n_each = 20L) {
@@ -231,6 +156,7 @@ build_spotcheck <- function(dt_sales, dt_rent, n_each = 20L) {
       longitude = as.numeric(longitude),
       latitude = as.numeric(latitude),
       segment_id = as.character(segment_id),
+      segment_reason = as.character(segment_reason),
       flag = fifelse(is.na(segment_id) | segment_id == "", "unmatched", "matched")
     )
   ]
@@ -247,6 +173,7 @@ build_spotcheck <- function(dt_sales, dt_rent, n_each = 20L) {
       longitude = as.numeric(longitude),
       latitude = as.numeric(latitude),
       segment_id = as.character(segment_id),
+      segment_reason = as.character(segment_reason),
       flag = fifelse(is.na(segment_id) | segment_id == "", "unmatched", "matched")
     )
   ]
@@ -282,7 +209,7 @@ sales_res <- assign_segments(
   lon_col = "longitude",
   lat_col = "latitude",
   dist_col = "dist_ft",
-  era_fn = sales_era_from_date,
+  allow_pre_2003 = TRUE,
   chunk_n = 50000L
 )
 
@@ -294,21 +221,24 @@ rent_res <- assign_segments(
   lon_col = "longitude",
   lat_col = "latitude",
   dist_col = "dist_ft",
-  era_fn = rent_era_from_date,
+  allow_pre_2003 = FALSE,
   chunk_n = 80000L
 )
 
 sales_out <- sales_res$data
 rent_out <- rent_res$data
 cov_out <- rbindlist(list(sales_res$coverage, rent_res$coverage), fill = TRUE)
+reason_out <- rbindlist(list(sales_res$reason_summary, rent_res$reason_summary), fill = TRUE)
 spotcheck <- build_spotcheck(sales_out, rent_out, n_each = 20L)
 
 fwrite(sales_out, out_sales)
 write_parquet(as.data.frame(rent_out), out_rent)
 fwrite(cov_out, out_coverage)
 fwrite(spotcheck, out_spotcheck)
+fwrite(reason_out, out_reason)
 
 message(sprintf("Saved sales output: %s (rows=%d)", out_sales, nrow(sales_out)))
 message(sprintf("Saved rental output: %s (rows=%d)", out_rent, nrow(rent_out)))
 message(sprintf("Saved coverage summary: %s", out_coverage))
 message(sprintf("Saved spotcheck queue: %s", out_spotcheck))
+message(sprintf("Saved reason summary: %s", out_reason))

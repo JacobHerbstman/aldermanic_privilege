@@ -10,28 +10,12 @@
 #        to ensure stability across pre/post periods
 
 source("../../setup_environment/code/packages.R")
+source("../../_lib/canonical_geometry_helpers.R")
 
 # Disable s2 spherical geometry to avoid validation errors with census block geometries
 sf_use_s2(FALSE)
 
-normalize_pair_dash <- function(x) {
-  x <- as.character(x)
-  x <- gsub("_", "-", x, fixed = TRUE)
-  x <- trimws(x)
-  out <- rep(NA_character_, length(x))
-  ok <- grepl("^[0-9]+-[0-9]+$", x)
-  if (!any(ok)) return(out)
-  parts <- strsplit(x[ok], "-", fixed = TRUE)
-  out[ok] <- vapply(parts, function(v) {
-    a <- suppressWarnings(as.integer(v[1]))
-    b <- suppressWarnings(as.integer(v[2]))
-    if (!is.finite(a) || !is.finite(b)) return(NA_character_)
-    paste(min(a, b), max(a, b), sep = "-")
-  }, character(1))
-  out
-}
-
-assign_cohort_segments <- function(df, seg_sf, cohort_label, chunk_n = 80000L) {
+assign_cohort_segments <- function(df, segment_layers, era_label, cohort_label, chunk_n = 80000L) {
   if (nrow(df) == 0) {
     return(df %>%
       mutate(
@@ -43,50 +27,19 @@ assign_cohort_segments <- function(df, seg_sf, cohort_label, chunk_n = 80000L) {
   }
 
   out <- df
-  pair_dash <- normalize_pair_dash(out$ward_pair_id)
-  seg_id <- rep(NA_character_, nrow(out))
-
-  valid <- !is.na(pair_dash) & is.finite(out$longitude) & is.finite(out$latitude)
-  valid_pairs <- intersect(unique(pair_dash[valid]), unique(seg_sf$pair_dash))
-
-  for (j in seq_along(valid_pairs)) {
-    pair_j <- valid_pairs[j]
-    idx_pair <- which(valid & pair_dash == pair_j)
-    seg_pair <- seg_sf[seg_sf$pair_dash == pair_j, ]
-    if (length(idx_pair) == 0 || nrow(seg_pair) == 0) next
-
-    starts <- seq(1L, length(idx_pair), by = chunk_n)
-    for (s in starts) {
-      e <- min(s + chunk_n - 1L, length(idx_pair))
-      chunk_idx <- idx_pair[s:e]
-
-      pts <- st_as_sf(
-        data.frame(
-          longitude = out$longitude[chunk_idx],
-          latitude = out$latitude[chunk_idx]
-        ),
-        coords = c("longitude", "latitude"),
-        crs = 4326
-      )
-      if (st_crs(pts) != st_crs(seg_pair)) {
-        pts <- st_transform(pts, st_crs(seg_pair))
-      }
-
-      hits <- st_within(pts, seg_pair)
-      hit_idx <- vapply(hits, function(v) {
-        if (length(v) == 0) return(NA_integer_)
-        v[1]
-      }, integer(1))
-      ok <- !is.na(hit_idx)
-      if (any(ok)) {
-        seg_id[chunk_idx[ok]] <- as.character(seg_pair$segment_id[hit_idx[ok]])
-      }
-    }
-
-    if (j %% 25L == 0L || j == length(valid_pairs)) {
-      message(sprintf("[%s] segment assignment progress: %d/%d pairs", cohort_label, j, length(valid_pairs)))
-    }
-  }
+  pts <- st_as_sf(
+    data.frame(longitude = out$longitude, latitude = out$latitude),
+    coords = c("longitude", "latitude"),
+    crs = 4326,
+    remove = FALSE
+  )
+  seg_id <- assign_points_to_segments(
+    points_sf = pts,
+    era_values = rep(era_label, nrow(out)),
+    pair_values = out$ward_pair_id,
+    segment_layers = segment_layers,
+    chunk_n = chunk_n
+  )
 
   out <- out %>%
     mutate(
@@ -264,13 +217,7 @@ treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types
   mutate(block_id = as.character(block_id))
 
 message("Loading segment layers for cohort-baseline assignment...")
-segments_2003 <- st_read("../input/boundary_segments_1320ft.gpkg", layer = "2003_2014_bw1000", quiet = TRUE) %>%
-  mutate(pair_dash = normalize_pair_dash(ward_pair_id)) %>%
-  filter(!is.na(pair_dash))
-
-segments_2015 <- st_read("../input/boundary_segments_1320ft.gpkg", layer = "2015_2023_bw1000", quiet = TRUE) %>%
-  mutate(pair_dash = normalize_pair_dash(ward_pair_id)) %>%
-  filter(!is.na(pair_dash))
+segment_layers_1000 <- load_segment_layers("../input/boundary_segments_1320ft.gpkg", buffer_ft = 1000)
 
 # =============================================================================
 # 2. ASSIGN RENTALS TO CENSUS BLOCKS
@@ -416,7 +363,7 @@ cohort_2015_work <- cohort_2015_work %>%
   add_hedonic_controls()
 
 cohort_2015 <- cohort_2015_work %>%
-  assign_cohort_segments(segments_2003, "2015") %>%
+  assign_cohort_segments(segment_layers_1000, "2003_2014", "2015") %>%
   select(
     id, block_id, cohort,
     file_date, year, month, quarter, year_month, year_quarter,
@@ -521,7 +468,7 @@ cohort_2023_work <- cohort_2023_work %>%
   add_hedonic_controls()
 
 cohort_2023 <- cohort_2023_work %>%
-  assign_cohort_segments(segments_2015, "2023") %>%
+  assign_cohort_segments(segment_layers_1000, "2015_2023", "2023") %>%
   select(
     id, block_id, cohort,
     file_date, year, month, quarter, year_month, year_quarter,

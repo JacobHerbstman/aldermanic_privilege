@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("../../_lib/canonical_geometry_helpers.R")
 
 library(data.table)
 library(sf)
@@ -12,10 +13,12 @@ out_1320 <- "../output/boundary_segments_1320ft.gpkg"
 out_2640 <- "../output/boundary_segments_2640ft.gpkg"
 out_class <- "../output/segment_classification.csv"
 out_boundaries <- "../output/ward_pair_boundaries.gpkg"
+out_summary <- "../output/ward_pair_boundary_summary.csv"
+out_diag <- "../output/ward_pair_boundary_diagnostics.csv"
 
 ward_panel_path <- "../input/ward_panel.gpkg"
 
-rebuild_mode <- tolower(Sys.getenv("REBUILD_MODE", "reuse"))
+rebuild_mode <- tolower(Sys.getenv("REBUILD_MODE", "raw"))
 if (!rebuild_mode %in% c("reuse", "raw")) {
   stop("REBUILD_MODE must be 'reuse' or 'raw'.", call. = FALSE)
 }
@@ -34,10 +37,6 @@ required_segment_cols <- c(
   "major_overlap_residential_ft", "water_area_share", "park_area_share",
   "waterway_overlap_ft"
 )
-
-normalize_pair_id <- function(a, b) {
-  paste(pmin(a, b), pmax(a, b), sep = "_")
-}
 
 ensure_segment_cols <- function(x, target_len) {
   for (nm in required_segment_cols) {
@@ -137,10 +136,61 @@ read_segment_layers <- function(path, target_len) {
   do.call(rbind, out)
 }
 
-split_linestring_into_segments <- function(line_geom, target_len) {
-  pieces <- suppressWarnings(st_cast(st_as_sfc(line_geom), "LINESTRING", warn = FALSE))
+split_linestring_into_segments <- function(line_geom, target_len, crs_obj) {
+  pieces <- suppressWarnings(st_cast(st_sfc(line_geom, crs = crs_obj), "LINESTRING", warn = FALSE))
   if (length(pieces) == 0) {
-    return(st_sfc(crs = st_crs(line_geom)))
+    return(st_sfc(crs = crs_obj))
+  }
+
+  interpolate_point <- function(coords_xy, cumdist, target_dist, tol = 1e-7) {
+    if (target_dist <= tol) {
+      return(coords_xy[1, , drop = FALSE])
+    }
+
+    total_len <- cumdist[length(cumdist)]
+    if (target_dist >= total_len - tol) {
+      return(coords_xy[nrow(coords_xy), , drop = FALSE])
+    }
+
+    end_idx <- which(cumdist >= target_dist - tol)[1]
+    if (abs(cumdist[end_idx] - target_dist) <= tol) {
+      return(coords_xy[end_idx, , drop = FALSE])
+    }
+
+    start_idx <- max(1L, end_idx - 1L)
+    seg_len <- cumdist[end_idx] - cumdist[start_idx]
+    if (!is.finite(seg_len) || seg_len <= tol) {
+      return(coords_xy[start_idx, , drop = FALSE])
+    }
+
+    weight <- (target_dist - cumdist[start_idx]) / seg_len
+    pt <- coords_xy[start_idx, ] + weight * (coords_xy[end_idx, ] - coords_xy[start_idx, ])
+    matrix(pt, nrow = 1L, dimnames = list(NULL, colnames(coords_xy)))
+  }
+
+  build_subline <- function(coords_xy, start_dist, end_dist, tol = 1e-7) {
+    seglen <- sqrt(rowSums((coords_xy[-1, , drop = FALSE] - coords_xy[-nrow(coords_xy), , drop = FALSE])^2))
+    cumdist <- c(0, cumsum(seglen))
+
+    start_pt <- interpolate_point(coords_xy, cumdist, start_dist, tol = tol)
+    end_pt <- interpolate_point(coords_xy, cumdist, end_dist, tol = tol)
+    interior_idx <- which(cumdist > start_dist + tol & cumdist < end_dist - tol)
+
+    pts <- rbind(start_pt, coords_xy[interior_idx, , drop = FALSE], end_pt)
+    if (nrow(pts) < 2) {
+      return(NULL)
+    }
+
+    keep <- c(TRUE, rowSums(abs(diff(pts)) > tol) > 0)
+    pts <- pts[keep, , drop = FALSE]
+    if (nrow(pts) < 2) {
+      return(NULL)
+    }
+    if (all(abs(pts[1, ] - pts[nrow(pts), ]) < tol)) {
+      return(NULL)
+    }
+
+    st_linestring(as.matrix(pts))
   }
 
   seg_out <- list()
@@ -151,93 +201,29 @@ split_linestring_into_segments <- function(line_geom, target_len) {
 
     nseg <- max(1L, as.integer(ceiling(len_k / target_len)))
     if (nseg == 1L) {
-      seg_out[[length(seg_out) + 1L]] <- ls
+      seg_out[[length(seg_out) + 1L]] <- ls[[1]]
       next
     }
 
-    ratios <- seq(0, 1, length.out = nseg + 1L)
-    pts <- st_line_sample(ls, sample = ratios)
-    pts <- st_cast(pts, "POINT", warn = FALSE)
-    coords <- st_coordinates(pts)
-    if (nrow(coords) < 2) {
-      seg_out[[length(seg_out) + 1L]] <- ls
+    coords <- st_coordinates(ls)
+    coords_xy <- coords[, c("X", "Y"), drop = FALSE]
+    if (nrow(coords_xy) < 2) {
+      seg_out[[length(seg_out) + 1L]] <- ls[[1]]
       next
     }
 
-    for (i in seq_len(nrow(coords) - 1L)) {
-      xy <- rbind(coords[i, c("X", "Y")], coords[i + 1L, c("X", "Y")])
-      if (any(!is.finite(xy))) next
-      if (all(abs(xy[1, ] - xy[2, ]) < 1e-7)) next
-      seg_out[[length(seg_out) + 1L]] <- st_linestring(as.matrix(xy))
+    break_dists <- seq(0, len_k, length.out = nseg + 1L)
+    for (i in seq_len(length(break_dists) - 1L)) {
+      seg_i <- build_subline(coords_xy, break_dists[i], break_dists[i + 1L])
+      if (is.null(seg_i)) next
+      seg_out[[length(seg_out) + 1L]] <- seg_i
     }
   }
 
   if (length(seg_out) == 0L) {
-    return(st_sfc(crs = st_crs(line_geom)))
+    return(st_sfc(crs = crs_obj))
   }
-  st_sfc(seg_out, crs = st_crs(line_geom))
-}
-
-build_ward_pair_boundaries_raw <- function(ward_panel) {
-  era_year_map <- list(
-    "1998_2002" = 1998L,
-    "2003_2014" = 2003L,
-    "2015_2023" = 2015L,
-    "post_2023" = 2024L
-  )
-
-  out <- list()
-  for (era_i in eras) {
-    y <- era_year_map[[era_i]]
-    if (!(y %in% ward_panel$year)) {
-      y <- max(ward_panel$year[ward_panel$year <= y], na.rm = TRUE)
-    }
-
-    wards <- ward_panel[ward_panel$year == y, c("ward")]
-    wards <- wards[order(wards$ward), ]
-    if (nrow(wards) == 0) next
-
-    nb <- st_touches(wards)
-    rows <- list()
-    geoms <- list()
-
-    for (i in seq_len(nrow(wards))) {
-      nbrs <- nb[[i]]
-      nbrs <- nbrs[nbrs > i]
-      if (length(nbrs) == 0) next
-
-      for (j in nbrs) {
-        g_i <- st_geometry(wards[i, ])
-        g_j <- st_geometry(wards[j, ])
-        b_i <- st_boundary(g_i)
-        b_j <- st_boundary(g_j)
-        inter <- suppressWarnings(st_intersection(b_i, b_j))
-        inter <- st_collection_extract(inter, "LINESTRING")
-        if (length(inter) == 0) next
-
-        g <- st_line_merge(st_union(inter))
-        g <- st_collection_extract(g, "LINESTRING")
-        if (length(g) == 0) next
-
-        rows[[length(rows) + 1L]] <- data.table(
-          ward_a = as.integer(min(wards$ward[i], wards$ward[j])),
-          ward_b = as.integer(max(wards$ward[i], wards$ward[j])),
-          ward_pair_id = normalize_pair_id(wards$ward[i], wards$ward[j]),
-          era = era_i,
-          length_ft = as.numeric(sum(st_length(g), na.rm = TRUE))
-        )
-        geoms[[length(geoms) + 1L]] <- st_union(g)
-      }
-    }
-
-    if (length(rows) == 0) next
-    dt <- rbindlist(rows)
-    sf_i <- st_sf(dt, geom = st_sfc(geoms, crs = st_crs(wards)))
-    sf_i <- sf_i[order(sf_i$ward_pair_id), ]
-    out[[era_i]] <- sf_i
-  }
-
-  out
+  st_sfc(seg_out, crs = crs_obj)
 }
 
 build_segments_raw <- function(boundary_list, target_len) {
@@ -249,7 +235,7 @@ build_segments_raw <- function(boundary_list, target_len) {
     if (is.null(b) || nrow(b) == 0) next
 
     for (r in seq_len(nrow(b))) {
-      segs <- split_linestring_into_segments(st_geometry(b[r, ])[[1]], target_len)
+      segs <- split_linestring_into_segments(st_geometry(b[r, ])[[1]], target_len, st_crs(b))
       if (length(segs) == 0) next
 
       n_pair <- length(segs)
@@ -314,13 +300,63 @@ write_boundaries_gpkg <- function(boundary_list, out_path) {
   }
 }
 
+build_boundary_diagnostics <- function(boundary_list, build_mode) {
+  summary_dt <- build_boundary_summary(boundary_list)
+  data.table(
+    check_name = c(
+      "build_mode",
+      "script_md5",
+      "all_eras_present",
+      "all_pair_lengths_positive",
+      "all_pair_ids_unique"
+    ),
+    observed_value = c(
+      build_mode,
+      unname(tools::md5sum("build_boundary_segments.R")),
+      as.character(all(vapply(eras, function(ei) !is.null(boundary_list[[ei]]) && nrow(boundary_list[[ei]]) > 0, logical(1)))),
+      as.character(all(summary_dt$min_shared_length_ft > 0, na.rm = TRUE)),
+      as.character(all(vapply(eras, function(ei) {
+        d <- boundary_list[[ei]]
+        if (is.null(d) || nrow(d) == 0) return(TRUE)
+        !anyDuplicated(d$ward_pair_id)
+      }, logical(1))))
+    ),
+    expected_value = c(
+      "raw or reuse",
+      "non-empty md5",
+      "TRUE",
+      "TRUE",
+      "TRUE"
+    ),
+    status = c(
+      "info",
+      "info",
+      ifelse(all(vapply(eras, function(ei) !is.null(boundary_list[[ei]]) && nrow(boundary_list[[ei]]) > 0, logical(1))), "verified", "mismatch"),
+      ifelse(all(summary_dt$min_shared_length_ft > 0, na.rm = TRUE), "verified", "mismatch"),
+      ifelse(all(vapply(eras, function(ei) {
+        d <- boundary_list[[ei]]
+        if (is.null(d) || nrow(d) == 0) return(TRUE)
+        !anyDuplicated(d$ward_pair_id)
+      }, logical(1))), "verified", "mismatch")
+    ),
+    details = c(
+      "Canonical boundary build mode used for this artifact.",
+      "Hash of the segment builder script.",
+      "All canonical eras should have non-empty pair boundary layers.",
+      "All canonical ward-pair boundaries should have strictly positive shared line length.",
+      "Ward-pair IDs must be unique within era."
+    )
+  )
+}
+
 # -----------------------------------------------------------------------------
 # Build path
 # -----------------------------------------------------------------------------
 can_reuse <- rebuild_mode == "reuse" &&
   validate_layers(out_1320) &&
   validate_layers(out_2640) &&
-  file.exists(out_class)
+  file.exists(out_class) &&
+  file.exists(out_boundaries)
 
 if (can_reuse) {
   message("Rebuild mode: reuse existing canonical segment artifacts with schema checks.")
@@ -339,16 +375,18 @@ if (can_reuse) {
 
   class_dt <- build_segment_classification(seg_1320, seg_2640)
   fwrite(class_dt, out_class)
+  fwrite(build_boundary_summary(boundary_list), out_summary)
+  fwrite(build_boundary_diagnostics(boundary_list, "reuse"), out_diag)
 } else {
   message("Rebuild mode: raw generation from ward panel (feature metrics fallback to defaults).")
   stopifnot(file.exists(ward_panel_path))
 
-  ward_panel <- st_read(ward_panel_path, layer = "ward_panel", quiet = TRUE)
+  ward_panel <- st_read(ward_panel_path, quiet = TRUE)
   ward_panel$year <- as.integer(ward_panel$year)
   ward_panel$ward <- as.integer(ward_panel$ward)
   ward_panel <- ward_panel[order(ward_panel$year, ward_panel$ward), ]
 
-  boundary_list <- build_ward_pair_boundaries_raw(ward_panel)
+  boundary_list <- build_canonical_boundary_list(ward_panel)
   if (length(boundary_list) == 0 || all(vapply(boundary_list, is.null, logical(1)))) {
     stop("Failed to build ward-pair boundaries from ward panel.", call. = FALSE)
   }
@@ -362,13 +400,24 @@ if (can_reuse) {
 
   class_dt <- build_segment_classification(seg_1320, seg_2640)
   fwrite(class_dt, out_class)
+  fwrite(build_boundary_summary(boundary_list), out_summary)
+  fwrite(build_boundary_diagnostics(boundary_list, "raw"), out_diag)
 }
 
 # Final checks
-stopifnot(validate_layers(out_1320), validate_layers(out_2640), file.exists(out_class), file.exists(out_boundaries))
+stopifnot(
+  validate_layers(out_1320),
+  validate_layers(out_2640),
+  file.exists(out_class),
+  file.exists(out_boundaries),
+  file.exists(out_summary),
+  file.exists(out_diag)
+)
 
 message("Saved:")
 message(sprintf(" - %s", out_1320))
 message(sprintf(" - %s", out_2640))
 message(sprintf(" - %s", out_class))
 message(sprintf(" - %s", out_boundaries))
+message(sprintf(" - %s", out_summary))
+message(sprintf(" - %s", out_diag))

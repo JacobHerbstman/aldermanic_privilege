@@ -6,6 +6,7 @@
 ## run this line when editing code in Rstudio
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
 source("../../setup_environment/code/packages.R")
+source("../../_lib/canonical_geometry_helpers.R")
 
 # -----------------------------------------------------------------------------
 # 1. SETUP & ARGUMENTS
@@ -34,7 +35,11 @@ load_cpi_deflator <- function(start_date,
                               series_id = "CUURA207SA0L2") {
     fred_url <- sprintf("https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s", series_id)
     message(sprintf("Fetching CPI series %s from FRED...", series_id))
-
+    old_http_ua <- getOption("HTTPUserAgent")
+    on.exit(options(HTTPUserAgent = old_http_ua), add = TRUE)
+    # As of March 16, 2026, FRED's edge responds poorly to R's default UA
+    # over libcurl HTTP/2, while the same URL works with a curl-style UA.
+    options(HTTPUserAgent = paste0("curl/", curl::curl_version()$version))
     cpi_raw <- read_csv(fred_url, show_col_types = FALSE)
     if (!all(c("observation_date", series_id) %in% names(cpi_raw))) {
         stop(sprintf("FRED response missing expected columns for series %s.", series_id), call. = FALSE)
@@ -108,15 +113,6 @@ load_cpi_deflator <- function(start_date,
 # Core CRS for distance calc (Illinois East ftUS)
 crs_projected <- 3435
 
-# Map Change Dates (Crucial for correct assignment)
-# Map 1 (1998-2003): Ends May 2003
-# Map 2 (2003-2015): Ends May 2015
-# Map 3 (2015-2023): Ends May 2023
-# Map 4 (2023-Present): Starts May 2023
-date_switch_2003 <- as.Date("2003-05-01")
-date_switch_2015 <- as.Date("2015-05-18")
-date_switch_2023 <- as.Date("2023-05-15")
-
 # -----------------------------------------------------------------------------
 # 2. LOAD & PREP ANCILLARY DATA
 # -----------------------------------------------------------------------------
@@ -125,6 +121,8 @@ message("Loading ancillary data...")
 # Wards
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
     st_transform(crs_projected)
+canonical_ward_maps <- load_canonical_ward_maps(ward_panel)
+canonical_boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg")
 
 # Alderman Data
 alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
@@ -283,218 +281,43 @@ sales_sf <- sales_geo %>%
 
 message(sprintf("Final geolocated sales: %s", format(nrow(sales_sf), big.mark = ",")))
 
+n_sales_raw <- nrow(sales_raw)
+n_sales_market_filtered <- nrow(sales)
+n_geolocated_sales <- nrow(sales_sf)
+
 # Clean up memory
 rm(sales_raw, sales, sales_geo, parcels)
 gc()
 
 # -----------------------------------------------------------------------------
-# 5. BUILD BOUNDARY LINES FOR EACH MAP ERA
+# 5. CANONICAL WARD ASSIGNMENT AND DISTANCE
 # -----------------------------------------------------------------------------
 
-get_boundaries <- function(ward_sf) {
-    # Buffer 0 to fix topology
-    ward_sf <- st_buffer(ward_sf, 0)
+message("Assigning canonical ward pairs and distances for sales...")
 
-    # Find touching pairs
-    adj <- st_touches(ward_sf)
-
-    edges <- imap_dfr(adj, function(nb, i) {
-        if (length(nb) == 0) {
-            return(NULL)
-        }
-
-        # Iterate through neighbors (only j > i to avoid duplicates)
-        nb_valid <- nb[nb > i]
-        if (length(nb_valid) == 0) {
-            return(NULL)
-        }
-
-        map_dfr(nb_valid, function(j) {
-            geom_i <- st_geometry(ward_sf[i, ])
-            geom_j <- st_geometry(ward_sf[j, ])
-
-            # Intersection is the shared border
-            shared <- st_intersection(geom_i, geom_j)
-
-            # Keep only lines (ignore points if corners touch)
-            if (st_dimension(shared) != 1) {
-                return(NULL)
-            }
-
-            tibble(
-                ward_a = ward_sf$ward[i],
-                ward_b = ward_sf$ward[j],
-                geometry = shared
-            )
-        })
-    }) %>%
-        st_as_sf(crs = st_crs(ward_sf))
-
-    return(edges)
-}
-
-message("Preparing ward maps for all four eras...")
-
-# Map 1: 1998 (for sales before May 2003)
-# Find closest available year to 1998 in the panel
-available_years <- unique(ward_panel$year)
-if (1998 %in% available_years) {
-    map_1998_poly <- ward_panel %>% filter(year == 1998)
-} else {
-    # Use earliest available
-    earliest_year <- min(available_years)
-    message(sprintf("1998 not in ward panel, using %d instead", earliest_year))
-    map_1998_poly <- ward_panel %>% filter(year == earliest_year)
-}
-map_1998_lines <- get_boundaries(map_1998_poly)
-
-# Map 2: 2003-2014 era (use 2003 or closest)
-if (2003 %in% available_years) {
-    map_2003_poly <- ward_panel %>% filter(year == 2003)
-} else if (2004 %in% available_years) {
-    map_2003_poly <- ward_panel %>% filter(year == 2004)
-} else {
-    # Find closest year after 2003
-    map_2003_poly <- ward_panel %>% filter(year == min(available_years[available_years >= 2003]))
-}
-map_2003_lines <- get_boundaries(map_2003_poly)
-
-# Map 3: 2015-2023 era
-if (2015 %in% available_years) {
-    map_2015_poly <- ward_panel %>% filter(year == 2015)
-} else if (2016 %in% available_years) {
-    map_2015_poly <- ward_panel %>% filter(year == 2016)
-} else {
-    map_2015_poly <- ward_panel %>% filter(year == min(available_years[available_years >= 2015]))
-}
-map_2015_lines <- get_boundaries(map_2015_poly)
-
-# Map 4: 2024+ era
-if (2024 %in% available_years) {
-    map_2024_poly <- ward_panel %>% filter(year == 2024)
-} else {
-    map_2024_poly <- ward_panel %>% filter(year == max(available_years))
-}
-map_2024_lines <- get_boundaries(map_2024_poly)
-
-message(sprintf(
-    "Generated boundaries: 1998 (%d), 2003 (%d), 2015 (%d), 2024 (%d)",
-    nrow(map_1998_lines), nrow(map_2003_lines),
-    nrow(map_2015_lines), nrow(map_2024_lines)
-))
-
-# -----------------------------------------------------------------------------
-# 6. PROCESS SALES: ASSIGN WARD AND CALCULATE DISTANCE
-# -----------------------------------------------------------------------------
-
-calc_dist <- function(points, polys, lines) {
-    if (nrow(points) == 0) {
-        return(NULL)
-    }
-
-    n_in <- nrow(points)
-
-    # A. Assign Ward (Point in Polygon)
-    joined <- st_join(points, polys %>% select(ward), join = st_within)
-
-    # Drop points outside Chicago wards
-    n_outside <- sum(is.na(joined$ward))
-    if (n_outside > 0) {
-        message(sprintf("  Dropped %d points outside ward boundaries (%.1f%%)",
-                        n_outside, 100 * n_outside / n_in))
-    }
-    joined <- joined %>% filter(!is.na(ward))
-    if (nrow(joined) == 0) {
-        return(NULL)
-    }
-
-    # B. Distance to Nearest Border touching assigned ward
-    joined$dist_ft <- NA_real_
-    joined$ward_pair_a <- NA_integer_
-    joined$ward_pair_b <- NA_integer_
-
-    ward_vals <- sort(unique(joined$ward))
-    for (w in ward_vals) {
-        idx <- which(joined$ward == w)
-        edges_w <- lines[lines$ward_a == w | lines$ward_b == w, ]
-
-        if (length(idx) == 0 || nrow(edges_w) == 0) {
-            next
-        }
-
-        nearest_idx <- st_nearest_feature(joined[idx, ], edges_w)
-        nearest_geoms <- edges_w[nearest_idx, ]
-        dists <- st_distance(joined[idx, ], nearest_geoms, by_element = TRUE)
-
-        joined$dist_ft[idx] <- as.numeric(dists)
-        joined$ward_pair_a[idx] <- as.integer(nearest_geoms$ward_a)
-        joined$ward_pair_b[idx] <- as.integer(nearest_geoms$ward_b)
-    }
-
-    n_no_border <- sum(is.na(joined$ward_pair_a) | is.na(joined$ward_pair_b))
-    if (n_no_border > 0) {
-        message(sprintf("  Dropped %d points with no nearest border (%.1f%% of ward-assigned)",
-                        n_no_border, 100 * n_no_border / nrow(joined)))
-    }
-    joined <- joined %>% filter(!is.na(ward_pair_a), !is.na(ward_pair_b))
-    if (nrow(joined) == 0) {
-        return(NULL)
-    }
-
-    # Identify neighbor ward
-    joined <- joined %>%
-        mutate(
-            neighbor_ward = if_else(ward == ward_pair_a, ward_pair_b, ward_pair_a, missing = NA_integer_),
-            ward_pair_id = if_else(
-                !is.na(neighbor_ward),
-                paste(pmin(ward, neighbor_ward), pmax(ward, neighbor_ward), sep = "-"),
-                NA_character_
-            )
-        ) %>%
-        select(-ward_pair_a, -ward_pair_b)
-
-    return(joined)
-}
-
-message("Processing sales by era...")
-
-# Split by era based on sale_date
-# Handle NA sale_date by using year to create approximate date
 sales_sf <- sales_sf %>%
     mutate(
-        sale_date_use = sale_date_for_price
+        sale_date_use = sale_date_for_price,
+        boundary_year = canonical_boundary_year_from_date(sale_date_use),
+        era = canonical_era_from_boundary_year(boundary_year)
     )
 
-pts_era1 <- sales_sf %>% filter(sale_date_use < date_switch_2003)
-pts_era2 <- sales_sf %>% filter(sale_date_use >= date_switch_2003, sale_date_use < date_switch_2015)
-pts_era3 <- sales_sf %>% filter(sale_date_use >= date_switch_2015, sale_date_use < date_switch_2023)
-pts_era4 <- sales_sf %>% filter(sale_date_use >= date_switch_2023)
+boundary_assignments <- assign_points_to_boundaries(
+    points_sf = sales_sf,
+    era_values = sales_sf$era,
+    ward_maps = canonical_ward_maps,
+    boundary_lines = canonical_boundaries,
+    chunk_n = 5000L
+)
+
+results_sf <- bind_cols(sales_sf, boundary_assignments) %>%
+    filter(!is.na(ward), !is.na(ward_pair_id))
 
 message(sprintf(
-    "Era splits: Pre-2003: %d, 2003-2015: %d, 2015-2023: %d, 2023+: %d",
-    nrow(pts_era1), nrow(pts_era2), nrow(pts_era3), nrow(pts_era4)
+    "Canonical assignment coverage: %s of %s geolocated sales have ward-pair assignment",
+    format(nrow(results_sf), big.mark = ","),
+    format(nrow(sales_sf), big.mark = ",")
 ))
-
-# Process each era
-message("Processing Era 1 (pre-2003)...")
-res1 <- calc_dist(pts_era1, map_1998_poly, map_1998_lines)
-
-message("Processing Era 2 (2003-2015)...")
-res2 <- calc_dist(pts_era2, map_2003_poly, map_2003_lines)
-
-message("Processing Era 3 (2015-2023)...")
-res3 <- calc_dist(pts_era3, map_2015_poly, map_2015_lines)
-
-message("Processing Era 4 (2023+)...")
-res4 <- calc_dist(pts_era4, map_2024_poly, map_2024_lines)
-
-# Combine results
-results_sf <- bind_rows(res1, res2, res3, res4)
-message(sprintf("Combined results: %s sales with ward assignments", format(nrow(results_sf), big.mark = ",")))
-
-# Clean up
-rm(pts_era1, pts_era2, pts_era3, pts_era4, res1, res2, res3, res4, sales_sf)
-gc()
 
 # -----------------------------------------------------------------------------
 # 7. POST-PROCESS: ALDERMAN LOOKUPS (PRE-SCORES)
@@ -540,6 +363,7 @@ final_output <- final_df %>%
         # Identifiers
         pin, year,
         sale_date = sale_date_use,
+        boundary_year,
         # Sale info
         sale_price,
         sale_price_nominal,
@@ -558,10 +382,51 @@ final_output <- final_df %>%
 # Output path
 suffix <- if (run_sample) "_sample" else ""
 output_path <- sprintf("../output/sales_pre_scores%s.csv", suffix)
+diag_path <- sprintf("../output/sales_geometry_diagnostics%s.csv", suffix)
 
 write_csv(final_output, output_path)
 
+sales_geometry_diagnostics <- bind_rows(
+    tibble(
+        scope = "overall",
+        boundary_year = NA_integer_,
+        metric = c(
+            "n_sales_raw",
+            "n_sales_market_filtered",
+            "n_missing_coords_after_pin",
+            "n_missing_coords_after_pin10",
+            "n_geolocated_sales",
+            "n_with_ward_pair"
+        ),
+        value = c(
+            n_sales_raw,
+            n_sales_market_filtered,
+            missing_coords,
+            if (exists("remaining_missing")) remaining_missing else missing_coords,
+            n_geolocated_sales,
+            nrow(final_output)
+        )
+    ),
+    final_output %>%
+        summarise(
+            n_obs = n(),
+            mean_dist_ft = mean(dist_ft, na.rm = TRUE),
+            median_dist_ft = median(dist_ft, na.rm = TRUE),
+            .by = boundary_year
+        ) %>%
+        pivot_longer(
+            cols = c(n_obs, mean_dist_ft, median_dist_ft),
+            names_to = "metric",
+            values_to = "value"
+        ) %>%
+        mutate(scope = "boundary_year") %>%
+        select(scope, boundary_year, metric, value)
+)
+
+write_csv(sales_geometry_diagnostics, diag_path)
+
 message(sprintf("Done! Saved %s rows to %s", format(nrow(final_output), big.mark = ","), output_path))
+message(sprintf("Saved diagnostics to %s", diag_path))
 
 # Summary stats
 summary_stats <- final_output %>%
