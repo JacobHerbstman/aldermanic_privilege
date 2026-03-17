@@ -48,13 +48,16 @@ message("  STAGE2_WEIGHT: ", config$stage2_weight)
 message("  VOLUME_CTRL: ", config$volume_ctrl)
 message("  VOLUME_STAGE: ", config$volume_stage)
 
-output_suffix <- build_uncertainty_output_suffix(config)
-output_file <- paste0("../output/alderman_uncertainty_index_", output_suffix, ".csv")
-stage1_output <- paste0("../output/stage1_regression_", output_suffix, ".tex")
-stage2_output <- paste0("../output/stage2_regression_", output_suffix, ".tex")
-plot_output <- paste0("../output/uncertainty_index_", output_suffix, ".pdf")
+permits_input_path <- Sys.getenv("PERMITS_INPUT_PATH", "../input/permits_for_uncertainty_index.csv")
+uncertainty_output_dir <- Sys.getenv("UNCERTAINTY_OUTPUT_DIR", "../output")
 
-permits <- load_uncertainty_permits("../input/permits_for_uncertainty_index.csv")
+output_suffix <- build_uncertainty_output_suffix(config)
+output_file <- file.path(uncertainty_output_dir, paste0("alderman_uncertainty_index_", output_suffix, ".csv"))
+stage1_output <- file.path(uncertainty_output_dir, paste0("stage1_regression_", output_suffix, ".tex"))
+stage2_output <- file.path(uncertainty_output_dir, paste0("stage2_regression_", output_suffix, ".tex"))
+plot_output <- file.path(uncertainty_output_dir, paste0("uncertainty_index_", output_suffix, ".pdf"))
+
+permits <- load_uncertainty_permits(permits_input_path)
 message("Permits loaded: ", nrow(permits))
 
 result <- build_residualized_uncertainty_index(

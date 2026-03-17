@@ -6,6 +6,16 @@ source("../../setup_environment/code/packages.R")
 
 message("=== Starting data preparation for uncertainty index ===")
 
+ward_panel_path <- Sys.getenv("WARD_PANEL_PATH", "../input/ward_panel.gpkg")
+building_permits_path <- Sys.getenv("BUILDING_PERMITS_INPUT_PATH", "../input/building_permits_clean.gpkg")
+alderman_panel_path <- Sys.getenv("ALDERMAN_PANEL_PATH", "../input/chicago_alderman_panel.csv")
+ward_controls_path <- Sys.getenv("WARD_CONTROLS_PATH", "../input/ward_controls.csv")
+community_areas_path <- Sys.getenv("COMMUNITY_AREAS_PATH", "../input/community_areas.geojson")
+cta_stations_path <- Sys.getenv("CTA_STATIONS_PATH", "../input/cta_stations.geojson")
+city_boundary_path <- Sys.getenv("CITY_BOUNDARY_PATH", "../input/city_boundary.geojson")
+water_osm_path <- Sys.getenv("WATER_OSM_PATH", "../input/gis_osm_water_a_free_1.shp")
+permits_output_path <- Sys.getenv("OUTPUT_PERMITS_FOR_UNCERTAINTY_PATH", "../output/permits_for_uncertainty_index.csv")
+
 # -----------------------------------------------------------------------------
 # 1. LOAD DATA
 # -----------------------------------------------------------------------------
@@ -13,24 +23,24 @@ message("=== Starting data preparation for uncertainty index ===")
 message("Loading input data...")
 
 # Ward geometries (for spatial join)
-ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
+ward_panel <- st_read(ward_panel_path, quiet = TRUE)
 
 # Building permits
-permits <- st_read("../input/building_permits_clean.gpkg", quiet = TRUE) %>%
+permits <- st_read(building_permits_path, quiet = TRUE) %>%
   mutate(
     application_start_date_ym = as.yearmon(application_start_date_ym),
     application_year = year(as.Date(application_start_date_ym))
   )
 
 # Alderman-ward-month crosswalk
-alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
+alderman_panel <- read_csv(alderman_panel_path, show_col_types = FALSE) %>%
   mutate(month = as.yearmon(month))
 
 # Ward-level demographics
-ward_controls <- read_csv("../input/ward_controls.csv", show_col_types = FALSE)
+ward_controls <- read_csv(ward_controls_path, show_col_types = FALSE)
 
 # Community areas (for CA fixed effects)
-community_areas <- st_read("../input/community_areas.geojson", quiet = TRUE) %>%
+community_areas <- st_read(community_areas_path, quiet = TRUE) %>%
   select(area_numbe, community) %>%
   rename(ca_id = area_numbe, ca_name = community)
 
@@ -44,9 +54,9 @@ read_to_ward_crs <- function(path) {
 }
 
 # Legacy place-control layers used in strictness-score task
-cta_stations <- read_to_ward_crs("../input/cta_stations.geojson")
-city_boundary <- read_to_ward_crs("../input/city_boundary.geojson")
-water_osm <- read_to_ward_crs("../input/gis_osm_water_a_free_1.shp")
+cta_stations <- read_to_ward_crs(cta_stations_path)
+city_boundary <- read_to_ward_crs(city_boundary_path)
+water_osm <- read_to_ward_crs(water_osm_path)
 message("Legacy place layers loaded (CTA, city boundary, water).")
 
 # Ensure CRS alignment
@@ -395,9 +405,9 @@ output_data <- permits_analysis %>%
     map_version
   )
 
-write_csv(output_data, "../output/permits_for_uncertainty_index.csv")
+write_csv(output_data, permits_output_path)
 
 message("=== Data preparation complete ===")
-message("Output: ../output/permits_for_uncertainty_index.csv")
+message("Output: ", permits_output_path)
 message("Rows: ", nrow(output_data))
 message("Columns: ", ncol(output_data))

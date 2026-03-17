@@ -37,6 +37,7 @@ tasks/archive/*/temp/
 
 # Exception: track the task flow graph for README
 !tasks/symlink_graph/output/
+tasks/symlink_graph/output/graph.txt
 !tasks/symlink_graph/output/task_flow.png
 
 # ================== ADDITIONS ==================
