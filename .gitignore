@@ -24,6 +24,9 @@ tasks/*/temp/
 
 # --- User-specific files ---
 # (Add any local configuration files here if needed)
+AGENTS.md
+CLAUDE.md
+.claude/
 
 # --- Secrets ---
 # Ignore file containing API keys and other secrets
