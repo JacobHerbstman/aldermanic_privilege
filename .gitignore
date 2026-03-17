@@ -53,6 +53,13 @@ slides/*.out
 slides/*.pdf
 slides/*.snm
 slides/*.toc
+slides/images/*
+slides/figures/*
+!slides/images/home_price_growth.png
+!slides/images/rent_growth_headline.png
+!slides/figures/pipeline_tikz.tex
+
+tmp/
 
 # Ignore auto-generated R graphics in any code/ folder
 **/code/Rplots.pdf

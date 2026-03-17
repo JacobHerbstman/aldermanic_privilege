@@ -1,0 +1,170 @@
+% Pipeline figure: How Aldermen Influence the Development Process
+% Use: \input{figures/pipeline_tikz.tex} inside a frame environment
+% Requires: \usetikzlibrary{calc,positioning,arrows.meta,fit}
+%
+% 4 overlays:
+%   <1> Site selection + negotiations (unobserved) + Dalton & Tomich quote
+%   <2> + Permit filed + Dept of Buildings nightly reports quote
+%   <3> + Review & revision + anonymous developer quote
+%   <4> + Permit issued + summary annotation
+
+% --- Colors ---
+\definecolor{pipeobs}{HTML}{2B7A78}
+\definecolor{pipeunobs}{HTML}{8B8680}
+\definecolor{pipequote}{HTML}{F5F0EB}
+\definecolor{pipeaccent}{HTML}{C44D34}
+
+\begin{tikzpicture}[
+    remember picture,
+    stage/.style={
+        rounded corners=4pt,
+        minimum height=1.1cm,
+        minimum width=2.8cm,
+        text width=2.5cm,
+        align=center,
+        font=\small,
+        inner sep=6pt,
+    },
+    observed/.style={
+        stage,
+        draw=pipeobs,
+        fill=pipeobs!8,
+        line width=0.6pt,
+    },
+    unobserved/.style={
+        stage,
+        draw=pipeunobs,
+        fill=pipeunobs!6,
+        line width=0.6pt,
+        dashed,
+    },
+    quotebox/.style={
+        rounded corners=3pt,
+        draw=black!15,
+        fill=pipequote,
+        text width=6.5cm,
+        align=left,
+        inner sep=8pt,
+        font=\scriptsize,
+    },
+    arrw/.style={
+        -{Stealth[length=5pt]},
+        line width=0.7pt,
+        pipeobs!70,
+    },
+    arrw dash/.style={
+        -{Stealth[length=5pt]},
+        line width=0.7pt,
+        pipeunobs!70,
+        dashed,
+    },
+    brack/.style={
+        line width=0.4pt,
+        black!30,
+    },
+]
+
+% =============================================
+% PIPELINE STAGES (top row) - use fixed coords
+% =============================================
+
+% Stage 1: Site selection + negotiations (always visible)
+\node[unobserved] (s1) at (0, 0) {
+    \textbf{Site selection}\\[1pt]
+    {\scriptsize\textit{DPD, community}}\\[-2pt]
+    {\scriptsize\textit{meetings}}
+};
+
+% Stage 2: Permit filed
+\node[observed, opacity=0] (s2ghost) at (3.7, 0) {};  % ghost for stable layout
+\visible<2->{
+    \node[observed] (s2) at (3.7, 0) {
+        \textbf{Permit filed}\\[1pt]
+        {\scriptsize Dept.\ of Buildings}
+    };
+    \draw[arrw] (s1.east) -- (s2.west);
+}
+
+% Stage 3: Review & revision
+\visible<3->{
+    \node[observed] (s3) at (7.4, 0) {
+        \textbf{Review}\\[1pt]
+        {\scriptsize Revise, negotiate}
+    };
+    \draw[arrw] (s2.east) -- (s3.west);
+}
+
+% Stage 4: Permit issued
+\visible<4->{
+    \node[observed] (s4) at (11.1, 0) {
+        \textbf{Permit issued}\\[1pt]
+        {\scriptsize Construction begins}
+    };
+    \draw[arrw] (s3.east) -- (s4.west);
+}
+
+% =============================================
+% BRACKETS
+% =============================================
+
+% Unobservable bracket (always visible)
+\draw[brack, dashed] ([yshift=-4pt]s1.south west) -- ([yshift=-4pt]s1.south east);
+\draw[brack, dashed] ([yshift=-4pt]s1.south west) -- ++(0,-3pt);
+\draw[brack, dashed] ([yshift=-4pt]s1.south east) -- ++(0,-3pt);
+\node[font=\tiny, text=pipeunobs] at ([yshift=-16pt]s1.south) {Unobserved};
+
+% Observable bracket (overlay 4)
+\visible<4->{
+    \draw[brack] ([yshift=-4pt]s2.south west) -- ([yshift=-4pt]s4.south east);
+    \draw[brack] ([yshift=-4pt]s2.south west) -- ++(0,-3pt);
+    \draw[brack] ([yshift=-4pt]s4.south east) -- ++(0,-3pt);
+    \node[font=\tiny, text=pipeobs] at ([yshift=-16pt]$(s2.south)!0.5!(s4.south)$) 
+        {Observable in permit data $\;\rightarrow\;$ proxy for $T(s)$};
+}
+
+% =============================================
+% QUOTES (one per overlay, centered below)
+% =============================================
+
+% Quote anchor point
+\coordinate (qspot) at (5.5, -2.6);
+
+% --- Overlay 1: Dalton & Tomich (deterrence) ---
+\only<1>{
+    \node[quotebox, anchor=north] (q1) at (qspot) {
+        {\bfseries\scriptsize\textcolor{pipeaccent}{\textsc{Deterrence}}}\\[4pt]
+        ``A thumb up or thumb down from an alderman can mean all the difference to even the most code-compliant zoning application.''\\[4pt]
+        \hfill{\tiny\textcolor{black!45}{--- Dalton \& Tomich, land use attorneys}}
+    };
+    \draw[brack, dashed] (s1.south) -- ([yshift=4pt]q1.north -| s1.south);
+}
+
+% --- Overlay 2: Dept of Buildings (monitoring) ---
+\only<2>{
+    \node[quotebox, anchor=north] (q2) at (qspot) {
+        {\bfseries\scriptsize\textcolor{pipeaccent}{\textsc{Monitoring}}}\\[4pt]
+        ``As a matter of courtesy, aldermen continue to receive nightly e-mailed reports of building permits applied for and issued in their respective wards.''\\[4pt]
+        \hfill{\tiny\textcolor{black!45}{--- City of Chicago, Dept.\ of Buildings}}
+    };
+    \draw[brack, dashed] (s2.south) -- ([yshift=4pt]q2.north -| s2.south);
+}
+
+% --- Overlay 3: Anonymous developer (direct intervention) ---
+\only<3>{
+    \node[quotebox, anchor=north] (q3) at (qspot) {
+        {\bfseries\scriptsize\textcolor{pipeaccent}{\textsc{Direct intervention}}}\\[4pt]
+        ``If the alderman doesn't want it to happen, it won't happen. All it takes is one call to a city inspector, saying `Don't give him his occupancy permit.'\,''\\[4pt]
+        \hfill{\tiny\textcolor{black!45}{--- Anonymous developer}}
+    };
+    \draw[brack, dashed] (s3.south) -- ([yshift=4pt]q3.north -| s3.south);
+}
+
+% --- Overlay 4: Summary (no quote, just annotation) ---
+\only<4>{
+    \node[font=\scriptsize, text=black!70, text width=7cm, align=left, anchor=north] at (qspot) {
+        \textbf{My measure}: Alderman-specific component of permit processing time captures frictions across observable stages.\\[3pt]
+        \textit{Lower bound}: Projects deterred at site selection stage never enter the data.
+    };
+}
+
+\end{tikzpicture}
