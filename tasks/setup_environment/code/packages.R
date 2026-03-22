@@ -108,6 +108,25 @@ if (!require("deweydatar", character.only = TRUE)) {
 version_dewey <- tryCatch({ packageDescription("deweydatar", fields = "Version") }, error = function(e) NA)
 output <- c(output, paste("deweydatar", version_dewey, sep = " : "))
 
+panelview_installed <- require("panelView", character.only = TRUE)
+panelview_remote_sha <- if (panelview_installed) {
+  tryCatch(packageDescription("panelView", fields = "RemoteSha"), error = function(e) NA_character_)
+} else {
+  NA_character_
+}
+
+if (!panelview_installed || is.na(panelview_remote_sha) || !nzchar(panelview_remote_sha)) {
+  message("Installing panelView development branch from GitHub...")
+  tryCatch({
+    devtools::install_github("xuyiqing/panelView@dev", upgrade = "never", dependencies = TRUE)
+  }, error = function(e) {
+    message(sprintf("GitHub install failed for panelView: %s", e$message))
+  })
+}
+
+version_panelview <- tryCatch({ packageDescription("panelView", fields = "Version") }, error = function(e) NA)
+output <- c(output, paste("panelView", version_panelview, sep = " : "))
+
 # --- Step 5: log output ---
 output_log <- paste("Packages installed:", paste(output, collapse = "\n"), sep = "\n")
 cat(output_log)

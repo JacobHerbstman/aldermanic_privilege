@@ -1,5 +1,7 @@
 source("../../setup_environment/code/packages.R")
 
+dir.create("../output", showWarnings = FALSE, recursive = TRUE)
+
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
@@ -37,6 +39,7 @@ BANDWIDTH <- bandwidth
 POST_WINDOW <- post_window
 GEO_FE_LEVEL <- geo_fe_level
 CLUSTER_LEVEL <- cluster_level
+WRITE_SIDECARS <- tolower(Sys.getenv("WRITE_SIDECARS", "1")) %in% c("1", "true", "yes")
 
 valid_panel_modes <- c(
   "stacked_announcement",
@@ -130,6 +133,7 @@ message(sprintf("Bandwidth: %d ft", BANDWIDTH))
 message(sprintf("Post window: %s", POST_WINDOW))
 message(sprintf("Geo FE level: %s", GEO_FE_LEVEL))
 message(sprintf("Cluster level: %s", CLUSTER_LEVEL))
+message(sprintf("Write sidecars: %s", WRITE_SIDECARS))
 
 make_support_table <- function(df, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period) {
   support_base <- df %>%
@@ -555,10 +559,12 @@ if (TREATMENT_TYPE == "continuous") {
   pretrend <- compute_pretrend_test(model, plot_data, "All sales")
 
   ggsave(sprintf("../output/event_study_%s.pdf", suffix), make_single_series_plot(plot_data), width = 7, height = 4.5, bg = "white")
-  write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
-  write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
-  write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
-  write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
+  if (WRITE_SIDECARS) {
+    write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
+    write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
+    write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
+    write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
+  }
 } else {
   formula_stricter <- sprintf(
     "log(sale_price) ~ i(%s, treatment_stricter_continuous, ref = -1) %s | %s",
@@ -596,10 +602,12 @@ if (TREATMENT_TYPE == "continuous") {
 
   ggsave(sprintf("../output/event_study_%s.pdf", suffix), directional_plots$facet, width = 7, height = 6, bg = "white")
   ggsave(sprintf("../output/event_study_combined_%s.pdf", suffix), directional_plots$combined, width = 7, height = 4.5, bg = "white")
-  write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
-  write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
-  write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
-  write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
+  if (WRITE_SIDECARS) {
+    write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
+    write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
+    write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
+    write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
+  }
 }
 
 message("\nDone!")
