@@ -52,8 +52,8 @@ valid_panel_modes <- c("stacked_implementation", "cohort_2015", "cohort_2023")
 if (!PANEL_MODE %in% valid_panel_modes) {
   stop(sprintf("--panel_mode must be one of: %s", paste(valid_panel_modes, collapse = ", ")), call. = FALSE)
 }
-if (!OUTCOME_FAMILY %in% c("new_construction", "high_discretion", "unit_increase")) {
-  stop("--outcome_family must be one of: new_construction, high_discretion, unit_increase", call. = FALSE)
+if (!OUTCOME_FAMILY %in% c("new_construction", "new_construction_demolition", "high_discretion", "unit_increase")) {
+  stop("--outcome_family must be one of: new_construction, new_construction_demolition, high_discretion, unit_increase", call. = FALSE)
 }
 if (!DATE_BASIS %in% c("issue", "application")) {
   stop("--date_basis must be one of: issue, application", call. = FALSE)
@@ -93,11 +93,22 @@ if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 2000) {
 }
 
 outcome_catalog <- tibble(
-  outcome_family = c("new_construction", "new_construction", "high_discretion", "high_discretion", "unit_increase", "unit_increase"),
-  date_basis = c("issue", "application", "issue", "application", "issue", "application"),
+  outcome_family = c(
+    "new_construction",
+    "new_construction",
+    "new_construction_demolition",
+    "new_construction_demolition",
+    "high_discretion",
+    "high_discretion",
+    "unit_increase",
+    "unit_increase"
+  ),
+  date_basis = c("issue", "application", "issue", "application", "issue", "application", "issue", "application"),
   count_var = c(
     "n_new_construction_issue",
     "n_new_construction_application",
+    "n_new_construction_demolition_issue",
+    "n_new_construction_demolition_application",
     "n_high_discretion_issue",
     "n_high_discretion_application",
     "n_unit_increase_issue",
@@ -106,6 +117,8 @@ outcome_catalog <- tibble(
   binary_var = c(
     "has_new_construction_issue",
     "has_new_construction_application",
+    "has_new_construction_demolition_issue",
+    "has_new_construction_demolition_application",
     "has_high_discretion_issue",
     "has_high_discretion_application",
     "has_unit_increase_issue",
@@ -114,6 +127,8 @@ outcome_catalog <- tibble(
   count_label = c(
     "issued new-construction permits",
     "issued new-construction permits (application timing)",
+    "issued new-construction or demolition permits",
+    "issued new-construction or demolition permits (application timing)",
     "issued high-discretion permits",
     "issued high-discretion permits (application timing)",
     "issued curated unit-increase permits",
@@ -122,6 +137,8 @@ outcome_catalog <- tibble(
   binary_label = c(
     "any issued new-construction permit",
     "any issued new-construction permit (application timing)",
+    "any issued new-construction or demolition permit",
+    "any issued new-construction or demolition permit (application timing)",
     "any issued high-discretion permit",
     "any issued high-discretion permit (application timing)",
     "any issued curated unit-increase permit",

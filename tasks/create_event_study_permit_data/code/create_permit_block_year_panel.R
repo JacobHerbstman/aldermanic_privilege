@@ -124,37 +124,54 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf) {
   as.data.table(joined)
 }
 
-aggregate_outcome_counts <- function(permits_dt) {
-  outcome_specs <- tibble(
-    count_var = c(
-      "n_new_construction_issue",
-      "n_new_construction_application",
-      "n_high_discretion_issue",
-      "n_high_discretion_application",
-      "n_unit_increase_issue",
-      "n_unit_increase_application"
-    ),
-    date_col = c(
-      "issue_year",
-      "application_year",
-      "issue_year",
-      "application_year",
-      "issue_year",
-      "application_year"
-    ),
-    indicator_col = c(
-      "is_new_construction_issued",
-      "is_new_construction_issued",
-      "is_high_discretion_issued",
-      "is_high_discretion_issued",
-      "is_unit_increase_issued",
-      "is_unit_increase_issued"
-    )
+permit_outcome_meta <- tibble(
+  outcome_family = c(
+    "new_construction",
+    "new_construction",
+    "new_construction_demolition",
+    "new_construction_demolition",
+    "high_discretion",
+    "high_discretion",
+    "unit_increase",
+    "unit_increase"
+  ),
+  date_basis = c("issue", "application", "issue", "application", "issue", "application", "issue", "application"),
+  count_var = c(
+    "n_new_construction_issue",
+    "n_new_construction_application",
+    "n_new_construction_demolition_issue",
+    "n_new_construction_demolition_application",
+    "n_high_discretion_issue",
+    "n_high_discretion_application",
+    "n_unit_increase_issue",
+    "n_unit_increase_application"
+  ),
+  indicator_col = c(
+    "is_new_construction_issued",
+    "is_new_construction_issued",
+    "is_new_construction_demolition_issued",
+    "is_new_construction_demolition_issued",
+    "is_high_discretion_issued",
+    "is_high_discretion_issued",
+    "is_unit_increase_issued",
+    "is_unit_increase_issued"
+  ),
+  date_col = c(
+    "issue_year",
+    "application_year",
+    "issue_year",
+    "application_year",
+    "issue_year",
+    "application_year",
+    "issue_year",
+    "application_year"
   )
+)
 
+aggregate_outcome_counts <- function(permits_dt) {
   pieces <- list()
-  for (i in seq_len(nrow(outcome_specs))) {
-    spec_i <- outcome_specs[i, ]
+  for (i in seq_len(nrow(permit_outcome_meta))) {
+    spec_i <- permit_outcome_meta[i, ]
     part_i <- permits_dt[
       get(spec_i$indicator_col) == 1L & !is.na(get(spec_i$date_col)),
       .(count = .N),
@@ -169,7 +186,7 @@ aggregate_outcome_counts <- function(permits_dt) {
   }
 
   out <- Reduce(function(x, y) merge(x, y, by = c("block_id", "year"), all = TRUE), pieces)
-  for (count_var in outcome_specs$count_var) {
+  for (count_var in permit_outcome_meta$count_var) {
     if (!count_var %in% names(out)) {
       out[, (count_var) := 0L]
     }
@@ -195,20 +212,15 @@ build_panel_with_counts <- function(base_df, start_year, end_year, cohort_year, 
     ) %>%
     left_join(as_tibble(counts_dt), by = c("block_id", "year"))
 
-  count_cols <- c(
-    "n_new_construction_issue",
-    "n_new_construction_application",
-    "n_high_discretion_issue",
-    "n_high_discretion_application",
-    "n_unit_increase_issue",
-    "n_unit_increase_application"
-  )
+  count_cols <- permit_outcome_meta$count_var
 
   panel %>%
     mutate(across(all_of(count_cols), ~ replace_na(as.integer(.x), 0L))) %>%
     mutate(
       has_new_construction_issue = as.integer(n_new_construction_issue > 0L),
       has_new_construction_application = as.integer(n_new_construction_application > 0L),
+      has_new_construction_demolition_issue = as.integer(n_new_construction_demolition_issue > 0L),
+      has_new_construction_demolition_application = as.integer(n_new_construction_demolition_application > 0L),
       has_high_discretion_issue = as.integer(n_high_discretion_issue > 0L),
       has_high_discretion_application = as.integer(n_high_discretion_application > 0L),
       has_unit_increase_issue = as.integer(n_unit_increase_issue > 0L),
@@ -217,31 +229,11 @@ build_panel_with_counts <- function(base_df, start_year, end_year, cohort_year, 
 }
 
 summarize_event_support <- function(panel, panel_mode) {
-  outcome_meta <- tibble(
-    count_var = c(
-      "n_new_construction_issue",
-      "n_new_construction_application",
-      "n_high_discretion_issue",
-      "n_high_discretion_application",
-      "n_unit_increase_issue",
-      "n_unit_increase_application"
-    ),
-    outcome_family = c(
-      "new_construction",
-      "new_construction",
-      "high_discretion",
-      "high_discretion",
-      "unit_increase",
-      "unit_increase"
-    ),
-    date_basis = c("issue", "application", "issue", "application", "issue", "application")
-  )
-
   panel %>%
     mutate(block_key = paste(cohort, block_id, sep = "_")) %>%
-    select(cohort, block_key, relative_year_capped, treat, all_of(outcome_meta$count_var)) %>%
-    pivot_longer(cols = all_of(outcome_meta$count_var), names_to = "count_var", values_to = "outcome_count") %>%
-    left_join(outcome_meta, by = "count_var") %>%
+    select(cohort, block_key, relative_year_capped, treat, all_of(permit_outcome_meta$count_var)) %>%
+    pivot_longer(cols = all_of(permit_outcome_meta$count_var), names_to = "count_var", values_to = "outcome_count") %>%
+    left_join(permit_outcome_meta %>% select(count_var, outcome_family, date_basis), by = "count_var") %>%
     mutate(panel_mode = panel_mode) %>%
     group_by(panel_mode, cohort, outcome_family, date_basis, event_time = relative_year_capped, treat) %>%
     summarise(
@@ -255,31 +247,11 @@ summarize_event_support <- function(panel, panel_mode) {
 }
 
 summarize_calendar_support <- function(panel, panel_mode) {
-  outcome_meta <- tibble(
-    count_var = c(
-      "n_new_construction_issue",
-      "n_new_construction_application",
-      "n_high_discretion_issue",
-      "n_high_discretion_application",
-      "n_unit_increase_issue",
-      "n_unit_increase_application"
-    ),
-    outcome_family = c(
-      "new_construction",
-      "new_construction",
-      "high_discretion",
-      "high_discretion",
-      "unit_increase",
-      "unit_increase"
-    ),
-    date_basis = c("issue", "application", "issue", "application", "issue", "application")
-  )
-
   panel %>%
     mutate(block_key = paste(cohort, block_id, sep = "_")) %>%
-    select(cohort, year, block_key, treat, all_of(outcome_meta$count_var)) %>%
-    pivot_longer(cols = all_of(outcome_meta$count_var), names_to = "count_var", values_to = "outcome_count") %>%
-    left_join(outcome_meta, by = "count_var") %>%
+    select(cohort, year, block_key, treat, all_of(permit_outcome_meta$count_var)) %>%
+    pivot_longer(cols = all_of(permit_outcome_meta$count_var), names_to = "count_var", values_to = "outcome_count") %>%
+    left_join(permit_outcome_meta %>% select(count_var, outcome_family, date_basis), by = "count_var") %>%
     mutate(panel_mode = panel_mode) %>%
     group_by(panel_mode, cohort, outcome_family, date_basis, year, treat) %>%
     summarise(
@@ -293,31 +265,11 @@ summarize_calendar_support <- function(panel, panel_mode) {
 }
 
 summarize_zero_shares <- function(panel, panel_mode) {
-  outcome_meta <- tibble(
-    count_var = c(
-      "n_new_construction_issue",
-      "n_new_construction_application",
-      "n_high_discretion_issue",
-      "n_high_discretion_application",
-      "n_unit_increase_issue",
-      "n_unit_increase_application"
-    ),
-    outcome_family = c(
-      "new_construction",
-      "new_construction",
-      "high_discretion",
-      "high_discretion",
-      "unit_increase",
-      "unit_increase"
-    ),
-    date_basis = c("issue", "application", "issue", "application", "issue", "application")
-  )
-
   panel %>%
     mutate(block_key = paste(cohort, block_id, sep = "_")) %>%
-    select(block_key, cohort, treat, strictness_change, all_of(outcome_meta$count_var)) %>%
-    pivot_longer(cols = all_of(outcome_meta$count_var), names_to = "count_var", values_to = "outcome_count") %>%
-    left_join(outcome_meta, by = "count_var") %>%
+    select(block_key, cohort, treat, strictness_change, all_of(permit_outcome_meta$count_var)) %>%
+    pivot_longer(cols = all_of(permit_outcome_meta$count_var), names_to = "count_var", values_to = "outcome_count") %>%
+    left_join(permit_outcome_meta %>% select(count_var, outcome_family, date_basis), by = "count_var") %>%
     mutate(
       panel_mode = panel_mode,
       treat_group = case_when(
@@ -366,48 +318,12 @@ summarize_assignment_stability <- function(base_df, panel_mode) {
 }
 
 build_outcome_totals <- function(permits_dt, panel, panel_mode, cohort_label) {
-  outcome_meta <- tibble(
-    count_var = c(
-      "n_new_construction_issue",
-      "n_new_construction_application",
-      "n_high_discretion_issue",
-      "n_high_discretion_application",
-      "n_unit_increase_issue",
-      "n_unit_increase_application"
-    ),
-    outcome_family = c(
-      "new_construction",
-      "new_construction",
-      "high_discretion",
-      "high_discretion",
-      "unit_increase",
-      "unit_increase"
-    ),
-    date_basis = c("issue", "application", "issue", "application", "issue", "application"),
-    indicator_col = c(
-      "is_new_construction_issued",
-      "is_new_construction_issued",
-      "is_high_discretion_issued",
-      "is_high_discretion_issued",
-      "is_unit_increase_issued",
-      "is_unit_increase_issued"
-    ),
-    date_col = c(
-      "issue_year",
-      "application_year",
-      "issue_year",
-      "application_year",
-      "issue_year",
-      "application_year"
-    )
-  )
-
   block_ids <- unique(panel$block_id)
   year_min <- min(panel$year)
   year_max <- max(panel$year)
 
-  bind_rows(lapply(seq_len(nrow(outcome_meta)), function(i) {
-    spec_i <- outcome_meta[i, ]
+  bind_rows(lapply(seq_len(nrow(permit_outcome_meta)), function(i) {
+    spec_i <- permit_outcome_meta[i, ]
     raw_total <- permits_dt[
       block_id %in% block_ids &
         get(spec_i$indicator_col) == 1L &
@@ -573,6 +489,10 @@ permits_2010 <- assign_permits_to_blocks(permits_clean, blocks_2010) %>%
 setDT(permits_2010)
 permits_2010[, `:=`(
   is_new_construction_issued = as.integer(permit_type == "PERMIT - NEW CONSTRUCTION"),
+  is_demolition_issued = as.integer(grepl("WRECKING|DEMOLITION", permit_type)),
+  is_new_construction_demolition_issued = as.integer(
+    permit_type == "PERMIT - NEW CONSTRUCTION" | grepl("WRECKING|DEMOLITION", permit_type)
+  ),
   is_high_discretion_issued = as.integer(high_discretion == 1),
   is_unit_increase_issued = as.integer(unit_increase_included == 1)
 )]
@@ -585,6 +505,10 @@ permits_2020 <- assign_permits_to_blocks(permits_clean, blocks_2020) %>%
 setDT(permits_2020)
 permits_2020[, `:=`(
   is_new_construction_issued = as.integer(permit_type == "PERMIT - NEW CONSTRUCTION"),
+  is_demolition_issued = as.integer(grepl("WRECKING|DEMOLITION", permit_type)),
+  is_new_construction_demolition_issued = as.integer(
+    permit_type == "PERMIT - NEW CONSTRUCTION" | grepl("WRECKING|DEMOLITION", permit_type)
+  ),
   is_high_discretion_issued = as.integer(high_discretion == 1),
   is_unit_increase_issued = as.integer(unit_increase_included == 1)
 )]
