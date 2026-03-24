@@ -1,190 +1,151 @@
 \section{Additional Density Results}
 \label{sec:appendix_density}
 
-\subsection{Bandwidth Robustness: Border-Pair Fixed Effects}
+% ==============================================================================
+% COVARIATE BALANCE
+% ==============================================================================
+\subsection{Covariate Balance Test}
 
-Table~\ref{tab:fe_estimates_1000} presents border-pair fixed effects estimates using a 1,000 foot bandwidth, compared to the 250 foot bandwidth in the main text. The coefficients are smaller in magnitude and less precisely estimated, consistent with the interpretation that aldermanic effects are most pronounced very close to ward boundaries where treated and control parcels are most comparable.
+A key identifying assumption is that neighborhood characteristics vary smoothly across ward boundaries. To test this, I assign each parcel to a census block group via spatial intersection with 2019 ACS geographies and regress demographic variables on the aldermanic strictness score using the same fixed effects specification as the main regressions (zoning-group, segment, and year fixed effects), restricting to parcels within 500 feet of the border. Results (not shown) indicate null effects across racial composition, median income, education, homeownership, median rent, home values, and population density, supporting the interpretation that density differences at ward borders are driven by aldermanic behavior rather than sorting on observables.\footnote{Balance test table to be added in a future draft.}
+
+% ==============================================================================
+% ALTERNATIVE FE: WARD-PAIR INSTEAD OF SEGMENT
+% ==============================================================================
+\subsection{Alternative Fixed Effects: Ward-Pair}
+
+Table~\ref{tab:fe_pair_year} replaces segment fixed effects with ward-pair fixed effects, which pool across all segments of a given ward pair. This is a coarser comparison---ward-pair borders can stretch for miles through different neighborhoods---but it uses more variation. The results are similar in sign and magnitude to the main segment FE estimates in Table~\ref{tab:segment_fe_500}.
+
+\begin{table}[H]
+    \caption{Effect of Aldermanic Strictness on Development Density (Ward-Pair FE)}
+    \label{tab:fe_pair_year}
+
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_pair_year_additive_clust_ward_pair.tex}
+
+    \footnotesize
+    \textit{Notes:} Sample includes new multifamily construction (2--100 units) within 500 feet of ward boundaries, 2006--2024. All specifications include zoning-group, ward-pair, and construction-year fixed effects (additive). Strictness is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
+
+% ==============================================================================
+% PRUNED SAMPLE
+% ==============================================================================
+\subsection{Pruned Sample}
+
+Table~\ref{tab:fe_pruned} drops ward-pair-era combinations where confounding boundary changes (e.g., simultaneous zoning remaps or major infrastructure projects) may contaminate the comparison. The results are similar to the full sample.
+
+\begin{table}[H]
+    \caption{Effect of Aldermanic Strictness on Development Density (Pruned Sample)}
+    \label{tab:fe_pruned}
+
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex}
+
+    \footnotesize
+    \textit{Notes:} Same specification as Table~\ref{tab:segment_fe_500} but dropping ward-pair-era combinations flagged as potentially confounded. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
+
+% ==============================================================================
+% BANDWIDTH ROBUSTNESS
+% ==============================================================================
+\subsection{Bandwidth Robustness}
+
+Tables~\ref{tab:fe_estimates_250} and \ref{tab:fe_estimates_1000} present the main segment FE specification at alternative bandwidths. At 250 feet the estimates are similar in magnitude but based on fewer observations. At 1,000 feet the estimates attenuate, consistent with the effects being concentrated near the boundary where aldermanic jurisdiction changes.
+
+\begin{table}[H]
+    \caption{Effect of Aldermanic Strictness on Development Density (250 ft Bandwidth)}
+    \label{tab:fe_estimates_250}
+
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
+
+    \footnotesize
+    \textit{Notes:} Sample includes new multifamily construction (2--100 units) within 250 feet of ward boundaries, 2006--2024. All specifications include zoning-group, segment, and construction-year fixed effects (additive). Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
 
 \begin{table}[H]
     \caption{Effect of Aldermanic Strictness on Development Density (1,000 ft Bandwidth)}
     \label{tab:fe_estimates_1000}
 
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw1000.tex}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw1000_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
 
     \footnotesize
-    \textit{Notes:} Sample includes new multifamily construction (2--100 units) within 1,000 feet of ward boundaries, 2006--2024. All specifications include border-pair $\times$ zoning fixed effects and construction year fixed effects. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Sample includes new multifamily construction (2--100 units) within 1,000 feet of ward boundaries, 2006--2024. All specifications include zoning-group, segment, and construction-year fixed effects (additive). Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
+% ==============================================================================
+% DONUT RD
+% ==============================================================================
+\subsection{Donut RD Robustness}
 
-\subsection{Covariate Balance Test}
-
-A key identifying assumption in the border-pair fixed effects design is that neighborhood characteristics vary smoothly across ward boundaries, so any discontinuity in development outcomes can be attributed to differences in aldermanic behavior rather than underlying area characteristics.
-
-To test this assumption, I assign each parcel to a census block group via spatial intersection with 2019 American Community Survey (ACS) geographies. Block groups are small geographic units (typically 600--3,000 residents) that provide demographic variation at a much finer scale than wards. I then merge block group-level demographics from the five-year ACS estimates corresponding to each parcel's construction year (using 2010--2014 estimates for pre-2015 construction and 2015--2019 estimates for later construction).
-
-I regress each demographic variable on the aldermanic strictness score using the same fixed effects specification as my main regressions (zone code $\times$ ward-pair and year fixed effects), restricting to parcels within 250 feet of the border.
-
-\begin{table}[H]
-    \caption{Covariate Balance Test: Block Group Demographics}
-    \label{tab:fe_balance_250}
-
-    \textit{Panel A: Race, Income, and Education}
-    \vspace{0.2cm}
-
-    \input{../tasks/border_pair_FE_regressions_validation/output/fe_validation_table_bw250_panel_a.tex}
-
-    \vspace{0.5cm}
-
-    \textit{Panel B: Housing and Density}
-    \vspace{0.2cm}
-
-    \input{../tasks/border_pair_FE_regressions_validation/output/fe_validation_table_bw250_panel_b.tex}
-
-    \footnotesize
-    \textit{Notes:} Each column regresses a census block group demographic variable on the aldermanic strictness score using the same specification as Table 1 (border-pair $\times$ zoning and year fixed effects). Sample: parcels within 250 feet of ward boundaries. Demographics from 2019 ACS 5-year estimates. Null results indicate strictness is uncorrelated with observable neighborhood characteristics at the boundary. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
-\end{table}
-
-\clearpage
-
-\subsection{Donut Robustness: Border-Pair Fixed Effects}
-
-As an additional robustness check for the border-pair fixed effects results, I exclude parcels within 25 or 50 feet of the ward boundary. 
-This addresses concerns that measurement error or other idiosyncratic features of parcels located precisely at the border may be unusual in ways that drive the results.
-
-\begin{table}[H]
-    \caption{Donut Robustness: Excluding Parcels Within 25 Feet of Boundary}
-    \label{tab:fe_donut_25}
-
-    \input{../tasks/border_pair_FE_regressions_donut/output/fe_table_bw250_donut25.tex}
-
-    \footnotesize
-    \textit{Notes:} Same specification as Table 1 but excluding parcels within 25 feet of the ward boundary. Sample: new multifamily construction (2--100 units), 25--250 feet from boundary. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
-\end{table}
-
-\begin{table}[H]
-    \caption{Donut Robustness: Excluding Parcels Within 50 Feet of Boundary}
-    \label{tab:fe_donut_50}
-
-    \input{../tasks/border_pair_FE_regressions_donut/output/fe_table_bw250_donut50.tex}
-
-    \footnotesize
-    \textit{Notes:} Same specification as Table 1 but excluding parcels within 50 feet of the ward boundary. Sample: new multifamily construction (2--100 units), 50--250 feet from boundary. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
-\end{table}
-
-\subsection{RD Robustness Figures}
-
-\subsubsection{Donut Hole Specification}
-
-One concern with spatial RD designs is that observations precisely at the boundary may be unusual in ways that drive the results---for example, if ward boundaries tend to follow major streets or other geographic features that independently affect development patterns. 
-To address this, I implement a ``donut RD'' \citep{barreca_saving_2011,barreca_heapinginduced_2016} specification that excludes parcels within 25 or 50 feet of the ward boundary. Figure~\ref{fig:rd_donut} shows that the discontinuity persists even when dropping observations closest to the cutoff, suggesting the results are not driven by idiosyncratic features of parcels located precisely on ward boundaries.
+One concern with spatial RD designs is that observations precisely at the boundary may be unusual---for example, if ward boundaries follow major streets that independently affect development. Figure~\ref{fig:rd_donut} implements a donut specification \citep{barreca_saving_2011, barreca_heapinginduced_2016} that excludes parcels within 25 or 50 feet of the boundary. The discontinuity persists, suggesting the results are not driven by idiosyncratic features of parcels at the cutoff.
 
 \begin{figure}[H]
     \centering
-    % Log FAR donut
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_far_bw500_triangular_donut25.pdf}
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_donut25.pdf}
     \end{minipage}
     \hfill
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_far_bw500_triangular_donut50.pdf}
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_donut50.pdf}
     \end{minipage}
-    
-    \vspace{0.5cm}
-    
-    % Log DUPAC donut
-    \begin{minipage}{0.48\textwidth}
+
+    \vspace{0.3cm}
+
+    \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_dupac_bw500_triangular_donut25.pdf}
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_donut25.pdf}
     \end{minipage}
     \hfill
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_donut/output/rd_plot_log_density_dupac_bw500_triangular_donut50.pdf}
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_donut50.pdf}
     \end{minipage}
-    \caption{Donut RD Robustness}
-    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column excludes parcels within 25 feet of boundary; right column excludes parcels within 50 feet. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
+    \caption{FE-Adjusted Donut RD Robustness}
+    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column excludes parcels within 25 feet of boundary; right column excludes parcels within 50 feet. Same FE-adjusted specification as Figure~\ref{fig:rd_fe_plots}. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
     \label{fig:rd_donut}
 \end{figure}
 
-\subsubsection{Functional Form}
+% ==============================================================================
+% PLACEBO DUPAC
+% ==============================================================================
+\subsection{Placebo Boundary Tests: DUPAC}
 
-The baseline RD specification uses a local linear regression. However, results could be sensitive to this functional form assumption, particularly if the underlying relationship between distance and density is nonlinear. Figure~\ref{fig:rd_polynomial} presents estimates using linear, quadratic, and cubic polynomial specifications. The discontinuity is evident under all three specifications. Notably, the higher-order polynomials yield larger point estimates, suggesting that if anything, the linear specification provides a conservative estimate of the treatment effect.
+Figure~\ref{fig:rd_placebo} in the main text shows placebo tests for Log(FAR). Figure~\ref{fig:rd_placebo_dupac} presents the same tests for Log(DUPAC). Neither placebo cutoff shows a significant discontinuity.
 
 \begin{figure}[H]
     \centering
-    % Row 1: Linear (p=1)
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_linear_p1_bw500_triangular.pdf}
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_shift-500.pdf}
     \end{minipage}
     \hfill
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_linear_p1_bw500_triangular.pdf}
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_shift500.pdf}
     \end{minipage}
-    
-    \vspace{0.3cm}
-    
-    % Row 2: Quadratic (p=2)
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_quadratic_p2_bw500_triangular.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_quadratic_p2_bw500_triangular.pdf}
-    \end{minipage}
-    
-    \vspace{0.3cm}
-    
-    % Row 3: Cubic (p=3)
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_far_cubic_p3_bw500_triangular.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_function_robustness/output/rd_log_density_dupac_cubic_p3_bw500_triangular.pdf}
-    \end{minipage}
-    \caption{Functional Form Robustness}
-    \figurenotes{Left column: Log(FAR); right column: Log(DUPAC). Top row: linear ($p=1$); middle row: quadratic ($p=2$); bottom row: cubic ($p=3$). All specifications use 500-foot bandwidth with triangular kernel. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
-    \label{fig:rd_polynomial}
+    \caption{Placebo Boundary Tests: Log(DUPAC)}
+    \figurenotes{Left: placebo cutoff 500 feet inside the lenient ward. Right: placebo cutoff 500 feet inside the strict ward. Same FE-adjusted specification as Figure~\ref{fig:rd_fe_plots}. Neither placebo shows a significant discontinuity.}
+    \label{fig:rd_placebo_dupac}
 \end{figure}
 
-\subsubsection{Placebo Boundary Tests}
+% ==============================================================================
+% ALL UNITS RD
+% ==============================================================================
+\subsection{All Construction}
 
-A key identifying assumption of the RD design is that the discontinuity occurs precisely at the ward boundary and not at other arbitrary distances. To test this, I conduct placebo tests by artificially shifting the ``cutoff'' to locations 500 feet inside each ward (both toward the stricter and more lenient sides). If the discontinuity is truly driven by the ward boundary rather than some other spatial pattern, one should observe no discontinuity at these placebo cutoffs. Figure~\ref{fig:rd_placebo} confirms this prediction: the placebo boundaries show no significant discontinuity, while the true boundary (at zero) exhibits the large drop documented in the main results.
+The main analysis restricts to multifamily buildings (2--100 units). Figure~\ref{fig:rd_all_units} includes all new construction, including single-family homes. The discontinuity is smaller but still present, as expected given that single-family construction has less variation in density and is less subject to aldermanic discretion.
 
 \begin{figure}[H]
     \centering
-    % Log FAR placebo
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_far_shift_minus500_bw500_triangular.pdf}
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_all_zonegroup_segment_year_additive_clust_ward_pair.pdf}
     \end{minipage}
     \hfill
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_far_shift_plus500_bw500_triangular.pdf}
+        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_all_zonegroup_segment_year_additive_clust_ward_pair.pdf}
     \end{minipage}
-    
-    \vspace{0.5cm}
-    
-    % Log DUPAC placebo
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_dupac_shift_minus500_bw500_triangular.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_same_zone_only_placebo_boundaries/output/placebo_rd_log_density_dupac_shift_plus500_bw500_triangular.pdf}
-    \end{minipage}
-    \caption{Placebo Boundary Tests}
-    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column: placebo cutoff at $-500$ feet (inside lenient ward); right column: placebo cutoff at $+500$ feet (inside strict ward). * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
-    \label{fig:rd_placebo}
+    \caption{FE-Adjusted Spatial RD: All New Construction}
+    \figurenotes{Same specification as Figure~\ref{fig:rd_fe_plots} but including all new construction (not just multifamily). Left: Log(FAR); right: Log(DUPAC). The discontinuity is smaller than in the multifamily-only sample but still visible.}
+    \label{fig:rd_all_units}
 \end{figure}

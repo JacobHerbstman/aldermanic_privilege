@@ -1,58 +1,38 @@
-\section{Additional Home Sales and Rental Results}
+\section{Additional Home Sales Results}
 \label{sec:appendix_sales_rental}
 
-This appendix presents additional results for home sale prices and rents, complementing the event study analysis in Section~\ref{sec:empirical_results_rent_home_vals}.
+This appendix presents additional results for home sale prices, complementing the event study analysis in Section~\ref{sec:empirical_results_home_sales}.
 
 \subsection{Event Study Without Hedonic Controls}
 
-The main text presents event study results including property-level hedonic controls to isolate the pure price effect holding quality constant. This subsection presents results without hedonic controls to capture the total effect of aldermanic strictness on housing costs, including any composition effects operating through changes in the housing stock. Point estimates are generally similar or slightly larger without hedonic controls, suggesting that composition effects account for only a modest portion of the total price response.
-
-\subsubsection{Rents Without Hedonic Controls}
-
-Figure~\ref{fig:event_study_rental_no_hedonics} presents event study results for rents without hedonic controls. The pattern is qualitatively similar to the main specification: flat pre-trends followed by a clear break at redistricting. Point estimates are slightly larger, consistent with part of the effect operating through changes in housing stock composition.
+The main text presents event study results including property-level hedonic controls to isolate the pure price effect holding quality constant. Figure~\ref{fig:event_study_sales_no_hedonics} presents results without hedonic controls to capture the total effect of aldermanic strictness on housing costs, including any composition effects operating through changes in the housing stock. Point estimates are similar, suggesting that composition effects account for only a modest portion of the total price response.
 
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_no_hedonics_short.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_cohort_2015_continuous_triangular_1000ft_no_hedonics_full.pdf}
         \caption*{Panel A: Continuous Treatment}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_triangular_1000ft_no_hedonics_short.pdf}
-        \caption*{Panel B: Binary Treatment}
-    \end{minipage}
-    \caption{Event Study: Rents --- Without Hedonic Controls}
-    \figurenotes{Same specification as Figure~\ref{fig:event_study_rents} but excluding listing-level hedonic controls. Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-segment-by-side and cohort-by-segment-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals use two-way clustering by census block and segment.}
-    \label{fig:event_study_rental_no_hedonics}
-\end{figure}
-
-\subsubsection{Home Sale Prices Without Hedonic Controls}
-
-Figure~\ref{fig:event_study_sales_no_hedonics} presents event study results for home sales without hedonic controls for building square footage, land square footage, building age, number of bedrooms, number of bathrooms, and garage presence. The pattern is qualitatively similar to the main specification with hedonic controls.
-
-\begin{figure}[H]
-    \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_continuous_triangular_1000ft_no_hedonics.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_binary_triangular_1000ft_no_hedonics.pdf}
-        \caption*{Panel B: Binary Treatment}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_cohort_2015_continuous_split_triangular_1000ft_no_hedonics_full.pdf}
+        \caption*{Panel B: Continuous Split}
     \end{minipage}
     \caption{Event Study: Home Sale Prices --- Without Hedonic Controls}
-    \figurenotes{Same specification as Figure~\ref{fig:event_study_sales} but excluding property-level hedonic controls. 2015 redistricting cohort. Segment-by-side and segment-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. 95\% confidence intervals use two-way clustering by census block and segment.}
+    \figurenotes{Same specification as Figure~\ref{fig:event_study_sales} but excluding property-level hedonic controls. 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
     \label{fig:event_study_sales_no_hedonics}
 \end{figure}
 
 \subsection{Alternative Event Timing: Announcement vs.\ Implementation}
 
-Table~\ref{tab:did_sales_announcement} presents difference-in-differences estimates for home sales using 2012 announcement timing rather than 2015 implementation timing. If housing markets are forward-looking, prices may begin responding when redistricting maps are announced. The point estimates are slightly larger with announcement timing, though the difference is not statistically significant.
+The main specification defines treatment timing based on when redistricting takes effect (2015 implementation). If housing markets are forward-looking, prices may begin responding when redistricting maps are first announced (2012). Figure~\ref{fig:event_study_sales_announcement} presents the event study using 2012 announcement timing. The pattern is qualitatively similar, with point estimates slightly larger under announcement timing.
 
-\input{../tasks/combine_did_tables/output/did_table_sales_announcement.tex}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_stacked_announcement_continuous_triangular_1000ft_full.pdf}
+    \caption{Event Study: Home Sale Prices --- Announcement Timing}
+    \figurenotes{Same specification as Figure~\ref{fig:event_study_sales} but using 2012 announcement timing rather than 2015 implementation timing. Triangular kernel weights with 1,000 ft bandwidth. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \label{fig:event_study_sales_announcement}
+\end{figure}

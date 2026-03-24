@@ -79,8 +79,8 @@ if (POST_WINDOW != "full") {
 if (!GEO_FE_LEVEL %in% c("segment", "ward_pair")) {
   stop("--geo_fe_level must be one of: segment, ward_pair", call. = FALSE)
 }
-if (CLUSTER_LEVEL != "block") {
-  stop("--cluster_level must be block for the within-block permit event-study runner.", call. = FALSE)
+if (!CLUSTER_LEVEL %in% c("block", "ward_pair")) {
+  stop("--cluster_level must be one of: block, ward_pair", call. = FALSE)
 }
 if (!CONTROL_SPEC %in% c("none", "baseline_demographics")) {
   stop("--control_spec must be one of: none, baseline_demographics", call. = FALSE)
@@ -151,7 +151,7 @@ panel_input <- switch(PANEL_MODE,
 )
 
 suffix <- sprintf(
-  "yearly_%s_%s_%s_%s_%s_%s_%dft_within_block_%s_clust_block",
+  "yearly_%s_%s_%s_%s_%s_%s_%dft_within_block_%s_clust_%s",
   PANEL_MODE,
   OUTCOME_FAMILY,
   DATE_BASIS,
@@ -159,7 +159,8 @@ suffix <- sprintf(
   TREATMENT_TYPE,
   WEIGHTING,
   as.integer(BANDWIDTH),
-  POST_WINDOW
+  POST_WINDOW,
+  gsub("_", "", CLUSTER_LEVEL)
 )
 
 if (CONTROL_SPEC != "none") {
@@ -537,7 +538,11 @@ fe_formula <- if (stacked_mode) {
 } else {
   if (GEO_FE_LEVEL == "segment") "block_id + segment_id_cohort^year" else "block_id + ward_pair_id^year"
 }
-cluster_formula <- if (stacked_mode) ~cohort_block_id else ~block_id
+cluster_formula <- if (CLUSTER_LEVEL == "block") {
+  if (stacked_mode) ~cohort_block_id else ~block_id
+} else {
+  if (stacked_mode) ~cohort_ward_pair else ~ward_pair_id
+}
 
 control_terms <- if (CONTROL_SPEC == "baseline_demographics") {
   paste(sprintf("%s:factor(year)", paste0(control_vars, "_z")), collapse = " + ")

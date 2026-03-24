@@ -1,0 +1,46 @@
+\section{Dynamic Supply Evidence: Permits After Redistricting}
+\label{sec:empirical_results_permits}
+
+The density evidence in Section~\ref{sec:empirical_results_density} is cross-sectional: it shows that development is less dense on the stricter side of ward boundaries at a point in time. This section provides dynamic evidence on the supply channel by asking whether the development pipeline itself responds when blocks are reassigned to different aldermen.
+
+\subsection{Design}
+
+I exploit the 2015 ward redistricting as a natural experiment. When ward boundaries are redrawn to equalize populations, some census blocks are reassigned to new aldermen while nearby blocks remain under the same representation. This creates a difference-in-differences comparison: blocks that switched aldermen (treated) versus nearby blocks that stayed in the same ward (control).
+
+The identifying assumption is that, absent redistricting, treated and control blocks would have followed parallel trends in permit activity. Two features of the design support this assumption. First, redistricting is driven by population equalization, not by housing market conditions on specific blocks. Second, I restrict the control group to blocks that remained in the \textit{origin} ward, ensuring that treated and control blocks shared the same pre-treatment regulatory environment. I also exclude control blocks in wards where the alderman changed via election during the sample window, to avoid contamination from electoral turnover.
+
+The outcome is the count of permits issued on each block in each year. I estimate the event study at the block-year level using Poisson pseudo-maximum likelihood (PPML), which handles the count nature of the outcome and accommodates zeros naturally. The main specification uses the 2015 redistricting cohort, a 1,000-foot bandwidth around ward boundaries, uniform weights, and the continuous treatment variable $\Delta\text{Strictness}_i$ (destination minus origin alderman strictness, measured in the year before redistricting). Block and border-pair-by-year fixed effects absorb time-invariant block characteristics and local trends.
+
+The key distinction is between high-discretion and low-discretion permits. If aldermanic strictness operates through the discretionary review channel described in Section~\ref{sec:data}, the effect should concentrate in high-discretion permits---the types that require meaningful aldermanic engagement---while leaving low-discretion permits (which follow expedited tracks that bypass aldermanic review) largely unaffected. This contrast provides a built-in placebo test.
+
+\subsection{Results}
+
+Figure~\ref{fig:permit_event_study} presents the main event study for high-discretion issued permits. The pre-period coefficients are centered around zero, supporting the parallel trends assumption. Following redistricting, blocks reassigned to stricter aldermen see a clear decline in high-discretion permit issuance. The effect builds over the first few post-redistricting years, consistent with the pipeline responding gradually as new projects enter the regulatory process under the new alderman.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf}
+    \caption{Permit Event Study: Effect of Alderman Strictness on High-Discretion Permits}
+    \figurenotes{Block-year PPML event study. Outcome is the count of high-discretion permits issued per block per year. 2015 redistricting cohort; sample restricted to blocks within 1,000 feet of ward boundaries with uniform weights. Continuous treatment: effect of a 1 SD increase in alderman strictness. Block and border-pair $\times$ year fixed effects. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the block level.}
+    \label{fig:permit_event_study}
+\end{figure}
+
+Figure~\ref{fig:permit_event_study_split} shows the continuous-split specification, which traces out the effect separately for blocks that moved to stricter versus more lenient aldermen. The pattern is symmetric: blocks assigned to stricter aldermen see fewer high-discretion permits, while blocks assigned to more lenient aldermen see more. Effects in opposite directions that both align with theory provide strong evidence against confounding.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf}
+    \caption{Permit Event Study: Continuous Split by Treatment Direction}
+    \figurenotes{Same specification as Figure~\ref{fig:permit_event_study}, estimated separately for blocks with $\Delta\text{Strictness} > 0$ (moved to stricter) and $\Delta\text{Strictness} < 0$ (moved to more lenient). 95\% confidence intervals based on standard errors clustered at the block level.}
+    \label{fig:permit_event_study_split}
+\end{figure}
+
+Table~\ref{tab:did_permit_2015_current} presents the pooled DID estimate, collapsing the post-period into a single coefficient. A one standard deviation increase in alderman strictness reduces high-discretion permit issuance by approximately 9\%, or about 0.09 log points in the PPML specification. This is a direct measure of how aldermanic discretion affects the development pipeline: stricter aldermen do not just build denser or less dense---they reduce the flow of projects that require their engagement.
+
+\input{../tasks/current_2015_sales_permit_specs/output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex}
+
+\subsection{Interpretation}
+
+The permit results serve a specific role in the paper's argument. The cross-sectional density evidence in Section~\ref{sec:empirical_results_density} establishes that there is less development on the strict side of ward boundaries, but it cannot separate aldermanic effects from developer sorting. The permit event study addresses this directly: when the same physical block is reassigned to a stricter alderman, the development pipeline on that block slows down. Developers did not move. The block did not change. Only the alderman changed.
+
+It is worth noting that the permits studied here are not simply inputs to the strictness index. The strictness score is constructed from processing \textit{times} on all high-discretion permits across a ward; the event study outcome is the \textit{count} of high-discretion permits issued on individual blocks. The score measures how an alderman treats permits in general; the event study measures whether the volume of development-related permitting responds when that alderman gains jurisdiction over new territory.

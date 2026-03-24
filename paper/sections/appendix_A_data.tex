@@ -53,7 +53,7 @@ Table~\ref{tab:stage1_residualization} reports the Stage 1 residualization regre
 \begin{table}[htbp]
     \caption{Stage 1 Residualization: Log Mean Processing Time on Ward Fundamentals}
     \label{tab:stage1_residualization}
-    \input{../tasks/create_alderman_strictness_scores/output/stage1_residualization_models.tex}
+    \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex}
 
     \footnotesize
     \textit{Notes:} Dependent variable is log mean permit processing time at the ward-month level. Observations weighted by the number of high-discretion permits. Community area fixed effects (77 areas) included but not shown. Month fixed effects absorb city-wide temporal variation in processing times.
@@ -138,4 +138,3 @@ Control blocks may experience treatment through electoral turnover (alderman cha
 
 \paragraph{Panel Aggregation.}
 Rental listings and home sales are aggregated separately to block-year and block-quarter levels. For rentals, I compute number of listings, mean rent, and median rent. For sales, I compute number of sales, mean price, and median price. The final panels stack the 2015 and 2023 cohorts with cohort-specific fixed effects. The 2015 cohort includes years 2010--2020, while the 2023 cohort includes years 2018--2025, providing a symmetric five-year window around each redistricting event.
-

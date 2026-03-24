@@ -1,0 +1,53 @@
+\section{Downstream Price Evidence: Home Sales}
+\label{sec:empirical_results_home_sales}
+
+The previous two sections establish that aldermanic strictness reduces both the density of new construction and the flow of high-discretion permits. If these supply restrictions are meaningful, standard urban economics predicts they should be capitalized into housing prices. This section examines whether that prediction holds, using the same redistricting variation as the permit event study.
+
+I treat the home sales evidence as suggestive rather than definitive. The price results are directionally consistent with the supply story, but they are noisier than the permit results and harder to separate from demand-side channels. A stricter alderman might raise prices not only by restricting supply but also by signaling neighborhood stability or quality to prospective buyers. I cannot fully distinguish these mechanisms in the current design.
+
+\subsection{Design}
+
+The identification strategy follows the same logic as Section~\ref{sec:empirical_results_permits}: I compare blocks reassigned to different aldermen during the 2015 redistricting to nearby blocks that remained under the same alderman. The specification is estimated at the transaction level:
+%
+\begin{equation}
+\label{eq:event_study_sales}
+\ln(\text{Price}_{it}) = \alpha_{gs} + \lambda_{gt} + X_{it}'\gamma + \sum_{\tau \neq -1} \beta_\tau \left( \Delta\text{Strictness}_i \times \mathbf{1}[t = \tau] \right) + \varepsilon_{it}
+\end{equation}
+%
+where $\ln(\text{Price}_{it})$ is the log sale price for transaction $i$ at event time $t$, $\alpha_{gs}$ is a border-pair-by-origin-side fixed effect, $\lambda_{gt}$ is a border-pair-by-year fixed effect, and $X_{it}$ includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage presence. The sample is restricted to transactions within 1,000 feet of ward boundaries with triangular kernel weights. Standard errors are clustered at the census block level.
+
+I focus on the 2015 redistricting cohort for home sales because the 2023 redistricting provides too little post-period data for meaningful inference. The sample window runs from 2010 to 2020, providing roughly five years on each side of the redistricting.
+
+\subsection{Results}
+
+Figure~\ref{fig:event_study_sales} presents the event study. Panel A shows the continuous treatment specification. The pre-period coefficients show some variation but are generally centered around zero. Following redistricting, home prices on blocks assigned to stricter aldermen rise gradually relative to the reference period, reaching approximately 2\% by year 5. The trajectory is consistent with a supply restriction channel operating through reduced new construction: the price response builds slowly as the housing market tightens, rather than jumping immediately at redistricting.
+
+Panel B shows the binary specification, allowing separate effects for blocks that moved to stricter versus more lenient aldermen. The pattern is directionally consistent with theory: positive price effects for blocks moving to stricter aldermen, slight declines for blocks moving to more lenient ones. But the confidence intervals are wide, and I cannot reject equal price trajectories across the two groups at conventional levels.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/current_2015_sales_permit_specs/output/event_study_disaggregate_yearly_cohort_2015_continuous_uniform_1000ft_full_geo_wardpair_clust_block.pdf}
+        \caption*{Panel A: Continuous Treatment}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/current_2015_sales_permit_specs/output/event_study_disaggregate_yearly_cohort_2015_continuous_split_uniform_1000ft_full_geo_wardpair_clust_block.pdf}
+        \caption*{Panel B: Continuous Split}
+    \end{minipage}
+    \caption{Event Study: Effect of Alderman Strictness on Home Sale Prices}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: continuous split (separate slopes for blocks with positive vs.\ negative $\Delta$Strictness). 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Uniform weights with 1,000 ft bandwidth. Includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \label{fig:event_study_sales}
+\end{figure}
+
+Table~\ref{tab:did_sales_2015_current} presents the pooled DID estimates, collapsing the post-period into a single coefficient. The point estimate is approximately 1--2\%, stable with and without hedonic controls. The fact that hedonic controls do not substantially change the estimate suggests the effect is not driven by changes in the composition of transacted properties.
+
+\input{../tasks/current_2015_sales_permit_specs/output/did_table_sales_2015_uniform_1000ft_geo_wardpair_clust_block.tex}
+
+\subsection{Interpretation}
+
+The home price evidence is consistent with the supply story but should not be asked to carry more weight than it can. The point estimates are economically plausible: a 1--2\% increase corresponds to roughly \$3,000--5,000 on the median home in the sample. The gradual post-redistricting trajectory matches the prediction from the time-to-build framework---prices respond slowly as reduced permitting translates into a tighter housing stock. And the direction of the effect aligns with both the density and permit results.
+
+But the estimates are imprecise, the sample is smaller than for permits, and I cannot fully rule out that part of the price response reflects demand rather than supply. Future work incorporating rental outcomes---where the supply channel should be even more direct---may help sharpen the price evidence. For now, the home sales results are best read as one more piece in a body of evidence whose strongest elements are the density discontinuity and the permit event study.
