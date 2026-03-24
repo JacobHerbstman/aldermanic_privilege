@@ -12,8 +12,9 @@ CONTROL_PDFS := $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),../outpu
 LOG_PDFS := $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),$(foreach weighting,$(MAIN_WEIGHTINGS),../output/event_study_yearly_$(panel)_$(outcome)_issue_log_continuous_$(weighting)_1000ft_within_block_full_clust_block.pdf)))
 WARD_PAIR_PDFS := $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),../output/event_study_yearly_$(panel)_$(outcome)_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf))
 WARD_PAIR_CONTROL_PDFS := $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),../output/event_study_yearly_$(panel)_$(outcome)_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_ctrl_baseline_demographics_geo_wardpair.pdf))
+PAPER_TABLES := ../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex
 
-all: $(MAIN_PDFS) $(ROBUST_PDFS) $(ROBUST_2000_PDFS) $(CONTROL_PDFS) $(LOG_PDFS)
+all: $(MAIN_PDFS) $(ROBUST_PDFS) $(ROBUST_2000_PDFS) $(CONTROL_PDFS) $(LOG_PDFS) $(PAPER_TABLES)
 
 define RUN_EVENT_STUDY_RULE
 ../output/event_study_yearly_$(1)_$(2)_issue_$(3)_continuous_$(4)_$(5)ft_within_block_full_clust_block$(7).pdf: run_event_study_permit.R ../input/permit_block_year_panel.parquet ../input/permit_block_year_panel_2015.parquet ../input/permit_block_year_panel_2023.parquet ../input/block_group_controls.csv | ../output
@@ -31,6 +32,9 @@ $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),$(foreach weighting,$(MA
 
 ../output/did_table_high_discretion_issue_ppml_uniform_1000ft_full_geo_wardpair.tex: run_did_permit.R ../input/permit_block_year_panel.parquet ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv | ../output
 	Rscript run_did_permit.R high_discretion issue ppml uniform 1000 full ward_pair
+
+../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex: did_table_permit_2015.R ../input/permit_block_year_panel_2015.parquet | ../output
+	Rscript did_table_permit_2015.R 1000 uniform block $@
 
 ../output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv | ../output
 	Rscript run_event_study_permit.R cohort_2015 high_discretion issue ppml continuous uniform 1000 within_block full ward_pair block none

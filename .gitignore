@@ -45,6 +45,18 @@ tasks/symlink_graph/output/graph.txt
 
 # ================== ADDITIONS ==================
 
+# Paper: ignore generated build artifacts, keep paper source tracked
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fff
+paper/*.fls
+paper/*.out
+paper/*.pdf
+paper/*.synctex.gz
+paper/*.ttt
+
 # Slides: ignore generated build artifacts, keep slide source tracked
 slides/*.aux
 slides/*.bbl
@@ -55,6 +67,7 @@ slides/*.log
 slides/*.nav
 slides/*.out
 slides/*.pdf
+slides/*.synctex.gz
 slides/*.snm
 slides/*.toc
 slides/images/*
@@ -66,4 +79,5 @@ slides/figures/*
 tmp/
 
 # Ignore auto-generated R graphics in any code/ folder
+Rplots.pdf
 **/code/Rplots.pdf
