@@ -62,30 +62,22 @@ stars <- function(p) {
 
 setFixest_dict(c(post_treat = "Post $\\times$ Strictness $\\Delta$"))
 table_lines <- c(
-  "\\begin{table}[!htbp]",
+  "\\begingroup",
   "\\centering",
   "\\small",
-  "\\caption{Effect of Alderman Strictness on High-Discretion Permits}",
-  "\\label{tab:did_permit_2015_current}",
   "\\begin{tabular}{lc}",
   "\\toprule",
   " & 2015 \\\\",
   "\\midrule",
   sprintf("Post $\\times$ Strictness $\\Delta$ & %.4f%s \\\\", estimate, stars(p_value)),
   sprintf(" & (%.4f) \\\\", std_error),
-  "\\midrule",
-  "Outcome & Issued High-Discretion Permits \\\\",
-  "Sample & 2015 Implementation Cohort \\\\",
-  sprintf("Bandwidth & %d ft \\\\", as.integer(bandwidth)),
-  sprintf("Weights & %s \\\\", tools::toTitleCase(weighting)),
-  "Fixed Effects & Block + Border-Pair $\\times$ Year \\\\",
-  sprintf("Cluster Level & %s \\\\", if (cluster_level == "block") "Block" else "Ward Pair"),
-  sprintf("Implied Effect & %.2f\\%% \\\\", effect_pct),
+  "\\\\",
+  "Block FE & $\\checkmark$ \\\\",
+  "Border-Pair $\\times$ Year FE & $\\checkmark$ \\\\",
   sprintf("N & %s \\\\", format(nobs(model), big.mark = ",")),
   "\\bottomrule",
   "\\end{tabular}",
-  sprintf("\\begin{minipage}{0.9\\linewidth}\\footnotesize Notes: Block-year PPML on 2015 implementation cohort observations within %d feet of the ward border, with %s weights, block fixed effects, and border-pair-by-year fixed effects. Standard errors clustered by %s.\\end{minipage}", as.integer(bandwidth), weighting, if (cluster_level == "block") "block" else "ward pair"),
-  "\\end{table}"
+  "\\par\\endgroup"
 )
 
 writeLines(table_lines, output_tex)

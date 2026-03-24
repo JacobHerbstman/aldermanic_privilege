@@ -14,7 +14,7 @@ The identification strategy follows the same logic as Section~\ref{sec:empirical
 \ln(\text{Price}_{it}) = \alpha_{gs} + \lambda_{gt} + X_{it}'\gamma + \sum_{\tau \neq -1} \beta_\tau \left( \Delta\text{Strictness}_i \times \mathbf{1}[t = \tau] \right) + \varepsilon_{it}
 \end{equation}
 %
-where $\ln(\text{Price}_{it})$ is the log sale price for transaction $i$ at event time $t$, $\alpha_{gs}$ is a border-pair-by-origin-side fixed effect, $\lambda_{gt}$ is a border-pair-by-year fixed effect, and $X_{it}$ includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage presence. The sample is restricted to transactions within 1,000 feet of ward boundaries with triangular kernel weights. Standard errors are clustered at the census block level.
+where $\ln(\text{Price}_{it})$ is the log sale price for transaction $i$ at event time $t$, $\alpha_{gs}$ is a border-pair-by-origin-side fixed effect, $\lambda_{gt}$ is a border-pair-by-year fixed effect, and $X_{it}$ includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage presence. The sample is restricted to transactions within 1,000 feet of ward boundaries with uniform weights. Standard errors are clustered at the census block level.
 
 I focus on the 2015 redistricting cohort for home sales because the 2023 redistricting provides too little post-period data for meaningful inference. The sample window runs from 2010 to 2020, providing roughly five years on each side of the redistricting.
 
@@ -44,7 +44,15 @@ Panel B shows the binary specification, allowing separate effects for blocks tha
 
 Table~\ref{tab:did_sales_2015_current} presents the pooled DID estimates, collapsing the post-period into a single coefficient. The point estimate is approximately 1--2\%, stable with and without hedonic controls. The fact that hedonic controls do not substantially change the estimate suggests the effect is not driven by changes in the composition of transacted properties.
 
-\input{../tasks/run_event_study_sales_disaggregate/output/did_table_sales_2015_uniform_1000ft_geo_wardpair_clust_block.tex}
+\begin{table}[htbp]
+    \caption{Effect of Alderman Strictness on Home Sale Prices}
+    \label{tab:did_sales_2015_current}
+
+    \input{../tasks/run_event_study_sales_disaggregate/output/did_table_sales_2015_uniform_1000ft_geo_wardpair_clust_block.tex}
+
+    \footnotesize
+    \textit{Notes:} Transaction-level regressions of log sale price using the 2015 implementation cohort, restricted to transactions with absolute distance to the ward boundary at most 1,000 feet and relative years $-5$ through $5$. Both columns use the same finite transaction sample. Column (2) adds hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage. Fixed effects are listed in the table. Uniform weighting. Standard errors clustered at the block level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
 
 \subsection{Interpretation}
 

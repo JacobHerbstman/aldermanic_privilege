@@ -1,0 +1,33 @@
+\section{Additional Permit Evidence}
+\label{sec:appendix_permits}
+
+This appendix collects the permit summary tables that complement the descriptive discussion in Section~\ref{sec:data}.
+
+\subsection{Permit Summary Statistics}
+\label{app:permit_summary_stats}
+
+Table~\ref{tab:permit_summary_stats} compares the high- and low-discretion permit groups used throughout the paper. High-discretion permits are much slower on average and display substantially more cross-alderman heterogeneity in mean processing times, consistent with the idea that these permits are most exposed to discretionary review.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Summary Statistics for High- and Low-Discretion Permits}
+    \label{tab:permit_summary_stats}
+    \input{../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex}
+
+    \footnotesize
+    \textit{Notes:} High-discretion permits are new construction, renovation/alteration, wrecking/demolition, porch construction, and reinstated permits. Low-discretion permits are all remaining permit types excluding signs. The alderman-level interquartile range is computed from the cross-section of alderman-specific mean processing times within each permit group.
+\end{table}
+
+\subsection{Permit Volume and Processing Time}
+
+Table~\ref{tab:permit_volume_correlation} reports the correlation between individual permit processing time and ward-month permit volume. The negative correlation for high-discretion permits is consistent with political and regulatory friction reducing throughput where discretionary review is most important, while the positive correlation for low-discretion permits suggests routine administrative scale rather than aldermanic discretion.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Processing Time and Permit Volume Correlation}
+    \label{tab:permit_volume_correlation}
+    \input{../tasks/permit_summary_stats/output/permit_processing_time_volume_correlation.tex}
+
+    \footnotesize
+    \textit{Notes:} Entries report the Pearson correlation between individual permit processing time and ward-month permit volume for each permit group.
+\end{table}

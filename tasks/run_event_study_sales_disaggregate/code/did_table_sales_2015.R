@@ -33,7 +33,7 @@ data <- read_parquet("../input/sales_transaction_panel_2015.parquet") %>%
     !is.na(ward_pair_side), ward_pair_side != "",
     !is.na(block_id), block_id != "",
     sale_price > 0,
-    if_all(all_of(hedonic_vars), ~ !is.na(.x))
+    if_all(all_of(hedonic_vars), ~ is.finite(.x))
   ) %>%
   mutate(
     weight = if (weighting == "triangular") pmax(0, 1 - dist_ft / bandwidth) else 1,
@@ -72,8 +72,7 @@ setFixest_dict(c(
 
 etable(
   list(m_no_ctrl, m_ctrl),
-  title = "Effect of Alderman Strictness on Home Sale Prices",
-  fitstat = ~n + r2,
+  fitstat = NULL,
   style.tex = style.tex("aer"),
   depvar = FALSE,
   digits = 3,
@@ -82,26 +81,45 @@ etable(
   order = c("Post", "Log"),
   drop.section = "fixef",
   extralines = list(
-    "_Sample" = c("2015 Implementation Cohort", "2015 Implementation Cohort"),
-    "_Hedonic Controls" = c("", "$\\checkmark$"),
-    "_Bandwidth" = c(sprintf("%d ft", as.integer(bandwidth)), sprintf("%d ft", as.integer(bandwidth))),
-    "_Weights" = c(tools::toTitleCase(weighting), tools::toTitleCase(weighting)),
-    "_Fixed Effects" = c("Border-Pair Side + Border-Pair $\\times$ Year", "Border-Pair Side + Border-Pair $\\times$ Year"),
-    "_Cluster Level" = c("Block", "Block"),
-    "_Implied Effect" = c(sprintf("%.2f\\%%", effect_no_ctrl), sprintf("%.2f\\%%", effect_ctrl))
+    "_Border-Pair Side FE" = c("$\\checkmark$", "$\\checkmark$"),
+    "_Border-Pair $\\times$ Year FE" = c("$\\checkmark$", "$\\checkmark$"),
+    "_N" = c(format(nobs(m_no_ctrl), big.mark = ","), format(nobs(m_ctrl), big.mark = ","))
   ),
   se.below = TRUE,
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-  notes = sprintf(
-    "Transaction-level regressions of log sale price on a post-period indicator interacted with change in alderman strictness, restricted to the 2015 implementation cohort and to transactions within %d feet of the ward border. Both columns use the same complete hedonic sample so the controls comparison is not driven by sample changes. %s weighting. Standard errors clustered by block.",
-    as.integer(bandwidth),
-    tools::toTitleCase(weighting)
-  ),
-  label = "tab:did_sales_2015_current",
-  float = TRUE,
+  float = FALSE,
   file = output_tex,
   replace = TRUE
 )
+
+table_tex <- readLines(output_tex)
+drop_patterns <- c(
+  "^\\s*Observations\\s*&",
+  "^\\s*R\\$\\^2\\$\\s*&",
+  "^\\s*Within R\\$\\^2\\$\\s*&"
+)
+table_tex <- table_tex[!vapply(
+  table_tex,
+  function(line) any(vapply(drop_patterns, grepl, logical(1), x = line)),
+  logical(1)
+)]
+centering_idx <- match("   \\centering", table_tex)
+if (!is.na(centering_idx)) {
+  table_tex <- append(
+    table_tex,
+    c(
+      "   \\small",
+      "   \\setlength{\\tabcolsep}{4pt}",
+      "   \\renewcommand{\\arraystretch}{0.97}"
+    ),
+    after = centering_idx
+  )
+}
+notes_idx <- match("   \\par \\raggedright ", table_tex)
+if (!is.na(notes_idx)) {
+  table_tex[notes_idx] <- "   \\par \\raggedright \\footnotesize "
+}
+writeLines(table_tex, output_tex)
 
 message(sprintf(
   "Sales DID | no controls = %.4f (%.2f%%) | with controls = %.4f (%.2f%%) | N = %s",

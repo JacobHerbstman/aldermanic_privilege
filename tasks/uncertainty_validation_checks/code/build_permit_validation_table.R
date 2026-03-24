@@ -191,7 +191,7 @@ tex_lines <- c(
   sprintf("%s & $%s$ \\\\", results$outcome_label[3], results$coef_display[3]),
   sprintf(" & %s \\\\", results$se_display[3]),
   "\\midrule",
-  sprintf("Ward-month observations & %s \\\\", n_display),
+  sprintf("N & %s \\\\", n_display),
   "\\bottomrule",
   "\\end{tabular}",
   "\\end{threeparttable}"

@@ -95,10 +95,8 @@ tex <- c(
   sprintf("  Stringency (1 SD) & %s \\\\", coef_str),
   sprintf("  & %s \\\\", se_str),
   "  \\\\",
-  sprintf("  Observations & %s \\\\", format(out$n_obs, big.mark = ",")),
-  "  Estimator & PPML \\\\",
-  "  FE Spec. & Seg. $\\times$ Year-Month \\\\",
-  sprintf("  Cluster Level & %s \\\\", cluster_label),
+  "  Segment $\\times$ Year-Month FE & $\\checkmark$ \\\\",
+  sprintf("  N & %s \\\\", format(out$n_obs, big.mark = ",")),
   "  \\bottomrule",
   "\\end{tabular}",
   "\\par\\endgroup"

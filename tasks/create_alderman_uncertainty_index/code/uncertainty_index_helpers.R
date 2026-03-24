@@ -523,7 +523,6 @@ write_stage1_regression_table <- function(model, output_path, stage1_outcome) {
   } else {
     "Log Processing Time"
   }
-
   etable(
     model,
     digits = 3,
@@ -545,11 +544,6 @@ write_stage1_regression_table <- function(model, output_path, stage1_outcome) {
       n_permits_wm = "Current Permits",
       n_permits_wm_l1 = "Lag Permits"
     ),
-    fixef.group = list(
-      "Year $\\times$ Month FE" = "month",
-      "Permit Type FE" = "permit_type_clean",
-      "Review Type FE" = "review_type_clean"
-    ),
     fitstat = ~ n + r2,
     file = output_path,
     replace = TRUE,
@@ -561,6 +555,46 @@ write_stage1_regression_table <- function(model, output_path, stage1_outcome) {
       yesNo = c("$\\checkmark$", "")
     )
   )
+
+  table_tex <- readLines(output_path)
+  obs_idx <- grep("^\\s*Observations\\s*&", table_tex)
+  n_line <- if (length(obs_idx) == 1) {
+    sub("^\\s*Observations", "   N", table_tex[obs_idx])
+  } else {
+    sprintf("   N & %s\\\\  ", format(nobs(model), big.mark = ","))
+  }
+  drop_idx <- c(
+    obs_idx,
+    grep("^\\s*R\\$\\^2\\$\\s*&", table_tex)
+  )
+  if (length(drop_idx) > 0) {
+    table_tex <- table_tex[-drop_idx]
+  }
+  table_tex <- sub(
+    "^\\s*month\\s*&",
+    "   Year $\\\\times$ Month FE    &",
+    table_tex
+  )
+  table_tex <- sub(
+    "^\\s*permit\\\\_type\\\\_clean\\s*&",
+    "   Permit Type FE            &",
+    table_tex
+  )
+  table_tex <- sub(
+    "^\\s*review\\\\_type\\\\_clean\\s*&",
+    "   Review Type FE            &",
+    table_tex
+  )
+  table_tex <- sub(
+    "^\\s*ca\\\\_id\\s*&",
+    "   Community Area FE         &",
+    table_tex
+  )
+  bottom_idx <- grep("^\\s*\\\\bottomrule", table_tex)
+  if (length(bottom_idx) == 1) {
+    table_tex <- append(table_tex, n_line, after = bottom_idx - 1L)
+  }
+  writeLines(table_tex, output_path)
 }
 
 write_stage2_regression_table <- function(model, output_path) {

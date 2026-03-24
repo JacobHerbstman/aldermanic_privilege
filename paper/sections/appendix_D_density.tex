@@ -1,6 +1,18 @@
 \section{Additional Density Results}
 \label{sec:appendix_density}
 
+\subsection{Border Segments}
+
+Figure~\ref{fig:pruned_border_segments} shows the ward-boundary segments that enter the density analysis after applying the pruning procedure described in the text. The retained segments span the city and clarify the local comparisons underlying the spatial discontinuity design.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../tasks/pruned_boundary_maps/output/pruned_boundaries_all_segments_by_era.pdf}
+    \caption{Ward-Boundary Segments Used in the Density Analysis}
+    \figurenotes{Map shows the ward-boundary segments used in the density regressions, by era. The pruning step removes boundary segments flagged as unsuitable for clean comparison because of confounding institutional or geographic features.}
+    \label{fig:pruned_border_segments}
+\end{figure}
+
 % ==============================================================================
 % COVARIATE BALANCE
 % ==============================================================================
@@ -22,7 +34,7 @@ Table~\ref{tab:fe_pair_year} replaces segment fixed effects with ward-pair fixed
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_pair_year_additive_clust_ward_pair.tex}
 
     \footnotesize
-    \textit{Notes:} Sample includes new multifamily construction (2--100 units) within 500 feet of ward boundaries, 2006--2024. All specifications include zoning-group, ward-pair, and construction-year fixed effects (additive). Strictness is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Sample includes new multifamily construction within 500 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 % ==============================================================================
@@ -39,7 +51,7 @@ Table~\ref{tab:fe_pruned} drops ward-pair-era combinations where confounding bou
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex}
 
     \footnotesize
-    \textit{Notes:} Same specification as Table~\ref{tab:segment_fe_500} but dropping ward-pair-era combinations flagged as potentially confounded. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Same specification and controls as Table~\ref{tab:segment_fe_500}, but dropping ward-pair-era combinations flagged as confounded in the pruning file. Regressions are unweighted. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 % ==============================================================================
@@ -56,7 +68,7 @@ Tables~\ref{tab:fe_estimates_250} and \ref{tab:fe_estimates_1000} present the ma
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
 
     \footnotesize
-    \textit{Notes:} Sample includes new multifamily construction (2--100 units) within 250 feet of ward boundaries, 2006--2024. All specifications include zoning-group, segment, and construction-year fixed effects (additive). Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Sample includes new multifamily construction within 250 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 \begin{table}[H]
@@ -66,7 +78,7 @@ Tables~\ref{tab:fe_estimates_250} and \ref{tab:fe_estimates_1000} present the ma
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw1000_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
 
     \footnotesize
-    \textit{Notes:} Sample includes new multifamily construction (2--100 units) within 1,000 feet of ward boundaries, 2006--2024. All specifications include zoning-group, segment, and construction-year fixed effects (additive). Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Sample includes new multifamily construction within 1,000 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 % ==============================================================================

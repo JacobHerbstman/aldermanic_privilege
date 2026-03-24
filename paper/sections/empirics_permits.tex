@@ -37,7 +37,15 @@ Figure~\ref{fig:permit_event_study_split} shows the continuous-split specificati
 
 Table~\ref{tab:did_permit_2015_current} presents the pooled DID estimate, collapsing the post-period into a single coefficient. A one standard deviation increase in alderman strictness reduces high-discretion permit issuance by approximately 9\%, or about 0.09 log points in the PPML specification. This is a direct measure of how aldermanic discretion affects the development pipeline: stricter aldermen do not just build denser or less dense---they reduce the flow of projects that require their engagement.
 
-\input{../tasks/run_event_study_permit/output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex}
+\begin{table}[htbp]
+    \caption{Effect of Alderman Strictness on High-Discretion Permits}
+    \label{tab:did_permit_2015_current}
+
+    \input{../tasks/run_event_study_permit/output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex}
+
+    \footnotesize
+    \textit{Notes:} Block-year PPML regression using the 2015 implementation cohort, restricted to census blocks with centroid-to-boundary distance at most 1,000 feet and relative years $-5$ through $5$. Outcome is the number of issued high-discretion permits. Fixed effects are listed in the table. Uniform weighting. Standard errors clustered at the block level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
 
 \subsection{Interpretation}
 

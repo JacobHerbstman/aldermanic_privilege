@@ -1,0 +1,54 @@
+\section{Alderman Fixed Effects and Index Validation}
+\label{sec:appendix_alderman_fe}
+
+This appendix provides additional detail on the construction and validation of the aldermanic strictness index.
+
+\subsection{Construction of the Strictness Index}
+
+Alderman strictness is measured using permit processing times from the high-discretion permit sample described in Section~\ref{subsec:permits_sample}, residualized to remove the influence of ward characteristics.
+
+\paragraph{Stage 1: Residualization.}
+I regress log mean processing time on ward geographic fundamentals (distance to CBD, lakefront share, CTA station density, community area shares), demographic controls (homeownership rate, population, median household income, racial composition), and month fixed effects.
+
+\paragraph{Stage 2: Alderman Fixed Effects.}
+Residualized processing times are regressed on alderman fixed effects, with observations weighted by the number of permits. The alderman fixed effect captures the systematic component of processing time attributable to the alderman.
+
+\paragraph{Empirical Bayes Shrinkage.}
+Raw alderman fixed effects are shrunk toward the grand mean using an empirical Bayes procedure: $\hat{\theta}_j^{\text{EB}} = B_j \cdot \hat{\theta}_j$, where $B_j = \hat{\tau}^2/(\hat{\tau}^2 + \hat{\sigma}_j^2)$ is the shrinkage factor.
+
+\paragraph{Index Standardization.}
+The final strictness index is standardized to have mean zero across aldermen. Higher values indicate stricter aldermen.
+
+Table~\ref{tab:stage1_residualization} reports the Stage 1 residualization regression. The dependent variable is log processing time for individual permits. The specification controls for ward fundamentals and lag permit volume while partialing out month, permit-type, and review-type fixed effects. This stage is meant to remove systematic differences in permit timing attributable to observable ward characteristics so that the resulting strictness score isolates the alderman-specific component.
+
+\begin{table}[htbp]
+    \caption{Stage 1 Residualization: Log Mean Processing Time on Ward Fundamentals}
+    \label{tab:stage1_residualization}
+    \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex}
+
+    \footnotesize
+    \textit{Notes:} Permit-level OLS regression from the baseline uncertainty-index specification. Covariates are median household income, racial shares, homeownership, population, distance to the CBD, distance to the lake, CTA station density, and lag permit volume. Fixed effects are listed in the table. Regressions are unweighted. Standard errors in parentheses. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
+
+\subsection{Validation of the Strictness Index}
+\label{app:strictness_validation}
+
+The strictness index is intended to capture alderman-specific regulatory frictions rather than purely ward-level conditions. Table~\ref{tab:permit_validation} shows that wards with higher stringency scores issue fewer high-discretion permits and exhibit more signs of project modification: a larger share of permits with any unit change and more units reduced per permit. Figure~\ref{fig:predecessor_successor_strictness} complements this by comparing predecessor and successor aldermen within the same ward. The weak relationship indicates that the index is not simply reflecting time-invariant ward characteristics.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Validation of the Strictness Index Using Permit Outcomes}
+    \label{tab:permit_validation}
+    \input{../tasks/uncertainty_validation_checks/output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex}
+
+    \footnotesize
+    \textit{Notes:} Ward-month regressions of permit outcomes on the standardized strictness index, using high-discretion permits and weights equal to ward-month permit counts. Outcomes are the number of high-discretion permits, the share of permits with any unit change, and units reduced per permit based on permit text. Standard errors in parentheses. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.72\textwidth]{../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf}
+    \caption{Predecessor and Successor Alderman Strictness Within the Same Ward}
+    \figurenotes{Each point compares the strictness score of an alderman to that of the predecessor or successor who represented the same ward in an adjacent period. The low correlation indicates that the strictness measure is not simply a persistent ward-level attribute.}
+    \label{fig:predecessor_successor_strictness}
+\end{figure}

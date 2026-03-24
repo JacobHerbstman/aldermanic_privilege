@@ -50,7 +50,7 @@ Table~\ref{tab:segment_fe_500} presents the results. A one standard deviation in
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
 
     \footnotesize
-    \textit{Notes:} Sample includes new multifamily construction (2--100 units) within 500 feet of ward boundaries, 2006--2024. All specifications include zoning-group, segment, and construction-year fixed effects (additive). Strictness is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Sample includes new multifamily construction within 500 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 To test whether aldermanic strictness is picking up smooth variation in neighborhood characteristics across the boundary, I run balance tests using the same specification. I assign each parcel to a census block group via spatial intersection with 2019 ACS geographies and regress eight demographic variables---racial composition, median income, education, homeownership, median rent, home values, and population density---on the strictness score. I find null results across all variables (see Appendix~\ref{sec:appendix_density}), supporting the interpretation that the density effects are driven by aldermanic behavior rather than sorting on observables.

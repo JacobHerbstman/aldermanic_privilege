@@ -23,6 +23,16 @@ The building permits data come from the City of Chicago's open data portal and i
 
 This distinction matters for two reasons. First, it determines which permits carry information about aldermanic frictions: processing times for low-discretion permits reflect administrative capacity but not political discretion, while processing times for high-discretion permits reflect both. Second, it provides a built-in placebo test for the permit event study in Section~\ref{sec:empirical_results_permits}: if redistricting to a stricter alderman affects permit activity through the discretionary channel, the effect should concentrate in high-discretion permits and leave low-discretion permits largely unchanged.
 
+Two descriptive patterns support this classification. High-discretion permits take substantially longer to process than low-discretion permits and exhibit much more cross-alderman dispersion in mean processing time. And across aldermen, longer average processing times for high-discretion permits are associated with lower permit volume, while low-discretion processing times are weakly positively correlated with permit volume. Figure~\ref{fig:permit_high_low_processing} visualizes the first pattern; Appendix~\ref{app:permit_summary_stats} reports the corresponding summary statistics and volume correlation.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\textwidth]{../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf}
+    \caption{Alderman-Level Mean Processing Time for High- and Low-Discretion Permits}
+    \figurenotes{Figure plots the distribution of alderman-level mean permit processing time separately for high- and low-discretion permit groups. High-discretion permits are new construction, renovation/alteration, wrecking/demolition, porch construction, and reinstated permits. Low-discretion permits are all remaining permit types excluding signs.}
+    \label{fig:permit_high_low_processing}
+\end{figure}
+
 For each permit, processing time is measured as the number of days between the application date and the issue date. Permits with missing dates or negative processing times are excluded.
 
 \subsection{Aldermanic Strictness Scores}
@@ -34,7 +44,7 @@ I construct the strictness score for each alderman in two steps. First, I residu
     \text{Processing Time}_{i} = \alpha + \mathbf{X}_w \beta + \gamma_{m} + \epsilon_{i}
 \end{equation}
 %
-where $\text{Processing Time}_{i}$ is the processing time of high-discretion permit $i$, $\mathbf{X}_w$ is a vector of ward-level fundamentals (median income, demographic composition, distance to the CBD, transit access, lakefront exposure), and $\gamma_m$ are month fixed effects. Table~\ref{tab:stage1_residualization} in Appendix~\ref{sec:appendix_data} reports this regression.
+where $\text{Processing Time}_{i}$ is the processing time of high-discretion permit $i$, $\mathbf{X}_w$ is a vector of ward-level fundamentals (median income, demographic composition, distance to the CBD, transit access, lakefront exposure), and $\gamma_m$ are month fixed effects. Table~\ref{tab:stage1_residualization} in Appendix~\ref{sec:appendix_alderman_fe} reports this regression.
 
 Second, I regress the residuals on alderman fixed effects:
 %
@@ -43,6 +53,8 @@ Second, I regress the residuals on alderman fixed effects:
 \end{equation}
 %
 The raw alderman fixed effects $\hat{\delta}_a$ are noisy, especially for aldermen with few permits. I apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to pull imprecise estimates toward the grand mean. The final scores are standardized to mean zero and unit standard deviation.
+
+Appendix~\ref{app:strictness_validation} reports additional validation for this measure. Higher stringency predicts fewer high-discretion permits and more evidence of regulatory friction in ward-month data, while the correlation between predecessor and successor aldermen within the same ward is low. Together these patterns support the interpretation of the index as an alderman-specific component of the development process rather than a fixed ward trait.
 
 Figure~\ref{fig:aldermanic_strictness_scores} shows the distribution of strictness scores, and Figure~\ref{fig:alderman_strictness_map} maps them across the city. Strict and lenient aldermen appear throughout Chicago's geography---on the North Side and South Side, in gentrifying neighborhoods and stable ones---confirming that the scores are not simply proxying for location.
 

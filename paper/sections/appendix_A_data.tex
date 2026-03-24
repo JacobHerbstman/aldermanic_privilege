@@ -31,34 +31,6 @@ For each permit, I compute processing time as the number of days between the app
 \paragraph{Ward Assignment.}
 Permits are assigned to wards based on the permit's geographic coordinates and the ward boundaries in effect at the time of application.
 
-\subsection{Alderman Strictness Scores}
-\label{subsec:strictness_scores}
-
-Alderman strictness is measured using permit processing times from the high-discretion permit sample described in Section~\ref{subsec:permits_sample}, residualized to remove the influence of ward characteristics.
-
-\paragraph{Stage 1: Residualization.}
-I regress log mean processing time on ward geographic fundamentals (distance to CBD, lakefront share, CTA station density, community area shares), demographic controls (homeownership rate, population, median household income, racial composition), and month fixed effects.
-
-\paragraph{Stage 2: Alderman Fixed Effects.}
-Residualized processing times are regressed on alderman fixed effects, with observations weighted by the number of permits. The alderman fixed effect captures the systematic component of processing time attributable to the alderman.
-
-\paragraph{Empirical Bayes Shrinkage.}
-Raw alderman fixed effects are shrunk toward the grand mean using an empirical Bayes procedure: $\hat{\theta}_j^{\text{EB}} = B_j \cdot \hat{\theta}_j$, where $B_j = \hat{\tau}^2/(\hat{\tau}^2 + \hat{\sigma}_j^2)$ is the shrinkage factor.
-
-\paragraph{Index Standardization.}
-The final strictness index is standardized to have mean zero across aldermen. Higher values indicate stricter aldermen.
-
-Table~\ref{tab:stage1_residualization} reports the Stage 1 residualization regression. The dependent variable is log mean processing time at the ward-month level, weighted by the number of permits. The coefficients reveal systematic relationships between ward characteristics and permit processing times. Wards closer to the CBD and with higher median incomes have shorter processing times, while wards with greater lakefront exposure, more CTA stations, and higher homeownership rates have longer processing times. These patterns are absorbed in the residualization, ensuring that the alderman fixed effects capture only the component of processing time attributable to the alderman rather than ward characteristics.
-
-\begin{table}[htbp]
-    \caption{Stage 1 Residualization: Log Mean Processing Time on Ward Fundamentals}
-    \label{tab:stage1_residualization}
-    \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex}
-
-    \footnotesize
-    \textit{Notes:} Dependent variable is log mean permit processing time at the ward-month level. Observations weighted by the number of high-discretion permits. Community area fixed effects (77 areas) included but not shown. Month fixed effects absorb city-wide temporal variation in processing times.
-\end{table}
-
 \subsection{New Construction: Sample Construction}
 \label{subsec:new_construction_sample}
 

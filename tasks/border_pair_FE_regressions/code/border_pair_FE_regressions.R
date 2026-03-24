@@ -505,16 +505,13 @@ for (yv in yvars) {
 if (length(models) == 0) stop("No models estimated; check yvars and data.")
 names(models) <- col_headers
 
-# ── 5) TITLE & TABLE OUTPUT ──────────────────────────────────────────────────
-table_title <- sprintf(
-  "Border FE estimates (bw = %s, donut >= %.0f ft, FE: %s, cluster: %s)",
-  if (is.finite(bw_ft)) sprintf("%.0f ft", bw_ft) else "all distances",
-  donut_ft, fe_spec, cluster_level
-)
+fe_rows <- lapply(names(fe_label_list), function(x) rep("$\\checkmark$", length(models)))
+names(fe_rows) <- paste0("_", names(fe_label_list))
+fe_rows[["_N"]] <- vapply(models, function(x) format(nobs(x), big.mark = ","), character(1))
 
 etable(models,
   keep = "Stringency Index",
-  fitstat = ~ n + myo + nwp,
+  fitstat = NULL,
   style.tex = style.tex("aer",
     model.format = "",
     fixef.title = "",
@@ -526,12 +523,26 @@ etable(models,
   headers = names(models),
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
   dict = rename_dict,
-  fixef.group = fe_label_list,
+  drop.section = "fixef",
+  extralines = fe_rows,
   float = FALSE,
   tex = TRUE,
   file = output_filename,
   replace = TRUE
 )
+
+table_tex <- readLines(output_filename)
+drop_patterns <- c(
+  "^\\s*Observations\\s*&",
+  "^\\s*R\\$\\^2\\$\\s*&",
+  "^\\s*Within R\\$\\^2\\$\\s*&"
+)
+table_tex <- table_tex[!vapply(
+  table_tex,
+  function(line) any(vapply(drop_patterns, grepl, logical(1), x = line)),
+  logical(1)
+)]
+writeLines(table_tex, output_filename)
 
 if (nzchar(fe_summary_output_path)) {
   write_csv(bind_rows(model_summaries), fe_summary_output_path)
