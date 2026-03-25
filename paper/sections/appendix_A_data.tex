@@ -10,7 +10,6 @@ The analysis draws on several administrative and proprietary datasets:
 \begin{itemize}[nosep]
 \item \textbf{Cook County Assessor Data}: Sales records, property assessments, and improvement characteristics for residential parcels in Cook County.
 \item \textbf{Chicago Building Permits}: Permit applications and processing records for high-discretion permit types requiring aldermanic approval.
-\item \textbf{RentHub Rental Listings}: Daily snapshots of rental listings in Chicago from 2014--2025.
 \item \textbf{Ward Boundary Shapefiles}: Official ward boundaries for three eras: pre-2015, 2015--2023, and post-2023.
 \item \textbf{Census Data}: American Community Survey block group demographics and 2010/2020 decennial census block boundaries.
 \end{itemize}
@@ -71,29 +70,6 @@ Sales are assigned to wards based on the ward boundaries in effect at the exact 
 \paragraph{Distance to Ward Boundary.}
 Distance calculations follow the same procedure as for new construction (Section~\ref{subsec:new_construction_sample}), using the Illinois East State Plane coordinate system (EPSG:3435) and computing signed distance based on relative alderman strictness.
 
-\subsection{Rental Listings: Sample Construction}
-\label{subsec:rental_sample}
-
-The rental listings data contain daily snapshots of active listings from RentHub. Raw variables include listing price, unit characteristics (bedrooms, bathrooms, year built), building type, amenity indicators (laundry, gym), and geographic coordinates.
-
-\paragraph{Sample Restrictions.}
-I apply the following restrictions to construct the analysis sample: (1) valid rental price (non-missing and positive); (2) valid geographic coordinates (non-missing latitude and longitude); and (3) successfully geocoded to a Chicago ward.
-
-\paragraph{Spatial Assignment.}
-Each listing is assigned to the relevant ward based on its file date and the ward boundaries in effect at that time. The ward map changes on May 18, 2015 (following the 2015 aldermanic elections) and May 15, 2023 (following the 2023 redistricting). Census block assignment uses 2010 blocks for the 2015 cohort and 2020 blocks for the 2023 cohort.
-
-\paragraph{Distance to Ward Boundary.}
-For each listing, I calculate the distance to the nearest ward boundary. Shared ward boundaries are constructed via polygon intersection, and the nearest boundary segment is identified using spatial indexing. Distance is computed in the Illinois East State Plane coordinate system (EPSG:3435) and expressed in feet. The signed distance is positive when the listing is in the stricter alderman's ward and negative otherwise.
-
-\paragraph{Building Type Classification.}
-Raw building type strings are classified as: Single-family (matches SFR, Single-family, house); Multi-family (matches APT, Apartment, Multi-family, duplex, triplex, fourplex); Condo (matches CON, Condo, Condominium); Townhouse (matches TH, Townhouse); and Other (all remaining).
-
-\subsection{Rental Listings: Summary Statistics}
-
-Table~\ref{tab:rental_sumstats} presents summary statistics for the rental listings sample.
-
-\input{../tasks/create_appendix_a_sumstats/output/rental_sumstats_table.tex}
-
 \subsection{Event Study Panel Construction}
 \label{subsec:event_study_panel}
 
@@ -109,4 +85,4 @@ Treatment intensity is measured using predetermined alderman strictness scores--
 Control blocks may experience treatment through electoral turnover (alderman changed via election rather than redistricting). I identify wards with alderman turnover between 2014--2015 and 2022--2023 and exclude non-switching blocks in these wards from the control group.
 
 \paragraph{Panel Aggregation.}
-Rental listings and home sales are aggregated separately to block-year and block-quarter levels. For rentals, I compute number of listings, mean rent, and median rent. For sales, I compute number of sales, mean price, and median price. The final panels stack the 2015 and 2023 cohorts with cohort-specific fixed effects. The 2015 cohort includes years 2010--2020, while the 2023 cohort includes years 2018--2025, providing a symmetric five-year window around each redistricting event.
+Home sales are aggregated to block-year and block-quarter levels. I compute number of sales, mean price, and median price. The final panels stack the 2015 and 2023 cohorts with cohort-specific fixed effects. The 2015 cohort includes years 2010--2020, while the 2023 cohort includes years 2018--2025, providing a symmetric five-year window around each redistricting event.

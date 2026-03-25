@@ -60,7 +60,9 @@ Table~\ref{tab:segment_fe_500} presents the results for the two main density out
 
 The density results are robust to a range of specification checks, which I summarize here with full results in Appendix~\ref{sec:appendix_density}.
 
-The most informative diagnostic is the median-gap split. The border discontinuity plots pool all ward boundaries together, which raises a natural concern that the discontinuity is driven entirely by boundaries where the gap in aldermanic stringency is especially large. Figure~\ref{fig:rd_median_split} splits the sample at the median stringency gap and estimates the discontinuity separately for each subsample. The jump is present on both sides of the median, though it is larger and more precisely estimated for above-median gaps, as one would expect if the treatment is real and the dose matters.
+The most informative diagnostic is the median-gap split. The border discontinuity plots pool all ward boundaries together and treat the ward switch as a binary treatment variable, not a continuous one as in the regressions.
+This raises the concern that marginal ward pairs with small stringency gaps, that may not be robust to specification changes, are driving the results. Figure~\ref{fig:rd_median_split} splits the sample into two groups based on whether the stringency gap between the two aldermen is above or below the median stringency gap. 
+For FAR, there is no visible discontinuity in the below-median sample, while the above-median sample shows a clear drop at the boundary. For DUPAC, both subsamples show a discontinuity, but it is much larger for the above-median group. This suggests that the magnitude of the stringency gap matters for the density response, and that the overall results are not being driven by marginal pairs with small gaps.
 
 \begin{figure}[htbp]
     \centering
@@ -90,7 +92,7 @@ The most informative diagnostic is the median-gap split. The border discontinuit
     \label{fig:rd_median_split}
 \end{figure}
 
-A placebo test provides further reassurance. If the discontinuity is genuinely driven by the ward boundary where aldermanic jurisdiction changes, it should not appear at arbitrary locations within wards. Figure~\ref{fig:rd_placebo} shifts the cutoff 500 feet into each ward and re-estimates the discontinuity. Neither placebo cutoff shows a significant jump, confirming that the density drop is specific to the actual boundary.
+I next provide a placebo test by moving the cutoff 500 feet into each ward. If the discontinuity is genuinely driven by the ward boundary where aldermanic jurisdiction changes, it should not appear at arbitrary locations within wards. Figure~\ref{fig:rd_placebo} shifts the cutoff 500 feet into each ward and re-estimates the discontinuity. Neither placebo cutoff shows a significant jump, confirming that the density drop is specific to the actual boundary.
 
 \begin{figure}[htbp]
     \centering
