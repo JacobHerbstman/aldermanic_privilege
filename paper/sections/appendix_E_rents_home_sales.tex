@@ -34,25 +34,3 @@ Figure~\ref{fig:rental_supply_channel_appendix} reports supporting evidence on t
     \figurenotes{Left panel plots the relationship between aldermanic stringency and distinct listed units near ward boundaries. The table reports the corresponding unweighted PPML regression on the pre-2023 side-panel sample within 500 feet of ward boundaries. The fixed effect shown in the table is a segment $\times$ year-month fixed effect. Standard errors clustered at the ward-pair level. A one standard deviation increase in stringency is associated with roughly 9 percent fewer listed units. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
     \label{fig:rental_supply_channel_appendix}
 \end{figure}
-
-\subsection{Event Study Without Hedonic Controls}
-
-Figure~\ref{fig:event_study_sales_no_hedonics} reports a complementary home-sales event study estimated without property-level hedonic controls. This specification is useful for checking whether the positive post-redistricting price path is purely a compositional artifact. The qualitative pattern remains similar, suggesting that the home-sales result is not driven entirely by changes in the mix of transacted properties.
-
-\begin{figure}[H]
-    \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_cohort_2015_continuous_triangular_1000ft_no_hedonics_full.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_cohort_2015_continuous_split_triangular_1000ft_no_hedonics_full.pdf}
-        \caption*{Panel B: Continuous Split}
-    \end{minipage}
-    \caption{Event Study: Home Sale Prices --- Without Hedonic Controls}
-    \figurenotes{2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Property-level hedonic controls excluded. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level.}
-    \label{fig:event_study_sales_no_hedonics}
-\end{figure}

@@ -1,18 +1,20 @@
-\section{Downstream Price Evidence: Home Sales}
+\section{Event Study: Home Sale Prices}
 \label{sec:empirical_results_home_sales}
 
 \subsection{Design}
 
-If the supply restrictions documented in the previous two sections are economically meaningful, they should eventually be capitalized into housing prices. To test this, I apply the same redistricting design from Section~\ref{sec:empirical_results_permits} to home sale prices. I treat the price evidence as suggestive rather than definitive: the results are directionally consistent with the supply story, but they are noisier than the permit results and harder to separate from demand-side channels.
+If the supply restrictions documented in the previous two sections are economically meaningful, they should eventually be capitalized into housing prices. To test this, I apply the same redistricting variation from Section~\ref{sec:empirical_results_permits} to home sale prices. I treat the price evidence as suggestive rather than definitive: the results are directionally consistent with the supply story, but they are noisier than the permit results and harder to separate from demand-side channels.
 
 The specification is estimated at the transaction level:
 %
 \begin{equation}
 \label{eq:event_study_sales}
-\ln(\text{Price}_{it}) = \alpha_{gs} + \lambda_{gt} + X_{it}'\gamma + \sum_{\tau \neq -1} \beta_\tau \left( \Delta\text{Stringency}_i \times \mathbf{1}[t = \tau] \right) + \varepsilon_{it}
+\ln(\text{Price}_{iy}) = \alpha_{gs} + \lambda_{gy} + X_{iy}'\gamma + \sum_{\tau \neq -1} \beta_\tau \left( \Delta\text{Stringency}_i \times \mathbf{1}[\text{event time} = \tau] \right) + \varepsilon_{iy}
 \end{equation}
 %
-where $\ln(\text{Price}_{it})$ is the log sale price for transaction $i$ at event time $t$, $\alpha_{gs}$ is a border-pair-by-origin-side fixed effect, $\lambda_{gt}$ is a border-pair-by-year fixed effect, and $X_{it}$ includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage presence. The sample is restricted to transactions within 1,000 feet of ward boundaries with uniform weights. Standard errors are clustered at the census block level. I focus on the 2015 redistricting cohort because the 2023 redistricting provides too little post-period data for meaningful inference. The sample window runs from 2010 to 2020, providing roughly five years on each side.
+where $\ln(\text{Price}_{iy})$ is the log sale price for transaction $i$ in sale year $y$, $\alpha_{gs}$ is a border-pair-by-origin-side fixed effect, $\lambda_{gy}$ is a border-pair-by-year fixed effect, and $X_{iy}$ includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage presence. The sample is restricted to transactions within 1,000 feet of ward boundaries with uniform weights. Standard errors are clustered at the census block level. I focus on the 2015 redistricting cohort because the 2023 redistricting provides too little post-period data for meaningful inference. The sample window runs from 2010 to 2020, providing roughly five years on each side.
+
+The fixed effects structure here differs from the permit specification in Section~\ref{sec:empirical_results_permits}, and the reason is the nature of the outcome data. Permits are counts that aggregate to a balanced block-year panel, making block fixed effects natural: every block is observed in every year, even if the count is zero. Home sales, by contrast, are individual transactions with property-level hedonic characteristics (square footage, age, lot size) that vary across properties within the same block and that matter for price. Many blocks have zero or one sale in a given year, so collapsing to block-year level would discard the hedonic variation that helps isolate the price effect from compositional changes. I therefore use border-pair-by-side fixed effects, which group blocks by their pre-redistricting ward and boundary location, combined with border-pair-by-year fixed effects that absorb local time-varying shocks. This means identification comes from comparing treated and control blocks on the same side of the same boundary in the same year, rather than from within-block variation over time as in the permit specification. The parallel trends assumption is correspondingly stronger: treated and control blocks must be on similar price trajectories absent redistricting. The flat pre-trends in the event study below support this assumption, and the hedonic controls help absorb compositional differences across blocks.
 
 \subsection{Results}
 
@@ -38,7 +40,7 @@ Panel B shows the continuous split, allowing separate slopes for blocks that exp
     \label{fig:event_study_sales}
 \end{figure}
 
-Table~\ref{tab:did_sales_2015_current} collapses the post-period into a single coefficient. The point estimate is approximately 1\%, stable with and without hedonic controls. The fact that hedonic controls do not substantially change the estimate suggests the effect is not driven by changes in the composition of transacted properties. Appendix Figure~\ref{fig:event_study_sales_no_hedonics} presents the full event study without hedonic controls and shows a qualitatively similar pattern.
+Table~\ref{tab:did_sales_2015_current} collapses the post-period into a single coefficient. The point estimate is approximately 1\%.
 
 \begin{table}[htbp]
     \caption{Effect of Alderman Stringency on Home Sale Prices}
@@ -52,6 +54,6 @@ Table~\ref{tab:did_sales_2015_current} collapses the post-period into a single c
 
 \subsection{Interpretation}
 
-The home price evidence is consistent with the supply story but should not be asked to carry more weight than it can. The gradual post-redistricting trajectory matches the prediction from the time-to-build framework, where prices respond slowly as reduced permitting translates into a tighter housing stock, and the direction of the effect aligns with both the density and permit results.
+The home price evidence is consistent with the supply story, but also with future expectations about housing supply in that ward. The gradual post-redistricting trajectory matches the prediction from the time-to-build framework, where prices respond slowly as reduced permitting translates into a tighter housing stock, and the direction of the effect aligns with both the density and permit results.
 
-But the estimates are imprecise, the sample is smaller than for permits, and I cannot fully rule out that part of the price response reflects demand rather than supply. A more stringent alderman might raise prices not only by restricting supply but also by signaling neighborhood stability or desirability to prospective buyers. Future work incorporating rental outcomes, where the supply channel should be more direct, may help sharpen the price evidence. For now, the home sales results are best read as one more piece in a body of evidence whose strongest elements are the density discontinuity and the permit event study.
+However, it is unclear if these price increases reflect the supply-side effects or other factors. For example, a more stringent alderman could signal less intense development in the future, which could raise home prices as they capitalize those expectations. 

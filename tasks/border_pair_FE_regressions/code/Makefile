@@ -1,7 +1,7 @@
 SHELL := bash
 include ../../shell_functions.make
 
-MAIN_YVARS := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)'
+MAIN_YVARS := 'log(density_far)' 'log(density_dupac)'
 
 all: \
 	../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex \
