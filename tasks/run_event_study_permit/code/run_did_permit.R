@@ -24,8 +24,8 @@ if (length(cli_args) >= 6) {
   )
 }
 
-if (!outcome_family %in% c("new_construction", "high_discretion", "unit_increase")) {
-  stop("--outcome_family must be one of: new_construction, high_discretion, unit_increase", call. = FALSE)
+if (!outcome_family %in% c("new_construction", "low_discretion_nosigns", "high_discretion", "unit_increase")) {
+  stop("--outcome_family must be one of: new_construction, low_discretion_nosigns, high_discretion, unit_increase", call. = FALSE)
 }
 if (!date_basis %in% c("issue", "application")) {
   stop("--date_basis must be one of: issue, application", call. = FALSE)
@@ -65,11 +65,13 @@ safe_scale <- function(x) {
 }
 
 outcome_catalog <- tibble(
-  outcome_family = c("new_construction", "new_construction", "high_discretion", "high_discretion", "unit_increase", "unit_increase"),
-  date_basis = c("issue", "application", "issue", "application", "issue", "application"),
+  outcome_family = c("new_construction", "new_construction", "low_discretion_nosigns", "low_discretion_nosigns", "high_discretion", "high_discretion", "unit_increase", "unit_increase"),
+  date_basis = c("issue", "application", "issue", "application", "issue", "application", "issue", "application"),
   outcome_var = c(
     "n_new_construction_issue",
     "n_new_construction_application",
+    "n_low_discretion_nosigns_issue",
+    "n_low_discretion_nosigns_application",
     "n_high_discretion_issue",
     "n_high_discretion_application",
     "n_unit_increase_issue",
@@ -78,6 +80,8 @@ outcome_catalog <- tibble(
   outcome_label = c(
     "Issued new-construction permits",
     "Issued new-construction permits (application timing)",
+    "Issued low-discretion permits (excluding signs)",
+    "Issued low-discretion permits (excluding signs, application timing)",
     "Issued high-discretion permits",
     "Issued high-discretion permits (application timing)",
     "Issued curated unit-increase permits",

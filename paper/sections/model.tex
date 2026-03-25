@@ -1,15 +1,10 @@
 \section{Conceptual Framework}
 \label{sec:model}
-
-This section presents a short framework that organizes the empirical predictions. The goal is not a full structural model but a transparent setup that makes clear why permit processing times are an informative proxy for regulatory stringency and why that stringency should affect density, permit activity, and prices.
-
-\subsection{Setup}
+\subsection{Developer Problem}
 
 Consider a developer choosing the scale $q \geq 0$ (units of housing) of a project on a given site. Construction costs are $C(q) = F + cq + \frac{\gamma}{2}q^2$ with $\gamma > 0$, so marginal costs are increasing in project size. Let $p$ denote the local price level, taken as given at the project level.
 
-The local regulatory environment $s$ maps into an \textit{effective time-to-build} $T(s)$ with $T'(s) > 0$. I interpret $T(s)$ broadly: it is a sufficient statistic for any combination of entitlement delay, redesign requirements, negotiation costs, financing frictions, and regulatory uncertainty that pushes expected revenue further into the future. If revenue arrives upon project completion, the developer's expected discounted revenue per unit is $e^{-rT(s)} p$, where $r$ is the relevant discount or financing rate.
-
-The developer solves
+The local regulatory environment $s$ maps into an \textit{effective time-to-build} $T(s)$ with $T'(s) > 0$. I interpret $T(s)$ broadly as a sufficient statistic for any combination of entitlement delay, redesign requirements, negotiation costs, financing frictions, and regulatory uncertainty that pushes expected revenue further into the future. If revenue arrives upon project completion, the developer's expected discounted revenue per unit is $e^{-rT(s)} p$, where $r$ is the relevant discount or financing rate. The developer solves
 \[
 \max_{q \geq 0} \;\; e^{-rT(s)} p \, q - C(q).
 \]
@@ -17,24 +12,14 @@ The first-order condition gives
 \[
 q^*(T(s), p) = \frac{e^{-rT(s)} p - c}{\gamma}
 \]
-when $e^{-rT(s)} p > c$, and $q^* = 0$ otherwise. The key comparative static is immediate: $\partial q^* / \partial T(s) < 0$. Longer or more burdensome regulatory processes reduce project scale and can flip marginal projects from ``build'' to ``don't build.''
+when $e^{-rT(s)} p > c$, and $q^* = 0$ otherwise. The key comparative static is $\partial q^* / \partial T(s) < 0$: longer or more burdensome regulatory processes reduce project scale and can flip marginal projects from ``build'' to ``don't build.''
 
-\subsection{Empirical Predictions}
+\subsection{From Developer Choices to Empirical Predictions}
 
-Aggregating across sites, total housing supply is $Q = \sum_i q_i^*$. Higher $T(s)$ reduces $Q$; with downward-sloping demand $p'(Q) < 0$, equilibrium prices rise. The framework generates three predictions that map directly to the empirical sections:
+Aggregating across sites, total housing supply is $Q = \sum_i q_i^*$. Higher $T(s)$ reduces $Q$; with downward-sloping demand $p'(Q) < 0$, equilibrium prices rise. The framework therefore predicts that sites in more stringent regulatory environments should have lower completed density and more projects that fall below the viability threshold (Section~\ref{sec:empirical_results_density}), that the flow of permits requiring meaningful regulatory review should fall when stringency increases (Section~\ref{sec:empirical_results_permits}), and that equilibrium housing costs should rise as supply contracts (Section~\ref{sec:empirical_results_home_sales}). These three predictions correspond to the three empirical sections of the paper.
 
-\begin{enumerate}
-    \item \textbf{Density} (Section~\ref{sec:empirical_results_density}): Sites facing longer effective time-to-build produce lower completed density, and more projects fall below the viability threshold.
+\subsection{Interpretation of the Stringency Score}
 
-    \item \textbf{Permit activity} (Section~\ref{sec:empirical_results_permits}): Higher regulatory stringency reduces the flow of high-discretion permits---the types that require meaningful review and are most exposed to aldermanic friction.
+The regulatory environment in this setup affects outcomes through the single sufficient index $rT(s)$, which acts as a multiplicative wedge $e^{-rT(s)}$ on the present value of revenue. This wedge governs both the developer's intensive-margin density choice and the extensive-margin decision to build or not.
 
-    \item \textbf{Prices} (Section~\ref{sec:empirical_results_home_sales}): Supply restrictions from stricter regulatory environments raise equilibrium housing costs.
-\end{enumerate}
-
-Two additional predictions are worth noting. First, the effects should be stronger when financing costs are higher, since the penalty of regulatory delay scales with $r$. Second, completed projects in stricter environments may look ``better'' on observables---only high-return projects survive the viability screen---even as overall supply falls.
-
-\subsection{Interpretation of the Strictness Score}
-
-In this setup, the regulatory environment affects outcomes through the single sufficient index $rT(s)$: regulation acts as a multiplicative wedge $e^{-rT(s)}$ on the present value of revenue. This is exactly the object that matters for the developer's density choice and the build/no-build margin.
-
-The aldermanic strictness score I construct in Section~\ref{subsec:strictness} is an empirical proxy for $T(s)$. It measures the effective delay that each alderman imposes on the development process, after removing variation attributable to ward characteristics. Other dimensions of regulatory friction---impact fees, design mandates, community benefit requirements---enter as additional costs in $C(\cdot)$ and would reinforce the same qualitative predictions. The core logic is that longer observed processing times for high-discretion permits are a direct and interpretable signal of the regulatory wedge that lowers density, reduces aggregate supply, and raises prices.
+The aldermanic stringency score I construct in Section~\ref{subsec:strictness} is an empirical proxy for $T(s)$, and I interpret it as a ``sufficient statistic'' for capturing the various dimensions of regulatory friction imposed by the alderman. It measures the effective delay each alderman imposes on the development process, after removing variation attributable to ward characteristics. Other dimensions of regulatory friction, such as impact fees, design mandates, or community benefit requirements, would enter as additional costs in $C(\cdot)$ and reinforce the same qualitative predictions. The core logic is that longer observed processing times for high-discretion permits are a direct and interpretable signal of the regulatory wedge that lowers density, reduces aggregate supply, and in equilibrium raises prices.

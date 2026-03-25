@@ -9,6 +9,8 @@ source("../../_lib/canonical_geometry_helpers.R")
 
 sf_use_s2(FALSE)
 
+signs_permit_type <- "PERMIT - SIGNS"
+
 make_pair_dash <- function(a, b) {
   normalize_pair_id(a, b, sep = "-")
 }
@@ -130,17 +132,21 @@ permit_outcome_meta <- tibble(
     "new_construction",
     "new_construction_demolition",
     "new_construction_demolition",
+    "low_discretion_nosigns",
+    "low_discretion_nosigns",
     "high_discretion",
     "high_discretion",
     "unit_increase",
     "unit_increase"
   ),
-  date_basis = c("issue", "application", "issue", "application", "issue", "application", "issue", "application"),
+  date_basis = c("issue", "application", "issue", "application", "issue", "application", "issue", "application", "issue", "application"),
   count_var = c(
     "n_new_construction_issue",
     "n_new_construction_application",
     "n_new_construction_demolition_issue",
     "n_new_construction_demolition_application",
+    "n_low_discretion_nosigns_issue",
+    "n_low_discretion_nosigns_application",
     "n_high_discretion_issue",
     "n_high_discretion_application",
     "n_unit_increase_issue",
@@ -151,12 +157,16 @@ permit_outcome_meta <- tibble(
     "is_new_construction_issued",
     "is_new_construction_demolition_issued",
     "is_new_construction_demolition_issued",
+    "is_low_discretion_nosigns_issued",
+    "is_low_discretion_nosigns_issued",
     "is_high_discretion_issued",
     "is_high_discretion_issued",
     "is_unit_increase_issued",
     "is_unit_increase_issued"
   ),
   date_col = c(
+    "issue_year",
+    "application_year",
     "issue_year",
     "application_year",
     "issue_year",
@@ -221,6 +231,8 @@ build_panel_with_counts <- function(base_df, start_year, end_year, cohort_year, 
       has_new_construction_application = as.integer(n_new_construction_application > 0L),
       has_new_construction_demolition_issue = as.integer(n_new_construction_demolition_issue > 0L),
       has_new_construction_demolition_application = as.integer(n_new_construction_demolition_application > 0L),
+      has_low_discretion_nosigns_issue = as.integer(n_low_discretion_nosigns_issue > 0L),
+      has_low_discretion_nosigns_application = as.integer(n_low_discretion_nosigns_application > 0L),
       has_high_discretion_issue = as.integer(n_high_discretion_issue > 0L),
       has_high_discretion_application = as.integer(n_high_discretion_application > 0L),
       has_unit_increase_issue = as.integer(n_unit_increase_issue > 0L),
@@ -455,14 +467,14 @@ blocks_2020 <- read_blocks("../input/census_blocks_2020.csv", "GEOID20", st_crs(
 message("Building unit-increase audit...")
 unit_audit <- build_unit_increase_audit()
 
-message("Loading issued high-discretion permits...")
+message("Loading issued permits...")
 permits_clean <- st_read(
   "../input/building_permits_clean.gpkg",
   query = paste(
     "SELECT id, permit_type, high_discretion, permit_issued,",
     "application_start_date_ym, issue_date_ym, geom",
     "FROM building_permits_clean",
-    "WHERE high_discretion = 1 AND permit_issued = 1"
+    "WHERE permit_issued = 1"
   ),
   quiet = TRUE
 ) %>%
@@ -493,6 +505,7 @@ permits_2010[, `:=`(
   is_new_construction_demolition_issued = as.integer(
     permit_type == "PERMIT - NEW CONSTRUCTION" | grepl("WRECKING|DEMOLITION", permit_type)
   ),
+  is_low_discretion_nosigns_issued = as.integer(high_discretion == 0 & permit_type != signs_permit_type),
   is_high_discretion_issued = as.integer(high_discretion == 1),
   is_unit_increase_issued = as.integer(unit_increase_included == 1)
 )]
@@ -509,6 +522,7 @@ permits_2020[, `:=`(
   is_new_construction_demolition_issued = as.integer(
     permit_type == "PERMIT - NEW CONSTRUCTION" | grepl("WRECKING|DEMOLITION", permit_type)
   ),
+  is_low_discretion_nosigns_issued = as.integer(high_discretion == 0 & permit_type != signs_permit_type),
   is_high_discretion_issued = as.integer(high_discretion == 1),
   is_unit_increase_issued = as.integer(unit_increase_included == 1)
 )]

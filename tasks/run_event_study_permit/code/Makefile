@@ -2,7 +2,7 @@ SHELL := bash
 include ../../shell_functions.make
 
 PANELS := cohort_2015 stacked_implementation
-OUTCOMES := new_construction high_discretion
+OUTCOMES := high_discretion
 MAIN_WEIGHTINGS := triangular uniform
 
 MAIN_PDFS := $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),$(foreach weighting,$(MAIN_WEIGHTINGS),../output/event_study_yearly_$(panel)_$(outcome)_issue_ppml_continuous_$(weighting)_1000ft_within_block_full_clust_block.pdf)))
@@ -13,17 +13,14 @@ LOG_PDFS := $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),$(foreach we
 WARD_PAIR_PDFS := $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),../output/event_study_yearly_$(panel)_$(outcome)_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf))
 WARD_PAIR_CONTROL_PDFS := $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),../output/event_study_yearly_$(panel)_$(outcome)_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_ctrl_baseline_demographics_geo_wardpair.pdf))
 PAPER_TABLES := ../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex
-PERMIT_SUBTYPE_ROBUSTNESS_OUTPUTS := \
-	../output/event_study_yearly_cohort_2015_new_construction_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf \
-	../output/event_study_yearly_stacked_implementation_new_construction_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf \
-	../output/event_study_yearly_cohort_2015_new_construction_demolition_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf \
-	../output/event_study_yearly_stacked_implementation_new_construction_demolition_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf \
-	../output/did_table_permit_2015_new_construction_issue_ppml_uniform_1000ft_geo_wardpair.tex \
-	../output/did_table_permit_2015_new_construction_demolition_issue_ppml_uniform_1000ft_geo_wardpair.tex
+LOW_DISCRETION_PLACEBO_OUTPUTS := \
+	../output/event_study_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf \
+	../output/event_study_yearly_stacked_implementation_low_discretion_nosigns_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf \
+	../output/did_table_permit_2015_low_discretion_nosigns_issue_ppml_uniform_1000ft_geo_wardpair.tex
 
 all: $(MAIN_PDFS) $(ROBUST_PDFS) $(ROBUST_2000_PDFS) $(CONTROL_PDFS) $(LOG_PDFS) $(PAPER_TABLES)
 
-permit_subtype_robustness: $(PERMIT_SUBTYPE_ROBUSTNESS_OUTPUTS)
+low_discretion_placebo: $(LOW_DISCRETION_PLACEBO_OUTPUTS)
 
 define RUN_EVENT_STUDY_RULE
 ../output/event_study_yearly_$(1)_$(2)_issue_$(3)_continuous_$(4)_$(5)ft_within_block_full_clust_block$(7).pdf: run_event_study_permit.R ../input/permit_block_year_panel.parquet ../input/permit_block_year_panel_2015.parquet ../input/permit_block_year_panel_2023.parquet ../input/block_group_controls.csv | ../output
@@ -45,11 +42,8 @@ $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),$(foreach weighting,$(MA
 ../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex: did_table_permit_2015.R ../input/permit_block_year_panel_2015.parquet | ../output
 	Rscript did_table_permit_2015.R high_discretion 1000 uniform block $@
 
-../output/did_table_permit_2015_new_construction_issue_ppml_uniform_1000ft_geo_wardpair.tex: did_table_permit_2015.R ../input/permit_block_year_panel_2015.parquet | ../output
-	Rscript did_table_permit_2015.R new_construction 1000 uniform block $@
-
-../output/did_table_permit_2015_new_construction_demolition_issue_ppml_uniform_1000ft_geo_wardpair.tex: did_table_permit_2015.R ../input/permit_block_year_panel_2015.parquet | ../output
-	Rscript did_table_permit_2015.R new_construction_demolition 1000 uniform block $@
+../output/did_table_permit_2015_low_discretion_nosigns_issue_ppml_uniform_1000ft_geo_wardpair.tex: did_table_permit_2015.R ../input/permit_block_year_panel_2015.parquet | ../output
+	Rscript did_table_permit_2015.R low_discretion_nosigns 1000 uniform block $@
 
 ../output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv | ../output
 	Rscript run_event_study_permit.R cohort_2015 high_discretion issue ppml continuous uniform 1000 within_block full ward_pair block none
@@ -63,17 +57,11 @@ $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),$(foreach weighting,$(MA
 ../output/event_study_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_uniform_500ft_within_block_full_clust_block_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel.parquet ../input/block_group_controls.csv | ../output
 	Rscript run_event_study_permit.R stacked_implementation high_discretion issue ppml continuous uniform 500 within_block full ward_pair block none
 
-../output/event_study_yearly_cohort_2015_new_construction_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv | ../output
-	WRITE_SIDECARS=1 Rscript run_event_study_permit.R cohort_2015 new_construction issue ppml continuous uniform 1000 within_block full ward_pair block none
+../output/event_study_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv | ../output
+	Rscript run_event_study_permit.R cohort_2015 low_discretion_nosigns issue ppml continuous uniform 1000 within_block full ward_pair block none
 
-../output/event_study_yearly_stacked_implementation_new_construction_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel.parquet ../input/block_group_controls.csv | ../output
-	WRITE_SIDECARS=1 Rscript run_event_study_permit.R stacked_implementation new_construction issue ppml continuous uniform 1000 within_block full ward_pair block none
-
-../output/event_study_yearly_cohort_2015_new_construction_demolition_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv | ../output
-	WRITE_SIDECARS=1 Rscript run_event_study_permit.R cohort_2015 new_construction_demolition issue ppml continuous uniform 1000 within_block full ward_pair block none
-
-../output/event_study_yearly_stacked_implementation_new_construction_demolition_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel.parquet ../input/block_group_controls.csv | ../output
-	WRITE_SIDECARS=1 Rscript run_event_study_permit.R stacked_implementation new_construction_demolition issue ppml continuous uniform 1000 within_block full ward_pair block none
+../output/event_study_yearly_stacked_implementation_low_discretion_nosigns_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel.parquet ../input/block_group_controls.csv | ../output
+	Rscript run_event_study_permit.R stacked_implementation low_discretion_nosigns issue ppml continuous uniform 1000 within_block full ward_pair block none
 
 ../output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_ctrl_baseline_demographics_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv | ../output
 	Rscript run_event_study_permit.R cohort_2015 high_discretion issue ppml continuous uniform 1000 within_block full ward_pair block baseline_demographics
@@ -98,12 +86,6 @@ $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),$(foreach weighting,$(MA
 
 ../output/event_study_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_split_uniform_500ft_within_block_full_clust_block_geo_wardpair.pdf ../output/event_study_combined_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_split_uniform_500ft_within_block_full_clust_block_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel.parquet ../input/block_group_controls.csv | ../output
 	Rscript run_event_study_permit.R stacked_implementation high_discretion issue ppml continuous_split uniform 500 within_block full ward_pair block none
-
-../output/event_study_yearly_cohort_2015_new_construction_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_ctrl_baseline_demographics_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv | ../output
-	Rscript run_event_study_permit.R cohort_2015 new_construction issue ppml continuous uniform 1000 within_block full ward_pair block baseline_demographics
-
-../output/event_study_yearly_stacked_implementation_new_construction_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_ctrl_baseline_demographics_geo_wardpair.pdf: run_event_study_permit.R ../input/permit_block_year_panel.parquet ../input/block_group_controls.csv | ../output
-	Rscript run_event_study_permit.R stacked_implementation new_construction issue ppml continuous uniform 1000 within_block full ward_pair block baseline_demographics
 
 ../input/permit_block_year_panel.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel.parquet | ../input
 	ln -sf "$<" "$@"

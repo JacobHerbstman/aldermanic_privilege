@@ -1,54 +1,101 @@
-\section{Dynamic Supply Evidence: Permits After Redistricting}
+\section{Event Study: Permits}
 \label{sec:empirical_results_permits}
 
-The density evidence in Section~\ref{sec:empirical_results_density} is cross-sectional: it shows that development is less dense on the stricter side of ward boundaries at a point in time. This section provides dynamic evidence on the supply channel by asking whether the development pipeline itself responds when blocks are reassigned to different aldermen.
+\subsection{Redistricting Design}
 
-\subsection{Design}
+The density evidence in Section~\ref{sec:empirical_results_density} is cross-sectional: it shows that development is less dense on the more stringent side of ward boundaries, but it cannot separate the causal effect of aldermanic stringency from developer sorting. To provide dynamic evidence on the supply channel, I exploit the 2015 ward redistricting, which reassigned census blocks to new aldermen for reasons unrelated to housing market conditions.
 
-I exploit the 2015 ward redistricting as a natural experiment. When ward boundaries are redrawn to equalize populations, some census blocks are reassigned to new aldermen while nearby blocks remain under the same representation. This creates a difference-in-differences comparison: blocks that switched aldermen (treated) versus nearby blocks that stayed in the same ward (control).
+Ward boundaries in Chicago are redrawn following each decennial census to equalize populations across wards. The 2015 redistricting (based on the 2010 Census) reassigned many census blocks to new aldermen while leaving nearby blocks under the same representation. This creates a difference-in-differences comparison between blocks that switched aldermen (treated) and nearby blocks that stayed in the same ward (control). The identifying assumption is that, absent the change in aldermanic representation, treated and control blocks would have followed parallel trends in permit activity.
 
-The identifying assumption is that, absent redistricting, treated and control blocks would have followed parallel trends in permit activity. Two features of the design support this assumption. First, redistricting is driven by population equalization, not by housing market conditions on specific blocks. Second, I restrict the control group to blocks that remained in the \textit{origin} ward, ensuring that treated and control blocks shared the same pre-treatment regulatory environment. I also exclude control blocks in wards where the alderman changed via election during the sample window, to avoid contamination from electoral turnover.
+Several features of the design support this assumption. Redistricting is driven by population equalization, not by housing market conditions on specific blocks. To strengthen the counterfactual, I restrict the control group to blocks that remained in the \textit{origin} ward, so treated and control blocks shared the same pre-treatment regulatory environment. I also exclude control blocks in wards where the alderman changed via election during the sample window, avoiding contamination from electoral turnover. Figure~\ref{fig:identification_example} illustrates the design for one ward pair, showing how blocks are classified into treatment and control groups based on the change in alderman stringency. Figure~\ref{fig:treatment_control_maps} shows the citywide distribution of treated and control blocks.
 
-The outcome is the count of permits issued on each block in each year. I estimate the event study at the block-year level using Poisson pseudo-maximum likelihood (PPML), which handles the count nature of the outcome and accommodates zeros naturally. The main specification uses the 2015 redistricting cohort, a 1,000-foot bandwidth around ward boundaries, uniform weights, and the continuous treatment variable $\Delta\text{Strictness}_i$ (destination minus origin alderman strictness, measured in the year before redistricting). Block and border-pair-by-year fixed effects absorb time-invariant block characteristics and local trends.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/ward_pair_before_after_13-23.pdf}
+    \caption{Identification Example: Ward Pair 13--23 (2015 Redistricting)}
+    \figurenotes{Top panel shows ward assignments before redistricting (2014 boundaries), bottom panel shows assignments after redistricting (2015 boundaries). Blocks that switch wards are classified as treated; blocks that remain in the origin ward serve as controls. Sample restricted to blocks within 1,000 feet of ward boundaries.}
+    \label{fig:identification_example}
+\end{figure}
 
-The key distinction is between high-discretion and low-discretion permits. If aldermanic strictness operates through the discretionary review channel described in Section~\ref{sec:data}, the effect should concentrate in high-discretion permits---the types that require meaningful aldermanic engagement---while leaving low-discretion permits (which follow expedited tracks that bypass aldermanic review) largely unaffected. This contrast provides a built-in placebo test.
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/treatment_control_map_2015.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/treatment_control_map_2023.pdf}
+    \end{minipage}
+    \caption{Treatment and Control Blocks: Citywide Distribution}
+    \figurenotes{Geographic distribution of treated and control blocks for the 2015 redistricting (left) and 2023 redistricting (right). Red indicates blocks that moved to a more stringent alderman, blue indicates blocks that moved to a more lenient alderman, and gray indicates control blocks that did not switch wards. Sample restricted to blocks within 1,000 feet of ward boundaries. Controls exclude wards with aldermanic turnover via election.}
+    \label{fig:treatment_control_maps}
+\end{figure}
+
+\subsection{Estimating Equation}
+
+The outcome is the count of high-discretion permits issued on each census block in each year. I estimate the event study using Poisson pseudo-maximum likelihood (PPML), which handles the count outcome and accommodates zeros naturally:
+%
+\begin{equation}
+\label{eq:event_study_permits}
+E[Y_{bt}] = \exp\!\left( \alpha_b + \lambda_{gt} + \sum_{\tau \neq -1} \beta_\tau \left( \Delta\text{Stringency}_b \times \mathbf{1}[t = \tau] \right) \right)
+\end{equation}
+%
+where $Y_{bt}$ is the count of high-discretion permits issued on block $b$ in year $t$, $\alpha_b$ is a block fixed effect, and $\lambda_{gt}$ is a border-pair-by-year fixed effect. The treatment variable $\Delta\text{Stringency}_b$ is the change in alderman stringency for block $b$, defined as the destination alderman's score minus the origin alderman's score, both measured in the year before redistricting.
+
+The block fixed effects are the key feature distinguishing this specification from the home sales event study in Section~\ref{sec:empirical_results_home_sales}. Because block fixed effects absorb all time-invariant characteristics of each block, identification comes from \textit{within-block} variation over time: the same physical block, before and after its alderman changes. The border-pair-by-year fixed effects absorb any local shocks that affect all blocks near a given ward boundary in a given year, ensuring that the comparison is between blocks near the same boundary that experienced different changes in aldermanic representation.
+
+The sample uses the 2015 redistricting cohort, a 1,000-foot bandwidth around ward boundaries, and uniform weights. Standard errors are clustered at the census block level.
 
 \subsection{Results}
 
-Figure~\ref{fig:permit_event_study} presents the main event study for high-discretion issued permits. The pre-period coefficients are centered around zero, supporting the parallel trends assumption. Following redistricting, blocks reassigned to stricter aldermen see a clear decline in high-discretion permit issuance. The effect builds over the first few post-redistricting years, consistent with the pipeline responding gradually as new projects enter the regulatory process under the new alderman.
+Figure~\ref{fig:permit_event_study} presents the main result. The coefficients shift downward after redistricting, consistent with fewer high-discretion permits on blocks assigned to more stringent aldermen. Table~\ref{tab:did_permit_2015_current} summarizes the average post-period effect as about a 9\% decline in high-discretion permit issuance.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf}
-    \caption{Permit Event Study: Effect of Alderman Strictness on High-Discretion Permits}
-    \figurenotes{Block-year PPML event study. Outcome is the count of high-discretion permits issued per block per year. 2015 redistricting cohort; sample restricted to blocks within 1,000 feet of ward boundaries with uniform weights. Continuous treatment: effect of a 1 SD increase in alderman strictness. Block and border-pair $\times$ year fixed effects. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the block level.}
+    \caption{Permit Event Study: Effect of Alderman Stringency on High-Discretion Permits}
+    \figurenotes{Block-year PPML event study. Outcome is the count of high-discretion permits issued per block per year. 2015 redistricting cohort; sample restricted to blocks within 1,000 feet of ward boundaries with uniform weights. Continuous treatment: effect of a 1 SD increase in alderman stringency. Block and border-pair $\times$ year fixed effects. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the block level.}
     \label{fig:permit_event_study}
 \end{figure}
 
-Figure~\ref{fig:permit_event_study_split} shows the continuous-split specification, which traces out the effect separately for blocks that moved to stricter versus more lenient aldermen. The pattern is symmetric: blocks assigned to stricter aldermen see fewer high-discretion permits, while blocks assigned to more lenient aldermen see more. Effects in opposite directions that both align with theory provide strong evidence against confounding.
+Figure~\ref{fig:permit_event_study_split} traces the effect separately for blocks that moved to more stringent versus more lenient aldermen. The pattern is symmetric: blocks assigned to more stringent aldermen see fewer high-discretion permits, while blocks assigned to more lenient aldermen see more. Effects in opposite directions that both align with theory provide strong evidence against confounding, since it is difficult to generate two effects with opposite signs from a single omitted variable.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf}
     \caption{Permit Event Study: Continuous Split by Treatment Direction}
-    \figurenotes{Same specification as Figure~\ref{fig:permit_event_study}, estimated separately for blocks with $\Delta\text{Strictness} > 0$ (moved to stricter) and $\Delta\text{Strictness} < 0$ (moved to more lenient). 95\% confidence intervals based on standard errors clustered at the block level.}
+    \figurenotes{Same specification as Figure~\ref{fig:permit_event_study}, estimated separately for blocks with $\Delta\text{Stringency} > 0$ (moved to more stringent) and $\Delta\text{Stringency} < 0$ (moved to more lenient). 95\% confidence intervals based on standard errors clustered at the block level.}
     \label{fig:permit_event_study_split}
 \end{figure}
 
-Table~\ref{tab:did_permit_2015_current} presents the pooled DID estimate, collapsing the post-period into a single coefficient. A one standard deviation increase in alderman strictness reduces high-discretion permit issuance by approximately 9\%, or about 0.09 log points in the PPML specification. This is a direct measure of how aldermanic discretion affects the development pipeline: stricter aldermen do not just build denser or less dense---they reduce the flow of projects that require their engagement.
+Table~\ref{tab:did_permit_2015_current} collapses the post-period into a single pooled DID coefficient. A one standard deviation increase in alderman stringency reduces high-discretion permit issuance by approximately 9\%. This is a direct measure of how aldermanic discretion affects the development pipeline: more stringent aldermen do not just produce denser or less dense buildings, they reduce the flow of projects that require their engagement.
 
 \begin{table}[htbp]
-    \caption{Effect of Alderman Strictness on High-Discretion Permits}
+    \caption{Effect of Alderman Stringency on High-Discretion Permits}
     \label{tab:did_permit_2015_current}
 
     \input{../tasks/run_event_study_permit/output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex}
 
     \footnotesize
-    \textit{Notes:} Block-year PPML regression using the 2015 implementation cohort, restricted to census blocks with centroid-to-boundary distance at most 1,000 feet and relative years $-5$ through $5$. Outcome is the number of issued high-discretion permits. Fixed effects are listed in the table. Uniform weighting. Standard errors clustered at the block level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Block-year PPML regression using the 2015 implementation cohort, restricted to census blocks within 1,000 feet of ward boundaries and relative years $-5$ through $5$. Outcome is the number of issued high-discretion permits. Uniform weighting. Standard errors clustered at the block level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
-\subsection{Interpretation}
+A natural falsification test is to run the same specification on low-discretion permits (excluding signs), the placebo comparison group from Section~\ref{sec:data}. If the stringency score is capturing something specific to the discretionary layer of the regulatory process, the effect should be much weaker for these permits. That is what I find: Figure~\ref{fig:permit_event_study_low_disc} shows the event study for low-discretion permits (excluding signs), and the coefficients are small and statistically insignificant throughout. The corresponding DID estimate is $-0.038$ (SE $= 0.034$), roughly a third the size of the high-discretion effect and far from significant. This placebo strengthens the interpretation that the permit decline on reassigned blocks operates through the discretionary channel.
 
-The permit results serve a specific role in the paper's argument. The cross-sectional density evidence in Section~\ref{sec:empirical_results_density} establishes that there is less development on the strict side of ward boundaries, but it cannot separate aldermanic effects from developer sorting. The permit event study addresses this directly: when the same physical block is reassigned to a stricter alderman, the development pipeline on that block slows down. Developers did not move. The block did not change. Only the alderman changed.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf}
+    \caption{Placebo: Low-Discretion Permits}
+    \figurenotes{Same specification as Figure~\ref{fig:permit_event_study} but using low-discretion permits (excluding signs) as the placebo outcome. This placebo comparison group is less exposed to discretionary aldermanic intervention than the high-discretion permits. The absence of a statistically significant effect supports the interpretation that the high-discretion result operates through the discretionary channel.}
+    \label{fig:permit_event_study_low_disc}
+\end{figure}
 
-It is worth noting that the permits studied here are not simply inputs to the strictness index. The strictness score is constructed from processing \textit{times} on all high-discretion permits across a ward; the event study outcome is the \textit{count} of high-discretion permits issued on individual blocks. The score measures how an alderman treats permits in general; the event study measures whether the volume of development-related permitting responds when that alderman gains jurisdiction over new territory.
+\subsection{Interpretation and Additional Checks}
+
+The permit results address the main limitation of the cross-sectional density evidence. Because the specification includes block fixed effects, identification comes from within-block changes over time: the same physical block, before and after its alderman changes. Developers did not move. The block did not change. Only the alderman changed. This is a tighter source of variation than the home sales design in Section~\ref{sec:empirical_results_home_sales}, which compares across blocks within the same border pair and therefore relies on the assumption that treated and control blocks are on parallel trends.
+
+The permits studied here are also not simply inputs to the stringency index. The stringency score is constructed from processing \textit{times} on all high-discretion permits across a ward, while the event study outcome is the \textit{count} of high-discretion permits issued on individual blocks. The score measures how an alderman treats permits in general; the event study measures whether the volume of development-related permitting responds when that alderman gains jurisdiction over new territory.
+
+The appendix reports several additional specification checks. Adding baseline block-level demographic controls does not meaningfully change the estimates (Appendix Figure~\ref{fig:permit_es_demographics}), consistent with the block fixed effects already absorbing neighborhood composition. A \citet{de_chaisemartin_two-way_2020} heterogeneity-robust estimator yields a similar pattern (Appendix Table~\ref{tab:dcdh_permit} and Figure~\ref{fig:dcdh_permit}). The stacked implementation specification pooling the 2015 and 2023 cohorts produces comparable estimates with tighter confidence intervals (Appendix Figure~\ref{fig:permit_es_stacked}).

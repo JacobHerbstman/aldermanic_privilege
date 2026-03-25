@@ -23,8 +23,8 @@ if (length(args) >= 5) {
   stop("FATAL: Script requires args: <outcome_family> <bandwidth> <weighting> <cluster_level> <output_tex>", call. = FALSE)
 }
 
-if (!outcome_family %in% c("new_construction", "new_construction_demolition", "high_discretion", "unit_increase")) {
-  stop("outcome_family must be one of: new_construction, new_construction_demolition, high_discretion, unit_increase", call. = FALSE)
+if (!outcome_family %in% c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase")) {
+  stop("outcome_family must be one of: new_construction, new_construction_demolition, low_discretion_nosigns, high_discretion, unit_increase", call. = FALSE)
 }
 
 if (!is.finite(bandwidth) || bandwidth <= 0) {
@@ -38,10 +38,11 @@ if (!cluster_level %in% c("block", "ward_pair")) {
 }
 
 outcome_catalog <- tibble(
-  outcome_family = c("new_construction", "new_construction_demolition", "high_discretion", "unit_increase"),
+  outcome_family = c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase"),
   outcome_var = c(
     "n_new_construction_issue",
     "n_new_construction_demolition_issue",
+    "n_low_discretion_nosigns_issue",
     "n_high_discretion_issue",
     "n_unit_increase_issue"
   )

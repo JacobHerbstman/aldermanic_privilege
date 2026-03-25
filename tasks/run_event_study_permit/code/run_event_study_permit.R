@@ -52,8 +52,8 @@ valid_panel_modes <- c("stacked_implementation", "cohort_2015", "cohort_2023")
 if (!PANEL_MODE %in% valid_panel_modes) {
   stop(sprintf("--panel_mode must be one of: %s", paste(valid_panel_modes, collapse = ", ")), call. = FALSE)
 }
-if (!OUTCOME_FAMILY %in% c("new_construction", "new_construction_demolition", "high_discretion", "unit_increase")) {
-  stop("--outcome_family must be one of: new_construction, new_construction_demolition, high_discretion, unit_increase", call. = FALSE)
+if (!OUTCOME_FAMILY %in% c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase")) {
+  stop("--outcome_family must be one of: new_construction, new_construction_demolition, low_discretion_nosigns, high_discretion, unit_increase", call. = FALSE)
 }
 if (!DATE_BASIS %in% c("issue", "application")) {
   stop("--date_basis must be one of: issue, application", call. = FALSE)
@@ -98,17 +98,21 @@ outcome_catalog <- tibble(
     "new_construction",
     "new_construction_demolition",
     "new_construction_demolition",
+    "low_discretion_nosigns",
+    "low_discretion_nosigns",
     "high_discretion",
     "high_discretion",
     "unit_increase",
     "unit_increase"
   ),
-  date_basis = c("issue", "application", "issue", "application", "issue", "application", "issue", "application"),
+  date_basis = c("issue", "application", "issue", "application", "issue", "application", "issue", "application", "issue", "application"),
   count_var = c(
     "n_new_construction_issue",
     "n_new_construction_application",
     "n_new_construction_demolition_issue",
     "n_new_construction_demolition_application",
+    "n_low_discretion_nosigns_issue",
+    "n_low_discretion_nosigns_application",
     "n_high_discretion_issue",
     "n_high_discretion_application",
     "n_unit_increase_issue",
@@ -119,6 +123,8 @@ outcome_catalog <- tibble(
     "has_new_construction_application",
     "has_new_construction_demolition_issue",
     "has_new_construction_demolition_application",
+    "has_low_discretion_nosigns_issue",
+    "has_low_discretion_nosigns_application",
     "has_high_discretion_issue",
     "has_high_discretion_application",
     "has_unit_increase_issue",
@@ -129,6 +135,8 @@ outcome_catalog <- tibble(
     "issued new-construction permits (application timing)",
     "issued new-construction or demolition permits",
     "issued new-construction or demolition permits (application timing)",
+    "issued low-discretion permits (excluding signs)",
+    "issued low-discretion permits (excluding signs, application timing)",
     "issued high-discretion permits",
     "issued high-discretion permits (application timing)",
     "issued curated unit-increase permits",
@@ -139,6 +147,8 @@ outcome_catalog <- tibble(
     "any issued new-construction permit (application timing)",
     "any issued new-construction or demolition permit",
     "any issued new-construction or demolition permit (application timing)",
+    "any issued low-discretion permit (excluding signs)",
+    "any issued low-discretion permit (excluding signs, application timing)",
     "any issued high-discretion permit",
     "any issued high-discretion permit (application timing)",
     "any issued curated unit-increase permit",
