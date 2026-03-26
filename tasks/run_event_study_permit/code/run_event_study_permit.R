@@ -76,8 +76,8 @@ if (FE_TYPE != "within_block") {
 if (POST_WINDOW != "full") {
   stop("--post_window must be full for the active permit event-study runner.", call. = FALSE)
 }
-if (!GEO_FE_LEVEL %in% c("segment", "ward_pair")) {
-  stop("--geo_fe_level must be one of: segment, ward_pair", call. = FALSE)
+if (!GEO_FE_LEVEL %in% c("segment", "ward_pair", "none")) {
+  stop("--geo_fe_level must be one of: segment, ward_pair, none", call. = FALSE)
 }
 if (!CLUSTER_LEVEL %in% c("block", "ward_pair")) {
   stop("--cluster_level must be one of: block, ward_pair", call. = FALSE)
@@ -195,6 +195,8 @@ if (CONTROL_SPEC != "none") {
 }
 if (GEO_FE_LEVEL == "ward_pair") {
   suffix <- paste0(suffix, "_geo_wardpair")
+} else if (GEO_FE_LEVEL == "none") {
+  suffix <- paste0(suffix, "_geo_none")
 }
 
 message("\n=== Permit Event Study ===")
@@ -470,9 +472,15 @@ message("\nLoading permit block-year panel...")
 data <- read_parquet(panel_input) %>%
   filter(!is.na(strictness_change), !is.na(.data[[base_outcome_var]]))
 
+if (GEO_FE_LEVEL == "none") {
+  data <- data %>% mutate(common_geo_fe = "all_blocks")
+}
+
 stacked_mode <- grepl("^stacked_", PANEL_MODE)
 block_var <- if (stacked_mode) "cohort_block_id" else "block_id"
-geo_group_var <- if (stacked_mode) {
+geo_group_var <- if (GEO_FE_LEVEL == "none") {
+  "common_geo_fe"
+} else if (stacked_mode) {
   if (GEO_FE_LEVEL == "segment") "cohort_segment" else "cohort_ward_pair"
 } else {
   if (GEO_FE_LEVEL == "segment") "segment_id_cohort" else "ward_pair_id"
@@ -561,9 +569,21 @@ time_fe_var <- "year"
 event_var <- "relative_year"
 fe_group_var <- geo_group_var
 fe_formula <- if (stacked_mode) {
-  if (GEO_FE_LEVEL == "segment") "cohort_block_id + cohort_segment^year" else "cohort_block_id + cohort_ward_pair^year"
+  if (GEO_FE_LEVEL == "segment") {
+    "cohort_block_id + cohort_segment^year"
+  } else if (GEO_FE_LEVEL == "ward_pair") {
+    "cohort_block_id + cohort_ward_pair^year"
+  } else {
+    "cohort_block_id + year"
+  }
 } else {
-  if (GEO_FE_LEVEL == "segment") "block_id + segment_id_cohort^year" else "block_id + ward_pair_id^year"
+  if (GEO_FE_LEVEL == "segment") {
+    "block_id + segment_id_cohort^year"
+  } else if (GEO_FE_LEVEL == "ward_pair") {
+    "block_id + ward_pair_id^year"
+  } else {
+    "block_id + year"
+  }
 }
 cluster_formula <- if (CLUSTER_LEVEL == "block") {
   if (stacked_mode) ~cohort_block_id else ~block_id
