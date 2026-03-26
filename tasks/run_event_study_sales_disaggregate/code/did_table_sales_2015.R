@@ -59,6 +59,10 @@ m_ctrl <- feols(
 
 effect_no_ctrl <- 100 * (exp(coef(m_no_ctrl)[["post_treat"]]) - 1)
 effect_ctrl <- 100 * (exp(coef(m_ctrl)[["post_treat"]]) - 1)
+dep_var_mean_no_ctrl <- mean(data$sale_price, na.rm = TRUE)
+dep_var_mean_ctrl <- dep_var_mean_no_ctrl
+ward_pairs_no_ctrl <- n_distinct(data$ward_pair)
+ward_pairs_ctrl <- ward_pairs_no_ctrl
 
 setFixest_dict(c(
   post_treat = "Post $\\times$ Strictness $\\Delta$",
@@ -81,9 +85,14 @@ etable(
   order = c("Post", "Log"),
   drop.section = "fixef",
   extralines = list(
+    "_N" = c(format(nobs(m_no_ctrl), big.mark = ","), format(nobs(m_ctrl), big.mark = ",")),
+    "_Dep. Var. Mean" = c(
+      paste0("\\$", format(round(dep_var_mean_no_ctrl, 0), big.mark = ",")),
+      paste0("\\$", format(round(dep_var_mean_ctrl, 0), big.mark = ","))
+    ),
+    "_Ward Pairs" = c(format(ward_pairs_no_ctrl, big.mark = ","), format(ward_pairs_ctrl, big.mark = ",")),
     "_Border-Pair Side FE" = c("$\\checkmark$", "$\\checkmark$"),
-    "_Border-Pair $\\times$ Year FE" = c("$\\checkmark$", "$\\checkmark$"),
-    "_N" = c(format(nobs(m_no_ctrl), big.mark = ","), format(nobs(m_ctrl), big.mark = ","))
+    "_Border-Pair $\\times$ Year FE" = c("$\\checkmark$", "$\\checkmark$")
   ),
   se.below = TRUE,
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),

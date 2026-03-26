@@ -344,6 +344,10 @@ m_2015_ctrl <- feols(
     cluster = cluster_formula_unstacked
 )
 message(sprintf("2015 (with controls): N = %s", format(m_2015_ctrl$nobs, big.mark = ",")))
+mean_price_2012 <- mean(data_2012$sale_price, na.rm = TRUE)
+mean_price_2015 <- mean(data_2015$sale_price, na.rm = TRUE)
+ward_pairs_2012 <- n_distinct(data_2012$ward_pair)
+ward_pairs_2015 <- n_distinct(data_2015$ward_pair)
 
 # =============================================================================
 # CREATE CLEAN TABLE
@@ -373,6 +377,24 @@ etable(
     order = c("Post", "Log"),
     drop.section = "fixef",
     extralines = list(
+        "_N" = c(
+            format(nobs(m_2012_no_ctrl), big.mark = ","),
+            format(nobs(m_2012_ctrl), big.mark = ","),
+            format(nobs(m_2015_no_ctrl), big.mark = ","),
+            format(nobs(m_2015_ctrl), big.mark = ",")
+        ),
+        "_Dep. Var. Mean" = c(
+            paste0("\\$", format(round(mean_price_2012, 0), big.mark = ",")),
+            paste0("\\$", format(round(mean_price_2012, 0), big.mark = ",")),
+            paste0("\\$", format(round(mean_price_2015, 0), big.mark = ",")),
+            paste0("\\$", format(round(mean_price_2015, 0), big.mark = ","))
+        ),
+        "_Ward Pairs" = c(
+            format(ward_pairs_2012, big.mark = ","),
+            format(ward_pairs_2012, big.mark = ","),
+            format(ward_pairs_2015, big.mark = ","),
+            format(ward_pairs_2015, big.mark = ",")
+        ),
         "_Timing" = c("Announcement", "Announcement", "Implementation", "Implementation"),
         "_Hedonic Controls" = c("", "$\\checkmark$", "", "$\\checkmark$"),
         "_Geography FE Level" = rep(ifelse(GEO_FE_LEVEL == "segment", "Segment", "Ward Pair"), 4),
@@ -469,6 +491,12 @@ coef_all$r2[coef_all$specification == "2012_no_ctrl"] <- fitstat(m_2012_no_ctrl,
 coef_all$r2[coef_all$specification == "2012_ctrl"] <- fitstat(m_2012_ctrl, "r2")$r2
 coef_all$r2[coef_all$specification == "2015_no_ctrl"] <- fitstat(m_2015_no_ctrl, "r2")$r2
 coef_all$r2[coef_all$specification == "2015_ctrl"] <- fitstat(m_2015_ctrl, "r2")$r2
+coef_all$dep_var_mean <- NA_real_
+coef_all$ward_pairs <- NA_real_
+coef_all$dep_var_mean[coef_all$specification %in% c("2012_no_ctrl", "2012_ctrl")] <- mean(data_2012$sale_price, na.rm = TRUE)
+coef_all$dep_var_mean[coef_all$specification %in% c("2015_no_ctrl", "2015_ctrl")] <- mean(data_2015$sale_price, na.rm = TRUE)
+coef_all$ward_pairs[coef_all$specification %in% c("2012_no_ctrl", "2012_ctrl")] <- n_distinct(data_2012$ward_pair)
+coef_all$ward_pairs[coef_all$specification %in% c("2015_no_ctrl", "2015_ctrl")] <- n_distinct(data_2015$ward_pair)
 
 write_csv(coef_all, did_coef_output)
 message(sprintf("Saved: %s", did_coef_output))

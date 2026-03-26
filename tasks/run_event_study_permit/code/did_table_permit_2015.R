@@ -81,6 +81,8 @@ estimate <- coef(model)[["post_treat"]]
 std_error <- se(model)[["post_treat"]]
 p_value <- coeftable(model)["post_treat", grep("^Pr\\(", colnames(coeftable(model)), value = TRUE)[1]]
 effect_pct <- 100 * (exp(estimate) - 1)
+dep_var_mean <- mean(data[[outcome_var]], na.rm = TRUE)
+ward_pairs <- n_distinct(data$ward_pair_id)
 
 stars <- function(p) {
   if (!is.finite(p)) return("")
@@ -105,6 +107,8 @@ table_lines <- c(
   "Block FE & $\\checkmark$ \\\\",
   "Border-Pair $\\times$ Year FE & $\\checkmark$ \\\\",
   sprintf("N & %s \\\\", format(nobs(model), big.mark = ",")),
+  sprintf("Dep. Var. Mean & %.2f \\\\", dep_var_mean),
+  sprintf("Ward Pairs & %s \\\\", format(ward_pairs, big.mark = ",")),
   "\\bottomrule",
   "\\end{tabular}",
   "\\par\\endgroup"

@@ -488,6 +488,7 @@ for (yv in yvars) {
     se = unname(coef_info["se"]),
     p_value = unname(coef_info["p"]),
     n_obs = nobs(m),
+    n_segment_pairs = dplyr::n_distinct(df$segment_id),
     depvar_mean = mean(df[[b]], na.rm = TRUE),
     n_ward_pairs = dplyr::n_distinct(df$ward_pair),
     bw_ft = bw_ft,
@@ -508,6 +509,11 @@ names(models) <- col_headers
 fe_rows <- lapply(names(fe_label_list), function(x) rep("$\\checkmark$", length(models)))
 names(fe_rows) <- paste0("_", names(fe_label_list))
 fe_rows[["_N"]] <- vapply(models, function(x) format(nobs(x), big.mark = ","), character(1))
+if (grepl("segment", fe_spec, fixed = TRUE)) {
+  fe_rows[["_Segment Pairs"]] <- vapply(models, function(x) format(n_distinct(x$custom_data$segment_id), big.mark = ","), character(1))
+}
+fe_rows[["_Dep. Var. Mean"]] <- vapply(models, function(x) sprintf("%.2f", mean(x$custom_data[[all.vars(formula(x))[1]]], na.rm = TRUE)), character(1))
+fe_rows[["_Ward Pairs"]] <- vapply(models, function(x) format(n_distinct(x$custom_data$ward_pair), big.mark = ","), character(1))
 
 etable(models,
   keep = "Stringency Index",

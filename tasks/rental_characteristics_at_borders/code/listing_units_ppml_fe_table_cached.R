@@ -69,6 +69,7 @@ out <- tibble(
   implied_pct_change = 100 * (exp(ct["strictness_std", "Estimate"]) - 1),
   n_obs = nobs(m),
   segments = n_distinct(panel$segment_id),
+  ward_pairs = if ("ward_pair" %in% names(panel)) n_distinct(panel$ward_pair) else NA_integer_,
   pair_month_cells = nrow(pair_month_diag),
   share_single_sided_pair_month = mean(pair_month_diag$n_sides_obs == 1),
   share_zero_cells = mean(panel$n_units == 0),
@@ -97,6 +98,8 @@ tex <- c(
   "  \\\\",
   "  Segment $\\times$ Year-Month FE & $\\checkmark$ \\\\",
   sprintf("  N & %s \\\\", format(out$n_obs, big.mark = ",")),
+  sprintf("  Dep. Var. Mean & %.2f \\\\", out$mean_units_per_cell),
+  sprintf("  Ward Pairs & %s \\\\", format(out$ward_pairs, big.mark = ",")),
   "  \\bottomrule",
   "\\end{tabular}",
   "\\par\\endgroup"

@@ -233,6 +233,10 @@ m_ctrl <- feols(
     cluster = cluster_formula
 )
 message(sprintf("With controls: N = %s", format(m_ctrl$nobs, big.mark = ",")))
+dep_var_mean_no_ctrl <- mean(data$rent_price, na.rm = TRUE)
+dep_var_mean_ctrl <- dep_var_mean_no_ctrl
+ward_pairs_no_ctrl <- n_distinct(data$ward_pair_id)
+ward_pairs_ctrl <- ward_pairs_no_ctrl
 
 # =============================================================================
 # CREATE CLEAN TABLE
@@ -254,7 +258,7 @@ setFixest_dict(c(
 etable(
     list(m_no_ctrl, m_ctrl),
     title = "Effect of Alderman Strictness on Rents",
-    fitstat = ~ n + r2,
+    fitstat = NULL,
     style.tex = style.tex("aer"),
     depvar = FALSE,
     digits = 3,
@@ -263,6 +267,12 @@ etable(
     order = c("Post", "Log"),
     drop.section = "fixef",
     extralines = list(
+        "_N" = c(format(nobs(m_no_ctrl), big.mark = ","), format(nobs(m_ctrl), big.mark = ",")),
+        "_Dep. Var. Mean" = c(
+            paste0("\\$", format(round(dep_var_mean_no_ctrl, 0), big.mark = ",")),
+            paste0("\\$", format(round(dep_var_mean_ctrl, 0), big.mark = ","))
+        ),
+        "_Ward Pairs" = c(format(ward_pairs_no_ctrl, big.mark = ","), format(ward_pairs_ctrl, big.mark = ",")),
         "_Hedonic Controls" = c("", "$\\checkmark$"),
         "_Geography FE Level" = c(ifelse(GEO_FE_LEVEL == "segment", "Segment", "Ward Pair"), ifelse(GEO_FE_LEVEL == "segment", "Segment", "Ward Pair")),
         "_Fixed Effects Spec" = c(fe_label, fe_label),
@@ -276,6 +286,19 @@ etable(
     file = did_output,
     replace = TRUE
 )
+
+table_tex <- readLines(did_output)
+drop_patterns <- c(
+    "^\\s*Observations\\s*&",
+    "^\\s*R\\$\\^2\\$\\s*&",
+    "^\\s*Within R\\$\\^2\\$\\s*&"
+)
+table_tex <- table_tex[!vapply(
+    table_tex,
+    function(line) any(vapply(drop_patterns, grepl, logical(1), x = line)),
+    logical(1)
+)]
+writeLines(table_tex, did_output)
 
 message(sprintf("Saved: %s", did_output))
 
@@ -315,6 +338,10 @@ coef_all$n_obs_no_ctrl <- m_no_ctrl$nobs
 coef_all$n_obs_ctrl <- m_ctrl$nobs
 coef_all$r2_no_ctrl <- fitstat(m_no_ctrl, "r2")$r2
 coef_all$r2_ctrl <- fitstat(m_ctrl, "r2")$r2
+coef_all$dep_var_mean_no_ctrl <- dep_var_mean_no_ctrl
+coef_all$dep_var_mean_ctrl <- dep_var_mean_ctrl
+coef_all$ward_pairs_no_ctrl <- ward_pairs_no_ctrl
+coef_all$ward_pairs_ctrl <- ward_pairs_ctrl
 write_csv(coef_all, did_coef_output)
 message(sprintf("Saved: %s", did_coef_output))
 

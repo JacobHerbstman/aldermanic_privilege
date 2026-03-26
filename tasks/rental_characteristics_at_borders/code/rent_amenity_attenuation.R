@@ -159,6 +159,17 @@ etable(
   digits = 3,
   signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
   extralines = list(
+    "_N" = c(format(nobs(m_no_hed), big.mark = ","), format(nobs(m_hed), big.mark = ","), format(nobs(m_amenity), big.mark = ",")),
+    "_Dep. Var. Mean" = c(
+      paste0("\\$", format(round(mean(m_no_hed$custom_data$rent_price, na.rm = TRUE), 0), big.mark = ",")),
+      paste0("\\$", format(round(mean(m_hed$custom_data$rent_price, na.rm = TRUE), 0), big.mark = ",")),
+      paste0("\\$", format(round(mean(m_amenity$custom_data$rent_price, na.rm = TRUE), 0), big.mark = ","))
+    ),
+    "_Ward Pairs" = c(
+      format(length(unique(m_no_hed$custom_data$ward_pair)), big.mark = ","),
+      format(length(unique(m_hed$custom_data$ward_pair)), big.mark = ","),
+      format(length(unique(m_amenity$custom_data$ward_pair)), big.mark = ",")
+    ),
     "_Hedonic Controls" = c("", "$\\checkmark$", "$\\checkmark$"),
     "_Amenity Controls" = c("", "", "$\\checkmark$"),
     "_FE Structure" = c("Segment $\\times$ Year-Month FE", "Segment $\\times$ Year-Month FE", "Segment $\\times$ Year-Month FE"),

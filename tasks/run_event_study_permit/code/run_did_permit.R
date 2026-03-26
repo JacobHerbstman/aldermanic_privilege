@@ -221,6 +221,12 @@ run_model <- function(data, panel_mode, control_spec) {
     effect_pct = 100 * (exp(estimate) - 1),
     n_obs = nobs(model),
     n_blocks = n_distinct(complete_control_sample$block_fe_id),
+    dep_var_mean = mean(complete_control_sample[[outcome_var]], na.rm = TRUE),
+    ward_pairs = if ("ward_pair_id" %in% names(complete_control_sample)) {
+      n_distinct(complete_control_sample$ward_pair_id[!is.na(complete_control_sample$ward_pair_id) & complete_control_sample$ward_pair_id != ""])
+    } else {
+      NA_real_
+    },
     total_outcome = sum(complete_control_sample[[outcome_var]], na.rm = TRUE)
   )
 }
@@ -292,6 +298,20 @@ table_tex <- c(
     fmt_n(col_2015_ctrl$n_obs[[1]]),
     fmt_n(col_stacked_no_ctrl$n_obs[[1]]),
     fmt_n(col_stacked_ctrl$n_obs[[1]])
+  ),
+  sprintf(
+    "Dep. Var. Mean & %.2f & %.2f & %.2f & %.2f \\\\",
+    col_2015_no_ctrl$dep_var_mean[[1]],
+    col_2015_ctrl$dep_var_mean[[1]],
+    col_stacked_no_ctrl$dep_var_mean[[1]],
+    col_stacked_ctrl$dep_var_mean[[1]]
+  ),
+  sprintf(
+    "Ward Pairs & %s & %s & %s & %s \\\\",
+    fmt_n(col_2015_no_ctrl$ward_pairs[[1]]),
+    fmt_n(col_2015_ctrl$ward_pairs[[1]]),
+    fmt_n(col_stacked_no_ctrl$ward_pairs[[1]]),
+    fmt_n(col_stacked_ctrl$ward_pairs[[1]])
   ),
   sprintf(
     "Blocks & %s & %s & %s & %s \\\\",

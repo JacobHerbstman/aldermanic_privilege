@@ -33,6 +33,11 @@ format_r2 <- function(r2) {
     sprintf("%.2f", r2)
 }
 
+format_currency <- function(x, suffix = "") {
+    if (is.na(x)) return("")
+    paste0("\\$", format(round(x, 0), big.mark = ","), suffix)
+}
+
 # =============================================================================
 # LOAD DATA
 # =============================================================================
@@ -107,6 +112,10 @@ rental_n_no_ctrl <- rental_coef$n_obs_no_ctrl[1]
 rental_n_ctrl <- rental_coef$n_obs_ctrl[1]
 rental_r2_no_ctrl <- rental_coef$r2_no_ctrl[1]
 rental_r2_ctrl <- rental_coef$r2_ctrl[1]
+rental_mean_no_ctrl <- rental_coef$dep_var_mean_no_ctrl[1]
+rental_mean_ctrl <- rental_coef$dep_var_mean_ctrl[1]
+rental_pairs_no_ctrl <- rental_coef$ward_pairs_no_ctrl[1]
+rental_pairs_ctrl <- rental_coef$ward_pairs_ctrl[1]
 
 panel_a_rows <- build_panel_rows(rental_coef, rental_var_order, rental_var_names,
                                   "estimate_no_ctrl", "se_no_ctrl", "estimate_ctrl", "se_ctrl")
@@ -133,6 +142,10 @@ sales_n_no_ctrl <- sales_2015_no_ctrl$n_obs[1]
 sales_n_ctrl <- sales_2015_ctrl$n_obs[1]
 sales_r2_no_ctrl <- sales_2015_no_ctrl$r2[1]
 sales_r2_ctrl <- sales_2015_ctrl$r2[1]
+sales_mean_no_ctrl <- sales_2015_no_ctrl$dep_var_mean[1]
+sales_mean_ctrl <- sales_2015_ctrl$dep_var_mean[1]
+sales_pairs_no_ctrl <- sales_2015_no_ctrl$ward_pairs[1]
+sales_pairs_ctrl <- sales_2015_ctrl$ward_pairs[1]
 
 panel_b_rows <- build_panel_rows(sales_2015_wide, sales_var_order, sales_var_names,
                                   "estimate_no_ctrl", "se_no_ctrl", "estimate_ctrl", "se_ctrl")
@@ -155,7 +168,9 @@ combined_table <- sprintf('
                                        & (1)           & (2) \\\\
    \\midrule
 %s   \\\\
-   Observations                        & %s     & %s \\\\
+   N                                   & %s     & %s \\\\
+   Dep. Var. Mean                      & %s     & %s \\\\
+   Ward Pairs                          & %s     & %s \\\\
    R$^2$                               & %s          & %s \\\\
    \\bottomrule
 \\end{tabular}
@@ -169,7 +184,9 @@ combined_table <- sprintf('
                                        & (1)           & (2) \\\\
    \\midrule
 %s   \\\\
-   Observations                        & %s        & %s \\\\
+   N                                   & %s        & %s \\\\
+   Dep. Var. Mean                      & %s        & %s \\\\
+   Ward Pairs                          & %s        & %s \\\\
    R$^2$                               & %s          & %s \\\\
    \\bottomrule
 \\end{tabular}
@@ -181,9 +198,13 @@ combined_table <- sprintf('
 ',
     panel_a_rows,
     format_n(rental_n_no_ctrl), format_n(rental_n_ctrl),
+    format_currency(rental_mean_no_ctrl), format_currency(rental_mean_ctrl),
+    format_n(rental_pairs_no_ctrl), format_n(rental_pairs_ctrl),
     format_r2(rental_r2_no_ctrl), format_r2(rental_r2_ctrl),
     panel_b_rows,
     format_n(sales_n_no_ctrl), format_n(sales_n_ctrl),
+    format_currency(sales_mean_no_ctrl), format_currency(sales_mean_ctrl),
+    format_n(sales_pairs_no_ctrl), format_n(sales_pairs_ctrl),
     format_r2(sales_r2_no_ctrl), format_r2(sales_r2_ctrl)
 )
 
@@ -212,6 +233,10 @@ sales_2012_n_no_ctrl <- sales_2012_no_ctrl$n_obs[1]
 sales_2012_n_ctrl <- sales_2012_ctrl$n_obs[1]
 sales_2012_r2_no_ctrl <- sales_2012_no_ctrl$r2[1]
 sales_2012_r2_ctrl <- sales_2012_ctrl$r2[1]
+sales_2012_mean_no_ctrl <- sales_2012_no_ctrl$dep_var_mean[1]
+sales_2012_mean_ctrl <- sales_2012_ctrl$dep_var_mean[1]
+sales_2012_pairs_no_ctrl <- sales_2012_no_ctrl$ward_pairs[1]
+sales_2012_pairs_ctrl <- sales_2012_ctrl$ward_pairs[1]
 
 panel_ann_rows <- build_panel_rows(sales_2012_wide, sales_var_order, sales_var_names,
                                     "estimate_no_ctrl", "se_no_ctrl", "estimate_ctrl", "se_ctrl")
@@ -227,7 +252,9 @@ appendix_table <- sprintf('
                                        & (1)           & (2) \\\\
    \\midrule
 %s   \\\\
-   Observations                        & %s        & %s \\\\
+   N                                   & %s        & %s \\\\
+   Dep. Var. Mean                      & %s        & %s \\\\
+   Ward Pairs                          & %s        & %s \\\\
    R$^2$                               & %s          & %s \\\\
    \\bottomrule
 \\end{tabular}
@@ -239,6 +266,8 @@ appendix_table <- sprintf('
 ',
     panel_ann_rows,
     format_n(sales_2012_n_no_ctrl), format_n(sales_2012_n_ctrl),
+    format_currency(sales_2012_mean_no_ctrl), format_currency(sales_2012_mean_ctrl),
+    format_n(sales_2012_pairs_no_ctrl), format_n(sales_2012_pairs_ctrl),
     format_r2(sales_2012_r2_no_ctrl), format_r2(sales_2012_r2_ctrl)
 )
 
@@ -267,7 +296,9 @@ simple_table <- sprintf('
 Post $\\times$ Strictness $\\Delta$ & %s & %s & %s & %s \\\\
  & %s & %s & %s & %s \\\\
 \\midrule
-Observations & %s & %s & %s & %s \\\\
+N & %s & %s & %s & %s \\\\
+Dep. Var. Mean & %s & %s & %s & %s \\\\
+Ward Pairs & %s & %s & %s & %s \\\\
 R$^2$ & %s & %s & %s & %s \\\\
 Hedonic Controls & & $\\checkmark$ & & $\\checkmark$ \\\\
 Border Pair $\\times$ Side FE & $\\checkmark$ & $\\checkmark$ & $\\checkmark$ & $\\checkmark$ \\\\
@@ -287,6 +318,10 @@ Border Pair $\\times$ Year FE & $\\checkmark$ & $\\checkmark$ & $\\checkmark$ & 
     format_se(sales_treat$se_ctrl),
     format_n(rental_n_no_ctrl), format_n(rental_n_ctrl),
     format_n(sales_n_no_ctrl), format_n(sales_n_ctrl),
+    format_currency(rental_mean_no_ctrl), format_currency(rental_mean_ctrl),
+    format_currency(sales_mean_no_ctrl), format_currency(sales_mean_ctrl),
+    format_n(rental_pairs_no_ctrl), format_n(rental_pairs_ctrl),
+    format_n(sales_pairs_no_ctrl), format_n(sales_pairs_ctrl),
     format_r2(rental_r2_no_ctrl), format_r2(rental_r2_ctrl),
     format_r2(sales_r2_no_ctrl), format_r2(sales_r2_ctrl)
 )
