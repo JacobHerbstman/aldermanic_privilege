@@ -30,6 +30,14 @@ Table~\ref{tab:stage1_residualization} reports the baseline Stage 1 residualizat
     \textit{Notes:} Permit-level OLS regression from the baseline uncertainty-index specification. Covariates are median household income, racial shares, homeownership, population, distance to the CBD, distance to the lake, CTA station density, and lag permit volume. Fixed effects are listed in the table. Regressions are unweighted. Standard errors in parentheses. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf}
+    \caption{Distribution of Aldermanic Stringency Scores}
+    \figurenotes{Stringency scores are constructed from residualized permit processing times with empirical Bayes shrinkage. Scores are standardized to mean zero and unit standard deviation. Higher values indicate aldermen associated with longer permit processing times after controlling for ward characteristics and permit-level fixed effects.}
+    \label{fig:aldermanic_strictness_scores}
+\end{figure}
+
 \subsection{Validation of the Strictness Index}
 \label{app:strictness_validation}
 
