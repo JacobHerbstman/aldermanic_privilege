@@ -22,7 +22,7 @@ The building permits data come from the City of Chicago's open data portal and i
 \paragraph{Sample Restrictions.}
 I restrict the sample to ``high-discretion'' permit types that are most likely to require aldermanic engagement and face delays due to community meetings or aldermanic intervention. Specifically, I include permits designated as: (1) New Construction; (2) Renovation; (3) Demolition; (4) Porch Construction; and (5) permits that were reinstated after being previously revoked.
 
-I exclude permits in the ``Easy Permit Process,'' ``Express Permit Program,'' ``Elevator Equipment,'' ``For Extension of PMT,'' ``Scaffolding,'' and signs categories. These exclusions target permit types that bypass standard aldermanic review and thus do not reflect aldermanic influence on development.
+All remaining permit types are excluded from the high-discretion sample. In placebo analyses, low-discretion permits are defined as the non-high-discretion complement, excluding signs.
 
 \paragraph{Processing Time.}
 For each permit, I compute processing time as the number of days between the application date and the issue date. Permits with missing dates or negative processing times are excluded.
@@ -59,7 +59,7 @@ The home sales data come from the Cook County Assessor's Office and include all 
 I apply the following restrictions to construct the analysis sample: (1) residential property classes only, including single-family homes (classes 202--210) and small multifamily buildings with 2--6 units (class 211), excluding mixed-use properties (class 212) and condominiums (classes 299, 399); (2) sale price exceeds \$10,000 to exclude nominal transfers and gifts; (3) market transactions only, defined as warranty or trustee deeds; (4) excludes land-only sales; (5) seller and buyer names are valid and non-identical, excluding intrafamily transfers; and (6) single-parcel transactions only.
 
 \paragraph{Price Winsorization.}
-Sale prices are first deflated to 2022 dollars using monthly Chicago CPI and then winsorized at the 1st and 99th percentiles to limit the influence of outliers on mean calculations.
+Sale prices are first deflated to 2022 dollars using monthly Chicago CPI excluding shelter and then winsorized at the 1st and 99th percentiles to limit the influence of outliers on mean calculations.
 
 \paragraph{Geocoding.}
 Each sale is geocoded by joining the property identification number (PIN) to the Cook County parcel universe, which contains latitude and longitude coordinates. Sales that cannot be matched on the full 14-digit PIN are matched on the first 10 digits (PIN10).
@@ -73,16 +73,16 @@ Distance calculations follow the same procedure as for new construction (Section
 \subsection{Event Study Panel Construction}
 \label{subsec:event_study_panel}
 
-For the event study analysis, I construct block-level panels around the 2015 and 2023 redistricting events.
+For the event study analyses in the compiled paper, I construct a block-level treatment panel around the 2015 redistricting. That treatment panel is used directly for the permit event study and merged into transaction-level home sales data for the price analysis.
 
 \paragraph{Treatment Assignment.}
-Blocks are classified as treated if they were redistricted from one ward to another. For the 2015 cohort, I compare ward assignments under the pre-2015 map (2014 boundaries) to post-2015 (2015 boundaries). For the 2023 cohort, I compare 2022 boundaries to 2024 boundaries. Census blocks are assigned to wards based on their centroid location.
+Blocks are classified as treated if they were redistricted from one ward to another. In the 2015 cohort used in the compiled paper, I compare ward assignments under the pre-2015 map (2014 boundaries) to post-2015 (2015 boundaries). Census blocks are assigned to wards based on their centroid location.
 
 \paragraph{Predetermined Strictness.}
-Treatment intensity is measured using predetermined alderman strictness scores---scores computed from permit data in the year before redistricting takes effect. For the 2015 cohort, I use 2014 strictness scores for both origin and destination wards. For the 2023 cohort, I use 2022 scores. This ensures treatment intensity is not affected by post-treatment changes in aldermanic behavior. The change in strictness for block $i$ is: $\Delta\text{Strictness}_i = \text{Strictness}_{\text{dest}} - \text{Strictness}_{\text{origin}}$. For binary treatment specifications, blocks are classified as ``moved to stricter'' if $\Delta\text{Strictness}_i > 0$ and ``moved to more lenient'' if $\Delta\text{Strictness}_i < 0$.
+Treatment intensity is measured using the difference between the destination and origin aldermen's baseline strictness scores. In the compiled paper's 2015-cohort design, origin and destination aldermen are assigned using the 2014 pre-redistricting ward-to-alderman mapping. The change in strictness for block $i$ is $\Delta\text{Strictness}_i = \text{Strictness}_{\text{dest}} - \text{Strictness}_{\text{origin}}$. For binary treatment specifications, blocks are classified as ``moved to stricter'' if $\Delta\text{Strictness}_i > 0$ and ``moved to more lenient'' if $\Delta\text{Strictness}_i < 0$.
 
 \paragraph{Contaminated Control Exclusion.}
-Control blocks may experience treatment through electoral turnover (alderman changed via election rather than redistricting). I identify wards with alderman turnover between 2014--2015 and 2022--2023 and exclude non-switching blocks in these wards from the control group.
+Control blocks may experience treatment through electoral turnover (alderman changed via election rather than redistricting). In the compiled paper's 2015-cohort design, I identify wards with alderman turnover between 2014 and 2015 and exclude non-switching blocks in these wards from the control group.
 
-\paragraph{Panel Aggregation.}
-Home sales are aggregated to block-year and block-quarter levels. I compute number of sales, mean price, and median price. The final panels stack the 2015 and 2023 cohorts with cohort-specific fixed effects. The 2015 cohort includes years 2010--2020, while the 2023 cohort includes years 2018--2025, providing a symmetric five-year window around each redistricting event.
+\paragraph{Analysis Panels.}
+Permit outcomes are aggregated to block-year panels for the event-study analysis. In the compiled paper, the permit event study uses the 2015 implementation cohort with relative years $-5$ through $5$. Home sales are not aggregated in the active compiled analysis: the price event study is estimated on transaction-level data for the 2015 implementation cohort over the same relative-year window, with hedonic controls and border-pair-side plus border-pair-by-year fixed effects.

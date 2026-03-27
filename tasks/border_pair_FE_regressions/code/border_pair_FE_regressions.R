@@ -509,9 +509,6 @@ names(models) <- col_headers
 fe_rows <- lapply(names(fe_label_list), function(x) rep("$\\checkmark$", length(models)))
 names(fe_rows) <- paste0("_", names(fe_label_list))
 fe_rows[["_N"]] <- vapply(models, function(x) format(nobs(x), big.mark = ","), character(1))
-if (grepl("segment", fe_spec, fixed = TRUE)) {
-  fe_rows[["_Segment Pairs"]] <- vapply(models, function(x) format(n_distinct(x$custom_data$segment_id), big.mark = ","), character(1))
-}
 fe_rows[["_Dep. Var. Mean"]] <- vapply(models, function(x) sprintf("%.2f", mean(x$custom_data[[all.vars(formula(x))[1]]], na.rm = TRUE)), character(1))
 fe_rows[["_Ward Pairs"]] <- vapply(models, function(x) format(n_distinct(x$custom_data$ward_pair), big.mark = ","), character(1))
 

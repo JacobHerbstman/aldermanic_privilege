@@ -117,7 +117,7 @@ prerogative.}
 
 The building permits data come from the City of Chicago's open data portal and include all permit applications filed since 2006 with valid geographic coordinates and non-negative processing times. I distinguish between two categories of permits based on how much aldermanic discretion they are likely to face.
 
-\textit{High-discretion permits} are those for new construction, renovation and alteration, wrecking and demolition, porch construction, and permits reinstated after being previously revoked.\footnote{Porch construction permits have received extra scrutiny since the \href{https://en.wikipedia.org/wiki/2003_Chicago_balcony_collapse}{2003 balcony collapse}.} These are the permit types most likely to draw community opposition and face delays due to community meetings or direct aldermanic intervention. \textit{Low-discretion permits} are those in the Easy Permit Process, Express Permit Program, Elevator Equipment, For Extension of PMT, and Scaffolding categories, excluding signs. These categories serve as a placebo comparison group because they are generally less exposed to discretionary aldermanic intervention than the high-discretion permits.
+\textit{High-discretion permits} are those for new construction, renovation and alteration, wrecking and demolition, porch construction, and permits reinstated after being previously revoked.\footnote{Porch construction permits have received extra scrutiny since the \href{https://en.wikipedia.org/wiki/2003_Chicago_balcony_collapse}{2003 balcony collapse}.} These are the permit types most likely to draw community opposition and face delays due to community meetings or direct aldermanic intervention. \textit{Low-discretion permits} are all remaining permit types outside this high-discretion group, excluding signs. These permits serve as a placebo comparison group because they are generally less exposed to discretionary aldermanic intervention than the high-discretion permits.
 
 Distinguishing between these categories is crucial for isolating the alderman-specific component of the regulatory environment. High-discretion permits are the ones that require meaningful interaction with the alderman and are most likely to be affected by their behavior. Low-discretion permits serve as a useful comparison group: if the stringency scores are picking up something specific to the discretionary layer rather than general bureaucratic capacity, effects should concentrate in high-discretion permits and be absent for low-discretion ones.
 
@@ -127,7 +127,7 @@ The data bear this out. High-discretion permits take substantially longer to pro
     \centering
     \includegraphics[width=0.78\textwidth]{../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf}
     \caption{Alderman-Level Mean Processing Time for High- and Low-Discretion Permits}
-    \figurenotes{Figure plots the distribution of alderman-level mean permit processing time separately for high- and low-discretion permit groups. High-discretion permits are new construction, renovation/alteration, wrecking/demolition, porch construction, and reinstated permits. Low-discretion permits are those in the Easy Permit Process, Express Permit Program, Elevator Equipment, For Extension of PMT, and Scaffolding categories, excluding signs. Processing time is days from application to issuance.}
+    \figurenotes{Figure plots the distribution of alderman-level mean permit processing time separately for high- and low-discretion permit groups. High-discretion permits are new construction, renovation/alteration, wrecking/demolition, porch construction, and reinstated permits. Low-discretion permits are all remaining non-high-discretion permit types, excluding signs. Processing time is days from application to issuance.}
     \label{fig:permit_high_low_processing}
 \end{figure}
 
@@ -158,7 +158,7 @@ Figure~\ref{fig:aldermanic_strictness_scores} shows the distribution of the fina
     \centering
     \includegraphics[width=0.8\textwidth]{../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf}
     \caption{Distribution of Aldermanic Stringency Scores}
-    \figurenotes{Stringency scores are constructed from residualized permit processing times with empirical Bayes shrinkage. Scores are standardized to mean zero. Higher values indicate aldermen associated with longer permit processing times after controlling for ward characteristics and permit-level fixed effects.}
+    \figurenotes{Stringency scores are constructed from residualized permit processing times with empirical Bayes shrinkage. Scores are standardized to mean zero and unit standard deviation. Higher values indicate aldermen associated with longer permit processing times after controlling for ward characteristics and permit-level fixed effects.}
     \label{fig:aldermanic_strictness_scores}
 \end{figure}
 

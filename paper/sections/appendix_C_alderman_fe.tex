@@ -8,21 +8,21 @@ This appendix provides additional detail on the construction and validation of t
 Alderman strictness is measured using permit processing times from the high-discretion permit sample described in Section~\ref{subsec:permits_sample}, residualized to remove the influence of ward characteristics.
 
 \paragraph{Stage 1: Residualization.}
-I regress log mean processing time on ward geographic fundamentals (distance to CBD, lakefront share, CTA station density), demographic controls (homeownership rate, population, median household income, racial composition), and year-month fixed effects.
+I regress permit-level log processing time on ward geographic fundamentals (distance to the CBD, distance to the lake, CTA station density), demographic controls (homeownership rate, population, median household income, racial composition), lagged ward-month permit volume, and fixed effects for month, permit type, and review type.
 
 \paragraph{Stage 2: Alderman Fixed Effects.}
-Residualized processing times are regressed on alderman fixed effects, with observations weighted by the number of permits. The alderman fixed effect captures the systematic component of processing time attributable to the alderman.
+I aggregate the Stage 1 residuals to ward-month mean residuals and regress those ward-month averages on alderman fixed effects and the same lagged permit-volume control, weighting observations by ward-month permit counts. The alderman fixed effect captures the systematic component of processing time attributable to the alderman.
 
 \paragraph{Empirical Bayes Shrinkage.}
 Raw alderman fixed effects are shrunk toward the grand mean using an empirical Bayes procedure: $\hat{\theta}_j^{\text{EB}} = B_j \cdot \hat{\theta}_j$, where $B_j = \hat{\tau}^2/(\hat{\tau}^2 + \hat{\sigma}_j^2)$ is the shrinkage factor.
 
 \paragraph{Index Standardization.}
-The final strictness index is standardized to have mean zero across aldermen. Higher values indicate stricter aldermen.
+The final strictness index is standardized to have mean zero and unit standard deviation across aldermen. Higher values indicate stricter aldermen.
 
-Table~\ref{tab:stage1_residualization} reports the Stage 1 residualization regression. The dependent variable is log processing time for individual permits. The specification controls for ward fundamentals and lag permit volume while partialing out year-month, permit-type, and review-type fixed effects since review and permit-type composition may be endogneously determined by the regulatory environment. This stage is meant to remove systematic differences in permit timing attributable to observable ward characteristics so that the resulting strictness score isolates the alderman-specific component.
+Table~\ref{tab:stage1_residualization} reports the baseline Stage 1 residualization regression. The dependent variable is permit-level log processing time. The specification controls for ward fundamentals and lag permit volume while partialing out month, permit-type, and review-type fixed effects, since review and permit-type composition may be endogenously determined by the regulatory environment. This stage is meant to remove systematic differences in permit timing attributable to observable ward characteristics so that the resulting strictness score isolates the alderman-specific component.
 
 \begin{table}[htbp]
-    \caption{Stage 1 Residualization: Log Mean Processing Time on Ward Fundamentals}
+    \caption{Stage 1 Residualization: Permit-Level Log Processing Time on Ward Fundamentals}
     \label{tab:stage1_residualization}
     \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex}
 
