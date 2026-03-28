@@ -161,8 +161,9 @@ final_dataset <- parcels_with_distances %>%
   left_join(alderman_lookup,
     by = c("assigned_ward" = "ward", "yearmon_key")
   ) %>%
+  rename(alderman_own = alderman) %>%
   mutate(
-    alderman_ward_key = paste(assigned_ward, alderman, sep = "_")
+    alderman_ward_key = paste(assigned_ward, alderman_own, sep = "_")
   ) %>%
   left_join(alderman_tenure_lookup,
     by = "alderman_ward_key"
@@ -178,7 +179,7 @@ final_dataset <- parcels_with_distances %>%
     pin, geom, GEOID,
     construction_year = yearbuilt, construction_date, boundary_year, dist_to_boundary,
     ward = assigned_ward, ward_pair,
-    alderman = alderman.x, alderman_tenure_months,
+    alderman = alderman_own, alderman_tenure_months,
     # NOTE: These columns were kept in your previous script (res + multi)
     arealotsf, areabuilding, bedroomscount, unitscount, storiescount, residential,
 
@@ -235,7 +236,8 @@ st_write(final_dataset, "../output/parcels_with_geometry.gpkg", delete_dsn = TRU
 # -----------------------------------------------------------------------------
 # 9. SIGN DISTANCES BASED ON HOMEOWNERSHIP RATES
 # -----------------------------------------------------------------------------
-final_dataset <- as_tibble(st_drop_geometry(final_dataset))
+final_dataset <- as_tibble(st_drop_geometry(final_dataset)) %>%
+  rename(alderman_own = alderman)
 
 # Prepare ward controls for joining
 # We need homeownership_rate by ward and year
@@ -270,8 +272,10 @@ final_dataset_signed <- final_dataset %>%
     suffix = c("_own", "_neighbor")
   ) %>%
   # --- JOIN 3: Neighbor Alderman ---
-  left_join(alderman_lookup, by = c("other_ward" = "ward", "yearmon_key")) %>%
-  rename(alderman_neighbor = alderman.y, alderman_own = alderman.x) %>%
+  left_join(
+    alderman_lookup %>% rename(alderman_neighbor = alderman),
+    by = c("other_ward" = "ward", "yearmon_key")
+  ) %>%
   # NOTE: Score merging moved to merge_in_scores task for faster iteration
   dplyr::select(-contains("wards_in_pair"), -match_year) %>%
   # --- JOIN 4: Block Group Demographics ---

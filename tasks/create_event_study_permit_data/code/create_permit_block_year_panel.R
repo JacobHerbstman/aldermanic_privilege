@@ -1,6 +1,8 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
+# Paused for substantive use pending review of ../../city_point_geocode_audit/output/geocode_audit_report.md.
+
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_permit_data/code")
@@ -105,24 +107,126 @@ build_unit_increase_audit <- function() {
 }
 
 read_blocks <- function(path, block_col, target_crs) {
-  read_csv(path, show_col_types = FALSE) %>%
+  blocks_sf <- read_csv(path, show_col_types = FALSE) %>%
     rename(geometry = the_geom) %>%
     st_as_sf(wkt = "geometry", crs = 4269) %>%
     st_make_valid() %>%
     st_transform(target_crs) %>%
     rename(block_id = all_of(block_col)) %>%
-    mutate(block_id = as.character(block_id)) %>%
+    mutate(block_id = as.character(block_id))
+
+  if (any(is.na(blocks_sf$block_id) | blocks_sf$block_id == "")) {
+    stop(sprintf("Block input %s contains missing block_id values.", path), call. = FALSE)
+  }
+
+  duplicate_block_ids <- blocks_sf %>%
+    mutate(geometry_wkt = st_as_text(st_geometry(.))) %>%
+    st_drop_geometry() %>%
+    count(block_id, geometry_wkt, name = "n_rows") %>%
+    count(block_id, name = "n_unique_geometries") %>%
+    filter(n_unique_geometries > 1)
+
+  if (nrow(duplicate_block_ids) > 0) {
+    stop(
+      sprintf(
+        "Block input %s contains %d block IDs with conflicting geometries.",
+        path,
+        nrow(duplicate_block_ids)
+      ),
+      call. = FALSE
+    )
+  }
+
+  duplicate_block_rows <- blocks_sf %>%
+    st_drop_geometry() %>%
+    count(block_id, name = "n_rows") %>%
+    filter(n_rows > 1)
+
+  if (nrow(duplicate_block_rows) > 0) {
+    message(sprintf(
+      "Dropping %d exact duplicate block rows across %d block IDs in %s.",
+      sum(duplicate_block_rows$n_rows - 1L),
+      nrow(duplicate_block_rows),
+      path
+    ))
+  }
+
+  blocks_sf %>%
     distinct(block_id, .keep_all = TRUE)
 }
 
-assign_permits_to_blocks <- function(permits_sf, blocks_sf) {
-  joined <- st_join(permits_sf, blocks_sf %>% select(block_id), join = st_within) %>%
-    st_drop_geometry() %>%
-    filter(!is.na(block_id)) %>%
-    arrange(id, block_id) %>%
-    distinct(id, .keep_all = TRUE)
+assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label) {
+  joined <- st_join(permits_sf, blocks_sf %>% select(block_id), join = st_within)
+  joined_df <- joined %>% st_drop_geometry()
 
-  as.data.table(joined)
+  duplicate_matches <- joined_df %>%
+    count(id, name = "n_matches") %>%
+    filter(n_matches > 1)
+
+  if (nrow(duplicate_matches) > 0) {
+    stop(
+      sprintf(
+        "Permit-to-block assignment produced %d permits with multiple block matches.",
+        nrow(duplicate_matches)
+      ),
+      call. = FALSE
+    )
+  }
+
+  missing_matches <- joined_df %>%
+    filter(is.na(block_id)) %>%
+    distinct(id)
+
+  if (nrow(missing_matches) > 0) {
+    missing_sf <- joined %>%
+      filter(is.na(block_id))
+
+    nearest_idx <- st_nearest_feature(missing_sf, blocks_sf)
+    nearest_dist_m <- as.numeric(st_distance(
+      missing_sf,
+      blocks_sf[nearest_idx, ],
+      by_element = TRUE
+    ))
+
+    missing_audit <- missing_sf %>%
+      mutate(
+        block_vintage = block_vintage_label,
+        nearest_block_id = blocks_sf$block_id[nearest_idx],
+        nearest_block_distance_m = nearest_dist_m,
+        missing_pin = is.na(pin) | pin == ""
+      ) %>%
+      st_drop_geometry() %>%
+      arrange(desc(missing_pin), permit_type, id)
+
+    missing_summary <- missing_audit %>%
+      count(block_vintage, permit_type, missing_pin, name = "n_permits") %>%
+      arrange(desc(n_permits), permit_type, missing_pin)
+
+    write_csv(
+      missing_audit,
+      sprintf("../output/permit_block_assignment_missing_%s.csv", block_vintage_label)
+    )
+    write_csv(
+      missing_summary,
+      sprintf("../output/permit_block_assignment_missing_%s_summary.csv", block_vintage_label)
+    )
+
+    message(sprintf(
+      paste(
+        "Dropping %d permits without a %s block match.",
+        "See ../output/permit_block_assignment_missing_%s.csv for details."
+      ),
+      nrow(missing_matches),
+      block_vintage_label,
+      block_vintage_label
+    ))
+  }
+
+  as.data.table(
+    joined_df %>%
+      filter(!is.na(block_id)) %>%
+      arrange(id, block_id)
+  )
 }
 
 permit_outcome_meta <- tibble(
@@ -470,8 +574,8 @@ message("Loading issued permits...")
 permits_clean <- st_read(
   "../input/building_permits_clean.gpkg",
   query = paste(
-    "SELECT id, permit_type, high_discretion, permit_issued,",
-    "application_start_date_ym, issue_date_ym, geom",
+    "SELECT id, pin, permit_type, high_discretion, permit_issued,",
+    "application_start_date_ym, issue_date_ym, latitude, longitude, processing_time, geom",
     "FROM building_permits_clean",
     "WHERE permit_issued = 1"
   ),
@@ -492,7 +596,7 @@ if (st_crs(permits_clean) != st_crs(blocks_2010)) {
 }
 
 message("Assigning permits to 2010 and 2020 blocks...")
-permits_2010 <- assign_permits_to_blocks(permits_clean, blocks_2010) %>%
+permits_2010 <- assign_permits_to_blocks(permits_clean, blocks_2010, "2010") %>%
   left_join(unit_audit$included_ids, by = "id") %>%
   mutate(
     unit_increase_included = coalesce(as.integer(unit_increase_included), 0L)
@@ -509,7 +613,7 @@ permits_2010[, `:=`(
   is_unit_increase_issued = as.integer(unit_increase_included == 1)
 )]
 
-permits_2020 <- assign_permits_to_blocks(permits_clean, blocks_2020) %>%
+permits_2020 <- assign_permits_to_blocks(permits_clean, blocks_2020, "2020") %>%
   left_join(unit_audit$included_ids, by = "id") %>%
   mutate(
     unit_increase_included = coalesce(as.integer(unit_increase_included), 0L)

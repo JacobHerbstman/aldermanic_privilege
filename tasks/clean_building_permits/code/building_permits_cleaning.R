@@ -15,9 +15,20 @@ building_permits_clean <- building_permits %>%
     .fns = ~ as.numeric(gsub("[^0-9.-]", "", .x))
   ))
 
+chicago_lat_min <- 41
+chicago_lat_max <- 43
+chicago_lon_min <- -89
+chicago_lon_max <- -87
+dominant_hotspot_latitude <- 42.00853640087
+dominant_hotspot_longitude <- -87.91442843927
+dominant_hotspot_tolerance <- 1e-6
 
 # Identify rows that are missing lat/lon but have x/y coordinates
-needs_conversion_mask <- is.na(building_permits_clean$latitude) & !is.na(building_permits_clean$xcoordinate)
+needs_conversion_mask <- (
+  is.na(building_permits_clean$latitude) | is.na(building_permits_clean$longitude)
+) &
+  is.finite(building_permits_clean$xcoordinate) &
+  is.finite(building_permits_clean$ycoordinate)
 permits_to_convert <- building_permits_clean[needs_conversion_mask, ]
 
 converted_sf <- st_as_sf(
@@ -33,10 +44,44 @@ new_coords <- st_coordinates(converted_sf)
 building_permits_clean$longitude[needs_conversion_mask] <- new_coords[, "X"]
 building_permits_clean$latitude[needs_conversion_mask] <- new_coords[, "Y"]
 
-## remove rows with NA location 
+missing_location_rows <- sum(is.na(building_permits_clean$latitude) | is.na(building_permits_clean$longitude))
+invalid_chicago_coords <- with(
+  building_permits_clean,
+  !is.na(latitude) &
+    !is.na(longitude) &
+    (
+      latitude < chicago_lat_min |
+        latitude > chicago_lat_max |
+        longitude < chicago_lon_min |
+        longitude > chicago_lon_max
+    )
+)
+dominant_invalid_hotspot <- with(
+  building_permits_clean,
+  !is.na(latitude) &
+    !is.na(longitude) &
+    abs(latitude - dominant_hotspot_latitude) < dominant_hotspot_tolerance &
+    abs(longitude - dominant_hotspot_longitude) < dominant_hotspot_tolerance
+)
+
+message("Rows still missing latitude/longitude after conversion: ", missing_location_rows)
+message("Rows with implausible Chicago coordinates: ", sum(invalid_chicago_coords))
+message("Rows at dominant invalid hotspot coordinate: ", sum(dominant_invalid_hotspot))
+
+## remove rows with missing or implausible location
 building_permits_clean <- building_permits_clean %>% 
   dplyr::filter(!is.na(latitude)) %>% 
-  dplyr::filter(!is.na(longitude)) 
+  dplyr::filter(!is.na(longitude)) %>% 
+  dplyr::filter(latitude >= chicago_lat_min) %>%
+  dplyr::filter(latitude <= chicago_lat_max) %>%
+  dplyr::filter(longitude >= chicago_lon_min) %>%
+  dplyr::filter(longitude <= chicago_lon_max) %>%
+  dplyr::filter(
+    !(
+      abs(latitude - dominant_hotspot_latitude) < dominant_hotspot_tolerance &
+        abs(longitude - dominant_hotspot_longitude) < dominant_hotspot_tolerance
+    )
+  )
 
 ## use zoo to convert dates to that format
 building_permits_clean <- building_permits_clean %>% 

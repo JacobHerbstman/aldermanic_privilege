@@ -1,6 +1,8 @@
 SHELL := bash
 include ../../shell_functions.make
 
+# Paused for substantive use pending review of ../../city_point_geocode_audit/output/geocode_audit_report.md.
+
 all: \
 	../output/permit_block_year_panel.parquet \
 	../output/permit_block_year_panel_2015.parquet \
@@ -10,6 +12,10 @@ all: \
 	../output/permit_block_year_panel_assignment_stability.csv \
 	../output/permit_block_year_panel_zero_share_summary.csv \
 	../output/permit_block_year_panel_outcome_totals.csv \
+	../output/permit_block_assignment_missing_2010.csv \
+	../output/permit_block_assignment_missing_2010_summary.csv \
+	../output/permit_block_assignment_missing_2020.csv \
+	../output/permit_block_assignment_missing_2020_summary.csv \
 	../output/permit_unit_increase_audit.csv \
 	../output/permit_unit_increase_audit_summary.csv
 
@@ -23,6 +29,10 @@ all: \
 ../output/permit_block_year_panel_assignment_stability.csv \
 ../output/permit_block_year_panel_zero_share_summary.csv \
 ../output/permit_block_year_panel_outcome_totals.csv \
+../output/permit_block_assignment_missing_2010.csv \
+../output/permit_block_assignment_missing_2010_summary.csv \
+../output/permit_block_assignment_missing_2020.csv \
+../output/permit_block_assignment_missing_2020_summary.csv \
 ../output/permit_unit_increase_audit.csv \
 ../output/permit_unit_increase_audit_summary.csv: ../output/permit_block_year_panel.parquet
 	test -f "$@"

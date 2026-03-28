@@ -4,6 +4,11 @@
 
 source("../../setup_environment/code/packages.R")
 
+chicago_lat_min <- 41
+chicago_lat_max <- 43
+chicago_lon_min <- -89
+chicago_lon_max <- -87
+
 # ---- Load ----
 residential      <- read_csv("../input/residential_cross_section.csv",   show_col_types = FALSE)
 parcels          <- read_csv("../input/parcels.csv",  show_col_types = FALSE)
@@ -13,8 +18,41 @@ multifamily      <- read_csv("../input/multifamily_data_cleaned.csv", show_col_t
 # ---- Prep Parcels (Geo) ----
 parcels <- parcels %>%
   mutate(pin = as.character(pin)) %>%
-  filter(!is.na(latitude) & !is.na(longitude)) %>% 
-  distinct(pin, .keep_all = TRUE) %>% 
+  filter(!is.na(latitude) & !is.na(longitude))
+
+duplicate_parcel_pins <- parcels %>%
+  count(pin, name = "n_rows") %>%
+  filter(!is.na(pin), n_rows > 1)
+
+if (nrow(duplicate_parcel_pins) > 0) {
+  stop(
+    sprintf(
+      "Parcel input contains %d duplicate PINs with latitude/longitude. Fix upstream instead of silently deduplicating.",
+      nrow(duplicate_parcel_pins)
+    ),
+    call. = FALSE
+  )
+}
+
+out_of_bounds_parcels <- parcels %>%
+  filter(
+    latitude < chicago_lat_min |
+      latitude > chicago_lat_max |
+      longitude < chicago_lon_min |
+      longitude > chicago_lon_max
+  )
+
+if (nrow(out_of_bounds_parcels) > 0) {
+  stop(
+    sprintf(
+      "Parcel input contains %d rows with coordinates outside the broad Chicago bounding box.",
+      nrow(out_of_bounds_parcels)
+    ),
+    call. = FALSE
+  )
+}
+
+parcels <- parcels %>%
   select(pin, pin10, latitude, longitude, cmap_walkability_total_score, cmap_walkability_no_transit_score)
 
 parcel_proximity <- parcel_proximity %>%
@@ -128,10 +166,44 @@ all_parcels <- bind_rows(res_with_geo, multifamily_geo) %>%
   slice(1) %>%
   ungroup()
 
+if (anyDuplicated(all_parcels$pin)) {
+  stop("Combined geocoded parcel output still has duplicate PINs after prioritization.", call. = FALSE)
+}
+
+invalid_output_coords <- all_parcels %>%
+  filter(
+    !is.na(latitude),
+    !is.na(longitude),
+    (
+      latitude < chicago_lat_min |
+        latitude > chicago_lat_max |
+        longitude < chicago_lon_min |
+        longitude > chicago_lon_max
+    )
+  )
+
+if (nrow(invalid_output_coords) > 0) {
+  stop(
+    sprintf(
+      "Combined geocoded parcel output contains %d rows with coordinates outside the broad Chicago bounding box.",
+      nrow(invalid_output_coords)
+    ),
+    call. = FALSE
+  )
+}
+
 # Write output
 has_xy <- is.finite(all_parcels$longitude) & is.finite(all_parcels$latitude)
 sf_pts <- st_as_sf(all_parcels[has_xy, ], coords = c("longitude", "latitude"), crs = 4326)
 sf_chi <- st_transform(sf_pts, 3435)
 
-st_write(sf_chi, "../output/geocoded_residential_data.gpkg", delete_dsn = TRUE, quiet = TRUE)
+message(sprintf(
+  "Writing %d geocoded parcel records with latitude range %.6f to %.6f and longitude range %.6f to %.6f.",
+  nrow(all_parcels),
+  min(all_parcels$latitude, na.rm = TRUE),
+  max(all_parcels$latitude, na.rm = TRUE),
+  min(all_parcels$longitude, na.rm = TRUE),
+  max(all_parcels$longitude, na.rm = TRUE)
+))
 
+st_write(sf_chi, "../output/geocoded_residential_data.gpkg", delete_dsn = TRUE, quiet = TRUE)
