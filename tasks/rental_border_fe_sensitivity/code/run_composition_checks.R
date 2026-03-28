@@ -1,7 +1,9 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
 # input <- "../input/rent_with_ward_distances.parquet"
 # bw_ft <- 500
@@ -9,11 +11,12 @@ source("../../setup_environment/code/packages.R")
 # sample_filter <- "all"
 # output_tex <- "../output/composition_checks_pre_2021_all_bw500.tex"
 # output_csv <- "../output/composition_checks_pre_2021_all_bw500.csv"
-# Rscript run_composition_checks.R "../input/rent_with_ward_distances.parquet" 500 "pre_2021" "all" "../output/composition_checks_pre_2021_all_bw500.tex" "../output/composition_checks_pre_2021_all_bw500.csv"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, bw_ft, window, sample_filter, output_tex, output_csv)
+}
+
 if (length(cli_args) >= 6) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))

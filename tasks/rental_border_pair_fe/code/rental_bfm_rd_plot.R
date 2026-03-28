@@ -1,7 +1,9 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_pair_fe/code")
 # input <- "../input/rent_with_ward_distances.parquet"
 # bw_ft <- 1000
@@ -13,11 +15,12 @@ source("../../setup_environment/code/packages.R")
 # output_pdf <- "../output/bfm_rd_plot_bw1000_pre_2021_all.pdf"
 # output_meta_csv <- "../output/bfm_rd_plot_bw1000_pre_2021_all_meta.csv"
 # output_bins_csv <- "../output/bfm_rd_plot_bw1000_pre_2021_all_bins.csv"
-# Rscript rental_bfm_rd_plot.R "../input/rent_with_ward_distances.parquet" 1000 "pre_2021" "all" TRUE 10 0 "../output/bfm_rd_plot_bw1000_pre_2021_all.pdf" "../output/bfm_rd_plot_bw1000_pre_2021_all_meta.csv" "../output/bfm_rd_plot_bw1000_pre_2021_all_bins.csv"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, bw_ft, window, sample_filter, use_controls, bins_per_side, min_strictness_diff_pctile, output_pdf, output_meta_csv, output_bins_csv)
+}
+
 if (length(cli_args) >= 12) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))

@@ -4,28 +4,27 @@
 
 source("../../setup_environment/code/packages.R")
 
-# -----------------------------------------------------------------------------
 # PARSE COMMAND LINE ARGUMENTS
-# -----------------------------------------------------------------------------
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_in_scores/code")
 # score_file <- "../input/aldermen_uncertainty_scores.csv"
 # score_column <- "uncertainty_index"
-# Rscript merge_scores.R "../input/aldermen_uncertainty_scores.csv" "uncertainty_index"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 2) {
-  score_file <- cli_args[1]
-  score_column <- cli_args[2]
-} else {
-  if (!exists("score_file") || !exists("score_column")) {
-    stop("FATAL: Script requires 2 args: <score_file> <score_column>", call. = FALSE)
-  }
+if (length(cli_args) == 0) {
+  cli_args <- c(score_file, score_column)
 }
+
+if (length(cli_args) < 2) {
+  stop("FATAL: Script requires 2 args: <score_file> <score_column>", call. = FALSE)
+}
+
+score_file <- cli_args[1]
+score_column <- cli_args[2]
 
 SCORE_FILE <- score_file
 SCORE_COLUMN <- score_column

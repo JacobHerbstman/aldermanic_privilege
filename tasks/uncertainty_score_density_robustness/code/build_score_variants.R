@@ -1,11 +1,23 @@
 ## Build alternative alderman stringency score variants
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_score_density_robustness/code")
-# Rscript build_score_variants.R "../input/permits_for_uncertainty_index.csv" "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv" "days_unlogged" "../output/alderman_uncertainty_index_days_unlogged.csv" "../output/score_variant_metadata_days_unlogged.csv" "../output/score_variant_stage1_terms_days_unlogged.csv" "../output/stage1_regression_days_unlogged.tex" "../output/stage2_regression_days_unlogged.tex"
 
-source("../../create_alderman_uncertainty_index/code/uncertainty_index_helpers.R")
+source("../../_lib/alderman_uncertainty_helpers.R")
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_score_density_robustness/code")
+# permits_input <- "../input/permits_for_uncertainty_index.csv"
+# baseline_score_input <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
+# variant_id <- "days_unlogged"
+# score_output <- "../output/alderman_uncertainty_index_days_unlogged.csv"
+# metadata_output <- "../output/score_variant_metadata_days_unlogged.csv"
+# stage1_terms_output <- "../output/score_variant_stage1_terms_days_unlogged.csv"
+# stage1_table_output <- "../output/stage1_regression_days_unlogged.tex"
+# stage2_table_output <- "../output/stage2_regression_days_unlogged.tex"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(permits_input, baseline_score_input, variant_id, score_output, metadata_output, stage1_terms_output, stage1_table_output, stage2_table_output)
+}
+
 if (length(args) >= 6) {
   permits_input <- args[1]
   baseline_score_input <- args[2]

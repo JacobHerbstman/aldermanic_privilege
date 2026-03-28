@@ -1,11 +1,17 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/project_cleanup_audit/code")
-# Rscript prune_stale_outputs.R ../output/pruned_outputs.csv
 
 source("../../setup_environment/code/packages.R")
 
 library(data.table)
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/project_cleanup_audit/code")
+# output_csv <- "../output/pruned_outputs.csv"
+
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(output_csv)
+}
+
 output_csv <- if (length(args) >= 1) args[1] else "../output/pruned_outputs.csv"
 root_dir <- normalizePath(file.path("..", "..", ".."))
 

@@ -1,12 +1,24 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
-# Rscript run_event_study_disaggregate.R "cohort_2023" "yearly" "continuous" TRUE "triangular" 1000 "multifamily_only" "strict_pair_x_year" "short" "segment" "twoway_block_segment"
-# =======================================================================================
+# panel_mode <- "cohort_2023"
+# frequency <- "yearly"
+# treatment_type <- "continuous"
+# include_controls <- TRUE
+# weighting <- "triangular"
+# bandwidth <- 1000
+# sample_filter <- "multifamily_only"
+# fe_type <- "strict_pair_x_year"
+# post_window <- "short"
+# geo_fe_level <- "segment"
+# cluster_level <- "twoway_block_segment"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(panel_mode, frequency, treatment_type, include_controls, weighting, bandwidth, sample_filter, fe_type, post_window, geo_fe_level, cluster_level)
+}
+
 if (length(cli_args) >= 11) {
   panel_mode <- cli_args[1]
   frequency <- cli_args[2]

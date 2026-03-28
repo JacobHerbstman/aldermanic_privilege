@@ -1,7 +1,9 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_pair_fe/code")
 # input <- "../input/rent_with_ward_distances.parquet"
 # bw_ft <- 500
@@ -11,11 +13,12 @@ source("../../setup_environment/code/packages.R")
 # use_controls <- TRUE
 # output_pdf <- "../output/continuous_treatment_by_signed_distance_bw500_pre_2023_ctrl.pdf"
 # output_csv <- "../output/continuous_treatment_by_signed_distance_bw500_pre_2023_ctrl.csv"
-# Rscript rental_continuous_treatment_by_distance_plot.R "../input/rent_with_ward_distances.parquet" 500 50 "pre_2023" "all" TRUE "../output/continuous_treatment_by_signed_distance_bw500_pre_2023_ctrl.pdf" "../output/continuous_treatment_by_signed_distance_bw500_pre_2023_ctrl.csv"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, bw_ft, bin_width_ft, window, sample_filter, use_controls, output_pdf, output_csv)
+}
+
 if (length(cli_args) >= 8) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))

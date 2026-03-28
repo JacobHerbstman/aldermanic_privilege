@@ -2,26 +2,28 @@
 # One table per bandwidth (in miles) with multiple outcomes as columns.
 # Regressions: y ~ homeownership_own | construction_year + ward_pair, clustered by ward_pair
 
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
 
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
-# bw_ft <- "all"
-# sample_filter <- "all"  # "all" | "multifamily"
-# fe_spec <- "zonegroup_segment_year_additive"
-# yvars <- c("log(density_far)", "log(density_dupac)")
-# output_filename <- "../output/fe_table_bwall_all_zonegroup_segment_year_additive.tex"
-# Rscript border_pair_FE_regressions.R all all zonegroup_segment_year_additive ../output/fe_table_bwall_all_zonegroup_segment_year_additive.tex "log(density_far)" "log(density_dupac)"
-# =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 # arg order: bw_ft sample fe_spec output_filename yvar1 [yvar2 ...]
 # sample: "all" (unitscount > 0) | "multifamily" (unitscount > 1)
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
+# bw_ft <- "all"
+# sample_filter <- "all"
+# fe_spec <- "zonegroup_segment_year_additive"
+# output_filename <- "../output/fe_table_bwall_all_zonegroup_segment_year_additive.tex"
+# yvar_1 <- "log(density_far)"
+# yvar_2 <- "log(density_dupac)"
+
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(bw_ft, sample_filter, fe_spec, output_filename, yvar_1, yvar_2)
+}
+
 if (length(args) >= 5) {
   bw_arg <- args[1]
   sample_filter <- args[2]

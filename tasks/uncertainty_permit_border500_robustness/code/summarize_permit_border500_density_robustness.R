@@ -1,11 +1,21 @@
 ## Summarize internal density robustness checks for border-500 permit exclusion
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_permit_border500_robustness/code")
-# Rscript summarize_permit_border500_density_robustness.R ../output permit_border500 "Drop permits within 500 ft of ward borders" ../output/density_score_robustness_comparison_permit_border500.csv ../output/density_score_robustness_comparison_permit_border500.tex ../output/parcel_sign_agreement_baseline_vs_permit_border500.csv
 
 source("../../setup_environment/code/packages.R")
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_permit_border500_robustness/code")
+# output_dir <- "../output"
+# variant_suffix <- "permit_border500"
+# variant_label <- "Drop permits within 500 ft of ward borders"
+# comparison_output <- "../output/density_score_robustness_comparison_permit_border500.csv"
+# comparison_tex_output <- "../output/density_score_robustness_comparison_permit_border500.tex"
+# parcel_sign_output <- "../output/parcel_sign_agreement_baseline_vs_permit_border500.csv"
+
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(output_dir, variant_suffix, variant_label, comparison_output, comparison_tex_output, parcel_sign_output)
+}
+
 if (length(args) >= 1) {
   output_dir <- args[1]
 } else {

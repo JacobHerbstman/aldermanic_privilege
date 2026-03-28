@@ -1,18 +1,21 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
 # input <- "../input/rent_with_ward_distances.parquet"
 # bw_ft <- 500
 # window <- "pre_2023"
 # output_tex <- NA
 # output_csv <- NA
-# Rscript listing_units_ppml_robustness.R "../input/rent_with_ward_distances.parquet" 500 "pre_2023" NA NA
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, bw_ft, window, output_tex, output_csv)
+}
+
 if (length(cli_args) >= 5) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))

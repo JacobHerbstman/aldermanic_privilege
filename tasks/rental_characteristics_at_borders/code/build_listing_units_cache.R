@@ -1,9 +1,25 @@
 source("../../setup_environment/code/packages.R")
 
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
-# Rscript build_listing_units_cache.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all unit_proxy 0 8 all NA ../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.parquet ../output/listing_units_cache_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.csv
+# input <- "../input/rent_with_ward_distances.parquet"
+# bw_ft <- 500
+# window <- "pre_2023"
+# sample_filter <- "all"
+# unit_def <- "unit_proxy"
+# min_strictness_diff_pctile <- 0
+# bins_per_side <- 8
+# prune_sample <- "all"
+# confound_flags_path <- NA
+# output_side_panel <- "../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet"
+# output_bin_cells <- "../output/listing_units_bin_cells_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.parquet"
+# output_meta <- "../output/listing_units_cache_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.csv"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, bw_ft, window, sample_filter, unit_def, min_strictness_diff_pctile, bins_per_side, prune_sample, confound_flags_path, output_side_panel, output_bin_cells, output_meta)
+}
+
 if (length(cli_args) >= 12) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))

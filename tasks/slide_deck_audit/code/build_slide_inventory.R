@@ -1,11 +1,19 @@
 source("../../setup_environment/code/packages.R")
 
 ## Build slide inventory and claim manifest
-## run this line when editing code in Rstudio
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/slide_deck_audit/code")
-# Rscript build_slide_inventory.R ../input/slides ../input/manual_slide_claims.csv ../output/slide_asset_inventory.csv ../output/slide_claim_manifest.csv
+# slides_root_input <- "../input/slides"
+# manual_claims_input <- "../input/manual_slide_claims.csv"
+# asset_inventory_output <- "../output/slide_asset_inventory.csv"
+# claim_manifest_output <- "../output/slide_claim_manifest.csv"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(slides_root_input, manual_claims_input, asset_inventory_output, claim_manifest_output)
+}
+
 if (length(args) >= 4) {
   slides_root_input <- args[1]
   manual_claims_input <- args[2]

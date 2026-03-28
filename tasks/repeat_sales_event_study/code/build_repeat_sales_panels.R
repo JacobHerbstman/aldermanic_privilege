@@ -1,12 +1,20 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/repeat_sales_event_study/code")
-# Rscript build_repeat_sales_panels.R "cohort_2015" "bw1000" "../input/sales_transaction_panel_2012.parquet" "../input/sales_transaction_panel_2015.parquet" "../input/sales_transaction_panel_2022.parquet" "../input/sales_transaction_panel_2023.parquet" "../output/repeat_sales_panel_cohort_2015_bw1000.parquet"
-# =======================================================================================
+# panel_mode <- "cohort_2015"
+# approach <- "bw1000"
+# panel_2012_input <- "../input/sales_transaction_panel_2012.parquet"
+# panel_2015_input <- "../input/sales_transaction_panel_2015.parquet"
+# panel_2022_input <- "../input/sales_transaction_panel_2022.parquet"
+# panel_2023_input <- "../input/sales_transaction_panel_2023.parquet"
+# output_panel <- "../output/repeat_sales_panel_cohort_2015_bw1000.parquet"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(panel_mode, approach, panel_2012_input, panel_2015_input, panel_2022_input, panel_2023_input, output_panel)
+}
+
 if (length(args) != 7) {
   stop(
     "Usage: Rscript build_repeat_sales_panels.R <panel_mode> <approach> <panel_2012> <panel_2015> <panel_2022> <panel_2023> <output_panel>",

@@ -1,14 +1,23 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
-# Rscript run_did_permit.R "high_discretion" "issue" "ppml" "uniform" 1000 "full" "segment"
-# =======================================================================================
 
 dir.create("../output", showWarnings = FALSE, recursive = TRUE)
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
+# outcome_family <- "high_discretion"
+# date_basis <- "issue"
+# model_type <- "ppml"
+# weighting <- "uniform"
+# bandwidth <- 1000
+# post_window <- "full"
+# geo_fe_level <- "segment"
+
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(outcome_family, date_basis, model_type, weighting, bandwidth, post_window, geo_fe_level)
+}
+
 if (length(cli_args) >= 6) {
   outcome_family <- cli_args[1]
   date_basis <- cli_args[2]

@@ -1,12 +1,16 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
-# Rscript did_table_sales_2015.R 1000 uniform ../output/did_table_sales_2015_uniform_1000ft_geo_wardpair_clust_block.tex
-# =======================================================================================
+# bandwidth <- 1000
+# weighting <- "uniform"
+# output_tex <- "../output/did_table_sales_2015_uniform_1000ft_geo_wardpair_clust_block.tex"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(bandwidth, weighting, output_tex)
+}
+
 if (length(args) >= 3) {
   bandwidth <- as.numeric(args[1])
   weighting <- args[2]

@@ -1,11 +1,17 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/project_cleanup_audit/code")
-# Rscript capture_task_snapshot.R ../output/post_cleanup_snapshot.csv
 
 source("../../setup_environment/code/packages.R")
 
 library(data.table)
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/project_cleanup_audit/code")
+# snapshot_output <- "../output/post_cleanup_snapshot.csv"
+
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(snapshot_output)
+}
+
 stopifnot(length(args) == 1)
 
 root_dir <- normalizePath(file.path("..", "..", ".."))

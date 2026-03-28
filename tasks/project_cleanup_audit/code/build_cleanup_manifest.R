@@ -86,14 +86,12 @@ if (nrow(edge_rows) == 0) {
 setorder(edge_rows, downstream_task, upstream_task, upstream_output_ref)
 fwrite(edge_rows, "../output/task_dependency_edges.csv")
 
-slide_tex <- list.files(
-  file.path(root_dir, "slides"),
-  pattern = "\\.tex$",
-  recursive = TRUE,
-  full.names = TRUE
+tex_files <- c(
+  list.files(file.path(root_dir, "paper"), pattern = "\\.tex$", recursive = TRUE, full.names = TRUE),
+  list.files(file.path(root_dir, "slides"), pattern = "\\.tex$", recursive = TRUE, full.names = TRUE)
 )
 
-slide_refs <- rbindlist(lapply(slide_tex, function(tf) {
+tex_refs <- rbindlist(lapply(tex_files, function(tf) {
   txt <- readLines(tf, warn = FALSE)
   hits <- parse_output_refs(
     txt,
@@ -101,21 +99,26 @@ slide_refs <- rbindlist(lapply(slide_tex, function(tf) {
   )
   if (length(hits) == 0) return(NULL)
 
+  rel_tf <- gsub(paste0("^", root_dir, "/"), "", tf)
+  tex_group <- if (startsWith(rel_tf, "paper/")) "paper" else "slides"
+  tex_base_dir <- file.path(root_dir, tex_group)
+
   data.table(
-    tex_file = gsub(paste0("^", root_dir, "/"), "", tf),
+    tex_group = tex_group,
+    tex_file = rel_tf,
     output_ref = hits,
     task = sub("^\\.\\./tasks/([A-Za-z0-9_\\-]+)/output/.*$", "\\1", hits, perl = TRUE),
-    abs_path = normalizePath(file.path(root_dir, "slides", hits), winslash = "/", mustWork = FALSE)
+    abs_path = normalizePath(file.path(tex_base_dir, hits), winslash = "/", mustWork = FALSE)
   )
 }), fill = TRUE)
 
-if (nrow(slide_refs) == 0) {
-  slide_usage <- data.table(tex_file = character(), task = character(), n_refs = integer())
+if (nrow(tex_refs) == 0) {
+  tex_usage <- data.table(tex_group = character(), tex_file = character(), task = character(), n_refs = integer())
 } else {
-  slide_usage <- slide_refs[, .(n_refs = .N), by = .(tex_file, task)]
-  setorder(slide_usage, tex_file, task)
+  tex_usage <- tex_refs[, .(n_refs = .N), by = .(tex_group, tex_file, task)]
+  setorder(tex_usage, tex_group, tex_file, task)
 }
-fwrite(slide_usage, "../output/active_tex_task_usage.csv")
+fwrite(tex_usage, "../output/active_tex_task_usage.csv")
 
 all_output_refs <- unique(unlist(lapply(makefiles, extract_all_outputs)))
 
@@ -140,22 +143,22 @@ if (nrow(output_files) == 0) {
     file = character(),
     size_bytes = numeric(),
     keep_class = character(),
-    referenced_by_slide = logical(),
+    referenced_by_tex = logical(),
     referenced_downstream = logical(),
     targeted_by_all = logical(),
     prune_stale = logical()
   )
 } else {
-  slide_abs <- unique(slide_refs$abs_path)
+  tex_abs <- unique(tex_refs$abs_path)
   downstream_abs <- unique(edge_rows$upstream_output_abs)
 
-  output_files[, referenced_by_slide := abs_path %in% slide_abs]
+  output_files[, referenced_by_tex := abs_path %in% tex_abs]
   output_files[, referenced_downstream := abs_path %in% downstream_abs]
   output_files[, targeted_by_all := abs_path %in% all_output_refs]
   output_files[, full_keep_task := Reduce(`|`, lapply(full_keep_task_patterns, grepl, x = task))]
 
   output_files[, keep_class := fifelse(
-    referenced_by_slide, "keep_slide",
+    referenced_by_tex, "keep_tex",
     fifelse(referenced_downstream, "keep_downstream",
       fifelse(targeted_by_all | full_keep_task, "keep_canonical", "prune_stale")
     )
@@ -167,7 +170,7 @@ if (nrow(output_files) == 0) {
     file,
     size_bytes,
     keep_class,
-    referenced_by_slide,
+    referenced_by_tex,
     referenced_downstream,
     targeted_by_all,
     prune_stale
@@ -180,7 +183,7 @@ fwrite(keep_manifest[prune_stale == TRUE], "../output/stale_output_manifest.csv"
 
 task_summary <- keep_manifest[, .(
   output_files = .N,
-  keep_slide = sum(keep_class == "keep_slide"),
+  keep_tex = sum(keep_class == "keep_tex"),
   keep_downstream = sum(keep_class == "keep_downstream"),
   keep_canonical = sum(keep_class == "keep_canonical"),
   prune_stale = sum(keep_class == "prune_stale"),
@@ -195,16 +198,16 @@ lines <- c(
   sprintf("- Generated at: %s", format(Sys.time(), "%Y-%m-%d %H:%M:%S")),
   sprintf("- Active tasks scanned: %d", length(task_dirs)),
   sprintf("- Makefiles scanned: %d", length(makefiles)),
-  sprintf("- Slide-linked task refs: %d", nrow(slide_refs)),
+  sprintf("- Paper/slides-linked task refs: %d", nrow(tex_refs)),
   sprintf("- Output files scanned: %d", nrow(keep_manifest)),
-  sprintf("- Keep slide: %d", sum(keep_manifest$keep_class == "keep_slide")),
+  sprintf("- Keep tex: %d", sum(keep_manifest$keep_class == "keep_tex")),
   sprintf("- Keep downstream: %d", sum(keep_manifest$keep_class == "keep_downstream")),
   sprintf("- Keep canonical: %d", sum(keep_manifest$keep_class == "keep_canonical")),
   sprintf("- Prune stale: %d", sum(keep_manifest$keep_class == "prune_stale")),
   "",
   "## Task summary",
   "",
-  "| Task | Outputs | Slide | Downstream | Canonical | Prune | Prune Size (GB) |",
+  "| Task | Outputs | Tex | Downstream | Canonical | Prune | Prune Size (GB) |",
   "|---|---:|---:|---:|---:|---:|---:|"
 )
 
@@ -217,7 +220,7 @@ if (nrow(task_summary) > 0) {
         "| %s | %d | %d | %d | %d | %d | %.3f |",
         rr$task,
         rr$output_files,
-        rr$keep_slide,
+        rr$keep_tex,
         rr$keep_downstream,
         rr$keep_canonical,
         rr$prune_stale,

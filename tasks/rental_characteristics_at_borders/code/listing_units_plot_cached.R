@@ -1,9 +1,16 @@
 source("../../setup_environment/code/packages.R")
 
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
-# Rscript listing_units_plot_cached.R ../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.parquet ../output/listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf
+# input_side_panel <- "../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet"
+# input_bin_cells <- "../output/listing_units_bin_cells_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.parquet"
+# output_pdf <- "../output/listing_units_unit_proxy_bw500_pre_2023_all_pct0.pdf"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input_side_panel, input_bin_cells, output_pdf)
+}
+
 if (length(cli_args) >= 3) {
   input_side_panel <- cli_args[1]
   input_bin_cells <- cli_args[2]

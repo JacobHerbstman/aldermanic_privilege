@@ -1,12 +1,19 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
-# Rscript amenity_characteristic_fe_table.R ../output/rent_with_ward_distances_amenities.parquet 500 pre_2023 ../output/amenity_char_fe_table_bw500_pre_2023.tex ../output/amenity_char_fe_table_bw500_pre_2023.csv ward_pair
-# =======================================================================================
+# input <- "../output/rent_with_ward_distances_amenities.parquet"
+# bw_arg <- 500
+# window <- "pre_2023"
+# output_tex <- "../output/amenity_char_fe_table_bw500_pre_2023.tex"
+# output_csv <- "../output/amenity_char_fe_table_bw500_pre_2023.csv"
+# cluster_level <- "ward_pair"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, bw_arg, window, output_tex, output_csv, cluster_level)
+}
+
 if (length(cli_args) >= 6) {
   input <- cli_args[1]
   bw_arg <- cli_args[2]
@@ -27,29 +34,17 @@ if (length(cli_args) >= 6) {
   }
 }
 
-parse_bw_ft <- function(x) {
-  if (length(x) != 1) {
-    stop("bw_ft must be a single value.", call. = FALSE)
-  }
-  if (is.character(x) && str_to_lower(x) %in% c("all", "full", "none", "inf", "infinity")) {
-    return(Inf)
-  }
-  out <- suppressWarnings(as.numeric(x))
-  if (!is.finite(out) || out <= 0) {
+if (length(bw_arg) != 1) {
+  stop("bw_ft must be a single value.", call. = FALSE)
+}
+if (is.character(bw_arg) && str_to_lower(bw_arg) %in% c("all", "full", "none", "inf", "infinity")) {
+  bw_ft <- Inf
+} else {
+  bw_ft <- suppressWarnings(as.numeric(bw_arg))
+  if (!is.finite(bw_ft) || bw_ft <= 0) {
     stop("bw_ft must be a positive number or one of: all, full, none, inf.", call. = FALSE)
   }
-  out
 }
-
-apply_window <- function(df, w) {
-  if (w == "full") return(df)
-  if (w == "pre_2021") return(df %>% filter(year <= 2020))
-  if (w == "pre_2023") return(df %>% filter(year <= 2022))
-  if (w == "pre_covid") return(df %>% filter(year <= 2019))
-  df
-}
-
-bw_ft <- parse_bw_ft(bw_arg)
 bw_label <- if (is.finite(bw_ft)) as.character(as.integer(round(bw_ft))) else "all"
 
 if (!cluster_level %in% c("segment", "ward_pair")) {
@@ -74,8 +69,15 @@ dat <- read_parquet(input) %>%
   filter(
     !is.na(file_date), !is.na(ward_pair), !is.na(segment_id), segment_id != "",
     !is.na(signed_dist), !is.na(strictness_own)
-  ) %>%
-  apply_window(window)
+  )
+
+if (window == "pre_2021") {
+  dat <- dat %>% filter(year <= 2020)
+} else if (window == "pre_2023") {
+  dat <- dat %>% filter(year <= 2022)
+} else if (window == "pre_covid") {
+  dat <- dat %>% filter(year <= 2019)
+}
 
 if (is.finite(bw_ft)) {
   dat <- dat %>% filter(abs(signed_dist) <= bw_ft)
@@ -137,20 +139,20 @@ for (oc in outcomes) {
 coef_tbl <- bind_rows(results)
 write_csv(coef_tbl, output_csv)
 
-stars <- function(p) {
+ncol <- nrow(coef_tbl)
+coef_stars <- vapply(coef_tbl$p_value, function(p) {
   if (!is.finite(p)) return("")
   if (p < 0.01) return("***")
   if (p < 0.05) return("**")
   if (p < 0.1) return("*")
   ""
-}
+}, character(1))
 
-ncol <- nrow(coef_tbl)
 header <- paste0("\\begingroup\n\\centering\n\\begin{tabular}{l", paste(rep("c", ncol), collapse = ""), "}\n   \\toprule\n")
 col_headers <- paste0("   ", paste(sprintf("& %s", coef_tbl$label), collapse = " "), "\\\\  \n")
 midrule <- "   \\midrule \n"
 coef_row <- paste0("   ", treatment_label, " ",
-  paste(vapply(seq_len(ncol), function(i) sprintf("& %.2f%s", coef_tbl$estimate[i], stars(coef_tbl$p_value[i])), character(1)), collapse = " "),
+  paste(vapply(seq_len(ncol), function(i) sprintf("& %.2f%s", coef_tbl$estimate[i], coef_stars[i]), character(1)), collapse = " "),
   "\\\\   \n")
 se_row <- paste0("   ",
   paste(vapply(seq_len(ncol), function(i) sprintf("& (%.2f)", coef_tbl$std_error[i]), character(1)), collapse = " "),

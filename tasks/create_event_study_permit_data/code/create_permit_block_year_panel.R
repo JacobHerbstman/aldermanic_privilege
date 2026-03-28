@@ -4,7 +4,6 @@ source("../../_lib/canonical_geometry_helpers.R")
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_permit_data/code")
-# Rscript create_permit_block_year_panel.R
 # =======================================================================================
 
 sf_use_s2(FALSE)

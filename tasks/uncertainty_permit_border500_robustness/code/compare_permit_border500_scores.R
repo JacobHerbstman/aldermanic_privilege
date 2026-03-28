@@ -1,11 +1,23 @@
 ## Compare baseline and permit-exclusion alderman stringency scores
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_permit_border500_robustness/code")
-# Rscript compare_permit_border500_scores.R ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv ../output/alderman_uncertainty_index_permit_border500.csv ../output/score_comparison_permit_border500_vs_baseline.csv ../output/score_comparison_permit_border500_vs_baseline_summary.csv ../output/score_comparison_permit_border500_vs_baseline_summary.tex ../output/score_comparison_permit_border500_vs_baseline_scatter.pdf permit_border500 "Drop permits within 500 ft of ward borders"
 
 source("../../setup_environment/code/packages.R")
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_permit_border500_robustness/code")
+# baseline_input <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
+# variant_input <- "../output/alderman_uncertainty_index_permit_border500.csv"
+# joined_output <- "../output/score_comparison_permit_border500_vs_baseline.csv"
+# summary_output <- "../output/score_comparison_permit_border500_vs_baseline_summary.csv"
+# summary_tex_output <- "../output/score_comparison_permit_border500_vs_baseline_summary.tex"
+# plot_output <- "../output/score_comparison_permit_border500_vs_baseline_scatter.pdf"
+# variant_id <- "permit_border500"
+# variant_label <- "Drop permits within 500 ft of ward borders"
+
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(baseline_input, variant_input, joined_output, summary_output, summary_tex_output, plot_output, variant_id, variant_label)
+}
+
 if (length(args) >= 6) {
   baseline_input <- args[1]
   variant_input <- args[2]

@@ -1,7 +1,9 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_event_study_scores/code")
 # score_file <- "../input/aldermen_uncertainty_scores.csv"
 # score_column <- "uncertainty_index"
@@ -12,26 +14,25 @@ source("../../setup_environment/code/packages.R")
 # sales_output <- "../output/sales_with_ward_distances.csv"
 # rent_output <- "../output/rent_with_ward_distances_full.parquet"
 # treatment_output <- "../output/block_treatment_panel.csv"
-# Rscript merge_event_study_scores.R "../input/aldermen_uncertainty_scores.csv" "uncertainty_index" "../input/sales_pre_scores.csv" "../input/rent_pre_scores_full.parquet" "../input/block_treatment_pre_scores.csv" "../input/chicago_alderman_panel.csv" "../output/sales_with_ward_distances.csv" "../output/rent_with_ward_distances_full.parquet" "../output/block_treatment_panel.csv"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) >= 9) {
-  score_file <- cli_args[1]
-  score_column <- cli_args[2]
-  sales_input <- cli_args[3]
-  rent_input <- cli_args[4]
-  treatment_input <- cli_args[5]
-  alderman_panel <- cli_args[6]
-  sales_output <- cli_args[7]
-  rent_output <- cli_args[8]
-  treatment_output <- cli_args[9]
-} else {
-  if (!exists("score_file") || !exists("score_column") || !exists("sales_input") || !exists("rent_input") || !exists("treatment_input") || !exists("alderman_panel") || !exists("sales_output") || !exists("rent_output") || !exists("treatment_output")) {
-    stop("FATAL: Script requires 9 args: <score_file> <score_column> <sales_input> <rent_input> <treatment_input> <alderman_panel> <sales_output> <rent_output> <treatment_output>", call. = FALSE)
-  }
+if (length(cli_args) == 0) {
+  cli_args <- c(score_file, score_column, sales_input, rent_input, treatment_input, alderman_panel, sales_output, rent_output, treatment_output)
 }
+
+if (length(cli_args) < 9) {
+  stop("FATAL: Script requires 9 args: <score_file> <score_column> <sales_input> <rent_input> <treatment_input> <alderman_panel> <sales_output> <rent_output> <treatment_output>", call. = FALSE)
+}
+
+score_file <- cli_args[1]
+score_column <- cli_args[2]
+sales_input <- cli_args[3]
+rent_input <- cli_args[4]
+treatment_input <- cli_args[5]
+alderman_panel <- cli_args[6]
+sales_output <- cli_args[7]
+rent_output <- cli_args[8]
+treatment_output <- cli_args[9]
 
 cat("=== Merge Event Study Scores ===\n")
 cat("Score file:", score_file, "\n")

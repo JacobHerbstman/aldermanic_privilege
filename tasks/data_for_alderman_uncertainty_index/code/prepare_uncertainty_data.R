@@ -4,6 +4,9 @@
 
 source("../../setup_environment/code/packages.R")
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/data_for_alderman_uncertainty_index/code")
+
 message("=== Starting data preparation for uncertainty index ===")
 
 ward_panel_path <- Sys.getenv("WARD_PANEL_PATH", "../input/ward_panel.gpkg")
@@ -46,18 +49,22 @@ community_areas <- st_read(community_areas_path, quiet = TRUE) %>%
 
 message("Community areas loaded: ", nrow(community_areas), " areas")
 
-# Helper to read and transform to ward CRS
-read_to_ward_crs <- function(path) {
-  obj <- st_read(path, quiet = TRUE)
-  if (st_crs(obj) != st_crs(ward_panel)) obj <- st_transform(obj, st_crs(ward_panel))
-  obj
+# Place-control layers used in the active stringency pipeline
+cta_stations <- st_read(cta_stations_path, quiet = TRUE)
+city_boundary <- st_read(city_boundary_path, quiet = TRUE)
+water_osm <- st_read(water_osm_path, quiet = TRUE)
+
+if (st_crs(cta_stations) != st_crs(ward_panel)) {
+  cta_stations <- st_transform(cta_stations, st_crs(ward_panel))
+}
+if (st_crs(city_boundary) != st_crs(ward_panel)) {
+  city_boundary <- st_transform(city_boundary, st_crs(ward_panel))
+}
+if (st_crs(water_osm) != st_crs(ward_panel)) {
+  water_osm <- st_transform(water_osm, st_crs(ward_panel))
 }
 
-# Legacy place-control layers used in strictness-score task
-cta_stations <- read_to_ward_crs(cta_stations_path)
-city_boundary <- read_to_ward_crs(city_boundary_path)
-water_osm <- read_to_ward_crs(water_osm_path)
-message("Legacy place layers loaded (CTA, city boundary, water).")
+message("Place-control layers loaded (CTA, city boundary, water).")
 
 # Ensure CRS alignment
 if (st_crs(permits) != st_crs(ward_panel)) {
@@ -104,48 +111,51 @@ ward_geoms_map3 <- ward_panel %>%
   summarise(.groups = "drop") %>%
   mutate(map_version = 3L)
 
-# Function to assign ward based on 3 time intervals (May turnover)
-assign_ward_by_month <- function(permits_data) {
-  # Period 1: Before May 2015
-  permits_p1 <- permits_data %>%
-    filter(application_start_date_ym < as.yearmon("2015-05"))
-  
-  # Period 2: May 2015 to April 2023
-  permits_p2 <- permits_data %>%
-    filter(application_start_date_ym >= as.yearmon("2015-05") &
-           application_start_date_ym < as.yearmon("2023-05"))
-  
-  # Period 3: May 2023 onwards
-  permits_p3 <- permits_data %>%
-    filter(application_start_date_ym >= as.yearmon("2023-05"))
-  
-  # Helper for joining
-  do_join <- function(pts, polys) {
-    if (nrow(pts) == 0) return(pts %>% st_drop_geometry())
-    
-    result <- st_join(pts, polys, join = st_within)
-    
-    # Handle potential duplicate ward columns
-    if ("ward.x" %in% names(result) && "ward.y" %in% names(result)) {
-      result <- result %>%
-        # Keep only spatially matched ward from polygon join.
-        mutate(ward = ward.y) %>%
-        select(-ward.x, -ward.y)
-    }
-    
-    result %>%
-      filter(!is.na(ward)) %>%
-      st_drop_geometry()
-  }
-  
-  bind_rows(
-    do_join(permits_p1, ward_geoms_map1),
-    do_join(permits_p2, ward_geoms_map2),
-    do_join(permits_p3, ward_geoms_map3)
+permits_pre2015 <- permits_high_discretion %>%
+  filter(application_start_date_ym < as.yearmon("2015-05"))
+permits_2015_2023 <- permits_high_discretion %>%
+  filter(
+    application_start_date_ym >= as.yearmon("2015-05") &
+      application_start_date_ym < as.yearmon("2023-05")
   )
+permits_post2023 <- permits_high_discretion %>%
+  filter(application_start_date_ym >= as.yearmon("2023-05"))
+
+permits_ward_pre2015 <- if (nrow(permits_pre2015) == 0) {
+  permits_pre2015 %>% st_drop_geometry()
+} else {
+  st_join(permits_pre2015, ward_geoms_map1, join = st_within) %>%
+    mutate(ward = ward.y) %>%
+    select(-any_of(c("ward.x", "ward.y"))) %>%
+    filter(!is.na(ward)) %>%
+    st_drop_geometry()
 }
 
-permits_ward_data <- assign_ward_by_month(permits_high_discretion)
+permits_ward_2015_2023 <- if (nrow(permits_2015_2023) == 0) {
+  permits_2015_2023 %>% st_drop_geometry()
+} else {
+  st_join(permits_2015_2023, ward_geoms_map2, join = st_within) %>%
+    mutate(ward = ward.y) %>%
+    select(-any_of(c("ward.x", "ward.y"))) %>%
+    filter(!is.na(ward)) %>%
+    st_drop_geometry()
+}
+
+permits_ward_post2023 <- if (nrow(permits_post2023) == 0) {
+  permits_post2023 %>% st_drop_geometry()
+} else {
+  st_join(permits_post2023, ward_geoms_map3, join = st_within) %>%
+    mutate(ward = ward.y) %>%
+    select(-any_of(c("ward.x", "ward.y"))) %>%
+    filter(!is.na(ward)) %>%
+    st_drop_geometry()
+}
+
+permits_ward_data <- bind_rows(
+  permits_ward_pre2015,
+  permits_ward_2015_2023,
+  permits_ward_post2023
+)
 message("Permits after spatial join: ", nrow(permits_ward_data))
 
 # Ensure map_version is always populated by month-era rule (legacy behavior)
@@ -313,6 +323,19 @@ plausibly_far_cbd <- sum(permits_with_controls$dist_cbd_km > 80, na.rm = TRUE)
 plausibly_far_lake <- sum(permits_with_controls$dist_lake_km > 80, na.rm = TRUE)
 
 if (plausibly_far_cbd > 0 || plausibly_far_lake > 0) {
+  offending_distance_rows <- permit_place_controls %>%
+    filter(dist_cbd_km > 80 | dist_lake_km > 80) %>%
+    left_join(
+      permits_high_discretion %>%
+        st_drop_geometry() %>%
+        select(any_of(c("id", "pin", "application_start_date_ym", "ward"))),
+      by = "id"
+    ) %>%
+    arrange(desc(dist_cbd_km), desc(dist_lake_km))
+
+  message("Offending permit distance rows:")
+  print(offending_distance_rows)
+
   stop(
     paste0(
       "Plausibility check failed: distances too large for Chicago permits. ",

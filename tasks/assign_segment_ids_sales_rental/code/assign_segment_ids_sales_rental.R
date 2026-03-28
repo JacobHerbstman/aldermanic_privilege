@@ -7,13 +7,22 @@ library(sf)
 
 sf_use_s2(FALSE)
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids_sales_rental/code")
-# Rscript assign_segment_ids_sales_rental.R ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/boundary_segments_1320ft.gpkg ../output/sales_pre_scores_with_segments.csv ../output/rent_pre_scores_full_with_segments.parquet ../output/segment_assignment_coverage_summary.csv ../output/segment_assignment_spotcheck_queue.csv ../output/segment_assignment_reason_summary.csv
-# =======================================================================================
+# sales_input <- "../input/sales_pre_scores.csv"
+# rent_input <- "../input/rent_pre_scores_full.parquet"
+# segment_gpkg <- "../input/boundary_segments_1320ft.gpkg"
+# out_sales <- "../output/sales_pre_scores_with_segments.csv"
+# out_rent <- "../output/rent_pre_scores_full_with_segments.parquet"
+# out_coverage <- "../output/segment_assignment_coverage_summary.csv"
+# out_spotcheck <- "../output/segment_assignment_spotcheck_queue.csv"
+# out_reason <- "../output/segment_assignment_reason_summary.csv"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(sales_input, rent_input, segment_gpkg, out_sales, out_rent, out_coverage, out_spotcheck, out_reason)
+}
+
 if (length(cli_args) >= 8) {
   sales_input <- cli_args[1]
   rent_input <- cli_args[2]

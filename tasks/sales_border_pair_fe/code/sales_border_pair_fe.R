@@ -1,7 +1,9 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_border_pair_fe/code")
 # input <- "../input/sales_with_hedonics.parquet"
 # bw_ft <- 1000
@@ -9,11 +11,12 @@ source("../../setup_environment/code/packages.R")
 # output_tex <- "../output/fe_table_sales_bw1000.tex"
 # output_csv <- "../output/fe_table_sales_bw1000.csv"
 # output_year_diag <- "../output/year_diagnostics_sales_bw1000.csv"
-# Rscript sales_border_pair_fe.R "../input/sales_with_hedonics.parquet" 1000 "year_quarter" "../output/fe_table_sales_bw1000.tex" "../output/fe_table_sales_bw1000.csv" "../output/year_diagnostics_sales_bw1000.csv"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, bw_ft, fe_time, output_tex, output_csv, output_year_diag)
+}
+
 if (length(cli_args) >= 9) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))

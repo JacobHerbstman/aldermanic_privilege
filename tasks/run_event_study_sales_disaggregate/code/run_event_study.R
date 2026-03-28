@@ -2,13 +2,24 @@ source("../../setup_environment/code/packages.R")
 
 dir.create("../output", showWarnings = FALSE, recursive = TRUE)
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
-# Rscript run_event_study.R "cohort_2015" "continuous" TRUE "yearly" "strict_pair_x_year" "triangular" 1000 "full" "segment" "twoway_block_segment"
-# =======================================================================================
+# panel_mode <- "cohort_2015"
+# treatment_type <- "continuous"
+# include_hedonics <- TRUE
+# time_unit <- "yearly"
+# fe_type <- "strict_pair_x_year"
+# weighting <- "triangular"
+# bandwidth <- 1000
+# post_window <- "full"
+# geo_fe_level <- "segment"
+# cluster_level <- "twoway_block_segment"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(panel_mode, treatment_type, include_hedonics, time_unit, fe_type, weighting, bandwidth, post_window, geo_fe_level, cluster_level)
+}
+
 if (length(cli_args) >= 10) {
   panel_mode <- cli_args[1]
   treatment_type <- cli_args[2]

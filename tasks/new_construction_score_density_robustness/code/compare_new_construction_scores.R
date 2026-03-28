@@ -1,11 +1,21 @@
 ## Compare baseline and permit-subset alderman stringency scores
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
-# Rscript compare_new_construction_scores.R "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv" "../output/alderman_uncertainty_index_new_construction.csv" "../output/score_comparison_new_construction_vs_baseline.csv" "../output/score_comparison_new_construction_vs_baseline_summary.csv" "../output/score_comparison_new_construction_vs_baseline_summary.tex" "../output/score_comparison_new_construction_vs_baseline_scatter.pdf"
 
 source("../../setup_environment/code/packages.R")
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
+# baseline_input <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
+# new_input <- "../output/alderman_uncertainty_index_new_construction.csv"
+# joined_output <- "../output/score_comparison_new_construction_vs_baseline.csv"
+# summary_output <- "../output/score_comparison_new_construction_vs_baseline_summary.csv"
+# summary_tex_output <- "../output/score_comparison_new_construction_vs_baseline_summary.tex"
+# plot_output <- "../output/score_comparison_new_construction_vs_baseline_scatter.pdf"
+
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(baseline_input, new_input, joined_output, summary_output, summary_tex_output, plot_output)
+}
+
 if (length(args) >= 6) {
   baseline_input <- args[1]
   new_input <- args[2]

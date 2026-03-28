@@ -1,11 +1,22 @@
 ## Build permit-subset alderman stringency score
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
-# Rscript build_new_construction_score.R "../input/permits_for_uncertainty_index.csv" "../output/alderman_uncertainty_index_new_construction.csv" "../output/score_variant_metadata_new_construction.csv" "../output/score_variant_stage1_terms_new_construction.csv" "../output/stage1_regression_new_construction.tex" "../output/stage2_regression_new_construction.tex" "../output/uncertainty_index_new_construction.pdf"
 
-source("../../create_alderman_uncertainty_index/code/uncertainty_index_helpers.R")
+source("../../_lib/alderman_uncertainty_helpers.R")
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
+# permits_input <- "../input/permits_for_uncertainty_index.csv"
+# score_output <- "../output/alderman_uncertainty_index_new_construction.csv"
+# metadata_output <- "../output/score_variant_metadata_new_construction.csv"
+# stage1_terms_output <- "../output/score_variant_stage1_terms_new_construction.csv"
+# stage1_table_output <- "../output/stage1_regression_new_construction.tex"
+# stage2_table_output <- "../output/stage2_regression_new_construction.tex"
+# plot_output <- "../output/uncertainty_index_new_construction.pdf"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(permits_input, score_output, metadata_output, stage1_terms_output, stage1_table_output, stage2_table_output, plot_output)
+}
+
 if (length(args) >= 7) {
   permits_input <- args[1]
   score_output <- args[2]

@@ -1,11 +1,21 @@
 source("../../setup_environment/code/packages.R")
 
 ## Render slide audit findings report
-## run this line when editing code in Rstudio
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/slide_deck_audit/code")
-# Rscript render_findings_report.R ../output/slides_audit_findings.csv ../output/slide_claim_status.csv ../output/object_verification_index.csv ../output/rerun_reproducibility_log.csv ../output/geometry_geocoding_checks.csv ../output/slides_audit_findings.md
+# findings_input <- "../output/slides_audit_findings.csv"
+# claim_status_input <- "../output/slide_claim_status.csv"
+# verification_index_input <- "../output/object_verification_index.csv"
+# rerun_log_input <- "../output/rerun_reproducibility_log.csv"
+# geometry_checks_input <- "../output/geometry_geocoding_checks.csv"
+# report_output <- "../output/slides_audit_findings.md"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(findings_input, claim_status_input, verification_index_input, rerun_log_input, geometry_checks_input, report_output)
+}
+
 if (length(args) >= 6) {
   findings_input <- args[1]
   claim_status_input <- args[2]

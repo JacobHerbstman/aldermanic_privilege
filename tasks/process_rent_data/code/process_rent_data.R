@@ -3,14 +3,19 @@
 
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/process_rent_data/code")
-# Rscript process_rent_data.R ../input/2025-11-11--data_example.parquet ../temp/2025-11-11.csv
-# =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/process_rent_data/code")
+# input_file <- "../input/2025-11-11--data_example.parquet"
+# output_file <- "../temp/2025-11-11.csv"
+
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(input_file, output_file)
+}
+
 if (length(args) >= 2) {
   input_file <- args[1]
   output_file <- args[2]

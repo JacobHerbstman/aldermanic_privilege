@@ -1,18 +1,22 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
 # input <- "../input/rent_with_ward_distances.parquet"
 # bw_ft <- 1000
 # window <- "pre_2021"
 # output_tex <- NA
 # output_csv <- NA
-# Rscript characteristic_fe_table.R "../input/rent_with_ward_distances.parquet" 1000 "pre_2021" NA NA ward_pair
-# =======================================================================================
+# cluster_level <- "ward_pair"
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, bw_ft, window, output_tex, output_csv, cluster_level)
+}
+
 if (length(cli_args) >= 6) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))
@@ -42,14 +46,6 @@ cluster_label <- if (cluster_level == "segment") "Segment" else "Ward Pair"
 treatment_var <- "strictness_std"
 treatment_label <- "Stringency Index"
 
-apply_window <- function(df, w) {
-  if (w == "full") return(df)
-  if (w == "pre_2021") return(df %>% filter(year <= 2020))
-  if (w == "pre_2023") return(df %>% filter(year <= 2022))
-  if (w == "pre_covid") return(df %>% filter(year <= 2019))
-  df
-}
-
 window_label <- c(
   full = "All years",
   pre_covid = "Pre-COVID (2014-2019)",
@@ -78,8 +74,15 @@ dat <- read_parquet(input) %>%
     !is.na(file_date), !is.na(ward_pair), !is.na(segment_id), segment_id != "",
     !is.na(signed_dist), !is.na(strictness_own),
     abs(signed_dist) <= bw_ft
-  ) %>%
-  apply_window(window)
+  )
+
+if (window == "pre_2021") {
+  dat <- dat %>% filter(year <= 2020)
+} else if (window == "pre_2023") {
+  dat <- dat %>% filter(year <= 2022)
+} else if (window == "pre_covid") {
+  dat <- dat %>% filter(year <= 2019)
+}
 
 strictness_sd <- sd(dat$strictness_own, na.rm = TRUE)
 if (!is.finite(strictness_sd) || strictness_sd <= 0) {
@@ -139,23 +142,22 @@ for (oc in outcomes) {
 coef_tbl <- bind_rows(results)
 write_csv(coef_tbl, output_csv)
 
-# ── LaTeX table ──
-stars <- function(p) {
+ncol <- nrow(coef_tbl)
+coef_stars <- vapply(coef_tbl$p_value, function(p) {
   if (!is.finite(p)) return("")
   if (p < 0.01) return("***")
   if (p < 0.05) return("**")
   if (p < 0.1) return("*")
   ""
-}
+}, character(1))
 
-ncol <- nrow(coef_tbl)
 header <- paste0("\\begingroup\n\\centering\n\\begin{tabular}{l", paste(rep("c", ncol), collapse = ""), "}\n   \\toprule\n")
 col_headers <- paste0("   ", paste(sprintf("& %s", coef_tbl$label), collapse = " "), "\\\\  \n")
 midrule <- "   \\midrule \n"
 
 coef_row <- paste0("   ", treatment_label, " ",
   paste(sapply(seq_len(ncol), function(i) {
-    sprintf("& %.4f%s", coef_tbl$estimate[i], stars(coef_tbl$p_value[i]))
+    sprintf("& %.4f%s", coef_tbl$estimate[i], coef_stars[i])
   }), collapse = " "), "\\\\   \n")
 
 se_row <- paste0("   ",

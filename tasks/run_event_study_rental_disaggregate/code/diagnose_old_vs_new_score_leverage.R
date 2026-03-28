@@ -3,13 +3,15 @@ library(data.table)
 library(fixest)
 library(arrow)
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
 # rental_panel <- "../input/rental_listing_panel.parquet"
 # block_treatment_pre <- "../../create_block_treatment_panel/output/block_treatment_pre_scores.csv"
 # alderman_panel <- "../../create_alderman_data/output/chicago_alderman_panel.csv"
-# old_score_file <- "../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_ward_month_FEs.csv"
+# old_score_file <- "../../_deprecated/create_alderman_strictness_scores/output/alderman_restrictiveness_scores_ward_month_FEs.csv"
 # new_score_file <- "../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeFALSE_rtfeTRUE_porchTRUE_cafeFALSE_2stage.csv"
 # old_score_column <- "uncertainty_index"
 # new_score_column <- "uncertainty_index"
@@ -18,11 +20,12 @@ library(arrow)
 # output_block <- "../output/old_vs_new_score_block_influence.csv"
 # output_top <- "../output/old_vs_new_score_block_influence_top50.csv"
 # output_summary <- "../output/old_vs_new_score_summary.csv"
-# Rscript diagnose_old_vs_new_score_leverage.R "../input/rental_listing_panel.parquet" "../../create_block_treatment_panel/output/block_treatment_pre_scores.csv" "../../create_alderman_data/output/chicago_alderman_panel.csv" "../../create_alderman_strictness_scores/output/alderman_restrictiveness_scores_ward_month_FEs.csv" "../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeFALSE_rtfeTRUE_porchTRUE_cafeFALSE_2stage.csv" "uncertainty_index" "uncertainty_index" 1000 "triangular" "../output/old_vs_new_score_block_influence.csv" "../output/old_vs_new_score_block_influence_top50.csv" "../output/old_vs_new_score_summary.csv"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(rental_panel, block_treatment_pre, alderman_panel, old_score_file, new_score_file, old_score_column, new_score_column, bandwidth, weighting, output_block, output_top, output_summary)
+}
+
 if (length(cli_args) >= 12) {
   rental_panel <- cli_args[1]
   block_treatment_pre <- cli_args[2]

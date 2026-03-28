@@ -27,7 +27,7 @@ slides.pdf: slides.tex $(SLIDES_SECTIONS) $(TEX_INPUTS) $(IMG_INPUTS)
 	rm -f slides.log slides.aux slides.out slides.toc slides.snm *.nav
 
 # --- If an included image lives under ../tasks/*/output/, build it by calling the task's Makefile ---
-# Example: dependency ../tasks/create_alderman_strictness_scores/output/Month_FEs_final_strictness_index.png
-# becomes:  make -C ../tasks/create_alderman_strictness_scores/code ../output/Month_FEs_final_strictness_index.png
+# Example: dependency ../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf
+# becomes:  make -C ../tasks/create_alderman_uncertainty_index/code ../output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf
 ../tasks/%:
 	$(MAKE) -C $(subst output/,code/,$(dir $@)) ../output/$(notdir $@)

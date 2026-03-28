@@ -3,23 +3,22 @@
 # Includes all four ward map eras (1998, 2003, 2015, 2024).
 # Score/sign merge happens in merge_event_study_scores.
 
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
-# -----------------------------------------------------------------------------
 # 1. SETUP & ARGUMENTS
-# -----------------------------------------------------------------------------
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
-# sample <- "FALSE"
-# Rscript calculate_sale_distances.R "FALSE"
-# =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
+# sample <- FALSE
+
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(sample)
+}
+
 if (length(cli_args) >= 1) {
   sample <- cli_args[1]
 } else {

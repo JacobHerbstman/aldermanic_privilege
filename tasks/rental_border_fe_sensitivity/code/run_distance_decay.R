@@ -1,7 +1,9 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
 # input <- "../input/rent_with_ward_distances.parquet"
 # window <- "pre_2021"
@@ -10,11 +12,12 @@ source("../../setup_environment/code/packages.R")
 # use_controls <- TRUE
 # output_csv <- "../output/distance_decay_pre_2021_all.csv"
 # output_pdf <- "../output/distance_decay_pre_2021_all.pdf"
-# Rscript run_distance_decay.R "../input/rent_with_ward_distances.parquet" "pre_2021" "all" "0-250,250-500,500-1000,1000-1500" TRUE "../output/distance_decay_pre_2021_all.csv" "../output/distance_decay_pre_2021_all.pdf"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, window, sample_filter, rings, use_controls, output_csv, output_pdf)
+}
+
 if (length(cli_args) >= 7) {
   input <- cli_args[1]
   window <- cli_args[2]

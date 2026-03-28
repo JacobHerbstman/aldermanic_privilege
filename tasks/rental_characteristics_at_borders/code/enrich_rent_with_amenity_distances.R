@@ -1,13 +1,21 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/amenity_distance_helpers.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
-# Rscript enrich_rent_with_amenity_distances.R ../input/rent_with_ward_distances.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../output/rent_with_ward_distances_amenities.parquet ../output/rental_amenity_distance_diagnostics.csv
-# =======================================================================================
+# input_parquet <- "../input/rent_with_ward_distances.parquet"
+# schools_gpkg <- "../input/schools_2015.gpkg"
+# parks_gpkg <- "../input/parks.gpkg"
+# major_streets_gpkg <- "../input/major_streets.gpkg"
+# water_shp <- "../input/gis_osm_water_a_free_1.shp"
+# output_parquet <- "../output/rent_with_ward_distances_amenities.parquet"
+# output_diag_csv <- "../output/rental_amenity_distance_diagnostics.csv"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input_parquet, schools_gpkg, parks_gpkg, major_streets_gpkg, water_shp, output_parquet, output_diag_csv)
+}
+
 if (length(cli_args) >= 7) {
   input_parquet <- cli_args[1]
   schools_gpkg <- cli_args[2]

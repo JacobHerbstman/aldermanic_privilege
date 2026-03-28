@@ -53,7 +53,7 @@ all: \
 ../output/permits_for_uncertainty_index_permit_border500.csv: ../../data_for_alderman_uncertainty_index/code/prepare_uncertainty_data.R ../output/building_permits_clean_border500_filtered.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/community_areas.geojson ../input/cta_stations.geojson ../input/city_boundary.geojson ../input/gis_osm_water_a_free_1.shp | ../output
 	BUILDING_PERMITS_INPUT_PATH=../output/building_permits_clean_border500_filtered.gpkg OUTPUT_PERMITS_FOR_UNCERTAINTY_PATH=$@ Rscript ../../data_for_alderman_uncertainty_index/code/prepare_uncertainty_data.R
 
-../output/alderman_uncertainty_index_$(BASELINE_SPEC).csv: ../../create_alderman_uncertainty_index/code/create_uncertainty_index.R ../../create_alderman_uncertainty_index/code/uncertainty_index_helpers.R ../output/permits_for_uncertainty_index_permit_border500.csv | ../output
+../output/alderman_uncertainty_index_$(BASELINE_SPEC).csv: ../../create_alderman_uncertainty_index/code/create_uncertainty_index.R ../../_lib/alderman_uncertainty_helpers.R ../output/permits_for_uncertainty_index_permit_border500.csv | ../output
 	cd ../../create_alderman_uncertainty_index/code && PERMITS_INPUT_PATH=../../uncertainty_permit_border500_robustness/output/permits_for_uncertainty_index_permit_border500.csv UNCERTAINTY_OUTPUT_DIR=../../uncertainty_permit_border500_robustness/output Rscript create_uncertainty_index.R TRUE TRUE TRUE FALSE TRUE N_PERMITS LAG1 BOTH
 	test -f ../output/uncertainty_index_$(BASELINE_SPEC).pdf
 	test -f ../output/stage1_regression_$(BASELINE_SPEC).tex

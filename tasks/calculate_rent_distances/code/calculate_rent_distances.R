@@ -6,17 +6,19 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
-# -----------------------------------------------------------------------------
 # 1. SETUP & ARGUMENTS
-# -----------------------------------------------------------------------------
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_rent_distances/code")
-# Rscript calculate_rent_distances.R "TRUE"
-# =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_rent_distances/code")
+# sample <- TRUE
+
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(sample)
+}
+
 if (length(cli_args) >= 1) {
   sample <- cli_args[1]
 } else {

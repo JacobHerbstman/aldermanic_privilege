@@ -1,36 +1,35 @@
-# Map Chicago ward polygons filled by alderman strictness score for a given month
+# Map Chicago ward polygons filled by the alderman stringency index for a given month
 
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/strictness_score_map/code")
 
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/strictness_score_map/code")
-# date_str <- "2025-01"
-# scores_file <- "../input/alderman_restrictiveness_scores_month_FEs.csv"
-# score_col <- "strictness_index"
-# outfile <- "../output/strictness_score_map_2025-01.pdf"
-# legend_title <- "Strictness index"
-# plot_title <- "Alderman Strictness Index by Ward (Jan 2025)"
-# Rscript strictness_score_map.R 2025-01 ../input/alderman_restrictiveness_scores_month_FEs.csv strictness_index ../output/strictness_score_map_2025-01.pdf "Strictness index" "Alderman Strictness Index by Ward (Jan 2025)"
-# =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/strictness_score_map/code")
+# date_str <- "2025-01"
+# scores_file <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
+# score_col <- "uncertainty_index"
+# outfile <- "../output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_2025-01.pdf"
+# legend_title <- "Regulatory Stringency Index"
+# plot_title <- "Regulatory Stringency Index by Ward (2025-01)"
+
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) >= 6) {
-  date_str <- args[1]
-  scores_file <- args[2]
-  score_col <- args[3]
-  outfile <- args[4]
-  legend_title <- args[5]
-  plot_title <- args[6]
-} else {
-  if (!exists("date_str") || !exists("scores_file") || !exists("score_col") || !exists("outfile") || !exists("legend_title") || !exists("plot_title")) {
-    stop("FATAL: Script requires 6 args: <date_str> <scores_file> <score_col> <outfile> <legend_title> <plot_title>", call. = FALSE)
-  }
+if (length(args) == 0) {
+  args <- c(date_str, scores_file, score_col, outfile, legend_title, plot_title)
 }
+
+if (length(args) < 6) {
+  stop("FATAL: Script requires 6 args: <date_str> <scores_file> <score_col> <outfile> <legend_title> <plot_title>", call. = FALSE)
+}
+
+date_str <- args[1]
+scores_file <- args[2]
+score_col <- args[3]
+outfile <- args[4]
+legend_title <- args[5]
+plot_title <- args[6]
 
 month_dt <- as.Date(paste0(date_str, "-01"))
 use_year <- as.integer(format(month_dt, "%Y"))

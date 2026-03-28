@@ -5,22 +5,23 @@
 
 source("../../setup_environment/code/packages.R")
 
-# =============================================================================
 # CONFIGURATION
-# =============================================================================
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
 # bandwidth <- 1000
 # weighting <- "triangular"
 # fe_type <- "strict_pair_x_year"
 # geo_fe_level <- "segment"
 # cluster_level <- "twoway_block_segment"
-# Rscript run_did_rental_disaggregate.R 1000 "triangular" "strict_pair_x_year" "segment" "twoway_block_segment"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(bandwidth, weighting, fe_type, geo_fe_level, cluster_level)
+}
+
 if (length(cli_args) >= 5) {
   bandwidth <- as.numeric(cli_args[1])
   weighting <- cli_args[2]

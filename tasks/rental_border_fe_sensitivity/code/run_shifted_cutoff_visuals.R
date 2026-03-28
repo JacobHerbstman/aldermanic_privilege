@@ -1,7 +1,9 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
 # input <- "../input/rent_with_ward_distances.parquet"
 # bw_ft <- 250
@@ -13,11 +15,12 @@ source("../../setup_environment/code/packages.R")
 # output_csv <- "../output/shifted_cutoff_visuals_pre_2021_all_bw250_shift750.csv"
 # output_bins_csv <- "../output/shifted_cutoff_visuals_bins_pre_2021_all_bw250_shift750.csv"
 # output_pdf <- "../output/shifted_cutoff_visuals_pre_2021_all_bw250_shift750.pdf"
-# Rscript run_shifted_cutoff_visuals.R "../input/rent_with_ward_distances.parquet" 250 "pre_2021" "all" "-750,0,750" TRUE 6 "../output/shifted_cutoff_visuals_pre_2021_all_bw250_shift750.csv" "../output/shifted_cutoff_visuals_bins_pre_2021_all_bw250_shift750.csv" "../output/shifted_cutoff_visuals_pre_2021_all_bw250_shift750.pdf"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, bw_ft, window, sample_filter, shifts, use_controls, bins_per_side, output_csv, output_bins_csv, output_pdf)
+}
+
 if (length(cli_args) >= 10) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))

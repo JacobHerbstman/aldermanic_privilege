@@ -1,12 +1,18 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
-# Rscript did_table_permit_2015.R high_discretion 1000 uniform block ../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex
-# =======================================================================================
+# outcome_family <- "high_discretion"
+# bandwidth <- 1000
+# weighting <- "uniform"
+# cluster_level <- "block"
+# output_tex <- "../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(outcome_family, bandwidth, weighting, cluster_level, output_tex)
+}
+
 if (length(args) >= 5) {
   outcome_family <- args[1]
   bandwidth <- as.numeric(args[2])

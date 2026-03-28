@@ -1,61 +1,42 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/spatial_rd_fe/code")
-# yvar <- "density_far"
-# use_log <- TRUE
-# bw_ft <- 500
-# sample_filter <- "all"  # "all" | "multifamily"
-# fe_spec <- "pair_x_year"
-# plot_style <- "slope"
-# gap_split <- "all" # "all" | "above_median" | "below_median"
-# output_pdf <- sprintf(
 #   "../output/rd_fe_plot_%s%s_bw%d_%s_%s.pdf",
 #   ifelse(use_log, "log_", ""), yvar, bw_ft, sample_filter, fe_spec
 # )
 # source("spatial_rd_fe.R")
-# Rscript spatial_rd_fe.R density_far TRUE 500 all pair_x_year ../output/rd_fe_plot_log_density_far_bw500_all_pair_x_year.pdf slope
-# Rscript spatial_rd_fe.R density_far TRUE 500 multifamily pair_x_year ../output/rd_fe_plot_log_density_far_bw500_multifamily_pair_x_year.pdf slope
-# Rscript spatial_rd_fe.R density_far TRUE 500 all pair_year ../output/rd_fe_plot_log_density_far_bw500_all_pair_year_gap_above_median.pdf slope above_median
-# =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 # arg order: yvar use_log bw_ft sample fe_spec output_pdf [plot_style] [gap_split]
 # sample: "all" (unitscount > 0) | "multifamily" (unitscount > 1)
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/spatial_rd_fe/code")
+# yvar <- "density_far"
+# use_log <- TRUE
+# bw_ft <- 500
+# sample_filter <- "multifamily"
+# fe_spec <- "zonegroup_segment_year_additive"
+# output_pdf <- "../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf"
+# plot_style <- "slope"
+# gap_split <- "all"
+
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) >= 8) {
-  yvar <- args[1]
-  use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
-  bw_ft <- as.numeric(args[3])
-  sample_filter <- args[4]
-  fe_spec <- args[5]
-  output_pdf <- args[6]
-  plot_style <- tolower(args[7])
-  gap_split <- tolower(args[8])
-} else if (length(args) >= 7) {
-  yvar <- args[1]
-  use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
-  bw_ft <- as.numeric(args[3])
-  sample_filter <- args[4]
-  fe_spec <- args[5]
-  output_pdf <- args[6]
-  plot_style <- tolower(args[7])
-  gap_split <- "all"
-} else if (length(args) >= 6) {
-  yvar <- args[1]
-  use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
-  bw_ft <- as.numeric(args[3])
-  sample_filter <- args[4]
-  fe_spec <- args[5]
-  output_pdf <- args[6]
-  plot_style <- "slope"
-  gap_split <- "all"
-} else {
-  if (!exists("yvar") || !exists("use_log") || !exists("bw_ft") || !exists("sample_filter") || !exists("fe_spec") || !exists("output_pdf") || !exists("plot_style") || !exists("gap_split")) {
-    stop("FATAL: Script requires args: <yvar> <use_log> <bw_ft> <sample> <fe_spec> <output_pdf> [<plot_style>] [<gap_split>]", call. = FALSE)
-  }
+if (length(args) == 0) {
+  args <- c(yvar, use_log, bw_ft, sample_filter, fe_spec, output_pdf, plot_style, gap_split)
 }
+
+if (length(args) < 6) {
+  stop("FATAL: Script requires args: <yvar> <use_log> <bw_ft> <sample> <fe_spec> <output_pdf> [<plot_style>] [<gap_split>]", call. = FALSE)
+}
+
+yvar <- args[1]
+use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
+bw_ft <- as.numeric(args[3])
+sample_filter <- args[4]
+fe_spec <- args[5]
+output_pdf <- args[6]
+plot_style <- if (length(args) >= 7) tolower(args[7]) else "slope"
+gap_split <- if (length(args) >= 8) tolower(args[8]) else "all"
 
 if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("bw_ft must be a positive number.", call. = FALSE)

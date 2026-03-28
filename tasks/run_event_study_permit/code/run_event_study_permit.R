@@ -1,14 +1,28 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
-# Rscript run_event_study_permit.R "stacked_implementation" "high_discretion" "issue" "ppml" "binary_direction" "uniform" 1000 "within_block" "full" "ward_pair" "block" "none"
-# =======================================================================================
 
 dir.create("../output", showWarnings = FALSE, recursive = TRUE)
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
+# panel_mode <- "stacked_implementation"
+# outcome_family <- "high_discretion"
+# date_basis <- "issue"
+# model_type <- "ppml"
+# treatment_type <- "binary_direction"
+# weighting <- "uniform"
+# bandwidth <- 1000
+# fe_type <- "within_block"
+# post_window <- "full"
+# geo_fe_level <- "ward_pair"
+# cluster_level <- "block"
+# control_spec <- "none"
+
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(panel_mode, outcome_family, date_basis, model_type, treatment_type, weighting, bandwidth, fe_type, post_window, geo_fe_level, cluster_level, control_spec)
+}
+
 if (length(cli_args) >= 11) {
   panel_mode <- cli_args[1]
   outcome_family <- cli_args[2]

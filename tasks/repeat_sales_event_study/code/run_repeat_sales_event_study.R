@@ -1,12 +1,23 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/repeat_sales_event_study/code")
-# Rscript run_repeat_sales_event_study.R "cohort_2015" "bw1000" "continuous" "../output/repeat_sales_panel_cohort_2015_bw1000.parquet" "../output/repeat_sales_event_study_cohort_2015_bw1000_continuous.pdf" "../output/repeat_sales_event_study_combined_cohort_2015_bw1000_continuous.pdf" "../output/repeat_sales_coefficients_cohort_2015_bw1000_continuous.csv" "../output/repeat_sales_support_cohort_2015_bw1000_continuous.csv" "../output/repeat_sales_pretrend_cohort_2015_bw1000_continuous.csv" "../output/repeat_sales_metadata_cohort_2015_bw1000_continuous.csv"
-# =======================================================================================
+# panel_mode <- "cohort_2015"
+# approach <- "bw1000"
+# treatment_mode <- "continuous"
+# input_panel <- "../output/repeat_sales_panel_cohort_2015_bw1000.parquet"
+# plot_pdf <- "../output/repeat_sales_event_study_cohort_2015_bw1000_continuous.pdf"
+# combined_pdf <- "../output/repeat_sales_event_study_combined_cohort_2015_bw1000_continuous.pdf"
+# coefficients_csv <- "../output/repeat_sales_coefficients_cohort_2015_bw1000_continuous.csv"
+# support_csv <- "../output/repeat_sales_support_cohort_2015_bw1000_continuous.csv"
+# pretrend_csv <- "../output/repeat_sales_pretrend_cohort_2015_bw1000_continuous.csv"
+# metadata_csv <- "../output/repeat_sales_metadata_cohort_2015_bw1000_continuous.csv"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(panel_mode, approach, treatment_mode, input_panel, plot_pdf, combined_pdf, coefficients_csv, support_csv, pretrend_csv, metadata_csv)
+}
+
 if (length(args) != 10) {
   stop(
     "Usage: Rscript run_repeat_sales_event_study.R <panel_mode> <approach> <treatment_mode> <input_panel> <plot_pdf> <combined_pdf> <coefficients_csv> <support_csv> <pretrend_csv> <metadata_csv>",

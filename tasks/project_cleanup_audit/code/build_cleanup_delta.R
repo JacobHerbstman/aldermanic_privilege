@@ -1,11 +1,20 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/project_cleanup_audit/code")
-# Rscript build_cleanup_delta.R ../output/pre_cleanup_snapshot.csv ../output/post_cleanup_snapshot.csv ../output/task_cleanup_summary.csv ../output/cleanup_delta.md
 
 source("../../setup_environment/code/packages.R")
 
 library(data.table)
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/project_cleanup_audit/code")
+# before <- "../output/pre_cleanup_snapshot.csv"
+# after <- "../output/post_cleanup_snapshot.csv"
+# summary_dt <- "../output/task_cleanup_summary.csv"
+# out_md <- "../output/cleanup_delta.md"
+
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(before, after, summary_dt, out_md)
+}
+
 stopifnot(length(args) == 4)
 
 before <- fread(args[1])

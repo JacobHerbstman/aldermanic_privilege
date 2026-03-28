@@ -1,18 +1,21 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_case_study_visuals/code")
 # bw_ft <- 500
 # borders <- "1_26,11_25"
 # bin_ft <- 50
 # output_pdf <- "../output/case_study_far_panel_bw500.pdf"
 # output_csv <- "../output/case_study_summary_bw500.csv"
-# Rscript build_case_study_visuals.R 500 "1_26,11_25" 50 "../output/case_study_far_panel_bw500.pdf" "../output/case_study_summary_bw500.csv"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(bw_ft, borders, bin_ft, output_pdf, output_csv)
+}
+
 if (length(cli_args) >= 5) {
   bw_ft <- as.numeric(cli_args[1])
   borders <- cli_args[2]

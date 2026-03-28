@@ -25,12 +25,12 @@ all: $(SCORE_OUTPUTS) $(METADATA_OUTPUTS) $(STAGE1_TERM_VARIANT_OUTPUTS) $(STAGE
 	../output/density_score_robustness_summary.tex
 
 define RESIDUALIZED_SCORE_RULE
-../output/alderman_uncertainty_index_$(1).csv ../output/score_variant_metadata_$(1).csv ../output/score_variant_stage1_terms_$(1).csv ../output/stage1_regression_$(1).tex ../output/stage2_regression_$(1).tex: build_score_variants.R ../../create_alderman_uncertainty_index/code/uncertainty_index_helpers.R ../input/permits_for_uncertainty_index.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv | ../output
+../output/alderman_uncertainty_index_$(1).csv ../output/score_variant_metadata_$(1).csv ../output/score_variant_stage1_terms_$(1).csv ../output/stage1_regression_$(1).tex ../output/stage2_regression_$(1).tex: build_score_variants.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv | ../output
 	Rscript build_score_variants.R ../input/permits_for_uncertainty_index.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv $(1) ../output/alderman_uncertainty_index_$(1).csv ../output/score_variant_metadata_$(1).csv ../output/score_variant_stage1_terms_$(1).csv ../output/stage1_regression_$(1).tex ../output/stage2_regression_$(1).tex
 endef
 $(foreach variant,$(RESIDUALIZED_VARIANTS),$(eval $(call RESIDUALIZED_SCORE_RULE,$(variant))))
 
-../output/alderman_uncertainty_index_raw_rank_days.csv ../output/score_variant_metadata_raw_rank_days.csv ../output/score_variant_stage1_terms_raw_rank_days.csv: build_score_variants.R ../../create_alderman_uncertainty_index/code/uncertainty_index_helpers.R ../input/permits_for_uncertainty_index.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv | ../output
+../output/alderman_uncertainty_index_raw_rank_days.csv ../output/score_variant_metadata_raw_rank_days.csv ../output/score_variant_stage1_terms_raw_rank_days.csv: build_score_variants.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv | ../output
 	Rscript build_score_variants.R ../input/permits_for_uncertainty_index.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv raw_rank_days ../output/alderman_uncertainty_index_raw_rank_days.csv ../output/score_variant_metadata_raw_rank_days.csv ../output/score_variant_stage1_terms_raw_rank_days.csv NA NA
 
 define MERGE_RULE

@@ -1,11 +1,18 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/ward_map/code")
-# Rscript ward_map.R ../input/Wards_2024.geojson ../output/ward_map_2024.pdf
 
 library(sf)
 library(ggplot2)
 library(dplyr)
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/ward_map/code")
+# wards_input <- "../input/Wards_2024.geojson"
+# ward_map_output <- "../output/ward_map_2024.pdf"
+
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(wards_input, ward_map_output)
+}
+
 
 wards <- st_read(args[1], quiet = TRUE) %>%
   mutate(ward = as.integer(ward))

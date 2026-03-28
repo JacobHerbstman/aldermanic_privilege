@@ -1,12 +1,31 @@
 ## Create Alderman Uncertainty Index
 ## This script runs permit-level residualization and computes alderman-level moments
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_uncertainty_index/code")
-# Rscript create_uncertainty_index.R "TRUE" "TRUE" "TRUE" "FALSE" "TRUE" "N_PERMITS" "LAG1" "BOTH"
 
-source("uncertainty_index_helpers.R")
+source("../../_lib/alderman_uncertainty_helpers.R")
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_uncertainty_index/code")
+# permit_type_fe <- TRUE
+# review_type_fe <- TRUE
+# include_porch <- TRUE
+# ca_fe <- FALSE
+# two_stage <- TRUE
+# stage2_weight <- "N_PERMITS"
+# volume_ctrl <- "LAG1"
+# volume_stage <- "BOTH"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(permit_type_fe, review_type_fe, include_porch, ca_fe, two_stage, stage2_weight, volume_ctrl, volume_stage)
+}
+
+if (length(cli_args) < 8) {
+  stop(
+    "FATAL: Script requires 8 args: <permit_type_fe> <review_type_fe> <include_porch> <ca_fe> <two_stage> <stage2_weight> <volume_ctrl> <volume_stage>",
+    call. = FALSE
+  )
+}
+
 if (length(cli_args) >= 8) {
   permit_type_fe <- cli_args[1]
   review_type_fe <- cli_args[2]
@@ -16,11 +35,6 @@ if (length(cli_args) >= 8) {
   stage2_weight <- cli_args[6]
   volume_ctrl <- cli_args[7]
   volume_stage <- cli_args[8]
-} else {
-  stop(
-    "FATAL: Script requires 8 args: <permit_type_fe> <review_type_fe> <include_porch> <ca_fe> <two_stage> <stage2_weight> <volume_ctrl> <volume_stage>",
-    call. = FALSE
-  )
 }
 
 config <- list(

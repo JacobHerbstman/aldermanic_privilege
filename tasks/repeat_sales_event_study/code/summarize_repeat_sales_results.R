@@ -1,12 +1,16 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/repeat_sales_event_study/code")
-# Rscript summarize_repeat_sales_results.R "../output/repeat_sales_sample_summary.csv" "../output/repeat_sales_spec_comparison.csv" "../output/repeat_sales_spec_comparison.tex"
-# =======================================================================================
+# sample_summary_csv <- "../output/repeat_sales_sample_summary.csv"
+# spec_comparison_csv <- "../output/repeat_sales_spec_comparison.csv"
+# spec_comparison_tex <- "../output/repeat_sales_spec_comparison.tex"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(sample_summary_csv, spec_comparison_csv, spec_comparison_tex)
+}
+
 if (length(args) != 3) {
   stop(
     "Usage: Rscript summarize_repeat_sales_results.R <sample_summary_csv> <spec_comparison_csv> <spec_comparison_tex>",

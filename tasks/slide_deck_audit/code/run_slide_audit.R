@@ -1,11 +1,23 @@
 source("../../setup_environment/code/packages.R")
 
 ## Run slide audit
-## run this line when editing code in Rstudio
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/slide_deck_audit/code")
-# Rscript run_slide_audit.R ../output/slide_asset_inventory.csv ../output/slide_claim_manifest.csv ../output/slide_task_lineage.csv ../output/object_verification_index.csv ../output/slide_claim_status.csv ../output/geometry_geocoding_checks.csv ../output/rerun_reproducibility_log.csv ../output/slides_audit_findings.csv
+# asset_inventory_input <- "../output/slide_asset_inventory.csv"
+# claim_manifest_input <- "../output/slide_claim_manifest.csv"
+# lineage_input <- "../output/slide_task_lineage.csv"
+# verification_index_input <- "../output/object_verification_index.csv"
+# claim_status_output <- "../output/slide_claim_status.csv"
+# geometry_checks_output <- "../output/geometry_geocoding_checks.csv"
+# rerun_log_output <- "../output/rerun_reproducibility_log.csv"
+# findings_output <- "../output/slides_audit_findings.csv"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(asset_inventory_input, claim_manifest_input, lineage_input, verification_index_input, claim_status_output, geometry_checks_output, rerun_log_output, findings_output)
+}
+
 if (length(args) >= 8) {
   asset_inventory_input <- args[1]
   claim_manifest_input <- args[2]

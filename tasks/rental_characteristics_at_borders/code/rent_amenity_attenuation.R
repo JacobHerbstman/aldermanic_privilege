@@ -1,12 +1,18 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
-# Rscript rent_amenity_attenuation.R ../output/rent_with_ward_distances_amenities.parquet 500 pre_2023 ../output/rent_amenity_attenuation_bw500_pre_2023.tex ../output/rent_amenity_attenuation_bw500_pre_2023.csv
-# =======================================================================================
+# input <- "../output/rent_with_ward_distances_amenities.parquet"
+# bw_arg <- 500
+# window <- "pre_2023"
+# output_tex <- "../output/rent_amenity_attenuation_bw500_pre_2023.tex"
+# output_csv <- "../output/rent_amenity_attenuation_bw500_pre_2023.csv"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, bw_arg, window, output_tex, output_csv)
+}
+
 if (length(cli_args) >= 6) {
   input <- cli_args[1]
   bw_arg <- cli_args[2]
@@ -27,30 +33,17 @@ if (length(cli_args) >= 6) {
   }
 }
 
-parse_bw_ft <- function(x) {
-  if (length(x) != 1) {
-    stop("bw_ft must be a single value.", call. = FALSE)
-  }
-  if (is.character(x) && str_to_lower(x) %in% c("all", "full", "none", "inf", "infinity")) {
-    return(Inf)
-  }
-  out <- suppressWarnings(as.numeric(x))
-  if (!is.finite(out) || out <= 0) {
+if (length(bw_arg) != 1) {
+  stop("bw_ft must be a single value.", call. = FALSE)
+}
+if (is.character(bw_arg) && str_to_lower(bw_arg) %in% c("all", "full", "none", "inf", "infinity")) {
+  bw_ft <- Inf
+} else {
+  bw_ft <- suppressWarnings(as.numeric(bw_arg))
+  if (!is.finite(bw_ft) || bw_ft <= 0) {
     stop("bw_ft must be a positive number or one of: all, full, none, inf.", call. = FALSE)
   }
-  out
 }
-
-window_rule <- function(df, window_name) {
-  if (window_name == "full") return(df)
-  if (window_name == "pre_covid") return(df %>% filter(year <= 2019))
-  if (window_name == "pre_2021") return(df %>% filter(year <= 2020))
-  if (window_name == "pre_2023") return(df %>% filter(year <= 2022))
-  if (window_name == "drop_mid") return(df %>% filter(year <= 2020 | year >= 2024))
-  df
-}
-
-bw_ft <- parse_bw_ft(bw_arg)
 bw_label <- if (is.finite(bw_ft)) as.character(as.integer(round(bw_ft))) else "all"
 
 if (!cluster_level %in% c("segment", "ward_pair")) {
@@ -82,7 +75,16 @@ if (is.finite(bw_ft)) {
   rent_raw <- rent_raw %>% filter(abs(signed_dist) <= bw_ft)
 }
 
-rent <- window_rule(rent_raw, window)
+rent <- rent_raw
+if (window == "pre_covid") {
+  rent <- rent %>% filter(year <= 2019)
+} else if (window == "pre_2021") {
+  rent <- rent %>% filter(year <= 2020)
+} else if (window == "pre_2023") {
+  rent <- rent %>% filter(year <= 2022)
+} else if (window == "drop_mid") {
+  rent <- rent %>% filter(year <= 2020 | year >= 2024)
+}
 
 strictness_sd <- sd(rent$strictness_own, na.rm = TRUE)
 if (!is.finite(strictness_sd) || strictness_sd <= 0) {
@@ -179,30 +181,58 @@ etable(
   replace = TRUE
 )
 
-extract_model_row <- function(model, specification, sample_name) {
+coef_tbl <- bind_rows(
   tibble(
-    specification = specification,
-    sample_name = sample_name,
-    estimate = coef(model)[["strictness_std"]],
-    std_error = se(model)[["strictness_std"]],
-    p_value = pvalue(model)[["strictness_std"]],
-    n_obs = model$nobs,
-    dep_var_mean = mean(model$custom_data$rent_price, na.rm = TRUE),
-    ward_pairs = length(unique(model$custom_data$ward_pair)),
+    specification = "no_hedonics",
+    sample_name = "all_rows",
+    estimate = coef(m_no_hed)[["strictness_std"]],
+    std_error = se(m_no_hed)[["strictness_std"]],
+    p_value = pvalue(m_no_hed)[["strictness_std"]],
+    n_obs = m_no_hed$nobs,
+    dep_var_mean = mean(m_no_hed$custom_data$rent_price, na.rm = TRUE),
+    ward_pairs = length(unique(m_no_hed$custom_data$ward_pair)),
     bandwidth_ft = bw_ft,
     bandwidth_label = bw_label,
     window = window,
     sample_filter = "all",
     cluster_level = cluster_level,
     fe_geo = "segment",
-    use_amenity_controls = specification == "amenity_hedonic"
+    use_amenity_controls = FALSE
+  ),
+  tibble(
+    specification = "baseline_hedonic",
+    sample_name = "hedonic_complete_case",
+    estimate = coef(m_hed)[["strictness_std"]],
+    std_error = se(m_hed)[["strictness_std"]],
+    p_value = pvalue(m_hed)[["strictness_std"]],
+    n_obs = m_hed$nobs,
+    dep_var_mean = mean(m_hed$custom_data$rent_price, na.rm = TRUE),
+    ward_pairs = length(unique(m_hed$custom_data$ward_pair)),
+    bandwidth_ft = bw_ft,
+    bandwidth_label = bw_label,
+    window = window,
+    sample_filter = "all",
+    cluster_level = cluster_level,
+    fe_geo = "segment",
+    use_amenity_controls = FALSE
+  ),
+  tibble(
+    specification = "amenity_hedonic",
+    sample_name = "hedonic_plus_amenity_complete_case",
+    estimate = coef(m_amenity)[["strictness_std"]],
+    std_error = se(m_amenity)[["strictness_std"]],
+    p_value = pvalue(m_amenity)[["strictness_std"]],
+    n_obs = m_amenity$nobs,
+    dep_var_mean = mean(m_amenity$custom_data$rent_price, na.rm = TRUE),
+    ward_pairs = length(unique(m_amenity$custom_data$ward_pair)),
+    bandwidth_ft = bw_ft,
+    bandwidth_label = bw_label,
+    window = window,
+    sample_filter = "all",
+    cluster_level = cluster_level,
+    fe_geo = "segment",
+    use_amenity_controls = TRUE
   )
-}
-
-coef_tbl <- bind_rows(
-  extract_model_row(m_no_hed, "no_hedonics", "all_rows"),
-  extract_model_row(m_hed, "baseline_hedonic", "hedonic_complete_case"),
-  extract_model_row(m_amenity, "amenity_hedonic", "hedonic_plus_amenity_complete_case")
 )
 
 write_csv(coef_tbl, output_csv)

@@ -1,7 +1,9 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_border_pair_fe/code")
 # input <- "../input/sales_with_hedonics.parquet"
 # bw_ft <- 1000
@@ -9,11 +11,12 @@ source("../../setup_environment/code/packages.R")
 # bins_per_side <- 15
 # min_strictness_diff_pctile <- 0
 # output_pdf <- NA
-# Rscript sales_level_plot.R "../input/sales_with_hedonics.parquet" 1000 TRUE 15 0 NA
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, bw_ft, use_controls, bins_per_side, min_strictness_diff_pctile, output_pdf)
+}
+
 if (length(cli_args) >= 8) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))

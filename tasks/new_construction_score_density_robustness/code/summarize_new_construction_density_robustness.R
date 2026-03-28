@@ -1,11 +1,16 @@
 ## Summarize internal density robustness checks for a permit-subset score
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
-# Rscript summarize_new_construction_density_robustness.R "../output"
 
 source("../../setup_environment/code/packages.R")
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
+# output_dir <- "../output"
+
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(output_dir)
+}
+
 if (length(args) >= 1) {
   output_dir <- args[1]
 } else {

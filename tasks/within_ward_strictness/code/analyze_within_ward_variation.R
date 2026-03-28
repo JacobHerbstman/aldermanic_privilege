@@ -1,28 +1,29 @@
 source("../../setup_environment/code/packages.R")
 library(ggrepel)
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
-# score_file <- "../input/alderman_restrictiveness_scores_month_FEs.csv"
-# score_col <- "strictness_index"
-# score_name <- "Strictness Score"
-# output_tag <- ""
-# Rscript analyze_within_ward_variation.R ../input/alderman_restrictiveness_scores_month_FEs.csv strictness_index "Strictness Score" ""
-# =======================================================================================
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
+# score_file <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
+# score_col <- "uncertainty_index"
+# score_name <- "Regulatory Stringency Index"
+# output_tag <- "uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH"
+
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) >= 4) {
-  score_file <- args[1]
-  score_col <- args[2]
-  score_name <- args[3]
-  output_tag <- args[4]
-} else {
-  if (!exists("score_file") || !exists("score_col") || !exists("score_name") || !exists("output_tag")) {
-    stop("FATAL: Script requires 4 args: <score_file> <score_col> <score_name> <output_tag>", call. = FALSE)
-  }
+if (length(args) == 0) {
+  args <- c(score_file, score_col, score_name, output_tag)
 }
+
+if (length(args) < 4) {
+  stop("FATAL: Script requires 4 args: <score_file> <score_col> <score_name> <output_tag>", call. = FALSE)
+}
+
+score_file <- args[1]
+score_col <- args[2]
+score_name <- args[3]
+output_tag <- args[4]
 
 out_path <- function(base_name) {
   if (identical(output_tag, "")) {
@@ -38,27 +39,27 @@ out_path <- function(base_name) {
 }
 
 # =============================================================================
-# WITHIN-WARD STRICTNESS SCORE VALIDATION
-# Validates whether strictness scores capture alderman-specific behavior
+# WITHIN-WARD STRINGENCY SCORE VALIDATION
+# Validates whether stringency scores capture alderman-specific behavior
 # versus ward characteristics
 # =============================================================================
 
-message("\n=== Within-Ward Strictness Score Validation ===")
+message("\n=== Within-Ward Stringency Score Validation ===")
 
 # =============================================================================
 # 1. LOAD AND PREPARE DATA
 # =============================================================================
 message("\n=== Loading Data ===")
 
-# Load strictness scores
+# Load stringency scores
 scores_raw <- read_csv(score_file, show_col_types = FALSE)
 if (!score_col %in% names(scores_raw)) {
     stop(sprintf("Score column '%s' not found in %s", score_col, score_file))
 }
 scores <- scores_raw %>%
-    mutate(strictness_index = suppressWarnings(as.numeric(.data[[score_col]]))) %>%
-    filter(!is.na(strictness_index))
-message(sprintf("Loaded %d aldermen with strictness scores", nrow(scores)))
+    mutate(stringency_index = suppressWarnings(as.numeric(.data[[score_col]]))) %>%
+    filter(!is.na(stringency_index))
+message(sprintf("Loaded %d aldermen with stringency scores", nrow(scores)))
 
 # Load alderman-ward panel
 panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
@@ -83,7 +84,7 @@ message(sprintf("Identified primary ward for %d aldermen", nrow(alderman_primary
 alderman_ward_scores <- alderman_primary_ward %>%
     inner_join(scores, by = "alderman")
 
-message(sprintf("Matched %d aldermen with both ward assignments and strictness scores", 
+message(sprintf("Matched %d aldermen with both ward assignments and stringency scores", 
                 nrow(alderman_ward_scores)))
 
 # Count aldermen per ward
@@ -123,19 +124,19 @@ wards_in_sample <- length(wards_with_multiple)
 aldermen_in_sample <- nrow(analysis_sample)
 
 # Score distribution
-overall_mean <- mean(alderman_ward_scores$strictness_index)
-overall_sd <- sd(alderman_ward_scores$strictness_index)
+overall_mean <- mean(alderman_ward_scores$stringency_index)
+overall_sd <- sd(alderman_ward_scores$stringency_index)
 
 # Mean within-ward SD (for wards with 2+ aldermen)
 within_ward_sds <- analysis_sample %>%
     group_by(ward) %>%
-    summarise(within_sd = sd(strictness_index), .groups = "drop")
+    summarise(within_sd = sd(stringency_index), .groups = "drop")
 mean_within_ward_sd <- mean(within_ward_sds$within_sd)
 ratio_within_to_overall <- mean_within_ward_sd / overall_sd
 
 # Print summary
 cat("\n=== COVERAGE ===\n")
-cat(sprintf("Total aldermen with strictness scores: %d\n", total_scored_aldermen))
+cat(sprintf("Total aldermen with stringency scores: %d\n", total_scored_aldermen))
 cat(sprintf("Aldermen with post-2006 ward assignments: %d\n", aldermen_with_wards))
 cat(sprintf("Unique wards represented: %d\n", unique_wards))
 
@@ -147,8 +148,8 @@ cat(sprintf("Total wards with 2+ aldermen (analysis sample): %d\n", wards_in_sam
 cat(sprintf("Total aldermen in analysis sample: %d\n", aldermen_in_sample))
 
 cat("\n=== SCORE DISTRIBUTION ===\n")
-cat(sprintf("Overall mean strictness score: %.3f\n", overall_mean))
-cat(sprintf("Overall SD of strictness scores: %.3f\n", overall_sd))
+cat(sprintf("Overall mean stringency score: %.3f\n", overall_mean))
+cat(sprintf("Overall SD of stringency scores: %.3f\n", overall_sd))
 cat(sprintf("Mean within-ward SD (for wards with 2+ aldermen): %.3f\n", mean_within_ward_sd))
 cat(sprintf("Ratio: within-ward SD / overall SD: %.3f\n", ratio_within_to_overall))
 
@@ -176,9 +177,9 @@ message("\n=== Creating Within-Ward Dot Plot ===")
 ward_stats <- alderman_ward_scores %>%
     group_by(ward) %>%
     summarise(
-        ward_mean = mean(strictness_index),
-        ward_min = min(strictness_index),
-        ward_max = max(strictness_index),
+        ward_mean = mean(stringency_index),
+        ward_min = min(stringency_index),
+        ward_max = max(stringency_index),
         ward_n = n(),
         .groups = "drop"
     )
@@ -197,7 +198,7 @@ notable_aldermen <- alderman_ward_scores %>%
     filter(ward %in% notable_wards$ward)
 
 # Create plot
-p_dotplot <- ggplot(plot_data, aes(x = strictness_index, y = reorder(factor(ward), ward_mean))) +
+p_dotplot <- ggplot(plot_data, aes(x = stringency_index, y = reorder(factor(ward), ward_mean))) +
     # Horizontal segments showing within-ward range (for wards with 2+ aldermen)
     geom_segment(
         data = plot_data %>% filter(n_aldermen >= 2) %>% distinct(ward, .keep_all = TRUE),
@@ -256,9 +257,9 @@ turnover_pairs <- alderman_sequence %>%
 
 # Merge with scores
 turnover_pairs <- turnover_pairs %>%
-    inner_join(scores %>% select(alderman, strictness_index) %>% rename(predecessor_score = strictness_index),
+    inner_join(scores %>% select(alderman, stringency_index) %>% rename(predecessor_score = stringency_index),
                by = c("predecessor" = "alderman")) %>%
-    inner_join(scores %>% select(alderman, strictness_index) %>% rename(successor_score = strictness_index),
+    inner_join(scores %>% select(alderman, stringency_index) %>% rename(successor_score = stringency_index),
                by = c("successor" = "alderman"))
 
 message(sprintf("Created %d predecessor-successor pairs with both scores", nrow(turnover_pairs)))
@@ -307,20 +308,20 @@ if (nrow(turnover_pairs) >= 3) {
 message("\n=== Variance Decomposition ===")
 
 # Calculate using analysis sample (wards with 2+ aldermen)
-total_var <- var(analysis_sample$strictness_index)
+total_var <- var(analysis_sample$stringency_index)
 
 # Between-ward variance
 ward_means <- analysis_sample %>%
     group_by(ward) %>%
-    summarise(mean_score = mean(strictness_index), n = n(), .groups = "drop")
+    summarise(mean_score = mean(stringency_index), n = n(), .groups = "drop")
 
-grand_mean <- mean(analysis_sample$strictness_index)
+grand_mean <- mean(analysis_sample$stringency_index)
 between_var <- weighted.mean((ward_means$mean_score - grand_mean)^2, ward_means$n)
 
 # Within-ward variance
 within_vars <- analysis_sample %>%
     group_by(ward) %>%
-    summarise(within_var = var(strictness_index), n = n(), .groups = "drop")
+    summarise(within_var = var(stringency_index), n = n(), .groups = "drop")
 within_var <- weighted.mean(within_vars$within_var, within_vars$n, na.rm = TRUE)
 
 # Share between-ward
@@ -353,29 +354,29 @@ cat(sprintf("(i.e., %.1f%% is BETWEEN-ward, %.1f%% is WITHIN-ward)\n",
 
 if (share_between < 0.3) {
     cat("\n✓ INTERPRETATION: Ward identity explains only a small fraction\n")
-    cat("  of strictness score variation. The majority of variation is\n")
+    cat("  of stringency score variation. The majority of variation is\n")
     cat("  WITHIN wards — different aldermen from the same ward have\n")
     cat("  meaningfully different scores.\n")
 } else if (share_between < 0.5) {
     cat("\n• INTERPRETATION: Ward identity explains a moderate fraction\n")
-    cat("  of strictness score variation. There is still substantial\n")
+    cat("  of stringency score variation. There is still substantial\n")
     cat("  within-ward variation.\n")
 } else {
-    cat("\n⚠ INTERPRETATION: Ward identity explains most of strictness\n")
+    cat("\n⚠ INTERPRETATION: Ward identity explains most of stringency\n")
     cat("  score variation. Scores may be proxying for ward characteristics.\n")
 }
 
 if (!is.na(pred_succ_cor)) {
     cat(sprintf("\nPredecessor-successor correlation: %.2f\n", pred_succ_cor))
     if (pred_succ_cor < 0.3) {
-        cat("✓ When a new alderman takes over a ward, their strictness score\n")
+        cat("✓ When a new alderman takes over a ward, their stringency score\n")
         cat("  is WEAKLY correlated with their predecessor — consistent with\n")
         cat("  scores reflecting alderman-specific rather than ward-driven behavior.\n")
     } else if (pred_succ_cor < 0.6) {
-        cat("• When a new alderman takes over a ward, their strictness score\n")
+        cat("• When a new alderman takes over a ward, their stringency score\n")
         cat("  is MODERATELY correlated with their predecessor.\n")
     } else {
-        cat("⚠ When a new alderman takes over a ward, their strictness score\n")
+        cat("⚠ When a new alderman takes over a ward, their stringency score\n")
         cat("  is STRONGLY correlated with their predecessor.\n")
     }
 }

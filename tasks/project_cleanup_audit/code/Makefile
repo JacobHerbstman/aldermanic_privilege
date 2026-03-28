@@ -10,7 +10,13 @@ all: \
 	../output/cleanup_manifest.md \
 	../output/task_style_conformance_before.csv \
 	../output/task_style_conformance_after.csv \
-	../output/task_style_diff.md
+	../output/task_style_diff.md \
+	../output/paper_pipeline_cleanup_queue.csv \
+	../output/paper_pipeline_cleanup_queue.md \
+	../output/legacy_task_map.csv \
+	../output/legacy_task_map.md \
+	../output/task_linearization_priority.csv \
+	../output/task_linearization_priority.md
 
 ../output/task_dependency_edges.csv \
 ../output/active_tex_task_usage.csv \
@@ -28,6 +34,15 @@ all: \
 
 ../output/task_style_diff.md: build_task_style_diff.R ../output/task_style_conformance_before.csv ../output/task_style_conformance_after.csv | ../output
 	Rscript build_task_style_diff.R ../output/task_style_conformance_before.csv ../output/task_style_conformance_after.csv "$@"
+
+../output/paper_pipeline_cleanup_queue.csv ../output/paper_pipeline_cleanup_queue.md: build_paper_cleanup_queue.R ../output/task_dependency_edges.csv ../output/active_tex_task_usage.csv ../output/task_style_conformance_after.csv | ../output
+	Rscript build_paper_cleanup_queue.R ../output/task_dependency_edges.csv ../output/active_tex_task_usage.csv ../output/task_style_conformance_after.csv ../output/paper_pipeline_cleanup_queue.csv ../output/paper_pipeline_cleanup_queue.md
+
+../output/legacy_task_map.csv ../output/legacy_task_map.md: build_legacy_task_map.R | ../output
+	Rscript build_legacy_task_map.R ../output/legacy_task_map.csv ../output/legacy_task_map.md
+
+../output/task_linearization_priority.csv ../output/task_linearization_priority.md: build_task_linearization_priority.R ../output/active_tex_task_usage.csv ../output/task_style_conformance_after.csv | ../output
+	Rscript build_task_linearization_priority.R ../output/active_tex_task_usage.csv ../output/task_style_conformance_after.csv ../output/task_linearization_priority.csv ../output/task_linearization_priority.md
 
 ../output/pruned_outputs.csv: prune_stale_outputs.R ../output/output_keep_manifest.csv | ../output
 	Rscript prune_stale_outputs.R "$@"

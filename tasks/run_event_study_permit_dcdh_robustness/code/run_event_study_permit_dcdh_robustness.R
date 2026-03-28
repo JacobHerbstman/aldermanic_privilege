@@ -1,10 +1,19 @@
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit_dcdh_robustness/code")
-# Rscript run_event_study_permit_dcdh_robustness.R 1000 uniform 0 ../output/event_study_dcdh_yearly_cohort_2015_high_discretion_issue_non_normalized_uniform_1000ft_wardpair.pdf ../output/event_study_dcdh_yearly_cohort_2015_high_discretion_issue_normalized_uniform_1000ft_wardpair.pdf ../output/summary_dcdh_yearly_cohort_2015_high_discretion_issue_uniform_1000ft.csv ../output/summary_dcdh_yearly_cohort_2015_high_discretion_issue_uniform_1000ft.tex
-# =======================================================================================
+# bandwidth <- 1000
+# weighting <- "uniform"
+# bootstrap_reps <- 0
+# output_pdf_non_normalized <- "../output/event_study_dcdh_yearly_cohort_2015_high_discretion_issue_non_normalized_uniform_1000ft_wardpair.pdf"
+# output_pdf_normalized <- "../output/event_study_dcdh_yearly_cohort_2015_high_discretion_issue_normalized_uniform_1000ft_wardpair.pdf"
+# output_csv <- "../output/summary_dcdh_yearly_cohort_2015_high_discretion_issue_uniform_1000ft.csv"
+# output_tex <- "../output/summary_dcdh_yearly_cohort_2015_high_discretion_issue_uniform_1000ft.tex"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(bandwidth, weighting, bootstrap_reps, output_pdf_non_normalized, output_pdf_normalized, output_csv, output_tex)
+}
+
 if (length(args) < 7) {
   stop(
     "FATAL: Script requires args: <bandwidth> <weighting> <bootstrap_reps> <output_pdf_non_normalized> <output_pdf_normalized> <output_csv> <output_tex>",

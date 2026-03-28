@@ -1,20 +1,23 @@
 source("../../setup_environment/code/packages.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_pair_fe/code")
 # input <- "../input/rent_with_ward_distances.parquet"
-# bw_ft <- "all"
+# bw_arg <- "all"
 # window <- "pre_covid"
 # sample_filter <- "all"
 # output_tex <- "../output/fe_table_rental_bwall_pre_covid_all.tex"
 # output_csv <- "../output/fe_table_rental_bwall_pre_covid_all.csv"
 # output_year_diag <- "../output/year_diagnostics_bwall_pre_covid_all.csv"
-# Rscript rental_border_pair_fe.R "../input/rent_with_ward_distances.parquet" all "pre_covid" "all" "../output/fe_table_rental_bwall_pre_covid_all.tex" "../output/fe_table_rental_bwall_pre_covid_all.csv" "../output/year_diagnostics_bwall_pre_covid_all.csv"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, bw_arg, window, sample_filter, output_tex, output_csv, output_year_diag)
+}
+
 if (length(cli_args) >= 9) {
   input <- cli_args[1]
   bw_arg <- cli_args[2]

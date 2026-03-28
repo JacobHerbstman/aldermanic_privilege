@@ -3,8 +3,10 @@ library(data.table)
 library(fixest)
 library(arrow)
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+
+# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
 # input <- "../input/rental_listing_panel.parquet"
 # geo_input <- "../input/rent_with_ward_distances.parquet"
@@ -25,11 +27,12 @@ library(arrow)
 # out_blocks_top <- "../output/rental_effect_source_blocks_top200.csv"
 # out_buildings <- "../output/rental_effect_source_buildings.csv"
 # out_buildings_top <- "../output/rental_effect_source_buildings_top200.csv"
-# Rscript diagnose_rental_effect_sources.R "../input/rental_listing_panel.parquet" "../input/rent_with_ward_distances.parquet" 1000 "triangular" "multifamily_only" "strict_pair_x_year" 50 200 200 "../output/rental_effect_source_summary.csv" "../output/rental_effect_source_event_study_coefficients.csv" "../output/rental_effect_source_counterfactuals.csv" "../output/rental_effect_source_boundaries.csv" "../output/rental_effect_source_boundaries_top50.csv" "../output/rental_effect_source_wards.csv" "../output/rental_effect_source_wards_top50.csv" "../output/rental_effect_source_blocks_top200.csv" "../output/rental_effect_source_buildings.csv" "../output/rental_effect_source_buildings_top200.csv"
-# =======================================================================================
 
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(input, geo_input, bandwidth, weighting, sample_filter, fe_type, top_n, top_blocks, top_buildings, out_summary, out_event_coeffs, out_counterfactual, out_boundaries, out_boundaries_top, out_wards, out_wards_top, out_blocks_top, out_buildings, out_buildings_top)
+}
+
 if (length(cli_args) >= 19) {
   input <- cli_args[1]
   geo_input <- cli_args[2]

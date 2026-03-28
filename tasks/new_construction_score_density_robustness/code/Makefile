@@ -76,7 +76,7 @@ all: \
 ../output/stage2_regression_new_construction.tex \
 ../output/uncertainty_index_new_construction.pdf: ../output/.score_new_construction.done
 
-../output/.score_new_construction.done: build_new_construction_score.R ../../create_alderman_uncertainty_index/code/uncertainty_index_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
+../output/.score_new_construction.done: build_new_construction_score.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
 	Rscript build_new_construction_score.R ../input/permits_for_uncertainty_index.csv ../output/alderman_uncertainty_index_new_construction.csv ../output/score_variant_metadata_new_construction.csv ../output/score_variant_stage1_terms_new_construction.csv ../output/stage1_regression_new_construction.tex ../output/stage2_regression_new_construction.tex ../output/uncertainty_index_new_construction.pdf
 	touch "$@"
 
@@ -87,7 +87,7 @@ all: \
 ../output/stage2_regression_new_construction_demolition.tex \
 ../output/uncertainty_index_new_construction_demolition.pdf: ../output/.score_new_construction_demolition.done
 
-../output/.score_new_construction_demolition.done: build_new_construction_score.R ../../create_alderman_uncertainty_index/code/uncertainty_index_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
+../output/.score_new_construction_demolition.done: build_new_construction_score.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
 	Rscript build_new_construction_score.R ../input/permits_for_uncertainty_index.csv ../output/alderman_uncertainty_index_new_construction_demolition.csv ../output/score_variant_metadata_new_construction_demolition.csv ../output/score_variant_stage1_terms_new_construction_demolition.csv ../output/stage1_regression_new_construction_demolition.tex ../output/stage2_regression_new_construction_demolition.tex ../output/uncertainty_index_new_construction_demolition.pdf new_construction_demolition "New construction + demolition" "new_construction,demolition"
 	touch "$@"
 
@@ -96,7 +96,7 @@ all: \
 ../output/new_construction_alderman_processing_times.csv \
 ../output/new_construction_alderman_processing_time_density.pdf: ../output/.processing_time_summary.done
 
-../output/.processing_time_summary.done: summarize_new_construction_processing_time.R ../../create_alderman_uncertainty_index/code/uncertainty_index_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
+../output/.processing_time_summary.done: summarize_new_construction_processing_time.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
 	Rscript summarize_new_construction_processing_time.R ../input/permits_for_uncertainty_index.csv ../output/new_construction_processing_time_summary.csv ../output/new_construction_processing_time_summary.tex ../output/new_construction_alderman_processing_times.csv ../output/new_construction_alderman_processing_time_density.pdf
 	touch "$@"
 
@@ -105,7 +105,7 @@ all: \
 ../output/new_construction_demolition_alderman_processing_times.csv \
 ../output/new_construction_demolition_alderman_processing_time_density.pdf: ../output/.processing_time_summary_new_construction_demolition.done
 
-../output/.processing_time_summary_new_construction_demolition.done: summarize_new_construction_processing_time.R ../../create_alderman_uncertainty_index/code/uncertainty_index_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
+../output/.processing_time_summary_new_construction_demolition.done: summarize_new_construction_processing_time.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
 	Rscript summarize_new_construction_processing_time.R ../input/permits_for_uncertainty_index.csv ../output/new_construction_demolition_processing_time_summary.csv ../output/new_construction_demolition_processing_time_summary.tex ../output/new_construction_demolition_alderman_processing_times.csv ../output/new_construction_demolition_alderman_processing_time_density.pdf new_construction_demolition "New construction + demolition" "new_construction,demolition"
 	touch "$@"
 

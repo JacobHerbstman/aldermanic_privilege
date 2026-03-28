@@ -1,11 +1,19 @@
 source("../../setup_environment/code/packages.R")
 
 ## Build task lineage and object verification index
-## run this line when editing code in Rstudio
+
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/slide_deck_audit/code")
-# Rscript build_lineage_map.R ../output/slide_asset_inventory.csv ../output/slide_claim_manifest.csv ../output/slide_task_lineage.csv ../output/object_verification_index.csv
+# asset_inventory_input <- "../output/slide_asset_inventory.csv"
+# claim_manifest_input <- "../output/slide_claim_manifest.csv"
+# lineage_output <- "../output/slide_task_lineage.csv"
+# verification_output <- "../output/object_verification_index.csv"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(asset_inventory_input, claim_manifest_input, lineage_output, verification_output)
+}
+
 if (length(args) >= 4) {
   asset_inventory_input <- args[1]
   claim_manifest_input <- args[2]

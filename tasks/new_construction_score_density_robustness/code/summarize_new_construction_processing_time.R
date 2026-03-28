@@ -1,12 +1,21 @@
 ## Summarize permit-subset processing-time heterogeneity
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
-# Rscript summarize_new_construction_processing_time.R "../input/permits_for_uncertainty_index.csv" "../output/new_construction_processing_time_summary.csv" "../output/new_construction_processing_time_summary.tex" "../output/new_construction_alderman_processing_times.csv" "../output/new_construction_alderman_processing_time_density.pdf"
 
 source("../../setup_environment/code/packages.R")
-source("../../create_alderman_uncertainty_index/code/uncertainty_index_helpers.R")
+source("../../_lib/alderman_uncertainty_helpers.R")
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
+# permits_input <- "../input/permits_for_uncertainty_index.csv"
+# summary_output <- "../output/new_construction_processing_time_summary.csv"
+# summary_tex_output <- "../output/new_construction_processing_time_summary.tex"
+# alderman_output <- "../output/new_construction_alderman_processing_times.csv"
+# plot_output <- "../output/new_construction_alderman_processing_time_density.pdf"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(permits_input, summary_output, summary_tex_output, alderman_output, plot_output)
+}
+
 if (length(args) >= 5) {
   permits_input <- args[1]
   summary_output <- args[2]

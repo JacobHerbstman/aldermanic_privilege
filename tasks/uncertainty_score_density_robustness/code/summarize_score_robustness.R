@@ -1,12 +1,17 @@
 ## Summarize score and density robustness results
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_score_density_robustness/code")
-# Rscript summarize_score_robustness.R "../output"
 
 source("../../setup_environment/code/packages.R")
-source("../../create_alderman_uncertainty_index/code/uncertainty_index_helpers.R")
+source("../../_lib/alderman_uncertainty_helpers.R")
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_score_density_robustness/code")
+# output_dir <- "../output"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(output_dir)
+}
+
 if (length(args) >= 1) {
   output_dir <- args[1]
 } else {

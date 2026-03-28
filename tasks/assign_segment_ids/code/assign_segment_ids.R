@@ -4,13 +4,20 @@ source("../../_lib/canonical_geometry_helpers.R")
 library(data.table)
 library(sf)
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids/code")
-# Rscript assign_segment_ids.R ../input/parcels_pre_scores.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_1320ft.gpkg ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv ../output/parcel_segment_ids_reason_summary.csv
-# =======================================================================================
+# in_pre_scores <- "../input/parcels_pre_scores.csv"
+# in_geom <- "../input/parcels_with_geometry.gpkg"
+# in_segments <- "../input/boundary_segments_1320ft.gpkg"
+# out_lookup <- "../output/parcel_segment_ids.csv"
+# out_coverage <- "../output/parcel_segment_ids_coverage.csv"
+# out_reason <- "../output/parcel_segment_ids_reason_summary.csv"
 
 args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(in_pre_scores, in_geom, in_segments, out_lookup, out_coverage, out_reason)
+}
+
 if (length(args) >= 6) {
   in_pre_scores <- args[1]
   in_geom <- args[2]
