@@ -204,13 +204,22 @@ rentals <- read_parquet(
 message(sprintf("Loaded %s rental listings", format(nrow(rentals), big.mark = ",")))
 
 message("Loading census blocks...")
-census_blocks <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
+census_blocks_2010 <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
   rename(geometry = the_geom) %>%
   st_as_sf(wkt = "geometry", crs = 4269) %>%
-  rename(block_id = GEOID10) %>%
-  mutate(block_id = as.character(block_id)) %>%
-  distinct(block_id, .keep_all = TRUE)
-message(sprintf("Loaded %s census blocks", format(nrow(census_blocks), big.mark = ",")))
+  rename(block_id_2010 = GEOID10) %>%
+  mutate(block_id_2010 = as.character(block_id_2010)) %>%
+  distinct(block_id_2010, .keep_all = TRUE)
+
+census_blocks_2020 <- read_csv("../input/census_blocks_2020.csv", show_col_types = FALSE) %>%
+  rename(geometry = the_geom) %>%
+  st_as_sf(wkt = "geometry", crs = 4269) %>%
+  rename(block_id_2020 = GEOID20) %>%
+  mutate(block_id_2020 = as.character(block_id_2020)) %>%
+  distinct(block_id_2020, .keep_all = TRUE)
+
+message(sprintf("Loaded %s 2010 census blocks", format(nrow(census_blocks_2010), big.mark = ",")))
+message(sprintf("Loaded %s 2020 census blocks", format(nrow(census_blocks_2020), big.mark = ",")))
 
 message("Loading treatment panel...")
 treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
@@ -228,24 +237,52 @@ crs_projected <- 3435 # Illinois East State Plane (feet)
 
 rentals_sf <- rentals %>%
   filter(!is.na(latitude), !is.na(longitude)) %>%
+  mutate(listing_row_id = row_number()) %>%
   st_as_sf(coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) %>%
   st_transform(crs_projected)
 
-census_blocks_proj <- census_blocks %>%
+census_blocks_2010_proj <- census_blocks_2010 %>%
   st_transform(crs_projected)
 
-rentals_with_blocks <- st_join(rentals_sf, census_blocks_proj %>% select(block_id), join = st_within) %>%
+census_blocks_2020_proj <- census_blocks_2020 %>%
+  st_transform(crs_projected)
+
+rentals_with_blocks_2010 <- st_join(
+  rentals_sf,
+  census_blocks_2010_proj %>% select(block_id_2010),
+  join = st_within
+) %>%
+  st_drop_geometry()
+
+rentals_with_blocks_2020 <- st_join(
+  rentals_sf,
+  census_blocks_2020_proj %>% select(block_id_2020),
+  join = st_within
+) %>%
   st_drop_geometry() %>%
+  select(listing_row_id, block_id_2020)
+
+if (anyDuplicated(rentals_with_blocks_2010$listing_row_id) > 0) {
+  stop("2010 block assignment produced duplicate rental listing_row_id values; investigate overlapping blocks.", call. = FALSE)
+}
+if (anyDuplicated(rentals_with_blocks_2020$listing_row_id) > 0) {
+  stop("2020 block assignment produced duplicate rental listing_row_id values; investigate overlapping blocks.", call. = FALSE)
+}
+
+rentals_with_blocks <- rentals_with_blocks_2010 %>%
+  left_join(rentals_with_blocks_2020, by = "listing_row_id") %>%
   select(
-    id, file_date, year, month, quarter, year_month, year_quarter,
+    listing_row_id, id, file_date, year, month, quarter, year_month, year_quarter,
     rent_price, beds, baths, sqft, laundry, gym, building_type_clean,
-    ward, dist_ft, ward_pair_id, longitude, latitude, signed_dist, block_id
+    ward, dist_ft, ward_pair_id, longitude, latitude, signed_dist,
+    block_id_2010, block_id_2020
   ) %>%
-  filter(!is.na(block_id))
+  filter(!is.na(block_id_2010) | !is.na(block_id_2020))
 
-message(sprintf("Rentals assigned to blocks: %s", format(nrow(rentals_with_blocks), big.mark = ",")))
+message(sprintf("Rentals assigned to 2010 blocks: %s", format(sum(!is.na(rentals_with_blocks$block_id_2010)), big.mark = ",")))
+message(sprintf("Rentals assigned to 2020 blocks: %s", format(sum(!is.na(rentals_with_blocks$block_id_2020)), big.mark = ",")))
 
-rm(rentals, rentals_sf, census_blocks_proj, census_blocks)
+rm(rentals, rentals_sf, census_blocks_2010_proj, census_blocks_2020_proj, census_blocks_2010, census_blocks_2020)
 gc()
 
 # =============================================================================
@@ -256,7 +293,7 @@ message("Preparing treatment data...")
 treatment_2015 <- treatment_panel %>%
   filter(cohort == "2015") %>%
   select(
-    block_id,
+    block_id_2010 = block_id,
     ward_origin_2015 = ward_origin,
     ward_dest_2015 = ward_dest,
     switched_2015 = switched,
@@ -270,7 +307,7 @@ treatment_2015 <- treatment_panel %>%
 treatment_2023 <- treatment_panel %>%
   filter(cohort == "2023") %>%
   select(
-    block_id,
+    block_id_2020 = block_id,
     ward_origin_2023 = ward_origin,
     ward_dest_2023 = ward_dest,
     switched_2023 = switched,
@@ -305,10 +342,11 @@ rental_support_parts <- list()
 message("\nCreating 2015 cohort listing panel...")
 
 cohort_2015_work <- rentals_with_blocks %>%
-  filter(year >= 2010, year <= 2020) %>%
-  left_join(treatment_2015, by = "block_id") %>%
+  filter(year >= 2010, year <= 2020, !is.na(block_id_2010)) %>%
+  left_join(treatment_2015, by = "block_id_2010") %>%
   mutate(
     cohort = "2015",
+    block_id = block_id_2010,
     relative_year = year - 2015,
     relative_year_capped = pmax(pmin(relative_year, 5), -5),
     relative_quarter = (year - 2015) * 4 + (quarter - 2),
@@ -410,10 +448,11 @@ message(sprintf(
 message("\nCreating 2023 cohort listing panel...")
 
 cohort_2023_work <- rentals_with_blocks %>%
-  filter(year >= 2018, year <= 2025) %>%
-  left_join(treatment_2023, by = "block_id") %>%
+  filter(year >= 2018, year <= 2025, !is.na(block_id_2020)) %>%
+  left_join(treatment_2023, by = "block_id_2020") %>%
   mutate(
     cohort = "2023",
+    block_id = block_id_2020,
     relative_year = year - 2023,
     relative_year_capped = pmax(pmin(relative_year, 5), -5),
     relative_quarter = (year - 2023) * 4 + (quarter - 2),

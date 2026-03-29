@@ -121,8 +121,12 @@ sales <- fread("../input/sales_with_ward_distances.csv")
 sales[, `:=`(
   pin = as.character(pin),
   sale_date = as.Date(sale_date),
-  sale_year = year(as.Date(sale_date))
+  sale_year = year(as.Date(sale_date)),
+  ward_pair_id = normalize_pair_dash(ward_pair_id)
 )]
+if (anyNA(sales$ward_pair_id)) {
+  stop("Sales input contains invalid ward_pair_id values after normalization.", call. = FALSE)
+}
 message(sprintf("Loaded %s sales", format(nrow(sales), big.mark = ",")))
 
 message("Loading residential improvements panel...")
@@ -137,13 +141,21 @@ message(sprintf(
 message("Loading census blocks...")
 # Disable S2 spherical geometry to avoid validation errors on some blocks
 sf_use_s2(FALSE)
-census_blocks <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
+census_blocks_2010 <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
   rename(geometry = the_geom) %>%
   st_as_sf(wkt = "geometry", crs = 4269) %>%
   st_make_valid() %>%
-  rename(block_id = GEOID10) %>%
-  mutate(block_id = as.character(block_id)) %>%
-  distinct(block_id, .keep_all = TRUE)
+  rename(block_id_2010 = GEOID10) %>%
+  mutate(block_id_2010 = as.character(block_id_2010)) %>%
+  distinct(block_id_2010, .keep_all = TRUE)
+
+census_blocks_2020 <- read_csv("../input/census_blocks_2020.csv", show_col_types = FALSE) %>%
+  rename(geometry = the_geom) %>%
+  st_as_sf(wkt = "geometry", crs = 4269) %>%
+  st_make_valid() %>%
+  rename(block_id_2020 = GEOID20) %>%
+  mutate(block_id_2020 = as.character(block_id_2020)) %>%
+  distinct(block_id_2020, .keep_all = TRUE)
 
 message("Loading treatment panel...")
 treatment_panel <- fread("../input/block_treatment_panel.csv")
@@ -210,17 +222,40 @@ message("\n=== SPATIAL ASSIGNMENT TO BLOCKS ===")
 sales_sf <- sales_with_hedonics %>%
   as_tibble() %>%
   filter(!is.na(latitude), !is.na(longitude)) %>%
+  mutate(sale_row_id = row_number()) %>%
   st_as_sf(coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) %>%
-  st_transform(st_crs(census_blocks))
+  st_transform(st_crs(census_blocks_2010))
 
 message(sprintf("Sales with valid coordinates: %s", format(nrow(sales_sf), big.mark = ",")))
 
-# Spatial join to get block_id
-sales_with_blocks <- st_join(sales_sf, census_blocks %>% select(block_id), join = st_within) %>%
-  st_drop_geometry() %>%
-  filter(!is.na(block_id))
+# Spatial join to get 2010 and 2020 block IDs. Each sale should hit at most one block per vintage.
+sales_with_blocks_2010 <- st_join(
+  sales_sf,
+  census_blocks_2010 %>% select(block_id_2010),
+  join = st_within
+) %>%
+  st_drop_geometry()
 
-message(sprintf("Sales assigned to blocks: %s", format(nrow(sales_with_blocks), big.mark = ",")))
+sales_with_blocks_2020 <- st_join(
+  st_transform(sales_sf, st_crs(census_blocks_2020)),
+  census_blocks_2020 %>% select(block_id_2020),
+  join = st_within
+) %>%
+  st_drop_geometry() %>%
+  select(sale_row_id, block_id_2020)
+
+if (anyDuplicated(sales_with_blocks_2010$sale_row_id) > 0) {
+  stop("2010 block assignment produced duplicate sale_row_id values; investigate overlapping blocks.", call. = FALSE)
+}
+if (anyDuplicated(sales_with_blocks_2020$sale_row_id) > 0) {
+  stop("2020 block assignment produced duplicate sale_row_id values; investigate overlapping blocks.", call. = FALSE)
+}
+
+sales_with_blocks <- sales_with_blocks_2010 %>%
+  left_join(sales_with_blocks_2020, by = "sale_row_id")
+
+message(sprintf("Sales assigned to 2010 blocks: %s", format(sum(!is.na(sales_with_blocks$block_id_2010)), big.mark = ",")))
+message(sprintf("Sales assigned to 2020 blocks: %s", format(sum(!is.na(sales_with_blocks$block_id_2020)), big.mark = ",")))
 
 # Convert back to data.table for efficiency
 setDT(sales_with_blocks)
@@ -232,7 +267,7 @@ message("\n=== MERGING TREATMENT INFO ===")
 
 # 2015 cohort treatment info
 treatment_2015 <- treatment_panel[cohort == "2015", .(
-  block_id,
+  block_id_2010 = block_id,
   ward_origin_2015 = ward_origin,
   ward_dest_2015 = ward_dest,
   switched_2015 = switched,
@@ -242,7 +277,7 @@ treatment_2015 <- treatment_panel[cohort == "2015", .(
 
 # 2023 cohort treatment info
 treatment_2023 <- treatment_panel[cohort == "2023", .(
-  block_id,
+  block_id_2020 = block_id,
   ward_origin_2023 = ward_origin,
   ward_dest_2023 = ward_dest,
   switched_2023 = switched,
@@ -251,8 +286,8 @@ treatment_2023 <- treatment_panel[cohort == "2023", .(
 )]
 
 # Merge treatment info
-sales_with_treatment <- merge(sales_with_blocks, treatment_2015, by = "block_id", all.x = TRUE)
-sales_with_treatment <- merge(sales_with_treatment, treatment_2023, by = "block_id", all.x = TRUE)
+sales_with_treatment <- merge(sales_with_blocks, treatment_2015, by = "block_id_2010", all.x = TRUE)
+sales_with_treatment <- merge(sales_with_treatment, treatment_2023, by = "block_id_2020", all.x = TRUE)
 
 message(sprintf("Sales with treatment info: %s", format(nrow(sales_with_treatment), big.mark = ",")))
 
@@ -323,12 +358,14 @@ message("\n=== CREATING 2012 COHORT (Anticipation) ===")
 
 cohort_2012_window <- copy(sales_with_treatment[
   sale_year >= 2007 & sale_year <= 2017 &
+    !is.na(block_id_2010) &
     !is.na(ward) &
     !is.na(ward_pair_id) &
     abs(as.numeric(signed_dist)) <= 2000
 ])
 cohort_2012_window[, `:=`(
   cohort = "2012",
+  block_id = block_id_2010,
   relative_year = sale_year - 2012,
   relative_year_capped = pmax(pmin(sale_year - 2012, 5), -5),
   treat = as.integer(switched_2015)
@@ -338,6 +375,7 @@ cohort_2012_nonmissing <- cohort_2012_window[!is.na(switched_2015)]
 cohort_2012_valid <- cohort_2012_nonmissing[valid_2015 == TRUE]
 cohort_2012_pre_segment <- copy(cohort_2012_valid)
 cohort_2012_pre_segment[, `:=`(
+  block_id = block_id_2010,
   strictness_change = strictness_change_2015,
   ward_origin = fifelse(switched_2015 == TRUE, ward_origin_2015, ward),
   ward_dest = fifelse(switched_2015 == TRUE, ward_dest_2015, ward),
@@ -349,6 +387,9 @@ cohort_2012_pre_segment[
 ]
 cohort_2012_pre_segment[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
 cohort_2012 <- assign_cohort_segments_dt(cohort_2012_pre_segment, segment_layers_1000, "2003_2014", "2012")
+if (any(grepl("_", cohort_2012$ward_pair_id, fixed = TRUE, useBytes = TRUE))) {
+  stop("2012 cohort still contains underscore-form ward_pair_id values after normalization.", call. = FALSE)
+}
 
 message(sprintf("2012 cohort: %s transactions", format(nrow(cohort_2012), big.mark = ",")))
 message(sprintf("  Year range: %d to %d", min(cohort_2012$sale_year), max(cohort_2012$sale_year)))
@@ -368,12 +409,14 @@ message("\n=== CREATING 2022 COHORT (Anticipation for 2023 Redistricting) ===")
 
 cohort_2022_window <- copy(sales_with_treatment[
   sale_year >= 2017 & sale_year <= 2025 &
+    !is.na(block_id_2020) &
     !is.na(ward) &
     !is.na(ward_pair_id) &
     abs(as.numeric(signed_dist)) <= 2000
 ])
 cohort_2022_window[, `:=`(
   cohort = "2022",
+  block_id = block_id_2020,
   relative_year = sale_year - 2022,
   relative_year_capped = pmax(pmin(sale_year - 2022, 5), -5),
   treat = as.integer(switched_2023)
@@ -383,6 +426,7 @@ cohort_2022_nonmissing <- cohort_2022_window[!is.na(switched_2023)]
 cohort_2022_valid <- cohort_2022_nonmissing[valid_2023 == TRUE]
 cohort_2022_pre_segment <- copy(cohort_2022_valid)
 cohort_2022_pre_segment[, `:=`(
+  block_id = block_id_2020,
   strictness_change = strictness_change_2023,
   ward_origin = fifelse(switched_2023 == TRUE, ward_origin_2023, ward),
   ward_dest = fifelse(switched_2023 == TRUE, ward_dest_2023, ward),
@@ -394,6 +438,9 @@ cohort_2022_pre_segment[
 ]
 cohort_2022_pre_segment[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
 cohort_2022 <- assign_cohort_segments_dt(cohort_2022_pre_segment, segment_layers_1000, "2015_2023", "2022")
+if (any(grepl("_", cohort_2022$ward_pair_id, fixed = TRUE, useBytes = TRUE))) {
+  stop("2022 cohort still contains underscore-form ward_pair_id values after normalization.", call. = FALSE)
+}
 
 message(sprintf("2022 cohort: %s transactions", format(nrow(cohort_2022), big.mark = ",")))
 message(sprintf("  Year range: %d to %d", min(cohort_2022$sale_year), max(cohort_2022$sale_year)))
@@ -411,12 +458,14 @@ message("\n=== CREATING 2015 COHORT (Implementation) ===")
 # 2015 cohort: sales from 2010-2020
 cohort_2015_window <- copy(sales_with_treatment[
   sale_year >= 2010 & sale_year <= 2020 &
+    !is.na(block_id_2010) &
     !is.na(ward) &
     !is.na(ward_pair_id) &
     abs(as.numeric(signed_dist)) <= 2000
 ])
 cohort_2015_window[, `:=`(
   cohort = "2015",
+  block_id = block_id_2010,
   relative_year = sale_year - 2015,
   relative_year_capped = pmax(pmin(sale_year - 2015, 5), -5),
   treat = as.integer(switched_2015)
@@ -426,6 +475,7 @@ cohort_2015_nonmissing <- cohort_2015_window[!is.na(switched_2015)]
 cohort_2015_valid <- cohort_2015_nonmissing[valid_2015 == TRUE]
 cohort_2015_pre_segment <- copy(cohort_2015_valid)
 cohort_2015_pre_segment[, `:=`(
+  block_id = block_id_2010,
   strictness_change = strictness_change_2015,
   ward_origin = fifelse(switched_2015 == TRUE, ward_origin_2015, ward),
   ward_dest = fifelse(switched_2015 == TRUE, ward_dest_2015, ward),
@@ -437,6 +487,9 @@ cohort_2015_pre_segment[
 ]
 cohort_2015_pre_segment[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
 cohort_2015 <- assign_cohort_segments_dt(cohort_2015_pre_segment, segment_layers_1000, "2003_2014", "2015")
+if (any(grepl("_", cohort_2015$ward_pair_id, fixed = TRUE, useBytes = TRUE))) {
+  stop("2015 cohort still contains underscore-form ward_pair_id values after normalization.", call. = FALSE)
+}
 
 message(sprintf("2015 cohort: %s transactions", format(nrow(cohort_2015), big.mark = ",")))
 # =============================================================================
@@ -447,12 +500,14 @@ message("\n=== CREATING 2023 COHORT ===")
 # 2023 cohort: sales from 2018-2025
 cohort_2023_window <- copy(sales_with_treatment[
   sale_year >= 2018 & sale_year <= 2025 &
+    !is.na(block_id_2020) &
     !is.na(ward) &
     !is.na(ward_pair_id) &
     abs(as.numeric(signed_dist)) <= 2000
 ])
 cohort_2023_window[, `:=`(
   cohort = "2023",
+  block_id = block_id_2020,
   relative_year = sale_year - 2023,
   relative_year_capped = pmax(pmin(sale_year - 2023, 5), -5),
   treat = as.integer(switched_2023)
@@ -462,6 +517,7 @@ cohort_2023_nonmissing <- cohort_2023_window[!is.na(switched_2023)]
 cohort_2023_valid <- cohort_2023_nonmissing[valid_2023 == TRUE]
 cohort_2023_pre_segment <- copy(cohort_2023_valid)
 cohort_2023_pre_segment[, `:=`(
+  block_id = block_id_2020,
   strictness_change = strictness_change_2023,
   ward_origin = fifelse(switched_2023 == TRUE, ward_origin_2023, ward),
   ward_dest = fifelse(switched_2023 == TRUE, ward_dest_2023, ward),
@@ -473,6 +529,9 @@ cohort_2023_pre_segment[
 ]
 cohort_2023_pre_segment[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
 cohort_2023 <- assign_cohort_segments_dt(cohort_2023_pre_segment, segment_layers_1000, "2015_2023", "2023")
+if (any(grepl("_", cohort_2023$ward_pair_id, fixed = TRUE, useBytes = TRUE))) {
+  stop("2023 cohort still contains underscore-form ward_pair_id values after normalization.", call. = FALSE)
+}
 
 message(sprintf("2023 cohort: %s transactions", format(nrow(cohort_2023), big.mark = ",")))
 
