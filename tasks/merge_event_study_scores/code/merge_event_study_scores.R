@@ -162,6 +162,10 @@ treat_panel <- treat_pre %>%
   ) %>%
   select(
     block_id, block_vintage, ward_origin, ward_dest, switched,
+    any_of(c(
+      "ward_origin_share", "ward_dest_share", "ward_origin_n_wards",
+      "ward_dest_n_wards", "min_assignment_share"
+    )),
     strictness_origin, strictness_dest, strictness_change, switch_type,
     ward_had_turnover, valid, cohort
   )

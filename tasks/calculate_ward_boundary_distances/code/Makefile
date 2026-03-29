@@ -3,7 +3,7 @@ include ../../shell_functions.make
 
 all: ../output/parcels_pre_scores.csv ../output/parcels_with_geometry.gpkg ../output/parcel_geometry_diagnostics.csv
 
-../output/parcels_pre_scores.csv: calculate_distances.R ../../_lib/canonical_geometry_helpers.R ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/block_group_geometry_2019.gpkg ../input/zoning_data_clean.gpkg ../input/cta_stops.gpkg ../input/major_streets.gpkg ../input/parks.gpkg ../input/schools_2015.gpkg | ../output
+../output/parcels_pre_scores.csv: calculate_distances.R ../../_lib/canonical_geometry_helpers.R ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/block_group_geometry_2019.gpkg ../input/zoning_data_clean.gpkg | ../output
 	$(R) calculate_distances.R
 
 ../output/parcels_with_geometry.gpkg: ../output/parcels_pre_scores.csv
@@ -36,18 +36,6 @@ all: ../output/parcels_pre_scores.csv ../output/parcels_with_geometry.gpkg ../ou
 ../input/zoning_data_clean.gpkg: ../../zoning_data_cleaning/output/zoning_data_clean.gpkg | ../input
 	ln -sf $< $@
 
-../input/cta_stops.gpkg: ../../download_amenities_data/output/cta_stops.gpkg | ../input
-	ln -sf $< $@
-
-../input/major_streets.gpkg: ../../download_amenities_data/output/major_streets.gpkg | ../input
-	ln -sf $< $@
-
-../input/parks.gpkg: ../../download_amenities_data/output/parks.gpkg | ../input
-	ln -sf $< $@
-
-../input/schools_2015.gpkg: ../../download_amenities_data/output/schools_2015.gpkg | ../input
-	ln -sf $< $@
-
 include ../../generic.make
 
-link-inputs: ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/block_group_geometry_2019.gpkg ../input/zoning_data_clean.gpkg ../input/cta_stops.gpkg ../input/major_streets.gpkg ../input/parks.gpkg ../input/schools_2015.gpkg
+link-inputs: ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/block_group_geometry_2019.gpkg ../input/zoning_data_clean.gpkg

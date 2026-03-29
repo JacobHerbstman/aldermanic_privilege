@@ -1,5 +1,7 @@
 ## this code creates a panel of block-group level controls from the ACS
 ## EXPANDED VERSION: includes rents, home values, education, and more demographics
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_block_group_controls/code")
 
 source("../../setup_environment/code/packages.R")
 

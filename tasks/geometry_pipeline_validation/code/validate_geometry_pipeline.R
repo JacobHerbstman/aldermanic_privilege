@@ -4,7 +4,6 @@
 
 ## run this line when editing code in Rstudio
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/geometry_pipeline_validation/code")
-# Rscript validate_geometry_pipeline.R
 
 source("../../setup_environment/code/packages.R")
 

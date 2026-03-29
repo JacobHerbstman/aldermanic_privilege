@@ -1,8 +1,6 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
-# Paused for substantive use pending review of ../../city_point_geocode_audit/output/geocode_audit_report.md.
-
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_permit_data/code")
@@ -155,9 +153,42 @@ read_blocks <- function(path, block_col, target_crs) {
     distinct(block_id, .keep_all = TRUE)
 }
 
-assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label) {
+assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label, manual_block_review) {
   joined <- st_join(permits_sf, blocks_sf %>% select(block_id), join = st_within)
   joined_df <- joined %>% st_drop_geometry()
+
+  empty_missing_audit <- tibble(
+    id = character(),
+    pin = character(),
+    permit_type = character(),
+    high_discretion = integer(),
+    permit_issued = integer(),
+    application_start_date_ym = as.Date(character()),
+    issue_date_ym = as.Date(character()),
+    latitude = numeric(),
+    longitude = numeric(),
+    processing_time = numeric(),
+    application_year = integer(),
+    issue_year = integer(),
+    block_id = character(),
+    block_vintage = character(),
+    nearest_block_id = character(),
+    nearest_block_distance_m = numeric(),
+    missing_pin = logical(),
+    review_decision = character(),
+    reviewed_block_id = character(),
+    review_reason = character(),
+    final_block_id = character()
+  )
+
+  empty_missing_summary <- tibble(
+    block_vintage = character(),
+    review_decision = character(),
+    review_reason = character(),
+    permit_type = character(),
+    missing_pin = logical(),
+    n_permits = integer()
+  )
 
   duplicate_matches <- joined_df %>%
     count(id, name = "n_matches") %>%
@@ -177,6 +208,9 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label)
     filter(is.na(block_id)) %>%
     distinct(id)
 
+  missing_audit <- empty_missing_audit
+  missing_summary <- empty_missing_summary
+
   if (nrow(missing_matches) > 0) {
     missing_sf <- joined %>%
       filter(is.na(block_id))
@@ -195,12 +229,57 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label)
         nearest_block_distance_m = nearest_dist_m,
         missing_pin = is.na(pin) | pin == ""
       ) %>%
+      left_join(
+        manual_block_review %>% filter(block_vintage == block_vintage_label),
+        by = c("id", "block_vintage")
+      ) %>%
+      mutate(
+        review_decision = coalesce(review_decision, NA_character_),
+        review_reason = coalesce(review_reason, NA_character_),
+        reviewed_block_id = na_if(reviewed_block_id, "NA"),
+        final_block_id = case_when(
+          review_decision == "assign" ~ reviewed_block_id,
+          TRUE ~ NA_character_
+        )
+      ) %>%
       st_drop_geometry() %>%
       arrange(desc(missing_pin), permit_type, id)
 
+    unresolved_review <- missing_audit %>%
+      filter(is.na(review_decision))
+
+    if (nrow(unresolved_review) > 0) {
+      stop(
+        sprintf(
+          "Manual block review is missing %d %s-vintage unmatched permits.",
+          nrow(unresolved_review),
+          block_vintage_label
+        ),
+        call. = FALSE
+      )
+    }
+
+    invalid_manual_assignments <- missing_audit %>%
+      filter(review_decision == "assign") %>%
+      filter(is.na(final_block_id) | !final_block_id %in% blocks_sf$block_id)
+
+    if (nrow(invalid_manual_assignments) > 0) {
+      stop(
+        sprintf(
+          "Manual block review contains %d invalid %s-vintage block assignments.",
+          nrow(invalid_manual_assignments),
+          block_vintage_label
+        ),
+        call. = FALSE
+      )
+    }
+
     missing_summary <- missing_audit %>%
-      count(block_vintage, permit_type, missing_pin, name = "n_permits") %>%
-      arrange(desc(n_permits), permit_type, missing_pin)
+      count(
+        block_vintage, review_decision, review_reason, permit_type, missing_pin,
+        name = "n_permits"
+      ) %>%
+      arrange(desc(n_permits), review_decision, review_reason, permit_type, missing_pin)
 
     write_csv(
       missing_audit,
@@ -211,21 +290,36 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label)
       sprintf("../output/permit_block_assignment_missing_%s_summary.csv", block_vintage_label)
     )
 
+    joined_df <- joined_df %>%
+      left_join(
+        missing_audit %>% select(id, final_block_id),
+        by = "id"
+      ) %>%
+      mutate(block_id = coalesce(block_id, final_block_id)) %>%
+      select(-final_block_id)
+
     message(sprintf(
       paste(
-        "Dropping %d permits without a %s block match.",
+        "Reviewed %d permits without a %s block match:",
+        "%d manually assigned and %d dropped.",
         "See ../output/permit_block_assignment_missing_%s.csv for details."
       ),
       nrow(missing_matches),
       block_vintage_label,
+      sum(missing_audit$review_decision == "assign"),
+      sum(missing_audit$review_decision == "drop"),
       block_vintage_label
     ))
   }
 
-  as.data.table(
-    joined_df %>%
-      filter(!is.na(block_id)) %>%
-      arrange(id, block_id)
+  list(
+    assigned = as.data.table(
+      joined_df %>%
+        filter(!is.na(block_id)) %>%
+        arrange(id, block_id)
+    ),
+    missing_audit = missing_audit,
+    missing_summary = missing_summary
   )
 }
 
@@ -570,6 +664,23 @@ blocks_2020 <- read_blocks("../input/census_blocks_2020.csv", "GEOID20", st_crs(
 message("Building unit-increase audit...")
 unit_audit <- build_unit_increase_audit()
 
+message("Loading manual permit block review...")
+manual_block_review <- read_csv(
+  "manual_permit_block_review.csv",
+  show_col_types = FALSE,
+  col_types = cols(
+    id = col_character(),
+    block_vintage = col_character(),
+    review_decision = col_character(),
+    reviewed_block_id = col_character(),
+    review_reason = col_character()
+  )
+) %>%
+  mutate(
+    reviewed_block_id = na_if(reviewed_block_id, "NA"),
+    block_vintage = as.character(block_vintage)
+  )
+
 message("Loading issued permits...")
 permits_clean <- st_read(
   "../input/building_permits_clean.gpkg",
@@ -596,7 +707,13 @@ if (st_crs(permits_clean) != st_crs(blocks_2010)) {
 }
 
 message("Assigning permits to 2010 and 2020 blocks...")
-permits_2010 <- assign_permits_to_blocks(permits_clean, blocks_2010, "2010") %>%
+permit_assignment_2010 <- assign_permits_to_blocks(
+  permits_sf = permits_clean,
+  blocks_sf = blocks_2010,
+  block_vintage_label = "2010",
+  manual_block_review = manual_block_review
+)
+permits_2010 <- permit_assignment_2010$assigned %>%
   left_join(unit_audit$included_ids, by = "id") %>%
   mutate(
     unit_increase_included = coalesce(as.integer(unit_increase_included), 0L)
@@ -613,7 +730,13 @@ permits_2010[, `:=`(
   is_unit_increase_issued = as.integer(unit_increase_included == 1)
 )]
 
-permits_2020 <- assign_permits_to_blocks(permits_clean, blocks_2020, "2020") %>%
+permit_assignment_2020 <- assign_permits_to_blocks(
+  permits_sf = permits_clean,
+  blocks_sf = blocks_2020,
+  block_vintage_label = "2020",
+  manual_block_review = manual_block_review
+)
+permits_2020 <- permit_assignment_2020$assigned %>%
   left_join(unit_audit$included_ids, by = "id") %>%
   mutate(
     unit_increase_included = coalesce(as.integer(unit_increase_included), 0L)
@@ -693,6 +816,18 @@ zero_share_summary <- bind_rows(
   summarize_zero_shares(permit_panel, "stacked_implementation")
 )
 
+block_assignment_review <- bind_rows(
+  permit_assignment_2010$missing_audit,
+  permit_assignment_2020$missing_audit
+) %>%
+  arrange(block_vintage, review_decision, review_reason, permit_type, id)
+
+block_assignment_review_summary <- bind_rows(
+  permit_assignment_2010$missing_summary,
+  permit_assignment_2020$missing_summary
+) %>%
+  arrange(block_vintage, review_decision, review_reason, permit_type, missing_pin)
+
 outcome_totals <- bind_rows(
   build_outcome_totals(permits_2010, cohort_2015, "cohort_2015", "2015"),
   build_outcome_totals(permits_2020, cohort_2023, "cohort_2023", "2023")
@@ -722,6 +857,8 @@ write_csv(support_by_event_time, "../output/permit_block_year_panel_support_by_e
 write_csv(support_by_calendar_time, "../output/permit_block_year_panel_support_by_calendar_time.csv")
 write_csv(assignment_stability, "../output/permit_block_year_panel_assignment_stability.csv")
 write_csv(zero_share_summary, "../output/permit_block_year_panel_zero_share_summary.csv")
+write_csv(block_assignment_review, "../output/permit_block_assignment_review_log.csv")
+write_csv(block_assignment_review_summary, "../output/permit_block_assignment_review_summary.csv")
 write_csv(outcome_totals, "../output/permit_block_year_panel_outcome_totals.csv")
 
 message(sprintf("Saved stacked permit panel: %s rows", format(nrow(permit_panel), big.mark = ",")))

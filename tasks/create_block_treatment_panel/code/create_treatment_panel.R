@@ -9,12 +9,46 @@ source("../../_lib/canonical_geometry_helpers.R")
 # Disable s2 for geometry operations
 sf_use_s2(FALSE)
 
-assign_block_centroids_to_map <- function(block_centroids, ward_panel, era) {
+assign_blocks_to_map <- function(blocks_sf, ward_panel, era) {
     ward_map <- aggregate_ward_map(ward_panel, canonical_map_year_for_era(era))
-    tibble(
-        block_id = block_centroids$block_id,
-        ward = assign_points_to_wards(block_centroids, ward_map)
+
+    block_area <- tibble(
+        block_id = blocks_sf$block_id,
+        block_area = as.numeric(st_area(blocks_sf))
     )
+
+    intersections <- suppressWarnings(
+        st_intersection(
+            blocks_sf %>% select(block_id),
+            ward_map %>% select(ward)
+        )
+    )
+
+    if (nrow(intersections) == 0) {
+        return(tibble(
+            block_id = blocks_sf$block_id,
+            ward = NA_integer_,
+            ward_share = NA_real_,
+            n_wards = NA_integer_
+        ))
+    }
+
+    assignments <- intersections %>%
+        mutate(intersection_area = as.numeric(st_area(geometry))) %>%
+        st_drop_geometry() %>%
+        left_join(block_area, by = "block_id") %>%
+        group_by(block_id) %>%
+        arrange(desc(intersection_area), ward, .by_group = TRUE) %>%
+        summarise(
+            ward_majority = first(as.integer(ward)),
+            ward_share = first(intersection_area) / first(block_area),
+            n_wards = n_distinct(ward),
+            .groups = "drop"
+        ) %>%
+        rename(ward = ward_majority)
+
+    tibble(block_id = blocks_sf$block_id) %>%
+        left_join(assignments, by = "block_id")
 }
 
 # =============================================================================
@@ -61,13 +95,19 @@ message(sprintf("  2020 blocks: %s", format(nrow(blocks_2020), big.mark = ",")))
 # =============================================================================
 message("\nAssigning 2010 blocks to ward maps...")
 
-block_centroids_2010 <- st_centroid(blocks_2010)
+joined_2014 <- assign_blocks_to_map(blocks_2010, ward_panel, "2003_2014") %>%
+    rename(
+        ward_pre_2015 = ward,
+        ward_pre_2015_share = ward_share,
+        ward_pre_2015_n_wards = n_wards
+    )
 
-joined_2014 <- assign_block_centroids_to_map(block_centroids_2010, ward_panel, "2003_2014") %>%
-    rename(ward_pre_2015 = ward)
-
-joined_2015 <- assign_block_centroids_to_map(block_centroids_2010, ward_panel, "2015_2023") %>%
-    rename(ward_post_2015 = ward)
+joined_2015 <- assign_blocks_to_map(blocks_2010, ward_panel, "2015_2023") %>%
+    rename(
+        ward_post_2015 = ward,
+        ward_post_2015_share = ward_share,
+        ward_post_2015_n_wards = n_wards
+    )
 
 # Combine 2010 block assignments
 assignments_2010 <- tibble(block_id = blocks_2010$block_id) %>%
@@ -86,13 +126,19 @@ message(sprintf("  2010 blocks switching in 2015: %d", sum(assignments_2010$swit
 # =============================================================================
 message("\nAssigning 2020 blocks to ward maps...")
 
-block_centroids_2020 <- st_centroid(blocks_2020)
+joined_2022 <- assign_blocks_to_map(blocks_2020, ward_panel, "2015_2023") %>%
+    rename(
+        ward_post_2015 = ward,
+        ward_post_2015_share = ward_share,
+        ward_post_2015_n_wards = n_wards
+    )
 
-joined_2022 <- assign_block_centroids_to_map(block_centroids_2020, ward_panel, "2015_2023") %>%
-    rename(ward_post_2015 = ward)
-
-joined_2024 <- assign_block_centroids_to_map(block_centroids_2020, ward_panel, "post_2023") %>%
-    rename(ward_post_2023 = ward)
+joined_2024 <- assign_blocks_to_map(blocks_2020, ward_panel, "post_2023") %>%
+    rename(
+        ward_post_2023 = ward,
+        ward_post_2023_share = ward_share,
+        ward_post_2023_n_wards = n_wards
+    )
 
 # Combine 2020 block assignments
 assignments_2020 <- tibble(block_id = blocks_2020$block_id) %>%
@@ -152,6 +198,8 @@ panel_2015 <- treatment_2015 %>%
     select(
         block_id, block_vintage,
         ward_pre_2015, ward_post_2015,
+        ward_pre_2015_share, ward_post_2015_share,
+        ward_pre_2015_n_wards, ward_post_2015_n_wards,
         switched_2015,
         ward_had_turnover_2015, valid_2015
     ) %>%
@@ -162,6 +210,8 @@ panel_2023 <- treatment_2023 %>%
     select(
         block_id, block_vintage,
         ward_post_2015, ward_post_2023,
+        ward_post_2015_share, ward_post_2023_share,
+        ward_post_2015_n_wards, ward_post_2023_n_wards,
         switched_2023,
         ward_had_turnover_2023, valid_2023
     ) %>%
@@ -172,6 +222,10 @@ panel_2015_renamed <- panel_2015 %>%
     rename(
         ward_origin = ward_pre_2015,
         ward_dest = ward_post_2015,
+        ward_origin_share = ward_pre_2015_share,
+        ward_dest_share = ward_post_2015_share,
+        ward_origin_n_wards = ward_pre_2015_n_wards,
+        ward_dest_n_wards = ward_post_2015_n_wards,
         switched = switched_2015,
         ward_had_turnover = ward_had_turnover_2015,
         valid = valid_2015
@@ -181,6 +235,10 @@ panel_2023_renamed <- panel_2023 %>%
     rename(
         ward_origin = ward_post_2015,
         ward_dest = ward_post_2023,
+        ward_origin_share = ward_post_2015_share,
+        ward_dest_share = ward_post_2023_share,
+        ward_origin_n_wards = ward_post_2015_n_wards,
+        ward_dest_n_wards = ward_post_2023_n_wards,
         switched = switched_2023,
         ward_had_turnover = ward_had_turnover_2023,
         valid = valid_2023
@@ -188,6 +246,10 @@ panel_2023_renamed <- panel_2023 %>%
 
 # Stack cohorts
 block_treatment_pre_scores <- bind_rows(panel_2015_renamed, panel_2023_renamed)
+block_treatment_pre_scores <- block_treatment_pre_scores %>%
+    mutate(
+        min_assignment_share = pmin(ward_origin_share, ward_dest_share, na.rm = TRUE)
+    )
 
 # =============================================================================
 # 6. DIAGNOSTICS
@@ -224,7 +286,15 @@ block_treatment_geometry_diagnostics <- bind_rows(
             n_blocks = n(),
             n_with_origin_ward = sum(!is.na(ward_pre_2015)),
             n_with_dest_ward = sum(!is.na(ward_post_2015)),
-            n_switched = sum(switched_2015, na.rm = TRUE)
+            n_switched = sum(switched_2015, na.rm = TRUE),
+            n_origin_split_blocks = sum(ward_pre_2015_n_wards > 1, na.rm = TRUE),
+            n_dest_split_blocks = sum(ward_post_2015_n_wards > 1, na.rm = TRUE),
+            n_min_share_lt_0_60 = sum(
+                pmin(ward_pre_2015_share, ward_post_2015_share, na.rm = TRUE) < 0.60,
+                na.rm = TRUE
+            ),
+            min_origin_share = min(ward_pre_2015_share, na.rm = TRUE),
+            min_dest_share = min(ward_post_2015_share, na.rm = TRUE)
         ),
     assignments_2020 %>%
         summarise(
@@ -232,7 +302,15 @@ block_treatment_geometry_diagnostics <- bind_rows(
             n_blocks = n(),
             n_with_origin_ward = sum(!is.na(ward_post_2015)),
             n_with_dest_ward = sum(!is.na(ward_post_2023)),
-            n_switched = sum(switched_2023, na.rm = TRUE)
+            n_switched = sum(switched_2023, na.rm = TRUE),
+            n_origin_split_blocks = sum(ward_post_2015_n_wards > 1, na.rm = TRUE),
+            n_dest_split_blocks = sum(ward_post_2023_n_wards > 1, na.rm = TRUE),
+            n_min_share_lt_0_60 = sum(
+                pmin(ward_post_2015_share, ward_post_2023_share, na.rm = TRUE) < 0.60,
+                na.rm = TRUE
+            ),
+            min_origin_share = min(ward_post_2015_share, na.rm = TRUE),
+            min_dest_share = min(ward_post_2023_share, na.rm = TRUE)
         )
 )
 

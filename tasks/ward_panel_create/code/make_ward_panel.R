@@ -1,7 +1,7 @@
 ## this code takes chicago ward shapefiles merges them for an annual panel
 
-## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+## run this line when editing code in Rstudio
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/ward_panel_create/code")
 
 source("../../setup_environment/code/packages.R")
 

@@ -1,8 +1,6 @@
 SHELL := bash
 include ../../shell_functions.make
 
-# Paused for substantive use pending review of ../../city_point_geocode_audit/output/geocode_audit_report.md.
-
 all: \
 	../output/permit_block_year_panel.parquet \
 	../output/permit_block_year_panel_2015.parquet \
@@ -16,10 +14,12 @@ all: \
 	../output/permit_block_assignment_missing_2010_summary.csv \
 	../output/permit_block_assignment_missing_2020.csv \
 	../output/permit_block_assignment_missing_2020_summary.csv \
+	../output/permit_block_assignment_review_log.csv \
+	../output/permit_block_assignment_review_summary.csv \
 	../output/permit_unit_increase_audit.csv \
 	../output/permit_unit_increase_audit_summary.csv
 
-../output/permit_block_year_panel.parquet: create_permit_block_year_panel.R ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_1320ft.gpkg | ../output
+../output/permit_block_year_panel.parquet: create_permit_block_year_panel.R manual_permit_block_review.csv ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_1320ft.gpkg | ../output
 	$(R) create_permit_block_year_panel.R
 
 ../output/permit_block_year_panel_2015.parquet \
@@ -33,6 +33,8 @@ all: \
 ../output/permit_block_assignment_missing_2010_summary.csv \
 ../output/permit_block_assignment_missing_2020.csv \
 ../output/permit_block_assignment_missing_2020_summary.csv \
+../output/permit_block_assignment_review_log.csv \
+../output/permit_block_assignment_review_summary.csv \
 ../output/permit_unit_increase_audit.csv \
 ../output/permit_unit_increase_audit_summary.csv: ../output/permit_block_year_panel.parquet
 	test -f "$@"

@@ -26,40 +26,38 @@ if (length(cli_args) < 2) {
 score_file <- cli_args[1]
 score_column <- cli_args[2]
 
-SCORE_FILE <- score_file
-SCORE_COLUMN <- score_column
-PARCELS_INPUT_PATH <- Sys.getenv("PARCELS_INPUT_PATH", "../input/parcels_pre_scores.csv")
-SEGMENT_LOOKUP_PATH <- Sys.getenv("SEGMENT_LOOKUP_PATH", "../input/parcel_segment_ids.csv")
-MERGE_OUTPUT_PATH <- Sys.getenv("MERGE_OUTPUT_PATH", "../output/parcels_with_ward_distances.csv")
-MERGE_SUMMARY_OUTPUT_PATH <- Sys.getenv("MERGE_SUMMARY_OUTPUT_PATH", "../output/boundary_distance_summary.csv")
+parcels_input <- "../input/parcels_pre_scores.csv"
+segment_lookup_input <- "../input/parcel_segment_ids.csv"
+merge_output <- "../output/parcels_with_ward_distances.csv"
+merge_summary_output <- "../output/boundary_distance_summary.csv"
 
 cat("=== Merging Alderman Scores ===\n")
-cat("Score file:", SCORE_FILE, "\n")
-cat("Score column:", SCORE_COLUMN, "\n")
-cat("Parcels input:", PARCELS_INPUT_PATH, "\n")
-cat("Segment lookup input:", SEGMENT_LOOKUP_PATH, "\n")
-cat("Merged output:", MERGE_OUTPUT_PATH, "\n")
-cat("Summary output:", MERGE_SUMMARY_OUTPUT_PATH, "\n")
+cat("Score file:", score_file, "\n")
+cat("Score column:", score_column, "\n")
+cat("Parcels input:", parcels_input, "\n")
+cat("Segment lookup input:", segment_lookup_input, "\n")
+cat("Merged output:", merge_output, "\n")
+cat("Summary output:", merge_summary_output, "\n")
 
 # -----------------------------------------------------------------------------
 # LOAD DATA
 # -----------------------------------------------------------------------------
 
 cat("\nLoading pre-scores parcel data...\n")
-parcels <- read_csv(PARCELS_INPUT_PATH, show_col_types = FALSE)
+parcels <- read_csv(parcels_input, show_col_types = FALSE)
 cat("Parcels loaded:", nrow(parcels), "\n")
 
 cat("Loading parcel segment lookup...\n")
-segment_lookup <- read_csv(SEGMENT_LOOKUP_PATH, show_col_types = FALSE)
+segment_lookup <- read_csv(segment_lookup_input, show_col_types = FALSE)
 cat("Segment lookup rows:", nrow(segment_lookup), "\n")
 
 cat("Loading uncertainty scores...\n")
-scores <- read_csv(SCORE_FILE, show_col_types = FALSE)
+scores <- read_csv(score_file, show_col_types = FALSE)
 cat("Aldermen with scores:", nrow(scores), "\n")
 
 # Check that the score column exists
-if (!SCORE_COLUMN %in% names(scores)) {
-  stop(paste("Score column", SCORE_COLUMN, "not found in scores file. Available columns:", 
+if (!score_column %in% names(scores)) {
+  stop(paste("Score column", score_column, "not found in scores file. Available columns:",
              paste(names(scores), collapse = ", ")))
 }
 
@@ -84,7 +82,7 @@ cat("\nMerging scores for own and neighbor aldermen...\n")
 
 # Rename score column to standardized name for merging
 scores_for_merge <- scores %>%
-  select(alderman, score = all_of(SCORE_COLUMN))
+  select(alderman, score = all_of(score_column))
 
 parcels_with_scores <- parcels %>%
   # --- JOIN 1: Own Alderman Score ---
@@ -128,7 +126,7 @@ cat("\nFinal dataset size:", nrow(parcels_final), "\n")
 # -----------------------------------------------------------------------------
 
 cat("\nSaving output...\n")
-write_csv(parcels_final, MERGE_OUTPUT_PATH)
+write_csv(parcels_final, merge_output)
 
 # Summary stats
 summary_stats <- parcels_final %>%
@@ -143,8 +141,8 @@ summary_stats <- parcels_final %>%
   ) %>%
   arrange(construction_year)
 
-write_csv(summary_stats, MERGE_SUMMARY_OUTPUT_PATH)
+write_csv(summary_stats, merge_summary_output)
 
 cat("\n=== Score merge complete ===\n")
-cat("Output:", MERGE_OUTPUT_PATH, "\n")
+cat("Output:", merge_output, "\n")
 cat("Rows:", nrow(parcels_final), "\n")

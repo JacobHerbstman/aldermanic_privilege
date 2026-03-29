@@ -1,8 +1,8 @@
 ## This code creates a comprehensive Ward-Year Panel (2000-2023) with Controls
 ## Sources: 2000 Decennial, 2010 Decennial, and Annual ACS 5-Year Estimates
 
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+## --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_ward_controls/code")
 
 source("../../setup_environment/code/packages.R")
 library(tigris) # Required for the geometry fix

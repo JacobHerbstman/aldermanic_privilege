@@ -13,36 +13,24 @@ library(sf)
 # out_coverage <- "../output/parcel_segment_ids_coverage.csv"
 # out_reason <- "../output/parcel_segment_ids_reason_summary.csv"
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(in_pre_scores, in_geom, in_segments, out_lookup, out_coverage, out_reason)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(in_pre_scores, in_geom, in_segments, out_lookup, out_coverage, out_reason)
 }
 
-if (length(args) >= 6) {
-  in_pre_scores <- args[1]
-  in_geom <- args[2]
-  in_segments <- args[3]
-  out_lookup <- args[4]
-  out_coverage <- args[5]
-  out_reason <- args[6]
-} else if (length(args) >= 4) {
-  in_pre_scores <- args[1]
-  in_geom <- args[2]
-  in_segments <- args[3]
-  out_lookup <- args[4]
-  out_coverage <- "../output/parcel_segment_ids_coverage.csv"
-  out_reason <- "../output/parcel_segment_ids_reason_summary.csv"
-} else {
-  if (!exists("in_pre_scores") || !exists("in_geom") || !exists("in_segments") || !exists("out_lookup")) {
-    stop("FATAL: Script requires args: <parcels_pre_scores_csv> <parcels_with_geometry_gpkg> <segment_gpkg> <out_lookup_csv> [<out_coverage_csv>] [<out_reason_csv>]", call. = FALSE)
-  }
-  if (!exists("out_coverage")) {
-    out_coverage <- "../output/parcel_segment_ids_coverage.csv"
-  }
-  if (!exists("out_reason")) {
-    out_reason <- "../output/parcel_segment_ids_reason_summary.csv"
-  }
+if (length(cli_args) != 6) {
+  stop(
+    "FATAL: Script requires 6 args: <parcels_pre_scores_csv> <parcels_with_geometry_gpkg> <segment_gpkg> <out_lookup_csv> <out_coverage_csv> <out_reason_csv>",
+    call. = FALSE
+  )
 }
+
+in_pre_scores <- cli_args[1]
+in_geom <- cli_args[2]
+in_segments <- cli_args[3]
+out_lookup <- cli_args[4]
+out_coverage <- cli_args[5]
+out_reason <- cli_args[6]
 
 stopifnot(
   file.exists(in_pre_scores),
