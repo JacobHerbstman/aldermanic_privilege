@@ -27,9 +27,7 @@ if (length(cli_args) >= 7) {
   output_csv <- cli_args[6]
   output_pdf <- cli_args[7]
 } else {
-  if (!exists("input") || !exists("window") || !exists("sample_filter") || !exists("rings") || !exists("use_controls") || !exists("output_csv") || !exists("output_pdf")) {
-    stop("FATAL: Script requires 7 args: <input> <window> <sample_filter> <rings> <use_controls> <output_csv> <output_pdf>", call. = FALSE)
-  }
+  stop("FATAL: Script requires 7 args: <input> <window> <sample_filter> <rings> <use_controls> <output_csv> <output_pdf>", call. = FALSE)
 }
 
 if (!window %in% c("full", "pre_covid", "pre_2021", "drop_mid")) {

@@ -16,14 +16,11 @@ if (length(args) == 0) {
   args <- c(input_file, output_file)
 }
 
-if (length(args) >= 2) {
-  input_file <- args[1]
-  output_file <- args[2]
-} else {
-  if (!exists("input_file") || !exists("output_file")) {
-    stop("FATAL: Script requires 2 args: <input_file> <output_file>", call. = FALSE)
-  }
+if (length(args) != 2) {
+  stop("FATAL: Script requires 2 args: <input_file> <output_file>", call. = FALSE)
 }
+input_file <- args[1]
+output_file <- args[2]
 
 # Read and process
 data <- read_parquet(input_file) %>% 

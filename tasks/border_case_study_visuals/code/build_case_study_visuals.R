@@ -16,17 +16,14 @@ if (length(cli_args) == 0) {
   cli_args <- c(bw_ft, borders, bin_ft, output_pdf, output_csv)
 }
 
-if (length(cli_args) >= 5) {
-  bw_ft <- as.numeric(cli_args[1])
-  borders <- cli_args[2]
-  bin_ft <- as.numeric(cli_args[3])
-  output_pdf <- cli_args[4]
-  output_csv <- cli_args[5]
-} else {
-  if (!exists("bw_ft") || !exists("borders") || !exists("bin_ft") || !exists("output_pdf") || !exists("output_csv")) {
-    stop("FATAL: Script requires 5 args: <bw_ft> <borders> <bin_ft> <output_pdf> <output_csv>", call. = FALSE)
-  }
+if (length(cli_args) != 5) {
+  stop("FATAL: Script requires 5 args: <bw_ft> <borders> <bin_ft> <output_pdf> <output_csv>", call. = FALSE)
 }
+bw_ft <- as.numeric(cli_args[1])
+borders <- cli_args[2]
+bin_ft <- as.numeric(cli_args[3])
+output_pdf <- cli_args[4]
+output_csv <- cli_args[5]
 
 bw_ft <- as.numeric(bw_ft)
 bin_ft <- as.numeric(bin_ft)

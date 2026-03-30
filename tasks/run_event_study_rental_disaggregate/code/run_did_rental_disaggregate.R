@@ -35,9 +35,7 @@ if (length(cli_args) >= 5) {
   geo_fe_level <- tolower(Sys.getenv("GEO_FE_LEVEL", "segment"))
   cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "twoway_block_segment"))
 } else {
-  if (!exists("bandwidth") || !exists("weighting") || !exists("fe_type") || !exists("geo_fe_level") || !exists("cluster_level")) {
-    stop("FATAL: Script requires args: <bandwidth> <weighting> <fe_type> [<geo_fe_level> <cluster_level>]", call. = FALSE)
-  }
+  stop("FATAL: Script requires args: <bandwidth> <weighting> <fe_type> [<geo_fe_level> <cluster_level>]", call. = FALSE)
 }
 
 BANDWIDTH <- bandwidth

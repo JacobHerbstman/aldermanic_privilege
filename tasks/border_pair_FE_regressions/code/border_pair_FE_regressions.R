@@ -4,6 +4,7 @@
 
 
 source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
 
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
@@ -34,24 +35,7 @@ if (length(args) >= 5) {
     yvars <- strsplit(args[5], ",")[[1]] |> trimws()
   }
 } else {
-  if (!exists("bw_ft") || !exists("sample_filter") || !exists("fe_spec") || !exists("output_filename") || !exists("yvars")) {
-    stop("FATAL: Script requires args: <bw_ft> <sample> <fe_spec> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
-  }
-  bw_arg <- bw_ft
-}
-
-parse_bw_ft <- function(x) {
-  if (length(x) != 1) {
-    stop("bw_ft must be a single value.", call. = FALSE)
-  }
-  if (is.character(x) && tolower(x) %in% c("all", "full", "none", "inf", "infinity")) {
-    return(Inf)
-  }
-  out <- suppressWarnings(as.numeric(x))
-  if (!is.finite(out) || out <= 0) {
-    stop("bw_ft must be a positive number or one of: all, full, none, inf.", call. = FALSE)
-  }
-  out
+  stop("FATAL: Script requires args: <bw_ft> <sample> <fe_spec> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
 }
 
 bw_ft <- parse_bw_ft(bw_arg)
@@ -91,45 +75,6 @@ if (!is.finite(donut_ft) || donut_ft < 0) {
 }
 if (is.finite(bw_ft) && donut_ft >= bw_ft) {
   stop("DONUT_FT must be strictly smaller than bandwidth.", call. = FALSE)
-}
-
-normalize_pair_dash <- function(x) {
-  x <- as.character(x)
-  x <- gsub("_", "-", x, fixed = TRUE)
-  x <- trimws(x)
-  ok <- grepl("^[0-9]+-[0-9]+$", x)
-  out <- rep(NA_character_, length(x))
-  if (!any(ok)) return(out)
-  parts <- strsplit(x[ok], "-", fixed = TRUE)
-  out[ok] <- vapply(parts, function(v) {
-    a <- suppressWarnings(as.integer(v[1]))
-    b <- suppressWarnings(as.integer(v[2]))
-    if (!is.finite(a) || !is.finite(b)) return(NA_character_)
-    paste(min(a, b), max(a, b), sep = "-")
-  }, character(1))
-  out
-}
-
-era_from_year <- function(y) {
-  y <- as.integer(y)
-  ifelse(
-    y < 2003L, "1998_2002",
-    ifelse(y < 2015L, "2003_2014", ifelse(y < 2023L, "2015_2023", "post_2023"))
-  )
-}
-
-zone_group_from_code <- function(z) {
-  z <- toupper(as.character(z))
-  case_when(
-    str_starts(z, "RS-") ~ "Single-Family Residential",
-    str_starts(z, "RT-") | str_starts(z, "RM-") ~ "Multi-Family Residential",
-    str_starts(z, "B-") ~ "Neighborhood Mixed-Use",
-    str_starts(z, "C-") ~ "Commercial",
-    str_starts(z, "M-") ~ "Industrial",
-    str_starts(z, "DX-") | str_starts(z, "DR-") | str_starts(z, "DS-") | str_starts(z, "DC-") ~ "Downtown",
-    str_starts(z, "PD") ~ "Planned Development",
-    TRUE ~ "Other"
-  )
 }
 
 message(sprintf("\n=== Border-Pair FE Configuration ==="))

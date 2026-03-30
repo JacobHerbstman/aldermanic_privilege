@@ -19,13 +19,10 @@ if (length(cli_args) == 0) {
   cli_args <- c(sample)
 }
 
-if (length(cli_args) >= 1) {
-  sample <- cli_args[1]
-} else {
-  if (!exists("sample")) {
-    stop("FATAL: Script requires 1 args: <sample>", call. = FALSE)
-  }
+if (length(cli_args) != 1) {
+  stop("FATAL: Script requires 1 args: <sample>", call. = FALSE)
 }
+sample <- cli_args[1]
 run_sample <- as.logical(sample)
 
 load_cpi_deflator <- function(start_date,

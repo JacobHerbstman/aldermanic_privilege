@@ -20,25 +20,19 @@ if (length(cli_args) == 0) {
   cli_args <- c(panel_mode, treatment_type, include_hedonics, time_unit, fe_type, weighting, bandwidth, post_window, geo_fe_level, cluster_level)
 }
 
-if (length(cli_args) >= 10) {
-  panel_mode <- cli_args[1]
-  treatment_type <- cli_args[2]
-  include_hedonics <- tolower(cli_args[3]) %in% c("true", "t", "1", "yes")
-  time_unit <- cli_args[4]
-  fe_type <- cli_args[5]
-  weighting <- cli_args[6]
-  bandwidth <- as.numeric(cli_args[7])
-  post_window <- cli_args[8]
-  geo_fe_level <- tolower(cli_args[9])
-  cluster_level <- tolower(cli_args[10])
-} else {
-  if (!exists("panel_mode") || !exists("treatment_type") || !exists("include_hedonics") ||
-    !exists("time_unit") || !exists("fe_type") || !exists("weighting") ||
-    !exists("bandwidth") || !exists("post_window") || !exists("geo_fe_level") ||
-    !exists("cluster_level")) {
-    stop("FATAL: Script requires args: <panel_mode> <treatment_type> <include_hedonics> <time_unit> <fe_type> <weighting> <bandwidth> <post_window> <geo_fe_level> <cluster_level>", call. = FALSE)
-  }
+if (length(cli_args) != 10) {
+  stop("FATAL: Script requires args: <panel_mode> <treatment_type> <include_hedonics> <time_unit> <fe_type> <weighting> <bandwidth> <post_window> <geo_fe_level> <cluster_level>", call. = FALSE)
 }
+panel_mode <- cli_args[1]
+treatment_type <- cli_args[2]
+include_hedonics <- tolower(cli_args[3]) %in% c("true", "t", "1", "yes")
+time_unit <- cli_args[4]
+fe_type <- cli_args[5]
+weighting <- cli_args[6]
+bandwidth <- as.numeric(cli_args[7])
+post_window <- cli_args[8]
+geo_fe_level <- tolower(cli_args[9])
+cluster_level <- tolower(cli_args[10])
 
 PANEL_MODE <- panel_mode
 TREATMENT_TYPE <- treatment_type
@@ -512,17 +506,6 @@ hedonic_formula <- if (INCLUDE_HEDONICS) {
   ""
 }
 
-run_model <- function(formula_str) {
-  message(sprintf("Running regression with %s observations", format(nrow(data), big.mark = ",")))
-  message(sprintf("Formula: %s", formula_str))
-  feols(
-    as.formula(formula_str),
-    data = data,
-    weights = ~weight,
-    cluster = cluster_formula
-  )
-}
-
 metadata <- tibble(
   panel_mode = PANEL_MODE,
   panel_title = panel_title,
@@ -555,7 +538,14 @@ if (TREATMENT_TYPE == "continuous") {
     "log(sale_price) ~ i(%s, strictness_change, ref = -1) %s | %s",
     event_var, hedonic_formula, fe_formula
   )
-  model <- run_model(formula_str)
+  message(sprintf("Running regression with %s observations", format(nrow(data), big.mark = ",")))
+  message(sprintf("Formula: %s", formula_str))
+  model <- feols(
+    as.formula(formula_str),
+    data = data,
+    weights = ~weight,
+    cluster = cluster_formula
+  )
   plot_data <- extract_plot_data(model, support_by_event_time, min_period, max_period, "All sales")
   if (is.null(plot_data) || nrow(plot_data) == 0) {
     stop("No supported coefficients were available for the requested sales specification.", call. = FALSE)
@@ -586,8 +576,23 @@ if (TREATMENT_TYPE == "continuous") {
     event_var, hedonic_formula, fe_formula
   )
 
-  model_stricter <- run_model(formula_stricter)
-  model_lenient <- run_model(formula_lenient)
+  message(sprintf("Running regression with %s observations", format(nrow(data), big.mark = ",")))
+  message(sprintf("Formula: %s", formula_stricter))
+  model_stricter <- feols(
+    as.formula(formula_stricter),
+    data = data,
+    weights = ~weight,
+    cluster = cluster_formula
+  )
+
+  message(sprintf("Running regression with %s observations", format(nrow(data), big.mark = ",")))
+  message(sprintf("Formula: %s", formula_lenient))
+  model_lenient <- feols(
+    as.formula(formula_lenient),
+    data = data,
+    weights = ~weight,
+    cluster = cluster_formula
+  )
 
   plot_data <- bind_rows(
     extract_plot_data(model_stricter, support_by_event_time, min_period, max_period, "Moved to Stricter"),

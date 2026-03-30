@@ -117,137 +117,218 @@ control_vars <- c(
   "baseline_percent_hispanic"
 )
 
-load_panel <- function(panel_mode) {
-  panel_input <- switch(panel_mode,
-    "cohort_2015" = "../input/permit_block_year_panel_2015.parquet",
-    "stacked_implementation" = "../input/permit_block_year_panel.parquet"
+baseline_controls <- read_csv("../input/block_group_controls.csv", show_col_types = FALSE) %>%
+  transmute(
+    block_group_id = as.character(GEOID),
+    baseline_year = as.integer(year),
+    baseline_median_income = median_income,
+    baseline_homeownership_rate = homeownership_rate,
+    baseline_share_bach_plus = share_bach_plus,
+    baseline_median_age = median_age,
+    baseline_population_density = population_density,
+    baseline_percent_black = percent_black,
+    baseline_percent_hispanic = percent_hispanic
   )
 
-  dt <- read_parquet(panel_input) %>%
-    filter(!is.na(strictness_change), !is.na(.data[[outcome_var]])) %>%
-    filter(dist_ft <= bandwidth) %>%
-    mutate(weight = if (weighting == "triangular") pmax(0, 1 - dist_ft / bandwidth) else 1) %>%
-    filter(relative_year >= -5, relative_year <= 5)
-
-  if (panel_mode == "stacked_implementation") {
-    dt <- dt %>%
-      mutate(
-        panel_label = "Stacked",
-        block_fe_id = cohort_block_id,
-        geo_fe_id = if (geo_fe_level == "segment") cohort_segment else cohort_ward_pair
-      )
-  } else {
-    dt <- dt %>%
-      mutate(
-        panel_label = "2015",
-        block_fe_id = block_id,
-        geo_fe_id = if (geo_fe_level == "segment") segment_id_cohort else ward_pair_id
-      )
-  }
-
-  dt <- dt %>%
-    filter(!is.na(geo_fe_id), geo_fe_id != "")
-
-  baseline_controls <- read_csv("../input/block_group_controls.csv", show_col_types = FALSE) %>%
-    transmute(
-      block_group_id = as.character(GEOID),
-      baseline_year = as.integer(year),
-      baseline_median_income = median_income,
-      baseline_homeownership_rate = homeownership_rate,
-      baseline_share_bach_plus = share_bach_plus,
-      baseline_median_age = median_age,
-      baseline_population_density = population_density,
-      baseline_percent_black = percent_black,
-      baseline_percent_hispanic = percent_hispanic
+data_2015 <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
+  filter(!is.na(strictness_change), !is.na(.data[[outcome_var]])) %>%
+  filter(dist_ft <= bandwidth) %>%
+  mutate(weight = if (weighting == "triangular") pmax(0, 1 - dist_ft / bandwidth) else 1) %>%
+  filter(relative_year >= -5, relative_year <= 5) %>%
+  mutate(
+    panel_label = "2015",
+    block_fe_id = block_id,
+    geo_fe_id = if (geo_fe_level == "segment") segment_id_cohort else ward_pair_id
+  ) %>%
+  filter(!is.na(geo_fe_id), geo_fe_id != "") %>%
+  mutate(
+    block_group_id = substr(as.character(block_id), 1, 12),
+    baseline_year = case_when(
+      cohort == "2015" ~ 2014L,
+      cohort == "2023" ~ 2022L,
+      TRUE ~ NA_integer_
     )
+  ) %>%
+  left_join(baseline_controls, by = c("block_group_id", "baseline_year")) %>%
+  mutate(
+    across(all_of(control_vars), safe_scale, .names = "{.col}_z"),
+    post = as.integer(relative_year >= 0),
+    post_treat = as.integer(relative_year >= 0) * strictness_change
+  )
 
-  dt <- dt %>%
-    mutate(
-      block_group_id = substr(as.character(block_id), 1, 12),
-      baseline_year = case_when(
-        cohort == "2015" ~ 2014L,
-        cohort == "2023" ~ 2022L,
-        TRUE ~ NA_integer_
-      )
-    ) %>%
-    left_join(baseline_controls, by = c("block_group_id", "baseline_year")) %>%
-    mutate(
-      across(all_of(control_vars), safe_scale, .names = "{.col}_z"),
-      post = as.integer(relative_year >= 0),
-      post_treat = as.integer(relative_year >= 0) * strictness_change
+data_stacked <- read_parquet("../input/permit_block_year_panel.parquet") %>%
+  filter(!is.na(strictness_change), !is.na(.data[[outcome_var]])) %>%
+  filter(dist_ft <= bandwidth) %>%
+  mutate(weight = if (weighting == "triangular") pmax(0, 1 - dist_ft / bandwidth) else 1) %>%
+  filter(relative_year >= -5, relative_year <= 5) %>%
+  mutate(
+    panel_label = "Stacked",
+    block_fe_id = cohort_block_id,
+    geo_fe_id = if (geo_fe_level == "segment") cohort_segment else cohort_ward_pair
+  ) %>%
+  filter(!is.na(geo_fe_id), geo_fe_id != "") %>%
+  mutate(
+    block_group_id = substr(as.character(block_id), 1, 12),
+    baseline_year = case_when(
+      cohort == "2015" ~ 2014L,
+      cohort == "2023" ~ 2022L,
+      TRUE ~ NA_integer_
     )
+  ) %>%
+  left_join(baseline_controls, by = c("block_group_id", "baseline_year")) %>%
+  mutate(
+    across(all_of(control_vars), safe_scale, .names = "{.col}_z"),
+    post = as.integer(relative_year >= 0),
+    post_treat = as.integer(relative_year >= 0) * strictness_change
+  )
 
-  dt
+data_2015_complete_controls <- data_2015 %>%
+  filter(if_all(all_of(control_vars), ~ !is.na(.x)))
+data_stacked_complete_controls <- data_stacked %>%
+  filter(if_all(all_of(control_vars), ~ !is.na(.x)))
+
+rhs_terms_none <- "post_treat"
+rhs_terms_controls <- paste(
+  rhs_terms_none,
+  paste(sprintf("%s:factor(year)", paste0(control_vars, "_z")), collapse = " + "),
+  sep = " + "
+)
+
+fe_formula_2015 <- if (geo_fe_level == "segment") {
+  "block_id + segment_id_cohort^year"
+} else {
+  "block_id + ward_pair_id^year"
 }
-
-run_model <- function(data, panel_mode, control_spec) {
-  complete_control_sample <- data %>%
-    filter(if_all(all_of(control_vars), ~ !is.na(.x)))
-
-  rhs_terms <- "post_treat"
-  if (control_spec == "baseline_demographics") {
-    rhs_terms <- paste(
-      rhs_terms,
-      paste(sprintf("%s:factor(year)", paste0(control_vars, "_z")), collapse = " + "),
-      sep = " + "
-    )
-  }
-
-  fe_formula <- if (panel_mode == "stacked_implementation") {
-    if (geo_fe_level == "segment") "cohort_block_id + cohort_segment^year" else "cohort_block_id + cohort_ward_pair^year"
-  } else {
-    if (geo_fe_level == "segment") "block_id + segment_id_cohort^year" else "block_id + ward_pair_id^year"
-  }
-
-  cluster_formula <- if (panel_mode == "stacked_implementation") ~cohort_block_id else ~block_id
-  fml <- as.formula(sprintf("%s ~ %s | %s", outcome_var, rhs_terms, fe_formula))
-
-  message(sprintf(
-    "Running DID | panel=%s | controls=%s | n=%s",
-    panel_mode, control_spec, format(nrow(complete_control_sample), big.mark = ",")
-  ))
-  message(sprintf("Formula: %s", deparse(fml)))
-
-  model <- fepois(
-    fml,
-    data = complete_control_sample,
-    weights = ~weight,
-    cluster = cluster_formula
-  )
-
-  estimate <- coef(model)[["post_treat"]]
-  std_error <- se(model)[["post_treat"]]
-  p_value <- coeftable(model)["post_treat", grep("^Pr\\(", colnames(coeftable(model)), value = TRUE)[1]]
-
-  tibble(
-    panel_mode = panel_mode,
-    panel_label = unique(complete_control_sample$panel_label),
-    control_spec = control_spec,
-    control_label = ifelse(control_spec == "baseline_demographics", "Baseline Demographics", "No Controls"),
-    estimate = estimate,
-    std_error = std_error,
-    p_value = p_value,
-    effect_pct = 100 * (exp(estimate) - 1),
-    n_obs = nobs(model),
-    n_blocks = n_distinct(complete_control_sample$block_fe_id),
-    dep_var_mean = mean(complete_control_sample[[outcome_var]], na.rm = TRUE),
-    ward_pairs = if ("ward_pair_id" %in% names(complete_control_sample)) {
-      n_distinct(complete_control_sample$ward_pair_id[!is.na(complete_control_sample$ward_pair_id) & complete_control_sample$ward_pair_id != ""])
-    } else {
-      NA_real_
-    },
-    total_outcome = sum(complete_control_sample[[outcome_var]], na.rm = TRUE)
-  )
+fe_formula_stacked <- if (geo_fe_level == "segment") {
+  "cohort_block_id + cohort_segment^year"
+} else {
+  "cohort_block_id + cohort_ward_pair^year"
 }
+cluster_formula_2015 <- ~block_id
+cluster_formula_stacked <- ~cohort_block_id
 
-data_2015 <- load_panel("cohort_2015")
-data_stacked <- load_panel("stacked_implementation")
+fml_2015_no_ctrl <- as.formula(sprintf("%s ~ %s | %s", outcome_var, rhs_terms_none, fe_formula_2015))
+fml_2015_ctrl <- as.formula(sprintf("%s ~ %s | %s", outcome_var, rhs_terms_controls, fe_formula_2015))
+fml_stacked_no_ctrl <- as.formula(sprintf("%s ~ %s | %s", outcome_var, rhs_terms_none, fe_formula_stacked))
+fml_stacked_ctrl <- as.formula(sprintf("%s ~ %s | %s", outcome_var, rhs_terms_controls, fe_formula_stacked))
+
+message(sprintf(
+  "Running DID | panel=%s | controls=%s | n=%s",
+  "cohort_2015", "none", format(nrow(data_2015_complete_controls), big.mark = ",")
+))
+message(sprintf("Formula: %s", deparse(fml_2015_no_ctrl)))
+m_2015_no_ctrl <- fepois(
+  fml_2015_no_ctrl,
+  data = data_2015_complete_controls,
+  weights = ~weight,
+  cluster = cluster_formula_2015
+)
+ct_2015_no_ctrl <- coeftable(m_2015_no_ctrl)
+p_col_2015_no_ctrl <- grep("^Pr\\(", colnames(ct_2015_no_ctrl), value = TRUE)[1]
+
+message(sprintf(
+  "Running DID | panel=%s | controls=%s | n=%s",
+  "cohort_2015", "baseline_demographics", format(nrow(data_2015_complete_controls), big.mark = ",")
+))
+message(sprintf("Formula: %s", deparse(fml_2015_ctrl)))
+m_2015_ctrl <- fepois(
+  fml_2015_ctrl,
+  data = data_2015_complete_controls,
+  weights = ~weight,
+  cluster = cluster_formula_2015
+)
+ct_2015_ctrl <- coeftable(m_2015_ctrl)
+p_col_2015_ctrl <- grep("^Pr\\(", colnames(ct_2015_ctrl), value = TRUE)[1]
+
+message(sprintf(
+  "Running DID | panel=%s | controls=%s | n=%s",
+  "stacked_implementation", "none", format(nrow(data_stacked_complete_controls), big.mark = ",")
+))
+message(sprintf("Formula: %s", deparse(fml_stacked_no_ctrl)))
+m_stacked_no_ctrl <- fepois(
+  fml_stacked_no_ctrl,
+  data = data_stacked_complete_controls,
+  weights = ~weight,
+  cluster = cluster_formula_stacked
+)
+ct_stacked_no_ctrl <- coeftable(m_stacked_no_ctrl)
+p_col_stacked_no_ctrl <- grep("^Pr\\(", colnames(ct_stacked_no_ctrl), value = TRUE)[1]
+
+message(sprintf(
+  "Running DID | panel=%s | controls=%s | n=%s",
+  "stacked_implementation", "baseline_demographics", format(nrow(data_stacked_complete_controls), big.mark = ",")
+))
+message(sprintf("Formula: %s", deparse(fml_stacked_ctrl)))
+m_stacked_ctrl <- fepois(
+  fml_stacked_ctrl,
+  data = data_stacked_complete_controls,
+  weights = ~weight,
+  cluster = cluster_formula_stacked
+)
+ct_stacked_ctrl <- coeftable(m_stacked_ctrl)
+p_col_stacked_ctrl <- grep("^Pr\\(", colnames(ct_stacked_ctrl), value = TRUE)[1]
 
 results <- bind_rows(
-  run_model(data_2015, "cohort_2015", "none"),
-  run_model(data_2015, "cohort_2015", "baseline_demographics"),
-  run_model(data_stacked, "stacked_implementation", "none"),
-  run_model(data_stacked, "stacked_implementation", "baseline_demographics")
+  tibble(
+    panel_mode = "cohort_2015",
+    panel_label = "2015",
+    control_spec = "none",
+    control_label = "No Controls",
+    estimate = coef(m_2015_no_ctrl)[["post_treat"]],
+    std_error = se(m_2015_no_ctrl)[["post_treat"]],
+    p_value = ct_2015_no_ctrl["post_treat", p_col_2015_no_ctrl],
+    effect_pct = 100 * (exp(coef(m_2015_no_ctrl)[["post_treat"]]) - 1),
+    n_obs = nobs(m_2015_no_ctrl),
+    n_blocks = n_distinct(data_2015_complete_controls$block_fe_id),
+    dep_var_mean = mean(data_2015_complete_controls[[outcome_var]], na.rm = TRUE),
+    ward_pairs = n_distinct(data_2015_complete_controls$ward_pair_id[!is.na(data_2015_complete_controls$ward_pair_id) & data_2015_complete_controls$ward_pair_id != ""]),
+    total_outcome = sum(data_2015_complete_controls[[outcome_var]], na.rm = TRUE)
+  ),
+  tibble(
+    panel_mode = "cohort_2015",
+    panel_label = "2015",
+    control_spec = "baseline_demographics",
+    control_label = "Baseline Demographics",
+    estimate = coef(m_2015_ctrl)[["post_treat"]],
+    std_error = se(m_2015_ctrl)[["post_treat"]],
+    p_value = ct_2015_ctrl["post_treat", p_col_2015_ctrl],
+    effect_pct = 100 * (exp(coef(m_2015_ctrl)[["post_treat"]]) - 1),
+    n_obs = nobs(m_2015_ctrl),
+    n_blocks = n_distinct(data_2015_complete_controls$block_fe_id),
+    dep_var_mean = mean(data_2015_complete_controls[[outcome_var]], na.rm = TRUE),
+    ward_pairs = n_distinct(data_2015_complete_controls$ward_pair_id[!is.na(data_2015_complete_controls$ward_pair_id) & data_2015_complete_controls$ward_pair_id != ""]),
+    total_outcome = sum(data_2015_complete_controls[[outcome_var]], na.rm = TRUE)
+  ),
+  tibble(
+    panel_mode = "stacked_implementation",
+    panel_label = "Stacked",
+    control_spec = "none",
+    control_label = "No Controls",
+    estimate = coef(m_stacked_no_ctrl)[["post_treat"]],
+    std_error = se(m_stacked_no_ctrl)[["post_treat"]],
+    p_value = ct_stacked_no_ctrl["post_treat", p_col_stacked_no_ctrl],
+    effect_pct = 100 * (exp(coef(m_stacked_no_ctrl)[["post_treat"]]) - 1),
+    n_obs = nobs(m_stacked_no_ctrl),
+    n_blocks = n_distinct(data_stacked_complete_controls$block_fe_id),
+    dep_var_mean = mean(data_stacked_complete_controls[[outcome_var]], na.rm = TRUE),
+    ward_pairs = n_distinct(data_stacked_complete_controls$ward_pair_id[!is.na(data_stacked_complete_controls$ward_pair_id) & data_stacked_complete_controls$ward_pair_id != ""]),
+    total_outcome = sum(data_stacked_complete_controls[[outcome_var]], na.rm = TRUE)
+  ),
+  tibble(
+    panel_mode = "stacked_implementation",
+    panel_label = "Stacked",
+    control_spec = "baseline_demographics",
+    control_label = "Baseline Demographics",
+    estimate = coef(m_stacked_ctrl)[["post_treat"]],
+    std_error = se(m_stacked_ctrl)[["post_treat"]],
+    p_value = ct_stacked_ctrl["post_treat", p_col_stacked_ctrl],
+    effect_pct = 100 * (exp(coef(m_stacked_ctrl)[["post_treat"]]) - 1),
+    n_obs = nobs(m_stacked_ctrl),
+    n_blocks = n_distinct(data_stacked_complete_controls$block_fe_id),
+    dep_var_mean = mean(data_stacked_complete_controls[[outcome_var]], na.rm = TRUE),
+    ward_pairs = n_distinct(data_stacked_complete_controls$ward_pair_id[!is.na(data_stacked_complete_controls$ward_pair_id) & data_stacked_complete_controls$ward_pair_id != ""]),
+    total_outcome = sum(data_stacked_complete_controls[[outcome_var]], na.rm = TRUE)
+  )
 )
 
 results <- results %>%

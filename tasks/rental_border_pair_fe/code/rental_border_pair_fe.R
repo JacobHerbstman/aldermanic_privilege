@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
 
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
@@ -39,28 +40,10 @@ if (length(cli_args) >= 9) {
   fe_geo <- tolower(Sys.getenv("FE_GEO", "segment"))
   cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
 } else {
-  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") ||
-      !exists("output_tex") || !exists("output_csv") || !exists("output_year_diag") ||
-      !exists("fe_geo") || !exists("cluster_level")) {
-    stop(
-      "FATAL: Script requires args: <input> <bw_ft> <window> <sample_filter> <output_tex> <output_csv> <output_year_diag> [<fe_geo> <cluster_level>]",
-      call. = FALSE
-    )
-  }
-}
-
-parse_bw_ft <- function(x) {
-  if (length(x) != 1) {
-    stop("bw_ft must be a single value.", call. = FALSE)
-  }
-  if (is.character(x) && tolower(x) %in% c("all", "full", "none", "inf", "infinity")) {
-    return(Inf)
-  }
-  out <- suppressWarnings(as.numeric(x))
-  if (!is.finite(out) || out <= 0) {
-    stop("--bw_ft must be a positive number or one of: all, full, none, inf", call. = FALSE)
-  }
-  out
+  stop(
+    "FATAL: Script requires args: <input> <bw_ft> <window> <sample_filter> <output_tex> <output_csv> <output_year_diag> [<fe_geo> <cluster_level>]",
+    call. = FALSE
+  )
 }
 
 bw_ft <- parse_bw_ft(bw_arg)
@@ -91,101 +74,6 @@ confound_flags_path <- Sys.getenv("CONFOUND_FLAGS_PATH", "../input/confounded_pa
 use_zone_group_fe_raw <- tolower(Sys.getenv("USE_ZONE_GROUP_FE", "false"))
 use_zone_group_fe <- use_zone_group_fe_raw %in% c("true", "t", "1", "yes", "on")
 zoning_gpkg <- Sys.getenv("ZONING_GPKG", "../input/zoning_data_clean.gpkg")
-
-normalize_pair_dash <- function(x) {
-  x <- as.character(x)
-  x <- gsub("_", "-", x, fixed = TRUE)
-  x <- trimws(x)
-  ok <- grepl("^[0-9]+-[0-9]+$", x)
-  out <- rep(NA_character_, length(x))
-  if (!any(ok)) return(out)
-  parts <- strsplit(x[ok], "-", fixed = TRUE)
-  out[ok] <- vapply(parts, function(v) {
-    a <- suppressWarnings(as.integer(v[1]))
-    b <- suppressWarnings(as.integer(v[2]))
-    if (!is.finite(a) || !is.finite(b)) return(NA_character_)
-    paste(min(a, b), max(a, b), sep = "-")
-  }, character(1))
-  out
-}
-
-era_from_year <- function(y) {
-  y <- as.integer(y)
-  ifelse(
-    y < 2003L, "1998_2002",
-    ifelse(y < 2015L, "2003_2014", ifelse(y < 2023L, "2015_2023", "post_2023"))
-  )
-}
-
-zone_group_from_code <- function(z) {
-  z <- str_to_upper(as.character(z))
-  case_when(
-    str_starts(z, "RS-") ~ "Single-Family Residential",
-    str_starts(z, "RT-") | str_starts(z, "RM-") ~ "Multi-Family Residential",
-    str_starts(z, "B-") ~ "Neighborhood Mixed-Use",
-    str_starts(z, "C-") ~ "Commercial",
-    str_starts(z, "M-") ~ "Industrial",
-    str_starts(z, "DX-") | str_starts(z, "DR-") | str_starts(z, "DS-") | str_starts(z, "DC-") ~ "Downtown",
-    str_starts(z, "PD") ~ "Planned Development",
-    TRUE ~ "Other"
-  )
-}
-
-attach_zone_group <- function(df, lon_col, lat_col, zoning_path, chunk_n = 100000L) {
-  if ("zone_group" %in% names(df)) return(df)
-
-  if ("zone_code" %in% names(df)) {
-    return(df %>% mutate(zone_group = zone_group_from_code(zone_code)))
-  }
-
-  if (!(lon_col %in% names(df) && lat_col %in% names(df))) {
-    stop("USE_ZONE_GROUP_FE=TRUE requires either zone_code or longitude/latitude columns.", call. = FALSE)
-  }
-  if (!file.exists(zoning_path)) {
-    stop(sprintf("Zoning file not found: %s", zoning_path), call. = FALSE)
-  }
-
-  layers <- st_layers(zoning_path)$name
-  zoning <- st_read(zoning_path, layer = layers[1], quiet = TRUE)
-  if (!"zone_code" %in% names(zoning)) {
-    stop("Zoning layer missing zone_code column.", call. = FALSE)
-  }
-  zoning <- zoning %>%
-    st_make_valid() %>%
-    st_transform(3435) %>%
-    select(zone_code)
-
-  coords <- df %>%
-    filter(is.finite(.data[[lon_col]]), is.finite(.data[[lat_col]])) %>%
-    distinct(
-      longitude = .data[[lon_col]],
-      latitude = .data[[lat_col]]
-    )
-
-  if (nrow(coords) == 0) {
-    stop("No finite coordinates available for zoning join.", call. = FALSE)
-  }
-
-  coords <- as.data.table(coords)
-  coords[, zone_code := NA_character_]
-  starts <- seq(1L, nrow(coords), by = chunk_n)
-
-  for (s in starts) {
-    e <- min(s + chunk_n - 1L, nrow(coords))
-    idx <- s:e
-    pts <- st_as_sf(coords[idx], coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) %>%
-      st_transform(st_crs(zoning))
-    hits <- st_intersects(pts, zoning)
-    hit_idx <- vapply(hits, function(v) if (length(v) == 0) NA_integer_ else v[1], integer(1))
-    coords[idx, zone_code := zoning$zone_code[hit_idx]]
-  }
-
-  coords <- as_tibble(coords) %>%
-    mutate(zone_group = zone_group_from_code(zone_code))
-
-  df %>%
-    left_join(coords, by = setNames(c("longitude", "latitude"), c(lon_col, lat_col)))
-}
 
 window_rule <- function(df, window_name) {
   if (window_name == "full") {
@@ -326,8 +214,8 @@ if (nrow(rent_hedonics) == 0) {
 }
 
 if (use_zone_group_fe) {
-  rent <- attach_zone_group(rent, "longitude", "latitude", zoning_gpkg)
-  rent_hedonics <- attach_zone_group(rent_hedonics, "longitude", "latitude", zoning_gpkg)
+  rent <- attach_zone_group(rent, "longitude", "latitude", zoning_gpkg, chunk_n = 100000L)
+  rent_hedonics <- attach_zone_group(rent_hedonics, "longitude", "latitude", zoning_gpkg, chunk_n = 100000L)
   rent <- rent %>% filter(!is.na(zone_group), zone_group != "")
   rent_hedonics <- rent_hedonics %>% filter(!is.na(zone_group), zone_group != "")
   if (nrow(rent) == 0 || nrow(rent_hedonics) == 0) {

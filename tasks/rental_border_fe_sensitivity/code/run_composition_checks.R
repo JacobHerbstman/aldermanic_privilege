@@ -25,9 +25,7 @@ if (length(cli_args) >= 6) {
   output_tex <- cli_args[5]
   output_csv <- cli_args[6]
 } else {
-  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("output_tex") || !exists("output_csv")) {
-    stop("FATAL: Script requires 6 args: <input> <bw_ft> <window> <sample_filter> <output_tex> <output_csv>", call. = FALSE)
-  }
+  stop("FATAL: Script requires 6 args: <input> <bw_ft> <window> <sample_filter> <output_tex> <output_csv>", call. = FALSE)
 }
 
 if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {

@@ -13,15 +13,12 @@ if (length(args) == 0) {
   args <- c(input_file, table_output_file, tabular_output_file)
 }
 
-if (length(args) >= 3) {
-  input_file <- args[1]
-  table_output_file <- args[2]
-  tabular_output_file <- args[3]
-} else {
-  if (!exists("input_file") || !exists("table_output_file") || !exists("tabular_output_file")) {
-    stop("FATAL: Script requires 3 args: <input_file> <table_output_file> <tabular_output_file>", call. = FALSE)
-  }
+if (length(args) != 3) {
+  stop("FATAL: Script requires 3 args: <input_file> <table_output_file> <tabular_output_file>", call. = FALSE)
 }
+input_file <- args[1]
+table_output_file <- args[2]
+tabular_output_file <- args[3]
 
 cat("Loading data from:", input_file, "\n")
 df <- read_csv(input_file, show_col_types = FALSE)

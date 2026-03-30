@@ -35,9 +35,7 @@ if (length(cli_args) >= 5) {
   geo_fe_level <- tolower(Sys.getenv("GEO_FE_LEVEL", "segment"))
   cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "twoway_block_segment"))
 } else {
-  if (!exists("bandwidth") || !exists("weighting") || !exists("fe_type") || !exists("geo_fe_level") || !exists("cluster_level")) {
-    stop("FATAL: Script requires args: <bandwidth> <weighting> <fe_type> [<geo_fe_level> <cluster_level>]", call. = FALSE)
-  }
+  stop("FATAL: Script requires args: <bandwidth> <weighting> <fe_type> [<geo_fe_level> <cluster_level>]", call. = FALSE)
 }
 
 BANDWIDTH <- bandwidth
@@ -107,28 +105,27 @@ message(sprintf("2015 cohort: %s transactions", format(nrow(data_2015), big.mark
 # =============================================================================
 # PREPARE DATA
 # =============================================================================
-prepare_did_data <- function(data, bandwidth, weighting) {
-    # Apply bandwidth filter
-    data <- data[dist_ft <= bandwidth]
-
-    # Construct weights
-    if (weighting == "triangular") {
-        data[, weight := pmax(0, 1 - dist_ft / bandwidth)]
-    } else {
-        data[, weight := 1]
-    }
-
-    # Create post indicator and interaction
-    data[, `:=`(
-        post = as.integer(relative_year >= 0),
-        post_treat = as.integer(relative_year >= 0) * strictness_change
-    )]
-
-    return(data)
+data_2012 <- data_2012[dist_ft <= BANDWIDTH]
+if (WEIGHTING == "triangular") {
+    data_2012[, weight := pmax(0, 1 - dist_ft / BANDWIDTH)]
+} else {
+    data_2012[, weight := 1]
 }
+data_2012[, `:=`(
+    post = as.integer(relative_year >= 0),
+    post_treat = as.integer(relative_year >= 0) * strictness_change
+)]
 
-data_2012 <- prepare_did_data(data_2012, BANDWIDTH, WEIGHTING)
-data_2015 <- prepare_did_data(data_2015, BANDWIDTH, WEIGHTING)
+data_2015 <- data_2015[dist_ft <= BANDWIDTH]
+if (WEIGHTING == "triangular") {
+    data_2015[, weight := pmax(0, 1 - dist_ft / BANDWIDTH)]
+} else {
+    data_2015[, weight := 1]
+}
+data_2015[, `:=`(
+    post = as.integer(relative_year >= 0),
+    post_treat = as.integer(relative_year >= 0) * strictness_change
+)]
 
 message(sprintf("After bandwidth filter - 2012: %s", format(nrow(data_2012), big.mark = ",")))
 message(sprintf("After bandwidth filter - 2015: %s", format(nrow(data_2015), big.mark = ",")))
@@ -156,96 +153,6 @@ message(sprintf("After complete cases - 2015: %s (dropped %s)",
 # =============================================================================
 # BUILD FE / CLUSTER VARIABLES
 # =============================================================================
-prepare_unstacked_geo <- function(dt) {
-    dt <- copy(dt)
-    dt[, ward_pair := sub("_[0-9]+$", "", ward_pair_side)]
-
-    needs_segment <- GEO_FE_LEVEL == "segment" || CLUSTER_LEVEL %in% c("segment", "twoway_block_segment")
-    if (needs_segment) {
-        req_cols <- c("segment_id_cohort", "segment_side")
-        missing_cols <- setdiff(req_cols, names(dt))
-        if (length(missing_cols) > 0) {
-            stop(sprintf("Missing required segment columns in sales cohort data: %s", paste(missing_cols, collapse = ", ")), call. = FALSE)
-        }
-        dt <- dt[!is.na(segment_id_cohort) & segment_id_cohort != ""]
-    }
-
-    if (GEO_FE_LEVEL == "segment") {
-        fe_side_var <- "segment_side"
-        fe_group_var <- "segment_id_cohort"
-    } else {
-        fe_side_var <- "ward_pair_side"
-        fe_group_var <- "ward_pair"
-    }
-
-    dt <- dt[!is.na(get(fe_side_var)) & get(fe_side_var) != "" & !is.na(get(fe_group_var)) & get(fe_group_var) != ""]
-    list(data = dt, fe_side_var = fe_side_var, fe_group_var = fe_group_var)
-}
-
-prepare_stacked_geo <- function(dt) {
-    dt <- copy(dt)
-    dt[, ward_pair_side_temp := sub("^[0-9]+_", "", cohort_ward_pair_side)]
-    dt[, ward_pair := sub("_[0-9]+$", "", ward_pair_side_temp)]
-    dt[, cohort_ward_pair := paste(cohort, ward_pair, sep = "_")]
-
-    needs_segment <- GEO_FE_LEVEL == "segment" || CLUSTER_LEVEL %in% c("segment", "twoway_block_segment")
-    if (needs_segment) {
-        req_cols <- c("segment_id_cohort", "cohort_segment", "cohort_segment_side")
-        missing_cols <- setdiff(req_cols, names(dt))
-        if (length(missing_cols) > 0) {
-            stop(sprintf("Missing required segment columns in stacked sales data: %s", paste(missing_cols, collapse = ", ")), call. = FALSE)
-        }
-        dt <- dt[!is.na(segment_id_cohort) & segment_id_cohort != ""]
-    }
-
-    if (GEO_FE_LEVEL == "segment") {
-        fe_side_var <- "cohort_segment_side"
-        fe_group_var <- "cohort_segment"
-    } else {
-        fe_side_var <- "cohort_ward_pair_side"
-        fe_group_var <- "cohort_ward_pair"
-    }
-
-    dt <- dt[!is.na(get(fe_side_var)) & get(fe_side_var) != "" & !is.na(get(fe_group_var)) & get(fe_group_var) != ""]
-    list(data = dt, fe_side_var = fe_side_var, fe_group_var = fe_group_var)
-}
-
-build_fe_formula <- function(fe_side_var, fe_group_var, stacked = FALSE) {
-    if (stacked) {
-        switch(FE_TYPE,
-            "strict_pair_x_year" = sprintf("%s + %s^sale_year", fe_side_var, fe_group_var),
-            "pair_trend_plus_year" = sprintf("%s + cohort^sale_year + %s[sale_year]", fe_side_var, fe_group_var),
-            "side_plus_year" = sprintf("%s + cohort^sale_year", fe_side_var)
-        )
-    } else {
-        switch(FE_TYPE,
-            "strict_pair_x_year" = sprintf("%s + %s^sale_year", fe_side_var, fe_group_var),
-            "pair_trend_plus_year" = sprintf("%s + sale_year + %s[sale_year]", fe_side_var, fe_group_var),
-            "side_plus_year" = sprintf("%s + sale_year", fe_side_var)
-        )
-    }
-}
-
-build_cluster_formula <- function(stacked = FALSE) {
-    if (stacked) {
-        if (CLUSTER_LEVEL == "twoway_block_segment") {
-            ~cohort_block_id + cohort_segment
-        } else if (CLUSTER_LEVEL == "segment") {
-            ~cohort_segment
-        } else {
-            ~cohort_block_id
-        }
-    } else {
-        if (CLUSTER_LEVEL == "twoway_block_segment") {
-            ~block_id + segment_id_cohort
-        } else if (CLUSTER_LEVEL == "segment") {
-            ~segment_id_cohort
-        } else {
-            ~block_id
-        }
-    }
-}
-
 cluster_label <- ifelse(
     CLUSTER_LEVEL == "twoway_block_segment",
     "Two-way: Block + Segment",
@@ -258,43 +165,95 @@ fe_label <- switch(FE_TYPE,
     "side_plus_year" = ifelse(GEO_FE_LEVEL == "segment", "Segment-Side + Year FE", "Border-Pair Side + Year FE")
 )
 
-prep_2012 <- prepare_unstacked_geo(data_2012)
-prep_2015 <- prepare_unstacked_geo(data_2015)
-data_2012 <- prep_2012$data
-data_2015 <- prep_2015$data
-fe_formula_unstacked <- build_fe_formula(prep_2012$fe_side_var, prep_2012$fe_group_var, stacked = FALSE)
-cluster_formula_unstacked <- build_cluster_formula(stacked = FALSE)
+data_2012[, ward_pair := sub("_[0-9]+$", "", ward_pair_side)]
+data_2015[, ward_pair := sub("_[0-9]+$", "", ward_pair_side)]
+
+needs_segment <- GEO_FE_LEVEL == "segment" || CLUSTER_LEVEL %in% c("segment", "twoway_block_segment")
+if (needs_segment) {
+    req_cols <- c("segment_id_cohort", "segment_side")
+    missing_cols_2012 <- setdiff(req_cols, names(data_2012))
+    missing_cols_2015 <- setdiff(req_cols, names(data_2015))
+    if (length(missing_cols_2012) > 0) {
+        stop(sprintf("Missing required segment columns in 2012 sales cohort data: %s", paste(missing_cols_2012, collapse = ", ")), call. = FALSE)
+    }
+    if (length(missing_cols_2015) > 0) {
+        stop(sprintf("Missing required segment columns in 2015 sales cohort data: %s", paste(missing_cols_2015, collapse = ", ")), call. = FALSE)
+    }
+    data_2012 <- data_2012[!is.na(segment_id_cohort) & segment_id_cohort != ""]
+    data_2015 <- data_2015[!is.na(segment_id_cohort) & segment_id_cohort != ""]
+}
+
+if (GEO_FE_LEVEL == "segment") {
+    unstacked_fe_side_var <- "segment_side"
+    unstacked_fe_group_var <- "segment_id_cohort"
+} else {
+    unstacked_fe_side_var <- "ward_pair_side"
+    unstacked_fe_group_var <- "ward_pair"
+}
+data_2012 <- data_2012[!is.na(get(unstacked_fe_side_var)) & get(unstacked_fe_side_var) != "" & !is.na(get(unstacked_fe_group_var)) & get(unstacked_fe_group_var) != ""]
+data_2015 <- data_2015[!is.na(get(unstacked_fe_side_var)) & get(unstacked_fe_side_var) != "" & !is.na(get(unstacked_fe_group_var)) & get(unstacked_fe_group_var) != ""]
+
+if (FE_TYPE == "strict_pair_x_year") {
+    fe_formula_unstacked <- sprintf("%s + %s^sale_year", unstacked_fe_side_var, unstacked_fe_group_var)
+} else if (FE_TYPE == "pair_trend_plus_year") {
+    fe_formula_unstacked <- sprintf("%s + sale_year + %s[sale_year]", unstacked_fe_side_var, unstacked_fe_group_var)
+} else {
+    fe_formula_unstacked <- sprintf("%s + sale_year", unstacked_fe_side_var)
+}
+
+if (CLUSTER_LEVEL == "twoway_block_segment") {
+    cluster_formula_unstacked <- ~block_id + segment_id_cohort
+} else if (CLUSTER_LEVEL == "segment") {
+    cluster_formula_unstacked <- ~segment_id_cohort
+} else {
+    cluster_formula_unstacked <- ~block_id
+}
 
 message(sprintf("Unstacked FE formula: %s", fe_formula_unstacked))
 message(sprintf("Unstacked cluster formula: %s", paste(deparse(cluster_formula_unstacked), collapse = "")))
 
 message("\n=== EFFECTIVE OBSERVATIONS DIAGNOSTIC ===")
-calc_effective_obs <- function(dt, cohort_label, fe_group_var, fe_side_var) {
-    dt[, is_switcher := abs(strictness_change) > 0]
-    pair_summary <- dt[, .(
-        n_sides = uniqueN(get(fe_side_var)),
-        n_obs = .N,
-        n_switcher = sum(is_switcher),
-        n_stayer = sum(!is_switcher)
-    ), by = c(fe_group_var)]
-    identifying_pairs <- pair_summary[n_sides == 2]
-    effective_obs <- dt[get(fe_group_var) %in% identifying_pairs[[fe_group_var]], .N]
+data_2012[, is_switcher := abs(strictness_change) > 0]
+pair_summary_2012 <- data_2012[, .(
+    n_sides = uniqueN(get(unstacked_fe_side_var)),
+    n_obs = .N,
+    n_switcher = sum(is_switcher),
+    n_stayer = sum(!is_switcher)
+), by = c(unstacked_fe_group_var)]
+identifying_pairs_2012 <- pair_summary_2012[n_sides == 2]
+effective_obs_2012 <- data_2012[get(unstacked_fe_group_var) %in% identifying_pairs_2012[[unstacked_fe_group_var]], .N]
+message("\n2012 Cohort:")
+message(sprintf("  Total %s groups: %d", unstacked_fe_group_var, nrow(pair_summary_2012)))
+message(sprintf("  Pairs with observations on BOTH sides: %d (%.1f%%)",
+    nrow(identifying_pairs_2012), 100 * nrow(identifying_pairs_2012) / nrow(pair_summary_2012)))
+message(sprintf("  Effective observations (in identifying groups): %s of %s (%.1f%%)",
+    format(effective_obs_2012, big.mark = ","),
+    format(nrow(data_2012), big.mark = ","),
+    100 * effective_obs_2012 / nrow(data_2012)))
+message(sprintf("  Transactions in switcher blocks: %s", format(sum(data_2012$is_switcher, na.rm = TRUE), big.mark = ",")))
+message(sprintf("  Transactions in stayer blocks: %s", format(sum(!data_2012$is_switcher, na.rm = TRUE), big.mark = ",")))
+message(sprintf("  Transactions with missing switcher flag: %s", format(sum(is.na(data_2012$is_switcher)), big.mark = ",")))
 
-    message(sprintf("\n%s Cohort:", cohort_label))
-    message(sprintf("  Total %s groups: %d", fe_group_var, nrow(pair_summary)))
-    message(sprintf("  Pairs with observations on BOTH sides: %d (%.1f%%)",
-        nrow(identifying_pairs), 100 * nrow(identifying_pairs) / nrow(pair_summary)))
-    message(sprintf("  Effective observations (in identifying groups): %s of %s (%.1f%%)",
-        format(effective_obs, big.mark = ","),
-        format(nrow(dt), big.mark = ","),
-        100 * effective_obs / nrow(dt)))
-    message(sprintf("  Transactions in switcher blocks: %s", format(sum(dt$is_switcher, na.rm = TRUE), big.mark = ",")))
-    message(sprintf("  Transactions in stayer blocks: %s", format(sum(!dt$is_switcher, na.rm = TRUE), big.mark = ",")))
-    message(sprintf("  Transactions with missing switcher flag: %s", format(sum(is.na(dt$is_switcher)), big.mark = ",")))
-}
-
-calc_effective_obs(data_2012, "2012", prep_2012$fe_group_var, prep_2012$fe_side_var)
-calc_effective_obs(data_2015, "2015", prep_2015$fe_group_var, prep_2015$fe_side_var)
+data_2015[, is_switcher := abs(strictness_change) > 0]
+pair_summary_2015 <- data_2015[, .(
+    n_sides = uniqueN(get(unstacked_fe_side_var)),
+    n_obs = .N,
+    n_switcher = sum(is_switcher),
+    n_stayer = sum(!is_switcher)
+), by = c(unstacked_fe_group_var)]
+identifying_pairs_2015 <- pair_summary_2015[n_sides == 2]
+effective_obs_2015 <- data_2015[get(unstacked_fe_group_var) %in% identifying_pairs_2015[[unstacked_fe_group_var]], .N]
+message("\n2015 Cohort:")
+message(sprintf("  Total %s groups: %d", unstacked_fe_group_var, nrow(pair_summary_2015)))
+message(sprintf("  Pairs with observations on BOTH sides: %d (%.1f%%)",
+    nrow(identifying_pairs_2015), 100 * nrow(identifying_pairs_2015) / nrow(pair_summary_2015)))
+message(sprintf("  Effective observations (in identifying groups): %s of %s (%.1f%%)",
+    format(effective_obs_2015, big.mark = ","),
+    format(nrow(data_2015), big.mark = ","),
+    100 * effective_obs_2015 / nrow(data_2015)))
+message(sprintf("  Transactions in switcher blocks: %s", format(sum(data_2015$is_switcher, na.rm = TRUE), big.mark = ",")))
+message(sprintf("  Transactions in stayer blocks: %s", format(sum(!data_2015$is_switcher, na.rm = TRUE), big.mark = ",")))
+message(sprintf("  Transactions with missing switcher flag: %s", format(sum(is.na(data_2015$is_switcher)), big.mark = ",")))
 
 # =============================================================================
 # RUN REGRESSIONS
@@ -529,10 +488,43 @@ data_ann <- data_ann[complete.cases(data_ann[, ..hedonic_vars_list])]
 message(sprintf("After complete cases filter: %s transactions", format(nrow(data_ann), big.mark = ",")))
 
 # Build stacked geo FE variables
-prep_ann <- prepare_stacked_geo(data_ann)
-data_ann <- prep_ann$data
-fe_formula_stacked <- build_fe_formula(prep_ann$fe_side_var, prep_ann$fe_group_var, stacked = TRUE)
-cluster_formula_stacked <- build_cluster_formula(stacked = TRUE)
+data_ann[, ward_pair_side_temp := sub("^[0-9]+_", "", cohort_ward_pair_side)]
+data_ann[, ward_pair := sub("_[0-9]+$", "", ward_pair_side_temp)]
+data_ann[, cohort_ward_pair := paste(cohort, ward_pair, sep = "_")]
+
+if (needs_segment) {
+    req_cols_ann <- c("segment_id_cohort", "cohort_segment", "cohort_segment_side")
+    missing_cols_ann <- setdiff(req_cols_ann, names(data_ann))
+    if (length(missing_cols_ann) > 0) {
+        stop(sprintf("Missing required segment columns in stacked sales data: %s", paste(missing_cols_ann, collapse = ", ")), call. = FALSE)
+    }
+    data_ann <- data_ann[!is.na(segment_id_cohort) & segment_id_cohort != ""]
+}
+
+if (GEO_FE_LEVEL == "segment") {
+    stacked_fe_side_var <- "cohort_segment_side"
+    stacked_fe_group_var <- "cohort_segment"
+} else {
+    stacked_fe_side_var <- "cohort_ward_pair_side"
+    stacked_fe_group_var <- "cohort_ward_pair"
+}
+data_ann <- data_ann[!is.na(get(stacked_fe_side_var)) & get(stacked_fe_side_var) != "" & !is.na(get(stacked_fe_group_var)) & get(stacked_fe_group_var) != ""]
+
+if (FE_TYPE == "strict_pair_x_year") {
+    fe_formula_stacked <- sprintf("%s + %s^sale_year", stacked_fe_side_var, stacked_fe_group_var)
+} else if (FE_TYPE == "pair_trend_plus_year") {
+    fe_formula_stacked <- sprintf("%s + cohort^sale_year + %s[sale_year]", stacked_fe_side_var, stacked_fe_group_var)
+} else {
+    fe_formula_stacked <- sprintf("%s + cohort^sale_year", stacked_fe_side_var)
+}
+
+if (CLUSTER_LEVEL == "twoway_block_segment") {
+    cluster_formula_stacked <- ~cohort_block_id + cohort_segment
+} else if (CLUSTER_LEVEL == "segment") {
+    cluster_formula_stacked <- ~cohort_segment
+} else {
+    cluster_formula_stacked <- ~cohort_block_id
+}
 message(sprintf("Stacked FE formula: %s", fe_formula_stacked))
 message(sprintf("Stacked cluster formula: %s", paste(deparse(cluster_formula_stacked), collapse = "")))
 

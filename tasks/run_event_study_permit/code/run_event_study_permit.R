@@ -227,6 +227,13 @@ message(sprintf("Cluster level: %s", CLUSTER_LEVEL))
 message(sprintf("Control spec: %s", CONTROL_SPEC))
 message(sprintf("Write sidecars: %s", write_sidecars))
 
+y_axis_label <- if (MODEL_TYPE == "log") {
+  sprintf("Effect on log %s", outcome_label)
+} else {
+  sprintf("Effect on %s", outcome_label)
+}
+display_suffix <- if (MODEL_TYPE == "binary") " pp" else "%"
+
 safe_scale <- function(x) {
   x <- as.numeric(x)
   sigma <- sd(x, na.rm = TRUE)
@@ -235,24 +242,6 @@ safe_scale <- function(x) {
     return(rep(0, length(x)))
   }
   (x - mu) / sigma
-}
-
-display_transform <- function(estimate, ci_low, ci_high) {
-  if (MODEL_TYPE == "binary") {
-    tibble(
-      estimate_display = 100 * estimate,
-      ci_low_display = 100 * ci_low,
-      ci_high_display = 100 * ci_high,
-      display_unit = "pp"
-    )
-  } else {
-    tibble(
-      estimate_display = 100 * (exp(estimate) - 1),
-      ci_low_display = 100 * (exp(ci_low) - 1),
-      ci_high_display = 100 * (exp(ci_high) - 1),
-      display_unit = "%"
-    )
-  }
 }
 
 make_support_table <- function(df, event_var, time_fe_var, fe_group_var, block_var, segment_var, outcome_var, treatment_var, min_period, max_period) {
@@ -337,7 +326,25 @@ extract_plot_data <- function(model, support_by_event_time, min_period, max_peri
     filter(is_reference | event_time %in% supported_periods) %>%
     left_join(support_by_event_time, by = "event_time")
 
-  bind_cols(out, display_transform(out$estimate, out$ci_low, out$ci_high))
+  if (MODEL_TYPE == "binary") {
+    out <- out %>%
+      mutate(
+        estimate_display = 100 * estimate,
+        ci_low_display = 100 * ci_low,
+        ci_high_display = 100 * ci_high,
+        display_unit = "pp"
+      )
+  } else {
+    out <- out %>%
+      mutate(
+        estimate_display = 100 * (exp(estimate) - 1),
+        ci_low_display = 100 * (exp(ci_low) - 1),
+        ci_high_display = 100 * (exp(ci_high) - 1),
+        display_unit = "%"
+      )
+  }
+
+  out
 }
 
 compute_pretrend_test <- function(model, plot_data, group_label) {
@@ -371,22 +378,6 @@ compute_pretrend_test <- function(model, plot_data, group_label) {
   )
 }
 
-axis_label <- function() {
-  if (MODEL_TYPE == "log") {
-    sprintf("Effect on log %s", outcome_label)
-  } else {
-    sprintf("Effect on %s", outcome_label)
-  }
-}
-
-display_formatter <- function(x) {
-  if (MODEL_TYPE == "binary") {
-    paste0(x, " pp")
-  } else {
-    paste0(x, "%")
-  }
-}
-
 make_single_series_plot <- function(plot_data) {
   ggplot(plot_data, aes(x = event_time, y = estimate_display)) +
     geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
@@ -395,11 +386,11 @@ make_single_series_plot <- function(plot_data) {
     geom_line(color = "#009E73", linewidth = 1) +
     geom_point(color = "#009E73", size = 2.5) +
     scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
-    scale_y_continuous(labels = display_formatter) +
+    scale_y_continuous(labels = function(x) paste0(x, display_suffix)) +
     labs(
       title = sprintf("Permit event study: %s", panel_title),
       x = "Years relative to alderman switch",
-      y = axis_label()
+      y = y_axis_label
     ) +
     theme_minimal(base_size = 11) +
     theme(
@@ -429,12 +420,12 @@ make_directional_plots <- function(plot_data) {
     scale_color_manual(values = color_values, name = NULL) +
     scale_fill_manual(values = color_values, name = NULL) +
     scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
-    scale_y_continuous(labels = display_formatter) +
+    scale_y_continuous(labels = function(x) paste0(x, display_suffix)) +
     facet_wrap(~group, ncol = 1) +
     labs(
       title = sprintf("Permit event study: %s", panel_title),
       x = "Years relative to alderman switch",
-      y = axis_label()
+      y = y_axis_label
     ) +
     theme_minimal(base_size = 11) +
     theme(
@@ -459,11 +450,11 @@ make_directional_plots <- function(plot_data) {
     scale_color_manual(values = color_values, name = NULL) +
     scale_fill_manual(values = color_values, name = NULL) +
     scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
-    scale_y_continuous(labels = display_formatter) +
+    scale_y_continuous(labels = function(x) paste0(x, display_suffix)) +
     labs(
       title = sprintf("Permit event study: %s", panel_title),
       x = "Years relative to alderman switch",
-      y = axis_label()
+      y = y_axis_label
     ) +
     theme_minimal(base_size = 11) +
     theme(
@@ -616,26 +607,6 @@ if (analysis_n == 0) {
   stop("No observations remain after applying the requested permit event-study sample restrictions.", call. = FALSE)
 }
 
-run_model <- function(formula_str, data_arg = data) {
-  message(sprintf("Running %s model with %s observations", MODEL_TYPE, format(nrow(data_arg), big.mark = ",")))
-  message(sprintf("Formula: %s", formula_str))
-  if (MODEL_TYPE == "ppml") {
-    fepois(
-      as.formula(formula_str),
-      data = data_arg,
-      weights = ~weight,
-      cluster = cluster_formula
-    )
-  } else {
-    feols(
-      as.formula(formula_str),
-      data = data_arg,
-      weights = ~weight,
-      cluster = cluster_formula
-    )
-  }
-}
-
 metadata <- tibble(
   panel_mode = PANEL_MODE,
   panel_title = panel_title,
@@ -692,7 +663,23 @@ if (TREATMENT_TYPE == "continuous") {
     paste(rhs_terms[!is.na(rhs_terms) & nzchar(rhs_terms)], collapse = " + "),
     fe_formula
   )
-  model <- run_model(formula_str)
+  message(sprintf("Running %s model with %s observations", MODEL_TYPE, format(nrow(data), big.mark = ",")))
+  message(sprintf("Formula: %s", formula_str))
+  if (MODEL_TYPE == "ppml") {
+    model <- fepois(
+      as.formula(formula_str),
+      data = data,
+      weights = ~weight,
+      cluster = cluster_formula
+    )
+  } else {
+    model <- feols(
+      as.formula(formula_str),
+      data = data,
+      weights = ~weight,
+      cluster = cluster_formula
+    )
+  }
   plot_data <- extract_plot_data(model, support_by_event_time, min_period, max_period, "All blocks")
 
   if (is.null(plot_data) || nrow(plot_data) == 0) {
@@ -770,9 +757,41 @@ if (TREATMENT_TYPE == "continuous") {
     paste(rhs_terms_lenient[!is.na(rhs_terms_lenient) & nzchar(rhs_terms_lenient)], collapse = " + "),
     fe_formula
   )
+  message(sprintf("Running %s model with %s observations", MODEL_TYPE, format(nrow(data_stricter), big.mark = ",")))
+  message(sprintf("Formula: %s", formula_stricter))
+  if (MODEL_TYPE == "ppml") {
+    model_stricter <- fepois(
+      as.formula(formula_stricter),
+      data = data_stricter,
+      weights = ~weight,
+      cluster = cluster_formula
+    )
+  } else {
+    model_stricter <- feols(
+      as.formula(formula_stricter),
+      data = data_stricter,
+      weights = ~weight,
+      cluster = cluster_formula
+    )
+  }
 
-  model_stricter <- run_model(formula_stricter, data_stricter)
-  model_lenient <- run_model(formula_lenient, data_lenient)
+  message(sprintf("Running %s model with %s observations", MODEL_TYPE, format(nrow(data_lenient), big.mark = ",")))
+  message(sprintf("Formula: %s", formula_lenient))
+  if (MODEL_TYPE == "ppml") {
+    model_lenient <- fepois(
+      as.formula(formula_lenient),
+      data = data_lenient,
+      weights = ~weight,
+      cluster = cluster_formula
+    )
+  } else {
+    model_lenient <- feols(
+      as.formula(formula_lenient),
+      data = data_lenient,
+      weights = ~weight,
+      cluster = cluster_formula
+    )
+  }
 
   plot_data <- bind_rows(
     extract_plot_data(model_stricter, support_stricter, min_period, max_period, "Moved to Stricter"),
@@ -861,9 +880,41 @@ if (TREATMENT_TYPE == "continuous") {
     paste(rhs_terms_lenient[!is.na(rhs_terms_lenient) & nzchar(rhs_terms_lenient)], collapse = " + "),
     fe_formula
   )
+  message(sprintf("Running %s model with %s observations", MODEL_TYPE, format(nrow(data), big.mark = ",")))
+  message(sprintf("Formula: %s", formula_stricter))
+  if (MODEL_TYPE == "ppml") {
+    model_stricter <- fepois(
+      as.formula(formula_stricter),
+      data = data,
+      weights = ~weight,
+      cluster = cluster_formula
+    )
+  } else {
+    model_stricter <- feols(
+      as.formula(formula_stricter),
+      data = data,
+      weights = ~weight,
+      cluster = cluster_formula
+    )
+  }
 
-  model_stricter <- run_model(formula_stricter, data)
-  model_lenient <- run_model(formula_lenient, data)
+  message(sprintf("Running %s model with %s observations", MODEL_TYPE, format(nrow(data), big.mark = ",")))
+  message(sprintf("Formula: %s", formula_lenient))
+  if (MODEL_TYPE == "ppml") {
+    model_lenient <- fepois(
+      as.formula(formula_lenient),
+      data = data,
+      weights = ~weight,
+      cluster = cluster_formula
+    )
+  } else {
+    model_lenient <- feols(
+      as.formula(formula_lenient),
+      data = data,
+      weights = ~weight,
+      cluster = cluster_formula
+    )
+  }
 
   plot_data <- bind_rows(
     extract_plot_data(model_stricter, support_stricter, min_period, max_period, "Moved to Stricter"),

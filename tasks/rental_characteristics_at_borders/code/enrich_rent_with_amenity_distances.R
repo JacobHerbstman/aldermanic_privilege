@@ -25,14 +25,10 @@ if (length(cli_args) >= 7) {
   output_parquet <- cli_args[6]
   output_diag_csv <- cli_args[7]
 } else {
-  if (!exists("input_parquet") || !exists("schools_gpkg") || !exists("parks_gpkg") ||
-      !exists("major_streets_gpkg") || !exists("water_shp") ||
-      !exists("output_parquet") || !exists("output_diag_csv")) {
-    stop(
-      "FATAL: Script requires 7 args: <input_parquet> <schools_gpkg> <parks_gpkg> <major_streets_gpkg> <water_shp> <output_parquet> <output_diag_csv>",
-      call. = FALSE
-    )
-  }
+  stop(
+    "FATAL: Script requires 7 args: <input_parquet> <schools_gpkg> <parks_gpkg> <major_streets_gpkg> <water_shp> <output_parquet> <output_diag_csv>",
+    call. = FALSE
+  )
 }
 
 chunk_n <- 100000L

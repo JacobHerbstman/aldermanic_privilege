@@ -21,40 +21,25 @@ if (length(cli_args) == 0) {
   cli_args <- c(clean_permits_input, ward_panel_input, alderman_panel_input, ward_summary_csv_output, ward_summary_tex_output, ward_means_output, ward_figure_output, alderman_summary_csv_output, alderman_summary_tex_output, alderman_means_output, alderman_figure_output, correlation_csv_output, correlation_tex_output)
 }
 
-if (length(cli_args) >= 13) {
-  clean_permits_input <- cli_args[1]
-  ward_panel_input <- cli_args[2]
-  alderman_panel_input <- cli_args[3]
-  ward_summary_csv_output <- cli_args[4]
-  ward_summary_tex_output <- cli_args[5]
-  ward_means_output <- cli_args[6]
-  ward_figure_output <- cli_args[7]
-  alderman_summary_csv_output <- cli_args[8]
-  alderman_summary_tex_output <- cli_args[9]
-  alderman_means_output <- cli_args[10]
-  alderman_figure_output <- cli_args[11]
-  correlation_csv_output <- cli_args[12]
-  correlation_tex_output <- cli_args[13]
-} else {
-  if (!exists("clean_permits_input") ||
-      !exists("ward_panel_input") ||
-      !exists("alderman_panel_input") ||
-      !exists("ward_summary_csv_output") ||
-      !exists("ward_summary_tex_output") ||
-      !exists("ward_means_output") ||
-      !exists("ward_figure_output") ||
-      !exists("alderman_summary_csv_output") ||
-      !exists("alderman_summary_tex_output") ||
-      !exists("alderman_means_output") ||
-      !exists("alderman_figure_output") ||
-      !exists("correlation_csv_output") ||
-      !exists("correlation_tex_output")) {
-    stop(
-      "FATAL: Script requires 13 args: <clean_permits_input> <ward_panel_input> <alderman_panel_input> <ward_summary_csv_output> <ward_summary_tex_output> <ward_means_output> <ward_figure_output> <alderman_summary_csv_output> <alderman_summary_tex_output> <alderman_means_output> <alderman_figure_output> <correlation_csv_output> <correlation_tex_output>",
-      call. = FALSE
-    )
-  }
+if (length(cli_args) != 13) {
+  stop(
+    "FATAL: Script requires 13 args: <clean_permits_input> <ward_panel_input> <alderman_panel_input> <ward_summary_csv_output> <ward_summary_tex_output> <ward_means_output> <ward_figure_output> <alderman_summary_csv_output> <alderman_summary_tex_output> <alderman_means_output> <alderman_figure_output> <correlation_csv_output> <correlation_tex_output>",
+    call. = FALSE
+  )
 }
+clean_permits_input <- cli_args[1]
+ward_panel_input <- cli_args[2]
+alderman_panel_input <- cli_args[3]
+ward_summary_csv_output <- cli_args[4]
+ward_summary_tex_output <- cli_args[5]
+ward_means_output <- cli_args[6]
+ward_figure_output <- cli_args[7]
+alderman_summary_csv_output <- cli_args[8]
+alderman_summary_tex_output <- cli_args[9]
+alderman_means_output <- cli_args[10]
+alderman_figure_output <- cli_args[11]
+correlation_csv_output <- cli_args[12]
+correlation_tex_output <- cli_args[13]
 
 group_levels <- c("High-Discretion", "Low-Discretion")
 group_labels <- c(`1` = "High-Discretion", `0` = "Low-Discretion")

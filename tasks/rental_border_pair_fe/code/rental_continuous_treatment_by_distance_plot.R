@@ -29,9 +29,7 @@ if (length(cli_args) >= 8) {
   output_pdf <- cli_args[7]
   output_csv <- cli_args[8]
 } else {
-  if (!exists("input") || !exists("bw_ft") || !exists("bin_width_ft") || !exists("window") || !exists("sample_filter") || !exists("use_controls") || !exists("output_pdf") || !exists("output_csv")) {
-    stop("FATAL: Script requires 8 args: <input> <bw_ft> <bin_width_ft> <window> <sample_filter> <use_controls> <output_pdf> <output_csv>", call. = FALSE)
-  }
+  stop("FATAL: Script requires 8 args: <input> <bw_ft> <bin_width_ft> <window> <sample_filter> <use_controls> <output_pdf> <output_csv>", call. = FALSE)
 }
 
 apply_window <- function(df, window_name) {

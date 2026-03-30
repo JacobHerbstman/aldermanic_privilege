@@ -89,12 +89,15 @@ p_value <- coeftable(model)["post_treat", grep("^Pr\\(", colnames(coeftable(mode
 effect_pct <- 100 * (exp(estimate) - 1)
 dep_var_mean <- mean(data[[outcome_var]], na.rm = TRUE)
 ward_pairs <- n_distinct(data$ward_pair_id)
-
-stars <- function(p) {
-  if (!is.finite(p)) return("")
-  if (p < 0.01) return("***")
-  if (p < 0.05) return("**")
-  if (p < 0.1) return("*")
+stars <- if (!is.finite(p_value)) {
+  ""
+} else if (p_value < 0.01) {
+  "***"
+} else if (p_value < 0.05) {
+  "**"
+} else if (p_value < 0.1) {
+  "*"
+} else {
   ""
 }
 

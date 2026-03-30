@@ -48,12 +48,7 @@ if (length(cli_args) >= 12) {
   fe_geo <- tolower(Sys.getenv("FE_GEO", "segment"))
   cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
 } else {
-  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") ||
-      !exists("use_controls") || !exists("bins_per_side") || !exists("min_strictness_diff_pctile") ||
-      !exists("output_pdf") || !exists("output_meta_csv") || !exists("output_bins_csv") ||
-      !exists("fe_geo") || !exists("cluster_level")) {
-    stop("FATAL: Script requires args: <input> <bw_ft> <window> <sample_filter> <use_controls> <bins_per_side> <min_strictness_diff_pctile> <output_pdf> <output_meta_csv> <output_bins_csv> [<fe_geo> <cluster_level>]", call. = FALSE)
-  }
+  stop("FATAL: Script requires args: <input> <bw_ft> <window> <sample_filter> <use_controls> <bins_per_side> <min_strictness_diff_pctile> <output_pdf> <output_meta_csv> <output_bins_csv> [<fe_geo> <cluster_level>]", call. = FALSE)
 }
 if (!fe_geo %in% c("segment", "ward_pair")) stop("--fe_geo must be one of: segment, ward_pair", call. = FALSE)
 if (!cluster_level %in% c("segment", "ward_pair")) stop("--cluster_level must be one of: segment, ward_pair", call. = FALSE)

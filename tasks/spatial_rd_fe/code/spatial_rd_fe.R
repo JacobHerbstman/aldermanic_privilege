@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
 
 #   "../output/rd_fe_plot_%s%s_bw%d_%s_%s.pdf",
 #   ifelse(use_log, "log_", ""), yvar, bw_ft, sample_filter, fe_spec
@@ -46,20 +47,6 @@ if (!sample_filter %in% c("all", "multifamily")) {
 }
 
 rd_input_path <- Sys.getenv("RD_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
-
-zone_group_from_code <- function(z) {
-  z <- toupper(as.character(z))
-  case_when(
-    str_starts(z, "RS-") ~ "Single-Family Residential",
-    str_starts(z, "RT-") | str_starts(z, "RM-") ~ "Multi-Family Residential",
-    str_starts(z, "B-") ~ "Neighborhood Mixed-Use",
-    str_starts(z, "C-") ~ "Commercial",
-    str_starts(z, "M-") ~ "Industrial",
-    str_starts(z, "DX-") | str_starts(z, "DR-") | str_starts(z, "DS-") | str_starts(z, "DC-") ~ "Downtown",
-    str_starts(z, "PD") ~ "Planned Development",
-    TRUE ~ "Other"
-  )
-}
 
 fe_map <- list(
   pair_x_year = list(fe = "ward_pair^construction_year", use_far = FALSE, need_zone = FALSE, need_segment = FALSE),
@@ -116,31 +103,6 @@ placebo_shift_raw <- Sys.getenv("PLACEBO_SHIFT_FT", "0")
 placebo_shift_ft <- suppressWarnings(as.numeric(placebo_shift_raw))
 if (!is.finite(placebo_shift_ft)) {
   stop("PLACEBO_SHIFT_FT must be numeric.", call. = FALSE)
-}
-
-normalize_pair_dash <- function(x) {
-  x <- as.character(x)
-  x <- gsub("_", "-", x, fixed = TRUE)
-  x <- trimws(x)
-  ok <- grepl("^[0-9]+-[0-9]+$", x)
-  out <- rep(NA_character_, length(x))
-  if (!any(ok)) return(out)
-  parts <- strsplit(x[ok], "-", fixed = TRUE)
-  out[ok] <- vapply(parts, function(v) {
-    a <- suppressWarnings(as.integer(v[1]))
-    b <- suppressWarnings(as.integer(v[2]))
-    if (!is.finite(a) || !is.finite(b)) return(NA_character_)
-    paste(min(a, b), max(a, b), sep = "-")
-  }, character(1))
-  out
-}
-
-era_from_year <- function(y) {
-  y <- as.integer(y)
-  ifelse(
-    y < 2003L, "1998_2002",
-    ifelse(y < 2015L, "2003_2014", ifelse(y < 2023L, "2015_2023", "post_2023"))
-  )
 }
 
 # 1) Load + sample filters aligned with border-pair FE table spec

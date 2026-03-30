@@ -33,9 +33,7 @@ if (length(cli_args) >= 10) {
   output_csv <- cli_args[9]
   output_pdf <- cli_args[10]
 } else {
-  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("use_controls") || !exists("n_perms") || !exists("seed") || !exists("min_date") || !exists("output_csv") || !exists("output_pdf")) {
-    stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <use_controls> <n_perms> <seed> <min_date> <output_csv> <output_pdf>", call. = FALSE)
-  }
+  stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <use_controls> <n_perms> <seed> <min_date> <output_csv> <output_pdf>", call. = FALSE)
 }
 
 if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
@@ -43,15 +41,6 @@ if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
 }
 if (!sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
-}
-
-apply_window <- function(df, window_name) {
-  if (window_name == "full") return(df)
-  if (window_name == "pre_covid") return(df %>% filter(year <= 2019))
-  if (window_name == "pre_2021") return(df %>% filter(year <= 2020))
-  if (window_name == "pre_2023") return(df %>% filter(year <= 2022))
-  if (window_name == "drop_mid") return(df %>% filter(year <= 2020 | year >= 2024))
-  df
 }
 
 set.seed(seed)
@@ -79,8 +68,17 @@ dat_raw <- read_parquet(input) %>%
     !is.na(strictness_own), !is.na(strictness_neighbor),
     !is.na(alderman_own), !is.na(alderman_neighbor),
     abs_dist <= bw_ft
-  ) %>%
-  apply_window(window)
+  )
+
+if (window == "pre_covid") {
+  dat_raw <- dat_raw %>% filter(year <= 2019)
+} else if (window == "pre_2021") {
+  dat_raw <- dat_raw %>% filter(year <= 2020)
+} else if (window == "pre_2023") {
+  dat_raw <- dat_raw %>% filter(year <= 2022)
+} else if (window == "drop_mid") {
+  dat_raw <- dat_raw %>% filter(year <= 2020 | year >= 2024)
+}
 
 if (sample_filter == "multifamily_only") {
   dat_raw <- dat_raw %>% filter(building_type_clean == "multi_family")

@@ -23,25 +23,20 @@ if (length(cli_args) == 0) {
   cli_args <- c(sales_input, rent_input, segment_gpkg, out_sales, out_rent, out_coverage, out_spotcheck, out_reason)
 }
 
-if (length(cli_args) >= 8) {
-  sales_input <- cli_args[1]
-  rent_input <- cli_args[2]
-  segment_gpkg <- cli_args[3]
-  out_sales <- cli_args[4]
-  out_rent <- cli_args[5]
-  out_coverage <- cli_args[6]
-  out_spotcheck <- cli_args[7]
-  out_reason <- cli_args[8]
-} else {
-  if (!exists("sales_input") || !exists("rent_input") || !exists("segment_gpkg") ||
-      !exists("out_sales") || !exists("out_rent") || !exists("out_coverage") || !exists("out_spotcheck") ||
-      !exists("out_reason")) {
-    stop(
-      "FATAL: Script requires 8 args: <sales_input_csv> <rent_input_parquet> <segment_gpkg> <out_sales_csv> <out_rent_parquet> <out_coverage_csv> <out_spotcheck_csv> <out_reason_csv>",
-      call. = FALSE
-    )
-  }
+if (length(cli_args) != 8) {
+  stop(
+    "FATAL: Script requires 8 args: <sales_input_csv> <rent_input_parquet> <segment_gpkg> <out_sales_csv> <out_rent_parquet> <out_coverage_csv> <out_spotcheck_csv> <out_reason_csv>",
+    call. = FALSE
+  )
 }
+sales_input <- cli_args[1]
+rent_input <- cli_args[2]
+segment_gpkg <- cli_args[3]
+out_sales <- cli_args[4]
+out_rent <- cli_args[5]
+out_coverage <- cli_args[6]
+out_spotcheck <- cli_args[7]
+out_reason <- cli_args[8]
 
 stopifnot(file.exists(sales_input), file.exists(rent_input), file.exists(segment_gpkg))
 

@@ -23,9 +23,7 @@ if (length(cli_args) >= 5) {
   output_tex <- cli_args[4]
   output_csv <- cli_args[5]
 } else {
-  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("output_tex") || !exists("output_csv")) {
-    stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv>", call. = FALSE)
-  }
+  stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv>", call. = FALSE)
 }
 
 stars <- function(p) {

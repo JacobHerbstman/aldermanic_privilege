@@ -33,9 +33,7 @@ if (length(cli_args) >= 10) {
   output_meta_csv <- cli_args[9]
   output_bins_csv <- cli_args[10]
 } else {
-  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("use_controls") || !exists("n_bins") || !exists("min_strictness_diff_pctile") || !exists("output_pdf") || !exists("output_meta_csv") || !exists("output_bins_csv")) {
-    stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <use_controls> <n_bins> <min_strictness_diff_pctile> <output_pdf> <output_meta_csv> <output_bins_csv>", call. = FALSE)
-  }
+  stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <use_controls> <n_bins> <min_strictness_diff_pctile> <output_pdf> <output_meta_csv> <output_bins_csv>", call. = FALSE)
 }
 
 apply_window <- function(df, window_name) {

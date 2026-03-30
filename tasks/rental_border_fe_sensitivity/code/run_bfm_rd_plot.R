@@ -33,9 +33,7 @@ if (length(cli_args) >= 10) {
   output_bins_csv <- cli_args[9]
   output_pdf <- cli_args[10]
 } else {
-  if (!exists("input") || !exists("bw_ft") || !exists("window") || !exists("sample_filter") || !exists("use_controls") || !exists("bins_per_side") || !exists("min_strictness_diff") || !exists("output_csv") || !exists("output_bins_csv") || !exists("output_pdf")) {
-    stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <use_controls> <bins_per_side> <min_strictness_diff> <output_csv> <output_bins_csv> <output_pdf>", call. = FALSE)
-  }
+  stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <use_controls> <bins_per_side> <min_strictness_diff> <output_csv> <output_bins_csv> <output_pdf>", call. = FALSE)
 }
 
 if (!window %in% c("full", "pre_covid", "pre_2021", "drop_mid")) {

@@ -28,9 +28,7 @@ if (length(cli_args) >= 6) {
   output_csv <- cli_args[5]
   cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
 } else {
-  if (!exists("input") || !exists("bw_arg") || !exists("window") || !exists("output_tex") || !exists("output_csv") || !exists("cluster_level")) {
-    stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv> [<cluster_level>]", call. = FALSE)
-  }
+  stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv> [<cluster_level>]", call. = FALSE)
 }
 
 if (length(bw_arg) != 1) {
