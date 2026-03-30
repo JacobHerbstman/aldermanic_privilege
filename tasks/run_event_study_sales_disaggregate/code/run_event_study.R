@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("../../_lib/event_study_plot_helpers.R")
 
 dir.create("../output", showWarnings = FALSE, recursive = TRUE)
 
@@ -192,164 +193,6 @@ make_support_table <- function(df, event_var, time_fe_var, fe_group_var, fe_side
     arrange(event_time)
 }
 
-extract_plot_data <- function(model, support_by_event_time, min_period, max_period, group_label) {
-  iplot_data <- tryCatch(iplot(model, .plot = FALSE)[[1]], error = function(e) NULL)
-  if (is.null(iplot_data) || nrow(iplot_data) == 0) {
-    return(NULL)
-  }
-
-  supported_periods <- support_by_event_time %>%
-    filter(has_identifying_support) %>%
-    pull(event_time)
-
-  iplot_data %>%
-    as_tibble() %>%
-    transmute(
-      event_time = as.integer(x),
-      estimate,
-      ci_low,
-      ci_high,
-      std_error = if_else(is_ref, 0, (ci_high - estimate) / qnorm(0.975)),
-      estimate_name = estimate_names,
-      estimate_name_raw = estimate_names_raw,
-      is_reference = is_ref,
-      group = group_label
-    ) %>%
-    filter(event_time >= min_period, event_time <= max_period) %>%
-    filter(is_reference | event_time %in% supported_periods) %>%
-    left_join(support_by_event_time, by = "event_time") %>%
-    mutate(
-      estimate_pct = estimate * 100,
-      ci_low_pct = ci_low * 100,
-      ci_high_pct = ci_high * 100
-    )
-}
-
-compute_pretrend_test <- function(model, plot_data, group_label) {
-  lead_terms <- plot_data %>%
-    filter(event_time <= -2, !is_reference) %>%
-    pull(estimate_name_raw)
-
-  if (length(lead_terms) == 0) {
-    return(tibble(
-      group = group_label,
-      n_leads = 0L,
-      min_lead = NA_integer_,
-      max_lead = NA_integer_,
-      wald_stat = NA_real_,
-      p_value = NA_real_,
-      df1 = NA_real_,
-      df2 = NA_real_
-    ))
-  }
-
-  joint_test <- tryCatch(wald(model, lead_terms), error = function(e) NULL)
-  tibble(
-    group = group_label,
-    n_leads = length(lead_terms),
-    min_lead = min(plot_data$event_time[plot_data$event_time <= -2 & !plot_data$is_reference]),
-    max_lead = max(plot_data$event_time[plot_data$event_time <= -2 & !plot_data$is_reference]),
-    wald_stat = if (is.null(joint_test)) NA_real_ else joint_test$stat,
-    p_value = if (is.null(joint_test)) NA_real_ else joint_test$p,
-    df1 = if (is.null(joint_test)) NA_real_ else joint_test$df1,
-    df2 = if (is.null(joint_test)) NA_real_ else joint_test$df2
-  )
-}
-
-make_single_series_plot <- function(plot_data) {
-  ggplot(plot_data, aes(x = event_time, y = estimate_pct)) +
-    geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
-    geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), fill = "#009E73", alpha = 0.2, color = NA) +
-    geom_line(color = "#009E73", linewidth = 1) +
-    geom_point(color = "#009E73", size = 2.5) +
-    scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    labs(
-      title = sprintf("Sales event study: %s", panel_title),
-      x = if (TIME_UNIT == "yearly") "Years relative to redistricting" else "Quarters relative to redistricting",
-      y = "Effect on home prices"
-    ) +
-    theme_minimal(base_size = 11) +
-    theme(
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor = element_blank(),
-      panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
-      axis.line = element_line(color = "gray40", linewidth = 0.3),
-      axis.ticks = element_line(color = "gray40", linewidth = 0.3),
-      axis.title = element_text(size = 10, color = "gray20"),
-      axis.text = element_text(size = 9, color = "gray30"),
-      plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
-    )
-}
-
-make_directional_plots <- function(plot_data) {
-  color_values <- c(
-    "Moved to Stricter" = "#c23616",
-    "Moved to More Lenient" = "#7f8fa6"
-  )
-
-  facet_plot <- ggplot(plot_data, aes(x = event_time, y = estimate_pct, color = group, fill = group)) +
-    geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
-    geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.15, color = NA) +
-    geom_line(linewidth = 1) +
-    geom_point(size = 2.5, shape = 21, stroke = 0.5) +
-    scale_color_manual(values = color_values, name = NULL) +
-    scale_fill_manual(values = color_values, name = NULL) +
-    scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    facet_wrap(~group, ncol = 1) +
-    labs(
-      title = sprintf("Sales event study: %s", panel_title),
-      x = if (TIME_UNIT == "yearly") "Years relative to redistricting" else "Quarters relative to redistricting",
-      y = "Effect on home prices"
-    ) +
-    theme_minimal(base_size = 11) +
-    theme(
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor = element_blank(),
-      panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
-      axis.line = element_line(color = "gray40", linewidth = 0.3),
-      axis.ticks = element_line(color = "gray40", linewidth = 0.3),
-      axis.title = element_text(size = 10, color = "gray20"),
-      axis.text = element_text(size = 9, color = "gray30"),
-      legend.position = "none",
-      strip.text = element_text(face = "bold", size = 10),
-      plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
-    )
-
-  combined_plot <- ggplot(plot_data, aes(x = event_time, y = estimate_pct, color = group, fill = group)) +
-    geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
-    geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.15, color = NA) +
-    geom_line(linewidth = 1) +
-    geom_point(size = 2.5, shape = 21, stroke = 0.5) +
-    scale_color_manual(values = color_values, name = NULL) +
-    scale_fill_manual(values = color_values, name = NULL) +
-    scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    labs(
-      title = sprintf("Sales event study: %s", panel_title),
-      x = if (TIME_UNIT == "yearly") "Years relative to redistricting" else "Quarters relative to redistricting",
-      y = "Effect on home prices"
-    ) +
-    theme_minimal(base_size = 11) +
-    theme(
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor = element_blank(),
-      panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
-      axis.line = element_line(color = "gray40", linewidth = 0.3),
-      axis.ticks = element_line(color = "gray40", linewidth = 0.3),
-      axis.title = element_text(size = 10, color = "gray20"),
-      axis.text = element_text(size = 9, color = "gray30"),
-      legend.position = "bottom",
-      legend.direction = "horizontal",
-      plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
-    )
-
-  list(facet = facet_plot, combined = combined_plot)
-}
 
 message("\nLoading transaction panel...")
 data <- read_parquet(panel_input) %>%
@@ -546,20 +389,44 @@ if (TREATMENT_TYPE == "continuous") {
     weights = ~weight,
     cluster = cluster_formula
   )
-  plot_data <- extract_plot_data(model, support_by_event_time, min_period, max_period, "All sales")
+  plot_data <- build_event_study_plot_data(
+    model,
+    support_by_event_time,
+    min_period,
+    max_period,
+    "All sales",
+    "multiply100"
+  ) %>%
+    mutate(
+      estimate_pct = estimate_display,
+      ci_low_pct = ci_low_display,
+      ci_high_pct = ci_high_display
+    )
   if (is.null(plot_data) || nrow(plot_data) == 0) {
     stop("No supported coefficients were available for the requested sales specification.", call. = FALSE)
   }
 
   coefficients <- plot_data %>%
-    select(group, event_time, estimate, std_error, ci_low, ci_high, estimate_pct, ci_low_pct, ci_high_pct,
+    select(group, event_time, estimate, std_error, ci_low, ci_high, estimate_display, ci_low_display, ci_high_display,
       estimate_name, estimate_name_raw, is_reference, n_obs, n_treated, n_control, contributing_cohorts,
       n_fe_groups, n_blocks, n_segments, n_pins, n_fe_group_time_cells, n_identifying_fe_group_time_cells,
       n_identifying_fe_groups, has_treated_and_control, has_identifying_support
     )
-  pretrend <- compute_pretrend_test(model, plot_data, "All sales")
+  pretrend <- compute_event_study_pretrend(model, plot_data, "All sales")
 
-  ggsave(sprintf("../output/event_study_%s.pdf", suffix), make_single_series_plot(plot_data), width = 7, height = 4.5, bg = "white")
+  ggsave(
+    sprintf("../output/event_study_%s.pdf", suffix),
+    make_event_study_single_series_plot(
+      plot_data,
+      plot_title = sprintf("Sales event study: %s", panel_title),
+      x_label = if (TIME_UNIT == "yearly") "Years relative to redistricting" else "Quarters relative to redistricting",
+      y_label = "Effect on home prices",
+      display_suffix = "%"
+    ),
+    width = 7,
+    height = 4.5,
+    bg = "white"
+  )
   if (WRITE_SIDECARS) {
     write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
     write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
@@ -595,9 +462,14 @@ if (TREATMENT_TYPE == "continuous") {
   )
 
   plot_data <- bind_rows(
-    extract_plot_data(model_stricter, support_by_event_time, min_period, max_period, "Moved to Stricter"),
-    extract_plot_data(model_lenient, support_by_event_time, min_period, max_period, "Moved to More Lenient")
+    build_event_study_plot_data(model_stricter, support_by_event_time, min_period, max_period, "Moved to Stricter", "multiply100"),
+    build_event_study_plot_data(model_lenient, support_by_event_time, min_period, max_period, "Moved to More Lenient", "multiply100")
   ) %>%
+    mutate(
+      estimate_pct = estimate_display,
+      ci_low_pct = ci_low_display,
+      ci_high_pct = ci_high_display
+    ) %>%
     filter(!is.na(estimate))
 
   if (nrow(plot_data) == 0) {
@@ -605,16 +477,22 @@ if (TREATMENT_TYPE == "continuous") {
   }
 
   coefficients <- plot_data %>%
-    select(group, event_time, estimate, std_error, ci_low, ci_high, estimate_pct, ci_low_pct, ci_high_pct,
+    select(group, event_time, estimate, std_error, ci_low, ci_high, estimate_display, ci_low_display, ci_high_display,
       estimate_name, estimate_name_raw, is_reference, n_obs, n_treated, n_control, contributing_cohorts,
       n_fe_groups, n_blocks, n_segments, n_pins, n_fe_group_time_cells, n_identifying_fe_group_time_cells,
       n_identifying_fe_groups, has_treated_and_control, has_identifying_support
     )
   pretrend <- bind_rows(
-    compute_pretrend_test(model_stricter, plot_data %>% filter(group == "Moved to Stricter"), "Moved to Stricter"),
-    compute_pretrend_test(model_lenient, plot_data %>% filter(group == "Moved to More Lenient"), "Moved to More Lenient")
+    compute_event_study_pretrend(model_stricter, plot_data %>% filter(group == "Moved to Stricter"), "Moved to Stricter"),
+    compute_event_study_pretrend(model_lenient, plot_data %>% filter(group == "Moved to More Lenient"), "Moved to More Lenient")
   )
-  directional_plots <- make_directional_plots(plot_data)
+  directional_plots <- make_event_study_directional_plots(
+    plot_data,
+    plot_title = sprintf("Sales event study: %s", panel_title),
+    x_label = if (TIME_UNIT == "yearly") "Years relative to redistricting" else "Quarters relative to redistricting",
+    y_label = "Effect on home prices",
+    display_suffix = "%"
+  )
 
   ggsave(sprintf("../output/event_study_%s.pdf", suffix), directional_plots$facet, width = 7, height = 6, bg = "white")
   ggsave(sprintf("../output/event_study_combined_%s.pdf", suffix), directional_plots$combined, width = 7, height = 4.5, bg = "white")

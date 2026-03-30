@@ -10,10 +10,6 @@ sf_use_s2(FALSE)
 
 signs_permit_type <- "PERMIT - SIGNS"
 
-make_pair_dash <- function(a, b) {
-  normalize_pair_id(a, b, sep = "-")
-}
-
 assign_distance_to_fixed_pair <- function(points_sf, pair_values, boundary_sf, chunk_n = 5000L) {
   pair_dash <- normalize_pair_dash(pair_values)
   boundary_sf <- boundary_sf %>%
@@ -38,70 +34,6 @@ assign_distance_to_fixed_pair <- function(points_sf, pair_values, boundary_sf, c
   }
 
   out
-}
-
-build_unit_increase_audit <- function() {
-  curated_types <- c(
-    "PERMIT - NEW CONSTRUCTION",
-    "PERMIT - RENOVATION/ALTERATION"
-  )
-
-  unit_text <- read_csv(
-    "../input/building_permits_text_features.csv.gz",
-    show_col_types = FALSE,
-    col_select = c(
-      "id", "permit_type", "permit_issued", "unit_change_text",
-      "unit_change_direction", "unit_change_confidence", "unit_increase_signal",
-      "unit_change_signal", "flag_revision", "flag_revision_contractor",
-      "flag_new_construction_phrase", "flag_adu", "flag_increase"
-    )
-  ) %>%
-    mutate(
-      permit_issued = as.integer(permit_issued),
-      unit_change_text = suppressWarnings(as.numeric(unit_change_text)),
-      unit_increase_signal = coalesce(as.integer(unit_increase_signal), 0L),
-      unit_change_signal = coalesce(as.integer(unit_change_signal), 0L),
-      flag_revision = coalesce(as.integer(flag_revision), 0L),
-      flag_revision_contractor = coalesce(as.integer(flag_revision_contractor), 0L),
-      flag_new_construction_phrase = coalesce(as.integer(flag_new_construction_phrase), 0L),
-      flag_adu = coalesce(as.integer(flag_adu), 0L),
-      flag_increase = coalesce(as.integer(flag_increase), 0L),
-      curated_type = permit_type %in% curated_types,
-      positive_unit_signal = unit_increase_signal == 1L |
-        (!is.na(unit_change_text) & unit_change_text > 0) |
-        unit_change_direction == "increase",
-      revision_only = flag_revision == 1L | flag_revision_contractor == 1L,
-      audit_universe = permit_issued == 1L & (curated_type | positive_unit_signal),
-      unit_increase_reason = case_when(
-        !audit_universe ~ "outside_audit_universe",
-        !curated_type ~ "excluded_outside_curated_type",
-        !positive_unit_signal ~ "excluded_no_positive_unit_signal",
-        revision_only ~ "excluded_revision_signal",
-        unit_change_confidence == "high" ~ "included_high_confidence",
-        unit_change_confidence == "medium" ~ "included_medium_confidence",
-        unit_change_confidence == "low" ~ "included_low_confidence",
-        TRUE ~ "included_unclassified_confidence"
-      ),
-      unit_increase_included = as.integer(grepl("^included_", unit_increase_reason))
-    ) %>%
-    arrange(desc(unit_increase_included), desc(positive_unit_signal), desc(curated_type), id)
-
-  unit_summary <- unit_text %>%
-    filter(audit_universe) %>%
-    count(unit_increase_reason, permit_type, name = "n_permits") %>%
-    arrange(desc(n_permits), unit_increase_reason, permit_type)
-
-  write_csv(unit_text, "../output/permit_unit_increase_audit.csv")
-  write_csv(unit_summary, "../output/permit_unit_increase_audit_summary.csv")
-
-  included_ids <- unit_text %>%
-    filter(unit_increase_included == 1L) %>%
-    select(id, unit_increase_included, unit_increase_reason)
-
-  list(
-    included_ids = included_ids,
-    summary = unit_summary
-  )
 }
 
 read_blocks <- function(path, block_col, target_crs) {
@@ -577,7 +509,7 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
     left_join(treatment_df, by = "block_id") %>%
     left_join(control_assign, by = "block_id")
 
-  treated_pair_id <- make_pair_dash(base$ward_origin, base$ward_dest)
+  treated_pair_id <- normalize_pair_id(base$ward_origin, base$ward_dest, sep = "-")
   treated_dist_ft <- assign_distance_to_fixed_pair(
     points_sf = block_centroids,
     pair_values = treated_pair_id,
@@ -662,7 +594,62 @@ blocks_2010 <- read_blocks("../input/census_blocks_2010.csv", "GEOID10", st_crs(
 blocks_2020 <- read_blocks("../input/census_blocks_2020.csv", "GEOID20", st_crs(ward_panel))
 
 message("Building unit-increase audit...")
-unit_audit <- build_unit_increase_audit()
+curated_unit_types <- c(
+  "PERMIT - NEW CONSTRUCTION",
+  "PERMIT - RENOVATION/ALTERATION"
+)
+
+unit_increase_audit <- read_csv(
+  "../input/building_permits_text_features.csv.gz",
+  show_col_types = FALSE,
+  col_select = c(
+    "id", "permit_type", "permit_issued", "unit_change_text",
+    "unit_change_direction", "unit_change_confidence", "unit_increase_signal",
+    "unit_change_signal", "flag_revision", "flag_revision_contractor",
+    "flag_new_construction_phrase", "flag_adu", "flag_increase"
+  )
+) %>%
+  mutate(
+    permit_issued = as.integer(permit_issued),
+    unit_change_text = suppressWarnings(as.numeric(unit_change_text)),
+    unit_increase_signal = coalesce(as.integer(unit_increase_signal), 0L),
+    unit_change_signal = coalesce(as.integer(unit_change_signal), 0L),
+    flag_revision = coalesce(as.integer(flag_revision), 0L),
+    flag_revision_contractor = coalesce(as.integer(flag_revision_contractor), 0L),
+    flag_new_construction_phrase = coalesce(as.integer(flag_new_construction_phrase), 0L),
+    flag_adu = coalesce(as.integer(flag_adu), 0L),
+    flag_increase = coalesce(as.integer(flag_increase), 0L),
+    curated_type = permit_type %in% curated_unit_types,
+    positive_unit_signal = unit_increase_signal == 1L |
+      (!is.na(unit_change_text) & unit_change_text > 0) |
+      unit_change_direction == "increase",
+    revision_only = flag_revision == 1L | flag_revision_contractor == 1L,
+    audit_universe = permit_issued == 1L & (curated_type | positive_unit_signal),
+    unit_increase_reason = case_when(
+      !audit_universe ~ "outside_audit_universe",
+      !curated_type ~ "excluded_outside_curated_type",
+      !positive_unit_signal ~ "excluded_no_positive_unit_signal",
+      revision_only ~ "excluded_revision_signal",
+      unit_change_confidence == "high" ~ "included_high_confidence",
+      unit_change_confidence == "medium" ~ "included_medium_confidence",
+      unit_change_confidence == "low" ~ "included_low_confidence",
+      TRUE ~ "included_unclassified_confidence"
+    ),
+    unit_increase_included = as.integer(grepl("^included_", unit_increase_reason))
+  ) %>%
+  arrange(desc(unit_increase_included), desc(positive_unit_signal), desc(curated_type), id)
+
+unit_increase_audit_summary <- unit_increase_audit %>%
+  filter(audit_universe) %>%
+  count(unit_increase_reason, permit_type, name = "n_permits") %>%
+  arrange(desc(n_permits), unit_increase_reason, permit_type)
+
+write_csv(unit_increase_audit, "../output/permit_unit_increase_audit.csv")
+write_csv(unit_increase_audit_summary, "../output/permit_unit_increase_audit_summary.csv")
+
+unit_audit_included_ids <- unit_increase_audit %>%
+  filter(unit_increase_included == 1L) %>%
+  select(id, unit_increase_included, unit_increase_reason)
 
 message("Loading manual permit block review...")
 manual_block_review <- read_csv(
@@ -714,7 +701,7 @@ permit_assignment_2010 <- assign_permits_to_blocks(
   manual_block_review = manual_block_review
 )
 permits_2010 <- permit_assignment_2010$assigned %>%
-  left_join(unit_audit$included_ids, by = "id") %>%
+  left_join(unit_audit_included_ids, by = "id") %>%
   mutate(
     unit_increase_included = coalesce(as.integer(unit_increase_included), 0L)
   )
@@ -737,7 +724,7 @@ permit_assignment_2020 <- assign_permits_to_blocks(
   manual_block_review = manual_block_review
 )
 permits_2020 <- permit_assignment_2020$assigned %>%
-  left_join(unit_audit$included_ids, by = "id") %>%
+  left_join(unit_audit_included_ids, by = "id") %>%
   mutate(
     unit_increase_included = coalesce(as.integer(unit_increase_included), 0L)
   )

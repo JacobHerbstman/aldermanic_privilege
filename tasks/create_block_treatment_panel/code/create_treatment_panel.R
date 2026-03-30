@@ -2,54 +2,16 @@
 # Creates master block-level treatment panel for event study analysis
 # Output: block_treatment_pre_scores.csv with block-to-ward treatment geometry.
 # Score merge happens in merge_event_study_scores.
+#
+# Interactive run:
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_block_treatment_panel/code")
+# source("create_treatment_panel.R")
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
 # Disable s2 for geometry operations
 sf_use_s2(FALSE)
-
-assign_blocks_to_map <- function(blocks_sf, ward_panel, era) {
-    ward_map <- aggregate_ward_map(ward_panel, canonical_map_year_for_era(era))
-
-    block_area <- tibble(
-        block_id = blocks_sf$block_id,
-        block_area = as.numeric(st_area(blocks_sf))
-    )
-
-    intersections <- suppressWarnings(
-        st_intersection(
-            blocks_sf %>% select(block_id),
-            ward_map %>% select(ward)
-        )
-    )
-
-    if (nrow(intersections) == 0) {
-        return(tibble(
-            block_id = blocks_sf$block_id,
-            ward = NA_integer_,
-            ward_share = NA_real_,
-            n_wards = NA_integer_
-        ))
-    }
-
-    assignments <- intersections %>%
-        mutate(intersection_area = as.numeric(st_area(geometry))) %>%
-        st_drop_geometry() %>%
-        left_join(block_area, by = "block_id") %>%
-        group_by(block_id) %>%
-        arrange(desc(intersection_area), ward, .by_group = TRUE) %>%
-        summarise(
-            ward_majority = first(as.integer(ward)),
-            ward_share = first(intersection_area) / first(block_area),
-            n_wards = n_distinct(ward),
-            .groups = "drop"
-        ) %>%
-        rename(ward = ward_majority)
-
-    tibble(block_id = blocks_sf$block_id) %>%
-        left_join(assignments, by = "block_id")
-}
 
 # =============================================================================
 # 1. LOAD DATA
@@ -95,19 +57,78 @@ message(sprintf("  2020 blocks: %s", format(nrow(blocks_2020), big.mark = ",")))
 # =============================================================================
 message("\nAssigning 2010 blocks to ward maps...")
 
-joined_2014 <- assign_blocks_to_map(blocks_2010, ward_panel, "2003_2014") %>%
-    rename(
-        ward_pre_2015 = ward,
-        ward_pre_2015_share = ward_share,
-        ward_pre_2015_n_wards = n_wards
-    )
+ward_map_2003_2014 <- aggregate_ward_map(ward_panel, canonical_map_year_for_era("2003_2014"))
+ward_map_2015_2023 <- aggregate_ward_map(ward_panel, canonical_map_year_for_era("2015_2023"))
+ward_map_post_2023 <- aggregate_ward_map(ward_panel, canonical_map_year_for_era("post_2023"))
 
-joined_2015 <- assign_blocks_to_map(blocks_2010, ward_panel, "2015_2023") %>%
-    rename(
-        ward_post_2015 = ward,
-        ward_post_2015_share = ward_share,
-        ward_post_2015_n_wards = n_wards
+block_area_2010 <- tibble(
+    block_id = blocks_2010$block_id,
+    block_area = as.numeric(st_area(blocks_2010))
+)
+
+intersections_2010_pre_2015 <- suppressWarnings(
+    st_intersection(
+        blocks_2010 %>% select(block_id),
+        ward_map_2003_2014 %>% select(ward)
     )
+)
+
+if (nrow(intersections_2010_pre_2015) == 0) {
+    joined_2014 <- tibble(
+        block_id = blocks_2010$block_id,
+        ward_pre_2015 = NA_integer_,
+        ward_pre_2015_share = NA_real_,
+        ward_pre_2015_n_wards = NA_integer_
+    )
+} else {
+    joined_2014 <- intersections_2010_pre_2015 %>%
+        mutate(intersection_area = as.numeric(st_area(geometry))) %>%
+        st_drop_geometry() %>%
+        left_join(block_area_2010, by = "block_id") %>%
+        group_by(block_id) %>%
+        arrange(desc(intersection_area), ward, .by_group = TRUE) %>%
+        summarise(
+            ward_pre_2015 = first(as.integer(ward)),
+            ward_pre_2015_share = first(intersection_area) / first(block_area),
+            ward_pre_2015_n_wards = n_distinct(ward),
+            .groups = "drop"
+        )
+
+    joined_2014 <- tibble(block_id = blocks_2010$block_id) %>%
+        left_join(joined_2014, by = "block_id")
+}
+
+intersections_2010_post_2015 <- suppressWarnings(
+    st_intersection(
+        blocks_2010 %>% select(block_id),
+        ward_map_2015_2023 %>% select(ward)
+    )
+)
+
+if (nrow(intersections_2010_post_2015) == 0) {
+    joined_2015 <- tibble(
+        block_id = blocks_2010$block_id,
+        ward_post_2015 = NA_integer_,
+        ward_post_2015_share = NA_real_,
+        ward_post_2015_n_wards = NA_integer_
+    )
+} else {
+    joined_2015 <- intersections_2010_post_2015 %>%
+        mutate(intersection_area = as.numeric(st_area(geometry))) %>%
+        st_drop_geometry() %>%
+        left_join(block_area_2010, by = "block_id") %>%
+        group_by(block_id) %>%
+        arrange(desc(intersection_area), ward, .by_group = TRUE) %>%
+        summarise(
+            ward_post_2015 = first(as.integer(ward)),
+            ward_post_2015_share = first(intersection_area) / first(block_area),
+            ward_post_2015_n_wards = n_distinct(ward),
+            .groups = "drop"
+        )
+
+    joined_2015 <- tibble(block_id = blocks_2010$block_id) %>%
+        left_join(joined_2015, by = "block_id")
+}
 
 # Combine 2010 block assignments
 assignments_2010 <- tibble(block_id = blocks_2010$block_id) %>%
@@ -126,19 +147,74 @@ message(sprintf("  2010 blocks switching in 2015: %d", sum(assignments_2010$swit
 # =============================================================================
 message("\nAssigning 2020 blocks to ward maps...")
 
-joined_2022 <- assign_blocks_to_map(blocks_2020, ward_panel, "2015_2023") %>%
-    rename(
-        ward_post_2015 = ward,
-        ward_post_2015_share = ward_share,
-        ward_post_2015_n_wards = n_wards
-    )
+block_area_2020 <- tibble(
+    block_id = blocks_2020$block_id,
+    block_area = as.numeric(st_area(blocks_2020))
+)
 
-joined_2024 <- assign_blocks_to_map(blocks_2020, ward_panel, "post_2023") %>%
-    rename(
-        ward_post_2023 = ward,
-        ward_post_2023_share = ward_share,
-        ward_post_2023_n_wards = n_wards
+intersections_2020_post_2015 <- suppressWarnings(
+    st_intersection(
+        blocks_2020 %>% select(block_id),
+        ward_map_2015_2023 %>% select(ward)
     )
+)
+
+if (nrow(intersections_2020_post_2015) == 0) {
+    joined_2022 <- tibble(
+        block_id = blocks_2020$block_id,
+        ward_post_2015 = NA_integer_,
+        ward_post_2015_share = NA_real_,
+        ward_post_2015_n_wards = NA_integer_
+    )
+} else {
+    joined_2022 <- intersections_2020_post_2015 %>%
+        mutate(intersection_area = as.numeric(st_area(geometry))) %>%
+        st_drop_geometry() %>%
+        left_join(block_area_2020, by = "block_id") %>%
+        group_by(block_id) %>%
+        arrange(desc(intersection_area), ward, .by_group = TRUE) %>%
+        summarise(
+            ward_post_2015 = first(as.integer(ward)),
+            ward_post_2015_share = first(intersection_area) / first(block_area),
+            ward_post_2015_n_wards = n_distinct(ward),
+            .groups = "drop"
+        )
+
+    joined_2022 <- tibble(block_id = blocks_2020$block_id) %>%
+        left_join(joined_2022, by = "block_id")
+}
+
+intersections_2020_post_2023 <- suppressWarnings(
+    st_intersection(
+        blocks_2020 %>% select(block_id),
+        ward_map_post_2023 %>% select(ward)
+    )
+)
+
+if (nrow(intersections_2020_post_2023) == 0) {
+    joined_2024 <- tibble(
+        block_id = blocks_2020$block_id,
+        ward_post_2023 = NA_integer_,
+        ward_post_2023_share = NA_real_,
+        ward_post_2023_n_wards = NA_integer_
+    )
+} else {
+    joined_2024 <- intersections_2020_post_2023 %>%
+        mutate(intersection_area = as.numeric(st_area(geometry))) %>%
+        st_drop_geometry() %>%
+        left_join(block_area_2020, by = "block_id") %>%
+        group_by(block_id) %>%
+        arrange(desc(intersection_area), ward, .by_group = TRUE) %>%
+        summarise(
+            ward_post_2023 = first(as.integer(ward)),
+            ward_post_2023_share = first(intersection_area) / first(block_area),
+            ward_post_2023_n_wards = n_distinct(ward),
+            .groups = "drop"
+        )
+
+    joined_2024 <- tibble(block_id = blocks_2020$block_id) %>%
+        left_join(joined_2024, by = "block_id")
+}
 
 # Combine 2020 block assignments
 assignments_2020 <- tibble(block_id = blocks_2020$block_id) %>%

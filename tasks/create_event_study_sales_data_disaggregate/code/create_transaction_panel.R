@@ -600,29 +600,25 @@ message(sprintf(
 # =============================================================================
 message("\n=== SELECTING FINAL COLUMNS ===")
 
-# Define column selection function to avoid repetition
-select_final_cols <- function(dt) {
-  dt[, .(
-    pin, block_id, cohort, cohort_block_id,
-    sale_date, sale_year, relative_year, relative_year_capped,
-    sale_price,
-    log_sqft, log_land_sqft, log_building_age, log_bedrooms, log_baths, has_garage,
-    building_sqft, land_sqft, year_built, building_age, num_bedrooms,
-    num_full_baths, baths_total, garage_size, hedonic_tax_year, years_gap,
-    ward, ward_pair_id, ward_origin, ward_pair_side, cohort_ward_pair_side,
-    segment_id_cohort, segment_side, cohort_segment, cohort_segment_side,
-    signed_dist, dist_ft,
-    treat, strictness_change
-  )]
-}
+final_cols <- c(
+  "pin", "block_id", "cohort", "cohort_block_id",
+  "sale_date", "sale_year", "relative_year", "relative_year_capped",
+  "sale_price",
+  "log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage",
+  "building_sqft", "land_sqft", "year_built", "building_age", "num_bedrooms",
+  "num_full_baths", "baths_total", "garage_size", "hedonic_tax_year", "years_gap",
+  "ward", "ward_pair_id", "ward_origin", "ward_pair_side", "cohort_ward_pair_side",
+  "segment_id_cohort", "segment_side", "cohort_segment", "cohort_segment_side",
+  "signed_dist", "dist_ft",
+  "treat", "strictness_change"
+)
 
-# Apply to all panels
-cohort_2012_final <- select_final_cols(cohort_2012)
-cohort_2022_final <- select_final_cols(cohort_2022)
-cohort_2015_final <- select_final_cols(cohort_2015)
-cohort_2023_final <- select_final_cols(cohort_2023)
-stacked_announcement_final <- select_final_cols(stacked_announcement)
-stacked_implementation_final <- select_final_cols(stacked_implementation)
+cohort_2012_final <- cohort_2012[, ..final_cols]
+cohort_2022_final <- cohort_2022[, ..final_cols]
+cohort_2015_final <- cohort_2015[, ..final_cols]
+cohort_2023_final <- cohort_2023[, ..final_cols]
+stacked_announcement_final <- stacked_announcement[, ..final_cols]
+stacked_implementation_final <- stacked_implementation[, ..final_cols]
 
 # Use implementation as "final_panel" for backwards compatibility with diagnostics
 final_panel <- stacked_implementation_final

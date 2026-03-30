@@ -156,11 +156,8 @@ if (prune_sample == "pruned") {
 
 
 # ── 3) HELPERS ───────────────────────────────────────────────────────────────
-is_log_spec <- function(v) str_detect(v, "^log\\(.+\\)$")
-base_name <- function(v) gsub("^log\\(|\\)$", "", v)
-
 pretty_label <- function(v) {
-  b <- base_name(v)
+  b <- gsub("^log\\(|\\)$", "", v)
   dict <- c(
     "density_dupac" = "DUPAC",
     "density_far" = "FAR",
@@ -176,7 +173,7 @@ pretty_label <- function(v) {
     "bathcount" = "Bathrooms"
   )
   lab <- ifelse(b %in% names(dict), dict[[b]], b)
-  if (is_log_spec(v)) paste0("ln(", lab, ")") else lab
+  if (str_detect(v, "^log\\(.+\\)$")) paste0("ln(", lab, ")") else lab
 }
 
 # fitstat: mean of *level* DV for the estimation sample
@@ -336,18 +333,6 @@ if (need_segment) {
 }
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 
-get_coef <- function(ct, term) {
-  idx <- which(rownames(ct) == term)
-  if (length(idx) == 0) {
-    return(c(estimate = NA_real_, se = NA_real_, p = NA_real_))
-  }
-  c(
-    estimate = ct[idx[1], "Estimate"],
-    se = ct[idx[1], "Std. Error"],
-    p = ct[idx[1], "Pr(>|t|)"]
-  )
-}
-
 
 # ── 4) MODELS (ONE PER OUTCOME), SAME BW ─────────────────────────────────────
 models <- list()
@@ -355,9 +340,9 @@ col_headers <- c()
 model_summaries <- list()
 
 for (yv in yvars) {
-  b <- base_name(yv)
-  if (!b %in% names(parcels_fe)) {
-    warning(sprintf("Skipping '%s' (base var '%s' not found).", yv, b))
+  base_var <- gsub("^log\\(|\\)$", "", yv)
+  if (!base_var %in% names(parcels_fe)) {
+    warning(sprintf("Skipping '%s' (base var '%s' not found).", yv, base_var))
     next
   }
 
@@ -403,7 +388,7 @@ for (yv in yvars) {
   }
 
   # Skip outcomes that are constant in this sample
-  y_vals <- if (is_log_spec(yv)) log(df[[b]]) else df[[b]]
+  y_vals <- if (str_detect(yv, "^log\\(.+\\)$")) log(df[[base_var]]) else df[[base_var]]
   y_vals <- y_vals[is.finite(y_vals)]
   if (length(unique(y_vals)) <= 1) {
     warning(sprintf("Skipping '%s' (constant in %s sample).", yv, sample_filter))
@@ -427,7 +412,17 @@ for (yv in yvars) {
 
   models[[length(models) + 1]] <- m
   col_headers <- c(col_headers, pretty_label(yv))
-  coef_info <- get_coef(coeftable(m), "strictness_own")
+  coef_table <- coeftable(m)
+  coef_idx <- which(rownames(coef_table) == "strictness_own")
+  coef_info <- if (length(coef_idx) == 0) {
+    c(estimate = NA_real_, se = NA_real_, p = NA_real_)
+  } else {
+    c(
+      estimate = coef_table[coef_idx[1], "Estimate"],
+      se = coef_table[coef_idx[1], "Std. Error"],
+      p = coef_table[coef_idx[1], "Pr(>|t|)"]
+    )
+  }
   model_summaries[[length(model_summaries) + 1]] <- tibble(
     yvar = yv,
     outcome_label = pretty_label(yv),
@@ -436,7 +431,7 @@ for (yv in yvars) {
     p_value = unname(coef_info["p"]),
     n_obs = nobs(m),
     n_segment_pairs = dplyr::n_distinct(df$segment_id),
-    depvar_mean = mean(df[[b]], na.rm = TRUE),
+      depvar_mean = mean(df[[base_var]], na.rm = TRUE),
     n_ward_pairs = dplyr::n_distinct(df$ward_pair),
     bw_ft = bw_ft,
     bw_label = bw_label,

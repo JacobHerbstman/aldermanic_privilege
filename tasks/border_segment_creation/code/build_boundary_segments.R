@@ -4,6 +4,11 @@ source("../../_lib/canonical_geometry_helpers.R")
 library(data.table)
 library(sf)
 
+# Interactive run:
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_segment_creation/code")
+# Sys.setenv(REBUILD_MODE = "raw")
+# source("build_boundary_segments.R")
+
 st_agr("constant")
 
 eras <- c("1998_2002", "2003_2014", "2015_2023", "post_2023")
@@ -71,69 +76,6 @@ ensure_segment_cols <- function(x, target_len) {
 
   x$target_length_ft <- as.numeric(target_len)
   x
-}
-
-write_segment_gpkg <- function(seg_sf, out_path) {
-  if (file.exists(out_path)) {
-    file.remove(out_path)
-  }
-
-  wrote_any <- FALSE
-  for (era_i in eras) {
-    d <- seg_sf[seg_sf$era == era_i, ]
-    if (nrow(d) == 0) next
-
-    d <- d[order(d$ward_pair_id, d$segment_number), ]
-    st_write(d, out_path, layer = era_i, quiet = TRUE, append = FALSE)
-    wrote_any <- TRUE
-
-    for (bw in bws) {
-      d_bw <- d
-      st_geometry(d_bw) <- st_buffer(st_geometry(d), bw)
-      d_bw$buffer_ft <- as.numeric(bw)
-      st_write(d_bw, out_path, layer = sprintf("%s_bw%d", era_i, bw), quiet = TRUE, append = TRUE)
-    }
-  }
-
-  if (!wrote_any) {
-    stop(sprintf("No segment layers were written to %s", out_path), call. = FALSE)
-  }
-}
-
-build_segment_classification <- function(seg_1320, seg_2640) {
-  pick_cols <- c(required_segment_cols, "target_length_ft")
-  d <- rbind(seg_1320[, pick_cols], seg_2640[, pick_cols])
-  d <- st_drop_geometry(d)
-  setDT(d)
-  setorder(d, era, ward_pair_id, target_length_ft, segment_number)
-  d
-}
-
-build_boundaries_from_segments <- function(seg_sf) {
-  d <- seg_sf[, c("ward_a", "ward_b", "ward_pair_id", "era", "segment_length_ft")]
-  out <- d |>
-    dplyr::group_by(ward_a, ward_b, ward_pair_id, era) |>
-    dplyr::summarise(length_ft = sum(segment_length_ft, na.rm = TRUE), .groups = "drop")
-
-  out <- out[, c("ward_a", "ward_b", "ward_pair_id", "era", "length_ft")]
-  out <- out[order(out$era, out$ward_pair_id), ]
-  out
-}
-
-validate_layers <- function(path) {
-  if (!file.exists(path)) return(FALSE)
-  nm <- st_layers(path)$name
-  setequal(nm, expected_layer_names)
-}
-
-read_segment_layers <- function(path, target_len) {
-  out <- list()
-  for (era_i in eras) {
-    d <- st_read(path, layer = era_i, quiet = TRUE)
-    d <- ensure_segment_cols(d, target_len)
-    out[[era_i]] <- d
-  }
-  do.call(rbind, out)
 }
 
 split_linestring_into_segments <- function(line_geom, target_len, crs_obj) {
@@ -283,100 +225,55 @@ build_segments_raw <- function(boundary_list, target_len) {
   sf
 }
 
-write_boundaries_gpkg <- function(boundary_list, out_path) {
-  if (file.exists(out_path)) {
-    file.remove(out_path)
-  }
-
-  wrote <- FALSE
-  for (era_i in eras) {
-    b <- boundary_list[[era_i]]
-    if (is.null(b) || nrow(b) == 0) next
-    st_write(b, out_path, layer = era_i, quiet = TRUE, append = FALSE)
-    wrote <- TRUE
-  }
-  if (!wrote) {
-    stop("No boundary layers written.", call. = FALSE)
-  }
-}
-
-build_boundary_diagnostics <- function(boundary_list, build_mode) {
-  summary_dt <- build_boundary_summary(boundary_list)
-  data.table(
-    check_name = c(
-      "build_mode",
-      "script_md5",
-      "all_eras_present",
-      "all_pair_lengths_positive",
-      "all_pair_ids_unique"
-    ),
-    observed_value = c(
-      build_mode,
-      unname(tools::md5sum("build_boundary_segments.R")),
-      as.character(all(vapply(eras, function(ei) !is.null(boundary_list[[ei]]) && nrow(boundary_list[[ei]]) > 0, logical(1)))),
-      as.character(all(summary_dt$min_shared_length_ft > 0, na.rm = TRUE)),
-      as.character(all(vapply(eras, function(ei) {
-        d <- boundary_list[[ei]]
-        if (is.null(d) || nrow(d) == 0) return(TRUE)
-        !anyDuplicated(d$ward_pair_id)
-      }, logical(1))))
-    ),
-    expected_value = c(
-      "raw or reuse",
-      "non-empty md5",
-      "TRUE",
-      "TRUE",
-      "TRUE"
-    ),
-    status = c(
-      "info",
-      "info",
-      ifelse(all(vapply(eras, function(ei) !is.null(boundary_list[[ei]]) && nrow(boundary_list[[ei]]) > 0, logical(1))), "verified", "mismatch"),
-      ifelse(all(summary_dt$min_shared_length_ft > 0, na.rm = TRUE), "verified", "mismatch"),
-      ifelse(all(vapply(eras, function(ei) {
-        d <- boundary_list[[ei]]
-        if (is.null(d) || nrow(d) == 0) return(TRUE)
-        !anyDuplicated(d$ward_pair_id)
-      }, logical(1))), "verified", "mismatch")
-    ),
-    details = c(
-      "Canonical boundary build mode used for this artifact.",
-      "Hash of the segment builder script.",
-      "All canonical eras should have non-empty pair boundary layers.",
-      "All canonical ward-pair boundaries should have strictly positive shared line length.",
-      "Ward-pair IDs must be unique within era."
-    )
-  )
-}
-
 # -----------------------------------------------------------------------------
 # Build path
 # -----------------------------------------------------------------------------
+out_1320_layers_valid <- FALSE
+if (file.exists(out_1320)) {
+  out_1320_layers_valid <- setequal(st_layers(out_1320)$name, expected_layer_names)
+}
+
+out_2640_layers_valid <- FALSE
+if (file.exists(out_2640)) {
+  out_2640_layers_valid <- setequal(st_layers(out_2640)$name, expected_layer_names)
+}
+
 can_reuse <- rebuild_mode == "reuse" &&
-  validate_layers(out_1320) &&
-  validate_layers(out_2640) &&
+  out_1320_layers_valid &&
+  out_2640_layers_valid &&
   file.exists(out_class) &&
   file.exists(out_boundaries)
 
 if (can_reuse) {
   message("Rebuild mode: reuse existing canonical segment artifacts with schema checks.")
 
-  seg_1320 <- read_segment_layers(out_1320, 1320)
-  seg_2640 <- read_segment_layers(out_2640, 2640)
+  seg_1320_by_era <- list()
+  for (era_i in eras) {
+    seg_1320_by_era[[era_i]] <- ensure_segment_cols(
+      st_read(out_1320, layer = era_i, quiet = TRUE),
+      1320
+    )
+  }
+  seg_1320 <- do.call(rbind, seg_1320_by_era)
 
-  boundaries <- build_boundaries_from_segments(seg_1320)
+  seg_2640_by_era <- list()
+  for (era_i in eras) {
+    seg_2640_by_era[[era_i]] <- ensure_segment_cols(
+      st_read(out_2640, layer = era_i, quiet = TRUE),
+      2640
+    )
+  }
+  seg_2640 <- do.call(rbind, seg_2640_by_era)
+
+  boundaries <- seg_1320[, c("ward_a", "ward_b", "ward_pair_id", "era", "segment_length_ft")] |>
+    dplyr::group_by(ward_a, ward_b, ward_pair_id, era) |>
+    dplyr::summarise(length_ft = sum(segment_length_ft, na.rm = TRUE), .groups = "drop")
+  boundaries <- boundaries[, c("ward_a", "ward_b", "ward_pair_id", "era", "length_ft")]
+  boundaries <- boundaries[order(boundaries$era, boundaries$ward_pair_id), ]
   boundary_list <- split(boundaries, boundaries$era)
   boundary_list <- lapply(eras, function(ei) boundary_list[[ei]])
   names(boundary_list) <- eras
-
-  write_segment_gpkg(seg_1320, out_1320)
-  write_segment_gpkg(seg_2640, out_2640)
-  write_boundaries_gpkg(boundary_list, out_boundaries)
-
-  class_dt <- build_segment_classification(seg_1320, seg_2640)
-  fwrite(class_dt, out_class)
-  fwrite(build_boundary_summary(boundary_list), out_summary)
-  fwrite(build_boundary_diagnostics(boundary_list, "reuse"), out_diag)
+  build_mode <- "reuse"
 } else {
   message("Rebuild mode: raw generation from ward panel (feature metrics fallback to defaults).")
   stopifnot(file.exists(ward_panel_path))
@@ -393,21 +290,158 @@ if (can_reuse) {
 
   seg_1320 <- build_segments_raw(boundary_list, 1320)
   seg_2640 <- build_segments_raw(boundary_list, 2640)
-
-  write_segment_gpkg(seg_1320, out_1320)
-  write_segment_gpkg(seg_2640, out_2640)
-  write_boundaries_gpkg(boundary_list, out_boundaries)
-
-  class_dt <- build_segment_classification(seg_1320, seg_2640)
-  fwrite(class_dt, out_class)
-  fwrite(build_boundary_summary(boundary_list), out_summary)
-  fwrite(build_boundary_diagnostics(boundary_list, "raw"), out_diag)
+  build_mode <- "raw"
 }
+
+if (file.exists(out_1320)) {
+  file.remove(out_1320)
+}
+
+wrote_any_1320 <- FALSE
+for (era_i in eras) {
+  era_segments <- seg_1320[seg_1320$era == era_i, ]
+  if (nrow(era_segments) == 0) next
+
+  era_segments <- era_segments[order(era_segments$ward_pair_id, era_segments$segment_number), ]
+  st_write(era_segments, out_1320, layer = era_i, quiet = TRUE, append = FALSE)
+  wrote_any_1320 <- TRUE
+
+  for (bw in bws) {
+    era_segments_buffered <- era_segments
+    st_geometry(era_segments_buffered) <- st_buffer(st_geometry(era_segments), bw)
+    era_segments_buffered$buffer_ft <- as.numeric(bw)
+    st_write(
+      era_segments_buffered,
+      out_1320,
+      layer = sprintf("%s_bw%d", era_i, bw),
+      quiet = TRUE,
+      append = TRUE
+    )
+  }
+}
+
+if (!wrote_any_1320) {
+  stop(sprintf("No segment layers were written to %s", out_1320), call. = FALSE)
+}
+
+if (file.exists(out_2640)) {
+  file.remove(out_2640)
+}
+
+wrote_any_2640 <- FALSE
+for (era_i in eras) {
+  era_segments <- seg_2640[seg_2640$era == era_i, ]
+  if (nrow(era_segments) == 0) next
+
+  era_segments <- era_segments[order(era_segments$ward_pair_id, era_segments$segment_number), ]
+  st_write(era_segments, out_2640, layer = era_i, quiet = TRUE, append = FALSE)
+  wrote_any_2640 <- TRUE
+
+  for (bw in bws) {
+    era_segments_buffered <- era_segments
+    st_geometry(era_segments_buffered) <- st_buffer(st_geometry(era_segments), bw)
+    era_segments_buffered$buffer_ft <- as.numeric(bw)
+    st_write(
+      era_segments_buffered,
+      out_2640,
+      layer = sprintf("%s_bw%d", era_i, bw),
+      quiet = TRUE,
+      append = TRUE
+    )
+  }
+}
+
+if (!wrote_any_2640) {
+  stop(sprintf("No segment layers were written to %s", out_2640), call. = FALSE)
+}
+
+if (file.exists(out_boundaries)) {
+  file.remove(out_boundaries)
+}
+
+wrote_any_boundaries <- FALSE
+for (era_i in eras) {
+  era_boundaries <- boundary_list[[era_i]]
+  if (is.null(era_boundaries) || nrow(era_boundaries) == 0) next
+  st_write(era_boundaries, out_boundaries, layer = era_i, quiet = TRUE, append = FALSE)
+  wrote_any_boundaries <- TRUE
+}
+
+if (!wrote_any_boundaries) {
+  stop("No boundary layers written.", call. = FALSE)
+}
+
+pick_cols <- c(required_segment_cols, "target_length_ft")
+class_dt <- rbind(seg_1320[, pick_cols], seg_2640[, pick_cols])
+class_dt <- st_drop_geometry(class_dt)
+setDT(class_dt)
+setorder(class_dt, era, ward_pair_id, target_length_ft, segment_number)
+fwrite(class_dt, out_class)
+
+summary_dt <- build_boundary_summary(boundary_list)
+fwrite(summary_dt, out_summary)
+
+all_eras_present <- all(vapply(
+  eras,
+  function(era_i) !is.null(boundary_list[[era_i]]) && nrow(boundary_list[[era_i]]) > 0,
+  logical(1)
+))
+all_pair_lengths_positive <- all(summary_dt$min_shared_length_ft > 0, na.rm = TRUE)
+all_pair_ids_unique <- all(vapply(
+  eras,
+  function(era_i) {
+    era_boundaries <- boundary_list[[era_i]]
+    if (is.null(era_boundaries) || nrow(era_boundaries) == 0) {
+      return(TRUE)
+    }
+    !anyDuplicated(era_boundaries$ward_pair_id)
+  },
+  logical(1)
+))
+
+boundary_diagnostics <- data.table(
+  check_name = c(
+    "build_mode",
+    "script_md5",
+    "all_eras_present",
+    "all_pair_lengths_positive",
+    "all_pair_ids_unique"
+  ),
+  observed_value = c(
+    build_mode,
+    unname(tools::md5sum("build_boundary_segments.R")),
+    as.character(all_eras_present),
+    as.character(all_pair_lengths_positive),
+    as.character(all_pair_ids_unique)
+  ),
+  expected_value = c(
+    "raw or reuse",
+    "non-empty md5",
+    "TRUE",
+    "TRUE",
+    "TRUE"
+  ),
+  status = c(
+    "info",
+    "info",
+    ifelse(all_eras_present, "verified", "mismatch"),
+    ifelse(all_pair_lengths_positive, "verified", "mismatch"),
+    ifelse(all_pair_ids_unique, "verified", "mismatch")
+  ),
+  details = c(
+    "Canonical boundary build mode used for this artifact.",
+    "Hash of the segment builder script.",
+    "All canonical eras should have non-empty pair boundary layers.",
+    "All canonical ward-pair boundaries should have strictly positive shared line length.",
+    "Ward-pair IDs must be unique within era."
+  )
+)
+fwrite(boundary_diagnostics, out_diag)
 
 # Final checks
 stopifnot(
-  validate_layers(out_1320),
-  validate_layers(out_2640),
+  setequal(st_layers(out_1320)$name, expected_layer_names),
+  setequal(st_layers(out_2640)$name, expected_layer_names),
   file.exists(out_class),
   file.exists(out_boundaries),
   file.exists(out_summary),
