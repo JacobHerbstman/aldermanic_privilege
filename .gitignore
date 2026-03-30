@@ -34,6 +34,8 @@ CLAUDE.md
 
 
 # Archive task folders (two levels deep)
+tasks/_deprecated/
+tasks/archive/
 tasks/archive/*/input/
 tasks/archive/*/output/
 tasks/archive/*/temp/
@@ -77,6 +79,16 @@ slides/figures/*
 !slides/figures/pipeline_tikz.tex
 
 tmp/
+
+# Local-only audit / verification scratch
+tasks/city_point_geocode_audit/
+tasks/manuscript_verification_audit/
+tasks/renthub_data_audit/
+tasks/run_event_study_rental_guangbin_wardblock/
+tasks/project_cleanup_audit/code/build_legacy_task_map.R
+tasks/project_cleanup_audit/code/build_paper_cleanup_queue.R
+tasks/project_cleanup_audit/code/build_task_linearization_priority.R
+tasks/create_event_study_permit_data/code/manual_permit_block_review.csv
 
 # Ignore auto-generated R graphics in any code/ folder
 Rplots.pdf
