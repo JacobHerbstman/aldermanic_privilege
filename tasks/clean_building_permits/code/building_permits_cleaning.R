@@ -5,6 +5,8 @@
 
 source("../../setup_environment/code/packages.R")
 
+crs_projected <- 3435
+
 building_permits <- read_csv("../input/Building_Permits_20251121.csv")
 
 ## remove contact columns and clean up names
@@ -34,7 +36,7 @@ permits_to_convert <- building_permits_clean[needs_conversion_mask, ]
 converted_sf <- st_as_sf(
     permits_to_convert,
     coords = c("xcoordinate", "ycoordinate"),
-    crs = 3435, # Source CRS: NAD83 Illinois State Plane East (US Feet)
+    crs = crs_projected, # Source CRS: NAD83 Illinois State Plane East (US Feet)
     remove = FALSE
   ) %>%
   st_transform(crs = 4326)
@@ -160,10 +162,11 @@ building_permits_final <- building_permits_clean2 %>%
 ## convert to sf for writing
 building_permits_sf <- st_as_sf(
   building_permits_final,
-  coords = c("longitude", "latitude"),   # adjust to your column names
-  crs    = 4326,              # or whatever CRS your coords use
-  remove = FALSE              # keep the lon/lat columns if you still want them
+  coords = c("longitude", "latitude"),
+  crs = 4326,
+  remove = FALSE
 ) %>% 
+  st_transform(crs_projected) %>%
   mutate(across(c(application_start_date_ym, issue_date_ym), 
         function(x) as.Date(x)))
         

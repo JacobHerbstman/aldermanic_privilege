@@ -82,8 +82,10 @@ tmp/
 
 # Local-only audit / verification scratch
 tasks/city_point_geocode_audit/
+tasks/event_study_balance_audit/
 tasks/manuscript_verification_audit/
 tasks/renthub_data_audit/
+tasks/upstream_spatial_red_team_audit/
 tasks/run_event_study_rental_guangbin_wardblock/
 tasks/project_cleanup_audit/code/build_legacy_task_map.R
 tasks/project_cleanup_audit/code/build_paper_cleanup_queue.R

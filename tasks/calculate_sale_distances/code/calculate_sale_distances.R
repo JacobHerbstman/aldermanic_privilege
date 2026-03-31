@@ -269,7 +269,8 @@ if (missing_coords > 0) {
     message(sprintf("After PIN10 fallback, still missing: %s", format(remaining_missing, big.mark = ",")))
 }
 
-# Filter out any remaining missing coordinates and convert to SF
+# Create points in 4326 from geocoded lon/lat, then immediately project to 3435
+# for all Chicago spatial work.
 sales_sf <- sales_geo %>%
     filter(!is.na(latitude), !is.na(longitude)) %>%
     st_as_sf(coords = c("longitude", "latitude"), crs = 4326) %>%
@@ -320,7 +321,7 @@ message(sprintf(
 # -----------------------------------------------------------------------------
 message("Attaching Alderman data (pre-scores output)...")
 
-# Extract lat/lon before dropping geometry
+# After all spatial work in 3435, extract lat/lon only for the flat CSV output.
 final_df <- results_sf %>%
     st_transform(4326) %>%
     mutate(
