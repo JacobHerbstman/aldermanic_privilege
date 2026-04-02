@@ -2,12 +2,12 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_validation_checks/code")
-# spec <- "ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage"
+# spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH"
 # permits_path <- "../input/building_permits_text_features.csv.gz"
 # alderman_panel_path <- "../input/chicago_alderman_panel.csv"
-# uncertainty_path <- "../input/alderman_uncertainty_index_ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage.csv"
-# output_csv <- "../output/permit_validation_results_uncertainty_ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage.csv"
-# output_tex <- "../output/permit_validation_table_uncertainty_ptfeFALSE_rtfeFALSE_porchTRUE_cafeFALSE_2stage.tex"
+# uncertainty_path <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
+# output_csv <- "../output/permit_validation_results_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
+# output_tex <- "../output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {

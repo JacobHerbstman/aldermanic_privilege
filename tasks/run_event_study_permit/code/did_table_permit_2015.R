@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("../../_lib/permit_event_study_sample_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
@@ -7,10 +8,11 @@ source("../../setup_environment/code/packages.R")
 # weighting <- "uniform"
 # cluster_level <- "block"
 # output_tex <- "../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex"
+# sample_restriction <- "none"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(outcome_family, bandwidth, weighting, cluster_level, output_tex)
+  args <- c(outcome_family, bandwidth, weighting, cluster_level, output_tex, sample_restriction)
 }
 
 if (length(args) >= 5) {
@@ -19,14 +21,16 @@ if (length(args) >= 5) {
   weighting <- args[3]
   cluster_level <- args[4]
   output_tex <- args[5]
+  sample_restriction <- if (length(args) >= 6) args[6] else "none"
 } else if (length(args) >= 4) {
   outcome_family <- "high_discretion"
   bandwidth <- as.numeric(args[1])
   weighting <- args[2]
   cluster_level <- args[3]
   output_tex <- args[4]
+  sample_restriction <- if (length(args) >= 5) args[5] else "none"
 } else {
-  stop("FATAL: Script requires args: <outcome_family> <bandwidth> <weighting> <cluster_level> <output_tex>", call. = FALSE)
+  stop("FATAL: Script requires args: <outcome_family> <bandwidth> <weighting> <cluster_level> <output_tex> [<sample_restriction>]", call. = FALSE)
 }
 
 if (!outcome_family %in% c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase")) {
@@ -42,6 +46,8 @@ if (!weighting %in% c("uniform", "triangular")) {
 if (!cluster_level %in% c("block", "ward_pair")) {
   stop("cluster_level must be one of: block, ward_pair", call. = FALSE)
 }
+
+sample_restriction_info <- get_permit_sample_restriction_info(sample_restriction)
 
 outcome_catalog <- tibble(
   outcome_family = c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase"),
@@ -75,6 +81,17 @@ data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
     weight = if (weighting == "triangular") pmax(0, 1 - dist_ft / bandwidth) else 1,
     post_treat = as.integer(relative_year >= 0) * strictness_change
   )
+
+sample_restriction_result <- apply_permit_bg_sample_restriction(
+  df = data,
+  block_var = "block_id",
+  pair_var = "ward_pair_id",
+  sample_restriction = sample_restriction,
+  block_id_var = "block_id",
+  cohort_var = "cohort",
+  treat_var = "treat"
+)
+data <- sample_restriction_result$data
 
 model <- fepois(
   as.formula(sprintf("%s ~ post_treat | block_id + ward_pair_id^year", outcome_var)),
@@ -110,11 +127,12 @@ table_lines <- c(
   "\\toprule",
   " & 2015 \\\\",
   "\\midrule",
-  sprintf("Post $\\times$ Strictness $\\Delta$ & %.4f%s \\\\", estimate, stars(p_value)),
+  sprintf("Post $\\times$ Strictness $\\Delta$ & %.4f%s \\\\", estimate, stars),
   sprintf(" & (%.4f) \\\\", std_error),
   "\\\\",
   "Block FE & $\\checkmark$ \\\\",
   "Border-Pair $\\times$ Year FE & $\\checkmark$ \\\\",
+  sprintf("Sample Restriction & %s \\\\", sample_restriction_info$label),
   sprintf("N & %s \\\\", format(nobs(model), big.mark = ",")),
   sprintf("Dep. Var. Mean & %.2f \\\\", dep_var_mean),
   sprintf("Ward Pairs & %s \\\\", format(ward_pairs, big.mark = ",")),
@@ -126,9 +144,10 @@ table_lines <- c(
 writeLines(table_lines, output_tex)
 
 message(sprintf(
-  "Permit DID | beta = %.4f%s | effect = %.2f%% | se = %.4f | p = %.3f | N = %s",
+  "Permit DID | sample=%s | beta = %.4f%s | effect = %.2f%% | se = %.4f | p = %.3f | N = %s",
+  sample_restriction_info$label,
   estimate,
-  stars(p_value),
+  stars,
   effect_pct,
   std_error,
   p_value,

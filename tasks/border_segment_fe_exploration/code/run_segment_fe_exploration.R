@@ -12,10 +12,6 @@ segment_gpkg <- "../input/boundary_segments_1320ft.gpkg"
 flags_path <- "../input/confounded_pair_era_flags.csv"
 out_dir <- "../output"
 
-if (!dir.exists(out_dir)) {
-  dir.create(out_dir, recursive = TRUE)
-}
-
 stopifnot(
   file.exists(sales_path),
   file.exists(rent_path),

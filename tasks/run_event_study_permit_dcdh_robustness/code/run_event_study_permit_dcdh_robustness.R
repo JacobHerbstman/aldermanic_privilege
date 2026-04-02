@@ -50,8 +50,6 @@ library(polars)
 library(readr)
 library(tibble)
 
-dir.create("../output", recursive = TRUE, showWarnings = FALSE)
-
 data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
   filter(
     !is.na(block_id), block_id != "",

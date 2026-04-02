@@ -10,7 +10,7 @@ cran_packages <- c(
   "writexl", "arrow", "duckdb", "ggplot2", "here", "tidyr", "sfarrow", "geoarrow", 
   "tibble", "rdrobust", "forcats", "binsreg", "did", "igraph", "sentimentr", 
   "tidytext", "textdata", "Matrix", "devtools", "scico", "RColorBrewer", 
-  "optparse"
+  "optparse", "jsonlite"
 )
 
 # --- Step 1: ensure library paths are aligned ---

@@ -1,8 +1,5 @@
 source("../../setup_environment/code/packages.R")
 
-
-dir.create("../output", showWarnings = FALSE, recursive = TRUE)
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
 # outcome_family <- "high_discretion"

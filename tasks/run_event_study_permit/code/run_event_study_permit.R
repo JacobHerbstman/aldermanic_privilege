@@ -1,8 +1,6 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/event_study_plot_helpers.R")
-
-
-dir.create("../output", showWarnings = FALSE, recursive = TRUE)
+source("../../_lib/permit_event_study_sample_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
@@ -18,10 +16,11 @@ dir.create("../output", showWarnings = FALSE, recursive = TRUE)
 # geo_fe_level <- "ward_pair"
 # cluster_level <- "block"
 # control_spec <- "none"
+# sample_restriction <- "none"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(panel_mode, outcome_family, date_basis, model_type, treatment_type, weighting, bandwidth, fe_type, post_window, geo_fe_level, cluster_level, control_spec)
+  cli_args <- c(panel_mode, outcome_family, date_basis, model_type, treatment_type, weighting, bandwidth, fe_type, post_window, geo_fe_level, cluster_level, control_spec, sample_restriction)
 }
 
 if (length(cli_args) >= 11) {
@@ -37,9 +36,10 @@ if (length(cli_args) >= 11) {
   geo_fe_level <- tolower(cli_args[10])
   cluster_level <- tolower(cli_args[11])
   control_spec <- if (length(cli_args) >= 12) cli_args[12] else "none"
+  sample_restriction <- if (length(cli_args) >= 13) cli_args[13] else "none"
 } else {
   stop(
-    "FATAL: Script requires at least 11 args: <panel_mode> <outcome_family> <date_basis> <model_type> <treatment_type> <weighting> <bandwidth> <fe_type> <post_window> <geo_fe_level> <cluster_level> [<control_spec>]",
+    "FATAL: Script requires at least 11 args: <panel_mode> <outcome_family> <date_basis> <model_type> <treatment_type> <weighting> <bandwidth> <fe_type> <post_window> <geo_fe_level> <cluster_level> [<control_spec>] [<sample_restriction>]",
     call. = FALSE
   )
 }
@@ -58,6 +58,7 @@ POST_WINDOW <- post_window
 GEO_FE_LEVEL <- geo_fe_level
 CLUSTER_LEVEL <- cluster_level
 CONTROL_SPEC <- control_spec
+SAMPLE_RESTRICTION <- tolower(sample_restriction)
 
 if (PANEL_MODE == "pooled_implementation") {
   PANEL_MODE <- "stacked_implementation"
@@ -100,6 +101,7 @@ if (!CLUSTER_LEVEL %in% c("block", "ward_pair")) {
 if (!CONTROL_SPEC %in% c("none", "baseline_demographics")) {
   stop("--control_spec must be one of: none, baseline_demographics", call. = FALSE)
 }
+sample_restriction_info <- get_permit_sample_restriction_info(SAMPLE_RESTRICTION)
 if (BANDWIDTH <= 0) {
   stop("--bandwidth must be positive.", call. = FALSE)
 }
@@ -213,6 +215,9 @@ if (GEO_FE_LEVEL == "ward_pair") {
 } else if (GEO_FE_LEVEL == "none") {
   suffix <- paste0(suffix, "_geo_none")
 }
+if (SAMPLE_RESTRICTION != "none") {
+  suffix <- paste0(suffix, "_samp_", sample_restriction_info$suffix_tag)
+}
 
 message("\n=== Permit Event Study ===")
 message(sprintf("Panel mode: %s", PANEL_MODE))
@@ -226,6 +231,7 @@ message(sprintf("Post window: %s", POST_WINDOW))
 message(sprintf("Geo FE level: %s", GEO_FE_LEVEL))
 message(sprintf("Cluster level: %s", CLUSTER_LEVEL))
 message(sprintf("Control spec: %s", CONTROL_SPEC))
+message(sprintf("Sample restriction: %s", sample_restriction_info$label))
 message(sprintf("Write sidecars: %s", write_sidecars))
 
 y_axis_label <- if (MODEL_TYPE == "log") {
@@ -344,6 +350,30 @@ data <- data %>%
   filter(relative_year >= min_period, relative_year <= max_period) %>%
   filter(!is.na(.data[[geo_group_var]]), .data[[geo_group_var]] != "")
 
+sample_restriction_summary <- apply_permit_bg_sample_restriction(
+  df = data,
+  block_var = block_var,
+  pair_var = if (stacked_mode) "cohort_ward_pair" else "ward_pair_id",
+  sample_restriction = SAMPLE_RESTRICTION,
+  block_id_var = "block_id",
+  cohort_var = "cohort",
+  treat_var = "treat"
+)
+data <- sample_restriction_summary$data
+
+message(sprintf(
+  paste(
+    "Sample restriction kept %s of %s observations",
+    "(%s of %s blocks; %s of %s block groups)."
+  ),
+  format(sample_restriction_summary$summary$n_obs_after, big.mark = ","),
+  format(sample_restriction_summary$summary$n_obs_before, big.mark = ","),
+  format(sample_restriction_summary$summary$n_blocks_after, big.mark = ","),
+  format(sample_restriction_summary$summary$n_blocks_before, big.mark = ","),
+  format(sample_restriction_summary$summary$n_bg_groups_after, big.mark = ","),
+  format(sample_restriction_summary$summary$n_bg_groups_before, big.mark = ",")
+))
+
 control_vars <- character(0)
 missing_control_rows <- 0L
 if (CONTROL_SPEC == "baseline_demographics") {
@@ -461,6 +491,17 @@ metadata <- tibble(
   effective_weight_n = sum(data$weight),
   zero_rows_dropped_for_log = zero_rows_dropped,
   control_spec = CONTROL_SPEC,
+  sample_restriction = SAMPLE_RESTRICTION,
+  sample_restriction_label = sample_restriction_info$label,
+  sample_restriction_obs_before = sample_restriction_summary$summary$n_obs_before,
+  sample_restriction_obs_after = sample_restriction_summary$summary$n_obs_after,
+  sample_restriction_obs_dropped = sample_restriction_summary$summary$n_obs_dropped,
+  sample_restriction_blocks_before = sample_restriction_summary$summary$n_blocks_before,
+  sample_restriction_blocks_after = sample_restriction_summary$summary$n_blocks_after,
+  sample_restriction_blocks_dropped = sample_restriction_summary$summary$n_blocks_dropped,
+  sample_restriction_bg_groups_before = sample_restriction_summary$summary$n_bg_groups_before,
+  sample_restriction_bg_groups_after = sample_restriction_summary$summary$n_bg_groups_after,
+  sample_restriction_bg_groups_dropped = sample_restriction_summary$summary$n_bg_groups_dropped,
   missing_rows_dropped_for_controls = missing_control_rows,
   available_min_event_time = available_min_period,
   available_max_event_time = available_max_period,

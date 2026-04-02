@@ -24,6 +24,9 @@ OUTPUTS := \
 	../output/pruned_boundaries_audit_extra_flag_pair_era.csv \
 	../output/pruned_boundaries_audit.md
 
+PRIMARY_OUTPUT := ../output/pruned_boundaries_all_segments_by_era.pdf
+SECONDARY_OUTPUTS := $(filter-out $(PRIMARY_OUTPUT),$(OUTPUTS))
+
 INPUTS := \
 	../input/boundary_segments_1320ft.gpkg \
 	../input/ward_panel.gpkg \
@@ -42,8 +45,14 @@ INPUTS := \
 
 all: $(OUTPUTS)
 
-$(OUTPUTS): plot_pruned_boundary_maps.R $(INPUTS) | ../output
+$(PRIMARY_OUTPUT): plot_pruned_boundary_maps.R $(INPUTS) | ../output
 	Rscript plot_pruned_boundary_maps.R
+
+$(SECONDARY_OUTPUTS): | $(PRIMARY_OUTPUT) ../output
+	@if [ ! -f "$@" ]; then \
+		Rscript plot_pruned_boundary_maps.R; \
+	fi
+	test -f "$@"
 
 ../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
 	ln -sf "$<" "$@"

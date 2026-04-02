@@ -1,8 +1,6 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/event_study_plot_helpers.R")
 
-dir.create("../output", showWarnings = FALSE, recursive = TRUE)
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
 # panel_mode <- "cohort_2015"

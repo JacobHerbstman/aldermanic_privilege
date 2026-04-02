@@ -14,10 +14,6 @@ water_shp <- "../input/gis_osm_water_a_free_1.shp"
 landuse_shp <- "../input/gis_osm_landuse_a_free_1.shp"
 out_dir <- "../output"
 
-if (!dir.exists(out_dir)) {
-  dir.create(out_dir, recursive = TRUE)
-}
-
 stopifnot(
   file.exists(segments_gpkg),
   file.exists(ward_panel_gpkg),
