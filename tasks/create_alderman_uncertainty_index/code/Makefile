@@ -9,8 +9,9 @@ TWO_STAGE := TRUE
 STAGE2_WEIGHT := N_PERMITS
 VOLUME_CTRL := LAG1
 VOLUME_STAGE := BOTH
+MAX_PERMIT_YEAR ?= 2023
 
-SPEC := ptfe$(PTFE)_rtfe$(RTFE)_porch$(PORCH)_cafe$(CAFE)_2stage_vol$(VOLUME_CTRL)_$(VOLUME_STAGE)
+SPEC := ptfe$(PTFE)_rtfe$(RTFE)_porch$(PORCH)_cafe$(CAFE)_2stage_vol$(VOLUME_CTRL)_$(VOLUME_STAGE)_through$(MAX_PERMIT_YEAR)
 
 all: ../output/alderman_uncertainty_index_$(SPEC).csv ../output/uncertainty_index_$(SPEC).pdf ../output/stage1_regression_$(SPEC).tex ../output/stage2_regression_$(SPEC).tex
 
@@ -20,7 +21,7 @@ all: ../output/alderman_uncertainty_index_$(SPEC).csv ../output/uncertainty_inde
 ../output/stage2_regression_$(SPEC).tex: ../output/.build_$(SPEC).done
 
 ../output/.build_$(SPEC).done: create_uncertainty_index.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
-	Rscript create_uncertainty_index.R $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE)
+	MAX_PERMIT_YEAR=$(MAX_PERMIT_YEAR) Rscript create_uncertainty_index.R $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE)
 	touch "$@"
 
 ../input/permits_for_uncertainty_index.csv: ../../data_for_alderman_uncertainty_index/output/permits_for_uncertainty_index.csv | ../input

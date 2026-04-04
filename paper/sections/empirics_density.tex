@@ -56,38 +56,6 @@ Table~\ref{tab:segment_fe_500} presents the results for the two main density out
 
 The density results are robust to a range of specification checks, which I summarize here with full results in Appendix~\ref{sec:appendix_density}.
 
-The most informative diagnostic is the median-gap split. The border discontinuity plots pool all ward boundaries together and treat the ward switch as a binary treatment variable, not a continuous one as in the regressions.
-This raises the concern that marginal ward pairs with small stringency gaps, that may not be robust to specification changes, are driving the results. Figure~\ref{fig:rd_median_split} splits the sample into two groups based on whether the stringency gap between the two aldermen is above or below the median stringency gap. 
-For FAR, the plotted break is visually small in the below-median sample and larger in the above-median sample. For DUPAC, both subsamples show downward jumps, with a larger plotted break in the above-median group. These patterns are consistent with larger stringency gaps being associated with larger density differences at the boundary.
-
-\begin{figure}[htbp]
-    \centering
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_gap_below_median.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_gap_above_median.pdf}
-    \end{minipage}
-
-    \vspace{0.3cm}
-
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_gap_below_median.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_gap_above_median.pdf}
-    \end{minipage}
-    \caption{Border Discontinuity: Below vs.\ Above Median Stringency Gap}
-    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column: below-median stringency gap; right column: above-median gap. Same specification as Figure~\ref{fig:rd_fe_plots}. The plotted discontinuity appears larger for the above-median-gap subsample.}
-    \label{fig:rd_median_split}
-\end{figure}
-
 I next provide a placebo test by moving the cutoff 500 feet into each ward. If the discontinuity is genuinely driven by the ward boundary where aldermanic jurisdiction changes, it should not appear at arbitrary locations within wards. Figure~\ref{fig:rd_placebo} shifts the cutoff 500 feet into each ward and re-estimates the discontinuity. Relative to the true boundary, the placebo plots are flatter around the shifted cutoffs and do not show the same visible jump.
 
 \begin{figure}[htbp]
@@ -106,4 +74,4 @@ I next provide a placebo test by moving the cutoff 500 feet into each ward. If t
     \label{fig:rd_placebo}
 \end{figure}
 
-The appendix reports several additional checks. Table~\ref{tab:rd_slope_diagnostics} shows that replacing zoning-group fixed effects with exact zoning-code fixed effects attenuates but does not eliminate the true-boundary jump, while a placebo cutoff shifted 500 feet into the more stringent ward produces near-zero jumps for both FAR and DUPAC. Figure~\ref{fig:rd_slope_case_studies} shows that the steepest negative-slope pairs are concentrated in a handful of corridor-like boundaries rather than being uniform across the citywide sample. In donut plots that exclude parcels within 25 or 50 feet of the boundary, the fitted discontinuity remains negative (Figure~\ref{fig:rd_donut}). Replacing segment fixed effects with coarser ward-pair fixed effects still yields negative estimates, though they are attenuated relative to the segment-fixed-effects baseline (Table~\ref{tab:fe_pair_year}), as does dropping ward-pair-era combinations flagged as potentially confounded by simultaneous institutional changes (Table~\ref{tab:fe_pruned}). Narrowing the bandwidth to 250 feet produces comparable estimates with wider confidence intervals (Table~\ref{tab:fe_estimates_250}), while widening it to 1,000 feet attenuates the effects (Table~\ref{tab:fe_estimates_1000}), consistent with aldermanic influence being concentrated near ward boundaries. Finally, extending the sample to include all new construction, not just multifamily, produces a smaller plotted discontinuity (Figure~\ref{fig:rd_all_units}), as expected given that single-family construction has less variation in density and is less likely to be the subject of community meetings, unit count negotiations, or other frictions aldermen could impose.
+The appendix reports several additional checks. Table~\ref{tab:rd_slope_diagnostics} shows that replacing zoning-group fixed effects with exact zoning-code fixed effects attenuates but does not eliminate the true-boundary jump, while a placebo cutoff shifted 500 feet into the more stringent ward produces near-zero jumps for both FAR and DUPAC. Figure~\ref{fig:rd_slope_case_studies} shows that the steepest negative-slope pairs are concentrated in a handful of corridor-like boundaries rather than being uniform across the citywide sample. In donut plots that exclude parcels within 25 or 50 feet of the boundary, the fitted discontinuity remains negative (Figure~\ref{fig:rd_donut}). Replacing segment fixed effects with coarser ward-pair fixed effects still yields negative estimates, though they are attenuated relative to the segment-fixed-effects baseline (Table~\ref{tab:fe_pair_year}), as does dropping ward-pair-era combinations flagged as potentially confounded by simultaneous institutional changes (Table~\ref{tab:fe_pruned}). Narrowing the bandwidth to 250 feet produces comparable estimates with wider confidence intervals (Table~\ref{tab:fe_estimates_250}), consistent with aldermanic influence being concentrated near ward boundaries. Finally, extending the sample to include all new construction, not just multifamily, produces a smaller plotted discontinuity (Figure~\ref{fig:rd_all_units}), as expected given that single-family construction has less variation in density and is less likely to be the subject of community meetings, unit count negotiations, or other frictions aldermen could impose.

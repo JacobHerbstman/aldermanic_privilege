@@ -64,15 +64,31 @@ message("  VOLUME_STAGE: ", config$volume_stage)
 
 permits_input_path <- Sys.getenv("PERMITS_INPUT_PATH", "../input/permits_for_uncertainty_index.csv")
 uncertainty_output_dir <- Sys.getenv("UNCERTAINTY_OUTPUT_DIR", "../output")
+max_permit_year_raw <- Sys.getenv("MAX_PERMIT_YEAR", "")
+max_permit_year <- if (nzchar(max_permit_year_raw)) suppressWarnings(as.integer(max_permit_year_raw)) else NA_integer_
 
-output_suffix <- build_uncertainty_output_suffix(config)
+if (nzchar(max_permit_year_raw) && !is.finite(max_permit_year)) {
+  stop("MAX_PERMIT_YEAR must be a valid integer year.", call. = FALSE)
+}
+
+output_suffix <- build_uncertainty_output_suffix(config, max_permit_year)
 output_file <- file.path(uncertainty_output_dir, paste0("alderman_uncertainty_index_", output_suffix, ".csv"))
 stage1_output <- file.path(uncertainty_output_dir, paste0("stage1_regression_", output_suffix, ".tex"))
 stage2_output <- file.path(uncertainty_output_dir, paste0("stage2_regression_", output_suffix, ".tex"))
 plot_output <- file.path(uncertainty_output_dir, paste0("uncertainty_index_", output_suffix, ".pdf"))
 
 permits <- load_uncertainty_permits(permits_input_path)
-message("Permits loaded: ", nrow(permits))
+message("Permits loaded before cutoff: ", nrow(permits))
+
+if (is.finite(max_permit_year)) {
+  permits <- permits %>%
+    filter(year <= max_permit_year)
+  message("Permits after year <= ", max_permit_year, " cutoff: ", nrow(permits))
+}
+
+if (nrow(permits) == 0) {
+  stop("No permits remain after applying MAX_PERMIT_YEAR.", call. = FALSE)
+}
 
 result <- build_residualized_uncertainty_index(
   permits = permits,

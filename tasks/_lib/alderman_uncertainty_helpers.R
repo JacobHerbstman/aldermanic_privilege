@@ -46,7 +46,7 @@ variant_display_label <- function(variant_id) {
   )
 }
 
-build_uncertainty_output_suffix <- function(config) {
+build_uncertainty_output_suffix <- function(config, max_permit_year = NA_integer_) {
   output_suffix <- paste0(
     "ptfe", ifelse(config$permit_type_fe, "TRUE", "FALSE"),
     "_rtfe", ifelse(config$review_type_fe, "TRUE", "FALSE"),
@@ -63,6 +63,10 @@ build_uncertainty_output_suffix <- function(config) {
       output_suffix,
       "_vol", config$volume_ctrl, "_", config$volume_stage
     )
+  }
+
+  if (is.finite(max_permit_year)) {
+    output_suffix <- paste0(output_suffix, "_through", as.integer(max_permit_year))
   }
 
   output_suffix

@@ -24,7 +24,7 @@ Table~\ref{tab:stage1_residualization} reports the baseline Stage 1 residualizat
 \begin{table}[htbp]
     \caption{Stage 1 Residualization: Permit-Level Log Processing Time on Ward Fundamentals}
     \label{tab:stage1_residualization}
-    \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex}
+    \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2023.tex}
 
     \footnotesize
     \textit{Notes:} Permit-level OLS regression from the baseline uncertainty-index specification. Covariates are median household income, racial shares, homeownership, population, distance to the CBD, distance to the lake, CTA station density, and lag permit volume. Fixed effects are listed in the table. Regressions are unweighted. Standard errors in parentheses. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
@@ -32,7 +32,7 @@ Table~\ref{tab:stage1_residualization} reports the baseline Stage 1 residualizat
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf}
+    \includegraphics[width=0.8\textwidth]{../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2023.pdf}
     \caption{Distribution of Aldermanic Stringency Scores}
     \figurenotes{Stringency scores are constructed from residualized permit processing times with empirical Bayes shrinkage. Scores are standardized to mean zero and unit standard deviation. Higher values indicate aldermen associated with longer permit processing times after controlling for ward characteristics and permit-level fixed effects.}
     \label{fig:aldermanic_strictness_scores}
@@ -47,7 +47,7 @@ The strictness index is intended to capture alderman-specific regulatory frictio
     \centering
     \caption{Validation of the Stringency Index Using Permit Outcomes}
     \label{tab:permit_validation}
-    \input{../tasks/uncertainty_validation_checks/output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex}
+    \input{../tasks/uncertainty_validation_checks/output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2023.tex}
 
     \footnotesize
     \textit{Notes:} Ward-month regressions of permit outcomes on the standardized stringency index, using high-discretion permits and weights equal to ward-month permit counts. Outcomes are the number of high-discretion permits, the share of permits with any unit change, and units reduced per permit based on permit text. Standard errors in parentheses. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
@@ -55,7 +55,7 @@ The strictness index is intended to capture alderman-specific regulatory frictio
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.72\textwidth]{../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf}
+    \includegraphics[width=0.72\textwidth]{../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2023.pdf}
     \caption{Predecessor and Successor Alderman Strictness Within the Same Ward}
     \figurenotes{Each point compares the strictness score of an alderman to that of the predecessor or successor who represented the same ward in an adjacent period. The low correlation indicates that the strictness measure is not simply a persistent ward-level attribute.}
     \label{fig:predecessor_successor_strictness}

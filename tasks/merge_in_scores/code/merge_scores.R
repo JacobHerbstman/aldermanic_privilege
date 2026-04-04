@@ -26,10 +26,16 @@ if (length(cli_args) < 2) {
 score_file <- cli_args[1]
 score_column <- cli_args[2]
 
-parcels_input <- "../input/parcels_pre_scores.csv"
-segment_lookup_input <- "../input/parcel_segment_ids.csv"
-merge_output <- "../output/parcels_with_ward_distances.csv"
-merge_summary_output <- "../output/boundary_distance_summary.csv"
+parcels_input <- Sys.getenv("PARCELS_INPUT_PATH", "../input/parcels_pre_scores.csv")
+segment_lookup_input <- Sys.getenv("SEGMENT_LOOKUP_PATH", "../input/parcel_segment_ids.csv")
+merge_output <- Sys.getenv("MERGE_OUTPUT_PATH", "../output/parcels_with_ward_distances.csv")
+merge_summary_output <- Sys.getenv("MERGE_SUMMARY_OUTPUT_PATH", "../output/boundary_distance_summary.csv")
+max_construction_year_raw <- Sys.getenv("MAX_CONSTRUCTION_YEAR", "2023")
+max_construction_year <- if (nzchar(max_construction_year_raw)) suppressWarnings(as.integer(max_construction_year_raw)) else NA_integer_
+
+if (nzchar(max_construction_year_raw) && !is.finite(max_construction_year)) {
+  stop("MAX_CONSTRUCTION_YEAR must be a valid integer year.", call. = FALSE)
+}
 
 cat("=== Merging Alderman Scores ===\n")
 cat("Score file:", score_file, "\n")
@@ -38,6 +44,7 @@ cat("Parcels input:", parcels_input, "\n")
 cat("Segment lookup input:", segment_lookup_input, "\n")
 cat("Merged output:", merge_output, "\n")
 cat("Summary output:", merge_summary_output, "\n")
+cat("Max construction year:", ifelse(is.finite(max_construction_year), max_construction_year, "none"), "\n")
 
 # -----------------------------------------------------------------------------
 # LOAD DATA
@@ -73,6 +80,17 @@ segment_lookup <- segment_lookup %>%
 parcels <- parcels %>%
   mutate(pin = as.character(pin)) %>%
   left_join(segment_lookup, by = "pin")
+
+if (is.finite(max_construction_year)) {
+  if (!"construction_year" %in% names(parcels)) {
+    stop("Parcels input must contain construction_year when MAX_CONSTRUCTION_YEAR is set.", call. = FALSE)
+  }
+  n_before_year_cutoff <- nrow(parcels)
+  parcels <- parcels %>%
+    filter(!is.na(construction_year), construction_year <= max_construction_year)
+  cat("Parcels after construction_year <=", max_construction_year, ":", nrow(parcels),
+      "(", n_before_year_cutoff - nrow(parcels), "dropped)\n")
+}
 
 # -----------------------------------------------------------------------------
 # MERGE SCORES AND CALCULATE SIGNED DISTANCES

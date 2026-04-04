@@ -1,7 +1,7 @@
 SHELL := bash
 include ../../shell_functions.make
 
-UNCERTAINTY_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH
+UNCERTAINTY_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2023
 
 all: ../output/permit_validation_results_uncertainty_$(UNCERTAINTY_SPEC).csv \
 	../output/permit_validation_table_uncertainty_$(UNCERTAINTY_SPEC).tex

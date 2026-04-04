@@ -28,7 +28,7 @@ DIAG_SUMMARY_OUTPUTS := \
 	../output/rd_fe_case_study_pairs_bw$(BW_FT)_multifamily.csv \
 	../output/rd_fe_case_study_maps_bw$(BW_FT)_multifamily.pdf
 
-all: $(MAIN_OUTPUTS) $(GAP_OUTPUTS) $(DONUT_OUTPUTS) $(PLACEBO_OUTPUTS) $(DIAG_BASE_SLOPE_OUTPUTS) $(DIAG_BASE_LEVEL_OUTPUTS) $(DIAG_ZONE_OUTPUTS) $(DIAG_PLACEBO_OUTPUTS) $(DIAG_SUMMARY_OUTPUTS)
+all: $(MAIN_OUTPUTS) $(DONUT_OUTPUTS) $(PLACEBO_OUTPUTS) $(DIAG_BASE_SLOPE_OUTPUTS) $(DIAG_BASE_LEVEL_OUTPUTS) $(DIAG_ZONE_OUTPUTS) $(DIAG_PLACEBO_OUTPUTS) $(DIAG_SUMMARY_OUTPUTS)
 
 define MAIN_RULE
 ../output/rd_fe_plot_log_$(1)_bw$(BW_FT)_$(2)_$(FE_SPEC)_clust_ward_pair.pdf: spatial_rd_fe.R ../input/parcels_with_ward_distances.csv | ../output

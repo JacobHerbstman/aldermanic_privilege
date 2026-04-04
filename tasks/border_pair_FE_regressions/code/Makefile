@@ -7,8 +7,7 @@ all: \
 	../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex \
 	../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex \
 	../output/fe_table_bw500_multifamily_zonegroup_pair_year_additive_clust_ward_pair.tex \
-	../output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex \
-	../output/fe_table_bw1000_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex
+	../output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex
 
 ../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
 	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R 500 multifamily zonegroup_segment_year_additive "$@" $(MAIN_YVARS)

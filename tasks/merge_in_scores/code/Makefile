@@ -1,7 +1,7 @@
 SHELL := bash
 include ../../shell_functions.make
 
-SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH
+SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2023
 SCORE_COLUMN ?= uncertainty_index
 
 all: ../output/parcels_with_ward_distances.csv

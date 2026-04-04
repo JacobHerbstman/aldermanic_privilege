@@ -34,22 +34,6 @@
     \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
-\begin{frame}[label=visual-rd-median]
-    \frametitle{FE-Adjusted Spatial RD: Below/Above Median Gap}
-    \begin{center}
-    \setlength{\tabcolsep}{3pt}
-    \begin{tabular}{cc}
-        \textbf{FAR: Below Median} & \textbf{FAR: Above Median} \\
-        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_gap_below_median.pdf} &
-        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_gap_above_median.pdf} \\
-        \textbf{DUPAC: Below Median} & \textbf{DUPAC: Above Median} \\
-        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_gap_below_median.pdf} &
-        \includegraphics[width=0.47\textwidth,height=0.25\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_gap_above_median.pdf}
-    \end{tabular}
-    \end{center}
-    \vfill\hfill \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
 \begin{frame}[label=visual-rd-donut]
     \frametitle{FE-Adjusted Spatial RD: Donut RD}
     \begin{center}
@@ -132,18 +116,5 @@
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
     \end{center}
     \vfill\hfill
-    \hyperlink{density-reg-bw1000}{\beamergotobutton{1000 ft}}
-    \hspace{0.2em}
-    \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
-\end{frame}
-
-\begin{frame}[label=density-reg-bw1000]
-    \frametitle{Border FE Robustness: Bandwidth = 1000 ft}
-    \begin{center}
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw1000_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
-    \end{center}
-    \vfill\hfill
-    \hyperlink{density-reg-bw250}{\beamergotobutton{250 ft}}
-    \hspace{0.2em}
     \hyperlink{density-reg-main}{\beamerreturnbutton{Back}}
 \end{frame}
