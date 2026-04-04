@@ -63,11 +63,11 @@ fe_map <- list(
 if (!fe_spec %in% names(fe_map)) {
   stop(sprintf("fe_spec must be one of: %s", paste(names(fe_map), collapse = ", ")), call. = FALSE)
 }
-if (!plot_style %in% c("slope", "level")) {
-  stop("plot_style must be one of: slope, level", call. = FALSE)
+if (!plot_style %in% c("slope", "level", "level_rd")) {
+  stop("plot_style must be one of: slope, level, level_rd", call. = FALSE)
 }
-if (!gap_split %in% c("all", "above_median", "below_median")) {
-  stop("gap_split must be one of: all, above_median, below_median", call. = FALSE)
+if (!gap_split %in% c("all", "above_median", "below_median", "top_quartile", "bottom_quartile")) {
+  stop("gap_split must be one of: all, above_median, below_median, top_quartile, bottom_quartile", call. = FALSE)
 }
 
 prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
@@ -89,6 +89,24 @@ if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
   stop("CLUSTER_LEVEL must be one of: ward_pair, segment", call. = FALSE)
 }
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
+
+weight_style_raw <- tolower(Sys.getenv("RD_WEIGHT_STYLE", "uniform"))
+if (weight_style_raw %in% c("uniform", "none", "unweighted")) {
+  weight_style <- "uniform"
+} else if (weight_style_raw %in% c("triangular", "triangle", "tri")) {
+  weight_style <- "triangular"
+} else {
+  stop("RD_WEIGHT_STYLE must be one of: uniform, triangular", call. = FALSE)
+}
+
+control_style_raw <- tolower(Sys.getenv("RD_CONTROL_STYLE", "baseline"))
+if (control_style_raw %in% c("baseline", "controls", "demographic_controls")) {
+  control_style <- "baseline"
+} else if (control_style_raw %in% c("none", "fe_only", "no_controls", "nocontrols")) {
+  control_style <- "none"
+} else {
+  stop("RD_CONTROL_STYLE must be one of: baseline, none", call. = FALSE)
+}
 
 donut_ft_raw <- Sys.getenv("DONUT_FT", "0")
 donut_ft <- suppressWarnings(as.numeric(donut_ft_raw))
@@ -199,9 +217,17 @@ dat <- dat %>%
   mutate(running_distance = signed_distance - placebo_shift_ft) %>%
   filter(abs(running_distance) <= bw_ft, abs(running_distance) >= donut_ft)
 
+if (weight_style == "triangular") {
+  dat <- dat %>%
+    mutate(plot_weight = pmax(0, 1 - abs(running_distance) / bw_ft))
+} else {
+  dat <- dat %>%
+    mutate(plot_weight = 1)
+}
+
 message(sprintf(
-  "RD config: FE=%s | cluster=%s | bw=%d | donut>=%.0f | placebo_shift=%+.0f | sample=%s | prune=%s | obs=%d",
-  fe_spec, cluster_level, as.integer(bw_ft), donut_ft, placebo_shift_ft, sample_filter, prune_sample, nrow(dat)
+  "RD config: FE=%s | cluster=%s | bw=%d | donut>=%.0f | placebo_shift=%+.0f | weights=%s | controls=%s | sample=%s | prune=%s | obs=%d",
+  fe_spec, cluster_level, as.integer(bw_ft), donut_ft, placebo_shift_ft, weight_style, control_style, sample_filter, prune_sample, nrow(dat)
 ))
 
 if (use_log) {
@@ -216,6 +242,8 @@ if (use_log) {
 
 pair_count_before_gap_split <- dplyr::n_distinct(dat$ward_pair)
 median_gap <- NA_real_
+gap_q25 <- NA_real_
+gap_q75 <- NA_real_
 if (gap_split != "all") {
   pair_gaps <- dat %>%
     filter(is.finite(strictness_own), is.finite(strictness_neighbor)) %>%
@@ -223,20 +251,27 @@ if (gap_split != "all") {
     summarise(strictness_gap = median(abs(strictness_own - strictness_neighbor), na.rm = TRUE), .groups = "drop")
 
   median_gap <- median(pair_gaps$strictness_gap, na.rm = TRUE)
+  gap_q25 <- as.numeric(quantile(pair_gaps$strictness_gap, probs = 0.25, na.rm = TRUE, type = 7))
+  gap_q75 <- as.numeric(quantile(pair_gaps$strictness_gap, probs = 0.75, na.rm = TRUE, type = 7))
   if (!is.finite(median_gap)) {
     stop("Median strictness gap is not finite; cannot split sample.", call. = FALSE)
   }
-
-  keep_pairs <- if (gap_split == "above_median") {
-    pair_gaps %>% filter(strictness_gap >= median_gap) %>% pull(ward_pair)
-  } else {
-    pair_gaps %>% filter(strictness_gap < median_gap) %>% pull(ward_pair)
+  if (!is.finite(gap_q25) || !is.finite(gap_q75)) {
+    stop("Gap quartiles are not finite; cannot split sample.", call. = FALSE)
   }
+
+  keep_pairs <- dplyr::case_when(
+    gap_split == "above_median" ~ list(pair_gaps %>% filter(strictness_gap >= median_gap) %>% pull(ward_pair)),
+    gap_split == "below_median" ~ list(pair_gaps %>% filter(strictness_gap < median_gap) %>% pull(ward_pair)),
+    gap_split == "top_quartile" ~ list(pair_gaps %>% filter(strictness_gap >= gap_q75) %>% pull(ward_pair)),
+    gap_split == "bottom_quartile" ~ list(pair_gaps %>% filter(strictness_gap <= gap_q25) %>% pull(ward_pair)),
+    TRUE ~ list(pair_gaps$ward_pair)
+  )[[1]]
 
   dat <- dat %>% filter(ward_pair %in% keep_pairs)
   message(sprintf(
-    "Gap split (%s): cutoff=%.3f | pairs %d -> %d | obs=%d",
-    gap_split, median_gap, pair_count_before_gap_split, dplyr::n_distinct(dat$ward_pair), nrow(dat)
+    "Gap split (%s): median=%.3f | q25=%.3f | q75=%.3f | pairs %d -> %d | obs=%d",
+    gap_split, median_gap, gap_q25, gap_q75, pair_count_before_gap_split, dplyr::n_distinct(dat$ward_pair), nrow(dat)
   ))
 }
 if (nrow(dat) == 0) {
@@ -250,6 +285,9 @@ controls <- c(
 if (fe_map[[fe_spec]]$use_far) {
   controls <- c(controls, "floor_area_ratio")
 }
+if (control_style == "none") {
+  controls <- character(0)
+}
 
 # Keep explicit side variable for discontinuity model after placebo shift.
 dat <- dat %>% mutate(side = as.integer(running_distance > 0))
@@ -257,7 +295,11 @@ dat <- dat %>% mutate(side = as.integer(running_distance > 0))
 rhs_rd <- paste(c("side", "running_distance", "side:running_distance", controls), collapse = " + ")
 fml_rd <- as.formula(sprintf("outcome ~ %s | %s", rhs_rd, fe_map[[fe_spec]]$fe))
 
-m_rd <- feols(fml_rd, data = dat, cluster = cluster_formula)
+if (weight_style == "triangular") {
+  m_rd <- feols(fml_rd, data = dat, weights = ~plot_weight, cluster = cluster_formula)
+} else {
+  m_rd <- feols(fml_rd, data = dat, cluster = cluster_formula)
+}
 ct_rd <- coeftable(m_rd)
 
 get_coef <- function(ct, names_vec) {
@@ -269,6 +311,7 @@ get_coef <- function(ct, names_vec) {
 b_side <- get_coef(ct_rd, c("side"))
 b_x <- get_coef(ct_rd, c("running_distance"))
 b_int <- get_coef(ct_rd, c("side:running_distance", "running_distance:side"))
+slope_right <- b_x["estimate"] + b_int["estimate"]
 
 stars <- function(p) {
   if (!is.finite(p)) return("")
@@ -278,11 +321,23 @@ stars <- function(p) {
   ""
 }
 
-if (plot_style == "level") {
+weighted_mean_safe <- function(x, w) {
+  keep <- is.finite(x) & is.finite(w)
+  if (!any(keep) || sum(w[keep], na.rm = TRUE) <= 0) {
+    return(NA_real_)
+  }
+  weighted.mean(x[keep], w[keep], na.rm = TRUE)
+}
+
+if (plot_style %in% c("level", "level_rd")) {
   # Residualize on FE + controls only (no side or distance terms).
-  rhs_resid <- paste(controls, collapse = " + ")
+  rhs_resid <- if (length(controls) == 0) "1" else paste(controls, collapse = " + ")
   fml_resid <- as.formula(sprintf("outcome ~ %s | %s", rhs_resid, fe_map[[fe_spec]]$fe))
-  m_resid <- feols(fml_resid, data = dat, cluster = cluster_formula)
+  if (weight_style == "triangular") {
+    m_resid <- feols(fml_resid, data = dat, weights = ~plot_weight, cluster = cluster_formula)
+  } else {
+    m_resid <- feols(fml_resid, data = dat, cluster = cluster_formula)
+  }
 
   removed <- m_resid$obs_selection$obsRemoved
   if (is.null(removed)) {
@@ -297,8 +352,13 @@ if (plot_style == "level") {
   }
   aug <- aug %>% mutate(y_adj = as.numeric(resid(m_resid)))
 
-  m_gap <- feols(y_adj ~ side, data = aug, cluster = cluster_formula)
-  b_side_plot <- get_coef(coeftable(m_gap), c("side"))
+  if (weight_style == "triangular") {
+    m_gap <- feols(y_adj ~ side, data = aug, weights = ~plot_weight, cluster = cluster_formula)
+  } else {
+    m_gap <- feols(y_adj ~ side, data = aug, cluster = cluster_formula)
+  }
+  b_side_gap <- get_coef(coeftable(m_gap), c("side"))
+  b_side_plot <- if (plot_style == "level") b_side_gap else b_side
   n_obs_plot <- nobs(m_resid)
 } else {
   # Keep slope terms visible as in the original RD visualization.
@@ -335,16 +395,17 @@ bins <- aug %>%
   group_by(bin_center, side) %>%
   summarise(
     n = n(),
-    mean_y = mean(y_adj, na.rm = TRUE),
-    se_y = sd(y_adj, na.rm = TRUE) / sqrt(n),
+    weight_sum = sum(plot_weight, na.rm = TRUE),
+    mean_y = weighted_mean_safe(y_adj, plot_weight),
+    se_y = ifelse(weight_style == "triangular", NA_real_, sd(y_adj, na.rm = TRUE) / sqrt(n)),
     lo = mean_y - 1.96 * se_y,
     hi = mean_y + 1.96 * se_y,
     .groups = "drop"
   )
 
 line_df <- if (plot_style == "level") {
-  mean_left <- mean(aug$y_adj[aug$side == 0], na.rm = TRUE)
-  mean_right <- mean(aug$y_adj[aug$side == 1], na.rm = TRUE)
+  mean_left <- weighted_mean_safe(aug$y_adj[aug$side == 0], aug$plot_weight[aug$side == 0])
+  mean_right <- weighted_mean_safe(aug$y_adj[aug$side == 1], aug$plot_weight[aug$side == 1])
   bind_rows(
     tibble(running_distance = c(-bw_ft, 0), side = 0, fit = mean_left),
     tibble(running_distance = c(0, bw_ft), side = 1, fit = mean_right)
@@ -366,16 +427,39 @@ line_df <- if (plot_style == "level") {
   )
 }
 
-jump_label <- sprintf(
-  "Jump = %.3f%s (SE %.3f)",
-  b_side_plot["estimate"], stars(b_side_plot["p"]), b_side_plot["se"]
-)
+jump_label <- if (plot_style == "level_rd") {
+  sprintf(
+    "RD jump = %.3f%s (SE %.3f) | pooled gap = %.3f%s (SE %.3f)",
+    b_side["estimate"], stars(b_side["p"]), b_side["se"],
+    b_side_gap["estimate"], stars(b_side_gap["p"]), b_side_gap["se"]
+  )
+} else if (plot_style == "level") {
+  sprintf(
+    "Gap = %.3f%s (SE %.3f)",
+    b_side_plot["estimate"], stars(b_side_plot["p"]), b_side_plot["se"]
+  )
+} else {
+  sprintf(
+    "Jump = %.3f%s (SE %.3f)",
+    b_side_plot["estimate"], stars(b_side_plot["p"]), b_side_plot["se"]
+  )
+}
 
 placebo_side_label <- dplyr::case_when(
   placebo_shift_ft > 0 ~ "sample lies inside the original more-stringent side",
   placebo_shift_ft < 0 ~ "sample lies inside the original less-stringent side",
   TRUE ~ "right side is the more-stringent side"
 )
+
+gap_split_label <- dplyr::case_when(
+  gap_split == "above_median" ~ "above-median gap pairs",
+  gap_split == "below_median" ~ "below-median gap pairs",
+  gap_split == "top_quartile" ~ "top-quartile gap pairs",
+  gap_split == "bottom_quartile" ~ "bottom-quartile gap pairs",
+  TRUE ~ "all pairs"
+)
+
+control_label <- if (control_style == "none") "FE only" else "FE + controls"
 
 distance_label <- if (placebo_shift_ft == 0) {
   "Running distance (ft) relative to cutoff; right side is the more-stringent side"
@@ -388,22 +472,27 @@ distance_label <- if (placebo_shift_ft == 0) {
 }
 
 subtitle_label <- if (placebo_shift_ft == 0) {
-  sprintf("%s | bw=%d ft | N=%d", jump_label, as.integer(bw_ft), n_obs_plot)
+  sprintf(
+    "%s | %s | %s | %s weights | bw=%d ft | N=%d",
+    jump_label,
+    gap_split_label,
+    control_label,
+    weight_style,
+    as.integer(bw_ft),
+    n_obs_plot
+  )
 } else {
   sprintf(
-    "%s | placebo shift=%+.0f ft | bw=%d ft | N=%d",
+    "%s | %s | %s | placebo shift=%+.0f ft | %s weights | bw=%d ft | N=%d",
     jump_label,
+    gap_split_label,
+    control_label,
     placebo_shift_ft,
+    weight_style,
     as.integer(bw_ft),
     n_obs_plot
   )
 }
-
-gap_split_label <- dplyr::case_when(
-  gap_split == "above_median" ~ "above-median gap pairs",
-  gap_split == "below_median" ~ "below-median gap pairs",
-  TRUE ~ "all pairs"
-)
 
 outcome_label <- c(
   density_far = "Floor-Area Ratio (FAR)",
@@ -430,7 +519,13 @@ p <- ggplot() +
   scale_color_manual(values = c("0" = "#1f77b4", "1" = "#d62728"), guide = "none") +
   labs(
     title = paste0(
-      if (plot_style == "level") "Spatial RD (FE-Adjusted Levels): " else "Spatial RD (FE-Adjusted): ",
+      if (plot_style == "level") {
+        if (control_style == "none") "Spatial RD (FE-Only Levels): " else "Spatial RD (FE-Adjusted Levels): "
+      } else if (plot_style == "level_rd") {
+        if (control_style == "none") "Spatial RD (FE-Only Levels + RD Lines): " else "Spatial RD (FE-Adjusted Levels + RD Lines): "
+      } else {
+        if (control_style == "none") "Spatial RD (FE-Only): " else "Spatial RD (FE-Adjusted): "
+      },
       ylab
     ),
     subtitle = subtitle_label,
@@ -444,8 +539,10 @@ ggsave(output_pdf, p, width = 8.6, height = 6.0, dpi = 300)
 # Save companion diagnostics
 out_csv <- sub("\\.pdf$", "_bins.csv", output_pdf)
 out_meta <- sub("\\.pdf$", "_meta.csv", output_pdf)
+out_fit <- sub("\\.pdf$", "_fit.csv", output_pdf)
 
 write_csv(bins, out_csv)
+write_csv(line_df, out_fit)
 write_csv(
   tibble(
     yvar = yvar,
@@ -460,12 +557,19 @@ write_csv(
     output_pdf = output_pdf,
     fe_spec = fe_spec,
     plot_style = plot_style,
+    weight_style = weight_style,
+    control_style = control_style,
     gap_split = gap_split,
     gap_split_label = gap_split_label,
     median_gap = median_gap,
+    gap_q25 = gap_q25,
+    gap_q75 = gap_q75,
     n_pairs_before_gap_split = pair_count_before_gap_split,
     n_obs = n_obs_plot,
     n_pairs = dplyr::n_distinct(aug$ward_pair),
+    n_left = sum(aug$side == 0, na.rm = TRUE),
+    n_right = sum(aug$side == 1, na.rm = TRUE),
+    weight_sum = sum(aug$plot_weight, na.rm = TRUE),
     jump_estimate = b_side_plot["estimate"],
     jump_se = b_side_plot["se"],
     jump_p = b_side_plot["p"],
@@ -473,6 +577,7 @@ write_csv(
     rd_jump_se = b_side["se"],
     rd_jump_p = b_side["p"],
     slope_left = b_x["estimate"],
+    slope_right = slope_right,
     slope_diff_right_minus_left = b_int["estimate"]
   ),
   out_meta
@@ -482,3 +587,4 @@ cat("Saved:\n")
 cat(" -", output_pdf, "\n")
 cat(" -", out_csv, "\n")
 cat(" -", out_meta, "\n")
+cat(" -", out_fit, "\n")

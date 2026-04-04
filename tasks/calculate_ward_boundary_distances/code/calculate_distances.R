@@ -28,9 +28,23 @@ alderman_panel <- read_csv("../input/chicago_alderman_panel.csv")
 
 cat("Loading ward controls (homeownership rates)...\n")
 ward_controls <- read_csv("../input/ward_controls.csv")
+ward_controls_max_year <- max(ward_controls$year, na.rm = TRUE)
+if (!is.finite(ward_controls_max_year)) {
+  stop("Ward controls have no valid year coverage.", call. = FALSE)
+}
 
 cat("Loading block group controls...\n")
 bg_controls <- read_csv("../input/block_group_controls.csv", show_col_types = FALSE)
+bg_controls_max_year <- max(bg_controls$year, na.rm = TRUE)
+if (!is.finite(bg_controls_max_year)) {
+  stop("Block group controls have no valid year coverage.", call. = FALSE)
+}
+
+cat(sprintf(
+  "Ward controls available through %d; block group controls available through %d.\n",
+  as.integer(ward_controls_max_year),
+  as.integer(bg_controls_max_year)
+))
 
 if (st_crs(parcels) != st_crs(ward_panel)) {
   message("CRS mismatch detected. Transforming parcels CRS to match ward boundaries.")
@@ -257,18 +271,19 @@ final_dataset_signed <- final_dataset %>%
     ward_a = as.integer(wards_in_pair[, 1]),
     ward_b = as.integer(wards_in_pair[, 2]),
     other_ward = if_else(ward == ward_a, ward_b, ward_a),
-    match_year = construction_year
+    ward_controls_year = pmin(construction_year, ward_controls_max_year),
+    bg_controls_year = pmin(construction_year, bg_controls_max_year)
   ) %>%
   # --- JOIN 1: Own Ward Data ---
   # This adds columns like 'share_black', 'homeownership_rate', etc.
-  left_join(ward_controls_clean, by = c("ward" = "ward", "match_year" = "year")) %>%
+  left_join(ward_controls_clean, by = c("ward" = "ward", "ward_controls_year" = "year")) %>%
   # --- JOIN 2: Neighbor Ward Data (The Fix) ---
   # The 'suffix' argument tells dplyr:
   # "If you see a column name that already exists (from Join 1),
   #  rename the existing one with '_own' and the new one with '_neighbor'."
   left_join(
     ward_controls_clean,
-    by = c("other_ward" = "ward", "match_year" = "year"),
+    by = c("other_ward" = "ward", "ward_controls_year" = "year"),
     suffix = c("_own", "_neighbor")
   ) %>%
   # --- JOIN 3: Neighbor Alderman ---
@@ -277,7 +292,7 @@ final_dataset_signed <- final_dataset %>%
     by = c("other_ward" = "ward", "yearmon_key")
   ) %>%
   # NOTE: Score merging moved to merge_in_scores task for faster iteration
-  dplyr::select(-contains("wards_in_pair"), -match_year) %>%
+  dplyr::select(-contains("wards_in_pair"), -ward_controls_year) %>%
   # --- JOIN 4: Block Group Demographics ---
   # Merge block group-level demographics by GEOID and construction_year
   # Ensure GEOID is character type in both datasets
@@ -285,8 +300,19 @@ final_dataset_signed <- final_dataset %>%
     bg_controls %>%
       mutate(GEOID = as.character(GEOID)) %>%
       rename_with(~ paste0(., "_bg"), -c(GEOID, year)),
-    by = c("GEOID", "construction_year" = "year")
-  )
+    by = c("GEOID", "bg_controls_year" = "year")
+  ) %>%
+  dplyr::select(-bg_controls_year)
+
+ward_controls_carried_forward <- sum(final_dataset_signed$construction_year > ward_controls_max_year, na.rm = TRUE)
+bg_controls_carried_forward <- sum(final_dataset_signed$construction_year > bg_controls_max_year, na.rm = TRUE)
+cat(sprintf(
+  "Ward controls carried forward from %d for %d parcels; block group controls carried forward from %d for %d parcels.\n",
+  as.integer(ward_controls_max_year),
+  ward_controls_carried_forward,
+  as.integer(bg_controls_max_year),
+  bg_controls_carried_forward
+))
 
 cat("Final Dataset Created!\n")
 cat(sprintf(

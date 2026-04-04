@@ -69,7 +69,7 @@ ward_pairs_no_ctrl <- n_distinct(data$ward_pair)
 ward_pairs_ctrl <- ward_pairs_no_ctrl
 
 setFixest_dict(c(
-  post_treat = "Post $\\times$ Strictness $\\Delta$",
+  post_treat = "Post $\\times$ Stringency $\\Delta$",
   log_sqft = "Log Building Sqft",
   log_land_sqft = "Log Land Sqft",
   log_building_age = "Log Building Age",

@@ -14,6 +14,45 @@ Figure~\ref{fig:pruned_border_segments} shows the ward-boundary segments that en
 \end{figure}
 
 % ==============================================================================
+% BORDER-CORRIDOR DIAGNOSTICS
+% ==============================================================================
+\subsection{Why the Pooled RD Plots Slope}
+
+The main-text RD plots slope upward toward the boundary on both sides. Table~\ref{tab:rd_distance_bins} shows that this is partly a composition fact of the sample: parcels closest to ward boundaries are more likely to be in mixed-use corridor zoning and, in the full new-construction sample, more likely to be multifamily. Figure~\ref{fig:rd_plot_style_comparison} compares the standard RD fits to level-only residual plots that remove fixed effects and controls without adding back running-distance slopes. The level-only plots are much flatter, confirming that the visual steepness in Figure~\ref{fig:rd_fe_plots} comes from the within-side RD approximation rather than from a large unconditional mean shift.
+
+Table~\ref{tab:rd_slope_diagnostics} shows that replacing zoning-group fixed effects with exact zoning-code fixed effects attenuates both the jump and the slope terms, but the true-boundary discontinuity remains. By contrast, the placebo cutoff shifted 500 feet into the more stringent ward produces near-zero jumps for both FAR and DUPAC. Figure~\ref{fig:rd_slope_case_studies} maps the six steepest negative-slope ward pairs. These cases are concentrated in a small set of corridor-like environments rather than being representative of the full citywide boundary sample.
+
+\begin{table}[H]
+    \caption{Composition of the Boundary Sample by Absolute Distance}
+    \label{tab:rd_distance_bins}
+
+    \input{../tasks/spatial_rd_fe/output/rd_fe_distance_bin_summary_bw500.tex}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_style_comparison_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf}
+    \caption{Slope Plots vs.\ Level-Only Residual Plots}
+    \figurenotes{Left column reproduces the standard FE-adjusted RD fit used in the text. Right column residualizes only fixed effects and controls, without adding back running-distance slopes. The level-only plots are much flatter, which clarifies that the identifying object is the discontinuity at the jurisdictional break rather than the existence of an upward slope near the boundary.}
+    \label{fig:rd_plot_style_comparison}
+\end{figure}
+
+\begin{table}[H]
+    \caption{Boundary-Jump Diagnostics: Exact Zoning FE and Placebo Cutoffs}
+    \label{tab:rd_slope_diagnostics}
+
+    \input{../tasks/spatial_rd_fe/output/rd_fe_slope_diagnostic_comparison_bw500_multifamily_clust_ward_pair.tex}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_case_study_maps_bw500_multifamily.pdf}
+    \caption{Case Studies: Steepest Negative-Slope Ward Pairs}
+    \figurenotes{Boundary is shown in black and major streets in gray. Points are multifamily projects within 500 feet of the boundary, scaled by log(DUPAC) and colored by side. The steepest negative-slope cases are concentrated in a small number of corridor-like border environments.}
+    \label{fig:rd_slope_case_studies}
+\end{figure}
+
+% ==============================================================================
 % COVARIATE BALANCE
 % ==============================================================================
 % ALTERNATIVE FE: WARD-PAIR INSTEAD OF SEGMENT
@@ -23,13 +62,13 @@ Figure~\ref{fig:pruned_border_segments} shows the ward-boundary segments that en
 Table~\ref{tab:fe_pair_year} replaces segment fixed effects with ward-pair fixed effects, which pool across all segments of a given ward pair. This is a coarser comparison---ward-pair borders can stretch for miles through different neighborhoods---but it uses more variation. The estimates remain negative, but they are attenuated relative to the main segment FE estimates in Table~\ref{tab:segment_fe_500}.
 
 \begin{table}[H]
-    \caption{Effect of Aldermanic Strictness on Development Density (Ward-Pair FE)}
+    \caption{Effect of Aldermanic Stringency on Development Density (Ward-Pair FE)}
     \label{tab:fe_pair_year}
 
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_pair_year_additive_clust_ward_pair.tex}
 
     \footnotesize
-    \textit{Notes:} Sample includes new multifamily construction within 500 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Sample includes new multifamily construction within 500 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 % ==============================================================================
@@ -40,7 +79,7 @@ Table~\ref{tab:fe_pair_year} replaces segment fixed effects with ward-pair fixed
 Table~\ref{tab:fe_pruned} drops ward-pair-era combinations where confounding boundary changes (e.g., simultaneous zoning remaps or major infrastructure projects) may contaminate the comparison. The estimates remain negative and are larger in magnitude than in the full sample.
 
 \begin{table}[H]
-    \caption{Effect of Aldermanic Strictness on Development Density (Pruned Sample)}
+    \caption{Effect of Aldermanic Stringency on Development Density (Pruned Sample)}
     \label{tab:fe_pruned}
 
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex}
@@ -57,23 +96,23 @@ Table~\ref{tab:fe_pruned} drops ward-pair-era combinations where confounding bou
 Tables~\ref{tab:fe_estimates_250} and \ref{tab:fe_estimates_1000} present the main segment FE specification at alternative bandwidths. At 250 feet the estimates are similar in magnitude but based on fewer observations. At 1,000 feet the estimates attenuate, consistent with the effects being concentrated near the boundary where aldermanic jurisdiction changes.
 
 \begin{table}[H]
-    \caption{Effect of Aldermanic Strictness on Development Density (250 ft Bandwidth)}
+    \caption{Effect of Aldermanic Stringency on Development Density (250 ft Bandwidth)}
     \label{tab:fe_estimates_250}
 
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
 
     \footnotesize
-    \textit{Notes:} Sample includes new multifamily construction within 250 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Sample includes new multifamily construction within 250 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 \begin{table}[H]
-    \caption{Effect of Aldermanic Strictness on Development Density (1,000 ft Bandwidth)}
+    \caption{Effect of Aldermanic Stringency on Development Density (1,000 ft Bandwidth)}
     \label{tab:fe_estimates_1000}
 
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw1000_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
 
     \footnotesize
-    \textit{Notes:} Sample includes new multifamily construction within 1,000 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic strictness score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Sample includes new multifamily construction within 1,000 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 % ==============================================================================

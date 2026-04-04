@@ -118,7 +118,7 @@ stars <- if (!is.finite(p_value)) {
   ""
 }
 
-setFixest_dict(c(post_treat = "Post $\\times$ Strictness $\\Delta$"))
+setFixest_dict(c(post_treat = "Post $\\times$ Stringency $\\Delta$"))
 table_lines <- c(
   "\\begingroup",
   "\\centering",
@@ -127,7 +127,7 @@ table_lines <- c(
   "\\toprule",
   " & 2015 \\\\",
   "\\midrule",
-  sprintf("Post $\\times$ Strictness $\\Delta$ & %.4f%s \\\\", estimate, stars),
+  sprintf("Post $\\times$ Stringency $\\Delta$ & %.4f%s \\\\", estimate, stars),
   sprintf(" & (%.4f) \\\\", std_error),
   "\\\\",
   "Block FE & $\\checkmark$ \\\\",
