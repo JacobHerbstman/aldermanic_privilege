@@ -2,27 +2,24 @@ source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_donut/code")
 # yvar <- "density_far"
 # use_log <- TRUE
 # bw_ft <- 500
 # sample_filter <- "multifamily"
 # gap_split <- "all"
-# output_pdf <- "../output/nonparametric_rd_log_density_far_bw500_multifamily_baseline_fe.pdf"
+# donut_ft <- 25
+# output_pdf <- "../output/donut_nonparametric_rd_log_density_far_bw500_multifamily_baseline_fe_donut25.pdf"
 # axis_units <- "feet"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(yvar, use_log, bw_ft, sample_filter, gap_split, output_pdf, axis_units)
+  args <- c(yvar, use_log, bw_ft, sample_filter, gap_split, donut_ft, output_pdf, axis_units)
 }
 
-if (length(args) == 6) {
-  args <- append(args, "all", after = 4)
-}
-
-if (length(args) != 7) {
+if (length(args) != 8) {
   stop(
-    "FATAL: Script requires args: <yvar> <use_log> <bw_ft> <sample_filter> <gap_split> <output_pdf> <axis_units>",
+    "FATAL: Script requires args: <yvar> <use_log> <bw_ft> <sample_filter> <gap_split> <donut_ft> <output_pdf> <axis_units>",
     call. = FALSE
   )
 }
@@ -32,8 +29,9 @@ use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
 bw_ft <- as.numeric(args[3])
 sample_filter <- args[4]
 gap_split <- tolower(args[5])
-output_pdf <- args[6]
-axis_units <- tolower(args[7])
+donut_ft <- as.numeric(args[6])
+output_pdf <- args[7]
+axis_units <- tolower(args[8])
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -47,12 +45,17 @@ if (!sample_filter %in% c("all", "multifamily")) {
 if (!gap_split %in% c("all", "above_median", "below_median")) {
   stop("gap_split must be one of: all, above_median, below_median", call. = FALSE)
 }
+if (!is.finite(donut_ft) || donut_ft < 0) {
+  stop("donut_ft must be a non-negative number.", call. = FALSE)
+}
+if (donut_ft >= bw_ft) {
+  stop("donut_ft must be strictly smaller than bw_ft.", call. = FALSE)
+}
 if (!axis_units %in% c("feet", "meters")) {
   stop("axis_units must be one of: feet, meters", call. = FALSE)
 }
 
 rd_input_path <- Sys.getenv("RD_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
-rd_summary_output_path <- Sys.getenv("RD_SUMMARY_OUTPUT_PATH", "")
 
 message(sprintf("Input: %s", rd_input_path))
 
@@ -74,7 +77,8 @@ dat <- raw %>%
     !is.na(zone_code),
     !is.na(segment_id),
     segment_id != "",
-    abs(signed_distance) <= bw_ft
+    abs(signed_distance) <= bw_ft,
+    abs(signed_distance) >= donut_ft
   )
 
 if (sample_filter == "all") {
@@ -97,7 +101,7 @@ if (use_log) {
 }
 
 if (nrow(dat) == 0) {
-  stop("No observations remain after baseline filters.", call. = FALSE)
+  stop("No observations remain after donut filters.", call. = FALSE)
 }
 
 if (gap_split != "all") {
@@ -124,7 +128,7 @@ if (gap_split != "all") {
 }
 
 if (nrow(dat) == 0) {
-  stop("No observations remain after gap split.", call. = FALSE)
+  stop("No observations remain after donut gap split.", call. = FALSE)
 }
 
 controls <- c(
@@ -163,7 +167,7 @@ ct_gap <- coeftable(m_gap)
 gap_row <- ct_gap[rownames(ct_gap) %in% "side", , drop = FALSE]
 
 if (nrow(gap_row) != 1) {
-  stop("Could not recover pooled side-gap estimate.", call. = FALSE)
+  stop("Could not recover pooled donut side-gap estimate.", call. = FALSE)
 }
 
 gap_estimate <- unname(gap_row[1, "Estimate"])
@@ -202,7 +206,7 @@ bins <- aug %>%
   arrange(bin_center_ft)
 
 if (nrow(bins) == 0) {
-  stop("No populated bins available for plotting.", call. = FALSE)
+  stop("No populated donut bins available for plotting.", call. = FALSE)
 }
 
 if (axis_units == "meters") {
@@ -210,13 +214,11 @@ if (axis_units == "meters") {
   x_limits <- c(-bw_ft, bw_ft) * 0.3048
   x_label <- "Distance to ward boundary (meters)"
   bw_label <- sprintf("%d m", as.integer(round(bw_ft * 0.3048)))
-  axis_note <- "x-axis shown in meters"
 } else {
   bins <- bins %>% mutate(bin_center_display = bin_center_ft)
   x_limits <- c(-bw_ft, bw_ft)
   x_label <- "Distance to ward boundary (ft)"
   bw_label <- sprintf("%d ft", as.integer(bw_ft))
-  axis_note <- NULL
 }
 
 pretty_outcome <- dplyr::case_when(
@@ -240,11 +242,11 @@ gap_label <- dplyr::case_when(
 
 subtitle_bits <- c(
   sprintf("Gap = %.3f%s (SE %.3f)", gap_estimate, stars(gap_p), gap_se),
+  sprintf("donut >= %.0f ft", donut_ft),
   gap_label,
   paste0("bw = ", bw_label),
   "30 bins/side",
-  paste0("N = ", nobs(m_resid)),
-  axis_note
+  paste0("N = ", nobs(m_resid))
 )
 
 p <- ggplot(bins, aes(x = bin_center_display, y = mean_y)) +
@@ -252,7 +254,7 @@ p <- ggplot(bins, aes(x = bin_center_display, y = mean_y)) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "#6e6e6e", linewidth = 0.6) +
   scale_x_continuous(limits = x_limits, breaks = pretty(x_limits, n = 7)) +
   labs(
-    title = pretty_outcome,
+    title = paste("Donut", pretty_outcome),
     subtitle = paste(subtitle_bits[!is.na(subtitle_bits) & nzchar(subtitle_bits)], collapse = " | "),
     x = x_label,
     y = paste("Residualized", pretty_outcome)
@@ -269,29 +271,34 @@ p <- ggplot(bins, aes(x = bin_center_display, y = mean_y)) +
 
 ggsave(output_pdf, plot = p, width = 7.4, height = 4.9, dpi = 300)
 
-if (nzchar(rd_summary_output_path)) {
-  write_csv(
-    tibble(
-      method = "nonparametric_rd",
-      yvar = yvar,
-      use_log = use_log,
-      bw_ft = bw_ft,
-      sample_filter = sample_filter,
-      gap_split = gap_split,
-      axis_units = axis_units,
-      estimate = gap_estimate,
-      se = gap_se,
-      p_value = gap_p,
-      n_obs = nobs(m_resid),
-      n_ward_pairs = n_distinct(aug$ward_pair),
-      input_path = rd_input_path,
-      output_pdf = output_pdf
-    ),
-    rd_summary_output_path
-  )
-}
+write_csv(
+  bins,
+  sub("\\.pdf$", "_bins.csv", output_pdf)
+)
+
+write_csv(
+  tibble(
+    yvar = yvar,
+    use_log = use_log,
+    bw_ft = bw_ft,
+    sample_filter = sample_filter,
+    gap_split = gap_split,
+    donut_ft = donut_ft,
+    input_path = rd_input_path,
+    output_pdf = output_pdf,
+    axis_units = axis_units,
+    n_obs = nobs(m_resid),
+    n_pairs = n_distinct(aug$ward_pair),
+    n_left = sum(aug$side == 0, na.rm = TRUE),
+    n_right = sum(aug$side == 1, na.rm = TRUE),
+    gap_estimate = gap_estimate,
+    gap_se = gap_se,
+    gap_p = gap_p
+  ),
+  sub("\\.pdf$", "_meta.csv", output_pdf)
+)
 
 message(sprintf(
-  "Built %s | sample=%s | gap_split=%s | y=%s | bw=%d | axis=%s | N=%d",
-  output_pdf, sample_filter, gap_split, yvar, as.integer(bw_ft), axis_units, nobs(m_resid)
+  "Built %s | sample=%s | gap_split=%s | y=%s | bw=%d | donut=%.0f | axis=%s | N=%d",
+  output_pdf, sample_filter, gap_split, yvar, as.integer(bw_ft), donut_ft, axis_units, nobs(m_resid)
 ))
