@@ -1,7 +1,7 @@
 SHELL := bash
 
 BW_FT := 250 500
-YVARS := density_far density_dupac
+YVARS := density_far density_dupac unitscount arealotsf
 FE_SPECS := segment_zonegroup_year segment_year wardpair_zonegroup_year
 FIGURE_TYPES := type3_local_linear
 

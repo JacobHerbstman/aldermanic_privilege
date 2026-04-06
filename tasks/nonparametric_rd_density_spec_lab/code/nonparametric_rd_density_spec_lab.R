@@ -2,14 +2,14 @@ source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_spec_lab/code")
-# figure_type <- "type1_bins"
-# yvar <- "density_far"
-# bw_ft <- 250
-# sample_filter <- "all"
-# fe_spec <- "segment_zonegroup_year"
-# output_pdf <- "../output/type1_bins_log_density_far_bw250_all_segment_zonegroup_year.pdf"
-# output_csv <- "none"
+setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_spec_lab/code")
+figure_type <- "type3_local_linear"
+yvar <- "unitscount"
+bw_ft <- 250
+sample_filter <- "all"
+fe_spec <- "segment_zonegroup_year"
+output_pdf <- "../output/type3_local_linear_log_unitscount_bw250_all_segment_zonegroup_year.pdf"
+output_csv <- "none"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -51,7 +51,7 @@ valid_figure_types <- c(
   "legacy_binned_only",
   "legacy_linear_display"
 )
-valid_yvars <- c("density_far", "density_dupac")
+valid_yvars <- c("density_far", "density_dupac", "unitscount", "arealotsf")
 valid_samples <- c("all", "multifamily")
 valid_fe_specs <- c("segment_zonegroup_year", "segment_year", "wardpair_zonegroup_year")
 
@@ -105,6 +105,8 @@ pretty_outcome_from_yvar <- function(yvar) {
   dplyr::case_when(
     yvar == "density_far" ~ "Log(FAR)",
     yvar == "density_dupac" ~ "Log(DUPAC)",
+    yvar == "unitscount" ~ "Log(Units)",
+    yvar == "arealotsf" ~ "Log(Lot Size)",
     TRUE ~ yvar
   )
 }
