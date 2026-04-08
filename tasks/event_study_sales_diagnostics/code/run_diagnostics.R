@@ -634,6 +634,14 @@ for (wp in all_pairs_to_map) {
     # Save VERTICAL version with wide panels for the paper
     outfile_vertical <- sprintf("../output/ward_pair_vertical_%s.pdf", gsub("_", "-", wp))
     ggsave(outfile_vertical, combined_vertical, width = 11.2, height = 8.8, bg = "white")
+    pdfcrop_path <- Sys.which("pdfcrop")
+    if (nzchar(pdfcrop_path)) {
+        outfile_vertical_cropped <- sub("\\.pdf$", "_cropped.pdf", outfile_vertical)
+        system2(pdfcrop_path, c("--margins", "16", outfile_vertical, outfile_vertical_cropped))
+        if (file.exists(outfile_vertical_cropped)) {
+            file.rename(outfile_vertical_cropped, outfile_vertical)
+        }
+    }
     message(sprintf("    Saved: %s", outfile_vertical))
 
     # =========================================================================
