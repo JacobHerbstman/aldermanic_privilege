@@ -15,15 +15,16 @@ source("../../setup_environment/code/packages.R")
 # alderman_figure_output <- "../output/alderman_mean_processing_time_high_vs_low_density.pdf"
 # correlation_csv_output <- "../output/permit_processing_time_volume_correlation.csv"
 # correlation_tex_output <- "../output/permit_processing_time_volume_correlation.tex"
+# max_application_ym <- "2022-12"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(clean_permits_input, ward_panel_input, alderman_panel_input, ward_summary_csv_output, ward_summary_tex_output, ward_means_output, ward_figure_output, alderman_summary_csv_output, alderman_summary_tex_output, alderman_means_output, alderman_figure_output, correlation_csv_output, correlation_tex_output)
+  cli_args <- c(clean_permits_input, ward_panel_input, alderman_panel_input, ward_summary_csv_output, ward_summary_tex_output, ward_means_output, ward_figure_output, alderman_summary_csv_output, alderman_summary_tex_output, alderman_means_output, alderman_figure_output, correlation_csv_output, correlation_tex_output, max_application_ym)
 }
 
-if (length(cli_args) != 13) {
+if (length(cli_args) != 14) {
   stop(
-    "FATAL: Script requires 13 args: <clean_permits_input> <ward_panel_input> <alderman_panel_input> <ward_summary_csv_output> <ward_summary_tex_output> <ward_means_output> <ward_figure_output> <alderman_summary_csv_output> <alderman_summary_tex_output> <alderman_means_output> <alderman_figure_output> <correlation_csv_output> <correlation_tex_output>",
+    "FATAL: Script requires 14 args: <clean_permits_input> <ward_panel_input> <alderman_panel_input> <ward_summary_csv_output> <ward_summary_tex_output> <ward_means_output> <ward_figure_output> <alderman_summary_csv_output> <alderman_summary_tex_output> <alderman_means_output> <alderman_figure_output> <correlation_csv_output> <correlation_tex_output> <max_application_ym>",
     call. = FALSE
   )
 }
@@ -40,6 +41,7 @@ alderman_means_output <- cli_args[10]
 alderman_figure_output <- cli_args[11]
 correlation_csv_output <- cli_args[12]
 correlation_tex_output <- cli_args[13]
+max_application_ym <- cli_args[14]
 
 group_levels <- c("High-Discretion", "Low-Discretion")
 group_labels <- c(`1` = "High-Discretion", `0` = "Low-Discretion")
@@ -74,7 +76,8 @@ permits <- st_read(clean_permits_input, quiet = TRUE) %>%
   filter(
     !is.na(application_start_date_ym),
     !is.na(high_discretion),
-    processing_time > 0
+    processing_time > 0,
+    application_start_date_ym <= as.yearmon(max_application_ym)
   )
 
 if (st_crs(permits) != st_crs(ward_panel)) {
@@ -93,21 +96,10 @@ ward_geoms_map2 <- ward_panel %>%
   group_by(ward) %>%
   summarise(.groups = "drop")
 
-ward_geoms_map3 <- ward_panel %>%
-  filter(year == max(year)) %>%
-  select(ward) %>%
-  group_by(ward) %>%
-  summarise(.groups = "drop")
-
 permits_p1 <- permits %>%
   filter(application_start_date_ym < as.yearmon("2015-05"))
 permits_p2 <- permits %>%
-  filter(
-    application_start_date_ym >= as.yearmon("2015-05"),
-    application_start_date_ym < as.yearmon("2023-05")
-  )
-permits_p3 <- permits %>%
-  filter(application_start_date_ym >= as.yearmon("2023-05"))
+  filter(application_start_date_ym >= as.yearmon("2015-05"))
 
 if (nrow(permits_p1) == 0) {
   permits_with_ward_p1 <- permits_p1 %>% st_drop_geometry()
@@ -125,18 +117,9 @@ if (nrow(permits_p2) == 0) {
     st_drop_geometry()
 }
 
-if (nrow(permits_p3) == 0) {
-  permits_with_ward_p3 <- permits_p3 %>% st_drop_geometry()
-} else {
-  permits_with_ward_p3 <- st_join(permits_p3, ward_geoms_map3, join = st_within) %>%
-    filter(!is.na(ward)) %>%
-    st_drop_geometry()
-}
-
 permits_with_ward <- bind_rows(
   permits_with_ward_p1,
-  permits_with_ward_p2,
-  permits_with_ward_p3
+  permits_with_ward_p2
 )
 
 permits_analysis_all <- permits_with_ward %>%

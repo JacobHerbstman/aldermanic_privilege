@@ -43,6 +43,8 @@ if (length(yvars) == 0) {
 
 fe_input_path <- Sys.getenv("FE_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
 fe_summary_output_path <- Sys.getenv("FE_SUMMARY_OUTPUT_PATH", "")
+write_tex_raw <- tolower(Sys.getenv("WRITE_TEX", "TRUE"))
+write_tex <- !write_tex_raw %in% c("false", "f", "0", "no", "off")
 
 prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
 if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
@@ -78,6 +80,7 @@ message(sprintf("FE Specification: %s", fe_spec))
 message(sprintf("Pruning spec: %s", prune_sample))
 message(sprintf("Cluster level: %s", cluster_level))
 message(sprintf("Donut exclusion: >= %.0f ft", donut_ft))
+message(sprintf("Write TeX table: %s", ifelse(write_tex, "TRUE", "FALSE")))
 message(sprintf("Input: %s", fe_input_path))
 message(sprintf("Output: %s", output_filename))
 message(sprintf("Y variables: %s", paste(yvars, collapse = ", ")))
@@ -265,6 +268,7 @@ for (yv in yvars) {
   coef_info <- coef_table["strictness_own", c("Estimate", "Std. Error", "Pr(>|t|)"), drop = FALSE]
   lenient_info <- coef_table["lenient_dist", c("Estimate", "Std. Error", "Pr(>|t|)"), drop = FALSE]
   strict_info <- coef_table["strict_dist", c("Estimate", "Std. Error", "Pr(>|t|)"), drop = FALSE]
+  strictness_ci <- as.numeric(confint(m, parm = "strictness_own", level = 0.95))
 
   model_summaries[[length(model_summaries) + 1]] <- tibble(
     yvar = yv,
@@ -272,6 +276,8 @@ for (yv in yvars) {
     estimate = unname(coef_info[1, "Estimate"]),
     se = unname(coef_info[1, "Std. Error"]),
     p_value = unname(coef_info[1, "Pr(>|t|)"]),
+    ci_low = strictness_ci[1],
+    ci_high = strictness_ci[2],
     lenient_slope = unname(lenient_info[1, "Estimate"]),
     lenient_slope_se = unname(lenient_info[1, "Std. Error"]),
     lenient_slope_p = unname(lenient_info[1, "Pr(>|t|)"]),
@@ -300,53 +306,54 @@ if (length(models) == 0) {
 
 names(models) <- col_headers
 
+if (write_tex) {
 fe_rows <- lapply(names(fe_label_list), function(x) rep("$\\checkmark$", length(models)))
 names(fe_rows) <- paste0("_", names(fe_label_list))
-fe_rows[["_Side-Specific Distance Slopes"]] <- rep("$\\checkmark$", length(models))
 fe_rows[["_N"]] <- vapply(models, function(x) format(nobs(x), big.mark = ","), character(1))
 fe_rows[["_Dep. Var. Mean"]] <- vapply(
-  models,
-  function(x) sprintf("%.2f", mean(x$custom_data[[gsub("^log\\(|\\)$", "", all.vars(formula(x))[1])]], na.rm = TRUE)),
-  character(1)
-)
-fe_rows[["_Ward Pairs"]] <- vapply(models, function(x) format(n_distinct(x$custom_data$ward_pair), big.mark = ","), character(1))
+    models,
+    function(x) sprintf("%.2f", mean(x$custom_data[[gsub("^log\\(|\\)$", "", all.vars(formula(x))[1])]], na.rm = TRUE)),
+    character(1)
+  )
+  fe_rows[["_Ward Pairs"]] <- vapply(models, function(x) format(n_distinct(x$custom_data$ward_pair), big.mark = ","), character(1))
 
-etable(
-  models,
-  keep = "Stringency Index",
-  fitstat = NULL,
-  style.tex = style.tex(
-    "aer",
-    model.format = "",
-    fixef.title = "",
-    fixef.suffix = "",
-    yesNo = c("$\\checkmark$", "")
-  ),
-  depvar = FALSE,
-  digits = 2,
-  headers = names(models),
-  signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-  dict = rename_dict,
-  drop.section = "fixef",
-  extralines = fe_rows,
-  float = FALSE,
-  tex = TRUE,
-  file = output_filename,
-  replace = TRUE
-)
+  etable(
+    models,
+    keep = "Stringency Index",
+    fitstat = NULL,
+    style.tex = style.tex(
+      "aer",
+      model.format = "",
+      fixef.title = "",
+      fixef.suffix = "",
+      yesNo = c("$\\checkmark$", "")
+    ),
+    depvar = FALSE,
+    digits = 2,
+    headers = names(models),
+    signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+    dict = rename_dict,
+    drop.section = "fixef",
+    extralines = fe_rows,
+    float = FALSE,
+    tex = TRUE,
+    file = output_filename,
+    replace = TRUE
+  )
 
-table_tex <- readLines(output_filename)
-drop_patterns <- c(
-  "^\\s*Observations\\s*&",
-  "^\\s*R\\$\\^2\\$\\s*&",
-  "^\\s*Within R\\$\\^2\\$\\s*&"
-)
-table_tex <- table_tex[!vapply(
-  table_tex,
-  function(line) any(vapply(drop_patterns, grepl, logical(1), x = line)),
-  logical(1)
-)]
-writeLines(table_tex, output_filename)
+  table_tex <- readLines(output_filename)
+  drop_patterns <- c(
+    "^\\s*Observations\\s*&",
+    "^\\s*R\\$\\^2\\$\\s*&",
+    "^\\s*Within R\\$\\^2\\$\\s*&"
+  )
+  table_tex <- table_tex[!vapply(
+    table_tex,
+    function(line) any(vapply(drop_patterns, grepl, logical(1), x = line)),
+    logical(1)
+  )]
+  writeLines(table_tex, output_filename)
+}
 
 if (nzchar(fe_summary_output_path)) {
   write_csv(bind_rows(model_summaries), fe_summary_output_path)

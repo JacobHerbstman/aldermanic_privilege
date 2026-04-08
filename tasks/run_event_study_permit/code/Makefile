@@ -35,7 +35,7 @@ BG_ROBUSTNESS_OUTPUTS := \
 	../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair_samp_singlepairbg.tex \
 	../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair_samp_unmixedtreatbg.tex
 
-all: $(MAIN_PDFS) $(ROBUST_PDFS) $(ROBUST_2000_PDFS) $(CONTROL_PDFS) $(LOG_PDFS) $(PAPER_FIGURES) $(PAPER_TABLES)
+all: $(PAPER_FIGURES) $(PAPER_TABLES)
 
 low_discretion_placebo: $(LOW_DISCRETION_PLACEBO_OUTPUTS)
 
@@ -138,6 +138,6 @@ $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),$(foreach weighting,$(MA
 ../input/block_group_controls.csv: ../../create_block_group_controls/output/block_group_controls.csv | ../input
 	ln -sf "$<" "$@"
 
-link-inputs: ../input/permit_block_year_panel.parquet ../input/permit_block_year_panel_2015.parquet ../input/permit_block_year_panel_2023.parquet ../input/block_group_controls.csv
+link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv
 
 include ../../generic.make

@@ -132,7 +132,6 @@ table_lines <- c(
   "\\\\",
   "Block FE & $\\checkmark$ \\\\",
   "Border-Pair $\\times$ Year FE & $\\checkmark$ \\\\",
-  sprintf("Sample Restriction & %s \\\\", sample_restriction_info$label),
   sprintf("N & %s \\\\", format(nobs(model), big.mark = ",")),
   sprintf("Dep. Var. Mean & %.2f \\\\", dep_var_mean),
   sprintf("Ward Pairs & %s \\\\", format(ward_pairs, big.mark = ",")),

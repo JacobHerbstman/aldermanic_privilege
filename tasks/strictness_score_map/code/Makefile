@@ -1,8 +1,8 @@
 SHELL := bash
 include ../../shell_functions.make
 
-DATE ?= 2023-01
-UNCERTAINTY_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2023
+DATE ?= 2022-01
+UNCERTAINTY_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
 
 all: ../output/uncertainty_score_map_$(UNCERTAINTY_SPEC)_$(DATE).pdf
 

@@ -55,6 +55,38 @@ Table~\ref{tab:fe_estimates_250} presents the main segment FE specification at a
     \textit{Notes:} Sample includes new multifamily construction within 250 feet of ward boundaries. Regressions include side-specific linear distance-to-boundary controls and own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
+\subsection{Heterogeneity by Strictness Gap}
+
+The main border discontinuity is stronger for ward pairs with larger differences in aldermanic stringency. Figure~\ref{fig:rd_gap_split} splits the sample at the median ward-pair strictness gap, measured as the median absolute difference in own-side and neighboring-side aldermanic stringency within each ward pair. The above-median-gap sample shows a clear negative discontinuity in both FAR and DUPAC, while the below-median-gap sample is much flatter.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_bw500_multifamily_above_median.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_bw500_multifamily_below_median.pdf}
+    \end{minipage}
+
+    \vspace{0.3cm}
+
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_bw500_multifamily_above_median.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_bw500_multifamily_below_median.pdf}
+    \end{minipage}
+    \caption{Local-Linear RD by Ward-Pair Strictness Gap}
+    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column restricts to ward pairs with an above-median strictness gap; right column restricts to ward pairs with a below-median strictness gap. The strictness-gap measure is the median absolute difference in aldermanic stringency across the two sides of each ward pair. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}. The discontinuity is visibly stronger in the above-median-gap sample.}
+    \label{fig:rd_gap_split}
+\end{figure}
+
 \subsection{Donut RD Robustness}
 
 One concern with spatial RD designs is that observations precisely at the boundary may be unusual---for example, if ward boundaries follow major streets that independently affect development. Figure~\ref{fig:rd_donut} implements a donut specification \citep{barreca_saving_2011, barreca_heaping-induced_2016} that excludes parcels within 25 or 50 feet of the boundary. In both donut plots, the fitted discontinuity remains negative, suggesting the main pattern is not driven only by parcels right at the cutoff.

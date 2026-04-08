@@ -2,6 +2,7 @@ SHELL := bash
 include ../../shell_functions.make
 
 MAIN_YVARS := 'log(density_far)' 'log(density_dupac)'
+UNITS_LOTSIZE_YVARS := 'log(density_far)' 'log(density_dupac)' 'log(unitscount)' 'log(arealotsf)'
 
 all: \
 	../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex \
@@ -20,6 +21,18 @@ all: \
 
 ../output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
 	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R 250 multifamily zonegroup_segment_year_additive "$@" $(MAIN_YVARS)
+
+../output/fe_table_bw250_all_zonegroup_segment_year_additive_clust_ward_pair_with_units_lotsize.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
+	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R 250 all zonegroup_segment_year_additive "$@" $(UNITS_LOTSIZE_YVARS)
+
+../output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair_with_units_lotsize.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
+	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R 250 multifamily zonegroup_segment_year_additive "$@" $(UNITS_LOTSIZE_YVARS)
+
+../output/fe_table_bw500_all_zonegroup_segment_year_additive_clust_ward_pair_with_units_lotsize.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
+	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R 500 all zonegroup_segment_year_additive "$@" $(UNITS_LOTSIZE_YVARS)
+
+../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_with_units_lotsize.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
+	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R 500 multifamily zonegroup_segment_year_additive "$@" $(UNITS_LOTSIZE_YVARS)
 
 ../output/fe_table_bw1000_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
 	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R 1000 multifamily zonegroup_segment_year_additive "$@" $(MAIN_YVARS)

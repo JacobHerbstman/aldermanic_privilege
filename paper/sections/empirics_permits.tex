@@ -9,7 +9,7 @@ which is an even cleaner comparison because the census block is exactly the same
 
 Ward boundaries in Chicago are redrawn following each decennial census to equalize populations across wards. The 2015 redistricting (based on the 2010 Census) reassigned many census blocks to new aldermen while leaving nearby blocks under the same representation. This creates a difference-in-differences comparison between blocks that switched aldermen (treated) and nearby blocks that stayed in the same ward (control). The identifying assumption is that, absent the change in aldermanic representation, treated and control blocks would have followed parallel trends in permit activity.
 
-Several features of the design support this assumption. Redistricting is driven by population equalization and bargaining over demographic composition of the wards, not by housing market conditions on specific blocks. To strengthen the counterfactual, I restrict the control group to blocks that remained in the \textit{origin} ward, so treated and control blocks shared the same pre-treatment regulatory environment. I also exclude control blocks in wards where the alderman changed via election during the sample window, avoiding contamination from electoral turnover. Figure~\ref{fig:identification_example} illustrates the design for one ward pair, showing how blocks are classified into treatment and control groups based on the change in alderman stringency. Figure~\ref{fig:treatment_control_maps} shows the citywide distribution of treated and control blocks.
+Several features of the design support this assumption. Redistricting is driven by population equalization and bargaining over demographic composition of the wards, not by housing market conditions on specific blocks. To strengthen the counterfactual, I restrict the control group to blocks that remained in the \textit{origin} ward, so treated and control blocks shared the same pre-treatment regulatory environment. I also exclude control blocks in wards where the alderman changed via election during the sample window, avoiding contamination from electoral turnover. Figure~\ref{fig:identification_example} illustrates the design for one ward pair, showing how blocks are classified into treatment and control groups based on the change in alderman stringency. Figure~\ref{fig:treatment_control_maps} shows the citywide distribution of treated and control blocks for the 2015 redistricting.
 
 \begin{figure}[htbp]
     \centering
@@ -21,17 +21,9 @@ Several features of the design support this assumption. Redistricting is driven 
 
 \begin{figure}[htbp]
     \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/treatment_control_map_2015.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/treatment_control_map_2023.pdf}
-    \end{minipage}
-    \caption{Treatment and Control Blocks: Citywide Distribution}
-    \figurenotes{Geographic distribution of treated and control blocks for the 2015 redistricting (left) and 2023 redistricting (right). Red indicates blocks that moved to a more stringent alderman, blue indicates blocks that moved to a more lenient alderman, and gray indicates control blocks that did not switch wards. Sample restricted to blocks within 1,000 feet of ward boundaries. Controls exclude wards with aldermanic turnover via election.}
+    \includegraphics[width=0.62\textwidth]{../tasks/event_study_sales_diagnostics/output/treatment_control_map_2015.pdf}
+    \caption{Treatment and Control Blocks: 2015 Redistricting}
+    \figurenotes{Geographic distribution of treated and control blocks for the 2015 redistricting. Red indicates blocks that moved to a more stringent alderman, blue indicates blocks that moved to a more lenient alderman, and gray indicates control blocks that did not switch wards. Sample restricted to blocks within 1,000 feet of ward boundaries. Controls exclude wards with aldermanic turnover via election.}
     \label{fig:treatment_control_maps}
 \end{figure}
 

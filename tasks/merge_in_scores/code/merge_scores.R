@@ -30,7 +30,7 @@ parcels_input <- Sys.getenv("PARCELS_INPUT_PATH", "../input/parcels_pre_scores.c
 segment_lookup_input <- Sys.getenv("SEGMENT_LOOKUP_PATH", "../input/parcel_segment_ids.csv")
 merge_output <- Sys.getenv("MERGE_OUTPUT_PATH", "../output/parcels_with_ward_distances.csv")
 merge_summary_output <- Sys.getenv("MERGE_SUMMARY_OUTPUT_PATH", "../output/boundary_distance_summary.csv")
-max_construction_year_raw <- Sys.getenv("MAX_CONSTRUCTION_YEAR", "2023")
+max_construction_year_raw <- Sys.getenv("MAX_CONSTRUCTION_YEAR", "2022")
 max_construction_year <- if (nzchar(max_construction_year_raw)) suppressWarnings(as.integer(max_construction_year_raw)) else NA_integer_
 
 if (nzchar(max_construction_year_raw) && !is.finite(max_construction_year)) {

@@ -8,12 +8,12 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/strictness_score_map/code")
-# date_str <- "2025-01"
-# scores_file <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
+# date_str <- "2022-01"
+# scores_file <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
 # score_col <- "uncertainty_index"
-# outfile <- "../output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_2025-01.pdf"
+# outfile <- "../output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022-01.pdf"
 # legend_title <- "Regulatory Stringency Index"
-# plot_title <- "Regulatory Stringency Index by Ward (2025-01)"
+# plot_title <- "Regulatory Stringency Index by Ward (2022-01)"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -33,11 +33,6 @@ plot_title <- args[6]
 
 month_dt <- as.Date(paste0(date_str, "-01"))
 use_year <- as.integer(format(month_dt, "%Y"))
-
-# date_str <-  "2025-01"
-# month_dt <- as.Date(paste0(date_str, "-01"))
-# #extract year from date_str directly
-# use_year <- as.integer(format(month_dt, "%Y"))
 
 # Shapes for the chosen year
 wards <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%

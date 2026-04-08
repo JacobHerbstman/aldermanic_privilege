@@ -2,21 +2,22 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_validation_checks/code")
-# spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH"
+# spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 # permits_path <- "../input/building_permits_text_features.csv.gz"
 # alderman_panel_path <- "../input/chicago_alderman_panel.csv"
-# uncertainty_path <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
-# output_csv <- "../output/permit_validation_results_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
-# output_tex <- "../output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.tex"
+# uncertainty_path <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
+# output_csv <- "../output/permit_validation_results_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
+# output_tex <- "../output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex"
+# max_application_ym <- "2022-12"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(spec, permits_path, alderman_panel_path, uncertainty_path, output_csv, output_tex)
+  args <- c(spec, permits_path, alderman_panel_path, uncertainty_path, output_csv, output_tex, max_application_ym)
 }
 
-if (length(args) != 6) {
+if (length(args) != 7) {
   stop(
-    "Usage: Rscript build_permit_validation_table.R <spec> <permits_csv_gz> <alderman_panel_csv> <uncertainty_csv> <output_csv> <output_tex>",
+    "Usage: Rscript build_permit_validation_table.R <spec> <permits_csv_gz> <alderman_panel_csv> <uncertainty_csv> <output_csv> <output_tex> <max_application_ym>",
     call. = FALSE
   )
 }
@@ -27,6 +28,7 @@ alderman_panel_path <- args[3]
 uncertainty_path <- args[4]
 output_csv <- args[5]
 output_tex <- args[6]
+max_application_ym <- args[7]
 
 cat("=== Permit Validation Table (Stringency) ===\n")
 cat("Spec:", spec, "\n")
@@ -64,7 +66,8 @@ permits <- permits[
   permit_type_clean %in% high_discretion_permits &
     !is.na(application_start_date) &
     !is.na(month) &
-    !is.na(ward)
+    !is.na(ward) &
+    month <= as.yearmon(max_application_ym)
 ]
 
 alderman_panel <- data.table::fread(alderman_panel_path)

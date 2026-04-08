@@ -1,13 +1,14 @@
 SHELL := bash
 include ../../shell_functions.make
 
-SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2023
+SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
 SCORE_COLUMN ?= uncertainty_index
+MAX_CONSTRUCTION_YEAR ?= 2022
 
 all: ../output/parcels_with_ward_distances.csv
 
 ../output/parcels_with_ward_distances.csv: merge_scores.R ../input/parcels_pre_scores.csv ../input/aldermen_uncertainty_scores.csv ../input/parcel_segment_ids.csv | ../output
-	Rscript merge_scores.R ../input/aldermen_uncertainty_scores.csv $(SCORE_COLUMN)
+	MAX_CONSTRUCTION_YEAR=$(MAX_CONSTRUCTION_YEAR) Rscript merge_scores.R ../input/aldermen_uncertainty_scores.csv $(SCORE_COLUMN)
 
 ../input/parcels_pre_scores.csv: ../../calculate_ward_boundary_distances/output/parcels_pre_scores.csv | ../input
 	ln -sf "$<" "$@"
