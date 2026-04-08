@@ -1,15 +1,21 @@
 SHELL := bash
 include ../../shell_functions.make
 
-all: ../output/treatment_control_map_2015.pdf ../output/ward_pair_before_after_13-23.pdf
+all: \
+	../output/treatment_control_map_2015.pdf \
+	../output/treatment_control_maps_combined.pdf \
+	../output/ward_pair_before_after_13-23.pdf \
+	../output/ward_pair_vertical_13-23.pdf
 
-../output/treatment_control_map_2015.pdf ../output/ward_pair_before_after_13-23.pdf: ../output/.diagnostics.done
+../output/treatment_control_map_2015.pdf ../output/treatment_control_maps_combined.pdf ../output/ward_pair_before_after_13-23.pdf ../output/ward_pair_vertical_13-23.pdf: ../output/.diagnostics.done
 
 ../output/.diagnostics.done: run_diagnostics.R ../input/sales_stacked_panel.csv ../input/sales_stacked_quarterly_panel.csv ../input/census_blocks_2010.csv ../input/ward_panel.gpkg ../input/block_treatment_panel.csv | ../output
 	$(R) run_diagnostics.R
 	find ../output -maxdepth 1 -type f \
 		! -name treatment_control_map_2015.pdf \
+		! -name treatment_control_maps_combined.pdf \
 		! -name ward_pair_before_after_13-23.pdf \
+		! -name ward_pair_vertical_13-23.pdf \
 		! -name .diagnostics.done \
 		-delete
 	touch "$@"

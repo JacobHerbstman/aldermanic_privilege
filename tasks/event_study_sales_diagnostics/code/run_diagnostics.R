@@ -574,12 +574,12 @@ for (wp in all_pairs_to_map) {
     # Common theme for all panels
     map_theme <- theme_void(base_size = 12) +
         theme(
-            legend.position = "right",
+            legend.position = "bottom",
             legend.title = element_text(size = 11, face = "bold"),
             legend.text = element_text(size = 10),
             plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
             plot.subtitle = element_text(hjust = 0.5, size = 11),
-            plot.margin = margin(10, 10, 10, 10)
+            plot.margin = margin(4, 4, 4, 4)
         )
 
     # BEFORE: color by origin ward
@@ -587,6 +587,7 @@ for (wp in all_pairs_to_map) {
         geom_sf(data = wards_2014_crop, fill = NA, color = "black", linewidth = 1.0) +
         geom_sf(data = wp_blocks, aes(fill = factor(ward_origin)), color = "gray30", linewidth = 0.2, alpha = 1) +
         scale_fill_manual(values = ward_colors, name = "Ward") +
+        guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
         labs(
             title = "Before Redistricting (2014 Ward Boundaries)",
             subtitle = NULL
@@ -598,6 +599,7 @@ for (wp in all_pairs_to_map) {
         geom_sf(data = wards_2015_crop, fill = NA, color = "black", linewidth = 1.0) +
         geom_sf(data = wp_blocks, aes(fill = factor(ward_dest)), color = "gray30", linewidth = 0.2, alpha = 1) +
         scale_fill_manual(values = ward_colors, name = "Ward") +
+        guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
         labs(
             title = "After Redistricting (2015 Ward Boundaries)",
             subtitle = NULL
@@ -616,6 +618,7 @@ for (wp in all_pairs_to_map) {
             ),
             name = "Treatment"
         ) +
+        guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
         labs(
             title = "Treatment Status",
             subtitle = NULL
@@ -626,17 +629,11 @@ for (wp in all_pairs_to_map) {
     # VERTICAL LAYOUT: Stack 3 maps vertically for full-width display
     # =========================================================================
     combined_vertical <- p_before / p_after / p_treatment +
-        plot_annotation(
-            title = sprintf("Identification Example: Ward Pair %d–%d (2015 Redistricting)", ward_a, ward_b),
-            theme = theme(
-                plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
-                plot.subtitle = element_blank()
-            )
-        )
+        plot_layout(heights = c(1, 1, 1))
 
-    # Save VERTICAL version (full page width, fits on single page)
+    # Save VERTICAL version with wide panels for the paper
     outfile_vertical <- sprintf("../output/ward_pair_vertical_%s.pdf", gsub("_", "-", wp))
-    ggsave(outfile_vertical, combined_vertical, width = 8, height = 10, bg = "white")
+    ggsave(outfile_vertical, combined_vertical, width = 11.2, height = 8.8, bg = "white")
     message(sprintf("    Saved: %s", outfile_vertical))
 
     # =========================================================================
