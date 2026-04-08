@@ -1,16 +1,21 @@
 SHELL := bash
 
-BW_FT := 250 500
-SAMPLES := multifamily all
+FE_SPEC := zonegroup_segment_year_additive
+BW_FT := 500
+BINS_PER_SIDE ?= 10
 YVARS := density_far density_dupac
 
-all: $(foreach bw,$(BW_FT),$(foreach sample,$(SAMPLES),$(foreach yvar,$(YVARS),../output/nonparametric_rd_linear_display_log_$(yvar)_bw$(bw)_$(sample)_baseline_fe.pdf)))
+all: \
+	../output/nonparametric_rd_density_linear_display_log_density_far_bw$(BW_FT)_multifamily.pdf \
+	../output/nonparametric_rd_density_linear_display_log_density_dupac_bw$(BW_FT)_multifamily.pdf \
+	../output/nonparametric_rd_density_linear_display_log_density_far_bw$(BW_FT)_all.pdf \
+	../output/nonparametric_rd_density_linear_display_log_density_dupac_bw$(BW_FT)_all.pdf
 
-define FIGURE_RULE
-../output/nonparametric_rd_linear_display_log_$(1)_bw$(2)_$(3)_baseline_fe.pdf: ../../nonparametric_rd_density/code/nonparametric_rd_density.R ../input/parcels_with_ward_distances.csv | ../output
-	RD_PLOT_STYLE=linear_display RD_DISPLAY_ESTIMATE_SOURCE=linear_cutoff Rscript ../../nonparametric_rd_density/code/nonparametric_rd_density.R $(1) TRUE $(2) $(3) all $$@ feet
+define BASELINE_RULE
+../output/nonparametric_rd_density_linear_display_log_$(1)_bw$(BW_FT)_$(2).pdf: nonparametric_rd_density_linear_display.R ../input/parcels_with_ward_distances.csv | ../output
+	Rscript nonparametric_rd_density_linear_display.R $(1) $(BW_FT) $(2) $(FE_SPEC) $(BINS_PER_SIDE) $$@
 endef
-$(foreach yvar,$(YVARS),$(foreach bw,$(BW_FT),$(foreach sample,$(SAMPLES),$(eval $(call FIGURE_RULE,$(yvar),$(bw),$(sample))))))
+$(foreach yvar,$(YVARS),$(foreach sample,multifamily all,$(eval $(call BASELINE_RULE,$(yvar),$(sample)))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	ln -sf "$<" "$@"

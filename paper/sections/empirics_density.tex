@@ -3,43 +3,41 @@
 
 \subsection{Visual Evidence}
 
-If aldermanic discretion affects the development process, its effects should be visible in what actually gets built near ward boundaries, where neighborhood characteristics are nearly identical but the alderman changes. I begin with border discontinuity plots that show this relationship directly. I stack all ward boundaries together, placing the more lenient alderman's side at negative distances and the more stringent side at positive distances. The sample is restricted to new multifamily construction, and I residualize density outcomes against zoning-group fixed effects\footnote{I group Chicago zoning codes into the following categories: RS-* single-family residential; RT-* and RM-* multi-family residential; B-* neighborhood mixed-use; C-* commercial; M-* industrial; DX-*, DR-*, DS-*, and DC-* downtown; PD planned development; all remaining codes Other.}, boundary-segment fixed effects, construction-year fixed effects, and own-side demographic controls before plotting. This removes variation from broad zoning differences, location along the boundary, and citywide trends.
+If aldermanic discretion affects the development process, its effects should be visible in what actually gets built near ward boundaries, where neighborhood characteristics are similar but the alderman changes. I begin with border discontinuity plots that stack all ward boundaries together, placing the more lenient alderman's side at negative distances and the more stringent side at positive distances. The sample is restricted to new multifamily construction, and I residualize density outcomes against zoning-group fixed effects\footnote{I group Chicago zoning codes into the following categories: RS-* single-family residential; RT-* and RM-* multi-family residential; B-* neighborhood mixed-use; C-* commercial; M-* industrial; DX-*, DR-*, DS-*, and DC-* downtown; PD planned development; all remaining codes Other.}, boundary-segment fixed effects, construction-year fixed effects, and own-side demographic controls before plotting. This removes broad zoning differences, location along the boundary, and citywide trends before tracing out the local linear relationship in running distance on each side of the cutoff.
 
 Figure~\ref{fig:rd_fe_plots} presents the results using a 500-foot bandwidth. Both log(FAR) and log(DUPAC) show a clear downward discontinuity at the boundary when moving from the lenient to the stringent side.%
-\footnote{The jump estimate is from an unweighted linear regression of the residualized outcome on a boundary-side indicator, running distance, and their interaction, with own-side demographic controls and standard errors clustered at the ward-pair level. Exact point estimates and standard errors appear in the figure subtitles.}
-The fitted lines also slope upward toward the boundary on both sides. Appendix Table~\ref{tab:rd_distance_bins} shows that parcels closest to ward boundaries are more likely to sit in mixed-use corridor zoning and, in the full new-construction sample, are more likely to be multifamily, so the pooled boundary sample naturally loads on relatively dense border corridors. The relevant object in Figure~\ref{fig:rd_fe_plots} is the discontinuity at the jurisdictional break, not the mere existence of a within-side slope. Appendix Figure~\ref{fig:rd_plot_style_comparison} separates the standard RD fit from a level-only residual plot to make that distinction explicit.
-
-These magnitudes are large, and they should be. The border discontinuity captures the total equilibrium difference in built density at a boundary where local jurisdiction changes, so it reflects both aldermanic behavior and endogenous sorting of projects toward the more lenient side. The plots establish that something changes sharply when one crosses a ward boundary. The regression analysis that follows uses continuous variation in aldermanic stringency within boundary segments to estimate how much of that change lines up with aldermanic discretion.
+\footnote{The displayed estimate comes from an unweighted local-linear regression of the logged outcome on a boundary-side indicator, running distance, and their interaction, with zoning-group, segment, and year fixed effects plus own-side demographic controls. Standard errors are clustered at the ward-pair level.}
+The plots are useful as a visual summary of the border discontinuity itself: denser projects appear on the more lenient side, and the break occurs precisely where jurisdiction changes. The regression analysis that follows uses continuous variation in aldermanic stringency within boundary segments to estimate how much of that discontinuity lines up with measured aldermanic stringency.
 
 \begin{figure}[htbp]
     \centering
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_log_density_far_bw500_multifamily.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_log_density_dupac_bw500_multifamily.pdf}
     \end{minipage}
     \caption{Border Discontinuity in Development Density at Ward Boundaries}
-    \figurenotes{Density measures are residualized against zoning-group, boundary-segment, and construction-year fixed effects plus own-side demographic controls before plotting. Sample restricted to new multifamily construction within 500 feet of ward boundaries. Negative distance indicates the more lenient alderman's side; positive distance indicates the more stringent side. Unweighted linear fits are shown on each side of the boundary. Standard errors clustered at the ward-pair level.}
+    \figurenotes{Sample restricted to new multifamily construction within 500 feet of ward boundaries. Outcomes are residualized against zoning-group, boundary-segment, and construction-year fixed effects plus own-side demographic controls before plotting. Colored dots show binned residual means and colored lines show side-specific local-linear fits. Negative distance indicates the more lenient alderman's side; positive distance indicates the more stringent side.}
     \label{fig:rd_fe_plots}
 \end{figure}
 
 \subsection{Border Fixed Effects Regressions}
 
-To move from visual evidence to a formal estimate, I compare density within narrow boundary segments controlling for zoning and time effects:
+To move from visual evidence to a formal estimate, I compare density within narrow boundary segments controlling for zoning, time, and smooth distance-to-border gradients:
 %
 \begin{equation} \label{eq:segment_fe}
-    \ln(Y_{iwst}) = \beta \cdot \text{Stringency}_{w} + X_i'\theta + \alpha_{\text{zone group}} + \alpha_{\text{segment}} + \gamma_t + \varepsilon_{iwst}
+    \ln(Y_{iwst}) = \beta \cdot \text{Stringency}_{w} + \lambda_L D^-_{iwst} + \lambda_S D^+_{iwst} + X_i'\theta + \alpha_{\text{zone group}} + \alpha_{\text{segment}} + \gamma_t + \varepsilon_{iwst}
 \end{equation}
 %
-where $Y_{iwst}$ is a density outcome for parcel $i$ in ward $w$ on boundary segment $s$, built in year $t$, and $X_i$ collects own-side demographic controls. The fixed effects enter additively: zoning-group fixed effects absorb differences across broad zoning environments, segment fixed effects absorb differences across boundary segments, and year fixed effects absorb citywide trends. The sample is restricted to new multifamily construction within 500 feet of a ward boundary. Standard errors are clustered at the ward-pair level. Appendix Figure~\ref{fig:pruned_border_segments} maps the boundary segments that enter the analysis.
+where $Y_{iwst}$ is a density outcome for parcel $i$ in ward $w$ on boundary segment $s$, built in year $t$; $D^-_{iwst}$ and $D^+_{iwst}$ are side-specific distances to the ward boundary on the lenient and stringent sides; and $X_i$ collects own-side demographic controls. The fixed effects enter additively: zoning-group fixed effects absorb differences across broad zoning environments, segment fixed effects absorb differences across boundary segments, and year fixed effects absorb citywide trends. The sample is restricted to new multifamily construction within 500 feet of a ward boundary. Standard errors are clustered at the ward-pair level. Appendix Figure~\ref{fig:pruned_border_segments} maps the boundary segments that enter the analysis.
 
-The segment fixed effects are the central design element. Boundary segments are short geographic units, much shorter than full ward-pair borders that can stretch for miles through different neighborhoods, so comparisons within segments are spatially precise. Zoning-group fixed effects ensure that parcels are compared within broad zoning environments rather than across fundamentally different parts of the zoning code.
+The segment fixed effects are the central design element. Boundary segments are short geographic units, much shorter than full ward-pair borders that can stretch for miles through different neighborhoods, so comparisons within segments are spatially precise. The side-specific distance terms absorb smooth within-side gradients in development density as one moves toward or away from the boundary. Zoning-group fixed effects ensure that parcels are compared within broad zoning environments rather than across fundamentally different parts of the zoning code.
 
-Table~\ref{tab:segment_fe_500} presents the results for the two main density outcomes, DUPAC and FAR. A one standard deviation increase in aldermanic stringency is associated with about 10\% lower FAR and DUPAC.
+Table~\ref{tab:segment_fe_500} presents the results for the two main density outcomes, DUPAC and FAR. A one standard deviation increase in aldermanic stringency is associated with lower development density on both margins.
 
 \begin{table}[htbp]
     \caption{Effect of Aldermanic Stringency on Development Density}
@@ -48,7 +46,7 @@ Table~\ref{tab:segment_fe_500} presents the results for the two main density out
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
 
     \footnotesize
-    \textit{Notes:} Sample includes new multifamily construction within 500 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Sample includes new multifamily construction within 500 feet of ward boundaries. Regressions include side-specific linear distance-to-boundary controls and own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 \subsection{Robustness}
@@ -56,22 +54,22 @@ Table~\ref{tab:segment_fe_500} presents the results for the two main density out
 
 The density results are robust to a range of specification checks, which I summarize here with full results in Appendix~\ref{sec:appendix_density}.
 
-I next provide a placebo test by moving the cutoff 500 feet into each ward. If the discontinuity is genuinely driven by the ward boundary where aldermanic jurisdiction changes, it should not appear at arbitrary locations within wards. Figure~\ref{fig:rd_placebo} shifts the cutoff 500 feet into each ward and re-estimates the discontinuity. Relative to the true boundary, the placebo plots are flatter around the shifted cutoffs and do not show the same visible jump.
+I first provide a placebo test by moving the cutoff 500 feet into each ward. If the discontinuity is genuinely driven by the ward boundary where aldermanic jurisdiction changes, it should not appear at arbitrary locations within wards. Figure~\ref{fig:rd_placebo} shifts the cutoff 500 feet into each ward and re-estimates the local-linear discontinuity. Relative to the true boundary, the placebo plots are flatter around the shifted cutoffs and do not show the same visible break.
 
 \begin{figure}[htbp]
     \centering
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_shift-500.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_bw500_multifamily_shift-500.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_shift500.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_bw500_multifamily_shift500.pdf}
     \end{minipage}
     \caption{Placebo Boundary Tests: Log(FAR)}
-    \figurenotes{Left: placebo cutoff 500 feet inside the lenient ward. Right: placebo cutoff 500 feet inside the stringent ward. Same specification as Figure~\ref{fig:rd_fe_plots}. The placebo plots are flatter than the main boundary plot. Appendix Figure~\ref{fig:rd_placebo_dupac} shows the corresponding DUPAC results.}
+    \figurenotes{Left: placebo cutoff 500 feet inside the lenient ward. Right: placebo cutoff 500 feet inside the stringent ward. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}. Appendix Figure~\ref{fig:rd_placebo_dupac} shows the corresponding DUPAC results.}
     \label{fig:rd_placebo}
 \end{figure}
 
-The appendix reports several additional checks. Table~\ref{tab:rd_slope_diagnostics} shows that replacing zoning-group fixed effects with exact zoning-code fixed effects attenuates but does not eliminate the true-boundary jump, while a placebo cutoff shifted 500 feet into the more stringent ward produces near-zero jumps for both FAR and DUPAC. Figure~\ref{fig:rd_slope_case_studies} shows that the steepest negative-slope pairs are concentrated in a handful of corridor-like boundaries rather than being uniform across the citywide sample. In donut plots that exclude parcels within 25 or 50 feet of the boundary, the fitted discontinuity remains negative (Figure~\ref{fig:rd_donut}). Replacing segment fixed effects with coarser ward-pair fixed effects still yields negative estimates, though they are attenuated relative to the segment-fixed-effects baseline (Table~\ref{tab:fe_pair_year}), as does dropping ward-pair-era combinations flagged as potentially confounded by simultaneous institutional changes (Table~\ref{tab:fe_pruned}). Narrowing the bandwidth to 250 feet produces comparable estimates with wider confidence intervals (Table~\ref{tab:fe_estimates_250}), consistent with aldermanic influence being concentrated near ward boundaries. Finally, extending the sample to include all new construction, not just multifamily, produces a smaller plotted discontinuity (Figure~\ref{fig:rd_all_units}), as expected given that single-family construction has less variation in density and is less likely to be the subject of community meetings, unit count negotiations, or other frictions aldermen could impose.
+The appendix reports several additional checks. Excluding parcels within 25 or 50 feet of the boundary leaves the local-linear discontinuity negative (Figure~\ref{fig:rd_donut}). Replacing segment fixed effects with coarser ward-pair fixed effects still yields negative estimates, though they are attenuated relative to the segment-fixed-effects baseline (Table~\ref{tab:fe_pair_year}), as does dropping ward-pair-era combinations flagged as potentially confounded by simultaneous institutional changes (Table~\ref{tab:fe_pruned}). Narrowing the bandwidth to 250 feet produces comparable estimates with wider confidence intervals (Table~\ref{tab:fe_estimates_250}), consistent with aldermanic influence being concentrated near ward boundaries. Finally, extending the sample to include all new construction, not just multifamily, produces a smaller plotted discontinuity (Figure~\ref{fig:rd_all_units}), as expected given that single-family construction has less variation in density and is less likely to be the subject of community meetings, unit count negotiations, or other frictions aldermen could impose.

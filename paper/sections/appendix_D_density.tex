@@ -13,50 +13,6 @@ Figure~\ref{fig:pruned_border_segments} shows the ward-boundary segments that en
     \label{fig:pruned_border_segments}
 \end{figure}
 
-% ==============================================================================
-% BORDER-CORRIDOR DIAGNOSTICS
-% ==============================================================================
-\subsection{Why the Pooled RD Plots Slope}
-
-The main-text RD plots slope upward toward the boundary on both sides. Table~\ref{tab:rd_distance_bins} shows that this is partly a composition fact of the sample: parcels closest to ward boundaries are more likely to be in mixed-use corridor zoning and, in the full new-construction sample, more likely to be multifamily. Figure~\ref{fig:rd_plot_style_comparison} compares the standard RD fits to level-only residual plots that remove fixed effects and controls without adding back running-distance slopes. The level-only plots are much flatter, confirming that the visual steepness in Figure~\ref{fig:rd_fe_plots} comes from the within-side RD approximation rather than from a large unconditional mean shift.
-
-Table~\ref{tab:rd_slope_diagnostics} shows that replacing zoning-group fixed effects with exact zoning-code fixed effects attenuates both the jump and the slope terms, but the true-boundary discontinuity remains. By contrast, the placebo cutoff shifted 500 feet into the more stringent ward produces near-zero jumps for both FAR and DUPAC. Figure~\ref{fig:rd_slope_case_studies} maps the six steepest negative-slope ward pairs. These cases are concentrated in a small set of corridor-like environments rather than being representative of the full citywide boundary sample.
-
-\begin{table}[H]
-    \caption{Composition of the Boundary Sample by Absolute Distance}
-    \label{tab:rd_distance_bins}
-
-    \input{../tasks/spatial_rd_fe/output/rd_fe_distance_bin_summary_bw500.tex}
-\end{table}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_style_comparison_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf}
-    \caption{Slope Plots vs.\ Level-Only Residual Plots}
-    \figurenotes{Left column reproduces the standard FE-adjusted RD fit used in the text. Right column residualizes only fixed effects and controls, without adding back running-distance slopes. The level-only plots are much flatter, which clarifies that the identifying object is the discontinuity at the jurisdictional break rather than the existence of an upward slope near the boundary.}
-    \label{fig:rd_plot_style_comparison}
-\end{figure}
-
-\begin{table}[H]
-    \caption{Boundary-Jump Diagnostics: Exact Zoning FE and Placebo Cutoffs}
-    \label{tab:rd_slope_diagnostics}
-
-    \input{../tasks/spatial_rd_fe/output/rd_fe_slope_diagnostic_comparison_bw500_multifamily_clust_ward_pair.tex}
-\end{table}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_case_study_maps_bw500_multifamily.pdf}
-    \caption{Case Studies: Steepest Negative-Slope Ward Pairs}
-    \figurenotes{Boundary is shown in black and major streets in gray. Points are multifamily projects within 500 feet of the boundary, scaled by log(DUPAC) and colored by side. The steepest negative-slope cases are concentrated in a small number of corridor-like border environments.}
-    \label{fig:rd_slope_case_studies}
-\end{figure}
-
-% ==============================================================================
-% COVARIATE BALANCE
-% ==============================================================================
-% ALTERNATIVE FE: WARD-PAIR INSTEAD OF SEGMENT
-% ==============================================================================
 \subsection{Alternative Fixed Effects: Ward-Pair}
 
 Table~\ref{tab:fe_pair_year} replaces segment fixed effects with ward-pair fixed effects, which pool across all segments of a given ward pair. This is a coarser comparison---ward-pair borders can stretch for miles through different neighborhoods---but it uses more variation. The estimates remain negative, but they are attenuated relative to the main segment FE estimates in Table~\ref{tab:segment_fe_500}.
@@ -68,12 +24,9 @@ Table~\ref{tab:fe_pair_year} replaces segment fixed effects with ward-pair fixed
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_pair_year_additive_clust_ward_pair.tex}
 
     \footnotesize
-    \textit{Notes:} Sample includes new multifamily construction within 500 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Sample includes new multifamily construction within 500 feet of ward boundaries. Regressions include side-specific linear distance-to-boundary controls and own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
-% ==============================================================================
-% PRUNED SAMPLE
-% ==============================================================================
 \subsection{Pruned Sample}
 
 Table~\ref{tab:fe_pruned} drops ward-pair-era combinations where confounding boundary changes (e.g., simultaneous zoning remaps or major infrastructure projects) may contaminate the comparison. The estimates remain negative and are larger in magnitude than in the full sample.
@@ -88,9 +41,6 @@ Table~\ref{tab:fe_pruned} drops ward-pair-era combinations where confounding bou
     \textit{Notes:} Same specification and controls as Table~\ref{tab:segment_fe_500}, but dropping ward-pair-era combinations flagged as confounded in the pruning file. Regressions are unweighted. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
-% ==============================================================================
-% BANDWIDTH ROBUSTNESS
-% ==============================================================================
 \subsection{Bandwidth Robustness}
 
 Table~\ref{tab:fe_estimates_250} presents the main segment FE specification at a tighter 250-foot bandwidth. The estimates are similar in magnitude to the 500-foot baseline but based on fewer observations.
@@ -102,47 +52,41 @@ Table~\ref{tab:fe_estimates_250} presents the main segment FE specification at a
     \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
 
     \footnotesize
-    \textit{Notes:} Sample includes new multifamily construction within 250 feet of ward boundaries. Regressions include own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Sample includes new multifamily construction within 250 feet of ward boundaries. Regressions include side-specific linear distance-to-boundary controls and own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
-% ==============================================================================
-% DONUT RD
-% ==============================================================================
 \subsection{Donut RD Robustness}
 
-One concern with spatial RD designs is that observations precisely at the boundary may be unusual---for example, if ward boundaries follow major streets that independently affect development. Figure~\ref{fig:rd_donut} implements a donut specification \citep{barreca_saving_2011, barreca_heapinginduced_2016} that excludes parcels within 25 or 50 feet of the boundary. In both donut plots, the fitted discontinuity remains negative, suggesting the main pattern is not driven only by parcels right at the cutoff.
+One concern with spatial RD designs is that observations precisely at the boundary may be unusual---for example, if ward boundaries follow major streets that independently affect development. Figure~\ref{fig:rd_donut} implements a donut specification \citep{barreca_saving_2011, barreca_heaping-induced_2016} that excludes parcels within 25 or 50 feet of the boundary. In both donut plots, the fitted discontinuity remains negative, suggesting the main pattern is not driven only by parcels right at the cutoff.
 
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_donut25.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_bw500_multifamily_donut25.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_donut50.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_bw500_multifamily_donut50.pdf}
     \end{minipage}
 
     \vspace{0.3cm}
 
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_donut25.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_bw500_multifamily_donut25.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_donut50.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_bw500_multifamily_donut50.pdf}
     \end{minipage}
-    \caption{FE-Adjusted Donut RD Robustness}
-    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column excludes parcels within 25 feet of boundary; right column excludes parcels within 50 feet. Same FE-adjusted specification as Figure~\ref{fig:rd_fe_plots}. The plotted fits remain negative after excluding parcels nearest the boundary.}
+    \caption{Local-Linear Donut RD Robustness}
+    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column excludes parcels within 25 feet of the boundary; right column excludes parcels within 50 feet. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}. The plotted discontinuity remains negative after excluding parcels nearest the cutoff.}
     \label{fig:rd_donut}
 \end{figure}
 
-% ==============================================================================
-% PLACEBO DUPAC
-% ==============================================================================
 \subsection{Placebo Boundary Tests: DUPAC}
 
 Figure~\ref{fig:rd_placebo} in the main text shows placebo tests for Log(FAR). Figure~\ref{fig:rd_placebo_dupac} presents the same tests for Log(DUPAC). Relative to the true boundary plots, the placebo plots are flatter around the shifted cutoffs and do not show the same visible jump.
@@ -151,21 +95,18 @@ Figure~\ref{fig:rd_placebo} in the main text shows placebo tests for Log(FAR). F
     \centering
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_shift-500.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_bw500_multifamily_shift-500.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/placebo_rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_shift500.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_bw500_multifamily_shift500.pdf}
     \end{minipage}
     \caption{Placebo Boundary Tests: Log(DUPAC)}
-    \figurenotes{Left: placebo cutoff 500 feet inside the lenient ward. Right: placebo cutoff 500 feet inside the strict ward. Same FE-adjusted specification as Figure~\ref{fig:rd_fe_plots}. The placebo plots are flatter than the main boundary plot.}
+    \figurenotes{Left: placebo cutoff 500 feet inside the lenient ward. Right: placebo cutoff 500 feet inside the stringent ward. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}. The placebo plots are flatter than the main boundary plot.}
     \label{fig:rd_placebo_dupac}
 \end{figure}
 
-% ==============================================================================
-% ALL UNITS RD
-% ==============================================================================
 \subsection{All Construction}
 
 The main analysis restricts to multifamily buildings with 2 or more units. Figure~\ref{fig:rd_all_units} includes all new construction, including single-family homes. The plotted discontinuity appears smaller than in the multifamily-only sample, as expected given that single-family construction has less variation in density and is less subject to aldermanic discretion.
@@ -174,14 +115,14 @@ The main analysis restricts to multifamily buildings with 2 or more units. Figur
     \centering
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_all_zonegroup_segment_year_additive_clust_ward_pair.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_log_density_far_bw500_all.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_all_zonegroup_segment_year_additive_clust_ward_pair.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_log_density_dupac_bw500_all.pdf}
     \end{minipage}
-    \caption{FE-Adjusted Spatial RD: All New Construction}
-    \figurenotes{Same specification as Figure~\ref{fig:rd_fe_plots} but including all new construction (not just multifamily). Left: Log(FAR); right: Log(DUPAC). The plotted discontinuity appears smaller than in the multifamily-only sample.}
+    \caption{Local-Linear Spatial RD: All New Construction}
+    \figurenotes{Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots} but including all new construction rather than only multifamily projects. Left: Log(FAR); right: Log(DUPAC). The plotted discontinuity appears smaller than in the multifamily-only sample.}
     \label{fig:rd_all_units}
 \end{figure}

@@ -2,23 +2,22 @@ source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_donut/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_linear_display/code")
 # yvar <- "density_far"
 # bw_ft <- 500
 # sample_filter <- "multifamily"
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 10
-# donut_ft <- 25
-# output_pdf <- "../output/nonparametric_rd_density_donut_log_density_far_bw500_multifamily_donut25.pdf"
+# output_pdf <- "../output/nonparametric_rd_density_linear_display_log_density_far_bw500_multifamily.pdf"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(yvar, bw_ft, sample_filter, fe_spec, bins_per_side, donut_ft, output_pdf)
+  args <- c(yvar, bw_ft, sample_filter, fe_spec, bins_per_side, output_pdf)
 }
 
-if (length(args) != 7) {
+if (length(args) != 6) {
   stop(
-    "FATAL: Script requires args: <yvar> <bw_ft> <sample_filter> <fe_spec> <bins_per_side> <donut_ft> <output_pdf>",
+    "FATAL: Script requires args: <yvar> <bw_ft> <sample_filter> <fe_spec> <bins_per_side> <output_pdf>",
     call. = FALSE
   )
 }
@@ -28,8 +27,7 @@ bw_ft <- as.numeric(args[2])
 sample_filter <- args[3]
 fe_spec <- args[4]
 bins_per_side <- as.integer(args[5])
-donut_ft <- as.numeric(args[6])
-output_pdf <- args[7]
+output_pdf <- args[6]
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -45,9 +43,6 @@ if (!fe_spec %in% c("zonegroup_segment_year_additive", "zonegroup_pair_year_addi
 }
 if (!is.finite(bins_per_side) || bins_per_side < 2) {
   stop("bins_per_side must be an integer >= 2.", call. = FALSE)
-}
-if (!is.finite(donut_ft) || donut_ft < 0 || donut_ft >= bw_ft) {
-  stop("donut_ft must be non-negative and strictly smaller than bw_ft.", call. = FALSE)
 }
 
 rd_input_path <- Sys.getenv("RD_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
@@ -87,8 +82,7 @@ dat <- raw %>%
     !is.na(zone_code),
     !is.na(segment_id),
     segment_id != "",
-    abs(signed_distance) <= bw_ft,
-    abs(signed_distance) >= donut_ft
+    abs(signed_distance) <= bw_ft
   )
 
 if (sample_filter == "all") {
@@ -106,7 +100,7 @@ dat <- dat %>%
   )
 
 if (nrow(dat) == 0) {
-  stop("No observations remain after donut filters.", call. = FALSE)
+  stop("No observations remain after baseline filters.", call. = FALSE)
 }
 
 controls <- c(
@@ -147,7 +141,7 @@ m_linear <- feols(fml_linear, data = aug, cluster = ~ward_pair)
 
 linear_row <- coeftable(m_linear)[rownames(coeftable(m_linear)) %in% "side", , drop = FALSE]
 if (nrow(linear_row) != 1) {
-  stop("Could not recover the donut cutoff estimate.", call. = FALSE)
+  stop("Could not recover the local-linear cutoff estimate.", call. = FALSE)
 }
 
 cutoff_estimate <- unname(linear_row[1, "Estimate"])
@@ -186,8 +180,8 @@ bins <- aug %>%
 coef_names <- names(coef(m_display))
 line_df <- tibble(
   running_distance = c(
-    seq(-bw_ft, -donut_ft, length.out = 160),
-    seq(donut_ft, bw_ft, length.out = 160)
+    seq(-bw_ft, 0, length.out = 200),
+    seq(0, bw_ft, length.out = 200)[-1]
   )
 ) %>%
   mutate(
@@ -197,11 +191,21 @@ line_df <- tibble(
 
 xmat <- matrix(0, nrow = nrow(line_df), ncol = length(coef_names))
 colnames(xmat) <- coef_names
-if ("(Intercept)" %in% coef_names) xmat[, "(Intercept)"] <- 1
-if ("side" %in% coef_names) xmat[, "side"] <- line_df$side
-if ("running_distance" %in% coef_names) xmat[, "running_distance"] <- line_df$running_distance
-if ("side:running_distance" %in% coef_names) xmat[, "side:running_distance"] <- line_df$side * line_df$running_distance
-if ("running_distance:side" %in% coef_names) xmat[, "running_distance:side"] <- line_df$side * line_df$running_distance
+if ("(Intercept)" %in% coef_names) {
+  xmat[, "(Intercept)"] <- 1
+}
+if ("side" %in% coef_names) {
+  xmat[, "side"] <- line_df$side
+}
+if ("running_distance" %in% coef_names) {
+  xmat[, "running_distance"] <- line_df$running_distance
+}
+if ("side:running_distance" %in% coef_names) {
+  xmat[, "side:running_distance"] <- line_df$side * line_df$running_distance
+}
+if ("running_distance:side" %in% coef_names) {
+  xmat[, "running_distance:side"] <- line_df$side * line_df$running_distance
+}
 
 line_df <- line_df %>%
   mutate(side_label = if_else(side == 1L, "Strict side", "Lenient side"))
@@ -220,17 +224,19 @@ line_df <- line_df %>%
 y_min <- min(c(bins$mean_y, line_df$ci_low), na.rm = TRUE)
 y_max <- max(c(bins$mean_y, line_df$ci_high), na.rm = TRUE)
 y_span <- y_max - y_min
-if (!is.finite(y_span) || y_span <= 0) y_span <- 1
+if (!is.finite(y_span) || y_span <= 0) {
+  y_span <- 1
+}
 y_pad <- max(0.15 * y_span, 0.05)
 y_limits <- c(y_min - y_pad, y_max + y_pad)
 
+sample_label <- ifelse(sample_filter == "all", "all construction", "multifamily")
 subtitle_label <- sprintf(
-  "Jump = %.3f%s (SE %.3f) | donut >= %.0f ft | %s | bw=%d ft | N=%d",
+  "Jump = %.3f%s (SE %.3f) | %s | bw=%d ft | N=%d",
   cutoff_estimate,
   stars(cutoff_p),
   cutoff_se,
-  donut_ft,
-  sample_filter,
+  sample_label,
   as.integer(bw_ft),
   nobs(m_resid)
 )
@@ -260,7 +266,7 @@ p <- ggplot() +
   scale_x_continuous(limits = c(-bw_ft, bw_ft), breaks = pretty(c(-bw_ft, bw_ft), n = 7)) +
   coord_cartesian(ylim = y_limits) +
   labs(
-    title = paste0("Donut Local-Linear RD: ", pretty_outcome),
+    title = paste0("Local-Linear RD: ", pretty_outcome),
     subtitle = subtitle_label,
     x = "Distance to ward boundary (ft)",
     y = paste("Residualized", pretty_outcome)
