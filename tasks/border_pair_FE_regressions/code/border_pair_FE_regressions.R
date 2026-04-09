@@ -45,6 +45,9 @@ fe_input_path <- Sys.getenv("FE_INPUT_PATH", "../input/parcels_with_ward_distanc
 fe_summary_output_path <- Sys.getenv("FE_SUMMARY_OUTPUT_PATH", "")
 write_tex_raw <- tolower(Sys.getenv("WRITE_TEX", "TRUE"))
 write_tex <- !write_tex_raw %in% c("false", "f", "0", "no", "off")
+ambiguity_input_path <- Sys.getenv("AMBIGUITY_INPUT_PATH", "")
+drop_ambiguous_raw <- tolower(Sys.getenv("DROP_AMBIGUOUS_WITHIN_BW", "FALSE"))
+drop_ambiguous_within_bw <- drop_ambiguous_raw %in% c("true", "t", "1", "yes", "on")
 
 prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
 if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
@@ -72,6 +75,9 @@ if (!is.finite(donut_ft) || donut_ft < 0) {
 if (is.finite(bw_ft) && donut_ft >= bw_ft) {
   stop("DONUT_FT must be strictly smaller than bandwidth.", call. = FALSE)
 }
+if (drop_ambiguous_within_bw && !is.finite(bw_ft)) {
+  stop("DROP_AMBIGUOUS_WITHIN_BW requires a finite bandwidth.", call. = FALSE)
+}
 
 message(sprintf("\n=== Border-Pair FE Configuration ==="))
 message(sprintf("Bandwidth: %s", if (is.finite(bw_ft)) sprintf("%.0f ft", bw_ft) else "all distances"))
@@ -80,6 +86,7 @@ message(sprintf("FE Specification: %s", fe_spec))
 message(sprintf("Pruning spec: %s", prune_sample))
 message(sprintf("Cluster level: %s", cluster_level))
 message(sprintf("Donut exclusion: >= %.0f ft", donut_ft))
+message(sprintf("Drop corner-ambiguous parcels: %s", ifelse(drop_ambiguous_within_bw, "TRUE", "FALSE")))
 message(sprintf("Write TeX table: %s", ifelse(write_tex, "TRUE", "FALSE")))
 message(sprintf("Input: %s", fe_input_path))
 message(sprintf("Output: %s", output_filename))
@@ -87,6 +94,8 @@ message(sprintf("Y variables: %s", paste(yvars, collapse = ", ")))
 
 parcels_fe <- read_csv(fe_input_path, show_col_types = FALSE) %>%
   mutate(
+    pin = as.character(pin),
+    construction_year = suppressWarnings(as.integer(construction_year)),
     strictness_own = strictness_own / sd(strictness_own, na.rm = TRUE),
     zone_group = zone_group_from_code(zone_code),
     lenient_dist = abs(signed_distance) * as.integer(signed_distance <= 0),
@@ -97,6 +106,26 @@ parcels_fe <- read_csv(fe_input_path, show_col_types = FALSE) %>%
     areabuilding > 1,
     construction_year >= 2006
   )
+
+if (drop_ambiguous_within_bw) {
+  if (!nzchar(ambiguity_input_path)) {
+    stop("DROP_AMBIGUOUS_WITHIN_BW=TRUE requires AMBIGUITY_INPUT_PATH.", call. = FALSE)
+  }
+
+  ambiguity_df <- read_csv(ambiguity_input_path, show_col_types = FALSE) %>%
+    mutate(
+      pin = as.character(pin),
+      construction_year = suppressWarnings(as.integer(construction_year))
+    ) %>%
+    select(pin, construction_year, nearest_other_pair_dist_ft, nearest_other_pair_id)
+
+  if (anyDuplicated(ambiguity_df[c("pin", "construction_year")]) > 0) {
+    stop("Ambiguity input has duplicate pin-construction_year keys.", call. = FALSE)
+  }
+
+  parcels_fe <- parcels_fe %>%
+    left_join(ambiguity_df, by = c("pin", "construction_year"))
+}
 
 if (sample_filter == "all") {
   parcels_fe <- parcels_fe %>% filter(unitscount > 0)
@@ -228,6 +257,15 @@ for (yv in yvars) {
   if (is.finite(bw_ft)) {
     df <- df %>% filter(dist_to_boundary <= bw_ft)
   }
+  ambiguity_drop_n <- 0L
+  if (drop_ambiguous_within_bw) {
+    n_missing_ambiguity <- sum(is.na(df$nearest_other_pair_dist_ft))
+    if (n_missing_ambiguity > 0) {
+      stop(sprintf("Missing ambiguity distances for %d filtered rows.", n_missing_ambiguity), call. = FALSE)
+    }
+    ambiguity_drop_n <- sum(df$nearest_other_pair_dist_ft <= bw_ft, na.rm = TRUE)
+    df <- df %>% filter(nearest_other_pair_dist_ft > bw_ft)
+  }
   if (need_segment) {
     df <- df %>% filter(!is.na(segment_id), segment_id != "")
   }
@@ -295,6 +333,9 @@ for (yv in yvars) {
     prune_sample = prune_sample,
     cluster_level = cluster_level,
     donut_ft = donut_ft,
+    drop_ambiguous_within_bw = drop_ambiguous_within_bw,
+    ambiguity_drop_n = ambiguity_drop_n,
+    ambiguity_input_path = ambiguity_input_path,
     input_path = fe_input_path,
     table_output = output_filename
   )

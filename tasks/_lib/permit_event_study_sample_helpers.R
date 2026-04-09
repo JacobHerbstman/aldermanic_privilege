@@ -28,17 +28,8 @@ get_permit_sample_restriction_info <- function(sample_restriction) {
     ))
   }
 
-  if (sample_restriction == "clean_bg") {
-    return(list(
-      sample_restriction = "clean_bg",
-      flag_col = "keep_clean_bg",
-      suffix_tag = "cleanbg",
-      label = "Keep only block groups with one ward pair, one treatment status, and one stringency change"
-    ))
-  }
-
   stop(
-    "--sample_restriction must be one of: none, single_pair_bg, unmixed_treat_bg, clean_bg",
+    "--sample_restriction must be one of: none, single_pair_bg, unmixed_treat_bg",
     call. = FALSE
   )
 }
@@ -50,8 +41,7 @@ apply_permit_bg_sample_restriction <- function(
     sample_restriction = "none",
     block_id_var = "block_id",
     cohort_var = "cohort",
-    treat_var = "treat",
-    change_var = "strictness_change") {
+    treat_var = "treat") {
   restriction_info <- get_permit_sample_restriction_info(sample_restriction)
   has_cohort <- cohort_var %in% names(df)
 
@@ -70,7 +60,6 @@ apply_permit_bg_sample_restriction <- function(
       .data[[block_var]],
       .data[[pair_var]],
       .data[[treat_var]],
-      .data[[change_var]],
       block_group_id,
       sample_bg_id
     )
@@ -81,10 +70,8 @@ apply_permit_bg_sample_restriction <- function(
       n_sample_blocks = n_distinct(.data[[block_var]]),
       n_pairs = n_distinct(.data[[pair_var]]),
       n_treat_status = n_distinct(.data[[treat_var]]),
-      n_change_values = n_distinct(.data[[change_var]]),
       keep_single_pair_bg = n_pairs == 1L,
       keep_unmixed_treat_bg = n_treat_status == 1L,
-      keep_clean_bg = n_pairs == 1L & n_treat_status == 1L & n_change_values == 1L,
       .groups = "drop"
     )
 

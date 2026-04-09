@@ -11,7 +11,7 @@ The analysis draws on several administrative and proprietary datasets:
 
 \paragraph{Chicago Building Permits.} Permit applications and processing records for high-discretion permit types requiring aldermanic approval.
 
-\paragraph{Ward Boundary Shapefiles.} Official ward boundaries for three eras: pre-2015, 2015--2023, and post-2023.
+\paragraph{Ward Boundary Shapefiles.} Official ward boundaries for the two eras used in the compiled paper: pre-2015 and 2015--2023.
 
 \paragraph{Census Data.} American Community Survey block group demographics and 2010/2020 decennial census block boundaries.
 
@@ -37,7 +37,7 @@ Permits are assigned to wards based on the permit's geographic coordinates and t
 The new construction sample for the density analysis is drawn from the Cook County Assessor's parcel-level data.
 
 \paragraph{Sample Restrictions.}
-I apply the following restrictions: (1) lot area exceeds 1 square foot; (2) building area exceeds 1 square foot; (3) at least one dwelling unit; and (4) construction year is 2006 or later. These restrictions exclude vacant parcels, data errors, and older buildings that predate the sample period.
+I apply the following restrictions: (1) lot area exceeds 1 square foot; (2) building area exceeds 1 square foot; (3) at least one dwelling unit; and (4) construction year falls between 2006 and 2022. These restrictions exclude vacant parcels, data errors, and buildings outside the active sample window.
 
 \paragraph{Density Measures.}
 For each parcel, I compute two density measures: Floor Area Ratio (FAR), defined as total building square footage divided by lot area; and Dwelling Units Per Acre (DUPAC), defined as the number of dwelling units divided by lot acreage.
@@ -47,14 +47,14 @@ Each parcel is assigned to a ward based on its centroid location and the ward bo
 
 \subsection{Summary Statistics: New Construction Sample}
 
-Table~\ref{tab:summary_stats} presents summary statistics for the new residential construction sample used in the density analysis. The sample includes all new residential buildings constructed in Chicago between 2006 and 2025 that meet the restrictions described in Section~\ref{subsec:new_construction_sample}. Column (1) reports statistics for the full sample, while Column (2) restricts to multifamily buildings with 2 or more units.
+Table~\ref{tab:summary_stats} presents summary statistics for the new residential construction sample used in the density analysis. The sample includes all new residential buildings constructed in Chicago between 2006 and 2022 that meet the restrictions described in Section~\ref{subsec:new_construction_sample}. Column (1) reports statistics for the full sample, while Column (2) restricts to multifamily buildings with 2 or more units.
 
-The full sample contains 14,014 new residential buildings with an average of 6.43 dwelling units and 2.28 stories. The average Floor Area Ratio (FAR) is 1.21 and the average Dwelling Units Per Acre (DUPAC) is 28.12. Multifamily buildings are substantially denser, with an average of 30.17 units, 2.75 stories, FAR of 2.27, and DUPAC of 72.79. Median distance to the nearest ward boundary is 941 feet in the full sample and 857 feet in the multifamily sample.
+The full sample contains 12,451 new residential buildings with an average of 6.45 dwelling units and 2.28 stories. The average Floor Area Ratio (FAR) is 1.20 and the average Dwelling Units Per Acre (DUPAC) is 27.91. Multifamily buildings are substantially denser, with an average of 32.85 units, 2.76 stories, FAR of 2.30, and DUPAC of 74.75. Median distance to the nearest ward boundary is 931 feet in the full sample and 842 feet in the multifamily sample.
 
 \subsection{Home Sales: Sample Construction}
 \label{subsec:sales_sample}
 
-The home sales data come from the Cook County Assessor's Office and include all residential property transactions in Chicago from 1999--2025.
+The home sales data come from the Cook County Assessor's Office and include all residential property transactions in Chicago from 1999--2022.
 
 \paragraph{Sample Restrictions.}
 I apply the following restrictions to construct the analysis sample: (1) residential property classes only, including single-family homes (classes 202--210) and small multifamily buildings with 2--6 units (class 211), excluding mixed-use properties (class 212) and condominiums (classes 299, 399); (2) sale price exceeds \$10,000 to exclude nominal transfers and gifts; (3) market transactions only, defined as warranty or trustee deeds; (4) excludes land-only sales; (5) seller and buyer names are valid and non-identical, excluding intrafamily transfers; and (6) single-parcel transactions only.
@@ -66,7 +66,7 @@ Sale prices are first deflated to 2022 dollars using monthly Chicago CPI excludi
 Each sale is geocoded by joining the property identification number (PIN) to the Cook County parcel universe, which contains latitude and longitude coordinates. Sales that cannot be matched on the full 14-digit PIN are matched on the first 10 digits (PIN10).
 
 \paragraph{Ward Assignment.}
-Sales are assigned to wards based on the ward boundaries in effect at the exact sale date. The ward map changes on May 18, 2015 and May 15, 2023. For the event study analysis, sales before May 18, 2015 use pre-2015 boundaries; sales between May 18, 2015 and May 15, 2023 use 2015 boundaries; and sales after May 15, 2023 use post-2023 boundaries.
+Sales are assigned to wards based on the ward boundaries in effect at the exact sale date. For the compiled paper's sample window, sales before May 18, 2015 use pre-2015 boundaries and sales on or after May 18, 2015 use the 2015 ward boundaries.
 
 \paragraph{Distance to Ward Boundary.}
 Distance calculations follow the same procedure as for new construction (Section~\ref{subsec:new_construction_sample}), using the Illinois East State Plane coordinate system (EPSG:3435) and computing signed distance based on relative alderman strictness.
