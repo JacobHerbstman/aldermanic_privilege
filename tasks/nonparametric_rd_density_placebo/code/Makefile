@@ -1,10 +1,10 @@
 SHELL := bash
 
 FE_SPEC := zonegroup_segment_year_additive
-BW_FT := 500
+BW_FT := 250
 BINS_PER_SIDE ?= 5
-SAMPLE := multifamily
-PLACEBO_SHIFTS_FT := -500 500
+SAMPLE := all
+PLACEBO_SHIFTS_FT := -250 250
 YVARS := density_far density_dupac
 
 all: $(foreach yvar,$(YVARS),$(foreach shift,$(PLACEBO_SHIFTS_FT),../output/nonparametric_rd_density_placebo_log_$(yvar)_bw$(BW_FT)_$(SAMPLE)_shift$(shift).pdf))

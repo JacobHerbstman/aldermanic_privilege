@@ -4,12 +4,11 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx}
 \usepackage{natbib}
-\usepackage{hyperref}
+\usepackage[hyperfootnotes=false]{hyperref}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{booktabs}
 \usepackage{setspace}
-\usepackage{footnote}
 \usepackage{verbatim}
 \usepackage{float}
 \usepackage{caption}
@@ -26,27 +25,28 @@
 
 \begin{document}
 
+\begingroup
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
 \begin{center}
 {\Large Regulatory Discretion and Housing Supply: \\ 
 Evidence from Chicago's Aldermanic Privilege}
 
 \vspace{1.5em}
-Jacob Herbstman$^\dagger$
+Jacob Herbstman\footnotemark[2]
 
 \vspace{0.5em}
 \today
 \end{center}
 
-\renewcommand{\thefootnote}{$\dagger$}
-\footnotetext{University of Chicago, Harris School of Public Policy. Email: \url{jherbstman@uchicago.edu}. \par \smallskip I thank Eric Zwick, Justin Marlowe, Joshua Gottlieb, Ayo George, and seminar participants at the Harris School PhD workshop,
+\footnotetext[2]{University of Chicago, Harris School of Public Policy. Email: \url{jherbstman@uchicago.edu}. \par \smallskip I thank Eric Zwick, Justin Marlowe, Joshua Gottlieb, Ayo George, and seminar participants at the Harris School PhD workshop,
 Economics Department Student Applied Micro Lunch, and the Notre Dame Housing Economics Conference for helpful comments and suggestions.}
-\renewcommand{\thefootnote}{\arabic{footnote}}
+\endgroup
 \setcounter{footnote}{0}
 
 \vspace{1em}
 
 \begin{abstract}
-Land use regulation constrains housing supply, but most evidence focuses on formal rules such as zoning codes. I study the role of informal regulatory discretion through Chicago's ``aldermanic privilege,'' under which city council members can effectively block or approve development in their wards. Using permit processing times to construct alderman-level stringency scores, I document large differences in the local regulatory environment that are not explained by geography or demographics. A border discontinuity design shows that new multifamily construction is roughly 15\% less dense on the more stringent side of ward boundaries. An event study around ward redistricting shows that blocks reassigned to more stringent aldermen experience a 9\% decline in high-discretion permits over the following five years. I also find suggestive evidence that these supply restrictions pass through into higher home prices. Taken together, the results imply that informal discretionary authority materially shapes housing supply and that reforms to local land use decision-making could affect housing affordability.
+Land use regulation constrains housing supply, but most evidence focuses on formal rules such as zoning codes. I study the role of informal regulatory discretion through Chicago's ``aldermanic privilege,'' under which city council members can effectively block or approve development in their wards. Using permit processing times to construct alderman-level stringency scores, I document large differences in the local regulatory environment that are not explained by geography or demographics. A border discontinuity design shows that new residential construction is less dense on the more stringent side of ward boundaries: in 250-foot border-pair regressions, a one standard deviation increase in aldermanic stringency lowers floor area ratio by about 13\% and dwelling units per acre by about 10\% in the full new-construction sample, while the multifamily subsample shows larger but less precise effects. An event study around ward redistricting shows that blocks reassigned to more stringent aldermen experience a 9\% decline in high-discretion permits over the following five years. I also find suggestive evidence that these supply restrictions pass through into higher home prices. Taken together, the results imply that informal discretionary authority materially shapes housing supply and that reforms to local land use decision-making could affect housing affordability.
 \end{abstract}
 
 \clearpage
