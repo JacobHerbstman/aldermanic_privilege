@@ -3,7 +3,7 @@
 
 \subsection{Border Segments}
 
-Figure~\ref{fig:pruned_border_segments} shows the ward-boundary segments that enter the density analysis after applying the pruning procedure described in the text. The retained segments span the city and clarify the local comparisons underlying the spatial discontinuity design.
+Figure~\ref{fig:pruned_border_segments} shows the ward-boundary segments that enter the density analysis after applying the pruning procedure described in the text. The retained segments span the city and make the local comparisons underlying the spatial discontinuity design easier to see.
 
 \begin{figure}[H]
     \centering
@@ -15,7 +15,7 @@ Figure~\ref{fig:pruned_border_segments} shows the ward-boundary segments that en
 
 \subsection{Alternative Fixed Effects: Ward-Pair}
 
-Table~\ref{tab:fe_pair_year} replaces segment fixed effects with ward-pair fixed effects, which pool across all segments of a given ward pair. This is a coarser comparison---ward-pair borders can stretch for miles through different neighborhoods---but it uses more variation. The estimates remain negative, but they are attenuated relative to the main segment FE estimates in Table~\ref{tab:segment_fe_500}.
+Table~\ref{tab:fe_pair_year} replaces segment fixed effects with ward-pair fixed effects, which pool across all segments of a given ward pair. This is a coarser comparison---ward-pair borders can stretch for miles through very different neighborhoods---but it uses more variation. The estimates remain negative, though they are attenuated relative to the main segment FE estimates in Table~\ref{tab:segment_fe_500}.
 
 \begin{table}[H]
     \caption{Effect of Aldermanic Stringency on Development Density (Ward-Pair FE)}
@@ -43,7 +43,7 @@ Table~\ref{tab:fe_pruned} drops ward-pair-era combinations where confounding bou
 
 \subsection{Bandwidth Robustness}
 
-Table~\ref{tab:fe_estimates_250} presents the main segment FE specification at a tighter 250-foot bandwidth. The point estimates remain negative and somewhat larger in magnitude than in the 500-foot baseline, but they are based on fewer observations and are correspondingly less precise.
+Table~\ref{tab:fe_estimates_250} presents the main segment FE specification at a tighter 250-foot bandwidth. The point estimates remain negative and somewhat larger in magnitude than in the 500-foot baseline, but they are based on fewer observations and are therefore less precise.
 
 \begin{table}[H]
     \caption{Effect of Aldermanic Stringency on Development Density (250 ft Bandwidth)}
@@ -89,7 +89,7 @@ The main border discontinuity is stronger for ward pairs with larger differences
 
 \subsection{Donut RD Robustness}
 
-One concern with spatial RD designs is that observations precisely at the boundary may be unusual---for example, if ward boundaries follow major streets that independently affect development. Figure~\ref{fig:rd_donut} implements a donut specification \citep{barreca_saving_2011, barreca_heaping-induced_2016} that excludes parcels within 25 or 50 feet of the boundary. In both donut plots, the fitted discontinuity remains negative, suggesting the main pattern is not driven only by parcels right at the cutoff.
+One concern with spatial RD designs is that observations precisely at the boundary may be unusual---for example, if ward boundaries follow major streets that independently affect development. Figure~\ref{fig:rd_donut} implements a donut specification \citep{barreca_saving_2011, barreca_heaping-induced_2016} that excludes parcels within 25 or 50 feet of the boundary. In both donut plots, the fitted discontinuity remains negative, which suggests that the main pattern is not driven only by parcels right at the cutoff.
 
 \begin{figure}[H]
     \centering
@@ -141,7 +141,7 @@ Figure~\ref{fig:rd_placebo} in the main text shows placebo tests for Log(FAR). F
 
 \subsection{All Construction}
 
-The main analysis restricts to multifamily buildings with 2 or more units. Figure~\ref{fig:rd_all_units} includes all new construction, including single-family homes. The plotted discontinuity appears smaller than in the multifamily-only sample, as expected given that single-family construction has less variation in density and is less subject to aldermanic discretion.
+The main analysis restricts to multifamily buildings with 2 or more units. Figure~\ref{fig:rd_all_units} includes all new construction, including single-family homes. The plotted discontinuity appears smaller than in the multifamily-only sample, as expected given that single-family construction has less variation in density and is less exposed to aldermanic discretion.
 
 \begin{figure}[H]
     \centering

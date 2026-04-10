@@ -1,11 +1,11 @@
 \section{Data and Sample Construction}
 \label{sec:appendix_data}
 
-This appendix documents the data sources and sample construction procedures for the analysis.
+This appendix documents the data sources and sample construction procedures used in the analysis.
 
 \subsection{Data Sources}
 
-The analysis draws on several administrative and proprietary datasets:
+The analysis draws on the following administrative and proprietary datasets:
 
 \paragraph{Cook County Assessor Data.} Sales records, property assessments, and improvement characteristics for residential parcels in Cook County.
 
@@ -34,7 +34,7 @@ Permits are assigned to wards based on the permit's geographic coordinates and t
 \subsection{New Construction: Sample Construction}
 \label{subsec:new_construction_sample}
 
-The new construction sample for the density analysis is drawn from the Cook County Assessor's parcel-level data.
+The new construction sample for the density analysis comes from Cook County Assessor parcel-level data.
 
 \paragraph{Sample Restrictions.}
 I apply the following restrictions: (1) lot area exceeds 1 square foot; (2) building area exceeds 1 square foot; (3) at least one dwelling unit; and (4) construction year falls between 2006 and 2022. These restrictions exclude vacant parcels, data errors, and buildings outside the active sample window.
@@ -47,7 +47,7 @@ Each parcel is assigned to a ward based on its centroid location and the ward bo
 
 \subsection{Summary Statistics: New Construction Sample}
 
-Table~\ref{tab:summary_stats} presents summary statistics for the new residential construction sample used in the density analysis. The sample includes all new residential buildings constructed in Chicago between 2006 and 2022 that meet the restrictions described in Section~\ref{subsec:new_construction_sample}. Column (1) reports statistics for the full sample, while Column (2) restricts to multifamily buildings with 2 or more units.
+Table~\ref{tab:summary_stats} presents summary statistics for the new residential construction sample used in the density analysis. The sample includes all new residential buildings constructed in Chicago between 2006 and 2022 that meet the restrictions described in Section~\ref{subsec:new_construction_sample}. Column (1) reports statistics for the full sample, while Column (2) restricts the sample to multifamily buildings with 2 or more units.
 
 The full sample contains 12,451 new residential buildings with an average of 6.45 dwelling units and 2.28 stories. The average Floor Area Ratio (FAR) is 1.20 and the average Dwelling Units Per Acre (DUPAC) is 27.91. Multifamily buildings are substantially denser, with an average of 32.85 units, 2.76 stories, FAR of 2.30, and DUPAC of 74.75. Median distance to the nearest ward boundary is 931 feet in the full sample and 842 feet in the multifamily sample.
 
@@ -74,7 +74,7 @@ Distance calculations follow the same procedure as for new construction (Section
 \subsection{Event Study Panel Construction}
 \label{subsec:event_study_panel}
 
-For the event study analyses in the compiled paper, I construct a block-level treatment panel around the 2015 redistricting. That treatment panel is used directly for the permit event study and merged into transaction-level home sales data for the price analysis.
+For the event study analyses in the compiled paper, I construct a block-level treatment panel around the 2015 redistricting. That panel is used directly for the permit event study and merged into transaction-level home sales data for the price analysis.
 
 \paragraph{Treatment Assignment.}
 Blocks are classified as treated if they were redistricted from one ward to another. In the 2015 cohort used in the compiled paper, I compare ward assignments under the pre-2015 map (2014 boundaries) to post-2015 (2015 boundaries). Census blocks are assigned to wards based on their centroid location.
@@ -86,4 +86,4 @@ Treatment intensity is measured using the difference between the destination and
 Control blocks may experience treatment through electoral turnover (alderman changed via election rather than redistricting). In the compiled paper's 2015-cohort design, I identify wards with alderman turnover between 2014 and 2015 and exclude non-switching blocks in these wards from the control group.
 
 \paragraph{Analysis Panels.}
-Permit outcomes are aggregated to block-year panels for the event-study analysis. In the compiled paper, the permit event study uses the 2015 implementation cohort with relative years $-5$ through $5$. Home sales are not aggregated in the active compiled analysis: the price event study is estimated on transaction-level data for the 2015 implementation cohort over the same relative-year window, with hedonic controls and border-pair-side plus border-pair-by-year fixed effects.
+Permit outcomes are aggregated to block-year panels for the event-study analysis. In the compiled paper, the permit event study uses the 2015 implementation cohort with relative years $-5$ through $5$. Home sales are not aggregated in the active compiled analysis. Instead, the price event study is estimated on transaction-level data for the 2015 implementation cohort over the same relative-year window, with hedonic controls and border-pair-side plus border-pair-by-year fixed effects.

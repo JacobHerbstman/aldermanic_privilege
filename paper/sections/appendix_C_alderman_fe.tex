@@ -1,7 +1,7 @@
 \section{Alderman Fixed Effects and Index Validation}
 \label{sec:appendix_alderman_fe}
 
-This appendix provides additional detail on the construction and validation of the aldermanic strictness index.
+This appendix provides additional detail on how the aldermanic strictness index is constructed and validated.
 
 \subsection{Construction of the Strictness Index}
 
@@ -19,7 +19,7 @@ Raw alderman fixed effects are shrunk toward the grand mean using an empirical B
 \paragraph{Index Standardization.}
 The final strictness index is standardized to have mean zero and unit standard deviation across aldermen. Higher values indicate stricter aldermen.
 
-Table~\ref{tab:stage1_residualization} reports the baseline Stage 1 residualization regression. The dependent variable is permit-level log processing time. The specification controls for ward fundamentals and lag permit volume while partialing out month, permit-type, and review-type fixed effects, since review and permit-type composition may be endogenously determined by the regulatory environment. This stage is meant to remove systematic differences in permit timing attributable to observable ward characteristics so that the resulting strictness score isolates the alderman-specific component.
+Table~\ref{tab:stage1_residualization} reports the baseline Stage 1 residualization regression. The dependent variable is permit-level log processing time. The specification controls for ward fundamentals and lag permit volume while partialing out month, permit-type, and review-type fixed effects, since review and permit-type composition may be endogenously determined by the regulatory environment. The purpose of this stage is to remove systematic differences in permit timing attributable to observable ward characteristics so that the resulting strictness score isolates the alderman-specific component.
 
 \begin{table}[htbp]
     \caption{Stage 1 Residualization: Permit-Level Log Processing Time on Ward Fundamentals}
@@ -41,7 +41,7 @@ Table~\ref{tab:stage1_residualization} reports the baseline Stage 1 residualizat
 \subsection{Validation of the Strictness Index}
 \label{app:strictness_validation}
 
-The strictness index is intended to capture alderman-specific regulatory frictions rather than purely ward-level conditions. Table~\ref{tab:permit_validation} shows that wards with higher stringency scores issue fewer high-discretion permits and exhibit more signs of project modification: a larger share of permits with any unit change and more units reduced per permit. Figure~\ref{fig:predecessor_successor_strictness} complements this by comparing predecessor and successor aldermen within the same ward. The weak relationship indicates that the index is not simply reflecting time-invariant ward characteristics.
+The strictness index is intended to capture alderman-specific regulatory frictions rather than purely ward-level conditions. Table~\ref{tab:permit_validation} shows that wards with higher stringency scores issue fewer high-discretion permits and exhibit more signs of project modification: a larger share of permits with any unit change and more units reduced per permit. Figure~\ref{fig:predecessor_successor_strictness} complements that evidence by comparing predecessor and successor aldermen within the same ward. The weak relationship indicates that the index is not simply reflecting time-invariant ward characteristics.
 
 \begin{table}[htbp]
     \centering
