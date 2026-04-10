@@ -7,7 +7,7 @@ source("../../_lib/border_pair_helpers.R")
 # bw_ft <- 500
 # sample_filter <- "multifamily"
 # fe_spec <- "zonegroup_segment_year_additive"
-# bins_per_side <- 10
+# bins_per_side <- 5
 # donut_ft <- 25
 # output_pdf <- "../output/nonparametric_rd_density_donut_log_density_far_bw500_multifamily_donut25.pdf"
 

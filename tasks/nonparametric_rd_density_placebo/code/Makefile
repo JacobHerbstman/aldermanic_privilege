@@ -2,7 +2,7 @@ SHELL := bash
 
 FE_SPEC := zonegroup_segment_year_additive
 BW_FT := 500
-BINS_PER_SIDE ?= 10
+BINS_PER_SIDE ?= 5
 SAMPLE := multifamily
 PLACEBO_SHIFTS_FT := -500 500
 YVARS := density_far density_dupac
