@@ -28,7 +28,7 @@ run_sample <- as.logical(sample)
 load_cpi_deflator <- function(start_date,
                               end_date,
                               base_year = 2022L,
-                              series_id = "CUURA207SA0L2") {
+                              series_id = "CUURA207SA0") {
   fred_url <- sprintf("https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s", series_id)
   message(sprintf("Fetching CPI series %s from FRED...", series_id))
   old_http_ua <- getOption("HTTPUserAgent")
@@ -101,7 +101,7 @@ load_cpi_deflator <- function(start_date,
   cpi %>%
     transmute(
       rent_year_month = format(observation_date, "%Y-%m"),
-      rent_price_cpi_chi_ex_shelter = cpi_value,
+      rent_price_cpi_chi_all_items = cpi_value,
       rent_price_deflator_to_2022 = base_cpi / cpi_value
     )
 }

@@ -102,7 +102,7 @@ sales <- merge_border_scores(sales_pre, "dist_ft") %>%
     any_of(c(
       "sale_price_nominal",
       "sale_price_real_2022_raw",
-      "sale_price_cpi_chi_ex_shelter",
+      "sale_price_cpi_chi_all_items",
       "sale_price_deflator_to_2022"
     )),
     class,

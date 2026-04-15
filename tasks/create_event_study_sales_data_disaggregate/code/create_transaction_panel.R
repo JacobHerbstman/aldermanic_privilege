@@ -5,6 +5,7 @@
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
+source("../../_lib/amenity_distance_helpers.R")
 
 assign_cohort_segments_dt <- function(dt, segment_layers, era_label, cohort_label, chunk_n = 50000L) {
   if (nrow(dt) == 0) {
@@ -292,7 +293,41 @@ sales_with_treatment <- merge(sales_with_treatment, treatment_2023, by = "block_
 message(sprintf("Sales with treatment info: %s", format(nrow(sales_with_treatment), big.mark = ",")))
 
 # =============================================================================
-# 5. CREATE HEDONIC CONTROL VARIABLES (NO IMPUTATION)
+# 5. CREATE AMENITY DISTANCE CONTROLS
+# =============================================================================
+message("\n=== CREATING AMENITY DISTANCE CONTROLS ===")
+
+amenity_coordinates <- build_unique_coordinate_amenity_table(
+  as_tibble(sales_with_treatment),
+  "longitude",
+  "latitude",
+  "../input/schools_2015.gpkg",
+  "../input/parks.gpkg",
+  "../input/major_streets.gpkg",
+  "../input/gis_osm_water_a_free_1.shp"
+)
+
+sales_with_treatment <- append_amenity_distances(
+  sales_with_treatment,
+  amenity_coordinates,
+  "longitude",
+  "latitude"
+)
+
+sales_amenity_diagnostics <- amenity_distance_diagnostics(
+  sales_with_treatment,
+  amenity_coordinates,
+  "sales_event_study"
+)
+
+message("\nAmenity distance coverage (% non-missing):")
+message(sprintf("  nearest_school_dist_ft: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_school_dist_ft))))
+message(sprintf("  nearest_park_dist_ft: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_park_dist_ft))))
+message(sprintf("  nearest_major_road_dist_ft: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_major_road_dist_ft))))
+message(sprintf("  lake_michigan_dist_ft: %.1f%%", 100 * mean(!is.na(sales_with_treatment$lake_michigan_dist_ft))))
+
+# =============================================================================
+# 6. CREATE HEDONIC CONTROL VARIABLES (NO IMPUTATION)
 # =============================================================================
 message("\n=== CREATING HEDONIC CONTROLS (NO IMPUTATION) ===")
 
@@ -341,11 +376,11 @@ message(sprintf(
 ))
 
 # =============================================================================
-# 6. CREATE COHORT PANELS
+# 7. CREATE COHORT PANELS
 # =============================================================================
 
 # =============================================================================
-# 6a. CREATE 2012 COHORT (Anticipation Analysis)
+# 7a. CREATE 2012 COHORT (Anticipation Analysis)
 # =============================================================================
 # The 2012 cohort uses the SAME treatment definition as 2015 (which blocks switched
 # in the 2015 redistricting), but centers the event study on the announcement date
@@ -397,7 +432,7 @@ message(sprintf("  Treated transactions: %s", format(sum(cohort_2012$treat == 1)
 message(sprintf("  Control transactions: %s", format(sum(cohort_2012$treat == 0), big.mark = ",")))
 
 # =============================================================================
-# 6b. CREATE 2022 COHORT (Anticipation for 2023 Redistricting)
+# 7b. CREATE 2022 COHORT (Anticipation for 2023 Redistricting)
 # =============================================================================
 # The 2022 cohort uses the SAME treatment definition as 2023 (which blocks switched
 # in the 2023 redistricting), but centers the event study on the announcement date
@@ -448,7 +483,7 @@ message(sprintf("  Treated transactions: %s", format(sum(cohort_2022$treat == 1)
 message(sprintf("  Control transactions: %s", format(sum(cohort_2022$treat == 0), big.mark = ",")))
 
 # =============================================================================
-# 6c. CREATE 2015 COHORT (Implementation)
+# 7c. CREATE 2015 COHORT (Implementation)
 # =============================================================================
 # The 2015 cohort centers on the actual implementation date (May 2015).
 # Uses sales from 2010-2020.
@@ -493,7 +528,7 @@ if (any(grepl("_", cohort_2015$ward_pair_id, fixed = TRUE, useBytes = TRUE))) {
 
 message(sprintf("2015 cohort: %s transactions", format(nrow(cohort_2015), big.mark = ",")))
 # =============================================================================
-# 6d. CREATE 2023 COHORT
+# 7d. CREATE 2023 COHORT
 # =============================================================================
 message("\n=== CREATING 2023 COHORT ===")
 
@@ -565,7 +600,7 @@ cohort_2023[, `:=`(
 )]
 
 # =============================================================================
-# 7. CREATE STACKED PANELS
+# 8. CREATE STACKED PANELS
 # =============================================================================
 message("\n=== CREATING STACKED PANELS ===")
 
@@ -596,7 +631,7 @@ message(sprintf(
 ))
 
 # =============================================================================
-# 8. SELECT FINAL COLUMNS
+# 9. SELECT FINAL COLUMNS
 # =============================================================================
 message("\n=== SELECTING FINAL COLUMNS ===")
 
@@ -605,6 +640,7 @@ final_cols <- c(
   "sale_date", "sale_year", "relative_year", "relative_year_capped",
   "sale_price",
   "log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage",
+  "nearest_school_dist_ft", "nearest_park_dist_ft", "nearest_major_road_dist_ft", "lake_michigan_dist_ft",
   "building_sqft", "land_sqft", "year_built", "building_age", "num_bedrooms",
   "num_full_baths", "baths_total", "garage_size", "hedonic_tax_year", "years_gap",
   "ward", "ward_pair_id", "ward_origin", "ward_pair_side", "cohort_ward_pair_side",
@@ -624,7 +660,7 @@ stacked_implementation_final <- stacked_implementation[, ..final_cols]
 final_panel <- stacked_implementation_final
 
 # =============================================================================
-# 8. DIAGNOSTICS
+# 10. DIAGNOSTICS
 # =============================================================================
 message("\n=== FINAL PANEL DIAGNOSTICS ===")
 
@@ -647,6 +683,15 @@ hedonic_coverage <- final_panel[, .(
   has_garage = mean(!is.na(has_garage)) * 100
 )]
 print(hedonic_coverage)
+
+message("\nAmenity variable coverage in final panel (% non-missing):")
+amenity_coverage <- final_panel[, .(
+  nearest_school_dist_ft = mean(!is.na(nearest_school_dist_ft)) * 100,
+  nearest_park_dist_ft = mean(!is.na(nearest_park_dist_ft)) * 100,
+  nearest_major_road_dist_ft = mean(!is.na(nearest_major_road_dist_ft)) * 100,
+  lake_michigan_dist_ft = mean(!is.na(lake_michigan_dist_ft)) * 100
+)]
+print(amenity_coverage)
 
 message("\nYears gap between sale and hedonic assessment:")
 gap_stats <- final_panel[, .(
@@ -671,6 +716,18 @@ message(sprintf(
   "\nTransactions with complete hedonics (regression sample): %s (%.1f%%)",
   format(n_complete, big.mark = ","),
   100 * n_complete / nrow(final_panel)
+))
+
+n_complete_amenity <- final_panel[
+  !is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
+    !is.na(log_bedrooms) & !is.na(log_baths) & !is.na(has_garage) &
+    !is.na(nearest_school_dist_ft) & !is.na(nearest_park_dist_ft) &
+    !is.na(nearest_major_road_dist_ft) & !is.na(lake_michigan_dist_ft), .N
+]
+message(sprintf(
+  "Transactions with complete hedonics and amenity distances: %s (%.1f%%)",
+  format(n_complete_amenity, big.mark = ","),
+  100 * n_complete_amenity / nrow(final_panel)
 ))
 
 sales_support_by_event_time <- rbindlist(list(
@@ -713,7 +770,7 @@ sales_assignment_stability <- rbindlist(list(
 ), fill = TRUE)
 
 # =============================================================================
-# 10. SAVE ALL PANELS
+# 11. SAVE ALL PANELS
 # =============================================================================
 message("\n=== SAVING ===")
 
@@ -742,6 +799,9 @@ message(sprintf("Saved 2015 cohort: %s rows", format(nrow(cohort_2015_final), bi
 
 write_parquet(cohort_2023_final, "../output/sales_transaction_panel_2023.parquet")
 message(sprintf("Saved 2023 cohort: %s rows", format(nrow(cohort_2023_final), big.mark = ",")))
+
+write_csv(as_tibble(sales_amenity_diagnostics), "../output/sales_transaction_panel_amenity_distance_diagnostics.csv")
+message("Saved sales amenity-distance diagnostics")
 
 write_csv(as_tibble(sales_support_by_event_time), "../output/sales_transaction_panel_support_by_event_time.csv")
 message("Saved sales event-time support diagnostics")

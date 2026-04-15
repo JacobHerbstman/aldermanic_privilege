@@ -143,6 +143,8 @@ plot_df <- combined %>%
     )
   )
 
+plot_bandwidths <- bandwidths[bandwidths >= 250]
+
 plot_specs <- tribble(
   ~yvar, ~sample_filter, ~prune_spec, ~output_path,
   "log(density_far)", "multifamily", "main", far_multifamily_main_output,
@@ -162,7 +164,12 @@ for (i in seq_len(nrow(plot_specs))) {
   output_path <- plot_specs$output_path[i]
 
   plot_data <- plot_df %>%
-    filter(yvar == yvar_i, sample_filter == sample_i, prune_spec == prune_i)
+    filter(
+      yvar == yvar_i,
+      sample_filter == sample_i,
+      prune_spec == prune_i,
+      bw_ft >= 250
+    )
 
   prune_label <- if_else(prune_i == "main", "Main", "Pruned")
   prune_color <- if_else(prune_i == "main", "#1f77b4", "#ff7f0e")
@@ -174,7 +181,10 @@ for (i in seq_len(nrow(plot_specs))) {
     geom_hline(yintercept = 0, linetype = "dotted", color = "gray45") +
     geom_vline(xintercept = 250, linetype = "dashed", color = "gray50", linewidth = 0.4) +
     geom_vline(xintercept = 500, linetype = "dashed", color = "gray50", linewidth = 0.4) +
-    scale_x_continuous(breaks = seq(min(bandwidths), max(bandwidths), by = 100)) +
+    scale_x_continuous(
+      breaks = seq(min(plot_bandwidths), max(plot_bandwidths), by = 100),
+      limits = c(min(plot_bandwidths), max(plot_bandwidths))
+    ) +
     labs(
       title = sprintf("Bandwidth Path: %s, %s, %s", plot_data$outcome_label[[1]], plot_data$sample_label[[1]], prune_label),
       subtitle = "Zoning-group FE, segment FE, year FE, side-specific distance slopes, ward-pair clustered SEs",

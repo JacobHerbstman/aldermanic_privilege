@@ -6,6 +6,7 @@ source("../../_lib/event_study_plot_helpers.R")
 # panel_mode <- "cohort_2015"
 # treatment_type <- "continuous"
 # include_hedonics <- TRUE
+# control_mode <- "hedonic"
 # time_unit <- "yearly"
 # fe_type <- "strict_pair_x_year"
 # weighting <- "triangular"
@@ -16,11 +17,11 @@ source("../../_lib/event_study_plot_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(panel_mode, treatment_type, include_hedonics, time_unit, fe_type, weighting, bandwidth, post_window, geo_fe_level, cluster_level)
+  cli_args <- c(panel_mode, treatment_type, include_hedonics, time_unit, fe_type, weighting, bandwidth, post_window, geo_fe_level, cluster_level, control_mode)
 }
 
-if (length(cli_args) != 10) {
-  stop("FATAL: Script requires args: <panel_mode> <treatment_type> <include_hedonics> <time_unit> <fe_type> <weighting> <bandwidth> <post_window> <geo_fe_level> <cluster_level>", call. = FALSE)
+if (!length(cli_args) %in% c(10, 11)) {
+  stop("FATAL: Script requires args: <panel_mode> <treatment_type> <include_hedonics> <time_unit> <fe_type> <weighting> <bandwidth> <post_window> <geo_fe_level> <cluster_level> [<control_mode>]", call. = FALSE)
 }
 panel_mode <- cli_args[1]
 treatment_type <- cli_args[2]
@@ -32,10 +33,12 @@ bandwidth <- as.numeric(cli_args[7])
 post_window <- cli_args[8]
 geo_fe_level <- tolower(cli_args[9])
 cluster_level <- tolower(cli_args[10])
+control_mode <- if (length(cli_args) >= 11) tolower(cli_args[11]) else if (include_hedonics) "hedonic" else "none"
 
 PANEL_MODE <- panel_mode
 TREATMENT_TYPE <- treatment_type
 INCLUDE_HEDONICS <- include_hedonics
+CONTROL_MODE <- control_mode
 TIME_UNIT <- time_unit
 FE_TYPE <- fe_type
 WEIGHTING <- weighting
@@ -77,6 +80,9 @@ if (!GEO_FE_LEVEL %in% c("segment", "ward_pair")) {
 if (!CLUSTER_LEVEL %in% c("twoway_block_segment", "block", "segment")) {
   stop("--cluster_level must be one of: twoway_block_segment, block, segment", call. = FALSE)
 }
+if (!CONTROL_MODE %in% c("none", "hedonic", "amenity")) {
+  stop("--control_mode must be one of: none, hedonic, amenity", call. = FALSE)
+}
 if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 1000) {
   stop("Segment FE requested with bandwidth > 1000. Use bandwidth <= 1000.", call. = FALSE)
 }
@@ -99,7 +105,11 @@ panel_input <- switch(PANEL_MODE,
   "cohort_2023" = "../input/sales_transaction_panel_2023.parquet"
 )
 
-hedonic_suffix <- if (INCLUDE_HEDONICS) "" else "_no_hedonics"
+control_suffix <- case_when(
+  CONTROL_MODE == "none" ~ "_no_hedonics",
+  CONTROL_MODE == "hedonic" ~ "",
+  CONTROL_MODE == "amenity" ~ "_amenity"
+)
 fe_suffix <- case_when(
   FE_TYPE == "strict_pair_x_year" ~ "",
   FE_TYPE == "pair_trend_plus_year" ~ "_pairtrend",
@@ -113,7 +123,7 @@ suffix <- sprintf(
   WEIGHTING,
   as.integer(BANDWIDTH),
   fe_suffix,
-  hedonic_suffix,
+  control_suffix,
   POST_WINDOW
 )
 if (GEO_FE_LEVEL != "segment") {
@@ -129,7 +139,7 @@ message("\n=== Sales Event Study ===")
 message(sprintf("Panel mode: %s", PANEL_MODE))
 message(sprintf("Panel title: %s", panel_title))
 message(sprintf("Treatment type: %s", TREATMENT_TYPE))
-message(sprintf("Include hedonics: %s", INCLUDE_HEDONICS))
+message(sprintf("Control mode: %s", CONTROL_MODE))
 message(sprintf("Time unit: %s", TIME_UNIT))
 message(sprintf("FE type: %s", FE_TYPE))
 message(sprintf("Weighting: %s", WEIGHTING))
@@ -227,8 +237,13 @@ after_bandwidth_n <- nrow(data)
 
 complete_hedonic <- complete.cases(data[, c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")])
 complete_hedonic_n <- sum(complete_hedonic)
-if (INCLUDE_HEDONICS) {
+complete_amenity <- complete.cases(data[, c("nearest_school_dist_ft", "nearest_park_dist_ft", "nearest_major_road_dist_ft", "lake_michigan_dist_ft")])
+complete_amenity_n <- sum(complete_amenity)
+if (CONTROL_MODE %in% c("hedonic", "amenity")) {
   data <- data[complete_hedonic, ]
+}
+if (CONTROL_MODE == "amenity") {
+  data <- data[complete_amenity[complete_hedonic], ]
 }
 after_hedonic_filter_n <- nrow(data)
 
@@ -341,8 +356,10 @@ if (GEO_FE_LEVEL == "segment") {
 analysis_n <- nrow(data)
 support_by_event_time <- make_support_table(data, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period)
 
-hedonic_formula <- if (INCLUDE_HEDONICS) {
+control_formula <- if (CONTROL_MODE == "hedonic") {
   "+ log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage"
+} else if (CONTROL_MODE == "amenity") {
+  "+ log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage + nearest_school_dist_ft + nearest_park_dist_ft + nearest_major_road_dist_ft + lake_michigan_dist_ft"
 } else {
   ""
 }
@@ -352,7 +369,8 @@ metadata <- tibble(
   panel_title = panel_title,
   time_unit = TIME_UNIT,
   treatment_type = TREATMENT_TYPE,
-  include_hedonics = INCLUDE_HEDONICS,
+  include_hedonics = CONTROL_MODE %in% c("hedonic", "amenity"),
+  control_mode = CONTROL_MODE,
   weighting = WEIGHTING,
   bandwidth = BANDWIDTH,
   fe_type = FE_TYPE,
@@ -365,6 +383,7 @@ metadata <- tibble(
   after_segment_filter_n = after_segment_filter_n,
   after_bandwidth_n = after_bandwidth_n,
   complete_hedonic_n = complete_hedonic_n,
+  complete_amenity_n = complete_amenity_n,
   analysis_n = analysis_n,
   treated_n = sum(data$treat == 1, na.rm = TRUE),
   control_n = sum(data$treat == 0, na.rm = TRUE),
@@ -377,7 +396,7 @@ metadata <- tibble(
 if (TREATMENT_TYPE == "continuous") {
   formula_str <- sprintf(
     "log(sale_price) ~ i(%s, strictness_change, ref = -1) %s | %s",
-    event_var, hedonic_formula, fe_formula
+    event_var, control_formula, fe_formula
   )
   message(sprintf("Running regression with %s observations", format(nrow(data), big.mark = ",")))
   message(sprintf("Formula: %s", formula_str))
@@ -434,11 +453,11 @@ if (TREATMENT_TYPE == "continuous") {
 } else {
   formula_stricter <- sprintf(
     "log(sale_price) ~ i(%s, treatment_stricter_continuous, ref = -1) %s | %s",
-    event_var, hedonic_formula, fe_formula
+    event_var, control_formula, fe_formula
   )
   formula_lenient <- sprintf(
     "log(sale_price) ~ i(%s, treatment_lenient_continuous, ref = -1) %s | %s",
-    event_var, hedonic_formula, fe_formula
+    event_var, control_formula, fe_formula
   )
 
   message(sprintf("Running regression with %s observations", format(nrow(data), big.mark = ",")))
