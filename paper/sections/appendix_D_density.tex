@@ -57,6 +57,17 @@ Table~\ref{tab:fe_pruned} applies the pruning screen to the main 500-foot multif
     \textit{Notes:} Same specification and controls as Table~\ref{tab:density_main_table}, but dropping ward-pair-era combinations flagged as confounded in the pruning file. Sample includes new multifamily construction within 500 feet of ward boundaries. Regressions are unweighted. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
+\subsection{Exact Amenity and Zoned-FAR Balance}
+
+Table~\ref{tab:density_exact_amenity_balance} checks whether the main 500-foot multifamily sample is balanced on exact parcel-level distances to nearby amenities and on zoned FAR. Each row uses the same fixed-effects design as the main density table, but with the amenity measure or zoned FAR on the left-hand side. The coefficients are small and imprecise throughout.
+
+\begin{table}[H]
+    \caption{Exact Amenity and Zoned-FAR Balance in the Main Density Sample}
+    \label{tab:density_exact_amenity_balance}
+
+    \input{../tasks/density_amenity_balance/output/density_amenity_balance_bw500_multifamily.tex}
+\end{table}
+
 \subsection{Supplementary Shifted-Cutoff Placebos}
 
 Figure~\ref{fig:rd_placebo} shifts the cutoff 500 feet into each ward and re-centers the local-linear display on that pseudo-boundary. I treat these plots as supplementary because the geometry does not permit a fully clean placebo at the same scale. Even so, the shifted-cutoff displays are flatter than the main 500-foot multifamily plots and do not show the same negative break at the true jurisdictional boundary.

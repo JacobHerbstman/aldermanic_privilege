@@ -490,6 +490,10 @@ write_balance_tex <- function(balance_df, output_path) {
   lines <- c(lines, "\\midrule")
 
   for (covariate_i in covariate_catalog$covariate) {
+    if (covariate_i == "dist_ft") {
+      next
+    }
+
     row_i <- balance_df %>%
       filter(covariate == covariate_i)
 

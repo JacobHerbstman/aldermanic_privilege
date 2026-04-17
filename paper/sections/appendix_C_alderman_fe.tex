@@ -11,7 +11,7 @@ Alderman strictness is measured using permit processing times from the high-disc
 I regress permit-level log processing time on ward geographic fundamentals (distance to the CBD, distance to the lake, CTA station density), demographic controls (homeownership rate, population, median household income, racial composition), lagged ward-month permit volume, and fixed effects for month, permit type, and review type.
 
 \paragraph{Stage 2: Alderman Fixed Effects.}
-I aggregate the Stage 1 residuals to ward-month mean residuals and regress those ward-month averages on alderman fixed effects and the same lagged permit-volume control, weighting observations by ward-month permit counts. The alderman fixed effect captures the systematic component of processing time attributable to the alderman.
+I aggregate the Stage 1 residuals to ward-month mean residuals and regress those ward-month averages on alderman fixed effects $\alpha_{a(w,m)}$ and the same lagged permit-volume control, weighting observations by ward-month permit counts. Here $a(w,m)$ denotes the alderman serving ward $w$ in month $m$. The alderman fixed effect captures the systematic component of processing time attributable to the alderman.
 
 \paragraph{Empirical Bayes Shrinkage.}
 Raw alderman fixed effects are shrunk toward the grand mean using an empirical Bayes procedure: $\hat{\theta}_j^{\text{EB}} = B_j \cdot \hat{\theta}_j$, where $B_j = \hat{\tau}^2/(\hat{\tau}^2 + \hat{\sigma}_j^2)$ is the shrinkage factor.
@@ -60,3 +60,24 @@ The strictness index is intended to capture alderman-specific regulatory frictio
     \figurenotes{Each point compares the strictness score of an alderman to that of the predecessor or successor who represented the same ward in an adjacent period. The low correlation indicates that the strictness measure is not simply a persistent ward-level attribute.}
     \label{fig:predecessor_successor_strictness}
 \end{figure}
+
+\subsection{Placebo Checks}
+
+Table~\ref{tab:low_discretion_placebo} asks whether the main stringency score predicts delays for low-discretion permits. It does not. Table~\ref{tab:low_discretion_density_placebo} carries the same idea into the density design by replacing the main score with a score built from residualized low-discretion processing times. Those coefficients are small and statistically indistinguishable from zero.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Low-Discretion Processing Time as a Placebo Outcome}
+    \label{tab:low_discretion_placebo}
+    \input{../tasks/within_ward_strictness/output/low_discretion_falsification_compact_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex}
+\end{table}
+
+\begin{table}[htbp]
+    \caption{Low-Discretion Score as a Placebo for Density Outcomes}
+    \label{tab:low_discretion_density_placebo}
+
+    \input{../tasks/new_construction_score_density_robustness/output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex}
+
+    \footnotesize
+    \textit{Notes:} Same 500-foot multifamily border-pair specification as Table~\ref{tab:density_main_table}, but replacing the main aldermanic stringency score with a placebo score built from alderman-level mean residualized low-discretion log processing times. Regressions include the same own-side controls, side-specific distance-to-boundary slopes, and fixed effects as the main density table. Regressions are unweighted. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}

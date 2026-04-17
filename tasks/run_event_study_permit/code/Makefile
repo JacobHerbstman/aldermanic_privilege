@@ -61,6 +61,9 @@ $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),$(foreach weighting,$(MA
 ../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex: did_table_permit_2015.R ../input/permit_block_year_panel_2015.parquet | ../output
 	Rscript did_table_permit_2015.R high_discretion 1000 uniform block $@
 
+../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_500ft_geo_wardpair.tex: did_table_permit_2015.R ../input/permit_block_year_panel_2015.parquet | ../output
+	Rscript did_table_permit_2015.R high_discretion 500 uniform block $@
+
 ../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair_samp_singlepairbg.tex: did_table_permit_2015.R ../../_lib/permit_event_study_sample_helpers.R ../input/permit_block_year_panel_2015.parquet | ../output
 	Rscript did_table_permit_2015.R high_discretion 1000 uniform block $@ single_pair_bg
 

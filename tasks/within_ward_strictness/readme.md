@@ -1,7 +1,7 @@
 # within_ward_strictness
 
-Purpose: Handles within ward strictness.
+Purpose: Handles within-ward stringency validation and placebo checks.
 
-Produces: Produces files such as `output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.pdf`, `output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf`, `output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2023.pdf` and related task-specific outputs in `output/`.
+Produces: Produces uncertainty-validation outputs such as predecessor-successor plots, within-ward summaries, raw and residualized high-vs-low processing-time diagnostics, low-discretion falsification summaries, split-half stability diagnostics, residualized map outputs, and related task-specific outputs in `output/`.
 
 Approx. runtime: ~1-10 minutes.
