@@ -1,0 +1,218 @@
+source("../../setup_environment/code/packages.R")
+source("../../_lib/amenity_distance_helpers.R")
+source("../../_lib/border_pair_helpers.R")
+library(fixest)
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_amenity_balance/code")
+# parcel_geometry_input <- "../input/parcels_with_geometry.gpkg"
+# parcel_scores_input <- "../input/parcels_with_ward_distances.csv"
+# schools_input <- "../input/schools_2015.gpkg"
+# parks_input <- "../input/parks.gpkg"
+# major_streets_input <- "../input/major_streets.gpkg"
+# water_input <- "../input/gis_osm_water_a_free_1.shp"
+# output_csv <- "../output/density_amenity_balance_bw500_multifamily.csv"
+# output_tex <- "../output/density_amenity_balance_bw500_multifamily.tex"
+
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(
+    parcel_geometry_input,
+    parcel_scores_input,
+    schools_input,
+    parks_input,
+    major_streets_input,
+    water_input,
+    output_csv,
+    output_tex
+  )
+}
+
+if (length(args) != 8) {
+  stop(
+    paste(
+      "FATAL: Script requires 8 args:",
+      "<parcel_geometry_input> <parcel_scores_input> <schools_input> <parks_input>",
+      "<major_streets_input> <water_input> <output_csv> <output_tex>"
+    ),
+    call. = FALSE
+  )
+}
+
+parcel_geometry_input <- args[1]
+parcel_scores_input <- args[2]
+schools_input <- args[3]
+parks_input <- args[4]
+major_streets_input <- args[5]
+water_input <- args[6]
+output_csv <- args[7]
+output_tex <- args[8]
+
+covariate_catalog <- tibble(
+  covariate = c(
+    "floor_area_ratio",
+    "dist_cbd_ft",
+    "nearest_school_dist_ft",
+    "nearest_park_dist_ft",
+    "nearest_major_road_dist_ft",
+    "lake_michigan_dist_ft"
+  ),
+  covariate_label = c(
+    "Zoned FAR",
+    "Distance to CBD (ft)",
+    "Distance to School (ft)",
+    "Distance to Park (ft)",
+    "Distance to Major Road (ft)",
+    "Distance to Lake Michigan (ft)"
+  )
+)
+
+fmt_num <- function(x, digits = 3) {
+  ifelse(is.finite(x), formatC(x, digits = digits, format = "f"), "")
+}
+
+stars <- function(p) {
+  case_when(
+    is.na(p) ~ "",
+    p < 0.01 ~ "***",
+    p < 0.05 ~ "**",
+    p < 0.10 ~ "*",
+    TRUE ~ ""
+  )
+}
+
+message("Loading parcel geometries...")
+parcel_geometry <- st_read(parcel_geometry_input, quiet = TRUE) %>%
+  mutate(pin = as.character(pin)) %>%
+  st_transform(3435)
+
+message("Computing exact amenity distances...")
+coords_tbl <- parcel_geometry %>%
+  mutate(
+    x = st_coordinates(.)[, 1],
+    y = st_coordinates(.)[, 2]
+  ) %>%
+  st_drop_geometry() %>%
+  distinct(pin, x, y)
+
+coords_sf <- st_as_sf(coords_tbl, coords = c("x", "y"), crs = 3435, remove = FALSE)
+schools <- read_amenity_layer(schools_input)
+parks <- read_amenity_layer(parks_input)
+major_streets <- read_amenity_layer(major_streets_input)
+lake <- lake_michigan_geom(water_input)
+cbd <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>%
+  st_transform(3435)
+
+coords_tbl$nearest_school_dist_ft <- nearest_distance_ft(coords_sf, schools, label = "density parcels")
+coords_tbl$nearest_park_dist_ft <- nearest_distance_ft(coords_sf, parks, label = "density parcels")
+coords_tbl$nearest_major_road_dist_ft <- nearest_distance_ft(coords_sf, major_streets, label = "density parcels")
+coords_tbl$lake_michigan_dist_ft <- nearest_distance_ft(coords_sf, lake, label = "density parcels")
+coords_tbl$dist_cbd_ft <- as.numeric(st_distance(coords_sf, cbd))
+
+message("Loading scored parcel sample...")
+analysis_sample <- read_csv(parcel_scores_input, show_col_types = FALSE) %>%
+  mutate(
+    pin = as.character(pin),
+    construction_year = suppressWarnings(as.integer(construction_year)),
+    zone_group = zone_group_from_code(zone_code),
+    strictness_own = strictness_own / sd(strictness_own, na.rm = TRUE),
+    lenient_dist = abs(signed_distance) * as.integer(signed_distance <= 0),
+    strict_dist = abs(signed_distance) * as.integer(signed_distance > 0)
+  ) %>%
+  left_join(coords_tbl, by = "pin") %>%
+  filter(
+    arealotsf > 1,
+    areabuilding > 1,
+    construction_year >= 2006,
+    unitscount > 1,
+    dist_to_boundary <= 500,
+    !is.na(segment_id),
+    segment_id != "",
+    !is.na(ward_pair),
+    ward_pair != "",
+    !is.na(zone_group),
+    density_far > 0,
+    density_dupac > 0,
+    !is.na(strictness_own),
+    !is.na(lenient_dist),
+    !is.na(strict_dist)
+  )
+
+results <- bind_rows(lapply(covariate_catalog$covariate, function(covariate_name) {
+  model_df <- analysis_sample %>%
+    filter(is.finite(.data[[covariate_name]])) %>%
+    mutate(
+      outcome_std = (.data[[covariate_name]] - mean(.data[[covariate_name]], na.rm = TRUE)) /
+        sd(.data[[covariate_name]], na.rm = TRUE)
+    )
+
+  model <- feols(
+    outcome_std ~ strictness_own + lenient_dist + strict_dist | zone_group + segment_id + construction_year,
+    data = model_df,
+    cluster = ~ward_pair,
+    warn = FALSE
+  )
+
+  coef_table <- coeftable(model)
+  tibble(
+    covariate = covariate_name,
+    covariate_label = covariate_catalog$covariate_label[covariate_catalog$covariate == covariate_name],
+    estimate = unname(coef_table["strictness_own", "Estimate"]),
+    se = unname(coef_table["strictness_own", "Std. Error"]),
+    p_value = unname(coef_table["strictness_own", "Pr(>|t|)"]),
+    n_obs = nobs(model),
+    n_ward_pairs = n_distinct(model_df$ward_pair)
+  )
+}))
+
+write_csv(results, output_csv)
+
+amenity_rows <- results %>% filter(covariate != "floor_area_ratio")
+amenity_n <- amenity_rows %>% pull(n_obs) %>% unique()
+amenity_pairs <- amenity_rows %>% pull(n_ward_pairs) %>% unique()
+
+if (length(amenity_n) != 1 || length(amenity_pairs) != 1) {
+  stop("Amenity balance rows do not share a common sample size.", call. = FALSE)
+}
+
+tex_lines <- c(
+  "\\begingroup",
+  "\\centering",
+  "\\begin{tabular}{lccc}",
+  "\\toprule",
+  "Covariate & Coef. on stringency & SE & $p$-value \\\\",
+  "\\midrule"
+)
+
+for (covariate_name in covariate_catalog$covariate) {
+  row_i <- results %>% filter(covariate == covariate_name)
+  tex_lines <- c(
+    tex_lines,
+    sprintf(
+      "%s & %s & %s & %s \\\\",
+      row_i$covariate_label[[1]],
+      paste0(fmt_num(row_i$estimate[[1]]), stars(row_i$p_value[[1]])),
+      paste0("(", fmt_num(row_i$se[[1]]), ")"),
+      fmt_num(row_i$p_value[[1]])
+    )
+  )
+}
+
+tex_lines <- c(
+  tex_lines,
+  "\\midrule",
+  sprintf("N & %s &  &  \\\\", format(amenity_n[[1]], big.mark = ",")),
+  sprintf("Ward pairs & %s &  &  \\\\", format(amenity_pairs[[1]], big.mark = ",")),
+  "\\bottomrule",
+  "\\end{tabular}",
+  paste0(
+    "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Main 500-foot multifamily density sample.",
+    " Each row standardizes the exact parcel covariate within the estimation sample and regresses it on the standardized",
+    " alderman stringency score, side-specific distance slopes, and the same zone-group, segment, and construction-year fixed effects",
+    " used in the main border-pair density specification. The exact distance rows use the full 697-parcel, 90-ward-pair sample.",
+    " Zoned FAR is available for 576 parcels because planned developments (PDs) do not map to a single zoning FAR value in the scored parcel file.}"
+  ),
+  "\\endgroup"
+)
+
+writeLines(tex_lines, output_tex)
