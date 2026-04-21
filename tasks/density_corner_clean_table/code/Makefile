@@ -1,0 +1,25 @@
+SHELL := bash
+
+all: ../output/fe_table_bw500_multifamily_corner_clean_compare.tex
+
+../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv: ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
+	WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$@" CLUSTER_LEVEL=ward_pair Rscript ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R 500 multifamily zonegroup_segment_year_additive ../output/ignore_bw500_multifamily_baseline.tex 'log(density_far)' 'log(density_dupac)'
+
+../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv: ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv ../input/parcel_other_pair_distance.csv | ../output
+	DROP_AMBIGUOUS_WITHIN_BW=TRUE AMBIGUITY_INPUT_PATH=../input/parcel_other_pair_distance.csv WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$@" CLUSTER_LEVEL=ward_pair Rscript ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R 500 multifamily zonegroup_segment_year_additive ../output/ignore_bw500_multifamily_corner_clean.tex 'log(density_far)' 'log(density_dupac)'
+
+../output/fe_table_bw500_multifamily_corner_clean_compare.tex: build_density_corner_clean_table.R ../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv ../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv ../input/boundary_ambiguity_by_bw.csv | ../output
+	Rscript build_density_corner_clean_table.R ../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv ../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv ../input/boundary_ambiguity_by_bw.csv "$@"
+
+../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
+	ln -sf "$<" "$@"
+
+../input/parcel_other_pair_distance.csv: ../../border_pair_boundary_ambiguity/output/parcel_other_pair_distance.csv | ../input
+	ln -sf "$<" "$@"
+
+../input/boundary_ambiguity_by_bw.csv: ../../border_pair_boundary_ambiguity/output/boundary_ambiguity_by_bw.csv | ../input
+	ln -sf "$<" "$@"
+
+link-inputs: ../input/parcels_with_ward_distances.csv ../input/parcel_other_pair_distance.csv ../input/boundary_ambiguity_by_bw.csv
+
+include ../../generic.make
