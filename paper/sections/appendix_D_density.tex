@@ -68,6 +68,38 @@ Table~\ref{tab:density_exact_amenity_balance} checks whether the main 500-foot m
     \input{../tasks/density_amenity_balance/output/density_amenity_balance_bw500_multifamily.tex}
 \end{table}
 
+\subsection{Cross-Border Stringency Gap}
+
+Figure~\ref{fig:rd_gap_split} splits the density RD display by the median ward-pair stringency gap. The above-median-gap sample shows a sharper negative break in both FAR and DUPAC; the below-median-gap sample is flatter. I treat this as a supporting diagnostic because it asks whether the visual discontinuity is largest where the identifying contrast is stronger.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_bw500_multifamily_above_median.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_bw500_multifamily_below_median.pdf}
+    \end{minipage}
+
+    \vspace{0.3cm}
+
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_bw500_multifamily_above_median.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_bw500_multifamily_below_median.pdf}
+    \end{minipage}
+    \caption{Local-Linear RD by Cross-Border Stringency Gap}
+    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column restricts to ward pairs with an above-median strictness gap; right column restricts to ward pairs with a below-median gap. The strictness-gap measure is the median absolute difference in aldermanic stringency across the two sides of each ward pair. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}.}
+    \label{fig:rd_gap_split}
+\end{figure}
+
 \subsection{Supplementary Shifted-Cutoff Placebos}
 
 Figure~\ref{fig:rd_placebo} shifts the cutoff 500 feet into each ward and re-centers the local-linear display on that pseudo-boundary. I treat these plots as supplementary because the geometry does not permit a fully clean placebo at the same scale. Even so, the shifted-cutoff displays are flatter than the main 500-foot multifamily plots and do not show the same negative break at the true jurisdictional boundary.

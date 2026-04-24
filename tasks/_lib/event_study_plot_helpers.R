@@ -80,13 +80,25 @@ compute_event_study_pretrend <- function(model, plot_data, group_label) {
 }
 
 make_event_study_single_series_plot <- function(plot_data, plot_title, x_label, y_label, display_suffix, line_color = "#009E73") {
+  axis_breaks <- sort(unique(plot_data$event_time))
+  axis_labels <- as.character(axis_breaks)
+
+  if ("event_time_label" %in% names(plot_data)) {
+    label_lookup <- plot_data %>%
+      distinct(event_time, event_time_label) %>%
+      filter(!is.na(event_time_label))
+
+    matched_labels <- label_lookup$event_time_label[match(axis_breaks, label_lookup$event_time)]
+    axis_labels <- ifelse(is.na(matched_labels), axis_labels, matched_labels)
+  }
+
   ggplot(plot_data, aes(x = event_time, y = estimate_display)) +
     geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
     geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
     geom_ribbon(aes(ymin = ci_low_display, ymax = ci_high_display), fill = line_color, alpha = 0.2, color = NA) +
     geom_line(color = line_color, linewidth = 1) +
     geom_point(color = line_color, size = 2.5) +
-    scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
+    scale_x_continuous(breaks = axis_breaks, labels = axis_labels) +
     scale_y_continuous(labels = function(x) paste0(x, display_suffix)) +
     labs(
       title = plot_title,
@@ -107,6 +119,18 @@ make_event_study_single_series_plot <- function(plot_data, plot_title, x_label, 
 }
 
 make_event_study_directional_plots <- function(plot_data, plot_title, x_label, y_label, display_suffix, legend_position = "bottom") {
+  axis_breaks <- sort(unique(plot_data$event_time))
+  axis_labels <- as.character(axis_breaks)
+
+  if ("event_time_label" %in% names(plot_data)) {
+    label_lookup <- plot_data %>%
+      distinct(event_time, event_time_label) %>%
+      filter(!is.na(event_time_label))
+
+    matched_labels <- label_lookup$event_time_label[match(axis_breaks, label_lookup$event_time)]
+    axis_labels <- ifelse(is.na(matched_labels), axis_labels, matched_labels)
+  }
+
   color_values <- c(
     "Moved to Stricter" = "#c23616",
     "Moved to More Lenient" = "#7f8fa6"
@@ -120,7 +144,7 @@ make_event_study_directional_plots <- function(plot_data, plot_title, x_label, y
     geom_point(size = 2.5, shape = 21, stroke = 0.5) +
     scale_color_manual(values = color_values, name = NULL) +
     scale_fill_manual(values = color_values, name = NULL) +
-    scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
+    scale_x_continuous(breaks = axis_breaks, labels = axis_labels) +
     scale_y_continuous(labels = function(x) paste0(x, display_suffix)) +
     facet_wrap(~group, ncol = 1) +
     labs(
@@ -150,7 +174,7 @@ make_event_study_directional_plots <- function(plot_data, plot_title, x_label, y
     geom_point(size = 2.5, shape = 21, stroke = 0.5) +
     scale_color_manual(values = color_values, name = NULL) +
     scale_fill_manual(values = color_values, name = NULL) +
-    scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
+    scale_x_continuous(breaks = axis_breaks, labels = axis_labels) +
     scale_y_continuous(labels = function(x) paste0(x, display_suffix)) +
     labs(
       title = plot_title,

@@ -45,38 +45,6 @@ Figure~\ref{fig:rd_fe_plots} plots the same 500-foot multifamily sample using a 
     \label{fig:rd_fe_plots}
 \end{figure}
 
-\subsection{Heterogeneity by Cross-Border Stringency Gap}
-
-Figure~\ref{fig:rd_gap_split} asks whether the visual discontinuity is stronger on borders where the two aldermen differ more in measured stringency. It is. In ward pairs above the median cross-border stringency gap, both FAR and DUPAC show clear negative breaks. In below-median pairs, the plots are much flatter. This is the visual pattern one would expect if the segment fixed-effects table is picking up aldermanic stringency rather than generic boundary noise.
-
-\begin{figure}[htbp]
-    \centering
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_bw500_multifamily_above_median.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_bw500_multifamily_below_median.pdf}
-    \end{minipage}
-
-    \vspace{0.3cm}
-
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_bw500_multifamily_above_median.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_bw500_multifamily_below_median.pdf}
-    \end{minipage}
-    \caption{Local-Linear RD by Cross-Border Stringency Gap}
-    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column restricts to ward pairs with an above-median strictness gap; right column restricts to ward pairs with a below-median gap. The strictness-gap measure is the median absolute difference in aldermanic stringency across the two sides of each ward pair. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}.}
-    \label{fig:rd_gap_split}
-\end{figure}
-
 \subsection{Supporting Checks}
 
-Appendix~\ref{sec:appendix_density} reports the rest of the density evidence. It presents the 250-foot all-construction sample as a benchmark alternative specification, a pruned version of the main multifamily fixed-effects table, shifted-cutoff placebo plots, donut RD plots, bandwidth-path figures, and a corner-clean table that drops parcels close to other ward-pair boundaries. I treat those exercises as supporting checks rather than as separate main results.
+Appendix~\ref{sec:appendix_density} reports the rest of the density evidence. It presents the 250-foot all-construction sample as a benchmark alternative specification, a pruned version of the main multifamily fixed-effects table, the cross-border stringency split, shifted-cutoff placebo plots, donut RD plots, bandwidth-path figures, and a corner-clean table that drops parcels close to other ward-pair boundaries. I treat those exercises as supporting checks rather than as separate main results.
