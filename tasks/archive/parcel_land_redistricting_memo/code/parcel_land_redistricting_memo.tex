@@ -1,0 +1,93 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{parskip}
+
+\hypersetup{hidelinks}
+\input{../output/memo_stats.tex}
+
+\begin{document}
+
+\begin{center}
+{\Large \textbf{Memo: Land Values, Aldermanic Stringency, and Development Expectations}}\\[0.5em]
+\today
+\end{center}
+
+\section*{Goal}
+
+The goal of this dataset is to study whether aldermanic control over development is capitalized into land values. If developers expect a more permissive alderman to allow taller, denser, or otherwise more valuable projects, that expectation should show up first in the value of the land itself. The idea is especially sharp for parcels with zero assessed building value, because those parcels are closest to a pure redevelopment option.
+
+The 2015 ward remap creates the variation we need. The dataset is built so that future specifications can compare parcels close to pre-2015 ward borders that switch aldermen to nearby parcels that stay with the same alderman. The key descriptive question at this stage is not whether there is an effect, but whether the land-only sample has enough support, geographic spread, and timing structure to support a credible design later.
+
+\section*{What The Data Look Like}
+
+The sample starts from the raw assessor history and collapses the records to parcel-year observations at the \texttt{pin10} level. For each \texttt{pin10} and tax year, the build keeps assessed land value, assessed building value, the land share of total assessed value, and a strict \texttt{land\_only} flag defined as zero assessed building value. The final panel then keeps only those land-only parcel-years, attaches current parcel coordinates, and assigns each parcel to a 2010 census block, a pre-2015 ward, a post-2015 ward, a pre-2015 ward-pair boundary, and a pre-2015 boundary segment. Distance to the pre-2015 boundary is fixed in feet, and the dataset carries both 500-foot and 1,000-foot sample flags.
+
+The final 1,000-foot panel contains \PanelRows{} parcel-year observations from \PanelPins{} unique parcels. The 500-foot subset contains \SubsetRows{} observations from \SubsetPins{} parcels. At the parcel level, \SwitcherPins{} parcels switch wards in 2015 and \ValidControlPins{} are valid stayers. The sample reaches all \WardCount{} pre-2015 wards, \CommunityAreaCount{} community areas, \WardPairCount{} ward pairs, and \SegmentCount{} pre-2015 boundary segments.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lr}
+\toprule
+Statistic & Value \\
+\midrule
+1,000-foot parcel-year observations & \PanelRows{} \\
+1,000-foot unique parcels & \PanelPins{} \\
+500-foot parcel-year observations & \SubsetRows{} \\
+500-foot unique parcels & \SubsetPins{} \\
+Switcher parcels & \SwitcherPins{} \\
+Valid control parcels & \ValidControlPins{} \\
+Pre-2015 wards covered & \WardCount{} \\
+Community areas covered & \CommunityAreaCount{} \\
+Ward pairs covered & \WardPairCount{} \\
+Boundary segments covered & \SegmentCount{} \\
+Years in raw panel & \FirstYear{}--\LastYear{} \\
+Median observed tax years per parcel & \MedianObservedYears{} \\
+Interquartile range of observed years & \ObservedYearsPtf{} to \ObservedYearsPsf{} \\
+Parcels with any complete raw triennial pattern around 2015 & \BalancedAnyPins{} \\
+\bottomrule
+\end{tabular}
+\caption{Descriptive sample counts for the land-only redistricting panel.}
+\end{table}
+
+Two features of the raw panel matter immediately. First, this is not close to an annually balanced panel. The typical parcel appears in \MedianObservedYears{} tax years, and only \BalancedAnyPins{} parcels satisfy any complete raw triennial support pattern around 2015. Second, the sample is intentionally kept in raw observed assessor years only. There is no carry-forward panel and no pre-binned event time, because the descriptive patterns already show that support varies sharply by year.
+
+\section*{What The Key Figures Say}
+
+Figure~\ref{fig:citywide} shows the aggregate citywide series for the 500-foot and 1,000-foot samples. The main message is that the sample is governed by the assessor timing structure, not by a stable annual panel. In the 1,000-foot sample, the dataset contains \PreRedistrictPins{} parcels in \PreRedistrictYear{} and \PostRedistrictPins{} parcels in \PostRedistrictYear{}, with median land values of \$\PreRedistrictMedianLand{} and \$\PostRedistrictMedianLand{}, respectively. But counts collapse in \ThinYearList{}, and the endpoints \FringeYearList{} are effectively fringe years.
+
+Later analysis therefore needs to respect raw-year support instead of manufacturing annual composition with event-time bins.
+
+Figures~\ref{fig:ward-heatmap} and \ref{fig:ca-heatmap} show how broadly the land-only sample spans the city. Coverage is not confined to one corridor or one side of the city: the dataset reaches all pre-2015 wards and most community areas. At the same time, the densest cells are concentrated along South Side and West Side borders, which is consistent with the redevelopment-margin interpretation of the land-only sample.
+
+The immediate takeaway is that this build succeeds as a descriptive border dataset. It isolates land-only parcels, fixes geography to the pre-treatment map, preserves the raw assessor timing, and retains both 500-foot and 1,000-foot border definitions. The main caution is support, not geography: the figures make clear that the next step should use raw-year restrictions or coarse pooled windows rather than treating the sample as a stable annual within-block panel.
+
+\clearpage
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{../input/parcel_land_citywide_series_panel.png}
+\caption{Aggregate citywide land-only series for parcels within 500 and 1,000 feet of the pre-2015 ward boundary. The uneven parcel counts are a direct reminder that the assessor history does not support a mechanically balanced annual panel.}
+\label{fig:citywide}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{../input/parcel_land_ward_heatmap_panel.png}
+\caption{Land-only parcel support by pre-2015 ward and tax year. The sample spans all wards, but support is uneven across time in a way that mirrors the assessor cycle.}
+\label{fig:ward-heatmap}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{../input/parcel_land_community_area_heatmap_panel.png}
+\caption{Land-only parcel support by community area and tax year. The sample has broad spatial coverage, with especially dense support in several South Side and West Side community areas.}
+\label{fig:ca-heatmap}
+\end{figure}
+
+\end{document}
