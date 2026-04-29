@@ -4,19 +4,21 @@
 # residential_improvement_characteristics_path <- "../input/residential_improvement_characteristics.csv"
 # approved_assessor_corrections_path <- "../input/approved_assessor_corrections.csv"
 # residential_cross_section_path <- "../output/residential_cross_section.csv"
+# residential_condo_review_path <- "../output/residential_condo_review.csv"
 
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) > 0) {
-  if (length(cli_args) != 3) {
-    stop("Expected arguments: residential_improvement_characteristics_path approved_assessor_corrections_path residential_cross_section_path.", call. = FALSE)
+  if (length(cli_args) != 4) {
+    stop("Expected arguments: residential_improvement_characteristics_path approved_assessor_corrections_path residential_cross_section_path residential_condo_review_path.", call. = FALSE)
   }
   residential_improvement_characteristics_path <- cli_args[1]
   approved_assessor_corrections_path <- cli_args[2]
   residential_cross_section_path <- cli_args[3]
+  residential_condo_review_path <- cli_args[4]
 } else if (!interactive()) {
-  stop("Expected arguments: residential_improvement_characteristics_path approved_assessor_corrections_path residential_cross_section_path.", call. = FALSE)
+  stop("Expected arguments: residential_improvement_characteristics_path approved_assessor_corrections_path residential_cross_section_path residential_condo_review_path.", call. = FALSE)
 }
 
 min_construction_year <- 2006L
@@ -24,8 +26,8 @@ max_construction_year <- 2022L
 
 normalize_pin <- function(x) {
   out <- stringr::str_sub(gsub("[^0-9]", "", as.character(x)), 1, 14)
-  out[nchar(out) < 14] <- NA_character_
-  out[out == "" | out == "NA"] <- NA_character_
+  bad_pin <- is.na(out) | out == "" | out == "NA" | nchar(out) < 14
+  out[bad_pin] <- NA_character_
   out
 }
 
@@ -107,7 +109,11 @@ has_class_code <- function(class_codes, codes) {
   Reduce(`|`, lapply(codes, function(code) grepl(paste0("(^|, )", code, "(,|$)"), class_codes)))
 }
 
-approved_corrections <- readr::read_csv(approved_assessor_corrections_path, show_col_types = FALSE) %>%
+approved_corrections <- readr::read_csv(
+  approved_assessor_corrections_path,
+  show_col_types = FALSE,
+  col_types = readr::cols(.default = "c")
+) %>%
   janitor::clean_names() %>%
   dplyr::filter(status == "approved", source == "residential_improvement_characteristics") %>%
   dplyr::mutate(
@@ -126,7 +132,35 @@ approved_corrections <- readr::read_csv(approved_assessor_corrections_path, show
     corrected_land_sqft
   )
 
-data <- readr::read_csv(residential_improvement_characteristics_path, show_col_types = FALSE) %>%
+missing_source_row_id_corrections <- approved_corrections %>%
+  dplyr::filter(is.na(source_row_id) | trimws(source_row_id) == "")
+
+if (nrow(missing_source_row_id_corrections) > 0) {
+  stop("Approved residential assessor corrections must include source_row_id.", call. = FALSE)
+}
+
+duplicate_approved_corrections <- approved_corrections %>%
+  dplyr::count(source_row_id, name = "n") %>%
+  dplyr::filter(n > 1)
+
+if (nrow(duplicate_approved_corrections) > 0) {
+  stop("Approved residential assessor corrections contain duplicate source_row_id values.", call. = FALSE)
+}
+
+raw_data <- readr::read_csv(
+  residential_improvement_characteristics_path,
+  show_col_types = FALSE,
+  col_types = readr::cols(
+    pin = readr::col_character(),
+    township_code = readr::col_character(),
+    class = readr::col_character(),
+    type_of_residence = readr::col_character(),
+    single_v_multi_family = readr::col_character(),
+    num_apartments = readr::col_character(),
+    row_id = readr::col_character(),
+    .default = readr::col_character()
+  )
+) %>%
   dplyr::mutate(
     raw_row_n = dplyr::row_number(),
     source_row_id = paste0("residential_raw:", raw_row_n),
@@ -143,7 +177,16 @@ data <- readr::read_csv(residential_improvement_characteristics_path, show_col_t
     num_fireplaces = as.numeric(as_num_clean(num_fireplaces)),
     garage_size = as.numeric(as_num_clean(garage_size)),
     num_apartments = parse_unit_words(num_apartments)
-  ) %>%
+  )
+
+unmatched_approved_corrections <- approved_corrections %>%
+  dplyr::anti_join(raw_data %>% dplyr::select(source_row_id), by = "source_row_id")
+
+if (nrow(unmatched_approved_corrections) > 0) {
+  stop("Approved residential assessor corrections reference source_row_id values not found in raw data.", call. = FALSE)
+}
+
+data <- raw_data %>%
   dplyr::filter(
     township_code %in% c("70", "71", "72", "73", "74", "75", "76", "77"),
     !is.na(pin),
@@ -159,7 +202,10 @@ data <- readr::read_csv(residential_improvement_characteristics_path, show_col_t
     class_codes = normalize_class_codes(class),
     source_class_group = stringr::str_replace(class_codes, ",.*$", ""),
     known_condo_signal = has_class_code(class_codes, c("2-99")) |
-      stringr::str_detect(paste(class, type_of_residence, single_v_multi_family), stringr::regex("condo|condominium", ignore_case = TRUE)),
+      stringr::str_detect(
+        paste(class, type_of_residence, single_v_multi_family),
+        stringr::regex("\\b(condo|condominium)\\b", ignore_case = TRUE)
+      ),
     possible_condo_signal = has_class_code(class_codes, c("2-97")),
     residential_exclusion_flag = dplyr::case_when(
       known_condo_signal ~ "known_condo",
@@ -178,7 +224,7 @@ card_selected <- data %>%
   dplyr::ungroup() %>%
   dplyr::filter(!is.na(year_built))
 
-residential_cross_section <- card_selected %>%
+residential_cross_section_all <- card_selected %>%
   dplyr::group_by(pin) %>%
   dplyr::summarise(
     tax_year = suppressWarnings(as.integer(min_na(tax_year))),
@@ -223,7 +269,13 @@ residential_cross_section <- card_selected %>%
     row_id = combine_unique(row_id),
     source_row_ids = combine_unique(source_row_id),
     .groups = "drop"
-  ) %>%
+  )
+
+residential_condo_review <- residential_cross_section_all %>%
+  dplyr::filter(residential_exclusion_flag != "included_noncondo") %>%
+  dplyr::arrange(residential_exclusion_flag, pin)
+
+residential_cross_section <- residential_cross_section_all %>%
   dplyr::filter(
     residential_exclusion_flag == "included_noncondo",
     num_apartments > 0
@@ -234,3 +286,4 @@ if (anyDuplicated(residential_cross_section$pin)) {
 }
 
 readr::write_csv(residential_cross_section, residential_cross_section_path)
+readr::write_csv(residential_condo_review, residential_condo_review_path)

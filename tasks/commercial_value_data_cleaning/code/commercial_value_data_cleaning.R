@@ -26,8 +26,8 @@ max_construction_year <- 2022L
 
 normalize_pin <- function(x) {
   out <- stringr::str_sub(gsub("[^0-9]", "", as.character(x)), 1, 14)
-  out[nchar(out) < 14] <- NA_character_
-  out[out == "" | out == "NA"] <- NA_character_
+  bad_pin <- is.na(out) | out == "" | out == "NA" | nchar(out) < 14
+  out[bad_pin] <- NA_character_
   out
 }
 
@@ -101,7 +101,40 @@ approved_corrections <- dplyr::bind_rows(
     corrected_land_sqft
   )
 
-data <- readr::read_csv(commercial_value_raw_path, show_col_types = FALSE) %>%
+missing_source_row_id_corrections <- approved_corrections %>%
+  dplyr::filter(is.na(source_row_id) | trimws(source_row_id) == "")
+
+if (nrow(missing_source_row_id_corrections) > 0) {
+  stop("Approved commercial assessor corrections must include source_row_id.", call. = FALSE)
+}
+
+duplicate_approved_corrections <- approved_corrections %>%
+  dplyr::count(source_row_id, name = "n") %>%
+  dplyr::filter(n > 1)
+
+if (nrow(duplicate_approved_corrections) > 0) {
+  stop("Approved commercial assessor corrections contain duplicate source_row_id values.", call. = FALSE)
+}
+
+raw_data <- readr::read_csv(
+  commercial_value_raw_path,
+  show_col_types = FALSE,
+  col_types = readr::cols(
+    keypin = readr::col_character(),
+    pins = readr::col_character(),
+    township = readr::col_character(),
+    modelgroup = readr::col_character(),
+    `class(es)` = readr::col_character(),
+    address = readr::col_character(),
+    category = readr::col_character(),
+    owner = readr::col_character(),
+    `property_name/description` = readr::col_character(),
+    `property_type/use` = readr::col_character(),
+    subclass2 = readr::col_character(),
+    taxpayer = readr::col_character(),
+    .default = readr::col_character()
+  )
+) %>%
   janitor::clean_names() %>%
   dplyr::mutate(
     raw_row_n = dplyr::row_number(),
@@ -116,9 +149,23 @@ data <- readr::read_csv(commercial_value_raw_path, show_col_types = FALSE) %>%
     x4brunits = as.numeric(as_num_clean(x4brunits)),
     bldgsf = as.numeric(as_num_clean(bldgsf)),
     landsf = as.numeric(as_num_clean(landsf))
-  ) %>%
+  )
+
+unmatched_approved_corrections <- approved_corrections %>%
+  dplyr::anti_join(raw_data %>% dplyr::select(source_row_id), by = "source_row_id")
+
+if (nrow(unmatched_approved_corrections) > 0) {
+  stop("Approved commercial assessor corrections reference source_row_id values not found in raw data.", call. = FALSE)
+}
+
+data <- raw_data %>%
   dplyr::left_join(approved_corrections, by = "source_row_id") %>%
   dplyr::mutate(
+    manual_correction_applied = (!is.na(correction_pin) & correction_pin != pin) |
+      !is.na(corrected_year_built) |
+      !is.na(corrected_units) |
+      !is.na(corrected_building_sqft) |
+      !is.na(corrected_land_sqft),
     pin = dplyr::coalesce(correction_pin, pin),
     yearbuilt = dplyr::coalesce(corrected_year_built, yearbuilt),
     unit_mix_sum = rowSums(dplyr::pick(studiounits, x1brunits, x2brunits, x3brunits, x4brunits), na.rm = TRUE),
@@ -130,13 +177,13 @@ data <- readr::read_csv(commercial_value_raw_path, show_col_types = FALSE) %>%
     bldgsf = dplyr::coalesce(corrected_building_sqft, bldgsf),
     landsf = dplyr::coalesce(corrected_land_sqft, landsf),
     class_codes = normalize_class_codes(class_es),
-    text_all = paste(modelgroup, class_es, property_type_use, property_name_description, category, subclass2, owner, taxpayer),
+    text_property_fields = paste(modelgroup, class_es, property_type_use, property_name_description, category, subclass2),
     current_model_rule = stringr::str_detect(modelgroup, stringr::regex("Multifamily|Class3|Class9|Condos", ignore_case = TRUE)),
-    known_condo_signal = stringr::str_detect(text_all, stringr::regex("condo|condominium", ignore_case = TRUE)) |
+    known_condo_signal = stringr::str_detect(text_property_fields, stringr::regex("\\b(condo|condominium)\\b", ignore_case = TRUE)) |
       has_class_code(class_codes, c("2-99", "3-99", "4-99", "5-99", "7-99", "8-99", "9-59")),
     hotel_motel_signal = stringr::str_detect(
-      text_all,
-      stringr::regex("hotel|motel|lodging|inn|hostel|rooming|boarding|dorm|hospital|nursing|assisted living|shelter|hyatt|aloft|waldorf", ignore_case = TRUE)
+      text_property_fields,
+      stringr::regex("\\b(hotel|motel|lodging|inn|hostel|rooming|boarding|dorm|hospital|nursing|assisted living|shelter|hyatt|aloft|waldorf)\\b", ignore_case = TRUE)
     ) | has_class_code(class_codes, c("5-16", "5-29", "7-16", "7-29", "8-16", "8-29")),
     commercial_exclusion_flag = dplyr::case_when(
       known_condo_signal ~ "known_condo",
@@ -144,11 +191,7 @@ data <- readr::read_csv(commercial_value_raw_path, show_col_types = FALSE) %>%
       TRUE ~ "included_noncondo_nonhotel"
     ),
     in_paper_window = yearbuilt >= min_construction_year & yearbuilt <= max_construction_year,
-    has_land = landsf > 0,
-    manual_correction_applied = !is.na(corrected_year_built) |
-      !is.na(corrected_units) |
-      !is.na(corrected_building_sqft) |
-      !is.na(corrected_land_sqft)
+    has_land = landsf > 0
   ) %>%
   dplyr::filter(
     township %in% c("West Chicago", "South Chicago", "Jefferson", "North Chicago", "Lake View", "Rogers Park", "Hyde Park", "Lake"),
