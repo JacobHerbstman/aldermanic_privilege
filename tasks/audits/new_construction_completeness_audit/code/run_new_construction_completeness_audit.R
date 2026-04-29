@@ -19,6 +19,8 @@ commercial_large_sqft_threshold <- 50000
 normalize_pin <- function(x) {
   x <- as.character(x)
   out <- gsub("[^0-9]", "", x)
+  short_leading_zero_pin <- !is.na(out) & nchar(out) == 13
+  out[short_leading_zero_pin] <- paste0("0", out[short_leading_zero_pin])
   out[nchar(out) < 14] <- NA_character_
   out <- substr(out, 1, 14)
   out[out == "" | out == "NA"] <- NA_character_
@@ -217,15 +219,28 @@ res_clean <- res_clean[
 ]
 
 comm_clean <- safe_fread("../input/multifamily_data_cleaned.csv")
+if (!"source_row_id" %in% names(comm_clean)) {
+  stop("Cleaned commercial data must include source_row_id for source-row audit diagnostics.", call. = FALSE)
+}
 comm_clean[, pin := normalize_pin(pin)]
 comm_clean[, clean_commercial_row := TRUE]
+comm_clean[, clean_comm_source_row_id := as.character(source_row_id)]
 comm_clean[, clean_comm_year := as_int_year(yearbuilt)]
 comm_clean[, clean_comm_units := as_num_clean(tot_units)]
 comm_clean[, clean_comm_address := as.character(address)]
+comm_clean_source_sizes <- comm_clean[
+  !is.na(clean_comm_source_row_id),
+  .(
+    source_row_id = clean_comm_source_row_id,
+    clean_comm_building_sqft = as_num_clean(bldgsf),
+    clean_comm_land_sqft = as_num_clean(landsf)
+  )
+]
 comm_clean <- comm_clean[
   !is.na(pin),
   .(
     clean_commercial_row = TRUE,
+    clean_comm_source_row_id = first_nonmissing(clean_comm_source_row_id),
     clean_comm_year = clean_comm_year[1],
     clean_comm_units = clean_comm_units[1],
     clean_comm_address = first_nonmissing(clean_comm_address)
@@ -283,9 +298,9 @@ final_counts <- final[, .(
   final_multifamily_500 = sum(final_multifamily_500, na.rm = TRUE)
 )]
 
-if (final_counts$final_all_base != 12451L ||
-    final_counts$final_multifamily_base != 2130L ||
-    final_counts$final_multifamily_500 != 697L) {
+if (final_counts$final_all_base != 12572L ||
+    final_counts$final_multifamily_base != 2278L ||
+    final_counts$final_multifamily_500 != 741L) {
   stop(sprintf(
     "Final sample count validation failed: all=%d, multifamily=%d, mf500=%d.",
     final_counts$final_all_base,
@@ -401,7 +416,15 @@ res_raw[, is_single_family_text := (
 res_raw[is_single_family_text == TRUE & (is.na(candidate_units) | candidate_units == 0), candidate_units := 1L]
 res_raw <- merge(res_raw, res_clean, by = "pin", all.x = TRUE, sort = FALSE)
 res_raw[, selected_source_row := clean_residential_row == TRUE &
-  as.character(row_id) == clean_res_row_id]
+  mapply(
+    function(raw_row_id, clean_row_ids) {
+      raw_row_id <- as.character(raw_row_id)
+      clean_row_ids <- trimws(unlist(strsplit(as.character(clean_row_ids), ",")))
+      raw_row_id %in% clean_row_ids
+    },
+    row_id,
+    clean_res_row_id
+  )]
 res_raw[is.na(selected_source_row), selected_source_row := FALSE]
 res_raw[, source_pin_duplicate_n := .N, by = pin]
 res_current_candidates <- res_raw[, .(
@@ -505,6 +528,10 @@ comm_raw[, calculated_units := rowSums(.SD, na.rm = TRUE), .SDcols = c("studioun
 comm_raw[, candidate_units := fcoalesce(tot_units, fifelse(calculated_units > 0, calculated_units, NA_real_))]
 comm_raw[, source_building_sqft := bldgsf]
 comm_raw[, source_land_sqft := landsf]
+comm_raw <- merge(comm_raw, comm_clean_source_sizes, by = "source_row_id", all.x = TRUE, sort = FALSE)
+comm_raw[!is.na(clean_comm_building_sqft), source_building_sqft := clean_comm_building_sqft]
+comm_raw[!is.na(clean_comm_land_sqft), source_land_sqft := clean_comm_land_sqft]
+comm_raw[, c("clean_comm_building_sqft", "clean_comm_land_sqft") := NULL]
 comm_raw[, source_chicago := as.character(township) %in% c(
   "West Chicago", "South Chicago", "Jefferson", "North Chicago",
   "Lake View", "Rogers Park", "Hyde Park", "Lake"
@@ -534,17 +561,12 @@ comm_raw[, source_false_positive_tier := fifelse(
   )
 )]
 
-comm_clean_rule_rows <- comm_raw[
-  source_chicago == TRUE &
-    candidate_year >= 1999 &
-    commercial_primary_multifamily == TRUE &
-    !is.na(candidate_units)
+comm_selected <- comm_clean[
+  !is.na(clean_comm_source_row_id),
+  .(pin, selected_comm_source_row_id = clean_comm_source_row_id)
 ]
-comm_clean_rule_rows[, has_land := source_land_sqft > 0]
-setorder(comm_clean_rule_rows, pin, -has_land, -candidate_units, raw_row_n)
-comm_selected <- comm_clean_rule_rows[, .SD[1], by = pin][, .(pin, selected_comm_raw_row_n = raw_row_n)]
 comm_raw <- merge(comm_raw, comm_selected, by = "pin", all.x = TRUE, sort = FALSE)
-comm_raw[, selected_source_row := raw_row_n == selected_comm_raw_row_n]
+comm_raw[, selected_source_row := source_row_id == selected_comm_source_row_id]
 comm_raw[is.na(selected_source_row), selected_source_row := FALSE]
 comm_raw[, source_pin_duplicate_n := .N, by = pin]
 comm_candidates <- comm_raw[, .(
@@ -989,6 +1011,39 @@ commercial_large_review <- merge(
   all.x = TRUE,
   sort = FALSE
 )
+commercial_large_review <- merge(
+  commercial_large_review,
+  final_lookup[, .(
+    pin,
+    pin_final_scored_row = final_scored_row,
+    pin_final_all_base = final_all_base,
+    pin_final_multifamily_base = final_multifamily_base,
+    pin_final_construction_year = final_construction_year,
+    pin_final_unitscount = final_unitscount,
+    pin_final_arealotsf = final_arealotsf,
+    pin_final_areabuilding = final_areabuilding,
+    pin_final_dist_to_boundary = final_dist_to_boundary
+  )],
+  by = "pin",
+  all.x = TRUE,
+  sort = FALSE
+)
+commercial_large_review[pin_final_scored_row == TRUE, `:=`(
+  final_scored_row = TRUE,
+  final_construction_year = fifelse(is.na(final_construction_year), pin_final_construction_year, final_construction_year),
+  final_unitscount = fifelse(is.na(final_unitscount), pin_final_unitscount, final_unitscount),
+  final_arealotsf = fifelse(is.na(final_arealotsf), pin_final_arealotsf, final_arealotsf),
+  final_areabuilding = fifelse(is.na(final_areabuilding), pin_final_areabuilding, final_areabuilding)
+)]
+commercial_large_review[pin_final_all_base == TRUE, `:=`(
+  final_all_base = TRUE,
+  final_multifamily_base = pin_final_multifamily_base,
+  terminal_reason = fifelse(
+    terminal_reason %in% c("final_bw500_multifamily", "final_multifamily_outside_main_band"),
+    terminal_reason,
+    "final_same_pin"
+  )
+)]
 commercial_large_review[, final_all_base := final_all_base == TRUE]
 commercial_large_review[, final_multifamily_base := final_multifamily_base == TRUE]
 commercial_large_review[, commercial_large_reason := fifelse(

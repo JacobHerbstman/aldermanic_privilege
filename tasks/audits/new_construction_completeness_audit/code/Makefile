@@ -1,5 +1,10 @@
 SHELL := bash
-include ../../../shell_functions.make
+FUNCTIONS = $(shell cat ../../../shell_functions.sh)
+R = @$(FUNCTIONS); R_pc_and_slurm
+
+ifneq (,$(findstring n,$(MAKEFLAGS)))
+R := R
+endif
 
 all: ../output/source_attrition_ladder.csv \
 	../output/census_bps_chicago_benchmark.csv \

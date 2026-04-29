@@ -210,6 +210,7 @@ res_current_rows <- res_current[, .(
   n_cards = NA_integer_,
   n_distinct_card_years = NA_integer_
 )]
+res_actual_cleaned_rows <- copy(res_current_rows)
 
 message("Building residential card-aggregated alternatives...")
 res_raw <- fread("../input/residential_improvement_characteristics.csv", colClasses = "character", na.strings = c("", "NA", "N/A"))
@@ -253,6 +254,26 @@ res_card_aggregate <- res_card_selected[!is.na(year_built), .(
   any_class_2_12 = any(has_class_code(class_codes, c("2-12")), na.rm = TRUE),
   class_2_12_units = sum(fifelse(has_class_code(class_codes, c("2-12")), units, 0), na.rm = TRUE)
 ), by = pin]
+
+setorder(res_raw, pin, year_order, tax_year, -building_sqft, raw_row_n)
+res_legacy_current_selected <- res_raw[, .SD[1], by = pin][!is.na(year_built)]
+res_current_rows <- res_legacy_current_selected[, .(
+  pin,
+  year_built,
+  units,
+  building_sqft,
+  land_sqft,
+  source = "residential",
+  source_rule = "legacy_current_cleaned_residential_emulation",
+  source_class_group,
+  class_codes,
+  modelgroup = NA_character_,
+  property_type_use = NA_character_,
+  exclusion_flag,
+  review_flag = fifelse(exclusion_flag == "included_noncondo", FALSE, TRUE),
+  n_cards = NA_integer_,
+  n_distinct_card_years = NA_integer_
+)]
 
 res_card_min_rows <- res_card_aggregate[, .(
   pin,
@@ -335,7 +356,16 @@ comm_raw[, exclusion_flag := fifelse(
   known_condo_signal == TRUE, "known_condo",
   fifelse(hotel_motel_signal == TRUE, "hotel_motel_or_institution", "included_noncondo_nonhotel")
 )]
-comm_raw[, has_land := landsf > 0]
+comm_raw[, has_land := !is.na(landsf) & landsf > 0]
+comm_equivalent_unit_fills <- comm_raw[
+  chicago == TRUE &
+    units_positive_rule > 0 &
+    !is.na(pin) &
+    !is.na(yearbuilt) &
+    !is.na(bldgsf),
+  .(equivalent_row_units = max(units_positive_rule, na.rm = TRUE)),
+  by = .(pin, yearbuilt, bldgsf)
+]
 
 comm_current_pool <- comm_raw[
   chicago == TRUE &
@@ -387,6 +417,16 @@ comm_current_year_repair_rows <- comm_current_year_repair_pool[, .SD[1], by = pi
   n_cards = NA_integer_,
   n_distinct_card_years = NA_integer_
 )]
+comm_current_year_repair_rows <- merge(
+  comm_current_year_repair_rows,
+  comm_equivalent_unit_fills,
+  by.x = c("pin", "year_built", "building_sqft"),
+  by.y = c("pin", "yearbuilt", "bldgsf"),
+  all.x = TRUE,
+  sort = FALSE
+)
+comm_current_year_repair_rows[, units := fifelse(!is.na(equivalent_row_units) & equivalent_row_units > units, equivalent_row_units, units)]
+comm_current_year_repair_rows[, equivalent_row_units := NULL]
 
 comm_expanded_pool <- comm_raw[
   chicago == TRUE &
@@ -412,6 +452,16 @@ comm_expanded_rows <- comm_expanded_pool[, .SD[1], by = pin][, .(
   n_cards = NA_integer_,
   n_distinct_card_years = NA_integer_
 )]
+comm_expanded_rows <- merge(
+  comm_expanded_rows,
+  comm_equivalent_unit_fills,
+  by.x = c("pin", "year_built", "building_sqft"),
+  by.y = c("pin", "yearbuilt", "bldgsf"),
+  all.x = TRUE,
+  sort = FALSE
+)
+comm_expanded_rows[, units := fifelse(!is.na(equivalent_row_units) & equivalent_row_units > units, equivalent_row_units, units)]
+comm_expanded_rows[, equivalent_row_units := NULL]
 
 message("Validating rebuilt commercial current-rule output against cleaned file...")
 comm_clean <- fread("../input/multifamily_data_cleaned.csv", colClasses = "character", na.strings = c("", "NA", "N/A"))
@@ -450,6 +500,7 @@ comm_clean_rows <- comm_clean[, .(
   n_cards = NA_integer_,
   n_distinct_card_years = NA_integer_
 )]
+comm_actual_cleaned_rows <- copy(comm_clean_rows)
 comm_clean_validation <- data.table(
   metric = c(
     "cleaned_output_rows_2006_2022_positive_units",
@@ -471,15 +522,24 @@ comm_clean_validation <- data.table(
 
 message("Constructing audit-only scenarios...")
 res_current_as_is <- make_scenario(res_current_rows, "current_cleaned_source_as_is")[source == "residential"]
-comm_current_as_is <- make_scenario(comm_clean_rows, "current_cleaned_source_as_is")[source == "commercial"]
+comm_current_as_is <- make_scenario(comm_current_rows, "current_cleaned_source_as_is")[source == "commercial"]
 
 res_current_noncondo <- make_scenario(
   res_current_rows[exclusion_flag == "included_noncondo"],
   "current_cleaned_source_noncondo_nonhotel"
 )[source == "residential"]
 comm_current_noncondo <- make_scenario(
-  comm_clean_rows[exclusion_flag == "included_noncondo_nonhotel"],
+  comm_current_rows[exclusion_flag == "included_noncondo_nonhotel"],
   "current_cleaned_source_noncondo_nonhotel"
+)[source == "commercial"]
+
+res_actual_cleaned_noncondo <- make_scenario(
+  res_actual_cleaned_rows[exclusion_flag == "included_noncondo"],
+  "updated_cleaned_source_noncondo_nonhotel"
+)[source == "residential"]
+comm_actual_cleaned_noncondo <- make_scenario(
+  comm_actual_cleaned_rows[exclusion_flag == "included_noncondo_nonhotel"],
+  "updated_cleaned_source_noncondo_nonhotel"
 )[source == "commercial"]
 
 res_card_min_noncondo <- make_scenario(
@@ -491,7 +551,7 @@ res_card_max_noncondo <- make_scenario(
   "residential_card_aggregate_max_year_noncondo_sensitivity"
 )
 comm_current_rule_noncondo <- make_scenario(
-  comm_clean_rows[exclusion_flag == "included_noncondo_nonhotel"],
+  comm_current_rows[exclusion_flag == "included_noncondo_nonhotel"],
   "commercial_current_rule_noncondo_nonhotel"
 )
 comm_current_year_repair_noncondo <- make_scenario(
@@ -512,6 +572,11 @@ combined_current_noncondo <- combine_high_units(
   res_current_noncondo,
   comm_current_noncondo,
   "current_cleaned_source_noncondo_nonhotel"
+)
+combined_updated_cleaned_source <- combine_high_units(
+  res_actual_cleaned_noncondo,
+  comm_actual_cleaned_noncondo,
+  "updated_cleaned_source_noncondo_nonhotel"
 )
 combined_card_min_current_comm <- combine_high_units(
   res_card_min_noncondo,
@@ -537,6 +602,7 @@ combined_card_max_expanded_comm <- combine_high_units(
 scenario_candidates <- rbindlist(list(
   combined_current_as_is,
   combined_current_noncondo,
+  combined_updated_cleaned_source,
   res_card_min_noncondo,
   res_card_max_noncondo,
   comm_current_rule_noncondo,
@@ -647,6 +713,56 @@ scenario_gap_closure <- closure_base[, .(
   gap_closed_pct_of_initial_current_source_gap = (tail(units, -1) - head(units, -1)) /
     unit_gap[scenario == "current_cleaned_source_as_is"]
 )]
+
+updated_check <- cbind(
+  scenario_summary[scenario == "card_min_res_plus_year_repaired_comm_noncondo", .(
+    reference_scenario = scenario,
+    reference_units = units,
+    reference_buildings = buildings
+  )],
+  scenario_summary[scenario == "updated_cleaned_source_noncondo_nonhotel", .(
+    updated_scenario = scenario,
+    updated_units = units,
+    updated_buildings = buildings
+  )]
+)
+
+unit_addition_ledger <- rbindlist(list(
+  scenario_gap_closure[, .(
+    tier = "source_universe",
+    step,
+    from_scenario,
+    to_scenario,
+    units_delta,
+    from_units,
+    to_units,
+    notes = fifelse(
+      step == "broader_commercial_class_model",
+      "Expected to remain zero because the only outside-regex positive-unit row is parking.",
+      ""
+    )
+  )],
+  data.table(
+    tier = "manual_correction_layer",
+    step = "approved_manual_corrections",
+    from_scenario = "card_min_res_plus_year_repaired_comm_noncondo",
+    to_scenario = "manual_approved_corrections_applied",
+    units_delta = 0L,
+    from_units = scenario_summary[scenario == "card_min_res_plus_year_repaired_comm_noncondo", units],
+    to_units = scenario_summary[scenario == "card_min_res_plus_year_repaired_comm_noncondo", units],
+    notes = "No manual corrections are applied until approved rows exist in tasks/new_construction_manual_corrections/manual/approved_assessor_corrections.csv."
+  ),
+  data.table(
+    tier = "updated_source_validation",
+    step = "rebuilt_source_files_match_main_scenario",
+    from_scenario = updated_check$reference_scenario,
+    to_scenario = updated_check$updated_scenario,
+    units_delta = updated_check$updated_units - updated_check$reference_units,
+    from_units = updated_check$reference_units,
+    to_units = updated_check$updated_units,
+    notes = "This should be zero after the residential and commercial source fixes are rebuilt."
+  )
+), fill = TRUE)
 
 message("Building targeted review queues...")
 res_current_compare <- res_current_rows[, .(
@@ -792,7 +908,7 @@ possible_condo_review <- rbindlist(list(
     property_type_use,
     exclusion_flag
   )],
-  comm_clean_rows[exclusion_flag != "included_noncondo_nonhotel" & in_window(year_built), .(
+  comm_current_rows[exclusion_flag != "included_noncondo_nonhotel" & in_window(year_built), .(
     source_rule,
     pin,
     year_built,
@@ -814,6 +930,7 @@ fwrite(scenario_summary, "../output/scenario_summary.csv", na = "")
 fwrite(scenario_by_year_unit_bin, "../output/scenario_bps_gap_by_year_unit_bin.csv", na = "")
 fwrite(scenario_detail_summary, "../output/scenario_detail_summary.csv", na = "")
 fwrite(scenario_gap_closure, "../output/scenario_gap_closure.csv", na = "")
+fwrite(unit_addition_ledger, "../output/source_universe_unit_addition_ledger.csv", na = "")
 fwrite(residential_card_aggregation_review, "../output/residential_card_aggregation_review.csv", na = "")
 fwrite(residential_year_window_review, "../output/residential_year_window_review.csv", na = "")
 fwrite(commercial_dedup_year_repair_review, "../output/commercial_dedup_year_repair_review.csv", na = "")
@@ -829,7 +946,8 @@ headline_scenarios <- scenario_summary[scenario %in% c(
   "card_min_res_plus_current_comm_noncondo",
   "card_min_res_plus_year_repaired_comm_noncondo",
   "card_min_res_plus_expanded_comm_noncondo",
-  "card_max_res_plus_expanded_comm_noncondo_sensitivity"
+  "card_max_res_plus_expanded_comm_noncondo_sensitivity",
+  "updated_cleaned_source_noncondo_nonhotel"
 )]
 headline_order <- c(
   "current_cleaned_source_as_is",
@@ -837,7 +955,8 @@ headline_order <- c(
   "card_min_res_plus_current_comm_noncondo",
   "card_min_res_plus_year_repaired_comm_noncondo",
   "card_min_res_plus_expanded_comm_noncondo",
-  "card_max_res_plus_expanded_comm_noncondo_sensitivity"
+  "card_max_res_plus_expanded_comm_noncondo_sensitivity",
+  "updated_cleaned_source_noncondo_nonhotel"
 )
 headline_scenarios[, headline_order_id := match(scenario, headline_order)]
 setorder(headline_scenarios, headline_order_id)
@@ -867,7 +986,7 @@ report <- c(
   "",
   "## Scope",
   "",
-  "This is an audit-only source-universe investigation. It does not change production cleaning outputs, density samples, paper tables, figures, or text.",
+  "This task produces audit-only source-universe diagnostics. It does not itself change density samples, paper tables, figures, or text.",
   "",
   "Target comparison is assessor-observed residential units built 2006-2022, excluding known condo and hotel/motel/institutional signals, against Census BPS as an aggregate benchmark.",
   "",
@@ -905,6 +1024,7 @@ report <- c(
   "",
   "- `current_cleaned_source_as_is` is a source-level reconstruction before geocoding/final density filters; it is not the same object as the production density output.",
   "- `card_min_res_plus_expanded_comm_noncondo` is the main audit scenario for the proposed assessor-source universe, still not a production sample.",
+  "- `updated_cleaned_source_noncondo_nonhotel` reads the branch's rebuilt source files and should match the main card-min plus year-repaired commercial scenario.",
   "- `card_max_res_plus_expanded_comm_noncondo_sensitivity` is a sensitivity flag for year-built ambiguity, not an endorsed construction-year rule.",
   "- Rows in the review queues should be manually checked before any production-sample change."
 )

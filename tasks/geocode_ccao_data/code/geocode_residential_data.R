@@ -1,8 +1,21 @@
 # this code takes the parcels dataset from cook county assessor and merges in latitude and longitude for all pins i can find (residential and condo datasets)
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/geocode_ccao_data/code")
+# approved_commercial_density_blocker_corrections_path <- "../input/approved_commercial_density_blocker_corrections.csv"
+# geocoded_residential_data_path <- "../output/geocoded_residential_data.gpkg"
 
 source("../../setup_environment/code/packages.R")
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) > 0) {
+  if (length(cli_args) != 2) {
+    stop("Expected arguments: approved_commercial_density_blocker_corrections_path geocoded_residential_data_path.", call. = FALSE)
+  }
+  approved_commercial_density_blocker_corrections_path <- cli_args[1]
+  geocoded_residential_data_path <- cli_args[2]
+} else if (!interactive()) {
+  stop("Expected arguments: approved_commercial_density_blocker_corrections_path geocoded_residential_data_path.", call. = FALSE)
+}
 
 chicago_lat_min <- 41
 chicago_lat_max <- 43
@@ -14,6 +27,68 @@ residential      <- read_csv("../input/residential_cross_section.csv",   show_co
 parcels          <- read_csv("../input/parcels.csv",  show_col_types = FALSE)
 parcel_proximity <- read_csv("../input/parcel_proximity.csv", show_col_types = FALSE)
 multifamily      <- read_csv("../input/multifamily_data_cleaned.csv", show_col_types = FALSE)
+
+manual_commercial_coords <- read_csv(
+  approved_commercial_density_blocker_corrections_path,
+  show_col_types = FALSE,
+  col_types = cols(.default = "c")
+) %>%
+  janitor::clean_names() %>%
+  filter(
+    source == "commercial_value_raw",
+    status == "approved",
+    !is.na(corrected_latitude),
+    !is.na(corrected_longitude)
+  ) %>%
+  mutate(
+    pin = as.character(pin),
+    manual_latitude = suppressWarnings(as.numeric(corrected_latitude)),
+    manual_longitude = suppressWarnings(as.numeric(corrected_longitude))
+  ) %>%
+  select(source_row_id, pin, manual_latitude, manual_longitude)
+
+invalid_manual_coords <- manual_commercial_coords %>%
+  filter(
+    is.na(manual_latitude) |
+      is.na(manual_longitude) |
+      manual_latitude < chicago_lat_min |
+      manual_latitude > chicago_lat_max |
+      manual_longitude < chicago_lon_min |
+      manual_longitude > chicago_lon_max
+  )
+
+if (nrow(invalid_manual_coords) > 0) {
+  stop(
+    sprintf("Manual commercial coordinate corrections contain %d invalid rows.", nrow(invalid_manual_coords)),
+    call. = FALSE
+  )
+}
+
+duplicate_manual_pin_coords <- manual_commercial_coords %>%
+  group_by(pin) %>%
+  summarise(
+    n_coordinate_pairs = n_distinct(paste(manual_latitude, manual_longitude)),
+    .groups = "drop"
+  ) %>%
+  filter(n_coordinate_pairs > 1)
+
+if (nrow(duplicate_manual_pin_coords) > 0) {
+  stop(
+    sprintf("Manual commercial coordinate corrections contain %d PINs with conflicting coordinates.", nrow(duplicate_manual_pin_coords)),
+    call. = FALSE
+  )
+}
+
+manual_commercial_coords_by_pin <- manual_commercial_coords %>%
+  group_by(pin) %>%
+  summarise(
+    pin_manual_latitude = first(manual_latitude),
+    pin_manual_longitude = first(manual_longitude),
+    .groups = "drop"
+  )
+
+manual_commercial_coords <- manual_commercial_coords %>%
+  select(source_row_id, row_manual_latitude = manual_latitude, row_manual_longitude = manual_longitude)
 
 # ---- Prep Parcels (Geo) ----
 parcels <- parcels %>%
@@ -122,6 +197,15 @@ multifamily_geo <- multifamily %>%
   # Handle pin10 overlap from parcels join (keep the one we generated if needed, or coalesce)
   mutate(pin10 = coalesce(pin10.x, pin10.y)) %>%
   select(-pin10.x, -pin10.y) %>%
+  left_join(manual_commercial_coords, by = "source_row_id") %>%
+  left_join(manual_commercial_coords_by_pin, by = "pin") %>%
+  mutate(
+    manual_latitude = coalesce(row_manual_latitude, pin_manual_latitude),
+    manual_longitude = coalesce(row_manual_longitude, pin_manual_longitude),
+    latitude = if_else(is.na(latitude), manual_latitude, latitude),
+    longitude = if_else(is.na(longitude), manual_longitude, longitude)
+  ) %>%
+  select(-row_manual_latitude, -row_manual_longitude, -pin_manual_latitude, -pin_manual_longitude, -manual_latitude, -manual_longitude) %>%
   
   # Filter for valid geo
   filter(!is.na(latitude) & !is.na(longitude)) %>%
@@ -206,4 +290,4 @@ message(sprintf(
   max(all_parcels$longitude, na.rm = TRUE)
 ))
 
-st_write(sf_chi, "../output/geocoded_residential_data.gpkg", delete_dsn = TRUE, quiet = TRUE)
+st_write(sf_chi, geocoded_residential_data_path, delete_dsn = TRUE, quiet = TRUE)

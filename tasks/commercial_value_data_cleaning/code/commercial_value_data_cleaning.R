@@ -1,111 +1,207 @@
-# this code cleans multifamily data
-# to include only buildings built on or after the year 1999 and in townships 70-77 (Chicago)
+# Clean Cook County commercial valuation rows for non-condo residential multifamily.
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/commercial_value_data_cleaning/code")
+# commercial_value_raw_path <- "../input/commercial_value_raw.csv"
+# approved_assessor_corrections_path <- "../input/approved_assessor_corrections.csv"
+# approved_commercial_density_blocker_corrections_path <- "../input/approved_commercial_density_blocker_corrections.csv"
+# multifamily_data_cleaned_path <- "../output/multifamily_data_cleaned.csv"
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
 source("../../setup_environment/code/packages.R")
 
-# ---------- 1) Load and keep Chicago ----------
-data <- readr::read_csv("../input/commercial_value_raw.csv") %>% 
-  janitor::clean_names()
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) > 0) {
+  if (length(cli_args) != 4) {
+    stop("Expected arguments: commercial_value_raw_path approved_assessor_corrections_path approved_commercial_density_blocker_corrections_path multifamily_data_cleaned_path.", call. = FALSE)
+  }
+  commercial_value_raw_path <- cli_args[1]
+  approved_assessor_corrections_path <- cli_args[2]
+  approved_commercial_density_blocker_corrections_path <- cli_args[3]
+  multifamily_data_cleaned_path <- cli_args[4]
+} else if (!interactive()) {
+  stop("Expected arguments: commercial_value_raw_path approved_assessor_corrections_path approved_commercial_density_blocker_corrections_path multifamily_data_cleaned_path.", call. = FALSE)
+}
 
-data <- data %>%
-  dplyr::filter(township %in% c("West Chicago","South Chicago","Jefferson","North Chicago","Lake View","Rogers Park","Hyde Park","Lake"))
+min_construction_year <- 2006L
+max_construction_year <- 2022L
 
-data <-data %>% 
-  filter(yearbuilt >= 1999)
+normalize_pin <- function(x) {
+  out <- stringr::str_sub(gsub("[^0-9]", "", as.character(x)), 1, 14)
+  out[nchar(out) < 14] <- NA_character_
+  out[out == "" | out == "NA"] <- NA_character_
+  out
+}
 
+as_num_clean <- function(x) {
+  suppressWarnings(as.numeric(gsub("[^0-9.-]", "", as.character(x))))
+}
 
-multifamily_data <- data %>% 
-  filter(str_detect(modelgroup, "(?i)Multifamily|Class3|Class9|Condos")) %>%
-  mutate(calculated_sum = rowSums(select(., studiounits, x1brunits, x2brunits, x3brunits, x4brunits), na.rm = TRUE)) %>% 
-  mutate(tot_units = coalesce(tot_units, if_else(calculated_sum > 0, calculated_sum, NA_real_))) %>% 
-  filter(!is.na(tot_units)) %>% 
-  select(-calculated_sum) %>% 
-  select(
-    keypin,
+normalize_class_codes <- function(x) {
+  x <- as.character(x)
+  x[is.na(x)] <- ""
+  pieces <- strsplit(x, ",")
+  vapply(pieces, function(vals) {
+    vals <- trimws(vals)
+    vals <- vals[vals != ""]
+    vals <- gsub("[.]0$", "", vals)
+
+    idx <- grepl("^[0-9]{3}$", vals)
+    vals[idx] <- paste0(substr(vals[idx], 1, 1), "-", substr(vals[idx], 2, 3))
+
+    idx <- grepl("^[0-9]{2}-May$", vals)
+    vals[idx] <- paste0("5-", sprintf("%02d", as.integer(substr(vals[idx], 1, 2))))
+
+    idx <- grepl("^May-[0-9]{2}$", vals)
+    vals[idx] <- paste0("5-", substr(vals[idx], 5, 6))
+
+    idx <- grepl("^[0-9]{2}-Mar$", vals)
+    vals[idx] <- paste0("3-", sprintf("%02d", as.integer(substr(vals[idx], 1, 2))))
+
+    idx <- grepl("^Mar-[0-9]{2}$", vals)
+    vals[idx] <- paste0("3-", substr(vals[idx], 5, 6))
+
+    idx <- grepl("^[0-9]{2}-Sep$", vals)
+    vals[idx] <- paste0("9-", sprintf("%02d", as.integer(substr(vals[idx], 1, 2))))
+
+    idx <- grepl("^Sep-[0-9]{2}$", vals)
+    vals[idx] <- paste0("9-", substr(vals[idx], 5, 6))
+
+    vals <- vals[vals != ""]
+    if (length(vals) == 0) {
+      NA_character_
+    } else {
+      paste(unique(vals), collapse = ", ")
+    }
+  }, character(1))
+}
+
+has_class_code <- function(class_codes, codes) {
+  class_codes <- paste0(", ", as.character(class_codes), ", ")
+  Reduce(`|`, lapply(codes, function(code) grepl(paste0("(^|, )", code, "(,|$)"), class_codes)))
+}
+
+approved_corrections <- dplyr::bind_rows(
+  readr::read_csv(approved_assessor_corrections_path, show_col_types = FALSE, col_types = readr::cols(.default = "c")),
+  readr::read_csv(approved_commercial_density_blocker_corrections_path, show_col_types = FALSE, col_types = readr::cols(.default = "c"))
+) %>%
+  janitor::clean_names() %>%
+  dplyr::filter(status == "approved", source == "commercial_value_raw") %>%
+  dplyr::mutate(
+    pin = normalize_pin(pin),
+    corrected_year_built = as.integer(as_num_clean(corrected_year_built)),
+    corrected_units = as.numeric(as_num_clean(corrected_units)),
+    corrected_building_sqft = as.numeric(as_num_clean(corrected_building_sqft)),
+    corrected_land_sqft = as.numeric(as_num_clean(corrected_land_sqft))
+  ) %>%
+  dplyr::select(
+    source_row_id,
+    correction_pin = pin,
+    corrected_year_built,
+    corrected_units,
+    corrected_building_sqft,
+    corrected_land_sqft
+  )
+
+data <- readr::read_csv(commercial_value_raw_path, show_col_types = FALSE) %>%
+  janitor::clean_names() %>%
+  dplyr::mutate(
+    raw_row_n = dplyr::row_number(),
+    source_row_id = paste0("commercial_raw:", raw_row_n),
+    pin = normalize_pin(keypin),
+    yearbuilt = as.integer(as_num_clean(yearbuilt)),
+    tot_units = as.numeric(as_num_clean(tot_units)),
+    studiounits = as.numeric(as_num_clean(studiounits)),
+    x1brunits = as.numeric(as_num_clean(x1brunits)),
+    x2brunits = as.numeric(as_num_clean(x2brunits)),
+    x3brunits = as.numeric(as_num_clean(x3brunits)),
+    x4brunits = as.numeric(as_num_clean(x4brunits)),
+    bldgsf = as.numeric(as_num_clean(bldgsf)),
+    landsf = as.numeric(as_num_clean(landsf))
+  ) %>%
+  dplyr::left_join(approved_corrections, by = "source_row_id") %>%
+  dplyr::mutate(
+    pin = dplyr::coalesce(correction_pin, pin),
+    yearbuilt = dplyr::coalesce(corrected_year_built, yearbuilt),
+    unit_mix_sum = rowSums(dplyr::pick(studiounits, x1brunits, x2brunits, x3brunits, x4brunits), na.rm = TRUE),
+    tot_units = dplyr::if_else(!is.na(corrected_units), corrected_units,
+      dplyr::if_else(!is.na(tot_units) & tot_units > 0, tot_units,
+        dplyr::if_else(unit_mix_sum > 0, unit_mix_sum, NA_real_)
+      )
+    ),
+    bldgsf = dplyr::coalesce(corrected_building_sqft, bldgsf),
+    landsf = dplyr::coalesce(corrected_land_sqft, landsf),
+    class_codes = normalize_class_codes(class_es),
+    text_all = paste(modelgroup, class_es, property_type_use, property_name_description, category, subclass2, owner, taxpayer),
+    current_model_rule = stringr::str_detect(modelgroup, stringr::regex("Multifamily|Class3|Class9|Condos", ignore_case = TRUE)),
+    known_condo_signal = stringr::str_detect(text_all, stringr::regex("condo|condominium", ignore_case = TRUE)) |
+      has_class_code(class_codes, c("2-99", "3-99", "4-99", "5-99", "7-99", "8-99", "9-59")),
+    hotel_motel_signal = stringr::str_detect(
+      text_all,
+      stringr::regex("hotel|motel|lodging|inn|hostel|rooming|boarding|dorm|hospital|nursing|assisted living|shelter|hyatt|aloft|waldorf", ignore_case = TRUE)
+    ) | has_class_code(class_codes, c("5-16", "5-29", "7-16", "7-29", "8-16", "8-29")),
+    commercial_exclusion_flag = dplyr::case_when(
+      known_condo_signal ~ "known_condo",
+      hotel_motel_signal ~ "hotel_motel_or_institution",
+      TRUE ~ "included_noncondo_nonhotel"
+    ),
+    in_paper_window = yearbuilt >= min_construction_year & yearbuilt <= max_construction_year,
+    has_land = landsf > 0,
+    manual_correction_applied = !is.na(corrected_year_built) |
+      !is.na(corrected_units) |
+      !is.na(corrected_building_sqft) |
+      !is.na(corrected_land_sqft)
+  ) %>%
+  dplyr::filter(
+    township %in% c("West Chicago", "South Chicago", "Jefferson", "North Chicago", "Lake View", "Rogers Park", "Hyde Park", "Lake"),
+    !is.na(pin),
+    yearbuilt >= 1999,
+    current_model_rule,
+    tot_units > 0,
+    commercial_exclusion_flag == "included_noncondo_nonhotel"
+  )
+
+equivalent_unit_fills <- data %>%
+  dplyr::group_by(pin, yearbuilt, bldgsf) %>%
+  dplyr::summarise(equivalent_row_units = max(tot_units, na.rm = TRUE), .groups = "drop")
+
+multifamily_data_cleaned <- data %>%
+  dplyr::group_by(pin) %>%
+  dplyr::mutate(
+    pin_land_fill = ifelse(all(is.na(landsf) | landsf <= 0), NA_real_, max(landsf, na.rm = TRUE)),
+    pin_building_fill = ifelse(all(is.na(bldgsf) | bldgsf <= 0), NA_real_, max(bldgsf, na.rm = TRUE))
+  ) %>%
+  dplyr::ungroup() %>%
+  dplyr::arrange(pin, dplyr::desc(in_paper_window), dplyr::desc(has_land), dplyr::desc(tot_units), yearbuilt, dplyr::desc(bldgsf), raw_row_n) %>%
+  dplyr::group_by(pin) %>%
+  dplyr::slice(1) %>%
+  dplyr::ungroup() %>%
+  dplyr::left_join(equivalent_unit_fills, by = c("pin", "yearbuilt", "bldgsf")) %>%
+  dplyr::mutate(
+    tot_units = dplyr::if_else(equivalent_row_units > tot_units, equivalent_row_units, tot_units),
+    landsf = dplyr::if_else(is.na(landsf) | landsf <= 0, pin_land_fill, landsf),
+    bldgsf = dplyr::if_else(is.na(bldgsf) | bldgsf <= 0, pin_building_fill, bldgsf)
+  ) %>%
+  dplyr::select(
+    pin,
     address,
     yearbuilt,
     tot_units,
     bldgsf,
     landsf,
     modelgroup,
-    class_es, # usage class
+    class_es,
+    property_type_use,
+    commercial_exclusion_flag,
+    source_row_id,
+    manual_correction_applied,
     studiounits,
     x1brunits,
     x2brunits,
     x3brunits,
     x4brunits
-  ) %>% 
-  mutate(keypin = str_remove_all(keypin, "-")) %>% 
-  rename(pin = keypin)
-
-
-multifamily_data_deduped <- multifamily_data %>%
-  # Create a helper flag for "Has Land"
-  mutate(has_land = landsf > 0) %>% 
-  group_by(pin) %>% 
-  arrange(desc(has_land), desc(tot_units)) %>% 
-  slice(1) %>%
-  ungroup() %>% 
-  select(-has_land)
-
-write_csv(multifamily_data_deduped, "../output/multifamily_data_cleaned.csv")
-
-
-multifamily_data_deduped %>%
-  # Filter to the relevant window to avoid skewing the chart with high-rises
-  filter(tot_units >= 5 & tot_units <= 25) %>%
-  ggplot(aes(x = tot_units)) +
-  geom_bar(fill = "steelblue", color = "black", width = 0.8) +
-  # Force x-axis to show every integer so you can clearly see 9 vs 10
-  scale_x_continuous(breaks = seq(5, 25, 1)) +
-  theme_minimal() +
-  labs(
-    title = "Bunching Estimator: Unit Counts (5-25 Units)",
-    subtitle = "Look for the 'Cliff' between 9 and 10 units (ARO Threshold)",
-    x = "Total Units",
-    y = "Number of Buildings"
-  )
-time_series_counts <- multifamily_data_deduped %>%
-  # Filter to the "Bunching Window" + a control group (12 units)
-  filter(tot_units %in% c(7, 8, 9, 10, 12)) %>%
-  count(yearbuilt, tot_units) %>%
-  complete(yearbuilt = 1999:2024, tot_units, fill = list(n = 0)) %>%
-  group_by(tot_units) %>%
-  arrange(yearbuilt) %>%
-  mutate(
-    # k=2, align="right": The value for 2002 is the average of 2001 and 2002.
-    n_smooth = rollmean(n, k = 2, fill = NA, align = "right")
-  ) %>%
-  ungroup()
-
-
-ggplot(time_series_counts, aes(x = yearbuilt, y = n_smooth, color = factor(tot_units))) +
-  geom_line(linewidth = 1.2) +
-
-  # 2007 Shock
-  geom_vline(xintercept = 2007, linetype = "dotted", color = "black") +
-  annotate("text", x = 2007, y = max(time_series_counts$n_smooth, na.rm=TRUE),
-           label = "2007: Zoning Trigger", angle = 90, vjust = -0.5) +
-
-  # 2015 Shock
-  geom_vline(xintercept = 2015, linetype = "dashed", color = "red") +
-  annotate("text", x = 2015, y = max(time_series_counts$n_smooth, na.rm=TRUE),
-           label = "2015 Reform", angle = 90, vjust = -0.5) +
-
-  scale_color_manual(values = c(
-    "7" = "#33a02c",
-    "8" = "#a6cee3",
-    "9" = "#1f78b4",  # Dark Blue
-    "10" = "#e31a1c", # Red
-    "12" = "#33a02c"
-  )) +
-  theme_minimal() +
-  labs(
-    title = "The Two Eras of ARO Avoidance (2-Year Smoothed)",
-    subtitle = "Note the divergence of 9 units (Blue) vs 10 units (Red)",
-    y = "New Buildings (2-Yr Avg)",
-    x = "Year Built",
-    color = "Unit Count"
   )
 
+if (anyDuplicated(multifamily_data_cleaned$pin)) {
+  stop("Commercial multifamily output still contains duplicate PINs after deduplication.", call. = FALSE)
+}
+
+readr::write_csv(multifamily_data_cleaned, multifamily_data_cleaned_path)

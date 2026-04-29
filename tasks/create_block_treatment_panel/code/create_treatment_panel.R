@@ -26,7 +26,50 @@ alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types
     mutate(month_date = as.Date(paste("01", month), format = "%d %b %Y")) %>%
     filter(month(month_date) == 6) %>%
     mutate(year = year(month_date)) %>%
+    mutate(ward = as.integer(ward)) %>%
     select(year, ward, alderman)
+
+required_turnover_years <- c(2014L, 2015L, 2022L, 2023L)
+expected_alderman_panel_cells <- tidyr::expand_grid(
+    year = required_turnover_years,
+    ward = 1:50
+)
+
+duplicate_alderman_panel_cells <- alderman_panel %>%
+    filter(year %in% required_turnover_years) %>%
+    count(year, ward, name = "n") %>%
+    filter(n != 1)
+
+missing_alderman_panel_cells <- expected_alderman_panel_cells %>%
+    anti_join(
+        alderman_panel %>%
+            filter(year %in% required_turnover_years) %>%
+            distinct(year, ward),
+        by = c("year", "ward")
+    )
+
+missing_alderman_names <- alderman_panel %>%
+    filter(
+        year %in% required_turnover_years,
+        is.na(alderman) | trimws(as.character(alderman)) == ""
+    )
+
+if (
+    nrow(duplicate_alderman_panel_cells) > 0 ||
+        nrow(missing_alderman_panel_cells) > 0
+) {
+    stop(
+        "Expected exactly one June alderman panel row per ward-year for 2014, 2015, 2022, and 2023.",
+        call. = FALSE
+    )
+}
+
+if (nrow(missing_alderman_names) > 0) {
+    message(sprintf(
+        "Found %d required June ward-year rows with missing alderman names; these wards are treated as turnover-contaminated controls.",
+        nrow(missing_alderman_names)
+    ))
+}
 
 # 2010 Census blocks (for 2015 cohort)
 message("Loading 2010 census blocks...")
@@ -238,7 +281,7 @@ ward_turnover_2015 <- alderman_panel %>%
     filter(year %in% c(2014, 2015)) %>%
     select(ward, year, alderman) %>%
     pivot_wider(names_from = year, values_from = alderman, names_prefix = "alderman_") %>%
-    mutate(ward_had_turnover_2015 = alderman_2014 != alderman_2015) %>%
+    mutate(ward_had_turnover_2015 = is.na(alderman_2014) | is.na(alderman_2015) | alderman_2014 != alderman_2015) %>%
     select(ward, ward_had_turnover_2015)
 
 # 2023: wards with turnover between 2022 and 2023
@@ -246,7 +289,7 @@ ward_turnover_2023 <- alderman_panel %>%
     filter(year %in% c(2022, 2023)) %>%
     select(ward, year, alderman) %>%
     pivot_wider(names_from = year, values_from = alderman, names_prefix = "alderman_") %>%
-    mutate(ward_had_turnover_2023 = alderman_2022 != alderman_2023) %>%
+    mutate(ward_had_turnover_2023 = is.na(alderman_2022) | is.na(alderman_2023) | alderman_2022 != alderman_2023) %>%
     select(ward, ward_had_turnover_2023)
 
 # Add turnover flags and compute valid flags
@@ -324,7 +367,11 @@ panel_2023_renamed <- panel_2023 %>%
 block_treatment_pre_scores <- bind_rows(panel_2015_renamed, panel_2023_renamed)
 block_treatment_pre_scores <- block_treatment_pre_scores %>%
     mutate(
-        min_assignment_share = pmin(ward_origin_share, ward_dest_share, na.rm = TRUE)
+        min_assignment_share = if_else(
+            is.na(ward_origin_share) | is.na(ward_dest_share),
+            NA_real_,
+            pmin(ward_origin_share, ward_dest_share)
+        )
     )
 
 # =============================================================================
@@ -362,11 +409,15 @@ block_treatment_geometry_diagnostics <- bind_rows(
             n_blocks = n(),
             n_with_origin_ward = sum(!is.na(ward_pre_2015)),
             n_with_dest_ward = sum(!is.na(ward_post_2015)),
+            n_missing_origin_ward = sum(is.na(ward_pre_2015)),
+            n_missing_dest_ward = sum(is.na(ward_post_2015)),
             n_switched = sum(switched_2015, na.rm = TRUE),
             n_origin_split_blocks = sum(ward_pre_2015_n_wards > 1, na.rm = TRUE),
             n_dest_split_blocks = sum(ward_post_2015_n_wards > 1, na.rm = TRUE),
             n_min_share_lt_0_60 = sum(
-                pmin(ward_pre_2015_share, ward_post_2015_share, na.rm = TRUE) < 0.60,
+                !is.na(ward_pre_2015_share) &
+                    !is.na(ward_post_2015_share) &
+                    pmin(ward_pre_2015_share, ward_post_2015_share) < 0.60,
                 na.rm = TRUE
             ),
             min_origin_share = min(ward_pre_2015_share, na.rm = TRUE),
@@ -378,11 +429,15 @@ block_treatment_geometry_diagnostics <- bind_rows(
             n_blocks = n(),
             n_with_origin_ward = sum(!is.na(ward_post_2015)),
             n_with_dest_ward = sum(!is.na(ward_post_2023)),
+            n_missing_origin_ward = sum(is.na(ward_post_2015)),
+            n_missing_dest_ward = sum(is.na(ward_post_2023)),
             n_switched = sum(switched_2023, na.rm = TRUE),
             n_origin_split_blocks = sum(ward_post_2015_n_wards > 1, na.rm = TRUE),
             n_dest_split_blocks = sum(ward_post_2023_n_wards > 1, na.rm = TRUE),
             n_min_share_lt_0_60 = sum(
-                pmin(ward_post_2015_share, ward_post_2023_share, na.rm = TRUE) < 0.60,
+                !is.na(ward_post_2015_share) &
+                    !is.na(ward_post_2023_share) &
+                    pmin(ward_post_2015_share, ward_post_2023_share) < 0.60,
                 na.rm = TRUE
             ),
             min_origin_share = min(ward_post_2015_share, na.rm = TRUE),

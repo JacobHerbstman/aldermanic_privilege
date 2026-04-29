@@ -1,7 +1,9 @@
 # create_block_treatment_panel
 
-Purpose: Creates block treatment panel.
+Purpose: Creates the block-level treatment geometry panel before score merging.
 
-Produces: Produces files such as `output/block_treatment_geometry_diagnostics.csv`, `output/block_treatment_panel.csv`, `output/block_treatment_pre_scores.csv` and related task-specific outputs in `output/`.
+Produces: `output/block_treatment_pre_scores.csv` and `output/block_treatment_geometry_diagnostics.csv`.
+
+The scored `block_treatment_panel.csv` is produced downstream by `tasks/merge_event_study_scores`.
 
 Approx. runtime: ~1-10 minutes.

@@ -7,7 +7,7 @@ all: ../output/block_treatment_pre_scores.csv ../output/block_treatment_geometry
 	$(R) create_treatment_panel.R
 
 ../output/block_treatment_geometry_diagnostics.csv: ../output/block_treatment_pre_scores.csv
-	test -f $@
+	$(R) create_treatment_panel.R
 
 ../input/census_blocks_2010.csv: ../../../data_raw/CensusBlockTIGER2010_20250721.csv | ../input
 	ln -sf $< $@
