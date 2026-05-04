@@ -34,8 +34,8 @@ if (length(args) >= 5) {
 bw_ft <- parse_bw_ft(bw_arg)
 bw_label <- if (is.finite(bw_ft)) as.character(as.integer(round(bw_ft))) else "all"
 
-if (!sample_filter %in% c("all", "multifamily")) {
-  stop("sample must be one of: all, multifamily", call. = FALSE)
+if (!sample_filter %in% c("all", "multifamily", "multifamily5")) {
+  stop("sample must be one of: all, multifamily, multifamily5", call. = FALSE)
 }
 if (length(yvars) == 0) {
   stop("No yvars provided.", call. = FALSE)
@@ -129,8 +129,10 @@ if (drop_ambiguous_within_bw) {
 
 if (sample_filter == "all") {
   parcels_fe <- parcels_fe %>% filter(unitscount > 0)
-} else {
+} else if (sample_filter == "multifamily") {
   parcels_fe <- parcels_fe %>% filter(unitscount > 1)
+} else if (sample_filter == "multifamily5") {
+  parcels_fe <- parcels_fe %>% filter(unitscount >= 5)
 }
 
 if (prune_sample == "pruned") {
@@ -208,7 +210,8 @@ rename_dict <- c(
 fe_formulas <- list(
   zonegroup_pair_year_additive = "zone_group + ward_pair + construction_year",
   zonegroup_segment_year_additive = "zone_group + segment_id + construction_year",
-  segment_year = "segment_id + construction_year"
+  segment_year = "segment_id + construction_year",
+  segment_only = "segment_id"
 )
 
 fe_labels <- list(
@@ -225,6 +228,9 @@ fe_labels <- list(
   segment_year = list(
     "Segment FE" = "segment_id",
     "Year FE" = "construction_year"
+  ),
+  segment_only = list(
+    "Segment FE" = "segment_id"
   )
 )
 
@@ -237,7 +243,7 @@ if (!fe_spec %in% names(fe_formulas)) {
 
 fe_formula_str <- fe_formulas[[fe_spec]]
 fe_label_list <- fe_labels[[fe_spec]]
-need_segment <- fe_spec %in% c("segment_year", "zonegroup_segment_year_additive") || cluster_level == "segment"
+need_segment <- fe_spec %in% c("segment_year", "segment_only", "zonegroup_segment_year_additive") || cluster_level == "segment"
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 
 models <- list()

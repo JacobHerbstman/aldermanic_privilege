@@ -1,7 +1,7 @@
 SHELL := bash
 include ../../shell_functions.make
 
-BASELINE_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH
+BASELINE_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
 
 all: \
 	../output/alderman_uncertainty_index_new_construction.csv \
@@ -206,8 +206,8 @@ all: \
 ../output/score_comparison_no_renovation_vs_baseline_summary.tex \
 ../output/score_comparison_no_renovation_vs_baseline_scatter.pdf: ../output/.score_comparison_no_renovation.done
 
-../output/.score_comparison_no_renovation.done: compare_new_construction_scores.R ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../output/alderman_uncertainty_index_no_renovation.csv | ../output
-	Rscript compare_new_construction_scores.R ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../output/alderman_uncertainty_index_no_renovation.csv ../output/score_comparison_no_renovation_vs_baseline.csv ../output/score_comparison_no_renovation_vs_baseline_summary.csv ../output/score_comparison_no_renovation_vs_baseline_summary.tex ../output/score_comparison_no_renovation_vs_baseline_scatter.pdf no_renovation "All high-discretion except renovation"
+../output/.score_comparison_no_renovation.done: compare_new_construction_scores.R ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../output/alderman_uncertainty_index_no_renovation.csv | ../output
+	Rscript compare_new_construction_scores.R ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../output/alderman_uncertainty_index_no_renovation.csv ../output/score_comparison_no_renovation_vs_baseline.csv ../output/score_comparison_no_renovation_vs_baseline_summary.csv ../output/score_comparison_no_renovation_vs_baseline_summary.tex ../output/score_comparison_no_renovation_vs_baseline_scatter.pdf no_renovation "All high-discretion except renovation"
 	touch "$@"
 
 ../output/score_comparison_restricted_renovation_vs_baseline.csv \
@@ -215,8 +215,8 @@ all: \
 ../output/score_comparison_restricted_renovation_vs_baseline_summary.tex \
 ../output/score_comparison_restricted_renovation_vs_baseline_scatter.pdf: ../output/.score_comparison_restricted_renovation.done
 
-../output/.score_comparison_restricted_renovation.done: compare_new_construction_scores.R ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../output/alderman_uncertainty_index_restricted_renovation.csv | ../output
-	Rscript compare_new_construction_scores.R ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../output/alderman_uncertainty_index_restricted_renovation.csv ../output/score_comparison_restricted_renovation_vs_baseline.csv ../output/score_comparison_restricted_renovation_vs_baseline_summary.csv ../output/score_comparison_restricted_renovation_vs_baseline_summary.tex ../output/score_comparison_restricted_renovation_vs_baseline_scatter.pdf restricted_renovation "Restricted renovation"
+../output/.score_comparison_restricted_renovation.done: compare_new_construction_scores.R ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../output/alderman_uncertainty_index_restricted_renovation.csv | ../output
+	Rscript compare_new_construction_scores.R ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../output/alderman_uncertainty_index_restricted_renovation.csv ../output/score_comparison_restricted_renovation_vs_baseline.csv ../output/score_comparison_restricted_renovation_vs_baseline_summary.csv ../output/score_comparison_restricted_renovation_vs_baseline_summary.tex ../output/score_comparison_restricted_renovation_vs_baseline_scatter.pdf restricted_renovation "Restricted renovation"
 	touch "$@"
 
 ../output/alderman_uncertainty_index_low_discretion_residualized.csv \
@@ -231,8 +231,8 @@ all: \
 ../output/score_comparison_low_discretion_residualized_vs_baseline_summary.tex \
 ../output/score_comparison_low_discretion_residualized_vs_baseline_scatter.pdf: ../output/.score_comparison_low_discretion_residualized.done
 
-../output/.score_comparison_low_discretion_residualized.done: compare_new_construction_scores.R ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../output/alderman_uncertainty_index_low_discretion_residualized.csv | ../output
-	Rscript compare_new_construction_scores.R ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../output/alderman_uncertainty_index_low_discretion_residualized.csv ../output/score_comparison_low_discretion_residualized_vs_baseline.csv ../output/score_comparison_low_discretion_residualized_vs_baseline_summary.csv ../output/score_comparison_low_discretion_residualized_vs_baseline_summary.tex ../output/score_comparison_low_discretion_residualized_vs_baseline_scatter.pdf low_discretion_residualized "Residualized low-discretion score"
+../output/.score_comparison_low_discretion_residualized.done: compare_new_construction_scores.R ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../output/alderman_uncertainty_index_low_discretion_residualized.csv | ../output
+	Rscript compare_new_construction_scores.R ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../output/alderman_uncertainty_index_low_discretion_residualized.csv ../output/score_comparison_low_discretion_residualized_vs_baseline.csv ../output/score_comparison_low_discretion_residualized_vs_baseline_summary.csv ../output/score_comparison_low_discretion_residualized_vs_baseline_summary.tex ../output/score_comparison_low_discretion_residualized_vs_baseline_scatter.pdf low_discretion_residualized "Residualized low-discretion score"
 	touch "$@"
 
 ../output/score_rankings_no_renovation.tex: export_score_rankings_tex.R ../output/score_comparison_no_renovation_vs_baseline.csv | ../output
@@ -520,9 +520,6 @@ all: \
 ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(BASELINE_SPEC).csv | ../input
 	ln -sf "$<" "$@"
 
-../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv | ../input
-	ln -sf "$<" "$@"
-
 ../input/residualized_low_vs_high_processing_alderman_wide_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv: ../../within_ward_strictness/output/residualized_low_vs_high_processing_alderman_wide_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv | ../input
 	ln -sf "$<" "$@"
 
@@ -535,6 +532,6 @@ all: \
 ../input/parcel_segment_ids.csv: ../../assign_segment_ids/output/parcel_segment_ids.csv | ../input
 	ln -sf "$<" "$@"
 
-link-inputs: ../input/permits_for_uncertainty_index.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/residualized_low_vs_high_processing_alderman_wide_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/building_permits_clean.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv
+link-inputs: ../input/permits_for_uncertainty_index.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/residualized_low_vs_high_processing_alderman_wide_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/building_permits_clean.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv
 
 include ../../generic.make

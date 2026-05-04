@@ -3,7 +3,6 @@ source("../../_lib/border_pair_helpers.R")
 
 bw_ft <- 500
 fe_spec <- "zonegroup_segment_year_additive"
-fe_spec_exact <- "zone_segment_year_additive"
 
 parcels_path <- "../input/parcels_with_ward_distances.csv"
 parcels_geometry_path <- "../input/parcels_with_geometry.gpkg"
@@ -35,11 +34,10 @@ base_plot_paths <- tibble(
 )
 
 comparison_plot_paths <- tibble(
-  yvar = rep(c("density_far", "density_dupac"), each = 4),
+  yvar = rep(c("density_far", "density_dupac"), each = 3),
   specification = rep(
     c(
-      "True boundary: zone-group FE",
-      "True boundary: exact zoning FE",
+      "True boundary: zone-group + segment + year FE",
       "Placebo: +500 ft",
       "Placebo: -500 ft"
     ),
@@ -47,11 +45,9 @@ comparison_plot_paths <- tibble(
   ),
   pdf_path = c(
     sprintf("../output/rd_fe_diag_plot_log_density_far_bw%d_multifamily_%s_clust_ward_pair_slope.pdf", bw_ft, fe_spec),
-    sprintf("../output/rd_fe_diag_plot_log_density_far_bw%d_multifamily_%s_clust_ward_pair_slope.pdf", bw_ft, fe_spec_exact),
     sprintf("../output/placebo_rd_fe_diag_plot_log_density_far_bw%d_multifamily_%s_clust_ward_pair_shift500.pdf", bw_ft, fe_spec),
     sprintf("../output/placebo_rd_fe_diag_plot_log_density_far_bw%d_multifamily_%s_clust_ward_pair_shift-500.pdf", bw_ft, fe_spec),
     sprintf("../output/rd_fe_diag_plot_log_density_dupac_bw%d_multifamily_%s_clust_ward_pair_slope.pdf", bw_ft, fe_spec),
-    sprintf("../output/rd_fe_diag_plot_log_density_dupac_bw%d_multifamily_%s_clust_ward_pair_slope.pdf", bw_ft, fe_spec_exact),
     sprintf("../output/placebo_rd_fe_diag_plot_log_density_dupac_bw%d_multifamily_%s_clust_ward_pair_shift500.pdf", bw_ft, fe_spec),
     sprintf("../output/placebo_rd_fe_diag_plot_log_density_dupac_bw%d_multifamily_%s_clust_ward_pair_shift-500.pdf", bw_ft, fe_spec)
   )
@@ -355,7 +351,7 @@ write_simple_latex_table(
   "llrrrrr",
   "Outcome & Specification & Jump & SE & Left Slope & Right Slope & N \\\\",
   comparison_body,
-  "\\par\\vspace{0.4em}\\parbox{0.97\\linewidth}{\\footnotesize Notes: All rows use the 500-foot multifamily sample and standard errors clustered at the ward-pair level. The exact-zoning row replaces zoning-group fixed effects with zoning-code fixed effects. Placebo rows shift the cutoff by 500 feet into each ward while keeping the same FE-adjusted RD specification.}",
+  "\\par\\vspace{0.4em}\\parbox{0.97\\linewidth}{\\footnotesize Notes: All rows use the 500-foot multifamily sample, zoning-group, segment, and construction-year fixed effects, and standard errors clustered at the ward-pair level. Placebo rows shift the cutoff by 500 feet into each ward while keeping the same FE-adjusted RD specification.}",
   resize_to_width = TRUE
 )
 

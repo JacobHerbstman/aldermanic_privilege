@@ -40,8 +40,8 @@ if (!is.finite(bw_ft) || bw_ft <= 0) {
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample_filter must be one of: all, multifamily", call. = FALSE)
 }
-if (!fe_spec %in% c("zonegroup_segment_year_additive", "zonegroup_pair_year_additive", "segment_year")) {
-  stop("fe_spec must be one of: zonegroup_segment_year_additive, zonegroup_pair_year_additive, segment_year", call. = FALSE)
+if (fe_spec != "zonegroup_segment_year_additive") {
+  stop("fe_spec must be zonegroup_segment_year_additive", call. = FALSE)
 }
 if (!is.finite(bins_per_side) || bins_per_side < 2) {
   stop("bins_per_side must be an integer >= 2.", call. = FALSE)
@@ -50,14 +50,9 @@ if (!gap_split %in% c("above_median", "below_median")) {
   stop("gap_split must be one of: above_median, below_median", call. = FALSE)
 }
 
-rd_input_path <- "../input/parcels_with_ward_distances.csv"
+rd_input_path <- Sys.getenv("RD_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
 
-fe_formula <- dplyr::case_when(
-  fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
-  fe_spec == "zonegroup_pair_year_additive" ~ "zone_group + ward_pair + construction_year",
-  fe_spec == "segment_year" ~ "segment_id + construction_year",
-  TRUE ~ NA_character_
-)
+fe_formula <- "zone_group + segment_id + construction_year"
 
 stars <- function(p) {
   if (!is.finite(p)) return("")

@@ -11,7 +11,6 @@ all: \
 	../output/fe_summary_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair.csv \
 	../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex \
 	../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex \
-	../output/fe_table_bw500_multifamily_zonegroup_pair_year_additive_clust_ward_pair.tex \
 	../output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex
 
 ../output/fe_table_bw250_all_zonegroup_segment_year_additive_clust_ward_pair.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
@@ -25,9 +24,6 @@ all: \
 
 ../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv | ../output
 	PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R 500 multifamily zonegroup_segment_year_additive "$@" $(MAIN_YVARS)
-
-../output/fe_table_bw500_multifamily_zonegroup_pair_year_additive_clust_ward_pair.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
-	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R 500 multifamily zonegroup_pair_year_additive "$@" $(MAIN_YVARS)
 
 ../output/fe_table_bw250_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex: border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
 	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R 250 multifamily zonegroup_segment_year_additive "$@" $(MAIN_YVARS)

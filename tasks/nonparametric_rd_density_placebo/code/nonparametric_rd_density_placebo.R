@@ -4,12 +4,12 @@ source("../../_lib/border_pair_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_placebo/code")
 # yvar <- "density_far"
-# bw_ft <- 250
-# sample_filter <- "all"
+# bw_ft <- 500
+# sample_filter <- "multifamily"
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
-# placebo_shift_ft <- -250
-# output_pdf <- "../output/nonparametric_rd_density_placebo_log_density_far_bw250_all_shift-250.pdf"
+# placebo_shift_ft <- -500
+# output_pdf <- "../output/nonparametric_rd_density_placebo_log_density_far_bw500_multifamily_shift-500.pdf"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -40,8 +40,8 @@ if (!is.finite(bw_ft) || bw_ft <= 0) {
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample_filter must be one of: all, multifamily", call. = FALSE)
 }
-if (!fe_spec %in% c("zonegroup_segment_year_additive", "zonegroup_pair_year_additive", "segment_year")) {
-  stop("fe_spec must be one of: zonegroup_segment_year_additive, zonegroup_pair_year_additive, segment_year", call. = FALSE)
+if (fe_spec != "zonegroup_segment_year_additive") {
+  stop("fe_spec must be zonegroup_segment_year_additive", call. = FALSE)
 }
 if (!is.finite(bins_per_side) || bins_per_side < 2) {
   stop("bins_per_side must be an integer >= 2.", call. = FALSE)
@@ -52,12 +52,7 @@ if (!is.finite(placebo_shift_ft)) {
 
 rd_input_path <- Sys.getenv("RD_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
 
-fe_formula <- dplyr::case_when(
-  fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
-  fe_spec == "zonegroup_pair_year_additive" ~ "zone_group + ward_pair + construction_year",
-  fe_spec == "segment_year" ~ "segment_id + construction_year",
-  TRUE ~ NA_character_
-)
+fe_formula <- "zone_group + segment_id + construction_year"
 
 stars <- function(p) {
   if (!is.finite(p)) return("")

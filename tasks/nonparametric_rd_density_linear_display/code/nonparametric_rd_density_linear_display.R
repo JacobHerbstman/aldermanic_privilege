@@ -35,11 +35,8 @@ if (!yvar %in% c("density_far", "density_dupac")) {
 if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("bw_ft must be a positive number.", call. = FALSE)
 }
-if (!sample_filter %in% c("all", "multifamily")) {
-  stop("sample_filter must be one of: all, multifamily", call. = FALSE)
-}
-if (!fe_spec %in% c("zonegroup_segment_year_additive", "zonegroup_pair_year_additive", "segment_year")) {
-  stop("fe_spec must be one of: zonegroup_segment_year_additive, zonegroup_pair_year_additive, segment_year", call. = FALSE)
+if (!sample_filter %in% c("all", "multifamily", "multifamily5")) {
+  stop("sample_filter must be one of: all, multifamily, multifamily5", call. = FALSE)
 }
 if (!is.finite(bins_per_side) || bins_per_side < 2) {
   stop("bins_per_side must be an integer >= 2.", call. = FALSE)
@@ -47,12 +44,29 @@ if (!is.finite(bins_per_side) || bins_per_side < 2) {
 
 rd_input_path <- Sys.getenv("RD_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
 
-fe_formula <- dplyr::case_when(
-  fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
-  fe_spec == "zonegroup_pair_year_additive" ~ "zone_group + ward_pair + construction_year",
-  fe_spec == "segment_year" ~ "segment_id + construction_year",
-  TRUE ~ NA_character_
+fe_map <- list(
+  zonegroup_segment_year_additive = list(
+    formula = "zone_group + segment_id + construction_year",
+    need_zone = TRUE,
+    label = "zone group + segment + year FE"
+  ),
+  segment_year = list(
+    formula = "segment_id + construction_year",
+    need_zone = FALSE,
+    label = "segment + year FE"
+  ),
+  segment_only = list(
+    formula = "segment_id",
+    need_zone = FALSE,
+    label = "segment FE"
+  )
 )
+
+if (!fe_spec %in% names(fe_map)) {
+  stop(sprintf("fe_spec must be one of: %s", paste(names(fe_map), collapse = ", ")), call. = FALSE)
+}
+
+fe_formula <- fe_map[[fe_spec]]$formula
 
 stars <- function(p) {
   if (!is.finite(p)) return("")
@@ -79,16 +93,21 @@ dat <- raw %>%
     !is.na(ward_pair),
     !is.na(construction_year),
     is.finite(signed_distance),
-    !is.na(zone_code),
     !is.na(segment_id),
     segment_id != "",
     abs(signed_distance) <= bw_ft
   )
 
+if (fe_map[[fe_spec]]$need_zone) {
+  dat <- dat %>% filter(!is.na(zone_code))
+}
+
 if (sample_filter == "all") {
   dat <- dat %>% filter(unitscount > 0)
-} else {
+} else if (sample_filter == "multifamily") {
   dat <- dat %>% filter(unitscount > 1)
+} else if (sample_filter == "multifamily5") {
+  dat <- dat %>% filter(unitscount >= 5)
 }
 
 dat <- dat %>%
@@ -230,12 +249,18 @@ if (!is.finite(y_span) || y_span <= 0) {
 y_pad <- max(0.15 * y_span, 0.05)
 y_limits <- c(y_min - y_pad, y_max + y_pad)
 
-sample_label <- ifelse(sample_filter == "all", "all construction", "multifamily")
+sample_label <- dplyr::case_when(
+  sample_filter == "all" ~ "all construction",
+  sample_filter == "multifamily" ~ "multifamily",
+  sample_filter == "multifamily5" ~ "multifamily 5+ units",
+  TRUE ~ sample_filter
+)
 subtitle_label <- sprintf(
-  "Jump = %.3f%s (SE %.3f) | %s | bw=%d ft | N=%d",
+  "Jump = %.3f%s (SE %.3f) | %s | %s | bw=%d ft | N=%d",
   cutoff_estimate,
   stars(cutoff_p),
   cutoff_se,
+  fe_map[[fe_spec]]$label,
   sample_label,
   as.integer(bw_ft),
   nobs(m_resid)

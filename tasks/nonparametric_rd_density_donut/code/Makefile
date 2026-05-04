@@ -1,9 +1,9 @@
 SHELL := bash
 
 FE_SPEC := zonegroup_segment_year_additive
-BW_FT := 250
+BW_FT := 500
 BINS_PER_SIDE ?= 5
-SAMPLE := all
+SAMPLE := multifamily
 DONUTS_FT := 25 50
 YVARS := density_far density_dupac
 

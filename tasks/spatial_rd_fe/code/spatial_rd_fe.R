@@ -8,7 +8,7 @@ source("../../_lib/border_pair_helpers.R")
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 # arg order: yvar use_log bw_ft sample fe_spec output_pdf [plot_style] [gap_split]
-# sample: "all" (unitscount > 0) | "multifamily" (unitscount > 1)
+# sample: "all" (unitscount > 0) | "multifamily" (unitscount > 1) | "multifamily5" (unitscount >= 5)
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/spatial_rd_fe/code")
@@ -42,22 +42,16 @@ gap_split <- if (length(args) >= 8) tolower(args[8]) else "all"
 if (!is.finite(bw_ft) || bw_ft <= 0) {
   stop("bw_ft must be a positive number.", call. = FALSE)
 }
-if (!sample_filter %in% c("all", "multifamily")) {
-  stop("sample must be one of: all, multifamily", call. = FALSE)
+if (!sample_filter %in% c("all", "multifamily", "multifamily5")) {
+  stop("sample must be one of: all, multifamily, multifamily5", call. = FALSE)
 }
 
 rd_input_path <- Sys.getenv("RD_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
 
 fe_map <- list(
-  pair_x_year = list(fe = "ward_pair^construction_year", use_far = FALSE, need_zone = FALSE, need_segment = FALSE),
-  pair_year = list(fe = "ward_pair + construction_year", use_far = FALSE, need_zone = FALSE, need_segment = FALSE),
-  zone_pair_year_additive = list(fe = "zone_code + ward_pair + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = FALSE),
-  zonegroup_pair_year_additive = list(fe = "zone_group + ward_pair + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = FALSE),
-  segment_year = list(fe = "segment_id + construction_year", use_far = FALSE, need_zone = FALSE, need_segment = TRUE),
-  zone_segment_year_additive = list(fe = "zone_code + segment_id + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = TRUE),
   zonegroup_segment_year_additive = list(fe = "zone_group + segment_id + construction_year", use_far = FALSE, need_zone = TRUE, need_segment = TRUE),
-  pair_x_year_far = list(fe = "ward_pair^construction_year", use_far = TRUE, need_zone = FALSE, need_segment = FALSE),
-  pair_year_far = list(fe = "ward_pair + construction_year", use_far = TRUE, need_zone = FALSE, need_segment = FALSE)
+  segment_year = list(fe = "segment_id + construction_year", use_far = FALSE, need_zone = FALSE, need_segment = TRUE),
+  segment_only = list(fe = "segment_id", use_far = FALSE, need_zone = FALSE, need_segment = TRUE)
 )
 
 if (!fe_spec %in% names(fe_map)) {
@@ -200,6 +194,8 @@ if (sample_filter == "all") {
   dat <- dat %>% filter(unitscount > 0 )
 } else if (sample_filter == "multifamily") {
   dat <- dat %>% filter(unitscount > 1 )
+} else if (sample_filter == "multifamily5") {
+  dat <- dat %>% filter(unitscount >= 5 )
 }
 message(sprintf("Observations after sample filter (%s): %d", sample_filter, nrow(dat)))
 

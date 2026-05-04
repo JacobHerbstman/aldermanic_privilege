@@ -2,14 +2,14 @@ source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
-setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_spec_lab/code")
-figure_type <- "type3_local_linear"
-yvar <- "unitscount"
-bw_ft <- 250
-sample_filter <- "all"
-fe_spec <- "segment_zonegroup_year"
-output_pdf <- "../output/type3_local_linear_log_unitscount_bw250_all_segment_zonegroup_year.pdf"
-output_csv <- "none"
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_spec_lab/code")
+# figure_type <- "type3_local_linear"
+# yvar <- "density_far"
+# bw_ft <- 250
+# sample_filter <- "all"
+# fe_spec <- "zonegroup_segment_year_additive"
+# output_pdf <- "../output/type3_local_linear_log_density_far_bw250_all_zonegroup_segment_year_additive.pdf"
+# output_csv <- "none"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -53,7 +53,7 @@ valid_figure_types <- c(
 )
 valid_yvars <- c("density_far", "density_dupac", "unitscount", "arealotsf")
 valid_samples <- c("all", "multifamily")
-valid_fe_specs <- c("segment_zonegroup_year", "segment_year", "wardpair_zonegroup_year")
+valid_fe_specs <- c("zonegroup_segment_year_additive")
 
 if (!figure_type %in% valid_figure_types) {
   stop(sprintf("figure_type must be one of: %s", paste(valid_figure_types, collapse = ", ")), call. = FALSE)
@@ -85,18 +85,14 @@ target_bins_from_bw <- function(bw_ft, figure_type) {
 
 fe_rhs_from_spec <- function(fe_spec) {
   dplyr::case_when(
-    fe_spec == "segment_zonegroup_year" ~ "zone_group + segment_id + construction_year",
-    fe_spec == "segment_year" ~ "segment_id + construction_year",
-    fe_spec == "wardpair_zonegroup_year" ~ "ward_pair + zone_group + construction_year",
+    fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
     TRUE ~ NA_character_
   )
 }
 
 fe_label_from_spec <- function(fe_spec) {
   dplyr::case_when(
-    fe_spec == "segment_zonegroup_year" ~ "segment + zone-group + year FE",
-    fe_spec == "segment_year" ~ "segment + year FE",
-    fe_spec == "wardpair_zonegroup_year" ~ "ward-pair + zone-group + year FE",
+    fe_spec == "zonegroup_segment_year_additive" ~ "zoning-group + segment + year FE",
     TRUE ~ fe_spec
   )
 }
