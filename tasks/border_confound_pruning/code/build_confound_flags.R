@@ -104,6 +104,22 @@ segments[!is.finite(water_area_share), water_area_share := 0]
 segments[!is.finite(park_area_share), park_area_share := 0]
 segments[!is.finite(waterway_overlap_ft), waterway_overlap_ft := 0]
 
+if (
+  all(as.character(segments$segment_type) %in% c("no_feature", "", NA_character_)) &&
+    all(segments$water_area_share <= 0, na.rm = TRUE) &&
+    all(segments$park_area_share <= 0, na.rm = TRUE) &&
+    all(segments$waterway_overlap_ft <= 0, na.rm = TRUE) &&
+    all(segments$major_overlap_arterial_ft <= 0, na.rm = TRUE)
+) {
+  stop(
+    paste(
+      "segment_classification.csv has no park/water/arterial feature metrics after the 1320ft filter.",
+      "Refusing to create no-op pruning flags."
+    ),
+    call. = FALSE
+  )
+}
+
 segments[, is_park_water := (
   as.character(segment_type) == "park_water" |
     water_area_share > 0 |

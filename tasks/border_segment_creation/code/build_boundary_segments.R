@@ -6,7 +6,7 @@ library(sf)
 
 # Interactive run:
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_segment_creation/code")
-# Sys.setenv(REBUILD_MODE = "raw")
+# Sys.setenv(REBUILD_MODE = "snapshot")
 # source("build_boundary_segments.R")
 
 st_agr("constant")
@@ -22,10 +22,14 @@ out_summary <- "../output/ward_pair_boundary_summary.csv"
 out_diag <- "../output/ward_pair_boundary_diagnostics.csv"
 
 ward_panel_path <- "../input/ward_panel.gpkg"
+snapshot_1320_path <- "../input/canonical_boundary_segments_1320ft.gpkg"
+snapshot_2640_path <- "../input/canonical_boundary_segments_2640ft.gpkg"
+snapshot_class_path <- "../input/canonical_segment_classification.csv"
+snapshot_boundaries_path <- "../input/canonical_ward_pair_boundaries.gpkg"
 
-rebuild_mode <- tolower(Sys.getenv("REBUILD_MODE", "raw"))
-if (!rebuild_mode %in% c("reuse", "raw")) {
-  stop("REBUILD_MODE must be 'reuse' or 'raw'.", call. = FALSE)
+rebuild_mode <- tolower(Sys.getenv("REBUILD_MODE", "snapshot"))
+if (!rebuild_mode %in% c("snapshot", "reuse", "raw")) {
+  stop("REBUILD_MODE must be 'snapshot', 'reuse', or 'raw'.", call. = FALSE)
 }
 
 expected_layer_names <- c(
@@ -76,6 +80,96 @@ ensure_segment_cols <- function(x, target_len) {
 
   x$target_length_ft <- as.numeric(target_len)
   x
+}
+
+read_segment_layers <- function(path, target_len) {
+  if (!file.exists(path)) {
+    stop(sprintf("Missing segment GPKG: %s", path), call. = FALSE)
+  }
+
+  missing_layers <- setdiff(expected_layer_names, st_layers(path)$name)
+  if (length(missing_layers) > 0) {
+    stop(
+      sprintf("Segment GPKG %s missing layers: %s", path, paste(missing_layers, collapse = ", ")),
+      call. = FALSE
+    )
+  }
+
+  out <- list()
+  for (era_i in eras) {
+    out[[era_i]] <- ensure_segment_cols(st_read(path, layer = era_i, quiet = TRUE), target_len)
+  }
+  do.call(rbind, out)
+}
+
+read_boundary_layers <- function(path) {
+  if (!file.exists(path)) {
+    stop(sprintf("Missing ward-pair boundary GPKG: %s", path), call. = FALSE)
+  }
+
+  missing_layers <- setdiff(eras, st_layers(path)$name)
+  if (length(missing_layers) > 0) {
+    stop(
+      sprintf("Boundary GPKG %s missing layers: %s", path, paste(missing_layers, collapse = ", ")),
+      call. = FALSE
+    )
+  }
+
+  out <- list()
+  for (era_i in eras) {
+    out[[era_i]] <- st_read(path, layer = era_i, quiet = TRUE)
+  }
+  out
+}
+
+validate_segment_features <- function(class_dt) {
+  setDT(class_dt)
+  required_cols <- c(
+    "segment_type",
+    "water_area_share",
+    "park_area_share",
+    "waterway_overlap_ft",
+    "major_overlap_arterial_ft",
+    "target_length_ft"
+  )
+  missing_cols <- setdiff(required_cols, names(class_dt))
+  if (length(missing_cols) > 0) {
+    stop(
+      sprintf("segment_classification.csv missing feature columns: %s", paste(missing_cols, collapse = ", ")),
+      call. = FALSE
+    )
+  }
+
+  x <- copy(class_dt)
+  x[, target_length_ft := as.numeric(target_length_ft)]
+  x <- x[abs(target_length_ft - 1320) < 1e-8]
+  if (nrow(x) == 0) {
+    stop("No 1320ft rows found in segment_classification.csv.", call. = FALSE)
+  }
+
+  x[, water_area_share := as.numeric(water_area_share)]
+  x[, park_area_share := as.numeric(park_area_share)]
+  x[, waterway_overlap_ft := as.numeric(waterway_overlap_ft)]
+  x[, major_overlap_arterial_ft := as.numeric(major_overlap_arterial_ft)]
+  x[!is.finite(water_area_share), water_area_share := 0]
+  x[!is.finite(park_area_share), park_area_share := 0]
+  x[!is.finite(waterway_overlap_ft), waterway_overlap_ft := 0]
+  x[!is.finite(major_overlap_arterial_ft), major_overlap_arterial_ft := 0]
+
+  has_features <- any(
+    !(as.character(x$segment_type) %in% c("no_feature", "", NA_character_)) |
+      x$water_area_share > 0 |
+      x$park_area_share > 0 |
+      x$waterway_overlap_ft > 0 |
+      x$major_overlap_arterial_ft > 0,
+    na.rm = TRUE
+  )
+  if (!has_features) {
+    stop(
+      "segment_classification.csv has no park/water/arterial feature metrics after the 1320ft filter.",
+      call. = FALSE
+    )
+  }
 }
 
 split_linestring_into_segments <- function(line_geom, target_len, crs_obj) {
@@ -244,7 +338,16 @@ can_reuse <- rebuild_mode == "reuse" &&
   file.exists(out_class) &&
   file.exists(out_boundaries)
 
-if (can_reuse) {
+if (rebuild_mode == "snapshot") {
+  message("Rebuild mode: restore canonical segment artifacts from data_raw/boundaries/segments.")
+
+  seg_1320 <- read_segment_layers(snapshot_1320_path, 1320)
+  seg_2640 <- read_segment_layers(snapshot_2640_path, 2640)
+  boundary_list <- read_boundary_layers(snapshot_boundaries_path)
+  snapshot_class <- fread(snapshot_class_path)
+  validate_segment_features(snapshot_class)
+  build_mode <- "snapshot"
+} else if (can_reuse) {
   message("Rebuild mode: reuse existing canonical segment artifacts with schema checks.")
 
   seg_1320_by_era <- list()
@@ -376,6 +479,7 @@ class_dt <- rbind(seg_1320[, pick_cols], seg_2640[, pick_cols])
 class_dt <- st_drop_geometry(class_dt)
 setDT(class_dt)
 setorder(class_dt, era, ward_pair_id, target_length_ft, segment_number)
+validate_segment_features(class_dt)
 fwrite(class_dt, out_class)
 
 summary_dt <- build_boundary_summary(boundary_list)
@@ -415,7 +519,7 @@ boundary_diagnostics <- data.table(
     as.character(all_pair_ids_unique)
   ),
   expected_value = c(
-    "raw or reuse",
+    "snapshot, raw, or reuse",
     "non-empty md5",
     "TRUE",
     "TRUE",

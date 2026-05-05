@@ -15,7 +15,7 @@ all: ../output/sales_pre_scores.csv ../output/sales_geometry_diagnostics.csv
 ../input/Assessor_-_Parcel_Sales_20251123.csv: ../../../data_raw/Assessor_-_Parcel_Sales_20251123.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/Assessor_-_Parcel_Universe__Current_Year_Only__20251004.csv: ../../../data_raw/Assessor_-_Parcel_Universe__Current_Year_Only__20251004.csv | ../input
+../input/Assessor_-_Parcel_Universe__Current_Year_Only__20251004.csv: ../../download_parcel_universe_data/output/parcel_universe_2025_city.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
