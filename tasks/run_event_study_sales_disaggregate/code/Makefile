@@ -115,22 +115,22 @@ all: $(PAPER_PDFS) $(PAPER_TABLES)
 	Rscript did_table_sales_2015.R 500 uniform $@ amenity
 
 ../input/sales_transaction_panel.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/sales_transaction_panel_announcement.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_announcement.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/sales_transaction_panel_2012.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2012.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/sales_transaction_panel_2015.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/sales_transaction_panel_2022.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2022.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/sales_transaction_panel_2023.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2023.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/sales_transaction_panel_2015.parquet
 

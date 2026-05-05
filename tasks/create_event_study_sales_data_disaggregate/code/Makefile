@@ -28,46 +28,46 @@ all: \
 	test -f $@
 
 ../input/sales_with_ward_distances.csv: ../../merge_event_study_scores/output/sales_with_ward_distances.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/residential_improvements_panel.parquet: ../../process_residential_improvements_full/output/residential_improvements_panel.parquet | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/block_treatment_panel.csv: ../../merge_event_study_scores/output/block_treatment_panel.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/census_blocks_2010.csv: ../../../data_raw/CensusBlockTIGER2010_20250721.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/census_blocks_2020.csv: ../../census_block_2020_cleaning/output/census_blocks_2020.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/schools_2015.gpkg: ../../download_amenities_data/output/schools_2015.gpkg | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/parks.gpkg: ../../download_amenities_data/output/parks.gpkg | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/major_streets.gpkg: ../../download_amenities_data/output/major_streets.gpkg | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/gis_osm_water_a_free_1.shp: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shp | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/gis_osm_water_a_free_1.dbf: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.dbf | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/gis_osm_water_a_free_1.prj: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.prj | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/gis_osm_water_a_free_1.shx: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shx | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/gis_osm_water_a_free_1.cpg: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.cpg | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 include ../../generic.make
 

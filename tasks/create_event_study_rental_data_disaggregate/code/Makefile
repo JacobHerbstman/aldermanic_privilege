@@ -22,19 +22,19 @@ all: \
 	test -f $@
 
 ../input/rent_with_ward_distances.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/census_blocks_2010.csv: ../../../data_raw/CensusBlockTIGER2010_20250721.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/census_blocks_2020.csv: ../../census_block_2020_cleaning/output/census_blocks_2020.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/block_treatment_panel.csv: ../../merge_event_study_scores/output/block_treatment_panel.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 include ../../generic.make
 

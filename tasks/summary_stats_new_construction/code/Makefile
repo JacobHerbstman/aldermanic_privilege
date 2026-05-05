@@ -10,7 +10,7 @@ all: ../output/summary_stats.tex ../output/summary_stats_tabular.tex
 	test -f "$@"
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 

@@ -35,6 +35,8 @@ dbExecute(con, "
     char_gar1_size AS garage_size_raw
   FROM read_csv('../input/residential_improvement_characteristics_full.csv',
                 ignore_errors = true,
+                all_varchar = true,
+                header = true,
                 auto_detect = true,
                 max_line_size = 10000000)
 ")
@@ -43,15 +45,22 @@ dbExecute(con, "
 n_loaded <- dbGetQuery(con, "SELECT COUNT(*) as n FROM improvements")$n
 message(sprintf("Loaded %s rows", format(n_loaded, big.mark = ",")))
 
-# Filter to Chicago townships
-message("Filtering to Chicago townships...")
+# Filter after stripping numeric formatting from source columns.
+message("Filtering to Chicago townships and 1999+ builds...")
 dbExecute(con, "
   DELETE FROM improvements
-  WHERE township_code NOT IN ('70', '71', '72', '73', '74', '75', '76', '77')
+  WHERE coalesce(
+          try_cast(nullif(regexp_replace(cast(township_code AS VARCHAR), '[^0-9.-]', '', 'g'), '') AS INTEGER),
+          -999
+        ) NOT IN (70, 71, 72, 73, 74, 75, 76, 77)
+     OR coalesce(
+          try_cast(nullif(regexp_replace(cast(year_built AS VARCHAR), '[^0-9.-]', '', 'g'), '') AS INTEGER),
+          -999
+        ) < 1999
 ")
 
-n_chicago <- dbGetQuery(con, "SELECT COUNT(*) as n FROM improvements")$n
-message(sprintf("Chicago properties: %s rows", format(n_chicago, big.mark = ",")))
+n_filtered <- dbGetQuery(con, "SELECT COUNT(*) as n FROM improvements")$n
+message(sprintf("Filtered properties: %s rows", format(n_filtered, big.mark = ",")))
 
 # Pull into R as data.table
 message("Converting to data.table...")
@@ -63,17 +72,21 @@ dbDisconnect(con, shutdown = TRUE)
 # =============================================================================
 message("Cleaning columns...")
 
+parse_numeric <- function(x) {
+    suppressWarnings(as.numeric(gsub("[^0-9.-]", "", as.character(x))))
+}
+
 data[, `:=`(
     pin = as.character(pin),
-    tax_year = as.integer(tax_year),
-    year_built = as.integer(year_built),
-    building_sqft = as.numeric(building_sqft),
-    land_sqft = as.numeric(land_sqft),
-    num_rooms = as.numeric(num_rooms),
-    num_bedrooms = as.numeric(num_bedrooms),
-    num_full_baths = as.numeric(num_full_baths),
-    num_half_baths = as.numeric(num_half_baths),
-    num_fireplaces = as.numeric(num_fireplaces)
+    tax_year = as.integer(parse_numeric(tax_year)),
+    year_built = as.integer(parse_numeric(year_built)),
+    building_sqft = parse_numeric(building_sqft),
+    land_sqft = parse_numeric(land_sqft),
+    num_rooms = parse_numeric(num_rooms),
+    num_bedrooms = parse_numeric(num_bedrooms),
+    num_full_baths = parse_numeric(num_full_baths),
+    num_half_baths = parse_numeric(num_half_baths),
+    num_fireplaces = parse_numeric(num_fireplaces)
 )]
 
 # Convert spelled-out apartment counts to integers
@@ -86,11 +99,11 @@ data[, num_apartments := fcase(
     tolower(trimws(num_apartments_raw)) == "four", 4L,
     tolower(trimws(num_apartments_raw)) == "five", 5L,
     tolower(trimws(num_apartments_raw)) == "six", 6L,
-    default = suppressWarnings(as.integer(num_apartments_raw))
+    default = as.integer(parse_numeric(num_apartments_raw))
 )]
 
 # Parse garage size from strings like "2.5 cars"
-data[, garage_size := as.numeric(gsub("[^0-9.]", "", garage_size_raw))]
+data[, garage_size := parse_numeric(garage_size_raw)]
 
 # Drop raw columns
 data[, c("num_apartments_raw", "garage_size_raw", "township_code") := NULL]

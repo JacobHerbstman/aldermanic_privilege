@@ -31,13 +31,13 @@ all: ../output/ward42_neighbors_definition.csv \
 	$(R) run_rental_summary_stats.R
 
 ../input/rental_listing_panel.parquet: ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel.parquet | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/chicago_rent_panel.parquet: ../../process_rent_data/output/chicago_rent_panel.parquet | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/rental_listing_panel.parquet ../input/chicago_rent_panel.parquet ../input/ward_panel.gpkg
 

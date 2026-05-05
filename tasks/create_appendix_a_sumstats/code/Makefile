@@ -7,7 +7,7 @@ all: ../output/rental_sumstats_table.tex
 	$(R) create_appendix_a.R
 
 ../input/rent_with_ward_distances_full.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 include ../../generic.make
 

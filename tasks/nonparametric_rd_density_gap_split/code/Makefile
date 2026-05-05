@@ -16,7 +16,7 @@ endef
 $(foreach yvar,$(YVARS),$(foreach gap_split,$(GAP_SPLITS),$(eval $(call GAP_SPLIT_RULE,$(yvar),$(gap_split)))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 

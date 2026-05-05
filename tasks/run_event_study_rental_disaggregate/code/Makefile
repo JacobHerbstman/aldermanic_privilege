@@ -69,13 +69,13 @@ all: \
 	Rscript run_did_rental_disaggregate.R 1000 triangular strict_pair_x_year segment twoway_block_segment
 
 ../input/rental_listing_panel.parquet: ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/rental_listing_panel_2015.parquet: ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel_2015.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/rental_listing_panel_2023.parquet: ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel_2023.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet
 

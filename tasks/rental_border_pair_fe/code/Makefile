@@ -20,7 +20,7 @@ all: \
 	Rscript rental_level_plot.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all TRUE 15 0 "$@" NA NA segment ward_pair
 
 ../input/rent_with_ward_distances.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/rent_with_ward_distances.parquet
 

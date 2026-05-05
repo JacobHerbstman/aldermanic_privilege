@@ -1,25 +1,41 @@
 SHELL := bash
 include ../../shell_functions.make
 
-raw_files := $(wildcard ../../download_rent_data/output/*.parquet)
-input_links := $(patsubst ../../download_rent_data/output/%,../input/%,$(raw_files))
-dates := $(sort $(foreach f,$(raw_files),$(firstword $(subst --, ,$(notdir $(f))))))
-temp_csvs := $(patsubst %,../temp/%.csv,$(dates))
-
 all: ../output/chicago_rent_panel.parquet
 
-../output/chicago_rent_panel.parquet: aggregate_rents.R $(temp_csvs) | ../output
-	Rscript aggregate_rents.R
-
-define single_day_rule
-../temp/$(firstword $(subst --, ,$(notdir $(1)))).csv: $(1) process_rent_data.R | ../temp
-	Rscript process_rent_data.R "$$<" "$$@"
-endef
-$(foreach f,$(input_links),$(eval $(call single_day_rule,$(f))))
+../output/chicago_rent_panel.parquet: aggregate_rents.R process_rent_data.R ../../download_rent_data/output/download.done | ../input ../temp ../output
+	@set -euo pipefail; \
+	files=(../../download_rent_data/output/*.parquet); \
+	if [ ! -e "$${files[0]}" ]; then \
+		echo "No rent parquet files found after download_rent_data." >&2; \
+		exit 1; \
+	fi; \
+	for raw in "$${files[@]}"; do \
+		base=$$(basename "$$raw"); \
+		link="../input/$$base"; \
+		current=$$(readlink "$$link" 2>/dev/null || true); \
+		test "$$current" = "$$raw" || ln -sf "$$raw" "$$link"; \
+		date=$${base%%--*}; \
+		$(R) process_rent_data.R "$$link" "../temp/$$date.csv"; \
+	done
+	$(R) aggregate_rents.R
+	test -f $@
 
 ../input/%.parquet: ../../download_rent_data/output/%.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: $(input_links)
+link-inputs: ../../download_rent_data/output/download.done | ../input
+	@set -euo pipefail; \
+	files=(../../download_rent_data/output/*.parquet); \
+	if [ ! -e "$${files[0]}" ]; then \
+		echo "No rent parquet files found after download_rent_data." >&2; \
+		exit 1; \
+	fi; \
+	for raw in "$${files[@]}"; do \
+		base=$$(basename "$$raw"); \
+		link="../input/$$base"; \
+		current=$$(readlink "$$link" 2>/dev/null || true); \
+		test "$$current" = "$$raw" || ln -sf "$$raw" "$$link"; \
+	done
 
 include ../../generic.make

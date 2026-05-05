@@ -10,13 +10,13 @@ all: ../output/uncertainty_score_map_$(UNCERTAINTY_SPEC)_$(DATE).pdf
 	Rscript strictness_score_map.R $(DATE) ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv uncertainty_index ../output/uncertainty_score_map_$(UNCERTAINTY_SPEC)_$(DATE).pdf "Regulatory Stringency Index" "Regulatory Stringency Index by Ward ($(DATE))"
 
 ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 include ../../generic.make
 

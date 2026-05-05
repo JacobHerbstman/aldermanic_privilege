@@ -15,25 +15,25 @@ all: ../output/geometry_validation_report.md
 	test -f $@
 
 ../input/ward_pair_boundaries.gpkg: ../../border_segment_creation/output/ward_pair_boundaries.gpkg | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/parcels_pre_scores.csv: ../../calculate_ward_boundary_distances/output/parcels_pre_scores.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/parcel_segment_ids_coverage.csv: ../../assign_segment_ids/output/parcel_segment_ids_coverage.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex: ../../border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../output/validation_density_far_meta.csv: ../../spatial_rd_fe/code/spatial_rd_fe.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv | ../output
 	RD_INPUT_PATH=../input/parcels_with_ward_distances.csv CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CLUSTER_LEVEL=segment $(R) ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE 500 multifamily zonegroup_segment_year_additive ../output/validation_density_far.pdf slope
@@ -44,19 +44,19 @@ all: ../output/geometry_validation_report.md
 	test -f $@
 
 ../input/sales_pre_scores.csv: ../../calculate_sale_distances/output/sales_pre_scores.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/rent_pre_scores_full.parquet: ../../calculate_rent_distances/output/rent_pre_scores_full.parquet | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/segment_assignment_coverage_summary.csv: ../../assign_segment_ids_sales_rental/output/segment_assignment_coverage_summary.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/fe_table_rental_bw500_pre_2023.csv: ../../rental_border_pair_fe/output/fe_table_rental_bw500_pre_2023.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/fe_table_sales_bw500_year_quarter.csv: ../../sales_border_pair_fe/output/fe_table_sales_bw500_year_quarter.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 include ../../generic.make
 

@@ -25,7 +25,7 @@ all: ../output/alderman_uncertainty_index_$(SPEC).csv ../output/uncertainty_inde
 	touch "$@"
 
 ../input/permits_for_uncertainty_index.csv: ../../data_for_alderman_uncertainty_index/output/permits_for_uncertainty_index.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/permits_for_uncertainty_index.csv
 

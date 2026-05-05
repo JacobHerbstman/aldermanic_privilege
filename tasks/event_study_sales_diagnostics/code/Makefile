@@ -25,19 +25,19 @@ all: \
 	rm -f ../output/treatment_summary_presentation.txt
 
 ../input/sales_stacked_panel.csv: ../../create_event_study_sales_data/output/sales_stacked_panel.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/sales_stacked_quarterly_panel.csv: ../../create_event_study_sales_data/output/sales_stacked_quarterly_panel.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/census_blocks_2010.csv: ../../create_event_study_sales_data/input/census_blocks_2010.csv | ../input
-	ln -sf "$<" "$@"
+../input/census_blocks_2010.csv: ../../../data_raw/CensusBlockTIGER2010_20250721.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/block_treatment_panel.csv: ../../create_block_treatment_panel/output/block_treatment_panel.csv | ../input
-	ln -sf "$<" "$@"
+../input/block_treatment_panel.csv: ../../merge_event_study_scores/output/block_treatment_panel.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/sales_stacked_panel.csv ../input/sales_stacked_quarterly_panel.csv ../input/census_blocks_2010.csv ../input/ward_panel.gpkg ../input/block_treatment_panel.csv
 

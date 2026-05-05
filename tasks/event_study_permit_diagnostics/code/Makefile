@@ -22,10 +22,10 @@ all: \
 	test -f "$@"
 
 ../input/permit_block_year_panel.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/block_group_controls.csv: ../../create_block_group_controls/output/block_group_controls.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/permit_block_year_panel.parquet ../input/block_group_controls.csv
 

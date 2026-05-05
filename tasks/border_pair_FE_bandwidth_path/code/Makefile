@@ -58,10 +58,10 @@ $(foreach bandwidth,$(BANDWIDTHS),$(foreach sample,$(SAMPLES),../temp/border_pai
 	test -f "$@"
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv
 

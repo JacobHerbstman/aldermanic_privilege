@@ -7,7 +7,7 @@ all: ../output/ward_controls_2000_2023.csv ../output/block_group_controls_2000_2
 	$(R) $<
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 include ../../generic.make
 

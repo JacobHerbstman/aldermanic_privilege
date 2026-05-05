@@ -54,10 +54,10 @@ all: \
 	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R 1000 multifamily zonegroup_segment_year_additive "$@" $(MAIN_YVARS)
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv
 

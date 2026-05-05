@@ -1,26 +1,14 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# generic.make  (to be included from each task’s code/Makefile)
-# ─────────────────────────────────────────────────────────────────────────────
-
 SHELL := bash
 
-# ----------------------------------------------------------------------------
-# Create the standard folders if they don’t exist
-# ----------------------------------------------------------------------------
 ../input ../output ../temp slurmlogs:
 	mkdir -p $@
 
-# ----------------------------------------------------------------------------
-# SLURM wrapper (path is still relative to each task’s code/ folder)
-# ----------------------------------------------------------------------------
 run.sbatch: ../../setup_environment/code/run.sbatch | slurmlogs
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-# ----------------------------------------------------------------------------
-# Remove accidental Finder-style duplicates like "file 2.csv" when canonical
-# files already exist in the same task folder.
-# ----------------------------------------------------------------------------
-.PHONY: sanitize-numbered-duplicates
+.PHONY: sanitize-numbered-duplicates FORCE
+FORCE:
+
 sanitize-numbered-duplicates: ../input
 	@for dir in ../input ../output; do \
 		[ -d "$$dir" ] || continue; \
@@ -34,11 +22,17 @@ sanitize-numbered-duplicates: ../input
 
 link-inputs: sanitize-numbered-duplicates
 
-# ----------------------------------------------------------------------------
-# Generic upstream rule — This is a powerful but advanced feature.
-# For now, we will rely on explicit symbolic linking rules in each Makefile
-# to make the workflow as clear as possible.
-# ----------------------------------------------------------------------------
- ../../output/%:
-	$(MAKE) -C $(subst output/,code/,$(dir $@)) \
-	        ../output/$(notdir $@)
+../../%: FORCE
+	@case "$@" in \
+		../../*/output/*) \
+			task=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./##; s#/output/.*##'); \
+			output=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./[^/]*/output/#../output/#'); \
+			$(MAKE) -C "../../$$task/code" "$$output"; \
+			;; \
+		../../../data_raw/*) \
+			test -e "$@" || { echo "Missing raw root: $@"; false; }; \
+			;; \
+		*) \
+			test -e "$@" || { echo "No generic upstream rule for $@"; false; }; \
+			;; \
+	esac

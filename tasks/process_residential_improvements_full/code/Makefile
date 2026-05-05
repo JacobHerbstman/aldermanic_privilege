@@ -7,7 +7,7 @@ all: ../output/residential_improvements_panel.parquet
 	$(R) process_improvements.R
 
 ../input/residential_improvement_characteristics_full.csv: ../../download_residential_improvements_full/output/residential_improvement_characteristics_full.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/residential_improvement_characteristics_full.csv
 

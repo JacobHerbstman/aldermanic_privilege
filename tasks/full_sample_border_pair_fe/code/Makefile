@@ -20,7 +20,7 @@ all: \
 	test -f "$@"
 
 ../input/parcels_with_ward_distances_canonical.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances_canonical.csv
 

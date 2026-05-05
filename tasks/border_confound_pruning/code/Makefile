@@ -16,7 +16,7 @@ $(OUTPUTS): build_confound_flags.R $(INPUTS) | ../output
 	Rscript build_confound_flags.R
 
 ../input/segment_classification.csv: ../../border_segment_creation/output/segment_classification.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: $(INPUTS)
 

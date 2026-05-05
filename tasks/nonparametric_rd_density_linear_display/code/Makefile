@@ -21,7 +21,7 @@ endef
 $(foreach yvar,$(YVARS),$(foreach spec,$(MAIN_BW_FT)_all $(MAIN_BW_FT)_multifamily $(APPENDIX_BW_FT)_multifamily,$(eval $(call BASELINE_RULE,$(yvar),$(word 1,$(subst _, ,$(spec))),$(word 2,$(subst _, ,$(spec)))))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 

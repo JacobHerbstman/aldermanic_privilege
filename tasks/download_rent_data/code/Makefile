@@ -7,4 +7,7 @@ all: ../output/download.done
 	$(R) $<
 	touch $@
 
+../output/%.parquet: ../output/download.done
+	test -f "$@"
+
 include ../../generic.make

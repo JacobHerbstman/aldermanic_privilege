@@ -55,46 +55,22 @@ $(SECONDARY_OUTPUTS): | $(PRIMARY_OUTPUT) ../output
 	test -f "$@"
 
 ../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/ward_panel.gpkg: ../../border_segment_creation/input/ward_panel.gpkg | ../input
-	ln -sf "$<" "$@"
+../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_water_a_free_1.cpg: ../../border_segment_creation/input/gis_osm_water_a_free_1.cpg | ../input
-	ln -sf "$<" "$@"
+../input/gis_osm_water_a_free_1.cpg ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.shx: ../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_water_a_free_1.dbf: ../../border_segment_creation/input/gis_osm_water_a_free_1.dbf | ../input
-	ln -sf "$<" "$@"
-
-../input/gis_osm_water_a_free_1.prj: ../../border_segment_creation/input/gis_osm_water_a_free_1.prj | ../input
-	ln -sf "$<" "$@"
-
-../input/gis_osm_water_a_free_1.shp: ../../border_segment_creation/input/gis_osm_water_a_free_1.shp | ../input
-	ln -sf "$<" "$@"
-
-../input/gis_osm_water_a_free_1.shx: ../../border_segment_creation/input/gis_osm_water_a_free_1.shx | ../input
-	ln -sf "$<" "$@"
-
-../input/gis_osm_landuse_a_free_1.cpg: ../../border_segment_creation/input/gis_osm_landuse_a_free_1.cpg | ../input
-	ln -sf "$<" "$@"
-
-../input/gis_osm_landuse_a_free_1.dbf: ../../border_segment_creation/input/gis_osm_landuse_a_free_1.dbf | ../input
-	ln -sf "$<" "$@"
-
-../input/gis_osm_landuse_a_free_1.prj: ../../border_segment_creation/input/gis_osm_landuse_a_free_1.prj | ../input
-	ln -sf "$<" "$@"
-
-../input/gis_osm_landuse_a_free_1.shp: ../../border_segment_creation/input/gis_osm_landuse_a_free_1.shp | ../input
-	ln -sf "$<" "$@"
-
-../input/gis_osm_landuse_a_free_1.shx: ../../border_segment_creation/input/gis_osm_landuse_a_free_1.shx | ../input
-	ln -sf "$<" "$@"
+../input/gis_osm_landuse_a_free_1.cpg ../input/gis_osm_landuse_a_free_1.dbf ../input/gis_osm_landuse_a_free_1.prj ../input/gis_osm_landuse_a_free_1.shp ../input/gis_osm_landuse_a_free_1.shx: ../input/gis_osm_landuse_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.% | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: $(INPUTS)
 

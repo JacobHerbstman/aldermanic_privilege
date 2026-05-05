@@ -130,16 +130,16 @@ $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),$(foreach weighting,$(MA
 	Rscript run_event_study_permit.R stacked_implementation high_discretion issue ppml continuous_split uniform 500 within_block full ward_pair block none
 
 ../input/permit_block_year_panel.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/permit_block_year_panel_2015.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/permit_block_year_panel_2023.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2023.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/block_group_controls.csv: ../../create_block_group_controls/output/block_group_controls.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv
 

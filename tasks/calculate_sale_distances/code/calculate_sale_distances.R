@@ -13,32 +13,29 @@ source("../../_lib/canonical_geometry_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
 # sample <- FALSE
+# cpi_csv <- "../input/fred_cpi_cuura207sa0.csv"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(sample)
+  cli_args <- c(sample, cpi_csv)
 }
 
-if (length(cli_args) != 1) {
-  stop("FATAL: Script requires 1 args: <sample>", call. = FALSE)
+if (length(cli_args) != 2) {
+  stop("FATAL: Script requires 2 args: <sample> <cpi_csv>", call. = FALSE)
 }
 sample <- cli_args[1]
+cpi_csv <- cli_args[2]
 run_sample <- as.logical(sample)
 
-load_cpi_deflator <- function(start_date,
+load_cpi_deflator <- function(cpi_csv,
+                              start_date,
                               end_date,
                               base_year = 2022L,
                               series_id = "CUURA207SA0") {
-    fred_url <- sprintf("https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s", series_id)
-    message(sprintf("Fetching CPI series %s from FRED...", series_id))
-    old_http_ua <- getOption("HTTPUserAgent")
-    on.exit(options(HTTPUserAgent = old_http_ua), add = TRUE)
-    # As of March 16, 2026, FRED's edge responds poorly to R's default UA
-    # over libcurl HTTP/2, while the same URL works with a curl-style UA.
-    options(HTTPUserAgent = paste0("curl/", curl::curl_version()$version))
-    cpi_raw <- read_csv(fred_url, show_col_types = FALSE)
+    message(sprintf("Reading CPI series %s from %s...", series_id, cpi_csv))
+    cpi_raw <- read_csv(cpi_csv, col_types = cols(.default = "c"), show_col_types = FALSE)
     if (!all(c("observation_date", series_id) %in% names(cpi_raw))) {
-        stop(sprintf("FRED response missing expected columns for series %s.", series_id), call. = FALSE)
+        stop(sprintf("CPI input missing expected columns for series %s.", series_id), call. = FALSE)
     }
 
     cpi <- cpi_raw %>%
@@ -180,6 +177,7 @@ message(sprintf("Filtered to %s market sales", format(nrow(sales), big.mark = ",
 
 # Deflate to 2022 dollars (monthly CPI) before winsorization
 cpi_deflator <- load_cpi_deflator(
+    cpi_csv = cpi_csv,
     start_date = min(sales$sale_date_for_price, na.rm = TRUE),
     end_date = max(sales$sale_date_for_price, na.rm = TRUE),
     base_year = 2022L

@@ -6,11 +6,12 @@ include ../../shell_functions.make
 all: ../output/multifamily_data_cleaned.csv
 
 ../output/multifamily_data_cleaned.csv: commercial_value_data_cleaning.R ../input/commercial_value_raw.csv | ../output
-	$(R) $< $@
+	# arg order: input_csv output_csv
+	$(R) $< ../input/commercial_value_raw.csv $@
 
 # Symlink
-../input/commercial_value_raw.csv: ../../../data_raw/Assessor_-_Commercial_Valuation_Data_20251120.csv | ../input
-	ln -sf "$<" "$@"
+../input/commercial_value_raw.csv: ../../download_commercial_valuation_data/output/commercial_valuation_data.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 # Convenience
 link-inputs: ../input/commercial_value_raw.csv

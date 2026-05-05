@@ -7,7 +7,7 @@ all: ../output/building_permits_clean.gpkg
 	$(R) building_permits_cleaning.R
 
 ../input/Building_Permits_20251121.csv: ../../../data_raw/Building_Permits_20251121.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 include ../../generic.make
 

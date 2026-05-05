@@ -1,9 +1,9 @@
 SHELL := bash
 
 FE_SPEC := zonegroup_segment_year_additive
-BW_FT := 250
+BW_FT := 500
 BINS_PER_SIDE ?= 5
-SAMPLE := all
+SAMPLE := multifamily
 DONUTS_FT := 25 50
 YVARS := density_far density_dupac
 
@@ -16,7 +16,7 @@ endef
 $(foreach yvar,$(YVARS),$(foreach donut,$(DONUTS_FT),$(eval $(call DONUT_RULE,$(yvar),$(donut)))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 

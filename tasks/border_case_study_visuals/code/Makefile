@@ -13,7 +13,7 @@ all: ../output/case_study_far_panel_bw500.pdf ../output/case_study_summary_bw500
 		../output/case_study_summary_bw500.csv
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	ln -sf $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 include ../../generic.make
 

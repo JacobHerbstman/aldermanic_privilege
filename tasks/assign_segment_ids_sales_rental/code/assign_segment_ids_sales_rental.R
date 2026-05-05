@@ -9,6 +9,7 @@ sf_use_s2(FALSE)
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids_sales_rental/code")
+# mode <- "all"
 # sales_input <- "../input/sales_pre_scores.csv"
 # rent_input <- "../input/rent_pre_scores_full.parquet"
 # segment_gpkg <- "../input/boundary_segments_1320ft.gpkg"
@@ -20,25 +21,45 @@ sf_use_s2(FALSE)
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(sales_input, rent_input, segment_gpkg, out_sales, out_rent, out_coverage, out_spotcheck, out_reason)
+  cli_args <- c(mode, sales_input, rent_input, segment_gpkg, out_sales, out_rent, out_coverage, out_spotcheck, out_reason)
 }
 
-if (length(cli_args) != 8) {
-  stop(
-    "FATAL: Script requires 8 args: <sales_input_csv> <rent_input_parquet> <segment_gpkg> <out_sales_csv> <out_rent_parquet> <out_coverage_csv> <out_spotcheck_csv> <out_reason_csv>",
-    call. = FALSE
-  )
+mode <- cli_args[1]
+if (!mode %in% c("sales", "all")) {
+  stop("FATAL: mode must be 'sales' or 'all'.", call. = FALSE)
 }
-sales_input <- cli_args[1]
-rent_input <- cli_args[2]
-segment_gpkg <- cli_args[3]
-out_sales <- cli_args[4]
-out_rent <- cli_args[5]
-out_coverage <- cli_args[6]
-out_spotcheck <- cli_args[7]
-out_reason <- cli_args[8]
 
-stopifnot(file.exists(sales_input), file.exists(rent_input), file.exists(segment_gpkg))
+if (mode == "sales") {
+  if (length(cli_args) != 4) {
+    stop(
+      "FATAL: sales mode requires 4 args: sales <sales_input_csv> <segment_gpkg> <out_sales_csv>",
+      call. = FALSE
+    )
+  }
+  sales_input <- cli_args[2]
+  segment_gpkg <- cli_args[3]
+  out_sales <- cli_args[4]
+} else {
+  if (length(cli_args) != 9) {
+    stop(
+      "FATAL: all mode requires 9 args: all <sales_input_csv> <rent_input_parquet> <segment_gpkg> <out_sales_csv> <out_rent_parquet> <out_coverage_csv> <out_spotcheck_csv> <out_reason_csv>",
+      call. = FALSE
+    )
+  }
+  sales_input <- cli_args[2]
+  rent_input <- cli_args[3]
+  segment_gpkg <- cli_args[4]
+  out_sales <- cli_args[5]
+  out_rent <- cli_args[6]
+  out_coverage <- cli_args[7]
+  out_spotcheck <- cli_args[8]
+  out_reason <- cli_args[9]
+}
+
+stopifnot(file.exists(sales_input), file.exists(segment_gpkg))
+if (mode == "all") {
+  stopifnot(file.exists(rent_input))
+}
 
 segments_by_era <- load_segment_layers(segment_gpkg, buffer_ft = 1000)
 
@@ -187,8 +208,11 @@ build_spotcheck <- function(dt_sales, dt_rent, n_each = 20L) {
 }
 
 message("=== Assign Segment IDs for Sales + Rental Pre-Scores ===")
+message(sprintf("Mode: %s", mode))
 message(sprintf("Sales input: %s", sales_input))
-message(sprintf("Rental input: %s", rent_input))
+if (mode == "all") {
+  message(sprintf("Rental input: %s", rent_input))
+}
 message(sprintf("Segment GPKG: %s", segment_gpkg))
 
 sales_dt <- fread(sales_input)
@@ -197,13 +221,6 @@ if (!all(c("pin", "sale_date", "ward_pair_id", "dist_ft", "longitude", "latitude
 }
 sales_dt[, pin := as.character(pin)]
 sales_dt[, sale_date := as.Date(sale_date)]
-
-rent_dt <- as.data.table(read_parquet(rent_input))
-if (!all(c("id", "file_date", "ward_pair_id", "dist_ft", "longitude", "latitude") %in% names(rent_dt))) {
-  stop("rent_pre_scores_full.parquet missing required columns.", call. = FALSE)
-}
-rent_dt[, id := as.character(id)]
-rent_dt[, file_date := as.Date(file_date)]
 
 sales_res <- assign_segments(
   dt = sales_dt,
@@ -217,6 +234,22 @@ sales_res <- assign_segments(
   chunk_n = 50000L
 )
 
+sales_out <- sales_res$data
+fwrite(sales_out, out_sales)
+message(sprintf("Saved sales output: %s (rows=%d)", out_sales, nrow(sales_out)))
+
+if (mode == "sales") {
+  quit(save = "no", status = 0)
+}
+
+message("\nAssigning rental segment IDs...")
+rent_dt <- as.data.table(read_parquet(rent_input))
+if (!all(c("id", "file_date", "ward_pair_id", "dist_ft", "longitude", "latitude") %in% names(rent_dt))) {
+  stop("rent_pre_scores_full.parquet missing required columns.", call. = FALSE)
+}
+rent_dt[, id := as.character(id)]
+rent_dt[, file_date := as.Date(file_date)]
+
 rent_res <- assign_segments(
   dt = rent_dt,
   dataset_name = "rental",
@@ -229,19 +262,16 @@ rent_res <- assign_segments(
   chunk_n = 80000L
 )
 
-sales_out <- sales_res$data
 rent_out <- rent_res$data
 cov_out <- rbindlist(list(sales_res$coverage, rent_res$coverage), fill = TRUE)
 reason_out <- rbindlist(list(sales_res$reason_summary, rent_res$reason_summary), fill = TRUE)
 spotcheck <- build_spotcheck(sales_out, rent_out, n_each = 20L)
 
-fwrite(sales_out, out_sales)
 write_parquet(as.data.frame(rent_out), out_rent)
 fwrite(cov_out, out_coverage)
 fwrite(spotcheck, out_spotcheck)
 fwrite(reason_out, out_reason)
 
-message(sprintf("Saved sales output: %s (rows=%d)", out_sales, nrow(sales_out)))
 message(sprintf("Saved rental output: %s (rows=%d)", out_rent, nrow(rent_out)))
 message(sprintf("Saved coverage summary: %s", out_coverage))
 message(sprintf("Saved spotcheck queue: %s", out_spotcheck))
