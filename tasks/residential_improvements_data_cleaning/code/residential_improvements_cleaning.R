@@ -22,11 +22,11 @@ parse_numeric <- function(x) {
 con <- dbConnect(duckdb())
 on.exit(dbDisconnect(con, shutdown = TRUE), add = TRUE)
 
-dbExecute(con, "
+invisible(dbExecute(con, "
 CREATE OR REPLACE MACRO numeric_text(x) AS nullif(regexp_replace(cast(x AS VARCHAR), '[^0-9.-]', '', 'g'), '');
-")
+"))
 
-dbExecute(con, sprintf("
+invisible(dbExecute(con, sprintf("
 CREATE TABLE residential_improvements AS
 SELECT
   trim(pin) AS pin,
@@ -80,7 +80,7 @@ FROM read_csv(%s,
               max_line_size = 10000000)
 WHERE try_cast(numeric_text(township_code) AS INTEGER) IN (70, 71, 72, 73, 74, 75, 76, 77)
   AND try_cast(numeric_text(char_yrblt) AS INTEGER) >= 1999;
-", dbQuoteString(con, input_csv)))
+", dbQuoteString(con, input_csv))))
 
 data <- dbGetQuery(con, "SELECT * FROM residential_improvements")
 
@@ -129,6 +129,10 @@ cross_section_buildings <- data %>%
   dplyr::slice_max(order_by = building_sqft, with_ties = FALSE) %>%                                      # then largest sqft
   dplyr::ungroup() %>%
   dplyr::filter(!is.na(year_built)) 
+
+if (any(cross_section_buildings$year_built < 1999, na.rm = TRUE)) {
+  stop("New-construction residential cross-section contains pre-1999 buildings.", call. = FALSE)
+}
 
 # (Optional) sanity check uniqueness
 stopifnot(nrow(cross_section_buildings) == dplyr::n_distinct(cross_section_buildings$pin, cross_section_buildings$card_num))

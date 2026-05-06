@@ -126,7 +126,7 @@ alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types
 # -----------------------------------------------------------------------------
 message("Loading sales data...")
 
-sales_raw <- fread("../input/Assessor_-_Parcel_Sales_20251123.csv")
+sales_raw <- fread("../input/parcel_sales.csv")
 message(sprintf("Loaded %s sales records", format(nrow(sales_raw), big.mark = ",")))
 
 # Filter to market transactions
@@ -148,8 +148,10 @@ sales <- sales_raw %>%
         sale_price_nominal = as.numeric(gsub("[$,]", "", sale_price)),
         year = as.numeric(year),
         pin = as.character(pin),
-        # Parse sale date
-        sale_date = as.Date(sale_date, format = "%B %d, %Y")
+        sale_date = coalesce(
+            as.Date(as.character(sale_date), format = "%B %d, %Y"),
+            as.Date(substr(as.character(sale_date), 1, 10), format = "%Y-%m-%d")
+        )
     ) %>%
     # Filter valid prices and years
     filter(!is.na(sale_price_nominal), sale_price_nominal > 10000, !is.na(year)) %>%

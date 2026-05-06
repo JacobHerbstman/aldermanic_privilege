@@ -139,6 +139,15 @@ message(sprintf(
   format(uniqueN(improvements$pin), big.mark = ",")
 ))
 
+n_pre_1999_improvements <- sum(!is.na(improvements$year_built) & improvements$year_built < 1999)
+message(sprintf(
+  "Pre-1999 improvement records available for sales hedonics: %s",
+  format(n_pre_1999_improvements, big.mark = ",")
+))
+if (n_pre_1999_improvements == 0) {
+  stop("Sales hedonics input has no pre-1999 improvement records; this is likely the new-construction-only panel.", call. = FALSE)
+}
+
 message("Loading census blocks...")
 # Disable S2 spherical geometry to avoid validation errors on some blocks
 sf_use_s2(FALSE)
@@ -368,12 +377,44 @@ core_hedonics_complete <- sales_with_treatment[
   !is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
     !is.na(log_bedrooms) & !is.na(log_baths)
 ]
+core_building_hedonics_rate <- mean(
+  !is.na(sales_with_treatment$log_sqft) &
+    !is.na(sales_with_treatment$log_building_age) &
+    !is.na(sales_with_treatment$log_bedrooms) &
+    !is.na(sales_with_treatment$log_baths)
+)
+core_hedonics_complete_rate <- nrow(core_hedonics_complete) / nrow(sales_with_treatment)
+pre_1999_matched_sales <- sum(!is.na(sales_with_treatment$year_built) & sales_with_treatment$year_built < 1999)
 message(sprintf(
   "\nComplete hedonic cases: %s of %s (%.1f%%)",
   format(nrow(core_hedonics_complete), big.mark = ","),
   format(nrow(sales_with_treatment), big.mark = ","),
-  100 * nrow(core_hedonics_complete) / nrow(sales_with_treatment)
+  100 * core_hedonics_complete_rate
 ))
+message(sprintf(
+  "Sales matched to pre-1999 buildings: %s",
+  format(pre_1999_matched_sales, big.mark = ",")
+))
+message(sprintf(
+  "Core building-hedonic coverage excluding land_sqft: %.1f%%",
+  100 * core_building_hedonics_rate
+))
+
+if (pre_1999_matched_sales == 0) {
+  stop("Sales hedonics merge has no pre-1999 matched buildings; check the residential improvements input.", call. = FALSE)
+}
+if (core_building_hedonics_rate < 0.90) {
+  stop(sprintf(
+    "Core building-hedonic coverage is %.1f%%, below the 90%% guardrail. Check that the all-buildings residential improvements panel is wired in.",
+    100 * core_building_hedonics_rate
+  ), call. = FALSE)
+}
+if (core_hedonics_complete_rate < 0.60) {
+  stop(sprintf(
+    "Sales hedonic completeness including land_sqft is %.1f%%, below the 60%% guardrail. Check the land square-footage source.",
+    100 * core_hedonics_complete_rate
+  ), call. = FALSE)
+}
 
 # =============================================================================
 # 7. CREATE COHORT PANELS

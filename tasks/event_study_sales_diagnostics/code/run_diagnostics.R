@@ -517,10 +517,8 @@ all_blocks_for_map <- census_blocks %>%
 
 message(sprintf("  Blocks within 1000 ft of boundary: %d", nrow(all_blocks_for_map)))
 
-# Ward pairs to map - top 3 by variation plus extras
-top_3_pairs <- head(ward_pair_diag$ward_pair_id, 3)
-extra_pairs <- c("44-46") # Additional ward pairs to include
-all_pairs_to_map <- unique(c(top_3_pairs, extra_pairs))
+# Ward pair used in the paper map.
+all_pairs_to_map <- c("13_23")
 
 # Get ward polygons for before/after
 wards_2014 <- ward_panel %>% filter(year == 2014) # Pre-redistricting
@@ -528,7 +526,10 @@ wards_2015 <- ward_panel %>% filter(year == 2015) # Post-redistricting
 
 for (wp in all_pairs_to_map) {
     # Parse ward pair
-    wards_in_pair <- as.numeric(strsplit(wp, "-")[[1]])
+    wards_in_pair <- as.numeric(strsplit(wp, "[-_]")[[1]])
+    if (length(wards_in_pair) != 2 || any(is.na(wards_in_pair))) {
+        stop(sprintf("Could not parse ward pair id: %s", wp))
+    }
     ward_a <- wards_in_pair[1]
     ward_b <- wards_in_pair[2]
 
