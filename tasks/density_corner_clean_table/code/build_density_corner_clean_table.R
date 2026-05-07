@@ -34,7 +34,6 @@ ambiguity_summary_path <- args[3]
 output_tex <- args[4]
 bandwidth_m <- as.numeric(args[5])
 sample_filter <- args[6]
-bandwidth_ft <- round(bandwidth_m / 0.3048)
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be a positive number.", call. = FALSE)
@@ -46,6 +45,13 @@ if (!sample_filter %in% c("all", "multifamily")) {
 baseline_summary <- read_csv(baseline_summary_path, show_col_types = FALSE)
 corner_clean_summary <- read_csv(corner_clean_summary_path, show_col_types = FALSE)
 ambiguity_summary <- read_csv(ambiguity_summary_path, show_col_types = FALSE)
+if (!"bandwidth_m" %in% names(ambiguity_summary)) {
+  if (!"bw_ft" %in% names(ambiguity_summary)) {
+    stop("Ambiguity summary must contain bandwidth_m.", call. = FALSE)
+  }
+  ambiguity_summary <- ambiguity_summary %>%
+    mutate(bandwidth_m = as.numeric(bw_ft) * 0.3048)
+}
 
 panel_order <- c("log(density_far)", "log(density_dupac)")
 
@@ -84,7 +90,8 @@ if (!all(baseline_panel$yvar == panel_order) || !all(corner_clean_panel$yvar == 
 }
 
 ambiguity_row <- ambiguity_summary %>%
-  filter(sample_filter == .env$sample_filter, bw_ft == .env$bandwidth_ft)
+  mutate(bandwidth_m = as.numeric(bandwidth_m)) %>%
+  filter(sample_filter == .env$sample_filter, round(bandwidth_m) == round(.env$bandwidth_m))
 
 if (nrow(ambiguity_row) != 1) {
   stop("Expected one ambiguity row for the requested sample and bandwidth.", call. = FALSE)

@@ -13,7 +13,7 @@ library(fixest)
 # water_input <- "../input/gis_osm_water_a_free_1.shp"
 # output_csv <- "../output/density_amenity_balance_100m_all.csv"
 # output_tex <- "../output/density_amenity_balance_100m_all.tex"
-# bandwidth_ft <- 328
+# bandwidth_m <- 100
 # sample_filter <- "all"
 # bandwidth_label <- "100m"
 
@@ -28,7 +28,7 @@ if (length(args) == 0) {
     water_input,
     output_csv,
     output_tex,
-    bandwidth_ft,
+    bandwidth_m,
     sample_filter,
     bandwidth_label
   )
@@ -40,7 +40,7 @@ if (length(args) != 11) {
       "FATAL: Script requires 11 args:",
       "<parcel_geometry_input> <parcel_scores_input> <schools_input> <parks_input>",
       "<major_streets_input> <water_input> <output_csv> <output_tex>",
-      "<bandwidth_ft> <sample_filter> <bandwidth_label>"
+      "<bandwidth_m> <sample_filter> <bandwidth_label>"
     ),
     call. = FALSE
   )
@@ -54,12 +54,12 @@ major_streets_input <- args[5]
 water_input <- args[6]
 output_csv <- args[7]
 output_tex <- args[8]
-bandwidth_ft <- as.numeric(args[9])
+bandwidth_m <- as.numeric(args[9])
 sample_filter <- args[10]
 bandwidth_label <- args[11]
 
-if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
-  stop("bandwidth_ft must be a positive number.", call. = FALSE)
+if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
+  stop("bandwidth_m must be a positive number.", call. = FALSE)
 }
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample_filter must be one of: all, multifamily.", call. = FALSE)
@@ -136,13 +136,14 @@ coords_tbl <- coords_tbl %>%
 
 message("Loading scored parcel sample...")
 analysis_sample <- read_csv(parcel_scores_input, show_col_types = FALSE) %>%
+  ensure_meter_distance_columns() %>%
   mutate(
     pin = as.character(pin),
     construction_year = suppressWarnings(as.integer(construction_year)),
     zone_group = zone_group_from_code(zone_code),
     strictness_own = strictness_own / sd(strictness_own, na.rm = TRUE),
-    lenient_dist = abs(signed_distance) * as.integer(signed_distance <= 0),
-    strict_dist = abs(signed_distance) * as.integer(signed_distance > 0)
+    lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
+    strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0)
   ) %>%
   left_join(coords_tbl, by = "pin") %>%
   filter(
@@ -150,7 +151,7 @@ analysis_sample <- read_csv(parcel_scores_input, show_col_types = FALSE) %>%
     areabuilding > 1,
     construction_year >= 2006,
     if (sample_filter == "all") unitscount > 0 else unitscount > 1,
-    dist_to_boundary <= bandwidth_ft,
+    dist_to_boundary_m <= bandwidth_m,
     !is.na(segment_id),
     segment_id != "",
     !is.na(ward_pair),

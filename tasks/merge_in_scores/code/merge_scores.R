@@ -54,6 +54,11 @@ cat("\nLoading pre-scores parcel data...\n")
 parcels <- read_csv(parcels_input, show_col_types = FALSE)
 cat("Parcels loaded:", nrow(parcels), "\n")
 
+if (!"dist_to_boundary_m" %in% names(parcels) && "dist_to_boundary" %in% names(parcels)) {
+  parcels <- parcels %>%
+    mutate(dist_to_boundary_m = as.numeric(dist_to_boundary) * 0.3048)
+}
+
 cat("Loading parcel segment lookup...\n")
 segment_lookup <- read_csv(segment_lookup_input, show_col_types = FALSE)
 cat("Segment lookup rows:", nrow(segment_lookup), "\n")
@@ -116,7 +121,8 @@ parcels_with_scores <- parcels %>%
       strictness_own < strictness_neighbor ~ -1,
       TRUE ~ NA_real_
     ),
-    signed_distance = dist_to_boundary * sign
+    signed_distance = dist_to_boundary * sign,
+    signed_distance_m = dist_to_boundary_m * sign
   )
 
 # Report merge stats
@@ -153,8 +159,8 @@ summary_stats <- parcels_final %>%
     n_wards = n_distinct(ward),
     n_ward_pairs = n_distinct(ward_pair, na.rm = TRUE),
     n_aldermen = n_distinct(alderman_own, na.rm = TRUE),
-    mean_dist = mean(signed_distance, na.rm = TRUE),
-    median_dist = median(signed_distance, na.rm = TRUE),
+    mean_signed_distance_m = mean(signed_distance_m, na.rm = TRUE),
+    median_signed_distance_m = median(signed_distance_m, na.rm = TRUE),
     .by = c(boundary_year, construction_year)
   ) %>%
   arrange(construction_year)

@@ -1,3 +1,19 @@
+FT_TO_M <- 0.3048
+
+parse_bw_m <- function(x) {
+  if (length(x) != 1) {
+    stop("bandwidth_m must be a single value.", call. = FALSE)
+  }
+  if (is.character(x) && tolower(x) %in% c("all", "full", "none", "inf", "infinity")) {
+    return(Inf)
+  }
+  out <- suppressWarnings(as.numeric(x))
+  if (!is.finite(out) || out <= 0) {
+    stop("bandwidth_m must be a positive number or one of: all, full, none, inf.", call. = FALSE)
+  }
+  out
+}
+
 parse_bw_ft <- function(x) {
   if (length(x) != 1) {
     stop("bw_ft must be a single value.", call. = FALSE)
@@ -10,6 +26,19 @@ parse_bw_ft <- function(x) {
     stop("bw_ft must be a positive number or one of: all, full, none, inf.", call. = FALSE)
   }
   out
+}
+
+ensure_meter_distance_columns <- function(df) {
+  if (!"dist_to_boundary_m" %in% names(df) && "dist_to_boundary" %in% names(df)) {
+    df <- df %>% mutate(dist_to_boundary_m = as.numeric(dist_to_boundary) * FT_TO_M)
+  }
+  if (!"signed_distance_m" %in% names(df) && "signed_distance" %in% names(df)) {
+    df <- df %>% mutate(signed_distance_m = as.numeric(signed_distance) * FT_TO_M)
+  }
+  if (!"nearest_other_pair_dist_m" %in% names(df) && "nearest_other_pair_dist_ft" %in% names(df)) {
+    df <- df %>% mutate(nearest_other_pair_dist_m = as.numeric(nearest_other_pair_dist_ft) * FT_TO_M)
+  }
+  df
 }
 
 normalize_pair_dash <- function(x) {

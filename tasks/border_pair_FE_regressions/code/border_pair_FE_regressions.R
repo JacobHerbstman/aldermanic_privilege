@@ -3,16 +3,16 @@ source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
-# bw_ft <- "500"
+# bandwidth_m <- "100"
 # sample_filter <- "multifamily"
 # fe_spec <- "zonegroup_segment_year_additive"
-# output_filename <- "../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex"
+# output_filename <- "../output/fe_table_100m_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex"
 # yvar_1 <- "log(density_far)"
 # yvar_2 <- "log(density_dupac)"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(bw_ft, sample_filter, fe_spec, output_filename, yvar_1, yvar_2)
+  args <- c(bandwidth_m, sample_filter, fe_spec, output_filename, yvar_1, yvar_2)
 }
 
 if (length(args) >= 5) {
@@ -26,13 +26,13 @@ if (length(args) >= 5) {
   }
 } else {
   stop(
-    "FATAL: Script requires args: <bw_ft> <sample> <fe_spec> <output_filename> <yvar1> [<yvar2> ...]",
+    "FATAL: Script requires args: <bandwidth_m> <sample> <fe_spec> <output_filename> <yvar1> [<yvar2> ...]",
     call. = FALSE
   )
 }
 
-bw_ft <- parse_bw_ft(bw_arg)
-bw_label <- if (is.finite(bw_ft)) as.character(as.integer(round(bw_ft))) else "all"
+bandwidth_m <- parse_bw_m(bw_arg)
+bandwidth_label <- if (is.finite(bandwidth_m)) sprintf("%dm", as.integer(round(bandwidth_m))) else "all"
 
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample must be one of: all, multifamily", call. = FALSE)
@@ -69,24 +69,27 @@ if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
   stop("CLUSTER_LEVEL must be one of: ward_pair, segment", call. = FALSE)
 }
 
-donut_ft <- suppressWarnings(as.numeric(Sys.getenv("DONUT_FT", "0")))
-if (!is.finite(donut_ft) || donut_ft < 0) {
-  stop("DONUT_FT must be a non-negative number.", call. = FALSE)
+donut_m <- suppressWarnings(as.numeric(Sys.getenv("DONUT_M", Sys.getenv("DONUT_FT", "0"))))
+if (nzchar(Sys.getenv("DONUT_FT", "")) && !nzchar(Sys.getenv("DONUT_M", ""))) {
+  donut_m <- donut_m * 0.3048
 }
-if (is.finite(bw_ft) && donut_ft >= bw_ft) {
-  stop("DONUT_FT must be strictly smaller than bandwidth.", call. = FALSE)
+if (!is.finite(donut_m) || donut_m < 0) {
+  stop("DONUT_M must be a non-negative number.", call. = FALSE)
 }
-if (drop_ambiguous_within_bw && !is.finite(bw_ft)) {
+if (is.finite(bandwidth_m) && donut_m >= bandwidth_m) {
+  stop("DONUT_M must be strictly smaller than bandwidth.", call. = FALSE)
+}
+if (drop_ambiguous_within_bw && !is.finite(bandwidth_m)) {
   stop("DROP_AMBIGUOUS_WITHIN_BW requires a finite bandwidth.", call. = FALSE)
 }
 
 message(sprintf("\n=== Border-Pair FE Configuration ==="))
-message(sprintf("Bandwidth: %s", if (is.finite(bw_ft)) sprintf("%.0f ft", bw_ft) else "all distances"))
+message(sprintf("Bandwidth: %s", if (is.finite(bandwidth_m)) sprintf("%.0fm", bandwidth_m) else "all distances"))
 message(sprintf("Sample: %s", sample_filter))
 message(sprintf("FE Specification: %s", fe_spec))
 message(sprintf("Pruning spec: %s", prune_sample))
 message(sprintf("Cluster level: %s", cluster_level))
-message(sprintf("Donut exclusion: >= %.0f ft", donut_ft))
+message(sprintf("Donut exclusion: >= %.0fm", donut_m))
 message(sprintf("Drop corner-ambiguous parcels: %s", ifelse(drop_ambiguous_within_bw, "TRUE", "FALSE")))
 message(sprintf("Write TeX table: %s", ifelse(write_tex, "TRUE", "FALSE")))
 message(sprintf("Input: %s", fe_input_path))
@@ -94,14 +97,15 @@ message(sprintf("Output: %s", output_filename))
 message(sprintf("Y variables: %s", paste(yvars, collapse = ", ")))
 
 parcels_fe <- read_csv(fe_input_path, show_col_types = FALSE) %>%
+  ensure_meter_distance_columns() %>%
   mutate(
     pin = as.character(pin),
     construction_year = suppressWarnings(as.integer(construction_year)),
     segment_id = as.character(segment_id),
     strictness_own = strictness_own / sd(strictness_own, na.rm = TRUE),
     zone_group = zone_group_from_code(zone_code),
-    lenient_dist = abs(signed_distance) * as.integer(signed_distance <= 0),
-    strict_dist = abs(signed_distance) * as.integer(signed_distance > 0)
+    lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
+    strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0)
   ) %>%
   filter(
     arealotsf > 1,
@@ -115,11 +119,12 @@ if (drop_ambiguous_within_bw) {
   }
 
   ambiguity_df <- read_csv(ambiguity_input_path, show_col_types = FALSE) %>%
+    ensure_meter_distance_columns() %>%
     mutate(
       pin = as.character(pin),
       construction_year = suppressWarnings(as.integer(construction_year))
     ) %>%
-    select(pin, construction_year, nearest_other_pair_dist_ft, nearest_other_pair_id)
+    select(pin, construction_year, nearest_other_pair_dist_m, nearest_other_pair_id)
 
   if (anyDuplicated(ambiguity_df[c("pin", "construction_year")]) > 0) {
     stop("Ambiguity input has duplicate pin-construction_year keys.", call. = FALSE)
@@ -328,20 +333,20 @@ cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 
 model_sample <- function(df, yv, base_var) {
   out <- df %>%
-    filter(dist_to_boundary >= donut_ft)
+    filter(dist_to_boundary_m >= donut_m)
 
-  if (is.finite(bw_ft)) {
-    out <- out %>% filter(dist_to_boundary <= bw_ft)
+  if (is.finite(bandwidth_m)) {
+    out <- out %>% filter(dist_to_boundary_m <= bandwidth_m)
   }
 
   ambiguity_drop_n <- 0L
   if (drop_ambiguous_within_bw) {
-    n_missing_ambiguity <- sum(is.na(out$nearest_other_pair_dist_ft))
+    n_missing_ambiguity <- sum(is.na(out$nearest_other_pair_dist_m))
     if (n_missing_ambiguity > 0) {
       stop(sprintf("Missing ambiguity distances for %d filtered rows.", n_missing_ambiguity), call. = FALSE)
     }
-    ambiguity_drop_n <- sum(out$nearest_other_pair_dist_ft <= bw_ft, na.rm = TRUE)
-    out <- out %>% filter(nearest_other_pair_dist_ft > bw_ft)
+    ambiguity_drop_n <- sum(out$nearest_other_pair_dist_m <= bandwidth_m, na.rm = TRUE)
+    out <- out %>% filter(nearest_other_pair_dist_m > bandwidth_m)
   }
 
   if (need_segment) {
@@ -488,8 +493,8 @@ for (yv in yvars) {
     n_segments = dplyr::n_distinct(df$segment_id),
     n_ward_pairs = dplyr::n_distinct(df$ward_pair),
     depvar_mean = mean(df[[base_var]], na.rm = TRUE),
-    bw_ft = bw_ft,
-    bw_label = bw_label,
+    bandwidth_m = bandwidth_m,
+    bandwidth_label = bandwidth_label,
     sample_filter = sample_filter,
     fe_spec = fe_spec,
     prune_sample = prune_sample,
@@ -513,7 +518,7 @@ for (yv in yvars) {
     prune_pair_flag_drop_model_n = prune_pair_flag_drop_model_n,
     prune_segment_flag_drop_model_n = prune_segment_flag_drop_model_n,
     cluster_level = cluster_level,
-    donut_ft = donut_ft,
+    donut_m = donut_m,
     drop_ambiguous_within_bw = drop_ambiguous_within_bw,
     ambiguity_drop_n = ambiguity_drop_n,
     ambiguity_input_path = ambiguity_input_path,

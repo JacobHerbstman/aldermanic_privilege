@@ -334,6 +334,7 @@ cat(sprintf(
 
 final_dataset <- parcels_with_distances %>%
   mutate(
+    dist_to_boundary_m = as.numeric(dist_to_boundary) * 0.3048,
     construction_yearmon = as.yearmon(construction_date),
     yearmon_key = as.character(construction_yearmon)
   ) %>%
@@ -356,7 +357,7 @@ final_dataset <- parcels_with_distances %>%
   ) %>%
   select(
     pin, geom, GEOID,
-    construction_year = yearbuilt, construction_date, boundary_year, dist_to_boundary,
+    construction_year = yearbuilt, construction_date, boundary_year, dist_to_boundary, dist_to_boundary_m,
     ward = assigned_ward, ward_pair,
     alderman = alderman_own, alderman_tenure_months,
     # NOTE: These columns were kept in your previous script (res + multi)
@@ -499,8 +500,8 @@ parcel_geometry_diagnostics <- final_dataset_signed %>%
     n_with_ward = sum(!is.na(ward)),
     n_with_ward_pair = sum(!is.na(ward_pair)),
     n_with_neighbor_alderman = sum(!is.na(alderman_neighbor)),
-    mean_dist_to_boundary = mean(dist_to_boundary, na.rm = TRUE),
-    median_dist_to_boundary = median(dist_to_boundary, na.rm = TRUE),
+    mean_dist_to_boundary_m = mean(dist_to_boundary_m, na.rm = TRUE),
+    median_dist_to_boundary_m = median(dist_to_boundary_m, na.rm = TRUE),
     .by = boundary_year
   ) %>%
   arrange(boundary_year)
@@ -513,8 +514,8 @@ summary_stats <- final_dataset_signed %>%
     n_wards = n_distinct(ward),
     n_ward_pairs = n_distinct(ward_pair, na.rm = TRUE),
     n_aldermen = n_distinct(alderman_own, na.rm = TRUE),
-    mean_dist_to_boundary = mean(dist_to_boundary, na.rm = TRUE),
-    median_dist_to_boundary = median(dist_to_boundary, na.rm = TRUE),
+    mean_dist_to_boundary_m = mean(dist_to_boundary_m, na.rm = TRUE),
+    median_dist_to_boundary_m = median(dist_to_boundary_m, na.rm = TRUE),
     .by = c(boundary_year, construction_year)
   ) %>%
   arrange(construction_year)

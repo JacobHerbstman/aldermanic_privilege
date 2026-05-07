@@ -4,7 +4,7 @@ source("../../_lib/border_pair_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_gap_split/code")
 # yvar <- "density_far"
-# bw_ft <- 328
+# bandwidth_m <- 100
 # sample_filter <- "all"
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
@@ -14,18 +14,18 @@ source("../../_lib/border_pair_helpers.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(yvar, bw_ft, sample_filter, fe_spec, bins_per_side, gap_split, input_csv, output_pdf)
+  args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, gap_split, input_csv, output_pdf)
 }
 
 if (!length(args) %in% c(8, 9)) {
   stop(
-    "FATAL: Script requires args: <yvar> <bw_ft> <sample_filter> <fe_spec> <bins_per_side> <gap_split> <input_csv> <output_pdf>",
+    "FATAL: Script requires args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <gap_split> <input_csv> <output_pdf>",
     call. = FALSE
   )
 }
 
 yvar <- args[1]
-bw_ft <- as.numeric(args[2])
+bandwidth_m <- as.numeric(args[2])
 sample_filter <- args[3]
 fe_spec <- args[4]
 bins_per_side <- as.integer(args[5])
@@ -36,8 +36,8 @@ output_pdf <- args[8]
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
 }
-if (!is.finite(bw_ft) || bw_ft <= 0) {
-  stop("bw_ft must be a positive number.", call. = FALSE)
+if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
+  stop("bandwidth_m must be a positive number.", call. = FALSE)
 }
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample_filter must be one of: all, multifamily", call. = FALSE)
@@ -78,7 +78,8 @@ gap_label <- dplyr::case_when(
   TRUE ~ gap_split
 )
 
-raw <- read_csv(input_csv, show_col_types = FALSE)
+raw <- read_csv(input_csv, show_col_types = FALSE) %>%
+  ensure_meter_distance_columns()
 
 dat <- raw %>%
   mutate(zone_group = zone_group_from_code(zone_code)) %>%
@@ -88,11 +89,11 @@ dat <- raw %>%
     construction_year >= 2006,
     !is.na(ward_pair),
     !is.na(construction_year),
-    is.finite(signed_distance),
+    is.finite(signed_distance_m),
     !is.na(zone_code),
     !is.na(segment_id),
     segment_id != "",
-    abs(signed_distance) <= bw_ft
+    abs(signed_distance_m) <= bandwidth_m
   )
 
 if (sample_filter == "all") {
@@ -105,7 +106,7 @@ dat <- dat %>%
   filter(is.finite(.data[[yvar]]), .data[[yvar]] > 0) %>%
   mutate(
     outcome = log(.data[[yvar]]),
-    running_distance = signed_distance,
+    running_distance = signed_distance_m,
     side = as.integer(running_distance > 0)
   )
 
@@ -189,34 +190,34 @@ m_display <- feols(
   cluster = ~ward_pair
 )
 
-breaks_ft <- seq(-bw_ft, bw_ft, length.out = 2L * bins_per_side + 1L)
-bin_width_ft <- bw_ft / bins_per_side
+breaks_m <- seq(-bandwidth_m, bandwidth_m, length.out = 2L * bins_per_side + 1L)
+bin_width_m <- bandwidth_m / bins_per_side
 
 aug <- aug %>%
   mutate(
     bin_idx = pmin(
-      findInterval(running_distance, breaks_ft, rightmost.closed = TRUE, all.inside = TRUE),
-      length(breaks_ft) - 1L
+      findInterval(running_distance, breaks_m, rightmost.closed = TRUE, all.inside = TRUE),
+      length(breaks_m) - 1L
     ),
-    bin_left_ft = breaks_ft[bin_idx],
-    bin_center_ft = bin_left_ft + bin_width_ft / 2,
+    bin_left_m = breaks_m[bin_idx],
+    bin_center_m = bin_left_m + bin_width_m / 2,
     side_label = if_else(side == 1L, "Strict side", "Lenient side")
   )
 
 bins <- aug %>%
-  group_by(bin_idx, bin_center_ft, side, side_label) %>%
+  group_by(bin_idx, bin_center_m, side, side_label) %>%
   summarise(
     n = n(),
     mean_y = mean(residualized_outcome, na.rm = TRUE),
     .groups = "drop"
   ) %>%
-  arrange(bin_center_ft)
+  arrange(bin_center_m)
 
 coef_names <- names(coef(m_display))
 line_df <- tibble(
   running_distance = c(
-    seq(-bw_ft, 0, length.out = 200),
-    seq(0, bw_ft, length.out = 200)[-1]
+    seq(-bandwidth_m, 0, length.out = 200),
+    seq(0, bandwidth_m, length.out = 200)[-1]
   )
 ) %>%
   mutate(
@@ -264,16 +265,15 @@ y_limits <- c(y_min - y_pad, y_max + y_pad)
 
 sample_label <- ifelse(sample_filter == "all", "all construction", "multifamily")
 
-x_scale <- 0.3048
-x_limits <- c(-bw_ft, bw_ft) * x_scale
+x_limits <- c(-bandwidth_m, bandwidth_m)
 x_label <- "Distance to ward boundary (m)"
-bw_label <- sprintf("%dm", as.integer(round(bw_ft * x_scale)))
+bw_label <- sprintf("%dm", as.integer(round(bandwidth_m)))
 
 bins <- bins %>%
-  mutate(bin_center_display = bin_center_ft * x_scale)
+  mutate(bin_center_display = bin_center_m)
 
 line_df <- line_df %>%
-  mutate(running_distance_display = running_distance * x_scale)
+  mutate(running_distance_display = running_distance)
 
 subtitle_label <- sprintf(
   "Jump = %.3f%s (SE %.3f) | %s | %s | bandwidth=%s | N=%d",

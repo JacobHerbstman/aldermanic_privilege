@@ -14,7 +14,7 @@ source("../../_lib/canonical_geometry_helpers.R")
 # summary_output <- "../output/boundary_ambiguity_by_bw.csv"
 # top_pairs_output <- "../output/boundary_ambiguity_top_pairs.csv"
 # plot_output <- "../output/boundary_ambiguity_share.pdf"
-# bandwidths <- "164 246 328 410 492 574 656 738 820 902 984"
+# bandwidths <- "50 75 100 125 150 175 200 225 250 275 300"
 # samples <- "all multifamily"
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -100,7 +100,7 @@ parcel_sf <- parcel_sf %>%
 
 boundaries <- load_boundary_layers(boundary_input)
 
-parcel_sf$nearest_other_pair_dist_ft <- Inf
+parcel_sf$nearest_other_pair_dist_m <- Inf
 parcel_sf$nearest_other_pair_id <- NA_character_
 parcel_sf$n_other_pairs <- 0L
 
@@ -140,10 +140,14 @@ for (era_i in unique(parcel_sf$era)) {
       min_distance <- apply(distance_matrix, 1, function(v) min(as.numeric(v), na.rm = TRUE))
       min_index <- apply(distance_matrix, 1, which.min)
 
-      parcel_sf$nearest_other_pair_dist_ft[idx_era[idx_pair]] <- min_distance
+      parcel_sf$nearest_other_pair_dist_m[idx_era[idx_pair]] <- min_distance * 0.3048
       parcel_sf$nearest_other_pair_id[idx_era[idx_pair]] <- as.character(candidate_edges$ward_pair_id[min_index])
     }
   }
+}
+
+if (!"dist_to_boundary_m" %in% names(parcel_sf)) {
+  parcel_sf$dist_to_boundary_m <- as.numeric(parcel_sf$dist_to_boundary) * 0.3048
 }
 
 parcel_other_pair_distance <- parcel_sf %>%
@@ -156,14 +160,22 @@ parcel_other_pair_distance <- parcel_sf %>%
     ward,
     ward_pair,
     dist_to_boundary,
+    dist_to_boundary_m,
     unitscount,
-    nearest_other_pair_dist_ft,
+    nearest_other_pair_dist_m,
     nearest_other_pair_id,
     n_other_pairs
+  ) %>%
+  mutate(
+    dist_to_boundary_m = if_else(
+      is.finite(dist_to_boundary_m),
+      as.numeric(dist_to_boundary_m),
+      as.numeric(dist_to_boundary) * 0.3048
+    )
   )
 
-if (any(parcel_other_pair_distance$nearest_other_pair_dist_ft < parcel_other_pair_distance$dist_to_boundary, na.rm = TRUE)) {
-  stop("Found nearest_other_pair_dist_ft smaller than dist_to_boundary.", call. = FALSE)
+if (any(parcel_other_pair_distance$nearest_other_pair_dist_m < parcel_other_pair_distance$dist_to_boundary_m, na.rm = TRUE)) {
+  stop("Found nearest_other_pair_dist_m smaller than dist_to_boundary_m.", call. = FALSE)
 }
 if (any(parcel_other_pair_distance$nearest_other_pair_id == parcel_other_pair_distance$ward_pair, na.rm = TRUE)) {
   stop("Found nearest_other_pair_id equal to assigned ward_pair.", call. = FALSE)
@@ -179,15 +191,15 @@ ambiguity_summary <- bind_rows(lapply(samples, function(sample_i) {
   }
 
   bind_rows(lapply(bandwidths, function(bw_i) {
-    in_bandwidth <- sample_df %>% filter(dist_to_boundary <= bw_i)
+    in_bandwidth <- sample_df %>% filter(dist_to_boundary_m <= bw_i)
 
     tibble(
       sample_filter = sample_i,
-      bw_ft = bw_i,
+      bandwidth_m = bw_i,
       n_in_bw = nrow(in_bandwidth),
-      n_ambiguous = sum(in_bandwidth$nearest_other_pair_dist_ft <= bw_i, na.rm = TRUE),
-      share_ambiguous = mean(in_bandwidth$nearest_other_pair_dist_ft <= bw_i, na.rm = TRUE),
-      median_other_pair_dist_ft = median(in_bandwidth$nearest_other_pair_dist_ft[is.finite(in_bandwidth$nearest_other_pair_dist_ft)], na.rm = TRUE)
+      n_ambiguous = sum(in_bandwidth$nearest_other_pair_dist_m <= bw_i, na.rm = TRUE),
+      share_ambiguous = mean(in_bandwidth$nearest_other_pair_dist_m <= bw_i, na.rm = TRUE),
+      median_other_pair_dist_m = median(in_bandwidth$nearest_other_pair_dist_m[is.finite(in_bandwidth$nearest_other_pair_dist_m)], na.rm = TRUE)
     )
   }))
 }))
@@ -203,9 +215,9 @@ ambiguity_top_pairs <- bind_rows(lapply(samples, function(sample_i) {
 
   bind_rows(lapply(bandwidths, function(bw_i) {
     sample_df %>%
-      filter(dist_to_boundary <= bw_i, nearest_other_pair_dist_ft <= bw_i) %>%
+      filter(dist_to_boundary_m <= bw_i, nearest_other_pair_dist_m <= bw_i) %>%
       count(ward_pair, nearest_other_pair_id, sort = TRUE, name = "n_ambiguous") %>%
-      mutate(sample_filter = sample_i, bw_ft = bw_i)
+      mutate(sample_filter = sample_i, bandwidth_m = bw_i)
   }))
 }))
 
@@ -213,18 +225,18 @@ write_csv(ambiguity_top_pairs, top_pairs_output)
 
 ambiguity_plot <- ambiguity_summary %>%
   mutate(
-    bw_display = bw_ft * 0.3048,
+    bandwidth_display_m = bandwidth_m,
     sample_label = case_when(
       sample_filter == "all" ~ "All Construction",
       sample_filter == "multifamily" ~ "Multifamily"
     )
   ) %>%
-  ggplot(aes(x = bw_display, y = share_ambiguous, color = sample_label, fill = sample_label)) +
+  ggplot(aes(x = bandwidth_display_m, y = share_ambiguous, color = sample_label, fill = sample_label)) +
   geom_line(linewidth = 1.0) +
   geom_point(size = 1.8) +
   scale_color_manual(values = c("All Construction" = "#1f77b4", "Multifamily" = "#d62728")) +
   scale_fill_manual(values = c("All Construction" = "#1f77b4", "Multifamily" = "#d62728")) +
-  scale_x_continuous(breaks = pretty(bandwidths * 0.3048, n = 8)) +
+  scale_x_continuous(breaks = pretty(bandwidths, n = 8)) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 0.1)) +
   labs(
     title = "Corner Ambiguity by Bandwidth",

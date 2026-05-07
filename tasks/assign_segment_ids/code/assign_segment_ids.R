@@ -99,7 +99,13 @@ pre <- pre[, .(
   boundary_year = as.integer(boundary_year),
   ward_pair = as.character(ward_pair),
   construction_year = if ("construction_year" %in% names(pre)) as.integer(construction_year) else NA_integer_,
-  dist_to_boundary = if ("dist_to_boundary" %in% names(pre)) as.numeric(dist_to_boundary) else NA_real_
+  dist_to_boundary_m = if ("dist_to_boundary_m" %in% names(pre)) {
+    as.numeric(dist_to_boundary_m)
+  } else if ("dist_to_boundary" %in% names(pre)) {
+    as.numeric(dist_to_boundary) * 0.3048
+  } else {
+    NA_real_
+  }
 )]
 
 if (anyDuplicated(pre$pin) > 0) {
@@ -170,7 +176,7 @@ if (anyDuplicated(lookup$pin) > 0) {
 fwrite(lookup, out_lookup, na = "NA")
 
 diag_dt <- merge(
-  copy(pre)[, .(pin, boundary_year, construction_year, dist_to_boundary)],
+  copy(pre)[, .(pin, boundary_year, construction_year, dist_to_boundary_m)],
   lookup,
   by = "pin",
   all.x = TRUE,
@@ -185,7 +191,7 @@ coverage_parts <- c(
   ),
   lapply(coverage_bandwidths_m, function(bw_m_i) {
     coverage_block(
-      diag_dt[construction_year >= 2006 & dist_to_boundary <= bw_m_i / 0.3048],
+      diag_dt[construction_year >= 2006 & dist_to_boundary_m <= bw_m_i],
       sprintf("regression_bw%.0fm", bw_m_i)
     )
   })

@@ -12,10 +12,9 @@ source("../../setup_environment/code/packages.R")
 # dupac_multifamily_pruned_output <- "../output/border_pair_fe_bandwidth_path_log_density_dupac_multifamily_pruned.pdf"
 # dupac_all_main_output <- "../output/border_pair_fe_bandwidth_path_log_density_dupac_all_main.pdf"
 # dupac_all_pruned_output <- "../output/border_pair_fe_bandwidth_path_log_density_dupac_all_pruned.pdf"
-# bandwidths <- "164 246 328 410 492 574 656 738 820 902 984"
+# bandwidths <- "50 75 100 125 150 175 200 225 250 275 300"
 # samples <- "multifamily all"
 # prune_specs <- "main pruned"
-# axis_units <- "meters"
 # reference_bandwidths <- "100 250"
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -34,14 +33,13 @@ if (length(args) == 0) {
     bandwidths,
     samples,
     prune_specs,
-    axis_units,
     reference_bandwidths
   )
 }
 
-if (!length(args) %in% c(13, 15)) {
+if (!length(args) %in% c(13, 14)) {
   stop(
-    "FATAL: Script requires args: <input_dir> <combined_output> <far_multifamily_main_output> <far_multifamily_pruned_output> <far_all_main_output> <far_all_pruned_output> <dupac_multifamily_main_output> <dupac_multifamily_pruned_output> <dupac_all_main_output> <dupac_all_pruned_output> <bandwidths> <samples> <prune_specs> [<axis_units> <reference_bandwidths>]",
+    "FATAL: Script requires args: <input_dir> <combined_output> <far_multifamily_main_output> <far_multifamily_pruned_output> <far_all_main_output> <far_all_pruned_output> <dupac_multifamily_main_output> <dupac_multifamily_pruned_output> <dupac_all_main_output> <dupac_all_pruned_output> <bandwidths_m> <samples> <prune_specs> [<reference_bandwidths_m>]",
     call. = FALSE
   )
 }
@@ -56,18 +54,17 @@ dupac_multifamily_main_output <- args[7]
 dupac_multifamily_pruned_output <- args[8]
 dupac_all_main_output <- args[9]
 dupac_all_pruned_output <- args[10]
-bandwidths <- as.integer(strsplit(trimws(args[11]), "\\s+")[[1]])
+bandwidths_m <- as.integer(strsplit(trimws(args[11]), "\\s+")[[1]])
 samples <- strsplit(trimws(args[12]), "\\s+")[[1]]
 prune_specs <- strsplit(trimws(args[13]), "\\s+")[[1]]
-axis_units <- ifelse(length(args) >= 14, args[14], "meters")
-reference_bandwidths <- if (length(args) >= 15) {
-  as.numeric(strsplit(trimws(args[15]), "\\s+")[[1]])
+reference_bandwidths_m <- if (length(args) >= 14) {
+  as.numeric(strsplit(trimws(args[14]), "\\s+")[[1]])
 } else {
   numeric()
 }
 
-if (any(!is.finite(bandwidths))) {
-  stop("bandwidths must parse to integers.", call. = FALSE)
+if (any(!is.finite(bandwidths_m))) {
+  stop("bandwidths_m must parse to integers.", call. = FALSE)
 }
 if (!all(samples %in% c("multifamily", "all"))) {
   stop("samples must be drawn from: multifamily, all", call. = FALSE)
@@ -75,21 +72,18 @@ if (!all(samples %in% c("multifamily", "all"))) {
 if (!all(prune_specs %in% c("main", "pruned"))) {
   stop("prune_specs must be drawn from: main, pruned", call. = FALSE)
 }
-if (!axis_units %in% c("meters", "feet")) {
-  stop("axis_units must be one of: meters, feet", call. = FALSE)
-}
-if (any(!is.finite(reference_bandwidths))) {
-  stop("reference_bandwidths must parse to numeric values.", call. = FALSE)
+if (any(!is.finite(reference_bandwidths_m))) {
+  stop("reference_bandwidths_m must parse to numeric values.", call. = FALSE)
 }
 
-summary_files <- unlist(lapply(bandwidths, function(bandwidth) {
+summary_files <- unlist(lapply(bandwidths_m, function(bandwidth_m) {
   unlist(lapply(samples, function(sample_filter) {
     vapply(prune_specs, function(prune_spec) {
       file.path(
         input_dir,
         sprintf(
-          "border_pair_fe_bandwidth_path_bw%d_%s_%s.csv",
-          as.integer(bandwidth),
+          "border_pair_fe_bandwidth_path_%dm_%s_%s.csv",
+          as.integer(bandwidth_m),
           sample_filter,
           prune_spec
         )
@@ -103,9 +97,18 @@ if (!all(file.exists(summary_files))) {
   stop(sprintf("Missing summary files: %s", paste(missing_files, collapse = ", ")), call. = FALSE)
 }
 
-combined <- bind_rows(lapply(summary_files, read_csv, show_col_types = FALSE)) %>%
+combined_raw <- bind_rows(lapply(summary_files, read_csv, show_col_types = FALSE))
+if (!"bandwidth_m" %in% names(combined_raw)) {
+  if (!"bw_ft" %in% names(combined_raw)) {
+    stop("FE summary files must contain bandwidth_m.", call. = FALSE)
+  }
+  combined_raw <- combined_raw %>%
+    mutate(bandwidth_m = as.integer(round(bw_ft * 0.3048)))
+}
+
+combined <- combined_raw %>%
   mutate(
-    bw_ft = as.integer(bw_ft),
+    bandwidth_m = as.integer(round(bandwidth_m)),
     sample_filter = as.character(sample_filter),
     prune_sample = as.character(prune_sample),
     yvar = as.character(yvar),
@@ -115,26 +118,26 @@ combined <- bind_rows(lapply(summary_files, read_csv, show_col_types = FALSE)) %
     )
   ) %>%
   filter(yvar %in% c("log(density_far)", "log(density_dupac)")) %>%
-  arrange(yvar, sample_filter, prune_spec, bw_ft)
+  arrange(yvar, sample_filter, prune_spec, bandwidth_m)
 
 expected_grid <- expand_grid(
-  bw_ft = bandwidths,
+  bandwidth_m = bandwidths_m,
   sample_filter = samples,
   prune_spec = prune_specs,
   yvar = c("log(density_far)", "log(density_dupac)")
 )
 
 combined_keys <- combined %>%
-  distinct(bw_ft, sample_filter, prune_spec, yvar)
+  distinct(bandwidth_m, sample_filter, prune_spec, yvar)
 
 missing_grid <- anti_join(
   expected_grid,
   combined_keys,
-  by = c("bw_ft", "sample_filter", "prune_spec", "yvar")
+  by = c("bandwidth_m", "sample_filter", "prune_spec", "yvar")
 )
 
 duplicate_grid <- combined %>%
-  count(bw_ft, sample_filter, prune_spec, yvar) %>%
+  count(bandwidth_m, sample_filter, prune_spec, yvar) %>%
   filter(n > 1)
 
 if (nrow(missing_grid) > 0) {
@@ -148,7 +151,7 @@ write_csv(combined, combined_output)
 
 plot_df <- combined %>%
   mutate(
-    bw_display = if_else(axis_units == "meters", bw_ft * 0.3048, as.numeric(bw_ft)),
+    bandwidth_display_m = as.numeric(bandwidth_m),
     prune_label = if_else(prune_spec == "main", "Main", "Pruned"),
     outcome_label = case_when(
       yvar == "log(density_far)" ~ "ln(FAR)",
@@ -160,8 +163,8 @@ plot_df <- combined %>%
     )
   )
 
-plot_bandwidths <- sort(unique(plot_df$bw_display))
-x_axis_label <- ifelse(axis_units == "meters", "Bandwidth (m)", "Bandwidth (ft)")
+plot_bandwidths <- sort(unique(plot_df$bandwidth_display_m))
+x_axis_label <- "Bandwidth (m)"
 
 plot_specs <- tribble(
   ~yvar, ~sample_filter, ~prune_spec, ~output_path,
@@ -191,7 +194,7 @@ for (i in seq_len(nrow(plot_specs))) {
   prune_label <- if_else(prune_i == "main", "Main", "Pruned")
   prune_color <- if_else(prune_i == "main", "#1f77b4", "#ff7f0e")
 
-  p <- ggplot(plot_data, aes(x = bw_display, y = estimate)) +
+  p <- ggplot(plot_data, aes(x = bandwidth_display_m, y = estimate)) +
     geom_ribbon(aes(ymin = ci_low, ymax = ci_high), alpha = 0.16, fill = prune_color, color = NA) +
     geom_line(linewidth = 1.0, color = prune_color) +
     geom_point(size = 1.7, color = prune_color) +
@@ -211,10 +214,10 @@ for (i in seq_len(nrow(plot_specs))) {
       plot.title = element_text(face = "bold")
     )
 
-  if (length(reference_bandwidths) > 0) {
+  if (length(reference_bandwidths_m) > 0) {
     p <- p +
       geom_vline(
-        xintercept = reference_bandwidths,
+        xintercept = reference_bandwidths_m,
         linetype = "dashed",
         color = "gray50",
         linewidth = 0.4
