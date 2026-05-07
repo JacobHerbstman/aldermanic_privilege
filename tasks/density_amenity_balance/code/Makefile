@@ -1,10 +1,14 @@
 SHELL := bash
 include ../../shell_functions.make
 
-all: ../output/density_amenity_balance_bw500_multifamily.tex
+BALANCE_BW_M ?= 100
+BALANCE_BW_FT := $(shell Rscript -e 'cat(round($(BALANCE_BW_M) / 0.3048))')
+SAMPLE ?= all
 
-../output/density_amenity_balance_bw500_multifamily.csv ../output/density_amenity_balance_bw500_multifamily.tex: build_density_amenity_balance.R ../input/parcels_with_geometry.gpkg ../input/parcels_with_ward_distances.csv ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
-	Rscript build_density_amenity_balance.R ../input/parcels_with_geometry.gpkg ../input/parcels_with_ward_distances.csv ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../output/density_amenity_balance_bw500_multifamily.csv ../output/density_amenity_balance_bw500_multifamily.tex
+all: ../output/density_amenity_balance_$(BALANCE_BW_M)m_$(SAMPLE).tex
+
+../output/density_amenity_balance_$(BALANCE_BW_M)m_$(SAMPLE).csv ../output/density_amenity_balance_$(BALANCE_BW_M)m_$(SAMPLE).tex: build_density_amenity_balance.R ../input/parcels_with_geometry.gpkg ../input/parcels_with_ward_distances.csv ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
+	Rscript build_density_amenity_balance.R ../input/parcels_with_geometry.gpkg ../input/parcels_with_ward_distances.csv ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../output/density_amenity_balance_$(BALANCE_BW_M)m_$(SAMPLE).csv ../output/density_amenity_balance_$(BALANCE_BW_M)m_$(SAMPLE).tex $(BALANCE_BW_FT) $(SAMPLE) $(BALANCE_BW_M)m
 
 ../input/parcels_with_geometry.gpkg: ../../calculate_ward_boundary_distances/output/parcels_with_geometry.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

@@ -2,10 +2,12 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_corner_clean_table/code")
-# baseline_summary_path <- "../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv"
-# corner_clean_summary_path <- "../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv"
+# baseline_summary_path <- "../output/fe_summary_100m_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv"
+# corner_clean_summary_path <- "../output/fe_summary_100m_all_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv"
 # ambiguity_summary_path <- "../input/boundary_ambiguity_by_bw.csv"
-# output_tex <- "../output/fe_table_bw500_multifamily_corner_clean_compare.tex"
+# output_tex <- "../output/fe_table_100m_all_corner_clean_compare.tex"
+# bandwidth_ft <- 328
+# sample_filter <- "all"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -13,13 +15,15 @@ if (length(args) == 0) {
     baseline_summary_path,
     corner_clean_summary_path,
     ambiguity_summary_path,
-    output_tex
+    output_tex,
+    bandwidth_ft,
+    sample_filter
   )
 }
 
-if (length(args) != 4) {
+if (length(args) != 6) {
   stop(
-    "FATAL: Script requires args: <baseline_summary_path> <corner_clean_summary_path> <ambiguity_summary_path> <output_tex>",
+    "FATAL: Script requires args: <baseline_summary_path> <corner_clean_summary_path> <ambiguity_summary_path> <output_tex> <bandwidth_ft> <sample_filter>",
     call. = FALSE
   )
 }
@@ -28,6 +32,15 @@ baseline_summary_path <- args[1]
 corner_clean_summary_path <- args[2]
 ambiguity_summary_path <- args[3]
 output_tex <- args[4]
+bandwidth_ft <- as.numeric(args[5])
+sample_filter <- args[6]
+
+if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
+  stop("bandwidth_ft must be a positive number.", call. = FALSE)
+}
+if (!sample_filter %in% c("all", "multifamily")) {
+  stop("sample_filter must be one of: all, multifamily.", call. = FALSE)
+}
 
 baseline_summary <- read_csv(baseline_summary_path, show_col_types = FALSE)
 corner_clean_summary <- read_csv(corner_clean_summary_path, show_col_types = FALSE)
@@ -70,14 +83,14 @@ if (!all(baseline_panel$yvar == panel_order) || !all(corner_clean_panel$yvar == 
 }
 
 ambiguity_row <- ambiguity_summary %>%
-  filter(sample_filter == "multifamily", bw_ft == 500)
+  filter(sample_filter == .env$sample_filter, bw_ft == .env$bandwidth_ft)
 
 if (nrow(ambiguity_row) != 1) {
-  stop("Expected one multifamily 500-foot ambiguity row.", call. = FALSE)
+  stop("Expected one ambiguity row for the requested sample and bandwidth.", call. = FALSE)
 }
 
 if (!identical(baseline_panel$n_obs[[1]], ambiguity_row$n_in_bw[[1]])) {
-  stop("Baseline N does not match ambiguity summary at 500 feet.", call. = FALSE)
+  stop("Baseline N does not match ambiguity summary at requested bandwidth.", call. = FALSE)
 }
 
 table_lines <- c(

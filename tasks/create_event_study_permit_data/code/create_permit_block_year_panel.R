@@ -4,7 +4,26 @@ source("../../_lib/canonical_geometry_helpers.R")
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_permit_data/code")
+# segment_buffer_m <- 250
+# panel_max_distance_m <- 800
 # =======================================================================================
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(segment_buffer_m, panel_max_distance_m)
+}
+
+if (length(cli_args) != 2) {
+  stop("FATAL: Script requires 2 args: <segment_buffer_m> <panel_max_distance_m>", call. = FALSE)
+}
+segment_buffer_m <- as.numeric(cli_args[1])
+panel_max_distance_m <- as.numeric(cli_args[2])
+if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
+  stop("segment_buffer_m must be positive.", call. = FALSE)
+}
+if (!is.finite(panel_max_distance_m) || panel_max_distance_m <= 0) {
+  stop("panel_max_distance_m must be positive.", call. = FALSE)
+}
 
 sf_use_s2(FALSE)
 
@@ -450,7 +469,9 @@ summarize_assignment_stability <- function(base_df, panel_mode) {
     mean_dist_ft = mean(base_df$dist_ft, na.rm = TRUE),
     median_dist_ft = median(base_df$dist_ft, na.rm = TRUE),
     segment_coverage_all_pct = 100 * mean(!is.na(base_df$segment_id_cohort)),
-    segment_coverage_bw1000_pct = 100 * mean(!is.na(base_df$segment_id_cohort[base_df$dist_ft <= 1000])),
+    segment_coverage_panel_window_pct = 100 * mean(!is.na(base_df$segment_id_cohort[
+      base_df$dist_ft <= panel_max_distance_m / 0.3048
+    ])),
     control_origin_mismatch_n = sum(base_df$control_origin_mismatch, na.rm = TRUE),
     control_origin_mismatch_pct = 100 * mean(base_df$control_origin_mismatch, na.rm = TRUE),
     n_blocks_multi_ward_pair = sum(treated_blocks$n_ward_pairs > 1),
@@ -546,7 +567,7 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
     points_sf = block_centroids,
     era_values = rep(era_label, nrow(block_centroids)),
     pair_values = base$ward_pair_id,
-    segment_layers = segment_layers_1000,
+    segment_layers = segment_layers,
     chunk_n = 50000L
   )
 
@@ -566,7 +587,7 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
       !is.na(ward_pair_id),
       !is.na(ward_origin),
       !is.na(dist_ft),
-      dist_ft <= 2000
+      dist_ft <= panel_max_distance_m / 0.3048
     ) %>%
     select(
       block_id, block_vintage, cohort,
@@ -583,7 +604,7 @@ message("Loading ward panel and geometry helpers...")
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 ward_maps <- load_canonical_ward_maps(ward_panel)
 boundary_lines <- build_canonical_boundary_list(ward_panel)
-segment_layers_1000 <- load_segment_layers("../input/boundary_segments_1320ft.gpkg", buffer_ft = 1000)
+segment_layers <- load_segment_layers("../input/boundary_segments_400m.gpkg", buffer_m = segment_buffer_m)
 
 message("Loading block treatment panel...")
 treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%

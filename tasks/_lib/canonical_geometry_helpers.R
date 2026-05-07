@@ -234,9 +234,27 @@ load_boundary_layers <- function(boundary_gpkg, eras = canonical_era_levels()) {
   out
 }
 
-load_segment_layers <- function(segment_gpkg, buffer_ft = 1000, eras = canonical_era_levels()) {
+load_segment_layers <- function(segment_gpkg, buffer_m = NULL, buffer_ft = NULL, eras = canonical_era_levels()) {
   layer_names <- sf::st_layers(segment_gpkg)$name
-  needed_layers <- paste0(eras, "_bw", as.integer(buffer_ft))
+  if (!is.null(buffer_m) && !is.null(buffer_ft)) {
+    stop("Supply only one of buffer_m or buffer_ft.", call. = FALSE)
+  }
+  if (is.null(buffer_m) && is.null(buffer_ft)) {
+    stop("Supply buffer_m or buffer_ft explicitly.", call. = FALSE)
+  }
+
+  if (!is.null(buffer_m)) {
+    if (!is.finite(buffer_m) || buffer_m <= 0) {
+      stop("buffer_m must be positive.", call. = FALSE)
+    }
+    needed_layers <- paste0(eras, "_bw", as.integer(round(buffer_m)), "m")
+  } else {
+    if (!is.finite(buffer_ft) || buffer_ft <= 0) {
+      stop("buffer_ft must be positive.", call. = FALSE)
+    }
+    needed_layers <- paste0(eras, "_bw", as.integer(round(buffer_ft)))
+  }
+
   missing_layers <- setdiff(needed_layers, layer_names)
   if (length(missing_layers) > 0) {
     stop(sprintf(
@@ -246,7 +264,12 @@ load_segment_layers <- function(segment_gpkg, buffer_ft = 1000, eras = canonical
   }
 
   out <- lapply(eras, function(era_i) {
-    d <- sf::st_read(segment_gpkg, layer = paste0(era_i, "_bw", as.integer(buffer_ft)), quiet = TRUE)
+    layer_name <- if (!is.null(buffer_m)) {
+      paste0(era_i, "_bw", as.integer(round(buffer_m)), "m")
+    } else {
+      paste0(era_i, "_bw", as.integer(round(buffer_ft)))
+    }
+    d <- sf::st_read(segment_gpkg, layer = layer_name, quiet = TRUE)
     d$segment_id <- as.character(d$segment_id)
     d$pair_dash <- normalize_pair_dash(d$ward_pair_id)
     d[!is.na(d$pair_dash), ]

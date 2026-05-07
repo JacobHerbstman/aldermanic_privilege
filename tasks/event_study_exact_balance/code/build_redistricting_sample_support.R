@@ -5,20 +5,21 @@ source("../../setup_environment/code/packages.R")
 # permit_panel_input <- "../input/permit_block_year_panel_2015.parquet"
 # sales_panel_input <- "../input/sales_transaction_panel_2015.parquet"
 # block_baseline_input <- "../output/block_parcel_baselines_2014.csv"
-# output_csv <- "../output/redistricting_sample_support_summary.csv"
-# output_tex <- "../output/redistricting_sample_support_summary.tex"
+# output_csv <- "../output/redistricting_sample_support_summary_250m.csv"
+# output_tex <- "../output/redistricting_sample_support_summary_250m.tex"
+# bandwidth_m <- 250
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(permit_panel_input, sales_panel_input, block_baseline_input, output_csv, output_tex)
+  args <- c(permit_panel_input, sales_panel_input, block_baseline_input, output_csv, output_tex, bandwidth_m)
 }
 
-if (length(args) != 5) {
+if (length(args) != 6) {
   stop(
     paste(
-      "FATAL: Script requires 5 args:",
+      "FATAL: Script requires args:",
       "<permit_panel_input> <sales_panel_input> <block_baseline_input>",
-      "<output_csv> <output_tex>"
+      "<output_csv> <output_tex> <bandwidth_m>"
     ),
     call. = FALSE
   )
@@ -29,6 +30,12 @@ sales_panel_input <- args[2]
 block_baseline_input <- args[3]
 output_csv <- args[4]
 output_tex <- args[5]
+bandwidth_m <- as.numeric(args[6])
+bandwidth_ft <- bandwidth_m / 0.3048
+
+if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
+  stop("bandwidth_m must be positive.", call. = FALSE)
+}
 
 fmt_integer <- function(x) {
   if (!is.finite(x)) {
@@ -97,7 +104,7 @@ permit_data <- read_parquet(permit_panel_input) %>%
     !is.na(block_id), block_id != "",
     !is.na(strictness_change),
     !is.na(n_high_discretion_issue),
-    dist_ft <= 1000,
+    dist_ft <= bandwidth_ft,
     relative_year >= -5,
     relative_year <= 5
   ) %>%
@@ -130,7 +137,7 @@ amenity_vars <- c("nearest_school_dist_ft", "nearest_park_dist_ft", "nearest_maj
 sales_data <- read_parquet(sales_panel_input) %>%
   mutate(ward_pair = sub("_[0-9]+$", "", ward_pair_side)) %>%
   filter(
-    dist_ft <= 1000,
+    dist_ft <= bandwidth_ft,
     relative_year >= -5,
     relative_year <= 5,
     !is.na(ward_pair), ward_pair != "",
@@ -248,7 +255,7 @@ lines <- c(
   lines,
   "\\bottomrule",
   "\\end{tabular}",
-  "\\par\\vspace{0.5em}\\parbox{0.86\\linewidth}{\\footnotesize \\textit{Notes:} Table summarizes the 2015 permit and home-sales redistricting designs. Both designs use 2010--2014 as the pre-period and 2015--2020 as the post-period. Block counts are unique census blocks in the 1,000-foot analysis window. Treated blocks are redistricted blocks with a nonzero change in aldermanic stringency; indented rows split treated blocks by whether they moved to a stricter or more lenient ward. Control blocks remain in the origin ward. $N$ reports the main regression-table sample size after estimator-specific dropping. Mean allowed FAR and mean parcels per block are 2014 block-level parcel averages over treated and control blocks in each design.}",
+  sprintf("\\par\\vspace{0.5em}\\parbox{0.86\\linewidth}{\\footnotesize \\textit{Notes:} Table summarizes the 2015 permit and home-sales redistricting designs. Both designs use 2010--2014 as the pre-period and 2015--2020 as the post-period. Block counts are unique census blocks in the %dm analysis window. Treated blocks are redistricted blocks with a nonzero change in aldermanic stringency; indented rows split treated blocks by whether they moved to a stricter or more lenient ward. Control blocks remain in the origin ward. $N$ reports the main regression-table sample size after estimator-specific dropping. Mean allowed FAR and mean parcels per block are 2014 block-level parcel averages over treated and control blocks in each design.}", as.integer(round(bandwidth_m))),
   "\\end{table}"
 )
 

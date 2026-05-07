@@ -7,6 +7,23 @@ source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 source("../../_lib/amenity_distance_helpers.R")
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_sales_data_disaggregate/code")
+# segment_buffer_m <- 250
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(segment_buffer_m)
+}
+
+if (length(cli_args) != 1) {
+  stop("FATAL: Script requires 1 arg: <segment_buffer_m>", call. = FALSE)
+}
+segment_buffer_m <- as.numeric(cli_args[1])
+if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
+  stop("segment_buffer_m must be positive.", call. = FALSE)
+}
+
 assign_cohort_segments_dt <- function(dt, segment_layers, era_label, cohort_label, chunk_n = 50000L) {
   if (nrow(dt) == 0) {
     dt[, `:=`(
@@ -171,8 +188,8 @@ message("Loading treatment panel...")
 treatment_panel <- fread("../input/block_treatment_panel.csv")
 treatment_panel[, block_id := as.character(block_id)]
 
-message("Loading segment layers for cohort-baseline assignment...")
-segment_layers_1000 <- load_segment_layers("../input/boundary_segments_1320ft.gpkg", buffer_ft = 1000)
+message(sprintf("Loading %.0fm segment layers for cohort-baseline assignment...", segment_buffer_m))
+segment_layers <- load_segment_layers("../input/boundary_segments_400m.gpkg", buffer_m = segment_buffer_m)
 
 # =============================================================================
 # 2. TEMPORAL MERGE: SALES TO HEDONICS (ROLLING JOIN)
@@ -372,7 +389,7 @@ message(sprintf("  num_bedrooms: %.1f%%", 100 * mean(!is.na(sales_with_treatment
 message(sprintf("  baths_total: %.1f%%", 100 * mean(!is.na(sales_with_treatment$baths_total))))
 message(sprintf("  has_garage: %.1f%%", 100 * mean(!is.na(sales_with_treatment$has_garage))))
 
-# Report complete cases for core hedonics
+# Report complete cases across the full sales universe before event-study filters.
 core_hedonics_complete <- sales_with_treatment[
   !is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
     !is.na(log_bedrooms) & !is.na(log_baths)
@@ -400,6 +417,26 @@ message(sprintf(
   100 * core_building_hedonics_rate
 ))
 
+sales_hedonic_coverage_by_sale_year <- sales_with_treatment[, .(
+  n_sales = .N,
+  building_sqft = mean(!is.na(building_sqft)) * 100,
+  land_sqft = mean(!is.na(land_sqft)) * 100,
+  building_age = mean(!is.na(building_age)) * 100,
+  num_bedrooms = mean(!is.na(num_bedrooms)) * 100,
+  baths_total = mean(!is.na(baths_total)) * 100,
+  complete_building_hedonics = mean(
+    !is.na(log_sqft) & !is.na(log_building_age) &
+      !is.na(log_bedrooms) & !is.na(log_baths)
+  ) * 100,
+  complete_hedonics_with_land = mean(
+    !is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
+      !is.na(log_bedrooms) & !is.na(log_baths)
+  ) * 100
+), by = sale_year][order(sale_year)]
+
+message("\nAll-sales hedonic coverage by sale year (% non-missing):")
+print(sales_hedonic_coverage_by_sale_year)
+
 if (pre_1999_matched_sales == 0) {
   stop("Sales hedonics merge has no pre-1999 matched buildings; check the residential improvements input.", call. = FALSE)
 }
@@ -407,12 +444,6 @@ if (core_building_hedonics_rate < 0.90) {
   stop(sprintf(
     "Core building-hedonic coverage is %.1f%%, below the 90%% guardrail. Check that the all-buildings residential improvements panel is wired in.",
     100 * core_building_hedonics_rate
-  ), call. = FALSE)
-}
-if (core_hedonics_complete_rate < 0.60) {
-  stop(sprintf(
-    "Sales hedonic completeness including land_sqft is %.1f%%, below the 60%% guardrail. Check the land square-footage source.",
-    100 * core_hedonics_complete_rate
   ), call. = FALSE)
 }
 
@@ -462,7 +493,7 @@ cohort_2012_pre_segment[
   ward_pair_id := paste(pmin(ward_origin, ward_dest), pmax(ward_origin, ward_dest), sep = "-")
 ]
 cohort_2012_pre_segment[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
-cohort_2012 <- assign_cohort_segments_dt(cohort_2012_pre_segment, segment_layers_1000, "2003_2014", "2012")
+cohort_2012 <- assign_cohort_segments_dt(cohort_2012_pre_segment, segment_layers, "2003_2014", "2012")
 if (any(grepl("_", cohort_2012$ward_pair_id, fixed = TRUE, useBytes = TRUE))) {
   stop("2012 cohort still contains underscore-form ward_pair_id values after normalization.", call. = FALSE)
 }
@@ -513,7 +544,7 @@ cohort_2022_pre_segment[
   ward_pair_id := paste(pmin(ward_origin, ward_dest), pmax(ward_origin, ward_dest), sep = "-")
 ]
 cohort_2022_pre_segment[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
-cohort_2022 <- assign_cohort_segments_dt(cohort_2022_pre_segment, segment_layers_1000, "2015_2023", "2022")
+cohort_2022 <- assign_cohort_segments_dt(cohort_2022_pre_segment, segment_layers, "2015_2023", "2022")
 if (any(grepl("_", cohort_2022$ward_pair_id, fixed = TRUE, useBytes = TRUE))) {
   stop("2022 cohort still contains underscore-form ward_pair_id values after normalization.", call. = FALSE)
 }
@@ -562,7 +593,7 @@ cohort_2015_pre_segment[
   ward_pair_id := paste(pmin(ward_origin, ward_dest), pmax(ward_origin, ward_dest), sep = "-")
 ]
 cohort_2015_pre_segment[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
-cohort_2015 <- assign_cohort_segments_dt(cohort_2015_pre_segment, segment_layers_1000, "2003_2014", "2015")
+cohort_2015 <- assign_cohort_segments_dt(cohort_2015_pre_segment, segment_layers, "2003_2014", "2015")
 if (any(grepl("_", cohort_2015$ward_pair_id, fixed = TRUE, useBytes = TRUE))) {
   stop("2015 cohort still contains underscore-form ward_pair_id values after normalization.", call. = FALSE)
 }
@@ -604,7 +635,7 @@ cohort_2023_pre_segment[
   ward_pair_id := paste(pmin(ward_origin, ward_dest), pmax(ward_origin, ward_dest), sep = "-")
 ]
 cohort_2023_pre_segment[, ward_pair_side := paste(ward_pair_id, ward_origin, sep = "_")]
-cohort_2023 <- assign_cohort_segments_dt(cohort_2023_pre_segment, segment_layers_1000, "2015_2023", "2023")
+cohort_2023 <- assign_cohort_segments_dt(cohort_2023_pre_segment, segment_layers, "2015_2023", "2023")
 if (any(grepl("_", cohort_2023$ward_pair_id, fixed = TRUE, useBytes = TRUE))) {
   stop("2023 cohort still contains underscore-form ward_pair_id values after normalization.", call. = FALSE)
 }
@@ -699,6 +730,9 @@ stacked_implementation_final <- stacked_implementation[, ..final_cols]
 
 # Use implementation as "final_panel" for backwards compatibility with diagnostics
 final_panel <- stacked_implementation_final
+if (nrow(final_panel) == 0) {
+  stop("Final sales event-study panel has zero rows.", call. = FALSE)
+}
 
 # =============================================================================
 # 10. DIAGNOSTICS
@@ -724,6 +758,27 @@ hedonic_coverage <- final_panel[, .(
   has_garage = mean(!is.na(has_garage)) * 100
 )]
 print(hedonic_coverage)
+
+final_hedonic_coverage_by_sale_year <- final_panel[, .(
+  n_sales = .N,
+  log_sqft = mean(!is.na(log_sqft)) * 100,
+  log_land_sqft = mean(!is.na(log_land_sqft)) * 100,
+  log_building_age = mean(!is.na(log_building_age)) * 100,
+  log_bedrooms = mean(!is.na(log_bedrooms)) * 100,
+  log_baths = mean(!is.na(log_baths)) * 100,
+  has_garage = mean(!is.na(has_garage)) * 100,
+  complete_building_hedonics = mean(
+    !is.na(log_sqft) & !is.na(log_building_age) &
+      !is.na(log_bedrooms) & !is.na(log_baths) & !is.na(has_garage)
+  ) * 100,
+  complete_hedonics_with_land = mean(
+    !is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
+      !is.na(log_bedrooms) & !is.na(log_baths) & !is.na(has_garage)
+  ) * 100
+), by = .(cohort, sale_year)][order(cohort, sale_year)]
+
+message("\nFinal panel hedonic coverage by cohort and sale year (% non-missing):")
+print(final_hedonic_coverage_by_sale_year)
 
 message("\nAmenity variable coverage in final panel (% non-missing):")
 amenity_coverage <- final_panel[, .(
@@ -758,6 +813,36 @@ message(sprintf(
   format(n_complete, big.mark = ","),
   100 * n_complete / nrow(final_panel)
 ))
+final_complete_hedonics_rate <- n_complete / nrow(final_panel)
+final_core_building_hedonics_rate <- final_panel[
+  ,
+  mean(!is.na(log_sqft) & !is.na(log_building_age) &
+         !is.na(log_bedrooms) & !is.na(log_baths) & !is.na(has_garage))
+]
+final_land_sqft_rate <- mean(!is.na(final_panel$log_land_sqft))
+final_pre_1999_matched_sales <- sum(!is.na(final_panel$year_built) & final_panel$year_built < 1999)
+
+if (final_pre_1999_matched_sales == 0) {
+  stop("Final sales event-study panel has no pre-1999 matched buildings; check the all-buildings hedonic input.", call. = FALSE)
+}
+if (final_core_building_hedonics_rate < 0.99) {
+  stop(sprintf(
+    "Final sales panel core building-hedonic coverage is %.1f%%, below the 99%% guardrail.",
+    100 * final_core_building_hedonics_rate
+  ), call. = FALSE)
+}
+if (final_land_sqft_rate < 0.99) {
+  stop(sprintf(
+    "Final sales panel land square-footage coverage is %.1f%%, below the 99%% guardrail.",
+    100 * final_land_sqft_rate
+  ), call. = FALSE)
+}
+if (final_complete_hedonics_rate < 0.99) {
+  stop(sprintf(
+    "Final sales panel complete-hedonic coverage is %.1f%%, below the 99%% guardrail.",
+    100 * final_complete_hedonics_rate
+  ), call. = FALSE)
+}
 
 n_complete_amenity <- final_panel[
   !is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
@@ -843,6 +928,12 @@ message(sprintf("Saved 2023 cohort: %s rows", format(nrow(cohort_2023_final), bi
 
 write_csv(as_tibble(sales_amenity_diagnostics), "../output/sales_transaction_panel_amenity_distance_diagnostics.csv")
 message("Saved sales amenity-distance diagnostics")
+
+write_csv(as_tibble(sales_hedonic_coverage_by_sale_year), "../output/sales_transaction_panel_hedonic_coverage_by_sale_year.csv")
+message("Saved all-sales hedonic-coverage diagnostics")
+
+write_csv(as_tibble(final_hedonic_coverage_by_sale_year), "../output/sales_transaction_panel_final_hedonic_coverage_by_sale_year.csv")
+message("Saved final-panel hedonic-coverage diagnostics")
 
 write_csv(as_tibble(sales_support_by_event_time), "../output/sales_transaction_panel_support_by_event_time.csv")
 message("Saved sales event-time support diagnostics")

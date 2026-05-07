@@ -4,21 +4,23 @@ source("../../_lib/border_pair_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_donut/code")
 # yvar <- "density_far"
-# bw_ft <- 250
+# bw_ft <- 328
 # sample_filter <- "all"
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
-# donut_ft <- 25
-# output_pdf <- "../output/nonparametric_rd_density_donut_log_density_far_bw250_all_donut25.pdf"
+# donut_ft <- 16
+# input_csv <- "../input/parcels_with_ward_distances.csv"
+# output_pdf <- "../output/nonparametric_rd_density_donut_log_density_far_100m_all_donut5m.pdf"
+# axis_units <- "meters"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(yvar, bw_ft, sample_filter, fe_spec, bins_per_side, donut_ft, output_pdf)
+  args <- c(yvar, bw_ft, sample_filter, fe_spec, bins_per_side, donut_ft, input_csv, output_pdf, axis_units)
 }
 
-if (length(args) != 7) {
+if (!length(args) %in% c(8, 9)) {
   stop(
-    "FATAL: Script requires args: <yvar> <bw_ft> <sample_filter> <fe_spec> <bins_per_side> <donut_ft> <output_pdf>",
+    "FATAL: Script requires args: <yvar> <bw_ft> <sample_filter> <fe_spec> <bins_per_side> <donut_ft> <input_csv> <output_pdf> [<axis_units>]",
     call. = FALSE
   )
 }
@@ -29,7 +31,9 @@ sample_filter <- args[3]
 fe_spec <- args[4]
 bins_per_side <- as.integer(args[5])
 donut_ft <- as.numeric(args[6])
-output_pdf <- args[7]
+input_csv <- args[7]
+output_pdf <- args[8]
+axis_units <- ifelse(length(args) >= 9, args[9], "meters")
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -49,8 +53,9 @@ if (!is.finite(bins_per_side) || bins_per_side < 2) {
 if (!is.finite(donut_ft) || donut_ft < 0 || donut_ft >= bw_ft) {
   stop("donut_ft must be non-negative and strictly smaller than bw_ft.", call. = FALSE)
 }
-
-rd_input_path <- Sys.getenv("RD_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
+if (!axis_units %in% c("meters", "feet")) {
+  stop("axis_units must be one of: meters, feet", call. = FALSE)
+}
 
 fe_formula <- dplyr::case_when(
   fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
@@ -73,7 +78,7 @@ pretty_outcome <- dplyr::case_when(
   TRUE ~ yvar
 )
 
-raw <- read_csv(rd_input_path, show_col_types = FALSE)
+raw <- read_csv(input_csv, show_col_types = FALSE)
 
 dat <- raw %>%
   mutate(zone_group = zone_group_from_code(zone_code)) %>%
@@ -224,45 +229,67 @@ if (!is.finite(y_span) || y_span <= 0) y_span <- 1
 y_pad <- max(0.15 * y_span, 0.05)
 y_limits <- c(y_min - y_pad, y_max + y_pad)
 
+sample_label <- ifelse(sample_filter == "all", "all construction", "multifamily")
+
+if (axis_units == "meters") {
+  x_scale <- 0.3048
+  x_limits <- c(-bw_ft, bw_ft) * x_scale
+  x_label <- "Distance to ward boundary (m)"
+  bw_label <- sprintf("%dm", as.integer(round(bw_ft * x_scale)))
+  donut_label <- sprintf("%dm", as.integer(round(donut_ft * x_scale)))
+} else {
+  x_scale <- 1
+  x_limits <- c(-bw_ft, bw_ft)
+  x_label <- "Distance to ward boundary (ft)"
+  bw_label <- sprintf("%d ft", as.integer(round(bw_ft)))
+  donut_label <- sprintf("%d ft", as.integer(round(donut_ft)))
+}
+
+bins <- bins %>%
+  mutate(bin_center_display = bin_center_ft * x_scale)
+
+line_df <- line_df %>%
+  mutate(running_distance_display = running_distance * x_scale)
+
 subtitle_label <- sprintf(
-  "Jump = %.3f%s (SE %.3f) | donut >= %.0f ft | %s | bw=%d ft | N=%d",
+  "Jump = %.3f%s (SE %.3f) | donut >= %s | %s | bandwidth=%s | N=%d",
   cutoff_estimate,
   stars(cutoff_p),
   cutoff_se,
-  donut_ft,
-  sample_filter,
-  as.integer(bw_ft),
+  donut_label,
+  sample_label,
+  bw_label,
   nobs(m_resid)
 )
 
 p <- ggplot() +
   geom_ribbon(
     data = line_df,
-    aes(x = running_distance, ymin = ci_low, ymax = ci_high, fill = factor(side)),
+    aes(x = running_distance_display, ymin = ci_low, ymax = ci_high, fill = factor(side)),
     alpha = 0.16,
     color = NA
   ) +
   geom_point(
     data = bins,
-    aes(x = bin_center_ft, y = mean_y, color = factor(side)),
+    aes(x = bin_center_display, y = mean_y, color = factor(side)),
     size = 1.8,
     alpha = 0.95
   ) +
   geom_line(
     data = line_df,
-    aes(x = running_distance, y = fit, color = factor(side)),
+    aes(x = running_distance_display, y = fit, color = factor(side)),
     linewidth = 1.1
   ) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30") +
   geom_hline(yintercept = 0, linetype = "dotted", color = "gray55") +
   scale_fill_manual(values = c("0" = "#1f77b4", "1" = "#d62728"), guide = "none") +
   scale_color_manual(values = c("0" = "#1f77b4", "1" = "#d62728"), guide = "none") +
-  scale_x_continuous(limits = c(-bw_ft, bw_ft), breaks = pretty(c(-bw_ft, bw_ft), n = 7)) +
+  scale_x_continuous(limits = x_limits, breaks = pretty(x_limits, n = 7)) +
   coord_cartesian(ylim = y_limits) +
   labs(
     title = paste0("Donut Local-Linear RD: ", pretty_outcome),
     subtitle = subtitle_label,
-    x = "Distance to ward boundary (ft)",
+    x = x_label,
     y = paste("Residualized", pretty_outcome)
   ) +
   theme_bw(base_size = 11)

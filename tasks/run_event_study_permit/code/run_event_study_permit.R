@@ -8,19 +8,20 @@ source("../../_lib/permit_event_study_sample_helpers.R")
 # outcome_family <- "high_discretion"
 # date_basis <- "issue"
 # model_type <- "ppml"
-# treatment_type <- "binary_direction"
+# treatment_type <- "continuous"
 # weighting <- "uniform"
-# bandwidth <- 1000
+# bandwidth <- 820
 # fe_type <- "within_block"
 # post_window <- "full"
 # geo_fe_level <- "ward_pair"
 # cluster_level <- "block"
 # control_spec <- "none"
 # sample_restriction <- "none"
+# bandwidth_label <- "250m"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(panel_mode, outcome_family, date_basis, model_type, treatment_type, weighting, bandwidth, fe_type, post_window, geo_fe_level, cluster_level, control_spec, sample_restriction)
+  cli_args <- c(panel_mode, outcome_family, date_basis, model_type, treatment_type, weighting, bandwidth, fe_type, post_window, geo_fe_level, cluster_level, control_spec, sample_restriction, bandwidth_label)
 }
 
 if (length(cli_args) >= 11) {
@@ -37,9 +38,10 @@ if (length(cli_args) >= 11) {
   cluster_level <- tolower(cli_args[11])
   control_spec <- if (length(cli_args) >= 12) cli_args[12] else "none"
   sample_restriction <- if (length(cli_args) >= 13) cli_args[13] else "none"
+  bandwidth_label <- if (length(cli_args) >= 14) cli_args[14] else sprintf("%dft", as.integer(bandwidth))
 } else {
   stop(
-    "FATAL: Script requires at least 11 args: <panel_mode> <outcome_family> <date_basis> <model_type> <treatment_type> <weighting> <bandwidth> <fe_type> <post_window> <geo_fe_level> <cluster_level> [<control_spec>] [<sample_restriction>]",
+    "FATAL: Script requires at least 11 args: <panel_mode> <outcome_family> <date_basis> <model_type> <treatment_type> <weighting> <bandwidth> <fe_type> <post_window> <geo_fe_level> <cluster_level> [<control_spec>] [<sample_restriction>] [<bandwidth_label>]",
     call. = FALSE
   )
 }
@@ -53,6 +55,7 @@ MODEL_TYPE <- tolower(model_type)
 TREATMENT_TYPE <- tolower(treatment_type)
 WEIGHTING <- weighting
 BANDWIDTH <- bandwidth
+BANDWIDTH_LABEL <- bandwidth_label
 FE_TYPE <- fe_type
 POST_WINDOW <- post_window
 GEO_FE_LEVEL <- geo_fe_level
@@ -104,6 +107,9 @@ if (!CONTROL_SPEC %in% c("none", "baseline_demographics")) {
 sample_restriction_info <- get_permit_sample_restriction_info(SAMPLE_RESTRICTION)
 if (BANDWIDTH <= 0) {
   stop("--bandwidth must be positive.", call. = FALSE)
+}
+if (!grepl("^[A-Za-z0-9_-]+$", BANDWIDTH_LABEL)) {
+  stop("--bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
 if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 2000) {
   stop("Segment FE requested with bandwidth > 2000. Use bandwidth <= 2000.", call. = FALSE)
@@ -195,14 +201,14 @@ panel_input <- switch(PANEL_MODE,
 )
 
 suffix <- sprintf(
-  "yearly_%s_%s_%s_%s_%s_%s_%dft_within_block_%s_clust_%s",
+  "yearly_%s_%s_%s_%s_%s_%s_%s_within_block_%s_clust_%s",
   PANEL_MODE,
   OUTCOME_FAMILY,
   DATE_BASIS,
   MODEL_TYPE,
   TREATMENT_TYPE,
   WEIGHTING,
-  as.integer(BANDWIDTH),
+  BANDWIDTH_LABEL,
   POST_WINDOW,
   gsub("_", "", CLUSTER_LEVEL)
 )
@@ -225,7 +231,7 @@ message(sprintf("Outcome: %s", outcome_label))
 message(sprintf("Model type: %s", MODEL_TYPE))
 message(sprintf("Treatment type: %s", TREATMENT_TYPE))
 message(sprintf("Weighting: %s", WEIGHTING))
-message(sprintf("Bandwidth: %d ft", BANDWIDTH))
+message(sprintf("Bandwidth: %s", BANDWIDTH_LABEL))
 message(sprintf("FE type: %s", FE_TYPE))
 message(sprintf("Post window: %s", POST_WINDOW))
 message(sprintf("Geo FE level: %s", GEO_FE_LEVEL))
@@ -476,6 +482,7 @@ metadata <- tibble(
   treatment_type = TREATMENT_TYPE,
   weighting = WEIGHTING,
   bandwidth = BANDWIDTH,
+  bandwidth_label = BANDWIDTH_LABEL,
   fe_type = FE_TYPE,
   post_window = POST_WINDOW,
   geo_fe_level = GEO_FE_LEVEL,

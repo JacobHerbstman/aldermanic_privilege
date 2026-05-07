@@ -1,6 +1,10 @@
 SHELL := bash
 include ../../shell_functions.make
 
+SEGMENT_LENGTH_M ?= 400
+SEGMENT_BUFFER_M ?= 250
+PANEL_MAX_DISTANCE_M ?= 800
+
 all: \
 	../output/permit_block_year_panel.parquet \
 	../output/permit_block_year_panel_2015.parquet \
@@ -19,8 +23,8 @@ all: \
 	../output/permit_unit_increase_audit.csv \
 	../output/permit_unit_increase_audit_summary.csv
 
-../output/permit_block_year_panel.parquet: create_permit_block_year_panel.R manual_permit_block_review.csv ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_1320ft.gpkg | ../output
-	$(R) create_permit_block_year_panel.R
+../output/permit_block_year_panel.parquet: create_permit_block_year_panel.R manual_permit_block_review.csv ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg | ../output
+	$(R) create_permit_block_year_panel.R $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M)
 
 ../output/permit_block_year_panel_2015.parquet \
 ../output/permit_block_year_panel_2023.parquet \
@@ -57,9 +61,9 @@ all: \
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
+../input/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg: ../../border_segment_creation/output/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 include ../../generic.make
 
-link-inputs: ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_1320ft.gpkg
+link-inputs: ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg

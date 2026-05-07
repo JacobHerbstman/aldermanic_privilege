@@ -4,10 +4,10 @@ source("../../_lib/permit_event_study_sample_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
 # outcome_family <- "high_discretion"
-# bandwidth <- 1000
+# bandwidth <- 820
 # weighting <- "uniform"
 # cluster_level <- "block"
-# output_tex <- "../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex"
+# output_tex <- "../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_250m_geo_wardpair.tex"
 # sample_restriction <- "none"
 
 args <- commandArgs(trailingOnly = TRUE)

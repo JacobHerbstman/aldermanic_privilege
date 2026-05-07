@@ -6,22 +6,23 @@ source("../../_lib/event_study_plot_helpers.R")
 # panel_mode <- "cohort_2015"
 # treatment_type <- "continuous"
 # include_hedonics <- TRUE
-# control_mode <- "hedonic"
+# control_mode <- "amenity"
 # time_unit <- "yearly"
 # fe_type <- "strict_pair_x_year"
-# weighting <- "triangular"
-# bandwidth <- 1000
+# weighting <- "uniform"
+# bandwidth <- 820
 # post_window <- "full"
-# geo_fe_level <- "segment"
-# cluster_level <- "twoway_block_segment"
+# geo_fe_level <- "ward_pair"
+# cluster_level <- "block"
+# bandwidth_label <- "250m"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(panel_mode, treatment_type, include_hedonics, time_unit, fe_type, weighting, bandwidth, post_window, geo_fe_level, cluster_level, control_mode)
+  cli_args <- c(panel_mode, treatment_type, include_hedonics, time_unit, fe_type, weighting, bandwidth, post_window, geo_fe_level, cluster_level, control_mode, bandwidth_label)
 }
 
-if (!length(cli_args) %in% c(10, 11)) {
-  stop("FATAL: Script requires args: <panel_mode> <treatment_type> <include_hedonics> <time_unit> <fe_type> <weighting> <bandwidth> <post_window> <geo_fe_level> <cluster_level> [<control_mode>]", call. = FALSE)
+if (!length(cli_args) %in% c(10, 11, 12)) {
+  stop("FATAL: Script requires args: <panel_mode> <treatment_type> <include_hedonics> <time_unit> <fe_type> <weighting> <bandwidth> <post_window> <geo_fe_level> <cluster_level> [<control_mode>] [<bandwidth_label>]", call. = FALSE)
 }
 panel_mode <- cli_args[1]
 treatment_type <- cli_args[2]
@@ -34,6 +35,7 @@ post_window <- cli_args[8]
 geo_fe_level <- tolower(cli_args[9])
 cluster_level <- tolower(cli_args[10])
 control_mode <- if (length(cli_args) >= 11) tolower(cli_args[11]) else if (include_hedonics) "hedonic" else "none"
+bandwidth_label <- if (length(cli_args) >= 12) cli_args[12] else sprintf("%dft", as.integer(bandwidth))
 
 PANEL_MODE <- panel_mode
 TREATMENT_TYPE <- treatment_type
@@ -43,6 +45,7 @@ TIME_UNIT <- time_unit
 FE_TYPE <- fe_type
 WEIGHTING <- weighting
 BANDWIDTH <- bandwidth
+BANDWIDTH_LABEL <- bandwidth_label
 POST_WINDOW <- post_window
 GEO_FE_LEVEL <- geo_fe_level
 CLUSTER_LEVEL <- cluster_level
@@ -83,6 +86,9 @@ if (!CLUSTER_LEVEL %in% c("twoway_block_segment", "block", "segment")) {
 if (!CONTROL_MODE %in% c("none", "hedonic", "amenity")) {
   stop("--control_mode must be one of: none, hedonic, amenity", call. = FALSE)
 }
+if (!grepl("^[A-Za-z0-9_-]+$", BANDWIDTH_LABEL)) {
+  stop("--bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+}
 if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 1000) {
   stop("Segment FE requested with bandwidth > 1000. Use bandwidth <= 1000.", call. = FALSE)
 }
@@ -116,12 +122,12 @@ fe_suffix <- case_when(
   FE_TYPE == "side_plus_year" ~ "_yearfe"
 )
 suffix <- sprintf(
-  "disaggregate_%s_%s_%s_%s_%dft%s%s_%s",
+  "disaggregate_%s_%s_%s_%s_%s%s%s_%s",
   TIME_UNIT,
   PANEL_MODE,
   TREATMENT_TYPE,
   WEIGHTING,
-  as.integer(BANDWIDTH),
+  BANDWIDTH_LABEL,
   fe_suffix,
   control_suffix,
   POST_WINDOW
@@ -143,7 +149,7 @@ message(sprintf("Control mode: %s", CONTROL_MODE))
 message(sprintf("Time unit: %s", TIME_UNIT))
 message(sprintf("FE type: %s", FE_TYPE))
 message(sprintf("Weighting: %s", WEIGHTING))
-message(sprintf("Bandwidth: %d ft", BANDWIDTH))
+message(sprintf("Bandwidth: %s", BANDWIDTH_LABEL))
 message(sprintf("Post window: %s", POST_WINDOW))
 message(sprintf("Geo FE level: %s", GEO_FE_LEVEL))
 message(sprintf("Cluster level: %s", CLUSTER_LEVEL))
@@ -373,6 +379,7 @@ metadata <- tibble(
   control_mode = CONTROL_MODE,
   weighting = WEIGHTING,
   bandwidth = BANDWIDTH,
+  bandwidth_label = BANDWIDTH_LABEL,
   fe_type = FE_TYPE,
   post_window = POST_WINDOW,
   geo_fe_level = GEO_FE_LEVEL,

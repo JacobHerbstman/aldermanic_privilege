@@ -5,6 +5,26 @@
 
 source("../../setup_environment/code/packages.R")
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_sales_diagnostics/code")
+# bandwidth_m <- 250
+
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+    args <- c(bandwidth_m)
+}
+
+if (length(args) != 1) {
+    stop("FATAL: Script requires args: <bandwidth_m>", call. = FALSE)
+}
+
+bandwidth_m <- as.numeric(args[1])
+if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
+    stop("bandwidth_m must be positive.", call. = FALSE)
+}
+bandwidth_ft <- bandwidth_m / 0.3048
+bandwidth_label <- sprintf("%dm", as.integer(round(bandwidth_m)))
+
 # =============================================================================
 # 1. LOAD DATA
 # =============================================================================
@@ -14,13 +34,13 @@ message("Loading data...")
 stacked_yearly <- read_csv("../input/sales_stacked_panel.csv", show_col_types = FALSE) %>%
     mutate(block_id = as.character(block_id)) %>%
     filter(n_sales > 0, !is.na(strictness_change)) %>%
-    filter(!is.na(ward_pair_id), mean_dist_to_boundary < 1000)
+    filter(!is.na(ward_pair_id), mean_dist_to_boundary < bandwidth_ft)
 
 # Quarterly stacked panel
 stacked_quarterly <- read_csv("../input/sales_stacked_quarterly_panel.csv", show_col_types = FALSE) %>%
     mutate(block_id = as.character(block_id)) %>%
     filter(n_sales > 0, !is.na(strictness_change)) %>%
-    filter(!is.na(ward_pair_id), mean_dist_to_boundary < 1000)
+    filter(!is.na(ward_pair_id), mean_dist_to_boundary < bandwidth_ft)
 
 # Census blocks for mapping
 census_blocks <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
@@ -77,7 +97,7 @@ yearly_tex <- yearly_summary %>%
         cohort = as.character(cohort),
         mean_price = scales::dollar(mean_price, accuracy = 1),
         mean_strictness_change = sprintf("%.3f", mean_strictness_change),
-        mean_dist_boundary = sprintf("%.0f", mean_dist_boundary)
+        mean_dist_boundary = sprintf("%.0f", mean_dist_boundary * 0.3048)
     )
 
 cat("\\begin{table}[htbp]
@@ -109,7 +129,7 @@ cat("\\bottomrule
 \\end{tabular}
 \\begin{tablenotes}
 \\small
-\\item \\textit{Notes:} Sample restricted to blocks within 1000 feet of ward boundaries with positive sales.
+\\item \\textit{Notes:} Sample restricted to blocks within ", bandwidth_label, " of ward boundaries with positive sales.
 Strictness change uses predetermined approach: both origin and destination ward strictness measured in year before redistricting.
 Controls are blocks that stayed in same ward where the alderman did not change; non-switchers in wards with electoral turnover are excluded.
 \\end{tablenotes}
@@ -299,7 +319,7 @@ balance_summary <- balance_data %>%
         mean_price = mean(mean_price, na.rm = TRUE),
         sd_price = sd(mean_price, na.rm = TRUE),
         mean_sales = mean(n_sales, na.rm = TRUE),
-        mean_dist = mean(mean_dist_to_boundary, na.rm = TRUE),
+        mean_dist = mean(mean_dist_to_boundary * 0.3048, na.rm = TRUE),
         .groups = "drop"
     )
 
@@ -310,7 +330,7 @@ control_data <- balance_data %>% filter(treatment_group == "Control (No Change)"
 
 price_test <- t.test(stricter_data$mean_price, lenient_data$mean_price)
 sales_test <- t.test(stricter_data$n_sales, lenient_data$n_sales)
-dist_test <- t.test(stricter_data$mean_dist_to_boundary, lenient_data$mean_dist_to_boundary)
+dist_test <- t.test(stricter_data$mean_dist_to_boundary * 0.3048, lenient_data$mean_dist_to_boundary * 0.3048)
 
 cat("\\begin{table}[htbp]
 \\centering
@@ -353,7 +373,7 @@ cat(
 # Distance row
 cat(
     sprintf(
-        "Dist to Boundary (ft) & %.0f & %.0f & %.0f & %.0f & %.3f \\\\\n",
+        "Dist to Boundary (m) & %.0f & %.0f & %.0f & %.0f & %.3f \\\\\n",
         balance_summary$mean_dist[balance_summary$treatment_group == "Moved to Stricter"],
         balance_summary$mean_dist[balance_summary$treatment_group == "Moved to Lenient"],
         balance_summary$mean_dist[balance_summary$treatment_group == "Control (No Change)"],
@@ -499,7 +519,6 @@ treatment_2015 <- treatment_panel %>%
     mutate(treatment_group = categorize_treatment(strictness_change))
 
 # Get block distances from stacked panel (blocks near boundaries)
-# Filter to 1000 ft from boundary
 block_distances <- stacked_yearly %>%
     filter(cohort == "2015") %>%
     group_by(block_id) %>%
@@ -508,14 +527,14 @@ block_distances <- stacked_yearly %>%
         ward_pair_id = first(ward_pair_id),
         .groups = "drop"
     ) %>%
-    filter(mean_dist_to_boundary < 1000) # 1000 ft filter
+    filter(mean_dist_to_boundary < bandwidth_ft)
 
 # Join treatment data with distance-filtered blocks
 all_blocks_for_map <- census_blocks %>%
     inner_join(treatment_2015, by = "block_id") %>%
     inner_join(block_distances, by = "block_id")
 
-message(sprintf("  Blocks within 1000 ft of boundary: %d", nrow(all_blocks_for_map)))
+message(sprintf("  Blocks within %s of boundary: %d", bandwidth_label, nrow(all_blocks_for_map)))
 
 # Ward pair used in the paper map.
 all_pairs_to_map <- c("13_23")

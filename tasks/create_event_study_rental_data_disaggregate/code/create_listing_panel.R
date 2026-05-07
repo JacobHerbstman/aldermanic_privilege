@@ -12,6 +12,23 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_rental_data_disaggregate/code")
+# segment_buffer_m <- 250
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(segment_buffer_m)
+}
+
+if (length(cli_args) != 1) {
+  stop("FATAL: Script requires 1 arg: <segment_buffer_m>", call. = FALSE)
+}
+segment_buffer_m <- as.numeric(cli_args[1])
+if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
+  stop("segment_buffer_m must be positive.", call. = FALSE)
+}
+
 # Disable s2 spherical geometry to avoid validation errors with census block geometries
 sf_use_s2(FALSE)
 
@@ -225,8 +242,8 @@ message("Loading treatment panel...")
 treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
   mutate(block_id = as.character(block_id))
 
-message("Loading segment layers for cohort-baseline assignment...")
-segment_layers_1000 <- load_segment_layers("../input/boundary_segments_1320ft.gpkg", buffer_ft = 1000)
+message(sprintf("Loading %.0fm segment layers for cohort-baseline assignment...", segment_buffer_m))
+segment_layers <- load_segment_layers("../input/boundary_segments_400m.gpkg", buffer_m = segment_buffer_m)
 
 # =============================================================================
 # 2. ASSIGN RENTALS TO CENSUS BLOCKS
@@ -401,7 +418,7 @@ cohort_2015_work <- cohort_2015_work %>%
   add_hedonic_controls()
 
 cohort_2015 <- cohort_2015_work %>%
-  assign_cohort_segments(segment_layers_1000, "2003_2014", "2015") %>%
+  assign_cohort_segments(segment_layers, "2003_2014", "2015") %>%
   select(
     id, block_id, cohort,
     file_date, year, month, quarter, year_month, year_quarter,
@@ -507,7 +524,7 @@ cohort_2023_work <- cohort_2023_work %>%
   add_hedonic_controls()
 
 cohort_2023 <- cohort_2023_work %>%
-  assign_cohort_segments(segment_layers_1000, "2015_2023", "2023") %>%
+  assign_cohort_segments(segment_layers, "2015_2023", "2023") %>%
   select(
     id, block_id, cohort,
     file_date, year, month, quarter, year_month, year_quarter,

@@ -1,6 +1,7 @@
 SHELL := bash
 
-BANDWIDTHS := 100 150 200 250 300 350 400 450 500 550 600 650 700 750 800 850 900 950 1000
+BANDWIDTHS_M ?= 50 75 100 125 150 175 200 225 250 275 300
+BANDWIDTHS_FT := $(shell Rscript -e 'cat(round(as.numeric(strsplit("$(BANDWIDTHS_M)", " ")[[1]]) / 0.3048), collapse = " ")')
 SAMPLES := all multifamily
 
 all: \
@@ -10,7 +11,7 @@ all: \
 	../output/boundary_ambiguity_share.pdf
 
 ../output/parcel_other_pair_distance.csv: build_boundary_ambiguity.R ../input/parcels_with_ward_distances.csv ../input/geocoded_residential_data.gpkg ../input/ward_pair_boundaries.gpkg | ../output
-	Rscript build_boundary_ambiguity.R ../input/parcels_with_ward_distances.csv ../input/geocoded_residential_data.gpkg ../input/ward_pair_boundaries.gpkg ../output/parcel_other_pair_distance.csv ../output/boundary_ambiguity_by_bw.csv ../output/boundary_ambiguity_top_pairs.csv ../output/boundary_ambiguity_share.pdf "$(BANDWIDTHS)" "$(SAMPLES)"
+	Rscript build_boundary_ambiguity.R ../input/parcels_with_ward_distances.csv ../input/geocoded_residential_data.gpkg ../input/ward_pair_boundaries.gpkg ../output/parcel_other_pair_distance.csv ../output/boundary_ambiguity_by_bw.csv ../output/boundary_ambiguity_top_pairs.csv ../output/boundary_ambiguity_share.pdf "$(BANDWIDTHS_FT)" "$(SAMPLES)" meters
 
 ../output/boundary_ambiguity_by_bw.csv: ../output/parcel_other_pair_distance.csv
 	test -f "$@"

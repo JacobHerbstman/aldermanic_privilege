@@ -4,21 +4,23 @@ source("../../_lib/border_pair_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_placebo/code")
 # yvar <- "density_far"
-# bw_ft <- 250
+# bw_ft <- 328
 # sample_filter <- "all"
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
-# placebo_shift_ft <- -250
-# output_pdf <- "../output/nonparametric_rd_density_placebo_log_density_far_bw250_all_shift-250.pdf"
+# placebo_shift_ft <- -328
+# input_csv <- "../input/parcels_with_ward_distances.csv"
+# output_pdf <- "../output/nonparametric_rd_density_placebo_log_density_far_100m_all_shift_neg100m.pdf"
+# axis_units <- "meters"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(yvar, bw_ft, sample_filter, fe_spec, bins_per_side, placebo_shift_ft, output_pdf)
+  args <- c(yvar, bw_ft, sample_filter, fe_spec, bins_per_side, placebo_shift_ft, input_csv, output_pdf, axis_units)
 }
 
-if (length(args) != 7) {
+if (!length(args) %in% c(8, 9)) {
   stop(
-    "FATAL: Script requires args: <yvar> <bw_ft> <sample_filter> <fe_spec> <bins_per_side> <placebo_shift_ft> <output_pdf>",
+    "FATAL: Script requires args: <yvar> <bw_ft> <sample_filter> <fe_spec> <bins_per_side> <placebo_shift_ft> <input_csv> <output_pdf> [<axis_units>]",
     call. = FALSE
   )
 }
@@ -29,7 +31,9 @@ sample_filter <- args[3]
 fe_spec <- args[4]
 bins_per_side <- as.integer(args[5])
 placebo_shift_ft <- as.numeric(args[6])
-output_pdf <- args[7]
+input_csv <- args[7]
+output_pdf <- args[8]
+axis_units <- ifelse(length(args) >= 9, args[9], "meters")
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -49,8 +53,9 @@ if (!is.finite(bins_per_side) || bins_per_side < 2) {
 if (!is.finite(placebo_shift_ft)) {
   stop("placebo_shift_ft must be numeric.", call. = FALSE)
 }
-
-rd_input_path <- Sys.getenv("RD_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
+if (!axis_units %in% c("meters", "feet")) {
+  stop("axis_units must be one of: meters, feet", call. = FALSE)
+}
 
 fe_formula <- dplyr::case_when(
   fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
@@ -73,7 +78,7 @@ pretty_outcome <- dplyr::case_when(
   TRUE ~ yvar
 )
 
-raw <- read_csv(rd_input_path, show_col_types = FALSE)
+raw <- read_csv(input_csv, show_col_types = FALSE)
 
 dat <- raw %>%
   mutate(
@@ -225,42 +230,65 @@ if (!is.finite(y_span) || y_span <= 0) y_span <- 1
 y_pad <- max(0.15 * y_span, 0.05)
 y_limits <- c(y_min - y_pad, y_max + y_pad)
 
+sample_label <- ifelse(sample_filter == "all", "all construction", "multifamily")
+
+if (axis_units == "meters") {
+  x_scale <- 0.3048
+  x_limits <- c(-bw_ft, bw_ft) * x_scale
+  x_label <- sprintf(
+    "Distance to placebo cutoff (m; cutoff shifted %+.0fm)",
+    placebo_shift_ft * x_scale
+  )
+  bw_label <- sprintf("%dm", as.integer(round(bw_ft * x_scale)))
+  shift_label <- sprintf("%+.0fm", placebo_shift_ft * x_scale)
+} else {
+  x_scale <- 1
+  x_limits <- c(-bw_ft, bw_ft)
+  x_label <- sprintf("Distance to placebo cutoff shifted %+.0f ft", placebo_shift_ft)
+  bw_label <- sprintf("%d ft", as.integer(round(bw_ft)))
+  shift_label <- sprintf("%+.0f ft", placebo_shift_ft)
+}
+
+bins <- bins %>%
+  mutate(bin_center_display = bin_center_ft * x_scale)
+
+line_df <- line_df %>%
+  mutate(running_distance_display = running_distance * x_scale)
+
 subtitle_label <- sprintf(
-  "Jump = %.3f%s (SE %.3f) | shift=%+.0f ft | %s | bw=%d ft | N=%d",
+  "Jump = %.3f%s (SE %.3f) | shift=%s | %s | bandwidth=%s | N=%d",
   cutoff_estimate,
   stars(cutoff_p),
   cutoff_se,
-  placebo_shift_ft,
-  sample_filter,
-  as.integer(bw_ft),
+  shift_label,
+  sample_label,
+  bw_label,
   nobs(m_resid)
 )
-
-x_label <- sprintf("Distance to placebo cutoff shifted %+.0f ft", placebo_shift_ft)
 
 p <- ggplot() +
   geom_ribbon(
     data = line_df,
-    aes(x = running_distance, ymin = ci_low, ymax = ci_high, fill = factor(side)),
+    aes(x = running_distance_display, ymin = ci_low, ymax = ci_high, fill = factor(side)),
     alpha = 0.16,
     color = NA
   ) +
   geom_point(
     data = bins,
-    aes(x = bin_center_ft, y = mean_y, color = factor(side)),
+    aes(x = bin_center_display, y = mean_y, color = factor(side)),
     size = 1.8,
     alpha = 0.95
   ) +
   geom_line(
     data = line_df,
-    aes(x = running_distance, y = fit, color = factor(side)),
+    aes(x = running_distance_display, y = fit, color = factor(side)),
     linewidth = 1.1
   ) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30") +
   geom_hline(yintercept = 0, linetype = "dotted", color = "gray55") +
   scale_fill_manual(values = c("0" = "#1f77b4", "1" = "#d62728"), guide = "none") +
   scale_color_manual(values = c("0" = "#1f77b4", "1" = "#d62728"), guide = "none") +
-  scale_x_continuous(limits = c(-bw_ft, bw_ft), breaks = pretty(c(-bw_ft, bw_ft), n = 7)) +
+  scale_x_continuous(limits = x_limits, breaks = pretty(x_limits, n = 7)) +
   coord_cartesian(ylim = y_limits) +
   labs(
     title = paste0("Placebo Local-Linear RD: ", pretty_outcome),

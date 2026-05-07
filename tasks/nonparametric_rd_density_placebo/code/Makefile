@@ -1,19 +1,27 @@
 SHELL := bash
 
 FE_SPEC := zonegroup_segment_year_additive
-BW_FT := 500
+BW_M ?= 100
+BW_FT := $(shell Rscript -e 'cat(round($(BW_M) / 0.3048))')
 BINS_PER_SIDE ?= 5
-SAMPLE := multifamily
-PLACEBO_SHIFTS_FT := -500 500
+SAMPLE ?= all
+PLACEBO_SHIFT_M ?= 100
+PLACEBO_SHIFT_FT := $(shell Rscript -e 'cat(round($(PLACEBO_SHIFT_M) / 0.3048))')
 YVARS := density_far density_dupac
 
-all: $(foreach yvar,$(YVARS),$(foreach shift,$(PLACEBO_SHIFTS_FT),../output/nonparametric_rd_density_placebo_log_$(yvar)_bw$(BW_FT)_$(SAMPLE)_shift$(shift).pdf))
+all: $(foreach yvar,$(YVARS),../output/nonparametric_rd_density_placebo_log_$(yvar)_$(BW_M)m_$(SAMPLE)_shift_neg$(PLACEBO_SHIFT_M)m.pdf ../output/nonparametric_rd_density_placebo_log_$(yvar)_$(BW_M)m_$(SAMPLE)_shift_pos$(PLACEBO_SHIFT_M)m.pdf)
 
-define PLACEBO_RULE
-../output/nonparametric_rd_density_placebo_log_$(1)_bw$(BW_FT)_$(SAMPLE)_shift$(2).pdf: nonparametric_rd_density_placebo.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript nonparametric_rd_density_placebo.R $(1) $(BW_FT) $(SAMPLE) $(FE_SPEC) $(BINS_PER_SIDE) $(2) $$@
+define PLACEBO_NEG_RULE
+../output/nonparametric_rd_density_placebo_log_$(1)_$(BW_M)m_$(SAMPLE)_shift_neg$(PLACEBO_SHIFT_M)m.pdf: nonparametric_rd_density_placebo.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
+	Rscript nonparametric_rd_density_placebo.R $(1) $(BW_FT) $(SAMPLE) $(FE_SPEC) $(BINS_PER_SIDE) -$(PLACEBO_SHIFT_FT) ../input/parcels_with_ward_distances.csv $$@ meters
 endef
-$(foreach yvar,$(YVARS),$(foreach shift,$(PLACEBO_SHIFTS_FT),$(eval $(call PLACEBO_RULE,$(yvar),$(shift)))))
+$(foreach yvar,$(YVARS),$(eval $(call PLACEBO_NEG_RULE,$(yvar))))
+
+define PLACEBO_POS_RULE
+../output/nonparametric_rd_density_placebo_log_$(1)_$(BW_M)m_$(SAMPLE)_shift_pos$(PLACEBO_SHIFT_M)m.pdf: nonparametric_rd_density_placebo.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
+	Rscript nonparametric_rd_density_placebo.R $(1) $(BW_FT) $(SAMPLE) $(FE_SPEC) $(BINS_PER_SIDE) $(PLACEBO_SHIFT_FT) ../input/parcels_with_ward_distances.csv $$@ meters
+endef
+$(foreach yvar,$(YVARS),$(eval $(call PLACEBO_POS_RULE,$(yvar))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

@@ -6,13 +6,14 @@ source("../../setup_environment/code/packages.R")
 # date_basis <- "issue"
 # model_type <- "ppml"
 # weighting <- "uniform"
-# bandwidth <- 1000
+# bandwidth <- 820
 # post_window <- "full"
 # geo_fe_level <- "segment"
+# bandwidth_label <- "250m"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(outcome_family, date_basis, model_type, weighting, bandwidth, post_window, geo_fe_level)
+  cli_args <- c(outcome_family, date_basis, model_type, weighting, bandwidth, post_window, geo_fe_level, bandwidth_label)
 }
 
 if (length(cli_args) >= 6) {
@@ -23,9 +24,10 @@ if (length(cli_args) >= 6) {
   bandwidth <- as.numeric(cli_args[5])
   post_window <- cli_args[6]
   geo_fe_level <- if (length(cli_args) >= 7) tolower(cli_args[7]) else "segment"
+  bandwidth_label <- if (length(cli_args) >= 8) cli_args[8] else sprintf("%dm", as.integer(round(bandwidth * 0.3048)))
 } else {
   stop(
-    "FATAL: Script requires 6 args: <outcome_family> <date_basis> <model_type> <weighting> <bandwidth> <post_window> [<geo_fe_level>]",
+    "FATAL: Script requires 6 args: <outcome_family> <date_basis> <model_type> <weighting> <bandwidth> <post_window> [<geo_fe_level>] [<bandwidth_label>]",
     call. = FALSE
   )
 }
@@ -409,7 +411,7 @@ table_tex <- c(
   ),
   "Outcome & \\multicolumn{4}{c}{Issued high-discretion permits} \\\\",
   "Weighting & \\multicolumn{4}{c}{Uniform} \\\\",
-  "Bandwidth & \\multicolumn{4}{c}{1,000 feet} \\\\",
+  sprintf("Bandwidth & \\multicolumn{4}{c}{%s} \\\\", bandwidth_label),
   "Window & \\multicolumn{4}{c}{-5 to +5} \\\\",
   if (geo_fe_level == "segment") {
     "Fixed Effects & \\multicolumn{2}{c}{Block + Segment $\\times$ Year} & \\multicolumn{2}{c}{Cohort Block + Cohort Segment $\\times$ Year} \\\\"

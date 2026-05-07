@@ -11,15 +11,16 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
-# bandwidth <- 1000
+# bandwidth <- 820
 # weighting <- "triangular"
 # fe_type <- "strict_pair_x_year"
 # geo_fe_level <- "segment"
 # cluster_level <- "twoway_block_segment"
+# bandwidth_label <- "250m"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(bandwidth, weighting, fe_type, geo_fe_level, cluster_level)
+  cli_args <- c(bandwidth, weighting, fe_type, geo_fe_level, cluster_level, bandwidth_label)
 }
 
 if (length(cli_args) >= 5) {
@@ -28,14 +29,16 @@ if (length(cli_args) >= 5) {
   fe_type <- cli_args[3]
   geo_fe_level <- tolower(cli_args[4])
   cluster_level <- tolower(cli_args[5])
+  bandwidth_label <- if (length(cli_args) >= 6) cli_args[6] else sprintf("%dm", as.integer(round(bandwidth * 0.3048)))
 } else if (length(cli_args) >= 3) {
   bandwidth <- as.numeric(cli_args[1])
   weighting <- cli_args[2]
   fe_type <- cli_args[3]
   geo_fe_level <- tolower(Sys.getenv("GEO_FE_LEVEL", "segment"))
   cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "twoway_block_segment"))
+  bandwidth_label <- sprintf("%dm", as.integer(round(bandwidth * 0.3048)))
 } else {
-  stop("FATAL: Script requires args: <bandwidth> <weighting> <fe_type> [<geo_fe_level> <cluster_level>]", call. = FALSE)
+  stop("FATAL: Script requires args: <bandwidth> <weighting> <fe_type> [<geo_fe_level> <cluster_level> <bandwidth_label>]", call. = FALSE)
 }
 
 BANDWIDTH <- bandwidth
@@ -80,7 +83,7 @@ if (geo_suffix != "" || cluster_suffix != "") {
 }
 
 message("\n=== Pooled DiD: Home Sales ===")
-message(sprintf("Bandwidth: %d ft", BANDWIDTH))
+message(sprintf("Bandwidth: %s", bandwidth_label))
 message(sprintf("Weighting: %s", WEIGHTING))
 message(sprintf("FE Type: %s", FE_TYPE))
 message(sprintf("Geo FE Level: %s", GEO_FE_LEVEL))
@@ -364,8 +367,8 @@ etable(
     se.below = TRUE,
     signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
     notes = sprintf(
-        "Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Columns (1)--(2) use 2012 announcement timing; columns (3)--(4) use 2015 implementation timing. Sample restricted to transactions within %d feet of ward boundaries with non-missing hedonic characteristics. %s kernel weighting. Standard errors clustered at: %s.",
-        as.integer(BANDWIDTH),
+        "Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Columns (1)--(2) use 2012 announcement timing; columns (3)--(4) use 2015 implementation timing. Sample restricted to transactions within %s of ward boundaries with non-missing hedonic characteristics. %s kernel weighting. Standard errors clustered at: %s.",
+        bandwidth_label,
         tools::toTitleCase(WEIGHTING),
         cluster_label
     ),

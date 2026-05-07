@@ -11,15 +11,16 @@ source("../../setup_environment/code/packages.R")
 # did_output <- "../output/permit_balance_did_shift.csv"
 # did_tex_output <- "../output/permit_balance_did_shift.tex"
 # plot_output <- "../output/permit_balance_love_plot.pdf"
+# bandwidth_m <- 250
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(panel_input, controls_input, balance_output, balance_tex_output, joint_output, joint_tex_output, did_output, did_tex_output, plot_output)
+  cli_args <- c(panel_input, controls_input, balance_output, balance_tex_output, joint_output, joint_tex_output, did_output, did_tex_output, plot_output, bandwidth_m)
 }
 
-if (length(cli_args) != 9) {
+if (length(cli_args) != 10) {
   stop(
-    "FATAL: Script requires 9 args: <panel_input> <controls_input> <balance_output> <balance_tex_output> <joint_output> <joint_tex_output> <did_output> <did_tex_output> <plot_output>",
+    "FATAL: Script requires 10 args: <panel_input> <controls_input> <balance_output> <balance_tex_output> <joint_output> <joint_tex_output> <did_output> <did_tex_output> <plot_output> <bandwidth_m>",
     call. = FALSE
   )
 }
@@ -33,6 +34,12 @@ joint_tex_output <- cli_args[6]
 did_output <- cli_args[7]
 did_tex_output <- cli_args[8]
 plot_output <- cli_args[9]
+bandwidth_m <- as.numeric(cli_args[10])
+if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
+  stop("bandwidth_m must be positive.", call. = FALSE)
+}
+bandwidth_ft <- bandwidth_m / 0.3048
+bandwidth_label <- sprintf("%dm", as.integer(round(bandwidth_m)))
 
 safe_scale <- function(x) {
   sigma <- sd(x, na.rm = TRUE)
@@ -101,8 +108,11 @@ fmt_covariate_value <- function(covariate_name, x) {
   if (covariate_name == "baseline_median_income") {
     return(fmt_integer(x))
   }
-  if (covariate_name %in% c("baseline_population_density", "dist_ft")) {
+  if (covariate_name == "baseline_population_density") {
     return(fmt_integer(x))
+  }
+  if (covariate_name == "dist_ft") {
+    return(fmt_integer(x * 0.3048))
   }
   if (covariate_name == "baseline_median_age") {
     return(fmt_decimal(x, 1))
@@ -142,7 +152,7 @@ covariate_catalog <- tibble(
     "Population Density",
     "Percent Black",
     "Percent Hispanic",
-    "Distance to Boundary (ft)",
+    "Distance to Boundary (m)",
     "High-Discretion Permits at t = -1"
   )
 )
@@ -179,7 +189,7 @@ build_balance_sample <- function(panel_mode) {
   block_var <- if (panel_mode == "stacked_implementation") "cohort_block_id" else "block_id"
 
   sample_df %>%
-    filter(!is.na(strictness_change), dist_ft <= 1000, relative_year == -1) %>%
+    filter(!is.na(strictness_change), dist_ft <= bandwidth_ft, relative_year == -1) %>%
     filter(!is.na(.data[[pair_var]]), .data[[pair_var]] != "") %>%
     mutate(
       sample = panel_mode,
@@ -377,7 +387,7 @@ build_did_sample <- function(panel_mode) {
   }
 
   sample_df <- sample_df %>%
-    filter(!is.na(strictness_change), dist_ft <= 1000, relative_year >= -5, relative_year <= 5) %>%
+    filter(!is.na(strictness_change), dist_ft <= bandwidth_ft, relative_year >= -5, relative_year <= 5) %>%
     mutate(
       block_group_id = substr(as.character(block_id), 1, 12),
       baseline_year = case_when(
@@ -519,7 +529,7 @@ write_balance_tex <- function(balance_df, output_path) {
     lines,
     "\\bottomrule",
     "\\end{tabular}",
-    "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: 2015 cohort only. Sample uses blocks within 1,000 feet of a ward boundary in relative year $-1$ for the permit event-study design. Treated blocks are all blocks that switch wards at redistricting; control blocks remain in the origin ward. Residualized difference equals treated minus control after demeaning each covariate within ward pair. Standard errors and $p$-values come from block-level regressions with ward-pair fixed effects and standard errors clustered by ward pair. Shares are reported in percentage points. Median income is in dollars. High-discretion permits at $t=-1$ is the pre-treatment block-year count. Baseline block-group covariates use 2014 ACS values.}",
+    sprintf("\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: 2015 cohort only. Sample uses blocks within %s of a ward boundary in relative year $-1$ for the permit event-study design. Treated blocks are all blocks that switch wards at redistricting; control blocks remain in the origin ward. Residualized difference equals treated minus control after demeaning each covariate within ward pair. Standard errors and $p$-values come from block-level regressions with ward-pair fixed effects and standard errors clustered by ward pair. Shares are reported in percentage points. Median income is in dollars. High-discretion permits at $t=-1$ is the pre-treatment block-year count. Baseline block-group covariates use 2014 ACS values.}", bandwidth_label),
     "\\end{table}"
   )
 
@@ -554,7 +564,7 @@ write_joint_tex <- function(joint_df, output_path) {
     lines,
     "\\bottomrule",
     "\\end{tabular}",
-    "\\par\\vspace{0.5em}\\parbox{0.8\\linewidth}{\\footnotesize Notes: 2015 cohort only. Raw $R^2$ comes from a linear probability regression of treatment assignment on baseline observables and distance to boundary. Within-pair $R^2$ runs the same regression after demeaning treatment and observables within ward pair. Blocks count refers to the sample with complete baseline controls.}",
+    sprintf("\\par\\vspace{0.5em}\\parbox{0.8\\linewidth}{\\footnotesize Notes: 2015 cohort only. Sample uses blocks within %s of a ward boundary. Raw $R^2$ comes from a linear probability regression of treatment assignment on baseline observables and distance to boundary. Within-pair $R^2$ runs the same regression after demeaning treatment and observables within ward pair. Blocks count refers to the sample with complete baseline controls.}", bandwidth_label),
     "\\end{table}"
   )
 
@@ -589,7 +599,7 @@ write_did_tex <- function(did_df, output_path) {
     lines,
     "\\bottomrule",
     "\\end{tabular}",
-    "\\par\\vspace{0.5em}\\parbox{0.8\\linewidth}{\\footnotesize Notes: 2015 cohort only. Entries compare the main PPML permit DID with and without the baseline demographic controls interacted with year. Standard errors are in parentheses.}",
+    sprintf("\\par\\vspace{0.5em}\\parbox{0.8\\linewidth}{\\footnotesize Notes: 2015 cohort only. Sample uses blocks within %s of a ward boundary. Entries compare the main PPML permit DID with and without the baseline demographic controls interacted with year. Standard errors are in parentheses.}", bandwidth_label),
     "\\end{table}"
   )
 
@@ -669,7 +679,7 @@ balance_plot <- ggplot(plot_data, aes(x = smd, y = covariate_label, color = bala
     y = NULL,
     color = NULL,
     title = "Permit Event-Study Balance on Baseline Observables",
-    subtitle = "2015 cohort only, overall treated vs control at year -1"
+    subtitle = sprintf("2015 cohort only, overall treated vs control at year -1, %s window", bandwidth_label)
   ) +
   theme_minimal(base_size = 11) +
   theme(

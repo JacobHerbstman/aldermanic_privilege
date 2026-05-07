@@ -12,9 +12,11 @@ source("../../setup_environment/code/packages.R")
 # dupac_multifamily_pruned_output <- "../output/border_pair_fe_bandwidth_path_log_density_dupac_multifamily_pruned.pdf"
 # dupac_all_main_output <- "../output/border_pair_fe_bandwidth_path_log_density_dupac_all_main.pdf"
 # dupac_all_pruned_output <- "../output/border_pair_fe_bandwidth_path_log_density_dupac_all_pruned.pdf"
-# bandwidths <- "100 150 200 250 300 350 400 450 500 550 600 650 700 750 800 850 900 950 1000"
+# bandwidths <- "164 246 328 410 492 574 656 738 820 902 984"
 # samples <- "multifamily all"
 # prune_specs <- "main pruned"
+# axis_units <- "meters"
+# reference_bandwidths <- "100 250"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -31,13 +33,15 @@ if (length(args) == 0) {
     dupac_all_pruned_output,
     bandwidths,
     samples,
-    prune_specs
+    prune_specs,
+    axis_units,
+    reference_bandwidths
   )
 }
 
-if (length(args) != 13) {
+if (!length(args) %in% c(13, 15)) {
   stop(
-    "FATAL: Script requires 13 args: <input_dir> <combined_output> <far_multifamily_main_output> <far_multifamily_pruned_output> <far_all_main_output> <far_all_pruned_output> <dupac_multifamily_main_output> <dupac_multifamily_pruned_output> <dupac_all_main_output> <dupac_all_pruned_output> <bandwidths> <samples> <prune_specs>",
+    "FATAL: Script requires args: <input_dir> <combined_output> <far_multifamily_main_output> <far_multifamily_pruned_output> <far_all_main_output> <far_all_pruned_output> <dupac_multifamily_main_output> <dupac_multifamily_pruned_output> <dupac_all_main_output> <dupac_all_pruned_output> <bandwidths> <samples> <prune_specs> [<axis_units> <reference_bandwidths>]",
     call. = FALSE
   )
 }
@@ -55,6 +59,12 @@ dupac_all_pruned_output <- args[10]
 bandwidths <- as.integer(strsplit(trimws(args[11]), "\\s+")[[1]])
 samples <- strsplit(trimws(args[12]), "\\s+")[[1]]
 prune_specs <- strsplit(trimws(args[13]), "\\s+")[[1]]
+axis_units <- ifelse(length(args) >= 14, args[14], "meters")
+reference_bandwidths <- if (length(args) >= 15) {
+  as.numeric(strsplit(trimws(args[15]), "\\s+")[[1]])
+} else {
+  numeric()
+}
 
 if (any(!is.finite(bandwidths))) {
   stop("bandwidths must parse to integers.", call. = FALSE)
@@ -64,6 +74,12 @@ if (!all(samples %in% c("multifamily", "all"))) {
 }
 if (!all(prune_specs %in% c("main", "pruned"))) {
   stop("prune_specs must be drawn from: main, pruned", call. = FALSE)
+}
+if (!axis_units %in% c("meters", "feet")) {
+  stop("axis_units must be one of: meters, feet", call. = FALSE)
+}
+if (any(!is.finite(reference_bandwidths))) {
+  stop("reference_bandwidths must parse to numeric values.", call. = FALSE)
 }
 
 summary_files <- unlist(lapply(bandwidths, function(bandwidth) {
@@ -132,6 +148,7 @@ write_csv(combined, combined_output)
 
 plot_df <- combined %>%
   mutate(
+    bw_display = if_else(axis_units == "meters", bw_ft * 0.3048, as.numeric(bw_ft)),
     prune_label = if_else(prune_spec == "main", "Main", "Pruned"),
     outcome_label = case_when(
       yvar == "log(density_far)" ~ "ln(FAR)",
@@ -143,7 +160,8 @@ plot_df <- combined %>%
     )
   )
 
-plot_bandwidths <- bandwidths[bandwidths >= 250]
+plot_bandwidths <- sort(unique(plot_df$bw_display))
+x_axis_label <- ifelse(axis_units == "meters", "Bandwidth (m)", "Bandwidth (ft)")
 
 plot_specs <- tribble(
   ~yvar, ~sample_filter, ~prune_spec, ~output_path,
@@ -167,34 +185,41 @@ for (i in seq_len(nrow(plot_specs))) {
     filter(
       yvar == yvar_i,
       sample_filter == sample_i,
-      prune_spec == prune_i,
-      bw_ft >= 250
+      prune_spec == prune_i
     )
 
   prune_label <- if_else(prune_i == "main", "Main", "Pruned")
   prune_color <- if_else(prune_i == "main", "#1f77b4", "#ff7f0e")
 
-  p <- ggplot(plot_data, aes(x = bw_ft, y = estimate)) +
+  p <- ggplot(plot_data, aes(x = bw_display, y = estimate)) +
     geom_ribbon(aes(ymin = ci_low, ymax = ci_high), alpha = 0.16, fill = prune_color, color = NA) +
     geom_line(linewidth = 1.0, color = prune_color) +
     geom_point(size = 1.7, color = prune_color) +
     geom_hline(yintercept = 0, linetype = "dotted", color = "gray45") +
-    geom_vline(xintercept = 250, linetype = "dashed", color = "gray50", linewidth = 0.4) +
-    geom_vline(xintercept = 500, linetype = "dashed", color = "gray50", linewidth = 0.4) +
     scale_x_continuous(
-      breaks = seq(min(plot_bandwidths), max(plot_bandwidths), by = 100),
+      breaks = pretty(plot_bandwidths, n = 8),
       limits = c(min(plot_bandwidths), max(plot_bandwidths))
     ) +
     labs(
       title = sprintf("Bandwidth Path: %s, %s, %s", plot_data$outcome_label[[1]], plot_data$sample_label[[1]], prune_label),
       subtitle = "Zoning-group FE, segment FE, year FE, side-specific distance slopes, ward-pair clustered SEs",
-      x = "Bandwidth (ft)",
+      x = x_axis_label,
       y = "Coefficient on Stringency Index"
     ) +
     theme_bw(base_size = 11) +
     theme(
       plot.title = element_text(face = "bold")
     )
+
+  if (length(reference_bandwidths) > 0) {
+    p <- p +
+      geom_vline(
+        xintercept = reference_bandwidths,
+        linetype = "dashed",
+        color = "gray50",
+        linewidth = 0.4
+      )
+  }
 
   ggsave(output_path, plot = p, width = 8.4, height = 5.6, dpi = 300)
 }

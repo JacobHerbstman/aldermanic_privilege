@@ -6,10 +6,11 @@ library(fixest)
 # permit_panel_input <- "../input/permit_block_year_panel_2015.parquet"
 # sales_panel_input <- "../input/sales_transaction_panel_2015.parquet"
 # block_baseline_input <- "../output/block_parcel_baselines_2014.csv"
-# permit_balance_output <- "../output/permit_exact_balance_summary.csv"
-# permit_balance_tex_output <- "../output/permit_exact_balance_summary.tex"
-# sales_balance_output <- "../output/sales_exact_balance_summary.csv"
-# sales_balance_tex_output <- "../output/sales_exact_balance_summary.tex"
+# permit_balance_output <- "../output/permit_exact_balance_summary_250m.csv"
+# permit_balance_tex_output <- "../output/permit_exact_balance_summary_250m.tex"
+# sales_balance_output <- "../output/sales_exact_balance_summary_250m.csv"
+# sales_balance_tex_output <- "../output/sales_exact_balance_summary_250m.tex"
+# bandwidth_m <- 250
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -20,17 +21,18 @@ if (length(args) == 0) {
     permit_balance_output,
     permit_balance_tex_output,
     sales_balance_output,
-    sales_balance_tex_output
+    sales_balance_tex_output,
+    bandwidth_m
   )
 }
 
-if (length(args) != 7) {
+if (length(args) != 8) {
   stop(
     paste(
-      "FATAL: Script requires 7 args:",
+      "FATAL: Script requires args:",
       "<permit_panel_input> <sales_panel_input> <block_baseline_input>",
       "<permit_balance_output> <permit_balance_tex_output>",
-      "<sales_balance_output> <sales_balance_tex_output>"
+      "<sales_balance_output> <sales_balance_tex_output> <bandwidth_m>"
     ),
     call. = FALSE
   )
@@ -43,6 +45,12 @@ permit_balance_output <- args[4]
 permit_balance_tex_output <- args[5]
 sales_balance_output <- args[6]
 sales_balance_tex_output <- args[7]
+bandwidth_m <- as.numeric(args[8])
+bandwidth_ft <- bandwidth_m / 0.3048
+
+if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
+  stop("bandwidth_m must be positive.", call. = FALSE)
+}
 
 fmt_decimal <- function(x, digits = 2) {
   if (!is.finite(x)) {
@@ -65,7 +73,7 @@ fmt_covariate_value <- function(covariate_name, x) {
   if (covariate_name == "mean_zoned_far") {
     return(fmt_decimal(x, 2))
   }
-  fmt_integer(x)
+  fmt_integer(x * 0.3048)
 }
 
 covariate_catalog <- tibble(
@@ -79,11 +87,11 @@ covariate_catalog <- tibble(
   ),
   covariate_label = c(
     "Average Zoned FAR",
-    "Distance to CBD (ft)",
-    "Distance to School (ft)",
-    "Distance to Park (ft)",
-    "Distance to Major Road (ft)",
-    "Distance to Lake Michigan (ft)"
+    "Distance to CBD (m)",
+    "Distance to School (m)",
+    "Distance to Park (m)",
+    "Distance to Major Road (m)",
+    "Distance to Lake Michigan (m)"
   )
 )
 
@@ -184,7 +192,7 @@ block_baselines <- read_csv(block_baseline_input, show_col_types = FALSE) %>%
 message("Loading permit event-study panel...")
 permit_panel <- read_parquet(permit_panel_input) %>%
   as_tibble() %>%
-  filter(dist_ft <= 1000, relative_year == -1, !is.na(strictness_change)) %>%
+  filter(dist_ft <= bandwidth_ft, relative_year == -1, !is.na(strictness_change)) %>%
   mutate(
     group = case_when(
       treat == 0 ~ "control",
@@ -202,7 +210,7 @@ permit_panel <- read_parquet(permit_panel_input) %>%
 message("Loading sales event-study panel...")
 sales_panel <- read_parquet(sales_panel_input) %>%
   as_tibble() %>%
-  filter(dist_ft <= 1000, relative_year == -1, !is.na(strictness_change)) %>%
+  filter(dist_ft <= bandwidth_ft, relative_year == -1, !is.na(strictness_change)) %>%
   mutate(
     ward_pair_id = sub("_[0-9]+$", "", ward_pair_side),
     group = case_when(
@@ -226,7 +234,7 @@ build_balance_table(
   caption_text = "Permit Event-Study Balance: Exact Parcel Amenities and Zoned FAR",
   label_text = "tab:permit_exact_balance",
   notes_text = paste(
-    "2015 cohort only. Sample uses census blocks within 1,000 feet of a ward boundary in the permit event-study design.",
+    sprintf("2015 cohort only. Sample uses census blocks within %dm of a ward boundary in the permit event-study design.", as.integer(round(bandwidth_m))),
     "Block covariates are computed by averaging exact parcel-level amenities and zoned FAR across parcels in the 2010 census block,",
     "using parcels observed by 2014. Treated blocks are all blocks that switch wards at redistricting; control blocks remain in the origin ward.",
     "Residualized difference equals treated minus control after demeaning each covariate within ward pair.",
@@ -242,7 +250,7 @@ build_balance_table(
   caption_text = "Home-Sales Event-Study Balance: Exact Parcel Amenities and Zoned FAR",
   label_text = "tab:sales_exact_balance",
   notes_text = paste(
-    "2015 cohort only. Sample uses census blocks within 1,000 feet of a ward boundary with at least one observed sale in relative year $-1$.",
+    sprintf("2015 cohort only. Sample uses census blocks within %dm of a ward boundary with at least one observed sale in relative year $-1$.", as.integer(round(bandwidth_m))),
     "Block covariates are computed by averaging exact parcel-level amenities and zoned FAR across parcels in the 2010 census block,",
     "using parcels observed by 2014. Treated blocks are all blocks that switch wards at redistricting; control blocks remain in the origin ward.",
     "Residualized difference equals treated minus control after demeaning each covariate within ward pair.",

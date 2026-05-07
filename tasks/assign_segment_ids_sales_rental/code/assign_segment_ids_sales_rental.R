@@ -12,16 +12,19 @@ sf_use_s2(FALSE)
 # mode <- "all"
 # sales_input <- "../input/sales_pre_scores.csv"
 # rent_input <- "../input/rent_pre_scores_full.parquet"
-# segment_gpkg <- "../input/boundary_segments_1320ft.gpkg"
+# segment_gpkg <- "../input/boundary_segments_400m.gpkg"
 # out_sales <- "../output/sales_pre_scores_with_segments.csv"
 # out_rent <- "../output/rent_pre_scores_full_with_segments.parquet"
 # out_coverage <- "../output/segment_assignment_coverage_summary.csv"
 # out_spotcheck <- "../output/segment_assignment_spotcheck_queue.csv"
 # out_reason <- "../output/segment_assignment_reason_summary.csv"
+# segment_buffer_m <- 250
+# coverage_bandwidths_m <- "100 250"
+# spotcheck_bandwidth_m <- 250
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(mode, sales_input, rent_input, segment_gpkg, out_sales, out_rent, out_coverage, out_spotcheck, out_reason)
+  cli_args <- c(mode, sales_input, rent_input, segment_gpkg, out_sales, out_rent, out_coverage, out_spotcheck, out_reason, segment_buffer_m, coverage_bandwidths_m, spotcheck_bandwidth_m)
 }
 
 mode <- cli_args[1]
@@ -30,19 +33,22 @@ if (!mode %in% c("sales", "all")) {
 }
 
 if (mode == "sales") {
-  if (length(cli_args) != 4) {
+  if (length(cli_args) != 6) {
     stop(
-      "FATAL: sales mode requires 4 args: sales <sales_input_csv> <segment_gpkg> <out_sales_csv>",
+      "FATAL: sales mode requires 6 args: sales <sales_input_csv> <segment_gpkg> <out_sales_csv> <segment_buffer_m> <coverage_bandwidths_m>",
       call. = FALSE
     )
   }
   sales_input <- cli_args[2]
   segment_gpkg <- cli_args[3]
   out_sales <- cli_args[4]
+  segment_buffer_m <- as.numeric(cli_args[5])
+  coverage_bandwidths_m <- scan(text = cli_args[6], quiet = TRUE)
+  spotcheck_bandwidth_m <- NA_real_
 } else {
-  if (length(cli_args) != 9) {
+  if (length(cli_args) != 12) {
     stop(
-      "FATAL: all mode requires 9 args: all <sales_input_csv> <rent_input_parquet> <segment_gpkg> <out_sales_csv> <out_rent_parquet> <out_coverage_csv> <out_spotcheck_csv> <out_reason_csv>",
+      "FATAL: all mode requires 12 args: all <sales_input_csv> <rent_input_parquet> <segment_gpkg> <out_sales_csv> <out_rent_parquet> <out_coverage_csv> <out_spotcheck_csv> <out_reason_csv> <segment_buffer_m> <coverage_bandwidths_m> <spotcheck_bandwidth_m>",
       call. = FALSE
     )
   }
@@ -54,6 +60,20 @@ if (mode == "sales") {
   out_coverage <- cli_args[7]
   out_spotcheck <- cli_args[8]
   out_reason <- cli_args[9]
+  segment_buffer_m <- as.numeric(cli_args[10])
+  coverage_bandwidths_m <- scan(text = cli_args[11], quiet = TRUE)
+  spotcheck_bandwidth_m <- as.numeric(cli_args[12])
+}
+
+if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
+  stop("segment_buffer_m must be positive.", call. = FALSE)
+}
+if (length(coverage_bandwidths_m) == 0 || any(!is.finite(coverage_bandwidths_m)) || any(coverage_bandwidths_m <= 0)) {
+  stop("coverage_bandwidths_m must contain positive numeric bandwidths.", call. = FALSE)
+}
+coverage_bandwidths_m <- sort(unique(as.numeric(coverage_bandwidths_m)))
+if (mode == "all" && (!is.finite(spotcheck_bandwidth_m) || spotcheck_bandwidth_m <= 0)) {
+  stop("spotcheck_bandwidth_m must be positive in all mode.", call. = FALSE)
 }
 
 stopifnot(file.exists(sales_input), file.exists(segment_gpkg))
@@ -61,7 +81,7 @@ if (mode == "all") {
   stopifnot(file.exists(rent_input))
 }
 
-segments_by_era <- load_segment_layers(segment_gpkg, buffer_ft = 1000)
+segments_by_era <- load_segment_layers(segment_gpkg, buffer_m = segment_buffer_m)
 
 coverage_row <- function(dataset, scope, era, dt) {
   n_total <- nrow(dt)
@@ -152,11 +172,15 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
     )]
   }
 
-  cov <- rbindlist(list(
-    coverage_block(dataset_name, dt, "all"),
-    coverage_block(dataset_name, dt[is.finite(get(dist_col)) & get(dist_col) <= 1000], "bw1000"),
-    coverage_block(dataset_name, dt[is.finite(get(dist_col)) & get(dist_col) <= 500], "bw500"),
-    coverage_block(dataset_name, dt[is.finite(get(dist_col)) & get(dist_col) <= 250], "bw250")
+  cov <- rbindlist(c(
+    list(coverage_block(dataset_name, dt, "all")),
+    lapply(coverage_bandwidths_m, function(bw_m_i) {
+      coverage_block(
+        dataset_name,
+        dt[is.finite(get(dist_col)) & get(dist_col) <= bw_m_i / 0.3048],
+        sprintf("bw%.0fm", bw_m_i)
+      )
+    })
   ), fill = TRUE)
 
   reason_summary <- dt[, .(n_obs = .N), by = .(era, segment_reason)]
@@ -169,9 +193,9 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
   list(data = out, coverage = cov, reason_summary = reason_summary)
 }
 
-build_spotcheck <- function(dt_sales, dt_rent, n_each = 20L) {
+build_spotcheck <- function(dt_sales, dt_rent, n_each = 20L, bandwidth_m) {
   sales_q <- dt_sales[
-    is.finite(dist_ft) & dist_ft <= 500,
+    is.finite(dist_ft) & dist_ft <= bandwidth_m / 0.3048,
     .(
       dataset = "sales",
       primary_id = as.character(pin),
@@ -188,7 +212,7 @@ build_spotcheck <- function(dt_sales, dt_rent, n_each = 20L) {
   sales_q <- sales_q[order(flag, dist_ft)]
 
   rent_q <- dt_rent[
-    is.finite(dist_ft) & dist_ft <= 500,
+    is.finite(dist_ft) & dist_ft <= bandwidth_m / 0.3048,
     .(
       dataset = "rental",
       primary_id = as.character(id),
@@ -214,6 +238,11 @@ if (mode == "all") {
   message(sprintf("Rental input: %s", rent_input))
 }
 message(sprintf("Segment GPKG: %s", segment_gpkg))
+message(sprintf("Segment buffer: %.0fm", segment_buffer_m))
+message(sprintf("Coverage bandwidths: %s", paste0(coverage_bandwidths_m, "m", collapse = ", ")))
+if (mode == "all") {
+  message(sprintf("Spotcheck bandwidth: %.0fm", spotcheck_bandwidth_m))
+}
 
 sales_dt <- fread(sales_input)
 if (!all(c("pin", "sale_date", "ward_pair_id", "dist_ft", "longitude", "latitude") %in% names(sales_dt))) {
@@ -265,7 +294,7 @@ rent_res <- assign_segments(
 rent_out <- rent_res$data
 cov_out <- rbindlist(list(sales_res$coverage, rent_res$coverage), fill = TRUE)
 reason_out <- rbindlist(list(sales_res$reason_summary, rent_res$reason_summary), fill = TRUE)
-spotcheck <- build_spotcheck(sales_out, rent_out, n_each = 20L)
+spotcheck <- build_spotcheck(sales_out, rent_out, n_each = 20L, bandwidth_m = spotcheck_bandwidth_m)
 
 write_parquet(as.data.frame(rent_out), out_rent)
 fwrite(cov_out, out_coverage)

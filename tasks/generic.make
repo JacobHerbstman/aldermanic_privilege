@@ -22,6 +22,9 @@ sanitize-numbered-duplicates: ../input
 
 link-inputs: sanitize-numbered-duplicates
 
+../../_lib/%:
+	@test -e "$@" || { echo "Missing shared library: $@"; false; }
+
 ../../%: FORCE
 	@case "$@" in \
 		../../*/output/*) \

@@ -8,19 +8,21 @@ library(sf)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids/code")
 # in_pre_scores <- "../input/parcels_pre_scores.csv"
 # in_geom <- "../input/parcels_with_geometry.gpkg"
-# in_segments <- "../input/boundary_segments_1320ft.gpkg"
+# in_segments <- "../input/boundary_segments_400m.gpkg"
 # out_lookup <- "../output/parcel_segment_ids.csv"
 # out_coverage <- "../output/parcel_segment_ids_coverage.csv"
 # out_reason <- "../output/parcel_segment_ids_reason_summary.csv"
+# segment_buffer_m <- 250
+# coverage_bandwidths_m <- "100 250"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(in_pre_scores, in_geom, in_segments, out_lookup, out_coverage, out_reason)
+  cli_args <- c(in_pre_scores, in_geom, in_segments, out_lookup, out_coverage, out_reason, segment_buffer_m, coverage_bandwidths_m)
 }
 
-if (length(cli_args) != 6) {
+if (length(cli_args) != 8) {
   stop(
-    "FATAL: Script requires 6 args: <parcels_pre_scores_csv> <parcels_with_geometry_gpkg> <segment_gpkg> <out_lookup_csv> <out_coverage_csv> <out_reason_csv>",
+    "FATAL: Script requires 8 args: <parcels_pre_scores_csv> <parcels_with_geometry_gpkg> <segment_gpkg> <out_lookup_csv> <out_coverage_csv> <out_reason_csv> <segment_buffer_m> <coverage_bandwidths_m>",
     call. = FALSE
   )
 }
@@ -31,6 +33,16 @@ in_segments <- cli_args[3]
 out_lookup <- cli_args[4]
 out_coverage <- cli_args[5]
 out_reason <- cli_args[6]
+segment_buffer_m <- as.numeric(cli_args[7])
+coverage_bandwidths_m <- scan(text = cli_args[8], quiet = TRUE)
+
+if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
+  stop("segment_buffer_m must be positive.", call. = FALSE)
+}
+if (length(coverage_bandwidths_m) == 0 || any(!is.finite(coverage_bandwidths_m)) || any(coverage_bandwidths_m <= 0)) {
+  stop("coverage_bandwidths_m must contain positive numeric bandwidths.", call. = FALSE)
+}
+coverage_bandwidths_m <- sort(unique(as.numeric(coverage_bandwidths_m)))
 
 stopifnot(
   file.exists(in_pre_scores),
@@ -72,6 +84,8 @@ cat("Segments:", in_segments, "\n")
 cat("Output lookup:", out_lookup, "\n")
 cat("Output coverage:", out_coverage, "\n")
 cat("Output reasons:", out_reason, "\n")
+cat("Segment buffer:", segment_buffer_m, "m\n")
+cat("Coverage bandwidths:", paste0(coverage_bandwidths_m, "m", collapse = ", "), "\n")
 
 pre <- fread(in_pre_scores)
 required_pre_cols <- c("pin", "boundary_year", "ward_pair")
@@ -118,7 +132,7 @@ joined$segment_reason <- case_when(
 )
 
 needed_eras <- unique(na.omit(joined$era))
-segments_by_era <- load_segment_layers(in_segments, buffer_ft = 1000, eras = needed_eras)
+segments_by_era <- load_segment_layers(in_segments, buffer_m = segment_buffer_m, eras = needed_eras)
 segment_id_by_row <- assign_points_to_segments(joined, joined$era, joined$pair_dash, segments_by_era, chunk_n = 50000L)
 joined$segment_id <- segment_id_by_row
 
@@ -164,12 +178,17 @@ diag_dt <- merge(
 )
 diag_dt[, era := canonical_era_from_boundary_year(boundary_year)]
 
-coverage_parts <- list(
-  coverage_block(diag_dt, "all"),
-  coverage_block(diag_dt[construction_year >= 2006], "regression_base"),
-  coverage_block(diag_dt[construction_year >= 2006 & dist_to_boundary <= 1000], "regression_bw1000"),
-  coverage_block(diag_dt[construction_year >= 2006 & dist_to_boundary <= 500], "regression_bw500"),
-  coverage_block(diag_dt[construction_year >= 2006 & dist_to_boundary <= 250], "regression_bw250")
+coverage_parts <- c(
+  list(
+    coverage_block(diag_dt, "all"),
+    coverage_block(diag_dt[construction_year >= 2006], "regression_base")
+  ),
+  lapply(coverage_bandwidths_m, function(bw_m_i) {
+    coverage_block(
+      diag_dt[construction_year >= 2006 & dist_to_boundary <= bw_m_i / 0.3048],
+      sprintf("regression_bw%.0fm", bw_m_i)
+    )
+  })
 )
 
 coverage <- rbindlist(coverage_parts, fill = TRUE)
@@ -182,7 +201,7 @@ setorder(reason_summary, era, segment_reason)
 fwrite(reason_summary, out_reason)
 
 cat("\nCoverage diagnostics:\n")
-print(coverage[scope %in% c("all", "regression_bw1000", "regression_bw500", "regression_bw250")])
+print(coverage[scope %in% c("all", sprintf("regression_bw%.0fm", coverage_bandwidths_m))])
 
 cat("\nSaved:\n")
 cat(" -", out_lookup, "\n")
