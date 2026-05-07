@@ -6,7 +6,7 @@ source("../../setup_environment/code/packages.R")
 # corner_clean_summary_path <- "../output/fe_summary_100m_all_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv"
 # ambiguity_summary_path <- "../input/boundary_ambiguity_by_bw.csv"
 # output_tex <- "../output/fe_table_100m_all_corner_clean_compare.tex"
-# bandwidth_ft <- 328
+# bandwidth_m <- 100
 # sample_filter <- "all"
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -16,14 +16,14 @@ if (length(args) == 0) {
     corner_clean_summary_path,
     ambiguity_summary_path,
     output_tex,
-    bandwidth_ft,
+    bandwidth_m,
     sample_filter
   )
 }
 
 if (length(args) != 6) {
   stop(
-    "FATAL: Script requires args: <baseline_summary_path> <corner_clean_summary_path> <ambiguity_summary_path> <output_tex> <bandwidth_ft> <sample_filter>",
+    "FATAL: Script requires args: <baseline_summary_path> <corner_clean_summary_path> <ambiguity_summary_path> <output_tex> <bandwidth_m> <sample_filter>",
     call. = FALSE
   )
 }
@@ -32,11 +32,12 @@ baseline_summary_path <- args[1]
 corner_clean_summary_path <- args[2]
 ambiguity_summary_path <- args[3]
 output_tex <- args[4]
-bandwidth_ft <- as.numeric(args[5])
+bandwidth_m <- as.numeric(args[5])
 sample_filter <- args[6]
+bandwidth_ft <- round(bandwidth_m / 0.3048)
 
-if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
-  stop("bandwidth_ft must be a positive number.", call. = FALSE)
+if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
+  stop("bandwidth_m must be a positive number.", call. = FALSE)
 }
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample_filter must be one of: all, multifamily.", call. = FALSE)
@@ -89,8 +90,13 @@ if (nrow(ambiguity_row) != 1) {
   stop("Expected one ambiguity row for the requested sample and bandwidth.", call. = FALSE)
 }
 
-if (!identical(baseline_panel$n_obs[[1]], ambiguity_row$n_in_bw[[1]])) {
-  stop("Baseline N does not match ambiguity summary at requested bandwidth.", call. = FALSE)
+model_drop_n <- baseline_panel$n_obs - corner_clean_panel$n_obs
+if (length(unique(model_drop_n)) != 1) {
+  stop("Corner-clean model drops differ across outcomes.", call. = FALSE)
+}
+
+if (!identical(as.numeric(model_drop_n[[1]]), as.numeric(ambiguity_row$n_ambiguous[[1]]))) {
+  stop("Corner-clean model drop count does not match ambiguity summary at requested bandwidth.", call. = FALSE)
 }
 
 table_lines <- c(

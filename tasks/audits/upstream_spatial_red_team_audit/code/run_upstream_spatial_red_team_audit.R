@@ -478,7 +478,7 @@ boundary_layers <- load_layers_named(
   file.path(repo_root, "tasks/border_segment_creation/output/ward_pair_boundaries.gpkg")
 )
 segment_layers <- load_layers_named(
-  file.path(repo_root, "tasks/border_segment_creation/output/boundary_segments_1320ft.gpkg"),
+  file.path(repo_root, "tasks/border_segment_creation/output/boundary_segments_400m.gpkg"),
   filter_fun = function(layer_names) str_detect(layer_names, "_bw1000$")
 )
 blocks_2010 <- load_blocks_2010(file.path(repo_root, "data_raw/CensusBlockTIGER2010_20250721.csv"))

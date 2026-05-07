@@ -30,16 +30,16 @@ The key fixed effects ensure that comparisons are made within localized boundary
 
 The coefficients $\beta_\tau$ trace out the effect of aldermanic strictness on housing costs in event time, with $\tau = -1$ (the year before redistricting takes effect) as the omitted reference period. The identifying assumption implies $\beta_\tau = 0$ for $\tau < 0$: prior to redistricting, there should be no systematic relationship between future changes in alderman strictness and housing cost trends within the same segment-side cell.
 
-I restrict the sample to observations within 1,000 feet of ward boundaries and apply triangular kernel weights that give more weight to observations closer to the boundary, where treated and control units are most comparable. In the continuous treatment specification, $\Delta\text{Strictness}$ enters as a continuous variable; I also present binary specifications that allow for separate effects by treatment direction (moved to stricter versus moved to more lenient).
+I restrict the sample to observations within 250m of ward boundaries and apply kernel weights that give more weight to observations closer to the boundary, where treated and control units are most comparable. In the continuous treatment specification, $\Delta\text{Strictness}$ enters as a continuous variable; I also present binary specifications that allow for separate effects by treatment direction (moved to stricter versus moved to more lenient).
 
 % =============================================================================
 % FIGURE 5: Ward Pair Example (Vertical Layout - Full Width)
 % =============================================================================
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.98\textwidth,height=0.76\textheight,keepaspectratio]{../tasks/event_study_sales_diagnostics/output/ward_pair_vertical_13-23.pdf}
+    \includegraphics[width=0.98\textwidth,height=0.76\textheight,keepaspectratio]{../tasks/event_study_sales_diagnostics/output/ward_pair_vertical_13-23_250m.pdf}
     \caption{Identification Example: Ward Pair 13--23 (2015 Redistricting)}
-    \figurenotes{Top panel shows ward assignments before redistricting (2014 boundaries), middle panel shows assignments after redistricting (2015 boundaries), and bottom panel shows treatment status based on the change in alderman strictness. Blocks switching from Ward 13 to Ward 23 are compared to controls that remained in Ward 13 (the origin ward), and vice versa. Sample restricted to blocks within 1,000 feet of ward boundaries.}
+    \figurenotes{Top panel shows ward assignments before redistricting (2014 boundaries), middle panel shows assignments after redistricting (2015 boundaries), and bottom panel shows treatment status based on the change in alderman strictness. Blocks switching from Ward 13 to Ward 23 are compared to controls that remained in Ward 13 (the origin ward), and vice versa. Sample restricted to blocks within 250m of ward boundaries.}
     \label{fig:identification_example}
 \end{figure}
 
@@ -50,13 +50,13 @@ I restrict the sample to observations within 1,000 feet of ward boundaries and a
     \centering
     \includegraphics[width=\textwidth]{../tasks/event_study_sales_diagnostics/output/treatment_control_maps_combined.pdf}
     \caption{Treatment and Control Blocks: Citywide Distribution}
-    \figurenotes{Geographic distribution of treated and control blocks for the 2015 redistricting (left) and 2023 redistricting (right). Red indicates blocks that moved to a stricter alderman, blue indicates blocks that moved to a more lenient alderman, and gray indicates control blocks that did not switch wards. Sample restricted to blocks within 1,000 feet of ward boundaries. Controls exclude wards with aldermanic turnover via election.}
+    \figurenotes{Geographic distribution of treated and control blocks for the 2015 redistricting (left) and 2023 redistricting (right). Red indicates blocks that moved to a stricter alderman, blue indicates blocks that moved to a more lenient alderman, and gray indicates control blocks that did not switch wards. Sample restricted to blocks within 250m of ward boundaries. Controls exclude wards with aldermanic turnover via election.}
     \label{fig:treatment_control_maps}
 \end{figure}
 
 \paragraph{Predictions.} If stricter aldermen constrain housing supply, standard urban economics predicts that both rents and home prices should rise when blocks are reassigned to stricter aldermen. The event study design allows me to trace out the dynamics of this response and verify that effects emerge only after redistricting, supporting a causal interpretation.
 
-\paragraph{Data and Sample.} For rental listings, I use scraped listing data from 2014--2025, which allows me to stack both the 2015 and 2023 redistricting events. This stacked design maximizes statistical power by pooling two natural experiments. The rental sample includes approximately 3.9 million listings within 1,000 feet of ward boundaries. For home sales, I use transaction data from the Cook County Recorder of Deeds for the 2015 redistricting cohort, with a sample window from 2010--2020. The home sales sample includes approximately 27,000 transactions near ward boundaries.\footnote{I focus on the 2015 redistricting for home sales because the 2023 redistricting provides limited post-period data. Appendix~\ref{sec:appendix_sales_rental} presents additional robustness checks.}
+\paragraph{Data and Sample.} For rental listings, I use scraped listing data from 2014--2025, which allows me to stack both the 2015 and 2023 redistricting events. This stacked design maximizes statistical power by pooling two natural experiments. The rental sample includes listings within 250m of ward boundaries. For home sales, I use transaction data from the Cook County Recorder of Deeds for the 2015 redistricting cohort, with a sample window from 2010--2020.\footnote{I focus on the 2015 redistricting for home sales because the 2023 redistricting provides limited post-period data. Appendix~\ref{sec:appendix_sales_rental} presents additional robustness checks.}
 
 Table~\ref{tab:summary_stats_event_study} presents summary statistics for the event study samples. 
 Treated and control groups are broadly similar on observable property characteristics: unit sizes and building type distributions are comparable across treatment groups for rentals, as are mean building size, age, and bedroom counts for home sales. 
@@ -77,17 +77,17 @@ Panel B presents the binary specification, which relaxes the linearity assumptio
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_triangular_1000ft_short.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_continuous_250m_short.pdf}
         \caption*{Panel A: Continuous Treatment}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_triangular_1000ft_short.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_rental_disaggregate/output/event_study_disaggregate_yearly_stacked_binary_direction_250m_short.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Effect of Alderman Strictness on Rents}
-    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-segment-by-side and cohort-by-segment-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building type, square footage, bedrooms, and bathrooms. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals use two-way clustering by census block and segment.}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). Stacked estimator combining 2015 and 2023 redistricting cohorts. Cohort-by-segment-by-side and cohort-by-segment-by-year fixed effects. Kernel weights with 250m bandwidth. Includes hedonic controls for building type, unit area, bedrooms, and bathrooms. Year $-1$ omitted as reference. Post-period truncated at $t=2$ where both cohorts contribute observations. 95\% confidence intervals use two-way clustering by census block and segment.}
     \label{fig:event_study_rents}
 \end{figure}
 
@@ -106,17 +106,17 @@ Panel B presents the binary specification for home sales. Despite larger confide
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_continuous_triangular_1000ft.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_cohort_2015_continuous_uniform_250m_amenity_full_geo_wardpair_clust_block.pdf}
         \caption*{Panel A: Continuous Treatment}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_unstacked_2015_binary_triangular_1000ft.pdf}
+        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_combined_disaggregate_yearly_cohort_2015_continuous_split_uniform_250m_amenity_full_geo_wardpair_clust_block.pdf}
         \caption*{Panel B: Binary Treatment}
     \end{minipage}
     \caption{Event Study: Effect of Alderman Strictness on Home Sale Prices}
-    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: binary treatment (separate effects for blocks moving to stricter vs.\ more lenient aldermen). 2015 redistricting cohort. Segment-by-side and segment-by-year fixed effects. Triangular kernel weights with 1,000 ft bandwidth. Includes hedonic controls for building square footage, land square footage, building age, bedrooms, bathrooms, and garage. Year $-1$ omitted as reference. 95\% confidence intervals use two-way clustering by census block and segment.}
+    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in strictness). Panel B: continuous split by treatment direction. 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Uniform weights with 250m bandwidth. Includes hedonic controls for building area, land area, building age, bedrooms, bathrooms, and garage. Year $-1$ omitted as reference. 95\% confidence intervals use clustering by census block.}
     \label{fig:event_study_sales}
 \end{figure}
 

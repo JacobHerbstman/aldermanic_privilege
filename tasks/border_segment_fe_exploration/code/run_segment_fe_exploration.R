@@ -8,7 +8,7 @@ sf_use_s2(FALSE)
 
 sales_path <- "../input/sales_with_hedonics.parquet"
 rent_path <- "../input/rent_with_ward_distances_full.parquet"
-segment_gpkg <- "../input/boundary_segments_1320ft.gpkg"
+segment_gpkg <- "../input/boundary_segments_400m.gpkg"
 flags_path <- "../input/confounded_pair_era_flags.csv"
 out_dir <- "../output"
 

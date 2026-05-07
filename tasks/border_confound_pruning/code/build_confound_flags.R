@@ -15,7 +15,6 @@ target_segment_length_m <- as.numeric(Sys.getenv("TARGET_SEGMENT_LENGTH_M", "400
 if (!is.finite(target_segment_length_m) || target_segment_length_m <= 0) {
   stop("TARGET_SEGMENT_LENGTH_M must be positive.", call. = FALSE)
 }
-target_segment_length_ft <- target_segment_length_m / 0.3048
 segment_park_water_drop_share <- 0.50
 segment_expressway_drop_share <- 0.40
 segment_arterial_drop_share <- 0.75
@@ -52,19 +51,31 @@ fmt_pct <- function(x) {
 stopifnot(file.exists(segment_path))
 segments <- fread(segment_path)
 
+derive_meter_col <- function(dt, meter_col, foot_col) {
+  if (!meter_col %in% names(dt) && foot_col %in% names(dt)) {
+    dt[, (meter_col) := as.numeric(get(foot_col)) * 0.3048]
+  }
+}
+
+derive_meter_col(segments, "segment_length_m", "segment_length_ft")
+derive_meter_col(segments, "waterway_overlap_m", "waterway_overlap_ft")
+derive_meter_col(segments, "expressway_overlap_m", "expressway_overlap_ft")
+derive_meter_col(segments, "major_overlap_arterial_m", "major_overlap_arterial_ft")
+derive_meter_col(segments, "target_length_m", "target_length_ft")
+
 required_cols <- c(
   "segment_id",
   "ward_pair_id",
   "era",
-  "segment_length_ft",
+  "segment_length_m",
   "segment_type",
   "water_area_share",
   "park_area_share",
   "cemetery_area_share",
-  "waterway_overlap_ft",
-  "expressway_overlap_ft",
-  "major_overlap_arterial_ft",
-  "target_length_ft"
+  "waterway_overlap_m",
+  "expressway_overlap_m",
+  "major_overlap_arterial_m",
+  "target_length_m"
 )
 
 missing_cols <- setdiff(required_cols, names(segments))
@@ -79,19 +90,14 @@ segments[, ward_pair_id_us := as.character(ward_pair_id)]
 segments[, ward_pair_id_dash := normalize_pair_dash(ward_pair_id_us)]
 segments <- segments[!is.na(ward_pair_id_dash)]
 
-segments[, segment_length_ft := pmax(0, as.numeric(segment_length_ft))]
-segments[!is.finite(segment_length_ft), segment_length_ft := 0]
-segments[, major_overlap_arterial_ft := pmax(0, as.numeric(major_overlap_arterial_ft))]
-segments[!is.finite(major_overlap_arterial_ft), major_overlap_arterial_ft := 0]
-segments[, expressway_overlap_ft := pmax(0, as.numeric(expressway_overlap_ft))]
-segments[!is.finite(expressway_overlap_ft), expressway_overlap_ft := 0]
-segments[, target_length_ft := as.numeric(target_length_ft)]
-if ("target_length_m" %in% names(segments)) {
-  segments[, target_length_m := as.numeric(target_length_m)]
-} else {
-  segments[, target_length_m := target_length_ft * 0.3048]
-}
-segments <- segments[is.finite(target_length_ft)]
+segments[, segment_length_m := pmax(0, as.numeric(segment_length_m))]
+segments[!is.finite(segment_length_m), segment_length_m := 0]
+segments[, major_overlap_arterial_m := pmax(0, as.numeric(major_overlap_arterial_m))]
+segments[!is.finite(major_overlap_arterial_m), major_overlap_arterial_m := 0]
+segments[, expressway_overlap_m := pmax(0, as.numeric(expressway_overlap_m))]
+segments[!is.finite(expressway_overlap_m), expressway_overlap_m := 0]
+segments[, target_length_m := as.numeric(target_length_m)]
+segments <- segments[is.finite(target_length_m)]
 
 # Restrict to the intended round-meter segment layer to avoid mixing products.
 segments <- segments[abs(target_length_m - target_segment_length_m) < 1e-8]
@@ -104,18 +110,18 @@ if (nrow(segments) == 0) {
 }
 
 if (anyDuplicated(segments$segment_id) > 0) {
-  stop("Duplicate segment_id rows remain after target_length_ft filtering.", call. = FALSE)
+  stop("Duplicate segment_id rows remain after target_length_m filtering.", call. = FALSE)
 }
 
 segments[, water_area_share := as.numeric(water_area_share)]
 segments[, park_area_share := as.numeric(park_area_share)]
 segments[, cemetery_area_share := as.numeric(cemetery_area_share)]
-segments[, waterway_overlap_ft := as.numeric(waterway_overlap_ft)]
+segments[, waterway_overlap_m := as.numeric(waterway_overlap_m)]
 segments[!is.finite(water_area_share), water_area_share := 0]
 segments[!is.finite(park_area_share), park_area_share := 0]
 segments[!is.finite(cemetery_area_share), cemetery_area_share := 0]
-segments[!is.finite(waterway_overlap_ft), waterway_overlap_ft := 0]
-segments[, waterway_overlap_ft := pmax(0, waterway_overlap_ft)]
+segments[!is.finite(waterway_overlap_m), waterway_overlap_m := 0]
+segments[, waterway_overlap_m := pmax(0, waterway_overlap_m)]
 
 for (share_col in c("water_area_share", "park_area_share", "cemetery_area_share")) {
   bad_n <- nrow(segments[get(share_col) < 0 | get(share_col) > 1])
@@ -132,9 +138,9 @@ if (
     all(segments$water_area_share <= 0, na.rm = TRUE) &&
     all(segments$park_area_share <= 0, na.rm = TRUE) &&
     all(segments$cemetery_area_share <= 0, na.rm = TRUE) &&
-    all(segments$waterway_overlap_ft <= 0, na.rm = TRUE) &&
-    all(segments$expressway_overlap_ft <= 0, na.rm = TRUE) &&
-    all(segments$major_overlap_arterial_ft <= 0, na.rm = TRUE)
+    all(segments$waterway_overlap_m <= 0, na.rm = TRUE) &&
+    all(segments$expressway_overlap_m <= 0, na.rm = TRUE) &&
+    all(segments$major_overlap_arterial_m <= 0, na.rm = TRUE)
 ) {
   stop(
     paste(
@@ -147,23 +153,23 @@ if (
 
 segments[, segment_type_clean := as.character(segment_type)]
 segments[is.na(segment_type_clean) | segment_type_clean == "", segment_type_clean := "no_feature"]
-segments[, waterway_overlap_capped_ft := pmin(waterway_overlap_ft, segment_length_ft)]
-segments[, waterway_overlap_share := fifelse(segment_length_ft > 0, waterway_overlap_capped_ft / segment_length_ft, 0)]
+segments[, waterway_overlap_capped_m := pmin(waterway_overlap_m, segment_length_m)]
+segments[, waterway_overlap_share := fifelse(segment_length_m > 0, waterway_overlap_capped_m / segment_length_m, 0)]
 segments[, park_water_area_share_sum := pmin(1, water_area_share + park_area_share)]
-segments[, park_water_continuous_length_ft := pmin(
-  segment_length_ft,
-  segment_length_ft * park_water_area_share_sum + waterway_overlap_capped_ft
+segments[, park_water_continuous_length_m := pmin(
+  segment_length_m,
+  segment_length_m * park_water_area_share_sum + waterway_overlap_capped_m
 )]
-segments[, cemetery_continuous_length_ft := segment_length_ft * cemetery_area_share]
-segments[, physical_barrier_continuous_length_ft := pmin(
-  segment_length_ft,
-  park_water_continuous_length_ft + cemetery_continuous_length_ft
+segments[, cemetery_continuous_length_m := segment_length_m * cemetery_area_share]
+segments[, physical_barrier_continuous_length_m := pmin(
+  segment_length_m,
+  park_water_continuous_length_m + cemetery_continuous_length_m
 )]
 segments[, is_park_water := (
   segment_type_clean == "park_water" |
     water_area_share > 0 |
     park_area_share > 0 |
-    waterway_overlap_ft > 0
+    waterway_overlap_m > 0
 )]
 segments[, is_cemetery := segment_type_clean == "cemetery" | cemetery_area_share > 0]
 segments[, park_water_tiny_positive := (
@@ -178,21 +184,21 @@ segments[, cemetery_tiny_positive := (
     cemetery_area_share < 0.05
 )]
 
-segments[, expressway_overlap_uncapped_ft := expressway_overlap_ft]
-segments[, expressway_overlap_capped_ft := pmin(expressway_overlap_ft, segment_length_ft)]
-segments[, expressway_overlap_was_capped := expressway_overlap_uncapped_ft > segment_length_ft]
-segments[, expressway_overlap_share := fifelse(segment_length_ft > 0, expressway_overlap_capped_ft / segment_length_ft, 0)]
-segments[, arterial_overlap_uncapped_ft := major_overlap_arterial_ft]
-segments[, arterial_overlap_capped_ft := pmin(major_overlap_arterial_ft, segment_length_ft)]
-segments[, arterial_overlap_was_capped := arterial_overlap_uncapped_ft > segment_length_ft]
-segments[, arterial_overlap_share := fifelse(segment_length_ft > 0, arterial_overlap_capped_ft / segment_length_ft, 0)]
-segments[, park_water_continuous_share := fifelse(segment_length_ft > 0, park_water_continuous_length_ft / segment_length_ft, 0)]
-segments[, cemetery_continuous_share := fifelse(segment_length_ft > 0, cemetery_continuous_length_ft / segment_length_ft, 0)]
-segments[, physical_barrier_continuous_share := fifelse(segment_length_ft > 0, physical_barrier_continuous_length_ft / segment_length_ft, 0)]
+segments[, expressway_overlap_uncapped_m := expressway_overlap_m]
+segments[, expressway_overlap_capped_m := pmin(expressway_overlap_m, segment_length_m)]
+segments[, expressway_overlap_was_capped := expressway_overlap_uncapped_m > segment_length_m]
+segments[, expressway_overlap_share := fifelse(segment_length_m > 0, expressway_overlap_capped_m / segment_length_m, 0)]
+segments[, arterial_overlap_uncapped_m := major_overlap_arterial_m]
+segments[, arterial_overlap_capped_m := pmin(major_overlap_arterial_m, segment_length_m)]
+segments[, arterial_overlap_was_capped := arterial_overlap_uncapped_m > segment_length_m]
+segments[, arterial_overlap_share := fifelse(segment_length_m > 0, arterial_overlap_capped_m / segment_length_m, 0)]
+segments[, park_water_continuous_share := fifelse(segment_length_m > 0, park_water_continuous_length_m / segment_length_m, 0)]
+segments[, cemetery_continuous_share := fifelse(segment_length_m > 0, cemetery_continuous_length_m / segment_length_m, 0)]
+segments[, physical_barrier_continuous_share := fifelse(segment_length_m > 0, physical_barrier_continuous_length_m / segment_length_m, 0)]
 
 segments[, segment_flag_park_water := is.finite(park_water_continuous_share) &
   park_water_continuous_share >= segment_park_water_drop_share]
-segments[, segment_flag_waterway := waterway_overlap_capped_ft > 0]
+segments[, segment_flag_waterway := waterway_overlap_capped_m > 0]
 segments[, segment_flag_cemetery := is_cemetery]
 segments[, segment_flag_expressway := is.finite(expressway_overlap_share) &
   expressway_overlap_share >= segment_expressway_drop_share]
@@ -221,30 +227,30 @@ segment_audit <- segments[, .(
   ward_pair_id_dash,
   ward_pair_id_us,
   era,
-  target_length_ft,
-  segment_length_ft,
+  target_length_m,
+  segment_length_m,
   segment_type = segment_type_clean,
   water_area_share,
   park_area_share,
   cemetery_area_share,
-  waterway_overlap_ft,
-  waterway_overlap_capped_ft,
+  waterway_overlap_m,
+  waterway_overlap_capped_m,
   waterway_overlap_share,
   park_water_area_share_sum,
-  park_water_continuous_length_ft,
-  cemetery_continuous_length_ft,
-  physical_barrier_continuous_length_ft,
+  park_water_continuous_length_m,
+  cemetery_continuous_length_m,
+  physical_barrier_continuous_length_m,
   park_water_continuous_share,
   cemetery_continuous_share,
   physical_barrier_continuous_share,
   park_water_tiny_positive,
   cemetery_tiny_positive,
-  expressway_overlap_ft,
-  expressway_overlap_capped_ft,
+  expressway_overlap_m,
+  expressway_overlap_capped_m,
   expressway_overlap_share,
   expressway_overlap_was_capped,
-  major_overlap_arterial_ft,
-  arterial_overlap_capped_ft,
+  major_overlap_arterial_m,
+  arterial_overlap_capped_m,
   arterial_overlap_share,
   arterial_overlap_was_capped,
   is_park_water,
@@ -265,19 +271,19 @@ segment_flags <- segments[, .(
   ward_pair_id_us,
   era,
   segment_id,
-  segment_length_ft,
+  segment_length_m,
   segment_type = segment_type_clean,
   water_area_share,
   park_area_share,
   cemetery_area_share,
-  waterway_overlap_ft,
+  waterway_overlap_m,
   waterway_overlap_share,
   park_water_continuous_share,
   cemetery_continuous_share,
   physical_barrier_continuous_share,
-  expressway_overlap_ft,
+  expressway_overlap_m,
   expressway_overlap_share,
-  major_overlap_arterial_ft,
+  major_overlap_arterial_m,
   arterial_overlap_share,
   flag_park_water = as.logical(segment_flag_park_water),
   flag_waterway = as.logical(segment_flag_waterway),
@@ -302,37 +308,37 @@ flags <- segments[, .(
   n_park_water_tiny_positive_segments = sum(park_water_tiny_positive, na.rm = TRUE),
   n_cemetery_segments = sum(is_cemetery, na.rm = TRUE),
   n_cemetery_tiny_positive_segments = sum(cemetery_tiny_positive, na.rm = TRUE),
-  n_expressway_segments = sum(expressway_overlap_ft > 0, na.rm = TRUE),
+  n_expressway_segments = sum(expressway_overlap_m > 0, na.rm = TRUE),
   n_expressway_capped_segments = sum(expressway_overlap_was_capped, na.rm = TRUE),
-  n_arterial_segments = sum(major_overlap_arterial_ft > 0, na.rm = TRUE),
+  n_arterial_segments = sum(major_overlap_arterial_m > 0, na.rm = TRUE),
   n_arterial_capped_segments = sum(arterial_overlap_was_capped, na.rm = TRUE),
-  total_length_ft = sum(segment_length_ft, na.rm = TRUE),
-  park_water_length_ft = sum(segment_length_ft * as.numeric(is_park_water), na.rm = TRUE),
-  park_water_continuous_length_ft = sum(park_water_continuous_length_ft, na.rm = TRUE),
-  park_water_tiny_positive_length_ft = sum(segment_length_ft * as.numeric(park_water_tiny_positive), na.rm = TRUE),
-  cemetery_length_ft = sum(segment_length_ft * as.numeric(is_cemetery), na.rm = TRUE),
-  cemetery_continuous_length_ft = sum(cemetery_continuous_length_ft, na.rm = TRUE),
-  cemetery_tiny_positive_length_ft = sum(segment_length_ft * as.numeric(cemetery_tiny_positive), na.rm = TRUE),
-  physical_barrier_continuous_length_ft = sum(physical_barrier_continuous_length_ft, na.rm = TRUE),
-  expressway_overlap_length_ft = sum(expressway_overlap_capped_ft, na.rm = TRUE),
-  expressway_overlap_uncapped_length_ft = sum(expressway_overlap_uncapped_ft, na.rm = TRUE),
-  arterial_overlap_length_ft = sum(arterial_overlap_capped_ft, na.rm = TRUE),
-  arterial_overlap_uncapped_length_ft = sum(arterial_overlap_uncapped_ft, na.rm = TRUE)
+  total_length_m = sum(segment_length_m, na.rm = TRUE),
+  park_water_length_m = sum(segment_length_m * as.numeric(is_park_water), na.rm = TRUE),
+  park_water_continuous_length_m = sum(park_water_continuous_length_m, na.rm = TRUE),
+  park_water_tiny_positive_length_m = sum(segment_length_m * as.numeric(park_water_tiny_positive), na.rm = TRUE),
+  cemetery_length_m = sum(segment_length_m * as.numeric(is_cemetery), na.rm = TRUE),
+  cemetery_continuous_length_m = sum(cemetery_continuous_length_m, na.rm = TRUE),
+  cemetery_tiny_positive_length_m = sum(segment_length_m * as.numeric(cemetery_tiny_positive), na.rm = TRUE),
+  physical_barrier_continuous_length_m = sum(physical_barrier_continuous_length_m, na.rm = TRUE),
+  expressway_overlap_length_m = sum(expressway_overlap_capped_m, na.rm = TRUE),
+  expressway_overlap_uncapped_length_m = sum(expressway_overlap_uncapped_m, na.rm = TRUE),
+  arterial_overlap_length_m = sum(arterial_overlap_capped_m, na.rm = TRUE),
+  arterial_overlap_uncapped_length_m = sum(arterial_overlap_uncapped_m, na.rm = TRUE)
 ), by = .(ward_pair_id_dash, ward_pair_id_us, era)]
 
-flags[, share_park_water_length := fifelse(total_length_ft > 0, park_water_length_ft / total_length_ft, NA_real_)]
-flags[, share_park_water_continuous_length := fifelse(total_length_ft > 0, park_water_continuous_length_ft / total_length_ft, NA_real_)]
-flags[, share_park_water_tiny_positive_length := fifelse(total_length_ft > 0, park_water_tiny_positive_length_ft / total_length_ft, NA_real_)]
-flags[, share_cemetery_length := fifelse(total_length_ft > 0, cemetery_length_ft / total_length_ft, NA_real_)]
-flags[, share_cemetery_continuous_length := fifelse(total_length_ft > 0, cemetery_continuous_length_ft / total_length_ft, NA_real_)]
-flags[, share_cemetery_tiny_positive_length := fifelse(total_length_ft > 0, cemetery_tiny_positive_length_ft / total_length_ft, NA_real_)]
-flags[, share_physical_barrier_length := fifelse(total_length_ft > 0, physical_barrier_continuous_length_ft / total_length_ft, NA_real_)]
-flags[, expressway_overlap_share := fifelse(total_length_ft > 0, expressway_overlap_length_ft / total_length_ft, NA_real_)]
-flags[, expressway_overlap_uncapped_share := fifelse(total_length_ft > 0, expressway_overlap_uncapped_length_ft / total_length_ft, NA_real_)]
-flags[, arterial_overlap_share := fifelse(total_length_ft > 0, arterial_overlap_length_ft / total_length_ft, NA_real_)]
-flags[, arterial_overlap_uncapped_share := fifelse(total_length_ft > 0, arterial_overlap_uncapped_length_ft / total_length_ft, NA_real_)]
+flags[, share_park_water_length := fifelse(total_length_m > 0, park_water_length_m / total_length_m, NA_real_)]
+flags[, share_park_water_continuous_length := fifelse(total_length_m > 0, park_water_continuous_length_m / total_length_m, NA_real_)]
+flags[, share_park_water_tiny_positive_length := fifelse(total_length_m > 0, park_water_tiny_positive_length_m / total_length_m, NA_real_)]
+flags[, share_cemetery_length := fifelse(total_length_m > 0, cemetery_length_m / total_length_m, NA_real_)]
+flags[, share_cemetery_continuous_length := fifelse(total_length_m > 0, cemetery_continuous_length_m / total_length_m, NA_real_)]
+flags[, share_cemetery_tiny_positive_length := fifelse(total_length_m > 0, cemetery_tiny_positive_length_m / total_length_m, NA_real_)]
+flags[, share_physical_barrier_length := fifelse(total_length_m > 0, physical_barrier_continuous_length_m / total_length_m, NA_real_)]
+flags[, expressway_overlap_share := fifelse(total_length_m > 0, expressway_overlap_length_m / total_length_m, NA_real_)]
+flags[, expressway_overlap_uncapped_share := fifelse(total_length_m > 0, expressway_overlap_uncapped_length_m / total_length_m, NA_real_)]
+flags[, arterial_overlap_share := fifelse(total_length_m > 0, arterial_overlap_length_m / total_length_m, NA_real_)]
+flags[, arterial_overlap_uncapped_share := fifelse(total_length_m > 0, arterial_overlap_uncapped_length_m / total_length_m, NA_real_)]
 
-bad_total_n <- nrow(flags[!is.finite(total_length_ft) | total_length_ft <= 0])
+bad_total_n <- nrow(flags[!is.finite(total_length_m) | total_length_m <= 0])
 if (bad_total_n > 0) {
   stop(
     sprintf("%s pair-era rows have non-positive total segment length.", format(bad_total_n, big.mark = ",")),
@@ -372,18 +378,18 @@ flags <- flags[, .(
   n_expressway_capped_segments,
   n_arterial_segments,
   n_arterial_capped_segments,
-  total_length_ft,
-  park_water_length_ft,
-  park_water_continuous_length_ft,
-  park_water_tiny_positive_length_ft,
-  cemetery_length_ft,
-  cemetery_continuous_length_ft,
-  cemetery_tiny_positive_length_ft,
-  physical_barrier_continuous_length_ft,
-  expressway_overlap_length_ft,
-  expressway_overlap_uncapped_length_ft,
-  arterial_overlap_length_ft,
-  arterial_overlap_uncapped_length_ft,
+  total_length_m,
+  park_water_length_m,
+  park_water_continuous_length_m,
+  park_water_tiny_positive_length_m,
+  cemetery_length_m,
+  cemetery_continuous_length_m,
+  cemetery_tiny_positive_length_m,
+  physical_barrier_continuous_length_m,
+  expressway_overlap_length_m,
+  expressway_overlap_uncapped_length_m,
+  arterial_overlap_length_m,
+  arterial_overlap_uncapped_length_m,
   share_park_water_length,
   share_park_water_continuous_length,
   share_park_water_tiny_positive_length,

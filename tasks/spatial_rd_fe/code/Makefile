@@ -105,7 +105,7 @@ $(RDROBUST_SUMMARY_OUTPUTS): summarize_rdrobust_fe_diagnostics.R $(RDROBUST_OUTP
 		../output/rdrobust_fe_summary_bw$(BW_FT)_$(FE_SPEC)_clust_ward_pair.csv \
 		../output/rdrobust_fe_summary_bw$(BW_FT)_$(FE_SPEC)_clust_ward_pair.tex
 
-$(DIAG_SUMMARY_OUTPUTS): summarize_density_slope_diagnostics.R ../input/parcels_with_ward_distances.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_1320ft.gpkg ../input/major_streets.gpkg $(DIAG_BASE_SLOPE_OUTPUTS) $(DIAG_BASE_LEVEL_OUTPUTS) $(DIAG_ZONE_OUTPUTS) $(DIAG_PLACEBO_OUTPUTS) | ../output
+$(DIAG_SUMMARY_OUTPUTS): summarize_density_slope_diagnostics.R ../input/parcels_with_ward_distances.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_400m.gpkg ../input/major_streets.gpkg $(DIAG_BASE_SLOPE_OUTPUTS) $(DIAG_BASE_LEVEL_OUTPUTS) $(DIAG_ZONE_OUTPUTS) $(DIAG_PLACEBO_OUTPUTS) | ../output
 	Rscript summarize_density_slope_diagnostics.R
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
@@ -114,12 +114,12 @@ $(DIAG_SUMMARY_OUTPUTS): summarize_density_slope_diagnostics.R ../input/parcels_
 ../input/parcels_with_geometry.gpkg: ../../calculate_ward_boundary_distances/output/parcels_with_geometry.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
+../input/boundary_segments_400m.gpkg: ../../border_segment_creation/output/boundary_segments_400m.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/major_streets.gpkg: ../../download_amenities_data/output/major_streets.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/parcels_with_ward_distances.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_1320ft.gpkg ../input/major_streets.gpkg
+link-inputs: ../input/parcels_with_ward_distances.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_400m.gpkg ../input/major_streets.gpkg
 
 include ../../generic.make

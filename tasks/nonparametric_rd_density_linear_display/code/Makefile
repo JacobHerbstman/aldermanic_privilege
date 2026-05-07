@@ -16,15 +16,9 @@ all: \
 
 define METER_RULE
 ../output/nonparametric_rd_density_linear_display_log_$(1)_$(2)m_$(4)_bins$(BINS_PER_SIDE).pdf: nonparametric_rd_density_linear_display.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript nonparametric_rd_density_linear_display.R $(1) $(3) $(4) $(FE_SPEC) $(BINS_PER_SIDE) ../input/parcels_with_ward_distances.csv $$@ meters
+	Rscript nonparametric_rd_density_linear_display.R $(1) $(3) $(4) $(FE_SPEC) $(BINS_PER_SIDE) ../input/parcels_with_ward_distances.csv $$@
 endef
 $(foreach yvar,$(YVARS),$(foreach spec,$(MAIN_BW_M)_$(MAIN_BW_FT)_all $(APPENDIX_BW_M)_$(APPENDIX_BW_FT)_multifamily,$(eval $(call METER_RULE,$(yvar),$(word 1,$(subst _, ,$(spec))),$(word 2,$(subst _, ,$(spec))),$(word 3,$(subst _, ,$(spec)))))))
-
-define BASELINE_RULE
-../output/nonparametric_rd_density_linear_display_log_$(1)_bw$(2)_$(3).pdf: nonparametric_rd_density_linear_display.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript nonparametric_rd_density_linear_display.R $(1) $(2) $(3) $(FE_SPEC) $(BINS_PER_SIDE) ../input/parcels_with_ward_distances.csv $$@
-endef
-$(foreach yvar,$(YVARS),$(foreach spec,250_all 250_multifamily 500_multifamily,$(eval $(call BASELINE_RULE,$(yvar),$(word 1,$(subst _, ,$(spec))),$(word 2,$(subst _, ,$(spec)))))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

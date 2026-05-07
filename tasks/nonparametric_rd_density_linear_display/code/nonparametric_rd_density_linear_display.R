@@ -10,20 +10,15 @@ source("../../_lib/border_pair_helpers.R")
 # bins_per_side <- 5
 # input_csv <- "../input/parcels_with_ward_distances.csv"
 # output_pdf <- "../output/nonparametric_rd_density_linear_display_log_density_far_100m_all_bins5.pdf"
-# axis_units <- "meters"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(yvar, bw_ft, sample_filter, fe_spec, bins_per_side, input_csv, output_pdf, axis_units)
+  args <- c(yvar, bw_ft, sample_filter, fe_spec, bins_per_side, input_csv, output_pdf)
 }
 
-if (length(args) == 7) {
-  args <- c(args, "feet")
-}
-
-if (length(args) != 8) {
+if (!length(args) %in% c(7, 8)) {
   stop(
-    "FATAL: Script requires args: <yvar> <bw_ft> <sample_filter> <fe_spec> <bins_per_side> <input_csv> <output_pdf> <axis_units>",
+    "FATAL: Script requires args: <yvar> <bw_ft> <sample_filter> <fe_spec> <bins_per_side> <input_csv> <output_pdf>",
     call. = FALSE
   )
 }
@@ -35,7 +30,6 @@ fe_spec <- args[4]
 bins_per_side <- as.integer(args[5])
 input_csv <- args[6]
 output_pdf <- args[7]
-axis_units <- tolower(args[8])
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -52,10 +46,6 @@ if (!fe_spec %in% c("zonegroup_segment_year_additive", "zonegroup_pair_year_addi
 if (!is.finite(bins_per_side) || bins_per_side < 2) {
   stop("bins_per_side must be an integer >= 2.", call. = FALSE)
 }
-if (!axis_units %in% c("feet", "meters")) {
-  stop("axis_units must be one of: feet, meters", call. = FALSE)
-}
-
 fe_formula <- dplyr::case_when(
   fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
   fe_spec == "zonegroup_pair_year_additive" ~ "zone_group + ward_pair + construction_year",
@@ -230,23 +220,13 @@ line_df <- line_df %>%
     ci_high = fit + line_crit * fit_se
   )
 
-if (axis_units == "meters") {
-  bins <- bins %>%
-    mutate(bin_center_display = bin_center_ft * 0.3048)
-  line_df <- line_df %>%
-    mutate(running_distance_display = running_distance * 0.3048)
-  x_limits <- c(-bw_ft, bw_ft) * 0.3048
-  x_label <- "Distance to ward boundary (m)"
-  bw_label <- sprintf("%d m", as.integer(round(bw_ft * 0.3048)))
-} else {
-  bins <- bins %>%
-    mutate(bin_center_display = bin_center_ft)
-  line_df <- line_df %>%
-    mutate(running_distance_display = running_distance)
-  x_limits <- c(-bw_ft, bw_ft)
-  x_label <- "Distance to ward boundary (ft)"
-  bw_label <- sprintf("%d ft", as.integer(bw_ft))
-}
+bins <- bins %>%
+  mutate(bin_center_display = bin_center_ft * 0.3048)
+line_df <- line_df %>%
+  mutate(running_distance_display = running_distance * 0.3048)
+x_limits <- c(-bw_ft, bw_ft) * 0.3048
+x_label <- "Distance to ward boundary (m)"
+bw_label <- sprintf("%d m", as.integer(round(bw_ft * 0.3048)))
 
 y_min <- min(c(bins$mean_y, line_df$ci_low), na.rm = TRUE)
 y_max <- max(c(bins$mean_y, line_df$ci_high), na.rm = TRUE)

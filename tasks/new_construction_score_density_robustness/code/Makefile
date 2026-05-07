@@ -2,6 +2,8 @@ SHELL := bash
 include ../../shell_functions.make
 
 BASELINE_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
+DENSITY_ROBUSTNESS_BW_M ?= 100
+DENSITY_ROBUSTNESS_BW_FT := $(shell Rscript -e 'cat(round($(DENSITY_ROBUSTNESS_BW_M) / 0.3048))')
 
 all: \
 	../output/alderman_uncertainty_index_new_construction.csv \
@@ -89,6 +91,7 @@ all: \
 	../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition.csv \
 	../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation.tex \
 	../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation.csv \
+	../output/fe_table_$(DENSITY_ROBUSTNESS_BW_M)m_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex \
 	../output/density_score_robustness_comparison.csv \
 	../output/density_score_robustness_comparison.tex \
 	../output/parcel_sign_agreement_baseline_vs_new_construction.csv \
@@ -467,6 +470,9 @@ all: \
 
 ../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex: ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R ../output/parcels_with_ward_distances_low_discretion_residualized.csv | ../output
 	CLUSTER_LEVEL=ward_pair FE_INPUT_PATH=../output/parcels_with_ward_distances_low_discretion_residualized.csv Rscript ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R 500 multifamily zonegroup_segment_year_additive ../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex "log(density_far)" "log(density_dupac)"
+
+../output/fe_table_$(DENSITY_ROBUSTNESS_BW_M)m_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex: ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R ../output/parcels_with_ward_distances_low_discretion_residualized.csv | ../output
+	CLUSTER_LEVEL=ward_pair FE_INPUT_PATH=../output/parcels_with_ward_distances_low_discretion_residualized.csv Rscript ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R $(DENSITY_ROBUSTNESS_BW_FT) all zonegroup_segment_year_additive "$@" "log(density_far)" "log(density_dupac)"
 
 ../output/fe_table_bw250_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.tex \
 ../output/fe_summary_bw250_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv: ../output/.fe_bw250_all_baseline.done

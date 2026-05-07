@@ -7,7 +7,7 @@ fe_spec_exact <- "zone_segment_year_additive"
 
 parcels_path <- "../input/parcels_with_ward_distances.csv"
 parcels_geometry_path <- "../input/parcels_with_geometry.gpkg"
-segments_gpkg <- "../input/boundary_segments_1320ft.gpkg"
+segments_gpkg <- "../input/boundary_segments_400m.gpkg"
 major_streets_gpkg <- "../input/major_streets.gpkg"
 
 style_panel_pdf <- sprintf(

@@ -16,7 +16,6 @@ source("../../_lib/canonical_geometry_helpers.R")
 # plot_output <- "../output/boundary_ambiguity_share.pdf"
 # bandwidths <- "164 246 328 410 492 574 656 738 820 902 984"
 # samples <- "all multifamily"
-# axis_units <- "meters"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -29,14 +28,13 @@ if (length(args) == 0) {
     top_pairs_output,
     plot_output,
     bandwidths,
-    samples,
-    axis_units
+    samples
   )
 }
 
-if (!length(args) %in% c(9, 10)) {
+if (length(args) != 9) {
   stop(
-    "FATAL: Script requires args: <parcels_input> <geometry_input> <boundary_input> <parcel_output> <summary_output> <top_pairs_output> <plot_output> <bandwidths> <samples> [<axis_units>]",
+    "FATAL: Script requires args: <parcels_input> <geometry_input> <boundary_input> <parcel_output> <summary_output> <top_pairs_output> <plot_output> <bandwidths> <samples>",
     call. = FALSE
   )
 }
@@ -50,7 +48,6 @@ top_pairs_output <- args[6]
 plot_output <- args[7]
 bandwidths <- as.integer(strsplit(trimws(args[8]), "\\s+")[[1]])
 samples <- strsplit(trimws(args[9]), "\\s+")[[1]]
-axis_units <- ifelse(length(args) >= 10, args[10], "meters")
 
 if (any(!is.finite(bandwidths))) {
   stop("bandwidths must parse to integers.", call. = FALSE)
@@ -58,10 +55,6 @@ if (any(!is.finite(bandwidths))) {
 if (!all(samples %in% c("all", "multifamily"))) {
   stop("samples must be drawn from: all, multifamily", call. = FALSE)
 }
-if (!axis_units %in% c("meters", "feet")) {
-  stop("axis_units must be one of: meters, feet", call. = FALSE)
-}
-
 parcels <- read_csv(parcels_input, show_col_types = FALSE) %>%
   mutate(
     pin = as.character(pin),
@@ -220,7 +213,7 @@ write_csv(ambiguity_top_pairs, top_pairs_output)
 
 ambiguity_plot <- ambiguity_summary %>%
   mutate(
-    bw_display = if_else(axis_units == "meters", bw_ft * 0.3048, as.numeric(bw_ft)),
+    bw_display = bw_ft * 0.3048,
     sample_label = case_when(
       sample_filter == "all" ~ "All Construction",
       sample_filter == "multifamily" ~ "Multifamily"
@@ -231,12 +224,12 @@ ambiguity_plot <- ambiguity_summary %>%
   geom_point(size = 1.8) +
   scale_color_manual(values = c("All Construction" = "#1f77b4", "Multifamily" = "#d62728")) +
   scale_fill_manual(values = c("All Construction" = "#1f77b4", "Multifamily" = "#d62728")) +
-  scale_x_continuous(breaks = pretty(bandwidths * ifelse(axis_units == "meters", 0.3048, 1), n = 8)) +
+  scale_x_continuous(breaks = pretty(bandwidths * 0.3048, n = 8)) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 0.1)) +
   labs(
     title = "Corner Ambiguity by Bandwidth",
     subtitle = "Share of parcels within the bandwidth of their assigned ward pair and another adjacent ward pair",
-    x = ifelse(axis_units == "meters", "Bandwidth (m)", "Bandwidth (ft)"),
+    x = "Bandwidth (m)",
     y = "Ambiguity Share",
     color = NULL
   ) +

@@ -12,7 +12,6 @@ near_feature_distance_m <- as.numeric(Sys.getenv("NEAR_FEATURE_DISTANCE_M", "75"
 if (!is.finite(near_feature_distance_m) || near_feature_distance_m <= 0) {
   stop("NEAR_FEATURE_DISTANCE_M must be positive.", call. = FALSE)
 }
-near_feature_distance_ft <- near_feature_distance_m / 0.3048
 
 segments_gpkg <- sprintf("../input/boundary_segments_%dm.gpkg", as.integer(round(segment_length_m)))
 ward_panel_gpkg <- "../input/ward_panel.gpkg"
@@ -160,6 +159,18 @@ read_line_layer <- function(era_name) {
 lines_list <- lapply(eras, read_line_layer)
 segments <- do.call(rbind, lines_list)
 
+derive_meter_col <- function(x, meter_col, foot_col) {
+  if (!meter_col %in% names(x) && foot_col %in% names(x)) {
+    x[[meter_col]] <- as.numeric(x[[foot_col]]) * 0.3048
+  }
+  x
+}
+
+segments <- derive_meter_col(segments, "segment_length_m", "segment_length_ft")
+segments <- derive_meter_col(segments, "waterway_overlap_m", "waterway_overlap_ft")
+segments <- derive_meter_col(segments, "expressway_overlap_m", "expressway_overlap_ft")
+segments <- derive_meter_col(segments, "major_overlap_arterial_m", "major_overlap_arterial_ft")
+
 segments <- merge(
   segments,
   segment_flags,
@@ -220,7 +231,7 @@ audit_md <- file.path(out_dir, "pruned_boundaries_audit.md")
 
 summary_dt <- as.data.table(st_drop_geometry(segments))[, .(
   n_segments = .N,
-  total_length_ft = sum(segment_length_ft, na.rm = TRUE),
+  total_length_m = sum(segment_length_m, na.rm = TRUE),
   mean_strictness_gap = mean(strictness_gap, na.rm = TRUE),
   median_strictness_gap = median(strictness_gap, na.rm = TRUE),
   share_missing_gap = mean(!is.finite(strictness_gap))
@@ -460,9 +471,9 @@ if (nrow(water_sf) == 0 || nrow(park_sf) == 0 || nrow(cemetery_sf) == 0) {
 
 segment_core <- segments[, c(
   "segment_id", "ward_pair_id", "pair_dash", "era", "status", "segment_type",
-  "segment_length_ft", "nearest_street_name", "water_area_share", "park_area_share",
-  "cemetery_area_share", "park_cemetery_area_share", "waterway_overlap_ft",
-  "expressway_overlap_ft", "major_overlap_arterial_ft"
+  "segment_length_m", "nearest_street_name", "water_area_share", "park_area_share",
+  "cemetery_area_share", "park_cemetery_area_share", "waterway_overlap_m",
+  "expressway_overlap_m", "major_overlap_arterial_m"
 )]
 idx_water <- st_nearest_feature(segment_core, water_sf)
 idx_park <- st_nearest_feature(segment_core, park_sf)
@@ -474,9 +485,9 @@ segment_feature_dt[, nearest_park_fclass := as.character(park_sf$fclass[idx_park
 segment_feature_dt[, nearest_park_name := as.character(park_sf$name[idx_park])]
 segment_feature_dt[, nearest_cemetery_fclass := as.character(cemetery_sf$fclass[idx_cemetery])]
 segment_feature_dt[, nearest_cemetery_name := as.character(cemetery_sf$name[idx_cemetery])]
-segment_feature_dt[, dist_to_water_ft := as.numeric(st_distance(segment_core, water_sf[idx_water, ], by_element = TRUE))]
-segment_feature_dt[, dist_to_park_ft := as.numeric(st_distance(segment_core, park_sf[idx_park, ], by_element = TRUE))]
-segment_feature_dt[, dist_to_cemetery_ft := as.numeric(st_distance(segment_core, cemetery_sf[idx_cemetery, ], by_element = TRUE))]
+segment_feature_dt[, dist_to_water_m := as.numeric(st_distance(segment_core, water_sf[idx_water, ], by_element = TRUE)) * 0.3048]
+segment_feature_dt[, dist_to_park_m := as.numeric(st_distance(segment_core, park_sf[idx_park, ], by_element = TRUE)) * 0.3048]
+segment_feature_dt[, dist_to_cemetery_m := as.numeric(st_distance(segment_core, cemetery_sf[idx_cemetery, ], by_element = TRUE)) * 0.3048]
 segment_feature_dt[, ward_pair_id_dash := normalize_pair_dash(ward_pair_id)]
 setorder(segment_feature_dt, era, ward_pair_id_dash, segment_id)
 fwrite(segment_feature_dt, segment_feature_audit_csv)
@@ -495,17 +506,17 @@ build_feature_context <- function(pairs_dt, out_csv) {
       pair_dash = character(),
       era = integer(),
       n_segments = integer(),
-      total_length_ft = numeric(),
+      total_length_m = numeric(),
       drop_reason = character(),
       share_physical_barrier_length = numeric(),
       expressway_overlap_share = numeric(),
       arterial_overlap_share = numeric(),
-      med_dist_to_water_ft = numeric(),
-      med_dist_to_park_ft = numeric(),
-      med_dist_to_cemetery_ft = numeric(),
-      p90_dist_to_water_ft = numeric(),
-      p90_dist_to_park_ft = numeric(),
-      p90_dist_to_cemetery_ft = numeric(),
+      med_dist_to_water_m = numeric(),
+      med_dist_to_park_m = numeric(),
+      med_dist_to_cemetery_m = numeric(),
+      p90_dist_to_water_m = numeric(),
+      p90_dist_to_park_m = numeric(),
+      p90_dist_to_cemetery_m = numeric(),
       share_segments_near_water = numeric(),
       share_segments_near_park = numeric(),
       share_segments_near_cemetery = numeric(),
@@ -521,27 +532,27 @@ build_feature_context <- function(pairs_dt, out_csv) {
   }
   out <- ctx[, .(
     n_segments = .N,
-    total_length_ft = sum(segment_length_ft, na.rm = TRUE),
+    total_length_m = sum(segment_length_m, na.rm = TRUE),
     drop_reason = first(pair_drop_reason),
     share_physical_barrier_length = first(pair_share_physical_barrier_length),
     expressway_overlap_share = first(pair_expressway_overlap_share),
     arterial_overlap_share = first(pair_arterial_overlap_share),
-    med_dist_to_water_ft = median(dist_to_water_ft, na.rm = TRUE),
-    med_dist_to_park_ft = median(dist_to_park_ft, na.rm = TRUE),
-    med_dist_to_cemetery_ft = median(dist_to_cemetery_ft, na.rm = TRUE),
-    p90_dist_to_water_ft = quantile(dist_to_water_ft, 0.9, na.rm = TRUE),
-    p90_dist_to_park_ft = quantile(dist_to_park_ft, 0.9, na.rm = TRUE),
-    p90_dist_to_cemetery_ft = quantile(dist_to_cemetery_ft, 0.9, na.rm = TRUE),
-    share_segments_near_water = mean(dist_to_water_ft <= near_feature_distance_ft, na.rm = TRUE),
-    share_segments_near_park = mean(dist_to_park_ft <= near_feature_distance_ft, na.rm = TRUE),
-    share_segments_near_cemetery = mean(dist_to_cemetery_ft <= near_feature_distance_ft, na.rm = TRUE),
-    top_nearest_streets = top_weighted_name(nearest_street_name, segment_length_ft),
-    top_nearest_water_names = top_weighted_name(nearest_water_name, segment_length_ft),
-    top_nearest_water_fclass = top_weighted_name(nearest_water_fclass, segment_length_ft),
-    top_nearest_park_names = top_weighted_name(nearest_park_name, segment_length_ft),
-    top_nearest_park_fclass = top_weighted_name(nearest_park_fclass, segment_length_ft),
-    top_nearest_cemetery_names = top_weighted_name(nearest_cemetery_name, segment_length_ft),
-    top_nearest_cemetery_fclass = top_weighted_name(nearest_cemetery_fclass, segment_length_ft)
+    med_dist_to_water_m = median(dist_to_water_m, na.rm = TRUE),
+    med_dist_to_park_m = median(dist_to_park_m, na.rm = TRUE),
+    med_dist_to_cemetery_m = median(dist_to_cemetery_m, na.rm = TRUE),
+    p90_dist_to_water_m = quantile(dist_to_water_m, 0.9, na.rm = TRUE),
+    p90_dist_to_park_m = quantile(dist_to_park_m, 0.9, na.rm = TRUE),
+    p90_dist_to_cemetery_m = quantile(dist_to_cemetery_m, 0.9, na.rm = TRUE),
+    share_segments_near_water = mean(dist_to_water_m <= near_feature_distance_m, na.rm = TRUE),
+    share_segments_near_park = mean(dist_to_park_m <= near_feature_distance_m, na.rm = TRUE),
+    share_segments_near_cemetery = mean(dist_to_cemetery_m <= near_feature_distance_m, na.rm = TRUE),
+    top_nearest_streets = top_weighted_name(nearest_street_name, segment_length_m),
+    top_nearest_water_names = top_weighted_name(nearest_water_name, segment_length_m),
+    top_nearest_water_fclass = top_weighted_name(nearest_water_fclass, segment_length_m),
+    top_nearest_park_names = top_weighted_name(nearest_park_name, segment_length_m),
+    top_nearest_park_fclass = top_weighted_name(nearest_park_fclass, segment_length_m),
+    top_nearest_cemetery_names = top_weighted_name(nearest_cemetery_name, segment_length_m),
+    top_nearest_cemetery_fclass = top_weighted_name(nearest_cemetery_fclass, segment_length_m)
   ), by = .(pair_dash, era)]
   setorder(out, era, pair_dash)
   fwrite(out, out_csv)
@@ -577,14 +588,14 @@ fwrite(borderline, audit_borderline_csv)
 
 feature_pair_summary <- segment_feature_dt[, .(
   n_segments = .N,
-  total_length_ft = sum(segment_length_ft, na.rm = TRUE),
-  median_dist_to_water_ft = median(dist_to_water_ft, na.rm = TRUE),
-  median_dist_to_park_ft = median(dist_to_park_ft, na.rm = TRUE),
-  median_dist_to_cemetery_ft = median(dist_to_cemetery_ft, na.rm = TRUE),
-  share_segments_near_water = mean(dist_to_water_ft <= near_feature_distance_ft, na.rm = TRUE),
-  share_segments_near_park = mean(dist_to_park_ft <= near_feature_distance_ft, na.rm = TRUE),
-  share_segments_near_cemetery = mean(dist_to_cemetery_ft <= near_feature_distance_ft, na.rm = TRUE),
-  top_nearest_streets = top_weighted_name(nearest_street_name, segment_length_ft)
+  total_length_m = sum(segment_length_m, na.rm = TRUE),
+  median_dist_to_water_m = median(dist_to_water_m, na.rm = TRUE),
+  median_dist_to_park_m = median(dist_to_park_m, na.rm = TRUE),
+  median_dist_to_cemetery_m = median(dist_to_cemetery_m, na.rm = TRUE),
+  share_segments_near_water = mean(dist_to_water_m <= near_feature_distance_m, na.rm = TRUE),
+  share_segments_near_park = mean(dist_to_park_m <= near_feature_distance_m, na.rm = TRUE),
+  share_segments_near_cemetery = mean(dist_to_cemetery_m <= near_feature_distance_m, na.rm = TRUE),
+  top_nearest_streets = top_weighted_name(nearest_street_name, segment_length_m)
 ), by = .(pair_dash, era)]
 
 uncertainty_priority <- merge(

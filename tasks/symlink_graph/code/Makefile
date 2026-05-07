@@ -1,9 +1,6 @@
-all: ../output/make_dag_audit.md
+all: ../output/task_flow.png
 
 include ../../generic.make
-
-../output/make_dag_audit.md ../output/make_dag_audit.csv: audit_make_dag.py ../../../paper/Makefile | ../output
-	python3 audit_make_dag.py
 
 ../output/graph.txt: graphmaker.sh | ../output
 	bash graphmaker.sh
