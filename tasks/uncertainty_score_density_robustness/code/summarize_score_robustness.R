@@ -26,6 +26,17 @@ variant_ids <- c(
   "drop_bach",
   "drop_bach_pop"
 )
+density_bw_m <- as.integer(Sys.getenv("DENSITY_ROBUSTNESS_BW_M", "100"))
+if (!is.finite(density_bw_m) || density_bw_m <= 0) {
+  stop("DENSITY_ROBUSTNESS_BW_M must be a positive integer.", call. = FALSE)
+}
+density_bw_label <- sprintf("%dm", density_bw_m)
+density_sample <- Sys.getenv("DENSITY_ROBUSTNESS_SAMPLE", "all")
+density_cluster <- Sys.getenv("DENSITY_ROBUSTNESS_CLUSTER", "ward_pair")
+density_summary_prefix <- paste0(
+  "fe_summary_", density_bw_label, "_", density_sample,
+  "_zonegroup_segment_year_additive_clust_", density_cluster
+)
 
 fmt_num <- function(x, digits = 3) {
   ifelse(
@@ -209,7 +220,7 @@ write_csv(stage1_terms, file.path(output_dir, "score_variant_stage1_terms.csv"))
 
 fe_summary_long <- bind_rows(lapply(variant_ids, function(current_variant) {
   read_variant_csv(
-    "fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_segment",
+    density_summary_prefix,
     current_variant
   ) %>%
     mutate(variant_id = current_variant)

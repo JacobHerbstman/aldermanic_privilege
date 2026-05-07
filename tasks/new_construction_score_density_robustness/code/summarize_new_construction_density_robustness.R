@@ -25,6 +25,31 @@ parcel_sign_output <- if (length(args) >= 6) args[6] else file.path(output_dir, 
 variant_estimate_col <- paste0(variant_suffix, "_estimate")
 variant_se_col <- paste0(variant_suffix, "_se")
 variant_p_col <- paste0(variant_suffix, "_p_value")
+density_bw_m <- as.integer(Sys.getenv("DENSITY_ROBUSTNESS_BW_M", "100"))
+if (!is.finite(density_bw_m) || density_bw_m <= 0) {
+  stop("DENSITY_ROBUSTNESS_BW_M must be a positive integer.", call. = FALSE)
+}
+density_bw_label <- sprintf("%dm", density_bw_m)
+density_sample <- Sys.getenv("DENSITY_ROBUSTNESS_SAMPLE", "all")
+density_cluster <- Sys.getenv("DENSITY_ROBUSTNESS_CLUSTER", "ward_pair")
+
+rd_stem <- function(outcome_name, suffix) {
+  paste0(
+    "rd_fe_plot_log_", outcome_name, "_",
+    density_bw_label, "_", density_sample,
+    "_zonegroup_segment_year_additive_clust_", density_cluster, "_", suffix
+  )
+}
+
+fe_summary_path <- function(suffix) {
+  file.path(
+    output_dir,
+    paste0(
+      "fe_summary_", density_bw_label, "_", density_sample,
+      "_zonegroup_segment_year_additive_clust_", density_cluster, "_", suffix, ".csv"
+    )
+  )
+}
 
 fmt_num <- function(x, digits = 3) {
   ifelse(
@@ -83,25 +108,25 @@ read_fe_row <- function(path, yvar_name, comparison_label) {
 
 baseline_rows <- bind_rows(
   read_rd_row(
-    "rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline",
+    rd_stem("density_far", "baseline"),
     "RD log(FAR)"
   ),
   read_rd_row(
-    "rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline",
+    rd_stem("density_dupac", "baseline"),
     "RD log(DUPAC)"
   ),
   read_fe_row(
-    file.path(output_dir, "fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv"),
+    fe_summary_path("baseline"),
     "log(density_far)",
     "FE log(FAR)"
   ),
   read_fe_row(
-    file.path(output_dir, "fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv"),
+    fe_summary_path("baseline"),
     "log(density_dupac)",
     "FE log(DUPAC)"
   ),
   read_fe_row(
-    file.path(output_dir, "fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv"),
+    fe_summary_path("baseline"),
     "log(unitscount)",
     "FE log(Units)"
   )
@@ -114,40 +139,25 @@ baseline_rows <- bind_rows(
 
 new_rows <- bind_rows(
   read_rd_row(
-    paste0(
-      "rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_",
-      variant_suffix
-    ),
+    rd_stem("density_far", variant_suffix),
     "RD log(FAR)"
   ),
   read_rd_row(
-    paste0(
-      "rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_",
-      variant_suffix
-    ),
+    rd_stem("density_dupac", variant_suffix),
     "RD log(DUPAC)"
   ),
   read_fe_row(
-    file.path(
-      output_dir,
-      paste0("fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_", variant_suffix, ".csv")
-    ),
+    fe_summary_path(variant_suffix),
     "log(density_far)",
     "FE log(FAR)"
   ),
   read_fe_row(
-    file.path(
-      output_dir,
-      paste0("fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_", variant_suffix, ".csv")
-    ),
+    fe_summary_path(variant_suffix),
     "log(density_dupac)",
     "FE log(DUPAC)"
   ),
   read_fe_row(
-    file.path(
-      output_dir,
-      paste0("fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_", variant_suffix, ".csv")
-    ),
+    fe_summary_path(variant_suffix),
     "log(unitscount)",
     "FE log(Units)"
   )
