@@ -19,26 +19,24 @@ Appendix~\ref{sec:appendix_event_study} reports a block-level balance table for 
 
 \subsection{Results}
 
-Figure~\ref{fig:event_study_sales} presents the event study with the full hedonic-and-amenity control set. Panel A shows the continuous treatment specification. The pre-period coefficients move around somewhat but are generally centered near zero. Following redistricting, home prices on blocks assigned to more stringent aldermen rise gradually relative to the reference period. The trajectory fits a supply-restriction channel operating through reduced new construction: the price response builds slowly as the housing market tightens rather than jumping immediately at redistricting.
+Figure~\ref{fig:event_study_sales} presents the event study with the full hedonic-and-amenity control set. The pre-period coefficients move around somewhat but are generally centered near zero. Following redistricting, home prices on blocks assigned to more stringent aldermen rise gradually relative to the reference period. The trajectory fits a supply-restriction channel operating through reduced new construction: the price response builds slowly as the housing market tightens rather than jumping immediately at redistricting.
 
-Panel B shows the continuous split, allowing separate slopes for blocks that experienced positive versus negative changes in stringency. The pattern is directionally consistent with theory: price effects are positive for blocks moving to more stringent aldermen and slightly negative for blocks moving to more lenient ones. But the confidence intervals are wide, so the split results remain suggestive rather than definitive.
+Figure~\ref{fig:event_study_sales_split} shows the continuous split, allowing separate slopes for blocks that experienced positive versus negative changes in stringency. The pattern is directionally consistent with theory: price effects are positive for blocks moving to more stringent aldermen and slightly negative for blocks moving to more lenient ones. But the confidence intervals are wide, so the split results remain suggestive rather than definitive.
 
 \begin{figure}[htbp]
     \centering
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_cohort_2015_continuous_uniform_250m_amenity_full_geo_wardpair_clust_block.pdf}
-        \caption*{Panel A: Continuous Treatment}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_combined_disaggregate_yearly_cohort_2015_continuous_split_uniform_250m_amenity_full_geo_wardpair_clust_block.pdf}
-        \caption*{Panel B: Continuous Split}
-    \end{minipage}
+    \includegraphics[width=0.8\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_cohort_2015_continuous_uniform_250m_amenity_full_geo_wardpair_clust_block.pdf}
     \caption{Event Study: Effect of Alderman Stringency on Home Sale Prices}
-    \figurenotes{Panel A: continuous treatment (effect of 1 SD increase in stringency). Panel B: continuous split (separate slopes for blocks with positive vs.\ negative $\Delta$Stringency). 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Uniform weights with 250m bandwidth. Includes hedonic controls for building area, lot area, building age, bedrooms, bathrooms, and garage, plus parcel-level distances to the nearest school, park, major road, and Lake Michigan. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level. For Panel A, the pooled post-period estimate in the full-control specification is $0.021$ (SE $= 0.007$), and the joint pre-trend test gives $p = 0.352$.}
+    \figurenotes{Continuous treatment: effect of 1 SD increase in stringency. 2015 redistricting cohort. Border-pair-by-side and border-pair-by-year fixed effects. Uniform weights with 250m bandwidth. Includes hedonic controls for building area, lot area, building age, bedrooms, bathrooms, and garage, plus parcel-level distances to the nearest school, park, major road, and Lake Michigan. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the census block level. The pooled post-period estimate in the full-control specification is $0.021$ (SE $= 0.007$), and the joint pre-trend test gives $p = 0.352$.}
     \label{fig:event_study_sales}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../tasks/run_event_study_sales_disaggregate/output/event_study_disaggregate_yearly_cohort_2015_continuous_split_uniform_250m_amenity_full_geo_wardpair_clust_block.pdf}
+    \caption{Home Sale Event Study: Continuous Split by Treatment Direction}
+    \figurenotes{Same specification as Figure~\ref{fig:event_study_sales}, estimated separately for blocks with $\Delta\text{Stringency} > 0$ (moved to more stringent) and $\Delta\text{Stringency} < 0$ (moved to more lenient). 95\% confidence intervals based on standard errors clustered at the census block level.}
+    \label{fig:event_study_sales_split}
 \end{figure}
 
 Table~\ref{tab:did_sales_2015_current} collapses the post-period into a single coefficient. Column (2) implies a price increase of about 1.6\% for a one-standard-deviation increase in aldermanic stringency. Column (3) adds parcel-level amenity distance controls and yields a slightly larger estimate of 2.1\%, suggesting that the result is not driven by differential proximity to nearby schools, parks, major roads, or Lake Michigan.
