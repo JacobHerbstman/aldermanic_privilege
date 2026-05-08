@@ -106,7 +106,7 @@ load_cpi_deflator <- function(start_date,
     )
 }
 
-# Core CRS for distance calc (Illinois East ftUS)
+# Core CRS for Chicago spatial work
 crs_projected <- 3435
 
 # -----------------------------------------------------------------------------
@@ -313,7 +313,8 @@ final_df <- final_df %>%
       # Other/Unknown (COMM, NA, unknown)
       TRUE ~ "other"
     )
-  )
+  ) %>%
+  select(-any_of("dist_ft"))
 
 
 # -----------------------------------------------------------------------------
@@ -358,12 +359,12 @@ rent_geometry_diagnostics <- bind_rows(
   final_df %>%
     summarise(
       n_obs = n(),
-      mean_dist_ft = mean(dist_ft, na.rm = TRUE),
-      median_dist_ft = median(dist_ft, na.rm = TRUE),
+      mean_dist_m = mean(dist_m, na.rm = TRUE),
+      median_dist_m = median(dist_m, na.rm = TRUE),
       .by = boundary_year
     ) %>%
     pivot_longer(
-      cols = c(n_obs, mean_dist_ft, median_dist_ft),
+      cols = c(n_obs, mean_dist_m, median_dist_m),
       names_to = "metric",
       values_to = "value"
     ) %>%

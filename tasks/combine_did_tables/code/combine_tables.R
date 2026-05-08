@@ -193,7 +193,7 @@ combined_table <- sprintf('
 
 \\vspace{0.5em}
 \\par \\raggedright \\footnotesize
-\\textit{Notes:} Both panels show regressions of log price on post-redistricting indicator interacted with change in alderman strictness. Panel A: listing-level regressions using stacked 2015 and 2023 redistricting cohorts. Panel B: transaction-level regressions using 2015 implementation timing. All specifications include border-pair $\\times$ origin-side and border-pair $\\times$ year fixed effects. Sample restricted to within 1,000 feet of ward boundaries. Triangular kernel weighting. Standard errors clustered by census block in parentheses. Column (1) excludes hedonic controls; column (2) includes hedonic controls. *** p$<$0.01, ** p$<$0.05, * p$<$0.1.
+\\textit{Notes:} Both panels show regressions of log price on post-redistricting indicator interacted with change in alderman strictness. Panel A: listing-level regressions using stacked 2015 and 2023 redistricting cohorts. Panel B: transaction-level regressions using 2015 implementation timing. All specifications include border-pair $\\times$ origin-side and border-pair $\\times$ year fixed effects. Sample restricted to within 250m of ward boundaries. Triangular kernel weighting. Standard errors clustered by census block in parentheses. Column (1) excludes hedonic controls; column (2) includes hedonic controls. *** p$<$0.01, ** p$<$0.05, * p$<$0.1.
 \\end{table}
 ',
     panel_a_rows,
@@ -261,7 +261,7 @@ appendix_table <- sprintf('
 
 \\vspace{0.5em}
 \\par \\raggedright \\footnotesize
-\\textit{Notes:} Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Uses 2012 announcement timing as robustness check (main results use 2015 implementation timing). All specifications include border-pair $\\times$ origin-side and border-pair $\\times$ year fixed effects. Sample restricted to within 1,000 feet of ward boundaries. Triangular kernel weighting. Standard errors clustered by census block in parentheses. Column (1) excludes hedonic controls; column (2) includes hedonic controls. *** p$<$0.01, ** p$<$0.05, * p$<$0.1.
+\\textit{Notes:} Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Uses 2012 announcement timing as robustness check (main results use 2015 implementation timing). All specifications include border-pair $\\times$ origin-side and border-pair $\\times$ year fixed effects. Sample restricted to within 250m of ward boundaries. Triangular kernel weighting. Standard errors clustered by census block in parentheses. Column (1) excludes hedonic controls; column (2) includes hedonic controls. *** p$<$0.01, ** p$<$0.05, * p$<$0.1.
 \\end{table}
 ',
     panel_ann_rows,
@@ -305,7 +305,7 @@ Border Pair $\\times$ Side FE & $\\checkmark$ & $\\checkmark$ & $\\checkmark$ & 
 Border Pair $\\times$ Year FE & $\\checkmark$ & $\\checkmark$ & $\\checkmark$ & $\\checkmark$ \\\\
 \\bottomrule
 \\end{tabular}
-\\figurenotes{Columns (1)--(2): listing-level regressions of log rent on post-redistricting indicator interacted with change in alderman strictness; stacked estimator combining 2015 and 2023 redistricting cohorts. Columns (3)--(4): transaction-level regressions of log sale price using 2015 implementation timing. Rental hedonic controls include log sqft, log bedrooms, log bathrooms, and building type. Sales hedonic controls include log building sqft, log land sqft, log building age, log bedrooms, log bathrooms, and garage indicator. Sample restricted to observations within 1,000 feet of ward boundaries. Triangular kernel weights. Standard errors clustered by census block in parentheses. $^{*}$ $p<0.10$, $^{**}$ $p<0.05$, $^{***}$ $p<0.01$.}
+\\figurenotes{Columns (1)--(2): listing-level regressions of log rent on post-redistricting indicator interacted with change in alderman strictness; stacked estimator combining 2015 and 2023 redistricting cohorts. Columns (3)--(4): transaction-level regressions of log sale price using 2015 implementation timing. Rental hedonic controls include log sqft, log bedrooms, log bathrooms, and building type. Sales hedonic controls include log building sqft, log land sqft, log building age, log bedrooms, log bathrooms, and garage indicator. Sample restricted to observations within 250m of ward boundaries. Triangular kernel weights. Standard errors clustered by census block in parentheses. $^{*}$ $p<0.10$, $^{**}$ $p<0.05$, $^{***}$ $p<0.01$.}
 \\end{table}
 ',
     format_coef(rental_treat$estimate_no_ctrl, rental_treat$se_no_ctrl),

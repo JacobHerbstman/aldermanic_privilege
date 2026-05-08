@@ -11,7 +11,7 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
-# bandwidth <- 1000
+# bandwidth <- 250
 # weighting <- "triangular"
 # fe_type <- "strict_pair_x_year"
 # geo_fe_level <- "segment"
@@ -57,8 +57,8 @@ if (!GEO_FE_LEVEL %in% c("segment", "ward_pair")) {
 if (!CLUSTER_LEVEL %in% c("twoway_block_segment", "block", "segment")) {
     stop("--cluster_level must be one of: twoway_block_segment, block, segment", call. = FALSE)
 }
-if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 1000) {
-    stop("Segment FE requested with bandwidth > 1000. Use bandwidth <= 1000.", call. = FALSE)
+if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 800) {
+    stop("Segment FE requested with bandwidth > 800m. Use bandwidth <= 800m.", call. = FALSE)
 }
 
 fe_suffix <- ifelse(
@@ -80,7 +80,7 @@ if (geo_suffix != "" || cluster_suffix != "") {
 }
 
 message("\n=== Pooled DiD: Rentals ===")
-message(sprintf("Bandwidth: %d ft", BANDWIDTH))
+message(sprintf("Bandwidth: %dm", as.integer(round(BANDWIDTH))))
 message(sprintf("Weighting: %s", WEIGHTING))
 message(sprintf("FE Type: %s", FE_TYPE))
 message(sprintf("Geo FE Level: %s", GEO_FE_LEVEL))
@@ -102,11 +102,11 @@ message(sprintf("Loaded: %s listings", format(nrow(data), big.mark = ",")))
 message("\nPreparing data...")
 
 # Apply bandwidth filter
-data <- data[dist_ft <= BANDWIDTH]
+data <- data[dist_m <= BANDWIDTH]
 
 # Construct weights
 if (WEIGHTING == "triangular") {
-    data[, weight := pmax(0, 1 - dist_ft / BANDWIDTH)]
+    data[, weight := pmax(0, 1 - dist_m / BANDWIDTH)]
 } else {
     data[, weight := 1]
 }
@@ -279,7 +279,7 @@ etable(
     ),
     se.below = TRUE,
     signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-    notes = sprintf("Listing-level regressions of log rent on post-redistricting indicator interacted with change in alderman strictness. Stacked estimator combining 2015 and 2023 redistricting events (implementation timing). Sample restricted to listings within %d feet of ward boundaries with non-missing hedonic characteristics. %s kernel weighting. Standard errors clustered at: %s.", as.integer(BANDWIDTH), tools::toTitleCase(WEIGHTING), cluster_label),
+    notes = sprintf("Listing-level regressions of log rent on post-redistricting indicator interacted with change in alderman strictness. Stacked estimator combining 2015 and 2023 redistricting events (implementation timing). Sample restricted to listings within %dm of ward boundaries with non-missing hedonic characteristics. %s kernel weighting. Standard errors clustered at: %s.", as.integer(round(BANDWIDTH)), tools::toTitleCase(WEIGHTING), cluster_label),
     label = "tab:did_rental",
     float = TRUE,
     file = did_output,

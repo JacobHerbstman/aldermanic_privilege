@@ -31,7 +31,6 @@ block_baseline_input <- args[3]
 output_csv <- args[4]
 output_tex <- args[5]
 bandwidth_m <- as.numeric(args[6])
-bandwidth_ft <- bandwidth_m / 0.3048
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be positive.", call. = FALSE)
@@ -104,7 +103,7 @@ permit_data <- read_parquet(permit_panel_input) %>%
     !is.na(block_id), block_id != "",
     !is.na(strictness_change),
     !is.na(n_high_discretion_issue),
-    dist_ft <= bandwidth_ft,
+    dist_m <= bandwidth_m,
     relative_year >= -5,
     relative_year <= 5
   ) %>%
@@ -132,12 +131,12 @@ permit_summary <- summarize_block_support(
 
 message("Loading home-sales event-study panel...")
 hedonic_vars <- c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")
-amenity_vars <- c("nearest_school_dist_ft", "nearest_park_dist_ft", "nearest_major_road_dist_ft", "lake_michigan_dist_ft")
+amenity_vars <- c("nearest_school_dist_m", "nearest_park_dist_m", "nearest_major_road_dist_m", "lake_michigan_dist_m")
 
 sales_data <- read_parquet(sales_panel_input) %>%
   mutate(ward_pair = sub("_[0-9]+$", "", ward_pair_side)) %>%
   filter(
-    dist_ft <= bandwidth_ft,
+    dist_m <= bandwidth_m,
     relative_year >= -5,
     relative_year <= 5,
     !is.na(ward_pair), ward_pair != "",

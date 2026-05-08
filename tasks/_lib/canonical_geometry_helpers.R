@@ -361,6 +361,7 @@ assign_points_to_boundaries <- function(points_sf, era_values, ward_maps, bounda
     ward = out_ward,
     neighbor_ward = out_neighbor,
     ward_pair_id = out_pair,
+    dist_m = out_dist * 0.3048,
     dist_ft = out_dist
   )
 }

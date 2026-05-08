@@ -188,7 +188,7 @@ sales_block_year <- sales_with_blocks %>%
         max_price = max(sale_price, na.rm = TRUE),
         # Border-pair info: use most common ward_pair for this block-year
         ward_pair_id = get_mode(ward_pair_id),
-        mean_dist_to_boundary = mean(abs(as.numeric(signed_dist)), na.rm = TRUE),
+        mean_dist_to_boundary_m = mean(abs(as.numeric(signed_dist_m)), na.rm = TRUE),
         .groups = "drop"
     )
 
@@ -223,7 +223,7 @@ sales_block_month <- sales_with_blocks %>%
         median_price = median(sale_price, na.rm = TRUE),
         # Border-pair info for monthly data
         ward_pair_id = get_mode(ward_pair_id),
-        mean_dist_to_boundary = mean(abs(as.numeric(signed_dist)), na.rm = TRUE),
+        mean_dist_to_boundary_m = mean(abs(as.numeric(signed_dist_m)), na.rm = TRUE),
         .groups = "drop"
     ) %>%
     mutate(
@@ -279,7 +279,7 @@ cohort_2015 <- block_year_panel %>%
     select(
         block_id, year, cohort, treat, redistricted, relative_year, switch_type, strictness_change,
         n_sales, mean_price, median_price, has_sales,
-        ward_pair_id, mean_dist_to_boundary, ward_origin,
+        ward_pair_id, mean_dist_to_boundary_m, ward_origin,
         homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
@@ -299,7 +299,7 @@ cohort_2023 <- block_year_panel %>%
     select(
         block_id, year, cohort, treat, redistricted, relative_year, switch_type, strictness_change,
         n_sales, mean_price, median_price, has_sales,
-        ward_pair_id, mean_dist_to_boundary, ward_origin,
+        ward_pair_id, mean_dist_to_boundary_m, ward_origin,
         homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
@@ -337,7 +337,7 @@ sales_block_quarter <- sales_with_blocks %>%
         mean_price = mean(sale_price, na.rm = TRUE),
         median_price = median(sale_price, na.rm = TRUE),
         ward_pair_id = get_mode(ward_pair_id),
-        mean_dist_to_boundary = mean(abs(as.numeric(signed_dist)), na.rm = TRUE),
+        mean_dist_to_boundary_m = mean(abs(as.numeric(signed_dist_m)), na.rm = TRUE),
         .groups = "drop"
     )
 
@@ -366,7 +366,7 @@ cohort_2015_quarterly <- sales_block_quarter %>%
         block_id, year, quarter, year_quarter, cohort, treat, redistricted, relative_quarter,
         switch_type, strictness_change,
         n_sales, mean_price, median_price, has_sales,
-        ward_pair_id, mean_dist_to_boundary, ward_origin,
+        ward_pair_id, mean_dist_to_boundary_m, ward_origin,
         homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
@@ -395,7 +395,7 @@ cohort_2023_quarterly <- sales_block_quarter %>%
         block_id, year, quarter, year_quarter, cohort, treat, redistricted, relative_quarter,
         switch_type, strictness_change,
         n_sales, mean_price, median_price, has_sales,
-        ward_pair_id, mean_dist_to_boundary, ward_origin,
+        ward_pair_id, mean_dist_to_boundary_m, ward_origin,
         homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
@@ -446,7 +446,7 @@ cohort_2015_monthly <- sales_block_month %>%
         block_id, year, month, year_month, cohort, treat, relative_month,
         switch_type, strictness_change,
         n_sales, mean_price, median_price, has_sales,
-        ward_pair_id, mean_dist_to_boundary, ward_origin,
+        ward_pair_id, mean_dist_to_boundary_m, ward_origin,
         homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 
@@ -475,7 +475,7 @@ cohort_2023_monthly <- sales_block_month %>%
         block_id, year, month, year_month, cohort, treat, relative_month,
         switch_type, strictness_change,
         n_sales, mean_price, median_price, has_sales,
-        ward_pair_id, mean_dist_to_boundary, ward_origin,
+        ward_pair_id, mean_dist_to_boundary_m, ward_origin,
         homeownership_rate, share_white, share_black, share_bach_plus, median_hh_income_1000s
     )
 

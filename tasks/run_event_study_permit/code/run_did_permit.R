@@ -6,7 +6,7 @@ source("../../setup_environment/code/packages.R")
 # date_basis <- "issue"
 # model_type <- "ppml"
 # weighting <- "uniform"
-# bandwidth <- 820
+# bandwidth <- 250
 # post_window <- "full"
 # geo_fe_level <- "segment"
 # bandwidth_label <- "250m"
@@ -24,7 +24,7 @@ if (length(cli_args) >= 6) {
   bandwidth <- as.numeric(cli_args[5])
   post_window <- cli_args[6]
   geo_fe_level <- if (length(cli_args) >= 7) tolower(cli_args[7]) else "segment"
-  bandwidth_label <- if (length(cli_args) >= 8) cli_args[8] else sprintf("%dm", as.integer(round(bandwidth * 0.3048)))
+  bandwidth_label <- if (length(cli_args) >= 8) cli_args[8] else sprintf("%dm", as.integer(round(bandwidth)))
 } else {
   stop(
     "FATAL: Script requires 6 args: <outcome_family> <date_basis> <model_type> <weighting> <bandwidth> <post_window> [<geo_fe_level>] [<bandwidth_label>]",
@@ -44,8 +44,8 @@ if (model_type != "ppml") {
 if (!weighting %in% c("uniform", "triangular")) {
   stop("--weighting must be one of: uniform, triangular", call. = FALSE)
 }
-if (bandwidth <= 0 || bandwidth > 2000) {
-  stop("--bandwidth must be positive and no larger than 2000.", call. = FALSE)
+if (bandwidth <= 0 || bandwidth > 800) {
+  stop("--bandwidth must be positive and no larger than 800m.", call. = FALSE)
 }
 if (post_window != "full") {
   stop("--post_window must be full for the active permit DID table runner.", call. = FALSE)
@@ -131,8 +131,8 @@ baseline_controls <- read_csv("../input/block_group_controls.csv", show_col_type
 
 data_2015 <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
   filter(!is.na(strictness_change), !is.na(.data[[outcome_var]])) %>%
-  filter(dist_ft <= bandwidth) %>%
-  mutate(weight = if (weighting == "triangular") pmax(0, 1 - dist_ft / bandwidth) else 1) %>%
+  filter(dist_m <= bandwidth) %>%
+  mutate(weight = if (weighting == "triangular") pmax(0, 1 - dist_m / bandwidth) else 1) %>%
   filter(relative_year >= -5, relative_year <= 5) %>%
   mutate(
     panel_label = "2015",
@@ -157,8 +157,8 @@ data_2015 <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
 
 data_stacked <- read_parquet("../input/permit_block_year_panel.parquet") %>%
   filter(!is.na(strictness_change), !is.na(.data[[outcome_var]])) %>%
-  filter(dist_ft <= bandwidth) %>%
-  mutate(weight = if (weighting == "triangular") pmax(0, 1 - dist_ft / bandwidth) else 1) %>%
+  filter(dist_m <= bandwidth) %>%
+  mutate(weight = if (weighting == "triangular") pmax(0, 1 - dist_m / bandwidth) else 1) %>%
   filter(relative_year >= -5, relative_year <= 5) %>%
   mutate(
     panel_label = "Stacked",
@@ -430,12 +430,12 @@ table_tex <- c(
 )
 
 output_stub <- sprintf(
-  "did_table_%s_%s_%s_%s_%dft_%s%s",
+  "did_table_%s_%s_%s_%s_%dm_%s%s",
   outcome_family,
   date_basis,
   model_type,
   weighting,
-  as.integer(bandwidth),
+  as.integer(round(bandwidth)),
   post_window,
   ifelse(geo_fe_level == "segment", "", "_geo_wardpair")
 )

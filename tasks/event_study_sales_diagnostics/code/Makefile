@@ -2,40 +2,25 @@ SHELL := bash
 include ../../shell_functions.make
 
 MAP_BW_M ?= 250
-LEGACY_MAP_BW_M ?= $(MAP_BW_M)
 
 all: \
-	../output/treatment_control_map_2015.pdf \
-	../output/treatment_control_maps_combined.pdf \
-	../output/ward_pair_before_after_13-23.pdf \
-	../output/ward_pair_vertical_13-23.pdf \
 	../output/treatment_control_map_2015_$(MAP_BW_M)m.pdf \
+	../output/treatment_control_map_2023_$(MAP_BW_M)m.pdf \
+	../output/treatment_control_maps_combined_$(MAP_BW_M)m.pdf \
+	../output/ward_pair_before_after_13-23_$(MAP_BW_M)m.pdf \
 	../output/ward_pair_vertical_13-23_$(MAP_BW_M)m.pdf
 
-../output/treatment_control_map_2015.pdf ../output/treatment_control_maps_combined.pdf ../output/ward_pair_before_after_13-23.pdf ../output/ward_pair_vertical_13-23.pdf: ../output/.diagnostics.done
-
-../output/.diagnostics.done: run_diagnostics.R ../input/sales_stacked_panel.csv ../input/sales_stacked_quarterly_panel.csv ../input/census_blocks_2010.csv ../input/ward_panel.gpkg ../input/block_treatment_panel.csv | ../output
-	$(R) run_diagnostics.R $(LEGACY_MAP_BW_M)
-	test -f ../output/treatment_control_map_2015.pdf
-	test -f ../output/treatment_control_maps_combined.pdf
-	test -f ../output/ward_pair_before_after_13-23.pdf
-	test -f ../output/ward_pair_vertical_13-23.pdf
-	find ../output -maxdepth 1 -type f \
-		! -name treatment_control_map_2015.pdf \
-		! -name treatment_control_map_2015_$(MAP_BW_M)m.pdf \
-		! -name treatment_control_maps_combined.pdf \
-		! -name ward_pair_before_after_13-23.pdf \
-		! -name ward_pair_vertical_13-23.pdf \
-		! -name ward_pair_vertical_13-23_$(MAP_BW_M)m.pdf \
-		! -name .diagnostics.done \
-		-delete
-	touch "$@"
-
-../output/treatment_control_map_2015_$(MAP_BW_M)m.pdf: plot_treatment_control_maps_250m.R ../input/sales_stacked_panel.csv ../input/census_blocks_2010.csv ../input/ward_panel.gpkg ../input/block_treatment_panel.csv | ../output
-	Rscript plot_treatment_control_maps_250m.R $(MAP_BW_M) $(MAP_BW_M)m
+../output/treatment_control_maps_combined_$(MAP_BW_M)m.pdf: run_diagnostics.R ../input/sales_stacked_panel.csv ../input/sales_stacked_quarterly_panel.csv ../input/census_blocks_2010.csv ../input/ward_panel.gpkg ../input/block_treatment_panel.csv | ../output
+	$(R) run_diagnostics.R $(MAP_BW_M)
+	test -f ../output/treatment_control_map_2015_$(MAP_BW_M)m.pdf
+	test -f ../output/treatment_control_map_2023_$(MAP_BW_M)m.pdf
+	test -f ../output/ward_pair_before_after_13-23_$(MAP_BW_M)m.pdf
 	test -f ../output/ward_pair_vertical_13-23_$(MAP_BW_M)m.pdf
 
-../output/ward_pair_vertical_13-23_$(MAP_BW_M)m.pdf: ../output/treatment_control_map_2015_$(MAP_BW_M)m.pdf
+../output/treatment_control_map_2015_$(MAP_BW_M)m.pdf \
+../output/treatment_control_map_2023_$(MAP_BW_M)m.pdf \
+../output/ward_pair_before_after_13-23_$(MAP_BW_M)m.pdf \
+../output/ward_pair_vertical_13-23_$(MAP_BW_M)m.pdf: ../output/treatment_control_maps_combined_$(MAP_BW_M)m.pdf
 
 ../output/treatment_summary_stats.csv: treatment_summary_stats.R ../input/block_treatment_panel.csv | ../output
 	$(R) treatment_summary_stats.R

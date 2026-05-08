@@ -2,7 +2,6 @@ SHELL := bash
 include ../../shell_functions.make
 
 EVENT_STUDY_BW_M ?= 250
-LEGACY_EVENT_STUDY_BW_M ?= 305
 
 all: \
 	../output/permit_exact_balance_summary_$(EVENT_STUDY_BW_M)m.tex \
@@ -17,20 +16,10 @@ all: \
 
 ../output/permit_exact_balance_summary_$(EVENT_STUDY_BW_M)m.tex ../output/sales_exact_balance_summary_$(EVENT_STUDY_BW_M)m.csv ../output/sales_exact_balance_summary_$(EVENT_STUDY_BW_M)m.tex: ../output/permit_exact_balance_summary_$(EVENT_STUDY_BW_M)m.csv
 
-../output/permit_exact_balance_summary.csv: build_event_study_exact_balance.R ../output/block_parcel_baselines_2014.csv ../input/permit_block_year_panel_2015.parquet ../input/sales_transaction_panel_2015.parquet | ../output
-	Rscript build_event_study_exact_balance.R ../input/permit_block_year_panel_2015.parquet ../input/sales_transaction_panel_2015.parquet ../output/block_parcel_baselines_2014.csv ../output/permit_exact_balance_summary.csv ../output/permit_exact_balance_summary.tex ../output/sales_exact_balance_summary.csv ../output/sales_exact_balance_summary.tex $(LEGACY_EVENT_STUDY_BW_M)
-
-../output/permit_exact_balance_summary.tex ../output/sales_exact_balance_summary.csv ../output/sales_exact_balance_summary.tex: ../output/permit_exact_balance_summary.csv
-
 ../output/redistricting_sample_support_summary_$(EVENT_STUDY_BW_M)m.csv: build_redistricting_sample_support.R ../input/permit_block_year_panel_2015.parquet ../input/sales_transaction_panel_2015.parquet ../output/block_parcel_baselines_2014.csv | ../output
 	Rscript build_redistricting_sample_support.R ../input/permit_block_year_panel_2015.parquet ../input/sales_transaction_panel_2015.parquet ../output/block_parcel_baselines_2014.csv ../output/redistricting_sample_support_summary_$(EVENT_STUDY_BW_M)m.csv ../output/redistricting_sample_support_summary_$(EVENT_STUDY_BW_M)m.tex $(EVENT_STUDY_BW_M)
 
 ../output/redistricting_sample_support_summary_$(EVENT_STUDY_BW_M)m.tex: ../output/redistricting_sample_support_summary_$(EVENT_STUDY_BW_M)m.csv
-
-../output/redistricting_sample_support_summary.csv: build_redistricting_sample_support.R ../input/permit_block_year_panel_2015.parquet ../input/sales_transaction_panel_2015.parquet ../output/block_parcel_baselines_2014.csv | ../output
-	Rscript build_redistricting_sample_support.R ../input/permit_block_year_panel_2015.parquet ../input/sales_transaction_panel_2015.parquet ../output/block_parcel_baselines_2014.csv ../output/redistricting_sample_support_summary.csv ../output/redistricting_sample_support_summary.tex $(LEGACY_EVENT_STUDY_BW_M)
-
-../output/redistricting_sample_support_summary.tex: ../output/redistricting_sample_support_summary.csv
 
 ../input/geocoded_residential_data.gpkg: ../../geocode_ccao_data/output/geocoded_residential_data.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

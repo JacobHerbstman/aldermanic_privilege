@@ -10,7 +10,7 @@ source("../../_lib/event_study_plot_helpers.R")
 # time_unit <- "yearly"
 # fe_type <- "strict_pair_x_year"
 # weighting <- "uniform"
-# bandwidth <- 820
+# bandwidth <- 250
 # post_window <- "full"
 # geo_fe_level <- "ward_pair"
 # cluster_level <- "block"
@@ -35,7 +35,7 @@ post_window <- cli_args[8]
 geo_fe_level <- tolower(cli_args[9])
 cluster_level <- tolower(cli_args[10])
 control_mode <- if (length(cli_args) >= 11) tolower(cli_args[11]) else if (include_hedonics) "hedonic" else "none"
-bandwidth_label <- if (length(cli_args) >= 12) cli_args[12] else sprintf("%dft", as.integer(bandwidth))
+bandwidth_label <- if (length(cli_args) >= 12) cli_args[12] else sprintf("%dm", as.integer(round(bandwidth)))
 
 PANEL_MODE <- panel_mode
 TREATMENT_TYPE <- treatment_type
@@ -89,8 +89,8 @@ if (!CONTROL_MODE %in% c("none", "hedonic", "amenity")) {
 if (!grepl("^[A-Za-z0-9_-]+$", BANDWIDTH_LABEL)) {
   stop("--bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
-if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 1000) {
-  stop("Segment FE requested with bandwidth > 1000. Use bandwidth <= 1000.", call. = FALSE)
+if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 800) {
+  stop("Segment FE requested with bandwidth > 800m. Use bandwidth <= 800m.", call. = FALSE)
 }
 
 panel_title <- switch(PANEL_MODE,
@@ -233,9 +233,9 @@ if (needs_segment) {
 after_segment_filter_n <- nrow(data)
 
 data <- data %>%
-  filter(dist_ft <= BANDWIDTH) %>%
+  filter(dist_m <= BANDWIDTH) %>%
   mutate(
-    weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_ft / BANDWIDTH) else 1,
+    weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_m / BANDWIDTH) else 1,
     treatment_stricter_continuous = pmax(strictness_change, 0),
     treatment_lenient_continuous = pmax(-strictness_change, 0)
   )
@@ -243,7 +243,7 @@ after_bandwidth_n <- nrow(data)
 
 complete_hedonic <- complete.cases(data[, c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")])
 complete_hedonic_n <- sum(complete_hedonic)
-complete_amenity <- complete.cases(data[, c("nearest_school_dist_ft", "nearest_park_dist_ft", "nearest_major_road_dist_ft", "lake_michigan_dist_ft")])
+complete_amenity <- complete.cases(data[, c("nearest_school_dist_m", "nearest_park_dist_m", "nearest_major_road_dist_m", "lake_michigan_dist_m")])
 complete_amenity_n <- sum(complete_amenity)
 if (CONTROL_MODE %in% c("hedonic", "amenity")) {
   data <- data[complete_hedonic, ]
@@ -365,7 +365,7 @@ support_by_event_time <- make_support_table(data, event_var, time_fe_var, fe_gro
 control_formula <- if (CONTROL_MODE == "hedonic") {
   "+ log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage"
 } else if (CONTROL_MODE == "amenity") {
-  "+ log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage + nearest_school_dist_ft + nearest_park_dist_ft + nearest_major_road_dist_ft + lake_michigan_dist_ft"
+  "+ log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage + nearest_school_dist_m + nearest_park_dist_m + nearest_major_road_dist_m + lake_michigan_dist_m"
 } else {
   ""
 }

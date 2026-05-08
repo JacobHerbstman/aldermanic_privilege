@@ -371,7 +371,7 @@ final_output <- final_df %>%
         # Location
         latitude, longitude, ward, neighbor_ward, ward_pair_id,
         # Distance (unsigned)
-        dist_ft,
+        dist_m,
         # Alderman info
         alderman_own, alderman_neighbor
     )
@@ -407,12 +407,12 @@ sales_geometry_diagnostics <- bind_rows(
     final_output %>%
         summarise(
             n_obs = n(),
-            mean_dist_ft = mean(dist_ft, na.rm = TRUE),
-            median_dist_ft = median(dist_ft, na.rm = TRUE),
+            mean_dist_m = mean(dist_m, na.rm = TRUE),
+            median_dist_m = median(dist_m, na.rm = TRUE),
             .by = boundary_year
         ) %>%
         pivot_longer(
-            cols = c(n_obs, mean_dist_ft, median_dist_ft),
+            cols = c(n_obs, mean_dist_m, median_dist_m),
             names_to = "metric",
             values_to = "value"
         ) %>%
@@ -431,7 +431,7 @@ summary_stats <- final_output %>%
     summarise(
         n_sales = n(),
         mean_price = mean(sale_price, na.rm = TRUE),
-        mean_dist_ft = mean(dist_ft, na.rm = TRUE),
+        mean_dist_m = mean(dist_m, na.rm = TRUE),
         .groups = "drop"
     )
 

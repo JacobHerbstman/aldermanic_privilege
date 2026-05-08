@@ -2,7 +2,7 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
-# bandwidth <- 820
+# bandwidth <- 250
 # weighting <- "uniform"
 # output_tex <- "../output/did_table_sales_2015_uniform_250m_geo_wardpair_clust_block.tex"
 # table_mode <- "amenity"
@@ -37,12 +37,12 @@ if (!table_mode %in% c("baseline", "amenity")) {
 }
 
 hedonic_vars <- c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")
-amenity_vars <- c("nearest_school_dist_ft", "nearest_park_dist_ft", "nearest_major_road_dist_ft", "lake_michigan_dist_ft")
+amenity_vars <- c("nearest_school_dist_m", "nearest_park_dist_m", "nearest_major_road_dist_m", "lake_michigan_dist_m")
 
 data_base <- read_parquet("../input/sales_transaction_panel_2015.parquet") %>%
   mutate(ward_pair = sub("_[0-9]+$", "", ward_pair_side)) %>%
   filter(
-    dist_ft <= bandwidth,
+    dist_m <= bandwidth,
     relative_year >= -5, relative_year <= 5,
     !is.na(ward_pair), ward_pair != "",
     !is.na(ward_pair_side), ward_pair_side != "",
@@ -50,7 +50,7 @@ data_base <- read_parquet("../input/sales_transaction_panel_2015.parquet") %>%
     sale_price > 0
   ) %>%
   mutate(
-    weight = if (weighting == "triangular") pmax(0, 1 - dist_ft / bandwidth) else 1,
+    weight = if (weighting == "triangular") pmax(0, 1 - dist_m / bandwidth) else 1,
     post_treat = as.integer(relative_year >= 0) * strictness_change
   )
 
@@ -110,10 +110,10 @@ setFixest_dict(c(
   log_bedrooms = "Log Bedrooms",
   log_baths = "Log Bathrooms",
   has_garage = "Has Garage",
-  nearest_school_dist_ft = "Dist. to School (ft)",
-  nearest_park_dist_ft = "Dist. to Park (ft)",
-  nearest_major_road_dist_ft = "Dist. to Major Road (ft)",
-  lake_michigan_dist_ft = "Dist. to Lake Michigan (ft)"
+  nearest_school_dist_m = "Dist. to School (m)",
+  nearest_park_dist_m = "Dist. to Park (m)",
+  nearest_major_road_dist_m = "Dist. to Major Road (m)",
+  lake_michigan_dist_m = "Dist. to Lake Michigan (m)"
 ))
 
 etable(

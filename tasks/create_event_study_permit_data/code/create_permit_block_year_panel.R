@@ -29,7 +29,7 @@ sf_use_s2(FALSE)
 
 signs_permit_type <- "PERMIT - SIGNS"
 
-assign_distance_to_fixed_pair <- function(points_sf, pair_values, boundary_sf, chunk_n = 5000L) {
+assign_distance_to_fixed_pair_m <- function(points_sf, pair_values, boundary_sf, chunk_n = 5000L) {
   pair_dash <- normalize_pair_dash(pair_values)
   boundary_sf <- boundary_sf %>%
     mutate(pair_dash = normalize_pair_dash(ward_pair_id))
@@ -48,7 +48,7 @@ assign_distance_to_fixed_pair <- function(points_sf, pair_values, boundary_sf, c
     for (s in starts) {
       e <- min(s + chunk_n - 1L, length(idx))
       idx_chunk <- idx[s:e]
-      out[idx_chunk] <- as.numeric(st_distance(points_sf[idx_chunk, ], line_i[1, ]))
+      out[idx_chunk] <- as.numeric(st_distance(points_sf[idx_chunk, ], line_i[1, ])) * 0.3048
     }
   }
 
@@ -466,11 +466,11 @@ summarize_assignment_stability <- function(base_df, panel_mode) {
     panel_mode = panel_mode,
     n_blocks = nrow(base_df),
     n_treated_blocks = nrow(treated_blocks),
-    mean_dist_ft = mean(base_df$dist_ft, na.rm = TRUE),
-    median_dist_ft = median(base_df$dist_ft, na.rm = TRUE),
+    mean_dist_m = mean(base_df$dist_m, na.rm = TRUE),
+    median_dist_m = median(base_df$dist_m, na.rm = TRUE),
     segment_coverage_all_pct = 100 * mean(!is.na(base_df$segment_id_cohort)),
     segment_coverage_panel_window_pct = 100 * mean(!is.na(base_df$segment_id_cohort[
-      base_df$dist_ft <= panel_max_distance_m / 0.3048
+      base_df$dist_m <= panel_max_distance_m
     ])),
     control_origin_mismatch_n = sum(base_df$control_origin_mismatch, na.rm = TRUE),
     control_origin_mismatch_pct = 100 * mean(base_df$control_origin_mismatch, na.rm = TRUE),
@@ -522,7 +522,7 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
       control_own_ward = ward,
       control_neighbor_ward = neighbor_ward,
       control_pair_id = normalize_pair_dash(ward_pair_id),
-      control_dist_ft = dist_ft
+      control_dist_m = dist_m
     )
 
   base <- st_drop_geometry(blocks_sf) %>%
@@ -531,7 +531,7 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
     left_join(control_assign, by = "block_id")
 
   treated_pair_id <- normalize_pair_id(base$ward_origin, base$ward_dest, sep = "-")
-  treated_dist_ft <- assign_distance_to_fixed_pair(
+  treated_dist_m <- assign_distance_to_fixed_pair_m(
     points_sf = block_centroids,
     pair_values = treated_pair_id,
     boundary_sf = boundary_lines[[era_label]],
@@ -546,7 +546,7 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
       ward_origin_assigned = if_else(switched, ward_origin, control_own_ward),
       ward_dest_assigned = if_else(switched, ward_dest, control_neighbor_ward),
       ward_pair_id = if_else(switched, treated_pair_id, control_pair_id),
-      dist_ft = if_else(switched, treated_dist_ft, control_dist_ft),
+      dist_m = if_else(switched, treated_dist_m, control_dist_m),
       control_origin_mismatch = !switched &
         !is.na(ward_origin) &
         !is.na(control_own_ward) &
@@ -586,14 +586,14 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
       !is.na(strictness_change),
       !is.na(ward_pair_id),
       !is.na(ward_origin),
-      !is.na(dist_ft),
-      dist_ft <= panel_max_distance_m / 0.3048
+      !is.na(dist_m),
+      dist_m <= panel_max_distance_m
     ) %>%
     select(
       block_id, block_vintage, cohort,
       ward_origin, ward_dest, switched, treat,
       strictness_origin, strictness_dest, strictness_change, switch_type,
-      valid, ward_pair_id, ward_pair_side, dist_ft,
+      valid, ward_pair_id, ward_pair_side, dist_m,
       segment_id_cohort, segment_side, control_origin_mismatch
     )
 

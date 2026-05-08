@@ -77,7 +77,7 @@ scores <- scores_raw %>%
   select(alderman, score = all_of(score_column)) %>%
   distinct()
 
-merge_border_scores <- function(df, dist_col = "dist_ft") {
+merge_border_scores <- function(df, dist_col = "dist_m", signed_dist_col = "signed_dist_m") {
   if (!"alderman_own" %in% names(df) || !"alderman_neighbor" %in% names(df)) {
     stop("Expected columns alderman_own and alderman_neighbor are missing.", call. = FALSE)
   }
@@ -96,7 +96,7 @@ merge_border_scores <- function(df, dist_col = "dist_ft") {
         strictness_own < strictness_neighbor ~ -1,
         TRUE ~ NA_real_
       ),
-      signed_dist = .data[[dist_col]] * sign
+      "{signed_dist_col}" := .data[[dist_col]] * sign
     )
 
   if (nrow(out) != nrow(df)) {
@@ -124,7 +124,10 @@ merge_border_scores <- function(df, dist_col = "dist_ft") {
 if (mode %in% c("sales_treatment", "all")) {
   cat("\nMerging scores into sales pre-scores...\n")
   sales_pre <- read_csv(sales_input, show_col_types = FALSE)
-  sales <- merge_border_scores(sales_pre, "dist_ft") %>%
+  if (!"dist_m" %in% names(sales_pre)) {
+    stop("Sales pre-score input must include meter-native dist_m.", call. = FALSE)
+  }
+  sales <- merge_border_scores(sales_pre, "dist_m", "signed_dist_m") %>%
     select(
       pin, year, sale_date, sale_price,
       any_of(c(
@@ -135,7 +138,7 @@ if (mode %in% c("sales_treatment", "all")) {
       )),
       class,
       latitude, longitude, ward, neighbor_ward, ward_pair_id, any_of("segment_id"),
-      dist_ft, signed_dist, sign,
+      dist_m, signed_dist_m, sign,
       alderman_own, alderman_neighbor,
       strictness_own, strictness_neighbor
     )
@@ -199,7 +202,10 @@ if (mode %in% c("sales_treatment", "all")) {
 if (mode %in% c("rent", "all")) {
   cat("\nMerging scores into rent pre-scores...\n")
   rent_pre <- read_parquet(rent_input) %>% as_tibble()
-  rent <- merge_border_scores(rent_pre, "dist_ft")
+  if (!"dist_m" %in% names(rent_pre)) {
+    stop("Rent pre-score input must include meter-native dist_m.", call. = FALSE)
+  }
+  rent <- merge_border_scores(rent_pre, "dist_m", "signed_dist_m")
   write_parquet(rent, rent_output)
   cat("Rent output rows:", nrow(rent), "\n")
 }

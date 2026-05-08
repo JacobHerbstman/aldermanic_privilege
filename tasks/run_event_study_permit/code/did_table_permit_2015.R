@@ -4,7 +4,7 @@ source("../../_lib/permit_event_study_sample_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
 # outcome_family <- "high_discretion"
-# bandwidth <- 820
+# bandwidth <- 250
 # weighting <- "uniform"
 # cluster_level <- "block"
 # output_tex <- "../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_250m_geo_wardpair.tex"
@@ -74,11 +74,11 @@ data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
     !is.na(block_id), block_id != "",
     !is.na(strictness_change),
     !is.na(.data[[outcome_var]]),
-    dist_ft <= bandwidth,
+    dist_m <= bandwidth,
     relative_year >= -5, relative_year <= 5
   ) %>%
   mutate(
-    weight = if (weighting == "triangular") pmax(0, 1 - dist_ft / bandwidth) else 1,
+    weight = if (weighting == "triangular") pmax(0, 1 - dist_m / bandwidth) else 1,
     post_treat = as.integer(relative_year >= 0) * strictness_change
   )
 

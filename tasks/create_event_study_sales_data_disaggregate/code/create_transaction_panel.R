@@ -10,18 +10,23 @@ source("../../_lib/amenity_distance_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_sales_data_disaggregate/code")
 # segment_buffer_m <- 250
+# panel_max_distance_m <- 800
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(segment_buffer_m)
+  cli_args <- c(segment_buffer_m, panel_max_distance_m)
 }
 
-if (length(cli_args) != 1) {
-  stop("FATAL: Script requires 1 arg: <segment_buffer_m>", call. = FALSE)
+if (length(cli_args) != 2) {
+  stop("FATAL: Script requires 2 args: <segment_buffer_m> <panel_max_distance_m>", call. = FALSE)
 }
 segment_buffer_m <- as.numeric(cli_args[1])
+panel_max_distance_m <- as.numeric(cli_args[2])
 if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
   stop("segment_buffer_m must be positive.", call. = FALSE)
+}
+if (!is.finite(panel_max_distance_m) || panel_max_distance_m <= 0) {
+  stop("panel_max_distance_m must be positive.", call. = FALSE)
 }
 
 assign_cohort_segments_dt <- function(dt, segment_layers, era_label, cohort_label, chunk_n = 50000L) {
@@ -318,6 +323,10 @@ sales_with_treatment <- merge(sales_with_treatment, treatment_2023, by = "block_
 
 message(sprintf("Sales with treatment info: %s", format(nrow(sales_with_treatment), big.mark = ",")))
 
+if (!"signed_dist_m" %in% names(sales_with_treatment) || !"dist_m" %in% names(sales_with_treatment)) {
+  stop("Sales treatment input must include meter-native ward-boundary distances.", call. = FALSE)
+}
+
 # =============================================================================
 # 5. CREATE AMENITY DISTANCE CONTROLS
 # =============================================================================
@@ -330,7 +339,8 @@ amenity_coordinates <- build_unique_coordinate_amenity_table(
   "../input/schools_2015.gpkg",
   "../input/parks.gpkg",
   "../input/major_streets.gpkg",
-  "../input/gis_osm_water_a_free_1.shp"
+  "../input/gis_osm_water_a_free_1.shp",
+  distance_units = "meters"
 )
 
 sales_with_treatment <- append_amenity_distances(
@@ -347,10 +357,10 @@ sales_amenity_diagnostics <- amenity_distance_diagnostics(
 )
 
 message("\nAmenity distance coverage (% non-missing):")
-message(sprintf("  nearest_school_dist_ft: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_school_dist_ft))))
-message(sprintf("  nearest_park_dist_ft: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_park_dist_ft))))
-message(sprintf("  nearest_major_road_dist_ft: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_major_road_dist_ft))))
-message(sprintf("  lake_michigan_dist_ft: %.1f%%", 100 * mean(!is.na(sales_with_treatment$lake_michigan_dist_ft))))
+message(sprintf("  nearest_school_dist_m: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_school_dist_m))))
+message(sprintf("  nearest_park_dist_m: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_park_dist_m))))
+message(sprintf("  nearest_major_road_dist_m: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_major_road_dist_m))))
+message(sprintf("  lake_michigan_dist_m: %.1f%%", 100 * mean(!is.na(sales_with_treatment$lake_michigan_dist_m))))
 
 # =============================================================================
 # 6. CREATE HEDONIC CONTROL VARIABLES (NO IMPUTATION)
@@ -468,7 +478,7 @@ cohort_2012_window <- copy(sales_with_treatment[
     !is.na(block_id_2010) &
     !is.na(ward) &
     !is.na(ward_pair_id) &
-    abs(as.numeric(signed_dist)) <= 2000
+    abs(as.numeric(signed_dist_m)) <= panel_max_distance_m
 ])
 cohort_2012_window[, `:=`(
   cohort = "2012",
@@ -486,7 +496,7 @@ cohort_2012_pre_segment[, `:=`(
   strictness_change = strictness_change_2015,
   ward_origin = fifelse(switched_2015 == TRUE, ward_origin_2015, ward),
   ward_dest = fifelse(switched_2015 == TRUE, ward_dest_2015, ward),
-  dist_ft = abs(as.numeric(signed_dist))
+  dist_m = abs(as.numeric(signed_dist_m))
 )]
 cohort_2012_pre_segment[
   switched_2015 == TRUE,
@@ -519,7 +529,7 @@ cohort_2022_window <- copy(sales_with_treatment[
     !is.na(block_id_2020) &
     !is.na(ward) &
     !is.na(ward_pair_id) &
-    abs(as.numeric(signed_dist)) <= 2000
+    abs(as.numeric(signed_dist_m)) <= panel_max_distance_m
 ])
 cohort_2022_window[, `:=`(
   cohort = "2022",
@@ -537,7 +547,7 @@ cohort_2022_pre_segment[, `:=`(
   strictness_change = strictness_change_2023,
   ward_origin = fifelse(switched_2023 == TRUE, ward_origin_2023, ward),
   ward_dest = fifelse(switched_2023 == TRUE, ward_dest_2023, ward),
-  dist_ft = abs(as.numeric(signed_dist))
+  dist_m = abs(as.numeric(signed_dist_m))
 )]
 cohort_2022_pre_segment[
   switched_2023 == TRUE,
@@ -568,7 +578,7 @@ cohort_2015_window <- copy(sales_with_treatment[
     !is.na(block_id_2010) &
     !is.na(ward) &
     !is.na(ward_pair_id) &
-    abs(as.numeric(signed_dist)) <= 2000
+    abs(as.numeric(signed_dist_m)) <= panel_max_distance_m
 ])
 cohort_2015_window[, `:=`(
   cohort = "2015",
@@ -586,7 +596,7 @@ cohort_2015_pre_segment[, `:=`(
   strictness_change = strictness_change_2015,
   ward_origin = fifelse(switched_2015 == TRUE, ward_origin_2015, ward),
   ward_dest = fifelse(switched_2015 == TRUE, ward_dest_2015, ward),
-  dist_ft = abs(as.numeric(signed_dist))
+  dist_m = abs(as.numeric(signed_dist_m))
 )]
 cohort_2015_pre_segment[
   switched_2015 == TRUE,
@@ -610,7 +620,7 @@ cohort_2023_window <- copy(sales_with_treatment[
     !is.na(block_id_2020) &
     !is.na(ward) &
     !is.na(ward_pair_id) &
-    abs(as.numeric(signed_dist)) <= 2000
+    abs(as.numeric(signed_dist_m)) <= panel_max_distance_m
 ])
 cohort_2023_window[, `:=`(
   cohort = "2023",
@@ -628,7 +638,7 @@ cohort_2023_pre_segment[, `:=`(
   strictness_change = strictness_change_2023,
   ward_origin = fifelse(switched_2023 == TRUE, ward_origin_2023, ward),
   ward_dest = fifelse(switched_2023 == TRUE, ward_dest_2023, ward),
-  dist_ft = abs(as.numeric(signed_dist))
+  dist_m = abs(as.numeric(signed_dist_m))
 )]
 cohort_2023_pre_segment[
   switched_2023 == TRUE,
@@ -712,12 +722,12 @@ final_cols <- c(
   "sale_date", "sale_year", "relative_year", "relative_year_capped",
   "sale_price",
   "log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage",
-  "nearest_school_dist_ft", "nearest_park_dist_ft", "nearest_major_road_dist_ft", "lake_michigan_dist_ft",
+  "nearest_school_dist_m", "nearest_park_dist_m", "nearest_major_road_dist_m", "lake_michigan_dist_m",
   "building_sqft", "land_sqft", "year_built", "building_age", "num_bedrooms",
   "num_full_baths", "baths_total", "garage_size", "hedonic_tax_year", "years_gap",
   "ward", "ward_pair_id", "ward_origin", "ward_pair_side", "cohort_ward_pair_side",
   "segment_id_cohort", "segment_side", "cohort_segment", "cohort_segment_side",
-  "signed_dist", "dist_ft",
+  "signed_dist_m", "dist_m",
   "treat", "strictness_change"
 )
 
@@ -782,10 +792,10 @@ print(final_hedonic_coverage_by_sale_year)
 
 message("\nAmenity variable coverage in final panel (% non-missing):")
 amenity_coverage <- final_panel[, .(
-  nearest_school_dist_ft = mean(!is.na(nearest_school_dist_ft)) * 100,
-  nearest_park_dist_ft = mean(!is.na(nearest_park_dist_ft)) * 100,
-  nearest_major_road_dist_ft = mean(!is.na(nearest_major_road_dist_ft)) * 100,
-  lake_michigan_dist_ft = mean(!is.na(lake_michigan_dist_ft)) * 100
+  nearest_school_dist_m = mean(!is.na(nearest_school_dist_m)) * 100,
+  nearest_park_dist_m = mean(!is.na(nearest_park_dist_m)) * 100,
+  nearest_major_road_dist_m = mean(!is.na(nearest_major_road_dist_m)) * 100,
+  lake_michigan_dist_m = mean(!is.na(lake_michigan_dist_m)) * 100
 )]
 print(amenity_coverage)
 
@@ -847,8 +857,8 @@ if (final_complete_hedonics_rate < 0.99) {
 n_complete_amenity <- final_panel[
   !is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
     !is.na(log_bedrooms) & !is.na(log_baths) & !is.na(has_garage) &
-    !is.na(nearest_school_dist_ft) & !is.na(nearest_park_dist_ft) &
-    !is.na(nearest_major_road_dist_ft) & !is.na(lake_michigan_dist_ft), .N
+    !is.na(nearest_school_dist_m) & !is.na(nearest_park_dist_m) &
+    !is.na(nearest_major_road_dist_m) & !is.na(lake_michigan_dist_m), .N
 ]
 message(sprintf(
   "Transactions with complete hedonics and amenity distances: %s (%.1f%%)",

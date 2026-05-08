@@ -22,7 +22,6 @@ bandwidth_m <- as.numeric(args[1])
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
     stop("bandwidth_m must be positive.", call. = FALSE)
 }
-bandwidth_ft <- bandwidth_m / 0.3048
 bandwidth_label <- sprintf("%dm", as.integer(round(bandwidth_m)))
 
 # =============================================================================
@@ -34,13 +33,13 @@ message("Loading data...")
 stacked_yearly <- read_csv("../input/sales_stacked_panel.csv", show_col_types = FALSE) %>%
     mutate(block_id = as.character(block_id)) %>%
     filter(n_sales > 0, !is.na(strictness_change)) %>%
-    filter(!is.na(ward_pair_id), mean_dist_to_boundary < bandwidth_ft)
+    filter(!is.na(ward_pair_id), mean_dist_to_boundary_m < bandwidth_m)
 
 # Quarterly stacked panel
 stacked_quarterly <- read_csv("../input/sales_stacked_quarterly_panel.csv", show_col_types = FALSE) %>%
     mutate(block_id = as.character(block_id)) %>%
     filter(n_sales > 0, !is.na(strictness_change)) %>%
-    filter(!is.na(ward_pair_id), mean_dist_to_boundary < bandwidth_ft)
+    filter(!is.na(ward_pair_id), mean_dist_to_boundary_m < bandwidth_m)
 
 # Census blocks for mapping
 census_blocks <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
@@ -86,7 +85,7 @@ yearly_summary <- stacked_yearly %>%
         total_sales = sum(n_sales),
         mean_strictness_change = mean(strictness_change, na.rm = TRUE),
         mean_price = weighted.mean(mean_price, n_sales, na.rm = TRUE),
-        mean_dist_boundary = mean(mean_dist_to_boundary, na.rm = TRUE),
+        mean_dist_boundary = mean(mean_dist_to_boundary_m, na.rm = TRUE),
         .groups = "drop"
     ) %>%
     arrange(cohort, treatment_group)
@@ -97,7 +96,7 @@ yearly_tex <- yearly_summary %>%
         cohort = as.character(cohort),
         mean_price = scales::dollar(mean_price, accuracy = 1),
         mean_strictness_change = sprintf("%.3f", mean_strictness_change),
-        mean_dist_boundary = sprintf("%.0f", mean_dist_boundary * 0.3048)
+        mean_dist_boundary = sprintf("%.0f", mean_dist_boundary)
     )
 
 cat("\\begin{table}[htbp]
@@ -319,7 +318,7 @@ balance_summary <- balance_data %>%
         mean_price = mean(mean_price, na.rm = TRUE),
         sd_price = sd(mean_price, na.rm = TRUE),
         mean_sales = mean(n_sales, na.rm = TRUE),
-        mean_dist = mean(mean_dist_to_boundary * 0.3048, na.rm = TRUE),
+        mean_dist = mean(mean_dist_to_boundary_m, na.rm = TRUE),
         .groups = "drop"
     )
 
@@ -330,7 +329,7 @@ control_data <- balance_data %>% filter(treatment_group == "Control (No Change)"
 
 price_test <- t.test(stricter_data$mean_price, lenient_data$mean_price)
 sales_test <- t.test(stricter_data$n_sales, lenient_data$n_sales)
-dist_test <- t.test(stricter_data$mean_dist_to_boundary * 0.3048, lenient_data$mean_dist_to_boundary * 0.3048)
+dist_test <- t.test(stricter_data$mean_dist_to_boundary_m, lenient_data$mean_dist_to_boundary_m)
 
 cat("\\begin{table}[htbp]
 \\centering
@@ -466,12 +465,14 @@ create_treatment_map <- function(cohort_year, ward_year, include_title = TRUE) {
 
 # Individual maps (for reference)
 p_2015 <- create_treatment_map(2015, 2015)
-ggsave("../output/treatment_control_map_2015.pdf", p_2015, width = 8, height = 10, bg = "white")
-message("Saved: ../output/treatment_control_map_2015.pdf")
+citywide_2015_path <- sprintf("../output/treatment_control_map_2015_%s.pdf", bandwidth_label)
+ggsave(citywide_2015_path, p_2015, width = 8, height = 10, bg = "white")
+message(sprintf("Saved: %s", citywide_2015_path))
 
 p_2023 <- create_treatment_map(2023, 2024)
-ggsave("../output/treatment_control_map_2023.pdf", p_2023, width = 8, height = 10, bg = "white")
-message("Saved: ../output/treatment_control_map_2023.pdf")
+citywide_2023_path <- sprintf("../output/treatment_control_map_2023_%s.pdf", bandwidth_label)
+ggsave(citywide_2023_path, p_2023, width = 8, height = 10, bg = "white")
+message(sprintf("Saved: %s", citywide_2023_path))
 
 # =========================================================================
 # Combined citywide figure: both years side by side (simple approach)
@@ -502,10 +503,11 @@ p_2023_for_combine <- create_treatment_map(2023, 2024, include_title = FALSE) +
 combined_citywide <- p_2015_for_combine + p_2023_for_combine
 
 # Save - use dimensions that match Chicago's tall/narrow shape (wider to fit legend)
-ggsave("../output/treatment_control_maps_combined.pdf", combined_citywide,
+combined_citywide_path <- sprintf("../output/treatment_control_maps_combined_%s.pdf", bandwidth_label)
+ggsave(combined_citywide_path, combined_citywide,
     width = 5, height = 4, bg = "white"
 )
-message("Saved: ../output/treatment_control_maps_combined.pdf")
+message(sprintf("Saved: %s", combined_citywide_path))
 
 # =============================================================================
 # 6. BEFORE/AFTER WARD PAIR MAPS
@@ -523,11 +525,11 @@ block_distances <- stacked_yearly %>%
     filter(cohort == "2015") %>%
     group_by(block_id) %>%
     summarise(
-        mean_dist_to_boundary = mean(mean_dist_to_boundary, na.rm = TRUE),
+        mean_dist_to_boundary_m = mean(mean_dist_to_boundary_m, na.rm = TRUE),
         ward_pair_id = first(ward_pair_id),
         .groups = "drop"
     ) %>%
-    filter(mean_dist_to_boundary < bandwidth_ft)
+    filter(mean_dist_to_boundary_m < bandwidth_m)
 
 # Join treatment data with distance-filtered blocks
 all_blocks_for_map <- census_blocks %>%
@@ -652,7 +654,7 @@ for (wp in all_pairs_to_map) {
         plot_layout(heights = c(1, 1, 1))
 
     # Save VERTICAL version with wide panels for the paper
-    outfile_vertical <- sprintf("../output/ward_pair_vertical_%s.pdf", gsub("_", "-", wp))
+    outfile_vertical <- sprintf("../output/ward_pair_vertical_%s_%s.pdf", gsub("_", "-", wp), bandwidth_label)
     ggsave(outfile_vertical, combined_vertical, width = 11.2, height = 8.8, bg = "white")
     pdfcrop_path <- Sys.which("pdfcrop")
     if (nzchar(pdfcrop_path)) {
@@ -677,7 +679,7 @@ for (wp in all_pairs_to_map) {
             )
         )
 
-    outfile_horizontal <- sprintf("../output/ward_pair_before_after_%s.pdf", gsub("_", "-", wp))
+    outfile_horizontal <- sprintf("../output/ward_pair_before_after_%s_%s.pdf", gsub("_", "-", wp), bandwidth_label)
     ggsave(outfile_horizontal, combined_horizontal, width = 15, height = 6, bg = "white")
     message(sprintf("    Saved: %s", outfile_horizontal))
 }
@@ -801,7 +803,7 @@ block_summary <- stacked_yearly %>%
     filter(relative_year == 0) %>%
     select(
         block_id, cohort, ward_pair_id, strictness_change,
-        n_sales, mean_price, mean_dist_to_boundary
+        n_sales, mean_price, mean_dist_to_boundary_m
     ) %>%
     mutate(treatment_group = categorize_treatment(strictness_change)) %>%
     arrange(ward_pair_id, desc(abs(strictness_change)))

@@ -15,18 +15,23 @@ source("../../_lib/canonical_geometry_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_rental_data_disaggregate/code")
 # segment_buffer_m <- 250
+# panel_max_distance_m <- 800
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(segment_buffer_m)
+  cli_args <- c(segment_buffer_m, panel_max_distance_m)
 }
 
-if (length(cli_args) != 1) {
-  stop("FATAL: Script requires 1 arg: <segment_buffer_m>", call. = FALSE)
+if (length(cli_args) != 2) {
+  stop("FATAL: Script requires 2 args: <segment_buffer_m> <panel_max_distance_m>", call. = FALSE)
 }
 segment_buffer_m <- as.numeric(cli_args[1])
+panel_max_distance_m <- as.numeric(cli_args[2])
 if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
   stop("segment_buffer_m must be positive.", call. = FALSE)
+}
+if (!is.finite(panel_max_distance_m) || panel_max_distance_m <= 0) {
+  stop("panel_max_distance_m must be positive.", call. = FALSE)
 }
 
 # Disable s2 spherical geometry to avoid validation errors with census block geometries
@@ -205,8 +210,8 @@ rentals <- read_parquet(
   "../input/rent_with_ward_distances.parquet",
   col_select = c(
     "id", "rent_price", "beds", "baths", "sqft", "laundry", "gym",
-    "file_date", "ward", "dist_ft", "ward_pair_id", "longitude", "latitude",
-    "building_type_clean", "signed_dist"
+    "file_date", "ward", "dist_m", "ward_pair_id", "longitude", "latitude",
+    "building_type_clean", "signed_dist_m"
   )
 ) %>%
   filter(!is.na(rent_price), rent_price > 0) %>%
@@ -250,7 +255,7 @@ segment_layers <- load_segment_layers("../input/boundary_segments_400m.gpkg", bu
 # =============================================================================
 message("Assigning rentals to census blocks via spatial join...")
 
-crs_projected <- 3435 # Illinois East State Plane (feet)
+crs_projected <- 3435
 
 rentals_sf <- rentals %>%
   filter(!is.na(latitude), !is.na(longitude)) %>%
@@ -291,7 +296,7 @@ rentals_with_blocks <- rentals_with_blocks_2010 %>%
   select(
     listing_row_id, id, file_date, year, month, quarter, year_month, year_quarter,
     rent_price, beds, baths, sqft, laundry, gym, building_type_clean,
-    ward, dist_ft, ward_pair_id, longitude, latitude, signed_dist,
+    ward, dist_m, ward_pair_id, longitude, latitude, signed_dist_m,
     block_id_2010, block_id_2020
   ) %>%
   filter(!is.na(block_id_2010) | !is.na(block_id_2020))
@@ -390,7 +395,7 @@ rental_support_parts[["cohort_2015_post_valid"]] <- summarize_event_support(
 )
 
 cohort_2015_work <- cohort_2015_work %>%
-  filter(!is.na(ward_pair_id), !is.na(ward), dist_ft <= 2000)
+  filter(!is.na(ward_pair_id), !is.na(ward), dist_m <= panel_max_distance_m)
 
 rental_support_parts[["cohort_2015_post_distance"]] <- summarize_event_support(
   cohort_2015_work, "cohort_2015", "post_distance_filter"
@@ -431,7 +436,7 @@ cohort_2015 <- cohort_2015_work %>%
     sqft, beds, baths,
     ward_pair_id, ward_origin, ward_dest, ward_pair_side,
     segment_id_cohort, segment_side, cohort_segment, cohort_segment_side,
-    dist_ft, signed_dist,
+    dist_m, signed_dist_m,
     treat, switched, strictness_change, treatment_continuous,
     treat_stricter, treat_lenient
   )
@@ -496,7 +501,7 @@ rental_support_parts[["cohort_2023_post_valid"]] <- summarize_event_support(
 )
 
 cohort_2023_work <- cohort_2023_work %>%
-  filter(!is.na(ward_pair_id), !is.na(ward), dist_ft <= 2000)
+  filter(!is.na(ward_pair_id), !is.na(ward), dist_m <= panel_max_distance_m)
 
 rental_support_parts[["cohort_2023_post_distance"]] <- summarize_event_support(
   cohort_2023_work, "cohort_2023", "post_distance_filter"
@@ -537,7 +542,7 @@ cohort_2023 <- cohort_2023_work %>%
     sqft, beds, baths,
     ward_pair_id, ward_origin, ward_dest, ward_pair_side,
     segment_id_cohort, segment_side, cohort_segment, cohort_segment_side,
-    dist_ft, signed_dist,
+    dist_m, signed_dist_m,
     treat, switched, strictness_change, treatment_continuous,
     treat_stricter, treat_lenient
   )
@@ -623,10 +628,10 @@ message(sprintf(
 message("\nBuilding type distribution:")
 table(listing_panel$building_type_factor) %>% print()
 
-message("\nDistance to boundary (ft):")
-message(sprintf("  Mean: %.0f", mean(listing_panel$dist_ft)))
-message(sprintf("  Median: %.0f", median(listing_panel$dist_ft)))
-message(sprintf("  Max: %.0f", max(listing_panel$dist_ft)))
+message("\nDistance to boundary (m):")
+message(sprintf("  Mean: %.0f", mean(listing_panel$dist_m)))
+message(sprintf("  Median: %.0f", median(listing_panel$dist_m)))
+message(sprintf("  Max: %.0f", max(listing_panel$dist_m)))
 
 message("\nStrictness change distribution (treated units):")
 listing_panel %>%

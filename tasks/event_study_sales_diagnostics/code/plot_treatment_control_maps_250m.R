@@ -16,7 +16,6 @@ if (!length(args) %in% c(1, 2)) {
 
 bandwidth_m <- as.numeric(args[1])
 output_suffix <- if (length(args) >= 2) args[2] else sprintf("%dm", as.integer(round(bandwidth_m)))
-bandwidth_ft <- bandwidth_m / 0.3048
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be positive.", call. = FALSE)
@@ -55,11 +54,11 @@ block_distances_2015 <- read_csv("../input/sales_stacked_panel.csv", show_col_ty
   filter(
     cohort == "2015",
     !is.na(ward_pair_id),
-    mean_dist_to_boundary < bandwidth_ft
+    mean_dist_to_boundary_m < bandwidth_m
   ) %>%
   group_by(block_id) %>%
   summarise(
-    mean_dist_to_boundary = mean(mean_dist_to_boundary, na.rm = TRUE),
+    mean_dist_to_boundary_m = mean(mean_dist_to_boundary_m, na.rm = TRUE),
     ward_pair_id = first(ward_pair_id),
     .groups = "drop"
   )

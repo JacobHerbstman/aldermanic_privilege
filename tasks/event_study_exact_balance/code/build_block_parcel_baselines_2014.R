@@ -106,11 +106,11 @@ lake <- lake_michigan_geom(water_input)
 cbd <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>%
   st_transform(3435)
 
-coords_tbl$nearest_school_dist_ft <- nearest_distance_ft(coords_sf, schools, label = "parcel coordinates")
-coords_tbl$nearest_park_dist_ft <- nearest_distance_ft(coords_sf, parks, label = "parcel coordinates")
-coords_tbl$nearest_major_road_dist_ft <- nearest_distance_ft(coords_sf, major_streets, label = "parcel coordinates")
-coords_tbl$lake_michigan_dist_ft <- nearest_distance_ft(coords_sf, lake, label = "parcel coordinates")
-coords_tbl$dist_cbd_ft <- as.numeric(st_distance(coords_sf, cbd))
+coords_tbl$nearest_school_dist_m <- nearest_distance_m(coords_sf, schools, label = "parcel coordinates")
+coords_tbl$nearest_park_dist_m <- nearest_distance_m(coords_sf, parks, label = "parcel coordinates")
+coords_tbl$nearest_major_road_dist_m <- nearest_distance_m(coords_sf, major_streets, label = "parcel coordinates")
+coords_tbl$lake_michigan_dist_m <- nearest_distance_m(coords_sf, lake, label = "parcel coordinates")
+coords_tbl$dist_cbd_m <- as.numeric(st_distance(coords_sf, cbd)) * 0.3048
 
 parcel_xy <- parcel_xy %>%
   left_join(coords_tbl, by = c("x", "y")) %>%
@@ -122,11 +122,11 @@ block_baselines <- parcel_xy %>%
   summarise(
     n_parcels = n(),
     mean_zoned_far = safe_mean(floor_area_ratio),
-    mean_dist_cbd_ft = safe_mean(dist_cbd_ft),
-    mean_nearest_school_dist_ft = safe_mean(nearest_school_dist_ft),
-    mean_nearest_park_dist_ft = safe_mean(nearest_park_dist_ft),
-    mean_nearest_major_road_dist_ft = safe_mean(nearest_major_road_dist_ft),
-    mean_lake_michigan_dist_ft = safe_mean(lake_michigan_dist_ft),
+    mean_dist_cbd_m = safe_mean(dist_cbd_m),
+    mean_nearest_school_dist_m = safe_mean(nearest_school_dist_m),
+    mean_nearest_park_dist_m = safe_mean(nearest_park_dist_m),
+    mean_nearest_major_road_dist_m = safe_mean(nearest_major_road_dist_m),
+    mean_lake_michigan_dist_m = safe_mean(lake_michigan_dist_m),
     .groups = "drop"
   )
 

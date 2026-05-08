@@ -46,7 +46,6 @@ permit_balance_tex_output <- args[5]
 sales_balance_output <- args[6]
 sales_balance_tex_output <- args[7]
 bandwidth_m <- as.numeric(args[8])
-bandwidth_ft <- bandwidth_m / 0.3048
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be positive.", call. = FALSE)
@@ -73,17 +72,17 @@ fmt_covariate_value <- function(covariate_name, x) {
   if (covariate_name == "mean_zoned_far") {
     return(fmt_decimal(x, 2))
   }
-  fmt_integer(x * 0.3048)
+  fmt_integer(x)
 }
 
 covariate_catalog <- tibble(
   covariate = c(
     "mean_zoned_far",
-    "mean_dist_cbd_ft",
-    "mean_nearest_school_dist_ft",
-    "mean_nearest_park_dist_ft",
-    "mean_nearest_major_road_dist_ft",
-    "mean_lake_michigan_dist_ft"
+    "mean_dist_cbd_m",
+    "mean_nearest_school_dist_m",
+    "mean_nearest_park_dist_m",
+    "mean_nearest_major_road_dist_m",
+    "mean_lake_michigan_dist_m"
   ),
   covariate_label = c(
     "Average Zoned FAR",
@@ -192,7 +191,7 @@ block_baselines <- read_csv(block_baseline_input, show_col_types = FALSE) %>%
 message("Loading permit event-study panel...")
 permit_panel <- read_parquet(permit_panel_input) %>%
   as_tibble() %>%
-  filter(dist_ft <= bandwidth_ft, relative_year == -1, !is.na(strictness_change)) %>%
+  filter(dist_m <= bandwidth_m, relative_year == -1, !is.na(strictness_change)) %>%
   mutate(
     group = case_when(
       treat == 0 ~ "control",
@@ -210,7 +209,7 @@ permit_panel <- read_parquet(permit_panel_input) %>%
 message("Loading sales event-study panel...")
 sales_panel <- read_parquet(sales_panel_input) %>%
   as_tibble() %>%
-  filter(dist_ft <= bandwidth_ft, relative_year == -1, !is.na(strictness_change)) %>%
+  filter(dist_m <= bandwidth_m, relative_year == -1, !is.na(strictness_change)) %>%
   mutate(
     ward_pair_id = sub("_[0-9]+$", "", ward_pair_side),
     group = case_when(

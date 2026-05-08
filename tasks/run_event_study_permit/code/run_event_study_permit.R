@@ -10,7 +10,7 @@ source("../../_lib/permit_event_study_sample_helpers.R")
 # model_type <- "ppml"
 # treatment_type <- "continuous"
 # weighting <- "uniform"
-# bandwidth <- 820
+# bandwidth <- 250
 # fe_type <- "within_block"
 # post_window <- "full"
 # geo_fe_level <- "ward_pair"
@@ -38,7 +38,7 @@ if (length(cli_args) >= 11) {
   cluster_level <- tolower(cli_args[11])
   control_spec <- if (length(cli_args) >= 12) cli_args[12] else "none"
   sample_restriction <- if (length(cli_args) >= 13) cli_args[13] else "none"
-  bandwidth_label <- if (length(cli_args) >= 14) cli_args[14] else sprintf("%dft", as.integer(bandwidth))
+  bandwidth_label <- if (length(cli_args) >= 14) cli_args[14] else sprintf("%dm", as.integer(round(bandwidth)))
 } else {
   stop(
     "FATAL: Script requires at least 11 args: <panel_mode> <outcome_family> <date_basis> <model_type> <treatment_type> <weighting> <bandwidth> <fe_type> <post_window> <geo_fe_level> <cluster_level> [<control_spec>] [<sample_restriction>] [<bandwidth_label>]",
@@ -111,8 +111,8 @@ if (BANDWIDTH <= 0) {
 if (!grepl("^[A-Za-z0-9_-]+$", BANDWIDTH_LABEL)) {
   stop("--bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
-if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 2000) {
-  stop("Segment FE requested with bandwidth > 2000. Use bandwidth <= 2000.", call. = FALSE)
+if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 800) {
+  stop("Segment FE requested with bandwidth > 800m. Use bandwidth <= 800m.", call. = FALSE)
 }
 
 outcome_catalog <- tibble(
@@ -338,16 +338,16 @@ max_period <- 5
 available_min_period <- min(data$relative_year, na.rm = TRUE)
 available_max_period <- max(data$relative_year, na.rm = TRUE)
 
-required_cols <- c(block_var, geo_group_var, "year", "relative_year", "dist_ft", "treat", base_outcome_var)
+required_cols <- c(block_var, geo_group_var, "year", "relative_year", "dist_m", "treat", base_outcome_var)
 missing_cols <- setdiff(required_cols, names(data))
 if (length(missing_cols) > 0) {
   stop(sprintf("Missing required columns: %s", paste(missing_cols, collapse = ", ")), call. = FALSE)
 }
 
 data <- data %>%
-  filter(dist_ft <= BANDWIDTH) %>%
+  filter(dist_m <= BANDWIDTH) %>%
   mutate(
-    weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_ft / BANDWIDTH) else 1,
+    weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_m / BANDWIDTH) else 1,
     treatment_stricter_continuous = pmax(strictness_change, 0),
     treatment_lenient_continuous = pmax(-strictness_change, 0),
     treatment_stricter_binary = as.integer(strictness_change > 0),

@@ -13,6 +13,7 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/event_study_exact_balance/output/redistricting_sample_support_summary_250m.tex \
 	../tasks/event_study_exact_balance/output/sales_exact_balance_summary_250m.tex \
 	../tasks/event_study_sales_diagnostics/output/treatment_control_map_2015_250m.pdf \
+	../tasks/event_study_sales_diagnostics/output/treatment_control_maps_combined_250m.pdf \
 	../tasks/event_study_sales_diagnostics/output/ward_pair_vertical_13-23_250m.pdf \
 	../tasks/new_construction_score_density_robustness/output/fe_table_100m_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex \
 	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_100m_all_donut5m.pdf \

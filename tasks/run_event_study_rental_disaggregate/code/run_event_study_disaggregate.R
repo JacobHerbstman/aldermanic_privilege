@@ -7,7 +7,7 @@ source("../../setup_environment/code/packages.R")
 # treatment_type <- "continuous"
 # include_controls <- TRUE
 # weighting <- "triangular"
-# bandwidth <- 1000
+# bandwidth <- 250
 # sample_filter <- "multifamily_only"
 # fe_type <- "strict_pair_x_year"
 # post_window <- "short"
@@ -74,8 +74,8 @@ if (!GEO_FE_LEVEL %in% c("segment", "ward_pair")) {
 if (!CLUSTER_LEVEL %in% c("twoway_block_segment", "block", "segment")) {
   stop("--cluster_level must be one of: twoway_block_segment, block, segment", call. = FALSE)
 }
-if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 1000) {
-  stop("Segment FE requested with bandwidth > 1000. Use bandwidth <= 1000.", call. = FALSE)
+if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 800) {
+  stop("Segment FE requested with bandwidth > 800m. Use bandwidth <= 800m.", call. = FALSE)
 }
 if (POST_WINDOW == "overlap" && (PANEL_MODE != "stacked_implementation" || FREQUENCY != "yearly")) {
   stop("The overlap window is only valid for the stacked yearly rental specification.", call. = FALSE)
@@ -101,7 +101,7 @@ fe_suffix <- case_when(
   FE_TYPE == "side_plus_year" ~ "_yearfe"
 )
 suffix <- sprintf(
-  "disaggregate_%s_%s_%s_%s_%dft%s%s%s_%s",
+  "disaggregate_%s_%s_%s_%s_%dm%s%s%s_%s",
   FREQUENCY,
   PANEL_MODE,
   TREATMENT_TYPE,
@@ -128,7 +128,7 @@ message(sprintf("Frequency: %s", FREQUENCY))
 message(sprintf("Treatment type: %s", TREATMENT_TYPE))
 message(sprintf("Include hedonics: %s", INCLUDE_CONTROLS))
 message(sprintf("Weighting: %s", WEIGHTING))
-message(sprintf("Bandwidth: %d ft", BANDWIDTH))
+message(sprintf("Bandwidth: %dm", as.integer(round(BANDWIDTH))))
 message(sprintf("Sample filter: %s", SAMPLE_FILTER))
 message(sprintf("FE type: %s", FE_TYPE))
 message(sprintf("Post window: %s", POST_WINDOW))
@@ -399,9 +399,9 @@ if (needs_segment) {
 after_segment_filter_n <- nrow(data)
 
 data <- data %>%
-  filter(dist_ft <= BANDWIDTH) %>%
+  filter(dist_m <= BANDWIDTH) %>%
   mutate(
-    weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_ft / BANDWIDTH) else 1,
+    weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_m / BANDWIDTH) else 1,
     treatment_stricter_continuous = pmax(strictness_change, 0),
     treatment_lenient_continuous = pmax(-strictness_change, 0)
   )

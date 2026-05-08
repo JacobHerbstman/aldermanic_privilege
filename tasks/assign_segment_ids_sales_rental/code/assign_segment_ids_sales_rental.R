@@ -177,7 +177,7 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
     lapply(coverage_bandwidths_m, function(bw_m_i) {
       coverage_block(
         dataset_name,
-        dt[is.finite(get(dist_col)) & get(dist_col) <= bw_m_i / 0.3048],
+        dt[is.finite(get(dist_col)) & get(dist_col) <= bw_m_i],
         sprintf("bw%.0fm", bw_m_i)
       )
     })
@@ -195,13 +195,13 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
 
 build_spotcheck <- function(dt_sales, dt_rent, n_each = 20L, bandwidth_m) {
   sales_q <- dt_sales[
-    is.finite(dist_ft) & dist_ft <= bandwidth_m / 0.3048,
+    is.finite(dist_m) & dist_m <= bandwidth_m,
     .(
       dataset = "sales",
       primary_id = as.character(pin),
       obs_date = as.character(sale_date),
       ward_pair_id = as.character(ward_pair_id),
-      dist_ft = as.numeric(dist_ft),
+      dist_m = as.numeric(dist_m),
       longitude = as.numeric(longitude),
       latitude = as.numeric(latitude),
       segment_id = as.character(segment_id),
@@ -209,16 +209,16 @@ build_spotcheck <- function(dt_sales, dt_rent, n_each = 20L, bandwidth_m) {
       flag = fifelse(is.na(segment_id) | segment_id == "", "unmatched", "matched")
     )
   ]
-  sales_q <- sales_q[order(flag, dist_ft)]
+  sales_q <- sales_q[order(flag, dist_m)]
 
   rent_q <- dt_rent[
-    is.finite(dist_ft) & dist_ft <= bandwidth_m / 0.3048,
+    is.finite(dist_m) & dist_m <= bandwidth_m,
     .(
       dataset = "rental",
       primary_id = as.character(id),
       obs_date = as.character(file_date),
       ward_pair_id = as.character(ward_pair_id),
-      dist_ft = as.numeric(dist_ft),
+      dist_m = as.numeric(dist_m),
       longitude = as.numeric(longitude),
       latitude = as.numeric(latitude),
       segment_id = as.character(segment_id),
@@ -226,7 +226,7 @@ build_spotcheck <- function(dt_sales, dt_rent, n_each = 20L, bandwidth_m) {
       flag = fifelse(is.na(segment_id) | segment_id == "", "unmatched", "matched")
     )
   ]
-  rent_q <- rent_q[order(flag, dist_ft)]
+  rent_q <- rent_q[order(flag, dist_m)]
 
   rbindlist(list(head(sales_q, n_each), head(rent_q, n_each)), fill = TRUE)
 }
@@ -245,7 +245,7 @@ if (mode == "all") {
 }
 
 sales_dt <- fread(sales_input)
-if (!all(c("pin", "sale_date", "ward_pair_id", "dist_ft", "longitude", "latitude") %in% names(sales_dt))) {
+if (!all(c("pin", "sale_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(sales_dt))) {
   stop("sales_pre_scores.csv missing required columns.", call. = FALSE)
 }
 sales_dt[, pin := as.character(pin)]
@@ -258,7 +258,7 @@ sales_res <- assign_segments(
   pair_col = "ward_pair_id",
   lon_col = "longitude",
   lat_col = "latitude",
-  dist_col = "dist_ft",
+  dist_col = "dist_m",
   allow_pre_2003 = TRUE,
   chunk_n = 50000L
 )
@@ -273,7 +273,7 @@ if (mode == "sales") {
 
 message("\nAssigning rental segment IDs...")
 rent_dt <- as.data.table(read_parquet(rent_input))
-if (!all(c("id", "file_date", "ward_pair_id", "dist_ft", "longitude", "latitude") %in% names(rent_dt))) {
+if (!all(c("id", "file_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(rent_dt))) {
   stop("rent_pre_scores_full.parquet missing required columns.", call. = FALSE)
 }
 rent_dt[, id := as.character(id)]
@@ -286,7 +286,7 @@ rent_res <- assign_segments(
   pair_col = "ward_pair_id",
   lon_col = "longitude",
   lat_col = "latitude",
-  dist_col = "dist_ft",
+  dist_col = "dist_m",
   allow_pre_2003 = FALSE,
   chunk_n = 80000L
 )
