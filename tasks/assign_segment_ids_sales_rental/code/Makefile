@@ -3,7 +3,7 @@ include ../../shell_functions.make
 
 SEGMENT_LENGTH_M ?= 400
 SEGMENT_BUFFER_M ?= 250
-COVERAGE_BWS_M ?= 100 250
+COVERAGE_BWS_M ?= 100,250
 SPOTCHECK_BW_M ?= 250
 
 all: ../output/sales_pre_scores_with_segments.csv ../output/rent_pre_scores_full_with_segments.parquet ../output/segment_assignment_coverage_summary.csv ../output/segment_assignment_spotcheck_queue.csv ../output/segment_assignment_reason_summary.csv

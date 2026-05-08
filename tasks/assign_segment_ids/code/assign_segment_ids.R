@@ -13,7 +13,7 @@ library(sf)
 # out_coverage <- "../output/parcel_segment_ids_coverage.csv"
 # out_reason <- "../output/parcel_segment_ids_reason_summary.csv"
 # segment_buffer_m <- 250
-# coverage_bandwidths_m <- "100 250"
+# coverage_bandwidths_m <- "100,250"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -34,7 +34,7 @@ out_lookup <- cli_args[4]
 out_coverage <- cli_args[5]
 out_reason <- cli_args[6]
 segment_buffer_m <- as.numeric(cli_args[7])
-coverage_bandwidths_m <- scan(text = cli_args[8], quiet = TRUE)
+coverage_bandwidths_m <- scan(text = gsub(",", " ", cli_args[8], fixed = TRUE), quiet = TRUE)
 
 if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
   stop("segment_buffer_m must be positive.", call. = FALSE)

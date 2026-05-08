@@ -19,7 +19,7 @@ sf_use_s2(FALSE)
 # out_spotcheck <- "../output/segment_assignment_spotcheck_queue.csv"
 # out_reason <- "../output/segment_assignment_reason_summary.csv"
 # segment_buffer_m <- 250
-# coverage_bandwidths_m <- "100 250"
+# coverage_bandwidths_m <- "100,250"
 # spotcheck_bandwidth_m <- 250
 
 cli_args <- commandArgs(trailingOnly = TRUE)
@@ -43,7 +43,7 @@ if (mode == "sales") {
   segment_gpkg <- cli_args[3]
   out_sales <- cli_args[4]
   segment_buffer_m <- as.numeric(cli_args[5])
-  coverage_bandwidths_m <- scan(text = cli_args[6], quiet = TRUE)
+  coverage_bandwidths_m <- scan(text = gsub(",", " ", cli_args[6], fixed = TRUE), quiet = TRUE)
   spotcheck_bandwidth_m <- NA_real_
 } else {
   if (length(cli_args) != 12) {
@@ -61,7 +61,7 @@ if (mode == "sales") {
   out_spotcheck <- cli_args[8]
   out_reason <- cli_args[9]
   segment_buffer_m <- as.numeric(cli_args[10])
-  coverage_bandwidths_m <- scan(text = cli_args[11], quiet = TRUE)
+  coverage_bandwidths_m <- scan(text = gsub(",", " ", cli_args[11], fixed = TRUE), quiet = TRUE)
   spotcheck_bandwidth_m <- as.numeric(cli_args[12])
 }
 

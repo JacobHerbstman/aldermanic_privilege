@@ -3,7 +3,7 @@ include ../../shell_functions.make
 
 SEGMENT_LENGTH_M ?= 400
 SEGMENT_BUFFER_M ?= 250
-COVERAGE_BWS_M ?= 100 250
+COVERAGE_BWS_M ?= 100,250
 
 all: ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv ../output/parcel_segment_ids_reason_summary.csv
 
