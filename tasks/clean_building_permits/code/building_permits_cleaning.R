@@ -7,7 +7,7 @@ source("../../setup_environment/code/packages.R")
 
 crs_projected <- 3435
 
-building_permits <- read_csv("../input/Building_Permits_20251121.csv")
+building_permits <- read_csv("../input/building_permits.csv")
 
 ## remove contact columns and clean up names
 building_permits_clean <- building_permits %>% 
@@ -36,7 +36,7 @@ permits_to_convert <- building_permits_clean[needs_conversion_mask, ]
 converted_sf <- st_as_sf(
     permits_to_convert,
     coords = c("xcoordinate", "ycoordinate"),
-    crs = crs_projected, # Source CRS: NAD83 Illinois State Plane East (US Feet)
+    crs = crs_projected, # Source CRS: NAD83 Illinois State Plane East
     remove = FALSE
   ) %>%
   st_transform(crs = 4326)
