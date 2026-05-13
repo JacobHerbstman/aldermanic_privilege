@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("../../_lib/event_study_plot_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
@@ -253,8 +254,8 @@ compute_pretrend_test <- function(model, plot_data, group_label) {
 make_single_series_plot <- function(plot_data) {
   ggplot(plot_data, aes(x = event_time, y = estimate_pct)) +
     geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
+    geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), fill = solid_event_study_band_fill("#009E73", 0.2), color = NA) +
     geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), fill = "#009E73", alpha = 0.2, color = NA) +
     geom_line(color = "#009E73", linewidth = 1) +
     geom_point(color = "#009E73", size = 2.5) +
     scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
@@ -282,11 +283,27 @@ make_directional_plots <- function(plot_data) {
     "Moved to Stricter" = "#c23616",
     "Moved to More Lenient" = "#7f8fa6"
   )
+  band_fill_values <- solid_event_study_band_fill(color_values, 0.15)
 
   facet_plot <- ggplot(plot_data, aes(x = event_time, y = estimate_pct, color = group, fill = group)) +
     geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
+    geom_ribbon(
+      data = plot_data %>% filter(group == "Moved to Stricter"),
+      aes(x = event_time, ymin = ci_low_pct, ymax = ci_high_pct),
+      fill = band_fill_values["Moved to Stricter"],
+      color = NA,
+      inherit.aes = FALSE,
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      data = plot_data %>% filter(group == "Moved to More Lenient"),
+      aes(x = event_time, ymin = ci_low_pct, ymax = ci_high_pct),
+      fill = band_fill_values["Moved to More Lenient"],
+      color = NA,
+      inherit.aes = FALSE,
+      show.legend = FALSE
+    ) +
     geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.15, color = NA) +
     geom_line(linewidth = 1) +
     geom_point(size = 2.5, shape = 21, stroke = 0.5) +
     scale_color_manual(values = color_values, name = NULL) +
@@ -315,8 +332,23 @@ make_directional_plots <- function(plot_data) {
 
   combined_plot <- ggplot(plot_data, aes(x = event_time, y = estimate_pct, color = group, fill = group)) +
     geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
+    geom_ribbon(
+      data = plot_data %>% filter(group == "Moved to Stricter"),
+      aes(x = event_time, ymin = ci_low_pct, ymax = ci_high_pct),
+      fill = band_fill_values["Moved to Stricter"],
+      color = NA,
+      inherit.aes = FALSE,
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      data = plot_data %>% filter(group == "Moved to More Lenient"),
+      aes(x = event_time, ymin = ci_low_pct, ymax = ci_high_pct),
+      fill = band_fill_values["Moved to More Lenient"],
+      color = NA,
+      inherit.aes = FALSE,
+      show.legend = FALSE
+    ) +
     geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.15, color = NA) +
     geom_line(linewidth = 1) +
     geom_point(size = 2.5, shape = 21, stroke = 0.5) +
     scale_color_manual(values = color_values, name = NULL) +

@@ -34,10 +34,10 @@ The outcome is the count of high-discretion permits issued on each census block 
 %
 \begin{equation}
 \label{eq:event_study_permits}
-\log E[Y_{bt}] = \alpha_b + \lambda_{gt} + \sum_{\tau \neq -1} \beta_\tau \left( \Delta\text{Stringency}_b \times \mathbf{1}[t = \tau] \right)
+\log E[Y_{bt}] = \alpha_b + \lambda_{gt} + \sum_{\tau \neq -1} \beta_\tau \left( \Delta\text{Stringency}_b \times \mathbf{1}[t = \tau] \right) + \theta_t P_b^{pre} + \psi_t \mathbf{1}[P_b^{pre}=0]
 \end{equation}
 %
-where $Y_{bt}$ is the count of high-discretion permits issued on block $b$ in year $t$, $\alpha_b$ is a block fixed effect, and $\lambda_{gt}$ is a border-pair-by-year fixed effect. In the compiled paper's 2015-cohort design, the treatment variable $\Delta\text{Stringency}_b$ is the destination alderman's baseline strictness score minus the origin alderman's baseline strictness score, where origin and destination aldermen are assigned using the 2014 pre-redistricting ward-to-alderman mapping.
+where $Y_{bt}$ is the count of high-discretion permits issued on block $b$ in year $t$, $\alpha_b$ is a block fixed effect, and $\lambda_{gt}$ is a border-pair-by-year fixed effect. In the compiled paper's 2015-cohort design, the treatment variable $\Delta\text{Stringency}_b$ is the destination alderman's baseline strictness score minus the origin alderman's baseline strictness score, where origin and destination aldermen are assigned using the 2014 pre-redistricting ward-to-alderman mapping. The terms $P_b^{pre}$ and $\mathbf{1}[P_b^{pre}=0]$ are the block's raw count of issued high-discretion permits in the pre-redistricting years and an indicator for having no such permits; both are interacted with calendar year to allow blocks with different baseline development intensity to follow different time profiles.
 
 The block fixed effects absorb all time-invariant characteristics of each block, so identification comes from within-block changes over time: the same physical block before and after its alderman changes. The border-pair-by-year fixed effects absorb local shocks that affect all blocks near a given ward boundary in a given year, so the comparison is between blocks near the same boundary that experienced different changes in aldermanic representation. The sample uses the 2015 redistricting cohort, a 250m bandwidth around ward boundaries, and uniform weights. I use a wider window here than in Section~\ref{sec:empirical_results_density} because this design does not identify from a discontinuity exactly at the boundary. It compares treated and control blocks within the same boundary neighborhoods over time, so the extra width preserves local support and power without changing the fixed-effects comparison. Blocks with zero permits in some years remain in the panel and are informative under PPML. Blocks with zero permits in every sample year contribute no within-block variation once block fixed effects are included, so the estimator drops them mechanically. Standard errors are clustered at the census block level.
 
@@ -49,9 +49,9 @@ Figure~\ref{fig:permit_event_study} presents the main result. The pre-period coe
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_250m_within_block_full_clust_block_geo_wardpair.pdf}
+    \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_250m_within_block_full_clust_block_ctrl_pre_high_level_geo_wardpair.pdf}
     \caption{Permit Event Study: Effect of Alderman Stringency on High-Discretion Permits}
-    \figurenotes{Block-year PPML event study. Outcome is the count of high-discretion permits issued per block per year. 2015 redistricting cohort; sample restricted to blocks within 250m of ward boundaries with uniform weights. Continuous treatment: effect of a 1 SD increase in alderman stringency. Block and border-pair $\times$ year fixed effects. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the block level. Pooled post-period estimate: $-0.069$ (SE $= 0.036$). Joint pre-trend test $p = 0.774$.}
+    \figurenotes{Block-year PPML event study. Outcome is the count of high-discretion permits issued per block per year. 2015 redistricting cohort; sample restricted to blocks within 250m of ward boundaries with uniform weights. Continuous treatment: effect of a 1 SD increase in alderman stringency. Block and border-pair $\times$ year fixed effects; pre-period high-discretion permit count and no-pre-period high-discretion permit indicator interacted with calendar year. Year $-1$ omitted as reference. 95\% confidence intervals based on standard errors clustered at the block level. Pooled post-period estimate: $-0.079$ (SE $= 0.041$). Joint pre-trend test $p = 0.792$.}
     \label{fig:permit_event_study}
 \end{figure}
 
@@ -59,29 +59,29 @@ Figure~\ref{fig:permit_event_study_split} traces the effect separately for block
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_250m_within_block_full_clust_block_geo_wardpair.pdf}
+    \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_250m_within_block_full_clust_block_ctrl_pre_high_level_geo_wardpair.pdf}
     \caption{Permit Event Study: Continuous Split by Treatment Direction}
     \figurenotes{Same specification as Figure~\ref{fig:permit_event_study}, estimated separately for blocks with $\Delta\text{Stringency} > 0$ (moved to more stringent) and $\Delta\text{Stringency} < 0$ (moved to more lenient). 95\% confidence intervals based on standard errors clustered at the block level.}
     \label{fig:permit_event_study_split}
 \end{figure}
 
-Table~\ref{tab:did_permit_2015_current} collapses the post-period into a single pooled DID coefficient. The pooled PPML estimate is $-0.069$ (SE $= 0.036$), which is about a 7\% decline for a one standard deviation increase in alderman stringency. This is a direct measure of how aldermanic discretion affects the development pipeline: more stringent aldermen do not simply alter the scale of completed buildings, they reduce the flow of projects that require their engagement.
+Table~\ref{tab:did_permit_2015_current} collapses the post-period into a single pooled DID coefficient. The pooled PPML estimate is $-0.079$ (SE $= 0.041$), which is about an 8\% decline for a one standard deviation increase in alderman stringency. This is a direct measure of how aldermanic discretion affects the development pipeline: more stringent aldermen do not simply alter the scale of completed buildings, they reduce the flow of projects that require their engagement.
 
 \begin{table}[htbp]
     \caption{Effect of Alderman Stringency on High-Discretion Permits}
     \label{tab:did_permit_2015_current}
 
-    \input{../tasks/run_event_study_permit/output/did_table_permit_2015_high_discretion_issue_ppml_uniform_250m_geo_wardpair.tex}
+    \input{../tasks/run_event_study_permit/output/did_table_permit_2015_high_discretion_issue_ppml_uniform_250m_ctrl_pre_high_level_geo_wardpair.tex}
 
     \footnotesize
-    \textit{Notes:} Block-year PPML regression using the 2015 implementation cohort, restricted to census blocks within 250m of ward boundaries and relative years $-5$ through $5$. Outcome is the number of issued high-discretion permits. Uniform weighting. Standard errors clustered at the block level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Block-year PPML regression using the 2015 implementation cohort, restricted to census blocks within 250m of ward boundaries and relative years $-5$ through $5$. Outcome is the number of issued high-discretion permits. Uniform weighting. The pre-period permit controls are the block's raw count of issued high-discretion permits before redistricting and an indicator for no pre-period high-discretion permits, each interacted with calendar year. Standard errors clustered at the block level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
-As a placebo, I run the same specification on low-discretion permits, which are less exposed to aldermanic intervention than the high-discretion permits that underlie the stringency index. Figure~\ref{fig:permit_event_study_low_disc} shows the corresponding event study, and the pooled DID estimate is $-0.037$ (SE $= 0.039$), about a 4\% decline. That is smaller than the main high-discretion coefficient in the same PPML units ($-0.069$) and statistically indistinguishable from zero. The plot does not show a clear post-treatment pattern. This makes it less likely that the high-discretion result is picking up a general shift in permitting activity unrelated to discretion.
+As a placebo, I run the same specification on low-discretion permits, which are less exposed to aldermanic intervention than the high-discretion permits that underlie the stringency index. Figure~\ref{fig:permit_event_study_low_disc} shows the corresponding event study. The plot does not show a clear post-treatment pattern. This makes it less likely that the high-discretion result is picking up a general shift in permitting activity unrelated to discretion.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_250m_within_block_full_clust_block_geo_wardpair.pdf}
+    \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_250m_within_block_full_clust_block_ctrl_pre_high_level_geo_wardpair.pdf}
     \caption{Placebo: Low-Discretion Permits}
     \figurenotes{Same specification as Figure~\ref{fig:permit_event_study} but using low-discretion permits (excluding signs) as the outcome. The plotted coefficients are small and do not show a clear post-treatment pattern. The absence of a placebo response suggests that the main result is specific to the discretionary part of the permitting process.}
     \label{fig:permit_event_study_low_disc}

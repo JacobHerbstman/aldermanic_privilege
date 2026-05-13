@@ -8,11 +8,12 @@ source("../../_lib/permit_event_study_sample_helpers.R")
 # weighting <- "uniform"
 # cluster_level <- "block"
 # output_tex <- "../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_250m_geo_wardpair.tex"
+# control_spec <- "pre_high_level"
 # sample_restriction <- "none"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(outcome_family, bandwidth, weighting, cluster_level, output_tex, sample_restriction)
+  args <- c(outcome_family, bandwidth, weighting, cluster_level, output_tex, control_spec, sample_restriction)
 }
 
 if (length(args) >= 5) {
@@ -21,16 +22,18 @@ if (length(args) >= 5) {
   weighting <- args[3]
   cluster_level <- args[4]
   output_tex <- args[5]
-  sample_restriction <- if (length(args) >= 6) args[6] else "none"
+  control_spec <- if (length(args) >= 6) args[6] else "none"
+  sample_restriction <- if (length(args) >= 7) args[7] else "none"
 } else if (length(args) >= 4) {
   outcome_family <- "high_discretion"
   bandwidth <- as.numeric(args[1])
   weighting <- args[2]
   cluster_level <- args[3]
   output_tex <- args[4]
-  sample_restriction <- if (length(args) >= 5) args[5] else "none"
+  control_spec <- if (length(args) >= 5) args[5] else "none"
+  sample_restriction <- if (length(args) >= 6) args[6] else "none"
 } else {
-  stop("FATAL: Script requires args: <outcome_family> <bandwidth> <weighting> <cluster_level> <output_tex> [<sample_restriction>]", call. = FALSE)
+  stop("FATAL: Script requires args: <outcome_family> <bandwidth> <weighting> <cluster_level> <output_tex> [<control_spec>] [<sample_restriction>]", call. = FALSE)
 }
 
 if (!outcome_family %in% c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase")) {
@@ -45,6 +48,9 @@ if (!weighting %in% c("uniform", "triangular")) {
 }
 if (!cluster_level %in% c("block", "ward_pair")) {
   stop("cluster_level must be one of: block, ward_pair", call. = FALSE)
+}
+if (!control_spec %in% c("none", "pre_high_level")) {
+  stop("control_spec must be one of: none, pre_high_level", call. = FALSE)
 }
 
 sample_restriction_info <- get_permit_sample_restriction_info(sample_restriction)
@@ -93,8 +99,39 @@ sample_restriction_result <- apply_permit_bg_sample_restriction(
 )
 data <- sample_restriction_result$data
 
+control_terms <- character(0)
+control_note <- "None"
+if (control_spec == "pre_high_level") {
+  pre_high_controls <- data %>%
+    filter(relative_year < 0) %>%
+    group_by(block_id) %>%
+    summarise(
+      pre_high_discretion_issue = sum(n_high_discretion_issue, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(no_pre_high_discretion = as.integer(pre_high_discretion_issue == 0L))
+
+  if (anyDuplicated(pre_high_controls$block_id) > 0) {
+    stop("Pre-period high-discretion controls are not unique by block_id.", call. = FALSE)
+  }
+
+  data <- data %>%
+    left_join(pre_high_controls, by = "block_id", relationship = "many-to-one") %>%
+    mutate(
+      pre_high_discretion_issue = replace_na(pre_high_discretion_issue, 0),
+      no_pre_high_discretion = replace_na(no_pre_high_discretion, 1L)
+    )
+
+  control_terms <- c(
+    "pre_high_discretion_issue:factor(year)",
+    "no_pre_high_discretion:factor(year)"
+  )
+  control_note <- "Pre-period high-discretion permit count and no-pre-period high-discretion indicator $\\times$ year"
+}
+
+rhs_terms <- c("post_treat", control_terms)
 model <- fepois(
-  as.formula(sprintf("%s ~ post_treat | block_id + ward_pair_id^year", outcome_var)),
+  as.formula(sprintf("%s ~ %s | block_id + ward_pair_id^year", outcome_var, paste(rhs_terms, collapse = " + "))),
   data = data,
   weights = ~weight,
   cluster = if (cluster_level == "block") ~block_id else ~ward_pair_id
@@ -132,6 +169,10 @@ table_lines <- c(
   "\\\\",
   "Block FE & $\\checkmark$ \\\\",
   "Border-Pair $\\times$ Year FE & $\\checkmark$ \\\\",
+  sprintf(
+    "Pre-Period Permit Controls $\\times$ Year & %s \\\\",
+    if (control_spec == "pre_high_level") "$\\checkmark$" else "--"
+  ),
   sprintf("N & %s \\\\", format(nobs(model), big.mark = ",")),
   sprintf("Dep. Var. Mean & %.2f \\\\", dep_var_mean),
   sprintf("Ward Pairs & %s \\\\", format(ward_pairs, big.mark = ",")),

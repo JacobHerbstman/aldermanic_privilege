@@ -15,7 +15,7 @@ source("../../_lib/permit_event_study_sample_helpers.R")
 # post_window <- "full"
 # geo_fe_level <- "ward_pair"
 # cluster_level <- "block"
-# control_spec <- "none"
+# control_spec <- "pre_high_level"
 # sample_restriction <- "none"
 # bandwidth_label <- "250m"
 
@@ -101,8 +101,8 @@ if (!GEO_FE_LEVEL %in% c("segment", "ward_pair", "none")) {
 if (!CLUSTER_LEVEL %in% c("block", "ward_pair")) {
   stop("--cluster_level must be one of: block, ward_pair", call. = FALSE)
 }
-if (!CONTROL_SPEC %in% c("none", "baseline_demographics")) {
-  stop("--control_spec must be one of: none, baseline_demographics", call. = FALSE)
+if (!CONTROL_SPEC %in% c("none", "baseline_demographics", "pre_high_level")) {
+  stop("--control_spec must be one of: none, baseline_demographics, pre_high_level", call. = FALSE)
 }
 sample_restriction_info <- get_permit_sample_restriction_info(SAMPLE_RESTRICTION)
 if (BANDWIDTH <= 0) {
@@ -421,6 +421,30 @@ if (CONTROL_SPEC == "baseline_demographics") {
   data <- data %>%
     filter(if_all(all_of(control_vars), ~ !is.na(.x))) %>%
     mutate(across(all_of(control_vars), safe_scale, .names = "{.col}_z"))
+} else if (CONTROL_SPEC == "pre_high_level") {
+  if (!"n_high_discretion_issue" %in% names(data)) {
+    stop("pre_high_level controls require n_high_discretion_issue in the permit panel.", call. = FALSE)
+  }
+
+  pre_high_controls <- data %>%
+    filter(relative_year < 0) %>%
+    group_by(.data[[block_var]]) %>%
+    summarise(
+      pre_high_discretion_issue = sum(n_high_discretion_issue, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(no_pre_high_discretion = as.integer(pre_high_discretion_issue == 0L))
+
+  if (anyDuplicated(pre_high_controls[[block_var]]) > 0) {
+    stop("Pre-period high-discretion controls are not unique by block.", call. = FALSE)
+  }
+
+  data <- data %>%
+    left_join(pre_high_controls, by = block_var, relationship = "many-to-one") %>%
+    mutate(
+      pre_high_discretion_issue = replace_na(pre_high_discretion_issue, 0),
+      no_pre_high_discretion = replace_na(no_pre_high_discretion, 1L)
+    )
 }
 
 if (MODEL_TYPE == "log") {
@@ -460,11 +484,16 @@ cluster_formula <- if (CLUSTER_LEVEL == "block") {
   if (stacked_mode) ~cohort_ward_pair else ~ward_pair_id
 }
 
-control_terms <- if (CONTROL_SPEC == "baseline_demographics") {
-  paste(sprintf("%s:factor(year)", paste0(control_vars, "_z")), collapse = " + ")
-} else {
+control_terms <- switch(
+  CONTROL_SPEC,
+  "baseline_demographics" = paste(sprintf("%s:factor(year)", paste0(control_vars, "_z")), collapse = " + "),
+  "pre_high_level" = paste(
+    "pre_high_discretion_issue:factor(year)",
+    "no_pre_high_discretion:factor(year)",
+    sep = " + "
+  ),
   NULL
-}
+)
 
 analysis_n <- nrow(data)
 if (analysis_n == 0) {

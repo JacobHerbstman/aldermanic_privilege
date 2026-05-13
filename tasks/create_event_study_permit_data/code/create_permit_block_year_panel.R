@@ -273,6 +273,10 @@ permit_outcome_meta <- tibble(
     "new_construction",
     "new_construction_demolition",
     "new_construction_demolition",
+    "demolition",
+    "demolition",
+    "renovation",
+    "renovation",
     "low_discretion_nosigns",
     "low_discretion_nosigns",
     "high_discretion",
@@ -280,12 +284,31 @@ permit_outcome_meta <- tibble(
     "unit_increase",
     "unit_increase"
   ),
-  date_basis = c("issue", "application", "issue", "application", "issue", "application", "issue", "application", "issue", "application"),
+  date_basis = c(
+    "issue",
+    "application",
+    "issue",
+    "application",
+    "issue",
+    "application",
+    "issue",
+    "application",
+    "issue",
+    "application",
+    "issue",
+    "application",
+    "issue",
+    "application"
+  ),
   count_var = c(
     "n_new_construction_issue",
     "n_new_construction_application",
     "n_new_construction_demolition_issue",
     "n_new_construction_demolition_application",
+    "n_demolition_issue",
+    "n_demolition_application",
+    "n_renovation_issue",
+    "n_renovation_application",
     "n_low_discretion_nosigns_issue",
     "n_low_discretion_nosigns_application",
     "n_high_discretion_issue",
@@ -298,6 +321,10 @@ permit_outcome_meta <- tibble(
     "is_new_construction_issued",
     "is_new_construction_demolition_issued",
     "is_new_construction_demolition_issued",
+    "is_demolition_issued",
+    "is_demolition_issued",
+    "is_renovation_issued",
+    "is_renovation_issued",
     "is_low_discretion_nosigns_issued",
     "is_low_discretion_nosigns_issued",
     "is_high_discretion_issued",
@@ -306,6 +333,10 @@ permit_outcome_meta <- tibble(
     "is_unit_increase_issued"
   ),
   date_col = c(
+    "issue_year",
+    "application_year",
+    "issue_year",
+    "application_year",
     "issue_year",
     "application_year",
     "issue_year",
@@ -372,6 +403,10 @@ build_panel_with_counts <- function(base_df, start_year, end_year, cohort_year, 
       has_new_construction_application = as.integer(n_new_construction_application > 0L),
       has_new_construction_demolition_issue = as.integer(n_new_construction_demolition_issue > 0L),
       has_new_construction_demolition_application = as.integer(n_new_construction_demolition_application > 0L),
+      has_demolition_issue = as.integer(n_demolition_issue > 0L),
+      has_demolition_application = as.integer(n_demolition_application > 0L),
+      has_renovation_issue = as.integer(n_renovation_issue > 0L),
+      has_renovation_application = as.integer(n_renovation_application > 0L),
       has_low_discretion_nosigns_issue = as.integer(n_low_discretion_nosigns_issue > 0L),
       has_low_discretion_nosigns_application = as.integer(n_low_discretion_nosigns_application > 0L),
       has_high_discretion_issue = as.integer(n_high_discretion_issue > 0L),
@@ -638,7 +673,7 @@ unit_increase_audit <- read_csv(
       (!is.na(unit_change_text) & unit_change_text > 0) |
       unit_change_direction == "increase",
     revision_only = flag_revision == 1L | flag_revision_contractor == 1L,
-    audit_universe = permit_issued == 1L & (curated_type | positive_unit_signal),
+    audit_universe = (permit_issued == 1L | is.na(permit_issued)) & (curated_type | positive_unit_signal),
     unit_increase_reason = case_when(
       !audit_universe ~ "outside_audit_universe",
       !curated_type ~ "excluded_outside_curated_type",
@@ -672,7 +707,7 @@ permits_clean <- st_read(
     "SELECT id, pin, permit_type, high_discretion, permit_issued,",
     "application_start_date_ym, issue_date_ym, latitude, longitude, processing_time, geom",
     "FROM building_permits_clean",
-    "WHERE permit_issued = 1"
+    "WHERE permit_issued = 1 OR permit_issued IS NULL"
   ),
   quiet = TRUE
 ) %>%
@@ -706,6 +741,7 @@ setDT(permits_2010)
 permits_2010[, `:=`(
   is_new_construction_issued = as.integer(permit_type == "PERMIT - NEW CONSTRUCTION"),
   is_demolition_issued = as.integer(grepl("WRECKING|DEMOLITION", permit_type)),
+  is_renovation_issued = as.integer(permit_type == "PERMIT - RENOVATION/ALTERATION"),
   is_new_construction_demolition_issued = as.integer(
     permit_type == "PERMIT - NEW CONSTRUCTION" | grepl("WRECKING|DEMOLITION", permit_type)
   ),
@@ -729,6 +765,7 @@ setDT(permits_2020)
 permits_2020[, `:=`(
   is_new_construction_issued = as.integer(permit_type == "PERMIT - NEW CONSTRUCTION"),
   is_demolition_issued = as.integer(grepl("WRECKING|DEMOLITION", permit_type)),
+  is_renovation_issued = as.integer(permit_type == "PERMIT - RENOVATION/ALTERATION"),
   is_new_construction_demolition_issued = as.integer(
     permit_type == "PERMIT - NEW CONSTRUCTION" | grepl("WRECKING|DEMOLITION", permit_type)
   ),
