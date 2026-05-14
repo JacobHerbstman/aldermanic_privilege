@@ -3,10 +3,10 @@ source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
-# bandwidth_m <- "100"
+# bandwidth_m <- "152.4"
 # sample_filter <- "multifamily"
 # fe_spec <- "zonegroup_segment_year_additive"
-# output_filename <- "../output/fe_table_100m_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex"
+# output_filename <- "../output/fe_table_500ft_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex"
 # yvar_1 <- "log(density_far)"
 # yvar_2 <- "log(density_dupac)"
 

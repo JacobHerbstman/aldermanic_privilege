@@ -26,11 +26,11 @@ variant_ids <- c(
   "drop_bach",
   "drop_bach_pop"
 )
-density_bw_m <- as.integer(Sys.getenv("DENSITY_ROBUSTNESS_BW_M", "100"))
+density_bw_m <- as.numeric(Sys.getenv("DENSITY_ROBUSTNESS_BW_M", "100"))
 if (!is.finite(density_bw_m) || density_bw_m <= 0) {
-  stop("DENSITY_ROBUSTNESS_BW_M must be a positive integer.", call. = FALSE)
+  stop("DENSITY_ROBUSTNESS_BW_M must be positive.", call. = FALSE)
 }
-density_bw_label <- sprintf("%dm", density_bw_m)
+density_bw_label <- Sys.getenv("DENSITY_ROBUSTNESS_BW_LABEL", sprintf("%gm", density_bw_m))
 density_sample <- Sys.getenv("DENSITY_ROBUSTNESS_SAMPLE", "all")
 density_cluster <- Sys.getenv("DENSITY_ROBUSTNESS_CLUSTER", "ward_pair")
 density_summary_prefix <- paste0(

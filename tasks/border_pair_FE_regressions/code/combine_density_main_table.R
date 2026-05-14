@@ -2,9 +2,9 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
-# all_summary_csv <- "../output/fe_summary_100m_all_zonegroup_segment_year_additive_clust_ward_pair.csv"
-# multifamily_summary_csv <- "../output/fe_summary_100m_multifamily_zonegroup_segment_year_additive_clust_ward_pair.csv"
-# output_tex <- "../output/fe_table_100m_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex"
+# all_summary_csv <- "../output/fe_summary_500ft_all_zonegroup_segment_year_additive_clust_ward_pair.csv"
+# multifamily_summary_csv <- "../output/fe_summary_500ft_multifamily_zonegroup_segment_year_additive_clust_ward_pair.csv"
+# output_tex <- "../output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {

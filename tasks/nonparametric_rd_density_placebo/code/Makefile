@@ -1,23 +1,25 @@
 SHELL := bash
 
 FE_SPEC := zonegroup_segment_year_additive
-BW_M ?= 100
+BW_M ?= 152.4
+BW_LABEL ?= 500ft
 BINS_PER_SIDE ?= 5
 SAMPLE ?= all
-PLACEBO_SHIFT_M ?= 200
+PLACEBO_SHIFT_M ?= 152.4
+PLACEBO_SHIFT_LABEL ?= 500ft
 YVARS := density_far density_dupac
 
-all: $(foreach yvar,$(YVARS),../output/nonparametric_rd_density_placebo_log_$(yvar)_$(BW_M)m_$(SAMPLE)_shift_neg$(PLACEBO_SHIFT_M)m.pdf ../output/nonparametric_rd_density_placebo_log_$(yvar)_$(BW_M)m_$(SAMPLE)_shift_pos$(PLACEBO_SHIFT_M)m.pdf)
+all: $(foreach yvar,$(YVARS),../output/nonparametric_rd_density_placebo_log_$(yvar)_$(BW_LABEL)_$(SAMPLE)_shift_neg$(PLACEBO_SHIFT_LABEL).pdf ../output/nonparametric_rd_density_placebo_log_$(yvar)_$(BW_LABEL)_$(SAMPLE)_shift_pos$(PLACEBO_SHIFT_LABEL).pdf)
 
 define PLACEBO_NEG_RULE
-../output/nonparametric_rd_density_placebo_log_$(1)_$(BW_M)m_$(SAMPLE)_shift_neg$(PLACEBO_SHIFT_M)m.pdf: nonparametric_rd_density_placebo.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript nonparametric_rd_density_placebo.R $(1) $(BW_M) $(SAMPLE) $(FE_SPEC) $(BINS_PER_SIDE) -$(PLACEBO_SHIFT_M) ../input/parcels_with_ward_distances.csv $$@
+../output/nonparametric_rd_density_placebo_log_$(1)_$(BW_LABEL)_$(SAMPLE)_shift_neg$(PLACEBO_SHIFT_LABEL).pdf: nonparametric_rd_density_placebo.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
+	DISTANCE_DISPLAY_UNIT=ft Rscript nonparametric_rd_density_placebo.R $(1) $(BW_M) $(SAMPLE) $(FE_SPEC) $(BINS_PER_SIDE) -$(PLACEBO_SHIFT_M) ../input/parcels_with_ward_distances.csv $$@
 endef
 $(foreach yvar,$(YVARS),$(eval $(call PLACEBO_NEG_RULE,$(yvar))))
 
 define PLACEBO_POS_RULE
-../output/nonparametric_rd_density_placebo_log_$(1)_$(BW_M)m_$(SAMPLE)_shift_pos$(PLACEBO_SHIFT_M)m.pdf: nonparametric_rd_density_placebo.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript nonparametric_rd_density_placebo.R $(1) $(BW_M) $(SAMPLE) $(FE_SPEC) $(BINS_PER_SIDE) $(PLACEBO_SHIFT_M) ../input/parcels_with_ward_distances.csv $$@
+../output/nonparametric_rd_density_placebo_log_$(1)_$(BW_LABEL)_$(SAMPLE)_shift_pos$(PLACEBO_SHIFT_LABEL).pdf: nonparametric_rd_density_placebo.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
+	DISTANCE_DISPLAY_UNIT=ft Rscript nonparametric_rd_density_placebo.R $(1) $(BW_M) $(SAMPLE) $(FE_SPEC) $(BINS_PER_SIDE) $(PLACEBO_SHIFT_M) ../input/parcels_with_ward_distances.csv $$@
 endef
 $(foreach yvar,$(YVARS),$(eval $(call PLACEBO_POS_RULE,$(yvar))))
 

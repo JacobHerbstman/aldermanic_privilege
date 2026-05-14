@@ -1,8 +1,8 @@
 SHELL := bash
 include ../../shell_functions.make
 
-BALANCE_BW_M ?= 100
-BALANCE_BW_LABEL ?= $(BALANCE_BW_M)m
+BALANCE_BW_M ?= 152.4
+BALANCE_BW_LABEL ?= 500ft
 SAMPLE ?= all
 
 all: ../output/density_amenity_balance_$(BALANCE_BW_LABEL)_$(SAMPLE).tex

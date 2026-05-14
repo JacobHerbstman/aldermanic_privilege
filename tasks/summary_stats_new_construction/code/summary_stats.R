@@ -1,12 +1,14 @@
 # summary stats of new construction
 
 source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/summary_stats_new_construction/code")
 
 cat("Loading data from: ../input/parcels_with_ward_distances.csv\n")
 df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE)
+df <- ensure_meter_distance_columns(df)
 
 df_clean <- df %>%
   filter(
@@ -24,7 +26,7 @@ stats_all <- tibble(
   avg_units = mean(df_clean$unitscount, na.rm = TRUE),
   avg_stories = mean(df_clean$storiescount, na.rm = TRUE),
   avg_dupac = mean(df_clean$density_dupac, na.rm = TRUE),
-  median_dist_m = median(df_clean$dist_to_boundary * 0.3048, na.rm = TRUE),
+  median_dist_ft = median(df_clean$dist_to_boundary_m * M_TO_FT, na.rm = TRUE),
   avg_strictness = mean(df_clean$strictness_own, na.rm = TRUE),
   n = nrow(df_clean)
 )
@@ -34,7 +36,7 @@ stats_mf <- tibble(
   avg_units = mean(df_mf$unitscount, na.rm = TRUE),
   avg_stories = mean(df_mf$storiescount, na.rm = TRUE),
   avg_dupac = mean(df_mf$density_dupac, na.rm = TRUE),
-  median_dist_m = median(df_mf$dist_to_boundary * 0.3048, na.rm = TRUE),
+  median_dist_ft = median(df_mf$dist_to_boundary_m * M_TO_FT, na.rm = TRUE),
   avg_strictness = mean(df_mf$strictness_own, na.rm = TRUE),
   n = nrow(df_mf)
 )
@@ -49,7 +51,7 @@ tabular_content <- paste0(
   "Average Units & ", formatC(stats_all$avg_units, format = "f", digits = 2, big.mark = ","), " & ", formatC(stats_mf$avg_units, format = "f", digits = 2, big.mark = ","), " \\\\\n",
   "Average Stories & ", formatC(stats_all$avg_stories, format = "f", digits = 2, big.mark = ","), " & ", formatC(stats_mf$avg_stories, format = "f", digits = 2, big.mark = ","), " \\\\\n",
   "Average DUPAC & ", formatC(stats_all$avg_dupac, format = "f", digits = 2, big.mark = ","), " & ", formatC(stats_mf$avg_dupac, format = "f", digits = 2, big.mark = ","), " \\\\\n",
-  "Median Dist. to Boundary (m) & ", formatC(stats_all$median_dist_m, format = "f", digits = 2, big.mark = ","), " & ", formatC(stats_mf$median_dist_m, format = "f", digits = 2, big.mark = ","), " \\\\\n",
+  "Median Dist. to Boundary (ft) & ", formatC(stats_all$median_dist_ft, format = "f", digits = 2, big.mark = ","), " & ", formatC(stats_mf$median_dist_ft, format = "f", digits = 2, big.mark = ","), " \\\\\n",
   "Average Strictness Score & ", formatC(stats_all$avg_strictness, format = "f", digits = 3, big.mark = ","), " & ", formatC(stats_mf$avg_strictness, format = "f", digits = 3, big.mark = ","), " \\\\\n",
   "\\midrule\n",
   "Observations & ", formatC(stats_all$n, format = "d", big.mark = ","), " & ", formatC(stats_mf$n, format = "d", big.mark = ","), " \\\\\n",
