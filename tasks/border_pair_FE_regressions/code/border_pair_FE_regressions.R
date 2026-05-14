@@ -32,7 +32,12 @@ if (length(args) >= 5) {
 }
 
 bandwidth_m <- parse_bw_m(bw_arg)
-bandwidth_label <- if (is.finite(bandwidth_m)) sprintf("%dm", as.integer(round(bandwidth_m))) else "all"
+distance_display <- distance_display_config()
+bandwidth_label <- if (is.finite(bandwidth_m)) {
+  Sys.getenv("BANDWIDTH_LABEL", format_distance_label(bandwidth_m, distance_display))
+} else {
+  "all"
+}
 
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample must be one of: all, multifamily", call. = FALSE)
@@ -84,19 +89,23 @@ if (drop_ambiguous_within_bw && !is.finite(bandwidth_m)) {
 }
 
 message(sprintf("\n=== Border-Pair FE Configuration ==="))
-message(sprintf("Bandwidth: %s", if (is.finite(bandwidth_m)) sprintf("%.0fm", bandwidth_m) else "all distances"))
+message(sprintf("Bandwidth: %s", bandwidth_label))
 message(sprintf("Sample: %s", sample_filter))
 message(sprintf("FE Specification: %s", fe_spec))
 message(sprintf("Pruning spec: %s", prune_sample))
 message(sprintf("Cluster level: %s", cluster_level))
-message(sprintf("Donut exclusion: >= %.0fm", donut_m))
+message(sprintf("Donut exclusion: >= %s", format_distance_label(donut_m, distance_display)))
 message(sprintf("Drop corner-ambiguous parcels: %s", ifelse(drop_ambiguous_within_bw, "TRUE", "FALSE")))
 message(sprintf("Write TeX table: %s", ifelse(write_tex, "TRUE", "FALSE")))
 message(sprintf("Input: %s", fe_input_path))
 message(sprintf("Output: %s", output_filename))
 message(sprintf("Y variables: %s", paste(yvars, collapse = ", ")))
 
-parcels_fe <- read_csv(fe_input_path, show_col_types = FALSE) %>%
+parcels_fe <- read_csv(
+  fe_input_path,
+  show_col_types = FALSE,
+  col_types = cols(pin = col_character(), segment_id = col_character(), .default = col_guess())
+) %>%
   ensure_meter_distance_columns() %>%
   mutate(
     pin = as.character(pin),
@@ -118,7 +127,11 @@ if (drop_ambiguous_within_bw) {
     stop("DROP_AMBIGUOUS_WITHIN_BW=TRUE requires AMBIGUITY_INPUT_PATH.", call. = FALSE)
   }
 
-  ambiguity_df <- read_csv(ambiguity_input_path, show_col_types = FALSE) %>%
+  ambiguity_df <- read_csv(
+    ambiguity_input_path,
+    show_col_types = FALSE,
+    col_types = cols(pin = col_character(), .default = col_guess())
+  ) %>%
     ensure_meter_distance_columns() %>%
     mutate(
       pin = as.character(pin),

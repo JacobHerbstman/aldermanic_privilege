@@ -2,9 +2,9 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
-# bandwidth <- 250
+# bandwidth <- 300
 # weighting <- "uniform"
-# output_tex <- "../output/did_table_sales_2015_uniform_250m_geo_wardpair_clust_block.tex"
+# output_tex <- "../output/did_table_sales_2015_uniform_300m_geo_wardpair_clust_block.tex"
 # table_mode <- "amenity"
 
 args <- commandArgs(trailingOnly = TRUE)

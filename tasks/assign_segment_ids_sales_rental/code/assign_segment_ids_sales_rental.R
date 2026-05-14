@@ -81,7 +81,7 @@ if (mode == "all") {
   stopifnot(file.exists(rent_input))
 }
 
-segments_by_era <- load_segment_layers(segment_gpkg, buffer_m = segment_buffer_m)
+segments_by_era <- load_segment_line_layers(segment_gpkg)
 
 coverage_row <- function(dataset, scope, era, dt) {
   n_total <- nrow(dt)
@@ -143,11 +143,12 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
       remove = FALSE
     )
 
-    seg_ids <- assign_points_to_segments(
+    seg_ids <- assign_points_to_nearest_segments(
       points_sf = pts,
       era_values = dt$era[assignable_idx],
       pair_values = dt$pair_dash[assignable_idx],
       segment_layers = segments_by_era,
+      max_distance = units::set_units(segment_buffer_m, "m"),
       chunk_n = chunk_n
     )
 
@@ -168,7 +169,7 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
     dt[pending_idx, segment_reason := fifelse(
       !is.na(segment_id) & segment_id != "",
       "matched",
-      fifelse(pair_available, "no_polygon_hit", "pair_not_in_segment_layer")
+      fifelse(pair_available, "no_nearest_segment_within_radius", "pair_not_in_segment_layer")
     )]
   }
 

@@ -65,6 +65,7 @@ if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample_filter must be one of: all, multifamily.", call. = FALSE)
 }
 
+distance_display <- distance_display_config()
 covariate_catalog <- tibble(
   covariate = c(
     "floor_area_ratio",
@@ -76,11 +77,11 @@ covariate_catalog <- tibble(
   ),
   covariate_label = c(
     "Zoned FAR",
-    "Distance to CBD (m)",
-    "Distance to School (m)",
-    "Distance to Park (m)",
-    "Distance to Major Road (m)",
-    "Distance to Lake Michigan (m)"
+    sprintf("Distance to CBD (%s)", distance_display$unit),
+    sprintf("Distance to School (%s)", distance_display$unit),
+    sprintf("Distance to Park (%s)", distance_display$unit),
+    sprintf("Distance to Major Road (%s)", distance_display$unit),
+    sprintf("Distance to Lake Michigan (%s)", distance_display$unit)
   )
 )
 
@@ -135,7 +136,11 @@ coords_tbl <- coords_tbl %>%
   )
 
 message("Loading scored parcel sample...")
-analysis_sample <- read_csv(parcel_scores_input, show_col_types = FALSE) %>%
+analysis_sample <- read_csv(
+  parcel_scores_input,
+  show_col_types = FALSE,
+  col_types = cols(pin = col_character(), segment_id = col_character(), .default = col_guess())
+) %>%
   ensure_meter_distance_columns() %>%
   mutate(
     pin = as.character(pin),

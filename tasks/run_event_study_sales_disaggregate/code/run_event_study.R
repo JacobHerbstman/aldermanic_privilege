@@ -10,11 +10,11 @@ source("../../_lib/event_study_plot_helpers.R")
 # time_unit <- "yearly"
 # fe_type <- "strict_pair_x_year"
 # weighting <- "uniform"
-# bandwidth <- 250
+# bandwidth <- 300
 # post_window <- "full"
 # geo_fe_level <- "ward_pair"
 # cluster_level <- "block"
-# bandwidth_label <- "250m"
+# bandwidth_label <- "300m"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -62,8 +62,8 @@ valid_panel_modes <- c(
 if (!PANEL_MODE %in% valid_panel_modes) {
   stop(sprintf("--panel_mode must be one of: %s", paste(valid_panel_modes, collapse = ", ")), call. = FALSE)
 }
-if (!TREATMENT_TYPE %in% c("continuous", "continuous_split")) {
-  stop("--treatment_type must be one of: continuous, continuous_split", call. = FALSE)
+if (!TREATMENT_TYPE %in% c("continuous", "continuous_split", "binary_direction")) {
+  stop("--treatment_type must be one of: continuous, continuous_split, binary_direction", call. = FALSE)
 }
 if (!TIME_UNIT %in% c("yearly", "quarterly")) {
   stop("--time_unit must be one of: yearly, quarterly", call. = FALSE)
@@ -237,7 +237,9 @@ data <- data %>%
   mutate(
     weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_m / BANDWIDTH) else 1,
     treatment_stricter_continuous = pmax(strictness_change, 0),
-    treatment_lenient_continuous = pmax(-strictness_change, 0)
+    treatment_lenient_continuous = pmax(-strictness_change, 0),
+    treatment_stricter_binary = as.integer(strictness_change > 0),
+    treatment_lenient_binary = as.integer(strictness_change < 0)
   )
 after_bandwidth_n <- nrow(data)
 
@@ -458,36 +460,62 @@ if (TREATMENT_TYPE == "continuous") {
     write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
   }
 } else {
+  if (TREATMENT_TYPE == "binary_direction") {
+    data_stricter <- data %>% filter(treatment_lenient_binary == 0)
+    data_lenient <- data %>% filter(treatment_stricter_binary == 0)
+    stricter_treatment_var <- "treatment_stricter_binary"
+    lenient_treatment_var <- "treatment_lenient_binary"
+    support_stricter <- make_support_table(data_stricter, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period)
+    support_lenient <- make_support_table(data_lenient, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period)
+  } else {
+    data_stricter <- data
+    data_lenient <- data
+    stricter_treatment_var <- "treatment_stricter_continuous"
+    lenient_treatment_var <- "treatment_lenient_continuous"
+    support_stricter <- support_by_event_time
+    support_lenient <- support_by_event_time
+  }
+
+  metadata <- metadata %>%
+    mutate(
+      stricter_analysis_n = nrow(data_stricter),
+      lenient_analysis_n = nrow(data_lenient),
+      plotted_supported_periods = paste(sort(unique(c(
+        support_stricter$event_time[support_stricter$has_identifying_support],
+        support_lenient$event_time[support_lenient$has_identifying_support]
+      ))), collapse = "|")
+    )
+
   formula_stricter <- sprintf(
-    "log(sale_price) ~ i(%s, treatment_stricter_continuous, ref = -1) %s | %s",
-    event_var, control_formula, fe_formula
+    "log(sale_price) ~ i(%s, %s, ref = -1) %s | %s",
+    event_var, stricter_treatment_var, control_formula, fe_formula
   )
   formula_lenient <- sprintf(
-    "log(sale_price) ~ i(%s, treatment_lenient_continuous, ref = -1) %s | %s",
-    event_var, control_formula, fe_formula
+    "log(sale_price) ~ i(%s, %s, ref = -1) %s | %s",
+    event_var, lenient_treatment_var, control_formula, fe_formula
   )
 
-  message(sprintf("Running regression with %s observations", format(nrow(data), big.mark = ",")))
+  message(sprintf("Running regression with %s observations", format(nrow(data_stricter), big.mark = ",")))
   message(sprintf("Formula: %s", formula_stricter))
   model_stricter <- feols(
     as.formula(formula_stricter),
-    data = data,
+    data = data_stricter,
     weights = ~weight,
     cluster = cluster_formula
   )
 
-  message(sprintf("Running regression with %s observations", format(nrow(data), big.mark = ",")))
+  message(sprintf("Running regression with %s observations", format(nrow(data_lenient), big.mark = ",")))
   message(sprintf("Formula: %s", formula_lenient))
   model_lenient <- feols(
     as.formula(formula_lenient),
-    data = data,
+    data = data_lenient,
     weights = ~weight,
     cluster = cluster_formula
   )
 
   plot_data <- bind_rows(
-    build_event_study_plot_data(model_stricter, support_by_event_time, min_period, max_period, "Moved to Stricter", "multiply100"),
-    build_event_study_plot_data(model_lenient, support_by_event_time, min_period, max_period, "Moved to More Lenient", "multiply100")
+    build_event_study_plot_data(model_stricter, support_stricter, min_period, max_period, "Moved to Stricter", "multiply100"),
+    build_event_study_plot_data(model_lenient, support_lenient, min_period, max_period, "Moved to More Lenient", "multiply100")
   ) %>%
     mutate(
       estimate_pct = estimate_display,
@@ -522,7 +550,13 @@ if (TREATMENT_TYPE == "continuous") {
   ggsave(sprintf("../output/event_study_combined_%s.pdf", suffix), directional_plots$combined, width = 7, height = 4.5, bg = "white")
   if (WRITE_SIDECARS) {
     write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
-    write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
+    write_csv(
+      bind_rows(
+        support_stricter %>% mutate(group = "Moved to Stricter"),
+        support_lenient %>% mutate(group = "Moved to More Lenient")
+      ),
+      sprintf("../output/event_study_support_%s.csv", suffix)
+    )
     write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
     write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
   }

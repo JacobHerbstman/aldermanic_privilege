@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_bandwidth_path/code")
@@ -54,7 +55,8 @@ dupac_multifamily_main_output <- args[7]
 dupac_multifamily_pruned_output <- args[8]
 dupac_all_main_output <- args[9]
 dupac_all_pruned_output <- args[10]
-bandwidths_m <- as.integer(strsplit(trimws(args[11]), "\\s+")[[1]])
+bandwidth_tokens <- strsplit(trimws(args[11]), "\\s+")[[1]]
+bandwidths_m <- as.numeric(bandwidth_tokens)
 samples <- strsplit(trimws(args[12]), "\\s+")[[1]]
 prune_specs <- strsplit(trimws(args[13]), "\\s+")[[1]]
 reference_bandwidths_m <- if (length(args) >= 14) {
@@ -64,7 +66,7 @@ reference_bandwidths_m <- if (length(args) >= 14) {
 }
 
 if (any(!is.finite(bandwidths_m))) {
-  stop("bandwidths_m must parse to integers.", call. = FALSE)
+  stop("bandwidths_m must parse to numbers.", call. = FALSE)
 }
 if (!all(samples %in% c("multifamily", "all"))) {
   stop("samples must be drawn from: multifamily, all", call. = FALSE)
@@ -76,14 +78,15 @@ if (any(!is.finite(reference_bandwidths_m))) {
   stop("reference_bandwidths_m must parse to numeric values.", call. = FALSE)
 }
 
-summary_files <- unlist(lapply(bandwidths_m, function(bandwidth_m) {
+summary_files <- unlist(lapply(seq_along(bandwidths_m), function(bandwidth_i) {
+  bandwidth_token <- bandwidth_tokens[[bandwidth_i]]
   unlist(lapply(samples, function(sample_filter) {
     vapply(prune_specs, function(prune_spec) {
       file.path(
         input_dir,
         sprintf(
-          "border_pair_fe_bandwidth_path_%dm_%s_%s.csv",
-          as.integer(bandwidth_m),
+          "border_pair_fe_bandwidth_path_%sm_%s_%s.csv",
+          bandwidth_token,
           sample_filter,
           prune_spec
         )
@@ -103,12 +106,12 @@ if (!"bandwidth_m" %in% names(combined_raw)) {
     stop("FE summary files must contain bandwidth_m.", call. = FALSE)
   }
   combined_raw <- combined_raw %>%
-    mutate(bandwidth_m = as.integer(round(bw_ft * 0.3048)))
+    mutate(bandwidth_m = as.numeric(bw_ft) * FT_TO_M)
 }
 
 combined <- combined_raw %>%
   mutate(
-    bandwidth_m = as.integer(round(bandwidth_m)),
+    bandwidth_m = as.numeric(bandwidth_m),
     sample_filter = as.character(sample_filter),
     prune_sample = as.character(prune_sample),
     yvar = as.character(yvar),
@@ -149,9 +152,10 @@ if (nrow(duplicate_grid) > 0) {
 
 write_csv(combined, combined_output)
 
+distance_display <- distance_display_config()
 plot_df <- combined %>%
   mutate(
-    bandwidth_display_m = as.numeric(bandwidth_m),
+    bandwidth_display = as.numeric(bandwidth_m) * distance_display$scale,
     prune_label = if_else(prune_spec == "main", "Main", "Pruned"),
     outcome_label = case_when(
       yvar == "log(density_far)" ~ "ln(FAR)",
@@ -163,8 +167,9 @@ plot_df <- combined %>%
     )
   )
 
-plot_bandwidths <- sort(unique(plot_df$bandwidth_display_m))
-x_axis_label <- "Bandwidth (m)"
+plot_bandwidths <- sort(unique(plot_df$bandwidth_display))
+x_axis_label <- sprintf("Bandwidth (%s)", distance_display$unit)
+reference_bandwidths_display <- reference_bandwidths_m * distance_display$scale
 
 plot_specs <- tribble(
   ~yvar, ~sample_filter, ~prune_spec, ~output_path,
@@ -194,7 +199,7 @@ for (i in seq_len(nrow(plot_specs))) {
   prune_label <- if_else(prune_i == "main", "Main", "Pruned")
   prune_color <- if_else(prune_i == "main", "#1f77b4", "#ff7f0e")
 
-  p <- ggplot(plot_data, aes(x = bandwidth_display_m, y = estimate)) +
+  p <- ggplot(plot_data, aes(x = bandwidth_display, y = estimate)) +
     geom_ribbon(aes(ymin = ci_low, ymax = ci_high), alpha = 0.16, fill = prune_color, color = NA) +
     geom_line(linewidth = 1.0, color = prune_color) +
     geom_point(size = 1.7, color = prune_color) +
@@ -217,7 +222,7 @@ for (i in seq_len(nrow(plot_specs))) {
   if (length(reference_bandwidths_m) > 0) {
     p <- p +
       geom_vline(
-        xintercept = reference_bandwidths_m,
+        xintercept = reference_bandwidths_display,
         linetype = "dashed",
         color = "gray50",
         linewidth = 0.4

@@ -221,13 +221,15 @@ line_df <- line_df %>%
     ci_high = fit + line_crit * fit_se
   )
 
+distance_display <- distance_display_config()
+
 bins <- bins %>%
-  mutate(bin_center_display = bin_center_m)
+  mutate(bin_center_display = bin_center_m * distance_display$scale)
 line_df <- line_df %>%
-  mutate(running_distance_display = running_distance)
-x_limits <- c(-bandwidth_m, bandwidth_m)
-x_label <- "Distance to ward boundary (m)"
-bw_label <- sprintf("%dm", as.integer(round(bandwidth_m)))
+  mutate(running_distance_display = running_distance * distance_display$scale)
+x_limits <- c(-bandwidth_m, bandwidth_m) * distance_display$scale
+x_label <- sprintf("Distance to ward boundary (%s)", distance_display$unit)
+bw_label <- format_distance_label(bandwidth_m, distance_display)
 
 y_min <- min(c(bins$mean_y, line_df$ci_low), na.rm = TRUE)
 y_max <- max(c(bins$mean_y, line_df$ci_high), na.rm = TRUE)
@@ -256,12 +258,6 @@ p <- ggplot() +
     alpha = 0.16,
     color = NA
   ) +
-  geom_point(
-    data = bins,
-    aes(x = bin_center_display, y = mean_y, color = factor(side)),
-    size = 1.8,
-    alpha = 0.95
-  ) +
   geom_line(
     data = line_df,
     aes(x = running_distance_display, y = fit, color = factor(side)),
@@ -269,6 +265,15 @@ p <- ggplot() +
   ) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30") +
   geom_hline(yintercept = 0, linetype = "dotted", color = "gray55") +
+  geom_point(
+    data = bins,
+    aes(x = bin_center_display, y = mean_y, fill = factor(side)),
+    shape = 21,
+    color = "white",
+    stroke = 0.45,
+    size = 2.35,
+    alpha = 0.98
+  ) +
   scale_fill_manual(values = c("0" = "#1f77b4", "1" = "#d62728"), guide = "none") +
   scale_color_manual(values = c("0" = "#1f77b4", "1" = "#d62728"), guide = "none") +
   scale_x_continuous(limits = x_limits, breaks = pretty(x_limits, n = 7)) +

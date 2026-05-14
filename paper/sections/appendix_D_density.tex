@@ -92,33 +92,33 @@ Figure~\ref{fig:rd_gap_split} splits the density RD display by the median ward-p
 
 \subsection{Supplementary Shifted-Cutoff Placebos}
 
-Figure~\ref{fig:rd_placebo} shifts the cutoff 100m into each ward and re-centers the local-linear display on that pseudo-boundary. I treat these plots as supplementary because the geometry does not permit a fully clean placebo at the same scale. Even so, the shifted-cutoff displays are flatter than the main 100m all-construction plots and do not show the same negative break at the true jurisdictional boundary.
+Figure~\ref{fig:rd_placebo} shifts the cutoff 200m into each ward and re-centers the local-linear display on that pseudo-boundary. The 100m placebo windows sit outside the main 100m neighborhood around the true ward boundary, giving a cleaner comparison for the main all-construction RD display. The shifted-cutoff displays are flatter than the main 100m all-construction plots and do not show the same negative break at the true jurisdictional boundary.
 
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_100m_all_shift_neg100m.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_100m_all_shift_neg200m.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_100m_all_shift_pos100m.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_100m_all_shift_pos200m.pdf}
     \end{minipage}
 
     \vspace{0.3cm}
 
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_100m_all_shift_neg100m.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_100m_all_shift_neg200m.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_100m_all_shift_pos100m.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_100m_all_shift_pos200m.pdf}
     \end{minipage}
     \caption{Supplementary Shifted-Cutoff Placebo Tests}
-    \figurenotes{Top row: Log(FAR). Bottom row: Log(DUPAC). Left column shifts the cutoff 100m inside the lenient ward; right column shifts the cutoff 100m inside the stringent ward. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}, using the 100m all-construction sample. These plots are supplementary because the shifted windows overlap the main neighborhood comparison.}
+    \figurenotes{Top row: Log(FAR). Bottom row: Log(DUPAC). Left column shifts the cutoff 200m inside the lenient ward; right column shifts the cutoff 200m inside the stringent ward. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}, using 100m placebo windows in the all-construction sample.}
     \label{fig:rd_placebo}
 \end{figure}
 

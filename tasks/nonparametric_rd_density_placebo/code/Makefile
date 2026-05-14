@@ -4,7 +4,7 @@ FE_SPEC := zonegroup_segment_year_additive
 BW_M ?= 100
 BINS_PER_SIDE ?= 5
 SAMPLE ?= all
-PLACEBO_SHIFT_M ?= 100
+PLACEBO_SHIFT_M ?= 200
 YVARS := density_far density_dupac
 
 all: $(foreach yvar,$(YVARS),../output/nonparametric_rd_density_placebo_log_$(yvar)_$(BW_M)m_$(SAMPLE)_shift_neg$(PLACEBO_SHIFT_M)m.pdf ../output/nonparametric_rd_density_placebo_log_$(yvar)_$(BW_M)m_$(SAMPLE)_shift_pos$(PLACEBO_SHIFT_M)m.pdf)

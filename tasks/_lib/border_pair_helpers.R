@@ -1,4 +1,5 @@
 FT_TO_M <- 0.3048
+M_TO_FT <- 1 / FT_TO_M
 
 parse_bw_m <- function(x) {
   if (length(x) != 1) {
@@ -39,6 +40,39 @@ ensure_meter_distance_columns <- function(df) {
     df <- df %>% mutate(nearest_other_pair_dist_m = as.numeric(nearest_other_pair_dist_ft) * FT_TO_M)
   }
   df
+}
+
+distance_display_config <- function(default_unit = "m") {
+  unit <- tolower(Sys.getenv("DISTANCE_DISPLAY_UNIT", default_unit))
+  if (unit %in% c("ft", "feet", "foot")) {
+    return(list(unit = "ft", scale = M_TO_FT))
+  }
+  if (unit %in% c("m", "meter", "meters")) {
+    return(list(unit = "m", scale = 1))
+  }
+  stop("DISTANCE_DISPLAY_UNIT must be one of: m, meter, meters, ft, feet, foot.", call. = FALSE)
+}
+
+format_distance_label <- function(distance_m, display_config = distance_display_config()) {
+  if (!is.finite(distance_m)) {
+    return("")
+  }
+  display_value <- distance_m * display_config$scale
+  if (abs(display_value - round(display_value)) < 1e-6) {
+    return(sprintf("%d%s", as.integer(round(display_value)), display_config$unit))
+  }
+  sprintf("%.1f%s", display_value, display_config$unit)
+}
+
+format_signed_distance_label <- function(distance_m, display_config = distance_display_config()) {
+  if (!is.finite(distance_m)) {
+    return("")
+  }
+  display_value <- distance_m * display_config$scale
+  if (abs(display_value - round(display_value)) < 1e-6) {
+    return(sprintf("%+d%s", as.integer(round(display_value)), display_config$unit))
+  }
+  sprintf("%+.1f%s", display_value, display_config$unit)
 }
 
 normalize_pair_dash <- function(x) {

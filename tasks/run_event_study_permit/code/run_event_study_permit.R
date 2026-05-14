@@ -4,20 +4,20 @@ source("../../_lib/permit_event_study_sample_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
-# panel_mode <- "stacked_implementation"
+# panel_mode <- "cohort_2015"
 # outcome_family <- "high_discretion"
 # date_basis <- "issue"
 # model_type <- "ppml"
 # treatment_type <- "continuous"
 # weighting <- "uniform"
-# bandwidth <- 250
+# bandwidth <- 300
 # fe_type <- "within_block"
 # post_window <- "full"
 # geo_fe_level <- "ward_pair"
 # cluster_level <- "block"
-# control_spec <- "pre_high_level"
+# control_spec <- "none"
 # sample_restriction <- "none"
-# bandwidth_label <- "250m"
+# bandwidth_label <- "300m"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {

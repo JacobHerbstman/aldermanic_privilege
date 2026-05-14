@@ -4,10 +4,11 @@
 #            treatment/control maps, pre-trend tests
 
 source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_sales_diagnostics/code")
-# bandwidth_m <- 250
+# bandwidth_m <- 300
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -22,7 +23,8 @@ bandwidth_m <- as.numeric(args[1])
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
     stop("bandwidth_m must be positive.", call. = FALSE)
 }
-bandwidth_label <- sprintf("%dm", as.integer(round(bandwidth_m)))
+distance_display <- distance_display_config()
+bandwidth_label <- Sys.getenv("BANDWIDTH_LABEL", format_distance_label(bandwidth_m, distance_display))
 
 # =============================================================================
 # 1. LOAD DATA
@@ -372,11 +374,12 @@ cat(
 # Distance row
 cat(
     sprintf(
-        "Dist to Boundary (m) & %.0f & %.0f & %.0f & %.0f & %.3f \\\\\n",
-        balance_summary$mean_dist[balance_summary$treatment_group == "Moved to Stricter"],
-        balance_summary$mean_dist[balance_summary$treatment_group == "Moved to Lenient"],
-        balance_summary$mean_dist[balance_summary$treatment_group == "Control (No Change)"],
-        dist_test$estimate[1] - dist_test$estimate[2],
+        "Dist to Boundary (%s) & %.0f & %.0f & %.0f & %.0f & %.3f \\\\\n",
+        distance_display$unit,
+        balance_summary$mean_dist[balance_summary$treatment_group == "Moved to Stricter"] * distance_display$scale,
+        balance_summary$mean_dist[balance_summary$treatment_group == "Moved to Lenient"] * distance_display$scale,
+        balance_summary$mean_dist[balance_summary$treatment_group == "Control (No Change)"] * distance_display$scale,
+        (dist_test$estimate[1] - dist_test$estimate[2]) * distance_display$scale,
         dist_test$p.value
     ),
     file = "../output/covariate_balance.tex", append = TRUE

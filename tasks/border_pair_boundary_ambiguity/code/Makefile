@@ -1,6 +1,6 @@
 SHELL := bash
 
-BANDWIDTHS_M ?= 50 75 100 125 150 175 200 225 250 275 300
+BANDWIDTHS_M ?= 76.2 152.4 304.8
 SAMPLES := all multifamily
 
 all: \

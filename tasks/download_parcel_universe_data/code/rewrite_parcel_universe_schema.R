@@ -14,6 +14,7 @@ if (length(cli_args) != 2) {
 }
 input_csv <- cli_args[1]
 output_csv <- cli_args[2]
+metadata_csv <- sub("\\.csv$", "_metadata.csv", output_csv)
 
 native_names <- strsplit(
   "pin,pin10,year,class,triad_name,triad_code,township_name,township_code,nbhd_code,tax_code,zip_code,lon,lat,x_3435,y_3435,census_block_group_geoid,census_block_geoid,census_congressional_district_geoid,census_congressional_district_num,census_county_subdivision_geoid,census_place_geoid,census_puma_geoid,census_school_district_elementary_geoid,census_school_district_secondary_geoid,census_school_district_unified_geoid,census_state_representative_geoid,census_state_representative_num,census_state_senate_geoid,census_state_senate_num,census_tract_geoid,census_zcta_geoid,census_data_year,census_acs5_congressional_district_geoid,census_acs5_congressional_district_num,census_acs5_county_subdivision_geoid,census_acs5_place_geoid,census_acs5_puma_geoid,census_acs5_school_district_elementary_geoid,census_acs5_school_district_secondary_geoid,census_acs5_school_district_unified_geoid,census_acs5_state_representative_geoid,census_acs5_state_representative_num,census_acs5_state_senate_geoid,census_acs5_state_senate_num,census_acs5_tract_geoid,census_acs5_data_year,cook_board_of_review_district_num,cook_board_of_review_district_data_year,cook_commissioner_district_num,cook_commissioner_district_data_year,cook_judicial_district_num,cook_judicial_district_data_year,cook_municipality_num,cook_municipality_name,cook_municipality_data_year,ward_num,ward_chicago_data_year,ward_evanston_data_year,chicago_community_area_num,chicago_community_area_name,chicago_community_area_data_year,chicago_industrial_corridor_num,chicago_industrial_corridor_name,chicago_industrial_corridor_data_year,chicago_police_district_num,chicago_police_district_data_year,econ_coordinated_care_area_num,econ_coordinated_care_area_data_year,econ_enterprise_zone_num,econ_enterprise_zone_data_year,econ_industrial_growth_zone_num,econ_industrial_growth_zone_data_year,econ_qualified_opportunity_zone_num,econ_qualified_opportunity_zone_data_year,econ_central_business_district_num,econ_central_business_district_data_year,env_flood_fema_sfha,env_flood_fema_data_year,env_flood_fs_factor,env_flood_fs_risk_direction,env_flood_fs_data_year,env_ohare_noise_contour_no_buffer_bool,env_ohare_noise_contour_half_mile_buffer_bool,env_ohare_noise_contour_data_year,env_airport_noise_dnl,env_airport_noise_data_year,school_elementary_district_geoid,school_elementary_district_name,school_secondary_district_geoid,school_secondary_district_name,school_unified_district_geoid,school_unified_district_name,school_school_year,school_data_year,tax_municipality_num,tax_municipality_name,tax_school_elementary_district_num,tax_school_elementary_district_name,tax_school_secondary_district_num,tax_school_secondary_district_name,tax_school_unified_district_num,tax_school_unified_district_name,tax_community_college_district_num,tax_community_college_district_name,tax_fire_protection_district_num,tax_fire_protection_district_name,tax_library_district_num,tax_library_district_name,tax_park_district_num,tax_park_district_name,tax_sanitation_district_num,tax_sanitation_district_name,tax_special_service_area_num,tax_special_service_area_name,tax_tif_district_num,tax_tif_district_name,tax_data_year,access_cmap_walk_id,access_cmap_walk_nta_score,access_cmap_walk_total_score,access_cmap_walk_data_year,misc_subdivision_id,misc_subdivision_data_year,row_id",
@@ -28,12 +29,38 @@ legacy_names <- strsplit(
 )[[1]]
 
 parcel_universe <- fread(input_csv, colClasses = "character")
+
+if (file.exists(metadata_csv)) {
+  metadata <- fread(metadata_csv, colClasses = "character")
+  if (!"rows" %in% names(metadata) || nrow(metadata) != 1) {
+    stop("Parcel universe metadata must contain one row with a rows column.", call. = FALSE)
+  }
+  expected_rows <- suppressWarnings(as.integer(metadata$rows[1]))
+  if (!is.finite(expected_rows) || expected_rows <= 0) {
+    stop("Parcel universe metadata has an invalid rows value.", call. = FALSE)
+  }
+  if (nrow(parcel_universe) != expected_rows) {
+    stop(
+      sprintf(
+        "Parcel universe row count mismatch: metadata says %s rows but input has %s rows.",
+        format(expected_rows, big.mark = ","),
+        format(nrow(parcel_universe), big.mark = ",")
+      ),
+      call. = FALSE
+    )
+  }
+}
+
 missing_cols <- setdiff(native_names, names(parcel_universe))
 if (length(missing_cols) > 0) {
   stop(
     sprintf("Parcel universe API output is missing expected columns: %s", paste(missing_cols, collapse = ", ")),
     call. = FALSE
   )
+}
+
+if (anyDuplicated(parcel_universe$pin) > 0) {
+  stop("Parcel universe contains duplicate PIN rows. Fix the download/input before geocoding.", call. = FALSE)
 }
 
 parcel_universe <- parcel_universe[, ..native_names]

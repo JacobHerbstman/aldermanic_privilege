@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
 library(fixest)
 
 # --- Interactive Test Block ---
@@ -6,11 +7,11 @@ library(fixest)
 # permit_panel_input <- "../input/permit_block_year_panel_2015.parquet"
 # sales_panel_input <- "../input/sales_transaction_panel_2015.parquet"
 # block_baseline_input <- "../output/block_parcel_baselines_2014.csv"
-# permit_balance_output <- "../output/permit_exact_balance_summary_250m.csv"
-# permit_balance_tex_output <- "../output/permit_exact_balance_summary_250m.tex"
-# sales_balance_output <- "../output/sales_exact_balance_summary_250m.csv"
-# sales_balance_tex_output <- "../output/sales_exact_balance_summary_250m.tex"
-# bandwidth_m <- 250
+# permit_balance_output <- "../output/permit_exact_balance_summary_300m.csv"
+# permit_balance_tex_output <- "../output/permit_exact_balance_summary_300m.tex"
+# sales_balance_output <- "../output/sales_exact_balance_summary_300m.csv"
+# sales_balance_tex_output <- "../output/sales_exact_balance_summary_300m.tex"
+# bandwidth_m <- 300
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -51,6 +52,9 @@ if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be positive.", call. = FALSE)
 }
 
+distance_display <- distance_display_config()
+bandwidth_label <- Sys.getenv("BANDWIDTH_LABEL", format_distance_label(bandwidth_m, distance_display))
+
 fmt_decimal <- function(x, digits = 2) {
   if (!is.finite(x)) {
     return("")
@@ -72,6 +76,9 @@ fmt_covariate_value <- function(covariate_name, x) {
   if (covariate_name == "mean_zoned_far") {
     return(fmt_decimal(x, 2))
   }
+  if (grepl("_dist_m$", covariate_name)) {
+    x <- x * distance_display$scale
+  }
   fmt_integer(x)
 }
 
@@ -86,11 +93,11 @@ covariate_catalog <- tibble(
   ),
   covariate_label = c(
     "Average Zoned FAR",
-    "Distance to CBD (m)",
-    "Distance to School (m)",
-    "Distance to Park (m)",
-    "Distance to Major Road (m)",
-    "Distance to Lake Michigan (m)"
+    sprintf("Distance to CBD (%s)", distance_display$unit),
+    sprintf("Distance to School (%s)", distance_display$unit),
+    sprintf("Distance to Park (%s)", distance_display$unit),
+    sprintf("Distance to Major Road (%s)", distance_display$unit),
+    sprintf("Distance to Lake Michigan (%s)", distance_display$unit)
   )
 )
 
@@ -233,7 +240,7 @@ build_balance_table(
   caption_text = "Permit Event-Study Balance: Exact Parcel Amenities and Zoned FAR",
   label_text = "tab:permit_exact_balance",
   notes_text = paste(
-    sprintf("2015 cohort only. Sample uses census blocks within %dm of a ward boundary in the permit event-study design.", as.integer(round(bandwidth_m))),
+    sprintf("2015 cohort only. Sample uses census blocks within %s of a ward boundary in the permit event-study design.", bandwidth_label),
     "Block covariates are computed by averaging exact parcel-level amenities and zoned FAR across parcels in the 2010 census block,",
     "using parcels observed by 2014. Treated blocks are all blocks that switch wards at redistricting; control blocks remain in the origin ward.",
     "Residualized difference equals treated minus control after demeaning each covariate within ward pair.",
@@ -249,7 +256,7 @@ build_balance_table(
   caption_text = "Home-Sales Event-Study Balance: Exact Parcel Amenities and Zoned FAR",
   label_text = "tab:sales_exact_balance",
   notes_text = paste(
-    sprintf("2015 cohort only. Sample uses census blocks within %dm of a ward boundary with at least one observed sale in relative year $-1$.", as.integer(round(bandwidth_m))),
+    sprintf("2015 cohort only. Sample uses census blocks within %s of a ward boundary with at least one observed sale in relative year $-1$.", bandwidth_label),
     "Block covariates are computed by averaging exact parcel-level amenities and zoned FAR across parcels in the 2010 census block,",
     "using parcels observed by 2014. Treated blocks are all blocks that switch wards at redistricting; control blocks remain in the origin ward.",
     "Residualized difference equals treated minus control after demeaning each covariate within ward pair.",

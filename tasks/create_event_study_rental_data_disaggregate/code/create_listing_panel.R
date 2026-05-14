@@ -55,11 +55,12 @@ assign_cohort_segments <- function(df, segment_layers, era_label, cohort_label, 
     crs = 4326,
     remove = FALSE
   )
-  seg_id <- assign_points_to_segments(
+  seg_id <- assign_points_to_nearest_segments(
     points_sf = pts,
     era_values = rep(era_label, nrow(out)),
     pair_values = out$ward_pair_id,
     segment_layers = segment_layers,
+    max_distance = units::set_units(segment_buffer_m, "m"),
     chunk_n = chunk_n
   )
 
@@ -247,8 +248,8 @@ message("Loading treatment panel...")
 treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
   mutate(block_id = as.character(block_id))
 
-message(sprintf("Loading %.0fm segment layers for cohort-baseline assignment...", segment_buffer_m))
-segment_layers <- load_segment_layers("../input/boundary_segments_400m.gpkg", buffer_m = segment_buffer_m)
+message(sprintf("Loading segment lines for %.0fm nearest-segment assignment...", segment_buffer_m))
+segment_layers <- load_segment_line_layers("../input/boundary_segments_400m.gpkg")
 
 # =============================================================================
 # 2. ASSIGN RENTALS TO CENSUS BLOCKS

@@ -51,16 +51,27 @@ cat("Max construction year:", ifelse(is.finite(max_construction_year), max_const
 # -----------------------------------------------------------------------------
 
 cat("\nLoading pre-scores parcel data...\n")
-parcels <- read_csv(parcels_input, show_col_types = FALSE)
+parcels <- read_csv(
+  parcels_input,
+  show_col_types = FALSE,
+  col_types = cols(pin = col_character(), .default = col_guess())
+)
 cat("Parcels loaded:", nrow(parcels), "\n")
 
-if (!"dist_to_boundary_m" %in% names(parcels) && "dist_to_boundary" %in% names(parcels)) {
-  parcels <- parcels %>%
-    mutate(dist_to_boundary_m = as.numeric(dist_to_boundary) * 0.3048)
+if (!"dist_to_boundary_m" %in% names(parcels)) {
+  stop("Parcels input must contain dist_to_boundary_m.", call. = FALSE)
 }
 
 cat("Loading parcel segment lookup...\n")
-segment_lookup <- read_csv(segment_lookup_input, show_col_types = FALSE)
+segment_lookup <- read_csv(
+  segment_lookup_input,
+  show_col_types = FALSE,
+  col_types = cols(
+    pin = col_character(),
+    segment_id = col_character(),
+    segment_reason = col_character()
+  )
+)
 cat("Segment lookup rows:", nrow(segment_lookup), "\n")
 
 cat("Loading uncertainty scores...\n")
@@ -81,7 +92,11 @@ if (anyDuplicated(segment_lookup$pin) > 0) {
 }
 
 segment_lookup <- segment_lookup %>%
-  mutate(pin = as.character(pin), segment_id = as.character(segment_id))
+  mutate(
+    pin = as.character(pin),
+    segment_id = as.character(segment_id),
+    dist_to_segment_m = if ("dist_to_segment_m" %in% names(.)) as.numeric(dist_to_segment_m) else NA_real_
+  )
 parcels <- parcels %>%
   mutate(pin = as.character(pin)) %>%
   left_join(segment_lookup, by = "pin")

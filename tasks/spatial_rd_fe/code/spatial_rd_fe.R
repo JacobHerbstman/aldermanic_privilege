@@ -120,6 +120,7 @@ placebo_shift_m <- suppressWarnings(as.numeric(Sys.getenv("PLACEBO_SHIFT_M", "0"
 if (!is.finite(placebo_shift_m)) {
   stop("PLACEBO_SHIFT_M must be numeric.", call. = FALSE)
 }
+display_config <- distance_display_config()
 
 # 1) Load + sample filters aligned with border-pair FE table spec
 message(sprintf("Input: %s", rd_input_path))
@@ -225,8 +226,12 @@ if (weight_style == "triangular") {
 }
 
 message(sprintf(
-  "RD config: FE=%s | cluster=%s | bw=%dm | donut>=%.0fm | placebo_shift=%+.0fm | weights=%s | controls=%s | sample=%s | prune=%s | obs=%d",
-  fe_spec, cluster_level, as.integer(round(bandwidth_m)), donut_m, placebo_shift_m, weight_style, control_style, sample_filter, prune_sample, nrow(dat)
+  "RD config: FE=%s | cluster=%s | bw=%s | donut>=%s | placebo_shift=%s | weights=%s | controls=%s | sample=%s | prune=%s | obs=%d",
+  fe_spec, cluster_level,
+  format_distance_label(bandwidth_m, display_config),
+  format_distance_label(donut_m, display_config),
+  format_signed_distance_label(placebo_shift_m, display_config),
+  weight_style, control_style, sample_filter, prune_sample, nrow(dat)
 ))
 
 if (use_log) {
@@ -400,6 +405,9 @@ bins <- aug %>%
     lo = mean_y - 1.96 * se_y,
     hi = mean_y + 1.96 * se_y,
     .groups = "drop"
+  ) %>%
+  mutate(
+    bin_center_display = if (display_config$unit == "ft") bin_center * M_TO_FT else bin_center
   )
 
 line_df <- if (plot_style == "level") {
@@ -425,6 +433,11 @@ line_df <- if (plot_style == "level") {
     )
   )
 }
+
+line_df <- line_df %>%
+  mutate(
+    running_distance_display = if (display_config$unit == "ft") running_distance_m * M_TO_FT else running_distance_m
+  )
 
 jump_label <- if (plot_style == "level_rd") {
   sprintf(
@@ -461,34 +474,38 @@ gap_split_label <- dplyr::case_when(
 control_label <- if (control_style == "none") "FE only" else "FE + controls"
 
 distance_label <- if (placebo_shift_m == 0) {
-  "Running distance (m) relative to cutoff; right side is the more-stringent side"
+  sprintf(
+    "Running distance (%s) relative to cutoff; right side is the more-stringent side",
+    display_config$unit
+  )
 } else {
   sprintf(
-    "Running distance (m) relative to placebo cutoff shifted %+.0fm; %s",
-    placebo_shift_m,
+    "Running distance (%s) relative to placebo cutoff shifted %s; %s",
+    display_config$unit,
+    format_signed_distance_label(placebo_shift_m, display_config),
     placebo_side_label
   )
 }
 
 subtitle_label <- if (placebo_shift_m == 0) {
   sprintf(
-    "%s | %s | %s | %s weights | bw=%dm | N=%d",
+    "%s | %s | %s | %s weights | bw=%s | N=%d",
     jump_label,
     gap_split_label,
     control_label,
     weight_style,
-    as.integer(round(bandwidth_m)),
+    format_distance_label(bandwidth_m, display_config),
     n_obs_plot
   )
 } else {
   sprintf(
-    "%s | %s | %s | placebo shift=%+.0fm | %s weights | bw=%dm | N=%d",
+    "%s | %s | %s | placebo shift=%s | %s weights | bw=%s | N=%d",
     jump_label,
     gap_split_label,
     control_label,
-    placebo_shift_m,
+    format_signed_distance_label(placebo_shift_m, display_config),
     weight_style,
-    as.integer(round(bandwidth_m)),
+    format_distance_label(bandwidth_m, display_config),
     n_obs_plot
   )
 }
@@ -505,12 +522,12 @@ if (use_log) ylab <- paste0("Log(", ylab, ")")
 p <- ggplot() +
   geom_point(
     data = bins,
-    aes(x = bin_center, y = mean_y, color = factor(side)),
+    aes(x = bin_center_display, y = mean_y, color = factor(side)),
     size = 1.6, alpha = 0.9
   ) +
   geom_line(
     data = line_df,
-    aes(x = running_distance_m, y = fit, color = factor(side)),
+    aes(x = running_distance_display, y = fit, color = factor(side)),
     linewidth = 1.1
   ) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30") +

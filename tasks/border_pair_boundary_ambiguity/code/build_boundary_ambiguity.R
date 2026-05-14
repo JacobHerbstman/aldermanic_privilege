@@ -4,6 +4,7 @@ library(dplyr)
 library(ggplot2)
 
 source("../../_lib/canonical_geometry_helpers.R")
+source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_boundary_ambiguity/code")
@@ -14,7 +15,7 @@ source("../../_lib/canonical_geometry_helpers.R")
 # summary_output <- "../output/boundary_ambiguity_by_bw.csv"
 # top_pairs_output <- "../output/boundary_ambiguity_top_pairs.csv"
 # plot_output <- "../output/boundary_ambiguity_share.pdf"
-# bandwidths <- "50 75 100 125 150 175 200 225 250 275 300"
+# bandwidths <- "76.2 152.4 304.8"
 # samples <- "all multifamily"
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -46,16 +47,20 @@ parcel_output <- args[4]
 summary_output <- args[5]
 top_pairs_output <- args[6]
 plot_output <- args[7]
-bandwidths <- as.integer(strsplit(trimws(args[8]), "\\s+")[[1]])
+bandwidths <- as.numeric(strsplit(trimws(args[8]), "\\s+")[[1]])
 samples <- strsplit(trimws(args[9]), "\\s+")[[1]]
 
 if (any(!is.finite(bandwidths))) {
-  stop("bandwidths must parse to integers.", call. = FALSE)
+  stop("bandwidths must parse to numeric values.", call. = FALSE)
 }
 if (!all(samples %in% c("all", "multifamily"))) {
   stop("samples must be drawn from: all, multifamily", call. = FALSE)
 }
-parcels <- read_csv(parcels_input, show_col_types = FALSE) %>%
+parcels <- read_csv(
+  parcels_input,
+  show_col_types = FALSE,
+  col_types = cols(pin = col_character(), .default = col_guess())
+) %>%
   mutate(
     pin = as.character(pin),
     construction_year = suppressWarnings(as.integer(construction_year)),
@@ -223,25 +228,32 @@ ambiguity_top_pairs <- bind_rows(lapply(samples, function(sample_i) {
 
 write_csv(ambiguity_top_pairs, top_pairs_output)
 
+display_config <- distance_display_config()
+bandwidth_breaks <- if (display_config$unit == "ft") {
+  bandwidths * M_TO_FT
+} else {
+  bandwidths
+}
+
 ambiguity_plot <- ambiguity_summary %>%
   mutate(
-    bandwidth_display_m = bandwidth_m,
+    bandwidth_display = if (display_config$unit == "ft") bandwidth_m * M_TO_FT else bandwidth_m,
     sample_label = case_when(
       sample_filter == "all" ~ "All Construction",
       sample_filter == "multifamily" ~ "Multifamily"
     )
   ) %>%
-  ggplot(aes(x = bandwidth_display_m, y = share_ambiguous, color = sample_label, fill = sample_label)) +
+  ggplot(aes(x = bandwidth_display, y = share_ambiguous, color = sample_label, fill = sample_label)) +
   geom_line(linewidth = 1.0) +
   geom_point(size = 1.8) +
   scale_color_manual(values = c("All Construction" = "#1f77b4", "Multifamily" = "#d62728")) +
   scale_fill_manual(values = c("All Construction" = "#1f77b4", "Multifamily" = "#d62728")) +
-  scale_x_continuous(breaks = pretty(bandwidths, n = 8)) +
+  scale_x_continuous(breaks = bandwidth_breaks) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 0.1)) +
   labs(
     title = "Corner Ambiguity by Bandwidth",
     subtitle = "Share of parcels within the bandwidth of their assigned ward pair and another adjacent ward pair",
-    x = "Bandwidth (m)",
+    x = sprintf("Bandwidth (%s)", display_config$unit),
     y = "Ambiguity Share",
     color = NULL
   ) +

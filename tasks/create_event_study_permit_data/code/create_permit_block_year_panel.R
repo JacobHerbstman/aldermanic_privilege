@@ -6,23 +6,30 @@ source("../../_lib/canonical_geometry_helpers.R")
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_permit_data/code")
 # segment_buffer_m <- 250
 # panel_max_distance_m <- 800
+# permit_start_year <- 2006
+# permit_end_year <- 2022
 # =======================================================================================
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(segment_buffer_m, panel_max_distance_m)
+  cli_args <- c(segment_buffer_m, panel_max_distance_m, permit_start_year, permit_end_year)
 }
 
-if (length(cli_args) != 2) {
-  stop("FATAL: Script requires 2 args: <segment_buffer_m> <panel_max_distance_m>", call. = FALSE)
+if (length(cli_args) != 4) {
+  stop("FATAL: Script requires 4 args: <segment_buffer_m> <panel_max_distance_m> <permit_start_year> <permit_end_year>", call. = FALSE)
 }
 segment_buffer_m <- as.numeric(cli_args[1])
 panel_max_distance_m <- as.numeric(cli_args[2])
+permit_start_year <- as.integer(cli_args[3])
+permit_end_year <- as.integer(cli_args[4])
 if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
   stop("segment_buffer_m must be positive.", call. = FALSE)
 }
 if (!is.finite(panel_max_distance_m) || panel_max_distance_m <= 0) {
   stop("panel_max_distance_m must be positive.", call. = FALSE)
+}
+if (!is.finite(permit_start_year) || !is.finite(permit_end_year) || permit_start_year > permit_end_year) {
+  stop("permit_start_year and permit_end_year must define a valid year window.", call. = FALSE)
 }
 
 sf_use_s2(FALSE)
@@ -591,11 +598,12 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
       )
     )
 
-  segment_id <- assign_points_to_segments(
+  segment_id <- assign_points_to_nearest_segments(
     points_sf = block_centroids,
     era_values = rep(era_label, nrow(block_centroids)),
     pair_values = base$ward_pair_id,
     segment_layers = segment_layers,
+    max_distance = units::set_units(segment_buffer_m, "m"),
     chunk_n = 50000L
   )
 
@@ -632,7 +640,8 @@ message("Loading ward panel and geometry helpers...")
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 ward_maps <- load_canonical_ward_maps(ward_panel)
 boundary_lines <- build_canonical_boundary_list(ward_panel)
-segment_layers <- load_segment_layers("../input/boundary_segments_400m.gpkg", buffer_m = segment_buffer_m)
+message(sprintf("Loading segment lines for %.0fm nearest-segment assignment...", segment_buffer_m))
+segment_layers <- load_segment_line_layers("../input/boundary_segments_400m.gpkg")
 
 message("Loading block treatment panel...")
 treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
@@ -688,18 +697,6 @@ unit_increase_audit <- read_csv(
   ) %>%
   arrange(desc(unit_increase_included), desc(positive_unit_signal), desc(curated_type), id)
 
-unit_increase_audit_summary <- unit_increase_audit %>%
-  filter(audit_universe) %>%
-  count(unit_increase_reason, permit_type, name = "n_permits") %>%
-  arrange(desc(n_permits), unit_increase_reason, permit_type)
-
-write_csv(unit_increase_audit, "../output/permit_unit_increase_audit.csv")
-write_csv(unit_increase_audit_summary, "../output/permit_unit_increase_audit_summary.csv")
-
-unit_audit_included_ids <- unit_increase_audit %>%
-  filter(unit_increase_included == 1L) %>%
-  select(id, unit_increase_included, unit_increase_reason)
-
 message("Loading issued permits...")
 permits_clean <- st_read(
   "../input/building_permits_clean.gpkg",
@@ -717,9 +714,48 @@ permits_clean <- st_read(
     issue_year = as.integer(format(as.Date(issue_date_ym), "%Y"))
   )
 
-permit_year_min <- min(c(permits_clean$application_year, permits_clean$issue_year), na.rm = TRUE)
-permit_year_max <- max(c(permits_clean$application_year, permits_clean$issue_year), na.rm = TRUE)
-message(sprintf("Permit years available: %d-%d", permit_year_min, permit_year_max))
+source_year_min <- min(c(permits_clean$application_year, permits_clean$issue_year), na.rm = TRUE)
+source_year_max <- max(c(permits_clean$application_year, permits_clean$issue_year), na.rm = TRUE)
+message(sprintf("Permit years available in raw source: %d-%d", source_year_min, source_year_max))
+message(sprintf("Permit analysis window: %d-%d", permit_start_year, permit_end_year))
+
+n_permits_before_window <- nrow(permits_clean)
+permits_clean <- permits_clean %>%
+  filter(
+    (!is.na(application_year) & application_year >= permit_start_year & application_year <= permit_end_year) |
+      (!is.na(issue_year) & issue_year >= permit_start_year & issue_year <= permit_end_year)
+  )
+if (nrow(permits_clean) == 0) {
+  stop("No issued permits remain after applying the permit analysis year window.", call. = FALSE)
+}
+message(sprintf(
+  "Permits kept in analysis window: %s of %s",
+  format(nrow(permits_clean), big.mark = ","),
+  format(n_permits_before_window, big.mark = ",")
+))
+
+unit_increase_audit <- unit_increase_audit %>%
+  semi_join(
+    permits_clean %>%
+      st_drop_geometry() %>%
+      select(id),
+    by = "id"
+  )
+
+unit_increase_audit_summary <- unit_increase_audit %>%
+  filter(audit_universe) %>%
+  count(unit_increase_reason, permit_type, name = "n_permits") %>%
+  arrange(desc(n_permits), unit_increase_reason, permit_type)
+
+write_csv(unit_increase_audit, "../output/permit_unit_increase_audit.csv")
+write_csv(unit_increase_audit_summary, "../output/permit_unit_increase_audit_summary.csv")
+
+unit_audit_included_ids <- unit_increase_audit %>%
+  filter(unit_increase_included == 1L) %>%
+  select(id, unit_increase_included, unit_increase_reason)
+
+permit_year_min <- permit_start_year
+permit_year_max <- permit_end_year
 
 if (st_crs(permits_clean) != st_crs(blocks_2010)) {
   permits_clean <- st_transform(permits_clean, st_crs(blocks_2010))

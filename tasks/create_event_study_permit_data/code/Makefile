@@ -4,6 +4,8 @@ include ../../shell_functions.make
 SEGMENT_LENGTH_M ?= 400
 SEGMENT_BUFFER_M ?= 250
 PANEL_MAX_DISTANCE_M ?= 800
+PERMIT_START_YEAR ?= 2006
+PERMIT_END_YEAR ?= 2022
 
 all: \
 	../output/permit_block_year_panel.parquet \
@@ -24,7 +26,7 @@ all: \
 	../output/permit_unit_increase_audit_summary.csv
 
 ../output/permit_block_year_panel.parquet: create_permit_block_year_panel.R ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg | ../output
-	$(R) create_permit_block_year_panel.R $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M)
+	$(R) create_permit_block_year_panel.R $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M) $(PERMIT_START_YEAR) $(PERMIT_END_YEAR)
 
 ../output/permit_block_year_panel_2015.parquet \
 ../output/permit_block_year_panel_2023.parquet \

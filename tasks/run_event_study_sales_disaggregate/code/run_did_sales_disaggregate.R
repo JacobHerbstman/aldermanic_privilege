@@ -11,12 +11,12 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
-# bandwidth <- 250
+# bandwidth <- 300
 # weighting <- "triangular"
 # fe_type <- "strict_pair_x_year"
 # geo_fe_level <- "segment"
 # cluster_level <- "twoway_block_segment"
-# bandwidth_label <- "250m"
+# bandwidth_label <- "300m"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {

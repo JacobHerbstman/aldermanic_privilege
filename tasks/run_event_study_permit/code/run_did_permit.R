@@ -6,10 +6,10 @@ source("../../setup_environment/code/packages.R")
 # date_basis <- "issue"
 # model_type <- "ppml"
 # weighting <- "uniform"
-# bandwidth <- 250
+# bandwidth <- 300
 # post_window <- "full"
 # geo_fe_level <- "segment"
-# bandwidth_label <- "250m"
+# bandwidth_label <- "300m"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {

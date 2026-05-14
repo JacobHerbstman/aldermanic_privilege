@@ -1,13 +1,14 @@
 source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_exact_balance/code")
 # permit_panel_input <- "../input/permit_block_year_panel_2015.parquet"
 # sales_panel_input <- "../input/sales_transaction_panel_2015.parquet"
 # block_baseline_input <- "../output/block_parcel_baselines_2014.csv"
-# output_csv <- "../output/redistricting_sample_support_summary_250m.csv"
-# output_tex <- "../output/redistricting_sample_support_summary_250m.tex"
-# bandwidth_m <- 250
+# output_csv <- "../output/redistricting_sample_support_summary_300m.csv"
+# output_tex <- "../output/redistricting_sample_support_summary_300m.tex"
+# bandwidth_m <- 300
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -35,6 +36,9 @@ bandwidth_m <- as.numeric(args[6])
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be positive.", call. = FALSE)
 }
+
+distance_display <- distance_display_config()
+bandwidth_label <- Sys.getenv("BANDWIDTH_LABEL", format_distance_label(bandwidth_m, distance_display))
 
 fmt_integer <- function(x) {
   if (!is.finite(x)) {
@@ -254,7 +258,7 @@ lines <- c(
   lines,
   "\\bottomrule",
   "\\end{tabular}",
-  sprintf("\\par\\vspace{0.5em}\\parbox{0.86\\linewidth}{\\footnotesize \\textit{Notes:} Table summarizes the 2015 permit and home-sales redistricting designs. Both designs use 2010--2014 as the pre-period and 2015--2020 as the post-period. Block counts are unique census blocks in the %dm analysis window. Treated blocks are redistricted blocks with a nonzero change in aldermanic stringency; indented rows split treated blocks by whether they moved to a stricter or more lenient ward. Control blocks remain in the origin ward. $N$ reports the main regression-table sample size after estimator-specific dropping. Mean allowed FAR and mean parcels per block are 2014 block-level parcel averages over treated and control blocks in each design.}", as.integer(round(bandwidth_m))),
+  sprintf("\\par\\vspace{0.5em}\\parbox{0.86\\linewidth}{\\footnotesize \\textit{Notes:} Table summarizes the 2015 permit and home-sales redistricting designs. Both designs use 2010--2014 as the pre-period and 2015--2020 as the post-period. Block counts are unique census blocks in the %s analysis window. Treated blocks are redistricted blocks with a nonzero change in aldermanic stringency; indented rows split treated blocks by whether they moved to a stricter or more lenient ward. Control blocks remain in the origin ward. $N$ reports the main regression-table sample size after estimator-specific dropping. Mean allowed FAR and mean parcels per block are 2014 block-level parcel averages over treated and control blocks in each design.}", bandwidth_label),
   "\\end{table}"
 )
 
