@@ -30,13 +30,13 @@ all: \
 ../input/census_blocks_2010.csv: ../../../data_raw/CensusBlockTIGER2010_20250721.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/schools_2015.gpkg: ../../download_amenities_data/output/schools_2015.gpkg | ../input
+../input/schools_2015.gpkg: ../../prepare_amenities_data/output/schools_2015.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/parks.gpkg: ../../download_amenities_data/output/parks.gpkg | ../input
+../input/parks.gpkg: ../../prepare_amenities_data/output/parks.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/major_streets.gpkg: ../../download_amenities_data/output/major_streets.gpkg | ../input
+../input/major_streets.gpkg: ../../prepare_amenities_data/output/major_streets.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg: ../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input

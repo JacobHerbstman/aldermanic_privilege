@@ -97,7 +97,7 @@ $(DIAG_SUMMARY_OUTPUTS): summarize_density_slope_diagnostics.R ../input/parcels_
 ../input/boundary_segments_400m.gpkg: ../../border_segment_creation/output/boundary_segments_400m.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/major_streets.gpkg: ../../download_amenities_data/output/major_streets.gpkg | ../input
+../input/major_streets.gpkg: ../../prepare_amenities_data/output/major_streets.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_400m.gpkg ../input/major_streets.gpkg
