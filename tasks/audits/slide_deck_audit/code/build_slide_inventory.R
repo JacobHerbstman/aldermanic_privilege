@@ -146,8 +146,36 @@ asset_inventory <- bind_rows(
   select(section_file, frame_label, frame_title, asset_type, asset_ref, asset_path, asset_class, task, is_appendix, file_exists) %>%
   arrange(section_file, frame_label, asset_type, asset_path)
 
-manual_claims <- read_csv(manual_claims_input, show_col_types = FALSE) %>%
-  mutate(across(everything(), ~ replace_na(as.character(.x), "")))
+manual_claim_columns <- c(
+  "section_file",
+  "frame_label",
+  "claim_id",
+  "claim_type",
+  "slide_text_excerpt",
+  "display_object",
+  "source_kind",
+  "source_path",
+  "upstream_task",
+  "verification_method",
+  "expected_spec",
+  "inspection_object",
+  "priority",
+  "source_column",
+  "source_filter_column",
+  "source_filter_value",
+  "source_aggregate",
+  "comparison_value",
+  "comparison_tolerance",
+  "comparison_pattern",
+  "notes"
+)
+
+manual_claims <- if (file.exists(manual_claims_input)) {
+  read_csv(manual_claims_input, show_col_types = FALSE) %>%
+    mutate(across(everything(), ~ replace_na(as.character(.x), "")))
+} else {
+  as_tibble(setNames(replicate(length(manual_claim_columns), character(), simplify = FALSE), manual_claim_columns))
+}
 
 task_output_claims <- asset_inventory %>%
   filter(asset_class == "task_output") %>%

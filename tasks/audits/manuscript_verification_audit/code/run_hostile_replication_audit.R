@@ -653,9 +653,37 @@ run_sales_did <- function(df, bandwidth = 1000, cluster_level = "block", price_t
 }
 
 with_dir(repo_root, {
-  base_findings <- read_csv(base_findings_path, show_col_types = FALSE)
-  artifact_map <- read_csv(base_artifact_map_path, show_col_types = FALSE)
-  coverage_matrix <- read_csv(base_coverage_path, show_col_types = FALSE)
+  base_findings <- if (file.exists(base_findings_path)) {
+    read_csv(base_findings_path, show_col_types = FALSE)
+  } else {
+    tibble(
+      id = character(),
+      severity = character(),
+      section = character(),
+      paper_ref = character(),
+      claim_summary = character(),
+      status = character(),
+      recommended_fix = character(),
+      fix_type = character()
+    )
+  }
+  artifact_map <- if (file.exists(base_artifact_map_path)) {
+    read_csv(base_artifact_map_path, show_col_types = FALSE)
+  } else {
+    tibble(
+      section = character(),
+      paper_ref = character(),
+      artifact_type = character(),
+      artifact_path = character(),
+      producer_task = character(),
+      producer_script = character()
+    )
+  }
+  coverage_matrix <- if (file.exists(base_coverage_path)) {
+    read_csv(base_coverage_path, show_col_types = FALSE)
+  } else {
+    tibble()
+  }
   density_sidecar_dir <- file.path(output_dir, "density_sidecars")
   dir_create(density_sidecar_dir)
 

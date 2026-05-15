@@ -11,8 +11,7 @@ all: \
 	../output/slides_audit_findings.csv \
 	../output/slides_audit_findings.md
 
-../output/slide_asset_inventory.csv: build_slide_inventory.R ../input/slides \
-	../input/manual_slide_claims.csv | ../output
+../output/slide_asset_inventory.csv: build_slide_inventory.R ../input/slides | ../output
 	Rscript build_slide_inventory.R ../input/slides ../input/manual_slide_claims.csv ../output/slide_asset_inventory.csv ../output/slide_claim_manifest.csv
 
 ../output/slide_claim_manifest.csv: ../output/slide_asset_inventory.csv
