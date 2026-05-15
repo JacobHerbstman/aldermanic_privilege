@@ -27,24 +27,16 @@ The segment fixed effects are the central design element. Boundary segments are 
 
 \subsection{Visual Evidence}
 
-Figure~\ref{fig:rd_fe_plots} plots the 500ft all-construction sample using a residualized local-linear RD display with five binned points on each side of the boundary. I read the plot as a visual check that the break occurs at the jurisdictional boundary and lines up with the sign of the regression result.
+Figure~\ref{fig:rd_fe_plots} plots the 500ft all-construction and multifamily samples using a residualized local-linear RD display with five binned points on each side of the boundary. I read the plots as a visual check that the break occurs at the jurisdictional boundary and lines up with the sign of the regression result.
 
 \begin{figure}[htbp]
     \centering
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_log_density_far_500ft_all_bins5.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_log_density_dupac_500ft_all_bins5.pdf}
-    \end{minipage}
-    \caption{Local-Linear Spatial RD: All New Construction (500ft)}
-    \figurenotes{Left: Log(FAR). Right: Log(DUPAC). Sample includes all new construction within 500ft of ward boundaries. Outcomes are residualized against zoning-group, boundary-segment, and construction-year fixed effects plus own-side demographic controls before plotting. Colored dots show binned residual means and colored lines show side-specific local-linear fits. Negative distance indicates the more lenient alderman's side; positive distance indicates the more stringent side.}
+    \includegraphics[width=0.96\textwidth]{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5.pdf}
+    \caption{Local-Linear Spatial RD: All and Multifamily New Construction (500ft)}
+    \figurenotes{Left column: all construction; right column: multifamily. Top row: Log(FAR); bottom row: Log(DUPAC). Samples include new construction within 500ft of ward boundaries. Outcomes are residualized against zoning-group, boundary-segment, and construction-year fixed effects plus own-side demographic controls before plotting. Colored dots show binned residual means and colored lines show side-specific local-linear fits. Negative distance indicates the more lenient alderman's side; positive distance indicates the more stringent side.}
     \label{fig:rd_fe_plots}
 \end{figure}
 
 \subsection{Supporting Checks}
 
-Appendix~\ref{sec:appendix_density} reports the rest of the density evidence. It presents the multifamily RD display, a pruned version of the 500ft all-construction fixed-effects table, the cross-border stringency split, shifted-cutoff placebo plots, donut RD plots, bandwidth-path figures, and a corner-clean table that drops parcels close to other ward-pair boundaries. I treat those exercises as supporting checks rather than as separate main results.
+Appendix~\ref{sec:appendix_density} reports the rest of the density evidence. It presents a pruned version of the 500ft fixed-effects table, the cross-border stringency split, shifted-cutoff placebo plots, donut RD plots, bandwidth-path figures, and a corner-clean table that drops parcels close to other ward-pair boundaries. I treat those exercises as supporting checks rather than as separate main results.

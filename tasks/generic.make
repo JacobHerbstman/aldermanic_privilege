@@ -6,8 +6,7 @@ SHELL := bash
 run.sbatch: ../../setup_environment/code/run.sbatch | slurmlogs
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-.PHONY: sanitize-numbered-duplicates FORCE
-FORCE:
+.PHONY: sanitize-numbered-duplicates
 
 sanitize-numbered-duplicates: ../input
 	@for dir in ../input ../output; do \
@@ -25,7 +24,7 @@ link-inputs: sanitize-numbered-duplicates
 ../../_lib/%:
 	@test -e "$@" || { echo "Missing shared library: $@"; false; }
 
-../../%: FORCE
+../../%:
 	@case "$@" in \
 		../../*/output/*) \
 			task=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./##; s#/output/.*##'); \

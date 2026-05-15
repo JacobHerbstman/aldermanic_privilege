@@ -2,13 +2,17 @@ all: paper.pdf
 
 paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/border_pair_FE_bandwidth_path/output/border_pair_fe_bandwidth_path_log_density_dupac_all_main.pdf \
+	../tasks/border_pair_FE_bandwidth_path/output/border_pair_fe_bandwidth_path_log_density_dupac_multifamily_main.pdf \
 	../tasks/border_pair_FE_bandwidth_path/output/border_pair_fe_bandwidth_path_log_density_far_all_main.pdf \
+	../tasks/border_pair_FE_bandwidth_path/output/border_pair_fe_bandwidth_path_log_density_far_multifamily_main.pdf \
 	../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex \
-	../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex \
+	../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex \
 	../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
 	../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf \
 	../tasks/density_amenity_balance/output/density_amenity_balance_500ft_all.tex \
+	../tasks/density_amenity_balance/output/density_amenity_balance_500ft_multifamily.tex \
 	../tasks/density_corner_clean_table/output/fe_table_500ft_all_corner_clean_compare.tex \
+	../tasks/density_corner_clean_table/output/fe_table_500ft_multifamily_corner_clean_compare.tex \
 	../tasks/event_study_exact_balance/output/permit_exact_balance_summary_1000ft.tex \
 	../tasks/event_study_exact_balance/output/redistricting_sample_support_summary_1000ft.tex \
 	../tasks/event_study_exact_balance/output/sales_exact_balance_summary_1000ft.tex \
@@ -18,20 +22,29 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/new_construction_score_density_robustness/output/fe_table_500ft_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex \
 	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_all_donut25ft.pdf \
 	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_all_donut50ft.pdf \
+	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_multifamily_donut25ft.pdf \
+	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_multifamily_donut50ft.pdf \
 	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_all_donut25ft.pdf \
 	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_all_donut50ft.pdf \
+	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_multifamily_donut25ft.pdf \
+	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_multifamily_donut50ft.pdf \
 	../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_500ft_all_above_median.pdf \
 	../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_500ft_all_below_median.pdf \
+	../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_500ft_multifamily_above_median.pdf \
+	../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_500ft_multifamily_below_median.pdf \
 	../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_500ft_all_above_median.pdf \
 	../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_500ft_all_below_median.pdf \
-	../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_log_density_dupac_500ft_all_bins5.pdf \
-	../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_log_density_dupac_500ft_multifamily_bins5.pdf \
-	../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_log_density_far_500ft_all_bins5.pdf \
-	../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_log_density_far_500ft_multifamily_bins5.pdf \
+	../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_500ft_multifamily_above_median.pdf \
+	../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_500ft_multifamily_below_median.pdf \
+	../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5.pdf \
 	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_all_shift_neg500ft.pdf \
 	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_all_shift_pos500ft.pdf \
+	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_multifamily_shift_neg500ft.pdf \
+	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_multifamily_shift_pos500ft.pdf \
 	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_all_shift_neg500ft.pdf \
 	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_all_shift_pos500ft.pdf \
+	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_multifamily_shift_neg500ft.pdf \
+	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_multifamily_shift_pos500ft.pdf \
 	../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf \
 	../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex \
 	../tasks/permit_summary_stats/output/permit_processing_time_volume_correlation.tex \
@@ -53,10 +66,7 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 paper.bbl: paper.aux sections/aldermanic_privilege.bib aea.bst
 	bibtex paper
 
-.PHONY: FORCE
-FORCE:
-
-../tasks/%: FORCE
+../tasks/%:
 	@case "$@" in \
 		../tasks/*/output/*) \
 			task=$$(printf '%s\n' "$@" | sed 's#^\.\./tasks/##; s#/output/.*##'); \
