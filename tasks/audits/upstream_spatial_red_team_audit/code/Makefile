@@ -6,5 +6,4 @@ $(STAMP): run_upstream_spatial_red_team_audit.R
 	Rscript run_upstream_spatial_red_team_audit.R
 	touch $(STAMP)
 
-link-inputs:
 	@true

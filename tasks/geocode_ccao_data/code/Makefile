@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/geocoded_residential_data.gpkg
 
@@ -18,6 +17,8 @@ all: ../output/geocoded_residential_data.gpkg
 ../input/multifamily_data_cleaned.csv: ../../commercial_value_data_cleaning/output/multifamily_data_cleaned.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-include ../../generic.make
 
 link-inputs: ../input/parcel_proximity.csv ../input/residential_cross_section.csv ../input/parcels.csv ../input/multifamily_data_cleaned.csv
+
+include ../../shell_functions.make
+include ../../generic.make

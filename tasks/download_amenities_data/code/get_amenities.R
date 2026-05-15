@@ -2,7 +2,7 @@
 # Layers: CTA stops, Major Streets, CPD Parks, CPS Schools.
 
 ## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/download_amenities_data/code")
 source("../../setup_environment/code/packages.R")
 
 # ---------- CTA data ----------

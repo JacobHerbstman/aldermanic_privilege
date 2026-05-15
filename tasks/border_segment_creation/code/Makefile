@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 REBUILD_MODE ?= raw
 SEGMENT_LENGTHS_M ?= 400 800
@@ -26,7 +25,7 @@ all: \
 ../output/ward_pair_boundary_summary.csv \
 ../output/ward_pair_boundary_diagnostics.csv \
 ../output/segment_feature_source_audit.csv: ../output/boundary_segments_$(PRIMARY_SEGMENT_M)m.gpkg
-	test -f $@
+	@test -s "$@"
 
 ../input/canonical_boundary_segments_400m.gpkg: ../../../data_raw/boundaries/segments/boundary_segments_1320ft.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -60,4 +59,5 @@ all: \
 
 link-inputs: ../input/ward_panel.gpkg ../input/canonical_boundary_segments_400m.gpkg ../input/canonical_boundary_segments_800m.gpkg ../input/canonical_segment_classification.csv ../input/canonical_ward_pair_boundaries.gpkg ../input/Major_Streets.shp ../input/Major_Streets.dbf ../input/Major_Streets.prj ../input/Major_Streets.shx ../input/gis_osm_roads_free_1.shp ../input/gis_osm_roads_free_1.dbf ../input/gis_osm_roads_free_1.prj ../input/gis_osm_roads_free_1.shx ../input/gis_osm_roads_free_1.cpg ../input/gis_osm_landuse_a_free_1.shp ../input/gis_osm_landuse_a_free_1.dbf ../input/gis_osm_landuse_a_free_1.prj ../input/gis_osm_landuse_a_free_1.shx ../input/gis_osm_landuse_a_free_1.cpg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg ../input/gis_osm_waterways_free_1.shp ../input/gis_osm_waterways_free_1.dbf ../input/gis_osm_waterways_free_1.prj ../input/gis_osm_waterways_free_1.shx ../input/gis_osm_waterways_free_1.cpg
 
+include ../../shell_functions.make
 include ../../generic.make

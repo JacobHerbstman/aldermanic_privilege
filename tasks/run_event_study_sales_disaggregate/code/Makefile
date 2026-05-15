@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 MAIN_BW_M ?= 304.8
 MAIN_BW_LABEL ?= 1000ft
@@ -34,4 +33,5 @@ all: \
 
 link-inputs: ../input/sales_transaction_panel_2015.parquet
 
+include ../../shell_functions.make
 include ../../generic.make

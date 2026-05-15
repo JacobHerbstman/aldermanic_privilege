@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 SAMPLE := FALSE
 
@@ -24,6 +23,8 @@ all: ../output/rent_pre_scores_full.parquet ../output/rent_geometry_diagnostics_
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-include ../../generic.make
 
 link-inputs: ../input/chicago_rent_panel.parquet ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_panel.csv
+
+include ../../shell_functions.make
+include ../../generic.make

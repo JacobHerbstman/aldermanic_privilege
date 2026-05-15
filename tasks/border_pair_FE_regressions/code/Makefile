@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 MAIN_YVARS := 'log(density_far)' 'log(density_dupac)'
 MAIN_BW_M ?= 152.4
@@ -43,4 +42,5 @@ all: \
 
 link-inputs: ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv
 
+include ../../shell_functions.make
 include ../../generic.make

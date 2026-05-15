@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/chicago_rent_panel.parquet
 
@@ -19,7 +18,7 @@ all: ../output/chicago_rent_panel.parquet
 		$(R) process_rent_data.R "$$link" "../temp/$$date.csv"; \
 	done
 	$(R) aggregate_rents.R
-	test -f $@
+	@test -s "$@"
 
 ../input/%.parquet: ../../download_rent_data/output/%.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -38,4 +37,5 @@ link-inputs: ../../download_rent_data/output/download.done | ../input
 		test "$$current" = "$$raw" || ln -sf "$$raw" "$$link"; \
 	done
 
+include ../../shell_functions.make
 include ../../generic.make

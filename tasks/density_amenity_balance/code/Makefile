@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 BALANCE_BW_M ?= 152.4
 BALANCE_BW_LABEL ?= 500ft
@@ -36,4 +35,5 @@ $(foreach sample,$(SAMPLES),$(eval $(call BALANCE_RULE,$(sample))))
 
 link-inputs: ../input/parcels_with_geometry.gpkg ../input/parcels_with_ward_distances.csv ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
+include ../../shell_functions.make
 include ../../generic.make

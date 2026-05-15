@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../../shell_functions.make
 
 all: \
 	../output/monthly_identifier_coverage.csv \
@@ -71,11 +70,12 @@ all: \
 ../output/fig_monthly_yoy_comparison.pdf \
 ../output/fig_series_variant_overlay.pdf \
 ../output/fig_series_variant_yoy.pdf: ../output/monthly_verdict_scorecard.csv
-	test -f $@
+	@test -s "$@"
 
 ../input/renthub_raw: ../../../download_rent_data/output | ../input
-	ln -sfn $< $@
+	@test "$$(readlink "$@")" = "$<" || ln -sfn "$<" "$@"
 
 link-inputs: ../input/renthub_raw
 
+include ../../../shell_functions.make
 include ../../../generic.make

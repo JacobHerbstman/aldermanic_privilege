@@ -1,21 +1,9 @@
 # Clean multifamily commercial valuation rows for buildings built since 1999 in Chicago townships.
 
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/commercial_value_data_cleaning/code")
-# input_csv <- "../input/commercial_value_raw.csv"
-# output_csv <- "../output/multifamily_data_cleaned.csv"
 source("../../setup_environment/code/packages.R")
 
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
-  cli_args <- c(input_csv, output_csv)
-}
-if (length(cli_args) != 2) {
-  stop("Expected arguments: input_csv output_csv.", call. = FALSE)
-}
-input_csv <- cli_args[1]
-output_csv <- cli_args[2]
-
-data <- readr::read_csv(input_csv, col_types = readr::cols(.default = "c"), show_col_types = FALSE) %>%
+data <- readr::read_csv("../input/commercial_value_raw.csv", col_types = readr::cols(.default = "c"), show_col_types = FALSE) %>%
   janitor::clean_names()
 
 if (!"modelgroup" %in% names(data) && "sheet" %in% names(data)) {
@@ -92,4 +80,4 @@ multifamily_data_deduped <- multifamily_data %>%
   ungroup() %>%
   select(-has_land, -year)
 
-write_csv(multifamily_data_deduped, output_csv)
+write_csv(multifamily_data_deduped, "../output/multifamily_data_cleaned.csv")

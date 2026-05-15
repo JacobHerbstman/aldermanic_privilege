@@ -1,6 +1,5 @@
 all: ../output/task_flow.png
 
-include ../../generic.make
 
 ../output/graph.txt: graphmaker.sh | ../output
 	bash graphmaker.sh
@@ -10,3 +9,5 @@ include ../../generic.make
 
 runorder: ../output/graph.txt | ../output
 	sed '1d; $$d' ../output/graph.txt | sed 's/->/ /' | tsort | sed 's/\(.*\)/make -C ..\/..\/\1\/code/'
+
+include ../../generic.make

@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
 SCORE_COLUMN ?= uncertainty_index
@@ -21,4 +20,5 @@ all: ../output/parcels_with_ward_distances.csv
 
 link-inputs: ../input/parcels_pre_scores.csv ../input/aldermen_uncertainty_scores.csv ../input/parcel_segment_ids.csv
 
+include ../../shell_functions.make
 include ../../generic.make

@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 OUTPUTS := \
 	../output/segment_assignment_coverage_sales.csv \
@@ -39,4 +38,5 @@ $(OUTPUTS): run_segment_fe_exploration.R $(INPUTS) | ../output
 
 link-inputs: $(INPUTS)
 
+include ../../shell_functions.make
 include ../../generic.make

@@ -50,6 +50,9 @@ if (!score_col %in% names(scores_raw)) {
 scores <- scores_raw %>%
   transmute(alderman,
             score = suppressWarnings(as.numeric(.data[[score_col]])))
+if (anyDuplicated(scores$alderman) > 0) {
+  stop("Scores must be unique by alderman before joining to wards.", call. = FALSE)
+}
 
 # Alderman → Ward mapping for the chosen year
 panel <- read_csv("../input/chicago_alderman_panel.csv",
@@ -60,11 +63,13 @@ panel <- read_csv("../input/chicago_alderman_panel.csv",
 
 # Join: scores → panel (get ward) → polygons
 ward_scores <- panel %>%
-  left_join(scores, by = "alderman") %>%
-  distinct(ward, .keep_all = TRUE)
+  left_join(scores, by = "alderman", relationship = "many-to-one")
+if (anyDuplicated(ward_scores$ward) > 0) {
+  stop("Ward scores must be unique by ward before joining to ward geometries.", call. = FALSE)
+}
 
 ward_map <- wards %>%
-  left_join(ward_scores, by = "ward")
+  left_join(ward_scores, by = "ward", relationship = "many-to-one")
 
 p <- ggplot(ward_map) +
   geom_sf(aes(fill = score), color = "grey20", linewidth = 0.2) +

@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/download.done
 
@@ -8,6 +7,7 @@ all: ../output/download.done
 	touch $@
 
 ../output/%.parquet: ../output/download.done
-	test -f "$@"
+	@test -s "$@"
 
+include ../../shell_functions.make
 include ../../generic.make

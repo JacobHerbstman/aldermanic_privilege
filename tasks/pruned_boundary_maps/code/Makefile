@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 SEGMENT_LENGTH_M ?= 400
 NEAR_FEATURE_DISTANCE_M ?= 75
@@ -56,7 +55,7 @@ $(SECONDARY_OUTPUTS): | $(PRIMARY_OUTPUT) ../output
 	@if [ ! -f "$@" ]; then \
 			SEGMENT_LENGTH_M=$(SEGMENT_LENGTH_M) NEAR_FEATURE_DISTANCE_M=$(NEAR_FEATURE_DISTANCE_M) Rscript plot_pruned_boundary_maps.R; \
 	fi
-	test -f "$@"
+	@test -s "$@"
 
 ../input/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg: ../../border_segment_creation/output/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -81,4 +80,5 @@ $(SECONDARY_OUTPUTS): | $(PRIMARY_OUTPUT) ../output
 
 link-inputs: $(INPUTS)
 
+include ../../shell_functions.make
 include ../../generic.make

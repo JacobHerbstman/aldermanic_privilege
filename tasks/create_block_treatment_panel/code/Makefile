@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/block_treatment_pre_scores.csv ../output/block_treatment_geometry_diagnostics.csv
 
@@ -7,7 +6,7 @@ all: ../output/block_treatment_pre_scores.csv ../output/block_treatment_geometry
 	$(R) create_treatment_panel.R
 
 ../output/block_treatment_geometry_diagnostics.csv: ../output/block_treatment_pre_scores.csv
-	test -f $@
+	@test -s "$@"
 
 ../input/census_blocks_2010.csv: ../../../data_raw/CensusBlockTIGER2010_20250721.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -21,6 +20,8 @@ all: ../output/block_treatment_pre_scores.csv ../output/block_treatment_geometry
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-include ../../generic.make
 
 link-inputs: ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv
+
+include ../../shell_functions.make
+include ../../generic.make

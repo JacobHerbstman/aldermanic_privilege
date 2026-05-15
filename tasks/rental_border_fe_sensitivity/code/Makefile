@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/permutation_test_2014_2022_all_bw500_ctrl_clust_ward_pair.pdf
 
@@ -14,4 +13,5 @@ all: ../output/permutation_test_2014_2022_all_bw500_ctrl_clust_ward_pair.pdf
 
 link-inputs: ../input/rent_with_ward_distances.parquet
 
+include ../../shell_functions.make
 include ../../generic.make

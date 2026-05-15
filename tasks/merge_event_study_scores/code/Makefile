@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
 SCORE_COLUMN ?= uncertainty_index
@@ -14,15 +13,15 @@ all: ../output/sales_with_ward_distances.csv ../output/rent_with_ward_distances_
 	touch $@
 
 ../output/sales_with_ward_distances.csv: ../output/.sales_treatment_merge_done.stamp
-	test -f $@
+	@test -s "$@"
 
 ../output/block_treatment_panel.csv: ../output/.sales_treatment_merge_done.stamp
-	test -f $@
+	@test -s "$@"
 
 ../output/rent_with_ward_distances_full.parquet: merge_event_study_scores.R ../input/rent_pre_scores_full.parquet ../input/aldermen_uncertainty_scores.csv | ../output
 	# arg order: mode score_file score_column rent_input rent_output
 	$(R) merge_event_study_scores.R rent ../input/aldermen_uncertainty_scores.csv $(SCORE_COLUMN) ../input/rent_pre_scores_full.parquet ../output/rent_with_ward_distances_full.parquet
-	test -f $@
+	@test -s "$@"
 
 ../input/sales_pre_scores.csv: ../../assign_segment_ids_sales_rental/output/sales_pre_scores_with_segments.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -39,6 +38,8 @@ all: ../output/sales_with_ward_distances.csv ../output/rent_with_ward_distances_
 ../input/aldermen_uncertainty_scores.csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(SCORE_SPEC).csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-include ../../generic.make
 
 link-inputs: ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores.csv
+
+include ../../shell_functions.make
+include ../../generic.make

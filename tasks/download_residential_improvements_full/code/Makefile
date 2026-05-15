@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/residential_improvement_characteristics_full.csv
 
@@ -10,4 +9,5 @@ all: ../output/residential_improvement_characteristics_full.csv
 
 live-download: ../output/residential_improvement_characteristics_full.csv
 
+include ../../shell_functions.make
 include ../../generic.make

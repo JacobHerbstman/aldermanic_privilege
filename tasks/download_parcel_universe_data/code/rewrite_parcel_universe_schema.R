@@ -1,19 +1,9 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/download_parcel_universe_data/code")
-# input_csv <- "../temp/parcel_universe_2025_city_native.csv"
-# output_csv <- "../output/parcel_universe_2025_city.csv"
 
 source("../../setup_environment/code/packages.R")
 
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
-  cli_args <- c(input_csv, output_csv)
-}
-
-if (length(cli_args) != 2) {
-  stop("FATAL: Script requires 2 args: <input_csv> <output_csv>", call. = FALSE)
-}
-input_csv <- cli_args[1]
-output_csv <- cli_args[2]
+input_csv <- "../temp/parcel_universe_2025_city_native.csv"
+output_csv <- "../output/parcel_universe_2025_city.csv"
 metadata_csv <- sub("\\.csv$", "_metadata.csv", output_csv)
 
 native_names <- strsplit(

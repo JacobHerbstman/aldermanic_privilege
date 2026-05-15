@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 SEGMENT_LENGTH_M ?= 400
 SEGMENT_BUFFER_M ?= 250
@@ -43,7 +42,7 @@ all: \
 ../output/permit_block_assignment_review_summary.csv \
 ../output/permit_unit_increase_audit.csv \
 ../output/permit_unit_increase_audit_summary.csv: ../output/permit_block_year_panel.parquet
-	test -f "$@"
+	@test -s "$@"
 
 ../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -66,6 +65,8 @@ all: \
 ../input/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg: ../../border_segment_creation/output/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-include ../../generic.make
 
 link-inputs: ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg
+
+include ../../shell_functions.make
+include ../../generic.make

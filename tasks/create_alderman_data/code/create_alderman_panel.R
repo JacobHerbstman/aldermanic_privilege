@@ -1,7 +1,7 @@
 # This code handmakes a panel of aldermen and uses the "majority of the month" rule to assign alderman to wards monthly from 2003-01 to 2025-06
 
 ## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_data/code")
 
 source("../../setup_environment/code/packages.R")
 

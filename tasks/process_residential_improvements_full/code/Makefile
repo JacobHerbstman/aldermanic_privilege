@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/residential_improvements_panel.parquet
 
@@ -11,4 +10,5 @@ all: ../output/residential_improvements_panel.parquet
 
 link-inputs: ../input/residential_improvement_characteristics_full.csv
 
+include ../../shell_functions.make
 include ../../generic.make

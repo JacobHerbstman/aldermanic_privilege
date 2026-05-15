@@ -13,13 +13,13 @@ all: \
 	Rscript build_boundary_ambiguity.R ../input/parcels_with_ward_distances.csv ../input/geocoded_residential_data.gpkg ../input/ward_pair_boundaries.gpkg ../output/parcel_other_pair_distance.csv ../output/boundary_ambiguity_by_bw.csv ../output/boundary_ambiguity_top_pairs.csv ../output/boundary_ambiguity_share.pdf "$(BANDWIDTHS_M)" "$(SAMPLES)"
 
 ../output/boundary_ambiguity_by_bw.csv: ../output/parcel_other_pair_distance.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/boundary_ambiguity_top_pairs.csv: ../output/parcel_other_pair_distance.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/boundary_ambiguity_share.pdf: ../output/parcel_other_pair_distance.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

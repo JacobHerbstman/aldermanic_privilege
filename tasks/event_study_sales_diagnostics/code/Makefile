@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 MAP_BW_M ?= 304.8
 MAP_BW_LABEL ?= 1000ft
@@ -44,4 +43,5 @@ all: \
 
 link-inputs: ../input/sales_stacked_panel.csv ../input/sales_stacked_quarterly_panel.csv ../input/census_blocks_2010.csv ../input/ward_panel.gpkg ../input/block_treatment_panel.csv
 
+include ../../shell_functions.make
 include ../../generic.make

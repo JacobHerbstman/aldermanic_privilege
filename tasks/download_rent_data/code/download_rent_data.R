@@ -1,7 +1,7 @@
 ##downloads renthub data from dewey
 
 ## run this line when editing code in Rstudio (replace "task" with the name of this particular task)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/download_rent_data/code")
 
 source("../../setup_environment/code/packages.R")
 

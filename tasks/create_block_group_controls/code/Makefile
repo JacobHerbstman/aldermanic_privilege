@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/block_group_controls.csv ../output/block_group_geometry_2019.gpkg ../output/block_group_controls_census_metadata.csv
 
@@ -9,11 +8,10 @@ all: ../output/block_group_controls.csv ../output/block_group_geometry_2019.gpkg
 	test -f ../output/block_group_controls_census_metadata.csv
 
 ../output/block_group_geometry_2019.gpkg: ../output/block_group_controls.csv
-	test -f $@
+	@test -s "$@"
 
 ../output/block_group_controls_census_metadata.csv: ../output/block_group_controls.csv
-	test -f $@
+	@test -s "$@"
 
-link-inputs:
-
+include ../../shell_functions.make
 include ../../generic.make

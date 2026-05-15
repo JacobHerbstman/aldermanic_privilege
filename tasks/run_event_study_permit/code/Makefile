@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 MAIN_BW_M ?= 304.8
 MAIN_BW_LABEL ?= 1000ft
@@ -49,4 +48,5 @@ low_discretion_placebo: $(LOW_DISCRETION_PLACEBO_OUTPUTS)
 
 link-inputs: ../input/permit_block_year_panel.parquet ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv
 
+include ../../shell_functions.make
 include ../../generic.make

@@ -176,7 +176,6 @@ joined <- geom_sf %>%
 joined_missing_geometry <- assert_point_geometries(joined, "joined parcel geometry")
 joined$segment_reason <- case_when(
   is.na(joined$boundary_year) | is.na(joined$era) ~ "missing_boundary_year_or_era",
-  is.na(joined$pair_dash) ~ "missing_pair",
   joined_missing_geometry ~ "missing_geometry",
   TRUE ~ "pending"
 )
@@ -195,19 +194,10 @@ joined$segment_id <- segment_id_by_row
 
 pending_idx <- which(joined$segment_reason == "pending")
 if (length(pending_idx) > 0) {
-  pair_available <- logical(length(pending_idx))
-  for (era_i in unique(joined$era[pending_idx])) {
-    seg_era <- segments_by_era[[era_i]]
-    idx_era <- which(joined$era[pending_idx] == era_i)
-    if (length(idx_era) == 0) next
-    if (is.null(seg_era) || nrow(seg_era) == 0) next
-    pair_available[idx_era] <- joined$pair_dash[pending_idx[idx_era]] %in% unique(seg_era$pair_dash)
-  }
-
   joined$segment_reason[pending_idx] <- ifelse(
     !is.na(joined$segment_id[pending_idx]) & joined$segment_id[pending_idx] != "",
     "matched",
-    ifelse(pair_available, "no_nearest_segment_within_radius", "pair_not_in_segment_layer")
+    "no_nearest_segment_within_radius"
   )
 }
 
@@ -232,6 +222,18 @@ pair_audit <- cbind(
   ),
   pair_audit
 )
+
+assignment_mismatch <- !is.na(pair_audit$constrained_segment_id) &
+  pair_audit$constrained_segment_id != "" &
+  !is.na(pair_audit$unconstrained_segment_id) &
+  pair_audit$unconstrained_segment_id != "" &
+  !pair_audit$unconstrained_matches_constrained_segment
+if (any(assignment_mismatch, na.rm = TRUE)) {
+  stop(sprintf(
+    "Production segment assignment differs from the globally nearest segment for %d rows.",
+    sum(assignment_mismatch, na.rm = TRUE)
+  ), call. = FALSE)
+}
 
 lookup <- data.table(
   pin = as.character(joined$pin),

@@ -99,7 +99,7 @@ segment_lookup <- segment_lookup %>%
   )
 parcels <- parcels %>%
   mutate(pin = as.character(pin)) %>%
-  left_join(segment_lookup, by = "pin")
+  left_join(segment_lookup, by = "pin", relationship = "many-to-one")
 
 if (is.finite(max_construction_year)) {
   if (!"construction_year" %in% names(parcels)) {
@@ -121,13 +121,16 @@ cat("\nMerging scores for own and neighbor aldermen...\n")
 # Rename score column to standardized name for merging
 scores_for_merge <- scores %>%
   select(alderman, score = all_of(score_column))
+if (anyDuplicated(scores_for_merge$alderman) > 0) {
+  stop("Scores input has duplicate alderman values; expected one row per alderman.", call. = FALSE)
+}
 
 parcels_with_scores <- parcels %>%
   # --- JOIN 1: Own Alderman Score ---
-  left_join(scores_for_merge, by = c("alderman_own" = "alderman")) %>%
+  left_join(scores_for_merge, by = c("alderman_own" = "alderman"), relationship = "many-to-one") %>%
   rename(strictness_own = score) %>%
   # --- JOIN 2: Neighbor Alderman Score ---
-  left_join(scores_for_merge, by = c("alderman_neighbor" = "alderman")) %>%
+  left_join(scores_for_merge, by = c("alderman_neighbor" = "alderman"), relationship = "many-to-one") %>%
   rename(strictness_neighbor = score) %>%
   # Calculate sign and signed distance
   mutate(

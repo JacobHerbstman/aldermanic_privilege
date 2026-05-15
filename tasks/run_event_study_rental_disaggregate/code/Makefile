@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: \
 	../output/event_study_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.pdf \
@@ -13,57 +12,85 @@ all: \
 	../output/event_study_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.pdf \
 	../output/event_study_combined_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.pdf
 
-../output/event_study_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.pdf \
+../output/event_study_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.pdf: run_event_study_disaggregate.R \
+	../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet \
+	../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
+	Rscript run_event_study_disaggregate.R cohort_2023 yearly continuous TRUE triangular 250 multifamily_only strict_pair_x_year short segment twoway_block_segment
+
 ../output/event_study_coefficients_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.csv \
 ../output/event_study_support_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.csv \
 ../output/event_study_pretrend_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.csv \
-../output/event_study_metadata_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.csv: run_event_study_disaggregate.R ../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
-	Rscript run_event_study_disaggregate.R cohort_2023 yearly continuous TRUE triangular 250 multifamily_only strict_pair_x_year short segment twoway_block_segment
+../output/event_study_metadata_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.csv: ../output/event_study_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.pdf
+	@test -s "$@"
 
-../output/event_study_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_short.pdf \
+../output/event_study_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_short.pdf: run_event_study_disaggregate.R \
+	../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet \
+	../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
+	Rscript run_event_study_disaggregate.R cohort_2023 yearly continuous_split TRUE triangular 250 multifamily_only strict_pair_x_year short segment twoway_block_segment
+
 ../output/event_study_combined_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_short.pdf \
 ../output/event_study_coefficients_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_short.csv \
 ../output/event_study_support_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_short.csv \
 ../output/event_study_pretrend_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_short.csv \
-../output/event_study_metadata_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_short.csv: run_event_study_disaggregate.R ../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
-	Rscript run_event_study_disaggregate.R cohort_2023 yearly continuous_split TRUE triangular 250 multifamily_only strict_pair_x_year short segment twoway_block_segment
+../output/event_study_metadata_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_short.csv: ../output/event_study_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_short.pdf
+	@test -s "$@"
 
-../output/event_study_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_no_hedonics_short.pdf \
+../output/event_study_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_no_hedonics_short.pdf: run_event_study_disaggregate.R \
+	../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet \
+	../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
+	Rscript run_event_study_disaggregate.R cohort_2023 yearly continuous FALSE triangular 250 multifamily_only strict_pair_x_year short segment twoway_block_segment
+
 ../output/event_study_coefficients_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_no_hedonics_short.csv \
 ../output/event_study_support_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_no_hedonics_short.csv \
 ../output/event_study_pretrend_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_no_hedonics_short.csv \
-../output/event_study_metadata_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_no_hedonics_short.csv: run_event_study_disaggregate.R ../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
-	Rscript run_event_study_disaggregate.R cohort_2023 yearly continuous FALSE triangular 250 multifamily_only strict_pair_x_year short segment twoway_block_segment
+../output/event_study_metadata_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_no_hedonics_short.csv: ../output/event_study_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_no_hedonics_short.pdf
+	@test -s "$@"
 
-../output/event_study_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_no_hedonics_short.pdf \
+../output/event_study_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_no_hedonics_short.pdf: run_event_study_disaggregate.R \
+	../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet \
+	../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
+	Rscript run_event_study_disaggregate.R cohort_2023 yearly continuous_split FALSE triangular 250 multifamily_only strict_pair_x_year short segment twoway_block_segment
+
 ../output/event_study_combined_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_no_hedonics_short.pdf \
 ../output/event_study_coefficients_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_no_hedonics_short.csv \
 ../output/event_study_support_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_no_hedonics_short.csv \
 ../output/event_study_pretrend_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_no_hedonics_short.csv \
-../output/event_study_metadata_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_no_hedonics_short.csv: run_event_study_disaggregate.R ../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
-	Rscript run_event_study_disaggregate.R cohort_2023 yearly continuous_split FALSE triangular 250 multifamily_only strict_pair_x_year short segment twoway_block_segment
+../output/event_study_metadata_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_no_hedonics_short.csv: ../output/event_study_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_no_hedonics_short.pdf
+	@test -s "$@"
 
-../output/event_study_disaggregate_yearly_cohort_2015_continuous_triangular_250m_mf_short.pdf \
+../output/event_study_disaggregate_yearly_cohort_2015_continuous_triangular_250m_mf_short.pdf: run_event_study_disaggregate.R \
+	../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet \
+	../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
+	Rscript run_event_study_disaggregate.R cohort_2015 yearly continuous TRUE triangular 250 multifamily_only strict_pair_x_year short segment twoway_block_segment
+
 ../output/event_study_coefficients_disaggregate_yearly_cohort_2015_continuous_triangular_250m_mf_short.csv \
 ../output/event_study_support_disaggregate_yearly_cohort_2015_continuous_triangular_250m_mf_short.csv \
 ../output/event_study_pretrend_disaggregate_yearly_cohort_2015_continuous_triangular_250m_mf_short.csv \
-../output/event_study_metadata_disaggregate_yearly_cohort_2015_continuous_triangular_250m_mf_short.csv: run_event_study_disaggregate.R ../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
-	Rscript run_event_study_disaggregate.R cohort_2015 yearly continuous TRUE triangular 250 multifamily_only strict_pair_x_year short segment twoway_block_segment
+../output/event_study_metadata_disaggregate_yearly_cohort_2015_continuous_triangular_250m_mf_short.csv: ../output/event_study_disaggregate_yearly_cohort_2015_continuous_triangular_250m_mf_short.pdf
+	@test -s "$@"
 
-../output/event_study_disaggregate_yearly_stacked_implementation_continuous_triangular_250m_mf_overlap.pdf \
+../output/event_study_disaggregate_yearly_stacked_implementation_continuous_triangular_250m_mf_overlap.pdf: run_event_study_disaggregate.R \
+	../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet \
+	../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
+	Rscript run_event_study_disaggregate.R stacked_implementation yearly continuous TRUE triangular 250 multifamily_only strict_pair_x_year overlap segment twoway_block_segment
+
 ../output/event_study_coefficients_disaggregate_yearly_stacked_implementation_continuous_triangular_250m_mf_overlap.csv \
 ../output/event_study_support_disaggregate_yearly_stacked_implementation_continuous_triangular_250m_mf_overlap.csv \
 ../output/event_study_pretrend_disaggregate_yearly_stacked_implementation_continuous_triangular_250m_mf_overlap.csv \
-../output/event_study_metadata_disaggregate_yearly_stacked_implementation_continuous_triangular_250m_mf_overlap.csv: run_event_study_disaggregate.R ../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
-	Rscript run_event_study_disaggregate.R stacked_implementation yearly continuous TRUE triangular 250 multifamily_only strict_pair_x_year overlap segment twoway_block_segment
+../output/event_study_metadata_disaggregate_yearly_stacked_implementation_continuous_triangular_250m_mf_overlap.csv: ../output/event_study_disaggregate_yearly_stacked_implementation_continuous_triangular_250m_mf_overlap.pdf
+	@test -s "$@"
 
-../output/event_study_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.pdf \
+../output/event_study_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.pdf: run_event_study_disaggregate.R \
+	../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet \
+	../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
+	Rscript run_event_study_disaggregate.R stacked_implementation yearly continuous_split TRUE triangular 250 multifamily_only strict_pair_x_year overlap segment twoway_block_segment
+
 ../output/event_study_combined_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.pdf \
 ../output/event_study_coefficients_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.csv \
 ../output/event_study_support_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.csv \
 ../output/event_study_pretrend_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.csv \
-../output/event_study_metadata_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.csv: run_event_study_disaggregate.R ../../_lib/event_study_plot_helpers.R ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet | ../output
-	Rscript run_event_study_disaggregate.R stacked_implementation yearly continuous_split TRUE triangular 250 multifamily_only strict_pair_x_year overlap segment twoway_block_segment
+../output/event_study_metadata_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.csv: ../output/event_study_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.pdf
+	@test -s "$@"
 
 ../output/did_table_rental.tex: run_did_rental_disaggregate.R ../input/rental_listing_panel.parquet | ../output
 	Rscript run_did_rental_disaggregate.R 250 triangular strict_pair_x_year segment twoway_block_segment
@@ -79,4 +106,5 @@ all: \
 
 link-inputs: ../input/rental_listing_panel.parquet ../input/rental_listing_panel_2015.parquet ../input/rental_listing_panel_2023.parquet
 
+include ../../shell_functions.make
 include ../../generic.make

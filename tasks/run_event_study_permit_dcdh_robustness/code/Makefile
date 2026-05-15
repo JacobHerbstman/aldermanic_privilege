@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 BW_FT := 1000
 WEIGHTING := uniform
@@ -29,4 +28,5 @@ all: \
 
 link-inputs: ../input/permit_block_year_panel_2015.parquet
 
+include ../../shell_functions.make
 include ../../generic.make

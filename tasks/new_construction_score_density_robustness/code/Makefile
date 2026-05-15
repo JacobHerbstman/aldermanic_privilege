@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 BASELINE_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
 DENSITY_ROBUSTNESS_BW_M ?= 152.4
@@ -484,4 +483,5 @@ all: \
 
 link-inputs: ../input/permits_for_uncertainty_index.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/residualized_low_vs_high_processing_alderman_wide_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/building_permits_clean.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv
 
+include ../../shell_functions.make
 include ../../generic.make

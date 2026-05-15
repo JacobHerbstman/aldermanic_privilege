@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/census_blocks_2020.csv ../output/census_blocks_2020_boundary_diagnostics.csv
 
@@ -7,7 +6,7 @@ all: ../output/census_blocks_2020.csv ../output/census_blocks_2020_boundary_diag
 	$(R) clean_blocks.R
 
 ../output/census_blocks_2020_boundary_diagnostics.csv: ../output/census_blocks_2020.csv
-	test -f $@
+	@test -s "$@"
 
 ../input/tl_2025_17_tabblock20.shp ../input/tl_2025_17_tabblock20.dbf ../input/tl_2025_17_tabblock20.prj ../input/tl_2025_17_tabblock20.shx: ../input/tl_2025_17_tabblock20.%: ../../../data_raw/tl_2025_17_tabblock20.% | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -18,6 +17,8 @@ all: ../output/census_blocks_2020.csv ../output/census_blocks_2020_boundary_diag
 ../input/city_boundary.geojson: ../../../data_raw/Boundaries_-_City_20250920.geojson | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-include ../../generic.make
 
 link-inputs: ../input/tl_2025_17_tabblock20.shp ../input/tl_2025_17_tabblock20.dbf ../input/tl_2025_17_tabblock20.prj ../input/tl_2025_17_tabblock20.shx ../input/census_blocks_2010.csv ../input/city_boundary.geojson
+
+include ../../shell_functions.make
+include ../../generic.make

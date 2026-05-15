@@ -16,7 +16,7 @@ external: ../output/cook_county_pin_spotcheck.csv
 ../output/global_nearest_segment_pair_differences.csv \
 ../output/manual_spotcheck_sample.csv \
 ../output/manual_spotcheck_sample.gpkg: ../output/audit_summary.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/cook_county_pin_spotcheck.csv: run_cook_county_pin_spotcheck.R ../output/manual_spotcheck_sample.csv | ../output
 	Rscript run_cook_county_pin_spotcheck.R

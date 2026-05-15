@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 PTFE := TRUE
 RTFE := TRUE
@@ -29,4 +28,5 @@ all: ../output/alderman_uncertainty_index_$(SPEC).csv ../output/uncertainty_inde
 
 link-inputs: ../input/permits_for_uncertainty_index.csv
 
+include ../../shell_functions.make
 include ../../generic.make

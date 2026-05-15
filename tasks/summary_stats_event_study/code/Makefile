@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/summary_stats_event_study.tex
 
@@ -12,6 +11,8 @@ all: ../output/summary_stats_event_study.tex
 ../input/rental_listing_panel.parquet: ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-include ../../generic.make
 
 link-inputs: ../input/sales_transaction_panel_2012.parquet ../input/rental_listing_panel.parquet
+
+include ../../shell_functions.make
+include ../../generic.make

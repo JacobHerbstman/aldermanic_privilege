@@ -1,8 +1,10 @@
-FUNCTIONS = $(shell cat ../../shell_functions.sh)
+SHELL_FUNCTIONS_MAKE := $(lastword $(MAKEFILE_LIST))
+TASKS_ROOT := $(patsubst %/,%,$(dir $(SHELL_FUNCTIONS_MAKE)))
+
+FUNCTIONS = $(shell cat $(TASKS_ROOT)/shell_functions.sh)
 STATA = @$(FUNCTIONS); stata_with_flag
 R = @$(FUNCTIONS); R_pc_and_slurm
 
-#If 'make -n' option is invoked
 ifneq (,$(findstring n,$(MAKEFLAGS)))
 STATA := STATA
 R := R

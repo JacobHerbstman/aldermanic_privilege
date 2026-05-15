@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/parcels_pre_scores.csv ../output/parcels_with_geometry.gpkg ../output/parcel_geometry_diagnostics.csv
 
@@ -36,6 +35,8 @@ all: ../output/parcels_pre_scores.csv ../output/parcels_with_geometry.gpkg ../ou
 ../input/zoning_data_clean.gpkg: ../../zoning_data_cleaning/output/zoning_data_clean.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-include ../../generic.make
 
 link-inputs: ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/block_group_geometry_2019.gpkg ../input/zoning_data_clean.gpkg
+
+include ../../shell_functions.make
+include ../../generic.make

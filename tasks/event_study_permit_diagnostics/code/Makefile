@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 BALANCE_BW_M ?= 250
 
@@ -21,7 +20,7 @@ all: \
 ../output/permit_balance_did_shift_$(BALANCE_BW_M)m.csv \
 ../output/permit_balance_did_shift_$(BALANCE_BW_M)m.tex \
 ../output/permit_balance_love_plot_$(BALANCE_BW_M)m.pdf: ../output/permit_balance_summary_$(BALANCE_BW_M)m.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../input/permit_block_year_panel.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -31,4 +30,5 @@ all: \
 
 link-inputs: ../input/permit_block_year_panel.parquet ../input/block_group_controls.csv
 
+include ../../shell_functions.make
 include ../../generic.make

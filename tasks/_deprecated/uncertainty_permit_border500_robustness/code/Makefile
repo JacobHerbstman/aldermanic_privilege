@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 BASELINE_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH
 
@@ -45,10 +44,10 @@ all: \
 	Rscript filter_high_discretion_permits_near_boundary.R
 
 ../output/high_discretion_boundary_filter_summary.csv: ../output/building_permits_clean_border500_filtered.gpkg
-	test -f "$@"
+	@test -s "$@"
 
 ../output/high_discretion_boundary_distances.csv: ../output/building_permits_clean_border500_filtered.gpkg
-	test -f "$@"
+	@test -s "$@"
 
 ../output/permits_for_uncertainty_index_permit_border500.csv: ../../data_for_alderman_uncertainty_index/code/prepare_uncertainty_data.R ../output/building_permits_clean_border500_filtered.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/community_areas.geojson ../input/cta_stations.geojson ../input/city_boundary.geojson ../input/gis_osm_water_a_free_1.shp | ../output
 	BUILDING_PERMITS_INPUT_PATH=../output/building_permits_clean_border500_filtered.gpkg OUTPUT_PERMITS_FOR_UNCERTAINTY_PATH=$@ Rscript ../../data_for_alderman_uncertainty_index/code/prepare_uncertainty_data.R
@@ -60,13 +59,13 @@ all: \
 	test -f ../output/stage2_regression_$(BASELINE_SPEC).tex
 
 ../output/uncertainty_index_$(BASELINE_SPEC).pdf: ../output/alderman_uncertainty_index_$(BASELINE_SPEC).csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/stage1_regression_$(BASELINE_SPEC).tex: ../output/alderman_uncertainty_index_$(BASELINE_SPEC).csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/stage2_regression_$(BASELINE_SPEC).tex: ../output/alderman_uncertainty_index_$(BASELINE_SPEC).csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/alderman_uncertainty_index_baseline.csv: ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv | ../output
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -78,27 +77,27 @@ all: \
 	ln -sf stage2_regression_$(BASELINE_SPEC).tex ../output/stage2_regression_permit_border500.tex
 
 ../output/uncertainty_index_permit_border500.pdf: ../output/alderman_uncertainty_index_permit_border500.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/stage1_regression_permit_border500.tex: ../output/alderman_uncertainty_index_permit_border500.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/stage2_regression_permit_border500.tex: ../output/alderman_uncertainty_index_permit_border500.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/parcels_with_ward_distances_baseline.csv: ../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_baseline.csv | ../output
 	PARCELS_INPUT_PATH=../input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../output/parcels_with_ward_distances_baseline.csv MERGE_SUMMARY_OUTPUT_PATH=../output/boundary_distance_summary_baseline.csv Rscript ../../merge_in_scores/code/merge_scores.R ../output/alderman_uncertainty_index_baseline.csv uncertainty_index
 	test -f ../output/boundary_distance_summary_baseline.csv
 
 ../output/boundary_distance_summary_baseline.csv: ../output/parcels_with_ward_distances_baseline.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/parcels_with_ward_distances_permit_border500.csv: ../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_permit_border500.csv | ../output
 	PARCELS_INPUT_PATH=../input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../output/parcels_with_ward_distances_permit_border500.csv MERGE_SUMMARY_OUTPUT_PATH=../output/boundary_distance_summary_permit_border500.csv Rscript ../../merge_in_scores/code/merge_scores.R ../output/alderman_uncertainty_index_permit_border500.csv uncertainty_index
 	test -f ../output/boundary_distance_summary_permit_border500.csv
 
 ../output/boundary_distance_summary_permit_border500.csv: ../output/parcels_with_ward_distances_permit_border500.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/parcels_with_ward_distances_baseline.csv | ../output
 	RD_INPUT_PATH=../output/parcels_with_ward_distances_baseline.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE 500 multifamily zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf slope
@@ -106,10 +105,10 @@ all: \
 	test -f ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv
 
 ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline_bins.csv: ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf
-	test -f "$@"
+	@test -s "$@"
 
 ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv: ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf
-	test -f "$@"
+	@test -s "$@"
 
 ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/parcels_with_ward_distances_baseline.csv | ../output
 	RD_INPUT_PATH=../output/parcels_with_ward_distances_baseline.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_dupac TRUE 500 multifamily zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf slope
@@ -117,10 +116,10 @@ all: \
 	test -f ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv
 
 ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline_bins.csv: ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf
-	test -f "$@"
+	@test -s "$@"
 
 ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv: ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf
-	test -f "$@"
+	@test -s "$@"
 
 ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.pdf: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/parcels_with_ward_distances_permit_border500.csv | ../output
 	RD_INPUT_PATH=../output/parcels_with_ward_distances_permit_border500.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE 500 multifamily zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.pdf slope
@@ -128,10 +127,10 @@ all: \
 	test -f ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500_meta.csv
 
 ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500_bins.csv: ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.pdf
-	test -f "$@"
+	@test -s "$@"
 
 ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500_meta.csv: ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.pdf
-	test -f "$@"
+	@test -s "$@"
 
 ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.pdf: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/parcels_with_ward_distances_permit_border500.csv | ../output
 	RD_INPUT_PATH=../output/parcels_with_ward_distances_permit_border500.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_dupac TRUE 500 multifamily zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.pdf slope
@@ -139,24 +138,24 @@ all: \
 	test -f ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500_meta.csv
 
 ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500_bins.csv: ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.pdf
-	test -f "$@"
+	@test -s "$@"
 
 ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500_meta.csv: ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.pdf
-	test -f "$@"
+	@test -s "$@"
 
 ../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.tex: ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R ../output/parcels_with_ward_distances_baseline.csv | ../output
 	FE_INPUT_PATH=../output/parcels_with_ward_distances_baseline.csv FE_SUMMARY_OUTPUT_PATH=../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv CLUSTER_LEVEL=ward_pair Rscript ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R 500 multifamily zonegroup_segment_year_additive ../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.tex "log(density_far)" "log(density_dupac)" "log(unitscount)"
 	test -f ../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv
 
 ../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv: ../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.tex
-	test -f "$@"
+	@test -s "$@"
 
 ../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.tex: ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R ../output/parcels_with_ward_distances_permit_border500.csv | ../output
 	FE_INPUT_PATH=../output/parcels_with_ward_distances_permit_border500.csv FE_SUMMARY_OUTPUT_PATH=../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.csv CLUSTER_LEVEL=ward_pair Rscript ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R 500 multifamily zonegroup_segment_year_additive ../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.tex "log(density_far)" "log(density_dupac)" "log(unitscount)"
 	test -f ../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.csv
 
 ../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.csv: ../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.tex
-	test -f "$@"
+	@test -s "$@"
 
 ../output/score_comparison_permit_border500_vs_baseline.csv: compare_permit_border500_scores.R ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../output/alderman_uncertainty_index_permit_border500.csv | ../output
 	Rscript compare_permit_border500_scores.R ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../output/alderman_uncertainty_index_permit_border500.csv ../output/score_comparison_permit_border500_vs_baseline.csv ../output/score_comparison_permit_border500_vs_baseline_summary.csv ../output/score_comparison_permit_border500_vs_baseline_summary.tex ../output/score_comparison_permit_border500_vs_baseline_scatter.pdf permit_border500 "Drop permits within 500 ft of ward borders"
@@ -165,13 +164,13 @@ all: \
 	test -f ../output/score_comparison_permit_border500_vs_baseline_scatter.pdf
 
 ../output/score_comparison_permit_border500_vs_baseline_summary.csv: ../output/score_comparison_permit_border500_vs_baseline.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/score_comparison_permit_border500_vs_baseline_summary.tex: ../output/score_comparison_permit_border500_vs_baseline.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/score_comparison_permit_border500_vs_baseline_scatter.pdf: ../output/score_comparison_permit_border500_vs_baseline.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/density_score_robustness_comparison_permit_border500.csv: summarize_permit_border500_density_robustness.R ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv ../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500_meta.csv ../output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500_meta.csv ../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv ../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_permit_border500.csv ../output/parcels_with_ward_distances_baseline.csv ../output/parcels_with_ward_distances_permit_border500.csv | ../output
 	Rscript summarize_permit_border500_density_robustness.R ../output permit_border500 "Drop permits within 500 ft of ward borders" ../output/density_score_robustness_comparison_permit_border500.csv ../output/density_score_robustness_comparison_permit_border500.tex ../output/parcel_sign_agreement_baseline_vs_permit_border500.csv
@@ -179,10 +178,10 @@ all: \
 	test -f ../output/parcel_sign_agreement_baseline_vs_permit_border500.csv
 
 ../output/density_score_robustness_comparison_permit_border500.tex: ../output/density_score_robustness_comparison_permit_border500.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/parcel_sign_agreement_baseline_vs_permit_border500.csv: ../output/density_score_robustness_comparison_permit_border500.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../input/building_permits_clean_raw.gpkg: ../../clean_building_permits/output/building_permits_clean.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -219,4 +218,5 @@ all: \
 
 link-inputs: ../input/building_permits_clean_raw.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/community_areas.geojson ../input/cta_stations.geojson ../input/city_boundary.geojson ../input/gis_osm_water_a_free_1.shp ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv
 
-include ../../generic.make
+include ../../../shell_functions.make
+include ../../../generic.make

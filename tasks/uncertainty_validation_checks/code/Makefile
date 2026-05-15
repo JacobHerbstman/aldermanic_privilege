@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 UNCERTAINTY_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
 MAX_APPLICATION_YM ?= 2022-12
@@ -14,7 +13,7 @@ all: ../output/permit_validation_results_uncertainty_$(UNCERTAINTY_SPEC).csv \
 	@if [ ! -f "$@" ]; then \
 		Rscript build_permit_validation_table.R "$(UNCERTAINTY_SPEC)" ../input/building_permits_text_features.csv.gz ../input/chicago_alderman_panel.csv ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../output/permit_validation_results_uncertainty_$(UNCERTAINTY_SPEC).csv ../output/permit_validation_table_uncertainty_$(UNCERTAINTY_SPEC).tex $(MAX_APPLICATION_YM); \
 	fi
-	test -f "$@"
+	@test -s "$@"
 
 ../input/building_permits_text_features.csv.gz: ../../building_permits_scraping/output/building_permits_text_features.csv.gz | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -27,4 +26,5 @@ all: ../output/permit_validation_results_uncertainty_$(UNCERTAINTY_SPEC).csv \
 
 link-inputs: ../input/building_permits_text_features.csv.gz ../input/chicago_alderman_panel.csv ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv
 
+include ../../shell_functions.make
 include ../../generic.make

@@ -129,8 +129,6 @@ pair_universe_from_pre_scores <- function(path, dataset_name, era_col, pair_col)
 
 current_time <- format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")
 
-dir.create("../output", showWarnings = FALSE, recursive = TRUE)
-
 boundary_layers <- st_layers("../input/ward_pair_boundaries.gpkg")$name
 segment_layers <- st_layers("../input/boundary_segments_400m.gpkg")$name
 

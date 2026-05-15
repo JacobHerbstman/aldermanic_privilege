@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 SEGMENT_LENGTH_M ?= 400
 SEGMENT_BUFFER_M ?= 250
@@ -15,7 +14,7 @@ all: ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv 
 ../output/parcel_segment_ids_reason_summary.csv \
 ../output/parcel_segment_pair_constraint_audit.csv \
 ../output/parcel_segment_pair_constraint_audit_summary.csv: ../output/parcel_segment_ids.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../input/parcels_pre_scores.csv: ../../calculate_ward_boundary_distances/output/parcels_pre_scores.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -26,6 +25,8 @@ all: ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv 
 ../input/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg: ../../border_segment_creation/output/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-include ../../generic.make
 
 link-inputs: ../input/parcels_pre_scores.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg
+
+include ../../shell_functions.make
+include ../../generic.make

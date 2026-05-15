@@ -35,28 +35,28 @@ $(foreach bandwidth,$(BANDWIDTHS_M),$(foreach sample,$(SAMPLES),../temp/border_p
 	DISTANCE_DISPLAY_UNIT=ft Rscript plot_bandwidth_path.R ../temp ../output/border_pair_fe_bandwidth_path.csv ../output/border_pair_fe_bandwidth_path_log_density_far_multifamily_main.pdf ../output/border_pair_fe_bandwidth_path_log_density_far_multifamily_pruned.pdf ../output/border_pair_fe_bandwidth_path_log_density_far_all_main.pdf ../output/border_pair_fe_bandwidth_path_log_density_far_all_pruned.pdf ../output/border_pair_fe_bandwidth_path_log_density_dupac_multifamily_main.pdf ../output/border_pair_fe_bandwidth_path_log_density_dupac_multifamily_pruned.pdf ../output/border_pair_fe_bandwidth_path_log_density_dupac_all_main.pdf ../output/border_pair_fe_bandwidth_path_log_density_dupac_all_pruned.pdf "$(BANDWIDTHS_M)" "$(SAMPLES)" "$(PRUNE_SPECS)" "$(REFERENCE_BANDWIDTHS_M)"
 
 ../output/border_pair_fe_bandwidth_path_log_density_far_multifamily_main.pdf: ../output/border_pair_fe_bandwidth_path.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/border_pair_fe_bandwidth_path_log_density_far_multifamily_pruned.pdf: ../output/border_pair_fe_bandwidth_path.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/border_pair_fe_bandwidth_path_log_density_far_all_main.pdf: ../output/border_pair_fe_bandwidth_path.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/border_pair_fe_bandwidth_path_log_density_far_all_pruned.pdf: ../output/border_pair_fe_bandwidth_path.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/border_pair_fe_bandwidth_path_log_density_dupac_multifamily_main.pdf: ../output/border_pair_fe_bandwidth_path.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/border_pair_fe_bandwidth_path_log_density_dupac_multifamily_pruned.pdf: ../output/border_pair_fe_bandwidth_path.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/border_pair_fe_bandwidth_path_log_density_dupac_all_main.pdf: ../output/border_pair_fe_bandwidth_path.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../output/border_pair_fe_bandwidth_path_log_density_dupac_all_pruned.pdf: ../output/border_pair_fe_bandwidth_path.csv
-	test -f "$@"
+	@test -s "$@"
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

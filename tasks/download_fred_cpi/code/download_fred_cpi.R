@@ -2,18 +2,19 @@
 
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/download_fred_cpi/code")
 # series_id <- "CUURA207SA0"
-# output_csv <- "../output/fred_cpi_cuura207sa0.csv"
-# metadata_csv <- "../output/fred_cpi_cuura207sa0_metadata.csv"
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) != 3) {
-  stop("Expected arguments: series_id output_csv metadata_csv.", call. = FALSE)
+if (length(cli_args) == 0) {
+  cli_args <- c(series_id)
+}
+if (length(cli_args) != 1) {
+  stop("Expected argument: series_id.", call. = FALSE)
 }
 
 series_id <- cli_args[1]
-output_csv <- cli_args[2]
-metadata_csv <- cli_args[3]
+output_csv <- "../output/fred_cpi_cuura207sa0.csv"
+metadata_csv <- "../output/fred_cpi_cuura207sa0_metadata.csv"
 
 fred_url <- sprintf("https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s", series_id)
 message(sprintf("Downloading FRED series %s", series_id))

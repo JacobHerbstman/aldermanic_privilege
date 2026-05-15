@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 CASE_BW_M ?= 100
 CASE_BW_FT := $(shell Rscript -e 'cat(round($(CASE_BW_M) / 0.3048))')
@@ -21,11 +20,13 @@ all: ../output/case_study_far_panel_$(CASE_BW_M)m.pdf ../output/case_study_summa
 		../output/case_study_summary_$(CASE_BW_M)m.csv
 
 ../output/case_study_summary_$(CASE_BW_M)m.csv: ../output/case_study_far_panel_$(CASE_BW_M)m.pdf
-	test -f $@
+	@test -s "$@"
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-include ../../generic.make
 
 link-inputs: ../input/parcels_with_ward_distances.csv
+
+include ../../shell_functions.make
+include ../../generic.make

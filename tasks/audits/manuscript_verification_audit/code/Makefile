@@ -28,5 +28,4 @@ $(STAMP): run_hostile_replication_audit.R ../output/findings_ledger.csv ../outpu
 	Rscript run_hostile_replication_audit.R
 	touch $(STAMP)
 
-link-inputs:
 	@true

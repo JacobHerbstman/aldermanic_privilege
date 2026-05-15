@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 BW_M := 100
 FE_SPEC := zonegroup_segment_year_additive
@@ -103,4 +102,5 @@ $(DIAG_SUMMARY_OUTPUTS): summarize_density_slope_diagnostics.R ../input/parcels_
 
 link-inputs: ../input/parcels_with_ward_distances.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_400m.gpkg ../input/major_streets.gpkg
 
+include ../../shell_functions.make
 include ../../generic.make

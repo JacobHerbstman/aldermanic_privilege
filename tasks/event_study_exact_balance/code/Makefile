@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 EVENT_STUDY_BW_M ?= 304.8
 EVENT_STUDY_BW_LABEL ?= 1000ft
@@ -51,4 +50,5 @@ all: \
 
 link-inputs: ../input/geocoded_residential_data.gpkg ../input/zoning_data_clean.gpkg ../input/census_blocks_2010.csv ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg ../input/permit_block_year_panel_2015.parquet ../input/sales_transaction_panel_2015.parquet
 
+include ../../shell_functions.make
 include ../../generic.make

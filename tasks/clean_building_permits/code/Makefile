@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/building_permits_clean.gpkg
 
@@ -11,4 +10,5 @@ all: ../output/building_permits_clean.gpkg
 
 link-inputs: ../input/building_permits.csv
 
+include ../../shell_functions.make
 include ../../generic.make

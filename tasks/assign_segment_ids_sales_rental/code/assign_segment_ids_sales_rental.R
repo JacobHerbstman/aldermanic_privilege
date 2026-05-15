@@ -120,13 +120,12 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
     fifelse(
       is.na(obs_date) | is.na(era),
       "missing_date_or_era",
-      fifelse(is.na(pair_dash), "missing_pair", "pending")
+      "pending"
     )
   )]
 
   assignable_idx <- which(
     !is.na(dt$era) &
-      !is.na(dt$pair_dash) &
       is.finite(dt[[lon_col]]) &
       is.finite(dt[[lat_col]])
   )
@@ -157,19 +156,10 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
 
   pending_idx <- which(dt$segment_reason == "pending")
   if (length(pending_idx) > 0) {
-    pair_available <- logical(length(pending_idx))
-    for (era_i in unique(dt$era[pending_idx])) {
-      seg_era <- segments_by_era[[era_i]]
-      idx_era <- which(dt$era[pending_idx] == era_i)
-      if (length(idx_era) == 0) next
-      if (is.null(seg_era) || nrow(seg_era) == 0) next
-      pair_available[idx_era] <- dt$pair_dash[pending_idx[idx_era]] %in% unique(seg_era$pair_dash)
-    }
-
     dt[pending_idx, segment_reason := fifelse(
       !is.na(segment_id) & segment_id != "",
       "matched",
-      fifelse(pair_available, "no_nearest_segment_within_radius", "pair_not_in_segment_layer")
+      "no_nearest_segment_within_radius"
     )]
   }
 

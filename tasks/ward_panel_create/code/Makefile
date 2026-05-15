@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/ward_panel.gpkg
 
@@ -18,6 +17,8 @@ all: ../output/ward_panel.gpkg
 ../input/Wards_2024.geojson: ../../../data_raw/Wards_2024.geojson | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-include ../../generic.make
 
 link-inputs: ../input/ward1998.shp ../input/ward1998.dbf ../input/ward1998.prj ../input/ward1998.shx ../input/Wards_2014.geojson ../input/Wards_2015.geojson ../input/Wards_2024.geojson
+
+include ../../shell_functions.make
+include ../../generic.make
