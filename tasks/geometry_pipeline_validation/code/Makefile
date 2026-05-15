@@ -36,11 +36,11 @@ all: ../output/geometry_validation_report.md
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../output/validation_density_far_meta.csv: ../../spatial_rd_fe/code/spatial_rd_fe.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv | ../output
-	RD_INPUT_PATH=../input/parcels_with_ward_distances.csv CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CLUSTER_LEVEL=segment $(R) ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE 500 multifamily zonegroup_segment_year_additive ../output/validation_density_far.pdf slope
+	@$(FUNCTIONS); RD_INPUT_PATH=../input/parcels_with_ward_distances.csv CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CLUSTER_LEVEL=segment R_pc_and_slurm ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE 500 multifamily zonegroup_segment_year_additive ../output/validation_density_far.pdf slope
 	test -f $@
 
 ../output/validation_density_dupac_meta.csv: ../../spatial_rd_fe/code/spatial_rd_fe.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv | ../output
-	RD_INPUT_PATH=../input/parcels_with_ward_distances.csv CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CLUSTER_LEVEL=segment $(R) ../../spatial_rd_fe/code/spatial_rd_fe.R density_dupac TRUE 500 multifamily zonegroup_segment_year_additive ../output/validation_density_dupac.pdf slope
+	@$(FUNCTIONS); RD_INPUT_PATH=../input/parcels_with_ward_distances.csv CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CLUSTER_LEVEL=segment R_pc_and_slurm ../../spatial_rd_fe/code/spatial_rd_fe.R density_dupac TRUE 500 multifamily zonegroup_segment_year_additive ../output/validation_density_dupac.pdf slope
 	test -f $@
 
 ../input/sales_pre_scores.csv: ../../calculate_sale_distances/output/sales_pre_scores.csv | ../input

@@ -63,6 +63,7 @@ if (anyDuplicated(parcel_universe$pin) > 0) {
   stop("Parcel universe contains duplicate PIN rows. Fix the download/input before geocoding.", call. = FALSE)
 }
 
+setorder(parcel_universe, pin)
 parcel_universe <- parcel_universe[, ..native_names]
 setnames(parcel_universe, native_names, legacy_names)
 fwrite(parcel_universe, output_csv)
