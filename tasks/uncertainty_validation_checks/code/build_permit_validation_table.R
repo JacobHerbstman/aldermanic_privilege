@@ -29,6 +29,12 @@ uncertainty_path <- args[4]
 output_csv <- args[5]
 output_tex <- args[6]
 max_application_ym <- args[7]
+unmatched_scores_output <- sub(
+  "permit_validation_results",
+  "permit_validation_unmatched_scores",
+  output_csv,
+  fixed = TRUE
+)
 
 cat("=== Permit Validation Table (Stringency) ===\n")
 cat("Spec:", spec, "\n")
@@ -80,8 +86,15 @@ alderman_panel[is.na(month_ym), month_ym := zoo::as.yearmon(month)]
 alderman_panel <- unique(
   alderman_panel[!is.na(ward) & !is.na(month_ym) & !is.na(alderman), .(ward, month = month_ym, alderman)]
 )
+if (anyDuplicated(alderman_panel, by = c("ward", "month")) > 0) {
+  stop("Alderman panel must be unique by ward-month before joining to permits.", call. = FALSE)
+}
 
+permits_before_alderman_join <- nrow(permits)
 permits <- merge(permits, alderman_panel, by = c("ward", "month"), all.x = TRUE)
+if (nrow(permits) != permits_before_alderman_join) {
+  stop("Alderman panel join changed permit row count.", call. = FALSE)
+}
 permits <- permits[!is.na(alderman)]
 permits[, alderman_key := toupper(trimws(as.character(alderman)))]
 permits[, alderman_key := iconv(alderman_key, to = "ASCII//TRANSLIT")]
@@ -102,16 +115,35 @@ scores[, alderman_key := gsub("[^A-Z ]+", " ", alderman_key)]
 scores[, alderman_key := gsub("\\s+", " ", alderman_key)]
 scores[, alderman_key := trimws(alderman_key)]
 scores[, uncertainty_index := suppressWarnings(as.numeric(as.character(uncertainty_index)))]
-scores <- scores[
-  !is.na(uncertainty_index),
-  .(uncertainty_index = mean(uncertainty_index, na.rm = TRUE)),
-  by = alderman_key
-]
+scores <- scores[!is.na(uncertainty_index) & alderman_key != "", .(alderman_key, uncertainty_index)]
+if (anyDuplicated(scores, by = "alderman_key") > 0) {
+  stop("Uncertainty score file must be unique by alderman after key cleaning.", call. = FALSE)
+}
 
+permits_before_score_join <- nrow(permits)
 permits <- merge(permits, scores, by = "alderman_key", all.x = TRUE)
+if (nrow(permits) != permits_before_score_join) {
+  stop("Uncertainty score join changed permit row count.", call. = FALSE)
+}
+unmatched_scores <- permits[is.na(uncertainty_index), .N, by = .(alderman_key, alderman)][order(-N)]
+readr::write_csv(unmatched_scores, unmatched_scores_output)
+if (nrow(unmatched_scores) > 0) {
+  warning(
+    paste0(
+      "Permit validation excludes unmatched score aldermen: ",
+      paste(head(unmatched_scores$alderman, 10), collapse = ", ")
+    ),
+    call. = FALSE
+  )
+}
 permits <- permits[!is.na(uncertainty_index)]
 
 permits[, units_reduced_text := fifelse(!is.na(unit_change_text) & unit_change_text < 0, -unit_change_text, 0)]
+
+ward_month_score_counts <- permits[, .(n_scores = uniqueN(uncertainty_index)), by = .(ward, month)]
+if (any(ward_month_score_counts$n_scores > 1)) {
+  stop("Ward-month validation cells map to multiple uncertainty scores.", call. = FALSE)
+}
 
 ward_month <- permits[, .(
   n_permits_all = .N,
@@ -218,3 +250,4 @@ writeLines(tex_lines, con = output_tex)
 cat("Saved:\n")
 cat(" -", output_csv, "\n")
 cat(" -", output_tex, "\n")
+cat(" -", unmatched_scores_output, "\n")

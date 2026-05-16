@@ -81,6 +81,9 @@ permits <- load_uncertainty_permits(permits_input) %>%
 alderman_panel <- read_csv(alderman_panel_input, show_col_types = FALSE) %>%
   mutate(month = as.yearmon(month)) %>%
   filter(month <= as.yearmon(sprintf("%d-12", max_permit_year)))
+if (anyDuplicated(alderman_panel[c("ward", "month")]) > 0) {
+  stop("Alderman panel must be unique by ward-month.", call. = FALSE)
+}
 
 tenure_ranges <- alderman_panel %>%
   group_by(alderman) %>%
@@ -92,7 +95,7 @@ tenure_ranges <- alderman_panel %>%
   )
 
 permits_split <- permits %>%
-  inner_join(tenure_ranges, by = "alderman") %>%
+  inner_join(tenure_ranges, by = "alderman", relationship = "many-to-one") %>%
   mutate(
     split_half = if_else(as.numeric(month) <= midpoint_numeric, "first_half", "second_half")
   )
@@ -132,7 +135,7 @@ score_second <- second_result$alderman_index %>%
   )
 
 score_compare <- score_first %>%
-  inner_join(score_second, by = "alderman") %>%
+  inner_join(score_second, by = "alderman", relationship = "one-to-one") %>%
   mutate(
     harmonic_weight = 2 / ((1 / n_permits_first) + (1 / n_permits_second)),
     rank_first = min_rank(desc(uncertainty_index_first)),

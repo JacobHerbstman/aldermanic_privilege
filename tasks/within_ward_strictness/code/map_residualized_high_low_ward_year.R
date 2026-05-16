@@ -88,6 +88,12 @@ ward_panel <- st_read(ward_panel_input, quiet = TRUE)
 ward_controls <- read_csv(ward_controls_input, show_col_types = FALSE)
 alderman_panel <- read_csv(alderman_panel_input, show_col_types = FALSE) %>%
   mutate(month = as.yearmon(month))
+if (anyDuplicated(alderman_panel[c("ward", "month")]) > 0) {
+  stop("Alderman panel must be unique by ward-month.", call. = FALSE)
+}
+if (anyDuplicated(ward_controls[c("ward", "year")]) > 0) {
+  stop("Ward controls must be unique by ward-year.", call. = FALSE)
+}
 
 cta_stations <- st_read(cta_stations_input, quiet = TRUE)
 water_osm <- st_read(water_osm_input, quiet = TRUE)
@@ -125,12 +131,18 @@ ward_geoms_map1 <- ward_panel %>%
   select(ward) %>%
   group_by(ward) %>%
   summarise(.groups = "drop")
+if (anyDuplicated(st_drop_geometry(ward_geoms_map1)$ward) > 0) {
+  stop("2014 ward geometries must be unique by ward.", call. = FALSE)
+}
 
 ward_geoms_map2 <- ward_panel %>%
   filter(year == 2016) %>%
   select(ward) %>%
   group_by(ward) %>%
   summarise(.groups = "drop")
+if (anyDuplicated(st_drop_geometry(ward_geoms_map2)$ward) > 0) {
+  stop("2016 ward geometries must be unique by ward.", call. = FALSE)
+}
 
 permits_pre2015 <- permits %>%
   filter(application_start_date_ym < as.yearmon("2015-05"))
@@ -147,6 +159,9 @@ permits_ward_pre2015 <- if (nrow(permits_pre2015) == 0) {
     filter(!is.na(ward)) %>%
     st_drop_geometry()
 }
+if (anyDuplicated(permits_ward_pre2015$id) > 0) {
+  stop("Pre-2015 ward spatial join assigned a permit to multiple wards.", call. = FALSE)
+}
 
 permits_ward_2015_2022 <- if (nrow(permits_2015_2022) == 0) {
   permits_2015_2022 %>% st_drop_geometry()
@@ -157,11 +172,14 @@ permits_ward_2015_2022 <- if (nrow(permits_2015_2022) == 0) {
     filter(!is.na(ward)) %>%
     st_drop_geometry()
 }
+if (anyDuplicated(permits_ward_2015_2022$id) > 0) {
+  stop("2015-2022 ward spatial join assigned a permit to multiple wards.", call. = FALSE)
+}
 
 permits_ward_data <- bind_rows(permits_ward_pre2015, permits_ward_2015_2022)
 
 permits_with_alderman <- permits_ward_data %>%
-  left_join(alderman_panel, by = c("ward", "application_start_date_ym" = "month")) %>%
+  left_join(alderman_panel, by = c("ward", "application_start_date_ym" = "month"), relationship = "many-to-one") %>%
   filter(!is.na(alderman))
 
 max_control_year <- max(ward_controls$year, na.rm = TRUE)
@@ -178,7 +196,7 @@ ward_controls_extended <- if (max_permit_year > max_control_year) {
 }
 
 permits_with_controls <- permits_with_alderman %>%
-  left_join(ward_controls_extended, by = c("ward", "application_year" = "year"))
+  left_join(ward_controls_extended, by = c("ward", "application_year" = "year"), relationship = "many-to-one")
 
 permit_points <- permits %>%
   select(id) %>%
@@ -207,14 +225,22 @@ place_controls <- tibble(
   dist_lake_km = dist_lake_km,
   n_rail_stations_800m = n_rail_stations_800m
 )
+if (anyDuplicated(place_controls$id) > 0) {
+  stop("Place controls must be unique by permit id.", call. = FALSE)
+}
 
 permits_prepared_raw <- permits_with_controls %>%
-  left_join(place_controls, by = "id") %>%
+  left_join(place_controls, by = "id", relationship = "many-to-one") %>%
   mutate(
     month = application_start_date_ym,
     year = application_year,
     log_processing_time = if_else(processing_time > 0, log(processing_time), NA_real_),
-    log_reported_cost = if_else(reported_cost > 0, log(reported_cost), NA_real_),
+    log_reported_cost = {
+      out <- rep(NA_real_, length(reported_cost))
+      positive_cost <- !is.na(reported_cost) & reported_cost > 0
+      out[positive_cost] <- log(reported_cost[positive_cost])
+      out
+    },
     permit_type_clean = if_else(is.na(permit_type), "unknown", as.character(permit_type)),
     review_type_clean = if_else(is.na(review_type), "unknown", as.character(review_type)),
     is_porch = str_detect(str_to_upper(permit_type), "PORCH"),
@@ -287,8 +313,8 @@ ward_labels <- alderman_panel %>%
 
 map_data <- ward_panel %>%
   filter(year == map_year) %>%
-  left_join(ward_labels, by = "ward") %>%
-  left_join(ward_year_wide, by = "ward")
+  left_join(ward_labels, by = "ward", relationship = "many-to-one") %>%
+  left_join(ward_year_wide, by = "ward", relationship = "one-to-one")
 
 st_drop_geometry(map_data) %>%
   write_csv(output_map_csv)

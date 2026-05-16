@@ -1,8 +1,8 @@
 SHELL := bash
 
-VARIANTS := baseline raw_rank_days days_unlogged reduced_ses drop_bach drop_bach_pop
-RESIDUALIZED_VARIANTS := baseline days_unlogged reduced_ses drop_bach drop_bach_pop
-BASELINE_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH
+VARIANTS := baseline raw_rank_days days_unlogged reduced_ses drop_bach_pop
+RESIDUALIZED_VARIANTS := baseline days_unlogged reduced_ses drop_bach_pop
+BASELINE_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
 DENSITY_ROBUSTNESS_BW_M ?= 100
 DENSITY_ROBUSTNESS_SAMPLE := all
 DENSITY_ROBUSTNESS_CLUSTER := ward_pair

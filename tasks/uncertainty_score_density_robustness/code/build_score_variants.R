@@ -5,7 +5,7 @@ source("../../_lib/alderman_uncertainty_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_score_density_robustness/code")
 # permits_input <- "../input/permits_for_uncertainty_index.csv"
-# baseline_score_input <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
+# baseline_score_input <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
 # variant_id <- "days_unlogged"
 # score_output <- "../output/alderman_uncertainty_index_days_unlogged.csv"
 # metadata_output <- "../output/score_variant_metadata_days_unlogged.csv"
@@ -37,6 +37,12 @@ if (length(args) >= 6) {
 baseline_config <- default_uncertainty_config()
 permits <- load_uncertainty_permits(permits_input)
 
+max_permit_year <- str_match(basename(baseline_score_input), "through([0-9]{4})")[, 2] %>%
+  as.integer()
+if (is.finite(max_permit_year)) {
+  permits <- permits %>% filter(year <= max_permit_year)
+}
+
 result <- switch(
   variant_id,
   baseline = {
@@ -46,10 +52,25 @@ result <- switch(
       config = baseline_config,
       variant_id = variant_id,
       stage1_outcome = "log_processing_time",
-      drop_covariates = character(),
+      drop_covariates = c("share_bach_plus"),
       construction_rule = variant_construction_rule(variant_id)
     )
-    rerun$alderman_index <- baseline_score
+    baseline_check <- rerun$alderman_index %>%
+      transmute(alderman, computed_score = uncertainty_index) %>%
+      inner_join(
+        baseline_score %>%
+          transmute(alderman, baseline_score = uncertainty_index),
+        by = "alderman",
+        relationship = "one-to-one"
+      )
+
+    if (nrow(baseline_check) != nrow(baseline_score) || nrow(baseline_check) != nrow(rerun$alderman_index)) {
+      stop("Rerun baseline score does not match the aldermen in the baseline score input.", call. = FALSE)
+    }
+    if (max(abs(baseline_check$computed_score - baseline_check$baseline_score), na.rm = TRUE) > 1e-8) {
+      stop("Rerun baseline score does not match the baseline score input.", call. = FALSE)
+    }
+
     rerun
   },
   raw_rank_days = build_raw_rank_uncertainty_index(
