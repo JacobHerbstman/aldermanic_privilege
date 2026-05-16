@@ -54,6 +54,11 @@ if (!control_spec %in% c("none", "pre_high_level")) {
 }
 
 sample_restriction_info <- get_permit_sample_restriction_info(sample_restriction)
+min_segment_length_raw <- Sys.getenv("MIN_SEGMENT_LENGTH_FT", "")
+min_segment_length_ft <- if (nzchar(min_segment_length_raw)) suppressWarnings(as.numeric(min_segment_length_raw)) else NA_real_
+if (!is.na(min_segment_length_ft) && (!is.finite(min_segment_length_ft) || min_segment_length_ft < 0)) {
+  stop("MIN_SEGMENT_LENGTH_FT must be a nonnegative number when supplied.", call. = FALSE)
+}
 
 outcome_catalog <- tibble(
   outcome_family = c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase"),
@@ -87,6 +92,27 @@ data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
     weight = if (weighting == "triangular") pmax(0, 1 - dist_m / bandwidth) else 1,
     post_treat = as.integer(relative_year >= 0) * strictness_change
   )
+
+segment_length_input_n <- NA_integer_
+segment_length_drop_n <- NA_integer_
+segment_length_missing_n <- NA_integer_
+segment_length_short_n <- NA_integer_
+if (is.finite(min_segment_length_ft)) {
+  missing_segment_cols <- setdiff(c("segment_id_cohort", "segment_length_ft_cohort"), names(data))
+  if (length(missing_segment_cols) > 0) {
+    stop(sprintf(
+      "MIN_SEGMENT_LENGTH_FT requires missing panel columns: %s",
+      paste(missing_segment_cols, collapse = ", ")
+    ), call. = FALSE)
+  }
+  segment_length_input_n <- nrow(data)
+  segment_length_missing_n <- sum(is.na(data$segment_length_ft_cohort))
+  segment_length_short_n <- sum(!is.na(data$segment_length_ft_cohort) & data$segment_length_ft_cohort < min_segment_length_ft)
+  data <- data %>%
+    filter(!is.na(segment_id_cohort), segment_id_cohort != "") %>%
+    filter(!is.na(segment_length_ft_cohort), segment_length_ft_cohort >= min_segment_length_ft)
+  segment_length_drop_n <- segment_length_input_n - nrow(data)
+}
 
 sample_restriction_result <- apply_permit_bg_sample_restriction(
   df = data,
@@ -184,12 +210,14 @@ table_lines <- c(
 writeLines(table_lines, output_tex)
 
 message(sprintf(
-  "Permit DID | sample=%s | beta = %.4f%s | effect = %.2f%% | se = %.4f | p = %.3f | N = %s",
+  "Permit DID | sample=%s | min_segment_ft=%s | beta = %.4f%s | effect = %.2f%% | se = %.4f | p = %.3f | N = %s | segment_rows_dropped = %s",
   sample_restriction_info$label,
+  if (is.finite(min_segment_length_ft)) sprintf("%.1f", min_segment_length_ft) else "none",
   estimate,
   stars,
   effect_pct,
   std_error,
   p_value,
-  format(nobs(model), big.mark = ",")
+  format(nobs(model), big.mark = ","),
+  if (is.finite(min_segment_length_ft)) format(segment_length_drop_n, big.mark = ",") else "0"
 ))

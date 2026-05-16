@@ -1,6 +1,6 @@
 SHELL := bash
 
-TARGET_SEGMENT_LENGTH_M ?= 400
+TARGET_SEGMENT_LENGTH_FT ?= 1320
 
 all: \
 	../output/confounded_pair_era_flags.csv \
@@ -12,7 +12,7 @@ all: \
 	../output/confound_pruning_summary.md
 
 ../output/confounded_pair_era_flags.csv: build_confound_flags.R ../input/segment_classification.csv | ../output
-	TARGET_SEGMENT_LENGTH_M=$(TARGET_SEGMENT_LENGTH_M) Rscript build_confound_flags.R
+	TARGET_SEGMENT_LENGTH_FT=$(TARGET_SEGMENT_LENGTH_FT) Rscript build_confound_flags.R
 	test -f ../output/confounded_segment_flags.csv
 	test -f ../output/keep_pair_era.csv
 	test -f ../output/drop_pair_era.csv

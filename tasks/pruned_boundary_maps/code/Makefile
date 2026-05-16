@@ -1,6 +1,6 @@
 SHELL := bash
 
-SEGMENT_LENGTH_M ?= 400
+SEGMENT_LENGTH_FT ?= 1320
 NEAR_FEATURE_DISTANCE_M ?= 75
 
 OUTPUTS := \
@@ -18,7 +18,7 @@ OUTPUTS := \
 	../output/pruned_boundaries_zoom_downtown_pairs.csv \
 	../output/pruned_boundaries_zoom_lakeview_feature_context.csv \
 	../output/pruned_boundaries_zoom_downtown_feature_context.csv \
-	../output/segment_feature_distance_audit_$(SEGMENT_LENGTH_M)m.csv \
+	../output/segment_feature_distance_audit_$(SEGMENT_LENGTH_FT)ft.csv \
 	../output/pruned_boundaries_uncertainty_priority.csv \
 	../output/pruned_boundaries_audit_pair_era.csv \
 	../output/pruned_boundaries_audit_borderline_drop.csv \
@@ -30,7 +30,7 @@ PRIMARY_OUTPUT := ../output/pruned_boundaries_all_segments_by_era.pdf
 SECONDARY_OUTPUTS := $(filter-out $(PRIMARY_OUTPUT),$(OUTPUTS))
 
 INPUTS := \
-	../input/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg \
+	../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg \
 	../input/ward_panel.gpkg \
 	../input/confounded_pair_era_flags.csv \
 	../input/confounded_segment_flags.csv \
@@ -49,15 +49,12 @@ INPUTS := \
 all: $(OUTPUTS)
 
 $(PRIMARY_OUTPUT): plot_pruned_boundary_maps.R $(INPUTS) | ../output
-	SEGMENT_LENGTH_M=$(SEGMENT_LENGTH_M) NEAR_FEATURE_DISTANCE_M=$(NEAR_FEATURE_DISTANCE_M) Rscript plot_pruned_boundary_maps.R
+	SEGMENT_LENGTH_FT=$(SEGMENT_LENGTH_FT) NEAR_FEATURE_DISTANCE_M=$(NEAR_FEATURE_DISTANCE_M) Rscript plot_pruned_boundary_maps.R
 
-$(SECONDARY_OUTPUTS): | $(PRIMARY_OUTPUT) ../output
-	@if [ ! -f "$@" ]; then \
-			SEGMENT_LENGTH_M=$(SEGMENT_LENGTH_M) NEAR_FEATURE_DISTANCE_M=$(NEAR_FEATURE_DISTANCE_M) Rscript plot_pruned_boundary_maps.R; \
-	fi
+$(SECONDARY_OUTPUTS): $(PRIMARY_OUTPUT) | ../output
 	@test -s "$@"
 
-../input/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg: ../../border_segment_creation/output/boundary_segments_$(SEGMENT_LENGTH_M)m.gpkg | ../input
+../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg: ../../border_segment_creation/output/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input

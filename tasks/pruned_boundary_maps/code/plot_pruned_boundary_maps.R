@@ -4,16 +4,16 @@ library(data.table)
 library(sf)
 library(ggplot2)
 
-segment_length_m <- as.numeric(Sys.getenv("SEGMENT_LENGTH_M", "400"))
-if (!is.finite(segment_length_m) || segment_length_m <= 0) {
-  stop("SEGMENT_LENGTH_M must be positive.", call. = FALSE)
+segment_length_ft <- as.numeric(Sys.getenv("SEGMENT_LENGTH_FT", "1320"))
+if (!is.finite(segment_length_ft) || segment_length_ft <= 0) {
+  stop("SEGMENT_LENGTH_FT must be positive.", call. = FALSE)
 }
 near_feature_distance_m <- as.numeric(Sys.getenv("NEAR_FEATURE_DISTANCE_M", "75"))
 if (!is.finite(near_feature_distance_m) || near_feature_distance_m <= 0) {
   stop("NEAR_FEATURE_DISTANCE_M must be positive.", call. = FALSE)
 }
 
-segments_gpkg <- sprintf("../input/boundary_segments_%dm.gpkg", as.integer(round(segment_length_m)))
+segments_gpkg <- sprintf("../input/boundary_segments_%dft.gpkg", as.integer(round(segment_length_ft)))
 ward_panel_gpkg <- "../input/ward_panel.gpkg"
 pair_flags_csv <- "../input/confounded_pair_era_flags.csv"
 segment_flags_csv <- "../input/confounded_segment_flags.csv"
@@ -223,7 +223,7 @@ audit_pair_csv <- file.path(out_dir, "pruned_boundaries_audit_pair_era.csv")
 audit_borderline_csv <- file.path(out_dir, "pruned_boundaries_audit_borderline_drop.csv")
 audit_unchecked_csv <- file.path(out_dir, "pruned_boundaries_audit_unchecked_pair_era.csv")
 audit_extra_flags_csv <- file.path(out_dir, "pruned_boundaries_audit_extra_flag_pair_era.csv")
-segment_feature_audit_csv <- file.path(out_dir, sprintf("segment_feature_distance_audit_%dm.csv", as.integer(round(segment_length_m))))
+segment_feature_audit_csv <- file.path(out_dir, sprintf("segment_feature_distance_audit_%dft.csv", as.integer(round(segment_length_ft))))
 zoom_lakeview_feature_context_csv <- file.path(out_dir, "pruned_boundaries_zoom_lakeview_feature_context.csv")
 zoom_downtown_feature_context_csv <- file.path(out_dir, "pruned_boundaries_zoom_downtown_feature_context.csv")
 uncertainty_priority_csv <- file.path(out_dir, "pruned_boundaries_uncertainty_priority.csv")
@@ -691,7 +691,7 @@ md_lines <- c(
   "- `pruned_boundaries_zoom_downtown_pairs.csv`",
   "- `pruned_boundaries_zoom_lakeview_feature_context.csv`",
   "- `pruned_boundaries_zoom_downtown_feature_context.csv`",
-  sprintf("- `segment_feature_distance_audit_%dm.csv`", as.integer(round(segment_length_m)))
+  sprintf("- `segment_feature_distance_audit_%dft.csv`", as.integer(round(segment_length_ft)))
 )
 writeLines(md_lines, audit_md)
 

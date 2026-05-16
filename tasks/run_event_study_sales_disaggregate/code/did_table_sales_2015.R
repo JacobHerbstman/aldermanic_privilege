@@ -36,6 +36,12 @@ if (!table_mode %in% c("baseline", "amenity")) {
   stop("table_mode must be one of: baseline, amenity", call. = FALSE)
 }
 
+min_segment_length_raw <- Sys.getenv("MIN_SEGMENT_LENGTH_FT", "")
+min_segment_length_ft <- if (nzchar(min_segment_length_raw)) suppressWarnings(as.numeric(min_segment_length_raw)) else NA_real_
+if (!is.na(min_segment_length_ft) && (!is.finite(min_segment_length_ft) || min_segment_length_ft < 0)) {
+  stop("MIN_SEGMENT_LENGTH_FT must be a nonnegative number when supplied.", call. = FALSE)
+}
+
 hedonic_vars <- c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")
 amenity_vars <- c("nearest_school_dist_m", "nearest_park_dist_m", "nearest_major_road_dist_m", "lake_michigan_dist_m")
 
@@ -53,6 +59,27 @@ data_base <- read_parquet("../input/sales_transaction_panel_2015.parquet") %>%
     weight = if (weighting == "triangular") pmax(0, 1 - dist_m / bandwidth) else 1,
     post_treat = as.integer(relative_year >= 0) * strictness_change
   )
+
+segment_length_input_n <- NA_integer_
+segment_length_drop_n <- NA_integer_
+segment_length_missing_n <- NA_integer_
+segment_length_short_n <- NA_integer_
+if (is.finite(min_segment_length_ft)) {
+  missing_segment_cols <- setdiff(c("segment_id_cohort", "segment_length_ft_cohort"), names(data_base))
+  if (length(missing_segment_cols) > 0) {
+    stop(sprintf(
+      "MIN_SEGMENT_LENGTH_FT requires missing panel columns: %s",
+      paste(missing_segment_cols, collapse = ", ")
+    ), call. = FALSE)
+  }
+  segment_length_input_n <- nrow(data_base)
+  segment_length_missing_n <- sum(is.na(data_base$segment_length_ft_cohort))
+  segment_length_short_n <- sum(!is.na(data_base$segment_length_ft_cohort) & data_base$segment_length_ft_cohort < min_segment_length_ft)
+  data_base <- data_base %>%
+    filter(!is.na(segment_id_cohort), segment_id_cohort != "") %>%
+    filter(!is.na(segment_length_ft_cohort), segment_length_ft_cohort >= min_segment_length_ft)
+  segment_length_drop_n <- segment_length_input_n - nrow(data_base)
+}
 
 data <- data_base %>%
   filter(if_all(all_of(hedonic_vars), ~ is.finite(.x)))
@@ -191,7 +218,8 @@ writeLines(table_tex, output_tex)
 
 if (table_mode == "amenity") {
   message(sprintf(
-    "Sales DID amenity | no controls = %.4f (%.2f%%) | with controls = %.4f (%.2f%%) | with amenities = %.4f (%.2f%%) | N hedonic = %s | N amenity = %s",
+    "Sales DID amenity | min_segment_ft=%s | no controls = %.4f (%.2f%%) | with controls = %.4f (%.2f%%) | with amenities = %.4f (%.2f%%) | N hedonic = %s | N amenity = %s | segment_rows_dropped = %s",
+    if (is.finite(min_segment_length_ft)) sprintf("%.1f", min_segment_length_ft) else "none",
     coef(m_no_ctrl)[["post_treat"]],
     effect_no_ctrl,
     coef(m_ctrl)[["post_treat"]],
@@ -199,15 +227,18 @@ if (table_mode == "amenity") {
     coef(m_ctrl_amenity)[["post_treat"]],
     effect_ctrl_amenity,
     format(nobs(m_ctrl), big.mark = ","),
-    format(nobs(m_ctrl_amenity), big.mark = ",")
+    format(nobs(m_ctrl_amenity), big.mark = ","),
+    if (is.finite(min_segment_length_ft)) format(segment_length_drop_n, big.mark = ",") else "0"
   ))
 } else {
   message(sprintf(
-    "Sales DID baseline | no controls = %.4f (%.2f%%) | with controls = %.4f (%.2f%%) | N = %s",
+    "Sales DID baseline | min_segment_ft=%s | no controls = %.4f (%.2f%%) | with controls = %.4f (%.2f%%) | N = %s | segment_rows_dropped = %s",
+    if (is.finite(min_segment_length_ft)) sprintf("%.1f", min_segment_length_ft) else "none",
     coef(m_no_ctrl)[["post_treat"]],
     effect_no_ctrl,
     coef(m_ctrl)[["post_treat"]],
     effect_ctrl,
-    format(nobs(m_ctrl), big.mark = ",")
+    format(nobs(m_ctrl), big.mark = ","),
+    if (is.finite(min_segment_length_ft)) format(segment_length_drop_n, big.mark = ",") else "0"
   ))
 }

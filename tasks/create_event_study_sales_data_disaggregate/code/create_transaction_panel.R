@@ -9,7 +9,7 @@ source("../../_lib/amenity_distance_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_sales_data_disaggregate/code")
-# segment_buffer_m <- 250
+# segment_buffer_m <- 304.8
 # panel_max_distance_m <- 800
 
 cli_args <- commandArgs(trailingOnly = TRUE)
@@ -35,12 +35,16 @@ assign_cohort_segments_dt <- function(dt, segment_layers, era_label, cohort_labe
       segment_id_cohort = NA_character_,
       segment_side = NA_character_,
       cohort_segment = NA_character_,
-      cohort_segment_side = NA_character_
+      cohort_segment_side = NA_character_,
+      segment_length_ft_cohort = NA_real_,
+      segment_lt500ft_cohort = NA,
+      segment_lt1000ft_cohort = NA
     )]
     return(dt)
   }
 
   dt <- copy(dt)
+  segment_meta <- segment_metadata_from_layers(segment_layers)
   pts <- st_as_sf(
     data.frame(longitude = dt$longitude, latitude = dt$latitude),
     coords = c("longitude", "latitude"),
@@ -55,8 +59,15 @@ assign_cohort_segments_dt <- function(dt, segment_layers, era_label, cohort_labe
     max_distance = units::set_units(segment_buffer_m, "m"),
     chunk_n = chunk_n
   )
+  segment_match <- match(
+    paste(era_label, seg_id, sep = "\r"),
+    paste(segment_meta$era, segment_meta$segment_id, sep = "\r")
+  )
 
   dt[, segment_id_cohort := seg_id]
+  dt[, segment_length_ft_cohort := segment_meta$segment_length_ft[segment_match]]
+  dt[, segment_lt500ft_cohort := segment_meta$segment_lt500ft[segment_match]]
+  dt[, segment_lt1000ft_cohort := segment_meta$segment_lt1000ft[segment_match]]
   dt[, segment_side := fifelse(!is.na(segment_id_cohort) & !is.na(ward_origin), paste(segment_id_cohort, ward_origin, sep = "_"), NA_character_)]
   dt[, cohort_segment := fifelse(!is.na(segment_id_cohort), paste(cohort_label, segment_id_cohort, sep = "_"), NA_character_)]
   dt[, cohort_segment_side := fifelse(!is.na(segment_side), paste(cohort_label, segment_side, sep = "_"), NA_character_)]
@@ -195,7 +206,7 @@ treatment_panel <- fread("../input/block_treatment_panel.csv")
 treatment_panel[, block_id := as.character(block_id)]
 
 message(sprintf("Loading segment lines for %.0fm nearest-segment assignment...", segment_buffer_m))
-segment_layers <- load_segment_line_layers("../input/boundary_segments_400m.gpkg")
+segment_layers <- load_segment_line_layers("../input/boundary_segments_1320ft.gpkg")
 
 # =============================================================================
 # 2. TEMPORAL MERGE: SALES TO HEDONICS (ROLLING JOIN)
@@ -728,6 +739,7 @@ final_cols <- c(
   "num_full_baths", "baths_total", "garage_size", "hedonic_tax_year", "years_gap",
   "ward", "ward_pair_id", "ward_origin", "ward_pair_side", "cohort_ward_pair_side",
   "segment_id_cohort", "segment_side", "cohort_segment", "cohort_segment_side",
+  "segment_length_ft_cohort", "segment_lt500ft_cohort", "segment_lt1000ft_cohort",
   "signed_dist_m", "dist_m",
   "treat", "strictness_change"
 )

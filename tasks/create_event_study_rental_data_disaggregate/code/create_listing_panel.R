@@ -249,7 +249,7 @@ treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types
   mutate(block_id = as.character(block_id))
 
 message(sprintf("Loading segment lines for %.0fm nearest-segment assignment...", segment_buffer_m))
-segment_layers <- load_segment_line_layers("../input/boundary_segments_400m.gpkg")
+segment_layers <- load_segment_line_layers("../input/boundary_segments_1320ft.gpkg")
 
 # =============================================================================
 # 2. ASSIGN RENTALS TO CENSUS BLOCKS

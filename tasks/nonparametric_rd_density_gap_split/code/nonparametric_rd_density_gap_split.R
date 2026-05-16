@@ -4,13 +4,13 @@ source("../../_lib/border_pair_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_gap_split/code")
 # yvar <- "density_far"
-# bandwidth_m <- 100
+# bandwidth_m <- 152.4
 # sample_filter <- "all"
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
 # gap_split <- "above_median"
 # input_csv <- "../input/parcels_with_ward_distances.csv"
-# output_pdf <- "../output/nonparametric_rd_density_gap_split_log_density_far_100m_all_above_median.pdf"
+# output_pdf <- "../output/nonparametric_rd_density_gap_split_log_density_far_500ft_all_above_median.pdf"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {

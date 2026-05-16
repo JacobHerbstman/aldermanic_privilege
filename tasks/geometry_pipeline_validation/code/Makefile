@@ -2,7 +2,7 @@ SHELL := bash
 
 all: ../output/geometry_validation_report.md
 
-../output/geometry_validation_report.md: validate_geometry_pipeline.R ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_400m.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids_coverage.csv ../input/parcels_with_ward_distances.csv ../input/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex ../output/validation_density_far_meta.csv ../output/validation_density_dupac_meta.csv ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/segment_assignment_coverage_summary.csv ../input/fe_table_rental_bw500_pre_2023.csv ../input/fe_table_sales_bw500_year_quarter.csv | ../output
+../output/geometry_validation_report.md: validate_geometry_pipeline.R ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_1320ft.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids_coverage.csv ../input/parcels_with_ward_distances.csv ../input/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex ../output/validation_density_far_meta.csv ../output/validation_density_dupac_meta.csv ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/segment_assignment_coverage_summary.csv ../input/fe_table_rental_bw500_pre_2023.csv ../input/fe_table_sales_bw500_year_quarter.csv | ../output
 	$(R) validate_geometry_pipeline.R
 
 ../output/canonical_pair_universe.csv \
@@ -16,7 +16,7 @@ all: ../output/geometry_validation_report.md
 ../input/ward_pair_boundaries.gpkg: ../../border_segment_creation/output/ward_pair_boundaries.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/boundary_segments_400m.gpkg: ../../border_segment_creation/output/boundary_segments_400m.gpkg | ../input
+../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/parcels_pre_scores.csv: ../../calculate_ward_boundary_distances/output/parcels_pre_scores.csv | ../input
@@ -58,7 +58,7 @@ all: ../output/geometry_validation_report.md
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 
-link-inputs: ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_400m.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids_coverage.csv ../input/parcels_with_ward_distances.csv ../input/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex ../input/confounded_pair_era_flags.csv ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/segment_assignment_coverage_summary.csv ../input/fe_table_rental_bw500_pre_2023.csv ../input/fe_table_sales_bw500_year_quarter.csv
+link-inputs: ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_1320ft.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids_coverage.csv ../input/parcels_with_ward_distances.csv ../input/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex ../input/confounded_pair_era_flags.csv ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/segment_assignment_coverage_summary.csv ../input/fe_table_rental_bw500_pre_2023.csv ../input/fe_table_sales_bw500_year_quarter.csv
 
 include ../../shell_functions.make
 include ../../generic.make

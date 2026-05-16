@@ -143,7 +143,7 @@ format_before_current <- function(before, current) {
 }
 
 boundary_layers <- st_layers("../input/ward_pair_boundaries.gpkg")$name
-segment_layers <- st_layers("../input/boundary_segments_400m.gpkg")$name
+segment_layers <- st_layers("../input/boundary_segments_1320ft.gpkg")$name
 
 canonical_pair_universe <- bind_rows(lapply(boundary_layers, function(layer_name) {
   d <- st_read("../input/ward_pair_boundaries.gpkg", layer = layer_name, quiet = TRUE)
@@ -158,7 +158,7 @@ canonical_pair_universe <- bind_rows(lapply(boundary_layers, function(layer_name
   arrange(era, ward_pair_id)
 
 segment_pair_universe <- bind_rows(lapply(segment_layers, function(layer_name) {
-  d <- st_read("../input/boundary_segments_400m.gpkg", layer = layer_name, quiet = TRUE)
+  d <- st_read("../input/boundary_segments_1320ft.gpkg", layer = layer_name, quiet = TRUE)
   tibble(
     source = "segments",
     era = sub("_bw.*$", "", layer_name),

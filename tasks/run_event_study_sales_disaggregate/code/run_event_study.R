@@ -50,6 +50,20 @@ POST_WINDOW <- post_window
 GEO_FE_LEVEL <- geo_fe_level
 CLUSTER_LEVEL <- cluster_level
 WRITE_SIDECARS <- tolower(Sys.getenv("WRITE_SIDECARS", "1")) %in% c("1", "true", "yes")
+min_segment_length_raw <- Sys.getenv("MIN_SEGMENT_LENGTH_FT", "")
+MIN_SEGMENT_LENGTH_FT <- if (nzchar(min_segment_length_raw)) suppressWarnings(as.numeric(min_segment_length_raw)) else NA_real_
+if (!is.na(MIN_SEGMENT_LENGTH_FT) && (!is.finite(MIN_SEGMENT_LENGTH_FT) || MIN_SEGMENT_LENGTH_FT < 0)) {
+  stop("MIN_SEGMENT_LENGTH_FT must be a nonnegative number when supplied.", call. = FALSE)
+}
+min_segment_suffix <- ""
+if (is.finite(MIN_SEGMENT_LENGTH_FT)) {
+  min_segment_label <- if (abs(MIN_SEGMENT_LENGTH_FT - round(MIN_SEGMENT_LENGTH_FT)) < sqrt(.Machine$double.eps)) {
+    as.character(as.integer(round(MIN_SEGMENT_LENGTH_FT)))
+  } else {
+    sub("\\.?0+$", "", format(MIN_SEGMENT_LENGTH_FT, trim = TRUE, scientific = FALSE))
+  }
+  min_segment_suffix <- paste0("_minsegment", gsub("\\.", "p", min_segment_label), "ft")
+}
 
 valid_panel_modes <- c(
   "stacked_announcement",
@@ -140,6 +154,7 @@ if (CLUSTER_LEVEL == "block") {
 } else if (CLUSTER_LEVEL == "segment") {
   suffix <- paste0(suffix, "_clust_segment")
 }
+suffix <- paste0(suffix, min_segment_suffix)
 
 message("\n=== Sales Event Study ===")
 message(sprintf("Panel mode: %s", PANEL_MODE))
@@ -153,6 +168,10 @@ message(sprintf("Bandwidth: %s", BANDWIDTH_LABEL))
 message(sprintf("Post window: %s", POST_WINDOW))
 message(sprintf("Geo FE level: %s", GEO_FE_LEVEL))
 message(sprintf("Cluster level: %s", CLUSTER_LEVEL))
+message(sprintf(
+  "Minimum segment length: %s",
+  if (is.finite(MIN_SEGMENT_LENGTH_FT)) sprintf("%.1f ft", MIN_SEGMENT_LENGTH_FT) else "none"
+))
 message(sprintf("Write sidecars: %s", WRITE_SIDECARS))
 
 make_support_table <- function(df, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period) {
@@ -231,6 +250,19 @@ if (needs_segment) {
   data <- data %>% filter(!is.na(segment_id_cohort), segment_id_cohort != "")
 }
 after_segment_filter_n <- nrow(data)
+if (is.finite(MIN_SEGMENT_LENGTH_FT)) {
+  missing_segment_cols <- setdiff(c("segment_id_cohort", "segment_length_ft_cohort"), names(data))
+  if (length(missing_segment_cols) > 0) {
+    stop(sprintf(
+      "MIN_SEGMENT_LENGTH_FT requires missing panel columns: %s",
+      paste(missing_segment_cols, collapse = ", ")
+    ), call. = FALSE)
+  }
+}
+segment_length_input_n <- NA_integer_
+segment_length_drop_n <- NA_integer_
+segment_length_missing_n <- NA_integer_
+segment_length_short_n <- NA_integer_
 
 data <- data %>%
   filter(dist_m <= BANDWIDTH) %>%
@@ -242,6 +274,24 @@ data <- data %>%
     treatment_lenient_binary = as.integer(strictness_change < 0)
   )
 after_bandwidth_n <- nrow(data)
+
+if (is.finite(MIN_SEGMENT_LENGTH_FT)) {
+  segment_length_input_n <- nrow(data)
+  segment_length_missing_n <- sum(is.na(data$segment_length_ft_cohort))
+  segment_length_short_n <- sum(!is.na(data$segment_length_ft_cohort) & data$segment_length_ft_cohort < MIN_SEGMENT_LENGTH_FT)
+  data <- data %>%
+    filter(!is.na(segment_id_cohort), segment_id_cohort != "") %>%
+    filter(!is.na(segment_length_ft_cohort), segment_length_ft_cohort >= MIN_SEGMENT_LENGTH_FT)
+  segment_length_drop_n <- segment_length_input_n - nrow(data)
+  message(sprintf(
+    "Segment-length filter kept %s of %s rows; dropped %s missing-segment rows and %s rows below %.1f ft.",
+    format(nrow(data), big.mark = ","),
+    format(segment_length_input_n, big.mark = ","),
+    format(segment_length_missing_n, big.mark = ","),
+    format(segment_length_short_n, big.mark = ","),
+    MIN_SEGMENT_LENGTH_FT
+  ))
+}
 
 complete_hedonic <- complete.cases(data[, c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")])
 complete_hedonic_n <- sum(complete_hedonic)
@@ -386,6 +436,7 @@ metadata <- tibble(
   post_window = POST_WINDOW,
   geo_fe_level = GEO_FE_LEVEL,
   cluster_level = CLUSTER_LEVEL,
+  min_segment_length_ft = if (is.finite(MIN_SEGMENT_LENGTH_FT)) MIN_SEGMENT_LENGTH_FT else NA_real_,
   raw_n = raw_n,
   raw_blocks = raw_blocks,
   raw_pins = raw_pins,
@@ -393,6 +444,10 @@ metadata <- tibble(
   after_bandwidth_n = after_bandwidth_n,
   complete_hedonic_n = complete_hedonic_n,
   complete_amenity_n = complete_amenity_n,
+  segment_length_input_n = segment_length_input_n,
+  segment_length_drop_n = segment_length_drop_n,
+  segment_length_missing_n = segment_length_missing_n,
+  segment_length_short_n = segment_length_short_n,
   analysis_n = analysis_n,
   treated_n = sum(data$treat == 1, na.rm = TRUE),
   control_n = sum(data$treat == 0, na.rm = TRUE),

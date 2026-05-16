@@ -12,19 +12,19 @@ library(sf)
 st_agr("constant")
 
 eras <- c("1998_2002", "2003_2014", "2015_2023", "post_2023")
-segment_lengths_m <- scan(text = Sys.getenv("SEGMENT_LENGTHS_M", "400 800"), quiet = TRUE)
-if (length(segment_lengths_m) != 2 || any(!is.finite(segment_lengths_m)) || any(segment_lengths_m <= 0)) {
-  stop("SEGMENT_LENGTHS_M must contain exactly two positive numeric segment lengths in meters.", call. = FALSE)
+segment_lengths_ft <- scan(text = Sys.getenv("SEGMENT_LENGTHS_FT", "1320 2640"), quiet = TRUE)
+if (length(segment_lengths_ft) != 2 || any(!is.finite(segment_lengths_ft)) || any(segment_lengths_ft <= 0)) {
+  stop("SEGMENT_LENGTHS_FT must contain exactly two positive numeric segment lengths in feet.", call. = FALSE)
 }
-segment_lengths_m <- sort(unique(as.numeric(segment_lengths_m)))
-if (length(segment_lengths_m) != 2) {
-  stop("SEGMENT_LENGTHS_M must contain two distinct segment lengths.", call. = FALSE)
+segment_lengths_ft <- sort(unique(as.numeric(segment_lengths_ft)))
+if (length(segment_lengths_ft) != 2) {
+  stop("SEGMENT_LENGTHS_FT must contain two distinct segment lengths.", call. = FALSE)
 }
-segment_lengths_ft <- segment_lengths_m / 0.3048
-primary_segment_length_m <- segment_lengths_m[1]
-secondary_segment_length_m <- segment_lengths_m[2]
+segment_lengths_m <- segment_lengths_ft * 0.3048
 primary_segment_length_ft <- segment_lengths_ft[1]
 secondary_segment_length_ft <- segment_lengths_ft[2]
+primary_segment_length_m <- segment_lengths_m[1]
+secondary_segment_length_m <- segment_lengths_m[2]
 
 segment_layer_bws_m <- scan(text = Sys.getenv("SEGMENT_LAYER_BWS_M", "100 250 400"), quiet = TRUE)
 if (length(segment_layer_bws_m) == 0 || any(!is.finite(segment_layer_bws_m)) || any(segment_layer_bws_m <= 0)) {
@@ -33,8 +33,8 @@ if (length(segment_layer_bws_m) == 0 || any(!is.finite(segment_layer_bws_m)) || 
 bws_m <- sort(unique(as.integer(round(segment_layer_bws_m))))
 bws_ft <- bws_m / 0.3048
 
-out_primary <- sprintf("../output/boundary_segments_%dm.gpkg", as.integer(round(primary_segment_length_m)))
-out_secondary <- sprintf("../output/boundary_segments_%dm.gpkg", as.integer(round(secondary_segment_length_m)))
+out_primary <- sprintf("../output/boundary_segments_%dft.gpkg", as.integer(round(primary_segment_length_ft)))
+out_secondary <- sprintf("../output/boundary_segments_%dft.gpkg", as.integer(round(secondary_segment_length_ft)))
 out_class <- "../output/segment_classification.csv"
 out_boundaries <- "../output/ward_pair_boundaries.gpkg"
 out_summary <- "../output/ward_pair_boundary_summary.csv"
@@ -47,8 +47,8 @@ osm_roads_path <- "../input/gis_osm_roads_free_1.shp"
 osm_landuse_path <- "../input/gis_osm_landuse_a_free_1.shp"
 osm_water_path <- "../input/gis_osm_water_a_free_1.shp"
 osm_waterways_path <- "../input/gis_osm_waterways_free_1.shp"
-snapshot_400m_path <- "../input/canonical_boundary_segments_400m.gpkg"
-snapshot_800m_path <- "../input/canonical_boundary_segments_800m.gpkg"
+snapshot_primary_path <- "../input/canonical_boundary_segments_1320ft.gpkg"
+snapshot_secondary_path <- "../input/canonical_boundary_segments_2640ft.gpkg"
 snapshot_class_path <- "../input/canonical_segment_classification.csv"
 snapshot_boundaries_path <- "../input/canonical_ward_pair_boundaries.gpkg"
 
@@ -93,6 +93,17 @@ required_segment_cols <- c(
   "osm_overlap_expressway_m", "osm_overlap_expressway_ft",
   "expressway_overlap_m", "expressway_overlap_ft",
   "feature_buffer_m", "feature_buffer_ft"
+)
+
+segment_validity_cols <- c(
+  "raw_segment_id", "analysis_segment_id", "valid_segment", "invalid_reason", "merge_reason",
+  "component_type", "short_segment", "terminal_segment", "segment_lt500ft", "segment_lt1000ft",
+  "nearest_same_pair_segment_id", "nearest_same_pair_segment_number", "nearest_same_pair_distance_ft",
+  "n_touching_same_pair_1ft", "n_near_same_pair_10ft", "two_sided_all_offsets",
+  "left_offset_ward_5ft", "right_offset_ward_5ft", "two_sided_pass_5ft",
+  "left_offset_ward_20ft", "right_offset_ward_20ft", "two_sided_pass_20ft",
+  "left_offset_ward_50ft", "right_offset_ward_50ft", "two_sided_pass_50ft",
+  "left_offset_ward_100ft", "right_offset_ward_100ft", "two_sided_pass_100ft"
 )
 
 ensure_segment_cols <- function(x, target_len_ft, target_len_m = target_len_ft * 0.3048) {
@@ -221,13 +232,16 @@ read_boundary_layers <- function(path) {
   out
 }
 
-validate_segment_features <- function(class_dt, target_segment_length_m = primary_segment_length_m) {
+validate_segment_features <- function(class_dt, target_segment_length_ft = primary_segment_length_ft) {
   setDT(class_dt)
   for (nm in c("target_length", "waterway_overlap", "major_overlap_arterial", "expressway_overlap")) {
     m_nm <- paste0(nm, "_m")
     ft_nm <- paste0(nm, "_ft")
     if (!m_nm %in% names(class_dt) && ft_nm %in% names(class_dt)) {
       class_dt[, (m_nm) := as.numeric(get(ft_nm)) * 0.3048]
+    }
+    if (!ft_nm %in% names(class_dt) && m_nm %in% names(class_dt)) {
+      class_dt[, (ft_nm) := as.numeric(get(m_nm)) / 0.3048]
     }
   }
   required_cols <- c(
@@ -239,6 +253,7 @@ validate_segment_features <- function(class_dt, target_segment_length_m = primar
     "waterway_overlap_m",
     "major_overlap_arterial_m",
     "expressway_overlap_m",
+    "target_length_ft",
     "target_length_m"
   )
   missing_cols <- setdiff(required_cols, names(class_dt))
@@ -250,10 +265,10 @@ validate_segment_features <- function(class_dt, target_segment_length_m = primar
   }
 
   x <- copy(class_dt)
-  x[, target_length_m := as.numeric(target_length_m)]
-  x <- x[abs(target_length_m - target_segment_length_m) < 1e-8]
+  x[, target_length_ft := as.numeric(target_length_ft)]
+  x <- x[abs(target_length_ft - target_segment_length_ft) < 1e-8]
   if (nrow(x) == 0) {
-    stop(sprintf("No %.0fm rows found in segment_classification.csv.", target_segment_length_m), call. = FALSE)
+    stop(sprintf("No %.0fft rows found in segment_classification.csv.", target_segment_length_ft), call. = FALSE)
   }
 
   x[, water_area_share := as.numeric(water_area_share)]
@@ -283,14 +298,14 @@ validate_segment_features <- function(class_dt, target_segment_length_m = primar
   )
   if (!has_features) {
     stop(
-      sprintf("segment_classification.csv has no park/water/arterial feature metrics after the %.0fm filter.", target_segment_length_m),
+      sprintf("segment_classification.csv has no park/water/arterial feature metrics after the %.0fft filter.", target_segment_length_ft),
       call. = FALSE
     )
   }
 
   if (!any(x$major_overlap_arterial_m > 0 | x$expressway_overlap_m > 0, na.rm = TRUE)) {
     stop(
-      sprintf("segment_classification.csv has no arterial or expressway overlap after the %.0fm filter. Check the road-buffer overlap construction.", target_segment_length_m),
+      sprintf("segment_classification.csv has no arterial or expressway overlap after the %.0fft filter. Check the road-buffer overlap construction.", target_segment_length_ft),
       call. = FALSE
     )
   }
@@ -788,8 +803,8 @@ can_reuse <- rebuild_mode == "reuse" &&
 if (rebuild_mode == "snapshot") {
   message("Rebuild mode: restore canonical segment artifacts from data_raw/boundaries/segments.")
 
-  seg_primary <- read_segment_layers(snapshot_400m_path, primary_segment_length_ft, primary_segment_length_m)
-  seg_secondary <- read_segment_layers(snapshot_800m_path, secondary_segment_length_ft, secondary_segment_length_m)
+  seg_primary <- read_segment_layers(snapshot_primary_path, primary_segment_length_ft, primary_segment_length_m)
+  seg_secondary <- read_segment_layers(snapshot_secondary_path, secondary_segment_length_ft, secondary_segment_length_m)
   boundary_list <- read_boundary_layers(snapshot_boundaries_path)
   snapshot_class <- fread(snapshot_class_path)
   validate_segment_features(snapshot_class)
@@ -876,6 +891,18 @@ if (rebuild_mode == "snapshot") {
   build_mode <- "raw"
 }
 
+if (!exists("ward_panel", inherits = FALSE)) {
+  stopifnot(file.exists(ward_panel_path))
+  ward_panel <- st_read(ward_panel_path, quiet = TRUE)
+  ward_panel$year <- as.integer(ward_panel$year)
+  ward_panel$ward <- as.integer(ward_panel$ward)
+  ward_panel <- ward_panel[order(ward_panel$year, ward_panel$ward), ]
+}
+
+ward_maps <- load_canonical_ward_maps(ward_panel)
+seg_primary <- annotate_boundary_segment_validity(seg_primary, ward_maps)
+seg_secondary <- annotate_boundary_segment_validity(seg_secondary, ward_maps)
+
 if (file.exists(out_primary)) {
   file.remove(out_primary)
 }
@@ -960,7 +987,7 @@ if (!wrote_any_boundaries) {
   stop("No boundary layers written.", call. = FALSE)
 }
 
-pick_cols <- c(required_segment_cols, "target_length_ft", "target_length_m")
+pick_cols <- c(required_segment_cols, segment_validity_cols, "target_length_ft", "target_length_m")
 class_dt <- rbind(seg_primary[, pick_cols], seg_secondary[, pick_cols])
 class_dt <- st_drop_geometry(class_dt)
 setDT(class_dt)
@@ -994,6 +1021,8 @@ all_pair_ids_unique <- all(vapply(
   },
   logical(1)
 ))
+primary_invalid_segments <- sum(!seg_primary$valid_segment, na.rm = TRUE)
+secondary_invalid_segments <- sum(!seg_secondary$valid_segment, na.rm = TRUE)
 
 boundary_diagnostics <- data.table(
   check_name = c(
@@ -1002,7 +1031,9 @@ boundary_diagnostics <- data.table(
     "feature_buffer_m",
     "all_eras_present",
     "all_pair_lengths_positive",
-    "all_pair_ids_unique"
+    "all_pair_ids_unique",
+    "primary_invalid_segments",
+    "secondary_invalid_segments"
   ),
   observed_value = c(
     build_mode,
@@ -1010,7 +1041,9 @@ boundary_diagnostics <- data.table(
     as.character(feature_buffer_m),
     as.character(all_eras_present),
     as.character(all_pair_lengths_positive),
-    as.character(all_pair_ids_unique)
+    as.character(all_pair_ids_unique),
+    as.character(primary_invalid_segments),
+    as.character(secondary_invalid_segments)
   ),
   expected_value = c(
     "snapshot, raw_features, raw, or reuse",
@@ -1018,7 +1051,9 @@ boundary_diagnostics <- data.table(
     "positive distance",
     "TRUE",
     "TRUE",
-    "TRUE"
+    "TRUE",
+    "reviewed count",
+    "reviewed count"
   ),
   status = c(
     "info",
@@ -1026,7 +1061,9 @@ boundary_diagnostics <- data.table(
     ifelse(is.finite(feature_buffer_m) && feature_buffer_m > 0, "verified", "mismatch"),
     ifelse(all_eras_present, "verified", "mismatch"),
     ifelse(all_pair_lengths_positive, "verified", "mismatch"),
-    ifelse(all_pair_ids_unique, "verified", "mismatch")
+    ifelse(all_pair_ids_unique, "verified", "mismatch"),
+    "info",
+    "info"
   ),
   details = c(
     "Canonical boundary build mode used for this artifact.",
@@ -1034,7 +1071,9 @@ boundary_diagnostics <- data.table(
     "Meter buffer used to compute OSM polygon area shares around boundary segments.",
     "All canonical eras should have non-empty pair boundary layers.",
     "All canonical ward-pair boundaries should have strictly positive shared line length.",
-    "Ward-pair IDs must be unique within era."
+    "Ward-pair IDs must be unique within era.",
+    "Invalid primary segments are retained in the raw artifact with valid_segment = FALSE and excluded by analysis loaders.",
+    "Invalid secondary segments are retained in the raw artifact with valid_segment = FALSE and excluded by analysis loaders."
   )
 )
 fwrite(boundary_diagnostics, out_diag)

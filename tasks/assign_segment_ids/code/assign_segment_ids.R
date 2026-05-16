@@ -8,7 +8,7 @@ library(sf)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids/code")
 # in_pre_scores <- "../input/parcels_pre_scores.csv"
 # in_geom <- "../input/parcels_with_geometry.gpkg"
-# in_segments <- "../input/boundary_segments_400m.gpkg"
+# in_segments <- "../input/boundary_segments_1320ft.gpkg"
 # out_lookup <- "../output/parcel_segment_ids.csv"
 # out_coverage <- "../output/parcel_segment_ids_coverage.csv"
 # out_reason <- "../output/parcel_segment_ids_reason_summary.csv"
@@ -183,6 +183,8 @@ joined$segment_reason <- case_when(
 
 needed_eras <- unique(na.omit(joined$era))
 segments_by_era <- load_segment_line_layers(in_segments, eras = needed_eras)
+segment_metadata <- segment_metadata_from_layers(segments_by_era)
+segment_metadata_key <- paste(segment_metadata$era, segment_metadata$segment_id, sep = "\r")
 segment_id_by_row <- assign_points_to_nearest_segments(
   joined,
   joined$era,
@@ -273,6 +275,13 @@ lookup <- data.table(
   ),
   segment_reason = joined$segment_reason
 )
+lookup_segment_idx <- match(paste(joined$era, lookup$segment_id, sep = "\r"), segment_metadata_key)
+lookup[, analysis_segment_id := segment_metadata$analysis_segment_id[lookup_segment_idx]]
+lookup[, valid_segment := segment_metadata$valid_segment[lookup_segment_idx]]
+lookup[, invalid_reason := segment_metadata$invalid_reason[lookup_segment_idx]]
+lookup[, segment_length_ft := segment_metadata$segment_length_ft[lookup_segment_idx]]
+lookup[, segment_lt500ft := segment_metadata$segment_lt500ft[lookup_segment_idx]]
+lookup[, segment_lt1000ft := segment_metadata$segment_lt1000ft[lookup_segment_idx]]
 
 if (nrow(lookup) != nrow(pre)) {
   stop(sprintf("Lookup row mismatch: expected %d rows, got %d.", nrow(pre), nrow(lookup)), call. = FALSE)

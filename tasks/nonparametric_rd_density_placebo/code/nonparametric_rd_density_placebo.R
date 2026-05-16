@@ -4,13 +4,13 @@ source("../../_lib/border_pair_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_placebo/code")
 # yvar <- "density_far"
-# bandwidth_m <- 100
+# bandwidth_m <- 152.4
 # sample_filter <- "all"
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
-# placebo_shift_m <- -200
+# placebo_shift_m <- -152.4
 # input_csv <- "../input/parcels_with_ward_distances.csv"
-# output_pdf <- "../output/nonparametric_rd_density_placebo_log_density_far_100m_all_shift_neg200m.pdf"
+# output_pdf <- "../output/nonparametric_rd_density_placebo_log_density_far_500ft_all_shift_neg500ft.pdf"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {

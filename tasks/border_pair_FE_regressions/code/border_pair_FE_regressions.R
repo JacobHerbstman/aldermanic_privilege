@@ -53,6 +53,11 @@ write_tex <- !write_tex_raw %in% c("false", "f", "0", "no", "off")
 ambiguity_input_path <- Sys.getenv("AMBIGUITY_INPUT_PATH", "")
 drop_ambiguous_raw <- tolower(Sys.getenv("DROP_AMBIGUOUS_WITHIN_BW", "FALSE"))
 drop_ambiguous_within_bw <- drop_ambiguous_raw %in% c("true", "t", "1", "yes", "on")
+min_segment_length_ft_raw <- Sys.getenv("MIN_SEGMENT_LENGTH_FT", "")
+min_segment_length_ft <- if (nzchar(min_segment_length_ft_raw)) suppressWarnings(as.numeric(min_segment_length_ft_raw)) else NA_real_
+if (nzchar(min_segment_length_ft_raw) && (!is.finite(min_segment_length_ft) || min_segment_length_ft <= 0)) {
+  stop("MIN_SEGMENT_LENGTH_FT must be a positive number when supplied.", call. = FALSE)
+}
 
 prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
 if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
@@ -96,6 +101,7 @@ message(sprintf("Pruning spec: %s", prune_sample))
 message(sprintf("Cluster level: %s", cluster_level))
 message(sprintf("Donut exclusion: >= %s", format_distance_label(donut_m, distance_display)))
 message(sprintf("Drop corner-ambiguous parcels: %s", ifelse(drop_ambiguous_within_bw, "TRUE", "FALSE")))
+message(sprintf("Minimum segment length: %s", ifelse(is.finite(min_segment_length_ft), paste0(min_segment_length_ft, "ft"), "none")))
 message(sprintf("Write TeX table: %s", ifelse(write_tex, "TRUE", "FALSE")))
 message(sprintf("Input: %s", fe_input_path))
 message(sprintf("Output: %s", output_filename))
@@ -151,6 +157,20 @@ if (sample_filter == "all") {
   parcels_fe <- parcels_fe %>% filter(unitscount > 0)
 } else {
   parcels_fe <- parcels_fe %>% filter(unitscount > 1)
+}
+
+segment_length_input_n <- nrow(parcels_fe)
+segment_length_drop_n <- NA_integer_
+if (is.finite(min_segment_length_ft)) {
+  if (!"segment_length_ft" %in% names(parcels_fe)) {
+    stop("MIN_SEGMENT_LENGTH_FT requires segment_length_ft in the FE input.", call. = FALSE)
+  }
+  parcels_fe <- parcels_fe %>%
+    filter(!is.na(segment_length_ft), segment_length_ft >= min_segment_length_ft)
+  segment_length_drop_n <- segment_length_input_n - nrow(parcels_fe)
+  if (segment_length_drop_n == 0) {
+    stop("MIN_SEGMENT_LENGTH_FT dropped zero observations; check the robustness cutoff.", call. = FALSE)
+  }
 }
 
 parcels_fe_before_prune <- parcels_fe
@@ -534,6 +554,9 @@ for (yv in yvars) {
     donut_m = donut_m,
     drop_ambiguous_within_bw = drop_ambiguous_within_bw,
     ambiguity_drop_n = ambiguity_drop_n,
+    min_segment_length_ft = min_segment_length_ft,
+    segment_length_input_n = segment_length_input_n,
+    segment_length_drop_n = segment_length_drop_n,
     ambiguity_input_path = ambiguity_input_path,
     input_path = fe_input_path,
     table_output = output_filename

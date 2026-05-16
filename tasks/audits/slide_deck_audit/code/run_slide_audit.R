@@ -391,7 +391,7 @@ spec_drift_findings <- strictness_assets %>%
   mutate(across(everything(), as.character))
 
 run_geometry_checks <- function() {
-  boundary_gpkg <- file.path(root_dir, "tasks/border_segment_creation/output/boundary_segments_400m.gpkg")
+  boundary_gpkg <- file.path(root_dir, "tasks/border_segment_creation/output/boundary_segments_1320ft.gpkg")
   boundary_layers <- st_layers(boundary_gpkg)
   era_layers <- boundary_layers$name[str_detect(boundary_layers$name, "^(\\d{4}_\\d{4}|post_2023)$")]
   boundary_segments <- map_dfr(era_layers, ~ st_read(boundary_gpkg, layer = .x, quiet = TRUE) %>% mutate(layer_name = .x))
@@ -408,8 +408,8 @@ run_geometry_checks <- function() {
 
   checks <- tribble(
     ~check_id, ~metric, ~value, ~threshold, ~status, ~source_path, ~notes,
-    "segments_unique_ids", nrow(boundary_segments) - n_distinct(boundary_segments$segment_id), 0, "0 duplicate segment ids", "verified", "tasks/border_segment_creation/output/boundary_segments_400m.gpkg", "Boundary segments should have unique segment_id values",
-    "segments_expected_eras", length(era_layers), 4, "4 era line layers", ifelse(length(era_layers) == 4, "verified", "mismatch"), "tasks/border_segment_creation/output/boundary_segments_400m.gpkg", "Boundary segment file should span all map eras used by the deck",
+    "segments_unique_ids", nrow(boundary_segments) - n_distinct(boundary_segments$segment_id), 0, "0 duplicate segment ids", "verified", "tasks/border_segment_creation/output/boundary_segments_1320ft.gpkg", "Boundary segments should have unique segment_id values",
+    "segments_expected_eras", length(era_layers), 4, "4 era line layers", ifelse(length(era_layers) == 4, "verified", "mismatch"), "tasks/border_segment_creation/output/boundary_segments_1320ft.gpkg", "Boundary segment file should span all map eras used by the deck",
     "parcel_segment_duplicate_pins", sum(duplicated(parcel_segments$pin)), 0, "0 duplicate pins", ifelse(sum(duplicated(parcel_segments$pin)) == 0, "verified", "mismatch"), "tasks/assign_segment_ids/output/parcel_segment_ids.csv", "Each pin should map to at most one boundary segment",
     "parcel_segment_missing_share", mean(is.na(parcel_segment_joined$segment_id[parcel_segment_joined$dist_to_boundary <= 1320])), 0.05, "<= 0.05 within 1320 ft", ifelse(mean(is.na(parcel_segment_joined$segment_id[parcel_segment_joined$dist_to_boundary <= 1320])) <= 0.05, "verified", "code_risk"), "tasks/assign_segment_ids/output/parcel_segment_ids.csv", "Segment coverage should be high for parcels inside the 1320 ft corridor",
     "distance_nonnegative_share", mean(parcels_pre_scores$dist_to_boundary < 0, na.rm = TRUE), 0, "0 negative distances", ifelse(mean(parcels_pre_scores$dist_to_boundary < 0, na.rm = TRUE) == 0, "verified", "mismatch"), "tasks/calculate_ward_boundary_distances/output/parcels_pre_scores.csv", "Unsigned parcel distance should never be negative",

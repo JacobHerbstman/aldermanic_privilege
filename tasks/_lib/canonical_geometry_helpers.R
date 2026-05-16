@@ -270,6 +270,10 @@ load_segment_layers <- function(segment_gpkg, buffer_m = NULL, buffer_ft = NULL,
       paste0(era_i, "_bw", as.integer(round(buffer_ft)))
     }
     d <- sf::st_read(segment_gpkg, layer = layer_name, quiet = TRUE)
+    if ("valid_segment" %in% names(d)) {
+      valid_segment <- coerce_segment_valid_flag(d$valid_segment)
+      d <- d[is.na(valid_segment) | valid_segment, ]
+    }
     d$segment_id <- as.character(d$segment_id)
     d$pair_dash <- normalize_pair_dash(d$ward_pair_id)
     d[!is.na(d$pair_dash), ]
@@ -326,10 +330,278 @@ load_segment_line_layers <- function(segment_gpkg, eras = canonical_era_levels()
       stop(sprintf("Segment layer %s contains ward_pair_id values that cannot be normalized.", era_i), call. = FALSE)
     }
 
+    if ("valid_segment" %in% names(d)) {
+      valid_segment <- coerce_segment_valid_flag(d$valid_segment)
+      d <- d[is.na(valid_segment) | valid_segment, ]
+    }
     d <- d[order(d$pair_dash, d$segment_id), ]
     d
   })
   names(out) <- eras
+  out
+}
+
+coerce_segment_valid_flag <- function(x) {
+  if (is.logical(x)) {
+    return(x)
+  }
+  if (is.numeric(x) || is.integer(x)) {
+    return(as.logical(x))
+  }
+
+  x_chr <- tolower(trimws(as.character(x)))
+  out <- rep(NA, length(x_chr))
+  out[x_chr %in% c("true", "t", "1", "yes", "y")] <- TRUE
+  out[x_chr %in% c("false", "f", "0", "no", "n")] <- FALSE
+  out
+}
+
+segment_offset_point <- function(line_geom, side, offset_ft) {
+  coords <- sf::st_coordinates(line_geom)[, c("X", "Y"), drop = FALSE]
+  if (nrow(coords) < 2) {
+    return(NULL)
+  }
+
+  seg_len <- sqrt(rowSums((coords[-1, , drop = FALSE] - coords[-nrow(coords), , drop = FALSE])^2))
+  keep <- is.finite(seg_len) & seg_len > 0
+  if (!any(keep)) {
+    return(NULL)
+  }
+
+  coords <- coords[c(TRUE, keep), , drop = FALSE]
+  seg_len <- sqrt(rowSums((coords[-1, , drop = FALSE] - coords[-nrow(coords), , drop = FALSE])^2))
+  cumdist <- c(0, cumsum(seg_len))
+  target_dist <- cumdist[length(cumdist)] / 2
+  end_idx <- which(cumdist >= target_dist)[1]
+  start_idx <- max(1L, end_idx - 1L)
+  denom <- cumdist[end_idx] - cumdist[start_idx]
+  if (!is.finite(denom) || denom <= 0) {
+    return(NULL)
+  }
+
+  weight <- (target_dist - cumdist[start_idx]) / denom
+  mid <- coords[start_idx, ] + weight * (coords[end_idx, ] - coords[start_idx, ])
+  tangent <- coords[end_idx, ] - coords[start_idx, ]
+  tangent_len <- sqrt(sum(tangent^2))
+  if (!is.finite(tangent_len) || tangent_len <= 0) {
+    return(NULL)
+  }
+
+  normal <- c(-tangent[2], tangent[1]) / tangent_len * side
+  sf::st_point(as.numeric(mid + offset_ft * normal))
+}
+
+ward_at_segment_offset <- function(point_geom, ward_sf) {
+  if (is.null(point_geom)) {
+    return(NA_character_)
+  }
+
+  point_sf <- sf::st_sf(geometry = sf::st_sfc(point_geom, crs = sf::st_crs(ward_sf)))
+  hits <- sf::st_within(point_sf, ward_sf)[[1]]
+  if (length(hits) == 0) {
+    return(NA_character_)
+  }
+
+  paste(sort(unique(as.integer(ward_sf$ward[hits]))), collapse = ";")
+}
+
+segment_offset_pair_passes <- function(left_ward, right_ward, ward_a, ward_b) {
+  if (is.na(left_ward) || is.na(right_ward)) {
+    return(FALSE)
+  }
+  if (grepl(";", left_ward, fixed = TRUE) || grepl(";", right_ward, fixed = TRUE)) {
+    return(FALSE)
+  }
+
+  observed <- sort(as.integer(c(left_ward, right_ward)))
+  expected <- sort(as.integer(c(ward_a, ward_b)))
+  identical(observed, expected)
+}
+
+annotate_boundary_segment_validity <- function(segment_sf,
+                                               ward_maps,
+                                               short_segment_ft = 100,
+                                               numeric_noise_ft = 1,
+                                               touch_tolerance_ft = 1,
+                                               near_tolerance_ft = 10,
+                                               offsets_ft = c(5, 20, 50, 100)) {
+  if (nrow(segment_sf) == 0) {
+    return(segment_sf)
+  }
+
+  required_cols <- c(
+    "segment_id", "ward_pair_id", "ward_a", "ward_b", "era",
+    "segment_number", "n_segments_in_pair", "segment_length_ft"
+  )
+  missing_cols <- setdiff(required_cols, names(segment_sf))
+  if (length(missing_cols) > 0) {
+    stop(sprintf(
+      "Segment validity annotation is missing required columns: %s",
+      paste(missing_cols, collapse = ", ")
+    ), call. = FALSE)
+  }
+
+  segment_sf$raw_segment_id <- as.character(segment_sf$segment_id)
+  segment_sf$ward_pair_id <- as.character(segment_sf$ward_pair_id)
+  segment_sf$ward_a <- as.integer(segment_sf$ward_a)
+  segment_sf$ward_b <- as.integer(segment_sf$ward_b)
+  segment_sf$segment_number <- as.integer(segment_sf$segment_number)
+  segment_sf$n_segments_in_pair <- as.integer(segment_sf$n_segments_in_pair)
+  segment_sf$segment_length_ft <- as.numeric(segment_sf$segment_length_ft)
+  segment_sf$short_segment <- segment_sf$segment_length_ft < short_segment_ft
+  segment_sf$terminal_segment <- segment_sf$segment_number == 1L |
+    segment_sf$segment_number == segment_sf$n_segments_in_pair
+  segment_sf$nearest_same_pair_segment_id <- NA_character_
+  segment_sf$nearest_same_pair_segment_number <- NA_integer_
+  segment_sf$nearest_same_pair_distance_ft <- NA_real_
+  segment_sf$n_touching_same_pair_1ft <- NA_integer_
+  segment_sf$n_near_same_pair_10ft <- NA_integer_
+  segment_sf$two_sided_all_offsets <- NA
+  segment_sf$component_type <- "long_split_piece"
+  segment_sf$valid_segment <- TRUE
+  segment_sf$invalid_reason <- "none"
+  segment_sf$analysis_segment_id <- segment_sf$raw_segment_id
+  segment_sf$merge_reason <- "standalone_valid_component"
+  segment_sf$segment_lt500ft <- segment_sf$segment_length_ft < 500
+  segment_sf$segment_lt1000ft <- segment_sf$segment_length_ft < 1000
+
+  for (offset_ft in offsets_ft) {
+    segment_sf[[paste0("left_offset_ward_", offset_ft, "ft")]] <- NA_character_
+    segment_sf[[paste0("right_offset_ward_", offset_ft, "ft")]] <- NA_character_
+    segment_sf[[paste0("two_sided_pass_", offset_ft, "ft")]] <- NA
+  }
+
+  for (i in seq_len(nrow(segment_sf))) {
+    segment_i <- segment_sf[i, ]
+    needs_topology_check <- isTRUE(segment_i$short_segment) ||
+      isTRUE(segment_i$segment_length_ft < numeric_noise_ft)
+    n_touching_1ft <- NA_integer_
+    n_near_10ft <- NA_integer_
+    touching_segment_id <- NA_character_
+
+    if (needs_topology_check) {
+      same_pair <- segment_sf[
+        segment_sf$era == segment_i$era &
+          segment_sf$ward_pair_id == segment_i$ward_pair_id &
+          segment_sf$raw_segment_id != segment_i$raw_segment_id,
+      ]
+
+      if (nrow(same_pair) > 0) {
+        distances <- as.numeric(sf::st_distance(
+          sf::st_geometry(segment_i),
+          sf::st_geometry(same_pair),
+          by_element = FALSE
+        )[1, ])
+        nearest_idx <- which.min(distances)
+        segment_sf$nearest_same_pair_segment_id[i] <- same_pair$raw_segment_id[nearest_idx]
+        segment_sf$nearest_same_pair_segment_number[i] <- same_pair$segment_number[nearest_idx]
+        segment_sf$nearest_same_pair_distance_ft[i] <- distances[nearest_idx]
+        n_touching_1ft <- sum(distances <= touch_tolerance_ft, na.rm = TRUE)
+        n_near_10ft <- sum(distances <= near_tolerance_ft, na.rm = TRUE)
+        if (n_touching_1ft == 1L) {
+          touching_segment_id <- same_pair$raw_segment_id[which(distances <= touch_tolerance_ft)[1]]
+        }
+      } else {
+        n_touching_1ft <- 0L
+        n_near_10ft <- 0L
+      }
+    }
+
+    segment_sf$n_touching_same_pair_1ft[i] <- n_touching_1ft
+    segment_sf$n_near_same_pair_10ft[i] <- n_near_10ft
+
+    pass_values <- rep(NA, length(offsets_ft))
+    for (j in seq_along(offsets_ft)) {
+      offset_ft <- offsets_ft[j]
+      left_ward <- NA_character_
+      right_ward <- NA_character_
+      if (needs_topology_check) {
+        left_ward <- ward_at_segment_offset(
+          segment_offset_point(sf::st_geometry(segment_i)[[1]], -1, offset_ft),
+          ward_maps[[as.character(segment_i$era)]]
+        )
+        right_ward <- ward_at_segment_offset(
+          segment_offset_point(sf::st_geometry(segment_i)[[1]], 1, offset_ft),
+          ward_maps[[as.character(segment_i$era)]]
+        )
+        pass_values[j] <- segment_offset_pair_passes(
+          left_ward,
+          right_ward,
+          segment_i$ward_a,
+          segment_i$ward_b
+        )
+      }
+
+      segment_sf[[paste0("left_offset_ward_", offset_ft, "ft")]][i] <- left_ward
+      segment_sf[[paste0("right_offset_ward_", offset_ft, "ft")]][i] <- right_ward
+      segment_sf[[paste0("two_sided_pass_", offset_ft, "ft")]][i] <- pass_values[j]
+    }
+
+    two_sided_all_offsets <- if (needs_topology_check) all(pass_values %in% TRUE) else NA
+    segment_sf$two_sided_all_offsets[i] <- two_sided_all_offsets
+
+    component_type <- if (segment_i$segment_length_ft < numeric_noise_ft) {
+      "suspected_artifact"
+    } else if (isTRUE(segment_i$short_segment) && segment_i$n_segments_in_pair == 1L) {
+      "short_only_piece"
+    } else if (isTRUE(segment_i$short_segment) && isTRUE(segment_i$terminal_segment) && n_touching_1ft == 1L) {
+      "terminal_touching_remainder"
+    } else if (isTRUE(segment_i$short_segment) && isTRUE(segment_i$terminal_segment)) {
+      "terminal_short_component"
+    } else if (isTRUE(segment_i$short_segment)) {
+      "short_disconnected_component"
+    } else {
+      "long_split_piece"
+    }
+    segment_sf$component_type[i] <- component_type
+
+    invalid_reason <- if (segment_i$segment_length_ft < numeric_noise_ft) {
+      "artifact_topology_noise"
+    } else if (isTRUE(segment_i$short_segment) && !isTRUE(two_sided_all_offsets)) {
+      "artifact_wrong_ward_offsets"
+    } else {
+      "none"
+    }
+    segment_sf$invalid_reason[i] <- invalid_reason
+    segment_sf$valid_segment[i] <- invalid_reason == "none"
+
+    if (!isTRUE(segment_sf$valid_segment[i])) {
+      segment_sf$analysis_segment_id[i] <- NA_character_
+      segment_sf$merge_reason[i] <- "invalid_no_analysis_segment"
+    } else if (component_type == "terminal_touching_remainder") {
+      segment_sf$analysis_segment_id[i] <- touching_segment_id
+      segment_sf$merge_reason[i] <- "touching_terminal_remainder"
+    }
+  }
+
+  segment_sf
+}
+
+segment_metadata_from_layers <- function(segment_layers) {
+  out <- data.table::rbindlist(lapply(names(segment_layers), function(era_i) {
+    d <- sf::st_drop_geometry(segment_layers[[era_i]])
+    segment_length_ft <- if ("segment_length_ft" %in% names(d)) {
+      as.numeric(d$segment_length_ft)
+    } else {
+      rep(NA_real_, nrow(d))
+    }
+
+    data.table::data.table(
+      era = as.character(era_i),
+      segment_id = as.character(d$segment_id),
+      analysis_segment_id = if ("analysis_segment_id" %in% names(d)) as.character(d$analysis_segment_id) else as.character(d$segment_id),
+      valid_segment = if ("valid_segment" %in% names(d)) coerce_segment_valid_flag(d$valid_segment) else TRUE,
+      invalid_reason = if ("invalid_reason" %in% names(d)) as.character(d$invalid_reason) else "none",
+      segment_length_ft = segment_length_ft,
+      segment_lt500ft = if ("segment_lt500ft" %in% names(d)) coerce_segment_valid_flag(d$segment_lt500ft) else segment_length_ft < 500,
+      segment_lt1000ft = if ("segment_lt1000ft" %in% names(d)) coerce_segment_valid_flag(d$segment_lt1000ft) else segment_length_ft < 1000
+    )
+  }), fill = TRUE)
+
+  if (any(duplicated(out, by = c("era", "segment_id")))) {
+    stop("Segment metadata has duplicate era/segment_id rows.", call. = FALSE)
+  }
+
   out
 }
 

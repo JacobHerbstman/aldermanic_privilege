@@ -16,13 +16,16 @@ OUTPUTS := \
 INPUTS := \
 	../input/sales_with_hedonics.parquet \
 	../input/rent_with_ward_distances_full.parquet \
-	../input/boundary_segments_400m.gpkg \
+	../input/boundary_segments_1320ft.gpkg \
 	../input/confounded_pair_era_flags.csv
 
 all: $(OUTPUTS)
 
-$(OUTPUTS): run_segment_fe_exploration.R $(INPUTS) | ../output
+../output/segment_assignment_coverage_sales.csv: run_segment_fe_exploration.R $(INPUTS) | ../output
 	Rscript run_segment_fe_exploration.R
+
+$(filter-out ../output/segment_assignment_coverage_sales.csv,$(OUTPUTS)): ../output/segment_assignment_coverage_sales.csv
+	@test -s "$@"
 
 ../input/sales_with_hedonics.parquet: ../../prep_sales_border_data/output/sales_with_hedonics.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -30,7 +33,7 @@ $(OUTPUTS): run_segment_fe_exploration.R $(INPUTS) | ../output
 ../input/rent_with_ward_distances_full.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/boundary_segments_400m.gpkg: ../../border_segment_creation/output/boundary_segments_400m.gpkg | ../input
+../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input

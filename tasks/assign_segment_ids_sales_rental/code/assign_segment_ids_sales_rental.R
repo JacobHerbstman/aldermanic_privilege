@@ -12,7 +12,7 @@ sf_use_s2(FALSE)
 # mode <- "all"
 # sales_input <- "../input/sales_pre_scores.csv"
 # rent_input <- "../input/rent_pre_scores_full.parquet"
-# segment_gpkg <- "../input/boundary_segments_400m.gpkg"
+# segment_gpkg <- "../input/boundary_segments_1320ft.gpkg"
 # out_sales <- "../output/sales_pre_scores_with_segments.csv"
 # out_rent <- "../output/rent_pre_scores_full_with_segments.parquet"
 # out_coverage <- "../output/segment_assignment_coverage_summary.csv"
@@ -82,6 +82,8 @@ if (mode == "all") {
 }
 
 segments_by_era <- load_segment_line_layers(segment_gpkg)
+segment_metadata <- segment_metadata_from_layers(segments_by_era)
+segment_metadata_key <- paste(segment_metadata$era, segment_metadata$segment_id, sep = "\r")
 segment_pair_lookup <- rbindlist(lapply(names(segments_by_era), function(era_i) {
   data.table(
     era = era_i,
@@ -195,6 +197,14 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
       ), call. = FALSE)
     }
   }
+
+  segment_idx <- match(paste(dt$era, dt$segment_id, sep = "\r"), segment_metadata_key)
+  dt[, analysis_segment_id := segment_metadata$analysis_segment_id[segment_idx]]
+  dt[, valid_segment := segment_metadata$valid_segment[segment_idx]]
+  dt[, invalid_reason := segment_metadata$invalid_reason[segment_idx]]
+  dt[, segment_length_ft := segment_metadata$segment_length_ft[segment_idx]]
+  dt[, segment_lt500ft := segment_metadata$segment_lt500ft[segment_idx]]
+  dt[, segment_lt1000ft := segment_metadata$segment_lt1000ft[segment_idx]]
 
   pending_idx <- which(dt$segment_reason == "pending")
   if (length(pending_idx) > 0) {

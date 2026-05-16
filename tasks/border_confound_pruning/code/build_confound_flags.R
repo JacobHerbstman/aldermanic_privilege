@@ -11,9 +11,9 @@ out_segment_audit <- "../output/confound_pruning_segment_audit.csv"
 out_threshold_sensitivity <- "../output/confound_pruning_threshold_sensitivity.csv"
 out_summary <- "../output/confound_pruning_summary.md"
 
-target_segment_length_m <- as.numeric(Sys.getenv("TARGET_SEGMENT_LENGTH_M", "400"))
-if (!is.finite(target_segment_length_m) || target_segment_length_m <= 0) {
-  stop("TARGET_SEGMENT_LENGTH_M must be positive.", call. = FALSE)
+target_segment_length_ft <- as.numeric(Sys.getenv("TARGET_SEGMENT_LENGTH_FT", "1320"))
+if (!is.finite(target_segment_length_ft) || target_segment_length_ft <= 0) {
+  stop("TARGET_SEGMENT_LENGTH_FT must be positive.", call. = FALSE)
 }
 segment_park_water_drop_share <- 0.50
 segment_expressway_drop_share <- 0.40
@@ -57,11 +57,18 @@ derive_meter_col <- function(dt, meter_col, foot_col) {
   }
 }
 
+derive_foot_col <- function(dt, foot_col, meter_col) {
+  if (!foot_col %in% names(dt) && meter_col %in% names(dt)) {
+    dt[, (foot_col) := as.numeric(get(meter_col)) / 0.3048]
+  }
+}
+
 derive_meter_col(segments, "segment_length_m", "segment_length_ft")
 derive_meter_col(segments, "waterway_overlap_m", "waterway_overlap_ft")
 derive_meter_col(segments, "expressway_overlap_m", "expressway_overlap_ft")
 derive_meter_col(segments, "major_overlap_arterial_m", "major_overlap_arterial_ft")
 derive_meter_col(segments, "target_length_m", "target_length_ft")
+derive_foot_col(segments, "target_length_ft", "target_length_m")
 
 required_cols <- c(
   "segment_id",
@@ -75,6 +82,7 @@ required_cols <- c(
   "waterway_overlap_m",
   "expressway_overlap_m",
   "major_overlap_arterial_m",
+  "target_length_ft",
   "target_length_m"
 )
 
@@ -96,21 +104,22 @@ segments[, major_overlap_arterial_m := pmax(0, as.numeric(major_overlap_arterial
 segments[!is.finite(major_overlap_arterial_m), major_overlap_arterial_m := 0]
 segments[, expressway_overlap_m := pmax(0, as.numeric(expressway_overlap_m))]
 segments[!is.finite(expressway_overlap_m), expressway_overlap_m := 0]
+segments[, target_length_ft := as.numeric(target_length_ft)]
+segments <- segments[is.finite(target_length_ft)]
 segments[, target_length_m := as.numeric(target_length_m)]
-segments <- segments[is.finite(target_length_m)]
 
-# Restrict to the intended round-meter segment layer to avoid mixing products.
-segments <- segments[abs(target_length_m - target_segment_length_m) < 1e-8]
+# Restrict to the intended foot-denominated segment layer to avoid mixing products.
+segments <- segments[abs(target_length_ft - target_segment_length_ft) < 1e-8]
 
 if (nrow(segments) == 0) {
   stop(
-    sprintf("No rows remained after filtering to target_length_m == %.0f.", target_segment_length_m),
+    sprintf("No rows remained after filtering to target_length_ft == %.0f.", target_segment_length_ft),
     call. = FALSE
   )
 }
 
 if (anyDuplicated(segments$segment_id) > 0) {
-  stop("Duplicate segment_id rows remain after target_length_m filtering.", call. = FALSE)
+  stop("Duplicate segment_id rows remain after target_length_ft filtering.", call. = FALSE)
 }
 
 segments[, water_area_share := as.numeric(water_area_share)]
@@ -144,7 +153,7 @@ if (
 ) {
   stop(
     paste(
-      sprintf("segment_classification.csv has no park/water/cemetery/expressway/arterial feature metrics after the %.0fm filter.", target_segment_length_m),
+      sprintf("segment_classification.csv has no park/water/cemetery/expressway/arterial feature metrics after the %.0fft filter.", target_segment_length_ft),
       "Refusing to create no-op pruning flags."
     ),
     call. = FALSE
@@ -227,6 +236,7 @@ segment_audit <- segments[, .(
   ward_pair_id_dash,
   ward_pair_id_us,
   era,
+  target_length_ft,
   target_length_m,
   segment_length_m,
   segment_type = segment_type_clean,
@@ -501,7 +511,7 @@ lines <- c(
   "# Confound Pruning Summary",
   "",
   sprintf("- segment source: `%s`", segment_path),
-  sprintf("- target segment length: %.0fm", target_segment_length_m),
+  sprintf("- target segment length: %.0fft", target_segment_length_ft),
   sprintf("- preferred segment park/water drop threshold: %s", fmt_pct(segment_park_water_drop_share)),
   sprintf("- preferred segment expressway drop threshold: %s", fmt_pct(segment_expressway_drop_share)),
   sprintf("- preferred segment arterial drop threshold: %s", fmt_pct(segment_arterial_drop_share)),
@@ -509,7 +519,7 @@ lines <- c(
   sprintf("- pair-era physical-barrier backstop threshold: %s", fmt_pct(pair_physical_barrier_drop_share)),
   sprintf("- pair-era expressway backstop threshold: %s", fmt_pct(pair_expressway_drop_share)),
   sprintf("- pair-era arterial backstop threshold: %s", fmt_pct(pair_arterial_drop_share)),
-  sprintf("- segment rows used after target_length_m filter: %s", format(nrow(segments), big.mark = ",")),
+  sprintf("- segment rows used after target_length_ft filter: %s", format(nrow(segments), big.mark = ",")),
   sprintf("- preferred segment-level dropped rows: %s (%s)", format(sum(segment_flags$drop_confound, na.rm = TRUE), big.mark = ","), fmt_pct(mean(segment_flags$drop_confound, na.rm = TRUE))),
   sprintf("- segment rows with capped expressway overlap: %s", format(sum(segments$expressway_overlap_was_capped, na.rm = TRUE), big.mark = ",")),
   sprintf("- segment rows with capped arterial overlap: %s", format(sum(segments$arterial_overlap_was_capped, na.rm = TRUE), big.mark = ",")),

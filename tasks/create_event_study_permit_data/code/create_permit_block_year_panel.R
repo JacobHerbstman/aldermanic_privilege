@@ -4,7 +4,7 @@ source("../../_lib/canonical_geometry_helpers.R")
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_permit_data/code")
-# segment_buffer_m <- 250
+# segment_buffer_m <- 304.8
 # panel_max_distance_m <- 800
 # permit_start_year <- 2006
 # permit_end_year <- 2022
@@ -606,10 +606,17 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
     max_distance = units::set_units(segment_buffer_m, "m"),
     chunk_n = 50000L
   )
+  segment_match <- match(
+    paste(era_label, segment_id, sep = "\r"),
+    paste(segment_meta$era, segment_meta$segment_id, sep = "\r")
+  )
 
   base <- base %>%
     mutate(
       segment_id_cohort = segment_id,
+      segment_length_ft_cohort = segment_meta$segment_length_ft[segment_match],
+      segment_lt500ft_cohort = segment_meta$segment_lt500ft[segment_match],
+      segment_lt1000ft_cohort = segment_meta$segment_lt1000ft[segment_match],
       segment_side = if_else(
         !is.na(segment_id_cohort) & !is.na(ward_origin),
         paste(segment_id_cohort, ward_origin, sep = "_"),
@@ -630,7 +637,9 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
       ward_origin, ward_dest, switched, treat,
       strictness_origin, strictness_dest, strictness_change, switch_type,
       valid, ward_pair_id, ward_pair_side, dist_m,
-      segment_id_cohort, segment_side, control_origin_mismatch
+      segment_id_cohort, segment_side,
+      segment_length_ft_cohort, segment_lt500ft_cohort, segment_lt1000ft_cohort,
+      control_origin_mismatch
     )
 
   base
@@ -641,7 +650,8 @@ ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 ward_maps <- load_canonical_ward_maps(ward_panel)
 boundary_lines <- build_canonical_boundary_list(ward_panel)
 message(sprintf("Loading segment lines for %.0fm nearest-segment assignment...", segment_buffer_m))
-segment_layers <- load_segment_line_layers("../input/boundary_segments_400m.gpkg")
+segment_layers <- load_segment_line_layers("../input/boundary_segments_1320ft.gpkg")
+segment_meta <- segment_metadata_from_layers(segment_layers)
 
 message("Loading block treatment panel...")
 treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%

@@ -8,7 +8,7 @@ sf_use_s2(FALSE)
 
 sales_path <- "../input/sales_with_hedonics.parquet"
 rent_path <- "../input/rent_with_ward_distances_full.parquet"
-segment_gpkg <- "../input/boundary_segments_400m.gpkg"
+segment_gpkg <- "../input/boundary_segments_1320ft.gpkg"
 flags_path <- "../input/confounded_pair_era_flags.csv"
 out_dir <- "../output"
 
@@ -80,9 +80,9 @@ load_segment_layer <- function(gpkg, layer_name, era_label) {
 }
 
 segments_by_era <- list(
-  "2003_2014" = load_segment_layer(segment_gpkg, "2003_2014_bw1000", "2003_2014"),
-  "2015_2023" = load_segment_layer(segment_gpkg, "2015_2023_bw1000", "2015_2023"),
-  "post_2023" = load_segment_layer(segment_gpkg, "post_2023_bw1000", "post_2023")
+  "2003_2014" = load_segment_layer(segment_gpkg, "2003_2014_bw250m", "2003_2014"),
+  "2015_2023" = load_segment_layer(segment_gpkg, "2015_2023_bw250m", "2015_2023"),
+  "post_2023" = load_segment_layer(segment_gpkg, "post_2023_bw250m", "post_2023")
 )
 
 assign_segments <- function(dt, segments_map, dataset_label, chunk_n = 80000L) {
