@@ -170,7 +170,8 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label,
       ) %>%
       left_join(
         manual_block_assignments %>% filter(block_vintage == block_vintage_label),
-        by = c("id", "block_vintage")
+        by = c("id", "block_vintage"),
+        relationship = "many-to-one"
       ) %>%
       mutate(
         reviewed_block_id = na_if(reviewed_block_id, "NA"),
@@ -218,7 +219,8 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label,
     joined_df <- joined_df %>%
       left_join(
         missing_audit %>% select(id, final_block_id),
-        by = "id"
+        by = "id",
+        relationship = "many-to-one"
       ) %>%
       mutate(block_id = coalesce(block_id, final_block_id)) %>%
       select(-final_block_id)
@@ -362,6 +364,10 @@ aggregate_outcome_counts <- function(permits_dt) {
 }
 
 build_panel_with_counts <- function(base_df, start_year, end_year, cohort_year, counts_dt) {
+  if (anyDuplicated(paste(counts_dt$block_id, counts_dt$year, sep = "\r")) > 0) {
+    stop("Permit outcome counts must be unique by block-year.", call. = FALSE)
+  }
+
   panel <- base_df %>%
     tidyr::crossing(year = seq(start_year, end_year)) %>%
     mutate(
@@ -373,7 +379,7 @@ build_panel_with_counts <- function(base_df, start_year, end_year, cohort_year, 
       cohort_segment = if_else(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
       cohort_segment_side = if_else(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
     ) %>%
-    left_join(as_tibble(counts_dt), by = c("block_id", "year"))
+    left_join(as_tibble(counts_dt), by = c("block_id", "year"), relationship = "many-to-one")
 
   count_cols <- permit_outcome_meta$count_var
 
@@ -402,7 +408,7 @@ summarize_event_support <- function(panel, panel_mode) {
     mutate(block_key = paste(cohort, block_id, sep = "_")) %>%
     select(cohort, block_key, relative_year_capped, treat, all_of(permit_outcome_meta$count_var)) %>%
     pivot_longer(cols = all_of(permit_outcome_meta$count_var), names_to = "count_var", values_to = "outcome_count") %>%
-    left_join(permit_outcome_meta %>% select(count_var, outcome_family, date_basis), by = "count_var") %>%
+    left_join(permit_outcome_meta %>% select(count_var, outcome_family, date_basis), by = "count_var", relationship = "many-to-one") %>%
     mutate(panel_mode = panel_mode) %>%
     group_by(panel_mode, cohort, outcome_family, date_basis, event_time = relative_year_capped, treat) %>%
     summarise(
@@ -420,7 +426,7 @@ summarize_calendar_support <- function(panel, panel_mode) {
     mutate(block_key = paste(cohort, block_id, sep = "_")) %>%
     select(cohort, year, block_key, treat, all_of(permit_outcome_meta$count_var)) %>%
     pivot_longer(cols = all_of(permit_outcome_meta$count_var), names_to = "count_var", values_to = "outcome_count") %>%
-    left_join(permit_outcome_meta %>% select(count_var, outcome_family, date_basis), by = "count_var") %>%
+    left_join(permit_outcome_meta %>% select(count_var, outcome_family, date_basis), by = "count_var", relationship = "many-to-one") %>%
     mutate(panel_mode = panel_mode) %>%
     group_by(panel_mode, cohort, outcome_family, date_basis, year, treat) %>%
     summarise(
@@ -438,7 +444,7 @@ summarize_zero_shares <- function(panel, panel_mode) {
     mutate(block_key = paste(cohort, block_id, sep = "_")) %>%
     select(block_key, cohort, treat, strictness_change, all_of(permit_outcome_meta$count_var)) %>%
     pivot_longer(cols = all_of(permit_outcome_meta$count_var), names_to = "count_var", values_to = "outcome_count") %>%
-    left_join(permit_outcome_meta %>% select(count_var, outcome_family, date_basis), by = "count_var") %>%
+    left_join(permit_outcome_meta %>% select(count_var, outcome_family, date_basis), by = "count_var", relationship = "many-to-one") %>%
     mutate(
       panel_mode = panel_mode,
       treat_group = case_when(
@@ -518,6 +524,10 @@ build_outcome_totals <- function(permits_dt, panel, panel_mode, cohort_label) {
 }
 
 prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label) {
+  if (anyDuplicated(treatment_df$block_id) > 0) {
+    stop(sprintf("Treatment input for cohort %s must be unique by block_id.", cohort_label), call. = FALSE)
+  }
+
   block_centroids <- st_centroid(blocks_sf)
   control_assign <- assign_points_to_boundaries(
     points_sf = block_centroids,
@@ -533,11 +543,14 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
       control_pair_id = normalize_pair_dash(ward_pair_id),
       control_dist_m = dist_m
     )
+  if (anyDuplicated(control_assign$block_id) > 0) {
+    stop(sprintf("Boundary assignment for cohort %s must be unique by block_id.", cohort_label), call. = FALSE)
+  }
 
   base <- st_drop_geometry(blocks_sf) %>%
     select(block_id) %>%
-    left_join(treatment_df, by = "block_id") %>%
-    left_join(control_assign, by = "block_id")
+    left_join(treatment_df, by = "block_id", relationship = "one-to-one") %>%
+    left_join(control_assign, by = "block_id", relationship = "one-to-one")
 
   treated_pair_id <- normalize_pair_id(base$ward_origin, base$ward_dest, sep = "-")
   treated_dist_m <- distance_to_boundary_pair_m(
@@ -641,6 +654,9 @@ segment_meta <- segment_metadata_from_layers(segment_layers)
 message("Loading block treatment panel...")
 treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
   mutate(block_id = as.character(block_id))
+if (anyDuplicated(paste(treatment_panel$cohort, treatment_panel$block_id, sep = "\r")) > 0) {
+  stop("Block treatment panel must be unique by cohort-block.", call. = FALSE)
+}
 
 message("Loading census blocks...")
 blocks_2010 <- read_blocks("../input/census_blocks_2010.csv", "GEOID10", st_crs(ward_panel))
@@ -748,6 +764,9 @@ write_csv(unit_increase_audit_summary, "../output/permit_unit_increase_audit_sum
 unit_audit_included_ids <- unit_increase_audit %>%
   filter(unit_increase_included == 1L) %>%
   select(id, unit_increase_included, unit_increase_reason)
+if (anyDuplicated(unit_audit_included_ids$id) > 0) {
+  stop("Unit-increase audit inclusion IDs must be unique by permit id.", call. = FALSE)
+}
 
 permit_year_min <- permit_start_year
 permit_year_max <- permit_end_year
@@ -764,7 +783,7 @@ permit_assignment_2010 <- assign_permits_to_blocks(
   manual_block_assignments = manual_block_assignments
 )
 permits_2010 <- permit_assignment_2010$assigned %>%
-  left_join(unit_audit_included_ids, by = "id") %>%
+  left_join(unit_audit_included_ids, by = "id", relationship = "many-to-one") %>%
   mutate(
     unit_increase_included = coalesce(as.integer(unit_increase_included), 0L)
   )
@@ -788,7 +807,7 @@ permit_assignment_2020 <- assign_permits_to_blocks(
   manual_block_assignments = manual_block_assignments
 )
 permits_2020 <- permit_assignment_2020$assigned %>%
-  left_join(unit_audit_included_ids, by = "id") %>%
+  left_join(unit_audit_included_ids, by = "id", relationship = "many-to-one") %>%
   mutate(
     unit_increase_included = coalesce(as.integer(unit_increase_included), 0L)
   )

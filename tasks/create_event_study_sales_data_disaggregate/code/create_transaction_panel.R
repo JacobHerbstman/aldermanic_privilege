@@ -424,7 +424,7 @@ if (anyDuplicated(sales_with_blocks_2020$sale_row_id) > 0) {
 }
 
 sales_with_blocks <- sales_with_blocks_2010 %>%
-  left_join(sales_with_blocks_2020, by = "sale_row_id")
+  left_join(sales_with_blocks_2020, by = "sale_row_id", relationship = "one-to-one")
 
 message(sprintf("Sales assigned to 2010 blocks: %s", format(sum(!is.na(sales_with_blocks$block_id_2010)), big.mark = ",")))
 message(sprintf("Sales assigned to 2020 blocks: %s", format(sum(!is.na(sales_with_blocks$block_id_2020)), big.mark = ",")))
@@ -446,6 +446,9 @@ treatment_2015 <- treatment_panel[cohort == "2015", .(
   strictness_change_2015 = strictness_change,
   valid_2015 = valid
 )]
+if (anyDuplicated(treatment_2015$block_id_2010) > 0) {
+  stop("2015 treatment input must be unique by 2010 block.", call. = FALSE)
+}
 
 # 2023 cohort treatment info
 treatment_2023 <- treatment_panel[cohort == "2023", .(
@@ -456,10 +459,17 @@ treatment_2023 <- treatment_panel[cohort == "2023", .(
   strictness_change_2023 = strictness_change,
   valid_2023 = valid
 )]
+if (anyDuplicated(treatment_2023$block_id_2020) > 0) {
+  stop("2023 treatment input must be unique by 2020 block.", call. = FALSE)
+}
 
 # Merge treatment info
+n_sales_before_treatment_merge <- nrow(sales_with_blocks)
 sales_with_treatment <- merge(sales_with_blocks, treatment_2015, by = "block_id_2010", all.x = TRUE)
 sales_with_treatment <- merge(sales_with_treatment, treatment_2023, by = "block_id_2020", all.x = TRUE)
+if (nrow(sales_with_treatment) != n_sales_before_treatment_merge) {
+  stop("Sales treatment merge changed the row count.", call. = FALSE)
+}
 
 message(sprintf("Sales with treatment info: %s", format(nrow(sales_with_treatment), big.mark = ",")))
 
@@ -523,12 +533,17 @@ sales_with_treatment[building_age < 0, building_age := NA]
 
 # Create log transformations (keep NAs as NAs - no imputation)
 sales_with_treatment[, `:=`(
-  log_sqft = log(building_sqft),
-  log_land_sqft = log(land_sqft),
-  log_building_age = log(building_age),
-  log_bedrooms = log(num_bedrooms),
-  log_baths = log(baths_total)
+  log_sqft = NA_real_,
+  log_land_sqft = NA_real_,
+  log_building_age = NA_real_,
+  log_bedrooms = NA_real_,
+  log_baths = NA_real_
 )]
+sales_with_treatment[!is.na(building_sqft) & building_sqft > 0, log_sqft := log(building_sqft)]
+sales_with_treatment[!is.na(land_sqft) & land_sqft > 0, log_land_sqft := log(land_sqft)]
+sales_with_treatment[!is.na(building_age) & building_age > 0, log_building_age := log(building_age)]
+sales_with_treatment[!is.na(num_bedrooms) & num_bedrooms > 0, log_bedrooms := log(num_bedrooms)]
+sales_with_treatment[!is.na(baths_total) & baths_total > 0, log_baths := log(baths_total)]
 
 # Report hedonic coverage
 message("\nHedonic variable coverage (% non-missing):")
@@ -541,14 +556,14 @@ message(sprintf("  has_garage: %.1f%%", 100 * mean(!is.na(sales_with_treatment$h
 
 # Report complete cases across the full sales universe before event-study filters.
 core_hedonics_complete <- sales_with_treatment[
-  !is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
-    !is.na(log_bedrooms) & !is.na(log_baths)
+  is.finite(log_sqft) & is.finite(log_land_sqft) & is.finite(log_building_age) &
+    is.finite(log_bedrooms) & is.finite(log_baths)
 ]
 core_building_hedonics_rate <- mean(
-  !is.na(sales_with_treatment$log_sqft) &
-    !is.na(sales_with_treatment$log_building_age) &
-    !is.na(sales_with_treatment$log_bedrooms) &
-    !is.na(sales_with_treatment$log_baths)
+  is.finite(sales_with_treatment$log_sqft) &
+    is.finite(sales_with_treatment$log_building_age) &
+    is.finite(sales_with_treatment$log_bedrooms) &
+    is.finite(sales_with_treatment$log_baths)
 )
 core_hedonics_complete_rate <- nrow(core_hedonics_complete) / nrow(sales_with_treatment)
 pre_1999_matched_sales <- sum(!is.na(sales_with_treatment$year_built) & sales_with_treatment$year_built < 1999)
@@ -575,12 +590,12 @@ sales_hedonic_coverage_by_sale_year <- sales_with_treatment[, .(
   num_bedrooms = mean(!is.na(num_bedrooms)) * 100,
   baths_total = mean(!is.na(baths_total)) * 100,
   complete_building_hedonics = mean(
-    !is.na(log_sqft) & !is.na(log_building_age) &
-      !is.na(log_bedrooms) & !is.na(log_baths)
+    is.finite(log_sqft) & is.finite(log_building_age) &
+      is.finite(log_bedrooms) & is.finite(log_baths)
   ) * 100,
   complete_hedonics_with_land = mean(
-    !is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
-      !is.na(log_bedrooms) & !is.na(log_baths)
+    is.finite(log_sqft) & is.finite(log_land_sqft) & is.finite(log_building_age) &
+      is.finite(log_bedrooms) & is.finite(log_baths)
   ) * 100
 ), by = sale_year][order(sale_year)]
 
@@ -972,30 +987,30 @@ print(cohort_treat_stats)
 
 message("\nHedonic variable coverage in final panel (% non-missing):")
 hedonic_coverage <- final_panel[, .(
-  log_sqft = mean(!is.na(log_sqft)) * 100,
-  log_land_sqft = mean(!is.na(log_land_sqft)) * 100,
-  log_building_age = mean(!is.na(log_building_age)) * 100,
-  log_bedrooms = mean(!is.na(log_bedrooms)) * 100,
-  log_baths = mean(!is.na(log_baths)) * 100,
+  log_sqft = mean(is.finite(log_sqft)) * 100,
+  log_land_sqft = mean(is.finite(log_land_sqft)) * 100,
+  log_building_age = mean(is.finite(log_building_age)) * 100,
+  log_bedrooms = mean(is.finite(log_bedrooms)) * 100,
+  log_baths = mean(is.finite(log_baths)) * 100,
   has_garage = mean(!is.na(has_garage)) * 100
 )]
 print(hedonic_coverage)
 
 final_hedonic_coverage_by_sale_year <- final_panel[, .(
   n_sales = .N,
-  log_sqft = mean(!is.na(log_sqft)) * 100,
-  log_land_sqft = mean(!is.na(log_land_sqft)) * 100,
-  log_building_age = mean(!is.na(log_building_age)) * 100,
-  log_bedrooms = mean(!is.na(log_bedrooms)) * 100,
-  log_baths = mean(!is.na(log_baths)) * 100,
+  log_sqft = mean(is.finite(log_sqft)) * 100,
+  log_land_sqft = mean(is.finite(log_land_sqft)) * 100,
+  log_building_age = mean(is.finite(log_building_age)) * 100,
+  log_bedrooms = mean(is.finite(log_bedrooms)) * 100,
+  log_baths = mean(is.finite(log_baths)) * 100,
   has_garage = mean(!is.na(has_garage)) * 100,
   complete_building_hedonics = mean(
-    !is.na(log_sqft) & !is.na(log_building_age) &
-      !is.na(log_bedrooms) & !is.na(log_baths) & !is.na(has_garage)
+    is.finite(log_sqft) & is.finite(log_building_age) &
+      is.finite(log_bedrooms) & is.finite(log_baths) & !is.na(has_garage)
   ) * 100,
   complete_hedonics_with_land = mean(
-    !is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
-      !is.na(log_bedrooms) & !is.na(log_baths) & !is.na(has_garage)
+    is.finite(log_sqft) & is.finite(log_land_sqft) & is.finite(log_building_age) &
+      is.finite(log_bedrooms) & is.finite(log_baths) & !is.na(has_garage)
   ) * 100
 ), by = .(cohort, sale_year)][order(cohort, sale_year)]
 
@@ -1027,8 +1042,8 @@ print(rel_year_wide)
 
 # Complete cases for regression
 n_complete <- final_panel[
-  !is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
-    !is.na(log_bedrooms) & !is.na(log_baths) & !is.na(has_garage), .N
+  is.finite(log_sqft) & is.finite(log_land_sqft) & is.finite(log_building_age) &
+    is.finite(log_bedrooms) & is.finite(log_baths) & !is.na(has_garage), .N
 ]
 message(sprintf(
   "\nTransactions with complete hedonics (regression sample): %s (%.1f%%)",
@@ -1038,10 +1053,10 @@ message(sprintf(
 final_complete_hedonics_rate <- n_complete / nrow(final_panel)
 final_core_building_hedonics_rate <- final_panel[
   ,
-  mean(!is.na(log_sqft) & !is.na(log_building_age) &
-         !is.na(log_bedrooms) & !is.na(log_baths) & !is.na(has_garage))
+  mean(is.finite(log_sqft) & is.finite(log_building_age) &
+         is.finite(log_bedrooms) & is.finite(log_baths) & !is.na(has_garage))
 ]
-final_land_sqft_rate <- mean(!is.na(final_panel$log_land_sqft))
+final_land_sqft_rate <- mean(is.finite(final_panel$log_land_sqft))
 final_pre_1999_matched_sales <- sum(!is.na(final_panel$year_built) & final_panel$year_built < 1999)
 
 if (final_pre_1999_matched_sales == 0) {
@@ -1067,8 +1082,8 @@ if (final_complete_hedonics_rate < 0.99) {
 }
 
 n_complete_amenity <- final_panel[
-  !is.na(log_sqft) & !is.na(log_land_sqft) & !is.na(log_building_age) &
-    !is.na(log_bedrooms) & !is.na(log_baths) & !is.na(has_garage) &
+  is.finite(log_sqft) & is.finite(log_land_sqft) & is.finite(log_building_age) &
+    is.finite(log_bedrooms) & is.finite(log_baths) & !is.na(has_garage) &
     !is.na(nearest_school_dist_m) & !is.na(nearest_park_dist_m) &
     !is.na(nearest_major_road_dist_m) & !is.na(lake_michigan_dist_m), .N
 ]

@@ -5,22 +5,14 @@ SCORE_COLUMN ?= uncertainty_index
 
 all: ../output/sales_with_ward_distances.csv ../output/rent_with_ward_distances_full.parquet ../output/block_treatment_panel.csv
 
-../output/.sales_treatment_merge_done.stamp: merge_event_study_scores.R ../input/sales_pre_scores.csv ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores.csv | ../output
-	# arg order: mode score_file score_column sales_input treatment_input alderman_panel sales_output treatment_output
-	$(R) merge_event_study_scores.R sales_treatment ../input/aldermen_uncertainty_scores.csv $(SCORE_COLUMN) ../input/sales_pre_scores.csv ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../output/sales_with_ward_distances.csv ../output/block_treatment_panel.csv
-	test -f ../output/sales_with_ward_distances.csv
-	test -f ../output/block_treatment_panel.csv
-	touch $@
+../output/sales_with_ward_distances.csv: merge_event_study_scores.R ../input/sales_pre_scores.csv ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores.csv | ../output
+	$(R) $< sales_treatment $(SCORE_COLUMN)
 
-../output/sales_with_ward_distances.csv: ../output/.sales_treatment_merge_done.stamp
-	@test -s "$@"
-
-../output/block_treatment_panel.csv: ../output/.sales_treatment_merge_done.stamp
+../output/block_treatment_panel.csv: ../output/sales_with_ward_distances.csv
 	@test -s "$@"
 
 ../output/rent_with_ward_distances_full.parquet: merge_event_study_scores.R ../input/rent_pre_scores_full.parquet ../input/aldermen_uncertainty_scores.csv | ../output
-	# arg order: mode score_file score_column rent_input rent_output
-	$(R) merge_event_study_scores.R rent ../input/aldermen_uncertainty_scores.csv $(SCORE_COLUMN) ../input/rent_pre_scores_full.parquet ../output/rent_with_ward_distances_full.parquet
+	$(R) $< rent $(SCORE_COLUMN)
 	@test -s "$@"
 
 ../input/sales_pre_scores.csv: ../../assign_segment_ids_sales_rental/output/sales_pre_scores_with_segments.csv | ../input

@@ -293,9 +293,25 @@ if (is.finite(MIN_SEGMENT_LENGTH_FT)) {
   ))
 }
 
-complete_hedonic <- complete.cases(data[, c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")])
+complete_hedonic <- data %>%
+  transmute(
+    complete = is.finite(log_sqft) &
+      is.finite(log_land_sqft) &
+      is.finite(log_building_age) &
+      is.finite(log_bedrooms) &
+      is.finite(log_baths) &
+      !is.na(has_garage)
+  ) %>%
+  pull(complete)
 complete_hedonic_n <- sum(complete_hedonic)
-complete_amenity <- complete.cases(data[, c("nearest_school_dist_m", "nearest_park_dist_m", "nearest_major_road_dist_m", "lake_michigan_dist_m")])
+complete_amenity <- data %>%
+  transmute(
+    complete = is.finite(nearest_school_dist_m) &
+      is.finite(nearest_park_dist_m) &
+      is.finite(nearest_major_road_dist_m) &
+      is.finite(lake_michigan_dist_m)
+  ) %>%
+  pull(complete)
 complete_amenity_n <- sum(complete_amenity)
 if (CONTROL_MODE %in% c("hedonic", "amenity")) {
   data <- data[complete_hedonic, ]
