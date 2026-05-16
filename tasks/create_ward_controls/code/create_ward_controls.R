@@ -207,8 +207,8 @@ data_2013_econ <- data_2013_econ_raw %>%
 
 # D. Merge to create the Hybrid 2010 Dataset
 data_2010_hybrid <- geo_2010 %>%
-  left_join(data_2010_sf1, by = "GEOID") %>%
-  left_join(data_2013_econ, by = "GEOID")
+  left_join(data_2010_sf1, by = "GEOID", relationship = "one-to-one") %>%
+  left_join(data_2013_econ, by = "GEOID", relationship = "one-to-one")
 
 # --- REGIME 3 PREP: 2020 GEOMETRY ---
 message("Fetching 2020 Geometry...")
@@ -239,6 +239,173 @@ census_metadata <- bind_rows(
 # -----------------------------------------------------------------------------
 years <- 2000:2023
 final_panel_list <- list()
+assignment_diagnostics_list <- list()
+
+empty_assignment_diagnostics <- function() {
+  tibble(
+    year = integer(),
+    GEOID = character(),
+    candidate_ward = integer(),
+    candidate_wards = character(),
+    intersection_area_sqft = numeric(),
+    selected_ward = integer(),
+    resolution_reason = character()
+  )
+}
+
+resolve_ambiguous_assignment <- function(bg_row_id_value, current_bgs, current_wards, candidate_assignments, current_year) {
+  bg <- current_bgs %>% filter(bg_row_id == bg_row_id_value)
+  candidate_wards <- candidate_assignments %>%
+    filter(bg_row_id == bg_row_id_value) %>%
+    pull(ward) %>%
+    unique() %>%
+    sort()
+
+  intersections <- suppressWarnings(
+    st_intersection(
+      current_wards %>% filter(ward %in% candidate_wards) %>% select(ward),
+      st_geometry(bg)
+    )
+  )
+  intersections$intersection_area_sqft <- as.numeric(st_area(intersections))
+
+  areas <- tibble(candidate_ward = candidate_wards) %>%
+    left_join(
+      intersections %>%
+        st_drop_geometry() %>%
+        group_by(candidate_ward = ward) %>%
+        summarize(intersection_area_sqft = sum(intersection_area_sqft, na.rm = TRUE), .groups = "drop"),
+      by = "candidate_ward",
+      relationship = "one-to-one"
+    ) %>%
+    mutate(intersection_area_sqft = coalesce(intersection_area_sqft, 0))
+
+  max_area <- max(areas$intersection_area_sqft, na.rm = TRUE)
+  if (!is.finite(max_area) || max_area <= 0) {
+    stop(
+      sprintf("Ambiguous ward assignment for GEOID %s in %s has no positive polygon overlap.", bg$GEOID[1], current_year),
+      call. = FALSE
+    )
+  }
+
+  selected_rows <- areas %>%
+    filter(abs(intersection_area_sqft - max_area) <= 1e-6)
+  if (nrow(selected_rows) > 1) {
+    stop(
+      sprintf("Ambiguous ward assignment for GEOID %s in %s has tied polygon overlaps.", bg$GEOID[1], current_year),
+      call. = FALSE
+    )
+  }
+  selected_ward <- selected_rows$candidate_ward[1]
+
+  areas %>%
+    mutate(
+      year = current_year,
+      GEOID = bg$GEOID[1],
+      candidate_wards = paste(candidate_wards, collapse = ";"),
+      selected_ward = selected_ward,
+      resolution_reason = "centroid matched multiple wards; selected largest block-group polygon overlap"
+    ) %>%
+    select(
+      year,
+      GEOID,
+      candidate_ward,
+      candidate_wards,
+      intersection_area_sqft,
+      selected_ward,
+      resolution_reason
+    )
+}
+
+assign_block_groups_to_wards <- function(current_bgs, current_wards, current_year) {
+  current_bgs <- current_bgs %>% mutate(bg_row_id = row_number())
+  current_wards <- current_wards %>% select(ward)
+
+  if (anyDuplicated(current_bgs$GEOID) > 0) {
+    stop(sprintf("Block-group data has duplicate GEOID values before ward assignment in %s.", current_year), call. = FALSE)
+  }
+  if (anyDuplicated(current_wards$ward) > 0) {
+    stop(sprintf("Ward map has duplicate ward geometries in %s.", current_year), call. = FALSE)
+  }
+  if (is.na(st_crs(current_bgs)) || st_crs(current_bgs)$epsg != 3435 ||
+      is.na(st_crs(current_wards)) || st_crs(current_wards)$epsg != 3435) {
+    stop(sprintf("Block groups and wards must be EPSG:3435 before ward assignment in %s.", current_year), call. = FALSE)
+  }
+  empty_bg <- st_is_empty(current_bgs)
+  if (any(empty_bg)) {
+    message(sprintf("Dropping %d empty block-group geometries before ward assignment in %s.", sum(empty_bg), current_year))
+    current_bgs <- current_bgs[!empty_bg, ]
+  }
+  if (any(st_is_empty(current_wards))) {
+    stop(sprintf("Empty ward geometry found before ward assignment in %s.", current_year), call. = FALSE)
+  }
+
+
+  candidate_assignments <- st_join(
+    st_centroid(current_bgs),
+    current_wards,
+    join = st_within,
+    left = FALSE
+  ) %>%
+    st_drop_geometry() %>%
+    select(bg_row_id, GEOID, ward)
+
+  if (nrow(candidate_assignments) == 0) {
+    return(list(data = tibble(), diagnostics = empty_assignment_diagnostics()))
+  }
+
+  duplicate_candidates <- candidate_assignments %>%
+    count(bg_row_id, GEOID, name = "candidate_count") %>%
+    filter(candidate_count > 1)
+
+  assignment_diagnostics <- empty_assignment_diagnostics()
+  if (nrow(duplicate_candidates) > 0) {
+    assignment_diagnostics <- map_dfr(
+      duplicate_candidates$bg_row_id,
+      resolve_ambiguous_assignment,
+      current_bgs = current_bgs,
+      current_wards = current_wards,
+      candidate_assignments = candidate_assignments,
+      current_year = current_year
+    )
+  }
+
+  simple_assignments <- candidate_assignments %>%
+    anti_join(duplicate_candidates, by = c("bg_row_id", "GEOID")) %>%
+    distinct(bg_row_id, GEOID, ward)
+
+  resolved_assignments <- assignment_diagnostics %>%
+    distinct(GEOID, selected_ward) %>%
+    inner_join(
+      duplicate_candidates %>% select(bg_row_id, GEOID),
+      by = "GEOID",
+      relationship = "one-to-one"
+    ) %>%
+    transmute(bg_row_id, GEOID, ward = selected_ward)
+
+  assignments <- bind_rows(simple_assignments, resolved_assignments) %>%
+    arrange(bg_row_id)
+
+  duplicate_assignments <- assignments %>%
+    count(bg_row_id, GEOID, name = "n") %>%
+    filter(n > 1)
+  if (nrow(duplicate_assignments) > 0) {
+    stop(sprintf("Block-group ward assignment still has duplicates in %s.", current_year), call. = FALSE)
+  }
+
+  assigned_data <- current_bgs %>%
+    st_drop_geometry() %>%
+    left_join(
+      assignments %>% select(bg_row_id, ward),
+      by = "bg_row_id",
+      relationship = "one-to-one"
+    ) %>%
+    filter(!is.na(ward)) %>%
+    mutate(year = current_year) %>%
+    select(-bg_row_id)
+
+  list(data = assigned_data, diagnostics = assignment_diagnostics)
+}
 
 message(glue("Starting Panel Construction ({min(years)}-{max(years)})..."))
 
@@ -285,23 +452,19 @@ for (y in years) {
 
     # Attach correct geometry
     if (y < 2020) {
-      current_bgs <- geo_2010 %>% left_join(current_data, by = "GEOID")
+      current_bgs <- geo_2010 %>% left_join(current_data, by = "GEOID", relationship = "one-to-one")
     } else {
-      current_bgs <- geo_2020 %>% left_join(current_data, by = "GEOID")
+      current_bgs <- geo_2020 %>% left_join(current_data, by = "GEOID", relationship = "one-to-one")
     }
   }
 
-  # --- B. Spatial Join to Ward ---
-  # Pick Ward Map
+  # --- B. Assign block groups to wards by centroid ---
   current_wards <- ward_panel %>% filter(year == y)
   if (nrow(current_wards) == 0) next
 
-  # Centroid Join
-  bg_centroids <- st_centroid(current_bgs)
-  joined_data <- st_join(bg_centroids, current_wards, join = st_within) %>%
-    st_drop_geometry() %>%
-    mutate(year = y) %>%
-    filter(!is.na(ward))
+  ward_assignment <- assign_block_groups_to_wards(current_bgs, current_wards, y)
+  joined_data <- ward_assignment$data
+  assignment_diagnostics_list[[as.character(y)]] <- ward_assignment$diagnostics
 
   final_panel_list[[as.character(y)]] <- joined_data
 }
@@ -311,6 +474,14 @@ for (y in years) {
 message("Aggregating to Ward-Year Level...")
 
 final_bg_panel <- bind_rows(final_panel_list)
+assignment_diagnostics <- bind_rows(assignment_diagnostics_list)
+
+duplicate_bg_years <- final_bg_panel %>%
+  count(GEOID, year, name = "n") %>%
+  filter(n > 1)
+if (nrow(duplicate_bg_years) > 0) {
+  stop("Block group controls contain duplicate GEOID-year assignments.", call. = FALSE)
+}
 
 ward_controls <- final_bg_panel %>%
   group_by(ward, year) %>%
@@ -342,6 +513,9 @@ ward_controls <- final_bg_panel %>%
 # Save block group level controls (before aggregation)
 write_csv(final_bg_panel, "../output/block_group_controls_2000_2023.csv")
 message("Block Group Panel saved to: ../output/block_group_controls_2000_2023.csv")
+
+write_csv(assignment_diagnostics, "../output/block_group_ward_assignment_diagnostics.csv")
+message("Assignment diagnostics saved to: ../output/block_group_ward_assignment_diagnostics.csv")
 
 # Save ward-level aggregated controls
 write_csv(ward_controls, "../output/ward_controls_2000_2023.csv")

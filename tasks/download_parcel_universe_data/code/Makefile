@@ -3,13 +3,16 @@ SHELL := bash
 PARCEL_YEAR := 2025
 TRIAD_NAME := City
 
-all: ../output/parcel_universe_2025_city.csv
+all: ../output/parcel_universe_2025_city.csv ../output/parcel_universe_2025_city_metadata.csv
 
 ../temp/parcel_universe_2025_city_native.csv: download_parcel_universe_data.sh | ../temp ../output
-	bash $< $(PARCEL_YEAR) $(TRIAD_NAME) $@ ../output/parcel_universe_2025_city_metadata.csv
+	bash $< $(PARCEL_YEAR) $(TRIAD_NAME)
 
-../output/parcel_universe_2025_city.csv: rewrite_parcel_universe_schema.R ../temp/parcel_universe_2025_city_native.csv | ../output
+../output/parcel_universe_2025_city.csv: rewrite_parcel_universe_schema.R ../temp/parcel_universe_2025_city_native.csv ../output/parcel_universe_2025_city_metadata.csv | ../output
 	$(R) $<
+
+../output/parcel_universe_2025_city_metadata.csv: ../temp/parcel_universe_2025_city_native.csv
+	@test -s "$@"
 
 include ../../shell_functions.make
 include ../../generic.make

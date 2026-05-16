@@ -5,7 +5,9 @@
 
 source("../../setup_environment/code/packages.R")
 
-## set census api key if not already done
+if (Sys.getenv("CENSUS_API_KEY") == "") {
+  stop("CENSUS_API_KEY not found in the environment.", call. = FALSE)
+}
 census_api_key(Sys.getenv("CENSUS_API_KEY"))
 
 census_metadata_timestamp <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
@@ -116,7 +118,7 @@ combined_acs_data <- bind_rows(
 
 # Join the ACS data to the panel template
 bg_controls_raw <- panel_template %>%
-  left_join(combined_acs_data, by = c("GEOID", "period"))
+  left_join(combined_acs_data, by = c("GEOID", "period"), relationship = "many-to-one")
 
 # -----------------------------------------------------------------------------
 # 4. CALCULATE FINAL CONTROL VARIABLES
@@ -181,7 +183,7 @@ block_group_areas <- block_group_geometry_2019 %>%
 # Calculate the final variables
 message("Calculating derived variables...")
 bg_controls <- bg_controls_raw %>%
-  left_join(block_group_areas, by = "GEOID") %>%
+  left_join(block_group_areas, by = "GEOID", relationship = "many-to-one") %>%
   mutate(
     # Race/Ethnicity shares
     percent_white = white_population / total_population,

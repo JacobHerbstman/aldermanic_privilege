@@ -20,25 +20,23 @@ legacy_names <- strsplit(
 
 parcel_universe <- fread(input_csv, colClasses = "character")
 
-if (file.exists(metadata_csv)) {
-  metadata <- fread(metadata_csv, colClasses = "character")
-  if (!"rows" %in% names(metadata) || nrow(metadata) != 1) {
-    stop("Parcel universe metadata must contain one row with a rows column.", call. = FALSE)
-  }
-  expected_rows <- suppressWarnings(as.integer(metadata$rows[1]))
-  if (!is.finite(expected_rows) || expected_rows <= 0) {
-    stop("Parcel universe metadata has an invalid rows value.", call. = FALSE)
-  }
-  if (nrow(parcel_universe) != expected_rows) {
-    stop(
-      sprintf(
-        "Parcel universe row count mismatch: metadata says %s rows but input has %s rows.",
-        format(expected_rows, big.mark = ","),
-        format(nrow(parcel_universe), big.mark = ",")
-      ),
-      call. = FALSE
-    )
-  }
+metadata <- fread(metadata_csv, colClasses = "character")
+if (!"rows" %in% names(metadata) || nrow(metadata) != 1) {
+  stop("Parcel universe metadata must contain one row with a rows column.", call. = FALSE)
+}
+expected_rows <- suppressWarnings(as.integer(metadata$rows[1]))
+if (!is.finite(expected_rows) || expected_rows <= 0) {
+  stop("Parcel universe metadata has an invalid rows value.", call. = FALSE)
+}
+if (nrow(parcel_universe) != expected_rows) {
+  stop(
+    sprintf(
+      "Parcel universe row count mismatch: metadata says %s rows but input has %s rows.",
+      format(expected_rows, big.mark = ","),
+      format(nrow(parcel_universe), big.mark = ",")
+    ),
+    call. = FALSE
+  )
 }
 
 missing_cols <- setdiff(native_names, names(parcel_universe))
