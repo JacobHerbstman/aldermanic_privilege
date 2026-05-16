@@ -1,6 +1,12 @@
 SHELL := bash
 
-all: ../output/permits_for_uncertainty_index.csv
+all: ../output/permits_for_uncertainty_index.csv \
+	../output/permits_for_uncertainty_index_attrition.csv \
+	../output/permits_for_uncertainty_index_diagnostics.csv \
+	../output/ward_spatial_join_diagnostics.csv \
+	../output/community_area_join_diagnostics.csv \
+	../output/processing_time_exclusions.csv \
+	../output/turnover_overlap_diagnostics.csv
 
 ../output/permits_for_uncertainty_index.csv: prepare_uncertainty_data.R \
 	../input/ward_panel.gpkg \
@@ -9,7 +15,6 @@ all: ../output/permits_for_uncertainty_index.csv
 	../input/ward_controls.csv \
 	../input/community_areas.geojson \
 	../input/cta_stations.geojson \
-	../input/city_boundary.geojson \
 	../input/gis_osm_water_a_free_1.shp \
 	../input/gis_osm_water_a_free_1.dbf \
 	../input/gis_osm_water_a_free_1.prj \
@@ -17,7 +22,14 @@ all: ../output/permits_for_uncertainty_index.csv
 	../input/gis_osm_water_a_free_1.cpg | ../output
 	$(R) $<
 
-# Symlinks to upstream data
+../output/permits_for_uncertainty_index_attrition.csv \
+../output/permits_for_uncertainty_index_diagnostics.csv \
+../output/ward_spatial_join_diagnostics.csv \
+../output/community_area_join_diagnostics.csv \
+../output/processing_time_exclusions.csv \
+../output/turnover_overlap_diagnostics.csv: ../output/permits_for_uncertainty_index.csv
+	@test -s "$@"
+
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
@@ -36,14 +48,11 @@ all: ../output/permits_for_uncertainty_index.csv
 ../input/cta_stations.geojson: ../../../data_raw/cta_stations.geojson | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/city_boundary.geojson: ../../../data_raw/Boundaries_-_City_20250920.geojson | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
-
 ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg: ../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 
-link-inputs: ../input/ward_panel.gpkg ../input/building_permits_clean.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/community_areas.geojson ../input/cta_stations.geojson ../input/city_boundary.geojson ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
+link-inputs: ../input/ward_panel.gpkg ../input/building_permits_clean.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/community_areas.geojson ../input/cta_stations.geojson ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
 include ../../shell_functions.make
 include ../../generic.make

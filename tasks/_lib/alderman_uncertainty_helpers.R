@@ -119,7 +119,7 @@ prepare_uncertainty_sample <- function(
     ward = sort(unique(wm_counts$ward)),
     month_date = all_months
   ) %>%
-    left_join(wm_counts, by = c("ward", "month_date")) %>%
+    left_join(wm_counts, by = c("ward", "month_date"), relationship = "one-to-one") %>%
     mutate(n_permits_wm = replace_na(n_permits_wm, 0L)) %>%
     group_by(ward) %>%
     arrange(month_date, .by_group = TRUE) %>%
@@ -129,7 +129,7 @@ prepare_uncertainty_sample <- function(
     select(ward, month, n_permits_wm, n_permits_wm_l1)
 
   permits_prepared <- permits_prepared %>%
-    left_join(wm_grid, by = c("ward", "month")) %>%
+    left_join(wm_grid, by = c("ward", "month"), relationship = "many-to-one") %>%
     mutate(
       median_hh_income_10k = median_hh_income / 10000,
       pop_total_10k = pop_total / 10000
@@ -317,7 +317,8 @@ build_two_stage_index <- function(
         filter(str_detect(term, "^alderman::")) %>%
         mutate(alderman = str_remove(term, "^alderman::")) %>%
         select(alderman, alderman_se),
-      by = "alderman"
+      by = "alderman",
+      relationship = "one-to-one"
     ) %>%
     select(alderman, alderman_fe, alderman_se)
 
@@ -356,7 +357,7 @@ build_two_stage_index <- function(
       alderman_se,
       shrinkage_B
     ) %>%
-    left_join(permit_level_stats, by = "alderman") %>%
+    left_join(permit_level_stats, by = "alderman", relationship = "one-to-one") %>%
     mutate(uncertainty_index = standardize_uncertainty(mean_resid)) %>%
     select(
       alderman,

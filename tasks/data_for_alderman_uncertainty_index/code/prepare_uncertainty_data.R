@@ -15,9 +15,253 @@ alderman_panel_path <- Sys.getenv("ALDERMAN_PANEL_PATH", "../input/chicago_alder
 ward_controls_path <- Sys.getenv("WARD_CONTROLS_PATH", "../input/ward_controls.csv")
 community_areas_path <- Sys.getenv("COMMUNITY_AREAS_PATH", "../input/community_areas.geojson")
 cta_stations_path <- Sys.getenv("CTA_STATIONS_PATH", "../input/cta_stations.geojson")
-city_boundary_path <- Sys.getenv("CITY_BOUNDARY_PATH", "../input/city_boundary.geojson")
 water_osm_path <- Sys.getenv("WATER_OSM_PATH", "../input/gis_osm_water_a_free_1.shp")
 permits_output_path <- Sys.getenv("OUTPUT_PERMITS_FOR_UNCERTAINTY_PATH", "../output/permits_for_uncertainty_index.csv")
+
+drop_geometry_if_needed <- function(df) {
+  if (inherits(df, "sf")) {
+    return(st_drop_geometry(df))
+  }
+  df
+}
+
+missing_geometry_n <- function(df) {
+  if (!inherits(df, "sf")) {
+    return(NA_integer_)
+  }
+  geom <- st_geometry(df)
+  sum(st_is_empty(geom) | is.na(geom))
+}
+
+assert_unique_key <- function(df, key_cols, label) {
+  data <- drop_geometry_if_needed(df)
+  missing_key_cols <- setdiff(key_cols, names(data))
+  if (length(missing_key_cols) > 0) {
+    stop(
+      sprintf("%s is missing required key columns: %s", label, paste(missing_key_cols, collapse = ", ")),
+      call. = FALSE
+    )
+  }
+
+  missing_keys <- data %>%
+    filter(if_any(all_of(key_cols), is.na))
+  if (nrow(missing_keys) > 0) {
+    stop(sprintf("%s has %s rows with missing key values.", label, nrow(missing_keys)), call. = FALSE)
+  }
+
+  duplicate_keys <- data %>%
+    count(across(all_of(key_cols)), name = "n") %>%
+    filter(n > 1)
+  if (nrow(duplicate_keys) > 0) {
+    print(head(duplicate_keys, 20))
+    stop(sprintf("%s has duplicate key rows for %s.", label, paste(key_cols, collapse = ", ")), call. = FALSE)
+  }
+}
+
+assert_expected_crs <- function(layer, expected_epsg, label) {
+  layer_crs <- st_crs(layer)
+  if (is.na(layer_crs)) {
+    stop(sprintf("%s has missing CRS.", label), call. = FALSE)
+  }
+  if (!identical(as.integer(layer_crs$epsg), as.integer(expected_epsg))) {
+    stop(
+      sprintf("%s must use EPSG:%s; found EPSG:%s.", label, expected_epsg, layer_crs$epsg),
+      call. = FALSE
+    )
+  }
+}
+
+summarize_stage <- function(df, stage) {
+  data <- drop_geometry_if_needed(df)
+  tibble(
+    stage = stage,
+    n_rows = nrow(data),
+    n_unique_ids = if ("id" %in% names(data)) n_distinct(data$id, na.rm = TRUE) else NA_integer_,
+    n_missing_id = if ("id" %in% names(data)) sum(is.na(data$id)) else NA_integer_,
+    n_duplicate_ids = if ("id" %in% names(data)) sum(duplicated(data$id)) else NA_integer_,
+    n_missing_geometry = missing_geometry_n(df),
+    n_high_discretion = if ("high_discretion" %in% names(data)) sum(data$high_discretion == 1, na.rm = TRUE) else NA_integer_,
+    n_missing_application_month = if ("application_start_date_ym" %in% names(data)) sum(is.na(data$application_start_date_ym)) else NA_integer_,
+    n_with_ward = if ("ward" %in% names(data)) sum(!is.na(data$ward)) else NA_integer_,
+    n_missing_ward = if ("ward" %in% names(data)) sum(is.na(data$ward)) else NA_integer_,
+    n_with_community_area = if ("ca_id" %in% names(data)) sum(!is.na(data$ca_id)) else NA_integer_,
+    n_missing_community_area = if ("ca_id" %in% names(data)) sum(is.na(data$ca_id)) else NA_integer_,
+    n_with_alderman = if ("alderman" %in% names(data)) sum(!is.na(data$alderman) & data$alderman != "") else NA_integer_,
+    n_missing_alderman = if ("alderman" %in% names(data)) sum(is.na(data$alderman) | data$alderman == "") else NA_integer_,
+    n_with_ward_controls = if ("homeownership_rate" %in% names(data)) sum(!is.na(data$homeownership_rate)) else NA_integer_,
+    n_missing_ward_controls = if ("homeownership_rate" %in% names(data)) sum(is.na(data$homeownership_rate)) else NA_integer_,
+    n_positive_processing_time = if ("processing_time" %in% names(data)) sum(data$processing_time > 0, na.rm = TRUE) else NA_integer_,
+    n_final = if (stage == "final_output") nrow(data) else NA_integer_
+  )
+}
+
+clean_permit_type <- function(permit_type) {
+  case_when(
+    grepl("NEW CONSTRUCTION", permit_type) ~ "new_construction",
+    grepl("RENOVATION|ALTERATION", permit_type) ~ "renovation",
+    grepl("WRECKING|DEMOLITION", permit_type) ~ "demolition",
+    grepl("PORCH", permit_type) ~ "porch",
+    grepl("REINSTATE", permit_type) ~ "reinstate",
+    TRUE ~ "other"
+  )
+}
+
+assign_wards_for_era <- function(permits_era, ward_geoms, map_version_value, era_label) {
+  if (nrow(permits_era) == 0) {
+    return(
+      list(
+        data = permits_era %>% st_drop_geometry(),
+        diagnostics = tibble(
+          id = character(),
+          application_month = character(),
+          application_year = integer(),
+          map_version = integer(),
+          era = character(),
+          n_ward_hits = integer(),
+          assigned_ward = numeric(),
+          reason = character()
+        )
+      )
+    )
+  }
+
+  joined <- st_join(permits_era, ward_geoms, join = st_within, left = TRUE)
+  joined_data <- st_drop_geometry(joined)
+
+  diagnostics <- joined_data %>%
+    mutate(ward_match = ward.y) %>%
+    group_by(id) %>%
+    summarise(
+      application_month = as.character(first(application_start_date_ym)),
+      application_year = first(application_year),
+      map_version = map_version_value,
+      era = era_label,
+      n_ward_hits = sum(!is.na(ward_match)),
+      assigned_ward = {
+        ward_matches <- ward_match[!is.na(ward_match)]
+        if (length(ward_matches) == 1L) ward_matches[[1]] else NA_real_
+      },
+      reason = case_when(
+        n_ward_hits == 0L ~ "no_ward_match",
+        n_ward_hits > 1L ~ "multiple_ward_matches",
+        TRUE ~ "matched"
+      ),
+      .groups = "drop"
+    )
+
+  multiple_matches <- diagnostics %>% filter(n_ward_hits > 1)
+  if (nrow(multiple_matches) > 0) {
+    print(head(multiple_matches, 20))
+    stop(sprintf("%s ward spatial join produced multiple ward matches.", era_label), call. = FALSE)
+  }
+
+  data <- joined_data %>%
+    mutate(ward = ward.y) %>%
+    select(-any_of(c("ward.x", "ward.y"))) %>%
+    filter(!is.na(ward))
+
+  list(data = data, diagnostics = diagnostics)
+}
+
+summarize_processing_exclusions <- function(data) {
+  data %>%
+    mutate(
+      year = application_year,
+      permit_type_clean = clean_permit_type(permit_type),
+      exclusion_reason = case_when(
+        is.na(processing_time) ~ "missing_processing_time",
+        processing_time <= 0 ~ "nonpositive_processing_time",
+        TRUE ~ NA_character_
+      )
+    ) %>%
+    filter(!is.na(exclusion_reason)) %>%
+    count(year, ward, alderman, permit_type_clean, exclusion_reason, name = "n_permits") %>%
+    arrange(year, ward, alderman, permit_type_clean, exclusion_reason)
+}
+
+summarize_turnover_overlaps <- function(permits_data, alderman_data) {
+  alderman_tenures <- alderman_data %>%
+    filter(!is.na(alderman), alderman != "") %>%
+    arrange(ward, month) %>%
+    group_by(ward) %>%
+    mutate(tenure_id = cumsum(alderman != lag(alderman, default = first(alderman)))) %>%
+    group_by(ward, tenure_id, alderman) %>%
+    summarise(
+      tenure_start = min(month),
+      tenure_end = max(month),
+      tenure_start_num = min(as.numeric(month)),
+      tenure_end_num = max(as.numeric(month)),
+      .groups = "drop"
+    )
+
+  permits_for_turnover <- permits_data %>%
+    mutate(
+      application_month_num = as.numeric(application_start_date_ym),
+      issue_month_num_raw = as.numeric(as.yearmon(issue_date_ym)),
+      issue_month_num = if_else(
+        is.na(issue_month_num_raw) | issue_month_num_raw < application_month_num,
+        application_month_num,
+        issue_month_num_raw
+      ),
+      issue_month_checked = as.yearmon(issue_month_num)
+    ) %>%
+    select(id, ward, alderman, application_start_date_ym, issue_month_checked,
+           application_month_num, issue_month_num)
+
+  if (nrow(permits_for_turnover) == 0) {
+    return(
+      tibble(
+        id = character(),
+        ward = numeric(),
+        alderman_application = character(),
+        application_month = character(),
+        issue_month = character(),
+        n_other_aldermen_during_processing = integer(),
+        other_aldermen_during_processing = character()
+      )
+    )
+  }
+
+  overlap_rows <- vector("list", n_distinct(permits_for_turnover$ward))
+  wards <- sort(unique(permits_for_turnover$ward))
+
+  for (ward_index in seq_along(wards)) {
+    ward_value <- wards[[ward_index]]
+    ward_permits <- permits_for_turnover %>% filter(ward == ward_value)
+    ward_tenures <- alderman_tenures %>% filter(ward == ward_value)
+
+    overlap_rows[[ward_index]] <- ward_permits %>%
+      rowwise() %>%
+      mutate(
+        other_aldermen_during_processing = paste(
+          sort(unique(ward_tenures$alderman[
+            ward_tenures$alderman != alderman &
+              ward_tenures$tenure_start_num <= issue_month_num &
+              ward_tenures$tenure_end_num >= application_month_num
+          ])),
+          collapse = "; "
+        ),
+        n_other_aldermen_during_processing = if_else(
+          other_aldermen_during_processing == "",
+          0L,
+          lengths(strsplit(other_aldermen_during_processing, "; ", fixed = TRUE))
+        )
+      ) %>%
+      ungroup() %>%
+      filter(n_other_aldermen_during_processing > 0) %>%
+      transmute(
+        id,
+        ward,
+        alderman_application = alderman,
+        application_month = as.character(application_start_date_ym),
+        issue_month = as.character(issue_month_checked),
+        n_other_aldermen_during_processing,
+        other_aldermen_during_processing
+      )
+  }
+
+  bind_rows(overlap_rows)
+}
 
 # -----------------------------------------------------------------------------
 # 1. LOAD DATA
@@ -51,26 +295,37 @@ message("Community areas loaded: ", nrow(community_areas), " areas")
 
 # Place-control layers used in the active stringency pipeline
 cta_stations <- st_read(cta_stations_path, quiet = TRUE)
-city_boundary <- st_read(city_boundary_path, quiet = TRUE)
 water_osm <- st_read(water_osm_path, quiet = TRUE)
+
+assert_unique_key(permits, "id", "Building permits")
+assert_unique_key(alderman_panel, c("ward", "month"), "Alderman panel")
+assert_unique_key(ward_controls, c("ward", "year"), "Ward controls")
+assert_unique_key(ward_panel, c("ward", "year"), "Ward panel")
+
+if (missing_geometry_n(permits) > 0) {
+  stop(sprintf("Building permits has %s rows with missing geometry.", missing_geometry_n(permits)), call. = FALSE)
+}
+if (missing_geometry_n(ward_panel) > 0) {
+  stop(sprintf("Ward panel has %s rows with missing geometry.", missing_geometry_n(ward_panel)), call. = FALSE)
+}
+
+assert_expected_crs(ward_panel, 3435, "Ward panel")
 
 if (st_crs(cta_stations) != st_crs(ward_panel)) {
   cta_stations <- st_transform(cta_stations, st_crs(ward_panel))
-}
-if (st_crs(city_boundary) != st_crs(ward_panel)) {
-  city_boundary <- st_transform(city_boundary, st_crs(ward_panel))
 }
 if (st_crs(water_osm) != st_crs(ward_panel)) {
   water_osm <- st_transform(water_osm, st_crs(ward_panel))
 }
 
-message("Place-control layers loaded (CTA, city boundary, water).")
+message("Place-control layers loaded (CTA, water).")
 
 # Ensure CRS alignment
 if (st_crs(permits) != st_crs(ward_panel)) {
   message("Transforming permits CRS to match ward panel")
   permits <- st_transform(permits, st_crs(ward_panel))
 }
+assert_expected_crs(permits, 3435, "Building permits")
 
 # -----------------------------------------------------------------------------
 # 2. FILTER TO HIGH DISCRETION PERMITS
@@ -111,6 +366,20 @@ ward_geoms_map3 <- ward_panel %>%
   summarise(.groups = "drop") %>%
   mutate(map_version = 3L)
 
+ward_map_counts <- tibble(
+  map_version = c(1L, 2L, 3L),
+  map_year = c(2014L, 2016L, max(ward_panel$year)),
+  n_wards = c(
+    n_distinct(ward_geoms_map1$ward),
+    n_distinct(ward_geoms_map2$ward),
+    n_distinct(ward_geoms_map3$ward)
+  )
+)
+if (any(ward_map_counts$n_wards != 50)) {
+  print(ward_map_counts)
+  stop("Expected 50 wards in each uncertainty-index map-year geometry.", call. = FALSE)
+}
+
 permits_pre2015 <- permits_high_discretion %>%
   filter(application_start_date_ym < as.yearmon("2015-05"))
 permits_2015_2023 <- permits_high_discretion %>%
@@ -121,41 +390,22 @@ permits_2015_2023 <- permits_high_discretion %>%
 permits_post2023 <- permits_high_discretion %>%
   filter(application_start_date_ym >= as.yearmon("2023-05"))
 
-permits_ward_pre2015 <- if (nrow(permits_pre2015) == 0) {
-  permits_pre2015 %>% st_drop_geometry()
-} else {
-  st_join(permits_pre2015, ward_geoms_map1, join = st_within) %>%
-    mutate(ward = ward.y) %>%
-    select(-any_of(c("ward.x", "ward.y"))) %>%
-    filter(!is.na(ward)) %>%
-    st_drop_geometry()
-}
-
-permits_ward_2015_2023 <- if (nrow(permits_2015_2023) == 0) {
-  permits_2015_2023 %>% st_drop_geometry()
-} else {
-  st_join(permits_2015_2023, ward_geoms_map2, join = st_within) %>%
-    mutate(ward = ward.y) %>%
-    select(-any_of(c("ward.x", "ward.y"))) %>%
-    filter(!is.na(ward)) %>%
-    st_drop_geometry()
-}
-
-permits_ward_post2023 <- if (nrow(permits_post2023) == 0) {
-  permits_post2023 %>% st_drop_geometry()
-} else {
-  st_join(permits_post2023, ward_geoms_map3, join = st_within) %>%
-    mutate(ward = ward.y) %>%
-    select(-any_of(c("ward.x", "ward.y"))) %>%
-    filter(!is.na(ward)) %>%
-    st_drop_geometry()
-}
+ward_pre2015 <- assign_wards_for_era(permits_pre2015, ward_geoms_map1, 1L, "pre_2015")
+ward_2015_2023 <- assign_wards_for_era(permits_2015_2023, ward_geoms_map2, 2L, "2015_2023")
+ward_post2023 <- assign_wards_for_era(permits_post2023, ward_geoms_map3, 3L, "post_2023")
 
 permits_ward_data <- bind_rows(
-  permits_ward_pre2015,
-  permits_ward_2015_2023,
-  permits_ward_post2023
+  ward_pre2015$data,
+  ward_2015_2023$data,
+  ward_post2023$data
 )
+ward_spatial_join_diagnostics <- bind_rows(
+  ward_pre2015$diagnostics,
+  ward_2015_2023$diagnostics,
+  ward_post2023$diagnostics
+)
+
+assert_unique_key(permits_ward_data, "id", "Permits after ward spatial join")
 message("Permits after spatial join: ", nrow(permits_ward_data))
 
 # Ensure map_version is always populated by month-era rule (legacy behavior)
@@ -180,22 +430,49 @@ message("Permits with map_version: ",
 
 message("Assigning community areas...")
 
-# Convert permits back to sf for spatial join (they were converted to data frame in do_join)
-# Need to re-join with original geometry
-permits_with_ca <- permits_high_discretion %>%
+community_area_joined <- permits_high_discretion %>%
   select(id) %>%
-  # Ensure CRS matches
   st_transform(st_crs(community_areas)) %>%
-  st_join(community_areas, join = st_within) %>%
-  st_drop_geometry() %>%
+  st_join(community_areas, join = st_within, left = TRUE) %>%
+  st_drop_geometry()
+
+community_area_join_diagnostics <- community_area_joined %>%
+  group_by(id) %>%
+  summarise(
+    n_ca_hits = sum(!is.na(ca_id)),
+    assigned_ca_id = {
+      ca_matches <- ca_id[!is.na(ca_id)]
+      if (length(ca_matches) == 1L) as.character(ca_matches[[1]]) else NA_character_
+    },
+    reason = case_when(
+      n_ca_hits == 0L ~ "no_community_area_match",
+      n_ca_hits > 1L ~ "multiple_community_area_matches",
+      TRUE ~ "matched"
+    ),
+    .groups = "drop"
+  )
+
+multiple_community_area_matches <- community_area_join_diagnostics %>%
+  filter(n_ca_hits > 1)
+if (nrow(multiple_community_area_matches) > 0) {
+  print(head(multiple_community_area_matches, 20))
+  stop("Community-area spatial join produced multiple matches for at least one permit.", call. = FALSE)
+}
+
+permits_with_ca <- community_area_joined %>%
+  filter(!is.na(ca_id)) %>%
   select(id, ca_id, ca_name)
+assert_unique_key(permits_with_ca, "id", "Permit community-area assignment")
 
 # Merge back to ward data
 permits_ward_data <- permits_ward_data %>%
-  left_join(permits_with_ca, by = "id")
+  left_join(permits_with_ca, by = "id", relationship = "many-to-one")
 
 message("Permits with community area: ", sum(!is.na(permits_ward_data$ca_id)),
         " (", round(mean(!is.na(permits_ward_data$ca_id)) * 100, 1), "%)")
+if (any(is.na(permits_ward_data$ca_id))) {
+  stop("Permits after ward spatial join include rows without a community-area assignment.", call. = FALSE)
+}
 
 # -----------------------------------------------------------------------------
 # 4. MERGE ALDERMAN INFORMATION
@@ -203,9 +480,16 @@ message("Permits with community area: ", sum(!is.na(permits_ward_data$ca_id)),
 
 message("Merging alderman information...")
 
-permits_with_alderman <- permits_ward_data %>%
-  left_join(alderman_panel, by = c("ward", "application_start_date_ym" = "month")) %>%
+permits_with_alderman_all <- permits_ward_data %>%
+  left_join(
+    alderman_panel,
+    by = c("ward", "application_start_date_ym" = "month"),
+    relationship = "many-to-one"
+  )
+
+permits_with_alderman <- permits_with_alderman_all %>%
   filter(!is.na(alderman))
+assert_unique_key(permits_with_alderman, "id", "Permits after alderman join")
 
 message("Permits with alderman: ", nrow(permits_with_alderman))
 message("Unique aldermen: ", n_distinct(permits_with_alderman$alderman))
@@ -230,11 +514,20 @@ if (max_permit_year > max_control_year) {
   
   ward_controls <- bind_rows(ward_controls, filled_data)
 }
+assert_unique_key(ward_controls, c("ward", "year"), "Ward controls after forward fill")
 
 permits_with_controls <- permits_with_alderman %>%
-  left_join(ward_controls, by = c("ward", "application_year" = "year"))
+  left_join(
+    ward_controls,
+    by = c("ward", "application_year" = "year"),
+    relationship = "many-to-one"
+  )
+assert_unique_key(permits_with_controls, "id", "Permits after ward-controls join")
 
 message("Permits with ward controls: ", sum(!is.na(permits_with_controls$homeownership_rate)))
+if (any(is.na(permits_with_controls$homeownership_rate))) {
+  stop("Permits after alderman join include rows without ward controls.", call. = FALSE)
+}
 
 # -----------------------------------------------------------------------------
 # 6. BUILD + MERGE PLACE CONTROLS (PARCEL / PERMIT POINT LEVEL)
@@ -252,6 +545,9 @@ metric_crs <- 26916
 permit_points_m <- st_transform(permit_points, metric_crs)
 cta_stations_m <- st_transform(cta_stations, metric_crs)
 water_osm_m <- st_transform(water_osm, metric_crs)
+assert_expected_crs(permit_points_m, metric_crs, "Permit points for place controls")
+assert_expected_crs(cta_stations_m, metric_crs, "CTA stations for place controls")
+assert_expected_crs(water_osm_m, metric_crs, "OSM water for place controls")
 
 # CBD reference point (downtown Chicago)
 cbd_m <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>%
@@ -264,14 +560,13 @@ dist_cbd_km <- as.numeric(units::set_units(st_distance(permit_points_m, cbd_m), 
 n_rail_stations_800m <- lengths(st_is_within_distance(permit_points_m, cta_stations_m, dist = 800))
 
 # Distance to Lake Michigan shoreline / polygon (km)
-lake_michigan_m <- water_osm_m %>%
+lake_michigan_features <- water_osm_m %>%
   filter(!is.na(name) & tolower(name) == "lake michigan") %>%
-  st_make_valid() %>%
-  st_union()
-
-if (length(lake_michigan_m) == 0) {
+  st_make_valid()
+if (nrow(lake_michigan_features) == 0) {
   stop("Could not construct Lake Michigan geometry for distance calculation.", call. = FALSE)
 }
+lake_michigan_m <- st_union(lake_michigan_features)
 
 dist_lake_km <- as.numeric(units::set_units(st_distance(permit_points_m, lake_michigan_m), "m")) / 1000
 
@@ -281,9 +576,10 @@ permit_place_controls <- tibble(
   dist_lake_km = dist_lake_km,
   n_rail_stations_800m = n_rail_stations_800m
 )
+assert_unique_key(permit_place_controls, "id", "Permit place controls")
 
 permits_with_controls <- permits_with_controls %>%
-  left_join(permit_place_controls, by = "id")
+  left_join(permit_place_controls, by = "id", relationship = "many-to-one")
 
 # Strict QC: parcel-level controls should be complete and reasonable
 missing_dist_cbd <- sum(is.na(permits_with_controls$dist_cbd_km))
@@ -329,7 +625,8 @@ if (plausibly_far_cbd > 0 || plausibly_far_lake > 0) {
       permits_high_discretion %>%
         st_drop_geometry() %>%
         select(any_of(c("id", "pin", "application_start_date_ym", "ward"))),
-      by = "id"
+      by = "id",
+      relationship = "one-to-one"
     ) %>%
     arrange(desc(dist_cbd_km), desc(dist_lake_km))
 
@@ -362,6 +659,9 @@ message("Permits with n_rail_stations_800m: ",
 
 message("Creating analysis variables...")
 
+processing_time_exclusions <- summarize_processing_exclusions(permits_with_controls)
+turnover_overlap_diagnostics <- summarize_turnover_overlaps(permits_with_alderman, alderman_panel)
+
 permits_analysis <- permits_with_controls %>%
   mutate(
     # Time variables
@@ -369,18 +669,11 @@ permits_analysis <- permits_with_controls %>%
     year = application_year,
     
     # Log transforms (NA for zero/negative; downstream is.finite() filter handles removal)
-    log_processing_time = if_else(processing_time > 0, log(processing_time), NA_real_),
-    log_reported_cost   = if_else(reported_cost   > 0, log(reported_cost),   NA_real_),
+    log_processing_time = log(if_else(processing_time > 0, processing_time, NA_real_)),
+    log_reported_cost   = log(if_else(reported_cost   > 0, reported_cost,   NA_real_)),
     
     # Clean permit type for FE
-    permit_type_clean = case_when(
-      grepl("NEW CONSTRUCTION", permit_type) ~ "new_construction",
-      grepl("RENOVATION|ALTERATION", permit_type) ~ "renovation",
-      grepl("WRECKING|DEMOLITION", permit_type) ~ "demolition",
-      grepl("PORCH", permit_type) ~ "porch",
-      grepl("REINSTATE", permit_type) ~ "reinstate",
-      TRUE ~ "other"
-    ),
+    permit_type_clean = clean_permit_type(permit_type),
     
     # Flag for porch permits (for optional filtering)
     is_porch = grepl("PORCH", permit_type),
@@ -427,8 +720,74 @@ output_data <- permits_analysis %>%
     # Metadata
     map_version
   )
+assert_unique_key(output_data, "id", "Uncertainty-index permit output")
+
+assert_unique_key(ward_spatial_join_diagnostics, "id", "Ward spatial-join diagnostics")
+assert_unique_key(community_area_join_diagnostics, "id", "Community-area join diagnostics")
+
+attrition <- bind_rows(
+  summarize_stage(permits, "loaded_permits"),
+  summarize_stage(permits_high_discretion, "high_discretion_permits"),
+  summarize_stage(permits_ward_data, "ward_spatial_join_matched"),
+  summarize_stage(permits_ward_data %>% filter(!is.na(ca_id)), "community_area_joined"),
+  summarize_stage(permits_with_alderman_all, "alderman_join_attempted"),
+  summarize_stage(permits_with_alderman, "alderman_joined"),
+  summarize_stage(permits_with_controls, "ward_and_place_controls_joined"),
+  summarize_stage(permits_analysis, "positive_processing_time_sample"),
+  summarize_stage(output_data, "final_output")
+)
+
+diagnostics_by_month <- ward_spatial_join_diagnostics %>%
+  left_join(
+    community_area_join_diagnostics %>%
+      select(id, n_ca_hits, community_area_reason = reason),
+    by = "id",
+    relationship = "one-to-one"
+  ) %>%
+  left_join(
+    permits_high_discretion %>%
+      st_drop_geometry() %>%
+      select(id, processing_time),
+    by = "id",
+    relationship = "one-to-one"
+  ) %>%
+  left_join(
+    permits_with_alderman_all %>%
+      select(id, alderman),
+    by = "id",
+    relationship = "one-to-one"
+  ) %>%
+  mutate(
+    in_final_output = id %in% output_data$id,
+    ward_matched = reason == "matched",
+    community_area_matched = community_area_reason == "matched",
+    alderman_matched = !is.na(alderman) & alderman != ""
+  ) %>%
+  group_by(application_year, application_month, map_version) %>%
+  summarise(
+    n_high_discretion = n(),
+    n_after_ward_join = sum(ward_matched, na.rm = TRUE),
+    n_missing_ward = sum(reason == "no_ward_match", na.rm = TRUE),
+    n_multiple_ward = sum(reason == "multiple_ward_matches", na.rm = TRUE),
+    n_after_community_area_join = sum(community_area_matched, na.rm = TRUE),
+    n_missing_community_area = sum(community_area_reason == "no_community_area_match", na.rm = TRUE),
+    n_after_alderman_join = sum(alderman_matched, na.rm = TRUE),
+    n_missing_alderman = sum(ward_matched & !alderman_matched, na.rm = TRUE),
+    n_missing_processing_time = sum(is.na(processing_time)),
+    n_zero_processing_time = sum(processing_time == 0, na.rm = TRUE),
+    n_negative_processing_time = sum(processing_time < 0, na.rm = TRUE),
+    n_final_output = sum(in_final_output),
+    .groups = "drop"
+  ) %>%
+  arrange(application_year, application_month, map_version)
 
 write_csv(output_data, permits_output_path)
+write_csv(attrition, "../output/permits_for_uncertainty_index_attrition.csv")
+write_csv(diagnostics_by_month, "../output/permits_for_uncertainty_index_diagnostics.csv")
+write_csv(ward_spatial_join_diagnostics, "../output/ward_spatial_join_diagnostics.csv")
+write_csv(community_area_join_diagnostics, "../output/community_area_join_diagnostics.csv")
+write_csv(processing_time_exclusions, "../output/processing_time_exclusions.csv")
+write_csv(turnover_overlap_diagnostics, "../output/turnover_overlap_diagnostics.csv")
 
 message("=== Data preparation complete ===")
 message("Output: ", permits_output_path)
