@@ -234,6 +234,55 @@ load_boundary_layers <- function(boundary_gpkg, eras = canonical_era_levels()) {
   out
 }
 
+distance_to_boundary_pair_m <- function(points_sf, pair_values, boundary_sf, chunk_n = 5000L) {
+  if (!inherits(points_sf, "sf")) {
+    stop("points_sf must be an sf object.", call. = FALSE)
+  }
+  if (!inherits(boundary_sf, "sf")) {
+    stop("boundary_sf must be an sf object.", call. = FALSE)
+  }
+  if (nrow(points_sf) != length(pair_values)) {
+    stop("pair_values must have one value per point.", call. = FALSE)
+  }
+  if (is.na(sf::st_crs(points_sf)) || is.na(sf::st_crs(boundary_sf))) {
+    stop("Point and boundary geometries must have non-missing CRS.", call. = FALSE)
+  }
+  if (sf::st_crs(points_sf) != sf::st_crs(boundary_sf)) {
+    points_sf <- sf::st_transform(points_sf, sf::st_crs(boundary_sf))
+  }
+  if (!"ward_pair_id" %in% names(boundary_sf)) {
+    stop("Boundary layer must include ward_pair_id.", call. = FALSE)
+  }
+
+  pair_dash <- normalize_pair_dash(pair_values)
+  boundary_sf$pair_dash <- normalize_pair_dash(boundary_sf$ward_pair_id)
+  boundary_pairs <- stats::na.omit(boundary_sf$pair_dash)
+  if (anyDuplicated(boundary_pairs) > 0) {
+    stop("Boundary layer must have exactly one geometry row per ward-pair.", call. = FALSE)
+  }
+
+  out <- rep(NA_real_, nrow(points_sf))
+  for (pair_i in sort(unique(stats::na.omit(pair_dash)))) {
+    idx <- which(pair_dash == pair_i)
+    line_i <- boundary_sf[boundary_sf$pair_dash == pair_i, ]
+    if (nrow(line_i) == 0) {
+      next
+    }
+    if (nrow(line_i) != 1) {
+      stop(sprintf("Expected exactly one boundary geometry for ward-pair %s.", pair_i), call. = FALSE)
+    }
+
+    starts <- seq(1L, length(idx), by = chunk_n)
+    for (s in starts) {
+      e <- min(s + chunk_n - 1L, length(idx))
+      idx_chunk <- idx[s:e]
+      out[idx_chunk] <- as.numeric(sf::st_distance(points_sf[idx_chunk, ], line_i[1, ])) * 0.3048
+    }
+  }
+
+  out
+}
+
 load_segment_layers <- function(segment_gpkg, buffer_m = NULL, buffer_ft = NULL, eras = canonical_era_levels()) {
   layer_names <- sf::st_layers(segment_gpkg)$name
   if (!is.null(buffer_m) && !is.null(buffer_ft)) {
@@ -913,4 +962,79 @@ audit_nearest_segment_pair_constraints <- function(points_sf, era_values, pair_v
     unconstrained_matches_constrained_segment = !is.na(constrained_segment_id) & !is.na(unconstrained_segment_id) & constrained_segment_id == unconstrained_segment_id,
     constrained_extra_dist_m = constrained_dist_m - unconstrained_dist_m
   )
+}
+
+assert_event_segment_contract <- function(points_sf, era_values, pair_values, segment_layers,
+                                          segment_id, boundary_dist_m, max_distance_m,
+                                          context, analysis_window_m = 304.8,
+                                          tolerance_m = 0.05, chunk_n = 50000L) {
+  if (nrow(points_sf) == 0) {
+    return(invisible(tibble::tibble()))
+  }
+  if (length(segment_id) != nrow(points_sf) || length(boundary_dist_m) != nrow(points_sf)) {
+    stop(sprintf("[%s] Segment contract inputs must have one value per point.", context), call. = FALSE)
+  }
+  if (!is.finite(max_distance_m) || max_distance_m <= 0) {
+    stop(sprintf("[%s] max_distance_m must be positive.", context), call. = FALSE)
+  }
+
+  segment_id <- as.character(segment_id)
+  segment_id[segment_id == ""] <- NA_character_
+  boundary_dist_m <- as.numeric(boundary_dist_m)
+  in_window <- is.finite(boundary_dist_m) & boundary_dist_m <= analysis_window_m
+
+  audit <- audit_nearest_segment_pair_constraints(
+    points_sf = points_sf,
+    era_values = era_values,
+    pair_values = pair_values,
+    segment_layers = segment_layers,
+    constrained_segment_id = segment_id,
+    max_distance = units::set_units(max_distance_m, "m"),
+    chunk_n = chunk_n
+  )
+
+  missing_segment <- in_window & is.na(segment_id)
+  pair_mismatch <- in_window &
+    !is.na(segment_id) &
+    (is.na(audit$constrained_pair_matches_input) | !audit$constrained_pair_matches_input)
+  missing_segment_dist <- in_window &
+    !is.na(segment_id) &
+    !is.finite(audit$constrained_segment_dist_m)
+  distance_mismatch <- in_window &
+    !is.na(segment_id) &
+    is.finite(audit$constrained_segment_dist_m) &
+    abs(audit$constrained_segment_dist_m - boundary_dist_m) > tolerance_m
+
+  failures <- c(
+    missing_segment = sum(missing_segment, na.rm = TRUE),
+    pair_mismatch = sum(pair_mismatch, na.rm = TRUE),
+    missing_segment_dist = sum(missing_segment_dist, na.rm = TRUE),
+    distance_mismatch = sum(distance_mismatch, na.rm = TRUE)
+  )
+
+  if (any(failures > 0)) {
+    stop(sprintf(
+      paste(
+        "[%s] Event segment contract failed inside %.1fm:",
+        "missing segment=%d, pair mismatch=%d, missing segment distance=%d, distance mismatch=%d."
+      ),
+      context, analysis_window_m,
+      failures[["missing_segment"]],
+      failures[["pair_mismatch"]],
+      failures[["missing_segment_dist"]],
+      failures[["distance_mismatch"]]
+    ), call. = FALSE)
+  }
+
+  max_gap <- if (any(in_window, na.rm = TRUE)) {
+    suppressWarnings(max(abs(audit$constrained_segment_dist_m[in_window] - boundary_dist_m[in_window]), na.rm = TRUE))
+  } else {
+    NA_real_
+  }
+
+  invisible(tibble::tibble(
+    rows = nrow(points_sf),
+    rows_in_window = sum(in_window, na.rm = TRUE),
+    max_abs_segment_distance_gap_m = max_gap
+  ))
 }

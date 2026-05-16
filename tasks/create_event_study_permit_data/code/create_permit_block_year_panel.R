@@ -43,32 +43,6 @@ manual_block_assignments <- tibble(
   review_reason = "assign_nearest_2010_precision_case_in_city_exact_2020_and_1p7m_from_2010"
 )
 
-assign_distance_to_fixed_pair_m <- function(points_sf, pair_values, boundary_sf, chunk_n = 5000L) {
-  pair_dash <- normalize_pair_dash(pair_values)
-  boundary_sf <- boundary_sf %>%
-    mutate(pair_dash = normalize_pair_dash(ward_pair_id))
-
-  out <- rep(NA_real_, nrow(points_sf))
-  pairs <- sort(unique(stats::na.omit(pair_dash)))
-
-  for (pair_i in pairs) {
-    idx <- which(pair_dash == pair_i)
-    line_i <- boundary_sf %>% filter(pair_dash == pair_i)
-    if (length(idx) == 0 || nrow(line_i) == 0) {
-      next
-    }
-
-    starts <- seq(1L, length(idx), by = chunk_n)
-    for (s in starts) {
-      e <- min(s + chunk_n - 1L, length(idx))
-      idx_chunk <- idx[s:e]
-      out[idx_chunk] <- as.numeric(st_distance(points_sf[idx_chunk, ], line_i[1, ])) * 0.3048
-    }
-  }
-
-  out
-}
-
 read_blocks <- function(path, block_col, target_crs) {
   blocks_sf <- read_csv(path, show_col_types = FALSE) %>%
     rename(geometry = the_geom) %>%
@@ -566,7 +540,7 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
     left_join(control_assign, by = "block_id")
 
   treated_pair_id <- normalize_pair_id(base$ward_origin, base$ward_dest, sep = "-")
-  treated_dist_m <- assign_distance_to_fixed_pair_m(
+  treated_dist_m <- distance_to_boundary_pair_m(
     points_sf = block_centroids,
     pair_values = treated_pair_id,
     boundary_sf = boundary_lines[[era_label]],
@@ -578,18 +552,15 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
       cohort = cohort_label,
       switched = coalesce(switched, FALSE),
       treat = as.integer(switched),
-      ward_origin_assigned = if_else(switched, ward_origin, control_own_ward),
-      ward_dest_assigned = if_else(switched, ward_dest, control_neighbor_ward),
+      point_origin_mismatch = !is.na(control_own_ward) &
+        !is.na(ward_origin) &
+        ward_origin != control_own_ward,
+      event_neighbor_ward = if_else(switched, ward_dest, control_neighbor_ward),
       ward_pair_id = if_else(switched, treated_pair_id, control_pair_id),
       dist_m = if_else(switched, treated_dist_m, control_dist_m),
-      control_origin_mismatch = !switched &
-        !is.na(ward_origin) &
-        !is.na(control_own_ward) &
-        ward_origin != control_own_ward
+      control_origin_mismatch = !switched & point_origin_mismatch
     ) %>%
     mutate(
-      ward_origin = ward_origin_assigned,
-      ward_dest = ward_dest_assigned,
       ward_pair_id = normalize_pair_dash(ward_pair_id),
       ward_pair_side = if_else(
         !is.na(ward_pair_id) & !is.na(ward_origin),
@@ -606,6 +577,19 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
     max_distance = units::set_units(segment_buffer_m, "m"),
     chunk_n = 50000L
   )
+
+  assert_event_segment_contract(
+    points_sf = block_centroids,
+    era_values = rep(era_label, nrow(block_centroids)),
+    pair_values = base$ward_pair_id,
+    segment_layers = segment_layers,
+    segment_id = segment_id,
+    boundary_dist_m = base$dist_m,
+    max_distance_m = segment_buffer_m,
+    context = sprintf("permit %s", cohort_label),
+    chunk_n = 50000L
+  )
+
   segment_match <- match(
     paste(era_label, segment_id, sep = "\r"),
     paste(segment_meta$era, segment_meta$segment_id, sep = "\r")
@@ -630,16 +614,17 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
       !is.na(ward_pair_id),
       !is.na(ward_origin),
       !is.na(dist_m),
+      point_origin_mismatch == FALSE,
       dist_m <= panel_max_distance_m
     ) %>%
     select(
       block_id, block_vintage, cohort,
       ward_origin, ward_dest, switched, treat,
       strictness_origin, strictness_dest, strictness_change, switch_type,
-      valid, ward_pair_id, ward_pair_side, dist_m,
+      valid, ward_pair_id, ward_pair_side, event_neighbor_ward, dist_m,
       segment_id_cohort, segment_side,
       segment_length_ft_cohort, segment_lt500ft_cohort, segment_lt1000ft_cohort,
-      control_origin_mismatch
+      control_origin_mismatch, point_origin_mismatch
     )
 
   base

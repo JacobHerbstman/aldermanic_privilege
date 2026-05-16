@@ -11,9 +11,10 @@ all: \
 	../output/rental_listing_panel_support_by_event_time.csv \
 	../output/rental_listing_panel_support_by_calendar_time.csv \
 	../output/rental_listing_panel_repeat_listing_diagnostics.csv \
-	../output/rental_listing_panel_assignment_stability.csv
+	../output/rental_listing_panel_assignment_stability.csv \
+	../output/rental_listing_panel_event_geometry_diagnostics.csv
 
-../output/rental_listing_panel.parquet: create_listing_panel.R ../../_lib/canonical_geometry_helpers.R ../input/rent_with_ward_distances.parquet ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/block_treatment_panel.csv ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../output
+../output/rental_listing_panel.parquet: create_listing_panel.R ../../_lib/canonical_geometry_helpers.R ../input/rent_with_ward_distances.parquet ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/block_treatment_panel.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../output
 	$(R) create_listing_panel.R $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M)
 
 ../output/rental_listing_panel_2015.parquet \
@@ -21,7 +22,8 @@ all: \
 ../output/rental_listing_panel_support_by_event_time.csv \
 ../output/rental_listing_panel_support_by_calendar_time.csv \
 ../output/rental_listing_panel_repeat_listing_diagnostics.csv \
-../output/rental_listing_panel_assignment_stability.csv: ../output/rental_listing_panel.parquet
+../output/rental_listing_panel_assignment_stability.csv \
+../output/rental_listing_panel_event_geometry_diagnostics.csv: ../output/rental_listing_panel.parquet
 	@test -s "$@"
 
 ../input/rent_with_ward_distances.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
@@ -36,11 +38,17 @@ all: \
 ../input/block_treatment_panel.csv: ../../merge_event_study_scores/output/block_treatment_panel.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
+../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/ward_pair_boundaries.gpkg: ../../border_segment_creation/output/ward_pair_boundaries.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
 ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg: ../../border_segment_creation/output/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 
-link-inputs: ../input/rent_with_ward_distances.parquet ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/block_treatment_panel.csv ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg
+link-inputs: ../input/rent_with_ward_distances.parquet ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/block_treatment_panel.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg
 
 include ../../shell_functions.make
 include ../../generic.make

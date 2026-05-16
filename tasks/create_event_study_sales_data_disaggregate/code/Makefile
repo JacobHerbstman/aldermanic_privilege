@@ -9,6 +9,7 @@ all: \
 	../output/sales_transaction_panel_announcement.parquet \
 	../output/sales_transaction_panel_2012.parquet \
 	../output/sales_transaction_panel_2015.parquet \
+	../output/sales_transaction_panel_2015_all_valid.parquet \
 	../output/sales_transaction_panel_2022.parquet \
 	../output/sales_transaction_panel_2023.parquet \
 	../output/sales_transaction_panel_amenity_distance_diagnostics.csv \
@@ -16,14 +17,16 @@ all: \
 	../output/sales_transaction_panel_final_hedonic_coverage_by_sale_year.csv \
 	../output/sales_transaction_panel_support_by_event_time.csv \
 	../output/sales_transaction_panel_support_by_calendar_time.csv \
-	../output/sales_transaction_panel_assignment_stability.csv
+	../output/sales_transaction_panel_assignment_stability.csv \
+	../output/sales_transaction_panel_event_geometry_diagnostics.csv
 
-../output/sales_transaction_panel.parquet: create_transaction_panel.R ../../_lib/canonical_geometry_helpers.R ../../_lib/amenity_distance_helpers.R ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
+../output/sales_transaction_panel.parquet: create_transaction_panel.R ../../_lib/canonical_geometry_helpers.R ../../_lib/amenity_distance_helpers.R ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
 	$(R) $< $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M)
 
 ../output/sales_transaction_panel_announcement.parquet \
 ../output/sales_transaction_panel_2012.parquet \
 ../output/sales_transaction_panel_2015.parquet \
+../output/sales_transaction_panel_2015_all_valid.parquet \
 ../output/sales_transaction_panel_2022.parquet \
 ../output/sales_transaction_panel_2023.parquet \
 ../output/sales_transaction_panel_amenity_distance_diagnostics.csv \
@@ -31,7 +34,8 @@ all: \
 ../output/sales_transaction_panel_final_hedonic_coverage_by_sale_year.csv \
 ../output/sales_transaction_panel_support_by_event_time.csv \
 ../output/sales_transaction_panel_support_by_calendar_time.csv \
-../output/sales_transaction_panel_assignment_stability.csv: ../output/sales_transaction_panel.parquet
+../output/sales_transaction_panel_assignment_stability.csv \
+../output/sales_transaction_panel_event_geometry_diagnostics.csv: ../output/sales_transaction_panel.parquet
 	@test -s "$@"
 
 ../input/sales_with_ward_distances.csv: ../../merge_event_study_scores/output/sales_with_ward_distances.csv | ../input
@@ -47,6 +51,12 @@ all: \
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/census_blocks_2020.csv: ../../census_block_2020_cleaning/output/census_blocks_2020.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/ward_pair_boundaries.gpkg: ../../border_segment_creation/output/ward_pair_boundaries.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg: ../../border_segment_creation/output/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../input
@@ -77,7 +87,7 @@ all: \
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 
-link-inputs: ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
+link-inputs: ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
 include ../../shell_functions.make
 include ../../generic.make
