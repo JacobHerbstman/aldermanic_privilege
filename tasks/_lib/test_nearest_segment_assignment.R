@@ -103,7 +103,7 @@ pts_global <- st_sf(
   geometry = st_sfc(point_xy(0), point_xy(0), crs = crs_chicago)
 )
 
-global_result <- assign_points_to_nearest_segments(
+pair_constrained_result <- assign_points_to_nearest_segments(
   pts_global,
   rep(era, 2),
   c("1-2", "1-3"),
@@ -111,7 +111,7 @@ global_result <- assign_points_to_nearest_segments(
   max_distance = set_units(50, "m"),
   chunk_n = 1
 )
-stopifnot(identical(global_result, c("seg_other", "seg_other")))
+stopifnot(identical(pair_constrained_result, c("seg_left", "seg_other")))
 
 missing_pair_result <- assign_points_to_nearest_segments(
   pts_global,
@@ -121,22 +121,33 @@ missing_pair_result <- assign_points_to_nearest_segments(
   max_distance = set_units(50, "m"),
   chunk_n = 1
 )
-stopifnot(identical(missing_pair_result, c("seg_other", "seg_other")))
+stopifnot(identical(missing_pair_result, c(NA_character_, "seg_other")))
+
+missing_segment_pair_result <- assign_points_to_nearest_segments(
+  pts_global,
+  rep(era, 2),
+  c("9-10", "1-3"),
+  global_layers,
+  max_distance = set_units(50, "m"),
+  chunk_n = 1
+)
+stopifnot(identical(missing_segment_pair_result, c(NA_character_, "seg_other")))
 
 pair_audit <- audit_nearest_segment_pair_constraints(
   pts_global,
   rep(era, 2),
   c("1-2", "1-3"),
   global_layers,
-  constrained_segment_id = global_result,
+  constrained_segment_id = pair_constrained_result,
   max_distance = set_units(50, "m"),
   chunk_n = 1
 )
-stopifnot(identical(pair_audit$constrained_segment_id, c("seg_other", "seg_other")))
+stopifnot(identical(pair_audit$constrained_segment_id, c("seg_left", "seg_other")))
 stopifnot(identical(pair_audit$unconstrained_segment_id, c("seg_other", "seg_other")))
-stopifnot(identical(pair_audit$constrained_pair_matches_input, c(FALSE, TRUE)))
+stopifnot(identical(pair_audit$constrained_pair_matches_input, c(TRUE, TRUE)))
 stopifnot(identical(pair_audit$unconstrained_pair_matches_input, c(FALSE, TRUE)))
-stopifnot(isTRUE(abs(pair_audit$constrained_extra_dist_m[1]) < 1e-6))
+stopifnot(identical(pair_audit$unconstrained_matches_constrained_segment, c(FALSE, TRUE)))
+stopifnot(isTRUE(abs(pair_audit$constrained_extra_dist_m[1] - 10) < 1e-6))
 stopifnot(isTRUE(abs(pair_audit$constrained_extra_dist_m[2]) < 1e-6))
 
 bare_distance_error <- inherits(

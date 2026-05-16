@@ -28,17 +28,12 @@ run_sample <- as.logical(sample)
 load_cpi_deflator <- function(start_date,
                               end_date,
                               base_year = 2022L,
+                              cpi_csv = "../input/fred_cpi_cuura207sa0.csv",
                               series_id = "CUURA207SA0") {
-  fred_url <- sprintf("https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s", series_id)
-  message(sprintf("Fetching CPI series %s from FRED...", series_id))
-  old_http_ua <- getOption("HTTPUserAgent")
-  on.exit(options(HTTPUserAgent = old_http_ua), add = TRUE)
-  # As of March 16, 2026, FRED's edge responds poorly to R's default UA
-  # over libcurl HTTP/2, while the same URL works with a curl-style UA.
-  options(HTTPUserAgent = paste0("curl/", curl::curl_version()$version))
-  cpi_raw <- read_csv(fred_url, show_col_types = FALSE)
+  message(sprintf("Loading CPI series %s from %s...", series_id, cpi_csv))
+  cpi_raw <- read_csv(cpi_csv, show_col_types = FALSE)
   if (!all(c("observation_date", series_id) %in% names(cpi_raw))) {
-    stop(sprintf("FRED response missing expected columns for series %s.", series_id), call. = FALSE)
+    stop(sprintf("CPI input missing expected columns for series %s.", series_id), call. = FALSE)
   }
 
   cpi <- cpi_raw %>%

@@ -176,6 +176,7 @@ joined <- geom_sf %>%
 joined_missing_geometry <- assert_point_geometries(joined, "joined parcel geometry")
 joined$segment_reason <- case_when(
   is.na(joined$boundary_year) | is.na(joined$era) ~ "missing_boundary_year_or_era",
+  is.na(joined$pair_dash) ~ "missing_or_invalid_ward_pair",
   joined_missing_geometry ~ "missing_geometry",
   TRUE ~ "pending"
 )
@@ -223,15 +224,42 @@ pair_audit <- cbind(
   pair_audit
 )
 
-assignment_mismatch <- !is.na(pair_audit$constrained_segment_id) &
-  pair_audit$constrained_segment_id != "" &
-  !is.na(pair_audit$unconstrained_segment_id) &
-  pair_audit$unconstrained_segment_id != "" &
-  !pair_audit$unconstrained_matches_constrained_segment
-if (any(assignment_mismatch, na.rm = TRUE)) {
+assigned_segment <- !is.na(pair_audit$constrained_segment_id) &
+  pair_audit$constrained_segment_id != ""
+pair_mismatch <- assigned_segment & !pair_audit$constrained_pair_matches_input
+if (any(pair_mismatch, na.rm = TRUE)) {
   stop(sprintf(
-    "Production segment assignment differs from the globally nearest segment for %d rows.",
-    sum(assignment_mismatch, na.rm = TRUE)
+    "Production segment assignment is not in the input ward pair for %d rows.",
+    sum(pair_mismatch, na.rm = TRUE)
+  ), call. = FALSE)
+}
+
+distance_tolerance_m <- 0.05
+missing_segment_distance <- assigned_segment & !is.finite(pair_audit$constrained_segment_dist_m)
+if (any(missing_segment_distance, na.rm = TRUE)) {
+  stop(sprintf(
+    "Production segment assignment has missing segment distance for %d rows.",
+    sum(missing_segment_distance, na.rm = TRUE)
+  ), call. = FALSE)
+}
+
+outside_buffer <- assigned_segment &
+  pair_audit$constrained_segment_dist_m > segment_buffer_m + distance_tolerance_m
+if (any(outside_buffer, na.rm = TRUE)) {
+  stop(sprintf(
+    "Production segment assignment is outside the %.0fm radius for %d rows.",
+    segment_buffer_m,
+    sum(outside_buffer, na.rm = TRUE)
+  ), call. = FALSE)
+}
+
+distance_mismatch <- assigned_segment &
+  is.finite(pair_audit$dist_to_boundary_m) &
+  abs(pair_audit$constrained_segment_dist_m - pair_audit$dist_to_boundary_m) > distance_tolerance_m
+if (any(distance_mismatch, na.rm = TRUE)) {
+  stop(sprintf(
+    "Production segment distance differs from nearest boundary distance for %d rows.",
+    sum(distance_mismatch, na.rm = TRUE)
   ), call. = FALSE)
 }
 

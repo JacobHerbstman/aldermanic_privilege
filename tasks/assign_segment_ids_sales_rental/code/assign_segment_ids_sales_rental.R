@@ -82,6 +82,16 @@ if (mode == "all") {
 }
 
 segments_by_era <- load_segment_line_layers(segment_gpkg)
+segment_pair_lookup <- rbindlist(lapply(names(segments_by_era), function(era_i) {
+  data.table(
+    era = era_i,
+    segment_id = as.character(segments_by_era[[era_i]]$segment_id),
+    segment_pair_dash = as.character(segments_by_era[[era_i]]$pair_dash)
+  )
+}))
+if (any(duplicated(segment_pair_lookup, by = c("era", "segment_id")))) {
+  stop("Segment lookup has duplicate era/segment_id rows.", call. = FALSE)
+}
 
 coverage_row <- function(dataset, scope, era, dt) {
   n_total <- nrow(dt)
@@ -120,12 +130,17 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
     fifelse(
       is.na(obs_date) | is.na(era),
       "missing_date_or_era",
-      "pending"
+      fifelse(
+        is.na(pair_dash),
+        "missing_or_invalid_ward_pair",
+        "pending"
+      )
     )
   )]
 
   assignable_idx <- which(
     !is.na(dt$era) &
+      !is.na(dt$pair_dash) &
       is.finite(dt[[lon_col]]) &
       is.finite(dt[[lat_col]])
   )
@@ -152,6 +167,33 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
     )
 
     set(dt, i = assignable_idx, j = "segment_id", value = seg_ids)
+  }
+
+  assigned_segments <- dt[!is.na(segment_id) & segment_id != "", .(row_id, era, pair_dash, segment_id)]
+  if (nrow(assigned_segments) > 0) {
+    assigned_segments <- merge(
+      assigned_segments,
+      segment_pair_lookup,
+      by = c("era", "segment_id"),
+      all.x = TRUE,
+      sort = FALSE
+    )
+    missing_segment <- is.na(assigned_segments$segment_pair_dash)
+    if (any(missing_segment)) {
+      stop(sprintf(
+        "%s segment assignment has %d segment IDs missing from the segment lookup.",
+        dataset_name,
+        sum(missing_segment)
+      ), call. = FALSE)
+    }
+    pair_mismatch <- assigned_segments$pair_dash != assigned_segments$segment_pair_dash
+    if (any(pair_mismatch, na.rm = TRUE)) {
+      stop(sprintf(
+        "%s segment assignment is not in the input ward pair for %d rows.",
+        dataset_name,
+        sum(pair_mismatch, na.rm = TRUE)
+      ), call. = FALSE)
+    }
   }
 
   pending_idx <- which(dt$segment_reason == "pending")

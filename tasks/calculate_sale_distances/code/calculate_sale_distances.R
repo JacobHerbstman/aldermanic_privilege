@@ -13,24 +13,22 @@ source("../../_lib/canonical_geometry_helpers.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
 # sample <- FALSE
-# cpi_csv <- "../input/fred_cpi_cuura207sa0.csv"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(sample, cpi_csv)
+  cli_args <- c(sample)
 }
 
-if (length(cli_args) != 2) {
-  stop("FATAL: Script requires 2 args: <sample> <cpi_csv>", call. = FALSE)
+if (length(cli_args) != 1) {
+  stop("FATAL: Script requires 1 arg: <sample>", call. = FALSE)
 }
 sample <- cli_args[1]
-cpi_csv <- cli_args[2]
 run_sample <- as.logical(sample)
 
-load_cpi_deflator <- function(cpi_csv,
-                              start_date,
+load_cpi_deflator <- function(start_date,
                               end_date,
                               base_year = 2022L,
+                              cpi_csv = "../input/fred_cpi_cuura207sa0.csv",
                               series_id = "CUURA207SA0") {
     message(sprintf("Reading CPI series %s from %s...", series_id, cpi_csv))
     cpi_raw <- read_csv(cpi_csv, col_types = cols(.default = "c"), show_col_types = FALSE)
@@ -179,7 +177,6 @@ message(sprintf("Filtered to %s market sales", format(nrow(sales), big.mark = ",
 
 # Deflate to 2022 dollars (monthly CPI) before winsorization
 cpi_deflator <- load_cpi_deflator(
-    cpi_csv = cpi_csv,
     start_date = min(sales$sale_date_for_price, na.rm = TRUE),
     end_date = max(sales$sale_date_for_price, na.rm = TRUE),
     base_year = 2022L

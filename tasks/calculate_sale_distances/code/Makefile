@@ -5,11 +5,11 @@ SAMPLE := FALSE
 all: ../output/sales_pre_scores.csv ../output/sales_geometry_diagnostics.csv
 
 ../output/sales_pre_scores.csv: calculate_sale_distances.R ../../_lib/canonical_geometry_helpers.R ../input/parcel_sales.csv ../input/Assessor_-_Parcel_Universe__Current_Year_Only__20251004.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_panel.csv ../input/fred_cpi_cuura207sa0.csv | ../output
-	# arg order: sample cpi_csv
-	$(R) calculate_sale_distances.R $(SAMPLE) ../input/fred_cpi_cuura207sa0.csv
+	# arg order: sample
+	$(R) calculate_sale_distances.R $(SAMPLE)
 
 ../output/sales_geometry_diagnostics.csv: ../output/sales_pre_scores.csv
-	test -f ../output/sales_geometry_diagnostics.csv
+	@test -s "$@"
 
 ../input/parcel_sales.csv: ../../download_parcel_sales_data/output/parcel_sales_city.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

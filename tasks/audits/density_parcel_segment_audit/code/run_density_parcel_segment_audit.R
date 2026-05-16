@@ -48,6 +48,12 @@ summary_row <- function(check, scope, n_checked, n_issue, detail) {
   )
 }
 
+diagnostic_row <- function(check, scope, n_checked, n_issue, detail) {
+  out <- summary_row(check, scope, n_checked, n_issue, detail)
+  out$pass <- TRUE
+  out
+}
+
 same_or_both_na <- function(x, y) {
   (is.na(x) & is.na(y)) | (!is.na(x) & !is.na(y) & x == y)
 }
@@ -263,6 +269,16 @@ ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
 ward_maps <- load_canonical_ward_maps(ward_panel)
 boundary_layers <- load_boundary_layers("../input/ward_pair_boundaries.gpkg", eras = sort(unique(na.omit(scores$era))))
 segment_layers <- load_segment_line_layers("../input/boundary_segments_400m.gpkg", eras = sort(unique(na.omit(scores$era))))
+segment_pair_lookup <- bind_rows(lapply(names(segment_layers), function(era_i) {
+  tibble::tibble(
+    era = era_i,
+    stored_segment_id = as.character(segment_layers[[era_i]]$segment_id),
+    stored_segment_pair_dash = as.character(segment_layers[[era_i]]$pair_dash)
+  )
+}))
+if (any(duplicated(segment_pair_lookup[c("era", "stored_segment_id")]))) {
+  stop("Segment pair lookup has duplicate era/segment_id rows.", call. = FALSE)
+}
 
 work <- geom %>%
   select(pin) %>%
@@ -282,8 +298,13 @@ audit <- bind_cols(
   boundary_recomputed,
   segment_recomputed
 ) %>%
+  mutate(stored_segment_id = segment_id) %>%
+  left_join(
+    segment_pair_lookup,
+    by = c("era", "stored_segment_id"),
+    relationship = "many-to-one"
+  ) %>%
   mutate(
-    stored_segment_id = segment_id,
     ward_match = ward == recomputed_ward,
     ward_pair_match = normalize_pair_dash(ward_pair) == normalize_pair_dash(recomputed_ward_pair),
     distance_abs_diff_m = abs(dist_to_boundary_m - recomputed_dist_to_boundary_m),
@@ -304,7 +325,7 @@ audit <- bind_cols(
     ),
     segment_pair_matches_ward_pair = case_when(
       is.na(stored_segment_id) ~ TRUE,
-      TRUE ~ recomputed_segment_pair_dash == pair_dash
+      TRUE ~ !is.na(stored_segment_pair_dash) & stored_segment_pair_dash == pair_dash
     ),
     segment_within_buffer = case_when(
       is.na(stored_segment_id) ~ TRUE,
@@ -339,13 +360,13 @@ audit_summary <- bind_rows(
   summary_row("segment_pair_matches_ward_pair", "full", sum(!is.na(audit$stored_segment_id)), sum(!audit$segment_pair_matches_ward_pair, na.rm = TRUE), "Assigned segment belongs to the parcel's ward pair."),
   summary_row("segment_within_250m_buffer", "full", sum(!is.na(audit$stored_segment_id)), sum(!audit$segment_within_buffer, na.rm = TRUE), "Assigned segment is within the configured 250m segment radius."),
   summary_row("audit_flags_no_na", "full", nrow(audit), sum(is.na(audit$final_segment_matches_lookup) | is.na(audit$segment_matches_recomputed) | is.na(audit$global_nearest_segment_matches_current)), "Core boolean audit flags should not be NA."),
-  summary_row("global_all_options_segment_matches_current", "full", sum(!is.na(audit$stored_segment_id)), sum(!audit$global_nearest_segment_matches_current & !is.na(audit$stored_segment_id), na.rm = TRUE), "Purely geometric nearest segment among all same-era segments equals current assignment."),
-  summary_row("global_all_options_segment_matches_current", "regression_bw100m", sum(audit$regression_bw100m, na.rm = TRUE), sum(!audit$global_nearest_segment_matches_current & !is.na(audit$stored_segment_id) & audit$regression_bw100m, na.rm = TRUE), "Purely geometric nearest segment among all same-era segments equals current assignment."),
-  summary_row("global_all_options_segment_matches_current", "regression_bw250m", sum(audit$regression_bw250m, na.rm = TRUE), sum(!audit$global_nearest_segment_matches_current & !is.na(audit$stored_segment_id) & audit$regression_bw250m, na.rm = TRUE), "Purely geometric nearest segment among all same-era segments equals current assignment."),
-  summary_row("global_nearest_pair_diff_includes_own_ward", "regression_bw100m", sum(audit$regression_bw100m, na.rm = TRUE), sum(audit$global_pair_diff & audit$global_pair_includes_own_ward & audit$regression_bw100m, na.rm = TRUE), "Global nearest different-pair segment still includes the parcel's own ward."),
-  summary_row("global_nearest_pair_diff_includes_own_ward", "regression_bw250m", sum(audit$regression_bw250m, na.rm = TRUE), sum(audit$global_pair_diff & audit$global_pair_includes_own_ward & audit$regression_bw250m, na.rm = TRUE), "Global nearest different-pair segment still includes the parcel's own ward."),
-  summary_row("global_nearest_pair_diff", "regression_bw100m", sum(audit$regression_bw100m, na.rm = TRUE), sum(audit$global_pair_diff & audit$regression_bw100m, na.rm = TRUE), "Unconstrained global nearest segment belongs to a different ward pair."),
-  summary_row("global_nearest_pair_diff", "regression_bw250m", sum(audit$regression_bw250m, na.rm = TRUE), sum(audit$global_pair_diff & audit$regression_bw250m, na.rm = TRUE), "Unconstrained global nearest segment belongs to a different ward pair."),
+  diagnostic_row("global_all_options_segment_matches_current", "full", sum(!is.na(audit$stored_segment_id)), sum(!audit$global_nearest_segment_matches_current & !is.na(audit$stored_segment_id), na.rm = TRUE), "Diagnostic only: purely geometric nearest segment among all same-era segments equals current assignment."),
+  diagnostic_row("global_all_options_segment_matches_current", "regression_bw100m", sum(audit$regression_bw100m, na.rm = TRUE), sum(!audit$global_nearest_segment_matches_current & !is.na(audit$stored_segment_id) & audit$regression_bw100m, na.rm = TRUE), "Diagnostic only: purely geometric nearest segment among all same-era segments equals current assignment."),
+  diagnostic_row("global_all_options_segment_matches_current", "regression_bw250m", sum(audit$regression_bw250m, na.rm = TRUE), sum(!audit$global_nearest_segment_matches_current & !is.na(audit$stored_segment_id) & audit$regression_bw250m, na.rm = TRUE), "Diagnostic only: purely geometric nearest segment among all same-era segments equals current assignment."),
+  diagnostic_row("global_nearest_pair_diff_includes_own_ward", "regression_bw100m", sum(audit$regression_bw100m, na.rm = TRUE), sum(audit$global_pair_diff & audit$global_pair_includes_own_ward & audit$regression_bw100m, na.rm = TRUE), "Diagnostic only: global nearest different-pair segment still includes the parcel's own ward."),
+  diagnostic_row("global_nearest_pair_diff_includes_own_ward", "regression_bw250m", sum(audit$regression_bw250m, na.rm = TRUE), sum(audit$global_pair_diff & audit$global_pair_includes_own_ward & audit$regression_bw250m, na.rm = TRUE), "Diagnostic only: global nearest different-pair segment still includes the parcel's own ward."),
+  diagnostic_row("global_nearest_pair_diff", "regression_bw100m", sum(audit$regression_bw100m, na.rm = TRUE), sum(audit$global_pair_diff & audit$regression_bw100m, na.rm = TRUE), "Diagnostic only: unconstrained global nearest segment belongs to a different ward pair."),
+  diagnostic_row("global_nearest_pair_diff", "regression_bw250m", sum(audit$regression_bw250m, na.rm = TRUE), sum(audit$global_pair_diff & audit$regression_bw250m, na.rm = TRUE), "Diagnostic only: unconstrained global nearest segment belongs to a different ward pair."),
   summary_row("segment_coverage", "regression_bw100m", sum(audit$regression_bw100m, na.rm = TRUE), sum(audit$regression_bw100m & is.na(audit$stored_segment_id), na.rm = TRUE), "Rows in the 100m regression sample should have segment_id."),
   summary_row("segment_coverage", "regression_bw250m", sum(audit$regression_bw250m, na.rm = TRUE), sum(audit$regression_bw250m & is.na(audit$stored_segment_id), na.rm = TRUE), "Rows in the 250m regression sample should have segment_id.")
 )
@@ -370,7 +391,7 @@ ward_pair_distance_issues <- audit %>%
 
 segment_assignment_issues <- audit %>%
   filter(
-      !final_segment_matches_lookup |
+    !final_segment_matches_lookup |
       !final_segment_distance_matches_lookup |
       !segment_matches_recomputed |
       !segment_distance_matches_recomputed |
@@ -382,7 +403,7 @@ segment_assignment_issues <- audit %>%
   select(
     pin, pin_formatted, construction_year, construction_date, boundary_year, era,
     longitude, latitude, ward, ward_pair, dist_to_boundary_m,
-    stored_segment_id, lookup_segment_id, lookup_segment_reason,
+    stored_segment_id, stored_segment_pair_dash, lookup_segment_id, lookup_segment_reason,
     dist_to_segment_m, lookup_dist_to_segment_m,
     recomputed_segment_id, recomputed_segment_pair_dash, recomputed_segment_dist_m,
     global_nearest_segment_id, global_nearest_pair_dash, global_nearest_segment_dist_m,
@@ -398,6 +419,7 @@ all_options_segment_comparison <- audit %>%
     pin, pin_formatted, construction_year, construction_date, boundary_year, era,
     longitude, latitude, ward, other_ward, ward_pair, dist_to_boundary_m,
     current_segment_id = stored_segment_id,
+    current_segment_pair_dash = stored_segment_pair_dash,
     current_segment_dist_m = dist_to_segment_m,
     nearest_assigned_pair_segment_id = recomputed_segment_id,
     nearest_assigned_pair_segment_dist_m = recomputed_segment_dist_m,
@@ -416,7 +438,7 @@ global_nearest_segment_pair_differences <- audit %>%
   select(
     pin, pin_formatted, construction_year, construction_date, boundary_year, era,
     longitude, latitude, ward, ward_pair, dist_to_boundary_m,
-    stored_segment_id, dist_to_segment_m, recomputed_segment_dist_m,
+    stored_segment_id, stored_segment_pair_dash, dist_to_segment_m, recomputed_segment_dist_m,
     global_nearest_segment_id, global_nearest_pair_dash, global_nearest_segment_dist_m,
     global_pair_includes_own_ward,
     regression_bw100m, regression_bw250m

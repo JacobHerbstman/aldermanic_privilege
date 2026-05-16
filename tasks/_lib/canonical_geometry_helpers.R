@@ -458,93 +458,83 @@ assign_points_to_segments <- function(points_sf, era_values, pair_values, segmen
   )
 }
 
-assign_points_to_nearest_segments <- function(points_sf, era_values, pair_values, segment_layers, max_distance, chunk_n = 50000L, tie_tolerance = units::set_units(1e-7, "m")) {
+assign_points_to_nearest_segments <- function(points_sf, era_values, pair_values, segment_layers, max_distance, chunk_n = 50000L) {
   stopifnot(length(era_values) == nrow(points_sf), length(pair_values) == nrow(points_sf))
 
   if (!inherits(max_distance, "units")) {
     stop("max_distance must be a units object, e.g. units::set_units(250, 'm').", call. = FALSE)
   }
-  if (!inherits(tie_tolerance, "units")) {
-    stop("tie_tolerance must be a units object.", call. = FALSE)
-  }
   empty_point <- assert_point_geometries(points_sf, "points_sf")
 
   max_distance_m <- as.numeric(units::set_units(max_distance, "m"))
-  tie_tolerance_m <- as.numeric(units::set_units(tie_tolerance, "m"))
   if (!is.finite(max_distance_m) || max_distance_m <= 0) {
     stop("max_distance must be positive.", call. = FALSE)
   }
-  if (!is.finite(tie_tolerance_m) || tie_tolerance_m < 0) {
-    stop("tie_tolerance must be nonnegative.", call. = FALSE)
-  }
 
-  # pair_values is retained for the caller contract and audits; assignment is global.
+  pair_dash <- normalize_pair_dash(pair_values)
   seg_id <- rep(NA_character_, nrow(points_sf))
   eras <- unique(stats::na.omit(as.character(era_values)))
 
   for (era_i in eras) {
-    idx_era <- which(as.character(era_values) == era_i & !empty_point)
+    idx_era <- which(as.character(era_values) == era_i & !empty_point & !is.na(pair_dash))
     seg_era <- segment_layers[[era_i]]
     if (length(idx_era) == 0 || is.null(seg_era) || nrow(seg_era) == 0) {
       next
     }
+    missing_cols <- setdiff(c("segment_id", "pair_dash"), names(seg_era))
+    if (length(missing_cols) > 0) {
+      stop(sprintf(
+        "Segment layer %s is missing required columns: %s",
+        era_i,
+        paste(missing_cols, collapse = ", ")
+      ), call. = FALSE)
+    }
 
-    seg_era <- seg_era[order(seg_era$segment_id), ]
+    seg_era <- seg_era[!is.na(seg_era$pair_dash) & !is.na(seg_era$segment_id) & seg_era$segment_id != "", ]
+    seg_era <- seg_era[order(seg_era$pair_dash, seg_era$segment_id), ]
     if (sf::st_crs(points_sf) != sf::st_crs(seg_era)) {
       pts_era <- sf::st_transform(points_sf[idx_era, ], sf::st_crs(seg_era))
     } else {
       pts_era <- points_sf[idx_era, ]
     }
+    pair_era <- pair_dash[idx_era]
 
-    starts <- seq(1L, length(idx_era), by = chunk_n)
-    for (s in starts) {
-      e <- min(s + chunk_n - 1L, length(idx_era))
-      local_chunk <- s:e
-      global_chunk <- idx_era[local_chunk]
+    for (pair_i in sort(unique(stats::na.omit(pair_era)))) {
+      idx_pair_local <- which(pair_era == pair_i)
+      idx_pair_global <- idx_era[idx_pair_local]
+      seg_pair <- seg_era[seg_era$pair_dash == pair_i, ]
+      if (length(idx_pair_local) == 0 || nrow(seg_pair) == 0) {
+        next
+      }
 
-      nearest_idx <- sf::st_nearest_feature(pts_era[local_chunk, ], seg_era)
-      valid_nearest <- !is.na(nearest_idx)
-      if (!any(valid_nearest)) next
+      seg_pair <- seg_pair[order(seg_pair$segment_id), ]
+      starts <- seq(1L, length(idx_pair_local), by = chunk_n)
+      for (s in starts) {
+        e <- min(s + chunk_n - 1L, length(idx_pair_local))
+        local_chunk <- idx_pair_local[s:e]
+        global_chunk <- idx_pair_global[s:e]
 
-      valid_local <- local_chunk[valid_nearest]
-      valid_global <- global_chunk[valid_nearest]
-      nearest_segments <- seg_era[nearest_idx[valid_nearest], ]
-      dists <- sf::st_distance(
-        sf::st_geometry(pts_era[valid_local, ]),
-        sf::st_geometry(nearest_segments),
-        by_element = TRUE
-      )
-      dist_m <- as.numeric(units::set_units(dists, "m"))
+        nearest_idx <- sf::st_nearest_feature(pts_era[local_chunk, ], seg_pair)
+        valid_nearest <- !is.na(nearest_idx)
+        if (!any(valid_nearest)) next
 
-      ok <- is.finite(dist_m) & dist_m <= max_distance_m
-      if (any(ok)) {
-        valid_local_ok <- valid_local[ok]
-        valid_global_ok <- valid_global[ok]
-        chosen_ids <- as.character(nearest_segments$segment_id[ok])
-
-        candidate_hits <- sf::st_is_within_distance(
-          pts_era[valid_local_ok, ],
-          seg_era,
-          dist = units::set_units(max_distance_m + tie_tolerance_m, "m")
+        valid_local <- local_chunk[valid_nearest]
+        valid_global <- global_chunk[valid_nearest]
+        nearest_segments <- seg_pair[nearest_idx[valid_nearest], ]
+        dists <- sf::st_distance(
+          sf::st_geometry(pts_era[valid_local, ]),
+          sf::st_geometry(nearest_segments),
+          by_element = TRUE
         )
-        multi_hit <- which(lengths(candidate_hits) > 1L)
-        for (h in multi_hit) {
-          candidate_idx <- candidate_hits[[h]]
-          candidate_segments <- seg_era[candidate_idx, ]
-          candidate_dists <- sf::st_distance(
-            sf::st_geometry(pts_era[valid_local_ok[h], ]),
-            sf::st_geometry(candidate_segments),
-            by_element = FALSE
-          )
-          candidate_dist_m <- as.numeric(units::set_units(candidate_dists[1, ], "m"))
-          min_dist_m <- min(candidate_dist_m, na.rm = TRUE)
-          tied <- which(is.finite(candidate_dist_m) & candidate_dist_m <= min_dist_m + tie_tolerance_m)
-          if (length(tied) > 0) {
-            chosen_ids[h] <- sort(as.character(candidate_segments$segment_id[tied]))[1]
-          }
-        }
+        dist_m <- as.numeric(units::set_units(dists, "m"))
 
-        seg_id[valid_global_ok] <- chosen_ids
+        ok <- is.finite(dist_m) & dist_m <= max_distance_m
+        if (any(ok)) {
+          valid_global_ok <- valid_global[ok]
+          chosen_ids <- as.character(nearest_segments$segment_id[ok])
+
+          seg_id[valid_global_ok] <- chosen_ids
+        }
       }
     }
   }
