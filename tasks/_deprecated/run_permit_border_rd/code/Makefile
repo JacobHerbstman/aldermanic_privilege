@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 PANELS := cohort_2015 stacked_implementation
 OUTCOMES := high_discretion new_construction
@@ -17,11 +16,12 @@ endef
 $(foreach panel,$(PANELS),$(foreach outcome,$(OUTCOMES),$(eval $(call RUN_RD_RULE,$(panel),$(outcome)))))
 
 ../input/permit_block_year_panel.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/permit_block_year_panel_2015.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/permit_block_year_panel.parquet ../input/permit_block_year_panel_2015.parquet
 
-include ../../generic.make
+include ../../../shell_functions.make
+include ../../../generic.make

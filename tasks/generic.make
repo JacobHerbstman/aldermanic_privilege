@@ -1,26 +1,16 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# generic.make  (to be included from each task’s code/Makefile)
-# ─────────────────────────────────────────────────────────────────────────────
-
 SHELL := bash
 
-# ----------------------------------------------------------------------------
-# Create the standard folders if they don’t exist
-# ----------------------------------------------------------------------------
+GENERIC_MAKE := $(lastword $(MAKEFILE_LIST))
+TASKS_ROOT := $(patsubst %/,%,$(dir $(GENERIC_MAKE)))
+
 ../input ../output ../temp slurmlogs:
 	mkdir -p $@
 
-# ----------------------------------------------------------------------------
-# SLURM wrapper (path is still relative to each task’s code/ folder)
-# ----------------------------------------------------------------------------
-run.sbatch: ../../setup_environment/code/run.sbatch | slurmlogs
-	ln -sf $< $@
+run.sbatch: $(TASKS_ROOT)/setup_environment/code/run.sbatch | slurmlogs
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-# ----------------------------------------------------------------------------
-# Remove accidental Finder-style duplicates like "file 2.csv" when canonical
-# files already exist in the same task folder.
-# ----------------------------------------------------------------------------
 .PHONY: sanitize-numbered-duplicates
+
 sanitize-numbered-duplicates: ../input
 	@for dir in ../input ../output; do \
 		[ -d "$$dir" ] || continue; \
@@ -34,11 +24,25 @@ sanitize-numbered-duplicates: ../input
 
 link-inputs: sanitize-numbered-duplicates
 
-# ----------------------------------------------------------------------------
-# Generic upstream rule — This is a powerful but advanced feature.
-# For now, we will rely on explicit symbolic linking rules in each Makefile
-# to make the workflow as clear as possible.
-# ----------------------------------------------------------------------------
- ../../output/%:
-	$(MAKE) -C $(subst output/,code/,$(dir $@)) \
-	        ../output/$(notdir $@)
+../../_lib/% ../../../_lib/%:
+	@test -e "$@" || { echo "Missing shared library: $@"; false; }
+
+../../% ../../../% ../../../../%:
+	@case "$@" in \
+		../../*/output/*) \
+			task=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./##; s#/output/.*##'); \
+			output=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./[^/]*/output/#../output/#'); \
+			$(MAKE_COMMAND) -C "../../$$task/code" "$$output"; \
+			;; \
+		../../../*/output/*) \
+			task=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./\.\./##; s#/output/.*##'); \
+			output=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./\.\./[^/]*/output/#../output/#'); \
+			$(MAKE_COMMAND) -C "../../../$$task/code" "$$output"; \
+			;; \
+		../../../data_raw/*|../../../../data_raw/*) \
+			test -e "$@" || { echo "Missing raw root: $@"; false; }; \
+			;; \
+		*) \
+			test -e "$@" || { echo "No generic upstream rule for $@"; false; }; \
+			;; \
+	esac

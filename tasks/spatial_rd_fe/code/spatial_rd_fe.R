@@ -1,46 +1,37 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
-#   "../output/rd_fe_plot_%s%s_bw%d_%s_%s.pdf",
-#   ifelse(use_log, "log_", ""), yvar, bw_ft, sample_filter, fe_spec
-# )
-# source("spatial_rd_fe.R")
-
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
-# arg order: yvar use_log bw_ft sample fe_spec output_pdf [plot_style] [gap_split]
-# sample: "all" (unitscount > 0) | "multifamily" (unitscount > 1)
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/spatial_rd_fe/code")
 # yvar <- "density_far"
 # use_log <- TRUE
-# bw_ft <- 500
+# bandwidth_m <- 152.4
 # sample_filter <- "multifamily"
 # fe_spec <- "zonegroup_segment_year_additive"
-# output_pdf <- "../output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf"
+# output_pdf <- "../output/rd_fe_plot_log_density_far_500ft_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf"
 # plot_style <- "slope"
 # gap_split <- "all"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(yvar, use_log, bw_ft, sample_filter, fe_spec, output_pdf, plot_style, gap_split)
+  args <- c(yvar, use_log, bandwidth_m, sample_filter, fe_spec, output_pdf, plot_style, gap_split)
 }
 
 if (length(args) < 6) {
-  stop("FATAL: Script requires args: <yvar> <use_log> <bw_ft> <sample> <fe_spec> <output_pdf> [<plot_style>] [<gap_split>]", call. = FALSE)
+  stop("FATAL: Script requires args: <yvar> <use_log> <bandwidth_m> <sample> <fe_spec> <output_pdf> [<plot_style>] [<gap_split>]", call. = FALSE)
 }
 
 yvar <- args[1]
 use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
-bw_ft <- as.numeric(args[3])
+bandwidth_m <- as.numeric(args[3])
 sample_filter <- args[4]
 fe_spec <- args[5]
 output_pdf <- args[6]
 plot_style <- if (length(args) >= 7) tolower(args[7]) else "slope"
 gap_split <- if (length(args) >= 8) tolower(args[8]) else "all"
 
-if (!is.finite(bw_ft) || bw_ft <= 0) {
-  stop("bw_ft must be a positive number.", call. = FALSE)
+if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
+  stop("bandwidth_m must be a positive number.", call. = FALSE)
 }
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample must be one of: all, multifamily", call. = FALSE)
@@ -108,38 +99,31 @@ if (control_style_raw %in% c("baseline", "controls", "demographic_controls")) {
   stop("RD_CONTROL_STYLE must be one of: baseline, none", call. = FALSE)
 }
 
-donut_ft_raw <- Sys.getenv("DONUT_FT", "0")
-donut_ft <- suppressWarnings(as.numeric(donut_ft_raw))
-if (!is.finite(donut_ft) || donut_ft < 0) {
-  stop("DONUT_FT must be a non-negative number.", call. = FALSE)
+donut_m <- suppressWarnings(as.numeric(Sys.getenv("DONUT_M", "0")))
+if (!is.finite(donut_m) || donut_m < 0) {
+  stop("DONUT_M must be a non-negative number.", call. = FALSE)
 }
-if (donut_ft >= bw_ft) {
-  stop("DONUT_FT must be strictly smaller than bandwidth.", call. = FALSE)
+if (donut_m >= bandwidth_m) {
+  stop("DONUT_M must be strictly smaller than bandwidth.", call. = FALSE)
 }
 
-placebo_shift_raw <- Sys.getenv("PLACEBO_SHIFT_FT", "0")
-placebo_shift_ft <- suppressWarnings(as.numeric(placebo_shift_raw))
-if (!is.finite(placebo_shift_ft)) {
-  stop("PLACEBO_SHIFT_FT must be numeric.", call. = FALSE)
+placebo_shift_m <- suppressWarnings(as.numeric(Sys.getenv("PLACEBO_SHIFT_M", "0")))
+if (!is.finite(placebo_shift_m)) {
+  stop("PLACEBO_SHIFT_M must be numeric.", call. = FALSE)
 }
+display_config <- distance_display_config()
 
 # 1) Load + sample filters aligned with border-pair FE table spec
 message(sprintf("Input: %s", rd_input_path))
-raw <- read_csv(rd_input_path, show_col_types = FALSE)
+raw <- read_csv(rd_input_path, show_col_types = FALSE) %>%
+  ensure_meter_distance_columns()
 
 if (!yvar %in% names(raw)) {
   stop(sprintf("yvar '%s' not found in data.", yvar), call. = FALSE)
 }
 
-strictness_sd <- sd(raw$strictness_own, na.rm = TRUE)
-if (!is.finite(strictness_sd) || strictness_sd <= 0) {
-  stop("Could not compute a valid strictness standard deviation.", call. = FALSE)
-}
-
 dat <- raw %>%
   mutate(
-    strictness_own = strictness_own / strictness_sd,
-    strictness_neighbor = strictness_neighbor / strictness_sd,
     zone_group = zone_group_from_code(zone_code)
   ) %>%
   filter(
@@ -148,7 +132,7 @@ dat <- raw %>%
     construction_year >= 2006,
     !is.na(ward_pair),
     !is.na(construction_year),
-    is.finite(signed_distance)
+    is.finite(signed_distance_m)
   )
 
 if (prune_sample == "pruned") {
@@ -180,7 +164,7 @@ if (prune_sample == "pruned") {
       pair_dash = normalize_pair_dash(ward_pair),
       era = era_from_year(construction_year)
     ) %>%
-    left_join(conf_flags, by = c("pair_dash", "era"))
+    left_join(conf_flags, by = c("pair_dash", "era"), relationship = "many-to-one")
 
   n_missing <- sum(is.na(dat$keep_pair_era))
   if (n_missing > 0) {
@@ -214,20 +198,24 @@ if (fe_map[[fe_spec]]$use_far) {
 }
 
 dat <- dat %>%
-  mutate(running_distance = signed_distance - placebo_shift_ft) %>%
-  filter(abs(running_distance) <= bw_ft, abs(running_distance) >= donut_ft)
+  mutate(running_distance_m = signed_distance_m - placebo_shift_m) %>%
+  filter(abs(running_distance_m) <= bandwidth_m, abs(running_distance_m) >= donut_m)
 
 if (weight_style == "triangular") {
   dat <- dat %>%
-    mutate(plot_weight = pmax(0, 1 - abs(running_distance) / bw_ft))
+    mutate(plot_weight = pmax(0, 1 - abs(running_distance_m) / bandwidth_m))
 } else {
   dat <- dat %>%
     mutate(plot_weight = 1)
 }
 
 message(sprintf(
-  "RD config: FE=%s | cluster=%s | bw=%d | donut>=%.0f | placebo_shift=%+.0f | weights=%s | controls=%s | sample=%s | prune=%s | obs=%d",
-  fe_spec, cluster_level, as.integer(bw_ft), donut_ft, placebo_shift_ft, weight_style, control_style, sample_filter, prune_sample, nrow(dat)
+  "RD config: FE=%s | cluster=%s | bw=%s | donut>=%s | placebo_shift=%s | weights=%s | controls=%s | sample=%s | prune=%s | obs=%d",
+  fe_spec, cluster_level,
+  format_distance_label(bandwidth_m, display_config),
+  format_distance_label(donut_m, display_config),
+  format_signed_distance_label(placebo_shift_m, display_config),
+  weight_style, control_style, sample_filter, prune_sample, nrow(dat)
 ))
 
 if (use_log) {
@@ -290,9 +278,9 @@ if (control_style == "none") {
 }
 
 # Keep explicit side variable for discontinuity model after placebo shift.
-dat <- dat %>% mutate(side = as.integer(running_distance > 0))
+dat <- dat %>% mutate(side = as.integer(running_distance_m > 0))
 
-rhs_rd <- paste(c("side", "running_distance", "side:running_distance", controls), collapse = " + ")
+rhs_rd <- paste(c("side", "running_distance_m", "side:running_distance_m", controls), collapse = " + ")
 fml_rd <- as.formula(sprintf("outcome ~ %s | %s", rhs_rd, fe_map[[fe_spec]]$fe))
 
 if (weight_style == "triangular") {
@@ -309,8 +297,8 @@ get_coef <- function(ct, names_vec) {
 }
 
 b_side <- get_coef(ct_rd, c("side"))
-b_x <- get_coef(ct_rd, c("running_distance"))
-b_int <- get_coef(ct_rd, c("side:running_distance", "running_distance:side"))
+b_x <- get_coef(ct_rd, c("running_distance_m"))
+b_int <- get_coef(ct_rd, c("side:running_distance_m", "running_distance_m:side"))
 slope_right <- b_x["estimate"] + b_int["estimate"]
 
 stars <- function(p) {
@@ -377,8 +365,8 @@ if (plot_style %in% c("level", "level_rd")) {
   aug <- aug %>%
     mutate(
       xb = b_side["estimate"] * side +
-        b_x["estimate"] * running_distance +
-        b_int["estimate"] * (side * running_distance),
+        b_x["estimate"] * running_distance_m +
+        b_int["estimate"] * (side * running_distance_m),
       y_adj = .resid + xb
     )
 
@@ -388,9 +376,9 @@ if (plot_style %in% c("level", "level_rd")) {
 
 # Binning for visualization
 K <- 30
-bin_w <- bw_ft / K
+bin_w <- bandwidth_m / K
 bins <- aug %>%
-  mutate(bin_id = floor(running_distance / bin_w),
+  mutate(bin_id = floor(running_distance_m / bin_w),
          bin_center = (bin_id + 0.5) * bin_w) %>%
   group_by(bin_center, side) %>%
   summarise(
@@ -401,31 +389,39 @@ bins <- aug %>%
     lo = mean_y - 1.96 * se_y,
     hi = mean_y + 1.96 * se_y,
     .groups = "drop"
+  ) %>%
+  mutate(
+    bin_center_display = if (display_config$unit == "ft") bin_center * M_TO_FT else bin_center
   )
 
 line_df <- if (plot_style == "level") {
   mean_left <- weighted_mean_safe(aug$y_adj[aug$side == 0], aug$plot_weight[aug$side == 0])
   mean_right <- weighted_mean_safe(aug$y_adj[aug$side == 1], aug$plot_weight[aug$side == 1])
   bind_rows(
-    tibble(running_distance = c(-bw_ft, 0), side = 0, fit = mean_left),
-    tibble(running_distance = c(0, bw_ft), side = 1, fit = mean_right)
+    tibble(running_distance_m = c(-bandwidth_m, 0), side = 0, fit = mean_left),
+    tibble(running_distance_m = c(0, bandwidth_m), side = 1, fit = mean_right)
   )
 } else {
-  x_left <- seq(-bw_ft, 0, length.out = 200)
-  x_right <- seq(0, bw_ft, length.out = 200)
+  x_left <- seq(-bandwidth_m, 0, length.out = 200)
+  x_right <- seq(0, bandwidth_m, length.out = 200)
   bind_rows(
     tibble(
-      running_distance = x_left,
+      running_distance_m = x_left,
       side = 0,
       fit = b_x["estimate"] * x_left
     ),
     tibble(
-      running_distance = x_right,
+      running_distance_m = x_right,
       side = 1,
       fit = b_side["estimate"] + (b_x["estimate"] + b_int["estimate"]) * x_right
     )
   )
 }
+
+line_df <- line_df %>%
+  mutate(
+    running_distance_display = if (display_config$unit == "ft") running_distance_m * M_TO_FT else running_distance_m
+  )
 
 jump_label <- if (plot_style == "level_rd") {
   sprintf(
@@ -446,8 +442,8 @@ jump_label <- if (plot_style == "level_rd") {
 }
 
 placebo_side_label <- dplyr::case_when(
-  placebo_shift_ft > 0 ~ "sample lies inside the original more-stringent side",
-  placebo_shift_ft < 0 ~ "sample lies inside the original less-stringent side",
+  placebo_shift_m > 0 ~ "sample lies inside the original more-stringent side",
+  placebo_shift_m < 0 ~ "sample lies inside the original less-stringent side",
   TRUE ~ "right side is the more-stringent side"
 )
 
@@ -461,35 +457,39 @@ gap_split_label <- dplyr::case_when(
 
 control_label <- if (control_style == "none") "FE only" else "FE + controls"
 
-distance_label <- if (placebo_shift_ft == 0) {
-  "Running distance (ft) relative to cutoff; right side is the more-stringent side"
+distance_label <- if (placebo_shift_m == 0) {
+  sprintf(
+    "Running distance (%s) relative to cutoff; right side is the more-stringent side",
+    display_config$unit
+  )
 } else {
   sprintf(
-    "Running distance (ft) relative to placebo cutoff shifted %+.0f ft; %s",
-    placebo_shift_ft,
+    "Running distance (%s) relative to placebo cutoff shifted %s; %s",
+    display_config$unit,
+    format_signed_distance_label(placebo_shift_m, display_config),
     placebo_side_label
   )
 }
 
-subtitle_label <- if (placebo_shift_ft == 0) {
+subtitle_label <- if (placebo_shift_m == 0) {
   sprintf(
-    "%s | %s | %s | %s weights | bw=%d ft | N=%d",
+    "%s | %s | %s | %s weights | bw=%s | N=%d",
     jump_label,
     gap_split_label,
     control_label,
     weight_style,
-    as.integer(bw_ft),
+    format_distance_label(bandwidth_m, display_config),
     n_obs_plot
   )
 } else {
   sprintf(
-    "%s | %s | %s | placebo shift=%+.0f ft | %s weights | bw=%d ft | N=%d",
+    "%s | %s | %s | placebo shift=%s | %s weights | bw=%s | N=%d",
     jump_label,
     gap_split_label,
     control_label,
-    placebo_shift_ft,
+    format_signed_distance_label(placebo_shift_m, display_config),
     weight_style,
-    as.integer(bw_ft),
+    format_distance_label(bandwidth_m, display_config),
     n_obs_plot
   )
 }
@@ -506,12 +506,12 @@ if (use_log) ylab <- paste0("Log(", ylab, ")")
 p <- ggplot() +
   geom_point(
     data = bins,
-    aes(x = bin_center, y = mean_y, color = factor(side)),
+    aes(x = bin_center_display, y = mean_y, color = factor(side)),
     size = 1.6, alpha = 0.9
   ) +
   geom_line(
     data = line_df,
-    aes(x = running_distance, y = fit, color = factor(side)),
+    aes(x = running_distance_display, y = fit, color = factor(side)),
     linewidth = 1.1
   ) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30") +
@@ -547,10 +547,10 @@ write_csv(
   tibble(
     yvar = yvar,
     use_log = use_log,
-    bw_ft = bw_ft,
+    bandwidth_m = bandwidth_m,
     sample_filter = sample_filter,
-    donut_ft = donut_ft,
-    placebo_shift_ft = placebo_shift_ft,
+    donut_m = donut_m,
+    placebo_shift_m = placebo_shift_m,
     prune_sample = prune_sample,
     cluster_level = cluster_level,
     input_path = rd_input_path,

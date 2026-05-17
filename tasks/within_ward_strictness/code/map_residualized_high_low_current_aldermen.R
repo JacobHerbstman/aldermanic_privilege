@@ -50,9 +50,18 @@ message("=== Current-Alderman Residualized High-vs-Low Map ===")
 message("Map year: ", map_year)
 
 alderman_wide <- read_csv(residualized_wide_input, show_col_types = FALSE)
+if (anyDuplicated(alderman_wide$alderman) > 0) {
+  stop("Residualized high-low input must be unique by alderman.", call. = FALSE)
+}
 ward_panel <- st_read(ward_panel_input, quiet = TRUE)
+if (anyDuplicated(st_drop_geometry(ward_panel %>% filter(year == map_year))$ward) > 0) {
+  stop("Ward panel must be unique by ward for the selected map year.", call. = FALSE)
+}
 alderman_panel <- read_csv(alderman_panel_input, show_col_types = FALSE) %>%
   mutate(month = as.yearmon(month))
+if (anyDuplicated(alderman_panel[c("ward", "month")]) > 0) {
+  stop("Alderman panel must be unique by ward-month.", call. = FALSE)
+}
 
 ward_labels <- alderman_panel %>%
   filter(year(as.Date(month)) == map_year) %>%
@@ -60,11 +69,14 @@ ward_labels <- alderman_panel %>%
   slice_max(month, n = 1, with_ties = FALSE) %>%
   ungroup() %>%
   select(ward, alderman)
+if (anyDuplicated(ward_labels$ward) > 0) {
+  stop("Current ward labels must be unique by ward.", call. = FALSE)
+}
 
 map_data <- ward_panel %>%
   filter(year == map_year) %>%
-  left_join(ward_labels, by = "ward") %>%
-  left_join(alderman_wide, by = "alderman")
+  left_join(ward_labels, by = "ward", relationship = "one-to-one") %>%
+  left_join(alderman_wide, by = "alderman", relationship = "many-to-one")
 
 st_drop_geometry(map_data) %>%
   write_csv(output_map_csv)

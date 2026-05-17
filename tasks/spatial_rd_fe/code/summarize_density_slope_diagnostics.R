@@ -2,35 +2,36 @@ source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
 bw_ft <- 500
+bw_label <- "500ft"
 fe_spec <- "zonegroup_segment_year_additive"
 fe_spec_exact <- "zone_segment_year_additive"
 
 parcels_path <- "../input/parcels_with_ward_distances.csv"
 parcels_geometry_path <- "../input/parcels_with_geometry.gpkg"
-segments_gpkg <- "../input/boundary_segments_1320ft.gpkg"
+segments_gpkg <- "../input/boundary_segments_400m.gpkg"
 major_streets_gpkg <- "../input/major_streets.gpkg"
 
 style_panel_pdf <- sprintf(
-  "../output/rd_fe_plot_style_comparison_bw%d_multifamily_%s_clust_ward_pair.pdf",
-  bw_ft,
+  "../output/rd_fe_plot_style_comparison_%s_multifamily_%s_clust_ward_pair.pdf",
+  bw_label,
   fe_spec
 )
-distance_summary_csv <- sprintf("../output/rd_fe_distance_bin_summary_bw%d.csv", bw_ft)
-distance_summary_tex <- sprintf("../output/rd_fe_distance_bin_summary_bw%d.tex", bw_ft)
-comparison_csv <- sprintf("../output/rd_fe_slope_diagnostic_comparison_bw%d_multifamily_clust_ward_pair.csv", bw_ft)
-comparison_tex <- sprintf("../output/rd_fe_slope_diagnostic_comparison_bw%d_multifamily_clust_ward_pair.tex", bw_ft)
-pair_slope_csv <- sprintf("../output/rd_fe_pair_slope_summary_bw%d_multifamily.csv", bw_ft)
-case_pairs_csv <- sprintf("../output/rd_fe_case_study_pairs_bw%d_multifamily.csv", bw_ft)
-case_maps_pdf <- sprintf("../output/rd_fe_case_study_maps_bw%d_multifamily.pdf", bw_ft)
+distance_summary_csv <- sprintf("../output/rd_fe_distance_bin_summary_%s.csv", bw_label)
+distance_summary_tex <- sprintf("../output/rd_fe_distance_bin_summary_%s.tex", bw_label)
+comparison_csv <- sprintf("../output/rd_fe_slope_diagnostic_comparison_%s_multifamily_clust_ward_pair.csv", bw_label)
+comparison_tex <- sprintf("../output/rd_fe_slope_diagnostic_comparison_%s_multifamily_clust_ward_pair.tex", bw_label)
+pair_slope_csv <- sprintf("../output/rd_fe_pair_slope_summary_%s_multifamily.csv", bw_label)
+case_pairs_csv <- sprintf("../output/rd_fe_case_study_pairs_%s_multifamily.csv", bw_label)
+case_maps_pdf <- sprintf("../output/rd_fe_case_study_maps_%s_multifamily.pdf", bw_label)
 
 base_plot_paths <- tibble(
   yvar = c("density_far", "density_far", "density_dupac", "density_dupac"),
   plot_style = c("slope", "level", "slope", "level"),
   pdf_path = c(
-    sprintf("../output/rd_fe_diag_plot_log_density_far_bw%d_multifamily_%s_clust_ward_pair_slope.pdf", bw_ft, fe_spec),
-    sprintf("../output/rd_fe_diag_plot_log_density_far_bw%d_multifamily_%s_clust_ward_pair_level.pdf", bw_ft, fe_spec),
-    sprintf("../output/rd_fe_diag_plot_log_density_dupac_bw%d_multifamily_%s_clust_ward_pair_slope.pdf", bw_ft, fe_spec),
-    sprintf("../output/rd_fe_diag_plot_log_density_dupac_bw%d_multifamily_%s_clust_ward_pair_level.pdf", bw_ft, fe_spec)
+    sprintf("../output/rd_fe_diag_plot_log_density_far_%s_multifamily_%s_clust_ward_pair_slope.pdf", bw_label, fe_spec),
+    sprintf("../output/rd_fe_diag_plot_log_density_far_%s_multifamily_%s_clust_ward_pair_level.pdf", bw_label, fe_spec),
+    sprintf("../output/rd_fe_diag_plot_log_density_dupac_%s_multifamily_%s_clust_ward_pair_slope.pdf", bw_label, fe_spec),
+    sprintf("../output/rd_fe_diag_plot_log_density_dupac_%s_multifamily_%s_clust_ward_pair_level.pdf", bw_label, fe_spec)
   )
 )
 
@@ -46,14 +47,14 @@ comparison_plot_paths <- tibble(
     times = 2
   ),
   pdf_path = c(
-    sprintf("../output/rd_fe_diag_plot_log_density_far_bw%d_multifamily_%s_clust_ward_pair_slope.pdf", bw_ft, fe_spec),
-    sprintf("../output/rd_fe_diag_plot_log_density_far_bw%d_multifamily_%s_clust_ward_pair_slope.pdf", bw_ft, fe_spec_exact),
-    sprintf("../output/placebo_rd_fe_diag_plot_log_density_far_bw%d_multifamily_%s_clust_ward_pair_shift500.pdf", bw_ft, fe_spec),
-    sprintf("../output/placebo_rd_fe_diag_plot_log_density_far_bw%d_multifamily_%s_clust_ward_pair_shift-500.pdf", bw_ft, fe_spec),
-    sprintf("../output/rd_fe_diag_plot_log_density_dupac_bw%d_multifamily_%s_clust_ward_pair_slope.pdf", bw_ft, fe_spec),
-    sprintf("../output/rd_fe_diag_plot_log_density_dupac_bw%d_multifamily_%s_clust_ward_pair_slope.pdf", bw_ft, fe_spec_exact),
-    sprintf("../output/placebo_rd_fe_diag_plot_log_density_dupac_bw%d_multifamily_%s_clust_ward_pair_shift500.pdf", bw_ft, fe_spec),
-    sprintf("../output/placebo_rd_fe_diag_plot_log_density_dupac_bw%d_multifamily_%s_clust_ward_pair_shift-500.pdf", bw_ft, fe_spec)
+    sprintf("../output/rd_fe_diag_plot_log_density_far_%s_multifamily_%s_clust_ward_pair_slope.pdf", bw_label, fe_spec),
+    sprintf("../output/rd_fe_diag_plot_log_density_far_%s_multifamily_%s_clust_ward_pair_slope.pdf", bw_label, fe_spec_exact),
+    sprintf("../output/placebo_rd_fe_diag_plot_log_density_far_%s_multifamily_%s_clust_ward_pair_shift_pos500ft.pdf", bw_label, fe_spec),
+    sprintf("../output/placebo_rd_fe_diag_plot_log_density_far_%s_multifamily_%s_clust_ward_pair_shift_neg500ft.pdf", bw_label, fe_spec),
+    sprintf("../output/rd_fe_diag_plot_log_density_dupac_%s_multifamily_%s_clust_ward_pair_slope.pdf", bw_label, fe_spec),
+    sprintf("../output/rd_fe_diag_plot_log_density_dupac_%s_multifamily_%s_clust_ward_pair_slope.pdf", bw_label, fe_spec_exact),
+    sprintf("../output/placebo_rd_fe_diag_plot_log_density_dupac_%s_multifamily_%s_clust_ward_pair_shift_pos500ft.pdf", bw_label, fe_spec),
+    sprintf("../output/placebo_rd_fe_diag_plot_log_density_dupac_%s_multifamily_%s_clust_ward_pair_shift_neg500ft.pdf", bw_label, fe_spec)
   )
 )
 
@@ -157,13 +158,13 @@ build_rd_plot <- function(bundle) {
   ggplot() +
     geom_point(
       data = bins,
-      aes(x = bin_center, y = mean_y, color = factor(side)),
+      aes(x = bin_center_display, y = mean_y, color = factor(side)),
       size = 1.6,
       alpha = 0.9
     ) +
     geom_line(
       data = fit,
-      aes(x = running_distance, y = fit, color = factor(side)),
+      aes(x = running_distance_display, y = fit, color = factor(side)),
       linewidth = 1.05
     ) +
     geom_vline(xintercept = 0, linetype = "dashed", color = "gray30") +

@@ -13,187 +13,270 @@ Figure~\ref{fig:pruned_border_segments} shows the ward-boundary segments that en
     \label{fig:pruned_border_segments}
 \end{figure}
 
-\subsection{Benchmark Alternative Specification: All New Construction (250 ft)}
-
-This subsection reports the 250-foot all-construction sample as a benchmark alternative specification. The signs match the main 500-foot multifamily result, but I treat this sample as supporting evidence rather than the headline design.
-
-\begin{figure}[H]
-    \centering
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_log_density_far_bw250_all.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_log_density_dupac_bw250_all.pdf}
-    \end{minipage}
-    \caption{Local-Linear Spatial RD: All New Construction (250 ft)}
-    \figurenotes{Left: Log(FAR). Right: Log(DUPAC). Sample includes all new construction within 250 feet of ward boundaries. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}.}
-    \label{fig:rd_all_250_appendix}
-\end{figure}
-
-\begin{table}[H]
-    \caption{Effect of Aldermanic Stringency on Development Density: All New Construction (250 ft)}
-    \label{tab:segment_fe_250_all}
-
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw250_all_zonegroup_segment_year_additive_clust_ward_pair.tex}
-
-    \footnotesize
-    \textit{Notes:} Sample includes all new construction within 250 feet of ward boundaries. Regressions include side-specific linear distance-to-boundary controls and own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
-\end{table}
-
 \subsection{Pruned Fixed-Effects Specification}
 
-Table~\ref{tab:fe_pruned} applies the pruning screen to the main 500-foot multifamily specification. The coefficients remain negative and become larger in magnitude after dropping ward-pair-era combinations flagged as confounded.
+Table~\ref{tab:fe_pruned} applies the pruning screen to the main 500ft all-construction and multifamily specifications. The coefficients remain negative after dropping ward-pair-era combinations flagged as confounded.
 
 \begin{table}[H]
-    \caption{Effect of Aldermanic Stringency on Development Density: Multifamily Sample (500 ft, Pruned)}
+    \caption{Effect of Aldermanic Stringency on Development Density: All and Multifamily Samples (500ft, Pruned)}
     \label{tab:fe_pruned}
 
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex}
 
     \footnotesize
-    \textit{Notes:} Same specification and controls as Table~\ref{tab:density_main_table}, but dropping ward-pair-era combinations flagged as confounded in the pruning file. Sample includes new multifamily construction within 500 feet of ward boundaries. Regressions are unweighted. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Same specification and controls as Table~\ref{tab:density_main_table}, but dropping ward-pair-era combinations flagged as confounded in the pruning file. Samples include all new construction and multifamily new construction within 500ft of ward boundaries. Regressions are unweighted. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 \subsection{Exact Amenity and Zoned-FAR Balance}
 
-Table~\ref{tab:density_exact_amenity_balance} checks whether the main 500-foot multifamily sample is balanced on exact parcel-level distances to nearby amenities and on zoned FAR. Each row uses the same fixed-effects design as the main density table, but with the amenity measure or zoned FAR on the left-hand side. The coefficients are small and imprecise throughout.
+Tables~\ref{tab:density_exact_amenity_balance} and~\ref{tab:density_exact_amenity_balance_multifamily} check whether the 500ft all-construction and multifamily samples are balanced on exact parcel-level distances to nearby amenities and on zoned FAR. Each row uses the same fixed-effects design as the main density table, but with the amenity measure or zoned FAR on the left-hand side. The coefficients are small and imprecise throughout.
 
 \begin{table}[H]
-    \caption{Exact Amenity and Zoned-FAR Balance in the Main Density Sample}
+    \caption{Exact Amenity and Zoned-FAR Balance: All Construction}
     \label{tab:density_exact_amenity_balance}
 
-    \input{../tasks/density_amenity_balance/output/density_amenity_balance_bw500_multifamily.tex}
+    \input{../tasks/density_amenity_balance/output/density_amenity_balance_500ft_all.tex}
+\end{table}
+
+\begin{table}[H]
+    \caption{Exact Amenity and Zoned-FAR Balance: Multifamily}
+    \label{tab:density_exact_amenity_balance_multifamily}
+
+    \input{../tasks/density_amenity_balance/output/density_amenity_balance_500ft_multifamily.tex}
 \end{table}
 
 \subsection{Cross-Border Stringency Gap}
 
-Figure~\ref{fig:rd_gap_split} splits the density RD display by the median ward-pair stringency gap. The above-median-gap sample shows a sharper negative break in both FAR and DUPAC; the below-median-gap sample is flatter. I treat this as a supporting diagnostic because it asks whether the visual discontinuity is largest where the identifying contrast is stronger.
+Figures~\ref{fig:rd_gap_split_above} and~\ref{fig:rd_gap_split_below} split the density RD display by the median ward-pair stringency gap, with all-construction and multifamily samples shown side by side. The above-median-gap sample shows a sharper negative break in both FAR and DUPAC; the below-median-gap sample is flatter. I treat this as a supporting diagnostic because it asks whether the visual discontinuity is largest where the identifying contrast is stronger.
 
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_bw500_multifamily_above_median.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_500ft_all_above_median.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_bw500_multifamily_below_median.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_500ft_multifamily_above_median.pdf}
     \end{minipage}
 
     \vspace{0.3cm}
 
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_bw500_multifamily_above_median.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_500ft_all_above_median.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_bw500_multifamily_below_median.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_500ft_multifamily_above_median.pdf}
     \end{minipage}
-    \caption{Local-Linear RD by Cross-Border Stringency Gap}
-    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column restricts to ward pairs with an above-median strictness gap; right column restricts to ward pairs with a below-median gap. The strictness-gap measure is the median absolute difference in aldermanic stringency across the two sides of each ward pair. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}.}
-    \label{fig:rd_gap_split}
+    \caption{Local-Linear RD by Cross-Border Stringency Gap: Above-Median Gap}
+    \figurenotes{Above-median stringency-gap sample. Left column: all construction; right column: multifamily. Top row: Log(FAR); bottom row: Log(DUPAC). The strictness-gap measure is the median absolute difference in aldermanic stringency across the two sides of each ward pair. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}.}
+    \label{fig:rd_gap_split_above}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_500ft_all_below_median.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_500ft_multifamily_below_median.pdf}
+    \end{minipage}
+
+    \vspace{0.3cm}
+
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_500ft_all_below_median.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_dupac_500ft_multifamily_below_median.pdf}
+    \end{minipage}
+    \caption{Local-Linear RD by Cross-Border Stringency Gap: Below-Median Gap}
+    \figurenotes{Below-median stringency-gap sample. Left column: all construction; right column: multifamily. Top row: Log(FAR); bottom row: Log(DUPAC). The strictness-gap measure is the median absolute difference in aldermanic stringency across the two sides of each ward pair. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}.}
+    \label{fig:rd_gap_split_below}
 \end{figure}
 
 \subsection{Supplementary Shifted-Cutoff Placebos}
 
-Figure~\ref{fig:rd_placebo} shifts the cutoff 500 feet into each ward and re-centers the local-linear display on that pseudo-boundary. I treat these plots as supplementary because the geometry does not permit a fully clean placebo at the same scale. Even so, the shifted-cutoff displays are flatter than the main 500-foot multifamily plots and do not show the same negative break at the true jurisdictional boundary.
+Figures~\ref{fig:rd_placebo_shift_neg} and~\ref{fig:rd_placebo_shift_pos} shift the cutoff 500ft into each ward and re-center the local-linear display on that pseudo-boundary, with all-construction and multifamily samples shown side by side. The shifted-cutoff displays are flatter than the main 500ft plots and do not show the same negative break at the true jurisdictional boundary.
 
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_bw500_multifamily_shift-500.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_all_shift_neg500ft.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_bw500_multifamily_shift500.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_multifamily_shift_neg500ft.pdf}
     \end{minipage}
 
     \vspace{0.3cm}
 
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_bw500_multifamily_shift-500.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_all_shift_neg500ft.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_bw500_multifamily_shift500.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_multifamily_shift_neg500ft.pdf}
     \end{minipage}
-    \caption{Supplementary Shifted-Cutoff Placebo Tests}
-    \figurenotes{Top row: Log(FAR). Bottom row: Log(DUPAC). Left column shifts the cutoff 500 feet inside the lenient ward; right column shifts the cutoff 500 feet inside the stringent ward. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}, using the 500-foot multifamily sample. These plots are supplementary because the shifted windows overlap the main neighborhood comparison.}
-    \label{fig:rd_placebo}
+    \caption{Supplementary Shifted-Cutoff Placebo Tests: Cutoff Shifted into Lenient Ward}
+    \figurenotes{Cutoff shifted 500ft inside the lenient ward. Left column: all construction; right column: multifamily. Top row: Log(FAR); bottom row: Log(DUPAC). Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}, using 500ft placebo windows.}
+    \label{fig:rd_placebo_shift_neg}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_all_shift_pos500ft.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_multifamily_shift_pos500ft.pdf}
+    \end{minipage}
+
+    \vspace{0.3cm}
+
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_all_shift_pos500ft.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_multifamily_shift_pos500ft.pdf}
+    \end{minipage}
+    \caption{Supplementary Shifted-Cutoff Placebo Tests: Cutoff Shifted into Stringent Ward}
+    \figurenotes{Cutoff shifted 500ft inside the stringent ward. Left column: all construction; right column: multifamily. Top row: Log(FAR); bottom row: Log(DUPAC). Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}, using 500ft placebo windows.}
+    \label{fig:rd_placebo_shift_pos}
 \end{figure}
 
 \subsection{Donut RD Checks}
 
-Figure~\ref{fig:rd_donut} excludes parcels within 25 or 50 feet of the ward boundary in the 500-foot multifamily sample. The fitted discontinuity stays negative in both outcomes, so the main pattern is not coming only from parcels right at the cutoff.
+Figures~\ref{fig:rd_donut_25ft} and~\ref{fig:rd_donut_50ft} exclude parcels within 25ft or 50ft of the ward boundary in the 500ft samples, with all-construction and multifamily samples shown side by side. The fitted discontinuity stays negative in both outcomes, so the main pattern is not coming only from parcels right at the cutoff.
 
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_bw500_multifamily_donut25.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_all_donut25ft.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_bw500_multifamily_donut50.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_multifamily_donut25ft.pdf}
     \end{minipage}
 
     \vspace{0.3cm}
 
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_bw500_multifamily_donut25.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_all_donut25ft.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_bw500_multifamily_donut50.pdf}
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_multifamily_donut25ft.pdf}
     \end{minipage}
-    \caption{Local-Linear Donut RD Checks}
-    \figurenotes{Top row: Log(FAR); bottom row: Log(DUPAC). Left column excludes parcels within 25 feet of the boundary; right column excludes parcels within 50 feet. Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}, using the 500-foot multifamily sample.}
-    \label{fig:rd_donut}
+    \caption{Local-Linear Donut RD Checks: 25ft Donut}
+    \figurenotes{Parcels within 25ft of the ward boundary are excluded. Left column: all construction; right column: multifamily. Top row: Log(FAR); bottom row: Log(DUPAC). Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}, using the 500ft sample.}
+    \label{fig:rd_donut_25ft}
 \end{figure}
-
-\subsection{Bandwidth Path}
-
-Figure~\ref{fig:bandwidth_path_multifamily} plots the segment fixed-effects estimates from 250 to 1,000 feet in the multifamily sample. The coefficients stay negative through a wide range of nearby bandwidths, with the tightest precision around 500 to 650 feet. The 500-foot choice is therefore not an isolated spike in the specification path.
 
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.46\textwidth}
         \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_all_donut50ft.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_multifamily_donut50ft.pdf}
+    \end{minipage}
+
+    \vspace{0.3cm}
+
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_all_donut50ft.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_multifamily_donut50ft.pdf}
+    \end{minipage}
+    \caption{Local-Linear Donut RD Checks: 50ft Donut}
+    \figurenotes{Parcels within 50ft of the ward boundary are excluded. Left column: all construction; right column: multifamily. Top row: Log(FAR); bottom row: Log(DUPAC). Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}, using the 500ft sample.}
+    \label{fig:rd_donut_50ft}
+\end{figure}
+
+\subsection{Bandwidth Path}
+
+Figure~\ref{fig:bandwidth_path_samples} plots the segment fixed-effects estimates across nearby bandwidths, with all-construction and multifamily samples shown side by side. The coefficients stay negative through a wide range of nearby bandwidths, so the 500ft choice is not an isolated spike in the specification path.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/border_pair_FE_bandwidth_path/output/border_pair_fe_bandwidth_path_log_density_far_all_main.pdf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.46\textwidth}
+        \centering
         \includegraphics[width=\textwidth]{../tasks/border_pair_FE_bandwidth_path/output/border_pair_fe_bandwidth_path_log_density_far_multifamily_main.pdf}
+    \end{minipage}
+
+    \vspace{0.3cm}
+
+    \begin{minipage}{0.46\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../tasks/border_pair_FE_bandwidth_path/output/border_pair_fe_bandwidth_path_log_density_dupac_all_main.pdf}
     \end{minipage}
     \hfill
     \begin{minipage}{0.46\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../tasks/border_pair_FE_bandwidth_path/output/border_pair_fe_bandwidth_path_log_density_dupac_multifamily_main.pdf}
     \end{minipage}
-    \caption{Segment Fixed-Effects Estimates by Bandwidth: Multifamily Sample}
-    \figurenotes{Left: Log(FAR). Right: Log(DUPAC). Each point is the segment fixed-effects estimate from a separate bandwidth between 250 and 1,000 feet in the multifamily sample. Vertical bars report 95\% confidence intervals.}
-    \label{fig:bandwidth_path_multifamily}
+    \caption{Segment Fixed-Effects Estimates by Bandwidth}
+    \figurenotes{Left column: all construction; right column: multifamily. Top row: Log(FAR); bottom row: Log(DUPAC). Each point is the segment fixed-effects estimate from a separate bandwidth. Vertical bars report 95\% confidence intervals.}
+    \label{fig:bandwidth_path_samples}
 \end{figure}
 
 \subsection{Corner Ambiguity}
 
-Some parcels near one ward boundary also lie close to another ward pair. At 500 feet in the multifamily sample, that applies to 38 of 697 parcels, or 5.5\% of the baseline sample. Table~\ref{tab:corner_clean_compare} drops those parcels. The coefficients become slightly more negative, so the main result is not driven by corner cases.
+Some parcels near one ward boundary also lie close to another ward pair. Tables~\ref{tab:corner_clean_compare} and~\ref{tab:corner_clean_compare_multifamily} drop those parcels in the 500ft all-construction and multifamily samples. The coefficients remain negative, so the main result is not driven by corner cases.
 
 \begin{table}[H]
-    \caption{Baseline and Corner-Clean 500-Foot Multifamily Estimates}
+    \caption{Baseline and Corner-Clean 500ft All-Construction Estimates}
     \label{tab:corner_clean_compare}
 
-    \input{../tasks/density_corner_clean_table/output/fe_table_bw500_multifamily_corner_clean_compare.tex}
+    \input{../tasks/density_corner_clean_table/output/fe_table_500ft_all_corner_clean_compare.tex}
 
     \footnotesize
-    \textit{Notes:} Columns (1) and (2) reproduce the baseline 500-foot multifamily specification from Table~\ref{tab:density_main_table}. Columns (3) and (4) drop parcels that also lie within 500 feet of another ward pair. At 500 feet in the multifamily sample, this removes 38 of 697 parcels (5.5\%). Regressions include the same controls and fixed effects as Table~\ref{tab:density_main_table}. Regressions are unweighted. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Columns (1) and (2) reproduce the baseline 500ft all-construction specification from Table~\ref{tab:density_main_table}. Columns (3) and (4) drop parcels that also lie within 500ft of another ward pair. Regressions include the same controls and fixed effects as Table~\ref{tab:density_main_table}. Regressions are unweighted. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
+
+\begin{table}[H]
+    \caption{Baseline and Corner-Clean 500ft Multifamily Estimates}
+    \label{tab:corner_clean_compare_multifamily}
+
+    \input{../tasks/density_corner_clean_table/output/fe_table_500ft_multifamily_corner_clean_compare.tex}
+
+    \footnotesize
+    \textit{Notes:} Columns (1) and (2) reproduce the baseline 500ft multifamily specification from Table~\ref{tab:density_main_table}. Columns (3) and (4) drop parcels that also lie within 500ft of another ward pair. Regressions include the same controls and fixed effects as Table~\ref{tab:density_main_table}. Regressions are unweighted. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}

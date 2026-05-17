@@ -1,7 +1,5 @@
 source("../../../setup_environment/code/packages.R")
 
-dir.create("../output", showWarnings = FALSE, recursive = TRUE)
-
 # Interactive run:
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/event_study_balance_audit/code")
 # source("run_event_study_balance_audit.R")

@@ -48,6 +48,18 @@ build_event_study_plot_data <- function(model, support_by_event_time, min_period
   out
 }
 
+solid_event_study_band_fill <- function(color, alpha, background = "#FFFFFF") {
+  color_rgb <- grDevices::col2rgb(color) / 255
+  background_rgb <- grDevices::col2rgb(background) / 255
+  if (ncol(background_rgb) == 1L && ncol(color_rgb) > 1L) {
+    background_rgb <- background_rgb[, rep(1L, ncol(color_rgb)), drop = FALSE]
+  }
+  blended_rgb <- alpha * color_rgb + (1 - alpha) * background_rgb
+  fill <- grDevices::rgb(blended_rgb[1, ], blended_rgb[2, ], blended_rgb[3, ])
+  names(fill) <- names(color)
+  fill
+}
+
 compute_event_study_pretrend <- function(model, plot_data, group_label) {
   lead_terms <- plot_data %>%
     filter(event_time <= -2, !is_reference) %>%
@@ -94,8 +106,8 @@ make_event_study_single_series_plot <- function(plot_data, plot_title, x_label, 
 
   ggplot(plot_data, aes(x = event_time, y = estimate_display)) +
     geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
+    geom_ribbon(aes(ymin = ci_low_display, ymax = ci_high_display), fill = solid_event_study_band_fill(line_color, 0.2), color = NA) +
     geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_ribbon(aes(ymin = ci_low_display, ymax = ci_high_display), fill = line_color, alpha = 0.2, color = NA) +
     geom_line(color = line_color, linewidth = 1) +
     geom_point(color = line_color, size = 2.5) +
     scale_x_continuous(breaks = axis_breaks, labels = axis_labels) +
@@ -135,11 +147,27 @@ make_event_study_directional_plots <- function(plot_data, plot_title, x_label, y
     "Moved to Stricter" = "#c23616",
     "Moved to More Lenient" = "#7f8fa6"
   )
+  band_fill_values <- solid_event_study_band_fill(color_values, 0.15)
 
   facet_plot <- ggplot(plot_data, aes(x = event_time, y = estimate_display, color = group, fill = group)) +
     geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
+    geom_ribbon(
+      data = plot_data %>% filter(group == "Moved to Stricter"),
+      aes(x = event_time, ymin = ci_low_display, ymax = ci_high_display),
+      fill = band_fill_values["Moved to Stricter"],
+      color = NA,
+      inherit.aes = FALSE,
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      data = plot_data %>% filter(group == "Moved to More Lenient"),
+      aes(x = event_time, ymin = ci_low_display, ymax = ci_high_display),
+      fill = band_fill_values["Moved to More Lenient"],
+      color = NA,
+      inherit.aes = FALSE,
+      show.legend = FALSE
+    ) +
     geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_ribbon(aes(ymin = ci_low_display, ymax = ci_high_display), alpha = 0.15, color = NA) +
     geom_line(linewidth = 1) +
     geom_point(size = 2.5, shape = 21, stroke = 0.5) +
     scale_color_manual(values = color_values, name = NULL) +
@@ -168,8 +196,23 @@ make_event_study_directional_plots <- function(plot_data, plot_title, x_label, y
 
   combined_plot <- ggplot(plot_data, aes(x = event_time, y = estimate_display, color = group, fill = group)) +
     geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
+    geom_ribbon(
+      data = plot_data %>% filter(group == "Moved to Stricter"),
+      aes(x = event_time, ymin = ci_low_display, ymax = ci_high_display),
+      fill = band_fill_values["Moved to Stricter"],
+      color = NA,
+      inherit.aes = FALSE,
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      data = plot_data %>% filter(group == "Moved to More Lenient"),
+      aes(x = event_time, ymin = ci_low_display, ymax = ci_high_display),
+      fill = band_fill_values["Moved to More Lenient"],
+      color = NA,
+      inherit.aes = FALSE,
+      show.legend = FALSE
+    ) +
     geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_ribbon(aes(ymin = ci_low_display, ymax = ci_high_display), alpha = 0.15, color = NA) +
     geom_line(linewidth = 1) +
     geom_point(size = 2.5, shape = 21, stroke = 0.5) +
     scale_color_manual(values = color_values, name = NULL) +

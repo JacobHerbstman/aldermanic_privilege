@@ -1,5 +1,4 @@
 # process_single_day.R
-# Usage: Rscript process_single_day.R <input_parquet> <output_csv>
 
 source("../../setup_environment/code/packages.R")
 

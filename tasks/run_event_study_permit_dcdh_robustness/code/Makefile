@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 BW_FT := 1000
 WEIGHTING := uniform
@@ -25,8 +24,9 @@ all: \
 ../output/summary_dcdh_yearly_cohort_2015_high_discretion_issue_$(WEIGHTING)_$(BW_FT)ft.csv: ../output/summary_dcdh_yearly_cohort_2015_high_discretion_issue_$(WEIGHTING)_$(BW_FT)ft.tex
 
 ../input/permit_block_year_panel_2015.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/permit_block_year_panel_2015.parquet
 
+include ../../shell_functions.make
 include ../../generic.make

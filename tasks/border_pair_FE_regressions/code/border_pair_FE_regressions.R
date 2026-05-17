@@ -3,16 +3,16 @@ source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
-# bw_ft <- "500"
+# bandwidth_m <- "152.4"
 # sample_filter <- "multifamily"
 # fe_spec <- "zonegroup_segment_year_additive"
-# output_filename <- "../output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex"
+# output_filename <- "../output/fe_table_500ft_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex"
 # yvar_1 <- "log(density_far)"
 # yvar_2 <- "log(density_dupac)"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(bw_ft, sample_filter, fe_spec, output_filename, yvar_1, yvar_2)
+  args <- c(bandwidth_m, sample_filter, fe_spec, output_filename, yvar_1, yvar_2)
 }
 
 if (length(args) >= 5) {
@@ -26,13 +26,18 @@ if (length(args) >= 5) {
   }
 } else {
   stop(
-    "FATAL: Script requires args: <bw_ft> <sample> <fe_spec> <output_filename> <yvar1> [<yvar2> ...]",
+    "FATAL: Script requires args: <bandwidth_m> <sample> <fe_spec> <output_filename> <yvar1> [<yvar2> ...]",
     call. = FALSE
   )
 }
 
-bw_ft <- parse_bw_ft(bw_arg)
-bw_label <- if (is.finite(bw_ft)) as.character(as.integer(round(bw_ft))) else "all"
+bandwidth_m <- parse_bw_m(bw_arg)
+distance_display <- distance_display_config()
+bandwidth_label <- if (is.finite(bandwidth_m)) {
+  Sys.getenv("BANDWIDTH_LABEL", format_distance_label(bandwidth_m, distance_display))
+} else {
+  "all"
+}
 
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample must be one of: all, multifamily", call. = FALSE)
@@ -48,6 +53,11 @@ write_tex <- !write_tex_raw %in% c("false", "f", "0", "no", "off")
 ambiguity_input_path <- Sys.getenv("AMBIGUITY_INPUT_PATH", "")
 drop_ambiguous_raw <- tolower(Sys.getenv("DROP_AMBIGUOUS_WITHIN_BW", "FALSE"))
 drop_ambiguous_within_bw <- drop_ambiguous_raw %in% c("true", "t", "1", "yes", "on")
+min_segment_length_ft_raw <- Sys.getenv("MIN_SEGMENT_LENGTH_FT", "")
+min_segment_length_ft <- if (nzchar(min_segment_length_ft_raw)) suppressWarnings(as.numeric(min_segment_length_ft_raw)) else NA_real_
+if (nzchar(min_segment_length_ft_raw) && (!is.finite(min_segment_length_ft) || min_segment_length_ft <= 0)) {
+  stop("MIN_SEGMENT_LENGTH_FT must be a positive number when supplied.", call. = FALSE)
+}
 
 prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
 if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
@@ -58,6 +68,7 @@ if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
   stop("PRUNE_SAMPLE must map to one of: all/false/0 or pruned/true/1", call. = FALSE)
 }
 confound_flags_path <- Sys.getenv("CONFOUND_FLAGS_PATH", "../input/confounded_pair_era_flags.csv")
+confound_segment_flags_path <- Sys.getenv("CONFOUND_SEGMENT_FLAGS_PATH", "../input/confounded_segment_flags.csv")
 
 cluster_level_raw <- tolower(Sys.getenv("CLUSTER_LEVEL", "ward_pair"))
 if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
@@ -68,38 +79,47 @@ if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
   stop("CLUSTER_LEVEL must be one of: ward_pair, segment", call. = FALSE)
 }
 
-donut_ft <- suppressWarnings(as.numeric(Sys.getenv("DONUT_FT", "0")))
-if (!is.finite(donut_ft) || donut_ft < 0) {
-  stop("DONUT_FT must be a non-negative number.", call. = FALSE)
+donut_m <- suppressWarnings(as.numeric(Sys.getenv("DONUT_M", Sys.getenv("DONUT_FT", "0"))))
+if (nzchar(Sys.getenv("DONUT_FT", "")) && !nzchar(Sys.getenv("DONUT_M", ""))) {
+  donut_m <- donut_m * 0.3048
 }
-if (is.finite(bw_ft) && donut_ft >= bw_ft) {
-  stop("DONUT_FT must be strictly smaller than bandwidth.", call. = FALSE)
+if (!is.finite(donut_m) || donut_m < 0) {
+  stop("DONUT_M must be a non-negative number.", call. = FALSE)
 }
-if (drop_ambiguous_within_bw && !is.finite(bw_ft)) {
+if (is.finite(bandwidth_m) && donut_m >= bandwidth_m) {
+  stop("DONUT_M must be strictly smaller than bandwidth.", call. = FALSE)
+}
+if (drop_ambiguous_within_bw && !is.finite(bandwidth_m)) {
   stop("DROP_AMBIGUOUS_WITHIN_BW requires a finite bandwidth.", call. = FALSE)
 }
 
 message(sprintf("\n=== Border-Pair FE Configuration ==="))
-message(sprintf("Bandwidth: %s", if (is.finite(bw_ft)) sprintf("%.0f ft", bw_ft) else "all distances"))
+message(sprintf("Bandwidth: %s", bandwidth_label))
 message(sprintf("Sample: %s", sample_filter))
 message(sprintf("FE Specification: %s", fe_spec))
 message(sprintf("Pruning spec: %s", prune_sample))
 message(sprintf("Cluster level: %s", cluster_level))
-message(sprintf("Donut exclusion: >= %.0f ft", donut_ft))
+message(sprintf("Donut exclusion: >= %s", format_distance_label(donut_m, distance_display)))
 message(sprintf("Drop corner-ambiguous parcels: %s", ifelse(drop_ambiguous_within_bw, "TRUE", "FALSE")))
+message(sprintf("Minimum segment length: %s", ifelse(is.finite(min_segment_length_ft), paste0(min_segment_length_ft, "ft"), "none")))
 message(sprintf("Write TeX table: %s", ifelse(write_tex, "TRUE", "FALSE")))
 message(sprintf("Input: %s", fe_input_path))
 message(sprintf("Output: %s", output_filename))
 message(sprintf("Y variables: %s", paste(yvars, collapse = ", ")))
 
-parcels_fe <- read_csv(fe_input_path, show_col_types = FALSE) %>%
+parcels_fe <- read_csv(
+  fe_input_path,
+  show_col_types = FALSE,
+  col_types = cols(pin = col_character(), segment_id = col_character(), .default = col_guess())
+) %>%
+  ensure_meter_distance_columns() %>%
   mutate(
     pin = as.character(pin),
     construction_year = suppressWarnings(as.integer(construction_year)),
-    strictness_own = strictness_own / sd(strictness_own, na.rm = TRUE),
+    segment_id = as.character(segment_id),
     zone_group = zone_group_from_code(zone_code),
-    lenient_dist = abs(signed_distance) * as.integer(signed_distance <= 0),
-    strict_dist = abs(signed_distance) * as.integer(signed_distance > 0)
+    lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
+    strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0)
   ) %>%
   filter(
     arealotsf > 1,
@@ -112,19 +132,24 @@ if (drop_ambiguous_within_bw) {
     stop("DROP_AMBIGUOUS_WITHIN_BW=TRUE requires AMBIGUITY_INPUT_PATH.", call. = FALSE)
   }
 
-  ambiguity_df <- read_csv(ambiguity_input_path, show_col_types = FALSE) %>%
+  ambiguity_df <- read_csv(
+    ambiguity_input_path,
+    show_col_types = FALSE,
+    col_types = cols(pin = col_character(), .default = col_guess())
+  ) %>%
+    ensure_meter_distance_columns() %>%
     mutate(
       pin = as.character(pin),
       construction_year = suppressWarnings(as.integer(construction_year))
     ) %>%
-    select(pin, construction_year, nearest_other_pair_dist_ft, nearest_other_pair_id)
+    select(pin, construction_year, nearest_other_pair_dist_m, nearest_other_pair_id)
 
   if (anyDuplicated(ambiguity_df[c("pin", "construction_year")]) > 0) {
     stop("Ambiguity input has duplicate pin-construction_year keys.", call. = FALSE)
   }
 
   parcels_fe <- parcels_fe %>%
-    left_join(ambiguity_df, by = c("pin", "construction_year"))
+    left_join(ambiguity_df, by = c("pin", "construction_year"), relationship = "many-to-one")
 }
 
 if (sample_filter == "all") {
@@ -133,9 +158,37 @@ if (sample_filter == "all") {
   parcels_fe <- parcels_fe %>% filter(unitscount > 1)
 }
 
+segment_length_input_n <- nrow(parcels_fe)
+segment_length_drop_n <- NA_integer_
+if (is.finite(min_segment_length_ft)) {
+  if (!"segment_length_ft" %in% names(parcels_fe)) {
+    stop("MIN_SEGMENT_LENGTH_FT requires segment_length_ft in the FE input.", call. = FALSE)
+  }
+  parcels_fe <- parcels_fe %>%
+    filter(!is.na(segment_length_ft), segment_length_ft >= min_segment_length_ft)
+  segment_length_drop_n <- segment_length_input_n - nrow(parcels_fe)
+  if (segment_length_drop_n == 0) {
+    stop("MIN_SEGMENT_LENGTH_FT dropped zero observations; check the robustness cutoff.", call. = FALSE)
+  }
+}
+
+parcels_fe_before_prune <- parcels_fe
+prune_input_n <- NA_integer_
+prune_input_pair_era_n <- NA_integer_
+prune_dropped_obs_total <- NA_integer_
+prune_dropped_pair_era_n <- NA_integer_
+prune_dropped_segment_n <- NA_integer_
+prune_missing_obs_n <- NA_integer_
+prune_missing_pair_era_n <- NA_integer_
+prune_missing_segment_n <- NA_integer_
+parcels_fe_prune_joined <- NULL
+
 if (prune_sample == "pruned") {
   if (!file.exists(confound_flags_path)) {
     stop(sprintf("Missing confound flags file for pruned run: %s", confound_flags_path), call. = FALSE)
+  }
+  if (!file.exists(confound_segment_flags_path)) {
+    stop(sprintf("Missing segment confound flags file for pruned run: %s", confound_segment_flags_path), call. = FALSE)
   }
 
   conf_flags <- read_csv(
@@ -149,6 +202,19 @@ if (prune_sample == "pruned") {
       keep_pair_era = !as.logical(drop_confound)
     ) %>%
     distinct()
+  segment_flags <- read_csv(
+    confound_segment_flags_path,
+    show_col_types = FALSE,
+    col_select = c("ward_pair_id_dash", "era", "segment_id", "drop_confound", "drop_reason")
+  ) %>%
+    transmute(
+      pair_dash = normalize_pair_dash(ward_pair_id_dash),
+      era = as.character(era),
+      segment_id = as.character(segment_id),
+      keep_segment = !as.logical(drop_confound),
+      segment_drop_reason = as.character(drop_reason)
+    ) %>%
+    distinct()
 
   if (anyNA(conf_flags$pair_dash) || anyNA(conf_flags$era)) {
     stop("Confound flags have invalid pair/era keys.", call. = FALSE)
@@ -156,21 +222,78 @@ if (prune_sample == "pruned") {
   if (anyDuplicated(conf_flags[, c("pair_dash", "era")]) > 0) {
     stop("Confound flags contain duplicate pair-era keys.", call. = FALSE)
   }
+  if (anyNA(segment_flags$pair_dash) || anyNA(segment_flags$era) || anyNA(segment_flags$segment_id)) {
+    stop("Segment confound flags have invalid pair/era/segment keys.", call. = FALSE)
+  }
+  if (anyDuplicated(segment_flags[, c("pair_dash", "era", "segment_id")]) > 0) {
+    stop("Segment confound flags contain duplicate pair-era-segment keys.", call. = FALSE)
+  }
 
   parcels_fe <- parcels_fe %>%
     mutate(
       pair_dash = normalize_pair_dash(ward_pair),
       era = era_from_year(construction_year)
     ) %>%
-    left_join(conf_flags, by = c("pair_dash", "era"))
+    left_join(conf_flags, by = c("pair_dash", "era"), relationship = "many-to-one") %>%
+    left_join(segment_flags, by = c("pair_dash", "era", "segment_id"), relationship = "many-to-one")
 
-  n_missing <- sum(is.na(parcels_fe$keep_pair_era))
-  if (n_missing > 0) {
-    parcels_fe <- parcels_fe %>%
-      mutate(keep_pair_era = ifelse(is.na(keep_pair_era), FALSE, keep_pair_era))
+  if (anyNA(parcels_fe$pair_dash) || anyNA(parcels_fe$era)) {
+    stop("Pruned FE sample has invalid ward-pair or era keys before joining confound flags.", call. = FALSE)
   }
 
-  parcels_fe <- parcels_fe %>% filter(keep_pair_era)
+  prune_input_n <- nrow(parcels_fe)
+  prune_input_pair_era_n <- n_distinct(parcels_fe$pair_dash, parcels_fe$era)
+  parcels_fe <- parcels_fe %>%
+    mutate(
+      missing_pair_pruning_flag = is.na(keep_pair_era),
+      missing_segment_pruning_flag = is.na(keep_segment),
+      missing_pruning_flag = missing_segment_pruning_flag,
+      keep_pair_era = ifelse(missing_pair_pruning_flag, FALSE, keep_pair_era),
+      keep_segment = ifelse(missing_segment_pruning_flag, FALSE, keep_segment),
+      keep_pruned_sample = keep_segment,
+      prune_drop_reason = case_when(
+        missing_segment_pruning_flag ~ "missing_segment_pruning_flag",
+        !keep_segment ~ paste0("segment_", segment_drop_reason),
+        TRUE ~ "kept"
+      )
+    )
+
+  prune_missing_obs_n <- sum(parcels_fe$missing_pruning_flag)
+  prune_missing_pair_era_n <- parcels_fe %>%
+    filter(missing_pruning_flag) %>%
+    distinct(pair_dash, era) %>%
+    nrow()
+  prune_missing_segment_n <- parcels_fe %>%
+    filter(missing_pruning_flag) %>%
+    distinct(pair_dash, era, segment_id) %>%
+    nrow()
+
+  if (prune_missing_obs_n > 0) {
+    message(
+      sprintf(
+        "Segment confound flags missing for %s observations across %s segment keys; treating them as dropped.",
+        format(prune_missing_obs_n, big.mark = ","),
+        format(prune_missing_segment_n, big.mark = ",")
+      )
+    )
+  }
+
+  prune_dropped_obs_total <- sum(!parcels_fe$keep_pruned_sample)
+  prune_dropped_pair_era_n <- parcels_fe %>%
+    filter(!keep_pruned_sample) %>%
+    distinct(pair_dash, era) %>%
+    nrow()
+  prune_dropped_segment_n <- parcels_fe %>%
+    filter(!keep_pruned_sample) %>%
+    distinct(pair_dash, era, segment_id) %>%
+    nrow()
+
+  if (prune_dropped_obs_total == 0) {
+    stop("Pruned FE run would drop zero observations before model filtering.", call. = FALSE)
+  }
+
+  parcels_fe_prune_joined <- parcels_fe
+  parcels_fe <- parcels_fe %>% filter(keep_pruned_sample)
 }
 
 pretty_label <- function(v) {
@@ -240,6 +363,37 @@ fe_label_list <- fe_labels[[fe_spec]]
 need_segment <- fe_spec %in% c("segment_year", "zonegroup_segment_year_additive") || cluster_level == "segment"
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 
+model_sample <- function(df, yv, base_var) {
+  out <- df %>%
+    filter(dist_to_boundary_m >= donut_m)
+
+  if (is.finite(bandwidth_m)) {
+    out <- out %>% filter(dist_to_boundary_m <= bandwidth_m)
+  }
+
+  ambiguity_drop_n <- 0L
+  if (drop_ambiguous_within_bw) {
+    n_missing_ambiguity <- sum(is.na(out$nearest_other_pair_dist_m))
+    if (n_missing_ambiguity > 0) {
+      stop(sprintf("Missing ambiguity distances for %d filtered rows.", n_missing_ambiguity), call. = FALSE)
+    }
+    ambiguity_drop_n <- sum(out$nearest_other_pair_dist_m <= bandwidth_m, na.rm = TRUE)
+    out <- out %>% filter(nearest_other_pair_dist_m > bandwidth_m)
+  }
+
+  if (need_segment) {
+    out <- out %>% filter(!is.na(segment_id), segment_id != "")
+  }
+
+  out <- out %>% filter(is.finite(.data[[base_var]]))
+
+  if (str_detect(yv, "^log\\(.+\\)$")) {
+    out <- out %>% filter(.data[[base_var]] > 0)
+  }
+
+  list(data = out, ambiguity_drop_n = ambiguity_drop_n)
+}
+
 models <- list()
 col_headers <- c()
 model_summaries <- list()
@@ -251,27 +405,74 @@ for (yv in yvars) {
     next
   }
 
-  df <- parcels_fe %>%
-    filter(dist_to_boundary >= donut_ft)
+  post_prune <- model_sample(parcels_fe, yv, base_var)
+  df <- post_prune$data
+  ambiguity_drop_n <- post_prune$ambiguity_drop_n
 
-  if (is.finite(bw_ft)) {
-    df <- df %>% filter(dist_to_boundary <= bw_ft)
-  }
-  ambiguity_drop_n <- 0L
-  if (drop_ambiguous_within_bw) {
-    n_missing_ambiguity <- sum(is.na(df$nearest_other_pair_dist_ft))
-    if (n_missing_ambiguity > 0) {
-      stop(sprintf("Missing ambiguity distances for %d filtered rows.", n_missing_ambiguity), call. = FALSE)
+  pre_prune_n <- NA_integer_
+  post_prune_n <- NA_integer_
+  prune_drop_n <- NA_integer_
+  prune_drop_share <- NA_real_
+  common_support_pre_prune_n <- NA_integer_
+  common_support_prune_drop_n <- NA_integer_
+  common_support_prune_drop_share <- NA_real_
+  prune_missing_model_n <- NA_integer_
+  prune_flag_drop_model_n <- NA_integer_
+  prune_pair_flag_drop_model_n <- NA_integer_
+  prune_segment_flag_drop_model_n <- NA_integer_
+
+  if (prune_sample == "pruned") {
+    pre_prune <- model_sample(parcels_fe_prune_joined, yv, base_var)
+    pre_prune_n <- nrow(pre_prune$data)
+    post_prune_n <- nrow(df)
+    prune_drop_n <- pre_prune_n - post_prune_n
+    prune_drop_share <- ifelse(pre_prune_n > 0, prune_drop_n / pre_prune_n, NA_real_)
+    prune_missing_model_n <- sum(pre_prune$data$missing_pruning_flag, na.rm = TRUE)
+    prune_flag_drop_model_n <- sum(
+      !pre_prune$data$missing_pruning_flag & !pre_prune$data$keep_pruned_sample,
+      na.rm = TRUE
+    )
+    prune_pair_flag_drop_model_n <- sum(
+      !pre_prune$data$missing_pair_pruning_flag & !pre_prune$data$keep_pair_era,
+      na.rm = TRUE
+    )
+    prune_segment_flag_drop_model_n <- sum(
+      !pre_prune$data$missing_segment_pruning_flag & !pre_prune$data$keep_segment,
+      na.rm = TRUE
+    )
+    common_support_pre_prune_n <- pre_prune_n - prune_missing_model_n
+    common_support_prune_drop_n <- common_support_pre_prune_n - post_prune_n
+    common_support_prune_drop_share <- ifelse(
+      common_support_pre_prune_n > 0,
+      common_support_prune_drop_n / common_support_pre_prune_n,
+      NA_real_
+    )
+
+    if (pre_prune_n == 0) {
+      stop(sprintf("Pruned FE run has zero unpruned candidate observations for '%s'.", yv), call. = FALSE)
     }
-    ambiguity_drop_n <- sum(df$nearest_other_pair_dist_ft <= bw_ft, na.rm = TRUE)
-    df <- df %>% filter(nearest_other_pair_dist_ft > bw_ft)
+    if (common_support_pre_prune_n == 0) {
+      stop(sprintf("Pruned FE run has zero common-support observations for '%s'.", yv), call. = FALSE)
+    }
+    if (post_prune_n >= common_support_pre_prune_n) {
+      stop(
+        sprintf(
+          "Pruned FE run did not reduce common-support observations for '%s' after model filters: pre=%s, post=%s.",
+          yv,
+          format(common_support_pre_prune_n, big.mark = ","),
+          format(post_prune_n, big.mark = ",")
+        ),
+        call. = FALSE
+      )
+    }
+    if (prune_flag_drop_model_n == 0) {
+      stop(
+        sprintf("Pruned FE run for '%s' dropped observations only because of missing pruning flags.", yv),
+        call. = FALSE
+      )
+    }
   }
-  if (need_segment) {
-    df <- df %>% filter(!is.na(segment_id), segment_id != "")
-  }
-  if (str_detect(yv, "^log\\(.+\\)$")) {
-    df <- df %>% filter(.data[[base_var]] > 0)
-  }
+
   if (nrow(df) == 0) {
     warning(sprintf("Skipping '%s' (no rows after filtering).", yv))
     next
@@ -326,15 +527,37 @@ for (yv in yvars) {
     n_segments = dplyr::n_distinct(df$segment_id),
     n_ward_pairs = dplyr::n_distinct(df$ward_pair),
     depvar_mean = mean(df[[base_var]], na.rm = TRUE),
-    bw_ft = bw_ft,
-    bw_label = bw_label,
+    bandwidth_m = bandwidth_m,
+    bandwidth_label = bandwidth_label,
     sample_filter = sample_filter,
     fe_spec = fe_spec,
     prune_sample = prune_sample,
+    pre_prune_n = pre_prune_n,
+    post_prune_n = post_prune_n,
+    prune_drop_n = prune_drop_n,
+    prune_drop_share = prune_drop_share,
+    common_support_pre_prune_n = common_support_pre_prune_n,
+    common_support_prune_drop_n = common_support_prune_drop_n,
+    common_support_prune_drop_share = common_support_prune_drop_share,
+    prune_input_n = prune_input_n,
+    prune_input_pair_era_n = prune_input_pair_era_n,
+    prune_dropped_obs_total = prune_dropped_obs_total,
+    prune_dropped_pair_era_n = prune_dropped_pair_era_n,
+    prune_dropped_segment_n = prune_dropped_segment_n,
+    prune_missing_obs_n = prune_missing_obs_n,
+    prune_missing_pair_era_n = prune_missing_pair_era_n,
+    prune_missing_segment_n = prune_missing_segment_n,
+    prune_missing_model_n = prune_missing_model_n,
+    prune_flag_drop_model_n = prune_flag_drop_model_n,
+    prune_pair_flag_drop_model_n = prune_pair_flag_drop_model_n,
+    prune_segment_flag_drop_model_n = prune_segment_flag_drop_model_n,
     cluster_level = cluster_level,
-    donut_ft = donut_ft,
+    donut_m = donut_m,
     drop_ambiguous_within_bw = drop_ambiguous_within_bw,
     ambiguity_drop_n = ambiguity_drop_n,
+    min_segment_length_ft = min_segment_length_ft,
+    segment_length_input_n = segment_length_input_n,
+    segment_length_drop_n = segment_length_drop_n,
     ambiguity_input_path = ambiguity_input_path,
     input_path = fe_input_path,
     table_output = output_filename

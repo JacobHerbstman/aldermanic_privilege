@@ -119,7 +119,7 @@ prepare_uncertainty_sample <- function(
     ward = sort(unique(wm_counts$ward)),
     month_date = all_months
   ) %>%
-    left_join(wm_counts, by = c("ward", "month_date")) %>%
+    left_join(wm_counts, by = c("ward", "month_date"), relationship = "one-to-one") %>%
     mutate(n_permits_wm = replace_na(n_permits_wm, 0L)) %>%
     group_by(ward) %>%
     arrange(month_date, .by_group = TRUE) %>%
@@ -129,7 +129,7 @@ prepare_uncertainty_sample <- function(
     select(ward, month, n_permits_wm, n_permits_wm_l1)
 
   permits_prepared <- permits_prepared %>%
-    left_join(wm_grid, by = c("ward", "month")) %>%
+    left_join(wm_grid, by = c("ward", "month"), relationship = "many-to-one") %>%
     mutate(
       median_hh_income_10k = median_hh_income / 10000,
       pop_total_10k = pop_total / 10000
@@ -254,13 +254,6 @@ fit_stage1_model <- function(permits, stage1_outcome, covariates, fe_terms, vari
   )
 }
 
-resolve_reference_alderman <- function(alderman_vec) {
-  if ("Andre Vasquez" %in% alderman_vec) {
-    return("Andre Vasquez")
-  }
-  names(sort(table(alderman_vec), decreasing = TRUE))[1]
-}
-
 build_two_stage_index <- function(
     permits_for_reg,
     include_volume_stage2,
@@ -278,9 +271,8 @@ build_two_stage_index <- function(
       .groups = "drop"
     )
 
-  ref_alderman <- resolve_reference_alderman(ward_month_resid$alderman)
   stage2_formula <- as.formula(paste0(
-    "mean_resid_wm ~ i(alderman, ref = ref_alderman)",
+    "mean_resid_wm ~ 0 + i(alderman)",
     if (include_volume_stage2) paste0(" + ", volume_var) else ""
   ))
 
@@ -306,36 +298,51 @@ build_two_stage_index <- function(
     )
   }
 
-  coefs <- enframe(coef(stage2_model), name = "term", value = "alderman_fe")
-  ses <- enframe(se(stage2_model), name = "term", value = "alderman_se")
-
-  alderman_effects <- coefs %>%
+  alderman_effects <- enframe(coef(stage2_model), name = "term", value = "alderman_fe") %>%
     filter(str_detect(term, "^alderman::")) %>%
-    mutate(alderman = str_remove(term, "^alderman::")) %>%
-    left_join(
-      ses %>%
-        filter(str_detect(term, "^alderman::")) %>%
-        mutate(alderman = str_remove(term, "^alderman::")) %>%
-        select(alderman, alderman_se),
-      by = "alderman"
-    ) %>%
-    select(alderman, alderman_fe, alderman_se)
+    mutate(alderman = str_remove(term, "^alderman::"))
 
-  alderman_effects <- bind_rows(
-    alderman_effects,
-    tibble(alderman = ref_alderman, alderman_fe = 0, alderman_se = 0)
-  )
+  if (nrow(alderman_effects) != n_distinct(ward_month_resid$alderman)) {
+    stop("Stage 2 did not estimate one effect for each alderman.", call. = FALSE)
+  }
 
-  tau2 <- max(
-    0,
-    var(alderman_effects$alderman_fe, na.rm = TRUE) -
-      mean(alderman_effects$alderman_se^2, na.rm = TRUE)
-  )
+  stage2_vcov <- vcov(stage2_model, se = "hetero")
+  if (!all(alderman_effects$term %in% rownames(stage2_vcov))) {
+    stop("Stage 2 covariance matrix is missing alderman effect terms.", call. = FALSE)
+  }
+
+  alderman_vcov <- stage2_vcov[alderman_effects$term, alderman_effects$term, drop = FALSE]
+  if (nrow(alderman_vcov) != nrow(alderman_effects)) {
+    stop("Stage 2 alderman covariance matrix has the wrong dimensions.", call. = FALSE)
+  }
+
+  centering_matrix <- diag(nrow(alderman_effects)) -
+    matrix(1 / nrow(alderman_effects), nrow(alderman_effects), nrow(alderman_effects))
+  centered_vcov <- centering_matrix %*% alderman_vcov %*% centering_matrix
+  if (!isTRUE(all.equal(centered_vcov, t(centered_vcov), tolerance = 1e-8))) {
+    stop("Centered alderman covariance matrix is not symmetric.", call. = FALSE)
+  }
+
+  alderman_effects <- alderman_effects %>%
+    mutate(
+      alderman_fe_centered = alderman_fe - mean(alderman_fe, na.rm = TRUE),
+      alderman_se = sqrt(pmax(diag(centered_vcov), 0))
+    )
+
+  if (abs(sum(alderman_effects$alderman_fe_centered, na.rm = TRUE)) > 1e-8) {
+    stop("Centered alderman effects do not sum to zero.", call. = FALSE)
+  }
+  if (any(!is.finite(alderman_effects$alderman_se))) {
+    stop("Stage 2 centered alderman standard errors are not finite.", call. = FALSE)
+  }
+
+  tau2 <- max(0, var(alderman_effects$alderman_fe_centered, na.rm = TRUE) -
+    mean(alderman_effects$alderman_se^2, na.rm = TRUE))
 
   alderman_effects <- alderman_effects %>%
     mutate(
       shrinkage_B = tau2 / (tau2 + alderman_se^2),
-      alderman_fe_shrunk = alderman_fe * shrinkage_B
+      alderman_fe_shrunk = alderman_fe_centered * shrinkage_B
     )
 
   permit_level_stats <- permits_for_reg %>%
@@ -352,11 +359,11 @@ build_two_stage_index <- function(
     transmute(
       alderman,
       mean_resid = alderman_fe_shrunk,
-      alderman_fe_raw = alderman_fe,
+      alderman_fe_raw = alderman_fe_centered,
       alderman_se,
       shrinkage_B
     ) %>%
-    left_join(permit_level_stats, by = "alderman") %>%
+    left_join(permit_level_stats, by = "alderman", relationship = "one-to-one") %>%
     mutate(uncertainty_index = standardize_uncertainty(mean_resid)) %>%
     select(
       alderman,
@@ -367,12 +374,24 @@ build_two_stage_index <- function(
       shrinkage_B,
       uncertainty_index
     )
+  if (anyDuplicated(alderman_index$alderman) > 0 ||
+      any(!is.finite(alderman_index$alderman_fe_raw)) ||
+      any(!is.finite(alderman_index$alderman_se)) ||
+      any(!is.finite(alderman_index$shrinkage_B)) ||
+      any(!is.finite(alderman_index$uncertainty_index))) {
+    stop("Final alderman uncertainty index has duplicate or non-finite values.", call. = FALSE)
+  }
 
   list(
     alderman_index = alderman_index,
     stage2_model = stage2_model,
     stage2_nobs = stage2_model$nobs,
-    stage2_r2 = tryCatch(as.numeric(r2(stage2_model, type = "ar2")), error = function(e) NA_real_)
+    stage2_r2 = tryCatch(as.numeric(r2(stage2_model, type = "ar2")), error = function(e) NA_real_),
+    stage2_tau2 = tau2,
+    stage2_se_min = min(alderman_effects$alderman_se, na.rm = TRUE),
+    stage2_se_max = max(alderman_effects$alderman_se, na.rm = TRUE),
+    stage2_shrinkage_min = min(alderman_effects$shrinkage_B, na.rm = TRUE),
+    stage2_shrinkage_max = max(alderman_effects$shrinkage_B, na.rm = TRUE)
   )
 }
 
@@ -394,7 +413,12 @@ build_simple_index <- function(permits_for_reg) {
     alderman_index = alderman_index,
     stage2_model = NULL,
     stage2_nobs = NA_real_,
-    stage2_r2 = NA_real_
+    stage2_r2 = NA_real_,
+    stage2_tau2 = NA_real_,
+    stage2_se_min = NA_real_,
+    stage2_se_max = NA_real_,
+    stage2_shrinkage_min = NA_real_,
+    stage2_shrinkage_max = NA_real_
   )
 }
 
@@ -449,7 +473,12 @@ build_residualized_uncertainty_index <- function(
     stage1_nobs = stage1_result$stage1_nobs,
     stage1_r2 = stage1_result$stage1_r2,
     stage2_nobs = index_result$stage2_nobs,
-    stage2_r2 = index_result$stage2_r2
+    stage2_r2 = index_result$stage2_r2,
+    stage2_tau2 = index_result$stage2_tau2,
+    stage2_se_min = index_result$stage2_se_min,
+    stage2_se_max = index_result$stage2_se_max,
+    stage2_shrinkage_min = index_result$stage2_shrinkage_min,
+    stage2_shrinkage_max = index_result$stage2_shrinkage_max
   )
 
   list(
@@ -504,7 +533,12 @@ build_raw_rank_uncertainty_index <- function(
       stage1_nobs = NA_real_,
       stage1_r2 = NA_real_,
       stage2_nobs = NA_real_,
-      stage2_r2 = NA_real_
+      stage2_r2 = NA_real_,
+      stage2_tau2 = NA_real_,
+      stage2_se_min = NA_real_,
+      stage2_se_max = NA_real_,
+      stage2_shrinkage_min = NA_real_,
+      stage2_shrinkage_max = NA_real_
     ),
     stage1_terms = tibble(
       variant_id = character(),

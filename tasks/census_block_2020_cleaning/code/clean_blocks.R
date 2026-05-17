@@ -1,3 +1,5 @@
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/census_block_2020_cleaning/code")
+
 source("../../setup_environment/code/packages.R")
 
 # Clean 2020 census blocks: load Illinois shapefile, clip to Chicago, output CSV.

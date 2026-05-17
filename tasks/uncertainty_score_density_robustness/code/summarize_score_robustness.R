@@ -23,8 +23,18 @@ variant_ids <- c(
   "raw_rank_days",
   "days_unlogged",
   "reduced_ses",
-  "drop_bach",
   "drop_bach_pop"
+)
+density_bw_m <- as.numeric(Sys.getenv("DENSITY_ROBUSTNESS_BW_M", "100"))
+if (!is.finite(density_bw_m) || density_bw_m <= 0) {
+  stop("DENSITY_ROBUSTNESS_BW_M must be positive.", call. = FALSE)
+}
+density_bw_label <- Sys.getenv("DENSITY_ROBUSTNESS_BW_LABEL", sprintf("%gm", density_bw_m))
+density_sample <- Sys.getenv("DENSITY_ROBUSTNESS_SAMPLE", "all")
+density_cluster <- Sys.getenv("DENSITY_ROBUSTNESS_CLUSTER", "ward_pair")
+density_summary_prefix <- paste0(
+  "fe_summary_", density_bw_label, "_", density_sample,
+  "_zonegroup_segment_year_additive_clust_", density_cluster
 )
 
 fmt_num <- function(x, digits = 3) {
@@ -63,7 +73,11 @@ read_variant_csv <- function(prefix, variant_id) {
 }
 
 scores_long <- bind_rows(lapply(variant_ids, function(variant_id) {
-  read_variant_csv("alderman_uncertainty_index", variant_id) %>%
+  variant_scores <- read_variant_csv("alderman_uncertainty_index", variant_id)
+  if (anyDuplicated(variant_scores$alderman) > 0) {
+    stop("Score variant is not unique by alderman: ", variant_id, call. = FALSE)
+  }
+  variant_scores %>%
     transmute(
       variant_id = variant_id,
       alderman = alderman,
@@ -75,6 +89,9 @@ scores_long <- bind_rows(lapply(variant_ids, function(variant_id) {
 metadata <- bind_rows(lapply(variant_ids, function(variant_id) {
   read_variant_csv("score_variant_metadata", variant_id)
 }))
+if (anyDuplicated(metadata$variant_id) > 0) {
+  stop("Score variant metadata must be unique by variant_id.", call. = FALSE)
+}
 
 baseline_scores <- scores_long %>%
   filter(variant_id == "baseline") %>%
@@ -83,6 +100,9 @@ baseline_scores <- scores_long %>%
     baseline_score = uncertainty_index,
     baseline_rank = rank(-uncertainty_index, ties.method = "average")
   )
+if (anyDuplicated(baseline_scores$alderman) > 0) {
+  stop("Baseline score variant is not unique by alderman.", call. = FALSE)
+}
 
 rank_changes <- bind_rows(lapply(variant_ids, function(current_variant) {
   scores_long %>%
@@ -94,7 +114,7 @@ rank_changes <- bind_rows(lapply(variant_ids, function(current_variant) {
       variant_rank = rank(-uncertainty_index, ties.method = "average"),
       n_permits_variant = n_permits
     ) %>%
-    left_join(baseline_scores, by = "alderman") %>%
+    left_join(baseline_scores, by = "alderman", relationship = "many-to-one") %>%
     mutate(
       rank_change = variant_rank - baseline_rank,
       abs_rank_change = abs(rank_change)
@@ -115,7 +135,7 @@ correlation_summary <- bind_rows(lapply(variant_ids, function(current_variant) {
   joined <- scores_long %>%
     filter(variant_id == current_variant) %>%
     transmute(alderman, variant_score = uncertainty_index) %>%
-    left_join(baseline_scores, by = "alderman")
+    left_join(baseline_scores, by = "alderman", relationship = "many-to-one")
 
   tibble(
     variant_id = current_variant,
@@ -131,13 +151,19 @@ correlation_summary <- bind_rows(lapply(variant_ids, function(current_variant) {
 
 baseline_parcels <- read_variant_csv("parcels_with_ward_distances", "baseline") %>%
   transmute(pin = as.character(pin), baseline_sign = as.numeric(sign))
+if (anyDuplicated(baseline_parcels$pin) > 0) {
+  stop("Baseline parcel score merge is not unique by pin.", call. = FALSE)
+}
 
 parcel_summary <- bind_rows(lapply(variant_ids, function(current_variant) {
   variant_parcels <- read_variant_csv("parcels_with_ward_distances", current_variant) %>%
     transmute(pin = as.character(pin), variant_sign = as.numeric(sign))
+  if (anyDuplicated(variant_parcels$pin) > 0) {
+    stop("Parcel score merge is not unique by pin for variant: ", current_variant, call. = FALSE)
+  }
 
   joined <- baseline_parcels %>%
-    inner_join(variant_parcels, by = "pin")
+    inner_join(variant_parcels, by = "pin", relationship = "one-to-one")
 
   agreement <- mean(joined$baseline_sign == joined$variant_sign, na.rm = TRUE)
   tibble(
@@ -148,9 +174,9 @@ parcel_summary <- bind_rows(lapply(variant_ids, function(current_variant) {
 }))
 
 diagnostics <- metadata %>%
-  left_join(correlation_summary, by = "variant_id") %>%
-  left_join(rank_summary, by = "variant_id") %>%
-  left_join(parcel_summary, by = "variant_id") %>%
+  left_join(correlation_summary, by = "variant_id", relationship = "one-to-one") %>%
+  left_join(rank_summary, by = "variant_id", relationship = "one-to-one") %>%
+  left_join(parcel_summary, by = "variant_id", relationship = "one-to-one") %>%
   select(
     variant_id,
     construction_rule,
@@ -209,7 +235,7 @@ write_csv(stage1_terms, file.path(output_dir, "score_variant_stage1_terms.csv"))
 
 fe_summary_long <- bind_rows(lapply(variant_ids, function(current_variant) {
   read_variant_csv(
-    "fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_segment",
+    density_summary_prefix,
     current_variant
   ) %>%
     mutate(variant_id = current_variant)
@@ -239,7 +265,8 @@ density_score_robustness <- fe_summary_long %>%
         n_ward_pairs = max(n_ward_pairs, na.rm = TRUE),
         .groups = "drop"
       ),
-    by = "variant_id"
+    by = "variant_id",
+    relationship = "one-to-one"
   ) %>%
   select(
     variant_id,

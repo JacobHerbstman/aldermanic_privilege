@@ -291,7 +291,7 @@ assign_segment_independent <- function(points_sf, pair_values, era_values, segme
   eras <- unique(points_sf$.audit_era)
 
   for (era_value in eras) {
-    layer_name <- paste0(era_value, "_bw1000")
+    layer_name <- paste0(era_value, "_bw250m")
     segment_layer <- segment_layers[[layer_name]]
     if (is.null(segment_layer)) {
       next
@@ -479,7 +479,7 @@ boundary_layers <- load_layers_named(
 )
 segment_layers <- load_layers_named(
   file.path(repo_root, "tasks/border_segment_creation/output/boundary_segments_1320ft.gpkg"),
-  filter_fun = function(layer_names) str_detect(layer_names, "_bw1000$")
+  filter_fun = function(layer_names) str_detect(layer_names, "_bw250m$")
 )
 blocks_2010 <- load_blocks_2010(file.path(repo_root, "data_raw/CensusBlockTIGER2010_20250721.csv"))
 blocks_2020 <- load_blocks_2020(file.path(repo_root, "tasks/census_block_2020_cleaning/output/census_blocks_2020.csv"))
@@ -496,7 +496,7 @@ propagation_rows <- list()
 # ------------------------------------------------------------------------------
 # Raw cleaning integrity
 # ------------------------------------------------------------------------------
-permits_raw <- read_csv(file.path(repo_root, "data_raw/Building_Permits_20251121.csv"), show_col_types = FALSE) %>%
+permits_raw <- read_csv(file.path(repo_root, "tasks/download_building_permits/output/building_permits.csv"), show_col_types = FALSE) %>%
   rename_with(tolower)
 permits_clean <- st_read(
   file.path(repo_root, "tasks/clean_building_permits/output/building_permits_clean.gpkg"),
@@ -535,18 +535,18 @@ raw_integrity_rows[[length(raw_integrity_rows) + 1]] <- bind_rows(
   make_issue_row("density", "geocoded_parcels", "outside_city_boundary", sum(!(lengths(st_within(parcels_geo, city_boundary)) > 0)), "Geocoded parcels outside Chicago city boundary.")
 )
 
-sales_raw_n <- fread(file.path(repo_root, "data_raw/Assessor_-_Parcel_Sales_20251123.csv"), select = "pin")[, .N]
-sales_scores <- read_csv(file.path(repo_root, "tasks/calculate_sale_distances/output/sales_with_ward_distances.csv"), show_col_types = FALSE) %>%
+sales_raw_n <- fread(file.path(repo_root, "tasks/download_parcel_sales_data/output/parcel_sales_city.csv"), select = "pin")[, .N]
+sales_scores <- read_csv(file.path(repo_root, "tasks/calculate_sale_distances/output/sales_pre_scores.csv"), show_col_types = FALSE) %>%
   mutate(pin = as.character(pin))
 sales_coord_lookup <- sales_scores %>%
   distinct(pin, sale_date, .keep_all = TRUE) %>%
   select(pin, sale_date, longitude, latitude)
 raw_integrity_rows[[length(raw_integrity_rows) + 1]] <- bind_rows(
   make_issue_row("home_sales", "raw_sales", "raw_rows", sales_raw_n, "Total raw assessor sales records."),
-  make_issue_row("home_sales", "sales_with_ward_distances", "scored_rows", nrow(sales_scores), "Rows in scored sales output."),
-  make_issue_row("home_sales", "sales_with_ward_distances", "duplicate_pin_sale_date", sales_scores %>% summarise(n = n() - n_distinct(pin, sale_date)) %>% pull(n), "Duplicate PIN x sale_date rows in scored sales output."),
-  make_issue_row("home_sales", "sales_with_ward_distances", "missing_coordinates", sum(is.na(sales_scores$latitude) | is.na(sales_scores$longitude)), "Missing coordinates in scored sales output."),
-  make_issue_row("home_sales", "sales_with_ward_distances", "outside_bbox", bbox_failures(sales_scores$latitude, sales_scores$longitude), "Scored sales outside broad Chicago bbox.")
+  make_issue_row("home_sales", "sales_pre_scores", "scored_rows", nrow(sales_scores), "Rows in scored sales output."),
+  make_issue_row("home_sales", "sales_pre_scores", "duplicate_pin_sale_date", sales_scores %>% summarise(n = n() - n_distinct(pin, sale_date)) %>% pull(n), "Duplicate PIN x sale_date rows in scored sales output."),
+  make_issue_row("home_sales", "sales_pre_scores", "missing_coordinates", sum(is.na(sales_scores$latitude) | is.na(sales_scores$longitude)), "Missing coordinates in scored sales output."),
+  make_issue_row("home_sales", "sales_pre_scores", "outside_bbox", bbox_failures(sales_scores$latitude, sales_scores$longitude), "Scored sales outside broad Chicago bbox.")
 )
 
 rental_raw <- open_dataset(file.path(repo_root, "tasks/process_rent_data/output/chicago_rent_panel.parquet"))
@@ -606,9 +606,9 @@ for (era_value in names(ward_maps)) {
     detail = "Canonical ward-pair boundary lines by era."
   )
 
-  segment_layer <- segment_layers[[paste0(era_value, "_bw1000")]]
+  segment_layer <- segment_layers[[paste0(era_value, "_bw250m")]]
   topology_rows[[length(topology_rows) + 1]] <- tibble(
-    object = "boundary_segments_bw1000",
+    object = "boundary_segments_bw250m",
     era = era_value,
     n_features = nrow(segment_layer),
     n_duplicate_ids = sum(duplicated(segment_layer$segment_id)),
@@ -845,7 +845,7 @@ write_issue_table(
 
 sample_ladder_rows[[length(sample_ladder_rows) + 1]] <- bind_rows(
   tibble(branch = "home_sales", stage = "raw_sales", n_rows = sales_raw_n, unique_ids = NA_integer_, detail = "Raw assessor sales rows."),
-  tibble(branch = "home_sales", stage = "sales_with_ward_distances", n_rows = nrow(sales_scores), unique_ids = sales_scores %>% summarise(n = n_distinct(pin, sale_date)) %>% pull(n), detail = "Scored sales output."),
+  tibble(branch = "home_sales", stage = "sales_pre_scores", n_rows = nrow(sales_scores), unique_ids = sales_scores %>% summarise(n = n_distinct(pin, sale_date)) %>% pull(n), detail = "Scored sales output."),
   tibble(branch = "home_sales", stage = "sales_panel_2015", n_rows = nrow(sales_panel_2015), unique_ids = sales_panel_2015 %>% summarise(n = n_distinct(pin, sale_date)) %>% pull(n), detail = "2015 home-sales panel."),
   tibble(branch = "home_sales", stage = "sales_panel_2015_missing_coordinate_backmerge", n_rows = nrow(sales_panel_2015_coord_issues), unique_ids = sales_panel_2015_coord_issues %>% summarise(n = n_distinct(pin, sale_date)) %>% pull(n), detail = "2015 panel rows that do not merge back to scored coordinates by PIN x sale_date."),
   tibble(branch = "home_sales", stage = "main_did_sample", n_rows = sales_panel_2015 %>% filter(dist_ft <= 1000, relative_year >= -5, relative_year <= 5) %>% nrow(), unique_ids = sales_panel_2015 %>% filter(dist_ft <= 1000, relative_year >= -5, relative_year <= 5) %>% summarise(n = n_distinct(pin, sale_date)) %>% pull(n), detail = "2015 DID analysis sample.")
@@ -1445,7 +1445,7 @@ if (upstream_branch_verdicts$stoplight[upstream_branch_verdicts$branch == "home_
     branch = "home_sales",
     finding_class = "robustness_fragility",
     upstream_stage = "sales_geocode_or_block_segment_assignment",
-    rebuild_tasks = "calculate_sale_distances -> merge_event_study_scores -> create_event_study_sales_data_disaggregate -> run_event_study_sales_disaggregate -> event_study_sales_diagnostics",
+    rebuild_tasks = "calculate_sale_distances -> merge_event_study_scores -> create_event_study_sales_data_disaggregate -> run_event_study_sales_disaggregate; create_event_study_permit_data -> event_study_treatment_maps",
     rationale = "Home-sales branch depends on scored sales distances and event-study panel assignment."
   )
 }

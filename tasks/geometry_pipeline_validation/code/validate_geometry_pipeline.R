@@ -129,7 +129,18 @@ pair_universe_from_pre_scores <- function(path, dataset_name, era_col, pair_col)
 
 current_time <- format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")
 
-dir.create("../output", showWarnings = FALSE, recursive = TRUE)
+read_optional_csv <- function(path) {
+  if (!file.exists(path)) {
+    return(tibble())
+  }
+  read_csv(path, show_col_types = FALSE)
+}
+
+format_before_current <- function(before, current) {
+  before_display <- ifelse(length(before) == 0 || is.na(before), "no pre-fix snapshot", before)
+  current_display <- ifelse(length(current) == 0 || is.na(current), "missing current value", current)
+  paste(before_display, "to", current_display)
+}
 
 boundary_layers <- st_layers("../input/ward_pair_boundaries.gpkg")$name
 segment_layers <- st_layers("../input/boundary_segments_1320ft.gpkg")$name
@@ -184,7 +195,7 @@ write_csv(geometry_pair_mismatch_report, "../output/geometry_pair_mismatch_repor
 
 parcel_coverage_current <- read_csv("../input/parcel_segment_ids_coverage.csv", show_col_types = FALSE) |>
   mutate(dataset = "parcel_current")
-parcel_coverage_before <- read_csv("../input/before_fix/parcel_segment_ids_coverage.csv", show_col_types = FALSE) |>
+parcel_coverage_before <- read_optional_csv("../input/before_fix/parcel_segment_ids_coverage.csv") |>
   mutate(dataset = "parcel_before_fix")
 
 segment_coverage_current <- if (file.exists("../input/segment_assignment_coverage_summary.csv")) {
@@ -194,8 +205,13 @@ segment_coverage_current <- if (file.exists("../input/segment_assignment_coverag
   tibble()
 }
 
-segment_coverage_before <- read_csv("../input/before_fix/segment_assignment_coverage_summary.csv", show_col_types = FALSE) |>
-  mutate(dataset = paste0(dataset, "_before_fix"))
+segment_coverage_before_raw <- read_optional_csv("../input/before_fix/segment_assignment_coverage_summary.csv")
+segment_coverage_before <- if (nrow(segment_coverage_before_raw) > 0 && "dataset" %in% names(segment_coverage_before_raw)) {
+  segment_coverage_before_raw |>
+    mutate(dataset = paste0(dataset, "_before_fix"))
+} else {
+  tibble()
+}
 
 geometry_coverage_summary <- bind_rows(
   parcel_coverage_current,
@@ -208,8 +224,20 @@ write_csv(geometry_coverage_summary, "../output/geometry_coverage_summary.csv")
 
 current_density_table <- extract_density_table_row("../input/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex") |>
   mutate(source = "current")
-before_density_table <- extract_density_table_row("../input/before_fix/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex") |>
-  mutate(source = "before_fix")
+before_density_table <- if (file.exists("../input/before_fix/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex")) {
+  extract_density_table_row("../input/before_fix/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex") |>
+    mutate(source = "before_fix")
+} else {
+  current_density_table |>
+    transmute(
+      outcome,
+      estimate_display = NA_character_,
+      se_display = NA_character_,
+      n_obs = NA_real_,
+      n_pairs = NA_real_,
+      source = "before_fix"
+    )
+}
 
 density_result_change <- full_join(
   before_density_table,
@@ -228,7 +256,8 @@ density_result_change <- full_join(
     n_pairs_current = n_pairs_current
   )
 
-if (file.exists("../input/fe_table_rental_bw500_pre_2023.csv")) {
+if (file.exists("../input/fe_table_rental_bw500_pre_2023.csv") &&
+    file.exists("../input/before_fix/fe_table_rental_bw500_pre_2023.csv")) {
   rental_before <- read_csv("../input/before_fix/fe_table_rental_bw500_pre_2023.csv", show_col_types = FALSE)
   rental_current <- read_csv("../input/fe_table_rental_bw500_pre_2023.csv", show_col_types = FALSE)
   rental_change <- full_join(
@@ -251,7 +280,8 @@ if (file.exists("../input/fe_table_rental_bw500_pre_2023.csv")) {
   rental_change <- tibble()
 }
 
-if (file.exists("../input/fe_table_sales_bw500_year_quarter.csv")) {
+if (file.exists("../input/fe_table_sales_bw500_year_quarter.csv") &&
+    file.exists("../input/before_fix/fe_table_sales_bw500_year_quarter.csv")) {
   sales_before <- read_csv("../input/before_fix/fe_table_sales_bw500_year_quarter.csv", show_col_types = FALSE)
   sales_current <- read_csv("../input/fe_table_sales_bw500_year_quarter.csv", show_col_types = FALSE)
   sales_change <- full_join(
@@ -360,21 +390,24 @@ report_lines <- c(
   "## Headline Density Change",
   paste0(
     "- FE table FAR changed from ",
-    density_result_change |> filter(outcome == "far") |> pull(estimate_before) |> first(),
-    " to ",
-    density_result_change |> filter(outcome == "far") |> pull(estimate_current) |> first()
+    format_before_current(
+      density_result_change |> filter(outcome == "far") |> pull(estimate_before) |> first(),
+      density_result_change |> filter(outcome == "far") |> pull(estimate_current) |> first()
+    )
   ),
   paste0(
     "- FE table DUPAC changed from ",
-    density_result_change |> filter(outcome == "dupac") |> pull(estimate_before) |> first(),
-    " to ",
-    density_result_change |> filter(outcome == "dupac") |> pull(estimate_current) |> first()
+    format_before_current(
+      density_result_change |> filter(outcome == "dupac") |> pull(estimate_before) |> first(),
+      density_result_change |> filter(outcome == "dupac") |> pull(estimate_current) |> first()
+    )
   ),
   paste0(
     "- FE table Units changed from ",
-    density_result_change |> filter(outcome == "units") |> pull(estimate_before) |> first(),
-    " to ",
-    density_result_change |> filter(outcome == "units") |> pull(estimate_current) |> first()
+    format_before_current(
+      density_result_change |> filter(outcome == "units") |> pull(estimate_before) |> first(),
+      density_result_change |> filter(outcome == "units") |> pull(estimate_current) |> first()
+    )
   ),
   paste0(
     "- RD FAR jump (current meta): ",

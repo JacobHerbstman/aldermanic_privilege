@@ -20,7 +20,7 @@ if (length(cli_args) == 0) {
 }
 
 if (length(cli_args) != 1) {
-  stop("FATAL: Script requires 1 args: <sample>", call. = FALSE)
+  stop("FATAL: Script requires 1 arg: <sample>", call. = FALSE)
 }
 sample <- cli_args[1]
 run_sample <- as.logical(sample)
@@ -28,17 +28,12 @@ run_sample <- as.logical(sample)
 load_cpi_deflator <- function(start_date,
                               end_date,
                               base_year = 2022L,
+                              cpi_csv = "../input/fred_cpi_cuura207sa0.csv",
                               series_id = "CUURA207SA0") {
-    fred_url <- sprintf("https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s", series_id)
-    message(sprintf("Fetching CPI series %s from FRED...", series_id))
-    old_http_ua <- getOption("HTTPUserAgent")
-    on.exit(options(HTTPUserAgent = old_http_ua), add = TRUE)
-    # As of March 16, 2026, FRED's edge responds poorly to R's default UA
-    # over libcurl HTTP/2, while the same URL works with a curl-style UA.
-    options(HTTPUserAgent = paste0("curl/", curl::curl_version()$version))
-    cpi_raw <- read_csv(fred_url, show_col_types = FALSE)
+    message(sprintf("Reading CPI series %s from %s...", series_id, cpi_csv))
+    cpi_raw <- read_csv(cpi_csv, col_types = cols(.default = "c"), show_col_types = FALSE)
     if (!all(c("observation_date", series_id) %in% names(cpi_raw))) {
-        stop(sprintf("FRED response missing expected columns for series %s.", series_id), call. = FALSE)
+        stop(sprintf("CPI input missing expected columns for series %s.", series_id), call. = FALSE)
     }
 
     cpi <- cpi_raw %>%
@@ -129,7 +124,7 @@ alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types
 # -----------------------------------------------------------------------------
 message("Loading sales data...")
 
-sales_raw <- fread("../input/Assessor_-_Parcel_Sales_20251123.csv")
+sales_raw <- fread("../input/parcel_sales.csv")
 message(sprintf("Loaded %s sales records", format(nrow(sales_raw), big.mark = ",")))
 
 # Filter to market transactions
@@ -151,8 +146,10 @@ sales <- sales_raw %>%
         sale_price_nominal = as.numeric(gsub("[$,]", "", sale_price)),
         year = as.numeric(year),
         pin = as.character(pin),
-        # Parse sale date
-        sale_date = as.Date(sale_date, format = "%B %d, %Y")
+        sale_date = coalesce(
+            as.Date(as.character(sale_date), format = "%B %d, %Y"),
+            as.Date(substr(as.character(sale_date), 1, 10), format = "%Y-%m-%d")
+        )
     ) %>%
     # Filter valid prices and years
     filter(!is.na(sale_price_nominal), sale_price_nominal > 10000, !is.na(year)) %>%
@@ -371,7 +368,7 @@ final_output <- final_df %>%
         # Location
         latitude, longitude, ward, neighbor_ward, ward_pair_id,
         # Distance (unsigned)
-        dist_ft,
+        dist_m,
         # Alderman info
         alderman_own, alderman_neighbor
     )
@@ -407,12 +404,12 @@ sales_geometry_diagnostics <- bind_rows(
     final_output %>%
         summarise(
             n_obs = n(),
-            mean_dist_ft = mean(dist_ft, na.rm = TRUE),
-            median_dist_ft = median(dist_ft, na.rm = TRUE),
+            mean_dist_m = mean(dist_m, na.rm = TRUE),
+            median_dist_m = median(dist_m, na.rm = TRUE),
             .by = boundary_year
         ) %>%
         pivot_longer(
-            cols = c(n_obs, mean_dist_ft, median_dist_ft),
+            cols = c(n_obs, mean_dist_m, median_dist_m),
             names_to = "metric",
             values_to = "value"
         ) %>%
@@ -431,7 +428,7 @@ summary_stats <- final_output %>%
     summarise(
         n_sales = n(),
         mean_price = mean(sale_price, na.rm = TRUE),
-        mean_dist_ft = mean(dist_ft, na.rm = TRUE),
+        mean_dist_m = mean(dist_m, na.rm = TRUE),
         .groups = "drop"
     )
 

@@ -6,22 +6,23 @@ source("../../_lib/event_study_plot_helpers.R")
 # panel_mode <- "cohort_2015"
 # treatment_type <- "continuous"
 # include_hedonics <- TRUE
-# control_mode <- "hedonic"
+# control_mode <- "amenity"
 # time_unit <- "yearly"
 # fe_type <- "strict_pair_x_year"
-# weighting <- "triangular"
-# bandwidth <- 1000
+# weighting <- "uniform"
+# bandwidth <- 300
 # post_window <- "full"
-# geo_fe_level <- "segment"
-# cluster_level <- "twoway_block_segment"
+# geo_fe_level <- "ward_pair"
+# cluster_level <- "block"
+# bandwidth_label <- "300m"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(panel_mode, treatment_type, include_hedonics, time_unit, fe_type, weighting, bandwidth, post_window, geo_fe_level, cluster_level, control_mode)
+  cli_args <- c(panel_mode, treatment_type, include_hedonics, time_unit, fe_type, weighting, bandwidth, post_window, geo_fe_level, cluster_level, control_mode, bandwidth_label)
 }
 
-if (!length(cli_args) %in% c(10, 11)) {
-  stop("FATAL: Script requires args: <panel_mode> <treatment_type> <include_hedonics> <time_unit> <fe_type> <weighting> <bandwidth> <post_window> <geo_fe_level> <cluster_level> [<control_mode>]", call. = FALSE)
+if (!length(cli_args) %in% c(10, 11, 12)) {
+  stop("FATAL: Script requires args: <panel_mode> <treatment_type> <include_hedonics> <time_unit> <fe_type> <weighting> <bandwidth> <post_window> <geo_fe_level> <cluster_level> [<control_mode>] [<bandwidth_label>]", call. = FALSE)
 }
 panel_mode <- cli_args[1]
 treatment_type <- cli_args[2]
@@ -34,6 +35,7 @@ post_window <- cli_args[8]
 geo_fe_level <- tolower(cli_args[9])
 cluster_level <- tolower(cli_args[10])
 control_mode <- if (length(cli_args) >= 11) tolower(cli_args[11]) else if (include_hedonics) "hedonic" else "none"
+bandwidth_label <- if (length(cli_args) >= 12) cli_args[12] else sprintf("%dm", as.integer(round(bandwidth)))
 
 PANEL_MODE <- panel_mode
 TREATMENT_TYPE <- treatment_type
@@ -43,10 +45,25 @@ TIME_UNIT <- time_unit
 FE_TYPE <- fe_type
 WEIGHTING <- weighting
 BANDWIDTH <- bandwidth
+BANDWIDTH_LABEL <- bandwidth_label
 POST_WINDOW <- post_window
 GEO_FE_LEVEL <- geo_fe_level
 CLUSTER_LEVEL <- cluster_level
 WRITE_SIDECARS <- tolower(Sys.getenv("WRITE_SIDECARS", "1")) %in% c("1", "true", "yes")
+min_segment_length_raw <- Sys.getenv("MIN_SEGMENT_LENGTH_FT", "")
+MIN_SEGMENT_LENGTH_FT <- if (nzchar(min_segment_length_raw)) suppressWarnings(as.numeric(min_segment_length_raw)) else NA_real_
+if (!is.na(MIN_SEGMENT_LENGTH_FT) && (!is.finite(MIN_SEGMENT_LENGTH_FT) || MIN_SEGMENT_LENGTH_FT < 0)) {
+  stop("MIN_SEGMENT_LENGTH_FT must be a nonnegative number when supplied.", call. = FALSE)
+}
+min_segment_suffix <- ""
+if (is.finite(MIN_SEGMENT_LENGTH_FT)) {
+  min_segment_label <- if (abs(MIN_SEGMENT_LENGTH_FT - round(MIN_SEGMENT_LENGTH_FT)) < sqrt(.Machine$double.eps)) {
+    as.character(as.integer(round(MIN_SEGMENT_LENGTH_FT)))
+  } else {
+    sub("\\.?0+$", "", format(MIN_SEGMENT_LENGTH_FT, trim = TRUE, scientific = FALSE))
+  }
+  min_segment_suffix <- paste0("_minsegment", gsub("\\.", "p", min_segment_label), "ft")
+}
 
 valid_panel_modes <- c(
   "stacked_announcement",
@@ -59,8 +76,8 @@ valid_panel_modes <- c(
 if (!PANEL_MODE %in% valid_panel_modes) {
   stop(sprintf("--panel_mode must be one of: %s", paste(valid_panel_modes, collapse = ", ")), call. = FALSE)
 }
-if (!TREATMENT_TYPE %in% c("continuous", "continuous_split")) {
-  stop("--treatment_type must be one of: continuous, continuous_split", call. = FALSE)
+if (!TREATMENT_TYPE %in% c("continuous", "continuous_split", "binary_direction")) {
+  stop("--treatment_type must be one of: continuous, continuous_split, binary_direction", call. = FALSE)
 }
 if (!TIME_UNIT %in% c("yearly", "quarterly")) {
   stop("--time_unit must be one of: yearly, quarterly", call. = FALSE)
@@ -83,8 +100,11 @@ if (!CLUSTER_LEVEL %in% c("twoway_block_segment", "block", "segment")) {
 if (!CONTROL_MODE %in% c("none", "hedonic", "amenity")) {
   stop("--control_mode must be one of: none, hedonic, amenity", call. = FALSE)
 }
-if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 1000) {
-  stop("Segment FE requested with bandwidth > 1000. Use bandwidth <= 1000.", call. = FALSE)
+if (!grepl("^[A-Za-z0-9_-]+$", BANDWIDTH_LABEL)) {
+  stop("--bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+}
+if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 800) {
+  stop("Segment FE requested with bandwidth > 800m. Use bandwidth <= 800m.", call. = FALSE)
 }
 
 panel_title <- switch(PANEL_MODE,
@@ -116,12 +136,12 @@ fe_suffix <- case_when(
   FE_TYPE == "side_plus_year" ~ "_yearfe"
 )
 suffix <- sprintf(
-  "disaggregate_%s_%s_%s_%s_%dft%s%s_%s",
+  "disaggregate_%s_%s_%s_%s_%s%s%s_%s",
   TIME_UNIT,
   PANEL_MODE,
   TREATMENT_TYPE,
   WEIGHTING,
-  as.integer(BANDWIDTH),
+  BANDWIDTH_LABEL,
   fe_suffix,
   control_suffix,
   POST_WINDOW
@@ -134,6 +154,7 @@ if (CLUSTER_LEVEL == "block") {
 } else if (CLUSTER_LEVEL == "segment") {
   suffix <- paste0(suffix, "_clust_segment")
 }
+suffix <- paste0(suffix, min_segment_suffix)
 
 message("\n=== Sales Event Study ===")
 message(sprintf("Panel mode: %s", PANEL_MODE))
@@ -143,10 +164,14 @@ message(sprintf("Control mode: %s", CONTROL_MODE))
 message(sprintf("Time unit: %s", TIME_UNIT))
 message(sprintf("FE type: %s", FE_TYPE))
 message(sprintf("Weighting: %s", WEIGHTING))
-message(sprintf("Bandwidth: %d ft", BANDWIDTH))
+message(sprintf("Bandwidth: %s", BANDWIDTH_LABEL))
 message(sprintf("Post window: %s", POST_WINDOW))
 message(sprintf("Geo FE level: %s", GEO_FE_LEVEL))
 message(sprintf("Cluster level: %s", CLUSTER_LEVEL))
+message(sprintf(
+  "Minimum segment length: %s",
+  if (is.finite(MIN_SEGMENT_LENGTH_FT)) sprintf("%.1f ft", MIN_SEGMENT_LENGTH_FT) else "none"
+))
 message(sprintf("Write sidecars: %s", WRITE_SIDECARS))
 
 make_support_table <- function(df, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period) {
@@ -190,7 +215,7 @@ make_support_table <- function(df, event_var, time_fe_var, fe_group_var, fe_side
     )
 
   event_support %>%
-    left_join(cell_event_support, by = "event_time") %>%
+    left_join(cell_event_support, by = "event_time", relationship = "one-to-one") %>%
     mutate(
       n_fe_group_time_cells = replace_na(n_fe_group_time_cells, 0L),
       n_identifying_fe_group_time_cells = replace_na(n_identifying_fe_group_time_cells, 0L),
@@ -225,19 +250,68 @@ if (needs_segment) {
   data <- data %>% filter(!is.na(segment_id_cohort), segment_id_cohort != "")
 }
 after_segment_filter_n <- nrow(data)
+if (is.finite(MIN_SEGMENT_LENGTH_FT)) {
+  missing_segment_cols <- setdiff(c("segment_id_cohort", "segment_length_ft_cohort"), names(data))
+  if (length(missing_segment_cols) > 0) {
+    stop(sprintf(
+      "MIN_SEGMENT_LENGTH_FT requires missing panel columns: %s",
+      paste(missing_segment_cols, collapse = ", ")
+    ), call. = FALSE)
+  }
+}
+segment_length_input_n <- NA_integer_
+segment_length_drop_n <- NA_integer_
+segment_length_missing_n <- NA_integer_
+segment_length_short_n <- NA_integer_
 
 data <- data %>%
-  filter(dist_ft <= BANDWIDTH) %>%
+  filter(dist_m <= BANDWIDTH) %>%
   mutate(
-    weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_ft / BANDWIDTH) else 1,
+    weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_m / BANDWIDTH) else 1,
     treatment_stricter_continuous = pmax(strictness_change, 0),
-    treatment_lenient_continuous = pmax(-strictness_change, 0)
+    treatment_lenient_continuous = pmax(-strictness_change, 0),
+    treatment_stricter_binary = as.integer(strictness_change > 0),
+    treatment_lenient_binary = as.integer(strictness_change < 0)
   )
 after_bandwidth_n <- nrow(data)
 
-complete_hedonic <- complete.cases(data[, c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")])
+if (is.finite(MIN_SEGMENT_LENGTH_FT)) {
+  segment_length_input_n <- nrow(data)
+  segment_length_missing_n <- sum(is.na(data$segment_length_ft_cohort))
+  segment_length_short_n <- sum(!is.na(data$segment_length_ft_cohort) & data$segment_length_ft_cohort < MIN_SEGMENT_LENGTH_FT)
+  data <- data %>%
+    filter(!is.na(segment_id_cohort), segment_id_cohort != "") %>%
+    filter(!is.na(segment_length_ft_cohort), segment_length_ft_cohort >= MIN_SEGMENT_LENGTH_FT)
+  segment_length_drop_n <- segment_length_input_n - nrow(data)
+  message(sprintf(
+    "Segment-length filter kept %s of %s rows; dropped %s missing-segment rows and %s rows below %.1f ft.",
+    format(nrow(data), big.mark = ","),
+    format(segment_length_input_n, big.mark = ","),
+    format(segment_length_missing_n, big.mark = ","),
+    format(segment_length_short_n, big.mark = ","),
+    MIN_SEGMENT_LENGTH_FT
+  ))
+}
+
+complete_hedonic <- data %>%
+  transmute(
+    complete = is.finite(log_sqft) &
+      is.finite(log_land_sqft) &
+      is.finite(log_building_age) &
+      is.finite(log_bedrooms) &
+      is.finite(log_baths) &
+      !is.na(has_garage)
+  ) %>%
+  pull(complete)
 complete_hedonic_n <- sum(complete_hedonic)
-complete_amenity <- complete.cases(data[, c("nearest_school_dist_ft", "nearest_park_dist_ft", "nearest_major_road_dist_ft", "lake_michigan_dist_ft")])
+complete_amenity <- data %>%
+  transmute(
+    complete = is.finite(nearest_school_dist_m) &
+      is.finite(nearest_park_dist_m) &
+      is.finite(nearest_major_road_dist_m) &
+      is.finite(lake_michigan_dist_m)
+  ) %>%
+  pull(complete)
 complete_amenity_n <- sum(complete_amenity)
 if (CONTROL_MODE %in% c("hedonic", "amenity")) {
   data <- data[complete_hedonic, ]
@@ -359,7 +433,7 @@ support_by_event_time <- make_support_table(data, event_var, time_fe_var, fe_gro
 control_formula <- if (CONTROL_MODE == "hedonic") {
   "+ log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage"
 } else if (CONTROL_MODE == "amenity") {
-  "+ log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage + nearest_school_dist_ft + nearest_park_dist_ft + nearest_major_road_dist_ft + lake_michigan_dist_ft"
+  "+ log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage + nearest_school_dist_m + nearest_park_dist_m + nearest_major_road_dist_m + lake_michigan_dist_m"
 } else {
   ""
 }
@@ -373,10 +447,12 @@ metadata <- tibble(
   control_mode = CONTROL_MODE,
   weighting = WEIGHTING,
   bandwidth = BANDWIDTH,
+  bandwidth_label = BANDWIDTH_LABEL,
   fe_type = FE_TYPE,
   post_window = POST_WINDOW,
   geo_fe_level = GEO_FE_LEVEL,
   cluster_level = CLUSTER_LEVEL,
+  min_segment_length_ft = if (is.finite(MIN_SEGMENT_LENGTH_FT)) MIN_SEGMENT_LENGTH_FT else NA_real_,
   raw_n = raw_n,
   raw_blocks = raw_blocks,
   raw_pins = raw_pins,
@@ -384,6 +460,10 @@ metadata <- tibble(
   after_bandwidth_n = after_bandwidth_n,
   complete_hedonic_n = complete_hedonic_n,
   complete_amenity_n = complete_amenity_n,
+  segment_length_input_n = segment_length_input_n,
+  segment_length_drop_n = segment_length_drop_n,
+  segment_length_missing_n = segment_length_missing_n,
+  segment_length_short_n = segment_length_short_n,
   analysis_n = analysis_n,
   treated_n = sum(data$treat == 1, na.rm = TRUE),
   control_n = sum(data$treat == 0, na.rm = TRUE),
@@ -451,36 +531,62 @@ if (TREATMENT_TYPE == "continuous") {
     write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
   }
 } else {
+  if (TREATMENT_TYPE == "binary_direction") {
+    data_stricter <- data %>% filter(treatment_lenient_binary == 0)
+    data_lenient <- data %>% filter(treatment_stricter_binary == 0)
+    stricter_treatment_var <- "treatment_stricter_binary"
+    lenient_treatment_var <- "treatment_lenient_binary"
+    support_stricter <- make_support_table(data_stricter, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period)
+    support_lenient <- make_support_table(data_lenient, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period)
+  } else {
+    data_stricter <- data
+    data_lenient <- data
+    stricter_treatment_var <- "treatment_stricter_continuous"
+    lenient_treatment_var <- "treatment_lenient_continuous"
+    support_stricter <- support_by_event_time
+    support_lenient <- support_by_event_time
+  }
+
+  metadata <- metadata %>%
+    mutate(
+      stricter_analysis_n = nrow(data_stricter),
+      lenient_analysis_n = nrow(data_lenient),
+      plotted_supported_periods = paste(sort(unique(c(
+        support_stricter$event_time[support_stricter$has_identifying_support],
+        support_lenient$event_time[support_lenient$has_identifying_support]
+      ))), collapse = "|")
+    )
+
   formula_stricter <- sprintf(
-    "log(sale_price) ~ i(%s, treatment_stricter_continuous, ref = -1) %s | %s",
-    event_var, control_formula, fe_formula
+    "log(sale_price) ~ i(%s, %s, ref = -1) %s | %s",
+    event_var, stricter_treatment_var, control_formula, fe_formula
   )
   formula_lenient <- sprintf(
-    "log(sale_price) ~ i(%s, treatment_lenient_continuous, ref = -1) %s | %s",
-    event_var, control_formula, fe_formula
+    "log(sale_price) ~ i(%s, %s, ref = -1) %s | %s",
+    event_var, lenient_treatment_var, control_formula, fe_formula
   )
 
-  message(sprintf("Running regression with %s observations", format(nrow(data), big.mark = ",")))
+  message(sprintf("Running regression with %s observations", format(nrow(data_stricter), big.mark = ",")))
   message(sprintf("Formula: %s", formula_stricter))
   model_stricter <- feols(
     as.formula(formula_stricter),
-    data = data,
+    data = data_stricter,
     weights = ~weight,
     cluster = cluster_formula
   )
 
-  message(sprintf("Running regression with %s observations", format(nrow(data), big.mark = ",")))
+  message(sprintf("Running regression with %s observations", format(nrow(data_lenient), big.mark = ",")))
   message(sprintf("Formula: %s", formula_lenient))
   model_lenient <- feols(
     as.formula(formula_lenient),
-    data = data,
+    data = data_lenient,
     weights = ~weight,
     cluster = cluster_formula
   )
 
   plot_data <- bind_rows(
-    build_event_study_plot_data(model_stricter, support_by_event_time, min_period, max_period, "Moved to Stricter", "multiply100"),
-    build_event_study_plot_data(model_lenient, support_by_event_time, min_period, max_period, "Moved to More Lenient", "multiply100")
+    build_event_study_plot_data(model_stricter, support_stricter, min_period, max_period, "Moved to Stricter", "multiply100"),
+    build_event_study_plot_data(model_lenient, support_lenient, min_period, max_period, "Moved to More Lenient", "multiply100")
   ) %>%
     mutate(
       estimate_pct = estimate_display,
@@ -515,7 +621,13 @@ if (TREATMENT_TYPE == "continuous") {
   ggsave(sprintf("../output/event_study_combined_%s.pdf", suffix), directional_plots$combined, width = 7, height = 4.5, bg = "white")
   if (WRITE_SIDECARS) {
     write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
-    write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
+    write_csv(
+      bind_rows(
+        support_stricter %>% mutate(group = "Moved to Stricter"),
+        support_lenient %>% mutate(group = "Moved to More Lenient")
+      ),
+      sprintf("../output/event_study_support_%s.csv", suffix)
+    )
     write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
     write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
   }

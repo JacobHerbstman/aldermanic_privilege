@@ -1,73 +1,150 @@
-#!/bin/bash
-# Download full residential improvement characteristics from Cook County Assessor
+#!/usr/bin/env bash
+# Download full residential improvement characteristics from Cook County Assessor.
 # Data source: https://datacatalog.cookcountyil.gov/Property-Taxation/Assessor-Single-and-Multi-Family-Improvement-Chara/x54s-btds
-# 
-# This script downloads ALL properties in Chicago townships (70-77) without any year_built filter.
-# The data is paginated due to Socrata API limits (~11.8 million records total).
 
-set -e
+set -euo pipefail
 
-OUTPUT_DIR="../output"
-OUTPUT_FILE="$OUTPUT_DIR/residential_improvement_characteristics_full.csv"
-API_BASE="https://datacatalog.cookcountyil.gov/resource/x54s-btds.csv"
-BATCH_SIZE=1000000
+output_file="../output/residential_improvement_characteristics_full.csv"
+metadata_file="../output/residential_improvement_characteristics_full_metadata.csv"
+api_csv="https://datacatalog.cookcountyil.gov/resource/x54s-btds.csv"
+api_json="https://datacatalog.cookcountyil.gov/resource/x54s-btds.json"
+batch_size=500000
+where_clause="township_code in('70','71','72','73','74','75','76','77')"
+order_clause="pin,year,card,row_id"
 
-# Chicago township codes
-TOWNSHIPS="('70','71','72','73','74','75','76','77')"
+tmp_dir=$(mktemp -d "../output/.residential_improvements.XXXXXX")
+trap 'rm -rf "$tmp_dir"' EXIT
 
-echo "Downloading full residential improvement characteristics for Chicago townships..."
-echo "This will download approximately 11.8 million records via paginated API calls."
-echo ""
+read_socrata_count() {
+    curl --fail --show-error --retry 5 --retry-delay 5 --retry-connrefused --connect-timeout 60 --max-time 600 -sG "$api_json" \
+        --data-urlencode "\$select=count(*)" \
+        --data-urlencode "\$where=${where_clause}" |
+        python3 -c 'import json, sys; print(json.load(sys.stdin)[0]["count"])'
+}
 
-# First batch - include header
-offset=0
-echo "Downloading offset $offset..."
-curl -s -o "$OUTPUT_FILE" "$API_BASE?\$where=township_code%20in%20$TOWNSHIPS&\$limit=$BATCH_SIZE&\$offset=$offset"
+download_batch() {
+    local target_file="$1"
+    local offset="$2"
+    local attempt
+    local rc=1
 
-# Check if first download succeeded
-if [ ! -s "$OUTPUT_FILE" ]; then
-    echo "ERROR: Initial download failed or returned empty file"
+    for attempt in 1 2 3 4 5; do
+        if curl --fail --show-error --retry 3 --retry-delay 5 --retry-connrefused --connect-timeout 60 --max-time 1200 -sG -o "$target_file" "$api_csv" \
+            --data-urlencode "\$where=${where_clause}" \
+            --data-urlencode "\$order=${order_clause}" \
+            --data-urlencode "\$limit=${batch_size}" \
+            --data-urlencode "\$offset=${offset}"; then
+            return 0
+        fi
+        rc=$?
+        echo "  Download attempt ${attempt} failed at offset ${offset} with curl exit ${rc}; retrying..." >&2
+        sleep $(( attempt * 10 ))
+    done
+
+    return "$rc"
+}
+
+count_csv_records() {
+    local csv_file="$1"
+    python3 - "$csv_file" <<'PY'
+import csv
+import sys
+
+csv.field_size_limit(10**9)
+with open(sys.argv[1], newline="", encoding="utf-8") as f:
+    reader = csv.reader(f, strict=True)
+    header = next(reader, None)
+    if not header:
+        raise SystemExit("ERROR: missing CSV header")
+    ncols = len(header)
+    rows = 0
+    for line_number, row in enumerate(reader, start=2):
+        if len(row) != ncols:
+            raise SystemExit(
+                f"ERROR: row {line_number} has {len(row)} fields; expected {ncols}"
+            )
+        rows += 1
+print(rows)
+PY
+}
+
+csv_header() {
+    local csv_file="$1"
+    python3 - "$csv_file" <<'PY'
+import csv
+import json
+import sys
+
+csv.field_size_limit(10**9)
+with open(sys.argv[1], newline="", encoding="utf-8") as f:
+    header = next(csv.reader(f, strict=True), None)
+    if not header:
+        raise SystemExit("ERROR: missing CSV header")
+print(json.dumps(header, separators=(",", ":")))
+PY
+}
+
+expected_records=$(read_socrata_count)
+if ! [[ "$expected_records" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: Could not read Socrata row count" >&2
     exit 1
 fi
 
-# Get count from first batch
-first_batch_count=$(wc -l < "$OUTPUT_FILE")
-echo "  Downloaded $((first_batch_count - 1)) records"
+tmp_output="$tmp_dir/residential_improvement_characteristics_full.csv"
+tmp_metadata="$tmp_dir/residential_improvement_characteristics_full_metadata.csv"
+offset=0
+batch_index=0
+expected_header=""
 
-# Continue with subsequent batches
-while true; do
-    offset=$((offset + BATCH_SIZE))
-    echo "Downloading offset $offset..."
-    
-    # Download next batch without header
-    temp_file=$(mktemp)
-    curl -s -o "$temp_file" "$API_BASE?\$where=township_code%20in%20$TOWNSHIPS&\$limit=$BATCH_SIZE&\$offset=$offset"
-    
-    # Check batch size (excluding header)
-    batch_count=$(($(wc -l < "$temp_file") - 1))
-    
-    if [ "$batch_count" -le 0 ]; then
-        echo "  No more records to download"
-        rm "$temp_file"
-        break
+echo "Downloading full residential improvement characteristics for Chicago townships..."
+echo "Filter: ${where_clause}"
+echo "Expected records: ${expected_records}"
+
+while (( offset < expected_records )); do
+    batch_file="$tmp_dir/batch_${batch_index}.csv"
+    download_batch "$batch_file" "$offset"
+
+    records_in_batch=$(count_csv_records "$batch_file")
+    batch_header=$(csv_header "$batch_file")
+    if (( records_in_batch == 0 )); then
+        echo "ERROR: Empty batch at offset ${offset} before expected row count ${expected_records}" >&2
+        exit 1
     fi
-    
-    echo "  Downloaded $batch_count records"
-    
-    # Append without header
-    tail -n +2 "$temp_file" >> "$OUTPUT_FILE"
-    rm "$temp_file"
-    
-    # Safety check - if we got less than batch size, we're done
-    if [ "$batch_count" -lt "$BATCH_SIZE" ]; then
-        echo "  Reached end of data"
-        break
+
+    if (( batch_index == 0 )); then
+        expected_header="$batch_header"
+        cp "$batch_file" "$tmp_output"
+    else
+        if [[ "$batch_header" != "$expected_header" ]]; then
+            echo "ERROR: CSV header changed at offset ${offset}" >&2
+            exit 1
+        fi
+        tail -n +2 "$batch_file" >> "$tmp_output"
     fi
+
+    echo "  Downloaded offset ${offset} (${records_in_batch} records)"
+    offset=$(( offset + records_in_batch ))
+    batch_index=$(( batch_index + 1 ))
 done
 
-# Final count
-total_records=$(($(wc -l < "$OUTPUT_FILE") - 1))
-echo ""
-echo "Download complete!"
-echo "Total records: $total_records"
-echo "Output file: $OUTPUT_FILE"
+actual_records=$(count_csv_records "$tmp_output")
+if (( actual_records != expected_records )); then
+    echo "ERROR: Downloaded ${actual_records} residential improvement rows; expected ${expected_records}" >&2
+    exit 1
+fi
+
+ending_records=$(read_socrata_count)
+if (( ending_records != expected_records )); then
+    echo "ERROR: Socrata row count changed during download: started ${expected_records}, ended ${ending_records}" >&2
+    exit 1
+fi
+
+{
+    echo "source_url,downloaded_at_utc,filter,order_clause,batch_size,rows,start_rows,end_rows"
+    echo "$api_csv,$(date -u +%Y-%m-%dT%H:%M:%SZ),\"${where_clause}\",\"${order_clause}\",$batch_size,$actual_records,$expected_records,$ending_records"
+} > "$tmp_metadata"
+
+mv "$tmp_metadata" "$metadata_file"
+mv "$tmp_output" "$output_file"
+
+echo "Download complete: ${actual_records} records"

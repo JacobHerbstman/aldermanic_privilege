@@ -2,10 +2,12 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_corner_clean_table/code")
-# baseline_summary_path <- "../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv"
-# corner_clean_summary_path <- "../output/fe_summary_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv"
+# baseline_summary_path <- "../output/fe_summary_500ft_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv"
+# corner_clean_summary_path <- "../output/fe_summary_500ft_all_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv"
 # ambiguity_summary_path <- "../input/boundary_ambiguity_by_bw.csv"
-# output_tex <- "../output/fe_table_bw500_multifamily_corner_clean_compare.tex"
+# output_tex <- "../output/fe_table_500ft_all_corner_clean_compare.tex"
+# bandwidth_m <- 152.4
+# sample_filter <- "all"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -13,13 +15,15 @@ if (length(args) == 0) {
     baseline_summary_path,
     corner_clean_summary_path,
     ambiguity_summary_path,
-    output_tex
+    output_tex,
+    bandwidth_m,
+    sample_filter
   )
 }
 
-if (length(args) != 4) {
+if (length(args) != 6) {
   stop(
-    "FATAL: Script requires args: <baseline_summary_path> <corner_clean_summary_path> <ambiguity_summary_path> <output_tex>",
+    "FATAL: Script requires args: <baseline_summary_path> <corner_clean_summary_path> <ambiguity_summary_path> <output_tex> <bandwidth_m> <sample_filter>",
     call. = FALSE
   )
 }
@@ -28,10 +32,26 @@ baseline_summary_path <- args[1]
 corner_clean_summary_path <- args[2]
 ambiguity_summary_path <- args[3]
 output_tex <- args[4]
+bandwidth_m <- as.numeric(args[5])
+sample_filter <- args[6]
+
+if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
+  stop("bandwidth_m must be a positive number.", call. = FALSE)
+}
+if (!sample_filter %in% c("all", "multifamily")) {
+  stop("sample_filter must be one of: all, multifamily.", call. = FALSE)
+}
 
 baseline_summary <- read_csv(baseline_summary_path, show_col_types = FALSE)
 corner_clean_summary <- read_csv(corner_clean_summary_path, show_col_types = FALSE)
 ambiguity_summary <- read_csv(ambiguity_summary_path, show_col_types = FALSE)
+if (!"bandwidth_m" %in% names(ambiguity_summary)) {
+  if (!"bw_ft" %in% names(ambiguity_summary)) {
+    stop("Ambiguity summary must contain bandwidth_m.", call. = FALSE)
+  }
+  ambiguity_summary <- ambiguity_summary %>%
+    mutate(bandwidth_m = as.numeric(bw_ft) * 0.3048)
+}
 
 panel_order <- c("log(density_far)", "log(density_dupac)")
 
@@ -65,19 +85,29 @@ if (nrow(baseline_panel) != 2 || nrow(corner_clean_panel) != 2) {
   stop("Expected exactly two outcomes in each summary file.", call. = FALSE)
 }
 
+if (anyDuplicated(baseline_panel$yvar) > 0 || anyDuplicated(corner_clean_panel$yvar) > 0) {
+  stop("Corner-clean summaries contain duplicate outcome rows.", call. = FALSE)
+}
+
 if (!all(baseline_panel$yvar == panel_order) || !all(corner_clean_panel$yvar == panel_order)) {
   stop("Summary rows are not aligned to FAR and DUPAC in the expected order.", call. = FALSE)
 }
 
 ambiguity_row <- ambiguity_summary %>%
-  filter(sample_filter == "multifamily", bw_ft == 500)
+  mutate(bandwidth_m = as.numeric(bandwidth_m)) %>%
+  filter(sample_filter == .env$sample_filter, round(bandwidth_m) == round(.env$bandwidth_m))
 
 if (nrow(ambiguity_row) != 1) {
-  stop("Expected one multifamily 500-foot ambiguity row.", call. = FALSE)
+  stop("Expected one ambiguity row for the requested sample and bandwidth.", call. = FALSE)
 }
 
-if (!identical(baseline_panel$n_obs[[1]], ambiguity_row$n_in_bw[[1]])) {
-  stop("Baseline N does not match ambiguity summary at 500 feet.", call. = FALSE)
+model_drop_n <- baseline_panel$n_obs - corner_clean_panel$n_obs
+if (length(unique(model_drop_n)) != 1) {
+  stop("Corner-clean model drops differ across outcomes.", call. = FALSE)
+}
+
+if (!identical(as.numeric(model_drop_n[[1]]), as.numeric(ambiguity_row$n_ambiguous[[1]]))) {
+  stop("Corner-clean model drop count does not match ambiguity summary at requested bandwidth.", call. = FALSE)
 }
 
 table_lines <- c(

@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 all: ../output/stata_packages.txt ../output/R_packages.txt
 
@@ -9,6 +8,5 @@ all: ../output/stata_packages.txt ../output/R_packages.txt
 ../output/R_packages.txt: packages.R | ../output
 	$(R) $<
 
-link-inputs:
-
+include ../../shell_functions.make
 include ../../generic.make

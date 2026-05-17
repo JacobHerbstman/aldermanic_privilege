@@ -57,6 +57,7 @@ safe_mean <- function(x) {
 message("Loading geocoded parcels...")
 parcels <- st_read(parcels_input, quiet = TRUE) %>%
   mutate(
+    parcel_row_id = row_number(),
     pin = as.character(pin),
     yearbuilt = suppressWarnings(as.integer(yearbuilt))
   ) %>%
@@ -69,8 +70,12 @@ zoning <- st_read(zoning_input, quiet = TRUE) %>%
   st_transform(3435)
 
 message("Joining parcels to zoning...")
+parcels_before_zoning <- nrow(parcels)
 parcels <- parcels %>%
   st_join(zoning, left = TRUE, largest = TRUE)
+if (nrow(parcels) != parcels_before_zoning) {
+  stop("Parcel-zoning join changed row count.", call. = FALSE)
+}
 
 message("Loading 2010 census blocks...")
 blocks <- read_csv(blocks_input, show_col_types = FALSE) %>%
@@ -84,6 +89,9 @@ blocks <- read_csv(blocks_input, show_col_types = FALSE) %>%
 
 message("Assigning parcels to blocks...")
 parcels <- st_join(parcels, blocks %>% select(block_id), join = st_within)
+if (anyDuplicated(parcels$parcel_row_id) > 0) {
+  stop("Parcel-block spatial join assigned at least one parcel to multiple blocks.", call. = FALSE)
+}
 
 message("Computing exact amenity distances on unique parcel coordinates...")
 parcel_xy <- parcels %>%
@@ -106,14 +114,14 @@ lake <- lake_michigan_geom(water_input)
 cbd <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>%
   st_transform(3435)
 
-coords_tbl$nearest_school_dist_ft <- nearest_distance_ft(coords_sf, schools, label = "parcel coordinates")
-coords_tbl$nearest_park_dist_ft <- nearest_distance_ft(coords_sf, parks, label = "parcel coordinates")
-coords_tbl$nearest_major_road_dist_ft <- nearest_distance_ft(coords_sf, major_streets, label = "parcel coordinates")
-coords_tbl$lake_michigan_dist_ft <- nearest_distance_ft(coords_sf, lake, label = "parcel coordinates")
-coords_tbl$dist_cbd_ft <- as.numeric(st_distance(coords_sf, cbd))
+coords_tbl$nearest_school_dist_m <- nearest_distance_m(coords_sf, schools, label = "parcel coordinates")
+coords_tbl$nearest_park_dist_m <- nearest_distance_m(coords_sf, parks, label = "parcel coordinates")
+coords_tbl$nearest_major_road_dist_m <- nearest_distance_m(coords_sf, major_streets, label = "parcel coordinates")
+coords_tbl$lake_michigan_dist_m <- nearest_distance_m(coords_sf, lake, label = "parcel coordinates")
+coords_tbl$dist_cbd_m <- as.numeric(st_distance(coords_sf, cbd)) * 0.3048
 
 parcel_xy <- parcel_xy %>%
-  left_join(coords_tbl, by = c("x", "y")) %>%
+  left_join(coords_tbl, by = c("x", "y"), relationship = "many-to-one") %>%
   filter(!is.na(block_id))
 
 message("Aggregating parcel baselines to 2010 census blocks...")
@@ -122,13 +130,16 @@ block_baselines <- parcel_xy %>%
   summarise(
     n_parcels = n(),
     mean_zoned_far = safe_mean(floor_area_ratio),
-    mean_dist_cbd_ft = safe_mean(dist_cbd_ft),
-    mean_nearest_school_dist_ft = safe_mean(nearest_school_dist_ft),
-    mean_nearest_park_dist_ft = safe_mean(nearest_park_dist_ft),
-    mean_nearest_major_road_dist_ft = safe_mean(nearest_major_road_dist_ft),
-    mean_lake_michigan_dist_ft = safe_mean(lake_michigan_dist_ft),
+    mean_dist_cbd_m = safe_mean(dist_cbd_m),
+    mean_nearest_school_dist_m = safe_mean(nearest_school_dist_m),
+    mean_nearest_park_dist_m = safe_mean(nearest_park_dist_m),
+    mean_nearest_major_road_dist_m = safe_mean(nearest_major_road_dist_m),
+    mean_lake_michigan_dist_m = safe_mean(lake_michigan_dist_m),
     .groups = "drop"
   )
+if (anyDuplicated(block_baselines$block_id) > 0) {
+  stop("Block parcel baselines must be unique by block_id.", call. = FALSE)
+}
 
 write_csv(block_baselines, output_csv)
 message("Saved block parcel baselines: ", output_csv)

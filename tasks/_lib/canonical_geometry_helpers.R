@@ -234,9 +234,76 @@ load_boundary_layers <- function(boundary_gpkg, eras = canonical_era_levels()) {
   out
 }
 
-load_segment_layers <- function(segment_gpkg, buffer_ft = 1000, eras = canonical_era_levels()) {
+distance_to_boundary_pair_m <- function(points_sf, pair_values, boundary_sf, chunk_n = 5000L) {
+  if (!inherits(points_sf, "sf")) {
+    stop("points_sf must be an sf object.", call. = FALSE)
+  }
+  if (!inherits(boundary_sf, "sf")) {
+    stop("boundary_sf must be an sf object.", call. = FALSE)
+  }
+  if (nrow(points_sf) != length(pair_values)) {
+    stop("pair_values must have one value per point.", call. = FALSE)
+  }
+  if (is.na(sf::st_crs(points_sf)) || is.na(sf::st_crs(boundary_sf))) {
+    stop("Point and boundary geometries must have non-missing CRS.", call. = FALSE)
+  }
+  if (sf::st_crs(points_sf) != sf::st_crs(boundary_sf)) {
+    points_sf <- sf::st_transform(points_sf, sf::st_crs(boundary_sf))
+  }
+  if (!"ward_pair_id" %in% names(boundary_sf)) {
+    stop("Boundary layer must include ward_pair_id.", call. = FALSE)
+  }
+
+  pair_dash <- normalize_pair_dash(pair_values)
+  boundary_sf$pair_dash <- normalize_pair_dash(boundary_sf$ward_pair_id)
+  boundary_pairs <- stats::na.omit(boundary_sf$pair_dash)
+  if (anyDuplicated(boundary_pairs) > 0) {
+    stop("Boundary layer must have exactly one geometry row per ward-pair.", call. = FALSE)
+  }
+
+  out <- rep(NA_real_, nrow(points_sf))
+  for (pair_i in sort(unique(stats::na.omit(pair_dash)))) {
+    idx <- which(pair_dash == pair_i)
+    line_i <- boundary_sf[boundary_sf$pair_dash == pair_i, ]
+    if (nrow(line_i) == 0) {
+      next
+    }
+    if (nrow(line_i) != 1) {
+      stop(sprintf("Expected exactly one boundary geometry for ward-pair %s.", pair_i), call. = FALSE)
+    }
+
+    starts <- seq(1L, length(idx), by = chunk_n)
+    for (s in starts) {
+      e <- min(s + chunk_n - 1L, length(idx))
+      idx_chunk <- idx[s:e]
+      out[idx_chunk] <- as.numeric(sf::st_distance(points_sf[idx_chunk, ], line_i[1, ])) * 0.3048
+    }
+  }
+
+  out
+}
+
+load_segment_layers <- function(segment_gpkg, buffer_m = NULL, buffer_ft = NULL, eras = canonical_era_levels()) {
   layer_names <- sf::st_layers(segment_gpkg)$name
-  needed_layers <- paste0(eras, "_bw", as.integer(buffer_ft))
+  if (!is.null(buffer_m) && !is.null(buffer_ft)) {
+    stop("Supply only one of buffer_m or buffer_ft.", call. = FALSE)
+  }
+  if (is.null(buffer_m) && is.null(buffer_ft)) {
+    stop("Supply buffer_m or buffer_ft explicitly.", call. = FALSE)
+  }
+
+  if (!is.null(buffer_m)) {
+    if (!is.finite(buffer_m) || buffer_m <= 0) {
+      stop("buffer_m must be positive.", call. = FALSE)
+    }
+    needed_layers <- paste0(eras, "_bw", as.integer(round(buffer_m)), "m")
+  } else {
+    if (!is.finite(buffer_ft) || buffer_ft <= 0) {
+      stop("buffer_ft must be positive.", call. = FALSE)
+    }
+    needed_layers <- paste0(eras, "_bw", as.integer(round(buffer_ft)))
+  }
+
   missing_layers <- setdiff(needed_layers, layer_names)
   if (length(missing_layers) > 0) {
     stop(sprintf(
@@ -246,13 +313,375 @@ load_segment_layers <- function(segment_gpkg, buffer_ft = 1000, eras = canonical
   }
 
   out <- lapply(eras, function(era_i) {
-    d <- sf::st_read(segment_gpkg, layer = paste0(era_i, "_bw", as.integer(buffer_ft)), quiet = TRUE)
+    layer_name <- if (!is.null(buffer_m)) {
+      paste0(era_i, "_bw", as.integer(round(buffer_m)), "m")
+    } else {
+      paste0(era_i, "_bw", as.integer(round(buffer_ft)))
+    }
+    d <- sf::st_read(segment_gpkg, layer = layer_name, quiet = TRUE)
+    if ("valid_segment" %in% names(d)) {
+      valid_segment <- coerce_segment_valid_flag(d$valid_segment)
+      d <- d[is.na(valid_segment) | valid_segment, ]
+    }
     d$segment_id <- as.character(d$segment_id)
     d$pair_dash <- normalize_pair_dash(d$ward_pair_id)
     d[!is.na(d$pair_dash), ]
   })
   names(out) <- eras
   out
+}
+
+load_segment_line_layers <- function(segment_gpkg, eras = canonical_era_levels()) {
+  layer_names <- sf::st_layers(segment_gpkg)$name
+  missing_layers <- setdiff(eras, layer_names)
+  if (length(missing_layers) > 0) {
+    stop(sprintf(
+      "Segment GPKG is missing unbuffered layers: %s",
+      paste(missing_layers, collapse = ", ")
+    ), call. = FALSE)
+  }
+
+  out <- lapply(eras, function(era_i) {
+    d <- sf::st_read(segment_gpkg, layer = era_i, quiet = TRUE)
+    missing_cols <- setdiff(c("segment_id", "ward_pair_id"), names(d))
+    if (length(missing_cols) > 0) {
+      stop(sprintf(
+        "Segment layer %s is missing required columns: %s",
+        era_i,
+        paste(missing_cols, collapse = ", ")
+      ), call. = FALSE)
+    }
+    if (is.na(sf::st_crs(d))) {
+      stop(sprintf("Segment layer %s has missing CRS.", era_i), call. = FALSE)
+    }
+    geom_type <- unique(as.character(sf::st_geometry_type(d)))
+    bad_geom <- setdiff(geom_type, c("LINESTRING", "MULTILINESTRING"))
+    if (length(bad_geom) > 0) {
+      stop(sprintf(
+        "Segment layer %s must contain only line geometries; found: %s",
+        era_i,
+        paste(bad_geom, collapse = ", ")
+      ), call. = FALSE)
+    }
+    if (any(sf::st_is_empty(d))) {
+      stop(sprintf("Segment layer %s contains empty geometries.", era_i), call. = FALSE)
+    }
+
+    d$segment_id <- as.character(d$segment_id)
+    d$pair_dash <- normalize_pair_dash(d$ward_pair_id)
+    if (any(is.na(d$segment_id) | d$segment_id == "")) {
+      stop(sprintf("Segment layer %s contains missing segment_id values.", era_i), call. = FALSE)
+    }
+    if (anyDuplicated(d$segment_id) > 0) {
+      stop(sprintf("Segment layer %s contains duplicate segment_id values.", era_i), call. = FALSE)
+    }
+    if (any(is.na(d$pair_dash))) {
+      stop(sprintf("Segment layer %s contains ward_pair_id values that cannot be normalized.", era_i), call. = FALSE)
+    }
+
+    if ("valid_segment" %in% names(d)) {
+      valid_segment <- coerce_segment_valid_flag(d$valid_segment)
+      d <- d[is.na(valid_segment) | valid_segment, ]
+    }
+    d <- d[order(d$pair_dash, d$segment_id), ]
+    d
+  })
+  names(out) <- eras
+  out
+}
+
+coerce_segment_valid_flag <- function(x) {
+  if (is.logical(x)) {
+    return(x)
+  }
+  if (is.numeric(x) || is.integer(x)) {
+    return(as.logical(x))
+  }
+
+  x_chr <- tolower(trimws(as.character(x)))
+  out <- rep(NA, length(x_chr))
+  out[x_chr %in% c("true", "t", "1", "yes", "y")] <- TRUE
+  out[x_chr %in% c("false", "f", "0", "no", "n")] <- FALSE
+  out
+}
+
+segment_offset_point <- function(line_geom, side, offset_ft) {
+  coords <- sf::st_coordinates(line_geom)[, c("X", "Y"), drop = FALSE]
+  if (nrow(coords) < 2) {
+    return(NULL)
+  }
+
+  seg_len <- sqrt(rowSums((coords[-1, , drop = FALSE] - coords[-nrow(coords), , drop = FALSE])^2))
+  keep <- is.finite(seg_len) & seg_len > 0
+  if (!any(keep)) {
+    return(NULL)
+  }
+
+  coords <- coords[c(TRUE, keep), , drop = FALSE]
+  seg_len <- sqrt(rowSums((coords[-1, , drop = FALSE] - coords[-nrow(coords), , drop = FALSE])^2))
+  cumdist <- c(0, cumsum(seg_len))
+  target_dist <- cumdist[length(cumdist)] / 2
+  end_idx <- which(cumdist >= target_dist)[1]
+  start_idx <- max(1L, end_idx - 1L)
+  denom <- cumdist[end_idx] - cumdist[start_idx]
+  if (!is.finite(denom) || denom <= 0) {
+    return(NULL)
+  }
+
+  weight <- (target_dist - cumdist[start_idx]) / denom
+  mid <- coords[start_idx, ] + weight * (coords[end_idx, ] - coords[start_idx, ])
+  tangent <- coords[end_idx, ] - coords[start_idx, ]
+  tangent_len <- sqrt(sum(tangent^2))
+  if (!is.finite(tangent_len) || tangent_len <= 0) {
+    return(NULL)
+  }
+
+  normal <- c(-tangent[2], tangent[1]) / tangent_len * side
+  sf::st_point(as.numeric(mid + offset_ft * normal))
+}
+
+ward_at_segment_offset <- function(point_geom, ward_sf) {
+  if (is.null(point_geom)) {
+    return(NA_character_)
+  }
+
+  point_sf <- sf::st_sf(geometry = sf::st_sfc(point_geom, crs = sf::st_crs(ward_sf)))
+  hits <- sf::st_within(point_sf, ward_sf)[[1]]
+  if (length(hits) == 0) {
+    return(NA_character_)
+  }
+
+  paste(sort(unique(as.integer(ward_sf$ward[hits]))), collapse = ";")
+}
+
+segment_offset_pair_passes <- function(left_ward, right_ward, ward_a, ward_b) {
+  if (is.na(left_ward) || is.na(right_ward)) {
+    return(FALSE)
+  }
+  if (grepl(";", left_ward, fixed = TRUE) || grepl(";", right_ward, fixed = TRUE)) {
+    return(FALSE)
+  }
+
+  observed <- sort(as.integer(c(left_ward, right_ward)))
+  expected <- sort(as.integer(c(ward_a, ward_b)))
+  identical(observed, expected)
+}
+
+annotate_boundary_segment_validity <- function(segment_sf,
+                                               ward_maps,
+                                               short_segment_ft = 100,
+                                               numeric_noise_ft = 1,
+                                               touch_tolerance_ft = 1,
+                                               near_tolerance_ft = 10,
+                                               offsets_ft = c(5, 20, 50, 100)) {
+  if (nrow(segment_sf) == 0) {
+    return(segment_sf)
+  }
+
+  required_cols <- c(
+    "segment_id", "ward_pair_id", "ward_a", "ward_b", "era",
+    "segment_number", "n_segments_in_pair", "segment_length_ft"
+  )
+  missing_cols <- setdiff(required_cols, names(segment_sf))
+  if (length(missing_cols) > 0) {
+    stop(sprintf(
+      "Segment validity annotation is missing required columns: %s",
+      paste(missing_cols, collapse = ", ")
+    ), call. = FALSE)
+  }
+
+  segment_sf$raw_segment_id <- as.character(segment_sf$segment_id)
+  segment_sf$ward_pair_id <- as.character(segment_sf$ward_pair_id)
+  segment_sf$ward_a <- as.integer(segment_sf$ward_a)
+  segment_sf$ward_b <- as.integer(segment_sf$ward_b)
+  segment_sf$segment_number <- as.integer(segment_sf$segment_number)
+  segment_sf$n_segments_in_pair <- as.integer(segment_sf$n_segments_in_pair)
+  segment_sf$segment_length_ft <- as.numeric(segment_sf$segment_length_ft)
+  segment_sf$short_segment <- segment_sf$segment_length_ft < short_segment_ft
+  segment_sf$terminal_segment <- segment_sf$segment_number == 1L |
+    segment_sf$segment_number == segment_sf$n_segments_in_pair
+  segment_sf$nearest_same_pair_segment_id <- NA_character_
+  segment_sf$nearest_same_pair_segment_number <- NA_integer_
+  segment_sf$nearest_same_pair_distance_ft <- NA_real_
+  segment_sf$n_touching_same_pair_1ft <- NA_integer_
+  segment_sf$n_near_same_pair_10ft <- NA_integer_
+  segment_sf$two_sided_all_offsets <- NA
+  segment_sf$component_type <- "long_split_piece"
+  segment_sf$valid_segment <- TRUE
+  segment_sf$invalid_reason <- "none"
+  segment_sf$analysis_segment_id <- segment_sf$raw_segment_id
+  segment_sf$merge_reason <- "standalone_valid_component"
+  segment_sf$segment_lt500ft <- segment_sf$segment_length_ft < 500
+  segment_sf$segment_lt1000ft <- segment_sf$segment_length_ft < 1000
+
+  for (offset_ft in offsets_ft) {
+    segment_sf[[paste0("left_offset_ward_", offset_ft, "ft")]] <- NA_character_
+    segment_sf[[paste0("right_offset_ward_", offset_ft, "ft")]] <- NA_character_
+    segment_sf[[paste0("two_sided_pass_", offset_ft, "ft")]] <- NA
+  }
+
+  for (i in seq_len(nrow(segment_sf))) {
+    segment_i <- segment_sf[i, ]
+    needs_topology_check <- isTRUE(segment_i$short_segment) ||
+      isTRUE(segment_i$segment_length_ft < numeric_noise_ft)
+    n_touching_1ft <- NA_integer_
+    n_near_10ft <- NA_integer_
+    touching_segment_id <- NA_character_
+
+    if (needs_topology_check) {
+      same_pair <- segment_sf[
+        segment_sf$era == segment_i$era &
+          segment_sf$ward_pair_id == segment_i$ward_pair_id &
+          segment_sf$raw_segment_id != segment_i$raw_segment_id,
+      ]
+
+      if (nrow(same_pair) > 0) {
+        distances <- as.numeric(sf::st_distance(
+          sf::st_geometry(segment_i),
+          sf::st_geometry(same_pair),
+          by_element = FALSE
+        )[1, ])
+        nearest_idx <- which.min(distances)
+        segment_sf$nearest_same_pair_segment_id[i] <- same_pair$raw_segment_id[nearest_idx]
+        segment_sf$nearest_same_pair_segment_number[i] <- same_pair$segment_number[nearest_idx]
+        segment_sf$nearest_same_pair_distance_ft[i] <- distances[nearest_idx]
+        n_touching_1ft <- sum(distances <= touch_tolerance_ft, na.rm = TRUE)
+        n_near_10ft <- sum(distances <= near_tolerance_ft, na.rm = TRUE)
+        if (n_touching_1ft == 1L) {
+          touching_segment_id <- same_pair$raw_segment_id[which(distances <= touch_tolerance_ft)[1]]
+        }
+      } else {
+        n_touching_1ft <- 0L
+        n_near_10ft <- 0L
+      }
+    }
+
+    segment_sf$n_touching_same_pair_1ft[i] <- n_touching_1ft
+    segment_sf$n_near_same_pair_10ft[i] <- n_near_10ft
+
+    pass_values <- rep(NA, length(offsets_ft))
+    for (j in seq_along(offsets_ft)) {
+      offset_ft <- offsets_ft[j]
+      left_ward <- NA_character_
+      right_ward <- NA_character_
+      if (needs_topology_check) {
+        left_ward <- ward_at_segment_offset(
+          segment_offset_point(sf::st_geometry(segment_i)[[1]], -1, offset_ft),
+          ward_maps[[as.character(segment_i$era)]]
+        )
+        right_ward <- ward_at_segment_offset(
+          segment_offset_point(sf::st_geometry(segment_i)[[1]], 1, offset_ft),
+          ward_maps[[as.character(segment_i$era)]]
+        )
+        pass_values[j] <- segment_offset_pair_passes(
+          left_ward,
+          right_ward,
+          segment_i$ward_a,
+          segment_i$ward_b
+        )
+      }
+
+      segment_sf[[paste0("left_offset_ward_", offset_ft, "ft")]][i] <- left_ward
+      segment_sf[[paste0("right_offset_ward_", offset_ft, "ft")]][i] <- right_ward
+      segment_sf[[paste0("two_sided_pass_", offset_ft, "ft")]][i] <- pass_values[j]
+    }
+
+    two_sided_all_offsets <- if (needs_topology_check) all(pass_values %in% TRUE) else NA
+    segment_sf$two_sided_all_offsets[i] <- two_sided_all_offsets
+
+    component_type <- if (segment_i$segment_length_ft < numeric_noise_ft) {
+      "suspected_artifact"
+    } else if (isTRUE(segment_i$short_segment) && segment_i$n_segments_in_pair == 1L) {
+      "short_only_piece"
+    } else if (isTRUE(segment_i$short_segment) && isTRUE(segment_i$terminal_segment) && n_touching_1ft == 1L) {
+      "terminal_touching_remainder"
+    } else if (isTRUE(segment_i$short_segment) && isTRUE(segment_i$terminal_segment)) {
+      "terminal_short_component"
+    } else if (isTRUE(segment_i$short_segment)) {
+      "short_disconnected_component"
+    } else {
+      "long_split_piece"
+    }
+    segment_sf$component_type[i] <- component_type
+
+    invalid_reason <- if (segment_i$segment_length_ft < numeric_noise_ft) {
+      "artifact_topology_noise"
+    } else if (isTRUE(segment_i$short_segment) && !isTRUE(two_sided_all_offsets)) {
+      "artifact_wrong_ward_offsets"
+    } else {
+      "none"
+    }
+    segment_sf$invalid_reason[i] <- invalid_reason
+    segment_sf$valid_segment[i] <- invalid_reason == "none"
+
+    if (!isTRUE(segment_sf$valid_segment[i])) {
+      segment_sf$analysis_segment_id[i] <- NA_character_
+      segment_sf$merge_reason[i] <- "invalid_no_analysis_segment"
+    } else if (component_type == "terminal_touching_remainder") {
+      segment_sf$analysis_segment_id[i] <- touching_segment_id
+      segment_sf$merge_reason[i] <- "touching_terminal_remainder"
+    }
+  }
+
+  segment_sf
+}
+
+segment_metadata_from_layers <- function(segment_layers) {
+  out <- data.table::rbindlist(lapply(names(segment_layers), function(era_i) {
+    d <- sf::st_drop_geometry(segment_layers[[era_i]])
+    segment_length_ft <- if ("segment_length_ft" %in% names(d)) {
+      as.numeric(d$segment_length_ft)
+    } else {
+      rep(NA_real_, nrow(d))
+    }
+
+    data.table::data.table(
+      era = as.character(era_i),
+      segment_id = as.character(d$segment_id),
+      analysis_segment_id = if ("analysis_segment_id" %in% names(d)) as.character(d$analysis_segment_id) else as.character(d$segment_id),
+      valid_segment = if ("valid_segment" %in% names(d)) coerce_segment_valid_flag(d$valid_segment) else TRUE,
+      invalid_reason = if ("invalid_reason" %in% names(d)) as.character(d$invalid_reason) else "none",
+      segment_length_ft = segment_length_ft,
+      segment_lt500ft = if ("segment_lt500ft" %in% names(d)) coerce_segment_valid_flag(d$segment_lt500ft) else segment_length_ft < 500,
+      segment_lt1000ft = if ("segment_lt1000ft" %in% names(d)) coerce_segment_valid_flag(d$segment_lt1000ft) else segment_length_ft < 1000
+    )
+  }), fill = TRUE)
+
+  if (any(duplicated(out, by = c("era", "segment_id")))) {
+    stop("Segment metadata has duplicate era/segment_id rows.", call. = FALSE)
+  }
+
+  out
+}
+
+assert_point_geometries <- function(points_sf, label = "points_sf") {
+  if (!inherits(points_sf, "sf")) {
+    stop(sprintf("%s must be an sf object.", label), call. = FALSE)
+  }
+  if (is.na(sf::st_crs(points_sf))) {
+    stop(sprintf("%s has missing CRS.", label), call. = FALSE)
+  }
+
+  geom <- sf::st_geometry(points_sf)
+  missing_geom <- is.na(geom)
+  non_missing_geom <- geom[!missing_geom]
+  if (length(non_missing_geom) > 0) {
+    geom_type <- unique(as.character(sf::st_geometry_type(non_missing_geom)))
+    bad_geom <- setdiff(geom_type, c("POINT", "MULTIPOINT"))
+    if (length(bad_geom) > 0) {
+      stop(sprintf(
+        "%s must contain only point geometries; found: %s",
+        label,
+        paste(bad_geom, collapse = ", ")
+      ), call. = FALSE)
+    }
+  }
+
+  empty_geom <- rep(FALSE, length(geom))
+  if (length(non_missing_geom) > 0) {
+    empty_geom[!missing_geom] <- sf::st_is_empty(non_missing_geom)
+  }
+  missing_geom | empty_geom
 }
 
 assign_points_to_wards <- function(points_sf, ward_sf) {
@@ -338,59 +767,274 @@ assign_points_to_boundaries <- function(points_sf, era_values, ward_maps, bounda
     ward = out_ward,
     neighbor_ward = out_neighbor,
     ward_pair_id = out_pair,
+    dist_m = out_dist * 0.3048,
     dist_ft = out_dist
   )
 }
 
 assign_points_to_segments <- function(points_sf, era_values, pair_values, segment_layers, chunk_n = 50000L) {
+  stop(
+    "assign_points_to_segments() used buffered-polygon first-hit assignment and is deprecated. Use load_segment_line_layers() with assign_points_to_nearest_segments().",
+    call. = FALSE
+  )
+}
+
+assign_points_to_nearest_segments <- function(points_sf, era_values, pair_values, segment_layers, max_distance, chunk_n = 50000L) {
   stopifnot(length(era_values) == nrow(points_sf), length(pair_values) == nrow(points_sf))
+
+  if (!inherits(max_distance, "units")) {
+    stop("max_distance must be a units object, e.g. units::set_units(250, 'm').", call. = FALSE)
+  }
+  empty_point <- assert_point_geometries(points_sf, "points_sf")
+
+  max_distance_m <- as.numeric(units::set_units(max_distance, "m"))
+  if (!is.finite(max_distance_m) || max_distance_m <= 0) {
+    stop("max_distance must be positive.", call. = FALSE)
+  }
 
   pair_dash <- normalize_pair_dash(pair_values)
   seg_id <- rep(NA_character_, nrow(points_sf))
   eras <- unique(stats::na.omit(as.character(era_values)))
 
   for (era_i in eras) {
-    idx_era <- which(as.character(era_values) == era_i & !is.na(pair_dash))
+    idx_era <- which(as.character(era_values) == era_i & !empty_point & !is.na(pair_dash))
     seg_era <- segment_layers[[era_i]]
     if (length(idx_era) == 0 || is.null(seg_era) || nrow(seg_era) == 0) {
       next
     }
+    missing_cols <- setdiff(c("segment_id", "pair_dash"), names(seg_era))
+    if (length(missing_cols) > 0) {
+      stop(sprintf(
+        "Segment layer %s is missing required columns: %s",
+        era_i,
+        paste(missing_cols, collapse = ", ")
+      ), call. = FALSE)
+    }
 
+    seg_era <- seg_era[!is.na(seg_era$pair_dash) & !is.na(seg_era$segment_id) & seg_era$segment_id != "", ]
+    seg_era <- seg_era[order(seg_era$pair_dash, seg_era$segment_id), ]
     if (sf::st_crs(points_sf) != sf::st_crs(seg_era)) {
       pts_era <- sf::st_transform(points_sf[idx_era, ], sf::st_crs(seg_era))
     } else {
       pts_era <- points_sf[idx_era, ]
     }
+    pair_era <- pair_dash[idx_era]
 
-    pairs_era <- unique(pair_dash[idx_era])
-    valid_pairs <- intersect(pairs_era, unique(seg_era$pair_dash))
-    if (length(valid_pairs) == 0) next
+    for (pair_i in sort(unique(stats::na.omit(pair_era)))) {
+      idx_pair_local <- which(pair_era == pair_i)
+      idx_pair_global <- idx_era[idx_pair_local]
+      seg_pair <- seg_era[seg_era$pair_dash == pair_i, ]
+      if (length(idx_pair_local) == 0 || nrow(seg_pair) == 0) {
+        next
+      }
 
-    for (pair_j in valid_pairs) {
-      idx_pair_global <- idx_era[pair_dash[idx_era] == pair_j]
-      idx_pair_local <- which(pair_dash[idx_era] == pair_j)
-      seg_pair <- seg_era[seg_era$pair_dash == pair_j, ]
-      if (length(idx_pair_global) == 0 || nrow(seg_pair) == 0) next
-
+      seg_pair <- seg_pair[order(seg_pair$segment_id), ]
       starts <- seq(1L, length(idx_pair_local), by = chunk_n)
       for (s in starts) {
         e <- min(s + chunk_n - 1L, length(idx_pair_local))
         local_chunk <- idx_pair_local[s:e]
         global_chunk <- idx_pair_global[s:e]
 
-        hits <- sf::st_within(pts_era[local_chunk, ], seg_pair)
-        hit_idx <- vapply(hits, function(v) {
-          if (length(v) == 0) return(NA_integer_)
-          v[1]
-        }, integer(1))
+        nearest_idx <- sf::st_nearest_feature(pts_era[local_chunk, ], seg_pair)
+        valid_nearest <- !is.na(nearest_idx)
+        if (!any(valid_nearest)) next
 
-        ok <- !is.na(hit_idx)
+        valid_local <- local_chunk[valid_nearest]
+        valid_global <- global_chunk[valid_nearest]
+        nearest_segments <- seg_pair[nearest_idx[valid_nearest], ]
+        dists <- sf::st_distance(
+          sf::st_geometry(pts_era[valid_local, ]),
+          sf::st_geometry(nearest_segments),
+          by_element = TRUE
+        )
+        dist_m <- as.numeric(units::set_units(dists, "m"))
+
+        ok <- is.finite(dist_m) & dist_m <= max_distance_m
         if (any(ok)) {
-          seg_id[global_chunk[ok]] <- as.character(seg_pair$segment_id[hit_idx[ok]])
+          valid_global_ok <- valid_global[ok]
+          chosen_ids <- as.character(nearest_segments$segment_id[ok])
+
+          seg_id[valid_global_ok] <- chosen_ids
         }
       }
     }
   }
 
   seg_id
+}
+
+audit_nearest_segment_pair_constraints <- function(points_sf, era_values, pair_values, segment_layers, constrained_segment_id, max_distance, chunk_n = 50000L) {
+  stopifnot(
+    length(era_values) == nrow(points_sf),
+    length(pair_values) == nrow(points_sf),
+    length(constrained_segment_id) == nrow(points_sf)
+  )
+
+  if (!inherits(max_distance, "units")) {
+    stop("max_distance must be a units object, e.g. units::set_units(250, 'm').", call. = FALSE)
+  }
+  empty_point <- assert_point_geometries(points_sf, "points_sf")
+
+  max_distance_m <- as.numeric(units::set_units(max_distance, "m"))
+  if (!is.finite(max_distance_m) || max_distance_m <= 0) {
+    stop("max_distance must be positive.", call. = FALSE)
+  }
+
+  n <- nrow(points_sf)
+  pair_dash <- normalize_pair_dash(pair_values)
+  constrained_segment_id <- as.character(constrained_segment_id)
+  constrained_segment_id[constrained_segment_id == ""] <- NA_character_
+
+  constrained_pair_dash <- rep(NA_character_, n)
+  constrained_dist_m <- rep(NA_real_, n)
+  unconstrained_segment_id <- rep(NA_character_, n)
+  unconstrained_pair_dash <- rep(NA_character_, n)
+  unconstrained_dist_m <- rep(NA_real_, n)
+
+  eras <- unique(stats::na.omit(as.character(era_values)))
+  for (era_i in eras) {
+    idx_era <- which(as.character(era_values) == era_i & !empty_point)
+    seg_era <- segment_layers[[era_i]]
+    if (length(idx_era) == 0 || is.null(seg_era) || nrow(seg_era) == 0) {
+      next
+    }
+
+    seg_era <- seg_era[order(seg_era$segment_id), ]
+    if (sf::st_crs(points_sf) != sf::st_crs(seg_era)) {
+      pts_era <- sf::st_transform(points_sf[idx_era, ], sf::st_crs(seg_era))
+    } else {
+      pts_era <- points_sf[idx_era, ]
+    }
+
+    idx_constrained <- idx_era[!is.na(constrained_segment_id[idx_era])]
+    if (length(idx_constrained) > 0) {
+      constrained_match <- match(constrained_segment_id[idx_constrained], seg_era$segment_id)
+      valid_constrained <- !is.na(constrained_match)
+      if (any(valid_constrained)) {
+        constrained_global <- idx_constrained[valid_constrained]
+        constrained_local <- match(constrained_global, idx_era)
+        constrained_segments <- seg_era[constrained_match[valid_constrained], ]
+        constrained_dists <- sf::st_distance(
+          sf::st_geometry(pts_era[constrained_local, ]),
+          sf::st_geometry(constrained_segments),
+          by_element = TRUE
+        )
+        constrained_dist_m[constrained_global] <- as.numeric(units::set_units(constrained_dists, "m"))
+        constrained_pair_dash[constrained_global] <- constrained_segments$pair_dash
+      }
+    }
+
+    starts <- seq(1L, length(idx_era), by = chunk_n)
+    for (s in starts) {
+      e <- min(s + chunk_n - 1L, length(idx_era))
+      local_chunk <- s:e
+      global_chunk <- idx_era[local_chunk]
+
+      nearest_idx <- sf::st_nearest_feature(pts_era[local_chunk, ], seg_era)
+      valid_nearest <- !is.na(nearest_idx)
+      if (!any(valid_nearest)) next
+
+      nearest_global <- global_chunk[valid_nearest]
+      nearest_segments <- seg_era[nearest_idx[valid_nearest], ]
+      nearest_dists <- sf::st_distance(
+        sf::st_geometry(pts_era[local_chunk[valid_nearest], ]),
+        sf::st_geometry(nearest_segments),
+        by_element = TRUE
+      )
+      nearest_dist_m <- as.numeric(units::set_units(nearest_dists, "m"))
+
+      unconstrained_segment_id[nearest_global] <- as.character(nearest_segments$segment_id)
+      unconstrained_pair_dash[nearest_global] <- nearest_segments$pair_dash
+      unconstrained_dist_m[nearest_global] <- nearest_dist_m
+    }
+  }
+
+  tibble::tibble(
+    constrained_pair_dash = constrained_pair_dash,
+    constrained_segment_id = constrained_segment_id,
+    constrained_segment_dist_m = constrained_dist_m,
+    unconstrained_segment_id = unconstrained_segment_id,
+    unconstrained_pair_dash = unconstrained_pair_dash,
+    unconstrained_segment_dist_m = unconstrained_dist_m,
+    unconstrained_within_radius = is.finite(unconstrained_dist_m) & unconstrained_dist_m <= max_distance_m,
+    constrained_pair_matches_input = !is.na(pair_dash) & !is.na(constrained_pair_dash) & pair_dash == constrained_pair_dash,
+    unconstrained_pair_matches_input = !is.na(pair_dash) & !is.na(unconstrained_pair_dash) & pair_dash == unconstrained_pair_dash,
+    unconstrained_matches_constrained_segment = !is.na(constrained_segment_id) & !is.na(unconstrained_segment_id) & constrained_segment_id == unconstrained_segment_id,
+    constrained_extra_dist_m = constrained_dist_m - unconstrained_dist_m
+  )
+}
+
+assert_event_segment_contract <- function(points_sf, era_values, pair_values, segment_layers,
+                                          segment_id, boundary_dist_m, max_distance_m,
+                                          context, analysis_window_m = 304.8,
+                                          tolerance_m = 0.05, chunk_n = 50000L) {
+  if (nrow(points_sf) == 0) {
+    return(invisible(tibble::tibble()))
+  }
+  if (length(segment_id) != nrow(points_sf) || length(boundary_dist_m) != nrow(points_sf)) {
+    stop(sprintf("[%s] Segment contract inputs must have one value per point.", context), call. = FALSE)
+  }
+  if (!is.finite(max_distance_m) || max_distance_m <= 0) {
+    stop(sprintf("[%s] max_distance_m must be positive.", context), call. = FALSE)
+  }
+
+  segment_id <- as.character(segment_id)
+  segment_id[segment_id == ""] <- NA_character_
+  boundary_dist_m <- as.numeric(boundary_dist_m)
+  in_window <- is.finite(boundary_dist_m) & boundary_dist_m <= analysis_window_m
+
+  audit <- audit_nearest_segment_pair_constraints(
+    points_sf = points_sf,
+    era_values = era_values,
+    pair_values = pair_values,
+    segment_layers = segment_layers,
+    constrained_segment_id = segment_id,
+    max_distance = units::set_units(max_distance_m, "m"),
+    chunk_n = chunk_n
+  )
+
+  missing_segment <- in_window & is.na(segment_id)
+  pair_mismatch <- in_window &
+    !is.na(segment_id) &
+    (is.na(audit$constrained_pair_matches_input) | !audit$constrained_pair_matches_input)
+  missing_segment_dist <- in_window &
+    !is.na(segment_id) &
+    !is.finite(audit$constrained_segment_dist_m)
+  distance_mismatch <- in_window &
+    !is.na(segment_id) &
+    is.finite(audit$constrained_segment_dist_m) &
+    abs(audit$constrained_segment_dist_m - boundary_dist_m) > tolerance_m
+
+  failures <- c(
+    missing_segment = sum(missing_segment, na.rm = TRUE),
+    pair_mismatch = sum(pair_mismatch, na.rm = TRUE),
+    missing_segment_dist = sum(missing_segment_dist, na.rm = TRUE),
+    distance_mismatch = sum(distance_mismatch, na.rm = TRUE)
+  )
+
+  if (any(failures > 0)) {
+    stop(sprintf(
+      paste(
+        "[%s] Event segment contract failed inside %.1fm:",
+        "missing segment=%d, pair mismatch=%d, missing segment distance=%d, distance mismatch=%d."
+      ),
+      context, analysis_window_m,
+      failures[["missing_segment"]],
+      failures[["pair_mismatch"]],
+      failures[["missing_segment_dist"]],
+      failures[["distance_mismatch"]]
+    ), call. = FALSE)
+  }
+
+  max_gap <- if (any(in_window, na.rm = TRUE)) {
+    suppressWarnings(max(abs(audit$constrained_segment_dist_m[in_window] - boundary_dist_m[in_window]), na.rm = TRUE))
+  } else {
+    NA_real_
+  }
+
+  invisible(tibble::tibble(
+    rows = nrow(points_sf),
+    rows_in_window = sum(in_window, na.rm = TRUE),
+    max_abs_segment_distance_gap_m = max_gap
+  ))
 }

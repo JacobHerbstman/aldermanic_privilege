@@ -1,5 +1,4 @@
 SHELL := bash
-include ../../shell_functions.make
 
 OUTPUTS := \
 	../output/segment_assignment_coverage_sales.csv \
@@ -22,21 +21,25 @@ INPUTS := \
 
 all: $(OUTPUTS)
 
-$(OUTPUTS): run_segment_fe_exploration.R $(INPUTS) | ../output
+../output/segment_assignment_coverage_sales.csv: run_segment_fe_exploration.R $(INPUTS) | ../output
 	Rscript run_segment_fe_exploration.R
 
+$(filter-out ../output/segment_assignment_coverage_sales.csv,$(OUTPUTS)): ../output/segment_assignment_coverage_sales.csv
+	@test -s "$@"
+
 ../input/sales_with_hedonics.parquet: ../../prep_sales_border_data/output/sales_with_hedonics.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/rent_with_ward_distances_full.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
-	ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: $(INPUTS)
 
+include ../../shell_functions.make
 include ../../generic.make

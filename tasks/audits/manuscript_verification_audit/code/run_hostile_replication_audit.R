@@ -62,7 +62,7 @@ critical_tasks <- c(
   "nonparametric_rd_density_placebo",
   "nonparametric_rd_density_gap_split",
   "pruned_boundary_maps",
-  "event_study_sales_diagnostics",
+  "event_study_treatment_maps",
   "create_event_study_permit_data",
   "run_event_study_permit",
   "create_event_study_sales_data_disaggregate",
@@ -95,7 +95,7 @@ makefile_targets <- c(
   "nonparametric_rd_density_placebo" = "tasks/nonparametric_rd_density_placebo/code/Makefile",
   "nonparametric_rd_density_gap_split" = "tasks/nonparametric_rd_density_gap_split/code/Makefile",
   "pruned_boundary_maps" = "tasks/pruned_boundary_maps/code/Makefile",
-  "event_study_sales_diagnostics" = "tasks/event_study_sales_diagnostics/code/Makefile",
+  "event_study_treatment_maps" = "tasks/event_study_treatment_maps/code/Makefile",
   "create_event_study_permit_data" = "tasks/create_event_study_permit_data/code/Makefile",
   "run_event_study_permit" = "tasks/run_event_study_permit/code/Makefile",
   "create_event_study_sales_data_disaggregate" = "tasks/create_event_study_sales_data_disaggregate/code/Makefile",
@@ -653,9 +653,37 @@ run_sales_did <- function(df, bandwidth = 1000, cluster_level = "block", price_t
 }
 
 with_dir(repo_root, {
-  base_findings <- read_csv(base_findings_path, show_col_types = FALSE)
-  artifact_map <- read_csv(base_artifact_map_path, show_col_types = FALSE)
-  coverage_matrix <- read_csv(base_coverage_path, show_col_types = FALSE)
+  base_findings <- if (file.exists(base_findings_path)) {
+    read_csv(base_findings_path, show_col_types = FALSE)
+  } else {
+    tibble(
+      id = character(),
+      severity = character(),
+      section = character(),
+      paper_ref = character(),
+      claim_summary = character(),
+      status = character(),
+      recommended_fix = character(),
+      fix_type = character()
+    )
+  }
+  artifact_map <- if (file.exists(base_artifact_map_path)) {
+    read_csv(base_artifact_map_path, show_col_types = FALSE)
+  } else {
+    tibble(
+      section = character(),
+      paper_ref = character(),
+      artifact_type = character(),
+      artifact_path = character(),
+      producer_task = character(),
+      producer_script = character()
+    )
+  }
+  coverage_matrix <- if (file.exists(base_coverage_path)) {
+    read_csv(base_coverage_path, show_col_types = FALSE)
+  } else {
+    tibble()
+  }
   density_sidecar_dir <- file.path(output_dir, "density_sidecars")
   dir_create(density_sidecar_dir)
 
@@ -763,7 +791,6 @@ with_dir(repo_root, {
     )
   density_input <- read_csv(file.path(repo_root, "tasks/merge_in_scores/output/parcels_with_ward_distances.csv"), show_col_types = FALSE) %>%
     mutate(
-      strictness_own = strictness_own / sd(strictness_own, na.rm = TRUE),
       zone_group = zone_group_from_code(zone_code)
     )
 
@@ -1384,7 +1411,7 @@ with_dir(repo_root, {
     "## Build-order spine for the compiled paper",
     "- Density: `geocode_ccao_data` -> `calculate_ward_boundary_distances` -> `assign_segment_ids` -> `merge_in_scores` -> `border_pair_FE_regressions` plus the active nonparametric density figure tasks -> `pruned_boundary_maps`",
     "- Permits/stringency: `clean_building_permits` -> `create_alderman_data` -> `create_block_treatment_panel` -> `merge_event_study_scores` -> `create_event_study_permit_data` -> `run_event_study_permit` ; stringency appendix uses `create_alderman_uncertainty_index`, `strictness_score_map`, `within_ward_strictness`, `uncertainty_validation_checks`, and `permit_summary_stats`",
-    "- Home sales: `calculate_sale_distances` -> `create_event_study_sales_data_disaggregate` -> `run_event_study_sales_disaggregate` -> `event_study_sales_diagnostics`",
+    "- Event-study treatment maps: `create_event_study_permit_data` -> `merge_event_study_scores` -> `event_study_treatment_maps`",
     "",
     "## Artifact-preservation issues",
     if (any(str_detect(hostile_artifact_map$artifact_path, "tasks/spatial_rd_fe/output/") & hostile_artifact_map$artifact_auditability != "figure_with_audit_sidecars", na.rm = TRUE)) {

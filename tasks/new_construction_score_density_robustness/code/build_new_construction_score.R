@@ -11,10 +11,26 @@ source("../../_lib/alderman_uncertainty_helpers.R")
 # stage1_table_output <- "../output/stage1_regression_new_construction.tex"
 # stage2_table_output <- "../output/stage2_regression_new_construction.tex"
 # plot_output <- "../output/uncertainty_index_new_construction.pdf"
+# variant_id <- "new_construction"
+# variant_label <- "New construction only"
+# permit_types_csv <- "new_construction"
+# max_permit_year <- 2022
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(permits_input, score_output, metadata_output, stage1_terms_output, stage1_table_output, stage2_table_output, plot_output)
+  args <- c(
+    permits_input,
+    score_output,
+    metadata_output,
+    stage1_terms_output,
+    stage1_table_output,
+    stage2_table_output,
+    plot_output,
+    variant_id,
+    variant_label,
+    permit_types_csv,
+    max_permit_year
+  )
 }
 
 if (length(args) >= 7) {
@@ -35,11 +51,17 @@ if (length(args) >= 7) {
 variant_id <- if (length(args) >= 8) args[8] else "new_construction"
 variant_label <- if (length(args) >= 9) args[9] else "New construction only"
 permit_types_csv <- if (length(args) >= 10) args[10] else "new_construction"
+max_permit_year <- if (length(args) >= 11) as.integer(args[11]) else 2022L
+if (!is.finite(max_permit_year)) {
+  stop("max_permit_year must be a valid integer.", call. = FALSE)
+}
 stage1_outcome <- "log_processing_time"
 drop_covariates <- c("share_bach_plus")
 permit_types <- strsplit(permit_types_csv, ",", fixed = TRUE)[[1]] |> trimws()
 construction_rule <- paste0(
-  "Paper baseline score using permits with permit_type_clean in {",
+  "Through-",
+  max_permit_year,
+  " score using permits with permit_type_clean in {",
   paste(permit_types, collapse = ", "),
   "}"
 )
@@ -47,6 +69,7 @@ construction_rule <- paste0(
 config <- default_uncertainty_config()
 
 permits_raw <- load_uncertainty_permits(permits_input) %>%
+  filter(year <= max_permit_year) %>%
   filter(permit_type_clean %in% permit_types)
 
 if (nrow(permits_raw) == 0) {
@@ -126,6 +149,7 @@ metadata <- tibble(
   volume_var = prepared$volume_var,
   include_volume_stage1 = prepared$include_volume_stage1,
   include_volume_stage2 = prepared$include_volume_stage2,
+  max_permit_year = max_permit_year,
   requested_fe_terms = paste(requested_fe_terms, collapse = ";"),
   stage1_fe_terms = paste(active_fe_terms, collapse = ";"),
   dropped_fe_terms = paste(dropped_fe_terms, collapse = ";"),

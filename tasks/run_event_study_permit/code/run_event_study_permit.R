@@ -4,23 +4,24 @@ source("../../_lib/permit_event_study_sample_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
-# panel_mode <- "stacked_implementation"
+# panel_mode <- "cohort_2015"
 # outcome_family <- "high_discretion"
 # date_basis <- "issue"
 # model_type <- "ppml"
-# treatment_type <- "binary_direction"
+# treatment_type <- "continuous"
 # weighting <- "uniform"
-# bandwidth <- 1000
+# bandwidth <- 300
 # fe_type <- "within_block"
 # post_window <- "full"
 # geo_fe_level <- "ward_pair"
 # cluster_level <- "block"
 # control_spec <- "none"
 # sample_restriction <- "none"
+# bandwidth_label <- "300m"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(panel_mode, outcome_family, date_basis, model_type, treatment_type, weighting, bandwidth, fe_type, post_window, geo_fe_level, cluster_level, control_spec, sample_restriction)
+  cli_args <- c(panel_mode, outcome_family, date_basis, model_type, treatment_type, weighting, bandwidth, fe_type, post_window, geo_fe_level, cluster_level, control_spec, sample_restriction, bandwidth_label)
 }
 
 if (length(cli_args) >= 11) {
@@ -37,14 +38,29 @@ if (length(cli_args) >= 11) {
   cluster_level <- tolower(cli_args[11])
   control_spec <- if (length(cli_args) >= 12) cli_args[12] else "none"
   sample_restriction <- if (length(cli_args) >= 13) cli_args[13] else "none"
+  bandwidth_label <- if (length(cli_args) >= 14) cli_args[14] else sprintf("%dm", as.integer(round(bandwidth)))
 } else {
   stop(
-    "FATAL: Script requires at least 11 args: <panel_mode> <outcome_family> <date_basis> <model_type> <treatment_type> <weighting> <bandwidth> <fe_type> <post_window> <geo_fe_level> <cluster_level> [<control_spec>] [<sample_restriction>]",
+    "FATAL: Script requires at least 11 args: <panel_mode> <outcome_family> <date_basis> <model_type> <treatment_type> <weighting> <bandwidth> <fe_type> <post_window> <geo_fe_level> <cluster_level> [<control_spec>] [<sample_restriction>] [<bandwidth_label>]",
     call. = FALSE
   )
 }
 
 write_sidecars <- tolower(Sys.getenv("WRITE_SIDECARS", "0")) %in% c("1", "true", "yes")
+min_segment_length_raw <- Sys.getenv("MIN_SEGMENT_LENGTH_FT", "")
+MIN_SEGMENT_LENGTH_FT <- if (nzchar(min_segment_length_raw)) suppressWarnings(as.numeric(min_segment_length_raw)) else NA_real_
+if (!is.na(MIN_SEGMENT_LENGTH_FT) && (!is.finite(MIN_SEGMENT_LENGTH_FT) || MIN_SEGMENT_LENGTH_FT < 0)) {
+  stop("MIN_SEGMENT_LENGTH_FT must be a nonnegative number when supplied.", call. = FALSE)
+}
+min_segment_suffix <- ""
+if (is.finite(MIN_SEGMENT_LENGTH_FT)) {
+  min_segment_label <- if (abs(MIN_SEGMENT_LENGTH_FT - round(MIN_SEGMENT_LENGTH_FT)) < sqrt(.Machine$double.eps)) {
+    as.character(as.integer(round(MIN_SEGMENT_LENGTH_FT)))
+  } else {
+    sub("\\.?0+$", "", format(MIN_SEGMENT_LENGTH_FT, trim = TRUE, scientific = FALSE))
+  }
+  min_segment_suffix <- paste0("_minsegment", gsub("\\.", "p", min_segment_label), "ft")
+}
 
 PANEL_MODE <- panel_mode
 OUTCOME_FAMILY <- outcome_family
@@ -53,6 +69,7 @@ MODEL_TYPE <- tolower(model_type)
 TREATMENT_TYPE <- tolower(treatment_type)
 WEIGHTING <- weighting
 BANDWIDTH <- bandwidth
+BANDWIDTH_LABEL <- bandwidth_label
 FE_TYPE <- fe_type
 POST_WINDOW <- post_window
 GEO_FE_LEVEL <- geo_fe_level
@@ -98,15 +115,18 @@ if (!GEO_FE_LEVEL %in% c("segment", "ward_pair", "none")) {
 if (!CLUSTER_LEVEL %in% c("block", "ward_pair")) {
   stop("--cluster_level must be one of: block, ward_pair", call. = FALSE)
 }
-if (!CONTROL_SPEC %in% c("none", "baseline_demographics")) {
-  stop("--control_spec must be one of: none, baseline_demographics", call. = FALSE)
+if (!CONTROL_SPEC %in% c("none", "baseline_demographics", "pre_high_level")) {
+  stop("--control_spec must be one of: none, baseline_demographics, pre_high_level", call. = FALSE)
 }
 sample_restriction_info <- get_permit_sample_restriction_info(SAMPLE_RESTRICTION)
 if (BANDWIDTH <= 0) {
   stop("--bandwidth must be positive.", call. = FALSE)
 }
-if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 2000) {
-  stop("Segment FE requested with bandwidth > 2000. Use bandwidth <= 2000.", call. = FALSE)
+if (!grepl("^[A-Za-z0-9_-]+$", BANDWIDTH_LABEL)) {
+  stop("--bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+}
+if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 800) {
+  stop("Segment FE requested with bandwidth > 800m. Use bandwidth <= 800m.", call. = FALSE)
 }
 
 outcome_catalog <- tibble(
@@ -195,14 +215,14 @@ panel_input <- switch(PANEL_MODE,
 )
 
 suffix <- sprintf(
-  "yearly_%s_%s_%s_%s_%s_%s_%dft_within_block_%s_clust_%s",
+  "yearly_%s_%s_%s_%s_%s_%s_%s_within_block_%s_clust_%s",
   PANEL_MODE,
   OUTCOME_FAMILY,
   DATE_BASIS,
   MODEL_TYPE,
   TREATMENT_TYPE,
   WEIGHTING,
-  as.integer(BANDWIDTH),
+  BANDWIDTH_LABEL,
   POST_WINDOW,
   gsub("_", "", CLUSTER_LEVEL)
 )
@@ -218,6 +238,7 @@ if (GEO_FE_LEVEL == "ward_pair") {
 if (SAMPLE_RESTRICTION != "none") {
   suffix <- paste0(suffix, "_samp_", sample_restriction_info$suffix_tag)
 }
+suffix <- paste0(suffix, min_segment_suffix)
 
 message("\n=== Permit Event Study ===")
 message(sprintf("Panel mode: %s", PANEL_MODE))
@@ -225,13 +246,17 @@ message(sprintf("Outcome: %s", outcome_label))
 message(sprintf("Model type: %s", MODEL_TYPE))
 message(sprintf("Treatment type: %s", TREATMENT_TYPE))
 message(sprintf("Weighting: %s", WEIGHTING))
-message(sprintf("Bandwidth: %d ft", BANDWIDTH))
+message(sprintf("Bandwidth: %s", BANDWIDTH_LABEL))
 message(sprintf("FE type: %s", FE_TYPE))
 message(sprintf("Post window: %s", POST_WINDOW))
 message(sprintf("Geo FE level: %s", GEO_FE_LEVEL))
 message(sprintf("Cluster level: %s", CLUSTER_LEVEL))
 message(sprintf("Control spec: %s", CONTROL_SPEC))
 message(sprintf("Sample restriction: %s", sample_restriction_info$label))
+message(sprintf(
+  "Minimum segment length: %s",
+  if (is.finite(MIN_SEGMENT_LENGTH_FT)) sprintf("%.1f ft", MIN_SEGMENT_LENGTH_FT) else "none"
+))
 message(sprintf("Write sidecars: %s", write_sidecars))
 
 y_axis_label <- if (MODEL_TYPE == "log") {
@@ -295,7 +320,7 @@ make_support_table <- function(df, event_var, time_fe_var, fe_group_var, block_v
     )
 
   event_support %>%
-    left_join(cell_event_support, by = "event_time") %>%
+    left_join(cell_event_support, by = "event_time", relationship = "one-to-one") %>%
     mutate(
       n_fe_group_time_cells = replace_na(n_fe_group_time_cells, 0L),
       n_identifying_fe_group_time_cells = replace_na(n_identifying_fe_group_time_cells, 0L),
@@ -332,16 +357,30 @@ max_period <- 5
 available_min_period <- min(data$relative_year, na.rm = TRUE)
 available_max_period <- max(data$relative_year, na.rm = TRUE)
 
-required_cols <- c(block_var, geo_group_var, "year", "relative_year", "dist_ft", "treat", base_outcome_var)
+required_cols <- c(block_var, geo_group_var, "year", "relative_year", "dist_m", "treat", base_outcome_var)
 missing_cols <- setdiff(required_cols, names(data))
 if (length(missing_cols) > 0) {
   stop(sprintf("Missing required columns: %s", paste(missing_cols, collapse = ", ")), call. = FALSE)
 }
+if (is.finite(MIN_SEGMENT_LENGTH_FT)) {
+  missing_segment_cols <- setdiff(c("segment_id_cohort", "segment_length_ft_cohort"), names(data))
+  if (length(missing_segment_cols) > 0) {
+    stop(sprintf(
+      "MIN_SEGMENT_LENGTH_FT requires missing panel columns: %s",
+      paste(missing_segment_cols, collapse = ", ")
+    ), call. = FALSE)
+  }
+}
+
+segment_length_input_n <- NA_integer_
+segment_length_drop_n <- NA_integer_
+segment_length_missing_n <- NA_integer_
+segment_length_short_n <- NA_integer_
 
 data <- data %>%
-  filter(dist_ft <= BANDWIDTH) %>%
+  filter(dist_m <= BANDWIDTH) %>%
   mutate(
-    weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_ft / BANDWIDTH) else 1,
+    weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_m / BANDWIDTH) else 1,
     treatment_stricter_continuous = pmax(strictness_change, 0),
     treatment_lenient_continuous = pmax(-strictness_change, 0),
     treatment_stricter_binary = as.integer(strictness_change > 0),
@@ -349,6 +388,24 @@ data <- data %>%
   ) %>%
   filter(relative_year >= min_period, relative_year <= max_period) %>%
   filter(!is.na(.data[[geo_group_var]]), .data[[geo_group_var]] != "")
+
+if (is.finite(MIN_SEGMENT_LENGTH_FT)) {
+  segment_length_input_n <- nrow(data)
+  segment_length_missing_n <- sum(is.na(data$segment_length_ft_cohort))
+  segment_length_short_n <- sum(!is.na(data$segment_length_ft_cohort) & data$segment_length_ft_cohort < MIN_SEGMENT_LENGTH_FT)
+  data <- data %>%
+    filter(!is.na(segment_id_cohort), segment_id_cohort != "") %>%
+    filter(!is.na(segment_length_ft_cohort), segment_length_ft_cohort >= MIN_SEGMENT_LENGTH_FT)
+  segment_length_drop_n <- segment_length_input_n - nrow(data)
+  message(sprintf(
+    "Segment-length filter kept %s of %s rows; dropped %s missing-segment rows and %s rows below %.1f ft.",
+    format(nrow(data), big.mark = ","),
+    format(segment_length_input_n, big.mark = ","),
+    format(segment_length_missing_n, big.mark = ","),
+    format(segment_length_short_n, big.mark = ","),
+    MIN_SEGMENT_LENGTH_FT
+  ))
+}
 
 sample_restriction_summary <- apply_permit_bg_sample_restriction(
   df = data,
@@ -399,6 +456,9 @@ if (CONTROL_SPEC == "baseline_demographics") {
       baseline_percent_black = percent_black,
       baseline_percent_hispanic = percent_hispanic
     )
+  if (anyDuplicated(baseline_controls[c("block_group_id", "baseline_year")]) > 0) {
+    stop("Baseline controls must be unique by block group-year before joining.", call. = FALSE)
+  }
 
   data <- data %>%
     mutate(
@@ -409,12 +469,40 @@ if (CONTROL_SPEC == "baseline_demographics") {
         TRUE ~ NA_integer_
       )
     ) %>%
-    left_join(baseline_controls, by = c("block_group_id", "baseline_year"))
+    left_join(
+      baseline_controls,
+      by = c("block_group_id", "baseline_year"),
+      relationship = "many-to-one"
+    )
 
   missing_control_rows <- sum(!complete.cases(data[, control_vars]), na.rm = TRUE)
   data <- data %>%
     filter(if_all(all_of(control_vars), ~ !is.na(.x))) %>%
     mutate(across(all_of(control_vars), safe_scale, .names = "{.col}_z"))
+} else if (CONTROL_SPEC == "pre_high_level") {
+  if (!"n_high_discretion_issue" %in% names(data)) {
+    stop("pre_high_level controls require n_high_discretion_issue in the permit panel.", call. = FALSE)
+  }
+
+  pre_high_controls <- data %>%
+    filter(relative_year < 0) %>%
+    group_by(.data[[block_var]]) %>%
+    summarise(
+      pre_high_discretion_issue = sum(n_high_discretion_issue, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(no_pre_high_discretion = as.integer(pre_high_discretion_issue == 0L))
+
+  if (anyDuplicated(pre_high_controls[[block_var]]) > 0) {
+    stop("Pre-period high-discretion controls are not unique by block.", call. = FALSE)
+  }
+
+  data <- data %>%
+    left_join(pre_high_controls, by = block_var, relationship = "many-to-one") %>%
+    mutate(
+      pre_high_discretion_issue = replace_na(pre_high_discretion_issue, 0),
+      no_pre_high_discretion = replace_na(no_pre_high_discretion, 1L)
+    )
 }
 
 if (MODEL_TYPE == "log") {
@@ -454,11 +542,16 @@ cluster_formula <- if (CLUSTER_LEVEL == "block") {
   if (stacked_mode) ~cohort_ward_pair else ~ward_pair_id
 }
 
-control_terms <- if (CONTROL_SPEC == "baseline_demographics") {
-  paste(sprintf("%s:factor(year)", paste0(control_vars, "_z")), collapse = " + ")
-} else {
+control_terms <- switch(
+  CONTROL_SPEC,
+  "baseline_demographics" = paste(sprintf("%s:factor(year)", paste0(control_vars, "_z")), collapse = " + "),
+  "pre_high_level" = paste(
+    "pre_high_discretion_issue:factor(year)",
+    "no_pre_high_discretion:factor(year)",
+    sep = " + "
+  ),
   NULL
-}
+)
 
 analysis_n <- nrow(data)
 if (analysis_n == 0) {
@@ -476,6 +569,7 @@ metadata <- tibble(
   treatment_type = TREATMENT_TYPE,
   weighting = WEIGHTING,
   bandwidth = BANDWIDTH,
+  bandwidth_label = BANDWIDTH_LABEL,
   fe_type = FE_TYPE,
   post_window = POST_WINDOW,
   geo_fe_level = GEO_FE_LEVEL,
@@ -493,6 +587,11 @@ metadata <- tibble(
   control_spec = CONTROL_SPEC,
   sample_restriction = SAMPLE_RESTRICTION,
   sample_restriction_label = sample_restriction_info$label,
+  min_segment_length_ft = if (is.finite(MIN_SEGMENT_LENGTH_FT)) MIN_SEGMENT_LENGTH_FT else NA_real_,
+  segment_length_input_n = segment_length_input_n,
+  segment_length_drop_n = segment_length_drop_n,
+  segment_length_missing_n = segment_length_missing_n,
+  segment_length_short_n = segment_length_short_n,
   sample_restriction_obs_before = sample_restriction_summary$summary$n_obs_before,
   sample_restriction_obs_after = sample_restriction_summary$summary$n_obs_after,
   sample_restriction_obs_dropped = sample_restriction_summary$summary$n_obs_dropped,

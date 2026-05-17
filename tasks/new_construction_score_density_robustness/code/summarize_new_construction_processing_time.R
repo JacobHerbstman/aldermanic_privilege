@@ -10,10 +10,24 @@ source("../../_lib/alderman_uncertainty_helpers.R")
 # summary_tex_output <- "../output/new_construction_processing_time_summary.tex"
 # alderman_output <- "../output/new_construction_alderman_processing_times.csv"
 # plot_output <- "../output/new_construction_alderman_processing_time_density.pdf"
+# variant_id <- "new_construction"
+# variant_label <- "New construction only"
+# permit_types_csv <- "new_construction"
+# max_permit_year <- 2022
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(permits_input, summary_output, summary_tex_output, alderman_output, plot_output)
+  args <- c(
+    permits_input,
+    summary_output,
+    summary_tex_output,
+    alderman_output,
+    plot_output,
+    variant_id,
+    variant_label,
+    permit_types_csv,
+    max_permit_year
+  )
 }
 
 if (length(args) >= 5) {
@@ -32,6 +46,10 @@ if (length(args) >= 5) {
 variant_id <- if (length(args) >= 6) args[6] else "new_construction"
 variant_label <- if (length(args) >= 7) args[7] else "New construction only"
 permit_types_csv <- if (length(args) >= 8) args[8] else "new_construction"
+max_permit_year <- if (length(args) >= 9) as.integer(args[9]) else 2022L
+if (!is.finite(max_permit_year)) {
+  stop("max_permit_year must be a valid integer.", call. = FALSE)
+}
 permit_types <- strsplit(permit_types_csv, ",", fixed = TRUE)[[1]] |> trimws()
 
 fmt_num <- function(x, digits = 2) {
@@ -69,6 +87,7 @@ config <- default_uncertainty_config()
 
 prepared <- prepare_uncertainty_sample(
   permits = load_uncertainty_permits(permits_input) %>%
+    filter(year <= max_permit_year) %>%
     filter(permit_type_clean %in% permit_types),
   include_porch = config$include_porch,
   volume_ctrl = config$volume_ctrl,
@@ -94,6 +113,7 @@ alderman_stats <- analysis_sample %>%
 summary_row <- tibble(
   permit_count = nrow(analysis_sample),
   alderman_count = n_distinct(analysis_sample$alderman),
+  max_permit_year = max_permit_year,
   mean_processing_time = mean(analysis_sample$processing_time, na.rm = TRUE),
   median_processing_time = median(analysis_sample$processing_time, na.rm = TRUE),
   p10_processing_time = as.numeric(quantile(analysis_sample$processing_time, 0.10, na.rm = TRUE)),
@@ -111,6 +131,7 @@ summary_tex <- tibble(
   Metric = c(
     "Permit count",
     "Alderman count",
+    "Max permit year",
     "Mean processing time (days)",
     "Median processing time (days)",
     "P10 processing time (days)",
@@ -126,6 +147,7 @@ summary_tex <- tibble(
   Value = c(
     fmt_num(summary_row$permit_count, 0),
     fmt_num(summary_row$alderman_count, 0),
+    fmt_num(summary_row$max_permit_year, 0),
     fmt_num(summary_row$mean_processing_time),
     fmt_num(summary_row$median_processing_time),
     fmt_num(summary_row$p10_processing_time),

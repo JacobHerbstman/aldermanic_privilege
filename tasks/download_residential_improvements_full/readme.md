@@ -1,6 +1,6 @@
 # download_residential_improvements_full
 
-Purpose: Downloads residential improvements full.
+Purpose: Downloads the full Cook County Assessor single- and multi-family improvement characteristics file from the Socrata API (`x54s-btds`).
 
 Produces: Produces files such as `output/residential_improvement_characteristics_full.csv` and related task-specific outputs in `output/`.
 

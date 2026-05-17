@@ -1,4 +1,5 @@
 source("../../setup_environment/code/packages.R")
+source("../../_lib/event_study_plot_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
@@ -7,7 +8,7 @@ source("../../setup_environment/code/packages.R")
 # treatment_type <- "continuous"
 # include_controls <- TRUE
 # weighting <- "triangular"
-# bandwidth <- 1000
+# bandwidth <- 250
 # sample_filter <- "multifamily_only"
 # fe_type <- "strict_pair_x_year"
 # post_window <- "short"
@@ -74,8 +75,8 @@ if (!GEO_FE_LEVEL %in% c("segment", "ward_pair")) {
 if (!CLUSTER_LEVEL %in% c("twoway_block_segment", "block", "segment")) {
   stop("--cluster_level must be one of: twoway_block_segment, block, segment", call. = FALSE)
 }
-if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 1000) {
-  stop("Segment FE requested with bandwidth > 1000. Use bandwidth <= 1000.", call. = FALSE)
+if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 800) {
+  stop("Segment FE requested with bandwidth > 800m. Use bandwidth <= 800m.", call. = FALSE)
 }
 if (POST_WINDOW == "overlap" && (PANEL_MODE != "stacked_implementation" || FREQUENCY != "yearly")) {
   stop("The overlap window is only valid for the stacked yearly rental specification.", call. = FALSE)
@@ -101,7 +102,7 @@ fe_suffix <- case_when(
   FE_TYPE == "side_plus_year" ~ "_yearfe"
 )
 suffix <- sprintf(
-  "disaggregate_%s_%s_%s_%s_%dft%s%s%s_%s",
+  "disaggregate_%s_%s_%s_%s_%dm%s%s%s_%s",
   FREQUENCY,
   PANEL_MODE,
   TREATMENT_TYPE,
@@ -128,7 +129,7 @@ message(sprintf("Frequency: %s", FREQUENCY))
 message(sprintf("Treatment type: %s", TREATMENT_TYPE))
 message(sprintf("Include hedonics: %s", INCLUDE_CONTROLS))
 message(sprintf("Weighting: %s", WEIGHTING))
-message(sprintf("Bandwidth: %d ft", BANDWIDTH))
+message(sprintf("Bandwidth: %dm", as.integer(round(BANDWIDTH))))
 message(sprintf("Sample filter: %s", SAMPLE_FILTER))
 message(sprintf("FE type: %s", FE_TYPE))
 message(sprintf("Post window: %s", POST_WINDOW))
@@ -253,8 +254,8 @@ compute_pretrend_test <- function(model, plot_data, group_label) {
 make_single_series_plot <- function(plot_data) {
   ggplot(plot_data, aes(x = event_time, y = estimate_pct)) +
     geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
+    geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), fill = solid_event_study_band_fill("#009E73", 0.2), color = NA) +
     geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), fill = "#009E73", alpha = 0.2, color = NA) +
     geom_line(color = "#009E73", linewidth = 1) +
     geom_point(color = "#009E73", size = 2.5) +
     scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
@@ -282,11 +283,27 @@ make_directional_plots <- function(plot_data) {
     "Moved to Stricter" = "#c23616",
     "Moved to More Lenient" = "#7f8fa6"
   )
+  band_fill_values <- solid_event_study_band_fill(color_values, 0.15)
 
   facet_plot <- ggplot(plot_data, aes(x = event_time, y = estimate_pct, color = group, fill = group)) +
     geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
+    geom_ribbon(
+      data = plot_data %>% filter(group == "Moved to Stricter"),
+      aes(x = event_time, ymin = ci_low_pct, ymax = ci_high_pct),
+      fill = band_fill_values["Moved to Stricter"],
+      color = NA,
+      inherit.aes = FALSE,
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      data = plot_data %>% filter(group == "Moved to More Lenient"),
+      aes(x = event_time, ymin = ci_low_pct, ymax = ci_high_pct),
+      fill = band_fill_values["Moved to More Lenient"],
+      color = NA,
+      inherit.aes = FALSE,
+      show.legend = FALSE
+    ) +
     geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.15, color = NA) +
     geom_line(linewidth = 1) +
     geom_point(size = 2.5, shape = 21, stroke = 0.5) +
     scale_color_manual(values = color_values, name = NULL) +
@@ -315,8 +332,23 @@ make_directional_plots <- function(plot_data) {
 
   combined_plot <- ggplot(plot_data, aes(x = event_time, y = estimate_pct, color = group, fill = group)) +
     geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
+    geom_ribbon(
+      data = plot_data %>% filter(group == "Moved to Stricter"),
+      aes(x = event_time, ymin = ci_low_pct, ymax = ci_high_pct),
+      fill = band_fill_values["Moved to Stricter"],
+      color = NA,
+      inherit.aes = FALSE,
+      show.legend = FALSE
+    ) +
+    geom_ribbon(
+      data = plot_data %>% filter(group == "Moved to More Lenient"),
+      aes(x = event_time, ymin = ci_low_pct, ymax = ci_high_pct),
+      fill = band_fill_values["Moved to More Lenient"],
+      color = NA,
+      inherit.aes = FALSE,
+      show.legend = FALSE
+    ) +
     geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), alpha = 0.15, color = NA) +
     geom_line(linewidth = 1) +
     geom_point(size = 2.5, shape = 21, stroke = 0.5) +
     scale_color_manual(values = color_values, name = NULL) +
@@ -399,9 +431,9 @@ if (needs_segment) {
 after_segment_filter_n <- nrow(data)
 
 data <- data %>%
-  filter(dist_ft <= BANDWIDTH) %>%
+  filter(dist_m <= BANDWIDTH) %>%
   mutate(
-    weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_ft / BANDWIDTH) else 1,
+    weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_m / BANDWIDTH) else 1,
     treatment_stricter_continuous = pmax(strictness_change, 0),
     treatment_lenient_continuous = pmax(-strictness_change, 0)
   )

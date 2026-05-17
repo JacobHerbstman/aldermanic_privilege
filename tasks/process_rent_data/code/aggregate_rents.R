@@ -1,6 +1,6 @@
 # aggregate_rents.R
 # Aggregates individual daily CSVs from ../temp into one time-series Parquet file.
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/process_rent_data/code")
 
 source("../../setup_environment/code/packages.R")
 

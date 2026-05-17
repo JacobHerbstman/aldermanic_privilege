@@ -6,11 +6,33 @@
 # - Keeps individual listings instead of aggregating to block-year
 # - Enables hedonic controls (beds, baths, gym, etc.)
 # - NO IMPUTATION - missing hedonics remain as NA and will be dropped in regression
-# - FIX: For treated blocks, ward_pair_id is constructed from ward_origin/ward_dest
-#        to ensure stability across pre/post periods
+# - Event-study geometry is cohort-specific, not listing-date nearest-boundary geometry
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
+
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_rental_data_disaggregate/code")
+# segment_buffer_m <- 250
+# panel_max_distance_m <- 800
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(segment_buffer_m, panel_max_distance_m)
+}
+
+if (length(cli_args) != 2) {
+  stop("FATAL: Script requires 2 args: <segment_buffer_m> <panel_max_distance_m>", call. = FALSE)
+}
+segment_buffer_m <- as.numeric(cli_args[1])
+panel_max_distance_m <- as.numeric(cli_args[2])
+if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
+  stop("segment_buffer_m must be positive.", call. = FALSE)
+}
+if (!is.finite(panel_max_distance_m) || panel_max_distance_m <= 0) {
+  stop("panel_max_distance_m must be positive.", call. = FALSE)
+}
+crs_projected <- 3435
 
 # Disable s2 spherical geometry to avoid validation errors with census block geometries
 sf_use_s2(FALSE)
@@ -33,11 +55,24 @@ assign_cohort_segments <- function(df, segment_layers, era_label, cohort_label, 
     crs = 4326,
     remove = FALSE
   )
-  seg_id <- assign_points_to_segments(
+  seg_id <- assign_points_to_nearest_segments(
     points_sf = pts,
     era_values = rep(era_label, nrow(out)),
     pair_values = out$ward_pair_id,
     segment_layers = segment_layers,
+    max_distance = units::set_units(segment_buffer_m, "m"),
+    chunk_n = chunk_n
+  )
+
+  assert_event_segment_contract(
+    points_sf = pts,
+    era_values = rep(era_label, nrow(out)),
+    pair_values = out$ward_pair_id,
+    segment_layers = segment_layers,
+    segment_id = seg_id,
+    boundary_dist_m = out$dist_m,
+    max_distance_m = segment_buffer_m,
+    context = sprintf("rental %s", cohort_label),
     chunk_n = chunk_n
   )
 
@@ -56,6 +91,106 @@ assign_cohort_segments <- function(df, segment_layers, era_label, cohort_label, 
   ))
 
   out
+}
+
+add_event_geometry <- function(df, era_label, switched_col, origin_col, dest_col, cohort_label) {
+  if (nrow(df) == 0) {
+    return(df)
+  }
+
+  pts <- st_as_sf(
+    data.frame(longitude = df$longitude, latitude = df$latitude),
+    coords = c("longitude", "latitude"),
+    crs = 4326,
+    remove = FALSE
+  )
+
+  control_assign <- assign_points_to_boundaries(
+    points_sf = pts,
+    era_values = rep(era_label, nrow(df)),
+    ward_maps = ward_maps,
+    boundary_lines = boundary_layers,
+    chunk_n = 5000L
+  )
+
+  switched <- df[[switched_col]] == TRUE
+  origin_ward <- suppressWarnings(as.integer(df[[origin_col]]))
+  dest_ward <- suppressWarnings(as.integer(df[[dest_col]]))
+  control_pair <- normalize_pair_dash(control_assign$ward_pair_id)
+  switched_pair <- normalize_pair_id(origin_ward, dest_ward, sep = "-")
+  event_pair <- ifelse(switched, switched_pair, control_pair)
+
+  event_dist_m <- distance_to_boundary_pair_m(
+    points_sf = pts,
+    pair_values = event_pair,
+    boundary_sf = boundary_layers[[era_label]],
+    chunk_n = 5000L
+  )
+
+  missing_switched <- sum(switched & is.na(event_dist_m) & !is.na(event_pair), na.rm = TRUE)
+  if (missing_switched > 0) {
+    message(sprintf(
+      "[%s] %s switched listings have no pre-era origin-destination boundary and will be excluded.",
+      cohort_label,
+      format(missing_switched, big.mark = ",")
+    ))
+  }
+
+  df %>%
+    mutate(
+      pre_score_ward = ward,
+      pre_score_ward_pair_id = normalize_pair_dash(ward_pair_id),
+      pre_score_dist_m = dist_m,
+      pre_score_signed_dist_m = signed_dist_m,
+      event_control_ward = control_assign$ward,
+      event_control_neighbor_ward = control_assign$neighbor_ward,
+      event_dist_missing = is.na(event_dist_m) & !is.na(event_pair),
+      event_point_origin_mismatch = !is.na(control_assign$ward) &
+        !is.na(origin_ward) &
+        control_assign$ward != origin_ward,
+      ward_origin = origin_ward,
+      ward_dest = dest_ward,
+      event_neighbor_ward = if_else(switched, dest_ward, control_assign$neighbor_ward),
+      ward_pair_id = event_pair,
+      dist_m = event_dist_m,
+      ward = ward_origin,
+      ward_pair_side = if_else(
+        !is.na(ward_pair_id) & !is.na(ward_origin),
+        paste(ward_pair_id, ward_origin, sep = "_"),
+        NA_character_
+      )
+    )
+}
+
+summarize_event_geometry <- function(df, panel_mode, stage_label) {
+  if (nrow(df) == 0 || !"pre_score_dist_m" %in% names(df)) {
+    return(tibble())
+  }
+
+  df %>%
+    group_by(cohort, treat) %>%
+    summarise(
+      rows = n(),
+      blocks = n_distinct(block_id),
+      old_pair_differs_from_event_pair = sum(
+        normalize_pair_dash(pre_score_ward_pair_id) != normalize_pair_dash(ward_pair_id),
+        na.rm = TRUE
+      ),
+      missing_event_dist = sum(is.na(dist_m)),
+      point_origin_mismatch = sum(event_point_origin_mismatch, na.rm = TRUE),
+      old_le_1000ft = sum(pre_score_dist_m <= 304.8, na.rm = TRUE),
+      event_le_1000ft = sum(dist_m <= 304.8, na.rm = TRUE),
+      old_event_1000ft_disagree = sum(
+        (pre_score_dist_m <= 304.8) != (dist_m <= 304.8),
+        na.rm = TRUE
+      ),
+      p50_abs_dist_change_m = as.numeric(quantile(abs(pre_score_dist_m - dist_m), 0.50, na.rm = TRUE)),
+      p90_abs_dist_change_m = as.numeric(quantile(abs(pre_score_dist_m - dist_m), 0.90, na.rm = TRUE)),
+      p99_abs_dist_change_m = as.numeric(quantile(abs(pre_score_dist_m - dist_m), 0.99, na.rm = TRUE)),
+      max_abs_dist_change_m = max(abs(pre_score_dist_m - dist_m), na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(panel_mode = panel_mode, stage = stage_label)
 }
 
 summarize_event_support <- function(df, panel_mode, filter_stage) {
@@ -188,8 +323,8 @@ rentals <- read_parquet(
   "../input/rent_with_ward_distances.parquet",
   col_select = c(
     "id", "rent_price", "beds", "baths", "sqft", "laundry", "gym",
-    "file_date", "ward", "dist_ft", "ward_pair_id", "longitude", "latitude",
-    "building_type_clean", "signed_dist"
+    "file_date", "ward", "dist_m", "ward_pair_id", "longitude", "latitude",
+    "building_type_clean", "signed_dist_m"
   )
 ) %>%
   filter(!is.na(rent_price), rent_price > 0) %>%
@@ -207,6 +342,8 @@ message("Loading census blocks...")
 census_blocks_2010 <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
   rename(geometry = the_geom) %>%
   st_as_sf(wkt = "geometry", crs = 4269) %>%
+  st_transform(crs_projected) %>%
+  st_make_valid() %>%
   rename(block_id_2010 = GEOID10) %>%
   mutate(block_id_2010 = as.character(block_id_2010)) %>%
   distinct(block_id_2010, .keep_all = TRUE)
@@ -214,6 +351,8 @@ census_blocks_2010 <- read_csv("../input/census_blocks_2010.csv", show_col_types
 census_blocks_2020 <- read_csv("../input/census_blocks_2020.csv", show_col_types = FALSE) %>%
   rename(geometry = the_geom) %>%
   st_as_sf(wkt = "geometry", crs = 4269) %>%
+  st_transform(crs_projected) %>%
+  st_make_valid() %>%
   rename(block_id_2020 = GEOID20) %>%
   mutate(block_id_2020 = as.character(block_id_2020)) %>%
   distinct(block_id_2020, .keep_all = TRUE)
@@ -225,15 +364,18 @@ message("Loading treatment panel...")
 treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
   mutate(block_id = as.character(block_id))
 
-message("Loading segment layers for cohort-baseline assignment...")
-segment_layers_1000 <- load_segment_layers("../input/boundary_segments_1320ft.gpkg", buffer_ft = 1000)
+message("Loading cohort geometry layers...")
+ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
+ward_maps <- load_canonical_ward_maps(ward_panel)
+boundary_layers <- load_boundary_layers("../input/ward_pair_boundaries.gpkg")
+
+message(sprintf("Loading segment lines for %.0fm nearest-segment assignment...", segment_buffer_m))
+segment_layers <- load_segment_line_layers("../input/boundary_segments_1320ft.gpkg")
 
 # =============================================================================
 # 2. ASSIGN RENTALS TO CENSUS BLOCKS
 # =============================================================================
 message("Assigning rentals to census blocks via spatial join...")
-
-crs_projected <- 3435 # Illinois East State Plane (feet)
 
 rentals_sf <- rentals %>%
   filter(!is.na(latitude), !is.na(longitude)) %>%
@@ -274,7 +416,7 @@ rentals_with_blocks <- rentals_with_blocks_2010 %>%
   select(
     listing_row_id, id, file_date, year, month, quarter, year_month, year_quarter,
     rent_price, beds, baths, sqft, laundry, gym, building_type_clean,
-    ward, dist_ft, ward_pair_id, longitude, latitude, signed_dist,
+    ward, dist_m, ward_pair_id, longitude, latitude, signed_dist_m,
     block_id_2010, block_id_2020
   ) %>%
   filter(!is.na(block_id_2010) | !is.na(block_id_2020))
@@ -373,35 +515,35 @@ rental_support_parts[["cohort_2015_post_valid"]] <- summarize_event_support(
 )
 
 cohort_2015_work <- cohort_2015_work %>%
-  filter(!is.na(ward_pair_id), !is.na(ward), dist_ft <= 2000)
-
-rental_support_parts[["cohort_2015_post_distance"]] <- summarize_event_support(
-  cohort_2015_work, "cohort_2015", "post_distance_filter"
-)
-
-cohort_2015_work <- cohort_2015_work %>%
   mutate(
     switched = switched_2015,
     strictness_change = strictness_change_2015,
-    ward_origin = if_else(switched_2015, ward_origin_2015, ward),
-    ward_dest = if_else(switched_2015, ward_dest_2015, ward),
     treatment_continuous = strictness_change_2015,
     treat_stricter = as.integer(strictness_change > 0),
-    treat_lenient = as.integer(strictness_change < 0),
-    ward_pair_id_fixed = if_else(
-      switched_2015,
-      paste(pmin(ward_origin, ward_dest), pmax(ward_origin, ward_dest), sep = "-"),
-      ward_pair_id
-    ),
-    ward_pair_side = paste(ward_pair_id_fixed, ward_origin, sep = "_")
+    treat_lenient = as.integer(strictness_change < 0)
   ) %>%
-  mutate(
-    ward_pair_id = ward_pair_id_fixed
-  ) %>%
+  add_event_geometry("2003_2014", "switched_2015", "ward_origin_2015", "ward_dest_2015", "2015")
+
+cohort_2015_event_geometry <- cohort_2015_work
+
+cohort_2015_distance_filter <- cohort_2015_work %>%
+  filter(
+    !is.na(ward_pair_id),
+    !is.na(ward_origin),
+    !is.na(dist_m),
+    event_point_origin_mismatch == FALSE,
+    dist_m <= panel_max_distance_m
+  )
+
+cohort_2015_work <- cohort_2015_distance_filter %>%
   add_hedonic_controls()
 
+rental_support_parts[["cohort_2015_post_distance"]] <- summarize_event_support(
+  cohort_2015_work, "cohort_2015", "post_event_distance_filter"
+)
+
 cohort_2015 <- cohort_2015_work %>%
-  assign_cohort_segments(segment_layers_1000, "2003_2014", "2015") %>%
+  assign_cohort_segments(segment_layers, "2003_2014", "2015") %>%
   select(
     id, block_id, cohort,
     file_date, year, month, quarter, year_month, year_quarter,
@@ -412,9 +554,9 @@ cohort_2015 <- cohort_2015_work %>%
     has_gym, has_laundry,
     building_type_clean, building_type_factor,
     sqft, beds, baths,
-    ward_pair_id, ward_origin, ward_dest, ward_pair_side,
+    ward_pair_id, ward_origin, ward_dest, event_neighbor_ward, ward_pair_side,
     segment_id_cohort, segment_side, cohort_segment, cohort_segment_side,
-    dist_ft, signed_dist,
+    dist_m, signed_dist_m,
     treat, switched, strictness_change, treatment_continuous,
     treat_stricter, treat_lenient
   )
@@ -479,35 +621,35 @@ rental_support_parts[["cohort_2023_post_valid"]] <- summarize_event_support(
 )
 
 cohort_2023_work <- cohort_2023_work %>%
-  filter(!is.na(ward_pair_id), !is.na(ward), dist_ft <= 2000)
-
-rental_support_parts[["cohort_2023_post_distance"]] <- summarize_event_support(
-  cohort_2023_work, "cohort_2023", "post_distance_filter"
-)
-
-cohort_2023_work <- cohort_2023_work %>%
   mutate(
     switched = switched_2023,
     strictness_change = strictness_change_2023,
-    ward_origin = if_else(switched_2023, ward_origin_2023, ward),
-    ward_dest = if_else(switched_2023, ward_dest_2023, ward),
     treatment_continuous = strictness_change_2023,
     treat_stricter = as.integer(strictness_change > 0),
-    treat_lenient = as.integer(strictness_change < 0),
-    ward_pair_id_fixed = if_else(
-      switched_2023,
-      paste(pmin(ward_origin, ward_dest), pmax(ward_origin, ward_dest), sep = "-"),
-      ward_pair_id
-    ),
-    ward_pair_side = paste(ward_pair_id_fixed, ward_origin, sep = "_")
+    treat_lenient = as.integer(strictness_change < 0)
   ) %>%
-  mutate(
-    ward_pair_id = ward_pair_id_fixed
-  ) %>%
+  add_event_geometry("2015_2023", "switched_2023", "ward_origin_2023", "ward_dest_2023", "2023")
+
+cohort_2023_event_geometry <- cohort_2023_work
+
+cohort_2023_distance_filter <- cohort_2023_work %>%
+  filter(
+    !is.na(ward_pair_id),
+    !is.na(ward_origin),
+    !is.na(dist_m),
+    event_point_origin_mismatch == FALSE,
+    dist_m <= panel_max_distance_m
+  )
+
+cohort_2023_work <- cohort_2023_distance_filter %>%
   add_hedonic_controls()
 
+rental_support_parts[["cohort_2023_post_distance"]] <- summarize_event_support(
+  cohort_2023_work, "cohort_2023", "post_event_distance_filter"
+)
+
 cohort_2023 <- cohort_2023_work %>%
-  assign_cohort_segments(segment_layers_1000, "2015_2023", "2023") %>%
+  assign_cohort_segments(segment_layers, "2015_2023", "2023") %>%
   select(
     id, block_id, cohort,
     file_date, year, month, quarter, year_month, year_quarter,
@@ -518,9 +660,9 @@ cohort_2023 <- cohort_2023_work %>%
     has_gym, has_laundry,
     building_type_clean, building_type_factor,
     sqft, beds, baths,
-    ward_pair_id, ward_origin, ward_dest, ward_pair_side,
+    ward_pair_id, ward_origin, ward_dest, event_neighbor_ward, ward_pair_side,
     segment_id_cohort, segment_side, cohort_segment, cohort_segment_side,
-    dist_ft, signed_dist,
+    dist_m, signed_dist_m,
     treat, switched, strictness_change, treatment_continuous,
     treat_stricter, treat_lenient
   )
@@ -606,10 +748,10 @@ message(sprintf(
 message("\nBuilding type distribution:")
 table(listing_panel$building_type_factor) %>% print()
 
-message("\nDistance to boundary (ft):")
-message(sprintf("  Mean: %.0f", mean(listing_panel$dist_ft)))
-message(sprintf("  Median: %.0f", median(listing_panel$dist_ft)))
-message(sprintf("  Max: %.0f", max(listing_panel$dist_ft)))
+message("\nDistance to boundary (m):")
+message(sprintf("  Mean: %.0f", mean(listing_panel$dist_m)))
+message(sprintf("  Median: %.0f", median(listing_panel$dist_m)))
+message(sprintf("  Max: %.0f", max(listing_panel$dist_m)))
 
 message("\nStrictness change distribution (treated units):")
 listing_panel %>%
@@ -663,6 +805,13 @@ rental_assignment_stability <- bind_rows(
   summarize_assignment_stability(listing_panel, "stacked_implementation")
 )
 
+rental_event_geometry_diagnostics <- bind_rows(
+  summarize_event_geometry(cohort_2015_event_geometry, "cohort_2015", "post_event_geometry"),
+  summarize_event_geometry(cohort_2015_distance_filter, "cohort_2015", "post_event_distance_filter"),
+  summarize_event_geometry(cohort_2023_event_geometry, "cohort_2023", "post_event_geometry"),
+  summarize_event_geometry(cohort_2023_distance_filter, "cohort_2023", "post_event_distance_filter")
+)
+
 # =============================================================================
 # 9. SAVE OUTPUT
 # =============================================================================
@@ -688,5 +837,8 @@ message("Saved rental repeat-listing diagnostics")
 
 write_csv(rental_assignment_stability, "../output/rental_listing_panel_assignment_stability.csv")
 message("Saved rental assignment-stability diagnostics")
+
+write_csv(rental_event_geometry_diagnostics, "../output/rental_listing_panel_event_geometry_diagnostics.csv")
+message("Saved rental event-geometry diagnostics")
 
 message("\nDone!")

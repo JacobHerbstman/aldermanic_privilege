@@ -4,12 +4,20 @@ library(data.table)
 library(sf)
 library(ggplot2)
 
-segments_gpkg <- "../input/boundary_segments_1320ft.gpkg"
+segment_length_ft <- as.numeric(Sys.getenv("SEGMENT_LENGTH_FT", "1320"))
+if (!is.finite(segment_length_ft) || segment_length_ft <= 0) {
+  stop("SEGMENT_LENGTH_FT must be positive.", call. = FALSE)
+}
+near_feature_distance_m <- as.numeric(Sys.getenv("NEAR_FEATURE_DISTANCE_M", "75"))
+if (!is.finite(near_feature_distance_m) || near_feature_distance_m <= 0) {
+  stop("NEAR_FEATURE_DISTANCE_M must be positive.", call. = FALSE)
+}
+
+segments_gpkg <- sprintf("../input/boundary_segments_%dft.gpkg", as.integer(round(segment_length_ft)))
 ward_panel_gpkg <- "../input/ward_panel.gpkg"
-flags_csv <- "../input/confounded_pair_era_flags.csv"
+pair_flags_csv <- "../input/confounded_pair_era_flags.csv"
+segment_flags_csv <- "../input/confounded_segment_flags.csv"
 parcels_csv <- "../input/parcels_with_ward_distances.csv"
-invalid_sales_csv <- "../input/border_verification_invalid_pairs_sales.csv"
-invalid_rent_csv <- "../input/border_verification_invalid_pairs_rent.csv"
 water_shp <- "../input/gis_osm_water_a_free_1.shp"
 landuse_shp <- "../input/gis_osm_landuse_a_free_1.shp"
 out_dir <- "../output"
@@ -17,7 +25,8 @@ out_dir <- "../output"
 stopifnot(
   file.exists(segments_gpkg),
   file.exists(ward_panel_gpkg),
-  file.exists(flags_csv),
+  file.exists(pair_flags_csv),
+  file.exists(segment_flags_csv),
   file.exists(parcels_csv),
   file.exists(water_shp),
   file.exists(landuse_shp)
@@ -27,15 +36,17 @@ normalize_pair_dash <- function(x) {
   x <- as.character(x)
   x <- gsub("_", "-", x, fixed = TRUE)
   x <- trimws(x)
-  x <- x[grepl("^[0-9]+-[0-9]+$", x)]
-  if (length(x) == 0) return(character())
-  parts <- strsplit(x, "-", fixed = TRUE)
-  vapply(parts, function(v) {
+  ok <- grepl("^[0-9]+-[0-9]+$", x)
+  out <- rep(NA_character_, length(x))
+  if (!any(ok)) return(out)
+  parts <- strsplit(x[ok], "-", fixed = TRUE)
+  out[ok] <- vapply(parts, function(v) {
     a <- suppressWarnings(as.integer(v[1]))
     b <- suppressWarnings(as.integer(v[2]))
     if (!is.finite(a) || !is.finite(b)) return(NA_character_)
     paste(min(a, b), max(a, b), sep = "-")
   }, character(1))
+  out
 }
 
 era_from_year <- function(y) {
@@ -53,32 +64,51 @@ map_era_labels <- c(
   "2003_2014" = "2003-2015",
   "2015_2023" = "2015-2022"
 )
+pair_physical_barrier_drop_share <- 0.50
+pair_expressway_drop_share <- 0.40
+pair_arterial_drop_share <- 0.60
 
-flags <- fread(flags_csv)
-flags[, pair_dash := normalize_pair_dash(ward_pair_id_dash)]
-flags[, era := as.character(era)]
-flags[, drop_confound := as.logical(drop_confound)]
-flags[is.na(drop_confound), drop_confound := FALSE]
-flags[is.na(drop_reason) | drop_reason == "", drop_reason := "none"]
-flags <- unique(flags[, .(
+pair_flags <- fread(pair_flags_csv)
+pair_flags[, pair_dash := normalize_pair_dash(ward_pair_id_dash)]
+pair_flags[, era := as.character(era)]
+pair_flags[, drop_confound := as.logical(drop_confound)]
+pair_flags[is.na(drop_confound), drop_confound := FALSE]
+pair_flags[is.na(drop_reason) | drop_reason == "", drop_reason := "none"]
+pair_flags <- unique(pair_flags[, .(
   pair_dash, era, drop_confound, drop_reason,
-  share_park_water_length, arterial_overlap_share
+  share_park_water_length,
+  share_park_water_continuous_length,
+  share_cemetery_continuous_length,
+  share_physical_barrier_length,
+  expressway_overlap_share,
+  arterial_overlap_share
 )])
-flags[, park_margin := as.numeric(share_park_water_length) - 0.50]
-flags[, arterial_margin := as.numeric(arterial_overlap_share) - 0.70]
-flags[, park_margin_pos := fifelse(is.finite(park_margin) & park_margin >= 0, park_margin, Inf)]
-flags[, arterial_margin_pos := fifelse(is.finite(arterial_margin) & arterial_margin >= 0, arterial_margin, Inf)]
-flags[, drop_margin := pmin(park_margin_pos, arterial_margin_pos)]
-flags[, borderline_drop := drop_confound &
-  ((is.finite(park_margin) & park_margin >= 0 & park_margin <= 0.05) |
+if (anyNA(pair_flags$pair_dash) || anyNA(pair_flags$era)) {
+  stop("Pair pruning flags contain invalid pair-era keys.", call. = FALSE)
+}
+if (anyDuplicated(pair_flags[, .(pair_dash, era)]) > 0) {
+  stop("Pair pruning flags contain duplicate pair-era keys.", call. = FALSE)
+}
+pair_flags[, barrier_margin := as.numeric(share_physical_barrier_length) - pair_physical_barrier_drop_share]
+pair_flags[, expressway_margin := as.numeric(expressway_overlap_share) - pair_expressway_drop_share]
+pair_flags[, arterial_margin := as.numeric(arterial_overlap_share) - pair_arterial_drop_share]
+pair_flags[, barrier_margin_pos := fifelse(is.finite(barrier_margin) & barrier_margin >= 0, barrier_margin, Inf)]
+pair_flags[, expressway_margin_pos := fifelse(is.finite(expressway_margin) & expressway_margin >= 0, expressway_margin, Inf)]
+pair_flags[, arterial_margin_pos := fifelse(is.finite(arterial_margin) & arterial_margin >= 0, arterial_margin, Inf)]
+pair_flags[, drop_margin := pmin(barrier_margin_pos, expressway_margin_pos, arterial_margin_pos)]
+pair_flags[, borderline_drop := drop_confound &
+  ((is.finite(barrier_margin) & barrier_margin >= 0 & barrier_margin <= 0.05) |
+    (is.finite(expressway_margin) & expressway_margin >= 0 & expressway_margin <= 0.05) |
     (is.finite(arterial_margin) & arterial_margin >= 0 & arterial_margin <= 0.05))]
-flags[, high_conf_drop := drop_confound &
-  ((is.finite(share_park_water_length) & share_park_water_length >= 0.70) |
+pair_flags[, high_conf_drop := drop_confound &
+  ((is.finite(share_physical_barrier_length) & share_physical_barrier_length >= 0.70) |
+    (is.finite(expressway_overlap_share) & expressway_overlap_share >= 0.70) |
     (is.finite(arterial_overlap_share) & arterial_overlap_share >= 0.85))]
-flags[, near_keep_threshold := !drop_confound &
-  ((is.finite(share_park_water_length) & (0.50 - share_park_water_length) <= 0.03 & (0.50 - share_park_water_length) >= 0) |
-    (is.finite(arterial_overlap_share) & (0.70 - arterial_overlap_share) <= 0.03 & (0.70 - arterial_overlap_share) >= 0))]
-flags[, confidence_tag := fifelse(
+pair_flags[, near_keep_threshold := !drop_confound &
+  ((is.finite(share_physical_barrier_length) & (pair_physical_barrier_drop_share - share_physical_barrier_length) <= 0.03 & (pair_physical_barrier_drop_share - share_physical_barrier_length) >= 0) |
+    (is.finite(expressway_overlap_share) & (pair_expressway_drop_share - expressway_overlap_share) <= 0.03 & (pair_expressway_drop_share - expressway_overlap_share) >= 0) |
+    (is.finite(arterial_overlap_share) & (pair_arterial_drop_share - arterial_overlap_share) <= 0.03 & (pair_arterial_drop_share - arterial_overlap_share) >= 0))]
+pair_flags[, confidence_tag := fifelse(
   high_conf_drop, "drop_high_conf",
   fifelse(
     borderline_drop, "drop_borderline",
@@ -88,6 +118,34 @@ flags[, confidence_tag := fifelse(
     )
   )
 )]
+
+segment_flags <- fread(segment_flags_csv)
+segment_flags[, pair_dash := normalize_pair_dash(ward_pair_id_dash)]
+segment_flags[, era := as.character(era)]
+segment_flags[, segment_id := as.character(segment_id)]
+segment_flags[, drop_confound := as.logical(drop_confound)]
+segment_flags[is.na(drop_confound), drop_confound := FALSE]
+segment_flags[is.na(drop_reason) | drop_reason == "", drop_reason := "none"]
+segment_flags <- unique(segment_flags[, .(
+  pair_dash,
+  era,
+  segment_id,
+  drop_confound,
+  drop_reason,
+  share_park_water_length = as.numeric(park_water_continuous_share),
+  share_park_water_continuous_length = as.numeric(park_water_continuous_share),
+  share_cemetery_continuous_length = as.numeric(cemetery_continuous_share),
+  share_physical_barrier_length = as.numeric(physical_barrier_continuous_share),
+  expressway_overlap_share = as.numeric(expressway_overlap_share),
+  arterial_overlap_share = as.numeric(arterial_overlap_share)
+)])
+if (anyNA(segment_flags$pair_dash) || anyNA(segment_flags$era) || anyNA(segment_flags$segment_id)) {
+  stop("Segment pruning flags contain invalid pair-era-segment keys.", call. = FALSE)
+}
+if (anyDuplicated(segment_flags[, .(pair_dash, era, segment_id)]) > 0) {
+  stop("Segment pruning flags contain duplicate pair-era-segment keys.", call. = FALSE)
+}
+flags <- pair_flags
 
 parcels <- fread(parcels_csv, select = c("ward_pair", "construction_year", "strictness_own", "strictness_neighbor"))
 parcels[, construction_year := as.integer(construction_year)]
@@ -103,21 +161,37 @@ gap <- parcels[, .(
   strictness_gap = median(abs(strictness_own - strictness_neighbor), na.rm = TRUE),
   gap_obs = .N
 ), by = .(pair_dash, era)]
+if (anyDuplicated(gap[, .(pair_dash, era)]) > 0) {
+  stop("Strictness-gap summary contains duplicate pair-era keys.", call. = FALSE)
+}
 
 read_line_layer <- function(era_name) {
   x <- st_read(segments_gpkg, layer = era_name, quiet = TRUE)
   x$pair_dash <- normalize_pair_dash(x$ward_pair_id)
   x$era <- era_name
+  x$segment_id <- as.character(x$segment_id)
   x
 }
 
 lines_list <- lapply(eras, read_line_layer)
 segments <- do.call(rbind, lines_list)
 
+derive_meter_col <- function(x, meter_col, foot_col) {
+  if (!meter_col %in% names(x) && foot_col %in% names(x)) {
+    x[[meter_col]] <- as.numeric(x[[foot_col]]) * 0.3048
+  }
+  x
+}
+
+segments <- derive_meter_col(segments, "segment_length_m", "segment_length_ft")
+segments <- derive_meter_col(segments, "waterway_overlap_m", "waterway_overlap_ft")
+segments <- derive_meter_col(segments, "expressway_overlap_m", "expressway_overlap_ft")
+segments <- derive_meter_col(segments, "major_overlap_arterial_m", "major_overlap_arterial_ft")
+
 segments <- merge(
   segments,
-  flags,
-  by = c("pair_dash", "era"),
+  segment_flags,
+  by = c("pair_dash", "era", "segment_id"),
   all.x = TRUE,
   sort = FALSE
 )
@@ -166,7 +240,7 @@ audit_pair_csv <- file.path(out_dir, "pruned_boundaries_audit_pair_era.csv")
 audit_borderline_csv <- file.path(out_dir, "pruned_boundaries_audit_borderline_drop.csv")
 audit_unchecked_csv <- file.path(out_dir, "pruned_boundaries_audit_unchecked_pair_era.csv")
 audit_extra_flags_csv <- file.path(out_dir, "pruned_boundaries_audit_extra_flag_pair_era.csv")
-segment_feature_audit_csv <- file.path(out_dir, "segment_feature_distance_audit_1320.csv")
+segment_feature_audit_csv <- file.path(out_dir, sprintf("segment_feature_distance_audit_%dft.csv", as.integer(round(segment_length_ft))))
 zoom_lakeview_feature_context_csv <- file.path(out_dir, "pruned_boundaries_zoom_lakeview_feature_context.csv")
 zoom_downtown_feature_context_csv <- file.path(out_dir, "pruned_boundaries_zoom_downtown_feature_context.csv")
 uncertainty_priority_csv <- file.path(out_dir, "pruned_boundaries_uncertainty_priority.csv")
@@ -174,7 +248,7 @@ audit_md <- file.path(out_dir, "pruned_boundaries_audit.md")
 
 summary_dt <- as.data.table(st_drop_geometry(segments))[, .(
   n_segments = .N,
-  total_length_ft = sum(segment_length_ft, na.rm = TRUE),
+  total_length_m = sum(segment_length_m, na.rm = TRUE),
   mean_strictness_gap = mean(strictness_gap, na.rm = TRUE),
   median_strictness_gap = median(strictness_gap, na.rm = TRUE),
   share_missing_gap = mean(!is.finite(strictness_gap))
@@ -315,20 +389,38 @@ make_zoom <- function(seg_ll, bounds, title_text, out_status, out_reason, out_pa
     )
   ggsave(out_status, pz_status, width = 11, height = 8.5, dpi = 300)
 
-  pz_reason <- ggplot(z[z$status == "Dropped", ]) +
-    geom_sf(aes(color = drop_reason), linewidth = 0.55, alpha = 0.98) +
-    facet_wrap(~era, ncol = 2) +
-    labs(
-      title = sprintf("%s: dropped boundaries by reason", title_text),
-      subtitle = "Only dropped segments shown",
-      color = "Drop reason"
-    ) +
-    theme_void(base_size = 11) +
-    theme(
-      plot.title = element_text(face = "bold"),
-      strip.text = element_text(face = "bold"),
-      legend.position = "bottom"
-    )
+  z_dropped <- z[z$status == "Dropped", ]
+  if (nrow(z_dropped) > 0) {
+    pz_reason <- ggplot(z_dropped) +
+      geom_sf(aes(color = drop_reason), linewidth = 0.55, alpha = 0.98) +
+      facet_wrap(~era, ncol = 2) +
+      labs(
+        title = sprintf("%s: dropped boundaries by reason", title_text),
+        subtitle = "Only dropped segments shown",
+        color = "Drop reason"
+      ) +
+      theme_void(base_size = 11) +
+      theme(
+        plot.title = element_text(face = "bold"),
+        strip.text = element_text(face = "bold"),
+        legend.position = "bottom"
+      )
+  } else {
+    pz_reason <- ggplot(z) +
+      geom_sf(color = "#1f77b4", linewidth = 0.45, alpha = 0.55) +
+      facet_wrap(~era, ncol = 2) +
+      labs(
+        title = sprintf("%s: dropped boundaries by reason", title_text),
+        subtitle = "No dropped segments in this zoom window",
+        color = "Drop reason"
+      ) +
+      theme_void(base_size = 11) +
+      theme(
+        plot.title = element_text(face = "bold"),
+        strip.text = element_text(face = "bold"),
+        legend.position = "bottom"
+      )
+  }
   ggsave(out_reason, pz_reason, width = 11, height = 8.5, dpi = 300)
 
   z_dt <- as.data.table(st_drop_geometry(z))
@@ -337,7 +429,8 @@ make_zoom <- function(seg_ll, bounds, title_text, out_status, out_reason, out_pa
     dropped_segments = sum(status == "Dropped"),
     drop_share_segments = mean(status == "Dropped"),
     strictness_gap = median(strictness_gap, na.rm = TRUE),
-    share_park_water_length = max(share_park_water_length, na.rm = TRUE),
+    share_physical_barrier_length = max(share_physical_barrier_length, na.rm = TRUE),
+    expressway_overlap_share = max(expressway_overlap_share, na.rm = TRUE),
     arterial_overlap_share = max(arterial_overlap_share, na.rm = TRUE),
     drop_reason = paste(sort(unique(drop_reason[status == "Dropped"])), collapse = "|")
   ), by = .(pair_dash, era)]
@@ -377,34 +470,41 @@ top_weighted_name <- function(names_vec, weights_vec, k = 3L) {
 }
 
 park_landuse_classes <- c(
-  "park", "grass", "recreation_ground", "cemetery",
-  "golf_course", "forest", "meadow", "allotments"
+  "park", "grass", "recreation_ground", "golf_course",
+  "forest", "meadow", "allotments", "nature_reserve", "village_green"
 )
+cemetery_landuse_classes <- c("cemetery")
 
 water_sf <- st_read(water_shp, quiet = TRUE)
 water_sf <- st_transform(water_sf, st_crs(segments))
 landuse_sf <- st_read(landuse_shp, quiet = TRUE)
 landuse_sf <- st_transform(landuse_sf, st_crs(segments))
 park_sf <- landuse_sf[tolower(as.character(landuse_sf$fclass)) %in% park_landuse_classes, ]
+cemetery_sf <- landuse_sf[tolower(as.character(landuse_sf$fclass)) %in% cemetery_landuse_classes, ]
 
-if (nrow(water_sf) == 0 || nrow(park_sf) == 0) {
-  stop("Water/park layers are empty after reading/filtering.", call. = FALSE)
+if (nrow(water_sf) == 0 || nrow(park_sf) == 0 || nrow(cemetery_sf) == 0) {
+  stop("Water/park/cemetery layers are empty after reading/filtering.", call. = FALSE)
 }
 
 segment_core <- segments[, c(
   "segment_id", "ward_pair_id", "pair_dash", "era", "status", "segment_type",
-  "segment_length_ft", "nearest_street_name", "water_area_share", "park_area_share",
-  "waterway_overlap_ft"
+  "segment_length_m", "nearest_street_name", "water_area_share", "park_area_share",
+  "cemetery_area_share", "park_cemetery_area_share", "waterway_overlap_m",
+  "expressway_overlap_m", "major_overlap_arterial_m"
 )]
 idx_water <- st_nearest_feature(segment_core, water_sf)
 idx_park <- st_nearest_feature(segment_core, park_sf)
+idx_cemetery <- st_nearest_feature(segment_core, cemetery_sf)
 segment_feature_dt <- as.data.table(st_drop_geometry(segment_core))
 segment_feature_dt[, nearest_water_fclass := as.character(water_sf$fclass[idx_water])]
 segment_feature_dt[, nearest_water_name := as.character(water_sf$name[idx_water])]
 segment_feature_dt[, nearest_park_fclass := as.character(park_sf$fclass[idx_park])]
 segment_feature_dt[, nearest_park_name := as.character(park_sf$name[idx_park])]
-segment_feature_dt[, dist_to_water_ft := as.numeric(st_distance(segment_core, water_sf[idx_water, ], by_element = TRUE))]
-segment_feature_dt[, dist_to_park_ft := as.numeric(st_distance(segment_core, park_sf[idx_park, ], by_element = TRUE))]
+segment_feature_dt[, nearest_cemetery_fclass := as.character(cemetery_sf$fclass[idx_cemetery])]
+segment_feature_dt[, nearest_cemetery_name := as.character(cemetery_sf$name[idx_cemetery])]
+segment_feature_dt[, dist_to_water_m := as.numeric(st_distance(segment_core, water_sf[idx_water, ], by_element = TRUE)) * 0.3048]
+segment_feature_dt[, dist_to_park_m := as.numeric(st_distance(segment_core, park_sf[idx_park, ], by_element = TRUE)) * 0.3048]
+segment_feature_dt[, dist_to_cemetery_m := as.numeric(st_distance(segment_core, cemetery_sf[idx_cemetery, ], by_element = TRUE)) * 0.3048]
 segment_feature_dt[, ward_pair_id_dash := normalize_pair_dash(ward_pair_id)]
 setorder(segment_feature_dt, era, ward_pair_id_dash, segment_id)
 fwrite(segment_feature_dt, segment_feature_audit_csv)
@@ -413,31 +513,63 @@ build_feature_context <- function(pairs_dt, out_csv) {
   drop_pairs <- pairs_dt[drop_share_segments > 0, .(
     pair_dash, era,
     pair_drop_reason = drop_reason,
-    pair_share_park_water_length = share_park_water_length,
+    pair_share_physical_barrier_length = share_physical_barrier_length,
+    pair_expressway_overlap_share = expressway_overlap_share,
     pair_arterial_overlap_share = arterial_overlap_share
   )]
   ctx <- merge(segment_feature_dt, drop_pairs, by = c("pair_dash", "era"), all = FALSE)
   if (nrow(ctx) == 0) {
-    fwrite(data.table(), out_csv)
+    fwrite(data.table(
+      pair_dash = character(),
+      era = integer(),
+      n_segments = integer(),
+      total_length_m = numeric(),
+      drop_reason = character(),
+      share_physical_barrier_length = numeric(),
+      expressway_overlap_share = numeric(),
+      arterial_overlap_share = numeric(),
+      med_dist_to_water_m = numeric(),
+      med_dist_to_park_m = numeric(),
+      med_dist_to_cemetery_m = numeric(),
+      p90_dist_to_water_m = numeric(),
+      p90_dist_to_park_m = numeric(),
+      p90_dist_to_cemetery_m = numeric(),
+      share_segments_near_water = numeric(),
+      share_segments_near_park = numeric(),
+      share_segments_near_cemetery = numeric(),
+      top_nearest_streets = character(),
+      top_nearest_water_names = character(),
+      top_nearest_water_fclass = character(),
+      top_nearest_park_names = character(),
+      top_nearest_park_fclass = character(),
+      top_nearest_cemetery_names = character(),
+      top_nearest_cemetery_fclass = character()
+    ), out_csv)
     return(invisible(NULL))
   }
   out <- ctx[, .(
     n_segments = .N,
-    total_length_ft = sum(segment_length_ft, na.rm = TRUE),
+    total_length_m = sum(segment_length_m, na.rm = TRUE),
     drop_reason = first(pair_drop_reason),
-    share_park_water_length = first(pair_share_park_water_length),
+    share_physical_barrier_length = first(pair_share_physical_barrier_length),
+    expressway_overlap_share = first(pair_expressway_overlap_share),
     arterial_overlap_share = first(pair_arterial_overlap_share),
-    med_dist_to_water_ft = median(dist_to_water_ft, na.rm = TRUE),
-    med_dist_to_park_ft = median(dist_to_park_ft, na.rm = TRUE),
-    p90_dist_to_water_ft = quantile(dist_to_water_ft, 0.9, na.rm = TRUE),
-    p90_dist_to_park_ft = quantile(dist_to_park_ft, 0.9, na.rm = TRUE),
-    share_segments_within_250ft_water = mean(dist_to_water_ft <= 250, na.rm = TRUE),
-    share_segments_within_250ft_park = mean(dist_to_park_ft <= 250, na.rm = TRUE),
-    top_nearest_streets = top_weighted_name(nearest_street_name, segment_length_ft),
-    top_nearest_water_names = top_weighted_name(nearest_water_name, segment_length_ft),
-    top_nearest_water_fclass = top_weighted_name(nearest_water_fclass, segment_length_ft),
-    top_nearest_park_names = top_weighted_name(nearest_park_name, segment_length_ft),
-    top_nearest_park_fclass = top_weighted_name(nearest_park_fclass, segment_length_ft)
+    med_dist_to_water_m = median(dist_to_water_m, na.rm = TRUE),
+    med_dist_to_park_m = median(dist_to_park_m, na.rm = TRUE),
+    med_dist_to_cemetery_m = median(dist_to_cemetery_m, na.rm = TRUE),
+    p90_dist_to_water_m = quantile(dist_to_water_m, 0.9, na.rm = TRUE),
+    p90_dist_to_park_m = quantile(dist_to_park_m, 0.9, na.rm = TRUE),
+    p90_dist_to_cemetery_m = quantile(dist_to_cemetery_m, 0.9, na.rm = TRUE),
+    share_segments_near_water = mean(dist_to_water_m <= near_feature_distance_m, na.rm = TRUE),
+    share_segments_near_park = mean(dist_to_park_m <= near_feature_distance_m, na.rm = TRUE),
+    share_segments_near_cemetery = mean(dist_to_cemetery_m <= near_feature_distance_m, na.rm = TRUE),
+    top_nearest_streets = top_weighted_name(nearest_street_name, segment_length_m),
+    top_nearest_water_names = top_weighted_name(nearest_water_name, segment_length_m),
+    top_nearest_water_fclass = top_weighted_name(nearest_water_fclass, segment_length_m),
+    top_nearest_park_names = top_weighted_name(nearest_park_name, segment_length_m),
+    top_nearest_park_fclass = top_weighted_name(nearest_park_fclass, segment_length_m),
+    top_nearest_cemetery_names = top_weighted_name(nearest_cemetery_name, segment_length_m),
+    top_nearest_cemetery_fclass = top_weighted_name(nearest_cemetery_fclass, segment_length_m)
   ), by = .(pair_dash, era)]
   setorder(out, era, pair_dash)
   fwrite(out, out_csv)
@@ -452,15 +584,17 @@ unchecked_pairs <- fsetdiff(seg_pairs, flag_pairs)
 extra_flag_pairs <- fsetdiff(flag_pairs, seg_pairs)
 fwrite(unchecked_pairs, audit_unchecked_csv)
 fwrite(extra_flag_pairs, audit_extra_flags_csv)
+extra_flag_by_era <- extra_flag_pairs[, .N, by = era][order(era)]
 
 audit_pair <- copy(flags)
 audit_pair[, keep_margin := pmin(
-  fifelse(is.finite(park_margin) & park_margin < 0, -park_margin, Inf),
+  fifelse(is.finite(barrier_margin) & barrier_margin < 0, -barrier_margin, Inf),
+  fifelse(is.finite(expressway_margin) & expressway_margin < 0, -expressway_margin, Inf),
   fifelse(is.finite(arterial_margin) & arterial_margin < 0, -arterial_margin, Inf)
 )]
 setorder(audit_pair, era, pair_dash)
 audit_pair_out <- copy(audit_pair)
-for (cc in c("park_margin_pos", "arterial_margin_pos", "drop_margin", "keep_margin")) {
+for (cc in c("barrier_margin_pos", "expressway_margin_pos", "arterial_margin_pos", "drop_margin", "keep_margin")) {
   audit_pair_out[!is.finite(get(cc)), (cc) := NA_real_]
 }
 fwrite(audit_pair_out, audit_pair_csv)
@@ -471,18 +605,20 @@ fwrite(borderline, audit_borderline_csv)
 
 feature_pair_summary <- segment_feature_dt[, .(
   n_segments = .N,
-  total_length_ft = sum(segment_length_ft, na.rm = TRUE),
-  median_dist_to_water_ft = median(dist_to_water_ft, na.rm = TRUE),
-  median_dist_to_park_ft = median(dist_to_park_ft, na.rm = TRUE),
-  share_segments_within_250ft_water = mean(dist_to_water_ft <= 250, na.rm = TRUE),
-  share_segments_within_250ft_park = mean(dist_to_park_ft <= 250, na.rm = TRUE),
-  top_nearest_streets = top_weighted_name(nearest_street_name, segment_length_ft)
+  total_length_m = sum(segment_length_m, na.rm = TRUE),
+  median_dist_to_water_m = median(dist_to_water_m, na.rm = TRUE),
+  median_dist_to_park_m = median(dist_to_park_m, na.rm = TRUE),
+  median_dist_to_cemetery_m = median(dist_to_cemetery_m, na.rm = TRUE),
+  share_segments_near_water = mean(dist_to_water_m <= near_feature_distance_m, na.rm = TRUE),
+  share_segments_near_park = mean(dist_to_park_m <= near_feature_distance_m, na.rm = TRUE),
+  share_segments_near_cemetery = mean(dist_to_cemetery_m <= near_feature_distance_m, na.rm = TRUE),
+  top_nearest_streets = top_weighted_name(nearest_street_name, segment_length_m)
 ), by = .(pair_dash, era)]
 
 uncertainty_priority <- merge(
   audit_pair[borderline_drop == TRUE | near_keep_threshold == TRUE, .(
     pair_dash, era, drop_confound, drop_reason, confidence_tag, drop_margin, keep_margin,
-    share_park_water_length, arterial_overlap_share
+    share_physical_barrier_length, expressway_overlap_share, arterial_overlap_share
   )],
   feature_pair_summary,
   by = c("pair_dash", "era"),
@@ -508,8 +644,6 @@ for (cc in c("drop_margin", "keep_margin")) {
 }
 fwrite(uncertainty_priority_out, uncertainty_priority_csv)
 
-invalid_sales_n <- if (file.exists(invalid_sales_csv)) nrow(fread(invalid_sales_csv)) else 0L
-invalid_rent_n <- if (file.exists(invalid_rent_csv)) nrow(fread(invalid_rent_csv)) else 0L
 drop_counts <- audit_pair[, .N, by = .(confidence_tag)]
 setorder(drop_counts, -N)
 borderline_high_conf_n <- nrow(audit_pair[borderline_drop == TRUE & high_conf_drop == TRUE])
@@ -521,9 +655,14 @@ md_lines <- c(
   sprintf("- pair-era in segment layers: %d", nrow(seg_pairs)),
   sprintf("- pair-era in pruning flags: %d", nrow(flag_pairs)),
   sprintf("- pair-era missing flags (unchecked): %d", nrow(unchecked_pairs)),
-  sprintf("- extra flag pair-era not in geometry: %d", nrow(extra_flag_pairs)),
-  sprintf("- invalid-pair rows available (sales): %d", invalid_sales_n),
-  sprintf("- invalid-pair rows available (rent): %d", invalid_rent_n),
+  sprintf("- extra flag pair-era not in geometry layers loaded by this map: %d", nrow(extra_flag_pairs)),
+  sprintf("- map era layers loaded: %s", paste(eras, collapse = ", ")),
+  sprintf(
+    "- pair-era audit thresholds: physical barrier >= %.2f; expressway >= %.2f; arterial >= %.2f",
+    pair_physical_barrier_drop_share,
+    pair_expressway_drop_share,
+    pair_arterial_drop_share
+  ),
   "",
   "## Confidence Tiers",
   "",
@@ -533,6 +672,23 @@ md_lines <- c(
 for (i in seq_len(nrow(drop_counts))) {
   md_lines <- c(md_lines, sprintf("| %s | %d |", drop_counts$confidence_tag[i], drop_counts$N[i]))
 }
+
+md_lines <- c(
+  md_lines,
+  "",
+  "## Extra Flag Pair-Era Rows",
+  "",
+  "| Era | Count |",
+  "|---|---:|"
+)
+if (nrow(extra_flag_by_era) == 0) {
+  md_lines <- c(md_lines, "| none | 0 |")
+} else {
+  for (i in seq_len(nrow(extra_flag_by_era))) {
+    md_lines <- c(md_lines, sprintf("| %s | %d |", extra_flag_by_era$era[i], extra_flag_by_era$N[i]))
+  }
+}
+
 md_lines <- c(
   md_lines,
   "",
@@ -552,7 +708,7 @@ md_lines <- c(
   "- `pruned_boundaries_zoom_downtown_pairs.csv`",
   "- `pruned_boundaries_zoom_lakeview_feature_context.csv`",
   "- `pruned_boundaries_zoom_downtown_feature_context.csv`",
-  "- `segment_feature_distance_audit_1320.csv`"
+  sprintf("- `segment_feature_distance_audit_%dft.csv`", as.integer(round(segment_length_ft)))
 )
 writeLines(md_lines, audit_md)
 

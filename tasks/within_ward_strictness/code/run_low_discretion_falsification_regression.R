@@ -43,11 +43,17 @@ stars <- function(p) {
 
 score_df <- read_csv(score_input, show_col_types = FALSE) %>%
   transmute(alderman, uncertainty_index)
+if (anyDuplicated(score_df$alderman) > 0) {
+  stop("Scores must be unique by alderman.", call. = FALSE)
+}
 
 wide_df <- read_csv(residualized_wide_input, show_col_types = FALSE)
+if (anyDuplicated(wide_df$alderman) > 0) {
+  stop("Residualized high-low input must be unique by alderman.", call. = FALSE)
+}
 
 analysis_df <- score_df %>%
-  inner_join(wide_df, by = "alderman") %>%
+  inner_join(wide_df, by = "alderman", relationship = "one-to-one") %>%
   filter(
     is.finite(uncertainty_index),
     is.finite(mean_resid_low),

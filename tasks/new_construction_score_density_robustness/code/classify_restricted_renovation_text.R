@@ -54,6 +54,9 @@ if (!is.finite(max_permit_year)) {
 permits <- load_uncertainty_permits(permits_input) %>%
   mutate(id = as.character(id)) %>%
   filter(year <= max_permit_year)
+if (anyDuplicated(permits$id) > 0) {
+  stop("Uncertainty permit input has duplicate permit id values.", call. = FALSE)
+}
 
 renovation_ids <- permits %>%
   filter(permit_type_clean == "renovation") %>%
@@ -67,6 +70,9 @@ renovation_text <- st_read(
   st_drop_geometry() %>%
   mutate(id = as.character(id)) %>%
   semi_join(renovation_ids, by = "id")
+if (anyDuplicated(renovation_text$id) > 0) {
+  stop("Building permit text input has duplicate permit id values.", call. = FALSE)
+}
 
 allowed_buckets <- c(
   "addition_expansion",
@@ -86,7 +92,7 @@ dropped_buckets <- c(
 )
 
 renovation_classification <- renovation_ids %>%
-  left_join(renovation_text, by = "id") %>%
+  left_join(renovation_text, by = "id", relationship = "one-to-one") %>%
   mutate(
     work_description = na_if(work_description, ""),
     work_description_norm = work_description %>%
@@ -203,7 +209,8 @@ filtered_permits <- permits %>%
   left_join(
     renovation_classification %>%
       select(id, renovation_text_bucket, keep_restricted_renovation, has_porch_deck_stair_keyword),
-    by = "id"
+    by = "id",
+    relationship = "one-to-one"
   ) %>%
   filter(
     permit_type_clean != "renovation" |

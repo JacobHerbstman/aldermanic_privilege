@@ -11,15 +11,16 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
-# bandwidth <- 1000
+# bandwidth <- 300
 # weighting <- "triangular"
 # fe_type <- "strict_pair_x_year"
 # geo_fe_level <- "segment"
 # cluster_level <- "twoway_block_segment"
+# bandwidth_label <- "300m"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(bandwidth, weighting, fe_type, geo_fe_level, cluster_level)
+  cli_args <- c(bandwidth, weighting, fe_type, geo_fe_level, cluster_level, bandwidth_label)
 }
 
 if (length(cli_args) >= 5) {
@@ -28,14 +29,16 @@ if (length(cli_args) >= 5) {
   fe_type <- cli_args[3]
   geo_fe_level <- tolower(cli_args[4])
   cluster_level <- tolower(cli_args[5])
+  bandwidth_label <- if (length(cli_args) >= 6) cli_args[6] else sprintf("%dm", as.integer(round(bandwidth)))
 } else if (length(cli_args) >= 3) {
   bandwidth <- as.numeric(cli_args[1])
   weighting <- cli_args[2]
   fe_type <- cli_args[3]
   geo_fe_level <- tolower(Sys.getenv("GEO_FE_LEVEL", "segment"))
   cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "twoway_block_segment"))
+  bandwidth_label <- sprintf("%dm", as.integer(round(bandwidth)))
 } else {
-  stop("FATAL: Script requires args: <bandwidth> <weighting> <fe_type> [<geo_fe_level> <cluster_level>]", call. = FALSE)
+  stop("FATAL: Script requires args: <bandwidth> <weighting> <fe_type> [<geo_fe_level> <cluster_level> <bandwidth_label>]", call. = FALSE)
 }
 
 BANDWIDTH <- bandwidth
@@ -57,8 +60,8 @@ if (!GEO_FE_LEVEL %in% c("segment", "ward_pair")) {
 if (!CLUSTER_LEVEL %in% c("twoway_block_segment", "block", "segment")) {
     stop("--cluster_level must be one of: twoway_block_segment, block, segment", call. = FALSE)
 }
-if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 1000) {
-    stop("Segment FE requested with bandwidth > 1000. Use bandwidth <= 1000.", call. = FALSE)
+if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 800) {
+    stop("Segment FE requested with bandwidth > 800m. Use bandwidth <= 800m.", call. = FALSE)
 }
 
 fe_suffix <- ifelse(
@@ -80,7 +83,7 @@ if (geo_suffix != "" || cluster_suffix != "") {
 }
 
 message("\n=== Pooled DiD: Home Sales ===")
-message(sprintf("Bandwidth: %d ft", BANDWIDTH))
+message(sprintf("Bandwidth: %s", bandwidth_label))
 message(sprintf("Weighting: %s", WEIGHTING))
 message(sprintf("FE Type: %s", FE_TYPE))
 message(sprintf("Geo FE Level: %s", GEO_FE_LEVEL))
@@ -105,9 +108,9 @@ message(sprintf("2015 cohort: %s transactions", format(nrow(data_2015), big.mark
 # =============================================================================
 # PREPARE DATA
 # =============================================================================
-data_2012 <- data_2012[dist_ft <= BANDWIDTH]
+data_2012 <- data_2012[dist_m <= BANDWIDTH]
 if (WEIGHTING == "triangular") {
-    data_2012[, weight := pmax(0, 1 - dist_ft / BANDWIDTH)]
+    data_2012[, weight := pmax(0, 1 - dist_m / BANDWIDTH)]
 } else {
     data_2012[, weight := 1]
 }
@@ -116,9 +119,9 @@ data_2012[, `:=`(
     post_treat = as.integer(relative_year >= 0) * strictness_change
 )]
 
-data_2015 <- data_2015[dist_ft <= BANDWIDTH]
+data_2015 <- data_2015[dist_m <= BANDWIDTH]
 if (WEIGHTING == "triangular") {
-    data_2015[, weight := pmax(0, 1 - dist_ft / BANDWIDTH)]
+    data_2015[, weight := pmax(0, 1 - dist_m / BANDWIDTH)]
 } else {
     data_2015[, weight := 1]
 }
@@ -364,8 +367,8 @@ etable(
     se.below = TRUE,
     signif.code = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
     notes = sprintf(
-        "Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Columns (1)--(2) use 2012 announcement timing; columns (3)--(4) use 2015 implementation timing. Sample restricted to transactions within %d feet of ward boundaries with non-missing hedonic characteristics. %s kernel weighting. Standard errors clustered at: %s.",
-        as.integer(BANDWIDTH),
+        "Transaction-level regressions of log sale price on post-redistricting indicator interacted with change in alderman strictness. Columns (1)--(2) use 2012 announcement timing; columns (3)--(4) use 2015 implementation timing. Sample restricted to transactions within %s of ward boundaries with non-missing hedonic characteristics. %s kernel weighting. Standard errors clustered at: %s.",
+        bandwidth_label,
         tools::toTitleCase(WEIGHTING),
         cluster_label
     ),
@@ -472,9 +475,9 @@ setDT(data_ann)
 message(sprintf("Stacked announcement panel: %s transactions", format(nrow(data_ann), big.mark = ",")))
 
 # Prepare data
-data_ann <- data_ann[dist_ft <= BANDWIDTH]
+data_ann <- data_ann[dist_m <= BANDWIDTH]
 if (WEIGHTING == "triangular") {
-    data_ann[, weight := pmax(0, 1 - dist_ft / BANDWIDTH)]
+    data_ann[, weight := pmax(0, 1 - dist_m / BANDWIDTH)]
 } else {
     data_ann[, weight := 1]
 }

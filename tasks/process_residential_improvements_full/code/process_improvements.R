@@ -1,204 +1,219 @@
 # process_improvements.R
-# Creates a PIN x tax_year panel of residential property characteristics
-# Outputs a PANEL (not cross-section) for temporal matching to sales
-#
-# Uses DuckDB for robust parsing of large CSV with some malformed rows
+# Creates an all-buildings PIN x tax_year panel of residential property characteristics.
+# This panel is used for temporal matching to home sales, so it must not apply
+# the new-construction year-built restriction used by density tasks.
 
 source("../../setup_environment/code/packages.R")
 
-# =============================================================================
-# 1. LOAD DATA USING DUCKDB (handles malformed rows gracefully)
-# =============================================================================
 message("Loading full residential improvements data using DuckDB...")
-message("(This may take a few minutes for ~15M rows)")
+message("(This may take a few minutes for ~12M Chicago improvement-year rows)")
 
-# Connect to DuckDB
 con <- dbConnect(duckdb())
+on.exit(dbDisconnect(con, shutdown = TRUE), add = TRUE)
 
-# Read CSV with DuckDB's flexible parser - ignores malformed rows
+invisible(dbExecute(con, "
+CREATE OR REPLACE MACRO numeric_text(x) AS
+  nullif(regexp_replace(cast(x AS VARCHAR), '[^0-9.-]', '', 'g'), '');
+"))
+
 message("Reading CSV...")
-dbExecute(con, "
-  CREATE TABLE improvements AS
-  SELECT
-    pin,
-    year AS tax_year,
-    township_code,
-    char_yrblt AS year_built,
-    char_bldg_sf AS building_sqft,
-    char_land_sf AS land_sqft,
-    char_rooms AS num_rooms,
-    char_beds AS num_bedrooms,
-    char_fbath AS num_full_baths,
-    char_hbath AS num_half_baths,
-    char_frpl AS num_fireplaces,
-    char_apts AS num_apartments_raw,
-    char_gar1_size AS garage_size_raw
-  FROM read_csv('../input/residential_improvement_characteristics_full.csv',
-                ignore_errors = true,
-                auto_detect = true,
-                max_line_size = 10000000)
-")
+invisible(dbExecute(con, "
+CREATE TABLE improvements_raw AS
+SELECT
+  trim(pin) AS pin,
+  trim(year) AS tax_year_raw,
+  trim(township_code) AS township_code_raw,
+  trim(char_yrblt) AS year_built_raw,
+  trim(char_bldg_sf) AS building_sqft_raw,
+  trim(char_land_sf) AS land_sqft_raw,
+  trim(char_rooms) AS num_rooms_raw,
+  trim(char_beds) AS num_bedrooms_raw,
+  trim(char_fbath) AS num_full_baths_raw,
+  trim(char_hbath) AS num_half_baths_raw,
+  trim(char_frpl) AS num_fireplaces_raw,
+  trim(char_apts) AS num_apartments_raw,
+  trim(char_gar1_size) AS garage_size_raw,
+  trim(row_id) AS row_id_raw
+FROM read_csv('../input/residential_improvement_characteristics_full.csv',
+              ignore_errors = true,
+              all_varchar = true,
+              header = true,
+              auto_detect = true,
+              max_line_size = 10000000)
+"))
 
-# Get row count
-n_loaded <- dbGetQuery(con, "SELECT COUNT(*) as n FROM improvements")$n
+n_loaded <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM improvements_raw")$n
 message(sprintf("Loaded %s rows", format(n_loaded, big.mark = ",")))
 
-# Filter to Chicago townships
-message("Filtering to Chicago townships...")
-dbExecute(con, "
-  DELETE FROM improvements
-  WHERE township_code NOT IN ('70', '71', '72', '73', '74', '75', '76', '77')
-")
+message("Cleaning columns and keeping Chicago townships...")
+invisible(dbExecute(con, "
+CREATE TABLE improvements_clean AS
+SELECT
+  pin,
+  try_cast(numeric_text(tax_year_raw) AS INTEGER) AS tax_year,
+  try_cast(numeric_text(township_code_raw) AS INTEGER) AS township_code,
+  try_cast(numeric_text(year_built_raw) AS INTEGER) AS year_built,
+  try_cast(numeric_text(building_sqft_raw) AS DOUBLE) AS building_sqft,
+  try_cast(numeric_text(land_sqft_raw) AS DOUBLE) AS land_sqft,
+  try_cast(numeric_text(num_rooms_raw) AS DOUBLE) AS num_rooms,
+  try_cast(numeric_text(num_bedrooms_raw) AS DOUBLE) AS num_bedrooms,
+  try_cast(numeric_text(num_full_baths_raw) AS DOUBLE) AS num_full_baths,
+  try_cast(numeric_text(num_half_baths_raw) AS DOUBLE) AS num_half_baths,
+  try_cast(numeric_text(num_fireplaces_raw) AS DOUBLE) AS num_fireplaces,
+  CASE
+    WHEN lower(trim(num_apartments_raw)) IN ('none', 'zero') THEN 0
+    WHEN lower(trim(num_apartments_raw)) = 'one' THEN 1
+    WHEN lower(trim(num_apartments_raw)) = 'two' THEN 2
+    WHEN lower(trim(num_apartments_raw)) = 'three' THEN 3
+    WHEN lower(trim(num_apartments_raw)) = 'four' THEN 4
+    WHEN lower(trim(num_apartments_raw)) = 'five' THEN 5
+    WHEN lower(trim(num_apartments_raw)) = 'six' THEN 6
+    ELSE try_cast(numeric_text(num_apartments_raw) AS INTEGER)
+  END AS num_apartments,
+  try_cast(numeric_text(garage_size_raw) AS DOUBLE) AS garage_size,
+  try_cast(numeric_text(row_id_raw) AS BIGINT) AS row_id
+FROM improvements_raw
+WHERE try_cast(numeric_text(township_code_raw) AS INTEGER) IN (70, 71, 72, 73, 74, 75, 76, 77)
+"))
 
-n_chicago <- dbGetQuery(con, "SELECT COUNT(*) as n FROM improvements")$n
-message(sprintf("Chicago properties: %s rows", format(n_chicago, big.mark = ",")))
+n_chicago <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM improvements_clean")$n
+n_pre_1999 <- dbGetQuery(con, "
+SELECT COUNT(*) AS n
+FROM improvements_clean
+WHERE year_built < 1999
+")$n
+message(sprintf("Chicago township rows: %s", format(n_chicago, big.mark = ",")))
+message(sprintf("Pre-1999 building-year rows retained: %s", format(n_pre_1999, big.mark = ",")))
 
-# Pull into R as data.table
-message("Converting to data.table...")
-data <- as.data.table(dbGetQuery(con, "SELECT * FROM improvements"))
-dbDisconnect(con, shutdown = TRUE)
-
-# =============================================================================
-# 2. CLEAN AND CONVERT COLUMNS
-# =============================================================================
-message("Cleaning columns...")
-
-data[, `:=`(
-    pin = as.character(pin),
-    tax_year = as.integer(tax_year),
-    year_built = as.integer(year_built),
-    building_sqft = as.numeric(building_sqft),
-    land_sqft = as.numeric(land_sqft),
-    num_rooms = as.numeric(num_rooms),
-    num_bedrooms = as.numeric(num_bedrooms),
-    num_full_baths = as.numeric(num_full_baths),
-    num_half_baths = as.numeric(num_half_baths),
-    num_fireplaces = as.numeric(num_fireplaces)
-)]
-
-# Convert spelled-out apartment counts to integers
-data[, num_apartments := fcase(
-    is.na(num_apartments_raw), NA_integer_,
-    tolower(trimws(num_apartments_raw)) %in% c("none", "zero"), 0L,
-    tolower(trimws(num_apartments_raw)) == "one", 1L,
-    tolower(trimws(num_apartments_raw)) == "two", 2L,
-    tolower(trimws(num_apartments_raw)) == "three", 3L,
-    tolower(trimws(num_apartments_raw)) == "four", 4L,
-    tolower(trimws(num_apartments_raw)) == "five", 5L,
-    tolower(trimws(num_apartments_raw)) == "six", 6L,
-    default = suppressWarnings(as.integer(num_apartments_raw))
-)]
-
-# Parse garage size from strings like "2.5 cars"
-data[, garage_size := as.numeric(gsub("[^0-9.]", "", garage_size_raw))]
-
-# Drop raw columns
-data[, c("num_apartments_raw", "garage_size_raw", "township_code") := NULL]
-
-# =============================================================================
-# 3. HANDLE DUPLICATES WITHIN PIN-YEAR
-# =============================================================================
-# Some PINs have multiple records per tax_year (e.g., multiple buildings/cards)
-# Keep the one with largest building_sqft as the "main" structure
+if (n_chicago == 0) {
+  stop("No Chicago township residential improvement rows were retained.", call. = FALSE)
+}
+if (n_pre_1999 == 0) {
+  stop("Full residential improvements panel has no pre-1999 buildings; sales hedonics would be new-construction-only.", call. = FALSE)
+}
 
 message("Handling duplicates within PIN-year...")
-n_before <- nrow(data)
+n_duplicate_groups <- dbGetQuery(con, "
+SELECT COUNT(*) AS n
+FROM (
+  SELECT pin, tax_year, COUNT(*) AS n_records
+  FROM improvements_clean
+  GROUP BY pin, tax_year
+  HAVING COUNT(*) > 1
+)
+")$n
+message(sprintf("PIN-years with multiple records: %s", format(n_duplicate_groups, big.mark = ",")))
 
-# Count duplicates for diagnostics
-dupe_check <- data[, .N, by = .(pin, tax_year)][N > 1]
-message(sprintf("PIN-years with multiple records: %s", format(nrow(dupe_check), big.mark = ",")))
+invisible(dbExecute(con, "
+CREATE TABLE improvements_panel AS
+SELECT
+  pin,
+  tax_year,
+  year_built,
+  building_sqft,
+  land_sqft_pin_year AS land_sqft,
+  num_rooms,
+  num_bedrooms,
+  num_full_baths,
+  num_half_baths,
+  num_fireplaces,
+  num_apartments,
+  garage_size
+FROM (
+  SELECT
+    *,
+    max(land_sqft) OVER (PARTITION BY pin, tax_year) AS land_sqft_pin_year,
+    row_number() OVER (
+      PARTITION BY pin, tax_year
+      ORDER BY building_sqft DESC NULLS LAST, row_id ASC NULLS LAST
+    ) AS keep_row
+  FROM improvements_clean
+)
+WHERE keep_row = 1
+"))
 
-# Keep largest building per PIN-year
-data <- data[order(pin, tax_year, -building_sqft)]
-data <- data[, .SD[1], by = .(pin, tax_year)]
-
-n_after <- nrow(data)
+n_panel <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM improvements_panel")$n
 message(sprintf(
-    "Rows after deduplication: %s (dropped %s)",
-    format(n_after, big.mark = ","),
-    format(n_before - n_after, big.mark = ",")
+  "Rows after deduplication: %s (dropped %s)",
+  format(n_panel, big.mark = ","),
+  format(n_chicago - n_panel, big.mark = ",")
 ))
 
-# =============================================================================
-# 4. SELECT COLUMNS FOR PANEL
-# =============================================================================
-message("Selecting hedonic variables...")
-
-improvements_panel <- data[, .(
-    pin,
-    tax_year,
-    year_built,
-    building_sqft,
-    land_sqft,
-    num_rooms,
-    num_bedrooms,
-    num_full_baths,
-    num_half_baths,
-    num_fireplaces,
-    num_apartments,
-    garage_size
-)]
-
-# =============================================================================
-# 5. DIAGNOSTICS
-# =============================================================================
 message("\n=== PANEL DIAGNOSTICS ===")
 
-message(sprintf("\nTotal rows: %s", format(nrow(improvements_panel), big.mark = ",")))
-message(sprintf("Unique PINs: %s", format(uniqueN(improvements_panel$pin), big.mark = ",")))
-message(sprintf(
-    "Tax years covered: %d to %d",
-    min(improvements_panel$tax_year, na.rm = TRUE),
-    max(improvements_panel$tax_year, na.rm = TRUE)
-))
+panel_summary <- dbGetQuery(con, "
+SELECT
+  COUNT(*) AS total_rows,
+  COUNT(DISTINCT pin) AS unique_pins,
+  MIN(tax_year) AS min_tax_year,
+  MAX(tax_year) AS max_tax_year,
+  COUNT(*) FILTER (WHERE year_built < 1999) AS pre_1999_rows,
+  COUNT(DISTINCT pin) FILTER (WHERE year_built < 1999) AS pre_1999_pins
+FROM improvements_panel
+")
+print(panel_summary)
 
-# Records per PIN distribution
-records_per_pin <- improvements_panel[, .N, by = pin]
-message(sprintf(
-    "\nRecords per PIN: median = %d, mean = %.1f, max = %d",
-    median(records_per_pin$N),
-    mean(records_per_pin$N),
-    max(records_per_pin$N)
-))
+if (panel_summary$pre_1999_rows == 0 || panel_summary$pre_1999_pins == 0) {
+  stop("Deduplicated full residential improvements panel lost all pre-1999 buildings.", call. = FALSE)
+}
 
-# Coverage of key variables
+records_per_pin <- dbGetQuery(con, "
+SELECT
+  median(n_records) AS median_records,
+  AVG(n_records) AS mean_records,
+  MAX(n_records) AS max_records
+FROM (
+  SELECT pin, COUNT(*) AS n_records
+  FROM improvements_panel
+  GROUP BY pin
+)
+")
+print(records_per_pin)
+
 message("\nVariable coverage (% non-missing):")
-coverage <- improvements_panel[, .(
-    building_sqft = mean(!is.na(building_sqft)) * 100,
-    land_sqft = mean(!is.na(land_sqft)) * 100,
-    year_built = mean(!is.na(year_built)) * 100,
-    num_bedrooms = mean(!is.na(num_bedrooms)) * 100,
-    num_full_baths = mean(!is.na(num_full_baths)) * 100,
-    garage_size = mean(!is.na(garage_size)) * 100
-)]
+coverage <- dbGetQuery(con, "
+SELECT
+  100.0 * AVG(CASE WHEN building_sqft IS NOT NULL THEN 1 ELSE 0 END) AS building_sqft,
+  100.0 * AVG(CASE WHEN land_sqft IS NOT NULL THEN 1 ELSE 0 END) AS land_sqft,
+  100.0 * AVG(CASE WHEN year_built IS NOT NULL THEN 1 ELSE 0 END) AS year_built,
+  100.0 * AVG(CASE WHEN num_bedrooms IS NOT NULL THEN 1 ELSE 0 END) AS num_bedrooms,
+  100.0 * AVG(CASE WHEN num_full_baths IS NOT NULL THEN 1 ELSE 0 END) AS num_full_baths,
+  100.0 * AVG(CASE WHEN garage_size IS NOT NULL THEN 1 ELSE 0 END) AS garage_size
+FROM improvements_panel
+")
 print(coverage)
 
-# Tax year coverage
 message("\nObservations by tax year:")
-tax_year_counts <- improvements_panel[, .N, by = tax_year][order(tax_year)]
+tax_year_counts <- dbGetQuery(con, "
+SELECT tax_year, COUNT(*) AS n
+FROM improvements_panel
+GROUP BY tax_year
+ORDER BY tax_year
+")
 print(tax_year_counts)
 
-# Year built distribution (time-invariant but useful to see)
 message("\nYear built distribution:")
-decade_counts <- improvements_panel[!is.na(year_built),
-    .(n_properties = uniqueN(pin)),
-    by = .(decade = floor(year_built / 10) * 10)
-][order(decade)]
+decade_counts <- dbGetQuery(con, "
+SELECT floor(year_built / 10) * 10 AS decade, COUNT(DISTINCT pin) AS n_properties
+FROM improvements_panel
+WHERE year_built IS NOT NULL
+GROUP BY decade
+ORDER BY decade
+")
 print(decade_counts)
 
-# =============================================================================
-# 6. SORT AND SAVE AS PARQUET
-# =============================================================================
 message("\nSaving panel...")
-
-# Sort by pin and tax_year - CRITICAL for efficient rolling joins in Step 3
-setkey(improvements_panel, pin, tax_year)
-
-write_parquet(improvements_panel, "../output/residential_improvements_panel.parquet")
+invisible(dbExecute(con, "
+COPY (
+  SELECT *
+  FROM improvements_panel
+  ORDER BY pin, tax_year
+) TO '../output/residential_improvements_panel.parquet' (FORMAT PARQUET)
+"))
 
 message(sprintf(
-    "Saved: ../output/residential_improvements_panel.parquet (%s rows)",
-    format(nrow(improvements_panel), big.mark = ",")
+  "Saved: ../output/residential_improvements_panel.parquet (%s rows)",
+  format(n_panel, big.mark = ",")
 ))
 
 message("\nDone!")

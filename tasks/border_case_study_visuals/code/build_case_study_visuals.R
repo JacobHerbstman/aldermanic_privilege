@@ -5,25 +5,29 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_case_study_visuals/code")
-# bw_ft <- 500
+# bw_ft <- 328
+# bw_label <- "100m"
 # borders <- "1_26,11_25"
-# bin_ft <- 50
-# output_pdf <- "../output/case_study_far_panel_bw500.pdf"
-# output_csv <- "../output/case_study_summary_bw500.csv"
+# bin_ft <- 33
+# axis_units <- "meters"
+# output_pdf <- "../output/case_study_far_panel_100m.pdf"
+# output_csv <- "../output/case_study_summary_100m.csv"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(bw_ft, borders, bin_ft, output_pdf, output_csv)
+  cli_args <- c(bw_ft, bw_label, borders, bin_ft, axis_units, output_pdf, output_csv)
 }
 
-if (length(cli_args) != 5) {
-  stop("FATAL: Script requires 5 args: <bw_ft> <borders> <bin_ft> <output_pdf> <output_csv>", call. = FALSE)
+if (length(cli_args) != 7) {
+  stop("FATAL: Script requires 7 args: <bw_ft> <bw_label> <borders> <bin_ft> <axis_units> <output_pdf> <output_csv>", call. = FALSE)
 }
 bw_ft <- as.numeric(cli_args[1])
-borders <- cli_args[2]
-bin_ft <- as.numeric(cli_args[3])
-output_pdf <- cli_args[4]
-output_csv <- cli_args[5]
+bw_label <- cli_args[2]
+borders <- cli_args[3]
+bin_ft <- as.numeric(cli_args[4])
+axis_units <- cli_args[5]
+output_pdf <- cli_args[6]
+output_csv <- cli_args[7]
 
 bw_ft <- as.numeric(bw_ft)
 bin_ft <- as.numeric(bin_ft)
@@ -34,10 +38,16 @@ borders <- borders[borders != ""]
 
 if (!is.finite(bw_ft) || bw_ft <= 0) stop("bw_ft must be positive.", call. = FALSE)
 if (!is.finite(bin_ft) || bin_ft <= 0) stop("bin_ft must be positive.", call. = FALSE)
+if (!axis_units %in% c("meters", "feet")) stop("axis_units must be one of: meters, feet.", call. = FALSE)
 if (length(borders) == 0) stop("At least one ward pair must be supplied via --borders.", call. = FALSE)
 
+display_scale <- if (axis_units == "meters") 0.3048 else 1
+display_suffix <- if (axis_units == "meters") "m" else "ft"
+display_axis_label <- if (axis_units == "meters") "Distance to boundary (m)" else "Distance to boundary (feet)"
+bin_label <- sprintf("%.0f%s", bin_ft * display_scale, display_suffix)
+
 message("=== Border Case Study Visuals ===")
-message(sprintf("bw=%.0fft | bin=%.1fft", bw_ft, bin_ft))
+message(sprintf("bw=%s | bin=%s", bw_label, bin_label))
 message(sprintf("borders=%s", paste(borders, collapse = ", ")))
 
 df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
@@ -157,14 +167,15 @@ write_csv(
 )
 
 plot_df <- df %>%
-  left_join(dominant_pair %>% select(ward_pair, facet_label), by = "ward_pair")
+  left_join(dominant_pair %>% select(ward_pair, facet_label), by = "ward_pair") %>%
+  mutate(signed_distance_display = signed_distance * display_scale)
 
 bins_df <- plot_df %>%
   mutate(
     bindex = floor(signed_distance / bin_ft),
-    bin_center_ft = (bindex + 0.5) * bin_ft
+    bin_center_display = (bindex + 0.5) * bin_ft * display_scale
   ) %>%
-  group_by(ward_pair, facet_label, bindex, bin_center_ft) %>%
+  group_by(ward_pair, facet_label, bindex, bin_center_display) %>%
   summarise(
     mean_log_far = mean(log_far, na.rm = TRUE),
     n_bin = n(),
@@ -173,19 +184,19 @@ bins_df <- plot_df %>%
 
 ann_df <- summary_tbl %>%
   select(ward_pair, facet_label, annotation, y_annot) %>%
-  mutate(x_annot = -0.95 * bw_ft)
+  mutate(x_annot = -0.95 * bw_ft * display_scale)
 
 p <- ggplot() +
   geom_point(
     data = bins_df,
-    aes(x = bin_center_ft, y = mean_log_far),
+    aes(x = bin_center_display, y = mean_log_far),
     color = "#2C3E50",
     size = 2.3,
     alpha = 0.9
   ) +
   geom_smooth(
     data = plot_df %>% filter(side == 0),
-    aes(x = signed_distance, y = log_far),
+    aes(x = signed_distance_display, y = log_far),
     method = "lm",
     formula = y ~ x,
     se = TRUE,
@@ -196,7 +207,7 @@ p <- ggplot() +
   ) +
   geom_smooth(
     data = plot_df %>% filter(side == 1),
-    aes(x = signed_distance, y = log_far),
+    aes(x = signed_distance_display, y = log_far),
     method = "lm",
     formula = y ~ x,
     se = TRUE,
@@ -214,11 +225,11 @@ p <- ggplot() +
     size = 3.0
   ) +
   facet_wrap(~facet_label, ncol = 2, scales = "free_y") +
-  coord_cartesian(xlim = c(-bw_ft, bw_ft)) +
+  coord_cartesian(xlim = c(-bw_ft, bw_ft) * display_scale) +
   labs(
-    title = "Case Study Border Contrasts: FAR at 500ft Bandwidth",
+    title = sprintf("Case Study Border Contrasts: FAR at %s Bandwidth", bw_label),
     subtitle = "Binned means with side-specific local linear fits; right side is stricter by construction",
-    x = "Distance to boundary (feet)",
+    x = display_axis_label,
     y = "Log(Floor-Area Ratio)"
   ) +
   theme_bw(base_size = 11) +

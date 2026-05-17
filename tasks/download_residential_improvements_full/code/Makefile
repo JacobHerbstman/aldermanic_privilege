@@ -1,10 +1,12 @@
 SHELL := bash
-include ../../shell_functions.make
+
+all: ../output/residential_improvement_characteristics_full.csv ../output/residential_improvement_characteristics_full_metadata.csv
 
 ../output/residential_improvement_characteristics_full.csv: download_residential_improvements.sh | ../output
-	@echo "→ [download_residential_improvements_full] Downloading full residential improvements from Socrata API..."
-	chmod +x $<
 	bash $<
-	@echo "→ [download_residential_improvements_full] Download complete"
 
+../output/residential_improvement_characteristics_full_metadata.csv: ../output/residential_improvement_characteristics_full.csv
+	@test -s "$@"
+
+include ../../shell_functions.make
 include ../../generic.make

@@ -72,6 +72,7 @@ if (st_crs(zoning_data) != st_crs(ward_panel)) {
 
 # Spatial join for zoning
 # Note: This works for multifamily too, as they are now point geometries
+n_parcels_before_zoning <- nrow(parcels)
 parcels <- parcels %>%
   st_join(
     zoning_data %>% dplyr::select(
@@ -79,6 +80,9 @@ parcels <- parcels %>%
     ),
     left = TRUE, largest = TRUE
   )
+if (nrow(parcels) != n_parcels_before_zoning) {
+  stop("Zoning spatial join changed the parcel row count.", call. = FALSE)
+}
 
 # -----------------------------------------------------------------------------
 # 1.5. GEOCODE PARCELS TO CENSUS BLOCK GROUPS
@@ -113,8 +117,12 @@ if (st_crs(block_groups) != st_crs(parcels)) {
 }
 
 cat("Spatial join: assigning parcels to block groups...\n")
+n_parcels_before_bg <- nrow(parcels)
 parcels <- parcels %>%
   st_join(block_groups, left = TRUE)
+if (nrow(parcels) != n_parcels_before_bg) {
+  stop("Block-group spatial join changed the parcel row count.", call. = FALSE)
+}
 
 cat(sprintf(
   "Block group assignment complete. %d of %d parcels have GEOID.\n",
@@ -134,6 +142,9 @@ alderman_lookup <- alderman_panel %>%
     year = year(as.Date(month_yearmon)),
     yearmon_key = as.character(month_yearmon)
   )
+if (anyDuplicated(alderman_lookup[c("ward", "yearmon_key")]) > 0) {
+  stop("Alderman panel has duplicate ward-month rows.", call. = FALSE)
+}
 
 alderman_tenure_lookup <- alderman_panel %>%
   mutate(month_yearmon = as.yearmon(month, format = "%b %Y")) %>%
@@ -143,6 +154,16 @@ alderman_tenure_lookup <- alderman_panel %>%
     .groups = "drop"
   ) %>%
   mutate(alderman_ward_key = paste(ward, alderman, sep = "_"))
+if (anyDuplicated(alderman_tenure_lookup$alderman_ward_key) > 0) {
+  stop("Alderman tenure lookup has duplicate ward-alderman rows.", call. = FALSE)
+}
+
+if (anyDuplicated(ward_controls[c("ward", "year")]) > 0) {
+  stop("Ward controls have duplicate ward-year rows.", call. = FALSE)
+}
+if (anyDuplicated(bg_controls[c("GEOID", "year")]) > 0) {
+  stop("Block-group controls have duplicate GEOID-year rows.", call. = FALSE)
+}
 
 if (synthetic_date_mode == "dynamic_turnover") {
   era_levels <- canonical_era_levels()
@@ -178,7 +199,8 @@ if (synthetic_date_mode == "dynamic_turnover") {
     left_join(
       assignment_by_era %>%
         select(parcel_row_id, era, assigned_ward, ward_pair, dist_to_boundary),
-      by = c("parcel_row_id", "era")
+      by = c("parcel_row_id", "era"),
+      relationship = "many-to-one"
     ) %>%
     mutate(
       wards_in_pair = str_split_fixed(ward_pair, "_", 2),
@@ -194,13 +216,15 @@ if (synthetic_date_mode == "dynamic_turnover") {
       alderman_lookup %>%
         select(ward, yearmon_key, alderman) %>%
         rename(alderman_own_candidate = alderman),
-      by = c("assigned_ward" = "ward", "yearmon_key")
+      by = c("assigned_ward" = "ward", "yearmon_key"),
+      relationship = "many-to-one"
     ) %>%
     left_join(
       alderman_lookup %>%
         select(ward, yearmon_key, alderman) %>%
         rename(alderman_neighbor_candidate = alderman),
-      by = c("other_ward" = "ward", "yearmon_key")
+      by = c("other_ward" = "ward", "yearmon_key"),
+      relationship = "many-to-one"
     )
 
   june_reference <- month_grid %>%
@@ -218,7 +242,7 @@ if (synthetic_date_mode == "dynamic_turnover") {
     )
 
   month_grid <- month_grid %>%
-    left_join(june_reference, by = "parcel_row_id") %>%
+    left_join(june_reference, by = "parcel_row_id", relationship = "many-to-one") %>%
     mutate(
       changed_boundary_year = coalesce(boundary_year, -999L) != coalesce(boundary_year_june, -999L),
       changed_assigned_ward = coalesce(assigned_ward, -999L) != coalesce(assigned_ward_june, -999L),
@@ -296,7 +320,8 @@ if (synthetic_date_mode == "dynamic_turnover") {
           ward_pair,
           dist_to_boundary
         ),
-      by = "parcel_row_id"
+      by = "parcel_row_id",
+      relationship = "one-to-one"
     )
 } else {
   parcels <- parcels %>%
@@ -334,18 +359,21 @@ cat(sprintf(
 
 final_dataset <- parcels_with_distances %>%
   mutate(
+    dist_to_boundary_m = as.numeric(dist_to_boundary) * 0.3048,
     construction_yearmon = as.yearmon(construction_date),
     yearmon_key = as.character(construction_yearmon)
   ) %>%
   left_join(alderman_lookup,
-    by = c("assigned_ward" = "ward", "yearmon_key")
+    by = c("assigned_ward" = "ward", "yearmon_key"),
+    relationship = "many-to-one"
   ) %>%
   rename(alderman_own = alderman) %>%
   mutate(
     alderman_ward_key = paste(assigned_ward, alderman_own, sep = "_")
   ) %>%
   left_join(alderman_tenure_lookup,
-    by = "alderman_ward_key"
+    by = "alderman_ward_key",
+    relationship = "many-to-one"
   ) %>%
   mutate(
     alderman_tenure_months = ifelse(
@@ -356,7 +384,7 @@ final_dataset <- parcels_with_distances %>%
   ) %>%
   select(
     pin, geom, GEOID,
-    construction_year = yearbuilt, construction_date, boundary_year, dist_to_boundary,
+    construction_year = yearbuilt, construction_date, boundary_year, dist_to_boundary, dist_to_boundary_m,
     ward = assigned_ward, ward_pair,
     alderman = alderman_own, alderman_tenure_months,
     # NOTE: These columns were kept in your previous script (res + multi)
@@ -441,7 +469,11 @@ final_dataset_signed <- final_dataset %>%
   ) %>%
   # --- JOIN 1: Own Ward Data ---
   # This adds columns like 'share_black', 'homeownership_rate', etc.
-  left_join(ward_controls_clean, by = c("ward" = "ward", "ward_controls_year" = "year")) %>%
+  left_join(
+    ward_controls_clean,
+    by = c("ward" = "ward", "ward_controls_year" = "year"),
+    relationship = "many-to-one"
+  ) %>%
   # --- JOIN 2: Neighbor Ward Data (The Fix) ---
   # The 'suffix' argument tells dplyr:
   # "If you see a column name that already exists (from Join 1),
@@ -449,12 +481,14 @@ final_dataset_signed <- final_dataset %>%
   left_join(
     ward_controls_clean,
     by = c("other_ward" = "ward", "ward_controls_year" = "year"),
-    suffix = c("_own", "_neighbor")
+    suffix = c("_own", "_neighbor"),
+    relationship = "many-to-one"
   ) %>%
   # --- JOIN 3: Neighbor Alderman ---
   left_join(
     alderman_lookup %>% rename(alderman_neighbor = alderman),
-    by = c("other_ward" = "ward", "yearmon_key")
+    by = c("other_ward" = "ward", "yearmon_key"),
+    relationship = "many-to-one"
   ) %>%
   # NOTE: Score merging moved to merge_in_scores task for faster iteration
   dplyr::select(-contains("wards_in_pair"), -ward_controls_year) %>%
@@ -465,7 +499,8 @@ final_dataset_signed <- final_dataset %>%
     bg_controls %>%
       mutate(GEOID = as.character(GEOID)) %>%
       rename_with(~ paste0(., "_bg"), -c(GEOID, year)),
-    by = c("GEOID", "bg_controls_year" = "year")
+    by = c("GEOID", "bg_controls_year" = "year"),
+    relationship = "many-to-one"
   ) %>%
   dplyr::select(-bg_controls_year)
 
@@ -499,8 +534,8 @@ parcel_geometry_diagnostics <- final_dataset_signed %>%
     n_with_ward = sum(!is.na(ward)),
     n_with_ward_pair = sum(!is.na(ward_pair)),
     n_with_neighbor_alderman = sum(!is.na(alderman_neighbor)),
-    mean_dist_to_boundary = mean(dist_to_boundary, na.rm = TRUE),
-    median_dist_to_boundary = median(dist_to_boundary, na.rm = TRUE),
+    mean_dist_to_boundary_m = mean(dist_to_boundary_m, na.rm = TRUE),
+    median_dist_to_boundary_m = median(dist_to_boundary_m, na.rm = TRUE),
     .by = boundary_year
   ) %>%
   arrange(boundary_year)
@@ -513,8 +548,8 @@ summary_stats <- final_dataset_signed %>%
     n_wards = n_distinct(ward),
     n_ward_pairs = n_distinct(ward_pair, na.rm = TRUE),
     n_aldermen = n_distinct(alderman_own, na.rm = TRUE),
-    mean_dist_to_boundary = mean(dist_to_boundary, na.rm = TRUE),
-    median_dist_to_boundary = median(dist_to_boundary, na.rm = TRUE),
+    mean_dist_to_boundary_m = mean(dist_to_boundary_m, na.rm = TRUE),
+    median_dist_to_boundary_m = median(dist_to_boundary_m, na.rm = TRUE),
     .by = c(boundary_year, construction_year)
   ) %>%
   arrange(construction_year)

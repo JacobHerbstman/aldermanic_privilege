@@ -6,10 +6,10 @@ library(ggrepel)
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
-# score_file <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
+# score_file <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
 # score_col <- "uncertainty_index"
 # score_name <- "Regulatory Stringency Index"
-# output_tag <- "uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH"
+# output_tag <- "uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -59,11 +59,17 @@ if (!score_col %in% names(scores_raw)) {
 scores <- scores_raw %>%
     mutate(stringency_index = suppressWarnings(as.numeric(.data[[score_col]]))) %>%
     filter(!is.na(stringency_index))
+if (anyDuplicated(scores$alderman) > 0) {
+    stop("Scores must be unique by alderman.", call. = FALSE)
+}
 message(sprintf("Loaded %d aldermen with stringency scores", nrow(scores)))
 
 # Load alderman-ward panel
 panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
     mutate(month = as.yearmon(month))
+if (anyDuplicated(panel[c("ward", "month")]) > 0) {
+    stop("Alderman panel must be unique by ward-month.", call. = FALSE)
+}
 
 # Filter to post-2006 (when permit data starts)
 panel_post2006 <- panel %>%
@@ -82,7 +88,7 @@ message(sprintf("Identified primary ward for %d aldermen", nrow(alderman_primary
 
 # Merge with scores (inner join - only keep aldermen with scores)
 alderman_ward_scores <- alderman_primary_ward %>%
-    inner_join(scores, by = "alderman")
+    inner_join(scores, by = "alderman", relationship = "one-to-one")
 
 message(sprintf("Matched %d aldermen with both ward assignments and stringency scores", 
                 nrow(alderman_ward_scores)))
@@ -97,7 +103,7 @@ wards_with_multiple <- ward_counts %>%
 
 # Create analysis flags
 alderman_ward_scores <- alderman_ward_scores %>%
-    left_join(ward_counts, by = "ward") %>%
+    left_join(ward_counts, by = "ward", relationship = "many-to-one") %>%
     mutate(in_analysis_sample = ward %in% wards_with_multiple)
 
 analysis_sample <- alderman_ward_scores %>%
@@ -186,7 +192,7 @@ ward_stats <- alderman_ward_scores %>%
 
 # Merge back
 plot_data <- alderman_ward_scores %>%
-    left_join(ward_stats, by = "ward")
+    left_join(ward_stats, by = "ward", relationship = "many-to-one")
 
 # Find notable examples for annotation
 notable_wards <- ward_stats %>%
@@ -258,9 +264,9 @@ turnover_pairs <- alderman_sequence %>%
 # Merge with scores
 turnover_pairs <- turnover_pairs %>%
     inner_join(scores %>% select(alderman, stringency_index) %>% rename(predecessor_score = stringency_index),
-               by = c("predecessor" = "alderman")) %>%
+               by = c("predecessor" = "alderman"), relationship = "many-to-one") %>%
     inner_join(scores %>% select(alderman, stringency_index) %>% rename(successor_score = stringency_index),
-               by = c("successor" = "alderman"))
+               by = c("successor" = "alderman"), relationship = "many-to-one")
 
 message(sprintf("Created %d predecessor-successor pairs with both scores", nrow(turnover_pairs)))
 

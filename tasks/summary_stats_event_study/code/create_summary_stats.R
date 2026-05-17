@@ -10,6 +10,7 @@ source("../../setup_environment/code/packages.R")
 # LOAD DATA
 # =============================================================================
 message("Loading data...")
+SUMMARY_BW_M <- 250
 
 # Sales: 2012 cohort (announcement timing for 2015 redistricting)
 sales <- read_parquet("../input/sales_transaction_panel_2012.parquet")
@@ -21,22 +22,29 @@ rental <- read_parquet("../input/rental_listing_panel.parquet")
 setDT(rental)
 message(sprintf("Rentals (stacked): %s listings", format(nrow(rental), big.mark = ",")))
 
+if (!"dist_m" %in% names(sales)) {
+    stop("Sales panel must include meter-native dist_m.", call. = FALSE)
+}
+if (!"dist_m" %in% names(rental)) {
+    stop("Rental panel must include meter-native dist_m.", call. = FALSE)
+}
+
 # =============================================================================
 # APPLY SAMPLE RESTRICTIONS (match regression sample)
 # =============================================================================
 message("\nApplying sample restrictions...")
 
-# Sales: 1000ft bandwidth
-sales_sample <- sales[dist_ft <= 1000]
-message(sprintf("Sales after 1000ft restriction: %s transactions", format(nrow(sales_sample), big.mark = ",")))
+# Sales: 250m bandwidth
+sales_sample <- sales[dist_m <= SUMMARY_BW_M]
+message(sprintf("Sales after %dm restriction: %s transactions", SUMMARY_BW_M, format(nrow(sales_sample), big.mark = ",")))
 
-# Rentals: 1000ft bandwidth + complete hedonics (to match regression sample)
-rental_sample <- rental[dist_ft <= 1000]
+# Rentals: 250m bandwidth + complete hedonics (to match regression sample)
+rental_sample <- rental[dist_m <= SUMMARY_BW_M]
 
 # Restrict to complete hedonic sample for comparability
 hedonic_vars <- c("log_sqft", "log_beds", "log_baths", "building_type_clean")
 rental_sample <- rental_sample[complete.cases(rental_sample[, ..hedonic_vars])]
-message(sprintf("Rentals after 1000ft + complete hedonics: %s listings", format(nrow(rental_sample), big.mark = ",")))
+message(sprintf("Rentals after %dm + complete hedonics: %s listings", SUMMARY_BW_M, format(nrow(rental_sample), big.mark = ",")))
 
 # =============================================================================
 # CREATE TREATMENT GROUP VARIABLE
@@ -79,7 +87,7 @@ compute_sales_stats <- function(data, group_name = "Full Sample") {
         median_price = median(data$sale_price, na.rm = TRUE),
         # Treatment
         mean_strictness = if (group_name == "Full Sample") NA_real_ else mean(data$strictness_change, na.rm = TRUE),
-        mean_dist = mean(data$dist_ft, na.rm = TRUE),
+        mean_dist = mean(data$dist_m, na.rm = TRUE),
         # Hedonics (use raw values, not logs)
         mean_sqft = mean(data$building_sqft, na.rm = TRUE),
         mean_age = mean(data$building_age, na.rm = TRUE),
@@ -127,7 +135,7 @@ compute_rental_stats <- function(data, group_name = "Full Sample") {
         median_rent = median(data$rent_price, na.rm = TRUE),
         # Treatment
         mean_strictness = if (group_name == "Full Sample") NA_real_ else mean(data$strictness_change, na.rm = TRUE),
-        mean_dist = mean(data$dist_ft, na.rm = TRUE),
+        mean_dist = mean(data$dist_m, na.rm = TRUE),
         # Hedonics (use raw values)
         mean_sqft = mean(data$sqft, na.rm = TRUE),
         mean_bedrooms = mean(data$beds, na.rm = TRUE),
@@ -202,7 +210,7 @@ tex_lines <- c(
     make_row("Mean sale price (\\$)", sales_stats$mean_price, fmt_dollar),
     make_row("Median sale price (\\$)", sales_stats$median_price, fmt_dollar),
     make_row("Mean $\\Delta$ strictness", sales_stats$mean_strictness, fmt_strictness),
-    make_row("Mean dist.\\ to boundary (ft)", sales_stats$mean_dist, fmt_int),
+    make_row("Mean dist.\\ to boundary (m)", sales_stats$mean_dist, fmt_int),
     "\\addlinespace",
     make_row("Mean building sqft", sales_stats$mean_sqft, fmt_int),
     make_row("Mean building age (years)", sales_stats$mean_age, fmt_dec1),
@@ -228,7 +236,7 @@ tex_lines <- c(
     make_row("Mean rent (\\$)", rental_stats$mean_rent, fmt_dollar),
     make_row("Median rent (\\$)", rental_stats$median_rent, fmt_dollar),
     make_row("Mean $\\Delta$ strictness", rental_stats$mean_strictness, fmt_strictness),
-    make_row("Mean dist.\\ to boundary (ft)", rental_stats$mean_dist, fmt_int),
+    make_row("Mean dist.\\ to boundary (m)", rental_stats$mean_dist, fmt_int),
     "\\addlinespace",
     make_row("Mean sqft", rental_stats$mean_sqft, fmt_int),
     make_row("Mean bedrooms", rental_stats$mean_bedrooms, fmt_dec2),
@@ -245,7 +253,7 @@ tex_lines <- c(
     "\\end{tabular}",
     "\\begin{tablenotes}",
     "\\small",
-    "\\item \\textit{Notes:} Sample restricted to transactions/listings within 1,000 feet of ward boundaries.",
+    sprintf("\\item \\textit{Notes:} Sample restricted to transactions/listings within %dm of ward boundaries.", SUMMARY_BW_M),
     "Panel A uses the 2012 announcement cohort for the 2015 redistricting (sales 2007--2017).",
     "Panel B pools the 2015 and 2023 redistricting cohorts using implementation timing;",
     "rental sample restricted to listings with non-missing hedonic characteristics.",

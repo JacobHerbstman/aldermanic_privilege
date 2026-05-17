@@ -37,6 +37,9 @@ use_year <- as.integer(format(month_dt, "%Y"))
 # Shapes for the chosen year
 wards <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
   filter(year == use_year)
+if (anyDuplicated(st_drop_geometry(wards)$ward) > 0) {
+  stop("Ward panel must be unique by ward for the selected map year.", call. = FALSE)
+}
 
 # Scores (alderman-level, time-invariant)
 scores_raw <- read_csv(scores_file,
@@ -50,21 +53,55 @@ if (!score_col %in% names(scores_raw)) {
 scores <- scores_raw %>%
   transmute(alderman,
             score = suppressWarnings(as.numeric(.data[[score_col]])))
+if (anyDuplicated(scores$alderman) > 0) {
+  stop("Scores must be unique by alderman before joining to wards.", call. = FALSE)
+}
 
 # Alderman → Ward mapping for the chosen year
 panel <- read_csv("../input/chicago_alderman_panel.csv",
                   show_col_types = FALSE) %>%
+  mutate(month = as.yearmon(month)) %>%
   filter(month == as.yearmon(month_dt)) %>%
   transmute(ward,
             alderman = str_squish(str_to_lower(alderman)))
+if (anyDuplicated(panel$ward) > 0) {
+  stop("Alderman panel must be unique by ward for the selected map month.", call. = FALSE)
+}
 
 # Join: scores → panel (get ward) → polygons
 ward_scores <- panel %>%
-  left_join(scores, by = "alderman") %>%
-  distinct(ward, .keep_all = TRUE)
+  left_join(scores, by = "alderman", relationship = "many-to-one")
+if (any(is.na(ward_scores$score))) {
+  missing_scores <- ward_scores %>%
+    filter(is.na(score)) %>%
+    arrange(ward)
+  stop(
+    paste0(
+      "Missing uncertainty scores for map aldermen: ",
+      paste(unique(missing_scores$alderman), collapse = ", ")
+    ),
+    call. = FALSE
+  )
+}
+if (anyDuplicated(ward_scores$ward) > 0) {
+  stop("Ward scores must be unique by ward before joining to ward geometries.", call. = FALSE)
+}
 
 ward_map <- wards %>%
-  left_join(ward_scores, by = "ward")
+  left_join(ward_scores, by = "ward", relationship = "many-to-one")
+if (any(is.na(ward_map$score))) {
+  missing_wards <- ward_map %>%
+    st_drop_geometry() %>%
+    filter(is.na(score)) %>%
+    arrange(ward)
+  stop(
+    paste0(
+      "Ward map has geometries without matched scores: ",
+      paste(missing_wards$ward, collapse = ", ")
+    ),
+    call. = FALSE
+  )
+}
 
 p <- ggplot(ward_map) +
   geom_sf(aes(fill = score), color = "grey20", linewidth = 0.2) +
@@ -75,8 +112,6 @@ p <- ggplot(ward_map) +
   theme_void() +
   theme(legend.position = "bottom",
         plot.title = element_text(hjust = 0.5))
-
-p
 
 ggsave(outfile, plot = p, width = 8, height = 10, dpi = 300)
 cat("Map saved to", outfile, "\n")

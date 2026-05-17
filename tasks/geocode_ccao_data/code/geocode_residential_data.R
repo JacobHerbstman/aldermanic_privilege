@@ -10,10 +10,26 @@ chicago_lon_min <- -89
 chicago_lon_max <- -87
 
 # ---- Load ----
-residential      <- read_csv("../input/residential_cross_section.csv",   show_col_types = FALSE)
-parcels          <- read_csv("../input/parcels.csv",  show_col_types = FALSE)
-parcel_proximity <- read_csv("../input/parcel_proximity.csv", show_col_types = FALSE)
-multifamily      <- read_csv("../input/multifamily_data_cleaned.csv", show_col_types = FALSE)
+residential <- read_csv(
+  "../input/residential_cross_section.csv",
+  show_col_types = FALSE,
+  col_types = cols(pin = col_character(), .default = col_guess())
+)
+parcels <- read_csv(
+  "../input/parcels.csv",
+  show_col_types = FALSE,
+  col_types = cols(pin = col_character(), pin10 = col_character(), .default = col_guess())
+)
+parcel_proximity <- read_csv(
+  "../input/parcel_proximity.csv",
+  show_col_types = FALSE,
+  col_types = cols(pin10 = col_character(), .default = col_guess())
+)
+multifamily <- read_csv(
+  "../input/multifamily_data_cleaned.csv",
+  show_col_types = FALSE,
+  col_types = cols(pin = col_character(), .default = col_guess())
+)
 
 # ---- Prep Parcels (Geo) ----
 parcels <- parcels %>%

@@ -1,5 +1,5 @@
 ## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/building_permits_scraping/code")
 
 source("../../setup_environment/code/packages.R")
 
@@ -97,7 +97,7 @@ normalize_text <- function(x) {
   trimws(x)
 }
 
-input_file <- "../input/Building_Permits_20251121.csv"
+input_file <- "../input/building_permits.csv"
 output_permit_file <- "../output/building_permits_text_features.csv.gz"
 output_project_file <- "../output/building_permit_project_features.csv.gz"
 output_parcel_file <- "../output/building_permit_parcel_features.csv.gz"

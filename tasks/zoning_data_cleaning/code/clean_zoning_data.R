@@ -1,7 +1,7 @@
 # This script creates a shapefile of zoning codes around the city and their regulations such as FAR and LAPU
 
 ## run this line when editing code in Rstudio 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/"task"/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/zoning_data_cleaning/code")
 
 source("../../setup_environment/code/packages.R")
 
@@ -21,7 +21,9 @@ num_ft    <- function(x){ raw <- str_extract(x %||% "", regex("([0-9]+(?:,[0-9]{
 
 # --- read + normalize/drop in one go ---
 zones_sf <- st_read("../input/raw_zoning_data.geojson") %>%
-  transmute(zone_code = norm_code(zone_class), geometry)
+  transmute(zone_code = norm_code(zone_class), geometry) %>%
+  st_make_valid() %>%
+  st_transform(3435)
 
 regs <- read_csv("../input/zoning-code-summary-district-types.csv", show_col_types = FALSE) %>%
   transmute(
@@ -42,7 +44,8 @@ regs <- read_csv("../input/zoning-code-summary-district-types.csv", show_col_typ
   )
 
 # --- join + quick QA ---
-zones_with_regs <- zones_sf %>% left_join(regs, by = "zone_code")
+zones_with_regs <- zones_sf %>%
+  left_join(regs, by = "zone_code", relationship = "many-to-one")
 unmatched <- anti_join(zones_sf, regs, by = "zone_code")
 message("Unmatched zone codes: ", nrow(unmatched))
 

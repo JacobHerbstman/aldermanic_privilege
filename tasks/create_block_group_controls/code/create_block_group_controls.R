@@ -5,8 +5,12 @@
 
 source("../../setup_environment/code/packages.R")
 
-## set census api key if not already done
+if (Sys.getenv("CENSUS_API_KEY") == "") {
+  stop("CENSUS_API_KEY not found in the environment.", call. = FALSE)
+}
 census_api_key(Sys.getenv("CENSUS_API_KEY"))
+
+census_metadata_timestamp <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
 
 # -----------------------------------------------------------------------------
 # 1. DEFINE VARIABLES
@@ -51,7 +55,7 @@ acs_vars <- c(
 # -----------------------------------------------------------------------------
 # Function to download and clean ACS data for a single year
 get_bg_data <- function(year_to_get) {
-  get_acs(
+  acs_raw <- get_acs(
     geography = "block group",
     variables = acs_vars,
     state = "IL",
@@ -59,17 +63,39 @@ get_bg_data <- function(year_to_get) {
     year = year_to_get,
     survey = "acs5",
     output = "wide"
-  ) %>%
+  )
+
+  list(
+    data = acs_raw %>%
     st_drop_geometry() %>%
     select(GEOID, ends_with("E")) %>% # Keep only GEOID and estimate columns
-    rename_with(~ sub("E$", "", .), .cols = everything())
+      rename_with(~ sub("E$", "", .), .cols = everything()),
+    metadata = tibble(
+      source = "tidycensus::get_acs",
+      product = "acs",
+      year = as.integer(year_to_get),
+      survey = "acs5",
+      sumfile = NA_character_,
+      geography = "block group",
+      state = "IL",
+      county = "Cook",
+      variables = paste(unname(acs_vars), collapse = ";"),
+      geometry = FALSE,
+      rows = nrow(acs_raw),
+      geographies = n_distinct(acs_raw$GEOID),
+      downloaded_at_utc = census_metadata_timestamp
+    )
+  )
 }
 
 # Download the pre-period (2009-2013) and post-period (2015-2019) data
 message("Downloading pre-period ACS data (2014 5-year)...")
-pre_period_data <- get_bg_data(2014)
+pre_period_download <- get_bg_data(2014)
+pre_period_data <- pre_period_download$data
 message("Downloading post-period ACS data (2019 5-year)...")
-post_period_data <- get_bg_data(2019)
+post_period_download <- get_bg_data(2019)
+post_period_data <- post_period_download$data
+census_metadata <- bind_rows(pre_period_download$metadata, post_period_download$metadata)
 
 
 # -----------------------------------------------------------------------------
@@ -92,17 +118,36 @@ combined_acs_data <- bind_rows(
 
 # Join the ACS data to the panel template
 bg_controls_raw <- panel_template %>%
-  left_join(combined_acs_data, by = c("GEOID", "period"))
+  left_join(combined_acs_data, by = c("GEOID", "period"), relationship = "many-to-one")
 
 # -----------------------------------------------------------------------------
 # 4. CALCULATE FINAL CONTROL VARIABLES
 # -----------------------------------------------------------------------------
 # Population density requires area, which is time-invariant
 message("Getting block group geometries for area calculation...")
-block_group_geometry_2019 <- get_acs(
+block_group_geometry_2019_raw <- get_acs(
   geography = "block group", variables = "B01003_001",
   state = "IL", county = "Cook", year = 2019, geometry = TRUE
-) %>%
+)
+census_metadata <- bind_rows(
+  census_metadata,
+  tibble(
+    source = "tidycensus::get_acs",
+    product = "acs",
+    year = 2019L,
+    survey = "acs5",
+    sumfile = NA_character_,
+    geography = "block group",
+    state = "IL",
+    county = "Cook",
+    variables = "B01003_001",
+    geometry = TRUE,
+    rows = nrow(block_group_geometry_2019_raw),
+    geographies = n_distinct(block_group_geometry_2019_raw$GEOID),
+    downloaded_at_utc = census_metadata_timestamp
+  )
+)
+block_group_geometry_2019 <- block_group_geometry_2019_raw %>%
   select(GEOID, geometry)
 
 if (nrow(block_group_geometry_2019) == 0) {
@@ -138,7 +183,7 @@ block_group_areas <- block_group_geometry_2019 %>%
 # Calculate the final variables
 message("Calculating derived variables...")
 bg_controls <- bg_controls_raw %>%
-  left_join(block_group_areas, by = "GEOID") %>%
+  left_join(block_group_areas, by = "GEOID", relationship = "many-to-one") %>%
   mutate(
     # Race/Ethnicity shares
     percent_white = white_population / total_population,
@@ -183,6 +228,12 @@ message(sprintf("Years: %s to %s", min(bg_controls$year), max(bg_controls$year))
 
 write_csv(bg_controls, "../output/block_group_controls.csv")
 message("Saved to ../output/block_group_controls.csv")
+
+write_csv(
+  census_metadata %>% arrange(year, product, geometry),
+  "../output/block_group_controls_census_metadata.csv"
+)
+message("Saved to ../output/block_group_controls_census_metadata.csv")
 
 st_write(
   block_group_geometry_2019,
