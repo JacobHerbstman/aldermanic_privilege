@@ -1445,7 +1445,7 @@ if (upstream_branch_verdicts$stoplight[upstream_branch_verdicts$branch == "home_
     branch = "home_sales",
     finding_class = "robustness_fragility",
     upstream_stage = "sales_geocode_or_block_segment_assignment",
-    rebuild_tasks = "calculate_sale_distances -> merge_event_study_scores -> create_event_study_sales_data_disaggregate -> run_event_study_sales_disaggregate -> event_study_sales_diagnostics",
+    rebuild_tasks = "calculate_sale_distances -> merge_event_study_scores -> create_event_study_sales_data_disaggregate -> run_event_study_sales_disaggregate; create_event_study_permit_data -> event_study_treatment_maps",
     rationale = "Home-sales branch depends on scored sales distances and event-study panel assignment."
   )
 }

@@ -117,7 +117,6 @@ parcels_fe <- read_csv(
     pin = as.character(pin),
     construction_year = suppressWarnings(as.integer(construction_year)),
     segment_id = as.character(segment_id),
-    strictness_own = strictness_own / sd(strictness_own, na.rm = TRUE),
     zone_group = zone_group_from_code(zone_code),
     lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
     strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0)
@@ -150,7 +149,7 @@ if (drop_ambiguous_within_bw) {
   }
 
   parcels_fe <- parcels_fe %>%
-    left_join(ambiguity_df, by = c("pin", "construction_year"))
+    left_join(ambiguity_df, by = c("pin", "construction_year"), relationship = "many-to-one")
 }
 
 if (sample_filter == "all") {
@@ -235,8 +234,8 @@ if (prune_sample == "pruned") {
       pair_dash = normalize_pair_dash(ward_pair),
       era = era_from_year(construction_year)
     ) %>%
-    left_join(conf_flags, by = c("pair_dash", "era")) %>%
-    left_join(segment_flags, by = c("pair_dash", "era", "segment_id"))
+    left_join(conf_flags, by = c("pair_dash", "era"), relationship = "many-to-one") %>%
+    left_join(segment_flags, by = c("pair_dash", "era", "segment_id"), relationship = "many-to-one")
 
   if (anyNA(parcels_fe$pair_dash) || anyNA(parcels_fe$era)) {
     stop("Pruned FE sample has invalid ward-pair or era keys before joining confound flags.", call. = FALSE)
@@ -385,6 +384,8 @@ model_sample <- function(df, yv, base_var) {
   if (need_segment) {
     out <- out %>% filter(!is.na(segment_id), segment_id != "")
   }
+
+  out <- out %>% filter(is.finite(.data[[base_var]]))
 
   if (str_detect(yv, "^log\\(.+\\)$")) {
     out <- out %>% filter(.data[[base_var]] > 0)

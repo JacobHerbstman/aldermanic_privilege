@@ -15,11 +15,13 @@ all: \
 	BANDWIDTH_LABEL=$(EVENT_STUDY_BW_LABEL) Rscript build_event_study_exact_balance.R ../input/permit_block_year_panel_2015.parquet ../input/sales_transaction_panel_2015.parquet ../output/block_parcel_baselines_2014.csv ../output/permit_exact_balance_summary_$(EVENT_STUDY_BW_LABEL).csv ../output/permit_exact_balance_summary_$(EVENT_STUDY_BW_LABEL).tex ../output/sales_exact_balance_summary_$(EVENT_STUDY_BW_LABEL).csv ../output/sales_exact_balance_summary_$(EVENT_STUDY_BW_LABEL).tex $(EVENT_STUDY_BW_M)
 
 ../output/permit_exact_balance_summary_$(EVENT_STUDY_BW_LABEL).tex ../output/sales_exact_balance_summary_$(EVENT_STUDY_BW_LABEL).csv ../output/sales_exact_balance_summary_$(EVENT_STUDY_BW_LABEL).tex: ../output/permit_exact_balance_summary_$(EVENT_STUDY_BW_LABEL).csv
+	@test -s "$@"
 
 ../output/redistricting_sample_support_summary_$(EVENT_STUDY_BW_LABEL).csv: build_redistricting_sample_support.R ../input/permit_block_year_panel_2015.parquet ../input/sales_transaction_panel_2015.parquet ../output/block_parcel_baselines_2014.csv | ../output
 	BANDWIDTH_LABEL=$(EVENT_STUDY_BW_LABEL) Rscript build_redistricting_sample_support.R ../input/permit_block_year_panel_2015.parquet ../input/sales_transaction_panel_2015.parquet ../output/block_parcel_baselines_2014.csv ../output/redistricting_sample_support_summary_$(EVENT_STUDY_BW_LABEL).csv ../output/redistricting_sample_support_summary_$(EVENT_STUDY_BW_LABEL).tex $(EVENT_STUDY_BW_M)
 
 ../output/redistricting_sample_support_summary_$(EVENT_STUDY_BW_LABEL).tex: ../output/redistricting_sample_support_summary_$(EVENT_STUDY_BW_LABEL).csv
+	@test -s "$@"
 
 ../input/geocoded_residential_data.gpkg: ../../geocode_ccao_data/output/geocoded_residential_data.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

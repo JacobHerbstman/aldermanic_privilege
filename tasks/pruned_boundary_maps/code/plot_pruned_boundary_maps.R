@@ -36,15 +36,17 @@ normalize_pair_dash <- function(x) {
   x <- as.character(x)
   x <- gsub("_", "-", x, fixed = TRUE)
   x <- trimws(x)
-  x <- x[grepl("^[0-9]+-[0-9]+$", x)]
-  if (length(x) == 0) return(character())
-  parts <- strsplit(x, "-", fixed = TRUE)
-  vapply(parts, function(v) {
+  ok <- grepl("^[0-9]+-[0-9]+$", x)
+  out <- rep(NA_character_, length(x))
+  if (!any(ok)) return(out)
+  parts <- strsplit(x[ok], "-", fixed = TRUE)
+  out[ok] <- vapply(parts, function(v) {
     a <- suppressWarnings(as.integer(v[1]))
     b <- suppressWarnings(as.integer(v[2]))
     if (!is.finite(a) || !is.finite(b)) return(NA_character_)
     paste(min(a, b), max(a, b), sep = "-")
   }, character(1))
+  out
 }
 
 era_from_year <- function(y) {
@@ -81,6 +83,12 @@ pair_flags <- unique(pair_flags[, .(
   expressway_overlap_share,
   arterial_overlap_share
 )])
+if (anyNA(pair_flags$pair_dash) || anyNA(pair_flags$era)) {
+  stop("Pair pruning flags contain invalid pair-era keys.", call. = FALSE)
+}
+if (anyDuplicated(pair_flags[, .(pair_dash, era)]) > 0) {
+  stop("Pair pruning flags contain duplicate pair-era keys.", call. = FALSE)
+}
 pair_flags[, barrier_margin := as.numeric(share_physical_barrier_length) - pair_physical_barrier_drop_share]
 pair_flags[, expressway_margin := as.numeric(expressway_overlap_share) - pair_expressway_drop_share]
 pair_flags[, arterial_margin := as.numeric(arterial_overlap_share) - pair_arterial_drop_share]
@@ -131,6 +139,12 @@ segment_flags <- unique(segment_flags[, .(
   expressway_overlap_share = as.numeric(expressway_overlap_share),
   arterial_overlap_share = as.numeric(arterial_overlap_share)
 )])
+if (anyNA(segment_flags$pair_dash) || anyNA(segment_flags$era) || anyNA(segment_flags$segment_id)) {
+  stop("Segment pruning flags contain invalid pair-era-segment keys.", call. = FALSE)
+}
+if (anyDuplicated(segment_flags[, .(pair_dash, era, segment_id)]) > 0) {
+  stop("Segment pruning flags contain duplicate pair-era-segment keys.", call. = FALSE)
+}
 flags <- pair_flags
 
 parcels <- fread(parcels_csv, select = c("ward_pair", "construction_year", "strictness_own", "strictness_neighbor"))
@@ -147,6 +161,9 @@ gap <- parcels[, .(
   strictness_gap = median(abs(strictness_own - strictness_neighbor), na.rm = TRUE),
   gap_obs = .N
 ), by = .(pair_dash, era)]
+if (anyDuplicated(gap[, .(pair_dash, era)]) > 0) {
+  stop("Strictness-gap summary contains duplicate pair-era keys.", call. = FALSE)
+}
 
 read_line_layer <- function(era_name) {
   x <- st_read(segments_gpkg, layer = era_name, quiet = TRUE)

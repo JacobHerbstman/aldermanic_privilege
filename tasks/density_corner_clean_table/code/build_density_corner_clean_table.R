@@ -2,11 +2,11 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_corner_clean_table/code")
-# baseline_summary_path <- "../output/fe_summary_100m_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv"
-# corner_clean_summary_path <- "../output/fe_summary_100m_all_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv"
+# baseline_summary_path <- "../output/fe_summary_500ft_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv"
+# corner_clean_summary_path <- "../output/fe_summary_500ft_all_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv"
 # ambiguity_summary_path <- "../input/boundary_ambiguity_by_bw.csv"
-# output_tex <- "../output/fe_table_100m_all_corner_clean_compare.tex"
-# bandwidth_m <- 100
+# output_tex <- "../output/fe_table_500ft_all_corner_clean_compare.tex"
+# bandwidth_m <- 152.4
 # sample_filter <- "all"
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -83,6 +83,10 @@ corner_clean_panel <- corner_clean_summary %>%
 
 if (nrow(baseline_panel) != 2 || nrow(corner_clean_panel) != 2) {
   stop("Expected exactly two outcomes in each summary file.", call. = FALSE)
+}
+
+if (anyDuplicated(baseline_panel$yvar) > 0 || anyDuplicated(corner_clean_panel$yvar) > 0) {
+  stop("Corner-clean summaries contain duplicate outcome rows.", call. = FALSE)
 }
 
 if (!all(baseline_panel$yvar == panel_order) || !all(corner_clean_panel$yvar == panel_order)) {

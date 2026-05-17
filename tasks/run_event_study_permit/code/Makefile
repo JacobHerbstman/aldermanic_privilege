@@ -49,6 +49,7 @@ segment_length_robustness: $(SEGMENT_LENGTH_ROBUSTNESS_OUTPUTS)
 	MIN_SEGMENT_LENGTH_FT=1000 Rscript run_event_study_permit.R cohort_2015 high_discretion issue ppml continuous_split uniform $(MAIN_BW_M) within_block full ward_pair block none none $(MAIN_BW_LABEL)
 
 ../output/event_study_combined_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.pdf: ../output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.pdf
+	@test -s "$@"
 
 ../output/event_study_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.pdf: run_event_study_permit.R ../../_lib/event_study_plot_helpers.R ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv | ../output
 	Rscript run_event_study_permit.R cohort_2015 low_discretion_nosigns issue ppml continuous uniform $(MAIN_BW_M) within_block full ward_pair block none none $(MAIN_BW_LABEL)

@@ -25,16 +25,19 @@ all: ../output/predecessor_successor_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf
 	Rscript analyze_within_ward_variation.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv uncertainty_index "Regulatory Stringency Index" uncertainty_$(UNCERTAINTY_SPEC)
 
 ../output/ward_alderman_summary_uncertainty_$(UNCERTAINTY_SPEC).csv ../output/within_ward_dotplot_uncertainty_$(UNCERTAINTY_SPEC).pdf ../output/variance_decomposition_uncertainty_$(UNCERTAINTY_SPEC).csv: ../output/predecessor_successor_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf
+	@test -s "$@"
 
 ../output/low_vs_high_processing_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf: analyze_low_vs_high_processing_correlation.R ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv | ../output
 	Rscript analyze_low_vs_high_processing_correlation.R $(UNCERTAINTY_SPEC) ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../output/low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv ../output/low_vs_high_processing_correlation_summary_uncertainty_$(UNCERTAINTY_SPEC).csv ../output/low_vs_high_processing_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf
 
 ../output/low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv ../output/low_vs_high_processing_correlation_summary_uncertainty_$(UNCERTAINTY_SPEC).csv: ../output/low_vs_high_processing_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf
+	@test -s "$@"
 
 ../output/residualized_low_vs_high_processing_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf: analyze_residualized_high_low_processing_correlation.R ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/cta_stations.geojson ../input/gis_osm_water_a_free_1.shp | ../output
 	Rscript analyze_residualized_high_low_processing_correlation.R $(UNCERTAINTY_SPEC) ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/cta_stations.geojson ../input/gis_osm_water_a_free_1.shp ../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv ../output/residualized_low_vs_high_processing_correlation_summary_uncertainty_$(UNCERTAINTY_SPEC).csv ../output/residualized_low_vs_high_processing_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf
 
 ../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv ../output/residualized_low_vs_high_processing_correlation_summary_uncertainty_$(UNCERTAINTY_SPEC).csv: ../output/residualized_low_vs_high_processing_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf
+	@test -s "$@"
 
 ../output/low_discretion_falsification_summary_uncertainty_$(UNCERTAINTY_SPEC).csv: run_low_discretion_falsification_regression.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv | ../output
 	Rscript run_low_discretion_falsification_regression.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv ../output/low_discretion_falsification_summary_uncertainty_$(UNCERTAINTY_SPEC).csv ../output/low_discretion_falsification_uncertainty_$(UNCERTAINTY_SPEC).tex ../output/low_discretion_falsification_compact_uncertainty_$(UNCERTAINTY_SPEC).tex

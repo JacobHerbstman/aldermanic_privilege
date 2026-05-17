@@ -6,10 +6,10 @@ all: ../output/parcels_pre_scores.csv ../output/parcels_with_geometry.gpkg ../ou
 	$(R) calculate_distances.R
 
 ../output/parcels_with_geometry.gpkg: ../output/parcels_pre_scores.csv
-	test -f ../output/parcels_with_geometry.gpkg
+	@test -s "$@"
 
 ../output/parcel_geometry_diagnostics.csv: ../output/parcels_pre_scores.csv
-	test -f ../output/parcel_geometry_diagnostics.csv
+	@test -s "$@"
 
 ../input/geocoded_residential_data.gpkg: ../../geocode_ccao_data/output/geocoded_residential_data.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

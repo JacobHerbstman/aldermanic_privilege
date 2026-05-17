@@ -215,7 +215,7 @@ make_support_table <- function(df, event_var, time_fe_var, fe_group_var, fe_side
     )
 
   event_support %>%
-    left_join(cell_event_support, by = "event_time") %>%
+    left_join(cell_event_support, by = "event_time", relationship = "one-to-one") %>%
     mutate(
       n_fe_group_time_cells = replace_na(n_fe_group_time_cells, 0L),
       n_identifying_fe_group_time_cells = replace_na(n_identifying_fe_group_time_cells, 0L),

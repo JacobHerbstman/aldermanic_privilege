@@ -1,23 +1,14 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
-#   "../output/rd_fe_plot_%s%s_%dm_%s_%s.pdf",
-#   ifelse(use_log, "log_", ""), yvar, bandwidth_m, sample_filter, fe_spec
-# )
-# source("spatial_rd_fe.R")
-
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
-# arg order: yvar use_log bandwidth_m sample fe_spec output_pdf [plot_style] [gap_split]
-# sample: "all" (unitscount > 0) | "multifamily" (unitscount > 1)
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/spatial_rd_fe/code")
 # yvar <- "density_far"
 # use_log <- TRUE
-# bandwidth_m <- 100
+# bandwidth_m <- 152.4
 # sample_filter <- "multifamily"
 # fe_spec <- "zonegroup_segment_year_additive"
-# output_pdf <- "../output/rd_fe_plot_log_density_far_100m_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf"
+# output_pdf <- "../output/rd_fe_plot_log_density_far_500ft_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf"
 # plot_style <- "slope"
 # gap_split <- "all"
 
@@ -131,15 +122,8 @@ if (!yvar %in% names(raw)) {
   stop(sprintf("yvar '%s' not found in data.", yvar), call. = FALSE)
 }
 
-strictness_sd <- sd(raw$strictness_own, na.rm = TRUE)
-if (!is.finite(strictness_sd) || strictness_sd <= 0) {
-  stop("Could not compute a valid strictness standard deviation.", call. = FALSE)
-}
-
 dat <- raw %>%
   mutate(
-    strictness_own = strictness_own / strictness_sd,
-    strictness_neighbor = strictness_neighbor / strictness_sd,
     zone_group = zone_group_from_code(zone_code)
   ) %>%
   filter(
@@ -180,7 +164,7 @@ if (prune_sample == "pruned") {
       pair_dash = normalize_pair_dash(ward_pair),
       era = era_from_year(construction_year)
     ) %>%
-    left_join(conf_flags, by = c("pair_dash", "era"))
+    left_join(conf_flags, by = c("pair_dash", "era"), relationship = "many-to-one")
 
   n_missing <- sum(is.na(dat$keep_pair_era))
   if (n_missing > 0) {

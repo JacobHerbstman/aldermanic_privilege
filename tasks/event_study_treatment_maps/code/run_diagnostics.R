@@ -2,7 +2,7 @@ source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_sales_diagnostics/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_treatment_maps/code")
 # bandwidth_m <- 304.8
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -46,30 +46,37 @@ categorize_treatment <- function(treat, strictness_change) {
   )
 }
 
-build_sales_block_candidates <- function(path, cohort_label) {
+build_permit_block_candidates <- function(path, cohort_label) {
   candidates <- read_parquet(path) %>%
     as_tibble() %>%
     filter(
       dist_m <= bandwidth_m,
+      relative_year >= -5,
+      relative_year <= 5,
       !is.na(block_id),
       block_id != "",
       !is.na(ward_pair_id),
-      ward_pair_id != ""
+      ward_pair_id != "",
+      !is.na(strictness_change)
     ) %>%
     mutate(
       block_id = as.character(block_id),
       cohort = cohort_label,
       display_ward_pair_id = normalize_pair_label(ward_pair_id)
     ) %>%
-    arrange(block_id, dist_m, display_ward_pair_id) %>%
-    group_by(block_id, cohort) %>%
-    slice(1) %>%
-    ungroup() %>%
     transmute(
       block_id,
       cohort,
       ward_pair_id = display_ward_pair_id
-    )
+    ) %>%
+    distinct()
+
+  duplicate_candidates <- candidates %>%
+    count(block_id, cohort, name = "n_assignments") %>%
+    filter(n_assignments > 1)
+  if (nrow(duplicate_candidates) > 0) {
+    stop("Permit event-study panel has multiple boundary assignments for the same cohort-block.", call. = FALSE)
+  }
 
   candidates
 }
@@ -102,9 +109,9 @@ make_citywide_map <- function(blocks_sf, ward_year, title_text) {
     )
 }
 
-message("Loading corrected sales event-study panels...")
-sales_blocks_2015 <- build_sales_block_candidates("../input/sales_transaction_panel_2015.parquet", "2015")
-sales_blocks_2023 <- build_sales_block_candidates("../input/sales_transaction_panel_2023.parquet", "2023")
+message("Loading corrected permit event-study panels...")
+permit_blocks_2015 <- build_permit_block_candidates("../input/permit_block_year_panel_2015.parquet", "2015")
+permit_blocks_2023 <- build_permit_block_candidates("../input/permit_block_year_panel_2023.parquet", "2023")
 
 message("Loading block treatment assignments...")
 block_treatment <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
@@ -122,11 +129,11 @@ if (nrow(duplicate_treatment) > 0) {
   stop("Block treatment panel has duplicate cohort-block assignments.", call. = FALSE)
 }
 
-sample_2015 <- sales_blocks_2015 %>%
+sample_2015 <- permit_blocks_2015 %>%
   left_join(block_treatment, by = c("block_id", "cohort"), relationship = "one-to-one") %>%
   filter(!is.na(strictness_change)) %>%
   mutate(treatment_group = categorize_treatment(treat, strictness_change))
-sample_2023 <- sales_blocks_2023 %>%
+sample_2023 <- permit_blocks_2023 %>%
   left_join(block_treatment, by = c("block_id", "cohort"), relationship = "one-to-one") %>%
   filter(!is.na(strictness_change)) %>%
   mutate(treatment_group = categorize_treatment(treat, strictness_change))

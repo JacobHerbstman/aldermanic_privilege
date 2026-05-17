@@ -53,12 +53,39 @@ summaries <- bind_rows(
     )
   )
 
+expected_rows <- tidyr::expand_grid(
+  sample_label = c("All Construction", "Multifamily"),
+  yvar = c("log(density_far)", "log(density_dupac)")
+)
+
+summary_keys <- summaries %>%
+  count(sample_label, yvar, name = "n")
+
+missing_rows <- anti_join(
+  expected_rows,
+  summary_keys,
+  by = c("sample_label", "yvar")
+)
+
+duplicate_rows <- summary_keys %>% filter(n > 1)
+
+if (nrow(missing_rows) > 0) {
+  stop("Missing expected density FE summary rows.", call. = FALSE)
+}
+if (nrow(duplicate_rows) > 0) {
+  stop("Duplicate density FE summary rows.", call. = FALSE)
+}
+
 ordered <- summaries %>%
   mutate(
     sample_order = match(sample_label, c("All Construction", "Multifamily")),
     outcome_order = match(outcome_short, c("FAR", "DUPAC"))
   ) %>%
   arrange(sample_order, outcome_order)
+
+if (nrow(ordered) != 4) {
+  stop("Expected exactly four rows in the combined density FE table.", call. = FALSE)
+}
 
 table_lines <- c(
   "\\begingroup",

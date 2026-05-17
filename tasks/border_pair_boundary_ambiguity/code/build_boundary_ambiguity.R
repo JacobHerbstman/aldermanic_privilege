@@ -93,7 +93,7 @@ if (anyDuplicated(st_drop_geometry(geometry_lookup)[c("pin", "construction_year"
 }
 
 parcel_sf <- parcels %>%
-  left_join(geometry_lookup, by = c("pin", "construction_year")) %>%
+  left_join(geometry_lookup, by = c("pin", "construction_year"), relationship = "many-to-one") %>%
   st_as_sf()
 
 if (sum(is.na(st_geometry(parcel_sf))) > 0) {

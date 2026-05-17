@@ -71,15 +71,21 @@ baseline_scores <- read_csv(baseline_input, show_col_types = FALSE) %>%
     alderman,
     baseline_score = as.numeric(uncertainty_index)
   )
+if (anyDuplicated(baseline_scores$alderman) > 0) {
+  stop("Baseline score input has duplicate alderman rows.", call. = FALSE)
+}
 
 new_scores <- read_csv(new_input, show_col_types = FALSE) %>%
   transmute(
     alderman,
     !!score_col_name := as.numeric(uncertainty_index)
   )
+if (anyDuplicated(new_scores$alderman) > 0) {
+  stop("Variant score input has duplicate alderman rows.", call. = FALSE)
+}
 
 joined <- baseline_scores %>%
-  inner_join(new_scores, by = "alderman") %>%
+  inner_join(new_scores, by = "alderman", relationship = "one-to-one") %>%
   mutate(
     baseline_rank = rank(-baseline_score, ties.method = "average"),
     !!rank_col_name := rank(-.data[[score_col_name]], ties.method = "average"),
@@ -92,6 +98,9 @@ if (nrow(joined) == 0) {
   stop("No aldermen matched across baseline and permit-subset score files.", call. = FALSE)
 }
 
+baseline_missing_aldermen <- sort(setdiff(baseline_scores$alderman, new_scores$alderman))
+variant_extra_aldermen <- sort(setdiff(new_scores$alderman, baseline_scores$alderman))
+
 summary_row <- tibble(
   pearson_correlation = cor(joined$baseline_score, joined[[score_col_name]], use = "complete.obs"),
   spearman_correlation = cor(
@@ -102,7 +111,13 @@ summary_row <- tibble(
   ),
   mean_absolute_rank_change = mean(joined$abs_rank_change, na.rm = TRUE),
   max_absolute_rank_change = max(joined$abs_rank_change, na.rm = TRUE),
-  matched_alderman_count = nrow(joined)
+  matched_alderman_count = nrow(joined),
+  baseline_alderman_count = nrow(baseline_scores),
+  variant_alderman_count = nrow(new_scores),
+  baseline_missing_in_variant_count = length(baseline_missing_aldermen),
+  variant_extra_count = length(variant_extra_aldermen),
+  baseline_missing_in_variant = paste(baseline_missing_aldermen, collapse = ";"),
+  variant_extra_aldermen = paste(variant_extra_aldermen, collapse = ";")
 )
 
 summary_tex <- tibble(
@@ -111,14 +126,22 @@ summary_tex <- tibble(
     "Spearman correlation",
     "Mean absolute rank change",
     "Max absolute rank change",
-    "Matched alderman count"
+    "Matched alderman count",
+    "Baseline alderman count",
+    "Variant alderman count",
+    "Baseline missing in variant",
+    "Variant extra aldermen"
   ),
   Value = c(
     fmt_num(summary_row$pearson_correlation),
     fmt_num(summary_row$spearman_correlation),
     fmt_num(summary_row$mean_absolute_rank_change),
     fmt_num(summary_row$max_absolute_rank_change),
-    fmt_num(summary_row$matched_alderman_count, 0)
+    fmt_num(summary_row$matched_alderman_count, 0),
+    fmt_num(summary_row$baseline_alderman_count, 0),
+    fmt_num(summary_row$variant_alderman_count, 0),
+    fmt_num(summary_row$baseline_missing_in_variant_count, 0),
+    fmt_num(summary_row$variant_extra_count, 0)
   )
 )
 

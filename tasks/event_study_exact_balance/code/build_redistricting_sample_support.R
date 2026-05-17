@@ -79,7 +79,7 @@ summarize_block_support <- function(data, block_var, pair_var, year_var, observa
     filter(treat == 0 | (treat == 1 & strictness_change != 0)) %>%
     distinct(block_id) %>%
     mutate(block_id = as.character(block_id)) %>%
-    left_join(block_baselines, by = "block_id")
+    left_join(block_baselines, by = "block_id", relationship = "many-to-one")
 
   tibble(
     design = design_label,
@@ -99,6 +99,9 @@ summarize_block_support <- function(data, block_var, pair_var, year_var, observa
 message("Loading block-level parcel baselines...")
 block_baselines <- read_csv(block_baseline_input, show_col_types = FALSE) %>%
   mutate(block_id = as.character(block_id))
+if (anyDuplicated(block_baselines$block_id) > 0) {
+  stop("Block parcel baselines must be unique by block_id before joining.", call. = FALSE)
+}
 
 message("Loading permit event-study panel...")
 permit_data <- read_parquet(permit_panel_input) %>%

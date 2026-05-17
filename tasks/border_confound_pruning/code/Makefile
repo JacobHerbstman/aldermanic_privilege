@@ -13,12 +13,12 @@ all: \
 
 ../output/confounded_pair_era_flags.csv: build_confound_flags.R ../input/segment_classification.csv | ../output
 	TARGET_SEGMENT_LENGTH_FT=$(TARGET_SEGMENT_LENGTH_FT) Rscript build_confound_flags.R
-	test -f ../output/confounded_segment_flags.csv
-	test -f ../output/keep_pair_era.csv
-	test -f ../output/drop_pair_era.csv
-	test -f ../output/confound_pruning_segment_audit.csv
-	test -f ../output/confound_pruning_threshold_sensitivity.csv
-	test -f ../output/confound_pruning_summary.md
+	@test -s ../output/confounded_segment_flags.csv
+	@test -s ../output/keep_pair_era.csv
+	@test -s ../output/drop_pair_era.csv
+	@test -s ../output/confound_pruning_segment_audit.csv
+	@test -s ../output/confound_pruning_threshold_sensitivity.csv
+	@test -s ../output/confound_pruning_summary.md
 
 ../output/confounded_segment_flags.csv: ../output/confounded_pair_era_flags.csv
 	@test -s "$@"

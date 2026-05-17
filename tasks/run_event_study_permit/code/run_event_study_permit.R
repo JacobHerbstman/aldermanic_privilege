@@ -320,7 +320,7 @@ make_support_table <- function(df, event_var, time_fe_var, fe_group_var, block_v
     )
 
   event_support %>%
-    left_join(cell_event_support, by = "event_time") %>%
+    left_join(cell_event_support, by = "event_time", relationship = "one-to-one") %>%
     mutate(
       n_fe_group_time_cells = replace_na(n_fe_group_time_cells, 0L),
       n_identifying_fe_group_time_cells = replace_na(n_identifying_fe_group_time_cells, 0L),
@@ -456,6 +456,9 @@ if (CONTROL_SPEC == "baseline_demographics") {
       baseline_percent_black = percent_black,
       baseline_percent_hispanic = percent_hispanic
     )
+  if (anyDuplicated(baseline_controls[c("block_group_id", "baseline_year")]) > 0) {
+    stop("Baseline controls must be unique by block group-year before joining.", call. = FALSE)
+  }
 
   data <- data %>%
     mutate(
@@ -466,7 +469,11 @@ if (CONTROL_SPEC == "baseline_demographics") {
         TRUE ~ NA_integer_
       )
     ) %>%
-    left_join(baseline_controls, by = c("block_group_id", "baseline_year"))
+    left_join(
+      baseline_controls,
+      by = c("block_group_id", "baseline_year"),
+      relationship = "many-to-one"
+    )
 
   missing_control_rows <- sum(!complete.cases(data[, control_vars]), na.rm = TRUE)
   data <- data %>%

@@ -131,7 +131,7 @@ build_balance_table <- function(sample_df, pair_var, output_csv, output_tex, cap
   })
 
   balance_summary <- bind_rows(balance_rows) %>%
-    left_join(covariate_catalog, by = "covariate") %>%
+    left_join(covariate_catalog, by = "covariate", relationship = "many-to-one") %>%
     select(
       covariate,
       covariate_label,
@@ -194,6 +194,9 @@ build_balance_table <- function(sample_df, pair_var, output_csv, output_tex, cap
 message("Loading block-level parcel baselines...")
 block_baselines <- read_csv(block_baseline_input, show_col_types = FALSE) %>%
   mutate(block_id = as.character(block_id))
+if (anyDuplicated(block_baselines$block_id) > 0) {
+  stop("Block parcel baselines must be unique by block_id before joining.", call. = FALSE)
+}
 
 message("Loading permit event-study panel...")
 permit_panel <- read_parquet(permit_panel_input) %>%
@@ -211,7 +214,7 @@ permit_panel <- read_parquet(permit_panel_input) %>%
   filter(group != "treated_zero_change") %>%
   distinct(block_id, ward_pair_id, group, treated_any) %>%
   mutate(block_id = as.character(block_id)) %>%
-  left_join(block_baselines, by = "block_id")
+  left_join(block_baselines, by = "block_id", relationship = "many-to-one")
 
 message("Loading sales event-study panel...")
 sales_panel <- read_parquet(sales_panel_input) %>%
@@ -230,7 +233,7 @@ sales_panel <- read_parquet(sales_panel_input) %>%
   filter(group != "treated_zero_change") %>%
   distinct(block_id, ward_pair_id, group, treated_any) %>%
   mutate(block_id = as.character(block_id)) %>%
-  left_join(block_baselines, by = "block_id")
+  left_join(block_baselines, by = "block_id", relationship = "many-to-one")
 
 build_balance_table(
   sample_df = permit_panel,

@@ -111,7 +111,10 @@ coords_tbl <- parcel_geometry %>%
     y = st_coordinates(.)[, 2]
   ) %>%
   st_drop_geometry() %>%
-  distinct(pin, x, y)
+  select(pin, x, y)
+if (anyDuplicated(coords_tbl$pin) > 0) {
+  stop("Parcel geometry input must provide exactly one coordinate row per PIN.", call. = FALSE)
+}
 
 coords_sf <- st_as_sf(coords_tbl, coords = c("x", "y"), crs = 3435, remove = FALSE)
 schools <- read_amenity_layer(schools_input)
@@ -134,6 +137,16 @@ coords_tbl <- coords_tbl %>%
     lake_michigan_dist_m = lake_michigan_dist_ft * 0.3048,
     dist_cbd_m = dist_cbd_ft * 0.3048
   )
+amenity_distance_cols <- c(
+  "nearest_school_dist_m",
+  "nearest_park_dist_m",
+  "nearest_major_road_dist_m",
+  "lake_michigan_dist_m",
+  "dist_cbd_m"
+)
+if (any(!is.finite(as.matrix(coords_tbl[amenity_distance_cols])))) {
+  stop("Amenity distance construction produced non-finite distances.", call. = FALSE)
+}
 
 message("Loading scored parcel sample...")
 analysis_sample <- read_csv(
@@ -146,11 +159,20 @@ analysis_sample <- read_csv(
     pin = as.character(pin),
     construction_year = suppressWarnings(as.integer(construction_year)),
     zone_group = zone_group_from_code(zone_code),
-    strictness_own = strictness_own / sd(strictness_own, na.rm = TRUE),
     lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
     strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0)
   ) %>%
-  left_join(coords_tbl, by = "pin") %>%
+  left_join(coords_tbl, by = "pin", relationship = "many-to-one")
+
+missing_geometry_n <- analysis_sample %>%
+  filter(is.na(x) | is.na(y)) %>%
+  summarise(n = n_distinct(pin), .groups = "drop") %>%
+  pull(n)
+if (missing_geometry_n > 0) {
+  stop(sprintf("Scored parcel sample has %s PINs missing parcel geometry.", missing_geometry_n), call. = FALSE)
+}
+
+analysis_sample <- analysis_sample %>%
   filter(
     arealotsf > 1,
     areabuilding > 1,

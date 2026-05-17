@@ -16,9 +16,9 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/event_study_exact_balance/output/permit_exact_balance_summary_1000ft.tex \
 	../tasks/event_study_exact_balance/output/redistricting_sample_support_summary_1000ft.tex \
 	../tasks/event_study_exact_balance/output/sales_exact_balance_summary_1000ft.tex \
-	../tasks/event_study_sales_diagnostics/output/treatment_control_map_2015_1000ft.pdf \
-	../tasks/event_study_sales_diagnostics/output/treatment_control_maps_combined_1000ft.pdf \
-	../tasks/event_study_sales_diagnostics/output/ward_pair_vertical_13-23_1000ft.pdf \
+	../tasks/event_study_treatment_maps/output/treatment_control_map_2015_1000ft.pdf \
+	../tasks/event_study_treatment_maps/output/treatment_control_maps_combined_1000ft.pdf \
+	../tasks/event_study_treatment_maps/output/ward_pair_vertical_13-23_1000ft.pdf \
 	../tasks/new_construction_score_density_robustness/output/fe_table_500ft_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex \
 	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_all_donut25ft.pdf \
 	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_all_donut50ft.pdf \

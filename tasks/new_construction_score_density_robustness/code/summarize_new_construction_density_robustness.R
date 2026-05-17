@@ -168,7 +168,7 @@ names(new_rows)[names(new_rows) == "se"] <- variant_se_col
 names(new_rows)[names(new_rows) == "p_value"] <- variant_p_col
 
 comparison_df <- baseline_rows %>%
-  inner_join(new_rows, by = "comparison") %>%
+  inner_join(new_rows, by = "comparison", relationship = "one-to-one") %>%
   mutate(delta_estimate = .data[[variant_estimate_col]] - baseline_estimate)
 
 comparison_tex <- comparison_df %>%
@@ -187,18 +187,24 @@ baseline_parcels <- read_csv(
   show_col_types = FALSE
 ) %>%
   transmute(pin = as.character(pin), baseline_sign = as.numeric(sign))
+if (anyDuplicated(baseline_parcels$pin) > 0) {
+  stop("Baseline parcel file has duplicate PIN rows.", call. = FALSE)
+}
 
 new_parcels <- read_csv(
   file.path(output_dir, paste0("parcels_with_ward_distances_", variant_suffix, ".csv")),
   show_col_types = FALSE
 ) %>%
-  transmute(pin = as.character(pin), new_construction_sign = as.numeric(sign))
+  transmute(pin = as.character(pin), variant_sign = as.numeric(sign))
+if (anyDuplicated(new_parcels$pin) > 0) {
+  stop("Variant parcel file has duplicate PIN rows.", call. = FALSE)
+}
 
 parcel_sign_agreement <- baseline_parcels %>%
-  inner_join(new_parcels, by = "pin") %>%
+  inner_join(new_parcels, by = "pin", relationship = "one-to-one") %>%
   summarise(
     n_matched_parcels = n(),
-    sign_agreement_rate = mean(baseline_sign == new_construction_sign, na.rm = TRUE),
+    sign_agreement_rate = mean(baseline_sign == variant_sign, na.rm = TRUE),
     reclassification_rate = 1 - sign_agreement_rate
   )
 

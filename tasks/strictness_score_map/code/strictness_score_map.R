@@ -89,6 +89,19 @@ if (anyDuplicated(ward_scores$ward) > 0) {
 
 ward_map <- wards %>%
   left_join(ward_scores, by = "ward", relationship = "many-to-one")
+if (any(is.na(ward_map$score))) {
+  missing_wards <- ward_map %>%
+    st_drop_geometry() %>%
+    filter(is.na(score)) %>%
+    arrange(ward)
+  stop(
+    paste0(
+      "Ward map has geometries without matched scores: ",
+      paste(missing_wards$ward, collapse = ", ")
+    ),
+    call. = FALSE
+  )
+}
 
 p <- ggplot(ward_map) +
   geom_sf(aes(fill = score), color = "grey20", linewidth = 0.2) +

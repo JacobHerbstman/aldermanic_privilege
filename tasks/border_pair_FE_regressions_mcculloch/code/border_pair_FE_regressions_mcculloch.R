@@ -79,7 +79,6 @@ if (nzchar(fe_summary_output_path)) {
 # ── 2) DATA ──────────────────────────────────────────────────────────────────
 parcels_fe <- read_csv(fe_input_path, show_col_types = FALSE) %>%
   mutate(
-    strictness_own = strictness_own / sd(strictness_own, na.rm = TRUE),
     zone_group = zone_group_from_code(zone_code),
     lenient_dist = abs(signed_distance) * as.integer(signed_distance <= 0),
     strict_dist = abs(signed_distance) * as.integer(signed_distance > 0)

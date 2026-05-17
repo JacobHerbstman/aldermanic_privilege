@@ -11,7 +11,7 @@ define BALANCE_RULE
 	Rscript build_density_amenity_balance.R ../input/parcels_with_geometry.gpkg ../input/parcels_with_ward_distances.csv ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../output/density_amenity_balance_$(BALANCE_BW_LABEL)_$(1).csv ../output/density_amenity_balance_$(BALANCE_BW_LABEL)_$(1).tex $(BALANCE_BW_M) $(1) $(BALANCE_BW_LABEL)
 
 ../output/density_amenity_balance_$(BALANCE_BW_LABEL)_$(1).csv: ../output/density_amenity_balance_$(BALANCE_BW_LABEL)_$(1).tex
-	test -f "$$@"
+	@test -s "$$@"
 endef
 $(foreach sample,$(SAMPLES),$(eval $(call BALANCE_RULE,$(sample))))
 

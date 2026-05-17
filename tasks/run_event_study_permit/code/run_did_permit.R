@@ -128,6 +128,9 @@ baseline_controls <- read_csv("../input/block_group_controls.csv", show_col_type
     baseline_percent_black = percent_black,
     baseline_percent_hispanic = percent_hispanic
   )
+if (anyDuplicated(baseline_controls[c("block_group_id", "baseline_year")]) > 0) {
+  stop("Baseline controls must be unique by block group-year before joining.", call. = FALSE)
+}
 
 data_2015 <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
   filter(!is.na(strictness_change), !is.na(.data[[outcome_var]])) %>%
@@ -148,7 +151,11 @@ data_2015 <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
       TRUE ~ NA_integer_
     )
   ) %>%
-  left_join(baseline_controls, by = c("block_group_id", "baseline_year")) %>%
+  left_join(
+    baseline_controls,
+    by = c("block_group_id", "baseline_year"),
+    relationship = "many-to-one"
+  ) %>%
   mutate(
     across(all_of(control_vars), safe_scale, .names = "{.col}_z"),
     post = as.integer(relative_year >= 0),
@@ -174,7 +181,11 @@ data_stacked <- read_parquet("../input/permit_block_year_panel.parquet") %>%
       TRUE ~ NA_integer_
     )
   ) %>%
-  left_join(baseline_controls, by = c("block_group_id", "baseline_year")) %>%
+  left_join(
+    baseline_controls,
+    by = c("block_group_id", "baseline_year"),
+    relationship = "many-to-one"
+  ) %>%
   mutate(
     across(all_of(control_vars), safe_scale, .names = "{.col}_z"),
     post = as.integer(relative_year >= 0),

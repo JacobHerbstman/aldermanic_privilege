@@ -171,11 +171,26 @@ if (anyDuplicated(st_drop_geometry(ward_geoms_map2)$ward) > 0) {
   stop("2016 ward geometries must be unique by ward.", call. = FALSE)
 }
 
+ward_geoms_map3 <- ward_panel %>%
+  filter(year == max(year)) %>%
+  select(ward) %>%
+  group_by(ward) %>%
+  summarise(.groups = "drop")
+if (anyDuplicated(st_drop_geometry(ward_geoms_map3)$ward) > 0) {
+  stop("Latest ward geometries must be unique by ward.", call. = FALSE)
+}
+
 permits_pre2015 <- permits %>%
   filter(application_start_date_ym < as.yearmon("2015-05"))
 
-permits_2015_2022 <- permits %>%
-  filter(application_start_date_ym >= as.yearmon("2015-05"))
+permits_2015_2023 <- permits %>%
+  filter(
+    application_start_date_ym >= as.yearmon("2015-05"),
+    application_start_date_ym < as.yearmon("2023-05")
+  )
+
+permits_post2023 <- permits %>%
+  filter(application_start_date_ym >= as.yearmon("2023-05"))
 
 permits_ward_pre2015 <- if (nrow(permits_pre2015) == 0) {
   permits_pre2015 %>% st_drop_geometry()
@@ -190,20 +205,36 @@ if (anyDuplicated(permits_ward_pre2015$id) > 0) {
   stop("Pre-2015 ward spatial join assigned a permit to multiple wards.", call. = FALSE)
 }
 
-permits_ward_2015_2022 <- if (nrow(permits_2015_2022) == 0) {
-  permits_2015_2022 %>% st_drop_geometry()
+permits_ward_2015_2023 <- if (nrow(permits_2015_2023) == 0) {
+  permits_2015_2023 %>% st_drop_geometry()
 } else {
-  st_join(permits_2015_2022, ward_geoms_map2, join = st_within) %>%
+  st_join(permits_2015_2023, ward_geoms_map2, join = st_within) %>%
     mutate(ward = ward.y) %>%
     select(-any_of(c("ward.x", "ward.y"))) %>%
     filter(!is.na(ward)) %>%
     st_drop_geometry()
 }
-if (anyDuplicated(permits_ward_2015_2022$id) > 0) {
-  stop("2015-2022 ward spatial join assigned a permit to multiple wards.", call. = FALSE)
+if (anyDuplicated(permits_ward_2015_2023$id) > 0) {
+  stop("2015-2023 ward spatial join assigned a permit to multiple wards.", call. = FALSE)
 }
 
-permits_ward_data <- bind_rows(permits_ward_pre2015, permits_ward_2015_2022)
+permits_ward_post2023 <- if (nrow(permits_post2023) == 0) {
+  permits_post2023 %>% st_drop_geometry()
+} else {
+  st_join(permits_post2023, ward_geoms_map3, join = st_within) %>%
+    mutate(ward = ward.y) %>%
+    select(-any_of(c("ward.x", "ward.y"))) %>%
+    filter(!is.na(ward)) %>%
+    st_drop_geometry()
+}
+if (anyDuplicated(permits_ward_post2023$id) > 0) {
+  stop("Post-2023 ward spatial join assigned a permit to multiple wards.", call. = FALSE)
+}
+
+permits_ward_data <- bind_rows(permits_ward_pre2015, permits_ward_2015_2023, permits_ward_post2023)
+if (anyDuplicated(permits_ward_data$id) > 0) {
+  stop("Combined ward-assigned permit data must be unique by permit id.", call. = FALSE)
+}
 
 permits_with_alderman <- permits_ward_data %>%
   left_join(alderman_panel, by = c("ward", "application_start_date_ym" = "month"), relationship = "many-to-one") %>%
