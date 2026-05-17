@@ -262,14 +262,18 @@ if (anyDuplicated(ward_turnover_2023$ward) > 0) {
 treatment_2015 <- assignments_2010 %>%
     left_join(ward_turnover_2015, by = c("ward_pre_2015" = "ward"), relationship = "many-to-one") %>%
     mutate(
-        valid_2015 = switched_2015 | (!switched_2015 & !ward_had_turnover_2015),
+        has_complete_ward_assignment_2015 = !is.na(ward_pre_2015) & !is.na(ward_post_2015),
+        valid_2015 = has_complete_ward_assignment_2015 &
+            (switched_2015 | (!switched_2015 & !ward_had_turnover_2015)),
         valid_2015 = replace_na(valid_2015, FALSE)
     )
 
 treatment_2023 <- assignments_2020 %>%
     left_join(ward_turnover_2023, by = c("ward_post_2015" = "ward"), relationship = "many-to-one") %>%
     mutate(
-        valid_2023 = switched_2023 | (!switched_2023 & !ward_had_turnover_2023),
+        has_complete_ward_assignment_2023 = !is.na(ward_post_2015) & !is.na(ward_post_2023),
+        valid_2023 = has_complete_ward_assignment_2023 &
+            (switched_2023 | (!switched_2023 & !ward_had_turnover_2023)),
         valid_2023 = replace_na(valid_2023, FALSE)
     )
 
@@ -286,7 +290,7 @@ panel_2015 <- treatment_2015 %>%
         ward_pre_2015_share, ward_post_2015_share,
         ward_pre_2015_n_wards, ward_post_2015_n_wards,
         switched_2015,
-        ward_had_turnover_2015, valid_2015
+        ward_had_turnover_2015, valid_2015, has_complete_ward_assignment_2015
     ) %>%
     mutate(cohort = "2015")
 
@@ -298,7 +302,7 @@ panel_2023 <- treatment_2023 %>%
         ward_post_2015_share, ward_post_2023_share,
         ward_post_2015_n_wards, ward_post_2023_n_wards,
         switched_2023,
-        ward_had_turnover_2023, valid_2023
+        ward_had_turnover_2023, valid_2023, has_complete_ward_assignment_2023
     ) %>%
     mutate(cohort = "2023")
 
@@ -313,7 +317,8 @@ panel_2015_renamed <- panel_2015 %>%
         ward_dest_n_wards = ward_post_2015_n_wards,
         switched = switched_2015,
         ward_had_turnover = ward_had_turnover_2015,
-        valid = valid_2015
+        valid = valid_2015,
+        has_complete_ward_assignment = has_complete_ward_assignment_2015
     )
 
 panel_2023_renamed <- panel_2023 %>%
@@ -326,7 +331,8 @@ panel_2023_renamed <- panel_2023 %>%
         ward_dest_n_wards = ward_post_2023_n_wards,
         switched = switched_2023,
         ward_had_turnover = ward_had_turnover_2023,
-        valid = valid_2023
+        valid = valid_2023,
+        has_complete_ward_assignment = has_complete_ward_assignment_2023
     )
 
 # Stack cohorts

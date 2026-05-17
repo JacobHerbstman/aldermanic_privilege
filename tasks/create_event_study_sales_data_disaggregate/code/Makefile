@@ -18,7 +18,9 @@ all: \
 	../output/sales_transaction_panel_support_by_event_time.csv \
 	../output/sales_transaction_panel_support_by_calendar_time.csv \
 	../output/sales_transaction_panel_assignment_stability.csv \
-	../output/sales_transaction_panel_event_geometry_diagnostics.csv
+	../output/sales_transaction_panel_event_geometry_diagnostics.csv \
+	../output/sales_transaction_panel_no_boundary_exclusions.csv \
+	../output/sales_transaction_panel_contract_diagnostics.csv
 
 ../output/sales_transaction_panel.parquet: create_transaction_panel.R ../../_lib/canonical_geometry_helpers.R ../../_lib/amenity_distance_helpers.R ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
 	$(R) $< $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M)
@@ -35,7 +37,9 @@ all: \
 ../output/sales_transaction_panel_support_by_event_time.csv \
 ../output/sales_transaction_panel_support_by_calendar_time.csv \
 ../output/sales_transaction_panel_assignment_stability.csv \
-../output/sales_transaction_panel_event_geometry_diagnostics.csv: ../output/sales_transaction_panel.parquet
+../output/sales_transaction_panel_event_geometry_diagnostics.csv \
+../output/sales_transaction_panel_no_boundary_exclusions.csv \
+../output/sales_transaction_panel_contract_diagnostics.csv: ../output/sales_transaction_panel.parquet
 	@test -s "$@"
 
 ../input/sales_with_ward_distances.csv: ../../merge_event_study_scores/output/sales_with_ward_distances.csv | ../input

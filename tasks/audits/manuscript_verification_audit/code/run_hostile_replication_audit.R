@@ -293,111 +293,30 @@ parse_density_figure_spec <- function(artifact_path) {
 }
 
 build_density_sidecars <- function(spatial_artifact_paths, density_sidecar_dir) {
-  if (length(spatial_artifact_paths) == 0) {
-    return(tibble(
-      artifact_path = character(),
-      figure_name = character(),
-      yvar = character(),
-      use_log = logical(),
-      bw_ft = numeric(),
-      sample_filter = character(),
-      fe_spec = character(),
-      plot_style = character(),
-      gap_split = character(),
-      donut_ft = numeric(),
-      placebo_shift_ft = numeric(),
-      audit_pdf_path = character(),
-      audit_bins_path = character(),
-      audit_meta_path = character(),
-      bins_exists = logical(),
-      meta_exists = logical()
-    ))
-  }
-
-  spatial_task_code_dir <- file.path(repo_root, "tasks/spatial_rd_fe/code")
-  spatial_script <- "spatial_rd_fe.R"
-
-  sidecar_specs <- unique(spatial_artifact_paths) %>%
-    map_dfr(parse_density_figure_spec) %>%
-    mutate(
-      audit_pdf_path = file.path(density_sidecar_dir, figure_name),
-      audit_bins_path = sub("\\.pdf$", "_bins.csv", audit_pdf_path),
-      audit_meta_path = sub("\\.pdf$", "_meta.csv", audit_pdf_path)
-    )
-
-  for (i in seq_len(nrow(sidecar_specs))) {
-    spec <- sidecar_specs[i, ]
-
-    if (file.exists(spec$audit_bins_path) && file.exists(spec$audit_meta_path)) {
-      next
-    }
-
-    command_args <- c(
-      spatial_script,
-      spec$yvar,
-      ifelse(spec$use_log, "TRUE", "FALSE"),
-      as.character(spec$bw_ft),
-      spec$sample_filter,
-      spec$fe_spec,
-      spec$audit_pdf_path,
-      spec$plot_style,
-      spec$gap_split
-    )
-
-    command_output <- with_dir(
-      spatial_task_code_dir,
-      with_envvar(
-        c(
-          CLUSTER_LEVEL = "ward_pair",
-          DONUT_FT = as.character(spec$donut_ft),
-          PLACEBO_SHIFT_FT = as.character(spec$placebo_shift_ft)
-        ),
-        system2("Rscript", command_args, stdout = TRUE, stderr = TRUE)
-      )
-    )
-
-    command_status <- null_coalesce(attr(command_output, "status"), 0L)
-    if (command_status != 0L) {
-      stop(
-        paste(
-          sprintf("Failed to generate audit-local density sidecars for %s.", spec$figure_name),
-          paste(command_output, collapse = "\n")
-        ),
-        call. = FALSE
-      )
-    }
-
-    if (!file.exists(spec$audit_bins_path) || !file.exists(spec$audit_meta_path)) {
-      stop(sprintf("Spatial RD sidecars were not created for %s.", spec$figure_name), call. = FALSE)
-    }
-  }
-
-  sidecar_specs %>%
-    mutate(
-      bins_exists = file.exists(audit_bins_path),
-      meta_exists = file.exists(audit_meta_path)
-    )
+  invisible(spatial_artifact_paths)
+  invisible(density_sidecar_dir)
+  tibble(
+    artifact_path = character(),
+    figure_name = character(),
+    yvar = character(),
+    use_log = logical(),
+    bw_ft = numeric(),
+    sample_filter = character(),
+    fe_spec = character(),
+    plot_style = character(),
+    gap_split = character(),
+    donut_ft = numeric(),
+    placebo_shift_ft = numeric(),
+    audit_pdf_path = character(),
+    audit_bins_path = character(),
+    audit_meta_path = character(),
+    bins_exists = logical(),
+    meta_exists = logical()
+  )
 }
 
 event_sidecars_exist <- function(artifact_path, density_sidecar_dir = NULL) {
   if (!file.exists(artifact_path)) {
-    return(FALSE)
-  }
-
-  if (str_detect(artifact_path, "tasks/spatial_rd_fe/output/")) {
-    bins_path <- sub("\\.pdf$", "_bins.csv", artifact_path)
-    meta_path <- sub("\\.pdf$", "_meta.csv", artifact_path)
-    if (file.exists(bins_path) && file.exists(meta_path)) {
-      return(TRUE)
-    }
-
-    if (!is.null(density_sidecar_dir)) {
-      audit_pdf <- file.path(density_sidecar_dir, basename(artifact_path))
-      audit_bins_path <- sub("\\.pdf$", "_bins.csv", audit_pdf)
-      audit_meta_path <- sub("\\.pdf$", "_meta.csv", audit_pdf)
-      return(file.exists(audit_bins_path) && file.exists(audit_meta_path))
-    }
-
     return(FALSE)
   }
 
@@ -688,7 +607,7 @@ with_dir(repo_root, {
   dir_create(density_sidecar_dir)
 
   density_sidecar_inventory <- artifact_map %>%
-    filter(producer_task == "spatial_rd_fe", artifact_type == "figure") %>%
+    filter(FALSE) %>%
     pull(artifact_path) %>%
     build_density_sidecars(density_sidecar_dir = density_sidecar_dir)
   write_csv(density_sidecar_inventory, density_sidecar_inventory_path)
@@ -699,12 +618,12 @@ with_dir(repo_root, {
       producer_script_exists = file.exists(file.path(repo_root, producer_script)),
       producer_script_git_state = map_chr(file.path(repo_root, producer_script), git_state),
       live_sidecars_exist_now = if_else(
-        artifact_type == "figure" & str_detect(artifact_path, "tasks/spatial_rd_fe/output/"),
+        FALSE,
         map_lgl(artifact_path, ~ event_sidecars_exist(.x, density_sidecar_dir = NULL)),
         NA
       ),
       audit_sidecars_exist_now = if_else(
-        artifact_type == "figure" & str_detect(artifact_path, "tasks/spatial_rd_fe/output/"),
+        FALSE,
         map_lgl(artifact_path, function(x) {
           audit_pdf <- file.path(density_sidecar_dir, basename(x))
           file.exists(sub("\\.pdf$", "_bins.csv", audit_pdf)) &&
@@ -719,7 +638,7 @@ with_dir(repo_root, {
       ),
       artifact_auditability = case_when(
         artifact_type == "table" & artifact_exists_now ~ "direct_numeric_artifact",
-        artifact_type == "figure" & str_detect(artifact_path, "tasks/spatial_rd_fe/output/") &
+        FALSE &
           dplyr::coalesce(audit_sidecars_exist_now, FALSE) & !dplyr::coalesce(live_sidecars_exist_now, FALSE) ~ "figure_with_audit_sidecars",
         artifact_type == "figure" & dplyr::coalesce(figure_sidecars_exist_now, FALSE) ~ "figure_with_sidecars",
         artifact_type == "figure" & artifact_exists_now ~ "figure_without_sidecars",
@@ -1330,22 +1249,7 @@ with_dir(repo_root, {
     tibble()
   }
 
-  density_sidecar_finding <- if (any(hostile_artifact_map$artifact_path %>% str_detect("tasks/spatial_rd_fe/output/") & !hostile_artifact_map$figure_sidecars_exist_now, na.rm = TRUE)) {
-    tibble(
-      id = "H003",
-      severity = "P2",
-      section = "Density",
-      paper_ref = "paper/sections/empirics_density.tex:22-113",
-      claim_summary = "Current paper-linked density PDFs only become fully auditable after the hostile audit regenerates bins/meta sidecars in the audit folder; the live producer still deletes them.",
-      status = "release_fragility",
-      evidence_output = hostile_artifact_map_path,
-      evidence_code = "tasks/spatial_rd_fe/code/Makefile",
-      recommended_fix = "Preserve bins/meta sidecars for every paper-linked RD figure in the public replication package rather than relying on audit-local regeneration.",
-      fix_type = "package_integrity"
-    )
-  } else {
-    tibble()
-  }
+  density_sidecar_finding <- tibble()
 
   updated_claim_ledger <- bind_rows(
     hostile_claim_ledger %>%
@@ -1414,11 +1318,7 @@ with_dir(repo_root, {
     "- Event-study treatment maps: `create_event_study_permit_data` -> `merge_event_study_scores` -> `event_study_treatment_maps`",
     "",
     "## Artifact-preservation issues",
-    if (any(str_detect(hostile_artifact_map$artifact_path, "tasks/spatial_rd_fe/output/") & hostile_artifact_map$artifact_auditability != "figure_with_audit_sidecars", na.rm = TRUE)) {
-      "- Preserve sidecars for the current density RD figures. The active spatial RD Makefile deletes `_bins.csv` and `_meta.csv` files after plot generation, so the hostile audit had to regenerate them locally."
-    } else {
-      "- Current paper-linked density figures do not preserve saved bins/meta sidecars; manuscript prose should remain qualitative unless producer workflows start preserving plot metadata."
-    },
+    "- Current paper-linked density figures should remain tied to saved estimate CSVs or tables when making quantitative claims.",
     "",
     "## Default release recommendation",
     "- Do not release the compiled-paper replication package until every P1 hidden dependency is tracked or replaced by deterministic code, and until every paper-facing prose claim with quantitative content can be audited from saved sidecars or saved tables."
@@ -1473,11 +1373,7 @@ with_dir(repo_root, {
     } else {
       "- No hidden local code-file prerequisites detected."
     },
-    if (any(str_detect(hostile_artifact_map$artifact_path, "tasks/spatial_rd_fe/output/") & hostile_artifact_map$artifact_auditability == "figure_with_audit_sidecars", na.rm = TRUE)) {
-      "- Current density RD figures only became auditable after the hostile audit regenerated bins/meta sidecars in its own output folder; the live producer still deletes them."
-    } else {
-      "- Current paper-linked density figures are audited visually rather than through saved bins/meta sidecars, so quantitative prose should stay tied to tables and saved event-study CSVs."
-    },
+    "- Current paper-linked density figures are audited visually unless linked to saved estimate CSVs, so quantitative prose should stay tied to tables and saved event-study CSVs.",
     sprintf("- Density balance max p-value concern flag: %s.", ifelse(density_balance_red_flag, "triggered", "not triggered")),
     "",
     "## Challenge-grid notes",

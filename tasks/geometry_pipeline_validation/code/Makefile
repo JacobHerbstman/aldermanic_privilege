@@ -2,7 +2,7 @@ SHELL := bash
 
 all: ../output/geometry_validation_report.md
 
-../output/geometry_validation_report.md: validate_geometry_pipeline.R ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_1320ft.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids_coverage.csv ../input/parcels_with_ward_distances.csv ../input/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex ../output/validation_density_far_meta.csv ../output/validation_density_dupac_meta.csv ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/segment_assignment_coverage_summary.csv ../input/fe_table_rental_bw500_pre_2023.csv ../input/fe_table_sales_bw500_year_quarter.csv | ../output
+../output/geometry_validation_report.md: validate_geometry_pipeline.R ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_1320ft.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids_coverage.csv ../input/parcels_with_ward_distances.csv ../input/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex ../input/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5_estimates.csv ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/segment_assignment_coverage_summary.csv ../input/fe_table_rental_bw500_pre_2023.csv ../input/fe_table_sales_bw500_year_quarter.csv | ../output
 	$(R) validate_geometry_pipeline.R
 
 ../output/canonical_pair_universe.csv \
@@ -31,16 +31,8 @@ all: ../output/geometry_validation_report.md
 ../input/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex: ../../border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
+../input/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5_estimates.csv: ../../nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5_estimates.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
-
-../output/validation_density_far_meta.csv: ../../spatial_rd_fe/code/spatial_rd_fe.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv | ../output
-	@$(FUNCTIONS); RD_INPUT_PATH=../input/parcels_with_ward_distances.csv CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CLUSTER_LEVEL=segment R_pc_and_slurm ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE 500 multifamily zonegroup_segment_year_additive ../output/validation_density_far.pdf slope
-	@test -s "$@"
-
-../output/validation_density_dupac_meta.csv: ../../spatial_rd_fe/code/spatial_rd_fe.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv | ../output
-	@$(FUNCTIONS); RD_INPUT_PATH=../input/parcels_with_ward_distances.csv CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CLUSTER_LEVEL=segment R_pc_and_slurm ../../spatial_rd_fe/code/spatial_rd_fe.R density_dupac TRUE 500 multifamily zonegroup_segment_year_additive ../output/validation_density_dupac.pdf slope
-	@test -s "$@"
 
 ../input/sales_pre_scores.csv: ../../calculate_sale_distances/output/sales_pre_scores.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -58,7 +50,7 @@ all: ../output/geometry_validation_report.md
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 
-link-inputs: ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_1320ft.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids_coverage.csv ../input/parcels_with_ward_distances.csv ../input/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex ../input/confounded_pair_era_flags.csv ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/segment_assignment_coverage_summary.csv ../input/fe_table_rental_bw500_pre_2023.csv ../input/fe_table_sales_bw500_year_quarter.csv
+link-inputs: ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_1320ft.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids_coverage.csv ../input/parcels_with_ward_distances.csv ../input/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex ../input/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5_estimates.csv ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/segment_assignment_coverage_summary.csv ../input/fe_table_rental_bw500_pre_2023.csv ../input/fe_table_sales_bw500_year_quarter.csv
 
 include ../../shell_functions.make
 include ../../generic.make

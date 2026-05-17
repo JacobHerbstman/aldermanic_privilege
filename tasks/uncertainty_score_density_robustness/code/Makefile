@@ -16,11 +16,10 @@ STAGE1_TABLE_OUTPUTS := $(foreach variant,$(RESIDUALIZED_VARIANTS),../output/sta
 STAGE2_TABLE_OUTPUTS := $(foreach variant,$(RESIDUALIZED_VARIANTS),../output/stage2_regression_$(variant).tex)
 MERGED_OUTPUTS := $(foreach variant,$(VARIANTS),../output/parcels_with_ward_distances_$(variant).csv)
 MERGE_SUMMARY_OUTPUTS := $(foreach variant,$(VARIANTS),../output/boundary_distance_summary_$(variant).csv)
-RD_OUTPUTS := $(foreach variant,$(VARIANTS),../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_STEM)_$(variant).pdf ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_STEM)_$(variant).pdf)
 FE_TABLE_OUTPUTS := $(foreach variant,$(VARIANTS),../output/fe_table_$(DENSITY_ROBUSTNESS_STEM)_$(variant).tex)
 FE_SUMMARY_OUTPUTS := $(foreach variant,$(VARIANTS),../output/fe_summary_$(DENSITY_ROBUSTNESS_STEM)_$(variant).csv)
 
-all: $(SCORE_OUTPUTS) $(METADATA_OUTPUTS) $(STAGE1_TERM_VARIANT_OUTPUTS) $(STAGE1_TABLE_OUTPUTS) $(STAGE2_TABLE_OUTPUTS) $(MERGED_OUTPUTS) $(MERGE_SUMMARY_OUTPUTS) $(RD_OUTPUTS) $(FE_TABLE_OUTPUTS) $(FE_SUMMARY_OUTPUTS) \
+all: $(SCORE_OUTPUTS) $(METADATA_OUTPUTS) $(STAGE1_TERM_VARIANT_OUTPUTS) $(STAGE1_TABLE_OUTPUTS) $(STAGE2_TABLE_OUTPUTS) $(MERGED_OUTPUTS) $(MERGE_SUMMARY_OUTPUTS) $(FE_TABLE_OUTPUTS) $(FE_SUMMARY_OUTPUTS) \
 	../output/score_variant_diagnostics.csv \
 	../output/score_variant_diagnostics.tex \
 	../output/score_variant_rank_changes.csv \
@@ -55,20 +54,6 @@ define MERGE_RULE
 	@test -s "$$@"
 endef
 $(foreach variant,$(VARIANTS),$(eval $(call MERGE_RULE,$(variant))))
-
-define RD_FAR_RULE
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_STEM)_$(1).pdf: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/parcels_with_ward_distances_$(1).csv | ../output
-	RD_INPUT_PATH=../output/parcels_with_ward_distances_$(1).csv CLUSTER_LEVEL=$(DENSITY_ROBUSTNESS_CLUSTER) Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE $(DENSITY_ROBUSTNESS_BW_M) $(DENSITY_ROBUSTNESS_SAMPLE) zonegroup_segment_year_additive $$@ slope
-	rm -f "$$(@:.pdf=_bins.csv)" "$$(@:.pdf=_meta.csv)"
-endef
-$(foreach variant,$(VARIANTS),$(eval $(call RD_FAR_RULE,$(variant))))
-
-define RD_DUPAC_RULE
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_STEM)_$(1).pdf: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/parcels_with_ward_distances_$(1).csv | ../output
-	RD_INPUT_PATH=../output/parcels_with_ward_distances_$(1).csv CLUSTER_LEVEL=$(DENSITY_ROBUSTNESS_CLUSTER) Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_dupac TRUE $(DENSITY_ROBUSTNESS_BW_M) $(DENSITY_ROBUSTNESS_SAMPLE) zonegroup_segment_year_additive $$@ slope
-	rm -f "$$(@:.pdf=_bins.csv)" "$$(@:.pdf=_meta.csv)"
-endef
-$(foreach variant,$(VARIANTS),$(eval $(call RD_DUPAC_RULE,$(variant))))
 
 define FE_RULE
 ../output/fe_table_$(DENSITY_ROBUSTNESS_STEM)_$(1).tex: ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R ../output/parcels_with_ward_distances_$(1).csv | ../output

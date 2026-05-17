@@ -25,19 +25,19 @@ legacy_dt <- data.table(
     "restrictiveness/strictness score labels in active code",
     "same-zone-only spatial RD variants"
   ),
-  current_item = c(
-    "data_for_alderman_uncertainty_index",
-    "create_alderman_uncertainty_index",
-    "stringency/uncertainty labels in active code",
-    "spatial_rd_fe"
-  ),
+	current_item = c(
+	  "data_for_alderman_uncertainty_index",
+	  "create_alderman_uncertainty_index",
+	  "stringency/uncertainty labels in active code",
+	  "nonparametric_rd_density_linear_display"
+	),
   action = c("archive task", "archive task", "rename active labels", "deprecate legacy variants"),
   note = c(
     "Old permit-panel builder replaced by uncertainty-index input builder.",
     "Old score-construction task replaced by the uncertainty/stringency index task.",
     "Active paper-facing nomenclature should no longer mix strictness/restrictiveness with stringency/uncertainty.",
-    "Current active spatial RD task uses zonegroup_segment_year_additive; same-zone-only variants are legacy."
-  )
+	  "Current active nonparametric RD display task uses the paper-facing density figure workflow; same-zone-only variants are legacy."
+	)
 )
 
 legacy_dt[, active_path_exists := vapply(legacy_item, function(item) {

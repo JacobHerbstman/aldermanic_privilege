@@ -59,30 +59,6 @@ all: \
 	../output/boundary_distance_summary_new_construction_demolition.csv \
 	../output/parcels_with_ward_distances_restricted_renovation.csv \
 	../output/boundary_distance_summary_restricted_renovation.csv \
-	../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf \
-	../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_bins.csv \
-	../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv \
-	../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf \
-	../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_bins.csv \
-	../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv \
-	../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction.pdf \
-	../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_bins.csv \
-	../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_meta.csv \
-	../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction.pdf \
-	../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_bins.csv \
-	../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_meta.csv \
-	../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition.pdf \
-	../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_bins.csv \
-	../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_meta.csv \
-	../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition.pdf \
-	../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_bins.csv \
-	../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_meta.csv \
-	../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation.pdf \
-	../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_bins.csv \
-	../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_meta.csv \
-	../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation.pdf \
-	../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_bins.csv \
-	../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_meta.csv \
 	../output/fe_table_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.tex \
 	../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv \
 	../output/fe_table_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction.tex \
@@ -286,106 +262,6 @@ all: \
 	PARCELS_INPUT_PATH=../input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../output/parcels_with_ward_distances_low_discretion_residualized.csv MERGE_SUMMARY_OUTPUT_PATH=../output/boundary_distance_summary_low_discretion_residualized.csv Rscript ../../merge_in_scores/code/merge_scores.R ../output/alderman_uncertainty_index_low_discretion_residualized.csv uncertainty_index
 	touch "$@"
 
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf \
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_bins.csv \
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv: ../output/.rd_far_baseline.done
-
-../output/.rd_far_baseline.done: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/.baseline_merge.done | ../output
-	RD_INPUT_PATH=../output/parcels_with_ward_distances_baseline.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE $(DENSITY_ROBUSTNESS_BW_M) all zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf slope
-	@test -s ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_bins.csv
-	@test -s ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv
-	touch "$@"
-
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf \
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_bins.csv \
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv: ../output/.rd_dupac_baseline.done
-
-../output/.rd_dupac_baseline.done: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/.baseline_merge.done | ../output
-	RD_INPUT_PATH=../output/parcels_with_ward_distances_baseline.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_dupac TRUE $(DENSITY_ROBUSTNESS_BW_M) all zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.pdf slope
-	@test -s ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_bins.csv
-	@test -s ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv
-	touch "$@"
-
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction.pdf \
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_bins.csv \
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_meta.csv: ../output/.rd_far_new_construction.done
-
-../output/.rd_far_new_construction.done: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/.new_construction_merge.done | ../output
-	RD_INPUT_PATH=../output/parcels_with_ward_distances_new_construction.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE $(DENSITY_ROBUSTNESS_BW_M) all zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction.pdf slope
-	@test -s ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_bins.csv
-	@test -s ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_meta.csv
-	touch "$@"
-
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction.pdf \
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_bins.csv \
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_meta.csv: ../output/.rd_dupac_new_construction.done
-
-../output/.rd_dupac_new_construction.done: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/.new_construction_merge.done | ../output
-	RD_INPUT_PATH=../output/parcels_with_ward_distances_new_construction.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_dupac TRUE $(DENSITY_ROBUSTNESS_BW_M) all zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction.pdf slope
-	@test -s ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_bins.csv
-	@test -s ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_meta.csv
-	touch "$@"
-
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition.pdf \
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_bins.csv \
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_meta.csv: ../output/.rd_far_new_construction_demolition.done
-
-../output/.rd_far_new_construction_demolition.done: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/.new_construction_demolition_merge.done | ../output
-	RD_INPUT_PATH=../output/parcels_with_ward_distances_new_construction_demolition.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE $(DENSITY_ROBUSTNESS_BW_M) all zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition.pdf slope
-	@test -s ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_bins.csv
-	@test -s ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_meta.csv
-	touch "$@"
-
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition.pdf \
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_bins.csv \
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_meta.csv: ../output/.rd_dupac_new_construction_demolition.done
-
-../output/.rd_dupac_new_construction_demolition.done: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/.new_construction_demolition_merge.done | ../output
-	RD_INPUT_PATH=../output/parcels_with_ward_distances_new_construction_demolition.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_dupac TRUE $(DENSITY_ROBUSTNESS_BW_M) all zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition.pdf slope
-	@test -s ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_bins.csv
-	@test -s ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_meta.csv
-	touch "$@"
-
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation.pdf \
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_bins.csv \
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_meta.csv: ../output/.rd_far_restricted_renovation.done
-
-../output/.rd_far_restricted_renovation.done: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/.restricted_renovation_merge.done | ../output
-	RD_INPUT_PATH=../output/parcels_with_ward_distances_restricted_renovation.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE $(DENSITY_ROBUSTNESS_BW_M) all zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation.pdf slope
-	@test -s ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_bins.csv
-	@test -s ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_meta.csv
-	touch "$@"
-
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation.pdf \
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_bins.csv \
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_meta.csv: ../output/.rd_dupac_restricted_renovation.done
-
-../output/.rd_dupac_restricted_renovation.done: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/.restricted_renovation_merge.done | ../output
-	RD_INPUT_PATH=../output/parcels_with_ward_distances_restricted_renovation.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_dupac TRUE $(DENSITY_ROBUSTNESS_BW_M) all zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation.pdf slope
-	@test -s ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_bins.csv
-	@test -s ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_meta.csv
-	touch "$@"
-
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized.pdf \
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_bins.csv \
-../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_meta.csv: ../output/.rd_far_low_discretion_residualized.done
-
-../output/.rd_far_low_discretion_residualized.done: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/.low_discretion_residualized_merge.done | ../output
-	RD_INPUT_PATH=../output/parcels_with_ward_distances_low_discretion_residualized.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_far TRUE $(DENSITY_ROBUSTNESS_BW_M) all zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized.pdf slope
-	@test -s ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_bins.csv
-	@test -s ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_meta.csv
-	touch "$@"
-
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized.pdf \
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_bins.csv \
-../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_meta.csv: ../output/.rd_dupac_low_discretion_residualized.done
-
-../output/.rd_dupac_low_discretion_residualized.done: ../../spatial_rd_fe/code/spatial_rd_fe.R ../output/.low_discretion_residualized_merge.done | ../output
-	RD_INPUT_PATH=../output/parcels_with_ward_distances_low_discretion_residualized.csv CLUSTER_LEVEL=ward_pair Rscript ../../spatial_rd_fe/code/spatial_rd_fe.R density_dupac TRUE $(DENSITY_ROBUSTNESS_BW_M) all zonegroup_segment_year_additive ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized.pdf slope
-	@test -s ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_bins.csv
-	@test -s ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_meta.csv
-	touch "$@"
-
 ../output/fe_table_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.tex \
 ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv: ../output/.fe_baseline.done
 
@@ -436,7 +312,7 @@ all: \
 ../output/density_score_robustness_comparison.tex \
 ../output/parcel_sign_agreement_baseline_vs_new_construction.csv: ../output/.density_summary.done
 
-../output/.density_summary.done: summarize_new_construction_density_robustness.R ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_meta.csv ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_meta.csv ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction.csv ../output/parcels_with_ward_distances_baseline.csv ../output/parcels_with_ward_distances_new_construction.csv | ../output
+../output/.density_summary.done: summarize_new_construction_density_robustness.R ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction.csv ../output/parcels_with_ward_distances_baseline.csv ../output/parcels_with_ward_distances_new_construction.csv | ../output
 	$(DENSITY_ROBUSTNESS_ENV) Rscript summarize_new_construction_density_robustness.R ../output
 	touch "$@"
 
@@ -444,7 +320,7 @@ all: \
 ../output/density_score_robustness_comparison_new_construction_demolition.tex \
 ../output/parcel_sign_agreement_baseline_vs_new_construction_demolition.csv: ../output/.density_summary_new_construction_demolition.done
 
-../output/.density_summary_new_construction_demolition.done: summarize_new_construction_density_robustness.R ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_meta.csv ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition_meta.csv ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition.csv ../output/parcels_with_ward_distances_baseline.csv ../output/parcels_with_ward_distances_new_construction_demolition.csv | ../output
+../output/.density_summary_new_construction_demolition.done: summarize_new_construction_density_robustness.R ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_new_construction_demolition.csv ../output/parcels_with_ward_distances_baseline.csv ../output/parcels_with_ward_distances_new_construction_demolition.csv | ../output
 	$(DENSITY_ROBUSTNESS_ENV) Rscript summarize_new_construction_density_robustness.R ../output new_construction_demolition "New construction + demolition" ../output/density_score_robustness_comparison_new_construction_demolition.csv ../output/density_score_robustness_comparison_new_construction_demolition.tex ../output/parcel_sign_agreement_baseline_vs_new_construction_demolition.csv
 	touch "$@"
 
@@ -452,7 +328,7 @@ all: \
 ../output/density_score_robustness_comparison_restricted_renovation.tex \
 ../output/parcel_sign_agreement_baseline_vs_restricted_renovation.csv: ../output/.density_summary_restricted_renovation.done
 
-../output/.density_summary_restricted_renovation.done: summarize_new_construction_density_robustness.R ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_meta.csv ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation_meta.csv ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation.csv ../output/parcels_with_ward_distances_baseline.csv ../output/parcels_with_ward_distances_restricted_renovation.csv | ../output
+../output/.density_summary_restricted_renovation.done: summarize_new_construction_density_robustness.R ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_restricted_renovation.csv ../output/parcels_with_ward_distances_baseline.csv ../output/parcels_with_ward_distances_restricted_renovation.csv | ../output
 	$(DENSITY_ROBUSTNESS_ENV) Rscript summarize_new_construction_density_robustness.R ../output restricted_renovation "Restricted renovation" ../output/density_score_robustness_comparison_restricted_renovation.csv ../output/density_score_robustness_comparison_restricted_renovation.tex ../output/parcel_sign_agreement_baseline_vs_restricted_renovation.csv
 	touch "$@"
 
@@ -460,7 +336,7 @@ all: \
 ../output/density_score_robustness_comparison_low_discretion_residualized.tex \
 ../output/parcel_sign_agreement_baseline_vs_low_discretion_residualized.csv: ../output/.density_summary_low_discretion_residualized.done
 
-../output/.density_summary_low_discretion_residualized.done: summarize_new_construction_density_robustness.R ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline_meta.csv ../output/rd_fe_plot_log_density_far_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_meta.csv ../output/rd_fe_plot_log_density_dupac_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_meta.csv ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized.csv ../output/parcels_with_ward_distances_baseline.csv ../output/parcels_with_ward_distances_low_discretion_residualized.csv | ../output
+../output/.density_summary_low_discretion_residualized.done: summarize_new_construction_density_robustness.R ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized.csv ../output/parcels_with_ward_distances_baseline.csv ../output/parcels_with_ward_distances_low_discretion_residualized.csv | ../output
 	$(DENSITY_ROBUSTNESS_ENV) Rscript summarize_new_construction_density_robustness.R ../output low_discretion_residualized "Residualized low-discretion score" ../output/density_score_robustness_comparison_low_discretion_residualized.csv ../output/density_score_robustness_comparison_low_discretion_residualized.tex ../output/parcel_sign_agreement_baseline_vs_low_discretion_residualized.csv
 	touch "$@"
 

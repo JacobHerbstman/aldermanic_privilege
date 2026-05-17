@@ -7,21 +7,23 @@ source("../../_lib/canonical_geometry_helpers.R")
 # segment_buffer_m <- 304.8
 # panel_max_distance_m <- 800
 # permit_start_year <- 2006
-# permit_end_year <- 2022
+# permit_end_year <- 2026
+# permit_end_month <- "2026-04"
 # =======================================================================================
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(segment_buffer_m, panel_max_distance_m, permit_start_year, permit_end_year)
+  cli_args <- c(segment_buffer_m, panel_max_distance_m, permit_start_year, permit_end_year, permit_end_month)
 }
 
-if (length(cli_args) != 4) {
-  stop("FATAL: Script requires 4 args: <segment_buffer_m> <panel_max_distance_m> <permit_start_year> <permit_end_year>", call. = FALSE)
+if (length(cli_args) != 5) {
+  stop("FATAL: Script requires 5 args: <segment_buffer_m> <panel_max_distance_m> <permit_start_year> <permit_end_year> <permit_end_month>", call. = FALSE)
 }
 segment_buffer_m <- as.numeric(cli_args[1])
 panel_max_distance_m <- as.numeric(cli_args[2])
 permit_start_year <- as.integer(cli_args[3])
 permit_end_year <- as.integer(cli_args[4])
+permit_end_month <- cli_args[5]
 if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
   stop("segment_buffer_m must be positive.", call. = FALSE)
 }
@@ -30,6 +32,13 @@ if (!is.finite(panel_max_distance_m) || panel_max_distance_m <= 0) {
 }
 if (!is.finite(permit_start_year) || !is.finite(permit_end_year) || permit_start_year > permit_end_year) {
   stop("permit_start_year and permit_end_year must define a valid year window.", call. = FALSE)
+}
+if (!grepl("^\\d{4}-\\d{2}$", permit_end_month)) {
+  stop("permit_end_month must use YYYY-MM format.", call. = FALSE)
+}
+permit_end_yearmon <- as.yearmon(as.Date(paste0(permit_end_month, "-01")))
+if (as.integer(format(as.Date(permit_end_yearmon), "%Y")) != permit_end_year) {
+  stop("permit_end_year must match the year in permit_end_month.", call. = FALSE)
 }
 
 sf_use_s2(FALSE)
@@ -494,6 +503,70 @@ summarize_assignment_stability <- function(base_df, panel_mode) {
   )
 }
 
+pair_contains_ward <- function(pair_id, ward) {
+  pair_id <- normalize_pair_dash(pair_id)
+  ward <- as.character(suppressWarnings(as.integer(ward)))
+  parts <- strsplit(pair_id, "-", fixed = TRUE)
+  mapply(function(pair_parts, ward_i) {
+    length(pair_parts) == 2L && !is.na(ward_i) && ward_i %in% pair_parts
+  }, parts, ward, USE.NAMES = FALSE)
+}
+
+summarize_contract <- function(panel, panel_mode) {
+  panel_1000ft <- panel %>%
+    mutate(
+      segment_era = case_when(
+        cohort == "2015" ~ "2003_2014",
+        cohort == "2023" ~ "2015_2023",
+        TRUE ~ NA_character_
+      )
+    ) %>%
+    left_join(
+      segment_pair_lookup,
+      by = c("segment_era", "segment_id_cohort"),
+      relationship = "many-to-one"
+    ) %>%
+    filter(dist_m <= 304.8, relative_year >= -5L, relative_year <= 5L) %>%
+    mutate(
+      expected_cohort_block_id = paste(cohort, block_id, sep = "_"),
+      expected_cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
+      expected_cohort_segment = if_else(
+        !is.na(segment_id_cohort),
+        paste(cohort, segment_id_cohort, sep = "_"),
+        NA_character_
+      ),
+      event_pair_contains_origin = pair_contains_ward(ward_pair_id, ward_origin),
+      treated_pair_id = normalize_pair_id(ward_origin, ward_dest, sep = "-"),
+      treated_pair_matches_origin_dest = treat != 1L | normalize_pair_dash(ward_pair_id) == treated_pair_id,
+      segment_pair_matches_event_pair = is.na(segment_id_cohort) |
+        (!is.na(segment_pair_id) & normalize_pair_dash(segment_pair_id) == normalize_pair_dash(ward_pair_id))
+    )
+
+  panel_1000ft %>%
+    summarise(
+      panel_mode = panel_mode,
+      n_rows = n(),
+      n_blocks = n_distinct(cohort_block_id),
+      n_treated = sum(treat == 1L, na.rm = TRUE),
+      n_control = sum(treat == 0L, na.rm = TRUE),
+      n_missing_strictness_origin = sum(is.na(strictness_origin)),
+      n_missing_strictness_dest = sum(is.na(strictness_dest)),
+      n_missing_strictness_change = sum(is.na(strictness_change)),
+      n_bad_cohort_block_id = sum(cohort_block_id != expected_cohort_block_id, na.rm = TRUE),
+      n_bad_cohort_ward_pair = sum(cohort_ward_pair != expected_cohort_ward_pair, na.rm = TRUE),
+      n_bad_cohort_segment = sum(
+        !is.na(segment_id_cohort) & (is.na(cohort_segment) | cohort_segment != expected_cohort_segment),
+        na.rm = TRUE
+      ),
+      n_event_pair_missing_origin = sum(!event_pair_contains_origin, na.rm = TRUE),
+      n_treated_pair_mismatch = sum(!treated_pair_matches_origin_dest, na.rm = TRUE),
+      n_missing_segment_le_1000ft = sum(is.na(segment_id_cohort) | segment_id_cohort == ""),
+      n_segment_pair_mismatch_le_1000ft = sum(!segment_pair_matches_event_pair, na.rm = TRUE),
+      .by = cohort
+    ) %>%
+    arrange(panel_mode, cohort)
+}
+
 build_outcome_totals <- function(permits_dt, panel, panel_mode, cohort_label) {
   block_ids <- unique(panel$block_id)
   year_min <- min(panel$year)
@@ -650,6 +723,14 @@ boundary_lines <- build_canonical_boundary_list(ward_panel)
 message(sprintf("Loading segment lines for %.0fm nearest-segment assignment...", segment_buffer_m))
 segment_layers <- load_segment_line_layers("../input/boundary_segments_1320ft.gpkg")
 segment_meta <- segment_metadata_from_layers(segment_layers)
+segment_pair_lookup <- bind_rows(lapply(names(segment_layers), function(era_i) {
+  st_drop_geometry(segment_layers[[era_i]]) %>%
+    transmute(
+      segment_era = era_i,
+      segment_id_cohort = as.character(segment_id),
+      segment_pair_id = normalize_pair_dash(ward_pair_id)
+    )
+}))
 
 message("Loading block treatment panel...")
 treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
@@ -722,19 +803,25 @@ permits_clean <- st_read(
   mutate(
     id = as.character(id),
     application_year = as.integer(format(as.Date(application_start_date_ym), "%Y")),
-    issue_year = as.integer(format(as.Date(issue_date_ym), "%Y"))
+    issue_year = as.integer(format(as.Date(issue_date_ym), "%Y")),
+    application_month = as.yearmon(as.Date(application_start_date_ym)),
+    issue_month = as.yearmon(as.Date(issue_date_ym))
   )
 
 source_year_min <- min(c(permits_clean$application_year, permits_clean$issue_year), na.rm = TRUE)
 source_year_max <- max(c(permits_clean$application_year, permits_clean$issue_year), na.rm = TRUE)
 message(sprintf("Permit years available in raw source: %d-%d", source_year_min, source_year_max))
-message(sprintf("Permit analysis window: %d-%d", permit_start_year, permit_end_year))
+message(sprintf("Permit analysis window: %d through %s", permit_start_year, permit_end_month))
 
 n_permits_before_window <- nrow(permits_clean)
 permits_clean <- permits_clean %>%
   filter(
-    (!is.na(application_year) & application_year >= permit_start_year & application_year <= permit_end_year) |
-      (!is.na(issue_year) & issue_year >= permit_start_year & issue_year <= permit_end_year)
+    (!is.na(application_month) &
+      application_year >= permit_start_year &
+      application_month <= permit_end_yearmon) |
+      (!is.na(issue_month) &
+        issue_year >= permit_start_year &
+        issue_month <= permit_end_yearmon)
   )
 if (nrow(permits_clean) == 0) {
   stop("No issued permits remain after applying the permit analysis year window.", call. = FALSE)
@@ -875,6 +962,26 @@ support_by_calendar_time <- bind_rows(
   summarize_calendar_support(permit_panel, "stacked_implementation")
 )
 
+contract_diagnostics <- bind_rows(
+  summarize_contract(cohort_2015, "cohort_2015"),
+  summarize_contract(cohort_2023, "cohort_2023"),
+  summarize_contract(permit_panel, "stacked_implementation")
+)
+if (any(contract_diagnostics$n_missing_strictness_change > 0L)) {
+  stop("Permit event panel has missing strictness changes inside the 1000ft regression window.", call. = FALSE)
+}
+if (any(contract_diagnostics$n_bad_cohort_block_id > 0L) ||
+    any(contract_diagnostics$n_bad_cohort_ward_pair > 0L) ||
+    any(contract_diagnostics$n_bad_cohort_segment > 0L)) {
+  stop("Permit event panel has invalid cohort-prefixed FE identifiers.", call. = FALSE)
+}
+if (any(contract_diagnostics$n_event_pair_missing_origin > 0L) ||
+    any(contract_diagnostics$n_treated_pair_mismatch > 0L) ||
+    any(contract_diagnostics$n_missing_segment_le_1000ft > 0L) ||
+    any(contract_diagnostics$n_segment_pair_mismatch_le_1000ft > 0L)) {
+  stop("Permit event panel failed the 1000ft event-pair/segment contract.", call. = FALSE)
+}
+
 assignment_stability <- bind_rows(
   summarize_assignment_stability(base_2015, "cohort_2015"),
   summarize_assignment_stability(base_2023, "cohort_2023"),
@@ -926,6 +1033,7 @@ write_parquet(cohort_2015, "../output/permit_block_year_panel_2015.parquet")
 write_parquet(cohort_2023, "../output/permit_block_year_panel_2023.parquet")
 write_csv(support_by_event_time, "../output/permit_block_year_panel_support_by_event_time.csv")
 write_csv(support_by_calendar_time, "../output/permit_block_year_panel_support_by_calendar_time.csv")
+write_csv(contract_diagnostics, "../output/permit_block_year_panel_contract_diagnostics.csv")
 write_csv(assignment_stability, "../output/permit_block_year_panel_assignment_stability.csv")
 write_csv(zero_share_summary, "../output/permit_block_year_panel_zero_share_summary.csv")
 write_csv(block_assignment_review, "../output/permit_block_assignment_review_log.csv")

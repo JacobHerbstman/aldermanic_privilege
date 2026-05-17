@@ -1,14 +1,20 @@
 SHELL := bash
 
-all: ../output/parcels_pre_scores.csv ../output/parcels_with_geometry.gpkg ../output/parcel_geometry_diagnostics.csv
+MAX_CONSTRUCTION_YEAR ?= 2026
+MAX_CONSTRUCTION_MONTH ?= 2026-04
+
+all: ../output/parcels_pre_scores.csv ../output/parcels_with_geometry.gpkg ../output/parcel_geometry_diagnostics.csv ../output/parcel_boundary_year_convention_diagnostics.csv
 
 ../output/parcels_pre_scores.csv: calculate_distances.R ../../_lib/canonical_geometry_helpers.R ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/block_group_geometry_2019.gpkg ../input/zoning_data_clean.gpkg | ../output
-	$(R) calculate_distances.R
+	MAX_CONSTRUCTION_YEAR=$(MAX_CONSTRUCTION_YEAR) MAX_CONSTRUCTION_MONTH=$(MAX_CONSTRUCTION_MONTH) Rscript calculate_distances.R
 
 ../output/parcels_with_geometry.gpkg: ../output/parcels_pre_scores.csv
 	@test -s "$@"
 
 ../output/parcel_geometry_diagnostics.csv: ../output/parcels_pre_scores.csv
+	@test -s "$@"
+
+../output/parcel_boundary_year_convention_diagnostics.csv: ../output/parcels_pre_scores.csv
 	@test -s "$@"
 
 ../input/geocoded_residential_data.gpkg: ../../geocode_ccao_data/output/geocoded_residential_data.gpkg | ../input

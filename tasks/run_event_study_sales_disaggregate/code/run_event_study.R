@@ -230,7 +230,9 @@ make_support_table <- function(df, event_var, time_fe_var, fe_group_var, fe_side
 message("\nLoading transaction panel...")
 data <- read_parquet(panel_input) %>%
   as_tibble() %>%
-  filter(!is.na(strictness_change), !is.na(sale_price), sale_price > 0)
+  filter(!is.na(sale_price), sale_price > 0)
+panel_input_n <- nrow(data)
+panel_input_missing_strictness_change_n <- sum(is.na(data$strictness_change))
 
 raw_n <- nrow(data)
 raw_blocks <- n_distinct(data$block_id)
@@ -265,7 +267,14 @@ segment_length_missing_n <- NA_integer_
 segment_length_short_n <- NA_integer_
 
 data <- data %>%
-  filter(dist_m <= BANDWIDTH) %>%
+  filter(dist_m <= BANDWIDTH)
+score_gate_n <- nrow(data)
+score_gate_missing_change_n <- sum(is.na(data$strictness_change))
+if (score_gate_missing_change_n > 0L) {
+  stop("Requested sales event-study regression sample has missing score values.", call. = FALSE)
+}
+
+data <- data %>%
   mutate(
     weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_m / BANDWIDTH) else 1,
     treatment_stricter_continuous = pmax(strictness_change, 0),
@@ -456,6 +465,10 @@ metadata <- tibble(
   raw_n = raw_n,
   raw_blocks = raw_blocks,
   raw_pins = raw_pins,
+  panel_input_n = panel_input_n,
+  panel_input_missing_strictness_change_n = panel_input_missing_strictness_change_n,
+  score_gate_n = score_gate_n,
+  score_gate_missing_change_n = score_gate_missing_change_n,
   after_segment_filter_n = after_segment_filter_n,
   after_bandwidth_n = after_bandwidth_n,
   complete_hedonic_n = complete_hedonic_n,

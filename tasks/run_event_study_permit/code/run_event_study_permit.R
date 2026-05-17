@@ -334,7 +334,9 @@ make_support_table <- function(df, event_var, time_fe_var, fe_group_var, block_v
 
 message("\nLoading permit block-year panel...")
 data <- read_parquet(panel_input) %>%
-  filter(!is.na(strictness_change), !is.na(.data[[base_outcome_var]]))
+  filter(!is.na(.data[[base_outcome_var]]))
+panel_input_n <- nrow(data)
+panel_input_missing_strictness_change_n <- sum(is.na(data$strictness_change))
 
 if (GEO_FE_LEVEL == "none") {
   data <- data %>% mutate(common_geo_fe = "all_blocks")
@@ -379,15 +381,27 @@ segment_length_short_n <- NA_integer_
 
 data <- data %>%
   filter(dist_m <= BANDWIDTH) %>%
+  filter(relative_year >= min_period, relative_year <= max_period) %>%
+  filter(!is.na(.data[[geo_group_var]]), .data[[geo_group_var]] != "")
+
+score_gate_n <- nrow(data)
+score_gate_missing_origin_n <- sum(is.na(data$strictness_origin))
+score_gate_missing_dest_n <- sum(is.na(data$strictness_dest))
+score_gate_missing_change_n <- sum(is.na(data$strictness_change))
+if (score_gate_missing_origin_n > 0L ||
+    score_gate_missing_dest_n > 0L ||
+    score_gate_missing_change_n > 0L) {
+  stop("Requested permit event-study regression sample has missing score values.", call. = FALSE)
+}
+
+data <- data %>%
   mutate(
     weight = if (WEIGHTING == "triangular") pmax(0, 1 - dist_m / BANDWIDTH) else 1,
     treatment_stricter_continuous = pmax(strictness_change, 0),
     treatment_lenient_continuous = pmax(-strictness_change, 0),
     treatment_stricter_binary = as.integer(strictness_change > 0),
     treatment_lenient_binary = as.integer(strictness_change < 0)
-  ) %>%
-  filter(relative_year >= min_period, relative_year <= max_period) %>%
-  filter(!is.na(.data[[geo_group_var]]), .data[[geo_group_var]] != "")
+  )
 
 if (is.finite(MIN_SEGMENT_LENGTH_FT)) {
   segment_length_input_n <- nrow(data)
@@ -576,6 +590,12 @@ metadata <- tibble(
   cluster_level = CLUSTER_LEVEL,
   raw_n = raw_n,
   raw_blocks = raw_blocks,
+  panel_input_n = panel_input_n,
+  panel_input_missing_strictness_change_n = panel_input_missing_strictness_change_n,
+  score_gate_n = score_gate_n,
+  score_gate_missing_origin_n = score_gate_missing_origin_n,
+  score_gate_missing_dest_n = score_gate_missing_dest_n,
+  score_gate_missing_change_n = score_gate_missing_change_n,
   analysis_n = analysis_n,
   analysis_blocks = n_distinct(data[[block_var]]),
   treated_n = sum(data$treat == 1, na.rm = TRUE),

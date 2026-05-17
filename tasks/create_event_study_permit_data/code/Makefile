@@ -4,7 +4,8 @@ SEGMENT_LENGTH_FT ?= 1320
 SEGMENT_BUFFER_M ?= 304.8
 PANEL_MAX_DISTANCE_M ?= 800
 PERMIT_START_YEAR ?= 2006
-PERMIT_END_YEAR ?= 2022
+PERMIT_END_YEAR ?= 2026
+PERMIT_END_MONTH ?= 2026-04
 
 all: \
 	../output/permit_block_year_panel.parquet \
@@ -12,6 +13,7 @@ all: \
 	../output/permit_block_year_panel_2023.parquet \
 	../output/permit_block_year_panel_support_by_event_time.csv \
 	../output/permit_block_year_panel_support_by_calendar_time.csv \
+	../output/permit_block_year_panel_contract_diagnostics.csv \
 	../output/permit_block_year_panel_assignment_stability.csv \
 	../output/permit_block_year_panel_zero_share_summary.csv \
 	../output/permit_block_year_panel_outcome_totals.csv \
@@ -25,12 +27,13 @@ all: \
 	../output/permit_unit_increase_audit_summary.csv
 
 ../output/permit_block_year_panel.parquet: create_permit_block_year_panel.R ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../output
-	$(R) create_permit_block_year_panel.R $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M) $(PERMIT_START_YEAR) $(PERMIT_END_YEAR)
+	$(R) create_permit_block_year_panel.R $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M) $(PERMIT_START_YEAR) $(PERMIT_END_YEAR) $(PERMIT_END_MONTH)
 
 ../output/permit_block_year_panel_2015.parquet \
 ../output/permit_block_year_panel_2023.parquet \
 ../output/permit_block_year_panel_support_by_event_time.csv \
 ../output/permit_block_year_panel_support_by_calendar_time.csv \
+../output/permit_block_year_panel_contract_diagnostics.csv \
 ../output/permit_block_year_panel_assignment_stability.csv \
 ../output/permit_block_year_panel_zero_share_summary.csv \
 ../output/permit_block_year_panel_outcome_totals.csv \

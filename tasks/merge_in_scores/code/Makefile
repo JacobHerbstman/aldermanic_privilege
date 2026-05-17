@@ -1,13 +1,16 @@
 SHELL := bash
 
-SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
+SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through202604
 SCORE_COLUMN ?= uncertainty_index
-MAX_CONSTRUCTION_YEAR ?= 2022
+MAX_CONSTRUCTION_YEAR ?= 2026
 
-all: ../output/parcels_with_ward_distances.csv
+all: ../output/parcels_with_ward_distances.csv ../output/score_merge_coverage_by_era_pair_year.csv
 
 ../output/parcels_with_ward_distances.csv: merge_scores.R ../input/parcels_pre_scores.csv ../input/aldermen_uncertainty_scores.csv ../input/parcel_segment_ids.csv | ../output
-	MAX_CONSTRUCTION_YEAR=$(MAX_CONSTRUCTION_YEAR) Rscript merge_scores.R ../input/aldermen_uncertainty_scores.csv $(SCORE_COLUMN)
+	MAX_CONSTRUCTION_YEAR=$(MAX_CONSTRUCTION_YEAR) Rscript merge_scores.R $(SCORE_COLUMN)
+
+../output/score_merge_coverage_by_era_pair_year.csv: ../output/parcels_with_ward_distances.csv
+	@test -s "$@"
 
 ../input/parcels_pre_scores.csv: ../../calculate_ward_boundary_distances/output/parcels_pre_scores.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

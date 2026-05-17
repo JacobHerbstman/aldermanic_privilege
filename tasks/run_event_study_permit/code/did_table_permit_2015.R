@@ -10,10 +10,11 @@ source("../../_lib/permit_event_study_sample_helpers.R")
 # output_tex <- "../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_300m_noctrl_geo_wardpair.tex"
 # control_spec <- "none"
 # sample_restriction <- "none"
+# panel_mode <- "cohort_2015"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(outcome_family, bandwidth, weighting, cluster_level, output_tex, control_spec, sample_restriction)
+  args <- c(outcome_family, bandwidth, weighting, cluster_level, output_tex, control_spec, sample_restriction, panel_mode)
 }
 
 if (length(args) >= 5) {
@@ -24,6 +25,7 @@ if (length(args) >= 5) {
   output_tex <- args[5]
   control_spec <- if (length(args) >= 6) args[6] else "none"
   sample_restriction <- if (length(args) >= 7) args[7] else "none"
+  panel_mode <- if (length(args) >= 8) args[8] else "cohort_2015"
 } else if (length(args) >= 4) {
   outcome_family <- "high_discretion"
   bandwidth <- as.numeric(args[1])
@@ -32,8 +34,9 @@ if (length(args) >= 5) {
   output_tex <- args[4]
   control_spec <- if (length(args) >= 5) args[5] else "none"
   sample_restriction <- if (length(args) >= 6) args[6] else "none"
+  panel_mode <- if (length(args) >= 7) args[7] else "cohort_2015"
 } else {
-  stop("FATAL: Script requires args: <outcome_family> <bandwidth> <weighting> <cluster_level> <output_tex> [<control_spec>] [<sample_restriction>]", call. = FALSE)
+  stop("FATAL: Script requires args: <outcome_family> <bandwidth> <weighting> <cluster_level> <output_tex> [<control_spec>] [<sample_restriction>] [<panel_mode>]", call. = FALSE)
 }
 
 if (!outcome_family %in% c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase")) {
@@ -51,6 +54,9 @@ if (!cluster_level %in% c("block", "ward_pair")) {
 }
 if (!control_spec %in% c("none", "pre_high_level")) {
   stop("control_spec must be one of: none, pre_high_level", call. = FALSE)
+}
+if (!panel_mode %in% c("cohort_2015", "cohort_2023", "stacked_implementation")) {
+  stop("panel_mode must be one of: cohort_2015, cohort_2023, stacked_implementation", call. = FALSE)
 }
 
 sample_restriction_info <- get_permit_sample_restriction_info(sample_restriction)
@@ -79,15 +85,36 @@ if (nrow(outcome_row) != 1) {
 
 outcome_var <- outcome_row$outcome_var[[1]]
 
-data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
+panel_input <- switch(
+  panel_mode,
+  "cohort_2015" = "../input/permit_block_year_panel_2015.parquet",
+  "cohort_2023" = "../input/permit_block_year_panel_2023.parquet",
+  "stacked_implementation" = "../input/permit_block_year_panel.parquet"
+)
+
+stacked_mode <- panel_mode == "stacked_implementation"
+block_var <- if (stacked_mode) "cohort_block_id" else "block_id"
+pair_var <- if (stacked_mode) "cohort_ward_pair" else "ward_pair_id"
+panel_title <- if (stacked_mode) "2015 + 2023" else sub("^cohort_", "", panel_mode)
+
+data <- read_parquet(panel_input) %>%
   filter(
-    !is.na(ward_pair_id), ward_pair_id != "",
-    !is.na(block_id), block_id != "",
-    !is.na(strictness_change),
+    !is.na(.data[[pair_var]]), .data[[pair_var]] != "",
+    !is.na(.data[[block_var]]), .data[[block_var]] != "",
     !is.na(.data[[outcome_var]]),
     dist_m <= bandwidth,
     relative_year >= -5, relative_year <= 5
-  ) %>%
+  )
+score_gate_missing_origin_n <- sum(is.na(data$strictness_origin))
+score_gate_missing_dest_n <- sum(is.na(data$strictness_dest))
+score_gate_missing_change_n <- sum(is.na(data$strictness_change))
+if (score_gate_missing_origin_n > 0L ||
+    score_gate_missing_dest_n > 0L ||
+    score_gate_missing_change_n > 0L) {
+  stop("Requested permit DID regression sample has missing score values.", call. = FALSE)
+}
+
+data <- data %>%
   mutate(
     weight = if (weighting == "triangular") pmax(0, 1 - dist_m / bandwidth) else 1,
     post_treat = as.integer(relative_year >= 0) * strictness_change
@@ -116,8 +143,8 @@ if (is.finite(min_segment_length_ft)) {
 
 sample_restriction_result <- apply_permit_bg_sample_restriction(
   df = data,
-  block_var = "block_id",
-  pair_var = "ward_pair_id",
+  block_var = block_var,
+  pair_var = pair_var,
   sample_restriction = sample_restriction,
   block_id_var = "block_id",
   cohort_var = "cohort",
@@ -130,19 +157,19 @@ control_note <- "None"
 if (control_spec == "pre_high_level") {
   pre_high_controls <- data %>%
     filter(relative_year < 0) %>%
-    group_by(block_id) %>%
+    group_by(.data[[block_var]]) %>%
     summarise(
       pre_high_discretion_issue = sum(n_high_discretion_issue, na.rm = TRUE),
       .groups = "drop"
     ) %>%
     mutate(no_pre_high_discretion = as.integer(pre_high_discretion_issue == 0L))
 
-  if (anyDuplicated(pre_high_controls$block_id) > 0) {
+  if (anyDuplicated(pre_high_controls[[block_var]]) > 0) {
     stop("Pre-period high-discretion controls are not unique by block_id.", call. = FALSE)
   }
 
   data <- data %>%
-    left_join(pre_high_controls, by = "block_id", relationship = "many-to-one") %>%
+    left_join(pre_high_controls, by = block_var, relationship = "many-to-one") %>%
     mutate(
       pre_high_discretion_issue = replace_na(pre_high_discretion_issue, 0),
       no_pre_high_discretion = replace_na(no_pre_high_discretion, 1L)
@@ -156,11 +183,17 @@ if (control_spec == "pre_high_level") {
 }
 
 rhs_terms <- c("post_treat", control_terms)
+fe_formula <- sprintf("%s + %s^year", block_var, pair_var)
+cluster_formula <- if (cluster_level == "block") {
+  as.formula(paste0("~", block_var))
+} else {
+  as.formula(paste0("~", pair_var))
+}
 model <- fepois(
-  as.formula(sprintf("%s ~ %s | block_id + ward_pair_id^year", outcome_var, paste(rhs_terms, collapse = " + "))),
+  as.formula(sprintf("%s ~ %s | %s", outcome_var, paste(rhs_terms, collapse = " + "), fe_formula)),
   data = data,
   weights = ~weight,
-  cluster = if (cluster_level == "block") ~block_id else ~ward_pair_id
+  cluster = cluster_formula
 )
 
 estimate <- coef(model)[["post_treat"]]
@@ -169,6 +202,7 @@ p_value <- coeftable(model)["post_treat", grep("^Pr\\(", colnames(coeftable(mode
 effect_pct <- 100 * (exp(estimate) - 1)
 dep_var_mean <- mean(data[[outcome_var]], na.rm = TRUE)
 ward_pairs <- n_distinct(data$ward_pair_id)
+fe_pairs <- n_distinct(data[[pair_var]])
 stars <- if (!is.finite(p_value)) {
   ""
 } else if (p_value < 0.01) {
@@ -188,7 +222,7 @@ table_lines <- c(
   "\\small",
   "\\begin{tabular}{lc}",
   "\\toprule",
-  " & 2015 \\\\",
+  sprintf(" & %s \\\\", panel_title),
   "\\midrule",
   sprintf("Post $\\times$ Stringency $\\Delta$ & %.4f%s \\\\", estimate, stars),
   sprintf(" & (%.4f) \\\\", std_error),
@@ -201,7 +235,7 @@ table_lines <- c(
   ),
   sprintf("N & %s \\\\", format(nobs(model), big.mark = ",")),
   sprintf("Dep. Var. Mean & %.2f \\\\", dep_var_mean),
-  sprintf("Ward Pairs & %s \\\\", format(ward_pairs, big.mark = ",")),
+  sprintf("Ward Pairs & %s \\\\", format(fe_pairs, big.mark = ",")),
   "\\bottomrule",
   "\\end{tabular}",
   "\\par\\endgroup"
@@ -210,7 +244,8 @@ table_lines <- c(
 writeLines(table_lines, output_tex)
 
 message(sprintf(
-  "Permit DID | sample=%s | min_segment_ft=%s | beta = %.4f%s | effect = %.2f%% | se = %.4f | p = %.3f | N = %s | segment_rows_dropped = %s",
+  "Permit DID | panel=%s | sample=%s | min_segment_ft=%s | beta = %.4f%s | effect = %.2f%% | se = %.4f | p = %.3f | N = %s | segment_rows_dropped = %s",
+  panel_mode,
   sample_restriction_info$label,
   if (is.finite(min_segment_length_ft)) sprintf("%.1f", min_segment_length_ft) else "none",
   estimate,

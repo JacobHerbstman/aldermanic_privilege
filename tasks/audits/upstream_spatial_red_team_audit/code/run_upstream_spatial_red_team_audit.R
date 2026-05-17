@@ -1425,7 +1425,7 @@ if (upstream_branch_verdicts$stoplight[upstream_branch_verdicts$branch == "densi
     branch = "density",
     finding_class = "robustness_fragility",
     upstream_stage = "parcel_geocode_or_boundary_assignment",
-    rebuild_tasks = "geocode_ccao_data -> calculate_ward_boundary_distances -> assign_segment_ids -> merge_in_scores -> border_pair_FE_regressions -> spatial_rd_fe -> summary_stats_new_construction",
+    rebuild_tasks = "geocode_ccao_data -> calculate_ward_boundary_distances -> assign_segment_ids -> merge_in_scores -> border_pair_FE_regressions -> nonparametric_rd_density_linear_display -> summary_stats_new_construction",
     rationale = "Any upstream density spatial issue propagates directly into FE and RD parcel samples."
   )
 }

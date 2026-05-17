@@ -61,20 +61,6 @@ extract_density_table_row <- function(path_tex) {
   )
 }
 
-extract_density_meta <- function(path_csv, label) {
-  d <- read_csv(path_csv, show_col_types = FALSE)
-  d |>
-    transmute(
-      source = label,
-      yvar,
-      n_obs = n_obs,
-      n_pairs = n_pairs,
-      rd_jump_estimate,
-      rd_jump_se,
-      rd_jump_p
-    )
-}
-
 read_tabular_geometry_input <- function(path) {
   if (grepl("\\.parquet$", path, ignore.case = TRUE)) {
     return(read_parquet(path))
@@ -350,10 +336,11 @@ if (file.exists("../input/parcels_with_ward_distances.csv")) {
 
 write_csv(geometry_spotcheck_queue, "../output/geometry_spotcheck_queue.csv")
 
-density_meta_current <- bind_rows(
-  extract_density_meta("../output/validation_density_far_meta.csv", "current"),
-  extract_density_meta("../output/validation_density_dupac_meta.csv", "current")
-)
+density_rd_estimates <- read_csv(
+  "../input/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5_estimates.csv",
+  show_col_types = FALSE
+) |>
+  filter(sample == "multifamily")
 
 report_lines <- c(
   "# Geometry Validation Report",
@@ -410,12 +397,12 @@ report_lines <- c(
     )
   ),
   paste0(
-    "- RD FAR jump (current meta): ",
-    round(density_meta_current |> filter(yvar == "density_far") |> pull(rd_jump_estimate) |> first(), 3)
+    "- Nonparametric RD FAR jump: ",
+    round(density_rd_estimates |> filter(outcome == "density_far") |> pull(estimate) |> first(), 3)
   ),
   paste0(
-    "- RD DUPAC jump (current meta): ",
-    round(density_meta_current |> filter(yvar == "density_dupac") |> pull(rd_jump_estimate) |> first(), 3)
+    "- Nonparametric RD DUPAC jump: ",
+    round(density_rd_estimates |> filter(outcome == "density_dupac") |> pull(estimate) |> first(), 3)
   ),
   "",
   "## Remaining Risk",

@@ -1,14 +1,18 @@
 SHELL := bash
 
-SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
+SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through202604
 SCORE_COLUMN ?= uncertainty_index
 
-all: ../output/sales_with_ward_distances.csv ../output/rent_with_ward_distances_full.parquet ../output/block_treatment_panel.csv
+all: ../output/sales_with_ward_distances.csv ../output/block_treatment_panel.csv ../output/block_treatment_score_diagnostics.csv ../output/block_treatment_score_lookup_diagnostics.csv
+
+rent: ../output/rent_with_ward_distances_full.parquet
 
 ../output/sales_with_ward_distances.csv: merge_event_study_scores.R ../input/sales_pre_scores.csv ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores.csv | ../output
 	$(R) $< sales_treatment $(SCORE_COLUMN)
 
-../output/block_treatment_panel.csv: ../output/sales_with_ward_distances.csv
+../output/block_treatment_panel.csv \
+../output/block_treatment_score_diagnostics.csv \
+../output/block_treatment_score_lookup_diagnostics.csv: ../output/sales_with_ward_distances.csv
 	@test -s "$@"
 
 ../output/rent_with_ward_distances_full.parquet: merge_event_study_scores.R ../input/rent_pre_scores_full.parquet ../input/aldermen_uncertainty_scores.csv | ../output

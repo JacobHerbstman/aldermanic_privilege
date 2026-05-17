@@ -1,9 +1,16 @@
-# This code handmakes a panel of aldermen and uses the "majority of the month" rule to assign alderman to wards monthly from 2003-01 to 2025-06
+# This code handmakes a panel of aldermen and uses the majority-of-month rule.
 
 ## run this line when editing code in Rstudio
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_data/code")
 
 source("../../setup_environment/code/packages.R")
+
+panel_end_month <- Sys.getenv("ALDERMAN_PANEL_END_MONTH", "2026-04")
+panel_end_date <- as.Date(paste0(panel_end_month, "-01"))
+if (is.na(panel_end_date)) {
+  stop("ALDERMAN_PANEL_END_MONTH must be YYYY-MM.", call. = FALSE)
+}
+current_panel_end_date <- seq(panel_end_date, by = "month", length.out = 2)[2] - 1
 
 # Aldermanic data
 alderman_data <- tribble(
@@ -257,7 +264,14 @@ alderman_data <- tribble(
   50, "Bernard Stone",      "1998-01-01", "2011-05-15",
   50, "Debra Silverstein",  "2011-05-16", "2025-06-24"
 ) %>%
-  mutate(across(c(start_date, end_date), as.Date))
+  mutate(across(c(start_date, end_date), as.Date)) %>%
+  mutate(
+    end_date = if_else(
+      end_date == as.Date("2025-06-24"),
+      current_panel_end_date,
+      end_date
+    )
+  )
 
 # # Finance Committee Chair data
 # finance_chair_data <- tribble(
@@ -290,7 +304,7 @@ alderman_data <- tribble(
 
 # Create a month-year panel using zoo::as.yearmon
 panel_grid <- expand_grid(
-  year_month = as.yearmon(seq(as.Date("1998-01-01"), as.Date("2025-06-01"), by = "months")),
+  year_month = as.yearmon(seq(as.Date("1998-01-01"), panel_end_date, by = "months")),
   ward = 1:50
 )
 
@@ -351,5 +365,23 @@ final_panel <- final_panel %>%
 
 # Write to CSV
 write_csv(final_panel, "../output/chicago_alderman_panel.csv")
+
+coverage <- final_panel %>%
+  summarise(
+    n_wards = n_distinct(ward),
+    n_missing_alderman = sum(is.na(alderman) | alderman == ""),
+    n_unique_aldermen = n_distinct(alderman, na.rm = TRUE),
+    .by = month
+  ) %>%
+  arrange(month)
+
+recent_missing <- coverage %>%
+  filter(month >= as.yearmon("2023-05"), n_missing_alderman > 0)
+if (nrow(recent_missing) > 0) {
+  print(recent_missing)
+  stop("Alderman panel has missing post-2023 ward-month assignments.", call. = FALSE)
+}
+
+write_csv(coverage, "../output/chicago_alderman_panel_coverage.csv")
 
 print("CSV file created successfully: chicago_alderman_panel.csv")

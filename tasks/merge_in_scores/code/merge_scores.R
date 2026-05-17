@@ -11,30 +11,33 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_in_scores/code")
-# score_file <- "../input/aldermen_uncertainty_scores.csv"
 # score_column <- "uncertainty_index"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(score_file, score_column)
+  cli_args <- c(score_column)
 }
-
-if (length(cli_args) < 2) {
-  stop("FATAL: Script requires 2 args: <score_file> <score_column>", call. = FALSE)
-}
-
-score_file <- cli_args[1]
-score_column <- cli_args[2]
 
 parcels_input <- Sys.getenv("PARCELS_INPUT_PATH", "../input/parcels_pre_scores.csv")
 segment_lookup_input <- Sys.getenv("SEGMENT_LOOKUP_PATH", "../input/parcel_segment_ids.csv")
+score_file <- Sys.getenv("SCORES_INPUT_PATH", "../input/aldermen_uncertainty_scores.csv")
 merge_output <- Sys.getenv("MERGE_OUTPUT_PATH", "../output/parcels_with_ward_distances.csv")
 merge_summary_output <- Sys.getenv("MERGE_SUMMARY_OUTPUT_PATH", "../output/boundary_distance_summary.csv")
-max_construction_year_raw <- Sys.getenv("MAX_CONSTRUCTION_YEAR", "2022")
+score_coverage_output <- Sys.getenv("SCORE_COVERAGE_OUTPUT_PATH", "../output/score_merge_coverage_by_era_pair_year.csv")
+max_construction_year_raw <- Sys.getenv("MAX_CONSTRUCTION_YEAR", "2026")
 max_construction_year <- if (nzchar(max_construction_year_raw)) suppressWarnings(as.integer(max_construction_year_raw)) else NA_integer_
 
 if (nzchar(max_construction_year_raw) && !is.finite(max_construction_year)) {
   stop("MAX_CONSTRUCTION_YEAR must be a valid integer year.", call. = FALSE)
+}
+
+if (length(cli_args) == 1) {
+  score_column <- cli_args[1]
+} else if (length(cli_args) == 2) {
+  score_file <- cli_args[1]
+  score_column <- cli_args[2]
+} else {
+  stop("FATAL: Script requires <score_column> or legacy <score_file> <score_column>.", call. = FALSE)
 }
 
 cat("=== Merging Alderman Scores ===\n")
@@ -44,6 +47,7 @@ cat("Parcels input:", parcels_input, "\n")
 cat("Segment lookup input:", segment_lookup_input, "\n")
 cat("Merged output:", merge_output, "\n")
 cat("Summary output:", merge_summary_output, "\n")
+cat("Score coverage output:", score_coverage_output, "\n")
 cat("Max construction year:", ifelse(is.finite(max_construction_year), max_construction_year, "none"), "\n")
 
 # -----------------------------------------------------------------------------
@@ -157,6 +161,37 @@ cat(sprintf("Parcels with neighbor score: %d (%.1f%%)\n", n_in - n_missing_nbr, 
 cat(sprintf("Tied (equal scores, dropped): %d\n", n_tied))
 cat(sprintf("Total dropped (NA sign):     %d (%.1f%%)\n", n_dropped, 100*n_dropped/n_in))
 
+score_coverage_by_era_pair_year <- bind_rows(
+  parcels_with_scores %>%
+    transmute(
+      boundary_year,
+      construction_year,
+      ward_pair,
+      side = "own",
+      alderman = alderman_own,
+      has_score = !is.na(strictness_own)
+    ),
+  parcels_with_scores %>%
+    transmute(
+      boundary_year,
+      construction_year,
+      ward_pair,
+      side = "neighbor",
+      alderman = alderman_neighbor,
+      has_score = !is.na(strictness_neighbor)
+    )
+) %>%
+  summarise(
+    n_rows = n(),
+    n_aldermen = n_distinct(alderman, na.rm = TRUE),
+    n_missing_alderman = sum(is.na(alderman) | alderman == ""),
+    n_with_score = sum(has_score, na.rm = TRUE),
+    n_missing_score = sum(!has_score, na.rm = TRUE),
+    score_coverage_pct = 100 * n_with_score / n_rows,
+    .by = c(boundary_year, construction_year, ward_pair, side)
+  ) %>%
+  arrange(construction_year, boundary_year, ward_pair, side)
+
 # Filter to valid signed distances
 parcels_final <- parcels_with_scores %>%
   filter(!is.na(signed_distance))
@@ -184,6 +219,7 @@ summary_stats <- parcels_final %>%
   arrange(construction_year)
 
 write_csv(summary_stats, merge_summary_output)
+write_csv(score_coverage_by_era_pair_year, score_coverage_output)
 
 cat("\n=== Score merge complete ===\n")
 cat("Output:", merge_output, "\n")

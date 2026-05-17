@@ -8,10 +8,23 @@ source("../../_lib/canonical_geometry_helpers.R")
 
 synthetic_date_mode <- tolower(Sys.getenv("SYNTHETIC_CONSTRUCTION_DATE_MODE", "june15"))
 synthetic_date_diagnostics_output <- Sys.getenv("SYNTHETIC_DATE_DIAGNOSTICS_OUTPUT_PATH", "")
+max_construction_year <- suppressWarnings(as.integer(Sys.getenv("MAX_CONSTRUCTION_YEAR", "2026")))
+max_construction_month <- Sys.getenv("MAX_CONSTRUCTION_MONTH", "2026-04")
 
 if (!synthetic_date_mode %in% c("june15", "dynamic_turnover")) {
   stop("SYNTHETIC_CONSTRUCTION_DATE_MODE must be one of: june15, dynamic_turnover", call. = FALSE)
 }
+if (!is.finite(max_construction_year)) {
+  stop("MAX_CONSTRUCTION_YEAR must be a valid integer year.", call. = FALSE)
+}
+if (!grepl("^\\d{4}-\\d{2}$", max_construction_month)) {
+  stop("MAX_CONSTRUCTION_MONTH must use YYYY-MM format.", call. = FALSE)
+}
+max_construction_month_date <- as.Date(paste0(max_construction_month, "-15"))
+if (year(max_construction_month_date) != max_construction_year) {
+  stop("MAX_CONSTRUCTION_MONTH year must match MAX_CONSTRUCTION_YEAR.", call. = FALSE)
+}
+max_construction_month_num <- month(max_construction_month_date)
 
 # -----------------------------------------------------------------------------
 # 1. LOAD DATA
@@ -20,10 +33,14 @@ if (!synthetic_date_mode %in% c("june15", "dynamic_turnover")) {
 cat("Loading parcel data...\n")
 parcels <- st_read("../input/geocoded_residential_data.gpkg") %>%
   # Note: This filter excludes older multifamily buildings if they exist in the input
-  filter(!is.na(yearbuilt), yearbuilt >= 1999 & yearbuilt <= 2025) %>%
+  filter(!is.na(yearbuilt), yearbuilt >= 1999 & yearbuilt <= max_construction_year) %>%
   mutate(
     parcel_row_id = row_number(),
-    construction_date = as.Date(paste0(yearbuilt, "-06-15"))
+    construction_date = if_else(
+      yearbuilt == max_construction_year,
+      max_construction_month_date,
+      as.Date(paste0(yearbuilt, "-06-15"))
+    )
   )
 
 cat("Loading ward boundaries...\n")
@@ -189,6 +206,7 @@ if (synthetic_date_mode == "dynamic_turnover") {
     st_drop_geometry() %>%
     transmute(parcel_row_id, pin = as.character(pin), construction_year = yearbuilt) %>%
     tidyr::crossing(month_num = 1:12) %>%
+    filter(construction_year < max_construction_year | month_num <= max_construction_month_num) %>%
     mutate(
       construction_date_candidate = as.Date(sprintf("%04d-%02d-15", construction_year, month_num)),
       construction_yearmon = as.yearmon(construction_date_candidate),
@@ -541,6 +559,35 @@ parcel_geometry_diagnostics <- final_dataset_signed %>%
   arrange(boundary_year)
 
 write_csv(parcel_geometry_diagnostics, "../output/parcel_geometry_diagnostics.csv")
+
+parcel_boundary_year_convention_diagnostics <- final_dataset_signed %>%
+  mutate(
+    era = canonical_era_from_boundary_year(boundary_year),
+    expected_boundary_year = canonical_boundary_year_from_date(construction_date),
+    expected_era = canonical_era_from_boundary_year(expected_boundary_year),
+    boundary_year_matches_construction_date = boundary_year == expected_boundary_year,
+    era_matches_boundary_year = era == expected_era,
+    post_2023_map_convention = boundary_year == 2024L & era == "post_2023"
+  ) %>%
+  summarise(
+    n_parcels = n(),
+    n_bad_boundary_year = sum(!boundary_year_matches_construction_date, na.rm = TRUE),
+    n_bad_era = sum(!era_matches_boundary_year, na.rm = TRUE),
+    n_post_2023_map_label = sum(post_2023_map_convention, na.rm = TRUE),
+    min_construction_date = min(construction_date, na.rm = TRUE),
+    max_construction_date = max(construction_date, na.rm = TRUE),
+    .by = c(construction_year, boundary_year, era)
+  ) %>%
+  arrange(construction_year, boundary_year, era)
+if (any(parcel_boundary_year_convention_diagnostics$n_bad_boundary_year > 0L) ||
+    any(parcel_boundary_year_convention_diagnostics$n_bad_era > 0L)) {
+  stop("Parcel boundary-year convention diagnostic failed.", call. = FALSE)
+}
+
+write_csv(
+  parcel_boundary_year_convention_diagnostics,
+  "../output/parcel_boundary_year_convention_diagnostics.csv"
+)
 
 summary_stats <- final_dataset_signed %>%
   summarise(

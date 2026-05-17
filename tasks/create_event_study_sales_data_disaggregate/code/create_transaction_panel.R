@@ -202,6 +202,92 @@ summarize_event_geometry_dt <- function(dt, panel_mode, stage_label) {
   ), by = .(cohort, treat)]
 }
 
+pair_contains_ward <- function(pair_id, ward) {
+  pair_id <- normalize_pair_dash(pair_id)
+  ward <- as.character(suppressWarnings(as.integer(ward)))
+  parts <- strsplit(pair_id, "-", fixed = TRUE)
+  mapply(function(pair_parts, ward_i) {
+    length(pair_parts) == 2L && !is.na(ward_i) && ward_i %in% pair_parts
+  }, parts, ward, USE.NAMES = FALSE)
+}
+
+summarize_no_boundary_exclusions_dt <- function(dt, panel_mode) {
+  if (nrow(dt) == 0 || !"event_dist_missing" %in% names(dt)) {
+    return(data.table())
+  }
+
+  switchers <- dt[treat == 1L, .(
+    n_switched_sales = .N,
+    n_switched_blocks = uniqueN(block_id)
+  ), by = .(cohort, ward_origin, ward_dest)]
+  excluded <- dt[treat == 1L & event_dist_missing == TRUE, .(
+    n_excluded_sales = .N,
+    n_excluded_blocks = uniqueN(block_id)
+  ), by = .(cohort, ward_origin, ward_dest)]
+
+  out <- merge(switchers, excluded, by = c("cohort", "ward_origin", "ward_dest"), all.x = TRUE, sort = FALSE)
+  out[is.na(n_excluded_sales), n_excluded_sales := 0L]
+  out[is.na(n_excluded_blocks), n_excluded_blocks := 0L]
+  out[, `:=`(
+    panel_mode = panel_mode,
+    switch_direction = paste(ward_origin, ward_dest, sep = "->"),
+    share_of_switched_sales_excluded = n_excluded_sales / n_switched_sales
+  )]
+  out[order(cohort, ward_origin, ward_dest)]
+}
+
+summarize_panel_contract_dt <- function(dt, panel_mode) {
+  if (nrow(dt) == 0) {
+    return(data.table())
+  }
+
+  x <- copy(dt[dist_m <= 304.8 & relative_year >= -5L & relative_year <= 5L])
+  x[, segment_era := fcase(
+    cohort %in% c("2012", "2015"), "2003_2014",
+    cohort %in% c("2022", "2023"), "2015_2023",
+    default = NA_character_
+  )]
+  x <- merge(x, segment_pair_lookup, by = c("segment_era", "segment_id_cohort"), all.x = TRUE, sort = FALSE)
+  x[, `:=`(
+    expected_cohort_block_id = paste(cohort, block_id, sep = "_"),
+    expected_cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
+    expected_cohort_segment = fifelse(
+      !is.na(segment_id_cohort),
+      paste(cohort, segment_id_cohort, sep = "_"),
+      NA_character_
+    ),
+    event_pair_contains_origin = pair_contains_ward(ward_pair_id, ward_origin),
+    treated_pair_id = normalize_pair_id(ward_origin, ward_dest, sep = "-"),
+    normalized_ward_pair_id = normalize_pair_dash(ward_pair_id),
+    normalized_segment_pair_id = normalize_pair_dash(segment_pair_id)
+  )]
+  x[, `:=`(
+    treated_pair_matches_origin_dest = treat != 1L | normalized_ward_pair_id == treated_pair_id,
+    segment_pair_matches_event_pair = is.na(segment_id_cohort) |
+      (!is.na(normalized_segment_pair_id) & normalized_segment_pair_id == normalized_ward_pair_id)
+  )]
+
+  x[, .(
+    panel_mode = panel_mode,
+    n_rows = .N,
+    n_pins = uniqueN(pin),
+    n_blocks = uniqueN(cohort_block_id),
+    n_treated = sum(treat == 1L, na.rm = TRUE),
+    n_control = sum(treat == 0L, na.rm = TRUE),
+    n_missing_strictness_change = sum(is.na(strictness_change)),
+    n_bad_cohort_block_id = sum(cohort_block_id != expected_cohort_block_id, na.rm = TRUE),
+    n_bad_cohort_ward_pair = sum(cohort_ward_pair != expected_cohort_ward_pair, na.rm = TRUE),
+    n_bad_cohort_segment = sum(
+      !is.na(segment_id_cohort) & (is.na(cohort_segment) | cohort_segment != expected_cohort_segment),
+      na.rm = TRUE
+    ),
+    n_event_pair_missing_origin = sum(!event_pair_contains_origin, na.rm = TRUE),
+    n_treated_pair_mismatch = sum(!treated_pair_matches_origin_dest, na.rm = TRUE),
+    n_missing_segment_le_1000ft = sum(is.na(segment_id_cohort) | segment_id_cohort == ""),
+    n_segment_pair_mismatch_le_1000ft = sum(!segment_pair_matches_event_pair, na.rm = TRUE)
+  ), by = cohort][order(panel_mode, cohort)]
+}
+
 summarize_event_support_dt <- function(dt, panel_mode, filter_stage) {
   if (nrow(dt) == 0) {
     return(data.table(
@@ -335,6 +421,14 @@ boundary_layers <- load_boundary_layers("../input/ward_pair_boundaries.gpkg")
 
 message(sprintf("Loading segment lines for %.0fm nearest-segment assignment...", segment_buffer_m))
 segment_layers <- load_segment_line_layers("../input/boundary_segments_1320ft.gpkg")
+segment_pair_lookup <- rbindlist(lapply(names(segment_layers), function(era_i) {
+  d <- as.data.table(st_drop_geometry(segment_layers[[era_i]]))
+  d[, .(
+    segment_era = era_i,
+    segment_id_cohort = as.character(segment_id),
+    segment_pair_id = normalize_pair_dash(ward_pair_id)
+  )]
+}), fill = TRUE)
 
 # =============================================================================
 # 2. TEMPORAL MERGE: SALES TO HEDONICS (ROLLING JOIN)
@@ -842,6 +936,7 @@ message(sprintf("2023 cohort: %s transactions", format(nrow(cohort_2023), big.ma
 # Add cohort-specific identifiers for all cohorts
 cohort_2012[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
+  cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
   cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
   cohort_segment = fifelse(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
   cohort_segment_side = fifelse(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
@@ -849,6 +944,7 @@ cohort_2012[, `:=`(
 
 cohort_2022[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
+  cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
   cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
   cohort_segment = fifelse(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
   cohort_segment_side = fifelse(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
@@ -856,6 +952,7 @@ cohort_2022[, `:=`(
 
 cohort_2015[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
+  cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
   cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
   cohort_segment = fifelse(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
   cohort_segment_side = fifelse(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
@@ -863,6 +960,7 @@ cohort_2015[, `:=`(
 
 cohort_2023[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
+  cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
   cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
   cohort_segment = fifelse(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
   cohort_segment_side = fifelse(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
@@ -877,6 +975,7 @@ message("\n=== CREATING STACKED PANELS ===")
 stacked_announcement <- rbindlist(list(cohort_2012, cohort_2022), fill = TRUE)
 stacked_announcement[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
+  cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
   cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
   cohort_segment = fifelse(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
   cohort_segment_side = fifelse(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
@@ -890,6 +989,7 @@ message(sprintf(
 stacked_implementation <- rbindlist(list(cohort_2015, cohort_2023), fill = TRUE)
 stacked_implementation[, `:=`(
   cohort_block_id = paste(cohort, block_id, sep = "_"),
+  cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
   cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
   cohort_segment = fifelse(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
   cohort_segment_side = fifelse(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
@@ -912,7 +1012,7 @@ final_cols <- c(
   "nearest_school_dist_m", "nearest_park_dist_m", "nearest_major_road_dist_m", "lake_michigan_dist_m",
   "building_sqft", "land_sqft", "year_built", "building_age", "num_bedrooms",
   "num_full_baths", "baths_total", "garage_size", "hedonic_tax_year", "years_gap",
-  "ward", "ward_pair_id", "ward_origin", "ward_dest", "event_neighbor_ward", "ward_pair_side", "cohort_ward_pair_side",
+  "ward", "ward_pair_id", "ward_origin", "ward_dest", "event_neighbor_ward", "ward_pair_side", "cohort_ward_pair", "cohort_ward_pair_side",
   "segment_id_cohort", "segment_side", "cohort_segment", "cohort_segment_side",
   "segment_length_ft_cohort", "segment_lt500ft_cohort", "segment_lt1000ft_cohort",
   "signed_dist_m", "dist_m",
@@ -936,6 +1036,7 @@ make_all_valid_panel <- function(dt) {
   }
   out[, `:=`(
     cohort_block_id = paste(cohort, block_id, sep = "_"),
+    cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
     cohort_ward_pair_side = fifelse(!is.na(ward_pair_side), paste(cohort, ward_pair_side, sep = "_"), NA_character_),
     event_dist_le_1000ft = !is.na(dist_m) & dist_m <= 304.8,
     pre_score_dist_le_1000ft = !is.na(pre_score_dist_m) & pre_score_dist_m <= 304.8,
@@ -1143,6 +1244,33 @@ sales_event_geometry_diagnostics <- rbindlist(list(
   summarize_event_geometry_dt(cohort_2023_pre_segment, "cohort_2023", "post_event_distance_filter")
 ), fill = TRUE)
 
+sales_no_boundary_exclusions <- rbindlist(list(
+  summarize_no_boundary_exclusions_dt(cohort_2012_event_geometry, "cohort_2012"),
+  summarize_no_boundary_exclusions_dt(cohort_2022_event_geometry, "cohort_2022"),
+  summarize_no_boundary_exclusions_dt(cohort_2015_event_geometry, "cohort_2015"),
+  summarize_no_boundary_exclusions_dt(cohort_2023_event_geometry, "cohort_2023")
+), fill = TRUE)
+
+sales_contract_diagnostics <- rbindlist(list(
+  summarize_panel_contract_dt(cohort_2015_final, "cohort_2015"),
+  summarize_panel_contract_dt(cohort_2023_final, "cohort_2023"),
+  summarize_panel_contract_dt(stacked_implementation_final, "stacked_implementation")
+), fill = TRUE)
+if (any(sales_contract_diagnostics$n_missing_strictness_change > 0L)) {
+  stop("Sales event panel has missing strictness changes inside the 1000ft regression window.", call. = FALSE)
+}
+if (any(sales_contract_diagnostics$n_bad_cohort_block_id > 0L) ||
+    any(sales_contract_diagnostics$n_bad_cohort_ward_pair > 0L) ||
+    any(sales_contract_diagnostics$n_bad_cohort_segment > 0L)) {
+  stop("Sales event panel has invalid cohort-prefixed FE identifiers.", call. = FALSE)
+}
+if (any(sales_contract_diagnostics$n_event_pair_missing_origin > 0L) ||
+    any(sales_contract_diagnostics$n_treated_pair_mismatch > 0L) ||
+    any(sales_contract_diagnostics$n_missing_segment_le_1000ft > 0L) ||
+    any(sales_contract_diagnostics$n_segment_pair_mismatch_le_1000ft > 0L)) {
+  stop("Sales event panel failed the 1000ft event-pair/segment contract.", call. = FALSE)
+}
+
 # =============================================================================
 # 11. SAVE ALL PANELS
 # =============================================================================
@@ -1200,5 +1328,11 @@ message("Saved sales assignment-stability diagnostics")
 
 write_csv(as_tibble(sales_event_geometry_diagnostics), "../output/sales_transaction_panel_event_geometry_diagnostics.csv")
 message("Saved sales event-geometry diagnostics")
+
+write_csv(as_tibble(sales_no_boundary_exclusions), "../output/sales_transaction_panel_no_boundary_exclusions.csv")
+message("Saved sales no-boundary exclusion diagnostics")
+
+write_csv(as_tibble(sales_contract_diagnostics), "../output/sales_transaction_panel_contract_diagnostics.csv")
+message("Saved sales contract diagnostics")
 
 message("\nDone!")

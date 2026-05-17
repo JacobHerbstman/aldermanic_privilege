@@ -116,31 +116,72 @@ if (mode %in% c("sales_treatment", "all")) {
     stop("Block treatment pre-score input must be unique by cohort-block.", call. = FALSE)
   }
 
-  alderman_lookup <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
+  alderman_lookup_raw <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
     mutate(
       month_date = as.Date(paste("01", month), format = "%d %b %Y"),
-      year = as.integer(format(month_date, "%Y"))
+      month_key = format(month_date, "%Y-%m")
     ) %>%
-    filter(as.integer(format(month_date, "%m")) == 6) %>%
-    select(year, ward, alderman) %>%
+    select(month_key, ward, alderman)
+  alderman_lookup_counts <- alderman_lookup_raw %>%
+    count(month_key, ward, name = "n_lookup_matches")
+  if (any(alderman_lookup_counts$n_lookup_matches > 1L)) {
+    stop("Alderman lookup must be unique by month-ward.", call. = FALSE)
+  }
+  alderman_lookup <- alderman_lookup_raw %>%
     distinct()
-  if (anyDuplicated(paste(alderman_lookup$year, alderman_lookup$ward, sep = "\r")) > 0) {
-    stop("Alderman lookup must be unique by year-ward after June filtering.", call. = FALSE)
+
+  summarize_lookup_role <- function(df, role) {
+    score_month_col <- paste0("score_month_", role)
+    ward_col <- paste0("ward_", role)
+    alderman_col <- paste0("alderman_", role)
+    score_col <- paste0("strictness_", role)
+    lookup_col <- paste0(role, "_lookup_matches")
+
+    df %>%
+      summarise(
+        role = role,
+        score_month = paste(sort(unique(.data[[score_month_col]])), collapse = "|"),
+        n_rows = n(),
+        n_valid = sum(valid, na.rm = TRUE),
+        n_unique_wards = n_distinct(.data[[ward_col]], na.rm = TRUE),
+        n_missing_alderman_lookup = sum(is.na(.data[[alderman_col]]) | .data[[alderman_col]] == ""),
+        n_valid_missing_alderman_lookup = sum(valid & (is.na(.data[[alderman_col]]) | .data[[alderman_col]] == ""), na.rm = TRUE),
+        n_missing_score = sum(is.na(.data[[score_col]])),
+        n_valid_missing_score = sum(valid & is.na(.data[[score_col]]), na.rm = TRUE),
+        n_duplicate_ward_month_matches = sum(coalesce(.data[[lookup_col]], 0L) > 1L, na.rm = TRUE),
+        .by = cohort
+      ) %>%
+      arrange(cohort)
   }
 
-  treat_panel <- treat_pre %>%
+  treat_panel_full <- treat_pre %>%
     mutate(cohort = as.character(cohort)) %>%
-    mutate(score_year = case_when(
-      cohort == "2015" ~ 2014L,
-      cohort == "2023" ~ 2022L,
-      TRUE ~ NA_integer_
-    )) %>%
+    mutate(
+      score_month_origin = case_when(
+        cohort == "2015" ~ "2014-06",
+        cohort == "2023" ~ "2023-04",
+        TRUE ~ NA_character_
+      ),
+      score_month_dest = case_when(
+        cohort == "2015" ~ "2015-06",
+        cohort == "2023" ~ "2023-06",
+        TRUE ~ NA_character_
+      )
+    ) %>%
+    left_join(alderman_lookup_counts %>% rename(ward_origin = ward, origin_lookup_matches = n_lookup_matches),
+      by = c("score_month_origin" = "month_key", "ward_origin"),
+      relationship = "many-to-one"
+    ) %>%
+    left_join(alderman_lookup_counts %>% rename(ward_dest = ward, dest_lookup_matches = n_lookup_matches),
+      by = c("score_month_dest" = "month_key", "ward_dest"),
+      relationship = "many-to-one"
+    ) %>%
     left_join(alderman_lookup %>% rename(ward_origin = ward, alderman_origin = alderman),
-      by = c("score_year" = "year", "ward_origin"),
+      by = c("score_month_origin" = "month_key", "ward_origin"),
       relationship = "many-to-one"
     ) %>%
     left_join(alderman_lookup %>% rename(ward_dest = ward, alderman_dest = alderman),
-      by = c("score_year" = "year", "ward_dest"),
+      by = c("score_month_dest" = "month_key", "ward_dest"),
       relationship = "many-to-one"
     ) %>%
     left_join(scores %>% rename(alderman_origin = alderman, strictness_origin = score),
@@ -159,25 +200,69 @@ if (mode %in% c("sales_treatment", "all")) {
         strictness_change < 0 ~ "Moved to More Lenient",
         TRUE ~ "No Change"
       )
-    ) %>%
+    )
+
+  if (nrow(treat_panel_full) != nrow(treat_pre)) {
+    stop("Row-count mismatch after block treatment score merge.", call. = FALSE)
+  }
+  if (anyDuplicated(paste(treat_panel_full$cohort, treat_panel_full$block_id, sep = "\r")) > 0) {
+    stop("Merged block treatment panel must be unique by cohort-block.", call. = FALSE)
+  }
+
+  score_lookup_diagnostics <- bind_rows(
+    summarize_lookup_role(treat_panel_full, "origin"),
+    summarize_lookup_role(treat_panel_full, "dest")
+  ) %>%
+    arrange(cohort, role)
+  if (any(score_lookup_diagnostics$n_duplicate_ward_month_matches > 0L)) {
+    stop("Block treatment score lookup found duplicate ward-month matches.", call. = FALSE)
+  }
+  if (any(score_lookup_diagnostics$n_valid_missing_alderman_lookup > 0L)) {
+    stop("Valid block treatment rows have missing alderman lookup values.", call. = FALSE)
+  }
+  if (any(score_lookup_diagnostics$n_valid_missing_score > 0L)) {
+    stop("Valid block treatment rows have missing alderman scores.", call. = FALSE)
+  }
+
+  treat_panel <- treat_panel_full %>%
     select(
       block_id, block_vintage, ward_origin, ward_dest, switched,
       any_of(c(
         "ward_origin_share", "ward_dest_share", "ward_origin_n_wards",
-        "ward_dest_n_wards", "min_assignment_share"
+        "ward_dest_n_wards", "min_assignment_share",
+        "has_complete_ward_assignment"
       )),
+      score_month_origin, score_month_dest, alderman_origin, alderman_dest,
       strictness_origin, strictness_dest, strictness_change, switch_type,
       ward_had_turnover, valid, cohort
     )
-  if (nrow(treat_panel) != nrow(treat_pre)) {
-    stop("Row-count mismatch after block treatment score merge.", call. = FALSE)
-  }
-  if (anyDuplicated(paste(treat_panel$cohort, treat_panel$block_id, sep = "\r")) > 0) {
-    stop("Merged block treatment panel must be unique by cohort-block.", call. = FALSE)
-  }
 
   write_csv(treat_panel, "../output/block_treatment_panel.csv")
   cat("Block treatment output rows:", nrow(treat_panel), "\n")
+
+  score_diagnostics <- treat_panel %>%
+    summarise(
+      n_rows = n(),
+      n_valid = sum(valid, na.rm = TRUE),
+      n_switched = sum(switched, na.rm = TRUE),
+      n_missing_origin_alderman = sum(is.na(alderman_origin) | alderman_origin == ""),
+      n_missing_dest_alderman = sum(is.na(alderman_dest) | alderman_dest == ""),
+      n_missing_origin_score = sum(is.na(strictness_origin)),
+      n_missing_dest_score = sum(is.na(strictness_dest)),
+      n_missing_strictness_change = sum(is.na(strictness_change)),
+      n_valid_missing_strictness_change = sum(valid & is.na(strictness_change), na.rm = TRUE),
+      n_unique_origin_aldermen = n_distinct(alderman_origin, na.rm = TRUE),
+      n_unique_dest_aldermen = n_distinct(alderman_dest, na.rm = TRUE),
+      .by = cohort
+    ) %>%
+    arrange(cohort)
+  if (any(score_diagnostics$n_valid_missing_strictness_change > 0L)) {
+    stop("Valid block treatment rows have missing strictness changes.", call. = FALSE)
+  }
+  write_csv(score_diagnostics, "../output/block_treatment_score_diagnostics.csv")
+  write_csv(score_lookup_diagnostics, "../output/block_treatment_score_lookup_diagnostics.csv")
+  cat("Block treatment score diagnostics rows:", nrow(score_diagnostics), "\n")
+  cat("Block treatment score lookup diagnostics rows:", nrow(score_lookup_diagnostics), "\n")
 }
 
 if (mode %in% c("rent", "all")) {
