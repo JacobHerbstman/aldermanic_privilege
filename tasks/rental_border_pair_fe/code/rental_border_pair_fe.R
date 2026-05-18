@@ -112,25 +112,33 @@ message(sprintf("Cluster level: %s", cluster_level))
 message(sprintf("Pruning spec: %s", prune_sample))
 message(sprintf("Use zone-group FE: %s", ifelse(use_zone_group_fe, "TRUE", "FALSE")))
 
-rent_raw <- read_parquet(input) %>%
-  as_tibble() %>%
+rent_input <- read_parquet(input) %>% as_tibble()
+if (!"signed_dist" %in% names(rent_input) && "signed_dist_m" %in% names(rent_input)) {
+  rent_input <- rent_input %>% mutate(signed_dist = signed_dist_m / 0.3048)
+}
+if (!"signed_dist" %in% names(rent_input)) {
+  stop("Rental input must include signed_dist in feet or signed_dist_m in meters.", call. = FALSE)
+}
+
+rent_raw <- rent_input %>%
   mutate(
     file_date = as.Date(file_date),
     year = lubridate::year(file_date),
     year_month = format(file_date, "%Y-%m"),
-    ward_pair = as.character(ward_pair_id)
+    ward_pair = as.character(ward_pair_id),
+    signed_dist_ft = as.numeric(signed_dist)
   ) %>%
   filter(
     !is.na(file_date),
     !is.na(rent_price),
     rent_price > 0,
     !is.na(ward_pair),
-    !is.na(signed_dist),
+    !is.na(signed_dist_ft),
     !is.na(strictness_own)
   )
 
 if (is.finite(bw_ft)) {
-  rent_raw <- rent_raw %>% filter(abs(signed_dist) <= bw_ft)
+  rent_raw <- rent_raw %>% filter(abs(signed_dist_ft) <= bw_ft)
 }
 
 rent <- window_rule(rent_raw, window)

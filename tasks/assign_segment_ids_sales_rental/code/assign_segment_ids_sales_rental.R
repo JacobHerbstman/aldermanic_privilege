@@ -335,6 +335,53 @@ rent_res <- assign_segments(
 )
 
 rent_out <- rent_res$data
+rent_out[, modal_segment_id := NA_character_]
+rent_out[, flag_modal_segment_sensitivity_checked := FALSE]
+rent_out[, flag_modal_segment_missing := FALSE]
+rent_out[, flag_modal_changes_segment := FALSE]
+
+if (all(c("modal_longitude", "modal_latitude", "modal_ward_pair_id") %in% names(rent_out))) {
+  modal_idx <- which(
+    is.finite(rent_out$dist_m) &
+      rent_out$dist_m <= 500 * 0.3048 &
+      is.finite(rent_out$modal_longitude) &
+      is.finite(rent_out$modal_latitude) &
+      !is.na(rent_out$modal_ward_pair_id) &
+      rent_out$modal_ward_pair_id != ""
+  )
+
+  if (length(modal_idx) > 0) {
+    modal_pts <- st_as_sf(
+      data.table(
+        row_id = modal_idx,
+        lon = rent_out$modal_longitude[modal_idx],
+        lat = rent_out$modal_latitude[modal_idx]
+      ),
+      coords = c("lon", "lat"),
+      crs = 4326,
+      remove = FALSE
+    )
+    modal_era <- canonical_era_from_date(rent_out$file_date[modal_idx], allow_pre_2003 = FALSE)
+    modal_segment_ids <- assign_points_to_nearest_segments(
+      points_sf = modal_pts,
+      era_values = modal_era,
+      pair_values = rent_out$modal_ward_pair_id[modal_idx],
+      segment_layers = segments_by_era,
+      max_distance = units::set_units(segment_buffer_m, "m"),
+      chunk_n = 80000L
+    )
+
+    rent_out[modal_idx, modal_segment_id := modal_segment_ids]
+    rent_out[modal_idx, flag_modal_segment_sensitivity_checked := TRUE]
+    rent_out[modal_idx, flag_modal_segment_missing := is.na(modal_segment_id) | modal_segment_id == ""]
+    rent_out[
+      modal_idx,
+      flag_modal_changes_segment := !flag_modal_segment_missing &
+        !is.na(segment_id) & segment_id != "" & segment_id != modal_segment_id
+    ]
+  }
+}
+
 cov_out <- rbindlist(list(sales_res$coverage, rent_res$coverage), fill = TRUE)
 reason_out <- rbindlist(list(sales_res$reason_summary, rent_res$reason_summary), fill = TRUE)
 spotcheck <- build_spotcheck(sales_out, rent_out, n_each = 20L, bandwidth_m = spotcheck_bandwidth_m)

@@ -58,8 +58,15 @@ message(sprintf("bw=%d | window=%s | sample=%s | controls=%s",
                 bw_ft, window, sample_filter, use_controls))
 
 # Load and filter data
-dat <- read_parquet(input) %>%
-  as_tibble() %>%
+rent_input <- read_parquet(input) %>% as_tibble()
+if (!"signed_dist" %in% names(rent_input) && "signed_dist_m" %in% names(rent_input)) {
+  rent_input <- rent_input %>% mutate(signed_dist = signed_dist_m / 0.3048)
+}
+if (!"signed_dist" %in% names(rent_input)) {
+  stop("Rental input must include signed_dist in feet or signed_dist_m in meters.", call. = FALSE)
+}
+
+dat <- rent_input %>%
   mutate(
     file_date = as.Date(file_date),
     year = lubridate::year(file_date),
@@ -228,16 +235,29 @@ p <- ggplot() +
 
 ggsave(output_pdf, p, width = 8.6, height = 6, dpi = 300, bg = "white")
 
-# write_csv(bins, output_bins_csv)
-# write_csv(
-#   tibble(
-#     bw_ft = bw_ft, window = window, sample_filter = sample_filter,
-#     use_controls = use_controls, min_strictness_diff = opt$min_strictness_diff,
-#     gap_estimate = b_right, gap_se = se_right, gap_p = p_right,
-#     mean_left = mean_left, mean_right = mean_right,
-#     n_obs = nobs(m), ward_pairs = n_distinct(aug$ward_pair)
-#   ),
-#   output_meta_csv
-# )
+if (!is.na(output_bins_csv) && nzchar(output_bins_csv) && toupper(output_bins_csv) != "NA") {
+  write_csv(bins, output_bins_csv)
+}
+if (!is.na(output_meta_csv) && nzchar(output_meta_csv) && toupper(output_meta_csv) != "NA") {
+  write_csv(
+    tibble(
+      bw_ft = bw_ft,
+      window = window,
+      sample_filter = sample_filter,
+      use_controls = use_controls,
+      min_strictness_diff_pctile = min_strictness_diff_pctile,
+      gap_estimate = b_right,
+      gap_se = se_right,
+      gap_p = p_right,
+      mean_left = mean_left,
+      mean_right = mean_right,
+      n_obs = nobs(m),
+      ward_pairs = n_distinct(aug$ward_pair),
+      fe_geo = fe_geo,
+      cluster_level = cluster_level
+    ),
+    output_meta_csv
+  )
+}
 
 message(sprintf("Saved: %s", output_pdf))

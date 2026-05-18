@@ -42,7 +42,7 @@ if (any(!is.finite(scores$score))) {
   stop("Score input contains non-finite scores.", call. = FALSE)
 }
 
-merge_border_scores <- function(df, dist_col = "dist_m", signed_dist_col = "signed_dist_m") {
+merge_border_scores <- function(df, dist_col = "dist_m", signed_dist_col = "signed_dist_m", return_full = FALSE) {
   if (!"alderman_own" %in% names(df) || !"alderman_neighbor" %in% names(df)) {
     stop("Expected columns alderman_own and alderman_neighbor are missing.", call. = FALSE)
   }
@@ -55,14 +55,20 @@ merge_border_scores <- function(df, dist_col = "dist_m", signed_dist_col = "sign
     rename(strictness_own = score) %>%
     left_join(scores, by = c("alderman_neighbor" = "alderman"), relationship = "many-to-one") %>%
     rename(strictness_neighbor = score) %>%
-    mutate(
-      sign = case_when(
-        strictness_own > strictness_neighbor ~ 1,
-        strictness_own < strictness_neighbor ~ -1,
-        TRUE ~ NA_real_
-      ),
-      "{signed_dist_col}" := .data[[dist_col]] * sign
-    )
+	    mutate(
+	      sign = case_when(
+	        strictness_own > strictness_neighbor ~ 1,
+	        strictness_own < strictness_neighbor ~ -1,
+	        TRUE ~ NA_real_
+	      ),
+	      "{signed_dist_col}" := .data[[dist_col]] * sign,
+	      dist_ft = .data[[dist_col]] / 0.3048
+	    )
+
+	  if (signed_dist_col == "signed_dist_m") {
+	    out <- out %>%
+	      mutate(signed_dist = signed_dist_m / 0.3048)
+	  }
 
   if (nrow(out) != nrow(df)) {
     stop(sprintf(
@@ -82,8 +88,11 @@ merge_border_scores <- function(df, dist_col = "dist_m", signed_dist_col = "sign
     n_in, n_missing_own, n_missing_nbr, n_tied, n_dropped, 100 * n_dropped / n_in
   ))
 
-  out <- filter(out, !is.na(sign))
-  out
+  filtered <- filter(out, !is.na(sign))
+  if (return_full) {
+    return(list(data = filtered, full = out))
+  }
+  filtered
 }
 
 if (mode %in% c("sales_treatment", "all")) {
@@ -266,15 +275,82 @@ if (mode %in% c("sales_treatment", "all")) {
 }
 
 if (mode %in% c("rent", "all")) {
-  cat("\nMerging scores into rent pre-scores...\n")
-  rent_pre <- read_parquet("../input/rent_pre_scores_full.parquet") %>% as_tibble()
+	  cat("\nMerging scores into rent pre-scores...\n")
+	  rent_pre <- read_parquet("../input/rent_pre_scores_full.parquet") %>% as_tibble()
   if (!"dist_m" %in% names(rent_pre)) {
     stop("Rent pre-score input must include meter-native dist_m.", call. = FALSE)
-  }
-  rent <- merge_border_scores(rent_pre, "dist_m", "signed_dist_m")
-  write_parquet(rent, "../output/rent_with_ward_distances_full.parquet")
-  cat("Rent output rows:", nrow(rent), "\n")
-}
+	  }
+	  rent_merge <- merge_border_scores(rent_pre, "dist_m", "signed_dist_m", return_full = TRUE)
+	  rent <- rent_merge$data
+	  rent_full <- rent_merge$full
+	  if (!"rent_panel_id" %in% names(rent)) {
+	    stop("Rent score merge output must include rent_panel_id.", call. = FALSE)
+	  }
+	  if (any(is.na(rent$rent_panel_id) | rent$rent_panel_id == "")) {
+	    stop("Rent score merge output contains missing rent_panel_id values.", call. = FALSE)
+	  }
+	  if (anyDuplicated(rent$rent_panel_id) > 0) {
+	    stop("Rent score merge output must be unique by rent_panel_id.", call. = FALSE)
+	  }
+	  rent_score_attrition <- rent_full %>%
+	    mutate(
+	      file_date = as.Date(file_date),
+	      year = lubridate::year(file_date),
+	      year_month = format(file_date, "%Y-%m"),
+	      score_side = case_when(
+	        sign > 0 ~ "stricter_side",
+	        sign < 0 ~ "lenient_side",
+	        is.na(strictness_own) | is.na(strictness_neighbor) ~ "missing_score",
+	        strictness_own == strictness_neighbor ~ "tied_score",
+	        TRUE ~ "missing_or_invalid_sign"
+	      ),
+	      missing_own_alderman = is.na(alderman_own) | alderman_own == "",
+	      missing_neighbor_alderman = is.na(alderman_neighbor) | alderman_neighbor == "",
+	      missing_own_score = is.na(strictness_own),
+	      missing_neighbor_score = is.na(strictness_neighbor),
+	      tied_score = !missing_own_score & !missing_neighbor_score & strictness_own == strictness_neighbor,
+	      dropped_no_sign = is.na(sign)
+	    ) %>%
+	    summarise(
+	      n_input = n(),
+	      n_kept = sum(!dropped_no_sign, na.rm = TRUE),
+	      n_dropped_no_sign = sum(dropped_no_sign, na.rm = TRUE),
+	      n_missing_own_alderman = sum(missing_own_alderman, na.rm = TRUE),
+	      n_missing_neighbor_alderman = sum(missing_neighbor_alderman, na.rm = TRUE),
+	      n_missing_own_score = sum(missing_own_score, na.rm = TRUE),
+	      n_missing_neighbor_score = sum(missing_neighbor_score, na.rm = TRUE),
+	      n_tied_score = sum(tied_score, na.rm = TRUE),
+	      .by = c(year, year_month, ward_pair_id, score_side)
+	    ) %>%
+	    arrange(year, year_month, ward_pair_id, score_side)
+	  rent_score_merge_diagnostics <- tibble(
+	    n_rows = nrow(rent),
+	    n_input_rows = nrow(rent_full),
+	    n_dropped_no_sign = nrow(rent_full) - nrow(rent),
+	    n_episodes = if ("episode_id" %in% names(rent)) n_distinct(rent$episode_id) else NA_integer_,
+	    n_unique_aldermen_own = n_distinct(rent$alderman_own, na.rm = TRUE),
+	    n_unique_aldermen_neighbor = n_distinct(rent$alderman_neighbor, na.rm = TRUE),
+	    n_ward_pairs = n_distinct(rent$ward_pair_id, na.rm = TRUE),
+	    n_segments = n_distinct(rent$segment_id, na.rm = TRUE),
+	    min_file_date = min(rent$file_date, na.rm = TRUE),
+	    max_file_date = max(rent$file_date, na.rm = TRUE),
+	    min_dist_ft = min(rent$dist_ft, na.rm = TRUE),
+	    max_dist_ft = max(rent$dist_ft, na.rm = TRUE),
+	    n_missing_segment = sum(is.na(rent$segment_id) | rent$segment_id == ""),
+	    n_signed_dist_sign_mismatch = sum(
+	      is.finite(rent$signed_dist) & rent$signed_dist != 0 &
+	        sign(rent$signed_dist) != rent$sign,
+	      na.rm = TRUE
+	    )
+	  )
+	  if (rent_score_merge_diagnostics$n_signed_dist_sign_mismatch > 0) {
+	    stop("Rental signed-distance sign does not agree with strictness sign.", call. = FALSE)
+	  }
+	  write_parquet(rent, "../output/rent_with_ward_distances_full.parquet")
+	  write_csv(rent_score_merge_diagnostics, "../output/rent_score_merge_diagnostics.csv")
+	  write_csv(rent_score_attrition, "../output/rent_score_attrition_by_year_pair_side.csv")
+	  cat("Rent output rows:", nrow(rent), "\n")
+	}
 
 cat("\n=== Merge complete ===\n")
 if (mode %in% c("sales_treatment", "all")) {
