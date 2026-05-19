@@ -33,14 +33,14 @@ major_streets <- st_read("../input/Major_Streets.shp", quiet = TRUE) %>%
 st_write(major_streets, "../output/major_streets.gpkg", delete_dsn = TRUE, quiet = TRUE)
 
 
-parks <- st_read("../input/CPD_Facilities_20250925.geojson", quiet = TRUE) %>%
+parks <- st_read("../input/cpd_park_boundaries.geojson", quiet = TRUE) %>%
   st_zm(drop = TRUE, what = "ZM") %>%
   { if (is.na(st_crs(.))) st_set_crs(., 4326) else . } %>%
   st_make_valid() %>%
   st_transform(3435) %>%
   janitor::clean_names() %>%
-  mutate(source = "cpd_parks") %>% 
-  select(park, park_no, facility_n, facility_t, source, geometry)
+  mutate(source = "cpd_park_boundaries") %>%
+  select(park, park_no, park_class, acres, source, geometry)
 
 st_write(parks, "../output/parks.gpkg", delete_dsn = TRUE, quiet = TRUE)
 
