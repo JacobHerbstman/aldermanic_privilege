@@ -13,9 +13,7 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/density_amenity_balance/output/density_amenity_balance_500ft_multifamily.tex \
 	../tasks/density_corner_clean_table/output/fe_table_500ft_all_corner_clean_compare.tex \
 	../tasks/density_corner_clean_table/output/fe_table_500ft_multifamily_corner_clean_compare.tex \
-	../tasks/event_study_exact_balance/output/permit_exact_balance_summary_1000ft.tex \
 	../tasks/event_study_exact_balance/output/redistricting_sample_support_summary_1000ft.tex \
-	../tasks/event_study_exact_balance/output/sales_exact_balance_summary_1000ft.tex \
 	../tasks/event_study_treatment_maps/output/treatment_control_map_2015_1000ft.pdf \
 	../tasks/event_study_treatment_maps/output/treatment_control_maps_combined_1000ft.pdf \
 	../tasks/event_study_treatment_maps/output/ward_pair_vertical_13-23_1000ft.pdf \
