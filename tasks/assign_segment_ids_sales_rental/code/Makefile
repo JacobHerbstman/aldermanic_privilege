@@ -1,11 +1,17 @@
 SHELL := bash
 
 SEGMENT_LENGTH_FT ?= 1320
-SEGMENT_BUFFER_M ?= 250
-COVERAGE_BWS_M ?= 100,250
-SPOTCHECK_BW_M ?= 250
+SEGMENT_BUFFER_M ?= 305
+COVERAGE_BWS_M ?= 100,250,305
+SPOTCHECK_BW_M ?= 305
 
-all: ../output/sales_pre_scores_with_segments.csv ../output/rent_pre_scores_full_with_segments.parquet ../output/segment_assignment_coverage_summary.csv ../output/segment_assignment_spotcheck_queue.csv ../output/segment_assignment_reason_summary.csv
+all: \
+	../output/sales_pre_scores_with_segments.csv \
+	../output/rent_pre_scores_full_with_segments.parquet \
+	../output/segment_assignment_coverage_summary.csv \
+	../output/segment_assignment_spotcheck_queue.csv \
+	../output/segment_assignment_reason_summary.csv \
+	../output/segment_assignment_distance_audit.csv
 
 ../output/sales_pre_scores_with_segments.csv: assign_segment_ids_sales_rental.R ../../_lib/canonical_geometry_helpers.R ../input/sales_pre_scores.csv ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../output
 	# arg order: mode sales_input segment_gpkg out_sales segment_buffer_m coverage_bandwidths_m
@@ -36,7 +42,8 @@ all: ../output/sales_pre_scores_with_segments.csv ../output/rent_pre_scores_full
 		$(SPOTCHECK_BW_M)
 
 ../output/segment_assignment_coverage_summary.csv ../output/segment_assignment_spotcheck_queue.csv \
-../output/segment_assignment_reason_summary.csv: ../output/rent_pre_scores_full_with_segments.parquet
+../output/segment_assignment_reason_summary.csv \
+../output/segment_assignment_distance_audit.csv: ../output/rent_pre_scores_full_with_segments.parquet
 	@test -s "$@"
 
 ../input/sales_pre_scores.csv: ../../calculate_sale_distances/output/sales_pre_scores.csv | ../input

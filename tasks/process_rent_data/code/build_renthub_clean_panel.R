@@ -62,7 +62,8 @@ city_filter_diagnostics <- collect_query(sprintf(
   SELECT
     COALESCE(city_clean, 'MISSING') AS city,
     COUNT(*) AS n_rows,
-    AVG(CASE WHEN city_clean = 'CHICAGO' THEN 1.0 ELSE 0.0 END) AS share_chicago
+    AVG(CASE WHEN city_clean = 'CHICAGO' THEN 1.0 ELSE 0.0 END) AS share_chicago,
+    AVG(CASE WHEN city_clean IN ('CHICAGO', 'CHGO') THEN 1.0 ELSE 0.0 END) AS share_chicago_alias
   FROM scoped
   GROUP BY 1
   ORDER BY n_rows DESC, city
@@ -170,7 +171,7 @@ dbExecute(
         ELSE DATE_DIFF('day', TRY_CAST(DATE_POSTED AS DATE), TRY_CAST(SCRAPED_TIMESTAMP AS DATE))
       END AS posted_lag_days
     FROM raw_source
-    WHERE city_raw = 'CHICAGO'
+    WHERE city_raw IN ('CHICAGO', 'CHGO')
     ",
     sql_escape(raw_glob),
     start_date,

@@ -12,13 +12,14 @@ source("../../_lib/border_pair_helpers.R")
 # output_tex <- "../output/fe_table_sales_bw1000.tex"
 # output_csv <- "../output/fe_table_sales_bw1000.csv"
 # output_year_diag <- "../output/year_diagnostics_sales_bw1000.csv"
+# estimand <- "strictness_score"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
   cli_args <- c(input, bw_ft, fe_time, output_tex, output_csv, output_year_diag)
 }
 
-if (length(cli_args) >= 9) {
+if (length(cli_args) >= 10) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))
   fe_time <- cli_args[3]
@@ -28,6 +29,18 @@ if (length(cli_args) >= 9) {
   fe_geo <- tolower(cli_args[7])
   cluster_level <- tolower(cli_args[8])
   table_mode <- tolower(cli_args[9])
+  estimand <- tolower(cli_args[10])
+} else if (length(cli_args) >= 9) {
+  input <- cli_args[1]
+  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
+  fe_time <- cli_args[3]
+  output_tex <- cli_args[4]
+  output_csv <- cli_args[5]
+  output_year_diag <- cli_args[6]
+  fe_geo <- tolower(cli_args[7])
+  cluster_level <- tolower(cli_args[8])
+  table_mode <- tolower(cli_args[9])
+  estimand <- tolower(Sys.getenv("ESTIMAND", "strictness_score"))
 } else if (length(cli_args) >= 8) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))
@@ -38,6 +51,7 @@ if (length(cli_args) >= 9) {
   fe_geo <- tolower(cli_args[7])
   cluster_level <- tolower(cli_args[8])
   table_mode <- tolower(Sys.getenv("TABLE_MODE", "baseline"))
+  estimand <- tolower(Sys.getenv("ESTIMAND", "strictness_score"))
 } else if (length(cli_args) >= 6) {
   input <- cli_args[1]
   bw_ft <- suppressWarnings(as.integer(cli_args[2]))
@@ -48,9 +62,10 @@ if (length(cli_args) >= 9) {
   fe_geo <- tolower(Sys.getenv("FE_GEO", "segment"))
   cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
   table_mode <- tolower(Sys.getenv("TABLE_MODE", "baseline"))
+  estimand <- tolower(Sys.getenv("ESTIMAND", "strictness_score"))
 } else {
   stop(
-    "FATAL: Script requires args: <input> <bw_ft> <fe_time> <output_tex> <output_csv> <output_year_diag> [<fe_geo> <cluster_level> <table_mode>]",
+    "FATAL: Script requires args: <input> <bw_ft> <fe_time> <output_tex> <output_csv> <output_year_diag> [<fe_geo> <cluster_level> <table_mode> <estimand>]",
     call. = FALSE
   )
 }
@@ -68,6 +83,9 @@ if (!cluster_level %in% c("segment", "ward_pair")) {
 if (!table_mode %in% c("baseline", "amenity")) {
   stop("--table_mode must be one of: baseline, amenity", call. = FALSE)
 }
+if (!estimand %in% c("strictness_score", "right")) {
+  stop("--estimand must be one of: strictness_score, right", call. = FALSE)
+}
 
 prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
 if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
@@ -84,22 +102,34 @@ zoning_gpkg <- Sys.getenv("ZONING_GPKG", "../input/zoning_data_clean.gpkg")
 
 fe_time_label <- c(year = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month")
 
-message(sprintf("=== Sales Border Pair FE | bw=%d | fe=%s | geo=%s | cluster=%s | mode=%s ===", bw_ft, fe_time, fe_geo, cluster_level, table_mode))
+message(sprintf("=== Sales Border Pair FE | bw=%d | fe=%s | geo=%s | cluster=%s | mode=%s | estimand=%s ===", bw_ft, fe_time, fe_geo, cluster_level, table_mode, estimand))
 message(sprintf("Pruning spec: %s", prune_sample))
 message(sprintf("Use zone-group FE: %s", ifelse(use_zone_group_fe, "TRUE", "FALSE")))
 
 # ── Load and filter ──
 sales <- read_parquet(input) %>%
-  as_tibble() %>%
+  as_tibble()
+
+if (!"signed_dist" %in% names(sales) && "signed_dist_m" %in% names(sales)) {
+  sales <- sales %>% mutate(signed_dist = signed_dist_m / 0.3048)
+}
+if (!"signed_dist" %in% names(sales)) {
+  stop("Sales input must include signed_dist in feet or signed_dist_m in meters.", call. = FALSE)
+}
+
+sales <- sales %>%
   mutate(
     ward_pair = as.character(ward_pair_id),
-    year_factor = as.character(year)
+    year_factor = as.character(year),
+    signed_dist = as.numeric(signed_dist),
+    right = as.integer(signed_dist >= 0)
   ) %>%
   filter(
     !is.na(sale_price), sale_price > 0,
-    !is.na(ward_pair), !is.na(signed_dist),
+    !is.na(ward_pair), is.finite(signed_dist),
     abs(signed_dist) <= bw_ft,
-    !is.na(strictness_own)
+    !is.na(strictness_own),
+    !is.na(strictness_neighbor)
   )
 
 need_segment <- fe_geo == "segment" || cluster_level == "segment"
@@ -170,6 +200,8 @@ write_csv(year_diag, output_year_diag)
 strictness_sd <- sd(sales$strictness_own, na.rm = TRUE)
 stopifnot(is.finite(strictness_sd), strictness_sd > 0)
 sales <- sales %>% mutate(strictness_std = strictness_own / strictness_sd)
+treatment_var <- ifelse(estimand == "right", "right", "strictness_std")
+treatment_label <- ifelse(estimand == "right", "Stricter Side", "Stringency Index")
 
 if (use_zone_group_fe) {
   sales <- attach_zone_group(sales, "longitude", "latitude", zoning_gpkg)
@@ -229,11 +261,20 @@ fe_term <- paste0(
 )
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 
-m1 <- feols(as.formula(paste0("log(sale_price) ~ strictness_std | ", fe_term)),
+m1 <- feols(as.formula(paste0("log(sale_price) ~ ", treatment_var, " | ", fe_term)),
             data = sales, cluster = cluster_formula)
 m1$custom_data <- sales
 
-hedonic_rhs <- "strictness_std + log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage"
+hedonic_rhs <- paste(
+  treatment_var,
+  "log_sqft",
+  "log_land_sqft",
+  "log_building_age",
+  "log_bedrooms",
+  "log_baths",
+  "has_garage",
+  sep = " + "
+)
 m2 <- feols(as.formula(paste0("log(sale_price) ~ ", hedonic_rhs, " | ", fe_term)),
             data = sales_hed, cluster = cluster_formula)
 m2$custom_data <- sales_hed
@@ -250,7 +291,7 @@ if (table_mode == "amenity") {
 
 # ── Output table ──
 setFixest_dict(c(
-  strictness_std = "Stringency Index", ward_pair = "Ward Pair",
+  strictness_std = "Stringency Index", right = "Stricter Side", ward_pair = "Ward Pair",
   year_factor = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month",
   zone_group = "Zoning Group FE"
 ))
@@ -263,7 +304,7 @@ fe_label <- ifelse(
 
 etable(
   if (table_mode == "amenity") list(m1, m2, m3) else list(m1, m2),
-  keep = "Stringency Index",
+  keep = treatment_label,
   fitstat = ~ n + myo + nwp,
   style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "",
                          yesNo = c("$\\checkmark$", "")),
@@ -275,6 +316,7 @@ etable(
     fe_entries <- rep("$\\checkmark$", n_cols)
     hedonic_entries <- if (table_mode == "amenity") c("", "$\\checkmark$", "$\\checkmark$") else c("", "$\\checkmark$")
     out <- c(
+      list("_Estimand" = rep(treatment_label, n_cols)),
       list("_Hedonic Controls" = hedonic_entries)
     )
     if (table_mode == "amenity") {
@@ -297,9 +339,9 @@ etable(
 coef_tbl <- bind_rows(
   tibble(
     specification = "no_hedonics",
-    estimate = coef(m1)[["strictness_std"]],
-    std_error = se(m1)[["strictness_std"]],
-    p_value = pvalue(m1)[["strictness_std"]],
+    estimate = coef(m1)[[treatment_var]],
+    std_error = se(m1)[[treatment_var]],
+    p_value = pvalue(m1)[[treatment_var]],
     n_obs = m1$nobs,
     dep_var_mean = mean(sales$sale_price, na.rm = TRUE),
     ward_pairs = n_distinct(sales$ward_pair),
@@ -307,14 +349,16 @@ coef_tbl <- bind_rows(
     fe_time = fe_time,
     fe_geo = fe_geo,
     cluster_level = cluster_level,
+    estimand = estimand,
+    treatment_var = treatment_var,
     use_zone_group_fe = use_zone_group_fe,
     use_amenity_controls = FALSE
   ),
   tibble(
     specification = "with_hedonics",
-    estimate = coef(m2)[["strictness_std"]],
-    std_error = se(m2)[["strictness_std"]],
-    p_value = pvalue(m2)[["strictness_std"]],
+    estimate = coef(m2)[[treatment_var]],
+    std_error = se(m2)[[treatment_var]],
+    p_value = pvalue(m2)[[treatment_var]],
     n_obs = m2$nobs,
     dep_var_mean = mean(sales_hed$sale_price, na.rm = TRUE),
     ward_pairs = n_distinct(sales_hed$ward_pair),
@@ -322,6 +366,8 @@ coef_tbl <- bind_rows(
     fe_time = fe_time,
     fe_geo = fe_geo,
     cluster_level = cluster_level,
+    estimand = estimand,
+    treatment_var = treatment_var,
     use_zone_group_fe = use_zone_group_fe,
     use_amenity_controls = FALSE
   )
@@ -332,9 +378,9 @@ if (table_mode == "amenity") {
     coef_tbl,
     tibble(
       specification = "with_hedonics_and_amenities",
-      estimate = coef(m3)[["strictness_std"]],
-      std_error = se(m3)[["strictness_std"]],
-      p_value = pvalue(m3)[["strictness_std"]],
+      estimate = coef(m3)[[treatment_var]],
+      std_error = se(m3)[[treatment_var]],
+      p_value = pvalue(m3)[[treatment_var]],
       n_obs = m3$nobs,
       dep_var_mean = mean(sales_amenity$sale_price, na.rm = TRUE),
       ward_pairs = n_distinct(sales_amenity$ward_pair),
@@ -342,6 +388,8 @@ if (table_mode == "amenity") {
       fe_time = fe_time,
       fe_geo = fe_geo,
       cluster_level = cluster_level,
+      estimand = estimand,
+      treatment_var = treatment_var,
       use_zone_group_fe = use_zone_group_fe,
       use_amenity_controls = TRUE
     )

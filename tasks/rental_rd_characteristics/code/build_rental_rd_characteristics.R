@@ -1,0 +1,448 @@
+# Build RentHub RD hedonic, quality, and amenity decomposition diagnostics.
+
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_characteristics/code")
+# bandwidth_ft <- 500
+
+source("../../setup_environment/code/packages.R")
+source("../../_lib/amenity_distance_helpers.R")
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(bandwidth_ft)
+}
+if (length(cli_args) != 1) {
+  stop("FATAL: Script requires 1 arg: <bandwidth_ft>", call. = FALSE)
+}
+
+bandwidth_ft <- as.numeric(cli_args[1])
+if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
+  stop("bandwidth_ft must be positive.", call. = FALSE)
+}
+bandwidth_label <- as.character(as.integer(round(bandwidth_ft)))
+
+message(sprintf("=== RentHub RD Characteristics | bandwidth=%sft ===", bandwidth_label))
+
+rent <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
+  as_tibble()
+
+if (!"rent_panel_id" %in% names(rent)) {
+  stop("Rental input must include rent_panel_id.", call. = FALSE)
+}
+if (any(is.na(rent$rent_panel_id) | rent$rent_panel_id == "")) {
+  stop("Rental input contains missing rent_panel_id values.", call. = FALSE)
+}
+if (anyDuplicated(rent$rent_panel_id) > 0) {
+  stop("Rental input must be unique by rent_panel_id.", call. = FALSE)
+}
+if (!all(c("longitude", "latitude") %in% names(rent))) {
+  stop("Rental input must include longitude and latitude from the audited geometry task.", call. = FALSE)
+}
+if (!"signed_dist" %in% names(rent) && "signed_dist_m" %in% names(rent)) {
+  rent <- rent %>% mutate(signed_dist = signed_dist_m / 0.3048)
+}
+if (!"signed_dist" %in% names(rent)) {
+  stop("Rental input must include signed_dist in feet or signed_dist_m in meters.", call. = FALSE)
+}
+
+for (flag_col in c(
+  "flag_location_questionable",
+  "flag_modal_assignment_missing",
+  "flag_modal_changes_ward",
+  "flag_modal_changes_neighbor_ward",
+  "flag_modal_changes_pair",
+  "flag_modal_dist_diff_gt100ft",
+  "flag_rd_location_questionable",
+  "flag_address_location_unstable",
+  "flag_coordinate_only_generic_pile",
+  "flag_building_type_conflict"
+)) {
+  if (!flag_col %in% names(rent)) {
+    rent[[flag_col]] <- FALSE
+  }
+  rent[[flag_col]] <- coalesce(as.logical(rent[[flag_col]]), FALSE)
+}
+
+rent <- rent %>%
+  mutate(
+    file_date = as.Date(file_date),
+    year = lubridate::year(file_date),
+    year_month = format(file_date, "%Y-%m"),
+    signed_dist_ft = as.numeric(signed_dist),
+    ward_pair = as.character(ward_pair_id),
+    segment_id = as.character(segment_id),
+    right = as.integer(signed_dist_ft >= 0),
+    building_type_factor = factor(coalesce(building_type_clean, "other")),
+    is_multifamily = as.integer(building_type_clean == "multi_family"),
+    is_single_family = as.integer(building_type_clean == "single_family"),
+    is_condo = as.integer(building_type_clean == "condo"),
+    is_townhouse = as.integer(building_type_clean == "townhouse"),
+    log_sqft = if_else(is.finite(sqft) & sqft > 0, log(sqft), NA_real_),
+    log_beds = if_else(is.finite(beds) & beds > 0, log(beds), NA_real_),
+    log_baths = if_else(is.finite(baths) & baths > 0, log(baths), NA_real_),
+    flag_clean_location_sample = !flag_location_questionable &
+      !flag_modal_assignment_missing &
+      !flag_modal_changes_ward &
+      !flag_modal_changes_neighbor_ward &
+      !flag_modal_changes_pair &
+      !flag_modal_dist_diff_gt100ft,
+    flag_no_modal_pair_change_sample = !flag_modal_assignment_missing & !flag_modal_changes_pair,
+    flag_no_modal_ward_change_sample = !flag_modal_assignment_missing &
+      !flag_modal_changes_ward &
+      !flag_modal_changes_neighbor_ward,
+    flag_no_questionable_address_sample = !flag_location_questionable
+  ) %>%
+  filter(
+    !is.na(file_date),
+    year >= 2014,
+    year <= 2022,
+    is.finite(rent_price),
+    rent_price > 0,
+    is.finite(signed_dist_ft),
+    abs(signed_dist_ft) <= bandwidth_ft,
+    !is.na(strictness_own),
+    !is.na(strictness_neighbor),
+    !is.na(segment_id),
+    segment_id != "",
+    !is.na(ward_pair),
+    is.finite(longitude),
+    is.finite(latitude)
+  )
+
+if (nrow(rent) == 0) {
+  stop("No rental observations remain in the RD window.", call. = FALSE)
+}
+if (anyDuplicated(rent$rent_panel_id) > 0) {
+  stop("RD-window rental panel must remain unique by rent_panel_id.", call. = FALSE)
+}
+
+message(sprintf("RD-window rows: %s", format(nrow(rent), big.mark = ",")))
+message("Computing amenity distances from audited rental coordinates...")
+
+coords <- build_unique_coordinate_amenity_table(
+  rent,
+  "longitude",
+  "latitude",
+  "../input/schools_2015.gpkg",
+  "../input/parks.gpkg",
+  "../input/major_streets.gpkg",
+  "../input/gis_osm_water_a_free_1.shp",
+  chunk_n = 100000L,
+  distance_units = "feet"
+)
+
+coords_sf <- st_as_sf(coords, coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) %>%
+  st_transform(3435)
+coords$nearest_cta_stop_dist_ft <- nearest_distance_ft(
+  coords_sf,
+  read_amenity_layer("../input/cta_stops.gpkg"),
+  chunk_size = 100000L,
+  label = "coordinates"
+)
+
+rent <- rent %>%
+  left_join(coords, by = c("longitude", "latitude"), relationship = "many-to-one") %>%
+  mutate(
+    nearest_school_dist_kft = nearest_school_dist_ft / 1000,
+    nearest_park_dist_kft = nearest_park_dist_ft / 1000,
+    nearest_major_road_dist_kft = nearest_major_road_dist_ft / 1000,
+    nearest_cta_stop_dist_kft = nearest_cta_stop_dist_ft / 1000,
+    lake_michigan_dist_kft = lake_michigan_dist_ft / 1000
+  )
+
+if (anyDuplicated(rent$rent_panel_id) > 0) {
+  stop("Amenity join expanded rent_panel_id rows.", call. = FALSE)
+}
+
+amenity_cols <- c(
+  "nearest_school_dist_ft",
+  "nearest_park_dist_ft",
+  "nearest_major_road_dist_ft",
+  "nearest_cta_stop_dist_ft",
+  "lake_michigan_dist_ft"
+)
+amenity_diagnostics <- bind_rows(lapply(amenity_cols, function(metric) {
+  x <- rent[[metric]]
+  tibble(
+    metric = metric,
+    n_rows = nrow(rent),
+    n_unique_coords = nrow(coords),
+    n_nonmissing = sum(!is.na(x)),
+    share_nonmissing = mean(!is.na(x)),
+    min_distance_ft = min(x, na.rm = TRUE),
+    p50_distance_ft = median(x, na.rm = TRUE),
+    p90_distance_ft = quantile(x, 0.90, na.rm = TRUE),
+    mean_distance_ft = mean(x, na.rm = TRUE),
+    max_distance_ft = max(x, na.rm = TRUE)
+  )
+}))
+
+write_csv(
+  amenity_diagnostics,
+  sprintf("../output/rental_rd_amenity_distance_diagnostics_bw%s.csv", bandwidth_label)
+)
+write_parquet(
+  as.data.frame(rent),
+  sprintf("../output/rental_rd_characteristics_panel_bw%s.parquet", bandwidth_label)
+)
+
+sample_defs <- tibble::tribble(
+  ~sample, ~sample_label,
+  "all", "All",
+  "clean_location", "Clean location",
+  "no_modal_pair_change", "No modal pair change",
+  "no_modal_ward_change", "No modal ward change",
+  "no_questionable_address", "No questionable address"
+)
+
+filter_sample <- function(df, sample_name) {
+  if (sample_name == "all") {
+    return(df)
+  }
+  if (sample_name == "clean_location") {
+    return(df %>% filter(flag_clean_location_sample))
+  }
+  if (sample_name == "no_modal_pair_change") {
+    return(df %>% filter(flag_no_modal_pair_change_sample))
+  }
+  if (sample_name == "no_modal_ward_change") {
+    return(df %>% filter(flag_no_modal_ward_change_sample))
+  }
+  if (sample_name == "no_questionable_address") {
+    return(df %>% filter(flag_no_questionable_address_sample))
+  }
+  stop(sprintf("Unknown sample: %s", sample_name), call. = FALSE)
+}
+
+covariates <- tibble::tribble(
+  ~variable, ~label, ~group,
+  "beds", "Beds", "Hedonics",
+  "baths", "Baths", "Hedonics",
+  "sqft", "Sqft", "Hedonics",
+  "log_sqft", "Log sqft", "Hedonics",
+  "is_multifamily", "Multifamily", "Building type",
+  "is_single_family", "Single family", "Building type",
+  "is_condo", "Condo", "Building type",
+  "is_townhouse", "Townhouse", "Building type",
+  "laundry", "Laundry", "Unit amenities",
+  "gym", "Gym", "Unit amenities",
+  "doorman", "Doorman", "Unit amenities",
+  "furnished", "Furnished", "Unit amenities",
+  "pool", "Pool", "Unit amenities",
+  "year_built", "Year built", "Hedonics",
+  "active_days", "Active days in month", "Listing quality",
+  "raw_rows_month", "Raw rows in month", "Listing quality",
+  "address_missing", "Missing address", "Listing quality",
+  "flag_location_questionable", "Questionable location", "Location quality",
+  "flag_modal_changes_pair", "Modal pair changes", "Location quality",
+  "flag_rd_location_questionable", "RD-location flag", "Location quality",
+  "flag_building_type_conflict", "Building-type conflict", "Listing quality",
+  "nearest_school_dist_ft", "Dist. to school", "External amenities",
+  "nearest_park_dist_ft", "Dist. to park", "External amenities",
+  "nearest_major_road_dist_ft", "Dist. to major road", "External amenities",
+  "nearest_cta_stop_dist_ft", "Dist. to CTA stop", "External amenities",
+  "lake_michigan_dist_ft", "Dist. to Lake Michigan", "External amenities"
+) %>%
+  filter(variable %in% names(rent))
+
+balance_rows <- list()
+for (i in seq_len(nrow(sample_defs))) {
+  sample_name <- sample_defs$sample[i]
+  sample_label <- sample_defs$sample_label[i]
+  d_sample <- filter_sample(rent, sample_name)
+  message(sprintf("Balance sample %s: %s rows", sample_name, format(nrow(d_sample), big.mark = ",")))
+
+  for (j in seq_len(nrow(covariates))) {
+    variable <- covariates$variable[j]
+    d <- d_sample %>%
+      mutate(Y = as.numeric(.data[[variable]])) %>%
+      filter(is.finite(Y))
+    if (nrow(d) < 100 || n_distinct(d$right) < 2 || n_distinct(d$segment_id) < 2) {
+      next
+    }
+
+    y_sd <- sd(d$Y, na.rm = TRUE)
+    if (!is.finite(y_sd) || y_sd <= 0) {
+      next
+    }
+
+    model <- tryCatch(
+      feols(Y ~ right | segment_id^year_month, data = d, cluster = ~segment_id),
+      error = function(e) NULL
+    )
+    if (is.null(model) || !"right" %in% names(coef(model))) {
+      next
+    }
+
+    balance_rows[[length(balance_rows) + 1]] <- tibble(
+      sample = sample_name,
+      sample_label = sample_label,
+      variable = variable,
+      label = covariates$label[j],
+      group = covariates$group[j],
+      estimate = coef(model)[["right"]],
+      std_error = se(model)[["right"]],
+      p_value = pvalue(model)[["right"]],
+      estimate_std = coef(model)[["right"]] / y_sd,
+      std_error_std = se(model)[["right"]] / y_sd,
+      n_obs = model$nobs,
+      n_segments = n_distinct(d$segment_id),
+      n_ward_pairs = n_distinct(d$ward_pair),
+      mean_less_stringent = mean(d$Y[d$right == 0], na.rm = TRUE),
+      mean_more_stringent = mean(d$Y[d$right == 1], na.rm = TRUE),
+      dep_var_sd = y_sd,
+      bandwidth_ft = bandwidth_ft
+    )
+  }
+}
+
+balance <- bind_rows(balance_rows)
+write_csv(balance, sprintf("../output/rental_rd_covariate_balance_bw%s.csv", bandwidth_label))
+
+plot_balance <- balance %>%
+  filter(sample %in% c("all", "clean_location")) %>%
+  mutate(
+    label = factor(label, levels = rev(unique(label))),
+    ci_low = estimate_std - 1.96 * std_error_std,
+    ci_high = estimate_std + 1.96 * std_error_std
+  )
+
+balance_plot <- ggplot(plot_balance, aes(x = estimate_std, y = label, color = group)) +
+  geom_vline(xintercept = 0, color = "gray55", linetype = "dotted") +
+  geom_errorbarh(aes(xmin = ci_low, xmax = ci_high), height = 0, linewidth = 0.45) +
+  geom_point(size = 1.8) +
+  facet_wrap(~sample_label, ncol = 2) +
+  labs(
+    title = "RentHub RD Covariate Balance",
+    subtitle = sprintf("Standardized stricter-side jumps within %.0fft, segment-by-month FE", bandwidth_ft),
+    x = "Standardized jump on stricter side",
+    y = NULL,
+    color = NULL
+  ) +
+  theme_bw(base_size = 10) +
+  theme(legend.position = "bottom", panel.grid.minor = element_blank())
+
+ggsave(
+  sprintf("../output/rental_rd_covariate_balance_bw%s.pdf", bandwidth_label),
+  balance_plot,
+  width = 10.5,
+  height = 8,
+  dpi = 300,
+  bg = "white"
+)
+
+attenuation_rows <- list()
+for (i in seq_len(nrow(sample_defs))) {
+  sample_name <- sample_defs$sample[i]
+  sample_label <- sample_defs$sample_label[i]
+  d_sample <- filter_sample(rent, sample_name) %>%
+    filter(
+      is.finite(log_sqft),
+      is.finite(log_beds),
+      is.finite(log_baths),
+      if_all(
+        all_of(c(
+          "nearest_school_dist_kft",
+          "nearest_park_dist_kft",
+          "nearest_major_road_dist_kft",
+          "nearest_cta_stop_dist_kft",
+          "lake_michigan_dist_kft"
+        )),
+        is.finite
+      )
+    )
+
+  if (nrow(d_sample) < 100 || n_distinct(d_sample$segment_id) < 2 || n_distinct(d_sample$right) < 2) {
+    next
+  }
+
+  hedonic_rhs <- "right + log_sqft + log_beds + log_baths"
+  if (n_distinct(d_sample$building_type_factor) > 1) {
+    hedonic_rhs <- paste0(hedonic_rhs, " + building_type_factor")
+  }
+  amenity_rhs <- paste(
+    hedonic_rhs,
+    "nearest_school_dist_kft",
+    "nearest_park_dist_kft",
+    "nearest_major_road_dist_kft",
+    "nearest_cta_stop_dist_kft",
+    "lake_michigan_dist_kft",
+    sep = " + "
+  )
+
+  model_specs <- tibble::tribble(
+    ~specification, ~spec_label, ~rhs,
+    "no_controls_common", "No controls", "right",
+    "hedonic_common", "Hedonics", hedonic_rhs,
+    "hedonic_amenity_common", "Hedonics + amenities", amenity_rhs
+  )
+
+  for (j in seq_len(nrow(model_specs))) {
+    model <- feols(
+      as.formula(paste0("log(rent_price) ~ ", model_specs$rhs[j], " | segment_id^year_month")),
+      data = d_sample,
+      cluster = ~segment_id
+    )
+    if (!"right" %in% names(coef(model))) {
+      stop(sprintf("RD attenuation model failed to estimate right for %s / %s.", sample_name, model_specs$specification[j]), call. = FALSE)
+    }
+    attenuation_rows[[length(attenuation_rows) + 1]] <- tibble(
+      sample = sample_name,
+      sample_label = sample_label,
+      specification = model_specs$specification[j],
+      spec_label = model_specs$spec_label[j],
+      estimate = coef(model)[["right"]],
+      std_error = se(model)[["right"]],
+      p_value = pvalue(model)[["right"]],
+      n_obs = model$nobs,
+      n_segments = n_distinct(d_sample$segment_id),
+      n_ward_pairs = n_distinct(d_sample$ward_pair),
+      dep_var_mean = mean(log(d_sample$rent_price), na.rm = TRUE),
+      bandwidth_ft = bandwidth_ft,
+      common_sample = TRUE
+    )
+  }
+}
+
+attenuation <- bind_rows(attenuation_rows) %>%
+  mutate(
+    ci_low = estimate - 1.96 * std_error,
+    ci_high = estimate + 1.96 * std_error,
+    spec_label = factor(spec_label, levels = c("No controls", "Hedonics", "Hedonics + amenities")),
+    sample_label = factor(sample_label, levels = sample_defs$sample_label)
+  )
+write_csv(attenuation, sprintf("../output/rental_rd_rent_attenuation_bw%s.csv", bandwidth_label))
+
+attenuation_plot <- ggplot(
+  attenuation,
+  aes(x = spec_label, y = estimate, ymin = ci_low, ymax = ci_high, color = sample_label)
+) +
+  geom_hline(yintercept = 0, color = "gray55", linetype = "dotted") +
+  geom_pointrange(position = position_dodge(width = 0.55), linewidth = 0.45) +
+  labs(
+    title = "RentHub RD Rent Jump With Hedonic And Amenity Controls",
+    subtitle = sprintf("Common complete-case sample within %.0fft; segment-by-month FE", bandwidth_ft),
+    x = NULL,
+    y = "Stricter-side jump in log rent",
+    color = NULL
+  ) +
+  theme_bw(base_size = 10) +
+  theme(legend.position = "bottom", panel.grid.minor = element_blank())
+
+ggsave(
+  sprintf("../output/rental_rd_rent_attenuation_bw%s.pdf", bandwidth_label),
+  attenuation_plot,
+  width = 9,
+  height = 5.5,
+  dpi = 300,
+  bg = "white"
+)
+ggsave(
+  sprintf("../output/rental_rd_rent_attenuation_bw%s.png", bandwidth_label),
+  attenuation_plot,
+  width = 9,
+  height = 5.5,
+  dpi = 220,
+  bg = "white"
+)
+
+message("Saved RentHub RD characteristics diagnostics.")

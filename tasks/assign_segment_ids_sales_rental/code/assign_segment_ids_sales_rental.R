@@ -18,9 +18,9 @@ sf_use_s2(FALSE)
 # out_coverage <- "../output/segment_assignment_coverage_summary.csv"
 # out_spotcheck <- "../output/segment_assignment_spotcheck_queue.csv"
 # out_reason <- "../output/segment_assignment_reason_summary.csv"
-# segment_buffer_m <- 250
-# coverage_bandwidths_m <- "100,250"
-# spotcheck_bandwidth_m <- 250
+# segment_buffer_m <- 305
+# coverage_bandwidths_m <- "100,250,305"
+# spotcheck_bandwidth_m <- 305
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -117,6 +117,130 @@ coverage_block <- function(dataset, dt, scope_name) {
     }
   }
   rbindlist(out, fill = TRUE)
+}
+
+segment_distance_audit_block <- function(dataset, dt, date_col, pair_col, lon_col, lat_col,
+                                         dist_col, allow_pre_2003, chunk_n = 50000L) {
+  dt <- copy(dt)
+  dt[, audit_row_id := .I]
+  dt[, pair_dash_audit := normalize_pair_dash(get(pair_col))]
+  dt[, obs_date_audit := as.Date(get(date_col))]
+  dt[, era_audit := canonical_era_from_date(obs_date_audit, allow_pre_2003 = allow_pre_2003)]
+
+  max_audit_m <- max(c(coverage_bandwidths_m, 500 * 0.3048), na.rm = TRUE)
+  audit_idx <- which(
+    is.finite(dt[[dist_col]]) &
+      dt[[dist_col]] <= max_audit_m &
+      is.finite(dt[[lon_col]]) &
+      is.finite(dt[[lat_col]]) &
+      !is.na(dt$era_audit) &
+      !is.na(dt$pair_dash_audit)
+  )
+
+  if (length(audit_idx) == 0) {
+    return(data.table(
+      dataset = dataset,
+      scope = "within_500ft",
+      era = character(),
+      n_rows = integer(),
+      n_missing_segment = integer(),
+      n_missing_segment_distance = integer(),
+      n_segment_pair_mismatch = integer(),
+      n_segment_distance_mismatch = integer(),
+      max_abs_segment_dist_diff_m = numeric()
+    ))
+  }
+
+  pts <- st_as_sf(
+    data.table(
+      audit_row_id = audit_idx,
+      lon = dt[[lon_col]][audit_idx],
+      lat = dt[[lat_col]][audit_idx]
+    ),
+    coords = c("lon", "lat"),
+    crs = 4326,
+    remove = FALSE
+  )
+
+  segment_audit <- audit_nearest_segment_pair_constraints(
+    points_sf = pts,
+    era_values = dt$era_audit[audit_idx],
+    pair_values = dt$pair_dash_audit[audit_idx],
+    segment_layers = segments_by_era,
+    constrained_segment_id = dt$segment_id[audit_idx],
+    max_distance = units::set_units(segment_buffer_m, "m"),
+    chunk_n = chunk_n
+  )
+
+  detail <- cbind(
+    data.table(
+      audit_row_id = audit_idx,
+      era = dt$era_audit[audit_idx],
+      ward_pair_id = dt[[pair_col]][audit_idx],
+      pair_dash = dt$pair_dash_audit[audit_idx],
+      dist_m = as.numeric(dt[[dist_col]][audit_idx]),
+      segment_id = as.character(dt$segment_id[audit_idx])
+    ),
+    as.data.table(segment_audit)
+  )
+  detail[, segment_dist_diff_m := constrained_segment_dist_m - dist_m]
+  detail[, abs_segment_dist_diff_m := abs(segment_dist_diff_m)]
+  detail[, flag_missing_segment := is.na(segment_id) | segment_id == ""]
+  detail[, flag_missing_segment_distance := !is.finite(constrained_segment_dist_m)]
+  detail[, flag_segment_pair_mismatch := !flag_missing_segment &
+    !is.na(constrained_pair_dash) & pair_dash != constrained_pair_dash]
+  detail[, flag_segment_distance_mismatch := !flag_missing_segment &
+    (!is.finite(abs_segment_dist_diff_m) | abs_segment_dist_diff_m > 1)]
+
+  scopes <- c(
+    list(list(name = "within_500ft", max_m = 500 * 0.3048)),
+    lapply(coverage_bandwidths_m, function(bw_m_i) {
+      list(name = sprintf("bw%.0fm", bw_m_i), max_m = bw_m_i)
+    })
+  )
+
+  rbindlist(lapply(scopes, function(scope_i) {
+    d <- detail[dist_m <= scope_i$max_m]
+    if (nrow(d) == 0) {
+      return(data.table(
+        dataset = dataset,
+        scope = scope_i$name,
+        era = "all",
+        n_rows = 0L,
+        n_missing_segment = 0L,
+        n_missing_segment_distance = 0L,
+        n_segment_pair_mismatch = 0L,
+        n_segment_distance_mismatch = 0L,
+        max_abs_segment_dist_diff_m = NA_real_
+      ))
+    }
+
+    out <- d[, .(
+      n_rows = .N,
+      n_missing_segment = sum(flag_missing_segment, na.rm = TRUE),
+      n_missing_segment_distance = sum(flag_missing_segment_distance, na.rm = TRUE),
+      n_segment_pair_mismatch = sum(flag_segment_pair_mismatch, na.rm = TRUE),
+      n_segment_distance_mismatch = sum(flag_segment_distance_mismatch, na.rm = TRUE),
+      max_abs_segment_dist_diff_m = suppressWarnings(max(abs_segment_dist_diff_m, na.rm = TRUE))
+    ), by = .(era)]
+    out_all <- d[, .(
+      era = "all",
+      n_rows = .N,
+      n_missing_segment = sum(flag_missing_segment, na.rm = TRUE),
+      n_missing_segment_distance = sum(flag_missing_segment_distance, na.rm = TRUE),
+      n_segment_pair_mismatch = sum(flag_segment_pair_mismatch, na.rm = TRUE),
+      n_segment_distance_mismatch = sum(flag_segment_distance_mismatch, na.rm = TRUE),
+      max_abs_segment_dist_diff_m = suppressWarnings(max(abs_segment_dist_diff_m, na.rm = TRUE))
+    )]
+    out <- rbindlist(list(out_all, out), fill = TRUE)
+    out[, `:=`(dataset = dataset, scope = scope_i$name)]
+    setcolorder(out, c(
+      "dataset", "scope", "era", "n_rows", "n_missing_segment",
+      "n_missing_segment_distance", "n_segment_pair_mismatch",
+      "n_segment_distance_mismatch", "max_abs_segment_dist_diff_m"
+    ))
+    out[order(scope, era)]
+  }), fill = TRUE)
 }
 
 assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_col, dist_col, allow_pre_2003, chunk_n = 50000L) {
@@ -231,9 +355,26 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
   setcolorder(reason_summary, c("dataset", "era", "segment_reason", "n_obs"))
   setorder(reason_summary, era, segment_reason)
 
+  segment_distance_audit <- segment_distance_audit_block(
+    dataset = dataset_name,
+    dt = dt,
+    date_col = date_col,
+    pair_col = pair_col,
+    lon_col = lon_col,
+    lat_col = lat_col,
+    dist_col = dist_col,
+    allow_pre_2003 = allow_pre_2003,
+    chunk_n = chunk_n
+  )
+
   out <- copy(dt)
   out[, c("row_id", "pair_dash", "obs_date", "era") := NULL]
-  list(data = out, coverage = cov, reason_summary = reason_summary)
+  list(
+    data = out,
+    coverage = cov,
+    reason_summary = reason_summary,
+    segment_distance_audit = segment_distance_audit
+  )
 }
 
 build_spotcheck <- function(dt_sales, dt_rent, n_each = 20L, bandwidth_m) {
@@ -384,7 +525,24 @@ if (all(c("modal_longitude", "modal_latitude", "modal_ward_pair_id") %in% names(
 
 cov_out <- rbindlist(list(sales_res$coverage, rent_res$coverage), fill = TRUE)
 reason_out <- rbindlist(list(sales_res$reason_summary, rent_res$reason_summary), fill = TRUE)
+distance_audit_out <- rbindlist(
+  list(sales_res$segment_distance_audit, rent_res$segment_distance_audit),
+  fill = TRUE
+)
 spotcheck <- build_spotcheck(sales_out, rent_out, n_each = 20L, bandwidth_m = spotcheck_bandwidth_m)
+fwrite(distance_audit_out, "../output/segment_assignment_distance_audit.csv")
+
+critical_distance_audit <- distance_audit_out[scope == "within_500ft"]
+if (nrow(critical_distance_audit) > 0 &&
+    any(
+      critical_distance_audit$n_missing_segment > 0 |
+        critical_distance_audit$n_missing_segment_distance > 0 |
+        critical_distance_audit$n_segment_pair_mismatch > 0 |
+        critical_distance_audit$n_segment_distance_mismatch > 0,
+      na.rm = TRUE
+    )) {
+  stop("Segment distance audit failed inside 500ft.", call. = FALSE)
+}
 
 write_parquet(as.data.frame(rent_out), out_rent)
 fwrite(cov_out, out_coverage)
@@ -395,3 +553,4 @@ message(sprintf("Saved rental output: %s (rows=%d)", out_rent, nrow(rent_out)))
 message(sprintf("Saved coverage summary: %s", out_coverage))
 message(sprintf("Saved spotcheck queue: %s", out_spotcheck))
 message(sprintf("Saved reason summary: %s", out_reason))
+message("Saved distance audit: ../output/segment_assignment_distance_audit.csv")
