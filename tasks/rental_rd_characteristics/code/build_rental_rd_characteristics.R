@@ -213,6 +213,48 @@ filter_sample <- function(df, sample_name) {
   stop(sprintf("Unknown sample: %s", sample_name), call. = FALSE)
 }
 
+latex_escape <- function(x) {
+  x <- gsub("\\\\", "\\\\textbackslash{}", x)
+  x <- gsub("([_%$#&{}])", "\\\\\\1", x, perl = TRUE)
+  x
+}
+
+format_tex_number <- function(x, digits = 2) {
+  ifelse(
+    is.na(x),
+    "",
+    formatC(x, format = "f", digits = digits, big.mark = ",")
+  )
+}
+
+format_tex_int <- function(x) {
+  ifelse(
+    is.na(x),
+    "",
+    formatC(round(x), format = "d", big.mark = ",")
+  )
+}
+
+tex_stars <- function(p_value) {
+  case_when(
+    is.na(p_value) ~ "",
+    p_value < 0.01 ~ "***",
+    p_value < 0.05 ~ "**",
+    p_value < 0.10 ~ "*",
+    TRUE ~ ""
+  )
+}
+
+format_tex_coef <- function(estimate, std_error, p_value, scale = 1, digits = 2) {
+  paste0(
+    format_tex_number(scale * estimate, digits),
+    tex_stars(p_value),
+    " (",
+    format_tex_number(scale * std_error, digits),
+    ")"
+  )
+}
+
 covariates <- tibble::tribble(
   ~variable, ~label, ~group,
   "beds", "Beds", "Hedonics",
@@ -297,6 +339,38 @@ for (i in seq_len(nrow(sample_defs))) {
 
 balance <- bind_rows(balance_rows)
 write_csv(balance, sprintf("../output/rental_rd_covariate_balance_bw%s.csv", bandwidth_label))
+
+external_balance <- balance %>%
+  filter(
+    sample %in% c("all", "clean_location"),
+    group == "External amenities"
+  ) %>%
+  mutate(cell = format_tex_coef(estimate, std_error, p_value, scale = 1, digits = 1)) %>%
+  select(label, sample, cell) %>%
+  pivot_wider(names_from = sample, values_from = cell)
+
+external_balance_lines <- c(
+  "\\begingroup",
+  "\\centering",
+  "\\begin{tabular}{lcc}",
+  "\\toprule",
+  "Covariate & All & Clean location \\\\",
+  "\\midrule",
+  sprintf(
+    "%s & %s & %s \\\\",
+    latex_escape(external_balance$label),
+    external_balance$all,
+    external_balance$clean_location
+  ),
+  "\\bottomrule",
+  "\\end{tabular}",
+  "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Each cell reports the residualized stricter-side jump in feet, with standard errors in parentheses. Regressions use the 500ft RentHub RD sample, segment-by-month fixed effects, and standard errors clustered by segment. Clean-location rows exclude observations with modal-coordinate ward, pair, or distance-instability flags. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
+  "\\par\\endgroup"
+)
+writeLines(
+  external_balance_lines,
+  sprintf("../output/rental_rd_external_amenity_balance_bw%s.tex", bandwidth_label)
+)
 
 plot_balance <- balance %>%
   filter(sample %in% c("all", "clean_location")) %>%
@@ -411,6 +485,61 @@ attenuation <- bind_rows(attenuation_rows) %>%
     sample_label = factor(sample_label, levels = sample_defs$sample_label)
   )
 write_csv(attenuation, sprintf("../output/rental_rd_rent_attenuation_bw%s.csv", bandwidth_label))
+
+attenuation_tex <- attenuation %>%
+  filter(sample %in% c("all", "clean_location")) %>%
+  mutate(
+    cell = format_tex_coef(estimate, std_error, p_value, scale = 100, digits = 2),
+    spec_label = as.character(spec_label)
+  ) %>%
+  select(spec_label, sample, cell, n_obs, n_segments, n_ward_pairs) %>%
+  pivot_wider(
+    names_from = sample,
+    values_from = c(cell, n_obs, n_segments, n_ward_pairs)
+  ) %>%
+  arrange(match(spec_label, c("No controls", "Hedonics", "Hedonics + amenities")))
+
+attenuation_table_lines <- c(
+  "\\begingroup",
+  "\\centering",
+  "\\begin{tabular}{lcc}",
+  "\\toprule",
+  "Specification & All & Clean location \\\\",
+  "\\midrule",
+  sprintf(
+    "%s & %s & %s \\\\",
+    latex_escape(attenuation_tex$spec_label),
+    attenuation_tex$cell_all,
+    attenuation_tex$cell_clean_location
+  ),
+  "\\midrule",
+  sprintf(
+    "Observations & %s & %s \\\\",
+    format_tex_int(attenuation_tex$n_obs_all[1]),
+    format_tex_int(attenuation_tex$n_obs_clean_location[1])
+  ),
+  sprintf(
+    "Segments & %s & %s \\\\",
+    format_tex_int(attenuation_tex$n_segments_all[1]),
+    format_tex_int(attenuation_tex$n_segments_clean_location[1])
+  ),
+  sprintf(
+    "Ward pairs & %s & %s \\\\",
+    format_tex_int(attenuation_tex$n_ward_pairs_all[1]),
+    format_tex_int(attenuation_tex$n_ward_pairs_clean_location[1])
+  ),
+  "\\bottomrule",
+  "\\end{tabular}",
+  sprintf(
+    "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Entries are percent log-rent jumps on the stricter side of a ward boundary, with standard errors in parentheses. The sample uses RentHub floorplan-month observations from 2014--2022 within %sft of ward boundaries. All columns include segment-by-month fixed effects and standard errors clustered by segment. Hedonic controls are log square feet, log bedrooms, log bathrooms, and building type. Amenity controls are distances to the nearest school, CPD park-boundary polygon, major street, CTA stop, and Lake Michigan. Clean-location rows exclude observations with modal-coordinate ward, pair, or distance-instability flags. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
+    bandwidth_label
+  ),
+  "\\par\\endgroup"
+)
+writeLines(
+  attenuation_table_lines,
+  sprintf("../output/rental_rd_rent_attenuation_bw%s.tex", bandwidth_label)
+)
 
 attenuation_plot <- ggplot(
   attenuation,

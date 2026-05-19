@@ -6,8 +6,10 @@ all: \
 	../output/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet \
 	../output/rental_rd_amenity_distance_diagnostics_bw$(BANDWIDTH_FT).csv \
 	../output/rental_rd_covariate_balance_bw$(BANDWIDTH_FT).csv \
+	../output/rental_rd_external_amenity_balance_bw$(BANDWIDTH_FT).tex \
 	../output/rental_rd_covariate_balance_bw$(BANDWIDTH_FT).pdf \
 	../output/rental_rd_rent_attenuation_bw$(BANDWIDTH_FT).csv \
+	../output/rental_rd_rent_attenuation_bw$(BANDWIDTH_FT).tex \
 	../output/rental_rd_rent_attenuation_bw$(BANDWIDTH_FT).pdf \
 	../output/rental_rd_rent_attenuation_bw$(BANDWIDTH_FT).png
 
@@ -16,8 +18,10 @@ all: \
 
 ../output/rental_rd_amenity_distance_diagnostics_bw$(BANDWIDTH_FT).csv \
 ../output/rental_rd_covariate_balance_bw$(BANDWIDTH_FT).csv \
+../output/rental_rd_external_amenity_balance_bw$(BANDWIDTH_FT).tex \
 ../output/rental_rd_covariate_balance_bw$(BANDWIDTH_FT).pdf \
 ../output/rental_rd_rent_attenuation_bw$(BANDWIDTH_FT).csv \
+../output/rental_rd_rent_attenuation_bw$(BANDWIDTH_FT).tex \
 ../output/rental_rd_rent_attenuation_bw$(BANDWIDTH_FT).pdf \
 ../output/rental_rd_rent_attenuation_bw$(BANDWIDTH_FT).png: ../output/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet
 	@test -s "$@"
