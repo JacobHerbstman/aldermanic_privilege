@@ -8,7 +8,7 @@ Unlike most cities, where the mayor or a planning commission controls land use
 decisions, Chicago's informal norms give each alderman broad authority over
 development within ward boundaries. This practice, known as ``aldermanic
 privilege'' or ``aldermanic prerogative,'' rests on custom rather than formal law, in part because Chicago has no city charter.
-It operates through a simple convention: on matters affecting a
+It operates through a norm of deference: on matters affecting a
 single ward, other aldermen defer to the local representative, and city agencies
 follow the alderman's lead \citep{thale_aldermanic_2005}. The convention is strong
 enough that aldermen have often been described as ``little mayors'' governing
@@ -22,7 +22,7 @@ practice in July 2019, aldermanic authority over permitting had a formal
 institutional expression. The Department of Buildings required an ``aldermanic
 acknowledgement letter'' for building permits above a threshold value, giving the
 local alderman a formal 10-day hold on permit issuance---embedding aldermanic review
-directly into the permitting pipeline as a matter of city procedure, not simply
+directly into permit issuance as a matter of city procedure, not simply
 informal custom \citep{city_of_chicago_sixty-day_2019}. Ald.\ Carlos Ramirez-Rosa
 described the old norm: ``Rather than an alderman just picking up the phone and
 saying, `stop that permit,' we are going to make it transparent.''
@@ -43,7 +43,7 @@ finding that ``before a development even gets to the point of being indefinitely
 delayed, many never make it past `Go' because of required aldermanic letters of
 support.'' \citep{metropolitan_planning_council_unfettered_2019}
 
-\paragraph{How prerogative shapes the development pipeline.} Aldermanic
+\paragraph{How prerogative shapes development.} Aldermanic
 discretion enters well before formal permit issuance and continues after a project is filed.
 
 \textit{Pre-application.} Experienced Chicago developers know that any project
@@ -77,7 +77,7 @@ Buildings permit queue. The corruption case against Ald.\ Ed Burke illustrated t
 mechanism in an extreme form: federal prosecutors documented how his staff
 withheld routine permits---including a driveway permit for a fast-food
 restaurant---until the property owner directed legal business to Burke's law firm
-\citep{spielman_aldermen_2019}. The case made especially visible a dynamic that developers had long
+\citep{spielman_aldermen_2019}. The case made visible what developers had long
 understood: in Chicago, permit timing is another lever aldermen can use to delay and suppress
 projects they oppose.
 
@@ -118,22 +118,22 @@ The building permits data come from the City of Chicago's open data portal and i
 
 \textit{High-discretion permits} are those for new construction, renovation and alteration, wrecking and demolition, porch construction, and permits reinstated after being previously revoked.\footnote{Porch construction permits have received extra scrutiny since the \href{https://en.wikipedia.org/wiki/2003_Chicago_balcony_collapse}{2003 balcony collapse}.} These are the permit types most likely to draw community opposition and face delays due to community meetings or direct aldermanic intervention. \textit{Low-discretion permits} are all remaining permit types outside this high-discretion group, excluding signs. I use them as a placebo comparison group because they are generally less exposed to discretionary aldermanic intervention.
 
-This distinction is what allows me to isolate the alderman-specific component of the regulatory environment. High-discretion permits are the ones most likely to require meaningful interaction with the alderman. Low-discretion permits provide a useful comparison group: if the stringency scores are picking up something specific to the discretionary layer rather than general bureaucratic capacity, the effects should be concentrated in high-discretion permits and largely absent for low-discretion ones.
+This distinction helps separate aldermanic discretion from general permitting capacity. High-discretion permits are the ones most likely to require meaningful interaction with the alderman. Low-discretion permits provide a useful comparison group: if the stringency scores are picking up something specific to the discretionary layer rather than general bureaucratic capacity, the effects should be concentrated in high-discretion permits and largely absent for low-discretion ones.
 
-The descriptive patterns line up with that interpretation. High-discretion permits take substantially longer to process and exhibit much more cross-alderman dispersion in mean processing time. At the permit level, longer processing times for high-discretion permits are associated with \textit{lower} ward-month permit volume, while low-discretion processing times are weakly positively correlated with ward-month permit volume, suggesting that they reflect administrative capacity rather than regulatory friction. Figure~\ref{fig:permit_high_low_processing} shows these patterns, and Appendix~\ref{app:permit_summary_stats} reports the corresponding summary statistics and volume correlations.
+The descriptive patterns are consistent with this interpretation. High-discretion permits take substantially longer to process and exhibit much more cross-alderman dispersion in mean processing time. At the permit level, longer processing times for high-discretion permits are associated with \textit{lower} ward-month permit volume, while low-discretion processing times are weakly positively correlated with ward-month permit volume, suggesting that they reflect administrative capacity rather than regulatory friction. Figure~\ref{fig:permit_high_low_processing} shows these patterns, and Appendix~\ref{app:permit_summary_stats} reports the corresponding summary statistics and volume correlations.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.78\textwidth]{../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf}
     \caption{Alderman-Level Mean Processing Time for High- and Low-Discretion Permits}
-    \figurenotes{Figure plots the distribution of alderman-level mean permit processing time separately for high- and low-discretion permit groups. High-discretion permits are new construction, renovation/alteration, wrecking/demolition, porch construction, and reinstated permits. Low-discretion permits are all remaining non-high-discretion permit types, excluding signs. Processing time is days from application to issuance.}
+\figurenotes{Figure plots the distribution of alderman-level mean permit processing time separately for high- and low-discretion permit groups, using permit applications through December 2022. High-discretion permits are new construction, renovation/alteration, wrecking/demolition, porch construction, and reinstated permits. Low-discretion permits are all remaining non-high-discretion permit types, excluding signs. Processing time is days from application to issuance.}
     \label{fig:permit_high_low_processing}
 \end{figure}
 
 \subsection{Aldermanic Stringency Scores}
 \label{subsec:strictness}
 
-I construct the stringency score by residualizing permit processing times against ward and permit characteristics, then extracting the alderman-specific component. The first stage regresses log processing time at the permit level on ward-level demographic controls (median household income, racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
+I construct the stringency score using permit applications through December 2022 by residualizing permit processing times against ward and permit characteristics, then extracting the alderman-specific component. The first stage regresses log processing time at the permit level on ward-level demographic controls (median household income, racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
 %
 \begin{equation} \label{eq:strictness_reg1}
     \log(\text{Processing Time}_{i}) = \mathbf{X}_i \beta + \gamma_{\text{ym}} + \delta_{\text{pt}} + \zeta_{\text{rt}} + \epsilon_{i}
@@ -157,7 +157,7 @@ Appendix Figure~\ref{fig:aldermanic_strictness_scores} shows the distribution of
     \centering
     \includegraphics[width=0.8\textwidth]{../tasks/strictness_score_map/output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022-01.pdf}
     \caption{Geographic Distribution of Aldermanic Stringency}
-    \figurenotes{Map shows standardized stringency scores by ward. Darker shades indicate more stringent aldermen.}
+\figurenotes{Map shows standardized stringency scores by ward, estimated using permit applications through December 2022 and displayed on the January 2022 ward map. Darker shades indicate more stringent aldermen.}
     \label{fig:alderman_strictness_map}
 \end{figure}
 
@@ -167,10 +167,18 @@ I construct a dataset of all new residential construction in Chicago between 200
 
 For each parcel I compute two standard density measures: Floor Area Ratio (FAR), defined as total building area divided by lot area, and Dwelling Units Per Acre (DUPAC), defined as dwelling units divided by lot acreage. Distance to the nearest ward boundary is computed after projecting parcels and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
 
-Table~\ref{tab:summary_stats} presents summary statistics. The full sample contains 12,451 new residential buildings. The 2,130 multifamily buildings (2+ units) are reported separately because aldermanic discretion is likely to matter most for larger projects. The main text focuses on the all-construction sample within 500ft of ward boundaries and reports multifamily estimates alongside it.
+Table~\ref{tab:summary_stats} presents summary statistics. The full sample contains 12,471 new residential buildings. The 2,131 multifamily buildings (2+ units) are reported separately because aldermanic discretion is likely to matter most for larger projects. The main text focuses on the all-construction sample within 500ft of ward boundaries and reports multifamily estimates alongside it.
 
 \input{../tasks/summary_stats_new_construction/output/summary_stats.tex}
 
+\subsection{Rental Listings}
+
+The rental data come from RentHub listings for Illinois from 2014 through 2022. I restrict the data to Chicago using ward assignments rather than ZIP codes. The raw data are scrape-level rows, so the same listing can appear many times in the same month. I clean addresses, coordinates, rent, bedrooms, bathrooms, square footage, and building type, then build property and floorplan proxies from normalized address, rounded coordinates, beds, baths, square feet, and building type. The main rental panel is one observation per floorplan proxy per month, with rent equal to the median of the daily median asking rent observed during that month. This collapse keeps large multifamily buildings in the sample while preventing persistent daily scrapes from receiving extra weight.
+
+Location quality matters for a border design, so I flag unstable rental geocodes before estimating the RD. For each address proxy, I compare listing coordinates to the modal address coordinate and flag cases where the modal coordinate would change the ward, ward-pair boundary, side of the border, or distance assignment. The main rental RD uses listings with valid ward assignment. A robustness specification excludes observations whose modal-address coordinate would change the assigned ward, ward pair, side of the boundary, or distance bin. Appendix~\ref{app:data_sources} gives more detail on the cleaning rules and diagnostics.
+
 \subsection{Home Sales}
 
-Home sales data come from the Cook County Assessor's Office and cover residential transactions from 1999 to 2022 for the active paper workflow. I restrict the sample to arm's-length transactions of single-family homes and small multifamily buildings (2--6 units), excluding nominal transfers, land-only sales, and intrafamily conveyances. Sale prices are first deflated to 2022 dollars using the monthly Chicago CPI-U all-items series and then winsorized at the 1st and 99th percentiles. Each transaction is geocoded using the county parcel universe and assigned to the relevant ward based on the boundaries in effect at the sale date. Property-level hedonic controls---building area, land area, building age, bedrooms, bathrooms, and garage---come from a rolling join to the most recent assessor record as of the sale year.
+Home sales data come from the Cook County Assessor's Office and cover residential transactions from 1999 to 2022. The price RD uses sales from 2006 through 2022 to match the paper's main outcome window. I restrict the sample to arm's-length transactions of single-family homes and small multifamily buildings (2--6 units), excluding nominal transfers, land-only sales, and intrafamily conveyances. Sale prices are first deflated to 2022 dollars using the monthly Chicago CPI-U all-items series and then winsorized at the 1st and 99th percentiles. Each transaction is geocoded using the county parcel universe and assigned to the relevant ward based on the boundaries in effect at the sale date. Property-level hedonic controls---building area, land area, building age, bedrooms, bathrooms, and garage---come from a rolling join to the most recent assessor record as of the sale year.
+
+For both rents and sales, the price RD uses parcel or listing coordinates projected from longitude-latitude to EPSG:3435 before any distance calculation. The amenity controls are distances to the nearest school, Chicago Park District park-boundary polygon, major street, and Lake Michigan. The rental specifications also control for distance to the nearest CTA stop open by the listing month.

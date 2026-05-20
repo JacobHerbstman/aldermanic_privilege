@@ -85,7 +85,9 @@ parse_cutoff_month <- function(month_raw, year_raw) {
 }
 
 max_permit_month <- parse_cutoff_month(max_permit_month_raw, max_permit_year_raw)
-cutoff_label <- if (!is.na(max_permit_month)) {
+cutoff_label <- if (!nzchar(max_permit_month_raw) && nzchar(max_permit_year_raw)) {
+  paste0("through", max_permit_year_raw)
+} else if (!is.na(max_permit_month)) {
   paste0("through", format(as.Date(max_permit_month), "%Y%m"))
 } else {
   "throughlatest"

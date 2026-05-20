@@ -83,7 +83,7 @@ parcels_fe <- read_csv(fe_input_path, show_col_types = FALSE) %>%
     lenient_dist = abs(signed_distance) * as.integer(signed_distance <= 0),
     strict_dist = abs(signed_distance) * as.integer(signed_distance > 0)
   ) %>%
-  filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006)
+  filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022)
 
 if (sample_filter == "all") {
   parcels_fe <- parcels_fe %>% filter(unitscount > 0)

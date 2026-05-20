@@ -6,9 +6,9 @@ source("../../_lib/canonical_geometry_helpers.R")
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_permit_data/code")
 # segment_buffer_m <- 304.8
 # panel_max_distance_m <- 800
-# permit_start_year <- 2006
-# permit_end_year <- 2026
-# permit_end_month <- "2026-04"
+# permit_start_year <- 2010
+# permit_end_year <- 2020
+# permit_end_month <- "2020-12"
 # =======================================================================================
 
 cli_args <- commandArgs(trailingOnly = TRUE)
@@ -934,7 +934,7 @@ message("Building balanced block-year panels...")
 cohort_2015 <- build_panel_with_counts(
   base_df = base_2015,
   start_year = permit_year_min,
-  end_year = 2020L,
+  end_year = permit_year_max,
   cohort_year = 2015L,
   counts_dt = counts_2010
 )

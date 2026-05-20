@@ -11,6 +11,8 @@ all: \
 	../output/rental_rd_supply_ppml_bw$(BANDWIDTH_FT).pdf \
 	../output/rental_rd_supply_bins_bw$(BANDWIDTH_FT).csv \
 	../output/rental_rd_supply_bins_bw$(BANDWIDTH_FT).pdf \
+	../output/rental_rd_supply_levels_bw$(BANDWIDTH_FT).pdf \
+	../output/rental_rd_supply_levels_clean_location_bw$(BANDWIDTH_FT).pdf \
 	../output/rental_rd_supply_sample_summary_bw$(BANDWIDTH_FT).csv
 
 ../output/rental_rd_supply_side_panel_bw$(BANDWIDTH_FT).parquet: build_rental_rd_supply.R ../input/rent_with_ward_distances.parquet | ../output
@@ -22,6 +24,8 @@ all: \
 ../output/rental_rd_supply_ppml_bw$(BANDWIDTH_FT).pdf \
 ../output/rental_rd_supply_bins_bw$(BANDWIDTH_FT).csv \
 ../output/rental_rd_supply_bins_bw$(BANDWIDTH_FT).pdf \
+../output/rental_rd_supply_levels_bw$(BANDWIDTH_FT).pdf \
+../output/rental_rd_supply_levels_clean_location_bw$(BANDWIDTH_FT).pdf \
 ../output/rental_rd_supply_sample_summary_bw$(BANDWIDTH_FT).csv: ../output/rental_rd_supply_side_panel_bw$(BANDWIDTH_FT).parquet
 	@test -s "$@"
 

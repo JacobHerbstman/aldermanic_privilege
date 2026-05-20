@@ -57,6 +57,7 @@ df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALS
     unitscount >= 2,
     unitscount <= 100,
     construction_year >= 2006,
+    construction_year <= 2022,
     abs(signed_distance) <= bw_ft,
     density_far > 0,
     density_dupac > 0

@@ -1,4 +1,4 @@
-# Estimate flat no-slope rental RD using cleaned RentHub floorplan-month records.
+# Estimate flat no-slope listed-rent RD using cleaned RentHub floorplan-month records.
 
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd/code")
 # bandwidth_ft <- 500
@@ -47,7 +47,7 @@ prefix <- sprintf(
   control_label
 )
 
-message("=== RentHub Rental RD ===")
+message("=== Listed-Rent RD ===")
 message(sprintf("Bandwidth: %.0f ft", bandwidth_ft))
 message(sprintf("Sample: %s", sample))
 message(sprintf("Controls: %s", ifelse(use_controls, "TRUE", "FALSE")))
@@ -218,7 +218,7 @@ stars <- if (!is.finite(p_value)) {
   ""
 }
 
-plot_title <- "RentHub Rents by Side of Ward Boundary"
+plot_title <- "Listed Rents by Side of Ward Boundary"
 plot_subtitle <- sprintf(
   "Jump = %.4f%s (SE %.4f), N = %s, 2014-2022, %.0fft",
   estimate,

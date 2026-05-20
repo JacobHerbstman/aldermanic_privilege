@@ -716,22 +716,22 @@ with_dir(repo_root, {
   density_sample_ladder <- bind_rows(
     tibble(stage = "raw_scored_parcels", n_rows = nrow(density_input), n_unique_pin = n_distinct(density_input$pin)),
     density_input %>%
-      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006) %>%
+      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022) %>%
       summarise(stage = "quality_screen", n_rows = n(), n_unique_pin = n_distinct(pin)),
     density_input %>%
-      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, unitscount > 1) %>%
+      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022, unitscount > 1) %>%
       summarise(stage = "multifamily_sample", n_rows = n(), n_unique_pin = n_distinct(pin)),
     density_input %>%
-      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group)) %>%
+      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group)) %>%
       summarise(stage = "main_fe_complete_case", n_rows = n(), n_unique_pin = n_distinct(pin)),
     density_input %>%
-      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group), dist_to_boundary <= 500) %>%
+      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group), dist_to_boundary <= 500) %>%
       summarise(stage = "main_fe_bw500", n_rows = n(), n_unique_pin = n_distinct(pin)),
     density_input %>%
-      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group), dist_to_boundary <= 500, density_far > 0) %>%
+      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group), dist_to_boundary <= 500, density_far > 0) %>%
       summarise(stage = "main_fe_bw500_log_far", n_rows = n(), n_unique_pin = n_distinct(pin)),
     density_input %>%
-      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group), dist_to_boundary <= 500, density_dupac > 0) %>%
+      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group), dist_to_boundary <= 500, density_dupac > 0) %>%
       summarise(stage = "main_fe_bw500_log_dupac", n_rows = n(), n_unique_pin = n_distinct(pin))
   )
   write_csv(density_sample_ladder, density_sample_ladder_path)

@@ -1,4 +1,5 @@
 \section{Data and Sample Construction}
+\label{app:data_sources}
 \label{sec:appendix_data}
 
 This appendix documents the data sources and sample construction procedures used in the analysis.
@@ -9,9 +10,13 @@ The analysis draws on the following administrative and proprietary datasets:
 
 \paragraph{Cook County Assessor Data.} Sales records, property assessments, and improvement characteristics for residential parcels in Cook County.
 
+\paragraph{RentHub Listings.} Rental listing records for Illinois from 2014--2022, restricted to Chicago using the ward assignment procedure described below.
+
 \paragraph{Chicago Building Permits.} Permit applications and processing records for high-discretion permit types requiring aldermanic approval.
 
-\paragraph{Ward Boundary Shapefiles.} Official ward boundaries for the two eras used in the compiled paper: pre-2015 and 2015--2023.
+\paragraph{Ward Boundary Shapefiles.} Official ward boundaries for the two eras used in the paper: pre-2015 and 2015--2023.
+
+\paragraph{Amenity Data.} School locations, Chicago Park District park-boundary polygons, City of Chicago major streets, CTA stops, and Lake Michigan geometry used to construct distance controls for the rent and sales RDs. Rental CTA distances use stations open by the listing month.
 
 \paragraph{Census Data.} American Community Survey block group demographics and 2010/2020 decennial census block boundaries.
 
@@ -66,24 +71,56 @@ Sale prices are first deflated to 2022 dollars using the monthly Chicago CPI-U a
 Each sale is geocoded by joining the property identification number (PIN) to the Cook County parcel universe, which contains latitude and longitude coordinates. Sales that cannot be matched on the full 14-digit PIN are matched on the first 10 digits (PIN10).
 
 \paragraph{Ward Assignment.}
-Sales are assigned to wards based on the ward boundaries in effect at the exact sale date. For the compiled paper's sample window, sales before May 18, 2015 use pre-2015 boundaries and sales on or after May 18, 2015 use the 2015 ward boundaries.
+Sales are assigned to wards based on the ward boundaries in effect at the exact sale date. For the paper's sample window, sales before May 18, 2015 use pre-2015 boundaries and sales on or after May 18, 2015 use the 2015 ward boundaries.
 
 \paragraph{Distance to Ward Boundary.}
 Distance calculations follow the same procedure as for new construction (Section~\ref{subsec:new_construction_sample}), using the Illinois East State Plane coordinate system (EPSG:3435) and computing signed distance based on relative alderman strictness.
 
+\subsection{RentHub Listings: Sample Construction}
+\label{subsec:renthub_sample}
+
+The rental panel starts from RentHub scrape-level listing rows. I clean addresses and listing characteristics before constructing proxy identifiers. Address strings coded as zero, blank, NA, N/A, NULL, NONE, or UNKNOWN are treated as missing. Building types are recoded with townhouse and condo categories handled before broader house or commercial categories.
+
+Because the raw data do not identify true units, I use a transparent floorplan proxy. A property proxy combines normalized address and rounded coordinates; if address is missing, the proxy uses coordinates only and carries an address-missing flag. A floorplan proxy adds beds, baths, square feet, and cleaned building type. I first collapse raw rows to floorplan-by-scrape-date observations using median rent, then collapse to one floorplan-month observation using the median daily rent observed in that month. This construction prevents daily scrape persistence from overweighting a listing while retaining multiple floorplans in large multifamily buildings. When multiple rents appear for the same floorplan proxy on the same scrape date, I retain the group and use the median rent, while carrying flags for unusually large within-day rent dispersion.
+
+I keep observations with positive rent and valid coordinates that can be assigned to Chicago wards. I also carry forward diagnostic flags for questionable addresses, coordinate-only piles, one-day bulk listings, same-day rent spread, and modal-coordinate instability. The main rent RD uses listings with valid ward assignment. A robustness specification excludes observations whose modal address coordinate would change the assigned ward, ward-pair boundary, side of the border, or boundary distance.
+
+\subsection{Rental Data Validation}
+\label{subsec:rental_data_validation}
+
+Figure~\ref{fig:rental_data_validation_growth} compares citywide growth in the cleaned listed-rent panel to three external benchmarks. The listed-rent series is the annual average of monthly median floorplan-month rents. The external series are Zillow's Chicago Observed Rent Index, the FRED rent-of-primary-residence CPI for the Chicago metro area, and ACS one-year median gross rent for Chicago. I normalize each series to 2015, the first common year across the listed-rent and Zillow series.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\textwidth]{../tasks/rental_data_validation/output/rental_data_validation_growth.pdf}
+    \caption{Citywide Listed-Rent Growth and External Benchmarks}
+    \figurenotes{Figure compares the cleaned listed-rent panel to external citywide rent benchmarks. Listed rents are annual averages of monthly median floorplan-month rents in the cleaned RentHub panel. Zillow ZORI is the city-level Zillow Observed Rent Index. FRED rent CPI is the rent-of-primary-residence CPI for the Chicago metro area. ACS median gross rent is the Chicago city one-year ACS estimate from table B25064; the regular 2020 one-year ACS was not released. All series are normalized to 2015 = 100.}
+    \label{fig:rental_data_validation_growth}
+\end{figure}
+
+\begin{table}[H]
+    \caption{Listed-Rent Validation: Citywide Rent Growth}
+    \label{tab:rental_data_validation_growth}
+
+    \input{../tasks/rental_data_validation/output/rental_data_validation_growth.tex}
+
+    \footnotesize
+    \textit{Notes:} Table reports growth from 2015 through 2022, the common endpoint window used in Figure~\ref{fig:rental_data_validation_growth}. The listed-rent series grows by 19.3\%, close to Zillow ZORI and FRED rent CPI growth over the same years. ACS median gross rent grows faster; ACS measures occupied-unit gross rent rather than newly listed asking rents, so the series need not move one-for-one.
+\end{table}
+
 \subsection{Event Study Panel Construction}
 \label{subsec:event_study_panel}
 
-For the event study analyses in the compiled paper, I construct a block-level treatment panel around the 2015 redistricting. That panel is used directly for the permit event study and merged into transaction-level home sales data for the price analysis.
+For the permit event study, I construct a block-level treatment panel around the 2015 redistricting.
 
 \paragraph{Treatment Assignment.}
-Blocks are classified as treated if they were redistricted from one ward to another. In the 2015 cohort used in the compiled paper, I compare ward assignments under the pre-2015 map (2014 boundaries) to post-2015 (2015 boundaries). Census blocks are assigned to wards by largest-area overlap after projecting blocks and wards to EPSG:3435.
+Blocks are classified as treated if they were redistricted from one ward to another. In the 2015 cohort, I compare ward assignments under the pre-2015 map (2014 boundaries) to post-2015 (2015 boundaries). Census blocks are assigned to wards by largest-area overlap after projecting blocks and wards to EPSG:3435.
 
 \paragraph{Predetermined Strictness.}
-Treatment intensity is measured using the difference between the destination and origin aldermen's baseline strictness scores. In the compiled paper's 2015-cohort design, origin and destination aldermen are assigned using the 2014 pre-redistricting ward-to-alderman mapping. The change in strictness for block $i$ is $\Delta\text{Strictness}_i = \text{Strictness}_{\text{dest}} - \text{Strictness}_{\text{origin}}$. For binary treatment specifications, blocks are classified as ``moved to stricter'' if $\Delta\text{Strictness}_i > 0$ and ``moved to more lenient'' if $\Delta\text{Strictness}_i < 0$.
+Treatment intensity is measured using the difference between the destination and origin aldermen's baseline strictness scores. In the 2015-cohort design, origin and destination aldermen are assigned using the 2014 pre-redistricting ward-to-alderman mapping. The change in strictness for block $i$ is $\Delta\text{Strictness}_i = \text{Strictness}_{\text{dest}} - \text{Strictness}_{\text{origin}}$. For binary treatment specifications, blocks are classified as ``moved to stricter'' if $\Delta\text{Strictness}_i > 0$ and ``moved to more lenient'' if $\Delta\text{Strictness}_i < 0$.
 
 \paragraph{Contaminated Control Exclusion.}
-Control blocks may experience treatment through electoral turnover (alderman changed via election rather than redistricting). In the compiled paper's 2015-cohort design, I identify wards with alderman turnover between 2014 and 2015 and exclude non-switching blocks in these wards from the control group.
+Control blocks may experience treatment through electoral turnover (alderman changed via election rather than redistricting). In the 2015-cohort design, I identify wards with alderman turnover between 2014 and 2015 and exclude non-switching blocks in these wards from the control group.
 
 \paragraph{Analysis Panels.}
-Permit outcomes are aggregated to block-year panels for the event-study analysis. In the compiled paper, the permit event study uses the 2015 implementation cohort with relative years $-5$ through $5$. Home sales are not aggregated in the active compiled analysis. Instead, the price event study is estimated on transaction-level data for the 2015 implementation cohort over the same relative-year window, with hedonic controls and border-pair-side plus border-pair-by-year fixed effects. For both permit and home-sales event-study panels, the 1000ft local-support restriction and border-pair identifiers are based on the cohort's pre-redistricting boundary geometry: controls use the nearest incident pre-redistricting ward boundary, while treated blocks use the fixed origin-destination ward boundary created by redistricting.
+Permit outcomes are aggregated to block-year panels. The permit event study uses the 2015 implementation cohort with relative years $-5$ through $5$. The 1000ft local-support restriction and border-pair identifiers are based on the cohort's pre-redistricting boundary geometry: controls use the nearest incident pre-redistricting ward boundary, while treated blocks use the fixed origin-destination ward boundary created by redistricting. The rent and home-sales price analyses do not use the redistricting panel; they use the 500ft spatial RD design described in Section~\ref{sec:empirical_results_prices}.

@@ -87,6 +87,7 @@ base_dat <- raw %>%
     arealotsf > 1,
     areabuilding > 1,
     construction_year >= 2006,
+    construction_year <= 2022,
     !is.na(ward_pair),
     !is.na(construction_year),
     is.finite(signed_distance_m),

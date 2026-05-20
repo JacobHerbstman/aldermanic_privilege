@@ -3,7 +3,7 @@
 
 \subsection{Border Fixed Effects Regressions}
 
-Table~\ref{tab:density_main_table} is the main density result. In the all-construction sample within 500ft of a ward boundary, a one standard deviation increase in aldermanic stringency lowers log(FAR) by about 0.04 and log(DUPAC) by about 0.03. The multifamily estimates are larger in magnitude, but noisier in the smaller sample.
+Table~\ref{tab:density_main_table} reports the main density estimates. In the multifamily sample within 500ft of a ward boundary, a one standard deviation increase in aldermanic stringency lowers log(FAR) by about 0.14 and log(DUPAC) by about 0.12. The all-construction estimates are smaller, about 0.04 for log(FAR) and 0.03 for log(DUPAC).
 
 I estimate:
 %
@@ -11,7 +11,7 @@ I estimate:
     \ln(Y_{iwst}) = \beta \cdot \text{Stringency}_{w} + \lambda_L D^-_{iwst} + \lambda_S D^+_{iwst} + X_i'\theta + \alpha_{\text{zone group}} + \alpha_{\text{segment}} + \gamma_t + \varepsilon_{iwst}
 \end{equation}
 %
-where $Y_{iwst}$ is a density outcome for parcel $i$ in ward $w$ on boundary segment $s$, built in year $t$; $D^-_{iwst}$ and $D^+_{iwst}$ are side-specific distances to the ward boundary on the lenient and stringent sides; and $X_i$ collects own-side demographic controls. The fixed effects enter additively: zoning-group fixed effects absorb differences across broad zoning environments, segment fixed effects absorb differences across boundary segments, and year fixed effects absorb citywide trends. The main sample uses all new construction within 500ft of a ward boundary. Standard errors are clustered at the ward-pair level. Appendix Figure~\ref{fig:pruned_border_segments} maps the boundary segments that enter the analysis.
+where $Y_{iwst}$ is a density outcome for parcel $i$ in ward $w$ on boundary segment $s$, built in year $t$; $D^-_{iwst}$ and $D^+_{iwst}$ are side-specific distances to the ward boundary on the lenient and stringent sides; and $X_i$ collects own-side demographic controls. The fixed effects enter additively: zoning-group fixed effects absorb differences across broad zoning environments, segment fixed effects absorb differences across boundary segments, and year fixed effects absorb citywide trends. I estimate the specification for all new construction and for multifamily new construction from 2006--2022 within 500ft of a ward boundary. Standard errors are clustered at the ward-pair level. Appendix Figure~\ref{fig:pruned_border_segments} maps the boundary segments that enter the analysis.
 
 The segment fixed effects are the central design element. Boundary segments are short geographic units, much shorter than full ward-pair borders that can stretch for miles through different neighborhoods, so the comparison stays local. Because each segment lies between exactly two wards, $\beta$ is identified by the cross-border stringency gap within that segment. Segments with little difference in aldermanic stringency contribute little identifying variation; segments with a large gap contribute more. The side-specific distance terms absorb smooth within-side gradients in development density as one moves toward or away from the boundary. Zoning-group fixed effects ensure that parcels are compared within broad zoning environments rather than across fundamentally different parts of the zoning code.
 
@@ -22,18 +22,18 @@ The segment fixed effects are the central design element. Boundary segments are 
     \input{../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
 
     \footnotesize
-    \textit{Notes:} Samples include all new construction and multifamily new construction within 500ft of ward boundaries. Regressions include side-specific linear distance-to-boundary controls and own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \textit{Notes:} Samples include all new construction and multifamily new construction from 2006--2022 within 500ft of ward boundaries. Regressions include side-specific linear distance-to-boundary controls and own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate. Fixed effects are listed in the table. Regressions are unweighted. Stringency is the standardized aldermanic stringency score. Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 \subsection{Visual Evidence}
 
-Figure~\ref{fig:rd_fe_plots} plots the 500ft all-construction and multifamily samples using a residualized local-linear RD display with five binned points on each side of the boundary. I read the plots as a visual check that the break occurs at the jurisdictional boundary and lines up with the sign of the regression result.
+Figure~\ref{fig:rd_fe_plots} plots the 500ft all-construction and multifamily samples using a residualized local-linear RD display with five binned points on each side of the boundary. The plots provide a visual check that the discontinuity occurs at the ward boundary and has the same sign as the fixed-effects estimates.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.96\textwidth]{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5.pdf}
     \caption{Local-Linear Spatial RD: All and Multifamily New Construction (500ft)}
-    \figurenotes{Left column: all construction; right column: multifamily. Top row: Log(FAR); bottom row: Log(DUPAC). Samples include new construction within 500ft of ward boundaries. Outcomes are residualized against zoning-group, boundary-segment, and construction-year fixed effects plus own-side demographic controls before plotting. Colored dots show binned residual means and colored lines show side-specific local-linear fits. Negative distance indicates the more lenient alderman's side; positive distance indicates the more stringent side.}
+    \figurenotes{Left column: all construction; right column: multifamily. Top row: Log(FAR); bottom row: Log(DUPAC). Samples include new construction within 500ft of ward boundaries. Outcomes are plotted after removing zoning-group, boundary-segment, and construction-year fixed effects plus own-side demographic controls. Colored dots show binned residual means and colored lines show side-specific local-linear fits. Negative distance indicates the more lenient alderman's side; positive distance indicates the more stringent side.}
     \label{fig:rd_fe_plots}
 \end{figure}
 

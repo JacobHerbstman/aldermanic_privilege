@@ -1,0 +1,74 @@
+\section{Price Evidence Near Ward Boundaries}
+\label{sec:empirical_results_prices}
+
+The supply results imply that housing costs may be higher on the more stringent side of ward boundaries. Prices are a downstream outcome, though, and the available price data do not support the same dynamic design used for permits. Because RentHub begins in 2014, it is not well suited to a redistricting event study around the 2015 map change. I therefore use a common spatial RD design for both rental listings and home sales: a flat border comparison within 500ft of ward boundaries.
+
+The estimating equation is
+%
+\begin{equation}
+\label{eq:price_rd}
+    \log(Y_{ist}) = \beta \cdot \text{StricterSide}_{is} + X_i'\gamma + \alpha_{s t} + \varepsilon_{ist},
+\end{equation}
+%
+where $Y_{ist}$ is the rent or sale price for observation $i$ near boundary segment $s$ in period $t$. The treatment indicator equals one on the side represented by the more stringent alderman. The fixed effects are segment-by-month for rents and segment-by-quarter for home sales. I do not include distance slopes in the main price specifications. The estimand is the local jump at the ward boundary, and with a 500ft window the flat comparison avoids imposing a price gradient that may reflect sorting, amenities, or building composition rather than the jurisdictional discontinuity itself.
+
+\subsection{Rents}
+
+The rental sample uses RentHub listings from 2014--2022. I collapse repeated scrape rows to a floorplan-month panel before estimating the RD, so a listing that appears every day in the same month does not receive extra weight. The main rental RD uses observations with valid Chicago coordinates and carries location-quality flags into the analysis. Appendix Table~\ref{tab:rental_rd_controls_clean_location} repeats the control waterfall after excluding observations whose modal-address coordinates would change the ward, ward pair, side of the border, or boundary distance assignment.
+
+Figure~\ref{fig:rental_rd_flat} shows the flat RD visually. The binned points show log listed rents after removing segment-by-month fixed effects and rental hedonic controls. Rents are higher on the more stringent side of the boundary.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\textwidth]{../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls.pdf}
+    \caption{Listed Rents by Side of Ward Boundary}
+    \figurenotes{Figure shows a flat 500ft rental RD using RentHub floorplan-month observations from 2014--2022. Positive distance indicates the side represented by the more stringent alderman. Dots are binned means of log rent after removing segment-by-month fixed effects and hedonic controls for square feet, bedrooms, bathrooms, and building type. Horizontal lines show fitted side means. Standard errors are clustered by boundary segment.}
+    \label{fig:rental_rd_flat}
+\end{figure}
+
+Table~\ref{tab:rental_rd_controls} shows that the rent gap is not explained by observable listing characteristics or amenity controls. The stricter-side rent jump is 3.21\% without controls, 2.84\% with hedonic controls, and 2.95\% after adding distances to schools, park-boundary polygons, major streets, CTA stops open by listing month, and Lake Michigan.
+
+\begin{table}[htbp]
+    \caption{Listed-Rent RD: Hedonic and Amenity Controls}
+    \label{tab:rental_rd_controls}
+
+    \input{../tasks/rental_rd_characteristics/output/rental_rd_rent_attenuation_bw500.tex}
+\end{table}
+
+\subsection{Home Sales}
+
+I estimate the analogous border RD for home sales from 2006--2022. The outcome is log sale price, deflated to 2022 dollars. The main sales specification uses the same binary stricter-side estimand as the rental RD, with segment-by-quarter fixed effects and standard errors clustered by ward pair. Hedonic controls include building area, land area, building age, bedrooms, bathrooms, and garage presence. Amenity controls are parcel-level distances to the nearest school, Chicago Park District park boundary, major street, and Lake Michigan.
+
+Figure~\ref{fig:sales_rd_flat} plots the flat sales RD. The visual pattern is less pronounced than for rents, but the estimated discontinuity has the same sign.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\textwidth]{../tasks/sales_border_pair_fe/output/sales_rd_flat_bw500_year_quarter_amenity_clust_ward_pair.pdf}
+    \caption{Home Sale Prices by Side of Ward Boundary}
+    \figurenotes{Figure shows a flat 500ft sales RD using arm's-length residential transactions from 2006--2022. Positive distance indicates the side represented by the more stringent alderman. Dots are binned means of log sale price after removing segment-by-quarter fixed effects, hedonic controls, and amenity controls. Horizontal lines show fitted side means. Standard errors are clustered by ward pair.}
+    \label{fig:sales_rd_flat}
+\end{figure}
+
+Table~\ref{tab:sales_rd_controls} reports the corresponding estimates. Sale prices are about 1.6\% higher on the stricter side without controls and about 1.5\% higher after adding hedonics and amenities. The estimates are smaller than the rent estimates but stable across the control sets.
+
+\begin{table}[htbp]
+    \caption{Home-Sales RD: Hedonic and Amenity Controls}
+    \label{tab:sales_rd_controls}
+
+    \input{../tasks/sales_border_pair_fe/output/fe_table_sales_right_bw500_year_quarter_amenity_clust_ward_pair.tex}
+
+    \footnotesize
+    \textit{Notes:} Transaction-level regressions of log sale price using arm's-length residential sales from 2006--2022 within 500ft of ward boundaries. The treatment is an indicator for being on the side represented by the more stringent alderman. All columns include segment-by-quarter fixed effects. Column (2) adds hedonic controls for building area, land area, building age, bedrooms, bathrooms, and garage. Column (3) adds parcel-level distances to the nearest school, CPD park-boundary polygon, major street, and Lake Michigan. Standard errors are clustered by ward pair. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
+
+\subsection{Rental Listing Supply}
+
+As a final check, I ask whether fewer rental listings appear on the more stringent side of the same boundaries. This is not the same object as new housing production: online listing counts depend on turnover, platform coverage, listing practices, and landlord behavior. These counts should therefore be read as evidence on observed online availability, not as a measure of the rental housing stock. Figure~\ref{fig:rental_supply_rd} plots listed floorplan-month counts in distance bins around ward boundaries. The companion PPML specification estimates counts in segment-month-side cells with segment-by-month fixed effects. The point estimate is negative, but the confidence interval includes zero.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\textwidth]{../tasks/rental_rd_supply/output/rental_rd_supply_levels_bw500.pdf}
+    \caption{Rental Listing Supply by Side of Ward Boundary}
+    \figurenotes{Figure shows listed floorplan-month counts by distance to ward boundaries using rental listings from 2014--2022. Positive distance indicates the side represented by the more stringent alderman. Bins report mean floorplan-month counts per segment-month-bin. The subtitle reports the companion flat 500ft PPML estimate from segment-month-side counts with segment-by-month fixed effects; standard errors are clustered by boundary segment.}
+    \label{fig:rental_supply_rd}
+\end{figure}

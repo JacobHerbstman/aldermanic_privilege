@@ -15,7 +15,8 @@ df_clean <- df %>%
     arealotsf > 1,
     areabuilding > 1,
     unitscount > 0,
-    construction_year >= 2006
+    construction_year >= 2006,
+    construction_year <= 2022
   )
 
 df_mf <- df_clean %>%
@@ -65,6 +66,7 @@ table_content <- paste0(
   "\\caption{Summary Statistics of New Residential Construction}\n",
   "\\label{tab:summary_stats}\n",
   tabular_content,
+  "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Sample includes new residential construction from 2006--2022 with positive lot area, positive building area, and at least one dwelling unit. Multifamily is defined as two or more units.}\n",
   "\\end{table}\n"
 )
 

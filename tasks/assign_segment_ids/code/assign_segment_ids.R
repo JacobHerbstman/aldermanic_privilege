@@ -305,11 +305,11 @@ diag_dt[, era := canonical_era_from_boundary_year(boundary_year)]
 coverage_parts <- c(
   list(
     coverage_block(diag_dt, "all"),
-    coverage_block(diag_dt[construction_year >= 2006], "regression_base")
+    coverage_block(diag_dt[construction_year >= 2006 & construction_year <= 2022], "regression_base")
   ),
   lapply(coverage_bandwidths_m, function(bw_m_i) {
     coverage_block(
-      diag_dt[construction_year >= 2006 & dist_to_boundary_m <= bw_m_i],
+      diag_dt[construction_year >= 2006 & construction_year <= 2022 & dist_to_boundary_m <= bw_m_i],
       sprintf("regression_bw%.0fm", bw_m_i)
     )
   })
@@ -327,11 +327,11 @@ fwrite(reason_summary, out_reason)
 pair_audit_summary_parts <- c(
   list(
     audit_summary_block(pair_audit, "all"),
-    audit_summary_block(pair_audit[construction_year >= 2006], "regression_base")
+    audit_summary_block(pair_audit[construction_year >= 2006 & construction_year <= 2022], "regression_base")
   ),
   lapply(coverage_bandwidths_m, function(bw_m_i) {
     audit_summary_block(
-      pair_audit[construction_year >= 2006 & dist_to_boundary_m <= bw_m_i],
+      pair_audit[construction_year >= 2006 & construction_year <= 2022 & dist_to_boundary_m <= bw_m_i],
       sprintf("regression_bw%.0fm", bw_m_i)
     )
   })

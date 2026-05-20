@@ -24,7 +24,7 @@ if (!is.finite(bins_per_side) || bins_per_side <= 0) {
 }
 bandwidth_label <- as.character(as.integer(round(bandwidth_ft)))
 
-message(sprintf("=== RentHub RD Supply | bandwidth=%sft | bins per side=%d ===", bandwidth_label, bins_per_side))
+message(sprintf("=== Listed Rental Availability RD | bandwidth=%sft | bins per side=%d ===", bandwidth_label, bins_per_side))
 
 rent <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
   as_tibble()
@@ -243,7 +243,7 @@ plot_side_means <- ggplot(side_means_plot, aes(x = sample_label, y = mean_units,
   facet_wrap(~count_label, scales = "free_y") +
   scale_color_manual(values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"), name = NULL) +
   labs(
-    title = "RentHub Advertised Supply By Side Of Ward Boundary",
+    title = "Listed Rental Availability By Side Of Ward Boundary",
     subtitle = sprintf("Mean count per segment-month-side cell within %.0fft", bandwidth_ft),
     x = NULL,
     y = "Mean advertised supply count"
@@ -312,7 +312,7 @@ plot_ppml <- ppml %>%
   geom_hline(yintercept = 0, color = "gray55", linetype = "dotted") +
   geom_pointrange(position = position_dodge(width = 0.45), linewidth = 0.45) +
   labs(
-    title = "RentHub Advertised Supply Count Gap",
+    title = "Listed Rental Availability Count Gap",
     subtitle = sprintf("PPML stricter-side effect within %.0fft; segment-by-month FE", bandwidth_ft),
     x = NULL,
     y = "Percent difference on stricter side",
@@ -374,6 +374,84 @@ for (sample_name in c("all", "clean_location")) {
 bins <- bind_rows(bin_rows)
 write_csv(bins, sprintf("../output/rental_rd_supply_bins_bw%s.csv", bandwidth_label))
 
+format_ppml_subtitle <- function(sample_name) {
+  result <- ppml %>%
+    filter(sample == sample_name, count_definition == "floorplan_month")
+  if (nrow(result) != 1L) {
+    return(sprintf("Floorplan-month counts per segment-month-bin, %.0fft", bandwidth_ft))
+  }
+  stars <- case_when(
+    result$p_value < 0.01 ~ "***",
+    result$p_value < 0.05 ~ "**",
+    result$p_value < 0.10 ~ "*",
+    TRUE ~ ""
+  )
+  sprintf(
+    "PPML jump = %.1f%%%s (SE %.1f), N = %s, %.0fft",
+    result$pct_change,
+    stars,
+    100 * result$std_error,
+    format(result$n_obs, big.mark = ","),
+    bandwidth_ft
+  )
+}
+
+plot_supply_levels <- function(sample_name, title, output_path) {
+  d_plot <- bins %>%
+    filter(sample == sample_name) %>%
+    mutate(side = factor(side, levels = c("Less Stringent", "More Stringent")))
+  if (nrow(d_plot) == 0) {
+    stop(sprintf("No binned supply rows for sample %s.", sample_name), call. = FALSE)
+  }
+
+  line_data <- bind_rows(
+    tibble(
+      x = c(-bandwidth_ft, 0),
+      y = mean(d_plot$mean_floorplan_months[d_plot$side == "Less Stringent"], na.rm = TRUE),
+      side = "Less Stringent"
+    ),
+    tibble(
+      x = c(0, bandwidth_ft),
+      y = mean(d_plot$mean_floorplan_months[d_plot$side == "More Stringent"], na.rm = TRUE),
+      side = "More Stringent"
+    )
+  )
+
+  plot <- ggplot() +
+    geom_vline(xintercept = 0, color = "gray30", linetype = "dashed", linewidth = 0.7) +
+    geom_point(data = d_plot, aes(x = bin_center, y = mean_floorplan_months, color = side), size = 2.4) +
+    geom_line(data = line_data, aes(x = x, y = y, color = side), linewidth = 1.1) +
+    scale_color_manual(values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"), name = NULL) +
+    labs(
+      title = title,
+      subtitle = format_ppml_subtitle(sample_name),
+      x = "Distance to ward boundary (feet; positive = more stringent side)",
+      y = "Mean floorplan-month count"
+    ) +
+    theme_bw(base_size = 11) +
+    theme(legend.position = "bottom", panel.grid.minor = element_blank())
+
+  ggsave(
+    output_path,
+    plot,
+    width = 8.6,
+    height = 6,
+    dpi = 300,
+    bg = "white"
+  )
+}
+
+plot_supply_levels(
+  "all",
+  "Rental Listing Supply by Side of Ward Boundary",
+  sprintf("../output/rental_rd_supply_levels_bw%s.pdf", bandwidth_label)
+)
+plot_supply_levels(
+  "clean_location",
+  "Rental Listing Supply by Side of Ward Boundary: Clean Location Sample",
+  sprintf("../output/rental_rd_supply_levels_clean_location_bw%s.pdf", bandwidth_label)
+)
+
 plot_bins <- ggplot(bins, aes(x = bin_center, y = mean_floorplan_months, color = side)) +
   geom_vline(xintercept = 0, color = "gray30", linetype = "dashed", linewidth = 0.7) +
   geom_line(linewidth = 0.7) +
@@ -381,7 +459,7 @@ plot_bins <- ggplot(bins, aes(x = bin_center, y = mean_floorplan_months, color =
   facet_wrap(~sample_label, ncol = 1) +
   scale_color_manual(values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"), name = NULL) +
   labs(
-    title = "RentHub Floorplan-Month Availability By Distance Bin",
+    title = "Listed Floorplan-Month Availability By Distance Bin",
     subtitle = sprintf("Mean floorplan-months per segment-month-bin within %.0fft", bandwidth_ft),
     x = "Distance to ward boundary (feet; positive = more stringent side)",
     y = "Mean floorplan-month count"

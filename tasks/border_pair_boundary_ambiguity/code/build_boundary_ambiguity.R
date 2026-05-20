@@ -70,6 +70,7 @@ parcels <- read_csv(
   ) %>%
   filter(
     construction_year >= 2006,
+    construction_year <= 2022,
     arealotsf > 1,
     areabuilding > 1,
     !is.na(ward),

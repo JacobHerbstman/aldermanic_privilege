@@ -8,10 +8,11 @@ TWO_STAGE := TRUE
 STAGE2_WEIGHT := N_PERMITS
 VOLUME_CTRL := LAG1
 VOLUME_STAGE := BOTH
-MAX_PERMIT_MONTH ?= 2026-04
+MAX_PERMIT_YEAR ?= 2022
+MAX_PERMIT_MONTH ?=
 
 ifeq ($(strip $(MAX_PERMIT_MONTH)),)
-CUTOFF_LABEL := latest
+CUTOFF_LABEL := $(MAX_PERMIT_YEAR)
 else
 CUTOFF_LABEL := $(subst -,,$(MAX_PERMIT_MONTH))
 endif
@@ -27,7 +28,7 @@ all: ../output/alderman_uncertainty_index_$(SPEC).csv \
 	../output/score_rank_changes_$(SPEC).csv
 
 ../output/alderman_uncertainty_index_$(SPEC).csv: create_uncertainty_index.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
-	MAX_PERMIT_MONTH=$(MAX_PERMIT_MONTH) Rscript create_uncertainty_index.R $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE)
+	MAX_PERMIT_YEAR=$(MAX_PERMIT_YEAR) MAX_PERMIT_MONTH=$(MAX_PERMIT_MONTH) Rscript create_uncertainty_index.R $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE)
 
 ../output/uncertainty_index_$(SPEC).pdf \
 ../output/stage1_regression_$(SPEC).tex \

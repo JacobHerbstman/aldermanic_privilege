@@ -124,7 +124,8 @@ parcels_fe <- read_csv(
   filter(
     arealotsf > 1,
     areabuilding > 1,
-    construction_year >= 2006
+    construction_year >= 2006,
+    construction_year <= 2022
   )
 
 if (drop_ambiguous_within_bw) {

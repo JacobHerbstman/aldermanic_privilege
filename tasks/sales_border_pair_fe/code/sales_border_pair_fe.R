@@ -126,6 +126,8 @@ sales <- sales %>%
   ) %>%
   filter(
     !is.na(sale_price), sale_price > 0,
+    year >= 2006,
+    year <= 2022,
     !is.na(ward_pair), is.finite(signed_dist),
     abs(signed_dist) <= bw_ft,
     !is.na(strictness_own),
