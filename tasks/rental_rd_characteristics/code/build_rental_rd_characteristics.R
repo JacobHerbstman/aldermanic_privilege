@@ -359,8 +359,9 @@ for (i in seq_len(nrow(sample_defs))) {
     variable <- covariates$variable[j]
     d <- d_sample %>%
       mutate(Y = as.numeric(.data[[variable]])) %>%
-      filter(is.finite(Y))
-    if (nrow(d) < 100 || n_distinct(d$right) < 2 || n_distinct(d$segment_id) < 2) {
+      filter(is.finite(Y)) %>%
+      mutate(strictness_std = strictness_own / sd(strictness_own, na.rm = TRUE))
+    if (nrow(d) < 100 || n_distinct(d$strictness_std) < 2 || n_distinct(d$segment_id) < 2) {
       next
     }
 
@@ -370,10 +371,10 @@ for (i in seq_len(nrow(sample_defs))) {
     }
 
     model <- tryCatch(
-      feols(Y ~ right | segment_id^year_month, data = d, cluster = ~segment_id),
+      feols(Y ~ strictness_std | segment_id^year_month, data = d, cluster = ~segment_id),
       error = function(e) NULL
     )
-    if (is.null(model) || !"right" %in% names(coef(model))) {
+    if (is.null(model) || !"strictness_std" %in% names(coef(model))) {
       next
     }
 
@@ -383,11 +384,11 @@ for (i in seq_len(nrow(sample_defs))) {
       variable = variable,
       label = covariates$label[j],
       group = covariates$group[j],
-      estimate = coef(model)[["right"]],
-      std_error = se(model)[["right"]],
-      p_value = pvalue(model)[["right"]],
-      estimate_std = coef(model)[["right"]] / y_sd,
-      std_error_std = se(model)[["right"]] / y_sd,
+      estimate = coef(model)[["strictness_std"]],
+      std_error = se(model)[["strictness_std"]],
+      p_value = pvalue(model)[["strictness_std"]],
+      estimate_std = coef(model)[["strictness_std"]] / y_sd,
+      std_error_std = se(model)[["strictness_std"]] / y_sd,
       n_obs = model$nobs,
       n_segments = n_distinct(d$segment_id),
       n_ward_pairs = n_distinct(d$ward_pair),
@@ -404,29 +405,26 @@ write_csv(balance, sprintf("../output/rental_rd_covariate_balance_bw%s.csv", ban
 
 external_balance <- balance %>%
   filter(
-    sample %in% c("all", "clean_location"),
+    sample == "all",
     group == "External amenities"
   ) %>%
-  mutate(cell = format_tex_coef(estimate, std_error, p_value, scale = 1, digits = 1)) %>%
-  select(label, sample, cell) %>%
-  pivot_wider(names_from = sample, values_from = cell)
+  mutate(cell = format_tex_coef(estimate, std_error, p_value, scale = 1, digits = 1))
 
 external_balance_lines <- c(
   "\\begingroup",
   "\\centering",
-  "\\begin{tabular}{lcc}",
+  "\\begin{tabular}{lc}",
   "\\toprule",
-  "Covariate & All & Clean location \\\\",
+  "Covariate & All \\\\",
   "\\midrule",
   sprintf(
-    "%s & %s & %s \\\\",
+    "%s & %s \\\\",
     latex_escape(external_balance$label),
-    external_balance$all,
-    external_balance$clean_location
+    external_balance$cell
   ),
   "\\bottomrule",
   "\\end{tabular}",
-    "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Each cell reports the residualized stricter-side jump in feet, with standard errors in parentheses. Regressions use listed-rent observations from RentHub within 500ft of ward boundaries, segment-by-month fixed effects, and standard errors clustered by segment. Clean-location rows exclude observations with modal-coordinate ward, pair, or distance-instability flags. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
+    "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Each cell reports the residualized association with a one-standard-deviation increase in the aldermanic stringency index, in feet, with standard errors in parentheses. Regressions use listed-rent observations within 500ft of ward boundaries, segment-by-month fixed effects, and standard errors clustered by segment. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
   "\\par\\endgroup"
 )
 writeLines(
@@ -449,8 +447,8 @@ balance_plot <- ggplot(plot_balance, aes(x = estimate_std, y = label, color = gr
   facet_wrap(~sample_label, ncol = 2) +
   labs(
     title = "Listed-Rent RD Covariate Balance",
-    subtitle = sprintf("Standardized stricter-side jumps within %.0fft, segment-by-month FE", bandwidth_ft),
-    x = "Standardized jump on stricter side",
+    subtitle = sprintf("One-SD stringency-index associations within %.0fft, segment-by-month FE", bandwidth_ft),
+    x = "Standardized association with stringency index",
     y = NULL,
     color = NULL
   ) +
@@ -485,13 +483,14 @@ for (i in seq_len(nrow(sample_defs))) {
         )),
         is.finite
       )
-    )
+    ) %>%
+    mutate(strictness_std = strictness_own / sd(strictness_own, na.rm = TRUE))
 
-  if (nrow(d_sample) < 100 || n_distinct(d_sample$segment_id) < 2 || n_distinct(d_sample$right) < 2) {
+  if (nrow(d_sample) < 100 || n_distinct(d_sample$segment_id) < 2 || n_distinct(d_sample$strictness_std) < 2) {
     next
   }
 
-  hedonic_rhs <- "right + log_sqft + log_beds + log_baths"
+  hedonic_rhs <- "strictness_std + log_sqft + log_beds + log_baths"
   if (n_distinct(d_sample$building_type_factor) > 1) {
     hedonic_rhs <- paste0(hedonic_rhs, " + building_type_factor")
   }
@@ -507,7 +506,7 @@ for (i in seq_len(nrow(sample_defs))) {
 
   model_specs <- tibble::tribble(
     ~specification, ~spec_label, ~rhs,
-    "no_controls_common", "No controls", "right",
+    "no_controls_common", "No controls", "strictness_std",
     "hedonic_common", "Hedonics", hedonic_rhs,
     "hedonic_amenity_common", "Hedonics + amenities", amenity_rhs
   )
@@ -518,21 +517,21 @@ for (i in seq_len(nrow(sample_defs))) {
       data = d_sample,
       cluster = ~segment_id
     )
-    if (!"right" %in% names(coef(model))) {
-      stop(sprintf("RD attenuation model failed to estimate right for %s / %s.", sample_name, model_specs$specification[j]), call. = FALSE)
+    if (!"strictness_std" %in% names(coef(model))) {
+      stop(sprintf("RD attenuation model failed to estimate strictness_std for %s / %s.", sample_name, model_specs$specification[j]), call. = FALSE)
     }
     attenuation_rows[[length(attenuation_rows) + 1]] <- tibble(
       sample = sample_name,
       sample_label = sample_label,
       specification = model_specs$specification[j],
       spec_label = model_specs$spec_label[j],
-      estimate = coef(model)[["right"]],
-      std_error = se(model)[["right"]],
-      p_value = pvalue(model)[["right"]],
+      estimate = coef(model)[["strictness_std"]],
+      std_error = se(model)[["strictness_std"]],
+      p_value = pvalue(model)[["strictness_std"]],
       n_obs = model$nobs,
       n_segments = n_distinct(d_sample$segment_id),
       n_ward_pairs = n_distinct(d_sample$ward_pair),
-      dep_var_mean = mean(log(d_sample$rent_price), na.rm = TRUE),
+      dep_var_mean = mean(d_sample$rent_price, na.rm = TRUE),
       bandwidth_ft = bandwidth_ft,
       common_sample = TRUE
     )
@@ -576,7 +575,7 @@ write_attenuation_table <- function(sample_name, output_path, include_clean_note
     " & (1) & (2) & (3) \\\\",
     "\\midrule",
     sprintf(
-      "Stricter Side (\\%%) & %s & %s & %s \\\\",
+      "Stringency Index & %s & %s & %s \\\\",
       table_data$coefficient[1],
       table_data$coefficient[2],
       table_data$coefficient[3]
@@ -589,16 +588,16 @@ write_attenuation_table <- function(sample_name, output_path, include_clean_note
     ),
     "\\\\",
     sprintf(
-      "Observations & %s & %s & %s \\\\",
+      "N & %s & %s & %s \\\\",
       format_tex_int(table_data$n_obs[1]),
       format_tex_int(table_data$n_obs[2]),
       format_tex_int(table_data$n_obs[3])
     ),
     sprintf(
       "Dep. Var. Mean & %s & %s & %s \\\\",
-      format_tex_number(table_data$dep_var_mean[1], 2),
-      format_tex_number(table_data$dep_var_mean[2], 2),
-      format_tex_number(table_data$dep_var_mean[3], 2)
+      format_tex_number(table_data$dep_var_mean[1], 0),
+      format_tex_number(table_data$dep_var_mean[2], 0),
+      format_tex_number(table_data$dep_var_mean[3], 0)
     ),
     sprintf(
       "Segments & %s & %s & %s \\\\",
@@ -619,7 +618,7 @@ write_attenuation_table <- function(sample_name, output_path, include_clean_note
     "\\bottomrule",
     "\\end{tabular}",
     sprintf(
-      "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Entries are percent log-rent jumps on the stricter side of a ward boundary, with standard errors in parentheses. The sample uses listed-rent floorplan-month observations from 2014--2022 within %sft of ward boundaries. Hedonic controls are log square feet, log bedrooms, log bathrooms, and building type. Amenity controls are distances to the nearest school, CPD park-boundary polygon, major street, CTA stop open by the listing month, and Lake Michigan.%s * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
+      "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Entries are percent log-rent effects of a one-standard-deviation increase in the aldermanic stringency index, with standard errors in parentheses. The sample uses listed-rent floorplan-month observations from 2014--2022 within %sft of ward boundaries. Dependent-variable means are real listed rents in 2022 dollars. Hedonic controls are log square feet, log bedrooms, log bathrooms, and building type. Amenity controls are distances to the nearest school, CPD park-boundary polygon, major street, CTA stop open by the listing month, and Lake Michigan.%s * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
       bandwidth_label,
       clean_note
     ),
@@ -647,10 +646,10 @@ attenuation_plot <- ggplot(
   geom_hline(yintercept = 0, color = "gray55", linetype = "dotted") +
   geom_pointrange(position = position_dodge(width = 0.55), linewidth = 0.45) +
   labs(
-    title = "Listed-Rent Jump With Hedonic And Amenity Controls",
+    title = "Listed-Rent Stringency Estimates With Hedonic And Amenity Controls",
     subtitle = sprintf("Common complete-case sample within %.0fft; segment-by-month FE", bandwidth_ft),
     x = NULL,
-    y = "Stricter-side jump in log rent",
+    y = "Coefficient on stringency index",
     color = NULL
   ) +
   theme_bw(base_size = 10) +

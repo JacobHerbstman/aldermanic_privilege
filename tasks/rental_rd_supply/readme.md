@@ -12,6 +12,9 @@ Outputs:
 - `output/rental_rd_supply_side_means_bw500.csv` and `.pdf`: raw mean side counts by sample and count definition.
 - `output/rental_rd_supply_ppml_bw500.csv` and `.pdf`: stricter-side PPML count gaps with segment-by-month fixed effects.
 - `output/rental_rd_supply_bins_bw500.csv` and `.pdf`: binned descriptive floorplan-month availability by distance to the boundary.
+- `output/rental_rd_supply_levels_*_bw500.pdf`: main-style binned supply plots for the full, clean-location, pruned-segment, and clean-location-plus-pruned samples.
 - `output/rental_rd_supply_sample_summary_bw500.csv`: sample sizes, zero-cell shares, and single-sided segment-month shares.
+
+Robustness samples include the full sample, the clean-location sample, the pruned-segment sample that drops segments flagged by the confound-pruning task, and their intersection.
 
 This task replaces the old rental listing-count diagnostics for the current cleaned RentHub panel and audited rental geometry.

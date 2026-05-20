@@ -6,7 +6,10 @@ This appendix reports the permit summary tables that complement the descriptive 
 \subsection{Permit Summary Statistics}
 \label{app:permit_summary_stats}
 
-Table~\ref{tab:permit_summary_stats} compares the high- and low-discretion permit groups used throughout the paper. High-discretion permits are much slower on average and display substantially more cross-alderman heterogeneity in mean processing times, which is consistent with the view that these permits are the ones most exposed to discretionary review.
+Table~\ref{tab:permit_summary_stats} compares the high- and low-discretion permit groups used throughout the paper.
+High-discretion permits are permits for projects where aldermen are most likely to matter: new construction, major renovation, demolition, porch construction, and reinstated permits.
+They are much slower than lower-discretion permits: the mean processing time is 57.3 days versus 26.2 days, and the median is 30 days versus 6 days.
+They also display more cross-alderman variation in processing times.
 
 \begin{table}[htbp]
     \centering
@@ -15,12 +18,16 @@ Table~\ref{tab:permit_summary_stats} compares the high- and low-discretion permi
     \input{../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex}
 
     \footnotesize
-    \textit{Notes:} Sample uses permit applications through December 2022. High-discretion permits are new construction, renovation/alteration, wrecking/demolition, porch construction, and reinstated permits. Low-discretion permits are all remaining permit types excluding signs. The alderman-level interquartile range is computed from the cross-section of alderman-specific mean processing times within each permit group.
+    \textit{Notes:} Sample uses permit applications through December 2022.
+    High-discretion permits are new construction, renovation/alteration, wrecking/demolition, porch construction, and reinstated permits.
+    Low-discretion permits are all remaining permit types excluding signs.
+    The alderman-level interquartile range is computed from the cross-section of alderman-specific mean processing times within each permit group.
 \end{table}
 
 \subsection{Permit Volume and Processing Time}
 
-Table~\ref{tab:permit_volume_correlation} reports the correlation between individual permit processing time and ward-month permit volume. The negative correlation for high-discretion permits is consistent with political and regulatory friction reducing throughput where discretionary review matters most, while the positive correlation for low-discretion permits suggests routine administrative scale rather than aldermanic discretion.
+Table~\ref{tab:permit_volume_correlation} reports the correlation between individual permit processing time and ward-month permit volume.
+The negative correlation for high-discretion permits is consistent with political and regulatory friction reducing throughput where discretionary review matters most, while the positive correlation for low-discretion permits suggests routine administrative scale rather than aldermanic discretion.
 
 \begin{table}[htbp]
     \centering
@@ -29,5 +36,6 @@ Table~\ref{tab:permit_volume_correlation} reports the correlation between indivi
     \input{../tasks/permit_summary_stats/output/permit_processing_time_volume_correlation.tex}
 
     \footnotesize
-    \textit{Notes:} Sample uses permit applications through December 2022. Entries report the Pearson correlation between individual permit processing time and ward-month permit volume for each permit group.
+    \textit{Notes:} Sample uses permit applications through December 2022.
+    Entries report the Pearson correlation between individual permit processing time and ward-month permit volume for each permit group.
 \end{table}

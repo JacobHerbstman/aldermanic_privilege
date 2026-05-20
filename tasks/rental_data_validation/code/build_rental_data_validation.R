@@ -1,4 +1,4 @@
-# Validate citywide listed-rent growth against external rent benchmarks.
+# Validate real citywide listed-rent growth against external rent benchmarks.
 
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_data_validation/code")
 
@@ -110,17 +110,31 @@ annual_from_monthly <- function(dt, source_id, source_label, measure_label) {
 write_tex_table <- function(dt, base_year, end_year) {
   table_dt <- copy(dt)
   table_dt[, growth_label := ifelse(is.finite(growth_pct), sprintf("%.1f", growth_pct), "")]
-  table_dt[, end_label := ifelse(is.finite(end_index), sprintf("%.1f", end_index), "")]
-  table_dt[, start_label := ifelse(is.finite(start_index), sprintf("%.1f", start_index), "")]
+  table_dt[, level_unit := ifelse(source_id == "fred_rent_cpi", "Index", "\\$")]
+  table_dt[
+    level_unit == "\\$",
+    `:=`(
+      start_label = ifelse(is.finite(start_value), format(round(start_value), big.mark = ","), ""),
+      end_label = ifelse(is.finite(end_value), format(round(end_value), big.mark = ","), "")
+    )
+  ]
+  table_dt[
+    level_unit == "Index",
+    `:=`(
+      start_label = ifelse(is.finite(start_index), sprintf("%.1f", start_index), ""),
+      end_label = ifelse(is.finite(end_index), sprintf("%.1f", end_index), "")
+    )
+  ]
 
   lines <- c(
-    "\\begin{tabular}{lccc}",
+    "\\begin{tabular}{lcccc}",
     "\\toprule",
-    sprintf("Series & %d Index & %d Index & Growth (\\%%) \\\\", base_year, end_year),
+    sprintf("Series & Unit & %d & %d & Real Growth (\\%%) \\\\", base_year, end_year),
     "\\midrule",
     sprintf(
-      "%s & %s & %s & %s \\\\",
+      "%s & %s & %s & %s & %s \\\\",
       table_dt$source_label,
+      table_dt$level_unit,
       table_dt$start_label,
       table_dt$end_label,
       table_dt$growth_label
@@ -144,10 +158,48 @@ if (nrow(rent_panel) == 0L) {
   stop("No valid listed-rent observations found in the 2014-2022 validation window.", call. = FALSE)
 }
 
+message("Fetching Chicago CPI deflator...")
+fetch_status <- data.table(source = character(), status = character(), detail = character())
+
+fred_all_items_cpi <- tryCatch({
+  out <- fetch_fred_series("CUURA207SA0")
+  fetch_status <- rbind(
+    fetch_status,
+    data.table(source = "fred_cuura207sa0", status = "ok", detail = "FRED Chicago all-items CPI-U deflator")
+  )
+  out
+}, error = function(e) {
+  fetch_status <<- rbind(
+    fetch_status,
+    data.table(source = "fred_cuura207sa0", status = "error", detail = conditionMessage(e))
+  )
+  data.table(month_start = as.Date(character()), value = numeric())
+})
+if (nrow(fred_all_items_cpi) == 0L) {
+  stop("Could not fetch Chicago all-items CPI-U deflator.", call. = FALSE)
+}
+setnames(fred_all_items_cpi, "value", "cpi_all_items")
+cpi_2022 <- mean(
+  fred_all_items_cpi[
+    month_start >= as.Date("2022-01-01") & month_start <= as.Date("2022-12-01"),
+    cpi_all_items
+  ],
+  na.rm = TRUE
+)
+if (!is.finite(cpi_2022)) {
+  stop("Chicago all-items CPI-U deflator is missing 2022 values.", call. = FALSE)
+}
+
+rent_panel <- merge(rent_panel, fred_all_items_cpi, by = "month_start", all.x = TRUE, sort = FALSE)
+if (any(!is.finite(rent_panel$cpi_all_items))) {
+  stop("Listed rent panel has months missing Chicago all-items CPI-U deflator values.", call. = FALSE)
+}
+rent_panel[, rent_price_real_2022 := rent_price * cpi_2022 / cpi_all_items]
+
 monthly_listed_rents <- rent_panel[
   ,
   .(
-    value = median(rent_price, na.rm = TRUE),
+    value = median(rent_price_real_2022, na.rm = TRUE),
     n_floorplan_months = .N,
     n_property_proxies = uniqueN(property_key)
   ),
@@ -159,7 +211,7 @@ listed_annual <- annual_from_monthly(
   monthly_listed_rents[, .(month_start, value)],
   source_id = "listed_rents",
   source_label = "Listed rents",
-  measure_label = "Annual average of monthly median listed rent"
+  measure_label = "Annual average of monthly median listed rent, deflated to 2022 dollars"
 )
 listed_counts <- monthly_listed_rents[
   ,
@@ -172,9 +224,7 @@ listed_counts <- monthly_listed_rents[
 ]
 listed_annual <- merge(listed_annual, listed_counts, by = "year", all.x = TRUE, sort = TRUE)
 
-message("Fetching Zillow, FRED, and ACS benchmarks...")
-fetch_status <- data.table(source = character(), status = character(), detail = character())
-
+message("Fetching Zillow, FRED rent CPI, and ACS benchmarks...")
 zillow_city <- tryCatch({
   out <- fetch_zillow_series(
     url = "https://files.zillowstatic.com/research/public_csvs/zori/City_zori_uc_sfrcondomfr_sm_month.csv",
@@ -194,6 +244,9 @@ zillow_city <- tryCatch({
   )
   data.table(month_start = as.Date(character()), value = numeric())
 })
+zillow_city <- merge(zillow_city, fred_all_items_cpi, by = "month_start", all.x = TRUE, sort = FALSE)
+zillow_city[, value := value * cpi_2022 / cpi_all_items]
+zillow_city <- zillow_city[, .(month_start, value)]
 
 fred_rent_cpi <- tryCatch({
   out <- fetch_fred_series("CUURA207SEHA")
@@ -209,6 +262,9 @@ fred_rent_cpi <- tryCatch({
   )
   data.table(month_start = as.Date(character()), value = numeric())
 })
+fred_rent_cpi <- merge(fred_rent_cpi, fred_all_items_cpi, by = "month_start", all.x = TRUE, sort = FALSE)
+fred_rent_cpi[, value := 100 * value / cpi_all_items]
+fred_rent_cpi <- fred_rent_cpi[, .(month_start, value)]
 
 acs_rent <- fetch_acs_series()
 acs_status <- if (all(acs_rent$status == "ok")) {
@@ -239,23 +295,31 @@ zillow_annual <- annual_from_monthly(
   zillow_city,
   source_id = "zillow_zori",
   source_label = "Zillow ZORI",
-  measure_label = "Annual average of monthly Zillow Observed Rent Index"
+  measure_label = "Annual average of monthly Zillow Observed Rent Index, deflated by Chicago all-items CPI-U"
 )
 fred_annual <- annual_from_monthly(
   fred_rent_cpi,
   source_id = "fred_rent_cpi",
-  source_label = "FRED rent CPI",
-  measure_label = "Annual average of monthly Chicago rent-of-primary-residence CPI"
+  source_label = "FRED rent CPI / CPI-U",
+  measure_label = "Annual average of monthly Chicago rent-of-primary-residence CPI divided by Chicago all-items CPI-U"
 )
+cpi_annual <- fred_all_items_cpi[
+  ,
+  .(cpi_all_items = mean(cpi_all_items, na.rm = TRUE)),
+  by = .(year = as.integer(format(month_start, "%Y")))
+]
 acs_annual <- acs_rent[
+  cpi_annual,
+  on = "year"
+][
   ,
   .(
     year,
-    value,
+    value = value * cpi_2022 / cpi_all_items,
     n_months = NA_integer_,
     source_id = "acs_median_gross_rent",
     source_label = "ACS median gross rent",
-    measure_label = "ACS 1-year B25064 median gross rent"
+    measure_label = "ACS 1-year B25064 median gross rent, deflated to 2022 dollars"
   )
 ]
 
@@ -280,16 +344,20 @@ coverage <- annual_series[
   ),
   by = .(source_id, source_label)
 ]
-base_year <- max(coverage$first_year)
-end_year <- min(coverage$last_year)
+validation_sources <- c("listed_rents", "zillow_zori")
+validation_coverage <- coverage[source_id %in% validation_sources]
+if (!setequal(validation_coverage$source_id, validation_sources)) {
+  stop("Rental validation needs listed rents and Zillow ZORI.", call. = FALSE)
+}
+base_year <- max(validation_coverage$first_year)
+end_year <- min(validation_coverage$last_year)
 
-active_sources <- coverage[
+active_sources <- validation_coverage[
   first_year <= base_year & last_year >= end_year & has_2022 == TRUE,
   source_id
 ]
-external_sources <- setdiff(active_sources, "listed_rents")
-if (!"listed_rents" %in% active_sources || length(external_sources) < 2L) {
-  stop("Rental validation needs listed rents and at least two external benchmarks with common start/end years.", call. = FALSE)
+if (!setequal(active_sources, validation_sources)) {
+  stop("Rental validation needs listed rents and Zillow ZORI with common start/end years.", call. = FALSE)
 }
 
 annual_series <- annual_series[source_id %in% active_sources & year >= base_year & year <= end_year]
@@ -299,6 +367,8 @@ annual_series[, index_value := 100 * value / base_value]
 summary_table <- annual_series[
   year %in% c(base_year, end_year),
   .(
+    start_value = value[year == base_year][1],
+    end_value = value[year == end_year][1],
     start_index = index_value[year == base_year][1],
     end_index = index_value[year == end_year][1],
     growth_pct = 100 * (value[year == end_year][1] / value[year == base_year][1] - 1),
@@ -306,7 +376,7 @@ summary_table <- annual_series[
   ),
   by = .(source_id, source_label)
 ]
-source_order <- c("listed_rents", "zillow_zori", "fred_rent_cpi", "acs_median_gross_rent")
+source_order <- validation_sources
 summary_table[, source_id := factor(source_id, levels = source_order)]
 setorder(summary_table, source_id)
 summary_table[, source_id := as.character(source_id)]
@@ -314,6 +384,12 @@ summary_table[, source_id := as.character(source_id)]
 annual_series[, source_id := factor(source_id, levels = source_order)]
 setorder(annual_series, source_id, year)
 annual_series[, source_id := as.character(source_id)]
+annual_series[, prior_year := shift(year), by = source_id]
+annual_series[, prior_value := shift(value), by = source_id]
+annual_series[
+  prior_year == year - 1L & is.finite(value) & is.finite(prior_value),
+  annual_growth_pct := 100 * (value / prior_value - 1)
+]
 fwrite(annual_series, "../output/rental_data_validation_growth_series.csv", na = "")
 write_tex_table(summary_table, base_year, end_year)
 
@@ -324,8 +400,17 @@ plot_series[, source_label := factor(
 )]
 
 validation_plot <- ggplot(
-  plot_series,
-  aes(x = year, y = index_value, color = source_label, group = source_label)
+  plot_series[
+    ,
+    index_line_group := cumsum(!is.finite(index_value)),
+    by = source_id
+  ][is.finite(index_value)],
+  aes(
+    x = year,
+    y = index_value,
+    color = source_label,
+    group = interaction(source_label, index_line_group)
+  )
 ) +
   geom_hline(yintercept = 100, color = "grey80", linewidth = 0.35) +
   geom_line(linewidth = 0.85, na.rm = TRUE) +
@@ -335,16 +420,16 @@ validation_plot <- ggplot(
     values = c(
       "Listed rents" = "#1f78b4",
       "Zillow ZORI" = "#33a02c",
-      "FRED rent CPI" = "#6a3d9a",
+      "FRED rent CPI / CPI-U" = "#6a3d9a",
       "ACS median gross rent" = "#555555"
     ),
     drop = FALSE
   ) +
   labs(
-    title = "Citywide Listed-Rent Growth Versus External Benchmarks",
-    subtitle = sprintf("Annual indexes normalized to %d = 100", base_year),
+    title = "Real Citywide Listed-Rent Growth Versus External Benchmarks",
+    subtitle = sprintf("Annual indexes normalized to %d = 100; deflated by Chicago all-items CPI-U", base_year),
     x = NULL,
-    y = "Rent index",
+    y = "Real rent index",
     color = NULL
   ) +
   theme_minimal(base_size = 11) +
@@ -357,6 +442,55 @@ validation_plot <- ggplot(
 ggsave(
   "../output/rental_data_validation_growth.pdf",
   validation_plot,
+  width = 7.6,
+  height = 4.8,
+  bg = "white"
+)
+
+annual_growth_plot <- ggplot(
+  plot_series[
+    ,
+    growth_line_group := cumsum(!is.finite(annual_growth_pct)),
+    by = source_id
+  ][is.finite(annual_growth_pct)],
+  aes(
+    x = year,
+    y = annual_growth_pct,
+    color = source_label,
+    group = interaction(source_label, growth_line_group)
+  )
+) +
+  geom_hline(yintercept = 0, color = "grey70", linewidth = 0.35) +
+  geom_line(linewidth = 0.85) +
+  geom_point(size = 2.1) +
+  scale_x_continuous(breaks = seq(base_year + 1L, end_year, by = 1)) +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +
+  scale_color_manual(
+    values = c(
+      "Listed rents" = "#1f78b4",
+      "Zillow ZORI" = "#33a02c",
+      "FRED rent CPI / CPI-U" = "#6a3d9a",
+      "ACS median gross rent" = "#555555"
+    ),
+    drop = FALSE
+  ) +
+  labs(
+    title = "Annual Real Citywide Rent Growth",
+    subtitle = "Year-over-year growth after deflating by Chicago all-items CPI-U",
+    x = NULL,
+    y = "Annual growth",
+    color = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position = "bottom",
+    panel.grid.minor = element_blank(),
+    plot.title.position = "plot"
+  )
+
+ggsave(
+  "../output/rental_data_validation_annual_growth.pdf",
+  annual_growth_plot,
   width = 7.6,
   height = 4.8,
   bg = "white"

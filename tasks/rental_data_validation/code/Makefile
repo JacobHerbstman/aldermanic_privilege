@@ -2,6 +2,7 @@ SHELL := bash
 
 all: \
 	../output/rental_data_validation_growth.pdf \
+	../output/rental_data_validation_annual_growth.pdf \
 	../output/rental_data_validation_growth.tex \
 	../output/rental_data_validation_growth_series.csv \
 	../output/rental_data_validation_source_status.csv
@@ -10,6 +11,7 @@ all: \
 	$(R) $<
 
 ../output/rental_data_validation_growth.pdf \
+../output/rental_data_validation_annual_growth.pdf \
 ../output/rental_data_validation_growth.tex \
 ../output/rental_data_validation_source_status.csv: ../output/rental_data_validation_growth_series.csv
 	@test -s "$@"

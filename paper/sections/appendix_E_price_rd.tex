@@ -1,36 +1,69 @@
-\section{Additional Price RD Checks}
+\section{Additional Price Boundary Checks}
 \label{sec:appendix_price_rd}
 
-This appendix reports supporting checks for the rent and home-sales border RDs in Section~\ref{sec:empirical_results_prices}. The price specifications use external amenity controls: distance to the nearest school, Chicago Park District park-boundary polygon, major street, and Lake Michigan. The rental specifications also control for distance to the nearest CTA stop open by the listing month.
+This appendix reports supporting checks for the rent and home-sales boundary comparisons in Section~\ref{sec:empirical_results_prices}.
+Rent and sale-price outcomes are deflated to 2022 dollars using the monthly Chicago CPI-U all-items series.
+The price specifications use external amenity controls: distance to the nearest school, Chicago Park District park-boundary polygon, major street, and Lake Michigan.
+The rental specifications also control for distance to the nearest CTA stop open by the listing month.
 
 \subsection{Rental Amenity Balance}
 
-Table~\ref{tab:rental_rd_amenity_balance} checks balance on the external amenity controls in the same rental RD samples used in Table~\ref{tab:rental_rd_controls}.
+Table~\ref{tab:rental_rd_amenity_balance} checks balance on the external amenity controls using the same stringency-index variation as Panel A of Table~\ref{tab:price_rd_controls}.
 
 \begin{table}[H]
-    \caption{Listed-Rent RD: External Amenity Balance}
+    \caption{Listed-Rent Stringency Index: External Amenity Balance}
     \label{tab:rental_rd_amenity_balance}
 
     \input{../tasks/rental_rd_characteristics/output/rental_rd_external_amenity_balance_bw500.tex}
 \end{table}
 
-\subsection{Rental RD Location-Robustness Checks}
+\subsection{Rental Coordinate-Robustness Checks}
 
-Table~\ref{tab:rental_rd_controls_clean_location} repeats the listed-rent control waterfall in the clean-location sample, which drops observations whose modal-address coordinates would change the ward, ward pair, side of the border, or distance assignment.
+Table~\ref{tab:rental_rd_controls_clean_location} repeats the listed-rent stringency-index control waterfall after dropping listings whose modal-address coordinates would change the ward, ward pair, side of the border, or distance assignment.
 
 \begin{table}[H]
-    \caption{Listed-Rent RD: Clean-Location Sample}
+    \caption{Listed-Rent Stringency Index: Dropping Unreliable Coordinates}
     \label{tab:rental_rd_controls_clean_location}
 
     \input{../tasks/rental_rd_characteristics/output/rental_rd_rent_attenuation_clean_location_bw500.tex}
 \end{table}
 
-Figure~\ref{fig:rental_supply_rd_clean_location} repeats the rental listing supply plot in the same clean-location sample.
+Figure~\ref{fig:rental_supply_rd_clean_location} repeats the rental listing supply plot after dropping the same coordinate-risk listings.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.78\textwidth]{../tasks/rental_rd_supply/output/rental_rd_supply_levels_clean_location_bw500.pdf}
-    \caption{Rental Listing Supply by Side of Ward Boundary: Clean-Location Sample}
-    \figurenotes{Figure shows listed floorplan-month counts by distance to ward boundaries using rental listings from 2014--2022 in the clean-location sample. Positive distance indicates the side represented by the more stringent alderman. Bins report mean floorplan-month counts per segment-month-bin. The subtitle reports the companion flat 500ft PPML estimate from segment-month-side counts with segment-by-month fixed effects; standard errors are clustered by boundary segment.}
+    \caption{Rental Listing Supply by Side of Ward Boundary: Dropping Unreliable Coordinates}
+    \figurenotes{Figure shows listed floorplan-month counts by distance to ward boundaries using rental listings from 2014--2022 after dropping listings whose coordinates appear unreliable near ward boundaries.
+    Positive distance indicates the side represented by the more stringent alderman.
+    Bins report mean floorplan-month counts per segment-month-bin.
+    The subtitle reports the companion flat 500ft PPML estimate from segment-month-side counts with segment-by-month fixed effects; standard errors are clustered by boundary segment.}
     \label{fig:rental_supply_rd_clean_location}
+\end{figure}
+
+\subsection{Placebo Cutoffs}
+
+Figures~\ref{fig:rent_placebo_boundaries} and~\ref{fig:sales_placebo_boundaries} repeat the main rent and sales boundary plots after moving the cutoff 500ft inside each side of the true ward boundary.
+These fake cutoffs ask whether the estimated price difference appears only where aldermanic authority changes, rather than at arbitrary points nearby.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{../tasks/price_rd_stress_tests/output/rent_placebo_rd_main_style.pdf}
+    \caption{Listed Rents at True and Placebo Ward-Boundary Cutoffs}
+    \figurenotes{Figure repeats the 500ft listed-rent boundary comparison at the true ward boundary and at placebo cutoffs shifted 500ft inside each side of the boundary.
+    Positive distance indicates the side represented by the more stringent alderman relative to each cutoff.
+    Dots are binned means of log listed rent in 2022 dollars after removing segment-by-month fixed effects, hedonic controls, and amenity controls.
+    Standard errors are clustered by boundary segment.}
+    \label{fig:rent_placebo_boundaries}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{../tasks/price_rd_stress_tests/output/sales_placebo_rd_main_style.pdf}
+    \caption{Home Sale Prices at True and Placebo Ward-Boundary Cutoffs}
+    \figurenotes{Figure repeats the 500ft home-sales boundary comparison at the true ward boundary and at placebo cutoffs shifted 500ft inside each side of the boundary.
+    Positive distance indicates the side represented by the more stringent alderman relative to each cutoff.
+    Dots are binned means of log sale price in 2022 dollars after removing segment-by-quarter fixed effects, hedonic controls, and amenity controls.
+    Standard errors are clustered by boundary segment.}
+    \label{fig:sales_placebo_boundaries}
 \end{figure}

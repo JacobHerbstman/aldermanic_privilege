@@ -50,10 +50,15 @@ prefix <- sprintf(
 message("=== Listed-Rent RD ===")
 message(sprintf("Bandwidth: %.0f ft", bandwidth_ft))
 message(sprintf("Sample: %s", sample))
-message(sprintf("Controls: %s", ifelse(use_controls, "TRUE", "FALSE")))
+message(sprintf("Controls: %s", ifelse(use_controls, "hedonics + amenities", "none")))
 
-rent <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
-  as_tibble()
+if (use_controls) {
+  rent <- read_parquet(sprintf("../input/rental_rd_characteristics_panel_bw%.0f.parquet", bandwidth_ft)) %>%
+    as_tibble()
+} else {
+  rent <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
+    as_tibble()
+}
 if (!"rent_panel_id" %in% names(rent)) {
   stop("Rental RD input must include rent_panel_id.", call. = FALSE)
 }
@@ -143,7 +148,28 @@ if (sample == "multifamily_only") {
 }
 if (use_controls) {
   rent <- rent %>%
-    filter(!is.na(log_sqft), !is.na(log_beds), !is.na(log_baths))
+    mutate(
+      nearest_school_dist_kft = nearest_school_dist_ft / 1000,
+      nearest_park_dist_kft = nearest_park_dist_ft / 1000,
+      nearest_major_road_dist_kft = nearest_major_road_dist_ft / 1000,
+      nearest_cta_stop_dist_kft = nearest_cta_stop_dist_ft / 1000,
+      lake_michigan_dist_kft = lake_michigan_dist_ft / 1000
+    ) %>%
+    filter(
+      !is.na(log_sqft),
+      !is.na(log_beds),
+      !is.na(log_baths),
+      if_all(
+        all_of(c(
+          "nearest_school_dist_kft",
+          "nearest_park_dist_kft",
+          "nearest_major_road_dist_kft",
+          "nearest_cta_stop_dist_kft",
+          "lake_michigan_dist_kft"
+        )),
+        is.finite
+      )
+    )
 }
 
 if (nrow(rent) == 0) {
@@ -162,6 +188,15 @@ if (use_controls) {
   if (n_distinct(rent$building_type_factor) > 1) {
     rhs <- paste(rhs, "+ building_type_factor")
   }
+  rhs <- paste(
+    rhs,
+    "nearest_school_dist_kft",
+    "nearest_park_dist_kft",
+    "nearest_major_road_dist_kft",
+    "nearest_cta_stop_dist_kft",
+    "lake_michigan_dist_kft",
+    sep = " + "
+  )
 }
 fml <- as.formula(paste0("log(rent_price) ~ ", rhs, " | segment_id^year_month"))
 
@@ -199,13 +234,6 @@ bins <- plot_data %>%
     .groups = "drop"
   )
 
-mean_left <- mean(plot_data$y_adjusted[plot_data$right == 0], na.rm = TRUE)
-mean_right <- mean(plot_data$y_adjusted[plot_data$right == 1], na.rm = TRUE)
-line_data <- bind_rows(
-  tibble(x = c(-bandwidth_ft, 0), y = mean_left, side = "Less Stringent"),
-  tibble(x = c(0, bandwidth_ft), y = mean_right, side = "More Stringent")
-)
-
 stars <- if (!is.finite(p_value)) {
   ""
 } else if (p_value < 0.01) {
@@ -229,10 +257,8 @@ plot_subtitle <- sprintf(
 )
 
 plot <- ggplot() +
-  geom_hline(yintercept = 0, linetype = "dotted", color = "gray55") +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.8) +
   geom_point(data = bins, aes(x = bin_center, y = mean_y, color = side), size = 2.4) +
-  geom_line(data = line_data, aes(x = x, y = y, color = side), linewidth = 1.1) +
   scale_color_manual(
     values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"),
     name = NULL

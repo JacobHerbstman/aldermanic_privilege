@@ -252,6 +252,8 @@ if (table_mode == "amenity") {
 # ── Custom fit stats ──
 fitstat_register("myo", function(x) sprintf("%.0f", mean(x$custom_data$sale_price, na.rm = TRUE)),
                  alias = "Dep. Var. Mean")
+fitstat_register("nseg", function(x) length(unique(stats::na.omit(x$custom_data$segment_id))),
+                 alias = "Segments")
 fitstat_register("nwp", function(x) length(unique(stats::na.omit(x$custom_data$ward_pair))),
                  alias = "Ward Pairs")
 
@@ -307,7 +309,7 @@ fe_label <- ifelse(
 etable(
   if (table_mode == "amenity") list(m1, m2, m3) else list(m1, m2),
   keep = treatment_label,
-  fitstat = ~ n + myo + nwp,
+  fitstat = ~ n + myo + nseg + nwp,
   style.tex = style.tex("aer", model.format = "", fixef.title = "", fixef.suffix = "",
                          yesNo = c("$\\checkmark$", "")),
   depvar = FALSE, drop.section = "fixef", digits = 3,
@@ -346,6 +348,7 @@ coef_tbl <- bind_rows(
     p_value = pvalue(m1)[[treatment_var]],
     n_obs = m1$nobs,
     dep_var_mean = mean(sales$sale_price, na.rm = TRUE),
+    n_segments = n_distinct(sales$segment_id),
     ward_pairs = n_distinct(sales$ward_pair),
     bandwidth_ft = bw_ft,
     fe_time = fe_time,
@@ -363,6 +366,7 @@ coef_tbl <- bind_rows(
     p_value = pvalue(m2)[[treatment_var]],
     n_obs = m2$nobs,
     dep_var_mean = mean(sales_hed$sale_price, na.rm = TRUE),
+    n_segments = n_distinct(sales_hed$segment_id),
     ward_pairs = n_distinct(sales_hed$ward_pair),
     bandwidth_ft = bw_ft,
     fe_time = fe_time,
@@ -385,6 +389,7 @@ if (table_mode == "amenity") {
       p_value = pvalue(m3)[[treatment_var]],
       n_obs = m3$nobs,
       dep_var_mean = mean(sales_amenity$sale_price, na.rm = TRUE),
+      n_segments = n_distinct(sales_amenity$segment_id),
       ward_pairs = n_distinct(sales_amenity$ward_pair),
       bandwidth_ft = bw_ft,
       fe_time = fe_time,

@@ -44,6 +44,23 @@ if (!"signed_dist" %in% names(rent)) {
   stop("Rental input must include signed_dist in feet or signed_dist_m in meters.", call. = FALSE)
 }
 
+segment_flags <- read_csv(
+  "../input/confounded_segment_flags.csv",
+  show_col_types = FALSE,
+  col_types = cols(segment_id = col_character(), .default = col_guess())
+) %>%
+  mutate(
+    segment_id = as.character(segment_id),
+    drop_confound = as.logical(drop_confound)
+  ) %>%
+  filter(!is.na(segment_id), segment_id != "") %>%
+  group_by(segment_id) %>%
+  summarise(drop_confound = any(drop_confound, na.rm = TRUE), .groups = "drop")
+
+if (anyDuplicated(segment_flags$segment_id) > 0) {
+  stop("Collapsed segment pruning flags are not unique by segment_id.", call. = FALSE)
+}
+
 for (flag_col in c(
   "flag_location_questionable",
   "flag_modal_assignment_missing",
@@ -83,6 +100,11 @@ rent <- rent %>%
       !flag_modal_changes_neighbor_ward,
     flag_no_questionable_address_sample = !flag_location_questionable
   ) %>%
+  left_join(segment_flags, by = "segment_id", relationship = "many-to-one") %>%
+  mutate(
+    flag_pruned_segment_sample = !is.na(drop_confound) & !drop_confound,
+    flag_clean_location_pruned_sample = flag_clean_location_sample & flag_pruned_segment_sample
+  ) %>%
   filter(
     !is.na(file_date),
     year >= 2014,
@@ -105,6 +127,8 @@ sample_defs <- tibble::tribble(
   ~sample, ~sample_label,
   "all", "All",
   "clean_location", "Clean location",
+  "pruned_segments", "Pruned segments",
+  "clean_location_pruned", "Clean location + pruned segments",
   "no_modal_pair_change", "No modal pair change",
   "no_modal_ward_change", "No modal ward change",
   "no_questionable_address", "No questionable address"
@@ -123,6 +147,12 @@ filter_sample <- function(df, sample_name) {
   }
   if (sample_name == "clean_location") {
     return(df %>% filter(flag_clean_location_sample))
+  }
+  if (sample_name == "pruned_segments") {
+    return(df %>% filter(flag_pruned_segment_sample))
+  }
+  if (sample_name == "clean_location_pruned") {
+    return(df %>% filter(flag_clean_location_pruned_sample))
   }
   if (sample_name == "no_modal_pair_change") {
     return(df %>% filter(flag_no_modal_pair_change_sample))
@@ -337,7 +367,7 @@ bin_width <- bandwidth_ft / bins_per_side
 bin_count <- 2L * bins_per_side
 bin_centers <- -bandwidth_ft + (seq_len(bin_count) - 0.5) * bin_width
 bin_rows <- list()
-for (sample_name in c("all", "clean_location")) {
+for (sample_name in c("all", "clean_location", "pruned_segments", "clean_location_pruned")) {
   d_sample <- filter_sample(rent, sample_name)
   segment_months <- d_sample %>%
     distinct(segment_id, ward_pair, year_month)
@@ -404,23 +434,9 @@ plot_supply_levels <- function(sample_name, title, output_path) {
     stop(sprintf("No binned supply rows for sample %s.", sample_name), call. = FALSE)
   }
 
-  line_data <- bind_rows(
-    tibble(
-      x = c(-bandwidth_ft, 0),
-      y = mean(d_plot$mean_floorplan_months[d_plot$side == "Less Stringent"], na.rm = TRUE),
-      side = "Less Stringent"
-    ),
-    tibble(
-      x = c(0, bandwidth_ft),
-      y = mean(d_plot$mean_floorplan_months[d_plot$side == "More Stringent"], na.rm = TRUE),
-      side = "More Stringent"
-    )
-  )
-
   plot <- ggplot() +
     geom_vline(xintercept = 0, color = "gray30", linetype = "dashed", linewidth = 0.7) +
     geom_point(data = d_plot, aes(x = bin_center, y = mean_floorplan_months, color = side), size = 2.4) +
-    geom_line(data = line_data, aes(x = x, y = y, color = side), linewidth = 1.1) +
     scale_color_manual(values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"), name = NULL) +
     labs(
       title = title,
@@ -451,10 +467,19 @@ plot_supply_levels(
   "Rental Listing Supply by Side of Ward Boundary: Clean Location Sample",
   sprintf("../output/rental_rd_supply_levels_clean_location_bw%s.pdf", bandwidth_label)
 )
+plot_supply_levels(
+  "pruned_segments",
+  "Rental Listing Supply by Side of Ward Boundary: Pruned Segments",
+  sprintf("../output/rental_rd_supply_levels_pruned_segments_bw%s.pdf", bandwidth_label)
+)
+plot_supply_levels(
+  "clean_location_pruned",
+  "Rental Listing Supply by Side of Ward Boundary: Clean Location + Pruned Segments",
+  sprintf("../output/rental_rd_supply_levels_clean_location_pruned_bw%s.pdf", bandwidth_label)
+)
 
 plot_bins <- ggplot(bins, aes(x = bin_center, y = mean_floorplan_months, color = side)) +
   geom_vline(xintercept = 0, color = "gray30", linetype = "dashed", linewidth = 0.7) +
-  geom_line(linewidth = 0.7) +
   geom_point(size = 1.8) +
   facet_wrap(~sample_label, ncol = 1) +
   scale_color_manual(values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"), name = NULL) +

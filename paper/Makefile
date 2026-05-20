@@ -47,15 +47,16 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls.pdf \
 	../tasks/rental_rd_characteristics/output/rental_rd_external_amenity_balance_bw500.tex \
 	../tasks/rental_rd_characteristics/output/rental_rd_rent_attenuation_clean_location_bw500.tex \
-	../tasks/rental_rd_characteristics/output/rental_rd_rent_attenuation_bw500.tex \
+	../tasks/price_rd_tables/output/price_rd_controls_panels_bw500.tex \
+	../tasks/price_rd_stress_tests/output/rent_placebo_rd_main_style.pdf \
+	../tasks/price_rd_stress_tests/output/sales_placebo_rd_main_style.pdf \
 	../tasks/rental_rd_supply/output/rental_rd_supply_levels_bw500.pdf \
 	../tasks/rental_rd_supply/output/rental_rd_supply_levels_clean_location_bw500.pdf \
 	../tasks/run_event_study_permit/output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_noctrl_geo_wardpair.tex \
 	../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf \
 	../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf \
 	../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf \
-	../tasks/sales_border_pair_fe/output/fe_table_sales_right_bw500_year_quarter_amenity_clust_ward_pair.tex \
-	../tasks/sales_border_pair_fe/output/sales_rd_flat_bw500_year_quarter_amenity_clust_ward_pair.pdf \
+	../tasks/sales_border_pair_fe/output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment.pdf \
 	../tasks/strictness_score_map/output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022-01.pdf \
 	../tasks/summary_stats_new_construction/output/summary_stats.tex \
 	../tasks/uncertainty_validation_checks/output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \

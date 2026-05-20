@@ -9,7 +9,11 @@ all: \
 	../output/fe_table_sales_right_bw500_year_quarter_amenity_clust_ward_pair.tex \
 	../output/fe_table_sales_right_bw500_year_quarter_amenity_clust_ward_pair.csv \
 	../output/year_diagnostics_sales_right_bw500_year_quarter_amenity_clust_ward_pair.csv \
-	../output/sales_rd_flat_bw500_year_quarter_amenity_clust_ward_pair.pdf
+	../output/fe_table_sales_right_bw500_year_quarter_amenity_clust_segment.tex \
+	../output/fe_table_sales_right_bw500_year_quarter_amenity_clust_segment.csv \
+	../output/year_diagnostics_sales_right_bw500_year_quarter_amenity_clust_segment.csv \
+	../output/sales_rd_flat_bw500_year_quarter_amenity_clust_ward_pair.pdf \
+	../output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment.pdf
 
 ../output/sales_with_hedonics_amenities.parquet: enrich_sales_with_amenity_distances.R ../input/sales_with_hedonics.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
 	Rscript enrich_sales_with_amenity_distances.R ../input/sales_with_hedonics.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp "$@" ../output/sales_amenity_distance_diagnostics.csv
@@ -35,8 +39,20 @@ all: \
 ../output/year_diagnostics_sales_right_bw500_year_quarter_amenity_clust_ward_pair.csv: ../output/fe_table_sales_right_bw500_year_quarter_amenity_clust_ward_pair.tex
 	@test -s "$@"
 
+../output/fe_table_sales_right_bw500_year_quarter_amenity_clust_segment.tex: sales_border_pair_fe.R ../output/sales_with_hedonics_amenities.parquet | ../output
+	Rscript sales_border_pair_fe.R ../output/sales_with_hedonics_amenities.parquet 500 year_quarter "$@" ../output/fe_table_sales_right_bw500_year_quarter_amenity_clust_segment.csv ../output/year_diagnostics_sales_right_bw500_year_quarter_amenity_clust_segment.csv segment segment amenity right
+
+../output/fe_table_sales_right_bw500_year_quarter_amenity_clust_segment.csv: ../output/fe_table_sales_right_bw500_year_quarter_amenity_clust_segment.tex
+	@test -s "$@"
+
+../output/year_diagnostics_sales_right_bw500_year_quarter_amenity_clust_segment.csv: ../output/fe_table_sales_right_bw500_year_quarter_amenity_clust_segment.tex
+	@test -s "$@"
+
 ../output/sales_rd_flat_bw500_year_quarter_amenity_clust_ward_pair.pdf: sales_level_plot.R ../output/sales_with_hedonics_amenities.parquet | ../output
-	$(R) $< 500 TRUE 15 0 segment ward_pair amenity
+	$(R) $< 500 TRUE 10 0 segment ward_pair amenity
+
+../output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment.pdf: sales_level_plot.R ../output/sales_with_hedonics_amenities.parquet | ../output
+	$(R) $< 500 TRUE 10 0 segment segment amenity
 
 ../input/sales_with_hedonics.parquet: ../../prep_sales_border_data/output/sales_with_hedonics.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

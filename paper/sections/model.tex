@@ -2,9 +2,18 @@
 \label{sec:model}
 \subsection{Developer Problem}
 
-Consider a developer choosing the scale $q \geq 0$ (units of housing) of a project on a given site. Construction costs are $C(q) = F + cq + \frac{\gamma}{2}q^2$ with $\gamma > 0$, so marginal costs rise with project size. Let $p$ denote the local price level, taken as given at the project level.
+Delay makes projects less valuable.
+A developer who expects years of meetings, redesigns, and uncertainty may respond by building a smaller project, waiting, or walking away.
+The model below turns that intuition into a simple time-to-build problem.
 
-The local regulatory environment $s$ maps into an \textit{effective time-to-build} $T(s)$ with $T'(s) > 0$. I use $T(s)$ as a reduced-form representation of entitlement delay, redesign requirements, negotiation costs, financing frictions, and regulatory uncertainty that push expected revenue further into the future. If revenue arrives upon project completion, the developer's expected discounted revenue per unit is $e^{-rT(s)} p$, where $r$ is the relevant discount or financing rate. The developer solves
+Consider a developer choosing the scale $q \geq 0$ (units of housing) of a project on a given site.
+Construction costs are $C(q) = F + cq + \frac{\gamma}{2}q^2$ with $\gamma > 0$, so marginal costs rise with project size.
+Let $p$ denote the local price level, taken as given at the project level.
+
+The local regulatory environment $s$ maps into an \textit{effective time-to-build} $T(s)$ with $T'(s) > 0$.
+I use $T(s)$ as a reduced-form representation of entitlement delay, redesign requirements, negotiation costs, financing frictions, and regulatory uncertainty that push expected revenue further into the future.
+If revenue arrives upon project completion, the developer's expected discounted revenue per unit is $e^{-rT(s)} p$, where $r$ is the relevant discount or financing rate.
+The developer solves
 \[
 \max_{q \geq 0} \;\; e^{-rT(s)} p \, q - C(q).
 \]
@@ -12,16 +21,27 @@ The first-order condition gives
 \[
 q^*(T(s), p) = \frac{e^{-rT(s)} p - c}{\gamma}
 \]
-when $e^{-rT(s)} p > c$, and $q^* = 0$ otherwise. The central comparative static is $\partial q^* / \partial T(s) < 0$: longer or more burdensome regulatory processes reduce project scale and can push marginal projects from ``build'' to ``don't build.''
+when $e^{-rT(s)} p > c$, and $q^* = 0$ otherwise.
+The central comparative static is $\partial q^* / \partial T(s) < 0$: longer or more burdensome regulatory processes reduce project scale and can push marginal projects from ``build'' to ``don't build.''
 
 \subsection{From Developer Choices to Empirical Predictions}
 
-Aggregating across sites, total housing supply is $Q = \sum_i q_i^*$. Higher $T(s)$ reduces $Q$ through two direct margins: projects that are built at lower density and marginal projects that are no longer built. These are the main predictions I take to the data. Sites in more stringent regulatory environments should have lower completed density (Section~\ref{sec:empirical_results_density}), and the flow of permits requiring meaningful regulatory review should fall when stringency increases (Section~\ref{sec:empirical_results_permits}).
+Aggregating across sites, total housing supply is $Q = \sum_i q_i^*$.
+Higher $T(s)$ reduces $Q$ through two direct margins: projects that are built at lower density and marginal projects that are no longer built.
+These are the main predictions I take to the data.
+Sites in more stringent regulatory environments should have lower completed density (Section~\ref{sec:empirical_results_density}), and the flow of permits requiring aldermanic review should fall when stringency increases (Section~\ref{sec:empirical_results_permits}).
 
-With downward-sloping demand $p'(Q) < 0$, a supply contraction can also raise housing costs. That prediction is less sharp in the data because prices may adjust over a wider geography and because rents and sale prices are observed in different datasets. I therefore treat the price RDs in Section~\ref{sec:empirical_results_prices} as downstream evidence rather than as the main identification pillar.
+With downward-sloping demand $p'(Q) < 0$, a supply contraction can also raise housing costs.
+That prediction is less sharp in the data because prices may adjust over a wider geography and because rents and sale prices are observed in different datasets.
+I therefore treat the price comparisons in Section~\ref{sec:empirical_results_prices} as downstream evidence rather than as the main identification pillar.
 
 \subsection{Interpretation of the Stringency Score}
 
-In the model, these frictions enter through the index $rT(s)$, which acts as a multiplicative wedge $e^{-rT(s)}$ on the present value of revenue. This wedge governs both the developer's intensive-margin density choice and the extensive-margin decision to build or not.
+In the model, these frictions enter through the index $rT(s)$.
+A higher value means revenue arrives later and is worth less today.
+That affects both the developer's intensive-margin density choice and the extensive-margin decision to build or not.
 
-The aldermanic stringency score I construct in Section~\ref{subsec:strictness} is an empirical proxy for $T(s)$. It measures the effective delay each alderman imposes on the development process after removing variation attributable to ward characteristics. Other dimensions of regulatory friction, such as impact fees, design mandates, or community benefit requirements, would enter as additional costs in $C(\cdot)$ and reinforce the same qualitative predictions. The core idea is that longer observed processing times for high-discretion permits are a noisy but informative signal of the regulatory wedge that lowers density, reduces aggregate supply, and may raise prices.
+The aldermanic stringency score I construct in Section~\ref{subsec:strictness} is an empirical proxy for $T(s)$.
+It measures the effective delay each alderman imposes on the development process after removing variation attributable to ward characteristics.
+Other dimensions of regulatory friction, such as impact fees, design mandates, or community benefit requirements, would enter as additional costs in $C(\cdot)$ and reinforce the same qualitative predictions.
+The core idea is that longer observed processing times for permits on larger discretionary projects are a noisy but informative signal of delay that lowers density, reduces aggregate supply, and may raise prices.

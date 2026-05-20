@@ -55,7 +55,7 @@ tabular_content <- paste0(
   "Median Dist. to Boundary (ft) & ", formatC(stats_all$median_dist_ft, format = "f", digits = 2, big.mark = ","), " & ", formatC(stats_mf$median_dist_ft, format = "f", digits = 2, big.mark = ","), " \\\\\n",
   "Average Strictness Score & ", formatC(stats_all$avg_strictness, format = "f", digits = 3, big.mark = ","), " & ", formatC(stats_mf$avg_strictness, format = "f", digits = 3, big.mark = ","), " \\\\\n",
   "\\midrule\n",
-  "Observations & ", formatC(stats_all$n, format = "d", big.mark = ","), " & ", formatC(stats_mf$n, format = "d", big.mark = ","), " \\\\\n",
+  "N & ", formatC(stats_all$n, format = "d", big.mark = ","), " & ", formatC(stats_mf$n, format = "d", big.mark = ","), " \\\\\n",
   "\\bottomrule\n",
   "\\end{tabular}\n"
 )

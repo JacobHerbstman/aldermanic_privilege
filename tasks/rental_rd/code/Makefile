@@ -28,7 +28,7 @@ all: \
 ../output/rental_rd_diagnostics_bw$(BANDWIDTH_FT)_2014_2022_%_no_controls.csv: ../output/rental_rd_flat_bw$(BANDWIDTH_FT)_2014_2022_%_no_controls.pdf
 	@test -s "$@"
 
-../output/rental_rd_flat_bw$(BANDWIDTH_FT)_2014_2022_%_controls.pdf: run_rental_rd.R ../input/rent_with_ward_distances.parquet ../output/rd_sample_flag_balance.csv | ../output
+../output/rental_rd_flat_bw$(BANDWIDTH_FT)_2014_2022_%_controls.pdf: run_rental_rd.R ../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet ../output/rd_sample_flag_balance.csv | ../output
 	# arg order: bandwidth_ft sample use_controls bins_per_side
 	$(R) $< $(BANDWIDTH_FT) $* TRUE $(BINS_PER_SIDE)
 
@@ -49,10 +49,13 @@ all: \
 ../input/rent_with_ward_distances.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
+../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet: ../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
 ../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/rent_with_ward_distances.parquet ../input/boundary_segments_1320ft.gpkg
+link-inputs: ../input/rent_with_ward_distances.parquet ../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet ../input/boundary_segments_1320ft.gpkg
 
 include ../../shell_functions.make
 include ../../generic.make

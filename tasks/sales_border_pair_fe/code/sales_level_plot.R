@@ -190,19 +190,6 @@ bins <- plot_data %>%
     .groups = "drop"
   )
 
-line_data <- bind_rows(
-  tibble(
-    x = c(-bw_ft, 0),
-    y = mean(plot_data$y_adjusted[plot_data$right == 0], na.rm = TRUE),
-    side = "Less Stringent"
-  ),
-  tibble(
-    x = c(0, bw_ft),
-    y = mean(plot_data$y_adjusted[plot_data$right == 1], na.rm = TRUE),
-    side = "More Stringent"
-  )
-)
-
 plot_subtitle <- sprintf(
   "Jump = %.4f%s (SE %.4f), N = %s, %.0fft",
   estimate,
@@ -213,10 +200,8 @@ plot_subtitle <- sprintf(
 )
 
 plot <- ggplot() +
-  geom_hline(yintercept = 0, linetype = "dotted", color = "gray55") +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.8) +
   geom_point(data = bins, aes(x = bin_center, y = mean_y, color = side), size = 2.5) +
-  geom_line(data = line_data, aes(x = x, y = y, color = side), linewidth = 1.1) +
   scale_color_manual(
     values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"),
     name = NULL
@@ -230,8 +215,10 @@ plot <- ggplot() +
   theme_bw(base_size = 11) +
   theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
+output_pdf <- sprintf("../output/sales_rd_flat_bw%d_year_quarter_amenity_clust_%s.pdf", bw_ft, cluster_level)
+
 ggsave(
-  "../output/sales_rd_flat_bw500_year_quarter_amenity_clust_ward_pair.pdf",
+  output_pdf,
   plot,
   width = 8.6,
   height = 6,
@@ -239,4 +226,4 @@ ggsave(
   bg = "white"
 )
 
-message("Saved: ../output/sales_rd_flat_bw500_year_quarter_amenity_clust_ward_pair.pdf")
+message(sprintf("Saved: %s", output_pdf))
