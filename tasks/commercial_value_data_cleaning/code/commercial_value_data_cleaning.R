@@ -12,11 +12,19 @@ if (!"modelgroup" %in% names(data) && "sheet" %in% names(data)) {
 
 numeric_cols <- c(
   "year", "studiounits", "x1brunits", "x2brunits", "x3brunits", "x4brunits",
-  "tot_units", "bldgsf", "landsf", "yearbuilt"
+  "tot_units", "bldgsf", "landsf", "yearbuilt", "aprx_comm_sf"
 )
+apartment_unit_cols <- c("studiounits", "x1brunits", "x2brunits", "x3brunits", "x4brunits")
 month_codes <- c(
   jan = "1", feb = "2", mar = "3", apr = "4", may = "5", jun = "6",
   jul = "7", aug = "8", sep = "9", oct = "10", nov = "11", dec = "12"
+)
+manual_unit_overrides <- tibble::tribble(
+  ~pin, ~manual_residential_units, ~unit_override_reason,
+  "14303140460000", 34,
+  "Permit/public records describe 34 dwelling units; source bedroom-count detail reports only 30 two-bedroom units.",
+  "17151100370000", 524,
+  "University Center student housing: CCAO apartment-unit fields appear to count beds rather than dwelling units."
 )
 
 data <- data %>%
@@ -56,24 +64,48 @@ data <- data %>%
 
 multifamily_data <- data %>%
   filter(str_detect(modelgroup, "(?i)Multifamily|Class3|Class9|Condos")) %>%
-  mutate(calculated_sum = rowSums(select(., studiounits, x1brunits, x2brunits, x3brunits, x4brunits), na.rm = TRUE)) %>% 
-  mutate(tot_units = coalesce(tot_units, if_else(calculated_sum > 0, calculated_sum, NA_real_))) %>% 
-  filter(!is.na(tot_units)) %>% 
-  select(-calculated_sum) %>%
+  mutate(
+    source_tot_units = tot_units,
+    apartment_unit_sum = rowSums(select(., all_of(apartment_unit_cols)), na.rm = TRUE),
+    preliminary_unit_source = case_when(
+      apartment_unit_sum > 0 ~ "apartment_unit_sum",
+      !is.na(source_tot_units) & source_tot_units > 0 ~ "tot_units_fallback",
+      TRUE ~ "missing"
+    ),
+    preliminary_tot_units = case_when(
+      apartment_unit_sum > 0 ~ apartment_unit_sum,
+      !is.na(source_tot_units) & source_tot_units > 0 ~ source_tot_units,
+      TRUE ~ NA_real_
+    ),
+    tot_units_apartment_sum_gap = apartment_unit_sum > 0 &
+      !is.na(source_tot_units) &
+      abs(source_tot_units - apartment_unit_sum) > 0,
+    tot_units_apartment_sum_large_gap = tot_units_apartment_sum_gap &
+      abs(source_tot_units - apartment_unit_sum) / pmax(source_tot_units, apartment_unit_sum) > 0.1
+  ) %>%
+  filter(!is.na(preliminary_tot_units)) %>%
   mutate(source_landsf = landsf) %>%
   select(
     keypin,
     address,
     year,
     yearbuilt,
-    tot_units,
+    preliminary_tot_units,
+    preliminary_unit_source,
+    source_tot_units,
+    apartment_unit_sum,
+    tot_units_apartment_sum_gap,
+    tot_units_apartment_sum_large_gap,
     bldgsf,
     landsf,
     source_landsf,
+    aprx_comm_sf,
     pin_group_count,
     pins,
     modelgroup,
     class_es, # usage class
+    property_type_use,
+    property_name_description,
     studiounits,
     x1brunits,
     x2brunits,
@@ -81,7 +113,43 @@ multifamily_data <- data %>%
     x4brunits
   ) %>% 
   mutate(keypin = str_remove_all(keypin, "-")) %>% 
-  rename(pin = keypin)
+  rename(pin = keypin) %>%
+  left_join(manual_unit_overrides, by = "pin", relationship = "many-to-one") %>%
+  mutate(
+    unit_override_applied = !is.na(manual_residential_units),
+    unit_source = if_else(unit_override_applied, "manual_override", preliminary_unit_source),
+    tot_units = coalesce(manual_residential_units, preliminary_tot_units)
+  ) %>%
+  select(
+    pin,
+    address,
+    year,
+    yearbuilt,
+    tot_units,
+    source_tot_units,
+    apartment_unit_sum,
+    unit_source,
+    unit_override_applied,
+    manual_residential_units,
+    unit_override_reason,
+    tot_units_apartment_sum_gap,
+    tot_units_apartment_sum_large_gap,
+    bldgsf,
+    landsf,
+    source_landsf,
+    aprx_comm_sf,
+    pin_group_count,
+    pins,
+    modelgroup,
+    class_es,
+    property_type_use,
+    property_name_description,
+    studiounits,
+    x1brunits,
+    x2brunits,
+    x3brunits,
+    x4brunits
+  )
 
 
 multifamily_data_selected <- multifamily_data %>%
@@ -105,11 +173,22 @@ selected_vs_latest_audit <- multifamily_data_selected %>%
     selected_year = year,
     selected_address = address,
     selected_units = tot_units,
+    selected_source_tot_units = source_tot_units,
+    selected_apartment_unit_sum = apartment_unit_sum,
+    selected_unit_source = unit_source,
+    selected_unit_override_applied = unit_override_applied,
+    selected_manual_residential_units = manual_residential_units,
+    selected_unit_override_reason = unit_override_reason,
+    selected_tot_units_apartment_sum_gap = tot_units_apartment_sum_gap,
+    selected_tot_units_apartment_sum_large_gap = tot_units_apartment_sum_large_gap,
     selected_bldgsf = bldgsf,
     selected_landsf = landsf,
+    selected_aprx_comm_sf = aprx_comm_sf,
     selected_pin_group_count = pin_group_count,
     selected_modelgroup = modelgroup,
-    selected_class_es = class_es
+    selected_class_es = class_es,
+    selected_property_type_use = property_type_use,
+    selected_property_name_description = property_name_description
   ) %>%
   left_join(
     multifamily_data_latest %>%
@@ -118,10 +197,21 @@ selected_vs_latest_audit <- multifamily_data_selected %>%
         latest_year = year,
         latest_address = address,
         latest_units = tot_units,
+        latest_source_tot_units = source_tot_units,
+        latest_apartment_unit_sum = apartment_unit_sum,
+        latest_unit_source = unit_source,
+        latest_unit_override_applied = unit_override_applied,
+        latest_manual_residential_units = manual_residential_units,
+        latest_unit_override_reason = unit_override_reason,
+        latest_tot_units_apartment_sum_gap = tot_units_apartment_sum_gap,
+        latest_tot_units_apartment_sum_large_gap = tot_units_apartment_sum_large_gap,
         latest_bldgsf = bldgsf,
         latest_landsf = landsf,
+        latest_aprx_comm_sf = aprx_comm_sf,
         latest_modelgroup = modelgroup,
-        latest_class_es = class_es
+        latest_class_es = class_es,
+        latest_property_type_use = property_type_use,
+        latest_property_name_description = property_name_description
       ),
     by = "pin",
     relationship = "one-to-one"
@@ -160,6 +250,12 @@ land_correction_candidates <- multifamily_data_selected %>%
     selected_year = year,
     selected_address = address,
     selected_units = tot_units,
+    selected_source_tot_units = source_tot_units,
+    selected_apartment_unit_sum = apartment_unit_sum,
+    selected_unit_source = unit_source,
+    selected_unit_override_applied = unit_override_applied,
+    selected_manual_residential_units = manual_residential_units,
+    selected_unit_override_reason = unit_override_reason,
     selected_bldgsf = bldgsf,
     selected_landsf = landsf,
     selected_pin_group_count = pin_group_count
@@ -286,9 +382,18 @@ multi_pin_land_audit <- multifamily_data_selected %>%
     selected_year = year,
     yearbuilt,
     tot_units,
+    source_tot_units,
+    apartment_unit_sum,
+    unit_source,
+    unit_override_applied,
+    manual_residential_units,
+    unit_override_reason,
+    tot_units_apartment_sum_gap,
+    tot_units_apartment_sum_large_gap,
     bldgsf,
     source_landsf,
     corrected_landsf,
+    aprx_comm_sf,
     pin_group_count,
     selected_far,
     corrected_far,
@@ -304,9 +409,59 @@ multi_pin_land_audit <- multifamily_data_selected %>%
     land_correction_reason,
     pins,
     modelgroup,
-    class_es
+    class_es,
+    property_type_use,
+    property_name_description
   ) %>%
   arrange(desc(apply_land_correction), desc(pin_group_count), desc(tot_units), pin)
+
+unit_definition_audit <- multifamily_data %>%
+  mutate(
+    unit_gap = source_tot_units - apartment_unit_sum,
+    unit_gap_relative = abs(unit_gap) / pmax(source_tot_units, apartment_unit_sum),
+    has_commercial_area = !is.na(aprx_comm_sf) & aprx_comm_sf > 0
+  ) %>%
+  filter(
+    unit_override_applied |
+    unit_source == "tot_units_fallback" |
+      tot_units_apartment_sum_gap |
+      has_commercial_area
+  ) %>%
+  select(
+    pin,
+    address,
+    year,
+    yearbuilt,
+    residential_units = tot_units,
+    source_tot_units,
+    apartment_unit_sum,
+    unit_source,
+    unit_override_applied,
+    manual_residential_units,
+    unit_override_reason,
+    unit_gap,
+    unit_gap_relative,
+    tot_units_apartment_sum_gap,
+    tot_units_apartment_sum_large_gap,
+    aprx_comm_sf,
+    bldgsf,
+    landsf,
+    source_landsf,
+    pin_group_count,
+    pins,
+    modelgroup,
+    class_es,
+    property_type_use,
+    property_name_description
+  ) %>%
+  arrange(
+    desc(tot_units_apartment_sum_large_gap),
+    desc(tot_units_apartment_sum_gap),
+    desc(unit_source == "tot_units_fallback"),
+    desc(residential_units),
+    pin,
+    desc(year)
+  )
 
 density_review_flags <- multifamily_data_deduped %>%
   mutate(
@@ -333,9 +488,18 @@ density_review_flags <- multifamily_data_deduped %>%
     address,
     yearbuilt,
     tot_units,
+    source_tot_units,
+    apartment_unit_sum,
+    unit_source,
+    unit_override_applied,
+    manual_residential_units,
+    unit_override_reason,
+    tot_units_apartment_sum_gap,
+    tot_units_apartment_sum_large_gap,
     bldgsf,
     landsf,
     source_landsf,
+    aprx_comm_sf,
     pin_group_count,
     dupac,
     far,
@@ -347,7 +511,9 @@ density_review_flags <- multifamily_data_deduped %>%
     grouped_pin_low_density,
     pins,
     modelgroup,
-    class_es
+    class_es,
+    property_type_use,
+    property_name_description
   ) %>%
   arrange(
     desc(high_unit_low_density),
@@ -358,6 +524,172 @@ density_review_flags <- multifamily_data_deduped %>%
     far,
     pin
   )
+
+questionable_apartment_review <- tibble::tribble(
+  ~pin, ~audit_reason, ~review_decision, ~reviewed_residential_units, ~evidence_summary, ~action_taken,
+  "17151100370000",
+  "Student-housing row where CCAO unit detail appears to count beds rather than apartments.",
+  "Use externally reviewed apartment count.",
+  524,
+  "525 S State is University Center. Public apartment listings describe about 524 apartments, while the CCAO student-housing unit fields report much larger bed-like counts.",
+  "Manual override applied.",
+  "17172310020000",
+  "Student-housing label, high unit count.",
+  "Keep apartment-unit sum.",
+  300,
+  "1035 W Van Buren has stable CCAO apartment-unit detail across available commercial valuation rows and no total/detail disagreement.",
+  "No override.",
+  "17164040190000",
+  "Student-housing label, high unit count.",
+  "Keep apartment-unit sum.",
+  178,
+  "642 S Clark has stable CCAO apartment-unit detail across available commercial valuation rows and no total/detail disagreement.",
+  "No override.",
+  "14321060130000",
+  "Student-housing label, high unit count.",
+  "Keep apartment-unit sum.",
+  160,
+  "1237 W Fullerton has stable CCAO apartment-unit detail across available commercial valuation rows and no total/detail disagreement.",
+  "No override.",
+  "11323310340000",
+  "Student-housing label, high unit count.",
+  "Keep apartment-unit sum.",
+  152,
+  "1209 W Arthur has stable CCAO apartment-unit detail across available commercial valuation rows and no total/detail disagreement.",
+  "No override.",
+  "17172270010000",
+  "Student-housing label, high unit count.",
+  "Keep apartment-unit sum.",
+  135,
+  "847 W Jackson / Tailor Lofts public descriptions separate roughly 135 apartments from larger bed counts; the selected CCAO row reports 135 apartment units.",
+  "No override.",
+  "17194110010000",
+  "Student-housing label on a small mixed-use row.",
+  "Keep apartment-unit sum after review.",
+  15,
+  "1659 W 18th has stable CCAO apartment-unit detail at 15. A larger public aggregation appears to combine multiple valuation records rather than identify residential apartments on this selected row.",
+  "No override; keep flagged as reviewed.",
+  "14303140460000",
+  "Bedroom-detail sum is below the source total on a reviewed mixed-use apartment building.",
+  "Use externally reviewed dwelling-unit count.",
+  34,
+  "2439/2443 N Western public and permit descriptions identify 34 dwelling units, while the CCAO bedroom detail reports only 30 two-bedroom units.",
+  "Manual override applied.",
+  "16122180170000",
+  "Mixed-use row where source total appears to include nonresidential units.",
+  "Keep apartment-unit sum.",
+  10,
+  "520 N Western has 10 apartments in the CCAO bedroom detail; the broader source total is 13 and appears to include commercial or ancillary units.",
+  "No override.",
+  "17053280180000",
+  "Mixed-use row where source total appears to include nonresidential units.",
+  "Keep apartment-unit sum.",
+  8,
+  "880 N Milwaukee has 8 apartments in the CCAO bedroom detail and commercial square footage; the source total of 9 is consistent with adding one commercial unit.",
+  "No override.",
+  "14204200420000",
+  "Mixed-use row where source total appears to include retail.",
+  "Keep apartment-unit sum.",
+  7,
+  "3322 N Halsted permit language describes ground-floor retail and 7 dwelling units; the source total is 8.",
+  "No override.",
+  "13253150460000",
+  "Mixed-use row where source total appears to include nonresidential units.",
+  "Keep apartment-unit sum.",
+  6,
+  "2487 N Milwaukee public descriptions are consistent with 6 residential units plus commercial space; the source total is 7.",
+  "No override.",
+  "14203180020000",
+  "Mixed-use row where source total appears to include retail.",
+  "Keep apartment-unit sum.",
+  6,
+  "3355 N Southport permit language describes 6 dwelling units plus one retail tenant space; the source total is 7.",
+  "No override.",
+  "17301040090000",
+  "Mixed-use row where source total appears to include retail.",
+  "Keep apartment-unit sum.",
+  6,
+  "2135 W Cermak permit language describes 6 dwelling units with ground-floor retail; the source total is 7.",
+  "No override."
+)
+
+commercial_questionable_apartment_audit <- questionable_apartment_review %>%
+  left_join(
+    multifamily_data_deduped %>%
+      mutate(
+        cleaned_far = bldgsf / landsf,
+        cleaned_dupac = 43560 * tot_units / landsf,
+        in_main_2006_2022_density_period = yearbuilt >= 2006 & yearbuilt <= 2022
+      ) %>%
+      select(
+        pin,
+        address,
+        yearbuilt,
+        cleaned_residential_units = tot_units,
+        source_tot_units,
+        apartment_unit_sum,
+        unit_source,
+        unit_override_applied,
+        manual_residential_units,
+        unit_override_reason,
+        tot_units_apartment_sum_gap,
+        tot_units_apartment_sum_large_gap,
+        bldgsf,
+        landsf,
+        source_landsf,
+        aprx_comm_sf,
+        cleaned_far,
+        cleaned_dupac,
+        pin_group_count,
+        modelgroup,
+        class_es,
+        property_type_use,
+        in_main_2006_2022_density_period
+      ),
+    by = "pin",
+    relationship = "one-to-one"
+  ) %>%
+  mutate(
+    cleaned_units_match_review = cleaned_residential_units == reviewed_residential_units,
+    needs_followup = is.na(cleaned_residential_units) | !cleaned_units_match_review
+  ) %>%
+  select(
+    pin,
+    address,
+    yearbuilt,
+    audit_reason,
+    review_decision,
+    reviewed_residential_units,
+    cleaned_residential_units,
+    cleaned_units_match_review,
+    needs_followup,
+    action_taken,
+    evidence_summary,
+    source_tot_units,
+    apartment_unit_sum,
+    unit_source,
+    unit_override_applied,
+    manual_residential_units,
+    unit_override_reason,
+    tot_units_apartment_sum_gap,
+    tot_units_apartment_sum_large_gap,
+    aprx_comm_sf,
+    bldgsf,
+    landsf,
+    source_landsf,
+    cleaned_far,
+    cleaned_dupac,
+    pin_group_count,
+    modelgroup,
+    class_es,
+    property_type_use,
+    in_main_2006_2022_density_period
+  ) %>%
+  arrange(desc(cleaned_residential_units), pin)
+
+if (any(commercial_questionable_apartment_audit$needs_followup)) {
+  stop("Questionable apartment audit has unmatched or mismatched cleaned unit counts.")
+}
 
 multi_pin_land_audit_summary <- tibble::tibble(
   metric = c(
@@ -375,9 +707,19 @@ multi_pin_land_audit_summary <- tibble::tibble(
     "selected_multi_pin_share",
     "selected_not_latest_rows",
     "material_selected_latest_gap_rows",
+    "unit_rows_using_apartment_sum",
+    "unit_rows_using_tot_units_fallback",
+    "unit_rows_using_manual_override",
+    "unit_rows_with_tot_apartment_gap",
+    "unit_rows_with_large_tot_apartment_gap",
+    "selected_rows_using_tot_units_fallback",
+    "selected_rows_using_manual_override",
+    "selected_rows_with_tot_apartment_gap",
+    "selected_rows_with_large_tot_apartment_gap",
     "near_pin_multiple_candidates",
     "land_corrections_applied",
-    "density_review_flag_rows"
+    "density_review_flag_rows",
+    "questionable_apartment_review_rows"
   ),
   value = c(
     nrow(raw_data),
@@ -394,9 +736,19 @@ multi_pin_land_audit_summary <- tibble::tibble(
     mean(multifamily_data_selected$pin_group_count > 1, na.rm = TRUE),
     nrow(selected_vs_latest_audit),
     sum(selected_vs_latest_audit$material_selected_latest_gap, na.rm = TRUE),
+    sum(multifamily_data$unit_source == "apartment_unit_sum", na.rm = TRUE),
+    sum(multifamily_data$unit_source == "tot_units_fallback", na.rm = TRUE),
+    sum(multifamily_data$unit_source == "manual_override", na.rm = TRUE),
+    sum(multifamily_data$tot_units_apartment_sum_gap, na.rm = TRUE),
+    sum(multifamily_data$tot_units_apartment_sum_large_gap, na.rm = TRUE),
+    sum(multifamily_data_selected$unit_source == "tot_units_fallback", na.rm = TRUE),
+    sum(multifamily_data_selected$unit_source == "manual_override", na.rm = TRUE),
+    sum(multifamily_data_selected$tot_units_apartment_sum_gap, na.rm = TRUE),
+    sum(multifamily_data_selected$tot_units_apartment_sum_large_gap, na.rm = TRUE),
     nrow(land_correction_candidates),
     sum(land_correction_candidates$apply_land_correction, na.rm = TRUE),
-    nrow(density_review_flags)
+    nrow(density_review_flags),
+    nrow(commercial_questionable_apartment_audit)
   )
 )
 
@@ -409,3 +761,5 @@ write_csv(
 )
 write_csv(density_review_flags, "../output/commercial_density_review_flags.csv")
 write_csv(selected_vs_latest_audit, "../output/commercial_selected_vs_latest_audit.csv")
+write_csv(unit_definition_audit, "../output/commercial_unit_definition_audit.csv")
+write_csv(commercial_questionable_apartment_audit, "../output/commercial_questionable_apartment_audit.csv")

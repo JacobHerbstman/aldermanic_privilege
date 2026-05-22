@@ -205,6 +205,8 @@ Higher stringency predicts fewer high-discretion permits and more evidence of re
 
 Appendix Figure~\ref{fig:aldermanic_strictness_scores} shows the distribution of the final stringency scores, and Figure~\ref{fig:alderman_strictness_map} maps them across the city.
 The scores vary in wealthy and poor neighborhoods, on the North Side and South Side, which helps rule out the idea that they are simply proxying for location or local demand conditions.
+The score also appears specific to discretionary development friction rather than general permitting slowness.
+Appendix Table~\ref{tab:low_discretion_placebo} shows that the main stringency index does not predict residualized processing times for low-discretion permits, and Appendix Table~\ref{tab:low_discretion_density_placebo} shows that a placebo score built from low-discretion permits does not predict density outcomes at ward boundaries.
 
 \begin{figure}[htbp]
     \centering
@@ -241,8 +243,8 @@ The raw data are scrape-level rows, so the same listing can appear many times in
 I clean addresses, coordinates, rent, bedrooms, bathrooms, square footage, and building type, then build property and floorplan proxies from normalized address, rounded coordinates, beds, baths, square feet, and building type.
 The main rental panel is one observation per floorplan proxy per month, with rent equal to the median of the daily median asking rent observed during that month.
 Before estimating price regressions, I deflate listed rents to 2022 dollars using the monthly Chicago CPI-U all-items series.
-
-Appendix~\ref{app:data_sources} gives more detail on the cleaning rules and diagnostics.
+As validation, Appendix~\ref{tab:rental_data_validation_growth} compares the cleaned listing panel to Zillow’s Chicago Observed Rent Index and finds broadly similar real citywide rent levels over the sample period,
+and Appendix~\ref{app:data_sources} gives additional detail on the data cleaning process.
 
 \subsection{Home Sales}
 
