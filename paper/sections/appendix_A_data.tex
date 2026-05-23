@@ -55,11 +55,14 @@ Blocks are classified as treated if they were redistricted from one ward to anot
 In the 2015 cohort, I compare ward assignments under the pre-2015 map (2014 boundaries) to post-2015 boundaries.
 Census blocks are assigned to wards by largest-area overlap after projecting blocks and wards to EPSG:3435.
 
-\paragraph{Predetermined Strictness.}
-Treatment intensity is measured using the difference between the destination and origin aldermen's baseline strictness scores.
+\paragraph{Predetermined Stringency.}
+Treatment intensity is measured using the difference between the destination and origin aldermen's baseline stringency scores.
 In the 2015-cohort design, origin and destination aldermen are assigned using the 2014 pre-redistricting ward-to-alderman mapping.
-The change in strictness for block $i$ is $\Delta\text{Strictness}_i = \text{Strictness}_{\text{dest}} - \text{Strictness}_{\text{origin}}$.
-Binary specifications label blocks as ``moved to stricter'' if $\Delta\text{Strictness}_i > 0$ and ``moved to more lenient'' if $\Delta\text{Strictness}_i < 0$.
+The change in stringency for block $i$ is
+\[
+\Delta\text{Stringency}_i = \text{Stringency}_{\text{dest}} - \text{Stringency}_{\text{origin}}.
+\]
+Binary specifications label blocks as ``moved to more stringent'' if $\Delta\text{Stringency}_i > 0$ and ``moved to more lenient'' if $\Delta\text{Stringency}_i < 0$.
 
 \paragraph{Contaminated Control Exclusion.}
 Control blocks may experience treatment through electoral turnover: the alderman changes through an election rather than redistricting.
@@ -117,7 +120,7 @@ Sales are assigned to wards based on the ward boundaries in effect at the exact 
 For the paper's sample window, sales before May 18, 2015 use pre-2015 boundaries and sales on or after May 18, 2015 use the 2015 ward boundaries.
 
 \paragraph{Distance to Ward Boundary.}
-Distance calculations follow the same procedure as for new construction (Section~\ref{subsec:new_construction_sample}), using the Illinois East State Plane coordinate system (EPSG:3435) and computing signed distance based on relative alderman strictness.
+Distance calculations follow the same procedure as for new construction (Section~\ref{subsec:new_construction_sample}), using the Illinois East State Plane coordinate system (EPSG:3435) and computing signed distance based on relative aldermanic stringency.
 
 \subsection{RentHub Listings: Sample Construction}
 \label{subsec:renthub_sample}

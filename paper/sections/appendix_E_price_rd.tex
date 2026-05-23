@@ -6,15 +6,17 @@ Rent and sale-price outcomes are deflated to 2022 dollars using the monthly Chic
 The price specifications use external amenity controls: distance to the nearest school, Chicago Park District park-boundary polygon, major street, and Lake Michigan.
 The rental specifications also control for distance to the nearest CTA stop open by the listing month.
 
-\subsection{Rental Amenity Balance}
+\subsection{Paired Balance in the Rental Sample}
 
-Table~\ref{tab:rental_rd_amenity_balance} checks balance on the external amenity controls using the same stringency-index variation as Panel A of Table~\ref{tab:price_rd_controls}.
+Table~\ref{tab:rental_rd_paired_amenity_balance} compares listed-rent observations on the less and more stringent sides of the same ward-boundary segments.
+The table averages each amenity distance within a segment side and reports the paired more-stringent-minus-less-stringent difference.
+Park and major-road distances are marginally different across sides, but the gaps are about 20 feet and 16 feet, respectively, with normalized differences below 0.06 standard deviations.
 
 \begin{table}[H]
-    \caption{Listed-Rent Stringency Index: External Amenity Balance}
-    \label{tab:rental_rd_amenity_balance}
+    \caption{Paired Balance: Listed-Rent External Amenities}
+    \label{tab:rental_rd_paired_amenity_balance}
 
-    \input{../tasks/rental_rd_characteristics/output/rental_rd_external_amenity_balance_bw500.tex}
+    \input{../tasks/rental_rd_characteristics/output/rental_rd_paired_external_amenity_balance_bw500.tex}
 \end{table}
 
 \subsection{Rental Coordinate-Robustness Checks}

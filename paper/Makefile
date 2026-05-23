@@ -5,8 +5,8 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex \
 	../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
 	../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf \
-	../tasks/density_amenity_balance/output/density_amenity_balance_500ft_all.tex \
-	../tasks/density_amenity_balance/output/density_amenity_balance_500ft_multifamily.tex \
+	../tasks/density_amenity_balance/output/density_paired_balance_500ft_all.tex \
+	../tasks/density_amenity_balance/output/density_paired_balance_500ft_multifamily.tex \
 	../tasks/density_corner_clean_table/output/fe_table_500ft_all_corner_clean_compare.tex \
 	../tasks/density_corner_clean_table/output/fe_table_500ft_multifamily_corner_clean_compare.tex \
 	../tasks/event_study_treatment_maps/output/treatment_control_map_2015_1000ft.pdf \
@@ -45,7 +45,7 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/rental_data_validation/output/rental_data_validation_growth.pdf \
 	../tasks/rental_data_validation/output/rental_data_validation_growth.tex \
 	../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls.pdf \
-	../tasks/rental_rd_characteristics/output/rental_rd_external_amenity_balance_bw500.tex \
+	../tasks/rental_rd_characteristics/output/rental_rd_paired_external_amenity_balance_bw500.tex \
 	../tasks/rental_rd_characteristics/output/rental_rd_rent_attenuation_clean_location_bw500.tex \
 	../tasks/price_rd_tables/output/price_rd_controls_panels_bw500.tex \
 	../tasks/price_rd_stress_tests/output/rent_placebo_rd_main_style.pdf \

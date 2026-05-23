@@ -5,14 +5,6 @@ library(fixest)
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_amenity_balance/code")
-# parcel_geometry_input <- "../input/parcels_with_geometry.gpkg"
-# parcel_scores_input <- "../input/parcels_with_ward_distances.csv"
-# schools_input <- "../input/schools_2015.gpkg"
-# parks_input <- "../input/parks.gpkg"
-# major_streets_input <- "../input/major_streets.gpkg"
-# water_input <- "../input/gis_osm_water_a_free_1.shp"
-# output_csv <- "../output/density_amenity_balance_100m_all.csv"
-# output_tex <- "../output/density_amenity_balance_100m_all.tex"
 # bandwidth_m <- 100
 # sample_filter <- "all"
 # bandwidth_label <- "100m"
@@ -20,43 +12,25 @@ library(fixest)
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
   args <- c(
-    parcel_geometry_input,
-    parcel_scores_input,
-    schools_input,
-    parks_input,
-    major_streets_input,
-    water_input,
-    output_csv,
-    output_tex,
     bandwidth_m,
     sample_filter,
     bandwidth_label
   )
 }
 
-if (length(args) != 11) {
+if (length(args) != 3) {
   stop(
     paste(
-      "FATAL: Script requires 11 args:",
-      "<parcel_geometry_input> <parcel_scores_input> <schools_input> <parks_input>",
-      "<major_streets_input> <water_input> <output_csv> <output_tex>",
+      "FATAL: Script requires 3 args:",
       "<bandwidth_m> <sample_filter> <bandwidth_label>"
     ),
     call. = FALSE
   )
 }
 
-parcel_geometry_input <- args[1]
-parcel_scores_input <- args[2]
-schools_input <- args[3]
-parks_input <- args[4]
-major_streets_input <- args[5]
-water_input <- args[6]
-output_csv <- args[7]
-output_tex <- args[8]
-bandwidth_m <- as.numeric(args[9])
-sample_filter <- args[10]
-bandwidth_label <- args[11]
+bandwidth_m <- as.numeric(args[1])
+sample_filter <- args[2]
+bandwidth_label <- args[3]
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be a positive number.", call. = FALSE)
@@ -64,6 +38,7 @@ if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample_filter must be one of: all, multifamily.", call. = FALSE)
 }
+min_cluster_ward_pairs <- 20L
 
 distance_display <- distance_display_config()
 covariate_catalog <- tibble(
@@ -82,11 +57,35 @@ covariate_catalog <- tibble(
     sprintf("Distance to Park (%s)", distance_display$unit),
     sprintf("Distance to Major Road (%s)", distance_display$unit),
     sprintf("Distance to Lake Michigan (%s)", distance_display$unit)
+  ),
+  balance_digits = c(
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
   )
+)
+paired_covariate_catalog <- bind_rows(
+  tibble(
+    covariate = "is_planned_development",
+    covariate_label = "PD share",
+    balance_digits = 3
+  ),
+  covariate_catalog
 )
 
 fmt_num <- function(x, digits = 3) {
   ifelse(is.finite(x), formatC(x, digits = digits, format = "f"), "")
+}
+
+fmt_table_num <- function(x, digits = 2) {
+  ifelse(is.finite(x), formatC(x, digits = digits, format = "f", big.mark = ","), "")
+}
+
+fmt_int <- function(x) {
+  ifelse(is.finite(x), formatC(round(x), digits = 0, format = "d", big.mark = ","), "")
 }
 
 stars <- function(p) {
@@ -100,7 +99,7 @@ stars <- function(p) {
 }
 
 message("Loading parcel geometries...")
-parcel_geometry <- st_read(parcel_geometry_input, quiet = TRUE) %>%
+parcel_geometry <- st_read("../input/parcels_with_geometry.gpkg", quiet = TRUE) %>%
   mutate(pin = as.character(pin)) %>%
   st_transform(3435)
 
@@ -117,10 +116,10 @@ if (anyDuplicated(coords_tbl$pin) > 0) {
 }
 
 coords_sf <- st_as_sf(coords_tbl, coords = c("x", "y"), crs = 3435, remove = FALSE)
-schools <- read_amenity_layer(schools_input)
-parks <- read_amenity_layer(parks_input)
-major_streets <- read_amenity_layer(major_streets_input)
-lake <- lake_michigan_geom(water_input)
+schools <- read_amenity_layer("../input/schools_2015.gpkg")
+parks <- read_amenity_layer("../input/parks.gpkg")
+major_streets <- read_amenity_layer("../input/major_streets.gpkg")
+lake <- lake_michigan_geom("../input/gis_osm_water_a_free_1.shp")
 cbd <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>%
   st_transform(3435)
 
@@ -150,7 +149,7 @@ if (any(!is.finite(as.matrix(coords_tbl[amenity_distance_cols])))) {
 
 message("Loading scored parcel sample...")
 analysis_sample <- read_csv(
-  parcel_scores_input,
+  "../input/parcels_with_ward_distances.csv",
   show_col_types = FALSE,
   col_types = cols(pin = col_character(), segment_id = col_character(), .default = col_guess())
 ) %>%
@@ -159,8 +158,14 @@ analysis_sample <- read_csv(
     pin = as.character(pin),
     construction_year = suppressWarnings(as.integer(construction_year)),
     zone_group = zone_group_from_code(zone_code),
+    is_planned_development = as.integer(zone_group == "Planned Development"),
     lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
-    strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0)
+    strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0),
+    score_side = case_when(
+      signed_distance_m < 0 ~ "lenient",
+      signed_distance_m > 0 ~ "strict",
+      TRUE ~ NA_character_
+    )
   ) %>%
   left_join(coords_tbl, by = "pin", relationship = "many-to-one")
 
@@ -219,7 +224,88 @@ results <- bind_rows(lapply(covariate_catalog$covariate, function(covariate_name
   )
 }))
 
-write_csv(results, output_csv)
+write_csv(
+  results,
+  sprintf("../output/density_amenity_balance_%s_%s.csv", bandwidth_label, sample_filter)
+)
+
+paired_test <- function(paired_df) {
+  if (nrow(paired_df) < 2) {
+    return(tibble(se = NA_real_, p_value = NA_real_))
+  }
+  difference_sd <- sd(paired_df$difference, na.rm = TRUE)
+  if (!is.finite(difference_sd) || difference_sd == 0) {
+    return(tibble(
+      se = 0,
+      p_value = ifelse(mean(paired_df$difference, na.rm = TRUE) == 0, 1, 0)
+    ))
+  }
+  if (n_distinct(paired_df$ward_pair) >= min_cluster_ward_pairs) {
+    model <- feols(difference ~ 1, data = paired_df, cluster = ~ward_pair, warn = FALSE)
+    return(tibble(
+      se = unname(se(model)[["(Intercept)"]]),
+      p_value = unname(pvalue(model)[["(Intercept)"]])
+    ))
+  }
+  se_i <- difference_sd / sqrt(nrow(paired_df))
+  tibble(
+    se = se_i,
+    p_value = 2 * pt(abs(mean(paired_df$difference, na.rm = TRUE) / se_i), df = nrow(paired_df) - 1, lower.tail = FALSE)
+  )
+}
+
+paired_balance_rows <- bind_rows(lapply(seq_len(nrow(paired_covariate_catalog)), function(i) {
+  covariate_name <- paired_covariate_catalog$covariate[[i]]
+  side_means <- analysis_sample %>%
+    mutate(balance_value = as.numeric(.data[[covariate_name]])) %>%
+    filter(is.finite(balance_value), !is.na(score_side)) %>%
+    group_by(ward_pair, segment_id, score_side) %>%
+    summarise(
+      side_mean = mean(balance_value),
+      side_n = n(),
+      .groups = "drop"
+    ) %>%
+    tidyr::pivot_wider(
+      names_from = score_side,
+      values_from = c(side_mean, side_n)
+    )
+
+  if (!all(c("side_mean_lenient", "side_mean_strict") %in% names(side_means))) {
+    stop(sprintf("Could not build paired side means for %s.", covariate_name), call. = FALSE)
+  }
+
+  paired <- side_means %>%
+    filter(is.finite(side_mean_lenient), is.finite(side_mean_strict)) %>%
+    mutate(difference = side_mean_strict - side_mean_lenient)
+
+  if (nrow(paired) == 0) {
+    stop(sprintf("No paired segments remain for %s.", covariate_name), call. = FALSE)
+  }
+
+  pooled_sd <- sqrt((var(paired$side_mean_lenient) + var(paired$side_mean_strict)) / 2)
+  paired_test_result <- paired_test(paired)
+
+  tibble(
+    covariate = covariate_name,
+    covariate_label = paired_covariate_catalog$covariate_label[[i]],
+    lenient_mean = mean(paired$side_mean_lenient),
+    strict_mean = mean(paired$side_mean_strict),
+    difference = mean(paired$difference),
+    se = paired_test_result$se[[1]],
+    p_value = paired_test_result$p_value[[1]],
+    normalized_difference = ifelse(is.finite(pooled_sd) && pooled_sd > 0, mean(paired$difference) / pooled_sd, NA_real_),
+    n_segments = nrow(paired),
+    n_ward_pairs = n_distinct(paired$ward_pair),
+    n_lenient_obs = sum(paired$side_n_lenient),
+    n_strict_obs = sum(paired$side_n_strict),
+    balance_digits = paired_covariate_catalog$balance_digits[[i]]
+  )
+}))
+
+write_csv(
+  paired_balance_rows,
+  sprintf("../output/density_paired_balance_%s_%s.csv", bandwidth_label, sample_filter)
+)
 
 amenity_rows <- results %>% filter(covariate != "floor_area_ratio")
 amenity_n <- amenity_rows %>% pull(n_obs) %>% unique()
@@ -283,4 +369,60 @@ tex_lines <- c(
   "\\endgroup"
 )
 
-writeLines(tex_lines, output_tex)
+writeLines(
+  tex_lines,
+  sprintf("../output/density_amenity_balance_%s_%s.tex", bandwidth_label, sample_filter)
+)
+
+paired_tex_lines <- c(
+  "\\begingroup",
+  "\\centering",
+  "\\small",
+  "\\resizebox{\\linewidth}{!}{%",
+  "\\begin{tabular}{lrrrrrrrr}",
+  "\\toprule",
+  "Covariate & Less stringent mean & More stringent mean & Diff. & SE & $p$-value & Norm. diff. & Segments & Ward pairs \\\\",
+  "\\midrule"
+)
+
+for (i in seq_len(nrow(paired_balance_rows))) {
+  row_i <- paired_balance_rows[i, ]
+  digits_i <- row_i$balance_digits[[1]]
+  paired_tex_lines <- c(
+    paired_tex_lines,
+    sprintf(
+      "%s & %s & %s & %s & %s & %s & %s & %s & %s \\\\",
+      row_i$covariate_label[[1]],
+      fmt_table_num(row_i$lenient_mean[[1]], digits_i),
+      fmt_table_num(row_i$strict_mean[[1]], digits_i),
+      fmt_table_num(row_i$difference[[1]], digits_i),
+      fmt_table_num(row_i$se[[1]], digits_i),
+      fmt_table_num(row_i$p_value[[1]], 3),
+      fmt_table_num(row_i$normalized_difference[[1]], 3),
+      fmt_int(row_i$n_segments[[1]]),
+      fmt_int(row_i$n_ward_pairs[[1]])
+    )
+  )
+}
+
+paired_tex_lines <- c(
+  paired_tex_lines,
+  "\\bottomrule",
+  "\\end{tabular}",
+  "}%",
+  paste0(
+    "\\par\\vspace{0.5em}\\parbox{0.94\\linewidth}{\\footnotesize Notes: ",
+    bandwidth_label,
+    " ",
+    sample_label,
+    " density sample, restricted to 2006--2022 new construction. Rows first collapse parcels to segment-by-side means, then compare more-stringent-side and less-stringent-side means within the same boundary segment. Difference is more stringent minus less stringent. Standard errors are clustered by ward pair across segment-level paired differences when at least ",
+    min_cluster_ward_pairs,
+    " ward pairs are available. Normalized differences divide the paired mean difference by the pooled standard deviation of the segment-side means. PD share is the segment-side share of parcels whose zone code is classified as Planned Development. Zoned FAR has fewer paired segments because planned developments do not map to a single zoning FAR value in the scored parcel file.}"
+  ),
+  "\\endgroup"
+)
+
+writeLines(
+  paired_tex_lines,
+  sprintf("../output/density_paired_balance_%s_%s.tex", bandwidth_label, sample_filter)
+)

@@ -33,24 +33,26 @@ The coefficients remain negative after dropping ward-pair-era combinations flagg
     Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
-\subsection{Exact Amenity and Zoned-FAR Balance}
+\subsection{Paired Balance in the Density Samples}
 
-Tables~\ref{tab:density_exact_amenity_balance} and~\ref{tab:density_exact_amenity_balance_multifamily} check whether the 500ft all-construction and multifamily samples are balanced on exact parcel-level distances to nearby amenities and on zoned FAR.
-Each row uses the same fixed-effects design as the main density table, but with the amenity measure or zoned FAR on the left-hand side.
-The coefficients are small and imprecise throughout.
+Tables~\ref{tab:density_paired_balance} and~\ref{tab:density_paired_balance_multifamily} compare parcels on the less and more stringent sides of the same boundary segments in the 500ft all-construction and multifamily density samples.
+Each row first averages parcel characteristics within a segment side, then reports the paired difference between the more and less stringent sides.
+The two sides look similar on planned-development status and zoned FAR.
+A few amenity distances are statistically different: in the all-construction sample, parcels on the more stringent side are about 18 meters closer to parks; in the multifamily sample, parcels on the more stringent side are about 44 meters closer to the CBD.
+These differences are small relative to the cross-segment variation in amenities, with normalized differences no larger than 0.17 standard deviations.
 
 \begin{table}[H]
-    \caption{Exact Amenity and Zoned-FAR Balance: All Construction}
-    \label{tab:density_exact_amenity_balance}
+    \caption{Paired Balance: All-Construction Density Sample}
+    \label{tab:density_paired_balance}
 
-    \input{../tasks/density_amenity_balance/output/density_amenity_balance_500ft_all.tex}
+    \input{../tasks/density_amenity_balance/output/density_paired_balance_500ft_all.tex}
 \end{table}
 
 \begin{table}[H]
-    \caption{Exact Amenity and Zoned-FAR Balance: Multifamily}
-    \label{tab:density_exact_amenity_balance_multifamily}
+    \caption{Paired Balance: Multifamily Density Sample}
+    \label{tab:density_paired_balance_multifamily}
 
-    \input{../tasks/density_amenity_balance/output/density_amenity_balance_500ft_multifamily.tex}
+    \input{../tasks/density_amenity_balance/output/density_paired_balance_500ft_multifamily.tex}
 \end{table}
 
 \subsection{Cross-Border Stringency Gap}
@@ -86,7 +88,7 @@ I treat this as a supporting diagnostic because it asks whether the visual disco
 \figurenotes{Above-median stringency-gap sample, restricted to 2006--2022 new construction.
 Left column: all construction; right column: multifamily.
 Top row: Log(FAR); bottom row: Log(DUPAC).
-The strictness-gap measure is the median absolute difference in aldermanic stringency across the two sides of each ward pair.
+The stringency-gap measure is the median absolute difference in aldermanic stringency across the two sides of each ward pair.
 Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}.}
     \label{fig:rd_gap_split_above}
 \end{figure}
@@ -118,7 +120,7 @@ Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}.}
 \figurenotes{Below-median stringency-gap sample, restricted to 2006--2022 new construction.
 Left column: all construction; right column: multifamily.
 Top row: Log(FAR); bottom row: Log(DUPAC).
-The strictness-gap measure is the median absolute difference in aldermanic stringency across the two sides of each ward pair.
+The stringency-gap measure is the median absolute difference in aldermanic stringency across the two sides of each ward pair.
 Same residualized local-linear display as Figure~\ref{fig:rd_fe_plots}.}
     \label{fig:rd_gap_split_below}
 \end{figure}

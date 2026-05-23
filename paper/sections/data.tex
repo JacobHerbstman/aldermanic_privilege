@@ -164,7 +164,8 @@ The descriptive patterns are consistent with this interpretation.
 High-discretion permits take much longer to process and show more cross-alderman dispersion in mean processing time.
 The average high-discretion permit takes 57.3 days from application to issuance, compared with 26.2 days for lower-discretion permits; the medians are 30 days and 6 days.
 At the permit level, longer processing times for high-discretion permits are associated with \textit{lower} ward-month permit volume, while low-discretion processing times are weakly positively correlated with ward-month permit volume, suggesting that they reflect administrative capacity rather than regulatory friction.
-Figure~\ref{fig:permit_high_low_processing} shows these patterns, and Appendix~\ref{app:permit_summary_stats} reports the corresponding summary statistics and volume correlations.
+Figure~\ref{fig:permit_high_low_processing} shows these patterns.
+Appendix Table~\ref{tab:permit_summary_stats} reports the corresponding summary statistics, and Appendix Table~\ref{tab:permit_volume_correlation} reports the relationship between processing time and ward-month permit volume.
 
 \begin{figure}[htbp]
     \centering
@@ -178,12 +179,12 @@ Processing time is days from application to issuance.}
 \end{figure}
 
 \subsection{Aldermanic Stringency Scores}
-\label{subsec:strictness}
+\label{subsec:stringency}
 
 I construct the stringency score using permit applications through December 2022 by residualizing permit processing times against ward and permit characteristics, then extracting the alderman-specific component.
 The first stage regresses log processing time at the permit level on ward-level demographic controls (median household income, racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
 %
-\begin{equation} \label{eq:strictness_reg1}
+\begin{equation} \label{eq:stringency_reg1}
     \log(\text{Processing Time}_{i}) = \mathbf{X}_i \beta + \gamma_{\text{ym}} + \delta_{\text{pt}} + \zeta_{\text{rt}} + \epsilon_{i}
 \end{equation}
 %
@@ -192,7 +193,7 @@ Table~\ref{tab:stage1_residualization} in the Appendix reports the coefficients 
 
 The second stage aggregates these residuals to the ward-month level and projects the ward-month mean residual onto alderman indicator variables and the same lagged ward-month permit volume control, weighted by the number of permits observed in each ward-month:
 %
-\begin{equation} \label{eq:strictness_reg2}
+\begin{equation} \label{eq:stringency_reg2}
     \bar{\hat{\epsilon}}_{wm} = \mu + \alpha_{a(w,m)} + \lambda \text{Volume}_{w,m-1} + \eta_{wm}
 \end{equation}
 %
@@ -200,10 +201,11 @@ Here $a(w,m)$ denotes the alderman serving ward $w$ in month $m$.
 The raw alderman fixed effects $\hat{\alpha}_a$ can be noisy for aldermen with few permits.
 I therefore apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to pull imprecise estimates toward the grand mean, then standardize the final scores to have mean zero and unit standard deviation.
 
-Appendix~\ref{app:strictness_validation} reports additional validation.
-Higher stringency predicts fewer high-discretion permits and more evidence of regulatory friction in ward-month data, while the correlation between predecessor and successor aldermen within the same ward is relatively low ($\rho \approx 0.18$), supporting the interpretation that the index captures an alderman-specific component of the development process rather than a fixed ward trait.
+Appendix~\ref{app:stringency_validation} reports two validation checks.
+Appendix Table~\ref{tab:permit_validation} shows that higher stringency predicts fewer high-discretion permits and more evidence of regulatory friction in ward-month data.
+Appendix Figure~\ref{fig:predecessor_successor_stringency} shows that the correlation between predecessor and successor aldermen within the same ward is relatively low ($\rho \approx 0.18$), supporting the interpretation that the index captures an alderman-specific component of the development process rather than a fixed ward trait.
 
-Appendix Figure~\ref{fig:aldermanic_strictness_scores} shows the distribution of the final stringency scores, and Figure~\ref{fig:alderman_strictness_map} maps them across the city.
+Appendix Figure~\ref{fig:aldermanic_stringency_scores} shows the distribution of the final stringency scores, and Figure~\ref{fig:alderman_stringency_map} maps them across the city.
 The scores vary in wealthy and poor neighborhoods, on the North Side and South Side, which helps rule out the idea that they are simply proxying for location or local demand conditions.
 The score also appears specific to discretionary development friction rather than general permitting slowness.
 Appendix Table~\ref{tab:low_discretion_placebo} shows that the main stringency index does not predict residualized processing times for low-discretion permits, and Appendix Table~\ref{tab:low_discretion_density_placebo} shows that a placebo score built from low-discretion permits does not predict density outcomes at ward boundaries.
@@ -214,7 +216,7 @@ Appendix Table~\ref{tab:low_discretion_placebo} shows that the main stringency i
     \caption{Geographic Distribution of Aldermanic Stringency}
 \figurenotes{Map shows standardized stringency scores by ward, estimated using permit applications through December 2022 and displayed on the January 2022 ward map.
 Darker shades indicate more stringent aldermen.}
-    \label{fig:alderman_strictness_map}
+    \label{fig:alderman_stringency_map}
 \end{figure}
 
 \subsection{New Construction Data}
@@ -243,7 +245,7 @@ The raw data are scrape-level rows, so the same listing can appear many times in
 I clean addresses, coordinates, rent, bedrooms, bathrooms, square footage, and building type, then build property and floorplan proxies from normalized address, rounded coordinates, beds, baths, square feet, and building type.
 The main rental panel is one observation per floorplan proxy per month, with rent equal to the median of the daily median asking rent observed during that month.
 Before estimating price regressions, I deflate listed rents to 2022 dollars using the monthly Chicago CPI-U all-items series.
-As validation, Appendix~\ref{tab:rental_data_validation_growth} compares the cleaned listing panel to Zillow’s Chicago Observed Rent Index and finds broadly similar real citywide rent levels over the sample period,
+As validation, Appendix Table~\ref{tab:rental_data_validation_growth} compares the cleaned listing panel to Zillow’s Chicago Observed Rent Index and finds broadly similar real citywide rent levels over the sample period,
 and Appendix~\ref{app:data_sources} gives additional detail on the data cleaning process.
 
 \subsection{Home Sales}

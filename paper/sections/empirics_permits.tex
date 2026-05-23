@@ -12,7 +12,7 @@ Ward boundaries in Chicago are redrawn following each decennial census to equali
 The 2015 redistricting (based on the 2010 Census) reassigned many census blocks to new aldermen while leaving nearby blocks under the same representation.
 This creates a difference-in-differences comparison between blocks that switched aldermen and nearby blocks that stayed in the same ward.
 The treatment is bidirectional, as some blocks moved to more stringent aldermen and some to more lenient ones.
-In the main specification, treatment enters continuously as the destination alderman's score minus the origin alderman's score, so positive values mean a move to a stricter alderman and negative values mean a move to a more lenient one.
+In the main specification, treatment enters continuously as the destination alderman's score minus the origin alderman's score, so positive values mean a move to a more stringent alderman and negative values mean a move to a more lenient one.
 The identifying assumption is that, absent the change in aldermanic representation, treated and control blocks would have followed parallel trends in permit activity.
 
 Several features of the design support this assumption.
@@ -57,7 +57,7 @@ I estimate the event study using Poisson pseudo-maximum likelihood (PPML), with 
 \end{equation}
 %
 where $Y_{bt}$ is the count of high-discretion permits issued on block $b$ in year $t$, $\alpha_b$ is a block fixed effect, and $\lambda_{gt}$ is a border-pair-by-year fixed effect.
-In the 2015-cohort design, the treatment variable $\Delta\text{Stringency}_b$ is the destination alderman's baseline strictness score minus the origin alderman's baseline strictness score, where origin and destination aldermen are assigned using the 2014 pre-redistricting ward-to-alderman mapping.
+In the 2015-cohort design, the treatment variable $\Delta\text{Stringency}_b$ is the destination alderman's baseline stringency score minus the origin alderman's baseline stringency score, where origin and destination aldermen are assigned using the 2014 pre-redistricting ward-to-alderman mapping.
 
 The block fixed effects absorb all time-invariant characteristics of each block, so identification comes from within-block changes over time: the same physical block before and after its alderman changes.
 The border-pair-by-year fixed effects absorb local shocks that affect all blocks near a given ward boundary in a given year, so the comparison is between blocks near the same boundary that experienced different changes in aldermanic representation.
@@ -138,4 +138,4 @@ Because the specification uses block fixed effects, the design is less exposed t
 
 The permits studied here are also not simply inputs to the stringency index.
 The stringency score is constructed from processing \textit{times} on all high-discretion permits across a ward, while the event study outcome is the \textit{count} of high-discretion permits issued on individual blocks.
-Given that permit processing times and permit counts appear to be uncorrelated at the ward-month level (see Appendix Figure~\ref{tab:permit_volume_correlation}), I am confident this result is not due to a mechanical correlation between the two variables.
+Given that permit processing times and permit counts appear to be uncorrelated at the ward-month level (see Appendix Table~\ref{tab:permit_volume_correlation}), I am confident this result is not due to a mechanical correlation between the two variables.
