@@ -76,26 +76,12 @@ paired_covariate_catalog <- bind_rows(
   covariate_catalog
 )
 
-fmt_num <- function(x, digits = 3) {
-  ifelse(is.finite(x), formatC(x, digits = digits, format = "f"), "")
-}
-
 fmt_table_num <- function(x, digits = 2) {
   ifelse(is.finite(x), formatC(x, digits = digits, format = "f", big.mark = ","), "")
 }
 
 fmt_int <- function(x) {
   ifelse(is.finite(x), formatC(round(x), digits = 0, format = "d", big.mark = ","), "")
-}
-
-stars <- function(p) {
-  case_when(
-    is.na(p) ~ "",
-    p < 0.01 ~ "***",
-    p < 0.05 ~ "**",
-    p < 0.10 ~ "*",
-    TRUE ~ ""
-  )
 }
 
 message("Loading parcel geometries...")
@@ -159,8 +145,6 @@ analysis_sample <- read_csv(
     construction_year = suppressWarnings(as.integer(construction_year)),
     zone_group = zone_group_from_code(zone_code),
     is_planned_development = as.integer(zone_group == "Planned Development"),
-    lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
-    strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0),
     score_side = case_when(
       signed_distance_m < 0 ~ "lenient",
       signed_distance_m > 0 ~ "strict",
@@ -193,41 +177,8 @@ analysis_sample <- analysis_sample %>%
     density_far > 0,
     density_dupac > 0,
     !is.na(strictness_own),
-    !is.na(lenient_dist),
-    !is.na(strict_dist)
+    !is.na(score_side)
   )
-
-results <- bind_rows(lapply(covariate_catalog$covariate, function(covariate_name) {
-  model_df <- analysis_sample %>%
-    filter(is.finite(.data[[covariate_name]])) %>%
-    mutate(
-      outcome_std = (.data[[covariate_name]] - mean(.data[[covariate_name]], na.rm = TRUE)) /
-        sd(.data[[covariate_name]], na.rm = TRUE)
-    )
-
-  model <- feols(
-    outcome_std ~ strictness_own + lenient_dist + strict_dist | zone_group + segment_id + construction_year,
-    data = model_df,
-    cluster = ~ward_pair,
-    warn = FALSE
-  )
-
-  coef_table <- coeftable(model)
-  tibble(
-    covariate = covariate_name,
-    covariate_label = covariate_catalog$covariate_label[covariate_catalog$covariate == covariate_name],
-    estimate = unname(coef_table["strictness_own", "Estimate"]),
-    se = unname(coef_table["strictness_own", "Std. Error"]),
-    p_value = unname(coef_table["strictness_own", "Pr(>|t|)"]),
-    n_obs = nobs(model),
-    n_ward_pairs = n_distinct(model_df$ward_pair)
-  )
-}))
-
-write_csv(
-  results,
-  sprintf("../output/density_amenity_balance_%s_%s.csv", bandwidth_label, sample_filter)
-)
 
 paired_test <- function(paired_df) {
   if (nrow(paired_df) < 2) {
@@ -307,72 +258,7 @@ write_csv(
   sprintf("../output/density_paired_balance_%s_%s.csv", bandwidth_label, sample_filter)
 )
 
-amenity_rows <- results %>% filter(covariate != "floor_area_ratio")
-amenity_n <- amenity_rows %>% pull(n_obs) %>% unique()
-amenity_pairs <- amenity_rows %>% pull(n_ward_pairs) %>% unique()
-zoned_far_n <- results %>%
-  filter(covariate == "floor_area_ratio") %>%
-  pull(n_obs)
 sample_label <- ifelse(sample_filter == "all", "all-construction", "multifamily")
-
-if (length(amenity_n) != 1 || length(amenity_pairs) != 1) {
-  stop("Amenity balance rows do not share a common sample size.", call. = FALSE)
-}
-
-tex_lines <- c(
-  "\\begingroup",
-  "\\centering",
-  "\\begin{tabular}{lccc}",
-  "\\toprule",
-  "Covariate & Coef. on stringency & SE & $p$-value \\\\",
-  "\\midrule"
-)
-
-for (covariate_name in covariate_catalog$covariate) {
-  row_i <- results %>% filter(covariate == covariate_name)
-  tex_lines <- c(
-    tex_lines,
-    sprintf(
-      "%s & %s & %s & %s \\\\",
-      row_i$covariate_label[[1]],
-      paste0(fmt_num(row_i$estimate[[1]]), stars(row_i$p_value[[1]])),
-      paste0("(", fmt_num(row_i$se[[1]]), ")"),
-      fmt_num(row_i$p_value[[1]])
-    )
-  )
-}
-
-tex_lines <- c(
-  tex_lines,
-  "\\midrule",
-  sprintf("N & %s &  &  \\\\", format(amenity_n[[1]], big.mark = ",")),
-  sprintf("Ward pairs & %s &  &  \\\\", format(amenity_pairs[[1]], big.mark = ",")),
-  "\\bottomrule",
-  "\\end{tabular}",
-  paste0(
-    "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: ",
-    bandwidth_label,
-    " ",
-    sample_label,
-    " density sample, restricted to 2006--2022 new construction.",
-    " Each row standardizes the exact parcel covariate within the estimation sample and regresses it on the standardized",
-    " alderman stringency score, side-specific distance slopes, and the same zone-group, segment, and construction-year fixed effects",
-    " used in the main border-pair density specification. The exact distance rows use the full ",
-    format(amenity_n[[1]], big.mark = ","),
-    "-parcel, ",
-    format(amenity_pairs[[1]], big.mark = ","),
-    "-ward-pair sample.",
-    " Zoned FAR is available for ",
-    format(zoned_far_n[[1]], big.mark = ","),
-    " parcels because planned developments (PDs) do not map to a single zoning FAR value in the scored parcel file.}"
-  ),
-  "\\endgroup"
-)
-
-writeLines(
-  tex_lines,
-  sprintf("../output/density_amenity_balance_%s_%s.tex", bandwidth_label, sample_filter)
-)
 
 paired_tex_lines <- c(
   "\\begingroup",
