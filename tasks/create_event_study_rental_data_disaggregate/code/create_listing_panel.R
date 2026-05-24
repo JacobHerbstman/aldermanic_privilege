@@ -13,7 +13,7 @@ source("../../_lib/canonical_geometry_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_rental_data_disaggregate/code")
-# segment_buffer_m <- 250
+# segment_buffer_m <- 304.8
 # panel_max_distance_m <- 800
 
 cli_args <- commandArgs(trailingOnly = TRUE)
