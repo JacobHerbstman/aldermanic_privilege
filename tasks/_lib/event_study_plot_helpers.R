@@ -54,11 +54,23 @@ build_event_study_support_table <- function(df, event_var, time_fe_var, fe_group
       n_fe_groups = n_distinct(.data[[fe_group_var]]),
       n_blocks = if (!is.null(block_var) && block_var %in% names(support_base)) n_distinct(.data[[block_var]]) else NA_integer_,
       n_segments = if (!is.null(segment_var) && segment_var %in% names(support_base)) n_distinct(.data[[segment_var]][!is.na(.data[[segment_var]])]) else NA_integer_,
-      total_outcome = if (!is.null(outcome_var) && outcome_var %in% names(support_base)) sum(.data[[outcome_var]], na.rm = TRUE) else NA_real_,
-      n_positive_rows = if (!is.null(outcome_var) && outcome_var %in% names(support_base)) sum(.data[[outcome_var]] > 0, na.rm = TRUE) else NA_integer_,
       n_pins = if (!is.null(pin_var) && pin_var %in% names(support_base)) n_distinct(.data[[pin_var]]) else NA_integer_,
       .groups = "drop"
     )
+  if (!is.null(outcome_var) && outcome_var %in% names(support_base)) {
+    event_support <- event_support %>%
+      left_join(
+        support_base %>%
+          group_by(event_time = .data[[event_var]]) %>%
+          summarise(
+            total_outcome = sum(.data[[outcome_var]], na.rm = TRUE),
+            n_positive_rows = sum(.data[[outcome_var]] > 0, na.rm = TRUE),
+            .groups = "drop"
+          ),
+        by = "event_time",
+        relationship = "one-to-one"
+      )
+  }
 
   cell_event_support <- cell_support %>%
     group_by(event_time) %>%

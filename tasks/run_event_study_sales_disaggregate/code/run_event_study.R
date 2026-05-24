@@ -49,7 +49,8 @@ BANDWIDTH_LABEL <- bandwidth_label
 POST_WINDOW <- post_window
 GEO_FE_LEVEL <- geo_fe_level
 CLUSTER_LEVEL <- cluster_level
-WRITE_SIDECARS <- tolower(Sys.getenv("WRITE_SIDECARS", "1")) %in% c("1", "true", "yes")
+WRITE_SIDECARS <- tolower(Sys.getenv("WRITE_SIDECARS", "0")) %in% c("1", "true", "yes")
+SIDECAR_OUTPUT_DIR <- Sys.getenv("SIDECAR_OUTPUT_DIR", "../output")
 min_segment_length_raw <- Sys.getenv("MIN_SEGMENT_LENGTH_FT", "")
 MIN_SEGMENT_LENGTH_FT <- if (nzchar(min_segment_length_raw)) suppressWarnings(as.numeric(min_segment_length_raw)) else NA_real_
 if (!is.na(MIN_SEGMENT_LENGTH_FT) && (!is.finite(MIN_SEGMENT_LENGTH_FT) || MIN_SEGMENT_LENGTH_FT < 0)) {
@@ -173,58 +174,6 @@ message(sprintf(
   if (is.finite(MIN_SEGMENT_LENGTH_FT)) sprintf("%.1f ft", MIN_SEGMENT_LENGTH_FT) else "none"
 ))
 message(sprintf("Write sidecars: %s", WRITE_SIDECARS))
-
-make_support_table <- function(df, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period) {
-  support_base <- df %>%
-    filter(.data[[event_var]] >= min_period, .data[[event_var]] <= max_period)
-
-  cell_support <- support_base %>%
-    group_by(
-      event_time = .data[[event_var]],
-      fe_group = .data[[fe_group_var]],
-      calendar_time = .data[[time_fe_var]]
-    ) %>%
-    summarise(
-      n_treated = sum(treat == 1, na.rm = TRUE),
-      n_control = sum(treat == 0, na.rm = TRUE),
-      n_sides = n_distinct(.data[[fe_side_var]]),
-      .groups = "drop"
-    )
-
-  event_support <- support_base %>%
-    group_by(event_time = .data[[event_var]]) %>%
-    summarise(
-      n_obs = n(),
-      n_treated = sum(treat == 1, na.rm = TRUE),
-      n_control = sum(treat == 0, na.rm = TRUE),
-      contributing_cohorts = if ("cohort" %in% names(support_base)) paste(sort(unique(cohort)), collapse = "|") else PANEL_MODE,
-      n_fe_groups = n_distinct(.data[[fe_group_var]]),
-      n_blocks = n_distinct(block_id),
-      n_segments = if (segment_var %in% names(support_base)) n_distinct(.data[[segment_var]][!is.na(.data[[segment_var]])]) else NA_integer_,
-      n_pins = n_distinct(pin),
-      .groups = "drop"
-    )
-
-  cell_event_support <- cell_support %>%
-    group_by(event_time) %>%
-    summarise(
-      n_fe_group_time_cells = n(),
-      n_identifying_fe_group_time_cells = sum(n_treated > 0 & n_control > 0 & n_sides == 2),
-      n_identifying_fe_groups = n_distinct(fe_group[n_treated > 0 & n_control > 0 & n_sides == 2]),
-      .groups = "drop"
-    )
-
-  event_support %>%
-    left_join(cell_event_support, by = "event_time", relationship = "one-to-one") %>%
-    mutate(
-      n_fe_group_time_cells = replace_na(n_fe_group_time_cells, 0L),
-      n_identifying_fe_group_time_cells = replace_na(n_identifying_fe_group_time_cells, 0L),
-      n_identifying_fe_groups = replace_na(n_identifying_fe_groups, 0L),
-      has_treated_and_control = n_treated > 0 & n_control > 0,
-      has_identifying_support = n_identifying_fe_group_time_cells > 0
-    ) %>%
-    arrange(event_time)
-}
 
 
 message("\nLoading transaction panel...")
@@ -437,7 +386,20 @@ if (GEO_FE_LEVEL == "segment") {
 }
 
 analysis_n <- nrow(data)
-support_by_event_time <- make_support_table(data, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period)
+support_by_event_time <- build_event_study_support_table(
+  data,
+  event_var = event_var,
+  time_fe_var = time_fe_var,
+  fe_group_var = fe_group_var,
+  min_period = min_period,
+  max_period = max_period,
+  support_mode = "two_sided_cells",
+  cohort_label = PANEL_MODE,
+  side_var = fe_side_var,
+  block_var = "block_id",
+  segment_var = segment_var,
+  pin_var = "pin"
+)
 
 control_formula <- if (CONTROL_MODE == "hedonic") {
   "+ log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage"
@@ -506,15 +468,16 @@ if (TREATMENT_TYPE == "continuous") {
     max_period,
     "All sales",
     "multiply100"
-  ) %>%
+  )
+  if (is.null(plot_data) || nrow(plot_data) == 0) {
+    stop("No supported coefficients were available for the requested sales specification.", call. = FALSE)
+  }
+  plot_data <- plot_data %>%
     mutate(
       estimate_pct = estimate_display,
       ci_low_pct = ci_low_display,
       ci_high_pct = ci_high_display
     )
-  if (is.null(plot_data) || nrow(plot_data) == 0) {
-    stop("No supported coefficients were available for the requested sales specification.", call. = FALSE)
-  }
 
   coefficients <- plot_data %>%
     select(group, event_time, estimate, std_error, ci_low, ci_high, estimate_display, ci_low_display, ci_high_display,
@@ -538,10 +501,10 @@ if (TREATMENT_TYPE == "continuous") {
     bg = "white"
   )
   if (WRITE_SIDECARS) {
-    write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
-    write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
-    write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
-    write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
+    write_csv(coefficients, file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_coefficients_%s.csv", suffix)))
+    write_csv(support_by_event_time, file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_support_%s.csv", suffix)))
+    write_csv(pretrend, file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_pretrend_%s.csv", suffix)))
+    write_csv(metadata, file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_metadata_%s.csv", suffix)))
   }
 } else {
   if (TREATMENT_TYPE == "binary_direction") {
@@ -549,8 +512,34 @@ if (TREATMENT_TYPE == "continuous") {
     data_lenient <- data %>% filter(treatment_stricter_binary == 0)
     stricter_treatment_var <- "treatment_stricter_binary"
     lenient_treatment_var <- "treatment_lenient_binary"
-    support_stricter <- make_support_table(data_stricter, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period)
-    support_lenient <- make_support_table(data_lenient, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period)
+    support_stricter <- build_event_study_support_table(
+      data_stricter,
+      event_var = event_var,
+      time_fe_var = time_fe_var,
+      fe_group_var = fe_group_var,
+      min_period = min_period,
+      max_period = max_period,
+      support_mode = "two_sided_cells",
+      cohort_label = PANEL_MODE,
+      side_var = fe_side_var,
+      block_var = "block_id",
+      segment_var = segment_var,
+      pin_var = "pin"
+    )
+    support_lenient <- build_event_study_support_table(
+      data_lenient,
+      event_var = event_var,
+      time_fe_var = time_fe_var,
+      fe_group_var = fe_group_var,
+      min_period = min_period,
+      max_period = max_period,
+      support_mode = "two_sided_cells",
+      cohort_label = PANEL_MODE,
+      side_var = fe_side_var,
+      block_var = "block_id",
+      segment_var = segment_var,
+      pin_var = "pin"
+    )
   } else {
     data_stricter <- data
     data_lenient <- data
@@ -633,16 +622,16 @@ if (TREATMENT_TYPE == "continuous") {
   ggsave(sprintf("../output/event_study_%s.pdf", suffix), directional_plots$facet, width = 7, height = 6, bg = "white")
   ggsave(sprintf("../output/event_study_combined_%s.pdf", suffix), directional_plots$combined, width = 7, height = 4.5, bg = "white")
   if (WRITE_SIDECARS) {
-    write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
+    write_csv(coefficients, file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_coefficients_%s.csv", suffix)))
     write_csv(
       bind_rows(
         support_stricter %>% mutate(group = "Moved to Stricter"),
         support_lenient %>% mutate(group = "Moved to More Lenient")
       ),
-      sprintf("../output/event_study_support_%s.csv", suffix)
+      file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_support_%s.csv", suffix))
     )
-    write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
-    write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
+    write_csv(pretrend, file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_pretrend_%s.csv", suffix)))
+    write_csv(metadata, file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_metadata_%s.csv", suffix)))
   }
 }
 

@@ -46,6 +46,8 @@ FE_TYPE <- fe_type
 POST_WINDOW <- post_window
 GEO_FE_LEVEL <- geo_fe_level
 CLUSTER_LEVEL <- cluster_level
+WRITE_SIDECARS <- tolower(Sys.getenv("WRITE_SIDECARS", "0")) %in% c("1", "true", "yes")
+SIDECAR_OUTPUT_DIR <- Sys.getenv("SIDECAR_OUTPUT_DIR", "../output")
 
 valid_panel_modes <- c("stacked_implementation", "cohort_2015", "cohort_2023")
 if (!PANEL_MODE %in% valid_panel_modes) {
@@ -135,247 +137,7 @@ message(sprintf("FE type: %s", FE_TYPE))
 message(sprintf("Post window: %s", POST_WINDOW))
 message(sprintf("Geo FE level: %s", GEO_FE_LEVEL))
 message(sprintf("Cluster level: %s", CLUSTER_LEVEL))
-
-make_support_table <- function(df, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period) {
-  support_base <- df %>%
-    filter(.data[[event_var]] >= min_period, .data[[event_var]] <= max_period)
-
-  cell_support <- support_base %>%
-    group_by(
-      event_time = .data[[event_var]],
-      fe_group = .data[[fe_group_var]],
-      calendar_time = .data[[time_fe_var]]
-    ) %>%
-    summarise(
-      n_treated = sum(treat == 1, na.rm = TRUE),
-      n_control = sum(treat == 0, na.rm = TRUE),
-      n_sides = n_distinct(.data[[fe_side_var]]),
-      .groups = "drop"
-    )
-
-  event_support <- support_base %>%
-    group_by(event_time = .data[[event_var]]) %>%
-    summarise(
-      n_obs = n(),
-      n_treated = sum(treat == 1, na.rm = TRUE),
-      n_control = sum(treat == 0, na.rm = TRUE),
-      contributing_cohorts = if ("cohort" %in% names(support_base)) paste(sort(unique(cohort)), collapse = "|") else PANEL_MODE,
-      n_fe_groups = n_distinct(.data[[fe_group_var]]),
-      n_blocks = n_distinct(block_id),
-      n_segments = if (segment_var %in% names(support_base)) n_distinct(.data[[segment_var]][!is.na(.data[[segment_var]])]) else NA_integer_,
-      .groups = "drop"
-    )
-
-  cell_event_support <- cell_support %>%
-    group_by(event_time) %>%
-    summarise(
-      n_fe_group_time_cells = n(),
-      n_identifying_fe_group_time_cells = sum(n_treated > 0 & n_control > 0 & n_sides == 2),
-      n_identifying_fe_groups = n_distinct(fe_group[n_treated > 0 & n_control > 0 & n_sides == 2]),
-      .groups = "drop"
-    )
-
-  event_support %>%
-    left_join(cell_event_support, by = "event_time") %>%
-    mutate(
-      n_fe_group_time_cells = replace_na(n_fe_group_time_cells, 0L),
-      n_identifying_fe_group_time_cells = replace_na(n_identifying_fe_group_time_cells, 0L),
-      n_identifying_fe_groups = replace_na(n_identifying_fe_groups, 0L),
-      has_treated_and_control = n_treated > 0 & n_control > 0,
-      has_identifying_support = n_identifying_fe_group_time_cells > 0
-    ) %>%
-    arrange(event_time)
-}
-
-extract_plot_data <- function(model, support_by_event_time, min_period, max_period, group_label) {
-  iplot_data <- tryCatch(iplot(model, .plot = FALSE)[[1]], error = function(e) NULL)
-  if (is.null(iplot_data) || nrow(iplot_data) == 0) {
-    return(NULL)
-  }
-
-  supported_periods <- support_by_event_time %>%
-    filter(has_identifying_support) %>%
-    pull(event_time)
-
-  iplot_data %>%
-    as_tibble() %>%
-    transmute(
-      event_time = as.integer(x),
-      estimate,
-      ci_low,
-      ci_high,
-      std_error = if_else(is_ref, 0, (ci_high - estimate) / qnorm(0.975)),
-      estimate_name = estimate_names,
-      estimate_name_raw = estimate_names_raw,
-      is_reference = is_ref,
-      group = group_label
-    ) %>%
-    filter(event_time >= min_period, event_time <= max_period) %>%
-    filter(is_reference | event_time %in% supported_periods) %>%
-    left_join(support_by_event_time, by = "event_time") %>%
-    mutate(
-      estimate_pct = estimate * 100,
-      ci_low_pct = ci_low * 100,
-      ci_high_pct = ci_high * 100
-    )
-}
-
-compute_pretrend_test <- function(model, plot_data, group_label) {
-  lead_terms <- plot_data %>%
-    filter(event_time <= -2, !is_reference) %>%
-    pull(estimate_name_raw)
-
-  if (length(lead_terms) == 0) {
-    return(tibble(
-      group = group_label,
-      n_leads = 0L,
-      min_lead = NA_integer_,
-      max_lead = NA_integer_,
-      wald_stat = NA_real_,
-      p_value = NA_real_,
-      df1 = NA_real_,
-      df2 = NA_real_
-    ))
-  }
-
-  joint_test <- tryCatch(wald(model, lead_terms), error = function(e) NULL)
-  tibble(
-    group = group_label,
-    n_leads = length(lead_terms),
-    min_lead = min(plot_data$event_time[plot_data$event_time <= -2 & !plot_data$is_reference]),
-    max_lead = max(plot_data$event_time[plot_data$event_time <= -2 & !plot_data$is_reference]),
-    wald_stat = if (is.null(joint_test)) NA_real_ else joint_test$stat,
-    p_value = if (is.null(joint_test)) NA_real_ else joint_test$p,
-    df1 = if (is.null(joint_test)) NA_real_ else joint_test$df1,
-    df2 = if (is.null(joint_test)) NA_real_ else joint_test$df2
-  )
-}
-
-make_single_series_plot <- function(plot_data) {
-  ggplot(plot_data, aes(x = event_time, y = estimate_pct)) +
-    geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
-    geom_ribbon(aes(ymin = ci_low_pct, ymax = ci_high_pct), fill = solid_event_study_band_fill("#009E73", 0.2), color = NA) +
-    geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_line(color = "#009E73", linewidth = 1) +
-    geom_point(color = "#009E73", size = 2.5) +
-    scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    labs(
-      title = sprintf("Rental event study: %s", panel_title),
-      x = if (FREQUENCY == "yearly") "Years relative to alderman switch" else "Quarters relative to alderman switch",
-      y = "Effect on rents"
-    ) +
-    theme_minimal(base_size = 11) +
-    theme(
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor = element_blank(),
-      panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
-      axis.line = element_line(color = "gray40", linewidth = 0.3),
-      axis.ticks = element_line(color = "gray40", linewidth = 0.3),
-      axis.title = element_text(size = 10, color = "gray20"),
-      axis.text = element_text(size = 9, color = "gray30"),
-      plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
-    )
-}
-
-make_directional_plots <- function(plot_data) {
-  color_values <- c(
-    "Moved to Stricter" = "#c23616",
-    "Moved to More Lenient" = "#7f8fa6"
-  )
-  band_fill_values <- solid_event_study_band_fill(color_values, 0.15)
-
-  facet_plot <- ggplot(plot_data, aes(x = event_time, y = estimate_pct, color = group, fill = group)) +
-    geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
-    geom_ribbon(
-      data = plot_data %>% filter(group == "Moved to Stricter"),
-      aes(x = event_time, ymin = ci_low_pct, ymax = ci_high_pct),
-      fill = band_fill_values["Moved to Stricter"],
-      color = NA,
-      inherit.aes = FALSE,
-      show.legend = FALSE
-    ) +
-    geom_ribbon(
-      data = plot_data %>% filter(group == "Moved to More Lenient"),
-      aes(x = event_time, ymin = ci_low_pct, ymax = ci_high_pct),
-      fill = band_fill_values["Moved to More Lenient"],
-      color = NA,
-      inherit.aes = FALSE,
-      show.legend = FALSE
-    ) +
-    geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_line(linewidth = 1) +
-    geom_point(size = 2.5, shape = 21, stroke = 0.5) +
-    scale_color_manual(values = color_values, name = NULL) +
-    scale_fill_manual(values = color_values, name = NULL) +
-    scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    facet_wrap(~group, ncol = 1) +
-    labs(
-      title = sprintf("Rental event study: %s", panel_title),
-      x = if (FREQUENCY == "yearly") "Years relative to alderman switch" else "Quarters relative to alderman switch",
-      y = "Effect on rents"
-    ) +
-    theme_minimal(base_size = 11) +
-    theme(
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor = element_blank(),
-      panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
-      axis.line = element_line(color = "gray40", linewidth = 0.3),
-      axis.ticks = element_line(color = "gray40", linewidth = 0.3),
-      axis.title = element_text(size = 10, color = "gray20"),
-      axis.text = element_text(size = 9, color = "gray30"),
-      legend.position = "none",
-      strip.text = element_text(face = "bold", size = 10),
-      plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
-    )
-
-  combined_plot <- ggplot(plot_data, aes(x = event_time, y = estimate_pct, color = group, fill = group)) +
-    geom_hline(yintercept = 0, color = "gray40", linewidth = 0.4) +
-    geom_ribbon(
-      data = plot_data %>% filter(group == "Moved to Stricter"),
-      aes(x = event_time, ymin = ci_low_pct, ymax = ci_high_pct),
-      fill = band_fill_values["Moved to Stricter"],
-      color = NA,
-      inherit.aes = FALSE,
-      show.legend = FALSE
-    ) +
-    geom_ribbon(
-      data = plot_data %>% filter(group == "Moved to More Lenient"),
-      aes(x = event_time, ymin = ci_low_pct, ymax = ci_high_pct),
-      fill = band_fill_values["Moved to More Lenient"],
-      color = NA,
-      inherit.aes = FALSE,
-      show.legend = FALSE
-    ) +
-    geom_vline(xintercept = -0.5, linetype = "dashed", color = "gray60", linewidth = 0.3) +
-    geom_line(linewidth = 1) +
-    geom_point(size = 2.5, shape = 21, stroke = 0.5) +
-    scale_color_manual(values = color_values, name = NULL) +
-    scale_fill_manual(values = color_values, name = NULL) +
-    scale_x_continuous(breaks = sort(unique(plot_data$event_time))) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    labs(
-      title = sprintf("Rental event study: %s", panel_title),
-      x = if (FREQUENCY == "yearly") "Years relative to alderman switch" else "Quarters relative to alderman switch",
-      y = "Effect on rents"
-    ) +
-    theme_minimal(base_size = 11) +
-    theme(
-      panel.grid.major.x = element_blank(),
-      panel.grid.minor = element_blank(),
-      panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
-      axis.line = element_line(color = "gray40", linewidth = 0.3),
-      axis.ticks = element_line(color = "gray40", linewidth = 0.3),
-      axis.title = element_text(size = 10, color = "gray20"),
-      axis.text = element_text(size = 9, color = "gray30"),
-      legend.position = "bottom",
-      legend.direction = "horizontal",
-      plot.margin = margin(t = 10, r = 15, b = 10, l = 10)
-    )
-
-  list(facet = facet_plot, combined = combined_plot)
-}
+message(sprintf("Write sidecars: %s", WRITE_SIDECARS))
 
 message("\nLoading listing-level panel data...")
 data <- read_parquet(panel_input) %>%
@@ -517,7 +279,19 @@ if (GEO_FE_LEVEL == "segment") {
 }
 
 analysis_n <- nrow(data)
-support_by_event_time <- make_support_table(data, event_var, time_fe_var, fe_group_var, fe_side_var, segment_var, min_period, max_period)
+support_by_event_time <- build_event_study_support_table(
+  data,
+  event_var = event_var,
+  time_fe_var = time_fe_var,
+  fe_group_var = fe_group_var,
+  min_period = min_period,
+  max_period = max_period,
+  support_mode = "two_sided_cells",
+  cohort_label = PANEL_MODE,
+  side_var = fe_side_var,
+  block_var = "block_id",
+  segment_var = segment_var
+)
 
 hedonic_formula <- if (INCLUDE_CONTROLS) {
   "+ building_type_factor + log_sqft + log_beds + log_baths"
@@ -567,24 +341,51 @@ if (TREATMENT_TYPE == "continuous") {
     weights = ~weight,
     cluster = cluster_formula
   )
-  plot_data <- extract_plot_data(model, support_by_event_time, min_period, max_period, "All listings")
+  plot_data <- build_event_study_plot_data(
+    model,
+    support_by_event_time,
+    min_period,
+    max_period,
+    "All listings",
+    "multiply100"
+  )
   if (is.null(plot_data) || nrow(plot_data) == 0) {
     stop("No supported coefficients were available for the requested rental specification.", call. = FALSE)
   }
-
-  coefficients <- plot_data %>%
-    select(group, event_time, estimate, std_error, ci_low, ci_high, estimate_pct, ci_low_pct, ci_high_pct,
-      estimate_name, estimate_name_raw, is_reference, n_obs, n_treated, n_control, contributing_cohorts,
-      n_fe_groups, n_segments, n_fe_group_time_cells, n_identifying_fe_group_time_cells, n_identifying_fe_groups,
-      has_treated_and_control, has_identifying_support
+  plot_data <- plot_data %>%
+    mutate(
+      estimate_pct = estimate_display,
+      ci_low_pct = ci_low_display,
+      ci_high_pct = ci_high_display
     )
-  pretrend <- compute_pretrend_test(model, plot_data, "All listings")
 
-  ggsave(sprintf("../output/event_study_%s.pdf", suffix), make_single_series_plot(plot_data), width = 7, height = 4.5, bg = "white")
-  write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
-  write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
-  write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
-  write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
+  ggsave(
+    sprintf("../output/event_study_%s.pdf", suffix),
+    make_event_study_single_series_plot(
+      plot_data,
+      plot_title = sprintf("Rental event study: %s", panel_title),
+      x_label = if (FREQUENCY == "yearly") "Years relative to alderman switch" else "Quarters relative to alderman switch",
+      y_label = "Effect on rents",
+      display_suffix = "%"
+    ),
+    width = 7,
+    height = 4.5,
+    bg = "white"
+  )
+  if (WRITE_SIDECARS) {
+    write_csv(
+      plot_data %>%
+        select(group, event_time, estimate, std_error, ci_low, ci_high, estimate_pct, ci_low_pct, ci_high_pct,
+          estimate_name, estimate_name_raw, is_reference, n_obs, n_treated, n_control, contributing_cohorts,
+          n_fe_groups, n_segments, n_fe_group_time_cells, n_identifying_fe_group_time_cells, n_identifying_fe_groups,
+          has_treated_and_control, has_identifying_support
+        ),
+      file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_coefficients_%s.csv", suffix))
+    )
+    write_csv(support_by_event_time, file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_support_%s.csv", suffix)))
+    write_csv(compute_event_study_pretrend(model, plot_data, "All listings"), file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_pretrend_%s.csv", suffix)))
+    write_csv(metadata, file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_metadata_%s.csv", suffix)))
+  }
 } else {
   formula_stricter <- sprintf(
     "log(rent_price) ~ i(%s, treatment_stricter_continuous, ref = -1) %s | %s",
@@ -614,33 +415,50 @@ if (TREATMENT_TYPE == "continuous") {
   )
 
   plot_data <- bind_rows(
-    extract_plot_data(model_stricter, support_by_event_time, min_period, max_period, "Moved to Stricter"),
-    extract_plot_data(model_lenient, support_by_event_time, min_period, max_period, "Moved to More Lenient")
+    build_event_study_plot_data(model_stricter, support_by_event_time, min_period, max_period, "Moved to Stricter", "multiply100"),
+    build_event_study_plot_data(model_lenient, support_by_event_time, min_period, max_period, "Moved to More Lenient", "multiply100")
   ) %>%
+    mutate(
+      estimate_pct = estimate_display,
+      ci_low_pct = ci_low_display,
+      ci_high_pct = ci_high_display
+    ) %>%
     filter(!is.na(estimate))
 
   if (nrow(plot_data) == 0) {
     stop("No supported coefficients were available for the requested rental specification.", call. = FALSE)
   }
 
-  coefficients <- plot_data %>%
-    select(group, event_time, estimate, std_error, ci_low, ci_high, estimate_pct, ci_low_pct, ci_high_pct,
-      estimate_name, estimate_name_raw, is_reference, n_obs, n_treated, n_control, contributing_cohorts,
-      n_fe_groups, n_segments, n_fe_group_time_cells, n_identifying_fe_group_time_cells, n_identifying_fe_groups,
-      has_treated_and_control, has_identifying_support
-    )
-  pretrend <- bind_rows(
-    compute_pretrend_test(model_stricter, plot_data %>% filter(group == "Moved to Stricter"), "Moved to Stricter"),
-    compute_pretrend_test(model_lenient, plot_data %>% filter(group == "Moved to More Lenient"), "Moved to More Lenient")
+  directional_plots <- make_event_study_directional_plots(
+    plot_data,
+    plot_title = sprintf("Rental event study: %s", panel_title),
+    x_label = if (FREQUENCY == "yearly") "Years relative to alderman switch" else "Quarters relative to alderman switch",
+    y_label = "Effect on rents",
+    display_suffix = "%"
   )
-  directional_plots <- make_directional_plots(plot_data)
 
   ggsave(sprintf("../output/event_study_%s.pdf", suffix), directional_plots$facet, width = 7, height = 6, bg = "white")
   ggsave(sprintf("../output/event_study_combined_%s.pdf", suffix), directional_plots$combined, width = 7, height = 4.5, bg = "white")
-  write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
-  write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
-  write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
-  write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
+  if (WRITE_SIDECARS) {
+    write_csv(
+      plot_data %>%
+        select(group, event_time, estimate, std_error, ci_low, ci_high, estimate_pct, ci_low_pct, ci_high_pct,
+          estimate_name, estimate_name_raw, is_reference, n_obs, n_treated, n_control, contributing_cohorts,
+          n_fe_groups, n_segments, n_fe_group_time_cells, n_identifying_fe_group_time_cells, n_identifying_fe_groups,
+          has_treated_and_control, has_identifying_support
+        ),
+      file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_coefficients_%s.csv", suffix))
+    )
+    write_csv(support_by_event_time, file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_support_%s.csv", suffix)))
+    write_csv(
+      bind_rows(
+        compute_event_study_pretrend(model_stricter, plot_data %>% filter(group == "Moved to Stricter"), "Moved to Stricter"),
+        compute_event_study_pretrend(model_lenient, plot_data %>% filter(group == "Moved to More Lenient"), "Moved to More Lenient")
+      ),
+      file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_pretrend_%s.csv", suffix))
+    )
+    write_csv(metadata, file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_metadata_%s.csv", suffix)))
+  }
 }
 
 message("\nDone!")
