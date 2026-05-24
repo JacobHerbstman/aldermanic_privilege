@@ -15,10 +15,6 @@ all: \
 ../output/ward_pair_vertical_13-23_$(MAP_BW_LABEL).pdf: ../output/treatment_control_map_2015_$(MAP_BW_LABEL).pdf
 	@test -s "$@"
 
-../output/treatment_summary_stats.csv: treatment_summary_stats.R ../input/block_treatment_panel.csv | ../output
-	$(R) treatment_summary_stats.R
-	rm -f ../output/treatment_summary_presentation.txt
-
 ../input/permit_block_year_panel_2015.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 

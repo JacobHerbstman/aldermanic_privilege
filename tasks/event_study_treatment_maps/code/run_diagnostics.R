@@ -24,65 +24,6 @@ bandwidth_label <- Sys.getenv("BANDWIDTH_LABEL", format_distance_label(bandwidth
 WRITE_MAP_AUDIT <- tolower(Sys.getenv("WRITE_MAP_AUDIT", "0")) %in% c("1", "true", "yes")
 MAP_AUDIT_OUTPUT_DIR <- Sys.getenv("MAP_AUDIT_OUTPUT_DIR", "../output")
 
-read_blocks <- function(path, block_col, target_crs) {
-  read_csv(path, show_col_types = FALSE) %>%
-    rename(geometry = the_geom) %>%
-    st_as_sf(wkt = "geometry", crs = 4269) %>%
-    st_make_valid() %>%
-    st_transform(target_crs) %>%
-    rename(block_id = all_of(block_col)) %>%
-    mutate(block_id = as.character(block_id)) %>%
-    distinct(block_id, .keep_all = TRUE)
-}
-
-normalize_pair_label <- function(x) {
-  gsub("_", "-", as.character(x), fixed = TRUE)
-}
-
-categorize_treatment <- function(treat, strictness_change) {
-  case_when(
-    treat == 0 ~ "Control",
-    strictness_change > 0 ~ "Moved to Stricter",
-    strictness_change < 0 ~ "Moved to Lenient",
-    TRUE ~ "Redistricted, No Score Change"
-  )
-}
-
-build_permit_block_candidates <- function(path, cohort_label) {
-  candidates <- read_parquet(path) %>%
-    as_tibble() %>%
-    filter(
-      dist_m <= bandwidth_m,
-      relative_year >= -5,
-      relative_year <= 5,
-      !is.na(block_id),
-      block_id != "",
-      !is.na(ward_pair_id),
-      ward_pair_id != "",
-      !is.na(strictness_change)
-    ) %>%
-    mutate(
-      block_id = as.character(block_id),
-      cohort = cohort_label,
-      display_ward_pair_id = normalize_pair_label(ward_pair_id)
-    ) %>%
-    transmute(
-      block_id,
-      cohort,
-      ward_pair_id = display_ward_pair_id
-    ) %>%
-    distinct()
-
-  duplicate_candidates <- candidates %>%
-    count(block_id, cohort, name = "n_assignments") %>%
-    filter(n_assignments > 1)
-  if (nrow(duplicate_candidates) > 0) {
-    stop("Permit event-study panel has multiple boundary assignments for the same cohort-block.", call. = FALSE)
-  }
-
-  candidates
-}
-
 make_citywide_map <- function(blocks_sf, ward_year, title_text) {
   wards <- ward_panel %>%
     filter(year == ward_year)
@@ -112,8 +53,50 @@ make_citywide_map <- function(blocks_sf, ward_year, title_text) {
 }
 
 message("Loading corrected permit event-study panels...")
-permit_blocks_2015 <- build_permit_block_candidates("../input/permit_block_year_panel_2015.parquet", "2015")
-permit_blocks_2023 <- build_permit_block_candidates("../input/permit_block_year_panel_2023.parquet", "2023")
+permit_blocks_2015 <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
+  as_tibble() %>%
+  filter(
+    dist_m <= bandwidth_m,
+    relative_year >= -5,
+    relative_year <= 5,
+    !is.na(block_id),
+    block_id != "",
+    !is.na(ward_pair_id),
+    ward_pair_id != "",
+    !is.na(strictness_change)
+  ) %>%
+  transmute(
+    block_id = as.character(block_id),
+    cohort = "2015",
+    ward_pair_id = gsub("_", "-", as.character(ward_pair_id), fixed = TRUE)
+  ) %>%
+  distinct()
+
+permit_blocks_2023 <- read_parquet("../input/permit_block_year_panel_2023.parquet") %>%
+  as_tibble() %>%
+  filter(
+    dist_m <= bandwidth_m,
+    relative_year >= -5,
+    relative_year <= 5,
+    !is.na(block_id),
+    block_id != "",
+    !is.na(ward_pair_id),
+    ward_pair_id != "",
+    !is.na(strictness_change)
+  ) %>%
+  transmute(
+    block_id = as.character(block_id),
+    cohort = "2023",
+    ward_pair_id = gsub("_", "-", as.character(ward_pair_id), fixed = TRUE)
+  ) %>%
+  distinct()
+
+duplicate_candidates <- bind_rows(permit_blocks_2015, permit_blocks_2023) %>%
+  count(block_id, cohort, name = "n_assignments") %>%
+  filter(n_assignments > 1)
+if (nrow(duplicate_candidates) > 0) {
+  stop("Permit event-study panel has multiple boundary assignments for the same cohort-block.", call. = FALSE)
+}
 
 message("Loading block treatment assignments...")
 block_treatment <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
@@ -134,16 +117,40 @@ if (nrow(duplicate_treatment) > 0) {
 sample_2015 <- permit_blocks_2015 %>%
   left_join(block_treatment, by = c("block_id", "cohort"), relationship = "one-to-one") %>%
   filter(!is.na(strictness_change)) %>%
-  mutate(treatment_group = categorize_treatment(treat, strictness_change))
+  mutate(treatment_group = case_when(
+    treat == 0 ~ "Control",
+    strictness_change > 0 ~ "Moved to Stricter",
+    strictness_change < 0 ~ "Moved to Lenient",
+    TRUE ~ "Redistricted, No Score Change"
+  ))
 sample_2023 <- permit_blocks_2023 %>%
   left_join(block_treatment, by = c("block_id", "cohort"), relationship = "one-to-one") %>%
   filter(!is.na(strictness_change)) %>%
-  mutate(treatment_group = categorize_treatment(treat, strictness_change))
+  mutate(treatment_group = case_when(
+    treat == 0 ~ "Control",
+    strictness_change > 0 ~ "Moved to Stricter",
+    strictness_change < 0 ~ "Moved to Lenient",
+    TRUE ~ "Redistricted, No Score Change"
+  ))
 
 message("Loading ward panel and census blocks...")
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
-blocks_2010 <- read_blocks("../input/census_blocks_2010.csv", "GEOID10", st_crs(ward_panel))
-blocks_2020 <- read_blocks("../input/census_blocks_2020.csv", "GEOID20", st_crs(ward_panel))
+blocks_2010 <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
+  rename(geometry = the_geom) %>%
+  st_as_sf(wkt = "geometry", crs = 4269) %>%
+  st_make_valid() %>%
+  st_transform(st_crs(ward_panel)) %>%
+  rename(block_id = GEOID10) %>%
+  mutate(block_id = as.character(block_id)) %>%
+  distinct(block_id, .keep_all = TRUE)
+blocks_2020 <- read_csv("../input/census_blocks_2020.csv", show_col_types = FALSE) %>%
+  rename(geometry = the_geom) %>%
+  st_as_sf(wkt = "geometry", crs = 4269) %>%
+  st_make_valid() %>%
+  st_transform(st_crs(ward_panel)) %>%
+  rename(block_id = GEOID20) %>%
+  mutate(block_id = as.character(block_id)) %>%
+  distinct(block_id, .keep_all = TRUE)
 
 blocks_2015 <- blocks_2010 %>%
   inner_join(sample_2015, by = "block_id", relationship = "one-to-one")
