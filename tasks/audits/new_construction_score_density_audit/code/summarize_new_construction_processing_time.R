@@ -1,10 +1,15 @@
 ## Summarize permit-subset processing-time heterogeneity
 
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
+
+options(audit_source_wd = getwd())
+setwd("../../../new_construction_score_variants/code")
 source("../../_lib/alderman_uncertainty_helpers.R")
+setwd(getOption("audit_source_wd"))
+options(audit_source_wd = NULL)
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/new_construction_score_density_audit/code")
 # permits_input <- "../input/permits_for_uncertainty_index.csv"
 # summary_output <- "../output/new_construction_processing_time_summary.csv"
 # summary_tex_output <- "../output/new_construction_processing_time_summary.tex"

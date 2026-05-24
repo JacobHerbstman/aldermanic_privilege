@@ -1,9 +1,9 @@
 ## Summarize internal density robustness checks for a permit-subset score
 
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/new_construction_score_density_audit/code")
 # output_dir <- "../output"
 
 args <- commandArgs(trailingOnly = TRUE)

@@ -3,7 +3,7 @@
 source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_comparison/code")
 # comparison_input <- "../output/score_comparison_no_renovation_vs_baseline.csv"
 # rankings_output <- "../output/score_rankings_no_renovation.tex"
 # variant_id <- "no_renovation"

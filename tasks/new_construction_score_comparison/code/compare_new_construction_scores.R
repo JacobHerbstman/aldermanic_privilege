@@ -3,7 +3,7 @@
 source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_comparison/code")
 # baseline_input <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv"
 # new_input <- "../output/alderman_uncertainty_index_new_construction.csv"
 # joined_output <- "../output/score_comparison_new_construction_vs_baseline.csv"

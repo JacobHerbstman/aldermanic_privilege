@@ -3,7 +3,7 @@
 source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_variants/code")
 # residualized_wide_input <- "../input/residualized_low_vs_high_processing_alderman_wide_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
 # score_output <- "../output/alderman_uncertainty_index_low_discretion_residualized.csv"
 # metadata_output <- "../output/score_variant_metadata_low_discretion_residualized.csv"

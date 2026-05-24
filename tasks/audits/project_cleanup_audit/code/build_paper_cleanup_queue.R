@@ -110,11 +110,13 @@ branch_bucket <- function(task) {
     return("stringency")
   }
   if (task %chin% c(
-	    "new_construction_score_density_robustness",
-	    "uncertainty_score_density_robustness",
-	    "border_pair_FE_regressions",
-	    "nonparametric_rd_density_linear_display"
-	  )) {
+    "new_construction_density_robustness",
+    "new_construction_score_comparison",
+    "new_construction_score_variants",
+    "uncertainty_score_density_robustness",
+    "border_pair_FE_regressions",
+    "nonparametric_rd_density_linear_display"
+  )) {
     return("density_spatial_rd")
   }
   if (task %chin% c(

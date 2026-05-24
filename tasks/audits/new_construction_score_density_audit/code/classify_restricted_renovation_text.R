@@ -1,10 +1,15 @@
 ## Classify renovation permit text for the restricted-renovation score
 
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
+
+options(audit_source_wd = getwd())
+setwd("../../../new_construction_score_variants/code")
 source("../../_lib/alderman_uncertainty_helpers.R")
+setwd(getOption("audit_source_wd"))
+options(audit_source_wd = NULL)
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/new_construction_score_density_audit/code")
 # permits_input <- "../input/permits_for_uncertainty_index.csv"
 # building_permits_input <- "../input/building_permits_clean.gpkg"
 # classification_output <- "../output/renovation_text_classification_restricted_renovation.csv"

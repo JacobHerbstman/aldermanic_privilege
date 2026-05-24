@@ -3,7 +3,7 @@
 source("../../_lib/alderman_uncertainty_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_density_robustness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_variants/code")
 # permits_input <- "../output/permits_for_uncertainty_index_restricted_renovation.csv"
 # score_output <- "../output/alderman_uncertainty_index_restricted_renovation.csv"
 # metadata_output <- "../output/score_variant_metadata_restricted_renovation.csv"
