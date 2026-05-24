@@ -297,26 +297,20 @@ if (prune_sample == "pruned") {
   parcels_fe <- parcels_fe %>% filter(keep_pruned_sample)
 }
 
-pretty_label <- function(v) {
-  b <- gsub("^log\\(|\\)$", "", v)
-  dict <- c(
-    "density_dupac" = "DUPAC",
-    "density_far" = "FAR",
-    "density_lapu" = "Lot Area Per Unit (LAPU)",
-    "density_bcr" = "Building Coverage Ratio (BCR)",
-    "density_lps" = "Lot Size Per Story (LPS)",
-    "density_spu" = "Square Feet Per Unit (SPU)",
-    "arealotsf" = "Lot Area (sf)",
-    "areabuilding" = "Building Area (sf)",
-    "storiescount" = "Stories",
-    "unitscount" = "Units",
-    "bedroomscount" = "Bedrooms",
-    "bathcount" = "Bathrooms"
-  )
-  lab <- ifelse(b %in% names(dict), dict[[b]], b)
-  if (str_detect(v, "^log\\(.+\\)$")) paste0("ln(", lab, ")") else lab
-}
-
+outcome_label_dict <- c(
+  "density_dupac" = "DUPAC",
+  "density_far" = "FAR",
+  "density_lapu" = "Lot Area Per Unit (LAPU)",
+  "density_bcr" = "Building Coverage Ratio (BCR)",
+  "density_lps" = "Lot Size Per Story (LPS)",
+  "density_spu" = "Square Feet Per Unit (SPU)",
+  "arealotsf" = "Lot Area (sf)",
+  "areabuilding" = "Building Area (sf)",
+  "storiescount" = "Stories",
+  "unitscount" = "Units",
+  "bedroomscount" = "Bedrooms",
+  "bathcount" = "Bathrooms"
+)
 rename_dict <- c(
   "strictness_own" = "Stringency Index",
   "lenient_dist" = "Lenient-Side Distance",
@@ -404,6 +398,10 @@ for (yv in yvars) {
   if (!base_var %in% names(parcels_fe)) {
     warning(sprintf("Skipping '%s' (base var '%s' not found).", yv, base_var))
     next
+  }
+  outcome_label <- if (base_var %in% names(outcome_label_dict)) outcome_label_dict[[base_var]] else base_var
+  if (str_detect(yv, "^log\\(.+\\)$")) {
+    outcome_label <- paste0("ln(", outcome_label, ")")
   }
 
   post_prune <- model_sample(parcels_fe, yv, base_var)
@@ -502,7 +500,7 @@ for (yv in yvars) {
   m$custom_data <- df
 
   models[[length(models) + 1]] <- m
-  col_headers <- c(col_headers, pretty_label(yv))
+  col_headers <- c(col_headers, outcome_label)
 
   coef_table <- coeftable(m)
   coef_info <- coef_table["strictness_own", c("Estimate", "Std. Error", "Pr(>|t|)"), drop = FALSE]
@@ -512,7 +510,7 @@ for (yv in yvars) {
 
   model_summaries[[length(model_summaries) + 1]] <- tibble(
     yvar = yv,
-    outcome_label = pretty_label(yv),
+    outcome_label = outcome_label,
     estimate = unname(coef_info[1, "Estimate"]),
     se = unname(coef_info[1, "Std. Error"]),
     p_value = unname(coef_info[1, "Pr(>|t|)"]),

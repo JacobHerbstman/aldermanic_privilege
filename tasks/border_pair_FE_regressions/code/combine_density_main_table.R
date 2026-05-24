@@ -19,26 +19,6 @@ all_summary_csv <- args[1]
 multifamily_summary_csv <- args[2]
 output_tex <- args[3]
 
-stars <- function(p) {
-  if (!is.finite(p)) return("")
-  if (p <= 0.01) return("***")
-  if (p <= 0.05) return("**")
-  if (p <= 0.1) return("*")
-  ""
-}
-
-format_coef <- function(x, p) {
-  star_text <- stars(p)
-  if (!nzchar(star_text)) {
-    return(sprintf("%.3f", x))
-  }
-  sprintf("%.3f$^{%s}$", x, star_text)
-}
-
-format_se <- function(x) {
-  sprintf("(%.3f)", x)
-}
-
 summaries <- bind_rows(
   read_csv(all_summary_csv, show_col_types = FALSE) %>%
     mutate(sample_label = "All Construction"),
@@ -79,7 +59,20 @@ if (nrow(duplicate_rows) > 0) {
 ordered <- summaries %>%
   mutate(
     sample_order = match(sample_label, c("All Construction", "Multifamily")),
-    outcome_order = match(outcome_short, c("FAR", "DUPAC"))
+    outcome_order = match(outcome_short, c("FAR", "DUPAC")),
+    star_text = case_when(
+      !is.finite(p_value) ~ "",
+      p_value <= 0.01 ~ "***",
+      p_value <= 0.05 ~ "**",
+      p_value <= 0.1 ~ "*",
+      TRUE ~ ""
+    ),
+    estimate_text = if_else(
+      star_text == "",
+      sprintf("%.3f", estimate),
+      sprintf("%.3f$^{%s}$", estimate, star_text)
+    ),
+    se_text = sprintf("(%.3f)", se)
   ) %>%
   arrange(sample_order, outcome_order)
 
@@ -98,12 +91,12 @@ table_lines <- c(
   "   \\midrule",
   paste0(
     "   Stringency Index & ",
-    paste(mapply(format_coef, ordered$estimate, ordered$p_value), collapse = " & "),
+    paste(ordered$estimate_text, collapse = " & "),
     " \\\\"
   ),
   paste0(
     "                    & ",
-    paste(vapply(ordered$se, format_se, character(1)), collapse = " & "),
+    paste(ordered$se_text, collapse = " & "),
     " \\\\"
   ),
   "    \\\\",
