@@ -264,72 +264,6 @@ y_axis_label <- if (MODEL_TYPE == "log") {
 }
 display_suffix <- if (MODEL_TYPE == "binary") " pp" else "%"
 
-safe_scale <- function(x) {
-  x <- as.numeric(x)
-  sigma <- sd(x, na.rm = TRUE)
-  mu <- mean(x, na.rm = TRUE)
-  if (is.na(sigma) || sigma == 0) {
-    return(rep(0, length(x)))
-  }
-  (x - mu) / sigma
-}
-
-make_support_table <- function(df, event_var, time_fe_var, fe_group_var, block_var, segment_var, outcome_var, treatment_var, min_period, max_period) {
-  support_base <- df %>%
-    filter(.data[[event_var]] >= min_period, .data[[event_var]] <= max_period)
-
-  cell_support <- support_base %>%
-    group_by(
-      event_time = .data[[event_var]],
-      fe_group = .data[[fe_group_var]],
-      calendar_time = .data[[time_fe_var]]
-    ) %>%
-    summarise(
-      n_blocks_cell = n_distinct(.data[[block_var]]),
-      n_treated = sum(treat == 1, na.rm = TRUE),
-      n_control = sum(treat == 0, na.rm = TRUE),
-      n_distinct_treatment_values = n_distinct(.data[[treatment_var]][!is.na(.data[[treatment_var]])]),
-      has_within_cell_treatment_variation = n_distinct(.data[[treatment_var]][!is.na(.data[[treatment_var]])]) > 1,
-      .groups = "drop"
-    )
-
-  event_support <- support_base %>%
-    group_by(event_time = .data[[event_var]]) %>%
-    summarise(
-      n_obs = n(),
-      n_treated = sum(treat == 1, na.rm = TRUE),
-      n_control = sum(treat == 0, na.rm = TRUE),
-      contributing_cohorts = if ("cohort" %in% names(support_base)) paste(sort(unique(cohort)), collapse = "|") else PANEL_MODE,
-      n_fe_groups = n_distinct(.data[[fe_group_var]]),
-      n_blocks = n_distinct(.data[[block_var]]),
-      n_segments = n_distinct(.data[[segment_var]][!is.na(.data[[segment_var]])]),
-      total_outcome = sum(.data[[outcome_var]], na.rm = TRUE),
-      n_positive_rows = sum(.data[[outcome_var]] > 0, na.rm = TRUE),
-      .groups = "drop"
-    )
-
-  cell_event_support <- cell_support %>%
-    group_by(event_time) %>%
-    summarise(
-      n_fe_group_time_cells = n(),
-      n_identifying_fe_group_time_cells = sum(has_within_cell_treatment_variation, na.rm = TRUE),
-      n_identifying_fe_groups = n_distinct(fe_group[has_within_cell_treatment_variation]),
-      .groups = "drop"
-    )
-
-  event_support %>%
-    left_join(cell_event_support, by = "event_time", relationship = "one-to-one") %>%
-    mutate(
-      n_fe_group_time_cells = replace_na(n_fe_group_time_cells, 0L),
-      n_identifying_fe_group_time_cells = replace_na(n_identifying_fe_group_time_cells, 0L),
-      n_identifying_fe_groups = replace_na(n_identifying_fe_groups, 0L),
-      has_treated_and_control = n_treated > 0 & n_control > 0,
-      has_identifying_support = n_identifying_fe_group_time_cells > 0
-    ) %>%
-    arrange(event_time)
-}
-
-
 message("\nLoading permit block-year panel...")
 data <- read_parquet(panel_input) %>%
   filter(!is.na(.data[[base_outcome_var]]))
@@ -490,7 +424,19 @@ if (CONTROL_SPEC == "baseline_demographics") {
   missing_control_rows <- sum(!complete.cases(data[, control_vars]), na.rm = TRUE)
   data <- data %>%
     filter(if_all(all_of(control_vars), ~ !is.na(.x))) %>%
-    mutate(across(all_of(control_vars), safe_scale, .names = "{.col}_z"))
+    mutate(across(
+      all_of(control_vars),
+      ~ {
+        x <- as.numeric(.x)
+        sigma <- sd(x, na.rm = TRUE)
+        if (is.na(sigma) || sigma == 0) {
+          rep(0, length(x))
+        } else {
+          (x - mean(x, na.rm = TRUE)) / sigma
+        }
+      },
+      .names = "{.col}_z"
+    ))
 } else if (CONTROL_SPEC == "pre_high_level") {
   if (!"n_high_discretion_issue" %in% names(data)) {
     stop("pre_high_level controls require n_high_discretion_issue in the permit panel.", call. = FALSE)
@@ -571,17 +517,19 @@ if (analysis_n == 0) {
 }
 
 if (TREATMENT_TYPE == "continuous") {
-  support_by_event_time <- make_support_table(
+  support_by_event_time <- build_event_study_support_table(
     df = data,
     event_var = event_var,
     time_fe_var = time_fe_var,
     fe_group_var = fe_group_var,
-    block_var = block_var,
-    segment_var = geo_group_var,
+    min_period = min_period,
+    max_period = max_period,
+    support_mode = "treatment_variation",
+    cohort_label = PANEL_MODE,
     outcome_var = base_outcome_var,
     treatment_var = "strictness_change",
-    min_period = min_period,
-    max_period = max_period
+    block_var = block_var,
+    segment_var = geo_group_var
   )
 
   rhs_terms <- c(sprintf("i(%s, strictness_change, ref = -1)", event_var), control_terms)
@@ -641,29 +589,33 @@ if (TREATMENT_TYPE == "continuous") {
   data_stricter <- data %>% filter(treatment_lenient_binary == 0)
   data_lenient <- data %>% filter(treatment_stricter_binary == 0)
 
-  support_stricter <- make_support_table(
+  support_stricter <- build_event_study_support_table(
     df = data_stricter,
     event_var = event_var,
     time_fe_var = time_fe_var,
     fe_group_var = fe_group_var,
-    block_var = block_var,
-    segment_var = geo_group_var,
+    min_period = min_period,
+    max_period = max_period,
+    support_mode = "treatment_variation",
+    cohort_label = PANEL_MODE,
     outcome_var = base_outcome_var,
     treatment_var = "treatment_stricter_binary",
-    min_period = min_period,
-    max_period = max_period
+    block_var = block_var,
+    segment_var = geo_group_var
   )
-  support_lenient <- make_support_table(
+  support_lenient <- build_event_study_support_table(
     df = data_lenient,
     event_var = event_var,
     time_fe_var = time_fe_var,
     fe_group_var = fe_group_var,
-    block_var = block_var,
-    segment_var = geo_group_var,
+    min_period = min_period,
+    max_period = max_period,
+    support_mode = "treatment_variation",
+    cohort_label = PANEL_MODE,
     outcome_var = base_outcome_var,
     treatment_var = "treatment_lenient_binary",
-    min_period = min_period,
-    max_period = max_period
+    block_var = block_var,
+    segment_var = geo_group_var
   )
 
   rhs_terms_stricter <- c(sprintf("i(%s, treatment_stricter_binary, ref = -1)", event_var), control_terms)
@@ -739,29 +691,33 @@ if (TREATMENT_TYPE == "continuous") {
   ggsave(sprintf("../output/event_study_%s.pdf", suffix), directional_plots$facet, width = 7, height = 6, bg = "white")
 
 } else {
-  support_stricter <- make_support_table(
+  support_stricter <- build_event_study_support_table(
     df = data,
     event_var = event_var,
     time_fe_var = time_fe_var,
     fe_group_var = fe_group_var,
-    block_var = block_var,
-    segment_var = geo_group_var,
+    min_period = min_period,
+    max_period = max_period,
+    support_mode = "treatment_variation",
+    cohort_label = PANEL_MODE,
     outcome_var = base_outcome_var,
     treatment_var = "treatment_stricter_continuous",
-    min_period = min_period,
-    max_period = max_period
+    block_var = block_var,
+    segment_var = geo_group_var
   )
-  support_lenient <- make_support_table(
+  support_lenient <- build_event_study_support_table(
     df = data,
     event_var = event_var,
     time_fe_var = time_fe_var,
     fe_group_var = fe_group_var,
-    block_var = block_var,
-    segment_var = geo_group_var,
+    min_period = min_period,
+    max_period = max_period,
+    support_mode = "treatment_variation",
+    cohort_label = PANEL_MODE,
     outcome_var = base_outcome_var,
     treatment_var = "treatment_lenient_continuous",
-    min_period = min_period,
-    max_period = max_period
+    block_var = block_var,
+    segment_var = geo_group_var
   )
 
   rhs_terms_stricter <- c(sprintf("i(%s, treatment_stricter_continuous, ref = -1)", event_var), control_terms)
