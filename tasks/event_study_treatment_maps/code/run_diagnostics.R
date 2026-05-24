@@ -21,6 +21,8 @@ if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
 
 distance_display <- distance_display_config()
 bandwidth_label <- Sys.getenv("BANDWIDTH_LABEL", format_distance_label(bandwidth_m, distance_display))
+WRITE_MAP_AUDIT <- tolower(Sys.getenv("WRITE_MAP_AUDIT", "0")) %in% c("1", "true", "yes")
+MAP_AUDIT_OUTPUT_DIR <- Sys.getenv("MAP_AUDIT_OUTPUT_DIR", "../output")
 
 read_blocks <- function(path, block_col, target_crs) {
   read_csv(path, show_col_types = FALSE) %>%
@@ -151,8 +153,10 @@ blocks_2023 <- blocks_2020 %>%
 message(sprintf("2015 map blocks within %s: %s", bandwidth_label, format(nrow(blocks_2015), big.mark = ",")))
 message(sprintf("2023 map blocks within %s: %s", bandwidth_label, format(nrow(blocks_2023), big.mark = ",")))
 
-write_csv(st_drop_geometry(blocks_2015), sprintf("../output/treatment_control_map_2015_%s_data.csv", bandwidth_label))
-write_csv(st_drop_geometry(blocks_2023), sprintf("../output/treatment_control_map_2023_%s_data.csv", bandwidth_label))
+if (WRITE_MAP_AUDIT) {
+  write_csv(st_drop_geometry(blocks_2015), file.path(MAP_AUDIT_OUTPUT_DIR, sprintf("treatment_control_map_2015_%s_data.csv", bandwidth_label)))
+  write_csv(st_drop_geometry(blocks_2023), file.path(MAP_AUDIT_OUTPUT_DIR, sprintf("treatment_control_map_2023_%s_data.csv", bandwidth_label)))
+}
 
 p_2015 <- make_citywide_map(blocks_2015, 2015, "2015 Redistricting")
 p_2023 <- make_citywide_map(blocks_2023, 2024, "2023 Redistricting")
@@ -164,13 +168,15 @@ ggsave(
   height = 10,
   bg = "white"
 )
-ggsave(
-  sprintf("../output/treatment_control_map_2023_%s.pdf", bandwidth_label),
-  p_2023,
-  width = 8,
-  height = 10,
-  bg = "white"
-)
+if (WRITE_MAP_AUDIT) {
+  ggsave(
+    file.path(MAP_AUDIT_OUTPUT_DIR, sprintf("treatment_control_map_2023_%s.pdf", bandwidth_label)),
+    p_2023,
+    width = 8,
+    height = 10,
+    bg = "white"
+  )
+}
 
 combined_citywide <- (p_2015 + theme(legend.position = "none")) +
   (p_2023 + guides(fill = guide_legend(nrow = 1))) +
@@ -264,14 +270,16 @@ ggsave(
   bg = "white"
 )
 
-combined_horizontal <- p_before + p_after + p_treatment +
-  plot_layout(ncol = 3)
-ggsave(
-  sprintf("../output/ward_pair_before_after_%s_%s.pdf", pair_to_map, bandwidth_label),
-  combined_horizontal,
-  width = 15,
-  height = 6,
-  bg = "white"
-)
+if (WRITE_MAP_AUDIT) {
+  combined_horizontal <- p_before + p_after + p_treatment +
+    plot_layout(ncol = 3)
+  ggsave(
+    file.path(MAP_AUDIT_OUTPUT_DIR, sprintf("ward_pair_before_after_%s_%s.pdf", pair_to_map, bandwidth_label)),
+    combined_horizontal,
+    width = 15,
+    height = 6,
+    bg = "white"
+  )
+}
 
 message("Done.")
