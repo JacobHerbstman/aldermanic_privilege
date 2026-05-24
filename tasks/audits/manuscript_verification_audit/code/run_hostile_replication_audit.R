@@ -329,13 +329,31 @@ event_sidecars_exist <- function(artifact_path, density_sidecar_dir = NULL) {
       str_remove("^event_study_yearly_") %>%
       str_remove("^event_study_combined_")
 
-    expected <- c(
+    live_expected <- c(
       file.path(artifact_dir, paste0("event_study_coefficients_", stub, ".csv")),
       file.path(artifact_dir, paste0("event_study_support_", stub, ".csv")),
       file.path(artifact_dir, paste0("event_study_pretrend_", stub, ".csv")),
       file.path(artifact_dir, paste0("event_study_metadata_", stub, ".csv"))
     )
-    return(all(file.exists(expected)))
+    audit_dir <- str_replace(
+      artifact_dir,
+      "tasks/run_event_study_permit/output$",
+      "tasks/audits/permit_event_study_audit/output"
+    )
+    audit_expected <- file.path(
+      audit_dir,
+      paste0(
+        c(
+          "event_study_coefficients_",
+          "event_study_support_",
+          "event_study_pretrend_",
+          "event_study_metadata_"
+        ),
+        stub,
+        ".csv"
+      )
+    )
+    return(all(file.exists(live_expected)) || all(file.exists(audit_expected)))
   }
 
   if (str_detect(artifact_path, "tasks/run_event_study_sales_disaggregate/output/")) {

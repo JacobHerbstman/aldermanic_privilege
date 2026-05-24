@@ -1,9 +1,9 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/event_study_plot_helpers.R")
-source("../../_lib/permit_event_study_sample_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/event_study_plot_helpers.R")
+source("../../../_lib/permit_event_study_sample_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/permit_event_study_audit/code")
 # panel_mode <- "cohort_2015"
 # outcome_family <- "high_discretion"
 # date_basis <- "issue"
@@ -570,6 +570,62 @@ if (analysis_n == 0) {
   stop("No observations remain after applying the requested permit event-study sample restrictions.", call. = FALSE)
 }
 
+metadata <- tibble(
+  panel_mode = PANEL_MODE,
+  panel_title = panel_title,
+  outcome_family = OUTCOME_FAMILY,
+  date_basis = DATE_BASIS,
+  outcome_var = base_outcome_var,
+  outcome_label = outcome_label,
+  model_type = MODEL_TYPE,
+  treatment_type = TREATMENT_TYPE,
+  weighting = WEIGHTING,
+  bandwidth = BANDWIDTH,
+  bandwidth_label = BANDWIDTH_LABEL,
+  fe_type = FE_TYPE,
+  post_window = POST_WINDOW,
+  geo_fe_level = GEO_FE_LEVEL,
+  cluster_level = CLUSTER_LEVEL,
+  raw_n = raw_n,
+  raw_blocks = raw_blocks,
+  panel_input_n = panel_input_n,
+  panel_input_missing_strictness_change_n = panel_input_missing_strictness_change_n,
+  score_gate_n = score_gate_n,
+  score_gate_missing_origin_n = score_gate_missing_origin_n,
+  score_gate_missing_dest_n = score_gate_missing_dest_n,
+  score_gate_missing_change_n = score_gate_missing_change_n,
+  analysis_n = analysis_n,
+  analysis_blocks = n_distinct(data[[block_var]]),
+  treated_n = sum(data$treat == 1, na.rm = TRUE),
+  control_n = sum(data$treat == 0, na.rm = TRUE),
+  positive_outcome_rows = sum(data[[base_outcome_var]] > 0, na.rm = TRUE),
+  total_outcome = sum(data[[base_outcome_var]], na.rm = TRUE),
+  effective_weight_n = sum(data$weight),
+  zero_rows_dropped_for_log = zero_rows_dropped,
+  control_spec = CONTROL_SPEC,
+  sample_restriction = SAMPLE_RESTRICTION,
+  sample_restriction_label = sample_restriction_info$label,
+  min_segment_length_ft = if (is.finite(MIN_SEGMENT_LENGTH_FT)) MIN_SEGMENT_LENGTH_FT else NA_real_,
+  segment_length_input_n = segment_length_input_n,
+  segment_length_drop_n = segment_length_drop_n,
+  segment_length_missing_n = segment_length_missing_n,
+  segment_length_short_n = segment_length_short_n,
+  sample_restriction_obs_before = sample_restriction_summary$summary$n_obs_before,
+  sample_restriction_obs_after = sample_restriction_summary$summary$n_obs_after,
+  sample_restriction_obs_dropped = sample_restriction_summary$summary$n_obs_dropped,
+  sample_restriction_blocks_before = sample_restriction_summary$summary$n_blocks_before,
+  sample_restriction_blocks_after = sample_restriction_summary$summary$n_blocks_after,
+  sample_restriction_blocks_dropped = sample_restriction_summary$summary$n_blocks_dropped,
+  sample_restriction_bg_groups_before = sample_restriction_summary$summary$n_bg_groups_before,
+  sample_restriction_bg_groups_after = sample_restriction_summary$summary$n_bg_groups_after,
+  sample_restriction_bg_groups_dropped = sample_restriction_summary$summary$n_bg_groups_dropped,
+  missing_rows_dropped_for_controls = missing_control_rows,
+  available_min_event_time = available_min_period,
+  available_max_event_time = available_max_period,
+  plotted_min_event_time = min_period,
+  plotted_max_event_time = max_period
+)
+
 if (TREATMENT_TYPE == "continuous") {
   support_by_event_time <- make_support_table(
     df = data,
@@ -583,6 +639,9 @@ if (TREATMENT_TYPE == "continuous") {
     min_period = min_period,
     max_period = max_period
   )
+
+  metadata <- metadata %>%
+    mutate(plotted_supported_periods = paste(support_by_event_time$event_time[support_by_event_time$has_identifying_support], collapse = "|"))
 
   rhs_terms <- c(sprintf("i(%s, strictness_change, ref = -1)", event_var), control_terms)
   formula_str <- sprintf(
@@ -623,20 +682,21 @@ if (TREATMENT_TYPE == "continuous") {
     stop("No supported coefficients were available for the requested permit specification.", call. = FALSE)
   }
 
-  ggsave(
-    sprintf("../output/event_study_%s.pdf", suffix),
-    make_event_study_single_series_plot(
-      plot_data,
-      plot_title = sprintf("Permit event study: %s", panel_title),
-      x_label = "Years relative to alderman switch",
-      y_label = y_axis_label,
-      display_suffix = display_suffix
-    ),
-    width = 7,
-    height = 4.5,
-    bg = "white"
-  )
+  coefficients <- plot_data %>%
+    select(
+      group, event_time, estimate, std_error, ci_low, ci_high,
+      estimate_display, ci_low_display, ci_high_display, display_unit,
+      estimate_name, estimate_name_raw, is_reference,
+      n_obs, n_treated, n_control, contributing_cohorts, n_fe_groups, n_blocks, n_segments, total_outcome,
+      n_positive_rows, n_fe_group_time_cells, n_identifying_fe_group_time_cells,
+      n_identifying_fe_groups, has_treated_and_control, has_identifying_support
+    )
+  pretrend <- compute_event_study_pretrend(model, plot_data, "All blocks")
 
+  write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
+  write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
+  write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
+  write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
 } else if (TREATMENT_TYPE == "binary_direction") {
   data_stricter <- data %>% filter(treatment_lenient_binary == 0)
   data_lenient <- data %>% filter(treatment_stricter_binary == 0)
@@ -665,6 +725,16 @@ if (TREATMENT_TYPE == "continuous") {
     min_period = min_period,
     max_period = max_period
   )
+
+  metadata <- metadata %>%
+    mutate(
+      stricter_analysis_n = nrow(data_stricter),
+      lenient_analysis_n = nrow(data_lenient),
+      plotted_supported_periods = paste(sort(unique(c(
+        support_stricter$event_time[support_stricter$has_identifying_support],
+        support_lenient$event_time[support_lenient$has_identifying_support]
+      ))), collapse = "|")
+    )
 
   rhs_terms_stricter <- c(sprintf("i(%s, treatment_stricter_binary, ref = -1)", event_var), control_terms)
   rhs_terms_lenient <- c(sprintf("i(%s, treatment_lenient_binary, ref = -1)", event_var), control_terms)
@@ -728,16 +798,27 @@ if (TREATMENT_TYPE == "continuous") {
     stop("No supported coefficients were available for the requested permit specification.", call. = FALSE)
   }
 
-  directional_plots <- make_event_study_directional_plots(
-    plot_data,
-    plot_title = sprintf("Permit event study: %s", panel_title),
-    x_label = "Years relative to alderman switch",
-    y_label = y_axis_label,
-    display_suffix = display_suffix
+  coefficients <- plot_data %>%
+    select(
+      group, event_time, estimate, std_error, ci_low, ci_high,
+      estimate_display, ci_low_display, ci_high_display, display_unit,
+      estimate_name, estimate_name_raw, is_reference,
+      n_obs, n_treated, n_control, contributing_cohorts, n_fe_groups, n_blocks, n_segments, total_outcome,
+      n_positive_rows, n_fe_group_time_cells, n_identifying_fe_group_time_cells,
+      n_identifying_fe_groups, has_treated_and_control, has_identifying_support
+    )
+  pretrend <- bind_rows(
+    compute_event_study_pretrend(model_stricter, plot_data %>% filter(group == "Moved to Stricter"), "Moved to Stricter"),
+    compute_event_study_pretrend(model_lenient, plot_data %>% filter(group == "Moved to More Lenient"), "Moved to More Lenient")
   )
-
-  ggsave(sprintf("../output/event_study_%s.pdf", suffix), directional_plots$facet, width = 7, height = 6, bg = "white")
-
+  support_by_event_time <- bind_rows(
+    support_stricter %>% mutate(group = "Moved to Stricter"),
+    support_lenient %>% mutate(group = "Moved to More Lenient")
+  )
+  write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
+  write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
+  write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
+  write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
 } else {
   support_stricter <- make_support_table(
     df = data,
@@ -763,6 +844,16 @@ if (TREATMENT_TYPE == "continuous") {
     min_period = min_period,
     max_period = max_period
   )
+
+  metadata <- metadata %>%
+    mutate(
+      stricter_analysis_n = nrow(data),
+      lenient_analysis_n = nrow(data),
+      plotted_supported_periods = paste(sort(unique(c(
+        support_stricter$event_time[support_stricter$has_identifying_support],
+        support_lenient$event_time[support_lenient$has_identifying_support]
+      ))), collapse = "|")
+    )
 
   rhs_terms_stricter <- c(sprintf("i(%s, treatment_stricter_continuous, ref = -1)", event_var), control_terms)
   rhs_terms_lenient <- c(sprintf("i(%s, treatment_lenient_continuous, ref = -1)", event_var), control_terms)
@@ -826,16 +917,27 @@ if (TREATMENT_TYPE == "continuous") {
     stop("No supported coefficients were available for the requested permit specification.", call. = FALSE)
   }
 
-  directional_plots <- make_event_study_directional_plots(
-    plot_data,
-    plot_title = sprintf("Permit event study: %s", panel_title),
-    x_label = "Years relative to alderman switch",
-    y_label = y_axis_label,
-    display_suffix = display_suffix
+  coefficients <- plot_data %>%
+    select(
+      group, event_time, estimate, std_error, ci_low, ci_high,
+      estimate_display, ci_low_display, ci_high_display, display_unit,
+      estimate_name, estimate_name_raw, is_reference,
+      n_obs, n_treated, n_control, contributing_cohorts, n_fe_groups, n_blocks, n_segments, total_outcome,
+      n_positive_rows, n_fe_group_time_cells, n_identifying_fe_group_time_cells,
+      n_identifying_fe_groups, has_treated_and_control, has_identifying_support
+    )
+  pretrend <- bind_rows(
+    compute_event_study_pretrend(model_stricter, plot_data %>% filter(group == "Moved to Stricter"), "Moved to Stricter"),
+    compute_event_study_pretrend(model_lenient, plot_data %>% filter(group == "Moved to More Lenient"), "Moved to More Lenient")
   )
-
-  ggsave(sprintf("../output/event_study_%s.pdf", suffix), directional_plots$facet, width = 7, height = 6, bg = "white")
-
+  support_by_event_time <- bind_rows(
+    support_stricter %>% mutate(group = "Moved to Stricter"),
+    support_lenient %>% mutate(group = "Moved to More Lenient")
+  )
+  write_csv(coefficients, sprintf("../output/event_study_coefficients_%s.csv", suffix))
+  write_csv(support_by_event_time, sprintf("../output/event_study_support_%s.csv", suffix))
+  write_csv(pretrend, sprintf("../output/event_study_pretrend_%s.csv", suffix))
+  write_csv(metadata, sprintf("../output/event_study_metadata_%s.csv", suffix))
 }
 
 message("\nDone!")
