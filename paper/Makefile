@@ -45,8 +45,8 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/rental_data_validation/output/rental_data_validation_growth.pdf \
 	../tasks/rental_data_validation/output/rental_data_validation_growth.tex \
 	../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls.pdf \
-	../tasks/rental_rd_characteristics/output/rental_rd_paired_external_amenity_balance_bw500.tex \
-	../tasks/rental_rd_characteristics/output/rental_rd_rent_attenuation_clean_location_bw500.tex \
+	../tasks/rental_rd_paired_balance/output/rental_rd_paired_external_amenity_balance_bw500.tex \
+	../tasks/rental_rd_rent_attenuation/output/rental_rd_rent_attenuation_clean_location_bw500.tex \
 	../tasks/price_rd_tables/output/price_rd_controls_panels_bw500.tex \
 	../tasks/price_rd_stress_tests/output/rent_placebo_rd_main_style.pdf \
 	../tasks/price_rd_stress_tests/output/sales_placebo_rd_main_style.pdf \

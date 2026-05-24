@@ -1,6 +1,7 @@
 # Build paired balance tables from the listed-rent RD characteristics panel.
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_characteristics/code")
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_paired_balance/code")
 # bandwidth_ft <- 500
 
 source("../../setup_environment/code/packages.R")
@@ -24,7 +25,7 @@ min_cluster_ward_pairs <- 20L
 
 message(sprintf("=== Listed-Rent RD Paired Balance | bandwidth=%sft ===", bandwidth_label))
 
-rent <- read_parquet(sprintf("../output/rental_rd_characteristics_panel_bw%s.parquet", bandwidth_label)) %>%
+rent <- read_parquet(sprintf("../input/rental_rd_characteristics_panel_bw%s.parquet", bandwidth_label)) %>%
   as_tibble()
 
 if (!all(c("segment_id", "ward_pair", "signed_dist_ft") %in% names(rent))) {
