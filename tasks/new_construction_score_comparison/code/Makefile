@@ -9,13 +9,13 @@ all: \
 	../output/score_rankings_restricted_renovation.tex
 
 ../output/score_comparison_new_construction_vs_baseline.csv: compare_new_construction_scores.R ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_new_construction.csv | ../output
-	Rscript $< ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_new_construction.csv ../output/score_comparison_new_construction_vs_baseline.csv ../output/score_comparison_new_construction_vs_baseline_summary.csv ../output/score_comparison_new_construction_vs_baseline_summary.tex ../output/score_comparison_new_construction_vs_baseline_scatter.pdf new_construction "New construction only"
+	Rscript $< ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_new_construction.csv ../output/score_comparison_new_construction_vs_baseline.csv new_construction "New construction only"
 
 ../output/score_comparison_new_construction_demolition_vs_baseline.csv: compare_new_construction_scores.R ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_new_construction_demolition.csv | ../output
-	Rscript $< ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_new_construction_demolition.csv ../output/score_comparison_new_construction_demolition_vs_baseline.csv ../output/score_comparison_new_construction_demolition_vs_baseline_summary.csv ../output/score_comparison_new_construction_demolition_vs_baseline_summary.tex ../output/score_comparison_new_construction_demolition_vs_baseline_scatter.pdf new_construction_demolition "New construction + demolition"
+	Rscript $< ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_new_construction_demolition.csv ../output/score_comparison_new_construction_demolition_vs_baseline.csv new_construction_demolition "New construction + demolition"
 
 ../output/score_comparison_restricted_renovation_vs_baseline.csv: compare_new_construction_scores.R ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_restricted_renovation.csv | ../output
-	Rscript $< ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_restricted_renovation.csv ../output/score_comparison_restricted_renovation_vs_baseline.csv ../output/score_comparison_restricted_renovation_vs_baseline_summary.csv ../output/score_comparison_restricted_renovation_vs_baseline_summary.tex ../output/score_comparison_restricted_renovation_vs_baseline_scatter.pdf restricted_renovation "Restricted renovation"
+	Rscript $< ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_restricted_renovation.csv ../output/score_comparison_restricted_renovation_vs_baseline.csv restricted_renovation "Restricted renovation"
 
 ../output/score_rankings_restricted_renovation.tex: export_score_rankings_tex.R ../output/score_comparison_restricted_renovation_vs_baseline.csv | ../output
 	Rscript $< ../output/score_comparison_restricted_renovation_vs_baseline.csv ../output/score_rankings_restricted_renovation.tex restricted_renovation

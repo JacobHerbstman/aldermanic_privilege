@@ -46,8 +46,8 @@ cat("Score column:", score_column, "\n")
 cat("Parcels input:", parcels_input, "\n")
 cat("Segment lookup input:", segment_lookup_input, "\n")
 cat("Merged output:", merge_output, "\n")
-cat("Summary output:", merge_summary_output, "\n")
-cat("Score coverage output:", score_coverage_output, "\n")
+cat("Summary output:", ifelse(nzchar(merge_summary_output), merge_summary_output, "<not written>"), "\n")
+cat("Score coverage output:", ifelse(nzchar(score_coverage_output), score_coverage_output, "<not written>"), "\n")
 cat("Max construction year:", ifelse(is.finite(max_construction_year), max_construction_year, "none"), "\n")
 
 # -----------------------------------------------------------------------------
@@ -218,8 +218,12 @@ summary_stats <- parcels_final %>%
   ) %>%
   arrange(construction_year)
 
-write_csv(summary_stats, merge_summary_output)
-write_csv(score_coverage_by_era_pair_year, score_coverage_output)
+if (nzchar(merge_summary_output)) {
+  write_csv(summary_stats, merge_summary_output)
+}
+if (nzchar(score_coverage_output)) {
+  write_csv(score_coverage_by_era_pair_year, score_coverage_output)
+}
 
 cat("\n=== Score merge complete ===\n")
 cat("Output:", merge_output, "\n")

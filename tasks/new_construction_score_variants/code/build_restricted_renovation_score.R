@@ -1,49 +1,50 @@
 ## Build restricted-renovation alderman stringency score
 
 source("../../_lib/alderman_uncertainty_helpers.R")
+source("../../_lib/restricted_renovation_classification.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_variants/code")
-# permits_input <- "../output/permits_for_uncertainty_index_restricted_renovation.csv"
+# permits_input <- "../input/permits_for_uncertainty_index.csv"
+# building_permits_input <- "../input/building_permits_clean.gpkg"
 # score_output <- "../output/alderman_uncertainty_index_restricted_renovation.csv"
-# metadata_output <- "../output/score_variant_metadata_restricted_renovation.csv"
-# stage1_terms_output <- "../output/score_variant_stage1_terms_restricted_renovation.csv"
-# stage1_table_output <- "../output/stage1_regression_restricted_renovation.tex"
-# stage2_table_output <- "../output/stage2_regression_restricted_renovation.tex"
-# plot_output <- "../output/uncertainty_index_restricted_renovation.pdf"
+# variant_id <- "restricted_renovation"
+# variant_label <- "Restricted renovation"
+# max_permit_year <- 2022
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
   args <- c(
     permits_input,
+    building_permits_input,
     score_output,
-    metadata_output,
-    stage1_terms_output,
-    stage1_table_output,
-    stage2_table_output,
-    plot_output
+    variant_id,
+    variant_label,
+    max_permit_year
   )
 }
 
-if (length(args) >= 7) {
+if (length(args) == 6) {
   permits_input <- args[1]
-  score_output <- args[2]
-  metadata_output <- args[3]
-  stage1_terms_output <- args[4]
-  stage1_table_output <- args[5]
-  stage2_table_output <- args[6]
-  plot_output <- args[7]
+  building_permits_input <- args[2]
+  score_output <- args[3]
+  variant_id <- args[4]
+  variant_label <- args[5]
+  max_permit_year <- as.integer(args[6])
 } else {
   stop(
-    "FATAL: Script requires 7 args: <permits_input> <score_output> <metadata_output> <stage1_terms_output> <stage1_table_output> <stage2_table_output> <plot_output>",
+    "FATAL: Script requires 6 args: <permits_input> <building_permits_input> <score_output> <variant_id> <variant_label> <max_permit_year>",
     call. = FALSE
   )
 }
+if (!is.finite(max_permit_year)) {
+  stop("FATAL: max_permit_year must be a valid integer.", call. = FALSE)
+}
 
-variant_id <- if (length(args) >= 8) args[8] else "restricted_renovation"
-variant_label <- if (length(args) >= 9) args[9] else "Restricted renovation"
-
-permits <- load_uncertainty_permits(permits_input)
+permits <- load_uncertainty_permits(permits_input) %>%
+  filter(year <= max_permit_year)
+classification_result <- classify_restricted_renovation_permits(permits, building_permits_input)
+permits <- classification_result$filtered_permits
 config <- default_uncertainty_config()
 
 result <- build_residualized_uncertainty_index(
@@ -53,47 +54,15 @@ result <- build_residualized_uncertainty_index(
   stage1_outcome = "log_processing_time",
   drop_covariates = c("share_bach_plus"),
   construction_rule = paste(
-    "Through-2022 baseline residualized score keeping all non-renovation high-discretion permits",
+    paste0("Through-", max_permit_year, " baseline residualized score keeping all non-renovation high-discretion permits"),
     "and only broad substantive renovation text buckets:",
     "addition_expansion, unit_reconfiguration, tenant_commercial_buildout,",
     "rehab_interior_remodel, facade_masonry_envelope, systems_mep."
   )
 )
 
-result$metadata <- result$metadata %>%
-  mutate(
-    variant_label = .env$variant_label,
-    n_input_permits = nrow(permits),
-    n_kept_renovation_permits = sum(permits$permit_type_clean == "renovation", na.rm = TRUE),
-    n_nonrenovation_permits = sum(permits$permit_type_clean != "renovation", na.rm = TRUE),
-    renovation_keep_buckets = paste(
-      c(
-        "addition_expansion",
-        "unit_reconfiguration",
-        "tenant_commercial_buildout",
-        "rehab_interior_remodel",
-        "facade_masonry_envelope",
-        "systems_mep"
-      ),
-      collapse = ";"
-    )
-  )
-
 write_csv(result$alderman_index, score_output)
-write_csv(result$metadata, metadata_output)
-write_csv(result$stage1_terms, stage1_terms_output)
 
-write_stage1_regression_table(result$stage1_model, stage1_table_output, result$stage1_outcome)
-if (!is.null(result$stage2_model)) {
-  write_stage2_regression_table(result$stage2_model, stage2_table_output)
-}
-write_uncertainty_plot(result$alderman_index, plot_output)
-
-message("Saved restricted-renovation score outputs:")
+message("Saved restricted-renovation score:")
 message("  Variant: ", variant_label)
 message("  Score: ", score_output)
-message("  Metadata: ", metadata_output)
-message("  Stage 1 terms: ", stage1_terms_output)
-message("  Stage 1 table: ", stage1_table_output)
-message("  Stage 2 table: ", stage2_table_output)
-message("  Plot: ", plot_output)
