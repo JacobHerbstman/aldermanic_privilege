@@ -76,14 +76,6 @@ paired_covariate_catalog <- bind_rows(
   covariate_catalog
 )
 
-fmt_table_num <- function(x, digits = 2) {
-  ifelse(is.finite(x), formatC(x, digits = digits, format = "f", big.mark = ","), "")
-}
-
-fmt_int <- function(x) {
-  ifelse(is.finite(x), formatC(round(x), digits = 0, format = "d", big.mark = ","), "")
-}
-
 message("Loading parcel geometries...")
 parcel_geometry <- st_read("../input/parcels_with_geometry.gpkg", quiet = TRUE) %>%
   mutate(pin = as.character(pin)) %>%
@@ -274,19 +266,37 @@ paired_tex_lines <- c(
 for (i in seq_len(nrow(paired_balance_rows))) {
   row_i <- paired_balance_rows[i, ]
   digits_i <- row_i$balance_digits[[1]]
+  lenient_mean <- row_i$lenient_mean[[1]]
+  strict_mean <- row_i$strict_mean[[1]]
+  difference <- row_i$difference[[1]]
+  se <- row_i$se[[1]]
+  p_value <- row_i$p_value[[1]]
+  normalized_difference <- row_i$normalized_difference[[1]]
+  n_segments <- row_i$n_segments[[1]]
+  n_ward_pairs <- row_i$n_ward_pairs[[1]]
+
+  lenient_display <- if (is.finite(lenient_mean)) formatC(lenient_mean, digits = digits_i, format = "f", big.mark = ",") else ""
+  strict_display <- if (is.finite(strict_mean)) formatC(strict_mean, digits = digits_i, format = "f", big.mark = ",") else ""
+  difference_display <- if (is.finite(difference)) formatC(difference, digits = digits_i, format = "f", big.mark = ",") else ""
+  se_display <- if (is.finite(se)) formatC(se, digits = digits_i, format = "f", big.mark = ",") else ""
+  p_value_display <- if (is.finite(p_value)) formatC(p_value, digits = 3, format = "f", big.mark = ",") else ""
+  normalized_display <- if (is.finite(normalized_difference)) formatC(normalized_difference, digits = 3, format = "f", big.mark = ",") else ""
+  n_segments_display <- if (is.finite(n_segments)) formatC(round(n_segments), digits = 0, format = "d", big.mark = ",") else ""
+  n_ward_pairs_display <- if (is.finite(n_ward_pairs)) formatC(round(n_ward_pairs), digits = 0, format = "d", big.mark = ",") else ""
+
   paired_tex_lines <- c(
     paired_tex_lines,
     sprintf(
       "%s & %s & %s & %s & %s & %s & %s & %s & %s \\\\",
       row_i$covariate_label[[1]],
-      fmt_table_num(row_i$lenient_mean[[1]], digits_i),
-      fmt_table_num(row_i$strict_mean[[1]], digits_i),
-      fmt_table_num(row_i$difference[[1]], digits_i),
-      fmt_table_num(row_i$se[[1]], digits_i),
-      fmt_table_num(row_i$p_value[[1]], 3),
-      fmt_table_num(row_i$normalized_difference[[1]], 3),
-      fmt_int(row_i$n_segments[[1]]),
-      fmt_int(row_i$n_ward_pairs[[1]])
+      lenient_display,
+      strict_display,
+      difference_display,
+      se_display,
+      p_value_display,
+      normalized_display,
+      n_segments_display,
+      n_ward_pairs_display
     )
   )
 }

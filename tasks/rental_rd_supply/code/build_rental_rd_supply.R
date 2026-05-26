@@ -404,29 +404,16 @@ for (sample_name in c("all", "clean_location", "pruned_segments", "clean_locatio
 bins <- bind_rows(bin_rows)
 write_csv(bins, sprintf("../output/rental_rd_supply_bins_bw%s.csv", bandwidth_label))
 
-format_ppml_subtitle <- function(sample_name) {
-  result <- ppml %>%
-    filter(sample == sample_name, count_definition == "floorplan_month")
-  if (nrow(result) != 1L) {
-    return(sprintf("Floorplan-month counts per segment-month-bin, %.0fft", bandwidth_ft))
-  }
-  stars <- case_when(
-    result$p_value < 0.01 ~ "***",
-    result$p_value < 0.05 ~ "**",
-    result$p_value < 0.10 ~ "*",
-    TRUE ~ ""
-  )
-  sprintf(
-    "PPML jump = %.1f%%%s (SE %.1f), N = %s, %.0fft",
-    result$pct_change,
-    stars,
-    100 * result$std_error,
-    format(result$n_obs, big.mark = ","),
-    bandwidth_ft
-  )
-}
+level_plot_defs <- tibble::tribble(
+  ~sample_name, ~title, ~output_path,
+  "all", "Rental Listing Supply by Side of Ward Boundary", sprintf("../output/rental_rd_supply_levels_bw%s.pdf", bandwidth_label),
+  "clean_location", "Rental Listing Supply by Side of Ward Boundary: Clean Location Sample", sprintf("../output/rental_rd_supply_levels_clean_location_bw%s.pdf", bandwidth_label),
+  "pruned_segments", "Rental Listing Supply by Side of Ward Boundary: Pruned Segments", sprintf("../output/rental_rd_supply_levels_pruned_segments_bw%s.pdf", bandwidth_label),
+  "clean_location_pruned", "Rental Listing Supply by Side of Ward Boundary: Clean Location + Pruned Segments", sprintf("../output/rental_rd_supply_levels_clean_location_pruned_bw%s.pdf", bandwidth_label)
+)
 
-plot_supply_levels <- function(sample_name, title, output_path) {
+for (i in seq_len(nrow(level_plot_defs))) {
+  sample_name <- level_plot_defs$sample_name[i]
   d_plot <- bins %>%
     filter(sample == sample_name) %>%
     mutate(side = factor(side, levels = c("Less Stringent", "More Stringent")))
@@ -434,13 +421,34 @@ plot_supply_levels <- function(sample_name, title, output_path) {
     stop(sprintf("No binned supply rows for sample %s.", sample_name), call. = FALSE)
   }
 
+  ppml_result <- ppml %>%
+    filter(sample == sample_name, count_definition == "floorplan_month")
+  if (nrow(ppml_result) == 1L) {
+    stars <- case_when(
+      ppml_result$p_value < 0.01 ~ "***",
+      ppml_result$p_value < 0.05 ~ "**",
+      ppml_result$p_value < 0.10 ~ "*",
+      TRUE ~ ""
+    )
+    plot_subtitle <- sprintf(
+      "PPML jump = %.1f%%%s (SE %.1f), N = %s, %.0fft",
+      ppml_result$pct_change,
+      stars,
+      100 * ppml_result$std_error,
+      format(ppml_result$n_obs, big.mark = ","),
+      bandwidth_ft
+    )
+  } else {
+    plot_subtitle <- sprintf("Floorplan-month counts per segment-month-bin, %.0fft", bandwidth_ft)
+  }
+
   plot <- ggplot() +
     geom_vline(xintercept = 0, color = "gray30", linetype = "dashed", linewidth = 0.7) +
     geom_point(data = d_plot, aes(x = bin_center, y = mean_floorplan_months, color = side), size = 2.4) +
     scale_color_manual(values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"), name = NULL) +
     labs(
-      title = title,
-      subtitle = format_ppml_subtitle(sample_name),
+      title = level_plot_defs$title[i],
+      subtitle = plot_subtitle,
       x = "Distance to ward boundary (feet; positive = more stringent side)",
       y = "Mean floorplan-month count"
     ) +
@@ -448,7 +456,7 @@ plot_supply_levels <- function(sample_name, title, output_path) {
     theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
   ggsave(
-    output_path,
+    level_plot_defs$output_path[i],
     plot,
     width = 8.6,
     height = 6,
@@ -456,27 +464,6 @@ plot_supply_levels <- function(sample_name, title, output_path) {
     bg = "white"
   )
 }
-
-plot_supply_levels(
-  "all",
-  "Rental Listing Supply by Side of Ward Boundary",
-  sprintf("../output/rental_rd_supply_levels_bw%s.pdf", bandwidth_label)
-)
-plot_supply_levels(
-  "clean_location",
-  "Rental Listing Supply by Side of Ward Boundary: Clean Location Sample",
-  sprintf("../output/rental_rd_supply_levels_clean_location_bw%s.pdf", bandwidth_label)
-)
-plot_supply_levels(
-  "pruned_segments",
-  "Rental Listing Supply by Side of Ward Boundary: Pruned Segments",
-  sprintf("../output/rental_rd_supply_levels_pruned_segments_bw%s.pdf", bandwidth_label)
-)
-plot_supply_levels(
-  "clean_location_pruned",
-  "Rental Listing Supply by Side of Ward Boundary: Clean Location + Pruned Segments",
-  sprintf("../output/rental_rd_supply_levels_clean_location_pruned_bw%s.pdf", bandwidth_label)
-)
 
 plot_bins <- ggplot(bins, aes(x = bin_center, y = mean_floorplan_months, color = side)) +
   geom_vline(xintercept = 0, color = "gray30", linetype = "dashed", linewidth = 0.7) +
