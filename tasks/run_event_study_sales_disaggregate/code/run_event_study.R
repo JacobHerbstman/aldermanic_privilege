@@ -1,20 +1,20 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/event_study_plot_helpers.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
 # panel_mode <- "cohort_2015"
 # treatment_type <- "continuous"
 # include_hedonics <- TRUE
-# control_mode <- "amenity"
 # time_unit <- "yearly"
 # fe_type <- "strict_pair_x_year"
 # weighting <- "uniform"
-# bandwidth <- 300
+# bandwidth <- 304.8
 # post_window <- "full"
 # geo_fe_level <- "ward_pair"
 # cluster_level <- "block"
-# bandwidth_label <- "300m"
+# control_mode <- "amenity"
+# bandwidth_label <- "1000ft"
+
+source("../../setup_environment/code/packages.R")
+source("../../_lib/event_study_plot_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -619,7 +619,6 @@ if (TREATMENT_TYPE == "continuous") {
     display_suffix = "%"
   )
 
-  ggsave(sprintf("../output/event_study_%s.pdf", suffix), directional_plots$facet, width = 7, height = 6, bg = "white")
   ggsave(sprintf("../output/event_study_combined_%s.pdf", suffix), directional_plots$combined, width = 7, height = 4.5, bg = "white")
   if (WRITE_SIDECARS) {
     write_csv(coefficients, file.path(SIDECAR_OUTPUT_DIR, sprintf("event_study_coefficients_%s.csv", suffix)))

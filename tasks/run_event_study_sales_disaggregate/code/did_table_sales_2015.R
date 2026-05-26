@@ -1,33 +1,27 @@
-source("../../setup_environment/code/packages.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
-# bandwidth <- 300
+# bandwidth <- 304.8
 # weighting <- "uniform"
-# output_tex <- "../output/did_table_sales_2015_uniform_300m_geo_wardpair_clust_block.tex"
+# bandwidth_label <- "1000ft"
 # table_mode <- "amenity"
 # panel_mode <- "cohort_2015"
 
+source("../../setup_environment/code/packages.R")
+
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(bandwidth, weighting, output_tex, table_mode, panel_mode)
+  args <- c(bandwidth, weighting, bandwidth_label, table_mode, panel_mode)
 }
 
-if (length(args) >= 4) {
-  bandwidth <- as.numeric(args[1])
-  weighting <- args[2]
-  output_tex <- args[3]
-  table_mode <- args[4]
-  panel_mode <- if (length(args) >= 5) args[5] else "cohort_2015"
-} else if (length(args) >= 3) {
-  bandwidth <- as.numeric(args[1])
-  weighting <- args[2]
-  output_tex <- args[3]
-  table_mode <- "baseline"
-  panel_mode <- if (length(args) >= 4) args[4] else "cohort_2015"
-} else {
-  stop("FATAL: Script requires args: <bandwidth> <weighting> <output_tex> [<table_mode>] [<panel_mode>]", call. = FALSE)
+if (length(args) != 5) {
+  stop("FATAL: Script requires args: <bandwidth> <weighting> <bandwidth_label> <table_mode> <panel_mode>", call. = FALSE)
 }
+
+bandwidth <- as.numeric(args[1])
+weighting <- args[2]
+bandwidth_label <- args[3]
+table_mode <- args[4]
+panel_mode <- args[5]
 
 if (!is.finite(bandwidth) || bandwidth <= 0) {
   stop("bandwidth must be positive.", call. = FALSE)
@@ -41,6 +35,17 @@ if (!table_mode %in% c("baseline", "amenity")) {
 if (!panel_mode %in% c("cohort_2015", "cohort_2023", "stacked_implementation")) {
   stop("panel_mode must be one of: cohort_2015, cohort_2023, stacked_implementation", call. = FALSE)
 }
+if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
+  stop("bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+}
+
+panel_label <- switch(
+  panel_mode,
+  "cohort_2015" = "2015",
+  "cohort_2023" = "2023",
+  "stacked_implementation" = "stacked_implementation"
+)
+output_tex <- sprintf("../output/did_table_sales_%s_%s_%s_geo_wardpair_clust_block.tex", panel_label, weighting, bandwidth_label)
 
 min_segment_length_raw <- Sys.getenv("MIN_SEGMENT_LENGTH_FT", "")
 min_segment_length_ft <- if (nzchar(min_segment_length_raw)) suppressWarnings(as.numeric(min_segment_length_raw)) else NA_real_
