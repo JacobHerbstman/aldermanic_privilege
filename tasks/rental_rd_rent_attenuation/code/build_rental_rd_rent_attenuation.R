@@ -26,64 +26,27 @@ rent <- read_parquet(sprintf("../input/rental_rd_characteristics_panel_bw%s.parq
   as_tibble()
 
 sample_defs <- tibble::tribble(
-  ~sample, ~sample_label,
-  "all", "All",
-  "clean_location", "Clean location",
-  "no_modal_pair_change", "No modal pair change",
-  "no_modal_ward_change", "No modal ward change",
-  "no_questionable_address", "No questionable address"
+  ~sample, ~sample_label, ~filter_column,
+  "all", "All", NA_character_,
+  "clean_location", "Clean location", "flag_clean_location_sample",
+  "no_modal_pair_change", "No modal pair change", "flag_no_modal_pair_change_sample",
+  "no_modal_ward_change", "No modal ward change", "flag_no_modal_ward_change_sample",
+  "no_questionable_address", "No questionable address", "flag_no_questionable_address_sample"
 )
-
-filter_sample <- function(df, sample_name) {
-  if (sample_name == "all") {
-    return(df)
-  }
-  if (sample_name == "clean_location") {
-    return(df %>% filter(flag_clean_location_sample))
-  }
-  if (sample_name == "no_modal_pair_change") {
-    return(df %>% filter(flag_no_modal_pair_change_sample))
-  }
-  if (sample_name == "no_modal_ward_change") {
-    return(df %>% filter(flag_no_modal_ward_change_sample))
-  }
-  if (sample_name == "no_questionable_address") {
-    return(df %>% filter(flag_no_questionable_address_sample))
-  }
-  stop(sprintf("Unknown sample: %s", sample_name), call. = FALSE)
-}
-
-format_tex_number <- function(x, digits = 2) {
-  ifelse(
-    is.na(x),
-    "",
-    formatC(x, format = "f", digits = digits, big.mark = ",")
-  )
-}
-
-format_tex_int <- function(x) {
-  ifelse(
-    is.na(x),
-    "",
-    formatC(round(x), format = "d", big.mark = ",")
-  )
-}
-
-tex_stars <- function(p_value) {
-  case_when(
-    is.na(p_value) ~ "",
-    p_value < 0.01 ~ "***",
-    p_value < 0.05 ~ "**",
-    p_value < 0.10 ~ "*",
-    TRUE ~ ""
-  )
-}
 
 attenuation_rows <- list()
 for (i in seq_len(nrow(sample_defs))) {
-  sample_name <- sample_defs$sample[i]
-  sample_label <- sample_defs$sample_label[i]
-  d_sample <- filter_sample(rent, sample_name) %>%
+  sample_name <- sample_defs$sample[[i]]
+  sample_label <- sample_defs$sample_label[[i]]
+  filter_column <- sample_defs$filter_column[[i]]
+  d_sample <- rent
+  if (!is.na(filter_column)) {
+    if (!filter_column %in% names(d_sample)) {
+      stop(sprintf("Missing sample flag column: %s", filter_column), call. = FALSE)
+    }
+    d_sample <- d_sample %>% filter(.data[[filter_column]])
+  }
+  d_sample <- d_sample %>%
     filter(
       is.finite(log_sqft),
       is.finite(log_beds),
@@ -161,130 +124,4 @@ attenuation <- bind_rows(attenuation_rows) %>%
     sample_label = factor(sample_label, levels = sample_defs$sample_label)
   )
 write_csv(attenuation, sprintf("../output/rental_rd_rent_attenuation_bw%s.csv", bandwidth_label))
-
-write_attenuation_table <- function(sample_name, output_path, include_clean_note = FALSE) {
-  table_data <- attenuation %>%
-    filter(sample == sample_name) %>%
-    mutate(
-      spec_label = as.character(spec_label),
-      coefficient = paste0(format_tex_number(100 * estimate, 2), tex_stars(p_value)),
-      std_error_cell = paste0("(", format_tex_number(100 * std_error, 2), ")")
-    ) %>%
-    arrange(match(spec_label, c("No controls", "Hedonics", "Hedonics + amenities")))
-
-  if (nrow(table_data) != 3L) {
-    stop(sprintf("Expected three rent attenuation rows for sample %s.", sample_name), call. = FALSE)
-  }
-
-  clean_note <- if (include_clean_note) {
-    " The clean-location sample excludes observations with modal-coordinate ward, pair, or distance-instability flags."
-  } else {
-    ""
-  }
-
-  table_lines <- c(
-    "\\begingroup",
-    "\\centering",
-    "\\begin{tabular}{lccc}",
-    "\\toprule",
-    " & (1) & (2) & (3) \\\\",
-    "\\midrule",
-    sprintf(
-      "Stringency Index & %s & %s & %s \\\\",
-      table_data$coefficient[1],
-      table_data$coefficient[2],
-      table_data$coefficient[3]
-    ),
-    sprintf(
-      " & %s & %s & %s \\\\",
-      table_data$std_error_cell[1],
-      table_data$std_error_cell[2],
-      table_data$std_error_cell[3]
-    ),
-    "\\\\",
-    sprintf(
-      "N & %s & %s & %s \\\\",
-      format_tex_int(table_data$n_obs[1]),
-      format_tex_int(table_data$n_obs[2]),
-      format_tex_int(table_data$n_obs[3])
-    ),
-    sprintf(
-      "Dep. Var. Mean & %s & %s & %s \\\\",
-      format_tex_number(table_data$dep_var_mean[1], 0),
-      format_tex_number(table_data$dep_var_mean[2], 0),
-      format_tex_number(table_data$dep_var_mean[3], 0)
-    ),
-    sprintf(
-      "Segments & %s & %s & %s \\\\",
-      format_tex_int(table_data$n_segments[1]),
-      format_tex_int(table_data$n_segments[2]),
-      format_tex_int(table_data$n_segments[3])
-    ),
-    sprintf(
-      "Ward Pairs & %s & %s & %s \\\\",
-      format_tex_int(table_data$n_ward_pairs[1]),
-      format_tex_int(table_data$n_ward_pairs[2]),
-      format_tex_int(table_data$n_ward_pairs[3])
-    ),
-    "Hedonic Controls & & $\\checkmark$ & $\\checkmark$ \\\\",
-    "Amenity Controls & & & $\\checkmark$ \\\\",
-    "Segment $\\times$ Month FE & $\\checkmark$ & $\\checkmark$ & $\\checkmark$ \\\\",
-    "Cluster Level & Segment & Segment & Segment \\\\",
-    "\\bottomrule",
-    "\\end{tabular}",
-    sprintf(
-      "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Entries are percent log-rent effects of a one-standard-deviation increase in the aldermanic stringency index, with standard errors in parentheses. The sample uses listed-rent floorplan-month observations from 2014--2022 within %sft of ward boundaries. Dependent-variable means are real listed rents in 2022 dollars. Hedonic controls are log square feet, log bedrooms, log bathrooms, and building type. Amenity controls are distances to the nearest school, CPD park-boundary polygon, major street, CTA stop open by the listing month, and Lake Michigan.%s * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
-      bandwidth_label,
-      clean_note
-    ),
-    "\\par\\endgroup"
-  )
-
-  writeLines(table_lines, output_path)
-}
-
-write_attenuation_table(
-  "all",
-  sprintf("../output/rental_rd_rent_attenuation_bw%s.tex", bandwidth_label),
-  include_clean_note = FALSE
-)
-write_attenuation_table(
-  "clean_location",
-  sprintf("../output/rental_rd_rent_attenuation_clean_location_bw%s.tex", bandwidth_label),
-  include_clean_note = TRUE
-)
-
-attenuation_plot <- ggplot(
-  attenuation,
-  aes(x = spec_label, y = estimate, ymin = ci_low, ymax = ci_high, color = sample_label)
-) +
-  geom_hline(yintercept = 0, color = "gray55", linetype = "dotted") +
-  geom_pointrange(position = position_dodge(width = 0.55), linewidth = 0.45) +
-  labs(
-    title = "Listed-Rent Stringency Estimates With Hedonic And Amenity Controls",
-    subtitle = sprintf("Common complete-case sample within %.0fft; segment-by-month FE", bandwidth_ft),
-    x = NULL,
-    y = "Coefficient on stringency index",
-    color = NULL
-  ) +
-  theme_bw(base_size = 10) +
-  theme(legend.position = "bottom", panel.grid.minor = element_blank())
-
-ggsave(
-  sprintf("../output/rental_rd_rent_attenuation_bw%s.pdf", bandwidth_label),
-  attenuation_plot,
-  width = 9,
-  height = 5.5,
-  dpi = 300,
-  bg = "white"
-)
-ggsave(
-  sprintf("../output/rental_rd_rent_attenuation_bw%s.png", bandwidth_label),
-  attenuation_plot,
-  width = 9,
-  height = 5.5,
-  dpi = 220,
-  bg = "white"
-)
-
-message("Saved listed-rent RD attenuation outputs.")
+message("Saved listed-rent RD attenuation estimates.")
