@@ -51,6 +51,10 @@ priority_dt <- merge(
   style_dt[, .(
     task,
     cli_scripts,
+    default_sidecar_output_count,
+    fixed_path_cli_arg_cmds,
+    scripts_with_file_exists,
+    file_exists_refs,
     named_local_functions,
     cli_scripts_gt2_local_helpers,
     non_lib_source_calls,
@@ -64,6 +68,8 @@ priority_dt <- merge(
 
 for (col in c(
   "cli_scripts", "named_local_functions", "cli_scripts_gt2_local_helpers",
+  "default_sidecar_output_count", "fixed_path_cli_arg_cmds",
+  "scripts_with_file_exists", "file_exists_refs",
   "non_lib_source_calls", "task_local_helper_files", "single_use_task_helper_files",
   "n_tex_refs", "n_tex_files", "n_paper_refs", "n_slide_refs"
 )) {
@@ -73,8 +79,11 @@ for (col in c(
 priority_dt[, priority_stage := fifelse(n_tex_refs > 0L, "paper_slides_first", "remaining_active")]
 priority_dt[, priority_score :=
   100000L * as.integer(n_tex_refs > 0L) +
+  5000L * default_sidecar_output_count +
+  4000L * fixed_path_cli_arg_cmds +
   1000L * cli_scripts_gt2_local_helpers +
   100L * named_local_functions +
+  50L * file_exists_refs +
   25L * non_lib_source_calls +
   10L * single_use_task_helper_files +
   5L * n_tex_refs +
@@ -100,6 +109,15 @@ priority_dt[, priority_reason := vapply(seq_len(.N), function(i) {
       sprintf("%d CLI scripts with >2 local helpers", priority_dt$cli_scripts_gt2_local_helpers[i])
     )
   }
+  if (priority_dt$default_sidecar_output_count[i] > 0L) {
+    reasons <- c(reasons, sprintf("%d sidecar/QC outputs in default all", priority_dt$default_sidecar_output_count[i]))
+  }
+  if (priority_dt$fixed_path_cli_arg_cmds[i] > 0L) {
+    reasons <- c(reasons, sprintf("%d recipe commands pass fixed paths", priority_dt$fixed_path_cli_arg_cmds[i]))
+  }
+  if (priority_dt$file_exists_refs[i] > 0L) {
+    reasons <- c(reasons, sprintf("%d file.exists refs", priority_dt$file_exists_refs[i]))
+  }
   if (priority_dt$named_local_functions[i] > 0L) {
     reasons <- c(reasons, sprintf("%d local helper defs in CLI scripts", priority_dt$named_local_functions[i]))
   }
@@ -122,7 +140,9 @@ priority_dt[, priority_rank := seq_len(.N)]
 setcolorder(priority_dt, c(
   "priority_rank", "task", "priority_stage", "priority_score", "priority_reason",
   "n_tex_refs", "n_paper_refs", "n_slide_refs", "n_tex_files",
-  "cli_scripts", "named_local_functions", "cli_scripts_gt2_local_helpers",
+  "cli_scripts", "default_sidecar_output_count", "fixed_path_cli_arg_cmds",
+  "scripts_with_file_exists", "file_exists_refs",
+  "named_local_functions", "cli_scripts_gt2_local_helpers",
   "non_lib_source_calls", "task_local_helper_files", "single_use_task_helper_files",
   "tex_priority"
 ))
@@ -137,8 +157,8 @@ lines <- c(
   sprintf("- Style file: `%s`", args[2]),
   sprintf("- Tasks ranked: %d", nrow(priority_dt)),
   "",
-  "| Rank | Task | Stage | Tex Refs | Local Functions | CLI Scripts >2 Helpers | Non-_lib Sources | Single-Use Helpers | Reason |",
-  "|---:|---|---|---:|---:|---:|---:|---:|---|"
+  "| Rank | Task | Stage | Tex Refs | Sidecar `all` Outputs | Fixed Path CLI Cmds | File Exists Refs | Local Functions | CLI Scripts >2 Helpers | Reason |",
+  "|---:|---|---|---:|---:|---:|---:|---:|---:|---|"
 )
 
 for (i in seq_len(nrow(priority_dt))) {
@@ -146,15 +166,16 @@ for (i in seq_len(nrow(priority_dt))) {
   lines <- c(
     lines,
     sprintf(
-      "| %d | %s | %s | %d | %d | %d | %d | %d | %s |",
+      "| %d | %s | %s | %d | %d | %d | %d | %d | %d | %s |",
       rr$priority_rank,
       rr$task,
       rr$priority_stage,
       rr$n_tex_refs,
+      rr$default_sidecar_output_count,
+      rr$fixed_path_cli_arg_cmds,
+      rr$file_exists_refs,
       rr$named_local_functions,
       rr$cli_scripts_gt2_local_helpers,
-      rr$non_lib_source_calls,
-      rr$single_use_task_helper_files,
       rr$priority_reason
     )
   )

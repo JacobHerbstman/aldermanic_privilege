@@ -227,6 +227,10 @@ queue_dt <- merge(
   style_dt[, .(
     task,
     cli_scripts,
+    default_sidecar_output_count,
+    fixed_path_cli_arg_cmds,
+    scripts_with_file_exists,
+    file_exists_refs,
     named_local_functions,
     cli_scripts_gt2_local_helpers,
     non_lib_source_calls,
@@ -240,6 +244,8 @@ queue_dt[, paper_root_tasks := unlist(paper_root_map)]
 
 for (col in c(
   "cli_scripts", "named_local_functions", "cli_scripts_gt2_local_helpers",
+  "default_sidecar_output_count", "fixed_path_cli_arg_cmds",
+  "scripts_with_file_exists", "file_exists_refs",
   "non_lib_source_calls", "single_use_task_helper_files", "n_paper_refs"
 )) {
   queue_dt[is.na(get(col)), (col) := 0L]
@@ -252,7 +258,9 @@ queue_dt[, cleanup_rank := seq_len(.N)]
 queue_dt[, branch_bucket_rank := NULL]
 setcolorder(queue_dt, c(
   "cleanup_rank", "task", "branch_bucket", "min_steps_to_paper", "paper_root_tasks",
-  "n_paper_refs", "cli_scripts", "named_local_functions",
+  "n_paper_refs", "cli_scripts", "default_sidecar_output_count",
+  "fixed_path_cli_arg_cmds", "scripts_with_file_exists", "file_exists_refs",
+  "named_local_functions",
   "cli_scripts_gt2_local_helpers", "non_lib_source_calls",
   "single_use_task_helper_files", "topo_position"
 ))
@@ -266,8 +274,8 @@ lines <- c(
   sprintf("- Tasks in paper pipeline ancestry: %d", nrow(queue_dt)),
   sprintf("- Deprecated active tasks excluded: %s", paste(excluded_tasks, collapse = ", ")),
   "",
-  "| Rank | Task | Branch | Steps To Paper | Paper Roots | Paper Refs | Local Functions | CLI Scripts >2 Helpers | Non-_lib Sources | Single-Use Helpers |",
-  "|---:|---|---|---:|---|---:|---:|---:|---:|---:|"
+  "| Rank | Task | Branch | Steps To Paper | Paper Roots | Paper Refs | Sidecar `all` Outputs | Fixed Path CLI Cmds | File Exists Refs | Local Functions | CLI Scripts >2 Helpers |",
+  "|---:|---|---|---:|---|---:|---:|---:|---:|---:|---:|"
 )
 
 for (i in seq_len(nrow(queue_dt))) {
@@ -275,17 +283,18 @@ for (i in seq_len(nrow(queue_dt))) {
   lines <- c(
     lines,
     sprintf(
-      "| %d | %s | %s | %d | %s | %d | %d | %d | %d | %d |",
+      "| %d | %s | %s | %d | %s | %d | %d | %d | %d | %d | %d |",
       rr$cleanup_rank,
       rr$task,
       rr$branch_bucket,
       rr$min_steps_to_paper,
       rr$paper_root_tasks,
       rr$n_paper_refs,
+      rr$default_sidecar_output_count,
+      rr$fixed_path_cli_arg_cmds,
+      rr$file_exists_refs,
       rr$named_local_functions,
-      rr$cli_scripts_gt2_local_helpers,
-      rr$non_lib_source_calls,
-      rr$single_use_task_helper_files
+      rr$cli_scripts_gt2_local_helpers
     )
   )
 }

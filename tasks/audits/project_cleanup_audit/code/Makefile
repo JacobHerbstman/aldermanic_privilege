@@ -15,7 +15,9 @@ all: \
 	../output/legacy_task_map.csv \
 	../output/legacy_task_map.md \
 	../output/task_linearization_priority.csv \
-	../output/task_linearization_priority.md
+	../output/task_linearization_priority.md \
+	../output/repo_cleanup_queue.csv \
+	../output/repo_cleanup_queue.md
 
 ../output/task_dependency_edges.csv: build_cleanup_manifest.R | ../output
 	Rscript build_cleanup_manifest.R
@@ -47,6 +49,11 @@ all: \
 	Rscript build_task_linearization_priority.R ../output/active_tex_task_usage.csv ../output/task_style_conformance_after.csv ../output/task_linearization_priority.csv ../output/task_linearization_priority.md
 
 ../output/task_linearization_priority.md: ../output/task_linearization_priority.csv
+	@test -s "$@"
+../output/repo_cleanup_queue.csv: build_repo_cleanup_queue.R ../output/active_tex_task_usage.csv ../output/task_cleanup_summary.csv ../output/task_style_conformance_after.csv ../output/paper_pipeline_cleanup_queue.csv | ../output
+	Rscript build_repo_cleanup_queue.R
+
+../output/repo_cleanup_queue.md: ../output/repo_cleanup_queue.csv
 	@test -s "$@"
 ../output/pruned_outputs.csv: prune_stale_outputs.R ../output/output_keep_manifest.csv | ../output
 	Rscript prune_stale_outputs.R "$@"

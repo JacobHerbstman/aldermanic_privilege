@@ -26,8 +26,10 @@ merged <- merge(before, after, by = key_cols, suffixes = c("_before", "_after"),
 
 num_cols <- c(
   "target_count", "comment_count", "recursive_make_refs", "path_alias_count",
+  "all_output_count", "default_sidecar_output_count", "recipe_cli_command_count",
+  "fixed_path_cli_arg_cmds",
   "cli_scripts", "cli_scripts_compliant", "cli_scripts_missing_named_assignments", "cli_scripts_placeholder_setwd",
-  "cli_scripts_with_exists_fallback",
+  "cli_scripts_with_exists_fallback", "scripts_with_file_exists", "file_exists_refs",
   "named_local_functions", "cli_scripts_gt2_local_helpers", "non_lib_source_calls",
   "task_local_helper_files", "single_use_task_helper_files"
 )
@@ -45,6 +47,10 @@ changed <- merged[
     comment_count_delta != 0 |
     recursive_make_refs_delta != 0 |
     path_alias_count_delta != 0 |
+    default_sidecar_output_count_delta != 0 |
+    fixed_path_cli_arg_cmds_delta != 0 |
+    scripts_with_file_exists_delta != 0 |
+    file_exists_refs_delta != 0 |
     cli_scripts_missing_named_assignments_delta != 0 |
     cli_scripts_placeholder_setwd_delta != 0 |
     cli_scripts_with_exists_fallback_delta != 0 |
@@ -70,6 +76,10 @@ lines <- c(
   sprintf("- comment_count delta (sum): %.0f", sum(merged$comment_count_delta, na.rm = TRUE)),
   sprintf("- recursive_make_refs delta (sum): %.0f", sum(merged$recursive_make_refs_delta, na.rm = TRUE)),
   sprintf("- path_alias_count delta (sum): %.0f", sum(merged$path_alias_count_delta, na.rm = TRUE)),
+  sprintf("- default_sidecar_output_count delta (sum): %.0f", sum(merged$default_sidecar_output_count_delta, na.rm = TRUE)),
+  sprintf("- fixed_path_cli_arg_cmds delta (sum): %.0f", sum(merged$fixed_path_cli_arg_cmds_delta, na.rm = TRUE)),
+  sprintf("- scripts_with_file_exists delta (sum): %.0f", sum(merged$scripts_with_file_exists_delta, na.rm = TRUE)),
+  sprintf("- file_exists_refs delta (sum): %.0f", sum(merged$file_exists_refs_delta, na.rm = TRUE)),
   sprintf("- cli_scripts_compliant delta (sum): %.0f", sum(merged$cli_scripts_compliant_delta, na.rm = TRUE)),
   sprintf("- cli_scripts_missing_named_assignments delta (sum): %.0f", sum(merged$cli_scripts_missing_named_assignments_delta, na.rm = TRUE)),
   sprintf("- cli_scripts_placeholder_setwd delta (sum): %.0f", sum(merged$cli_scripts_placeholder_setwd_delta, na.rm = TRUE)),
@@ -82,19 +92,20 @@ lines <- c(
   "",
   "## Per-task changes",
   "",
-  "| Task | Targets (before->after) | Comments (before->after) | Path aliases (before->after) | CLI compliant (before->after) | Local functions (before->after) | CLI scripts >2 helpers (before->after) | Non-_lib sources (before->after) | Single-use helpers (before->after) | Missing named assignments (before->after) | Placeholder setwd (before->after) | `exists()` fallbacks (before->after) |",
-  "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"
+  "| Task | Targets | Sidecar `all` outputs | Fixed path CLI cmds | File exists refs | CLI compliant | Local funcs | >2 helpers | Non-_lib sources | Single-use helpers | Missing named args | Placeholder setwd | `exists()` fallbacks |",
+  "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"
 )
 
 if (nrow(changed) > 0) {
   for (i in seq_len(nrow(changed))) {
     rr <- changed[i]
     lines <- c(lines, sprintf(
-      "| %s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s |",
+      "| %s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s | %s->%s |",
       rr$task,
       rr$target_count_before, rr$target_count_after,
-      rr$comment_count_before, rr$comment_count_after,
-      rr$path_alias_count_before, rr$path_alias_count_after,
+      rr$default_sidecar_output_count_before, rr$default_sidecar_output_count_after,
+      rr$fixed_path_cli_arg_cmds_before, rr$fixed_path_cli_arg_cmds_after,
+      rr$file_exists_refs_before, rr$file_exists_refs_after,
       rr$cli_scripts_compliant_before, rr$cli_scripts_compliant_after,
       rr$named_local_functions_before, rr$named_local_functions_after,
       rr$cli_scripts_gt2_local_helpers_before, rr$cli_scripts_gt2_local_helpers_after,

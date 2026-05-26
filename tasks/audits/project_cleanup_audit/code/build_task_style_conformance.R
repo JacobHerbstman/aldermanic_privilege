@@ -29,6 +29,36 @@ packages_path <- normalizePath(
   mustWork = FALSE
 )
 
+sidecar_output_pattern <- paste(c(
+  "audit",
+  "coverage",
+  "diagnostic",
+  "diagnostics",
+  "metadata",
+  "support",
+  "pretrend",
+  "coefficient",
+  "coefficients",
+  "rank_change",
+  "rank_changes",
+  "stability",
+  "review",
+  "manifest",
+  "qc",
+  "validation",
+  "unmatched",
+  "contract",
+  "assignment",
+  "multiplicity",
+  "sensitivity",
+  "robustness",
+  "placebo",
+  "permutation",
+  "comparison",
+  "year_diagnostics",
+  "sample_summary"
+), collapse = "|")
+
 list_active_tasks <- function() {
   dirs <- list.dirs(tasks_dir, recursive = FALSE, full.names = TRUE)
   dirs <- dirs[dir.exists(file.path(dirs, "code"))]
@@ -49,11 +79,39 @@ parse_makefile_targets <- function(path) {
   comment_count <- 0L
   recursive_make_refs <- 0L
   path_alias_count <- 0L
+  all_outputs <- character()
+  recipe_cli_lines <- character()
+  fixed_path_cli_lines <- character()
+
+  all_idx <- grep("^all\\s*:", txt)
+  if (length(all_idx) > 0) {
+    all_lines <- character()
+    j <- all_idx[1]
+    repeat {
+      all_lines <- c(all_lines, txt[j])
+      if (!grepl("\\\\\\s*$", txt[j]) || j >= length(txt)) {
+        break
+      }
+      j <- j + 1L
+    }
+    all_text <- paste(all_lines, collapse = " ")
+    all_outputs <- unique(str_extract_all(all_text, "\\.\\./output/[^[:space:]\\\\]+")[[1]])
+  }
 
   for (ln in txt) {
     s <- trimws(ln)
     if (startsWith(s, "#")) {
       comment_count <- comment_count + 1L
+    }
+    if (startsWith(ln, "\t") && grepl("\\b(Rscript|python3|python|julia)\\b", ln)) {
+      recipe_cli_lines <- c(recipe_cli_lines, s)
+      if (grepl(
+        "(\\.\\./(input|output|temp)/|\\$@|\\$\\$@|\\b[A-Z0-9_]*(INPUT|OUTPUT|PATH|SUMMARY|DIAGNOSTIC|METADATA|SUPPORT|COVERAGE)[A-Z0-9_]*=)",
+        s,
+        perl = TRUE
+      )) {
+        fixed_path_cli_lines <- c(fixed_path_cli_lines, s)
+      }
     }
     if (grepl("\\$\\(MAKE\\)\\s+-C\\s+\\.\\./\\.\\.", ln) || grepl("make\\s+-C\\s+\\.\\./\\.\\.", ln)) {
       recursive_make_refs <- recursive_make_refs + 1L
@@ -71,13 +129,20 @@ parse_makefile_targets <- function(path) {
 
   targets <- unique(targets)
   explicit_non_file_targets <- targets[!grepl("^(all|link-inputs)$", targets) & !grepl("/|\\$\\(", targets)]
+  sidecar_outputs <- all_outputs[grepl(sidecar_output_pattern, basename(all_outputs), ignore.case = TRUE)]
 
   list(
     target_count = length(targets),
     comment_count = comment_count,
     recursive_make_refs = recursive_make_refs,
     path_alias_count = path_alias_count,
-    explicit_non_file_targets = paste(explicit_non_file_targets, collapse = ";")
+    explicit_non_file_targets = paste(explicit_non_file_targets, collapse = ";"),
+    all_output_count = length(all_outputs),
+    default_sidecar_output_count = length(sidecar_outputs),
+    default_sidecar_outputs = paste(sidecar_outputs, collapse = ";"),
+    recipe_cli_command_count = length(recipe_cli_lines),
+    fixed_path_cli_arg_cmds = length(fixed_path_cli_lines),
+    fixed_path_cli_arg_examples = paste(head(fixed_path_cli_lines, 3), collapse = " || ")
   )
 }
 
@@ -155,6 +220,7 @@ script_rows <- rbindlist(lapply(list_active_tasks(), function(task) {
     has_setwd <- any(grepl("^#\\s*setwd\\(", txt))
     has_placeholder_setwd <- any(grepl('^#\\s*setwd\\([^)]*tasks/"task"/code', txt))
     has_exists_fallback <- grepl("(?m)^\\s*if\\s*\\(.*exists\\s*\\(", body, perl = TRUE)
+    file_exists_refs <- sum(grepl("file\\.exists\\s*\\(", txt))
     local_function_defs <- sum(grepl("^\\s*[A-Za-z.][A-Za-z0-9._]*\\s*<-\\s*function\\s*\\(", txt))
 
     source_matches <- str_match_all(
@@ -186,6 +252,7 @@ script_rows <- rbindlist(lapply(list_active_tasks(), function(task) {
       has_comment_setwd = has_setwd,
       has_placeholder_setwd = has_placeholder_setwd,
       has_exists_fallback = has_exists_fallback,
+      file_exists_refs = file_exists_refs,
       cli_header_compliant = !uses_cli || (
         has_block &&
           has_setwd &&
@@ -258,7 +325,13 @@ make_rows <- rbindlist(lapply(list_active_tasks(), function(task) {
       comment_count = NA_integer_,
       recursive_make_refs = NA_integer_,
       path_alias_count = NA_integer_,
-      explicit_non_file_targets = NA_character_
+      explicit_non_file_targets = NA_character_,
+      all_output_count = NA_integer_,
+      default_sidecar_output_count = NA_integer_,
+      default_sidecar_outputs = NA_character_,
+      recipe_cli_command_count = NA_integer_,
+      fixed_path_cli_arg_cmds = NA_integer_,
+      fixed_path_cli_arg_examples = NA_character_
     ))
   }
 
@@ -272,7 +345,13 @@ make_rows <- rbindlist(lapply(list_active_tasks(), function(task) {
     comment_count = as.integer(parsed$comment_count),
     recursive_make_refs = as.integer(parsed$recursive_make_refs),
     path_alias_count = as.integer(parsed$path_alias_count),
-    explicit_non_file_targets = parsed$explicit_non_file_targets
+    explicit_non_file_targets = parsed$explicit_non_file_targets,
+    all_output_count = as.integer(parsed$all_output_count),
+    default_sidecar_output_count = as.integer(parsed$default_sidecar_output_count),
+    default_sidecar_outputs = parsed$default_sidecar_outputs,
+    recipe_cli_command_count = as.integer(parsed$recipe_cli_command_count),
+    fixed_path_cli_arg_cmds = as.integer(parsed$fixed_path_cli_arg_cmds),
+    fixed_path_cli_arg_examples = parsed$fixed_path_cli_arg_examples
   )
 }), fill = TRUE)
 
@@ -285,6 +364,8 @@ summary_rows <- script_rows[, .(
   ),
   cli_scripts_placeholder_setwd = sum(uses_commandArgs & has_placeholder_setwd, na.rm = TRUE),
   cli_scripts_with_exists_fallback = sum(uses_commandArgs & has_exists_fallback, na.rm = TRUE),
+  scripts_with_file_exists = sum(file_exists_refs > 0L, na.rm = TRUE),
+  file_exists_refs = sum(file_exists_refs, na.rm = TRUE),
   named_local_functions = sum(fifelse(uses_commandArgs, named_local_functions, 0L), na.rm = TRUE),
   cli_scripts_gt2_local_helpers = sum(uses_commandArgs & named_local_functions > 2L, na.rm = TRUE),
   non_lib_source_calls = sum(fifelse(uses_commandArgs, non_lib_source_calls, 0L), na.rm = TRUE)
@@ -298,6 +379,8 @@ out[is.na(cli_scripts), `:=`(
   cli_scripts_missing_named_assignments = 0L,
   cli_scripts_placeholder_setwd = 0L,
   cli_scripts_with_exists_fallback = 0L,
+  scripts_with_file_exists = 0L,
+  file_exists_refs = 0L,
   named_local_functions = 0L,
   cli_scripts_gt2_local_helpers = 0L,
   non_lib_source_calls = 0L
