@@ -1,7 +1,7 @@
 # run_event_study_sales_disaggregate
 
-Purpose: Runs event study sales disaggregate specifications.
+Purpose: Runs paper-facing sales event-study and DID specifications.
 
-Produces: Produces files such as `output/did_coefficients_sales.csv`, `output/did_coefficients_sales_geo_wardpair_clust_block.csv`, `output/did_table_sales.csv` and related task-specific outputs in `output/`.
+Produces: The 2015 and stacked-implementation sales event-study PDFs and DID TeX tables used by the paper/archive draft.
 
 Approx. runtime: ~3-20 minutes.

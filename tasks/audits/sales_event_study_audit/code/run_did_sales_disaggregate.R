@@ -3,14 +3,14 @@
 # Compares 2012 (announcement) vs 2015 (implementation) timing
 # Produces a clean, publication-ready table
 
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 # CONFIGURATION
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/sales_event_study_audit/code")
 # bandwidth <- 300
 # weighting <- "triangular"
 # fe_type <- "strict_pair_x_year"

@@ -1,7 +1,7 @@
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/sales_event_study_audit/code")
 
 hedonic_vars <- c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")
 amenity_vars <- c("nearest_school_dist_m", "nearest_park_dist_m", "nearest_major_road_dist_m", "lake_michigan_dist_m")

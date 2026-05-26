@@ -1,18 +1,17 @@
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/sales_event_study_audit/code")
 
 bandwidth_m <- 304.8
 hedonic_vars <- c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")
 amenity_vars <- c("nearest_school_dist_m", "nearest_park_dist_m", "nearest_major_road_dist_m", "lake_michigan_dist_m")
 control_vars <- c(hedonic_vars, amenity_vars)
 
-message("Loading boundary-local origin-destination sales panel...")
-data_base <- read_parquet("../input/sales_transaction_panel_2015.parquet") %>%
+message("Loading nearest-boundary local-control sales diagnostic panel...")
+data_base <- read_parquet("../input/sales_transaction_panel_2015_all_valid.parquet") %>%
   as_tibble() %>%
   filter(
-    dist_m <= bandwidth_m,
     relative_year >= -5,
     relative_year <= 5,
     !is.na(strictness_change),
@@ -20,15 +19,28 @@ data_base <- read_parquet("../input/sales_transaction_panel_2015.parquet") %>%
     sale_price > 0,
     !is.na(block_id),
     block_id != "",
-    !is.na(ward_pair_id),
-    ward_pair_id != "",
-    !is.na(ward_pair_side),
-    ward_pair_side != ""
+    !is.na(ward_origin),
+    !is.na(nearest_pre_boundary_ward),
+    !is.na(nearest_pre_boundary_pair_id),
+    nearest_pre_boundary_pair_id != "",
+    !is.na(nearest_pre_boundary_dist_m),
+    nearest_pre_boundary_dist_m <= bandwidth_m,
+    event_point_origin_mismatch == FALSE
   ) %>%
   mutate(
+    ward_origin = as.character(ward_origin),
+    nearest_pre_boundary_ward = as.character(nearest_pre_boundary_ward),
+    event_pair_id = as.character(ward_pair_id),
+    local_pair_id = as.character(nearest_pre_boundary_pair_id),
+    local_pair_side = paste(local_pair_id, nearest_pre_boundary_ward, sep = "_"),
     post_treat = as.integer(relative_year >= 0) * strictness_change,
     weight = 1
-  )
+  ) %>%
+  filter(!is.na(local_pair_side), local_pair_side != "")
+
+if (any(data_base$ward_origin != data_base$nearest_pre_boundary_ward, na.rm = TRUE)) {
+  stop("Nearest-boundary side ward does not match the redistricting origin ward.", call. = FALSE)
+}
 
 fit_sample <- function(df) {
   df %>%
@@ -43,12 +55,26 @@ summarize_sample <- function(df, sample_name, fe_label) {
     n_complete_controls = nrow(fit_sample(df)),
     n_blocks = n_distinct(df$block_id),
     n_pins = n_distinct(df$pin),
-    n_treated_sales = sum(df$treat == 1, na.rm = TRUE),
+    n_switcher_sales = sum(df$treat == 1, na.rm = TRUE),
     n_control_sales = sum(df$treat == 0, na.rm = TRUE),
-    n_event_pairs = n_distinct(df$ward_pair_id),
-    dep_var_mean = mean(df$sale_price, na.rm = TRUE),
-    mean_dist_m = mean(df$dist_m, na.rm = TRUE),
-    max_dist_m = max(df$dist_m, na.rm = TRUE)
+    n_local_pairs = n_distinct(df$local_pair_id),
+    n_event_pairs = n_distinct(df$event_pair_id[!is.na(df$event_pair_id) & df$event_pair_id != ""]),
+    n_switchers_local_pair_differs_from_event_pair = sum(
+      df$treat == 1 &
+        !is.na(df$event_pair_id) &
+        df$local_pair_id != df$event_pair_id,
+      na.rm = TRUE
+    ),
+    pct_switchers_local_pair_differs_from_event_pair = 100 * sum(
+      df$treat == 1 &
+        !is.na(df$event_pair_id) &
+        df$local_pair_id != df$event_pair_id,
+      na.rm = TRUE
+    ) / sum(df$treat == 1 & !is.na(df$event_pair_id), na.rm = TRUE),
+    mean_nearest_pre_boundary_dist_m = mean(df$nearest_pre_boundary_dist_m, na.rm = TRUE),
+    max_nearest_pre_boundary_dist_m = max(df$nearest_pre_boundary_dist_m, na.rm = TRUE),
+    pct_event_le_1000ft = 100 * mean(df$event_dist_le_1000ft, na.rm = TRUE),
+    dep_var_mean = mean(df$sale_price, na.rm = TRUE)
   )
 }
 
@@ -75,9 +101,10 @@ fit_did <- function(df, sample_name, fe_formula, fe_label) {
     n_obs = nobs(model),
     n_blocks = n_distinct(df_model$block_id),
     n_pins = n_distinct(df_model$pin),
-    n_treated_sales = sum(df_model$treat == 1, na.rm = TRUE),
+    n_switcher_sales = sum(df_model$treat == 1, na.rm = TRUE),
     n_control_sales = sum(df_model$treat == 0, na.rm = TRUE),
-    n_event_pairs = n_distinct(df_model$ward_pair_id),
+    n_local_pairs = n_distinct(df_model$local_pair_id),
+    n_event_pairs = n_distinct(df_model$event_pair_id[!is.na(df_model$event_pair_id) & df_model$event_pair_id != ""]),
     dep_var_mean = mean(df_model$sale_price, na.rm = TRUE)
   )
 }
@@ -131,14 +158,14 @@ make_event_plot <- function(df, title_text) {
 
 variants <- list(
   list(
-    sample_name = "border_pair_side_pair_year",
-    fe_label = "Border-pair side FE + border-pair x year FE",
-    fe_formula = "ward_pair_side + ward_pair_id^sale_year"
+    sample_name = "local_pair_side_pair_year",
+    fe_label = "Nearest-boundary side FE + nearest-boundary pair x year FE",
+    fe_formula = "local_pair_side + local_pair_id^sale_year"
   ),
   list(
-    sample_name = "block_pair_year",
-    fe_label = "Block FE + border-pair x year FE",
-    fe_formula = "block_id + ward_pair_id^sale_year"
+    sample_name = "block_local_pair_year",
+    fe_label = "Block FE + nearest-boundary pair x year FE",
+    fe_formula = "block_id + local_pair_id^sale_year"
   ),
   list(
     sample_name = "block_year",
@@ -187,8 +214,8 @@ combined_plot <- ggplot(plot_results, aes(x = relative_year, y = estimate)) +
   labs(
     x = "Event year relative to 2015 redistricting",
     y = "Coefficient on stringency change",
-    title = "Boundary-Local Origin-Destination Sales Diagnostics",
-    subtitle = "2015 sales within 1000ft of the event boundary. Reference year is -1."
+    title = "Nearest-Boundary Local-Control Sales Diagnostics",
+    subtitle = "Treatment follows origin-destination redistricting; local geography follows nearest pre-treatment boundary."
   ) +
   theme_minimal(base_size = 11) +
   theme(
@@ -204,7 +231,7 @@ for (v in variants) {
     v$fe_label
   )
   ggsave(
-    sprintf("../output/boundary_origin_destination_sales_2015_event_study_%s.pdf", v$sample_name),
+    sprintf("../output/nearest_boundary_local_control_sales_2015_event_study_%s.pdf", v$sample_name),
     plot_i,
     width = 8,
     height = 5,
@@ -212,11 +239,8 @@ for (v in variants) {
   )
 }
 
-write_csv(sample_summary, "../output/boundary_origin_destination_sales_2015_sample_summary.csv")
-write_csv(did_results, "../output/boundary_origin_destination_sales_2015_did.csv")
-write_csv(event_results, "../output/boundary_origin_destination_sales_2015_event_coefficients.csv")
-ggsave("../output/boundary_origin_destination_sales_2015_event_studies.pdf", combined_plot, width = 8, height = 9, bg = "white")
-ggsave("../output/boundary_origin_destination_sales_2015_event_studies.png", combined_plot, width = 8, height = 9, dpi = 180, bg = "white")
-
-message("Saved boundary-local origin-destination sales diagnostics.")
-print(did_results)
+write_csv(sample_summary, "../output/nearest_boundary_local_control_sales_2015_sample_summary.csv")
+write_csv(did_results, "../output/nearest_boundary_local_control_sales_2015_did.csv")
+write_csv(event_results, "../output/nearest_boundary_local_control_sales_2015_event_coefficients.csv")
+ggsave("../output/nearest_boundary_local_control_sales_2015_event_studies.pdf", combined_plot, width = 8, height = 9, bg = "white")
+ggsave("../output/nearest_boundary_local_control_sales_2015_event_studies.png", combined_plot, width = 8, height = 9, dpi = 180, bg = "white")
