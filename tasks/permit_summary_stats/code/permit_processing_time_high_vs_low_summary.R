@@ -2,46 +2,17 @@ source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/permit_summary_stats/code")
-# clean_permits_input <- "../input/building_permits_clean.gpkg"
-# ward_panel_input <- "../input/ward_panel.gpkg"
-# alderman_panel_input <- "../input/chicago_alderman_panel.csv"
-# ward_summary_csv_output <- "../output/permit_processing_time_high_vs_low_summary.csv"
-# ward_summary_tex_output <- "../output/permit_processing_time_high_vs_low_summary.tex"
-# ward_means_output <- "../output/ward_mean_processing_time_high_vs_low.csv"
-# ward_figure_output <- "../output/ward_mean_processing_time_high_vs_low_density.pdf"
-# alderman_summary_csv_output <- "../output/permit_processing_time_high_vs_low_alderman_summary.csv"
-# alderman_summary_tex_output <- "../output/permit_processing_time_high_vs_low_alderman_summary.tex"
-# alderman_means_output <- "../output/alderman_mean_processing_time_high_vs_low.csv"
-# alderman_figure_output <- "../output/alderman_mean_processing_time_high_vs_low_density.pdf"
-# correlation_csv_output <- "../output/permit_processing_time_volume_correlation.csv"
-# correlation_tex_output <- "../output/permit_processing_time_volume_correlation.tex"
 # max_application_ym <- "2022-12"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(clean_permits_input, ward_panel_input, alderman_panel_input, ward_summary_csv_output, ward_summary_tex_output, ward_means_output, ward_figure_output, alderman_summary_csv_output, alderman_summary_tex_output, alderman_means_output, alderman_figure_output, correlation_csv_output, correlation_tex_output, max_application_ym)
+  cli_args <- c(max_application_ym)
 }
 
-if (length(cli_args) != 14) {
-  stop(
-    "FATAL: Script requires 14 args: <clean_permits_input> <ward_panel_input> <alderman_panel_input> <ward_summary_csv_output> <ward_summary_tex_output> <ward_means_output> <ward_figure_output> <alderman_summary_csv_output> <alderman_summary_tex_output> <alderman_means_output> <alderman_figure_output> <correlation_csv_output> <correlation_tex_output> <max_application_ym>",
-    call. = FALSE
-  )
+if (length(cli_args) != 1) {
+  stop("FATAL: Script requires 1 arg: <max_application_ym>", call. = FALSE)
 }
-clean_permits_input <- cli_args[1]
-ward_panel_input <- cli_args[2]
-alderman_panel_input <- cli_args[3]
-ward_summary_csv_output <- cli_args[4]
-ward_summary_tex_output <- cli_args[5]
-ward_means_output <- cli_args[6]
-ward_figure_output <- cli_args[7]
-alderman_summary_csv_output <- cli_args[8]
-alderman_summary_tex_output <- cli_args[9]
-alderman_means_output <- cli_args[10]
-alderman_figure_output <- cli_args[11]
-correlation_csv_output <- cli_args[12]
-correlation_tex_output <- cli_args[13]
-max_application_ym <- cli_args[14]
+max_application_ym <- cli_args[1]
 
 group_levels <- c("High-Discretion", "Low-Discretion")
 group_labels <- c(`1` = "High-Discretion", `0` = "Low-Discretion")
@@ -59,15 +30,15 @@ integer_rows <- c(
   "Number of unique aldermen"
 )
 
-ward_panel <- st_read(ward_panel_input, quiet = TRUE)
+ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 
-alderman_panel <- read_csv(alderman_panel_input, show_col_types = FALSE) %>%
+alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
   mutate(
     month = as.yearmon(month),
     alderman = gsub("\\s+", " ", trimws(as.character(alderman)))
   )
 
-permits <- st_read(clean_permits_input, quiet = TRUE) %>%
+permits <- st_read("../input/building_permits_clean.gpkg", quiet = TRUE) %>%
   select(id, application_start_date_ym, processing_time, high_discretion, permit_type) %>%
   mutate(
     application_start_date_ym = as.yearmon(application_start_date_ym),
@@ -159,7 +130,7 @@ ward_means <- permits_analysis %>%
   mutate(group = factor(group, levels = group_levels)) %>%
   arrange(group, ward)
 
-write_csv(ward_means, ward_means_output)
+write_csv(ward_means, "../output/ward_mean_processing_time_high_vs_low.csv")
 
 ward_distribution <- ward_means %>%
   group_by(group) %>%
@@ -201,7 +172,7 @@ ward_summary_table <- bind_rows(
   pivot_wider(names_from = group, values_from = value) %>%
   mutate(row = as.character(row))
 
-write_csv(ward_summary_table, ward_summary_csv_output)
+write_csv(ward_summary_table, "../output/permit_processing_time_high_vs_low_summary.csv")
 
 alderman_means <- permits_analysis %>%
   group_by(group, alderman) %>%
@@ -214,7 +185,7 @@ alderman_means <- permits_analysis %>%
   mutate(group = factor(group, levels = group_levels)) %>%
   arrange(group, alderman)
 
-write_csv(alderman_means, alderman_means_output)
+write_csv(alderman_means, "../output/alderman_mean_processing_time_high_vs_low.csv")
 
 alderman_distribution <- alderman_means %>%
   group_by(group) %>%
@@ -256,11 +227,11 @@ alderman_summary_table <- bind_rows(
   pivot_wider(names_from = group, values_from = value) %>%
   mutate(row = as.character(row))
 
-write_csv(alderman_summary_table, alderman_summary_csv_output)
+write_csv(alderman_summary_table, "../output/permit_processing_time_high_vs_low_alderman_summary.csv")
 
 summary_tex_specs <- list(
-  list(summary_table = ward_summary_table, output_path = ward_summary_tex_output),
-  list(summary_table = alderman_summary_table, output_path = alderman_summary_tex_output)
+  list(summary_table = ward_summary_table, output_path = "../output/permit_processing_time_high_vs_low_summary.tex"),
+  list(summary_table = alderman_summary_table, output_path = "../output/permit_processing_time_high_vs_low_alderman_summary.tex")
 )
 
 for (i in seq_along(summary_tex_specs)) {
@@ -300,13 +271,13 @@ plot_specs <- list(
     entity_means = ward_means,
     entity_label = "Ward",
     mean_col = "ward_mean_processing_time",
-    figure_output = ward_figure_output
+    figure_output = "../output/ward_mean_processing_time_high_vs_low_density.pdf"
   ),
   list(
     entity_means = alderman_means,
     entity_label = "Alderman",
     mean_col = "alderman_mean_processing_time",
-    figure_output = alderman_figure_output
+    figure_output = "../output/alderman_mean_processing_time_high_vs_low_density.pdf"
   )
 )
 
@@ -350,25 +321,37 @@ for (i in seq_along(plot_specs)) {
 permits_high_with_volume <- permits_analysis_all %>%
   filter(high_discretion == 1) %>%
   group_by(ward, application_start_date_ym) %>%
-  mutate(ward_month_permit_volume = n()) %>%
+  summarise(
+    mean_processing_time = mean(processing_time),
+    ward_month_permit_volume = n(),
+    .groups = "drop"
+  ) %>%
   ungroup()
 
 permits_low_with_volume <- permits_analysis_all %>%
   filter(high_discretion == 0, permit_type != signs_permit_type) %>%
   group_by(ward, application_start_date_ym) %>%
-  mutate(ward_month_permit_volume = n()) %>%
+  summarise(
+    mean_processing_time = mean(processing_time),
+    ward_month_permit_volume = n(),
+    .groups = "drop"
+  ) %>%
   ungroup()
 
 permits_all_with_volume <- permits_analysis_all %>%
   group_by(ward, application_start_date_ym) %>%
-  mutate(ward_month_permit_volume = n()) %>%
+  summarise(
+    mean_processing_time = mean(processing_time),
+    ward_month_permit_volume = n(),
+    .groups = "drop"
+  ) %>%
   ungroup()
 
 correlation_table <- bind_rows(
   tibble(
     group = "High-Discretion",
-    `Corr. of processing time and ward-month permit volume` = cor(
-      permits_high_with_volume$processing_time,
+    `Corr. of mean processing time and ward-month permit volume` = cor(
+      permits_high_with_volume$mean_processing_time,
       permits_high_with_volume$ward_month_permit_volume,
       use = "complete.obs",
       method = "pearson"
@@ -376,8 +359,8 @@ correlation_table <- bind_rows(
   ),
   tibble(
     group = "Low-Discretion",
-    `Corr. of processing time and ward-month permit volume` = cor(
-      permits_low_with_volume$processing_time,
+    `Corr. of mean processing time and ward-month permit volume` = cor(
+      permits_low_with_volume$mean_processing_time,
       permits_low_with_volume$ward_month_permit_volume,
       use = "complete.obs",
       method = "pearson"
@@ -385,8 +368,8 @@ correlation_table <- bind_rows(
   ),
   tibble(
     group = "All",
-    `Corr. of processing time and ward-month permit volume` = cor(
-      permits_all_with_volume$processing_time,
+    `Corr. of mean processing time and ward-month permit volume` = cor(
+      permits_all_with_volume$mean_processing_time,
       permits_all_with_volume$ward_month_permit_volume,
       use = "complete.obs",
       method = "pearson"
@@ -394,17 +377,17 @@ correlation_table <- bind_rows(
   )
 )
 
-write_csv(correlation_table, correlation_csv_output)
+write_csv(correlation_table, "../output/permit_processing_time_volume_correlation.csv")
 
 correlation_tex_lines <- c(
   "\\begin{tabular}{lr}",
   "\\toprule",
-  "Permit group & Corr. of processing time and ward-month permit volume \\\\",
+  "Permit group & Corr. of mean processing time and ward-month permit volume \\\\",
   "\\midrule"
 )
 
 for (i in seq_len(nrow(correlation_table))) {
-  correlation_value_i <- correlation_table$`Corr. of processing time and ward-month permit volume`[i]
+  correlation_value_i <- correlation_table$`Corr. of mean processing time and ward-month permit volume`[i]
   correlation_text_i <- ifelse(
     is.finite(correlation_value_i),
     formatC(correlation_value_i, format = "f", digits = 3),
@@ -417,4 +400,4 @@ for (i in seq_len(nrow(correlation_table))) {
 }
 
 correlation_tex_lines <- c(correlation_tex_lines, "\\bottomrule", "\\end{tabular}")
-writeLines(correlation_tex_lines, correlation_tex_output)
+writeLines(correlation_tex_lines, "../output/permit_processing_time_volume_correlation.tex")
