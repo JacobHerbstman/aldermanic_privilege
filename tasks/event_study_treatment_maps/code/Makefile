@@ -6,12 +6,14 @@ MAP_BW_LABEL ?= 1000ft
 all: \
 	../output/treatment_control_map_2015_$(MAP_BW_LABEL).pdf \
 	../output/treatment_control_maps_combined_$(MAP_BW_LABEL).pdf \
+	../output/ward_pair_horizontal_13-23_$(MAP_BW_LABEL).pdf \
 	../output/ward_pair_vertical_13-23_$(MAP_BW_LABEL).pdf
 
 ../output/treatment_control_map_2015_$(MAP_BW_LABEL).pdf: run_diagnostics.R ../input/permit_block_year_panel_2015.parquet ../input/permit_block_year_panel_2023.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg | ../output
 	@$(FUNCTIONS); BANDWIDTH_LABEL=$(MAP_BW_LABEL) R_pc_and_slurm run_diagnostics.R $(MAP_BW_M)
 
 ../output/treatment_control_maps_combined_$(MAP_BW_LABEL).pdf \
+../output/ward_pair_horizontal_13-23_$(MAP_BW_LABEL).pdf \
 ../output/ward_pair_vertical_13-23_$(MAP_BW_LABEL).pdf: ../output/treatment_control_map_2015_$(MAP_BW_LABEL).pdf
 	@test -s "$@"
 

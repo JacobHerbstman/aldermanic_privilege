@@ -277,9 +277,17 @@ ggsave(
   bg = "white"
 )
 
+combined_horizontal <- p_before + p_after + p_treatment +
+  plot_layout(ncol = 3)
+ggsave(
+  sprintf("../output/ward_pair_horizontal_%s_%s.pdf", pair_to_map, bandwidth_label),
+  combined_horizontal,
+  width = 15,
+  height = 6,
+  bg = "white"
+)
+
 if (WRITE_MAP_AUDIT) {
-  combined_horizontal <- p_before + p_after + p_treatment +
-    plot_layout(ncol = 3)
   ggsave(
     file.path(MAP_AUDIT_OUTPUT_DIR, sprintf("ward_pair_before_after_%s_%s.pdf", pair_to_map, bandwidth_label)),
     combined_horizontal,
