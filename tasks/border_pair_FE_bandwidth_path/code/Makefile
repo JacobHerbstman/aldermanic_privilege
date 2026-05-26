@@ -19,14 +19,14 @@ all: \
 	../output/border_pair_fe_bandwidth_path_log_density_dupac_all_pruned.pdf
 
 define MAIN_SUMMARY_RULE
-../temp/border_pair_fe_bandwidth_path_$(1)m_$(2)_main.csv: ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../temp
-	DISTANCE_DISPLAY_UNIT=ft WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH=$$@ CLUSTER_LEVEL=$(CLUSTER_LEVEL) Rscript ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R $(1) $(2) $(FE_SPEC) ../temp/ignore_$(1)m_$(2)_main.tex 'log(density_far)' 'log(density_dupac)'
+../temp/border_pair_fe_bandwidth_path_$(1)m_$(2)_main.csv: ../../_lib/border_pair_fe_regression_runner.R ../input/parcels_with_ward_distances.csv | ../temp
+	DISTANCE_DISPLAY_UNIT=ft WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH=$$@ CLUSTER_LEVEL=$(CLUSTER_LEVEL) Rscript ../../_lib/border_pair_fe_regression_runner.R $(1) $(2) $(FE_SPEC) ../temp/ignore_$(1)m_$(2)_main.tex 'log(density_far)' 'log(density_dupac)'
 endef
 $(foreach bandwidth,$(BANDWIDTHS_M),$(foreach sample,$(SAMPLES),$(eval $(call MAIN_SUMMARY_RULE,$(bandwidth),$(sample)))))
 
 define PRUNED_SUMMARY_RULE
-../temp/border_pair_fe_bandwidth_path_$(1)m_$(2)_pruned.csv: ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv | ../temp
-	DISTANCE_DISPLAY_UNIT=ft WRITE_TEX=FALSE PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CONFOUND_SEGMENT_FLAGS_PATH=../input/confounded_segment_flags.csv FE_SUMMARY_OUTPUT_PATH=$$@ CLUSTER_LEVEL=$(CLUSTER_LEVEL) Rscript ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R $(1) $(2) $(FE_SPEC) ../temp/ignore_$(1)m_$(2)_pruned.tex 'log(density_far)' 'log(density_dupac)'
+../temp/border_pair_fe_bandwidth_path_$(1)m_$(2)_pruned.csv: ../../_lib/border_pair_fe_regression_runner.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv | ../temp
+	DISTANCE_DISPLAY_UNIT=ft WRITE_TEX=FALSE PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CONFOUND_SEGMENT_FLAGS_PATH=../input/confounded_segment_flags.csv FE_SUMMARY_OUTPUT_PATH=$$@ CLUSTER_LEVEL=$(CLUSTER_LEVEL) Rscript ../../_lib/border_pair_fe_regression_runner.R $(1) $(2) $(FE_SPEC) ../temp/ignore_$(1)m_$(2)_pruned.tex 'log(density_far)' 'log(density_dupac)'
 endef
 $(foreach bandwidth,$(BANDWIDTHS_M),$(foreach sample,$(SAMPLES),$(eval $(call PRUNED_SUMMARY_RULE,$(bandwidth),$(sample)))))
 

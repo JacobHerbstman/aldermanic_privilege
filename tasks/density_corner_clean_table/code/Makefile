@@ -7,14 +7,14 @@ SAMPLES := all multifamily
 all: $(foreach sample,$(SAMPLES),../output/fe_table_$(BW_LABEL)_$(sample)_corner_clean_compare.tex)
 
 define BASELINE_RULE
-../output/fe_summary_$(BW_LABEL)_$(1)_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv: ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(BW_LABEL) WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$$@" CLUSTER_LEVEL=ward_pair Rscript ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R $(BW_M) $(1) zonegroup_segment_year_additive ../output/ignore_$(BW_LABEL)_$(1)_baseline.tex 'log(density_far)' 'log(density_dupac)'
+../output/fe_summary_$(BW_LABEL)_$(1)_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv: ../../_lib/border_pair_fe_regression_runner.R ../input/parcels_with_ward_distances.csv | ../output
+	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(BW_LABEL) WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$$@" CLUSTER_LEVEL=ward_pair Rscript ../../_lib/border_pair_fe_regression_runner.R $(BW_M) $(1) zonegroup_segment_year_additive ../output/ignore_$(BW_LABEL)_$(1)_baseline.tex 'log(density_far)' 'log(density_dupac)'
 endef
 $(foreach sample,$(SAMPLES),$(eval $(call BASELINE_RULE,$(sample))))
 
 define CORNER_CLEAN_RULE
-../output/fe_summary_$(BW_LABEL)_$(1)_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv: ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R ../input/parcels_with_ward_distances.csv ../input/parcel_other_pair_distance.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(BW_LABEL) DROP_AMBIGUOUS_WITHIN_BW=TRUE AMBIGUITY_INPUT_PATH=../input/parcel_other_pair_distance.csv WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$$@" CLUSTER_LEVEL=ward_pair Rscript ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R $(BW_M) $(1) zonegroup_segment_year_additive ../output/ignore_$(BW_LABEL)_$(1)_corner_clean.tex 'log(density_far)' 'log(density_dupac)'
+../output/fe_summary_$(BW_LABEL)_$(1)_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv: ../../_lib/border_pair_fe_regression_runner.R ../input/parcels_with_ward_distances.csv ../input/parcel_other_pair_distance.csv | ../output
+	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(BW_LABEL) DROP_AMBIGUOUS_WITHIN_BW=TRUE AMBIGUITY_INPUT_PATH=../input/parcel_other_pair_distance.csv WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$$@" CLUSTER_LEVEL=ward_pair Rscript ../../_lib/border_pair_fe_regression_runner.R $(BW_M) $(1) zonegroup_segment_year_additive ../output/ignore_$(BW_LABEL)_$(1)_corner_clean.tex 'log(density_far)' 'log(density_dupac)'
 endef
 $(foreach sample,$(SAMPLES),$(eval $(call CORNER_CLEAN_RULE,$(sample))))
 

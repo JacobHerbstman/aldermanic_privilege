@@ -5,7 +5,7 @@
 # prune_sample <- "all"
 # cluster_level <- "ward_pair"
 
-source("../../setup_environment/code/packages.R")
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {

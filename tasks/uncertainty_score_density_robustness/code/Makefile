@@ -56,8 +56,8 @@ endef
 $(foreach variant,$(VARIANTS),$(eval $(call MERGE_RULE,$(variant))))
 
 define FE_RULE
-../output/fe_table_$(DENSITY_ROBUSTNESS_STEM)_$(1).tex: ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R ../output/parcels_with_ward_distances_$(1).csv | ../output
-	FE_INPUT_PATH=../output/parcels_with_ward_distances_$(1).csv FE_SUMMARY_OUTPUT_PATH=../output/fe_summary_$(DENSITY_ROBUSTNESS_STEM)_$(1).csv CLUSTER_LEVEL=$(DENSITY_ROBUSTNESS_CLUSTER) Rscript ../../border_pair_FE_regressions/code/border_pair_FE_regressions.R $(DENSITY_ROBUSTNESS_BW_M) $(DENSITY_ROBUSTNESS_SAMPLE) zonegroup_segment_year_additive ../output/fe_table_$(DENSITY_ROBUSTNESS_STEM)_$(1).tex "log(density_far)" "log(density_dupac)" "log(unitscount)"
+../output/fe_table_$(DENSITY_ROBUSTNESS_STEM)_$(1).tex: ../../_lib/border_pair_fe_regression_runner.R ../output/parcels_with_ward_distances_$(1).csv | ../output
+	FE_INPUT_PATH=../output/parcels_with_ward_distances_$(1).csv FE_SUMMARY_OUTPUT_PATH=../output/fe_summary_$(DENSITY_ROBUSTNESS_STEM)_$(1).csv CLUSTER_LEVEL=$(DENSITY_ROBUSTNESS_CLUSTER) Rscript ../../_lib/border_pair_fe_regression_runner.R $(DENSITY_ROBUSTNESS_BW_M) $(DENSITY_ROBUSTNESS_SAMPLE) zonegroup_segment_year_additive ../output/fe_table_$(DENSITY_ROBUSTNESS_STEM)_$(1).tex "log(density_far)" "log(density_dupac)" "log(unitscount)"
 ../output/fe_summary_$(DENSITY_ROBUSTNESS_STEM)_$(1).csv: ../output/fe_table_$(DENSITY_ROBUSTNESS_STEM)_$(1).tex
 	@test -s "$$@"
 endef
