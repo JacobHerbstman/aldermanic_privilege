@@ -51,54 +51,13 @@ rent <- rent %>%
   )
 
 sample_defs <- tibble::tribble(
-  ~sample, ~sample_label,
-  "all", "All",
-  "clean_location", "Clean location",
-  "no_modal_pair_change", "No modal pair change",
-  "no_modal_ward_change", "No modal ward change",
-  "no_questionable_address", "No questionable address"
+  ~sample, ~sample_label, ~filter_column,
+  "all", "All", NA_character_,
+  "clean_location", "Clean location", "flag_clean_location_sample",
+  "no_modal_pair_change", "No modal pair change", "flag_no_modal_pair_change_sample",
+  "no_modal_ward_change", "No modal ward change", "flag_no_modal_ward_change_sample",
+  "no_questionable_address", "No questionable address", "flag_no_questionable_address_sample"
 )
-
-filter_sample <- function(df, sample_name) {
-  if (sample_name == "all") {
-    return(df)
-  }
-  if (sample_name == "clean_location") {
-    return(df %>% filter(flag_clean_location_sample))
-  }
-  if (sample_name == "no_modal_pair_change") {
-    return(df %>% filter(flag_no_modal_pair_change_sample))
-  }
-  if (sample_name == "no_modal_ward_change") {
-    return(df %>% filter(flag_no_modal_ward_change_sample))
-  }
-  if (sample_name == "no_questionable_address") {
-    return(df %>% filter(flag_no_questionable_address_sample))
-  }
-  stop(sprintf("Unknown sample: %s", sample_name), call. = FALSE)
-}
-
-latex_escape <- function(x) {
-  x <- gsub("\\\\", "\\\\textbackslash{}", x)
-  x <- gsub("([_%$#&{}])", "\\\\\\1", x, perl = TRUE)
-  x
-}
-
-format_tex_number <- function(x, digits = 1) {
-  ifelse(
-    is.na(x),
-    "",
-    formatC(x, format = "f", digits = digits, big.mark = ",")
-  )
-}
-
-format_tex_int <- function(x) {
-  ifelse(
-    is.na(x),
-    "",
-    formatC(round(x), format = "d", big.mark = ",")
-  )
-}
 
 paired_test <- function(paired_df) {
   if (nrow(paired_df) < 2) {
@@ -187,7 +146,14 @@ paired_balance_rows <- list()
 for (i in seq_len(nrow(sample_defs))) {
   sample_name <- sample_defs$sample[[i]]
   sample_label <- sample_defs$sample_label[[i]]
-  d_sample <- filter_sample(rent, sample_name)
+  filter_column <- sample_defs$filter_column[[i]]
+  d_sample <- rent
+  if (!is.na(filter_column)) {
+    if (!filter_column %in% names(d_sample)) {
+      stop(sprintf("Missing sample flag column: %s", filter_column), call. = FALSE)
+    }
+    d_sample <- d_sample %>% filter(.data[[filter_column]])
+  }
   message(sprintf("Paired balance sample %s: %s rows", sample_name, format(nrow(d_sample), big.mark = ",")))
 
   for (j in seq_len(nrow(covariates))) {
@@ -246,64 +212,4 @@ for (i in seq_len(nrow(sample_defs))) {
 
 paired_balance <- bind_rows(paired_balance_rows)
 write_csv(paired_balance, sprintf("../output/rental_rd_paired_covariate_balance_bw%s.csv", bandwidth_label))
-
-external_balance <- paired_balance %>%
-  filter(
-    sample == "all",
-    group == "External amenities"
-  )
-
-if (nrow(external_balance) == 0) {
-  stop("No external amenity rows available for the paired balance table.", call. = FALSE)
-}
-
-external_balance_lines <- c(
-  "\\begingroup",
-  "\\centering",
-  "\\small",
-  "\\resizebox{\\linewidth}{!}{%",
-  "\\begin{tabular}{lrrrrrrrr}",
-  "\\toprule",
-  "Covariate & Less stringent mean & More stringent mean & Diff. & SE & $p$-value & Norm. diff. & Segments & Ward pairs \\\\",
-  "\\midrule"
-)
-
-for (i in seq_len(nrow(external_balance))) {
-  row_i <- external_balance[i, ]
-  digits_i <- row_i$digits[[1]]
-  external_balance_lines <- c(
-    external_balance_lines,
-    sprintf(
-      "%s & %s & %s & %s & %s & %s & %s & %s & %s \\\\",
-      latex_escape(row_i$label[[1]]),
-      format_tex_number(row_i$lenient_mean[[1]], digits_i),
-      format_tex_number(row_i$strict_mean[[1]], digits_i),
-      format_tex_number(row_i$difference[[1]], digits_i),
-      format_tex_number(row_i$se[[1]], digits_i),
-      format_tex_number(row_i$p_value[[1]], 3),
-      format_tex_number(row_i$normalized_difference[[1]], 3),
-      format_tex_int(row_i$n_segments[[1]]),
-      format_tex_int(row_i$n_ward_pairs[[1]])
-    )
-  )
-}
-
-external_balance_lines <- c(
-  external_balance_lines,
-  "\\bottomrule",
-  "\\end{tabular}",
-  "}%",
-  sprintf(
-    "\\par\\vspace{0.5em}\\parbox{0.94\\linewidth}{\\footnotesize Notes: Listed-rent observations within %sft of ward boundaries. Rows first collapse observations to segment-by-side means, then compare more-stringent-side and less-stringent-side means within the same boundary segment. Difference is more stringent minus less stringent. Standard errors are clustered by ward pair across segment-level paired differences when at least %d ward pairs are available. Normalized differences divide the paired mean difference by the pooled standard deviation of the segment-side means.}",
-    bandwidth_label,
-    min_cluster_ward_pairs
-  ),
-  "\\par\\endgroup"
-)
-
-writeLines(
-  external_balance_lines,
-  sprintf("../output/rental_rd_paired_external_amenity_balance_bw%s.tex", bandwidth_label)
-)
-
-message("Saved listed-rent RD paired balance tables.")
+message("Saved listed-rent RD paired balance data.")
