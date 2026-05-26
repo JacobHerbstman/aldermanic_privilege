@@ -45,14 +45,16 @@ Figure~\ref{fig:rental_supply_rd_clean_location} repeats the rental listing supp
 
 \subsection{Placebo Cutoffs}
 
-Figures~\ref{fig:rent_placebo_boundaries} and~\ref{fig:sales_placebo_boundaries} repeat the main rent and sales boundary plots after moving the cutoff 500ft inside each side of the true ward boundary.
+Figures~\ref{fig:rent_placebo_boundaries} and~\ref{fig:sales_placebo_boundaries} repeat the main rent and sales boundary plots after moving the cutoff 1000ft inside each side of the true ward boundary.
+Each shifted cutoff uses a 500ft window around the fake cutoff, so the placebo windows do not overlap the main true-boundary sample.
 These fake cutoffs ask whether the estimated price difference appears only where aldermanic authority changes, rather than at arbitrary points nearby.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{../tasks/price_rd_stress_tests/output/rent_placebo_rd_main_style.pdf}
     \caption{Listed Rents at True and Placebo Ward-Boundary Cutoffs}
-    \figurenotes{Figure repeats the 500ft listed-rent boundary comparison at the true ward boundary and at placebo cutoffs shifted 500ft inside each side of the boundary.
+    \figurenotes{Figure repeats the 500ft listed-rent boundary comparison at the true ward boundary and at placebo cutoffs shifted 1000ft inside each side of the boundary.
+    The shifted placebo windows do not overlap the main true-boundary 500ft sample.
     Positive distance indicates the side represented by the more stringent alderman relative to each cutoff.
     Dots are binned means of log listed rent in 2022 dollars after removing segment-by-month fixed effects, hedonic controls, and amenity controls.
     Standard errors are clustered by boundary segment.}
@@ -63,7 +65,8 @@ These fake cutoffs ask whether the estimated price difference appears only where
     \centering
     \includegraphics[width=0.92\textwidth]{../tasks/price_rd_stress_tests/output/sales_placebo_rd_main_style.pdf}
     \caption{Home Sale Prices at True and Placebo Ward-Boundary Cutoffs}
-    \figurenotes{Figure repeats the 500ft home-sales boundary comparison at the true ward boundary and at placebo cutoffs shifted 500ft inside each side of the boundary.
+    \figurenotes{Figure repeats the 500ft home-sales boundary comparison at the true ward boundary and at placebo cutoffs shifted 1000ft inside each side of the boundary.
+    The shifted placebo windows do not overlap the main true-boundary 500ft sample.
     Positive distance indicates the side represented by the more stringent alderman relative to each cutoff.
     Dots are binned means of log sale price in 2022 dollars after removing segment-by-quarter fixed effects, hedonic controls, and amenity controls.
     Standard errors are clustered by boundary segment.}

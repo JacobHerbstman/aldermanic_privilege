@@ -18,9 +18,9 @@ sf_use_s2(FALSE)
 # out_coverage <- "../output/segment_assignment_coverage_summary.csv"
 # out_spotcheck <- "../output/segment_assignment_spotcheck_queue.csv"
 # out_reason <- "../output/segment_assignment_reason_summary.csv"
-# segment_buffer_m <- 305
-# coverage_bandwidths_m <- "100,250,305"
-# spotcheck_bandwidth_m <- 305
+# segment_buffer_m <- 457.2
+# coverage_bandwidths_m <- "100,250,305,457.2"
+# spotcheck_bandwidth_m <- 457.2
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {

@@ -7,7 +7,7 @@ source("../../_lib/amenity_distance_helpers.R")
 
 bandwidth_ft <- 500
 bins_per_side <- 10
-cutoffs_ft <- c(-500, 0, 500)
+cutoffs_ft <- c(-1000, 0, 1000)
 
 stars <- function(p_value) {
   case_when(

@@ -1,9 +1,9 @@
 SHELL := bash
 
 SEGMENT_LENGTH_FT ?= 1320
-SEGMENT_BUFFER_M ?= 305
-COVERAGE_BWS_M ?= 100,250,305
-SPOTCHECK_BW_M ?= 305
+SEGMENT_BUFFER_M ?= 457.2
+COVERAGE_BWS_M ?= 100,250,305,457.2
+SPOTCHECK_BW_M ?= 457.2
 
 all: \
 	../output/sales_pre_scores_with_segments.csv \
