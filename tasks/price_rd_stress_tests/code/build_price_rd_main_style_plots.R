@@ -1,5 +1,4 @@
-# Build RD-style diagnostic plots for placebo cutoffs and pruned-boundary samples.
-
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/price_rd_stress_tests/code")
 
 source("../../setup_environment/code/packages.R")
@@ -19,10 +18,6 @@ stars <- function(p_value) {
   )
 }
 
-format_dollar <- function(x) {
-  paste0("$", format(round(x), big.mark = ",", scientific = FALSE))
-}
-
 coef_p_value <- function(coef_table, row_name) {
   p_col <- grep("^Pr\\(", colnames(coef_table), value = TRUE)
   if (length(p_col) != 1L) {
@@ -38,22 +33,7 @@ plot_label <- function(cutoff_ft) {
   sprintf("%+dft placebo", as.integer(cutoff_ft))
 }
 
-collapse_segment_flags <- function() {
-  read_csv(
-    "../input/confounded_segment_flags.csv",
-    show_col_types = FALSE,
-    col_types = cols(segment_id = col_character(), .default = col_guess())
-  ) %>%
-    mutate(
-      segment_id = as.character(segment_id),
-      drop_confound = as.logical(drop_confound)
-    ) %>%
-    filter(!is.na(segment_id), segment_id != "") %>%
-    group_by(segment_id) %>%
-    summarise(drop_confound = any(drop_confound, na.rm = TRUE), .groups = "drop")
-}
-
-fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_var, cutoff_ft, sample_name, local_linear = FALSE, use_log = TRUE) {
+fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_var, cutoff_ft, sample_name) {
   cutoff_value <- cutoff_ft
   cutoff_text <- plot_label(cutoff_value)
   treatment <- if (cutoff_ft == 0) "right" else "cutoff_right"
@@ -80,14 +60,9 @@ fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_va
     stop(sprintf("Insufficient support for %s / %s / %s.", dataset, sample_name, cutoff_text), call. = FALSE)
   }
 
-  rhs_terms <- c(treatment, controls)
-  if (local_linear) {
-    rhs_terms <- c(treatment, "running_ft", paste0(treatment, ":running_ft"), controls)
-  }
-  rhs <- paste(rhs_terms, collapse = " + ")
-  lhs <- if (use_log) paste0("log(", outcome, ")") else outcome
+  rhs <- paste(c(treatment, controls), collapse = " + ")
   fit <- feols(
-    as.formula(paste0(lhs, " ~ ", rhs, " | segment_id^", time_var)),
+    as.formula(paste0("log(", outcome, ") ~ ", rhs, " | segment_id^", time_var)),
     data = d,
     cluster = as.formula(paste0("~", cluster_var))
   )
@@ -99,23 +74,8 @@ fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_va
   estimate <- unname(ct[treatment, "Estimate"])
   std_error <- unname(ct[treatment, "Std. Error"])
   p_value <- coef_p_value(ct, treatment)
-  pct_change <- if (use_log) 100 * (exp(estimate) - 1) else NA_real_
-  estimate_text <- if (use_log) {
-    sprintf("%.2f%%%s (SE %.2f)", pct_change, stars(p_value), 100 * std_error)
-  } else {
-    sprintf("%s%s (SE %s)", format_dollar(estimate), stars(p_value), format_dollar(std_error))
-  }
-  running_slope <- if (local_linear && "running_ft" %in% rownames(ct)) {
-    unname(ct["running_ft", "Estimate"])
-  } else {
-    0
-  }
-  interaction_name <- intersect(c(paste0(treatment, ":running_ft"), paste0("running_ft:", treatment)), rownames(ct))
-  running_slope_jump <- if (local_linear && length(interaction_name) == 1L) {
-    unname(ct[interaction_name, "Estimate"])
-  } else {
-    0
-  }
+  pct_change <- 100 * (exp(estimate) - 1)
+  estimate_text <- sprintf("%.2f%%%s (SE %.2f)", pct_change, stars(p_value), 100 * std_error)
 
   removed <- fit$obs_selection$obsRemoved
   keep_idx <- if (is.null(removed)) {
@@ -125,16 +85,13 @@ fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_va
   }
   plot_data <- d[keep_idx, , drop = FALSE] %>%
     mutate(
-      y_adjusted = as.numeric(resid(fit)) +
-        estimate * .data[[treatment]] +
-        running_slope * running_ft +
-        running_slope_jump * .data[[treatment]] * running_ft,
+      y_adjusted = as.numeric(resid(fit)) + estimate * .data[[treatment]],
       cutoff_ft = cutoff_value,
       cutoff_label = cutoff_text,
       sample = sample_name,
       dataset = dataset,
-      model_type = if_else(local_linear, "Local linear", "Flat"),
-      outcome_scale = if_else(use_log, "log", "level")
+      model_type = "Flat",
+      outcome_scale = "log"
     )
 
   bin_width <- bandwidth_ft / bins_per_side
@@ -151,59 +108,34 @@ fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_va
       .groups = "drop"
     )
 
-  if (local_linear) {
-    line_data <- bind_rows(
-      tibble(
-        dataset = dataset,
-        sample = sample_name,
-        model_type = "Local linear",
-        cutoff_ft = cutoff_value,
-        cutoff_label = cutoff_text,
-        x = c(-bandwidth_ft, 0),
-        y = running_slope * c(-bandwidth_ft, 0),
-        side = "Less Stringent"
-      ),
-      tibble(
-        dataset = dataset,
-        sample = sample_name,
-        model_type = "Local linear",
-        cutoff_ft = cutoff_value,
-        cutoff_label = cutoff_text,
-        x = c(0, bandwidth_ft),
-        y = estimate + (running_slope + running_slope_jump) * c(0, bandwidth_ft),
-        side = "More Stringent"
-      )
+  line_data <- bind_rows(
+    tibble(
+      dataset = dataset,
+      sample = sample_name,
+      model_type = "Flat",
+      cutoff_ft = cutoff_value,
+      cutoff_label = cutoff_text,
+      x = c(-bandwidth_ft, 0),
+      y = mean(plot_data$y_adjusted[plot_data[[treatment]] == 0], na.rm = TRUE),
+      side = "Less Stringent"
+    ),
+    tibble(
+      dataset = dataset,
+      sample = sample_name,
+      model_type = "Flat",
+      cutoff_ft = cutoff_value,
+      cutoff_label = cutoff_text,
+      x = c(0, bandwidth_ft),
+      y = mean(plot_data$y_adjusted[plot_data[[treatment]] == 1], na.rm = TRUE),
+      side = "More Stringent"
     )
-  } else {
-    line_data <- bind_rows(
-      tibble(
-        dataset = dataset,
-        sample = sample_name,
-        model_type = "Flat",
-        cutoff_ft = cutoff_value,
-        cutoff_label = cutoff_text,
-        x = c(-bandwidth_ft, 0),
-        y = mean(plot_data$y_adjusted[plot_data[[treatment]] == 0], na.rm = TRUE),
-        side = "Less Stringent"
-      ),
-      tibble(
-        dataset = dataset,
-        sample = sample_name,
-        model_type = "Flat",
-        cutoff_ft = cutoff_value,
-        cutoff_label = cutoff_text,
-        x = c(0, bandwidth_ft),
-        y = mean(plot_data$y_adjusted[plot_data[[treatment]] == 1], na.rm = TRUE),
-        side = "More Stringent"
-      )
-    )
-  }
+  )
 
   estimate_row <- tibble(
     dataset = dataset,
     sample = sample_name,
-    model_type = if_else(local_linear, "Local linear", "Flat"),
-    outcome_scale = if_else(use_log, "log", "level"),
+    model_type = "Flat",
+    outcome_scale = "log",
     cutoff_ft = cutoff_value,
     cutoff_label = cutoff_text,
     estimate = estimate,
@@ -267,7 +199,6 @@ make_rd_plot <- function(parts, title, y_label, output_base, facet = TRUE) {
   }
 
   ggsave(paste0(output_base, ".pdf"), plot, width = ifelse(facet, 12, 8.6), height = 5.5, dpi = 300, bg = "white")
-  ggsave(paste0(output_base, ".png"), plot, width = ifelse(facet, 12, 8.6), height = 5.5, dpi = 220, bg = "white")
 
   list(estimates = estimates, bins = bins)
 }
@@ -277,7 +208,6 @@ rent <- read_parquet("../input/rent_with_ward_distances_full.parquet") %>%
   as_tibble()
 sales <- read_parquet("../input/sales_with_hedonics_amenities.parquet") %>%
   as_tibble()
-segment_flags <- collapse_segment_flags()
 
 if (!"signed_dist" %in% names(rent) && "signed_dist_m" %in% names(rent)) {
   rent <- rent %>% mutate(signed_dist = signed_dist_m / 0.3048)
@@ -312,9 +242,7 @@ rent <- rent %>%
     !is.na(segment_id),
     segment_id != "",
     !is.na(ward_pair)
-  ) %>%
-  left_join(segment_flags, by = "segment_id", relationship = "many-to-one") %>%
-  mutate(keep_pruned_segment = !is.na(drop_confound) & !drop_confound)
+  )
 
 for (flag_col in c(
   "flag_location_questionable",
@@ -400,9 +328,7 @@ sales <- sales %>%
     !is.na(segment_id),
     segment_id != "",
     !is.na(ward_pair)
-  ) %>%
-  left_join(segment_flags, by = "segment_id", relationship = "many-to-one") %>%
-  mutate(keep_pruned_segment = !is.na(drop_confound) & !drop_confound)
+  )
 
 rent_controls <- c(
   "log_sqft",
@@ -454,160 +380,19 @@ sales_placebo_parts <- lapply(cutoffs_ft, function(cut_i) {
   )
 })
 
-message("Fitting pruned true-boundary RD-style plots...")
-rent_pruned_part <- list(fit_plot_data(
-  rent %>% filter(keep_pruned_segment, abs(signed_dist_ft) <= bandwidth_ft),
-  "Listed rents",
-  "rent_price",
-  "year_month",
-  rent_controls,
-  "segment_id",
-  0,
-  "Pruned segments"
-))
-sales_pruned_part <- list(fit_plot_data(
-  sales %>% filter(keep_pruned_segment, abs(signed_dist_ft) <= bandwidth_ft),
-  "Home sales",
-  "sale_price",
-  "year_quarter",
-  sales_controls,
-  "ward_pair",
-  0,
-  "Pruned segments"
-))
-
-message("Fitting local-linear true-boundary RD-style plots...")
-rent_local_linear_part <- list(fit_plot_data(
-  rent %>% filter(abs(signed_dist_ft) <= bandwidth_ft),
-  "Listed rents",
-  "rent_price",
-  "year_month",
-  rent_controls,
-  "segment_id",
-  0,
-  "Local linear main",
-  TRUE
-))
-sales_local_linear_part <- list(fit_plot_data(
-  sales %>% filter(abs(signed_dist_ft) <= bandwidth_ft),
-  "Home sales",
-  "sale_price",
-  "year_quarter",
-  sales_controls,
-  "ward_pair",
-  0,
-  "Local linear main",
-  TRUE
-))
-
-message("Fitting level-outcome true-boundary RD-style plots...")
-rent_level_part <- list(fit_plot_data(
-  rent %>% filter(abs(signed_dist_ft) <= bandwidth_ft),
-  "Listed rents",
-  "rent_price",
-  "year_month",
-  rent_controls,
-  "segment_id",
-  0,
-  "Levels main",
-  FALSE,
-  FALSE
-))
-sales_level_part <- list(fit_plot_data(
-  sales %>% filter(abs(signed_dist_ft) <= bandwidth_ft),
-  "Home sales",
-  "sale_price",
-  "year_quarter",
-  sales_controls,
-  "ward_pair",
-  0,
-  "Levels main",
-  FALSE,
-  FALSE
-))
-
-rent_placebo <- make_rd_plot(
+invisible(make_rd_plot(
   rent_placebo_parts,
   "Listed Rents: True and Placebo Cutoffs",
   "Segment-by-month adjusted log rent",
   "../output/rent_placebo_rd_main_style",
   TRUE
-)
-sales_placebo <- make_rd_plot(
+))
+invisible(make_rd_plot(
   sales_placebo_parts,
   "Home Sale Prices: True and Placebo Cutoffs",
   "Segment-by-quarter adjusted log sale price",
   "../output/sales_placebo_rd_main_style",
   TRUE
-)
-rent_pruned <- make_rd_plot(
-  rent_pruned_part,
-  "Listed Rents by Side of Ward Boundary: Pruned Segments",
-  "Segment-by-month adjusted log rent",
-  "../output/rent_pruned_rd_main_style",
-  FALSE
-)
-sales_pruned <- make_rd_plot(
-  sales_pruned_part,
-  "Home Sale Prices by Side of Ward Boundary: Pruned Segments",
-  "Segment-by-quarter adjusted log sale price",
-  "../output/sales_pruned_rd_main_style",
-  FALSE
-)
-rent_local_linear <- make_rd_plot(
-  rent_local_linear_part,
-  "Listed Rents by Side of Ward Boundary: Local Linear",
-  "Segment-by-month adjusted log rent",
-  "../output/rent_local_linear_rd_main_style",
-  FALSE
-)
-sales_local_linear <- make_rd_plot(
-  sales_local_linear_part,
-  "Home Sale Prices by Side of Ward Boundary: Local Linear",
-  "Segment-by-quarter adjusted log sale price",
-  "../output/sales_local_linear_rd_main_style",
-  FALSE
-)
-rent_level <- make_rd_plot(
-  rent_level_part,
-  "Listed Rents by Side of Ward Boundary: Levels",
-  "Segment-by-month adjusted real listed rent",
-  "../output/rent_levels_rd_main_style",
-  FALSE
-)
-sales_level <- make_rd_plot(
-  sales_level_part,
-  "Home Sale Prices by Side of Ward Boundary: Levels",
-  "Segment-by-quarter adjusted real sale price",
-  "../output/sales_levels_rd_main_style",
-  FALSE
-)
+))
 
-write_csv(
-  bind_rows(
-    rent_placebo$estimates,
-    sales_placebo$estimates,
-    rent_pruned$estimates,
-    sales_pruned$estimates,
-    rent_local_linear$estimates,
-    sales_local_linear$estimates,
-    rent_level$estimates,
-    sales_level$estimates
-  ),
-  "../output/price_rd_main_style_plot_estimates.csv"
-)
-write_csv(
-  bind_rows(
-    rent_placebo$bins,
-    sales_placebo$bins,
-    rent_pruned$bins,
-    sales_pruned$bins,
-    rent_local_linear$bins,
-    sales_local_linear$bins,
-    rent_level$bins,
-    sales_level$bins
-  ),
-  "../output/price_rd_main_style_plot_bins.csv"
-)
-
-message("Saved RD-style placebo, pruned, local-linear, and level-outcome plots.")
+message("Saved RD-style placebo plots.")

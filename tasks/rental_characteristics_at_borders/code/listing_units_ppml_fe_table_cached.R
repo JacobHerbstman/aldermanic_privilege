@@ -1,28 +1,57 @@
-source("../../setup_environment/code/packages.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
-# input_panel <- "../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet"
-# output_tex <- "../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.tex"
-# output_csv <- "../output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0.csv"
+# bw_ft <- 500
+# window <- "pre_2023"
+# sample_filter <- "all"
+# unit_def <- "unit_proxy"
+# min_strictness_diff_pctile <- 0
+# bins_per_side <- 8
+# cluster_level <- "ward_pair"
+
+source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(input_panel, output_tex, output_csv)
+  cli_args <- c(bw_ft, window, sample_filter, unit_def, min_strictness_diff_pctile, bins_per_side, cluster_level)
 }
 
-if (length(cli_args) >= 3) {
-  input_panel <- cli_args[1]
-  output_tex <- cli_args[2]
-  output_csv <- cli_args[3]
+if (length(cli_args) == 7) {
+  bw_ft <- suppressWarnings(as.integer(cli_args[1]))
+  window <- cli_args[2]
+  sample_filter <- cli_args[3]
+  unit_def <- cli_args[4]
+  min_strictness_diff_pctile <- suppressWarnings(as.integer(cli_args[5]))
+  bins_per_side <- suppressWarnings(as.integer(cli_args[6]))
+  cluster_level <- tolower(cli_args[7])
 } else {
-  stop("FATAL: Script requires 3 args: <input_panel> <output_tex> <output_csv>", call. = FALSE)
+  stop(
+    paste(
+      "FATAL: Script requires 7 args:",
+      "<bw_ft> <window> <sample_filter> <unit_def>",
+      "<min_strictness_diff_pctile> <bins_per_side> <cluster_level>"
+    ),
+    call. = FALSE
+  )
 }
 
-cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
 if (!cluster_level %in% c("segment", "ward_pair")) {
-  stop("CLUSTER_LEVEL must be one of: segment, ward_pair", call. = FALSE)
+  stop("cluster_level must be one of: segment, ward_pair", call. = FALSE)
 }
+if (!is.finite(bw_ft) || bw_ft <= 0) {
+  stop("bw_ft must be a positive integer.", call. = FALSE)
+}
+if (!is.finite(bins_per_side) || bins_per_side <= 0) {
+  stop("bins_per_side must be a positive integer.", call. = FALSE)
+}
+
+input_panel <- sprintf(
+  "../output/listing_units_side_panel_bw%d_%s_%s_pct%d_%s_all.parquet",
+  bw_ft, window, sample_filter, min_strictness_diff_pctile, unit_def
+)
+output_stem <- sprintf(
+  "../output/listing_units_ppml_fe_table_bw%d_%s_%s_pct%d_clust_%s",
+  bw_ft, window, sample_filter, min_strictness_diff_pctile, cluster_level
+)
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 cluster_label <- if (cluster_level == "segment") "Segment" else "Ward Pair"
 
@@ -79,7 +108,7 @@ out <- tibble(
   cluster_level = cluster_level
 )
 
-write_csv(out, output_csv)
+write_csv(out, paste0(output_stem, ".csv"))
 
 star_text <- case_when(
   !is.finite(out$p_value) ~ "",
@@ -110,11 +139,11 @@ tex <- c(
   "\\end{tabular}",
   "\\par\\endgroup"
 )
-writeLines(tex, output_tex)
+writeLines(tex, paste0(output_stem, ".tex"))
 
 message(sprintf(
   "Cached PPML: b=%.4f (SE %.4f, p=%.3f), implied=%.2f%%",
   out$estimate, out$std_error, out$p_value, out$implied_pct_change
 ))
-message(sprintf("Saved: %s", output_tex))
-message(sprintf("Saved: %s", output_csv))
+message(sprintf("Saved: %s.tex", output_stem))
+message(sprintf("Saved: %s.csv", output_stem))

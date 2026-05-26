@@ -1,41 +1,32 @@
-source("../../setup_environment/code/packages.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
-# input <- "../input/rent_with_ward_distances.parquet"
 # bw_ft <- 500
 # window <- "pre_2023"
 # sample_filter <- "all"
 # unit_def <- "unit_proxy"
 # min_strictness_diff_pctile <- 0
 # bins_per_side <- 8
-# output_side_panel <- "../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet"
-# output_bin_cells <- "../output/listing_units_bin_cells_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.parquet"
-# output_meta <- "../output/listing_units_cache_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.csv"
+
+source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(input, bw_ft, window, sample_filter, unit_def, min_strictness_diff_pctile, bins_per_side, output_side_panel, output_bin_cells, output_meta)
+  cli_args <- c(bw_ft, window, sample_filter, unit_def, min_strictness_diff_pctile, bins_per_side)
 }
 
-if (length(cli_args) == 10) {
-  input <- cli_args[1]
-  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
-  window <- cli_args[3]
-  sample_filter <- cli_args[4]
-  unit_def <- cli_args[5]
-  min_strictness_diff_pctile <- suppressWarnings(as.integer(cli_args[6]))
-  bins_per_side <- suppressWarnings(as.integer(cli_args[7]))
-  output_side_panel <- cli_args[8]
-  output_bin_cells <- cli_args[9]
-  output_meta <- cli_args[10]
+if (length(cli_args) == 6) {
+  bw_ft <- suppressWarnings(as.integer(cli_args[1]))
+  window <- cli_args[2]
+  sample_filter <- cli_args[3]
+  unit_def <- cli_args[4]
+  min_strictness_diff_pctile <- suppressWarnings(as.integer(cli_args[5]))
+  bins_per_side <- suppressWarnings(as.integer(cli_args[6]))
 } else {
   stop(
     paste(
-      "FATAL: Script requires 10 args:",
-      "<input> <bw_ft> <window> <sample_filter> <unit_def>",
-      "<min_strictness_diff_pctile> <bins_per_side>",
-      "<output_side_panel> <output_bin_cells> <output_meta>"
+      "FATAL: Script requires 6 args:",
+      "<bw_ft> <window> <sample_filter> <unit_def>",
+      "<min_strictness_diff_pctile> <bins_per_side>"
     ),
     call. = FALSE
   )
@@ -54,12 +45,25 @@ if (!is.finite(bins_per_side) || bins_per_side <= 0) {
   stop("bins_per_side must be a positive integer", call. = FALSE)
 }
 
+output_side_panel <- sprintf(
+  "../output/listing_units_side_panel_bw%d_%s_%s_pct%d_%s_all.parquet",
+  bw_ft, window, sample_filter, min_strictness_diff_pctile, unit_def
+)
+output_bin_cells <- sprintf(
+  "../output/listing_units_bin_cells_bw%d_%s_%s_pct%d_%s_bins%d_all.parquet",
+  bw_ft, window, sample_filter, min_strictness_diff_pctile, unit_def, bins_per_side
+)
+output_meta <- sprintf(
+  "../output/listing_units_cache_bw%d_%s_%s_pct%d_%s_bins%d_all.csv",
+  bw_ft, window, sample_filter, min_strictness_diff_pctile, unit_def, bins_per_side
+)
+
 message(sprintf(
   "=== Build Listing Units Cache | bw=%d | window=%s | sample=%s | unit_def=%s | pctile=%d | bins=%d ===",
   bw_ft, window, sample_filter, unit_def, min_strictness_diff_pctile, bins_per_side
 ))
 
-dat <- open_dataset(input, format = "parquet") |>
+dat <- open_dataset("../input/rent_with_ward_distances.parquet", format = "parquet") |>
   select(
     file_date,
     ward_pair_id,

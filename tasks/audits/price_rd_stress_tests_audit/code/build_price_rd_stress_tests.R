@@ -1,9 +1,8 @@
-# Build diagnostic supply-mechanism stress tests for listed-rent and home-sales RDs.
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/price_rd_stress_tests_audit/code")
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/price_rd_stress_tests/code")
-
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/border_pair_helpers.R")
 
 bandwidth_ft <- 500
 bandwidth_m <- bandwidth_ft * FT_TO_M

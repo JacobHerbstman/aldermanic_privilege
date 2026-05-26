@@ -1,23 +1,66 @@
-source("../../setup_environment/code/packages.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
-# all_summary_csv <- "../output/fe_summary_500ft_all_zonegroup_segment_year_additive_clust_ward_pair.csv"
-# multifamily_summary_csv <- "../output/fe_summary_500ft_multifamily_zonegroup_segment_year_additive_clust_ward_pair.csv"
-# output_tex <- "../output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex"
+# bandwidth_label <- "500ft"
+# fe_spec <- "zonegroup_segment_year_additive"
+# prune_sample <- "all"
+# cluster_level <- "ward_pair"
+
+source("../../setup_environment/code/packages.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(all_summary_csv, multifamily_summary_csv, output_tex)
+  args <- c(bandwidth_label, fe_spec, prune_sample, cluster_level)
 }
 
-if (length(args) != 3) {
-  stop("FATAL: Script requires args: <all_summary_csv> <multifamily_summary_csv> <output_tex>", call. = FALSE)
+if (!(length(args) %in% c(3, 4))) {
+  stop("FATAL: Script requires args: <bandwidth_label> <fe_spec> <prune_sample> <cluster_level>", call. = FALSE)
 }
 
-all_summary_csv <- args[1]
-multifamily_summary_csv <- args[2]
-output_tex <- args[3]
+if (grepl("\\.csv$", args[1])) {
+  if (length(args) != 3) {
+    stop("Path-based calls require args: <all_summary_csv> <multifamily_summary_csv> <output_tex>", call. = FALSE)
+  }
+  all_summary_csv <- args[1]
+  multifamily_summary_csv <- args[2]
+  output_tex <- args[3]
+} else {
+  if (length(args) != 4) {
+    stop("Production calls require args: <bandwidth_label> <fe_spec> <prune_sample> <cluster_level>", call. = FALSE)
+  }
+  bandwidth_label <- args[1]
+  fe_spec <- args[2]
+  prune_sample <- tolower(args[3])
+  cluster_level <- args[4]
+  if (!prune_sample %in% c("all", "pruned")) {
+    stop("prune_sample must be one of: all, pruned", call. = FALSE)
+  }
+  if (!cluster_level %in% c("ward_pair", "segment")) {
+    stop("cluster_level must be one of: ward_pair, segment", call. = FALSE)
+  }
+
+  prune_suffix <- if (prune_sample == "pruned") "_pruned" else ""
+  all_summary_csv <- sprintf(
+    "../temp/fe_summary_%s_all_%s_clust_%s%s.csv",
+    bandwidth_label,
+    fe_spec,
+    cluster_level,
+    prune_suffix
+  )
+  multifamily_summary_csv <- sprintf(
+    "../temp/fe_summary_%s_multifamily_%s_clust_%s%s.csv",
+    bandwidth_label,
+    fe_spec,
+    cluster_level,
+    prune_suffix
+  )
+  output_tex <- sprintf(
+    "../output/fe_table_%s_all_multifamily_%s_clust_%s%s.tex",
+    bandwidth_label,
+    fe_spec,
+    cluster_level,
+    prune_suffix
+  )
+}
 
 summaries <- bind_rows(
   read_csv(all_summary_csv, show_col_types = FALSE) %>%

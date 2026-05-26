@@ -1,32 +1,50 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
 # bandwidth_m <- "152.4"
 # sample_filter <- "multifamily"
 # fe_spec <- "zonegroup_segment_year_additive"
-# output_filename <- "../output/fe_table_500ft_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex"
+# prune_sample <- "all"
+# cluster_level <- "ward_pair"
 # yvar_1 <- "log(density_far)"
 # yvar_2 <- "log(density_dupac)"
 
+source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
+
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(bandwidth_m, sample_filter, fe_spec, output_filename, yvar_1, yvar_2)
+  args <- c(bandwidth_m, sample_filter, fe_spec, prune_sample, cluster_level, yvar_1, yvar_2)
 }
 
-if (length(args) >= 5) {
+new_cli <- length(args) >= 6 &&
+  tolower(args[4]) %in% c("all", "pruned", "false", "f", "0", "no", "off", "true", "t", "1", "yes", "on") &&
+  tolower(args[5]) %in% c("ward_pair", "wardpair", "pair", "segment", "segment_id")
+
+if (new_cli) {
+  bw_arg <- args[1]
+  sample_filter <- args[2]
+  fe_spec <- args[3]
+  prune_sample_raw <- tolower(args[4])
+  cluster_level_raw <- tolower(args[5])
+  output_filename <- ""
+  yvars <- args[6:length(args)]
+  if (length(args) == 6 && grepl(",", args[6])) {
+    yvars <- strsplit(args[6], ",")[[1]] |> trimws()
+  }
+} else if (length(args) >= 5) {
   bw_arg <- args[1]
   sample_filter <- args[2]
   fe_spec <- args[3]
   output_filename <- args[4]
+  prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
+  cluster_level_raw <- tolower(Sys.getenv("CLUSTER_LEVEL", "ward_pair"))
   yvars <- args[5:length(args)]
   if (length(args) == 5 && grepl(",", args[5])) {
     yvars <- strsplit(args[5], ",")[[1]] |> trimws()
   }
 } else {
   stop(
-    "FATAL: Script requires args: <bandwidth_m> <sample> <fe_spec> <output_filename> <yvar1> [<yvar2> ...]",
+    "FATAL: Script requires args: <bandwidth_m> <sample> <fe_spec> <prune_sample> <cluster_level> <yvar1> [<yvar2> ...]",
     call. = FALSE
   )
 }
@@ -48,7 +66,7 @@ if (length(yvars) == 0) {
 
 fe_input_path <- Sys.getenv("FE_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
 fe_summary_output_path <- Sys.getenv("FE_SUMMARY_OUTPUT_PATH", "")
-write_tex_raw <- tolower(Sys.getenv("WRITE_TEX", "TRUE"))
+write_tex_raw <- tolower(Sys.getenv("WRITE_TEX", ifelse(new_cli, "FALSE", "TRUE")))
 write_tex <- !write_tex_raw %in% c("false", "f", "0", "no", "off")
 ambiguity_input_path <- Sys.getenv("AMBIGUITY_INPUT_PATH", "")
 drop_ambiguous_raw <- tolower(Sys.getenv("DROP_AMBIGUOUS_WITHIN_BW", "FALSE"))
@@ -59,7 +77,6 @@ if (nzchar(min_segment_length_ft_raw) && (!is.finite(min_segment_length_ft) || m
   stop("MIN_SEGMENT_LENGTH_FT must be a positive number when supplied.", call. = FALSE)
 }
 
-prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
 if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
   prune_sample <- "all"
 } else if (prune_sample_raw %in% c("pruned", "true", "t", "1", "yes", "on")) {
@@ -70,13 +87,35 @@ if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
 confound_flags_path <- Sys.getenv("CONFOUND_FLAGS_PATH", "../input/confounded_pair_era_flags.csv")
 confound_segment_flags_path <- Sys.getenv("CONFOUND_SEGMENT_FLAGS_PATH", "../input/confounded_segment_flags.csv")
 
-cluster_level_raw <- tolower(Sys.getenv("CLUSTER_LEVEL", "ward_pair"))
 if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
   cluster_level <- "ward_pair"
 } else if (cluster_level_raw %in% c("segment", "segment_id")) {
   cluster_level <- "segment"
 } else {
   stop("CLUSTER_LEVEL must be one of: ward_pair, segment", call. = FALSE)
+}
+
+bandwidth_file_label <- if (nzchar(bandwidth_label)) bandwidth_label else "bwall"
+prune_suffix <- if (prune_sample == "pruned") "_pruned" else ""
+if (new_cli && !nzchar(fe_summary_output_path)) {
+  fe_summary_output_path <- sprintf(
+    "../temp/fe_summary_%s_%s_%s_clust_%s%s.csv",
+    bandwidth_file_label,
+    sample_filter,
+    fe_spec,
+    cluster_level,
+    prune_suffix
+  )
+}
+if (write_tex && !nzchar(output_filename)) {
+  output_filename <- sprintf(
+    "../output/fe_table_%s_%s_%s_clust_%s%s.tex",
+    bandwidth_file_label,
+    sample_filter,
+    fe_spec,
+    cluster_level,
+    prune_suffix
+  )
 }
 
 donut_m <- suppressWarnings(as.numeric(Sys.getenv("DONUT_M", Sys.getenv("DONUT_FT", "0"))))
@@ -185,13 +224,6 @@ prune_missing_segment_n <- NA_integer_
 parcels_fe_prune_joined <- NULL
 
 if (prune_sample == "pruned") {
-  if (!file.exists(confound_flags_path)) {
-    stop(sprintf("Missing confound flags file for pruned run: %s", confound_flags_path), call. = FALSE)
-  }
-  if (!file.exists(confound_segment_flags_path)) {
-    stop(sprintf("Missing segment confound flags file for pruned run: %s", confound_segment_flags_path), call. = FALSE)
-  }
-
   conf_flags <- read_csv(
     confound_flags_path,
     show_col_types = FALSE,

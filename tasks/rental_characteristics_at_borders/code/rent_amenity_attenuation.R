@@ -1,34 +1,22 @@
-source("../../setup_environment/code/packages.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
-# input <- "../output/rent_with_ward_distances_amenities.parquet"
 # bw_arg <- 500
 # window <- "pre_2023"
-# output_tex <- "../output/rent_amenity_attenuation_bw500_pre_2023.tex"
-# output_csv <- "../output/rent_amenity_attenuation_bw500_pre_2023.csv"
+# cluster_level <- "ward_pair"
+
+source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(input, bw_arg, window, output_tex, output_csv)
+  cli_args <- c(bw_arg, window, cluster_level)
 }
 
-if (length(cli_args) >= 6) {
-  input <- cli_args[1]
-  bw_arg <- cli_args[2]
-  window <- cli_args[3]
-  output_tex <- cli_args[4]
-  output_csv <- cli_args[5]
-  cluster_level <- tolower(cli_args[6])
-} else if (length(cli_args) >= 5) {
-  input <- cli_args[1]
-  bw_arg <- cli_args[2]
-  window <- cli_args[3]
-  output_tex <- cli_args[4]
-  output_csv <- cli_args[5]
-  cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
+if (length(cli_args) == 3) {
+  bw_arg <- cli_args[1]
+  window <- cli_args[2]
+  cluster_level <- tolower(cli_args[3])
 } else {
-  stop("FATAL: Script requires 5 args: <input> <bw_ft> <window> <output_tex> <output_csv> [<cluster_level>]", call. = FALSE)
+  stop("FATAL: Script requires 3 args: <bw_ft> <window> <cluster_level>", call. = FALSE)
 }
 
 if (length(bw_arg) != 1) {
@@ -48,9 +36,11 @@ if (!cluster_level %in% c("segment", "ward_pair")) {
   stop("cluster_level must be one of: segment, ward_pair", call. = FALSE)
 }
 
+output_stem <- sprintf("../output/rent_amenity_attenuation_bw%s_%s_clust_%s", bw_label, window, cluster_level)
+
 message(sprintf("=== Rent Amenity Attenuation | bw=%s | window=%s | cluster=%s ===", bw_label, window, cluster_level))
 
-rent_raw <- read_parquet(input) %>%
+rent_raw <- read_parquet("../output/rent_with_ward_distances_amenities.parquet") %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -175,7 +165,7 @@ etable(
     "_FE Structure" = c("Segment $\\times$ Year-Month FE", "Segment $\\times$ Year-Month FE", "Segment $\\times$ Year-Month FE"),
     "_Cluster Level" = c(cluster_label, cluster_label, cluster_label)
   ),
-  file = output_tex,
+  file = paste0(output_stem, ".tex"),
   replace = TRUE
 )
 
@@ -233,7 +223,7 @@ coef_tbl <- bind_rows(
   )
 )
 
-write_csv(coef_tbl, output_csv)
+write_csv(coef_tbl, paste0(output_stem, ".csv"))
 
-message(sprintf("Saved: %s", output_tex))
-message(sprintf("Saved: %s", output_csv))
+message(sprintf("Saved: %s.tex", output_stem))
+message(sprintf("Saved: %s.csv", output_stem))
