@@ -47,7 +47,7 @@ all: \
 	@test -s "$@"
 
 ../output/listing_units_cache_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.csv: build_listing_units_cache.R ../input/rent_with_ward_distances.parquet | ../output
-	Rscript build_listing_units_cache.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all unit_proxy 0 8 all NA ../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.parquet "$@"
+	Rscript build_listing_units_cache.R ../input/rent_with_ward_distances.parquet 500 pre_2023 all unit_proxy 0 8 ../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.parquet "$@"
 
 ../output/listing_units_side_panel_bw500_pre_2023_all_pct0_unit_proxy_all.parquet: ../output/listing_units_cache_bw500_pre_2023_all_pct0_unit_proxy_bins8_all.csv
 	@test -s "$@"
@@ -56,7 +56,7 @@ all: \
 	@test -s "$@"
 
 ../output/listing_units_cache_bw500_pre_2023_multifamily_only_pct0_unit_proxy_bins8_all.csv: build_listing_units_cache.R ../input/rent_with_ward_distances.parquet | ../output
-	Rscript build_listing_units_cache.R ../input/rent_with_ward_distances.parquet 500 pre_2023 multifamily_only unit_proxy 0 8 all NA ../output/listing_units_side_panel_bw500_pre_2023_multifamily_only_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_multifamily_only_pct0_unit_proxy_bins8_all.parquet "$@"
+	Rscript build_listing_units_cache.R ../input/rent_with_ward_distances.parquet 500 pre_2023 multifamily_only unit_proxy 0 8 ../output/listing_units_side_panel_bw500_pre_2023_multifamily_only_pct0_unit_proxy_all.parquet ../output/listing_units_bin_cells_bw500_pre_2023_multifamily_only_pct0_unit_proxy_bins8_all.parquet "$@"
 
 ../output/listing_units_side_panel_bw500_pre_2023_multifamily_only_pct0_unit_proxy_all.parquet: ../output/listing_units_cache_bw500_pre_2023_multifamily_only_pct0_unit_proxy_bins8_all.csv
 	@test -s "$@"

@@ -26,14 +26,6 @@ if (!cluster_level %in% c("segment", "ward_pair")) {
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 cluster_label <- if (cluster_level == "segment") "Segment" else "Ward Pair"
 
-stars <- function(p) {
-  if (!is.finite(p)) return("")
-  if (p < 0.01) return("***")
-  if (p < 0.05) return("**")
-  if (p < 0.1) return("*")
-  ""
-}
-
 panel <- read_parquet(input_panel) |>
   as_tibble()
 
@@ -89,7 +81,14 @@ out <- tibble(
 
 write_csv(out, output_csv)
 
-coef_str <- sprintf("%.4f%s", out$estimate, stars(out$p_value))
+star_text <- case_when(
+  !is.finite(out$p_value) ~ "",
+  out$p_value < 0.01 ~ "***",
+  out$p_value < 0.05 ~ "**",
+  out$p_value < 0.1 ~ "*",
+  TRUE ~ ""
+)
+coef_str <- sprintf("%.4f%s", out$estimate, star_text)
 se_str <- sprintf("(%.4f)", out$std_error)
 
 tex <- c(
