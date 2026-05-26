@@ -1,11 +1,11 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/border_pair_helpers.R")
 
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_pair_fe/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/rental_border_pair_fe_audit/code")
 # input <- "../input/rent_with_ward_distances.parquet"
 # bw_arg <- "all"
 # window <- "pre_covid"

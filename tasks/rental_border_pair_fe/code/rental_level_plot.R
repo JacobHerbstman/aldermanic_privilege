@@ -1,64 +1,21 @@
 source("../../setup_environment/code/packages.R")
 
-
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
-
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_pair_fe/code")
-# input <- "../input/rent_with_ward_distances.parquet"
-# bw_ft <- 1000
-# window <- "pre_2021"
-# sample_filter <- "all"
-# use_controls <- TRUE
-# bins_per_side <- 5
-# min_strictness_diff_pctile <- 0
-# output_pdf <- NA
-# output_meta_csv <- NA
-# output_bins_csv <- NA
 
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
-  cli_args <- c(input, bw_ft, window, sample_filter, use_controls, bins_per_side, min_strictness_diff_pctile, output_pdf, output_meta_csv, output_bins_csv)
-}
-
-if (length(cli_args) >= 12) {
-  input <- cli_args[1]
-  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
-  window <- cli_args[3]
-  sample_filter <- cli_args[4]
-  use_controls <- tolower(cli_args[5]) %in% c("true", "t", "1", "yes")
-  bins_per_side <- suppressWarnings(as.integer(cli_args[6]))
-  min_strictness_diff_pctile <- suppressWarnings(as.integer(cli_args[7]))
-  output_pdf <- cli_args[8]
-  output_meta_csv <- cli_args[9]
-  output_bins_csv <- cli_args[10]
-  fe_geo <- tolower(cli_args[11])
-  cluster_level <- tolower(cli_args[12])
-} else if (length(cli_args) >= 10) {
-  input <- cli_args[1]
-  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
-  window <- cli_args[3]
-  sample_filter <- cli_args[4]
-  use_controls <- tolower(cli_args[5]) %in% c("true", "t", "1", "yes")
-  bins_per_side <- suppressWarnings(as.integer(cli_args[6]))
-  min_strictness_diff_pctile <- suppressWarnings(as.integer(cli_args[7]))
-  output_pdf <- cli_args[8]
-  output_meta_csv <- cli_args[9]
-  output_bins_csv <- cli_args[10]
-  fe_geo <- tolower(Sys.getenv("FE_GEO", "segment"))
-  cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
-} else {
-  stop("FATAL: Script requires args: <input> <bw_ft> <window> <sample_filter> <use_controls> <bins_per_side> <min_strictness_diff_pctile> <output_pdf> <output_meta_csv> <output_bins_csv> [<fe_geo> <cluster_level>]", call. = FALSE)
-}
-if (!fe_geo %in% c("segment", "ward_pair")) stop("--fe_geo must be one of: segment, ward_pair", call. = FALSE)
-if (!cluster_level %in% c("segment", "ward_pair")) stop("--cluster_level must be one of: segment, ward_pair", call. = FALSE)
+bw_ft <- 500L
+window <- "pre_2023"
+sample_filter <- "all"
+use_controls <- TRUE
+bins_per_side <- 15L
+min_strictness_diff_pctile <- 0L
+fe_geo <- "segment"
+cluster_level <- "ward_pair"
 
 message("=== Side-Level Comparison Plot ===")
 message(sprintf("bw=%d | window=%s | sample=%s | controls=%s",
                 bw_ft, window, sample_filter, use_controls))
 
-# Load and filter data
-rent_input <- read_parquet(input) %>% as_tibble()
+rent_input <- read_parquet("../input/rent_with_ward_distances.parquet") %>% as_tibble()
 if (!"signed_dist" %in% names(rent_input) && "signed_dist_m" %in% names(rent_input)) {
   rent_input <- rent_input %>% mutate(signed_dist = signed_dist_m / 0.3048)
 }
@@ -233,31 +190,6 @@ p <- ggplot() +
   theme_bw(base_size = 11) +
   theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
-ggsave(output_pdf, p, width = 8.6, height = 6, dpi = 300, bg = "white")
+ggsave("../output/level_plot_bw500_pct0_ctrl_clust_ward_pair.pdf", p, width = 8.6, height = 6, dpi = 300, bg = "white")
 
-if (!is.na(output_bins_csv) && nzchar(output_bins_csv) && toupper(output_bins_csv) != "NA") {
-  write_csv(bins, output_bins_csv)
-}
-if (!is.na(output_meta_csv) && nzchar(output_meta_csv) && toupper(output_meta_csv) != "NA") {
-  write_csv(
-    tibble(
-      bw_ft = bw_ft,
-      window = window,
-      sample_filter = sample_filter,
-      use_controls = use_controls,
-      min_strictness_diff_pctile = min_strictness_diff_pctile,
-      gap_estimate = b_right,
-      gap_se = se_right,
-      gap_p = p_right,
-      mean_left = mean_left,
-      mean_right = mean_right,
-      n_obs = nobs(m),
-      ward_pairs = n_distinct(aug$ward_pair),
-      fe_geo = fe_geo,
-      cluster_level = cluster_level
-    ),
-    output_meta_csv
-  )
-}
-
-message(sprintf("Saved: %s", output_pdf))
+message("Saved: ../output/level_plot_bw500_pct0_ctrl_clust_ward_pair.pdf")
