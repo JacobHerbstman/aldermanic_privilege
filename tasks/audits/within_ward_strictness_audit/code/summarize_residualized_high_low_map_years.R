@@ -1,7 +1,7 @@
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/within_ward_strictness_audit/code")
 # residualized_wide_input <- "../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
 # ward_panel_input <- "../input/ward_panel.gpkg"
 # alderman_panel_input <- "../input/chicago_alderman_panel.csv"

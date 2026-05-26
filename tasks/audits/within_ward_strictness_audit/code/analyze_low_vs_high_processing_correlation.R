@@ -1,7 +1,7 @@
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/within_ward_strictness_audit/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 # building_permits_input <- "../input/building_permits_clean.gpkg"
 # ward_panel_input <- "../input/ward_panel.gpkg"

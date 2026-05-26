@@ -1,72 +1,62 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/alderman_uncertainty_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/alderman_uncertainty_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/within_ward_strictness_audit/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
-# map_year <- "2022"
 # building_permits_input <- "../input/building_permits_clean.gpkg"
 # ward_panel_input <- "../input/ward_panel.gpkg"
 # alderman_panel_input <- "../input/chicago_alderman_panel.csv"
 # ward_controls_input <- "../input/ward_controls.csv"
 # cta_stations_input <- "../input/cta_stations.geojson"
 # water_osm_input <- "../input/gis_osm_water_a_free_1.shp"
-# output_map_csv <- "../output/residualized_high_low_map_data_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022.csv"
-# output_summary_csv <- "../output/residualized_high_low_map_summary_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022.csv"
-# output_pdf <- "../output/residualized_high_low_map_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022.pdf"
-# output_png <- "../output/residualized_high_low_map_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022.png"
+# output_wide_csv <- "../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
+# output_summary_csv <- "../output/residualized_low_vs_high_processing_correlation_summary_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
+# output_scatter_pdf <- "../output/residualized_low_vs_high_processing_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
   args <- c(
     spec,
-    map_year,
     building_permits_input,
     ward_panel_input,
     alderman_panel_input,
     ward_controls_input,
     cta_stations_input,
     water_osm_input,
-    output_map_csv,
+    output_wide_csv,
     output_summary_csv,
-    output_pdf,
-    output_png
+    output_scatter_pdf
   )
 }
 
-if (length(args) != 12) {
+if (length(args) != 10) {
   stop(
     paste(
-      "FATAL: Script requires 12 args:",
-      "<spec> <map_year> <building_permits_input> <ward_panel_input>",
-      "<alderman_panel_input> <ward_controls_input> <cta_stations_input>",
-      "<water_osm_input> <output_map_csv> <output_summary_csv>",
-      "<output_pdf> <output_png>"
+      "FATAL: Script requires 10 args:",
+      "<spec> <building_permits_input> <ward_panel_input> <alderman_panel_input>",
+      "<ward_controls_input> <cta_stations_input> <water_osm_input>",
+      "<output_wide_csv> <output_summary_csv> <output_scatter_pdf>"
     ),
     call. = FALSE
   )
 }
 
 spec <- args[1]
-map_year <- as.integer(args[2])
-building_permits_input <- args[3]
-ward_panel_input <- args[4]
-alderman_panel_input <- args[5]
-ward_controls_input <- args[6]
-cta_stations_input <- args[7]
-water_osm_input <- args[8]
-output_map_csv <- args[9]
-output_summary_csv <- args[10]
-output_pdf <- args[11]
-output_png <- args[12]
+building_permits_input <- args[2]
+ward_panel_input <- args[3]
+alderman_panel_input <- args[4]
+ward_controls_input <- args[5]
+cta_stations_input <- args[6]
+water_osm_input <- args[7]
+output_wide_csv <- args[8]
+output_summary_csv <- args[9]
+output_scatter_pdf <- args[10]
 
 spec_max_year <- str_match(spec, "through([0-9]{4})")[, 2]
 max_permit_year <- ifelse(is.na(spec_max_year), NA_integer_, as.integer(spec_max_year))
 if (!is.finite(max_permit_year)) {
   stop("Could not parse through-year from spec.", call. = FALSE)
-}
-if (map_year > max_permit_year) {
-  stop("map_year exceeds the through-year in spec.", call. = FALSE)
 }
 
 config <- default_uncertainty_config()
@@ -80,9 +70,46 @@ config$two_stage <- FALSE
 
 signs_regex <- "SIGNS"
 
-message("=== Residualized High-vs-Low Map ===")
+weighted_cor <- function(x, y, w) {
+  keep <- is.finite(x) & is.finite(y) & is.finite(w) & w > 0
+  if (sum(keep) < 2) {
+    return(NA_real_)
+  }
+
+  x <- x[keep]
+  y <- y[keep]
+  w <- w[keep]
+  w <- w / sum(w)
+  x_centered <- x - sum(w * x)
+  y_centered <- y - sum(w * y)
+  cov_xy <- sum(w * x_centered * y_centered)
+  var_x <- sum(w * x_centered^2)
+  var_y <- sum(w * y_centered^2)
+
+  if (!is.finite(var_x) || !is.finite(var_y) || var_x <= 0 || var_y <= 0) {
+    return(NA_real_)
+  }
+
+  cov_xy / sqrt(var_x * var_y)
+}
+
+cor_row <- function(df, correlation_type, x_col, y_col, weights = NULL) {
+  if (nrow(df) < 2) {
+    return(tibble(correlation = correlation_type, n_aldermen = nrow(df), estimate = NA_real_))
+  }
+
+  estimate <- if (is.null(weights)) {
+    cor(df[[x_col]], df[[y_col]], method = correlation_type, use = "complete.obs")
+  } else {
+    weighted_cor(df[[x_col]], df[[y_col]], df[[weights]])
+  }
+
+  tibble(correlation = correlation_type, n_aldermen = nrow(df), estimate = estimate)
+}
+
+message("=== Residualized High-vs-Low Processing-Time Correlation Check ===")
 message("Spec: ", spec)
-message("Map year: ", map_year)
+message("Through-year cutoff: ", max_permit_year)
 
 ward_panel <- st_read(ward_panel_input, quiet = TRUE)
 ward_controls <- read_csv(ward_controls_input, show_col_types = FALSE)
@@ -303,12 +330,11 @@ stage1 <- fit_stage1_model(
   stage1_outcome = "log_processing_time",
   covariates = covariates,
   fe_terms = get_stage1_fe_terms(config),
-  variant_id = "high_low_residualized_map"
+  variant_id = "high_low_residualized"
 )
 
-ward_year_wide <- stage1$permits_for_reg %>%
-  filter(year == map_year) %>%
-  group_by(ward, group) %>%
+alderman_wide <- stage1$permits_for_reg %>%
+  group_by(alderman, group) %>%
   summarise(
     n_permits = n(),
     mean_resid = mean(resid, na.rm = TRUE),
@@ -322,7 +348,7 @@ ward_year_wide <- stage1$permits_for_reg %>%
     names_glue = "{.value}_{group}"
   ) %>%
   transmute(
-    ward,
+    alderman,
     n_high = n_permits_high,
     n_low = n_permits_low,
     mean_resid_high = mean_resid_high,
@@ -330,100 +356,57 @@ ward_year_wide <- stage1$permits_for_reg %>%
     mean_log_high = mean_log_days_high,
     mean_log_low = mean_log_days_low,
     mean_days_high = mean_days_high,
-    mean_days_low = mean_days_low,
-    residual_gap = mean_resid_high - mean_resid_low
+    mean_days_low = mean_days_low
   ) %>%
-  arrange(ward)
+  filter(!is.na(n_high), !is.na(n_low)) %>%
+  mutate(harmonic_weight = 2 / ((1 / n_high) + (1 / n_low))) %>%
+  arrange(alderman)
 
-ward_labels <- alderman_panel %>%
-  filter(year(as.Date(month)) == map_year) %>%
-  group_by(ward) %>%
-  slice_max(month, n = 1, with_ties = FALSE) %>%
-  ungroup() %>%
-  select(ward, alderman)
+write_csv(alderman_wide, output_wide_csv)
 
-map_data <- ward_panel %>%
-  filter(year == map_year) %>%
-  left_join(ward_labels, by = "ward", relationship = "many-to-one") %>%
-  left_join(ward_year_wide, by = "ward", relationship = "one-to-one")
-
-st_drop_geometry(map_data) %>%
-  write_csv(output_map_csv)
-
-cor_sample <- st_drop_geometry(map_data) %>%
-  filter(!is.na(mean_resid_high), !is.na(mean_resid_low))
-
-summary_out <- tibble(
-  map_year = map_year,
-  n_wards_both_groups = nrow(cor_sample),
-  pearson_resid = if (nrow(cor_sample) >= 2) cor(cor_sample$mean_resid_high, cor_sample$mean_resid_low) else NA_real_,
-  spearman_resid = if (nrow(cor_sample) >= 2) cor(cor_sample$mean_resid_high, cor_sample$mean_resid_low, method = "spearman") else NA_real_,
-  mean_n_high = mean(cor_sample$n_high, na.rm = TRUE),
-  mean_n_low = mean(cor_sample$n_low, na.rm = TRUE)
+summary_rows <- bind_rows(
+  cor_row(alderman_wide, "pearson", "mean_resid_high", "mean_resid_low"),
+  cor_row(alderman_wide, "spearman", "mean_resid_high", "mean_resid_low"),
+  cor_row(alderman_wide, "weighted_pearson_harmonic", "mean_resid_high", "mean_resid_low", "harmonic_weight")
 )
 
-write_csv(summary_out, output_summary_csv)
+write_csv(summary_rows, output_summary_csv)
 
-map_long <- map_data %>%
-  select(ward, alderman, mean_resid_high, mean_resid_low, geometry) %>%
-  pivot_longer(
-    cols = c(mean_resid_high, mean_resid_low),
-    names_to = "group",
-    values_to = "mean_resid"
-  ) %>%
-  mutate(
-    group = recode(
-      group,
-      mean_resid_high = "High-discretion permits",
-      mean_resid_low = "Low-discretion permits"
-    )
-  )
-
-fill_limit <- max(abs(map_long$mean_resid), na.rm = TRUE)
+plot_pearson <- summary_rows %>%
+  filter(correlation == "pearson") %>%
+  pull(estimate)
 
 annotation_text <- paste0(
-  "2022 wards with both groups: ", summary_out$n_wards_both_groups,
-  "\nPearson r (2022 ward means) = ", formatC(summary_out$pearson_resid, digits = 3, format = "f")
+  "N = ", nrow(alderman_wide),
+  "\nPearson r = ", formatC(plot_pearson, digits = 3, format = "f")
 )
 
-p_map <- ggplot(map_long) +
-  geom_sf(aes(fill = mean_resid), color = "white", linewidth = 0.2) +
-  geom_sf_text(aes(label = ward), color = "grey15", size = 2.2) +
-  facet_wrap(~group, nrow = 1) +
-  scale_fill_gradient2(
-    low = "#2166AC",
-    mid = "white",
-    high = "#B2182B",
-    midpoint = 0,
-    limits = c(-fill_limit, fill_limit),
-    oob = scales::squish,
-    name = "Mean residual\nlog days"
-  ) +
+p_scatter <- ggplot(alderman_wide, aes(x = mean_resid_high, y = mean_resid_low)) +
+  geom_point(color = "#2C7FB8", size = 2.5, alpha = 0.85) +
+  geom_smooth(method = "lm", se = FALSE, color = "#D95F0E", linewidth = 0.7) +
   annotate(
     "text",
     x = Inf,
     y = -Inf,
     label = annotation_text,
     hjust = 1.02,
-    vjust = -0.3,
-    size = 3.8
+    vjust = -0.1,
+    size = 3.6
   ) +
   labs(
-    title = paste0("Residualized Permit Processing Times by Ward, ", map_year),
-    subtitle = "Stage-1 residuals use the same full through-2022 control set as the alderman correlation check"
+    x = "Mean residual log days, high-discretion permits",
+    y = "Mean residual log days, low-discretion permits",
+    title = "Alderman Mean Residual Processing Times: High vs. Low Discretion",
+    subtitle = "Residuals come from the baseline stage-1 controls with permit-type, review-type, and month fixed effects"
   ) +
-  theme_void(base_size = 11) +
+  theme_minimal(base_size = 11) +
   theme(
     plot.title = element_text(face = "bold"),
-    plot.subtitle = element_text(size = 10),
-    strip.text = element_text(face = "bold"),
-    legend.position = "bottom"
+    plot.subtitle = element_text(size = 10)
   )
 
-ggsave(output_pdf, p_map, width = 12, height = 6.75)
-ggsave(output_png, p_map, width = 12, height = 6.75, dpi = 220)
+ggsave(output_scatter_pdf, p_scatter, width = 7, height = 5)
 
-message("Saved: ", output_map_csv)
+message("Saved: ", output_wide_csv)
 message("Saved: ", output_summary_csv)
-message("Saved: ", output_pdf)
-message("Saved: ", output_png)
+message("Saved: ", output_scatter_pdf)

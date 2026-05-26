@@ -1,53 +1,32 @@
 source("../../setup_environment/code/packages.R")
 library(fixest)
 
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
-# score_input <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
-# residualized_wide_input <- "../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
-# output_summary_csv <- "../output/low_discretion_falsification_summary_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
-# output_tex <- "../output/low_discretion_falsification_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex"
-# output_compact_tex <- "../output/low_discretion_falsification_compact_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex"
+# spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(score_input, residualized_wide_input, output_summary_csv, output_tex, output_compact_tex)
+  args <- c(spec)
+}
+if (length(args) != 1) {
+  stop("FATAL: Script requires 1 arg: <uncertainty_spec>", call. = FALSE)
 }
 
-if (!(length(args) %in% c(4, 5))) {
-  stop(
-    "FATAL: Script requires 4 or 5 args: <score_input> <residualized_wide_input> <output_summary_csv> <output_tex> [output_compact_tex]",
-    call. = FALSE
-  )
-}
+spec <- args[1]
 
-score_input <- args[1]
-residualized_wide_input <- args[2]
-output_summary_csv <- args[3]
-output_tex <- args[4]
-output_compact_tex <- if (length(args) >= 5) args[5] else NA_character_
-
-fmt_num <- function(x, digits = 3) {
-  ifelse(is.finite(x), formatC(x, digits = digits, format = "f"), "")
-}
-
-stars <- function(p) {
-  case_when(
-    is.na(p) ~ "",
-    p < 0.01 ~ "***",
-    p < 0.05 ~ "**",
-    p < 0.10 ~ "*",
-    TRUE ~ ""
-  )
-}
-
-score_df <- read_csv(score_input, show_col_types = FALSE) %>%
+score_df <- read_csv(
+  sprintf("../input/alderman_uncertainty_index_%s.csv", spec),
+  show_col_types = FALSE
+) %>%
   transmute(alderman, uncertainty_index)
 if (anyDuplicated(score_df$alderman) > 0) {
   stop("Scores must be unique by alderman.", call. = FALSE)
 }
 
-wide_df <- read_csv(residualized_wide_input, show_col_types = FALSE)
+wide_df <- read_csv(
+  sprintf("../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_%s.csv", spec),
+  show_col_types = FALSE
+)
 if (anyDuplicated(wide_df$alderman) > 0) {
   stop("Residualized high-low input must be unique by alderman.", call. = FALSE)
 }
@@ -63,97 +42,30 @@ analysis_df <- score_df %>%
     n_low > 0
   )
 
-model_specs <- tribble(
-  ~model_id, ~outcome, ~weights_var, ~outcome_label,
-  "residual_unweighted", "mean_resid_low", NA_character_, "Mean residual low-discretion log days",
-  "residual_weighted", "mean_resid_low", "n_low", "Mean residual low-discretion log days",
-  "raw_log_unweighted", "mean_log_low", NA_character_, "Mean low-discretion log days",
-  "raw_days_unweighted", "mean_days_low", NA_character_, "Mean low-discretion days"
+model <- feols(
+  mean_resid_low ~ uncertainty_index,
+  data = analysis_df,
+  se = "hetero",
+  warn = FALSE
 )
 
-results <- bind_rows(lapply(seq_len(nrow(model_specs)), function(i) {
-  spec_row <- model_specs[i, ]
-  model <- if (is.na(spec_row$weights_var)) {
-    feols(
-      as.formula(sprintf("%s ~ uncertainty_index", spec_row$outcome)),
-      data = analysis_df,
-      se = "hetero",
-      warn = FALSE
-    )
-  } else {
-    feols(
-      as.formula(sprintf("%s ~ uncertainty_index", spec_row$outcome)),
-      data = analysis_df,
-      weights = as.formula(paste0("~", spec_row$weights_var)),
-      se = "hetero",
-      warn = FALSE
-    )
-  }
+coef_table <- coeftable(model)
+p_value <- unname(coef_table["uncertainty_index", grep("^Pr\\(", colnames(coef_table), value = TRUE)[1]])
+estimate <- unname(coef_table["uncertainty_index", "Estimate"])
+std_error <- unname(coef_table["uncertainty_index", "Std. Error"])
 
-  coef_table <- coeftable(model)
-  tibble(
-    model_id = spec_row$model_id,
-    outcome = spec_row$outcome_label,
-    weighting = if_else(is.na(spec_row$weights_var), "None", spec_row$weights_var),
-    estimate = unname(coef_table["uncertainty_index", "Estimate"]),
-    se = unname(coef_table["uncertainty_index", "Std. Error"]),
-    p_value = unname(coef_table["uncertainty_index", grep("^Pr\\(", colnames(coef_table), value = TRUE)[1]]),
-    n_aldermen = nobs(model),
-    r2 = tryCatch(as.numeric(r2(model, type = "r2")), error = function(e) NA_real_)
-  )
-}))
-
-write_csv(results, output_summary_csv)
-
-tex_lines <- c(
-  "\\begingroup",
-  "\\centering",
-  "\\begin{tabular}{lccc}",
-  "\\toprule",
-  "Outcome & Coef. on stringency & SE & $p$-value \\\\",
-  "\\midrule"
+estimate_display <- if (is.finite(estimate)) formatC(estimate, digits = 3, format = "f") else ""
+se_display <- if (is.finite(std_error)) formatC(std_error, digits = 3, format = "f") else ""
+stars_display <- case_when(
+  is.na(p_value) ~ "",
+  p_value < 0.01 ~ "***",
+  p_value < 0.05 ~ "**",
+  p_value < 0.10 ~ "*",
+  TRUE ~ ""
 )
 
-for (i in seq_len(nrow(results))) {
-  row_i <- results[i, ]
-  outcome_label <- row_i$outcome[[1]]
-  if (row_i$weighting[[1]] != "None") {
-    outcome_label <- paste0(outcome_label, " (weighted)")
-  }
-  tex_lines <- c(
-    tex_lines,
-    sprintf(
-      "%s & %s & %s & %s \\\\",
-      outcome_label,
-      paste0(fmt_num(row_i$estimate[[1]]), stars(row_i$p_value[[1]])),
-      paste0("(", fmt_num(row_i$se[[1]]), ")"),
-      fmt_num(row_i$p_value[[1]])
-    )
-  )
-}
-
-tex_lines <- c(
-  tex_lines,
-  "\\midrule",
-  sprintf("N aldermen & %s &  &  \\\\", format(results$n_aldermen[[1]], big.mark = ",")),
-  "\\bottomrule",
-  "\\end{tabular}",
-  paste0(
-    "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Regresses alderman-level low-discretion processing outcomes on the main residualized alderman stringency index.",
-    " The first row is the direct placebo-style falsification using mean residualized log low-discretion processing time.",
-    " Remaining rows report unweighted raw-log and raw-day versions for comparison.}"
-  ),
-  "\\endgroup"
-)
-
-writeLines(tex_lines, output_tex)
-
-if (!is.na(output_compact_tex)) {
-  compact_row <- results %>%
-    filter(model_id == "residual_unweighted") %>%
-    slice(1)
-
-  compact_lines <- c(
+writeLines(
+  c(
     "\\begingroup",
     "\\centering",
     "\\begin{tabular}{lcc}",
@@ -161,13 +73,12 @@ if (!is.na(output_compact_tex)) {
     "Outcome & Coef. on stringency & SE \\\\",
     "\\midrule",
     sprintf(
-      "%s & %s & %s \\\\",
-      compact_row$outcome[[1]],
-      paste0(fmt_num(compact_row$estimate[[1]]), stars(compact_row$p_value[[1]])),
-      paste0("(", fmt_num(compact_row$se[[1]]), ")")
+      "Mean residual low-discretion log days & %s & %s \\\\",
+      paste0(estimate_display, stars_display),
+      paste0("(", se_display, ")")
     ),
     "\\midrule",
-    sprintf("N aldermen & %s &  \\\\", format(compact_row$n_aldermen[[1]], big.mark = ",")),
+    sprintf("N aldermen & %s &  \\\\", format(nobs(model), big.mark = ",")),
     "\\bottomrule",
     "\\end{tabular}",
     paste0(
@@ -175,7 +86,6 @@ if (!is.na(output_compact_tex)) {
       "Standard errors are heteroskedasticity-robust. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}"
     ),
     "\\endgroup"
-  )
-
-  writeLines(compact_lines, output_compact_tex)
-}
+  ),
+  sprintf("../output/low_discretion_falsification_compact_uncertainty_%s.tex", spec)
+)

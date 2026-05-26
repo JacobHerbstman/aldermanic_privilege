@@ -1,8 +1,8 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/alderman_uncertainty_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/alderman_uncertainty_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/within_ward_strictness_audit/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 # permits_input <- "../input/permits_for_uncertainty_index.csv"
 # alderman_panel_input <- "../input/chicago_alderman_panel.csv"

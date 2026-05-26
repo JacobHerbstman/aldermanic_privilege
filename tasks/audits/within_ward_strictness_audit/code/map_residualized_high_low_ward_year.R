@@ -1,25 +1,72 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/alderman_uncertainty_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/alderman_uncertainty_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/within_ward_strictness_audit/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
+# map_year <- "2022"
+# building_permits_input <- "../input/building_permits_clean.gpkg"
+# ward_panel_input <- "../input/ward_panel.gpkg"
+# alderman_panel_input <- "../input/chicago_alderman_panel.csv"
+# ward_controls_input <- "../input/ward_controls.csv"
+# cta_stations_input <- "../input/cta_stations.geojson"
+# water_osm_input <- "../input/gis_osm_water_a_free_1.shp"
+# output_map_csv <- "../output/residualized_high_low_map_data_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022.csv"
+# output_summary_csv <- "../output/residualized_high_low_map_summary_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022.csv"
+# output_pdf <- "../output/residualized_high_low_map_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022.pdf"
+# output_png <- "../output/residualized_high_low_map_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022.png"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(spec)
+  args <- c(
+    spec,
+    map_year,
+    building_permits_input,
+    ward_panel_input,
+    alderman_panel_input,
+    ward_controls_input,
+    cta_stations_input,
+    water_osm_input,
+    output_map_csv,
+    output_summary_csv,
+    output_pdf,
+    output_png
+  )
 }
 
-if (length(args) != 1) {
-  stop("FATAL: Script requires 1 arg: <uncertainty_spec>", call. = FALSE)
+if (length(args) != 12) {
+  stop(
+    paste(
+      "FATAL: Script requires 12 args:",
+      "<spec> <map_year> <building_permits_input> <ward_panel_input>",
+      "<alderman_panel_input> <ward_controls_input> <cta_stations_input>",
+      "<water_osm_input> <output_map_csv> <output_summary_csv>",
+      "<output_pdf> <output_png>"
+    ),
+    call. = FALSE
+  )
 }
 
 spec <- args[1]
+map_year <- as.integer(args[2])
+building_permits_input <- args[3]
+ward_panel_input <- args[4]
+alderman_panel_input <- args[5]
+ward_controls_input <- args[6]
+cta_stations_input <- args[7]
+water_osm_input <- args[8]
+output_map_csv <- args[9]
+output_summary_csv <- args[10]
+output_pdf <- args[11]
+output_png <- args[12]
 
 spec_max_year <- str_match(spec, "through([0-9]{4})")[, 2]
 max_permit_year <- ifelse(is.na(spec_max_year), NA_integer_, as.integer(spec_max_year))
 if (!is.finite(max_permit_year)) {
   stop("Could not parse through-year from spec.", call. = FALSE)
+}
+if (map_year > max_permit_year) {
+  stop("map_year exceeds the through-year in spec.", call. = FALSE)
 }
 
 config <- default_uncertainty_config()
@@ -33,13 +80,13 @@ config$two_stage <- FALSE
 
 signs_regex <- "SIGNS"
 
-message("=== Residualized High-vs-Low Processing-Time Correlation Check ===")
+message("=== Residualized High-vs-Low Map ===")
 message("Spec: ", spec)
-message("Through-year cutoff: ", max_permit_year)
+message("Map year: ", map_year)
 
-ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
-ward_controls <- read_csv("../input/ward_controls.csv", show_col_types = FALSE)
-alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
+ward_panel <- st_read(ward_panel_input, quiet = TRUE)
+ward_controls <- read_csv(ward_controls_input, show_col_types = FALSE)
+alderman_panel <- read_csv(alderman_panel_input, show_col_types = FALSE) %>%
   mutate(month = as.yearmon(month))
 if (anyDuplicated(alderman_panel[c("ward", "month")]) > 0) {
   stop("Alderman panel must be unique by ward-month.", call. = FALSE)
@@ -48,8 +95,8 @@ if (anyDuplicated(ward_controls[c("ward", "year")]) > 0) {
   stop("Ward controls must be unique by ward-year.", call. = FALSE)
 }
 
-cta_stations <- st_read("../input/cta_stations.geojson", quiet = TRUE)
-water_osm <- st_read("../input/gis_osm_water_a_free_1.shp", quiet = TRUE)
+cta_stations <- st_read(cta_stations_input, quiet = TRUE)
+water_osm <- st_read(water_osm_input, quiet = TRUE)
 
 if (st_crs(cta_stations) != st_crs(ward_panel)) {
   cta_stations <- st_transform(cta_stations, st_crs(ward_panel))
@@ -58,7 +105,7 @@ if (st_crs(water_osm) != st_crs(ward_panel)) {
   water_osm <- st_transform(water_osm, st_crs(ward_panel))
 }
 
-permits <- st_read("../input/building_permits_clean.gpkg", quiet = TRUE) %>%
+permits <- st_read(building_permits_input, quiet = TRUE) %>%
   mutate(
     application_start_date_ym = as.yearmon(application_start_date_ym),
     application_year = year(as.Date(application_start_date_ym))
@@ -256,11 +303,12 @@ stage1 <- fit_stage1_model(
   stage1_outcome = "log_processing_time",
   covariates = covariates,
   fe_terms = get_stage1_fe_terms(config),
-  variant_id = "high_low_residualized"
+  variant_id = "high_low_residualized_map"
 )
 
-alderman_wide <- stage1$permits_for_reg %>%
-  group_by(alderman, group) %>%
+ward_year_wide <- stage1$permits_for_reg %>%
+  filter(year == map_year) %>%
+  group_by(ward, group) %>%
   summarise(
     n_permits = n(),
     mean_resid = mean(resid, na.rm = TRUE),
@@ -274,7 +322,7 @@ alderman_wide <- stage1$permits_for_reg %>%
     names_glue = "{.value}_{group}"
   ) %>%
   transmute(
-    alderman,
+    ward,
     n_high = n_permits_high,
     n_low = n_permits_low,
     mean_resid_high = mean_resid_high,
@@ -282,13 +330,100 @@ alderman_wide <- stage1$permits_for_reg %>%
     mean_log_high = mean_log_days_high,
     mean_log_low = mean_log_days_low,
     mean_days_high = mean_days_high,
-    mean_days_low = mean_days_low
+    mean_days_low = mean_days_low,
+    residual_gap = mean_resid_high - mean_resid_low
   ) %>%
-  filter(!is.na(n_high), !is.na(n_low)) %>%
-  mutate(harmonic_weight = 2 / ((1 / n_high) + (1 / n_low))) %>%
-  arrange(alderman)
+  arrange(ward)
 
-write_csv(
-  alderman_wide,
-  sprintf("../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_%s.csv", spec)
+ward_labels <- alderman_panel %>%
+  filter(year(as.Date(month)) == map_year) %>%
+  group_by(ward) %>%
+  slice_max(month, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  select(ward, alderman)
+
+map_data <- ward_panel %>%
+  filter(year == map_year) %>%
+  left_join(ward_labels, by = "ward", relationship = "many-to-one") %>%
+  left_join(ward_year_wide, by = "ward", relationship = "one-to-one")
+
+st_drop_geometry(map_data) %>%
+  write_csv(output_map_csv)
+
+cor_sample <- st_drop_geometry(map_data) %>%
+  filter(!is.na(mean_resid_high), !is.na(mean_resid_low))
+
+summary_out <- tibble(
+  map_year = map_year,
+  n_wards_both_groups = nrow(cor_sample),
+  pearson_resid = if (nrow(cor_sample) >= 2) cor(cor_sample$mean_resid_high, cor_sample$mean_resid_low) else NA_real_,
+  spearman_resid = if (nrow(cor_sample) >= 2) cor(cor_sample$mean_resid_high, cor_sample$mean_resid_low, method = "spearman") else NA_real_,
+  mean_n_high = mean(cor_sample$n_high, na.rm = TRUE),
+  mean_n_low = mean(cor_sample$n_low, na.rm = TRUE)
 )
+
+write_csv(summary_out, output_summary_csv)
+
+map_long <- map_data %>%
+  select(ward, alderman, mean_resid_high, mean_resid_low, geometry) %>%
+  pivot_longer(
+    cols = c(mean_resid_high, mean_resid_low),
+    names_to = "group",
+    values_to = "mean_resid"
+  ) %>%
+  mutate(
+    group = recode(
+      group,
+      mean_resid_high = "High-discretion permits",
+      mean_resid_low = "Low-discretion permits"
+    )
+  )
+
+fill_limit <- max(abs(map_long$mean_resid), na.rm = TRUE)
+
+annotation_text <- paste0(
+  "2022 wards with both groups: ", summary_out$n_wards_both_groups,
+  "\nPearson r (2022 ward means) = ", formatC(summary_out$pearson_resid, digits = 3, format = "f")
+)
+
+p_map <- ggplot(map_long) +
+  geom_sf(aes(fill = mean_resid), color = "white", linewidth = 0.2) +
+  geom_sf_text(aes(label = ward), color = "grey15", size = 2.2) +
+  facet_wrap(~group, nrow = 1) +
+  scale_fill_gradient2(
+    low = "#2166AC",
+    mid = "white",
+    high = "#B2182B",
+    midpoint = 0,
+    limits = c(-fill_limit, fill_limit),
+    oob = scales::squish,
+    name = "Mean residual\nlog days"
+  ) +
+  annotate(
+    "text",
+    x = Inf,
+    y = -Inf,
+    label = annotation_text,
+    hjust = 1.02,
+    vjust = -0.3,
+    size = 3.8
+  ) +
+  labs(
+    title = paste0("Residualized Permit Processing Times by Ward, ", map_year),
+    subtitle = "Stage-1 residuals use the same full through-2022 control set as the alderman correlation check"
+  ) +
+  theme_void(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 10),
+    strip.text = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+
+ggsave(output_pdf, p_map, width = 12, height = 6.75)
+ggsave(output_png, p_map, width = 12, height = 6.75, dpi = 220)
+
+message("Saved: ", output_map_csv)
+message("Saved: ", output_summary_csv)
+message("Saved: ", output_pdf)
+message("Saved: ", output_png)
