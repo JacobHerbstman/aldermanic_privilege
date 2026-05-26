@@ -1,74 +1,32 @@
 source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
-
-
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_border_pair_fe/code")
-# input <- "../input/sales_with_hedonics.parquet"
-# bw_ft <- 1000
+# bw_ft <- 500
 # fe_time <- "year_quarter"
-# output_tex <- "../output/fe_table_sales_bw1000.tex"
-# output_csv <- "../output/fe_table_sales_bw1000.csv"
-# output_year_diag <- "../output/year_diagnostics_sales_bw1000.csv"
+# fe_geo <- "segment"
+# cluster_level <- "ward_pair"
+# table_mode <- "amenity"
 # estimand <- "strictness_score"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(input, bw_ft, fe_time, output_tex, output_csv, output_year_diag)
+  cli_args <- c(bw_ft, fe_time, fe_geo, cluster_level, table_mode, estimand)
 }
 
-if (length(cli_args) >= 10) {
-  input <- cli_args[1]
-  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
-  fe_time <- cli_args[3]
-  output_tex <- cli_args[4]
-  output_csv <- cli_args[5]
-  output_year_diag <- cli_args[6]
-  fe_geo <- tolower(cli_args[7])
-  cluster_level <- tolower(cli_args[8])
-  table_mode <- tolower(cli_args[9])
-  estimand <- tolower(cli_args[10])
-} else if (length(cli_args) >= 9) {
-  input <- cli_args[1]
-  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
-  fe_time <- cli_args[3]
-  output_tex <- cli_args[4]
-  output_csv <- cli_args[5]
-  output_year_diag <- cli_args[6]
-  fe_geo <- tolower(cli_args[7])
-  cluster_level <- tolower(cli_args[8])
-  table_mode <- tolower(cli_args[9])
-  estimand <- tolower(Sys.getenv("ESTIMAND", "strictness_score"))
-} else if (length(cli_args) >= 8) {
-  input <- cli_args[1]
-  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
-  fe_time <- cli_args[3]
-  output_tex <- cli_args[4]
-  output_csv <- cli_args[5]
-  output_year_diag <- cli_args[6]
-  fe_geo <- tolower(cli_args[7])
-  cluster_level <- tolower(cli_args[8])
-  table_mode <- tolower(Sys.getenv("TABLE_MODE", "baseline"))
-  estimand <- tolower(Sys.getenv("ESTIMAND", "strictness_score"))
-} else if (length(cli_args) >= 6) {
-  input <- cli_args[1]
-  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
-  fe_time <- cli_args[3]
-  output_tex <- cli_args[4]
-  output_csv <- cli_args[5]
-  output_year_diag <- cli_args[6]
-  fe_geo <- tolower(Sys.getenv("FE_GEO", "segment"))
-  cluster_level <- tolower(Sys.getenv("CLUSTER_LEVEL", "segment"))
-  table_mode <- tolower(Sys.getenv("TABLE_MODE", "baseline"))
-  estimand <- tolower(Sys.getenv("ESTIMAND", "strictness_score"))
-} else {
+if (length(cli_args) != 6) {
   stop(
-    "FATAL: Script requires args: <input> <bw_ft> <fe_time> <output_tex> <output_csv> <output_year_diag> [<fe_geo> <cluster_level> <table_mode> <estimand>]",
+    "FATAL: Script requires args: <bw_ft> <fe_time> <fe_geo> <cluster_level> <table_mode> <estimand>",
     call. = FALSE
   )
 }
+
+bw_ft <- suppressWarnings(as.integer(cli_args[1]))
+fe_time <- cli_args[2]
+fe_geo <- tolower(cli_args[3])
+cluster_level <- tolower(cli_args[4])
+table_mode <- tolower(cli_args[5])
+estimand <- tolower(cli_args[6])
 
 stopifnot(
   is.finite(bw_ft), bw_ft > 0,
@@ -87,27 +45,21 @@ if (!estimand %in% c("strictness_score", "right")) {
   stop("--estimand must be one of: strictness_score, right", call. = FALSE)
 }
 
-prune_sample_raw <- tolower(Sys.getenv("PRUNE_SAMPLE", "all"))
-if (prune_sample_raw %in% c("all", "false", "f", "0", "no", "off")) {
-  prune_sample <- "all"
-} else if (prune_sample_raw %in% c("pruned", "true", "t", "1", "yes", "on")) {
-  prune_sample <- "pruned"
-} else {
-  stop("PRUNE_SAMPLE must map to one of: all/false/0 or pruned/true/1", call. = FALSE)
-}
-confound_flags_path <- Sys.getenv("CONFOUND_FLAGS_PATH", "../input/confounded_pair_era_flags.csv")
-use_zone_group_fe_raw <- tolower(Sys.getenv("USE_ZONE_GROUP_FE", "false"))
-use_zone_group_fe <- use_zone_group_fe_raw %in% c("true", "t", "1", "yes", "on")
-zoning_gpkg <- Sys.getenv("ZONING_GPKG", "../input/zoning_data_clean.gpkg")
+estimand_prefix <- ifelse(estimand == "right", "_right", "")
+output_tex <- sprintf(
+  "../output/fe_table_sales%s_bw%d_%s_%s_clust_%s.tex",
+  estimand_prefix,
+  bw_ft,
+  fe_time,
+  table_mode,
+  cluster_level
+)
 
 fe_time_label <- c(year = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month")
 
 message(sprintf("=== Sales Border Pair FE | bw=%d | fe=%s | geo=%s | cluster=%s | mode=%s | estimand=%s ===", bw_ft, fe_time, fe_geo, cluster_level, table_mode, estimand))
-message(sprintf("Pruning spec: %s", prune_sample))
-message(sprintf("Use zone-group FE: %s", ifelse(use_zone_group_fe, "TRUE", "FALSE")))
 
-# ── Load and filter ──
-sales <- read_parquet(input) %>%
+sales <- read_parquet("../output/sales_with_hedonics_amenities.parquet") %>%
   as_tibble()
 
 if (!"signed_dist" %in% names(sales) && "signed_dist_m" %in% names(sales)) {
@@ -139,85 +91,15 @@ if (need_segment) {
   sales <- sales %>% filter(!is.na(segment_id), segment_id != "")
 }
 
-if (prune_sample == "pruned") {
-  if (!file.exists(confound_flags_path)) {
-    stop(sprintf("Missing confound flags file for pruned run: %s", confound_flags_path), call. = FALSE)
-  }
-
-  conf_flags <- read_csv(
-    confound_flags_path,
-    show_col_types = FALSE,
-    col_select = c("ward_pair_id_dash", "era", "drop_confound")
-  ) %>%
-    transmute(
-      pair_dash = normalize_pair_dash(ward_pair_id_dash),
-      era = as.character(era),
-      keep_pair_era = !as.logical(drop_confound)
-    ) %>%
-    distinct()
-
-  if (anyNA(conf_flags$pair_dash) || anyNA(conf_flags$era)) {
-    stop("Confound flags have invalid pair/era keys.", call. = FALSE)
-  }
-  if (anyDuplicated(conf_flags[, c("pair_dash", "era")]) > 0) {
-    stop("Confound flags contain duplicate pair-era keys.", call. = FALSE)
-  }
-
-  sales <- sales %>%
-    mutate(
-      pair_dash = normalize_pair_dash(ward_pair),
-      era = era_from_year(year)
-    ) %>%
-    left_join(conf_flags, by = c("pair_dash", "era"))
-
-  n_missing <- sum(is.na(sales$keep_pair_era))
-  if (n_missing > 0) {
-    message(sprintf(
-      "Pruned run: %d observations have no pair-era pruning flag and will be dropped.",
-      n_missing
-    ))
-    sales <- sales %>% mutate(keep_pair_era = if_else(is.na(keep_pair_era), FALSE, keep_pair_era))
-  }
-
-  n_before_prune <- nrow(sales)
-  sales <- sales %>% filter(keep_pair_era)
-  message(sprintf("Observations after pair-era pruning: %d -> %d", n_before_prune, nrow(sales)))
-}
-
-# Year diagnostics
-year_diag <- sales %>%
-  group_by(year) %>%
-  summarise(
-    n = n(),
-    median_price = median(sale_price, na.rm = TRUE),
-    mean_price = mean(sale_price, na.rm = TRUE),
-    coverage_sqft = mean(!is.na(log_sqft)),
-    coverage_bedrooms = mean(!is.na(log_bedrooms)),
-    coverage_baths = mean(!is.na(log_baths)),
-    .groups = "drop"
-  )
-write_csv(year_diag, output_year_diag)
-
-# Standardize strictness
 strictness_sd <- sd(sales$strictness_own, na.rm = TRUE)
 stopifnot(is.finite(strictness_sd), strictness_sd > 0)
 sales <- sales %>% mutate(strictness_std = strictness_own / strictness_sd)
 treatment_var <- ifelse(estimand == "right", "right", "strictness_std")
 treatment_label <- ifelse(estimand == "right", "Stricter Side", "Stringency Index")
 
-if (use_zone_group_fe) {
-  sales <- attach_zone_group(sales, "longitude", "latitude", zoning_gpkg)
-  sales <- sales %>% filter(!is.na(zone_group), zone_group != "")
-}
-
-# Hedonic sample
 sales_hed <- sales %>%
   filter(!is.na(log_sqft), !is.na(log_land_sqft), !is.na(log_building_age),
          !is.na(log_bedrooms), !is.na(log_baths), !is.na(has_garage))
-
-if (use_zone_group_fe) {
-  sales_hed <- sales_hed %>% filter(!is.na(zone_group), zone_group != "")
-}
 
 if (table_mode == "amenity") {
   amenity_cols <- c(
@@ -249,7 +131,6 @@ if (table_mode == "amenity") {
                   format(nrow(sales_amenity), big.mark = ","), n_distinct(sales_amenity$ward_pair)))
 }
 
-# ── Custom fit stats ──
 fitstat_register("myo", function(x) sprintf("%.0f", mean(x$custom_data$sale_price, na.rm = TRUE)),
                  alias = "Dep. Var. Mean")
 fitstat_register("nseg", function(x) length(unique(stats::na.omit(x$custom_data$segment_id))),
@@ -257,12 +138,8 @@ fitstat_register("nseg", function(x) length(unique(stats::na.omit(x$custom_data$
 fitstat_register("nwp", function(x) length(unique(stats::na.omit(x$custom_data$ward_pair))),
                  alias = "Ward Pairs")
 
-# ── Regressions ──
 fe_var <- switch(fe_time, year = "year_factor", year_quarter = "year_quarter", year_month = "year_month")
-fe_term <- paste0(
-  ifelse(fe_geo == "segment", paste0("segment_id^", fe_var), paste0("ward_pair^", fe_var)),
-  ifelse(use_zone_group_fe, " + zone_group", "")
-)
+fe_term <- ifelse(fe_geo == "segment", paste0("segment_id^", fe_var), paste0("ward_pair^", fe_var))
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 
 m1 <- feols(as.formula(paste0("log(sale_price) ~ ", treatment_var, " | ", fe_term)),
@@ -293,11 +170,9 @@ if (table_mode == "amenity") {
   m3$custom_data <- sales_amenity
 }
 
-# ── Output table ──
 setFixest_dict(c(
   strictness_std = "Stringency Index", right = "Stricter Side", ward_pair = "Ward Pair",
-  year_factor = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month",
-  zone_group = "Zoning Group FE"
+  year_factor = "Year", year_quarter = "Year-Quarter", year_month = "Year-Month"
 ))
 
 fe_label <- ifelse(
@@ -331,78 +206,9 @@ etable(
       setNames(list(fe_entries), paste0("_", fe_label)),
       list("_Cluster Level" = cluster_entries)
     )
-    if (use_zone_group_fe) {
-      out <- c(out, list("_Zoning Group FE" = rep("$\\checkmark$", n_cols)))
-    }
     out
   },
   file = output_tex, replace = TRUE
 )
-
-# ── Coefficient CSV ──
-coef_tbl <- bind_rows(
-  tibble(
-    specification = "no_hedonics",
-    estimate = coef(m1)[[treatment_var]],
-    std_error = se(m1)[[treatment_var]],
-    p_value = pvalue(m1)[[treatment_var]],
-    n_obs = m1$nobs,
-    dep_var_mean = mean(sales$sale_price, na.rm = TRUE),
-    n_segments = n_distinct(sales$segment_id),
-    ward_pairs = n_distinct(sales$ward_pair),
-    bandwidth_ft = bw_ft,
-    fe_time = fe_time,
-    fe_geo = fe_geo,
-    cluster_level = cluster_level,
-    estimand = estimand,
-    treatment_var = treatment_var,
-    use_zone_group_fe = use_zone_group_fe,
-    use_amenity_controls = FALSE
-  ),
-  tibble(
-    specification = "with_hedonics",
-    estimate = coef(m2)[[treatment_var]],
-    std_error = se(m2)[[treatment_var]],
-    p_value = pvalue(m2)[[treatment_var]],
-    n_obs = m2$nobs,
-    dep_var_mean = mean(sales_hed$sale_price, na.rm = TRUE),
-    n_segments = n_distinct(sales_hed$segment_id),
-    ward_pairs = n_distinct(sales_hed$ward_pair),
-    bandwidth_ft = bw_ft,
-    fe_time = fe_time,
-    fe_geo = fe_geo,
-    cluster_level = cluster_level,
-    estimand = estimand,
-    treatment_var = treatment_var,
-    use_zone_group_fe = use_zone_group_fe,
-    use_amenity_controls = FALSE
-  )
-)
-
-if (table_mode == "amenity") {
-  coef_tbl <- bind_rows(
-    coef_tbl,
-    tibble(
-      specification = "with_hedonics_and_amenities",
-      estimate = coef(m3)[[treatment_var]],
-      std_error = se(m3)[[treatment_var]],
-      p_value = pvalue(m3)[[treatment_var]],
-      n_obs = m3$nobs,
-      dep_var_mean = mean(sales_amenity$sale_price, na.rm = TRUE),
-      n_segments = n_distinct(sales_amenity$segment_id),
-      ward_pairs = n_distinct(sales_amenity$ward_pair),
-      bandwidth_ft = bw_ft,
-      fe_time = fe_time,
-      fe_geo = fe_geo,
-      cluster_level = cluster_level,
-      estimand = estimand,
-      treatment_var = treatment_var,
-      use_zone_group_fe = use_zone_group_fe,
-      use_amenity_controls = TRUE
-    )
-  )
-}
-
-write_csv(coef_tbl, output_csv)
 
 message(sprintf("Saved: %s", output_tex))
