@@ -9,17 +9,15 @@ source("../../_lib/border_pair_helpers.R")
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
 # donut_m <- 7.62
-# input_csv <- "../input/parcels_with_ward_distances.csv"
-# output_pdf <- "../output/nonparametric_rd_density_donut_log_density_far_500ft_all_donut25ft.pdf"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, donut_m, input_csv, output_pdf)
+  args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, donut_m)
 }
 
-if (!length(args) %in% c(8, 9)) {
+if (length(args) != 6) {
   stop(
-    "FATAL: Script requires args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <donut_m> <input_csv> <output_pdf>",
+    "FATAL: Script requires args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <donut_m>",
     call. = FALSE
   )
 }
@@ -30,8 +28,6 @@ sample_filter <- args[3]
 fe_spec <- args[4]
 bins_per_side <- as.integer(args[5])
 donut_m <- as.numeric(args[6])
-input_csv <- args[7]
-output_pdf <- args[8]
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -58,21 +54,24 @@ fe_formula <- dplyr::case_when(
   TRUE ~ NA_character_
 )
 
-stars <- function(p) {
-  if (!is.finite(p)) return("")
-  if (p <= 0.01) return("***")
-  if (p <= 0.05) return("**")
-  if (p <= 0.1) return("*")
-  ""
-}
-
 pretty_outcome <- dplyr::case_when(
   yvar == "density_far" ~ "Log(FAR)",
   yvar == "density_dupac" ~ "Log(DUPAC)",
   TRUE ~ yvar
 )
 
-raw <- read_csv(input_csv, show_col_types = FALSE) %>%
+distance_display <- list(unit = "ft", scale = M_TO_FT)
+bw_label <- format_distance_label(bandwidth_m, distance_display)
+donut_label <- format_distance_label(donut_m, distance_display)
+output_pdf <- sprintf(
+  "../output/nonparametric_rd_density_donut_log_%s_%s_%s_donut%s.pdf",
+  yvar,
+  bw_label,
+  sample_filter,
+  donut_label
+)
+
+raw <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
   ensure_meter_distance_columns()
 
 dat <- raw %>%
@@ -154,6 +153,12 @@ if (nrow(linear_row) != 1) {
 cutoff_estimate <- unname(linear_row[1, "Estimate"])
 cutoff_se <- unname(linear_row[1, "Std. Error"])
 cutoff_p <- unname(linear_row[1, "Pr(>|t|)"])
+cutoff_stars <- dplyr::case_when(
+  is.finite(cutoff_p) & cutoff_p <= 0.01 ~ "***",
+  is.finite(cutoff_p) & cutoff_p <= 0.05 ~ "**",
+  is.finite(cutoff_p) & cutoff_p <= 0.1 ~ "*",
+  TRUE ~ ""
+)
 
 m_display <- feols(
   residualized_outcome ~ side * running_distance,
@@ -227,11 +232,8 @@ y_limits <- c(y_min - y_pad, y_max + y_pad)
 
 sample_label <- ifelse(sample_filter == "all", "all construction", "multifamily")
 
-distance_display <- distance_display_config()
 x_limits <- c(-bandwidth_m, bandwidth_m) * distance_display$scale
 x_label <- sprintf("Distance to ward boundary (%s)", distance_display$unit)
-bw_label <- format_distance_label(bandwidth_m, distance_display)
-donut_label <- format_distance_label(donut_m, distance_display)
 
 bins <- bins %>%
   mutate(bin_center_display = bin_center_m * distance_display$scale)
@@ -242,7 +244,7 @@ line_df <- line_df %>%
 subtitle_label <- sprintf(
   "Jump = %.3f%s (SE %.3f) | donut >= %s | %s | bandwidth=%s | N=%d",
   cutoff_estimate,
-  stars(cutoff_p),
+  cutoff_stars,
   cutoff_se,
   donut_label,
   sample_label,

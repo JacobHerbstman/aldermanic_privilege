@@ -15,13 +15,13 @@ all: $(foreach sample,$(SAMPLES),$(foreach yvar,$(YVARS),../output/nonparametric
 
 define DONUT_RULE_1
 ../output/nonparametric_rd_density_donut_log_$(1)_$(BW_LABEL)_$(2)_donut$(DONUT_1_LABEL).pdf: nonparametric_rd_density_donut.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft Rscript nonparametric_rd_density_donut.R $(1) $(BW_M) $(2) $(FE_SPEC) $(BINS_PER_SIDE) $(DONUT_1_M) ../input/parcels_with_ward_distances.csv $$@
+	Rscript nonparametric_rd_density_donut.R $(1) $(BW_M) $(2) $(FE_SPEC) $(BINS_PER_SIDE) $(DONUT_1_M)
 endef
 $(foreach yvar,$(YVARS),$(foreach sample,$(SAMPLES),$(eval $(call DONUT_RULE_1,$(yvar),$(sample)))))
 
 define DONUT_RULE_2
 ../output/nonparametric_rd_density_donut_log_$(1)_$(BW_LABEL)_$(2)_donut$(DONUT_2_LABEL).pdf: nonparametric_rd_density_donut.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft Rscript nonparametric_rd_density_donut.R $(1) $(BW_M) $(2) $(FE_SPEC) $(BINS_PER_SIDE) $(DONUT_2_M) ../input/parcels_with_ward_distances.csv $$@
+	Rscript nonparametric_rd_density_donut.R $(1) $(BW_M) $(2) $(FE_SPEC) $(BINS_PER_SIDE) $(DONUT_2_M)
 endef
 $(foreach yvar,$(YVARS),$(foreach sample,$(SAMPLES),$(eval $(call DONUT_RULE_2,$(yvar),$(sample)))))
 

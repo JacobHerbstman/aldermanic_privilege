@@ -1,7 +1,7 @@
-# nonparametric_rd_density_donut
+# nonparametric RD density donut
 
-Purpose: Handles nonparametric RD density donut.
+Purpose: builds donut local-linear RD density plots for FAR and DUPAC.
 
-Produces: Produces files such as `output/nonparametric_rd_density_donut_log_density_dupac_100m_all_donut5m.pdf`, `output/nonparametric_rd_density_donut_log_density_dupac_100m_all_donut10m.pdf`, `output/nonparametric_rd_density_donut_log_density_far_100m_all_donut5m.pdf` and related task-specific outputs in `output/`.
+Produces: eight 500ft bandwidth PDFs in `output/`, covering FAR/DUPAC, all/multifamily samples, and 25ft/50ft donuts.
 
 Approx. runtime: ~2-15 minutes.
