@@ -35,13 +35,19 @@ queue_dt <- merge(queue_dt, paper_queue, by = "task", all.x = TRUE)
 for (col in c(
   "n_tex_refs", "n_paper_refs", "n_slide_refs",
   "output_files", "keep_tex", "keep_downstream", "keep_canonical",
-  "prune_stale", "prune_size_gb", "paper_pipeline_rank", "min_steps_to_paper"
+  "prune_stale", "prune_size_gb", "paper_pipeline_rank", "min_steps_to_paper",
+  "script_count", "total_script_lines", "max_script_lines", "scripts_ge_500_lines",
+  "scripts_ge_1000_lines", "diagnostic_keyword_lines", "scripts_with_diagnostic_keywords",
+  "output_write_calls", "makefile_line_count", "all_output_family_count"
 )) {
   queue_dt[is.na(get(col)), (col) := 0L]
 }
 
 queue_dt[is.na(branch_bucket), branch_bucket := "remaining_active"]
 queue_dt[is.na(paper_root_tasks), paper_root_tasks := ""]
+queue_dt[is.na(production_split_flag), production_split_flag := FALSE]
+queue_dt[is.na(audit_named_task_outside_audits), audit_named_task_outside_audits := FALSE]
+queue_dt[is.na(all_output_families), all_output_families := ""]
 
 queue_dt[, cleanup_stage := fifelse(
   n_paper_refs > 0L,
@@ -99,11 +105,18 @@ queue_dt[, recommended_batch := fcase(
 queue_dt[, cleanup_score :=
   100000L * as.integer(cleanup_stage == "paper_facing") +
   50000L * as.integer(cleanup_stage == "paper_ancestor") +
+  20000L * as.integer(production_split_flag == TRUE) +
   5000L * default_sidecar_output_count +
   4000L * fixed_path_cli_arg_cmds +
+  2500L * scripts_ge_1000_lines +
+  1500L * scripts_ge_500_lines +
   1000L * cli_scripts_gt2_local_helpers +
+  500L * as.integer(audit_named_task_outside_audits == TRUE) +
+  250L * pmin(diagnostic_keyword_lines, 50L) +
+  250L * pmin(output_write_calls, 20L) +
+  100L * pmax(all_output_family_count - 1L, 0L) +
   500L * scripts_with_file_exists +
-  100L * named_local_functions +
+  100L * all_named_local_functions +
   50L * file_exists_refs +
   25L * non_lib_source_calls +
   10L * single_use_task_helper_files +
@@ -120,8 +133,30 @@ queue_dt[, cleanup_reason := vapply(seq_len(.N), function(i) {
   if (queue_dt$default_sidecar_output_count[i] > 0L) {
     reasons <- c(reasons, sprintf("%d sidecar/QC outputs in default all", queue_dt$default_sidecar_output_count[i]))
   }
+  if (queue_dt$production_split_flag[i] == TRUE) {
+    split_reasons <- character()
+    if (queue_dt$max_script_lines[i] > 500L) {
+      split_reasons <- c(split_reasons, sprintf("max script %d lines", queue_dt$max_script_lines[i]))
+    }
+    if (queue_dt$makefile_line_count[i] > 50L) {
+      split_reasons <- c(split_reasons, sprintf("Makefile %d lines", queue_dt$makefile_line_count[i]))
+    }
+    if (queue_dt$all_output_family_count[i] > 1L) {
+      split_reasons <- c(split_reasons, sprintf("%d output families", queue_dt$all_output_family_count[i]))
+    }
+    reasons <- c(reasons, sprintf("split candidate (%s)", paste(split_reasons, collapse = ", ")))
+  }
+  if (queue_dt$audit_named_task_outside_audits[i] == TRUE) {
+    reasons <- c(reasons, "audit/diagnostic-like task outside tasks/audits")
+  }
   if (queue_dt$fixed_path_cli_arg_cmds[i] > 0L) {
     reasons <- c(reasons, sprintf("%d recipe commands pass fixed paths", queue_dt$fixed_path_cli_arg_cmds[i]))
+  }
+  if (queue_dt$diagnostic_keyword_lines[i] > 0L) {
+    reasons <- c(reasons, sprintf("%d diagnostic/QC keyword lines", queue_dt$diagnostic_keyword_lines[i]))
+  }
+  if (queue_dt$output_write_calls[i] > 0L) {
+    reasons <- c(reasons, sprintf("%d write calls", queue_dt$output_write_calls[i]))
   }
   if (queue_dt$file_exists_refs[i] > 0L) {
     reasons <- c(reasons, sprintf("%d file.exists refs", queue_dt$file_exists_refs[i]))
@@ -129,8 +164,8 @@ queue_dt[, cleanup_reason := vapply(seq_len(.N), function(i) {
   if (queue_dt$cli_scripts_gt2_local_helpers[i] > 0L) {
     reasons <- c(reasons, sprintf("%d helper-heavy CLI scripts", queue_dt$cli_scripts_gt2_local_helpers[i]))
   }
-  if (queue_dt$named_local_functions[i] > 0L) {
-    reasons <- c(reasons, sprintf("%d local helper defs", queue_dt$named_local_functions[i]))
+  if (queue_dt$all_named_local_functions[i] > 0L) {
+    reasons <- c(reasons, sprintf("%d local helper defs", queue_dt$all_named_local_functions[i]))
   }
   if (queue_dt$prune_stale[i] > 0L) {
     reasons <- c(reasons, sprintf("%d stale outputs flagged", queue_dt$prune_stale[i]))
@@ -153,9 +188,13 @@ setcolorder(queue_dt, c(
   "cleanup_reason", "n_paper_refs", "n_slide_refs", "paper_pipeline_rank",
   "branch_bucket", "min_steps_to_paper", "paper_root_tasks",
   "output_files", "keep_tex", "keep_downstream", "keep_canonical", "prune_stale",
+  "makefile_line_count", "script_count", "total_script_lines", "max_script_lines",
+  "scripts_ge_500_lines", "scripts_ge_1000_lines", "diagnostic_keyword_lines",
+  "scripts_with_diagnostic_keywords", "output_write_calls", "all_output_family_count",
+  "all_output_families", "production_split_flag", "audit_named_task_outside_audits",
   "default_sidecar_output_count", "fixed_path_cli_arg_cmds",
   "scripts_with_file_exists", "file_exists_refs",
-  "named_local_functions", "cli_scripts_gt2_local_helpers",
+  "all_named_local_functions", "named_local_functions", "cli_scripts_gt2_local_helpers",
   "non_lib_source_calls", "single_use_task_helper_files"
 ))
 
@@ -168,24 +207,33 @@ lines <- c(
   sprintf("- Paper-facing tasks: %d", queue_dt[cleanup_stage == "paper_facing", .N]),
   sprintf("- Paper-ancestor tasks: %d", queue_dt[cleanup_stage == "paper_ancestor", .N]),
   sprintf("- Remaining active tasks: %d", queue_dt[cleanup_stage == "remaining_active", .N]),
+  sprintf("- Split candidates: %d", queue_dt[production_split_flag == TRUE, .N]),
+  sprintf("- Scripts >=500 lines: %d", sum(queue_dt$scripts_ge_500_lines, na.rm = TRUE)),
+  sprintf("- Scripts >=1,000 lines: %d", sum(queue_dt$scripts_ge_1000_lines, na.rm = TRUE)),
+  sprintf("- Diagnostic/QC keyword lines: %d", sum(queue_dt$diagnostic_keyword_lines, na.rm = TRUE)),
   "",
-  "| Rank | Batch | Stage | Task | Paper Refs | Sidecar `all` Outputs | Fixed Path CLI Cmds | File Exists Refs | Helper-Heavy Scripts | Stale Outputs | Reason |",
-  "|---:|---|---|---|---:|---:|---:|---:|---:|---:|---|"
+  "| Rank | Batch | Stage | Task | Paper Refs | Max Script Lines | Makefile Lines | Product Families | Diagnostic Lines | Write Calls | Sidecar `all` Outputs | Fixed Path CLI Cmds | File Exists Refs | Local Functions | Stale Outputs | Reason |",
+  "|---:|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|"
 )
 
 for (i in seq_len(min(nrow(queue_dt), 120L))) {
   rr <- queue_dt[i]
   lines <- c(lines, sprintf(
-    "| %d | %s | %s | %s | %d | %d | %d | %d | %d | %d | %s |",
+    "| %d | %s | %s | %s | %d | %d | %d | %d | %d | %d | %d | %d | %d | %d | %d | %s |",
     rr$cleanup_rank,
     rr$recommended_batch,
     rr$cleanup_stage,
     rr$task,
     rr$n_paper_refs,
+    rr$max_script_lines,
+    rr$makefile_line_count,
+    rr$all_output_family_count,
+    rr$diagnostic_keyword_lines,
+    rr$output_write_calls,
     rr$default_sidecar_output_count,
     rr$fixed_path_cli_arg_cmds,
     rr$file_exists_refs,
-    rr$cli_scripts_gt2_local_helpers,
+    rr$all_named_local_functions,
     rr$prune_stale,
     rr$cleanup_reason
   ))

@@ -59,6 +59,85 @@ sidecar_output_pattern <- paste(c(
   "sample_summary"
 ), collapse = "|")
 
+diagnostic_keyword_pattern <- paste(c(
+  "audit",
+  "coverage",
+  "diagnostic",
+  "diagnostics",
+  "metadata",
+  "support",
+  "pretrend",
+  "coefficient",
+  "coefficients",
+  "rank_change",
+  "rank_changes",
+  "stability",
+  "review",
+  "manifest",
+  "qc",
+  "validation",
+  "validate",
+  "unmatched",
+  "contract",
+  "assignment",
+  "multiplicity",
+  "sensitivity",
+  "robustness",
+  "placebo",
+  "permutation",
+  "comparison",
+  "sample_summary"
+), collapse = "|")
+
+output_write_call_pattern <- paste(c(
+  "write_csv\\s*\\(",
+  "write_tsv\\s*\\(",
+  "write_parquet\\s*\\(",
+  "write_rds\\s*\\(",
+  "write_feather\\s*\\(",
+  "write\\.csv\\s*\\(",
+  "write\\.dta\\s*\\(",
+  "fwrite\\s*\\(",
+  "st_write\\s*\\(",
+  "write_sf\\s*\\(",
+  "ggsave\\s*\\(",
+  "pdf\\s*\\(",
+  "png\\s*\\(",
+  "jpeg\\s*\\(",
+  "tiff\\s*\\(",
+  "saveRDS\\s*\\(",
+  "writeLines\\s*\\("
+), collapse = "|")
+
+audit_task_name_pattern <- "(^|_)(audit|diagnostic|diagnostics|validation|validate|qc)($|_)"
+
+classify_output_family <- function(paths) {
+  if (length(paths) == 0) {
+    return(character())
+  }
+
+  base <- basename(paths)
+  ext <- tolower(tools::file_ext(base))
+
+  fifelse(
+    grepl(sidecar_output_pattern, base, ignore.case = TRUE),
+    "audit_qc",
+    fifelse(
+      ext %chin% c("pdf", "png", "jpg", "jpeg", "svg"),
+      "figure",
+      fifelse(
+        ext %chin% c("tex"),
+        "table",
+        fifelse(
+          ext %chin% c("parquet", "gpkg", "rds", "rda", "csv", "tsv", "feather", "shp", "geojson"),
+          "data",
+          "other"
+        )
+      )
+    )
+  )
+}
+
 list_active_tasks <- function() {
   dirs <- list.dirs(tasks_dir, recursive = FALSE, full.names = TRUE)
   dirs <- dirs[dir.exists(file.path(dirs, "code"))]
@@ -130,14 +209,18 @@ parse_makefile_targets <- function(path) {
   targets <- unique(targets)
   explicit_non_file_targets <- targets[!grepl("^(all|link-inputs)$", targets) & !grepl("/|\\$\\(", targets)]
   sidecar_outputs <- all_outputs[grepl(sidecar_output_pattern, basename(all_outputs), ignore.case = TRUE)]
+  all_output_families <- unique(classify_output_family(all_outputs))
 
   list(
+    makefile_line_count = length(txt),
     target_count = length(targets),
     comment_count = comment_count,
     recursive_make_refs = recursive_make_refs,
     path_alias_count = path_alias_count,
     explicit_non_file_targets = paste(explicit_non_file_targets, collapse = ";"),
     all_output_count = length(all_outputs),
+    all_output_family_count = length(all_output_families),
+    all_output_families = paste(all_output_families, collapse = ";"),
     default_sidecar_output_count = length(sidecar_outputs),
     default_sidecar_outputs = paste(sidecar_outputs, collapse = ";"),
     recipe_cli_command_count = length(recipe_cli_lines),
@@ -199,7 +282,7 @@ parse_expected_cli_vars <- function(body, cli_var_name) {
 }
 
 script_rows <- rbindlist(lapply(list_active_tasks(), function(task) {
-  files <- list.files(file.path(tasks_dir, task, "code"), pattern = "\\.R$", full.names = TRUE)
+  files <- list.files(file.path(tasks_dir, task, "code"), pattern = "\\.(R|py|do)$", full.names = TRUE)
   if (length(files) == 0) {
     return(NULL)
   }
@@ -222,6 +305,8 @@ script_rows <- rbindlist(lapply(list_active_tasks(), function(task) {
     has_exists_fallback <- grepl("(?m)^\\s*if\\s*\\(.*exists\\s*\\(", body, perl = TRUE)
     file_exists_refs <- sum(grepl("file\\.exists\\s*\\(", txt))
     local_function_defs <- sum(grepl("^\\s*[A-Za-z.][A-Za-z0-9._]*\\s*<-\\s*function\\s*\\(", txt))
+    diagnostic_keyword_lines <- sum(grepl(diagnostic_keyword_pattern, txt, ignore.case = TRUE))
+    output_write_calls <- sum(grepl(output_write_call_pattern, txt))
 
     source_matches <- str_match_all(
       body,
@@ -243,6 +328,9 @@ script_rows <- rbindlist(lapply(list_active_tasks(), function(task) {
       task = task,
       file = gsub(paste0("^", root_dir, "/"), "", f),
       file_abs = normalizePath(f, winslash = "/", mustWork = FALSE),
+      script_line_count = length(txt),
+      diagnostic_keyword_lines = diagnostic_keyword_lines,
+      output_write_calls = output_write_calls,
       uses_commandArgs = uses_cli,
       cli_var_name = cli_var_name,
       interactive_named_var_count = length(expected_cli_vars),
@@ -331,7 +419,10 @@ make_rows <- rbindlist(lapply(list_active_tasks(), function(task) {
       default_sidecar_outputs = NA_character_,
       recipe_cli_command_count = NA_integer_,
       fixed_path_cli_arg_cmds = NA_integer_,
-      fixed_path_cli_arg_examples = NA_character_
+      fixed_path_cli_arg_examples = NA_character_,
+      all_output_family_count = NA_integer_,
+      all_output_families = NA_character_,
+      makefile_line_count = NA_integer_
     ))
   }
 
@@ -341,12 +432,15 @@ make_rows <- rbindlist(lapply(list_active_tasks(), function(task) {
     task = task,
     makefile = gsub(paste0("^", root_dir, "/"), "", mk),
     makefile_exists = TRUE,
+    makefile_line_count = as.integer(parsed$makefile_line_count),
     target_count = as.integer(parsed$target_count),
     comment_count = as.integer(parsed$comment_count),
     recursive_make_refs = as.integer(parsed$recursive_make_refs),
     path_alias_count = as.integer(parsed$path_alias_count),
     explicit_non_file_targets = parsed$explicit_non_file_targets,
     all_output_count = as.integer(parsed$all_output_count),
+    all_output_family_count = as.integer(parsed$all_output_family_count),
+    all_output_families = parsed$all_output_families,
     default_sidecar_output_count = as.integer(parsed$default_sidecar_output_count),
     default_sidecar_outputs = parsed$default_sidecar_outputs,
     recipe_cli_command_count = as.integer(parsed$recipe_cli_command_count),
@@ -356,6 +450,14 @@ make_rows <- rbindlist(lapply(list_active_tasks(), function(task) {
 }), fill = TRUE)
 
 summary_rows <- script_rows[, .(
+  script_count = .N,
+  total_script_lines = sum(script_line_count, na.rm = TRUE),
+  max_script_lines = max(script_line_count, na.rm = TRUE),
+  scripts_ge_500_lines = sum(script_line_count >= 500L, na.rm = TRUE),
+  scripts_ge_1000_lines = sum(script_line_count >= 1000L, na.rm = TRUE),
+  diagnostic_keyword_lines = sum(diagnostic_keyword_lines, na.rm = TRUE),
+  scripts_with_diagnostic_keywords = sum(diagnostic_keyword_lines > 0L, na.rm = TRUE),
+  output_write_calls = sum(output_write_calls, na.rm = TRUE),
   cli_scripts = sum(uses_commandArgs, na.rm = TRUE),
   cli_scripts_compliant = sum(uses_commandArgs & cli_header_compliant, na.rm = TRUE),
   cli_scripts_missing_named_assignments = sum(
@@ -366,6 +468,7 @@ summary_rows <- script_rows[, .(
   cli_scripts_with_exists_fallback = sum(uses_commandArgs & has_exists_fallback, na.rm = TRUE),
   scripts_with_file_exists = sum(file_exists_refs > 0L, na.rm = TRUE),
   file_exists_refs = sum(file_exists_refs, na.rm = TRUE),
+  all_named_local_functions = sum(named_local_functions, na.rm = TRUE),
   named_local_functions = sum(fifelse(uses_commandArgs, named_local_functions, 0L), na.rm = TRUE),
   cli_scripts_gt2_local_helpers = sum(uses_commandArgs & named_local_functions > 2L, na.rm = TRUE),
   non_lib_source_calls = sum(fifelse(uses_commandArgs, non_lib_source_calls, 0L), na.rm = TRUE)
@@ -374,6 +477,14 @@ summary_rows <- script_rows[, .(
 out <- merge(make_rows, summary_rows, by = "task", all.x = TRUE)
 out <- merge(out, helper_summary, by = "task", all.x = TRUE)
 out[is.na(cli_scripts), `:=`(
+  script_count = 0L,
+  total_script_lines = 0L,
+  max_script_lines = 0L,
+  scripts_ge_500_lines = 0L,
+  scripts_ge_1000_lines = 0L,
+  diagnostic_keyword_lines = 0L,
+  scripts_with_diagnostic_keywords = 0L,
+  output_write_calls = 0L,
   cli_scripts = 0L,
   cli_scripts_compliant = 0L,
   cli_scripts_missing_named_assignments = 0L,
@@ -381,12 +492,20 @@ out[is.na(cli_scripts), `:=`(
   cli_scripts_with_exists_fallback = 0L,
   scripts_with_file_exists = 0L,
   file_exists_refs = 0L,
+  all_named_local_functions = 0L,
   named_local_functions = 0L,
   cli_scripts_gt2_local_helpers = 0L,
   non_lib_source_calls = 0L
 )]
 out[is.na(task_local_helper_files), task_local_helper_files := 0L]
 out[is.na(single_use_task_helper_files), single_use_task_helper_files := 0L]
+out[, audit_named_task_outside_audits := grepl(audit_task_name_pattern, task)]
+out[, makefile_gt50_lines := fifelse(is.na(makefile_line_count), FALSE, makefile_line_count > 50L)]
+out[, production_split_flag := (
+  max_script_lines > 500L |
+    makefile_gt50_lines |
+    fifelse(is.na(all_output_family_count), FALSE, all_output_family_count > 1L)
+)]
 
 setorder(out, task)
 fwrite(out, out_csv)
