@@ -7,23 +7,22 @@ PANEL_MAX_DISTANCE_M ?= 800
 all: \
 	../output/rental_listing_panel.parquet \
 	../output/rental_listing_panel_2015.parquet \
-	../output/rental_listing_panel_2023.parquet \
-	../output/rental_listing_panel_support_by_event_time.csv \
-	../output/rental_listing_panel_support_by_calendar_time.csv \
-	../output/rental_listing_panel_repeat_listing_diagnostics.csv \
-	../output/rental_listing_panel_assignment_stability.csv \
-	../output/rental_listing_panel_event_geometry_diagnostics.csv
+	../output/rental_listing_panel_2023.parquet
 
 ../output/rental_listing_panel.parquet: create_listing_panel.R ../../_lib/canonical_geometry_helpers.R ../input/rent_with_ward_distances.parquet ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/block_treatment_panel.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../output
 	$(R) create_listing_panel.R $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M)
 
 ../output/rental_listing_panel_2015.parquet \
-../output/rental_listing_panel_2023.parquet \
-../output/rental_listing_panel_support_by_event_time.csv \
+../output/rental_listing_panel_2023.parquet: ../output/rental_listing_panel.parquet
+	@test -s "$@"
+
+../output/rental_listing_panel_support_by_event_time.csv: create_listing_panel.R ../../_lib/canonical_geometry_helpers.R ../input/rent_with_ward_distances.parquet ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/block_treatment_panel.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../output
+	WRITE_PANEL_SIDECARS=1 Rscript create_listing_panel.R $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M)
+
 ../output/rental_listing_panel_support_by_calendar_time.csv \
 ../output/rental_listing_panel_repeat_listing_diagnostics.csv \
 ../output/rental_listing_panel_assignment_stability.csv \
-../output/rental_listing_panel_event_geometry_diagnostics.csv: ../output/rental_listing_panel.parquet
+../output/rental_listing_panel_event_geometry_diagnostics.csv: ../output/rental_listing_panel_support_by_event_time.csv
 	@test -s "$@"
 
 ../input/rent_with_ward_distances.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input

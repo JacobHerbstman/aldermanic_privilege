@@ -2,6 +2,21 @@ SHELL := bash
 
 all:
 
+panel_diagnostics: \
+	../output/rental_listing_panel_support_by_event_time.csv \
+	../output/rental_listing_panel_support_by_calendar_time.csv \
+	../output/rental_listing_panel_repeat_listing_diagnostics.csv \
+	../output/rental_listing_panel_assignment_stability.csv \
+	../output/rental_listing_panel_event_geometry_diagnostics.csv
+
+../output/rental_listing_panel_support_by_event_time.csv \
+../output/rental_listing_panel_support_by_calendar_time.csv \
+../output/rental_listing_panel_repeat_listing_diagnostics.csv \
+../output/rental_listing_panel_assignment_stability.csv \
+../output/rental_listing_panel_event_geometry_diagnostics.csv: ../../../create_event_study_rental_data_disaggregate/output/rental_listing_panel.parquet | ../output
+	$(MAKE) -C ../../../create_event_study_rental_data_disaggregate/code ../output/$(@F)
+	cp -p "../../../create_event_study_rental_data_disaggregate/output/$(@F)" "$@"
+
 event_study_sidecars: \
 	../output/event_study_coefficients_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.csv \
 	../output/event_study_support_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.csv \

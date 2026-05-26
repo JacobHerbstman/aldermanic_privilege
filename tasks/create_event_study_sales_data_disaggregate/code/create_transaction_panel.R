@@ -28,6 +28,7 @@ if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
 if (!is.finite(panel_max_distance_m) || panel_max_distance_m <= 0) {
   stop("panel_max_distance_m must be positive.", call. = FALSE)
 }
+write_panel_diagnostics <- tolower(Sys.getenv("WRITE_PANEL_SIDECARS", "0")) %in% c("1", "true", "yes")
 crs_projected <- 3435
 
 assign_cohort_segments_dt <- function(dt, segment_layers, era_label, cohort_label, chunk_n = 50000L) {
@@ -1308,31 +1309,33 @@ message(sprintf(
 write_parquet(cohort_2023_final, "../output/sales_transaction_panel_2023.parquet")
 message(sprintf("Saved 2023 cohort: %s rows", format(nrow(cohort_2023_final), big.mark = ",")))
 
-write_csv(as_tibble(sales_amenity_diagnostics), "../output/sales_transaction_panel_amenity_distance_diagnostics.csv")
-message("Saved sales amenity-distance diagnostics")
+if (write_panel_diagnostics) {
+  write_csv(as_tibble(sales_amenity_diagnostics), "../output/sales_transaction_panel_amenity_distance_diagnostics.csv")
+  message("Saved sales amenity-distance diagnostics")
 
-write_csv(as_tibble(sales_hedonic_coverage_by_sale_year), "../output/sales_transaction_panel_hedonic_coverage_by_sale_year.csv")
-message("Saved all-sales hedonic-coverage diagnostics")
+  write_csv(as_tibble(sales_hedonic_coverage_by_sale_year), "../output/sales_transaction_panel_hedonic_coverage_by_sale_year.csv")
+  message("Saved all-sales hedonic-coverage diagnostics")
 
-write_csv(as_tibble(final_hedonic_coverage_by_sale_year), "../output/sales_transaction_panel_final_hedonic_coverage_by_sale_year.csv")
-message("Saved final-panel hedonic-coverage diagnostics")
+  write_csv(as_tibble(final_hedonic_coverage_by_sale_year), "../output/sales_transaction_panel_final_hedonic_coverage_by_sale_year.csv")
+  message("Saved final-panel hedonic-coverage diagnostics")
 
-write_csv(as_tibble(sales_support_by_event_time), "../output/sales_transaction_panel_support_by_event_time.csv")
-message("Saved sales event-time support diagnostics")
+  write_csv(as_tibble(sales_support_by_event_time), "../output/sales_transaction_panel_support_by_event_time.csv")
+  message("Saved sales event-time support diagnostics")
 
-write_csv(as_tibble(sales_support_by_calendar_time), "../output/sales_transaction_panel_support_by_calendar_time.csv")
-message("Saved sales calendar-time support diagnostics")
+  write_csv(as_tibble(sales_support_by_calendar_time), "../output/sales_transaction_panel_support_by_calendar_time.csv")
+  message("Saved sales calendar-time support diagnostics")
 
-write_csv(as_tibble(sales_assignment_stability), "../output/sales_transaction_panel_assignment_stability.csv")
-message("Saved sales assignment-stability diagnostics")
+  write_csv(as_tibble(sales_assignment_stability), "../output/sales_transaction_panel_assignment_stability.csv")
+  message("Saved sales assignment-stability diagnostics")
 
-write_csv(as_tibble(sales_event_geometry_diagnostics), "../output/sales_transaction_panel_event_geometry_diagnostics.csv")
-message("Saved sales event-geometry diagnostics")
+  write_csv(as_tibble(sales_event_geometry_diagnostics), "../output/sales_transaction_panel_event_geometry_diagnostics.csv")
+  message("Saved sales event-geometry diagnostics")
 
-write_csv(as_tibble(sales_no_boundary_exclusions), "../output/sales_transaction_panel_no_boundary_exclusions.csv")
-message("Saved sales no-boundary exclusion diagnostics")
+  write_csv(as_tibble(sales_no_boundary_exclusions), "../output/sales_transaction_panel_no_boundary_exclusions.csv")
+  message("Saved sales no-boundary exclusion diagnostics")
 
-write_csv(as_tibble(sales_contract_diagnostics), "../output/sales_transaction_panel_contract_diagnostics.csv")
-message("Saved sales contract diagnostics")
+  write_csv(as_tibble(sales_contract_diagnostics), "../output/sales_transaction_panel_contract_diagnostics.csv")
+  message("Saved sales contract diagnostics")
+}
 
 message("\nDone!")

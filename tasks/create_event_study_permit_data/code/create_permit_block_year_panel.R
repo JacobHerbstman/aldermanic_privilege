@@ -41,6 +41,8 @@ if (as.integer(format(as.Date(permit_end_yearmon), "%Y")) != permit_end_year) {
   stop("permit_end_year must match the year in permit_end_month.", call. = FALSE)
 }
 
+write_panel_diagnostics <- tolower(Sys.getenv("WRITE_PANEL_SIDECARS", "0")) %in% c("1", "true", "yes")
+
 sf_use_s2(FALSE)
 
 signs_permit_type <- "PERMIT - SIGNS"
@@ -216,14 +218,16 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label,
       ) %>%
       arrange(desc(n_permits), review_decision, review_reason, permit_type, missing_pin)
 
-    write_csv(
-      missing_audit,
-      sprintf("../output/permit_block_assignment_missing_%s.csv", block_vintage_label)
-    )
-    write_csv(
-      missing_summary,
-      sprintf("../output/permit_block_assignment_missing_%s_summary.csv", block_vintage_label)
-    )
+    if (write_panel_diagnostics) {
+      write_csv(
+        missing_audit,
+        sprintf("../output/permit_block_assignment_missing_%s.csv", block_vintage_label)
+      )
+      write_csv(
+        missing_summary,
+        sprintf("../output/permit_block_assignment_missing_%s_summary.csv", block_vintage_label)
+      )
+    }
 
     joined_df <- joined_df %>%
       left_join(
@@ -237,14 +241,12 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label,
     message(sprintf(
       paste(
         "Reviewed %d permits without a %s block match:",
-        "%d manually assigned and %d dropped.",
-        "See ../output/permit_block_assignment_missing_%s.csv for details."
+        "%d manually assigned and %d dropped."
       ),
       nrow(missing_matches),
       block_vintage_label,
       sum(missing_audit$review_decision == "assign"),
-      sum(missing_audit$review_decision == "drop"),
-      block_vintage_label
+      sum(missing_audit$review_decision == "drop")
     ))
   }
 
@@ -845,8 +847,10 @@ unit_increase_audit_summary <- unit_increase_audit %>%
   count(unit_increase_reason, permit_type, name = "n_permits") %>%
   arrange(desc(n_permits), unit_increase_reason, permit_type)
 
-write_csv(unit_increase_audit, "../output/permit_unit_increase_audit.csv")
-write_csv(unit_increase_audit_summary, "../output/permit_unit_increase_audit_summary.csv")
+if (write_panel_diagnostics) {
+  write_csv(unit_increase_audit, "../output/permit_unit_increase_audit.csv")
+  write_csv(unit_increase_audit_summary, "../output/permit_unit_increase_audit_summary.csv")
+}
 
 unit_audit_included_ids <- unit_increase_audit %>%
   filter(unit_increase_included == 1L) %>%
@@ -949,19 +953,7 @@ cohort_2023 <- build_panel_with_counts(
 
 permit_panel <- bind_rows(cohort_2015, cohort_2023)
 
-message("Writing diagnostics...")
-support_by_event_time <- bind_rows(
-  summarize_event_support(cohort_2015, "cohort_2015"),
-  summarize_event_support(cohort_2023, "cohort_2023"),
-  summarize_event_support(permit_panel, "stacked_implementation")
-)
-
-support_by_calendar_time <- bind_rows(
-  summarize_calendar_support(cohort_2015, "cohort_2015"),
-  summarize_calendar_support(cohort_2023, "cohort_2023"),
-  summarize_calendar_support(permit_panel, "stacked_implementation")
-)
-
+message("Checking panel contracts...")
 contract_diagnostics <- bind_rows(
   summarize_contract(cohort_2015, "cohort_2015"),
   summarize_contract(cohort_2023, "cohort_2023"),
@@ -982,63 +974,79 @@ if (any(contract_diagnostics$n_event_pair_missing_origin > 0L) ||
   stop("Permit event panel failed the 1000ft event-pair/segment contract.", call. = FALSE)
 }
 
-assignment_stability <- bind_rows(
-  summarize_assignment_stability(base_2015, "cohort_2015"),
-  summarize_assignment_stability(base_2023, "cohort_2023"),
-  summarize_assignment_stability(bind_rows(base_2015, base_2023), "stacked_implementation")
-)
-
-zero_share_summary <- bind_rows(
-  summarize_zero_shares(cohort_2015, "cohort_2015"),
-  summarize_zero_shares(cohort_2023, "cohort_2023"),
-  summarize_zero_shares(permit_panel, "stacked_implementation")
-)
-
-block_assignment_review <- bind_rows(
-  permit_assignment_2010$missing_audit,
-  permit_assignment_2020$missing_audit
-) %>%
-  arrange(block_vintage, review_decision, review_reason, permit_type, id)
-
-block_assignment_review_summary <- bind_rows(
-  permit_assignment_2010$missing_summary,
-  permit_assignment_2020$missing_summary
-) %>%
-  arrange(block_vintage, review_decision, review_reason, permit_type, missing_pin)
-
-outcome_totals <- bind_rows(
-  build_outcome_totals(permits_2010, cohort_2015, "cohort_2015", "2015"),
-  build_outcome_totals(permits_2020, cohort_2023, "cohort_2023", "2023")
-)
-
-stacked_outcome_totals <- outcome_totals %>%
-  group_by(outcome_family, date_basis) %>%
-  summarise(
-    raw_total = sum(raw_total),
-    panel_total = sum(panel_total),
-    matches = all(matches),
-    .groups = "drop"
-  ) %>%
-  mutate(
-    panel_mode = "stacked_implementation",
-    cohort = "2015|2023"
-  ) %>%
-  select(panel_mode, cohort, outcome_family, date_basis, raw_total, panel_total, matches)
-
-outcome_totals <- bind_rows(outcome_totals, stacked_outcome_totals)
-
 message("Saving outputs...")
 write_parquet(permit_panel, "../output/permit_block_year_panel.parquet")
 write_parquet(cohort_2015, "../output/permit_block_year_panel_2015.parquet")
 write_parquet(cohort_2023, "../output/permit_block_year_panel_2023.parquet")
-write_csv(support_by_event_time, "../output/permit_block_year_panel_support_by_event_time.csv")
-write_csv(support_by_calendar_time, "../output/permit_block_year_panel_support_by_calendar_time.csv")
-write_csv(contract_diagnostics, "../output/permit_block_year_panel_contract_diagnostics.csv")
-write_csv(assignment_stability, "../output/permit_block_year_panel_assignment_stability.csv")
-write_csv(zero_share_summary, "../output/permit_block_year_panel_zero_share_summary.csv")
-write_csv(block_assignment_review, "../output/permit_block_assignment_review_log.csv")
-write_csv(block_assignment_review_summary, "../output/permit_block_assignment_review_summary.csv")
-write_csv(outcome_totals, "../output/permit_block_year_panel_outcome_totals.csv")
+
+if (write_panel_diagnostics) {
+  message("Saving diagnostics...")
+  support_by_event_time <- bind_rows(
+    summarize_event_support(cohort_2015, "cohort_2015"),
+    summarize_event_support(cohort_2023, "cohort_2023"),
+    summarize_event_support(permit_panel, "stacked_implementation")
+  )
+
+  support_by_calendar_time <- bind_rows(
+    summarize_calendar_support(cohort_2015, "cohort_2015"),
+    summarize_calendar_support(cohort_2023, "cohort_2023"),
+    summarize_calendar_support(permit_panel, "stacked_implementation")
+  )
+
+  assignment_stability <- bind_rows(
+    summarize_assignment_stability(base_2015, "cohort_2015"),
+    summarize_assignment_stability(base_2023, "cohort_2023"),
+    summarize_assignment_stability(bind_rows(base_2015, base_2023), "stacked_implementation")
+  )
+
+  zero_share_summary <- bind_rows(
+    summarize_zero_shares(cohort_2015, "cohort_2015"),
+    summarize_zero_shares(cohort_2023, "cohort_2023"),
+    summarize_zero_shares(permit_panel, "stacked_implementation")
+  )
+
+  block_assignment_review <- bind_rows(
+    permit_assignment_2010$missing_audit,
+    permit_assignment_2020$missing_audit
+  ) %>%
+    arrange(block_vintage, review_decision, review_reason, permit_type, id)
+
+  block_assignment_review_summary <- bind_rows(
+    permit_assignment_2010$missing_summary,
+    permit_assignment_2020$missing_summary
+  ) %>%
+    arrange(block_vintage, review_decision, review_reason, permit_type, missing_pin)
+
+  outcome_totals <- bind_rows(
+    build_outcome_totals(permits_2010, cohort_2015, "cohort_2015", "2015"),
+    build_outcome_totals(permits_2020, cohort_2023, "cohort_2023", "2023")
+  )
+
+  stacked_outcome_totals <- outcome_totals %>%
+    group_by(outcome_family, date_basis) %>%
+    summarise(
+      raw_total = sum(raw_total),
+      panel_total = sum(panel_total),
+      matches = all(matches),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      panel_mode = "stacked_implementation",
+      cohort = "2015|2023"
+    ) %>%
+    select(panel_mode, cohort, outcome_family, date_basis, raw_total, panel_total, matches)
+
+  outcome_totals <- bind_rows(outcome_totals, stacked_outcome_totals)
+
+  write_csv(support_by_event_time, "../output/permit_block_year_panel_support_by_event_time.csv")
+  write_csv(support_by_calendar_time, "../output/permit_block_year_panel_support_by_calendar_time.csv")
+  write_csv(contract_diagnostics, "../output/permit_block_year_panel_contract_diagnostics.csv")
+  write_csv(assignment_stability, "../output/permit_block_year_panel_assignment_stability.csv")
+  write_csv(zero_share_summary, "../output/permit_block_year_panel_zero_share_summary.csv")
+  write_csv(block_assignment_review, "../output/permit_block_assignment_review_log.csv")
+  write_csv(block_assignment_review_summary, "../output/permit_block_assignment_review_summary.csv")
+  write_csv(outcome_totals, "../output/permit_block_year_panel_outcome_totals.csv")
+}
 
 message(sprintf("Saved stacked permit panel: %s rows", format(nrow(permit_panel), big.mark = ",")))
 message(sprintf("Saved 2015 cohort permit panel: %s rows", format(nrow(cohort_2015), big.mark = ",")))

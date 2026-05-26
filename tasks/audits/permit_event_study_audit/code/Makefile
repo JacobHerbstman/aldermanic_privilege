@@ -29,6 +29,39 @@ all: \
 	../output/event_study_pretrend_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv \
 	../output/event_study_metadata_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv
 
+panel_diagnostics: \
+	../output/permit_block_year_panel_support_by_event_time.csv \
+	../output/permit_block_year_panel_support_by_calendar_time.csv \
+	../output/permit_block_year_panel_contract_diagnostics.csv \
+	../output/permit_block_year_panel_assignment_stability.csv \
+	../output/permit_block_year_panel_zero_share_summary.csv \
+	../output/permit_block_year_panel_outcome_totals.csv \
+	../output/permit_block_assignment_missing_2010.csv \
+	../output/permit_block_assignment_missing_2010_summary.csv \
+	../output/permit_block_assignment_missing_2020.csv \
+	../output/permit_block_assignment_missing_2020_summary.csv \
+	../output/permit_block_assignment_review_log.csv \
+	../output/permit_block_assignment_review_summary.csv \
+	../output/permit_unit_increase_audit.csv \
+	../output/permit_unit_increase_audit_summary.csv
+
+../output/permit_block_year_panel_support_by_event_time.csv \
+../output/permit_block_year_panel_support_by_calendar_time.csv \
+../output/permit_block_year_panel_contract_diagnostics.csv \
+../output/permit_block_year_panel_assignment_stability.csv \
+../output/permit_block_year_panel_zero_share_summary.csv \
+../output/permit_block_year_panel_outcome_totals.csv \
+../output/permit_block_assignment_missing_2010.csv \
+../output/permit_block_assignment_missing_2010_summary.csv \
+../output/permit_block_assignment_missing_2020.csv \
+../output/permit_block_assignment_missing_2020_summary.csv \
+../output/permit_block_assignment_review_log.csv \
+../output/permit_block_assignment_review_summary.csv \
+../output/permit_unit_increase_audit.csv \
+../output/permit_unit_increase_audit_summary.csv: ../../../create_event_study_permit_data/output/permit_block_year_panel.parquet | ../output
+	$(MAKE) -C ../../../create_event_study_permit_data/code ../output/$(@F)
+	cp -p "../../../create_event_study_permit_data/output/$(@F)" "$@"
+
 ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: run_permit_event_study_audit.R ../../../_lib/event_study_plot_helpers.R ../../../_lib/permit_event_study_sample_helpers.R ../input/permit_block_year_panel_2015.parquet | ../output
 	$(R) $< cohort_2015 high_discretion issue ppml continuous uniform $(MAIN_BW_M) within_block full ward_pair block none none $(MAIN_BW_LABEL)
 

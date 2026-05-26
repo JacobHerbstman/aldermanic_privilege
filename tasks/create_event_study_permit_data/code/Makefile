@@ -10,28 +10,18 @@ PERMIT_END_MONTH ?= 2020-12
 all: \
 	../output/permit_block_year_panel.parquet \
 	../output/permit_block_year_panel_2015.parquet \
-	../output/permit_block_year_panel_2023.parquet \
-	../output/permit_block_year_panel_support_by_event_time.csv \
-	../output/permit_block_year_panel_support_by_calendar_time.csv \
-	../output/permit_block_year_panel_contract_diagnostics.csv \
-	../output/permit_block_year_panel_assignment_stability.csv \
-	../output/permit_block_year_panel_zero_share_summary.csv \
-	../output/permit_block_year_panel_outcome_totals.csv \
-	../output/permit_block_assignment_missing_2010.csv \
-	../output/permit_block_assignment_missing_2010_summary.csv \
-	../output/permit_block_assignment_missing_2020.csv \
-	../output/permit_block_assignment_missing_2020_summary.csv \
-	../output/permit_block_assignment_review_log.csv \
-	../output/permit_block_assignment_review_summary.csv \
-	../output/permit_unit_increase_audit.csv \
-	../output/permit_unit_increase_audit_summary.csv
+	../output/permit_block_year_panel_2023.parquet
 
 ../output/permit_block_year_panel.parquet: create_permit_block_year_panel.R ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../output
 	$(R) create_permit_block_year_panel.R $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M) $(PERMIT_START_YEAR) $(PERMIT_END_YEAR) $(PERMIT_END_MONTH)
 
 ../output/permit_block_year_panel_2015.parquet \
-../output/permit_block_year_panel_2023.parquet \
-../output/permit_block_year_panel_support_by_event_time.csv \
+../output/permit_block_year_panel_2023.parquet: ../output/permit_block_year_panel.parquet
+	@test -s "$@"
+
+../output/permit_block_year_panel_support_by_event_time.csv: create_permit_block_year_panel.R ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../output
+	WRITE_PANEL_SIDECARS=1 Rscript create_permit_block_year_panel.R $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M) $(PERMIT_START_YEAR) $(PERMIT_END_YEAR) $(PERMIT_END_MONTH)
+
 ../output/permit_block_year_panel_support_by_calendar_time.csv \
 ../output/permit_block_year_panel_contract_diagnostics.csv \
 ../output/permit_block_year_panel_assignment_stability.csv \
@@ -44,7 +34,7 @@ all: \
 ../output/permit_block_assignment_review_log.csv \
 ../output/permit_block_assignment_review_summary.csv \
 ../output/permit_unit_increase_audit.csv \
-../output/permit_unit_increase_audit_summary.csv: ../output/permit_block_year_panel.parquet
+../output/permit_unit_increase_audit_summary.csv: ../output/permit_block_year_panel_support_by_event_time.csv
 	@test -s "$@"
 
 ../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean.gpkg | ../input

@@ -5,6 +5,29 @@ MAIN_BW_LABEL ?= 1000ft
 
 all:
 
+panel_diagnostics: \
+	../output/sales_transaction_panel_amenity_distance_diagnostics.csv \
+	../output/sales_transaction_panel_hedonic_coverage_by_sale_year.csv \
+	../output/sales_transaction_panel_final_hedonic_coverage_by_sale_year.csv \
+	../output/sales_transaction_panel_support_by_event_time.csv \
+	../output/sales_transaction_panel_support_by_calendar_time.csv \
+	../output/sales_transaction_panel_assignment_stability.csv \
+	../output/sales_transaction_panel_event_geometry_diagnostics.csv \
+	../output/sales_transaction_panel_no_boundary_exclusions.csv \
+	../output/sales_transaction_panel_contract_diagnostics.csv
+
+../output/sales_transaction_panel_amenity_distance_diagnostics.csv \
+../output/sales_transaction_panel_hedonic_coverage_by_sale_year.csv \
+../output/sales_transaction_panel_final_hedonic_coverage_by_sale_year.csv \
+../output/sales_transaction_panel_support_by_event_time.csv \
+../output/sales_transaction_panel_support_by_calendar_time.csv \
+../output/sales_transaction_panel_assignment_stability.csv \
+../output/sales_transaction_panel_event_geometry_diagnostics.csv \
+../output/sales_transaction_panel_no_boundary_exclusions.csv \
+../output/sales_transaction_panel_contract_diagnostics.csv: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../output
+	$(MAKE) -C ../../../create_event_study_sales_data_disaggregate/code ../output/$(@F)
+	cp -p "../../../create_event_study_sales_data_disaggregate/output/$(@F)" "$@"
+
 event_study_sidecars: \
 	../output/event_study_coefficients_disaggregate_yearly_cohort_2015_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv \
 	../output/event_study_support_disaggregate_yearly_cohort_2015_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv \
