@@ -3,14 +3,14 @@
 # Uses stacked 2015+2023 implementation timing (data constraint)
 # Produces a clean, publication-ready table
 
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 # CONFIGURATION
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/rental_event_study_audit/code")
 # bandwidth <- 250
 # weighting <- "triangular"
 # fe_type <- "strict_pair_x_year"

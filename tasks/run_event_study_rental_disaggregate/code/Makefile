@@ -56,9 +56,6 @@ all: \
 ../output/event_study_combined_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.pdf: ../output/event_study_disaggregate_yearly_stacked_implementation_continuous_split_triangular_250m_mf_overlap.pdf
 	@test -s "$@"
 
-../output/did_table_rental.tex: run_did_rental_disaggregate.R ../input/rental_listing_panel.parquet | ../output
-	Rscript run_did_rental_disaggregate.R 250 triangular strict_pair_x_year segment twoway_block_segment
-
 ../input/rental_listing_panel.parquet: ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
