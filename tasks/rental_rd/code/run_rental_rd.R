@@ -1,5 +1,4 @@
-# Estimate flat no-slope listed-rent RD using cleaned RentHub floorplan-month records.
-
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd/code")
 # bandwidth_ft <- 500
 # sample <- "all"
@@ -40,8 +39,8 @@ if (!is.finite(bins_per_side) || bins_per_side <= 0) {
 }
 
 control_label <- if (use_controls) "controls" else "no_controls"
-prefix <- sprintf(
-  "../output/rental_rd_flat_bw%.0f_2014_2022_%s_%s",
+output_pdf <- sprintf(
+  "../output/rental_rd_flat_bw%.0f_2014_2022_%s_%s.pdf",
   bandwidth_ft,
   sample,
   control_label
@@ -272,43 +271,6 @@ plot <- ggplot() +
   theme_bw(base_size = 11) +
   theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
-ggsave(paste0(prefix, ".pdf"), plot, width = 8.6, height = 6, dpi = 300, bg = "white")
+ggsave(output_pdf, plot, width = 8.6, height = 6, dpi = 300, bg = "white")
 
-coef_out <- tibble(
-  outcome = "log_rent",
-  estimate = estimate,
-  std_error = std_error,
-  p_value = p_value,
-  n_obs = model$nobs,
-  n_segments = n_distinct(plot_data$segment_id),
-  n_ward_pairs = n_distinct(plot_data$ward_pair),
-  bandwidth_ft = bandwidth_ft,
-  sample = sample,
-  use_controls = use_controls,
-  fixed_effects = "segment_id x year_month",
-  cluster = "segment_id"
-)
-
-diagnostics <- rent %>%
-  summarise(
-    n_rows = n(),
-    n_model_obs = model$nobs,
-    n_segments = n_distinct(segment_id),
-    n_ward_pairs = n_distinct(ward_pair),
-    n_months = n_distinct(year_month),
-    min_file_date = min(file_date),
-    max_file_date = max(file_date),
-    mean_rent = mean(rent_price, na.rm = TRUE),
-    median_rent = median(rent_price, na.rm = TRUE),
-    share_right_side = mean(right == 1, na.rm = TRUE),
-    share_multifamily = mean(building_type_clean == "multi_family", na.rm = TRUE),
-    hedonic_complete_share = mean(!is.na(log_sqft) & !is.na(log_beds) & !is.na(log_baths)),
-    min_signed_dist_ft = min(signed_dist_ft, na.rm = TRUE),
-    max_signed_dist_ft = max(signed_dist_ft, na.rm = TRUE)
-  )
-
-write_csv(coef_out, paste0(prefix, ".csv"))
-write_csv(bins, sub("rental_rd_flat_", "rental_rd_bins_", paste0(prefix, ".csv"), fixed = TRUE))
-write_csv(diagnostics, sub("rental_rd_flat_", "rental_rd_diagnostics_", paste0(prefix, ".csv"), fixed = TRUE))
-
-message(sprintf("Saved RD plot and diagnostics with prefix: %s", prefix))
+message(sprintf("Saved RD plot: %s", output_pdf))

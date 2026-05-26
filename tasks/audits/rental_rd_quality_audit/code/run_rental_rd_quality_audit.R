@@ -1,11 +1,10 @@
-# Audit RentHub quality-flag balance in the rental RD sample.
-
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd/code")
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/rental_rd_quality_audit/code")
 # bandwidth_ft <- 500
 # sample <- "all"
 
-source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/canonical_geometry_helpers.R")
 
 library(arrow)
 library(data.table)
