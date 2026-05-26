@@ -1,6 +1,8 @@
 SHELL := bash
 
-all: \
+all:
+
+event_study_sidecars: \
 	../output/event_study_coefficients_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.csv \
 	../output/event_study_support_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.csv \
 	../output/event_study_pretrend_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.csv \
