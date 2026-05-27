@@ -24,6 +24,8 @@ if (length(cli_args) != 1) {
 }
 sample <- cli_args[1]
 run_sample <- as.logical(sample)
+write_diagnostics <- tolower(Sys.getenv("WRITE_SALES_DISTANCE_DIAGNOSTICS", "0")) %in% c("1", "true", "yes")
+diagnostics_dir <- Sys.getenv("SALES_DISTANCE_DIAGNOSTICS_DIR", "../output")
 
 load_cpi_deflator <- function(start_date,
                               end_date,
@@ -452,10 +454,6 @@ if (nrow(contract_sf) > 0) {
     )
 }
 
-write_csv(ward_hit_audit, "../output/sales_ward_hit_multiplicity_audit.csv")
-write_csv(ward_hit_detail, "../output/sales_ward_hit_multiplicity_detail.csv")
-write_csv(geometry_contract_audit, "../output/sales_geometry_contract_audit.csv")
-
 if (sum(ward_hit_audit$n_zero_ward_hits, na.rm = TRUE) > 0 ||
     sum(ward_hit_audit$n_multiple_hit_pair_inconsistent, na.rm = TRUE) > 0) {
     stop("Sales ward-hit multiplicity audit failed inside 500ft.", call. = FALSE)
@@ -466,6 +464,12 @@ if (sum(geometry_contract_audit$n_ward_mismatch, na.rm = TRUE) > 0 ||
     sum(geometry_contract_audit$n_pair_endpoint_mismatch, na.rm = TRUE) > 0 ||
     sum(geometry_contract_audit$n_dist_mismatch, na.rm = TRUE) > 0) {
     stop("Sales geometry contract audit failed inside 500ft.", call. = FALSE)
+}
+
+if (write_diagnostics) {
+    write_csv(ward_hit_audit, file.path(diagnostics_dir, "sales_ward_hit_multiplicity_audit.csv"))
+    write_csv(ward_hit_detail, file.path(diagnostics_dir, "sales_ward_hit_multiplicity_detail.csv"))
+    write_csv(geometry_contract_audit, file.path(diagnostics_dir, "sales_geometry_contract_audit.csv"))
 }
 
 # -----------------------------------------------------------------------------
@@ -531,7 +535,6 @@ final_output <- final_df %>%
 # Output path
 suffix <- if (run_sample) "_sample" else ""
 output_path <- sprintf("../output/sales_pre_scores%s.csv", suffix)
-diag_path <- sprintf("../output/sales_geometry_diagnostics%s.csv", suffix)
 
 write_csv(final_output, output_path)
 
@@ -572,10 +575,14 @@ sales_geometry_diagnostics <- bind_rows(
         select(scope, boundary_year, metric, value)
 )
 
-write_csv(sales_geometry_diagnostics, diag_path)
+if (write_diagnostics) {
+    write_csv(
+        sales_geometry_diagnostics,
+        file.path(diagnostics_dir, sprintf("sales_geometry_diagnostics%s.csv", suffix))
+    )
+}
 
 message(sprintf("Done! Saved %s rows to %s", format(nrow(final_output), big.mark = ","), output_path))
-message(sprintf("Saved diagnostics to %s", diag_path))
 
 # Summary stats
 summary_stats <- final_output %>%

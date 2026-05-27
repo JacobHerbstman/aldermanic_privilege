@@ -18,6 +18,8 @@ if (length(cli_args) != 1) {
 }
 sample <- cli_args[1]
 run_sample <- as.logical(sample)
+write_diagnostics <- tolower(Sys.getenv("WRITE_RENT_DISTANCE_DIAGNOSTICS", "0")) %in% c("1", "true", "yes")
+diagnostics_dir <- Sys.getenv("RENT_DISTANCE_DIAGNOSTICS_DIR", "../output")
 
 load_cpi_deflator <- function(start_date,
                               end_date,
@@ -295,12 +297,6 @@ batch_diagnostics <- bind_rows(batch_diag_list)
 
 suffix <- if (run_sample) "_sample" else "_full"
 output_path <- sprintf("../output/rent_pre_scores%s.parquet", suffix)
-diag_path <- sprintf("../output/rent_geometry_diagnostics%s.csv", suffix)
-modal_sensitivity_path <- sprintf("../output/rent_modal_coordinate_sensitivity%s.csv", suffix)
-rd_quality_summary_path <- sprintf("../output/rent_rd_location_quality_summary%s.csv", suffix)
-rd_questionable_address_path <- sprintf("../output/rent_rd_location_questionable_addresses%s.csv", suffix)
-geometry_contract_path <- sprintf("../output/rent_geometry_contract_audit%s.csv", suffix)
-ward_hit_path <- sprintf("../output/rent_ward_hit_multiplicity_audit%s.csv", suffix)
 
 # -----------------------------------------------------------------------------
 # 6. POST-PROCESS: ALDERMAN LOOKUPS (PRE-SCORES)
@@ -428,9 +424,6 @@ if (nrow(contract_sf) > 0) {
     max_abs_dist_diff_m = numeric()
   )
 }
-write_csv(ward_hit_audit, ward_hit_path)
-write_csv(geometry_contract_audit, geometry_contract_path)
-
 if (sum(ward_hit_audit$n_zero_ward_hits, na.rm = TRUE) > 0 ||
     sum(ward_hit_audit$n_multiple_ward_hits, na.rm = TRUE) > 0) {
   stop("Ward-hit multiplicity audit failed inside 500ft.", call. = FALSE)
@@ -441,6 +434,11 @@ if (sum(geometry_contract_audit$n_ward_mismatch, na.rm = TRUE) > 0 ||
     sum(geometry_contract_audit$n_pair_endpoint_mismatch, na.rm = TRUE) > 0 ||
     sum(geometry_contract_audit$n_dist_mismatch, na.rm = TRUE) > 0) {
   stop("Geometry contract audit failed inside 500ft.", call. = FALSE)
+}
+
+if (write_diagnostics) {
+  write_csv(ward_hit_audit, file.path(diagnostics_dir, sprintf("rent_ward_hit_multiplicity_audit%s.csv", suffix)))
+  write_csv(geometry_contract_audit, file.path(diagnostics_dir, sprintf("rent_geometry_contract_audit%s.csv", suffix)))
 }
 
 message("Auditing modal-coordinate sensitivity inside 500ft...")
@@ -531,7 +529,9 @@ if (nrow(modal_base) > 0) {
   )
 }
 
-write_csv(modal_sensitivity, modal_sensitivity_path)
+if (write_diagnostics) {
+  write_csv(modal_sensitivity, file.path(diagnostics_dir, sprintf("rent_modal_coordinate_sensitivity%s.csv", suffix)))
+}
 
 modal_flags <- modal_sensitivity %>%
   transmute(
@@ -610,7 +610,9 @@ rd_location_quality_summary <- rd_location_scopes %>%
     .by = rd_scope
   ) %>%
   arrange(factor(rd_scope, levels = c("all_assigned", "within_1000ft", "within_500ft")))
-write_csv(rd_location_quality_summary, rd_quality_summary_path)
+if (write_diagnostics) {
+  write_csv(rd_location_quality_summary, file.path(diagnostics_dir, sprintf("rent_rd_location_quality_summary%s.csv", suffix)))
+}
 
 rd_questionable_addresses <- final_df %>%
   filter(
@@ -643,7 +645,9 @@ rd_questionable_addresses <- final_df %>%
     .by = address_stem
   ) %>%
   arrange(desc(n_rows), address_stem)
-write_csv(rd_questionable_addresses, rd_questionable_address_path)
+if (write_diagnostics) {
+  write_csv(rd_questionable_addresses, file.path(diagnostics_dir, sprintf("rent_rd_location_questionable_addresses%s.csv", suffix)))
+}
 
 # 6a. Attach Alderman (Own & Neighbor)
 # We need to lookup who was alderman at [ward, file_date]
@@ -820,7 +824,8 @@ rent_geometry_diagnostics <- bind_rows(
   address_location_diagnostics
 )
 
-write_csv(rent_geometry_diagnostics, diag_path)
+if (write_diagnostics) {
+  write_csv(rent_geometry_diagnostics, file.path(diagnostics_dir, sprintf("rent_geometry_diagnostics%s.csv", suffix)))
+}
 
 message("Done! Saved ", nrow(final_df), " rows to ", output_path)
-message("Saved diagnostics to ", diag_path)
