@@ -1,22 +1,9 @@
-## Prepare permit-level dataset for alderman uncertainty index
-## This script merges permits with ward, alderman, demographics, and
-## parcel-level place controls from permit-point geometry.
-
 source("../../setup_environment/code/packages.R")
 
-# --- Interactive Test Block ---
+# Interactive run:
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/data_for_alderman_uncertainty_index/code")
 
 message("=== Starting data preparation for uncertainty index ===")
-
-ward_panel_path <- Sys.getenv("WARD_PANEL_PATH", "../input/ward_panel.gpkg")
-building_permits_path <- Sys.getenv("BUILDING_PERMITS_INPUT_PATH", "../input/building_permits_clean.gpkg")
-alderman_panel_path <- Sys.getenv("ALDERMAN_PANEL_PATH", "../input/chicago_alderman_panel.csv")
-ward_controls_path <- Sys.getenv("WARD_CONTROLS_PATH", "../input/ward_controls.csv")
-community_areas_path <- Sys.getenv("COMMUNITY_AREAS_PATH", "../input/community_areas.geojson")
-cta_stations_path <- Sys.getenv("CTA_STATIONS_PATH", "../input/cta_stations.geojson")
-water_osm_path <- Sys.getenv("WATER_OSM_PATH", "../input/gis_osm_water_a_free_1.shp")
-permits_output_path <- Sys.getenv("OUTPUT_PERMITS_FOR_UNCERTAINTY_PATH", "../output/permits_for_uncertainty_index.csv")
 
 drop_geometry_if_needed <- function(df) {
   if (inherits(df, "sf")) {
@@ -69,30 +56,6 @@ assert_expected_crs <- function(layer, expected_epsg, label) {
       call. = FALSE
     )
   }
-}
-
-summarize_stage <- function(df, stage) {
-  data <- drop_geometry_if_needed(df)
-  tibble(
-    stage = stage,
-    n_rows = nrow(data),
-    n_unique_ids = if ("id" %in% names(data)) n_distinct(data$id, na.rm = TRUE) else NA_integer_,
-    n_missing_id = if ("id" %in% names(data)) sum(is.na(data$id)) else NA_integer_,
-    n_duplicate_ids = if ("id" %in% names(data)) sum(duplicated(data$id)) else NA_integer_,
-    n_missing_geometry = missing_geometry_n(df),
-    n_high_discretion = if ("high_discretion" %in% names(data)) sum(data$high_discretion == 1, na.rm = TRUE) else NA_integer_,
-    n_missing_application_month = if ("application_start_date_ym" %in% names(data)) sum(is.na(data$application_start_date_ym)) else NA_integer_,
-    n_with_ward = if ("ward" %in% names(data)) sum(!is.na(data$ward)) else NA_integer_,
-    n_missing_ward = if ("ward" %in% names(data)) sum(is.na(data$ward)) else NA_integer_,
-    n_with_community_area = if ("ca_id" %in% names(data)) sum(!is.na(data$ca_id)) else NA_integer_,
-    n_missing_community_area = if ("ca_id" %in% names(data)) sum(is.na(data$ca_id)) else NA_integer_,
-    n_with_alderman = if ("alderman" %in% names(data)) sum(!is.na(data$alderman) & data$alderman != "") else NA_integer_,
-    n_missing_alderman = if ("alderman" %in% names(data)) sum(is.na(data$alderman) | data$alderman == "") else NA_integer_,
-    n_with_ward_controls = if ("homeownership_rate" %in% names(data)) sum(!is.na(data$homeownership_rate)) else NA_integer_,
-    n_missing_ward_controls = if ("homeownership_rate" %in% names(data)) sum(is.na(data$homeownership_rate)) else NA_integer_,
-    n_positive_processing_time = if ("processing_time" %in% names(data)) sum(data$processing_time > 0, na.rm = TRUE) else NA_integer_,
-    n_final = if (stage == "final_output") nrow(data) else NA_integer_
-  )
 }
 
 clean_permit_type <- function(permit_type) {
@@ -163,106 +126,6 @@ assign_wards_for_era <- function(permits_era, ward_geoms, map_version_value, era
   list(data = data, diagnostics = diagnostics)
 }
 
-summarize_processing_exclusions <- function(data) {
-  data %>%
-    mutate(
-      year = application_year,
-      permit_type_clean = clean_permit_type(permit_type),
-      exclusion_reason = case_when(
-        is.na(processing_time) ~ "missing_processing_time",
-        processing_time <= 0 ~ "nonpositive_processing_time",
-        TRUE ~ NA_character_
-      )
-    ) %>%
-    filter(!is.na(exclusion_reason)) %>%
-    count(year, ward, alderman, permit_type_clean, exclusion_reason, name = "n_permits") %>%
-    arrange(year, ward, alderman, permit_type_clean, exclusion_reason)
-}
-
-summarize_turnover_overlaps <- function(permits_data, alderman_data) {
-  alderman_tenures <- alderman_data %>%
-    filter(!is.na(alderman), alderman != "") %>%
-    arrange(ward, month) %>%
-    group_by(ward) %>%
-    mutate(tenure_id = cumsum(alderman != lag(alderman, default = first(alderman)))) %>%
-    group_by(ward, tenure_id, alderman) %>%
-    summarise(
-      tenure_start = min(month),
-      tenure_end = max(month),
-      tenure_start_num = min(as.numeric(month)),
-      tenure_end_num = max(as.numeric(month)),
-      .groups = "drop"
-    )
-
-  permits_for_turnover <- permits_data %>%
-    mutate(
-      application_month_num = as.numeric(application_start_date_ym),
-      issue_month_num_raw = as.numeric(as.yearmon(issue_date_ym)),
-      issue_month_num = if_else(
-        is.na(issue_month_num_raw) | issue_month_num_raw < application_month_num,
-        application_month_num,
-        issue_month_num_raw
-      ),
-      issue_month_checked = as.yearmon(issue_month_num)
-    ) %>%
-    select(id, ward, alderman, application_start_date_ym, issue_month_checked,
-           application_month_num, issue_month_num)
-
-  if (nrow(permits_for_turnover) == 0) {
-    return(
-      tibble(
-        id = character(),
-        ward = numeric(),
-        alderman_application = character(),
-        application_month = character(),
-        issue_month = character(),
-        n_other_aldermen_during_processing = integer(),
-        other_aldermen_during_processing = character()
-      )
-    )
-  }
-
-  overlap_rows <- vector("list", n_distinct(permits_for_turnover$ward))
-  wards <- sort(unique(permits_for_turnover$ward))
-
-  for (ward_index in seq_along(wards)) {
-    ward_value <- wards[[ward_index]]
-    ward_permits <- permits_for_turnover %>% filter(ward == ward_value)
-    ward_tenures <- alderman_tenures %>% filter(ward == ward_value)
-
-    overlap_rows[[ward_index]] <- ward_permits %>%
-      rowwise() %>%
-      mutate(
-        other_aldermen_during_processing = paste(
-          sort(unique(ward_tenures$alderman[
-            ward_tenures$alderman != alderman &
-              ward_tenures$tenure_start_num <= issue_month_num &
-              ward_tenures$tenure_end_num >= application_month_num
-          ])),
-          collapse = "; "
-        ),
-        n_other_aldermen_during_processing = if_else(
-          other_aldermen_during_processing == "",
-          0L,
-          lengths(strsplit(other_aldermen_during_processing, "; ", fixed = TRUE))
-        )
-      ) %>%
-      ungroup() %>%
-      filter(n_other_aldermen_during_processing > 0) %>%
-      transmute(
-        id,
-        ward,
-        alderman_application = alderman,
-        application_month = as.character(application_start_date_ym),
-        issue_month = as.character(issue_month_checked),
-        n_other_aldermen_during_processing,
-        other_aldermen_during_processing
-      )
-  }
-
-  bind_rows(overlap_rows)
-}
-
 # -----------------------------------------------------------------------------
 # 1. LOAD DATA
 # -----------------------------------------------------------------------------
@@ -270,32 +133,32 @@ summarize_turnover_overlaps <- function(permits_data, alderman_data) {
 message("Loading input data...")
 
 # Ward geometries (for spatial join)
-ward_panel <- st_read(ward_panel_path, quiet = TRUE)
+ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 
 # Building permits
-permits <- st_read(building_permits_path, quiet = TRUE) %>%
+permits <- st_read("../input/building_permits_clean.gpkg", quiet = TRUE) %>%
   mutate(
     application_start_date_ym = as.yearmon(application_start_date_ym),
     application_year = year(as.Date(application_start_date_ym))
   )
 
 # Alderman-ward-month crosswalk
-alderman_panel <- read_csv(alderman_panel_path, show_col_types = FALSE) %>%
+alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
   mutate(month = as.yearmon(month))
 
 # Ward-level demographics
-ward_controls <- read_csv(ward_controls_path, show_col_types = FALSE)
+ward_controls <- read_csv("../input/ward_controls.csv", show_col_types = FALSE)
 
 # Community areas (for CA fixed effects)
-community_areas <- st_read(community_areas_path, quiet = TRUE) %>%
+community_areas <- st_read("../input/community_areas.geojson", quiet = TRUE) %>%
   select(area_numbe, community) %>%
   rename(ca_id = area_numbe, ca_name = community)
 
 message("Community areas loaded: ", nrow(community_areas), " areas")
 
 # Place-control layers used in the active stringency pipeline
-cta_stations <- st_read(cta_stations_path, quiet = TRUE)
-water_osm <- st_read(water_osm_path, quiet = TRUE)
+cta_stations <- st_read("../input/cta_stations.geojson", quiet = TRUE)
+water_osm <- st_read("../input/gis_osm_water_a_free_1.shp", quiet = TRUE)
 
 assert_unique_key(permits, "id", "Building permits")
 assert_unique_key(alderman_panel, c("ward", "month"), "Alderman panel")
@@ -659,9 +522,6 @@ message("Permits with n_rail_stations_800m: ",
 
 message("Creating analysis variables...")
 
-processing_time_exclusions <- summarize_processing_exclusions(permits_with_controls)
-turnover_overlap_diagnostics <- summarize_turnover_overlaps(permits_with_alderman, alderman_panel)
-
 permits_analysis <- permits_with_controls %>%
   mutate(
     # Time variables
@@ -725,71 +585,9 @@ assert_unique_key(output_data, "id", "Uncertainty-index permit output")
 assert_unique_key(ward_spatial_join_diagnostics, "id", "Ward spatial-join diagnostics")
 assert_unique_key(community_area_join_diagnostics, "id", "Community-area join diagnostics")
 
-attrition <- bind_rows(
-  summarize_stage(permits, "loaded_permits"),
-  summarize_stage(permits_high_discretion, "high_discretion_permits"),
-  summarize_stage(permits_ward_data, "ward_spatial_join_matched"),
-  summarize_stage(permits_ward_data %>% filter(!is.na(ca_id)), "community_area_joined"),
-  summarize_stage(permits_with_alderman_all, "alderman_join_attempted"),
-  summarize_stage(permits_with_alderman, "alderman_joined"),
-  summarize_stage(permits_with_controls, "ward_and_place_controls_joined"),
-  summarize_stage(permits_analysis, "positive_processing_time_sample"),
-  summarize_stage(output_data, "final_output")
-)
-
-diagnostics_by_month <- ward_spatial_join_diagnostics %>%
-  left_join(
-    community_area_join_diagnostics %>%
-      select(id, n_ca_hits, community_area_reason = reason),
-    by = "id",
-    relationship = "one-to-one"
-  ) %>%
-  left_join(
-    permits_high_discretion %>%
-      st_drop_geometry() %>%
-      select(id, processing_time),
-    by = "id",
-    relationship = "one-to-one"
-  ) %>%
-  left_join(
-    permits_with_alderman_all %>%
-      select(id, alderman),
-    by = "id",
-    relationship = "one-to-one"
-  ) %>%
-  mutate(
-    in_final_output = id %in% output_data$id,
-    ward_matched = reason == "matched",
-    community_area_matched = community_area_reason == "matched",
-    alderman_matched = !is.na(alderman) & alderman != ""
-  ) %>%
-  group_by(application_year, application_month, map_version) %>%
-  summarise(
-    n_high_discretion = n(),
-    n_after_ward_join = sum(ward_matched, na.rm = TRUE),
-    n_missing_ward = sum(reason == "no_ward_match", na.rm = TRUE),
-    n_multiple_ward = sum(reason == "multiple_ward_matches", na.rm = TRUE),
-    n_after_community_area_join = sum(community_area_matched, na.rm = TRUE),
-    n_missing_community_area = sum(community_area_reason == "no_community_area_match", na.rm = TRUE),
-    n_after_alderman_join = sum(alderman_matched, na.rm = TRUE),
-    n_missing_alderman = sum(ward_matched & !alderman_matched, na.rm = TRUE),
-    n_missing_processing_time = sum(is.na(processing_time)),
-    n_zero_processing_time = sum(processing_time == 0, na.rm = TRUE),
-    n_negative_processing_time = sum(processing_time < 0, na.rm = TRUE),
-    n_final_output = sum(in_final_output),
-    .groups = "drop"
-  ) %>%
-  arrange(application_year, application_month, map_version)
-
-write_csv(output_data, permits_output_path)
-write_csv(attrition, "../output/permits_for_uncertainty_index_attrition.csv")
-write_csv(diagnostics_by_month, "../output/permits_for_uncertainty_index_diagnostics.csv")
-write_csv(ward_spatial_join_diagnostics, "../output/ward_spatial_join_diagnostics.csv")
-write_csv(community_area_join_diagnostics, "../output/community_area_join_diagnostics.csv")
-write_csv(processing_time_exclusions, "../output/processing_time_exclusions.csv")
-write_csv(turnover_overlap_diagnostics, "../output/turnover_overlap_diagnostics.csv")
+write_csv(output_data, "../output/permits_for_uncertainty_index.csv")
 
 message("=== Data preparation complete ===")
-message("Output: ", permits_output_path)
+message("Output: ../output/permits_for_uncertainty_index.csv")
 message("Rows: ", nrow(output_data))
 message("Columns: ", ncol(output_data))
