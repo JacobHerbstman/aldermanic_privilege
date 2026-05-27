@@ -1,49 +1,27 @@
-source("../../setup_environment/code/packages.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_validation_checks/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
-# permits_path <- "../input/building_permits_text_features.csv.gz"
-# alderman_panel_path <- "../input/chicago_alderman_panel.csv"
-# uncertainty_path <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
-# output_csv <- "../output/permit_validation_results_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
-# output_tex <- "../output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex"
 # max_application_ym <- "2022-12"
+
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(spec, permits_path, alderman_panel_path, uncertainty_path, output_csv, output_tex, max_application_ym)
+  args <- c(spec, max_application_ym)
 }
 
-if (length(args) != 7) {
+if (length(args) != 2) {
   stop(
-    "Usage: Rscript build_permit_validation_table.R <spec> <permits_csv_gz> <alderman_panel_csv> <uncertainty_csv> <output_csv> <output_tex> <max_application_ym>",
+    "Usage: Rscript build_permit_validation_table.R <spec> <max_application_ym>",
     call. = FALSE
   )
 }
 
 spec <- args[1]
-permits_path <- args[2]
-alderman_panel_path <- args[3]
-uncertainty_path <- args[4]
-output_csv <- args[5]
-output_tex <- args[6]
-max_application_ym <- args[7]
-unmatched_scores_output <- sub(
-  "permit_validation_results",
-  "permit_validation_unmatched_scores",
-  output_csv,
-  fixed = TRUE
-)
+max_application_ym <- args[2]
+output_tex <- sprintf("../output/permit_validation_table_uncertainty_%s.tex", spec)
 
-cat("=== Permit Validation Table (Stringency) ===\n")
-cat("Spec:", spec, "\n")
-
-if (grepl("\\.gz$", permits_path)) {
-  permits <- data.table::fread(cmd = paste("gzip -dc", shQuote(permits_path)))
-} else {
-  permits <- data.table::fread(permits_path)
-}
+permits <- data.table::fread(cmd = "gzip -dc ../input/building_permits_text_features.csv.gz")
 setDT(permits)
 
 for (col in intersect(c("unit_change_signal", "unit_change_text"), names(permits))) {
@@ -60,23 +38,21 @@ permits[, ward := suppressWarnings(as.integer(as.character(ward)))]
 permits[, ward := as.character(ward)]
 permits[ward == "NA", ward := NA_character_]
 
-high_discretion_permits <- c(
-  "PERMIT - NEW CONSTRUCTION",
-  "PERMIT - RENOVATION/ALTERATION",
-  "PERMIT - WRECKING/DEMOLITION",
-  "PERMIT - PORCH CONSTRUCTION",
-  "PERMIT - REINSTATE REVOKED PMT"
-)
-
 permits <- permits[
-  permit_type_clean %in% high_discretion_permits &
+  permit_type_clean %in% c(
+    "PERMIT - NEW CONSTRUCTION",
+    "PERMIT - RENOVATION/ALTERATION",
+    "PERMIT - WRECKING/DEMOLITION",
+    "PERMIT - PORCH CONSTRUCTION",
+    "PERMIT - REINSTATE REVOKED PMT"
+  ) &
     !is.na(application_start_date) &
     !is.na(month) &
     !is.na(ward) &
     month <= as.yearmon(max_application_ym)
 ]
 
-alderman_panel <- data.table::fread(alderman_panel_path)
+alderman_panel <- data.table::fread("../input/chicago_alderman_panel.csv")
 setDT(alderman_panel)
 alderman_panel[, ward := suppressWarnings(as.integer(as.character(ward)))]
 alderman_panel[, ward := as.character(ward)]
@@ -103,7 +79,7 @@ permits[, alderman_key := gsub("[^A-Z ]+", " ", alderman_key)]
 permits[, alderman_key := gsub("\\s+", " ", alderman_key)]
 permits[, alderman_key := trimws(alderman_key)]
 
-scores <- data.table::fread(uncertainty_path)
+scores <- data.table::fread(sprintf("../input/alderman_uncertainty_index_%s.csv", spec))
 setDT(scores)
 if (!("uncertainty_index" %in% names(scores) && "alderman" %in% names(scores))) {
   stop("Uncertainty score file must include columns `alderman` and `uncertainty_index`.", call. = FALSE)
@@ -126,7 +102,6 @@ if (nrow(permits) != permits_before_score_join) {
   stop("Uncertainty score join changed permit row count.", call. = FALSE)
 }
 unmatched_scores <- permits[is.na(uncertainty_index), .N, by = .(alderman_key, alderman)][order(-N)]
-readr::write_csv(unmatched_scores, unmatched_scores_output)
 if (nrow(unmatched_scores) > 0) {
   warning(
     paste0(
@@ -188,22 +163,15 @@ for (i in seq_len(nrow(model_specs))) {
     stars_i <- "*"
   }
 
-  coef_display_i <- paste0(
-    formatC(est_i, digits = digits_i, format = "f", big.mark = ","),
-    if (nchar(stars_i) == 0) "" else paste0("^{", stars_i, "}")
-  )
-  se_display_i <- paste0("(", formatC(se_i, digits = digits_i, format = "f", big.mark = ","), ")")
-
   result_rows[[i]] <- data.table(
     outcome_key = outcome_name,
     outcome_label = model_specs$outcome_label[i],
-    estimate = est_i,
-    std_error = se_i,
-    p_value = p_i,
-    stars = stars_i,
-    n_obs = nobs(model_i),
-    coef_display = coef_display_i,
-    se_display = se_display_i
+    coef_display = paste0(
+      formatC(est_i, digits = digits_i, format = "f", big.mark = ","),
+      if (nchar(stars_i) == 0) "" else paste0("^{", stars_i, "}")
+    ),
+    se_display = paste0("(", formatC(se_i, digits = digits_i, format = "f", big.mark = ","), ")"),
+    n_obs = nobs(model_i)
   )
 }
 
@@ -213,11 +181,6 @@ results <- results[match(
   c("n_permits_all", "share_unit_change", "units_reduced_text_permit")
 )]
 
-readr::write_csv(
-  results[, .(outcome_key, outcome_label, estimate, std_error, p_value, stars, n_obs)],
-  output_csv
-)
-
 n_min <- min(results$n_obs, na.rm = TRUE)
 n_max <- max(results$n_obs, na.rm = TRUE)
 n_display <- if (n_min == n_max) {
@@ -226,28 +189,24 @@ n_display <- if (n_min == n_max) {
   paste0(formatC(n_min, format = "d", big.mark = ","), "--", formatC(n_max, format = "d", big.mark = ","))
 }
 
-tex_lines <- c(
-  "\\begin{threeparttable}",
-  "\\begin{tabular}{lc}",
-  "\\toprule",
-  "Outcome (Ward-Month) & Coef. on Stringency Index \\\\",
-  "\\midrule",
-  sprintf("%s & $%s$ \\\\", results$outcome_label[1], results$coef_display[1]),
-  sprintf(" & %s \\\\", results$se_display[1]),
-  sprintf("%s & $%s$ \\\\", results$outcome_label[2], results$coef_display[2]),
-  sprintf(" & %s \\\\", results$se_display[2]),
-  sprintf("%s & $%s$ \\\\", results$outcome_label[3], results$coef_display[3]),
-  sprintf(" & %s \\\\", results$se_display[3]),
-  "\\midrule",
-  sprintf("N & %s \\\\", n_display),
-  "\\bottomrule",
-  "\\end{tabular}",
-  "\\end{threeparttable}"
+writeLines(
+  c(
+    "\\begin{threeparttable}",
+    "\\begin{tabular}{lc}",
+    "\\toprule",
+    "Outcome (Ward-Month) & Coef. on Stringency Index \\\\",
+    "\\midrule",
+    sprintf("%s & $%s$ \\\\", results$outcome_label[1], results$coef_display[1]),
+    sprintf(" & %s \\\\", results$se_display[1]),
+    sprintf("%s & $%s$ \\\\", results$outcome_label[2], results$coef_display[2]),
+    sprintf(" & %s \\\\", results$se_display[2]),
+    sprintf("%s & $%s$ \\\\", results$outcome_label[3], results$coef_display[3]),
+    sprintf(" & %s \\\\", results$se_display[3]),
+    "\\midrule",
+    sprintf("N & %s \\\\", n_display),
+    "\\bottomrule",
+    "\\end{tabular}",
+    "\\end{threeparttable}"
+  ),
+  con = output_tex
 )
-
-writeLines(tex_lines, con = output_tex)
-
-cat("Saved:\n")
-cat(" -", output_csv, "\n")
-cat(" -", output_tex, "\n")
-cat(" -", unmatched_scores_output, "\n")
