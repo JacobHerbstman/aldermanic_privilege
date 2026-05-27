@@ -58,14 +58,9 @@ output_stem <- sprintf(
   bw_ft,
   control_label
 )
-output_csv <- sprintf("../temp/%s.csv", output_stem)
 output_pdf <- sprintf("../output/%s.pdf", output_stem)
 
 set.seed(seed)
-
-message("=== Permutation Test: Shuffle Strictness Across Aldermen ===")
-message(sprintf("bw=%d | window=%s | sample=%s | n_perms=%d | seed=%d | min_date=%s",
-                bw_ft, window, sample_filter, n_perms, seed, min_date))
 
 dat_raw <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
   as_tibble() %>%
@@ -127,9 +122,6 @@ ald_neighbor <- dat_raw %>%
 ald_map <- bind_rows(ald_own, ald_neighbor) %>%
   distinct(alderman, score)
 
-n_aldermen <- nrow(ald_map)
-message(sprintf("Found %d unique aldermen with strictness scores.", n_aldermen))
-
 if (anyDuplicated(ald_map$alderman) > 0) {
   stop("Alderman-score map must be unique by alderman before permutation.", call. = FALSE)
 }
@@ -184,17 +176,12 @@ dat_real <- dat_raw %>%
     strictness_neighbor_perm = strictness_neighbor
   )
 real_coef <- run_regression(dat_real)
-message(sprintf("Real coefficient: %.6f", real_coef))
 
 perm_coefs <- numeric(n_perms)
 aldermen_vec <- ald_map$alderman
 scores_vec <- ald_map$score
 
-message(sprintf("Running %d permutations...", n_perms))
-
 for (i in seq_len(n_perms)) {
-  if (i %% 50 == 0) message(sprintf("  permutation %d / %d", i, n_perms))
-
   shuffled_scores <- sample(scores_vec)
   perm_map <- tibble(alderman = aldermen_vec, perm_score = shuffled_scores)
 
@@ -209,36 +196,8 @@ for (i in seq_len(n_perms)) {
 
 valid_perms <- perm_coefs[is.finite(perm_coefs)]
 n_valid <- length(valid_perms)
-message(sprintf("Valid permutations: %d / %d", n_valid, n_perms))
 
 if (n_valid == 0) stop("No valid permutation estimates.", call. = FALSE)
-
-p_two_sided <- mean(abs(valid_perms) >= abs(real_coef))
-p_one_sided <- mean(valid_perms >= real_coef)
-
-message(sprintf("Permutation p-value (two-sided): %.4f", p_two_sided))
-message(sprintf("Permutation p-value (one-sided): %.4f", p_one_sided))
-
-out <- tibble(
-  bw_ft = bw_ft,
-  window = window,
-  sample_filter = sample_filter,
-  use_controls = use_controls,
-  n_perms = n_perms,
-  n_valid = n_valid,
-  n_aldermen = n_aldermen,
-  real_coefficient = real_coef,
-  perm_mean = mean(valid_perms),
-  perm_sd = sd(valid_perms),
-  perm_median = median(valid_perms),
-  p_two_sided = p_two_sided,
-  p_one_sided = p_one_sided,
-  perm_q025 = quantile(valid_perms, 0.025),
-  perm_q975 = quantile(valid_perms, 0.975),
-  seed = seed,
-  min_date = min_date
-)
-write_csv(out, output_csv)
 
 plot_df <- tibble(coef = valid_perms)
 
@@ -257,6 +216,3 @@ p <- ggplot(plot_df, aes(x = coef)) +
   theme(panel.grid.minor = element_blank())
 
 ggsave(output_pdf, p, width = 9, height = 6, dpi = 300, bg = "white")
-
-message(sprintf("Saved: %s", output_csv))
-message(sprintf("Saved: %s", output_pdf))

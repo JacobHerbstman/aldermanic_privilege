@@ -1,4 +1,4 @@
-# Build listed-rent RD attenuation tables and plot from the characteristics panel.
+# Build the listed-rent RD attenuation table from the characteristics panel.
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_rent_attenuation/code")
@@ -20,18 +20,20 @@ if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
 }
 bandwidth_label <- as.character(as.integer(round(bandwidth_ft)))
 
-message(sprintf("=== Listed-Rent RD Attenuation | bandwidth=%sft ===", bandwidth_label))
-
 rent <- read_parquet(sprintf("../input/rental_rd_characteristics_panel_bw%s.parquet", bandwidth_label)) %>%
   as_tibble()
 
+sample_name <- "clean_location"
 sample_defs <- tibble::tribble(
   ~sample, ~sample_label, ~filter_column,
-  "all", "All", NA_character_,
-  "clean_location", "Clean location", "flag_clean_location_sample",
-  "no_modal_pair_change", "No modal pair change", "flag_no_modal_pair_change_sample",
-  "no_modal_ward_change", "No modal ward change", "flag_no_modal_ward_change_sample",
-  "no_questionable_address", "No questionable address", "flag_no_questionable_address_sample"
+  "clean_location", "Clean location", "flag_clean_location_sample"
+)
+
+model_specs <- tibble::tribble(
+  ~specification, ~spec_label, ~rhs,
+  "no_controls_common", "No controls", "strictness_std",
+  "hedonic_common", "Hedonics", "hedonic_rhs",
+  "hedonic_amenity_common", "Hedonics + amenities", "amenity_rhs"
 )
 
 attenuation_rows <- list()
@@ -68,30 +70,31 @@ for (i in seq_len(nrow(sample_defs))) {
     next
   }
 
-  hedonic_rhs <- "strictness_std + log_sqft + log_beds + log_baths"
+  rhs_values <- c(
+    hedonic_rhs = "strictness_std + log_sqft + log_beds + log_baths",
+    amenity_rhs = paste(
+      "strictness_std + log_sqft + log_beds + log_baths",
+      "nearest_school_dist_kft",
+      "nearest_park_dist_kft",
+      "nearest_major_road_dist_kft",
+      "nearest_cta_stop_dist_kft",
+      "lake_michigan_dist_kft",
+      sep = " + "
+    )
+  )
   if (n_distinct(d_sample$building_type_factor) > 1) {
-    hedonic_rhs <- paste0(hedonic_rhs, " + building_type_factor")
+    rhs_values["hedonic_rhs"] <- paste0(rhs_values["hedonic_rhs"], " + building_type_factor")
+    rhs_values["amenity_rhs"] <- paste0(rhs_values["amenity_rhs"], " + building_type_factor")
   }
-  amenity_rhs <- paste(
-    hedonic_rhs,
-    "nearest_school_dist_kft",
-    "nearest_park_dist_kft",
-    "nearest_major_road_dist_kft",
-    "nearest_cta_stop_dist_kft",
-    "lake_michigan_dist_kft",
-    sep = " + "
-  )
-
-  model_specs <- tibble::tribble(
-    ~specification, ~spec_label, ~rhs,
-    "no_controls_common", "No controls", "strictness_std",
-    "hedonic_common", "Hedonics", hedonic_rhs,
-    "hedonic_amenity_common", "Hedonics + amenities", amenity_rhs
-  )
 
   for (j in seq_len(nrow(model_specs))) {
+    rhs <- if (model_specs$rhs[j] %in% names(rhs_values)) {
+      rhs_values[[model_specs$rhs[j]]]
+    } else {
+      model_specs$rhs[j]
+    }
     model <- feols(
-      as.formula(paste0("log(rent_price) ~ ", model_specs$rhs[j], " | segment_id^year_month")),
+      as.formula(paste0("log(rent_price) ~ ", rhs, " | segment_id^year_month")),
       data = d_sample,
       cluster = ~segment_id
     )
@@ -118,10 +121,88 @@ for (i in seq_len(nrow(sample_defs))) {
 
 attenuation <- bind_rows(attenuation_rows) %>%
   mutate(
-    ci_low = estimate - 1.96 * std_error,
-    ci_high = estimate + 1.96 * std_error,
-    spec_label = factor(spec_label, levels = c("No controls", "Hedonics", "Hedonics + amenities")),
-    sample_label = factor(sample_label, levels = sample_defs$sample_label)
+    spec_label = as.character(spec_label),
+    star_text = case_when(
+      is.na(p_value) ~ "",
+      p_value < 0.01 ~ "***",
+      p_value < 0.05 ~ "**",
+      p_value < 0.10 ~ "*",
+      TRUE ~ ""
+    ),
+    coefficient = paste0(formatC(100 * estimate, format = "f", digits = 2, big.mark = ","), star_text),
+    std_error_cell = paste0("(", formatC(100 * std_error, format = "f", digits = 2, big.mark = ","), ")")
   )
-write_csv(attenuation, sprintf("../temp/rental_rd_rent_attenuation_bw%s.csv", bandwidth_label))
-message("Saved listed-rent RD attenuation estimates.")
+
+table_data <- attenuation %>%
+  arrange(match(spec_label, c("No controls", "Hedonics", "Hedonics + amenities")))
+
+if (nrow(table_data) != 3L) {
+  stop(sprintf("Expected three rent attenuation rows for sample %s.", sample_name), call. = FALSE)
+}
+
+clean_note <- if (sample_name == "clean_location") {
+  " The clean-location sample excludes observations with modal-coordinate ward, pair, or distance-instability flags."
+} else {
+  ""
+}
+
+writeLines(
+  c(
+    "\\begingroup",
+    "\\centering",
+    "\\begin{tabular}{lccc}",
+    "\\toprule",
+    " & (1) & (2) & (3) \\\\",
+    "\\midrule",
+    sprintf(
+      "Stringency Index & %s & %s & %s \\\\",
+      table_data$coefficient[1],
+      table_data$coefficient[2],
+      table_data$coefficient[3]
+    ),
+    sprintf(
+      " & %s & %s & %s \\\\",
+      table_data$std_error_cell[1],
+      table_data$std_error_cell[2],
+      table_data$std_error_cell[3]
+    ),
+    "\\\\",
+    sprintf(
+      "N & %s & %s & %s \\\\",
+      formatC(round(table_data$n_obs[1]), format = "d", big.mark = ","),
+      formatC(round(table_data$n_obs[2]), format = "d", big.mark = ","),
+      formatC(round(table_data$n_obs[3]), format = "d", big.mark = ",")
+    ),
+    sprintf(
+      "Dep. Var. Mean & %s & %s & %s \\\\",
+      formatC(table_data$dep_var_mean[1], format = "f", digits = 0, big.mark = ","),
+      formatC(table_data$dep_var_mean[2], format = "f", digits = 0, big.mark = ","),
+      formatC(table_data$dep_var_mean[3], format = "f", digits = 0, big.mark = ",")
+    ),
+    sprintf(
+      "Segments & %s & %s & %s \\\\",
+      formatC(round(table_data$n_segments[1]), format = "d", big.mark = ","),
+      formatC(round(table_data$n_segments[2]), format = "d", big.mark = ","),
+      formatC(round(table_data$n_segments[3]), format = "d", big.mark = ",")
+    ),
+    sprintf(
+      "Ward Pairs & %s & %s & %s \\\\",
+      formatC(round(table_data$n_ward_pairs[1]), format = "d", big.mark = ","),
+      formatC(round(table_data$n_ward_pairs[2]), format = "d", big.mark = ","),
+      formatC(round(table_data$n_ward_pairs[3]), format = "d", big.mark = ",")
+    ),
+    "Hedonic Controls & & $\\checkmark$ & $\\checkmark$ \\\\",
+    "Amenity Controls & & & $\\checkmark$ \\\\",
+    "Segment $\\times$ Month FE & $\\checkmark$ & $\\checkmark$ & $\\checkmark$ \\\\",
+    "Cluster Level & Segment & Segment & Segment \\\\",
+    "\\bottomrule",
+    "\\end{tabular}",
+    sprintf(
+      "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Entries are percent log-rent effects of a one-standard-deviation increase in the aldermanic stringency index, with standard errors in parentheses. The sample uses listed-rent floorplan-month observations from 2014--2022 within %sft of ward boundaries. Dependent-variable means are real listed rents in 2022 dollars. Hedonic controls are log square feet, log bedrooms, log bathrooms, and building type. Amenity controls are distances to the nearest school, CPD park-boundary polygon, major street, CTA stop open by the listing month, and Lake Michigan.%s * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
+      bandwidth_label,
+      clean_note
+    ),
+    "\\par\\endgroup"
+  ),
+  sprintf("../output/rental_rd_rent_attenuation_clean_location_bw%s.tex", bandwidth_label)
+)
