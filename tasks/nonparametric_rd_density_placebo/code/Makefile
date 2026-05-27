@@ -32,7 +32,7 @@ endef
 $(foreach yvar,$(YVARS),$(foreach sample,$(SAMPLES),$(eval $(call PLACEBO_POS_RULE,$(yvar),$(sample)))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 

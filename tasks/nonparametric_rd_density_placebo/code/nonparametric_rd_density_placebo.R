@@ -299,5 +299,3 @@ p <- ggplot() +
   theme_bw(base_size = 11)
 
 ggsave(output_pdf, plot = p, width = 8.6, height = 6.0, dpi = 300)
-
-message(sprintf("Built %s", output_pdf))

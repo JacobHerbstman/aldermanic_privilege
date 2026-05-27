@@ -6,17 +6,13 @@ BW_LABEL ?= 500ft
 BINS_PER_SIDE ?= 5
 
 all: \
-	../output/nonparametric_rd_density_linear_display_4panel_$(BW_LABEL)_all_multifamily_bins$(BINS_PER_SIDE).pdf \
-	../output/nonparametric_rd_density_linear_display_4panel_$(BW_LABEL)_all_multifamily_bins$(BINS_PER_SIDE)_estimates.csv
+	../output/nonparametric_rd_density_linear_display_4panel_$(BW_LABEL)_all_multifamily_bins$(BINS_PER_SIDE).pdf
 
 ../output/nonparametric_rd_density_linear_display_4panel_$(BW_LABEL)_all_multifamily_bins$(BINS_PER_SIDE).pdf: nonparametric_rd_density_linear_display_combined.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
 	DISTANCE_DISPLAY_UNIT=ft Rscript nonparametric_rd_density_linear_display_combined.R $(BW_M) $(FE_SPEC) $(BINS_PER_SIDE)
 
-../output/nonparametric_rd_density_linear_display_4panel_$(BW_LABEL)_all_multifamily_bins$(BINS_PER_SIDE)_estimates.csv: ../output/nonparametric_rd_density_linear_display_4panel_$(BW_LABEL)_all_multifamily_bins$(BINS_PER_SIDE).pdf
-	@test -s "$@"
-
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 

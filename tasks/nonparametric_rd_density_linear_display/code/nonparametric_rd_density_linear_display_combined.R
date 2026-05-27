@@ -40,11 +40,6 @@ output_pdf <- sprintf(
   bw_label,
   bins_per_side
 )
-output_estimates <- sprintf(
-  "../output/nonparametric_rd_density_linear_display_4panel_%s_all_multifamily_bins%d_estimates.csv",
-  bw_label,
-  bins_per_side
-)
 
 fe_formula <- dplyr::case_when(
   fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
@@ -298,21 +293,7 @@ build_panel <- function(yvar, sample_filter) {
       panel.grid.minor = element_blank()
     )
 
-  estimate_row <- tibble(
-    sample = sample_filter,
-    outcome = yvar,
-    bandwidth_m = bandwidth_m,
-    bandwidth_label = bw_label,
-    bins_per_side = bins_per_side,
-    outcome_scale = "log",
-    estimate = cutoff_estimate,
-    se = cutoff_se,
-    p_value = cutoff_p,
-    observations = nobs(m_resid),
-    ward_pairs = n_distinct(aug$ward_pair)
-  )
-
-  list(plot = plot, estimate = estimate_row)
+  plot
 }
 
 panel_specs <- tribble(
@@ -324,12 +305,9 @@ panel_specs <- tribble(
 )
 
 panels <- vector("list", nrow(panel_specs))
-estimates <- vector("list", nrow(panel_specs))
 
 for (i in seq_len(nrow(panel_specs))) {
-  built <- build_panel(panel_specs$yvar[i], panel_specs$sample_filter[i])
-  panels[[i]] <- built$plot
-  estimates[[i]] <- built$estimate
+  panels[[i]] <- build_panel(panel_specs$yvar[i], panel_specs$sample_filter[i])
 }
 
 combined_plot <- (panels[[1]] | panels[[2]]) / (panels[[3]] | panels[[4]]) +
@@ -350,7 +328,3 @@ combined_plot <- (panels[[1]] | panels[[2]]) / (panels[[3]] | panels[[4]]) +
   )
 
 ggsave(output_pdf, plot = combined_plot, width = 11.2, height = 8.4, dpi = 300)
-write_csv(bind_rows(estimates), output_estimates)
-
-message(sprintf("Built %s", output_pdf))
-message(sprintf("Built %s", output_estimates))
