@@ -71,7 +71,7 @@ if (length(yvars) == 0) {
   stop("No yvars provided.", call. = FALSE)
 }
 
-fe_input_path <- Sys.getenv("FE_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
+fe_input_tag <- Sys.getenv("FE_INPUT_TAG", "")
 fe_summary_output_path <- Sys.getenv("FE_SUMMARY_OUTPUT_PATH", "")
 fe_summary_tag <- Sys.getenv("FE_SUMMARY_TAG", "")
 fe_table_tag <- Sys.getenv("FE_TABLE_TAG", "")
@@ -106,13 +106,20 @@ if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
 
 bandwidth_file_label <- if (nzchar(bandwidth_label)) bandwidth_label else "bwall"
 prune_suffix <- if (prune_sample == "pruned") "_pruned" else ""
+if (nzchar(fe_input_tag) && !grepl("^[A-Za-z0-9_-]+$", fe_input_tag)) {
+  stop("FE_INPUT_TAG may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+}
 if (nzchar(fe_summary_tag) && !grepl("^[A-Za-z0-9_-]+$", fe_summary_tag)) {
   stop("FE_SUMMARY_TAG may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
 if (nzchar(fe_table_tag) && !grepl("^[A-Za-z0-9_-]+$", fe_table_tag)) {
   stop("FE_TABLE_TAG may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
-if (new_cli && !nzchar(fe_summary_output_path)) {
+fe_input_path <- Sys.getenv(
+  "FE_INPUT_PATH",
+  if (nzchar(fe_input_tag)) sprintf("../temp/parcels_with_ward_distances_%s.csv", fe_input_tag) else "../input/parcels_with_ward_distances.csv"
+)
+if (new_cli && !write_tex && !nzchar(fe_summary_output_path)) {
   summary_suffix <- if (nzchar(fe_summary_tag)) {
     paste0("_", fe_summary_tag)
   } else if (drop_ambiguous_within_bw) {

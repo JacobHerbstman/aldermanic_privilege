@@ -1,29 +1,28 @@
-# Merge Alderman Uncertainty Scores into Parcel Data
-# This script loads pre-scores parcel data and merges in uncertainty scores
-# to create signed distances for RD analysis
-
-source("../../setup_environment/code/packages.R")
-
-# PARSE COMMAND LINE ARGUMENTS
-
-
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_in_scores/code")
 # score_column <- "uncertainty_index"
+
+source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
   cli_args <- c(score_column)
 }
 
+merge_output_tag <- Sys.getenv("MERGE_OUTPUT_TAG", "")
+if (nzchar(merge_output_tag) && !grepl("^[A-Za-z0-9_-]+$", merge_output_tag)) {
+  stop("MERGE_OUTPUT_TAG may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+}
+
 parcels_input <- Sys.getenv("PARCELS_INPUT_PATH", "../input/parcels_pre_scores.csv")
 segment_lookup_input <- Sys.getenv("SEGMENT_LOOKUP_PATH", "../input/parcel_segment_ids.csv")
 score_file <- Sys.getenv("SCORES_INPUT_PATH", "../input/aldermen_uncertainty_scores.csv")
-merge_output <- Sys.getenv("MERGE_OUTPUT_PATH", "../output/parcels_with_ward_distances.csv")
-merge_summary_output <- Sys.getenv("MERGE_SUMMARY_OUTPUT_PATH", "../output/boundary_distance_summary.csv")
-score_coverage_output <- Sys.getenv("SCORE_COVERAGE_OUTPUT_PATH", "../output/score_merge_coverage_by_era_pair_year.csv")
+merge_output <- Sys.getenv(
+  "MERGE_OUTPUT_PATH",
+  if (nzchar(merge_output_tag)) sprintf("../temp/parcels_with_ward_distances_%s.csv", merge_output_tag) else "../output/parcels_with_ward_distances.csv"
+)
+merge_summary_output <- Sys.getenv("MERGE_SUMMARY_OUTPUT_PATH", "")
+score_coverage_output <- Sys.getenv("SCORE_COVERAGE_OUTPUT_PATH", "")
 max_construction_year_raw <- Sys.getenv("MAX_CONSTRUCTION_YEAR", "2026")
 max_construction_year <- if (nzchar(max_construction_year_raw)) suppressWarnings(as.integer(max_construction_year_raw)) else NA_integer_
 
@@ -40,33 +39,16 @@ if (length(cli_args) == 1) {
   stop("FATAL: Script requires <score_column> or legacy <score_file> <score_column>.", call. = FALSE)
 }
 
-cat("=== Merging Alderman Scores ===\n")
-cat("Score file:", score_file, "\n")
-cat("Score column:", score_column, "\n")
-cat("Parcels input:", parcels_input, "\n")
-cat("Segment lookup input:", segment_lookup_input, "\n")
-cat("Merged output:", merge_output, "\n")
-cat("Summary output:", ifelse(nzchar(merge_summary_output), merge_summary_output, "<not written>"), "\n")
-cat("Score coverage output:", ifelse(nzchar(score_coverage_output), score_coverage_output, "<not written>"), "\n")
-cat("Max construction year:", ifelse(is.finite(max_construction_year), max_construction_year, "none"), "\n")
-
-# -----------------------------------------------------------------------------
-# LOAD DATA
-# -----------------------------------------------------------------------------
-
-cat("\nLoading pre-scores parcel data...\n")
 parcels <- read_csv(
   parcels_input,
   show_col_types = FALSE,
   col_types = cols(pin = col_character(), .default = col_guess())
 )
-cat("Parcels loaded:", nrow(parcels), "\n")
 
 if (!"dist_to_boundary_m" %in% names(parcels)) {
   stop("Parcels input must contain dist_to_boundary_m.", call. = FALSE)
 }
 
-cat("Loading parcel segment lookup...\n")
 segment_lookup <- read_csv(
   segment_lookup_input,
   show_col_types = FALSE,
@@ -76,13 +58,9 @@ segment_lookup <- read_csv(
     segment_reason = col_character()
   )
 )
-cat("Segment lookup rows:", nrow(segment_lookup), "\n")
 
-cat("Loading uncertainty scores...\n")
 scores <- read_csv(score_file, show_col_types = FALSE)
-cat("Aldermen with scores:", nrow(scores), "\n")
 
-# Check that the score column exists
 if (!score_column %in% names(scores)) {
   stop(paste("Score column", score_column, "not found in scores file. Available columns:",
              paste(names(scores), collapse = ", ")))
@@ -109,20 +87,10 @@ if (is.finite(max_construction_year)) {
   if (!"construction_year" %in% names(parcels)) {
     stop("Parcels input must contain construction_year when MAX_CONSTRUCTION_YEAR is set.", call. = FALSE)
   }
-  n_before_year_cutoff <- nrow(parcels)
   parcels <- parcels %>%
     filter(!is.na(construction_year), construction_year <= max_construction_year)
-  cat("Parcels after construction_year <=", max_construction_year, ":", nrow(parcels),
-      "(", n_before_year_cutoff - nrow(parcels), "dropped)\n")
 }
 
-# -----------------------------------------------------------------------------
-# MERGE SCORES AND CALCULATE SIGNED DISTANCES
-# -----------------------------------------------------------------------------
-
-cat("\nMerging scores for own and neighbor aldermen...\n")
-
-# Rename score column to standardized name for merging
 scores_for_merge <- scores %>%
   select(alderman, score = all_of(score_column))
 if (anyDuplicated(scores_for_merge$alderman) > 0) {
@@ -130,13 +98,10 @@ if (anyDuplicated(scores_for_merge$alderman) > 0) {
 }
 
 parcels_with_scores <- parcels %>%
-  # --- JOIN 1: Own Alderman Score ---
   left_join(scores_for_merge, by = c("alderman_own" = "alderman"), relationship = "many-to-one") %>%
   rename(strictness_own = score) %>%
-  # --- JOIN 2: Neighbor Alderman Score ---
   left_join(scores_for_merge, by = c("alderman_neighbor" = "alderman"), relationship = "many-to-one") %>%
   rename(strictness_neighbor = score) %>%
-  # Calculate sign and signed distance
   mutate(
     sign = case_when(
       strictness_own > strictness_neighbor ~ 1,
@@ -147,84 +112,57 @@ parcels_with_scores <- parcels %>%
     signed_distance_m = dist_to_boundary_m * sign
   )
 
-# Report merge stats
-n_in            <- nrow(parcels_with_scores)
-n_missing_own   <- sum(is.na(parcels_with_scores$strictness_own))
-n_missing_nbr   <- sum(is.na(parcels_with_scores$strictness_neighbor))
-n_tied          <- sum(!is.na(parcels_with_scores$strictness_own) &
-                         !is.na(parcels_with_scores$strictness_neighbor) &
-                         parcels_with_scores$strictness_own == parcels_with_scores$strictness_neighbor)
-n_dropped       <- sum(is.na(parcels_with_scores$signed_distance))
-
-cat(sprintf("Parcels with own score:      %d (%.1f%%)\n", n_in - n_missing_own,  100*(n_in - n_missing_own)/n_in))
-cat(sprintf("Parcels with neighbor score: %d (%.1f%%)\n", n_in - n_missing_nbr,  100*(n_in - n_missing_nbr)/n_in))
-cat(sprintf("Tied (equal scores, dropped): %d\n", n_tied))
-cat(sprintf("Total dropped (NA sign):     %d (%.1f%%)\n", n_dropped, 100*n_dropped/n_in))
-
-score_coverage_by_era_pair_year <- bind_rows(
-  parcels_with_scores %>%
-    transmute(
-      boundary_year,
-      construction_year,
-      ward_pair,
-      side = "own",
-      alderman = alderman_own,
-      has_score = !is.na(strictness_own)
-    ),
-  parcels_with_scores %>%
-    transmute(
-      boundary_year,
-      construction_year,
-      ward_pair,
-      side = "neighbor",
-      alderman = alderman_neighbor,
-      has_score = !is.na(strictness_neighbor)
-    )
-) %>%
-  summarise(
-    n_rows = n(),
-    n_aldermen = n_distinct(alderman, na.rm = TRUE),
-    n_missing_alderman = sum(is.na(alderman) | alderman == ""),
-    n_with_score = sum(has_score, na.rm = TRUE),
-    n_missing_score = sum(!has_score, na.rm = TRUE),
-    score_coverage_pct = 100 * n_with_score / n_rows,
-    .by = c(boundary_year, construction_year, ward_pair, side)
-  ) %>%
-  arrange(construction_year, boundary_year, ward_pair, side)
-
-# Filter to valid signed distances
 parcels_final <- parcels_with_scores %>%
   filter(!is.na(signed_distance))
 
-cat("\nFinal dataset size:", nrow(parcels_final), "\n")
-
-# -----------------------------------------------------------------------------
-# SAVE OUTPUT
-# -----------------------------------------------------------------------------
-
-cat("\nSaving output...\n")
 write_csv(parcels_final, merge_output)
 
-# Summary stats
-summary_stats <- parcels_final %>%
-  summarise(
-    n_parcels = n(),
-    n_wards = n_distinct(ward),
-    n_ward_pairs = n_distinct(ward_pair, na.rm = TRUE),
-    n_aldermen = n_distinct(alderman_own, na.rm = TRUE),
-    mean_signed_distance_m = mean(signed_distance_m, na.rm = TRUE),
-    median_signed_distance_m = median(signed_distance_m, na.rm = TRUE),
-    .by = c(boundary_year, construction_year)
-  ) %>%
-  arrange(construction_year)
-
 if (nzchar(merge_summary_output)) {
-  write_csv(summary_stats, merge_summary_output)
+  parcels_final %>%
+    summarise(
+      n_parcels = n(),
+      n_wards = n_distinct(ward),
+      n_ward_pairs = n_distinct(ward_pair, na.rm = TRUE),
+      n_aldermen = n_distinct(alderman_own, na.rm = TRUE),
+      mean_signed_distance_m = mean(signed_distance_m, na.rm = TRUE),
+      median_signed_distance_m = median(signed_distance_m, na.rm = TRUE),
+      .by = c(boundary_year, construction_year)
+    ) %>%
+    arrange(construction_year) %>%
+    write_csv(merge_summary_output)
 }
 if (nzchar(score_coverage_output)) {
-  write_csv(score_coverage_by_era_pair_year, score_coverage_output)
+  bind_rows(
+    parcels_with_scores %>%
+      transmute(
+        boundary_year,
+        construction_year,
+        ward_pair,
+        side = "own",
+        alderman = alderman_own,
+        has_score = !is.na(strictness_own)
+      ),
+    parcels_with_scores %>%
+      transmute(
+        boundary_year,
+        construction_year,
+        ward_pair,
+        side = "neighbor",
+        alderman = alderman_neighbor,
+        has_score = !is.na(strictness_neighbor)
+      )
+  ) %>%
+    summarise(
+      n_rows = n(),
+      n_aldermen = n_distinct(alderman, na.rm = TRUE),
+      n_missing_alderman = sum(is.na(alderman) | alderman == ""),
+      n_with_score = sum(has_score, na.rm = TRUE),
+      n_missing_score = sum(!has_score, na.rm = TRUE),
+      score_coverage_pct = 100 * n_with_score / n_rows,
+      .by = c(boundary_year, construction_year, ward_pair, side)
+    ) %>%
+    arrange(construction_year, boundary_year, ward_pair, side) %>%
+    write_csv(score_coverage_output)
 }
 
-cat("\n=== Score merge complete ===\n")
-cat("Output:", merge_output, "\n")
-cat("Rows:", nrow(parcels_final), "\n")
+message(sprintf("Wrote %s (%s rows)", merge_output, format(nrow(parcels_final), big.mark = ",")))
