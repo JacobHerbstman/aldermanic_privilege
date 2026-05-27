@@ -9,9 +9,12 @@ if (length(cli_args) == 0) {
   cli_args <- c(score_column)
 }
 
-merge_output_tag <- Sys.getenv("MERGE_OUTPUT_TAG", "")
+merge_output_tag <- Sys.getenv("MERGE_RESULT_TAG", "")
+if (!nzchar(merge_output_tag)) {
+  merge_output_tag <- Sys.getenv("MERGE_OUTPUT_TAG", "")
+}
 if (nzchar(merge_output_tag) && !grepl("^[A-Za-z0-9_-]+$", merge_output_tag)) {
-  stop("MERGE_OUTPUT_TAG may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+  stop("MERGE_RESULT_TAG may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
 
 parcels_input <- Sys.getenv("PARCELS_INPUT_PATH", "../input/parcels_pre_scores.csv")
