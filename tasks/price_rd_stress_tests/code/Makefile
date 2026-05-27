@@ -5,7 +5,7 @@ all: \
 	../output/sales_placebo_rd_main_style.pdf
 
 ../output/rent_placebo_rd_main_style.pdf: build_price_rd_main_style_plots.R ../input/rent_with_ward_distances_full.parquet ../input/sales_with_hedonics_amenities.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
-	$(R) $<
+	Rscript $<
 
 ../output/sales_placebo_rd_main_style.pdf: ../output/rent_placebo_rd_main_style.pdf
 	@test -s "$@"
@@ -28,22 +28,9 @@ all: \
 ../input/cta_stops.gpkg: ../../prepare_amenities_data/output/cta_stops.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_water_a_free_1.shp: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shp | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
-
-../input/gis_osm_water_a_free_1.dbf: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.dbf | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
-
-../input/gis_osm_water_a_free_1.prj: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.prj | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
-
-../input/gis_osm_water_a_free_1.shx: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shx | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
-
-../input/gis_osm_water_a_free_1.cpg: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.cpg | ../input
+../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/rent_with_ward_distances_full.parquet ../input/sales_with_hedonics_amenities.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
-include ../../shell_functions.make
 include ../../generic.make

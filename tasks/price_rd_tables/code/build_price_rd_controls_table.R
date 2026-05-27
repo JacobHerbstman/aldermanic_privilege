@@ -237,5 +237,4 @@ table_lines <- c(
   "\\par\\endgroup"
 )
 
-write_csv(bind_rows(mutate(rent_panel, panel = "listed_rents"), mutate(sales_panel, panel = "home_sales")), "../output/price_rd_controls_panels_bw500.csv")
 writeLines(table_lines, "../output/price_rd_controls_panels_bw500.tex")

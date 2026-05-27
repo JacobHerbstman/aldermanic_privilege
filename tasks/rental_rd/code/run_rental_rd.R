@@ -46,11 +46,6 @@ output_pdf <- sprintf(
   control_label
 )
 
-message("=== Listed-Rent RD ===")
-message(sprintf("Bandwidth: %.0f ft", bandwidth_ft))
-message(sprintf("Sample: %s", sample))
-message(sprintf("Controls: %s", ifelse(use_controls, "hedonics + amenities", "none")))
-
 if (use_controls) {
   rent <- read_parquet(sprintf("../input/rental_rd_characteristics_panel_bw%.0f.parquet", bandwidth_ft)) %>%
     as_tibble()
@@ -272,5 +267,3 @@ plot <- ggplot() +
   theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
 ggsave(output_pdf, plot, width = 8.6, height = 6, dpi = 300, bg = "white")
-
-message(sprintf("Saved RD plot: %s", output_pdf))

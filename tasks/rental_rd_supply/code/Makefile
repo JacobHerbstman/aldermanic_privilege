@@ -8,15 +8,14 @@ all: \
 	../output/rental_rd_supply_levels_clean_location_bw$(BANDWIDTH_FT).pdf
 
 ../output/rental_rd_supply_levels_bw$(BANDWIDTH_FT).pdf: build_rental_rd_supply.R ../input/rent_with_ward_distances.parquet | ../output
-	$(R) $< $(BANDWIDTH_FT) $(BINS_PER_SIDE)
+	Rscript $< $(BANDWIDTH_FT) $(BINS_PER_SIDE)
 
 ../output/rental_rd_supply_levels_clean_location_bw$(BANDWIDTH_FT).pdf: ../output/rental_rd_supply_levels_bw$(BANDWIDTH_FT).pdf
 	@test -s "$@"
 
 ../input/rent_with_ward_distances.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/rent_with_ward_distances.parquet
 
-include ../../shell_functions.make
 include ../../generic.make

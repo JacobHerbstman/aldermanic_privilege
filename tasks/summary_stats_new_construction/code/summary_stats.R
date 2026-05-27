@@ -68,4 +68,3 @@ table_content <- paste0(
 )
 
 writeLines(table_content, "../output/summary_stats.tex")
-writeLines(tabular_content, "../output/summary_stats_tabular.tex")
