@@ -6,7 +6,6 @@ source("../../setup_environment/code/packages.R")
 
 library(arrow)
 library(data.table)
-library(ggplot2)
 library(readr)
 
 month_floor <- function(x) {
@@ -203,39 +202,4 @@ writeLines(
     "\\end{tabular}"
   ),
   "../output/rental_data_validation_growth.tex"
-)
-
-annual_series[, source_label := factor(source_label, levels = summary_table$source_label)]
-validation_plot <- ggplot(
-  annual_series[is.finite(index_value)],
-  aes(x = year, y = index_value, color = source_label, group = source_label)
-) +
-  geom_hline(yintercept = 100, color = "grey80", linewidth = 0.35) +
-  geom_line(linewidth = 0.85, na.rm = TRUE) +
-  geom_point(size = 2.1, na.rm = TRUE) +
-  scale_x_continuous(breaks = seq(base_year, end_year, by = 1)) +
-  scale_color_manual(
-    values = c("Listed rents" = "#1f78b4", "Zillow ZORI" = "#33a02c"),
-    drop = FALSE
-  ) +
-  labs(
-    title = "Real Citywide Listed-Rent Growth Versus External Benchmarks",
-    subtitle = sprintf("Annual indexes normalized to %d = 100; deflated by Chicago all-items CPI-U", base_year),
-    x = NULL,
-    y = "Real rent index",
-    color = NULL
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(
-    legend.position = "bottom",
-    panel.grid.minor = element_blank(),
-    plot.title.position = "plot"
-  )
-
-ggsave(
-  "../output/rental_data_validation_growth.pdf",
-  validation_plot,
-  width = 7.6,
-  height = 4.8,
-  bg = "white"
 )
