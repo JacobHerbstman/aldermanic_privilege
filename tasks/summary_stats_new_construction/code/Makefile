@@ -9,9 +9,8 @@ all: ../output/summary_stats.tex ../output/summary_stats_tabular.tex
 	@test -s "$@"
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 
-include ../../shell_functions.make
 include ../../generic.make

@@ -1,12 +1,9 @@
-# summary stats of new construction
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/summary_stats_new_construction/code")
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
-# --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/summary_stats_new_construction/code")
-
-cat("Loading data from: ../input/parcels_with_ward_distances.csv\n")
 df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE)
 df <- ensure_meter_distance_columns(df)
 
@@ -70,10 +67,5 @@ table_content <- paste0(
   "\\end{table}\n"
 )
 
-cat("Writing table to: ../output/summary_stats.tex\n")
 writeLines(table_content, "../output/summary_stats.tex")
-
-cat("Writing tabular to: ../output/summary_stats_tabular.tex\n")
 writeLines(tabular_content, "../output/summary_stats_tabular.tex")
-
-cat("Done!\n")
