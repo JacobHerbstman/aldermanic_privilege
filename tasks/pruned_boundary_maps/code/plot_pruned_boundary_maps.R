@@ -1,14 +1,20 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/pruned_boundary_maps/code")
+# segment_length_ft <- 1320
 
 source("../../setup_environment/code/packages.R")
 
-library(sf)
-library(ggplot2)
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  args <- c(segment_length_ft)
+}
+if (length(args) != 1) {
+  stop("FATAL: Script requires args: <segment_length_ft>", call. = FALSE)
+}
 
-segment_length_ft <- as.numeric(Sys.getenv("SEGMENT_LENGTH_FT", "1320"))
+segment_length_ft <- as.numeric(args[1])
 if (!is.finite(segment_length_ft) || segment_length_ft <= 0) {
-  stop("SEGMENT_LENGTH_FT must be positive.", call. = FALSE)
+  stop("segment_length_ft must be positive.", call. = FALSE)
 }
 
 map_eras <- c("2003_2014", "2015_2023")

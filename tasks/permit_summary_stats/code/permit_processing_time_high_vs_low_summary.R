@@ -1,8 +1,8 @@
-source("../../setup_environment/code/packages.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/permit_summary_stats/code")
 # max_application_ym <- "2022-12"
+
+source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -119,61 +119,6 @@ summary_stats <- permits_analysis %>%
     .groups = "drop"
   )
 
-ward_means <- permits_analysis %>%
-  group_by(group, ward) %>%
-  summarise(
-    n_permits = n(),
-    ward_mean_processing_time = mean(processing_time, na.rm = TRUE),
-    n_unique_aldermen = n_distinct(alderman),
-    .groups = "drop"
-  ) %>%
-  mutate(group = factor(group, levels = group_levels)) %>%
-  arrange(group, ward)
-
-write_csv(ward_means, "../output/ward_mean_processing_time_high_vs_low.csv")
-
-ward_distribution <- ward_means %>%
-  group_by(group) %>%
-  summarise(
-    entity_level_mean_processing_time = mean(ward_mean_processing_time, na.rm = TRUE),
-    entity_level_iqr_mean_processing_time = as.numeric(IQR(ward_mean_processing_time, na.rm = TRUE)),
-    .groups = "drop"
-  )
-
-ward_row_levels <- c(
-  base_row_levels[1:3],
-  "Ward-level mean of processing time",
-  "Ward-level IQR of mean processing time",
-  base_row_levels[4:5]
-)
-
-ward_summary_table <- bind_rows(
-  tibble(row = "Total permits in sample", group = summary_stats$group, value = summary_stats$total_permits),
-  tibble(row = "Mean processing time (days)", group = summary_stats$group, value = summary_stats$mean_processing_time),
-  tibble(row = "Median processing time (days)", group = summary_stats$group, value = summary_stats$median_processing_time),
-  tibble(
-    row = "Ward-level mean of processing time",
-    group = ward_distribution$group,
-    value = ward_distribution$entity_level_mean_processing_time
-  ),
-  tibble(
-    row = "Ward-level IQR of mean processing time",
-    group = ward_distribution$group,
-    value = ward_distribution$entity_level_iqr_mean_processing_time
-  ),
-  tibble(row = "Number of unique wards", group = summary_stats$group, value = summary_stats$n_unique_wards),
-  tibble(row = "Number of unique aldermen", group = summary_stats$group, value = summary_stats$n_unique_aldermen)
-) %>%
-  mutate(
-    row = factor(row, levels = ward_row_levels),
-    group = factor(group, levels = group_levels)
-  ) %>%
-  arrange(row, group) %>%
-  pivot_wider(names_from = group, values_from = value) %>%
-  mutate(row = as.character(row))
-
-write_csv(ward_summary_table, "../output/permit_processing_time_high_vs_low_summary.csv")
-
 alderman_means <- permits_analysis %>%
   group_by(group, alderman) %>%
   summarise(
@@ -184,8 +129,6 @@ alderman_means <- permits_analysis %>%
   ) %>%
   mutate(group = factor(group, levels = group_levels)) %>%
   arrange(group, alderman)
-
-write_csv(alderman_means, "../output/alderman_mean_processing_time_high_vs_low.csv")
 
 alderman_distribution <- alderman_means %>%
   group_by(group) %>%
@@ -227,96 +170,65 @@ alderman_summary_table <- bind_rows(
   pivot_wider(names_from = group, values_from = value) %>%
   mutate(row = as.character(row))
 
-write_csv(alderman_summary_table, "../output/permit_processing_time_high_vs_low_alderman_summary.csv")
-
-summary_tex_specs <- list(
-  list(summary_table = ward_summary_table, output_path = "../output/permit_processing_time_high_vs_low_summary.tex"),
-  list(summary_table = alderman_summary_table, output_path = "../output/permit_processing_time_high_vs_low_alderman_summary.tex")
+alderman_summary_tex_lines <- c(
+  "\\begin{tabular}{lrr}",
+  "\\toprule",
+  "Statistic & High-Discretion & Low-Discretion \\\\",
+  "\\midrule"
 )
 
-for (i in seq_along(summary_tex_specs)) {
-  summary_table_i <- summary_tex_specs[[i]]$summary_table
-  tex_lines_i <- c(
-    "\\begin{tabular}{lrr}",
-    "\\toprule",
-    "Statistic & High-Discretion & Low-Discretion \\\\",
-    "\\midrule"
-  )
+for (j in seq_len(nrow(alderman_summary_table))) {
+  row_i <- alderman_summary_table[j, ]
+  high_value <- row_i$`High-Discretion`
+  low_value <- row_i$`Low-Discretion`
 
-  for (j in seq_len(nrow(summary_table_i))) {
-    row_i <- summary_table_i[j, ]
-    high_value <- row_i$`High-Discretion`
-    low_value <- row_i$`Low-Discretion`
-
-    if (row_i$row %in% integer_rows) {
-      high_text <- ifelse(is.finite(high_value), format(round(high_value), big.mark = ","), "")
-      low_text <- ifelse(is.finite(low_value), format(round(low_value), big.mark = ","), "")
-    } else {
-      high_text <- ifelse(is.finite(high_value), formatC(high_value, format = "f", digits = 1, big.mark = ","), "")
-      low_text <- ifelse(is.finite(low_value), formatC(low_value, format = "f", digits = 1, big.mark = ","), "")
-    }
-
-    tex_lines_i <- c(
-      tex_lines_i,
-      sprintf("%s & %s & %s \\\\", row_i$row, high_text, low_text)
-    )
+  if (row_i$row %in% integer_rows) {
+    high_text <- ifelse(is.finite(high_value), format(round(high_value), big.mark = ","), "")
+    low_text <- ifelse(is.finite(low_value), format(round(low_value), big.mark = ","), "")
+  } else {
+    high_text <- ifelse(is.finite(high_value), formatC(high_value, format = "f", digits = 1, big.mark = ","), "")
+    low_text <- ifelse(is.finite(low_value), formatC(low_value, format = "f", digits = 1, big.mark = ","), "")
   }
 
-  tex_lines_i <- c(tex_lines_i, "\\bottomrule", "\\end{tabular}")
-  writeLines(tex_lines_i, con = summary_tex_specs[[i]]$output_path)
+  alderman_summary_tex_lines <- c(
+    alderman_summary_tex_lines,
+    sprintf("%s & %s & %s \\\\", row_i$row, high_text, low_text)
+  )
 }
 
-plot_specs <- list(
-  list(
-    entity_means = ward_means,
-    entity_label = "Ward",
-    mean_col = "ward_mean_processing_time",
-    figure_output = "../output/ward_mean_processing_time_high_vs_low_density.pdf"
-  ),
-  list(
-    entity_means = alderman_means,
-    entity_label = "Alderman",
-    mean_col = "alderman_mean_processing_time",
-    figure_output = "../output/alderman_mean_processing_time_high_vs_low_density.pdf"
-  )
-)
+alderman_summary_tex_lines <- c(alderman_summary_tex_lines, "\\bottomrule", "\\end{tabular}")
+writeLines(alderman_summary_tex_lines, "../output/permit_processing_time_high_vs_low_alderman_summary.tex")
 
-for (i in seq_along(plot_specs)) {
-  entity_means_i <- plot_specs[[i]]$entity_means
-  entity_label_i <- plot_specs[[i]]$entity_label
-  mean_col_i <- plot_specs[[i]]$mean_col
-
-  p_density_i <- ggplot(
-    entity_means_i,
-    aes(x = .data[[mean_col_i]], color = group, fill = group)
+p_density <- ggplot(
+  alderman_means,
+  aes(x = alderman_mean_processing_time, color = group, fill = group)
+) +
+  geom_density(alpha = 0.28, linewidth = 0.95, adjust = 1.1) +
+  scale_color_manual(values = c("High-Discretion" = "#b74d2c", "Low-Discretion" = "#1f3c4a")) +
+  scale_fill_manual(values = c("High-Discretion" = "#b74d2c", "Low-Discretion" = "#1f3c4a")) +
+  theme_bw(base_size = 12) +
+  labs(
+    title = "Alderman-Level Mean Permit Processing Times",
+    subtitle = NULL,
+    x = "Alderman-level mean processing time (days)",
+    y = "Density",
+    color = NULL,
+    fill = NULL
   ) +
-    geom_density(alpha = 0.28, linewidth = 0.95, adjust = 1.1) +
-    scale_color_manual(values = c("High-Discretion" = "#b74d2c", "Low-Discretion" = "#1f3c4a")) +
-    scale_fill_manual(values = c("High-Discretion" = "#b74d2c", "Low-Discretion" = "#1f3c4a")) +
-    theme_bw(base_size = 12) +
-    labs(
-      title = paste0(entity_label_i, "-Level Mean Permit Processing Times"),
-      subtitle = NULL,
-      x = paste0(entity_label_i, "-level mean processing time (days)"),
-      y = "Density",
-      color = NULL,
-      fill = NULL
-    ) +
-    theme(
-      legend.position = "bottom",
-      strip.background = element_rect(fill = "white"),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank()
-    )
-
-  ggsave(
-    filename = plot_specs[[i]]$figure_output,
-    plot = p_density_i,
-    width = 8.5,
-    height = 5.5,
-    dpi = 300
+  theme(
+    legend.position = "bottom",
+    strip.background = element_rect(fill = "white"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
   )
-}
+
+ggsave(
+  filename = "../output/alderman_mean_processing_time_high_vs_low_density.pdf",
+  plot = p_density,
+  width = 8.5,
+  height = 5.5,
+  dpi = 300
+)
 
 permits_high_with_volume <- permits_analysis_all %>%
   filter(high_discretion == 1) %>%
@@ -376,8 +288,6 @@ correlation_table <- bind_rows(
     )
   )
 )
-
-write_csv(correlation_table, "../output/permit_processing_time_volume_correlation.csv")
 
 correlation_tex_lines <- c(
   "\\begin{tabular}{lr}",

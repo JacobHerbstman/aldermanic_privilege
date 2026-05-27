@@ -1,28 +1,27 @@
 source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_treatment_maps/code")
 # bandwidth_m <- 304.8
+# bandwidth_label <- "1000ft"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(bandwidth_m)
+  args <- c(bandwidth_m, bandwidth_label)
 }
 
-if (length(args) != 1) {
-  stop("FATAL: Script requires args: <bandwidth_m>", call. = FALSE)
+if (length(args) != 2) {
+  stop("FATAL: Script requires args: <bandwidth_m> <bandwidth_label>", call. = FALSE)
 }
 
 bandwidth_m <- as.numeric(args[1])
+bandwidth_label <- args[2]
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be positive.", call. = FALSE)
 }
-
-distance_display <- distance_display_config()
-bandwidth_label <- Sys.getenv("BANDWIDTH_LABEL", format_distance_label(bandwidth_m, distance_display))
-WRITE_MAP_AUDIT <- tolower(Sys.getenv("WRITE_MAP_AUDIT", "0")) %in% c("1", "true", "yes")
-MAP_AUDIT_OUTPUT_DIR <- Sys.getenv("MAP_AUDIT_OUTPUT_DIR", "../output")
+if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
+  stop("bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+}
 
 make_citywide_map <- function(blocks_sf, ward_year, title_text) {
   wards <- ward_panel %>%
@@ -52,7 +51,6 @@ make_citywide_map <- function(blocks_sf, ward_year, title_text) {
     )
 }
 
-message("Loading corrected permit event-study panels...")
 permit_blocks_2015 <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
   as_tibble() %>%
   filter(
@@ -72,33 +70,13 @@ permit_blocks_2015 <- read_parquet("../input/permit_block_year_panel_2015.parque
   ) %>%
   distinct()
 
-permit_blocks_2023 <- read_parquet("../input/permit_block_year_panel_2023.parquet") %>%
-  as_tibble() %>%
-  filter(
-    dist_m <= bandwidth_m,
-    relative_year >= -5,
-    relative_year <= 5,
-    !is.na(block_id),
-    block_id != "",
-    !is.na(ward_pair_id),
-    ward_pair_id != "",
-    !is.na(strictness_change)
-  ) %>%
-  transmute(
-    block_id = as.character(block_id),
-    cohort = "2023",
-    ward_pair_id = gsub("_", "-", as.character(ward_pair_id), fixed = TRUE)
-  ) %>%
-  distinct()
-
-duplicate_candidates <- bind_rows(permit_blocks_2015, permit_blocks_2023) %>%
+duplicate_candidates <- permit_blocks_2015 %>%
   count(block_id, cohort, name = "n_assignments") %>%
   filter(n_assignments > 1)
 if (nrow(duplicate_candidates) > 0) {
   stop("Permit event-study panel has multiple boundary assignments for the same cohort-block.", call. = FALSE)
 }
 
-message("Loading block treatment assignments...")
 block_treatment <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
   mutate(
     block_id = as.character(block_id),
@@ -108,6 +86,7 @@ block_treatment <- read_csv("../input/block_treatment_panel.csv", show_col_types
   filter(valid, !is.na(strictness_change))
 
 duplicate_treatment <- block_treatment %>%
+  filter(cohort == "2015") %>%
   count(block_id, cohort, name = "n_assignments") %>%
   filter(n_assignments > 1)
 if (nrow(duplicate_treatment) > 0) {
@@ -123,17 +102,7 @@ sample_2015 <- permit_blocks_2015 %>%
     strictness_change < 0 ~ "Moved to Lenient",
     TRUE ~ "Redistricted, No Score Change"
   ))
-sample_2023 <- permit_blocks_2023 %>%
-  left_join(block_treatment, by = c("block_id", "cohort"), relationship = "one-to-one") %>%
-  filter(!is.na(strictness_change)) %>%
-  mutate(treatment_group = case_when(
-    treat == 0 ~ "Control",
-    strictness_change > 0 ~ "Moved to Stricter",
-    strictness_change < 0 ~ "Moved to Lenient",
-    TRUE ~ "Redistricted, No Score Change"
-  ))
 
-message("Loading ward panel and census blocks...")
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 blocks_2010 <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
   rename(geometry = the_geom) %>%
@@ -143,30 +112,11 @@ blocks_2010 <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALS
   rename(block_id = GEOID10) %>%
   mutate(block_id = as.character(block_id)) %>%
   distinct(block_id, .keep_all = TRUE)
-blocks_2020 <- read_csv("../input/census_blocks_2020.csv", show_col_types = FALSE) %>%
-  rename(geometry = the_geom) %>%
-  st_as_sf(wkt = "geometry", crs = 4269) %>%
-  st_make_valid() %>%
-  st_transform(st_crs(ward_panel)) %>%
-  rename(block_id = GEOID20) %>%
-  mutate(block_id = as.character(block_id)) %>%
-  distinct(block_id, .keep_all = TRUE)
 
 blocks_2015 <- blocks_2010 %>%
   inner_join(sample_2015, by = "block_id", relationship = "one-to-one")
-blocks_2023 <- blocks_2020 %>%
-  inner_join(sample_2023, by = "block_id", relationship = "one-to-one")
-
-message(sprintf("2015 map blocks within %s: %s", bandwidth_label, format(nrow(blocks_2015), big.mark = ",")))
-message(sprintf("2023 map blocks within %s: %s", bandwidth_label, format(nrow(blocks_2023), big.mark = ",")))
-
-if (WRITE_MAP_AUDIT) {
-  write_csv(st_drop_geometry(blocks_2015), file.path(MAP_AUDIT_OUTPUT_DIR, sprintf("treatment_control_map_2015_%s_data.csv", bandwidth_label)))
-  write_csv(st_drop_geometry(blocks_2023), file.path(MAP_AUDIT_OUTPUT_DIR, sprintf("treatment_control_map_2023_%s_data.csv", bandwidth_label)))
-}
 
 p_2015 <- make_citywide_map(blocks_2015, 2015, "2015 Redistricting")
-p_2023 <- make_citywide_map(blocks_2023, 2024, "2023 Redistricting")
 
 ggsave(
   sprintf("../output/treatment_control_map_2015_%s.pdf", bandwidth_label),
@@ -175,28 +125,7 @@ ggsave(
   height = 10,
   bg = "white"
 )
-if (WRITE_MAP_AUDIT) {
-  ggsave(
-    file.path(MAP_AUDIT_OUTPUT_DIR, sprintf("treatment_control_map_2023_%s.pdf", bandwidth_label)),
-    p_2023,
-    width = 8,
-    height = 10,
-    bg = "white"
-  )
-}
 
-combined_citywide <- (p_2015 + theme(legend.position = "none")) +
-  (p_2023 + guides(fill = guide_legend(nrow = 1))) +
-  plot_layout(widths = c(1, 1))
-ggsave(
-  sprintf("../output/treatment_control_maps_combined_%s.pdf", bandwidth_label),
-  combined_citywide,
-  width = 5,
-  height = 4,
-  bg = "white"
-)
-
-message("Creating 13-23 before/after map from corrected 2015 panel...")
 pair_to_map <- "13-23"
 wp_blocks <- blocks_2015 %>%
   filter(ward_pair_id == pair_to_map)
@@ -276,25 +205,3 @@ ggsave(
   height = 8.8,
   bg = "white"
 )
-
-combined_horizontal <- p_before + p_after + p_treatment +
-  plot_layout(ncol = 3)
-ggsave(
-  sprintf("../output/ward_pair_horizontal_%s_%s.pdf", pair_to_map, bandwidth_label),
-  combined_horizontal,
-  width = 15,
-  height = 6,
-  bg = "white"
-)
-
-if (WRITE_MAP_AUDIT) {
-  ggsave(
-    file.path(MAP_AUDIT_OUTPUT_DIR, sprintf("ward_pair_before_after_%s_%s.pdf", pair_to_map, bandwidth_label)),
-    combined_horizontal,
-    width = 15,
-    height = 6,
-    bg = "white"
-  )
-}
-
-message("Done.")
