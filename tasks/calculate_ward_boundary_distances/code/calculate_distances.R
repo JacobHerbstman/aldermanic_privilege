@@ -7,7 +7,6 @@ source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
 synthetic_date_mode <- tolower(Sys.getenv("SYNTHETIC_CONSTRUCTION_DATE_MODE", "june15"))
-synthetic_date_diagnostics_output <- Sys.getenv("SYNTHETIC_DATE_DIAGNOSTICS_OUTPUT_PATH", "")
 max_construction_year <- suppressWarnings(as.integer(Sys.getenv("MAX_CONSTRUCTION_YEAR", "2026")))
 max_construction_month <- Sys.getenv("MAX_CONSTRUCTION_MONTH", "2026-04")
 
@@ -281,49 +280,17 @@ if (synthetic_date_mode == "dynamic_turnover") {
     slice(1) %>%
     ungroup()
 
-  month_selection_diagnostics <- selected_months %>%
-    transmute(
-      pin,
-      construction_year,
-      selected_month_num = month_num,
-      selected_construction_date = construction_date_candidate,
-      construction_date_june,
-      selected_boundary_year = boundary_year,
-      boundary_year_june,
-      selected_assigned_ward = assigned_ward,
-      assigned_ward_june,
-      selected_other_ward = other_ward,
-      other_ward_june,
-      selected_ward_pair = ward_pair,
-      ward_pair_june,
-      selected_alderman_own = alderman_own_candidate,
-      alderman_own_june,
-      selected_alderman_neighbor = alderman_neighbor_candidate,
-      alderman_neighbor_june,
-      changed_any,
-      changed_boundary_year,
-      changed_assigned_ward,
-      changed_other_ward,
-      changed_alderman_own,
-      changed_alderman_neighbor,
-      selection_reason = if_else(changed_any, "nearest_changed_month", "no_changed_month_keep_june")
-    )
-
   cat(sprintf(
     "Dynamic month selection changed month for %d of %d parcels.\n",
-    sum(month_selection_diagnostics$selected_month_num != 6L, na.rm = TRUE),
-    nrow(month_selection_diagnostics)
+    sum(selected_months$month_num != 6L, na.rm = TRUE),
+    nrow(selected_months)
   ))
   cat(sprintf(
     "Changed own alderman for %d parcels, neighbor alderman for %d parcels, boundary year for %d parcels.\n",
-    sum(month_selection_diagnostics$changed_alderman_own, na.rm = TRUE),
-    sum(month_selection_diagnostics$changed_alderman_neighbor, na.rm = TRUE),
-    sum(month_selection_diagnostics$changed_boundary_year, na.rm = TRUE)
+    sum(selected_months$changed_alderman_own, na.rm = TRUE),
+    sum(selected_months$changed_alderman_neighbor, na.rm = TRUE),
+    sum(selected_months$changed_boundary_year, na.rm = TRUE)
   ))
-
-  if (nzchar(synthetic_date_diagnostics_output)) {
-    write_csv(month_selection_diagnostics, synthetic_date_diagnostics_output)
-  }
 
   parcels_with_distances <- parcels %>%
     select(-construction_date) %>%
@@ -546,65 +513,18 @@ cat("Saving output (pre-scores, unsigned)...\n")
 
 write_csv(final_dataset_signed, "../output/parcels_pre_scores.csv")
 
-parcel_geometry_diagnostics <- final_dataset_signed %>%
-  summarise(
-    n_obs = n(),
-    n_with_ward = sum(!is.na(ward)),
-    n_with_ward_pair = sum(!is.na(ward_pair)),
-    n_with_neighbor_alderman = sum(!is.na(alderman_neighbor)),
-    mean_dist_to_boundary_m = mean(dist_to_boundary_m, na.rm = TRUE),
-    median_dist_to_boundary_m = median(dist_to_boundary_m, na.rm = TRUE),
-    .by = boundary_year
-  ) %>%
-  arrange(boundary_year)
-
-write_csv(parcel_geometry_diagnostics, "../output/parcel_geometry_diagnostics.csv")
-
-parcel_boundary_year_convention_diagnostics <- final_dataset_signed %>%
+boundary_year_checks <- final_dataset_signed %>%
   mutate(
     era = canonical_era_from_boundary_year(boundary_year),
     expected_boundary_year = canonical_boundary_year_from_date(construction_date),
     expected_era = canonical_era_from_boundary_year(expected_boundary_year),
     boundary_year_matches_construction_date = boundary_year == expected_boundary_year,
-    era_matches_boundary_year = era == expected_era,
-    post_2023_map_convention = boundary_year == 2024L & era == "post_2023"
-  ) %>%
-  summarise(
-    n_parcels = n(),
-    n_bad_boundary_year = sum(!boundary_year_matches_construction_date, na.rm = TRUE),
-    n_bad_era = sum(!era_matches_boundary_year, na.rm = TRUE),
-    n_post_2023_map_label = sum(post_2023_map_convention, na.rm = TRUE),
-    min_construction_date = min(construction_date, na.rm = TRUE),
-    max_construction_date = max(construction_date, na.rm = TRUE),
-    .by = c(construction_year, boundary_year, era)
-  ) %>%
-  arrange(construction_year, boundary_year, era)
-if (any(parcel_boundary_year_convention_diagnostics$n_bad_boundary_year > 0L) ||
-    any(parcel_boundary_year_convention_diagnostics$n_bad_era > 0L)) {
+    era_matches_boundary_year = era == expected_era
+  )
+if (any(!boundary_year_checks$boundary_year_matches_construction_date, na.rm = TRUE) ||
+    any(!boundary_year_checks$era_matches_boundary_year, na.rm = TRUE)) {
   stop("Parcel boundary-year convention diagnostic failed.", call. = FALSE)
 }
-
-write_csv(
-  parcel_boundary_year_convention_diagnostics,
-  "../output/parcel_boundary_year_convention_diagnostics.csv"
-)
-
-summary_stats <- final_dataset_signed %>%
-  summarise(
-    n_parcels = n(),
-    n_wards = n_distinct(ward),
-    n_ward_pairs = n_distinct(ward_pair, na.rm = TRUE),
-    n_aldermen = n_distinct(alderman_own, na.rm = TRUE),
-    mean_dist_to_boundary_m = mean(dist_to_boundary_m, na.rm = TRUE),
-    median_dist_to_boundary_m = median(dist_to_boundary_m, na.rm = TRUE),
-    .by = c(boundary_year, construction_year)
-  ) %>%
-  arrange(construction_year)
-
-cat("Task completed successfully!\n")
-print(summary_stats)
-
-write_csv(summary_stats, "../output/boundary_distance_summary.csv")
 
 cat("Task completed successfully!\n")
 cat(sprintf(

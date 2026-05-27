@@ -1,7 +1,9 @@
 # create_alderman_uncertainty_index
 
-Purpose: Creates the alderman uncertainty index used by the paper and downstream score merges.
+Purpose: Creates alderman uncertainty scores used by the paper and downstream score merges.
 
-Produces: The alderman score CSV, the appendix score plot, and the stage-1 regression table for the configured cutoff.
+Produces:
+- the paper score CSV, appendix plot, and stage-1 table for the default 2022 cutoff
+- the post-2023 score CSV used by `merge_event_study_scores`
 
 Approx. runtime: ~1-10 minutes.

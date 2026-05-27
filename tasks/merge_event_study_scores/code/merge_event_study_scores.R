@@ -139,30 +139,6 @@ if (mode %in% c("sales_treatment", "all")) {
   alderman_lookup <- alderman_lookup_raw %>%
     distinct()
 
-  summarize_lookup_role <- function(df, role) {
-    score_month_col <- paste0("score_month_", role)
-    ward_col <- paste0("ward_", role)
-    alderman_col <- paste0("alderman_", role)
-    score_col <- paste0("strictness_", role)
-    lookup_col <- paste0(role, "_lookup_matches")
-
-    df %>%
-      summarise(
-        role = role,
-        score_month = paste(sort(unique(.data[[score_month_col]])), collapse = "|"),
-        n_rows = n(),
-        n_valid = sum(valid, na.rm = TRUE),
-        n_unique_wards = n_distinct(.data[[ward_col]], na.rm = TRUE),
-        n_missing_alderman_lookup = sum(is.na(.data[[alderman_col]]) | .data[[alderman_col]] == ""),
-        n_valid_missing_alderman_lookup = sum(valid & (is.na(.data[[alderman_col]]) | .data[[alderman_col]] == ""), na.rm = TRUE),
-        n_missing_score = sum(is.na(.data[[score_col]])),
-        n_valid_missing_score = sum(valid & is.na(.data[[score_col]]), na.rm = TRUE),
-        n_duplicate_ward_month_matches = sum(coalesce(.data[[lookup_col]], 0L) > 1L, na.rm = TRUE),
-        .by = cohort
-      ) %>%
-      arrange(cohort)
-  }
-
   treat_panel_full <- treat_pre %>%
     mutate(cohort = as.character(cohort)) %>%
     mutate(
@@ -217,20 +193,16 @@ if (mode %in% c("sales_treatment", "all")) {
   if (anyDuplicated(paste(treat_panel_full$cohort, treat_panel_full$block_id, sep = "\r")) > 0) {
     stop("Merged block treatment panel must be unique by cohort-block.", call. = FALSE)
   }
-
-  score_lookup_diagnostics <- bind_rows(
-    summarize_lookup_role(treat_panel_full, "origin"),
-    summarize_lookup_role(treat_panel_full, "dest")
-  ) %>%
-    arrange(cohort, role)
-  if (any(score_lookup_diagnostics$n_duplicate_ward_month_matches > 0L)) {
-    stop("Block treatment score lookup found duplicate ward-month matches.", call. = FALSE)
-  }
-  if (any(score_lookup_diagnostics$n_valid_missing_alderman_lookup > 0L)) {
+  if (any(treat_panel_full$valid & (is.na(treat_panel_full$alderman_origin) | treat_panel_full$alderman_origin == ""), na.rm = TRUE) ||
+      any(treat_panel_full$valid & (is.na(treat_panel_full$alderman_dest) | treat_panel_full$alderman_dest == ""), na.rm = TRUE)) {
     stop("Valid block treatment rows have missing alderman lookup values.", call. = FALSE)
   }
-  if (any(score_lookup_diagnostics$n_valid_missing_score > 0L)) {
+  if (any(treat_panel_full$valid & is.na(treat_panel_full$strictness_origin), na.rm = TRUE) ||
+      any(treat_panel_full$valid & is.na(treat_panel_full$strictness_dest), na.rm = TRUE)) {
     stop("Valid block treatment rows have missing alderman scores.", call. = FALSE)
+  }
+  if (any(treat_panel_full$valid & is.na(treat_panel_full$strictness_change), na.rm = TRUE)) {
+    stop("Valid block treatment rows have missing strictness changes.", call. = FALSE)
   }
 
   treat_panel <- treat_panel_full %>%
@@ -248,30 +220,6 @@ if (mode %in% c("sales_treatment", "all")) {
 
   write_csv(treat_panel, "../output/block_treatment_panel.csv")
   cat("Block treatment output rows:", nrow(treat_panel), "\n")
-
-  score_diagnostics <- treat_panel %>%
-    summarise(
-      n_rows = n(),
-      n_valid = sum(valid, na.rm = TRUE),
-      n_switched = sum(switched, na.rm = TRUE),
-      n_missing_origin_alderman = sum(is.na(alderman_origin) | alderman_origin == ""),
-      n_missing_dest_alderman = sum(is.na(alderman_dest) | alderman_dest == ""),
-      n_missing_origin_score = sum(is.na(strictness_origin)),
-      n_missing_dest_score = sum(is.na(strictness_dest)),
-      n_missing_strictness_change = sum(is.na(strictness_change)),
-      n_valid_missing_strictness_change = sum(valid & is.na(strictness_change), na.rm = TRUE),
-      n_unique_origin_aldermen = n_distinct(alderman_origin, na.rm = TRUE),
-      n_unique_dest_aldermen = n_distinct(alderman_dest, na.rm = TRUE),
-      .by = cohort
-    ) %>%
-    arrange(cohort)
-  if (any(score_diagnostics$n_valid_missing_strictness_change > 0L)) {
-    stop("Valid block treatment rows have missing strictness changes.", call. = FALSE)
-  }
-  write_csv(score_diagnostics, "../output/block_treatment_score_diagnostics.csv")
-  write_csv(score_lookup_diagnostics, "../output/block_treatment_score_lookup_diagnostics.csv")
-  cat("Block treatment score diagnostics rows:", nrow(score_diagnostics), "\n")
-  cat("Block treatment score lookup diagnostics rows:", nrow(score_lookup_diagnostics), "\n")
 }
 
 if (mode %in% c("rent", "all")) {
@@ -292,63 +240,15 @@ if (mode %in% c("rent", "all")) {
 	  if (anyDuplicated(rent$rent_panel_id) > 0) {
 	    stop("Rent score merge output must be unique by rent_panel_id.", call. = FALSE)
 	  }
-	  rent_score_attrition <- rent_full %>%
-	    mutate(
-	      file_date = as.Date(file_date),
-	      year = lubridate::year(file_date),
-	      year_month = format(file_date, "%Y-%m"),
-	      score_side = case_when(
-	        sign > 0 ~ "stricter_side",
-	        sign < 0 ~ "lenient_side",
-	        is.na(strictness_own) | is.na(strictness_neighbor) ~ "missing_score",
-	        strictness_own == strictness_neighbor ~ "tied_score",
-	        TRUE ~ "missing_or_invalid_sign"
-	      ),
-	      missing_own_alderman = is.na(alderman_own) | alderman_own == "",
-	      missing_neighbor_alderman = is.na(alderman_neighbor) | alderman_neighbor == "",
-	      missing_own_score = is.na(strictness_own),
-	      missing_neighbor_score = is.na(strictness_neighbor),
-	      tied_score = !missing_own_score & !missing_neighbor_score & strictness_own == strictness_neighbor,
-	      dropped_no_sign = is.na(sign)
-	    ) %>%
-	    summarise(
-	      n_input = n(),
-	      n_kept = sum(!dropped_no_sign, na.rm = TRUE),
-	      n_dropped_no_sign = sum(dropped_no_sign, na.rm = TRUE),
-	      n_missing_own_alderman = sum(missing_own_alderman, na.rm = TRUE),
-	      n_missing_neighbor_alderman = sum(missing_neighbor_alderman, na.rm = TRUE),
-	      n_missing_own_score = sum(missing_own_score, na.rm = TRUE),
-	      n_missing_neighbor_score = sum(missing_neighbor_score, na.rm = TRUE),
-	      n_tied_score = sum(tied_score, na.rm = TRUE),
-	      .by = c(year, year_month, ward_pair_id, score_side)
-	    ) %>%
-	    arrange(year, year_month, ward_pair_id, score_side)
-	  rent_score_merge_diagnostics <- tibble(
-	    n_rows = nrow(rent),
-	    n_input_rows = nrow(rent_full),
-	    n_dropped_no_sign = nrow(rent_full) - nrow(rent),
-	    n_episodes = if ("episode_id" %in% names(rent)) n_distinct(rent$episode_id) else NA_integer_,
-	    n_unique_aldermen_own = n_distinct(rent$alderman_own, na.rm = TRUE),
-	    n_unique_aldermen_neighbor = n_distinct(rent$alderman_neighbor, na.rm = TRUE),
-	    n_ward_pairs = n_distinct(rent$ward_pair_id, na.rm = TRUE),
-	    n_segments = n_distinct(rent$segment_id, na.rm = TRUE),
-	    min_file_date = min(rent$file_date, na.rm = TRUE),
-	    max_file_date = max(rent$file_date, na.rm = TRUE),
-	    min_dist_ft = min(rent$dist_ft, na.rm = TRUE),
-	    max_dist_ft = max(rent$dist_ft, na.rm = TRUE),
-	    n_missing_segment = sum(is.na(rent$segment_id) | rent$segment_id == ""),
-	    n_signed_dist_sign_mismatch = sum(
-	      is.finite(rent$signed_dist) & rent$signed_dist != 0 &
-	        sign(rent$signed_dist) != rent$sign,
-	      na.rm = TRUE
-	    )
+	  n_signed_dist_sign_mismatch <- sum(
+	    is.finite(rent$signed_dist) & rent$signed_dist != 0 &
+	      sign(rent$signed_dist) != rent$sign,
+	    na.rm = TRUE
 	  )
-	  if (rent_score_merge_diagnostics$n_signed_dist_sign_mismatch > 0) {
+	  if (n_signed_dist_sign_mismatch > 0) {
 	    stop("Rental signed-distance sign does not agree with strictness sign.", call. = FALSE)
 	  }
 	  write_parquet(rent, "../output/rent_with_ward_distances_full.parquet")
-	  write_csv(rent_score_merge_diagnostics, "../output/rent_score_merge_diagnostics.csv")
-	  write_csv(rent_score_attrition, "../output/rent_score_attrition_by_year_pair_side.csv")
 	  cat("Rent output rows:", nrow(rent), "\n")
 	}
 

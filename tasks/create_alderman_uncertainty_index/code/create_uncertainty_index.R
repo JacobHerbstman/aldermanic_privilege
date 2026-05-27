@@ -59,6 +59,7 @@ message("  VOLUME_STAGE: ", config$volume_stage)
 
 max_permit_month_raw <- Sys.getenv("MAX_PERMIT_MONTH", "")
 max_permit_year_raw <- Sys.getenv("MAX_PERMIT_YEAR", "")
+score_only <- tolower(Sys.getenv("SCORE_ONLY", "false")) %in% c("true", "1", "yes")
 
 if (nzchar(max_permit_month_raw)) {
   if (!grepl("^\\d{4}-\\d{2}$", max_permit_month_raw)) {
@@ -114,11 +115,13 @@ message("Stage 1 observations: ", result$metadata$stage1_nobs)
 message("Stage 1 adjusted R-squared: ", round(result$metadata$stage1_r2, 4))
 message("Aldermen with scores: ", nrow(result$alderman_index))
 
-write_stage1_regression_table(result$stage1_model, stage1_output, result$stage1_outcome)
-message("Saved: ", stage1_output)
+if (!score_only) {
+  write_stage1_regression_table(result$stage1_model, stage1_output, result$stage1_outcome)
+  message("Saved: ", stage1_output)
 
-write_uncertainty_plot(result$alderman_index, plot_output)
-message("Saved: ", plot_output)
+  write_uncertainty_plot(result$alderman_index, plot_output)
+  message("Saved: ", plot_output)
+}
 
 write_csv(result$alderman_index, output_file)
 message("Saved: ", output_file)
