@@ -1,7 +1,8 @@
 # create_alderman_data
 
-Purpose: Creates alderman data.
+Purpose: Creates the monthly Chicago alderman panel.
 
-Produces: Produces files such as `output/chicago_alderman_panel.csv` and related task-specific outputs in `output/`.
+Produces:
+- `output/chicago_alderman_panel.csv`
 
 Approx. runtime: ~1-10 minutes.

@@ -1,6 +1,4 @@
-# This code handmakes a panel of aldermen and uses the majority-of-month rule.
-
-## run this line when editing code in Rstudio
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_data/code")
 
 source("../../setup_environment/code/packages.R")
@@ -363,9 +361,6 @@ final_panel <- panel_grid %>%
 final_panel <- final_panel %>%
   rename(month = year_month)
 
-# Write to CSV
-write_csv(final_panel, "../output/chicago_alderman_panel.csv")
-
 coverage <- final_panel %>%
   summarise(
     n_wards = n_distinct(ward),
@@ -378,10 +373,9 @@ coverage <- final_panel %>%
 recent_missing <- coverage %>%
   filter(month >= as.yearmon("2023-05"), n_missing_alderman > 0)
 if (nrow(recent_missing) > 0) {
-  print(recent_missing)
   stop("Alderman panel has missing post-2023 ward-month assignments.", call. = FALSE)
 }
 
-write_csv(coverage, "../output/chicago_alderman_panel_coverage.csv")
+write_csv(final_panel, "../output/chicago_alderman_panel.csv")
 
 print("CSV file created successfully: chicago_alderman_panel.csv")

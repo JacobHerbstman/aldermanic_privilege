@@ -5,10 +5,7 @@ Purpose: Assigns boundary-segment IDs to sales and RentHub records using the aud
 Outputs:
 - `output/sales_pre_scores_with_segments.csv`
 - `output/rent_pre_scores_full_with_segments.parquet`
-- `output/segment_assignment_coverage_summary.csv`
-- `output/segment_assignment_spotcheck_queue.csv`
-- `output/segment_assignment_reason_summary.csv`
 
-The default segment-assignment radius is 305m, just over 1000ft. That keeps the 500ft rental RD and 1000ft event-study/bandwidth diagnostics inside the assignment radius while avoiding unrestricted global segment assignment.
+The default segment-assignment radius is 457.2m, or 1500ft. The script hard-checks segment assignment consistency inside 500ft before writing the handoffs.
 
 Approx. runtime: ~1-10 minutes.
