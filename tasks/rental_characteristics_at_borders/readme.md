@@ -4,9 +4,11 @@ Purpose: Build slide-facing rental characteristic, amenity, rent-attenuation, an
 
 Produces:
 - `output/char_fe_table_bw500_clust_ward_pair.tex`
-- `output/rent_with_ward_distances_amenities.parquet`
 - `output/amenity_char_fe_table_bw500_pre_2023_clust_ward_pair.tex`
 - `output/rent_amenity_attenuation_bw500_pre_2023_clust_ward_pair.tex`
-- listed-unit cache parquet files, plots, and PPML tables for all listings and multifamily listings
+- `output/listing_units_unit_proxy_bw500_pre_2023_all_pct0_clust_ward_pair.pdf`
+- `output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0_clust_ward_pair.tex`
+- `output/listing_units_unit_proxy_bw500_pre_2023_multifamily_only_pct0_clust_ward_pair.pdf`
+- `output/listing_units_ppml_fe_table_bw500_pre_2023_multifamily_only_pct0_clust_ward_pair.tex`
 
 Approx. runtime: ~1-10 minutes.

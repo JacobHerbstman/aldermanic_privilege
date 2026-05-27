@@ -4,7 +4,7 @@
 # window <- "pre_2023"
 # cluster_level <- "ward_pair"
 
-source("../../setup_environment/code/packages.R")
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -40,7 +40,7 @@ output_stem <- sprintf("../output/rent_amenity_attenuation_bw%s_%s_clust_%s", bw
 
 message(sprintf("=== Rent Amenity Attenuation | bw=%s | window=%s | cluster=%s ===", bw_label, window, cluster_level))
 
-rent_raw <- read_parquet("../output/rent_with_ward_distances_amenities.parquet") %>%
+rent_raw <- read_parquet("../temp/rent_with_ward_distances_amenities.parquet") %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -169,61 +169,4 @@ etable(
   replace = TRUE
 )
 
-coef_tbl <- bind_rows(
-  tibble(
-    specification = "no_hedonics",
-    sample_name = "all_rows",
-    estimate = coef(m_no_hed)[["strictness_std"]],
-    std_error = se(m_no_hed)[["strictness_std"]],
-    p_value = pvalue(m_no_hed)[["strictness_std"]],
-    n_obs = m_no_hed$nobs,
-    dep_var_mean = mean(m_no_hed$custom_data$rent_price, na.rm = TRUE),
-    ward_pairs = length(unique(m_no_hed$custom_data$ward_pair)),
-    bandwidth_ft = bw_ft,
-    bandwidth_label = bw_label,
-    window = window,
-    sample_filter = "all",
-    cluster_level = cluster_level,
-    fe_geo = "segment",
-    use_amenity_controls = FALSE
-  ),
-  tibble(
-    specification = "baseline_hedonic",
-    sample_name = "hedonic_complete_case",
-    estimate = coef(m_hed)[["strictness_std"]],
-    std_error = se(m_hed)[["strictness_std"]],
-    p_value = pvalue(m_hed)[["strictness_std"]],
-    n_obs = m_hed$nobs,
-    dep_var_mean = mean(m_hed$custom_data$rent_price, na.rm = TRUE),
-    ward_pairs = length(unique(m_hed$custom_data$ward_pair)),
-    bandwidth_ft = bw_ft,
-    bandwidth_label = bw_label,
-    window = window,
-    sample_filter = "all",
-    cluster_level = cluster_level,
-    fe_geo = "segment",
-    use_amenity_controls = FALSE
-  ),
-  tibble(
-    specification = "amenity_hedonic",
-    sample_name = "hedonic_plus_amenity_complete_case",
-    estimate = coef(m_amenity)[["strictness_std"]],
-    std_error = se(m_amenity)[["strictness_std"]],
-    p_value = pvalue(m_amenity)[["strictness_std"]],
-    n_obs = m_amenity$nobs,
-    dep_var_mean = mean(m_amenity$custom_data$rent_price, na.rm = TRUE),
-    ward_pairs = length(unique(m_amenity$custom_data$ward_pair)),
-    bandwidth_ft = bw_ft,
-    bandwidth_label = bw_label,
-    window = window,
-    sample_filter = "all",
-    cluster_level = cluster_level,
-    fe_geo = "segment",
-    use_amenity_controls = TRUE
-  )
-)
-
-write_csv(coef_tbl, paste0(output_stem, ".csv"))
-
 message(sprintf("Saved: %s.tex", output_stem))
-message(sprintf("Saved: %s.csv", output_stem))

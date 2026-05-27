@@ -7,7 +7,7 @@
 # min_strictness_diff_pctile <- 0
 # bins_per_side <- 8
 
-source("../../setup_environment/code/packages.R")
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -46,15 +46,11 @@ if (!is.finite(bins_per_side) || bins_per_side <= 0) {
 }
 
 output_side_panel <- sprintf(
-  "../output/listing_units_side_panel_bw%d_%s_%s_pct%d_%s_all.parquet",
+  "../temp/listing_units_side_panel_bw%d_%s_%s_pct%d_%s_all.parquet",
   bw_ft, window, sample_filter, min_strictness_diff_pctile, unit_def
 )
 output_bin_cells <- sprintf(
-  "../output/listing_units_bin_cells_bw%d_%s_%s_pct%d_%s_bins%d_all.parquet",
-  bw_ft, window, sample_filter, min_strictness_diff_pctile, unit_def, bins_per_side
-)
-output_meta <- sprintf(
-  "../output/listing_units_cache_bw%d_%s_%s_pct%d_%s_bins%d_all.csv",
+  "../temp/listing_units_bin_cells_bw%d_%s_%s_pct%d_%s_bins%d_all.parquet",
   bw_ft, window, sample_filter, min_strictness_diff_pctile, unit_def, bins_per_side
 )
 
@@ -178,32 +174,8 @@ bin_cells <- dat |>
   ) |>
   arrange(segment_id, ward_pair, year_month, bin_center)
 
-side_pair_month <- side_panel |>
-  group_by(segment_id, year_month) |>
-  summarise(n_sides_obs = sum(n_units > 0), .groups = "drop")
-
-meta <- tibble(
-  input_rows = nrow(dat),
-  side_panel_rows = nrow(side_panel),
-  side_panel_pair_months = nrow(side_pair_month),
-  side_panel_segments = n_distinct(side_panel$segment_id),
-  share_single_sided_pair_month = mean(side_pair_month$n_sides_obs == 1),
-  share_zero_side_cells = mean(side_panel$n_units == 0),
-  bin_cells_rows = nrow(bin_cells),
-  bin_cells_segments = n_distinct(bin_cells$segment_id),
-  bandwidth_ft = bw_ft,
-  window = window,
-  sample_filter = sample_filter,
-  unit_def = unit_def,
-  min_strictness_diff_pctile = min_strictness_diff_pctile,
-  bins_per_side = bins_per_side,
-  prune_sample = "all"
-)
-
 write_parquet(side_panel, output_side_panel)
 write_parquet(bin_cells, output_bin_cells)
-write_csv(meta, output_meta)
 
 message(sprintf("Saved: %s", output_side_panel))
 message(sprintf("Saved: %s", output_bin_cells))
-message(sprintf("Saved: %s", output_meta))

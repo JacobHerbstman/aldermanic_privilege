@@ -4,7 +4,7 @@
 # window <- "pre_2023"
 # cluster_level <- "ward_pair"
 
-source("../../setup_environment/code/packages.R")
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -35,13 +35,6 @@ cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 cluster_label <- if (cluster_level == "segment") "Segment" else "Ward Pair"
 treatment_var <- "strictness_std"
 treatment_label <- "Stringency Index"
-
-window_label <- c(
-  full = "All years",
-  pre_covid = "Pre-COVID (2014-2019)",
-  pre_2021 = "Through 2020",
-  pre_2023 = "Through 2022 (2014-2022)"
-)
 
 message(sprintf(
   "=== Characteristic FE Table | bw=%d | window=%s | cluster=%s | treatment=stringency ===",
@@ -81,26 +74,21 @@ dat <- dat %>% mutate(strictness_std = strictness_own / strictness_sd)
 
 # ── Outcomes to estimate ──
 outcomes <- list(
-  list(name = "sqft",       var = "sqft",           label = "Sqft",            log = FALSE),
-  list(name = "beds",       var = "beds",           label = "Beds",            log = FALSE),
-  list(name = "baths",      var = "baths",          label = "Baths",           log = FALSE),
-  list(name = "multifamily",var = "is_multifamily", label = "Multi-Family",    log = FALSE),
-  list(name = "laundry",    var = "laundry",        label = "Laundry",         log = FALSE),
-  list(name = "gym",        var = "gym",            label = "Gym",             log = FALSE)
+  list(var = "sqft",           label = "Sqft"),
+  list(var = "beds",           label = "Beds"),
+  list(var = "baths",          label = "Baths"),
+  list(var = "is_multifamily", label = "Multi-Family"),
+  list(var = "laundry",        label = "Laundry"),
+  list(var = "gym",            label = "Gym")
 )
 
 results <- list()
 for (oc in outcomes) {
-  d <- dat
-  if (oc$log) {
-    d <- d %>% mutate(Y = if_else(!is.na(.data[[oc$var]]) & .data[[oc$var]] > 0,
-                                   log(.data[[oc$var]]), NA_real_))
-  } else {
-  d <- d %>% mutate(Y = as.numeric(.data[[oc$var]]))
-  }
-  d <- d %>% filter(!is.na(Y))
+  d <- dat %>%
+    mutate(Y = as.numeric(.data[[oc$var]])) %>%
+    filter(!is.na(Y))
   if (nrow(d) < 10 || n_distinct(d$segment_id) < 2) {
-    message(sprintf("  Skipping %s: too few obs (%d)", oc$name, nrow(d)))
+    message(sprintf("  Skipping %s: too few obs (%d)", oc$var, nrow(d)))
     next
   }
   rhs_formula <- as.formula(paste0("Y ~ ", treatment_var, " | segment_id^year_month"))
@@ -111,17 +99,12 @@ for (oc in outcomes) {
     stop("Could not find p-value column in coeftable output.", call. = FALSE)
   }
   results[[length(results) + 1]] <- tibble(
-    outcome = oc$name,
     label = oc$label,
     estimate = ct[treatment_var, "Estimate"],
     std_error = ct[treatment_var, "Std. Error"],
     p_value = ct[treatment_var, p_col[1]],
     n_obs = nobs(m),
-    dep_var_mean = mean(d$Y, na.rm = TRUE),
-    segments = n_distinct(d$segment_id[d$segment_id %in% names(which(table(d$segment_id) > 0))]),
-    bandwidth_ft = bw_ft,
-    window = window,
-    cluster_level = cluster_level
+    dep_var_mean = mean(d$Y, na.rm = TRUE)
   )
   message(sprintf("  %s: b=%.4f (SE %.4f, p=%.3f), N=%s",
                   oc$label, ct[treatment_var, "Estimate"], ct[treatment_var, "Std. Error"],
@@ -129,7 +112,6 @@ for (oc in outcomes) {
 }
 
 coef_tbl <- bind_rows(results)
-write_csv(coef_tbl, paste0(output_stem, ".csv"))
 
 ncol <- nrow(coef_tbl)
 coef_stars <- vapply(coef_tbl$p_value, function(p) {
@@ -171,4 +153,3 @@ tex <- paste0(header, col_headers, midrule, coef_row, se_row, blank,
 writeLines(tex, paste0(output_stem, ".tex"))
 
 message(sprintf("Saved: %s.tex", output_stem))
-message(sprintf("Saved: %s.csv", output_stem))

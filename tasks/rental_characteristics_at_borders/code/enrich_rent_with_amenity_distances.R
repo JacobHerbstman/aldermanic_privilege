@@ -1,7 +1,7 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
 
-source("../../setup_environment/code/packages.R")
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 source("../../_lib/amenity_distance_helpers.R")
 
 chunk_n <- 100000L
@@ -31,6 +31,6 @@ coords <- build_unique_coordinate_amenity_table(
 
 rent_out <- append_amenity_distances(rent, coords, "longitude", "latitude")
 
-write_parquet(as.data.frame(rent_out), "../output/rent_with_ward_distances_amenities.parquet")
+write_parquet(as.data.frame(rent_out), "../temp/rent_with_ward_distances_amenities.parquet")
 
-message("Saved: ../output/rent_with_ward_distances_amenities.parquet")
+message("Saved: ../temp/rent_with_ward_distances_amenities.parquet")

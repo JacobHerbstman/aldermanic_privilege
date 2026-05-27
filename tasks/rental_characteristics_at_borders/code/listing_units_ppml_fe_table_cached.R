@@ -8,7 +8,7 @@
 # bins_per_side <- 8
 # cluster_level <- "ward_pair"
 
-source("../../setup_environment/code/packages.R")
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -45,7 +45,7 @@ if (!is.finite(bins_per_side) || bins_per_side <= 0) {
 }
 
 input_panel <- sprintf(
-  "../output/listing_units_side_panel_bw%d_%s_%s_pct%d_%s_all.parquet",
+  "../temp/listing_units_side_panel_bw%d_%s_%s_pct%d_%s_all.parquet",
   bw_ft, window, sample_filter, min_strictness_diff_pctile, unit_def
 )
 output_stem <- sprintf(
@@ -53,8 +53,6 @@ output_stem <- sprintf(
   bw_ft, window, sample_filter, min_strictness_diff_pctile, cluster_level
 )
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
-cluster_label <- if (cluster_level == "segment") "Segment" else "Ward Pair"
-
 panel <- read_parquet(input_panel) |>
   as_tibble()
 
@@ -103,12 +101,8 @@ out <- tibble(
   share_zero_cells = mean(panel$n_units == 0),
   mean_units_per_cell = mean(panel$n_units, na.rm = TRUE),
   strictness_sd = strictness_sd,
-  mean_within_pair_gap = mean(within_pair_gap$gap, na.rm = TRUE),
-  input_panel = input_panel,
-  cluster_level = cluster_level
+  mean_within_pair_gap = mean(within_pair_gap$gap, na.rm = TRUE)
 )
-
-write_csv(out, paste0(output_stem, ".csv"))
 
 star_text <- case_when(
   !is.finite(out$p_value) ~ "",
@@ -146,4 +140,3 @@ message(sprintf(
   out$estimate, out$std_error, out$p_value, out$implied_pct_change
 ))
 message(sprintf("Saved: %s.tex", output_stem))
-message(sprintf("Saved: %s.csv", output_stem))

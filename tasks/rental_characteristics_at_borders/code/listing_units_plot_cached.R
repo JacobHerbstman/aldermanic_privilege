@@ -8,7 +8,7 @@
 # bins_per_side <- 8
 # cluster_level <- "ward_pair"
 
-source("../../setup_environment/code/packages.R")
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -45,11 +45,11 @@ if (!is.finite(bins_per_side) || bins_per_side <= 0) {
 }
 
 input_side_panel <- sprintf(
-  "../output/listing_units_side_panel_bw%d_%s_%s_pct%d_%s_all.parquet",
+  "../temp/listing_units_side_panel_bw%d_%s_%s_pct%d_%s_all.parquet",
   bw_ft, window, sample_filter, min_strictness_diff_pctile, unit_def
 )
 input_bin_cells <- sprintf(
-  "../output/listing_units_bin_cells_bw%d_%s_%s_pct%d_%s_bins%d_all.parquet",
+  "../temp/listing_units_bin_cells_bw%d_%s_%s_pct%d_%s_bins%d_all.parquet",
   bw_ft, window, sample_filter, min_strictness_diff_pctile, unit_def, bins_per_side
 )
 output_pdf <- sprintf(

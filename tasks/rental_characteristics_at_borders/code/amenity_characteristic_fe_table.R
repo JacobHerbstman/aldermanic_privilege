@@ -4,7 +4,7 @@
 # window <- "pre_2023"
 # cluster_level <- "ward_pair"
 
-source("../../setup_environment/code/packages.R")
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -43,7 +43,7 @@ message(sprintf(
   bw_label, window, cluster_level
 ))
 
-dat <- read_parquet("../output/rent_with_ward_distances_amenities.parquet") %>%
+dat <- read_parquet("../temp/rent_with_ward_distances_amenities.parquet") %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -124,7 +124,6 @@ for (oc in outcomes) {
 }
 
 coef_tbl <- bind_rows(results)
-write_csv(coef_tbl, paste0(output_stem, ".csv"))
 
 ncol <- nrow(coef_tbl)
 coef_stars <- vapply(coef_tbl$p_value, function(p) {
@@ -165,4 +164,3 @@ writeLines(
 )
 
 message(sprintf("Saved: %s.tex", output_stem))
-message(sprintf("Saved: %s.csv", output_stem))
