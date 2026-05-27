@@ -1,5 +1,3 @@
-## this code creates a panel of block-group level controls from the ACS
-## EXPANDED VERSION: includes rents, home values, education, and more demographics
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_block_group_controls/code")
 
@@ -9,8 +7,6 @@ if (Sys.getenv("CENSUS_API_KEY") == "") {
   stop("CENSUS_API_KEY not found in the environment.", call. = FALSE)
 }
 census_api_key(Sys.getenv("CENSUS_API_KEY"))
-
-census_metadata_timestamp <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
 
 # -----------------------------------------------------------------------------
 # 1. DEFINE VARIABLES
@@ -53,7 +49,6 @@ acs_vars <- c(
 # -----------------------------------------------------------------------------
 # 2. DOWNLOAD ACS DATA FOR PRE- and POST-PERIODS
 # -----------------------------------------------------------------------------
-# Function to download and clean ACS data for a single year
 get_bg_data <- function(year_to_get) {
   acs_raw <- get_acs(
     geography = "block group",
@@ -65,38 +60,17 @@ get_bg_data <- function(year_to_get) {
     output = "wide"
   )
 
-  list(
-    data = acs_raw %>%
+  acs_raw %>%
     st_drop_geometry() %>%
-    select(GEOID, ends_with("E")) %>% # Keep only GEOID and estimate columns
-      rename_with(~ sub("E$", "", .), .cols = everything()),
-    metadata = tibble(
-      source = "tidycensus::get_acs",
-      product = "acs",
-      year = as.integer(year_to_get),
-      survey = "acs5",
-      sumfile = NA_character_,
-      geography = "block group",
-      state = "IL",
-      county = "Cook",
-      variables = paste(unname(acs_vars), collapse = ";"),
-      geometry = FALSE,
-      rows = nrow(acs_raw),
-      geographies = n_distinct(acs_raw$GEOID),
-      downloaded_at_utc = census_metadata_timestamp
-    )
-  )
+    select(GEOID, ends_with("E")) %>%
+    rename_with(~ sub("E$", "", .), .cols = everything())
 }
 
 # Download the pre-period (2009-2013) and post-period (2015-2019) data
 message("Downloading pre-period ACS data (2014 5-year)...")
-pre_period_download <- get_bg_data(2014)
-pre_period_data <- pre_period_download$data
+pre_period_data <- get_bg_data(2014)
 message("Downloading post-period ACS data (2019 5-year)...")
-post_period_download <- get_bg_data(2019)
-post_period_data <- post_period_download$data
-census_metadata <- bind_rows(pre_period_download$metadata, post_period_download$metadata)
-
+post_period_data <- get_bg_data(2019)
 
 # -----------------------------------------------------------------------------
 # 3. CREATE THE FULL 2010-2019 CONTROL PANEL
@@ -128,24 +102,6 @@ message("Getting block group geometries for area calculation...")
 block_group_geometry_2019_raw <- get_acs(
   geography = "block group", variables = "B01003_001",
   state = "IL", county = "Cook", year = 2019, geometry = TRUE
-)
-census_metadata <- bind_rows(
-  census_metadata,
-  tibble(
-    source = "tidycensus::get_acs",
-    product = "acs",
-    year = 2019L,
-    survey = "acs5",
-    sumfile = NA_character_,
-    geography = "block group",
-    state = "IL",
-    county = "Cook",
-    variables = "B01003_001",
-    geometry = TRUE,
-    rows = nrow(block_group_geometry_2019_raw),
-    geographies = n_distinct(block_group_geometry_2019_raw$GEOID),
-    downloaded_at_utc = census_metadata_timestamp
-  )
 )
 block_group_geometry_2019 <- block_group_geometry_2019_raw %>%
   select(GEOID, geometry)
@@ -228,12 +184,6 @@ message(sprintf("Years: %s to %s", min(bg_controls$year), max(bg_controls$year))
 
 write_csv(bg_controls, "../output/block_group_controls.csv")
 message("Saved to ../output/block_group_controls.csv")
-
-write_csv(
-  census_metadata %>% arrange(year, product, geometry),
-  "../output/block_group_controls_census_metadata.csv"
-)
-message("Saved to ../output/block_group_controls_census_metadata.csv")
 
 st_write(
   block_group_geometry_2019,
