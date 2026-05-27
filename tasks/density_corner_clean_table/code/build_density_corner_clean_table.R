@@ -172,4 +172,9 @@ table_lines <- c(
   ""
 )
 
-writeLines(table_lines, output_tex)
+old_table_lines <- tryCatch(readLines(output_tex, warn = FALSE), error = function(e) character())
+if (!identical(old_table_lines, table_lines)) {
+  writeLines(table_lines, output_tex)
+} else {
+  Sys.setFileTime(output_tex, Sys.time())
+}

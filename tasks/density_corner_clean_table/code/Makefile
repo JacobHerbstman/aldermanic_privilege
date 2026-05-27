@@ -8,13 +8,13 @@ all: $(foreach sample,$(SAMPLES),../output/fe_table_$(BW_LABEL)_$(sample)_corner
 
 define BASELINE_RULE
 ../output/fe_summary_$(BW_LABEL)_$(1)_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv: ../../_lib/border_pair_fe_regression_runner.R ../input/parcels_with_ward_distances.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(BW_LABEL) WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$$@" Rscript ../../_lib/border_pair_fe_regression_runner.R $(BW_M) $(1) zonegroup_segment_year_additive all ward_pair 'log(density_far)' 'log(density_dupac)'
+	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(BW_LABEL) WRITE_TEX=FALSE FE_SUMMARY_TAG=baseline Rscript ../../_lib/border_pair_fe_regression_runner.R $(BW_M) $(1) zonegroup_segment_year_additive all ward_pair 'log(density_far)' 'log(density_dupac)'
 endef
 $(foreach sample,$(SAMPLES),$(eval $(call BASELINE_RULE,$(sample))))
 
 define CORNER_CLEAN_RULE
 ../output/fe_summary_$(BW_LABEL)_$(1)_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv: ../../_lib/border_pair_fe_regression_runner.R ../input/parcels_with_ward_distances.csv ../input/parcel_other_pair_distance.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(BW_LABEL) DROP_AMBIGUOUS_WITHIN_BW=TRUE AMBIGUITY_INPUT_PATH=../input/parcel_other_pair_distance.csv WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$$@" Rscript ../../_lib/border_pair_fe_regression_runner.R $(BW_M) $(1) zonegroup_segment_year_additive all ward_pair 'log(density_far)' 'log(density_dupac)'
+	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(BW_LABEL) DROP_AMBIGUOUS_WITHIN_BW=TRUE WRITE_TEX=FALSE FE_SUMMARY_TAG=corner_clean Rscript ../../_lib/border_pair_fe_regression_runner.R $(BW_M) $(1) zonegroup_segment_year_additive all ward_pair 'log(density_far)' 'log(density_dupac)'
 endef
 $(foreach sample,$(SAMPLES),$(eval $(call CORNER_CLEAN_RULE,$(sample))))
 

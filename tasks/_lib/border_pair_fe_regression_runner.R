@@ -73,9 +73,11 @@ if (length(yvars) == 0) {
 
 fe_input_path <- Sys.getenv("FE_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
 fe_summary_output_path <- Sys.getenv("FE_SUMMARY_OUTPUT_PATH", "")
+fe_summary_tag <- Sys.getenv("FE_SUMMARY_TAG", "")
+fe_table_tag <- Sys.getenv("FE_TABLE_TAG", "")
 write_tex_raw <- tolower(Sys.getenv("WRITE_TEX", ifelse(new_cli, "FALSE", "TRUE")))
 write_tex <- !write_tex_raw %in% c("false", "f", "0", "no", "off")
-ambiguity_input_path <- Sys.getenv("AMBIGUITY_INPUT_PATH", "")
+ambiguity_input_path <- Sys.getenv("AMBIGUITY_INPUT_PATH", "../input/parcel_other_pair_distance.csv")
 drop_ambiguous_raw <- tolower(Sys.getenv("DROP_AMBIGUOUS_WITHIN_BW", "FALSE"))
 drop_ambiguous_within_bw <- drop_ambiguous_raw %in% c("true", "t", "1", "yes", "on")
 min_segment_length_ft_raw <- Sys.getenv("MIN_SEGMENT_LENGTH_FT", "")
@@ -104,24 +106,38 @@ if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
 
 bandwidth_file_label <- if (nzchar(bandwidth_label)) bandwidth_label else "bwall"
 prune_suffix <- if (prune_sample == "pruned") "_pruned" else ""
+if (nzchar(fe_summary_tag) && !grepl("^[A-Za-z0-9_-]+$", fe_summary_tag)) {
+  stop("FE_SUMMARY_TAG may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+}
+if (nzchar(fe_table_tag) && !grepl("^[A-Za-z0-9_-]+$", fe_table_tag)) {
+  stop("FE_TABLE_TAG may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+}
 if (new_cli && !nzchar(fe_summary_output_path)) {
+  summary_suffix <- if (nzchar(fe_summary_tag)) {
+    paste0("_", fe_summary_tag)
+  } else if (drop_ambiguous_within_bw) {
+    "_corner_clean"
+  } else {
+    prune_suffix
+  }
   fe_summary_output_path <- sprintf(
-    "../temp/fe_summary_%s_%s_%s_clust_%s%s.csv",
+    "../output/fe_summary_%s_%s_%s_clust_%s%s.csv",
     bandwidth_file_label,
     sample_filter,
     fe_spec,
     cluster_level,
-    prune_suffix
+    summary_suffix
   )
 }
 if (write_tex && !nzchar(output_filename)) {
+  table_suffix <- if (nzchar(fe_table_tag)) paste0("_", fe_table_tag) else prune_suffix
   output_filename <- sprintf(
     "../output/fe_table_%s_%s_%s_clust_%s%s.tex",
     bandwidth_file_label,
     sample_filter,
     fe_spec,
     cluster_level,
-    prune_suffix
+    table_suffix
   )
 }
 
@@ -619,6 +635,7 @@ fe_rows[["_Dep. Var. Mean"]] <- vapply(
   )
   fe_rows[["_Ward Pairs"]] <- vapply(models, function(x) format(n_distinct(x$custom_data$ward_pair), big.mark = ","), character(1))
 
+  table_tmp <- tempfile(fileext = ".tex")
   etable(
     models,
     keep = "Stringency Index",
@@ -639,11 +656,12 @@ fe_rows[["_Dep. Var. Mean"]] <- vapply(
     extralines = fe_rows,
     float = FALSE,
     tex = TRUE,
-    file = output_filename,
+    file = table_tmp,
     replace = TRUE
   )
 
-  table_tex <- readLines(output_filename)
+  table_tex <- readLines(table_tmp, warn = FALSE)
+  unlink(table_tmp)
   drop_patterns <- c(
     "^\\s*Observations\\s*&",
     "^\\s*R\\$\\^2\\$\\s*&",
@@ -654,7 +672,12 @@ fe_rows[["_Dep. Var. Mean"]] <- vapply(
     function(line) any(vapply(drop_patterns, grepl, logical(1), x = line)),
     logical(1)
   )]
-  writeLines(table_tex, output_filename)
+  old_table_tex <- tryCatch(readLines(output_filename, warn = FALSE), error = function(e) character())
+  if (!identical(old_table_tex, table_tex)) {
+    writeLines(table_tex, output_filename)
+  } else {
+    Sys.setFileTime(output_filename, Sys.time())
+  }
 }
 
 if (nzchar(fe_summary_output_path)) {
