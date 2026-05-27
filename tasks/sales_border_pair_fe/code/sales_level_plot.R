@@ -1,5 +1,3 @@
-# Plot a flat home-sales border RD using the same sample as the main sales table.
-
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_border_pair_fe/code")
 # bw_ft <- 500
 # use_controls <- TRUE
@@ -72,13 +70,6 @@ stars <- function(p_value) {
   }
   ""
 }
-
-message(sprintf(
-  "=== Sales flat RD plot | bw=%d | controls=%s | mode=%s ===",
-  bw_ft,
-  use_controls,
-  table_mode
-))
 
 sales <- read_parquet("../output/sales_with_hedonics_amenities.parquet") %>%
   as_tibble()
@@ -225,5 +216,3 @@ ggsave(
   dpi = 300,
   bg = "white"
 )
-
-message(sprintf("Saved: %s", output_pdf))
