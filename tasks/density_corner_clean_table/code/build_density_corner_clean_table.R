@@ -32,22 +32,23 @@ if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
   stop("bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
 
-baseline_summary_path <- sprintf(
-  "../output/fe_summary_%s_%s_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv",
-  bandwidth_label,
-  sample_filter
+baseline_summary <- read_csv(
+  sprintf(
+    "../temp/fe_summary_%s_%s_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv",
+    bandwidth_label,
+    sample_filter
+  ),
+  show_col_types = FALSE
 )
-corner_clean_summary_path <- sprintf(
-  "../output/fe_summary_%s_%s_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv",
-  bandwidth_label,
-  sample_filter
+corner_clean_summary <- read_csv(
+  sprintf(
+    "../temp/fe_summary_%s_%s_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv",
+    bandwidth_label,
+    sample_filter
+  ),
+  show_col_types = FALSE
 )
-ambiguity_summary_path <- "../input/boundary_ambiguity_by_bw.csv"
-output_tex <- sprintf("../output/fe_table_%s_%s_corner_clean_compare.tex", bandwidth_label, sample_filter)
-
-baseline_summary <- read_csv(baseline_summary_path, show_col_types = FALSE)
-corner_clean_summary <- read_csv(corner_clean_summary_path, show_col_types = FALSE)
-ambiguity_summary <- read_csv(ambiguity_summary_path, show_col_types = FALSE)
+ambiguity_summary <- read_csv("../input/boundary_ambiguity_by_bw.csv", show_col_types = FALSE)
 if (!"bandwidth_m" %in% names(ambiguity_summary)) {
   if (!"bw_ft" %in% names(ambiguity_summary)) {
     stop("Ambiguity summary must contain bandwidth_m.", call. = FALSE)
@@ -172,9 +173,7 @@ table_lines <- c(
   ""
 )
 
-old_table_lines <- tryCatch(readLines(output_tex, warn = FALSE), error = function(e) character())
-if (!identical(old_table_lines, table_lines)) {
-  writeLines(table_lines, output_tex)
-} else {
-  Sys.setFileTime(output_tex, Sys.time())
-}
+writeLines(
+  table_lines,
+  sprintf("../output/fe_table_%s_%s_corner_clean_compare.tex", bandwidth_label, sample_filter)
+)

@@ -73,7 +73,15 @@ if (length(yvars) == 0) {
 
 fe_input_tag <- Sys.getenv("FE_INPUT_TAG", "")
 fe_summary_output_path <- Sys.getenv("FE_SUMMARY_OUTPUT_PATH", "")
-fe_summary_tag <- Sys.getenv("FE_SUMMARY_TAG", "")
+fe_summary_location <- Sys.getenv("FE_RESULT_LOCATION", "")
+if (!nzchar(fe_summary_location)) {
+  fe_summary_location <- Sys.getenv("FE_SUMMARY_LOCATION", "output")
+}
+fe_summary_location <- tolower(fe_summary_location)
+fe_summary_tag <- Sys.getenv("FE_RESULT_TAG", "")
+if (!nzchar(fe_summary_tag)) {
+  fe_summary_tag <- Sys.getenv("FE_SUMMARY_TAG", "")
+}
 fe_table_tag <- Sys.getenv("FE_TABLE_TAG", "")
 write_tex_raw <- tolower(Sys.getenv("WRITE_TEX", ifelse(new_cli, "FALSE", "TRUE")))
 write_tex <- !write_tex_raw %in% c("false", "f", "0", "no", "off")
@@ -112,6 +120,9 @@ if (nzchar(fe_input_tag) && !grepl("^[A-Za-z0-9_-]+$", fe_input_tag)) {
 if (nzchar(fe_summary_tag) && !grepl("^[A-Za-z0-9_-]+$", fe_summary_tag)) {
   stop("FE_SUMMARY_TAG may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
+if (!fe_summary_location %in% c("output", "temp")) {
+  stop("FE_SUMMARY_LOCATION must be one of: output, temp.", call. = FALSE)
+}
 if (nzchar(fe_table_tag) && !grepl("^[A-Za-z0-9_-]+$", fe_table_tag)) {
   stop("FE_TABLE_TAG may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
@@ -128,7 +139,8 @@ if (new_cli && !write_tex && !nzchar(fe_summary_output_path)) {
     prune_suffix
   }
   fe_summary_output_path <- sprintf(
-    "../output/fe_summary_%s_%s_%s_clust_%s%s.csv",
+    "../%s/fe_summary_%s_%s_%s_clust_%s%s.csv",
+    fe_summary_location,
     bandwidth_file_label,
     sample_filter,
     fe_spec,
