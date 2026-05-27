@@ -1,13 +1,12 @@
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_amenity_balance/code")
+# bandwidth_m <- 152.4
+# sample_filter <- "all"
+# bandwidth_label <- "500ft"
+
 source("../../setup_environment/code/packages.R")
 source("../../_lib/amenity_distance_helpers.R")
 source("../../_lib/border_pair_helpers.R")
-library(fixest)
-
-# --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_amenity_balance/code")
-# bandwidth_m <- 100
-# sample_filter <- "all"
-# bandwidth_label <- "100m"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -76,12 +75,10 @@ paired_covariate_catalog <- bind_rows(
   covariate_catalog
 )
 
-message("Loading parcel geometries...")
 parcel_geometry <- st_read("../input/parcels_with_geometry.gpkg", quiet = TRUE) %>%
   mutate(pin = as.character(pin)) %>%
   st_transform(3435)
 
-message("Computing exact amenity distances...")
 coords_tbl <- parcel_geometry %>%
   mutate(
     x = st_coordinates(.)[, 1],
@@ -125,7 +122,6 @@ if (any(!is.finite(as.matrix(coords_tbl[amenity_distance_cols])))) {
   stop("Amenity distance construction produced non-finite distances.", call. = FALSE)
 }
 
-message("Loading scored parcel sample...")
 analysis_sample <- read_csv(
   "../input/parcels_with_ward_distances.csv",
   show_col_types = FALSE,
@@ -244,11 +240,6 @@ paired_balance_rows <- bind_rows(lapply(seq_len(nrow(paired_covariate_catalog)),
     balance_digits = paired_covariate_catalog$balance_digits[[i]]
   )
 }))
-
-write_csv(
-  paired_balance_rows,
-  sprintf("../output/density_paired_balance_%s_%s.csv", bandwidth_label, sample_filter)
-)
 
 sample_label <- ifelse(sample_filter == "all", "all-construction", "multifamily")
 

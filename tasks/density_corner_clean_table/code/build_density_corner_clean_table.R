@@ -1,39 +1,26 @@
-source("../../setup_environment/code/packages.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_corner_clean_table/code")
-# baseline_summary_path <- "../output/fe_summary_500ft_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv"
-# corner_clean_summary_path <- "../output/fe_summary_500ft_all_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv"
-# ambiguity_summary_path <- "../input/boundary_ambiguity_by_bw.csv"
-# output_tex <- "../output/fe_table_500ft_all_corner_clean_compare.tex"
 # bandwidth_m <- 152.4
 # sample_filter <- "all"
+# bandwidth_label <- "500ft"
+
+source("../../setup_environment/code/packages.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(
-    baseline_summary_path,
-    corner_clean_summary_path,
-    ambiguity_summary_path,
-    output_tex,
-    bandwidth_m,
-    sample_filter
-  )
+  args <- c(bandwidth_m, sample_filter, bandwidth_label)
 }
 
-if (length(args) != 6) {
+if (length(args) != 3) {
   stop(
-    "FATAL: Script requires args: <baseline_summary_path> <corner_clean_summary_path> <ambiguity_summary_path> <output_tex> <bandwidth_m> <sample_filter>",
+    "FATAL: Script requires args: <bandwidth_m> <sample_filter> <bandwidth_label>",
     call. = FALSE
   )
 }
 
-baseline_summary_path <- args[1]
-corner_clean_summary_path <- args[2]
-ambiguity_summary_path <- args[3]
-output_tex <- args[4]
-bandwidth_m <- as.numeric(args[5])
-sample_filter <- args[6]
+bandwidth_m <- as.numeric(args[1])
+sample_filter <- args[2]
+bandwidth_label <- args[3]
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be a positive number.", call. = FALSE)
@@ -41,6 +28,22 @@ if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample_filter must be one of: all, multifamily.", call. = FALSE)
 }
+if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
+  stop("bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+}
+
+baseline_summary_path <- sprintf(
+  "../output/fe_summary_%s_%s_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv",
+  bandwidth_label,
+  sample_filter
+)
+corner_clean_summary_path <- sprintf(
+  "../output/fe_summary_%s_%s_zonegroup_segment_year_additive_clust_ward_pair_corner_clean.csv",
+  bandwidth_label,
+  sample_filter
+)
+ambiguity_summary_path <- "../input/boundary_ambiguity_by_bw.csv"
+output_tex <- sprintf("../output/fe_table_%s_%s_corner_clean_compare.tex", bandwidth_label, sample_filter)
 
 baseline_summary <- read_csv(baseline_summary_path, show_col_types = FALSE)
 corner_clean_summary <- read_csv(corner_clean_summary_path, show_col_types = FALSE)

@@ -1,6 +1,3 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_donut/code")
 # yvar <- "density_far"
@@ -9,6 +6,9 @@ source("../../_lib/border_pair_helpers.R")
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
 # donut_m <- 7.62
+
+source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -288,5 +288,3 @@ p <- ggplot() +
   theme_bw(base_size = 11)
 
 ggsave(output_pdf, plot = p, width = 8.6, height = 6.0, dpi = 300)
-
-message(sprintf("Built %s", output_pdf))

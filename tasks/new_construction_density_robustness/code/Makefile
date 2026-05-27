@@ -22,5 +22,4 @@ all: ../output/fe_table_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_yea
 
 link-inputs: ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_low_discretion_residualized.csv
 
-include ../../shell_functions.make
 include ../../generic.make
