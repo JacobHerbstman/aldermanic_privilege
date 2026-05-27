@@ -1,7 +1,8 @@
-source("../../setup_environment/code/packages.R")
-
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
+
+source("../../setup_environment/code/packages.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {

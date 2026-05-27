@@ -30,12 +30,11 @@ all: \
 	Rscript did_table_sales_2015.R $(MAIN_BW_M) uniform $(MAIN_BW_LABEL) amenity stacked_implementation
 
 ../input/sales_transaction_panel_2015.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/sales_transaction_panel.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/sales_transaction_panel_2015.parquet ../input/sales_transaction_panel.parquet
 
-include ../../shell_functions.make
 include ../../generic.make

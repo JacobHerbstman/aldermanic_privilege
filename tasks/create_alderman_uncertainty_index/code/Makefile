@@ -31,9 +31,8 @@ all: ../output/alderman_uncertainty_index_$(SPEC).csv \
 	@test -s "$@"
 
 ../input/permits_for_uncertainty_index.csv: ../../data_for_alderman_uncertainty_index/output/permits_for_uncertainty_index.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/permits_for_uncertainty_index.csv
 
-include ../../shell_functions.make
 include ../../generic.make
