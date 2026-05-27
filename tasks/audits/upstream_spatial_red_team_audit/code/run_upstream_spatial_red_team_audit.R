@@ -1006,9 +1006,9 @@ permit_ward_compare <- permit_points_sample %>%
 permit_block_2010_independent <- assign_blocks_independent(permit_points, blocks_2010, "block_id", chunk_n = 50000L)
 permit_block_2020_independent <- assign_blocks_independent(permit_points, blocks_2020, "block_id", chunk_n = 50000L)
 
-permit_missing_2010_current <- read_csv(file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_assignment_missing_2010.csv"), show_col_types = FALSE) %>%
+permit_missing_2010_current <- read_csv(file.path(repo_root, "tasks/audits/permit_event_study_audit/output/permit_block_assignment_missing_2010.csv"), show_col_types = FALSE) %>%
   mutate(id = as.character(id))
-permit_missing_2020_current <- read_csv(file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_assignment_missing_2020.csv"), show_col_types = FALSE) %>%
+permit_missing_2020_current <- read_csv(file.path(repo_root, "tasks/audits/permit_event_study_audit/output/permit_block_assignment_missing_2020.csv"), show_col_types = FALSE) %>%
   mutate(id = as.character(id))
 
 permit_block_2010_compare <- permit_points %>%

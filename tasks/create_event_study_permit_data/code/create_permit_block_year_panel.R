@@ -42,6 +42,7 @@ if (as.integer(format(as.Date(permit_end_yearmon), "%Y")) != permit_end_year) {
 }
 
 write_panel_diagnostics <- tolower(Sys.getenv("WRITE_PANEL_SIDECARS", "0")) %in% c("1", "true", "yes")
+panel_sidecar_dir <- Sys.getenv("PANEL_SIDECAR_DIR", "../output")
 
 sf_use_s2(FALSE)
 
@@ -221,11 +222,11 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label,
     if (write_panel_diagnostics) {
       write_csv(
         missing_audit,
-        sprintf("../output/permit_block_assignment_missing_%s.csv", block_vintage_label)
+        file.path(panel_sidecar_dir, sprintf("permit_block_assignment_missing_%s.csv", block_vintage_label))
       )
       write_csv(
         missing_summary,
-        sprintf("../output/permit_block_assignment_missing_%s_summary.csv", block_vintage_label)
+        file.path(panel_sidecar_dir, sprintf("permit_block_assignment_missing_%s_summary.csv", block_vintage_label))
       )
     }
 
@@ -848,8 +849,8 @@ unit_increase_audit_summary <- unit_increase_audit %>%
   arrange(desc(n_permits), unit_increase_reason, permit_type)
 
 if (write_panel_diagnostics) {
-  write_csv(unit_increase_audit, "../output/permit_unit_increase_audit.csv")
-  write_csv(unit_increase_audit_summary, "../output/permit_unit_increase_audit_summary.csv")
+  write_csv(unit_increase_audit, file.path(panel_sidecar_dir, "permit_unit_increase_audit.csv"))
+  write_csv(unit_increase_audit_summary, file.path(panel_sidecar_dir, "permit_unit_increase_audit_summary.csv"))
 }
 
 unit_audit_included_ids <- unit_increase_audit %>%
@@ -1038,14 +1039,14 @@ if (write_panel_diagnostics) {
 
   outcome_totals <- bind_rows(outcome_totals, stacked_outcome_totals)
 
-  write_csv(support_by_event_time, "../output/permit_block_year_panel_support_by_event_time.csv")
-  write_csv(support_by_calendar_time, "../output/permit_block_year_panel_support_by_calendar_time.csv")
-  write_csv(contract_diagnostics, "../output/permit_block_year_panel_contract_diagnostics.csv")
-  write_csv(assignment_stability, "../output/permit_block_year_panel_assignment_stability.csv")
-  write_csv(zero_share_summary, "../output/permit_block_year_panel_zero_share_summary.csv")
-  write_csv(block_assignment_review, "../output/permit_block_assignment_review_log.csv")
-  write_csv(block_assignment_review_summary, "../output/permit_block_assignment_review_summary.csv")
-  write_csv(outcome_totals, "../output/permit_block_year_panel_outcome_totals.csv")
+  write_csv(support_by_event_time, file.path(panel_sidecar_dir, "permit_block_year_panel_support_by_event_time.csv"))
+  write_csv(support_by_calendar_time, file.path(panel_sidecar_dir, "permit_block_year_panel_support_by_calendar_time.csv"))
+  write_csv(contract_diagnostics, file.path(panel_sidecar_dir, "permit_block_year_panel_contract_diagnostics.csv"))
+  write_csv(assignment_stability, file.path(panel_sidecar_dir, "permit_block_year_panel_assignment_stability.csv"))
+  write_csv(zero_share_summary, file.path(panel_sidecar_dir, "permit_block_year_panel_zero_share_summary.csv"))
+  write_csv(block_assignment_review, file.path(panel_sidecar_dir, "permit_block_assignment_review_log.csv"))
+  write_csv(block_assignment_review_summary, file.path(panel_sidecar_dir, "permit_block_assignment_review_summary.csv"))
+  write_csv(outcome_totals, file.path(panel_sidecar_dir, "permit_block_year_panel_outcome_totals.csv"))
 }
 
 message(sprintf("Saved stacked permit panel: %s rows", format(nrow(permit_panel), big.mark = ",")))

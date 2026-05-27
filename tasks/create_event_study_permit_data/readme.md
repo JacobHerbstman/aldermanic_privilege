@@ -1,7 +1,12 @@
 # create_event_study_permit_data
 
-Purpose: Creates event study permit data.
+Purpose: Creates the permit panels used by permit event-study tasks.
 
-Produces: Produces files such as `output/permit_block_assignment_missing_2010.csv`, `output/permit_block_assignment_missing_2010_summary.csv`, `output/permit_block_assignment_missing_2020.csv` and related task-specific outputs in `output/`.
+Produces:
+- `output/permit_block_year_panel.parquet`
+- `output/permit_block_year_panel_2015.parquet`
+- `output/permit_block_year_panel_2023.parquet`
+
+Panel diagnostics live in `tasks/audits/permit_event_study_audit`.
 
 Approx. runtime: ~1-10 minutes.

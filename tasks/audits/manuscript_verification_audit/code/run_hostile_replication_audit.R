@@ -826,11 +826,11 @@ with_dir(repo_root, {
     )
   write_csv(density_segment_influence, density_influence_segment_path)
 
-  permit_review_log <- read_csv(file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_assignment_review_log.csv"), show_col_types = FALSE)
+  permit_review_log <- read_csv(file.path(repo_root, "tasks/audits/permit_event_study_audit/output/permit_block_assignment_review_log.csv"), show_col_types = FALSE)
   permit_panel_2015 <- read_parquet(file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_year_panel_2015.parquet"))
   permit_panel_full <- read_parquet(file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_year_panel.parquet"))
-  permit_missing_2010 <- read_csv(file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_assignment_missing_2010.csv"), show_col_types = FALSE)
-  permit_missing_2020 <- read_csv(file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_assignment_missing_2020.csv"), show_col_types = FALSE)
+  permit_missing_2010 <- read_csv(file.path(repo_root, "tasks/audits/permit_event_study_audit/output/permit_block_assignment_missing_2010.csv"), show_col_types = FALSE)
+  permit_missing_2020 <- read_csv(file.path(repo_root, "tasks/audits/permit_event_study_audit/output/permit_block_assignment_missing_2020.csv"), show_col_types = FALSE)
   permits_clean_min <- st_read(
     file.path(repo_root, "tasks/clean_building_permits/output/building_permits_clean.gpkg"),
     query = paste(
