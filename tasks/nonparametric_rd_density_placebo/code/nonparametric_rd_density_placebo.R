@@ -1,7 +1,3 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
-
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_placebo/code")
 # yvar <- "density_far"
 # bandwidth_m <- 152.4
@@ -9,17 +5,18 @@ source("../../_lib/border_pair_helpers.R")
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
 # placebo_shift_m <- -152.4
-# input_csv <- "../input/parcels_with_ward_distances.csv"
-# output_pdf <- "../output/nonparametric_rd_density_placebo_log_density_far_500ft_all_shift_neg500ft.pdf"
+
+source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, placebo_shift_m, input_csv, output_pdf)
+  args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, placebo_shift_m)
 }
 
-if (!length(args) %in% c(8, 9)) {
+if (length(args) != 6) {
   stop(
-    "FATAL: Script requires args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <placebo_shift_m> <input_csv> <output_pdf>",
+    "FATAL: Script requires args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <placebo_shift_m>",
     call. = FALSE
   )
 }
@@ -30,8 +27,6 @@ sample_filter <- args[3]
 fe_spec <- args[4]
 bins_per_side <- as.integer(args[5])
 placebo_shift_m <- as.numeric(args[6])
-input_csv <- args[7]
-output_pdf <- args[8]
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -51,6 +46,22 @@ if (!is.finite(bins_per_side) || bins_per_side < 2) {
 if (!is.finite(placebo_shift_m)) {
   stop("placebo_shift_m must be numeric.", call. = FALSE)
 }
+
+distance_display <- distance_display_config()
+bw_label <- format_distance_label(bandwidth_m, distance_display)
+shift_file_label <- paste0(
+  ifelse(placebo_shift_m < 0, "neg", "pos"),
+  format_distance_label(abs(placebo_shift_m), distance_display)
+)
+shift_display_label <- format_signed_distance_label(placebo_shift_m, distance_display)
+output_pdf <- sprintf(
+  "../output/nonparametric_rd_density_placebo_log_%s_%s_%s_shift_%s.pdf",
+  yvar,
+  bw_label,
+  sample_filter,
+  shift_file_label
+)
+
 fe_formula <- dplyr::case_when(
   fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
   fe_spec == "zonegroup_pair_year_additive" ~ "zone_group + ward_pair + construction_year",
@@ -72,7 +83,7 @@ pretty_outcome <- dplyr::case_when(
   TRUE ~ yvar
 )
 
-raw <- read_csv(input_csv, show_col_types = FALSE) %>%
+raw <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
   ensure_meter_distance_columns()
 
 dat <- raw %>%
@@ -228,15 +239,12 @@ y_limits <- c(y_min - y_pad, y_max + y_pad)
 
 sample_label <- ifelse(sample_filter == "all", "all construction", "multifamily")
 
-distance_display <- distance_display_config()
 x_limits <- c(-bandwidth_m, bandwidth_m) * distance_display$scale
 x_label <- sprintf(
   "Distance to placebo cutoff (%s; cutoff shifted %s)",
   distance_display$unit,
-  format_signed_distance_label(placebo_shift_m, distance_display)
+  shift_display_label
 )
-bw_label <- format_distance_label(bandwidth_m, distance_display)
-shift_label <- format_signed_distance_label(placebo_shift_m, distance_display)
 
 bins <- bins %>%
   mutate(bin_center_display = bin_center_m * distance_display$scale)
@@ -249,7 +257,7 @@ subtitle_label <- sprintf(
   cutoff_estimate,
   stars(cutoff_p),
   cutoff_se,
-  shift_label,
+  shift_display_label,
   sample_label,
   bw_label,
   nobs(m_resid)

@@ -1,31 +1,26 @@
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_linear_display/code")
+# bandwidth_m <- 152.4
+# fe_spec <- "zonegroup_segment_year_additive"
+# bins_per_side <- 5
+
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
-# --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_linear_display/code")
-# bandwidth_m <- 152.4
-# bandwidth_label <- "500ft"
-# fe_spec <- "zonegroup_segment_year_additive"
-# bins_per_side <- 5
-# outcome_scale <- "log"
-
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(bandwidth_m, bandwidth_label, fe_spec, bins_per_side, outcome_scale)
+  args <- c(bandwidth_m, fe_spec, bins_per_side)
 }
 
-if (!length(args) %in% c(4, 5)) {
+if (length(args) != 3) {
   stop(
-    "FATAL: Script requires args: <bandwidth_m> <bandwidth_label> <fe_spec> <bins_per_side> [outcome_scale]",
+    "FATAL: Script requires args: <bandwidth_m> <fe_spec> <bins_per_side>",
     call. = FALSE
   )
 }
 
 bandwidth_m <- as.numeric(args[1])
-bandwidth_label <- args[2]
-fe_spec <- args[3]
-bins_per_side <- as.integer(args[4])
-outcome_scale <- ifelse(length(args) == 5, args[5], "log")
+fe_spec <- args[2]
+bins_per_side <- as.integer(args[3])
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be a positive number.", call. = FALSE)
@@ -36,22 +31,18 @@ if (!fe_spec %in% c("zonegroup_segment_year_additive", "zonegroup_pair_year_addi
 if (!is.finite(bins_per_side) || bins_per_side < 2) {
   stop("bins_per_side must be an integer >= 2.", call. = FALSE)
 }
-if (!outcome_scale %in% c("log", "level")) {
-  stop("outcome_scale must be one of: log, level.", call. = FALSE)
-}
 
-output_scale_prefix <- ifelse(outcome_scale == "log", "", "_levels")
+distance_display <- distance_display_config()
+bw_label <- format_distance_label(bandwidth_m, distance_display)
 
 output_pdf <- sprintf(
-  "../output/nonparametric_rd_density_linear_display_4panel%s_%s_all_multifamily_bins%d.pdf",
-  output_scale_prefix,
-  bandwidth_label,
+  "../output/nonparametric_rd_density_linear_display_4panel_%s_all_multifamily_bins%d.pdf",
+  bw_label,
   bins_per_side
 )
 output_estimates <- sprintf(
-  "../output/nonparametric_rd_density_linear_display_4panel%s_%s_all_multifamily_bins%d_estimates.csv",
-  output_scale_prefix,
-  bandwidth_label,
+  "../output/nonparametric_rd_density_linear_display_4panel_%s_all_multifamily_bins%d_estimates.csv",
+  bw_label,
   bins_per_side
 )
 
@@ -97,10 +88,8 @@ base_dat <- raw %>%
     abs(signed_distance_m) <= bandwidth_m
   )
 
-distance_display <- distance_display_config()
 x_limits <- c(-bandwidth_m, bandwidth_m) * distance_display$scale
 x_label <- sprintf("Distance to ward boundary (%s)", distance_display$unit)
-bw_label <- format_distance_label(bandwidth_m, distance_display)
 
 build_panel <- function(yvar, sample_filter) {
   outcome_name <- dplyr::case_when(
@@ -109,8 +98,7 @@ build_panel <- function(yvar, sample_filter) {
     TRUE ~ yvar
   )
   pretty_outcome <- dplyr::case_when(
-    outcome_scale == "log" ~ paste0("Log(", outcome_name, ")"),
-    outcome_scale == "level" ~ outcome_name,
+    yvar %in% c("density_far", "density_dupac") ~ paste0("Log(", outcome_name, ")"),
     TRUE ~ outcome_name
   )
   sample_label <- dplyr::case_when(
@@ -131,7 +119,7 @@ build_panel <- function(yvar, sample_filter) {
   dat <- dat %>%
     filter(is.finite(.data[[yvar]]), .data[[yvar]] > 0) %>%
     mutate(
-      outcome = if (outcome_scale == "log") log(.data[[yvar]]) else .data[[yvar]],
+      outcome = log(.data[[yvar]]),
       running_distance = signed_distance_m,
       side = as.integer(running_distance > 0)
     )
@@ -316,7 +304,7 @@ build_panel <- function(yvar, sample_filter) {
     bandwidth_m = bandwidth_m,
     bandwidth_label = bw_label,
     bins_per_side = bins_per_side,
-    outcome_scale = outcome_scale,
+    outcome_scale = "log",
     estimate = cutoff_estimate,
     se = cutoff_se,
     p_value = cutoff_p,
@@ -349,7 +337,7 @@ combined_plot <- (panels[[1]] | panels[[2]]) / (panels[[3]] | panels[[4]]) +
     title = sprintf(
       "Local-Linear Spatial RD: All and Multifamily New Construction (%s, %s)",
       bw_label,
-      ifelse(outcome_scale == "log", "logs", "levels")
+      "logs"
     ),
     subtitle = sprintf(
       "Residualized display with %d binned points per side; negative distance is the more lenient side",

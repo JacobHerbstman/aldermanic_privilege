@@ -12,7 +12,7 @@ all: $(foreach sample,$(SAMPLES),$(foreach yvar,$(YVARS),$(foreach gap_split,$(G
 
 define GAP_SPLIT_RULE
 ../output/nonparametric_rd_density_gap_split_log_$(1)_$(BW_LABEL)_$(2)_$(3).pdf: nonparametric_rd_density_gap_split.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft Rscript nonparametric_rd_density_gap_split.R $(1) $(BW_M) $(2) $(FE_SPEC) $(BINS_PER_SIDE) $(3) ../input/parcels_with_ward_distances.csv $$@
+	DISTANCE_DISPLAY_UNIT=ft Rscript nonparametric_rd_density_gap_split.R $(1) $(BW_M) $(2) $(FE_SPEC) $(BINS_PER_SIDE) $(3)
 endef
 $(foreach yvar,$(YVARS),$(foreach sample,$(SAMPLES),$(foreach gap_split,$(GAP_SPLITS),$(eval $(call GAP_SPLIT_RULE,$(yvar),$(sample),$(gap_split))))))
 
