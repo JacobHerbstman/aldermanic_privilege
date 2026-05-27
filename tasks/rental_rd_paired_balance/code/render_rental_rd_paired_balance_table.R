@@ -4,7 +4,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_paired_balance/code")
 # bandwidth_ft <- 500
 
-source("../../setup_environment/code/packages.R")
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -22,7 +22,7 @@ bandwidth_label <- as.character(as.integer(round(bandwidth_ft)))
 min_cluster_ward_pairs <- 20L
 
 external_balance <- read_csv(
-  sprintf("../output/rental_rd_paired_covariate_balance_bw%s.csv", bandwidth_label),
+  sprintf("../temp/rental_rd_paired_covariate_balance_bw%s.csv", bandwidth_label),
   show_col_types = FALSE
 ) %>%
   filter(

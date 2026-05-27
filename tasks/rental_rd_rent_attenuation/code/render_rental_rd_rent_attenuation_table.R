@@ -5,7 +5,7 @@
 # bandwidth_ft <- 500
 # sample_name <- "clean_location"
 
-source("../../setup_environment/code/packages.R")
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -32,7 +32,7 @@ output_tex <- if (sample_name == "all") {
 }
 
 table_data <- read_csv(
-  sprintf("../output/rental_rd_rent_attenuation_bw%s.csv", bandwidth_label),
+  sprintf("../temp/rental_rd_rent_attenuation_bw%s.csv", bandwidth_label),
   show_col_types = FALSE
 ) %>%
   filter(sample == sample_name) %>%

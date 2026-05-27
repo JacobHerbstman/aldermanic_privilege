@@ -4,7 +4,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_rent_attenuation/code")
 # bandwidth_ft <- 500
 
-source("../../setup_environment/code/packages.R")
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -123,5 +123,5 @@ attenuation <- bind_rows(attenuation_rows) %>%
     spec_label = factor(spec_label, levels = c("No controls", "Hedonics", "Hedonics + amenities")),
     sample_label = factor(sample_label, levels = sample_defs$sample_label)
   )
-write_csv(attenuation, sprintf("../output/rental_rd_rent_attenuation_bw%s.csv", bandwidth_label))
+write_csv(attenuation, sprintf("../temp/rental_rd_rent_attenuation_bw%s.csv", bandwidth_label))
 message("Saved listed-rent RD attenuation estimates.")

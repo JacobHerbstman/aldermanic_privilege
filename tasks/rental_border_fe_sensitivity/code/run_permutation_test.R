@@ -1,47 +1,65 @@
-source("../../setup_environment/code/packages.R")
-
-
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
-# input <- "../input/rent_with_ward_distances.parquet"
-# bw_ft <- 1000
-# window <- "pre_2021"
+# bw_ft <- 500
+# window <- "pre_2023"
 # sample_filter <- "all"
 # use_controls <- TRUE
 # n_perms <- 500
 # seed <- 42
 # min_date <- "2015-05-18"
-# output_csv <- "../output/permutation_test_pre_2021_all_bw1000.csv"
-# output_pdf <- "../output/permutation_test_pre_2021_all_bw1000.pdf"
+
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(input, bw_ft, window, sample_filter, use_controls, n_perms, seed, min_date, output_csv, output_pdf)
+  cli_args <- c(bw_ft, window, sample_filter, use_controls, n_perms, seed, min_date)
 }
 
-if (length(cli_args) >= 10) {
-  input <- cli_args[1]
-  bw_ft <- suppressWarnings(as.integer(cli_args[2]))
-  window <- cli_args[3]
-  sample_filter <- cli_args[4]
-  use_controls <- tolower(cli_args[5]) %in% c("true", "t", "1", "yes")
-  n_perms <- suppressWarnings(as.integer(cli_args[6]))
-  seed <- suppressWarnings(as.integer(cli_args[7]))
-  min_date <- cli_args[8]
-  output_csv <- cli_args[9]
-  output_pdf <- cli_args[10]
+if (length(cli_args) == 7) {
+  bw_ft <- suppressWarnings(as.integer(cli_args[1]))
+  window <- cli_args[2]
+  sample_filter <- cli_args[3]
+  use_controls <- tolower(cli_args[4]) %in% c("true", "t", "1", "yes")
+  n_perms <- suppressWarnings(as.integer(cli_args[5]))
+  seed <- suppressWarnings(as.integer(cli_args[6]))
+  min_date <- cli_args[7]
 } else {
-  stop("FATAL: Script requires 10 args: <input> <bw_ft> <window> <sample_filter> <use_controls> <n_perms> <seed> <min_date> <output_csv> <output_pdf>", call. = FALSE)
+  stop("FATAL: Script requires 7 args: <bw_ft> <window> <sample_filter> <use_controls> <n_perms> <seed> <min_date>", call. = FALSE)
 }
 
+if (!is.finite(bw_ft) || bw_ft <= 0) {
+  stop("bw_ft must be a positive integer.", call. = FALSE)
+}
 if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
   stop("--window must be one of: full, pre_covid, pre_2021, pre_2023, drop_mid", call. = FALSE)
 }
 if (!sample_filter %in% c("all", "multifamily_only")) {
   stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
 }
+if (!is.finite(n_perms) || n_perms <= 0) {
+  stop("n_perms must be a positive integer.", call. = FALSE)
+}
+if (!is.finite(seed)) {
+  stop("seed must be finite.", call. = FALSE)
+}
+
+window_label <- c(
+  full = "full",
+  pre_covid = "2014_2019",
+  pre_2021 = "2014_2020",
+  pre_2023 = "2014_2022",
+  drop_mid = "drop_mid"
+)[[window]]
+control_label <- if (use_controls) "ctrl" else "raw"
+output_stem <- sprintf(
+  "permutation_test_%s_%s_bw%d_%s_clust_ward_pair",
+  window_label,
+  sample_filter,
+  bw_ft,
+  control_label
+)
+output_csv <- sprintf("../temp/%s.csv", output_stem)
+output_pdf <- sprintf("../output/%s.pdf", output_stem)
 
 set.seed(seed)
 
@@ -49,8 +67,7 @@ message("=== Permutation Test: Shuffle Strictness Across Aldermen ===")
 message(sprintf("bw=%d | window=%s | sample=%s | n_perms=%d | seed=%d | min_date=%s",
                 bw_ft, window, sample_filter, n_perms, seed, min_date))
 
-# ── Load and filter data ──
-dat_raw <- read_parquet(input) %>%
+dat_raw <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
   as_tibble() %>%
   mutate(
     file_date = as.Date(file_date),
@@ -99,9 +116,6 @@ if (use_controls) {
 
 if (nrow(dat_raw) == 0) stop("No data after filtering.", call. = FALSE)
 
-# ── Build the alderman-to-score mapping ──
-# Shuffle at the alderman level: permute which score each alderman gets,
-# keeping the (ward, date) -> alderman mapping fixed
 ald_own <- dat_raw %>%
   distinct(alderman_own, strictness_own) %>%
   rename(alderman = alderman_own, score = strictness_own)
@@ -116,7 +130,10 @@ ald_map <- bind_rows(ald_own, ald_neighbor) %>%
 n_aldermen <- nrow(ald_map)
 message(sprintf("Found %d unique aldermen with strictness scores.", n_aldermen))
 
-# ── Regression function ──
+if (anyDuplicated(ald_map$alderman) > 0) {
+  stop("Alderman-score map must be unique by alderman before permutation.", call. = FALSE)
+}
+
 run_regression <- function(df) {
   df <- df %>%
     mutate(
@@ -161,7 +178,6 @@ run_regression <- function(df) {
   coef(m)[["strictness_std"]]
 }
 
-# ── Real estimate ──
 dat_real <- dat_raw %>%
   mutate(
     strictness_own_perm = strictness_own,
@@ -170,7 +186,6 @@ dat_real <- dat_raw %>%
 real_coef <- run_regression(dat_real)
 message(sprintf("Real coefficient: %.6f", real_coef))
 
-# ── Run permutations: shuffle alderman -> score mapping ──
 perm_coefs <- numeric(n_perms)
 aldermen_vec <- ald_map$alderman
 scores_vec <- ald_map$score
@@ -184,9 +199,9 @@ for (i in seq_len(n_perms)) {
   perm_map <- tibble(alderman = aldermen_vec, perm_score = shuffled_scores)
 
   dat_perm <- dat_raw %>%
-    left_join(perm_map, by = c("alderman_own" = "alderman")) %>%
+    left_join(perm_map, by = c("alderman_own" = "alderman"), relationship = "many-to-one") %>%
     rename(strictness_own_perm = perm_score) %>%
-    left_join(perm_map, by = c("alderman_neighbor" = "alderman")) %>%
+    left_join(perm_map, by = c("alderman_neighbor" = "alderman"), relationship = "many-to-one") %>%
     rename(strictness_neighbor_perm = perm_score)
 
   perm_coefs[i] <- run_regression(dat_perm)
@@ -198,14 +213,12 @@ message(sprintf("Valid permutations: %d / %d", n_valid, n_perms))
 
 if (n_valid == 0) stop("No valid permutation estimates.", call. = FALSE)
 
-# ── Compute p-value ──
 p_two_sided <- mean(abs(valid_perms) >= abs(real_coef))
 p_one_sided <- mean(valid_perms >= real_coef)
 
 message(sprintf("Permutation p-value (two-sided): %.4f", p_two_sided))
 message(sprintf("Permutation p-value (one-sided): %.4f", p_one_sided))
 
-# ── Save results ──
 out <- tibble(
   bw_ft = bw_ft,
   window = window,
@@ -227,7 +240,6 @@ out <- tibble(
 )
 write_csv(out, output_csv)
 
-# ── Plot ──
 plot_df <- tibble(coef = valid_perms)
 
 p <- ggplot(plot_df, aes(x = coef)) +

@@ -4,8 +4,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_paired_balance/code")
 # bandwidth_ft <- 500
 
-source("../../setup_environment/code/packages.R")
-library(fixest)
+source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -211,5 +210,5 @@ for (i in seq_len(nrow(sample_defs))) {
 }
 
 paired_balance <- bind_rows(paired_balance_rows)
-write_csv(paired_balance, sprintf("../output/rental_rd_paired_covariate_balance_bw%s.csv", bandwidth_label))
+write_csv(paired_balance, sprintf("../temp/rental_rd_paired_covariate_balance_bw%s.csv", bandwidth_label))
 message("Saved listed-rent RD paired balance data.")
