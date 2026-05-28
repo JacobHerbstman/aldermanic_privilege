@@ -46,33 +46,18 @@ collect_query <- function(sql) {
   as.data.table(dbGetQuery(con, sql))
 }
 
-message("Auditing Illinois export city coverage...")
-city_filter_diagnostics <- collect_query(sprintf(
+message("Counting Illinois rows in date window...")
+raw_illinois_rows <- collect_query(sprintf(
   "
-  WITH scoped AS (
-    SELECT
-      CASE
-        WHEN UPPER(TRIM(CAST(CITY AS VARCHAR))) IN ('', 'NA', 'N/A', 'NAN', 'NULL', 'NONE', 'UNKNOWN') THEN NULL
-        ELSE UPPER(TRIM(CAST(CITY AS VARCHAR)))
-      END AS city_clean
-    FROM read_parquet('%s', union_by_name = true)
-    WHERE TRY_CAST(SCRAPED_TIMESTAMP AS DATE) >= CAST('%s' AS DATE)
-      AND TRY_CAST(SCRAPED_TIMESTAMP AS DATE) <= CAST('%s' AS DATE)
-  )
-  SELECT
-    COALESCE(city_clean, 'MISSING') AS city,
-    COUNT(*) AS n_rows,
-    AVG(CASE WHEN city_clean = 'CHICAGO' THEN 1.0 ELSE 0.0 END) AS share_chicago,
-    AVG(CASE WHEN city_clean IN ('CHICAGO', 'CHGO') THEN 1.0 ELSE 0.0 END) AS share_chicago_alias
-  FROM scoped
-  GROUP BY 1
-  ORDER BY n_rows DESC, city
+  SELECT COUNT(*) AS n
+  FROM read_parquet('%s', union_by_name = true)
+  WHERE TRY_CAST(SCRAPED_TIMESTAMP AS DATE) >= CAST('%s' AS DATE)
+    AND TRY_CAST(SCRAPED_TIMESTAMP AS DATE) <= CAST('%s' AS DATE)
   ",
   sql_escape(raw_glob),
   start_date,
   end_date
-))
-fwrite(city_filter_diagnostics, "../output/renthub_city_filter_diagnostics.csv")
+))$n[1]
 
 message("Loading Chicago rows and building transparent property/floorplan keys...")
 dbExecute(
@@ -186,7 +171,7 @@ if (!is.finite(raw_count) || raw_count == 0L) {
 message(sprintf(
   "Chicago rows after city filter: %s of %s raw Illinois rows in window.",
   format(raw_count, big.mark = ","),
-  format(sum(city_filter_diagnostics$n_rows), big.mark = ",")
+  format(raw_illinois_rows, big.mark = ",")
 ))
 
 dbExecute(
@@ -249,121 +234,7 @@ dbExecute(
   "
 )
 
-message("Writing raw-to-clean identifier and building-type diagnostics...")
-key_diagnostics <- rbindlist(list(
-  collect_query(
-    "
-    SELECT
-      'overall' AS scope,
-      NULL AS year,
-      COUNT(*) AS n_rows,
-      AVG(CASE WHEN id IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_id,
-      AVG(CASE WHEN property_id IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_property_id,
-      AVG(CASE WHEN unit_id IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_unit_id,
-      AVG(CASE WHEN address_norm IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_valid_address,
-      AVG(address_zero_flag) AS share_address_zero,
-      AVG(address_missing_flag) AS share_address_zero_or_missing,
-      AVG(valid_coordinates) AS share_valid_coordinates,
-      AVG(chicago_bbox) AS share_chicago_bbox,
-      AVG(CASE WHEN beds IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_beds,
-      AVG(CASE WHEN baths IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_baths,
-      AVG(CASE WHEN sqft IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_sqft,
-      AVG(CASE WHEN building_type IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_building_type,
-      COUNT(DISTINCT property_key) AS distinct_property_keys,
-      COUNT(DISTINCT floorplan_key) AS distinct_floorplan_keys
-    FROM keyed_rows
-    "
-  ),
-  collect_query(
-    "
-    SELECT
-      'year' AS scope,
-      CAST(YEAR(file_date) AS INTEGER) AS year,
-      COUNT(*) AS n_rows,
-      AVG(CASE WHEN id IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_id,
-      AVG(CASE WHEN property_id IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_property_id,
-      AVG(CASE WHEN unit_id IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_unit_id,
-      AVG(CASE WHEN address_norm IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_valid_address,
-      AVG(address_zero_flag) AS share_address_zero,
-      AVG(address_missing_flag) AS share_address_zero_or_missing,
-      AVG(valid_coordinates) AS share_valid_coordinates,
-      AVG(chicago_bbox) AS share_chicago_bbox,
-      AVG(CASE WHEN beds IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_beds,
-      AVG(CASE WHEN baths IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_baths,
-      AVG(CASE WHEN sqft IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_sqft,
-      AVG(CASE WHEN building_type IS NOT NULL THEN 1.0 ELSE 0.0 END) AS share_building_type,
-      COUNT(DISTINCT property_key) AS distinct_property_keys,
-      COUNT(DISTINCT floorplan_key) AS distinct_floorplan_keys
-    FROM keyed_rows
-    GROUP BY 1, 2
-    ORDER BY 2
-    "
-  )
-), fill = TRUE)
-fwrite(key_diagnostics, "../output/renthub_key_diagnostics.csv")
-
-building_type_diagnostics <- collect_query(
-  "
-  SELECT
-    COALESCE(UPPER(TRIM(CAST(building_type AS VARCHAR))), 'MISSING') AS building_type_raw,
-    building_type_clean,
-    COUNT(*) AS raw_rows,
-    COUNT(DISTINCT floorplan_key) AS floorplan_keys,
-    QUANTILE_CONT(rent_price, 0.50) FILTER (WHERE rent_price IS NOT NULL) AS rent_p50,
-    QUANTILE_CONT(rent_price, 0.99) FILTER (WHERE rent_price IS NOT NULL) AS rent_p99
-  FROM keyed_rows
-  GROUP BY 1, 2
-  ORDER BY raw_rows DESC, building_type_raw
-  "
-)
-fwrite(building_type_diagnostics, "../output/renthub_building_type_diagnostics.csv")
-
-message("Collapsing raw rows to property-day and floorplan-day diagnostics...")
-dbExecute(
-  con,
-  "
-  CREATE OR REPLACE TEMP TABLE property_day_base AS
-  SELECT
-    CAST(YEAR(file_date) AS INTEGER) AS year,
-    file_date,
-    property_key,
-    MAX(address_missing) AS address_missing,
-    COUNT(*) AS raw_rows,
-    COUNT(DISTINCT floorplan_key) AS floorplans,
-    COUNT(DISTINCT rent_cell_key) AS rent_cells,
-    COUNT(DISTINCT rent_price) FILTER (WHERE rent_price IS NOT NULL) AS distinct_raw_rents,
-    QUANTILE_CONT(rent_price, 0.50) FILTER (WHERE rent_price IS NOT NULL) AS rent_p50,
-    MIN(rent_price) FILTER (WHERE rent_price IS NOT NULL) AS rent_min,
-    MAX(rent_price) FILTER (WHERE rent_price IS NOT NULL) AS rent_max
-  FROM keyed_rows
-  WHERE property_key IS NOT NULL
-  GROUP BY 1, 2, 3
-  "
-)
-
-property_day_diagnostics <- collect_query(
-  "
-  SELECT
-    year,
-    COUNT(*) AS property_days,
-    SUM(raw_rows) AS raw_rows,
-    QUANTILE_CONT(floorplans, 0.50) AS floorplans_p50,
-    QUANTILE_CONT(floorplans, 0.90) AS floorplans_p90,
-    QUANTILE_CONT(floorplans, 0.99) AS floorplans_p99,
-    MAX(floorplans) AS floorplans_max,
-    AVG(CASE WHEN floorplans >= 10 THEN 1.0 ELSE 0.0 END) AS share_10plus_floorplans,
-    QUANTILE_CONT(rent_cells, 0.50) AS rent_cells_p50,
-    QUANTILE_CONT(rent_cells, 0.90) AS rent_cells_p90,
-    QUANTILE_CONT(rent_cells, 0.99) AS rent_cells_p99,
-    MAX(rent_cells) AS rent_cells_max,
-    AVG(CASE WHEN rent_cells >= 10 THEN 1.0 ELSE 0.0 END) AS share_10plus_rent_cells,
-    AVG(address_missing) AS share_address_missing
-  FROM property_day_base
-  GROUP BY 1
-  ORDER BY 1
-  "
-)
-fwrite(property_day_diagnostics, "../output/renthub_property_day_diagnostics.csv")
+message("Collapsing raw rows to floorplan-day observations...")
 
 dbExecute(
   con,
@@ -497,63 +368,11 @@ dbExecute(
   "
 )
 
-floorplan_day_diagnostics <- rbindlist(list(
-  collect_query(
-    "
-    SELECT
-      'year' AS scope,
-      CAST(year AS VARCHAR) AS group_value,
-      COUNT(*) AS floorplan_days,
-      SUM(raw_rows_day) AS raw_rows,
-      SUM(main_day_flag) AS main_floorplan_days,
-      AVG(multi_rent_day) AS share_multi_rent_day,
-      AVG(same_rent_repeat_day) AS share_same_rent_repeat_day,
-      QUANTILE_CONT(rent_values_day, 0.50) AS rent_values_p50,
-      QUANTILE_CONT(rent_values_day, 0.90) AS rent_values_p90,
-      QUANTILE_CONT(rent_values_day, 0.99) AS rent_values_p99,
-      MAX(rent_values_day) AS rent_values_max,
-      QUANTILE_CONT(rent_price, 0.01) AS rent_p01,
-      QUANTILE_CONT(rent_price, 0.50) AS rent_p50,
-      QUANTILE_CONT(rent_price, 0.99) AS rent_p99,
-      QUANTILE_CONT(posted_lag_p50, 0.50) FILTER (WHERE posted_lag_p50 IS NOT NULL) AS posted_lag_p50,
-      QUANTILE_CONT(posted_lag_p90, 0.50) FILTER (WHERE posted_lag_p90 IS NOT NULL) AS posted_lag_p90
-    FROM floorplan_day_clean
-    GROUP BY 1, 2
-    ORDER BY 2
-    "
-  ),
-  collect_query(
-    "
-    SELECT
-      'building_type_clean' AS scope,
-      building_type_clean AS group_value,
-      COUNT(*) AS floorplan_days,
-      SUM(raw_rows_day) AS raw_rows,
-      SUM(main_day_flag) AS main_floorplan_days,
-      AVG(multi_rent_day) AS share_multi_rent_day,
-      AVG(same_rent_repeat_day) AS share_same_rent_repeat_day,
-      QUANTILE_CONT(rent_values_day, 0.50) AS rent_values_p50,
-      QUANTILE_CONT(rent_values_day, 0.90) AS rent_values_p90,
-      QUANTILE_CONT(rent_values_day, 0.99) AS rent_values_p99,
-      MAX(rent_values_day) AS rent_values_max,
-      QUANTILE_CONT(rent_price, 0.01) AS rent_p01,
-      QUANTILE_CONT(rent_price, 0.50) AS rent_p50,
-      QUANTILE_CONT(rent_price, 0.99) AS rent_p99,
-      QUANTILE_CONT(posted_lag_p50, 0.50) FILTER (WHERE posted_lag_p50 IS NOT NULL) AS posted_lag_p50,
-      QUANTILE_CONT(posted_lag_p90, 0.50) FILTER (WHERE posted_lag_p90 IS NOT NULL) AS posted_lag_p90
-    FROM floorplan_day_clean
-    GROUP BY 1, 2
-    ORDER BY floorplan_days DESC
-    "
-  )
-), fill = TRUE)
-fwrite(floorplan_day_diagnostics, "../output/renthub_floorplan_day_diagnostics.csv")
-
-message("Building main floorplan-month panel and drop-multi-rent robustness panel...")
-create_month_panel <- function(output_table, day_filter) {
-  dbExecute(con, sprintf(
-    "
-    CREATE OR REPLACE TEMP TABLE %s_first AS
+message("Building main floorplan-month panel...")
+dbExecute(
+  con,
+  "
+    CREATE OR REPLACE TEMP TABLE floorplan_month_main_first AS
     SELECT *
     FROM (
       SELECT
@@ -563,17 +382,16 @@ create_month_panel <- function(output_table, day_filter) {
           ORDER BY file_date, last_scraped_timestamp, id
         ) AS month_order
       FROM floorplan_day_clean
-      WHERE %s
+      WHERE main_day_flag = 1
     )
     WHERE month_order = 1
-    ",
-    output_table,
-    day_filter
-  ))
+  "
+)
 
-  dbExecute(con, sprintf(
-    "
-    CREATE OR REPLACE TEMP TABLE %s_agg AS
+dbExecute(
+  con,
+  "
+    CREATE OR REPLACE TEMP TABLE floorplan_month_main_agg AS
     SELECT
       analysis_key,
       month_start,
@@ -604,18 +422,17 @@ create_month_panel <- function(output_table, day_filter) {
       AVG(multi_rent_day) AS share_multi_rent_days,
       AVG(same_rent_repeat_day) AS share_same_rent_repeat_days
     FROM floorplan_day_clean
-    WHERE %s
+    WHERE main_day_flag = 1
     GROUP BY 1, 2
-    ",
-    output_table,
-    day_filter
-  ))
+  "
+)
 
-  dbExecute(con, sprintf(
-    "
-    CREATE OR REPLACE TEMP TABLE %s AS
+dbExecute(
+  con,
+  "
+    CREATE OR REPLACE TEMP TABLE floorplan_month_main AS
     SELECT
-      f.analysis_key || '__' || STRFTIME(f.month_start, '%%Y-%%m') AS rent_panel_id,
+      f.analysis_key || '__' || STRFTIME(f.month_start, '%Y-%m') AS rent_panel_id,
       f.id,
       f.property_id,
       f.unit_id,
@@ -661,19 +478,12 @@ create_month_panel <- function(output_table, day_filter) {
       a.gym,
       a.laundry,
       a.pool
-    FROM %s_first f
-    INNER JOIN %s_agg a
+    FROM floorplan_month_main_first f
+    INNER JOIN floorplan_month_main_agg a
       ON f.analysis_key = a.analysis_key
       AND f.month_start = a.month_start
-    ",
-    output_table,
-    output_table,
-    output_table
-  ))
-}
-
-create_month_panel("floorplan_month_main", "main_day_flag = 1")
-create_month_panel("floorplan_month_drop_multi", "main_day_flag = 1 AND multi_rent_day = 0")
+  "
+)
 
 unlink("../output/chicago_rent_panel.parquet", recursive = TRUE, force = TRUE)
 dbExecute(
@@ -684,401 +494,6 @@ dbExecute(
   (FORMAT PARQUET, COMPRESSION ZSTD)
   "
 )
-unlink("../output/chicago_rent_panel_drop_multi_rent.parquet", recursive = TRUE, force = TRUE)
-dbExecute(
-  con,
-  "
-  COPY floorplan_month_drop_multi
-  TO '../output/chicago_rent_panel_drop_multi_rent.parquet'
-  (FORMAT PARQUET, COMPRESSION ZSTD)
-  "
-)
-
-message("Building episode-start robustness panels for 30/45/60/90 day gaps...")
-episode_gap_values <- c(30L, 45L, 60L, 90L)
-for (episode_gap_days in episode_gap_values) {
-  dbExecute(con, sprintf(
-    "
-    CREATE OR REPLACE TEMP TABLE episode_day_markers AS
-    WITH ordered AS (
-      SELECT
-        *,
-        LAG(file_date) OVER (PARTITION BY analysis_key ORDER BY file_date) AS previous_file_date
-      FROM floorplan_day_clean
-      WHERE main_day_flag = 1
-    ),
-    marked AS (
-      SELECT
-        *,
-        CASE
-          WHEN previous_file_date IS NULL THEN 1
-          WHEN DATE_DIFF('day', previous_file_date, file_date) > %d THEN 1
-          ELSE 0
-        END AS starts_episode
-      FROM ordered
-    )
-    SELECT
-      *,
-      SUM(starts_episode) OVER (
-        PARTITION BY analysis_key
-        ORDER BY file_date
-        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-      ) AS episode_number
-    FROM marked
-    ",
-    episode_gap_days
-  ))
-
-  dbExecute(con, sprintf(
-    "
-    CREATE OR REPLACE TEMP TABLE episode_first AS
-    SELECT *
-    FROM (
-      SELECT
-        *,
-        ROW_NUMBER() OVER (
-          PARTITION BY analysis_key, episode_number
-          ORDER BY file_date, last_scraped_timestamp, id
-        ) AS episode_order
-      FROM episode_day_markers
-    )
-    WHERE episode_order = 1
-    "
-  ))
-
-  dbExecute(con, sprintf(
-    "
-    CREATE OR REPLACE TEMP TABLE episode_gap_panel AS
-    WITH episode_agg AS (
-      SELECT
-        analysis_key,
-        episode_number,
-        MIN(file_date) AS episode_start_date,
-        MAX(file_date) AS episode_end_date,
-        COUNT(*) AS episode_obs_days,
-        SUM(raw_rows_day) AS raw_rows_episode,
-        COUNT(DISTINCT rent_price) AS episode_n_rent_values,
-        QUANTILE_CONT(rent_price, 0.50) AS episode_median_rent,
-        AVG(rent_price) AS episode_mean_rent,
-        MIN(rent_price) AS episode_min_rent,
-        MAX(rent_price) AS episode_max_rent,
-        SUM(multi_rent_day) AS episode_multi_rent_days,
-        SUM(same_rent_repeat_day) AS episode_same_rent_repeat_days,
-        QUANTILE_CONT(latitude, 0.50) AS latitude,
-        QUANTILE_CONT(longitude, 0.50) AS longitude,
-        QUANTILE_CONT(beds, 0.50) FILTER (WHERE beds IS NOT NULL) AS beds,
-        QUANTILE_CONT(baths, 0.50) FILTER (WHERE baths IS NOT NULL) AS baths,
-        QUANTILE_CONT(sqft, 0.50) FILTER (WHERE sqft IS NOT NULL) AS sqft,
-        QUANTILE_CONT(year_built, 0.50) FILTER (WHERE year_built IS NOT NULL) AS year_built
-      FROM episode_day_markers
-      GROUP BY 1, 2
-    )
-    SELECT
-      %d AS episode_gap_days,
-      f.analysis_key || '__gap%d__' || CAST(f.episode_number AS VARCHAR) AS episode_id,
-      f.id,
-      f.property_id,
-      f.unit_id,
-      f.property_key,
-      f.floorplan_key,
-      f.analysis_key,
-      f.key_source,
-      f.address_norm,
-      f.address_missing,
-      a.episode_start_date AS file_date,
-      DATE_TRUNC('month', a.episode_start_date)::DATE AS month_start,
-      CAST(YEAR(a.episode_start_date) AS INTEGER) AS year,
-      a.episode_start_date,
-      a.episode_end_date,
-      a.episode_obs_days,
-      a.raw_rows_episode,
-      a.episode_n_rent_values,
-      a.episode_median_rent AS rent_price,
-      a.episode_median_rent,
-      f.rent_price AS first_observed_rent,
-      a.episode_mean_rent,
-      a.episode_min_rent,
-      a.episode_max_rent,
-      a.episode_multi_rent_days,
-      a.episode_same_rent_repeat_days,
-      f.building_type,
-      f.building_type_clean,
-      f.availability_status,
-      a.beds,
-      a.baths,
-      a.sqft,
-      a.year_built,
-      a.latitude,
-      a.longitude,
-      f.doorman,
-      f.furnished,
-      f.gym,
-      f.laundry,
-      f.pool
-    FROM episode_first f
-    INNER JOIN episode_agg a
-      ON f.analysis_key = a.analysis_key
-      AND f.episode_number = a.episode_number
-    ",
-    episode_gap_days,
-    episode_gap_days
-  ))
-
-  if (episode_gap_days == episode_gap_values[1]) {
-    dbExecute(con, "CREATE OR REPLACE TEMP TABLE episode_robustness AS SELECT * FROM episode_gap_panel")
-  } else {
-    dbExecute(con, "INSERT INTO episode_robustness SELECT * FROM episode_gap_panel")
-  }
-}
-
-unlink("../output/chicago_rent_episode_robustness.parquet", recursive = TRUE, force = TRUE)
-dbExecute(
-  con,
-  "
-  COPY episode_robustness
-  TO '../output/chicago_rent_episode_robustness.parquet'
-  (FORMAT PARQUET, COMPRESSION ZSTD)
-  "
-)
-
-episode_diagnostics <- collect_query(
-  "
-  SELECT
-    episode_gap_days,
-    COUNT(*) AS episodes,
-    COUNT(DISTINCT analysis_key) AS analysis_keys,
-    QUANTILE_CONT(episode_obs_days, 0.50) AS obs_days_p50,
-    QUANTILE_CONT(episode_obs_days, 0.90) AS obs_days_p90,
-    QUANTILE_CONT(episode_obs_days, 0.99) AS obs_days_p99,
-    AVG(CASE WHEN episode_n_rent_values > 1 THEN 1.0 ELSE 0.0 END) AS share_multi_rent_episodes,
-    QUANTILE_CONT(rent_price, 0.01) AS rent_p01,
-    QUANTILE_CONT(rent_price, 0.50) AS rent_p50,
-    QUANTILE_CONT(rent_price, 0.99) AS rent_p99
-  FROM episode_robustness
-  GROUP BY 1
-  ORDER BY 1
-  "
-)
-fwrite(episode_diagnostics, "../output/renthub_episode_diagnostics.csv")
-
-message("Writing monthly diagnostics and redacted collision examples...")
-floorplan_month_diagnostics <- collect_query(
-  "
-  SELECT
-    year,
-    COUNT(*) AS floorplan_months,
-    SUM(raw_rows_month) AS raw_rows_month,
-    QUANTILE_CONT(active_days, 0.50) AS active_days_p50,
-    QUANTILE_CONT(active_days, 0.90) AS active_days_p90,
-    QUANTILE_CONT(active_days, 0.99) AS active_days_p99,
-    MAX(active_days) AS active_days_max,
-    AVG(CASE WHEN active_days >= 20 THEN 1.0 ELSE 0.0 END) AS share_20plus_active_days,
-    AVG(CASE WHEN distinct_daily_rents = 1 THEN 1.0 ELSE 0.0 END) AS share_one_rent_months,
-    AVG(CASE WHEN distinct_daily_rents > 1 THEN 1.0 ELSE 0.0 END) AS share_multi_rent_months,
-    AVG(CASE WHEN multi_rent_days > 0 THEN 1.0 ELSE 0.0 END) AS share_any_multi_rent_day,
-    AVG(address_missing) AS share_address_missing,
-    QUANTILE_CONT(rent_price, 0.01) AS rent_p01,
-    QUANTILE_CONT(rent_price, 0.50) AS rent_p50,
-    QUANTILE_CONT(rent_price, 0.99) AS rent_p99
-  FROM floorplan_month_main
-  GROUP BY 1
-  ORDER BY 1
-  "
-)
-fwrite(floorplan_month_diagnostics, "../output/renthub_floorplan_month_diagnostics.csv")
-
-monthly_series <- collect_query(
-  "
-  SELECT
-    month_start,
-    COUNT(*) AS floorplan_months,
-    SUM(raw_rows_month) AS raw_rows_month,
-    AVG(active_days) AS mean_active_days,
-    QUANTILE_CONT(active_days, 0.50) AS active_days_p50,
-    QUANTILE_CONT(rent_price, 0.25) AS rent_p25,
-    QUANTILE_CONT(rent_price, 0.50) AS rent_p50,
-    QUANTILE_CONT(rent_price, 0.75) AS rent_p75,
-    AVG(rent_price) AS rent_mean,
-    AVG(CASE WHEN building_type_clean = 'multi_family' THEN 1.0 ELSE 0.0 END) AS share_multi_family,
-    AVG(CASE WHEN building_type_clean = 'single_family' THEN 1.0 ELSE 0.0 END) AS share_single_family,
-    AVG(CASE WHEN building_type_clean = 'condo' THEN 1.0 ELSE 0.0 END) AS share_condo,
-    AVG(CASE WHEN building_type_clean = 'townhouse' THEN 1.0 ELSE 0.0 END) AS share_townhouse,
-    AVG(CASE WHEN building_type_clean = 'commercial' THEN 1.0 ELSE 0.0 END) AS share_commercial,
-    AVG(address_missing) AS share_address_missing,
-    AVG(CASE WHEN multi_rent_days > 0 THEN 1.0 ELSE 0.0 END) AS share_any_multi_rent_day
-  FROM floorplan_month_main
-  GROUP BY 1
-  ORDER BY 1
-  "
-)
-fwrite(monthly_series, "../output/renthub_monthly_series.csv")
-
-collision_examples <- collect_query(
-  "
-  WITH collision_candidates AS (
-    SELECT
-      f.year,
-      f.file_date,
-      SUBSTR(MD5(COALESCE(f.property_key, 'missing')), 1, 16) AS property_hash,
-      SUBSTR(MD5(COALESCE(f.floorplan_key, 'missing')), 1, 16) AS floorplan_hash,
-      f.building_type_clean,
-      f.beds,
-      f.baths,
-      f.sqft,
-      f.address_missing,
-      f.raw_rows_day,
-      f.rent_values_day,
-      f.rent_cells_day,
-      f.rent_min,
-      f.rent_price AS rent_p50,
-      f.rent_max,
-      p.floorplans AS property_day_floorplans,
-      p.rent_cells AS property_day_rent_cells,
-      p.raw_rows AS property_day_raw_rows
-    FROM floorplan_day_clean f
-    LEFT JOIN property_day_base p
-      ON f.property_key = p.property_key
-      AND f.file_date = p.file_date
-    WHERE f.main_day_flag = 1
-      AND (
-        f.multi_rent_day = 1
-        OR p.floorplans >= 10
-        OR p.rent_cells >= 10
-      )
-  )
-  SELECT *
-  FROM collision_candidates
-  ORDER BY property_day_raw_rows DESC NULLS LAST,
-    raw_rows_day DESC,
-    rent_values_day DESC
-  LIMIT 250
-  "
-)
-fwrite(collision_examples, "../output/renthub_collision_examples.csv")
-
-drop_reasons <- collect_query(
-  "
-  WITH reason_rows AS (
-    SELECT 'raw_chicago_rows' AS reason, COUNT(*) AS n_rows FROM keyed_rows
-    UNION ALL
-    SELECT 'missing_or_invalid_coordinates', COUNT(*) FROM keyed_rows WHERE valid_coordinates = 0
-    UNION ALL
-    SELECT 'outside_chicago_bbox_days', COUNT(*) FROM floorplan_day_clean WHERE keep_chicago_bbox = 0
-    UNION ALL
-    SELECT 'rent_nonpositive_or_outlier_days', COUNT(*) FROM floorplan_day_clean WHERE keep_rent_trim01 = 0
-    UNION ALL
-    SELECT 'sqft_outlier_days', COUNT(*) FROM floorplan_day_clean WHERE keep_sqft_trim01 = 0
-    UNION ALL
-    SELECT 'main_floorplan_days_kept', COUNT(*) FROM floorplan_day_clean WHERE main_day_flag = 1
-    UNION ALL
-    SELECT 'multi_rent_days_retained_main', COUNT(*) FROM floorplan_day_clean WHERE main_day_flag = 1 AND multi_rent_day = 1
-    UNION ALL
-    SELECT 'multi_rent_days_dropped_only_in_robustness', COUNT(*) FROM floorplan_day_clean WHERE main_day_flag = 1 AND multi_rent_day = 1
-    UNION ALL
-    SELECT 'main_floorplan_months', COUNT(*) FROM floorplan_month_main
-    UNION ALL
-    SELECT 'drop_multi_rent_floorplan_months', COUNT(*) FROM floorplan_month_drop_multi
-  )
-  SELECT * FROM reason_rows
-  "
-)
-fwrite(drop_reasons, "../output/renthub_drop_reasons.csv")
-
-drop_reasons_by_year <- collect_query(
-  "
-  WITH reason_rows AS (
-    SELECT CAST(YEAR(file_date) AS INTEGER) AS year, 'raw_chicago_rows' AS reason, COUNT(*) AS n_rows
-    FROM keyed_rows
-    GROUP BY 1
-    UNION ALL
-    SELECT CAST(YEAR(file_date) AS INTEGER), 'missing_or_invalid_coordinates', COUNT(*)
-    FROM keyed_rows
-    WHERE valid_coordinates = 0
-    GROUP BY 1
-    UNION ALL
-    SELECT year, 'outside_chicago_bbox_days', COUNT(*)
-    FROM floorplan_day_clean
-    WHERE keep_chicago_bbox = 0
-    GROUP BY 1
-    UNION ALL
-    SELECT year, 'rent_nonpositive_or_outlier_days', COUNT(*)
-    FROM floorplan_day_clean
-    WHERE keep_rent_trim01 = 0
-    GROUP BY 1
-    UNION ALL
-    SELECT year, 'sqft_outlier_days', COUNT(*)
-    FROM floorplan_day_clean
-    WHERE keep_sqft_trim01 = 0
-    GROUP BY 1
-    UNION ALL
-    SELECT year, 'main_floorplan_days_kept', COUNT(*)
-    FROM floorplan_day_clean
-    WHERE main_day_flag = 1
-    GROUP BY 1
-    UNION ALL
-    SELECT year, 'multi_rent_days_retained_main', COUNT(*)
-    FROM floorplan_day_clean
-    WHERE main_day_flag = 1 AND multi_rent_day = 1
-    GROUP BY 1
-    UNION ALL
-    SELECT year, 'multi_rent_days_dropped_only_in_robustness', COUNT(*)
-    FROM floorplan_day_clean
-    WHERE main_day_flag = 1 AND multi_rent_day = 1
-    GROUP BY 1
-    UNION ALL
-    SELECT year, 'main_floorplan_months', COUNT(*)
-    FROM floorplan_month_main
-    GROUP BY 1
-    UNION ALL
-    SELECT year, 'drop_multi_rent_floorplan_months', COUNT(*)
-    FROM floorplan_month_drop_multi
-    GROUP BY 1
-  )
-  SELECT * FROM reason_rows
-  ORDER BY year, reason
-  "
-)
-fwrite(drop_reasons_by_year, "../output/renthub_drop_reasons_by_year.csv")
-
-processing_diagnostics <- data.table(
-  metric = c(
-    "raw_files",
-    "raw_illinois_rows_in_window",
-    "raw_chicago_rows",
-    "valid_coordinate_rows",
-    "valid_address_rows",
-    "address_zero_rows",
-    "property_day_rows",
-    "floorplan_day_rows",
-    "main_floorplan_day_rows",
-    "main_floorplan_month_rows",
-    "drop_multi_rent_floorplan_month_rows",
-    "episode_robustness_rows",
-    "distinct_property_keys",
-    "distinct_floorplan_keys",
-    "main_address_missing_share",
-    "main_any_multi_rent_day_share"
-  ),
-  value = c(
-    length(raw_files),
-    sum(city_filter_diagnostics$n_rows),
-    raw_count,
-    collect_query("SELECT COUNT(*) AS n FROM keyed_rows WHERE valid_coordinates = 1")$n[1],
-    collect_query("SELECT COUNT(*) AS n FROM keyed_rows WHERE address_norm IS NOT NULL")$n[1],
-    collect_query("SELECT COUNT(*) AS n FROM keyed_rows WHERE address_zero_flag = 1")$n[1],
-    collect_query("SELECT COUNT(*) AS n FROM property_day_base")$n[1],
-    collect_query("SELECT COUNT(*) AS n FROM floorplan_day_clean")$n[1],
-    collect_query("SELECT COUNT(*) AS n FROM floorplan_day_clean WHERE main_day_flag = 1")$n[1],
-    collect_query("SELECT COUNT(*) AS n FROM floorplan_month_main")$n[1],
-    collect_query("SELECT COUNT(*) AS n FROM floorplan_month_drop_multi")$n[1],
-    collect_query("SELECT COUNT(*) AS n FROM episode_robustness")$n[1],
-    collect_query("SELECT COUNT(DISTINCT property_key) AS n FROM keyed_rows")$n[1],
-    collect_query("SELECT COUNT(DISTINCT floorplan_key) AS n FROM keyed_rows")$n[1],
-    collect_query("SELECT AVG(address_missing) AS n FROM floorplan_month_main")$n[1],
-    collect_query("SELECT AVG(CASE WHEN multi_rent_days > 0 THEN 1.0 ELSE 0.0 END) AS n FROM floorplan_month_main")$n[1]
-  )
-)
-fwrite(processing_diagnostics, "../output/renthub_processing_diagnostics.csv")
 
 message("Running built-in validation checks...")
 duplicate_months <- collect_query(
@@ -1149,8 +564,7 @@ if (
 }
 
 message(sprintf(
-  "Wrote %s main floorplan-month rows and %s drop-multi-rent robustness rows.",
-  format(collect_query("SELECT COUNT(*) AS n FROM floorplan_month_main")$n[1], big.mark = ","),
-  format(collect_query("SELECT COUNT(*) AS n FROM floorplan_month_drop_multi")$n[1], big.mark = ",")
+  "Wrote %s main floorplan-month rows.",
+  format(collect_query("SELECT COUNT(*) AS n FROM floorplan_month_main")$n[1], big.mark = ",")
 ))
 message("RentHub cleaning complete.")
