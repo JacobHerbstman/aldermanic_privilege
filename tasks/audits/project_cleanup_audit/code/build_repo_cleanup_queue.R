@@ -83,7 +83,7 @@ queue_dt[, recommended_batch := fcase(
     "create_alderman_uncertainty_index",
     "new_construction_score_variants",
     "new_construction_score_comparison",
-    "uncertainty_validation_checks",
+    "permit_stringency_table",
     "within_ward_strictness",
     "uncertainty_score_density_robustness"
   ),

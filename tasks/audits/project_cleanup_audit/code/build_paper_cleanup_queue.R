@@ -105,7 +105,7 @@ branch_bucket <- function(task) {
     "create_alderman_uncertainty_index",
     "strictness_score_map",
     "within_ward_strictness",
-    "uncertainty_validation_checks"
+    "permit_stringency_table"
   )) {
     return("stringency")
   }

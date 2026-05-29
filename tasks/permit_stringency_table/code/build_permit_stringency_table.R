@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/uncertainty_validation_checks/code")
+# setwd("tasks/permit_stringency_table/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 # max_application_ym <- "2022-12"
 
@@ -12,7 +12,7 @@ if (length(args) == 0) {
 
 if (length(args) != 2) {
   stop(
-    "Usage: Rscript build_permit_validation_table.R <spec> <max_application_ym>",
+    "Usage: Rscript build_permit_stringency_table.R <spec> <max_application_ym>",
     call. = FALSE
   )
 }

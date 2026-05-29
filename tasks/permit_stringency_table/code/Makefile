@@ -3,7 +3,7 @@ MAX_APPLICATION_YM ?= 2022-12
 
 all: ../output/permit_validation_table_uncertainty_$(UNCERTAINTY_SPEC).tex
 
-../output/permit_validation_table_uncertainty_$(UNCERTAINTY_SPEC).tex: build_permit_validation_table.R ../input/building_permits_text_features.csv.gz ../input/chicago_alderman_panel.csv ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv | ../output
+../output/permit_validation_table_uncertainty_$(UNCERTAINTY_SPEC).tex: build_permit_stringency_table.R ../input/building_permits_text_features.csv.gz ../input/chicago_alderman_panel.csv ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv | ../output
 	Rscript $< "$(UNCERTAINTY_SPEC)" $(MAX_APPLICATION_YM)
 
 ../input/building_permits_text_features.csv.gz: ../../building_permits_scraping/output/building_permits_text_features.csv.gz | ../input

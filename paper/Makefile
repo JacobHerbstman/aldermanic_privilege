@@ -41,7 +41,7 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex \
 	../tasks/permit_summary_stats/output/permit_processing_time_volume_correlation.tex \
 	../tasks/pruned_boundary_maps/output/pruned_boundaries_all_segments_by_era.pdf \
-	../tasks/rental_data_validation/output/rental_data_validation_growth.tex \
+	../tasks/rental_benchmark_table/output/rental_data_validation_growth.tex \
 	../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls.pdf \
 	../tasks/rental_rd_paired_balance/output/rental_rd_paired_external_amenity_balance_bw500.tex \
 	../tasks/rental_rd_rent_attenuation/output/rental_rd_rent_attenuation_clean_location_bw500.tex \
@@ -57,7 +57,7 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/sales_border_pair_fe/output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment.pdf \
 	../tasks/strictness_score_map/output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022-01.pdf \
 	../tasks/summary_stats_new_construction/output/summary_stats.tex \
-	../tasks/uncertainty_validation_checks/output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
+	../tasks/permit_stringency_table/output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
 	../tasks/within_ward_strictness/output/low_discretion_falsification_compact_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
 	../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf
 	latexmk -pdf -pdflatex="pdflatex -interaction=nonstopmode" -use-make paper.tex

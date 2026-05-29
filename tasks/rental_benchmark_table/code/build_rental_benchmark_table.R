@@ -1,6 +1,6 @@
-# Validate real citywide listed-rent growth against Zillow ZORI.
+# Benchmark real citywide listed-rent growth against Zillow ZORI.
 
-# setwd("tasks/rental_data_validation/code")
+# setwd("tasks/rental_benchmark_table/code")
 
 source("../../setup_environment/code/packages.R")
 
