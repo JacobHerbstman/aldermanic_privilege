@@ -29,15 +29,15 @@ link-inputs: sanitize-numbered-duplicates
 
 ../../% ../../../% ../../../../%:
 	@case "$@" in \
-		../../*/output/*) \
-			task=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./##; s#/output/.*##'); \
-			output=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./[^/]*/output/#../output/#'); \
-			$(MAKE_COMMAND) -C "../../$$task/code" "$$output"; \
-			;; \
 		../../../*/output/*) \
 			task=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./\.\./##; s#/output/.*##'); \
 			output=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./\.\./[^/]*/output/#../output/#'); \
 			$(MAKE_COMMAND) -C "../../../$$task/code" "$$output"; \
+			;; \
+		../../*/output/*) \
+			task=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./##; s#/output/.*##'); \
+			output=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./[^/]*/output/#../output/#'); \
+			$(MAKE_COMMAND) -C "../../$$task/code" "$$output"; \
 			;; \
 		../../../data_raw/*|../../../../data_raw/*) \
 			test -e "$@" || { echo "Missing raw root: $@"; false; }; \

@@ -1,6 +1,6 @@
 # --- Interactive Test Block ---
-# setwd("tasks/border_pair_FE_regressions/code")
-# bandwidth_m <- "152.4"
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
+# bandwidth_m <- 152.4
 # sample_filter <- "multifamily"
 # fe_spec <- "zonegroup_segment_year_additive"
 # prune_sample <- "all"
@@ -8,7 +8,7 @@
 # yvar_1 <- "log(density_far)"
 # yvar_2 <- "log(density_dupac)"
 
-source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
+source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -29,9 +29,6 @@ fe_spec <- args[3]
 prune_sample <- tolower(args[4])
 cluster_level <- tolower(args[5])
 yvars <- args[6:length(args)]
-if (length(yvars) == 1 && grepl(",", yvars)) {
-  yvars <- strsplit(yvars, ",")[[1]] |> trimws()
-}
 
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample must be one of: all, multifamily", call. = FALSE)
@@ -68,17 +65,7 @@ if (!fe_spec %in% names(fe_formulas)) {
 
 outcome_label_dict <- c(
   "density_dupac" = "DUPAC",
-  "density_far" = "FAR",
-  "density_lapu" = "Lot Area Per Unit (LAPU)",
-  "density_bcr" = "Building Coverage Ratio (BCR)",
-  "density_lps" = "Lot Size Per Story (LPS)",
-  "density_spu" = "Square Feet Per Unit (SPU)",
-  "arealotsf" = "Lot Area (sf)",
-  "areabuilding" = "Building Area (sf)",
-  "storiescount" = "Stories",
-  "unitscount" = "Units",
-  "bedroomscount" = "Bedrooms",
-  "bathcount" = "Bathrooms"
+  "density_far" = "FAR"
 )
 
 parcels_fe <- read_csv(
@@ -124,14 +111,13 @@ if (prune_sample == "pruned") {
   segment_flags <- read_csv(
     "../input/confounded_segment_flags.csv",
     show_col_types = FALSE,
-    col_select = c("ward_pair_id_dash", "era", "segment_id", "drop_confound", "drop_reason")
+    col_select = c("ward_pair_id_dash", "era", "segment_id", "drop_confound")
   ) %>%
     transmute(
       pair_dash = normalize_pair_dash(ward_pair_id_dash),
       era = as.character(era),
       segment_id = as.character(segment_id),
-      keep_segment = !as.logical(drop_confound),
-      segment_drop_reason = as.character(drop_reason)
+      keep_segment = !as.logical(drop_confound)
     ) %>%
     distinct()
 
@@ -161,10 +147,7 @@ if (prune_sample == "pruned") {
   }
 
   parcels_fe <- parcels_fe %>%
-    mutate(
-      missing_segment_pruning_flag = is.na(keep_segment),
-      keep_segment = ifelse(missing_segment_pruning_flag, FALSE, keep_segment)
-    )
+    mutate(keep_segment = if_else(is.na(keep_segment), FALSE, keep_segment))
 
   if (sum(!parcels_fe$keep_segment) == 0) {
     stop("Pruned FE run would drop zero observations before model filtering.", call. = FALSE)
@@ -222,7 +205,6 @@ for (yvar in yvars) {
   )
 
   coef_table <- coeftable(model)
-  strictness_ci <- as.numeric(confint(model, parm = "strictness_own", level = 0.95))
 
   model_summaries[[length(model_summaries) + 1]] <- tibble(
     yvar = yvar,
@@ -230,24 +212,9 @@ for (yvar in yvars) {
     estimate = unname(coef_table["strictness_own", "Estimate"]),
     se = unname(coef_table["strictness_own", "Std. Error"]),
     p_value = unname(coef_table["strictness_own", "Pr(>|t|)"]),
-    ci_low = strictness_ci[1],
-    ci_high = strictness_ci[2],
-    lenient_slope = unname(coef_table["lenient_dist", "Estimate"]),
-    lenient_slope_se = unname(coef_table["lenient_dist", "Std. Error"]),
-    lenient_slope_p = unname(coef_table["lenient_dist", "Pr(>|t|)"]),
-    strict_slope = unname(coef_table["strict_dist", "Estimate"]),
-    strict_slope_se = unname(coef_table["strict_dist", "Std. Error"]),
-    strict_slope_p = unname(coef_table["strict_dist", "Pr(>|t|)"]),
     n_obs = nobs(model),
-    n_segments = n_distinct(df$segment_id),
     n_ward_pairs = n_distinct(df$ward_pair),
-    depvar_mean = mean(df[[base_var]], na.rm = TRUE),
-    bandwidth_m = bandwidth_m,
-    bandwidth_label = bandwidth_label,
-    sample_filter = sample_filter,
-    fe_spec = fe_spec,
-    prune_sample = prune_sample,
-    cluster_level = cluster_level
+    depvar_mean = mean(df[[base_var]], na.rm = TRUE)
   )
 }
 

@@ -1,54 +1,29 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/border_pair_fe_robustness_audit/code")
 # bandwidth_label <- "500ft"
-# fe_spec <- "zonegroup_segment_year_additive"
-# prune_sample <- "all"
-# cluster_level <- "ward_pair"
+# min_segment_ft <- 500
 
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(bandwidth_label, fe_spec, prune_sample, cluster_level)
+  args <- c(bandwidth_label, min_segment_ft)
 }
 
-if (length(args) != 4) {
-  stop("FATAL: Script requires args: <bandwidth_label> <fe_spec> <prune_sample> <cluster_level>", call. = FALSE)
+if (length(args) != 2) {
+  stop("FATAL: Script requires args: <bandwidth_label> <min_segment_ft>", call. = FALSE)
 }
 
 bandwidth_label <- args[1]
-fe_spec <- args[2]
-prune_sample <- tolower(args[3])
-cluster_level <- args[4]
-if (!prune_sample %in% c("all", "pruned")) {
-  stop("prune_sample must be one of: all, pruned", call. = FALSE)
-}
-if (!cluster_level %in% c("ward_pair", "segment")) {
-  stop("cluster_level must be one of: ward_pair, segment", call. = FALSE)
+min_segment_ft <- as.integer(args[2])
+if (!is.finite(min_segment_ft)) {
+  stop("min_segment_ft must be numeric.", call. = FALSE)
 }
 
-prune_suffix <- if (prune_sample == "pruned") "_pruned" else ""
-all_summary_csv <- sprintf(
-  "../temp/fe_summary_%s_all_%s_clust_%s%s.csv",
-  bandwidth_label,
-  fe_spec,
-  cluster_level,
-  prune_suffix
-)
-multifamily_summary_csv <- sprintf(
-  "../temp/fe_summary_%s_multifamily_%s_clust_%s%s.csv",
-  bandwidth_label,
-  fe_spec,
-  cluster_level,
-  prune_suffix
-)
-output_tex <- sprintf(
-  "../output/fe_table_%s_all_multifamily_%s_clust_%s%s.tex",
-  bandwidth_label,
-  fe_spec,
-  cluster_level,
-  prune_suffix
-)
+summary_tag <- sprintf("zonegroup_segment_year_additive_clust_ward_pair_minsegment%sft", min_segment_ft)
+all_summary_csv <- sprintf("../output/fe_summary_%s_all_%s.csv", bandwidth_label, summary_tag)
+multifamily_summary_csv <- sprintf("../output/fe_summary_%s_multifamily_%s.csv", bandwidth_label, summary_tag)
+output_tex <- sprintf("../output/fe_table_%s_all_multifamily_%s.tex", bandwidth_label, summary_tag)
 
 summaries <- bind_rows(
   read_csv(all_summary_csv, show_col_types = FALSE) %>%
