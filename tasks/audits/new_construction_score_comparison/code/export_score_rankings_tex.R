@@ -1,32 +1,29 @@
 ## Export ordered score rankings to a LaTeX longtable
 
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_comparison/code")
-# comparison_input <- "../output/score_comparison_no_renovation_vs_baseline.csv"
-# rankings_output <- "../output/score_rankings_no_renovation.tex"
-# variant_id <- "no_renovation"
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/new_construction_score_comparison/code")
+# variant_id <- "restricted_renovation"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(comparison_input, rankings_output, variant_id)
+  args <- c(variant_id)
 }
 
-if (length(args) >= 2) {
-  comparison_input <- args[1]
-  rankings_output <- args[2]
-} else {
-  stop(
-    "FATAL: Script requires at least 2 args: <comparison_input> <rankings_output> [<variant_id>]",
-    call. = FALSE
-  )
+if (length(args) != 1) {
+  stop("FATAL: Script requires 1 arg: <variant_id>", call. = FALSE)
 }
 
-variant_id <- if (length(args) >= 3) args[3] else "no_renovation"
+variant_id <- args[1]
+variant_labels <- c(restricted_renovation = "restricted-renovation")
+if (!variant_id %in% names(variant_labels)) {
+  stop("variant_id must be restricted_renovation", call. = FALSE)
+}
+
 score_col <- paste0(variant_id, "_score")
 rank_col <- paste0(variant_id, "_rank")
-variant_label <- str_replace_all(variant_id, "_", "-")
+variant_label <- variant_labels[[variant_id]]
 
 latex_escape <- function(x) {
   x <- gsub("\\\\", "\\\\textbackslash{}", x)
@@ -37,7 +34,10 @@ latex_escape <- function(x) {
   x
 }
 
-rankings <- read_csv(comparison_input, show_col_types = FALSE) %>%
+rankings <- read_csv(
+  sprintf("../output/score_comparison_%s_vs_baseline.csv", variant_id),
+  show_col_types = FALSE
+) %>%
   transmute(
     rank = as.integer(round(.data[[rank_col]])),
     alderman = as.character(alderman),
@@ -81,6 +81,7 @@ for (i in seq_len(nrow(rankings))) {
 }
 
 lines <- c(lines, "\\end{longtable}")
+rankings_output <- sprintf("../output/score_rankings_%s.tex", variant_id)
 writeLines(lines, rankings_output)
 
 message("Saved LaTeX rankings table: ", rankings_output)

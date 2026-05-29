@@ -1,41 +1,24 @@
 ## Build alternative alderman stringency score variants
 
-source("../../_lib/alderman_uncertainty_helpers.R")
+source("../../../_lib/alderman_uncertainty_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_score_density_robustness/code")
-# permits_input <- "../input/permits_for_uncertainty_index.csv"
-# baseline_score_input <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/uncertainty_score_density_robustness/code")
 # variant_id <- "days_unlogged"
-# score_output <- "../output/alderman_uncertainty_index_days_unlogged.csv"
-# metadata_output <- "../output/score_variant_metadata_days_unlogged.csv"
-# stage1_terms_output <- "../output/score_variant_stage1_terms_days_unlogged.csv"
-# stage1_table_output <- "../output/stage1_regression_days_unlogged.tex"
-# stage2_table_output <- "../output/stage2_regression_days_unlogged.tex"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(permits_input, baseline_score_input, variant_id, score_output, metadata_output, stage1_terms_output, stage1_table_output, stage2_table_output)
+  args <- c(variant_id)
 }
 
-if (length(args) >= 6) {
-  permits_input <- args[1]
-  baseline_score_input <- args[2]
-  variant_id <- args[3]
-  score_output <- args[4]
-  metadata_output <- args[5]
-  stage1_terms_output <- args[6]
-  stage1_table_output <- ifelse(length(args) >= 7, args[7], "NA")
-  stage2_table_output <- ifelse(length(args) >= 8, args[8], "NA")
-} else {
-  stop(
-    "FATAL: Script requires at least 6 args: <permits_input> <baseline_score_input> <variant_id> <score_output> <metadata_output> <stage1_terms_output> [<stage1_table_output>] [<stage2_table_output>]",
-    call. = FALSE
-  )
+if (length(args) != 1) {
+  stop("FATAL: Script requires 1 arg: <variant_id>", call. = FALSE)
 }
 
+variant_id <- args[1]
+baseline_score_input <- "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv"
 baseline_config <- default_uncertainty_config()
-permits <- load_uncertainty_permits(permits_input)
+permits <- load_uncertainty_permits("../input/permits_for_uncertainty_index.csv")
 
 max_permit_year <- str_match(basename(baseline_score_input), "through([0-9]{4})")[, 2] %>%
   as.integer()
@@ -114,20 +97,22 @@ result <- switch(
   stop("Unknown variant_id: ", variant_id, call. = FALSE)
 )
 
-write_csv(result$alderman_index, score_output)
-write_csv(result$metadata, metadata_output)
-write_csv(result$stage1_terms, stage1_terms_output)
+write_csv(result$alderman_index, sprintf("../output/alderman_uncertainty_index_%s.csv", variant_id))
+write_csv(result$metadata, sprintf("../output/score_variant_metadata_%s.csv", variant_id))
+write_csv(result$stage1_terms, sprintf("../output/score_variant_stage1_terms_%s.csv", variant_id))
 
-if (!is.null(result$stage1_model) && !is.na(stage1_table_output) && nzchar(stage1_table_output) && stage1_table_output != "NA") {
+stage1_table_output <- sprintf("../output/stage1_regression_%s.tex", variant_id)
+stage2_table_output <- sprintf("../output/stage2_regression_%s.tex", variant_id)
+if (!is.null(result$stage1_model)) {
   write_stage1_regression_table(result$stage1_model, stage1_table_output, result$stage1_outcome)
   message("Saved: ", stage1_table_output)
 }
 
-if (!is.null(result$stage2_model) && !is.na(stage2_table_output) && nzchar(stage2_table_output) && stage2_table_output != "NA") {
+if (!is.null(result$stage2_model)) {
   write_stage2_regression_table(result$stage2_model, stage2_table_output)
   message("Saved: ", stage2_table_output)
 }
 
-message("Saved: ", score_output)
-message("Saved: ", metadata_output)
-message("Saved: ", stage1_terms_output)
+message("Saved: ", sprintf("../output/alderman_uncertainty_index_%s.csv", variant_id))
+message("Saved: ", sprintf("../output/score_variant_metadata_%s.csv", variant_id))
+message("Saved: ", sprintf("../output/score_variant_stage1_terms_%s.csv", variant_id))

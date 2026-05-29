@@ -1,23 +1,12 @@
 ## Summarize score and density robustness results
 
-source("../../setup_environment/code/packages.R")
-source("../../_lib/alderman_uncertainty_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/alderman_uncertainty_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_score_density_robustness/code")
-# output_dir <- "../output"
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/uncertainty_score_density_robustness/code")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(output_dir)
-}
-
-if (length(args) >= 1) {
-  output_dir <- args[1]
-} else {
-  stop("FATAL: Script requires 1 arg: <output_dir>", call. = FALSE)
-}
-
+output_dir <- "../output"
 variant_ids <- c(
   "baseline",
   "raw_rank_days",

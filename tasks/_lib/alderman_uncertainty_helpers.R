@@ -1,4 +1,11 @@
-source("../../setup_environment/code/packages.R")
+helper_path <- sys.frame(1)$ofile
+if (is.null(helper_path) || length(helper_path) == 0 || !nzchar(helper_path[[1]])) {
+  helper_path <- "../../_lib/alderman_uncertainty_helpers.R"
+}
+source(file.path(dirname(helper_path), "../setup_environment/code/packages.R"))
+if (exists("helper_path", inherits = FALSE)) {
+  rm(helper_path)
+}
 library(fixest)
 
 standardize_uncertainty <- function(x) {
