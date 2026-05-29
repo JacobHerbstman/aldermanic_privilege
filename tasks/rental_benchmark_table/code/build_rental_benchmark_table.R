@@ -62,16 +62,12 @@ monthly_listed_rents <- rent_panel[
 monthly_listed_rents[, year := as.integer(format(month_start, "%Y"))]
 listed_annual <- monthly_listed_rents[
   is.finite(value),
-  .(
-    value = mean(value, na.rm = TRUE),
-    n_months = .N
-  ),
+  .(value = mean(value, na.rm = TRUE)),
   by = year
 ]
 listed_annual[, `:=`(
   source_id = "listed_rents",
-  source_label = "Listed rents",
-  measure_label = "Annual average of monthly median listed rent, deflated to 2022 dollars"
+  source_label = "Listed rents"
 )]
 
 zillow_city <- as.data.table(read_csv(
@@ -95,20 +91,15 @@ if (any(!is.finite(zillow_city$cpi_all_items))) {
   stop("Zillow ZORI has months missing Chicago all-items CPI-U deflator values.", call. = FALSE)
 }
 zillow_city[, value := value * cpi_2022 / cpi_all_items]
-zillow_annual <- zillow_city[, .(month_start, value)]
-zillow_annual[, year := as.integer(format(month_start, "%Y"))]
-zillow_annual <- zillow_annual[
+zillow_city[, year := as.integer(format(month_start, "%Y"))]
+zillow_annual <- zillow_city[
   is.finite(value),
-  .(
-    value = mean(value, na.rm = TRUE),
-    n_months = .N
-  ),
+  .(value = mean(value, na.rm = TRUE)),
   by = year
 ]
 zillow_annual[, `:=`(
   source_id = "zillow_zori",
-  source_label = "Zillow ZORI",
-  measure_label = "Annual average of monthly Zillow Observed Rent Index, deflated by Chicago all-items CPI-U"
+  source_label = "Zillow ZORI"
 )]
 
 annual_series <- rbindlist(list(listed_annual, zillow_annual), use.names = TRUE, fill = TRUE)
@@ -134,24 +125,13 @@ if (!all(coverage$first_year <= base_year & coverage$last_year >= end_year & cov
 }
 
 annual_series <- annual_series[year >= base_year & year <= end_year]
-annual_series[, base_value := value[year == base_year][1], by = source_id]
-annual_series[, index_value := 100 * value / base_value]
-annual_series[, prior_year := shift(year), by = source_id]
-annual_series[, prior_value := shift(value), by = source_id]
-annual_series[
-  prior_year == year - 1L & is.finite(value) & is.finite(prior_value),
-  annual_growth_pct := 100 * (value / prior_value - 1)
-]
 
 summary_table <- annual_series[
   year %in% c(base_year, end_year),
   .(
     start_value = value[year == base_year][1],
     end_value = value[year == end_year][1],
-    start_index = index_value[year == base_year][1],
-    end_index = index_value[year == end_year][1],
-    growth_pct = 100 * (value[year == end_year][1] / value[year == base_year][1] - 1),
-    measure_label = measure_label[1]
+    growth_pct = 100 * (value[year == end_year][1] / value[year == base_year][1] - 1)
   ),
   by = .(source_id, source_label)
 ]
@@ -160,7 +140,6 @@ setorder(summary_table, source_id)
 summary_table[, source_id := as.character(source_id)]
 
 summary_table[, growth_label := ifelse(is.finite(growth_pct), sprintf("%.1f", growth_pct), "")]
-summary_table[, level_unit := "\\$"]
 summary_table[, start_label := ifelse(is.finite(start_value), format(round(start_value), big.mark = ","), "")]
 summary_table[, end_label := ifelse(is.finite(end_value), format(round(end_value), big.mark = ","), "")]
 
@@ -173,7 +152,7 @@ writeLines(
     sprintf(
       "%s & %s & %s & %s & %s \\\\",
       summary_table$source_label,
-      summary_table$level_unit,
+      "\\$",
       summary_table$start_label,
       summary_table$end_label,
       summary_table$growth_label
