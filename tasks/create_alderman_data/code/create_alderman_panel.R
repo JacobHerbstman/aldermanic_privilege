@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_data/code")
+# setwd("tasks/create_alderman_data/code")
 
 source("../../setup_environment/code/packages.R")
 

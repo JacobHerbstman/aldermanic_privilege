@@ -2,7 +2,7 @@
 ## Sources: 2000 Decennial, 2010 Decennial, and Annual ACS 5-Year Estimates
 
 ## --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_ward_controls/code")
+# setwd("tasks/create_ward_controls/code")
 
 source("../../setup_environment/code/packages.R")
 library(tigris) # Required for the geometry fix

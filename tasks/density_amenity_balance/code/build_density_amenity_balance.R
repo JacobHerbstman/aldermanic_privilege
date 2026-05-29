@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_amenity_balance/code")
+# setwd("tasks/density_amenity_balance/code")
 # bandwidth_m <- 152.4
 # sample_filter <- "all"
 # bandwidth_label <- "500ft"

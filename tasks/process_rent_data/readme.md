@@ -4,7 +4,7 @@ Purpose: Processes the Illinois RentHub download into a cleaned Chicago property
 
 ## Scope
 
-The raw Dewey/RentHub export is Illinois-wide. This task is the first Chicago rental-cleaning stage. It does not assign wards, distances, sides, segments, or alderman scores; those happen downstream in `calculate_rent_distances`, `renthub_proxy_consistency_audit`, `assign_segment_ids_sales_rental`, and `merge_event_study_scores`.
+The raw Dewey/RentHub export is Illinois-wide. This task is the first Chicago rental-cleaning stage. It does not assign wards, distances, sides, segments, or alderman scores; those happen downstream in `renthub_quality_flags`, `calculate_rent_distances`, `assign_segment_ids_sales_rental`, and `merge_event_study_scores`.
 
 The active window is controlled by Makefile scalar arguments and defaults to `2014-01-01` through `2022-12-31`.
 

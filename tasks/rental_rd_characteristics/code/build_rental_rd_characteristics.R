@@ -1,7 +1,7 @@
 # Build the listed-rent RD characteristics panel.
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_characteristics/code")
+# setwd("tasks/rental_rd_characteristics/code")
 # bandwidth_ft <- 500
 
 source("../../setup_environment/code/packages.R")

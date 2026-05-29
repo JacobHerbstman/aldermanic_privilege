@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
+# setwd("tasks/run_event_study_permit/code")
 # outcome_family <- "high_discretion"
 # treatment_type <- "continuous"
 # bandwidth <- 304.8

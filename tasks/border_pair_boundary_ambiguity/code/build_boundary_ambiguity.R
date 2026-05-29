@@ -5,7 +5,7 @@ library(dplyr)
 source("../../_lib/canonical_geometry_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_boundary_ambiguity/code")
+# setwd("tasks/border_pair_boundary_ambiguity/code")
 # bandwidths <- "76.2 152.4 304.8"
 # samples <- "all multifamily"
 

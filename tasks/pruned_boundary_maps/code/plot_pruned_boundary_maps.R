@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/pruned_boundary_maps/code")
+# setwd("tasks/pruned_boundary_maps/code")
 # segment_length_ft <- 1320
 
 source("../../setup_environment/code/packages.R")

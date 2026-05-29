@@ -1,4 +1,4 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_linear_display/code")
+# setwd("tasks/nonparametric_rd_density_linear_display/code")
 # bandwidth_m <- 152.4
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5

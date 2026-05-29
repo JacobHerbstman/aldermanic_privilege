@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_variants/code")
+# setwd("tasks/new_construction_score_variants/code")
 
 source("../../setup_environment/code/packages.R")
 

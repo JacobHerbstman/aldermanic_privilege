@@ -1,7 +1,7 @@
 # Build the listed-rent RD paired external amenity balance table.
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_paired_balance/code")
+# setwd("tasks/rental_rd_paired_balance/code")
 # bandwidth_ft <- 500
 
 source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))

@@ -5,7 +5,7 @@ library(data.table)
 library(sf)
 
 # Interactive run:
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_segment_creation/code")
+# setwd("tasks/border_segment_creation/code")
 # source("build_boundary_segments.R")
 
 st_agr("constant")
@@ -321,10 +321,6 @@ build_segments_raw <- function(boundary_list, target_len_ft, target_len_m = targ
 }
 
 read_filtered_layer <- function(path, filter_geom_3435, label) {
-  if (!file.exists(path)) {
-    stop(sprintf("Missing %s layer: %s", label, path), call. = FALSE)
-  }
-
   x <- st_read(path, quiet = TRUE)
 
   if (nrow(x) == 0) {

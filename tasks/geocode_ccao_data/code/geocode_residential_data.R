@@ -1,6 +1,6 @@
 # this code takes the parcels dataset from cook county assessor and merges in latitude and longitude for all pins i can find (residential and condo datasets)
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/geocode_ccao_data/code")
+# setwd("tasks/geocode_ccao_data/code")
 
 source("../../setup_environment/code/packages.R")
 

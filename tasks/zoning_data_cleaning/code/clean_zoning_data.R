@@ -1,7 +1,7 @@
 # This script creates a shapefile of zoning codes around the city and their regulations such as FAR and LAPU
 
 ## run this line when editing code in Rstudio 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/zoning_data_cleaning/code")
+# setwd("tasks/zoning_data_cleaning/code")
 
 source("../../setup_environment/code/packages.R")
 

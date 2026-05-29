@@ -1,4 +1,4 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/census_block_2020_cleaning/code")
+# setwd("tasks/census_block_2020_cleaning/code")
 
 source("../../setup_environment/code/packages.R")
 

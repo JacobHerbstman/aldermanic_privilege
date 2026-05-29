@@ -1,6 +1,6 @@
 # Download the customized Illinois RentHub export from Dewey.
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/download_rent_data/code")
+# setwd("tasks/download_rent_data/code")
 
 source("../../setup_environment/code/packages.R")
 

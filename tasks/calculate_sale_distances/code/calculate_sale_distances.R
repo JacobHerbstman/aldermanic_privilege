@@ -11,7 +11,7 @@ source("../../_lib/canonical_geometry_helpers.R")
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
+# setwd("tasks/calculate_sale_distances/code")
 # sample <- FALSE
 
 cli_args <- commandArgs(trailingOnly = TRUE)

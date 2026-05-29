@@ -1,7 +1,7 @@
 # Build the listed-rent RD attenuation table from the characteristics panel.
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_rent_attenuation/code")
+# setwd("tasks/rental_rd_rent_attenuation/code")
 # bandwidth_ft <- 500
 
 source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))

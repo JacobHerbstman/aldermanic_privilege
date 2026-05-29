@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/price_rd_tables/code")
+# setwd("tasks/price_rd_tables/code")
 
 source("../../setup_environment/code/packages.R")
 

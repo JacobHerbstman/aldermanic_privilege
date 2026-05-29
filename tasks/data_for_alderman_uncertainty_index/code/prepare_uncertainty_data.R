@@ -1,7 +1,7 @@
 source("../../setup_environment/code/packages.R")
 
 # Interactive run:
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/data_for_alderman_uncertainty_index/code")
+# setwd("tasks/data_for_alderman_uncertainty_index/code")
 
 message("=== Starting data preparation for uncertainty index ===")
 

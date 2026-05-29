@@ -1,7 +1,7 @@
 source("../../setup_environment/code/packages.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_treatment_maps/code")
+# setwd("tasks/event_study_treatment_maps/code")
 # bandwidth_m <- 304.8
 # bandwidth_label <- "1000ft"
 

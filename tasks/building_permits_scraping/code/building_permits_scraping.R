@@ -1,5 +1,5 @@
 ## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/building_permits_scraping/code")
+# setwd("tasks/building_permits_scraping/code")
 
 source("../../setup_environment/code/packages.R")
 

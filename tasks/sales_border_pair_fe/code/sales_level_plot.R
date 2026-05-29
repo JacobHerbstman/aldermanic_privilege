@@ -1,4 +1,4 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_border_pair_fe/code")
+# setwd("tasks/sales_border_pair_fe/code")
 
 source("../../setup_environment/code/packages.R")
 

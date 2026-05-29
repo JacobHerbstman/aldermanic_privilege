@@ -1,7 +1,7 @@
 # This script calculates signed distances from parcels to ward boundaries
 # and assigns aldermen based on construction year and redistricting events
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_ward_boundary_distances/code")
+# setwd("tasks/calculate_ward_boundary_distances/code")
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")

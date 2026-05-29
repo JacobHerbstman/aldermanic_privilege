@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
+# setwd("tasks/border_pair_FE_regressions/code")
 # bandwidth_label <- "500ft"
 # fe_spec <- "zonegroup_segment_year_additive"
 # prune_sample <- "all"

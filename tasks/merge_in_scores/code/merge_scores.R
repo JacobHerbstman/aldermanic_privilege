@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_in_scores/code")
+# setwd("tasks/merge_in_scores/code")
 # score_column <- "uncertainty_index"
 
 source("../../setup_environment/code/packages.R")

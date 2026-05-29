@@ -1,6 +1,6 @@
-# Audit RentHub property/floorplan proxies before rental geometry and RD.
+# Build RentHub geometry and source-quality flags for rental distance tasks.
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/renthub_proxy_consistency_audit/code")
+# setwd("tasks/renthub_quality_flags/code")
 # start_date <- "2014-01-01"
 # end_date <- "2022-12-31"
 

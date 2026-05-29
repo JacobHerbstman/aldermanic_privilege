@@ -5,7 +5,7 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_rent_distances/code")
+# setwd("tasks/calculate_rent_distances/code")
 # sample <- TRUE
 
 cli_args <- commandArgs(trailingOnly = TRUE)

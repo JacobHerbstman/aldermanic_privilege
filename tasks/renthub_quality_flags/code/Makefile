@@ -3,7 +3,7 @@ END_DATE ?= 2022-12-31
 
 all: ../output/chicago_rent_panel_quality_flags.parquet
 
-../output/chicago_rent_panel_quality_flags.parquet: run_renthub_proxy_consistency_audit.R manual_verified_address_locations.csv ../input/renthub_raw ../input/chicago_rent_panel.parquet | ../output
+../output/chicago_rent_panel_quality_flags.parquet: build_renthub_quality_flags.R manual_verified_address_locations.csv ../input/renthub_raw ../input/chicago_rent_panel.parquet | ../output
 	Rscript $< $(START_DATE) $(END_DATE)
 
 ../input/renthub_raw: ../../download_rent_data/output/download.done | ../input

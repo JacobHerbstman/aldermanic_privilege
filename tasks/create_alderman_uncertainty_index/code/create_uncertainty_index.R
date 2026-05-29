@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_uncertainty_index/code")
+# setwd("tasks/create_alderman_uncertainty_index/code")
 # permit_type_fe <- TRUE
 # review_type_fe <- TRUE
 # include_porch <- TRUE

@@ -8,7 +8,7 @@ all: ../output/rent_pre_scores_full.parquet
 ../input/chicago_rent_panel.parquet: ../../process_rent_data/output/chicago_rent_panel.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/chicago_rent_panel_quality_flags.parquet: ../../renthub_proxy_consistency_audit/output/chicago_rent_panel_quality_flags.parquet | ../input
+../input/chicago_rent_panel_quality_flags.parquet: ../../renthub_quality_flags/output/chicago_rent_panel_quality_flags.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input

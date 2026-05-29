@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids_sales_rental/code")
+# setwd("tasks/assign_segment_ids_sales_rental/code")
 # segment_length_ft <- 1320
 # segment_buffer_m <- 457.2
 

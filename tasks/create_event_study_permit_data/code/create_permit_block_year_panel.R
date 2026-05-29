@@ -3,7 +3,7 @@ source("../../_lib/canonical_geometry_helpers.R")
 
 # =======================================================================================
 # --- Interactive Test Block --- (uncomment to run in RStudio)
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_permit_data/code")
+# setwd("tasks/create_event_study_permit_data/code")
 # segment_buffer_m <- 304.8
 # panel_max_distance_m <- 800
 # permit_start_year <- 2010

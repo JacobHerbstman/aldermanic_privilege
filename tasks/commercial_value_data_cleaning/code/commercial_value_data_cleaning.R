@@ -1,6 +1,6 @@
 # Clean multifamily commercial valuation rows for buildings built since 1999 in Chicago townships.
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/commercial_value_data_cleaning/code")
+# setwd("tasks/commercial_value_data_cleaning/code")
 source("../../setup_environment/code/packages.R")
 
 data <- readr::read_csv("../input/commercial_value_raw.csv", col_types = readr::cols(.default = "c"), show_col_types = FALSE) %>%

@@ -1,6 +1,6 @@
 # Build a cleaned RentHub floorplan-month panel for rental RD.
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/process_rent_data/code")
+# setwd("tasks/process_rent_data/code")
 # start_date <- "2014-01-01"
 # end_date <- "2022-12-31"
 

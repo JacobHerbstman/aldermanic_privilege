@@ -2,7 +2,7 @@ source("../../setup_environment/code/packages.R")
 
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_event_study_scores/code")
+# setwd("tasks/merge_event_study_scores/code")
 # mode <- "sales_treatment"
 # score_column <- "uncertainty_index"
 

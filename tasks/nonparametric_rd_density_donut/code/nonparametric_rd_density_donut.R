@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_donut/code")
+# setwd("tasks/nonparametric_rd_density_donut/code")
 # yvar <- "density_far"
 # bandwidth_m <- 152.4
 # sample_filter <- "all"

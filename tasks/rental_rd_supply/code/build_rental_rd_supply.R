@@ -1,6 +1,6 @@
 # Build paper-facing RentHub advertised-supply RD level plots.
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_supply/code")
+# setwd("tasks/rental_rd_supply/code")
 # bandwidth_ft <- 500
 # bins_per_side <- 15
 

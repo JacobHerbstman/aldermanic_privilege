@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd/code")
+# setwd("tasks/rental_rd/code")
 # bandwidth_ft <- 500
 # sample <- "all"
 # use_controls <- TRUE

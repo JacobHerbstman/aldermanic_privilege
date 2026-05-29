@@ -1,4 +1,4 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_confound_pruning/code")
+# setwd("tasks/border_confound_pruning/code")
 
 source("../../setup_environment/code/packages.R")
 
