@@ -1,37 +1,23 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
-
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_exact_balance/code")
-# permit_panel_input <- "../input/permit_block_year_panel_2015.parquet"
-# sales_panel_input <- "../input/sales_transaction_panel_2015.parquet"
-# block_baseline_input <- "../output/block_parcel_baselines_2014.csv"
-# output_csv <- "../output/redistricting_sample_support_summary_300m.csv"
-# output_tex <- "../output/redistricting_sample_support_summary_300m.tex"
-# bandwidth_m <- 300
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/event_study_exact_balance/code")
+# bandwidth_m <- 304.8
+
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/border_pair_helpers.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(permit_panel_input, sales_panel_input, block_baseline_input, output_csv, output_tex, bandwidth_m)
+  args <- c(bandwidth_m)
 }
 
-if (length(args) != 6) {
+if (length(args) != 1) {
   stop(
-    paste(
-      "FATAL: Script requires args:",
-      "<permit_panel_input> <sales_panel_input> <block_baseline_input>",
-      "<output_csv> <output_tex> <bandwidth_m>"
-    ),
+    "FATAL: Script requires args: <bandwidth_m>",
     call. = FALSE
   )
 }
 
-permit_panel_input <- args[1]
-sales_panel_input <- args[2]
-block_baseline_input <- args[3]
-output_csv <- args[4]
-output_tex <- args[5]
-bandwidth_m <- as.numeric(args[6])
+bandwidth_m <- as.numeric(args[1])
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be positive.", call. = FALSE)
@@ -39,6 +25,8 @@ if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
 
 distance_display <- distance_display_config()
 bandwidth_label <- Sys.getenv("BANDWIDTH_LABEL", format_distance_label(bandwidth_m, distance_display))
+output_csv <- sprintf("../output/redistricting_sample_support_summary_%s.csv", bandwidth_label)
+output_tex <- sprintf("../output/redistricting_sample_support_summary_%s.tex", bandwidth_label)
 
 fmt_integer <- function(x) {
   if (!is.finite(x)) {
@@ -97,14 +85,14 @@ summarize_block_support <- function(data, block_var, pair_var, year_var, observa
 }
 
 message("Loading block-level parcel baselines...")
-block_baselines <- read_csv(block_baseline_input, show_col_types = FALSE) %>%
+block_baselines <- read_csv("../output/block_parcel_baselines_2014.csv", show_col_types = FALSE) %>%
   mutate(block_id = as.character(block_id))
 if (anyDuplicated(block_baselines$block_id) > 0) {
   stop("Block parcel baselines must be unique by block_id before joining.", call. = FALSE)
 }
 
 message("Loading permit event-study panel...")
-permit_data <- read_parquet(permit_panel_input) %>%
+permit_data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
   filter(
     !is.na(ward_pair_id), ward_pair_id != "",
     !is.na(block_id), block_id != "",
@@ -140,7 +128,7 @@ message("Loading home-sales event-study panel...")
 hedonic_vars <- c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")
 amenity_vars <- c("nearest_school_dist_m", "nearest_park_dist_m", "nearest_major_road_dist_m", "lake_michigan_dist_m")
 
-sales_data <- read_parquet(sales_panel_input) %>%
+sales_data <- read_parquet("../input/sales_transaction_panel_2015.parquet") %>%
   mutate(ward_pair = sub("_[0-9]+$", "", ward_pair_side)) %>%
   filter(
     dist_m <= bandwidth_m,

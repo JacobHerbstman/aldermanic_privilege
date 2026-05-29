@@ -1,50 +1,8 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/amenity_distance_helpers.R")
-
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_exact_balance/code")
-# parcels_input <- "../input/geocoded_residential_data.gpkg"
-# zoning_input <- "../input/zoning_data_clean.gpkg"
-# blocks_input <- "../input/census_blocks_2010.csv"
-# schools_input <- "../input/schools_2015.gpkg"
-# parks_input <- "../input/parks.gpkg"
-# major_streets_input <- "../input/major_streets.gpkg"
-# water_input <- "../input/gis_osm_water_a_free_1.shp"
-# output_csv <- "../output/block_parcel_baselines_2014.csv"
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/event_study_exact_balance/code")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(
-    parcels_input,
-    zoning_input,
-    blocks_input,
-    schools_input,
-    parks_input,
-    major_streets_input,
-    water_input,
-    output_csv
-  )
-}
-
-if (length(args) != 8) {
-  stop(
-    paste(
-      "FATAL: Script requires 8 args:",
-      "<parcels_input> <zoning_input> <blocks_input> <schools_input>",
-      "<parks_input> <major_streets_input> <water_input> <output_csv>"
-    ),
-    call. = FALSE
-  )
-}
-
-parcels_input <- args[1]
-zoning_input <- args[2]
-blocks_input <- args[3]
-schools_input <- args[4]
-parks_input <- args[5]
-major_streets_input <- args[6]
-water_input <- args[7]
-output_csv <- args[8]
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/amenity_distance_helpers.R")
 
 safe_mean <- function(x) {
   x <- x[is.finite(x)]
@@ -55,7 +13,7 @@ safe_mean <- function(x) {
 }
 
 message("Loading geocoded parcels...")
-parcels <- st_read(parcels_input, quiet = TRUE) %>%
+parcels <- st_read("../input/geocoded_residential_data.gpkg", quiet = TRUE) %>%
   mutate(
     parcel_row_id = row_number(),
     pin = as.character(pin),
@@ -65,7 +23,7 @@ parcels <- st_read(parcels_input, quiet = TRUE) %>%
   st_transform(3435)
 
 message("Loading zoning polygons...")
-zoning <- st_read(zoning_input, quiet = TRUE) %>%
+zoning <- st_read("../input/zoning_data_clean.gpkg", quiet = TRUE) %>%
   select(zone_code, floor_area_ratio) %>%
   st_transform(3435)
 
@@ -78,7 +36,7 @@ if (nrow(parcels) != parcels_before_zoning) {
 }
 
 message("Loading 2010 census blocks...")
-blocks <- read_csv(blocks_input, show_col_types = FALSE) %>%
+blocks <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
   rename(geometry = the_geom) %>%
   st_as_sf(wkt = "geometry", crs = 4269) %>%
   st_make_valid() %>%
@@ -107,10 +65,10 @@ coords_tbl <- parcel_xy %>%
   distinct(x, y)
 
 coords_sf <- st_as_sf(coords_tbl, coords = c("x", "y"), crs = 3435, remove = FALSE)
-schools <- read_amenity_layer(schools_input)
-parks <- read_amenity_layer(parks_input)
-major_streets <- read_amenity_layer(major_streets_input)
-lake <- lake_michigan_geom(water_input)
+schools <- read_amenity_layer("../input/schools_2015.gpkg")
+parks <- read_amenity_layer("../input/parks.gpkg")
+major_streets <- read_amenity_layer("../input/major_streets.gpkg")
+lake <- lake_michigan_geom("../input/gis_osm_water_a_free_1.shp")
 cbd <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>%
   st_transform(3435)
 
@@ -141,5 +99,4 @@ if (anyDuplicated(block_baselines$block_id) > 0) {
   stop("Block parcel baselines must be unique by block_id.", call. = FALSE)
 }
 
-write_csv(block_baselines, output_csv)
-message("Saved block parcel baselines: ", output_csv)
+write_csv(block_baselines, "../output/block_parcel_baselines_2014.csv")

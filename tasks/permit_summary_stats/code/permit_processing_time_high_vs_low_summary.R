@@ -37,6 +37,9 @@ alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types
     month = as.yearmon(month),
     alderman = gsub("\\s+", " ", trimws(as.character(alderman)))
   )
+if (anyDuplicated(alderman_panel[c("ward", "month")]) > 0) {
+  stop("Alderman panel must be unique by ward-month.", call. = FALSE)
+}
 
 permits <- st_read("../input/building_permits_clean.gpkg", quiet = TRUE) %>%
   select(id, application_start_date_ym, processing_time, high_discretion, permit_type) %>%
@@ -92,10 +95,13 @@ permits_with_ward <- bind_rows(
   permits_with_ward_p1,
   permits_with_ward_p2
 )
+if (anyDuplicated(permits_with_ward$id) > 0) {
+  stop("Ward spatial join assigned at least one permit to multiple wards.", call. = FALSE)
+}
 
 permits_analysis_all <- permits_with_ward %>%
   mutate(ward = as.integer(ward)) %>%
-  left_join(alderman_panel, by = c("ward", "application_start_date_ym" = "month")) %>%
+  left_join(alderman_panel, by = c("ward", "application_start_date_ym" = "month"), relationship = "many-to-one") %>%
   mutate(alderman = gsub("\\s+", " ", trimws(as.character(alderman)))) %>%
   filter(!is.na(alderman), alderman != "")
 

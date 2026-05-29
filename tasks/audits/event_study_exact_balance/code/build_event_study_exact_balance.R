@@ -1,52 +1,24 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
-library(fixest)
-
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_exact_balance/code")
-# permit_panel_input <- "../input/permit_block_year_panel_2015.parquet"
-# sales_panel_input <- "../input/sales_transaction_panel_2015.parquet"
-# block_baseline_input <- "../output/block_parcel_baselines_2014.csv"
-# permit_balance_output <- "../output/permit_exact_balance_summary_300m.csv"
-# permit_balance_tex_output <- "../output/permit_exact_balance_summary_300m.tex"
-# sales_balance_output <- "../output/sales_exact_balance_summary_300m.csv"
-# sales_balance_tex_output <- "../output/sales_exact_balance_summary_300m.tex"
-# bandwidth_m <- 300
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/event_study_exact_balance/code")
+# bandwidth_m <- 304.8
+
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/border_pair_helpers.R")
+library(fixest)
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(
-    permit_panel_input,
-    sales_panel_input,
-    block_baseline_input,
-    permit_balance_output,
-    permit_balance_tex_output,
-    sales_balance_output,
-    sales_balance_tex_output,
-    bandwidth_m
-  )
+  args <- c(bandwidth_m)
 }
 
-if (length(args) != 8) {
+if (length(args) != 1) {
   stop(
-    paste(
-      "FATAL: Script requires args:",
-      "<permit_panel_input> <sales_panel_input> <block_baseline_input>",
-      "<permit_balance_output> <permit_balance_tex_output>",
-      "<sales_balance_output> <sales_balance_tex_output> <bandwidth_m>"
-    ),
+    "FATAL: Script requires args: <bandwidth_m>",
     call. = FALSE
   )
 }
 
-permit_panel_input <- args[1]
-sales_panel_input <- args[2]
-block_baseline_input <- args[3]
-permit_balance_output <- args[4]
-permit_balance_tex_output <- args[5]
-sales_balance_output <- args[6]
-sales_balance_tex_output <- args[7]
-bandwidth_m <- as.numeric(args[8])
+bandwidth_m <- as.numeric(args[1])
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be positive.", call. = FALSE)
@@ -54,6 +26,10 @@ if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
 
 distance_display <- distance_display_config()
 bandwidth_label <- Sys.getenv("BANDWIDTH_LABEL", format_distance_label(bandwidth_m, distance_display))
+permit_balance_output <- sprintf("../output/permit_exact_balance_summary_%s.csv", bandwidth_label)
+permit_balance_tex_output <- sprintf("../output/permit_exact_balance_summary_%s.tex", bandwidth_label)
+sales_balance_output <- sprintf("../output/sales_exact_balance_summary_%s.csv", bandwidth_label)
+sales_balance_tex_output <- sprintf("../output/sales_exact_balance_summary_%s.tex", bandwidth_label)
 
 fmt_decimal <- function(x, digits = 2) {
   if (!is.finite(x)) {
@@ -192,14 +168,14 @@ build_balance_table <- function(sample_df, pair_var, output_csv, output_tex, cap
 }
 
 message("Loading block-level parcel baselines...")
-block_baselines <- read_csv(block_baseline_input, show_col_types = FALSE) %>%
+block_baselines <- read_csv("../output/block_parcel_baselines_2014.csv", show_col_types = FALSE) %>%
   mutate(block_id = as.character(block_id))
 if (anyDuplicated(block_baselines$block_id) > 0) {
   stop("Block parcel baselines must be unique by block_id before joining.", call. = FALSE)
 }
 
 message("Loading permit event-study panel...")
-permit_panel <- read_parquet(permit_panel_input) %>%
+permit_panel <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
   as_tibble() %>%
   filter(dist_m <= bandwidth_m, relative_year == -1, !is.na(strictness_change)) %>%
   mutate(
@@ -217,7 +193,7 @@ permit_panel <- read_parquet(permit_panel_input) %>%
   left_join(block_baselines, by = "block_id", relationship = "many-to-one")
 
 message("Loading sales event-study panel...")
-sales_panel <- read_parquet(sales_panel_input) %>%
+sales_panel <- read_parquet("../input/sales_transaction_panel_2015.parquet") %>%
   as_tibble() %>%
   filter(dist_m <= bandwidth_m, relative_year == -1, !is.na(strictness_change)) %>%
   mutate(

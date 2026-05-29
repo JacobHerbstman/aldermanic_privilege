@@ -24,7 +24,7 @@ all: \
 ../input/permit_block_year_panel_2015.parquet: ../../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/block_parcel_baselines_2014.csv: ../../../event_study_exact_balance/output/block_parcel_baselines_2014.csv | ../input
+../input/block_parcel_baselines_2014.csv: ../../event_study_exact_balance/output/block_parcel_baselines_2014.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/block_parcel_baselines_2014.csv

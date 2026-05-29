@@ -8,11 +8,6 @@ chunk_n <- 100000L
 
 sales <- read_parquet("../input/sales_with_hedonics.parquet") %>% as_tibble()
 
-coords <- sales %>%
-  transmute(longitude, latitude) %>%
-  filter(is.finite(longitude), is.finite(latitude)) %>%
-  distinct()
-
 coords <- build_unique_coordinate_amenity_table(
   sales,
   "longitude",
