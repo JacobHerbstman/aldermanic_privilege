@@ -2,8 +2,8 @@
 # Creates block-level panels for event study analysis of home sales
 # Outputs: block-year and block-month panels with sales counts and prices
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_sales_data/code")
-source("../../setup_environment/code/packages.R")
+# setwd("tasks/audits/create_event_study_sales_data/code")
+source("../../../setup_environment/code/packages.R")
 
 # =============================================================================
 # REDISTRICTING DATES
