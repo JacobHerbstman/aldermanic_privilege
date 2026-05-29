@@ -2,7 +2,6 @@ SEGMENT_LENGTH_FT ?= 1320
 SEGMENT_BUFFER_M ?= 304.8
 PANEL_MAX_DISTANCE_M ?= 800
 PERMIT_START_YEAR ?= 2010
-PERMIT_END_YEAR ?= 2020
 PERMIT_END_MONTH ?= 2020-12
 
 all: \
@@ -11,7 +10,7 @@ all: \
 	../output/permit_block_year_panel_2023.parquet
 
 ../output/permit_block_year_panel.parquet: create_permit_block_year_panel.R ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../output
-	Rscript $< $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M) $(PERMIT_START_YEAR) $(PERMIT_END_YEAR) $(PERMIT_END_MONTH)
+	Rscript $< $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M) $(PERMIT_START_YEAR) $(PERMIT_END_MONTH)
 
 ../output/permit_block_year_panel_2015.parquet \
 ../output/permit_block_year_panel_2023.parquet: ../output/permit_block_year_panel.parquet

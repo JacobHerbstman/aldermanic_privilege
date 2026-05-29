@@ -1,44 +1,41 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
-# =======================================================================================
-# --- Interactive Test Block --- (uncomment to run in RStudio)
-# setwd("tasks/create_event_study_permit_data/code")
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_permit_data/code")
 # segment_buffer_m <- 304.8
 # panel_max_distance_m <- 800
 # permit_start_year <- 2010
-# permit_end_year <- 2020
 # permit_end_month <- "2020-12"
-# =======================================================================================
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(segment_buffer_m, panel_max_distance_m, permit_start_year, permit_end_year, permit_end_month)
+  cli_args <- c(segment_buffer_m, panel_max_distance_m, permit_start_year, permit_end_month)
 }
 
-if (length(cli_args) != 5) {
-  stop("FATAL: Script requires 5 args: <segment_buffer_m> <panel_max_distance_m> <permit_start_year> <permit_end_year> <permit_end_month>", call. = FALSE)
+if (length(cli_args) != 4) {
+  stop("FATAL: Script requires 4 args: <segment_buffer_m> <panel_max_distance_m> <permit_start_year> <permit_end_month>", call. = FALSE)
 }
 segment_buffer_m <- as.numeric(cli_args[1])
 panel_max_distance_m <- as.numeric(cli_args[2])
 permit_start_year <- as.integer(cli_args[3])
-permit_end_year <- as.integer(cli_args[4])
-permit_end_month <- cli_args[5]
+permit_end_month <- cli_args[4]
 if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
   stop("segment_buffer_m must be positive.", call. = FALSE)
 }
 if (!is.finite(panel_max_distance_m) || panel_max_distance_m <= 0) {
   stop("panel_max_distance_m must be positive.", call. = FALSE)
 }
-if (!is.finite(permit_start_year) || !is.finite(permit_end_year) || permit_start_year > permit_end_year) {
-  stop("permit_start_year and permit_end_year must define a valid year window.", call. = FALSE)
+if (!is.finite(permit_start_year)) {
+  stop("permit_start_year must be a valid year.", call. = FALSE)
 }
 if (!grepl("^\\d{4}-\\d{2}$", permit_end_month)) {
   stop("permit_end_month must use YYYY-MM format.", call. = FALSE)
 }
 permit_end_yearmon <- as.yearmon(as.Date(paste0(permit_end_month, "-01")))
-if (as.integer(format(as.Date(permit_end_yearmon), "%Y")) != permit_end_year) {
-  stop("permit_end_year must match the year in permit_end_month.", call. = FALSE)
+permit_end_year <- as.integer(format(as.Date(permit_end_yearmon), "%Y"))
+if (permit_start_year > permit_end_year) {
+  stop("permit_start_year must be no later than permit_end_month.", call. = FALSE)
 }
 
 write_panel_diagnostics <- tolower(Sys.getenv("WRITE_PANEL_SIDECARS", "0")) %in% c("1", "true", "yes")

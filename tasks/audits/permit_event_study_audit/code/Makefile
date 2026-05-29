@@ -5,7 +5,6 @@ MAIN_BW_LABEL ?= 1000ft
 SEGMENT_BUFFER_M ?= 304.8
 PANEL_MAX_DISTANCE_M ?= 800
 PERMIT_START_YEAR ?= 2010
-PERMIT_END_YEAR ?= 2020
 PERMIT_END_MONTH ?= 2020-12
 
 all: \
@@ -56,7 +55,7 @@ panel_diagnostics: \
 	cd ../../../create_event_study_permit_data/code && \
 		WRITE_PANEL_SIDECARS=1 \
 		PANEL_SIDECAR_DIR=../../audits/permit_event_study_audit/output \
-		Rscript create_permit_block_year_panel.R $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M) $(PERMIT_START_YEAR) $(PERMIT_END_YEAR) $(PERMIT_END_MONTH)
+		Rscript create_permit_block_year_panel.R $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M) $(PERMIT_START_YEAR) $(PERMIT_END_MONTH)
 
 ../output/permit_block_year_panel_support_by_calendar_time.csv: ../output/permit_block_year_panel_support_by_event_time.csv
 	@test -s "$@"
