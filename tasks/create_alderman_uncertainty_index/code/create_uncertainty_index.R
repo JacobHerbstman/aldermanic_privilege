@@ -47,41 +47,29 @@ if (!config$stage2_weight %in% c("N_PERMITS", "SQRT_N_PERMITS", "NONE")) {
   stop("stage2_weight must be one of: N_PERMITS, SQRT_N_PERMITS, NONE", call. = FALSE)
 }
 
-max_permit_month_raw <- Sys.getenv("MAX_PERMIT_MONTH", "")
-max_permit_year_raw <- Sys.getenv("MAX_PERMIT_YEAR", "2022")
-score_only <- tolower(Sys.getenv("SCORE_ONLY", "false")) %in% c("true", "1", "yes")
+max_permit_cutoff <- Sys.getenv("MAX_PERMIT_CUTOFF", "2022")
+write_paper_bundle <- tolower(Sys.getenv("PAPER_BUNDLE", "true")) %in% c("true", "1", "yes")
 
-if (nzchar(max_permit_month_raw)) {
-  if (!grepl("^\\d{4}-\\d{2}$", max_permit_month_raw)) {
-    stop("MAX_PERMIT_MONTH must use YYYY-MM format.", call. = FALSE)
-  }
-  max_permit_month <- as.yearmon(as.Date(paste0(max_permit_month_raw, "-01")))
-} else if (nzchar(max_permit_year_raw)) {
-  year_value <- suppressWarnings(as.integer(max_permit_year_raw))
-  if (!is.finite(year_value)) {
-    stop("MAX_PERMIT_YEAR must be a valid integer year.", call. = FALSE)
-  }
-  max_permit_month <- as.yearmon(as.Date(sprintf("%04d-12-01", year_value)))
+if (grepl("^\\d{4}$", max_permit_cutoff)) {
+  max_permit_month <- as.yearmon(as.Date(paste0(max_permit_cutoff, "-12-01")))
+} else if (grepl("^\\d{4}-\\d{2}$", max_permit_cutoff)) {
+  max_permit_month <- as.yearmon(as.Date(paste0(max_permit_cutoff, "-01")))
 } else {
-  max_permit_month <- NA
+  stop("MAX_PERMIT_CUTOFF must use YYYY or YYYY-MM format.", call. = FALSE)
 }
 
-cutoff_label <- if (!nzchar(max_permit_month_raw) && nzchar(max_permit_year_raw)) {
-  paste0("through", max_permit_year_raw)
-} else if (!is.na(max_permit_month)) {
-  paste0("through", format(as.Date(max_permit_month), "%Y%m"))
+cutoff_label <- if (grepl("^\\d{4}$", max_permit_cutoff)) {
+  paste0("through", max_permit_cutoff)
 } else {
-  "throughlatest"
+  paste0("through", gsub("-", "", max_permit_cutoff))
 }
 
 output_suffix <- build_uncertainty_output_suffix(config, cutoff_label)
 
 permits <- load_uncertainty_permits("../input/permits_for_uncertainty_index.csv")
 
-if (!is.na(max_permit_month)) {
-  permits <- permits %>%
-    filter(month <= max_permit_month)
-}
+permits <- permits %>%
+  filter(month <= max_permit_month)
 
 if (nrow(permits) == 0) {
   stop("No permits remain after applying the permit cutoff.", call. = FALSE)
@@ -96,7 +84,7 @@ result <- build_residualized_uncertainty_index(
   construction_rule = "Baseline residualized score dropping share_bach_plus"
 )
 
-if (!score_only) {
+if (write_paper_bundle) {
   write_stage1_regression_table(result$stage1_model, sprintf("../output/stage1_regression_%s.tex", output_suffix), result$stage1_outcome)
   write_uncertainty_plot(result$alderman_index, sprintf("../output/uncertainty_index_%s.pdf", output_suffix))
 }
