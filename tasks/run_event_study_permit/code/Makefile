@@ -20,7 +20,7 @@ all: \
 	Rscript $< $(MAIN_BW_M) $(MAIN_BW_LABEL)
 
 ../input/permit_block_year_panel_2015.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/permit_block_year_panel_2015.parquet
 
