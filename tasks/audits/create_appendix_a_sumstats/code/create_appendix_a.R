@@ -2,7 +2,9 @@
 # Creates summary statistics table for rental listings
 # Output: LaTeX table file only
 
-source("../../setup_environment/code/packages.R")
+# setwd("tasks/audits/create_appendix_a_sumstats/code")
+
+source("../../../setup_environment/code/packages.R")
 
 # =============================================================================
 # 1. HELPER FUNCTIONS

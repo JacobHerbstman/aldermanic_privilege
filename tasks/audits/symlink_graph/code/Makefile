@@ -10,4 +10,4 @@ all: ../output/task_flow.png
 runorder: ../output/graph.txt | ../output
 	sed '1d; $$d' ../output/graph.txt | sed 's/->/ /' | tsort | sed 's/\(.*\)/make -C ..\/..\/\1\/code/'
 
-include ../../generic.make
+include ../../../generic.make

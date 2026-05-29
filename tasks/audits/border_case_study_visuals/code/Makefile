@@ -20,10 +20,10 @@ all: ../output/case_study_far_panel_$(CASE_BW_M)m.pdf ../output/case_study_summa
 ../output/case_study_summary_$(CASE_BW_M)m.csv: ../output/case_study_far_panel_$(CASE_BW_M)m.pdf
 	@test -s "$@"
 
-../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
+../input/parcels_with_ward_distances.csv: ../../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 
-include ../../generic.make
+include ../../../generic.make

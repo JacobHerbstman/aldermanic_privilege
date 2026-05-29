@@ -1,6 +1,6 @@
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit_dcdh_robustness/code")
+# setwd("tasks/audits/run_event_study_permit_dcdh_robustness/code")
 # bandwidth <- 1000
 # weighting <- "uniform"
 # bootstrap_reps <- 0

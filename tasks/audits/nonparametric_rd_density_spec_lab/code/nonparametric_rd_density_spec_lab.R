@@ -1,15 +1,15 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
-setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_spec_lab/code")
-figure_type <- "type3_local_linear"
-yvar <- "unitscount"
-bw_ft <- 250
-sample_filter <- "all"
-fe_spec <- "segment_zonegroup_year"
-output_pdf <- "../output/type3_local_linear_log_unitscount_bw250_all_segment_zonegroup_year.pdf"
-output_csv <- "none"
+# setwd("tasks/audits/nonparametric_rd_density_spec_lab/code")
+# figure_type <- "type3_local_linear"
+# yvar <- "unitscount"
+# bw_ft <- 250
+# sample_filter <- "all"
+# fe_spec <- "segment_zonegroup_year"
+# output_pdf <- "../output/type3_local_linear_log_unitscount_bw250_all_segment_zonegroup_year.pdf"
+# output_csv <- "none"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {

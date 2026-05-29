@@ -14,9 +14,9 @@ endef
 
 $(foreach bw,$(BWS),$(foreach sample,$(SAMPLES),$(foreach fe,$(FE_SPECS),$(eval $(call TABLE_template,$(bw),$(sample),$(fe))))))
 
-../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
+../input/parcels_with_ward_distances.csv: ../../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 
-include ../../generic.make
+include ../../../generic.make

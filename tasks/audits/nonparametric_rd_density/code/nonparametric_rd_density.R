@@ -1,8 +1,8 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/border_pair_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density/code")
+# setwd("tasks/audits/nonparametric_rd_density/code")
 # yvar <- "density_far"
 # use_log <- TRUE
 # bw_ft <- 500

@@ -17,9 +17,9 @@ define GAP_RULE
 endef
 $(foreach yvar,$(YVARS),$(foreach bw,$(BW_FT),$(foreach sample,$(SAMPLES),$(foreach gap,$(GAP_SPLITS),$(eval $(call GAP_RULE,$(yvar),$(bw),$(sample),$(gap)))))))
 
-../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
+../input/parcels_with_ward_distances.csv: ../../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 
-include ../../generic.make
+include ../../../generic.make

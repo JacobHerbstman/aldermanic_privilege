@@ -1,10 +1,10 @@
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_case_study_visuals/code")
+# setwd("tasks/audits/border_case_study_visuals/code")
 # bw_ft <- 328
 # bw_label <- "100m"
 # borders <- "1_26,11_25"

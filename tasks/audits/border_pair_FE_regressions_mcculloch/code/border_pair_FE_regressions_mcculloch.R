@@ -1,5 +1,5 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/border_pair_helpers.R")
 
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
@@ -7,7 +7,7 @@ source("../../_lib/border_pair_helpers.R")
 # sample: "all" (unitscount > 0) | "multifamily" (unitscount > 1)
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions_mcculloch/code")
+# setwd("tasks/audits/border_pair_FE_regressions_mcculloch/code")
 # bw_ft <- "250"
 # sample_filter <- "all"
 # fe_spec <- "zonegroup_segment_year_additive"
