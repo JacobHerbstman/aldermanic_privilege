@@ -5,7 +5,6 @@
 set -euo pipefail
 
 output_file="../output/commercial_valuation_data.csv"
-metadata_file="../output/commercial_valuation_data_metadata.csv"
 api_csv="https://datacatalog.cookcountyil.gov/resource/csik-bsws.csv"
 api_json="https://datacatalog.cookcountyil.gov/resource/csik-bsws.json"
 batch_size=50000
@@ -122,13 +121,6 @@ if (( ending_records != expected_records )); then
     exit 1
 fi
 
-tmp_metadata="$tmp_dir/commercial_valuation_data_metadata.csv"
-{
-    echo "source_url,downloaded_at_utc,order_clause,batch_size,rows,start_rows,end_rows"
-    echo "$api_csv,$(date -u +%Y-%m-%dT%H:%M:%SZ),\"${order_clause}\",$batch_size,$actual_records,$expected_records,$ending_records"
-} > "$tmp_metadata"
-
-mv "$tmp_metadata" "$metadata_file"
 mv "$tmp_output" "$output_file"
 
 echo "Download complete: $actual_records records"

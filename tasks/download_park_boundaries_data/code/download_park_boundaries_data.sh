@@ -4,16 +4,13 @@
 set -euo pipefail
 
 output_file="../output/cpd_park_boundaries.geojson"
-metadata_file="../output/cpd_park_boundaries_metadata.csv"
 api_url="https://data.cityofchicago.org/resource/ejsh-fztr.geojson"
-source_page="https://data.cityofchicago.org/d/ej32-qgdr"
 limit=50000
 
 tmp_dir=$(mktemp -d "$(dirname "$output_file")/.cpd_park_boundaries.XXXXXX")
 trap 'rm -rf "$tmp_dir"' EXIT
 
 tmp_output="$tmp_dir/cpd_park_boundaries.geojson"
-tmp_metadata="$tmp_dir/cpd_park_boundaries_metadata.csv"
 
 curl --fail --show-error --retry 5 --retry-delay 2 --retry-connrefused --connect-timeout 60 --max-time 600 \
 	-sG -o "$tmp_output" "$api_url" \
@@ -46,12 +43,6 @@ print(len(features))
 PY
 )
 
-{
-	echo "source_url,source_page,downloaded_at_utc,rows"
-	echo "$api_url,$source_page,$(date -u +%Y-%m-%dT%H:%M:%SZ),$feature_count"
-} > "$tmp_metadata"
-
-mv "$tmp_metadata" "$metadata_file"
 mv "$tmp_output" "$output_file"
 
 echo "Downloaded ${feature_count} CPD park-boundary polygons"

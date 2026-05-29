@@ -2,7 +2,6 @@
 set -euo pipefail
 
 output_file="../output/building_permits.csv"
-metadata_file="../output/building_permits_metadata.csv"
 api_csv="https://data.cityofchicago.org/resource/ydr8-5enu.csv"
 api_json="https://data.cityofchicago.org/resource/ydr8-5enu.json"
 batch_size=50000
@@ -117,11 +116,4 @@ if (( ending_records != expected_records )); then
     exit 1
 fi
 
-tmp_metadata="$tmp_dir/building_permits_metadata.csv"
-{
-    echo "source_url,downloaded_at_utc,order_clause,batch_size,rows,start_rows,end_rows"
-    echo "$api_csv,$(date -u +%Y-%m-%dT%H:%M:%SZ),\"${order_clause}\",$batch_size,$actual_records,$expected_records,$ending_records"
-} > "$tmp_metadata"
-
 mv "$tmp_output" "$output_file"
-mv "$tmp_metadata" "$metadata_file"
