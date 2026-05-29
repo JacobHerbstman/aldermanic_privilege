@@ -88,9 +88,7 @@ fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_va
       cutoff_ft = cutoff_value,
       cutoff_label = cutoff_text,
       sample = sample_name,
-      dataset = dataset,
-      model_type = "Flat",
-      outcome_scale = "log"
+      dataset = dataset
     )
 
   bin_width <- bandwidth_ft / bins_per_side
@@ -99,42 +97,16 @@ fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_va
       bin_id = floor(running_ft / bin_width),
       bin_center = (bin_id + 0.5) * bin_width
     ) %>%
-    group_by(dataset, sample, model_type, cutoff_ft, cutoff_label, bin_center) %>%
+    group_by(dataset, sample, cutoff_ft, cutoff_label, bin_center) %>%
     summarise(
-      n = n(),
       mean_y = mean(y_adjusted, na.rm = TRUE),
       side = if_else(first(bin_center) >= 0, "More Stringent", "Less Stringent"),
       .groups = "drop"
     )
 
-  line_data <- bind_rows(
-    tibble(
-      dataset = dataset,
-      sample = sample_name,
-      model_type = "Flat",
-      cutoff_ft = cutoff_value,
-      cutoff_label = cutoff_text,
-      x = c(-bandwidth_ft, 0),
-      y = mean(plot_data$y_adjusted[plot_data[[treatment]] == 0], na.rm = TRUE),
-      side = "Less Stringent"
-    ),
-    tibble(
-      dataset = dataset,
-      sample = sample_name,
-      model_type = "Flat",
-      cutoff_ft = cutoff_value,
-      cutoff_label = cutoff_text,
-      x = c(0, bandwidth_ft),
-      y = mean(plot_data$y_adjusted[plot_data[[treatment]] == 1], na.rm = TRUE),
-      side = "More Stringent"
-    )
-  )
-
   estimate_row <- tibble(
     dataset = dataset,
     sample = sample_name,
-    model_type = "Flat",
-    outcome_scale = "log",
     cutoff_ft = cutoff_value,
     cutoff_label = cutoff_text,
     estimate = estimate,
@@ -142,16 +114,13 @@ fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_va
     p_value = p_value,
     pct_change = pct_change,
     estimate_text = estimate_text,
-    n_obs = fit$nobs,
-    n_segments = n_distinct(plot_data$segment_id),
-    n_ward_pairs = n_distinct(plot_data$ward_pair),
-    cluster = cluster_var
+    n_obs = fit$nobs
   )
 
-  list(estimates = estimate_row, bins = bins, lines = line_data)
+  list(estimates = estimate_row, bins = bins)
 }
 
-make_rd_plot <- function(parts, title, y_label, output_base, facet = TRUE) {
+make_rd_plot <- function(parts, title, y_label, output_base) {
   estimates <- bind_rows(lapply(parts, `[[`, "estimates")) %>%
     mutate(
       panel_subtitle = sprintf(
@@ -163,12 +132,6 @@ make_rd_plot <- function(parts, title, y_label, output_base, facet = TRUE) {
       panel_subtitle = factor(panel_subtitle, levels = unique(panel_subtitle))
     )
   bins <- bind_rows(lapply(parts, `[[`, "bins")) %>%
-    left_join(
-      estimates %>% select(dataset, sample, cutoff_ft, panel_subtitle),
-      by = c("dataset", "sample", "cutoff_ft"),
-      relationship = "many-to-one"
-    )
-  lines <- bind_rows(lapply(parts, `[[`, "lines")) %>%
     left_join(
       estimates %>% select(dataset, sample, cutoff_ft, panel_subtitle),
       by = c("dataset", "sample", "cutoff_ft"),
@@ -190,14 +153,9 @@ make_rd_plot <- function(parts, title, y_label, output_base, facet = TRUE) {
     theme_bw(base_size = 11) +
     theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
-  if (facet) {
-    plot <- plot + facet_wrap(~panel_subtitle, nrow = 1)
-  } else {
-    subtitle <- estimates$panel_subtitle[[1]]
-    plot <- plot + labs(subtitle = subtitle)
-  }
+  plot <- plot + facet_wrap(~panel_subtitle, nrow = 1)
 
-  ggsave(paste0(output_base, ".pdf"), plot, width = ifelse(facet, 12, 8.6), height = 5.5, dpi = 300, bg = "white")
+  ggsave(paste0(output_base, ".pdf"), plot, width = 12, height = 5.5, dpi = 300, bg = "white")
 
   list(estimates = estimates, bins = bins)
 }
@@ -208,8 +166,8 @@ if (market == "rent") {
   rent <- read_parquet("../input/rent_with_ward_distances_full.parquet") %>%
     as_tibble()
 
-  if (!"signed_dist" %in% names(rent) && "signed_dist_m" %in% names(rent)) {
-    rent <- rent %>% mutate(signed_dist = signed_dist_m / 0.3048)
+  if (!"signed_dist_m" %in% names(rent)) {
+    stop("Rental input must include signed_dist_m.", call. = FALSE)
   }
 
   rent <- rent %>%
@@ -217,7 +175,7 @@ if (market == "rent") {
       file_date = as.Date(file_date),
       year = lubridate::year(file_date),
       year_month = format(file_date, "%Y-%m"),
-      signed_dist_ft = as.numeric(signed_dist),
+      signed_dist_ft = as.numeric(signed_dist_m) / 0.3048,
       ward_pair = as.character(ward_pair_id),
       segment_id = as.character(segment_id),
       right = as.integer(signed_dist_ft >= 0),
@@ -326,15 +284,14 @@ if (market == "rent") {
     rent_placebo_parts,
     "Listed Rents: True and Placebo Cutoffs",
     "Segment-by-month adjusted log rent",
-    "../output/rent_placebo_rd_main_style",
-    TRUE
+    "../output/rent_placebo_rd_main_style"
   ))
 } else {
   sales <- read_parquet("../input/sales_with_hedonics_amenities.parquet") %>%
     as_tibble()
 
-  if (!"signed_dist" %in% names(sales) && "signed_dist_m" %in% names(sales)) {
-    sales <- sales %>% mutate(signed_dist = signed_dist_m / 0.3048)
+  if (!"signed_dist_m" %in% names(sales)) {
+    stop("Sales input must include signed_dist_m.", call. = FALSE)
   }
 
   sales <- sales %>%
@@ -342,7 +299,7 @@ if (market == "rent") {
       sale_date = as.Date(sale_date),
       year = lubridate::year(sale_date),
       year_quarter = paste0(year, "-Q", lubridate::quarter(sale_date)),
-      signed_dist_ft = as.numeric(signed_dist),
+      signed_dist_ft = as.numeric(signed_dist_m) / 0.3048,
       ward_pair = as.character(ward_pair_id),
       segment_id = as.character(segment_id),
       right = as.integer(signed_dist_ft >= 0),
@@ -395,7 +352,6 @@ if (market == "rent") {
     sales_placebo_parts,
     "Home Sale Prices: True and Placebo Cutoffs",
     "Segment-by-quarter adjusted log sale price",
-    "../output/sales_placebo_rd_main_style",
-    TRUE
+    "../output/sales_placebo_rd_main_style"
   ))
 }
