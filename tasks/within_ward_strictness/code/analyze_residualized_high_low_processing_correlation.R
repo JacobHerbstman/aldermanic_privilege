@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/within_ward_strictness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 
 source("../../setup_environment/code/packages.R")
@@ -32,10 +32,6 @@ config$volume_stage <- "BOTH"
 config$two_stage <- FALSE
 
 signs_regex <- "SIGNS"
-
-message("=== Residualized High-vs-Low Processing-Time Correlation Check ===")
-message("Spec: ", spec)
-message("Through-year cutoff: ", max_permit_year)
 
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 ward_controls <- read_csv("../input/ward_controls.csv", show_col_types = FALSE)

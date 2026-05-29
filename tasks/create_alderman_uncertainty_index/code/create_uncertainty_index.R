@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/create_alderman_uncertainty_index/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_uncertainty_index/code")
 # permit_type_fe <- TRUE
 # review_type_fe <- TRUE
 # include_porch <- TRUE
@@ -47,16 +47,6 @@ if (!config$stage2_weight %in% c("N_PERMITS", "SQRT_N_PERMITS", "NONE")) {
   stop("stage2_weight must be one of: N_PERMITS, SQRT_N_PERMITS, NONE", call. = FALSE)
 }
 
-message("=== Creating Alderman Uncertainty Index ===")
-message("  PERMIT_TYPE_FE: ", config$permit_type_fe)
-message("  REVIEW_TYPE_FE: ", config$review_type_fe)
-message("  INCLUDE_PORCH: ", config$include_porch)
-message("  CA_FE: ", config$ca_fe)
-message("  TWO_STAGE: ", config$two_stage)
-message("  STAGE2_WEIGHT: ", config$stage2_weight)
-message("  VOLUME_CTRL: ", config$volume_ctrl)
-message("  VOLUME_STAGE: ", config$volume_stage)
-
 max_permit_month_raw <- Sys.getenv("MAX_PERMIT_MONTH", "")
 max_permit_year_raw <- Sys.getenv("MAX_PERMIT_YEAR", "2022")
 score_only <- tolower(Sys.getenv("SCORE_ONLY", "false")) %in% c("true", "1", "yes")
@@ -90,12 +80,10 @@ stage1_output <- sprintf("../output/stage1_regression_%s.tex", output_suffix)
 plot_output <- sprintf("../output/uncertainty_index_%s.pdf", output_suffix)
 
 permits <- load_uncertainty_permits("../input/permits_for_uncertainty_index.csv")
-message("Permits loaded before cutoff: ", nrow(permits))
 
 if (!is.na(max_permit_month)) {
   permits <- permits %>%
     filter(month <= max_permit_month)
-  message("Permits after month <= ", as.character(max_permit_month), " cutoff: ", nrow(permits))
 }
 
 if (nrow(permits) == 0) {
@@ -111,17 +99,9 @@ result <- build_residualized_uncertainty_index(
   construction_rule = "Baseline residualized score dropping share_bach_plus"
 )
 
-message("Stage 1 observations: ", result$metadata$stage1_nobs)
-message("Stage 1 adjusted R-squared: ", round(result$metadata$stage1_r2, 4))
-message("Aldermen with scores: ", nrow(result$alderman_index))
-
 if (!score_only) {
   write_stage1_regression_table(result$stage1_model, stage1_output, result$stage1_outcome)
-  message("Saved: ", stage1_output)
-
   write_uncertainty_plot(result$alderman_index, plot_output)
-  message("Saved: ", plot_output)
 }
 
 write_csv(result$alderman_index, output_file)
-message("Saved: ", output_file)

@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/permit_summary_stats/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/permit_summary_stats/code")
 # max_application_ym <- "2022-12"
 
 source("../../setup_environment/code/packages.R")

@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/within_ward_strictness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 
 source("../../setup_environment/code/packages.R")
@@ -65,12 +65,6 @@ turnover_pairs <- alderman_sequence %>%
 if (nrow(turnover_pairs) < 3) {
   stop("Not enough predecessor-successor pairs to plot.", call. = FALSE)
 }
-
-message(sprintf("Created %d predecessor-successor pairs with both scores", nrow(turnover_pairs)))
-message(sprintf(
-  "Predecessor-successor correlation: %.3f",
-  cor(turnover_pairs$predecessor_score, turnover_pairs$successor_score)
-))
 
 plot <- ggplot(turnover_pairs, aes(x = predecessor_score, y = successor_score)) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray50") +
