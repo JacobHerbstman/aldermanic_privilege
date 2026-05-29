@@ -66,15 +66,12 @@ raw_glob <- "../input/renthub_raw/*.parquet"
 rent_panel_path <- "../input/chicago_rent_panel.parquet"
 manual_location_path <- "manual_verified_address_locations.csv"
 
-message("=== Build RentHub Quality Flags ===")
-message(sprintf("Window: %s through %s", start_date, end_date))
-
 unlink("../output/chicago_rent_panel_quality_flags.parquet", recursive = TRUE, force = TRUE)
 
 con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:")
 on.exit(dbDisconnect(con, shutdown = TRUE), add = TRUE)
-dbExecute(con, "PRAGMA threads=4")
-dbExecute(
+discard <- dbExecute(con, "PRAGMA threads=4")
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE MACRO clean_address_stem(address_value) AS (
@@ -106,8 +103,7 @@ collect_query <- function(sql) {
   as.data.table(dbGetQuery(con, sql))
 }
 
-message("Loading cleaned monthly panel...")
-dbExecute(
+discard <- dbExecute(
   con,
   sprintf(
     "
@@ -132,8 +128,7 @@ if (panel_n != panel_unique_n) {
   stop("chicago_rent_panel.parquet must be unique by rent_panel_id.", call. = FALSE)
 }
 
-message("Building raw keyed RentHub view...")
-dbExecute(
+discard <- dbExecute(
   con,
   sprintf(
     "
@@ -274,13 +269,6 @@ dbExecute(
   )
 )
 
-raw_n <- collect_query("SELECT COUNT(*) AS n FROM raw_clean")$n[1]
-message(sprintf(
-  "Raw Chicago rows in bbox: %s | monthly panel rows: %s",
-  format(raw_n, big.mark = ","),
-  format(panel_n, big.mark = ",")
-))
-
 manual_locations <- fread(manual_location_path, na.strings = c("", "NA", "N/A", "NULL"))
 manual_required <- c(
   "address_stem",
@@ -336,7 +324,6 @@ if (nrow(manual_locations[verification_status == "verified"]) > 0) {
   ]
 }
 
-message("Building address-coordinate stability flags in EPSG 3435...")
 address_clusters <- collect_query(
   "
   SELECT
@@ -583,7 +570,7 @@ setorder(address_location_groups, address_stem, location_group_rank)
 
 setorder(address_clusters, -address_coord_distance_ft, -raw_rows)
 
-dbWriteTable(
+discard <- dbWriteTable(
   con,
   "address_cluster_flags",
   as.data.frame(address_clusters[, .(
@@ -627,8 +614,7 @@ dbWriteTable(
   overwrite = TRUE
 )
 
-message("Building property rent stability flags...")
-dbExecute(
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE property_month AS
@@ -645,7 +631,7 @@ dbExecute(
   GROUP BY 1, 2
   "
 )
-dbExecute(
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE property_month_jumps AS
@@ -660,7 +646,7 @@ dbExecute(
   FROM property_month
   "
 )
-dbExecute(
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE property_proxy_stability AS
@@ -699,8 +685,7 @@ dbExecute(
   "
 )
 
-message("Building same-day floorplan rent-spread flags...")
-dbExecute(
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE floorplan_day_spread AS
@@ -738,7 +723,7 @@ dbExecute(
   GROUP BY 1, 2, 3, 5, 6
   "
 )
-dbExecute(
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE floorplan_month_spread_flags AS
@@ -755,8 +740,7 @@ dbExecute(
   "
 )
 
-message("Building one-day bulk property-day flags...")
-dbExecute(
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE property_day AS
@@ -776,7 +760,7 @@ dbExecute(
   GROUP BY 1, 3, 4
   "
 )
-dbExecute(
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE property_day_context AS
@@ -811,7 +795,7 @@ dbExecute(
   FROM ordered
   "
 )
-dbExecute(
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE property_month_bulk_flags AS
@@ -827,8 +811,7 @@ dbExecute(
   "
 )
 
-message("Building coordinate-only generic-pile flags...")
-dbExecute(
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE coordinate_only_pile_flags AS
@@ -859,8 +842,7 @@ dbExecute(
   "
 )
 
-message("Building building-type conflict flags...")
-dbExecute(
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE building_type_conflict_flags AS
@@ -907,8 +889,7 @@ dbExecute(
   "
 )
 
-message("Building stale posted-date flags...")
-dbExecute(
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE stale_month_flags AS
@@ -928,8 +909,7 @@ dbExecute(
   "
 )
 
-message("Building panel-level quality flags...")
-dbExecute(
+discard <- dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE chicago_rent_panel_quality_flags AS
@@ -1111,7 +1091,7 @@ if (quality_n != panel_n || quality_unique_n != panel_n) {
   stop("Quality flags must be one-to-one with the monthly rent panel.", call. = FALSE)
 }
 
-dbExecute(
+discard <- dbExecute(
   con,
   "
   COPY chicago_rent_panel_quality_flags
@@ -1119,9 +1099,3 @@ dbExecute(
   (FORMAT PARQUET, COMPRESSION ZSTD)
   "
 )
-
-message(sprintf(
-  "Wrote quality flags for %s monthly rent observations.",
-  format(quality_n, big.mark = ",")
-))
-message("RentHub quality flags complete.")
