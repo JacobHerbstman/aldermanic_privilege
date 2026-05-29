@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/strictness_score_map/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/strictness_score_map/code")
 # date_str <- "2022-01"
 # uncertainty_spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 
@@ -103,4 +103,3 @@ p <- ggplot(ward_map) +
         plot.title = element_text(hjust = 0.5))
 
 ggsave(outfile, plot = p, width = 8, height = 10, dpi = 300)
-cat("Map saved to", outfile, "\n")

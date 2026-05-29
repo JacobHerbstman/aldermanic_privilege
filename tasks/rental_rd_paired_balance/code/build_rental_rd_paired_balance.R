@@ -1,5 +1,3 @@
-# Build the listed-rent RD paired external amenity balance table.
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_paired_balance/code")
 # bandwidth_ft <- 500

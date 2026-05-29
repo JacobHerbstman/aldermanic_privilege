@@ -35,6 +35,9 @@ all: \
 ../input/confounded_segment_flags.csv: ../../border_confound_pruning/output/confounded_segment_flags.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv
+link-inputs: \
+	../input/parcels_with_ward_distances.csv \
+	../input/confounded_pair_era_flags.csv \
+	../input/confounded_segment_flags.csv
 
 include ../../generic.make

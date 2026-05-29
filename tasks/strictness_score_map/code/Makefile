@@ -15,6 +15,9 @@ all: ../output/uncertainty_score_map_$(UNCERTAINTY_SPEC)_$(DATE).pdf
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv ../input/ward_panel.gpkg
+link-inputs: \
+	../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv \
+	../input/chicago_alderman_panel.csv \
+	../input/ward_panel.gpkg
 
 include ../../generic.make

@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/density_corner_clean_table/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_corner_clean_table/code")
 # bandwidth_m <- 152.4
 # sample_filter <- "all"
 # bandwidth_label <- "500ft"
