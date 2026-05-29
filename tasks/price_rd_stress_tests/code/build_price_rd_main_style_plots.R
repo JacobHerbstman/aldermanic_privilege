@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/price_rd_stress_tests/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/price_rd_stress_tests/code")
 # market <- "rent"
 
 source("../../setup_environment/code/packages.R")
@@ -20,34 +20,13 @@ bandwidth_ft <- 500
 bins_per_side <- 10
 cutoffs_ft <- c(-1000, 0, 1000)
 
-stars <- function(p_value) {
-  case_when(
-    !is.finite(p_value) ~ "",
-    p_value < 0.01 ~ "***",
-    p_value < 0.05 ~ "**",
-    p_value < 0.10 ~ "*",
-    TRUE ~ ""
-  )
-}
-
-coef_p_value <- function(coef_table, row_name) {
-  p_col <- grep("^Pr\\(", colnames(coef_table), value = TRUE)
-  if (length(p_col) != 1L) {
-    return(NA_real_)
-  }
-  unname(coef_table[row_name, p_col])
-}
-
-plot_label <- function(cutoff_ft) {
-  if (cutoff_ft == 0) {
-    return("True boundary")
-  }
-  sprintf("%+dft placebo", as.integer(cutoff_ft))
-}
-
 fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_var, cutoff_ft, sample_name) {
   cutoff_value <- cutoff_ft
-  cutoff_text <- plot_label(cutoff_value)
+  cutoff_text <- if (cutoff_value == 0) {
+    "True boundary"
+  } else {
+    sprintf("%+dft placebo", as.integer(cutoff_value))
+  }
   treatment <- if (cutoff_ft == 0) "right" else "cutoff_right"
   d <- data %>%
     mutate(
@@ -85,9 +64,17 @@ fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_va
 
   estimate <- unname(ct[treatment, "Estimate"])
   std_error <- unname(ct[treatment, "Std. Error"])
-  p_value <- coef_p_value(ct, treatment)
+  p_col <- grep("^Pr\\(", colnames(ct), value = TRUE)
+  p_value <- if (length(p_col) == 1L) unname(ct[treatment, p_col]) else NA_real_
   pct_change <- 100 * (exp(estimate) - 1)
-  estimate_text <- sprintf("%.2f%%%s (SE %.2f)", pct_change, stars(p_value), 100 * std_error)
+  star_text <- case_when(
+    !is.finite(p_value) ~ "",
+    p_value < 0.01 ~ "***",
+    p_value < 0.05 ~ "**",
+    p_value < 0.10 ~ "*",
+    TRUE ~ ""
+  )
+  estimate_text <- sprintf("%.2f%%%s (SE %.2f)", pct_change, star_text, 100 * std_error)
 
   removed <- fit$obs_selection$obsRemoved
   keep_idx <- if (is.null(removed)) {
