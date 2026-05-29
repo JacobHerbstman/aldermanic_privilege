@@ -67,11 +67,8 @@ assign_location_groups <- function(x_ft, y_ft, radius_ft) {
 raw_glob <- "../input/renthub_raw/*.parquet"
 rent_panel_path <- "../input/chicago_rent_panel.parquet"
 manual_location_path <- "manual_verified_address_locations.csv"
-
-message("=== RentHub Proxy Consistency Audit ===")
-message(sprintf("Window: %s through %s", start_date, end_date))
-
-unlink(c(
+write_audit_outputs <- tolower(Sys.getenv("WRITE_AUDIT_OUTPUTS", "false")) %in% c("true", "1", "yes")
+audit_output_paths <- c(
   "../output/address_coordinate_stability.csv",
   "../output/address_location_group_stability.csv",
   "../output/unstable_address_external_review_queue.csv",
@@ -83,9 +80,16 @@ unlink(c(
   "../output/building_type_conflict_audit.csv",
   "../output/stale_posted_audit.csv",
   "../output/renthub_quality_flag_summary.csv",
-  "../output/harrison_221_spotcheck.csv",
-  "../output/chicago_rent_panel_quality_flags.parquet"
-), recursive = TRUE, force = TRUE)
+  "../output/harrison_221_spotcheck.csv"
+)
+
+message("=== RentHub Proxy Consistency Audit ===")
+message(sprintf("Window: %s through %s", start_date, end_date))
+
+unlink("../output/chicago_rent_panel_quality_flags.parquet", recursive = TRUE, force = TRUE)
+if (write_audit_outputs) {
+  unlink(audit_output_paths, recursive = TRUE, force = TRUE)
+}
 
 con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:")
 on.exit(dbDisconnect(con, shutdown = TRUE), add = TRUE)
@@ -596,7 +600,9 @@ address_location_groups[, primary_location_share_cutoff := primary_location_shar
 address_location_groups[, far_secondary_share_cutoff := far_secondary_share_cutoff]
 address_location_groups[, far_secondary_distance_ft := far_secondary_distance_ft]
 setorder(address_location_groups, address_stem, location_group_rank)
-fwrite(address_location_groups, "../output/address_location_group_stability.csv")
+if (write_audit_outputs) {
+  fwrite(address_location_groups, "../output/address_location_group_stability.csv")
+}
 
 candidate_groups <- address_location_groups[
   location_group_rank <= 5,
@@ -669,17 +675,21 @@ review_queue_export <- head(review_queue, manual_review_top_n)[
     manual_resolution_template
   )
 ]
-fwrite(review_queue_export, "../output/unstable_address_external_review_queue.csv")
-write_xlsx(
-  list(
-    review_queue = review_queue_export,
-    manual_verified_locations = manual_locations
-  ),
-  "../output/unstable_address_external_review_workbook.xlsx"
-)
+if (write_audit_outputs) {
+  fwrite(review_queue_export, "../output/unstable_address_external_review_queue.csv")
+  write_xlsx(
+    list(
+      review_queue = review_queue_export,
+      manual_verified_locations = manual_locations
+    ),
+    "../output/unstable_address_external_review_workbook.xlsx"
+  )
+}
 
 setorder(address_clusters, -address_coord_distance_ft, -raw_rows)
-fwrite(address_clusters, "../output/address_coordinate_stability.csv")
+if (write_audit_outputs) {
+  fwrite(address_clusters, "../output/address_coordinate_stability.csv")
+}
 
 dbWriteTable(
   con,
@@ -796,14 +806,16 @@ dbExecute(
   GROUP BY 1
   "
 )
-dbExecute(
-  con,
-  "
-  COPY property_proxy_stability
-  TO '../output/property_proxy_stability.csv'
-  (HEADER TRUE, DELIMITER ',')
-  "
-)
+if (write_audit_outputs) {
+  dbExecute(
+    con,
+    "
+    COPY property_proxy_stability
+    TO '../output/property_proxy_stability.csv'
+    (HEADER TRUE, DELIMITER ',')
+    "
+  )
+}
 
 message("Auditing same-day floorplan rent spreads...")
 dbExecute(
@@ -860,22 +872,24 @@ dbExecute(
   GROUP BY 1, 2
   "
 )
-dbExecute(
-  con,
-  "
-  COPY (
-    SELECT *
-    FROM floorplan_day_spread
-    WHERE (rent_values_day >= 5 AND rent_max_min_ratio > 2)
-      OR rent_max_min_ratio > 3
-      OR rent_iqr_over_median > 0.35
-    ORDER BY rent_max_min_ratio DESC NULLS LAST, raw_rows_day DESC
-    LIMIT 50000
+if (write_audit_outputs) {
+  dbExecute(
+    con,
+    "
+    COPY (
+      SELECT *
+      FROM floorplan_day_spread
+      WHERE (rent_values_day >= 5 AND rent_max_min_ratio > 2)
+        OR rent_max_min_ratio > 3
+        OR rent_iqr_over_median > 0.35
+      ORDER BY rent_max_min_ratio DESC NULLS LAST, raw_rows_day DESC
+      LIMIT 50000
+    )
+    TO '../output/floorplan_same_day_rent_spread.csv'
+    (HEADER TRUE, DELIMITER ',')
+    "
   )
-  TO '../output/floorplan_same_day_rent_spread.csv'
-  (HEADER TRUE, DELIMITER ',')
-  "
-)
+}
 
 message("Auditing one-day bulk property-days...")
 dbExecute(
@@ -948,20 +962,22 @@ dbExecute(
   GROUP BY 1, 2
   "
 )
-dbExecute(
-  con,
-  "
-  COPY (
-    SELECT *
-    FROM property_day_context
-    WHERE flag_one_day_bulk
-    ORDER BY raw_rows_day DESC, floorplans_day DESC
-    LIMIT 50000
+if (write_audit_outputs) {
+  dbExecute(
+    con,
+    "
+    COPY (
+      SELECT *
+      FROM property_day_context
+      WHERE flag_one_day_bulk
+      ORDER BY raw_rows_day DESC, floorplans_day DESC
+      LIMIT 50000
+    )
+    TO '../output/one_day_bulk_audit.csv'
+    (HEADER TRUE, DELIMITER ',')
+    "
   )
-  TO '../output/one_day_bulk_audit.csv'
-  (HEADER TRUE, DELIMITER ',')
-  "
-)
+}
 
 message("Auditing coordinate-only generic piles...")
 dbExecute(
@@ -994,19 +1010,21 @@ dbExecute(
   GROUP BY 1
   "
 )
-dbExecute(
-  con,
-  "
-  COPY (
-    SELECT *
-    FROM coordinate_only_pile_flags
-    WHERE missing_address_rows > 0
-    ORDER BY flag_coordinate_only_generic_pile DESC, total_rows DESC
+if (write_audit_outputs) {
+  dbExecute(
+    con,
+    "
+    COPY (
+      SELECT *
+      FROM coordinate_only_pile_flags
+      WHERE missing_address_rows > 0
+      ORDER BY flag_coordinate_only_generic_pile DESC, total_rows DESC
+    )
+    TO '../output/coordinate_only_pile_audit.csv'
+    (HEADER TRUE, DELIMITER ',')
+    "
   )
-  TO '../output/coordinate_only_pile_audit.csv'
-  (HEADER TRUE, DELIMITER ',')
-  "
-)
+}
 
 message("Auditing building type conflicts...")
 dbExecute(
@@ -1055,19 +1073,21 @@ dbExecute(
     ON t.property_key = s.property_key
   "
 )
-dbExecute(
-  con,
-  "
-  COPY (
-    SELECT *
-    FROM building_type_conflict_flags
-    WHERE flag_building_type_conflict OR flag_large_property_has_single_family
-    ORDER BY flag_large_property_has_single_family DESC, max_raw_rows_day DESC NULLS LAST
+if (write_audit_outputs) {
+  dbExecute(
+    con,
+    "
+    COPY (
+      SELECT *
+      FROM building_type_conflict_flags
+      WHERE flag_building_type_conflict OR flag_large_property_has_single_family
+      ORDER BY flag_large_property_has_single_family DESC, max_raw_rows_day DESC NULLS LAST
+    )
+    TO '../output/building_type_conflict_audit.csv'
+    (HEADER TRUE, DELIMITER ',')
+    "
   )
-  TO '../output/building_type_conflict_audit.csv'
-  (HEADER TRUE, DELIMITER ',')
-  "
-)
+}
 
 message("Auditing stale DATE_POSTED lags...")
 dbExecute(
@@ -1089,56 +1109,60 @@ dbExecute(
   GROUP BY 1, 2
   "
 )
-dbExecute(
-  con,
-  "
-  COPY (
-    SELECT
-      CAST(YEAR(file_date) AS INTEGER) AS year,
-      COUNT(*) AS raw_rows,
-      AVG(CASE WHEN posted_lag_days IS NULL THEN 1.0 ELSE 0.0 END) AS share_missing_posted_lag,
-      AVG(CASE WHEN posted_lag_days < 0 THEN 1.0 ELSE 0.0 END) AS share_posted_lag_negative,
-      AVG(CASE WHEN posted_lag_days > 90 THEN 1.0 ELSE 0.0 END) AS share_posted_lag_gt90,
-      AVG(CASE WHEN posted_lag_days > 180 THEN 1.0 ELSE 0.0 END) AS share_posted_lag_gt180,
-      QUANTILE_CONT(posted_lag_days, 0.50) FILTER (WHERE posted_lag_days IS NOT NULL) AS posted_lag_p50,
-      QUANTILE_CONT(posted_lag_days, 0.90) FILTER (WHERE posted_lag_days IS NOT NULL) AS posted_lag_p90,
-      QUANTILE_CONT(posted_lag_days, 0.99) FILTER (WHERE posted_lag_days IS NOT NULL) AS posted_lag_p99
-    FROM raw_clean
-    GROUP BY 1
-    ORDER BY 1
+if (write_audit_outputs) {
+  dbExecute(
+    con,
+    "
+    COPY (
+      SELECT
+        CAST(YEAR(file_date) AS INTEGER) AS year,
+        COUNT(*) AS raw_rows,
+        AVG(CASE WHEN posted_lag_days IS NULL THEN 1.0 ELSE 0.0 END) AS share_missing_posted_lag,
+        AVG(CASE WHEN posted_lag_days < 0 THEN 1.0 ELSE 0.0 END) AS share_posted_lag_negative,
+        AVG(CASE WHEN posted_lag_days > 90 THEN 1.0 ELSE 0.0 END) AS share_posted_lag_gt90,
+        AVG(CASE WHEN posted_lag_days > 180 THEN 1.0 ELSE 0.0 END) AS share_posted_lag_gt180,
+        QUANTILE_CONT(posted_lag_days, 0.50) FILTER (WHERE posted_lag_days IS NOT NULL) AS posted_lag_p50,
+        QUANTILE_CONT(posted_lag_days, 0.90) FILTER (WHERE posted_lag_days IS NOT NULL) AS posted_lag_p90,
+        QUANTILE_CONT(posted_lag_days, 0.99) FILTER (WHERE posted_lag_days IS NOT NULL) AS posted_lag_p99
+      FROM raw_clean
+      GROUP BY 1
+      ORDER BY 1
+    )
+    TO '../output/stale_posted_audit.csv'
+    (HEADER TRUE, DELIMITER ',')
+    "
   )
-  TO '../output/stale_posted_audit.csv'
-  (HEADER TRUE, DELIMITER ',')
-  "
-)
+}
 
-message("Writing 221 W Harrison spotcheck...")
-dbExecute(
-  con,
-  "
-  COPY (
-    SELECT
-      address_norm,
-      coord_key,
-      ROUND(QUANTILE_CONT(latitude, 0.50), 6) AS latitude,
-      ROUND(QUANTILE_CONT(longitude, 0.50), 6) AS longitude,
-      file_date,
-      COUNT(*) AS raw_rows,
-      COUNT(DISTINCT floorplan_key) AS floorplans,
-      COUNT(DISTINCT rent_cell_key) AS rent_cells,
-      MIN(rent_price) FILTER (WHERE rent_price IS NOT NULL) AS rent_min,
-      QUANTILE_CONT(rent_price, 0.50) FILTER (WHERE rent_price IS NOT NULL) AS rent_p50,
-      MAX(rent_price) FILTER (WHERE rent_price IS NOT NULL) AS rent_max,
-      STRING_AGG(DISTINCT building_type_clean, ';') AS building_types
-    FROM raw_clean
-    WHERE address_norm LIKE '221 W HARRISON%%'
-    GROUP BY 1, 2, 5
-    ORDER BY address_norm, coord_key, file_date
+if (write_audit_outputs) {
+  message("Writing 221 W Harrison spotcheck...")
+  dbExecute(
+    con,
+    "
+    COPY (
+      SELECT
+        address_norm,
+        coord_key,
+        ROUND(QUANTILE_CONT(latitude, 0.50), 6) AS latitude,
+        ROUND(QUANTILE_CONT(longitude, 0.50), 6) AS longitude,
+        file_date,
+        COUNT(*) AS raw_rows,
+        COUNT(DISTINCT floorplan_key) AS floorplans,
+        COUNT(DISTINCT rent_cell_key) AS rent_cells,
+        MIN(rent_price) FILTER (WHERE rent_price IS NOT NULL) AS rent_min,
+        QUANTILE_CONT(rent_price, 0.50) FILTER (WHERE rent_price IS NOT NULL) AS rent_p50,
+        MAX(rent_price) FILTER (WHERE rent_price IS NOT NULL) AS rent_max,
+        STRING_AGG(DISTINCT building_type_clean, ';') AS building_types
+      FROM raw_clean
+      WHERE address_norm LIKE '221 W HARRISON%%'
+      GROUP BY 1, 2, 5
+      ORDER BY address_norm, coord_key, file_date
+    )
+    TO '../output/harrison_221_spotcheck.csv'
+    (HEADER TRUE, DELIMITER ',')
+    "
   )
-  TO '../output/harrison_221_spotcheck.csv'
-  (HEADER TRUE, DELIMITER ',')
-  "
-)
+}
 
 message("Building panel-level quality flags...")
 dbExecute(
@@ -1332,69 +1356,71 @@ dbExecute(
   "
 )
 
-flag_cols <- collect_query("DESCRIBE chicago_rent_panel_quality_flags")$column_name
-flag_cols <- flag_cols[grepl("^flag_", flag_cols)]
+if (write_audit_outputs) {
+  flag_cols <- collect_query("DESCRIBE chicago_rent_panel_quality_flags")$column_name
+  flag_cols <- flag_cols[grepl("^flag_", flag_cols)]
 
-summary_parts <- lapply(flag_cols, function(flag_col) {
-  rbindlist(list(
-    collect_query(sprintf(
-      "
-      SELECT
-        'overall' AS scope,
-        NULL AS year,
-        '%s' AS flag,
-        COUNT(*) AS n_rows,
-        SUM(CASE WHEN %s THEN 1 ELSE 0 END) AS n_flagged,
-        AVG(CASE WHEN %s THEN 1.0 ELSE 0.0 END) AS share_flagged
-      FROM chicago_rent_panel_quality_flags
-      ",
-      flag_col,
-      flag_col,
-      flag_col
-    )),
-    collect_query(sprintf(
-      "
-      SELECT
-        'year' AS scope,
-        year,
-        '%s' AS flag,
-        COUNT(*) AS n_rows,
-        SUM(CASE WHEN %s THEN 1 ELSE 0 END) AS n_flagged,
-        AVG(CASE WHEN %s THEN 1.0 ELSE 0.0 END) AS share_flagged
-      FROM chicago_rent_panel_quality_flags
-      GROUP BY 1, 2, 3
-      ",
-      flag_col,
-      flag_col,
-      flag_col
-    ))
-  ), fill = TRUE)
-})
-flag_summary <- rbindlist(summary_parts, fill = TRUE)
-severity_summary <- collect_query(
-  "
-  SELECT
-    'overall' AS scope,
-    NULL AS year,
-    quality_flag_severity AS flag,
-    COUNT(*) AS n_rows,
-    COUNT(*) AS n_flagged,
-    COUNT(*) * 1.0 / SUM(COUNT(*)) OVER () AS share_flagged
-  FROM chicago_rent_panel_quality_flags
-  GROUP BY 1, 2, 3
-  UNION ALL
-  SELECT
-    'year' AS scope,
-    year,
-    quality_flag_severity AS flag,
-    COUNT(*) AS n_rows,
-    COUNT(*) AS n_flagged,
-    COUNT(*) * 1.0 / SUM(COUNT(*)) OVER (PARTITION BY year) AS share_flagged
-  FROM chicago_rent_panel_quality_flags
-  GROUP BY 1, 2, 3
-  "
-)
-fwrite(rbindlist(list(flag_summary, severity_summary), fill = TRUE), "../output/renthub_quality_flag_summary.csv")
+  summary_parts <- lapply(flag_cols, function(flag_col) {
+    rbindlist(list(
+      collect_query(sprintf(
+        "
+        SELECT
+          'overall' AS scope,
+          NULL AS year,
+          '%s' AS flag,
+          COUNT(*) AS n_rows,
+          SUM(CASE WHEN %s THEN 1 ELSE 0 END) AS n_flagged,
+          AVG(CASE WHEN %s THEN 1.0 ELSE 0.0 END) AS share_flagged
+        FROM chicago_rent_panel_quality_flags
+        ",
+        flag_col,
+        flag_col,
+        flag_col
+      )),
+      collect_query(sprintf(
+        "
+        SELECT
+          'year' AS scope,
+          year,
+          '%s' AS flag,
+          COUNT(*) AS n_rows,
+          SUM(CASE WHEN %s THEN 1 ELSE 0 END) AS n_flagged,
+          AVG(CASE WHEN %s THEN 1.0 ELSE 0.0 END) AS share_flagged
+        FROM chicago_rent_panel_quality_flags
+        GROUP BY 1, 2, 3
+        ",
+        flag_col,
+        flag_col,
+        flag_col
+      ))
+    ), fill = TRUE)
+  })
+  flag_summary <- rbindlist(summary_parts, fill = TRUE)
+  severity_summary <- collect_query(
+    "
+    SELECT
+      'overall' AS scope,
+      NULL AS year,
+      quality_flag_severity AS flag,
+      COUNT(*) AS n_rows,
+      COUNT(*) AS n_flagged,
+      COUNT(*) * 1.0 / SUM(COUNT(*)) OVER () AS share_flagged
+    FROM chicago_rent_panel_quality_flags
+    GROUP BY 1, 2, 3
+    UNION ALL
+    SELECT
+      'year' AS scope,
+      year,
+      quality_flag_severity AS flag,
+      COUNT(*) AS n_rows,
+      COUNT(*) AS n_flagged,
+      COUNT(*) * 1.0 / SUM(COUNT(*)) OVER (PARTITION BY year) AS share_flagged
+    FROM chicago_rent_panel_quality_flags
+    GROUP BY 1, 2, 3
+    "
+  )
+  fwrite(rbindlist(list(flag_summary, severity_summary), fill = TRUE), "../output/renthub_quality_flag_summary.csv")
+}
 
 message(sprintf(
   "Wrote quality flags for %s monthly rent observations.",
