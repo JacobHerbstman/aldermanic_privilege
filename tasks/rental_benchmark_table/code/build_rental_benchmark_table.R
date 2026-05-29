@@ -8,54 +8,6 @@ library(arrow)
 library(data.table)
 library(readr)
 
-month_floor <- function(x) {
-  as.Date(format(as.Date(x), "%Y-%m-01"))
-}
-
-fetch_bls_series <- function(series_id) {
-  bls_url <- sprintf(
-    "https://api.bls.gov/publicAPI/v2/timeseries/data/%s?startyear=2014&endyear=2022",
-    series_id
-  )
-  payload <- jsonlite::fromJSON(bls_url, simplifyVector = FALSE)
-  if (!identical(payload$status, "REQUEST_SUCCEEDED")) {
-    stop(sprintf("BLS request failed for %s.", series_id), call. = FALSE)
-  }
-
-  raw <- rbindlist(lapply(payload$Results$series[[1]]$data, as.data.table), fill = TRUE)
-  if (nrow(raw) == 0L) {
-    stop(sprintf("BLS response has no observations for %s.", series_id), call. = FALSE)
-  }
-
-  dt <- raw[grepl("^M\\d{2}$", period)]
-  dt[, month_start := as.Date(sprintf("%s-%02d-01", year, as.integer(sub("^M", "", period))))]
-  dt[, value := suppressWarnings(as.numeric(value))]
-  dt[
-    month_start >= as.Date("2014-01-01") & month_start <= as.Date("2022-12-01"),
-    .(month_start, value)
-  ]
-}
-
-fetch_zillow_zori <- function() {
-  raw <- as.data.table(read_csv(
-    "https://files.zillowstatic.com/research/public_csvs/zori/City_zori_uc_sfrcondomfr_sm_month.csv",
-    show_col_types = FALSE
-  ))
-  dt <- raw[RegionName == "Chicago" & State == "IL"]
-  if (nrow(dt) != 1L) {
-    stop("Expected one Zillow ZORI row for Chicago, IL.", call. = FALSE)
-  }
-
-  date_cols <- names(dt)[grepl("^\\d{4}-\\d{2}-\\d{2}$", names(dt))]
-  long <- melt(dt, measure.vars = date_cols, variable.name = "period_end", value.name = "value")
-  long[, month_start := month_floor(period_end)]
-  long[, value := as.numeric(value)]
-  long[
-    month_start >= as.Date("2014-01-01") & month_start <= as.Date("2022-12-01"),
-    .(month_start, value)
-  ]
-}
-
 annual_from_monthly <- function(dt, source_id, source_label, measure_label) {
   dt <- copy(dt)
   dt[, year := as.integer(format(month_start, "%Y"))]
@@ -88,11 +40,24 @@ if (nrow(rent_panel) == 0L) {
   stop("No valid listed-rent observations found in the 2014-2022 validation window.", call. = FALSE)
 }
 
-fred_all_items_cpi <- fetch_bls_series("CUURS23ASA0")
-if (nrow(fred_all_items_cpi) == 0L) {
-  stop("Could not fetch Chicago all-items CPI-U deflator.", call. = FALSE)
+bls_payload <- jsonlite::fromJSON(
+  "https://api.bls.gov/publicAPI/v2/timeseries/data/CUURS23ASA0?startyear=2014&endyear=2022",
+  simplifyVector = FALSE
+)
+if (!identical(bls_payload$status, "REQUEST_SUCCEEDED")) {
+  stop("BLS request failed for CUURS23ASA0.", call. = FALSE)
 }
-setnames(fred_all_items_cpi, "value", "cpi_all_items")
+fred_all_items_cpi <- rbindlist(lapply(bls_payload$Results$series[[1]]$data, as.data.table), fill = TRUE)
+if (nrow(fred_all_items_cpi) == 0L) {
+  stop("BLS response has no observations for CUURS23ASA0.", call. = FALSE)
+}
+fred_all_items_cpi <- fred_all_items_cpi[grepl("^M\\d{2}$", period)]
+fred_all_items_cpi[, month_start := as.Date(sprintf("%s-%02d-01", year, as.integer(sub("^M", "", period))))]
+fred_all_items_cpi[, cpi_all_items := suppressWarnings(as.numeric(value))]
+fred_all_items_cpi <- fred_all_items_cpi[
+  month_start >= as.Date("2014-01-01") & month_start <= as.Date("2022-12-01"),
+  .(month_start, cpi_all_items)
+]
 cpi_2022 <- mean(
   fred_all_items_cpi[
     month_start >= as.Date("2022-01-01") & month_start <= as.Date("2022-12-01"),
@@ -122,7 +87,22 @@ listed_annual <- annual_from_monthly(
   measure_label = "Annual average of monthly median listed rent, deflated to 2022 dollars"
 )
 
-zillow_city <- fetch_zillow_zori()
+zillow_city <- as.data.table(read_csv(
+  "https://files.zillowstatic.com/research/public_csvs/zori/City_zori_uc_sfrcondomfr_sm_month.csv",
+  show_col_types = FALSE
+))
+zillow_city <- zillow_city[RegionName == "Chicago" & State == "IL"]
+if (nrow(zillow_city) != 1L) {
+  stop("Expected one Zillow ZORI row for Chicago, IL.", call. = FALSE)
+}
+zillow_date_cols <- names(zillow_city)[grepl("^\\d{4}-\\d{2}-\\d{2}$", names(zillow_city))]
+zillow_city <- melt(zillow_city, measure.vars = zillow_date_cols, variable.name = "period_end", value.name = "value")
+zillow_city[, month_start := as.Date(format(as.Date(period_end), "%Y-%m-01"))]
+zillow_city[, value := as.numeric(value)]
+zillow_city <- zillow_city[
+  month_start >= as.Date("2014-01-01") & month_start <= as.Date("2022-12-01"),
+  .(month_start, value)
+]
 zillow_city <- merge(zillow_city, fred_all_items_cpi, by = "month_start", all.x = TRUE, sort = FALSE)
 if (any(!is.finite(zillow_city$cpi_all_items))) {
   stop("Zillow ZORI has months missing Chicago all-items CPI-U deflator values.", call. = FALSE)
