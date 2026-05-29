@@ -62,12 +62,11 @@ data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
     ward_pair_id != ""
   )
 
-missing_score_rows <- sum(
+if (sum(
   is.na(data$strictness_origin) |
     is.na(data$strictness_dest) |
     is.na(data$strictness_change)
-)
-if (missing_score_rows > 0L) {
+) > 0L) {
   stop("Requested permit event-study regression sample has missing score values.", call. = FALSE)
 }
 
@@ -85,7 +84,7 @@ cluster_formula <- ~block_id
 y_axis_label <- sprintf("Effect on %s", outcome_label)
 
 if (treatment_type == "continuous") {
-  support_by_event_time <- build_event_study_support_table(
+  identification_by_event_time <- build_event_study_support_table(
     df = data,
     event_var = "relative_year",
     time_fe_var = "year",
@@ -111,14 +110,14 @@ if (treatment_type == "continuous") {
 
   plot_data <- build_event_study_plot_data(
     model,
-    support_by_event_time,
+    identification_by_event_time,
     min_period,
     max_period,
     "All blocks",
     "exp_minus_one"
   )
   if (is.null(plot_data) || nrow(plot_data) == 0) {
-    stop("No supported coefficients were available for the requested permit specification.", call. = FALSE)
+    stop("No coefficients were available for the requested permit specification.", call. = FALSE)
   }
 
   ggsave(
@@ -135,7 +134,7 @@ if (treatment_type == "continuous") {
     bg = "white"
   )
 } else {
-  support_stricter <- build_event_study_support_table(
+  identification_stricter <- build_event_study_support_table(
     df = data,
     event_var = "relative_year",
     time_fe_var = "year",
@@ -149,7 +148,7 @@ if (treatment_type == "continuous") {
     block_var = "block_id",
     segment_var = "ward_pair_id"
   )
-  support_lenient <- build_event_study_support_table(
+  identification_lenient <- build_event_study_support_table(
     df = data,
     event_var = "relative_year",
     time_fe_var = "year",
@@ -182,13 +181,13 @@ if (treatment_type == "continuous") {
   )
 
   plot_data <- bind_rows(
-    build_event_study_plot_data(model_stricter, support_stricter, min_period, max_period, "Moved to Stricter", "exp_minus_one"),
-    build_event_study_plot_data(model_lenient, support_lenient, min_period, max_period, "Moved to More Lenient", "exp_minus_one")
+    build_event_study_plot_data(model_stricter, identification_stricter, min_period, max_period, "Moved to Stricter", "exp_minus_one"),
+    build_event_study_plot_data(model_lenient, identification_lenient, min_period, max_period, "Moved to More Lenient", "exp_minus_one")
   ) %>%
     filter(!is.na(estimate))
 
   if (nrow(plot_data) == 0) {
-    stop("No supported coefficients were available for the requested permit specification.", call. = FALSE)
+    stop("No coefficients were available for the requested permit specification.", call. = FALSE)
   }
 
   ggsave(

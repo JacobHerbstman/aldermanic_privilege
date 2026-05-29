@@ -42,12 +42,11 @@ data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
     relative_year <= 5
   )
 
-missing_score_rows <- sum(
+if (sum(
   is.na(data$strictness_origin) |
     is.na(data$strictness_dest) |
     is.na(data$strictness_change)
-)
-if (missing_score_rows > 0L) {
+) > 0L) {
   stop("Requested permit DID regression sample has missing score values.", call. = FALSE)
 }
 
@@ -60,9 +59,10 @@ model <- fepois(
   cluster = ~block_id
 )
 
+coef_table <- coeftable(model)
 estimate <- coef(model)[["post_treat"]]
 std_error <- se(model)[["post_treat"]]
-p_value <- coeftable(model)["post_treat", grep("^Pr\\(", colnames(coeftable(model)), value = TRUE)[1]]
+p_value <- coef_table["post_treat", grep("^Pr\\(", colnames(coef_table), value = TRUE)[1]]
 dep_var_mean <- mean(data[[outcome_var]], na.rm = TRUE)
 fe_pairs <- n_distinct(data$ward_pair_id)
 stars <- if (!is.finite(p_value)) {
