@@ -1,7 +1,5 @@
-# This script calculates signed distances from parcels to ward boundaries
-# and assigns aldermen based on construction year and redistricting events
 # --- Interactive Test Block ---
-# setwd("tasks/calculate_ward_boundary_distances/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_ward_boundary_distances/code")
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
@@ -25,13 +23,8 @@ if (year(max_construction_month_date) != max_construction_year) {
 }
 max_construction_month_num <- month(max_construction_month_date)
 
-# -----------------------------------------------------------------------------
-# 1. LOAD DATA
-# -----------------------------------------------------------------------------
-
 cat("Loading parcel data...\n")
 parcels <- st_read("../input/geocoded_residential_data.gpkg") %>%
-  # Note: This filter excludes older multifamily buildings if they exist in the input
   filter(!is.na(yearbuilt), yearbuilt >= 1999 & yearbuilt <= max_construction_year) %>%
   mutate(
     parcel_row_id = row_number(),
@@ -86,8 +79,6 @@ if (st_crs(zoning_data) != st_crs(ward_panel)) {
   zoning_data <- st_transform(zoning_data, st_crs(ward_panel))
 }
 
-# Spatial join for zoning
-# Note: This works for multifamily too, as they are now point geometries
 n_parcels_before_zoning <- nrow(parcels)
 parcels <- parcels %>%
   st_join(
@@ -100,9 +91,6 @@ if (nrow(parcels) != n_parcels_before_zoning) {
   stop("Zoning spatial join changed the parcel row count.", call. = FALSE)
 }
 
-# -----------------------------------------------------------------------------
-# 1.5. GEOCODE PARCELS TO CENSUS BLOCK GROUPS
-# -----------------------------------------------------------------------------
 cat("Loading canonical block-group geometries (ACS 2019)...\n")
 block_groups <- st_read("../input/block_group_geometry_2019.gpkg", quiet = TRUE)
 
@@ -144,10 +132,6 @@ cat(sprintf(
   "Block group assignment complete. %d of %d parcels have GEOID.\n",
   sum(!is.na(parcels$GEOID)), nrow(parcels)
 ))
-
-# -----------------------------------------------------------------------------
-# 2. CANONICAL WARD ASSIGNMENT AND BOUNDARY DISTANCES
-# -----------------------------------------------------------------------------
 
 cat("Assigning canonical ward pairs and distances to parcels...\n")
 
@@ -338,10 +322,6 @@ cat(sprintf(
   sum(!is.na(parcels_with_distances$ward_pair))
 ))
 
-# -----------------------------------------------------------------------------
-# 6. ADD WARD PAIRS AND ALDERMAN INFO (EFFICIENT VERSION)
-# -----------------------------------------------------------------------------
-
 final_dataset <- parcels_with_distances %>%
   mutate(
     dist_to_boundary_m = as.numeric(dist_to_boundary) * 0.3048,
@@ -372,46 +352,20 @@ final_dataset <- parcels_with_distances %>%
     construction_year = yearbuilt, construction_date, boundary_year, dist_to_boundary, dist_to_boundary_m,
     ward = assigned_ward, ward_pair,
     alderman = alderman_own, alderman_tenure_months,
-    # NOTE: These columns were kept in your previous script (res + multi)
     arealotsf, areabuilding, bedroomscount, unitscount, storiescount, residential,
-
-    # NOTE: The following columns were DROPPED in the previous geocoding script.
-    # I have commented them out to prevent crashes. If you need them,
-    # add them to the select() in geocode_residential_data.R.
-    # fullbathcount, halfbathcount, roomscount,
-    # construction_quality, central_heating, central_air, single_v_multi_family,
-
     zone_code, floor_area_ratio, lot_area_per_unit, maximum_building_height,
     yearmon_key
   )
 
-# -----------------------------------------------------------------------------
-# 7. MERGE IN ALDERMAN STRICTNESS SCORES (DEPRECATED)
-# -----------------------------------------------------------------------------
-# final_dataset <- final_dataset %>%
-#   left_join(alderman_scores, by = "alderman")
-
-# -----------------------------------------------------------------------------
-# 8. MAKE OUTCOME VARIABLES
-# -----------------------------------------------------------------------------
-
 final_dataset <- final_dataset %>%
   mutate(
-    # Floor Area Ratio
     density_far = if_else(arealotsf > 0, areabuilding / arealotsf, NA_real_),
-    # Lot Area Per Unit
     density_lapu = if_else(unitscount > 0, arealotsf / unitscount, NA_real_),
-
-    # Building Coverage Ratio (requires stories; will be NA for multifamily where storiescount is NA)
     density_bcr = if_else(!is.na(storiescount) & storiescount > 0 & arealotsf > 0,
       (areabuilding / storiescount) / arealotsf, NA_real_
     ),
-    # Lot Size Per Story (will be NA for multifamily)
     density_lps = if_else(!is.na(storiescount) & storiescount > 0, arealotsf / storiescount, NA_real_),
-
-    # Square Feet Per Unit
     density_spu = if_else(unitscount > 0, areabuilding / unitscount, NA_real_),
-    ## Dwelling units per acre (DUPAC)
     density_dupac = if_else(
       arealotsf > 0 & unitscount > 0,
       43560 * unitscount / arealotsf,
@@ -419,29 +373,11 @@ final_dataset <- final_dataset %>%
     )
   )
 
-# -----------------------------------------------------------------------------
-# 8.5. SAVE GEOSPATIAL OUTPUT
-# -----------------------------------------------------------------------------
 cat("Saving geospatial output before dropping geometry...\n")
 st_write(final_dataset, "../output/parcels_with_geometry.gpkg", delete_dsn = TRUE)
 
-# -----------------------------------------------------------------------------
-# 9. SIGN DISTANCES BASED ON HOMEOWNERSHIP RATES
-# -----------------------------------------------------------------------------
 final_dataset <- as_tibble(st_drop_geometry(final_dataset)) %>%
   rename(alderman_own = alderman)
-
-# Prepare ward controls for joining
-# We need homeownership_rate by ward and year
-# Since parcels have construction_year, we'll try to match on that,
-# or use the nearest available year if needed.
-# For now, let's assume direct join on year is sufficient or we use boundary_year?
-# The user said "ward by year data on homeonwer rates".
-# Let's use construction_year to match the "treatment" at the time of construction.
-
-# Ensure ward_controls has the columns we need
-# Ensure ward_controls has the columns we need
-ward_controls_clean <- ward_controls
 
 final_dataset_signed <- final_dataset %>%
   mutate(
@@ -452,34 +388,23 @@ final_dataset_signed <- final_dataset %>%
     ward_controls_year = pmin(construction_year, ward_controls_max_year),
     bg_controls_year = pmin(construction_year, bg_controls_max_year)
   ) %>%
-  # --- JOIN 1: Own Ward Data ---
-  # This adds columns like 'share_black', 'homeownership_rate', etc.
   left_join(
-    ward_controls_clean,
+    ward_controls,
     by = c("ward" = "ward", "ward_controls_year" = "year"),
     relationship = "many-to-one"
   ) %>%
-  # --- JOIN 2: Neighbor Ward Data (The Fix) ---
-  # The 'suffix' argument tells dplyr:
-  # "If you see a column name that already exists (from Join 1),
-  #  rename the existing one with '_own' and the new one with '_neighbor'."
   left_join(
-    ward_controls_clean,
+    ward_controls,
     by = c("other_ward" = "ward", "ward_controls_year" = "year"),
     suffix = c("_own", "_neighbor"),
     relationship = "many-to-one"
   ) %>%
-  # --- JOIN 3: Neighbor Alderman ---
   left_join(
     alderman_lookup %>% rename(alderman_neighbor = alderman),
     by = c("other_ward" = "ward", "yearmon_key"),
     relationship = "many-to-one"
   ) %>%
-  # NOTE: Score merging moved to merge_in_scores task for faster iteration
   dplyr::select(-contains("wards_in_pair"), -ward_controls_year) %>%
-  # --- JOIN 4: Block Group Demographics ---
-  # Merge block group-level demographics by GEOID and construction_year
-  # Ensure GEOID is character type in both datasets
   left_join(
     bg_controls %>%
       mutate(GEOID = as.character(GEOID)) %>%
@@ -505,14 +430,6 @@ cat(sprintf(
   sum(!is.na(final_dataset_signed$percent_white_bg)), nrow(final_dataset_signed)
 ))
 
-# -----------------------------------------------------------------------------
-# 10. SAVE OUTPUT (Pre-scores - unsigned distances)
-# -----------------------------------------------------------------------------
-
-cat("Saving output (pre-scores, unsigned)...\n")
-
-write_csv(final_dataset_signed, "../output/parcels_pre_scores.csv")
-
 boundary_year_checks <- final_dataset_signed %>%
   mutate(
     era = canonical_era_from_boundary_year(boundary_year),
@@ -525,6 +442,9 @@ if (any(!boundary_year_checks$boundary_year_matches_construction_date, na.rm = T
     any(!boundary_year_checks$era_matches_boundary_year, na.rm = TRUE)) {
   stop("Parcel boundary-year convention diagnostic failed.", call. = FALSE)
 }
+
+cat("Saving output (pre-scores, unsigned)...\n")
+write_csv(final_dataset_signed, "../output/parcels_pre_scores.csv")
 
 cat("Task completed successfully!\n")
 cat(sprintf(
