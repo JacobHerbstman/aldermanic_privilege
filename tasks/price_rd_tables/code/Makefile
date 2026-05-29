@@ -4,11 +4,13 @@ all: ../output/price_rd_controls_panels_bw500.tex
 	Rscript $<
 
 ../input/rental_rd_characteristics_panel_bw500.parquet: ../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw500.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/sales_with_hedonics_amenities.parquet: ../../sales_border_pair_fe/output/sales_with_hedonics_amenities.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/rental_rd_characteristics_panel_bw500.parquet ../input/sales_with_hedonics_amenities.parquet
+link-inputs: \
+	../input/rental_rd_characteristics_panel_bw500.parquet \
+	../input/sales_with_hedonics_amenities.parquet
 
 include ../../generic.make

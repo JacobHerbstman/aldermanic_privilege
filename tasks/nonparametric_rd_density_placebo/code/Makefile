@@ -26,7 +26,7 @@ all: $(foreach sample,$(SAMPLES), \
 	Rscript $< $* $(BW_M) multifamily $(FE_SPEC) $(BINS_PER_SIDE) $(PLACEBO_SHIFT_M)
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 
