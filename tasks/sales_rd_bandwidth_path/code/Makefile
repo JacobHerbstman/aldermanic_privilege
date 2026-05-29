@@ -1,5 +1,3 @@
-SHELL := bash
-
 BANDWIDTHS_FT ?= 100,200,300,400,500,600,700,800,900,1000
 
 all: \
@@ -17,7 +15,7 @@ all: \
 	../output/sales_rd_bandwidth_support.csv
 
 ../output/sales_rd_bandwidth_path.pdf: build_sales_rd_bandwidth_path.R ../input/sales_with_hedonics_amenities.parquet | ../output
-	$(R) $< $(BANDWIDTHS_FT)
+	Rscript $< $(BANDWIDTHS_FT)
 
 ../output/sales_rd_bandwidth_path.png \
 ../output/sales_rd_bandwidth_path_fe_specs.pdf \
@@ -37,5 +35,4 @@ all: \
 
 link-inputs: ../input/sales_with_hedonics_amenities.parquet
 
-include ../../shell_functions.make
 include ../../generic.make

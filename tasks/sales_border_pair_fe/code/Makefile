@@ -1,5 +1,3 @@
-SHELL := bash
-
 all: \
 	../output/sales_with_hedonics_amenities.parquet \
 	../output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment.pdf

@@ -1,5 +1,3 @@
-SHELL := bash
-
 BANDWIDTHS_FT ?= 100,200,300,400,500,600,700,800,900,1000
 SAMPLES ?= all,clean_location,no_questionable_address
 
@@ -18,7 +16,7 @@ all: \
 
 ../output/rental_rd_bandwidth_path.pdf: build_rental_rd_bandwidth_path.R ../input/rent_with_ward_distances.parquet | ../output
 	# arg order: bandwidths_ft samples
-	$(R) $< $(BANDWIDTHS_FT) $(SAMPLES)
+	Rscript $< $(BANDWIDTHS_FT) $(SAMPLES)
 
 ../output/rental_rd_bandwidth_path.png \
 ../output/rental_rd_bandwidth_path_fe_specs.pdf \
@@ -37,5 +35,4 @@ all: \
 
 link-inputs: ../input/rent_with_ward_distances.parquet
 
-include ../../shell_functions.make
 include ../../generic.make

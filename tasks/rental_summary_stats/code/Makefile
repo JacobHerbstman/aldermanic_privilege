@@ -1,5 +1,3 @@
-SHELL := bash
-
 all: ../output/ward42_neighbors_definition.csv \
 	../output/yearly_rent_trends.csv \
 	../output/yearly_building_type_shares.csv \
@@ -16,7 +14,7 @@ all: ../output/ward42_neighbors_definition.csv \
 
 ../output/ward42_neighbors_definition.csv: run_rental_summary_stats.R ../input/rental_listing_panel.parquet \
 	../input/chicago_rent_panel.parquet ../input/ward_panel.gpkg | ../output
-	$(R) run_rental_summary_stats.R
+	Rscript run_rental_summary_stats.R
 
 ../output/yearly_rent_trends.csv ../output/yearly_building_type_shares.csv \
 ../output/yearly_building_type_other_missing_diagnostics.csv ../output/yearly_size_bin_shares.csv \
@@ -37,5 +35,4 @@ all: ../output/ward42_neighbors_definition.csv \
 
 link-inputs: ../input/rental_listing_panel.parquet ../input/chicago_rent_panel.parquet ../input/ward_panel.gpkg
 
-include ../../shell_functions.make
 include ../../generic.make

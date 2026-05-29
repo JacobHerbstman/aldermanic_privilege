@@ -1,5 +1,3 @@
-SHELL := bash
-
 BW_FT := 250 500
 SAMPLES := multifamily all
 YVARS := density_far density_dupac

@@ -1,5 +1,3 @@
-SHELL := bash
-
 all: \
 	../output/event_study_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.pdf \
 	../output/event_study_disaggregate_yearly_cohort_2023_continuous_split_triangular_250m_mf_short.pdf \

@@ -1,5 +1,3 @@
-SHELL := bash
-
 MAIN_YVARS := 'log(density_far)' 'log(density_dupac)'
 MAIN_BW_M ?= 152.4
 MAIN_BW_LABEL ?= 500ft

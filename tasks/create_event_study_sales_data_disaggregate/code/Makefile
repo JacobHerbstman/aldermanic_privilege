@@ -1,5 +1,3 @@
-SHELL := bash
-
 SEGMENT_LENGTH_FT ?= 1320
 SEGMENT_BUFFER_M ?= 304.8
 PANEL_MAX_DISTANCE_M ?= 800
@@ -13,7 +11,7 @@ all: \
 	../output/sales_transaction_panel_2023.parquet
 
 ../output/sales_transaction_panel.parquet: create_transaction_panel.R ../../_lib/canonical_geometry_helpers.R ../../_lib/amenity_distance_helpers.R ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
-	$(R) $< $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M)
+	Rscript $< $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M)
 
 ../output/sales_transaction_panel_announcement.parquet \
 ../output/sales_transaction_panel_2012.parquet \
@@ -73,5 +71,4 @@ all: \
 
 link-inputs: ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
-include ../../shell_functions.make
 include ../../generic.make

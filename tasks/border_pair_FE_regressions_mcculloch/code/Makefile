@@ -1,5 +1,3 @@
-SHELL := bash
-
 MAIN_YVARS := 'log(density_far)' 'log(density_dupac)'
 BWS := 250 500 1000
 SAMPLES := all multifamily
@@ -21,5 +19,4 @@ $(foreach bw,$(BWS),$(foreach sample,$(SAMPLES),$(foreach fe,$(FE_SPECS),$(eval 
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 
-include ../../shell_functions.make
 include ../../generic.make

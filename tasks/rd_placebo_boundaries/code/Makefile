@@ -1,5 +1,3 @@
-SHELL := bash
-
 BANDWIDTH_FT ?= 500
 PLACEBO_CUTOFFS_FT ?= -500,0,500
 
@@ -18,7 +16,7 @@ all: \
 	../output/sales_placebo_boundaries_score_gap_split.png
 
 ../output/rd_placebo_boundary_estimates.csv: build_rd_placebo_boundaries.R ../input/rent_with_ward_distances.parquet ../input/sales_with_hedonics_amenities.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
-	$(R) $< $(BANDWIDTH_FT) $(PLACEBO_CUTOFFS_FT)
+	Rscript $< $(BANDWIDTH_FT) $(PLACEBO_CUTOFFS_FT)
 
 ../output/rd_placebo_boundary_support.csv \
 ../output/rent_placebo_boundaries.pdf \
@@ -68,5 +66,4 @@ all: \
 
 link-inputs: ../input/rent_with_ward_distances.parquet ../input/sales_with_hedonics_amenities.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
-include ../../shell_functions.make
 include ../../generic.make

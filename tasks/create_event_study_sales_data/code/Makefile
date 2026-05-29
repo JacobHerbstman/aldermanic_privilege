@@ -1,5 +1,3 @@
-SHELL := bash
-
 all: ../output/sales_block_year_panel.csv ../output/sales_block_month_panel.csv ../output/sales_stacked_panel.csv ../output/sales_stacked_quarterly_panel.csv ../output/sales_stacked_monthly_panel.csv ../output/sales_unstacked_2015_panel.csv ../output/sales_unstacked_2023_panel.csv
 
 ../output/sales_block_year_panel.csv: create_event_study_data.R ../input/sales_with_ward_distances.csv ../input/ward_panel.gpkg ../input/census_blocks_2010.csv ../input/block_treatment_panel.csv ../input/block_group_controls.csv | ../output
@@ -24,5 +22,4 @@ all: ../output/sales_block_year_panel.csv ../output/sales_block_month_panel.csv 
 
 link-inputs: ../input/sales_with_ward_distances.csv ../input/ward_panel.gpkg ../input/census_blocks_2010.csv ../input/block_treatment_panel.csv ../input/block_group_controls.csv
 
-include ../../shell_functions.make
 include ../../generic.make

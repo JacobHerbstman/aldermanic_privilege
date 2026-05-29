@@ -1,5 +1,3 @@
-SHELL := bash
-
 PANEL_MODES := cohort_2012 cohort_2015 cohort_2022 cohort_2023 stacked_announcement stacked_implementation
 APPROACHES := bw1000 corridor1320 citywide_valid
 TREATMENT_MODES := continuous continuous_split

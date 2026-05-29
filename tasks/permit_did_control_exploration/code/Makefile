@@ -1,5 +1,3 @@
-SHELL := bash
-
 BANDWIDTH_M ?= 250
 
 all: \
@@ -11,7 +9,7 @@ all: \
 	../output/permit_event_study_control_comparison_$(BANDWIDTH_M)m.png
 
 ../output/permit_did_control_exploration_$(BANDWIDTH_M)m.csv: explore_permit_did_controls.R ../input/permit_block_year_panel_2015.parquet ../input/block_parcel_baselines_2014.csv | ../output
-	$(R) explore_permit_did_controls.R $(BANDWIDTH_M)
+	Rscript explore_permit_did_controls.R $(BANDWIDTH_M)
 	test -f ../output/permit_did_control_exploration_$(BANDWIDTH_M)m.tex
 
 ../output/permit_did_control_exploration_$(BANDWIDTH_M)m.tex: ../output/permit_did_control_exploration_$(BANDWIDTH_M)m.csv
@@ -31,5 +29,4 @@ all: \
 
 link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/block_parcel_baselines_2014.csv
 
-include ../../shell_functions.make
 include ../../generic.make

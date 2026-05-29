@@ -1,5 +1,3 @@
-SHELL := bash
-
 MAX_PERMIT_YEAR ?= 2022
 
 all: \

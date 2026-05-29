@@ -1,5 +1,3 @@
-SHELL := bash
-
 VARIANTS := baseline raw_rank_days days_unlogged reduced_ses drop_bach_pop
 RESIDUALIZED_VARIANTS := baseline days_unlogged reduced_ses drop_bach_pop
 BASELINE_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
@@ -86,5 +84,4 @@ $(foreach variant,$(VARIANTS),$(eval $(call FE_RULE,$(variant))))
 
 link-inputs: ../input/permits_for_uncertainty_index.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv
 
-include ../../shell_functions.make
 include ../../generic.make

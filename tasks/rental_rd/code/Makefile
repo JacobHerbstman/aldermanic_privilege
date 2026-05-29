@@ -1,5 +1,3 @@
-SHELL := bash
-
 BANDWIDTH_FT ?= 500
 BINS_PER_SIDE ?= 15
 

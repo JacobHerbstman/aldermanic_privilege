@@ -1,5 +1,3 @@
-SHELL := bash
-
 BANDWIDTH_FT ?= 500
 
 all: \

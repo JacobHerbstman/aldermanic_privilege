@@ -1,5 +1,3 @@
-SHELL := bash
-
 all: ../output/summary_stats.tex
 
 ../output/summary_stats.tex: summary_stats.R ../input/parcels_with_ward_distances.csv | ../output

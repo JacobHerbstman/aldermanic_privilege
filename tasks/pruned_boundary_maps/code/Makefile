@@ -1,5 +1,3 @@
-SHELL := bash
-
 SEGMENT_LENGTH_FT ?= 1320
 
 all: ../output/pruned_boundaries_all_segments_by_era.pdf

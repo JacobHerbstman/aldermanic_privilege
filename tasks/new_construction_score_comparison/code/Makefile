@@ -1,5 +1,3 @@
-SHELL := bash
-
 BASELINE_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
 
 all: \
@@ -34,5 +32,4 @@ all: \
 
 link-inputs: ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_new_construction.csv ../input/alderman_uncertainty_index_new_construction_demolition.csv ../input/alderman_uncertainty_index_restricted_renovation.csv
 
-include ../../shell_functions.make
 include ../../generic.make

@@ -1,5 +1,3 @@
-SHELL := bash
-
 FE_SPEC := zonegroup_segment_year_additive
 CLUSTER_LEVEL := ward_pair
 BANDWIDTHS_M ?= 76.2 152.4 228.6 304.8

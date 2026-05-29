@@ -1,5 +1,3 @@
-SHELL := bash
-
 all: \
 	../output/rental_rd_influence_summary.csv \
 	../output/rental_rd_leave_one_pair.csv \
@@ -12,7 +10,7 @@ all: \
 	../output/rental_rd_pair_estimates.png
 
 ../output/rental_rd_influence_summary.csv: build_rental_rd_influence.R ../input/rental_rd_characteristics_panel_bw500.parquet | ../output
-	$(R) $<
+	Rscript $<
 
 ../output/rental_rd_leave_one_pair.csv \
 ../output/rental_rd_leave_one_ward.csv \
@@ -29,5 +27,4 @@ all: \
 
 link-inputs: ../input/rental_rd_characteristics_panel_bw500.parquet
 
-include ../../shell_functions.make
 include ../../generic.make

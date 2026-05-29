@@ -1,5 +1,3 @@
-SHELL := bash
-
 BANDWIDTH_FT ?= 500
 WINDOW ?= pre_2023
 CLUSTER_LEVEL ?= ward_pair

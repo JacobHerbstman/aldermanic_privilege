@@ -1,5 +1,3 @@
-SHELL := bash
-
 TARGET_SEGMENT_LENGTH_FT ?= 1320
 
 all: \
@@ -18,5 +16,4 @@ all: \
 
 link-inputs: ../input/segment_classification.csv
 
-include ../../shell_functions.make
 include ../../generic.make

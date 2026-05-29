@@ -1,5 +1,3 @@
-SHELL := bash
-
 FE_SPEC := zonegroup_segment_year_additive
 BW_M ?= 152.4
 BW_LABEL ?= 500ft

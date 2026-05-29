@@ -1,5 +1,3 @@
-SHELL := bash
-
 OUTPUTS := \
 	../output/segment_assignment_coverage_sales.csv \
 	../output/segment_assignment_coverage_rental.csv \
@@ -41,5 +39,4 @@ $(filter-out ../output/segment_assignment_coverage_sales.csv,$(OUTPUTS)): ../out
 
 link-inputs: $(INPUTS)
 
-include ../../shell_functions.make
 include ../../generic.make

@@ -1,12 +1,10 @@
-SHELL := bash
-
 BANDWIDTH_FT ?= 500
 
 all: \
 	../output/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet
 
 ../output/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet: build_rental_rd_characteristics.R ../input/rent_with_ward_distances.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
-	$(R) $< $(BANDWIDTH_FT)
+	Rscript $< $(BANDWIDTH_FT)
 
 ../input/rent_with_ward_distances.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
@@ -40,5 +38,4 @@ all: \
 
 link-inputs: ../input/rent_with_ward_distances.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
-include ../../shell_functions.make
 include ../../generic.make

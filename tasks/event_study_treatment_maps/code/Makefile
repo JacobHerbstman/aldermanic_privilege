@@ -1,5 +1,3 @@
-SHELL := bash
-
 MAP_BW_M ?= 304.8
 MAP_BW_LABEL ?= 1000ft
 

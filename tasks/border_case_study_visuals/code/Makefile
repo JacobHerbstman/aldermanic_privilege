@@ -1,5 +1,3 @@
-SHELL := bash
-
 CASE_BW_M ?= 100
 CASE_BW_FT := $(shell Rscript -e 'cat(round($(CASE_BW_M) / 0.3048))')
 CASE_BIN_M ?= 10
@@ -28,5 +26,4 @@ all: ../output/case_study_far_panel_$(CASE_BW_M)m.pdf ../output/case_study_summa
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 
-include ../../shell_functions.make
 include ../../generic.make

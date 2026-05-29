@@ -1,5 +1,3 @@
-SHELL := bash
-
 all: \
 	../output/fe_model_summary_bwall_all_zonegroup_segment_year_additive_clust_segment.csv \
 	../output/fe_table_bwall_all_zonegroup_segment_year_additive_clust_segment.tex \
@@ -23,5 +21,4 @@ all: \
 
 link-inputs: ../input/parcels_with_ward_distances_canonical.csv
 
-include ../../shell_functions.make
 include ../../generic.make
