@@ -1,9 +1,7 @@
 SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through202604
 SCORE_COLUMN ?= uncertainty_index
 
-all: ../output/sales_with_ward_distances.csv ../output/block_treatment_panel.csv
-
-rent: ../output/rent_with_ward_distances_full.parquet
+all: ../output/sales_with_ward_distances.csv ../output/block_treatment_panel.csv ../output/rent_with_ward_distances_full.parquet
 
 ../output/sales_with_ward_distances.csv: merge_event_study_scores.R ../input/sales_pre_scores.csv ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores.csv | ../output
 	Rscript $< sales_treatment $(SCORE_COLUMN)
