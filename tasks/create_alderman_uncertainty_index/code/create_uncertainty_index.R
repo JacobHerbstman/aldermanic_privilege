@@ -75,9 +75,6 @@ cutoff_label <- if (!nzchar(max_permit_month_raw) && nzchar(max_permit_year_raw)
 }
 
 output_suffix <- build_uncertainty_output_suffix(config, cutoff_label)
-output_file <- sprintf("../output/alderman_uncertainty_index_%s.csv", output_suffix)
-stage1_output <- sprintf("../output/stage1_regression_%s.tex", output_suffix)
-plot_output <- sprintf("../output/uncertainty_index_%s.pdf", output_suffix)
 
 permits <- load_uncertainty_permits("../input/permits_for_uncertainty_index.csv")
 
@@ -100,8 +97,8 @@ result <- build_residualized_uncertainty_index(
 )
 
 if (!score_only) {
-  write_stage1_regression_table(result$stage1_model, stage1_output, result$stage1_outcome)
-  write_uncertainty_plot(result$alderman_index, plot_output)
+  write_stage1_regression_table(result$stage1_model, sprintf("../output/stage1_regression_%s.tex", output_suffix), result$stage1_outcome)
+  write_uncertainty_plot(result$alderman_index, sprintf("../output/uncertainty_index_%s.pdf", output_suffix))
 }
 
-write_csv(result$alderman_index, output_file)
+write_csv(result$alderman_index, sprintf("../output/alderman_uncertainty_index_%s.csv", output_suffix))

@@ -1,9 +1,9 @@
 # --- Interactive Test Block ---
-# setwd("tasks/permit_stringency_table/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/permit_stringency_table/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 # max_application_ym <- "2022-12"
 
-source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
+source("../../setup_environment/code/packages.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -19,10 +19,8 @@ if (length(args) != 2) {
 
 spec <- args[1]
 max_application_ym <- args[2]
-output_tex <- sprintf("../output/permit_validation_table_uncertainty_%s.tex", spec)
 
 permits <- data.table::fread(cmd = "gzip -dc ../input/building_permits_text_features.csv.gz")
-setDT(permits)
 
 for (col in intersect(c("unit_change_signal", "unit_change_text"), names(permits))) {
   permits[, (col) := suppressWarnings(as.numeric(as.character(get(col))))]
@@ -53,7 +51,6 @@ permits <- permits[
 ]
 
 alderman_panel <- data.table::fread("../input/chicago_alderman_panel.csv")
-setDT(alderman_panel)
 alderman_panel[, ward := suppressWarnings(as.integer(as.character(ward)))]
 alderman_panel[, ward := as.character(ward)]
 alderman_panel[ward == "NA", ward := NA_character_]
@@ -80,7 +77,6 @@ permits[, alderman_key := gsub("\\s+", " ", alderman_key)]
 permits[, alderman_key := trimws(alderman_key)]
 
 scores <- data.table::fread(sprintf("../input/alderman_uncertainty_index_%s.csv", spec))
-setDT(scores)
 if (!("uncertainty_index" %in% names(scores) && "alderman" %in% names(scores))) {
   stop("Uncertainty score file must include columns `alderman` and `uncertainty_index`.", call. = FALSE)
 }
@@ -208,5 +204,5 @@ writeLines(
     "\\end{tabular}",
     "\\end{threeparttable}"
   ),
-  con = output_tex
+  con = sprintf("../output/permit_validation_table_uncertainty_%s.tex", spec)
 )

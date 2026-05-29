@@ -3,7 +3,6 @@
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 
 source("../../setup_environment/code/packages.R")
-library(fixest)
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
