@@ -17,9 +17,9 @@ panel_diagnostics: \
 	../output/sales_transaction_panel_no_boundary_exclusions.csv \
 	../output/sales_transaction_panel_contract_diagnostics.csv
 
-../output/sales_transaction_panel_amenity_distance_diagnostics.csv: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../output
-	$(MAKE) -C ../../../create_event_study_sales_data_disaggregate/code link-inputs
-	cd ../../../create_event_study_sales_data_disaggregate/code && WRITE_PANEL_SIDECARS=1 PANEL_SIDECAR_OUTPUT_DIR=../../audits/sales_event_study_audit/output Rscript create_transaction_panel.R 304.8 800
+../output/sales_transaction_panel_amenity_distance_diagnostics.csv: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../output
+	$(MAKE) -C ../../create_event_study_sales_data_disaggregate/code link-inputs
+	cd ../../create_event_study_sales_data_disaggregate/code && WRITE_PANEL_SIDECARS=1 PANEL_SIDECAR_OUTPUT_DIR=../../sales_event_study_audit/output Rscript create_transaction_panel.R 304.8 800
 
 ../output/sales_transaction_panel_2015_all_valid.parquet \
 ../output/sales_transaction_panel_hedonic_coverage_by_sale_year.csv \
@@ -93,36 +93,36 @@ nearest_boundary_local_control_sales: \
 	../output/nearest_boundary_local_control_sales_2015_event_study_block_local_pair_year.pdf \
 	../output/nearest_boundary_local_control_sales_2015_event_study_block_year.pdf
 
-../output/event_study_coefficients_disaggregate_yearly_cohort_2015_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv: ../../../run_event_study_sales_disaggregate/code/run_event_study.R ../../../_lib/event_study_plot_helpers.R ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet | ../output
-	$(MAKE) -C ../../../run_event_study_sales_disaggregate/code link-inputs
-	cd ../../../run_event_study_sales_disaggregate/code && WRITE_SIDECARS=1 SIDECAR_OUTPUT_DIR=../../audits/sales_event_study_audit/output Rscript run_event_study.R cohort_2015 continuous TRUE yearly strict_pair_x_year uniform $(MAIN_BW_M) full ward_pair block amenity $(MAIN_BW_LABEL)
+../output/event_study_coefficients_disaggregate_yearly_cohort_2015_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv: ../../run_event_study_sales_disaggregate/code/run_event_study.R ../../../_lib/event_study_plot_helpers.R ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet | ../output
+	$(MAKE) -C ../../run_event_study_sales_disaggregate/code link-inputs
+	cd ../../run_event_study_sales_disaggregate/code && WRITE_SIDECARS=1 SIDECAR_OUTPUT_DIR=../../sales_event_study_audit/output Rscript run_event_study.R cohort_2015 continuous TRUE yearly strict_pair_x_year uniform $(MAIN_BW_M) full ward_pair block amenity $(MAIN_BW_LABEL)
 
 ../output/event_study_support_disaggregate_yearly_cohort_2015_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv \
 ../output/event_study_pretrend_disaggregate_yearly_cohort_2015_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv \
 ../output/event_study_metadata_disaggregate_yearly_cohort_2015_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv: ../output/event_study_coefficients_disaggregate_yearly_cohort_2015_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv
 	@test -s "$@"
 
-../output/event_study_coefficients_disaggregate_yearly_cohort_2015_continuous_split_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv: ../../../run_event_study_sales_disaggregate/code/run_event_study.R ../../../_lib/event_study_plot_helpers.R ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet | ../output
-	$(MAKE) -C ../../../run_event_study_sales_disaggregate/code link-inputs
-	cd ../../../run_event_study_sales_disaggregate/code && WRITE_SIDECARS=1 SIDECAR_OUTPUT_DIR=../../audits/sales_event_study_audit/output Rscript run_event_study.R cohort_2015 continuous_split TRUE yearly strict_pair_x_year uniform $(MAIN_BW_M) full ward_pair block amenity $(MAIN_BW_LABEL)
+../output/event_study_coefficients_disaggregate_yearly_cohort_2015_continuous_split_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv: ../../run_event_study_sales_disaggregate/code/run_event_study.R ../../../_lib/event_study_plot_helpers.R ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet | ../output
+	$(MAKE) -C ../../run_event_study_sales_disaggregate/code link-inputs
+	cd ../../run_event_study_sales_disaggregate/code && WRITE_SIDECARS=1 SIDECAR_OUTPUT_DIR=../../sales_event_study_audit/output Rscript run_event_study.R cohort_2015 continuous_split TRUE yearly strict_pair_x_year uniform $(MAIN_BW_M) full ward_pair block amenity $(MAIN_BW_LABEL)
 
 ../output/event_study_support_disaggregate_yearly_cohort_2015_continuous_split_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv \
 ../output/event_study_pretrend_disaggregate_yearly_cohort_2015_continuous_split_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv \
 ../output/event_study_metadata_disaggregate_yearly_cohort_2015_continuous_split_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv: ../output/event_study_coefficients_disaggregate_yearly_cohort_2015_continuous_split_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv
 	@test -s "$@"
 
-../output/event_study_coefficients_disaggregate_yearly_stacked_implementation_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv: ../../../run_event_study_sales_disaggregate/code/run_event_study.R ../../../_lib/event_study_plot_helpers.R ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../output
-	$(MAKE) -C ../../../run_event_study_sales_disaggregate/code link-inputs
-	cd ../../../run_event_study_sales_disaggregate/code && WRITE_SIDECARS=1 SIDECAR_OUTPUT_DIR=../../audits/sales_event_study_audit/output Rscript run_event_study.R stacked_implementation continuous TRUE yearly strict_pair_x_year uniform $(MAIN_BW_M) full ward_pair block amenity $(MAIN_BW_LABEL)
+../output/event_study_coefficients_disaggregate_yearly_stacked_implementation_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv: ../../run_event_study_sales_disaggregate/code/run_event_study.R ../../../_lib/event_study_plot_helpers.R ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../output
+	$(MAKE) -C ../../run_event_study_sales_disaggregate/code link-inputs
+	cd ../../run_event_study_sales_disaggregate/code && WRITE_SIDECARS=1 SIDECAR_OUTPUT_DIR=../../sales_event_study_audit/output Rscript run_event_study.R stacked_implementation continuous TRUE yearly strict_pair_x_year uniform $(MAIN_BW_M) full ward_pair block amenity $(MAIN_BW_LABEL)
 
 ../output/event_study_support_disaggregate_yearly_stacked_implementation_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv \
 ../output/event_study_pretrend_disaggregate_yearly_stacked_implementation_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv \
 ../output/event_study_metadata_disaggregate_yearly_stacked_implementation_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv: ../output/event_study_coefficients_disaggregate_yearly_stacked_implementation_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv
 	@test -s "$@"
 
-../output/event_study_coefficients_disaggregate_yearly_stacked_implementation_continuous_split_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv: ../../../run_event_study_sales_disaggregate/code/run_event_study.R ../../../_lib/event_study_plot_helpers.R ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../output
-	$(MAKE) -C ../../../run_event_study_sales_disaggregate/code link-inputs
-	cd ../../../run_event_study_sales_disaggregate/code && WRITE_SIDECARS=1 SIDECAR_OUTPUT_DIR=../../audits/sales_event_study_audit/output Rscript run_event_study.R stacked_implementation continuous_split TRUE yearly strict_pair_x_year uniform $(MAIN_BW_M) full ward_pair block amenity $(MAIN_BW_LABEL)
+../output/event_study_coefficients_disaggregate_yearly_stacked_implementation_continuous_split_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv: ../../run_event_study_sales_disaggregate/code/run_event_study.R ../../../_lib/event_study_plot_helpers.R ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../output
+	$(MAKE) -C ../../run_event_study_sales_disaggregate/code link-inputs
+	cd ../../run_event_study_sales_disaggregate/code && WRITE_SIDECARS=1 SIDECAR_OUTPUT_DIR=../../sales_event_study_audit/output Rscript run_event_study.R stacked_implementation continuous_split TRUE yearly strict_pair_x_year uniform $(MAIN_BW_M) full ward_pair block amenity $(MAIN_BW_LABEL)
 
 ../output/event_study_support_disaggregate_yearly_stacked_implementation_continuous_split_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv \
 ../output/event_study_pretrend_disaggregate_yearly_stacked_implementation_continuous_split_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv \
@@ -180,10 +180,10 @@ nearest_boundary_local_control_sales: \
 ../output/nearest_boundary_local_control_sales_2015_event_study_block_year.pdf: ../output/nearest_boundary_local_control_sales_2015_did.csv
 	@test -s "$@"
 
-../input/sales_transaction_panel_2012.parquet: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2012.parquet | ../input
+../input/sales_transaction_panel_2012.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2012.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/sales_transaction_panel_2015.parquet: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet | ../input
+../input/sales_transaction_panel_2015.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/sales_transaction_panel_2015_all_valid.parquet: ../output/sales_transaction_panel_2015_all_valid.parquet | ../input

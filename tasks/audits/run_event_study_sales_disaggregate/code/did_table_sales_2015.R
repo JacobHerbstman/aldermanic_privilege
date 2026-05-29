@@ -1,10 +1,10 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
+# setwd("tasks/audits/run_event_study_sales_disaggregate/code")
 # bandwidth <- 304.8
 # bandwidth_label <- "1000ft"
 # panel_mode <- "cohort_2015"
 
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {

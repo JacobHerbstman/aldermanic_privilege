@@ -98,8 +98,8 @@ makefile_targets <- c(
   "event_study_treatment_maps" = "tasks/event_study_treatment_maps/code/Makefile",
   "create_event_study_permit_data" = "tasks/create_event_study_permit_data/code/Makefile",
   "run_event_study_permit" = "tasks/run_event_study_permit/code/Makefile",
-  "create_event_study_sales_data_disaggregate" = "tasks/create_event_study_sales_data_disaggregate/code/Makefile",
-  "run_event_study_sales_disaggregate" = "tasks/run_event_study_sales_disaggregate/code/Makefile",
+  "create_event_study_sales_data_disaggregate" = "tasks/audits/create_event_study_sales_data_disaggregate/code/Makefile",
+  "run_event_study_sales_disaggregate" = "tasks/audits/run_event_study_sales_disaggregate/code/Makefile",
   "merge_event_study_scores" = "tasks/merge_event_study_scores/code/Makefile",
   "create_block_treatment_panel" = "tasks/create_block_treatment_panel/code/Makefile",
   "merge_in_scores" = "tasks/merge_in_scores/code/Makefile",
@@ -356,7 +356,7 @@ event_sidecars_exist <- function(artifact_path, density_sidecar_dir = NULL) {
     return(all(file.exists(live_expected)) || all(file.exists(audit_expected)))
   }
 
-  if (str_detect(artifact_path, "tasks/run_event_study_sales_disaggregate/output/")) {
+  if (str_detect(artifact_path, "tasks/audits/run_event_study_sales_disaggregate/output/")) {
     stub <- artifact_name %>%
       str_remove("\\.pdf$") %>%
       str_remove("^event_study_disaggregate_") %>%
@@ -944,7 +944,7 @@ with_dir(repo_root, {
     select(branch, outcome, challenge, estimate, effect_pct, se, p_value, n_obs, n_ward_pairs)
 
   sales_input <- read_csv(file.path(repo_root, "tasks/calculate_sale_distances/output/sales_with_ward_distances.csv"), show_col_types = FALSE)
-  sales_panel_2015 <- read_parquet(file.path(repo_root, "tasks/create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet"))
+  sales_panel_2015 <- read_parquet(file.path(repo_root, "tasks/audits/create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet"))
   sales_points <- st_as_sf(
     sales_input %>% filter(!is.na(longitude), !is.na(latitude)),
     coords = c("longitude", "latitude"),

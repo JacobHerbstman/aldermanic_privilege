@@ -1,11 +1,11 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_rental_disaggregate/code")
+# setwd("tasks/audits/run_event_study_rental_disaggregate/code")
 # panel_mode <- "cohort_2023"
 # treatment_type <- "continuous"
 # include_controls <- TRUE
 
-source("../../setup_environment/code/packages.R")
-source("../../_lib/event_study_plot_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/event_study_plot_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {

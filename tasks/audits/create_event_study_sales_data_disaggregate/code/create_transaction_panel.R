@@ -3,12 +3,12 @@
 # Key feature: temporal matching of sales to property characteristics via rolling join
 # NO IMPUTATION - missing hedonics remain as NA and will be dropped in regression
 
-source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
-source("../../_lib/amenity_distance_helpers.R")
+source("../../../setup_environment/code/packages.R")
+source("../../../_lib/canonical_geometry_helpers.R")
+source("../../../_lib/amenity_distance_helpers.R")
 
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_sales_data_disaggregate/code")
+# setwd("tasks/audits/create_event_study_sales_data_disaggregate/code")
 # segment_buffer_m <- 304.8
 # panel_max_distance_m <- 800
 

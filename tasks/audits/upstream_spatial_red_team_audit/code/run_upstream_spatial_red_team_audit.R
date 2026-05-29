@@ -752,7 +752,7 @@ sales_compare <- sales_scores %>%
   )
 
 sales_panel_2015 <- read_parquet(
-  file.path(repo_root, "tasks/create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet"),
+  file.path(repo_root, "tasks/audits/create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet"),
   col_select = c("pin", "sale_date", "block_id", "segment_id_cohort", "ward_pair_id", "dist_ft", "relative_year")
 ) %>%
   mutate(sale_date = as.Date(sale_date))
@@ -878,7 +878,7 @@ rental_compare <- rental_sample %>%
   )
 
 rental_panel_2023 <- read_parquet(
-  file.path(repo_root, "tasks/create_event_study_rental_data_disaggregate/output/rental_listing_panel_2023.parquet"),
+  file.path(repo_root, "tasks/audits/create_event_study_rental_data_disaggregate/output/rental_listing_panel_2023.parquet"),
   col_select = c("id", "file_date", "block_id", "segment_id_cohort", "ward_pair_id", "dist_ft", "relative_year")
 )
 rental_panel_2023_sample <- rental_panel_2023 %>% slice_sample(n = min(100000L, nrow(rental_panel_2023)))
