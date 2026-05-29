@@ -2,14 +2,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_sales_disaggregate/code")
 # panel_mode <- "cohort_2015"
 # treatment_type <- "continuous"
-# time_unit <- "yearly"
-# fe_type <- "strict_pair_x_year"
-# weighting <- "uniform"
 # bandwidth <- 304.8
-# post_window <- "full"
-# geo_fe_level <- "ward_pair"
-# cluster_level <- "block"
-# control_mode <- "amenity"
 # bandwidth_label <- "1000ft"
 
 source("../../setup_environment/code/packages.R")
@@ -20,33 +13,19 @@ if (length(cli_args) == 0) {
   cli_args <- c(
     panel_mode,
     treatment_type,
-    time_unit,
-    fe_type,
-    weighting,
     bandwidth,
-    post_window,
-    geo_fe_level,
-    cluster_level,
-    control_mode,
     bandwidth_label
   )
 }
 
-if (length(cli_args) != 11) {
-  stop("FATAL: Script requires args: <panel_mode> <treatment_type> <time_unit> <fe_type> <weighting> <bandwidth> <post_window> <geo_fe_level> <cluster_level> <control_mode> <bandwidth_label>", call. = FALSE)
+if (length(cli_args) != 4) {
+  stop("FATAL: Script requires args: <panel_mode> <treatment_type> <bandwidth> <bandwidth_label>", call. = FALSE)
 }
 
 panel_mode <- cli_args[1]
 treatment_type <- cli_args[2]
-time_unit <- cli_args[3]
-fe_type <- cli_args[4]
-weighting <- cli_args[5]
-bandwidth <- as.numeric(cli_args[6])
-post_window <- cli_args[7]
-geo_fe_level <- tolower(cli_args[8])
-cluster_level <- tolower(cli_args[9])
-control_mode <- tolower(cli_args[10])
-bandwidth_label <- cli_args[11]
+bandwidth <- as.numeric(cli_args[3])
+bandwidth_label <- cli_args[4]
 
 if (!panel_mode %in% c("cohort_2015", "stacked_implementation")) {
   stop("panel_mode must be cohort_2015 or stacked_implementation.", call. = FALSE)
@@ -54,33 +33,16 @@ if (!panel_mode %in% c("cohort_2015", "stacked_implementation")) {
 if (!treatment_type %in% c("continuous", "continuous_split")) {
   stop("treatment_type must be continuous or continuous_split.", call. = FALSE)
 }
-if (time_unit != "yearly") {
-  stop("This task currently produces yearly event-study outputs only.", call. = FALSE)
-}
-if (fe_type != "strict_pair_x_year") {
-  stop("This task currently uses strict_pair_x_year fixed effects only.", call. = FALSE)
-}
-if (!weighting %in% c("uniform", "triangular")) {
-  stop("weighting must be uniform or triangular.", call. = FALSE)
-}
 if (!is.finite(bandwidth) || bandwidth <= 0) {
   stop("bandwidth must be positive.", call. = FALSE)
-}
-if (post_window != "full") {
-  stop("This task currently produces full-window outputs only.", call. = FALSE)
-}
-if (geo_fe_level != "ward_pair") {
-  stop("This task currently uses ward_pair geography fixed effects only.", call. = FALSE)
-}
-if (cluster_level != "block") {
-  stop("This task currently clusters by block only.", call. = FALSE)
-}
-if (control_mode != "amenity") {
-  stop("This task currently uses the amenity control specification only.", call. = FALSE)
 }
 if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
   stop("bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
+
+time_unit <- "yearly"
+weighting <- "uniform"
+post_window <- "full"
 
 panel_title <- switch(
   panel_mode,
@@ -112,7 +74,7 @@ if (sum(is.na(data$strictness_change)) > 0L) {
 
 data <- data %>%
   mutate(
-    weight = if (weighting == "triangular") pmax(0, 1 - dist_m / bandwidth) else 1,
+    weight = 1,
     treatment_stricter_continuous = pmax(strictness_change, 0),
     treatment_lenient_continuous = pmax(-strictness_change, 0)
   ) %>%

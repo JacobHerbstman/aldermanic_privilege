@@ -2,24 +2,22 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
 # outcome_family <- "high_discretion"
 # bandwidth <- 304.8
-# weighting <- "uniform"
 # bandwidth_label <- "1000ft"
 
 source("../../setup_environment/code/packages.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(outcome_family, bandwidth, weighting, bandwidth_label)
+  args <- c(outcome_family, bandwidth, bandwidth_label)
 }
 
-if (length(args) != 4) {
-  stop("FATAL: Script requires args: <outcome_family> <bandwidth> <weighting> <bandwidth_label>", call. = FALSE)
+if (length(args) != 3) {
+  stop("FATAL: Script requires args: <outcome_family> <bandwidth> <bandwidth_label>", call. = FALSE)
 }
 
 outcome_family <- args[1]
 bandwidth <- as.numeric(args[2])
-weighting <- args[3]
-bandwidth_label <- args[4]
+bandwidth_label <- args[3]
 
 if (!outcome_family %in% c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase")) {
   stop("outcome_family must be one of: new_construction, new_construction_demolition, low_discretion_nosigns, high_discretion, unit_increase", call. = FALSE)
@@ -27,12 +25,11 @@ if (!outcome_family %in% c("new_construction", "new_construction_demolition", "l
 if (!is.finite(bandwidth) || bandwidth <= 0) {
   stop("bandwidth must be positive.", call. = FALSE)
 }
-if (!weighting %in% c("uniform", "triangular")) {
-  stop("weighting must be uniform or triangular.", call. = FALSE)
-}
 if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
   stop("bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
+
+weighting <- "uniform"
 
 outcome_catalog <- tibble(
   outcome_family = c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase"),
@@ -81,7 +78,7 @@ if (missing_score_rows > 0L) {
 
 data <- data %>%
   mutate(
-    weight = if (weighting == "triangular") pmax(0, 1 - dist_m / bandwidth) else 1,
+    weight = 1,
     post_treat = as.integer(relative_year >= 0) * strictness_change
   )
 
