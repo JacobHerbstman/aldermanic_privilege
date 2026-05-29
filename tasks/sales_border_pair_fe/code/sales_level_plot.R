@@ -1,75 +1,9 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_border_pair_fe/code")
-# bw_ft <- 500
-# use_controls <- TRUE
-# bins_per_side <- 15
-# min_strictness_diff_pctile <- 0
-# fe_geo <- "segment"
-# cluster_level <- "ward_pair"
-# table_mode <- "amenity"
 
 source("../../setup_environment/code/packages.R")
 
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
-  cli_args <- c(
-    bw_ft,
-    use_controls,
-    bins_per_side,
-    min_strictness_diff_pctile,
-    fe_geo,
-    cluster_level,
-    table_mode
-  )
-}
-if (length(cli_args) != 7) {
-  stop(
-    "FATAL: Script requires args: <bw_ft> <use_controls> <bins_per_side> <min_strictness_diff_pctile> <fe_geo> <cluster_level> <table_mode>",
-    call. = FALSE
-  )
-}
-
-bw_ft <- suppressWarnings(as.integer(cli_args[1]))
-use_controls <- tolower(cli_args[2]) %in% c("true", "t", "1", "yes")
-bins_per_side <- suppressWarnings(as.integer(cli_args[3]))
-min_strictness_diff_pctile <- suppressWarnings(as.integer(cli_args[4]))
-fe_geo <- tolower(cli_args[5])
-cluster_level <- tolower(cli_args[6])
-table_mode <- tolower(cli_args[7])
-
-if (!is.finite(bw_ft) || bw_ft <= 0) {
-  stop("bw_ft must be positive.", call. = FALSE)
-}
-if (!is.finite(bins_per_side) || bins_per_side <= 0) {
-  stop("bins_per_side must be positive.", call. = FALSE)
-}
-if (!is.finite(min_strictness_diff_pctile) || min_strictness_diff_pctile < 0) {
-  stop("min_strictness_diff_pctile must be nonnegative.", call. = FALSE)
-}
-if (!fe_geo %in% c("segment", "ward_pair")) {
-  stop("fe_geo must be one of: segment, ward_pair.", call. = FALSE)
-}
-if (!cluster_level %in% c("segment", "ward_pair")) {
-  stop("cluster_level must be one of: segment, ward_pair.", call. = FALSE)
-}
-if (!table_mode %in% c("baseline", "amenity")) {
-  stop("table_mode must be one of: baseline, amenity.", call. = FALSE)
-}
-
-stars <- function(p_value) {
-  if (!is.finite(p_value)) {
-    return("")
-  }
-  if (p_value < 0.01) {
-    return("***")
-  }
-  if (p_value < 0.05) {
-    return("**")
-  }
-  if (p_value < 0.1) {
-    return("*")
-  }
-  ""
-}
+bw_ft <- 500L
+bins_per_side <- 10L
 
 sales <- read_parquet("../output/sales_with_hedonics_amenities.parquet") %>%
   as_tibble()
@@ -93,50 +27,30 @@ sales <- sales %>%
     year >= 2006,
     year <= 2022,
     !is.na(ward_pair),
+    !is.na(segment_id), segment_id != "",
     is.finite(signed_dist),
     abs(signed_dist) <= bw_ft,
     !is.na(strictness_own),
     !is.na(strictness_neighbor)
   )
 
-if (fe_geo == "segment" || cluster_level == "segment") {
-  sales <- sales %>% filter(!is.na(segment_id), segment_id != "")
-}
-
-if (min_strictness_diff_pctile > 0) {
-  pair_diffs <- sales %>%
-    group_by(ward_pair) %>%
-    summarise(diff = first(abs(strictness_own - strictness_neighbor)), .groups = "drop")
-  cutoff <- quantile(pair_diffs$diff, min_strictness_diff_pctile / 100)
-  sales <- sales %>%
-    filter(ward_pair %in% pair_diffs$ward_pair[pair_diffs$diff >= cutoff])
-}
-
-rhs <- "right"
-if (use_controls) {
-  hedonic_controls <- c(
-    "log_sqft",
-    "log_land_sqft",
-    "log_building_age",
-    "log_bedrooms",
-    "log_baths",
-    "has_garage"
-  )
-  sales <- sales %>%
-    filter(if_all(all_of(hedonic_controls), ~ !is.na(.x)))
-  rhs <- paste(c("right", hedonic_controls), collapse = " + ")
-}
-if (use_controls && table_mode == "amenity") {
-  amenity_controls <- c(
-    "nearest_school_dist_ft",
-    "nearest_park_dist_ft",
-    "nearest_major_road_dist_ft",
-    "lake_michigan_dist_ft"
-  )
-  sales <- sales %>%
-    filter(if_all(all_of(amenity_controls), ~ !is.na(.x)))
-  rhs <- paste(c(rhs, amenity_controls), collapse = " + ")
-}
+hedonic_controls <- c(
+  "log_sqft",
+  "log_land_sqft",
+  "log_building_age",
+  "log_bedrooms",
+  "log_baths",
+  "has_garage"
+)
+amenity_controls <- c(
+  "nearest_school_dist_ft",
+  "nearest_park_dist_ft",
+  "nearest_major_road_dist_ft",
+  "lake_michigan_dist_ft"
+)
+sales <- sales %>%
+  filter(if_all(all_of(c(hedonic_controls, amenity_controls)), ~ !is.na(.x)))
+rhs <- paste(c("right", hedonic_controls, amenity_controls), collapse = " + ")
 
 if (nrow(sales) == 0) {
   stop("No sales remain after RD filtering.", call. = FALSE)
@@ -145,22 +59,23 @@ if (n_distinct(sales$ward_pair) < 2) {
   stop("Sales RD plot has fewer than two ward pairs.", call. = FALSE)
 }
 
-fe_term <- if (fe_geo == "segment") {
-  "segment_id^year_quarter"
-} else {
-  "ward_pair^year_quarter"
-}
-
 model <- feols(
-  as.formula(paste0("log(sale_price) ~ ", rhs, " | ", fe_term)),
+  as.formula(paste0("log(sale_price) ~ ", rhs, " | segment_id^year_quarter")),
   data = sales,
-  cluster = if (cluster_level == "segment") ~segment_id else ~ward_pair
+  cluster = ~segment_id
 )
 
 ct <- coeftable(model)
 estimate <- ct["right", "Estimate"]
 std_error <- ct["right", "Std. Error"]
 p_value <- ct["right", "Pr(>|t|)"]
+star_text <- case_when(
+  !is.finite(p_value) ~ "",
+  p_value < 0.01 ~ "***",
+  p_value < 0.05 ~ "**",
+  p_value < 0.1 ~ "*",
+  TRUE ~ ""
+)
 
 removed <- model$obs_selection$obsRemoved
 keep_idx <- if (is.null(removed)) {
@@ -184,7 +99,7 @@ bins <- plot_data %>%
 plot_subtitle <- sprintf(
   "Jump = %.4f%s (SE %.4f), N = %s, %.0fft",
   estimate,
-  stars(p_value),
+  star_text,
   std_error,
   format(model$nobs, big.mark = ","),
   bw_ft
@@ -206,10 +121,8 @@ plot <- ggplot() +
   theme_bw(base_size = 11) +
   theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
-output_pdf <- sprintf("../output/sales_rd_flat_bw%d_year_quarter_amenity_clust_%s.pdf", bw_ft, cluster_level)
-
 ggsave(
-  output_pdf,
+  "../output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment.pdf",
   plot,
   width = 8.6,
   height = 6,
