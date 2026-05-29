@@ -23,34 +23,6 @@ if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
   stop("bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
 
-make_citywide_map <- function(blocks_sf, ward_year, title_text) {
-  wards <- ward_panel %>%
-    filter(year == ward_year)
-
-  ggplot() +
-    geom_sf(data = wards, fill = NA, color = "gray45", linewidth = 0.25) +
-    geom_sf(data = blocks_sf, aes(fill = treatment_group), color = NA) +
-    scale_fill_manual(
-      values = c(
-        "Control" = "#D9D9D9",
-        "Moved to Lenient" = "#4DABF7",
-        "Moved to Stricter" = "#E63946",
-        "Redistricted, No Score Change" = "#F1C40F"
-      ),
-      breaks = c("Control", "Moved to Lenient", "Moved to Stricter", "Redistricted, No Score Change"),
-      name = NULL
-    ) +
-    coord_sf(expand = FALSE) +
-    labs(title = title_text) +
-    theme_void(base_size = 11) +
-    theme(
-      legend.position = "bottom",
-      legend.text = element_text(size = 8),
-      plot.title = element_text(hjust = 0.5, face = "bold", size = 11),
-      plot.margin = margin(2, 2, 2, 2)
-    )
-}
-
 permit_blocks_2015 <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
   as_tibble() %>%
   filter(
@@ -116,7 +88,31 @@ blocks_2010 <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALS
 blocks_2015 <- blocks_2010 %>%
   inner_join(sample_2015, by = "block_id", relationship = "one-to-one")
 
-p_2015 <- make_citywide_map(blocks_2015, 2015, "2015 Redistricting")
+wards_2015_citywide <- ward_panel %>%
+  filter(year == 2015)
+
+p_2015 <- ggplot() +
+  geom_sf(data = wards_2015_citywide, fill = NA, color = "gray45", linewidth = 0.25) +
+  geom_sf(data = blocks_2015, aes(fill = treatment_group), color = NA) +
+  scale_fill_manual(
+    values = c(
+      "Control" = "#D9D9D9",
+      "Moved to Lenient" = "#4DABF7",
+      "Moved to Stricter" = "#E63946",
+      "Redistricted, No Score Change" = "#F1C40F"
+    ),
+    breaks = c("Control", "Moved to Lenient", "Moved to Stricter", "Redistricted, No Score Change"),
+    name = NULL
+  ) +
+  coord_sf(expand = FALSE) +
+  labs(title = "2015 Redistricting") +
+  theme_void(base_size = 11) +
+  theme(
+    legend.position = "bottom",
+    legend.text = element_text(size = 8),
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 11),
+    plot.margin = margin(2, 2, 2, 2)
+  )
 
 ggsave(
   sprintf("../output/treatment_control_map_2015_%s.pdf", bandwidth_label),

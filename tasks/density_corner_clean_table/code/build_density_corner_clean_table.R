@@ -59,31 +59,33 @@ if (!"bandwidth_m" %in% names(ambiguity_summary)) {
 
 panel_order <- c("log(density_far)", "log(density_dupac)")
 
-stars <- function(p_value) {
-  if (!is.finite(p_value)) {
-    return("")
-  }
-  if (p_value <= 0.01) {
-    return("$^{***}$")
-  }
-  if (p_value <= 0.05) {
-    return("$^{**}$")
-  }
-  if (p_value <= 0.10) {
-    return("$^{*}$")
-  }
-  ""
-}
-
 baseline_panel <- baseline_summary %>%
   filter(yvar %in% panel_order) %>%
   mutate(order = match(yvar, panel_order)) %>%
-  arrange(order)
+  arrange(order) %>%
+  mutate(
+    stars = case_when(
+      !is.finite(p_value) ~ "",
+      p_value <= 0.01 ~ "$^{***}$",
+      p_value <= 0.05 ~ "$^{**}$",
+      p_value <= 0.10 ~ "$^{*}$",
+      TRUE ~ ""
+    )
+  )
 
 corner_clean_panel <- corner_clean_summary %>%
   filter(yvar %in% panel_order) %>%
   mutate(order = match(yvar, panel_order)) %>%
-  arrange(order)
+  arrange(order) %>%
+  mutate(
+    stars = case_when(
+      !is.finite(p_value) ~ "",
+      p_value <= 0.01 ~ "$^{***}$",
+      p_value <= 0.05 ~ "$^{**}$",
+      p_value <= 0.10 ~ "$^{*}$",
+      TRUE ~ ""
+    )
+  )
 
 if (nrow(baseline_panel) != 2 || nrow(corner_clean_panel) != 2) {
   stop("Expected exactly two outcomes in each summary file.", call. = FALSE)
@@ -127,13 +129,13 @@ table_lines <- c(
   sprintf(
     "                    & %s%s & %s%s & %s%s & %s%s\\\\",
     sprintf("%.2f", baseline_panel$estimate[[1]]),
-    stars(baseline_panel$p_value[[1]]),
+    baseline_panel$stars[[1]],
     sprintf("%.2f", baseline_panel$estimate[[2]]),
-    stars(baseline_panel$p_value[[2]]),
+    baseline_panel$stars[[2]],
     sprintf("%.2f", corner_clean_panel$estimate[[1]]),
-    stars(corner_clean_panel$p_value[[1]]),
+    corner_clean_panel$stars[[1]],
     sprintf("%.2f", corner_clean_panel$estimate[[2]]),
-    stars(corner_clean_panel$p_value[[2]])
+    corner_clean_panel$stars[[2]]
   ),
   sprintf(
     "                    & (%s) & (%s) & (%s) & (%s)\\\\",
