@@ -1,27 +1,12 @@
-source("../../setup_environment/code/packages.R")
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/data_for_alderman_uncertainty_index/code")
 
-# Interactive run:
-# setwd("tasks/data_for_alderman_uncertainty_index/code")
+source("../../setup_environment/code/packages.R")
 
 message("=== Starting data preparation for uncertainty index ===")
 
-drop_geometry_if_needed <- function(df) {
-  if (inherits(df, "sf")) {
-    return(st_drop_geometry(df))
-  }
-  df
-}
-
-missing_geometry_n <- function(df) {
-  if (!inherits(df, "sf")) {
-    return(NA_integer_)
-  }
-  geom <- st_geometry(df)
-  sum(st_is_empty(geom) | is.na(geom))
-}
-
 assert_unique_key <- function(df, key_cols, label) {
-  data <- drop_geometry_if_needed(df)
+  data <- if (inherits(df, "sf")) st_drop_geometry(df) else df
   missing_key_cols <- setdiff(key_cols, names(data))
   if (length(missing_key_cols) > 0) {
     stop(
@@ -40,7 +25,6 @@ assert_unique_key <- function(df, key_cols, label) {
     count(across(all_of(key_cols)), name = "n") %>%
     filter(n > 1)
   if (nrow(duplicate_keys) > 0) {
-    print(head(duplicate_keys, 20))
     stop(sprintf("%s has duplicate key rows for %s.", label, paste(key_cols, collapse = ", ")), call. = FALSE)
   }
 }
@@ -58,72 +42,33 @@ assert_expected_crs <- function(layer, expected_epsg, label) {
   }
 }
 
-clean_permit_type <- function(permit_type) {
-  case_when(
-    grepl("NEW CONSTRUCTION", permit_type) ~ "new_construction",
-    grepl("RENOVATION|ALTERATION", permit_type) ~ "renovation",
-    grepl("WRECKING|DEMOLITION", permit_type) ~ "demolition",
-    grepl("PORCH", permit_type) ~ "porch",
-    grepl("REINSTATE", permit_type) ~ "reinstate",
-    TRUE ~ "other"
-  )
-}
-
 assign_wards_for_era <- function(permits_era, ward_geoms, map_version_value, era_label) {
   if (nrow(permits_era) == 0) {
-    return(
-      list(
-        data = permits_era %>% st_drop_geometry(),
-        diagnostics = tibble(
-          id = character(),
-          application_month = character(),
-          application_year = integer(),
-          map_version = integer(),
-          era = character(),
-          n_ward_hits = integer(),
-          assigned_ward = numeric(),
-          reason = character()
-        )
-      )
-    )
+    return(permits_era %>% st_drop_geometry())
   }
 
   joined <- st_join(permits_era, ward_geoms, join = st_within, left = TRUE)
   joined_data <- st_drop_geometry(joined)
 
-  diagnostics <- joined_data %>%
-    mutate(ward_match = ward.y) %>%
+  ward_hits <- joined_data %>%
     group_by(id) %>%
     summarise(
-      application_month = as.character(first(application_start_date_ym)),
-      application_year = first(application_year),
-      map_version = map_version_value,
-      era = era_label,
-      n_ward_hits = sum(!is.na(ward_match)),
-      assigned_ward = {
-        ward_matches <- ward_match[!is.na(ward_match)]
-        if (length(ward_matches) == 1L) ward_matches[[1]] else NA_real_
-      },
-      reason = case_when(
-        n_ward_hits == 0L ~ "no_ward_match",
-        n_ward_hits > 1L ~ "multiple_ward_matches",
-        TRUE ~ "matched"
-      ),
+      n_ward_hits = sum(!is.na(ward.y)),
       .groups = "drop"
     )
 
-  multiple_matches <- diagnostics %>% filter(n_ward_hits > 1)
-  if (nrow(multiple_matches) > 0) {
-    print(head(multiple_matches, 20))
-    stop(sprintf("%s ward spatial join produced multiple ward matches.", era_label), call. = FALSE)
+  if (any(ward_hits$n_ward_hits > 1L)) {
+    stop(sprintf(
+      "%s ward spatial join produced multiple ward matches for %d permits.",
+      era_label,
+      sum(ward_hits$n_ward_hits > 1L)
+    ), call. = FALSE)
   }
 
-  data <- joined_data %>%
+  joined_data %>%
     mutate(ward = ward.y) %>%
     select(-any_of(c("ward.x", "ward.y"))) %>%
     filter(!is.na(ward))
-
-  list(data = data, diagnostics = diagnostics)
 }
 
 # -----------------------------------------------------------------------------
@@ -165,11 +110,13 @@ assert_unique_key(alderman_panel, c("ward", "month"), "Alderman panel")
 assert_unique_key(ward_controls, c("ward", "year"), "Ward controls")
 assert_unique_key(ward_panel, c("ward", "year"), "Ward panel")
 
-if (missing_geometry_n(permits) > 0) {
-  stop(sprintf("Building permits has %s rows with missing geometry.", missing_geometry_n(permits)), call. = FALSE)
+missing_permit_geometry_n <- sum(st_is_empty(st_geometry(permits)) | is.na(st_geometry(permits)))
+missing_ward_geometry_n <- sum(st_is_empty(st_geometry(ward_panel)) | is.na(st_geometry(ward_panel)))
+if (missing_permit_geometry_n > 0) {
+  stop(sprintf("Building permits has %s rows with missing geometry.", missing_permit_geometry_n), call. = FALSE)
 }
-if (missing_geometry_n(ward_panel) > 0) {
-  stop(sprintf("Ward panel has %s rows with missing geometry.", missing_geometry_n(ward_panel)), call. = FALSE)
+if (missing_ward_geometry_n > 0) {
+  stop(sprintf("Ward panel has %s rows with missing geometry.", missing_ward_geometry_n), call. = FALSE)
 }
 
 assert_expected_crs(ward_panel, 3435, "Ward panel")
@@ -229,17 +176,11 @@ ward_geoms_map3 <- ward_panel %>%
   summarise(.groups = "drop") %>%
   mutate(map_version = 3L)
 
-ward_map_counts <- tibble(
-  map_version = c(1L, 2L, 3L),
-  map_year = c(2014L, 2016L, max(ward_panel$year)),
-  n_wards = c(
-    n_distinct(ward_geoms_map1$ward),
-    n_distinct(ward_geoms_map2$ward),
-    n_distinct(ward_geoms_map3$ward)
-  )
-)
-if (any(ward_map_counts$n_wards != 50)) {
-  print(ward_map_counts)
+if (any(c(
+  n_distinct(ward_geoms_map1$ward),
+  n_distinct(ward_geoms_map2$ward),
+  n_distinct(ward_geoms_map3$ward)
+) != 50)) {
   stop("Expected 50 wards in each uncertainty-index map-year geometry.", call. = FALSE)
 }
 
@@ -258,14 +199,9 @@ ward_2015_2023 <- assign_wards_for_era(permits_2015_2023, ward_geoms_map2, 2L, "
 ward_post2023 <- assign_wards_for_era(permits_post2023, ward_geoms_map3, 3L, "post_2023")
 
 permits_ward_data <- bind_rows(
-  ward_pre2015$data,
-  ward_2015_2023$data,
-  ward_post2023$data
-)
-ward_spatial_join_diagnostics <- bind_rows(
-  ward_pre2015$diagnostics,
-  ward_2015_2023$diagnostics,
-  ward_post2023$diagnostics
+  ward_pre2015,
+  ward_2015_2023,
+  ward_post2023
 )
 
 assert_unique_key(permits_ward_data, "id", "Permits after ward spatial join")
@@ -299,27 +235,18 @@ community_area_joined <- permits_high_discretion %>%
   st_join(community_areas, join = st_within, left = TRUE) %>%
   st_drop_geometry()
 
-community_area_join_diagnostics <- community_area_joined %>%
+community_area_hits <- community_area_joined %>%
   group_by(id) %>%
   summarise(
     n_ca_hits = sum(!is.na(ca_id)),
-    assigned_ca_id = {
-      ca_matches <- ca_id[!is.na(ca_id)]
-      if (length(ca_matches) == 1L) as.character(ca_matches[[1]]) else NA_character_
-    },
-    reason = case_when(
-      n_ca_hits == 0L ~ "no_community_area_match",
-      n_ca_hits > 1L ~ "multiple_community_area_matches",
-      TRUE ~ "matched"
-    ),
     .groups = "drop"
   )
 
-multiple_community_area_matches <- community_area_join_diagnostics %>%
-  filter(n_ca_hits > 1)
-if (nrow(multiple_community_area_matches) > 0) {
-  print(head(multiple_community_area_matches, 20))
-  stop("Community-area spatial join produced multiple matches for at least one permit.", call. = FALSE)
+if (any(community_area_hits$n_ca_hits > 1L)) {
+  stop(sprintf(
+    "Community-area spatial join produced multiple matches for %d permits.",
+    sum(community_area_hits$n_ca_hits > 1L)
+  ), call. = FALSE)
 }
 
 permits_with_ca <- community_area_joined %>%
@@ -444,7 +371,6 @@ assert_unique_key(permit_place_controls, "id", "Permit place controls")
 permits_with_controls <- permits_with_controls %>%
   left_join(permit_place_controls, by = "id", relationship = "many-to-one")
 
-# Strict QC: parcel-level controls should be complete and reasonable
 missing_dist_cbd <- sum(is.na(permits_with_controls$dist_cbd_km))
 missing_dist_lake <- sum(is.na(permits_with_controls$dist_lake_km))
 missing_cta <- sum(is.na(permits_with_controls$n_rail_stations_800m))
@@ -477,25 +403,10 @@ if (bad_dist_cbd > 0 || bad_dist_lake > 0 || bad_cta > 0) {
   )
 }
 
-# Broad plausibility checks for Chicago-area geometry
 plausibly_far_cbd <- sum(permits_with_controls$dist_cbd_km > 80, na.rm = TRUE)
 plausibly_far_lake <- sum(permits_with_controls$dist_lake_km > 80, na.rm = TRUE)
 
 if (plausibly_far_cbd > 0 || plausibly_far_lake > 0) {
-  offending_distance_rows <- permit_place_controls %>%
-    filter(dist_cbd_km > 80 | dist_lake_km > 80) %>%
-    left_join(
-      permits_high_discretion %>%
-        st_drop_geometry() %>%
-        select(any_of(c("id", "pin", "application_start_date_ym", "ward"))),
-      by = "id",
-      relationship = "one-to-one"
-    ) %>%
-    arrange(desc(dist_cbd_km), desc(dist_lake_km))
-
-  message("Offending permit distance rows:")
-  print(offending_distance_rows)
-
   stop(
     paste0(
       "Plausibility check failed: distances too large for Chicago permits. ",
@@ -533,7 +444,14 @@ permits_analysis <- permits_with_controls %>%
     log_reported_cost   = log(if_else(reported_cost   > 0, reported_cost,   NA_real_)),
     
     # Clean permit type for FE
-    permit_type_clean = clean_permit_type(permit_type),
+    permit_type_clean = case_when(
+      grepl("NEW CONSTRUCTION", permit_type) ~ "new_construction",
+      grepl("RENOVATION|ALTERATION", permit_type) ~ "renovation",
+      grepl("WRECKING|DEMOLITION", permit_type) ~ "demolition",
+      grepl("PORCH", permit_type) ~ "porch",
+      grepl("REINSTATE", permit_type) ~ "reinstate",
+      TRUE ~ "other"
+    ),
     
     # Flag for porch permits (for optional filtering)
     is_porch = grepl("PORCH", permit_type),
@@ -581,9 +499,6 @@ output_data <- permits_analysis %>%
     map_version
   )
 assert_unique_key(output_data, "id", "Uncertainty-index permit output")
-
-assert_unique_key(ward_spatial_join_diagnostics, "id", "Ward spatial-join diagnostics")
-assert_unique_key(community_area_join_diagnostics, "id", "Community-area join diagnostics")
 
 write_csv(output_data, "../output/permits_for_uncertainty_index.csv")
 
