@@ -97,16 +97,6 @@ permits <- merge(permits, scores, by = "alderman_key", all.x = TRUE)
 if (nrow(permits) != permits_before_score_join) {
   stop("Uncertainty score join changed permit row count.", call. = FALSE)
 }
-unmatched_scores <- permits[is.na(uncertainty_index), .N, by = .(alderman_key, alderman)][order(-N)]
-if (nrow(unmatched_scores) > 0) {
-  warning(
-    paste0(
-      "Permit validation excludes unmatched score aldermen: ",
-      paste(head(unmatched_scores$alderman, 10), collapse = ", ")
-    ),
-    call. = FALSE
-  )
-}
 permits <- permits[!is.na(uncertainty_index)]
 
 permits[, units_reduced_text := fifelse(!is.na(unit_change_text) & unit_change_text < 0, -unit_change_text, 0)]
@@ -117,15 +107,14 @@ if (any(ward_month_score_counts$n_scores > 1)) {
 }
 
 ward_month <- permits[, .(
-  n_permits_all = .N,
+  n_permits = .N,
   share_unit_change = mean(unit_change_signal == 1, na.rm = TRUE),
   units_reduced_text_permit = sum(units_reduced_text, na.rm = TRUE) / .N,
-  n_permits = .N,
   uncertainty_index = mean(uncertainty_index, na.rm = TRUE)
 ), by = .(ward, month)]
 
 model_specs <- data.table(
-  outcome_key = c("n_permits_all", "share_unit_change", "units_reduced_text_permit"),
+  outcome_key = c("n_permits", "share_unit_change", "units_reduced_text_permit"),
   outcome_label = c(
     "N permits (all high-discretion)",
     "Share with any unit change",
@@ -174,7 +163,7 @@ for (i in seq_len(nrow(model_specs))) {
 results <- rbindlist(result_rows)
 results <- results[match(
   outcome_key,
-  c("n_permits_all", "share_unit_change", "units_reduced_text_permit")
+  c("n_permits", "share_unit_change", "units_reduced_text_permit")
 )]
 
 n_min <- min(results$n_obs, na.rm = TRUE)
