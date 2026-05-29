@@ -1,9 +1,9 @@
-source("../../setup_environment/code/packages.R")
-
 # --- Interactive Test Block ---
-# setwd("tasks/event_study_treatment_maps/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_treatment_maps/code")
 # bandwidth_m <- 304.8
 # bandwidth_label <- "1000ft"
+
+source("../../setup_environment/code/packages.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -42,10 +42,9 @@ permit_blocks_2015 <- read_parquet("../input/permit_block_year_panel_2015.parque
   ) %>%
   distinct()
 
-duplicate_candidates <- permit_blocks_2015 %>%
+if (nrow(permit_blocks_2015 %>%
   count(block_id, cohort, name = "n_assignments") %>%
-  filter(n_assignments > 1)
-if (nrow(duplicate_candidates) > 0) {
+  filter(n_assignments > 1)) > 0) {
   stop("Permit event-study panel has multiple boundary assignments for the same cohort-block.", call. = FALSE)
 }
 
@@ -57,11 +56,10 @@ block_treatment <- read_csv("../input/block_treatment_panel.csv", show_col_types
   ) %>%
   filter(valid, !is.na(strictness_change))
 
-duplicate_treatment <- block_treatment %>%
+if (nrow(block_treatment %>%
   filter(cohort == "2015") %>%
   count(block_id, cohort, name = "n_assignments") %>%
-  filter(n_assignments > 1)
-if (nrow(duplicate_treatment) > 0) {
+  filter(n_assignments > 1)) > 0) {
   stop("Block treatment panel has duplicate cohort-block assignments.", call. = FALSE)
 }
 
@@ -136,23 +134,19 @@ bbox <- st_bbox(wp_blocks)
 x_range <- as.numeric(bbox["xmax"] - bbox["xmin"])
 y_range <- as.numeric(bbox["ymax"] - bbox["ymin"])
 buffer <- max(x_range, y_range) * 0.1
+crop_bbox <- c(
+  xmin = as.numeric(bbox["xmin"]) - buffer,
+  ymin = as.numeric(bbox["ymin"]) - buffer,
+  xmax = as.numeric(bbox["xmax"]) + buffer,
+  ymax = as.numeric(bbox["ymax"]) + buffer
+)
 
 wards_2014_crop <- ward_panel %>%
   filter(year == 2014) %>%
-  st_crop(
-    xmin = as.numeric(bbox["xmin"]) - buffer,
-    ymin = as.numeric(bbox["ymin"]) - buffer,
-    xmax = as.numeric(bbox["xmax"]) + buffer,
-    ymax = as.numeric(bbox["ymax"]) + buffer
-  )
+  st_crop(crop_bbox)
 wards_2015_crop <- ward_panel %>%
   filter(year == 2015) %>%
-  st_crop(
-    xmin = as.numeric(bbox["xmin"]) - buffer,
-    ymin = as.numeric(bbox["ymin"]) - buffer,
-    xmax = as.numeric(bbox["xmax"]) + buffer,
-    ymax = as.numeric(bbox["ymax"]) + buffer
-  )
+  st_crop(crop_bbox)
 
 map_theme <- theme_void(base_size = 12) +
   theme(
