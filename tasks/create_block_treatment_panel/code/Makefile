@@ -1,9 +1,7 @@
-SHELL := bash
-
 all: ../output/block_treatment_pre_scores.csv
 
 ../output/block_treatment_pre_scores.csv: create_treatment_panel.R ../../_lib/canonical_geometry_helpers.R ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv | ../output
-	$(R) create_treatment_panel.R
+	Rscript $<
 
 ../input/census_blocks_2010.csv: ../../../data_raw/CensusBlockTIGER2010_20250721.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -19,5 +17,4 @@ all: ../output/block_treatment_pre_scores.csv
 
 link-inputs: ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv
 
-include ../../shell_functions.make
 include ../../generic.make

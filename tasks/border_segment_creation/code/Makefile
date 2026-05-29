@@ -1,5 +1,3 @@
-SHELL := bash
-
 SEGMENT_LENGTH_FT ?= 1320
 SEGMENT_LAYER_BWS_M ?= 100 250 400
 SEGMENT_FEATURE_BUFFER_M ?= 30
@@ -87,5 +85,4 @@ link-inputs: \
 	../input/gis_osm_waterways_free_1.shx \
 	../input/gis_osm_waterways_free_1.cpg
 
-include ../../shell_functions.make
 include ../../generic.make

@@ -1,10 +1,7 @@
-SHELL := bash
-include ../../shell_functions.make
-
 all: ../output/building_permits_clean.gpkg
 
 ../output/building_permits_clean.gpkg: building_permits_cleaning.R ../input/building_permits.csv | ../output
-	$(R) building_permits_cleaning.R
+	Rscript $<
 
 ../input/building_permits.csv: ../../download_building_permits/output/building_permits.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

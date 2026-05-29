@@ -13,77 +13,6 @@ to_numeric <- function(x) {
   suppressWarnings(as.numeric(gsub("[^0-9.-]", "", as.character(x))))
 }
 
-safe_min_date <- function(x) {
-  if (all(is.na(x))) {
-    return(as.Date(NA))
-  }
-  min(x, na.rm = TRUE)
-}
-
-safe_max_date <- function(x) {
-  if (all(is.na(x))) {
-    return(as.Date(NA))
-  }
-  max(x, na.rm = TRUE)
-}
-
-safe_mean <- function(x) {
-  if (all(is.na(x))) {
-    return(NA_real_)
-  }
-  mean(x, na.rm = TRUE)
-}
-
-safe_max <- function(x) {
-  if (all(is.na(x))) {
-    return(NA_real_)
-  }
-  max(x, na.rm = TRUE)
-}
-
-safe_quantile <- function(x, p) {
-  if (all(is.na(x))) {
-    return(NA_real_)
-  }
-  as.numeric(quantile(x, probs = p, na.rm = TRUE, names = FALSE, type = 7))
-}
-
-first_non_na <- function(x) {
-  idx <- which(!is.na(x))
-  if (length(idx) == 0) {
-    return(NA_real_)
-  }
-  x[idx[1]]
-}
-
-last_non_na <- function(x) {
-  idx <- which(!is.na(x))
-  if (length(idx) == 0) {
-    return(NA_real_)
-  }
-  x[idx[length(idx)]]
-}
-
-first_non_empty <- function(x) {
-  x <- as.character(x)
-  x <- trimws(x)
-  idx <- which(!is.na(x) & x != "")
-  if (length(idx) == 0) {
-    return(NA_character_)
-  }
-  x[idx[1]]
-}
-
-collapse_unique_text <- function(x, max_items = 5L) {
-  x <- trimws(as.character(x))
-  x <- x[!is.na(x) & x != ""]
-  if (length(x) == 0) {
-    return(NA_character_)
-  }
-  vals <- unique(x)
-  paste(vals[seq_len(min(length(vals), max_items))], collapse = " | ")
-}
-
 normalize_text <- function(x) {
   x <- ifelse(is.na(x), "", x)
   x <- toupper(x)
@@ -99,9 +28,6 @@ normalize_text <- function(x) {
 
 input_file <- "../input/building_permits.csv"
 output_permit_file <- "../output/building_permits_text_features.csv.gz"
-output_project_file <- "../output/building_permit_project_features.csv.gz"
-output_parcel_file <- "../output/building_permit_parcel_features.csv.gz"
-output_sample_file <- "../output/building_permits_extraction_sample.csv"
 
 permits <- data.table::fread(input_file, na.strings = c("", "NA"), encoding = "UTF-8")
 setDT(permits)
@@ -473,156 +399,13 @@ permits[, project_id := paste0(project_group_key, "_", sprintf("%03d", project_c
 permits[, parcel_id := fifelse(!is.na(pin_primary), paste0("PIN_", pin_primary),
                                fifelse(!is.na(address_key), paste0("ADDR_", address_key), project_id))]
 
-project_features <- permits[, .(
-  pin_primary = first_non_empty(pin_primary),
-  address_key = first_non_empty(address_key),
-  ward = first_non_empty(ward),
-  permit_n = .N,
-  permit_type_n = uniqueN(permit_type_clean),
-  review_type_n = uniqueN(review_type_clean),
-  application_start_date_min = safe_min_date(application_start_date),
-  issue_date_max = safe_max_date(issue_date),
-  event_date_min = safe_min_date(event_date),
-  event_date_max = safe_max_date(event_date),
-  processing_time_days_mean = safe_mean(processing_time_days),
-  processing_time_days_max = safe_max(processing_time_days),
-  processing_time_days_p90 = safe_quantile(processing_time_days, p = 0.9),
-  permit_issued_share = safe_mean(permit_issued),
-  permit_failed_share = safe_mean(permit_failed_flag),
-  any_residential = as.integer(any(flag_residential == 1L, na.rm = TRUE)),
-  any_revision = as.integer(any(flag_revision == 1L, na.rm = TRUE)),
-  any_revision_contractor = as.integer(any(flag_revision_contractor == 1L, na.rm = TRUE)),
-  any_conversion = as.integer(any(flag_conversion == 1L, na.rm = TRUE)),
-  any_deconversion = as.integer(any(flag_deconversion == 1L, na.rm = TRUE)),
-  any_adu = as.integer(any(flag_adu == 1L, na.rm = TRUE)),
-  any_reduction = as.integer(any(flag_reduction == 1L, na.rm = TRUE)),
-  any_increase = as.integer(any(flag_increase == 1L, na.rm = TRUE)),
-  any_new_construction_phrase = as.integer(any(flag_new_construction_phrase == 1L, na.rm = TRUE)),
-  any_demolition_phrase = as.integer(any(flag_demolition_phrase == 1L, na.rm = TRUE)),
-  any_zoning_relief = as.integer(any(flag_zoning_relief == 1L, na.rm = TRUE)),
-  any_unit_change_signal = as.integer(any(unit_change_signal == 1L, na.rm = TRUE)),
-  any_unit_reduction_signal = as.integer(any(unit_reduction_signal == 1L, na.rm = TRUE)),
-  any_unit_increase_signal = as.integer(any(unit_increase_signal == 1L, na.rm = TRUE)),
-  total_unit_mentions = sum(unit_mentions_n, na.rm = TRUE),
-  total_from_to_pairs = sum(from_to_pair_n, na.rm = TRUE),
-  units_signal_initial = first_non_na(ifelse(!is.na(units_from_to_first), units_from_to_first, units_first_mention)),
-  units_signal_final = last_non_na(ifelse(!is.na(units_to_last), units_to_last, units_last_mention)),
-  unit_change_text_initial_final = last_non_na(ifelse(!is.na(unit_change_text), unit_change_text, NA_real_)),
-  unit_change_text_sum = sum(unit_change_text, na.rm = TRUE),
-  stories_signal_initial = first_non_na(stories_first_mention),
-  stories_signal_final = last_non_na(stories_last_mention),
-  stories_text_max = safe_max(stories_max_mention),
-  sqft_signal_initial = first_non_na(sqft_first_mention),
-  sqft_signal_final = last_non_na(sqft_last_mention),
-  sqft_text_max = safe_max(sqft_max_mention),
-  parking_signal_initial = first_non_na(parking_first_mention),
-  parking_signal_final = last_non_na(parking_last_mention),
-  parking_spaces_text_max = safe_max(parking_max_mention),
-  bedrooms_text_max = safe_max(bedrooms_text),
-  bathrooms_text_max = safe_max(bathrooms_text),
-  commercial_spaces_text_max = safe_max(commercial_spaces_text),
-  garage_car_capacity_text_max = safe_max(garage_car_capacity_text),
-  referenced_permit_n_total = sum(referenced_permit_n, na.rm = TRUE),
-  example_descriptions = collapse_unique_text(work_description, max_items = 5L)
-), by = project_id]
-
-project_features[, units_signal_delta := units_signal_final - units_signal_initial]
-project_features[, stories_signal_delta := stories_signal_final - stories_signal_initial]
-project_features[, sqft_signal_delta := sqft_signal_final - sqft_signal_initial]
-project_features[, parking_signal_delta := parking_signal_final - parking_signal_initial]
-project_features[is.infinite(processing_time_days_p90), processing_time_days_p90 := NA_real_]
-project_features[is.nan(processing_time_days_p90), processing_time_days_p90 := NA_real_]
-
-setorder(permits, parcel_id, event_date, id)
-parcel_features <- permits[, .(
-  pin_primary = first_non_empty(pin_primary),
-  address_key = first_non_empty(address_key),
-  ward_mode = first_non_empty(ward),
-  permit_n = .N,
-  project_n = uniqueN(project_id),
-  permit_type_n = uniqueN(permit_type_clean),
-  review_type_n = uniqueN(review_type_clean),
-  application_start_date_min = safe_min_date(application_start_date),
-  issue_date_max = safe_max_date(issue_date),
-  event_date_min = safe_min_date(event_date),
-  event_date_max = safe_max_date(event_date),
-  processing_time_days_mean = safe_mean(processing_time_days),
-  processing_time_days_p90 = safe_quantile(processing_time_days, p = 0.9),
-  processing_time_days_max = safe_max(processing_time_days),
-  permit_issued_share = safe_mean(permit_issued),
-  permit_failed_share = safe_mean(permit_failed_flag),
-  total_reported_cost = sum(reported_cost, na.rm = TRUE),
-  total_fee_paid = sum(total_fee, na.rm = TRUE),
-  any_residential = as.integer(any(flag_residential == 1L, na.rm = TRUE)),
-  any_new_construction_phrase = as.integer(any(flag_new_construction_phrase == 1L, na.rm = TRUE)),
-  any_demolition_phrase = as.integer(any(flag_demolition_phrase == 1L, na.rm = TRUE)),
-  any_revision = as.integer(any(flag_revision == 1L, na.rm = TRUE)),
-  any_zoning_relief = as.integer(any(flag_zoning_relief == 1L, na.rm = TRUE)),
-  any_unit_change_signal = as.integer(any(unit_change_signal == 1L, na.rm = TRUE)),
-  any_unit_reduction_signal = as.integer(any(unit_reduction_signal == 1L, na.rm = TRUE)),
-  any_unit_increase_signal = as.integer(any(unit_increase_signal == 1L, na.rm = TRUE)),
-  unit_change_signal_count = sum(unit_change_signal, na.rm = TRUE),
-  unit_reduction_signal_count = sum(unit_reduction_signal, na.rm = TRUE),
-  unit_increase_signal_count = sum(unit_increase_signal, na.rm = TRUE),
-  units_signal_initial = first_non_na(ifelse(!is.na(units_from_to_first), units_from_to_first, units_first_mention)),
-  units_signal_final = last_non_na(ifelse(!is.na(units_to_last), units_to_last, units_last_mention)),
-  unit_change_text_sum = sum(unit_change_text, na.rm = TRUE),
-  total_unit_mentions = sum(unit_mentions_n, na.rm = TRUE),
-  total_from_to_pairs = sum(from_to_pair_n, na.rm = TRUE),
-  stories_signal_initial = first_non_na(stories_first_mention),
-  stories_signal_final = last_non_na(stories_last_mention),
-  stories_text_max = safe_max(stories_max_mention),
-  sqft_signal_initial = first_non_na(sqft_first_mention),
-  sqft_signal_final = last_non_na(sqft_last_mention),
-  sqft_text_max = safe_max(sqft_max_mention),
-  parking_signal_initial = first_non_na(parking_first_mention),
-  parking_signal_final = last_non_na(parking_last_mention),
-  parking_spaces_text_max = safe_max(parking_max_mention),
-  bedrooms_text_max = safe_max(bedrooms_text),
-  bathrooms_text_max = safe_max(bathrooms_text),
-  commercial_spaces_text_max = safe_max(commercial_spaces_text),
-  garage_car_capacity_text_max = safe_max(garage_car_capacity_text),
-  referenced_permit_n_total = sum(referenced_permit_n, na.rm = TRUE),
-  latitude = first_non_na(latitude),
-  longitude = first_non_na(longitude),
-  example_descriptions = collapse_unique_text(work_description, max_items = 8L)
-), by = parcel_id]
-
-parcel_features[, units_signal_delta := units_signal_final - units_signal_initial]
-parcel_features[, stories_signal_delta := stories_signal_final - stories_signal_initial]
-parcel_features[, sqft_signal_delta := sqft_signal_final - sqft_signal_initial]
-parcel_features[, parking_signal_delta := parking_signal_final - parking_signal_initial]
-
 contact_cols <- grep("^contact_[0-9]+_", names(permits), value = TRUE)
 drop_cols <- c(contact_cols, "desc_upper_raw", "condition_upper_raw", "analysis_text")
 drop_cols <- intersect(drop_cols, names(permits))
 permit_export <- permits[, !drop_cols, with = FALSE]
 
-sample_cols <- c(
-  "id", "permit_type", "permit_status", "application_start_date", "issue_date", "processing_time_days",
-  "unit_change_signal", "unit_change_direction", "unit_change_confidence",
-  "units_from_to_last", "units_to_last", "units_delta_last",
-  "units_first_mention", "units_last_mention", "unit_mentions_n",
-  "stories_first_mention", "stories_last_mention", "stories_max_mention",
-  "sqft_first_mention", "sqft_last_mention", "sqft_max_mention",
-  "parking_first_mention", "parking_last_mention", "parking_max_mention",
-  "bedrooms_text", "bathrooms_text", "commercial_spaces_text", "garage_car_capacity_text",
-  "flag_revision", "flag_deconversion", "flag_conversion", "flag_adu",
-  "flag_reduction", "flag_increase", "project_id", "work_description", "permit_condition"
-)
-sample_cols <- intersect(sample_cols, names(permit_export))
-
-sample_rows <- permit_export[
-  order(-unit_change_signal, -from_to_pair_n, -flag_revision, -unit_mentions_n, -processing_time_days)
-][1:min(.N, 1000), ..sample_cols]
-
 data.table::fwrite(permit_export, output_permit_file)
-data.table::fwrite(project_features, output_project_file)
-data.table::fwrite(parcel_features, output_parcel_file)
-data.table::fwrite(sample_rows, output_sample_file)
 
 cat("Rows in permit-level output:", nrow(permit_export), "\n")
-cat("Rows in project-level output:", nrow(project_features), "\n")
-cat("Rows in parcel-level output:", nrow(parcel_features), "\n")
 cat("Permits with unit-change signal:", sum(permit_export$unit_change_signal, na.rm = TRUE), "\n")
 cat("Permits with explicit from-to pairs:", sum(permit_export$from_to_pair_n > 0, na.rm = TRUE), "\n")

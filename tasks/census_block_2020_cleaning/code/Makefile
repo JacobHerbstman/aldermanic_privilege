@@ -1,9 +1,7 @@
-SHELL := bash
-
 all: ../output/census_blocks_2020.csv
 
 ../output/census_blocks_2020.csv: clean_blocks.R ../input/tl_2025_17_tabblock20.shp ../input/tl_2025_17_tabblock20.dbf ../input/tl_2025_17_tabblock20.prj ../input/tl_2025_17_tabblock20.shx ../input/city_boundary.geojson | ../output
-	$(R) clean_blocks.R
+	Rscript $<
 
 ../input/tl_2025_17_tabblock20.shp ../input/tl_2025_17_tabblock20.dbf ../input/tl_2025_17_tabblock20.prj ../input/tl_2025_17_tabblock20.shx: ../input/tl_2025_17_tabblock20.%: ../../../data_raw/tl_2025_17_tabblock20.% | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -13,5 +11,4 @@ all: ../output/census_blocks_2020.csv
 
 link-inputs: ../input/tl_2025_17_tabblock20.shp ../input/tl_2025_17_tabblock20.dbf ../input/tl_2025_17_tabblock20.prj ../input/tl_2025_17_tabblock20.shx ../input/city_boundary.geojson
 
-include ../../shell_functions.make
 include ../../generic.make

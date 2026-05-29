@@ -1,9 +1,7 @@
-SHELL := bash
-
 all: ../output/geocoded_residential_data.gpkg
 
 ../output/geocoded_residential_data.gpkg: geocode_residential_data.R ../input/parcel_proximity.csv ../input/residential_cross_section.csv ../input/parcels.csv ../input/multifamily_data_cleaned.csv | ../output
-	$(R) $< $@
+	Rscript $<
 
 ../input/residential_cross_section.csv: ../../residential_improvements_data_cleaning/output/residential_cross_section.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -20,5 +18,4 @@ all: ../output/geocoded_residential_data.gpkg
 
 link-inputs: ../input/parcel_proximity.csv ../input/residential_cross_section.csv ../input/parcels.csv ../input/multifamily_data_cleaned.csv
 
-include ../../shell_functions.make
 include ../../generic.make
