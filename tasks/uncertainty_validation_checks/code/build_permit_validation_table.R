@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/uncertainty_validation_checks/code")
+# setwd("tasks/uncertainty_validation_checks/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 # max_application_ym <- "2022-12"
 

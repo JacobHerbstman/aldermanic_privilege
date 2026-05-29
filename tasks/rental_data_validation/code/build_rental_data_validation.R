@@ -1,6 +1,6 @@
 # Validate real citywide listed-rent growth against Zillow ZORI.
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_data_validation/code")
+# setwd("tasks/rental_data_validation/code")
 
 source("../../setup_environment/code/packages.R")
 

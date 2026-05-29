@@ -1,17 +1,17 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/price_rd_stress_tests/code")
+# setwd("tasks/price_rd_stress_tests/code")
 # market <- "rent"
 
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0L && interactive()) {
+if (length(cli_args) == 0) {
   cli_args <- c(market)
 }
 if (length(cli_args) != 1L) {
   stop("Usage: Rscript build_price_rd_main_style_plots.R <rent|sales>", call. = FALSE)
 }
-market <- cli_args[[1]]
+market <- cli_args[1]
 if (!market %in% c("rent", "sales")) {
   stop("market must be 'rent' or 'sales'.", call. = FALSE)
 }
