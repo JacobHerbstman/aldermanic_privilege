@@ -1,33 +1,7 @@
 # --- Interactive Test Block ---
-# setwd("tasks/price_rd_tables/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/price_rd_tables/code")
 
 source("../../setup_environment/code/packages.R")
-
-format_tex_number <- function(x, digits = 2) {
-  formatC(x, format = "f", digits = digits, big.mark = ",")
-}
-
-format_tex_int <- function(x) {
-  formatC(round(x), format = "d", big.mark = ",")
-}
-
-tex_stars <- function(p_value) {
-  case_when(
-    is.na(p_value) ~ "",
-    p_value < 0.01 ~ "$^{***}$",
-    p_value < 0.05 ~ "$^{**}$",
-    p_value < 0.10 ~ "$^{*}$",
-    TRUE ~ ""
-  )
-}
-
-coef_cell <- function(estimate, p_value) {
-  paste0(format_tex_number(100 * estimate, 2), tex_stars(p_value))
-}
-
-se_cell <- function(std_error) {
-  paste0("(", format_tex_number(100 * std_error, 2), ")")
-}
 
 model_row <- function(model, data, term, specification, dep_var) {
   tibble(
@@ -47,44 +21,63 @@ panel_lines <- function(data, panel_title) {
     stop(sprintf("Expected three specifications for %s.", panel_title), call. = FALSE)
   }
 
+  data <- data %>%
+    mutate(
+      estimate_text = paste0(
+        formatC(100 * estimate, format = "f", digits = 2, big.mark = ","),
+        case_when(
+          is.na(p_value) ~ "",
+          p_value < 0.01 ~ "$^{***}$",
+          p_value < 0.05 ~ "$^{**}$",
+          p_value < 0.10 ~ "$^{*}$",
+          TRUE ~ ""
+        )
+      ),
+      se_text = paste0("(", formatC(100 * std_error, format = "f", digits = 2, big.mark = ","), ")"),
+      n_obs_text = formatC(round(n_obs), format = "d", big.mark = ","),
+      dep_var_mean_text = formatC(round(dep_var_mean), format = "d", big.mark = ","),
+      n_segments_text = formatC(round(n_segments), format = "d", big.mark = ","),
+      n_ward_pairs_text = formatC(round(n_ward_pairs), format = "d", big.mark = ",")
+    )
+
   c(
     sprintf("\\multicolumn{4}{l}{\\textit{%s}} \\\\", panel_title),
     sprintf(
       "Stringency Index & %s & %s & %s \\\\",
-      coef_cell(data$estimate[1], data$p_value[1]),
-      coef_cell(data$estimate[2], data$p_value[2]),
-      coef_cell(data$estimate[3], data$p_value[3])
+      data$estimate_text[1],
+      data$estimate_text[2],
+      data$estimate_text[3]
     ),
     sprintf(
       " & %s & %s & %s \\\\",
-      se_cell(data$std_error[1]),
-      se_cell(data$std_error[2]),
-      se_cell(data$std_error[3])
+      data$se_text[1],
+      data$se_text[2],
+      data$se_text[3]
     ),
     "\\addlinespace",
     sprintf(
       "N & %s & %s & %s \\\\",
-      format_tex_int(data$n_obs[1]),
-      format_tex_int(data$n_obs[2]),
-      format_tex_int(data$n_obs[3])
+      data$n_obs_text[1],
+      data$n_obs_text[2],
+      data$n_obs_text[3]
     ),
     sprintf(
       "Dep. Var. Mean & %s & %s & %s \\\\",
-      format_tex_int(data$dep_var_mean[1]),
-      format_tex_int(data$dep_var_mean[2]),
-      format_tex_int(data$dep_var_mean[3])
+      data$dep_var_mean_text[1],
+      data$dep_var_mean_text[2],
+      data$dep_var_mean_text[3]
     ),
     sprintf(
       "Segments & %s & %s & %s \\\\",
-      format_tex_int(data$n_segments[1]),
-      format_tex_int(data$n_segments[2]),
-      format_tex_int(data$n_segments[3])
+      data$n_segments_text[1],
+      data$n_segments_text[2],
+      data$n_segments_text[3]
     ),
     sprintf(
       "Ward Pairs & %s & %s & %s \\\\",
-      format_tex_int(data$n_ward_pairs[1]),
-      format_tex_int(data$n_ward_pairs[2]),
-      format_tex_int(data$n_ward_pairs[3])
+      data$n_ward_pairs_text[1],
+      data$n_ward_pairs_text[2],
+      data$n_ward_pairs_text[3]
     ),
     "Hedonic Controls & & $\\checkmark$ & $\\checkmark$ \\\\",
     "Amenity Controls & & & $\\checkmark$ \\\\",
