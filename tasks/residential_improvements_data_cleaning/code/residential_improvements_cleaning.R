@@ -3,17 +3,7 @@
 # to include only buildings built on or after the year 1999 and in townships 70-77 (Chicago)
 
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/residential_improvements_data_cleaning/code")
-# input_csv <- "../input/residential_improvement_characteristics_full.csv"
-# output_csv <- "../output/residential_cross_section.csv"
 source("../../setup_environment/code/packages.R")
-
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) != 2) {
-  stop("Usage: residential_improvements_cleaning.R <input_csv> <output_csv>")
-}
-
-input_csv <- cli_args[1]
-output_csv <- cli_args[2]
 
 parse_numeric <- function(x) {
   suppressWarnings(as.numeric(gsub("[^0-9.-]", "", as.character(x))))
@@ -80,7 +70,7 @@ FROM read_csv(%s,
               max_line_size = 10000000)
 WHERE try_cast(numeric_text(township_code) AS INTEGER) IN (70, 71, 72, 73, 74, 75, 76, 77)
   AND try_cast(numeric_text(char_yrblt) AS INTEGER) >= 1999;
-", dbQuoteString(con, input_csv))))
+", dbQuoteString(con, "../input/residential_improvement_characteristics_full.csv"))))
 
 data <- dbGetQuery(con, "SELECT * FROM residential_improvements")
 
@@ -137,5 +127,4 @@ if (any(cross_section_buildings$year_built < 1999, na.rm = TRUE)) {
 # (Optional) sanity check uniqueness
 stopifnot(nrow(cross_section_buildings) == dplyr::n_distinct(cross_section_buildings$pin, cross_section_buildings$card_num))
 
-# ---------- 4) Save ----------
-write_csv(cross_section_buildings, output_csv)
+write_csv(cross_section_buildings, "../output/residential_cross_section.csv")

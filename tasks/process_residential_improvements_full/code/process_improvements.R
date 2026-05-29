@@ -3,6 +3,7 @@
 # This panel is used for temporal matching to home sales, so it must not apply
 # the new-construction year-built restriction used by density tasks.
 
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/process_residential_improvements_full/code")
 source("../../setup_environment/code/packages.R")
 
 message("Loading full residential improvements data using DuckDB...")

@@ -1,5 +1,3 @@
-SHELL := bash
-
 all: ../output/permits_for_uncertainty_index.csv
 
 ../output/permits_for_uncertainty_index.csv: prepare_uncertainty_data.R \
@@ -14,7 +12,7 @@ all: ../output/permits_for_uncertainty_index.csv
 	../input/gis_osm_water_a_free_1.prj \
 	../input/gis_osm_water_a_free_1.shx \
 	../input/gis_osm_water_a_free_1.cpg | ../output
-	$(R) $<
+	Rscript $<
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -50,5 +48,4 @@ link-inputs: \
 	../input/gis_osm_water_a_free_1.shx \
 	../input/gis_osm_water_a_free_1.cpg
 
-include ../../shell_functions.make
 include ../../generic.make

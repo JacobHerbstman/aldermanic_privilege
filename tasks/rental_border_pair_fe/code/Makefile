@@ -1,5 +1,3 @@
-SHELL := bash
-
 all: ../output/level_plot_bw500_pct0_ctrl_clust_ward_pair.pdf
 
 ../output/level_plot_bw500_pct0_ctrl_clust_ward_pair.pdf: rental_level_plot.R ../input/rent_with_ward_distances.parquet | ../output
@@ -10,5 +8,4 @@ all: ../output/level_plot_bw500_pct0_ctrl_clust_ward_pair.pdf
 
 link-inputs: ../input/rent_with_ward_distances.parquet
 
-include ../../shell_functions.make
 include ../../generic.make

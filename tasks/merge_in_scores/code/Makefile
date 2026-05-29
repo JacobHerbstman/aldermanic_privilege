@@ -1,5 +1,3 @@
-SHELL := bash
-
 SCORE_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
 SCORE_COLUMN ?= uncertainty_index
 MAX_CONSTRUCTION_YEAR ?= 2026
