@@ -84,7 +84,7 @@ slides/figures/*
 tmp/
 
 # Local-only verification scratch
-tasks/run_event_study_rental_guangbin_wardblock/
+tasks/audits/run_event_study_rental_guangbin_wardblock/
 tasks/create_event_study_permit_data/code/manual_permit_block_review.csv
 
 # Ignore auto-generated R graphics in any code/ folder
