@@ -79,20 +79,6 @@ read_blocks <- function(path, block_col, target_crs) {
     )
   }
 
-  duplicate_block_rows <- blocks_sf %>%
-    st_drop_geometry() %>%
-    count(block_id, name = "n_rows") %>%
-    filter(n_rows > 1)
-
-  if (nrow(duplicate_block_rows) > 0) {
-    message(sprintf(
-      "Dropping %d exact duplicate block rows across %d block IDs in %s.",
-      sum(duplicate_block_rows$n_rows - 1L),
-      nrow(duplicate_block_rows),
-      path
-    ))
-  }
-
   blocks_sf %>%
     distinct(block_id, .keep_all = TRUE)
 }
@@ -155,17 +141,6 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label,
       ) %>%
       mutate(block_id = coalesce(block_id, final_block_id)) %>%
       select(-final_block_id)
-
-    message(sprintf(
-      paste(
-        "Reviewed %d permits without a %s block match:",
-        "%d manually assigned and %d dropped."
-      ),
-      nrow(missing_matches),
-      block_vintage_label,
-      sum(missing_review$review_decision == "assign"),
-      sum(missing_review$review_decision == "drop")
-    ))
   }
 
   as.data.table(
@@ -512,11 +487,9 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
   base
 }
 
-message("Loading ward panel and geometry helpers...")
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 ward_maps <- load_canonical_ward_maps(ward_panel)
 boundary_lines <- build_canonical_boundary_list(ward_panel)
-message(sprintf("Loading segment lines for %.0fm nearest-segment assignment...", segment_buffer_m))
 segment_layers <- load_segment_line_layers("../input/boundary_segments_1320ft.gpkg")
 segment_meta <- segment_metadata_from_layers(segment_layers)
 segment_pair_lookup <- bind_rows(lapply(names(segment_layers), function(era_i) {
@@ -528,18 +501,15 @@ segment_pair_lookup <- bind_rows(lapply(names(segment_layers), function(era_i) {
     )
 }))
 
-message("Loading block treatment panel...")
 treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
   mutate(block_id = as.character(block_id))
 if (anyDuplicated(paste(treatment_panel$cohort, treatment_panel$block_id, sep = "\r")) > 0) {
   stop("Block treatment panel must be unique by cohort-block.", call. = FALSE)
 }
 
-message("Loading census blocks...")
 blocks_2010 <- read_blocks("../input/census_blocks_2010.csv", "GEOID10", st_crs(ward_panel))
 blocks_2020 <- read_blocks("../input/census_blocks_2020.csv", "GEOID20", st_crs(ward_panel))
 
-message("Classifying unit-increase permits...")
 curated_unit_types <- c(
   "PERMIT - NEW CONSTRUCTION",
   "PERMIT - RENOVATION/ALTERATION"
@@ -585,7 +555,6 @@ unit_increase_flags <- read_csv(
   ) %>%
   arrange(desc(unit_increase_included), desc(positive_unit_signal), desc(curated_type), id)
 
-message("Loading issued permits...")
 permits_clean <- st_read(
   "../input/building_permits_clean.gpkg",
   query = paste(
@@ -604,12 +573,6 @@ permits_clean <- st_read(
     issue_month = as.yearmon(as.Date(issue_date_ym))
   )
 
-source_year_min <- min(c(permits_clean$application_year, permits_clean$issue_year), na.rm = TRUE)
-source_year_max <- max(c(permits_clean$application_year, permits_clean$issue_year), na.rm = TRUE)
-message(sprintf("Permit years available in raw source: %d-%d", source_year_min, source_year_max))
-message(sprintf("Permit analysis window: %d through %s", permit_start_year, permit_end_month))
-
-n_permits_before_window <- nrow(permits_clean)
 permits_clean <- permits_clean %>%
   filter(
     (!is.na(application_month) &
@@ -622,11 +585,6 @@ permits_clean <- permits_clean %>%
 if (nrow(permits_clean) == 0) {
   stop("No issued permits remain after applying the permit analysis year window.", call. = FALSE)
 }
-message(sprintf(
-  "Permits kept in analysis window: %s of %s",
-  format(nrow(permits_clean), big.mark = ","),
-  format(n_permits_before_window, big.mark = ",")
-))
 
 unit_increase_flags <- unit_increase_flags %>%
   semi_join(
@@ -650,7 +608,6 @@ if (st_crs(permits_clean) != st_crs(blocks_2010)) {
   permits_clean <- st_transform(permits_clean, st_crs(blocks_2010))
 }
 
-message("Assigning permits to 2010 and 2020 blocks...")
 permits_2010 <- assign_permits_to_blocks(
   permits_sf = permits_clean,
   blocks_sf = blocks_2010,
@@ -697,11 +654,9 @@ permits_2020[, `:=`(
   is_unit_increase_issued = as.integer(unit_increase_included == 1)
 )]
 
-message("Aggregating permit outcomes to block-year...")
 counts_2010 <- aggregate_outcome_counts(permits_2010)
 counts_2020 <- aggregate_outcome_counts(permits_2020)
 
-message("Preparing cohort block geometry...")
 base_2015 <- prepare_cohort_base(
   blocks_sf = blocks_2010,
   treatment_df = treatment_panel %>% filter(cohort == "2015"),
@@ -716,7 +671,6 @@ base_2023 <- prepare_cohort_base(
   era_label = "2015_2023"
 )
 
-message("Building balanced block-year panels...")
 cohort_2015 <- build_panel_with_counts(
   base_df = base_2015,
   start_year = permit_year_min,
@@ -735,33 +689,26 @@ cohort_2023 <- build_panel_with_counts(
 
 permit_panel <- bind_rows(cohort_2015, cohort_2023)
 
-message("Checking panel contracts...")
-contract_diagnostics <- bind_rows(
+panel_contract <- bind_rows(
   summarize_contract(cohort_2015, "cohort_2015"),
   summarize_contract(cohort_2023, "cohort_2023"),
   summarize_contract(permit_panel, "stacked_implementation")
 )
-if (any(contract_diagnostics$n_missing_strictness_change > 0L)) {
+if (any(panel_contract$n_missing_strictness_change > 0L)) {
   stop("Permit event panel has missing strictness changes inside the 1000ft regression window.", call. = FALSE)
 }
-if (any(contract_diagnostics$n_bad_cohort_block_id > 0L) ||
-    any(contract_diagnostics$n_bad_cohort_ward_pair > 0L) ||
-    any(contract_diagnostics$n_bad_cohort_segment > 0L)) {
+if (any(panel_contract$n_bad_cohort_block_id > 0L) ||
+    any(panel_contract$n_bad_cohort_ward_pair > 0L) ||
+    any(panel_contract$n_bad_cohort_segment > 0L)) {
   stop("Permit event panel has invalid cohort-prefixed FE identifiers.", call. = FALSE)
 }
-if (any(contract_diagnostics$n_event_pair_missing_origin > 0L) ||
-    any(contract_diagnostics$n_treated_pair_mismatch > 0L) ||
-    any(contract_diagnostics$n_missing_segment_le_1000ft > 0L) ||
-    any(contract_diagnostics$n_segment_pair_mismatch_le_1000ft > 0L)) {
+if (any(panel_contract$n_event_pair_missing_origin > 0L) ||
+    any(panel_contract$n_treated_pair_mismatch > 0L) ||
+    any(panel_contract$n_missing_segment_le_1000ft > 0L) ||
+    any(panel_contract$n_segment_pair_mismatch_le_1000ft > 0L)) {
   stop("Permit event panel failed the 1000ft event-pair/segment contract.", call. = FALSE)
 }
 
-message("Saving outputs...")
 write_parquet(permit_panel, "../output/permit_block_year_panel.parquet")
 write_parquet(cohort_2015, "../output/permit_block_year_panel_2015.parquet")
 write_parquet(cohort_2023, "../output/permit_block_year_panel_2023.parquet")
-
-message(sprintf("Saved stacked permit panel: %s rows", format(nrow(permit_panel), big.mark = ",")))
-message(sprintf("Saved 2015 cohort permit panel: %s rows", format(nrow(cohort_2015), big.mark = ",")))
-message(sprintf("Saved 2023 cohort permit panel: %s rows", format(nrow(cohort_2023), big.mark = ",")))
-message("Done!")
