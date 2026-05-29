@@ -4,6 +4,6 @@ Purpose: Creates alderman uncertainty scores used by the paper and downstream sc
 
 Produces:
 - the paper score CSV, appendix plot, and stage-1 table for the default 2022 cutoff
-- the post-2023 score CSV used by `merge_event_study_scores`
+- the 2026-04 post-2023 score CSV used by `merge_event_study_scores`
 
 Approx. runtime: ~1-10 minutes.

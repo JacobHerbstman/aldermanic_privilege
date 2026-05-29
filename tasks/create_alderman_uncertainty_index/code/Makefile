@@ -19,7 +19,7 @@ all: \
 	../output/alderman_uncertainty_index_$(POST_2023_SPEC).csv
 
 ../output/alderman_uncertainty_index_$(PAPER_SPEC).csv: create_uncertainty_index.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
-	MAX_PERMIT_CUTOFF=$(PAPER_CUTOFF) PAPER_BUNDLE=TRUE Rscript $< $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE)
+	Rscript $< $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE) $(PAPER_CUTOFF)
 
 ../output/uncertainty_index_$(PAPER_SPEC).pdf: ../output/alderman_uncertainty_index_$(PAPER_SPEC).csv
 	@test -s "$@"
@@ -28,7 +28,7 @@ all: \
 	@test -s "$@"
 
 ../output/alderman_uncertainty_index_$(POST_2023_SPEC).csv: create_uncertainty_index.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
-	MAX_PERMIT_CUTOFF=$(POST_2023_CUTOFF) PAPER_BUNDLE=FALSE Rscript $< $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE)
+	Rscript $< $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE) $(POST_2023_CUTOFF)
 
 ../input/permits_for_uncertainty_index.csv: ../../data_for_alderman_uncertainty_index/output/permits_for_uncertainty_index.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
