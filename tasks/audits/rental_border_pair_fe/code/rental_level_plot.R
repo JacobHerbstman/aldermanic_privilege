@@ -1,6 +1,6 @@
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_pair_fe/code")
+# setwd("tasks/audits/rental_border_pair_fe/code")
 
 bw_ft <- 500L
 window <- "pre_2023"

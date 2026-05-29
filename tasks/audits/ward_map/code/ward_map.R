@@ -3,7 +3,7 @@ library(sf)
 library(ggplot2)
 library(dplyr)
 
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/ward_map/code")
+# setwd("tasks/audits/ward_map/code")
 
 wards <- st_read("../input/Wards_2024.geojson", quiet = TRUE) %>%
   mutate(ward = as.integer(ward))

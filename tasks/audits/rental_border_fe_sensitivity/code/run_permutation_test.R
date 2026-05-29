@@ -1,7 +1,7 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
+# setwd("tasks/audits/rental_border_fe_sensitivity/code")
 
-source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
+source("../../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 bw_ft <- 500L
 n_perms <- 500L

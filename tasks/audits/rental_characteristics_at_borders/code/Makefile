@@ -45,21 +45,21 @@ all: \
 ../temp/listing_units_bin_cells_bw$(BANDWIDTH_FT)_$(WINDOW)_%_pct$(MIN_STRICTNESS_DIFF_PCTILE)_$(UNIT_DEF)_bins$(BINS_PER_SIDE)_all.parquet: ../temp/listing_units_side_panel_bw$(BANDWIDTH_FT)_$(WINDOW)_%_pct$(MIN_STRICTNESS_DIFF_PCTILE)_$(UNIT_DEF)_all.parquet
 	@test -s "$@"
 
-../input/rent_with_ward_distances.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
+../input/rent_with_ward_distances.parquet: ../../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/schools_2015.gpkg: ../../prepare_amenities_data/output/schools_2015.gpkg | ../input
+../input/schools_2015.gpkg: ../../../prepare_amenities_data/output/schools_2015.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/parks.gpkg: ../../prepare_amenities_data/output/parks.gpkg | ../input
+../input/parks.gpkg: ../../../prepare_amenities_data/output/parks.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/major_streets.gpkg: ../../prepare_amenities_data/output/major_streets.gpkg | ../input
+../input/major_streets.gpkg: ../../../prepare_amenities_data/output/major_streets.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg: ../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
+../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg: ../input/gis_osm_water_a_free_1.%: ../../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/rent_with_ward_distances.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
-include ../../generic.make
+include ../../../generic.make

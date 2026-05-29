@@ -1,10 +1,10 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_characteristics_at_borders/code")
+# setwd("tasks/audits/rental_characteristics_at_borders/code")
 # bw_arg <- 500
 # window <- "pre_2023"
 # cluster_level <- "ward_pair"
 
-source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
+source("../../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
