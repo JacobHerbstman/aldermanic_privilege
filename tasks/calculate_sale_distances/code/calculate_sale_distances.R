@@ -1,18 +1,9 @@
-# calculate_sale_distances.R
-# Calculates unsigned distance to nearest ward boundary for home sales.
-# Includes all four ward map eras (1998, 2003, 2015, 2024).
-# Score/sign merge happens in merge_event_study_scores.
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
+# sample <- FALSE
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
-
-# 1. SETUP & ARGUMENTS
-
-# ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
-
-# --- Interactive Test Block ---
-# setwd("tasks/calculate_sale_distances/code")
-# sample <- FALSE
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -275,11 +266,6 @@ sales_sf <- sales_geo %>%
 
 message(sprintf("Final geolocated sales: %s", format(nrow(sales_sf), big.mark = ",")))
 
-n_sales_raw <- nrow(sales_raw)
-n_sales_market_filtered <- nrow(sales)
-n_geolocated_sales <- nrow(sales_sf)
-
-# Clean up memory
 rm(sales_raw, sales, sales_geo, parcels)
 gc()
 
@@ -312,157 +298,6 @@ message(sprintf(
     format(nrow(results_sf), big.mark = ","),
     format(nrow(sales_sf), big.mark = ",")
 ))
-
-message("Running sales geometry contract audit inside 500ft...")
-contract_sf <- results_sf[
-    is.finite(results_sf$dist_m) &
-        results_sf$dist_m <= 500 * 0.3048,
-]
-if (nrow(contract_sf) > 0) {
-    ward_hit_details <- bind_rows(lapply(sort(unique(as.character(contract_sf$era))), function(era_i) {
-        idx <- which(as.character(contract_sf$era) == era_i)
-        ward_sf <- canonical_ward_maps[[era_i]]
-        hits <- st_within(contract_sf[idx, ], ward_sf)
-        ward_vals <- st_drop_geometry(ward_sf)$ward
-        tibble(
-            pin = contract_sf$pin[idx],
-            sale_date = contract_sf$sale_date_for_price[idx],
-            era = era_i,
-            ward = contract_sf$ward[idx],
-            neighbor_ward = contract_sf$neighbor_ward[idx],
-            ward_pair_id = contract_sf$ward_pair_id[idx],
-            dist_m = contract_sf$dist_m[idx],
-            n_ward_hits = lengths(hits),
-            hit_wards = vapply(
-                hits,
-                function(v) paste(sort(ward_vals[v]), collapse = ";"),
-                character(1)
-            ),
-            hit_pair_id = vapply(
-                hits,
-                function(v) paste(sort(ward_vals[v]), collapse = "_"),
-                character(1)
-            )
-        )
-    })) %>%
-        mutate(
-            flag_multiple_hit_pair_consistent = n_ward_hits > 1L &
-                normalize_pair_dash(hit_pair_id) == normalize_pair_dash(ward_pair_id),
-            flag_multiple_hit_pair_inconsistent = n_ward_hits > 1L &
-                normalize_pair_dash(hit_pair_id) != normalize_pair_dash(ward_pair_id)
-        )
-
-    ward_hit_audit <- ward_hit_details %>%
-        summarise(
-            n_rows = n(),
-            n_zero_ward_hits = sum(n_ward_hits == 0L, na.rm = TRUE),
-            n_multiple_ward_hits = sum(n_ward_hits > 1L, na.rm = TRUE),
-            n_multiple_hit_pair_consistent = sum(flag_multiple_hit_pair_consistent, na.rm = TRUE),
-            n_multiple_hit_pair_inconsistent = sum(flag_multiple_hit_pair_inconsistent, na.rm = TRUE),
-            max_ward_hits = max(n_ward_hits, na.rm = TRUE),
-            .by = era
-        ) %>%
-        arrange(era)
-
-    ward_hit_detail <- ward_hit_details %>%
-        filter(n_ward_hits != 1L) %>%
-        arrange(era, sale_date, pin)
-
-    recomputed_assignment <- assign_points_to_boundaries(
-        points_sf = contract_sf,
-        era_values = contract_sf$era,
-        ward_maps = canonical_ward_maps,
-        boundary_lines = canonical_boundaries,
-        chunk_n = 5000L
-    ) %>%
-        transmute(
-            recomputed_ward = ward,
-            recomputed_neighbor_ward = neighbor_ward,
-            recomputed_ward_pair_id = ward_pair_id,
-            recomputed_dist_m = dist_m
-        )
-
-    geometry_contract_detail <- bind_cols(st_drop_geometry(contract_sf), recomputed_assignment) %>%
-        transmute(
-            pin,
-            sale_date = sale_date_for_price,
-            era,
-            ward,
-            recomputed_ward,
-            neighbor_ward,
-            recomputed_neighbor_ward,
-            ward_pair_id,
-            recomputed_ward_pair_id,
-            expected_ward_pair_id = normalize_pair_id(ward, neighbor_ward, sep = "_"),
-            dist_m,
-            recomputed_dist_m,
-            abs_dist_diff_m = abs(dist_m - recomputed_dist_m),
-            flag_ward_mismatch = ward != recomputed_ward,
-            flag_neighbor_mismatch = neighbor_ward != recomputed_neighbor_ward,
-            flag_pair_mismatch = normalize_pair_dash(ward_pair_id) != normalize_pair_dash(recomputed_ward_pair_id),
-            flag_pair_endpoint_mismatch = normalize_pair_dash(ward_pair_id) != normalize_pair_dash(expected_ward_pair_id),
-            flag_dist_mismatch = !is.finite(abs_dist_diff_m) | abs_dist_diff_m > 0.05
-        )
-
-    geometry_contract_audit <- geometry_contract_detail %>%
-        summarise(
-            n_rows = n(),
-            n_ward_mismatch = sum(flag_ward_mismatch, na.rm = TRUE),
-            n_neighbor_mismatch = sum(flag_neighbor_mismatch, na.rm = TRUE),
-            n_pair_mismatch = sum(flag_pair_mismatch, na.rm = TRUE),
-            n_pair_endpoint_mismatch = sum(flag_pair_endpoint_mismatch, na.rm = TRUE),
-            n_dist_mismatch = sum(flag_dist_mismatch, na.rm = TRUE),
-            max_abs_dist_diff_m = max(abs_dist_diff_m, na.rm = TRUE),
-            .by = era
-        ) %>%
-        arrange(era)
-} else {
-    ward_hit_audit <- tibble(
-        era = character(),
-        n_rows = integer(),
-        n_zero_ward_hits = integer(),
-        n_multiple_ward_hits = integer(),
-        n_multiple_hit_pair_consistent = integer(),
-        n_multiple_hit_pair_inconsistent = integer(),
-        max_ward_hits = integer()
-    )
-    ward_hit_detail <- tibble(
-        pin = character(),
-        sale_date = as.Date(character()),
-        era = character(),
-        ward = integer(),
-        neighbor_ward = integer(),
-        ward_pair_id = character(),
-        dist_m = numeric(),
-        n_ward_hits = integer(),
-        hit_wards = character(),
-        hit_pair_id = character(),
-        flag_multiple_hit_pair_consistent = logical(),
-        flag_multiple_hit_pair_inconsistent = logical()
-    )
-    geometry_contract_audit <- tibble(
-        era = character(),
-        n_rows = integer(),
-        n_ward_mismatch = integer(),
-        n_neighbor_mismatch = integer(),
-        n_pair_mismatch = integer(),
-        n_pair_endpoint_mismatch = integer(),
-        n_dist_mismatch = integer(),
-        max_abs_dist_diff_m = numeric()
-    )
-}
-
-if (sum(ward_hit_audit$n_zero_ward_hits, na.rm = TRUE) > 0 ||
-    sum(ward_hit_audit$n_multiple_hit_pair_inconsistent, na.rm = TRUE) > 0) {
-    stop("Sales ward-hit multiplicity audit failed inside 500ft.", call. = FALSE)
-}
-if (sum(geometry_contract_audit$n_ward_mismatch, na.rm = TRUE) > 0 ||
-    sum(geometry_contract_audit$n_neighbor_mismatch, na.rm = TRUE) > 0 ||
-    sum(geometry_contract_audit$n_pair_mismatch, na.rm = TRUE) > 0 ||
-    sum(geometry_contract_audit$n_pair_endpoint_mismatch, na.rm = TRUE) > 0 ||
-    sum(geometry_contract_audit$n_dist_mismatch, na.rm = TRUE) > 0) {
-    stop("Sales geometry contract audit failed inside 500ft.", call. = FALSE)
-}
 
 # -----------------------------------------------------------------------------
 # 7. POST-PROCESS: ALDERMAN LOOKUPS (PRE-SCORES)

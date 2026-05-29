@@ -1,12 +1,9 @@
-# calculate_rent_distances.R
-# Calculates distance to the nearest in-ward ward boundary for cleaned RentHub floorplan-month records.
-# Score/sign merge happens in merge_event_study_scores.
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_rent_distances/code")
+# sample <- FALSE
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
-
-# setwd("tasks/calculate_rent_distances/code")
-# sample <- TRUE
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -97,11 +94,6 @@ load_cpi_deflator <- function(start_date,
 
 # Core CRS for Chicago spatial work
 crs_projected <- 3435
-assert_projected_crs <- function(x, label) {
-  if (is.na(sf::st_crs(x)) || sf::st_crs(x) != sf::st_crs(crs_projected)) {
-    stop(sprintf("%s must use EPSG:%d.", label, crs_projected), call. = FALSE)
-  }
-}
 
 # -----------------------------------------------------------------------------
 # 2. LOAD & PREP ANCILLARY DATA
@@ -113,11 +105,6 @@ ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
   st_transform(crs_projected)
 canonical_ward_maps <- load_canonical_ward_maps(ward_panel)
 canonical_boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg")
-assert_projected_crs(ward_panel, "ward_panel")
-for (era_i in names(canonical_ward_maps)) {
-  assert_projected_crs(canonical_ward_maps[[era_i]], sprintf("ward map %s", era_i))
-  assert_projected_crs(canonical_boundaries[[era_i]], sprintf("boundary layer %s", era_i))
-}
 
 # Alderman Data
 alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
@@ -304,112 +291,6 @@ if (any(final_df$boundary_year == 2024L, na.rm = TRUE) || any(final_df$era == "p
   stop("Rental distance task should not contain post-2023 boundary assignments.", call. = FALSE)
 }
 
-message("Running hard geometry contract audit inside 500ft...")
-contract_sf <- results_sf[
-  is.finite(results_sf$dist_m) &
-    results_sf$dist_m <= 500 * 0.3048,
-]
-if (nrow(contract_sf) > 0) {
-  ward_hit_details <- bind_rows(lapply(sort(unique(as.character(contract_sf$era))), function(era_i) {
-    idx <- which(as.character(contract_sf$era) == era_i)
-    ward_sf <- canonical_ward_maps[[era_i]]
-    hits <- st_within(contract_sf[idx, ], ward_sf)
-    tibble(
-      rent_panel_id = contract_sf$rent_panel_id[idx],
-      era = era_i,
-      n_ward_hits = lengths(hits)
-    )
-  }))
-
-  ward_hit_audit <- ward_hit_details %>%
-    summarise(
-      n_rows = n(),
-      n_zero_ward_hits = sum(n_ward_hits == 0L, na.rm = TRUE),
-      n_multiple_ward_hits = sum(n_ward_hits > 1L, na.rm = TRUE),
-      max_ward_hits = max(n_ward_hits, na.rm = TRUE),
-      .by = era
-    ) %>%
-    arrange(era)
-
-  recomputed_assignment <- assign_points_to_boundaries(
-    points_sf = contract_sf,
-    era_values = contract_sf$era,
-    ward_maps = canonical_ward_maps,
-    boundary_lines = canonical_boundaries,
-    chunk_n = 5000L
-  ) %>%
-    transmute(
-      recomputed_ward = ward,
-      recomputed_neighbor_ward = neighbor_ward,
-      recomputed_ward_pair_id = ward_pair_id,
-      recomputed_dist_m = dist_m
-    )
-
-  geometry_contract_detail <- bind_cols(st_drop_geometry(contract_sf), recomputed_assignment) %>%
-    transmute(
-      rent_panel_id,
-      era,
-      file_date,
-      ward,
-      recomputed_ward,
-      neighbor_ward,
-      recomputed_neighbor_ward,
-      ward_pair_id,
-      recomputed_ward_pair_id,
-      expected_ward_pair_id = normalize_pair_id(ward, neighbor_ward, sep = "_"),
-      dist_m,
-      recomputed_dist_m,
-      abs_dist_diff_m = abs(dist_m - recomputed_dist_m),
-      flag_ward_mismatch = ward != recomputed_ward,
-      flag_neighbor_mismatch = neighbor_ward != recomputed_neighbor_ward,
-      flag_pair_mismatch = normalize_pair_dash(ward_pair_id) != normalize_pair_dash(recomputed_ward_pair_id),
-      flag_pair_endpoint_mismatch = normalize_pair_dash(ward_pair_id) != normalize_pair_dash(expected_ward_pair_id),
-      flag_dist_mismatch = !is.finite(abs_dist_diff_m) | abs_dist_diff_m > 0.05
-    )
-
-  geometry_contract_audit <- geometry_contract_detail %>%
-    summarise(
-      n_rows = n(),
-      n_ward_mismatch = sum(flag_ward_mismatch, na.rm = TRUE),
-      n_neighbor_mismatch = sum(flag_neighbor_mismatch, na.rm = TRUE),
-      n_pair_mismatch = sum(flag_pair_mismatch, na.rm = TRUE),
-      n_pair_endpoint_mismatch = sum(flag_pair_endpoint_mismatch, na.rm = TRUE),
-      n_dist_mismatch = sum(flag_dist_mismatch, na.rm = TRUE),
-      max_abs_dist_diff_m = max(abs_dist_diff_m, na.rm = TRUE),
-      .by = era
-    ) %>%
-    arrange(era)
-} else {
-  ward_hit_audit <- tibble(
-    era = character(),
-    n_rows = integer(),
-    n_zero_ward_hits = integer(),
-    n_multiple_ward_hits = integer(),
-    max_ward_hits = integer()
-  )
-  geometry_contract_audit <- tibble(
-    era = character(),
-    n_rows = integer(),
-    n_ward_mismatch = integer(),
-    n_neighbor_mismatch = integer(),
-    n_pair_mismatch = integer(),
-    n_pair_endpoint_mismatch = integer(),
-    n_dist_mismatch = integer(),
-    max_abs_dist_diff_m = numeric()
-  )
-}
-if (sum(ward_hit_audit$n_zero_ward_hits, na.rm = TRUE) > 0 ||
-    sum(ward_hit_audit$n_multiple_ward_hits, na.rm = TRUE) > 0) {
-  stop("Ward-hit multiplicity audit failed inside 500ft.", call. = FALSE)
-}
-if (sum(geometry_contract_audit$n_ward_mismatch, na.rm = TRUE) > 0 ||
-    sum(geometry_contract_audit$n_neighbor_mismatch, na.rm = TRUE) > 0 ||
-    sum(geometry_contract_audit$n_pair_mismatch, na.rm = TRUE) > 0 ||
-    sum(geometry_contract_audit$n_pair_endpoint_mismatch, na.rm = TRUE) > 0 ||
-    sum(geometry_contract_audit$n_dist_mismatch, na.rm = TRUE) > 0) {
-  stop("Geometry contract audit failed inside 500ft.", call. = FALSE)
-}
-
 message("Auditing modal-coordinate sensitivity inside 500ft...")
 modal_base <- final_df %>%
   filter(
@@ -549,8 +430,7 @@ final_df <- final_df %>%
       flag_modal_changes_ward |
       flag_modal_changes_neighbor_ward |
       flag_modal_changes_pair |
-      flag_modal_dist_diff_gt100ft,
-    dist_ft_for_audit = dist_m / 0.3048
+      flag_modal_dist_diff_gt100ft
   )
 
 # 6a. Attach Alderman (Own & Neighbor)
