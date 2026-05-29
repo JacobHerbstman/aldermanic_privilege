@@ -1,16 +1,10 @@
-SHELL := bash
-
 SEGMENT_LENGTH_FT ?= 1320
 SEGMENT_BUFFER_M ?= 250
-COVERAGE_BWS_M ?= 100,250
 
-all: ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv
+all: ../output/parcel_segment_ids.csv
 
 ../output/parcel_segment_ids.csv: assign_segment_ids.R ../../_lib/canonical_geometry_helpers.R ../input/parcels_pre_scores.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg | ../output
-	$(R) $< $(SEGMENT_LENGTH_FT) $(SEGMENT_BUFFER_M) "$(COVERAGE_BWS_M)"
-
-../output/parcel_segment_ids_coverage.csv: ../output/parcel_segment_ids.csv
-	@test -s "$@"
+	Rscript $< $(SEGMENT_LENGTH_FT) $(SEGMENT_BUFFER_M)
 
 ../input/parcels_pre_scores.csv: ../../calculate_ward_boundary_distances/output/parcels_pre_scores.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
@@ -24,5 +18,4 @@ all: ../output/parcel_segment_ids.csv ../output/parcel_segment_ids_coverage.csv
 
 link-inputs: ../input/parcels_pre_scores.csv ../input/parcels_with_geometry.gpkg ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg
 
-include ../../shell_functions.make
 include ../../generic.make

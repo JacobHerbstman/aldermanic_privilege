@@ -8,23 +8,21 @@ library(sf)
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids/code")
 # segment_length_ft <- 1320
 # segment_buffer_m <- 250
-# coverage_bandwidths_m <- "100,250"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(segment_length_ft, segment_buffer_m, coverage_bandwidths_m)
+  cli_args <- c(segment_length_ft, segment_buffer_m)
 }
 
-if (length(cli_args) != 3) {
+if (length(cli_args) != 2) {
   stop(
-    "FATAL: Script requires 3 args: <segment_length_ft> <segment_buffer_m> <coverage_bandwidths_m>",
+    "FATAL: Script requires 2 args: <segment_length_ft> <segment_buffer_m>",
     call. = FALSE
   )
 }
 
 segment_length_ft <- suppressWarnings(as.integer(cli_args[1]))
 segment_buffer_m <- as.numeric(cli_args[2])
-coverage_bandwidths_m <- scan(text = gsub(",", " ", cli_args[3], fixed = TRUE), quiet = TRUE)
 
 if (!is.finite(segment_length_ft) || segment_length_ft <= 0) {
   stop("segment_length_ft must be a positive integer.", call. = FALSE)
@@ -32,42 +30,10 @@ if (!is.finite(segment_length_ft) || segment_length_ft <= 0) {
 if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
   stop("segment_buffer_m must be positive.", call. = FALSE)
 }
-if (length(coverage_bandwidths_m) == 0 || any(!is.finite(coverage_bandwidths_m)) || any(coverage_bandwidths_m <= 0)) {
-  stop("coverage_bandwidths_m must contain positive numeric bandwidths.", call. = FALSE)
-}
-coverage_bandwidths_m <- sort(unique(as.numeric(coverage_bandwidths_m)))
-
-coverage_row <- function(scope, era, dt) {
-  matched <- !is.na(dt$segment_id) & dt$segment_id != ""
-  n_total <- nrow(dt)
-  n_matched <- sum(matched)
-  data.table(
-    scope = scope,
-    era = era,
-    n_obs = n_total,
-    n_matched = n_matched,
-    coverage_rate = ifelse(n_total > 0, n_matched / n_total, NA_real_)
-  )
-}
-
-coverage_block <- function(dt, scope) {
-  out <- list(
-    coverage_row(scope, "all", dt)
-  )
-  era_vals <- sort(unique(na.omit(dt$era)))
-  if (length(era_vals) > 0) {
-    out <- c(
-      out,
-      lapply(era_vals, function(ei) coverage_row(scope, ei, dt[era == ei]))
-    )
-  }
-  rbindlist(out, fill = TRUE)
-}
 
 cat("=== Assign Segment IDs to Parcel PINs ===\n")
 cat("Segment length:", segment_length_ft, "ft\n")
 cat("Segment buffer:", segment_buffer_m, "m\n")
-cat("Coverage bandwidths:", paste0(coverage_bandwidths_m, "m", collapse = ", "), "\n")
 
 pre <- fread("../input/parcels_pre_scores.csv", colClasses = c(pin = "character"))
 required_pre_cols <- c("pin", "boundary_year", "ward_pair", "dist_to_boundary_m")
@@ -225,33 +191,5 @@ if (anyDuplicated(lookup$pin) > 0) {
 
 fwrite(lookup, "../output/parcel_segment_ids.csv", na = "NA")
 
-diag_dt <- merge(
-  copy(pre)[, .(pin, boundary_year, construction_year, dist_to_boundary_m)],
-  lookup,
-  by = "pin",
-  all.x = TRUE,
-  sort = FALSE
-)
-diag_dt[, era := canonical_era_from_boundary_year(boundary_year)]
-
-coverage_parts <- c(
-  list(
-    coverage_block(diag_dt, "all"),
-    coverage_block(diag_dt[construction_year >= 2006 & construction_year <= 2022], "regression_base")
-  ),
-  lapply(coverage_bandwidths_m, function(bw_m_i) {
-    coverage_block(
-      diag_dt[construction_year >= 2006 & construction_year <= 2022 & dist_to_boundary_m <= bw_m_i],
-      sprintf("regression_bw%.0fm", bw_m_i)
-    )
-  })
-)
-
-coverage <- rbindlist(coverage_parts, fill = TRUE)
-coverage <- coverage[!is.na(scope)]
-setorder(coverage, scope, era)
-fwrite(coverage, "../output/parcel_segment_ids_coverage.csv")
-
 cat("\nSaved:\n")
 cat(" - ../output/parcel_segment_ids.csv\n")
-cat(" - ../output/parcel_segment_ids_coverage.csv\n")

@@ -3,9 +3,9 @@
 # against pre-fix snapshots for the active analysis branch.
 
 ## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/geometry_pipeline_validation/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/geometry_pipeline_validation/code")
 
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 normalize_pair_id_local <- function(x) {
   x <- as.character(x)
@@ -34,7 +34,7 @@ extract_density_table_row <- function(path_tex) {
   if (length(row_idx) == 0) {
     stop(sprintf("Could not find Stringency Index row in %s", path_tex), call. = FALSE)
   }
-  obs_idx <- grep("^\\s*Observations", lines)
+  obs_idx <- grep("^\\s*(Observations|N)\\b", lines)
   pairs_idx <- grep("^\\s*Ward Pairs", lines)
   if (length(obs_idx) == 0 || length(pairs_idx) == 0) {
     stop(sprintf("Could not find observation rows in %s", path_tex), call. = FALSE)
@@ -52,12 +52,21 @@ extract_density_table_row <- function(path_tex) {
   obs_cells <- parse_cells(lines[obs_idx[1]])
   pair_cells <- parse_cells(lines[pairs_idx[1]])
 
+  n_value_cols <- length(est_cells) - 1L
+  if (n_value_cols == 4L) {
+    outcome <- c("all_far", "all_dupac", "multifamily_far", "multifamily_dupac")
+  } else if (n_value_cols == 3L) {
+    outcome <- c("far", "dupac", "units")
+  } else {
+    stop(sprintf("Unexpected density table column count in %s", path_tex), call. = FALSE)
+  }
+
   tibble(
-    outcome = c("far", "dupac", "units"),
-    estimate_display = est_cells[2:4],
-    se_display = se_cells[2:4],
-    n_obs = as.numeric(gsub("[^0-9.\\-]", "", obs_cells[2:4])),
-    n_pairs = as.numeric(gsub("[^0-9.\\-]", "", pair_cells[2:4]))
+    outcome = outcome,
+    estimate_display = est_cells[-1],
+    se_display = se_cells[-1],
+    n_obs = as.numeric(gsub("[^0-9.\\-]", "", obs_cells[-1])),
+    n_pairs = as.numeric(gsub("[^0-9.\\-]", "", pair_cells[-1]))
   )
 }
 
@@ -122,6 +131,61 @@ read_optional_csv <- function(path) {
   read_csv(path, show_col_types = FALSE)
 }
 
+coverage_row <- function(scope, era, df) {
+  matched <- !is.na(df$segment_id) & df$segment_id != ""
+  tibble(
+    scope = scope,
+    era = era,
+    n_obs = nrow(df),
+    n_matched = sum(matched),
+    coverage_rate = if_else(nrow(df) > 0, n_matched / nrow(df), NA_real_)
+  )
+}
+
+coverage_block <- function(df, scope) {
+  bind_rows(
+    coverage_row(scope, "all", df),
+    lapply(sort(unique(na.omit(df$era))), function(era_i) {
+      coverage_row(scope, era_i, df |> filter(era == era_i))
+    })
+  )
+}
+
+parcel_segment_coverage <- function() {
+  pre_raw <- read_csv("../input/parcels_pre_scores.csv", show_col_types = FALSE)
+  pre <- pre_raw |>
+    transmute(
+      pin = as.character(pin),
+      boundary_year = as.integer(boundary_year),
+      construction_year = if ("construction_year" %in% names(pre_raw)) as.integer(construction_year) else NA_integer_,
+      dist_to_boundary_m = as.numeric(dist_to_boundary_m),
+      era = case_when(
+        boundary_year == 1998 ~ "1998_2002",
+        boundary_year == 2003 ~ "2003_2014",
+        boundary_year == 2015 ~ "2015_2023",
+        boundary_year == 2024 ~ "post_2023",
+        TRUE ~ NA_character_
+      )
+    )
+  segments <- read_csv("../input/parcel_segment_ids.csv", show_col_types = FALSE) |>
+    transmute(pin = as.character(pin), segment_id = as.character(segment_id))
+  current <- pre |>
+    left_join(segments, by = "pin", relationship = "one-to-one")
+
+  bind_rows(
+    coverage_block(current, "all"),
+    coverage_block(current |> filter(construction_year >= 2006, construction_year <= 2022), "regression_base"),
+    coverage_block(
+      current |> filter(construction_year >= 2006, construction_year <= 2022, dist_to_boundary_m <= 500 * 0.3048),
+      "regression_bw500"
+    ),
+    coverage_block(
+      current |> filter(construction_year >= 2006, construction_year <= 2022, dist_to_boundary_m <= 1000 * 0.3048),
+      "regression_bw1000"
+    )
+  )
+}
+
 format_before_current <- function(before, current) {
   before_display <- ifelse(length(before) == 0 || is.na(before), "no pre-fix snapshot", before)
   current_display <- ifelse(length(current) == 0 || is.na(current), "missing current value", current)
@@ -179,17 +243,12 @@ geometry_pair_mismatch_report <- bind_rows(
 
 write_csv(geometry_pair_mismatch_report, "../output/geometry_pair_mismatch_report.csv")
 
-parcel_coverage_current <- read_csv("../input/parcel_segment_ids_coverage.csv", show_col_types = FALSE) |>
+parcel_coverage_current <- parcel_segment_coverage() |>
   mutate(dataset = "parcel_current")
 parcel_coverage_before <- read_optional_csv("../input/before_fix/parcel_segment_ids_coverage.csv") |>
   mutate(dataset = "parcel_before_fix")
 
-segment_coverage_current <- if (file.exists("../input/segment_assignment_coverage_summary.csv")) {
-  read_csv("../input/segment_assignment_coverage_summary.csv", show_col_types = FALSE) |>
-    mutate(dataset = paste0(dataset, "_current"))
-} else {
-  tibble()
-}
+segment_coverage_current <- tibble()
 
 segment_coverage_before_raw <- read_optional_csv("../input/before_fix/segment_assignment_coverage_summary.csv")
 segment_coverage_before <- if (nrow(segment_coverage_before_raw) > 0 && "dataset" %in% names(segment_coverage_before_raw)) {
@@ -208,10 +267,10 @@ geometry_coverage_summary <- bind_rows(
 
 write_csv(geometry_coverage_summary, "../output/geometry_coverage_summary.csv")
 
-current_density_table <- extract_density_table_row("../input/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex") |>
+current_density_table <- extract_density_table_row("../input/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex") |>
   mutate(source = "current")
-before_density_table <- if (file.exists("../input/before_fix/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex")) {
-  extract_density_table_row("../input/before_fix/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_segment.tex") |>
+before_density_table <- if (file.exists("../input/before_fix/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex")) {
+  extract_density_table_row("../input/before_fix/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex") |>
     mutate(source = "before_fix")
 } else {
   current_density_table |>
@@ -232,7 +291,7 @@ density_result_change <- full_join(
   suffix = c("_before", "_current")
 ) |>
   transmute(
-    result_family = "density_fe_main_500_multifamily",
+    result_family = "density_fe_main_500ft",
     outcome,
     estimate_before = estimate_display_before,
     estimate_current = estimate_display_current,
@@ -242,59 +301,7 @@ density_result_change <- full_join(
     n_pairs_current = n_pairs_current
   )
 
-if (file.exists("../input/fe_table_rental_bw500_pre_2023.csv") &&
-    file.exists("../input/before_fix/fe_table_rental_bw500_pre_2023.csv")) {
-  rental_before <- read_csv("../input/before_fix/fe_table_rental_bw500_pre_2023.csv", show_col_types = FALSE)
-  rental_current <- read_csv("../input/fe_table_rental_bw500_pre_2023.csv", show_col_types = FALSE)
-  rental_change <- full_join(
-    rental_before,
-    rental_current,
-    by = "specification",
-    suffix = c("_before", "_current")
-  ) |>
-    transmute(
-      result_family = "rental_fe_main_500",
-      outcome = specification,
-      estimate_before = as.character(round(estimate_before, 4)),
-      estimate_current = as.character(round(estimate_current, 4)),
-      n_obs_before = n_obs_before,
-      n_obs_current = n_obs_current,
-      n_pairs_before = ward_pairs_before,
-      n_pairs_current = ward_pairs_current
-    )
-} else {
-  rental_change <- tibble()
-}
-
-if (file.exists("../input/fe_table_sales_bw500_year_quarter.csv") &&
-    file.exists("../input/before_fix/fe_table_sales_bw500_year_quarter.csv")) {
-  sales_before <- read_csv("../input/before_fix/fe_table_sales_bw500_year_quarter.csv", show_col_types = FALSE)
-  sales_current <- read_csv("../input/fe_table_sales_bw500_year_quarter.csv", show_col_types = FALSE)
-  sales_change <- full_join(
-    sales_before,
-    sales_current,
-    by = "specification",
-    suffix = c("_before", "_current")
-  ) |>
-    transmute(
-      result_family = "sales_fe_main_500",
-      outcome = specification,
-      estimate_before = as.character(round(estimate_before, 4)),
-      estimate_current = as.character(round(estimate_current, 4)),
-      n_obs_before = n_obs_before,
-      n_obs_current = n_obs_current,
-      n_pairs_before = ward_pairs_before,
-      n_pairs_current = ward_pairs_current
-    )
-} else {
-  sales_change <- tibble()
-}
-
-geometry_result_change_summary <- bind_rows(
-  density_result_change,
-  rental_change,
-  sales_change
-)
+geometry_result_change_summary <- density_result_change
 
 write_csv(geometry_result_change_summary, "../output/geometry_result_change_summary.csv")
 
@@ -336,12 +343,6 @@ if (file.exists("../input/parcels_with_ward_distances.csv")) {
 
 write_csv(geometry_spotcheck_queue, "../output/geometry_spotcheck_queue.csv")
 
-density_rd_estimates <- read_csv(
-  "../input/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5_estimates.csv",
-  show_col_types = FALSE
-) |>
-  filter(sample == "multifamily")
-
 report_lines <- c(
   "# Geometry Validation Report",
   "",
@@ -376,33 +377,18 @@ report_lines <- c(
   "",
   "## Headline Density Change",
   paste0(
-    "- FE table FAR changed from ",
+    "- Density FE multifamily FAR changed from ",
     format_before_current(
-      density_result_change |> filter(outcome == "far") |> pull(estimate_before) |> first(),
-      density_result_change |> filter(outcome == "far") |> pull(estimate_current) |> first()
+      density_result_change |> filter(outcome == "multifamily_far") |> pull(estimate_before) |> first(),
+      density_result_change |> filter(outcome == "multifamily_far") |> pull(estimate_current) |> first()
     )
   ),
   paste0(
-    "- FE table DUPAC changed from ",
+    "- Density FE multifamily DUPAC changed from ",
     format_before_current(
-      density_result_change |> filter(outcome == "dupac") |> pull(estimate_before) |> first(),
-      density_result_change |> filter(outcome == "dupac") |> pull(estimate_current) |> first()
+      density_result_change |> filter(outcome == "multifamily_dupac") |> pull(estimate_before) |> first(),
+      density_result_change |> filter(outcome == "multifamily_dupac") |> pull(estimate_current) |> first()
     )
-  ),
-  paste0(
-    "- FE table Units changed from ",
-    format_before_current(
-      density_result_change |> filter(outcome == "units") |> pull(estimate_before) |> first(),
-      density_result_change |> filter(outcome == "units") |> pull(estimate_current) |> first()
-    )
-  ),
-  paste0(
-    "- Nonparametric RD FAR jump: ",
-    round(density_rd_estimates |> filter(outcome == "density_far") |> pull(estimate) |> first(), 3)
-  ),
-  paste0(
-    "- Nonparametric RD DUPAC jump: ",
-    round(density_rd_estimates |> filter(outcome == "density_dupac") |> pull(estimate) |> first(), 3)
   ),
   "",
   "## Remaining Risk",
@@ -411,13 +397,7 @@ report_lines <- c(
   } else {
     paste0("- Remaining pair-era mismatches require follow-up; see geometry_pair_mismatch_report.csv (", nrow(geometry_pair_mismatch_report), " rows).")
   },
-  if (file.exists("../input/segment_assignment_coverage_summary.csv")) {
-    paste0(
-      "- Sales/rental segment coverage summary is available in geometry_coverage_summary.csv."
-    )
-  } else {
-    "- Sales/rental segment coverage summary is not yet available; rerun validation after assign_segment_ids_sales_rental completes."
-  }
+  "- Sales/rental segment coverage is not part of this audit input."
 )
 
 writeLines(report_lines, "../output/geometry_validation_report.md")
