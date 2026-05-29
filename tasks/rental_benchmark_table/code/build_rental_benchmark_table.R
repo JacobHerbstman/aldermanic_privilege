@@ -16,23 +16,15 @@ rent_panel <- rent_panel[
     rent_price > 0
 ]
 if (nrow(rent_panel) == 0L) {
-  stop("No valid listed-rent observations found in the 2014-2022 validation window.", call. = FALSE)
+  stop("No valid listed-rent observations found in the 2014-2022 benchmark window.", call. = FALSE)
 }
 
-bls_payload <- jsonlite::fromJSON(
-  "https://api.bls.gov/publicAPI/v2/timeseries/data/CUURS23ASA0?startyear=2014&endyear=2022",
-  simplifyVector = FALSE
-)
-if (!identical(bls_payload$status, "REQUEST_SUCCEEDED")) {
-  stop("BLS request failed for CUURS23ASA0.", call. = FALSE)
+fred_all_items_cpi <- as.data.table(read_csv("../input/fred_cpi_cuura207sa0.csv", show_col_types = FALSE))
+if (!all(c("observation_date", "CUURA207SA0") %in% names(fred_all_items_cpi))) {
+  stop("CPI input missing expected columns for CUURA207SA0.", call. = FALSE)
 }
-fred_all_items_cpi <- rbindlist(lapply(bls_payload$Results$series[[1]]$data, as.data.table), fill = TRUE)
-if (nrow(fred_all_items_cpi) == 0L) {
-  stop("BLS response has no observations for CUURS23ASA0.", call. = FALSE)
-}
-fred_all_items_cpi <- fred_all_items_cpi[grepl("^M\\d{2}$", period)]
-fred_all_items_cpi[, month_start := as.Date(sprintf("%s-%02d-01", year, as.integer(sub("^M", "", period))))]
-fred_all_items_cpi[, cpi_all_items := suppressWarnings(as.numeric(value))]
+fred_all_items_cpi[, month_start := as.Date(observation_date)]
+fred_all_items_cpi[, cpi_all_items := suppressWarnings(as.numeric(CUURA207SA0))]
 fred_all_items_cpi <- fred_all_items_cpi[
   month_start >= as.Date("2014-01-01") & month_start <= as.Date("2022-12-01"),
   .(month_start, cpi_all_items)
@@ -70,10 +62,7 @@ listed_annual[, `:=`(
   source_label = "Listed rents"
 )]
 
-zillow_city <- as.data.table(read_csv(
-  "https://files.zillowstatic.com/research/public_csvs/zori/City_zori_uc_sfrcondomfr_sm_month.csv",
-  show_col_types = FALSE
-))
+zillow_city <- as.data.table(read_csv("../input/zillow_zori_city.csv", show_col_types = FALSE))
 zillow_city <- zillow_city[RegionName == "Chicago" & State == "IL"]
 if (nrow(zillow_city) != 1L) {
   stop("Expected one Zillow ZORI row for Chicago, IL.", call. = FALSE)
@@ -114,14 +103,14 @@ coverage <- annual_series[
   ),
   by = .(source_id, source_label)
 ]
-validation_sources <- c("listed_rents", "zillow_zori")
-if (!setequal(coverage$source_id, validation_sources)) {
-  stop("Rental validation needs listed rents and Zillow ZORI.", call. = FALSE)
+benchmark_sources <- c("listed_rents", "zillow_zori")
+if (!setequal(coverage$source_id, benchmark_sources)) {
+  stop("Rental benchmark needs listed rents and Zillow ZORI.", call. = FALSE)
 }
 base_year <- max(coverage$first_year)
 end_year <- min(coverage$last_year)
 if (!all(coverage$first_year <= base_year & coverage$last_year >= end_year & coverage$has_2022)) {
-  stop("Rental validation needs listed rents and Zillow ZORI with common start/end years.", call. = FALSE)
+  stop("Rental benchmark needs listed rents and Zillow ZORI with common start/end years.", call. = FALSE)
 }
 
 annual_series <- annual_series[year >= base_year & year <= end_year]
@@ -135,7 +124,7 @@ summary_table <- annual_series[
   ),
   by = .(source_id, source_label)
 ]
-summary_table[, source_id := factor(source_id, levels = validation_sources)]
+summary_table[, source_id := factor(source_id, levels = benchmark_sources)]
 setorder(summary_table, source_id)
 summary_table[, source_id := as.character(source_id)]
 
