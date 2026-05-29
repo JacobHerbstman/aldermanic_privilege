@@ -34,43 +34,35 @@ if (any(is.na(rent$rent_panel_id) | rent$rent_panel_id == "")) {
 if (anyDuplicated(rent$rent_panel_id) > 0) {
   stop("Rental input must be unique by rent_panel_id.", call. = FALSE)
 }
-if (!"signed_dist" %in% names(rent) && "signed_dist_m" %in% names(rent)) {
-  rent <- rent %>% mutate(signed_dist = signed_dist_m / 0.3048)
-}
-if (!"signed_dist" %in% names(rent)) {
-  stop("Rental input must include signed_dist in feet or signed_dist_m in meters.", call. = FALSE)
+if (!"signed_dist_m" %in% names(rent)) {
+  stop("Rental input must include signed_dist_m.", call. = FALSE)
 }
 
-for (flag_col in c(
+clean_location_flag_cols <- c(
   "flag_location_questionable",
   "flag_modal_assignment_missing",
   "flag_modal_changes_ward",
   "flag_modal_changes_neighbor_ward",
   "flag_modal_changes_pair",
   "flag_modal_dist_diff_gt100ft"
-)) {
-  if (!flag_col %in% names(rent)) {
-    rent[[flag_col]] <- FALSE
-  }
-  rent[[flag_col]] <- coalesce(as.logical(rent[[flag_col]]), FALSE)
+)
+missing_clean_location_flags <- setdiff(clean_location_flag_cols, names(rent))
+if (length(missing_clean_location_flags) > 0) {
+  stop("Rental input is missing clean-location flag columns.", call. = FALSE)
 }
 
 rent <- rent %>%
   mutate(
+    across(all_of(clean_location_flag_cols), ~ coalesce(as.logical(.x), FALSE)),
     file_date = as.Date(file_date),
     year = lubridate::year(file_date),
     year_month = format(file_date, "%Y-%m"),
-    signed_dist_ft = as.numeric(signed_dist),
+    signed_dist_ft = as.numeric(signed_dist_m) / 0.3048,
     ward_pair = as.character(ward_pair_id),
     segment_id = as.character(segment_id),
     right = as.integer(signed_dist_ft >= 0),
     floorplan_month_key = as.character(rent_panel_id),
-    flag_clean_location_sample = !flag_location_questionable &
-      !flag_modal_assignment_missing &
-      !flag_modal_changes_ward &
-      !flag_modal_changes_neighbor_ward &
-      !flag_modal_changes_pair &
-      !flag_modal_dist_diff_gt100ft
+    flag_clean_location_sample = !if_any(all_of(clean_location_flag_cols), identity)
   ) %>%
   filter(
     !is.na(file_date),
@@ -131,13 +123,12 @@ for (i in seq_len(nrow(sample_defs))) {
       n_units = as.integer(coalesce(n_units, 0L)),
       sample = sample_name,
       sample_label = sample_label,
-      count_definition = "floorplan_month",
       count_label = "Floorplan-months",
       bandwidth_ft = bandwidth_ft
     ) %>%
-    arrange(sample, count_definition, segment_id, year_month, right)
+    arrange(sample, segment_id, year_month, right)
 
-  if (anyDuplicated(side_panel[, c("sample", "count_definition", "segment_id", "year_month", "right")]) > 0) {
+  if (anyDuplicated(side_panel[, c("sample", "segment_id", "year_month", "right")]) > 0) {
     stop("Supply side panel contains duplicate segment-month-side rows.", call. = FALSE)
   }
   side_panels[[length(side_panels) + 1]] <- side_panel
@@ -162,7 +153,6 @@ for (i in seq_len(nrow(sample_defs))) {
   ppml_rows[[length(ppml_rows) + 1]] <- tibble(
     sample = sample_defs$sample[i],
     sample_label = sample_defs$sample_label[i],
-    count_definition = "floorplan_month",
     estimate = estimate,
     std_error = std_error,
     p_value = pvalue(model)[["right"]],
@@ -235,7 +225,7 @@ for (i in seq_len(nrow(level_plot_defs))) {
   }
 
   ppml_result <- ppml %>%
-    filter(sample == sample_name, count_definition == "floorplan_month")
+    filter(sample == sample_name)
   if (nrow(ppml_result) == 1L) {
     stars <- case_when(
       ppml_result$p_value < 0.01 ~ "***",
