@@ -1,4 +1,6 @@
-source("../../setup_environment/code/packages.R")
+# setwd("tasks/audits/rental_summary_stats/code")
+
+source("../../../setup_environment/code/packages.R")
 library(data.table)
 library(arrow)
 library(sf)

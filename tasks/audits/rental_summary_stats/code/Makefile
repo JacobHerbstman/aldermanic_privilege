@@ -24,15 +24,15 @@ all: ../output/ward42_neighbors_definition.csv \
 ../output/fig_building_type_shares.pdf ../output/fig_size_bin_shares.pdf: ../output/ward42_neighbors_definition.csv
 	@test -s "$@"
 
-../input/rental_listing_panel.parquet: ../../create_event_study_rental_data_disaggregate/output/rental_listing_panel.parquet | ../input
+../input/rental_listing_panel.parquet: ../../../create_event_study_rental_data_disaggregate/output/rental_listing_panel.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/chicago_rent_panel.parquet: ../../process_rent_data/output/chicago_rent_panel.parquet | ../input
+../input/chicago_rent_panel.parquet: ../../../process_rent_data/output/chicago_rent_panel.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
+../input/ward_panel.gpkg: ../../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/rental_listing_panel.parquet ../input/chicago_rent_panel.parquet ../input/ward_panel.gpkg
 
-include ../../generic.make
+include ../../../generic.make
