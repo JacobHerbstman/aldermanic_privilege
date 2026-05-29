@@ -16,82 +16,6 @@ if (length(cli_args) != 1) {
 sample <- cli_args[1]
 run_sample <- as.logical(sample)
 
-load_cpi_deflator <- function(start_date,
-                              end_date,
-                              base_year = 2022L,
-                              cpi_csv = "../input/fred_cpi_cuura207sa0.csv",
-                              series_id = "CUURA207SA0") {
-  message(sprintf("Loading CPI series %s from %s...", series_id, cpi_csv))
-  cpi_raw <- read_csv(cpi_csv, show_col_types = FALSE)
-  if (!all(c("observation_date", series_id) %in% names(cpi_raw))) {
-    stop(sprintf("CPI input missing expected columns for series %s.", series_id), call. = FALSE)
-  }
-
-  cpi <- cpi_raw %>%
-    transmute(
-      observation_date = as.Date(observation_date),
-      cpi_value = suppressWarnings(as.numeric(.data[[series_id]]))
-    ) %>%
-    filter(!is.na(observation_date))
-
-  start_month <- as.Date(format(start_date, "%Y-%m-01"))
-  end_month <- as.Date(format(end_date, "%Y-%m-01"))
-  month_grid <- tibble(observation_date = seq(start_month, end_month, by = "month"))
-
-  cpi <- month_grid %>%
-    left_join(cpi, by = "observation_date") %>%
-    arrange(observation_date)
-
-  n_missing_pre <- sum(is.na(cpi$cpi_value))
-  if (n_missing_pre > 0) {
-    idx_known <- which(!is.na(cpi$cpi_value))
-    if (length(idx_known) < 2) {
-      stop("Not enough non-missing CPI observations to interpolate.", call. = FALSE)
-    }
-    cpi_interp <- approx(
-      x = idx_known,
-      y = cpi$cpi_value[idx_known],
-      xout = seq_len(nrow(cpi)),
-      method = "linear",
-      rule = 1
-    )$y
-    cpi$cpi_value <- if_else(is.na(cpi$cpi_value), cpi_interp, cpi$cpi_value)
-  }
-
-  if (anyNA(cpi$cpi_value)) {
-    stop("CPI has unresolved endpoint gaps after interpolation.", call. = FALSE)
-  }
-
-  base_vals <- cpi %>%
-    filter(format(observation_date, "%Y") == as.character(base_year)) %>%
-    pull(cpi_value)
-
-  if (length(base_vals) == 0 || !all(is.finite(base_vals))) {
-    stop(sprintf("Unable to compute base CPI for year %d.", base_year), call. = FALSE)
-  }
-
-  base_cpi <- mean(base_vals)
-  if (!is.finite(base_cpi) || base_cpi <= 0) {
-    stop(sprintf("Computed invalid base CPI for year %d.", base_year), call. = FALSE)
-  }
-
-  message(sprintf(
-    "CPI window %s to %s | base (%d avg) = %.3f | interpolated %d month(s)",
-    format(start_month, "%Y-%m"),
-    format(end_month, "%Y-%m"),
-    base_year,
-    base_cpi,
-    n_missing_pre
-  ))
-
-  cpi %>%
-    transmute(
-      rent_year_month = format(observation_date, "%Y-%m"),
-      rent_price_cpi_chi_all_items = cpi_value,
-      rent_price_deflator_to_2022 = base_cpi / cpi_value
-    )
-}
-
 # Core CRS for Chicago spatial work
 crs_projected <- 3435
 
@@ -479,11 +403,70 @@ final_df <- final_df %>%
 final_df <- final_df %>%
   mutate(rent_year_month = format(file_date, "%Y-%m"))
 
-cpi_deflator <- load_cpi_deflator(
-  start_date = min(final_df$file_date, na.rm = TRUE),
-  end_date = max(final_df$file_date, na.rm = TRUE),
-  base_year = 2022L
-)
+message("Loading CPI series CUURA207SA0 from ../input/fred_cpi_cuura207sa0.csv...")
+cpi_raw <- read_csv("../input/fred_cpi_cuura207sa0.csv", show_col_types = FALSE)
+if (!all(c("observation_date", "CUURA207SA0") %in% names(cpi_raw))) {
+  stop("CPI input missing expected columns for series CUURA207SA0.", call. = FALSE)
+}
+
+cpi_start_month <- as.Date(format(min(final_df$file_date, na.rm = TRUE), "%Y-%m-01"))
+cpi_end_month <- as.Date(format(max(final_df$file_date, na.rm = TRUE), "%Y-%m-01"))
+cpi <- tibble(observation_date = seq(cpi_start_month, cpi_end_month, by = "month")) %>%
+  left_join(
+    cpi_raw %>%
+      transmute(
+        observation_date = as.Date(observation_date),
+        cpi_value = suppressWarnings(as.numeric(CUURA207SA0))
+      ) %>%
+      filter(!is.na(observation_date)),
+    by = "observation_date"
+  ) %>%
+  arrange(observation_date)
+
+n_missing_cpi <- sum(is.na(cpi$cpi_value))
+if (n_missing_cpi > 0) {
+  idx_known <- which(!is.na(cpi$cpi_value))
+  if (length(idx_known) < 2) {
+    stop("Not enough non-missing CPI observations to interpolate.", call. = FALSE)
+  }
+  cpi_interp <- approx(
+    x = idx_known,
+    y = cpi$cpi_value[idx_known],
+    xout = seq_len(nrow(cpi)),
+    method = "linear",
+    rule = 1
+  )$y
+  cpi$cpi_value <- if_else(is.na(cpi$cpi_value), cpi_interp, cpi$cpi_value)
+}
+if (anyNA(cpi$cpi_value)) {
+  stop("CPI has unresolved endpoint gaps after interpolation.", call. = FALSE)
+}
+
+cpi_2022 <- cpi %>%
+  filter(format(observation_date, "%Y") == "2022") %>%
+  pull(cpi_value)
+if (length(cpi_2022) == 0 || !all(is.finite(cpi_2022))) {
+  stop("Unable to compute base CPI for year 2022.", call. = FALSE)
+}
+base_cpi <- mean(cpi_2022)
+if (!is.finite(base_cpi) || base_cpi <= 0) {
+  stop("Computed invalid base CPI for year 2022.", call. = FALSE)
+}
+
+message(sprintf(
+  "CPI window %s to %s | base (2022 avg) = %.3f | interpolated %d month(s)",
+  format(cpi_start_month, "%Y-%m"),
+  format(cpi_end_month, "%Y-%m"),
+  base_cpi,
+  n_missing_cpi
+))
+
+cpi_deflator <- cpi %>%
+  transmute(
+    rent_year_month = format(observation_date, "%Y-%m"),
+    rent_price_cpi_chi_all_items = cpi_value,
+    rent_price_deflator_to_2022 = base_cpi / cpi_value
+  )
 
 final_df <- final_df %>%
   left_join(cpi_deflator, by = "rent_year_month")

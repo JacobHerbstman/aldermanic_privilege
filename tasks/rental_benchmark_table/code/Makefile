@@ -4,7 +4,7 @@ all: ../output/rental_data_validation_growth.tex
 	Rscript $<
 
 ../input/chicago_rent_panel.parquet: ../../process_rent_data/output/chicago_rent_panel.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/chicago_rent_panel.parquet
 
