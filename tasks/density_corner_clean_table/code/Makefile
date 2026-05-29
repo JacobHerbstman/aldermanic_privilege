@@ -1,5 +1,3 @@
-SHELL := bash
-
 BW_M ?= 152.4
 BW_LABEL ?= 500ft
 SAMPLES := all multifamily
@@ -25,13 +23,13 @@ endef
 $(foreach sample,$(SAMPLES),$(eval $(call CORNER_CLEAN_RULE,$(sample))))
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/parcel_other_pair_distance.csv: ../../border_pair_boundary_ambiguity/output/parcel_other_pair_distance.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/boundary_ambiguity_by_bw.csv: ../../border_pair_boundary_ambiguity/output/boundary_ambiguity_by_bw.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv ../input/parcel_other_pair_distance.csv ../input/boundary_ambiguity_by_bw.csv
 
