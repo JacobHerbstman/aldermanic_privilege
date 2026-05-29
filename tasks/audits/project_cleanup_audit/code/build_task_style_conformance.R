@@ -28,6 +28,16 @@ packages_path <- normalizePath(
   winslash = "/",
   mustWork = FALSE
 )
+output_manifest_path <- "../output/output_keep_manifest.csv"
+tex_referenced_outputs <- if (file.exists(output_manifest_path)) {
+  manifest <- fread(output_manifest_path)
+  manifest[
+    referenced_by_tex == TRUE,
+    normalizePath(file.path(root_dir, file), winslash = "/", mustWork = FALSE)
+  ]
+} else {
+  character()
+}
 
 sidecar_output_pattern <- paste(c(
   "audit",
@@ -111,29 +121,38 @@ output_write_call_pattern <- paste(c(
 
 audit_task_name_pattern <- "(^|_)(audit|diagnostic|diagnostics|validation|validate|qc)($|_)"
 
-classify_output_family <- function(paths) {
+extension_family <- function(base) {
+  ext <- tolower(tools::file_ext(base))
+
+  fifelse(
+    ext %chin% c("pdf", "png", "jpg", "jpeg", "svg"),
+    "figure",
+    fifelse(
+      ext %chin% c("tex"),
+      "table",
+      fifelse(
+        ext %chin% c("parquet", "gpkg", "rds", "rda", "csv", "tsv", "feather", "shp", "geojson"),
+        "data",
+        "other"
+      )
+    )
+  )
+}
+
+classify_output_family <- function(paths, tex_referenced = rep(FALSE, length(paths))) {
   if (length(paths) == 0) {
     return(character())
   }
 
   base <- basename(paths)
-  ext <- tolower(tools::file_ext(base))
-
+  file_family <- extension_family(base)
   fifelse(
-    grepl(sidecar_output_pattern, base, ignore.case = TRUE),
-    "audit_qc",
+    tex_referenced,
+    file_family,
     fifelse(
-      ext %chin% c("pdf", "png", "jpg", "jpeg", "svg"),
-      "figure",
-      fifelse(
-        ext %chin% c("tex"),
-        "table",
-        fifelse(
-          ext %chin% c("parquet", "gpkg", "rds", "rda", "csv", "tsv", "feather", "shp", "geojson"),
-          "data",
-          "other"
-        )
-      )
+      grepl(sidecar_output_pattern, base, ignore.case = TRUE),
+      "audit_qc",
+      file_family
     )
   )
 }
@@ -143,6 +162,30 @@ list_active_tasks <- function() {
   dirs <- dirs[dir.exists(file.path(dirs, "code"))]
   dirs <- dirs[!grepl("/(archive|_deprecated|_archived_outputs|audits)$", dirs)]
   basename(dirs)
+}
+
+extract_make_all_outputs <- function(mk) {
+  code_dir <- dirname(mk)
+  old_wd <- getwd()
+  on.exit(setwd(old_wd), add = TRUE)
+  setwd(code_dir)
+
+  db <- tryCatch(
+    suppressWarnings(system2("make", c("-pn", "all"), stdout = TRUE, stderr = TRUE)),
+    error = function(e) character()
+  )
+  if (length(db) == 0) {
+    return(character())
+  }
+
+  all_line <- grep("^all:", db, value = TRUE)
+  if (length(all_line) == 0) {
+    return(character())
+  }
+
+  refs <- trimws(strsplit(trimws(sub("^all:\\s*", "", all_line[1])), "\\s+")[[1]])
+  refs <- refs[startsWith(refs, "../output/")]
+  unique(refs[!grepl("[%$(){}]", refs)])
 }
 
 parse_task <- function(path) {
@@ -158,12 +201,12 @@ parse_makefile_targets <- function(path) {
   comment_count <- 0L
   recursive_make_refs <- 0L
   path_alias_count <- 0L
-  all_outputs <- character()
+  all_outputs <- extract_make_all_outputs(path)
   recipe_cli_lines <- character()
   fixed_path_cli_lines <- character()
 
   all_idx <- grep("^all\\s*:", txt)
-  if (length(all_idx) > 0) {
+  if (length(all_outputs) == 0 && length(all_idx) > 0) {
     all_lines <- character()
     j <- all_idx[1]
     repeat {
@@ -208,8 +251,13 @@ parse_makefile_targets <- function(path) {
 
   targets <- unique(targets)
   explicit_non_file_targets <- targets[!grepl("^(all|link-inputs)$", targets) & !grepl("/|\\$\\(", targets)]
-  sidecar_outputs <- all_outputs[grepl(sidecar_output_pattern, basename(all_outputs), ignore.case = TRUE)]
-  all_output_families <- unique(classify_output_family(all_outputs))
+  all_output_abs <- normalizePath(file.path(dirname(path), all_outputs), winslash = "/", mustWork = FALSE)
+  tex_referenced <- all_output_abs %chin% tex_referenced_outputs
+  sidecar_outputs <- all_outputs[
+    grepl(sidecar_output_pattern, basename(all_outputs), ignore.case = TRUE) &
+      !tex_referenced
+  ]
+  all_output_families <- unique(classify_output_family(all_outputs, tex_referenced))
 
   list(
     makefile_line_count = length(txt),
