@@ -238,62 +238,35 @@ ggsave(
 
 permits_high_with_volume <- permits_analysis_all %>%
   filter(high_discretion == 1) %>%
-  group_by(ward, application_start_date_ym) %>%
-  summarise(
-    mean_processing_time = mean(processing_time),
-    ward_month_permit_volume = n(),
-    .groups = "drop"
-  ) %>%
-  ungroup()
+  mutate(group = "High-Discretion")
 
 permits_low_with_volume <- permits_analysis_all %>%
   filter(high_discretion == 0, permit_type != signs_permit_type) %>%
-  group_by(ward, application_start_date_ym) %>%
-  summarise(
-    mean_processing_time = mean(processing_time),
-    ward_month_permit_volume = n(),
-    .groups = "drop"
-  ) %>%
-  ungroup()
-
-permits_all_with_volume <- permits_analysis_all %>%
-  group_by(ward, application_start_date_ym) %>%
-  summarise(
-    mean_processing_time = mean(processing_time),
-    ward_month_permit_volume = n(),
-    .groups = "drop"
-  ) %>%
-  ungroup()
+  mutate(group = "Low-Discretion")
 
 correlation_table <- bind_rows(
-  tibble(
-    group = "High-Discretion",
+  permits_high_with_volume,
+  permits_low_with_volume,
+  permits_analysis_all %>% mutate(group = "All")
+) %>%
+  mutate(group = factor(group, levels = c(group_levels, "All"))) %>%
+  group_by(group, ward, application_start_date_ym) %>%
+  summarise(
+    mean_processing_time = mean(processing_time),
+    ward_month_permit_volume = n(),
+    .groups = "drop"
+  ) %>%
+  group_by(group) %>%
+  summarise(
     `Corr. of mean processing time and ward-month permit volume` = cor(
-      permits_high_with_volume$mean_processing_time,
-      permits_high_with_volume$ward_month_permit_volume,
+      mean_processing_time,
+      ward_month_permit_volume,
       use = "complete.obs",
       method = "pearson"
-    )
-  ),
-  tibble(
-    group = "Low-Discretion",
-    `Corr. of mean processing time and ward-month permit volume` = cor(
-      permits_low_with_volume$mean_processing_time,
-      permits_low_with_volume$ward_month_permit_volume,
-      use = "complete.obs",
-      method = "pearson"
-    )
-  ),
-  tibble(
-    group = "All",
-    `Corr. of mean processing time and ward-month permit volume` = cor(
-      permits_all_with_volume$mean_processing_time,
-      permits_all_with_volume$ward_month_permit_volume,
-      use = "complete.obs",
-      method = "pearson"
-    )
-  )
-)
+    ),
+    .groups = "drop"
+  ) %>%
+  arrange(group)
 
 correlation_tex_lines <- c(
   "\\begin{tabular}{lr}",
