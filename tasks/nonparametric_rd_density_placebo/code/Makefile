@@ -13,17 +13,17 @@ all: $(foreach sample,$(SAMPLES), \
 	$(foreach direction,$(PLACEBO_DIRECTIONS), \
 	../output/nonparametric_rd_density_placebo_log_$(yvar)_$(BW_LABEL)_$(sample)_shift_$(direction)$(PLACEBO_SHIFT_LABEL).pdf)))
 
-define PLACEBO_NEG_RULE
-../output/nonparametric_rd_density_placebo_log_$(1)_$(BW_LABEL)_$(2)_shift_neg$(PLACEBO_SHIFT_LABEL).pdf: nonparametric_rd_density_placebo.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript nonparametric_rd_density_placebo.R $(1) $(BW_M) $(2) $(FE_SPEC) $(BINS_PER_SIDE) -$(PLACEBO_SHIFT_M)
-endef
-$(foreach yvar,$(YVARS),$(foreach sample,$(SAMPLES),$(eval $(call PLACEBO_NEG_RULE,$(yvar),$(sample)))))
+../output/nonparametric_rd_density_placebo_log_%_$(BW_LABEL)_all_shift_neg$(PLACEBO_SHIFT_LABEL).pdf: nonparametric_rd_density_placebo.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
+	Rscript $< $* $(BW_M) all $(FE_SPEC) $(BINS_PER_SIDE) -$(PLACEBO_SHIFT_M)
 
-define PLACEBO_POS_RULE
-../output/nonparametric_rd_density_placebo_log_$(1)_$(BW_LABEL)_$(2)_shift_pos$(PLACEBO_SHIFT_LABEL).pdf: nonparametric_rd_density_placebo.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript nonparametric_rd_density_placebo.R $(1) $(BW_M) $(2) $(FE_SPEC) $(BINS_PER_SIDE) $(PLACEBO_SHIFT_M)
-endef
-$(foreach yvar,$(YVARS),$(foreach sample,$(SAMPLES),$(eval $(call PLACEBO_POS_RULE,$(yvar),$(sample)))))
+../output/nonparametric_rd_density_placebo_log_%_$(BW_LABEL)_all_shift_pos$(PLACEBO_SHIFT_LABEL).pdf: nonparametric_rd_density_placebo.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
+	Rscript $< $* $(BW_M) all $(FE_SPEC) $(BINS_PER_SIDE) $(PLACEBO_SHIFT_M)
+
+../output/nonparametric_rd_density_placebo_log_%_$(BW_LABEL)_multifamily_shift_neg$(PLACEBO_SHIFT_LABEL).pdf: nonparametric_rd_density_placebo.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
+	Rscript $< $* $(BW_M) multifamily $(FE_SPEC) $(BINS_PER_SIDE) -$(PLACEBO_SHIFT_M)
+
+../output/nonparametric_rd_density_placebo_log_%_$(BW_LABEL)_multifamily_shift_pos$(PLACEBO_SHIFT_LABEL).pdf: nonparametric_rd_density_placebo.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
+	Rscript $< $* $(BW_M) multifamily $(FE_SPEC) $(BINS_PER_SIDE) $(PLACEBO_SHIFT_M)
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

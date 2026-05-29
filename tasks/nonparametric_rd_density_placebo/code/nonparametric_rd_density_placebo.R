@@ -196,7 +196,6 @@ bins <- aug %>%
   ) %>%
   arrange(bin_center_m)
 
-coef_names <- names(coef(m_display))
 line_df <- tibble(
   running_distance = c(
     seq(-bandwidth_m, 0, length.out = 200),
@@ -208,17 +207,13 @@ line_df <- tibble(
     side_label = if_else(side == 1L, "Strict side", "Lenient side")
   )
 
-xmat <- matrix(0, nrow = nrow(line_df), ncol = length(coef_names))
-colnames(xmat) <- coef_names
-if ("(Intercept)" %in% coef_names) xmat[, "(Intercept)"] <- 1
-if ("side" %in% coef_names) xmat[, "side"] <- line_df$side
-if ("running_distance" %in% coef_names) xmat[, "running_distance"] <- line_df$running_distance
-if ("side:running_distance" %in% coef_names) xmat[, "side:running_distance"] <- line_df$side * line_df$running_distance
-if ("running_distance:side" %in% coef_names) xmat[, "running_distance:side"] <- line_df$side * line_df$running_distance
-
-line_df <- line_df %>%
-  mutate(side_label = if_else(side == 1L, "Strict side", "Lenient side"))
-
+coef_names <- names(coef(m_display))
+xmat <- model.matrix(~ side * running_distance, data = line_df)
+missing_coef_names <- setdiff(coef_names, colnames(xmat))
+if (length(missing_coef_names) > 0) {
+  stop("Prediction design matrix does not match fitted model.", call. = FALSE)
+}
+xmat <- xmat[, coef_names, drop = FALSE]
 line_vcov <- vcov(m_display)
 line_crit <- qt(0.975, df = max(n_distinct(aug$ward_pair) - 1, 1))
 
