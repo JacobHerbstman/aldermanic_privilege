@@ -1,32 +1,11 @@
-# Benchmark real citywide listed-rent growth against Zillow ZORI.
-
-# setwd("tasks/rental_benchmark_table/code")
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_benchmark_table/code")
 
 source("../../setup_environment/code/packages.R")
 
 library(arrow)
 library(data.table)
 library(readr)
-
-annual_from_monthly <- function(dt, source_id, source_label, measure_label) {
-  dt <- copy(dt)
-  dt[, year := as.integer(format(month_start, "%Y"))]
-  dt[
-    is.finite(value),
-    .(
-      value = mean(value, na.rm = TRUE),
-      n_months = .N
-    ),
-    by = year
-  ][
-    ,
-    `:=`(
-      source_id = source_id,
-      source_label = source_label,
-      measure_label = measure_label
-    )
-  ]
-}
 
 rent_panel <- as.data.table(read_parquet("../input/chicago_rent_panel.parquet"))
 rent_panel[, month_start := as.Date(month_start)]
@@ -80,12 +59,20 @@ monthly_listed_rents <- rent_panel[
   .(value = median(rent_price_real_2022, na.rm = TRUE)),
   by = month_start
 ]
-listed_annual <- annual_from_monthly(
-  monthly_listed_rents,
+monthly_listed_rents[, year := as.integer(format(month_start, "%Y"))]
+listed_annual <- monthly_listed_rents[
+  is.finite(value),
+  .(
+    value = mean(value, na.rm = TRUE),
+    n_months = .N
+  ),
+  by = year
+]
+listed_annual[, `:=`(
   source_id = "listed_rents",
   source_label = "Listed rents",
   measure_label = "Annual average of monthly median listed rent, deflated to 2022 dollars"
-)
+)]
 
 zillow_city <- as.data.table(read_csv(
   "https://files.zillowstatic.com/research/public_csvs/zori/City_zori_uc_sfrcondomfr_sm_month.csv",
@@ -108,12 +95,21 @@ if (any(!is.finite(zillow_city$cpi_all_items))) {
   stop("Zillow ZORI has months missing Chicago all-items CPI-U deflator values.", call. = FALSE)
 }
 zillow_city[, value := value * cpi_2022 / cpi_all_items]
-zillow_annual <- annual_from_monthly(
-  zillow_city[, .(month_start, value)],
+zillow_annual <- zillow_city[, .(month_start, value)]
+zillow_annual[, year := as.integer(format(month_start, "%Y"))]
+zillow_annual <- zillow_annual[
+  is.finite(value),
+  .(
+    value = mean(value, na.rm = TRUE),
+    n_months = .N
+  ),
+  by = year
+]
+zillow_annual[, `:=`(
   source_id = "zillow_zori",
   source_label = "Zillow ZORI",
   measure_label = "Annual average of monthly Zillow Observed Rent Index, deflated by Chicago all-items CPI-U"
-)
+)]
 
 annual_series <- rbindlist(list(listed_annual, zillow_annual), use.names = TRUE, fill = TRUE)
 annual_series <- annual_series[year >= 2014L & year <= 2022L]
