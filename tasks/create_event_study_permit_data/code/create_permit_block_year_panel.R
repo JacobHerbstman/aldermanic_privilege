@@ -1,12 +1,12 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_permit_data/code")
 # segment_buffer_m <- 304.8
 # panel_max_distance_m <- 800
 # permit_start_year <- 2010
 # permit_end_month <- "2020-12"
+
+source("../../setup_environment/code/packages.R")
+source("../../_lib/canonical_geometry_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -38,9 +38,6 @@ if (permit_start_year > permit_end_year) {
   stop("permit_start_year must be no later than permit_end_month.", call. = FALSE)
 }
 
-write_panel_diagnostics <- tolower(Sys.getenv("WRITE_PANEL_SIDECARS", "0")) %in% c("1", "true", "yes")
-panel_sidecar_dir <- Sys.getenv("PANEL_SIDECAR_DIR", "../output")
-
 sf_use_s2(FALSE)
 
 signs_permit_type <- "PERMIT - SIGNS"
@@ -48,8 +45,7 @@ signs_permit_type <- "PERMIT - SIGNS"
 manual_block_assignments <- tibble(
   id = "3390640",
   block_vintage = "2010",
-  reviewed_block_id = "170317404004012",
-  review_reason = "assign_nearest_2010_precision_case_in_city_exact_2020_and_1p7m_from_2010"
+  reviewed_block_id = "170317404004012"
 )
 
 read_blocks <- function(path, block_col, target_crs) {
@@ -105,39 +101,6 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label,
   joined <- st_join(permits_sf, blocks_sf %>% select(block_id), join = st_within)
   joined_df <- joined %>% st_drop_geometry()
 
-  empty_missing_audit <- tibble(
-    id = character(),
-    pin = character(),
-    permit_type = character(),
-    high_discretion = integer(),
-    permit_issued = integer(),
-    application_start_date_ym = as.Date(character()),
-    issue_date_ym = as.Date(character()),
-    latitude = numeric(),
-    longitude = numeric(),
-    processing_time = numeric(),
-    application_year = integer(),
-    issue_year = integer(),
-    block_id = character(),
-    block_vintage = character(),
-    nearest_block_id = character(),
-    nearest_block_distance_m = numeric(),
-    missing_pin = logical(),
-    review_decision = character(),
-    reviewed_block_id = character(),
-    review_reason = character(),
-    final_block_id = character()
-  )
-
-  empty_missing_summary <- tibble(
-    block_vintage = character(),
-    review_decision = character(),
-    review_reason = character(),
-    permit_type = character(),
-    missing_pin = logical(),
-    n_permits = integer()
-  )
-
   duplicate_matches <- joined_df %>%
     count(id, name = "n_matches") %>%
     filter(n_matches > 1)
@@ -156,45 +119,20 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label,
     filter(is.na(block_id)) %>%
     distinct(id)
 
-  missing_audit <- empty_missing_audit
-  missing_summary <- empty_missing_summary
-
   if (nrow(missing_matches) > 0) {
-    missing_sf <- joined %>%
-      filter(is.na(block_id))
-
-    nearest_idx <- st_nearest_feature(missing_sf, blocks_sf)
-    nearest_dist_m <- as.numeric(st_distance(
-      missing_sf,
-      blocks_sf[nearest_idx, ],
-      by_element = TRUE
-    ))
-
-    missing_audit <- missing_sf %>%
-      mutate(
-        block_vintage = block_vintage_label,
-        nearest_block_id = blocks_sf$block_id[nearest_idx],
-        nearest_block_distance_m = nearest_dist_m,
-        missing_pin = is.na(pin) | pin == ""
-      ) %>%
+    missing_review <- missing_matches %>%
       left_join(
         manual_block_assignments %>% filter(block_vintage == block_vintage_label),
-        by = c("id", "block_vintage"),
+        by = "id",
         relationship = "many-to-one"
       ) %>%
       mutate(
         reviewed_block_id = na_if(reviewed_block_id, "NA"),
         review_decision = if_else(is.na(reviewed_block_id), "drop", "assign"),
-        review_reason = coalesce(review_reason, "drop_no_exact_census_block_assignment"),
-        final_block_id = case_when(
-          review_decision == "assign" ~ reviewed_block_id,
-          TRUE ~ NA_character_
-        )
-      ) %>%
-      st_drop_geometry() %>%
-      arrange(desc(missing_pin), permit_type, id)
+        final_block_id = if_else(review_decision == "assign", reviewed_block_id, NA_character_)
+      )
 
-    invalid_manual_assignments <- missing_audit %>%
+    invalid_manual_assignments <- missing_review %>%
       filter(review_decision == "assign") %>%
       filter(is.na(final_block_id) | !final_block_id %in% blocks_sf$block_id)
 
@@ -209,27 +147,9 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label,
       )
     }
 
-    missing_summary <- missing_audit %>%
-      count(
-        block_vintage, review_decision, review_reason, permit_type, missing_pin,
-        name = "n_permits"
-      ) %>%
-      arrange(desc(n_permits), review_decision, review_reason, permit_type, missing_pin)
-
-    if (write_panel_diagnostics) {
-      write_csv(
-        missing_audit,
-        file.path(panel_sidecar_dir, sprintf("permit_block_assignment_missing_%s.csv", block_vintage_label))
-      )
-      write_csv(
-        missing_summary,
-        file.path(panel_sidecar_dir, sprintf("permit_block_assignment_missing_%s_summary.csv", block_vintage_label))
-      )
-    }
-
     joined_df <- joined_df %>%
       left_join(
-        missing_audit %>% select(id, final_block_id),
+        missing_review %>% select(id, final_block_id),
         by = "id",
         relationship = "many-to-one"
       ) %>%
@@ -243,19 +163,15 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label,
       ),
       nrow(missing_matches),
       block_vintage_label,
-      sum(missing_audit$review_decision == "assign"),
-      sum(missing_audit$review_decision == "drop")
+      sum(missing_review$review_decision == "assign"),
+      sum(missing_review$review_decision == "drop")
     ))
   }
 
-  list(
-    assigned = as.data.table(
-      joined_df %>%
-        filter(!is.na(block_id)) %>%
-        arrange(id, block_id)
-    ),
-    missing_audit = missing_audit,
-    missing_summary = missing_summary
+  as.data.table(
+    joined_df %>%
+      filter(!is.na(block_id)) %>%
+      arrange(id, block_id)
   )
 }
 
@@ -412,97 +328,6 @@ build_panel_with_counts <- function(base_df, start_year, end_year, cohort_year, 
     )
 }
 
-summarize_event_support <- function(panel, panel_mode) {
-  panel %>%
-    mutate(block_key = paste(cohort, block_id, sep = "_")) %>%
-    select(cohort, block_key, relative_year_capped, treat, all_of(permit_outcome_meta$count_var)) %>%
-    pivot_longer(cols = all_of(permit_outcome_meta$count_var), names_to = "count_var", values_to = "outcome_count") %>%
-    left_join(permit_outcome_meta %>% select(count_var, outcome_family, date_basis), by = "count_var", relationship = "many-to-one") %>%
-    mutate(panel_mode = panel_mode) %>%
-    group_by(panel_mode, cohort, outcome_family, date_basis, event_time = relative_year_capped, treat) %>%
-    summarise(
-      n_blocks = n_distinct(block_key),
-      n_nonzero_blocks = sum(outcome_count > 0L),
-      total_outcome = sum(outcome_count),
-      share_zero = mean(outcome_count == 0L),
-      .groups = "drop"
-    ) %>%
-    arrange(panel_mode, cohort, outcome_family, date_basis, event_time, treat)
-}
-
-summarize_calendar_support <- function(panel, panel_mode) {
-  panel %>%
-    mutate(block_key = paste(cohort, block_id, sep = "_")) %>%
-    select(cohort, year, block_key, treat, all_of(permit_outcome_meta$count_var)) %>%
-    pivot_longer(cols = all_of(permit_outcome_meta$count_var), names_to = "count_var", values_to = "outcome_count") %>%
-    left_join(permit_outcome_meta %>% select(count_var, outcome_family, date_basis), by = "count_var", relationship = "many-to-one") %>%
-    mutate(panel_mode = panel_mode) %>%
-    group_by(panel_mode, cohort, outcome_family, date_basis, year, treat) %>%
-    summarise(
-      n_blocks = n_distinct(block_key),
-      n_nonzero_blocks = sum(outcome_count > 0L),
-      total_outcome = sum(outcome_count),
-      share_zero = mean(outcome_count == 0L),
-      .groups = "drop"
-    ) %>%
-    arrange(panel_mode, cohort, outcome_family, date_basis, year, treat)
-}
-
-summarize_zero_shares <- function(panel, panel_mode) {
-  panel %>%
-    mutate(block_key = paste(cohort, block_id, sep = "_")) %>%
-    select(block_key, cohort, treat, strictness_change, all_of(permit_outcome_meta$count_var)) %>%
-    pivot_longer(cols = all_of(permit_outcome_meta$count_var), names_to = "count_var", values_to = "outcome_count") %>%
-    left_join(permit_outcome_meta %>% select(count_var, outcome_family, date_basis), by = "count_var", relationship = "many-to-one") %>%
-    mutate(
-      panel_mode = panel_mode,
-      treat_group = case_when(
-        treat == 1L & strictness_change > 0 ~ "to_stricter",
-        treat == 1L & strictness_change < 0 ~ "to_lenient",
-        treat == 1L ~ "treated_zero_change",
-        TRUE ~ "control"
-      )
-    ) %>%
-    group_by(panel_mode, cohort, outcome_family, date_basis, treat_group) %>%
-    summarise(
-      n_rows = n(),
-      n_blocks = n_distinct(block_key),
-      share_zero = mean(outcome_count == 0L),
-      mean_outcome = mean(outcome_count),
-      p95_outcome = as.numeric(quantile(outcome_count, 0.95, names = FALSE)),
-      .groups = "drop"
-    ) %>%
-    arrange(panel_mode, cohort, outcome_family, date_basis, treat_group)
-}
-
-summarize_assignment_stability <- function(base_df, panel_mode) {
-  treated_blocks <- base_df %>%
-    filter(treat == 1L) %>%
-    mutate(block_key = paste(cohort, block_id, sep = "_")) %>%
-    group_by(block_key) %>%
-    summarise(
-      n_ward_pairs = n_distinct(ward_pair_id),
-      n_segments = n_distinct(segment_id_cohort[!is.na(segment_id_cohort)]),
-      .groups = "drop"
-    )
-
-  tibble(
-    panel_mode = panel_mode,
-    n_blocks = nrow(base_df),
-    n_treated_blocks = nrow(treated_blocks),
-    mean_dist_m = mean(base_df$dist_m, na.rm = TRUE),
-    median_dist_m = median(base_df$dist_m, na.rm = TRUE),
-    segment_coverage_all_pct = 100 * mean(!is.na(base_df$segment_id_cohort)),
-    segment_coverage_panel_window_pct = 100 * mean(!is.na(base_df$segment_id_cohort[
-      base_df$dist_m <= panel_max_distance_m
-    ])),
-    control_origin_mismatch_n = sum(base_df$control_origin_mismatch, na.rm = TRUE),
-    control_origin_mismatch_pct = 100 * mean(base_df$control_origin_mismatch, na.rm = TRUE),
-    n_blocks_multi_ward_pair = sum(treated_blocks$n_ward_pairs > 1),
-    n_blocks_multi_segment = sum(treated_blocks$n_segments > 1)
-  )
-}
-
 pair_contains_ward <- function(pair_id, ward) {
   pair_id <- normalize_pair_dash(pair_id)
   ward <- as.character(suppressWarnings(as.integer(ward)))
@@ -565,35 +390,6 @@ summarize_contract <- function(panel, panel_mode) {
       .by = cohort
     ) %>%
     arrange(panel_mode, cohort)
-}
-
-build_outcome_totals <- function(permits_dt, panel, panel_mode, cohort_label) {
-  block_ids <- unique(panel$block_id)
-  year_min <- min(panel$year)
-  year_max <- max(panel$year)
-
-  bind_rows(lapply(seq_len(nrow(permit_outcome_meta)), function(i) {
-    spec_i <- permit_outcome_meta[i, ]
-    raw_total <- permits_dt[
-      block_id %in% block_ids &
-        get(spec_i$indicator_col) == 1L &
-        !is.na(get(spec_i$date_col)) &
-        get(spec_i$date_col) >= year_min &
-        get(spec_i$date_col) <= year_max,
-      .N
-    ]
-    panel_total <- sum(panel[[spec_i$count_var]])
-
-    tibble(
-      panel_mode = panel_mode,
-      cohort = cohort_label,
-      outcome_family = spec_i$outcome_family,
-      date_basis = spec_i$date_basis,
-      raw_total = raw_total,
-      panel_total = panel_total,
-      matches = raw_total == panel_total
-    )
-  }))
 }
 
 prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label) {
@@ -743,13 +539,13 @@ message("Loading census blocks...")
 blocks_2010 <- read_blocks("../input/census_blocks_2010.csv", "GEOID10", st_crs(ward_panel))
 blocks_2020 <- read_blocks("../input/census_blocks_2020.csv", "GEOID20", st_crs(ward_panel))
 
-message("Building unit-increase audit...")
+message("Classifying unit-increase permits...")
 curated_unit_types <- c(
   "PERMIT - NEW CONSTRUCTION",
   "PERMIT - RENOVATION/ALTERATION"
 )
 
-unit_increase_audit <- read_csv(
+unit_increase_flags <- read_csv(
   "../input/building_permits_text_features.csv.gz",
   show_col_types = FALSE,
   col_select = c(
@@ -774,9 +570,9 @@ unit_increase_audit <- read_csv(
       (!is.na(unit_change_text) & unit_change_text > 0) |
       unit_change_direction == "increase",
     revision_only = flag_revision == 1L | flag_revision_contractor == 1L,
-    audit_universe = (permit_issued == 1L | is.na(permit_issued)) & (curated_type | positive_unit_signal),
+    unit_increase_candidate = (permit_issued == 1L | is.na(permit_issued)) & (curated_type | positive_unit_signal),
     unit_increase_reason = case_when(
-      !audit_universe ~ "outside_audit_universe",
+      !unit_increase_candidate ~ "outside_unit_increase_candidate_pool",
       !curated_type ~ "excluded_outside_curated_type",
       !positive_unit_signal ~ "excluded_no_positive_unit_signal",
       revision_only ~ "excluded_revision_signal",
@@ -832,7 +628,7 @@ message(sprintf(
   format(n_permits_before_window, big.mark = ",")
 ))
 
-unit_increase_audit <- unit_increase_audit %>%
+unit_increase_flags <- unit_increase_flags %>%
   semi_join(
     permits_clean %>%
       st_drop_geometry() %>%
@@ -840,21 +636,11 @@ unit_increase_audit <- unit_increase_audit %>%
     by = "id"
   )
 
-unit_increase_audit_summary <- unit_increase_audit %>%
-  filter(audit_universe) %>%
-  count(unit_increase_reason, permit_type, name = "n_permits") %>%
-  arrange(desc(n_permits), unit_increase_reason, permit_type)
-
-if (write_panel_diagnostics) {
-  write_csv(unit_increase_audit, file.path(panel_sidecar_dir, "permit_unit_increase_audit.csv"))
-  write_csv(unit_increase_audit_summary, file.path(panel_sidecar_dir, "permit_unit_increase_audit_summary.csv"))
-}
-
-unit_audit_included_ids <- unit_increase_audit %>%
+unit_increase_included_ids <- unit_increase_flags %>%
   filter(unit_increase_included == 1L) %>%
   select(id, unit_increase_included, unit_increase_reason)
-if (anyDuplicated(unit_audit_included_ids$id) > 0) {
-  stop("Unit-increase audit inclusion IDs must be unique by permit id.", call. = FALSE)
+if (anyDuplicated(unit_increase_included_ids$id) > 0) {
+  stop("Unit-increase inclusion IDs must be unique by permit id.", call. = FALSE)
 }
 
 permit_year_min <- permit_start_year
@@ -865,14 +651,13 @@ if (st_crs(permits_clean) != st_crs(blocks_2010)) {
 }
 
 message("Assigning permits to 2010 and 2020 blocks...")
-permit_assignment_2010 <- assign_permits_to_blocks(
+permits_2010 <- assign_permits_to_blocks(
   permits_sf = permits_clean,
   blocks_sf = blocks_2010,
   block_vintage_label = "2010",
   manual_block_assignments = manual_block_assignments
-)
-permits_2010 <- permit_assignment_2010$assigned %>%
-  left_join(unit_audit_included_ids, by = "id", relationship = "many-to-one") %>%
+) %>%
+  left_join(unit_increase_included_ids, by = "id", relationship = "many-to-one") %>%
   mutate(
     unit_increase_included = coalesce(as.integer(unit_increase_included), 0L)
   )
@@ -889,14 +674,13 @@ permits_2010[, `:=`(
   is_unit_increase_issued = as.integer(unit_increase_included == 1)
 )]
 
-permit_assignment_2020 <- assign_permits_to_blocks(
+permits_2020 <- assign_permits_to_blocks(
   permits_sf = permits_clean,
   blocks_sf = blocks_2020,
   block_vintage_label = "2020",
   manual_block_assignments = manual_block_assignments
-)
-permits_2020 <- permit_assignment_2020$assigned %>%
-  left_join(unit_audit_included_ids, by = "id", relationship = "many-to-one") %>%
+) %>%
+  left_join(unit_increase_included_ids, by = "id", relationship = "many-to-one") %>%
   mutate(
     unit_increase_included = coalesce(as.integer(unit_increase_included), 0L)
   )
@@ -976,75 +760,6 @@ message("Saving outputs...")
 write_parquet(permit_panel, "../output/permit_block_year_panel.parquet")
 write_parquet(cohort_2015, "../output/permit_block_year_panel_2015.parquet")
 write_parquet(cohort_2023, "../output/permit_block_year_panel_2023.parquet")
-
-if (write_panel_diagnostics) {
-  message("Saving diagnostics...")
-  support_by_event_time <- bind_rows(
-    summarize_event_support(cohort_2015, "cohort_2015"),
-    summarize_event_support(cohort_2023, "cohort_2023"),
-    summarize_event_support(permit_panel, "stacked_implementation")
-  )
-
-  support_by_calendar_time <- bind_rows(
-    summarize_calendar_support(cohort_2015, "cohort_2015"),
-    summarize_calendar_support(cohort_2023, "cohort_2023"),
-    summarize_calendar_support(permit_panel, "stacked_implementation")
-  )
-
-  assignment_stability <- bind_rows(
-    summarize_assignment_stability(base_2015, "cohort_2015"),
-    summarize_assignment_stability(base_2023, "cohort_2023"),
-    summarize_assignment_stability(bind_rows(base_2015, base_2023), "stacked_implementation")
-  )
-
-  zero_share_summary <- bind_rows(
-    summarize_zero_shares(cohort_2015, "cohort_2015"),
-    summarize_zero_shares(cohort_2023, "cohort_2023"),
-    summarize_zero_shares(permit_panel, "stacked_implementation")
-  )
-
-  block_assignment_review <- bind_rows(
-    permit_assignment_2010$missing_audit,
-    permit_assignment_2020$missing_audit
-  ) %>%
-    arrange(block_vintage, review_decision, review_reason, permit_type, id)
-
-  block_assignment_review_summary <- bind_rows(
-    permit_assignment_2010$missing_summary,
-    permit_assignment_2020$missing_summary
-  ) %>%
-    arrange(block_vintage, review_decision, review_reason, permit_type, missing_pin)
-
-  outcome_totals <- bind_rows(
-    build_outcome_totals(permits_2010, cohort_2015, "cohort_2015", "2015"),
-    build_outcome_totals(permits_2020, cohort_2023, "cohort_2023", "2023")
-  )
-
-  stacked_outcome_totals <- outcome_totals %>%
-    group_by(outcome_family, date_basis) %>%
-    summarise(
-      raw_total = sum(raw_total),
-      panel_total = sum(panel_total),
-      matches = all(matches),
-      .groups = "drop"
-    ) %>%
-    mutate(
-      panel_mode = "stacked_implementation",
-      cohort = "2015|2023"
-    ) %>%
-    select(panel_mode, cohort, outcome_family, date_basis, raw_total, panel_total, matches)
-
-  outcome_totals <- bind_rows(outcome_totals, stacked_outcome_totals)
-
-  write_csv(support_by_event_time, file.path(panel_sidecar_dir, "permit_block_year_panel_support_by_event_time.csv"))
-  write_csv(support_by_calendar_time, file.path(panel_sidecar_dir, "permit_block_year_panel_support_by_calendar_time.csv"))
-  write_csv(contract_diagnostics, file.path(panel_sidecar_dir, "permit_block_year_panel_contract_diagnostics.csv"))
-  write_csv(assignment_stability, file.path(panel_sidecar_dir, "permit_block_year_panel_assignment_stability.csv"))
-  write_csv(zero_share_summary, file.path(panel_sidecar_dir, "permit_block_year_panel_zero_share_summary.csv"))
-  write_csv(block_assignment_review, file.path(panel_sidecar_dir, "permit_block_assignment_review_log.csv"))
-  write_csv(block_assignment_review_summary, file.path(panel_sidecar_dir, "permit_block_assignment_review_summary.csv"))
-  write_csv(outcome_totals, file.path(panel_sidecar_dir, "permit_block_year_panel_outcome_totals.csv"))
-}
 
 message(sprintf("Saved stacked permit panel: %s rows", format(nrow(permit_panel), big.mark = ",")))
 message(sprintf("Saved 2015 cohort permit panel: %s rows", format(nrow(cohort_2015), big.mark = ",")))
