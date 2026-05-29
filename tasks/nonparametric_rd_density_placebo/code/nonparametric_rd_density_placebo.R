@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_placebo/code")
 # yvar <- "density_far"
 # bandwidth_m <- 152.4
@@ -47,7 +48,7 @@ if (!is.finite(placebo_shift_m)) {
   stop("placebo_shift_m must be numeric.", call. = FALSE)
 }
 
-distance_display <- distance_display_config()
+distance_display <- distance_display_config("ft")
 bw_label <- format_distance_label(bandwidth_m, distance_display)
 shift_file_label <- paste0(
   ifelse(placebo_shift_m < 0, "neg", "pos"),
@@ -68,14 +69,6 @@ fe_formula <- dplyr::case_when(
   fe_spec == "segment_year" ~ "segment_id + construction_year",
   TRUE ~ NA_character_
 )
-
-stars <- function(p) {
-  if (!is.finite(p)) return("")
-  if (p <= 0.01) return("***")
-  if (p <= 0.05) return("**")
-  if (p <= 0.1) return("*")
-  ""
-}
 
 pretty_outcome <- dplyr::case_when(
   yvar == "density_far" ~ "Log(FAR)",
@@ -166,6 +159,13 @@ if (nrow(linear_row) != 1) {
 cutoff_estimate <- unname(linear_row[1, "Estimate"])
 cutoff_se <- unname(linear_row[1, "Std. Error"])
 cutoff_p <- unname(linear_row[1, "Pr(>|t|)"])
+cutoff_stars <- dplyr::case_when(
+  !is.finite(cutoff_p) ~ "",
+  cutoff_p <= 0.01 ~ "***",
+  cutoff_p <= 0.05 ~ "**",
+  cutoff_p <= 0.1 ~ "*",
+  TRUE ~ ""
+)
 
 m_display <- feols(
   residualized_outcome ~ side * running_distance,
@@ -255,7 +255,7 @@ line_df <- line_df %>%
 subtitle_label <- sprintf(
   "Jump = %.3f%s (SE %.3f) | shift=%s | %s | bandwidth=%s | N=%d",
   cutoff_estimate,
-  stars(cutoff_p),
+  cutoff_stars,
   cutoff_se,
   shift_display_label,
   sample_label,

@@ -12,20 +12,24 @@ month_floor <- function(x) {
   as.Date(format(as.Date(x), "%Y-%m-01"))
 }
 
-fetch_fred_series <- function(series_id) {
-  fred_url <- sprintf("https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s", series_id)
-  old_http_ua <- getOption("HTTPUserAgent")
-  on.exit(options(HTTPUserAgent = old_http_ua), add = TRUE)
-  options(HTTPUserAgent = paste0("curl/", curl::curl_version()$version))
-
-  raw <- read_csv(fred_url, show_col_types = FALSE)
-  if (!all(c("observation_date", series_id) %in% names(raw))) {
-    stop(sprintf("FRED response missing expected columns for %s.", series_id), call. = FALSE)
+fetch_bls_series <- function(series_id) {
+  bls_url <- sprintf(
+    "https://api.bls.gov/publicAPI/v2/timeseries/data/%s?startyear=2014&endyear=2022",
+    series_id
+  )
+  payload <- jsonlite::fromJSON(bls_url, simplifyVector = FALSE)
+  if (!identical(payload$status, "REQUEST_SUCCEEDED")) {
+    stop(sprintf("BLS request failed for %s.", series_id), call. = FALSE)
   }
 
-  dt <- as.data.table(raw)
-  dt[, month_start := month_floor(observation_date)]
-  dt[, value := suppressWarnings(as.numeric(get(series_id)))]
+  raw <- rbindlist(lapply(payload$Results$series[[1]]$data, as.data.table), fill = TRUE)
+  if (nrow(raw) == 0L) {
+    stop(sprintf("BLS response has no observations for %s.", series_id), call. = FALSE)
+  }
+
+  dt <- raw[grepl("^M\\d{2}$", period)]
+  dt[, month_start := as.Date(sprintf("%s-%02d-01", year, as.integer(sub("^M", "", period))))]
+  dt[, value := suppressWarnings(as.numeric(value))]
   dt[
     month_start >= as.Date("2014-01-01") & month_start <= as.Date("2022-12-01"),
     .(month_start, value)
@@ -84,7 +88,7 @@ if (nrow(rent_panel) == 0L) {
   stop("No valid listed-rent observations found in the 2014-2022 validation window.", call. = FALSE)
 }
 
-fred_all_items_cpi <- fetch_fred_series("CUURA207SA0")
+fred_all_items_cpi <- fetch_bls_series("CUURS23ASA0")
 if (nrow(fred_all_items_cpi) == 0L) {
   stop("Could not fetch Chicago all-items CPI-U deflator.", call. = FALSE)
 }

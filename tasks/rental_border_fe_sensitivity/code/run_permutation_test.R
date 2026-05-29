@@ -1,66 +1,13 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_border_fe_sensitivity/code")
-# bw_ft <- 500
-# window <- "pre_2023"
-# sample_filter <- "all"
-# use_controls <- TRUE
-# n_perms <- 500
-# seed <- 42
-# min_date <- "2015-05-18"
 
 source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
 
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
-  cli_args <- c(bw_ft, window, sample_filter, use_controls, n_perms, seed, min_date)
-}
+bw_ft <- 500L
+n_perms <- 500L
+output_pdf <- "../output/permutation_test_2014_2022_all_bw500_ctrl_clust_ward_pair.pdf"
 
-if (length(cli_args) == 7) {
-  bw_ft <- suppressWarnings(as.integer(cli_args[1]))
-  window <- cli_args[2]
-  sample_filter <- cli_args[3]
-  use_controls <- tolower(cli_args[4]) %in% c("true", "t", "1", "yes")
-  n_perms <- suppressWarnings(as.integer(cli_args[5]))
-  seed <- suppressWarnings(as.integer(cli_args[6]))
-  min_date <- cli_args[7]
-} else {
-  stop("FATAL: Script requires 7 args: <bw_ft> <window> <sample_filter> <use_controls> <n_perms> <seed> <min_date>", call. = FALSE)
-}
-
-if (!is.finite(bw_ft) || bw_ft <= 0) {
-  stop("bw_ft must be a positive integer.", call. = FALSE)
-}
-if (!window %in% c("full", "pre_covid", "pre_2021", "pre_2023", "drop_mid")) {
-  stop("--window must be one of: full, pre_covid, pre_2021, pre_2023, drop_mid", call. = FALSE)
-}
-if (!sample_filter %in% c("all", "multifamily_only")) {
-  stop("--sample_filter must be one of: all, multifamily_only", call. = FALSE)
-}
-if (!is.finite(n_perms) || n_perms <= 0) {
-  stop("n_perms must be a positive integer.", call. = FALSE)
-}
-if (!is.finite(seed)) {
-  stop("seed must be finite.", call. = FALSE)
-}
-
-window_label <- c(
-  full = "full",
-  pre_covid = "2014_2019",
-  pre_2021 = "2014_2020",
-  pre_2023 = "2014_2022",
-  drop_mid = "drop_mid"
-)[[window]]
-control_label <- if (use_controls) "ctrl" else "raw"
-output_stem <- sprintf(
-  "permutation_test_%s_%s_bw%d_%s_clust_ward_pair",
-  window_label,
-  sample_filter,
-  bw_ft,
-  control_label
-)
-output_pdf <- sprintf("../output/%s.pdf", output_stem)
-
-set.seed(seed)
+set.seed(42L)
 
 dat_raw <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
   as_tibble() %>%
@@ -73,7 +20,8 @@ dat_raw <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
   ) %>%
   filter(
     !is.na(file_date),
-    file_date >= as.Date(min_date),
+    file_date >= as.Date("2015-05-18"),
+    year <= 2022,
     !is.na(ward_pair),
     !is.na(rent_price), rent_price > 0,
     !is.na(signed_dist),
@@ -82,32 +30,14 @@ dat_raw <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
     abs_dist <= bw_ft
   )
 
-if (window == "pre_covid") {
-  dat_raw <- dat_raw %>% filter(year <= 2019)
-} else if (window == "pre_2021") {
-  dat_raw <- dat_raw %>% filter(year <= 2020)
-} else if (window == "pre_2023") {
-  dat_raw <- dat_raw %>% filter(year <= 2022)
-} else if (window == "drop_mid") {
-  dat_raw <- dat_raw %>% filter(year <= 2020 | year >= 2024)
-}
-
-if (sample_filter == "multifamily_only") {
-  dat_raw <- dat_raw %>% filter(building_type_clean == "multi_family")
-}
-
 dat_raw <- dat_raw %>%
   mutate(
     log_sqft = if_else(!is.na(sqft) & sqft > 0, log(sqft), NA_real_),
     log_beds = if_else(!is.na(beds) & beds > 0, log(beds), NA_real_),
     log_baths = if_else(!is.na(baths) & baths > 0, log(baths), NA_real_),
     building_type_factor = factor(coalesce(building_type_clean, "other"))
-  )
-
-if (use_controls) {
-  dat_raw <- dat_raw %>%
-    filter(!is.na(log_sqft), !is.na(log_beds), !is.na(log_baths))
-}
+  ) %>%
+  filter(!is.na(log_sqft), !is.na(log_beds), !is.na(log_baths))
 
 if (nrow(dat_raw) == 0) stop("No data after filtering.", call. = FALSE)
 
@@ -149,12 +79,8 @@ run_regression <- function(df) {
   df <- df %>% mutate(strictness_std = strictness_own_perm / sd_strict)
 
   n_types <- n_distinct(df$building_type_factor)
-  if (use_controls) {
-    rhs <- "strictness_std + log_sqft + log_beds + log_baths"
-    if (n_types >= 2) rhs <- paste0(rhs, " + building_type_factor")
-  } else {
-    rhs <- "strictness_std"
-  }
+  rhs <- "strictness_std + log_sqft + log_beds + log_baths"
+  if (n_types >= 2) rhs <- paste0(rhs, " + building_type_factor")
 
   m <- tryCatch(
     feols(
