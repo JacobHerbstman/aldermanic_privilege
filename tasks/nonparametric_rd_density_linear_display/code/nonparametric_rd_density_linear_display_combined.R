@@ -48,14 +48,6 @@ fe_formula <- dplyr::case_when(
   TRUE ~ NA_character_
 )
 
-stars <- function(p) {
-  if (!is.finite(p)) return("")
-  if (p <= 0.01) return("***")
-  if (p <= 0.05) return("**")
-  if (p <= 0.1) return("*")
-  ""
-}
-
 controls <- c(
   "share_white_own",
   "share_black_own",
@@ -243,10 +235,18 @@ build_panel <- function(yvar, sample_filter) {
   y_pad <- max(0.15 * y_span, 0.05)
   y_limits <- c(y_min - y_pad, y_max + y_pad)
 
+  cutoff_stars <- case_when(
+    !is.finite(cutoff_p) ~ "",
+    cutoff_p <= 0.01 ~ "***",
+    cutoff_p <= 0.05 ~ "**",
+    cutoff_p <= 0.10 ~ "*",
+    TRUE ~ ""
+  )
+
   subtitle_label <- sprintf(
     "Jump = %.3f%s (SE %.3f); N = %s",
     cutoff_estimate,
-    stars(cutoff_p),
+    cutoff_stars,
     cutoff_se,
     format(nobs(m_resid), big.mark = ",")
   )
