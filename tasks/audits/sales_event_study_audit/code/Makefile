@@ -6,6 +6,7 @@ MAIN_BW_LABEL ?= 1000ft
 all:
 
 panel_diagnostics: \
+	../output/sales_transaction_panel_2015_all_valid.parquet \
 	../output/sales_transaction_panel_amenity_distance_diagnostics.csv \
 	../output/sales_transaction_panel_hedonic_coverage_by_sale_year.csv \
 	../output/sales_transaction_panel_final_hedonic_coverage_by_sale_year.csv \
@@ -16,7 +17,11 @@ panel_diagnostics: \
 	../output/sales_transaction_panel_no_boundary_exclusions.csv \
 	../output/sales_transaction_panel_contract_diagnostics.csv
 
-../output/sales_transaction_panel_amenity_distance_diagnostics.csv \
+../output/sales_transaction_panel_amenity_distance_diagnostics.csv: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../output
+	$(MAKE) -C ../../../create_event_study_sales_data_disaggregate/code link-inputs
+	cd ../../../create_event_study_sales_data_disaggregate/code && WRITE_PANEL_SIDECARS=1 PANEL_SIDECAR_OUTPUT_DIR=../../audits/sales_event_study_audit/output Rscript create_transaction_panel.R 304.8 800
+
+../output/sales_transaction_panel_2015_all_valid.parquet \
 ../output/sales_transaction_panel_hedonic_coverage_by_sale_year.csv \
 ../output/sales_transaction_panel_final_hedonic_coverage_by_sale_year.csv \
 ../output/sales_transaction_panel_support_by_event_time.csv \
@@ -24,9 +29,8 @@ panel_diagnostics: \
 ../output/sales_transaction_panel_assignment_stability.csv \
 ../output/sales_transaction_panel_event_geometry_diagnostics.csv \
 ../output/sales_transaction_panel_no_boundary_exclusions.csv \
-../output/sales_transaction_panel_contract_diagnostics.csv: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel.parquet | ../output
-	$(MAKE) -C ../../../create_event_study_sales_data_disaggregate/code ../output/$(@F)
-	cp -p "../../../create_event_study_sales_data_disaggregate/output/$(@F)" "$@"
+../output/sales_transaction_panel_contract_diagnostics.csv: ../output/sales_transaction_panel_amenity_distance_diagnostics.csv
+	@test -s "$@"
 
 event_study_sidecars: \
 	../output/event_study_coefficients_disaggregate_yearly_cohort_2015_continuous_uniform_$(MAIN_BW_LABEL)_amenity_full_geo_wardpair_clust_block.csv \
@@ -182,7 +186,7 @@ nearest_boundary_local_control_sales: \
 ../input/sales_transaction_panel_2015.parquet: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/sales_transaction_panel_2015_all_valid.parquet: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015_all_valid.parquet | ../input
+../input/sales_transaction_panel_2015_all_valid.parquet: ../output/sales_transaction_panel_2015_all_valid.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/sales_transaction_panel_2012.parquet ../input/sales_transaction_panel_2015.parquet ../input/sales_transaction_panel_2015_all_valid.parquet

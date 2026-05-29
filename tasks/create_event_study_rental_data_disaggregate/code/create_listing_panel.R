@@ -33,6 +33,7 @@ if (!is.finite(panel_max_distance_m) || panel_max_distance_m <= 0) {
   stop("panel_max_distance_m must be positive.", call. = FALSE)
 }
 write_panel_diagnostics <- tolower(Sys.getenv("WRITE_PANEL_SIDECARS", "0")) %in% c("1", "true", "yes")
+panel_diagnostic_output_dir <- Sys.getenv("PANEL_SIDECAR_OUTPUT_DIR", "../output")
 crs_projected <- 3435
 
 # Disable s2 spherical geometry to avoid validation errors with census block geometries
@@ -471,11 +472,12 @@ message(sprintf("Blocks that switched in 2023: %d", n_switching_blocks_2023))
 # =============================================================================
 message("Preparing hedonic controls (no imputation)...")
 
-# Report hedonic coverage
-message("\nHedonic variable coverage (% non-missing):")
-message(sprintf("  sqft: %.1f%%", 100 * mean(!is.na(rentals_with_blocks$sqft) & rentals_with_blocks$sqft > 0)))
-message(sprintf("  beds: %.1f%%", 100 * mean(!is.na(rentals_with_blocks$beds) & rentals_with_blocks$beds > 0)))
-message(sprintf("  baths: %.1f%%", 100 * mean(!is.na(rentals_with_blocks$baths) & rentals_with_blocks$baths > 0)))
+if (write_panel_diagnostics) {
+  message("\nHedonic variable coverage (% non-missing):")
+  message(sprintf("  sqft: %.1f%%", 100 * mean(!is.na(rentals_with_blocks$sqft) & rentals_with_blocks$sqft > 0)))
+  message(sprintf("  beds: %.1f%%", 100 * mean(!is.na(rentals_with_blocks$beds) & rentals_with_blocks$beds > 0)))
+  message(sprintf("  baths: %.1f%%", 100 * mean(!is.na(rentals_with_blocks$baths) & rentals_with_blocks$baths > 0)))
+}
 
 rental_support_parts <- list()
 
@@ -716,6 +718,7 @@ message(sprintf(
 # =============================================================================
 # 8. DIAGNOSTICS
 # =============================================================================
+if (write_panel_diagnostics) {
 message("\n=== PANEL DIAGNOSTICS ===")
 
 message("\nListings by cohort and treatment status:")
@@ -812,6 +815,7 @@ rental_event_geometry_diagnostics <- bind_rows(
   summarize_event_geometry(cohort_2023_event_geometry, "cohort_2023", "post_event_geometry"),
   summarize_event_geometry(cohort_2023_distance_filter, "cohort_2023", "post_event_distance_filter")
 )
+}
 
 # =============================================================================
 # 9. SAVE OUTPUT
@@ -828,19 +832,19 @@ write_parquet(cohort_2023, "../output/rental_listing_panel_2023.parquet")
 message(sprintf("Saved 2023 cohort panel: %s rows", format(nrow(cohort_2023), big.mark = ",")))
 
 if (write_panel_diagnostics) {
-  write_csv(rental_support_by_event_time, "../output/rental_listing_panel_support_by_event_time.csv")
+  write_csv(rental_support_by_event_time, file.path(panel_diagnostic_output_dir, "rental_listing_panel_support_by_event_time.csv"))
   message("Saved rental event-time support diagnostics")
 
-  write_csv(rental_support_by_calendar_time, "../output/rental_listing_panel_support_by_calendar_time.csv")
+  write_csv(rental_support_by_calendar_time, file.path(panel_diagnostic_output_dir, "rental_listing_panel_support_by_calendar_time.csv"))
   message("Saved rental calendar-time support diagnostics")
 
-  write_csv(rental_repeat_listing_diagnostics, "../output/rental_listing_panel_repeat_listing_diagnostics.csv")
+  write_csv(rental_repeat_listing_diagnostics, file.path(panel_diagnostic_output_dir, "rental_listing_panel_repeat_listing_diagnostics.csv"))
   message("Saved rental repeat-listing diagnostics")
 
-  write_csv(rental_assignment_stability, "../output/rental_listing_panel_assignment_stability.csv")
+  write_csv(rental_assignment_stability, file.path(panel_diagnostic_output_dir, "rental_listing_panel_assignment_stability.csv"))
   message("Saved rental assignment-stability diagnostics")
 
-  write_csv(rental_event_geometry_diagnostics, "../output/rental_listing_panel_event_geometry_diagnostics.csv")
+  write_csv(rental_event_geometry_diagnostics, file.path(panel_diagnostic_output_dir, "rental_listing_panel_event_geometry_diagnostics.csv"))
   message("Saved rental event-geometry diagnostics")
 }
 

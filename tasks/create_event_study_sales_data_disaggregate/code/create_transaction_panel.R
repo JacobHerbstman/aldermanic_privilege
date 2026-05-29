@@ -29,6 +29,7 @@ if (!is.finite(panel_max_distance_m) || panel_max_distance_m <= 0) {
   stop("panel_max_distance_m must be positive.", call. = FALSE)
 }
 write_panel_diagnostics <- tolower(Sys.getenv("WRITE_PANEL_SIDECARS", "0")) %in% c("1", "true", "yes")
+panel_diagnostic_output_dir <- Sys.getenv("PANEL_SIDECAR_OUTPUT_DIR", "../output")
 crs_projected <- 3435
 
 assign_cohort_segments_dt <- function(dt, segment_layers, era_label, cohort_label, chunk_n = 50000L) {
@@ -458,27 +459,26 @@ sales_with_hedonics <- improvements[
 setnames(sales_with_hedonics, "tax_year", "hedonic_tax_year")
 sales_with_hedonics[, sale_year := year(sale_date)]
 
-# Diagnostics on match quality
-n_total <- nrow(sales_with_hedonics)
-n_matched <- sum(!is.na(sales_with_hedonics$building_sqft))
-message(sprintf(
-  "\nMatch rate: %s of %s sales (%.1f%%) matched to hedonics",
-  format(n_matched, big.mark = ","),
-  format(n_total, big.mark = ","),
-  n_matched / n_total * 100
-))
-
-# Check temporal gap between sale and matched assessment
 sales_with_hedonics[, years_gap := sale_year - hedonic_tax_year]
-message("\nYears between sale and matched assessment:")
-message(sprintf("  Median: %d", median(sales_with_hedonics$years_gap, na.rm = TRUE)))
-message(sprintf("  Mean: %.1f", mean(sales_with_hedonics$years_gap, na.rm = TRUE)))
-message(sprintf("  Max: %d", max(sales_with_hedonics$years_gap, na.rm = TRUE)))
+if (write_panel_diagnostics) {
+  n_total <- nrow(sales_with_hedonics)
+  n_matched <- sum(!is.na(sales_with_hedonics$building_sqft))
+  message(sprintf(
+    "\nMatch rate: %s of %s sales (%.1f%%) matched to hedonics",
+    format(n_matched, big.mark = ","),
+    format(n_total, big.mark = ","),
+    n_matched / n_total * 100
+  ))
 
-# Distribution of gaps
-message("\nGap distribution:")
-gap_dist <- sales_with_hedonics[!is.na(years_gap), .N, by = years_gap][order(years_gap)]
-print(head(gap_dist, 10))
+  message("\nYears between sale and matched assessment:")
+  message(sprintf("  Median: %d", median(sales_with_hedonics$years_gap, na.rm = TRUE)))
+  message(sprintf("  Mean: %.1f", mean(sales_with_hedonics$years_gap, na.rm = TRUE)))
+  message(sprintf("  Max: %d", max(sales_with_hedonics$years_gap, na.rm = TRUE)))
+
+  message("\nGap distribution:")
+  gap_dist <- sales_with_hedonics[!is.na(years_gap), .N, by = years_gap][order(years_gap)]
+  print(head(gap_dist, 10))
+}
 
 # =============================================================================
 # 3. SPATIAL MERGE: ASSIGN SALES TO CENSUS BLOCKS
@@ -595,17 +595,19 @@ sales_with_treatment <- append_amenity_distances(
   "latitude"
 )
 
-sales_amenity_diagnostics <- amenity_distance_diagnostics(
-  sales_with_treatment,
-  amenity_coordinates,
-  "sales_event_study"
-)
+if (write_panel_diagnostics) {
+  sales_amenity_diagnostics <- amenity_distance_diagnostics(
+    sales_with_treatment,
+    amenity_coordinates,
+    "sales_event_study"
+  )
 
-message("\nAmenity distance coverage (% non-missing):")
-message(sprintf("  nearest_school_dist_m: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_school_dist_m))))
-message(sprintf("  nearest_park_dist_m: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_park_dist_m))))
-message(sprintf("  nearest_major_road_dist_m: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_major_road_dist_m))))
-message(sprintf("  lake_michigan_dist_m: %.1f%%", 100 * mean(!is.na(sales_with_treatment$lake_michigan_dist_m))))
+  message("\nAmenity distance coverage (% non-missing):")
+  message(sprintf("  nearest_school_dist_m: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_school_dist_m))))
+  message(sprintf("  nearest_park_dist_m: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_park_dist_m))))
+  message(sprintf("  nearest_major_road_dist_m: %.1f%%", 100 * mean(!is.na(sales_with_treatment$nearest_major_road_dist_m))))
+  message(sprintf("  lake_michigan_dist_m: %.1f%%", 100 * mean(!is.na(sales_with_treatment$lake_michigan_dist_m))))
+}
 
 # =============================================================================
 # 6. CREATE HEDONIC CONTROL VARIABLES (NO IMPUTATION)
@@ -640,16 +642,6 @@ sales_with_treatment[!is.na(building_age) & building_age > 0, log_building_age :
 sales_with_treatment[!is.na(num_bedrooms) & num_bedrooms > 0, log_bedrooms := log(num_bedrooms)]
 sales_with_treatment[!is.na(baths_total) & baths_total > 0, log_baths := log(baths_total)]
 
-# Report hedonic coverage
-message("\nHedonic variable coverage (% non-missing):")
-message(sprintf("  building_sqft: %.1f%%", 100 * mean(!is.na(sales_with_treatment$building_sqft))))
-message(sprintf("  land_sqft: %.1f%%", 100 * mean(!is.na(sales_with_treatment$land_sqft))))
-message(sprintf("  building_age: %.1f%%", 100 * mean(!is.na(sales_with_treatment$building_age))))
-message(sprintf("  num_bedrooms: %.1f%%", 100 * mean(!is.na(sales_with_treatment$num_bedrooms))))
-message(sprintf("  baths_total: %.1f%%", 100 * mean(!is.na(sales_with_treatment$baths_total))))
-message(sprintf("  has_garage: %.1f%%", 100 * mean(!is.na(sales_with_treatment$has_garage))))
-
-# Report complete cases across the full sales universe before event-study filters.
 core_hedonics_complete <- sales_with_treatment[
   is.finite(log_sqft) & is.finite(log_land_sqft) & is.finite(log_building_age) &
     is.finite(log_bedrooms) & is.finite(log_baths)
@@ -662,20 +654,30 @@ core_building_hedonics_rate <- mean(
 )
 core_hedonics_complete_rate <- nrow(core_hedonics_complete) / nrow(sales_with_treatment)
 pre_1999_matched_sales <- sum(!is.na(sales_with_treatment$year_built) & sales_with_treatment$year_built < 1999)
-message(sprintf(
-  "\nComplete hedonic cases: %s of %s (%.1f%%)",
-  format(nrow(core_hedonics_complete), big.mark = ","),
-  format(nrow(sales_with_treatment), big.mark = ","),
-  100 * core_hedonics_complete_rate
-))
-message(sprintf(
-  "Sales matched to pre-1999 buildings: %s",
-  format(pre_1999_matched_sales, big.mark = ",")
-))
-message(sprintf(
-  "Core building-hedonic coverage excluding land_sqft: %.1f%%",
-  100 * core_building_hedonics_rate
-))
+if (write_panel_diagnostics) {
+  message("\nHedonic variable coverage (% non-missing):")
+  message(sprintf("  building_sqft: %.1f%%", 100 * mean(!is.na(sales_with_treatment$building_sqft))))
+  message(sprintf("  land_sqft: %.1f%%", 100 * mean(!is.na(sales_with_treatment$land_sqft))))
+  message(sprintf("  building_age: %.1f%%", 100 * mean(!is.na(sales_with_treatment$building_age))))
+  message(sprintf("  num_bedrooms: %.1f%%", 100 * mean(!is.na(sales_with_treatment$num_bedrooms))))
+  message(sprintf("  baths_total: %.1f%%", 100 * mean(!is.na(sales_with_treatment$baths_total))))
+  message(sprintf("  has_garage: %.1f%%", 100 * mean(!is.na(sales_with_treatment$has_garage))))
+
+  message(sprintf(
+    "\nComplete hedonic cases: %s of %s (%.1f%%)",
+    format(nrow(core_hedonics_complete), big.mark = ","),
+    format(nrow(sales_with_treatment), big.mark = ","),
+    100 * core_hedonics_complete_rate
+  ))
+  message(sprintf(
+    "Sales matched to pre-1999 buildings: %s",
+    format(pre_1999_matched_sales, big.mark = ",")
+  ))
+  message(sprintf(
+    "Core building-hedonic coverage excluding land_sqft: %.1f%%",
+    100 * core_building_hedonics_rate
+  ))
+}
 
 sales_hedonic_coverage_by_sale_year <- sales_with_treatment[, .(
   n_sales = .N,
@@ -694,8 +696,10 @@ sales_hedonic_coverage_by_sale_year <- sales_with_treatment[, .(
   ) * 100
 ), by = sale_year][order(sale_year)]
 
-message("\nAll-sales hedonic coverage by sale year (% non-missing):")
-print(sales_hedonic_coverage_by_sale_year)
+if (write_panel_diagnostics) {
+  message("\nAll-sales hedonic coverage by sale year (% non-missing):")
+  print(sales_hedonic_coverage_by_sale_year)
+}
 
 if (pre_1999_matched_sales == 0) {
   stop("Sales hedonics merge has no pre-1999 matched buildings; check the residential improvements input.", call. = FALSE)
@@ -1076,6 +1080,7 @@ if (nrow(final_panel) == 0) {
 # =============================================================================
 # 10. DIAGNOSTICS
 # =============================================================================
+if (write_panel_diagnostics) {
 message("\n=== FINAL PANEL DIAGNOSTICS ===")
 
 message("\nBy cohort and treatment:")
@@ -1141,17 +1146,20 @@ message("\nTransactions by relative year:")
 rel_year_counts <- final_panel[, .N, by = .(cohort, relative_year_capped)][order(cohort, relative_year_capped)]
 rel_year_wide <- dcast(rel_year_counts, relative_year_capped ~ cohort, value.var = "N")
 print(rel_year_wide)
+}
 
 # Complete cases for regression
 n_complete <- final_panel[
   is.finite(log_sqft) & is.finite(log_land_sqft) & is.finite(log_building_age) &
     is.finite(log_bedrooms) & is.finite(log_baths) & !is.na(has_garage), .N
 ]
-message(sprintf(
-  "\nTransactions with complete hedonics (regression sample): %s (%.1f%%)",
-  format(n_complete, big.mark = ","),
-  100 * n_complete / nrow(final_panel)
-))
+if (write_panel_diagnostics) {
+  message(sprintf(
+    "\nTransactions with complete hedonics (regression sample): %s (%.1f%%)",
+    format(n_complete, big.mark = ","),
+    100 * n_complete / nrow(final_panel)
+  ))
+}
 final_complete_hedonics_rate <- n_complete / nrow(final_panel)
 final_core_building_hedonics_rate <- final_panel[
   ,
@@ -1189,11 +1197,13 @@ n_complete_amenity <- final_panel[
     !is.na(nearest_school_dist_m) & !is.na(nearest_park_dist_m) &
     !is.na(nearest_major_road_dist_m) & !is.na(lake_michigan_dist_m), .N
 ]
-message(sprintf(
-  "Transactions with complete hedonics and amenity distances: %s (%.1f%%)",
-  format(n_complete_amenity, big.mark = ","),
-  100 * n_complete_amenity / nrow(final_panel)
-))
+if (write_panel_diagnostics) {
+  message(sprintf(
+    "Transactions with complete hedonics and amenity distances: %s (%.1f%%)",
+    format(n_complete_amenity, big.mark = ","),
+    100 * n_complete_amenity / nrow(final_panel)
+  ))
+}
 
 sales_support_by_event_time <- rbindlist(list(
   summarize_event_support_dt(cohort_2012_window, "cohort_2012", "post_time_and_geo_filter"),
@@ -1300,41 +1310,38 @@ message(sprintf("Saved 2022 cohort: %s rows", format(nrow(cohort_2022_final), bi
 write_parquet(cohort_2015_final, "../output/sales_transaction_panel_2015.parquet")
 message(sprintf("Saved 2015 cohort: %s rows", format(nrow(cohort_2015_final), big.mark = ",")))
 
-write_parquet(cohort_2015_all_valid, "../output/sales_transaction_panel_2015_all_valid.parquet")
-message(sprintf(
-  "Saved 2015 all-valid diagnostic cohort: %s rows",
-  format(nrow(cohort_2015_all_valid), big.mark = ",")
-))
-
 write_parquet(cohort_2023_final, "../output/sales_transaction_panel_2023.parquet")
 message(sprintf("Saved 2023 cohort: %s rows", format(nrow(cohort_2023_final), big.mark = ",")))
 
 if (write_panel_diagnostics) {
-  write_csv(as_tibble(sales_amenity_diagnostics), "../output/sales_transaction_panel_amenity_distance_diagnostics.csv")
+  write_parquet(cohort_2015_all_valid, file.path(panel_diagnostic_output_dir, "sales_transaction_panel_2015_all_valid.parquet"))
+  message("Saved 2015 all-valid audit cohort")
+
+  write_csv(as_tibble(sales_amenity_diagnostics), file.path(panel_diagnostic_output_dir, "sales_transaction_panel_amenity_distance_diagnostics.csv"))
   message("Saved sales amenity-distance diagnostics")
 
-  write_csv(as_tibble(sales_hedonic_coverage_by_sale_year), "../output/sales_transaction_panel_hedonic_coverage_by_sale_year.csv")
+  write_csv(as_tibble(sales_hedonic_coverage_by_sale_year), file.path(panel_diagnostic_output_dir, "sales_transaction_panel_hedonic_coverage_by_sale_year.csv"))
   message("Saved all-sales hedonic-coverage diagnostics")
 
-  write_csv(as_tibble(final_hedonic_coverage_by_sale_year), "../output/sales_transaction_panel_final_hedonic_coverage_by_sale_year.csv")
+  write_csv(as_tibble(final_hedonic_coverage_by_sale_year), file.path(panel_diagnostic_output_dir, "sales_transaction_panel_final_hedonic_coverage_by_sale_year.csv"))
   message("Saved final-panel hedonic-coverage diagnostics")
 
-  write_csv(as_tibble(sales_support_by_event_time), "../output/sales_transaction_panel_support_by_event_time.csv")
+  write_csv(as_tibble(sales_support_by_event_time), file.path(panel_diagnostic_output_dir, "sales_transaction_panel_support_by_event_time.csv"))
   message("Saved sales event-time support diagnostics")
 
-  write_csv(as_tibble(sales_support_by_calendar_time), "../output/sales_transaction_panel_support_by_calendar_time.csv")
+  write_csv(as_tibble(sales_support_by_calendar_time), file.path(panel_diagnostic_output_dir, "sales_transaction_panel_support_by_calendar_time.csv"))
   message("Saved sales calendar-time support diagnostics")
 
-  write_csv(as_tibble(sales_assignment_stability), "../output/sales_transaction_panel_assignment_stability.csv")
+  write_csv(as_tibble(sales_assignment_stability), file.path(panel_diagnostic_output_dir, "sales_transaction_panel_assignment_stability.csv"))
   message("Saved sales assignment-stability diagnostics")
 
-  write_csv(as_tibble(sales_event_geometry_diagnostics), "../output/sales_transaction_panel_event_geometry_diagnostics.csv")
+  write_csv(as_tibble(sales_event_geometry_diagnostics), file.path(panel_diagnostic_output_dir, "sales_transaction_panel_event_geometry_diagnostics.csv"))
   message("Saved sales event-geometry diagnostics")
 
-  write_csv(as_tibble(sales_no_boundary_exclusions), "../output/sales_transaction_panel_no_boundary_exclusions.csv")
+  write_csv(as_tibble(sales_no_boundary_exclusions), file.path(panel_diagnostic_output_dir, "sales_transaction_panel_no_boundary_exclusions.csv"))
   message("Saved sales no-boundary exclusion diagnostics")
 
-  write_csv(as_tibble(sales_contract_diagnostics), "../output/sales_transaction_panel_contract_diagnostics.csv")
+  write_csv(as_tibble(sales_contract_diagnostics), file.path(panel_diagnostic_output_dir, "sales_transaction_panel_contract_diagnostics.csv"))
   message("Saved sales contract diagnostics")
 }
 

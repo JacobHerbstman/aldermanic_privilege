@@ -63,19 +63,19 @@ all: \
 ../output/sales_pretrend_tests.csv ../output/sales_spec_comparison.csv ../output/sales_audit_summary.txt: ../output/rental_support_by_event_time.csv
 	@test -s "$@"
 
-../input/rental_listing_panel_support_by_calendar_time.csv: ../../../create_event_study_rental_data_disaggregate/output/rental_listing_panel_support_by_calendar_time.csv | ../input
+../input/rental_listing_panel_support_by_calendar_time.csv: ../../../audits/rental_event_study_audit/output/rental_listing_panel_support_by_calendar_time.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/rental_listing_panel_repeat_listing_diagnostics.csv: ../../../create_event_study_rental_data_disaggregate/output/rental_listing_panel_repeat_listing_diagnostics.csv | ../input
+../input/rental_listing_panel_repeat_listing_diagnostics.csv: ../../../audits/rental_event_study_audit/output/rental_listing_panel_repeat_listing_diagnostics.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/rental_listing_panel_assignment_stability.csv: ../../../create_event_study_rental_data_disaggregate/output/rental_listing_panel_assignment_stability.csv | ../input
+../input/rental_listing_panel_assignment_stability.csv: ../../../audits/rental_event_study_audit/output/rental_listing_panel_assignment_stability.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/sales_transaction_panel_support_by_calendar_time.csv: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_support_by_calendar_time.csv | ../input
+../input/sales_transaction_panel_support_by_calendar_time.csv: ../../../audits/sales_event_study_audit/output/sales_transaction_panel_support_by_calendar_time.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/sales_transaction_panel_assignment_stability.csv: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_assignment_stability.csv | ../input
+../input/sales_transaction_panel_assignment_stability.csv: ../../../audits/sales_event_study_audit/output/sales_transaction_panel_assignment_stability.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/event_study_metadata_disaggregate_yearly_cohort_2023_continuous_triangular_1000ft_mf_short.csv: ../../../run_event_study_rental_disaggregate/output/event_study_metadata_disaggregate_yearly_cohort_2023_continuous_triangular_1000ft_mf_short.csv | ../input

@@ -9,13 +9,15 @@ panel_diagnostics: \
 	../output/rental_listing_panel_assignment_stability.csv \
 	../output/rental_listing_panel_event_geometry_diagnostics.csv
 
-../output/rental_listing_panel_support_by_event_time.csv \
+../output/rental_listing_panel_support_by_event_time.csv: ../../../create_event_study_rental_data_disaggregate/output/rental_listing_panel.parquet | ../output
+	$(MAKE) -C ../../../create_event_study_rental_data_disaggregate/code link-inputs
+	cd ../../../create_event_study_rental_data_disaggregate/code && WRITE_PANEL_SIDECARS=1 PANEL_SIDECAR_OUTPUT_DIR=../../audits/rental_event_study_audit/output Rscript create_listing_panel.R 304.8 800
+
 ../output/rental_listing_panel_support_by_calendar_time.csv \
 ../output/rental_listing_panel_repeat_listing_diagnostics.csv \
 ../output/rental_listing_panel_assignment_stability.csv \
-../output/rental_listing_panel_event_geometry_diagnostics.csv: ../../../create_event_study_rental_data_disaggregate/output/rental_listing_panel.parquet | ../output
-	$(MAKE) -C ../../../create_event_study_rental_data_disaggregate/code ../output/$(@F)
-	cp -p "../../../create_event_study_rental_data_disaggregate/output/$(@F)" "$@"
+../output/rental_listing_panel_event_geometry_diagnostics.csv: ../output/rental_listing_panel_support_by_event_time.csv
+	@test -s "$@"
 
 event_study_sidecars: \
 	../output/event_study_coefficients_disaggregate_yearly_cohort_2023_continuous_triangular_250m_mf_short.csv \

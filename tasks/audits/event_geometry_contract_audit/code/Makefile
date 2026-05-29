@@ -23,7 +23,7 @@ all: ../output/event_geometry_contract_summary.csv ../output/event_geometry_cont
 ../input/sales_transaction_panel_2023.parquet: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2023.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/sales_transaction_panel_event_geometry_diagnostics.csv: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_event_geometry_diagnostics.csv | ../input
+../input/sales_transaction_panel_event_geometry_diagnostics.csv: ../../../audits/sales_event_study_audit/output/sales_transaction_panel_event_geometry_diagnostics.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/boundary_segments_1320ft.gpkg: ../../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
