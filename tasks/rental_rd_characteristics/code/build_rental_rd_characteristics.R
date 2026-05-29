@@ -1,7 +1,5 @@
-# Build the listed-rent RD characteristics panel.
-
 # --- Interactive Test Block ---
-# setwd("tasks/rental_rd_characteristics/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_characteristics/code")
 # bandwidth_ft <- 500
 
 source("../../setup_environment/code/packages.R")
@@ -20,8 +18,6 @@ if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
   stop("bandwidth_ft must be positive.", call. = FALSE)
 }
 bandwidth_label <- as.character(as.integer(round(bandwidth_ft)))
-
-message(sprintf("=== Listed-Rent RD Characteristics | bandwidth=%sft ===", bandwidth_label))
 
 rent <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
   as_tibble()
@@ -115,9 +111,6 @@ if (nrow(rent) == 0) {
 if (anyDuplicated(rent$rent_panel_id) > 0) {
   stop("RD-window rental panel must remain unique by rent_panel_id.", call. = FALSE)
 }
-
-message(sprintf("RD-window rows: %s", format(nrow(rent), big.mark = ",")))
-message("Computing amenity distances from audited rental coordinates...")
 
 coords <- build_unique_coordinate_amenity_table(
   rent,
@@ -213,5 +206,3 @@ write_parquet(
   as.data.frame(rent),
   sprintf("../output/rental_rd_characteristics_panel_bw%s.parquet", bandwidth_label)
 )
-
-message("Saved listed-rent RD characteristics panel.")
