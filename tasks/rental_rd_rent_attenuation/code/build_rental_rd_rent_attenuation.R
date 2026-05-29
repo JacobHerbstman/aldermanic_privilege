@@ -22,21 +22,18 @@ rent <- read_parquet(sprintf("../input/rental_rd_characteristics_panel_bw%s.parq
   as_tibble()
 
 model_specs <- tibble::tribble(
-  ~specification, ~spec_label, ~rhs,
-  "no_controls_common", "No controls", "strictness_std",
-  "hedonic_common", "Hedonics", "hedonic_rhs",
-  "hedonic_amenity_common", "Hedonics + amenities", "amenity_rhs"
+  ~spec_label, ~rhs,
+  "No controls", "strictness_std",
+  "Hedonics", "hedonic_rhs",
+  "Hedonics + amenities", "amenity_rhs"
 )
 
-sample_name <- "clean_location"
-sample_label <- "Clean location"
-filter_column <- "flag_clean_location_sample"
-if (!filter_column %in% names(rent)) {
-  stop(sprintf("Missing sample flag column: %s", filter_column), call. = FALSE)
+if (!"flag_clean_location_sample" %in% names(rent)) {
+  stop("Missing sample flag column: flag_clean_location_sample", call. = FALSE)
 }
 
 d_sample <- rent %>%
-  filter(.data[[filter_column]]) %>%
+  filter(flag_clean_location_sample) %>%
   filter(
     is.finite(log_sqft),
     is.finite(log_beds),
@@ -88,12 +85,9 @@ for (j in seq_len(nrow(model_specs))) {
     cluster = ~segment_id
   )
   if (!"strictness_std" %in% names(coef(model))) {
-    stop(sprintf("RD attenuation model failed to estimate strictness_std for %s / %s.", sample_name, model_specs$specification[j]), call. = FALSE)
+    stop(sprintf("RD attenuation model failed to estimate strictness_std for %s.", model_specs$spec_label[j]), call. = FALSE)
   }
   attenuation_rows[[j]] <- tibble(
-    sample = sample_name,
-    sample_label = sample_label,
-    specification = model_specs$specification[j],
     spec_label = model_specs$spec_label[j],
     estimate = coef(model)[["strictness_std"]],
     std_error = se(model)[["strictness_std"]],
@@ -101,9 +95,7 @@ for (j in seq_len(nrow(model_specs))) {
     n_obs = model$nobs,
     n_segments = n_distinct(d_sample$segment_id),
     n_ward_pairs = n_distinct(d_sample$ward_pair),
-    dep_var_mean = mean(d_sample$rent_price, na.rm = TRUE),
-    bandwidth_ft = bandwidth_ft,
-    common_sample = TRUE
+    dep_var_mean = mean(d_sample$rent_price, na.rm = TRUE)
   )
 }
 
@@ -125,14 +117,10 @@ table_data <- attenuation %>%
   arrange(match(spec_label, c("No controls", "Hedonics", "Hedonics + amenities")))
 
 if (nrow(table_data) != 3L) {
-  stop(sprintf("Expected three rent attenuation rows for sample %s.", sample_name), call. = FALSE)
+  stop("Expected three rent attenuation rows.", call. = FALSE)
 }
 
-clean_note <- if (sample_name == "clean_location") {
-  " The clean-location sample excludes observations with modal-coordinate ward, pair, or distance-instability flags."
-} else {
-  ""
-}
+clean_note <- " The clean-location sample excludes observations with modal-coordinate ward, pair, or distance-instability flags."
 
 writeLines(
   c(
