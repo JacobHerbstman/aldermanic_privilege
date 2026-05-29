@@ -4,10 +4,10 @@ all: ../output/zoning_data_clean.gpkg
 	Rscript $<
 
 ../input/raw_zoning_data.geojson: ../../../data_raw/Boundaries_-_Zoning_Districts_20250910.geojson | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/zoning-code-summary-district-types.csv: ../../../data_raw/zoning-code-summary-district-types.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 
 link-inputs: ../input/raw_zoning_data.geojson ../input/zoning-code-summary-district-types.csv

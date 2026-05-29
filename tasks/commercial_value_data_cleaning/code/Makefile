@@ -4,7 +4,7 @@ all: ../output/multifamily_data_cleaned.csv
 	Rscript $<
 
 ../input/commercial_value_raw.csv: ../../download_commercial_valuation_data/output/commercial_valuation_data.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/commercial_value_raw.csv
 

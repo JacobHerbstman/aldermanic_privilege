@@ -1,12 +1,11 @@
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_segment_creation/code")
+
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
 library(data.table)
 library(sf)
-
-# Interactive run:
-# setwd("tasks/border_segment_creation/code")
-# source("build_boundary_segments.R")
 
 st_agr("constant")
 

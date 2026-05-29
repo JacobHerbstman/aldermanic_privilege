@@ -2,7 +2,10 @@
 
 Purpose: Builds canonical ward-pair boundary lines and raw boundary segments.
 
-Produces: `output/boundary_segments_1320ft.gpkg`, `output/boundary_segments_2640ft.gpkg`, `output/segment_classification.csv`, `output/ward_pair_boundaries.gpkg`, and related diagnostics.
+Produces:
+- `output/boundary_segments_1320ft.gpkg`
+- `output/segment_classification.csv`
+- `output/ward_pair_boundaries.gpkg`
 
 Segment rule:
 - Raw segments keep full ward-pair boundary coverage.
