@@ -8,21 +8,16 @@ source("../../_lib/border_pair_helpers.R")
 # bw_ft <- 500
 # sample_filter <- "multifamily"
 # gap_split <- "all"
-# output_pdf <- "../output/nonparametric_rd_log_density_far_bw500_multifamily_baseline_fe.pdf"
 # axis_units <- "feet"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(yvar, use_log, bw_ft, sample_filter, gap_split, output_pdf, axis_units)
+  args <- c(yvar, use_log, bw_ft, sample_filter, gap_split, axis_units)
 }
 
-if (length(args) == 6) {
-  args <- append(args, "all", after = 4)
-}
-
-if (length(args) != 7) {
+if (length(args) != 6) {
   stop(
-    "FATAL: Script requires args: <yvar> <use_log> <bw_ft> <sample_filter> <gap_split> <output_pdf> <axis_units>",
+    "FATAL: Script requires args: <yvar> <use_log> <bw_ft> <sample_filter> <gap_split> <axis_units>",
     call. = FALSE
   )
 }
@@ -32,8 +27,7 @@ use_log <- tolower(args[2]) %in% c("true", "t", "1", "yes")
 bw_ft <- as.numeric(args[3])
 sample_filter <- args[4]
 gap_split <- tolower(args[5])
-output_pdf <- args[6]
-axis_units <- tolower(args[7])
+axis_units <- tolower(args[6])
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -50,6 +44,15 @@ if (!gap_split %in% c("all", "above_median", "below_median")) {
 if (!axis_units %in% c("feet", "meters")) {
   stop("axis_units must be one of: feet, meters", call. = FALSE)
 }
+
+output_pdf <- sprintf(
+  "../output/nonparametric_rd_%s_%s_bw%d_%s_baseline_fe%s.pdf",
+  ifelse(use_log, "log", "level"),
+  yvar,
+  as.integer(bw_ft),
+  sample_filter,
+  ifelse(gap_split == "all", "", paste0("_gap_", gap_split))
+)
 
 rd_input_path <- Sys.getenv("RD_INPUT_PATH", "../input/parcels_with_ward_distances.csv")
 rd_summary_output_path <- Sys.getenv("RD_SUMMARY_OUTPUT_PATH", "")

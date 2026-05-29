@@ -9,7 +9,7 @@ all: $(TABLES)
 
 define TABLE_template
 ../output/fe_table_mcculloch_bw$(1)_$(2)_$(3)_clust_ward_pair.tex: border_pair_FE_regressions_mcculloch.R ../input/parcels_with_ward_distances.csv | ../output
-	CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions_mcculloch.R $(1) $(2) $(3) "$$@" $(MAIN_YVARS)
+	CLUSTER_LEVEL=ward_pair Rscript $$< $(1) $(2) $(3) $(MAIN_YVARS)
 endef
 
 $(foreach bw,$(BWS),$(foreach sample,$(SAMPLES),$(foreach fe,$(FE_SPECS),$(eval $(call TABLE_template,$(bw),$(sample),$(fe))))))

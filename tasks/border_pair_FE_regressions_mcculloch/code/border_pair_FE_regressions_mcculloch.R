@@ -3,7 +3,7 @@ source("../../_lib/border_pair_helpers.R")
 
 
 # ── 1) CLI ARGS ───────────────────────────────────────────────────────────────
-# arg order: bw_ft sample fe_spec output_filename yvar1 [yvar2 ...]
+# arg order: bw_ft sample fe_spec yvar1 [yvar2 ...]
 # sample: "all" (unitscount > 0) | "multifamily" (unitscount > 1)
 
 # --- Interactive Test Block ---
@@ -11,26 +11,24 @@ source("../../_lib/border_pair_helpers.R")
 # bw_ft <- "250"
 # sample_filter <- "all"
 # fe_spec <- "zonegroup_segment_year_additive"
-# output_filename <- "../output/fe_table_mcculloch_bw250_all_zonegroup_segment_year_additive_clust_ward_pair.tex"
 # yvar_1 <- "log(density_far)"
 # yvar_2 <- "log(density_dupac)"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(bw_ft, sample_filter, fe_spec, output_filename, yvar_1, yvar_2)
+  args <- c(bw_ft, sample_filter, fe_spec, yvar_1, yvar_2)
 }
 
-if (length(args) >= 5) {
+if (length(args) >= 4) {
   bw_arg <- args[1]
   sample_filter <- args[2]
   fe_spec <- args[3]
-  output_filename <- args[4]
-  yvars <- args[5:length(args)]
-  if (length(args) == 5 && grepl(",", args[5])) {
-    yvars <- strsplit(args[5], ",")[[1]] |> trimws()
+  yvars <- args[4:length(args)]
+  if (length(args) == 4 && grepl(",", args[4])) {
+    yvars <- strsplit(args[4], ",")[[1]] |> trimws()
   }
 } else {
-  stop("FATAL: Script requires args: <bw_ft> <sample> <fe_spec> <output_filename> <yvar1> [<yvar2> ...]", call. = FALSE)
+  stop("FATAL: Script requires args: <bw_ft> <sample> <fe_spec> <yvar1> [<yvar2> ...]", call. = FALSE)
 }
 
 bw_ft <- parse_bw_ft(bw_arg)
@@ -52,6 +50,14 @@ if (cluster_level_raw %in% c("ward_pair", "wardpair", "pair")) {
 } else {
   stop("CLUSTER_LEVEL must be one of: ward_pair, segment", call. = FALSE)
 }
+
+output_filename <- sprintf(
+  "../output/fe_table_mcculloch_bw%s_%s_%s_clust_%s.tex",
+  bw_label,
+  sample_filter,
+  fe_spec,
+  cluster_level
+)
 
 donut_ft_raw <- Sys.getenv("DONUT_FT", "0")
 donut_ft <- suppressWarnings(as.numeric(donut_ft_raw))

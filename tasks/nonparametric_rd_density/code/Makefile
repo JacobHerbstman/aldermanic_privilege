@@ -7,13 +7,13 @@ all: $(foreach bw,$(BW_FT),$(foreach sample,$(SAMPLES),$(foreach yvar,$(YVARS),.
 
 define FIGURE_RULE
 ../output/nonparametric_rd_log_$(1)_bw$(2)_$(3)_baseline_fe.pdf: nonparametric_rd_density.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript nonparametric_rd_density.R $(1) TRUE $(2) $(3) all $$@ feet
+	Rscript $$< $(1) TRUE $(2) $(3) all feet
 endef
 $(foreach yvar,$(YVARS),$(foreach bw,$(BW_FT),$(foreach sample,$(SAMPLES),$(eval $(call FIGURE_RULE,$(yvar),$(bw),$(sample))))))
 
 define GAP_RULE
 ../output/nonparametric_rd_log_$(1)_bw$(2)_$(3)_baseline_fe_gap_$(4).pdf: nonparametric_rd_density.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript nonparametric_rd_density.R $(1) TRUE $(2) $(3) $(4) $$@ feet
+	Rscript $$< $(1) TRUE $(2) $(3) $(4) feet
 endef
 $(foreach yvar,$(YVARS),$(foreach bw,$(BW_FT),$(foreach sample,$(SAMPLES),$(foreach gap,$(GAP_SPLITS),$(eval $(call GAP_RULE,$(yvar),$(bw),$(sample),$(gap)))))))
 
