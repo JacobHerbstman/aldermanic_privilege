@@ -1,5 +1,3 @@
-SHELL := bash
-
 MAX_APPLICATION_YM ?= 2022-12
 
 all: \

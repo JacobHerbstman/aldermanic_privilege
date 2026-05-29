@@ -1,5 +1,3 @@
-SHELL := bash
-
 MAIN_BW_M ?= 304.8
 MAIN_BW_LABEL ?= 1000ft
 

@@ -1,5 +1,3 @@
-SHELL := bash
-
 PTFE := TRUE
 RTFE := TRUE
 PORCH := TRUE

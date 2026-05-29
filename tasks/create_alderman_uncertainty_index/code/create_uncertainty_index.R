@@ -58,7 +58,7 @@ message("  VOLUME_CTRL: ", config$volume_ctrl)
 message("  VOLUME_STAGE: ", config$volume_stage)
 
 max_permit_month_raw <- Sys.getenv("MAX_PERMIT_MONTH", "")
-max_permit_year_raw <- Sys.getenv("MAX_PERMIT_YEAR", "")
+max_permit_year_raw <- Sys.getenv("MAX_PERMIT_YEAR", "2022")
 score_only <- tolower(Sys.getenv("SCORE_ONLY", "false")) %in% c("true", "1", "yes")
 
 if (nzchar(max_permit_month_raw)) {

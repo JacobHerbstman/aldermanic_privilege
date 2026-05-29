@@ -1,5 +1,3 @@
-SHELL := bash
-
 UNCERTAINTY_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
 
 all: ../output/predecessor_successor_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf \
