@@ -9,17 +9,14 @@ bins_per_side <- 10L
 sales <- read_parquet("../output/sales_with_hedonics_amenities.parquet") %>%
   as_tibble()
 
-if (!"signed_dist" %in% names(sales) && "signed_dist_m" %in% names(sales)) {
-  sales <- sales %>% mutate(signed_dist = signed_dist_m / 0.3048)
-}
-if (!"signed_dist" %in% names(sales)) {
-  stop("Sales input must include signed_dist in feet or signed_dist_m in meters.", call. = FALSE)
+if (!"signed_dist_m" %in% names(sales)) {
+  stop("Sales input must include signed_dist_m.", call. = FALSE)
 }
 
 sales <- sales %>%
   mutate(
     ward_pair = as.character(ward_pair_id),
-    signed_dist = as.numeric(signed_dist),
+    signed_dist = as.numeric(signed_dist_m) / 0.3048,
     right = as.integer(signed_dist >= 0)
   ) %>%
   filter(

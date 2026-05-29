@@ -1,8 +1,6 @@
 # sales_border_pair_fe
 
-Purpose: Handles sales border pair FE.
-
-The task reads the scored sales panel where `sale_price` is the winsorized 2022-dollar analysis price and `sale_price_nominal` preserves the source-dollar value for diagnostics.
+Purpose: Builds the sales price RD panel with amenity distances and the paper-facing sales RD plot.
 
 Produces:
 - `output/sales_with_hedonics_amenities.parquet`
