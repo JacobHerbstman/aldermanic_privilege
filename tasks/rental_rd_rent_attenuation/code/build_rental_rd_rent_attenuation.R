@@ -1,10 +1,8 @@
-# Build the listed-rent RD attenuation table from the characteristics panel.
-
 # --- Interactive Test Block ---
-# setwd("tasks/rental_rd_rent_attenuation/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_rent_attenuation/code")
 # bandwidth_ft <- 500
 
-source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
+source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -23,12 +21,6 @@ bandwidth_label <- as.character(as.integer(round(bandwidth_ft)))
 rent <- read_parquet(sprintf("../input/rental_rd_characteristics_panel_bw%s.parquet", bandwidth_label)) %>%
   as_tibble()
 
-sample_name <- "clean_location"
-sample_defs <- tibble::tribble(
-  ~sample, ~sample_label, ~filter_column,
-  "clean_location", "Clean location", "flag_clean_location_sample"
-)
-
 model_specs <- tibble::tribble(
   ~specification, ~spec_label, ~rhs,
   "no_controls_common", "No controls", "strictness_std",
@@ -36,87 +28,83 @@ model_specs <- tibble::tribble(
   "hedonic_amenity_common", "Hedonics + amenities", "amenity_rhs"
 )
 
-attenuation_rows <- list()
-for (i in seq_len(nrow(sample_defs))) {
-  sample_name <- sample_defs$sample[[i]]
-  sample_label <- sample_defs$sample_label[[i]]
-  filter_column <- sample_defs$filter_column[[i]]
-  d_sample <- rent
-  if (!is.na(filter_column)) {
-    if (!filter_column %in% names(d_sample)) {
-      stop(sprintf("Missing sample flag column: %s", filter_column), call. = FALSE)
-    }
-    d_sample <- d_sample %>% filter(.data[[filter_column]])
-  }
-  d_sample <- d_sample %>%
-    filter(
-      is.finite(log_sqft),
-      is.finite(log_beds),
-      is.finite(log_baths),
-      if_all(
-        all_of(c(
-          "nearest_school_dist_kft",
-          "nearest_park_dist_kft",
-          "nearest_major_road_dist_kft",
-          "nearest_cta_stop_dist_kft",
-          "lake_michigan_dist_kft"
-        )),
-        is.finite
-      )
-    ) %>%
-    mutate(strictness_std = strictness_own / sd(strictness_own, na.rm = TRUE))
+sample_name <- "clean_location"
+sample_label <- "Clean location"
+filter_column <- "flag_clean_location_sample"
+if (!filter_column %in% names(rent)) {
+  stop(sprintf("Missing sample flag column: %s", filter_column), call. = FALSE)
+}
 
-  if (nrow(d_sample) < 100 || n_distinct(d_sample$segment_id) < 2 || n_distinct(d_sample$strictness_std) < 2) {
-    next
-  }
-
-  rhs_values <- c(
-    hedonic_rhs = "strictness_std + log_sqft + log_beds + log_baths",
-    amenity_rhs = paste(
-      "strictness_std + log_sqft + log_beds + log_baths",
-      "nearest_school_dist_kft",
-      "nearest_park_dist_kft",
-      "nearest_major_road_dist_kft",
-      "nearest_cta_stop_dist_kft",
-      "lake_michigan_dist_kft",
-      sep = " + "
+d_sample <- rent %>%
+  filter(.data[[filter_column]]) %>%
+  filter(
+    is.finite(log_sqft),
+    is.finite(log_beds),
+    is.finite(log_baths),
+    if_all(
+      all_of(c(
+        "nearest_school_dist_kft",
+        "nearest_park_dist_kft",
+        "nearest_major_road_dist_kft",
+        "nearest_cta_stop_dist_kft",
+        "lake_michigan_dist_kft"
+      )),
+      is.finite
     )
+  ) %>%
+  mutate(strictness_std = strictness_own / sd(strictness_own, na.rm = TRUE))
+
+if (nrow(d_sample) < 100 || n_distinct(d_sample$segment_id) < 2 || n_distinct(d_sample$strictness_std) < 2) {
+  stop("Clean-location rent attenuation sample has insufficient support.", call. = FALSE)
+}
+
+rhs_values <- c(
+  hedonic_rhs = "strictness_std + log_sqft + log_beds + log_baths",
+  amenity_rhs = paste(
+    "strictness_std + log_sqft + log_beds + log_baths",
+    "nearest_school_dist_kft",
+    "nearest_park_dist_kft",
+    "nearest_major_road_dist_kft",
+    "nearest_cta_stop_dist_kft",
+    "lake_michigan_dist_kft",
+    sep = " + "
   )
-  if (n_distinct(d_sample$building_type_factor) > 1) {
-    rhs_values["hedonic_rhs"] <- paste0(rhs_values["hedonic_rhs"], " + building_type_factor")
-    rhs_values["amenity_rhs"] <- paste0(rhs_values["amenity_rhs"], " + building_type_factor")
-  }
+)
+if (n_distinct(d_sample$building_type_factor) > 1) {
+  rhs_values["hedonic_rhs"] <- paste0(rhs_values["hedonic_rhs"], " + building_type_factor")
+  rhs_values["amenity_rhs"] <- paste0(rhs_values["amenity_rhs"], " + building_type_factor")
+}
 
-  for (j in seq_len(nrow(model_specs))) {
-    rhs <- if (model_specs$rhs[j] %in% names(rhs_values)) {
-      rhs_values[[model_specs$rhs[j]]]
-    } else {
-      model_specs$rhs[j]
-    }
-    model <- feols(
-      as.formula(paste0("log(rent_price) ~ ", rhs, " | segment_id^year_month")),
-      data = d_sample,
-      cluster = ~segment_id
-    )
-    if (!"strictness_std" %in% names(coef(model))) {
-      stop(sprintf("RD attenuation model failed to estimate strictness_std for %s / %s.", sample_name, model_specs$specification[j]), call. = FALSE)
-    }
-    attenuation_rows[[length(attenuation_rows) + 1]] <- tibble(
-      sample = sample_name,
-      sample_label = sample_label,
-      specification = model_specs$specification[j],
-      spec_label = model_specs$spec_label[j],
-      estimate = coef(model)[["strictness_std"]],
-      std_error = se(model)[["strictness_std"]],
-      p_value = pvalue(model)[["strictness_std"]],
-      n_obs = model$nobs,
-      n_segments = n_distinct(d_sample$segment_id),
-      n_ward_pairs = n_distinct(d_sample$ward_pair),
-      dep_var_mean = mean(d_sample$rent_price, na.rm = TRUE),
-      bandwidth_ft = bandwidth_ft,
-      common_sample = TRUE
-    )
+attenuation_rows <- vector("list", nrow(model_specs))
+for (j in seq_len(nrow(model_specs))) {
+  rhs <- if (model_specs$rhs[j] %in% names(rhs_values)) {
+    rhs_values[[model_specs$rhs[j]]]
+  } else {
+    model_specs$rhs[j]
   }
+  model <- feols(
+    as.formula(paste0("log(rent_price) ~ ", rhs, " | segment_id^year_month")),
+    data = d_sample,
+    cluster = ~segment_id
+  )
+  if (!"strictness_std" %in% names(coef(model))) {
+    stop(sprintf("RD attenuation model failed to estimate strictness_std for %s / %s.", sample_name, model_specs$specification[j]), call. = FALSE)
+  }
+  attenuation_rows[[j]] <- tibble(
+    sample = sample_name,
+    sample_label = sample_label,
+    specification = model_specs$specification[j],
+    spec_label = model_specs$spec_label[j],
+    estimate = coef(model)[["strictness_std"]],
+    std_error = se(model)[["strictness_std"]],
+    p_value = pvalue(model)[["strictness_std"]],
+    n_obs = model$nobs,
+    n_segments = n_distinct(d_sample$segment_id),
+    n_ward_pairs = n_distinct(d_sample$ward_pair),
+    dep_var_mean = mean(d_sample$rent_price, na.rm = TRUE),
+    bandwidth_ft = bandwidth_ft,
+    common_sample = TRUE
+  )
 }
 
 attenuation <- bind_rows(attenuation_rows) %>%

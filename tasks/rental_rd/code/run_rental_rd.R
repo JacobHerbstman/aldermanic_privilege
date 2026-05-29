@@ -1,58 +1,36 @@
 # --- Interactive Test Block ---
-# setwd("tasks/rental_rd/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd/code")
 # bandwidth_ft <- 500
-# sample <- "all"
-# use_controls <- TRUE
 # bins_per_side <- 15
 
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(bandwidth_ft, sample, use_controls, bins_per_side)
+  cli_args <- c(bandwidth_ft, bins_per_side)
 }
-if (length(cli_args) != 4) {
-  stop("FATAL: Script requires 4 args: <bandwidth_ft> <sample> <use_controls> <bins_per_side>", call. = FALSE)
+if (length(cli_args) != 2) {
+  stop("FATAL: Script requires 2 args: <bandwidth_ft> <bins_per_side>", call. = FALSE)
 }
 
 bandwidth_ft <- as.numeric(cli_args[1])
-sample <- cli_args[2]
-use_controls <- tolower(cli_args[3]) %in% c("true", "t", "1", "yes")
-bins_per_side <- as.integer(cli_args[4])
+bins_per_side <- as.integer(cli_args[2])
 
 if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
   stop("bandwidth_ft must be positive.", call. = FALSE)
-}
-valid_samples <- c(
-  "all",
-  "multifamily_only",
-  "clean_location",
-  "no_modal_pair_change",
-  "no_modal_ward_change",
-  "no_questionable_address"
-)
-if (!sample %in% valid_samples) {
-  stop(sprintf("sample must be one of: %s.", paste(valid_samples, collapse = ", ")), call. = FALSE)
 }
 if (!is.finite(bins_per_side) || bins_per_side <= 0) {
   stop("bins_per_side must be positive.", call. = FALSE)
 }
 
-control_label <- if (use_controls) "controls" else "no_controls"
 output_pdf <- sprintf(
-  "../output/rental_rd_flat_bw%.0f_2014_2022_%s_%s.pdf",
-  bandwidth_ft,
-  sample,
-  control_label
+  "../output/rental_rd_flat_bw%.0f_2014_2022_all_controls.pdf",
+  bandwidth_ft
 )
 
-if (use_controls) {
-  rent <- read_parquet(sprintf("../input/rental_rd_characteristics_panel_bw%.0f.parquet", bandwidth_ft)) %>%
-    as_tibble()
-} else {
-  rent <- read_parquet("../input/rent_with_ward_distances.parquet") %>%
-    as_tibble()
-}
+rent <- read_parquet(sprintf("../input/rental_rd_characteristics_panel_bw%.0f.parquet", bandwidth_ft)) %>%
+  as_tibble()
+
 if (!"rent_panel_id" %in% names(rent)) {
   stop("Rental RD input must include rent_panel_id.", call. = FALSE)
 }
@@ -100,71 +78,29 @@ rent <- rent %>%
     !is.na(ward_pair)
   )
 
-for (flag_col in c(
-  "flag_location_questionable",
-  "flag_modal_assignment_missing",
-  "flag_modal_changes_ward",
-  "flag_modal_changes_neighbor_ward",
-  "flag_modal_changes_pair",
-  "flag_modal_dist_diff_gt100ft"
-)) {
-  if (!flag_col %in% names(rent)) {
-    rent[[flag_col]] <- FALSE
-  }
-  rent[[flag_col]] <- coalesce(as.logical(rent[[flag_col]]), FALSE)
-}
-
 rent <- rent %>%
   mutate(
-    flag_clean_location_sample = !flag_location_questionable &
-      !flag_modal_assignment_missing &
-      !flag_modal_changes_ward &
-      !flag_modal_changes_neighbor_ward &
-      !flag_modal_changes_pair &
-      !flag_modal_dist_diff_gt100ft,
-    flag_no_modal_pair_change_sample = !flag_modal_assignment_missing & !flag_modal_changes_pair,
-    flag_no_modal_ward_change_sample = !flag_modal_assignment_missing &
-      !flag_modal_changes_ward &
-      !flag_modal_changes_neighbor_ward,
-    flag_no_questionable_address_sample = !flag_location_questionable
-  )
-
-if (sample == "multifamily_only") {
-  rent <- rent %>% filter(building_type_clean == "multi_family")
-} else if (sample == "clean_location") {
-  rent <- rent %>% filter(flag_clean_location_sample)
-} else if (sample == "no_modal_pair_change") {
-  rent <- rent %>% filter(flag_no_modal_pair_change_sample)
-} else if (sample == "no_modal_ward_change") {
-  rent <- rent %>% filter(flag_no_modal_ward_change_sample)
-} else if (sample == "no_questionable_address") {
-  rent <- rent %>% filter(flag_no_questionable_address_sample)
-}
-if (use_controls) {
-  rent <- rent %>%
-    mutate(
-      nearest_school_dist_kft = nearest_school_dist_ft / 1000,
-      nearest_park_dist_kft = nearest_park_dist_ft / 1000,
-      nearest_major_road_dist_kft = nearest_major_road_dist_ft / 1000,
-      nearest_cta_stop_dist_kft = nearest_cta_stop_dist_ft / 1000,
-      lake_michigan_dist_kft = lake_michigan_dist_ft / 1000
-    ) %>%
-    filter(
-      !is.na(log_sqft),
-      !is.na(log_beds),
-      !is.na(log_baths),
-      if_all(
-        all_of(c(
-          "nearest_school_dist_kft",
-          "nearest_park_dist_kft",
-          "nearest_major_road_dist_kft",
-          "nearest_cta_stop_dist_kft",
-          "lake_michigan_dist_kft"
-        )),
-        is.finite
-      )
+    nearest_school_dist_kft = nearest_school_dist_ft / 1000,
+    nearest_park_dist_kft = nearest_park_dist_ft / 1000,
+    nearest_major_road_dist_kft = nearest_major_road_dist_ft / 1000,
+    nearest_cta_stop_dist_kft = nearest_cta_stop_dist_ft / 1000,
+    lake_michigan_dist_kft = lake_michigan_dist_ft / 1000
+  ) %>%
+  filter(
+    !is.na(log_sqft),
+    !is.na(log_beds),
+    !is.na(log_baths),
+    if_all(
+      all_of(c(
+        "nearest_school_dist_kft",
+        "nearest_park_dist_kft",
+        "nearest_major_road_dist_kft",
+        "nearest_cta_stop_dist_kft",
+        "lake_michigan_dist_kft"
+      )),
+      is.finite
     )
-}
+  )
 
 if (nrow(rent) == 0) {
   stop("No rental observations remain after RD filtering.", call. = FALSE)
@@ -176,22 +112,19 @@ if (n_distinct(rent$right) < 2) {
   stop("RD sample does not contain both sides of stricter/lenient borders.", call. = FALSE)
 }
 
-rhs <- "right"
-if (use_controls) {
-  rhs <- "right + log_sqft + log_beds + log_baths"
-  if (n_distinct(rent$building_type_factor) > 1) {
-    rhs <- paste(rhs, "+ building_type_factor")
-  }
-  rhs <- paste(
-    rhs,
-    "nearest_school_dist_kft",
-    "nearest_park_dist_kft",
-    "nearest_major_road_dist_kft",
-    "nearest_cta_stop_dist_kft",
-    "lake_michigan_dist_kft",
-    sep = " + "
-  )
+rhs <- "right + log_sqft + log_beds + log_baths"
+if (n_distinct(rent$building_type_factor) > 1) {
+  rhs <- paste(rhs, "+ building_type_factor")
 }
+rhs <- paste(
+  rhs,
+  "nearest_school_dist_kft",
+  "nearest_park_dist_kft",
+  "nearest_major_road_dist_kft",
+  "nearest_cta_stop_dist_kft",
+  "lake_michigan_dist_kft",
+  sep = " + "
+)
 fml <- as.formula(paste0("log(rent_price) ~ ", rhs, " | segment_id^year_month"))
 
 model <- feols(fml, data = rent, cluster = ~segment_id)
