@@ -70,30 +70,21 @@ ward_geoms_map2 <- ward_panel %>%
   group_by(ward) %>%
   summarise(.groups = "drop")
 
-permits_p1 <- permits %>%
-  filter(application_start_date_ym < as.yearmon("2015-05"))
-permits_p2 <- permits %>%
-  filter(application_start_date_ym >= as.yearmon("2015-05"))
-
-if (nrow(permits_p1) == 0) {
-  permits_with_ward_p1 <- permits_p1 %>% st_drop_geometry()
-} else {
-  permits_with_ward_p1 <- st_join(permits_p1, ward_geoms_map1, join = st_within) %>%
-    filter(!is.na(ward)) %>%
-    st_drop_geometry()
-}
-
-if (nrow(permits_p2) == 0) {
-  permits_with_ward_p2 <- permits_p2 %>% st_drop_geometry()
-} else {
-  permits_with_ward_p2 <- st_join(permits_p2, ward_geoms_map2, join = st_within) %>%
-    filter(!is.na(ward)) %>%
-    st_drop_geometry()
-}
+permit_eras <- list(
+  list(permits = permits %>% filter(application_start_date_ym < as.yearmon("2015-05")), wards = ward_geoms_map1),
+  list(permits = permits %>% filter(application_start_date_ym >= as.yearmon("2015-05")), wards = ward_geoms_map2)
+)
 
 permits_with_ward <- bind_rows(
-  permits_with_ward_p1,
-  permits_with_ward_p2
+  lapply(permit_eras, function(era) {
+    if (nrow(era$permits) == 0) {
+      return(era$permits %>% st_drop_geometry())
+    }
+
+    st_join(era$permits, era$wards, join = st_within) %>%
+      filter(!is.na(ward)) %>%
+      st_drop_geometry()
+  })
 )
 if (anyDuplicated(permits_with_ward$id) > 0) {
   stop("Ward spatial join assigned at least one permit to multiple wards.", call. = FALSE)
