@@ -24,8 +24,6 @@ if (length(cli_args) != 1) {
 }
 sample <- cli_args[1]
 run_sample <- as.logical(sample)
-write_diagnostics <- tolower(Sys.getenv("WRITE_SALES_DISTANCE_DIAGNOSTICS", "0")) %in% c("1", "true", "yes")
-diagnostics_dir <- Sys.getenv("SALES_DISTANCE_DIAGNOSTICS_DIR", "../output")
 
 load_cpi_deflator <- function(start_date,
                               end_date,
@@ -466,12 +464,6 @@ if (sum(geometry_contract_audit$n_ward_mismatch, na.rm = TRUE) > 0 ||
     stop("Sales geometry contract audit failed inside 500ft.", call. = FALSE)
 }
 
-if (write_diagnostics) {
-    write_csv(ward_hit_audit, file.path(diagnostics_dir, "sales_ward_hit_multiplicity_audit.csv"))
-    write_csv(ward_hit_detail, file.path(diagnostics_dir, "sales_ward_hit_multiplicity_detail.csv"))
-    write_csv(geometry_contract_audit, file.path(diagnostics_dir, "sales_geometry_contract_audit.csv"))
-}
-
 # -----------------------------------------------------------------------------
 # 7. POST-PROCESS: ALDERMAN LOOKUPS (PRE-SCORES)
 # -----------------------------------------------------------------------------
@@ -538,61 +530,4 @@ output_path <- sprintf("../output/sales_pre_scores%s.csv", suffix)
 
 write_csv(final_output, output_path)
 
-sales_geometry_diagnostics <- bind_rows(
-    tibble(
-        scope = "overall",
-        boundary_year = NA_integer_,
-        metric = c(
-            "n_sales_raw",
-            "n_sales_market_filtered",
-            "n_missing_coords_after_pin",
-            "n_missing_coords_after_pin10",
-            "n_geolocated_sales",
-            "n_with_ward_pair"
-        ),
-        value = c(
-            n_sales_raw,
-            n_sales_market_filtered,
-            missing_coords,
-            if (exists("remaining_missing")) remaining_missing else missing_coords,
-            n_geolocated_sales,
-            nrow(final_output)
-        )
-    ),
-    final_output %>%
-        summarise(
-            n_obs = n(),
-            mean_dist_m = mean(dist_m, na.rm = TRUE),
-            median_dist_m = median(dist_m, na.rm = TRUE),
-            .by = boundary_year
-        ) %>%
-        pivot_longer(
-            cols = c(n_obs, mean_dist_m, median_dist_m),
-            names_to = "metric",
-            values_to = "value"
-        ) %>%
-        mutate(scope = "boundary_year") %>%
-        select(scope, boundary_year, metric, value)
-)
-
-if (write_diagnostics) {
-    write_csv(
-        sales_geometry_diagnostics,
-        file.path(diagnostics_dir, sprintf("sales_geometry_diagnostics%s.csv", suffix))
-    )
-}
-
 message(sprintf("Done! Saved %s rows to %s", format(nrow(final_output), big.mark = ","), output_path))
-
-# Summary stats
-summary_stats <- final_output %>%
-    group_by(year) %>%
-    summarise(
-        n_sales = n(),
-        mean_price = mean(sale_price, na.rm = TRUE),
-        mean_dist_m = mean(dist_m, na.rm = TRUE),
-        .groups = "drop"
-    )
-
-message("\nSummary by year:")
-print(summary_stats)

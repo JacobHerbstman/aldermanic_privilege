@@ -18,8 +18,6 @@ if (length(cli_args) != 1) {
 }
 sample <- cli_args[1]
 run_sample <- as.logical(sample)
-write_diagnostics <- tolower(Sys.getenv("WRITE_RENT_DISTANCE_DIAGNOSTICS", "0")) %in% c("1", "true", "yes")
-diagnostics_dir <- Sys.getenv("RENT_DISTANCE_DIAGNOSTICS_DIR", "../output")
 
 load_cpi_deflator <- function(start_date,
                               end_date,
@@ -151,25 +149,11 @@ process_batch <- function(df_batch) {
       )
     )
 
-  n_input <- nrow(df_batch)
-  n_valid_coords <- sum(
-    is.finite(df_batch$geometry_latitude) &
-      is.finite(df_batch$geometry_longitude) &
-      !is.na(df_batch$file_date)
-  )
-
   df_batch <- df_batch %>%
     filter(is.finite(geometry_latitude), is.finite(geometry_longitude), !is.na(file_date))
 
   if (nrow(df_batch) == 0) {
-    return(list(
-      data = NULL,
-      diagnostics = tibble(
-        n_input = n_input,
-        n_valid_coords = n_valid_coords,
-        n_with_ward_pair = 0L
-      )
-    ))
+    return(NULL)
   }
 
   pts <- st_as_sf(df_batch, coords = c("geometry_longitude", "geometry_latitude"), crs = 4326) %>%
@@ -190,14 +174,7 @@ process_batch <- function(df_batch) {
   out <- bind_cols(pts, boundary_assignments) %>%
     filter(!is.na(ward), !is.na(ward_pair_id))
 
-  list(
-    data = out,
-    diagnostics = tibble(
-      n_input = n_input,
-      n_valid_coords = n_valid_coords,
-      n_with_ward_pair = nrow(out)
-    )
-  )
+  out
 }
 
 # -----------------------------------------------------------------------------
@@ -218,7 +195,6 @@ quality_cols <- setdiff(
 
 years <- 2014:2022
 results_list <- list()
-batch_diag_list <- list()
 
 if (run_sample) {
   message("RUNNING ON SAMPLE MODE (1% by year)")
@@ -277,11 +253,10 @@ for (i in seq_along(years)) {
 
   # Process chunk
   if (nrow(df_chunk) > 0) {
-    res <- process_batch(df_chunk)
-    if (!is.null(res$data)) {
-      results_list[[length(results_list) + 1]] <- res$data
+    processed_chunk <- process_batch(df_chunk)
+    if (!is.null(processed_chunk)) {
+      results_list[[length(results_list) + 1]] <- processed_chunk
     }
-    batch_diag_list[[length(batch_diag_list) + 1]] <- mutate(res$diagnostics, year = yr)
   }
 
   gc()
@@ -293,7 +268,6 @@ if (length(results_list) == 0) {
   stop("No rental observations received a ward-pair assignment.", call. = FALSE)
 }
 results_sf <- bind_rows(results_list)
-batch_diagnostics <- bind_rows(batch_diag_list)
 
 suffix <- if (run_sample) "_sample" else "_full"
 output_path <- sprintf("../output/rent_pre_scores%s.parquet", suffix)
@@ -436,11 +410,6 @@ if (sum(geometry_contract_audit$n_ward_mismatch, na.rm = TRUE) > 0 ||
   stop("Geometry contract audit failed inside 500ft.", call. = FALSE)
 }
 
-if (write_diagnostics) {
-  write_csv(ward_hit_audit, file.path(diagnostics_dir, sprintf("rent_ward_hit_multiplicity_audit%s.csv", suffix)))
-  write_csv(geometry_contract_audit, file.path(diagnostics_dir, sprintf("rent_geometry_contract_audit%s.csv", suffix)))
-}
-
 message("Auditing modal-coordinate sensitivity inside 500ft...")
 modal_base <- final_df %>%
   filter(
@@ -529,10 +498,6 @@ if (nrow(modal_base) > 0) {
   )
 }
 
-if (write_diagnostics) {
-  write_csv(modal_sensitivity, file.path(diagnostics_dir, sprintf("rent_modal_coordinate_sensitivity%s.csv", suffix)))
-}
-
 modal_flags <- modal_sensitivity %>%
   transmute(
     rent_panel_id,
@@ -587,67 +552,6 @@ final_df <- final_df %>%
       flag_modal_dist_diff_gt100ft,
     dist_ft_for_audit = dist_m / 0.3048
   )
-
-rd_location_scopes <- bind_rows(
-  final_df %>% mutate(rd_scope = "all_assigned"),
-  final_df %>% filter(is.finite(dist_ft_for_audit), dist_ft_for_audit <= 1000) %>% mutate(rd_scope = "within_1000ft"),
-  final_df %>% filter(is.finite(dist_ft_for_audit), dist_ft_for_audit <= 500) %>% mutate(rd_scope = "within_500ft")
-)
-rd_location_quality_summary <- rd_location_scopes %>%
-  summarise(
-    n_rows = n(),
-    n_address_stems = n_distinct(address_stem, na.rm = TRUE),
-    n_location_questionable = sum(flag_location_questionable, na.rm = TRUE),
-    share_location_questionable = mean(flag_location_questionable, na.rm = TRUE),
-    n_rd_location_questionable = sum(flag_rd_location_questionable, na.rm = TRUE),
-    share_rd_location_questionable = mean(flag_rd_location_questionable, na.rm = TRUE),
-    n_manual_location_verified = sum(flag_manual_location_verified, na.rm = TRUE),
-    share_manual_location_verified = mean(flag_manual_location_verified, na.rm = TRUE),
-    n_modal_checked = sum(flag_modal_sensitivity_checked, na.rm = TRUE),
-    n_modal_changes_ward = sum(flag_modal_changes_ward, na.rm = TRUE),
-    n_modal_changes_pair = sum(flag_modal_changes_pair, na.rm = TRUE),
-    n_modal_dist_diff_gt100ft = sum(flag_modal_dist_diff_gt100ft, na.rm = TRUE),
-    .by = rd_scope
-  ) %>%
-  arrange(factor(rd_scope, levels = c("all_assigned", "within_1000ft", "within_500ft")))
-if (write_diagnostics) {
-  write_csv(rd_location_quality_summary, file.path(diagnostics_dir, sprintf("rent_rd_location_quality_summary%s.csv", suffix)))
-}
-
-rd_questionable_addresses <- final_df %>%
-  filter(
-    is.finite(dist_ft_for_audit),
-    dist_ft_for_audit <= 500,
-    flag_rd_location_questionable
-  ) %>%
-  summarise(
-    n_rows = n(),
-    n_months = n_distinct(format(file_date, "%Y-%m")),
-    first_seen = min(file_date, na.rm = TRUE),
-    last_seen = max(file_date, na.rm = TRUE),
-    n_ward_pairs = n_distinct(ward_pair_id, na.rm = TRUE),
-    ward_pairs = paste(sort(unique(ward_pair_id)), collapse = "|"),
-    n_wards = n_distinct(ward, na.rm = TRUE),
-    wards = paste(sort(unique(ward)), collapse = "|"),
-    min_dist_ft = min(dist_ft_for_audit, na.rm = TRUE),
-    median_dist_ft = median(dist_ft_for_audit, na.rm = TRUE),
-    max_dist_ft = max(dist_ft_for_audit, na.rm = TRUE),
-    n_location_questionable = sum(flag_location_questionable, na.rm = TRUE),
-    n_modal_assignment_missing = sum(flag_modal_assignment_missing, na.rm = TRUE),
-    n_modal_changes_ward = sum(flag_modal_changes_ward, na.rm = TRUE),
-    n_modal_changes_pair = sum(flag_modal_changes_pair, na.rm = TRUE),
-    n_modal_dist_diff_gt100ft = sum(flag_modal_dist_diff_gt100ft, na.rm = TRUE),
-    n_manual_location_verified = sum(flag_manual_location_verified, na.rm = TRUE),
-    location_quality_status = paste(sort(unique(location_quality_status)), collapse = "|"),
-    primary_location_share = suppressWarnings(max(primary_location_share, na.rm = TRUE)),
-    second_location_share = suppressWarnings(max(second_location_share, na.rm = TRUE)),
-    primary_second_distance_ft = suppressWarnings(max(primary_second_distance_ft, na.rm = TRUE)),
-    .by = address_stem
-  ) %>%
-  arrange(desc(n_rows), address_stem)
-if (write_diagnostics) {
-  write_csv(rd_questionable_addresses, file.path(diagnostics_dir, sprintf("rent_rd_location_questionable_addresses%s.csv", suffix)))
-}
 
 # 6a. Attach Alderman (Own & Neighbor)
 # We need to lookup who was alderman at [ward, file_date]
@@ -742,90 +646,5 @@ final_df <- final_df %>%
 # 8. SAVE
 # -----------------------------------------------------------------------------
 write_parquet(final_df, output_path)
-
-modal_diagnostics <- modal_sensitivity %>%
-  summarise(
-    n_modal_checked_within_500ft = n(),
-    n_modal_assignment_missing = sum(flag_modal_assignment_missing, na.rm = TRUE),
-    n_modal_changes_ward = sum(flag_modal_changes_ward, na.rm = TRUE),
-    n_modal_changes_neighbor_ward = sum(flag_modal_changes_neighbor_ward, na.rm = TRUE),
-    n_modal_changes_pair = sum(flag_modal_changes_pair, na.rm = TRUE),
-    n_modal_dist_diff_gt100ft = sum(flag_modal_dist_diff_gt100ft, na.rm = TRUE)
-  ) %>%
-  pivot_longer(everything(), names_to = "metric", values_to = "value") %>%
-  mutate(scope = "modal_coordinate_sensitivity", boundary_year = NA_integer_, year = NA_integer_) %>%
-  select(scope, boundary_year, year, metric, value)
-
-address_location_diagnostics <- final_df %>%
-  summarise(
-    n_address_location_unstable = sum(flag_address_location_unstable, na.rm = TRUE),
-    n_address_location_unstable_cluster = sum(flag_address_location_unstable_cluster, na.rm = TRUE),
-    n_address_location_fix_candidates = sum(flag_address_location_fix_candidate, na.rm = TRUE),
-    n_manual_location_verified = sum(flag_manual_location_verified, na.rm = TRUE),
-    n_manual_location_exclude = sum(flag_manual_location_exclude, na.rm = TRUE),
-    n_geometry_location_corrections = sum(flag_geometry_uses_address_location_correction, na.rm = TRUE),
-    n_distance_to_primary_location_gt100ft = sum(flag_distance_to_primary_location_gt100ft, na.rm = TRUE),
-    n_distance_to_primary_location_gt200ft = sum(flag_distance_to_primary_location_gt200ft, na.rm = TRUE),
-    n_distance_to_corrected_location_gt100ft = sum(flag_distance_to_corrected_location_gt100ft, na.rm = TRUE),
-    n_distance_to_corrected_location_gt200ft = sum(flag_distance_to_corrected_location_gt200ft, na.rm = TRUE)
-  ) %>%
-  pivot_longer(everything(), names_to = "metric", values_to = "value") %>%
-  mutate(scope = "address_location_quality", boundary_year = NA_integer_, year = NA_integer_) %>%
-  select(scope, boundary_year, year, metric, value)
-
-rent_geometry_diagnostics <- bind_rows(
-  tibble(
-    scope = "overall",
-    boundary_year = NA_integer_,
-	    metric = c(
-	      "n_rows_read",
-	      "n_valid_coords",
-	      "n_with_ward_pair",
-	      "n_missing_own_alderman",
-	      "n_missing_neighbor_alderman"
-	    ),
-	    value = c(
-	      sum(batch_diagnostics$n_input),
-	      sum(batch_diagnostics$n_valid_coords),
-	      sum(batch_diagnostics$n_with_ward_pair),
-	      missing_aldermen$missing_own,
-	      missing_aldermen$missing_neighbor
-	    )
-	  ),
-  batch_diagnostics %>%
-    summarise(
-      n_rows_read = sum(n_input),
-      n_valid_coords = sum(n_valid_coords),
-      n_with_ward_pair = sum(n_with_ward_pair),
-      .by = year
-    ) %>%
-    pivot_longer(
-      cols = c(n_rows_read, n_valid_coords, n_with_ward_pair),
-      names_to = "metric",
-      values_to = "value"
-    ) %>%
-    mutate(scope = "calendar_year", boundary_year = NA_integer_) %>%
-    select(scope, boundary_year, year, metric, value),
-  final_df %>%
-    summarise(
-      n_obs = n(),
-      mean_dist_m = mean(dist_m, na.rm = TRUE),
-      median_dist_m = median(dist_m, na.rm = TRUE),
-      .by = boundary_year
-    ) %>%
-    pivot_longer(
-      cols = c(n_obs, mean_dist_m, median_dist_m),
-      names_to = "metric",
-      values_to = "value"
-    ) %>%
-    mutate(scope = "boundary_year", year = NA_integer_) %>%
-    select(scope, boundary_year, year, metric, value),
-  modal_diagnostics,
-  address_location_diagnostics
-)
-
-if (write_diagnostics) {
-  write_csv(rent_geometry_diagnostics, file.path(diagnostics_dir, sprintf("rent_geometry_diagnostics%s.csv", suffix)))
-}
 
 message("Done! Saved ", nrow(final_df), " rows to ", output_path)
