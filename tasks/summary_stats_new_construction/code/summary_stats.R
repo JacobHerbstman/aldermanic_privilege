@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/summary_stats_new_construction/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/summary_stats_new_construction/code")
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
