@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/run_event_study_permit/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
 # outcome_family <- "high_discretion"
 # treatment_type <- "continuous"
 # bandwidth <- 304.8
@@ -35,19 +35,16 @@ if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
   stop("bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
 
-outcome_catalog <- tibble(
-  outcome_family = c("high_discretion", "low_discretion_nosigns"),
-  count_var = c("n_high_discretion_issue", "n_low_discretion_nosigns_issue"),
-  count_label = c("issued high-discretion permits", "issued low-discretion permits (excluding signs)")
-)
-
-outcome_row <- outcome_catalog %>%
-  filter(.data$outcome_family == .env$outcome_family)
-if (nrow(outcome_row) != 1) {
-  stop("Failed to resolve permit outcome selector.", call. = FALSE)
+base_outcome_var <- if (outcome_family == "high_discretion") {
+  "n_high_discretion_issue"
+} else {
+  "n_low_discretion_nosigns_issue"
 }
-base_outcome_var <- outcome_row$count_var[[1]]
-outcome_label <- outcome_row$count_label[[1]]
+outcome_label <- if (outcome_family == "high_discretion") {
+  "issued high-discretion permits"
+} else {
+  "issued low-discretion permits (excluding signs)"
+}
 suffix <- sprintf(
   "yearly_cohort_2015_%s_issue_ppml_%s_uniform_%s_within_block_full_clust_block_geo_wardpair",
   outcome_family,
@@ -77,7 +74,6 @@ if (missing_score_rows > 0L) {
 data <- data %>%
   mutate(
     outcome_estimation = .data[[base_outcome_var]],
-    weight = 1,
     treatment_stricter_continuous = pmax(strictness_change, 0),
     treatment_lenient_continuous = pmax(-strictness_change, 0)
   )
@@ -110,7 +106,6 @@ if (treatment_type == "continuous") {
       fe_formula
     )),
     data = data,
-    weights = ~weight,
     cluster = cluster_formula
   )
 
@@ -175,7 +170,6 @@ if (treatment_type == "continuous") {
       fe_formula
     )),
     data = data,
-    weights = ~weight,
     cluster = cluster_formula
   )
   model_lenient <- fepois(
@@ -184,7 +178,6 @@ if (treatment_type == "continuous") {
       fe_formula
     )),
     data = data,
-    weights = ~weight,
     cluster = cluster_formula
   )
 

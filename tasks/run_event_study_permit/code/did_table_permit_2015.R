@@ -1,6 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/run_event_study_permit/code")
-# outcome_family <- "high_discretion"
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
 # bandwidth <- 304.8
 # bandwidth_label <- "1000ft"
 
@@ -8,20 +7,16 @@ source("../../setup_environment/code/packages.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
-  args <- c(outcome_family, bandwidth, bandwidth_label)
+  args <- c(bandwidth, bandwidth_label)
 }
 
-if (length(args) != 3) {
-  stop("FATAL: Script requires args: <outcome_family> <bandwidth> <bandwidth_label>", call. = FALSE)
+if (length(args) != 2) {
+  stop("FATAL: Script requires args: <bandwidth> <bandwidth_label>", call. = FALSE)
 }
 
-outcome_family <- args[1]
-bandwidth <- as.numeric(args[2])
-bandwidth_label <- args[3]
+bandwidth <- as.numeric(args[1])
+bandwidth_label <- args[2]
 
-if (!outcome_family %in% c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase")) {
-  stop("outcome_family must be one of: new_construction, new_construction_demolition, low_discretion_nosigns, high_discretion, unit_increase", call. = FALSE)
-}
 if (!is.finite(bandwidth) || bandwidth <= 0) {
   stop("bandwidth must be positive.", call. = FALSE)
 }
@@ -29,29 +24,9 @@ if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
   stop("bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
 
-weighting <- "uniform"
-
-outcome_catalog <- tibble(
-  outcome_family = c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase"),
-  outcome_var = c(
-    "n_new_construction_issue",
-    "n_new_construction_demolition_issue",
-    "n_low_discretion_nosigns_issue",
-    "n_high_discretion_issue",
-    "n_unit_increase_issue"
-  )
-)
-
-outcome_row <- outcome_catalog %>%
-  filter(.data$outcome_family == .env$outcome_family)
-if (nrow(outcome_row) != 1) {
-  stop("Failed to resolve permit DID outcome.", call. = FALSE)
-}
-outcome_var <- outcome_row$outcome_var[[1]]
+outcome_var <- "n_high_discretion_issue"
 output_tex <- sprintf(
-  "../output/did_table_permit_2015_%s_issue_ppml_%s_%s_noctrl_geo_wardpair.tex",
-  outcome_family,
-  weighting,
+  "../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_%s_noctrl_geo_wardpair.tex",
   bandwidth_label
 )
 
@@ -77,15 +52,11 @@ if (missing_score_rows > 0L) {
 }
 
 data <- data %>%
-  mutate(
-    weight = 1,
-    post_treat = as.integer(relative_year >= 0) * strictness_change
-  )
+  mutate(post_treat = as.integer(relative_year >= 0) * strictness_change)
 
 model <- fepois(
   as.formula(sprintf("%s ~ post_treat | block_id + ward_pair_id^year", outcome_var)),
   data = data,
-  weights = ~weight,
   cluster = ~block_id
 )
 
