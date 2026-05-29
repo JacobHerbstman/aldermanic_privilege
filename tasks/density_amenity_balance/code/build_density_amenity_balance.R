@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/density_amenity_balance/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_amenity_balance/code")
 # bandwidth_m <- 152.4
 # sample_filter <- "all"
 # bandwidth_label <- "500ft"
@@ -168,31 +168,6 @@ analysis_sample <- analysis_sample %>%
     !is.na(score_side)
   )
 
-paired_test <- function(paired_df) {
-  if (nrow(paired_df) < 2) {
-    return(tibble(se = NA_real_, p_value = NA_real_))
-  }
-  difference_sd <- sd(paired_df$difference, na.rm = TRUE)
-  if (!is.finite(difference_sd) || difference_sd == 0) {
-    return(tibble(
-      se = 0,
-      p_value = ifelse(mean(paired_df$difference, na.rm = TRUE) == 0, 1, 0)
-    ))
-  }
-  if (n_distinct(paired_df$ward_pair) >= min_cluster_ward_pairs) {
-    model <- feols(difference ~ 1, data = paired_df, cluster = ~ward_pair, warn = FALSE)
-    return(tibble(
-      se = unname(se(model)[["(Intercept)"]]),
-      p_value = unname(pvalue(model)[["(Intercept)"]])
-    ))
-  }
-  se_i <- difference_sd / sqrt(nrow(paired_df))
-  tibble(
-    se = se_i,
-    p_value = 2 * pt(abs(mean(paired_df$difference, na.rm = TRUE) / se_i), df = nrow(paired_df) - 1, lower.tail = FALSE)
-  )
-}
-
 paired_balance_rows <- bind_rows(lapply(seq_len(nrow(paired_covariate_catalog)), function(i) {
   covariate_name <- paired_covariate_catalog$covariate[[i]]
   side_means <- analysis_sample %>%
@@ -222,7 +197,7 @@ paired_balance_rows <- bind_rows(lapply(seq_len(nrow(paired_covariate_catalog)),
   }
 
   pooled_sd <- sqrt((var(paired$side_mean_lenient) + var(paired$side_mean_strict)) / 2)
-  paired_test_result <- paired_test(paired)
+  paired_test_result <- paired_balance_test(paired, min_cluster_ward_pairs)
 
   tibble(
     covariate = covariate_name,

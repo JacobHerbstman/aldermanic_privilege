@@ -5,7 +5,7 @@ SAMPLES := all multifamily
 all: $(foreach sample,$(SAMPLES),../output/density_paired_balance_$(BALANCE_BW_LABEL)_$(sample).tex)
 
 define BALANCE_RULE
-../output/density_paired_balance_$(BALANCE_BW_LABEL)_$(1).tex: build_density_amenity_balance.R ../input/parcels_with_geometry.gpkg ../input/parcels_with_ward_distances.csv ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
+../output/density_paired_balance_$(BALANCE_BW_LABEL)_$(1).tex: build_density_amenity_balance.R ../../_lib/amenity_distance_helpers.R ../../_lib/border_pair_helpers.R ../input/parcels_with_geometry.gpkg ../input/parcels_with_ward_distances.csv ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
 	Rscript $$< $(BALANCE_BW_M) $(1) $(BALANCE_BW_LABEL)
 endef
 $(foreach sample,$(SAMPLES),$(eval $(call BALANCE_RULE,$(sample))))

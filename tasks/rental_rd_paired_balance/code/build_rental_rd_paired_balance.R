@@ -1,10 +1,11 @@
 # Build the listed-rent RD paired external amenity balance table.
 
 # --- Interactive Test Block ---
-# setwd("tasks/rental_rd_paired_balance/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_paired_balance/code")
 # bandwidth_ft <- 500
 
 source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
+source("../../_lib/border_pair_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -45,31 +46,6 @@ rent <- rent %>%
     ward_pair != "",
     !is.na(score_side)
   )
-
-paired_test <- function(paired_df) {
-  if (nrow(paired_df) < 2) {
-    return(tibble(se = NA_real_, p_value = NA_real_))
-  }
-  difference_sd <- sd(paired_df$difference, na.rm = TRUE)
-  if (!is.finite(difference_sd) || difference_sd == 0) {
-    return(tibble(
-      se = 0,
-      p_value = ifelse(mean(paired_df$difference, na.rm = TRUE) == 0, 1, 0)
-    ))
-  }
-  if (n_distinct(paired_df$ward_pair) >= min_cluster_ward_pairs) {
-    model <- feols(difference ~ 1, data = paired_df, cluster = ~ward_pair, warn = FALSE)
-    return(tibble(
-      se = unname(se(model)[["(Intercept)"]]),
-      p_value = unname(pvalue(model)[["(Intercept)"]])
-    ))
-  }
-  se_i <- difference_sd / sqrt(nrow(paired_df))
-  tibble(
-    se = se_i,
-    p_value = 2 * pt(abs(mean(paired_df$difference, na.rm = TRUE) / se_i), df = nrow(paired_df) - 1, lower.tail = FALSE)
-  )
-}
 
 covariates <- tibble::tribble(
   ~variable, ~label, ~digits,
@@ -115,7 +91,7 @@ for (j in seq_len(nrow(covariates))) {
   }
 
   pooled_sd <- sqrt((var(paired$side_mean_lenient) + var(paired$side_mean_strict)) / 2)
-  paired_test_result <- paired_test(paired)
+  paired_test_result <- paired_balance_test(paired, min_cluster_ward_pairs)
 
   paired_balance_rows[[length(paired_balance_rows) + 1]] <- tibble(
     variable = variable,

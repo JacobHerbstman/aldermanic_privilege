@@ -1,4 +1,5 @@
-# setwd("tasks/nonparametric_rd_density_gap_split/code")
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_gap_split/code")
 # yvar <- "density_far"
 # bandwidth_m <- 152.4
 # sample_filter <- "all"
@@ -63,14 +64,6 @@ fe_formula <- dplyr::case_when(
   fe_spec == "segment_year" ~ "segment_id + construction_year",
   TRUE ~ NA_character_
 )
-
-stars <- function(p) {
-  if (!is.finite(p)) return("")
-  if (p <= 0.01) return("***")
-  if (p <= 0.05) return("**")
-  if (p <= 0.1) return("*")
-  ""
-}
 
 pretty_outcome <- dplyr::case_when(
   yvar == "density_far" ~ "Log(FAR)",
@@ -281,10 +274,18 @@ bins <- bins %>%
 line_df <- line_df %>%
   mutate(running_distance_display = running_distance * distance_display$scale)
 
+cutoff_stars <- case_when(
+  !is.finite(cutoff_p) ~ "",
+  cutoff_p <= 0.01 ~ "***",
+  cutoff_p <= 0.05 ~ "**",
+  cutoff_p <= 0.10 ~ "*",
+  TRUE ~ ""
+)
+
 subtitle_label <- sprintf(
   "Jump = %.3f%s (SE %.3f) | %s | %s | bandwidth=%s | N=%d",
   cutoff_estimate,
-  stars(cutoff_p),
+  cutoff_stars,
   cutoff_se,
   sample_label,
   gap_label,
