@@ -9,7 +9,7 @@ if (length(cli_args) == 0) {
   cli_args <- c(bandwidth_ft)
 }
 if (length(cli_args) != 1) {
-  stop("FATAL: Script requires 1 arg: <bandwidth_ft>", call. = FALSE)
+  stop("Usage: Rscript build_rental_rd_rent_attenuation.R <bandwidth_ft>", call. = FALSE)
 }
 
 bandwidth_ft <- as.numeric(cli_args[1])

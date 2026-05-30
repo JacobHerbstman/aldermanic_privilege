@@ -18,7 +18,7 @@ if (length(args) == 0) {
 
 if (length(args) < 7) {
   stop(
-    "FATAL: Script requires args: <bandwidth_m> <sample> <fe_spec> <prune_sample> <cluster_level> <yvar1> [<yvar2> ...]",
+    "Usage: Rscript border_pair_FE_regressions.R <bandwidth_m> <sample> <fe_spec> <prune_sample> <cluster_level> <yvar1> [<yvar2> ...]",
     call. = FALSE
   )
 }

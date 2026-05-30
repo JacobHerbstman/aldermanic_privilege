@@ -3,10 +3,6 @@
 
 source("../../setup_environment/code/packages.R")
 
-library(arrow)
-library(data.table)
-library(readr)
-
 rent_panel <- as.data.table(read_parquet("../input/chicago_rent_panel.parquet"))
 rent_panel[, month_start := as.Date(month_start)]
 rent_panel <- rent_panel[

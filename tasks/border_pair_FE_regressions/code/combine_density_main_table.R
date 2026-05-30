@@ -13,7 +13,7 @@ if (length(args) == 0) {
 }
 
 if (length(args) != 4) {
-  stop("FATAL: Script requires args: <bandwidth_label> <fe_spec> <prune_sample> <cluster_level>", call. = FALSE)
+  stop("Usage: Rscript combine_density_main_table.R <bandwidth_label> <fe_spec> <prune_sample> <cluster_level>", call. = FALSE)
 }
 
 bandwidth_label <- args[1]
