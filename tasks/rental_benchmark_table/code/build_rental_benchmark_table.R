@@ -145,5 +145,5 @@ writeLines(
     "\\bottomrule",
     "\\end{tabular}"
   ),
-  "../output/rental_data_validation_growth.tex"
+  "../output/rental_benchmark_growth.tex"
 )

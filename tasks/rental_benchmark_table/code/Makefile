@@ -1,6 +1,6 @@
-all: ../output/rental_data_validation_growth.tex
+all: ../output/rental_benchmark_growth.tex
 
-../output/rental_data_validation_growth.tex: build_rental_benchmark_table.R ../input/chicago_rent_panel.parquet ../input/fred_cpi_cuura207sa0.csv ../input/zillow_zori_city.csv | ../output
+../output/rental_benchmark_growth.tex: build_rental_benchmark_table.R ../input/chicago_rent_panel.parquet ../input/fred_cpi_cuura207sa0.csv ../input/zillow_zori_city.csv | ../output
 	Rscript $<
 
 ../input/chicago_rent_panel.parquet: ../../process_rent_data/output/chicago_rent_panel.parquet | ../input

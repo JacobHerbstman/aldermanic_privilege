@@ -8,6 +8,6 @@ Inputs:
 - `download_zillow_zori/output/zillow_zori_city.csv`
 
 Produces:
-- `output/rental_data_validation_growth.tex`
+- `output/rental_benchmark_growth.tex`
 
 Approx. runtime: ~1-5 minutes.

@@ -41,7 +41,7 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex \
 	../tasks/permit_summary_stats/output/permit_processing_time_volume_correlation.tex \
 	../tasks/pruned_boundary_maps/output/pruned_boundaries_all_segments_by_era.pdf \
-	../tasks/rental_benchmark_table/output/rental_data_validation_growth.tex \
+	../tasks/rental_benchmark_table/output/rental_benchmark_growth.tex \
 	../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls.pdf \
 	../tasks/rental_rd_paired_balance/output/rental_rd_paired_external_amenity_balance_bw500.tex \
 	../tasks/rental_rd_rent_attenuation/output/rental_rd_rent_attenuation_clean_location_bw500.tex \
