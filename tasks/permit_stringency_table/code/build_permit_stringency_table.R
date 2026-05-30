@@ -1,24 +1,23 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/permit_stringency_table/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 # max_application_ym <- "2022-12"
 
 source("../../setup_environment/code/packages.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(spec, max_application_ym)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(spec, max_application_ym)
 }
 
-if (length(args) != 2) {
+if (length(cli_args) != 2) {
   stop(
     "Usage: Rscript build_permit_stringency_table.R <spec> <max_application_ym>",
     call. = FALSE
   )
 }
 
-spec <- args[1]
-max_application_ym <- args[2]
+spec <- cli_args[1]
+max_application_ym <- cli_args[2]
 
 permits <- data.table::fread(cmd = "gzip -dc ../input/building_permits_text_features.csv.gz")
 
