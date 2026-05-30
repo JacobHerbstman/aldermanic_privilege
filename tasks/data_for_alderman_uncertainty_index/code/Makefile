@@ -35,16 +35,6 @@ all: ../output/permits_for_uncertainty_index.csv
 ../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/ward_panel.gpkg \
-	../input/building_permits_clean.gpkg \
-	../input/chicago_alderman_panel.csv \
-	../input/ward_controls.csv \
-	../input/community_areas.geojson \
-	../input/cta_stations.geojson \
-	../input/gis_osm_water_a_free_1.shp \
-	../input/gis_osm_water_a_free_1.dbf \
-	../input/gis_osm_water_a_free_1.prj \
-	../input/gis_osm_water_a_free_1.shx \
-	../input/gis_osm_water_a_free_1.cpg
+link-inputs: ../input/ward_panel.gpkg ../input/building_permits_clean.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/community_areas.geojson ../input/cta_stations.geojson ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
 include ../../generic.make
