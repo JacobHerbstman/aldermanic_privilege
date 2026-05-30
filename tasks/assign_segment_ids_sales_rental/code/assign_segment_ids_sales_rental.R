@@ -10,7 +10,7 @@ library(arrow)
 library(data.table)
 library(sf)
 
-sf_use_s2(FALSE)
+suppressMessages(sf_use_s2(FALSE))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -45,7 +45,7 @@ if (any(duplicated(segment_pair_lookup, by = c("era", "segment_id")))) {
   stop("Segment lookup has duplicate era/segment_id rows.", call. = FALSE)
 }
 
-assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_col, dist_col, allow_pre_2003, chunk_n = 50000L) {
+assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_col, allow_pre_2003, chunk_n = 50000L) {
   dt <- copy(dt)
   dt[, row_id := .I]
   dt[, pair_dash := normalize_pair_dash(get(pair_col))]
@@ -146,10 +146,6 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
   out
 }
 
-message("=== Assign Segment IDs for Sales + Rental Pre-Scores ===")
-message(sprintf("Segment GPKG: %s", segment_gpkg))
-message(sprintf("Segment buffer: %.0fm", segment_buffer_m))
-
 sales_dt <- fread("../input/sales_pre_scores.csv")
 if (!all(c("pin", "sale_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(sales_dt))) {
   stop("sales_pre_scores.csv missing required columns.", call. = FALSE)
@@ -164,12 +160,10 @@ sales_out <- assign_segments(
   pair_col = "ward_pair_id",
   lon_col = "longitude",
   lat_col = "latitude",
-  dist_col = "dist_m",
   allow_pre_2003 = TRUE,
   chunk_n = 50000L
 )
 
-message("\nAssigning rental segment IDs...")
 rent_dt <- as.data.table(read_parquet("../input/rent_pre_scores_full.parquet"))
 if (!all(c("id", "file_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(rent_dt))) {
   stop("rent_pre_scores_full.parquet missing required columns.", call. = FALSE)
@@ -184,7 +178,6 @@ rent_out <- assign_segments(
   pair_col = "ward_pair_id",
   lon_col = "longitude",
   lat_col = "latitude",
-  dist_col = "dist_m",
   allow_pre_2003 = FALSE,
   chunk_n = 80000L
 )
@@ -238,6 +231,3 @@ if (all(c("modal_longitude", "modal_latitude", "modal_ward_pair_id") %in% names(
 
 write_parquet(as.data.frame(rent_out), "../output/rent_pre_scores_full_with_segments.parquet")
 fwrite(sales_out, "../output/sales_pre_scores_with_segments.csv")
-
-message(sprintf("Saved rental output: ../output/rent_pre_scores_full_with_segments.parquet (rows=%d)", nrow(rent_out)))
-message(sprintf("Saved sales output: ../output/sales_pre_scores_with_segments.csv (rows=%d)", nrow(sales_out)))

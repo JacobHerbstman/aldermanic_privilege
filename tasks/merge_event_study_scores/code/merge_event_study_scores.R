@@ -1,28 +1,24 @@
-source("../../setup_environment/code/packages.R")
-
-
 # --- Interactive Test Block ---
-# setwd("tasks/merge_event_study_scores/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_event_study_scores/code")
 # mode <- "sales_treatment"
 # score_column <- "uncertainty_index"
+
+source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
   cli_args <- c(mode, score_column)
 }
-
-mode <- cli_args[1]
-if (!mode %in% c("sales_treatment", "rent", "all")) {
-  stop("FATAL: mode must be 'sales_treatment', 'rent', or 'all'.", call. = FALSE)
-}
 if (length(cli_args) != 2) {
   stop("FATAL: Script requires 2 args: <mode> <score_column>.", call. = FALSE)
 }
+
+mode <- cli_args[1]
 score_column <- cli_args[2]
 
-cat("=== Merge Event Study Scores ===\n")
-cat("Mode:", mode, "\n")
-cat("Score column:", score_column, "\n")
+if (!mode %in% c("sales_treatment", "rent", "all")) {
+  stop("FATAL: mode must be 'sales_treatment', 'rent', or 'all'.", call. = FALSE)
+}
 
 scores_raw <- read_csv("../input/aldermen_uncertainty_scores.csv", show_col_types = FALSE)
 if (!score_column %in% names(scores_raw)) {
@@ -42,7 +38,7 @@ if (any(!is.finite(scores$score))) {
   stop("Score input contains non-finite scores.", call. = FALSE)
 }
 
-merge_border_scores <- function(df, dist_col = "dist_m", signed_dist_col = "signed_dist_m", return_full = FALSE) {
+merge_border_scores <- function(df, dist_col = "dist_m", signed_dist_col = "signed_dist_m") {
   if (!"alderman_own" %in% names(df) || !"alderman_neighbor" %in% names(df)) {
     stop("Expected columns alderman_own and alderman_neighbor are missing.", call. = FALSE)
   }
@@ -55,20 +51,20 @@ merge_border_scores <- function(df, dist_col = "dist_m", signed_dist_col = "sign
     rename(strictness_own = score) %>%
     left_join(scores, by = c("alderman_neighbor" = "alderman"), relationship = "many-to-one") %>%
     rename(strictness_neighbor = score) %>%
-	    mutate(
-	      sign = case_when(
-	        strictness_own > strictness_neighbor ~ 1,
-	        strictness_own < strictness_neighbor ~ -1,
-	        TRUE ~ NA_real_
-	      ),
-	      "{signed_dist_col}" := .data[[dist_col]] * sign,
-	      dist_ft = .data[[dist_col]] / 0.3048
-	    )
+    mutate(
+      sign = case_when(
+        strictness_own > strictness_neighbor ~ 1,
+        strictness_own < strictness_neighbor ~ -1,
+        TRUE ~ NA_real_
+      ),
+      "{signed_dist_col}" := .data[[dist_col]] * sign,
+      dist_ft = .data[[dist_col]] / 0.3048
+    )
 
-	  if (signed_dist_col == "signed_dist_m") {
-	    out <- out %>%
-	      mutate(signed_dist = signed_dist_m / 0.3048)
-	  }
+  if (signed_dist_col == "signed_dist_m") {
+    out <- out %>%
+      mutate(signed_dist = signed_dist_m / 0.3048)
+  }
 
   if (nrow(out) != nrow(df)) {
     stop(sprintf(
@@ -77,26 +73,10 @@ merge_border_scores <- function(df, dist_col = "dist_m", signed_dist_col = "sign
     ), call. = FALSE)
   }
 
-  n_in <- nrow(out)
-  n_missing_own   <- sum(is.na(out$strictness_own))
-  n_missing_nbr   <- sum(is.na(out$strictness_neighbor))
-  n_tied          <- sum(!is.na(out$strictness_own) & !is.na(out$strictness_neighbor) &
-                           out$strictness_own == out$strictness_neighbor)
-  n_dropped       <- sum(is.na(out$sign))
-  cat(sprintf(
-    "  Score merge: %d in | missing own score: %d | missing neighbor score: %d | tied (equal scores): %d | total dropped: %d (%.1f%%)\n",
-    n_in, n_missing_own, n_missing_nbr, n_tied, n_dropped, 100 * n_dropped / n_in
-  ))
-
-  filtered <- filter(out, !is.na(sign))
-  if (return_full) {
-    return(list(data = filtered, full = out))
-  }
-  filtered
+  filter(out, !is.na(sign))
 }
 
 if (mode %in% c("sales_treatment", "all")) {
-  cat("\nMerging scores into sales pre-scores...\n")
   sales_pre <- read_csv("../input/sales_pre_scores.csv", show_col_types = FALSE)
   if (!"dist_m" %in% names(sales_pre)) {
     stop("Sales pre-score input must include meter-native dist_m.", call. = FALSE)
@@ -115,11 +95,9 @@ if (mode %in% c("sales_treatment", "all")) {
       dist_m, signed_dist_m, sign,
       alderman_own, alderman_neighbor,
       strictness_own, strictness_neighbor
-    )
+  )
   write_csv(sales, "../output/sales_with_ward_distances.csv")
-  cat("Sales output rows:", nrow(sales), "\n")
 
-  cat("\nMerging scores into block treatment pre-scores...\n")
   treat_pre <- read_csv("../input/block_treatment_pre_scores.csv", show_col_types = FALSE)
   if (anyDuplicated(paste(treat_pre$cohort, treat_pre$block_id, sep = "\r")) > 0) {
     stop("Block treatment pre-score input must be unique by cohort-block.", call. = FALSE)
@@ -219,44 +197,30 @@ if (mode %in% c("sales_treatment", "all")) {
     )
 
   write_csv(treat_panel, "../output/block_treatment_panel.csv")
-  cat("Block treatment output rows:", nrow(treat_panel), "\n")
 }
 
 if (mode %in% c("rent", "all")) {
-	  cat("\nMerging scores into rent pre-scores...\n")
-	  rent_pre <- read_parquet("../input/rent_pre_scores_full.parquet") %>% as_tibble()
+  rent_pre <- read_parquet("../input/rent_pre_scores_full.parquet") %>% as_tibble()
   if (!"dist_m" %in% names(rent_pre)) {
     stop("Rent pre-score input must include meter-native dist_m.", call. = FALSE)
-	  }
-	  rent_merge <- merge_border_scores(rent_pre, "dist_m", "signed_dist_m", return_full = TRUE)
-	  rent <- rent_merge$data
-	  rent_full <- rent_merge$full
-	  if (!"rent_panel_id" %in% names(rent)) {
-	    stop("Rent score merge output must include rent_panel_id.", call. = FALSE)
-	  }
-	  if (any(is.na(rent$rent_panel_id) | rent$rent_panel_id == "")) {
-	    stop("Rent score merge output contains missing rent_panel_id values.", call. = FALSE)
-	  }
-	  if (anyDuplicated(rent$rent_panel_id) > 0) {
-	    stop("Rent score merge output must be unique by rent_panel_id.", call. = FALSE)
-	  }
-	  n_signed_dist_sign_mismatch <- sum(
-	    is.finite(rent$signed_dist) & rent$signed_dist != 0 &
-	      sign(rent$signed_dist) != rent$sign,
-	    na.rm = TRUE
-	  )
-	  if (n_signed_dist_sign_mismatch > 0) {
-	    stop("Rental signed-distance sign does not agree with strictness sign.", call. = FALSE)
-	  }
-	  write_parquet(rent, "../output/rent_with_ward_distances_full.parquet")
-	  cat("Rent output rows:", nrow(rent), "\n")
-	}
-
-cat("\n=== Merge complete ===\n")
-if (mode %in% c("sales_treatment", "all")) {
-  cat("Sales output: ../output/sales_with_ward_distances.csv\n")
-  cat("Block treatment output: ../output/block_treatment_panel.csv\n")
-}
-if (mode %in% c("rent", "all")) {
-  cat("Rent output: ../output/rent_with_ward_distances_full.parquet\n")
+  }
+  rent <- merge_border_scores(rent_pre, "dist_m", "signed_dist_m")
+  if (!"rent_panel_id" %in% names(rent)) {
+    stop("Rent score merge output must include rent_panel_id.", call. = FALSE)
+  }
+  if (any(is.na(rent$rent_panel_id) | rent$rent_panel_id == "")) {
+    stop("Rent score merge output contains missing rent_panel_id values.", call. = FALSE)
+  }
+  if (anyDuplicated(rent$rent_panel_id) > 0) {
+    stop("Rent score merge output must be unique by rent_panel_id.", call. = FALSE)
+  }
+  n_signed_dist_sign_mismatch <- sum(
+    is.finite(rent$signed_dist) & rent$signed_dist != 0 &
+      sign(rent$signed_dist) != rent$sign,
+    na.rm = TRUE
+  )
+  if (n_signed_dist_sign_mismatch > 0) {
+    stop("Rental signed-distance sign does not agree with strictness sign.", call. = FALSE)
+  }
+  write_parquet(rent, "../output/rent_with_ward_distances_full.parquet")
 }
