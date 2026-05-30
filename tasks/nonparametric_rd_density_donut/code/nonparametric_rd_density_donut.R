@@ -1,4 +1,3 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_donut/code")
 # yvar <- "density_far"
 # bandwidth_m <- 152.4
@@ -10,24 +9,24 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, donut_m)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, donut_m)
 }
 
-if (length(args) != 6) {
+if (length(cli_args) != 6) {
   stop(
-    "FATAL: Script requires args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <donut_m>",
+    "Usage: Rscript nonparametric_rd_density_donut.R <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <donut_m>",
     call. = FALSE
   )
 }
 
-yvar <- args[1]
-bandwidth_m <- as.numeric(args[2])
-sample_filter <- args[3]
-fe_spec <- args[4]
-bins_per_side <- as.integer(args[5])
-donut_m <- as.numeric(args[6])
+yvar <- cli_args[1]
+bandwidth_m <- as.numeric(cli_args[2])
+sample_filter <- cli_args[3]
+fe_spec <- cli_args[4]
+bins_per_side <- as.integer(cli_args[5])
+donut_m <- as.numeric(cli_args[6])
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -60,7 +59,7 @@ pretty_outcome <- dplyr::case_when(
   TRUE ~ yvar
 )
 
-distance_display <- list(unit = "ft", scale = M_TO_FT)
+distance_display <- distance_display_config("ft")
 bw_label <- format_distance_label(bandwidth_m, distance_display)
 donut_label <- format_distance_label(donut_m, distance_display)
 output_pdf <- sprintf(

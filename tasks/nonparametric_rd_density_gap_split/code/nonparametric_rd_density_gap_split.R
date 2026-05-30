@@ -1,4 +1,3 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_gap_split/code")
 # yvar <- "density_far"
 # bandwidth_m <- 152.4
@@ -10,24 +9,24 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, gap_split)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, gap_split)
 }
 
-if (length(args) != 6) {
+if (length(cli_args) != 6) {
   stop(
-    "FATAL: Script requires args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <gap_split>",
+    "Usage: Rscript nonparametric_rd_density_gap_split.R <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <gap_split>",
     call. = FALSE
   )
 }
 
-yvar <- args[1]
-bandwidth_m <- as.numeric(args[2])
-sample_filter <- args[3]
-fe_spec <- args[4]
-bins_per_side <- as.integer(args[5])
-gap_split <- args[6]
+yvar <- cli_args[1]
+bandwidth_m <- as.numeric(cli_args[2])
+sample_filter <- cli_args[3]
+fe_spec <- cli_args[4]
+bins_per_side <- as.integer(cli_args[5])
+gap_split <- cli_args[6]
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -225,23 +224,12 @@ line_df <- tibble(
     side_label = if_else(side == 1L, "Strict side", "Lenient side")
   )
 
-xmat <- matrix(0, nrow = nrow(line_df), ncol = length(coef_names))
-colnames(xmat) <- coef_names
-if ("(Intercept)" %in% coef_names) {
-  xmat[, "(Intercept)"] <- 1
+xmat <- model.matrix(~ side * running_distance, data = line_df)
+missing_coef_names <- setdiff(coef_names, colnames(xmat))
+if (length(missing_coef_names) > 0) {
+  stop("Prediction design matrix does not match fitted model.", call. = FALSE)
 }
-if ("side" %in% coef_names) {
-  xmat[, "side"] <- line_df$side
-}
-if ("running_distance" %in% coef_names) {
-  xmat[, "running_distance"] <- line_df$running_distance
-}
-if ("side:running_distance" %in% coef_names) {
-  xmat[, "side:running_distance"] <- line_df$side * line_df$running_distance
-}
-if ("running_distance:side" %in% coef_names) {
-  xmat[, "running_distance:side"] <- line_df$side * line_df$running_distance
-}
+xmat <- xmat[, coef_names, drop = FALSE]
 
 line_vcov <- vcov(m_display)
 line_crit <- qt(0.975, df = max(n_distinct(aug$ward_pair) - 1, 1))
