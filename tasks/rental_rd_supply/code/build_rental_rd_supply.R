@@ -209,9 +209,9 @@ for (i in seq_len(nrow(sample_defs))) {
 bins <- bind_rows(bin_rows)
 
 level_plot_defs <- tibble::tribble(
-  ~sample_name, ~title, ~output_path,
-  "all", "Rental Listing Supply by Side of Ward Boundary", sprintf("../output/rental_rd_supply_levels_bw%s.pdf", bandwidth_label),
-  "clean_location", "Rental Listing Supply by Side of Ward Boundary: Clean Location Sample", sprintf("../output/rental_rd_supply_levels_clean_location_bw%s.pdf", bandwidth_label)
+  ~sample_name, ~title,
+  "all", "Rental Listing Supply by Side of Ward Boundary",
+  "clean_location", "Rental Listing Supply by Side of Ward Boundary: Clean Location Sample"
 )
 
 for (i in seq_len(nrow(level_plot_defs))) {
@@ -258,7 +258,11 @@ for (i in seq_len(nrow(level_plot_defs))) {
     theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
   ggsave(
-    level_plot_defs$output_path[i],
+    if (sample_name == "all") {
+      sprintf("../output/rental_rd_supply_levels_bw%s.pdf", bandwidth_label)
+    } else {
+      sprintf("../output/rental_rd_supply_levels_clean_location_bw%s.pdf", bandwidth_label)
+    },
     plot,
     width = 8.6,
     height = 6,

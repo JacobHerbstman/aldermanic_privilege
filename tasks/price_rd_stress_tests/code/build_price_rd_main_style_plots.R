@@ -155,8 +155,6 @@ make_rd_plot <- function(parts, title, y_label, output_base) {
   plot <- plot + facet_wrap(~panel_subtitle, nrow = 1)
 
   ggsave(paste0(output_base, ".pdf"), plot, width = 12, height = 5.5, dpi = 300, bg = "white")
-
-  list(estimates = estimates, bins = bins)
 }
 
 if (market == "rent") {
@@ -279,12 +277,12 @@ if (market == "rent") {
     )
   })
 
-  invisible(make_rd_plot(
+  make_rd_plot(
     rent_placebo_parts,
     "Listed Rents: True and Placebo Cutoffs",
     "Segment-by-month adjusted log rent",
     "../output/rent_placebo_rd_main_style"
-  ))
+  )
 } else {
   sales <- read_parquet("../input/sales_with_hedonics_amenities.parquet") %>%
     as_tibble()
@@ -347,10 +345,10 @@ if (market == "rent") {
     )
   })
 
-  invisible(make_rd_plot(
+  make_rd_plot(
     sales_placebo_parts,
     "Home Sale Prices: True and Placebo Cutoffs",
     "Segment-by-quarter adjusted log sale price",
     "../output/sales_placebo_rd_main_style"
-  ))
+  )
 }
