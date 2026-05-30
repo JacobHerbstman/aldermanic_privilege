@@ -24,10 +24,10 @@ all: \
 	Rscript $< $(PAPER_ARGS)
 
 ../output/uncertainty_index_$(PAPER_SPEC).pdf: create_uncertainty_index.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv ../output/alderman_uncertainty_index_$(PAPER_SPEC).csv | ../output
-	Rscript $< $(PAPER_ARGS)
+	@test -s "$@"
 
 ../output/stage1_regression_$(PAPER_SPEC).tex: create_uncertainty_index.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv ../output/alderman_uncertainty_index_$(PAPER_SPEC).csv | ../output
-	Rscript $< $(PAPER_ARGS)
+	@test -s "$@"
 
 ../output/alderman_uncertainty_index_$(POST_2023_SPEC).csv: create_uncertainty_index.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
 	Rscript $< $(POST_2023_ARGS)
