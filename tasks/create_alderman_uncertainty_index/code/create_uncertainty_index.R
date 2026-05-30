@@ -1,4 +1,3 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_uncertainty_index/code")
 # permit_type_fe <- TRUE
 # review_type_fe <- TRUE
@@ -29,7 +28,7 @@ if (length(cli_args) == 0) {
 
 if (length(cli_args) != 9) {
   stop(
-    "FATAL: Script requires 9 args: <permit_type_fe> <review_type_fe> <include_porch> <ca_fe> <two_stage> <stage2_weight> <volume_ctrl> <volume_stage> <max_permit_cutoff>",
+    "Usage: Rscript create_uncertainty_index.R <permit_type_fe> <review_type_fe> <include_porch> <ca_fe> <two_stage> <stage2_weight> <volume_ctrl> <volume_stage> <max_permit_cutoff>",
     call. = FALSE
   )
 }
@@ -94,9 +93,9 @@ result <- build_residualized_uncertainty_index(
   construction_rule = "Baseline residualized score dropping share_bach_plus"
 )
 
+write_csv(result$alderman_index, sprintf("../output/alderman_uncertainty_index_%s.csv", output_suffix))
+
 if (write_paper_bundle) {
   write_stage1_regression_table(result$stage1_model, sprintf("../output/stage1_regression_%s.tex", output_suffix), result$stage1_outcome)
   write_uncertainty_plot(result$alderman_index, sprintf("../output/uncertainty_index_%s.pdf", output_suffix))
 }
-
-write_csv(result$alderman_index, sprintf("../output/alderman_uncertainty_index_%s.csv", output_suffix))

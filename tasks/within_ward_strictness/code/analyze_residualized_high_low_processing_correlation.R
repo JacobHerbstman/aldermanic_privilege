@@ -1,20 +1,19 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/alderman_uncertainty_helpers.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(spec)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(spec)
 }
 
-if (length(args) != 1) {
-  stop("FATAL: Script requires 1 arg: <uncertainty_spec>", call. = FALSE)
+if (length(cli_args) != 1) {
+  stop("Usage: Rscript analyze_residualized_high_low_processing_correlation.R <uncertainty_spec>", call. = FALSE)
 }
 
-spec <- args[1]
+spec <- cli_args[1]
 
 spec_max_year <- str_match(spec, "through([0-9]{4})")[, 2]
 max_permit_year <- ifelse(is.na(spec_max_year), NA_integer_, as.integer(spec_max_year))

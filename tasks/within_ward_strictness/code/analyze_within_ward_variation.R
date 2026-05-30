@@ -1,18 +1,17 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 
 source("../../setup_environment/code/packages.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(spec)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(spec)
 }
-if (length(args) != 1) {
-  stop("FATAL: Script requires 1 arg: <uncertainty_spec>", call. = FALSE)
+if (length(cli_args) != 1) {
+  stop("Usage: Rscript analyze_within_ward_variation.R <uncertainty_spec>", call. = FALSE)
 }
 
-spec <- args[1]
+spec <- cli_args[1]
 score_name <- "Regulatory Stringency Index"
 
 scores <- read_csv(
@@ -68,7 +67,7 @@ if (nrow(turnover_pairs) < 3) {
 
 plot <- ggplot(turnover_pairs, aes(x = predecessor_score, y = successor_score)) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray50") +
-  geom_smooth(method = "lm", se = TRUE, color = "#2171B5", alpha = 0.2) +
+  geom_smooth(method = "lm", formula = y ~ x, se = TRUE, color = "#2171B5", alpha = 0.2) +
   geom_point(size = 3, alpha = 0.7, color = "#E41A1C") +
   labs(
     x = paste0("Predecessor ", score_name),

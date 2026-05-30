@@ -1,18 +1,17 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/within_ward_strictness/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 
 source("../../setup_environment/code/packages.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(spec)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(spec)
 }
-if (length(args) != 1) {
-  stop("FATAL: Script requires 1 arg: <uncertainty_spec>", call. = FALSE)
+if (length(cli_args) != 1) {
+  stop("Usage: Rscript run_low_discretion_falsification_regression.R <uncertainty_spec>", call. = FALSE)
 }
 
-spec <- args[1]
+spec <- cli_args[1]
 
 score_df <- read_csv(
   sprintf("../input/alderman_uncertainty_index_%s.csv", spec),

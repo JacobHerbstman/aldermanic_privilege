@@ -1,21 +1,20 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
 # bandwidth <- 304.8
 # bandwidth_label <- "1000ft"
 
 source("../../setup_environment/code/packages.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(bandwidth, bandwidth_label)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(bandwidth, bandwidth_label)
 }
 
-if (length(args) != 2) {
-  stop("FATAL: Script requires args: <bandwidth> <bandwidth_label>", call. = FALSE)
+if (length(cli_args) != 2) {
+  stop("Usage: Rscript did_table_permit_2015.R <bandwidth> <bandwidth_label>", call. = FALSE)
 }
 
-bandwidth <- as.numeric(args[1])
-bandwidth_label <- args[2]
+bandwidth <- as.numeric(cli_args[1])
+bandwidth_label <- cli_args[2]
 
 if (!is.finite(bandwidth) || bandwidth <= 0) {
   stop("bandwidth must be positive.", call. = FALSE)
@@ -56,7 +55,8 @@ data <- data %>%
 model <- fepois(
   as.formula(sprintf("%s ~ post_treat | block_id + ward_pair_id^year", outcome_var)),
   data = data,
-  cluster = ~block_id
+  cluster = ~block_id,
+  notes = FALSE
 )
 
 coef_table <- coeftable(model)
