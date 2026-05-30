@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/process_rent_data/code")
 # start_date <- "2014-01-01"
 # end_date <- "2022-12-31"
@@ -9,7 +10,7 @@ if (length(cli_args) == 0) {
   cli_args <- c(start_date, end_date)
 }
 if (length(cli_args) != 2) {
-  stop("Usage: Rscript build_renthub_clean_panel.R <start_date> <end_date>", call. = FALSE)
+  stop("FATAL: Script requires 2 args: <start_date> <end_date>.", call. = FALSE)
 }
 
 start_date <- as.Date(cli_args[1])

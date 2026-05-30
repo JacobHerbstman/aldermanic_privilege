@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
 # sample <- FALSE
 
@@ -10,10 +11,12 @@ if (length(cli_args) == 0) {
 }
 
 if (length(cli_args) != 1) {
-  stop("Usage: Rscript calculate_sale_distances.R <sample>", call. = FALSE)
+  stop("FATAL: Script requires 1 arg: <sample>.", call. = FALSE)
 }
-sample <- cli_args[1]
-run_sample <- as.logical(sample)
+run_sample <- as.logical(cli_args[1])
+if (is.na(run_sample)) {
+    stop("sample must be TRUE or FALSE.", call. = FALSE)
+}
 
 crs_projected <- 3435
 

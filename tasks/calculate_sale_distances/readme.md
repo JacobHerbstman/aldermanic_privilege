@@ -7,6 +7,6 @@ The output preserves nominal transaction prices as `sale_price_nominal`, deflate
 Produces:
 - `output/sales_pre_scores.csv`
 
-Geometry contract checks still run inside the script. Diagnostic CSV exports are opt-in via `WRITE_SALES_DISTANCE_DIAGNOSTICS=1`.
+The script keeps only the production handoff. Geometry and ward-assignment checks run inline before the CSV is written; diagnostic reports live in audit tasks.
 
 Approx. runtime: ~1-10 minutes.

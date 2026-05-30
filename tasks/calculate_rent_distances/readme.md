@@ -6,7 +6,7 @@ The output preserves nominal listed rents as `rent_price_nominal`, then replaces
 
 The task uses RentHub geometry quality flags from `renthub_quality_flags`: stable address-location groups are standardized to their primary location, while unstable address locations remain flagged for downstream RD balance checks.
 
-The script still runs geometry contract and ward-hit checks before writing the handoff. Diagnostic CSV exports are opt-in via `WRITE_RENT_DISTANCE_DIAGNOSTICS=1`.
+The script keeps only the production handoff. Geometry and ward-assignment checks run inline before the parquet is written; diagnostic reports live in audit tasks.
 
 Produces:
 - `output/rent_pre_scores_full.parquet`
