@@ -2,7 +2,7 @@
 ## Sources: 2000 Decennial, 2010 Decennial, and Annual ACS 5-Year Estimates
 
 ## --- Interactive Test Block ---
-# setwd("tasks/create_ward_controls/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_ward_controls/code")
 
 source("../../setup_environment/code/packages.R")
 library(tigris) # Required for the geometry fix
@@ -84,7 +84,7 @@ data_2000 <- data_2000_raw %>%
   st_transform(3435) %>%
   select(GEOID, variable, value, geometry) %>%
   pivot_wider(names_from = variable, values_from = value) %>%
-  mutate(educ_bach_plus = 0) # Placeholder
+  mutate(educ_bach_plus = 0) # No 2000 education series in the current SF3 pull.
 
 # --- REGIME 2: 2010 HYBRID (2010-2012) ---
 message("Building 2010 Hybrid Dataset...")

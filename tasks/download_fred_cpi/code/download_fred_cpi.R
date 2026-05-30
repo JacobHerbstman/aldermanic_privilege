@@ -1,6 +1,6 @@
 # Download FRED CPI series for explicit downstream price deflation.
 
-# setwd("tasks/download_fred_cpi/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/download_fred_cpi/code")
 # series_id <- "CUURA207SA0"
 source("../../setup_environment/code/packages.R")
 

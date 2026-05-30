@@ -2,7 +2,7 @@
 # https://datacatalog.cookcountyil.gov/Property-Taxation/Assessor-Single-and-Multi-Family-Improvement-Chara/x54s-btds
 # to include only buildings built on or after the year 1999 and in townships 70-77 (Chicago)
 
-# setwd("tasks/residential_improvements_data_cleaning/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/residential_improvements_data_cleaning/code")
 source("../../setup_environment/code/packages.R")
 
 parse_numeric <- function(x) {

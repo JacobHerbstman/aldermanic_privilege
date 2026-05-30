@@ -1,6 +1,6 @@
 # Prepare Chicago amenities layers from raw local files and save EPSG:3435 GeoPackages.
 
-# setwd("tasks/prepare_amenities_data/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/prepare_amenities_data/code")
 source("../../setup_environment/code/packages.R")
 
 cta <- st_read("../input/cta_stations.geojson", quiet = TRUE) %>%

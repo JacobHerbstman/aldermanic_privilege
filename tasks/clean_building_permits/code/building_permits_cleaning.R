@@ -1,7 +1,7 @@
 ### this code cleans the public building permits data from https://data.cityofchicago.org/Buildings/Building-Permits/ydr8-5enu/about_data
 
 # --- Interactive Test Block ---
-# setwd("tasks/clean_building_permits/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/clean_building_permits/code")
 
 source("../../setup_environment/code/packages.R")
 

@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/new_construction_score_variants/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_variants/code")
 # max_permit_year <- 2022
 
 source("../../_lib/alderman_uncertainty_helpers.R")

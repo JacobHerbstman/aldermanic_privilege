@@ -26,18 +26,12 @@ bws_ft <- bws_m / 0.3048
 segment_output <- sprintf("../output/boundary_segments_%dft.gpkg", as.integer(round(segment_length_ft)))
 
 feature_buffer_m <- as.numeric(Sys.getenv("SEGMENT_FEATURE_BUFFER_M", "30"))
-legacy_feature_buffer_ft <- Sys.getenv("SEGMENT_FEATURE_BUFFER_FT", "")
-if (nzchar(legacy_feature_buffer_ft)) {
-  feature_buffer_ft <- as.numeric(legacy_feature_buffer_ft)
-  feature_buffer_m <- feature_buffer_ft * 0.3048
-} else {
-  feature_buffer_ft <- feature_buffer_m / 0.3048
-}
+feature_buffer_ft <- feature_buffer_m / 0.3048
 if (!is.finite(feature_buffer_m) || feature_buffer_m <= 0) {
   stop("SEGMENT_FEATURE_BUFFER_M must be positive.", call. = FALSE)
 }
 if (!is.finite(feature_buffer_ft) || feature_buffer_ft <= 0) {
-  stop("SEGMENT_FEATURE_BUFFER_FT must be positive when supplied.", call. = FALSE)
+  stop("SEGMENT_FEATURE_BUFFER_M must imply a positive feature buffer in feet.", call. = FALSE)
 }
 
 expected_layer_names <- c(

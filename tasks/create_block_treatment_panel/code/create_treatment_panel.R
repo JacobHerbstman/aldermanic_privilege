@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/create_block_treatment_panel/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_block_treatment_panel/code")
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
