@@ -27,32 +27,29 @@ if (!cluster_level %in% c("ward_pair", "segment")) {
 }
 
 prune_suffix <- if (prune_sample == "pruned") "_pruned" else ""
-all_summary_csv <- sprintf(
-  "../temp/fe_summary_%s_all_%s_clust_%s%s.csv",
-  bandwidth_label,
-  fe_spec,
-  cluster_level,
-  prune_suffix
-)
-multifamily_summary_csv <- sprintf(
-  "../temp/fe_summary_%s_multifamily_%s_clust_%s%s.csv",
-  bandwidth_label,
-  fe_spec,
-  cluster_level,
-  prune_suffix
-)
-output_tex <- sprintf(
-  "../output/fe_table_%s_all_multifamily_%s_clust_%s%s.tex",
-  bandwidth_label,
-  fe_spec,
-  cluster_level,
-  prune_suffix
-)
 
 summaries <- bind_rows(
-  read_csv(all_summary_csv, show_col_types = FALSE) %>%
+  read_csv(
+    sprintf(
+      "../temp/fe_summary_%s_all_%s_clust_%s%s.csv",
+      bandwidth_label,
+      fe_spec,
+      cluster_level,
+      prune_suffix
+    ),
+    show_col_types = FALSE
+  ) %>%
     mutate(sample_label = "All Construction"),
-  read_csv(multifamily_summary_csv, show_col_types = FALSE) %>%
+  read_csv(
+    sprintf(
+      "../temp/fe_summary_%s_multifamily_%s_clust_%s%s.csv",
+      bandwidth_label,
+      fe_spec,
+      cluster_level,
+      prune_suffix
+    ),
+    show_col_types = FALSE
+  ) %>%
     mutate(sample_label = "Multifamily")
 ) %>%
   mutate(
@@ -141,4 +138,13 @@ table_lines <- c(
   "\\par\\endgroup"
 )
 
-writeLines(table_lines, output_tex)
+writeLines(
+  table_lines,
+  sprintf(
+    "../output/fe_table_%s_all_multifamily_%s_clust_%s%s.tex",
+    bandwidth_label,
+    fe_spec,
+    cluster_level,
+    prune_suffix
+  )
+)

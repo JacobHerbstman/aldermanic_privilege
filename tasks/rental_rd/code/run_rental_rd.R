@@ -22,11 +22,6 @@ if (!is.finite(bins_per_side) || bins_per_side <= 0) {
   stop("bins_per_side must be positive.", call. = FALSE)
 }
 
-output_pdf <- sprintf(
-  "../output/rental_rd_flat_bw%.0f_2014_2022_all_controls.pdf",
-  bandwidth_ft
-)
-
 rent <- read_parquet(sprintf("../input/rental_rd_characteristics_panel_bw%.0f.parquet", bandwidth_ft)) %>%
   as_tibble()
 
@@ -198,4 +193,11 @@ plot <- ggplot() +
   theme_bw(base_size = 11) +
   theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
-ggsave(output_pdf, plot, width = 8.6, height = 6, dpi = 300, bg = "white")
+ggsave(
+  sprintf("../output/rental_rd_flat_bw%.0f_2014_2022_all_controls.pdf", bandwidth_ft),
+  plot,
+  width = 8.6,
+  height = 6,
+  dpi = 300,
+  bg = "white"
+)
