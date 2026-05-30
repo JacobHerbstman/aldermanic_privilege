@@ -16,21 +16,13 @@ if (length(cli_args) != 1) {
 sample <- cli_args[1]
 run_sample <- as.logical(sample)
 
-# Core CRS for Chicago spatial work
 crs_projected <- 3435
 
-# -----------------------------------------------------------------------------
-# 2. LOAD & PREP ANCILLARY DATA
-# -----------------------------------------------------------------------------
-message("Loading ancillary data...")
-
-# Wards
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
   st_transform(crs_projected)
 canonical_ward_maps <- load_canonical_ward_maps(ward_panel)
 canonical_boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg")
 
-# Alderman Data
 alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
   mutate(month = as.yearmon(month))
 alderman_lookup <- alderman_panel %>%
@@ -39,10 +31,6 @@ alderman_lookup <- alderman_panel %>%
 if (anyDuplicated(alderman_lookup[, c("ward", "month")]) > 0) {
   stop("Alderman panel must be unique by ward-month.", call. = FALSE)
 }
-
-# -----------------------------------------------------------------------------
-# 3. RENT PROCESSING FUNCTION
-# -----------------------------------------------------------------------------
 
 process_batch <- function(df_batch) {
   if (!all(c("geometry_latitude", "geometry_longitude") %in% names(df_batch))) {
@@ -88,12 +76,7 @@ process_batch <- function(df_batch) {
   out
 }
 
-# -----------------------------------------------------------------------------
-# 5. EXECUTE (STREAMING)
-# -----------------------------------------------------------------------------
 input_file <- "../input/chicago_rent_panel.parquet"
-
-# Open dataset
 ds <- arrow::open_dataset(input_file)
 quality_ds <- arrow::open_dataset("../input/chicago_rent_panel_quality_flags.parquet")
 quality_cols <- setdiff(
@@ -107,19 +90,9 @@ quality_cols <- setdiff(
 years <- 2014:2022
 results_list <- list()
 
-if (run_sample) {
-  message("RUNNING ON SAMPLE MODE (1% by year)")
-} else {
-  message("RUNNING FULL DATASET (Batch Mode)")
-}
-
-# Set up progress bar for BOTH modes
-pb <- txtProgressBar(min = 0, max = length(years), style = 3)
-
 for (i in seq_along(years)) {
   yr <- years[i]
 
-  # Read chunk for the year
   df_chunk <- ds %>%
     filter(year(file_date) == yr) %>%
     select(
@@ -157,12 +130,10 @@ for (i in seq_along(years)) {
     }
   }
 
-  # Apply sampling if needed
   if (run_sample) {
     df_chunk <- df_chunk %>% slice_sample(prop = 0.01)
   }
 
-  # Process chunk
   if (nrow(df_chunk) > 0) {
     processed_chunk <- process_batch(df_chunk)
     if (!is.null(processed_chunk)) {
@@ -171,9 +142,7 @@ for (i in seq_along(years)) {
   }
 
   gc()
-  setTxtProgressBar(pb, i)
 }
-close(pb)
 
 if (length(results_list) == 0) {
   stop("No rental observations received a ward-pair assignment.", call. = FALSE)
@@ -183,15 +152,8 @@ results_sf <- bind_rows(results_list)
 suffix <- if (run_sample) "_sample" else "_full"
 output_path <- sprintf("../output/rent_pre_scores%s.parquet", suffix)
 
-# -----------------------------------------------------------------------------
-# 6. POST-PROCESS: ALDERMAN LOOKUPS (PRE-SCORES)
-# -----------------------------------------------------------------------------
-message("Attaching Alderman data (pre-scores output)...")
-
-# We convert back to tibble for the merge
-# Extract lat/lon before dropping geometry (transform back to WGS84 first)
 final_df <- results_sf %>%
-  st_transform(4326) %>% # Back to WGS84 for proper lat/lon
+  st_transform(4326) %>%
   mutate(
     longitude = st_coordinates(.)[, 1],
     latitude = st_coordinates(.)[, 2]
@@ -215,7 +177,6 @@ if (any(final_df$boundary_year == 2024L, na.rm = TRUE) || any(final_df$era == "p
   stop("Rental distance task should not contain post-2023 boundary assignments.", call. = FALSE)
 }
 
-message("Auditing modal-coordinate sensitivity inside 500ft...")
 modal_base <- final_df %>%
   filter(
     is.finite(dist_m),
@@ -357,11 +318,6 @@ final_df <- final_df %>%
       flag_modal_dist_diff_gt100ft
   )
 
-# 6a. Attach Alderman (Own & Neighbor)
-# We need to lookup who was alderman at [ward, file_date]
-# Use the alderman panel.
-# Optimized lookup: Join on Ward + Month-Year
-
 final_df <- final_df %>%
   mutate(month_join = as.yearmon(file_date))
 
@@ -399,11 +355,9 @@ final_df <- final_df %>%
     flag_missing_alderman_lookup = flag_missing_own_alderman | flag_missing_neighbor_alderman
   )
 
-# 6b. Deflate rent prices to 2022 dollars
 final_df <- final_df %>%
   mutate(rent_year_month = format(file_date, "%Y-%m"))
 
-message("Loading CPI series CUURA207SA0 from ../input/fred_cpi_cuura207sa0.csv...")
 cpi_raw <- read_csv("../input/fred_cpi_cuura207sa0.csv", show_col_types = FALSE)
 if (!all(c("observation_date", "CUURA207SA0") %in% names(cpi_raw))) {
   stop("CPI input missing expected columns for series CUURA207SA0.", call. = FALSE)
@@ -453,14 +407,6 @@ if (!is.finite(base_cpi) || base_cpi <= 0) {
   stop("Computed invalid base CPI for year 2022.", call. = FALSE)
 }
 
-message(sprintf(
-  "CPI window %s to %s | base (2022 avg) = %.3f | interpolated %d month(s)",
-  format(cpi_start_month, "%Y-%m"),
-  format(cpi_end_month, "%Y-%m"),
-  base_cpi,
-  n_missing_cpi
-))
-
 cpi_deflator <- cpi %>%
   transmute(
     rent_year_month = format(observation_date, "%Y-%m"),
@@ -485,11 +431,6 @@ final_df <- final_df %>%
     rent_price = rent_price_nominal * rent_price_deflator_to_2022
   )
 
-# -----------------------------------------------------------------------------
-# 7. CLEAN BUILDING TYPES
-# -----------------------------------------------------------------------------
-message("Checking building types...")
-
 if (!"building_type_clean" %in% names(final_df)) {
   stop("Rental panel must provide audited building_type_clean.", call. = FALSE)
 }
@@ -504,10 +445,4 @@ if (n_missing_building_type_clean > 0) {
 final_df <- final_df %>%
   select(-any_of("dist_ft"))
 
-
-# -----------------------------------------------------------------------------
-# 8. SAVE
-# -----------------------------------------------------------------------------
 write_parquet(final_df, output_path)
-
-message("Done! Saved ", nrow(final_df), " rows to ", output_path)
