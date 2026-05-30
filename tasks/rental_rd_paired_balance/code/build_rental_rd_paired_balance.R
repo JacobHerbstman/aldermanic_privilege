@@ -1,8 +1,7 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_paired_balance/code")
 # bandwidth_ft <- 500
 
-source("../../setup_environment/code/packages.R", local = new.env(parent = globalenv()))
+source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)

@@ -1,4 +1,3 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_benchmark_table/code")
 
 source("../../setup_environment/code/packages.R")
