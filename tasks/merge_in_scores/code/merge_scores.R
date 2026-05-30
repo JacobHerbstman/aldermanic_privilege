@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("tasks/merge_in_scores/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_in_scores/code")
 # score_column <- "uncertainty_index"
 
 source("../../setup_environment/code/packages.R")
@@ -167,5 +167,3 @@ if (nzchar(score_coverage_output)) {
     arrange(construction_year, boundary_year, ward_pair, side) %>%
     write_csv(score_coverage_output)
 }
-
-message(sprintf("Wrote %s (%s rows)", merge_output, format(nrow(parcels_final), big.mark = ",")))

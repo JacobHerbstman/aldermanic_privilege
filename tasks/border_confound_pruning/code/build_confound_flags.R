@@ -1,4 +1,4 @@
-# setwd("tasks/border_confound_pruning/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_confound_pruning/code")
 
 source("../../setup_environment/code/packages.R")
 
@@ -374,7 +374,3 @@ if (nrow(drop) == 0) {
 }
 
 fwrite(flags, "../output/confounded_pair_era_flags.csv")
-
-message("Saved:")
-message("  - ../output/confounded_pair_era_flags.csv")
-message("  - ../output/confounded_segment_flags.csv")

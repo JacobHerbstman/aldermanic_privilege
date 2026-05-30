@@ -1,13 +1,13 @@
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_boundary_ambiguity/code")
+# bandwidths <- "76.2 152.4 304.8"
+# samples <- "all multifamily"
+
 library(sf)
 library(readr)
 library(dplyr)
 
 source("../../_lib/canonical_geometry_helpers.R")
-
-# --- Interactive Test Block ---
-# setwd("tasks/border_pair_boundary_ambiguity/code")
-# bandwidths <- "76.2 152.4 304.8"
-# samples <- "all multifamily"
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -185,6 +185,3 @@ ambiguity_summary <- bind_rows(lapply(samples, function(sample_i) {
 }))
 
 write_csv(ambiguity_summary, "../output/boundary_ambiguity_by_bw.csv")
-
-message("Built ../output/parcel_other_pair_distance.csv")
-message("Built ../output/boundary_ambiguity_by_bw.csv")
