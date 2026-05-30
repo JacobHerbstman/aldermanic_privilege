@@ -49,13 +49,6 @@ if (!gap_split %in% c("above_median", "below_median")) {
 
 distance_display <- distance_display_config()
 bw_label <- format_distance_label(bandwidth_m, distance_display)
-output_pdf <- sprintf(
-  "../output/nonparametric_rd_density_gap_split_log_%s_%s_%s_%s.pdf",
-  yvar,
-  bw_label,
-  sample_filter,
-  gap_split
-)
 
 fe_formula <- dplyr::case_when(
   fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
@@ -316,4 +309,16 @@ p <- ggplot() +
   ) +
   theme_bw(base_size = 11)
 
-ggsave(output_pdf, plot = p, width = 8.6, height = 6.0, dpi = 300)
+ggsave(
+  sprintf(
+    "../output/nonparametric_rd_density_gap_split_log_%s_%s_%s_%s.pdf",
+    yvar,
+    bw_label,
+    sample_filter,
+    gap_split
+  ),
+  plot = p,
+  width = 8.6,
+  height = 6.0,
+  dpi = 300
+)

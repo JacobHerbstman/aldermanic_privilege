@@ -35,12 +35,6 @@ if (!is.finite(bins_per_side) || bins_per_side < 2) {
 distance_display <- distance_display_config()
 bw_label <- format_distance_label(bandwidth_m, distance_display)
 
-output_pdf <- sprintf(
-  "../output/nonparametric_rd_density_linear_display_4panel_%s_all_multifamily_bins%d.pdf",
-  bw_label,
-  bins_per_side
-)
-
 fe_formula <- dplyr::case_when(
   fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
   fe_spec == "zonegroup_pair_year_additive" ~ "zone_group + ward_pair + construction_year",
@@ -327,4 +321,14 @@ combined_plot <- (panels[[1]] | panels[[2]]) / (panels[[3]] | panels[[4]]) +
     plot.subtitle = element_text(size = 9.5)
   )
 
-ggsave(output_pdf, plot = combined_plot, width = 11.2, height = 8.4, dpi = 300)
+ggsave(
+  sprintf(
+    "../output/nonparametric_rd_density_linear_display_4panel_%s_all_multifamily_bins%d.pdf",
+    bw_label,
+    bins_per_side
+  ),
+  plot = combined_plot,
+  width = 11.2,
+  height = 8.4,
+  dpi = 300
+)

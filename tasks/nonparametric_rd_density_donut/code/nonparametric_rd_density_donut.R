@@ -62,13 +62,6 @@ pretty_outcome <- dplyr::case_when(
 distance_display <- distance_display_config("ft")
 bw_label <- format_distance_label(bandwidth_m, distance_display)
 donut_label <- format_distance_label(donut_m, distance_display)
-output_pdf <- sprintf(
-  "../output/nonparametric_rd_density_donut_log_%s_%s_%s_donut%s.pdf",
-  yvar,
-  bw_label,
-  sample_filter,
-  donut_label
-)
 
 raw <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
   ensure_meter_distance_columns()
@@ -281,4 +274,16 @@ p <- ggplot() +
   ) +
   theme_bw(base_size = 11)
 
-ggsave(output_pdf, plot = p, width = 8.6, height = 6.0, dpi = 300)
+ggsave(
+  sprintf(
+    "../output/nonparametric_rd_density_donut_log_%s_%s_%s_donut%s.pdf",
+    yvar,
+    bw_label,
+    sample_filter,
+    donut_label
+  ),
+  plot = p,
+  width = 8.6,
+  height = 6.0,
+  dpi = 300
+)
