@@ -2,7 +2,6 @@ UNCERTAINTY_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_th
 
 all: \
 	../output/predecessor_successor_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf \
-	../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv \
 	../output/low_discretion_falsification_compact_uncertainty_$(UNCERTAINTY_SPEC).tex
 
 ../output/predecessor_successor_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf: analyze_within_ward_variation.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv | ../output
