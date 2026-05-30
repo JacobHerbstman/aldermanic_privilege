@@ -1,5 +1,5 @@
-## run this line when editing code in Rstudio
-# setwd("tasks/building_permits_scraping/code")
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/building_permits_scraping/code")
 
 source("../../setup_environment/code/packages.R")
 
@@ -26,10 +26,7 @@ normalize_text <- function(x) {
   trimws(x)
 }
 
-input_file <- "../input/building_permits.csv"
-output_permit_file <- "../output/building_permits_text_features.csv.gz"
-
-permits <- data.table::fread(input_file, na.strings = c("", "NA"), encoding = "UTF-8")
+permits <- data.table::fread("../input/building_permits.csv", na.strings = c("", "NA"), encoding = "UTF-8")
 setDT(permits)
 setnames(permits, clean_names_base(names(permits)))
 
@@ -404,8 +401,4 @@ drop_cols <- c(contact_cols, "desc_upper_raw", "condition_upper_raw", "analysis_
 drop_cols <- intersect(drop_cols, names(permits))
 permit_export <- permits[, !drop_cols, with = FALSE]
 
-data.table::fwrite(permit_export, output_permit_file)
-
-cat("Rows in permit-level output:", nrow(permit_export), "\n")
-cat("Permits with unit-change signal:", sum(permit_export$unit_change_signal, na.rm = TRUE), "\n")
-cat("Permits with explicit from-to pairs:", sum(permit_export$from_to_pair_n > 0, na.rm = TRUE), "\n")
+data.table::fwrite(permit_export, "../output/building_permits_text_features.csv.gz")

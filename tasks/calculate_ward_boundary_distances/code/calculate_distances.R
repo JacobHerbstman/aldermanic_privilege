@@ -23,8 +23,7 @@ if (year(max_construction_month_date) != max_construction_year) {
 }
 max_construction_month_num <- month(max_construction_month_date)
 
-cat("Loading parcel data...\n")
-parcels <- st_read("../input/geocoded_residential_data.gpkg") %>%
+parcels <- st_read("../input/geocoded_residential_data.gpkg", quiet = TRUE) %>%
   filter(!is.na(yearbuilt), yearbuilt >= 1999 & yearbuilt <= max_construction_year) %>%
   mutate(
     parcel_row_id = row_number(),
@@ -35,45 +34,30 @@ parcels <- st_read("../input/geocoded_residential_data.gpkg") %>%
     )
   )
 
-cat("Loading ward boundaries...\n")
-ward_panel <- st_read("../input/ward_panel.gpkg")
+ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 canonical_ward_maps <- load_canonical_ward_maps(ward_panel)
 
-cat("Loading canonical ward-pair boundaries...\n")
 canonical_boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg")
 
-cat("Loading alderman panel...\n")
-alderman_panel <- read_csv("../input/chicago_alderman_panel.csv")
+alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE)
 
-cat(sprintf("Synthetic construction date mode: %s\n", synthetic_date_mode))
-
-cat("Loading ward controls (homeownership rates)...\n")
-ward_controls <- read_csv("../input/ward_controls.csv")
+ward_controls <- read_csv("../input/ward_controls.csv", show_col_types = FALSE)
 ward_controls_max_year <- max(ward_controls$year, na.rm = TRUE)
 if (!is.finite(ward_controls_max_year)) {
   stop("Ward controls have no valid year coverage.", call. = FALSE)
 }
 
-cat("Loading block group controls...\n")
 bg_controls <- read_csv("../input/block_group_controls.csv", show_col_types = FALSE)
 bg_controls_max_year <- max(bg_controls$year, na.rm = TRUE)
 if (!is.finite(bg_controls_max_year)) {
   stop("Block group controls have no valid year coverage.", call. = FALSE)
 }
 
-cat(sprintf(
-  "Ward controls available through %d; block group controls available through %d.\n",
-  as.integer(ward_controls_max_year),
-  as.integer(bg_controls_max_year)
-))
-
 if (st_crs(parcels) != st_crs(ward_panel)) {
-  message("CRS mismatch detected. Transforming parcels CRS to match ward boundaries.")
   parcels <- st_transform(parcels, st_crs(ward_panel))
 }
 
-cat("Loading zoning data...\n")
-zoning_data <- st_read("../input/zoning_data_clean.gpkg")
+zoning_data <- st_read("../input/zoning_data_clean.gpkg", quiet = TRUE)
 
 if (st_crs(zoning_data) != st_crs(ward_panel)) {
   zoning_data <- st_transform(zoning_data, st_crs(ward_panel))
@@ -91,7 +75,6 @@ if (nrow(parcels) != n_parcels_before_zoning) {
   stop("Zoning spatial join changed the parcel row count.", call. = FALSE)
 }
 
-cat("Loading canonical block-group geometries (ACS 2019)...\n")
 block_groups <- st_read("../input/block_group_geometry_2019.gpkg", quiet = TRUE)
 
 if (!("GEOID" %in% names(block_groups))) {
@@ -120,20 +103,12 @@ if (st_crs(block_groups) != st_crs(parcels)) {
   block_groups <- st_transform(block_groups, st_crs(parcels))
 }
 
-cat("Spatial join: assigning parcels to block groups...\n")
 n_parcels_before_bg <- nrow(parcels)
 parcels <- parcels %>%
   st_join(block_groups, left = TRUE)
 if (nrow(parcels) != n_parcels_before_bg) {
   stop("Block-group spatial join changed the parcel row count.", call. = FALSE)
 }
-
-cat(sprintf(
-  "Block group assignment complete. %d of %d parcels have GEOID.\n",
-  sum(!is.na(parcels$GEOID)), nrow(parcels)
-))
-
-cat("Assigning canonical ward pairs and distances to parcels...\n")
 
 alderman_lookup <- alderman_panel %>%
   select(ward, month, alderman) %>%
@@ -168,7 +143,6 @@ if (anyDuplicated(bg_controls[c("GEOID", "year")]) > 0) {
 if (synthetic_date_mode == "dynamic_turnover") {
   era_levels <- canonical_era_levels()
 
-  cat("Precomputing parcel assignments for all canonical eras...\n")
   assignment_by_era <- bind_rows(lapply(era_levels, function(era_i) {
     assign_points_to_boundaries(
       points_sf = parcels,
@@ -264,18 +238,6 @@ if (synthetic_date_mode == "dynamic_turnover") {
     slice(1) %>%
     ungroup()
 
-  cat(sprintf(
-    "Dynamic month selection changed month for %d of %d parcels.\n",
-    sum(selected_months$month_num != 6L, na.rm = TRUE),
-    nrow(selected_months)
-  ))
-  cat(sprintf(
-    "Changed own alderman for %d parcels, neighbor alderman for %d parcels, boundary year for %d parcels.\n",
-    sum(selected_months$changed_alderman_own, na.rm = TRUE),
-    sum(selected_months$changed_alderman_neighbor, na.rm = TRUE),
-    sum(selected_months$changed_boundary_year, na.rm = TRUE)
-  ))
-
   parcels_with_distances <- parcels %>%
     select(-construction_date) %>%
     left_join(
@@ -314,13 +276,6 @@ if (synthetic_date_mode == "dynamic_turnover") {
 
   parcels_with_distances <- bind_cols(parcels, boundary_assignments)
 }
-
-cat(sprintf(
-  "Canonical ward assignment coverage: %d of %d parcels have ward, %d have ward_pair.\n",
-  sum(!is.na(parcels_with_distances$assigned_ward)),
-  nrow(parcels_with_distances),
-  sum(!is.na(parcels_with_distances$ward_pair))
-))
 
 final_dataset <- parcels_with_distances %>%
   mutate(
@@ -373,8 +328,7 @@ final_dataset <- final_dataset %>%
     )
   )
 
-cat("Saving geospatial output before dropping geometry...\n")
-st_write(final_dataset, "../output/parcels_with_geometry.gpkg", delete_dsn = TRUE)
+st_write(final_dataset, "../output/parcels_with_geometry.gpkg", delete_dsn = TRUE, quiet = TRUE)
 
 final_dataset <- as_tibble(st_drop_geometry(final_dataset)) %>%
   rename(alderman_own = alderman)
@@ -414,22 +368,6 @@ final_dataset_signed <- final_dataset %>%
   ) %>%
   dplyr::select(-bg_controls_year)
 
-ward_controls_carried_forward <- sum(final_dataset_signed$construction_year > ward_controls_max_year, na.rm = TRUE)
-bg_controls_carried_forward <- sum(final_dataset_signed$construction_year > bg_controls_max_year, na.rm = TRUE)
-cat(sprintf(
-  "Ward controls carried forward from %d for %d parcels; block group controls carried forward from %d for %d parcels.\n",
-  as.integer(ward_controls_max_year),
-  ward_controls_carried_forward,
-  as.integer(bg_controls_max_year),
-  bg_controls_carried_forward
-))
-
-cat("Final Dataset Created!\n")
-cat(sprintf(
-  "Block group demographics merged: %d of %d parcels have block group data.\n",
-  sum(!is.na(final_dataset_signed$percent_white_bg)), nrow(final_dataset_signed)
-))
-
 boundary_year_checks <- final_dataset_signed %>%
   mutate(
     era = canonical_era_from_boundary_year(boundary_year),
@@ -440,19 +378,7 @@ boundary_year_checks <- final_dataset_signed %>%
   )
 if (any(!boundary_year_checks$boundary_year_matches_construction_date, na.rm = TRUE) ||
     any(!boundary_year_checks$era_matches_boundary_year, na.rm = TRUE)) {
-  stop("Parcel boundary-year convention diagnostic failed.", call. = FALSE)
+  stop("Parcel boundary-year convention check failed.", call. = FALSE)
 }
 
-cat("Saving output (pre-scores, unsigned)...\n")
 write_csv(final_dataset_signed, "../output/parcels_pre_scores.csv")
-
-cat("Task completed successfully!\n")
-cat(sprintf(
-  "Processed %d parcels across %d wards\n",
-  nrow(final_dataset),
-  n_distinct(final_dataset$ward)
-))
-cat(sprintf(
-  "Found %d unique ward pairs\n",
-  n_distinct(final_dataset$ward_pair, na.rm = TRUE)
-))

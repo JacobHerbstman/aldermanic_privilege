@@ -597,11 +597,6 @@ classify_segments_from_features <- function(segment_sf, features) {
   segment_sf
 }
 
-# -----------------------------------------------------------------------------
-# Build path
-# -----------------------------------------------------------------------------
-message("Building ward boundary segments from ward panel, Major Streets, and OSM feature layers.")
-
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 ward_panel$year <- as.integer(ward_panel$year)
 ward_panel$ward <- as.integer(ward_panel$ward)
@@ -691,8 +686,6 @@ all_pair_ids_unique <- all(vapply(
   },
   logical(1)
 ))
-invalid_segments <- sum(!segments$valid_segment, na.rm = TRUE)
-
 if (!all_eras_present) {
   stop("One or more eras has no ward-pair boundary layer.", call. = FALSE)
 }
@@ -701,12 +694,6 @@ if (!all_pair_lengths_positive) {
 }
 if (!all_pair_ids_unique) {
   stop("Ward-pair IDs are not unique within era.", call. = FALSE)
-}
-if (invalid_segments > 0) {
-  message(sprintf(
-    "Retained %s invalid segment rows with valid_segment = FALSE for downstream loaders.",
-    format(invalid_segments, big.mark = ",")
-  ))
 }
 
 if (!setequal(st_layers(segment_output)$name, expected_layer_names)) {
@@ -718,8 +705,3 @@ if (!setequal(st_layers("../output/ward_pair_boundaries.gpkg")$name, eras)) {
 if (nrow(fread("../output/segment_classification.csv")) == 0) {
   stop("segment_classification.csv is empty.", call. = FALSE)
 }
-
-message("Saved:")
-message(sprintf(" - %s", segment_output))
-message(" - ../output/segment_classification.csv")
-message(" - ../output/ward_pair_boundaries.gpkg")
