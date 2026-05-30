@@ -1,18 +1,17 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/pruned_boundary_maps/code")
 # segment_length_ft <- 1320
 
 source("../../setup_environment/code/packages.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(segment_length_ft)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(segment_length_ft)
 }
-if (length(args) != 1) {
-  stop("FATAL: Script requires args: <segment_length_ft>", call. = FALSE)
+if (length(cli_args) != 1) {
+  stop("Usage: Rscript plot_pruned_boundary_maps.R <segment_length_ft>", call. = FALSE)
 }
 
-segment_length_ft <- as.numeric(args[1])
+segment_length_ft <- as.numeric(cli_args[1])
 if (!is.finite(segment_length_ft) || segment_length_ft <= 0) {
   stop("segment_length_ft must be positive.", call. = FALSE)
 }
