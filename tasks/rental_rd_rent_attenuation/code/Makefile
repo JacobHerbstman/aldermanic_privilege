@@ -1,7 +1,6 @@
 BANDWIDTH_FT ?= 500
 
-all: \
-	../output/rental_rd_rent_attenuation_clean_location_bw$(BANDWIDTH_FT).tex
+all: ../output/rental_rd_rent_attenuation_clean_location_bw$(BANDWIDTH_FT).tex
 
 ../output/rental_rd_rent_attenuation_clean_location_bw$(BANDWIDTH_FT).tex: build_rental_rd_rent_attenuation.R ../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet | ../output
 	Rscript $< $(BANDWIDTH_FT)
