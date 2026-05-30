@@ -31,10 +31,6 @@ if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
   stop("segment_buffer_m must be positive.", call. = FALSE)
 }
 
-cat("=== Assign Segment IDs to Parcel PINs ===\n")
-cat("Segment length:", segment_length_ft, "ft\n")
-cat("Segment buffer:", segment_buffer_m, "m\n")
-
 pre <- fread("../input/parcels_pre_scores.csv", colClasses = c(pin = "character"))
 required_pre_cols <- c("pin", "boundary_year", "ward_pair", "dist_to_boundary_m")
 missing_pre_cols <- setdiff(required_pre_cols, names(pre))
@@ -190,6 +186,3 @@ if (anyDuplicated(lookup$pin) > 0) {
 }
 
 fwrite(lookup, "../output/parcel_segment_ids.csv", na = "NA")
-
-cat("\nSaved:\n")
-cat(" - ../output/parcel_segment_ids.csv\n")

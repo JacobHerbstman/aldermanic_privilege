@@ -4,9 +4,7 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
-sf_use_s2(FALSE)
-
-message("Loading data...")
+suppressMessages(sf_use_s2(FALSE))
 
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 
@@ -19,7 +17,6 @@ if (anyDuplicated(alderman_panel[c("year", "ward")]) > 0) {
     stop("Alderman panel must be unique by ward-year after June filtering.", call. = FALSE)
 }
 
-message("Loading 2010 census blocks...")
 blocks_2010 <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
     rename(geometry = the_geom) %>%
     st_as_sf(wkt = "geometry", crs = 4269) %>%
@@ -28,9 +25,6 @@ blocks_2010 <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALS
     mutate(block_id = as.character(block_id)) %>%
     distinct(block_id, .keep_all = TRUE)
 
-message(sprintf("  2010 blocks: %s", format(nrow(blocks_2010), big.mark = ",")))
-
-message("Loading 2020 census blocks...")
 blocks_2020 <- read_csv("../input/census_blocks_2020.csv", show_col_types = FALSE) %>%
     rename(geometry = the_geom) %>%
     st_as_sf(wkt = "geometry", crs = 4269) %>%
@@ -38,10 +32,6 @@ blocks_2020 <- read_csv("../input/census_blocks_2020.csv", show_col_types = FALS
     rename(block_id = GEOID20) %>%
     mutate(block_id = as.character(block_id)) %>%
     distinct(block_id, .keep_all = TRUE)
-
-message(sprintf("  2020 blocks: %s", format(nrow(blocks_2020), big.mark = ",")))
-
-message("\nAssigning 2010 blocks to ward maps...")
 
 ward_map_2003_2014 <- aggregate_ward_map(ward_panel, canonical_map_year_for_era("2003_2014"))
 ward_map_2015_2023 <- aggregate_ward_map(ward_panel, canonical_map_year_for_era("2015_2023"))
@@ -125,10 +115,6 @@ assignments_2010 <- tibble(block_id = blocks_2010$block_id) %>%
         block_vintage = "2010"
     )
 
-message(sprintf("  2010 blocks switching in 2015: %d", sum(assignments_2010$switched_2015, na.rm = TRUE)))
-
-message("\nAssigning 2020 blocks to ward maps...")
-
 block_area_2020 <- tibble(
     block_id = blocks_2020$block_id,
     block_area = as.numeric(st_area(blocks_2020))
@@ -207,10 +193,6 @@ assignments_2020 <- tibble(block_id = blocks_2020$block_id) %>%
         block_vintage = "2020"
     )
 
-message(sprintf("  2020 blocks switching in 2023: %d", sum(assignments_2020$switched_2023, na.rm = TRUE)))
-
-message("Identifying wards with electoral turnover...")
-
 ward_turnover_2015 <- alderman_panel %>%
     filter(year %in% c(2014, 2015)) %>%
     select(ward, year, alderman) %>%
@@ -248,8 +230,6 @@ treatment_2023 <- assignments_2020 %>%
             (switched_2023 | (!switched_2023 & !ward_had_turnover_2023)),
         valid_2023 = replace_na(valid_2023, FALSE)
     )
-
-message("\nCombining treatment panels (pre-scores)...")
 
 panel_2015 <- treatment_2015 %>%
     select(
@@ -307,13 +287,4 @@ block_treatment_pre_scores <- block_treatment_pre_scores %>%
         min_assignment_share = pmin(ward_origin_share, ward_dest_share, na.rm = TRUE)
     )
 
-message("\nSaving output...")
-
 write_csv(block_treatment_pre_scores, "../output/block_treatment_pre_scores.csv")
-
-message(sprintf(
-    "Saved: ../output/block_treatment_pre_scores.csv (%s rows)",
-    format(nrow(block_treatment_pre_scores), big.mark = ",")
-))
-
-message("\nDone!")
