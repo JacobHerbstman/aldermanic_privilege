@@ -1,5 +1,5 @@
 # new_construction_score_variants
 
-Purpose: Build alternative alderman stringency score variants used by score comparison and density robustness tasks.
+Purpose: Builds the residualized low-discretion alderman score used by the density robustness task.
 
-Produces: Score CSVs for new construction, new construction plus demolition, restricted renovation, and residualized low-discretion processing time.
+Produces: `output/alderman_uncertainty_index_low_discretion_residualized.csv`.
