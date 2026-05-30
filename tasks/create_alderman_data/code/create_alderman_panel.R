@@ -377,5 +377,3 @@ if (nrow(recent_missing) > 0) {
 }
 
 write_csv(final_panel, "../output/chicago_alderman_panel.csv")
-
-print("CSV file created successfully: chicago_alderman_panel.csv")

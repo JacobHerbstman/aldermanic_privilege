@@ -1,7 +1,5 @@
 source("../../setup_environment/code/packages.R")
 
-message("=== Prep Sales Border Data: Merge Hedonics via Rolling Join ===")
-
 # ── Load data ──
 sales <- fread("../input/sales_with_ward_distances.csv")
 if (!"segment_id" %in% names(sales)) {
@@ -17,11 +15,6 @@ improvements <- read_parquet("../input/residential_improvements_panel.parquet")
 setDT(improvements)
 improvements[, pin := as.character(pin)]
 
-message(sprintf("%s sales, %s improvement records (%s PINs)",
-                format(nrow(sales), big.mark = ","),
-                format(nrow(improvements), big.mark = ","),
-                format(uniqueN(improvements$pin), big.mark = ",")))
-
 # ── Rolling join: most recent assessment <= sale year ──
 setkey(improvements, pin, tax_year)
 
@@ -33,12 +26,6 @@ sales_h <- improvements[
 ]
 setnames(sales_h, "tax_year", "hedonic_tax_year")
 sales_h[, sale_year := year(sale_date)]
-
-n_matched <- sum(!is.na(sales_h$building_sqft))
-message(sprintf("Match rate: %s / %s (%.1f%%)",
-                format(n_matched, big.mark = ","),
-                format(nrow(sales_h), big.mark = ","),
-                100 * n_matched / nrow(sales_h)))
 
 # ── Derived hedonic variables ──
 sales_h[, `:=`(
@@ -66,10 +53,4 @@ sales_h[, `:=`(
 # ── Filter to 2006+ and save ──
 sales_out <- sales_h[sale_year >= 2006]
 
-message(sprintf("%s sales (2006-2025), %d ward pairs, median $%s",
-                format(nrow(sales_out), big.mark = ","),
-                uniqueN(sales_out$ward_pair_id),
-                format(median(sales_out$sale_price, na.rm = TRUE), big.mark = ",")))
-
 write_parquet(sales_out, "../output/sales_with_hedonics.parquet")
-message(sprintf("Saved: ../output/sales_with_hedonics.parquet"))

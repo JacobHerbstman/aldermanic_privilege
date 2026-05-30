@@ -20,7 +20,7 @@ num_start <- function(x){ raw <- str_extract(x %||% "", "^\\s*([0-9]+(?:,[0-9]{3
 num_ft    <- function(x){ raw <- str_extract(x %||% "", regex("([0-9]+(?:,[0-9]{3})*(?:\\.[0-9]+)?)\\s*(?=ft\\.?\\b|feet\\b|\\u2032|')", TRUE)); as.numeric(str_replace_all(raw, ",","")) }
 
 # --- read + normalize/drop in one go ---
-zones_sf <- st_read("../input/raw_zoning_data.geojson") %>%
+zones_sf <- st_read("../input/raw_zoning_data.geojson", quiet = TRUE) %>%
   transmute(zone_code = norm_code(zone_class), geometry) %>%
   st_make_valid() %>%
   st_transform(3435)
@@ -43,17 +43,14 @@ regs <- read_csv("../input/zoning-code-summary-district-types.csv", show_col_typ
     max_building_height_ft       = num_ft(maximum_building_height)
   )
 
-# --- join + quick QA ---
+# --- join regulations ---
 zones_with_regs <- zones_sf %>%
   left_join(regs, by = "zone_code", relationship = "many-to-one")
-unmatched <- anti_join(zones_sf, regs, by = "zone_code")
-message("Unmatched zone codes: ", nrow(unmatched))
 
-## keep just columns I want 
 zones_with_regs <- zones_with_regs %>%
   select(zone_code, geometry, 
          floor_area_ratio = floor_area_ratio_num, 
          lot_area_per_unit = lot_area_per_unit_sqft, 
          maximum_building_height = max_building_height_ft)
 
-st_write(zones_with_regs, "../output/zoning_data_clean.gpkg", delete_layer = TRUE)
+st_write(zones_with_regs, "../output/zoning_data_clean.gpkg", delete_layer = TRUE, quiet = TRUE)
