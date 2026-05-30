@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_amenity_balance/code")
 # bandwidth_m <- 152.4
 # sample_filter <- "all"
@@ -18,7 +19,7 @@ if (length(cli_args) == 0) {
 
 if (length(cli_args) != 3) {
   stop(
-    "Usage: Rscript build_density_amenity_balance.R <bandwidth_m> <sample_filter> <bandwidth_label>",
+    "FATAL: Script requires 3 args: <bandwidth_m> <sample_filter> <bandwidth_label>.",
     call. = FALSE
   )
 }

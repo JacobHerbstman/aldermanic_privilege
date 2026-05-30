@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
 # bandwidth <- 304.8
 # bandwidth_label <- "1000ft"
@@ -10,7 +11,7 @@ if (length(cli_args) == 0) {
 }
 
 if (length(cli_args) != 2) {
-  stop("Usage: Rscript did_table_permit_2015.R <bandwidth> <bandwidth_label>", call. = FALSE)
+  stop("FATAL: Script requires 2 args: <bandwidth> <bandwidth_label>.", call. = FALSE)
 }
 
 bandwidth <- as.numeric(cli_args[1])

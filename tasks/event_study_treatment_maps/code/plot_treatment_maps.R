@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_treatment_maps/code")
 # bandwidth_m <- 304.8
 # bandwidth_label <- "1000ft"
@@ -10,7 +11,7 @@ if (length(cli_args) == 0) {
 }
 
 if (length(cli_args) != 2) {
-  stop("Usage: Rscript plot_treatment_maps.R <bandwidth_m> <bandwidth_label>", call. = FALSE)
+  stop("FATAL: Script requires 2 args: <bandwidth_m> <bandwidth_label>.", call. = FALSE)
 }
 
 bandwidth_m <- as.numeric(cli_args[1])

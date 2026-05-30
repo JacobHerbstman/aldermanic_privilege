@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_placebo/code")
 # yvar <- "density_far"
 # bandwidth_m <- 152.4
@@ -16,7 +17,7 @@ if (length(cli_args) == 0) {
 
 if (length(cli_args) != 6) {
   stop(
-    "Usage: Rscript nonparametric_rd_density_placebo.R <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <placebo_shift_m>",
+    "FATAL: Script requires 6 args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <placebo_shift_m>.",
     call. = FALSE
   )
 }

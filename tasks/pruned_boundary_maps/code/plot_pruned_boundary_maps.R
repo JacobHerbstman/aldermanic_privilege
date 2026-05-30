@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/pruned_boundary_maps/code")
 # segment_length_ft <- 1320
 
@@ -8,7 +9,7 @@ if (length(cli_args) == 0) {
   cli_args <- c(segment_length_ft)
 }
 if (length(cli_args) != 1) {
-  stop("Usage: Rscript plot_pruned_boundary_maps.R <segment_length_ft>", call. = FALSE)
+  stop("FATAL: Script requires 1 arg: <segment_length_ft>.", call. = FALSE)
 }
 
 segment_length_ft <- as.numeric(cli_args[1])

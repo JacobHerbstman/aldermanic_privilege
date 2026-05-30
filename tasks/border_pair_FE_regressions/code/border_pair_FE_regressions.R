@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
 # bandwidth_m <- 152.4
 # sample_filter <- "multifamily"
@@ -17,7 +18,7 @@ if (length(cli_args) == 0) {
 
 if (length(cli_args) < 7) {
   stop(
-    "Usage: Rscript border_pair_FE_regressions.R <bandwidth_m> <sample> <fe_spec> <prune_sample> <cluster_level> <yvar1> [<yvar2> ...]",
+    "FATAL: Script requires at least 7 args: <bandwidth_m> <sample> <fe_spec> <prune_sample> <cluster_level> <yvar1> [<yvar2> ...].",
     call. = FALSE
   )
 }

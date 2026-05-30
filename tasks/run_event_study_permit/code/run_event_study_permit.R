@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
 # outcome_family <- "high_discretion"
 # treatment_type <- "continuous"
@@ -13,7 +14,7 @@ if (length(cli_args) == 0) {
 }
 
 if (length(cli_args) != 4) {
-  stop("Usage: Rscript run_event_study_permit.R <outcome_family> <treatment_type> <bandwidth> <bandwidth_label>", call. = FALSE)
+  stop("FATAL: Script requires 4 args: <outcome_family> <treatment_type> <bandwidth> <bandwidth_label>.", call. = FALSE)
 }
 
 outcome_family <- cli_args[1]

@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
 # bandwidth_label <- "500ft"
 # fe_spec <- "zonegroup_segment_year_additive"
@@ -12,7 +13,7 @@ if (length(cli_args) == 0) {
 }
 
 if (length(cli_args) != 4) {
-  stop("Usage: Rscript combine_density_main_table.R <bandwidth_label> <fe_spec> <prune_sample> <cluster_level>", call. = FALSE)
+  stop("FATAL: Script requires 4 args: <bandwidth_label> <fe_spec> <prune_sample> <cluster_level>.", call. = FALSE)
 }
 
 bandwidth_label <- cli_args[1]
