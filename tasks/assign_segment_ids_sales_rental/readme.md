@@ -1,6 +1,6 @@
 # assign_segment_ids_sales_rental
 
-Purpose: Assigns boundary-segment IDs to sales and RentHub records using the audited nearest-segment rule.
+Purpose: Assigns boundary-segment IDs to sales and RentHub records using the nearest valid segment rule.
 
 Outputs:
 - `output/sales_pre_scores_with_segments.csv`
