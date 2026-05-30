@@ -24,10 +24,6 @@ if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
 }
 
 outcome_var <- "n_high_discretion_issue"
-output_tex <- sprintf(
-  "../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_%s_noctrl_geo_wardpair.tex",
-  bandwidth_label
-)
 
 data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
   filter(
@@ -99,4 +95,10 @@ table_lines <- c(
   "\\par\\endgroup"
 )
 
-writeLines(table_lines, output_tex)
+writeLines(
+  table_lines,
+  sprintf(
+    "../output/did_table_permit_2015_high_discretion_issue_ppml_uniform_%s_noctrl_geo_wardpair.tex",
+    bandwidth_label
+  )
+)

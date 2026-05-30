@@ -54,14 +54,6 @@ shift_file_label <- paste0(
   format_distance_label(abs(placebo_shift_m), distance_display)
 )
 shift_display_label <- format_signed_distance_label(placebo_shift_m, distance_display)
-output_pdf <- sprintf(
-  "../output/nonparametric_rd_density_placebo_log_%s_%s_%s_shift_%s.pdf",
-  yvar,
-  bw_label,
-  sample_filter,
-  shift_file_label
-)
-
 fe_formula <- dplyr::case_when(
   fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
   fe_spec == "zonegroup_pair_year_additive" ~ "zone_group + ward_pair + construction_year",
@@ -292,4 +284,16 @@ p <- ggplot() +
   ) +
   theme_bw(base_size = 11)
 
-ggsave(output_pdf, plot = p, width = 8.6, height = 6.0, dpi = 300)
+ggsave(
+  sprintf(
+    "../output/nonparametric_rd_density_placebo_log_%s_%s_%s_shift_%s.pdf",
+    yvar,
+    bw_label,
+    sample_filter,
+    shift_file_label
+  ),
+  plot = p,
+  width = 8.6,
+  height = 6.0,
+  dpi = 300
+)
