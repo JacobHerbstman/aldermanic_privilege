@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/permit_stringency_table/code")
 # spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 # max_application_ym <- "2022-12"
@@ -11,7 +12,7 @@ if (length(cli_args) == 0) {
 
 if (length(cli_args) != 2) {
   stop(
-    "Usage: Rscript build_permit_stringency_table.R <spec> <max_application_ym>",
+    "FATAL: Script requires 2 args: <spec> <max_application_ym>.",
     call. = FALSE
   )
 }

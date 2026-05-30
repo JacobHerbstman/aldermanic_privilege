@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/strictness_score_map/code")
 # date_str <- "2022-01"
 # uncertainty_spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
@@ -10,7 +11,7 @@ if (length(cli_args) == 0) {
 }
 
 if (length(cli_args) != 2) {
-  stop("Usage: Rscript strictness_score_map.R <date_str> <uncertainty_spec>", call. = FALSE)
+  stop("FATAL: Script requires 2 args: <date_str> <uncertainty_spec>.", call. = FALSE)
 }
 
 date_str <- cli_args[1]

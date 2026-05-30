@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd/code")
 # bandwidth_ft <- 500
 # bins_per_side <- 15
@@ -9,7 +10,7 @@ if (length(cli_args) == 0) {
   cli_args <- c(bandwidth_ft, bins_per_side)
 }
 if (length(cli_args) != 2) {
-  stop("Usage: Rscript run_rental_rd.R <bandwidth_ft> <bins_per_side>", call. = FALSE)
+  stop("FATAL: Script requires 2 args: <bandwidth_ft> <bins_per_side>.", call. = FALSE)
 }
 
 bandwidth_ft <- as.numeric(cli_args[1])

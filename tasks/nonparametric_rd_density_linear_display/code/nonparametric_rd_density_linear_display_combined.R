@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_linear_display/code")
 # bandwidth_m <- 152.4
 # fe_spec <- "zonegroup_segment_year_additive"
@@ -13,7 +14,7 @@ if (length(cli_args) == 0) {
 
 if (length(cli_args) != 3) {
   stop(
-    "Usage: Rscript nonparametric_rd_density_linear_display_combined.R <bandwidth_m> <fe_spec> <bins_per_side>",
+    "FATAL: Script requires 3 args: <bandwidth_m> <fe_spec> <bins_per_side>.",
     call. = FALSE
   )
 }

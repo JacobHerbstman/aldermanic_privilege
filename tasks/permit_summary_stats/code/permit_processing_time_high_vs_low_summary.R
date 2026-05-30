@@ -1,3 +1,4 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/permit_summary_stats/code")
 # max_application_ym <- "2022-12"
 
@@ -9,7 +10,7 @@ if (length(cli_args) == 0) {
 }
 
 if (length(cli_args) != 1) {
-  stop("Usage: Rscript permit_processing_time_high_vs_low_summary.R <max_application_ym>", call. = FALSE)
+  stop("FATAL: Script requires 1 arg: <max_application_ym>.", call. = FALSE)
 }
 max_application_ym <- cli_args[1]
 
