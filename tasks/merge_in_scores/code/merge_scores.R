@@ -24,8 +24,6 @@ merge_output <- Sys.getenv(
   "MERGE_OUTPUT_PATH",
   if (nzchar(merge_output_tag)) sprintf("../temp/parcels_with_ward_distances_%s.csv", merge_output_tag) else "../output/parcels_with_ward_distances.csv"
 )
-merge_summary_output <- Sys.getenv("MERGE_SUMMARY_OUTPUT_PATH", "")
-score_coverage_output <- Sys.getenv("SCORE_COVERAGE_OUTPUT_PATH", "")
 max_construction_year_raw <- Sys.getenv("MAX_CONSTRUCTION_YEAR", "2026")
 max_construction_year <- if (nzchar(max_construction_year_raw)) suppressWarnings(as.integer(max_construction_year_raw)) else NA_integer_
 
@@ -119,51 +117,3 @@ parcels_final <- parcels_with_scores %>%
   filter(!is.na(signed_distance))
 
 write_csv(parcels_final, merge_output)
-
-if (nzchar(merge_summary_output)) {
-  parcels_final %>%
-    summarise(
-      n_parcels = n(),
-      n_wards = n_distinct(ward),
-      n_ward_pairs = n_distinct(ward_pair, na.rm = TRUE),
-      n_aldermen = n_distinct(alderman_own, na.rm = TRUE),
-      mean_signed_distance_m = mean(signed_distance_m, na.rm = TRUE),
-      median_signed_distance_m = median(signed_distance_m, na.rm = TRUE),
-      .by = c(boundary_year, construction_year)
-    ) %>%
-    arrange(construction_year) %>%
-    write_csv(merge_summary_output)
-}
-if (nzchar(score_coverage_output)) {
-  bind_rows(
-    parcels_with_scores %>%
-      transmute(
-        boundary_year,
-        construction_year,
-        ward_pair,
-        side = "own",
-        alderman = alderman_own,
-        has_score = !is.na(strictness_own)
-      ),
-    parcels_with_scores %>%
-      transmute(
-        boundary_year,
-        construction_year,
-        ward_pair,
-        side = "neighbor",
-        alderman = alderman_neighbor,
-        has_score = !is.na(strictness_neighbor)
-      )
-  ) %>%
-    summarise(
-      n_rows = n(),
-      n_aldermen = n_distinct(alderman, na.rm = TRUE),
-      n_missing_alderman = sum(is.na(alderman) | alderman == ""),
-      n_with_score = sum(has_score, na.rm = TRUE),
-      n_missing_score = sum(!has_score, na.rm = TRUE),
-      score_coverage_pct = 100 * n_with_score / n_rows,
-      .by = c(boundary_year, construction_year, ward_pair, side)
-    ) %>%
-    arrange(construction_year, boundary_year, ward_pair, side) %>%
-    write_csv(score_coverage_output)
-}
