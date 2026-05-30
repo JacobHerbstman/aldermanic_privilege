@@ -4,13 +4,9 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
-synthetic_date_mode <- tolower(Sys.getenv("SYNTHETIC_CONSTRUCTION_DATE_MODE", "june15"))
 max_construction_year <- suppressWarnings(as.integer(Sys.getenv("MAX_CONSTRUCTION_YEAR", "2026")))
 max_construction_month <- Sys.getenv("MAX_CONSTRUCTION_MONTH", "2026-04")
 
-if (!synthetic_date_mode %in% c("june15", "dynamic_turnover")) {
-  stop("SYNTHETIC_CONSTRUCTION_DATE_MODE must be one of: june15, dynamic_turnover", call. = FALSE)
-}
 if (!is.finite(max_construction_year)) {
   stop("MAX_CONSTRUCTION_YEAR must be a valid integer year.", call. = FALSE)
 }
@@ -21,7 +17,6 @@ max_construction_month_date <- as.Date(paste0(max_construction_month, "-15"))
 if (year(max_construction_month_date) != max_construction_year) {
   stop("MAX_CONSTRUCTION_MONTH year must match MAX_CONSTRUCTION_YEAR.", call. = FALSE)
 }
-max_construction_month_num <- month(max_construction_month_date)
 
 parcels <- st_read("../input/geocoded_residential_data.gpkg", quiet = TRUE) %>%
   filter(!is.na(yearbuilt), yearbuilt >= 1999 & yearbuilt <= max_construction_year) %>%
@@ -140,142 +135,26 @@ if (anyDuplicated(bg_controls[c("GEOID", "year")]) > 0) {
   stop("Block-group controls have duplicate GEOID-year rows.", call. = FALSE)
 }
 
-if (synthetic_date_mode == "dynamic_turnover") {
-  era_levels <- canonical_era_levels()
+parcels <- parcels %>%
+  mutate(
+    boundary_year = canonical_boundary_year_from_date(construction_date),
+    era = canonical_era_from_boundary_year(boundary_year)
+  )
 
-  assignment_by_era <- bind_rows(lapply(era_levels, function(era_i) {
-    assign_points_to_boundaries(
-      points_sf = parcels,
-      era_values = rep(era_i, nrow(parcels)),
-      ward_maps = canonical_ward_maps,
-      boundary_lines = canonical_boundaries,
-      chunk_n = 2000L
-    ) %>%
-      rename(
-        assigned_ward = ward,
-        ward_pair = ward_pair_id,
-        dist_to_boundary = dist_ft
-      ) %>%
-      mutate(parcel_row_id = parcels$parcel_row_id, era = era_i)
-  }))
+boundary_assignments <- assign_points_to_boundaries(
+  points_sf = parcels,
+  era_values = parcels$era,
+  ward_maps = canonical_ward_maps,
+  boundary_lines = canonical_boundaries,
+  chunk_n = 2000L
+) %>%
+  rename(
+    assigned_ward = ward,
+    ward_pair = ward_pair_id,
+    dist_to_boundary = dist_ft
+  )
 
-  month_grid <- parcels %>%
-    st_drop_geometry() %>%
-    transmute(parcel_row_id, pin = as.character(pin), construction_year = yearbuilt) %>%
-    tidyr::crossing(month_num = 1:12) %>%
-    filter(construction_year < max_construction_year | month_num <= max_construction_month_num) %>%
-    mutate(
-      construction_date_candidate = as.Date(sprintf("%04d-%02d-15", construction_year, month_num)),
-      construction_yearmon = as.yearmon(construction_date_candidate),
-      yearmon_key = as.character(construction_yearmon),
-      boundary_year = canonical_boundary_year_from_date(construction_date_candidate),
-      era = canonical_era_from_boundary_year(boundary_year)
-    ) %>%
-    left_join(
-      assignment_by_era %>%
-        select(parcel_row_id, era, assigned_ward, ward_pair, dist_to_boundary),
-      by = c("parcel_row_id", "era"),
-      relationship = "many-to-one"
-    ) %>%
-    mutate(
-      wards_in_pair = str_split_fixed(ward_pair, "_", 2),
-      ward_a = suppressWarnings(as.integer(wards_in_pair[, 1])),
-      ward_b = suppressWarnings(as.integer(wards_in_pair[, 2])),
-      other_ward = if_else(
-        !is.na(assigned_ward),
-        if_else(assigned_ward == ward_a, ward_b, ward_a),
-        NA_integer_
-      )
-    ) %>%
-    left_join(
-      alderman_lookup %>%
-        select(ward, yearmon_key, alderman) %>%
-        rename(alderman_own_candidate = alderman),
-      by = c("assigned_ward" = "ward", "yearmon_key"),
-      relationship = "many-to-one"
-    ) %>%
-    left_join(
-      alderman_lookup %>%
-        select(ward, yearmon_key, alderman) %>%
-        rename(alderman_neighbor_candidate = alderman),
-      by = c("other_ward" = "ward", "yearmon_key"),
-      relationship = "many-to-one"
-    )
-
-  june_reference <- month_grid %>%
-    filter(month_num == 6) %>%
-    transmute(
-      parcel_row_id,
-      construction_date_june = construction_date_candidate,
-      boundary_year_june = boundary_year,
-      assigned_ward_june = assigned_ward,
-      ward_pair_june = ward_pair,
-      dist_to_boundary_june = dist_to_boundary,
-      other_ward_june = other_ward,
-      alderman_own_june = alderman_own_candidate,
-      alderman_neighbor_june = alderman_neighbor_candidate
-    )
-
-  month_grid <- month_grid %>%
-    left_join(june_reference, by = "parcel_row_id", relationship = "many-to-one") %>%
-    mutate(
-      changed_boundary_year = coalesce(boundary_year, -999L) != coalesce(boundary_year_june, -999L),
-      changed_assigned_ward = coalesce(assigned_ward, -999L) != coalesce(assigned_ward_june, -999L),
-      changed_other_ward = coalesce(other_ward, -999L) != coalesce(other_ward_june, -999L),
-      changed_alderman_own = coalesce(alderman_own_candidate, "__NA__") != coalesce(alderman_own_june, "__NA__"),
-      changed_alderman_neighbor = coalesce(alderman_neighbor_candidate, "__NA__") != coalesce(alderman_neighbor_june, "__NA__"),
-      changed_any = changed_boundary_year |
-        changed_assigned_ward |
-        changed_other_ward |
-        changed_alderman_own |
-        changed_alderman_neighbor,
-      month_distance = abs(month_num - 6L)
-    )
-
-  selected_months <- month_grid %>%
-    arrange(parcel_row_id, desc(changed_any), month_distance, month_num) %>%
-    group_by(parcel_row_id) %>%
-    slice(1) %>%
-    ungroup()
-
-  parcels_with_distances <- parcels %>%
-    select(-construction_date) %>%
-    left_join(
-      selected_months %>%
-        select(
-          parcel_row_id,
-          construction_date = construction_date_candidate,
-          boundary_year,
-          era,
-          assigned_ward,
-          ward_pair,
-          dist_to_boundary
-        ),
-      by = "parcel_row_id",
-      relationship = "one-to-one"
-    )
-} else {
-  parcels <- parcels %>%
-    mutate(
-      boundary_year = canonical_boundary_year_from_date(construction_date),
-      era = canonical_era_from_boundary_year(boundary_year)
-    )
-
-  boundary_assignments <- assign_points_to_boundaries(
-    points_sf = parcels,
-    era_values = parcels$era,
-    ward_maps = canonical_ward_maps,
-    boundary_lines = canonical_boundaries,
-    chunk_n = 2000L
-  ) %>%
-    rename(
-      assigned_ward = ward,
-      ward_pair = ward_pair_id,
-      dist_to_boundary = dist_ft
-    )
-
-  parcels_with_distances <- bind_cols(parcels, boundary_assignments)
-}
+parcels_with_distances <- bind_cols(parcels, boundary_assignments)
 
 final_dataset <- parcels_with_distances %>%
   mutate(

@@ -1,22 +1,8 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_rent_distances/code")
-# sample <- FALSE
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
-
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
-  cli_args <- c(sample)
-}
-
-if (length(cli_args) != 1) {
-  stop("FATAL: Script requires 1 arg: <sample>.", call. = FALSE)
-}
-run_sample <- as.logical(cli_args[1])
-if (is.na(run_sample)) {
-  stop("sample must be TRUE or FALSE.", call. = FALSE)
-}
 
 crs_projected <- 3435
 
@@ -131,10 +117,6 @@ for (i in seq_along(years)) {
     }
   }
 
-  if (run_sample) {
-    df_chunk <- df_chunk %>% slice_sample(prop = 0.01)
-  }
-
   if (nrow(df_chunk) > 0) {
     processed_chunk <- process_batch(df_chunk)
     if (!is.null(processed_chunk)) {
@@ -149,9 +131,6 @@ if (length(results_list) == 0) {
   stop("No rental observations received a ward-pair assignment.", call. = FALSE)
 }
 results_sf <- bind_rows(results_list)
-
-suffix <- if (run_sample) "_sample" else "_full"
-output_path <- sprintf("../output/rent_pre_scores%s.parquet", suffix)
 
 final_df <- results_sf %>%
   st_transform(4326) %>%
@@ -446,4 +425,4 @@ if (n_missing_building_type_clean > 0) {
 final_df <- final_df %>%
   select(-any_of("dist_ft"))
 
-write_parquet(final_df, output_path)
+write_parquet(final_df, "../output/rent_pre_scores_full.parquet")

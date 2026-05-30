@@ -1,22 +1,8 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
-# sample <- FALSE
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
-
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
-  cli_args <- c(sample)
-}
-
-if (length(cli_args) != 1) {
-  stop("FATAL: Script requires 1 arg: <sample>.", call. = FALSE)
-}
-run_sample <- as.logical(cli_args[1])
-if (is.na(run_sample)) {
-    stop("sample must be TRUE or FALSE.", call. = FALSE)
-}
 
 crs_projected <- 3435
 
@@ -143,10 +129,6 @@ p99 <- quantile(sales$sale_price_real_2022_raw, 0.99, na.rm = TRUE)
 sales <- sales %>%
     mutate(sale_price = pmin(pmax(sale_price_real_2022_raw, p01), p99))
 
-if (run_sample) {
-    sales <- sales %>% slice_sample(prop = 0.05)
-}
-
 parcels <- fread("../input/Assessor_-_Parcel_Universe__Current_Year_Only__20251004.csv",
     select = c("pin", "pin10", "latitude", "longitude")
 )
@@ -249,7 +231,4 @@ final_output <- final_df %>%
         alderman_own, alderman_neighbor
     )
 
-suffix <- if (run_sample) "_sample" else ""
-output_path <- sprintf("../output/sales_pre_scores%s.csv", suffix)
-
-write_csv(final_output, output_path)
+write_csv(final_output, "../output/sales_pre_scores.csv")

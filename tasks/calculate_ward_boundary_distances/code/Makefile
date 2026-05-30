@@ -3,10 +3,10 @@ MAX_CONSTRUCTION_MONTH ?= 2026-04
 
 all: ../output/parcels_pre_scores.csv ../output/parcels_with_geometry.gpkg
 
-../output/parcels_pre_scores.csv: calculate_distances.R ../../_lib/canonical_geometry_helpers.R ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/block_group_geometry_2019.gpkg ../input/zoning_data_clean.gpkg | ../output
+../output/parcels_with_geometry.gpkg: calculate_distances.R ../../_lib/canonical_geometry_helpers.R ../input/geocoded_residential_data.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/block_group_controls.csv ../input/block_group_geometry_2019.gpkg ../input/zoning_data_clean.gpkg | ../output
 	MAX_CONSTRUCTION_YEAR=$(MAX_CONSTRUCTION_YEAR) MAX_CONSTRUCTION_MONTH=$(MAX_CONSTRUCTION_MONTH) Rscript $<
 
-../output/parcels_with_geometry.gpkg: ../output/parcels_pre_scores.csv
+../output/parcels_pre_scores.csv: ../output/parcels_with_geometry.gpkg
 	@test -s "$@"
 
 ../input/geocoded_residential_data.gpkg: ../../geocode_ccao_data/output/geocoded_residential_data.gpkg | ../input

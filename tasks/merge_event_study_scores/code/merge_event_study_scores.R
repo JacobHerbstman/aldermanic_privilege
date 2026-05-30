@@ -16,8 +16,8 @@ if (length(cli_args) != 2) {
 mode <- cli_args[1]
 score_column <- cli_args[2]
 
-if (!mode %in% c("sales_treatment", "rent", "all")) {
-  stop("FATAL: mode must be 'sales_treatment', 'rent', or 'all'.", call. = FALSE)
+if (!mode %in% c("sales_treatment", "rent")) {
+  stop("FATAL: mode must be 'sales_treatment' or 'rent'.", call. = FALSE)
 }
 
 scores_raw <- read_csv("../input/aldermen_uncertainty_scores.csv", show_col_types = FALSE)
@@ -76,7 +76,7 @@ merge_border_scores <- function(df, dist_col = "dist_m", signed_dist_col = "sign
   filter(out, !is.na(sign))
 }
 
-if (mode %in% c("sales_treatment", "all")) {
+if (mode == "sales_treatment") {
   sales_pre <- read_csv("../input/sales_pre_scores.csv", show_col_types = FALSE)
   if (!"dist_m" %in% names(sales_pre)) {
     stop("Sales pre-score input must include meter-native dist_m.", call. = FALSE)
@@ -199,7 +199,7 @@ if (mode %in% c("sales_treatment", "all")) {
   write_csv(treat_panel, "../output/block_treatment_panel.csv")
 }
 
-if (mode %in% c("rent", "all")) {
+if (mode == "rent") {
   rent_pre <- read_parquet("../input/rent_pre_scores_full.parquet") %>% as_tibble()
   if (!"dist_m" %in% names(rent_pre)) {
     stop("Rent pre-score input must include meter-native dist_m.", call. = FALSE)

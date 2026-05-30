@@ -1,9 +1,7 @@
-SAMPLE := FALSE
-
 all: ../output/rent_pre_scores_full.parquet
 
 ../output/rent_pre_scores_full.parquet: calculate_rent_distances.R ../../_lib/canonical_geometry_helpers.R ../input/chicago_rent_panel.parquet ../input/chicago_rent_panel_quality_flags.parquet ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_panel.csv ../input/fred_cpi_cuura207sa0.csv | ../output
-	Rscript $< $(SAMPLE)
+	Rscript $<
 
 ../input/chicago_rent_panel.parquet: ../../process_rent_data/output/chicago_rent_panel.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
