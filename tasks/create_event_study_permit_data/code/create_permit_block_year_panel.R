@@ -151,38 +151,6 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label,
 }
 
 permit_outcome_meta <- tibble(
-  outcome_family = c(
-    "new_construction",
-    "new_construction",
-    "new_construction_demolition",
-    "new_construction_demolition",
-    "demolition",
-    "demolition",
-    "renovation",
-    "renovation",
-    "low_discretion_nosigns",
-    "low_discretion_nosigns",
-    "high_discretion",
-    "high_discretion",
-    "unit_increase",
-    "unit_increase"
-  ),
-  date_basis = c(
-    "issue",
-    "application",
-    "issue",
-    "application",
-    "issue",
-    "application",
-    "issue",
-    "application",
-    "issue",
-    "application",
-    "issue",
-    "application",
-    "issue",
-    "application"
-  ),
   count_var = c(
     "n_new_construction_issue",
     "n_new_construction_application",
@@ -256,7 +224,6 @@ aggregate_outcome_counts <- function(permits_dt) {
       out[, (count_var) := 0L]
     }
     out[is.na(get(count_var)), (count_var) := 0L]
-    out[, (paste0("has_", sub("^n_", "", count_var))) := as.integer(get(count_var) > 0L)]
   }
 
   setorder(out, block_id, year)
