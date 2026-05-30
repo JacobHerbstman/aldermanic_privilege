@@ -1,4 +1,3 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_rent_distances/code")
 # sample <- FALSE
 
@@ -11,7 +10,7 @@ if (length(cli_args) == 0) {
 }
 
 if (length(cli_args) != 1) {
-  stop("FATAL: Script requires 1 args: <sample>", call. = FALSE)
+  stop("Usage: Rscript calculate_rent_distances.R <sample>", call. = FALSE)
 }
 sample <- cli_args[1]
 run_sample <- as.logical(sample)
@@ -76,8 +75,7 @@ process_batch <- function(df_batch) {
   out
 }
 
-input_file <- "../input/chicago_rent_panel.parquet"
-ds <- arrow::open_dataset(input_file)
+ds <- arrow::open_dataset("../input/chicago_rent_panel.parquet")
 quality_ds <- arrow::open_dataset("../input/chicago_rent_panel_quality_flags.parquet")
 quality_cols <- setdiff(
   names(quality_ds),
@@ -141,7 +139,7 @@ for (i in seq_along(years)) {
     }
   }
 
-  gc()
+  invisible(gc())
 }
 
 if (length(results_list) == 0) {
@@ -415,7 +413,7 @@ cpi_deflator <- cpi %>%
   )
 
 final_df <- final_df %>%
-  left_join(cpi_deflator, by = "rent_year_month")
+  left_join(cpi_deflator, by = "rent_year_month", relationship = "many-to-one")
 
 n_missing_deflator <- sum(!is.finite(final_df$rent_price_deflator_to_2022))
 if (n_missing_deflator > 0) {
