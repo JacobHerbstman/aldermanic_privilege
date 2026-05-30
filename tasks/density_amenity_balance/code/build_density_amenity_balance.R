@@ -1,4 +1,3 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_amenity_balance/code")
 # bandwidth_m <- 152.4
 # sample_filter <- "all"
@@ -8,28 +7,25 @@ source("../../setup_environment/code/packages.R")
 source("../../_lib/amenity_distance_helpers.R")
 source("../../_lib/border_pair_helpers.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(
     bandwidth_m,
     sample_filter,
     bandwidth_label
   )
 }
 
-if (length(args) != 3) {
+if (length(cli_args) != 3) {
   stop(
-    paste(
-      "FATAL: Script requires 3 args:",
-      "<bandwidth_m> <sample_filter> <bandwidth_label>"
-    ),
+    "Usage: Rscript build_density_amenity_balance.R <bandwidth_m> <sample_filter> <bandwidth_label>",
     call. = FALSE
   )
 }
 
-bandwidth_m <- as.numeric(args[1])
-sample_filter <- args[2]
-bandwidth_label <- args[3]
+bandwidth_m <- as.numeric(cli_args[1])
+sample_filter <- cli_args[2]
+bandwidth_label <- cli_args[3]
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be a positive number.", call. = FALSE)

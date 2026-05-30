@@ -6,21 +6,21 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(bandwidth_m, fe_spec, bins_per_side)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(bandwidth_m, fe_spec, bins_per_side)
 }
 
-if (length(args) != 3) {
+if (length(cli_args) != 3) {
   stop(
-    "FATAL: Script requires args: <bandwidth_m> <fe_spec> <bins_per_side>",
+    "Usage: Rscript nonparametric_rd_density_linear_display_combined.R <bandwidth_m> <fe_spec> <bins_per_side>",
     call. = FALSE
   )
 }
 
-bandwidth_m <- as.numeric(args[1])
-fe_spec <- args[2]
-bins_per_side <- as.integer(args[3])
+bandwidth_m <- as.numeric(cli_args[1])
+fe_spec <- cli_args[2]
+bins_per_side <- as.integer(cli_args[3])
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be a positive number.", call. = FALSE)

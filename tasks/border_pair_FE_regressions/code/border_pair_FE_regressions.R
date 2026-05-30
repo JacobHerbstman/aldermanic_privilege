@@ -1,4 +1,3 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
 # bandwidth_m <- 152.4
 # sample_filter <- "multifamily"
@@ -11,24 +10,24 @@
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(bandwidth_m, sample_filter, fe_spec, prune_sample, cluster_level, yvar_1, yvar_2)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(bandwidth_m, sample_filter, fe_spec, prune_sample, cluster_level, yvar_1, yvar_2)
 }
 
-if (length(args) < 7) {
+if (length(cli_args) < 7) {
   stop(
     "Usage: Rscript border_pair_FE_regressions.R <bandwidth_m> <sample> <fe_spec> <prune_sample> <cluster_level> <yvar1> [<yvar2> ...]",
     call. = FALSE
   )
 }
 
-bandwidth_m <- parse_bw_m(args[1])
-sample_filter <- args[2]
-fe_spec <- args[3]
-prune_sample <- tolower(args[4])
-cluster_level <- tolower(args[5])
-yvars <- args[6:length(args)]
+bandwidth_m <- parse_bw_m(cli_args[1])
+sample_filter <- cli_args[2]
+fe_spec <- cli_args[3]
+prune_sample <- tolower(cli_args[4])
+cluster_level <- tolower(cli_args[5])
+yvars <- cli_args[6:length(cli_args)]
 
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample must be one of: all, multifamily", call. = FALSE)

@@ -1,4 +1,3 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
 # bandwidth_label <- "500ft"
 # fe_spec <- "zonegroup_segment_year_additive"
@@ -7,19 +6,19 @@
 
 source("../../setup_environment/code/packages.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(bandwidth_label, fe_spec, prune_sample, cluster_level)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(bandwidth_label, fe_spec, prune_sample, cluster_level)
 }
 
-if (length(args) != 4) {
+if (length(cli_args) != 4) {
   stop("Usage: Rscript combine_density_main_table.R <bandwidth_label> <fe_spec> <prune_sample> <cluster_level>", call. = FALSE)
 }
 
-bandwidth_label <- args[1]
-fe_spec <- args[2]
-prune_sample <- tolower(args[3])
-cluster_level <- args[4]
+bandwidth_label <- cli_args[1]
+fe_spec <- cli_args[2]
+prune_sample <- tolower(cli_args[3])
+cluster_level <- cli_args[4]
 if (!prune_sample %in% c("all", "pruned")) {
   stop("prune_sample must be one of: all, pruned", call. = FALSE)
 }

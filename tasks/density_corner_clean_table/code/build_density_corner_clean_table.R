@@ -1,4 +1,3 @@
-# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_corner_clean_table/code")
 # bandwidth_m <- 152.4
 # sample_filter <- "all"
@@ -6,21 +5,21 @@
 
 source("../../setup_environment/code/packages.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(bandwidth_m, sample_filter, bandwidth_label)
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(bandwidth_m, sample_filter, bandwidth_label)
 }
 
-if (length(args) != 3) {
+if (length(cli_args) != 3) {
   stop(
-    "FATAL: Script requires args: <bandwidth_m> <sample_filter> <bandwidth_label>",
+    "Usage: Rscript build_density_corner_clean_table.R <bandwidth_m> <sample_filter> <bandwidth_label>",
     call. = FALSE
   )
 }
 
-bandwidth_m <- as.numeric(args[1])
-sample_filter <- args[2]
-bandwidth_label <- args[3]
+bandwidth_m <- as.numeric(cli_args[1])
+sample_filter <- cli_args[2]
+bandwidth_label <- cli_args[3]
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be a positive number.", call. = FALSE)
