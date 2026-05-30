@@ -169,14 +169,12 @@ aug <- aug %>%
       length(breaks_m) - 1L
     ),
     bin_left_m = breaks_m[bin_idx],
-    bin_center_m = bin_left_m + bin_width_m / 2,
-    side_label = if_else(side == 1L, "Strict side", "Lenient side")
+    bin_center_m = bin_left_m + bin_width_m / 2
   )
 
 bins <- aug %>%
-  group_by(bin_idx, bin_center_m, side, side_label) %>%
+  group_by(bin_idx, bin_center_m, side) %>%
   summarise(
-    n = n(),
     mean_y = mean(residualized_outcome, na.rm = TRUE),
     .groups = "drop"
   ) %>%
@@ -188,10 +186,7 @@ line_df <- tibble(
     seq(donut_m, bandwidth_m, length.out = 160)
   )
 ) %>%
-  mutate(
-    side = as.integer(running_distance > 0),
-    side_label = if_else(side == 1L, "Strict side", "Lenient side")
-  )
+  mutate(side = as.integer(running_distance > 0))
 
 coef_names <- names(coef(m_display))
 xmat <- model.matrix(~ side * running_distance, data = line_df)
