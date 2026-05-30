@@ -9,10 +9,10 @@ all: \
 	Rscript $< $(MAX_APPLICATION_YM)
 
 ../output/alderman_mean_processing_time_high_vs_low_density.pdf: ../output/permit_processing_time_high_vs_low_alderman_summary.tex
-	@test -s "$@" || Rscript permit_processing_time_high_vs_low_summary.R $(MAX_APPLICATION_YM)
+	@test -s "$@"
 
 ../output/permit_processing_time_volume_correlation.tex: ../output/permit_processing_time_high_vs_low_alderman_summary.tex
-	@test -s "$@" || Rscript permit_processing_time_high_vs_low_summary.R $(MAX_APPLICATION_YM)
+	@test -s "$@"
 
 ../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
