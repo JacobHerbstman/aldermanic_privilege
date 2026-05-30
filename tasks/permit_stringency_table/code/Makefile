@@ -15,9 +15,6 @@ all: ../output/permit_validation_table_uncertainty_$(UNCERTAINTY_SPEC).tex
 ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: \
-	../input/building_permits_text_features.csv.gz \
-	../input/chicago_alderman_panel.csv \
-	../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv
+link-inputs: ../input/building_permits_text_features.csv.gz ../input/chicago_alderman_panel.csv ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv
 
 include ../../generic.make

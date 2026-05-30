@@ -16,9 +16,6 @@ if (length(cli_args) != 2) {
 
 date_str <- cli_args[1]
 uncertainty_spec <- cli_args[2]
-legend_title <- "Regulatory Stringency Index"
-plot_title <- sprintf("Regulatory Stringency Index by Ward (%s)", date_str)
-outfile <- sprintf("../output/uncertainty_score_map_%s_%s.pdf", uncertainty_spec, date_str)
 
 month_dt <- as.Date(paste0(date_str, "-01"))
 use_year <- as.integer(format(month_dt, "%Y"))
@@ -90,12 +87,18 @@ if (any(is.na(ward_map$score))) {
 
 p <- ggplot(ward_map) +
   geom_sf(aes(fill = score), color = "grey20", linewidth = 0.2) +
-  scale_fill_distiller(palette = "RdYlBu", direction = -1, name = legend_title, na.value = "grey90") +
+  scale_fill_distiller(palette = "RdYlBu", direction = -1, name = "Regulatory Stringency Index", na.value = "grey90") +
   labs(
-    title   = plot_title
+    title = sprintf("Regulatory Stringency Index by Ward (%s)", date_str)
   ) +
   theme_void() +
   theme(legend.position = "bottom",
         plot.title = element_text(hjust = 0.5))
 
-ggsave(outfile, plot = p, width = 8, height = 10, dpi = 300)
+ggsave(
+  sprintf("../output/uncertainty_score_map_%s_%s.pdf", uncertainty_spec, date_str),
+  plot = p,
+  width = 8,
+  height = 10,
+  dpi = 300
+)
