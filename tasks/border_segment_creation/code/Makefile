@@ -15,7 +15,7 @@ all: \
 	../input/gis_osm_landuse_a_free_1.shp ../input/gis_osm_landuse_a_free_1.dbf ../input/gis_osm_landuse_a_free_1.prj ../input/gis_osm_landuse_a_free_1.shx ../input/gis_osm_landuse_a_free_1.cpg \
 	../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg \
 	../input/gis_osm_waterways_free_1.shp ../input/gis_osm_waterways_free_1.dbf ../input/gis_osm_waterways_free_1.prj ../input/gis_osm_waterways_free_1.shx ../input/gis_osm_waterways_free_1.cpg | ../output
-	SEGMENT_LENGTH_FT=$(SEGMENT_LENGTH_FT) SEGMENT_LAYER_BWS_M="$(SEGMENT_LAYER_BWS_M)" SEGMENT_FEATURE_BUFFER_M="$(SEGMENT_FEATURE_BUFFER_M)" Rscript build_boundary_segments.R
+	SEGMENT_LENGTH_FT=$(SEGMENT_LENGTH_FT) SEGMENT_LAYER_BWS_M="$(SEGMENT_LAYER_BWS_M)" SEGMENT_FEATURE_BUFFER_M="$(SEGMENT_FEATURE_BUFFER_M)" Rscript $<
 
 ../output/segment_classification.csv \
 ../output/ward_pair_boundaries.gpkg: ../output/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg

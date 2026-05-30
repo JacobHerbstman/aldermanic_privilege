@@ -5,7 +5,7 @@ MAX_CONSTRUCTION_YEAR ?= 2026
 all: ../output/parcels_with_ward_distances.csv
 
 ../output/parcels_with_ward_distances.csv: merge_scores.R ../input/parcels_pre_scores.csv ../input/aldermen_uncertainty_scores.csv ../input/parcel_segment_ids.csv | ../output
-	MAX_CONSTRUCTION_YEAR=$(MAX_CONSTRUCTION_YEAR) Rscript merge_scores.R $(SCORE_COLUMN)
+	MAX_CONSTRUCTION_YEAR=$(MAX_CONSTRUCTION_YEAR) Rscript $< $(SCORE_COLUMN)
 
 ../input/parcels_pre_scores.csv: ../../calculate_ward_boundary_distances/output/parcels_pre_scores.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
