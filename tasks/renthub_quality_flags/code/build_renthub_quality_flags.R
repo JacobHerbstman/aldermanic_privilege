@@ -62,16 +62,12 @@ assign_location_groups <- function(x_ft, y_ft, radius_ft) {
   ))
 }
 
-raw_glob <- "../input/renthub_raw/*.parquet"
-rent_panel_path <- "../input/chicago_rent_panel.parquet"
-manual_location_path <- "manual_verified_address_locations.csv"
-
 unlink("../output/chicago_rent_panel_quality_flags.parquet", recursive = TRUE, force = TRUE)
 
 con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:")
 on.exit(dbDisconnect(con, shutdown = TRUE), add = TRUE)
-discard <- dbExecute(con, "PRAGMA threads=4")
-discard <- dbExecute(
+invisible(dbExecute(con, "PRAGMA threads=4"))
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE MACRO clean_address_stem(address_value) AS (
@@ -97,13 +93,13 @@ discard <- dbExecute(
     )), '')
   )
   "
-)
+))
 
 collect_query <- function(sql) {
   as.data.table(dbGetQuery(con, sql))
 }
 
-discard <- dbExecute(
+invisible(dbExecute(
   con,
   sprintf(
     "
@@ -118,9 +114,9 @@ discard <- dbExecute(
       END AS rent_per_sqft
     FROM read_parquet('%s')
     ",
-    sql_escape(rent_panel_path)
+    sql_escape("../input/chicago_rent_panel.parquet")
   )
-)
+))
 
 panel_n <- collect_query("SELECT COUNT(*) AS n FROM rent_panel")$n[1]
 panel_unique_n <- collect_query("SELECT COUNT(DISTINCT rent_panel_id) AS n FROM rent_panel")$n[1]
@@ -128,7 +124,7 @@ if (panel_n != panel_unique_n) {
   stop("chicago_rent_panel.parquet must be unique by rent_panel_id.", call. = FALSE)
 }
 
-discard <- dbExecute(
+invisible(dbExecute(
   con,
   sprintf(
     "
@@ -263,13 +259,13 @@ discard <- dbExecute(
       END AS analysis_key
     FROM property_keys
     ",
-    sql_escape(raw_glob),
+    sql_escape("../input/renthub_raw/*.parquet"),
     start_date,
     end_date
   )
-)
+))
 
-manual_locations <- fread(manual_location_path, na.strings = c("", "NA", "N/A", "NULL"))
+manual_locations <- fread("manual_verified_address_locations.csv", na.strings = c("", "NA", "N/A", "NULL"))
 manual_required <- c(
   "address_stem",
   "verification_status",
@@ -570,7 +566,7 @@ setorder(address_location_groups, address_stem, location_group_rank)
 
 setorder(address_clusters, -address_coord_distance_ft, -raw_rows)
 
-discard <- dbWriteTable(
+invisible(dbWriteTable(
   con,
   "address_cluster_flags",
   as.data.frame(address_clusters[, .(
@@ -612,9 +608,9 @@ discard <- dbWriteTable(
     is_modal_cluster
   )]),
   overwrite = TRUE
-)
+))
 
-discard <- dbExecute(
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE property_month AS
@@ -630,8 +626,8 @@ discard <- dbExecute(
   FROM rent_panel
   GROUP BY 1, 2
   "
-)
-discard <- dbExecute(
+))
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE property_month_jumps AS
@@ -645,8 +641,8 @@ discard <- dbExecute(
     END AS abs_log_adjacent_month_jump
   FROM property_month
   "
-)
-discard <- dbExecute(
+))
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE property_proxy_stability AS
@@ -683,9 +679,9 @@ discard <- dbExecute(
     ON p.property_key = r.property_key
   GROUP BY 1
   "
-)
+))
 
-discard <- dbExecute(
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE floorplan_day_spread AS
@@ -722,8 +718,8 @@ discard <- dbExecute(
     AND rent_price IS NOT NULL
   GROUP BY 1, 2, 3, 5, 6
   "
-)
-discard <- dbExecute(
+))
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE floorplan_month_spread_flags AS
@@ -738,9 +734,9 @@ discard <- dbExecute(
   FROM floorplan_day_spread
   GROUP BY 1, 2
   "
-)
+))
 
-discard <- dbExecute(
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE property_day AS
@@ -759,8 +755,8 @@ discard <- dbExecute(
   WHERE property_key IS NOT NULL
   GROUP BY 1, 3, 4
   "
-)
-discard <- dbExecute(
+))
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE property_day_context AS
@@ -794,8 +790,8 @@ discard <- dbExecute(
     END AS flag_no_adjacent_support_7d
   FROM ordered
   "
-)
-discard <- dbExecute(
+))
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE property_month_bulk_flags AS
@@ -809,9 +805,9 @@ discard <- dbExecute(
   FROM property_day_context
   GROUP BY 1, 2
   "
-)
+))
 
-discard <- dbExecute(
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE coordinate_only_pile_flags AS
@@ -840,9 +836,9 @@ discard <- dbExecute(
   WHERE coord_key IS NOT NULL
   GROUP BY 1
   "
-)
+))
 
-discard <- dbExecute(
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE building_type_conflict_flags AS
@@ -887,9 +883,9 @@ discard <- dbExecute(
   LEFT JOIN scale s
     ON t.property_key = s.property_key
   "
-)
+))
 
-discard <- dbExecute(
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE stale_month_flags AS
@@ -907,9 +903,9 @@ discard <- dbExecute(
   WHERE analysis_key IS NOT NULL
   GROUP BY 1, 2
   "
-)
+))
 
-discard <- dbExecute(
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE chicago_rent_panel_quality_flags AS
@@ -1083,7 +1079,7 @@ discard <- dbExecute(
     ON p.analysis_key = st.analysis_key
     AND p.month_start = st.month_start
   "
-)
+))
 
 quality_n <- collect_query("SELECT COUNT(*) AS n FROM chicago_rent_panel_quality_flags")$n[1]
 quality_unique_n <- collect_query("SELECT COUNT(DISTINCT rent_panel_id) AS n FROM chicago_rent_panel_quality_flags")$n[1]
@@ -1091,11 +1087,11 @@ if (quality_n != panel_n || quality_unique_n != panel_n) {
   stop("Quality flags must be one-to-one with the monthly rent panel.", call. = FALSE)
 }
 
-discard <- dbExecute(
+invisible(dbExecute(
   con,
   "
   COPY chicago_rent_panel_quality_flags
   TO '../output/chicago_rent_panel_quality_flags.parquet'
   (FORMAT PARQUET, COMPRESSION ZSTD)
   "
-)
+))
