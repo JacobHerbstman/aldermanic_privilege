@@ -2,6 +2,6 @@
 
 Purpose: Prepares sales border data.
 
-Produces: Produces files such as `output/sales_with_hedonics.parquet` and related task-specific outputs in `output/`.
+Produces: `output/sales_with_hedonics.parquet`.
 
 Approx. runtime: ~1-10 minutes.

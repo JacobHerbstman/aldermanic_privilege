@@ -2,6 +2,6 @@
 
 Purpose: Builds summary statistics for new construction.
 
-Produces: Produces files such as `output/summary_stats.tex`, `output/summary_stats_tabular.tex` and related task-specific outputs in `output/`.
+Produces: `output/summary_stats.tex`.
 
 Approx. runtime: ~under 5 minutes.

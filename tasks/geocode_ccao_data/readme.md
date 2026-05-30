@@ -2,6 +2,6 @@
 
 Purpose: Geocodes CCAO data.
 
-Produces: Produces files such as `output/geocoded_residential_data.gpkg` and related task-specific outputs in `output/`.
+Produces: `output/geocoded_residential_data.gpkg`.
 
 Approx. runtime: ~1-10 minutes.

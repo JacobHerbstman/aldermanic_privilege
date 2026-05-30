@@ -101,7 +101,7 @@ alderman_data <- tribble(
   16, "Toni Foulkes",       "2015-05-18", "2019-05-19",
   16, "Stephanie Coleman",  "2019-05-20", "2025-06-24",
   
-  # 17th Ward (per your instruction)
+  # 17th Ward
   17, "Terry Peterson",     "1998-01-01", "2000-07-31",
   17, "Latasha Thomas",     "2000-08-01", "2015-05-17",
   17, "David Moore",        "2015-05-18", "2025-06-24",
@@ -271,44 +271,12 @@ alderman_data <- tribble(
     )
   )
 
-# # Finance Committee Chair data
-# finance_chair_data <- tribble(
-#   ~alderman, ~start_date, ~end_date,
-#   "Ed Burke", "2003-01-01", "2019-05-19",
-#   "Scott Waguespack", "2019-05-20", "2023-05-14",
-#   "Pat Dowell", "2023-05-15", "2025-06-24"
-# ) %>%
-#   mutate(across(c(start_date, end_date), as.Date), finance_chair = 1)
-# 
-# # Zoning Committee Chair data
-# zoning_chair_data <- tribble(
-#   ~alderman, ~start_date, ~end_date,
-#   "William J.P. Banks", "2003-01-01", "2011-05-15",
-#   "Daniel Solis", "2011-05-16", "2019-05-19",
-#   "James Cappleman", "2019-05-20", "2023-05-14",
-#   "Carlos Ramirez-Rosa", "2023-05-15", "2025-06-24"
-# ) %>%
-#   mutate(across(c(start_date, end_date), as.Date), zoning_chair = 1)
-# 
-# # Budget and Government Operations Committee Chair data
-# budget_chair_data <- tribble(
-#   ~alderman, ~start_date, ~end_date,
-#   "Carrie Austin", "2003-01-01", "2019-05-19",
-#   "Pat Dowell", "2019-05-20", "2023-05-14",
-#   "Jason Ervin", "2023-05-15", "2025-06-24"
-# ) %>%
-#   mutate(across(c(start_date, end_date), as.Date), budget_chair = 1)
-
-
-# Create a month-year panel using zoo::as.yearmon
 panel_grid <- expand_grid(
   year_month = as.yearmon(seq(as.Date("1998-01-01"), panel_end_date, by = "months")),
   ward = 1:50
 )
 
-# --- New helpers: strict majority-of-month logic (month-length aware) ---
 gets_month_start <- function(date) {
-  # TRUE iff the incoming alderperson holds strictly more than half of the days in 'date''s month
   if (is.na(date)) return(FALSE)
   n <- lubridate::days_in_month(date)
   remaining <- n - lubridate::day(date) + 1L
@@ -316,18 +284,15 @@ gets_month_start <- function(date) {
 }
 
 gets_month_end <- function(date) {
-  # TRUE iff the outgoing alderperson held strictly more than half of the days in 'date''s month
   if (is.na(date)) return(FALSE)
   n <- lubridate::days_in_month(date)
   elapsed <- lubridate::day(date)
   elapsed > n/2
 }
 
-# --- Replace your entire get_alderman() with this version ---
 get_alderman <- function(current_year_month, current_ward) {
   ward_data <- alderman_data %>% dplyr::filter(ward == current_ward)
   
-  # As before, we’ll compare in yearmon space (12ths of a year)
   for (i in seq_len(nrow(ward_data))) {
     term <- ward_data[i, ]
     
@@ -349,10 +314,9 @@ get_alderman <- function(current_year_month, current_ward) {
       return(term$alderman)
     }
   }
-  return(NA_character_)  # if no one holds the strict majority that month
+  return(NA_character_)
 }
 
-# Apply the function to the panel grid
 final_panel <- panel_grid %>%
   rowwise() %>%
   mutate(alderman = get_alderman(year_month, ward)) %>%

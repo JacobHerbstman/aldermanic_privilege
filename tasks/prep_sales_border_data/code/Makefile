@@ -1,7 +1,7 @@
 all: ../output/sales_with_hedonics.parquet
 
 ../output/sales_with_hedonics.parquet: prep_sales_data.R ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet | ../output
-	Rscript prep_sales_data.R
+	Rscript $<
 
 ../input/sales_with_ward_distances.csv: ../../merge_event_study_scores/output/sales_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
