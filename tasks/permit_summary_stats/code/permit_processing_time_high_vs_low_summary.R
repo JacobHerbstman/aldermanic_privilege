@@ -15,12 +15,13 @@ if (length(cli_args) != 1) {
 max_application_ym <- cli_args[1]
 
 group_levels <- c("High-Discretion", "Low-Discretion")
-group_labels <- c(`1` = "High-Discretion", `0` = "Low-Discretion")
 signs_permit_type <- "PERMIT - SIGNS"
-base_row_levels <- c(
+alderman_row_levels <- c(
   "Total permits in sample",
   "Mean processing time (days)",
   "Median processing time (days)",
+  "Alderman-level mean of processing time",
+  "Alderman-level IQR of mean processing time",
   "Number of unique wards",
   "Number of unique aldermen"
 )
@@ -95,8 +96,10 @@ permits_analysis_all <- permits_with_ward %>%
 
 permits_analysis <- permits_analysis_all %>%
   filter(high_discretion == 1 | permit_type != signs_permit_type) %>%
-  mutate(group = recode(as.character(high_discretion), !!!group_labels)) %>%
-  mutate(group = factor(group, levels = group_levels))
+  mutate(
+    group = if_else(high_discretion == 1L, "High-Discretion", "Low-Discretion"),
+    group = factor(group, levels = group_levels)
+  )
 
 if (!all(group_levels %in% unique(as.character(permits_analysis$group)))) {
   stop("Expected both High-Discretion and Low-Discretion permits in the analysis sample.", call. = FALSE)
@@ -131,13 +134,6 @@ alderman_distribution <- alderman_means %>%
     entity_level_iqr_mean_processing_time = as.numeric(IQR(alderman_mean_processing_time, na.rm = TRUE)),
     .groups = "drop"
   )
-
-alderman_row_levels <- c(
-  base_row_levels[1:3],
-  "Alderman-level mean of processing time",
-  "Alderman-level IQR of mean processing time",
-  base_row_levels[4:5]
-)
 
 alderman_summary_table <- bind_rows(
   tibble(row = "Total permits in sample", group = summary_stats$group, value = summary_stats$total_permits),
@@ -224,17 +220,9 @@ ggsave(
   dpi = 300
 )
 
-permits_high_with_volume <- permits_analysis_all %>%
-  filter(high_discretion == 1) %>%
-  mutate(group = "High-Discretion")
-
-permits_low_with_volume <- permits_analysis_all %>%
-  filter(high_discretion == 0, permit_type != signs_permit_type) %>%
-  mutate(group = "Low-Discretion")
-
 correlation_table <- bind_rows(
-  permits_high_with_volume,
-  permits_low_with_volume,
+  permits_analysis_all %>% filter(high_discretion == 1) %>% mutate(group = "High-Discretion"),
+  permits_analysis_all %>% filter(high_discretion == 0, permit_type != signs_permit_type) %>% mutate(group = "Low-Discretion"),
   permits_analysis_all %>% mutate(group = "All")
 ) %>%
   mutate(group = factor(group, levels = c(group_levels, "All"))) %>%

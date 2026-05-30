@@ -23,9 +23,6 @@ all: \
 ../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: \
-	../input/building_permits_clean.gpkg \
-	../input/ward_panel.gpkg \
-	../input/chicago_alderman_panel.csv
+link-inputs: ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv
 
 include ../../generic.make

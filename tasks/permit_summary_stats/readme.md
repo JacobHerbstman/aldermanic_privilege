@@ -1,6 +1,6 @@
 # permit_summary_stats
 
-Purpose: Builds permit summary stats outputs.
+Purpose: Builds the paper-facing permit processing-time summary table, density plot, and volume-correlation table.
 
 Produces:
 - `output/alderman_mean_processing_time_high_vs_low_density.pdf`
