@@ -1,21 +1,15 @@
-# Build a cleaned RentHub floorplan-month panel for rental RD.
-
-# setwd("tasks/process_rent_data/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/process_rent_data/code")
 # start_date <- "2014-01-01"
 # end_date <- "2022-12-31"
 
 source("../../setup_environment/code/packages.R")
-
-library(DBI)
-library(duckdb)
-library(data.table)
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
   cli_args <- c(start_date, end_date)
 }
 if (length(cli_args) != 2) {
-  stop("FATAL: Script requires 2 args: <start_date> <end_date>", call. = FALSE)
+  stop("Usage: Rscript build_renthub_clean_panel.R <start_date> <end_date>", call. = FALSE)
 }
 
 start_date <- as.Date(cli_args[1])
@@ -34,33 +28,15 @@ sql_escape <- function(x) {
   gsub("'", "''", x, fixed = TRUE)
 }
 
-message("=== Build RentHub Floorplan-Month Panel ===")
-message(sprintf("Input files: %s", format(length(raw_files), big.mark = ",")))
-message(sprintf("Window: %s through %s", start_date, end_date))
-
 con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:")
 on.exit(dbDisconnect(con, shutdown = TRUE), add = TRUE)
-dbExecute(con, "PRAGMA threads=4")
+invisible(dbExecute(con, "PRAGMA threads=4"))
 
 collect_query <- function(sql) {
   as.data.table(dbGetQuery(con, sql))
 }
 
-message("Counting Illinois rows in date window...")
-raw_illinois_rows <- collect_query(sprintf(
-  "
-  SELECT COUNT(*) AS n
-  FROM read_parquet('%s', union_by_name = true)
-  WHERE TRY_CAST(SCRAPED_TIMESTAMP AS DATE) >= CAST('%s' AS DATE)
-    AND TRY_CAST(SCRAPED_TIMESTAMP AS DATE) <= CAST('%s' AS DATE)
-  ",
-  sql_escape(raw_glob),
-  start_date,
-  end_date
-))$n[1]
-
-message("Loading Chicago rows and building transparent property/floorplan keys...")
-dbExecute(
+invisible(dbExecute(
   con,
   sprintf(
     "
@@ -162,19 +138,13 @@ dbExecute(
     start_date,
     end_date
   )
-)
+))
 
 raw_count <- collect_query("SELECT COUNT(*) AS n FROM chicago_raw")$n[1]
 if (!is.finite(raw_count) || raw_count == 0L) {
   stop("No Chicago RentHub rows found in the requested window.", call. = FALSE)
 }
-message(sprintf(
-  "Chicago rows after city filter: %s of %s raw Illinois rows in window.",
-  format(raw_count, big.mark = ","),
-  format(raw_illinois_rows, big.mark = ",")
-))
-
-dbExecute(
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE keyed_rows AS
@@ -232,11 +202,9 @@ dbExecute(
     END AS key_source
   FROM property_keys
   "
-)
+))
 
-message("Collapsing raw rows to floorplan-day observations...")
-
-dbExecute(
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE floorplan_day_base AS
@@ -287,9 +255,9 @@ dbExecute(
     AND valid_coordinates = 1
   GROUP BY 1, 2, 3, 4, 5
   "
-)
+))
 
-dbExecute(
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE day_thresholds AS
@@ -307,9 +275,9 @@ dbExecute(
   FROM floorplan_day_base
   GROUP BY 1, 2
   "
-)
+))
 
-dbExecute(
+invisible(dbExecute(
   con,
   "
   CREATE OR REPLACE TEMP TABLE floorplan_day_clean AS
@@ -352,9 +320,9 @@ dbExecute(
       END
     ) = t.beds_bin
   "
-)
+))
 
-dbExecute(
+invisible(dbExecute(
   con,
   "
   ALTER TABLE floorplan_day_clean ADD COLUMN main_day_flag INTEGER;
@@ -366,10 +334,9 @@ dbExecute(
     ELSE 0
   END
   "
-)
+))
 
-message("Building main floorplan-month panel...")
-dbExecute(
+invisible(dbExecute(
   con,
   "
     CREATE OR REPLACE TEMP TABLE floorplan_month_main_first AS
@@ -386,9 +353,9 @@ dbExecute(
     )
     WHERE month_order = 1
   "
-)
+))
 
-dbExecute(
+invisible(dbExecute(
   con,
   "
     CREATE OR REPLACE TEMP TABLE floorplan_month_main_agg AS
@@ -425,9 +392,9 @@ dbExecute(
     WHERE main_day_flag = 1
     GROUP BY 1, 2
   "
-)
+))
 
-dbExecute(
+invisible(dbExecute(
   con,
   "
     CREATE OR REPLACE TEMP TABLE floorplan_month_main AS
@@ -483,19 +450,18 @@ dbExecute(
       ON f.analysis_key = a.analysis_key
       AND f.month_start = a.month_start
   "
-)
+))
 
 unlink("../output/chicago_rent_panel.parquet", recursive = TRUE, force = TRUE)
-dbExecute(
+invisible(dbExecute(
   con,
   "
   COPY floorplan_month_main
   TO '../output/chicago_rent_panel.parquet'
   (FORMAT PARQUET, COMPRESSION ZSTD)
   "
-)
+))
 
-message("Running built-in validation checks...")
 duplicate_months <- collect_query(
   "
   SELECT COUNT(*) AS n
@@ -562,9 +528,3 @@ if (
 ) {
   stop("Main rent panel does not span the expected complete monthly window.", call. = FALSE)
 }
-
-message(sprintf(
-  "Wrote %s main floorplan-month rows.",
-  format(collect_query("SELECT COUNT(*) AS n FROM floorplan_month_main")$n[1], big.mark = ",")
-))
-message("RentHub cleaning complete.")
