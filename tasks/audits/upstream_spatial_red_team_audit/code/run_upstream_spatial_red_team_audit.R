@@ -537,7 +537,11 @@ raw_integrity_rows[[length(raw_integrity_rows) + 1]] <- bind_rows(
 
 sales_raw_n <- fread(file.path(repo_root, "tasks/download_parcel_sales_data/output/parcel_sales_city.csv"), select = "pin")[, .N]
 sales_scores <- read_csv(file.path(repo_root, "tasks/calculate_sale_distances/output/sales_pre_scores.csv"), show_col_types = FALSE) %>%
-  mutate(pin = as.character(pin))
+  mutate(
+    pin = as.character(pin),
+    dist_ft = dist_m / 0.3048,
+    signed_dist = NA_real_
+  )
 sales_coord_lookup <- sales_scores %>%
   distinct(pin, sale_date, .keep_all = TRUE) %>%
   select(pin, sale_date, longitude, latitude)
@@ -553,8 +557,9 @@ rental_raw <- open_dataset(file.path(repo_root, "tasks/process_rent_data/output/
 rental_raw_n <- rental_raw %>% summarise(n = n()) %>% collect() %>% pull(n)
 rent_pre_scores <- read_parquet(
   file.path(repo_root, "tasks/calculate_rent_distances/output/rent_pre_scores_full.parquet"),
-  col_select = c("id", "file_date", "ward", "ward_pair_id", "dist_ft", "latitude", "longitude")
-)
+  col_select = c("id", "file_date", "ward", "ward_pair_id", "dist_m", "latitude", "longitude")
+) %>%
+  mutate(dist_ft = dist_m / 0.3048)
 rent_coord_lookup <- rent_pre_scores %>%
   distinct(id, file_date, .keep_all = TRUE) %>%
   select(id, file_date, longitude, latitude)
@@ -735,7 +740,7 @@ sales_sf <- st_as_sf(
 ) %>% st_transform(crs_projected)
 
 sales_independent <- assign_points_independent(
-  points_sf = sales_sf %>% select(pin, sale_date, ward, ward_pair_id, dist_ft, sign, signed_dist),
+  points_sf = sales_sf %>% select(pin, sale_date, ward, ward_pair_id, dist_ft, signed_dist),
   date_values = sales_scores$sale_date,
   ward_maps = ward_maps,
   boundary_layers = boundary_layers,
@@ -753,9 +758,12 @@ sales_compare <- sales_scores %>%
 
 sales_panel_2015 <- read_parquet(
   file.path(repo_root, "tasks/audits/create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet"),
-  col_select = c("pin", "sale_date", "block_id", "segment_id_cohort", "ward_pair_id", "dist_ft", "relative_year")
+  col_select = c("pin", "sale_date", "block_id", "segment_id_cohort", "ward_pair_id", "dist_m", "relative_year")
 ) %>%
-  mutate(sale_date = as.Date(sale_date))
+  mutate(
+    sale_date = as.Date(sale_date),
+    dist_ft = dist_m / 0.3048
+  )
 sales_panel_2015_with_coords <- sales_panel_2015 %>%
   left_join(sales_coord_lookup, by = c("pin", "sale_date"))
 sales_panel_2015_coord_issues <- sales_panel_2015_with_coords %>%
@@ -812,7 +820,7 @@ distance_summary_rows[[length(distance_summary_rows) + 1]] <- tibble(
   n_large_diff_5ft = sum(sales_compare$abs_dist_diff_ft > 5, na.rm = TRUE),
   n_large_diff_25ft = sum(sales_compare$abs_dist_diff_ft > 25, na.rm = TRUE),
   n_sign_inconsistent = signed_distance_check(sales_compare, "dist_ft", "signed_dist", "ward", "ward_pair_id")$n_orientation_inconsistent,
-  note = "Scored sales boundary distances and sign orientation."
+  note = "Scored sales boundary distances; sign orientation is unavailable in the current scored sales output."
 )
 
 write_issue_table(
@@ -879,8 +887,9 @@ rental_compare <- rental_sample %>%
 
 rental_panel_2023 <- read_parquet(
   file.path(repo_root, "tasks/audits/create_event_study_rental_data_disaggregate/output/rental_listing_panel_2023.parquet"),
-  col_select = c("id", "file_date", "block_id", "segment_id_cohort", "ward_pair_id", "dist_ft", "relative_year")
-)
+  col_select = c("id", "file_date", "block_id", "segment_id_cohort", "ward_pair_id", "dist_m", "relative_year")
+) %>%
+  mutate(dist_ft = dist_m / 0.3048)
 rental_panel_2023_sample <- rental_panel_2023 %>% slice_sample(n = min(100000L, nrow(rental_panel_2023)))
 rental_panel_2023_sample_with_coords <- rental_panel_2023_sample %>%
   left_join(rent_coord_lookup, by = c("id", "file_date"))
@@ -1063,8 +1072,9 @@ write_issue_table(
 
 permit_panel_2015 <- read_parquet(
   file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_year_panel_2015.parquet"),
-  col_select = c("cohort_block_id", "block_id", "block_vintage", "ward_origin", "ward_dest", "ward_pair_id", "dist_ft", "relative_year")
-)
+  col_select = c("cohort_block_id", "block_id", "block_vintage", "ward_origin", "ward_dest", "ward_pair_id", "dist_m", "relative_year")
+) %>%
+  mutate(dist_ft = dist_m / 0.3048)
 
 block_treatment_current <- read_csv(file.path(repo_root, "tasks/create_block_treatment_panel/output/block_treatment_pre_scores.csv"), show_col_types = FALSE) %>%
   mutate(block_id = as.character(block_id))
@@ -1211,6 +1221,8 @@ near_boundary_sample <- parcel_compare_input %>%
 if (nrow(near_boundary_sample) > 0) {
   jittered_east <- st_geometry(near_boundary_sample) + c(1, 0)
   jittered_west <- st_geometry(near_boundary_sample) + c(-1, 0)
+  st_crs(jittered_east) <- st_crs(near_boundary_sample)
+  st_crs(jittered_west) <- st_crs(near_boundary_sample)
   jitter_points <- near_boundary_sample
   st_geometry(jitter_points) <- jittered_east
   east_assign <- assign_points_independent(jitter_points, near_boundary_sample$construction_date, ward_maps, boundary_layers, chunk_n = 500L)
@@ -1305,8 +1317,11 @@ manual_spotcheck_queue <- bind_rows(manual_queue_parts) %>%
   select(branch, stratum, source_id, longitude, latitude, review_note, everything())
 write_csv(manual_spotcheck_queue, manual_queue_path)
 
-if (nrow(manual_spotcheck_queue) > 0) {
-  manual_spotcheck_sf <- st_as_sf(manual_spotcheck_queue, coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) %>%
+manual_spotcheck_points <- manual_spotcheck_queue %>%
+  filter(!is.na(longitude), !is.na(latitude))
+
+if (nrow(manual_spotcheck_points) > 0) {
+  manual_spotcheck_sf <- st_as_sf(manual_spotcheck_points, coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) %>%
     st_transform(crs_projected)
   st_write(manual_spotcheck_sf, manual_layers_path, delete_dsn = TRUE, quiet = TRUE)
 }
@@ -1496,7 +1511,7 @@ memo_lines <- c(
   sprintf("- Rentals: %s.", upstream_branch_verdicts$verdict[upstream_branch_verdicts$branch == "rentals"]),
   "",
   "## Highest-Priority Findings",
-  sprintf("- Permit manual review remains a live upstream fragility point if the permit branch cannot be rebuilt without `manual_permit_block_review.csv`."),
+  sprintf("- Permit branch package integrity is checked in `manuscript_verification_audit/output/package_integrity_findings.csv`; this audit no longer assumes a code-local `manual_permit_block_review.csv` prerequisite."),
   sprintf("- Density branch topology / assignment issues should be checked against `assignment_consistency_summary.csv` and `distance_consistency_summary.csv` before trusting the RD and FE estimates as release-grade."),
   sprintf("- Home-sales and rental branches now have explicit independent ward/pair/block/segment audits instead of relying on downstream stability alone."),
   "",

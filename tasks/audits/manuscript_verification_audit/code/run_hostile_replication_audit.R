@@ -510,7 +510,7 @@ run_permit_did <- function(df, rel_min = -5, rel_max = 5, cluster_level = "block
       !is.na(block_id), block_id != "",
       !is.na(strictness_change),
       !is.na(n_high_discretion_issue),
-      dist_ft <= 1000,
+      dist_m <= 304.8,
       relative_year >= rel_min,
       relative_year <= rel_max
     ) %>%
@@ -537,13 +537,13 @@ run_permit_did <- function(df, rel_min = -5, rel_max = 5, cluster_level = "block
   )
 }
 
-run_sales_did <- function(df, bandwidth = 1000, cluster_level = "block", price_trim = 0, include_hedonics = TRUE) {
+run_sales_did <- function(df, bandwidth_ft = 1000, cluster_level = "block", price_trim = 0, include_hedonics = TRUE) {
   hedonic_vars <- c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")
 
   work <- df %>%
     mutate(ward_pair = sub("_[0-9]+$", "", ward_pair_side)) %>%
     filter(
-      dist_ft <= bandwidth,
+      dist_m <= bandwidth_ft * 0.3048,
       relative_year >= -5,
       relative_year <= 5,
       !is.na(ward_pair), ward_pair != "",
@@ -635,20 +635,8 @@ with_dir(repo_root, {
       artifact_exists_now = file.exists(artifact_path),
       producer_script_exists = file.exists(file.path(repo_root, producer_script)),
       producer_script_git_state = map_chr(file.path(repo_root, producer_script), git_state),
-      live_sidecars_exist_now = if_else(
-        FALSE,
-        map_lgl(artifact_path, ~ event_sidecars_exist(.x, density_sidecar_dir = NULL)),
-        NA
-      ),
-      audit_sidecars_exist_now = if_else(
-        FALSE,
-        map_lgl(artifact_path, function(x) {
-          audit_pdf <- file.path(density_sidecar_dir, basename(x))
-          file.exists(sub("\\.pdf$", "_bins.csv", audit_pdf)) &&
-            file.exists(sub("\\.pdf$", "_meta.csv", audit_pdf))
-        }),
-        NA
-      ),
+      live_sidecars_exist_now = NA,
+      audit_sidecars_exist_now = NA,
       figure_sidecars_exist_now = if_else(
         artifact_type == "figure",
         map_lgl(artifact_path, ~ event_sidecars_exist(.x, density_sidecar_dir = density_sidecar_dir)),
@@ -858,7 +846,7 @@ with_dir(repo_root, {
       "residual_unmatched_2010",
       "residual_unmatched_2020",
       "stacked_panel_duplicate_cohort_block_year",
-      "manual_review_file_git_state"
+      "manual_assignments_file_git_state"
     ),
     value = as.character(c(
       sum(duplicated(permits_clean_min$id)),
@@ -869,7 +857,7 @@ with_dir(repo_root, {
       nrow(permit_missing_2010),
       nrow(permit_missing_2020),
       permit_panel_full %>% summarise(n = n() - n_distinct(cohort_block_id, year)) %>% pull(n),
-      git_state(file.path(repo_root, "tasks/create_event_study_permit_data/code/manual_permit_block_review.csv"))
+      git_state(file.path(repo_root, "tasks/create_event_study_permit_data/input/manual_permit_block_assignments.csv"))
     )),
     detail = c(
       "Clean permit IDs should be unique.",
@@ -880,7 +868,7 @@ with_dir(repo_root, {
       "Residual 2010 block-assignment misses after review.",
       "Residual 2020 block-assignment misses after review.",
       "Stacked permit panel should be unique at cohort_block_id x year.",
-      "Manual permit review should not remain an ignored local dependency in a public package."
+      "Manual permit assignments should be tracked in the public package."
     )
   )
 
@@ -943,7 +931,7 @@ with_dir(repo_root, {
   ) %>%
     select(branch, outcome, challenge, estimate, effect_pct, se, p_value, n_obs, n_ward_pairs)
 
-  sales_input <- read_csv(file.path(repo_root, "tasks/calculate_sale_distances/output/sales_with_ward_distances.csv"), show_col_types = FALSE)
+  sales_input <- read_csv(file.path(repo_root, "tasks/calculate_sale_distances/output/sales_pre_scores.csv"), show_col_types = FALSE)
   sales_panel_2015 <- read_parquet(file.path(repo_root, "tasks/audits/create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet"))
   sales_points <- st_as_sf(
     sales_input %>% filter(!is.na(longitude), !is.na(latitude)),
@@ -995,7 +983,7 @@ with_dir(repo_root, {
     sales_panel_2015 %>%
       mutate(ward_pair = sub("_[0-9]+$", "", ward_pair_side)) %>%
       filter(
-        dist_ft <= 1000,
+        dist_m <= 304.8,
         relative_year >= -5,
         relative_year <= 5,
         !is.na(ward_pair), ward_pair != "",
@@ -1011,7 +999,7 @@ with_dir(repo_root, {
   sales_challenge_results <- bind_rows(
     run_sales_did(sales_panel_2015) %>% mutate(branch = "home_sales", outcome = "log_sale_price", challenge = "baseline"),
     run_sales_did(sales_panel_2015, cluster_level = "ward_pair") %>% mutate(branch = "home_sales", outcome = "log_sale_price", challenge = "cluster_ward_pair"),
-    run_sales_did(sales_panel_2015, bandwidth = 500) %>% mutate(branch = "home_sales", outcome = "log_sale_price", challenge = "bandwidth_500"),
+    run_sales_did(sales_panel_2015, bandwidth_ft = 500) %>% mutate(branch = "home_sales", outcome = "log_sale_price", challenge = "bandwidth_500"),
     run_sales_did(sales_panel_2015, price_trim = 0.01) %>% mutate(branch = "home_sales", outcome = "log_sale_price", challenge = "trim_price_1pct"),
     run_sales_did(sales_panel_2015, include_hedonics = FALSE) %>% mutate(branch = "home_sales", outcome = "log_sale_price", challenge = "no_hedonics_same_sample")
   ) %>%
@@ -1022,7 +1010,7 @@ with_dir(repo_root, {
   sales_baseline_sample <- sales_panel_2015 %>%
     mutate(ward_pair = sub("_[0-9]+$", "", ward_pair_side)) %>%
     filter(
-      dist_ft <= 1000,
+      dist_m <= 304.8,
       relative_year >= -5,
       relative_year <= 5,
       !is.na(ward_pair), ward_pair != "",
@@ -1082,7 +1070,9 @@ with_dir(repo_root, {
   }
 
   density_balance_red_flag <- any(density_balance_tests$p_value < 0.10, na.rm = TRUE)
-  permit_hidden_dependency <- any(package_findings$prereq_rel_repo == "tasks/create_event_study_permit_data/code/manual_permit_block_review.csv")
+  permit_hidden_dependencies <- package_findings %>%
+    filter(task == "create_event_study_permit_data", risk_level == "P1_hidden_dependency")
+  permit_hidden_dependency <- nrow(permit_hidden_dependencies) > 0
 
   density_scoreboard <- density_challenge_results %>%
     group_by(outcome) %>%
@@ -1256,11 +1246,15 @@ with_dir(repo_root, {
       severity = "P1",
       section = "Permits",
       paper_ref = "paper/sections/empirics_permits.tex:40-94",
-      claim_summary = "Paper-facing permit results depend on the ignored local file manual_permit_block_review.csv in create_event_study_permit_data.",
+      claim_summary = paste0(
+        "Paper-facing permit results depend on non-tracked local file(s): ",
+        paste(permit_hidden_dependencies$prereq_rel_repo, collapse = ", "),
+        "."
+      ),
       status = "package_failure",
       evidence_output = package_integrity_path,
       evidence_code = "tasks/create_event_study_permit_data/code/Makefile; tasks/create_event_study_permit_data/code/create_permit_block_year_panel.R",
-      recommended_fix = "Track the manual review file or replace it with deterministic code before public release.",
+      recommended_fix = "Track the hidden prerequisite or replace it with deterministic code before public release.",
       fix_type = "package_integrity"
     )
   } else {
@@ -1360,7 +1354,11 @@ with_dir(repo_root, {
     sprintf("- Permit headline: %s.", permit_headline$verdict[[1]]),
     sprintf("- Home-sales headline: %s.", sales_headline$verdict[[1]]),
     if (permit_hidden_dependency) {
-      "- The biggest replication-package blocker is that the permit branch still depends on the ignored local file `tasks/create_event_study_permit_data/code/manual_permit_block_review.csv`."
+      paste0(
+        "- The biggest replication-package blocker is that the permit branch still depends on non-tracked local file(s): `",
+        paste(permit_hidden_dependencies$prereq_rel_repo, collapse = "`, `"),
+        "`."
+      )
     } else {
       "- No hidden local file dependencies were detected in the audited paper-facing tasks."
     },
@@ -1400,7 +1398,11 @@ with_dir(repo_root, {
     "- Home-sales challenge grid covers ward-pair clustering, 500-foot bandwidth, price trimming, no-hedonics same-sample estimation, and leave-one-out screens at ward-pair and high-weight block level.",
     "",
     "## Default hostile recommendation",
-    "- The headline empirical signs currently survive the reasonable challenge set, but the compiled paper is not release-ready as a replication package until the permit manual-review dependency and density sidecar preservation issue are resolved.",
+    if (permit_hidden_dependency) {
+      "- The headline empirical signs currently survive the reasonable challenge set, but the compiled paper is not release-ready as a replication package until hidden permit dependencies and density sidecar preservation issues are resolved."
+    } else {
+      "- The headline empirical signs currently survive the reasonable challenge set; remaining release checks should focus on density sidecar preservation and any non-green upstream spatial verdicts."
+    },
     "- Any claim that remains only visually supported should be downgraded in prose before public release."
   )
   writeLines(memo_lines, red_team_memo_path)
