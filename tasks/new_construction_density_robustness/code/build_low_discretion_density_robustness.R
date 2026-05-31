@@ -101,16 +101,17 @@ fe_rows <- list(
   "_Segment FE" = rep("$\\checkmark$", length(models)),
   "_Year FE" = rep("$\\checkmark$", length(models))
 )
-fe_rows[["_N"]] <- vapply(models, function(x) format(nobs(x), big.mark = ","), character(1))
-fe_rows[["_Dep. Var. Mean"]] <- vapply(
-  models,
-  function(x) sprintf("%.2f", mean(x$custom_data[[all.vars(formula(x))[1]]], na.rm = TRUE)),
-  character(1)
+fe_rows[["_N"]] <- c(
+  format(nobs(models[["ln(FAR)"]]), big.mark = ","),
+  format(nobs(models[["ln(DUPAC)"]]), big.mark = ",")
 )
-fe_rows[["_Ward Pairs"]] <- vapply(
-  models,
-  function(x) format(n_distinct(x$custom_data$ward_pair), big.mark = ","),
-  character(1)
+fe_rows[["_Dep. Var. Mean"]] <- c(
+  sprintf("%.2f", mean(models[["ln(FAR)"]]$custom_data$density_far, na.rm = TRUE)),
+  sprintf("%.2f", mean(models[["ln(DUPAC)"]]$custom_data$density_dupac, na.rm = TRUE))
+)
+fe_rows[["_Ward Pairs"]] <- c(
+  format(n_distinct(models[["ln(FAR)"]]$custom_data$ward_pair), big.mark = ","),
+  format(n_distinct(models[["ln(DUPAC)"]]$custom_data$ward_pair), big.mark = ",")
 )
 
 table_tmp <- tempfile(fileext = ".tex")

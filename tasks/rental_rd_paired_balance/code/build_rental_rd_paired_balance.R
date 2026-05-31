@@ -46,12 +46,12 @@ rent <- rent %>%
   )
 
 covariates <- tibble::tribble(
-  ~variable, ~label, ~digits,
-  "nearest_school_dist_ft", "Dist. to school", 0,
-  "nearest_park_dist_ft", "Dist. to park", 0,
-  "nearest_major_road_dist_ft", "Dist. to major road", 0,
-  "nearest_cta_stop_dist_ft", "Dist. to CTA stop", 0,
-  "lake_michigan_dist_ft", "Dist. to Lake Michigan", 0
+  ~variable, ~label,
+  "nearest_school_dist_ft", "Dist. to school",
+  "nearest_park_dist_ft", "Dist. to park",
+  "nearest_major_road_dist_ft", "Dist. to major road",
+  "nearest_cta_stop_dist_ft", "Dist. to CTA stop",
+  "lake_michigan_dist_ft", "Dist. to Lake Michigan"
 ) %>%
   filter(variable %in% names(rent))
 
@@ -101,8 +101,7 @@ for (j in seq_len(nrow(covariates))) {
     p_value = paired_test_result$p_value[[1]],
     normalized_difference = ifelse(is.finite(pooled_sd) && pooled_sd > 0, mean(paired$difference) / pooled_sd, NA_real_),
     n_segments = nrow(paired),
-    n_ward_pairs = n_distinct(paired$ward_pair),
-    digits = covariates$digits[[j]]
+    n_ward_pairs = n_distinct(paired$ward_pair)
   )
 }
 
@@ -110,25 +109,25 @@ external_balance <- bind_rows(paired_balance_rows) %>%
   mutate(
     label_tex = gsub("\\\\", "\\\\textbackslash{}", label),
     label_tex = gsub("([_%$#&{}])", "\\\\\\1", label_tex, perl = TRUE),
-    lenient_text = mapply(
-      function(x, d) if (is.na(x)) "" else formatC(x, format = "f", digits = d, big.mark = ","),
-      lenient_mean,
-      digits
+    lenient_text = ifelse(
+      is.na(lenient_mean),
+      "",
+      formatC(lenient_mean, format = "f", digits = 0, big.mark = ",")
     ),
-    strict_text = mapply(
-      function(x, d) if (is.na(x)) "" else formatC(x, format = "f", digits = d, big.mark = ","),
-      strict_mean,
-      digits
+    strict_text = ifelse(
+      is.na(strict_mean),
+      "",
+      formatC(strict_mean, format = "f", digits = 0, big.mark = ",")
     ),
-    difference_text = mapply(
-      function(x, d) if (is.na(x)) "" else formatC(x, format = "f", digits = d, big.mark = ","),
-      difference,
-      digits
+    difference_text = ifelse(
+      is.na(difference),
+      "",
+      formatC(difference, format = "f", digits = 0, big.mark = ",")
     ),
-    se_text = mapply(
-      function(x, d) if (is.na(x)) "" else formatC(x, format = "f", digits = d, big.mark = ","),
-      se,
-      digits
+    se_text = ifelse(
+      is.na(se),
+      "",
+      formatC(se, format = "f", digits = 0, big.mark = ",")
     ),
     p_value_text = ifelse(
       is.na(p_value),
