@@ -1,21 +1,32 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_density_robustness/code")
 # bandwidth_ft <- 500
+# start_construction_year <- 2006
+# end_construction_year <- 2022
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(bandwidth_ft)
+  cli_args <- c(bandwidth_ft, start_construction_year, end_construction_year)
 }
-if (length(cli_args) != 1) {
-  stop("FATAL: Script requires 1 arg: <bandwidth_ft>.", call. = FALSE)
+if (length(cli_args) != 3) {
+  stop("FATAL: Script requires 3 args: <bandwidth_ft> <start_construction_year> <end_construction_year>.", call. = FALSE)
 }
 
 bandwidth_ft <- as.numeric(cli_args[1])
+start_construction_year <- suppressWarnings(as.integer(cli_args[2]))
+end_construction_year <- suppressWarnings(as.integer(cli_args[3]))
 if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
   stop("bandwidth_ft must be positive.", call. = FALSE)
+}
+if (
+  !is.finite(start_construction_year) ||
+    !is.finite(end_construction_year) ||
+    start_construction_year > end_construction_year
+) {
+  stop("start_construction_year and end_construction_year must be valid integer years with start <= end.", call. = FALSE)
 }
 bandwidth_m <- bandwidth_ft * 0.3048
 bandwidth_label <- paste0(formatC(bandwidth_ft, format = "f", digits = 0), "ft")
@@ -37,8 +48,8 @@ parcels <- read_csv(
   filter(
     arealotsf > 1,
     areabuilding > 1,
-    construction_year >= 2006,
-    construction_year <= 2022,
+    construction_year >= start_construction_year,
+    construction_year <= end_construction_year,
     unitscount > 0,
     dist_to_boundary_m <= bandwidth_m,
     !is.na(segment_id),

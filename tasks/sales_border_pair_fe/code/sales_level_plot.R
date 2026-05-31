@@ -2,24 +2,31 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_border_pair_fe/code")
 # bandwidth_ft <- 500
 # bins_per_side <- 10
+# start_year <- 2006
+# end_year <- 2022
 
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(bandwidth_ft, bins_per_side)
+  cli_args <- c(bandwidth_ft, bins_per_side, start_year, end_year)
 }
-if (length(cli_args) != 2) {
-  stop("FATAL: Script requires 2 args: <bandwidth_ft> <bins_per_side>.", call. = FALSE)
+if (length(cli_args) != 4) {
+  stop("FATAL: Script requires 4 args: <bandwidth_ft> <bins_per_side> <start_year> <end_year>.", call. = FALSE)
 }
 
 bandwidth_ft <- as.numeric(cli_args[1])
 bins_per_side <- as.numeric(cli_args[2])
+start_year <- suppressWarnings(as.integer(cli_args[3]))
+end_year <- suppressWarnings(as.integer(cli_args[4]))
 if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
   stop("bandwidth_ft must be positive.", call. = FALSE)
 }
 if (!is.finite(bins_per_side) || bins_per_side <= 0 || bins_per_side != floor(bins_per_side)) {
   stop("bins_per_side must be a positive integer.", call. = FALSE)
+}
+if (!is.finite(start_year) || !is.finite(end_year) || start_year > end_year) {
+  stop("start_year and end_year must be valid integer years with start_year <= end_year.", call. = FALSE)
 }
 bandwidth_label <- cli_args[1]
 bins_per_side <- as.integer(bins_per_side)
@@ -40,8 +47,8 @@ sales <- sales %>%
   filter(
     !is.na(sale_price),
     sale_price > 0,
-    year >= 2006,
-    year <= 2022,
+    year >= start_year,
+    year <= end_year,
     !is.na(ward_pair),
     !is.na(segment_id), segment_id != "",
     is.finite(signed_dist),

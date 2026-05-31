@@ -1,24 +1,28 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_paired_balance/code")
 # bandwidth_ft <- 500
+# min_cluster_ward_pairs <- 20
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(bandwidth_ft)
+  cli_args <- c(bandwidth_ft, min_cluster_ward_pairs)
 }
-if (length(cli_args) != 1) {
-  stop("FATAL: Script requires 1 arg: <bandwidth_ft>.", call. = FALSE)
+if (length(cli_args) != 2) {
+  stop("FATAL: Script requires 2 args: <bandwidth_ft> <min_cluster_ward_pairs>.", call. = FALSE)
 }
 
 bandwidth_ft <- as.numeric(cli_args[1])
+min_cluster_ward_pairs <- suppressWarnings(as.integer(cli_args[2]))
 if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
   stop("bandwidth_ft must be positive.", call. = FALSE)
 }
+if (!is.finite(min_cluster_ward_pairs) || min_cluster_ward_pairs <= 0) {
+  stop("min_cluster_ward_pairs must be a positive integer.", call. = FALSE)
+}
 bandwidth_label <- as.character(as.integer(round(bandwidth_ft)))
-min_cluster_ward_pairs <- 20L
 
 rent <- read_parquet(sprintf("../input/rental_rd_characteristics_panel_bw%s.parquet", bandwidth_label)) %>%
   as_tibble()

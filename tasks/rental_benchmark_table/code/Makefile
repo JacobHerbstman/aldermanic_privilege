@@ -1,7 +1,11 @@
+START_YM ?= 2014-01
+END_YM ?= 2022-12
+CPI_BASE_YEAR ?= 2022
+
 all: ../output/rental_benchmark_growth.tex
 
 ../output/rental_benchmark_growth.tex: build_rental_benchmark_table.R ../input/chicago_rent_panel.parquet ../input/fred_cpi_cuura207sa0.csv ../input/zillow_zori_city.csv | ../output
-	Rscript $<
+	Rscript $< $(START_YM) $(END_YM) $(CPI_BASE_YEAR)
 
 ../input/chicago_rent_panel.parquet: ../../process_rent_data/output/chicago_rent_panel.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"

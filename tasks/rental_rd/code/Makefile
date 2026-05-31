@@ -1,10 +1,12 @@
 BANDWIDTH_FT ?= 500
 BINS_PER_SIDE ?= 15
+START_YEAR ?= 2014
+END_YEAR ?= 2022
 
-all: ../output/rental_rd_flat_bw$(BANDWIDTH_FT)_2014_2022_all_controls.pdf
+all: ../output/rental_rd_flat_bw$(BANDWIDTH_FT)_$(START_YEAR)_$(END_YEAR)_all_controls.pdf
 
-../output/rental_rd_flat_bw$(BANDWIDTH_FT)_2014_2022_all_controls.pdf: run_rental_rd.R ../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet | ../output
-	Rscript $< $(BANDWIDTH_FT) $(BINS_PER_SIDE)
+../output/rental_rd_flat_bw$(BANDWIDTH_FT)_$(START_YEAR)_$(END_YEAR)_all_controls.pdf: run_rental_rd.R ../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet | ../output
+	Rscript $< $(BANDWIDTH_FT) $(BINS_PER_SIDE) $(START_YEAR) $(END_YEAR)
 
 ../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet: ../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
