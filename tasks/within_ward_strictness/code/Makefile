@@ -7,11 +7,11 @@ all: \
 ../output/predecessor_successor_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf: analyze_within_ward_variation.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv | ../output
 	Rscript $< $(UNCERTAINTY_SPEC)
 
-../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv: analyze_residualized_high_low_processing_correlation.R ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/cta_stations.geojson ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
+../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv: build_residualized_low_discretion_falsification.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/cta_stations.geojson ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
 	Rscript $< $(UNCERTAINTY_SPEC)
 
-../output/low_discretion_falsification_compact_uncertainty_$(UNCERTAINTY_SPEC).tex: run_low_discretion_falsification_regression.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv | ../output
-	Rscript $< $(UNCERTAINTY_SPEC)
+../output/low_discretion_falsification_compact_uncertainty_$(UNCERTAINTY_SPEC).tex: ../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv
+	@test -s "$@"
 
 ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
