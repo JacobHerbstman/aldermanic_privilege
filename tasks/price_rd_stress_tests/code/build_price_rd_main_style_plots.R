@@ -211,7 +211,12 @@ for (cut_i in cutoffs_ft) {
       cutoff_right = as.integer(running_ft >= 0)
     )
 
-  finite_controls <- controls[vapply(d[controls], is.numeric, logical(1))]
+  finite_controls <- character()
+  for (control_i in controls) {
+    if (is.numeric(d[[control_i]])) {
+      finite_controls <- c(finite_controls, control_i)
+    }
+  }
   d <- d %>%
     filter(
       abs(running_ft) <= bandwidth_ft,

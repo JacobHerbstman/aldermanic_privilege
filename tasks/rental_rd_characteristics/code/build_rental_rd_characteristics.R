@@ -150,7 +150,10 @@ coords_month_sf <- st_as_sf(
 ) %>%
   st_transform(3435)
 
-cta_distances <- bind_rows(lapply(split(coords_month_sf, coords_month_sf$year_month), function(month_points) {
+cta_distance_rows <- list()
+coords_by_month <- split(coords_month_sf, coords_month_sf$year_month)
+for (month_i in names(coords_by_month)) {
+  month_points <- coords_by_month[[month_i]]
   month_start <- unique(month_points$file_month_start)
   month_end <- unique(month_points$file_month_end)
   if (length(month_start) != 1L || length(month_end) != 1L) {
@@ -170,7 +173,7 @@ cta_distances <- bind_rows(lapply(split(coords_month_sf, coords_month_sf$year_mo
   nearest_cta <- active_cta[nearest_idx, ]
   nearest_meta <- st_drop_geometry(nearest_cta)
 
-  st_drop_geometry(month_points) %>%
+  cta_distance_rows[[length(cta_distance_rows) + 1]] <- st_drop_geometry(month_points) %>%
     transmute(longitude, latitude, year_month) %>%
     mutate(
       nearest_cta_stop_dist_ft = as.numeric(st_distance(month_points, nearest_cta, by_element = TRUE)),
@@ -178,7 +181,8 @@ cta_distances <- bind_rows(lapply(split(coords_month_sf, coords_month_sf$year_mo
       nearest_cta_station_name = nearest_meta$longname,
       nearest_cta_lines = nearest_meta$lines
     )
-}))
+}
+cta_distances <- bind_rows(cta_distance_rows)
 
 if (anyDuplicated(cta_distances[c("longitude", "latitude", "year_month")]) > 0) {
   stop("CTA distance table is not unique by coordinate-month.", call. = FALSE)
