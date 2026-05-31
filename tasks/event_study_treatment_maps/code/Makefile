@@ -1,14 +1,15 @@
 MAP_BW_M ?= 304.8
 MAP_BW_LABEL ?= 1000ft
+PAIR_TO_MAP ?= 13-23
 
 all: \
 	../output/treatment_control_map_2015_$(MAP_BW_LABEL).pdf \
-	../output/ward_pair_vertical_13-23_$(MAP_BW_LABEL).pdf
+	../output/ward_pair_vertical_$(PAIR_TO_MAP)_$(MAP_BW_LABEL).pdf
 
 ../output/treatment_control_map_2015_$(MAP_BW_LABEL).pdf: plot_treatment_maps.R ../input/permit_block_year_panel_2015.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/ward_panel.gpkg | ../output
-	Rscript $< $(MAP_BW_M) $(MAP_BW_LABEL)
+	Rscript $< $(MAP_BW_M) $(MAP_BW_LABEL) $(PAIR_TO_MAP)
 
-../output/ward_pair_vertical_13-23_$(MAP_BW_LABEL).pdf: ../output/treatment_control_map_2015_$(MAP_BW_LABEL).pdf
+../output/ward_pair_vertical_$(PAIR_TO_MAP)_$(MAP_BW_LABEL).pdf: ../output/treatment_control_map_2015_$(MAP_BW_LABEL).pdf
 	@test -s "$@"
 
 ../input/permit_block_year_panel_2015.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input

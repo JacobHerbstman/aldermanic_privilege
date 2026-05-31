@@ -2,25 +2,30 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/event_study_treatment_maps/code")
 # bandwidth_m <- 304.8
 # bandwidth_label <- "1000ft"
+# pair_to_map <- "13-23"
 
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(bandwidth_m, bandwidth_label)
+  cli_args <- c(bandwidth_m, bandwidth_label, pair_to_map)
 }
 
-if (length(cli_args) != 2) {
-  stop("FATAL: Script requires 2 args: <bandwidth_m> <bandwidth_label>.", call. = FALSE)
+if (length(cli_args) != 3) {
+  stop("FATAL: Script requires 3 args: <bandwidth_m> <bandwidth_label> <pair_to_map>.", call. = FALSE)
 }
 
 bandwidth_m <- as.numeric(cli_args[1])
 bandwidth_label <- cli_args[2]
+pair_to_map <- cli_args[3]
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be positive.", call. = FALSE)
 }
 if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
   stop("bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+}
+if (!grepl("^[0-9]+-[0-9]+$", pair_to_map)) {
+  stop("pair_to_map must use the form <ward>-<ward>, for example 13-23.", call. = FALSE)
 }
 
 permit_blocks_2015 <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
@@ -120,7 +125,6 @@ ggsave(
   bg = "white"
 )
 
-pair_to_map <- "13-23"
 wp_blocks <- blocks_2015 %>%
   filter(ward_pair_id == pair_to_map)
 if (nrow(wp_blocks) == 0) {
