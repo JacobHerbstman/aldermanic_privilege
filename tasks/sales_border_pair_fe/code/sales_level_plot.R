@@ -62,17 +62,10 @@ model <- feols(
   cluster = ~segment_id
 )
 
-ct <- coeftable(model)
-estimate <- ct["right", "Estimate"]
-std_error <- ct["right", "Std. Error"]
-p_value <- ct["right", "Pr(>|t|)"]
-star_text <- case_when(
-  !is.finite(p_value) ~ "",
-  p_value < 0.01 ~ "***",
-  p_value < 0.05 ~ "**",
-  p_value < 0.1 ~ "*",
-  TRUE ~ ""
-)
+if (!"right" %in% names(coef(model))) {
+  stop("Sales RD plot model did not estimate the stricter-side coefficient.", call. = FALSE)
+}
+estimate <- unname(coef(model)[["right"]])
 
 removed <- model$obs_selection$obsRemoved
 keep_idx <- if (is.null(removed)) {
@@ -93,15 +86,6 @@ bins <- plot_data %>%
     .groups = "drop"
   )
 
-plot_subtitle <- sprintf(
-  "Jump = %.4f%s (SE %.4f), N = %s, %.0fft",
-  estimate,
-  star_text,
-  std_error,
-  format(model$nobs, big.mark = ","),
-  bw_ft
-)
-
 plot <- ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.8) +
   geom_point(data = bins, aes(x = bin_center, y = mean_y, color = side), size = 2.5) +
@@ -111,7 +95,6 @@ plot <- ggplot() +
   ) +
   labs(
     title = "Home Sale Prices by Side of Ward Boundary",
-    subtitle = plot_subtitle,
     x = "Distance to ward boundary (feet; positive = more stringent side)",
     y = "Segment-by-quarter adjusted log sale price"
   ) +

@@ -123,14 +123,11 @@ rhs <- paste(
 fml <- as.formula(paste0("log(rent_price) ~ ", rhs, " | segment_id^year_month"))
 
 model <- feols(fml, data = rent, cluster = ~segment_id)
-ct <- coeftable(model)
-if (!"right" %in% rownames(ct)) {
+if (!"right" %in% names(coef(model))) {
   stop("RD model did not estimate the stricter-side coefficient.", call. = FALSE)
 }
 
-estimate <- unname(ct["right", "Estimate"])
-std_error <- unname(ct["right", "Std. Error"])
-p_value <- unname(ct["right", "Pr(>|t|)"])
+estimate <- unname(coef(model)[["right"]])
 
 removed <- model$obs_selection$obsRemoved
 keep_idx <- if (is.null(removed)) {
@@ -149,34 +146,10 @@ bins <- plot_data %>%
   ) %>%
   group_by(bin_center) %>%
   summarise(
-    n = n(),
     mean_y = mean(y_adjusted, na.rm = TRUE),
-    se_y = sd(y_adjusted, na.rm = TRUE) / sqrt(n),
     side = if_else(first(bin_center) >= 0, "More Stringent", "Less Stringent"),
     .groups = "drop"
   )
-
-stars <- if (!is.finite(p_value)) {
-  ""
-} else if (p_value < 0.01) {
-  "***"
-} else if (p_value < 0.05) {
-  "**"
-} else if (p_value < 0.1) {
-  "*"
-} else {
-  ""
-}
-
-plot_title <- "Listed Rents by Side of Ward Boundary"
-plot_subtitle <- sprintf(
-  "Jump = %.4f%s (SE %.4f), N = %s, 2014-2022, %.0fft",
-  estimate,
-  stars,
-  std_error,
-  format(model$nobs, big.mark = ","),
-  bandwidth_ft
-)
 
 plot <- ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.8) +
@@ -186,8 +159,7 @@ plot <- ggplot() +
     name = NULL
   ) +
   labs(
-    title = plot_title,
-    subtitle = plot_subtitle,
+    title = "Listed Rents by Side of Ward Boundary",
     x = "Distance to ward boundary (feet; positive = more stringent side)",
     y = "Segment-by-month adjusted log rent"
   ) +
