@@ -4,6 +4,7 @@ BASELINE_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_throu
 DENSITY_ROBUSTNESS_BW_M ?= 152.4
 DENSITY_ROBUSTNESS_BW_LABEL ?= 500ft
 MAX_PERMIT_YEAR ?= 2022
+MAX_CONSTRUCTION_YEAR ?= 2026
 
 all: \
 	../output/new_construction_processing_time_summary.csv \
@@ -32,20 +33,20 @@ all: \
 ../output/alderman_uncertainty_index_restricted_renovation.csv: build_restricted_renovation_score.R ../../../_lib/alderman_uncertainty_helpers.R ../../../_lib/restricted_renovation_classification.R ../input/permits_for_uncertainty_index.csv ../input/building_permits_clean.gpkg | ../output
 	Rscript $< $(MAX_PERMIT_YEAR)
 
-../output/parcels_with_ward_distances_baseline.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv | ../output
-	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_baseline.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/input/alderman_uncertainty_index_$(BASELINE_SPEC).csv uncertainty_index
+../output/parcels_with_ward_distances_baseline.csv: merge_score_variant.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv | ../output
+	Rscript $< baseline $(BASELINE_SPEC) $(MAX_CONSTRUCTION_YEAR)
 
-../output/parcels_with_ward_distances_new_construction.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_new_construction.csv | ../output
-	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_new_construction.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/output/alderman_uncertainty_index_new_construction.csv uncertainty_index
+../output/parcels_with_ward_distances_new_construction.csv: merge_score_variant.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_new_construction.csv | ../output
+	Rscript $< new_construction $(BASELINE_SPEC) $(MAX_CONSTRUCTION_YEAR)
 
-../output/parcels_with_ward_distances_new_construction_demolition.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_new_construction_demolition.csv | ../output
-	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_new_construction_demolition.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/output/alderman_uncertainty_index_new_construction_demolition.csv uncertainty_index
+../output/parcels_with_ward_distances_new_construction_demolition.csv: merge_score_variant.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_new_construction_demolition.csv | ../output
+	Rscript $< new_construction_demolition $(BASELINE_SPEC) $(MAX_CONSTRUCTION_YEAR)
 
-../output/parcels_with_ward_distances_restricted_renovation.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_restricted_renovation.csv | ../output
-	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_restricted_renovation.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/output/alderman_uncertainty_index_restricted_renovation.csv uncertainty_index
+../output/parcels_with_ward_distances_restricted_renovation.csv: merge_score_variant.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_restricted_renovation.csv | ../output
+	Rscript $< restricted_renovation $(BASELINE_SPEC) $(MAX_CONSTRUCTION_YEAR)
 
-../output/parcels_with_ward_distances_low_discretion_residualized.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_low_discretion_residualized.csv | ../output
-	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_low_discretion_residualized.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/input/alderman_uncertainty_index_low_discretion_residualized.csv uncertainty_index
+../output/parcels_with_ward_distances_low_discretion_residualized.csv: merge_score_variant.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_low_discretion_residualized.csv | ../output
+	Rscript $< low_discretion_residualized $(BASELINE_SPEC) $(MAX_CONSTRUCTION_YEAR)
 
 ../output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv: ../../../_lib/border_pair_fe_regression_runner.R ../output/parcels_with_ward_distances_baseline.csv | ../output
 	cd ../../../border_pair_FE_regressions/code && FE_INPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_baseline.csv FE_SUMMARY_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/fe_summary_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.csv CLUSTER_LEVEL=ward_pair Rscript ../../_lib/border_pair_fe_regression_runner.R $(DENSITY_ROBUSTNESS_BW_M) all zonegroup_segment_year_additive ../../audits/new_construction_score_density_audit/output/fe_table_$(DENSITY_ROBUSTNESS_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_baseline.tex "log(density_far)" "log(density_dupac)" "log(unitscount)"

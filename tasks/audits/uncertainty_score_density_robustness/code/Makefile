@@ -1,6 +1,7 @@
 VARIANTS := baseline raw_rank_days days_unlogged reduced_ses drop_bach_pop
 RESIDUALIZED_VARIANTS := baseline days_unlogged reduced_ses drop_bach_pop
 BASELINE_SPEC := ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
+MAX_CONSTRUCTION_YEAR ?= 2026
 DENSITY_ROBUSTNESS_BW_M ?= 100
 DENSITY_ROBUSTNESS_SAMPLE := all
 DENSITY_ROBUSTNESS_CLUSTER := ward_pair
@@ -45,8 +46,8 @@ $(foreach variant,$(RESIDUALIZED_VARIANTS),$(eval $(call RESIDUALIZED_SCORE_RULE
 ../output/score_variant_stage1_terms_raw_rank_days.csv: ../output/score_variant_metadata_raw_rank_days.csv
 	@test -s "$@"
 define MERGE_RULE
-../output/parcels_with_ward_distances_$(1).csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_$(1).csv | ../output
-	PARCELS_INPUT_PATH=../input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../input/parcel_segment_ids.csv SCORES_INPUT_PATH=../output/alderman_uncertainty_index_$(1).csv MERGE_OUTPUT_PATH=../output/parcels_with_ward_distances_$(1).csv Rscript $$< uncertainty_index
+../output/parcels_with_ward_distances_$(1).csv: merge_score_variant.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_$(1).csv | ../output
+	Rscript $$< $(1) $(MAX_CONSTRUCTION_YEAR)
 endef
 $(foreach variant,$(VARIANTS),$(eval $(call MERGE_RULE,$(variant))))
 

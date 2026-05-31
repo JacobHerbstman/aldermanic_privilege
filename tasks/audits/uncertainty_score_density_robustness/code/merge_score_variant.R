@@ -1,20 +1,20 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_in_scores/code")
-# score_column <- "uncertainty_index"
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/uncertainty_score_density_robustness/code")
+# score_variant <- "baseline"
 # max_construction_year <- 2026
 
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(score_column, max_construction_year)
+  cli_args <- c(score_variant, max_construction_year)
 }
 
 if (length(cli_args) != 2) {
-  stop("FATAL: Script requires <score_column> <max_construction_year>.", call. = FALSE)
+  stop("FATAL: Script requires <score_variant> <max_construction_year>.", call. = FALSE)
 }
 
-score_column <- cli_args[1]
+score_variant <- cli_args[1]
 max_construction_year <- suppressWarnings(as.integer(cli_args[2]))
 if (!is.finite(max_construction_year)) {
   stop("max_construction_year must be a valid integer year.", call. = FALSE)
@@ -40,11 +40,13 @@ segment_lookup <- read_csv(
   )
 )
 
-scores <- read_csv("../input/aldermen_uncertainty_scores.csv", show_col_types = FALSE)
+scores <- read_csv(
+  sprintf("../output/alderman_uncertainty_index_%s.csv", score_variant),
+  show_col_types = FALSE
+)
 
-if (!score_column %in% names(scores)) {
-  stop(paste("Score column", score_column, "not found in scores file. Available columns:",
-             paste(names(scores), collapse = ", ")))
+if (!"uncertainty_index" %in% names(scores)) {
+  stop("Score file must contain uncertainty_index.", call. = FALSE)
 }
 
 if (!all(c("pin", "segment_id") %in% names(segment_lookup))) {
@@ -64,16 +66,14 @@ parcels <- parcels %>%
   mutate(pin = as.character(pin)) %>%
   left_join(segment_lookup, by = "pin", relationship = "many-to-one")
 
-if (is.finite(max_construction_year)) {
-  if (!"construction_year" %in% names(parcels)) {
-    stop("Parcels input must contain construction_year when max_construction_year is set.", call. = FALSE)
-  }
-  parcels <- parcels %>%
-    filter(!is.na(construction_year), construction_year <= max_construction_year)
+if (!"construction_year" %in% names(parcels)) {
+  stop("Parcels input must contain construction_year.", call. = FALSE)
 }
+parcels <- parcels %>%
+  filter(!is.na(construction_year), construction_year <= max_construction_year)
 
 scores_for_merge <- scores %>%
-  select(alderman, score = all_of(score_column))
+  select(alderman, score = uncertainty_index)
 if (anyDuplicated(scores_for_merge$alderman) > 0) {
   stop("Scores input has duplicate alderman values; expected one row per alderman.", call. = FALSE)
 }
@@ -96,4 +96,7 @@ parcels_with_scores <- parcels %>%
 parcels_final <- parcels_with_scores %>%
   filter(!is.na(signed_distance))
 
-write_csv(parcels_final, "../output/parcels_with_ward_distances.csv")
+write_csv(
+  parcels_final,
+  sprintf("../output/parcels_with_ward_distances_%s.csv", score_variant)
+)
