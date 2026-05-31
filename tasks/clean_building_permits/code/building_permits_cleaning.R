@@ -1,5 +1,3 @@
-### this code cleans the public building permits data from https://data.cityofchicago.org/Buildings/Building-Permits/ydr8-5enu/about_data
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/clean_building_permits/code")
 
@@ -7,9 +5,8 @@ source("../../setup_environment/code/packages.R")
 
 crs_projected <- 3435
 
-building_permits <- read_csv("../input/building_permits.csv")
+building_permits <- read_csv("../input/building_permits.csv", show_col_types = FALSE)
 
-## remove contact columns and clean up names
 building_permits_clean <- building_permits %>% 
   janitor::clean_names() %>% 
   mutate(across(
@@ -25,7 +22,6 @@ dominant_hotspot_latitude <- 42.00853640087
 dominant_hotspot_longitude <- -87.91442843927
 dominant_hotspot_tolerance <- 1e-6
 
-# Identify rows that are missing lat/lon but have x/y coordinates
 needs_conversion_mask <- (
   is.na(building_permits_clean$latitude) | is.na(building_permits_clean$longitude)
 ) &
@@ -41,36 +37,10 @@ converted_sf <- st_as_sf(
   ) %>%
   st_transform(crs = 4326)
   
-# Extract the new coordinates and update the original dataframe
 new_coords <- st_coordinates(converted_sf)
 building_permits_clean$longitude[needs_conversion_mask] <- new_coords[, "X"]
 building_permits_clean$latitude[needs_conversion_mask] <- new_coords[, "Y"]
 
-missing_location_rows <- sum(is.na(building_permits_clean$latitude) | is.na(building_permits_clean$longitude))
-invalid_chicago_coords <- with(
-  building_permits_clean,
-  !is.na(latitude) &
-    !is.na(longitude) &
-    (
-      latitude < chicago_lat_min |
-        latitude > chicago_lat_max |
-        longitude < chicago_lon_min |
-        longitude > chicago_lon_max
-    )
-)
-dominant_invalid_hotspot <- with(
-  building_permits_clean,
-  !is.na(latitude) &
-    !is.na(longitude) &
-    abs(latitude - dominant_hotspot_latitude) < dominant_hotspot_tolerance &
-    abs(longitude - dominant_hotspot_longitude) < dominant_hotspot_tolerance
-)
-
-message("Rows still missing latitude/longitude after conversion: ", missing_location_rows)
-message("Rows with implausible Chicago coordinates: ", sum(invalid_chicago_coords))
-message("Rows at dominant invalid hotspot coordinate: ", sum(dominant_invalid_hotspot))
-
-## remove rows with missing or implausible location
 building_permits_clean <- building_permits_clean %>% 
   dplyr::filter(!is.na(latitude)) %>% 
   dplyr::filter(!is.na(longitude)) %>% 
@@ -85,7 +55,6 @@ building_permits_clean <- building_permits_clean %>%
     )
   )
 
-## use zoo to convert dates to that format
 building_permits_clean <- building_permits_clean %>% 
   dplyr::mutate(issue_date = as.Date(issue_date, format = "%m/%d/%Y")) %>% 
   dplyr::mutate(application_start_date = as.Date(application_start_date, format = "%m/%d/%Y")) %>% 
@@ -94,12 +63,9 @@ building_permits_clean <- building_permits_clean %>%
   dplyr::mutate(application_start_date_ym = zoo::as.yearmon(application_start_date)) %>% 
   arrange(application_start_date) %>% 
   rename(pin = pin_list) %>% 
-  ## reorder dates to the front
   dplyr::select(id, pin, ward, application_start_date_ym, issue_date_ym, everything())
 
 
-
-### keep certain permit types
 high_discretion_permits <- c(
   "PERMIT - NEW CONSTRUCTION",
   "PERMIT - RENOVATION/ALTERATION",
@@ -120,22 +86,16 @@ building_permits_clean2 <- building_permits_clean %>%
   mutate(minor_permit = ifelse(permit_type %in% minor_permits, 1, 0))
 
 
-## remove negative processing times and NA processing times
 building_permits_clean2 <- building_permits_clean2 %>% 
   dplyr::filter(processing_time >= 0) 
 
 building_permits_final <- building_permits_clean2 %>%
   mutate(
-    ## 1. Create the binary permit success variable
     permit_issued = case_when(
       permit_status %in% c("COMPLETE", "ACTIVE", "PHASED PERMITTING") ~ 1,
       permit_status %in% c("EXPIRED", "CANCELLED", "REVOKED", "SUSPENDED") ~ 0,
       TRUE ~ NA_integer_
     ),
-    
-    ## 2. Create a more robust corporate applicant dummy
-    # This checks if ANY contact name column contains a corporate keyword.
-    # coalesce(.x, "") handles potential NAs in contact name fields.
     corporate_applicant = as.integer(
       if_any(
         starts_with("contact_") & ends_with("_name"),
@@ -146,7 +106,6 @@ building_permits_final <- building_permits_clean2 %>%
       )
     )
   ) %>% 
-  # Clean up by selecting key columns and dropping the numerous contact fields
   dplyr::select(
     id, pin, ward, application_start_date_ym, issue_date_ym,
     processing_time, reported_cost, total_fee,
@@ -155,11 +114,6 @@ building_permits_final <- building_permits_clean2 %>%
   )
 
 
-# ## keep just 2010-2019 permits for current census block analysis 
-# building_permits_final <- building_permits_final %>% 
-#   dplyr::filter(application_start_date_ym >= as.yearmon("Jan 2010") & application_start_date_ym <= as.yearmon("Dec 2019"))
-
-## convert to sf for writing
 building_permits_sf <- st_as_sf(
   building_permits_final,
   coords = c("longitude", "latitude"),
@@ -174,53 +128,6 @@ building_permits_sf <- st_as_sf(
 st_write(
   building_permits_sf,
   "../output/building_permits_clean.gpkg",
-  delete_layer = TRUE         # overwrite any existing files cleanly
+  delete_layer = TRUE,
+  quiet = TRUE
 )
-
-######################
-## basic summary stats
-######################
-
-permits <- st_read("../output/building_permits_clean.gpkg")
-
-
-# 
-# summary_stats <- building_permits_clean2 %>% 
-#   group_by(ward) %>% 
-#   summarise(zone_fees = mean(zoning_fee_paid, na.rm = T),
-#             building_fees = mean(building_fee_paid, na.rm = T),
-#             processing_time = mean(processing_time, na.rm = T), 
-#             total_fees = mean(total_fee, na.rm = T), 
-#             num_permits = n()) 
-# 
-# ##proportion of pins missing (54 percent)
-# building_permits_clean2 %>% 
-#   dplyr::mutate(pin_na = is.na(pin)) %>% 
-#   dplyr::summarize(prop_na = mean(pin_na))
-# 
-# ## amount of na pins by permit type (mostly non-construction stuff)
-# building_permits_clean2 %>% 
-#   dplyr::mutate(pin_na = is.na(pin)) %>% 
-#   dplyr::group_by(permit_type) %>% 
-#   dplyr::summarize(prop_na = mean(pin_na)) %>% 
-#   dplyr::arrange(prop_na)
-# 
-# 
-# ## unique permit types
-# building_permits_clean2 %>% 
-#   dplyr::select(permit_type) %>% 
-#   dplyr::distinct() %>% 
-#   dplyr::arrange(permit_type)
-# 
-# 
-# 
-# 
-# 
-# 
-# ##find proportion with non-NA latitude
-# building_permits_clean2 %>% 
-#   dplyr::mutate(lat_na = is.na(latitude)) %>% 
-#   dplyr::summarize(prop_na = mean(lat_na))
-# 
-# 
-# 
