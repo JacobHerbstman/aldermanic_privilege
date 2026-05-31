@@ -8,23 +8,11 @@ all: \
 	../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL).tex \
 	../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL)_pruned.tex
 
-../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL).tex: combine_density_main_table.R ../temp/fe_summary_$(MAIN_BW_LABEL)_all_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL).csv ../temp/fe_summary_$(MAIN_BW_LABEL)_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL).csv | ../output
-	Rscript $< $(MAIN_BW_LABEL) $(MAIN_FE_SPEC) all $(MAIN_CLUSTER_LEVEL)
+../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL).tex: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
+	Rscript $< $(MAIN_BW_M) $(MAIN_BW_LABEL) $(MAIN_FE_SPEC) all $(MAIN_CLUSTER_LEVEL) $(MAIN_YVARS)
 
-../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL)_pruned.tex: combine_density_main_table.R ../temp/fe_summary_$(MAIN_BW_LABEL)_all_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL)_pruned.csv ../temp/fe_summary_$(MAIN_BW_LABEL)_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL)_pruned.csv | ../output
-	Rscript $< $(MAIN_BW_LABEL) $(MAIN_FE_SPEC) pruned $(MAIN_CLUSTER_LEVEL)
-
-../temp/fe_summary_$(MAIN_BW_LABEL)_all_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL).csv: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../temp
-	DISTANCE_DISPLAY_UNIT=ft Rscript $< $(MAIN_BW_M) all $(MAIN_FE_SPEC) all $(MAIN_CLUSTER_LEVEL) $(MAIN_YVARS)
-
-../temp/fe_summary_$(MAIN_BW_LABEL)_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL).csv: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../temp
-	DISTANCE_DISPLAY_UNIT=ft Rscript $< $(MAIN_BW_M) multifamily $(MAIN_FE_SPEC) all $(MAIN_CLUSTER_LEVEL) $(MAIN_YVARS)
-
-../temp/fe_summary_$(MAIN_BW_LABEL)_all_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL)_pruned.csv: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv | ../temp
-	DISTANCE_DISPLAY_UNIT=ft Rscript $< $(MAIN_BW_M) all $(MAIN_FE_SPEC) pruned $(MAIN_CLUSTER_LEVEL) $(MAIN_YVARS)
-
-../temp/fe_summary_$(MAIN_BW_LABEL)_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL)_pruned.csv: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv | ../temp
-	DISTANCE_DISPLAY_UNIT=ft Rscript $< $(MAIN_BW_M) multifamily $(MAIN_FE_SPEC) pruned $(MAIN_CLUSTER_LEVEL) $(MAIN_YVARS)
+../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL)_pruned.tex: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv | ../output
+	Rscript $< $(MAIN_BW_M) $(MAIN_BW_LABEL) $(MAIN_FE_SPEC) pruned $(MAIN_CLUSTER_LEVEL) $(MAIN_YVARS)
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"

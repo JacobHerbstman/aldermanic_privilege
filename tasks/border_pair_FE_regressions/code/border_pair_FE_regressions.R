@@ -1,7 +1,7 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_pair_FE_regressions/code")
 # bandwidth_m <- 152.4
-# sample_filter <- "multifamily"
+# bandwidth_label <- "500ft"
 # fe_spec <- "zonegroup_segment_year_additive"
 # prune_sample <- "all"
 # cluster_level <- "ward_pair"
@@ -13,43 +13,32 @@ source("../../_lib/border_pair_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(bandwidth_m, sample_filter, fe_spec, prune_sample, cluster_level, yvar_1, yvar_2)
+  cli_args <- c(bandwidth_m, bandwidth_label, fe_spec, prune_sample, cluster_level, yvar_1, yvar_2)
 }
 
 if (length(cli_args) < 7) {
   stop(
-    "FATAL: Script requires at least 7 args: <bandwidth_m> <sample> <fe_spec> <prune_sample> <cluster_level> <yvar1> [<yvar2> ...].",
+    "FATAL: Script requires at least 7 args: <bandwidth_m> <bandwidth_label> <fe_spec> <prune_sample> <cluster_level> <yvar1> [<yvar2> ...].",
     call. = FALSE
   )
 }
 
 bandwidth_m <- parse_bw_m(cli_args[1])
-sample_filter <- cli_args[2]
+bandwidth_label <- cli_args[2]
 fe_spec <- cli_args[3]
 prune_sample <- tolower(cli_args[4])
 cluster_level <- tolower(cli_args[5])
 yvars <- cli_args[6:length(cli_args)]
 
-if (!sample_filter %in% c("all", "multifamily")) {
-  stop("sample must be one of: all, multifamily", call. = FALSE)
-}
 if (!prune_sample %in% c("all", "pruned")) {
   stop("prune_sample must be one of: all, pruned", call. = FALSE)
 }
 if (!cluster_level %in% c("ward_pair", "segment")) {
   stop("cluster_level must be one of: ward_pair, segment", call. = FALSE)
 }
-if (length(yvars) == 0) {
-  stop("No yvars provided.", call. = FALSE)
+if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
+  stop("bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
 }
-
-distance_display <- distance_display_config()
-bandwidth_label <- if (is.finite(bandwidth_m)) {
-  format_distance_label(bandwidth_m, distance_display)
-} else {
-  "all"
-}
-prune_suffix <- if (prune_sample == "pruned") "_pruned" else ""
 
 fe_formulas <- list(
   zonegroup_pair_year_additive = "zone_group + ward_pair + construction_year",
@@ -67,8 +56,21 @@ outcome_label_dict <- c(
   "density_dupac" = "DUPAC",
   "density_far" = "FAR"
 )
+controls <- c(
+  "strictness_own",
+  "lenient_dist",
+  "strict_dist",
+  "share_white_own",
+  "share_black_own",
+  "median_hh_income_own",
+  "share_bach_plus_own",
+  "homeownership_rate_own"
+)
+needs_segment <- fe_spec %in% c("segment_year", "zonegroup_segment_year_additive") || cluster_level == "segment"
+cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
+prune_suffix <- if (prune_sample == "pruned") "_pruned" else ""
 
-parcels_fe <- read_csv(
+parcels <- read_csv(
   "../input/parcels_with_ward_distances.csv",
   show_col_types = FALSE,
   col_types = cols(pin = col_character(), segment_id = col_character(), .default = col_guess())
@@ -88,12 +90,6 @@ parcels_fe <- read_csv(
     construction_year >= 2006,
     construction_year <= 2022
   )
-
-if (sample_filter == "all") {
-  parcels_fe <- parcels_fe %>% filter(unitscount > 0)
-} else {
-  parcels_fe <- parcels_fe %>% filter(unitscount > 1)
-}
 
 if (prune_sample == "pruned") {
   conf_flags <- read_csv(
@@ -133,97 +129,198 @@ if (prune_sample == "pruned") {
   if (anyDuplicated(segment_flags[, c("pair_dash", "era", "segment_id")]) > 0) {
     stop("Segment confound flags contain duplicate pair-era-segment keys.", call. = FALSE)
   }
-
-  parcels_fe <- parcels_fe %>%
-    mutate(
-      pair_dash = normalize_pair_dash(ward_pair),
-      era = era_from_year(construction_year)
-    ) %>%
-    left_join(conf_flags, by = c("pair_dash", "era"), relationship = "many-to-one") %>%
-    left_join(segment_flags, by = c("pair_dash", "era", "segment_id"), relationship = "many-to-one")
-
-  if (anyNA(parcels_fe$pair_dash) || anyNA(parcels_fe$era)) {
-    stop("Pruned FE sample has invalid ward-pair or era keys before joining confound flags.", call. = FALSE)
-  }
-
-  parcels_fe <- parcels_fe %>%
-    mutate(keep_segment = if_else(is.na(keep_segment), FALSE, keep_segment))
-
-  if (sum(!parcels_fe$keep_segment) == 0) {
-    stop("Pruned FE run would drop zero observations before model filtering.", call. = FALSE)
-  }
-
-  parcels_fe <- parcels_fe %>% filter(keep_segment)
 }
 
-needs_segment <- fe_spec %in% c("segment_year", "zonegroup_segment_year_additive") || cluster_level == "segment"
-cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
-
-model_summaries <- list()
-for (yvar in yvars) {
-  base_var <- gsub("^log\\(|\\)$", "", yvar)
-  if (!base_var %in% names(parcels_fe)) {
-    stop(sprintf("Outcome variable '%s' not found.", base_var), call. = FALSE)
+fit_sample_summary <- function(sample_filter) {
+  df_sample <- parcels
+  if (sample_filter == "all") {
+    df_sample <- df_sample %>% filter(unitscount > 0)
+  } else {
+    df_sample <- df_sample %>% filter(unitscount > 1)
   }
 
-  df <- parcels_fe
-  if (is.finite(bandwidth_m)) {
-    df <- df %>% filter(dist_to_boundary_m <= bandwidth_m)
-  }
-  if (needs_segment) {
-    df <- df %>% filter(!is.na(segment_id), segment_id != "")
-  }
-  df <- df %>% filter(is.finite(.data[[base_var]]))
-  if (str_detect(yvar, "^log\\(.+\\)$")) {
-    df <- df %>% filter(.data[[base_var]] > 0)
-  }
-  if (nrow(df) == 0) {
-    stop(sprintf("No rows remain for '%s' after filtering.", yvar), call. = FALSE)
+  if (prune_sample == "pruned") {
+    df_sample <- df_sample %>%
+      mutate(
+        pair_dash = normalize_pair_dash(ward_pair),
+        era = era_from_year(construction_year)
+      ) %>%
+      left_join(conf_flags, by = c("pair_dash", "era"), relationship = "many-to-one") %>%
+      left_join(segment_flags, by = c("pair_dash", "era", "segment_id"), relationship = "many-to-one")
+
+    if (anyNA(df_sample$pair_dash) || anyNA(df_sample$era)) {
+      stop("Pruned FE sample has invalid ward-pair or era keys before joining confound flags.", call. = FALSE)
+    }
+
+    df_sample <- df_sample %>%
+      mutate(keep_segment = if_else(is.na(keep_segment), FALSE, keep_segment))
+
+    if (sum(!df_sample$keep_segment) == 0) {
+      stop("Pruned FE run would drop zero observations before model filtering.", call. = FALSE)
+    }
+
+    df_sample <- df_sample %>% filter(keep_segment)
   }
 
-  y_vals <- if (str_detect(yvar, "^log\\(.+\\)$")) log(df[[base_var]]) else df[[base_var]]
-  y_vals <- y_vals[is.finite(y_vals)]
-  if (length(unique(y_vals)) <= 1) {
-    stop(sprintf("Outcome '%s' is constant after filtering.", yvar), call. = FALSE)
-  }
+  bind_rows(lapply(yvars, function(yvar) {
+    base_var <- gsub("^log\\(|\\)$", "", yvar)
+    if (!base_var %in% names(df_sample)) {
+      stop(sprintf("Outcome variable '%s' not found.", base_var), call. = FALSE)
+    }
 
-  outcome_label <- if (base_var %in% names(outcome_label_dict)) outcome_label_dict[[base_var]] else base_var
-  if (str_detect(yvar, "^log\\(.+\\)$")) {
-    outcome_label <- paste0("ln(", outcome_label, ")")
-  }
+    df <- df_sample
+    if (is.finite(bandwidth_m)) {
+      df <- df %>% filter(dist_to_boundary_m <= bandwidth_m)
+    }
+    if (needs_segment) {
+      df <- df %>% filter(!is.na(segment_id), segment_id != "")
+    }
+    df <- df %>% filter(is.finite(.data[[base_var]]))
+    if (str_detect(yvar, "^log\\(.+\\)$")) {
+      df <- df %>% filter(.data[[base_var]] > 0)
+    }
+    if (nrow(df) == 0) {
+      stop(sprintf("No rows remain for '%s' after filtering.", yvar), call. = FALSE)
+    }
 
-  model <- feols(
-    as.formula(paste0(
-      yvar,
-      " ~ strictness_own + lenient_dist + strict_dist + share_white_own + ",
-      "share_black_own + median_hh_income_own + share_bach_plus_own + ",
-      "homeownership_rate_own | ",
-      fe_formulas[[fe_spec]]
-    )),
-    data = df,
-    cluster = cluster_formula
-  )
+    y_vals <- if (str_detect(yvar, "^log\\(.+\\)$")) log(df[[base_var]]) else df[[base_var]]
+    y_vals <- y_vals[is.finite(y_vals)]
+    if (length(unique(y_vals)) <= 1) {
+      stop(sprintf("Outcome '%s' is constant after filtering.", yvar), call. = FALSE)
+    }
 
-  coef_table <- coeftable(model)
+    outcome_label <- if (base_var %in% names(outcome_label_dict)) outcome_label_dict[[base_var]] else base_var
+    if (str_detect(yvar, "^log\\(.+\\)$")) {
+      outcome_label <- paste0("ln(", outcome_label, ")")
+    }
 
-  model_summaries[[length(model_summaries) + 1]] <- tibble(
-    yvar = yvar,
-    outcome_label = outcome_label,
-    estimate = unname(coef_table["strictness_own", "Estimate"]),
-    se = unname(coef_table["strictness_own", "Std. Error"]),
-    p_value = unname(coef_table["strictness_own", "Pr(>|t|)"]),
-    n_obs = nobs(model),
-    n_ward_pairs = n_distinct(df$ward_pair),
-    depvar_mean = mean(df[[base_var]], na.rm = TRUE)
-  )
+    model <- feols(
+      as.formula(paste0(
+        yvar,
+        " ~ ",
+        paste(controls, collapse = " + "),
+        " | ",
+        fe_formulas[[fe_spec]]
+      )),
+      data = df,
+      cluster = cluster_formula
+    )
+
+    coef_table <- coeftable(model)
+    if (!"strictness_own" %in% rownames(coef_table)) {
+      stop(sprintf("Model failed to estimate strictness_own for '%s'.", yvar), call. = FALSE)
+    }
+
+    tibble(
+      yvar = yvar,
+      outcome_label = outcome_label,
+      estimate = unname(coef_table["strictness_own", "Estimate"]),
+      se = unname(coef_table["strictness_own", "Std. Error"]),
+      p_value = unname(coef_table["strictness_own", "Pr(>|t|)"]),
+      n_obs = nobs(model),
+      n_ward_pairs = n_distinct(df$ward_pair),
+      depvar_mean = mean(df[[base_var]], na.rm = TRUE)
+    )
+  }))
 }
 
-write_csv(
-  bind_rows(model_summaries),
+summaries <- bind_rows(
+  fit_sample_summary("all") %>%
+    mutate(sample_label = "All Construction"),
+  fit_sample_summary("multifamily") %>%
+    mutate(sample_label = "Multifamily")
+) %>%
+  mutate(
+    outcome_short = case_when(
+      outcome_label == "ln(FAR)" ~ "FAR",
+      outcome_label == "ln(DUPAC)" ~ "DUPAC",
+      TRUE ~ outcome_label
+    )
+  )
+
+expected_rows <- tidyr::expand_grid(
+  sample_label = c("All Construction", "Multifamily"),
+  yvar = c("log(density_far)", "log(density_dupac)")
+)
+
+summary_keys <- summaries %>%
+  count(sample_label, yvar, name = "n")
+
+missing_rows <- anti_join(
+  expected_rows,
+  summary_keys,
+  by = c("sample_label", "yvar")
+)
+
+duplicate_rows <- summary_keys %>% filter(n > 1)
+
+if (nrow(missing_rows) > 0) {
+  stop("Missing expected density FE summary rows.", call. = FALSE)
+}
+if (nrow(duplicate_rows) > 0) {
+  stop("Duplicate density FE summary rows.", call. = FALSE)
+}
+
+ordered <- summaries %>%
+  mutate(
+    sample_order = match(sample_label, c("All Construction", "Multifamily")),
+    outcome_order = match(outcome_short, c("FAR", "DUPAC")),
+    star_text = case_when(
+      !is.finite(p_value) ~ "",
+      p_value <= 0.01 ~ "***",
+      p_value <= 0.05 ~ "**",
+      p_value <= 0.1 ~ "*",
+      TRUE ~ ""
+    ),
+    estimate_text = if_else(
+      star_text == "",
+      sprintf("%.3f", estimate),
+      sprintf("%.3f$^{%s}$", estimate, star_text)
+    ),
+    se_text = sprintf("(%.3f)", se)
+  ) %>%
+  arrange(sample_order, outcome_order)
+
+if (nrow(ordered) != 4) {
+  stop("Expected exactly four rows in the combined density FE table.", call. = FALSE)
+}
+
+table_lines <- c(
+  "\\begingroup",
+  "\\centering",
+  "\\begin{tabular}{lcccc}",
+  "   \\toprule",
+  "                    & \\multicolumn{2}{c}{All Construction} & \\multicolumn{2}{c}{Multifamily} \\\\",
+  "                    & ln(FAR)       & ln(DUPAC)      & ln(FAR)       & ln(DUPAC) \\\\",
+  "                    & (1)           & (2)            & (3)           & (4) \\\\",
+  "   \\midrule",
+  paste0(
+    "   Stringency Index & ",
+    paste(ordered$estimate_text, collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "                    & ",
+    paste(ordered$se_text, collapse = " & "),
+    " \\\\"
+  ),
+  "    \\\\",
+  "   Zoning Group FE  & $\\checkmark$  & $\\checkmark$   & $\\checkmark$  & $\\checkmark$ \\\\",
+  "   Segment FE       & $\\checkmark$  & $\\checkmark$   & $\\checkmark$  & $\\checkmark$ \\\\",
+  "   Year FE          & $\\checkmark$  & $\\checkmark$   & $\\checkmark$  & $\\checkmark$ \\\\",
+  paste0("   N                & ", paste(trimws(format(ordered$n_obs, big.mark = ",")), collapse = " & "), " \\\\"),
+  paste0("   Dep. Var. Mean   & ", paste(sprintf("%.2f", ordered$depvar_mean), collapse = " & "), " \\\\"),
+  paste0("   Ward Pairs       & ", paste(trimws(format(ordered$n_ward_pairs, big.mark = ",")), collapse = " & "), " \\\\"),
+  "   \\bottomrule",
+  "\\end{tabular}",
+  "\\par\\endgroup"
+)
+
+writeLines(
+  table_lines,
   sprintf(
-    "../temp/fe_summary_%s_%s_%s_clust_%s%s.csv",
+    "../output/fe_table_%s_all_multifamily_%s_clust_%s%s.tex",
     bandwidth_label,
-    sample_filter,
     fe_spec,
     cluster_level,
     prune_suffix
