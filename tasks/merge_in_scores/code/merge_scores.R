@@ -1,43 +1,45 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_in_scores/code")
 # score_column <- "uncertainty_index"
+# max_construction_year <- 2026
 
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(score_column)
-}
-
-merge_output_tag <- Sys.getenv("MERGE_RESULT_TAG", "")
-if (!nzchar(merge_output_tag)) {
-  merge_output_tag <- Sys.getenv("MERGE_OUTPUT_TAG", "")
-}
-if (nzchar(merge_output_tag) && !grepl("^[A-Za-z0-9_-]+$", merge_output_tag)) {
-  stop("MERGE_RESULT_TAG may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+  cli_args <- c(score_column, max_construction_year)
 }
 
 parcels_input <- Sys.getenv("PARCELS_INPUT_PATH", "../input/parcels_pre_scores.csv")
 segment_lookup_input <- Sys.getenv("SEGMENT_LOOKUP_PATH", "../input/parcel_segment_ids.csv")
 score_file <- Sys.getenv("SCORES_INPUT_PATH", "../input/aldermen_uncertainty_scores.csv")
-merge_output <- Sys.getenv(
-  "MERGE_OUTPUT_PATH",
-  if (nzchar(merge_output_tag)) sprintf("../temp/parcels_with_ward_distances_%s.csv", merge_output_tag) else "../output/parcels_with_ward_distances.csv"
-)
-max_construction_year_raw <- Sys.getenv("MAX_CONSTRUCTION_YEAR", "2026")
-max_construction_year <- if (nzchar(max_construction_year_raw)) suppressWarnings(as.integer(max_construction_year_raw)) else NA_integer_
-
-if (nzchar(max_construction_year_raw) && !is.finite(max_construction_year)) {
-  stop("MAX_CONSTRUCTION_YEAR must be a valid integer year.", call. = FALSE)
-}
+merge_output <- Sys.getenv("MERGE_OUTPUT_PATH", "../output/parcels_with_ward_distances.csv")
 
 if (length(cli_args) == 1) {
   score_column <- cli_args[1]
+  max_construction_year <- 2026L
 } else if (length(cli_args) == 2) {
+  max_year_arg <- suppressWarnings(as.integer(cli_args[2]))
+  if (is.finite(max_year_arg)) {
+    score_column <- cli_args[1]
+    max_construction_year <- max_year_arg
+  } else {
+    score_file <- cli_args[1]
+    score_column <- cli_args[2]
+    max_construction_year <- 2026L
+  }
+} else if (length(cli_args) == 3) {
   score_file <- cli_args[1]
   score_column <- cli_args[2]
+  max_construction_year <- suppressWarnings(as.integer(cli_args[3]))
 } else {
-  stop("FATAL: Script requires <score_column> or legacy <score_file> <score_column>.", call. = FALSE)
+  stop(
+    "FATAL: Script requires <score_column> <max_construction_year> or legacy <score_file> <score_column> [max_construction_year].",
+    call. = FALSE
+  )
+}
+if (!is.finite(max_construction_year)) {
+  stop("max_construction_year must be a valid integer year.", call. = FALSE)
 }
 
 parcels <- read_csv(
@@ -86,7 +88,7 @@ parcels <- parcels %>%
 
 if (is.finite(max_construction_year)) {
   if (!"construction_year" %in% names(parcels)) {
-    stop("Parcels input must contain construction_year when MAX_CONSTRUCTION_YEAR is set.", call. = FALSE)
+    stop("Parcels input must contain construction_year when max_construction_year is set.", call. = FALSE)
   }
   parcels <- parcels %>%
     filter(!is.na(construction_year), construction_year <= max_construction_year)

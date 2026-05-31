@@ -1,12 +1,21 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_data/code")
+# panel_end_month <- "2026-04"
 
 source("../../setup_environment/code/packages.R")
 
-panel_end_month <- Sys.getenv("ALDERMAN_PANEL_END_MONTH", "2026-04")
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(panel_end_month)
+}
+if (length(cli_args) != 1) {
+  stop("FATAL: Script requires 1 arg: <panel_end_month>.", call. = FALSE)
+}
+
+panel_end_month <- cli_args[1]
 panel_end_date <- as.Date(paste0(panel_end_month, "-01"))
 if (is.na(panel_end_date)) {
-  stop("ALDERMAN_PANEL_END_MONTH must be YYYY-MM.", call. = FALSE)
+  stop("panel_end_month must be YYYY-MM.", call. = FALSE)
 }
 current_panel_end_date <- seq(panel_end_date, by = "month", length.out = 2)[2] - 1
 
