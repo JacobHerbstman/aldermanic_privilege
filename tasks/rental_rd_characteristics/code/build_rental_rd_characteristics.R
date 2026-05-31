@@ -48,10 +48,7 @@ for (flag_col in c(
   "flag_modal_changes_neighbor_ward",
   "flag_modal_changes_pair",
   "flag_modal_dist_diff_gt100ft",
-  "flag_rd_location_questionable",
-  "flag_address_location_unstable",
-  "flag_coordinate_only_generic_pile",
-  "flag_building_type_conflict"
+  "flag_rd_location_questionable"
 )) {
   if (!flag_col %in% names(rent)) {
     rent[[flag_col]] <- FALSE

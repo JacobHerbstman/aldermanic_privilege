@@ -66,13 +66,24 @@ process_batch <- function(df_batch) {
 
 ds <- arrow::open_dataset("../input/chicago_rent_panel.parquet")
 quality_ds <- arrow::open_dataset("../input/chicago_rent_panel_quality_flags.parquet")
-quality_cols <- setdiff(
-  names(quality_ds),
-  c(
-    "analysis_key", "property_key", "floorplan_key", "address_norm",
-    "address_missing", "month_start", "year", "latitude", "longitude"
-  )
+quality_cols <- c(
+  "rent_panel_id",
+  "geometry_latitude",
+  "geometry_longitude",
+  "modal_latitude",
+  "modal_longitude",
+  "flag_geometry_uses_address_location_correction",
+  "flag_location_questionable",
+  "location_quality_status",
+  "quality_flag_severity"
 )
+missing_quality_cols <- setdiff(quality_cols, names(quality_ds))
+if (length(missing_quality_cols) > 0) {
+  stop(
+    sprintf("RentHub quality flags missing required columns: %s.", paste(missing_quality_cols, collapse = ", ")),
+    call. = FALSE
+  )
+}
 
 years <- 2014:2022
 results_list <- list()
@@ -166,8 +177,7 @@ modal_base <- final_df %>%
   ) %>%
   select(
     rent_panel_id, file_date, ward, neighbor_ward, ward_pair_id, dist_m,
-    longitude, latitude, modal_longitude, modal_latitude,
-    address_coord_distance_ft, quality_flag_severity
+    longitude, latitude, modal_longitude, modal_latitude
   )
 
 if (nrow(modal_base) > 0) {
@@ -211,7 +221,6 @@ if (nrow(modal_base) > 0) {
       modal_ward, modal_neighbor_ward, modal_ward_pair_id,
       raw_dist_ft, modal_dist_ft, dist_m, modal_dist_m,
       longitude, latitude, modal_longitude, modal_latitude,
-      address_coord_distance_ft, quality_flag_severity,
       flag_modal_assignment_missing, flag_modal_changes_ward,
       flag_modal_changes_neighbor_ward, flag_modal_changes_pair,
       flag_modal_dist_diff_gt100ft
@@ -234,8 +243,6 @@ if (nrow(modal_base) > 0) {
     latitude = numeric(),
     modal_longitude = numeric(),
     modal_latitude = numeric(),
-    address_coord_distance_ft = numeric(),
-    quality_flag_severity = character(),
     flag_modal_assignment_missing = logical(),
     flag_modal_changes_ward = logical(),
     flag_modal_changes_neighbor_ward = logical(),
