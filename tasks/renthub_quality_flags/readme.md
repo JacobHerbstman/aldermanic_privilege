@@ -6,7 +6,7 @@ This task does not drop rental observations. It standardizes stable address-loca
 
 Address-location rule: address stems are canonicalized before grouping. Rounded coordinate clusters within the same address stem are grouped with complete-link clustering at 200ft. Downstream geometry uses the primary location-group coordinate only when the primary group has at least 85% of raw rows and no secondary group has at least 10% of raw rows more than 500ft away. Addresses that fail that rule remain flagged.
 
-Manual coordinates: `code/manual_verified_address_locations.csv` records externally verified coordinates for unstable high-volume addresses. A manual coordinate is only applied when the row is marked `verified` with a source URL.
+Manual coordinates: `input/manual_verified_address_locations.csv` records externally verified coordinates for unstable high-volume addresses. A manual coordinate is only applied when the row is marked `verified` with a source URL.
 
 Produces: `output/chicago_rent_panel_quality_flags.parquet`.
 

@@ -265,7 +265,7 @@ invisible(dbExecute(
   )
 ))
 
-manual_locations <- fread("manual_verified_address_locations.csv", na.strings = c("", "NA", "N/A", "NULL"))
+manual_locations <- fread("../input/manual_verified_address_locations.csv", na.strings = c("", "NA", "N/A", "NULL"))
 manual_required <- c(
   "address_stem",
   "verification_status",
