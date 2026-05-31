@@ -20,7 +20,7 @@ bandwidth_ft <- 500
 bins_per_side <- 10
 cutoffs_ft <- c(-1000, 0, 1000)
 
-fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_var, cutoff_ft, sample_name) {
+fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_var, cutoff_ft) {
   cutoff_value <- cutoff_ft
   cutoff_text <- if (cutoff_value == 0) {
     "True boundary"
@@ -48,7 +48,7 @@ fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_va
   }
 
   if (nrow(d) == 0 || n_distinct(d[[treatment]]) < 2 || n_distinct(d[[cluster_var]]) < 2) {
-    stop(sprintf("Insufficient support for %s / %s / %s.", dataset, sample_name, cutoff_text), call. = FALSE)
+    stop(sprintf("Insufficient support for %s / %s.", dataset, cutoff_text), call. = FALSE)
   }
 
   rhs <- paste(c(treatment, controls), collapse = " + ")
@@ -57,24 +57,10 @@ fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_va
     data = d,
     cluster = as.formula(paste0("~", cluster_var))
   )
-  ct <- coeftable(fit)
-  if (!treatment %in% rownames(ct)) {
+  if (!treatment %in% names(coef(fit))) {
     stop(sprintf("Model did not estimate %s for %s / %s.", treatment, dataset, cutoff_text), call. = FALSE)
   }
-
-  estimate <- unname(ct[treatment, "Estimate"])
-  std_error <- unname(ct[treatment, "Std. Error"])
-  p_col <- grep("^Pr\\(", colnames(ct), value = TRUE)
-  p_value <- if (length(p_col) == 1L) unname(ct[treatment, p_col]) else NA_real_
-  pct_change <- 100 * (exp(estimate) - 1)
-  star_text <- case_when(
-    !is.finite(p_value) ~ "",
-    p_value < 0.01 ~ "***",
-    p_value < 0.05 ~ "**",
-    p_value < 0.10 ~ "*",
-    TRUE ~ ""
-  )
-  estimate_text <- sprintf("%.2f%%%s (SE %.2f)", pct_change, star_text, 100 * std_error)
+  estimate <- unname(coef(fit)[[treatment]])
 
   removed <- fit$obs_selection$obsRemoved
   keep_idx <- if (is.null(removed)) {
@@ -86,9 +72,7 @@ fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_va
     mutate(
       y_adjusted = as.numeric(resid(fit)) + estimate * .data[[treatment]],
       cutoff_ft = cutoff_value,
-      cutoff_label = cutoff_text,
-      sample = sample_name,
-      dataset = dataset
+      cutoff_label = cutoff_text
     )
 
   bin_width <- bandwidth_ft / bins_per_side
@@ -97,46 +81,17 @@ fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_va
       bin_id = floor(running_ft / bin_width),
       bin_center = (bin_id + 0.5) * bin_width
     ) %>%
-    group_by(dataset, sample, cutoff_ft, cutoff_label, bin_center) %>%
+    group_by(cutoff_ft, cutoff_label, bin_center) %>%
     summarise(
       mean_y = mean(y_adjusted, na.rm = TRUE),
       side = if_else(first(bin_center) >= 0, "More Stringent", "Less Stringent"),
       .groups = "drop"
-    )
-
-  estimate_row <- tibble(
-    dataset = dataset,
-    sample = sample_name,
-    cutoff_ft = cutoff_value,
-    cutoff_label = cutoff_text,
-    estimate = estimate,
-    std_error = std_error,
-    p_value = p_value,
-    pct_change = pct_change,
-    estimate_text = estimate_text,
-    n_obs = fit$nobs
-  )
-
-  list(estimates = estimate_row, bins = bins)
+    ) %>%
+    mutate(cutoff_label = factor(cutoff_label, levels = c("-1000ft placebo", "True boundary", "+1000ft placebo")))
 }
 
 make_rd_plot <- function(parts, title, y_label, output_base) {
-  estimates <- bind_rows(lapply(parts, `[[`, "estimates")) %>%
-    mutate(
-      panel_subtitle = sprintf(
-        "%s\nJump = %s, N = %s",
-        cutoff_label,
-        estimate_text,
-        format(n_obs, big.mark = ",")
-      ),
-      panel_subtitle = factor(panel_subtitle, levels = unique(panel_subtitle))
-    )
-  bins <- bind_rows(lapply(parts, `[[`, "bins")) %>%
-    left_join(
-      estimates %>% select(dataset, sample, cutoff_ft, panel_subtitle),
-      by = c("dataset", "sample", "cutoff_ft"),
-      relationship = "many-to-one"
-    )
+  bins <- bind_rows(parts)
 
   plot <- ggplot() +
     geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.7) +
@@ -153,7 +108,7 @@ make_rd_plot <- function(parts, title, y_label, output_base) {
     theme_bw(base_size = 11) +
     theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
-  plot <- plot + facet_wrap(~panel_subtitle, nrow = 1)
+  plot <- plot + facet_wrap(~cutoff_label, nrow = 1)
 
   ggsave(paste0(output_base, ".pdf"), plot, width = 12, height = 5.5, dpi = 300, bg = "white")
 }
@@ -273,8 +228,7 @@ if (market == "rent") {
       "year_month",
       rent_controls,
       "segment_id",
-      cut_i,
-      "Placebo cutoffs"
+      cut_i
     )
   })
 
@@ -341,8 +295,7 @@ if (market == "rent") {
       "year_quarter",
       sales_controls,
       "segment_id",
-      cut_i,
-      "Placebo cutoffs"
+      cut_i
     )
   })
 
