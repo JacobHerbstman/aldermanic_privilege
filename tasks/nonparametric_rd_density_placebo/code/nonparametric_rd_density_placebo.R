@@ -136,29 +136,6 @@ if (nrow(aug) != nobs(m_resid)) {
   stop("Residualized sample alignment failed.", call. = FALSE)
 }
 
-fml_linear <- as.formula(sprintf(
-  "outcome ~ side * running_distance + %s | %s",
-  paste(controls, collapse = " + "),
-  fe_formula
-))
-m_linear <- feols(fml_linear, data = aug, cluster = ~ward_pair)
-
-linear_row <- coeftable(m_linear)[rownames(coeftable(m_linear)) %in% "side", , drop = FALSE]
-if (nrow(linear_row) != 1) {
-  stop("Could not recover the placebo cutoff estimate.", call. = FALSE)
-}
-
-cutoff_estimate <- unname(linear_row[1, "Estimate"])
-cutoff_se <- unname(linear_row[1, "Std. Error"])
-cutoff_p <- unname(linear_row[1, "Pr(>|t|)"])
-cutoff_stars <- dplyr::case_when(
-  !is.finite(cutoff_p) ~ "",
-  cutoff_p <= 0.01 ~ "***",
-  cutoff_p <= 0.05 ~ "**",
-  cutoff_p <= 0.1 ~ "*",
-  TRUE ~ ""
-)
-
 m_display <- feols(
   residualized_outcome ~ side * running_distance,
   data = aug,
@@ -219,8 +196,6 @@ if (!is.finite(y_span) || y_span <= 0) y_span <- 1
 y_pad <- max(0.15 * y_span, 0.05)
 y_limits <- c(y_min - y_pad, y_max + y_pad)
 
-sample_label <- ifelse(sample_filter == "all", "all construction", "multifamily")
-
 x_limits <- c(-bandwidth_m, bandwidth_m) * distance_display$scale
 x_label <- sprintf(
   "Distance to placebo cutoff (%s; cutoff shifted %s)",
@@ -233,17 +208,6 @@ bins <- bins %>%
 
 line_df <- line_df %>%
   mutate(running_distance_display = running_distance * distance_display$scale)
-
-subtitle_label <- sprintf(
-  "Jump = %.3f%s (SE %.3f) | shift=%s | %s | bandwidth=%s | N=%d",
-  cutoff_estimate,
-  cutoff_stars,
-  cutoff_se,
-  shift_display_label,
-  sample_label,
-  bw_label,
-  nobs(m_resid)
-)
 
 p <- ggplot() +
   geom_ribbon(
@@ -274,7 +238,6 @@ p <- ggplot() +
   coord_cartesian(ylim = y_limits) +
   labs(
     title = paste0("Placebo Local-Linear RD: ", pretty_outcome),
-    subtitle = subtitle_label,
     x = x_label,
     y = paste("Residualized", pretty_outcome)
   ) +
