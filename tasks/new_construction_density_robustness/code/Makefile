@@ -1,10 +1,9 @@
-BW_M ?= 152.4
-BW_LABEL ?= 500ft
+BANDWIDTH_FT ?= 500
 
-all: ../output/fe_table_$(BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex
+all: ../output/fe_table_$(BANDWIDTH_FT)ft_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex
 
-../output/fe_table_$(BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex: ../../_lib/border_pair_fe_regression_runner.R ../temp/parcels_with_ward_distances_low_discretion_residualized.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(BW_LABEL) CLUSTER_LEVEL=ward_pair FE_DATA_TAG=low_discretion_residualized FE_TABLE_TAG=low_discretion_residualized_mainoutcomes WRITE_TEX=TRUE Rscript $< $(BW_M) all zonegroup_segment_year_additive all ward_pair "log(density_far)" "log(density_dupac)"
+../output/fe_table_$(BANDWIDTH_FT)ft_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex: build_low_discretion_density_robustness.R ../temp/parcels_with_ward_distances_low_discretion_residualized.csv | ../output
+	Rscript $< $(BANDWIDTH_FT)
 
 ../temp/parcels_with_ward_distances_low_discretion_residualized.csv: ../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/aldermen_uncertainty_scores.csv | ../temp
 	MERGE_RESULT_TAG=low_discretion_residualized Rscript $< uncertainty_index
