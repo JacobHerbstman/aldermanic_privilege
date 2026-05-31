@@ -3,6 +3,7 @@
 # target_segment_length_ft <- 1320
 
 source("../../setup_environment/code/packages.R")
+source("../../_lib/canonical_geometry_helpers.R")
 
 library(data.table)
 
@@ -24,25 +25,6 @@ segment_arterial_drop_share <- 0.75
 pair_physical_barrier_drop_share <- 0.50
 pair_expressway_drop_share <- 0.40
 pair_arterial_drop_share <- 0.60
-
-normalize_pair_dash <- function(x) {
-  x <- as.character(x)
-  x <- gsub("_", "-", x, fixed = TRUE)
-  x <- trimws(x)
-  x <- x[grepl("^[0-9]+-[0-9]+$", x)]
-  if (length(x) == 0) {
-    return(character())
-  }
-  parts <- strsplit(x, "-", fixed = TRUE)
-  vapply(parts, function(v) {
-    a <- suppressWarnings(as.integer(v[1]))
-    b <- suppressWarnings(as.integer(v[2]))
-    if (!is.finite(a) || !is.finite(b)) {
-      return(NA_character_)
-    }
-    paste(min(a, b), max(a, b), sep = "-")
-  }, character(1))
-}
 
 segments <- fread("../input/segment_classification.csv")
 

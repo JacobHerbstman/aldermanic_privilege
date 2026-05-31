@@ -4,7 +4,7 @@ all: \
 	../output/confounded_pair_era_flags.csv \
 	../output/confounded_segment_flags.csv
 
-../output/confounded_pair_era_flags.csv: build_confound_flags.R ../input/segment_classification.csv | ../output
+../output/confounded_pair_era_flags.csv: build_confound_flags.R ../../_lib/canonical_geometry_helpers.R ../input/segment_classification.csv | ../output
 	Rscript $< $(TARGET_SEGMENT_LENGTH_FT)
 	@test -s ../output/confounded_segment_flags.csv
 
