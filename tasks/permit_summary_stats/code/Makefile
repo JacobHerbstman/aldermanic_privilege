@@ -11,8 +11,8 @@ all: \
 ../output/alderman_mean_processing_time_high_vs_low_density.pdf: ../output/permit_processing_time_high_vs_low_alderman_summary.tex
 	@test -s "$@"
 
-../output/permit_processing_time_volume_correlation.tex: ../output/permit_processing_time_high_vs_low_alderman_summary.tex
-	@test -s "$@"
+../output/permit_processing_time_volume_correlation.tex: permit_processing_time_volume_correlation.R ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv | ../output
+	Rscript $< $(MAX_APPLICATION_YM)
 
 ../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
