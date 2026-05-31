@@ -1,4 +1,3 @@
-MAIN_YVARS := 'log(density_far)' 'log(density_dupac)'
 MAIN_BW_M ?= 152.4
 MAIN_BW_LABEL ?= 500ft
 MAIN_FE_SPEC ?= zonegroup_segment_year_additive
@@ -9,10 +8,10 @@ all: \
 	../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL)_pruned.tex
 
 ../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL).tex: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript $< $(MAIN_BW_M) $(MAIN_BW_LABEL) $(MAIN_FE_SPEC) all $(MAIN_CLUSTER_LEVEL) $(MAIN_YVARS)
+	Rscript $< $(MAIN_BW_M) $(MAIN_BW_LABEL) $(MAIN_FE_SPEC) all $(MAIN_CLUSTER_LEVEL) 'log(density_far)' 'log(density_dupac)'
 
 ../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL)_pruned.tex: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv | ../output
-	Rscript $< $(MAIN_BW_M) $(MAIN_BW_LABEL) $(MAIN_FE_SPEC) pruned $(MAIN_CLUSTER_LEVEL) $(MAIN_YVARS)
+	Rscript $< $(MAIN_BW_M) $(MAIN_BW_LABEL) $(MAIN_FE_SPEC) pruned $(MAIN_CLUSTER_LEVEL) 'log(density_far)' 'log(density_dupac)'
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"

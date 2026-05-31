@@ -11,8 +11,6 @@ POST_2023_CUTOFF := 2026-04
 
 PAPER_SPEC := ptfe$(PTFE)_rtfe$(RTFE)_porch$(PORCH)_cafe$(CAFE)_2stage_vol$(VOLUME_CTRL)_$(VOLUME_STAGE)_through2022
 POST_2023_SPEC := ptfe$(PTFE)_rtfe$(RTFE)_porch$(PORCH)_cafe$(CAFE)_2stage_vol$(VOLUME_CTRL)_$(VOLUME_STAGE)_through202604
-PAPER_ARGS := $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE) $(PAPER_CUTOFF)
-POST_2023_ARGS := $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE) $(POST_2023_CUTOFF)
 
 all: \
 	../output/alderman_uncertainty_index_$(PAPER_SPEC).csv \
@@ -21,7 +19,7 @@ all: \
 	../output/alderman_uncertainty_index_$(POST_2023_SPEC).csv
 
 ../output/alderman_uncertainty_index_$(PAPER_SPEC).csv: create_uncertainty_index.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
-	Rscript $< $(PAPER_ARGS)
+	Rscript $< $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE) $(PAPER_CUTOFF)
 
 ../output/uncertainty_index_$(PAPER_SPEC).pdf: create_uncertainty_index.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv ../output/alderman_uncertainty_index_$(PAPER_SPEC).csv | ../output
 	@test -s "$@"
@@ -30,7 +28,7 @@ all: \
 	@test -s "$@"
 
 ../output/alderman_uncertainty_index_$(POST_2023_SPEC).csv: create_uncertainty_index.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
-	Rscript $< $(POST_2023_ARGS)
+	Rscript $< $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE) $(POST_2023_CUTOFF)
 
 ../input/permits_for_uncertainty_index.csv: ../../data_for_alderman_uncertainty_index/output/permits_for_uncertainty_index.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
