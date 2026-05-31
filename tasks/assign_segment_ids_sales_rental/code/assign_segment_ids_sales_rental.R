@@ -35,26 +35,65 @@ segment_gpkg <- sprintf("../input/boundary_segments_%sft.gpkg", segment_length_f
 segments_by_era <- load_segment_line_layers(segment_gpkg)
 segment_metadata <- segment_metadata_from_layers(segments_by_era)
 segment_metadata_key <- paste(segment_metadata$era, segment_metadata$segment_id, sep = "\r")
-segment_pair_lookup <- rbindlist(lapply(names(segments_by_era), function(era_i) {
-  data.table(
+segment_pair_lookup_list <- list()
+for (era_i in names(segments_by_era)) {
+  segment_pair_lookup_list[[era_i]] <- data.table(
     era = era_i,
     segment_id = as.character(segments_by_era[[era_i]]$segment_id),
     segment_pair_dash = as.character(segments_by_era[[era_i]]$pair_dash)
   )
-}))
+}
+segment_pair_lookup <- rbindlist(segment_pair_lookup_list)
 if (any(duplicated(segment_pair_lookup, by = c("era", "segment_id")))) {
   stop("Segment lookup has duplicate era/segment_id rows.", call. = FALSE)
 }
 
-assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_col, allow_pre_2003, chunk_n = 50000L) {
-  dt <- copy(dt)
+sales_dt <- fread("../input/sales_pre_scores.csv")
+if (!all(c("pin", "sale_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(sales_dt))) {
+  stop("sales_pre_scores.csv missing required columns.", call. = FALSE)
+}
+sales_dt[, pin := as.character(pin)]
+sales_dt[, sale_date := as.Date(sale_date)]
+
+rent_dt <- as.data.table(read_parquet("../input/rent_pre_scores_full.parquet"))
+if (!all(c("id", "file_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(rent_dt))) {
+  stop("rent_pre_scores_full.parquet missing required columns.", call. = FALSE)
+}
+rent_dt[, id := as.character(id)]
+rent_dt[, file_date := as.Date(file_date)]
+
+segment_outputs <- list()
+dataset_specs <- list(
+  sales = list(
+    dt = sales_dt,
+    date_col = "sale_date",
+    pair_col = "ward_pair_id",
+    lon_col = "longitude",
+    lat_col = "latitude",
+    allow_pre_2003 = TRUE,
+    chunk_n = 50000L
+  ),
+  rental = list(
+    dt = rent_dt,
+    date_col = "file_date",
+    pair_col = "ward_pair_id",
+    lon_col = "longitude",
+    lat_col = "latitude",
+    allow_pre_2003 = FALSE,
+    chunk_n = 80000L
+  )
+)
+
+for (dataset_name in names(dataset_specs)) {
+  spec <- dataset_specs[[dataset_name]]
+  dt <- copy(spec$dt)
   dt[, row_id := .I]
-  dt[, pair_dash := normalize_pair_dash(get(pair_col))]
-  dt[, obs_date := as.Date(get(date_col))]
-  dt[, era := canonical_era_from_date(obs_date, allow_pre_2003 = allow_pre_2003)]
+  dt[, pair_dash := normalize_pair_dash(get(spec$pair_col))]
+  dt[, obs_date := as.Date(get(spec$date_col))]
+  dt[, era := canonical_era_from_date(obs_date, allow_pre_2003 = spec$allow_pre_2003)]
   dt[, segment_id := NA_character_]
   dt[, segment_reason := fifelse(
-    !is.finite(get(lon_col)) | !is.finite(get(lat_col)),
+    !is.finite(get(spec$lon_col)) | !is.finite(get(spec$lat_col)),
     "missing_coords",
     fifelse(
       is.na(obs_date) | is.na(era),
@@ -70,16 +109,16 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
   assignable_idx <- which(
     !is.na(dt$era) &
       !is.na(dt$pair_dash) &
-      is.finite(dt[[lon_col]]) &
-      is.finite(dt[[lat_col]])
+      is.finite(dt[[spec$lon_col]]) &
+      is.finite(dt[[spec$lat_col]])
   )
 
   if (length(assignable_idx) > 0) {
     pts <- st_as_sf(
       data.table(
         row_id = assignable_idx,
-        lon = dt[[lon_col]][assignable_idx],
-        lat = dt[[lat_col]][assignable_idx]
+        lon = dt[[spec$lon_col]][assignable_idx],
+        lat = dt[[spec$lat_col]][assignable_idx]
       ),
       coords = c("lon", "lat"),
       crs = 4326,
@@ -92,7 +131,7 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
       pair_values = dt$pair_dash[assignable_idx],
       segment_layers = segments_by_era,
       max_distance = units::set_units(segment_buffer_m, "m"),
-      chunk_n = chunk_n
+      chunk_n = spec$chunk_n
     )
 
     set(dt, i = assignable_idx, j = "segment_id", value = seg_ids)
@@ -142,46 +181,9 @@ assign_segments <- function(dt, dataset_name, date_col, pair_col, lon_col, lat_c
     )]
   }
 
-  out <- copy(dt)
-  out[, c("row_id", "pair_dash", "obs_date", "era") := NULL]
-  out
+  dt[, c("row_id", "pair_dash", "obs_date", "era") := NULL]
+  segment_outputs[[dataset_name]] <- dt
 }
 
-sales_dt <- fread("../input/sales_pre_scores.csv")
-if (!all(c("pin", "sale_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(sales_dt))) {
-  stop("sales_pre_scores.csv missing required columns.", call. = FALSE)
-}
-sales_dt[, pin := as.character(pin)]
-sales_dt[, sale_date := as.Date(sale_date)]
-
-sales_out <- assign_segments(
-  dt = sales_dt,
-  dataset_name = "sales",
-  date_col = "sale_date",
-  pair_col = "ward_pair_id",
-  lon_col = "longitude",
-  lat_col = "latitude",
-  allow_pre_2003 = TRUE,
-  chunk_n = 50000L
-)
-
-rent_dt <- as.data.table(read_parquet("../input/rent_pre_scores_full.parquet"))
-if (!all(c("id", "file_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(rent_dt))) {
-  stop("rent_pre_scores_full.parquet missing required columns.", call. = FALSE)
-}
-rent_dt[, id := as.character(id)]
-rent_dt[, file_date := as.Date(file_date)]
-
-rent_out <- assign_segments(
-  dt = rent_dt,
-  dataset_name = "rental",
-  date_col = "file_date",
-  pair_col = "ward_pair_id",
-  lon_col = "longitude",
-  lat_col = "latitude",
-  allow_pre_2003 = FALSE,
-  chunk_n = 80000L
-)
-
-write_parquet(as.data.frame(rent_out), "../output/rent_pre_scores_full_with_segments.parquet")
-fwrite(sales_out, "../output/sales_pre_scores_with_segments.csv")
+write_parquet(as.data.frame(segment_outputs[["rental"]]), "../output/rent_pre_scores_full_with_segments.parquet")
+fwrite(segment_outputs[["sales"]], "../output/sales_pre_scores_with_segments.csv")
