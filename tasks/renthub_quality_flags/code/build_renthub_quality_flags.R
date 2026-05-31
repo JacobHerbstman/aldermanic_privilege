@@ -31,33 +31,6 @@ primary_location_share_cutoff <- 0.85
 far_secondary_share_cutoff <- 0.10
 far_secondary_distance_ft <- 500
 
-clean_address_stem_r <- function(x) {
-  x <- toupper(trimws(x))
-  x <- gsub("[.,]", "", x)
-  x <- gsub("\\bNORTH\\b", "N", x)
-  x <- gsub("\\bSOUTH\\b", "S", x)
-  x <- gsub("\\bEAST\\b", "E", x)
-  x <- gsub("\\bWEST\\b", "W", x)
-  x <- gsub(
-    " (STREET|ST|AVENUE|AVE|ROAD|RD|BOULEVARD|BLVD|PLACE|PLAZA|PLZ|PL|COURT|CT|DRIVE|DR|TERRACE|TER|LANE|LN)$",
-    "",
-    x
-  )
-  x <- gsub(" +", " ", trimws(x))
-  fifelse(x == "", NA_character_, x)
-}
-
-assign_location_groups <- function(x_ft, y_ft, radius_ft) {
-  n <- length(x_ft)
-  if (n == 1L) {
-    return(1L)
-  }
-  as.integer(cutree(
-    hclust(dist(cbind(x_ft, y_ft)), method = "complete"),
-    h = radius_ft
-  ))
-}
-
 unlink("../output/chicago_rent_panel_quality_flags.parquet", recursive = TRUE, force = TRUE)
 
 con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:")
@@ -271,7 +244,18 @@ if (!all(manual_required %in% names(manual_locations))) {
   stop("manual_verified_address_locations.csv is missing required columns.", call. = FALSE)
 }
 manual_locations[, address_stem := toupper(trimws(address_stem))]
-manual_locations[, address_stem := clean_address_stem_r(address_stem)]
+manual_locations[, address_stem := gsub("[.,]", "", address_stem)]
+manual_locations[, address_stem := gsub("\\bNORTH\\b", "N", address_stem)]
+manual_locations[, address_stem := gsub("\\bSOUTH\\b", "S", address_stem)]
+manual_locations[, address_stem := gsub("\\bEAST\\b", "E", address_stem)]
+manual_locations[, address_stem := gsub("\\bWEST\\b", "W", address_stem)]
+manual_locations[, address_stem := gsub(
+  " (STREET|ST|AVENUE|AVE|ROAD|RD|BOULEVARD|BLVD|PLACE|PLAZA|PLZ|PL|COURT|CT|DRIVE|DR|TERRACE|TER|LANE|LN)$",
+  "",
+  address_stem
+)]
+manual_locations[, address_stem := gsub(" +", " ", trimws(address_stem))]
+manual_locations[address_stem == "", address_stem := NA_character_]
 manual_locations[, verification_status := tolower(trimws(verification_status))]
 manual_locations <- manual_locations[address_stem != "" & !is.na(address_stem)]
 if (anyDuplicated(manual_locations$address_stem) > 0) {
@@ -369,11 +353,16 @@ address_clusters[, flag_address_coord_gt250ft := address_coord_distance_ft > 250
 address_clusters[, flag_address_coord_gt500ft := address_coord_distance_ft > 500]
 address_clusters[, is_modal_cluster := coord_key == modal_coord_key]
 
-address_clusters[, location_group_local := assign_location_groups(
-  x_ft,
-  y_ft,
-  address_location_radius_ft
-), by = address_stem]
+address_clusters[, location_group_local := {
+  if (.N == 1L) {
+    1L
+  } else {
+    as.integer(cutree(
+      hclust(dist(cbind(x_ft, y_ft)), method = "complete"),
+      h = address_location_radius_ft
+    ))
+  }
+}, by = address_stem]
 address_location_groups <- address_clusters[, .(
   location_group_raw_rows = sum(raw_rows),
   location_group_coord_clusters = .N,

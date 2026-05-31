@@ -131,7 +131,10 @@ if (prune_sample == "pruned") {
   }
 }
 
-fit_sample_summary <- function(sample_filter) {
+summary_rows <- list()
+for (sample_filter in c("all", "multifamily")) {
+  sample_label <- if (sample_filter == "all") "All Construction" else "Multifamily"
+
   df_sample <- parcels
   if (sample_filter == "all") {
     df_sample <- df_sample %>% filter(unitscount > 0)
@@ -162,7 +165,7 @@ fit_sample_summary <- function(sample_filter) {
     df_sample <- df_sample %>% filter(keep_segment)
   }
 
-  bind_rows(lapply(yvars, function(yvar) {
+  for (yvar in yvars) {
     base_var <- gsub("^log\\(|\\)$", "", yvar)
     if (!base_var %in% names(df_sample)) {
       stop(sprintf("Outcome variable '%s' not found.", base_var), call. = FALSE)
@@ -211,7 +214,8 @@ fit_sample_summary <- function(sample_filter) {
       stop(sprintf("Model failed to estimate strictness_own for '%s'.", yvar), call. = FALSE)
     }
 
-    tibble(
+    summary_i <- tibble(
+      sample_label = sample_label,
       yvar = yvar,
       outcome_label = outcome_label,
       estimate = unname(coef_table["strictness_own", "Estimate"]),
@@ -221,15 +225,11 @@ fit_sample_summary <- function(sample_filter) {
       n_ward_pairs = n_distinct(df$ward_pair),
       depvar_mean = mean(df[[base_var]], na.rm = TRUE)
     )
-  }))
+    summary_rows[[length(summary_rows) + 1L]] <- summary_i
+  }
 }
 
-summaries <- bind_rows(
-  fit_sample_summary("all") %>%
-    mutate(sample_label = "All Construction"),
-  fit_sample_summary("multifamily") %>%
-    mutate(sample_label = "Multifamily")
-) %>%
+summaries <- bind_rows(summary_rows) %>%
   mutate(
     outcome_short = case_when(
       outcome_label == "ln(FAR)" ~ "FAR",
