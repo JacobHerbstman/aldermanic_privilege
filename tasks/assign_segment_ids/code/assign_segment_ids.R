@@ -1,13 +1,13 @@
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids/code")
+# segment_length_ft <- 1320
+# segment_buffer_m <- 250
+
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
 library(data.table)
 library(sf)
-
-# --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids/code")
-# segment_length_ft <- 1320
-# segment_buffer_m <- 250
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -99,7 +99,7 @@ if (length(pending_idx) > 0) {
   )
 }
 
-pair_audit <- as.data.table(audit_nearest_segment_pair_constraints(
+segment_checks <- as.data.table(audit_nearest_segment_pair_constraints(
   joined,
   joined$era,
   joined$pair_dash,
@@ -108,7 +108,7 @@ pair_audit <- as.data.table(audit_nearest_segment_pair_constraints(
   max_distance = units::set_units(segment_buffer_m, "m"),
   chunk_n = 50000L
 ))
-pair_audit <- cbind(
+segment_checks <- cbind(
   data.table(
     pin = as.character(joined$pin),
     boundary_year = joined$boundary_year,
@@ -118,12 +118,12 @@ pair_audit <- cbind(
     input_pair_dash = joined$pair_dash,
     segment_reason = joined$segment_reason
   ),
-  pair_audit
+  segment_checks
 )
 
-assigned_segment <- !is.na(pair_audit$constrained_segment_id) &
-  pair_audit$constrained_segment_id != ""
-pair_mismatch <- assigned_segment & !pair_audit$constrained_pair_matches_input
+assigned_segment <- !is.na(segment_checks$constrained_segment_id) &
+  segment_checks$constrained_segment_id != ""
+pair_mismatch <- assigned_segment & !segment_checks$constrained_pair_matches_input
 if (any(pair_mismatch, na.rm = TRUE)) {
   stop(sprintf(
     "Production segment assignment is not in the input ward pair for %d rows.",
@@ -132,7 +132,7 @@ if (any(pair_mismatch, na.rm = TRUE)) {
 }
 
 distance_tolerance_m <- 0.05
-missing_segment_distance <- assigned_segment & !is.finite(pair_audit$constrained_segment_dist_m)
+missing_segment_distance <- assigned_segment & !is.finite(segment_checks$constrained_segment_dist_m)
 if (any(missing_segment_distance, na.rm = TRUE)) {
   stop(sprintf(
     "Production segment assignment has missing segment distance for %d rows.",
@@ -141,7 +141,7 @@ if (any(missing_segment_distance, na.rm = TRUE)) {
 }
 
 outside_buffer <- assigned_segment &
-  pair_audit$constrained_segment_dist_m > segment_buffer_m + distance_tolerance_m
+  segment_checks$constrained_segment_dist_m > segment_buffer_m + distance_tolerance_m
 if (any(outside_buffer, na.rm = TRUE)) {
   stop(sprintf(
     "Production segment assignment is outside the %.0fm radius for %d rows.",
@@ -151,8 +151,8 @@ if (any(outside_buffer, na.rm = TRUE)) {
 }
 
 distance_mismatch <- assigned_segment &
-  is.finite(pair_audit$dist_to_boundary_m) &
-  abs(pair_audit$constrained_segment_dist_m - pair_audit$dist_to_boundary_m) > distance_tolerance_m
+  is.finite(segment_checks$dist_to_boundary_m) &
+  abs(segment_checks$constrained_segment_dist_m - segment_checks$dist_to_boundary_m) > distance_tolerance_m
 if (any(distance_mismatch, na.rm = TRUE)) {
   stop(sprintf(
     "Production segment distance differs from nearest boundary distance for %d rows.",
@@ -165,7 +165,7 @@ lookup <- data.table(
   segment_id = joined$segment_id,
   dist_to_segment_m = ifelse(
     !is.na(joined$segment_id) & joined$segment_id != "",
-    pair_audit$constrained_segment_dist_m,
+    segment_checks$constrained_segment_dist_m,
     NA_real_
   ),
   segment_reason = joined$segment_reason

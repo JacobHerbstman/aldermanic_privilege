@@ -17,12 +17,11 @@ if (length(cli_args) == 0) {
   cli_args <- c(segment_length_ft, segment_buffer_m)
 }
 if (length(cli_args) != 2) {
-  stop("FATAL: expected args: <segment_length_ft> <segment_buffer_m>", call. = FALSE)
+  stop("FATAL: Script requires 2 args: <segment_length_ft> <segment_buffer_m>.", call. = FALSE)
 }
 
 segment_length_ft <- as.integer(cli_args[1])
 segment_buffer_m <- as.numeric(cli_args[2])
-segment_gpkg <- sprintf("../input/boundary_segments_%sft.gpkg", segment_length_ft)
 
 if (!is.finite(segment_length_ft) || segment_length_ft <= 0) {
   stop("segment_length_ft must be positive.", call. = FALSE)
@@ -30,6 +29,8 @@ if (!is.finite(segment_length_ft) || segment_length_ft <= 0) {
 if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
   stop("segment_buffer_m must be positive.", call. = FALSE)
 }
+
+segment_gpkg <- sprintf("../input/boundary_segments_%sft.gpkg", segment_length_ft)
 
 segments_by_era <- load_segment_line_layers(segment_gpkg)
 segment_metadata <- segment_metadata_from_layers(segments_by_era)
@@ -181,53 +182,6 @@ rent_out <- assign_segments(
   allow_pre_2003 = FALSE,
   chunk_n = 80000L
 )
-
-rent_out[, modal_segment_id := NA_character_]
-rent_out[, flag_modal_segment_sensitivity_checked := FALSE]
-rent_out[, flag_modal_segment_missing := FALSE]
-rent_out[, flag_modal_changes_segment := FALSE]
-
-if (all(c("modal_longitude", "modal_latitude", "modal_ward_pair_id") %in% names(rent_out))) {
-  modal_idx <- which(
-    is.finite(rent_out$dist_m) &
-      rent_out$dist_m <= 500 * 0.3048 &
-      is.finite(rent_out$modal_longitude) &
-      is.finite(rent_out$modal_latitude) &
-      !is.na(rent_out$modal_ward_pair_id) &
-      rent_out$modal_ward_pair_id != ""
-  )
-
-  if (length(modal_idx) > 0) {
-    modal_pts <- st_as_sf(
-      data.table(
-        row_id = modal_idx,
-        lon = rent_out$modal_longitude[modal_idx],
-        lat = rent_out$modal_latitude[modal_idx]
-      ),
-      coords = c("lon", "lat"),
-      crs = 4326,
-      remove = FALSE
-    )
-    modal_era <- canonical_era_from_date(rent_out$file_date[modal_idx], allow_pre_2003 = FALSE)
-    modal_segment_ids <- assign_points_to_nearest_segments(
-      points_sf = modal_pts,
-      era_values = modal_era,
-      pair_values = rent_out$modal_ward_pair_id[modal_idx],
-      segment_layers = segments_by_era,
-      max_distance = units::set_units(segment_buffer_m, "m"),
-      chunk_n = 80000L
-    )
-
-    rent_out[modal_idx, modal_segment_id := modal_segment_ids]
-    rent_out[modal_idx, flag_modal_segment_sensitivity_checked := TRUE]
-    rent_out[modal_idx, flag_modal_segment_missing := is.na(modal_segment_id) | modal_segment_id == ""]
-    rent_out[
-      modal_idx,
-      flag_modal_changes_segment := !flag_modal_segment_missing &
-        !is.na(segment_id) & segment_id != "" & segment_id != modal_segment_id
-    ]
-  }
-}
 
 write_parquet(as.data.frame(rent_out), "../output/rent_pre_scores_full_with_segments.parquet")
 fwrite(sales_out, "../output/sales_pre_scores_with_segments.csv")
