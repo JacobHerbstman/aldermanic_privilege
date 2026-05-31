@@ -283,70 +283,6 @@ build_panel_with_counts <- function(base_df, start_year, end_year, cohort_year, 
     )
 }
 
-pair_contains_ward <- function(pair_id, ward) {
-  pair_id <- normalize_pair_dash(pair_id)
-  ward <- as.character(suppressWarnings(as.integer(ward)))
-  parts <- strsplit(pair_id, "-", fixed = TRUE)
-  mapply(function(pair_parts, ward_i) {
-    length(pair_parts) == 2L && !is.na(ward_i) && ward_i %in% pair_parts
-  }, parts, ward, USE.NAMES = FALSE)
-}
-
-summarize_contract <- function(panel, panel_mode) {
-  panel_1000ft <- panel %>%
-    mutate(
-      segment_era = case_when(
-        cohort == "2015" ~ "2003_2014",
-        cohort == "2023" ~ "2015_2023",
-        TRUE ~ NA_character_
-      )
-    ) %>%
-    left_join(
-      segment_pair_lookup,
-      by = c("segment_era", "segment_id_cohort"),
-      relationship = "many-to-one"
-    ) %>%
-    filter(dist_m <= 304.8, relative_year >= -5L, relative_year <= 5L) %>%
-    mutate(
-      expected_cohort_block_id = paste(cohort, block_id, sep = "_"),
-      expected_cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
-      expected_cohort_segment = if_else(
-        !is.na(segment_id_cohort),
-        paste(cohort, segment_id_cohort, sep = "_"),
-        NA_character_
-      ),
-      event_pair_contains_origin = pair_contains_ward(ward_pair_id, ward_origin),
-      treated_pair_id = normalize_pair_id(ward_origin, ward_dest, sep = "-"),
-      treated_pair_matches_origin_dest = treat != 1L | normalize_pair_dash(ward_pair_id) == treated_pair_id,
-      segment_pair_matches_event_pair = is.na(segment_id_cohort) |
-        (!is.na(segment_pair_id) & normalize_pair_dash(segment_pair_id) == normalize_pair_dash(ward_pair_id))
-    )
-
-  panel_1000ft %>%
-    summarise(
-      panel_mode = panel_mode,
-      n_rows = n(),
-      n_blocks = n_distinct(cohort_block_id),
-      n_treated = sum(treat == 1L, na.rm = TRUE),
-      n_control = sum(treat == 0L, na.rm = TRUE),
-      n_missing_strictness_origin = sum(is.na(strictness_origin)),
-      n_missing_strictness_dest = sum(is.na(strictness_dest)),
-      n_missing_strictness_change = sum(is.na(strictness_change)),
-      n_bad_cohort_block_id = sum(cohort_block_id != expected_cohort_block_id, na.rm = TRUE),
-      n_bad_cohort_ward_pair = sum(cohort_ward_pair != expected_cohort_ward_pair, na.rm = TRUE),
-      n_bad_cohort_segment = sum(
-        !is.na(segment_id_cohort) & (is.na(cohort_segment) | cohort_segment != expected_cohort_segment),
-        na.rm = TRUE
-      ),
-      n_event_pair_missing_origin = sum(!event_pair_contains_origin, na.rm = TRUE),
-      n_treated_pair_mismatch = sum(!treated_pair_matches_origin_dest, na.rm = TRUE),
-      n_missing_segment_le_1000ft = sum(is.na(segment_id_cohort) | segment_id_cohort == ""),
-      n_segment_pair_mismatch_le_1000ft = sum(!segment_pair_matches_event_pair, na.rm = TRUE),
-      .by = cohort
-    ) %>%
-    arrange(panel_mode, cohort)
-}
-
 prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label) {
   if (anyDuplicated(treatment_df$block_id) > 0) {
     stop(sprintf("Treatment input for cohort %s must be unique by block_id.", cohort_label), call. = FALSE)
@@ -669,23 +605,57 @@ cohort_2023 <- build_panel_with_counts(
 
 permit_panel <- bind_rows(cohort_2015, cohort_2023)
 
-panel_contract <- bind_rows(
-  summarize_contract(cohort_2015, "cohort_2015"),
-  summarize_contract(cohort_2023, "cohort_2023"),
-  summarize_contract(permit_panel, "stacked_implementation")
-)
-if (any(panel_contract$n_missing_strictness_change > 0L)) {
+event_rows_1000ft <- permit_panel %>%
+  mutate(
+    segment_era = case_when(
+      cohort == "2015" ~ "2003_2014",
+      cohort == "2023" ~ "2015_2023",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  left_join(
+    segment_pair_lookup,
+    by = c("segment_era", "segment_id_cohort"),
+    relationship = "many-to-one"
+  ) %>%
+  filter(dist_m <= 304.8, relative_year >= -5L, relative_year <= 5L) %>%
+  mutate(
+    expected_cohort_block_id = paste(cohort, block_id, sep = "_"),
+    expected_cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
+    expected_cohort_segment = if_else(
+      !is.na(segment_id_cohort),
+      paste(cohort, segment_id_cohort, sep = "_"),
+      NA_character_
+    ),
+    ward_pair_id = normalize_pair_dash(ward_pair_id),
+    ward_origin_text = as.character(suppressWarnings(as.integer(ward_origin))),
+    event_pair_contains_origin = !is.na(ward_origin_text) & (
+      str_starts(ward_pair_id, paste0(ward_origin_text, "-")) |
+        str_ends(ward_pair_id, paste0("-", ward_origin_text))
+    ),
+    treated_pair_id = normalize_pair_id(ward_origin, ward_dest, sep = "-"),
+    treated_pair_matches_origin_dest = treat != 1L | ward_pair_id == treated_pair_id,
+    segment_pair_matches_event_pair = is.na(segment_id_cohort) |
+      (!is.na(segment_pair_id) & normalize_pair_dash(segment_pair_id) == ward_pair_id)
+  )
+
+if (any(is.na(event_rows_1000ft$strictness_change))) {
   stop("Permit event panel has missing strictness changes inside the 1000ft regression window.", call. = FALSE)
 }
-if (any(panel_contract$n_bad_cohort_block_id > 0L) ||
-    any(panel_contract$n_bad_cohort_ward_pair > 0L) ||
-    any(panel_contract$n_bad_cohort_segment > 0L)) {
+if (any(event_rows_1000ft$cohort_block_id != event_rows_1000ft$expected_cohort_block_id, na.rm = TRUE) ||
+    any(event_rows_1000ft$cohort_ward_pair != event_rows_1000ft$expected_cohort_ward_pair, na.rm = TRUE) ||
+    any(
+      !is.na(event_rows_1000ft$segment_id_cohort) &
+        (is.na(event_rows_1000ft$cohort_segment) |
+          event_rows_1000ft$cohort_segment != event_rows_1000ft$expected_cohort_segment),
+      na.rm = TRUE
+    )) {
   stop("Permit event panel has invalid cohort-prefixed FE identifiers.", call. = FALSE)
 }
-if (any(panel_contract$n_event_pair_missing_origin > 0L) ||
-    any(panel_contract$n_treated_pair_mismatch > 0L) ||
-    any(panel_contract$n_missing_segment_le_1000ft > 0L) ||
-    any(panel_contract$n_segment_pair_mismatch_le_1000ft > 0L)) {
+if (any(!event_rows_1000ft$event_pair_contains_origin, na.rm = TRUE) ||
+    any(!event_rows_1000ft$treated_pair_matches_origin_dest, na.rm = TRUE) ||
+    any(is.na(event_rows_1000ft$segment_id_cohort) | event_rows_1000ft$segment_id_cohort == "") ||
+    any(!event_rows_1000ft$segment_pair_matches_event_pair, na.rm = TRUE)) {
   stop("Permit event panel failed the 1000ft event-pair/segment contract.", call. = FALSE)
 }
 
