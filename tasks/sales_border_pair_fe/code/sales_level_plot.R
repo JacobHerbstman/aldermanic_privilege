@@ -1,9 +1,28 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_border_pair_fe/code")
+# bandwidth_ft <- 500
+# bins_per_side <- 10
 
 source("../../setup_environment/code/packages.R")
 
-bw_ft <- 500L
-bins_per_side <- 10L
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(bandwidth_ft, bins_per_side)
+}
+if (length(cli_args) != 2) {
+  stop("FATAL: Script requires 2 args: <bandwidth_ft> <bins_per_side>.", call. = FALSE)
+}
+
+bandwidth_ft <- as.numeric(cli_args[1])
+bins_per_side <- as.numeric(cli_args[2])
+if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
+  stop("bandwidth_ft must be positive.", call. = FALSE)
+}
+if (!is.finite(bins_per_side) || bins_per_side <= 0 || bins_per_side != floor(bins_per_side)) {
+  stop("bins_per_side must be a positive integer.", call. = FALSE)
+}
+bandwidth_label <- cli_args[1]
+bins_per_side <- as.integer(bins_per_side)
 
 sales <- read_parquet("../output/sales_with_hedonics_amenities.parquet") %>%
   as_tibble()
@@ -26,7 +45,7 @@ sales <- sales %>%
     !is.na(ward_pair),
     !is.na(segment_id), segment_id != "",
     is.finite(signed_dist),
-    abs(signed_dist) <= bw_ft,
+    abs(signed_dist) <= bandwidth_ft,
     !is.na(strictness_own),
     !is.na(strictness_neighbor)
   )
@@ -76,7 +95,7 @@ keep_idx <- if (is.null(removed)) {
 plot_data <- sales[keep_idx, , drop = FALSE]
 plot_data$y_adjusted <- as.numeric(resid(model)) + estimate * plot_data$right
 
-bin_width <- bw_ft / bins_per_side
+bin_width <- bandwidth_ft / bins_per_side
 bins <- plot_data %>%
   mutate(bin_center = (floor(signed_dist / bin_width) + 0.5) * bin_width) %>%
   group_by(bin_center) %>%
@@ -102,7 +121,7 @@ plot <- ggplot() +
   theme(legend.position = "bottom", panel.grid.minor = element_blank())
 
 ggsave(
-  "../output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment.pdf",
+  sprintf("../output/sales_rd_flat_bw%s_year_quarter_amenity_clust_segment.pdf", bandwidth_label),
   plot,
   width = 8.6,
   height = 6,
