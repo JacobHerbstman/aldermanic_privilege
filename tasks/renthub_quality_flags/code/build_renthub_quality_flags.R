@@ -31,10 +31,6 @@ primary_location_share_cutoff <- 0.85
 far_secondary_share_cutoff <- 0.10
 far_secondary_distance_ft <- 500
 
-sql_escape <- function(x) {
-  gsub("'", "''", x, fixed = TRUE)
-}
-
 clean_address_stem_r <- function(x) {
   x <- toupper(trimws(x))
   x <- gsub("[.,]", "", x)
@@ -95,10 +91,6 @@ invisible(dbExecute(
   "
 ))
 
-collect_query <- function(sql) {
-  as.data.table(dbGetQuery(con, sql))
-}
-
 invisible(dbExecute(
   con,
   sprintf(
@@ -114,12 +106,12 @@ invisible(dbExecute(
       END AS rent_per_sqft
     FROM read_parquet('%s')
     ",
-    sql_escape("../input/chicago_rent_panel.parquet")
+    gsub("'", "''", "../input/chicago_rent_panel.parquet", fixed = TRUE)
   )
 ))
 
-panel_n <- collect_query("SELECT COUNT(*) AS n FROM rent_panel")$n[1]
-panel_unique_n <- collect_query("SELECT COUNT(DISTINCT rent_panel_id) AS n FROM rent_panel")$n[1]
+panel_n <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM rent_panel")$n[1]
+panel_unique_n <- dbGetQuery(con, "SELECT COUNT(DISTINCT rent_panel_id) AS n FROM rent_panel")$n[1]
 if (panel_n != panel_unique_n) {
   stop("chicago_rent_panel.parquet must be unique by rent_panel_id.", call. = FALSE)
 }
@@ -259,7 +251,7 @@ invisible(dbExecute(
       END AS analysis_key
     FROM property_keys
     ",
-    sql_escape("../input/renthub_raw/*.parquet"),
+    gsub("'", "''", "../input/renthub_raw/*.parquet", fixed = TRUE),
     start_date,
     end_date
   )
@@ -320,7 +312,8 @@ if (nrow(manual_locations[verification_status == "verified"]) > 0) {
   ]
 }
 
-address_clusters <- collect_query(
+address_clusters <- as.data.table(dbGetQuery(
+  con,
   "
   SELECT
     address_stem,
@@ -343,7 +336,7 @@ address_clusters <- collect_query(
     AND coord_key IS NOT NULL
   GROUP BY 1, 2
   "
-)
+))
 
 setorder(address_clusters, address_stem, -raw_rows, coord_key)
 address_clusters[, modal_coord_key := first(coord_key), by = address_stem]
@@ -1081,8 +1074,8 @@ invisible(dbExecute(
   "
 ))
 
-quality_n <- collect_query("SELECT COUNT(*) AS n FROM chicago_rent_panel_quality_flags")$n[1]
-quality_unique_n <- collect_query("SELECT COUNT(DISTINCT rent_panel_id) AS n FROM chicago_rent_panel_quality_flags")$n[1]
+quality_n <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM chicago_rent_panel_quality_flags")$n[1]
+quality_unique_n <- dbGetQuery(con, "SELECT COUNT(DISTINCT rent_panel_id) AS n FROM chicago_rent_panel_quality_flags")$n[1]
 if (quality_n != panel_n || quality_unique_n != panel_n) {
   stop("Quality flags must be one-to-one with the monthly rent panel.", call. = FALSE)
 }

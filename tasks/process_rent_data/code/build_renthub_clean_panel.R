@@ -25,17 +25,9 @@ if (length(raw_files) == 0) {
   stop("No RentHub parquet files found in ../input/renthub_raw.", call. = FALSE)
 }
 
-sql_escape <- function(x) {
-  gsub("'", "''", x, fixed = TRUE)
-}
-
 con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:")
 on.exit(dbDisconnect(con, shutdown = TRUE), add = TRUE)
 invisible(dbExecute(con, "PRAGMA threads=4"))
-
-collect_query <- function(sql) {
-  as.data.table(dbGetQuery(con, sql))
-}
 
 invisible(dbExecute(
   con,
@@ -135,13 +127,13 @@ invisible(dbExecute(
     FROM raw_source
     WHERE city_raw IN ('CHICAGO', 'CHGO')
     ",
-    sql_escape(raw_glob),
+    gsub("'", "''", raw_glob, fixed = TRUE),
     start_date,
     end_date
   )
 ))
 
-raw_count <- collect_query("SELECT COUNT(*) AS n FROM chicago_raw")$n[1]
+raw_count <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM chicago_raw")$n[1]
 if (!is.finite(raw_count) || raw_count == 0L) {
   stop("No Chicago RentHub rows found in the requested window.", call. = FALSE)
 }
@@ -463,7 +455,8 @@ invisible(dbExecute(
   "
 ))
 
-duplicate_months <- collect_query(
+duplicate_months <- dbGetQuery(
+  con,
   "
   SELECT COUNT(*) AS n
   FROM (
@@ -478,14 +471,16 @@ if (duplicate_months > 0) {
   stop("Duplicate analysis_key-month rows found in main rent panel.", call. = FALSE)
 }
 
-address_zero_valid <- collect_query(
+address_zero_valid <- dbGetQuery(
+  con,
   "SELECT COUNT(*) AS n FROM floorplan_month_main WHERE address_norm = '0'"
 )$n[1]
 if (address_zero_valid > 0) {
   stop("ADDRESS=0 survived as a valid address in the main rent panel.", call. = FALSE)
 }
 
-con_mapping <- collect_query(
+con_mapping <- dbGetQuery(
+  con,
   "
   SELECT
     COUNT(*) AS n_rows,
@@ -498,7 +493,8 @@ if (con_mapping$n_rows[1] > 0 && con_mapping$n_rows[1] != con_mapping$n_condo[1]
   stop("Building type CON did not map completely to condo.", call. = FALSE)
 }
 
-townhouse_mapping <- collect_query(
+townhouse_mapping <- dbGetQuery(
+  con,
   "
   SELECT
     COUNT(*) AS n_rows,
@@ -512,7 +508,8 @@ if (townhouse_mapping$n_rows[1] > 0 && townhouse_mapping$n_rows[1] != townhouse_
   stop("Townhouse/TH building types did not map completely to townhouse.", call. = FALSE)
 }
 
-month_span <- collect_query(
+month_span <- dbGetQuery(
+  con,
   "
   SELECT
     MIN(month_start) AS min_month,
