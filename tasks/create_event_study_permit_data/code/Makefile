@@ -8,7 +8,7 @@ all: \
 	../output/permit_block_year_panel_2015.parquet \
 	../output/permit_block_year_panel_2023.parquet
 
-../output/permit_block_year_panel.parquet: create_permit_block_year_panel.R ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/ward_panel.gpkg ../input/boundary_segments_1320ft.gpkg | ../output
+../output/permit_block_year_panel.parquet: create_permit_block_year_panel.R ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/building_permits_text_features.csv.gz ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/census_blocks_2020.csv ../input/manual_permit_block_assignments.csv ../input/ward_panel.gpkg ../input/boundary_segments_1320ft.gpkg | ../output
 	Rscript $< $(SEGMENT_BUFFER_M) $(PANEL_MAX_DISTANCE_M) $(PERMIT_START_YEAR) $(PERMIT_END_MONTH)
 
 ../output/permit_block_year_panel_2015.parquet: ../output/permit_block_year_panel.parquet

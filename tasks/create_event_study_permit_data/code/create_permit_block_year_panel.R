@@ -42,11 +42,24 @@ sf_use_s2(FALSE)
 
 signs_permit_type <- "PERMIT - SIGNS"
 
-manual_block_assignments <- tibble(
-  id = "3390640",
-  block_vintage = "2010",
-  reviewed_block_id = "170317404004012"
+manual_block_assignments <- read_csv(
+  "../input/manual_permit_block_assignments.csv",
+  show_col_types = FALSE,
+  col_types = cols(.default = col_character())
 )
+if (!all(c("id", "block_vintage", "reviewed_block_id") %in% names(manual_block_assignments))) {
+  stop("manual_permit_block_assignments.csv is missing required columns.", call. = FALSE)
+}
+manual_block_assignments <- manual_block_assignments %>%
+  transmute(
+    id = trimws(id),
+    block_vintage = trimws(block_vintage),
+    reviewed_block_id = na_if(trimws(reviewed_block_id), "")
+  ) %>%
+  filter(id != "", block_vintage != "")
+if (anyDuplicated(manual_block_assignments[, c("id", "block_vintage")]) > 0) {
+  stop("manual_permit_block_assignments.csv must be unique by id-block_vintage.", call. = FALSE)
+}
 
 read_blocks <- function(path, block_col, target_crs) {
   blocks_sf <- read_csv(path, show_col_types = FALSE) %>%
