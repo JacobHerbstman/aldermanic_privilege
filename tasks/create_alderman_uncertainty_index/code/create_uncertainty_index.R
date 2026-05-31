@@ -9,6 +9,7 @@
 # volume_ctrl <- "LAG1"
 # volume_stage <- "BOTH"
 # max_permit_cutoff <- "2022"
+# write_paper_bundle <- TRUE
 
 source("../../_lib/alderman_uncertainty_helpers.R")
 
@@ -23,13 +24,14 @@ if (length(cli_args) == 0) {
     stage2_weight,
     volume_ctrl,
     volume_stage,
-    max_permit_cutoff
+    max_permit_cutoff,
+    write_paper_bundle
   )
 }
 
-if (length(cli_args) != 9) {
+if (length(cli_args) != 10) {
   stop(
-    "FATAL: Script requires 9 args: <permit_type_fe> <review_type_fe> <include_porch> <ca_fe> <two_stage> <stage2_weight> <volume_ctrl> <volume_stage> <max_permit_cutoff>.",
+    "FATAL: Script requires 10 args: <permit_type_fe> <review_type_fe> <include_porch> <ca_fe> <two_stage> <stage2_weight> <volume_ctrl> <volume_stage> <max_permit_cutoff> <write_paper_bundle>.",
     call. = FALSE
   )
 }
@@ -43,6 +45,10 @@ stage2_weight <- cli_args[6]
 volume_ctrl <- cli_args[7]
 volume_stage <- cli_args[8]
 max_permit_cutoff <- cli_args[9]
+if (!toupper(cli_args[10]) %in% c("TRUE", "FALSE")) {
+  stop("write_paper_bundle must be TRUE or FALSE.", call. = FALSE)
+}
+write_paper_bundle <- toupper(cli_args[10]) == "TRUE"
 
 config <- list(
   permit_type_fe = toupper(permit_type_fe) == "TRUE",
@@ -74,7 +80,6 @@ cutoff_label <- if (grepl("^\\d{4}$", max_permit_cutoff)) {
 }
 
 output_suffix <- build_uncertainty_output_suffix(config, cutoff_label)
-write_paper_bundle <- cutoff_label == "through2022"
 
 permits <- load_uncertainty_permits("../input/permits_for_uncertainty_index.csv")
 

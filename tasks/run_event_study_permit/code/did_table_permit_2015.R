@@ -2,26 +2,33 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
 # bandwidth <- 304.8
 # bandwidth_label <- "1000ft"
+# min_period <- -5
+# max_period <- 5
 
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(bandwidth, bandwidth_label)
+  cli_args <- c(bandwidth, bandwidth_label, min_period, max_period)
 }
 
-if (length(cli_args) != 2) {
-  stop("FATAL: Script requires 2 args: <bandwidth> <bandwidth_label>.", call. = FALSE)
+if (length(cli_args) != 4) {
+  stop("FATAL: Script requires 4 args: <bandwidth> <bandwidth_label> <min_period> <max_period>.", call. = FALSE)
 }
 
 bandwidth <- as.numeric(cli_args[1])
 bandwidth_label <- cli_args[2]
+min_period <- suppressWarnings(as.integer(cli_args[3]))
+max_period <- suppressWarnings(as.integer(cli_args[4]))
 
 if (!is.finite(bandwidth) || bandwidth <= 0) {
   stop("bandwidth must be positive.", call. = FALSE)
 }
 if (!grepl("^[A-Za-z0-9_-]+$", bandwidth_label)) {
   stop("bandwidth_label may only contain letters, numbers, underscores, and hyphens.", call. = FALSE)
+}
+if (!is.finite(min_period) || !is.finite(max_period) || min_period >= max_period) {
+  stop("min_period and max_period must define an increasing event window.", call. = FALSE)
 }
 
 outcome_var <- "n_high_discretion_issue"
@@ -34,8 +41,8 @@ data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
     block_id != "",
     !is.na(.data[[outcome_var]]),
     dist_m <= bandwidth,
-    relative_year >= -5,
-    relative_year <= 5
+    relative_year >= min_period,
+    relative_year <= max_period
   )
 
 if (sum(
