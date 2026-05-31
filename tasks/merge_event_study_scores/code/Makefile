@@ -3,14 +3,14 @@ SCORE_COLUMN ?= uncertainty_index
 
 all: ../output/sales_with_ward_distances.csv ../output/block_treatment_panel.csv ../output/rent_with_ward_distances_full.parquet
 
-../output/sales_with_ward_distances.csv: merge_event_study_scores.R ../input/sales_pre_scores.csv ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores.csv | ../output
-	Rscript $< sales_treatment $(SCORE_COLUMN)
+../output/sales_with_ward_distances.csv: merge_sales_treatment_scores.R ../input/sales_pre_scores.csv ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores.csv | ../output
+	Rscript $< $(SCORE_COLUMN)
 
 ../output/block_treatment_panel.csv: ../output/sales_with_ward_distances.csv
 	@test -s "$@"
 
-../output/rent_with_ward_distances_full.parquet: merge_event_study_scores.R ../input/rent_pre_scores_full.parquet ../input/aldermen_uncertainty_scores.csv | ../output
-	Rscript $< rent $(SCORE_COLUMN)
+../output/rent_with_ward_distances_full.parquet: merge_rent_scores.R ../input/rent_pre_scores_full.parquet ../input/aldermen_uncertainty_scores.csv | ../output
+	Rscript $< $(SCORE_COLUMN)
 	@test -s "$@"
 
 ../input/sales_pre_scores.csv: ../../assign_segment_ids_sales_rental/output/sales_pre_scores_with_segments.csv | ../input
