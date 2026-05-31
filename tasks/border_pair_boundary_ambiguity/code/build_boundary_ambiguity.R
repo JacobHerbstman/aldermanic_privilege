@@ -117,8 +117,13 @@ for (era_i in unique(parcel_sf$era)) {
       }
 
       distance_matrix <- st_distance(points_era[idx_pair, ], candidate_edges)
-      min_distance <- apply(distance_matrix, 1, function(v) min(as.numeric(v), na.rm = TRUE))
-      min_index <- apply(distance_matrix, 1, which.min)
+      min_distance <- numeric(nrow(distance_matrix))
+      min_index <- integer(nrow(distance_matrix))
+      for (row_i in seq_len(nrow(distance_matrix))) {
+        distance_row <- as.numeric(distance_matrix[row_i, ])
+        min_distance[[row_i]] <- min(distance_row, na.rm = TRUE)
+        min_index[[row_i]] <- which.min(distance_row)
+      }
 
       parcel_sf$nearest_other_pair_dist_m[idx_era[idx_pair]] <- min_distance * 0.3048
       parcel_sf$nearest_other_pair_id[idx_era[idx_pair]] <- as.character(candidate_edges$ward_pair_id[min_index])
@@ -163,17 +168,18 @@ if (any(parcel_other_pair_distance$nearest_other_pair_id == parcel_other_pair_di
 
 write_csv(parcel_other_pair_distance, "../output/parcel_other_pair_distance.csv")
 
-ambiguity_summary <- bind_rows(lapply(samples, function(sample_i) {
+ambiguity_rows <- list()
+for (sample_i in samples) {
   sample_df <- if (sample_i == "all") {
     parcel_other_pair_distance %>% filter(unitscount > 0)
   } else {
     parcel_other_pair_distance %>% filter(unitscount > 1)
   }
 
-  bind_rows(lapply(bandwidths, function(bw_i) {
+  for (bw_i in bandwidths) {
     in_bandwidth <- sample_df %>% filter(dist_to_boundary_m <= bw_i)
 
-    tibble(
+    ambiguity_rows[[length(ambiguity_rows) + 1]] <- tibble(
       sample_filter = sample_i,
       bandwidth_m = bw_i,
       n_in_bw = nrow(in_bandwidth),
@@ -181,7 +187,9 @@ ambiguity_summary <- bind_rows(lapply(samples, function(sample_i) {
       share_ambiguous = mean(in_bandwidth$nearest_other_pair_dist_m <= bw_i, na.rm = TRUE),
       median_other_pair_dist_m = median(in_bandwidth$nearest_other_pair_dist_m[is.finite(in_bandwidth$nearest_other_pair_dist_m)], na.rm = TRUE)
     )
-  }))
-}))
+  }
+}
+
+ambiguity_summary <- bind_rows(ambiguity_rows)
 
 write_csv(ambiguity_summary, "../output/boundary_ambiguity_by_bw.csv")

@@ -197,16 +197,18 @@ segments[, segment_drop_confound := (
     segment_flag_expressway |
     segment_flag_arterial
 )]
-segments[, segment_drop_reason := mapply(function(park, waterway, cemetery, expressway, arterial) {
+
+segment_drop_reason <- character(nrow(segments))
+for (row_i in seq_len(nrow(segments))) {
   reason <- character()
-  if (isTRUE(park)) reason <- c(reason, "park_water")
-  if (isTRUE(waterway)) reason <- c(reason, "waterway")
-  if (isTRUE(cemetery)) reason <- c(reason, "cemetery")
-  if (isTRUE(expressway)) reason <- c(reason, "expressway")
-  if (isTRUE(arterial)) reason <- c(reason, "arterial")
-  if (length(reason) == 0) return("none")
-  paste(reason, collapse = "|")
-}, segment_flag_park_water, segment_flag_waterway, segment_flag_cemetery, segment_flag_expressway, segment_flag_arterial, USE.NAMES = FALSE)]
+  if (isTRUE(segments$segment_flag_park_water[[row_i]])) reason <- c(reason, "park_water")
+  if (isTRUE(segments$segment_flag_waterway[[row_i]])) reason <- c(reason, "waterway")
+  if (isTRUE(segments$segment_flag_cemetery[[row_i]])) reason <- c(reason, "cemetery")
+  if (isTRUE(segments$segment_flag_expressway[[row_i]])) reason <- c(reason, "expressway")
+  if (isTRUE(segments$segment_flag_arterial[[row_i]])) reason <- c(reason, "arterial")
+  segment_drop_reason[[row_i]] <- if (length(reason) == 0) "none" else paste(reason, collapse = "|")
+}
+segments[, segment_drop_reason := segment_drop_reason]
 
 segment_flags <- segments[, .(
   ward_pair_id_dash,
@@ -295,16 +297,23 @@ flags[, flag_expressway := is.finite(expressway_overlap_share) & expressway_over
 flags[, flag_arterial := is.finite(arterial_overlap_share) & arterial_overlap_share >= pair_arterial_drop_share]
 flags[, drop_confound := flag_physical_barrier | flag_expressway | flag_arterial]
 
-flags[, drop_reason := mapply(function(a, b, c, d, e) {
+drop_reason <- character(nrow(flags))
+for (row_i in seq_len(nrow(flags))) {
   reason <- character()
-  if (isTRUE(a)) reason <- c(reason, "park_water")
-  if (isTRUE(b)) reason <- c(reason, "arterial")
-  if (isTRUE(c)) reason <- c(reason, "cemetery")
-  if (isTRUE(d)) reason <- c(reason, "expressway")
-  if (isTRUE(e) && !isTRUE(a) && !isTRUE(c)) reason <- c(reason, "physical_barrier")
-  if (length(reason) == 0) return("none")
-  paste(reason, collapse = "|")
-}, flag_park_water, flag_arterial, flag_cemetery, flag_expressway, flag_physical_barrier, USE.NAMES = FALSE)]
+  if (isTRUE(flags$flag_park_water[[row_i]])) reason <- c(reason, "park_water")
+  if (isTRUE(flags$flag_arterial[[row_i]])) reason <- c(reason, "arterial")
+  if (isTRUE(flags$flag_cemetery[[row_i]])) reason <- c(reason, "cemetery")
+  if (isTRUE(flags$flag_expressway[[row_i]])) reason <- c(reason, "expressway")
+  if (
+    isTRUE(flags$flag_physical_barrier[[row_i]]) &&
+      !isTRUE(flags$flag_park_water[[row_i]]) &&
+      !isTRUE(flags$flag_cemetery[[row_i]])
+  ) {
+    reason <- c(reason, "physical_barrier")
+  }
+  drop_reason[[row_i]] <- if (length(reason) == 0) "none" else paste(reason, collapse = "|")
+}
+flags[, drop_reason := drop_reason]
 
 flags <- flags[, .(
   ward_pair_id_dash,
