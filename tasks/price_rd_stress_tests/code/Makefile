@@ -1,12 +1,16 @@
+BANDWIDTH_FT ?= 500
+BINS_PER_SIDE ?= 10
+PLACEBO_CUTOFF_FT ?= 1000
+
 all: \
 	../output/rent_placebo_rd_main_style.pdf \
 	../output/sales_placebo_rd_main_style.pdf
 
 ../output/rent_placebo_rd_main_style.pdf: build_price_rd_main_style_plots.R ../../_lib/amenity_distance_helpers.R ../input/rent_with_ward_distances_full.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
-	Rscript $< rent
+	Rscript $< rent $(BANDWIDTH_FT) $(BINS_PER_SIDE) $(PLACEBO_CUTOFF_FT)
 
 ../output/sales_placebo_rd_main_style.pdf: build_price_rd_main_style_plots.R ../input/sales_with_hedonics_amenities.parquet | ../output
-	Rscript $< sales
+	Rscript $< sales $(BANDWIDTH_FT) $(BINS_PER_SIDE) $(PLACEBO_CUTOFF_FT)
 
 ../input/sales_with_hedonics_amenities.parquet: ../../sales_border_pair_fe/output/sales_with_hedonics_amenities.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"

@@ -1,24 +1,44 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/price_rd_stress_tests/code")
 # market <- "rent"
+# bandwidth_ft <- 500
+# bins_per_side <- 10
+# placebo_cutoff_ft <- 1000
 
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(market)
+  cli_args <- c(market, bandwidth_ft, bins_per_side, placebo_cutoff_ft)
 }
-if (length(cli_args) != 1L) {
-  stop("FATAL: Script requires 1 arg: <rent|sales>.", call. = FALSE)
+if (length(cli_args) != 4L) {
+  stop("FATAL: Script requires 4 args: <rent|sales> <bandwidth_ft> <bins_per_side> <placebo_cutoff_ft>.", call. = FALSE)
 }
 market <- cli_args[1]
 if (!market %in% c("rent", "sales")) {
   stop("market must be 'rent' or 'sales'.", call. = FALSE)
 }
 
-bandwidth_ft <- 500
-bins_per_side <- 10
-cutoffs_ft <- c(-1000, 0, 1000)
+bandwidth_ft <- suppressWarnings(as.numeric(cli_args[2]))
+bins_per_side <- suppressWarnings(as.numeric(cli_args[3]))
+placebo_cutoff_ft <- suppressWarnings(as.numeric(cli_args[4]))
+if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
+  stop("bandwidth_ft must be a positive number.", call. = FALSE)
+}
+if (!is.finite(bins_per_side) || bins_per_side <= 0 || bins_per_side != floor(bins_per_side)) {
+  stop("bins_per_side must be a positive integer.", call. = FALSE)
+}
+if (!is.finite(placebo_cutoff_ft) || placebo_cutoff_ft <= 0 || placebo_cutoff_ft != floor(placebo_cutoff_ft)) {
+  stop("placebo_cutoff_ft must be a positive integer.", call. = FALSE)
+}
+bins_per_side <- as.integer(bins_per_side)
+placebo_cutoff_ft <- as.integer(placebo_cutoff_ft)
+cutoffs_ft <- c(-placebo_cutoff_ft, 0, placebo_cutoff_ft)
+cutoff_levels <- c(
+  sprintf("%+dft placebo", -placebo_cutoff_ft),
+  "True boundary",
+  sprintf("%+dft placebo", placebo_cutoff_ft)
+)
 
 if (market == "rent") {
   source("../../_lib/amenity_distance_helpers.R")
@@ -135,7 +155,6 @@ if (market == "rent") {
   cluster_var <- "segment_id"
   plot_title <- "Listed Rents: True and Placebo Cutoffs"
   plot_y_label <- "Segment-by-month adjusted log rent"
-  output_base <- "../output/rent_placebo_rd_main_style"
 } else {
   sales <- read_parquet("../input/sales_with_hedonics_amenities.parquet") %>%
     as_tibble()
@@ -193,7 +212,6 @@ if (market == "rent") {
   cluster_var <- "segment_id"
   plot_title <- "Home Sale Prices: True and Placebo Cutoffs"
   plot_y_label <- "Segment-by-quarter adjusted log sale price"
-  output_base <- "../output/sales_placebo_rd_main_style"
 }
 
 plot_parts <- list()
@@ -269,7 +287,7 @@ for (cut_i in cutoffs_ft) {
       side = if_else(first(bin_center) >= 0, "More Stringent", "Less Stringent"),
       .groups = "drop"
     ) %>%
-    mutate(cutoff_label = factor(cutoff_label, levels = c("-1000ft placebo", "True boundary", "+1000ft placebo")))
+    mutate(cutoff_label = factor(cutoff_label, levels = cutoff_levels))
 }
 
 bins <- bind_rows(plot_parts)
@@ -290,4 +308,4 @@ plot <- ggplot() +
   theme(legend.position = "bottom", panel.grid.minor = element_blank()) +
   facet_wrap(~cutoff_label, nrow = 1)
 
-ggsave(paste0(output_base, ".pdf"), plot, width = 12, height = 5.5, dpi = 300, bg = "white")
+ggsave(sprintf("../output/%s_placebo_rd_main_style.pdf", market), plot, width = 12, height = 5.5, dpi = 300, bg = "white")
