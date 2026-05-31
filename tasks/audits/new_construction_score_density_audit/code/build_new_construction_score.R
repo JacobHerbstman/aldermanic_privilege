@@ -1,10 +1,10 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_variants/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/new_construction_score_density_audit/code")
 # variant_id <- "new_construction"
 # permit_types_csv <- "new_construction"
 # max_permit_year <- 2022
 
-source("../../_lib/alderman_uncertainty_helpers.R")
+source("../../../_lib/alderman_uncertainty_helpers.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {

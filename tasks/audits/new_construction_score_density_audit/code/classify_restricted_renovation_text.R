@@ -1,12 +1,7 @@
 ## Classify renovation permit text for the restricted-renovation score
 
 source("../../../setup_environment/code/packages.R")
-
-options(audit_source_wd = getwd())
-setwd("../../../new_construction_score_variants/code")
-source("../../_lib/alderman_uncertainty_helpers.R")
-setwd(getOption("audit_source_wd"))
-options(audit_source_wd = NULL)
+source("../../../_lib/alderman_uncertainty_helpers.R")
 source("../../../_lib/restricted_renovation_classification.R")
 
 # --- Interactive Test Block ---

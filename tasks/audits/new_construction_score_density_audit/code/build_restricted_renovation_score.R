@@ -1,9 +1,9 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_score_variants/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/new_construction_score_density_audit/code")
 # max_permit_year <- 2022
 
-source("../../_lib/alderman_uncertainty_helpers.R")
-source("../../_lib/restricted_renovation_classification.R")
+source("../../../_lib/alderman_uncertainty_helpers.R")
+source("../../../_lib/restricted_renovation_classification.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {

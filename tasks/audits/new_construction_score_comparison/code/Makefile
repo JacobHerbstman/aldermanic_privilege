@@ -19,13 +19,13 @@ $(foreach variant,$(VARIANTS),$(eval $(call COMPARISON_RULE,$(variant))))
 ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv: ../../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(BASELINE_SPEC).csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/alderman_uncertainty_index_new_construction.csv: ../../../new_construction_score_variants/output/alderman_uncertainty_index_new_construction.csv | ../input
+../input/alderman_uncertainty_index_new_construction.csv: ../../new_construction_score_density_audit/output/alderman_uncertainty_index_new_construction.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/alderman_uncertainty_index_new_construction_demolition.csv: ../../../new_construction_score_variants/output/alderman_uncertainty_index_new_construction_demolition.csv | ../input
+../input/alderman_uncertainty_index_new_construction_demolition.csv: ../../new_construction_score_density_audit/output/alderman_uncertainty_index_new_construction_demolition.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/alderman_uncertainty_index_restricted_renovation.csv: ../../../new_construction_score_variants/output/alderman_uncertainty_index_restricted_renovation.csv | ../input
+../input/alderman_uncertainty_index_restricted_renovation.csv: ../../new_construction_score_density_audit/output/alderman_uncertainty_index_restricted_renovation.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_new_construction.csv ../input/alderman_uncertainty_index_new_construction_demolition.csv ../input/alderman_uncertainty_index_restricted_renovation.csv

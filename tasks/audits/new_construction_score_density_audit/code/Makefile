@@ -23,17 +23,26 @@ all: \
 ../output/renovation_text_classification_summary_restricted_renovation.csv: classify_restricted_renovation_text.R ../../../_lib/alderman_uncertainty_helpers.R ../../../_lib/restricted_renovation_classification.R ../input/permits_for_uncertainty_index.csv ../input/building_permits_clean.gpkg | ../output
 	Rscript $< ../input/permits_for_uncertainty_index.csv ../input/building_permits_clean.gpkg ../output/renovation_text_classification_restricted_renovation.csv ../output/renovation_text_classification_summary_restricted_renovation.csv ../output/renovation_text_classification_porch_keyword_summary_restricted_renovation.csv ../output/renovation_text_classification_mixed_job_summary_restricted_renovation.csv ../output/renovation_text_classification_dropped_description_review_restricted_renovation.csv ../output/permits_for_uncertainty_index_restricted_renovation.csv $(MAX_PERMIT_YEAR)
 
+../output/alderman_uncertainty_index_new_construction.csv: build_new_construction_score.R ../../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
+	Rscript $< new_construction new_construction $(MAX_PERMIT_YEAR)
+
+../output/alderman_uncertainty_index_new_construction_demolition.csv: build_new_construction_score.R ../../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
+	Rscript $< new_construction_demolition new_construction,demolition $(MAX_PERMIT_YEAR)
+
+../output/alderman_uncertainty_index_restricted_renovation.csv: build_restricted_renovation_score.R ../../../_lib/alderman_uncertainty_helpers.R ../../../_lib/restricted_renovation_classification.R ../input/permits_for_uncertainty_index.csv ../input/building_permits_clean.gpkg | ../output
+	Rscript $< $(MAX_PERMIT_YEAR)
+
 ../output/parcels_with_ward_distances_baseline.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv | ../output
 	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_baseline.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/input/alderman_uncertainty_index_$(BASELINE_SPEC).csv uncertainty_index
 
-../output/parcels_with_ward_distances_new_construction.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_new_construction.csv | ../output
-	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_new_construction.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/input/alderman_uncertainty_index_new_construction.csv uncertainty_index
+../output/parcels_with_ward_distances_new_construction.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_new_construction.csv | ../output
+	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_new_construction.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/output/alderman_uncertainty_index_new_construction.csv uncertainty_index
 
-../output/parcels_with_ward_distances_new_construction_demolition.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_new_construction_demolition.csv | ../output
-	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_new_construction_demolition.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/input/alderman_uncertainty_index_new_construction_demolition.csv uncertainty_index
+../output/parcels_with_ward_distances_new_construction_demolition.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_new_construction_demolition.csv | ../output
+	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_new_construction_demolition.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/output/alderman_uncertainty_index_new_construction_demolition.csv uncertainty_index
 
-../output/parcels_with_ward_distances_restricted_renovation.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_restricted_renovation.csv | ../output
-	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_restricted_renovation.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/input/alderman_uncertainty_index_restricted_renovation.csv uncertainty_index
+../output/parcels_with_ward_distances_restricted_renovation.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../output/alderman_uncertainty_index_restricted_renovation.csv | ../output
+	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_restricted_renovation.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/output/alderman_uncertainty_index_restricted_renovation.csv uncertainty_index
 
 ../output/parcels_with_ward_distances_low_discretion_residualized.csv: ../../../merge_in_scores/code/merge_scores.R ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_low_discretion_residualized.csv | ../output
 	cd ../../../merge_in_scores/code && PARCELS_INPUT_PATH=../../audits/new_construction_score_density_audit/input/parcels_pre_scores.csv SEGMENT_LOOKUP_PATH=../../audits/new_construction_score_density_audit/input/parcel_segment_ids.csv MERGE_OUTPUT_PATH=../../audits/new_construction_score_density_audit/output/parcels_with_ward_distances_low_discretion_residualized.csv Rscript merge_scores.R ../../audits/new_construction_score_density_audit/input/alderman_uncertainty_index_low_discretion_residualized.csv uncertainty_index
@@ -80,19 +89,10 @@ all: \
 ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv: ../../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(BASELINE_SPEC).csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/alderman_uncertainty_index_new_construction.csv: ../../../new_construction_score_variants/output/alderman_uncertainty_index_new_construction.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
-
-../input/alderman_uncertainty_index_new_construction_demolition.csv: ../../../new_construction_score_variants/output/alderman_uncertainty_index_new_construction_demolition.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
-
-../input/alderman_uncertainty_index_restricted_renovation.csv: ../../../new_construction_score_variants/output/alderman_uncertainty_index_restricted_renovation.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
-
 ../input/alderman_uncertainty_index_low_discretion_residualized.csv: ../../../new_construction_score_variants/output/alderman_uncertainty_index_low_discretion_residualized.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/permits_for_uncertainty_index.csv ../input/building_permits_clean.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_new_construction.csv ../input/alderman_uncertainty_index_new_construction_demolition.csv ../input/alderman_uncertainty_index_restricted_renovation.csv ../input/alderman_uncertainty_index_low_discretion_residualized.csv
+link-inputs: ../input/permits_for_uncertainty_index.csv ../input/building_permits_clean.gpkg ../input/parcels_pre_scores.csv ../input/parcel_segment_ids.csv ../input/alderman_uncertainty_index_$(BASELINE_SPEC).csv ../input/alderman_uncertainty_index_low_discretion_residualized.csv
 
 include ../../../shell_functions.make
 include ../../../generic.make

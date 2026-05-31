@@ -1,12 +1,7 @@
 ## Summarize permit-subset processing-time heterogeneity
 
 source("../../../setup_environment/code/packages.R")
-
-options(audit_source_wd = getwd())
-setwd("../../../new_construction_score_variants/code")
-source("../../_lib/alderman_uncertainty_helpers.R")
-setwd(getOption("audit_source_wd"))
-options(audit_source_wd = NULL)
+source("../../../_lib/alderman_uncertainty_helpers.R")
 
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/new_construction_score_density_audit/code")
