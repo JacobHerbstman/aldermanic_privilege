@@ -5,7 +5,7 @@ all: \
 	../output/confounded_segment_flags.csv
 
 ../output/confounded_pair_era_flags.csv: build_confound_flags.R ../input/segment_classification.csv | ../output
-	TARGET_SEGMENT_LENGTH_FT=$(TARGET_SEGMENT_LENGTH_FT) Rscript $<
+	Rscript $< $(TARGET_SEGMENT_LENGTH_FT)
 	@test -s ../output/confounded_segment_flags.csv
 
 ../output/confounded_segment_flags.csv: ../output/confounded_pair_era_flags.csv

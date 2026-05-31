@@ -1,21 +1,31 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_ward_boundary_distances/code")
+# max_construction_year <- 2026
+# max_construction_month <- "2026-04"
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
-max_construction_year <- suppressWarnings(as.integer(Sys.getenv("MAX_CONSTRUCTION_YEAR", "2026")))
-max_construction_month <- Sys.getenv("MAX_CONSTRUCTION_MONTH", "2026-04")
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(max_construction_year, max_construction_month)
+}
+if (length(cli_args) != 2) {
+  stop("FATAL: Script requires 2 args: <max_construction_year> <max_construction_month>.", call. = FALSE)
+}
+
+max_construction_year <- suppressWarnings(as.integer(cli_args[1]))
+max_construction_month <- cli_args[2]
 
 if (!is.finite(max_construction_year)) {
-  stop("MAX_CONSTRUCTION_YEAR must be a valid integer year.", call. = FALSE)
+  stop("max_construction_year must be a valid integer year.", call. = FALSE)
 }
 if (!grepl("^\\d{4}-\\d{2}$", max_construction_month)) {
-  stop("MAX_CONSTRUCTION_MONTH must use YYYY-MM format.", call. = FALSE)
+  stop("max_construction_month must use YYYY-MM format.", call. = FALSE)
 }
 max_construction_month_date <- as.Date(paste0(max_construction_month, "-15"))
 if (year(max_construction_month_date) != max_construction_year) {
-  stop("MAX_CONSTRUCTION_MONTH year must match MAX_CONSTRUCTION_YEAR.", call. = FALSE)
+  stop("max_construction_month year must match max_construction_year.", call. = FALSE)
 }
 
 parcels <- st_read("../input/geocoded_residential_data.gpkg", quiet = TRUE) %>%

@@ -1,5 +1,8 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_segment_creation/code")
+# segment_length_ft <- 1320
+# segment_layer_bws_m <- "100 250 400"
+# feature_buffer_m <- 30
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
@@ -10,28 +13,37 @@ library(sf)
 st_agr("constant")
 
 eras <- c("1998_2002", "2003_2014", "2015_2023", "post_2023")
-segment_length_ft <- as.numeric(Sys.getenv("SEGMENT_LENGTH_FT", "1320"))
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(segment_length_ft, segment_layer_bws_m, feature_buffer_m)
+}
+if (length(cli_args) != 3) {
+  stop("FATAL: Script requires 3 args: <segment_length_ft> <segment_layer_bws_m> <feature_buffer_m>.", call. = FALSE)
+}
+
+segment_length_ft <- as.numeric(cli_args[1])
 if (length(segment_length_ft) != 1 || !is.finite(segment_length_ft) || segment_length_ft <= 0) {
-  stop("SEGMENT_LENGTH_FT must be a positive numeric segment length in feet.", call. = FALSE)
+  stop("segment_length_ft must be a positive numeric segment length in feet.", call. = FALSE)
 }
 segment_length_m <- segment_length_ft * 0.3048
 
-segment_layer_bws_m <- scan(text = Sys.getenv("SEGMENT_LAYER_BWS_M", "100 250 400"), quiet = TRUE)
+segment_layer_bws_m <- scan(text = cli_args[2], quiet = TRUE)
 if (length(segment_layer_bws_m) == 0 || any(!is.finite(segment_layer_bws_m)) || any(segment_layer_bws_m <= 0)) {
-  stop("SEGMENT_LAYER_BWS_M must contain positive numeric bandwidths in meters.", call. = FALSE)
+  stop("segment_layer_bws_m must contain positive numeric bandwidths in meters.", call. = FALSE)
 }
 bws_m <- sort(unique(as.integer(round(segment_layer_bws_m))))
 bws_ft <- bws_m / 0.3048
 
 segment_output <- sprintf("../output/boundary_segments_%dft.gpkg", as.integer(round(segment_length_ft)))
 
-feature_buffer_m <- as.numeric(Sys.getenv("SEGMENT_FEATURE_BUFFER_M", "30"))
+feature_buffer_m <- as.numeric(cli_args[3])
 feature_buffer_ft <- feature_buffer_m / 0.3048
 if (!is.finite(feature_buffer_m) || feature_buffer_m <= 0) {
-  stop("SEGMENT_FEATURE_BUFFER_M must be positive.", call. = FALSE)
+  stop("feature_buffer_m must be positive.", call. = FALSE)
 }
 if (!is.finite(feature_buffer_ft) || feature_buffer_ft <= 0) {
-  stop("SEGMENT_FEATURE_BUFFER_M must imply a positive feature buffer in feet.", call. = FALSE)
+  stop("feature_buffer_m must imply a positive feature buffer in feet.", call. = FALSE)
 }
 
 expected_layer_names <- c(

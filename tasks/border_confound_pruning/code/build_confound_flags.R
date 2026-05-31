@@ -1,12 +1,22 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_confound_pruning/code")
+# target_segment_length_ft <- 1320
 
 source("../../setup_environment/code/packages.R")
 
 library(data.table)
 
-target_segment_length_ft <- as.numeric(Sys.getenv("TARGET_SEGMENT_LENGTH_FT", "1320"))
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(target_segment_length_ft)
+}
+if (length(cli_args) != 1) {
+  stop("FATAL: Script requires 1 arg: <target_segment_length_ft>.", call. = FALSE)
+}
+
+target_segment_length_ft <- as.numeric(cli_args[1])
 if (!is.finite(target_segment_length_ft) || target_segment_length_ft <= 0) {
-  stop("TARGET_SEGMENT_LENGTH_FT must be positive.", call. = FALSE)
+  stop("target_segment_length_ft must be positive.", call. = FALSE)
 }
 segment_park_water_drop_share <- 0.50
 segment_expressway_drop_share <- 0.40
