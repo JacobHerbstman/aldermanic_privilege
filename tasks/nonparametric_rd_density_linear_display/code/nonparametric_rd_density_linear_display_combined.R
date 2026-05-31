@@ -33,7 +33,7 @@ if (!is.finite(bins_per_side) || bins_per_side < 2) {
   stop("bins_per_side must be an integer >= 2.", call. = FALSE)
 }
 
-distance_display <- distance_display_config()
+distance_display <- distance_display_config("ft")
 bw_label <- format_distance_label(bandwidth_m, distance_display)
 
 fe_formula <- dplyr::case_when(
@@ -182,23 +182,12 @@ for (i in seq_len(nrow(panel_specs))) {
       side = as.integer(running_distance > 0)
     )
 
-  xmat <- matrix(0, nrow = nrow(line_df), ncol = length(coef_names))
-  colnames(xmat) <- coef_names
-  if ("(Intercept)" %in% coef_names) {
-    xmat[, "(Intercept)"] <- 1
+  xmat <- model.matrix(~ side * running_distance, data = line_df)
+  missing_coef_names <- setdiff(coef_names, colnames(xmat))
+  if (length(missing_coef_names) > 0) {
+    stop("Prediction design matrix does not match fitted model.", call. = FALSE)
   }
-  if ("side" %in% coef_names) {
-    xmat[, "side"] <- line_df$side
-  }
-  if ("running_distance" %in% coef_names) {
-    xmat[, "running_distance"] <- line_df$running_distance
-  }
-  if ("side:running_distance" %in% coef_names) {
-    xmat[, "side:running_distance"] <- line_df$side * line_df$running_distance
-  }
-  if ("running_distance:side" %in% coef_names) {
-    xmat[, "running_distance:side"] <- line_df$side * line_df$running_distance
-  }
+  xmat <- xmat[, coef_names, drop = FALSE]
 
   line_vcov <- vcov(m_display)
   line_crit <- qt(0.975, df = max(n_distinct(aug$ward_pair) - 1, 1))
