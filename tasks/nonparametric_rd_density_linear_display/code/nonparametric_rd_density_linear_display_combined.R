@@ -131,22 +131,6 @@ build_panel <- function(yvar, sample_filter) {
     stop("Residualized sample alignment failed.", call. = FALSE)
   }
 
-  fml_linear <- as.formula(sprintf(
-    "outcome ~ side * running_distance + %s | %s",
-    paste(controls, collapse = " + "),
-    fe_formula
-  ))
-  m_linear <- feols(fml_linear, data = aug, cluster = ~ward_pair)
-
-  linear_row <- coeftable(m_linear)[rownames(coeftable(m_linear)) %in% "side", , drop = FALSE]
-  if (nrow(linear_row) != 1) {
-    stop("Could not recover the local-linear cutoff estimate.", call. = FALSE)
-  }
-
-  cutoff_estimate <- unname(linear_row[1, "Estimate"])
-  cutoff_se <- unname(linear_row[1, "Std. Error"])
-  cutoff_p <- unname(linear_row[1, "Pr(>|t|)"])
-
   m_display <- feols(
     residualized_outcome ~ side * running_distance,
     data = aug,
@@ -163,14 +147,12 @@ build_panel <- function(yvar, sample_filter) {
         length(breaks_m) - 1L
       ),
       bin_left_m = breaks_m[bin_idx],
-      bin_center_m = bin_left_m + bin_width_m / 2,
-      side_label = if_else(side == 1L, "Strict side", "Lenient side")
+      bin_center_m = bin_left_m + bin_width_m / 2
     )
 
   bins <- aug %>%
-    group_by(bin_idx, bin_center_m, side, side_label) %>%
+    group_by(bin_idx, bin_center_m, side) %>%
     summarise(
-      n = n(),
       mean_y = mean(residualized_outcome, na.rm = TRUE),
       .groups = "drop"
     ) %>%
@@ -184,8 +166,7 @@ build_panel <- function(yvar, sample_filter) {
     )
   ) %>%
     mutate(
-      side = as.integer(running_distance > 0),
-      side_label = if_else(side == 1L, "Strict side", "Lenient side")
+      side = as.integer(running_distance > 0)
     )
 
   xmat <- matrix(0, nrow = nrow(line_df), ncol = length(coef_names))
@@ -230,22 +211,6 @@ build_panel <- function(yvar, sample_filter) {
   y_pad <- max(0.15 * y_span, 0.05)
   y_limits <- c(y_min - y_pad, y_max + y_pad)
 
-  cutoff_stars <- case_when(
-    !is.finite(cutoff_p) ~ "",
-    cutoff_p <= 0.01 ~ "***",
-    cutoff_p <= 0.05 ~ "**",
-    cutoff_p <= 0.10 ~ "*",
-    TRUE ~ ""
-  )
-
-  subtitle_label <- sprintf(
-    "Jump = %.3f%s (SE %.3f); N = %s",
-    cutoff_estimate,
-    cutoff_stars,
-    cutoff_se,
-    format(nobs(m_resid), big.mark = ",")
-  )
-
   plot <- ggplot() +
     geom_ribbon(
       data = line_df,
@@ -275,14 +240,12 @@ build_panel <- function(yvar, sample_filter) {
     coord_cartesian(ylim = y_limits) +
     labs(
       title = paste(sample_label, pretty_outcome, sep = ": "),
-      subtitle = subtitle_label,
       x = x_label,
       y = paste("Residualized", pretty_outcome)
     ) +
     theme_bw(base_size = 9) +
     theme(
       plot.title = element_text(face = "bold", size = 10),
-      plot.subtitle = element_text(size = 7.8),
       axis.title = element_text(size = 8.5),
       axis.text = element_text(size = 7.5),
       panel.grid.minor = element_blank()
@@ -311,15 +274,10 @@ combined_plot <- (panels[[1]] | panels[[2]]) / (panels[[3]] | panels[[4]]) +
       "Local-Linear Spatial RD: All and Multifamily New Construction (%s, %s)",
       bw_label,
       "logs"
-    ),
-    subtitle = sprintf(
-      "Residualized display with %d binned points per side; negative distance is the more lenient side",
-      bins_per_side
     )
   ) &
   theme(
-    plot.title = element_text(face = "bold", size = 13),
-    plot.subtitle = element_text(size = 9.5)
+    plot.title = element_text(face = "bold", size = 13)
   )
 
 ggsave(
