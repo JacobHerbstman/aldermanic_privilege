@@ -28,24 +28,24 @@ pair_arterial_drop_share <- 0.60
 
 segments <- fread("../input/segment_classification.csv")
 
-derive_meter_col <- function(dt, meter_col, foot_col) {
-  if (!meter_col %in% names(dt) && foot_col %in% names(dt)) {
-    dt[, (meter_col) := as.numeric(get(foot_col)) * 0.3048]
-  }
+if (!"segment_length_m" %in% names(segments) && "segment_length_ft" %in% names(segments)) {
+  segments[, segment_length_m := as.numeric(segment_length_ft) * 0.3048]
 }
-
-derive_foot_col <- function(dt, foot_col, meter_col) {
-  if (!foot_col %in% names(dt) && meter_col %in% names(dt)) {
-    dt[, (foot_col) := as.numeric(get(meter_col)) / 0.3048]
-  }
+if (!"waterway_overlap_m" %in% names(segments) && "waterway_overlap_ft" %in% names(segments)) {
+  segments[, waterway_overlap_m := as.numeric(waterway_overlap_ft) * 0.3048]
 }
-
-derive_meter_col(segments, "segment_length_m", "segment_length_ft")
-derive_meter_col(segments, "waterway_overlap_m", "waterway_overlap_ft")
-derive_meter_col(segments, "expressway_overlap_m", "expressway_overlap_ft")
-derive_meter_col(segments, "major_overlap_arterial_m", "major_overlap_arterial_ft")
-derive_meter_col(segments, "target_length_m", "target_length_ft")
-derive_foot_col(segments, "target_length_ft", "target_length_m")
+if (!"expressway_overlap_m" %in% names(segments) && "expressway_overlap_ft" %in% names(segments)) {
+  segments[, expressway_overlap_m := as.numeric(expressway_overlap_ft) * 0.3048]
+}
+if (!"major_overlap_arterial_m" %in% names(segments) && "major_overlap_arterial_ft" %in% names(segments)) {
+  segments[, major_overlap_arterial_m := as.numeric(major_overlap_arterial_ft) * 0.3048]
+}
+if (!"target_length_m" %in% names(segments) && "target_length_ft" %in% names(segments)) {
+  segments[, target_length_m := as.numeric(target_length_ft) * 0.3048]
+}
+if (!"target_length_ft" %in% names(segments) && "target_length_m" %in% names(segments)) {
+  segments[, target_length_ft := as.numeric(target_length_m) / 0.3048]
+}
 
 required_cols <- c(
   "segment_id",
@@ -242,7 +242,6 @@ if (anyDuplicated(segment_flags[, .(ward_pair_id_dash, era, segment_id)]) > 0) {
 if (sum(segment_flags$drop_confound, na.rm = TRUE) == 0) {
   stop("Segment pruning flags would drop zero segments; refusing to create no-op pruning outputs.", call. = FALSE)
 }
-fwrite(segment_flags, "../output/confounded_segment_flags.csv")
 
 flags <- segments[, .(
   n_segments = .N,
@@ -366,3 +365,4 @@ if (nrow(drop) == 0) {
 }
 
 fwrite(flags, "../output/confounded_pair_era_flags.csv")
+fwrite(segment_flags, "../output/confounded_segment_flags.csv")
