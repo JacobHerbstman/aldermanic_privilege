@@ -280,59 +280,44 @@ alderman_data <- tribble(
     )
   )
 
+panel_months <- as.yearmon(seq(as.Date("1998-01-01"), panel_end_date, by = "months"))
+
 panel_grid <- expand_grid(
-  year_month = as.yearmon(seq(as.Date("1998-01-01"), panel_end_date, by = "months")),
+  month = panel_months,
   ward = 1:50
 )
 
-gets_month_start <- function(date) {
-  if (is.na(date)) return(FALSE)
-  n <- lubridate::days_in_month(date)
-  remaining <- n - lubridate::day(date) + 1L
-  remaining > n/2
-}
-
-gets_month_end <- function(date) {
-  if (is.na(date)) return(FALSE)
-  n <- lubridate::days_in_month(date)
-  elapsed <- lubridate::day(date)
-  elapsed > n/2
-}
-
-get_alderman <- function(current_year_month, current_ward) {
-  ward_data <- alderman_data %>% dplyr::filter(ward == current_ward)
-  
-  for (i in seq_len(nrow(ward_data))) {
-    term <- ward_data[i, ]
-    
-    start_month <- if (gets_month_start(term$start_date)) {
-      zoo::as.yearmon(term$start_date)
-    } else {
-      zoo::as.yearmon(term$start_date) + 1/12
-    }
-    
-    end_month <- if (gets_month_end(term$end_date)) {
-      zoo::as.yearmon(term$end_date)
-    } else {
-      zoo::as.yearmon(term$end_date) - 1/12
-    }
-    
-    # small numeric guard; compare on rounded yearmon
-    if (round(current_year_month, 4) >= round(start_month, 4) &&
-        round(current_year_month, 4) <= round(end_month, 4)) {
-      return(term$alderman)
-    }
-  }
-  return(NA_character_)
-}
+alderman_months <- alderman_data %>%
+  mutate(
+    term_order = row_number(),
+    start_month = as.yearmon(start_date) + if_else(
+      lubridate::days_in_month(start_date) - lubridate::day(start_date) + 1L >
+        lubridate::days_in_month(start_date) / 2,
+      0,
+      1 / 12
+    ),
+    end_month = as.yearmon(end_date) - if_else(
+      lubridate::day(end_date) > lubridate::days_in_month(end_date) / 2,
+      0,
+      1 / 12
+    )
+  ) %>%
+  filter(start_month <= end_month) %>%
+  rowwise() %>%
+  # Preserve the panel's existing transition-month convention.
+  mutate(month = list(panel_months[
+    round(panel_months, 4) >= round(start_month, 4) &
+      round(panel_months, 4) <= round(end_month, 4)
+  ])) %>%
+  ungroup() %>%
+  select(ward, alderman, term_order, month) %>%
+  tidyr::unnest(month) %>%
+  arrange(ward, month, term_order) %>%
+  distinct(ward, month, .keep_all = TRUE) %>%
+  select(ward, month, alderman)
 
 final_panel <- panel_grid %>%
-  rowwise() %>%
-  mutate(alderman = get_alderman(year_month, ward)) %>%
-  ungroup()
-
-final_panel <- final_panel %>%
-  rename(month = year_month)
+  left_join(alderman_months, by = c("ward", "month"), relationship = "one-to-one")
 
 coverage <- final_panel %>%
   summarise(
