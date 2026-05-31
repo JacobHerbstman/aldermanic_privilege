@@ -103,8 +103,9 @@ if (nrow(ambiguity_row) != 1) {
   stop("Expected one ambiguity row for the requested sample and bandwidth.", call. = FALSE)
 }
 
-summary_panels <- bind_rows(lapply(c(FALSE, TRUE), function(drop_ambiguous) {
-  bind_rows(lapply(outcome_order, function(yvar) {
+summary_rows <- list()
+for (drop_ambiguous in c(FALSE, TRUE)) {
+  for (yvar in outcome_order) {
     base_var <- gsub("^log\\(|\\)$", "", yvar)
     df <- parcels %>%
       filter(
@@ -145,7 +146,7 @@ summary_panels <- bind_rows(lapply(c(FALSE, TRUE), function(drop_ambiguous) {
       stop(sprintf("Model failed to estimate strictness_own for '%s'.", yvar), call. = FALSE)
     }
 
-    tibble(
+    summary_rows[[length(summary_rows) + 1]] <- tibble(
       drop_ambiguous = drop_ambiguous,
       yvar = yvar,
       estimate = unname(coef_table["strictness_own", "Estimate"]),
@@ -155,8 +156,10 @@ summary_panels <- bind_rows(lapply(c(FALSE, TRUE), function(drop_ambiguous) {
       n_ward_pairs = n_distinct(df$ward_pair),
       depvar_mean = mean(df[[base_var]], na.rm = TRUE)
     )
-  }))
-}))
+  }
+}
+
+summary_panels <- bind_rows(summary_rows)
 
 baseline_panel <- summary_panels %>% filter(!drop_ambiguous)
 corner_clean_panel <- summary_panels %>% filter(drop_ambiguous)

@@ -165,7 +165,8 @@ analysis_sample <- analysis_sample %>%
     !is.na(score_side)
   )
 
-paired_balance_rows <- bind_rows(lapply(seq_len(nrow(paired_covariate_catalog)), function(i) {
+paired_balance_rows <- list()
+for (i in seq_len(nrow(paired_covariate_catalog))) {
   covariate_name <- paired_covariate_catalog$covariate[[i]]
   side_means <- analysis_sample %>%
     mutate(balance_value = as.numeric(.data[[covariate_name]])) %>%
@@ -196,7 +197,7 @@ paired_balance_rows <- bind_rows(lapply(seq_len(nrow(paired_covariate_catalog)),
   pooled_sd <- sqrt((var(paired$side_mean_lenient) + var(paired$side_mean_strict)) / 2)
   paired_test_result <- paired_balance_test(paired, min_cluster_ward_pairs)
 
-  tibble(
+  paired_balance_rows[[length(paired_balance_rows) + 1]] <- tibble(
     covariate = covariate_name,
     covariate_label = paired_covariate_catalog$covariate_label[[i]],
     lenient_mean = mean(paired$side_mean_lenient),
@@ -211,7 +212,8 @@ paired_balance_rows <- bind_rows(lapply(seq_len(nrow(paired_covariate_catalog)),
     n_strict_obs = sum(paired$side_n_strict),
     balance_digits = paired_covariate_catalog$balance_digits[[i]]
   )
-}))
+}
+paired_balance_rows <- bind_rows(paired_balance_rows)
 
 sample_label <- ifelse(sample_filter == "all", "all-construction", "multifamily")
 

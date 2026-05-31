@@ -3,12 +3,11 @@
 
 source("../../setup_environment/code/packages.R")
 
-model_row <- function(model, data, term, specification, dep_var) {
+model_row <- function(model, data, dep_var) {
   tibble(
-    specification = specification,
-    estimate = coef(model)[[term]],
-    std_error = se(model)[[term]],
-    p_value = pvalue(model)[[term]],
+    estimate = coef(model)[["strictness_std"]],
+    std_error = se(model)[["strictness_std"]],
+    p_value = pvalue(model)[["strictness_std"]],
     n_obs = model$nobs,
     dep_var_mean = mean(data[[dep_var]], na.rm = TRUE),
     n_segments = n_distinct(data$segment_id),
@@ -17,10 +16,6 @@ model_row <- function(model, data, term, specification, dep_var) {
 }
 
 panel_lines <- function(data, panel_title) {
-  if (nrow(data) != 3L) {
-    stop(sprintf("Expected three specifications for %s.", panel_title), call. = FALSE)
-  }
-
   data <- data %>%
     mutate(
       estimate_text = paste0(
@@ -144,9 +139,9 @@ rent_amenities <- feols(
 )
 
 rent_panel <- bind_rows(
-  model_row(rent_no_controls, rent, "strictness_std", "No controls", "rent_price"),
-  model_row(rent_hedonics, rent, "strictness_std", "Hedonics", "rent_price"),
-  model_row(rent_amenities, rent, "strictness_std", "Hedonics + amenities", "rent_price")
+  model_row(rent_no_controls, rent, "rent_price"),
+  model_row(rent_hedonics, rent, "rent_price"),
+  model_row(rent_amenities, rent, "rent_price")
 )
 
 sales <- read_parquet("../input/sales_with_hedonics_amenities.parquet") %>%
@@ -209,9 +204,9 @@ sales_amenities <- feols(
 )
 
 sales_panel <- bind_rows(
-  model_row(sales_no_controls, sales, "strictness_std", "No controls", "sale_price"),
-  model_row(sales_hedonics, sales_hedonic, "strictness_std", "Hedonics", "sale_price"),
-  model_row(sales_amenities, sales_amenity, "strictness_std", "Hedonics + amenities", "sale_price")
+  model_row(sales_no_controls, sales, "sale_price"),
+  model_row(sales_hedonics, sales_hedonic, "sale_price"),
+  model_row(sales_amenities, sales_amenity, "sale_price")
 )
 
 table_lines <- c(
