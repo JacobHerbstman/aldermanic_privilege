@@ -365,18 +365,6 @@ load_feature_layers <- function(ward_panel) {
   )
 }
 
-combine_feature_layers <- function(...) {
-  layers <- list(...)
-  layers <- layers[vapply(layers, function(x) !is.null(x) && nrow(x) > 0, logical(1))]
-  if (length(layers) == 0) {
-    return(NULL)
-  }
-
-  crs_obj <- st_crs(layers[[1]])
-  geoms <- do.call(c, lapply(layers, st_geometry))
-  st_sf(geometry = st_sfc(geoms, crs = crs_obj))
-}
-
 line_buffer_overlap_ft <- function(segment_sf, feature_sf, buffer_ft) {
   if (nrow(segment_sf) == 0 || is.null(feature_sf) || nrow(feature_sf) == 0) {
     return(rep(0, nrow(segment_sf)))
@@ -431,36 +419,27 @@ area_share <- function(segment_sf, polygon_sf, buffer_ft) {
   out
 }
 
-nearest_road_fields <- function(segment_sf, roads_all) {
-  n <- nrow(segment_sf)
-  out <- data.table(
-    nearest_street_name = rep(NA_character_, n),
-    nearest_street_class = rep(NA_real_, n),
-    nearest_street_class_mapped = rep(NA_character_, n),
-    distance_to_nearest_street_m = rep(NA_real_, n),
-    distance_to_nearest_street_ft = rep(NA_real_, n)
-  )
-
-  if (n == 0 || is.null(roads_all) || nrow(roads_all) == 0) {
-    return(out)
-  }
-
-  segment_midpoints <- st_centroid(st_geometry(segment_sf))
-  idx <- st_nearest_feature(segment_midpoints, roads_all)
-  out$nearest_street_name <- as.character(roads_all$road_name[idx])
-  out$nearest_street_class <- suppressWarnings(as.numeric(roads_all$road_class_code[idx]))
-  out$nearest_street_class_mapped <- as.character(roads_all$road_class_mapped[idx])
-  out$distance_to_nearest_street_ft <- as.numeric(st_distance(segment_midpoints, roads_all[idx, ], by_element = TRUE))
-  out$distance_to_nearest_street_m <- out$distance_to_nearest_street_ft * 0.3048
-  out
-}
-
 classify_segments_from_features <- function(segment_sf, features) {
   if (nrow(segment_sf) == 0) {
     return(segment_sf)
   }
 
-  nearest <- nearest_road_fields(segment_sf, features$roads_all)
+  nearest <- data.table(
+    nearest_street_name = rep(NA_character_, nrow(segment_sf)),
+    nearest_street_class = rep(NA_real_, nrow(segment_sf)),
+    nearest_street_class_mapped = rep(NA_character_, nrow(segment_sf)),
+    distance_to_nearest_street_m = rep(NA_real_, nrow(segment_sf)),
+    distance_to_nearest_street_ft = rep(NA_real_, nrow(segment_sf))
+  )
+  if (!is.null(features$roads_all) && nrow(features$roads_all) > 0) {
+    segment_midpoints <- st_centroid(st_geometry(segment_sf))
+    nearest_idx <- st_nearest_feature(segment_midpoints, features$roads_all)
+    nearest$nearest_street_name <- as.character(features$roads_all$road_name[nearest_idx])
+    nearest$nearest_street_class <- suppressWarnings(as.numeric(features$roads_all$road_class_code[nearest_idx]))
+    nearest$nearest_street_class_mapped <- as.character(features$roads_all$road_class_mapped[nearest_idx])
+    nearest$distance_to_nearest_street_ft <- as.numeric(st_distance(segment_midpoints, features$roads_all[nearest_idx, ], by_element = TRUE))
+    nearest$distance_to_nearest_street_m <- nearest$distance_to_nearest_street_ft * 0.3048
+  }
   segment_sf$nearest_street_name <- nearest$nearest_street_name
   segment_sf$nearest_street_class <- nearest$nearest_street_class
   segment_sf$nearest_street_class_mapped <- nearest$nearest_street_class_mapped
@@ -474,11 +453,26 @@ classify_segments_from_features <- function(segment_sf, features) {
   segment_sf$major_overlap_residential_ft <- 0
   segment_sf$osm_overlap_expressway_ft <- line_buffer_overlap_ft(segment_sf, features$osm_expressway, feature_buffer_ft)
 
-  expressway_features <- combine_feature_layers(
+  expressway_layers <- list(
     features$major_expressway,
     features$major_ramp,
     features$osm_expressway
   )
+  expressway_feature_layers <- list()
+  for (i in seq_along(expressway_layers)) {
+    if (!is.null(expressway_layers[[i]]) && nrow(expressway_layers[[i]]) > 0) {
+      expressway_feature_layers[[length(expressway_feature_layers) + 1L]] <- expressway_layers[[i]]
+    }
+  }
+  expressway_features <- NULL
+  if (length(expressway_feature_layers) > 0) {
+    expressway_features <- st_sf(
+      geometry = st_sfc(
+        do.call(c, lapply(expressway_feature_layers, st_geometry)),
+        crs = st_crs(expressway_feature_layers[[1]])
+      )
+    )
+  }
   segment_sf$expressway_overlap_ft <- line_buffer_overlap_ft(segment_sf, expressway_features, feature_buffer_ft)
   segment_sf$waterway_overlap_ft <- line_buffer_overlap_ft(segment_sf, features$waterways, feature_buffer_ft)
 
