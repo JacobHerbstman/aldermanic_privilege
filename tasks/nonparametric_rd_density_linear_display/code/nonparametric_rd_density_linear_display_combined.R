@@ -73,7 +73,20 @@ base_dat <- raw %>%
 x_limits <- c(-bandwidth_m, bandwidth_m) * distance_display$scale
 x_label <- sprintf("Distance to ward boundary (%s)", distance_display$unit)
 
-build_panel <- function(yvar, sample_filter) {
+panel_specs <- tribble(
+  ~yvar, ~sample_filter,
+  "density_far", "all",
+  "density_far", "multifamily",
+  "density_dupac", "all",
+  "density_dupac", "multifamily"
+)
+
+panels <- vector("list", nrow(panel_specs))
+
+for (i in seq_len(nrow(panel_specs))) {
+  yvar <- panel_specs$yvar[i]
+  sample_filter <- panel_specs$sample_filter[i]
+
   outcome_name <- dplyr::case_when(
     yvar == "density_far" ~ "FAR",
     yvar == "density_dupac" ~ "DUPAC",
@@ -251,21 +264,7 @@ build_panel <- function(yvar, sample_filter) {
       panel.grid.minor = element_blank()
     )
 
-  plot
-}
-
-panel_specs <- tribble(
-  ~yvar, ~sample_filter,
-  "density_far", "all",
-  "density_far", "multifamily",
-  "density_dupac", "all",
-  "density_dupac", "multifamily"
-)
-
-panels <- vector("list", nrow(panel_specs))
-
-for (i in seq_len(nrow(panel_specs))) {
-  panels[[i]] <- build_panel(panel_specs$yvar[i], panel_specs$sample_filter[i])
+  panels[[i]] <- plot
 }
 
 combined_plot <- (panels[[1]] | panels[[2]]) / (panels[[3]] | panels[[4]]) +

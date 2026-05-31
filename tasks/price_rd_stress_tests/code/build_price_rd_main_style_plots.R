@@ -20,99 +20,6 @@ bandwidth_ft <- 500
 bins_per_side <- 10
 cutoffs_ft <- c(-1000, 0, 1000)
 
-fit_plot_data <- function(data, dataset, outcome, time_var, controls, cluster_var, cutoff_ft) {
-  cutoff_value <- cutoff_ft
-  cutoff_text <- if (cutoff_value == 0) {
-    "True boundary"
-  } else {
-    sprintf("%+dft placebo", as.integer(cutoff_value))
-  }
-  treatment <- if (cutoff_ft == 0) "right" else "cutoff_right"
-  d <- data %>%
-    mutate(
-      running_ft = signed_dist_ft - cutoff_value,
-      cutoff_right = as.integer(running_ft >= 0)
-    )
-
-  finite_controls <- controls[vapply(d[controls], is.numeric, logical(1))]
-  d <- d %>%
-    filter(
-      abs(running_ft) <= bandwidth_ft,
-      !is.na(segment_id),
-      segment_id != "",
-      !is.na(.data[[cluster_var]]),
-      .data[[cluster_var]] != ""
-    )
-  if (length(finite_controls) > 0) {
-    d <- d %>% filter(if_all(all_of(finite_controls), ~ is.finite(.x)))
-  }
-
-  if (nrow(d) == 0 || n_distinct(d[[treatment]]) < 2 || n_distinct(d[[cluster_var]]) < 2) {
-    stop(sprintf("Insufficient support for %s / %s.", dataset, cutoff_text), call. = FALSE)
-  }
-
-  rhs <- paste(c(treatment, controls), collapse = " + ")
-  fit <- feols(
-    as.formula(paste0("log(", outcome, ") ~ ", rhs, " | segment_id^", time_var)),
-    data = d,
-    cluster = as.formula(paste0("~", cluster_var))
-  )
-  if (!treatment %in% names(coef(fit))) {
-    stop(sprintf("Model did not estimate %s for %s / %s.", treatment, dataset, cutoff_text), call. = FALSE)
-  }
-  estimate <- unname(coef(fit)[[treatment]])
-
-  removed <- fit$obs_selection$obsRemoved
-  keep_idx <- if (is.null(removed)) {
-    seq_len(nrow(d))
-  } else {
-    setdiff(seq_len(nrow(d)), abs(as.integer(removed)))
-  }
-  plot_data <- d[keep_idx, , drop = FALSE] %>%
-    mutate(
-      y_adjusted = as.numeric(resid(fit)) + estimate * .data[[treatment]],
-      cutoff_ft = cutoff_value,
-      cutoff_label = cutoff_text
-    )
-
-  bin_width <- bandwidth_ft / bins_per_side
-  bins <- plot_data %>%
-    mutate(
-      bin_id = floor(running_ft / bin_width),
-      bin_center = (bin_id + 0.5) * bin_width
-    ) %>%
-    group_by(cutoff_ft, cutoff_label, bin_center) %>%
-    summarise(
-      mean_y = mean(y_adjusted, na.rm = TRUE),
-      side = if_else(first(bin_center) >= 0, "More Stringent", "Less Stringent"),
-      .groups = "drop"
-    ) %>%
-    mutate(cutoff_label = factor(cutoff_label, levels = c("-1000ft placebo", "True boundary", "+1000ft placebo")))
-}
-
-make_rd_plot <- function(parts, title, y_label, output_base) {
-  bins <- bind_rows(parts)
-
-  plot <- ggplot() +
-    geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.7) +
-    geom_point(data = bins, aes(x = bin_center, y = mean_y, color = side), size = 2.3) +
-    scale_color_manual(
-      values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"),
-      name = NULL
-    ) +
-    labs(
-      title = title,
-      x = "Distance to cutoff (feet; positive = more stringent side)",
-      y = y_label
-    ) +
-    theme_bw(base_size = 11) +
-    theme(legend.position = "bottom", panel.grid.minor = element_blank())
-
-  plot <- plot + facet_wrap(~cutoff_label, nrow = 1)
-
-  ggsave(paste0(output_base, ".pdf"), plot, width = 12, height = 5.5, dpi = 300, bg = "white")
-}
-
 if (market == "rent") {
   source("../../_lib/amenity_distance_helpers.R")
 
@@ -220,24 +127,15 @@ if (market == "rent") {
     "building_type_factor"
   )
 
-  rent_placebo_parts <- lapply(cutoffs_ft, function(cut_i) {
-    fit_plot_data(
-      rent,
-      "Listed rents",
-      "rent_price",
-      "year_month",
-      rent_controls,
-      "segment_id",
-      cut_i
-    )
-  })
-
-  make_rd_plot(
-    rent_placebo_parts,
-    "Listed Rents: True and Placebo Cutoffs",
-    "Segment-by-month adjusted log rent",
-    "../output/rent_placebo_rd_main_style"
-  )
+  plot_input <- rent
+  dataset_label <- "Listed rents"
+  outcome <- "rent_price"
+  time_var <- "year_month"
+  controls <- rent_controls
+  cluster_var <- "segment_id"
+  plot_title <- "Listed Rents: True and Placebo Cutoffs"
+  plot_y_label <- "Segment-by-month adjusted log rent"
+  output_base <- "../output/rent_placebo_rd_main_style"
 } else {
   sales <- read_parquet("../input/sales_with_hedonics_amenities.parquet") %>%
     as_tibble()
@@ -287,22 +185,104 @@ if (market == "rent") {
     "lake_michigan_dist_kft"
   )
 
-  sales_placebo_parts <- lapply(cutoffs_ft, function(cut_i) {
-    fit_plot_data(
-      sales,
-      "Home sales",
-      "sale_price",
-      "year_quarter",
-      sales_controls,
-      "segment_id",
-      cut_i
-    )
-  })
-
-  make_rd_plot(
-    sales_placebo_parts,
-    "Home Sale Prices: True and Placebo Cutoffs",
-    "Segment-by-quarter adjusted log sale price",
-    "../output/sales_placebo_rd_main_style"
-  )
+  plot_input <- sales
+  dataset_label <- "Home sales"
+  outcome <- "sale_price"
+  time_var <- "year_quarter"
+  controls <- sales_controls
+  cluster_var <- "segment_id"
+  plot_title <- "Home Sale Prices: True and Placebo Cutoffs"
+  plot_y_label <- "Segment-by-quarter adjusted log sale price"
+  output_base <- "../output/sales_placebo_rd_main_style"
 }
+
+plot_parts <- list()
+for (cut_i in cutoffs_ft) {
+  cutoff_value <- cut_i
+  cutoff_text <- if (cutoff_value == 0) {
+    "True boundary"
+  } else {
+    sprintf("%+dft placebo", as.integer(cutoff_value))
+  }
+  treatment <- if (cut_i == 0) "right" else "cutoff_right"
+  d <- plot_input %>%
+    mutate(
+      running_ft = signed_dist_ft - cutoff_value,
+      cutoff_right = as.integer(running_ft >= 0)
+    )
+
+  finite_controls <- controls[vapply(d[controls], is.numeric, logical(1))]
+  d <- d %>%
+    filter(
+      abs(running_ft) <= bandwidth_ft,
+      !is.na(segment_id),
+      segment_id != "",
+      !is.na(.data[[cluster_var]]),
+      .data[[cluster_var]] != ""
+    )
+  if (length(finite_controls) > 0) {
+    d <- d %>% filter(if_all(all_of(finite_controls), ~ is.finite(.x)))
+  }
+
+  if (nrow(d) == 0 || n_distinct(d[[treatment]]) < 2 || n_distinct(d[[cluster_var]]) < 2) {
+    stop(sprintf("Insufficient support for %s / %s.", dataset_label, cutoff_text), call. = FALSE)
+  }
+
+  rhs <- paste(c(treatment, controls), collapse = " + ")
+  fit <- feols(
+    as.formula(paste0("log(", outcome, ") ~ ", rhs, " | segment_id^", time_var)),
+    data = d,
+    cluster = as.formula(paste0("~", cluster_var))
+  )
+  if (!treatment %in% names(coef(fit))) {
+    stop(sprintf("Model did not estimate %s for %s / %s.", treatment, dataset_label, cutoff_text), call. = FALSE)
+  }
+  estimate <- unname(coef(fit)[[treatment]])
+
+  removed <- fit$obs_selection$obsRemoved
+  keep_idx <- if (is.null(removed)) {
+    seq_len(nrow(d))
+  } else {
+    setdiff(seq_len(nrow(d)), abs(as.integer(removed)))
+  }
+  plot_data <- d[keep_idx, , drop = FALSE] %>%
+    mutate(
+      y_adjusted = as.numeric(resid(fit)) + estimate * .data[[treatment]],
+      cutoff_ft = cutoff_value,
+      cutoff_label = cutoff_text
+    )
+
+  bin_width <- bandwidth_ft / bins_per_side
+  plot_parts[[length(plot_parts) + 1L]] <- plot_data %>%
+    mutate(
+      bin_id = floor(running_ft / bin_width),
+      bin_center = (bin_id + 0.5) * bin_width
+    ) %>%
+    group_by(cutoff_ft, cutoff_label, bin_center) %>%
+    summarise(
+      mean_y = mean(y_adjusted, na.rm = TRUE),
+      side = if_else(first(bin_center) >= 0, "More Stringent", "Less Stringent"),
+      .groups = "drop"
+    ) %>%
+    mutate(cutoff_label = factor(cutoff_label, levels = c("-1000ft placebo", "True boundary", "+1000ft placebo")))
+}
+
+bins <- bind_rows(plot_parts)
+
+plot <- ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.7) +
+  geom_point(data = bins, aes(x = bin_center, y = mean_y, color = side), size = 2.3) +
+  scale_color_manual(
+    values = c("Less Stringent" = "#1f77b4", "More Stringent" = "#d62728"),
+    name = NULL
+  ) +
+  labs(
+    title = plot_title,
+    x = "Distance to cutoff (feet; positive = more stringent side)",
+    y = plot_y_label
+  ) +
+  theme_bw(base_size = 11) +
+  theme(legend.position = "bottom", panel.grid.minor = element_blank()) +
+  facet_wrap(~cutoff_label, nrow = 1)
+
+ggsave(paste0(output_base, ".pdf"), plot, width = 12, height = 5.5, dpi = 300, bg = "white")
