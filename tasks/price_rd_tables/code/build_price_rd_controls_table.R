@@ -1,7 +1,22 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/price_rd_tables/code")
+# bandwidth_ft <- 500
 
 source("../../setup_environment/code/packages.R")
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(bandwidth_ft)
+}
+if (length(cli_args) != 1L) {
+  stop("FATAL: Script requires 1 arg: <bandwidth_ft>.", call. = FALSE)
+}
+
+bandwidth_ft <- suppressWarnings(as.numeric(cli_args[1]))
+if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0 || bandwidth_ft != floor(bandwidth_ft)) {
+  stop("bandwidth_ft must be a positive integer.", call. = FALSE)
+}
+bandwidth_label <- as.character(as.integer(bandwidth_ft))
 
 model_row <- function(model, data, dep_var) {
   tibble(
@@ -81,7 +96,7 @@ panel_lines <- function(data, panel_title) {
   )
 }
 
-rent <- read_parquet("../input/rental_rd_characteristics_panel_bw500.parquet") %>%
+rent <- read_parquet(sprintf("../input/rental_rd_characteristics_panel_bw%s.parquet", bandwidth_label)) %>%
   as_tibble() %>%
   mutate(
     ward_pair = as.character(ward_pair_id),
@@ -148,7 +163,7 @@ sales <- read_parquet("../input/sales_with_hedonics_amenities.parquet") %>%
   as_tibble() %>%
   mutate(
     ward_pair = as.character(ward_pair_id),
-    signed_dist = signed_dist_m / 0.3048
+    signed_dist_ft = signed_dist_m / 0.3048
   ) %>%
   filter(
     !is.na(sale_price),
@@ -156,8 +171,8 @@ sales <- read_parquet("../input/sales_with_hedonics_amenities.parquet") %>%
     year >= 2006,
     year <= 2022,
     !is.na(ward_pair),
-    is.finite(signed_dist),
-    abs(signed_dist) <= 500,
+    is.finite(signed_dist_ft),
+    abs(signed_dist_ft) <= bandwidth_ft,
     is.finite(strictness_own),
     !is.na(segment_id),
     segment_id != ""
@@ -221,8 +236,17 @@ table_lines <- c(
   panel_lines(sales_panel, "Panel B. Home sales"),
   "\\bottomrule",
   "\\end{tabular}",
-  "\\par\\vspace{0.5em}\\parbox{0.92\\linewidth}{\\footnotesize Notes: Entries are percent log-price effects of a one-standard-deviation increase in the aldermanic stringency index, with standard errors in parentheses. Panel A uses listed-rent floorplan-month observations from 2014--2022. Panel B uses arm's-length residential sales from 2006--2022. Both panels restrict observations to within 500ft of ward boundaries. Dependent-variable means are in 2022 dollars. Segment-by-time fixed effects are segment-by-month for listed rents and segment-by-quarter for home sales. Hedonic controls are log square feet, log bedrooms or bathrooms, building type for rents, and building area, land area, building age, bedrooms, bathrooms, and garage for sales. Amenity controls are distances to the nearest school, CPD park-boundary polygon, major street, CTA stop for rents, and Lake Michigan. Standard errors are clustered by boundary segment. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
+  sprintf(
+    "\\par\\vspace{0.5em}\\parbox{0.92\\linewidth}{\\footnotesize Notes: Entries are percent log-price effects of a one-standard-deviation increase in the aldermanic stringency index, with standard errors in parentheses. Panel A uses listed-rent floorplan-month observations from 2014--2022. Panel B uses arm's-length residential sales from 2006--2022. Both panels restrict observations to within %sft of ward boundaries. Dependent-variable means are in 2022 dollars. Segment-by-time fixed effects are segment-by-month for listed rents and segment-by-quarter for home sales. Hedonic controls are log square feet, log bedrooms or bathrooms, building type for rents, and building area, land area, building age, bedrooms, bathrooms, and garage for sales. Amenity controls are distances to the nearest school, CPD park-boundary polygon, major street, CTA stop for rents, and Lake Michigan. Standard errors are clustered by boundary segment. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
+    bandwidth_label
+  ),
   "\\par\\endgroup"
 )
 
-writeLines(table_lines, "../output/price_rd_controls_panels_bw500.tex")
+output_path <- sprintf("../output/price_rd_controls_panels_bw%s.tex", bandwidth_label)
+old_table_lines <- tryCatch(readLines(output_path, warn = FALSE), error = function(e) character())
+if (!identical(old_table_lines, table_lines)) {
+  writeLines(table_lines, output_path)
+} else {
+  Sys.setFileTime(output_path, Sys.time())
+}
