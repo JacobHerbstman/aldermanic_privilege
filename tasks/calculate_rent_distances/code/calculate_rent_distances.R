@@ -20,50 +20,6 @@ if (anyDuplicated(alderman_lookup[, c("ward", "month")]) > 0) {
   stop("Alderman panel must be unique by ward-month.", call. = FALSE)
 }
 
-process_batch <- function(df_batch) {
-  if (!all(c("geometry_latitude", "geometry_longitude") %in% names(df_batch))) {
-    stop("RentHub quality flags must provide geometry_latitude and geometry_longitude.", call. = FALSE)
-  }
-  df_batch <- df_batch %>%
-    mutate(
-      renthub_latitude = latitude,
-      renthub_longitude = longitude,
-      geometry_latitude = coalesce(geometry_latitude, latitude),
-      geometry_longitude = coalesce(geometry_longitude, longitude),
-      flag_geometry_uses_address_location_correction = coalesce(
-        flag_geometry_uses_address_location_correction,
-        FALSE
-      )
-    )
-
-  df_batch <- df_batch %>%
-    filter(is.finite(geometry_latitude), is.finite(geometry_longitude), !is.na(file_date))
-
-  if (nrow(df_batch) == 0) {
-    return(NULL)
-  }
-
-  pts <- st_as_sf(df_batch, coords = c("geometry_longitude", "geometry_latitude"), crs = 4326) %>%
-    st_transform(crs_projected) %>%
-    mutate(
-      boundary_year = canonical_boundary_year_from_date(file_date),
-      era = canonical_era_from_date(file_date, allow_pre_2003 = FALSE)
-    )
-
-  boundary_assignments <- assign_points_to_boundaries(
-    points_sf = pts,
-    era_values = pts$era,
-    ward_maps = canonical_ward_maps,
-    boundary_lines = canonical_boundaries,
-    chunk_n = 5000L
-  )
-
-  out <- bind_cols(pts, boundary_assignments) %>%
-    filter(!is.na(ward), !is.na(ward_pair_id))
-
-  out
-}
-
 ds <- arrow::open_dataset("../input/chicago_rent_panel.parquet")
 quality_ds <- arrow::open_dataset("../input/chicago_rent_panel_quality_flags.parquet")
 quality_cols <- c(
@@ -129,9 +85,41 @@ for (i in seq_along(years)) {
   }
 
   if (nrow(df_chunk) > 0) {
-    processed_chunk <- process_batch(df_chunk)
-    if (!is.null(processed_chunk)) {
-      results_list[[length(results_list) + 1]] <- processed_chunk
+    df_chunk <- df_chunk %>%
+      mutate(
+        renthub_latitude = latitude,
+        renthub_longitude = longitude,
+        geometry_latitude = coalesce(geometry_latitude, latitude),
+        geometry_longitude = coalesce(geometry_longitude, longitude),
+        flag_geometry_uses_address_location_correction = coalesce(
+          flag_geometry_uses_address_location_correction,
+          FALSE
+        )
+      ) %>%
+      filter(is.finite(geometry_latitude), is.finite(geometry_longitude), !is.na(file_date))
+
+    if (nrow(df_chunk) > 0) {
+      pts <- st_as_sf(df_chunk, coords = c("geometry_longitude", "geometry_latitude"), crs = 4326) %>%
+        st_transform(crs_projected) %>%
+        mutate(
+          boundary_year = canonical_boundary_year_from_date(file_date),
+          era = canonical_era_from_date(file_date, allow_pre_2003 = FALSE)
+        )
+
+      boundary_assignments <- assign_points_to_boundaries(
+        points_sf = pts,
+        era_values = pts$era,
+        ward_maps = canonical_ward_maps,
+        boundary_lines = canonical_boundaries,
+        chunk_n = 5000L
+      )
+
+      processed_chunk <- bind_cols(pts, boundary_assignments) %>%
+        filter(!is.na(ward), !is.na(ward_pair_id))
+
+      if (nrow(processed_chunk) > 0) {
+        results_list[[length(results_list) + 1]] <- processed_chunk
+      }
     }
   }
 
