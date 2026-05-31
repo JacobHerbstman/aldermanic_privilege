@@ -103,7 +103,7 @@ if (nrow(ambiguity_row) != 1) {
   stop("Expected one ambiguity row for the requested sample and bandwidth.", call. = FALSE)
 }
 
-fit_corner_summary <- function(drop_ambiguous) {
+summary_panels <- bind_rows(lapply(c(FALSE, TRUE), function(drop_ambiguous) {
   bind_rows(lapply(outcome_order, function(yvar) {
     base_var <- gsub("^log\\(|\\)$", "", yvar)
     df <- parcels %>%
@@ -146,6 +146,7 @@ fit_corner_summary <- function(drop_ambiguous) {
     }
 
     tibble(
+      drop_ambiguous = drop_ambiguous,
       yvar = yvar,
       estimate = unname(coef_table["strictness_own", "Estimate"]),
       se = unname(coef_table["strictness_own", "Std. Error"]),
@@ -155,10 +156,10 @@ fit_corner_summary <- function(drop_ambiguous) {
       depvar_mean = mean(df[[base_var]], na.rm = TRUE)
     )
   }))
-}
+}))
 
-baseline_panel <- fit_corner_summary(FALSE)
-corner_clean_panel <- fit_corner_summary(TRUE)
+baseline_panel <- summary_panels %>% filter(!drop_ambiguous)
+corner_clean_panel <- summary_panels %>% filter(drop_ambiguous)
 
 if (nrow(baseline_panel) != 2 || nrow(corner_clean_panel) != 2) {
   stop("Expected exactly two outcomes in each summary file.", call. = FALSE)
