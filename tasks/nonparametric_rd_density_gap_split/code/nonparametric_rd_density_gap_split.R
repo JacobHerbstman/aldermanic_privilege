@@ -48,7 +48,7 @@ if (!gap_split %in% c("above_median", "below_median")) {
   stop("gap_split must be one of: above_median, below_median", call. = FALSE)
 }
 
-distance_display <- distance_display_config()
+distance_display <- distance_display_config("ft")
 bw_label <- format_distance_label(bandwidth_m, distance_display)
 
 fe_formula <- dplyr::case_when(
