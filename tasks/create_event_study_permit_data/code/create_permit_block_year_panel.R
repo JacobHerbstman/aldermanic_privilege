@@ -61,17 +61,98 @@ if (anyDuplicated(manual_block_assignments[, c("id", "block_vintage")]) > 0) {
   stop("manual_permit_block_assignments.csv must be unique by id-block_vintage.", call. = FALSE)
 }
 
-read_blocks <- function(path, block_col, target_crs) {
-  blocks_sf <- read_csv(path, show_col_types = FALSE) %>%
+permit_outcome_meta <- tibble(
+  count_var = c(
+    "n_new_construction_issue",
+    "n_new_construction_application",
+    "n_new_construction_demolition_issue",
+    "n_new_construction_demolition_application",
+    "n_demolition_issue",
+    "n_demolition_application",
+    "n_renovation_issue",
+    "n_renovation_application",
+    "n_low_discretion_nosigns_issue",
+    "n_low_discretion_nosigns_application",
+    "n_high_discretion_issue",
+    "n_high_discretion_application",
+    "n_unit_increase_issue",
+    "n_unit_increase_application"
+  ),
+  indicator_col = c(
+    "is_new_construction_issued",
+    "is_new_construction_issued",
+    "is_new_construction_demolition_issued",
+    "is_new_construction_demolition_issued",
+    "is_demolition_issued",
+    "is_demolition_issued",
+    "is_renovation_issued",
+    "is_renovation_issued",
+    "is_low_discretion_nosigns_issued",
+    "is_low_discretion_nosigns_issued",
+    "is_high_discretion_issued",
+    "is_high_discretion_issued",
+    "is_unit_increase_issued",
+    "is_unit_increase_issued"
+  ),
+  date_col = c(
+    "issue_year",
+    "application_year",
+    "issue_year",
+    "application_year",
+    "issue_year",
+    "application_year",
+    "issue_year",
+    "application_year",
+    "issue_year",
+    "application_year",
+    "issue_year",
+    "application_year",
+    "issue_year",
+    "application_year"
+  )
+)
+
+ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
+ward_maps <- load_canonical_ward_maps(ward_panel)
+boundary_lines <- build_canonical_boundary_list(ward_panel)
+segment_layers <- load_segment_line_layers("../input/boundary_segments_1320ft.gpkg")
+segment_meta <- segment_metadata_from_layers(segment_layers)
+segment_pair_lookup_list <- list()
+for (era_i in names(segment_layers)) {
+  segment_pair_lookup_list[[era_i]] <- st_drop_geometry(segment_layers[[era_i]]) %>%
+    transmute(
+      segment_era = era_i,
+      segment_id_cohort = as.character(segment_id),
+      segment_pair_id = normalize_pair_dash(ward_pair_id)
+    )
+}
+segment_pair_lookup <- bind_rows(segment_pair_lookup_list)
+
+treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
+  mutate(block_id = as.character(block_id))
+if (anyDuplicated(paste(treatment_panel$cohort, treatment_panel$block_id, sep = "\r")) > 0) {
+  stop("Block treatment panel must be unique by cohort-block.", call. = FALSE)
+}
+
+block_inputs <- tibble(
+  block_vintage = c("2010", "2020"),
+  path = c("../input/census_blocks_2010.csv", "../input/census_blocks_2020.csv"),
+  block_col = c("GEOID10", "GEOID20")
+)
+blocks_by_vintage <- list()
+for (block_input_i in seq_len(nrow(block_inputs))) {
+  block_vintage <- block_inputs$block_vintage[block_input_i]
+  block_path <- block_inputs$path[block_input_i]
+  blocks_sf <- read_csv(block_path, show_col_types = FALSE) %>%
     rename(geometry = the_geom) %>%
     st_as_sf(wkt = "geometry", crs = 4269) %>%
     st_make_valid() %>%
-    st_transform(target_crs) %>%
-    rename(block_id = all_of(block_col)) %>%
+    st_transform(st_crs(ward_panel)) %>%
+    rename(block_id = all_of(block_inputs$block_col[block_input_i])) %>%
     mutate(block_id = as.character(block_id))
 
   if (any(is.na(blocks_sf$block_id) | blocks_sf$block_id == "")) {
-    stop(sprintf("Block input %s contains missing block_id values.", path), call. = FALSE)
+    stop(sprintf("Block input %s contains missing block_id values.", block_path), call. = FALSE)
   }
 
   duplicate_block_ids <- blocks_sf %>%
@@ -85,20 +166,122 @@ read_blocks <- function(path, block_col, target_crs) {
     stop(
       sprintf(
         "Block input %s contains %d block IDs with conflicting geometries.",
-        path,
+        block_path,
         nrow(duplicate_block_ids)
       ),
       call. = FALSE
     )
   }
 
-  blocks_sf %>%
+  blocks_by_vintage[[block_vintage]] <- blocks_sf %>%
     distinct(block_id, .keep_all = TRUE)
 }
+blocks_2010 <- blocks_by_vintage[["2010"]]
+blocks_2020 <- blocks_by_vintage[["2020"]]
 
-assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label, manual_block_assignments) {
-  joined <- st_join(permits_sf, blocks_sf %>% select(block_id), join = st_within)
-  joined_df <- joined %>% st_drop_geometry()
+curated_unit_types <- c(
+  "PERMIT - NEW CONSTRUCTION",
+  "PERMIT - RENOVATION/ALTERATION"
+)
+
+unit_increase_flags <- read_csv(
+  "../input/building_permits_text_features.csv.gz",
+  show_col_types = FALSE,
+  col_select = c(
+    "id", "permit_type", "permit_issued", "unit_change_text",
+    "unit_change_direction", "unit_change_confidence", "unit_increase_signal",
+    "unit_change_signal", "flag_revision", "flag_revision_contractor",
+    "flag_new_construction_phrase", "flag_adu", "flag_increase"
+  )
+) %>%
+  mutate(
+    permit_issued = as.integer(permit_issued),
+    unit_change_text = suppressWarnings(as.numeric(unit_change_text)),
+    unit_increase_signal = coalesce(as.integer(unit_increase_signal), 0L),
+    unit_change_signal = coalesce(as.integer(unit_change_signal), 0L),
+    flag_revision = coalesce(as.integer(flag_revision), 0L),
+    flag_revision_contractor = coalesce(as.integer(flag_revision_contractor), 0L),
+    flag_new_construction_phrase = coalesce(as.integer(flag_new_construction_phrase), 0L),
+    flag_adu = coalesce(as.integer(flag_adu), 0L),
+    flag_increase = coalesce(as.integer(flag_increase), 0L),
+    curated_type = permit_type %in% curated_unit_types,
+    positive_unit_signal = unit_increase_signal == 1L |
+      (!is.na(unit_change_text) & unit_change_text > 0) |
+      unit_change_direction == "increase",
+    revision_only = flag_revision == 1L | flag_revision_contractor == 1L,
+    unit_increase_candidate = (permit_issued == 1L | is.na(permit_issued)) & (curated_type | positive_unit_signal),
+    unit_increase_reason = case_when(
+      !unit_increase_candidate ~ "outside_unit_increase_candidate_pool",
+      !curated_type ~ "excluded_outside_curated_type",
+      !positive_unit_signal ~ "excluded_no_positive_unit_signal",
+      revision_only ~ "excluded_revision_signal",
+      unit_change_confidence == "high" ~ "included_high_confidence",
+      unit_change_confidence == "medium" ~ "included_medium_confidence",
+      unit_change_confidence == "low" ~ "included_low_confidence",
+      TRUE ~ "included_unclassified_confidence"
+    ),
+    unit_increase_included = as.integer(grepl("^included_", unit_increase_reason))
+  ) %>%
+  arrange(desc(unit_increase_included), desc(positive_unit_signal), desc(curated_type), id)
+
+permits_clean <- st_read(
+  "../input/building_permits_clean.gpkg",
+  query = paste(
+    "SELECT id, pin, permit_type, high_discretion, permit_issued,",
+    "application_start_date_ym, issue_date_ym, latitude, longitude, processing_time, geom",
+    "FROM building_permits_clean",
+    "WHERE permit_issued = 1 OR permit_issued IS NULL"
+  ),
+  quiet = TRUE
+) %>%
+  mutate(
+    id = as.character(id),
+    application_year = as.integer(format(as.Date(application_start_date_ym), "%Y")),
+    issue_year = as.integer(format(as.Date(issue_date_ym), "%Y")),
+    application_month = as.yearmon(as.Date(application_start_date_ym)),
+    issue_month = as.yearmon(as.Date(issue_date_ym))
+  )
+
+permits_clean <- permits_clean %>%
+  filter(
+    (!is.na(application_month) &
+      application_year >= permit_start_year &
+      application_month <= permit_end_yearmon) |
+      (!is.na(issue_month) &
+        issue_year >= permit_start_year &
+        issue_month <= permit_end_yearmon)
+  )
+if (nrow(permits_clean) == 0) {
+  stop("No issued permits remain after applying the permit analysis year window.", call. = FALSE)
+}
+
+unit_increase_flags <- unit_increase_flags %>%
+  semi_join(
+    permits_clean %>%
+      st_drop_geometry() %>%
+      select(id),
+    by = "id"
+  )
+
+unit_increase_included_ids <- unit_increase_flags %>%
+  filter(unit_increase_included == 1L) %>%
+  select(id, unit_increase_included, unit_increase_reason)
+if (anyDuplicated(unit_increase_included_ids$id) > 0) {
+  stop("Unit-increase inclusion IDs must be unique by permit id.", call. = FALSE)
+}
+
+permit_year_min <- permit_start_year
+permit_year_max <- permit_end_year
+
+if (st_crs(permits_clean) != st_crs(blocks_2010)) {
+  permits_clean <- st_transform(permits_clean, st_crs(blocks_2010))
+}
+
+permits_by_vintage <- list()
+for (block_vintage_label in c("2010", "2020")) {
+  blocks_sf <- blocks_by_vintage[[block_vintage_label]]
+  joined_df <- st_join(permits_clean, blocks_sf %>% select(block_id), join = st_within) %>%
+    st_drop_geometry()
 
   duplicate_matches <- joined_df %>%
     count(id, name = "n_matches") %>%
@@ -156,65 +339,31 @@ assign_permits_to_blocks <- function(permits_sf, blocks_sf, block_vintage_label,
       select(-final_block_id)
   }
 
-  as.data.table(
-    joined_df %>%
-      filter(!is.na(block_id)) %>%
-      arrange(id, block_id)
-  )
+  permits_i <- joined_df %>%
+    filter(!is.na(block_id)) %>%
+    arrange(id, block_id) %>%
+    left_join(unit_increase_included_ids, by = "id", relationship = "many-to-one") %>%
+    mutate(unit_increase_included = coalesce(as.integer(unit_increase_included), 0L))
+  setDT(permits_i)
+  permits_i[, `:=`(
+    is_new_construction_issued = as.integer(permit_type == "PERMIT - NEW CONSTRUCTION"),
+    is_demolition_issued = as.integer(grepl("WRECKING|DEMOLITION", permit_type)),
+    is_renovation_issued = as.integer(permit_type == "PERMIT - RENOVATION/ALTERATION"),
+    is_new_construction_demolition_issued = as.integer(
+      permit_type == "PERMIT - NEW CONSTRUCTION" | grepl("WRECKING|DEMOLITION", permit_type)
+    ),
+    is_low_discretion_nosigns_issued = as.integer(high_discretion == 0 & permit_type != signs_permit_type),
+    is_high_discretion_issued = as.integer(high_discretion == 1),
+    is_unit_increase_issued = as.integer(unit_increase_included == 1)
+  )]
+  permits_by_vintage[[block_vintage_label]] <- permits_i
 }
+permits_2010 <- permits_by_vintage[["2010"]]
+permits_2020 <- permits_by_vintage[["2020"]]
 
-permit_outcome_meta <- tibble(
-  count_var = c(
-    "n_new_construction_issue",
-    "n_new_construction_application",
-    "n_new_construction_demolition_issue",
-    "n_new_construction_demolition_application",
-    "n_demolition_issue",
-    "n_demolition_application",
-    "n_renovation_issue",
-    "n_renovation_application",
-    "n_low_discretion_nosigns_issue",
-    "n_low_discretion_nosigns_application",
-    "n_high_discretion_issue",
-    "n_high_discretion_application",
-    "n_unit_increase_issue",
-    "n_unit_increase_application"
-  ),
-  indicator_col = c(
-    "is_new_construction_issued",
-    "is_new_construction_issued",
-    "is_new_construction_demolition_issued",
-    "is_new_construction_demolition_issued",
-    "is_demolition_issued",
-    "is_demolition_issued",
-    "is_renovation_issued",
-    "is_renovation_issued",
-    "is_low_discretion_nosigns_issued",
-    "is_low_discretion_nosigns_issued",
-    "is_high_discretion_issued",
-    "is_high_discretion_issued",
-    "is_unit_increase_issued",
-    "is_unit_increase_issued"
-  ),
-  date_col = c(
-    "issue_year",
-    "application_year",
-    "issue_year",
-    "application_year",
-    "issue_year",
-    "application_year",
-    "issue_year",
-    "application_year",
-    "issue_year",
-    "application_year",
-    "issue_year",
-    "application_year",
-    "issue_year",
-    "application_year"
-  )
-)
-
-aggregate_outcome_counts <- function(permits_dt) {
+permit_counts_by_vintage <- list()
+for (block_vintage_label in c("2010", "2020")) {
+  permits_dt <- permits_by_vintage[[block_vintage_label]]
   pieces <- list()
   for (i in seq_len(nrow(permit_outcome_meta))) {
     spec_i <- permit_outcome_meta[i, ]
@@ -227,65 +376,42 @@ aggregate_outcome_counts <- function(permits_dt) {
     pieces[[i]] <- part_i
   }
 
-  if (length(pieces) == 0) {
-    return(data.table(block_id = character(), year = integer()))
+  counts_i <- pieces[[1]]
+  for (i in seq_along(pieces)[-1]) {
+    counts_i <- merge(counts_i, pieces[[i]], by = c("block_id", "year"), all = TRUE)
   }
-
-  out <- Reduce(function(x, y) merge(x, y, by = c("block_id", "year"), all = TRUE), pieces)
   for (count_var in permit_outcome_meta$count_var) {
-    if (!count_var %in% names(out)) {
-      out[, (count_var) := 0L]
+    if (!count_var %in% names(counts_i)) {
+      counts_i[, (count_var) := 0L]
     }
-    out[is.na(get(count_var)), (count_var) := 0L]
+    counts_i[is.na(get(count_var)), (count_var) := 0L]
   }
 
-  setorder(out, block_id, year)
-  out
+  setorder(counts_i, block_id, year)
+  permit_counts_by_vintage[[block_vintage_label]] <- counts_i
 }
 
-build_panel_with_counts <- function(base_df, start_year, end_year, cohort_year, counts_dt) {
-  if (anyDuplicated(paste(counts_dt$block_id, counts_dt$year, sep = "\r")) > 0) {
-    stop("Permit outcome counts must be unique by block-year.", call. = FALSE)
-  }
+cohort_specs <- tibble(
+  cohort_label = c("2015", "2023"),
+  block_vintage = c("2010", "2020"),
+  era_label = c("2003_2014", "2015_2023"),
+  cohort_year = c(2015L, 2023L)
+)
+cohort_panels <- list()
+for (cohort_i in seq_len(nrow(cohort_specs))) {
+  cohort_label <- cohort_specs$cohort_label[cohort_i]
+  block_vintage_label <- cohort_specs$block_vintage[cohort_i]
+  era_label <- cohort_specs$era_label[cohort_i]
+  cohort_year <- cohort_specs$cohort_year[cohort_i]
+  blocks_sf <- blocks_by_vintage[[block_vintage_label]]
+  counts_dt <- permit_counts_by_vintage[[block_vintage_label]]
+  treatment_df <- treatment_panel %>% filter(cohort == cohort_label)
 
-  panel <- base_df %>%
-    tidyr::crossing(year = seq(start_year, end_year)) %>%
-    mutate(
-      relative_year = year - cohort_year,
-      relative_year_capped = relative_year,
-      cohort_block_id = paste(cohort, block_id, sep = "_"),
-      cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
-      cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
-      cohort_segment = if_else(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
-      cohort_segment_side = if_else(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
-    ) %>%
-    left_join(as_tibble(counts_dt), by = c("block_id", "year"), relationship = "many-to-one")
-
-  count_cols <- permit_outcome_meta$count_var
-
-  panel %>%
-    mutate(across(all_of(count_cols), ~ replace_na(as.integer(.x), 0L))) %>%
-    mutate(
-      has_new_construction_issue = as.integer(n_new_construction_issue > 0L),
-      has_new_construction_application = as.integer(n_new_construction_application > 0L),
-      has_new_construction_demolition_issue = as.integer(n_new_construction_demolition_issue > 0L),
-      has_new_construction_demolition_application = as.integer(n_new_construction_demolition_application > 0L),
-      has_demolition_issue = as.integer(n_demolition_issue > 0L),
-      has_demolition_application = as.integer(n_demolition_application > 0L),
-      has_renovation_issue = as.integer(n_renovation_issue > 0L),
-      has_renovation_application = as.integer(n_renovation_application > 0L),
-      has_low_discretion_nosigns_issue = as.integer(n_low_discretion_nosigns_issue > 0L),
-      has_low_discretion_nosigns_application = as.integer(n_low_discretion_nosigns_application > 0L),
-      has_high_discretion_issue = as.integer(n_high_discretion_issue > 0L),
-      has_high_discretion_application = as.integer(n_high_discretion_application > 0L),
-      has_unit_increase_issue = as.integer(n_unit_increase_issue > 0L),
-      has_unit_increase_application = as.integer(n_unit_increase_application > 0L)
-    )
-}
-
-prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label) {
   if (anyDuplicated(treatment_df$block_id) > 0) {
     stop(sprintf("Treatment input for cohort %s must be unique by block_id.", cohort_label), call. = FALSE)
+  }
+  if (anyDuplicated(paste(counts_dt$block_id, counts_dt$year, sep = "\r")) > 0) {
+    stop("Permit outcome counts must be unique by block-year.", call. = FALSE)
   }
 
   block_centroids <- st_centroid(blocks_sf)
@@ -400,209 +526,39 @@ prepare_cohort_base <- function(blocks_sf, treatment_df, cohort_label, era_label
       control_origin_mismatch, point_origin_mismatch
     )
 
-  base
-}
-
-ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
-ward_maps <- load_canonical_ward_maps(ward_panel)
-boundary_lines <- build_canonical_boundary_list(ward_panel)
-segment_layers <- load_segment_line_layers("../input/boundary_segments_1320ft.gpkg")
-segment_meta <- segment_metadata_from_layers(segment_layers)
-segment_pair_lookup <- bind_rows(lapply(names(segment_layers), function(era_i) {
-  st_drop_geometry(segment_layers[[era_i]]) %>%
-    transmute(
-      segment_era = era_i,
-      segment_id_cohort = as.character(segment_id),
-      segment_pair_id = normalize_pair_dash(ward_pair_id)
+  cohort_panels[[cohort_label]] <- base %>%
+    tidyr::crossing(year = seq(permit_year_min, permit_year_max)) %>%
+    mutate(
+      relative_year = year - cohort_year,
+      relative_year_capped = relative_year,
+      cohort_block_id = paste(cohort, block_id, sep = "_"),
+      cohort_ward_pair = paste(cohort, ward_pair_id, sep = "_"),
+      cohort_ward_pair_side = paste(cohort, ward_pair_side, sep = "_"),
+      cohort_segment = if_else(!is.na(segment_id_cohort), paste(cohort, segment_id_cohort, sep = "_"), NA_character_),
+      cohort_segment_side = if_else(!is.na(segment_side), paste(cohort, segment_side, sep = "_"), NA_character_)
+    ) %>%
+    left_join(as_tibble(counts_dt), by = c("block_id", "year"), relationship = "many-to-one") %>%
+    mutate(across(all_of(permit_outcome_meta$count_var), ~ replace_na(as.integer(.x), 0L))) %>%
+    mutate(
+      has_new_construction_issue = as.integer(n_new_construction_issue > 0L),
+      has_new_construction_application = as.integer(n_new_construction_application > 0L),
+      has_new_construction_demolition_issue = as.integer(n_new_construction_demolition_issue > 0L),
+      has_new_construction_demolition_application = as.integer(n_new_construction_demolition_application > 0L),
+      has_demolition_issue = as.integer(n_demolition_issue > 0L),
+      has_demolition_application = as.integer(n_demolition_application > 0L),
+      has_renovation_issue = as.integer(n_renovation_issue > 0L),
+      has_renovation_application = as.integer(n_renovation_application > 0L),
+      has_low_discretion_nosigns_issue = as.integer(n_low_discretion_nosigns_issue > 0L),
+      has_low_discretion_nosigns_application = as.integer(n_low_discretion_nosigns_application > 0L),
+      has_high_discretion_issue = as.integer(n_high_discretion_issue > 0L),
+      has_high_discretion_application = as.integer(n_high_discretion_application > 0L),
+      has_unit_increase_issue = as.integer(n_unit_increase_issue > 0L),
+      has_unit_increase_application = as.integer(n_unit_increase_application > 0L)
     )
-}))
-
-treatment_panel <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
-  mutate(block_id = as.character(block_id))
-if (anyDuplicated(paste(treatment_panel$cohort, treatment_panel$block_id, sep = "\r")) > 0) {
-  stop("Block treatment panel must be unique by cohort-block.", call. = FALSE)
 }
 
-blocks_2010 <- read_blocks("../input/census_blocks_2010.csv", "GEOID10", st_crs(ward_panel))
-blocks_2020 <- read_blocks("../input/census_blocks_2020.csv", "GEOID20", st_crs(ward_panel))
-
-curated_unit_types <- c(
-  "PERMIT - NEW CONSTRUCTION",
-  "PERMIT - RENOVATION/ALTERATION"
-)
-
-unit_increase_flags <- read_csv(
-  "../input/building_permits_text_features.csv.gz",
-  show_col_types = FALSE,
-  col_select = c(
-    "id", "permit_type", "permit_issued", "unit_change_text",
-    "unit_change_direction", "unit_change_confidence", "unit_increase_signal",
-    "unit_change_signal", "flag_revision", "flag_revision_contractor",
-    "flag_new_construction_phrase", "flag_adu", "flag_increase"
-  )
-) %>%
-  mutate(
-    permit_issued = as.integer(permit_issued),
-    unit_change_text = suppressWarnings(as.numeric(unit_change_text)),
-    unit_increase_signal = coalesce(as.integer(unit_increase_signal), 0L),
-    unit_change_signal = coalesce(as.integer(unit_change_signal), 0L),
-    flag_revision = coalesce(as.integer(flag_revision), 0L),
-    flag_revision_contractor = coalesce(as.integer(flag_revision_contractor), 0L),
-    flag_new_construction_phrase = coalesce(as.integer(flag_new_construction_phrase), 0L),
-    flag_adu = coalesce(as.integer(flag_adu), 0L),
-    flag_increase = coalesce(as.integer(flag_increase), 0L),
-    curated_type = permit_type %in% curated_unit_types,
-    positive_unit_signal = unit_increase_signal == 1L |
-      (!is.na(unit_change_text) & unit_change_text > 0) |
-      unit_change_direction == "increase",
-    revision_only = flag_revision == 1L | flag_revision_contractor == 1L,
-    unit_increase_candidate = (permit_issued == 1L | is.na(permit_issued)) & (curated_type | positive_unit_signal),
-    unit_increase_reason = case_when(
-      !unit_increase_candidate ~ "outside_unit_increase_candidate_pool",
-      !curated_type ~ "excluded_outside_curated_type",
-      !positive_unit_signal ~ "excluded_no_positive_unit_signal",
-      revision_only ~ "excluded_revision_signal",
-      unit_change_confidence == "high" ~ "included_high_confidence",
-      unit_change_confidence == "medium" ~ "included_medium_confidence",
-      unit_change_confidence == "low" ~ "included_low_confidence",
-      TRUE ~ "included_unclassified_confidence"
-    ),
-    unit_increase_included = as.integer(grepl("^included_", unit_increase_reason))
-  ) %>%
-  arrange(desc(unit_increase_included), desc(positive_unit_signal), desc(curated_type), id)
-
-permits_clean <- st_read(
-  "../input/building_permits_clean.gpkg",
-  query = paste(
-    "SELECT id, pin, permit_type, high_discretion, permit_issued,",
-    "application_start_date_ym, issue_date_ym, latitude, longitude, processing_time, geom",
-    "FROM building_permits_clean",
-    "WHERE permit_issued = 1 OR permit_issued IS NULL"
-  ),
-  quiet = TRUE
-) %>%
-  mutate(
-    id = as.character(id),
-    application_year = as.integer(format(as.Date(application_start_date_ym), "%Y")),
-    issue_year = as.integer(format(as.Date(issue_date_ym), "%Y")),
-    application_month = as.yearmon(as.Date(application_start_date_ym)),
-    issue_month = as.yearmon(as.Date(issue_date_ym))
-  )
-
-permits_clean <- permits_clean %>%
-  filter(
-    (!is.na(application_month) &
-      application_year >= permit_start_year &
-      application_month <= permit_end_yearmon) |
-      (!is.na(issue_month) &
-        issue_year >= permit_start_year &
-        issue_month <= permit_end_yearmon)
-  )
-if (nrow(permits_clean) == 0) {
-  stop("No issued permits remain after applying the permit analysis year window.", call. = FALSE)
-}
-
-unit_increase_flags <- unit_increase_flags %>%
-  semi_join(
-    permits_clean %>%
-      st_drop_geometry() %>%
-      select(id),
-    by = "id"
-  )
-
-unit_increase_included_ids <- unit_increase_flags %>%
-  filter(unit_increase_included == 1L) %>%
-  select(id, unit_increase_included, unit_increase_reason)
-if (anyDuplicated(unit_increase_included_ids$id) > 0) {
-  stop("Unit-increase inclusion IDs must be unique by permit id.", call. = FALSE)
-}
-
-permit_year_min <- permit_start_year
-permit_year_max <- permit_end_year
-
-if (st_crs(permits_clean) != st_crs(blocks_2010)) {
-  permits_clean <- st_transform(permits_clean, st_crs(blocks_2010))
-}
-
-permits_2010 <- assign_permits_to_blocks(
-  permits_sf = permits_clean,
-  blocks_sf = blocks_2010,
-  block_vintage_label = "2010",
-  manual_block_assignments = manual_block_assignments
-) %>%
-  left_join(unit_increase_included_ids, by = "id", relationship = "many-to-one") %>%
-  mutate(
-    unit_increase_included = coalesce(as.integer(unit_increase_included), 0L)
-  )
-setDT(permits_2010)
-permits_2010[, `:=`(
-  is_new_construction_issued = as.integer(permit_type == "PERMIT - NEW CONSTRUCTION"),
-  is_demolition_issued = as.integer(grepl("WRECKING|DEMOLITION", permit_type)),
-  is_renovation_issued = as.integer(permit_type == "PERMIT - RENOVATION/ALTERATION"),
-  is_new_construction_demolition_issued = as.integer(
-    permit_type == "PERMIT - NEW CONSTRUCTION" | grepl("WRECKING|DEMOLITION", permit_type)
-  ),
-  is_low_discretion_nosigns_issued = as.integer(high_discretion == 0 & permit_type != signs_permit_type),
-  is_high_discretion_issued = as.integer(high_discretion == 1),
-  is_unit_increase_issued = as.integer(unit_increase_included == 1)
-)]
-
-permits_2020 <- assign_permits_to_blocks(
-  permits_sf = permits_clean,
-  blocks_sf = blocks_2020,
-  block_vintage_label = "2020",
-  manual_block_assignments = manual_block_assignments
-) %>%
-  left_join(unit_increase_included_ids, by = "id", relationship = "many-to-one") %>%
-  mutate(
-    unit_increase_included = coalesce(as.integer(unit_increase_included), 0L)
-  )
-setDT(permits_2020)
-permits_2020[, `:=`(
-  is_new_construction_issued = as.integer(permit_type == "PERMIT - NEW CONSTRUCTION"),
-  is_demolition_issued = as.integer(grepl("WRECKING|DEMOLITION", permit_type)),
-  is_renovation_issued = as.integer(permit_type == "PERMIT - RENOVATION/ALTERATION"),
-  is_new_construction_demolition_issued = as.integer(
-    permit_type == "PERMIT - NEW CONSTRUCTION" | grepl("WRECKING|DEMOLITION", permit_type)
-  ),
-  is_low_discretion_nosigns_issued = as.integer(high_discretion == 0 & permit_type != signs_permit_type),
-  is_high_discretion_issued = as.integer(high_discretion == 1),
-  is_unit_increase_issued = as.integer(unit_increase_included == 1)
-)]
-
-counts_2010 <- aggregate_outcome_counts(permits_2010)
-counts_2020 <- aggregate_outcome_counts(permits_2020)
-
-base_2015 <- prepare_cohort_base(
-  blocks_sf = blocks_2010,
-  treatment_df = treatment_panel %>% filter(cohort == "2015"),
-  cohort_label = "2015",
-  era_label = "2003_2014"
-)
-
-base_2023 <- prepare_cohort_base(
-  blocks_sf = blocks_2020,
-  treatment_df = treatment_panel %>% filter(cohort == "2023"),
-  cohort_label = "2023",
-  era_label = "2015_2023"
-)
-
-cohort_2015 <- build_panel_with_counts(
-  base_df = base_2015,
-  start_year = permit_year_min,
-  end_year = permit_year_max,
-  cohort_year = 2015L,
-  counts_dt = counts_2010
-)
-
-cohort_2023 <- build_panel_with_counts(
-  base_df = base_2023,
-  start_year = permit_year_min,
-  end_year = permit_year_max,
-  cohort_year = 2023L,
-  counts_dt = counts_2020
-)
-
+cohort_2015 <- cohort_panels[["2015"]]
+cohort_2023 <- cohort_panels[["2023"]]
 permit_panel <- bind_rows(cohort_2015, cohort_2023)
 
 event_rows_1000ft <- permit_panel %>%
