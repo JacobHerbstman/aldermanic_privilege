@@ -6,18 +6,20 @@
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
 # gap_split <- "above_median"
+# start_construction_year <- 2006
+# end_construction_year <- 2022
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, gap_split)
+  cli_args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, gap_split, start_construction_year, end_construction_year)
 }
 
-if (length(cli_args) != 6) {
+if (length(cli_args) != 8) {
   stop(
-    "FATAL: Script requires 6 args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <gap_split>.",
+    "FATAL: Script requires 8 args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <gap_split> <start_construction_year> <end_construction_year>.",
     call. = FALSE
   )
 }
@@ -28,6 +30,8 @@ sample_filter <- cli_args[3]
 fe_spec <- cli_args[4]
 bins_per_side <- as.integer(cli_args[5])
 gap_split <- cli_args[6]
+start_construction_year <- suppressWarnings(as.integer(cli_args[7]))
+end_construction_year <- suppressWarnings(as.integer(cli_args[8]))
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -46,6 +50,13 @@ if (!is.finite(bins_per_side) || bins_per_side < 2) {
 }
 if (!gap_split %in% c("above_median", "below_median")) {
   stop("gap_split must be one of: above_median, below_median", call. = FALSE)
+}
+if (
+  !is.finite(start_construction_year) ||
+    !is.finite(end_construction_year) ||
+    start_construction_year > end_construction_year
+) {
+  stop("start_construction_year and end_construction_year must be valid integer years with start <= end.", call. = FALSE)
 }
 
 distance_display <- distance_display_config("ft")
@@ -78,8 +89,8 @@ dat <- raw %>%
   filter(
     arealotsf > 1,
     areabuilding > 1,
-    construction_year >= 2006,
-    construction_year <= 2022,
+    construction_year >= start_construction_year,
+    construction_year <= end_construction_year,
     !is.na(ward_pair),
     !is.na(construction_year),
     is.finite(signed_distance_m),

@@ -1,8 +1,28 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/summary_stats_new_construction/code")
+# start_construction_year <- 2006
+# end_construction_year <- 2022
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/border_pair_helpers.R")
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(start_construction_year, end_construction_year)
+}
+if (length(cli_args) != 2) {
+  stop("FATAL: Script requires 2 args: <start_construction_year> <end_construction_year>.", call. = FALSE)
+}
+
+start_construction_year <- suppressWarnings(as.integer(cli_args[1]))
+end_construction_year <- suppressWarnings(as.integer(cli_args[2]))
+if (
+  !is.finite(start_construction_year) ||
+    !is.finite(end_construction_year) ||
+    start_construction_year > end_construction_year
+) {
+  stop("start_construction_year and end_construction_year must be valid integer years with start <= end.", call. = FALSE)
+}
 
 df <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE)
 df <- ensure_meter_distance_columns(df)
@@ -12,8 +32,8 @@ df_clean <- df %>%
     arealotsf > 1,
     areabuilding > 1,
     unitscount > 0,
-    construction_year >= 2006,
-    construction_year <= 2022
+    construction_year >= start_construction_year,
+    construction_year <= end_construction_year
   )
 
 df_mf <- df_clean %>%
@@ -63,7 +83,11 @@ table_content <- paste0(
   "\\caption{Summary Statistics of New Residential Construction}\n",
   "\\label{tab:summary_stats}\n",
   tabular_content,
-  "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Sample includes new residential construction from 2006--2022 with positive lot area, positive building area, and at least one dwelling unit. Multifamily is defined as two or more units.}\n",
+  sprintf(
+    "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Sample includes new residential construction from %d--%d with positive lot area, positive building area, and at least one dwelling unit. Multifamily is defined as two or more units.}\n",
+    start_construction_year,
+    end_construction_year
+  ),
   "\\end{table}\n"
 )
 

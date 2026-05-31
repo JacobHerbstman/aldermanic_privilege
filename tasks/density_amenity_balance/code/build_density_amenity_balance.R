@@ -3,6 +3,9 @@
 # bandwidth_m <- 152.4
 # sample_filter <- "all"
 # bandwidth_label <- "500ft"
+# start_construction_year <- 2006
+# end_construction_year <- 2022
+# min_cluster_ward_pairs <- 20
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/amenity_distance_helpers.R")
@@ -13,13 +16,16 @@ if (length(cli_args) == 0) {
   cli_args <- c(
     bandwidth_m,
     sample_filter,
-    bandwidth_label
+    bandwidth_label,
+    start_construction_year,
+    end_construction_year,
+    min_cluster_ward_pairs
   )
 }
 
-if (length(cli_args) != 3) {
+if (length(cli_args) != 6) {
   stop(
-    "FATAL: Script requires 3 args: <bandwidth_m> <sample_filter> <bandwidth_label>.",
+    "FATAL: Script requires 6 args: <bandwidth_m> <sample_filter> <bandwidth_label> <start_construction_year> <end_construction_year> <min_cluster_ward_pairs>.",
     call. = FALSE
   )
 }
@@ -27,6 +33,9 @@ if (length(cli_args) != 3) {
 bandwidth_m <- as.numeric(cli_args[1])
 sample_filter <- cli_args[2]
 bandwidth_label <- cli_args[3]
+start_construction_year <- suppressWarnings(as.integer(cli_args[4]))
+end_construction_year <- suppressWarnings(as.integer(cli_args[5]))
+min_cluster_ward_pairs <- suppressWarnings(as.integer(cli_args[6]))
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be a positive number.", call. = FALSE)
@@ -34,7 +43,16 @@ if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
 if (!sample_filter %in% c("all", "multifamily")) {
   stop("sample_filter must be one of: all, multifamily.", call. = FALSE)
 }
-min_cluster_ward_pairs <- 20L
+if (
+  !is.finite(start_construction_year) ||
+    !is.finite(end_construction_year) ||
+    start_construction_year > end_construction_year
+) {
+  stop("start_construction_year and end_construction_year must be valid integer years with start <= end.", call. = FALSE)
+}
+if (!is.finite(min_cluster_ward_pairs) || min_cluster_ward_pairs <= 0) {
+  stop("min_cluster_ward_pairs must be a positive integer.", call. = FALSE)
+}
 
 distance_display <- distance_display_config()
 covariate_catalog <- tibble(
@@ -150,8 +168,8 @@ analysis_sample <- analysis_sample %>%
   filter(
     arealotsf > 1,
     areabuilding > 1,
-    construction_year >= 2006,
-    construction_year <= 2022,
+    construction_year >= start_construction_year,
+    construction_year <= end_construction_year,
     if (sample_filter == "all") unitscount > 0 else unitscount > 1,
     dist_to_boundary_m <= bandwidth_m,
     !is.na(segment_id),
@@ -276,7 +294,11 @@ paired_tex_lines <- c(
     bandwidth_label,
     " ",
     sample_label,
-    " density sample, restricted to 2006--2022 new construction. Rows first collapse parcels to segment-by-side means, then compare more-stringent-side and less-stringent-side means within the same boundary segment. Difference is more stringent minus less stringent. Standard errors are clustered by ward pair across segment-level paired differences when at least ",
+    " density sample, restricted to ",
+    start_construction_year,
+    "--",
+    end_construction_year,
+    " new construction. Rows first collapse parcels to segment-by-side means, then compare more-stringent-side and less-stringent-side means within the same boundary segment. Difference is more stringent minus less stringent. Standard errors are clustered by ward pair across segment-level paired differences when at least ",
     min_cluster_ward_pairs,
     " ward pairs are available. Normalized differences divide the paired mean difference by the pooled standard deviation of the segment-side means. PD share is the segment-side share of parcels whose zone code is classified as Planned Development. Zoned FAR has fewer paired segments because planned developments do not map to a single zoning FAR value in the scored parcel file.}"
   ),

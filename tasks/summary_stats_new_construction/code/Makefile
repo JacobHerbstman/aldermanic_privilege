@@ -1,7 +1,10 @@
+START_CONSTRUCTION_YEAR ?= 2006
+END_CONSTRUCTION_YEAR ?= 2022
+
 all: ../output/summary_stats.tex
 
 ../output/summary_stats.tex: summary_stats.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript $<
+	Rscript $< $(START_CONSTRUCTION_YEAR) $(END_CONSTRUCTION_YEAR)
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
