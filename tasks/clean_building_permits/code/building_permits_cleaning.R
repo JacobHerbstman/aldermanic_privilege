@@ -32,7 +32,7 @@ permits_to_convert <- building_permits_clean[needs_conversion_mask, ]
 converted_sf <- st_as_sf(
     permits_to_convert,
     coords = c("xcoordinate", "ycoordinate"),
-    crs = crs_projected, # Source CRS: NAD83 Illinois State Plane East
+    crs = crs_projected,
     remove = FALSE
   ) %>%
   st_transform(crs = 4326)
@@ -121,10 +121,8 @@ building_permits_sf <- st_as_sf(
   remove = FALSE
 ) %>% 
   st_transform(crs_projected) %>%
-  mutate(across(c(application_start_date_ym, issue_date_ym), 
-        function(x) as.Date(x)))
+  mutate(across(c(application_start_date_ym, issue_date_ym), as.Date))
         
-## write clean data
 st_write(
   building_permits_sf,
   "../output/building_permits_clean.gpkg",
