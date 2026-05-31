@@ -94,6 +94,30 @@ permits_analysis_all <- permits_with_ward %>%
   mutate(alderman = gsub("\\s+", " ", trimws(as.character(alderman)))) %>%
   filter(!is.na(alderman), alderman != "")
 
+correlation_table <- bind_rows(
+  permits_analysis_all %>% filter(high_discretion == 1) %>% mutate(group = "High-Discretion"),
+  permits_analysis_all %>% filter(high_discretion == 0, permit_type != signs_permit_type) %>% mutate(group = "Low-Discretion"),
+  permits_analysis_all %>% mutate(group = "All")
+) %>%
+  mutate(group = factor(group, levels = c(group_levels, "All"))) %>%
+  group_by(group, ward, application_start_date_ym) %>%
+  summarise(
+    mean_processing_time = mean(processing_time),
+    ward_month_permit_volume = n(),
+    .groups = "drop"
+  ) %>%
+  group_by(group) %>%
+  summarise(
+    `Corr. of mean processing time and ward-month permit volume` = cor(
+      mean_processing_time,
+      ward_month_permit_volume,
+      use = "complete.obs",
+      method = "pearson"
+    ),
+    .groups = "drop"
+  ) %>%
+  arrange(group)
+
 permits_analysis <- permits_analysis_all %>%
   filter(high_discretion == 1 | permit_type != signs_permit_type) %>%
   mutate(
@@ -188,6 +212,29 @@ for (j in seq_len(nrow(alderman_summary_table))) {
 
 alderman_summary_tex_lines <- c(alderman_summary_tex_lines, "\\bottomrule", "\\end{tabular}")
 writeLines(alderman_summary_tex_lines, "../output/permit_processing_time_high_vs_low_alderman_summary.tex")
+
+correlation_tex_lines <- c(
+  "\\begin{tabular}{lr}",
+  "\\toprule",
+  "Permit group & Corr. of mean processing time and ward-month permit volume \\\\",
+  "\\midrule"
+)
+
+for (i in seq_len(nrow(correlation_table))) {
+  correlation_value_i <- correlation_table$`Corr. of mean processing time and ward-month permit volume`[i]
+  correlation_text_i <- ifelse(
+    is.finite(correlation_value_i),
+    formatC(correlation_value_i, format = "f", digits = 3),
+    ""
+  )
+  correlation_tex_lines <- c(
+    correlation_tex_lines,
+    sprintf("%s & %s \\\\", correlation_table$group[i], correlation_text_i)
+  )
+}
+
+correlation_tex_lines <- c(correlation_tex_lines, "\\bottomrule", "\\end{tabular}")
+writeLines(correlation_tex_lines, "../output/permit_processing_time_volume_correlation.tex")
 
 p_density <- ggplot(
   alderman_means,
