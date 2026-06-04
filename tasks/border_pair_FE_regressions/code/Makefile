@@ -1,66 +1,30 @@
-SHELL := bash
-
-MAIN_YVARS := 'log(density_far)' 'log(density_dupac)'
 MAIN_BW_M ?= 152.4
 MAIN_BW_LABEL ?= 500ft
+MAIN_FE_SPEC ?= zonegroup_segment_year_additive
+MAIN_CLUSTER_LEVEL ?= ward_pair
 
 all: \
-	../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex \
-	../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex \
-	../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_pruned.csv \
-	../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.csv \
-	../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair_minsegment500ft.tex \
-	../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair_minsegment1000ft.tex
+	../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL).tex \
+	../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL)_pruned.tex
 
-../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex: combine_density_main_table.R ../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair.csv ../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair.csv | ../output
-	Rscript combine_density_main_table.R ../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair.csv ../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair.csv "$@"
+../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL).tex: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
+	Rscript $< $(MAIN_BW_M) $(MAIN_BW_LABEL) $(MAIN_FE_SPEC) all $(MAIN_CLUSTER_LEVEL) 'log(density_far)' 'log(density_dupac)'
 
-../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair.csv: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(MAIN_BW_LABEL) CLUSTER_LEVEL=ward_pair WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$@" Rscript border_pair_FE_regressions.R $(MAIN_BW_M) all zonegroup_segment_year_additive ../output/fe_table_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair.tex $(MAIN_YVARS)
-
-../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair.csv: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(MAIN_BW_LABEL) CLUSTER_LEVEL=ward_pair WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$@" Rscript border_pair_FE_regressions.R $(MAIN_BW_M) multifamily zonegroup_segment_year_additive ../output/fe_table_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex $(MAIN_YVARS)
-
-../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex: combine_density_main_table.R ../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_pruned.csv ../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.csv | ../output
-	Rscript combine_density_main_table.R ../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_pruned.csv ../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.csv "$@"
-
-../output/fe_table_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(MAIN_BW_LABEL) PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CONFOUND_SEGMENT_FLAGS_PATH=../input/confounded_segment_flags.csv CLUSTER_LEVEL=ward_pair Rscript border_pair_FE_regressions.R $(MAIN_BW_M) all zonegroup_segment_year_additive "$@" $(MAIN_YVARS)
-
-../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_pruned.csv: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(MAIN_BW_LABEL) PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CONFOUND_SEGMENT_FLAGS_PATH=../input/confounded_segment_flags.csv CLUSTER_LEVEL=ward_pair WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$@" Rscript border_pair_FE_regressions.R $(MAIN_BW_M) all zonegroup_segment_year_additive ../output/fe_table_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex $(MAIN_YVARS)
-
-../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.csv: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(MAIN_BW_LABEL) PRUNE_SAMPLE=pruned CONFOUND_FLAGS_PATH=../input/confounded_pair_era_flags.csv CONFOUND_SEGMENT_FLAGS_PATH=../input/confounded_segment_flags.csv CLUSTER_LEVEL=ward_pair WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$@" Rscript border_pair_FE_regressions.R $(MAIN_BW_M) multifamily zonegroup_segment_year_additive ../output/fe_table_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex $(MAIN_YVARS)
-
-../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair_minsegment500ft.tex: combine_density_main_table.R ../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_minsegment500ft.csv ../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_minsegment500ft.csv | ../output
-	Rscript combine_density_main_table.R ../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_minsegment500ft.csv ../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_minsegment500ft.csv "$@"
-
-../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_minsegment500ft.csv: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(MAIN_BW_LABEL) MIN_SEGMENT_LENGTH_FT=500 CLUSTER_LEVEL=ward_pair WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$@" Rscript border_pair_FE_regressions.R $(MAIN_BW_M) all zonegroup_segment_year_additive ../output/fe_table_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_minsegment500ft.tex $(MAIN_YVARS)
-
-../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_minsegment500ft.csv: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(MAIN_BW_LABEL) MIN_SEGMENT_LENGTH_FT=500 CLUSTER_LEVEL=ward_pair WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$@" Rscript border_pair_FE_regressions.R $(MAIN_BW_M) multifamily zonegroup_segment_year_additive ../output/fe_table_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_minsegment500ft.tex $(MAIN_YVARS)
-
-../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair_minsegment1000ft.tex: combine_density_main_table.R ../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_minsegment1000ft.csv ../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_minsegment1000ft.csv | ../output
-	Rscript combine_density_main_table.R ../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_minsegment1000ft.csv ../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_minsegment1000ft.csv "$@"
-
-../output/fe_summary_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_minsegment1000ft.csv: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(MAIN_BW_LABEL) MIN_SEGMENT_LENGTH_FT=1000 CLUSTER_LEVEL=ward_pair WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$@" Rscript border_pair_FE_regressions.R $(MAIN_BW_M) all zonegroup_segment_year_additive ../output/fe_table_$(MAIN_BW_LABEL)_all_zonegroup_segment_year_additive_clust_ward_pair_minsegment1000ft.tex $(MAIN_YVARS)
-
-../output/fe_summary_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_minsegment1000ft.csv: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv | ../output
-	DISTANCE_DISPLAY_UNIT=ft BANDWIDTH_LABEL=$(MAIN_BW_LABEL) MIN_SEGMENT_LENGTH_FT=1000 CLUSTER_LEVEL=ward_pair WRITE_TEX=FALSE FE_SUMMARY_OUTPUT_PATH="$@" Rscript border_pair_FE_regressions.R $(MAIN_BW_M) multifamily zonegroup_segment_year_additive ../output/fe_table_$(MAIN_BW_LABEL)_multifamily_zonegroup_segment_year_additive_clust_ward_pair_minsegment1000ft.tex $(MAIN_YVARS)
+../output/fe_table_$(MAIN_BW_LABEL)_all_multifamily_$(MAIN_FE_SPEC)_clust_$(MAIN_CLUSTER_LEVEL)_pruned.tex: border_pair_FE_regressions.R ../../_lib/border_pair_helpers.R ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv | ../output
+	Rscript $< $(MAIN_BW_M) $(MAIN_BW_LABEL) $(MAIN_FE_SPEC) pruned $(MAIN_CLUSTER_LEVEL) 'log(density_far)' 'log(density_dupac)'
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/confounded_pair_era_flags.csv: ../../border_confound_pruning/output/confounded_pair_era_flags.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/confounded_segment_flags.csv: ../../border_confound_pruning/output/confounded_segment_flags.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/parcels_with_ward_distances.csv ../input/confounded_pair_era_flags.csv ../input/confounded_segment_flags.csv
+link-inputs: \
+	../input/parcels_with_ward_distances.csv \
+	../input/confounded_pair_era_flags.csv \
+	../input/confounded_segment_flags.csv
 
-include ../../shell_functions.make
 include ../../generic.make

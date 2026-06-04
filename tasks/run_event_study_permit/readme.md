@@ -1,7 +1,11 @@
 # run_event_study_permit
 
-Purpose: Runs event study permit specifications.
+Purpose: Runs the paper-facing permit event-study specifications.
 
-Produces: Produces files such as `output/did_table_high_discretion_issue_ppml_uniform_1000ft_full_geo_wardpair.tex`, `output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair.tex`, `output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_geo_wardpair_samp_singlepairbg.tex` and related task-specific outputs in `output/`.
+Produces:
+- `output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf`
+- `output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf`
+- `output/event_study_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf`
+- `output/did_table_permit_2015_high_discretion_issue_ppml_uniform_1000ft_noctrl_geo_wardpair.tex`
 
 Approx. runtime: ~3-20 minutes.

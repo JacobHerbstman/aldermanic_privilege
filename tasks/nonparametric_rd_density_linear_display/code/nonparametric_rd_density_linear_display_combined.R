@@ -1,31 +1,27 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_linear_display/code")
 # bandwidth_m <- 152.4
-# bandwidth_label <- "500ft"
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
-# outcome_scale <- "log"
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(bandwidth_m, bandwidth_label, fe_spec, bins_per_side, outcome_scale)
+source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(bandwidth_m, fe_spec, bins_per_side)
 }
 
-if (!length(args) %in% c(4, 5)) {
+if (length(cli_args) != 3) {
   stop(
-    "FATAL: Script requires args: <bandwidth_m> <bandwidth_label> <fe_spec> <bins_per_side> [outcome_scale]",
+    "FATAL: Script requires 3 args: <bandwidth_m> <fe_spec> <bins_per_side>.",
     call. = FALSE
   )
 }
 
-bandwidth_m <- as.numeric(args[1])
-bandwidth_label <- args[2]
-fe_spec <- args[3]
-bins_per_side <- as.integer(args[4])
-outcome_scale <- ifelse(length(args) == 5, args[5], "log")
+bandwidth_m <- as.numeric(cli_args[1])
+fe_spec <- cli_args[2]
+bins_per_side <- as.integer(cli_args[3])
 
 if (!is.finite(bandwidth_m) || bandwidth_m <= 0) {
   stop("bandwidth_m must be a positive number.", call. = FALSE)
@@ -36,24 +32,9 @@ if (!fe_spec %in% c("zonegroup_segment_year_additive", "zonegroup_pair_year_addi
 if (!is.finite(bins_per_side) || bins_per_side < 2) {
   stop("bins_per_side must be an integer >= 2.", call. = FALSE)
 }
-if (!outcome_scale %in% c("log", "level")) {
-  stop("outcome_scale must be one of: log, level.", call. = FALSE)
-}
 
-output_scale_prefix <- ifelse(outcome_scale == "log", "", "_levels")
-
-output_pdf <- sprintf(
-  "../output/nonparametric_rd_density_linear_display_4panel%s_%s_all_multifamily_bins%d.pdf",
-  output_scale_prefix,
-  bandwidth_label,
-  bins_per_side
-)
-output_estimates <- sprintf(
-  "../output/nonparametric_rd_density_linear_display_4panel%s_%s_all_multifamily_bins%d_estimates.csv",
-  output_scale_prefix,
-  bandwidth_label,
-  bins_per_side
-)
+distance_display <- distance_display_config("ft")
+bw_label <- format_distance_label(bandwidth_m, distance_display)
 
 fe_formula <- dplyr::case_when(
   fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
@@ -61,14 +42,6 @@ fe_formula <- dplyr::case_when(
   fe_spec == "segment_year" ~ "segment_id + construction_year",
   TRUE ~ NA_character_
 )
-
-stars <- function(p) {
-  if (!is.finite(p)) return("")
-  if (p <= 0.01) return("***")
-  if (p <= 0.05) return("**")
-  if (p <= 0.1) return("*")
-  ""
-}
 
 controls <- c(
   "share_white_own",
@@ -87,6 +60,7 @@ base_dat <- raw %>%
     arealotsf > 1,
     areabuilding > 1,
     construction_year >= 2006,
+    construction_year <= 2022,
     !is.na(ward_pair),
     !is.na(construction_year),
     is.finite(signed_distance_m),
@@ -96,20 +70,30 @@ base_dat <- raw %>%
     abs(signed_distance_m) <= bandwidth_m
   )
 
-distance_display <- distance_display_config()
 x_limits <- c(-bandwidth_m, bandwidth_m) * distance_display$scale
 x_label <- sprintf("Distance to ward boundary (%s)", distance_display$unit)
-bw_label <- format_distance_label(bandwidth_m, distance_display)
 
-build_panel <- function(yvar, sample_filter) {
+panel_specs <- tribble(
+  ~yvar, ~sample_filter,
+  "density_far", "all",
+  "density_far", "multifamily",
+  "density_dupac", "all",
+  "density_dupac", "multifamily"
+)
+
+panels <- vector("list", nrow(panel_specs))
+
+for (i in seq_len(nrow(panel_specs))) {
+  yvar <- panel_specs$yvar[i]
+  sample_filter <- panel_specs$sample_filter[i]
+
   outcome_name <- dplyr::case_when(
     yvar == "density_far" ~ "FAR",
     yvar == "density_dupac" ~ "DUPAC",
     TRUE ~ yvar
   )
   pretty_outcome <- dplyr::case_when(
-    outcome_scale == "log" ~ paste0("Log(", outcome_name, ")"),
-    outcome_scale == "level" ~ outcome_name,
+    yvar %in% c("density_far", "density_dupac") ~ paste0("Log(", outcome_name, ")"),
     TRUE ~ outcome_name
   )
   sample_label <- dplyr::case_when(
@@ -130,7 +114,7 @@ build_panel <- function(yvar, sample_filter) {
   dat <- dat %>%
     filter(is.finite(.data[[yvar]]), .data[[yvar]] > 0) %>%
     mutate(
-      outcome = if (outcome_scale == "log") log(.data[[yvar]]) else .data[[yvar]],
+      outcome = log(.data[[yvar]]),
       running_distance = signed_distance_m,
       side = as.integer(running_distance > 0)
     )
@@ -160,22 +144,6 @@ build_panel <- function(yvar, sample_filter) {
     stop("Residualized sample alignment failed.", call. = FALSE)
   }
 
-  fml_linear <- as.formula(sprintf(
-    "outcome ~ side * running_distance + %s | %s",
-    paste(controls, collapse = " + "),
-    fe_formula
-  ))
-  m_linear <- feols(fml_linear, data = aug, cluster = ~ward_pair)
-
-  linear_row <- coeftable(m_linear)[rownames(coeftable(m_linear)) %in% "side", , drop = FALSE]
-  if (nrow(linear_row) != 1) {
-    stop("Could not recover the local-linear cutoff estimate.", call. = FALSE)
-  }
-
-  cutoff_estimate <- unname(linear_row[1, "Estimate"])
-  cutoff_se <- unname(linear_row[1, "Std. Error"])
-  cutoff_p <- unname(linear_row[1, "Pr(>|t|)"])
-
   m_display <- feols(
     residualized_outcome ~ side * running_distance,
     data = aug,
@@ -192,14 +160,12 @@ build_panel <- function(yvar, sample_filter) {
         length(breaks_m) - 1L
       ),
       bin_left_m = breaks_m[bin_idx],
-      bin_center_m = bin_left_m + bin_width_m / 2,
-      side_label = if_else(side == 1L, "Strict side", "Lenient side")
+      bin_center_m = bin_left_m + bin_width_m / 2
     )
 
   bins <- aug %>%
-    group_by(bin_idx, bin_center_m, side, side_label) %>%
+    group_by(bin_idx, bin_center_m, side) %>%
     summarise(
-      n = n(),
       mean_y = mean(residualized_outcome, na.rm = TRUE),
       .groups = "drop"
     ) %>%
@@ -213,27 +179,15 @@ build_panel <- function(yvar, sample_filter) {
     )
   ) %>%
     mutate(
-      side = as.integer(running_distance > 0),
-      side_label = if_else(side == 1L, "Strict side", "Lenient side")
+      side = as.integer(running_distance > 0)
     )
 
-  xmat <- matrix(0, nrow = nrow(line_df), ncol = length(coef_names))
-  colnames(xmat) <- coef_names
-  if ("(Intercept)" %in% coef_names) {
-    xmat[, "(Intercept)"] <- 1
+  xmat <- model.matrix(~ side * running_distance, data = line_df)
+  missing_coef_names <- setdiff(coef_names, colnames(xmat))
+  if (length(missing_coef_names) > 0) {
+    stop("Prediction design matrix does not match fitted model.", call. = FALSE)
   }
-  if ("side" %in% coef_names) {
-    xmat[, "side"] <- line_df$side
-  }
-  if ("running_distance" %in% coef_names) {
-    xmat[, "running_distance"] <- line_df$running_distance
-  }
-  if ("side:running_distance" %in% coef_names) {
-    xmat[, "side:running_distance"] <- line_df$side * line_df$running_distance
-  }
-  if ("running_distance:side" %in% coef_names) {
-    xmat[, "running_distance:side"] <- line_df$side * line_df$running_distance
-  }
+  xmat <- xmat[, coef_names, drop = FALSE]
 
   line_vcov <- vcov(m_display)
   line_crit <- qt(0.975, df = max(n_distinct(aug$ward_pair) - 1, 1))
@@ -258,14 +212,6 @@ build_panel <- function(yvar, sample_filter) {
   }
   y_pad <- max(0.15 * y_span, 0.05)
   y_limits <- c(y_min - y_pad, y_max + y_pad)
-
-  subtitle_label <- sprintf(
-    "Jump = %.3f%s (SE %.3f); N = %s",
-    cutoff_estimate,
-    stars(cutoff_p),
-    cutoff_se,
-    format(nobs(m_resid), big.mark = ",")
-  )
 
   plot <- ggplot() +
     geom_ribbon(
@@ -296,51 +242,18 @@ build_panel <- function(yvar, sample_filter) {
     coord_cartesian(ylim = y_limits) +
     labs(
       title = paste(sample_label, pretty_outcome, sep = ": "),
-      subtitle = subtitle_label,
       x = x_label,
       y = paste("Residualized", pretty_outcome)
     ) +
     theme_bw(base_size = 9) +
     theme(
       plot.title = element_text(face = "bold", size = 10),
-      plot.subtitle = element_text(size = 7.8),
       axis.title = element_text(size = 8.5),
       axis.text = element_text(size = 7.5),
       panel.grid.minor = element_blank()
     )
 
-  estimate_row <- tibble(
-    sample = sample_filter,
-    outcome = yvar,
-    bandwidth_m = bandwidth_m,
-    bandwidth_label = bw_label,
-    bins_per_side = bins_per_side,
-    outcome_scale = outcome_scale,
-    estimate = cutoff_estimate,
-    se = cutoff_se,
-    p_value = cutoff_p,
-    observations = nobs(m_resid),
-    ward_pairs = n_distinct(aug$ward_pair)
-  )
-
-  list(plot = plot, estimate = estimate_row)
-}
-
-panel_specs <- tribble(
-  ~yvar, ~sample_filter,
-  "density_far", "all",
-  "density_far", "multifamily",
-  "density_dupac", "all",
-  "density_dupac", "multifamily"
-)
-
-panels <- vector("list", nrow(panel_specs))
-estimates <- vector("list", nrow(panel_specs))
-
-for (i in seq_len(nrow(panel_specs))) {
-  built <- build_panel(panel_specs$yvar[i], panel_specs$sample_filter[i])
-  panels[[i]] <- built$plot
-  estimates[[i]] <- built$estimate
+  panels[[i]] <- plot
 }
 
 combined_plot <- (panels[[1]] | panels[[2]]) / (panels[[3]] | panels[[4]]) +
@@ -348,20 +261,21 @@ combined_plot <- (panels[[1]] | panels[[2]]) / (panels[[3]] | panels[[4]]) +
     title = sprintf(
       "Local-Linear Spatial RD: All and Multifamily New Construction (%s, %s)",
       bw_label,
-      ifelse(outcome_scale == "log", "logs", "levels")
-    ),
-    subtitle = sprintf(
-      "Residualized display with %d binned points per side; negative distance is the more lenient side",
-      bins_per_side
+      "logs"
     )
   ) &
   theme(
-    plot.title = element_text(face = "bold", size = 13),
-    plot.subtitle = element_text(size = 9.5)
+    plot.title = element_text(face = "bold", size = 13)
   )
 
-ggsave(output_pdf, plot = combined_plot, width = 11.2, height = 8.4, dpi = 300)
-write_csv(bind_rows(estimates), output_estimates)
-
-message(sprintf("Built %s", output_pdf))
-message(sprintf("Built %s", output_estimates))
+ggsave(
+  sprintf(
+    "../output/nonparametric_rd_density_linear_display_4panel_%s_all_multifamily_bins%d.pdf",
+    bw_label,
+    bins_per_side
+  ),
+  plot = combined_plot,
+  width = 11.2,
+  height = 8.4,
+  dpi = 300
+)

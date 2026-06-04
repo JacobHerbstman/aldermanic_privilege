@@ -5,7 +5,6 @@
 set -euo pipefail
 
 output_file="../output/parcel_sales_city.csv"
-metadata_file="../output/parcel_sales_city_metadata.csv"
 api_csv="https://datacatalog.cookcountyil.gov/resource/wvhk-k5uv.csv"
 api_json="https://datacatalog.cookcountyil.gov/resource/wvhk-k5uv.json"
 batch_size=1000000
@@ -83,7 +82,6 @@ if ! [[ "$expected_records" =~ ^[0-9]+$ ]]; then
 fi
 
 tmp_output="$tmp_dir/parcel_sales_city.csv"
-tmp_metadata="$tmp_dir/parcel_sales_city_metadata.csv"
 offset=0
 batch_index=0
 expected_header=""
@@ -131,12 +129,6 @@ if (( ending_records != expected_records )); then
     exit 1
 fi
 
-{
-    echo "source_url,downloaded_at_utc,filter,order_clause,batch_size,rows,start_rows,end_rows,columns"
-    echo "$api_csv,$(date -u +%Y-%m-%dT%H:%M:%SZ),\"${where_clause}\",\"${order_clause}\",$batch_size,$actual_records,$expected_records,$ending_records,\"${select_columns}\""
-} > "$tmp_metadata"
-
-mv "$tmp_metadata" "$metadata_file"
 mv "$tmp_output" "$output_file"
 
 echo "Download complete: ${actual_records} records"

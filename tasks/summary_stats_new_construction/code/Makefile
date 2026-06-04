@@ -1,17 +1,14 @@
-SHELL := bash
+START_CONSTRUCTION_YEAR ?= 2006
+END_CONSTRUCTION_YEAR ?= 2022
 
-all: ../output/summary_stats.tex ../output/summary_stats_tabular.tex
+all: ../output/summary_stats.tex
 
 ../output/summary_stats.tex: summary_stats.R ../input/parcels_with_ward_distances.csv | ../output
-	Rscript summary_stats.R
-
-../output/summary_stats_tabular.tex: ../output/summary_stats.tex
-	@test -s "$@"
+	Rscript $< $(START_CONSTRUCTION_YEAR) $(END_CONSTRUCTION_YEAR)
 
 ../input/parcels_with_ward_distances.csv: ../../merge_in_scores/output/parcels_with_ward_distances.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/parcels_with_ward_distances.csv
 
-include ../../shell_functions.make
 include ../../generic.make

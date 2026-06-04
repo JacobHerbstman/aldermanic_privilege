@@ -1,7 +1,8 @@
 # calculate_sale_distances
 
-Purpose: Calculates sale distances.
+Purpose: Builds the sale-distance handoff with ward-boundary distances and 2022-dollar winsorized transaction prices.
 
-Produces: Produces files such as `output/sales_geometry_diagnostics.csv`, `output/sales_pre_scores.csv`, `output/sales_with_ward_distances.csv` and related task-specific outputs in `output/`.
+Produces:
+- `output/sales_pre_scores.csv`
 
 Approx. runtime: ~1-10 minutes.

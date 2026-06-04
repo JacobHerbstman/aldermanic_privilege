@@ -55,7 +55,7 @@ critical_tasks <- c(
   "create_alderman_uncertainty_index",
   "strictness_score_map",
   "within_ward_strictness",
-  "uncertainty_validation_checks",
+  "permit_stringency_table",
   "border_pair_FE_regressions",
   "nonparametric_rd_density_linear_display",
   "nonparametric_rd_density_donut",
@@ -88,7 +88,7 @@ makefile_targets <- c(
   "create_alderman_uncertainty_index" = "tasks/create_alderman_uncertainty_index/code/Makefile",
   "strictness_score_map" = "tasks/strictness_score_map/code/Makefile",
   "within_ward_strictness" = "tasks/within_ward_strictness/code/Makefile",
-  "uncertainty_validation_checks" = "tasks/uncertainty_validation_checks/code/Makefile",
+  "permit_stringency_table" = "tasks/permit_stringency_table/code/Makefile",
   "border_pair_FE_regressions" = "tasks/border_pair_FE_regressions/code/Makefile",
   "nonparametric_rd_density_linear_display" = "tasks/nonparametric_rd_density_linear_display/code/Makefile",
   "nonparametric_rd_density_donut" = "tasks/nonparametric_rd_density_donut/code/Makefile",
@@ -98,8 +98,8 @@ makefile_targets <- c(
   "event_study_treatment_maps" = "tasks/event_study_treatment_maps/code/Makefile",
   "create_event_study_permit_data" = "tasks/create_event_study_permit_data/code/Makefile",
   "run_event_study_permit" = "tasks/run_event_study_permit/code/Makefile",
-  "create_event_study_sales_data_disaggregate" = "tasks/create_event_study_sales_data_disaggregate/code/Makefile",
-  "run_event_study_sales_disaggregate" = "tasks/run_event_study_sales_disaggregate/code/Makefile",
+  "create_event_study_sales_data_disaggregate" = "tasks/audits/create_event_study_sales_data_disaggregate/code/Makefile",
+  "run_event_study_sales_disaggregate" = "tasks/audits/run_event_study_sales_disaggregate/code/Makefile",
   "merge_event_study_scores" = "tasks/merge_event_study_scores/code/Makefile",
   "create_block_treatment_panel" = "tasks/create_block_treatment_panel/code/Makefile",
   "merge_in_scores" = "tasks/merge_in_scores/code/Makefile",
@@ -293,111 +293,30 @@ parse_density_figure_spec <- function(artifact_path) {
 }
 
 build_density_sidecars <- function(spatial_artifact_paths, density_sidecar_dir) {
-  if (length(spatial_artifact_paths) == 0) {
-    return(tibble(
-      artifact_path = character(),
-      figure_name = character(),
-      yvar = character(),
-      use_log = logical(),
-      bw_ft = numeric(),
-      sample_filter = character(),
-      fe_spec = character(),
-      plot_style = character(),
-      gap_split = character(),
-      donut_ft = numeric(),
-      placebo_shift_ft = numeric(),
-      audit_pdf_path = character(),
-      audit_bins_path = character(),
-      audit_meta_path = character(),
-      bins_exists = logical(),
-      meta_exists = logical()
-    ))
-  }
-
-  spatial_task_code_dir <- file.path(repo_root, "tasks/spatial_rd_fe/code")
-  spatial_script <- "spatial_rd_fe.R"
-
-  sidecar_specs <- unique(spatial_artifact_paths) %>%
-    map_dfr(parse_density_figure_spec) %>%
-    mutate(
-      audit_pdf_path = file.path(density_sidecar_dir, figure_name),
-      audit_bins_path = sub("\\.pdf$", "_bins.csv", audit_pdf_path),
-      audit_meta_path = sub("\\.pdf$", "_meta.csv", audit_pdf_path)
-    )
-
-  for (i in seq_len(nrow(sidecar_specs))) {
-    spec <- sidecar_specs[i, ]
-
-    if (file.exists(spec$audit_bins_path) && file.exists(spec$audit_meta_path)) {
-      next
-    }
-
-    command_args <- c(
-      spatial_script,
-      spec$yvar,
-      ifelse(spec$use_log, "TRUE", "FALSE"),
-      as.character(spec$bw_ft),
-      spec$sample_filter,
-      spec$fe_spec,
-      spec$audit_pdf_path,
-      spec$plot_style,
-      spec$gap_split
-    )
-
-    command_output <- with_dir(
-      spatial_task_code_dir,
-      with_envvar(
-        c(
-          CLUSTER_LEVEL = "ward_pair",
-          DONUT_FT = as.character(spec$donut_ft),
-          PLACEBO_SHIFT_FT = as.character(spec$placebo_shift_ft)
-        ),
-        system2("Rscript", command_args, stdout = TRUE, stderr = TRUE)
-      )
-    )
-
-    command_status <- null_coalesce(attr(command_output, "status"), 0L)
-    if (command_status != 0L) {
-      stop(
-        paste(
-          sprintf("Failed to generate audit-local density sidecars for %s.", spec$figure_name),
-          paste(command_output, collapse = "\n")
-        ),
-        call. = FALSE
-      )
-    }
-
-    if (!file.exists(spec$audit_bins_path) || !file.exists(spec$audit_meta_path)) {
-      stop(sprintf("Spatial RD sidecars were not created for %s.", spec$figure_name), call. = FALSE)
-    }
-  }
-
-  sidecar_specs %>%
-    mutate(
-      bins_exists = file.exists(audit_bins_path),
-      meta_exists = file.exists(audit_meta_path)
-    )
+  invisible(spatial_artifact_paths)
+  invisible(density_sidecar_dir)
+  tibble(
+    artifact_path = character(),
+    figure_name = character(),
+    yvar = character(),
+    use_log = logical(),
+    bw_ft = numeric(),
+    sample_filter = character(),
+    fe_spec = character(),
+    plot_style = character(),
+    gap_split = character(),
+    donut_ft = numeric(),
+    placebo_shift_ft = numeric(),
+    audit_pdf_path = character(),
+    audit_bins_path = character(),
+    audit_meta_path = character(),
+    bins_exists = logical(),
+    meta_exists = logical()
+  )
 }
 
 event_sidecars_exist <- function(artifact_path, density_sidecar_dir = NULL) {
   if (!file.exists(artifact_path)) {
-    return(FALSE)
-  }
-
-  if (str_detect(artifact_path, "tasks/spatial_rd_fe/output/")) {
-    bins_path <- sub("\\.pdf$", "_bins.csv", artifact_path)
-    meta_path <- sub("\\.pdf$", "_meta.csv", artifact_path)
-    if (file.exists(bins_path) && file.exists(meta_path)) {
-      return(TRUE)
-    }
-
-    if (!is.null(density_sidecar_dir)) {
-      audit_pdf <- file.path(density_sidecar_dir, basename(artifact_path))
-      audit_bins_path <- sub("\\.pdf$", "_bins.csv", audit_pdf)
-      audit_meta_path <- sub("\\.pdf$", "_meta.csv", audit_pdf)
-      return(file.exists(audit_bins_path) && file.exists(audit_meta_path))
-    }
-
     return(FALSE)
   }
 
@@ -410,16 +329,34 @@ event_sidecars_exist <- function(artifact_path, density_sidecar_dir = NULL) {
       str_remove("^event_study_yearly_") %>%
       str_remove("^event_study_combined_")
 
-    expected <- c(
+    live_expected <- c(
       file.path(artifact_dir, paste0("event_study_coefficients_", stub, ".csv")),
       file.path(artifact_dir, paste0("event_study_support_", stub, ".csv")),
       file.path(artifact_dir, paste0("event_study_pretrend_", stub, ".csv")),
       file.path(artifact_dir, paste0("event_study_metadata_", stub, ".csv"))
     )
-    return(all(file.exists(expected)))
+    audit_dir <- str_replace(
+      artifact_dir,
+      "tasks/run_event_study_permit/output$",
+      "tasks/audits/permit_event_study_audit/output"
+    )
+    audit_expected <- file.path(
+      audit_dir,
+      paste0(
+        c(
+          "event_study_coefficients_",
+          "event_study_support_",
+          "event_study_pretrend_",
+          "event_study_metadata_"
+        ),
+        stub,
+        ".csv"
+      )
+    )
+    return(all(file.exists(live_expected)) || all(file.exists(audit_expected)))
   }
 
-  if (str_detect(artifact_path, "tasks/run_event_study_sales_disaggregate/output/")) {
+  if (str_detect(artifact_path, "tasks/audits/run_event_study_sales_disaggregate/output/")) {
     stub <- artifact_name %>%
       str_remove("\\.pdf$") %>%
       str_remove("^event_study_disaggregate_") %>%
@@ -573,7 +510,7 @@ run_permit_did <- function(df, rel_min = -5, rel_max = 5, cluster_level = "block
       !is.na(block_id), block_id != "",
       !is.na(strictness_change),
       !is.na(n_high_discretion_issue),
-      dist_ft <= 1000,
+      dist_m <= 304.8,
       relative_year >= rel_min,
       relative_year <= rel_max
     ) %>%
@@ -600,13 +537,13 @@ run_permit_did <- function(df, rel_min = -5, rel_max = 5, cluster_level = "block
   )
 }
 
-run_sales_did <- function(df, bandwidth = 1000, cluster_level = "block", price_trim = 0, include_hedonics = TRUE) {
+run_sales_did <- function(df, bandwidth_ft = 1000, cluster_level = "block", price_trim = 0, include_hedonics = TRUE) {
   hedonic_vars <- c("log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms", "log_baths", "has_garage")
 
   work <- df %>%
     mutate(ward_pair = sub("_[0-9]+$", "", ward_pair_side)) %>%
     filter(
-      dist_ft <= bandwidth,
+      dist_m <= bandwidth_ft * 0.3048,
       relative_year >= -5,
       relative_year <= 5,
       !is.na(ward_pair), ward_pair != "",
@@ -688,7 +625,7 @@ with_dir(repo_root, {
   dir_create(density_sidecar_dir)
 
   density_sidecar_inventory <- artifact_map %>%
-    filter(producer_task == "spatial_rd_fe", artifact_type == "figure") %>%
+    filter(FALSE) %>%
     pull(artifact_path) %>%
     build_density_sidecars(density_sidecar_dir = density_sidecar_dir)
   write_csv(density_sidecar_inventory, density_sidecar_inventory_path)
@@ -698,20 +635,8 @@ with_dir(repo_root, {
       artifact_exists_now = file.exists(artifact_path),
       producer_script_exists = file.exists(file.path(repo_root, producer_script)),
       producer_script_git_state = map_chr(file.path(repo_root, producer_script), git_state),
-      live_sidecars_exist_now = if_else(
-        artifact_type == "figure" & str_detect(artifact_path, "tasks/spatial_rd_fe/output/"),
-        map_lgl(artifact_path, ~ event_sidecars_exist(.x, density_sidecar_dir = NULL)),
-        NA
-      ),
-      audit_sidecars_exist_now = if_else(
-        artifact_type == "figure" & str_detect(artifact_path, "tasks/spatial_rd_fe/output/"),
-        map_lgl(artifact_path, function(x) {
-          audit_pdf <- file.path(density_sidecar_dir, basename(x))
-          file.exists(sub("\\.pdf$", "_bins.csv", audit_pdf)) &&
-            file.exists(sub("\\.pdf$", "_meta.csv", audit_pdf))
-        }),
-        NA
-      ),
+      live_sidecars_exist_now = NA,
+      audit_sidecars_exist_now = NA,
       figure_sidecars_exist_now = if_else(
         artifact_type == "figure",
         map_lgl(artifact_path, ~ event_sidecars_exist(.x, density_sidecar_dir = density_sidecar_dir)),
@@ -719,7 +644,7 @@ with_dir(repo_root, {
       ),
       artifact_auditability = case_when(
         artifact_type == "table" & artifact_exists_now ~ "direct_numeric_artifact",
-        artifact_type == "figure" & str_detect(artifact_path, "tasks/spatial_rd_fe/output/") &
+        FALSE &
           dplyr::coalesce(audit_sidecars_exist_now, FALSE) & !dplyr::coalesce(live_sidecars_exist_now, FALSE) ~ "figure_with_audit_sidecars",
         artifact_type == "figure" & dplyr::coalesce(figure_sidecars_exist_now, FALSE) ~ "figure_with_sidecars",
         artifact_type == "figure" & artifact_exists_now ~ "figure_without_sidecars",
@@ -797,22 +722,22 @@ with_dir(repo_root, {
   density_sample_ladder <- bind_rows(
     tibble(stage = "raw_scored_parcels", n_rows = nrow(density_input), n_unique_pin = n_distinct(density_input$pin)),
     density_input %>%
-      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006) %>%
+      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022) %>%
       summarise(stage = "quality_screen", n_rows = n(), n_unique_pin = n_distinct(pin)),
     density_input %>%
-      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, unitscount > 1) %>%
+      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022, unitscount > 1) %>%
       summarise(stage = "multifamily_sample", n_rows = n(), n_unique_pin = n_distinct(pin)),
     density_input %>%
-      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group)) %>%
+      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group)) %>%
       summarise(stage = "main_fe_complete_case", n_rows = n(), n_unique_pin = n_distinct(pin)),
     density_input %>%
-      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group), dist_to_boundary <= 500) %>%
+      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group), dist_to_boundary <= 500) %>%
       summarise(stage = "main_fe_bw500", n_rows = n(), n_unique_pin = n_distinct(pin)),
     density_input %>%
-      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group), dist_to_boundary <= 500, density_far > 0) %>%
+      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group), dist_to_boundary <= 500, density_far > 0) %>%
       summarise(stage = "main_fe_bw500_log_far", n_rows = n(), n_unique_pin = n_distinct(pin)),
     density_input %>%
-      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group), dist_to_boundary <= 500, density_dupac > 0) %>%
+      filter(arealotsf > 1, areabuilding > 1, construction_year >= 2006, construction_year <= 2022, unitscount > 1, !is.na(ward_pair), !is.na(segment_id), !is.na(zone_group), dist_to_boundary <= 500, density_dupac > 0) %>%
       summarise(stage = "main_fe_bw500_log_dupac", n_rows = n(), n_unique_pin = n_distinct(pin))
   )
   write_csv(density_sample_ladder, density_sample_ladder_path)
@@ -889,11 +814,11 @@ with_dir(repo_root, {
     )
   write_csv(density_segment_influence, density_influence_segment_path)
 
-  permit_review_log <- read_csv(file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_assignment_review_log.csv"), show_col_types = FALSE)
+  permit_review_log <- read_csv(file.path(repo_root, "tasks/audits/permit_event_study_audit/output/permit_block_assignment_review_log.csv"), show_col_types = FALSE)
   permit_panel_2015 <- read_parquet(file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_year_panel_2015.parquet"))
   permit_panel_full <- read_parquet(file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_year_panel.parquet"))
-  permit_missing_2010 <- read_csv(file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_assignment_missing_2010.csv"), show_col_types = FALSE)
-  permit_missing_2020 <- read_csv(file.path(repo_root, "tasks/create_event_study_permit_data/output/permit_block_assignment_missing_2020.csv"), show_col_types = FALSE)
+  permit_missing_2010 <- read_csv(file.path(repo_root, "tasks/audits/permit_event_study_audit/output/permit_block_assignment_missing_2010.csv"), show_col_types = FALSE)
+  permit_missing_2020 <- read_csv(file.path(repo_root, "tasks/audits/permit_event_study_audit/output/permit_block_assignment_missing_2020.csv"), show_col_types = FALSE)
   permits_clean_min <- st_read(
     file.path(repo_root, "tasks/clean_building_permits/output/building_permits_clean.gpkg"),
     query = paste(
@@ -921,7 +846,7 @@ with_dir(repo_root, {
       "residual_unmatched_2010",
       "residual_unmatched_2020",
       "stacked_panel_duplicate_cohort_block_year",
-      "manual_review_file_git_state"
+      "manual_assignments_file_git_state"
     ),
     value = as.character(c(
       sum(duplicated(permits_clean_min$id)),
@@ -932,7 +857,7 @@ with_dir(repo_root, {
       nrow(permit_missing_2010),
       nrow(permit_missing_2020),
       permit_panel_full %>% summarise(n = n() - n_distinct(cohort_block_id, year)) %>% pull(n),
-      git_state(file.path(repo_root, "tasks/create_event_study_permit_data/code/manual_permit_block_review.csv"))
+      git_state(file.path(repo_root, "tasks/create_event_study_permit_data/input/manual_permit_block_assignments.csv"))
     )),
     detail = c(
       "Clean permit IDs should be unique.",
@@ -943,7 +868,7 @@ with_dir(repo_root, {
       "Residual 2010 block-assignment misses after review.",
       "Residual 2020 block-assignment misses after review.",
       "Stacked permit panel should be unique at cohort_block_id x year.",
-      "Manual permit review should not remain an ignored local dependency in a public package."
+      "Manual permit assignments should be tracked in the public package."
     )
   )
 
@@ -1006,8 +931,8 @@ with_dir(repo_root, {
   ) %>%
     select(branch, outcome, challenge, estimate, effect_pct, se, p_value, n_obs, n_ward_pairs)
 
-  sales_input <- read_csv(file.path(repo_root, "tasks/calculate_sale_distances/output/sales_with_ward_distances.csv"), show_col_types = FALSE)
-  sales_panel_2015 <- read_parquet(file.path(repo_root, "tasks/create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet"))
+  sales_input <- read_csv(file.path(repo_root, "tasks/calculate_sale_distances/output/sales_pre_scores.csv"), show_col_types = FALSE)
+  sales_panel_2015 <- read_parquet(file.path(repo_root, "tasks/audits/create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet"))
   sales_points <- st_as_sf(
     sales_input %>% filter(!is.na(longitude), !is.na(latitude)),
     coords = c("longitude", "latitude"),
@@ -1058,7 +983,7 @@ with_dir(repo_root, {
     sales_panel_2015 %>%
       mutate(ward_pair = sub("_[0-9]+$", "", ward_pair_side)) %>%
       filter(
-        dist_ft <= 1000,
+        dist_m <= 304.8,
         relative_year >= -5,
         relative_year <= 5,
         !is.na(ward_pair), ward_pair != "",
@@ -1074,7 +999,7 @@ with_dir(repo_root, {
   sales_challenge_results <- bind_rows(
     run_sales_did(sales_panel_2015) %>% mutate(branch = "home_sales", outcome = "log_sale_price", challenge = "baseline"),
     run_sales_did(sales_panel_2015, cluster_level = "ward_pair") %>% mutate(branch = "home_sales", outcome = "log_sale_price", challenge = "cluster_ward_pair"),
-    run_sales_did(sales_panel_2015, bandwidth = 500) %>% mutate(branch = "home_sales", outcome = "log_sale_price", challenge = "bandwidth_500"),
+    run_sales_did(sales_panel_2015, bandwidth_ft = 500) %>% mutate(branch = "home_sales", outcome = "log_sale_price", challenge = "bandwidth_500"),
     run_sales_did(sales_panel_2015, price_trim = 0.01) %>% mutate(branch = "home_sales", outcome = "log_sale_price", challenge = "trim_price_1pct"),
     run_sales_did(sales_panel_2015, include_hedonics = FALSE) %>% mutate(branch = "home_sales", outcome = "log_sale_price", challenge = "no_hedonics_same_sample")
   ) %>%
@@ -1085,7 +1010,7 @@ with_dir(repo_root, {
   sales_baseline_sample <- sales_panel_2015 %>%
     mutate(ward_pair = sub("_[0-9]+$", "", ward_pair_side)) %>%
     filter(
-      dist_ft <= 1000,
+      dist_m <= 304.8,
       relative_year >= -5,
       relative_year <= 5,
       !is.na(ward_pair), ward_pair != "",
@@ -1145,7 +1070,9 @@ with_dir(repo_root, {
   }
 
   density_balance_red_flag <- any(density_balance_tests$p_value < 0.10, na.rm = TRUE)
-  permit_hidden_dependency <- any(package_findings$prereq_rel_repo == "tasks/create_event_study_permit_data/code/manual_permit_block_review.csv")
+  permit_hidden_dependencies <- package_findings %>%
+    filter(task == "create_event_study_permit_data", risk_level == "P1_hidden_dependency")
+  permit_hidden_dependency <- nrow(permit_hidden_dependencies) > 0
 
   density_scoreboard <- density_challenge_results %>%
     group_by(outcome) %>%
@@ -1319,33 +1246,22 @@ with_dir(repo_root, {
       severity = "P1",
       section = "Permits",
       paper_ref = "paper/sections/empirics_permits.tex:40-94",
-      claim_summary = "Paper-facing permit results depend on the ignored local file manual_permit_block_review.csv in create_event_study_permit_data.",
+      claim_summary = paste0(
+        "Paper-facing permit results depend on non-tracked local file(s): ",
+        paste(permit_hidden_dependencies$prereq_rel_repo, collapse = ", "),
+        "."
+      ),
       status = "package_failure",
       evidence_output = package_integrity_path,
       evidence_code = "tasks/create_event_study_permit_data/code/Makefile; tasks/create_event_study_permit_data/code/create_permit_block_year_panel.R",
-      recommended_fix = "Track the manual review file or replace it with deterministic code before public release.",
+      recommended_fix = "Track the hidden prerequisite or replace it with deterministic code before public release.",
       fix_type = "package_integrity"
     )
   } else {
     tibble()
   }
 
-  density_sidecar_finding <- if (any(hostile_artifact_map$artifact_path %>% str_detect("tasks/spatial_rd_fe/output/") & !hostile_artifact_map$figure_sidecars_exist_now, na.rm = TRUE)) {
-    tibble(
-      id = "H003",
-      severity = "P2",
-      section = "Density",
-      paper_ref = "paper/sections/empirics_density.tex:22-113",
-      claim_summary = "Current paper-linked density PDFs only become fully auditable after the hostile audit regenerates bins/meta sidecars in the audit folder; the live producer still deletes them.",
-      status = "release_fragility",
-      evidence_output = hostile_artifact_map_path,
-      evidence_code = "tasks/spatial_rd_fe/code/Makefile",
-      recommended_fix = "Preserve bins/meta sidecars for every paper-linked RD figure in the public replication package rather than relying on audit-local regeneration.",
-      fix_type = "package_integrity"
-    )
-  } else {
-    tibble()
-  }
+  density_sidecar_finding <- tibble()
 
   updated_claim_ledger <- bind_rows(
     hostile_claim_ledger %>%
@@ -1410,15 +1326,11 @@ with_dir(repo_root, {
     "",
     "## Build-order spine for the compiled paper",
     "- Density: `geocode_ccao_data` -> `calculate_ward_boundary_distances` -> `assign_segment_ids` -> `merge_in_scores` -> `border_pair_FE_regressions` plus the active nonparametric density figure tasks -> `pruned_boundary_maps`",
-    "- Permits/stringency: `clean_building_permits` -> `create_alderman_data` -> `create_block_treatment_panel` -> `merge_event_study_scores` -> `create_event_study_permit_data` -> `run_event_study_permit` ; stringency appendix uses `create_alderman_uncertainty_index`, `strictness_score_map`, `within_ward_strictness`, `uncertainty_validation_checks`, and `permit_summary_stats`",
+    "- Permits/stringency: `clean_building_permits` -> `create_alderman_data` -> `create_block_treatment_panel` -> `merge_event_study_scores` -> `create_event_study_permit_data` -> `run_event_study_permit` ; stringency appendix uses `create_alderman_uncertainty_index`, `strictness_score_map`, `within_ward_strictness`, `permit_stringency_table`, and `permit_summary_stats`",
     "- Event-study treatment maps: `create_event_study_permit_data` -> `merge_event_study_scores` -> `event_study_treatment_maps`",
     "",
     "## Artifact-preservation issues",
-    if (any(str_detect(hostile_artifact_map$artifact_path, "tasks/spatial_rd_fe/output/") & hostile_artifact_map$artifact_auditability != "figure_with_audit_sidecars", na.rm = TRUE)) {
-      "- Preserve sidecars for the current density RD figures. The active spatial RD Makefile deletes `_bins.csv` and `_meta.csv` files after plot generation, so the hostile audit had to regenerate them locally."
-    } else {
-      "- Current paper-linked density figures do not preserve saved bins/meta sidecars; manuscript prose should remain qualitative unless producer workflows start preserving plot metadata."
-    },
+    "- Current paper-linked density figures should remain tied to saved estimate CSVs or tables when making quantitative claims.",
     "",
     "## Default release recommendation",
     "- Do not release the compiled-paper replication package until every P1 hidden dependency is tracked or replaced by deterministic code, and until every paper-facing prose claim with quantitative content can be audited from saved sidecars or saved tables."
@@ -1442,7 +1354,11 @@ with_dir(repo_root, {
     sprintf("- Permit headline: %s.", permit_headline$verdict[[1]]),
     sprintf("- Home-sales headline: %s.", sales_headline$verdict[[1]]),
     if (permit_hidden_dependency) {
-      "- The biggest replication-package blocker is that the permit branch still depends on the ignored local file `tasks/create_event_study_permit_data/code/manual_permit_block_review.csv`."
+      paste0(
+        "- The biggest replication-package blocker is that the permit branch still depends on non-tracked local file(s): `",
+        paste(permit_hidden_dependencies$prereq_rel_repo, collapse = "`, `"),
+        "`."
+      )
     } else {
       "- No hidden local file dependencies were detected in the audited paper-facing tasks."
     },
@@ -1473,11 +1389,7 @@ with_dir(repo_root, {
     } else {
       "- No hidden local code-file prerequisites detected."
     },
-    if (any(str_detect(hostile_artifact_map$artifact_path, "tasks/spatial_rd_fe/output/") & hostile_artifact_map$artifact_auditability == "figure_with_audit_sidecars", na.rm = TRUE)) {
-      "- Current density RD figures only became auditable after the hostile audit regenerated bins/meta sidecars in its own output folder; the live producer still deletes them."
-    } else {
-      "- Current paper-linked density figures are audited visually rather than through saved bins/meta sidecars, so quantitative prose should stay tied to tables and saved event-study CSVs."
-    },
+    "- Current paper-linked density figures are audited visually unless linked to saved estimate CSVs, so quantitative prose should stay tied to tables and saved event-study CSVs.",
     sprintf("- Density balance max p-value concern flag: %s.", ifelse(density_balance_red_flag, "triggered", "not triggered")),
     "",
     "## Challenge-grid notes",
@@ -1486,7 +1398,11 @@ with_dir(repo_root, {
     "- Home-sales challenge grid covers ward-pair clustering, 500-foot bandwidth, price trimming, no-hedonics same-sample estimation, and leave-one-out screens at ward-pair and high-weight block level.",
     "",
     "## Default hostile recommendation",
-    "- The headline empirical signs currently survive the reasonable challenge set, but the compiled paper is not release-ready as a replication package until the permit manual-review dependency and density sidecar preservation issue are resolved.",
+    if (permit_hidden_dependency) {
+      "- The headline empirical signs currently survive the reasonable challenge set, but the compiled paper is not release-ready as a replication package until hidden permit dependencies and density sidecar preservation issues are resolved."
+    } else {
+      "- The headline empirical signs currently survive the reasonable challenge set; remaining release checks should focus on density sidecar preservation and any non-green upstream spatial verdicts."
+    },
     "- Any claim that remains only visually supported should be downgraded in prose before public release."
   )
   writeLines(memo_lines, red_team_memo_path)

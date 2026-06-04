@@ -1,7 +1,7 @@
 # nonparametric_rd_density_placebo
 
-Purpose: Handles nonparametric RD density placebo.
+Purpose: Builds placebo-shift local-linear density RD figures used in the density appendix.
 
-Produces: Produces files such as `output/nonparametric_rd_density_placebo_log_density_dupac_100m_all_shift_neg100m.pdf`, `output/nonparametric_rd_density_placebo_log_density_dupac_100m_all_shift_pos100m.pdf`, `output/nonparametric_rd_density_placebo_log_density_far_100m_all_shift_neg100m.pdf` and related task-specific outputs in `output/`.
+Produces: Eight 500 ft placebo-shift FAR and DUPAC PDF figures for all and multifamily samples.
 
 Approx. runtime: ~2-15 minutes.

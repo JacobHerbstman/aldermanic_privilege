@@ -1,7 +1,9 @@
 # border_confound_pruning
 
-Purpose: Handles border confound pruning.
+Purpose: Builds pair-era and segment-level border confound flags for pruned density specifications.
 
-Produces: Produces files such as `output/confound_pruning_summary.md`, `output/confounded_pair_era_flags.csv`, `output/drop_pair_era.csv` and related task-specific outputs in `output/`.
+Produces:
+- `output/confounded_pair_era_flags.csv`
+- `output/confounded_segment_flags.csv`
 
 Approx. runtime: ~1-10 minutes.

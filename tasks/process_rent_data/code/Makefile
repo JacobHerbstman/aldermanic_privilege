@@ -1,41 +1,14 @@
-SHELL := bash
+START_DATE ?= 2014-01-01
+END_DATE ?= 2022-12-31
 
 all: ../output/chicago_rent_panel.parquet
 
-../output/chicago_rent_panel.parquet: aggregate_rents.R process_rent_data.R ../../download_rent_data/output/download.done | ../input ../temp ../output
-	@set -euo pipefail; \
-	files=(../../download_rent_data/output/*.parquet); \
-	if [ ! -e "$${files[0]}" ]; then \
-		echo "No rent parquet files found after download_rent_data." >&2; \
-		exit 1; \
-	fi; \
-	for raw in "$${files[@]}"; do \
-		base=$$(basename "$$raw"); \
-		link="../input/$$base"; \
-		current=$$(readlink "$$link" 2>/dev/null || true); \
-		test "$$current" = "$$raw" || ln -sf "$$raw" "$$link"; \
-		date=$${base%%--*}; \
-		$(R) process_rent_data.R "$$link" "../temp/$$date.csv"; \
-	done
-	$(R) aggregate_rents.R
-	@test -s "$@"
+../output/chicago_rent_panel.parquet: build_renthub_clean_panel.R ../../download_rent_data/output/download.done | ../output ../input/renthub_raw
+	Rscript $< $(START_DATE) $(END_DATE)
 
-../input/%.parquet: ../../download_rent_data/output/%.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+../input/renthub_raw: | ../../download_rent_data/output/download.done ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "../../download_rent_data/output" || ln -sfn "../../download_rent_data/output" "$@"
 
-link-inputs: ../../download_rent_data/output/download.done | ../input
-	@set -euo pipefail; \
-	files=(../../download_rent_data/output/*.parquet); \
-	if [ ! -e "$${files[0]}" ]; then \
-		echo "No rent parquet files found after download_rent_data." >&2; \
-		exit 1; \
-	fi; \
-	for raw in "$${files[@]}"; do \
-		base=$$(basename "$$raw"); \
-		link="../input/$$base"; \
-		current=$$(readlink "$$link" 2>/dev/null || true); \
-		test "$$current" = "$$raw" || ln -sf "$$raw" "$$link"; \
-	done
+link-inputs: ../input/renthub_raw
 
-include ../../shell_functions.make
 include ../../generic.make

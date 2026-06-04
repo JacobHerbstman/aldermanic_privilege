@@ -64,6 +64,31 @@ format_distance_label <- function(distance_m, display_config = distance_display_
   sprintf("%.1f%s", display_value, display_config$unit)
 }
 
+paired_balance_test <- function(paired_df, min_cluster_ward_pairs) {
+  if (nrow(paired_df) < 2) {
+    return(tibble(se = NA_real_, p_value = NA_real_))
+  }
+  difference_sd <- sd(paired_df$difference, na.rm = TRUE)
+  if (!is.finite(difference_sd) || difference_sd == 0) {
+    return(tibble(
+      se = 0,
+      p_value = ifelse(mean(paired_df$difference, na.rm = TRUE) == 0, 1, 0)
+    ))
+  }
+  if (n_distinct(paired_df$ward_pair) >= min_cluster_ward_pairs) {
+    model <- feols(difference ~ 1, data = paired_df, cluster = ~ward_pair, warn = FALSE)
+    return(tibble(
+      se = unname(se(model)[["(Intercept)"]]),
+      p_value = unname(pvalue(model)[["(Intercept)"]])
+    ))
+  }
+  se_i <- difference_sd / sqrt(nrow(paired_df))
+  tibble(
+    se = se_i,
+    p_value = 2 * pt(abs(mean(paired_df$difference, na.rm = TRUE) / se_i), df = nrow(paired_df) - 1, lower.tail = FALSE)
+  )
+}
+
 format_signed_distance_label <- function(distance_m, display_config = distance_display_config()) {
   if (!is.finite(distance_m)) {
     return("")

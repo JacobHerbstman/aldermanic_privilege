@@ -17,23 +17,6 @@ census_api_key(Sys.getenv("CENSUS_API_KEY"))
 # Set tigris cache to avoid re-downloading good files
 options(tigris_use_cache = TRUE)
 
-census_metadata <- tibble(
-  source = character(),
-  product = character(),
-  year = integer(),
-  survey = character(),
-  sumfile = character(),
-  geography = character(),
-  state = character(),
-  county = character(),
-  variables = character(),
-  geometry = logical(),
-  rows = integer(),
-  geographies = integer(),
-  downloaded_at_utc = character()
-)
-census_metadata_timestamp <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
-
 # Load Ward Panel (CRS 3435)
 ward_panel <- st_read("../input/ward_panel.gpkg") %>% st_transform(3435)
 
@@ -97,29 +80,11 @@ data_2000_raw <- get_decennial(
   geography = "block group", variables = vars_2000,
   state = "IL", county = "Cook", year = 2000, sumfile = "sf3", geometry = TRUE
 )
-census_metadata <- bind_rows(
-  census_metadata,
-  tibble(
-    source = "tidycensus::get_decennial",
-    product = "decennial",
-    year = 2000L,
-    survey = NA_character_,
-    sumfile = "sf3",
-    geography = "block group",
-    state = "IL",
-    county = "Cook",
-    variables = paste(unname(vars_2000), collapse = ";"),
-    geometry = TRUE,
-    rows = nrow(data_2000_raw),
-    geographies = n_distinct(data_2000_raw$GEOID),
-    downloaded_at_utc = census_metadata_timestamp
-  )
-)
 data_2000 <- data_2000_raw %>%
   st_transform(3435) %>%
   select(GEOID, variable, value, geometry) %>%
   pivot_wider(names_from = variable, values_from = value) %>%
-  mutate(educ_bach_plus = 0) # Placeholder
+  mutate(educ_bach_plus = 0) # No 2000 education series in the current SF3 pull.
 
 # --- REGIME 2: 2010 HYBRID (2010-2012) ---
 message("Building 2010 Hybrid Dataset...")
@@ -128,47 +93,11 @@ message("Building 2010 Hybrid Dataset...")
 geo_2010 <- tigris::block_groups(state = "IL", county = "Cook", year = 2010, cb = FALSE) %>%
   st_transform(3435) %>%
   select(GEOID = GEOID10, geometry)
-census_metadata <- bind_rows(
-  census_metadata,
-  tibble(
-    source = "tigris::block_groups",
-    product = "tiger_line",
-    year = 2010L,
-    survey = NA_character_,
-    sumfile = NA_character_,
-    geography = "block group",
-    state = "IL",
-    county = "Cook",
-    variables = NA_character_,
-    geometry = TRUE,
-    rows = nrow(geo_2010),
-    geographies = n_distinct(geo_2010$GEOID),
-    downloaded_at_utc = census_metadata_timestamp
-  )
-)
 
 # B. Get 2010 Demographics (SF1)
 data_2010_sf1_raw <- get_decennial(
   geography = "block group", variables = vars_2010_sf1,
   state = "IL", county = "Cook", year = 2010, geometry = FALSE
-)
-census_metadata <- bind_rows(
-  census_metadata,
-  tibble(
-    source = "tidycensus::get_decennial",
-    product = "decennial",
-    year = 2010L,
-    survey = NA_character_,
-    sumfile = "sf1",
-    geography = "block group",
-    state = "IL",
-    county = "Cook",
-    variables = paste(unname(vars_2010_sf1), collapse = ";"),
-    geometry = FALSE,
-    rows = nrow(data_2010_sf1_raw),
-    geographies = n_distinct(data_2010_sf1_raw$GEOID),
-    downloaded_at_utc = census_metadata_timestamp
-  )
 )
 data_2010_sf1 <- data_2010_sf1_raw %>%
   select(GEOID, variable, value) %>%
@@ -178,24 +107,6 @@ data_2010_sf1 <- data_2010_sf1_raw %>%
 data_2013_econ_raw <- get_acs(
   geography = "block group", variables = vars_acs,
   state = "IL", county = "Cook", year = 2013, survey = "acs5", geometry = FALSE
-)
-census_metadata <- bind_rows(
-  census_metadata,
-  tibble(
-    source = "tidycensus::get_acs",
-    product = "acs",
-    year = 2013L,
-    survey = "acs5",
-    sumfile = NA_character_,
-    geography = "block group",
-    state = "IL",
-    county = "Cook",
-    variables = paste(unname(vars_acs), collapse = ";"),
-    geometry = FALSE,
-    rows = nrow(data_2013_econ_raw),
-    geographies = n_distinct(data_2013_econ_raw$GEOID),
-    downloaded_at_utc = census_metadata_timestamp
-  )
 )
 data_2013_econ <- data_2013_econ_raw %>%
   select(GEOID, variable, estimate) %>%
@@ -215,43 +126,12 @@ message("Fetching 2020 Geometry...")
 geo_2020 <- tigris::block_groups(state = "IL", county = "Cook", year = 2020, cb = FALSE) %>%
   st_transform(3435) %>%
   select(GEOID, geometry)
-census_metadata <- bind_rows(
-  census_metadata,
-  tibble(
-    source = "tigris::block_groups",
-    product = "tiger_line",
-    year = 2020L,
-    survey = NA_character_,
-    sumfile = NA_character_,
-    geography = "block group",
-    state = "IL",
-    county = "Cook",
-    variables = NA_character_,
-    geometry = TRUE,
-    rows = nrow(geo_2020),
-    geographies = n_distinct(geo_2020$GEOID),
-    downloaded_at_utc = census_metadata_timestamp
-  )
-)
 
 
 # 4. THE PANEL CONSTRUCTION LOOP
 # -----------------------------------------------------------------------------
 years <- 2000:2023
 final_panel_list <- list()
-assignment_diagnostics_list <- list()
-
-empty_assignment_diagnostics <- function() {
-  tibble(
-    year = integer(),
-    GEOID = character(),
-    candidate_ward = integer(),
-    candidate_wards = character(),
-    intersection_area_sqft = numeric(),
-    selected_ward = integer(),
-    resolution_reason = character()
-  )
-}
 
 resolve_ambiguous_assignment <- function(bg_row_id_value, current_bgs, current_wards, candidate_assignments, current_year) {
   bg <- current_bgs %>% filter(bg_row_id == bg_row_id_value)
@@ -351,14 +231,14 @@ assign_block_groups_to_wards <- function(current_bgs, current_wards, current_yea
     select(bg_row_id, GEOID, ward)
 
   if (nrow(candidate_assignments) == 0) {
-    return(list(data = tibble(), diagnostics = empty_assignment_diagnostics()))
+    return(tibble())
   }
 
   duplicate_candidates <- candidate_assignments %>%
     count(bg_row_id, GEOID, name = "candidate_count") %>%
     filter(candidate_count > 1)
 
-  assignment_diagnostics <- empty_assignment_diagnostics()
+  assignment_diagnostics <- tibble(GEOID = character(), selected_ward = integer())
   if (nrow(duplicate_candidates) > 0) {
     assignment_diagnostics <- map_dfr(
       duplicate_candidates$bg_row_id,
@@ -404,7 +284,7 @@ assign_block_groups_to_wards <- function(current_bgs, current_wards, current_yea
     mutate(year = current_year) %>%
     select(-bg_row_id)
 
-  list(data = assigned_data, diagnostics = assignment_diagnostics)
+  assigned_data
 }
 
 message(glue("Starting Panel Construction ({min(years)}-{max(years)})..."))
@@ -425,24 +305,6 @@ for (y in years) {
       geography = "block group", variables = vars_acs,
       state = "IL", county = "Cook", year = y, survey = "acs5", geometry = FALSE
     )
-    census_metadata <- bind_rows(
-      census_metadata,
-      tibble(
-        source = "tidycensus::get_acs",
-        product = "acs",
-        year = as.integer(y),
-        survey = "acs5",
-        sumfile = NA_character_,
-        geography = "block group",
-        state = "IL",
-        county = "Cook",
-        variables = paste(unname(vars_acs), collapse = ";"),
-        geometry = FALSE,
-        rows = nrow(current_data_raw),
-        geographies = n_distinct(current_data_raw$GEOID),
-        downloaded_at_utc = census_metadata_timestamp
-      )
-    )
     current_data <- current_data_raw %>%
       select(GEOID, variable, estimate) %>%
       pivot_wider(names_from = variable, values_from = estimate) %>%
@@ -462,11 +324,7 @@ for (y in years) {
   current_wards <- ward_panel %>% filter(year == y)
   if (nrow(current_wards) == 0) next
 
-  ward_assignment <- assign_block_groups_to_wards(current_bgs, current_wards, y)
-  joined_data <- ward_assignment$data
-  assignment_diagnostics_list[[as.character(y)]] <- ward_assignment$diagnostics
-
-  final_panel_list[[as.character(y)]] <- joined_data
+  final_panel_list[[as.character(y)]] <- assign_block_groups_to_wards(current_bgs, current_wards, y)
 }
 
 # 5. AGGREGATE TO WARD LEVEL
@@ -474,7 +332,6 @@ for (y in years) {
 message("Aggregating to Ward-Year Level...")
 
 final_bg_panel <- bind_rows(final_panel_list)
-assignment_diagnostics <- bind_rows(assignment_diagnostics_list)
 
 duplicate_bg_years <- final_bg_panel %>%
   count(GEOID, year, name = "n") %>%
@@ -508,23 +365,7 @@ ward_controls <- final_bg_panel %>%
   filter(pop_total > 0) %>%
   arrange(ward, year)
 
-# 6. SAVE
-# -----------------------------------------------------------------------------
-# Save block group level controls (before aggregation)
-write_csv(final_bg_panel, "../output/block_group_controls_2000_2023.csv")
-message("Block Group Panel saved to: ../output/block_group_controls_2000_2023.csv")
-
-write_csv(assignment_diagnostics, "../output/block_group_ward_assignment_diagnostics.csv")
-message("Assignment diagnostics saved to: ../output/block_group_ward_assignment_diagnostics.csv")
-
-# Save ward-level aggregated controls
 write_csv(ward_controls, "../output/ward_controls_2000_2023.csv")
 message("Ward Panel saved to: ../output/ward_controls_2000_2023.csv")
 
-write_csv(
-  census_metadata %>% arrange(year, product, survey, sumfile, source),
-  "../output/ward_controls_census_metadata.csv"
-)
-message("Census metadata saved to: ../output/ward_controls_census_metadata.csv")
-
-message("Done! Both Block Group and Ward Panels Created.")
+message("Done! Ward Panel Created.")

@@ -11,7 +11,7 @@ all: ../output/permit_balance_full.csv ../output/sales_balance_full.csv ../outpu
 ../input/permit_block_year_panel_2015.parquet: ../../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/sales_transaction_panel_2015.parquet: ../../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet | ../input
+../input/sales_transaction_panel_2015.parquet: ../../create_event_study_sales_data_disaggregate/output/sales_transaction_panel_2015.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/block_group_controls.csv: ../../../create_block_group_controls/output/block_group_controls.csv | ../input

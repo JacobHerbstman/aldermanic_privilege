@@ -29,9 +29,6 @@ if (length(args) >= 3) {
   }
 }
 
-dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-dir.create(temp_dir, showWarnings = FALSE, recursive = TRUE)
-
 status_levels <- c("GREEN", "YELLOW", "RED")
 status_rank <- setNames(seq_along(status_levels), status_levels)
 status_fill <- c(GREEN = "#2a7f3b", YELLOW = "#d98e04", RED = "#b83a2f")
@@ -525,8 +522,7 @@ if (!all(internal_test_results$passed)) {
   stop("Internal tests failed. See internal_test_results.csv.", call. = FALSE)
 }
 
-raw_dir_abs <- normalizePath(raw_dir, mustWork = TRUE)
-parquet_glob <- file.path(raw_dir_abs, "*.parquet")
+parquet_glob <- file.path(raw_dir, "*.parquet")
 
 message("Opening raw RentHub parquet files via DuckDB...")
 con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:")
@@ -2022,9 +2018,9 @@ monthly_verdict_scorecard[is.na(overall_verdict), overall_verdict := "RED"]
 
 message("Computing subperiod and full-panel verdicts...")
 period_lookup <- data.table(
-  period = c("2014-2017", "2018-2020", "2021-2025", "2014-2025"),
-  start_month = as.Date(c("2014-01-01", "2018-01-01", "2021-01-01", "2014-01-01")),
-  end_month = as.Date(c("2017-12-01", "2020-12-01", "2025-12-01", "2025-12-01"))
+  period = c("2014-2017", "2018-2020", "2021-2022", "2014-2022", "2021-2025", "2014-2025"),
+  start_month = as.Date(c("2014-01-01", "2018-01-01", "2021-01-01", "2014-01-01", "2021-01-01", "2014-01-01")),
+  end_month = as.Date(c("2017-12-01", "2020-12-01", "2022-12-01", "2022-12-01", "2025-12-01", "2025-12-01"))
 )
 
 subperiod_verdict_scorecard <- rbindlist(lapply(seq_len(nrow(period_lookup)), function(i) {

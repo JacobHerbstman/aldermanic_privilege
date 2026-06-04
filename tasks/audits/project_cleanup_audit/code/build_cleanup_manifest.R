@@ -86,10 +86,10 @@ if (nrow(edge_rows) == 0) {
 setorder(edge_rows, downstream_task, upstream_task, upstream_output_ref)
 fwrite(edge_rows, "../output/task_dependency_edges.csv")
 
-tex_files <- c(
-  list.files(file.path(root_dir, "paper"), pattern = "\\.tex$", recursive = TRUE, full.names = TRUE),
-  list.files(file.path(root_dir, "slides"), pattern = "\\.tex$", recursive = TRUE, full.names = TRUE)
-)
+paper_tex_files <- list.files(file.path(root_dir, "paper"), pattern = "\\.tex$", recursive = TRUE, full.names = TRUE)
+paper_tex_files <- paper_tex_files[!grepl("/paper/archive/", paper_tex_files, fixed = TRUE)]
+slides_tex_files <- list.files(file.path(root_dir, "slides"), pattern = "\\.tex$", recursive = TRUE, full.names = TRUE)
+tex_files <- c(paper_tex_files, slides_tex_files)
 
 tex_refs <- rbindlist(lapply(tex_files, function(tf) {
   txt <- readLines(tf, warn = FALSE)

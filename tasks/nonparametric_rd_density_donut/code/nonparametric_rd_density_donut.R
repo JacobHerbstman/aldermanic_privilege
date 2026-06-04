@@ -1,6 +1,3 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_donut/code")
 # yvar <- "density_far"
@@ -9,29 +6,32 @@ source("../../_lib/border_pair_helpers.R")
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
 # donut_m <- 7.62
-# input_csv <- "../input/parcels_with_ward_distances.csv"
-# output_pdf <- "../output/nonparametric_rd_density_donut_log_density_far_500ft_all_donut25ft.pdf"
+# start_construction_year <- 2006
+# end_construction_year <- 2022
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, donut_m, input_csv, output_pdf)
+source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, donut_m, start_construction_year, end_construction_year)
 }
 
-if (!length(args) %in% c(8, 9)) {
+if (length(cli_args) != 8) {
   stop(
-    "FATAL: Script requires args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <donut_m> <input_csv> <output_pdf>",
+    "FATAL: Script requires 8 args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <donut_m> <start_construction_year> <end_construction_year>.",
     call. = FALSE
   )
 }
 
-yvar <- args[1]
-bandwidth_m <- as.numeric(args[2])
-sample_filter <- args[3]
-fe_spec <- args[4]
-bins_per_side <- as.integer(args[5])
-donut_m <- as.numeric(args[6])
-input_csv <- args[7]
-output_pdf <- args[8]
+yvar <- cli_args[1]
+bandwidth_m <- as.numeric(cli_args[2])
+sample_filter <- cli_args[3]
+fe_spec <- cli_args[4]
+bins_per_side <- as.integer(cli_args[5])
+donut_m <- as.numeric(cli_args[6])
+start_construction_year <- suppressWarnings(as.integer(cli_args[7]))
+end_construction_year <- suppressWarnings(as.integer(cli_args[8]))
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -51,6 +51,13 @@ if (!is.finite(bins_per_side) || bins_per_side < 2) {
 if (!is.finite(donut_m) || donut_m < 0 || donut_m >= bandwidth_m) {
   stop("donut_m must be non-negative and strictly smaller than bandwidth_m.", call. = FALSE)
 }
+if (
+  !is.finite(start_construction_year) ||
+    !is.finite(end_construction_year) ||
+    start_construction_year > end_construction_year
+) {
+  stop("start_construction_year and end_construction_year must be valid integer years with start <= end.", call. = FALSE)
+}
 fe_formula <- dplyr::case_when(
   fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
   fe_spec == "zonegroup_pair_year_additive" ~ "zone_group + ward_pair + construction_year",
@@ -58,21 +65,17 @@ fe_formula <- dplyr::case_when(
   TRUE ~ NA_character_
 )
 
-stars <- function(p) {
-  if (!is.finite(p)) return("")
-  if (p <= 0.01) return("***")
-  if (p <= 0.05) return("**")
-  if (p <= 0.1) return("*")
-  ""
-}
-
 pretty_outcome <- dplyr::case_when(
   yvar == "density_far" ~ "Log(FAR)",
   yvar == "density_dupac" ~ "Log(DUPAC)",
   TRUE ~ yvar
 )
 
-raw <- read_csv(input_csv, show_col_types = FALSE) %>%
+distance_display <- distance_display_config("ft")
+bw_label <- format_distance_label(bandwidth_m, distance_display)
+donut_label <- format_distance_label(donut_m, distance_display)
+
+raw <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
   ensure_meter_distance_columns()
 
 dat <- raw %>%
@@ -80,7 +83,8 @@ dat <- raw %>%
   filter(
     arealotsf > 1,
     areabuilding > 1,
-    construction_year >= 2006,
+    construction_year >= start_construction_year,
+    construction_year <= end_construction_year,
     !is.na(ward_pair),
     !is.na(construction_year),
     is.finite(signed_distance_m),
@@ -153,6 +157,12 @@ if (nrow(linear_row) != 1) {
 cutoff_estimate <- unname(linear_row[1, "Estimate"])
 cutoff_se <- unname(linear_row[1, "Std. Error"])
 cutoff_p <- unname(linear_row[1, "Pr(>|t|)"])
+cutoff_stars <- dplyr::case_when(
+  is.finite(cutoff_p) & cutoff_p <= 0.01 ~ "***",
+  is.finite(cutoff_p) & cutoff_p <= 0.05 ~ "**",
+  is.finite(cutoff_p) & cutoff_p <= 0.1 ~ "*",
+  TRUE ~ ""
+)
 
 m_display <- feols(
   residualized_outcome ~ side * running_distance,
@@ -170,42 +180,32 @@ aug <- aug %>%
       length(breaks_m) - 1L
     ),
     bin_left_m = breaks_m[bin_idx],
-    bin_center_m = bin_left_m + bin_width_m / 2,
-    side_label = if_else(side == 1L, "Strict side", "Lenient side")
+    bin_center_m = bin_left_m + bin_width_m / 2
   )
 
 bins <- aug %>%
-  group_by(bin_idx, bin_center_m, side, side_label) %>%
+  group_by(bin_idx, bin_center_m, side) %>%
   summarise(
-    n = n(),
     mean_y = mean(residualized_outcome, na.rm = TRUE),
     .groups = "drop"
   ) %>%
   arrange(bin_center_m)
 
-coef_names <- names(coef(m_display))
 line_df <- tibble(
   running_distance = c(
     seq(-bandwidth_m, -donut_m, length.out = 160),
     seq(donut_m, bandwidth_m, length.out = 160)
   )
 ) %>%
-  mutate(
-    side = as.integer(running_distance > 0),
-    side_label = if_else(side == 1L, "Strict side", "Lenient side")
-  )
+  mutate(side = as.integer(running_distance > 0))
 
-xmat <- matrix(0, nrow = nrow(line_df), ncol = length(coef_names))
-colnames(xmat) <- coef_names
-if ("(Intercept)" %in% coef_names) xmat[, "(Intercept)"] <- 1
-if ("side" %in% coef_names) xmat[, "side"] <- line_df$side
-if ("running_distance" %in% coef_names) xmat[, "running_distance"] <- line_df$running_distance
-if ("side:running_distance" %in% coef_names) xmat[, "side:running_distance"] <- line_df$side * line_df$running_distance
-if ("running_distance:side" %in% coef_names) xmat[, "running_distance:side"] <- line_df$side * line_df$running_distance
-
-line_df <- line_df %>%
-  mutate(side_label = if_else(side == 1L, "Strict side", "Lenient side"))
-
+coef_names <- names(coef(m_display))
+xmat <- model.matrix(~ side * running_distance, data = line_df)
+missing_coef_names <- setdiff(coef_names, colnames(xmat))
+if (length(missing_coef_names) > 0) {
+  stop("Prediction design matrix does not match fitted model.", call. = FALSE)
+}
+xmat <- xmat[, coef_names, drop = FALSE]
 line_vcov <- vcov(m_display)
 line_crit <- qt(0.975, df = max(n_distinct(aug$ward_pair) - 1, 1))
 
@@ -226,11 +226,8 @@ y_limits <- c(y_min - y_pad, y_max + y_pad)
 
 sample_label <- ifelse(sample_filter == "all", "all construction", "multifamily")
 
-distance_display <- distance_display_config()
 x_limits <- c(-bandwidth_m, bandwidth_m) * distance_display$scale
 x_label <- sprintf("Distance to ward boundary (%s)", distance_display$unit)
-bw_label <- format_distance_label(bandwidth_m, distance_display)
-donut_label <- format_distance_label(donut_m, distance_display)
 
 bins <- bins %>%
   mutate(bin_center_display = bin_center_m * distance_display$scale)
@@ -241,7 +238,7 @@ line_df <- line_df %>%
 subtitle_label <- sprintf(
   "Jump = %.3f%s (SE %.3f) | donut >= %s | %s | bandwidth=%s | N=%d",
   cutoff_estimate,
-  stars(cutoff_p),
+  cutoff_stars,
   cutoff_se,
   donut_label,
   sample_label,
@@ -284,6 +281,16 @@ p <- ggplot() +
   ) +
   theme_bw(base_size = 11)
 
-ggsave(output_pdf, plot = p, width = 8.6, height = 6.0, dpi = 300)
-
-message(sprintf("Built %s", output_pdf))
+ggsave(
+  sprintf(
+    "../output/nonparametric_rd_density_donut_log_%s_%s_%s_donut%s.pdf",
+    yvar,
+    bw_label,
+    sample_filter,
+    donut_label
+  ),
+  plot = p,
+  width = 8.6,
+  height = 6.0,
+  dpi = 300
+)

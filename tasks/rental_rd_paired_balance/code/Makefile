@@ -1,0 +1,14 @@
+BANDWIDTH_FT ?= 500
+MIN_CLUSTER_WARD_PAIRS ?= 20
+
+all: ../output/rental_rd_paired_external_amenity_balance_bw$(BANDWIDTH_FT).tex
+
+../output/rental_rd_paired_external_amenity_balance_bw$(BANDWIDTH_FT).tex: build_rental_rd_paired_balance.R ../../_lib/border_pair_helpers.R ../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet | ../output
+	Rscript $< $(BANDWIDTH_FT) $(MIN_CLUSTER_WARD_PAIRS)
+
+../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet: ../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet
+
+include ../../generic.make

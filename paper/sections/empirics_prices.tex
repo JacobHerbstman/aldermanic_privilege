@@ -1,0 +1,109 @@
+\section{Price Evidence Near Ward Boundaries}
+\label{sec:empirical_results_prices}
+
+The supply results imply that housing costs may be higher on the more stringent side of ward boundaries.
+However, the primary issue in housing supply debates is about affordability, so it is important to see whether these observed differences in housing supply translate into higher prices for residents.
+To do this, I use the same border fixed effects design as in Section~\ref{sec:empirical_results_density} to compare rents and home sale prices on the more stringent versus more lenient side of the same ward boundary.
+I compare observations within 500ft of the same ward boundary: on one side, residents face the alderman with the higher stringency score; across the boundary, they face the more lenient alderman, 
+but the neighborhood is otherwise similar.
+
+The estimating equation is
+%
+\begin{equation}
+\label{eq:price_rd}
+    \log(Y_{ist}) = \beta \cdot \text{StringencyIndex}_{is} + X_i'\gamma + \alpha_{s t} + \varepsilon_{ist},
+\end{equation}
+%
+where $Y_{ist}$ is the real rent or real sale price for observation $i$ near boundary segment $s$ in period $t$, deflated to 2022 dollars with the monthly Chicago CPI-U all-items series.
+The stringency index is the standardized score of the alderman representing the observation's side of the boundary.
+The fixed effects are segment-by-month for rents and segment-by-quarter for home sales due to the lower frequency of home sale observations, and standard errors are clustered by boundary segment.
+Since prices are determined by local supply and demand conditions and not by just the characteristics of the residential unit at any specific parcel, I do not include a linear distance trend in my main price specifications to get at average prices and rents within a local area around each ward border segment boundary.
+The table reports the coefficient on the continuous stringency index measure.
+
+\subsection{Rents}
+
+The rental sample uses listed rents from 2014-2022.
+I collapse repeated scrape rows to a floorplan-month panel before estimating the boundary comparison since Renthub does have known issues with repeated listings of the same unit.
+The outcome is log listed rent in 2022 dollars.
+Appendix Table~\ref{tab:rental_rd_controls_clean_location} repeats the analysis after dropping a small subset of listings whose locations appear to be unreliable near ward boundaries.
+
+Figure~\ref{fig:rental_rd_flat} shows the boundary comparison visually.
+The binned points show log listed rents after removing segment-by-month fixed effects, rental hedonic controls, and amenity controls.
+Rents are noticeably higher on the more stringent side of the boundary and show about a $3\%$ jump. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\textwidth]{../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls.pdf}
+    \caption{Listed Rents by Side of Ward Boundary}
+    \figurenotes{Figure shows a flat 500ft boundary comparison using listed-rent floorplan-month observations from 2014--2022.
+    Positive distance indicates the side represented by the more stringent alderman.
+    Dots are binned means of log listed rent in 2022 dollars after removing segment-by-month fixed effects, hedonic controls, and amenity controls.}
+    \label{fig:rental_rd_flat}
+\end{figure}
+
+Panel A of Table~\ref{tab:price_rd_controls} shows that the rent gap is not explained by observable listing characteristics or amenity controls.
+Appendix Table~\ref{tab:rental_rd_paired_amenity_balance} compares external amenities on the less and more stringent sides of the same rental boundary segments.
+The few marginal differences are small in magnitude, so nearby amenities are unlikely to explain much of the rent gap.
+A one-standard-deviation increase in aldermanic stringency is associated with 2.49\% higher listed rents without controls, 1.81\% higher listed rents with hedonic controls, and 1.84\% higher listed rents after adding distances to schools, park-boundary polygons, major streets, CTA stops open by listing month, and Lake Michigan.
+So at most, mechnical differences in rental-unit composition and neighborhood amenities can explain about a quarter of the observed rent gap.
+
+\subsection{Home Sales}
+
+I estimate the analogous boundary comparison for home sales from 2006-2022, since the data go back further for official Cook County datasets.
+The outcome is log sale price, deflated to 2022 dollars as well.
+The sales table uses the same continuous stringency-index specification as the rental table, with segment-by-quarter fixed effects and standard errors clustered by boundary segment.
+Hedonic controls include building area, land area, building age, bedrooms, bathrooms, and garage presence.
+Amenity controls are parcel-level distances to the nearest school, Chicago Park District park boundary, major street, and Lake Michigan.
+
+Figure~\ref{fig:sales_rd_flat} plots the regression discontinuity estimate visually and there is a smaller but noticeable $1.5\%$ jump in sale prices on the more stringent side of the boundary within a border segment and year-quarter.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\textwidth]{../tasks/sales_border_pair_fe/output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment.pdf}
+    \caption{Home Sale Prices by Side of Ward Boundary}
+    \figurenotes{Figure shows a flat 500ft boundary comparison using arm's-length residential transactions from 2006-2022.
+    Positive distance indicates the side represented by the more stringent alderman.
+    Dots are binned means of log sale price in 2022 dollars after removing segment-by-quarter fixed effects, hedonic controls, and amenity controls.}
+    \label{fig:sales_rd_flat}
+\end{figure}
+
+Panel B of Table~\ref{tab:price_rd_controls} reports the corresponding estimates for the continuous stringency index specification.
+A one-standard-deviation increase in aldermanic stringency is associated with about 1.2\% higher sale prices across the three specifications.
+The estimates are smaller than the rent estimates and are only marginally significant after adding controls, but suggest that home prices along with rental rates respond to the regulatory environment.
+
+As a placebo check, Appendix Figures~\ref{fig:rent_placebo_boundaries} and~\ref{fig:sales_placebo_boundaries} repeat the rent and sales plots after shifting the cutoff 1000ft inside each side of the boundary.
+Each shifted cutoff uses the same 500ft window, so the placebo windows do not overlap the main true-boundary sample.
+As with the density placebo checks, we see no equivalent jump in rents or sale prices at these placebo boundaries, which suggests we are not just picking up unobserved neighborhood differences that happen to correlate with the ward boundaries.
+
+\begin{table}[htbp]
+    \caption{Price RD: Hedonic and Amenity Controls}
+    \label{tab:price_rd_controls}
+
+    \input{../tasks/price_rd_tables/output/price_rd_controls_panels_bw500.tex}
+\end{table}
+
+\subsection{Rental Listing Supply}
+
+Motivated by the inability of observable unit characteristics or neighborhood amenities to fully explain the rent and price gaps, 
+I ask whether observed supply differences in the rental market could be driving the rent gap.
+While units within a border segment are close to each other and one may expect rents to equalize across the boundary, \cite{asquith_local_2023}
+shows that rents are very local and can vary in their response to new supply within a few neighborhood blocks.
+
+I repeat the same boundary-segment comparison using the count of listed floorplans in the rental data as the outcome, which is a direct measure of supply differences across the boundary, 
+proxied by Renthub's scraped listings.
+I once again use PPML to estimate the effect on a count variable, with segment-by-month fixed effects and standard errors clustered by boundary segment.
+While the measure is quite imprecise and not significantly different from zero, there is a $\approx 9\%$ lower quantity of observed rental listings 
+on the more stringent side of the boundary, which is consistent with the observed rent gap being driven by supply differences across the boundary, 
+which can be seen visually in Figure~\ref{fig:rental_supply_rd} as well.
+Appendix Figure~\ref{fig:rental_supply_rd_clean_location} repeats this listing-supply plot after dropping coordinate-risk listings.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\textwidth]{../tasks/rental_rd_supply/output/rental_rd_supply_levels_bw500.pdf}
+    \caption{Rental Listing Supply by Side of Ward Boundary}
+    \figurenotes{Figure shows listed floorplan-month counts by distance to ward boundaries using rental listings from 2014--2022.
+    Positive distance indicates the side represented by the more stringent alderman.
+    Bins report mean floorplan-month counts per segment-month-bin.
+    The subtitle reports the companion flat 500ft PPML estimate from segment-month-side counts with segment-by-month fixed effects; standard errors are clustered by boundary segment.}
+    \label{fig:rental_supply_rd}
+\end{figure}

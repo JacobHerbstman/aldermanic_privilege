@@ -1,0 +1,72 @@
+\section{Additional Price Boundary Checks}
+\label{sec:appendix_price_rd}
+
+This appendix reports supporting checks for the rent and home-sales boundary comparisons in Section~\ref{sec:empirical_results_prices}.
+Rent and sale-price outcomes are deflated to 2022 dollars using the monthly Chicago CPI-U all-items series.
+The price specifications use external amenity controls: distance to the nearest school, Chicago Park District park-boundary polygon, major street, and Lake Michigan.
+The rental specifications also control for distance to the nearest CTA stop open by the listing month.
+
+\subsection{Paired Balance in the Rental Sample}
+
+Table~\ref{tab:rental_rd_paired_amenity_balance} compares listed-rent observations on the less and more stringent sides of the same ward-boundary segments.
+The table averages each amenity distance within a segment side and reports the paired more-stringent-minus-less-stringent difference.
+Park and major-road distances are marginally different across sides, but the gaps are about 20 feet and 16 feet, respectively, with normalized differences below 0.06 standard deviations.
+
+\begin{table}[H]
+    \caption{Paired Balance: Listed-Rent External Amenities}
+    \label{tab:rental_rd_paired_amenity_balance}
+
+    \input{../tasks/rental_rd_paired_balance/output/rental_rd_paired_external_amenity_balance_bw500.tex}
+\end{table}
+
+\subsection{Rental Coordinate-Robustness Checks}
+
+Table~\ref{tab:rental_rd_controls_clean_location} repeats the listed-rent stringency-index control waterfall after dropping listings whose modal-address coordinates would change the ward, ward pair, side of the border, or distance assignment.
+
+\begin{table}[H]
+    \caption{Listed-Rent Stringency Index: Dropping Unreliable Coordinates}
+    \label{tab:rental_rd_controls_clean_location}
+
+    \input{../tasks/rental_rd_rent_attenuation/output/rental_rd_rent_attenuation_clean_location_bw500.tex}
+\end{table}
+
+Figure~\ref{fig:rental_supply_rd_clean_location} repeats the rental listing supply plot after dropping the same coordinate-risk listings.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\textwidth]{../tasks/rental_rd_supply/output/rental_rd_supply_levels_clean_location_bw500.pdf}
+    \caption{Rental Listing Supply by Side of Ward Boundary: Dropping Unreliable Coordinates}
+    \figurenotes{Figure shows listed floorplan-month counts by distance to ward boundaries using rental listings from 2014--2022 after dropping listings whose coordinates appear unreliable near ward boundaries.
+    Positive distance indicates the side represented by the more stringent alderman.
+    Bins report mean floorplan-month counts per segment-month-bin.
+    The subtitle reports the companion flat 500ft PPML estimate from segment-month-side counts with segment-by-month fixed effects; standard errors are clustered by boundary segment.}
+    \label{fig:rental_supply_rd_clean_location}
+\end{figure}
+
+\subsection{Placebo Cutoffs}
+
+Figures~\ref{fig:rent_placebo_boundaries} and~\ref{fig:sales_placebo_boundaries} repeat the main rent and sales boundary plots after moving the cutoff 1000ft inside each side of the true ward boundary.
+Each shifted cutoff uses a 500ft window around the fake cutoff, so the placebo windows do not overlap the main true-boundary sample.
+These fake cutoffs ask whether the estimated price difference appears only where aldermanic authority changes, rather than at arbitrary points nearby.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{../tasks/price_rd_stress_tests/output/rent_placebo_rd_main_style.pdf}
+    \caption{Listed Rents at True and Placebo Ward-Boundary Cutoffs}
+    \figurenotes{Figure repeats the 500ft listed-rent boundary comparison at the true ward boundary and at placebo cutoffs shifted 1000ft inside each side of the boundary.
+    The shifted placebo windows do not overlap the main true-boundary 500ft sample.
+    Positive distance indicates the side represented by the more stringent alderman relative to each cutoff.
+    Dots are binned means of log listed rent in 2022 dollars after removing segment-by-month fixed effects, hedonic controls, and amenity controls.}
+    \label{fig:rent_placebo_boundaries}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{../tasks/price_rd_stress_tests/output/sales_placebo_rd_main_style.pdf}
+    \caption{Home Sale Prices at True and Placebo Ward-Boundary Cutoffs}
+    \figurenotes{Figure repeats the 500ft home-sales boundary comparison at the true ward boundary and at placebo cutoffs shifted 1000ft inside each side of the boundary.
+    The shifted placebo windows do not overlap the main true-boundary 500ft sample.
+    Positive distance indicates the side represented by the more stringent alderman relative to each cutoff.
+    Dots are binned means of log sale price in 2022 dollars after removing segment-by-quarter fixed effects, hedonic controls, and amenity controls.}
+    \label{fig:sales_placebo_boundaries}
+\end{figure}

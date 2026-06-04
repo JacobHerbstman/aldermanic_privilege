@@ -1,55 +1,40 @@
-SHELL := bash
+BANDWIDTH_FT ?= 500
+BINS_PER_SIDE ?= 10
+START_YEAR ?= 2006
+END_YEAR ?= 2022
 
-all: \
-	../output/sales_with_hedonics_amenities.parquet \
-	../output/sales_amenity_distance_diagnostics.csv \
-	../output/fe_table_sales_bw500_year_quarter_amenity_clust_ward_pair.tex \
-	../output/fe_table_sales_bw500_year_quarter_amenity_clust_ward_pair.csv \
-	../output/year_diagnostics_sales_bw500_year_quarter_amenity_clust_ward_pair.csv
+all: ../output/sales_rd_flat_bw$(BANDWIDTH_FT)_year_quarter_amenity_clust_segment.pdf
 
-../output/sales_with_hedonics_amenities.parquet: enrich_sales_with_amenity_distances.R ../input/sales_with_hedonics.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
-	Rscript enrich_sales_with_amenity_distances.R ../input/sales_with_hedonics.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp "$@" ../output/sales_amenity_distance_diagnostics.csv
+../output/sales_with_hedonics_amenities.parquet: enrich_sales_with_amenity_distances.R ../../_lib/amenity_distance_helpers.R ../input/sales_with_hedonics.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
+	Rscript $<
 
-../output/sales_amenity_distance_diagnostics.csv: ../output/sales_with_hedonics_amenities.parquet
-	@test -s "$@"
-
-../output/fe_table_sales_bw500_year_quarter_amenity_clust_ward_pair.tex: sales_border_pair_fe.R ../output/sales_with_hedonics_amenities.parquet | ../output
-	Rscript sales_border_pair_fe.R ../output/sales_with_hedonics_amenities.parquet 500 year_quarter "$@" ../output/fe_table_sales_bw500_year_quarter_amenity_clust_ward_pair.csv ../output/year_diagnostics_sales_bw500_year_quarter_amenity_clust_ward_pair.csv segment ward_pair amenity
-
-../output/fe_table_sales_bw500_year_quarter_amenity_clust_ward_pair.csv: ../output/fe_table_sales_bw500_year_quarter_amenity_clust_ward_pair.tex
-	@test -s "$@"
-
-../output/year_diagnostics_sales_bw500_year_quarter_amenity_clust_ward_pair.csv: ../output/fe_table_sales_bw500_year_quarter_amenity_clust_ward_pair.tex
-	@test -s "$@"
+../output/sales_rd_flat_bw$(BANDWIDTH_FT)_year_quarter_amenity_clust_segment.pdf: sales_level_plot.R ../output/sales_with_hedonics_amenities.parquet | ../output
+	Rscript $< $(BANDWIDTH_FT) $(BINS_PER_SIDE) $(START_YEAR) $(END_YEAR)
 
 ../input/sales_with_hedonics.parquet: ../../prep_sales_border_data/output/sales_with_hedonics.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/schools_2015.gpkg: ../../prepare_amenities_data/output/schools_2015.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/parks.gpkg: ../../prepare_amenities_data/output/parks.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/major_streets.gpkg: ../../prepare_amenities_data/output/major_streets.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_water_a_free_1.shp: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shp | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_water_a_free_1.dbf: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.dbf | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+link-inputs: \
+	../input/sales_with_hedonics.parquet \
+	../input/schools_2015.gpkg \
+	../input/parks.gpkg \
+	../input/major_streets.gpkg \
+	../input/gis_osm_water_a_free_1.shp \
+	../input/gis_osm_water_a_free_1.dbf \
+	../input/gis_osm_water_a_free_1.prj \
+	../input/gis_osm_water_a_free_1.shx \
+	../input/gis_osm_water_a_free_1.cpg
 
-../input/gis_osm_water_a_free_1.prj: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.prj | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
-
-../input/gis_osm_water_a_free_1.shx: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shx | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
-
-../input/gis_osm_water_a_free_1.cpg: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.cpg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
-
-link-inputs: ../input/sales_with_hedonics.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
-
-include ../../shell_functions.make
 include ../../generic.make

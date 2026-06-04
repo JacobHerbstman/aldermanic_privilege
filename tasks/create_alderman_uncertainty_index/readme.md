@@ -1,7 +1,9 @@
 # create_alderman_uncertainty_index
 
-Purpose: Creates alderman uncertainty index.
+Purpose: Creates alderman uncertainty scores used by the paper and downstream score merges.
 
-Produces: Produces files such as `output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH.csv`, `output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv`, `output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2023.csv` and related task-specific outputs in `output/`.
+Produces:
+- the paper score CSV, appendix plot, and stage-1 table for the default 2022 cutoff
+- the 2026-04 post-2023 score CSV used by `merge_event_study_scores`
 
 Approx. runtime: ~1-10 minutes.

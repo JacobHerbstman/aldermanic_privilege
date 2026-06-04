@@ -14,7 +14,7 @@
 \usepackage{caption}
 \usepackage{threeparttable}
 \usepackage{enumitem}
-\usepackage[nomarkers, nolists, tablesfirst]{endfloat}
+\usepackage[nomarkers, nolists, figuresfirst]{endfloat}
 \renewcommand{\efloatseparator}{\bigskip}
 
 % SETTINGS
@@ -38,7 +38,9 @@ Jacob Herbstman\footnotemark[2]
 \today
 \end{center}
 
-\footnotetext[2]{University of Chicago, Harris School of Public Policy. Email: \url{jherbstman@uchicago.edu}. \par \smallskip I thank Eric Zwick, Justin Marlowe, Joshua Gottlieb, Asad Khan, Ayo George, and seminar participants at the Harris School PhD workshop,
+\footnotetext[2]{University of Chicago, Harris School of Public Policy.
+Email: \url{jherbstman@uchicago.edu}.
+\par \smallskip I thank Eric Zwick, Justin Marlowe, Joshua Gottlieb, Asad Khan, Ayo George, and seminar participants at the Harris School PhD workshop,
 Economics Department Student Applied Micro Lunch, and the Notre Dame Housing Economics Conference for helpful comments and suggestions.}
 \endgroup
 \setcounter{footnote}{0}
@@ -46,13 +48,13 @@ Economics Department Student Applied Micro Lunch, and the Notre Dame Housing Eco
 \vspace{1em}
 
 \begin{abstract}
-Land use regulation constrains housing supply, but most evidence focuses on formal rules such as restrictive zoning codes or permitting reform. 
-I study the role of informal regulatory discretion through Chicago's ``aldermanic privilege,'' under which city council members can effectively block or approve development in their wards. 
-Using permit processing times to construct alderman-level stringency scores, I document large differences in the local regulatory environment that are not explained by geography or demographics. 
-Using a border discontinuity design, I find that a one standard deviation increase in aldermanic stringency lowers new construction density by roughly 3--4\% in the all-construction sample, with larger effects in the multifamily sample.
-Event studies exploiting ward redistricting show that blocks reassigned to more stringent aldermen experience a 7\% decline in high-discretion permits over the following five years.
-I find little evidence that these stringency changes are capitalized into nearby home sale prices over the same window.
-The results imply that informal discretionary authority materially shapes housing supply and that reforms to local land use decision-making structures could affect housing supply and affordability.
+Land use regulation constrains housing supply, but formal zoning rules are only part of the regulatory environment developers face.
+I study informal regulatory discretion through Chicago's ``aldermanic privilege,'' under which city council members can effectively block, delay, or reshape development in their wards.
+I construct alderman-level stringency scores from permit processing times and compare places near the same ward boundary, where the neighborhood is similar but the alderman changes.
+At ward borders, a one standard deviation increase in aldermanic stringency lowers multifamily construction density by roughly 12-14\%.
+A complementary event study approach shows that census blocks reassigned to more stringent aldermen experience a 7.4\% decline in permits.
+These effects on housing supply and built density appear to filter through to prices, as I find evidence of higher listed rents and higher home sale prices on the more stringent side of ward boundaries.
+Together, the results show that informal regulatory discretion can reduce housing supply and harm affordability, calling into question the assumption that zoning reform alone will necessarily lead to more housing construction.
 \end{abstract}
 
 \clearpage
@@ -62,7 +64,7 @@ The results imply that informal discretionary authority materially shapes housin
 \input{sections/model.tex}
 \input{sections/empirics_density.tex}
 \input{sections/empirics_permits.tex}
-\input{sections/empirics_home_sales.tex}
+\input{sections/empirics_prices.tex}
 \input{sections/discussion.tex}
 \input{sections/conclusion.tex}
 
@@ -104,7 +106,7 @@ The results imply that informal discretionary authority materially shapes housin
 \clearpage
 
 % Appendix E
-\input{sections/appendix_E_event_study.tex}
+\input{sections/appendix_E_price_rd.tex}
 \processdelayedfloats
 \clearpage
 

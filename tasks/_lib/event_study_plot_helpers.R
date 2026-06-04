@@ -1,3 +1,98 @@
+build_event_study_support_table <- function(df, event_var, time_fe_var, fe_group_var, min_period, max_period,
+                                            support_mode = c("two_sided_cells", "treatment_variation"),
+                                            cohort_label = NA_character_, treat_var = "treat", side_var = NULL,
+                                            treatment_var = NULL, block_var = "block_id", segment_var = NULL,
+                                            outcome_var = NULL, pin_var = NULL) {
+  support_mode <- match.arg(support_mode)
+  if (support_mode == "two_sided_cells" && is.null(side_var)) {
+    stop("side_var is required for two_sided_cells support.", call. = FALSE)
+  }
+  if (support_mode == "treatment_variation" && is.null(treatment_var)) {
+    stop("treatment_var is required for treatment_variation support.", call. = FALSE)
+  }
+
+  support_base <- df %>%
+    filter(.data[[event_var]] >= min_period, .data[[event_var]] <= max_period)
+
+  if (support_mode == "two_sided_cells") {
+    cell_support <- support_base %>%
+      group_by(
+        event_time = .data[[event_var]],
+        fe_group = .data[[fe_group_var]],
+        calendar_time = .data[[time_fe_var]]
+      ) %>%
+      summarise(
+        n_treated = sum(.data[[treat_var]] == 1, na.rm = TRUE),
+        n_control = sum(.data[[treat_var]] == 0, na.rm = TRUE),
+        n_sides = n_distinct(.data[[side_var]]),
+        has_identifying_cell = n_treated > 0 & n_control > 0 & n_sides == 2,
+        .groups = "drop"
+      )
+  } else {
+    cell_support <- support_base %>%
+      group_by(
+        event_time = .data[[event_var]],
+        fe_group = .data[[fe_group_var]],
+        calendar_time = .data[[time_fe_var]]
+      ) %>%
+      summarise(
+        n_treated = sum(.data[[treat_var]] == 1, na.rm = TRUE),
+        n_control = sum(.data[[treat_var]] == 0, na.rm = TRUE),
+        n_distinct_treatment_values = n_distinct(.data[[treatment_var]][!is.na(.data[[treatment_var]])]),
+        has_identifying_cell = n_distinct_treatment_values > 1,
+        .groups = "drop"
+      )
+  }
+
+  event_support <- support_base %>%
+    group_by(event_time = .data[[event_var]]) %>%
+    summarise(
+      n_obs = n(),
+      n_treated = sum(.data[[treat_var]] == 1, na.rm = TRUE),
+      n_control = sum(.data[[treat_var]] == 0, na.rm = TRUE),
+      contributing_cohorts = if ("cohort" %in% names(support_base)) paste(sort(unique(cohort)), collapse = "|") else cohort_label,
+      n_fe_groups = n_distinct(.data[[fe_group_var]]),
+      n_blocks = if (!is.null(block_var) && block_var %in% names(support_base)) n_distinct(.data[[block_var]]) else NA_integer_,
+      n_segments = if (!is.null(segment_var) && segment_var %in% names(support_base)) n_distinct(.data[[segment_var]][!is.na(.data[[segment_var]])]) else NA_integer_,
+      n_pins = if (!is.null(pin_var) && pin_var %in% names(support_base)) n_distinct(.data[[pin_var]]) else NA_integer_,
+      .groups = "drop"
+    )
+  if (!is.null(outcome_var) && outcome_var %in% names(support_base)) {
+    event_support <- event_support %>%
+      left_join(
+        support_base %>%
+          group_by(event_time = .data[[event_var]]) %>%
+          summarise(
+            total_outcome = sum(.data[[outcome_var]], na.rm = TRUE),
+            n_positive_rows = sum(.data[[outcome_var]] > 0, na.rm = TRUE),
+            .groups = "drop"
+          ),
+        by = "event_time",
+        relationship = "one-to-one"
+      )
+  }
+
+  cell_event_support <- cell_support %>%
+    group_by(event_time) %>%
+    summarise(
+      n_fe_group_time_cells = n(),
+      n_identifying_fe_group_time_cells = sum(has_identifying_cell, na.rm = TRUE),
+      n_identifying_fe_groups = n_distinct(fe_group[has_identifying_cell]),
+      .groups = "drop"
+    )
+
+  event_support %>%
+    left_join(cell_event_support, by = "event_time", relationship = "one-to-one") %>%
+    mutate(
+      n_fe_group_time_cells = replace_na(n_fe_group_time_cells, 0L),
+      n_identifying_fe_group_time_cells = replace_na(n_identifying_fe_group_time_cells, 0L),
+      n_identifying_fe_groups = replace_na(n_identifying_fe_groups, 0L),
+      has_treated_and_control = n_treated > 0 & n_control > 0,
+      has_identifying_support = n_identifying_fe_group_time_cells > 0
+    ) %>%
+    arrange(event_time)
+}
+
 build_event_study_plot_data <- function(model, support_by_event_time, min_period, max_period, group_label, display_mode = c("multiply100", "exp_minus_one")) {
   display_mode <- match.arg(display_mode)
 

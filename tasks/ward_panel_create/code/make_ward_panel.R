@@ -1,16 +1,10 @@
-## this code takes chicago ward shapefiles merges them for an annual panel
-
-## run this line when editing code in Rstudio
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/ward_panel_create/code")
 
 source("../../setup_environment/code/packages.R")
 
-# -----------------------------------------------------------------------------
-# 1. CREATE ANNUAL WARD PANEL
-# -----------------------------------------------------------------------------
 ward_bound1998 <- st_read("../input/ward1998.shp")
 
-## make annual panel for the pre-2003 ward map
 ward_bound1998 <- ward_bound1998 %>%
   janitor::clean_names() %>% 
   mutate(ward = as.numeric(ward)) %>%
@@ -21,14 +15,10 @@ ward_bound1998 <- ward_bound1998 %>%
   unnest(year) %>%
   select(year, ward, geometry) %>% 
   arrange(ward, year) %>% 
-  st_transform(crs = 3435) ## change to chicago coordinate system
+  st_transform(crs = 3435)
 
-
-
-## bring in old ward boundary data
 ward_bound2003 <- st_read("../input/Wards_2014.geojson") 
 
-## make annual panel for the 2003-2014 ward map
 ward_bound2003 <- ward_bound2003 %>%
   filter(ward != "OUT") %>% 
   select(ward, geometry) %>%
@@ -37,41 +27,34 @@ ward_bound2003 <- ward_bound2003 %>%
   unnest(year) %>%
   select(year, ward, geometry) %>% 
   arrange(ward, year) %>% 
-  st_transform(crs = 3435) ## change to chicago coordinate system
+  st_transform(crs = 3435)
 
+ward_bound2015 <- st_read("../input/Wards_2015.geojson")
 
-## bring in new ward boundary data
-ward_bound2015 <-st_read("../input/Wards_2015.geojson") 
-
-## make annual panel for the post-2015 ward map
 ward_bound2015 <- ward_bound2015 %>%
   filter(ward != "OUT") %>% 
   select(ward, geometry) %>%
   rowwise() %>%
-  mutate(year = list(2015:2023)) %>% # Switched to annual sequence
+  mutate(year = list(2015:2023)) %>%
   unnest(year) %>%
   select(year, ward, geometry) %>% 
   arrange(ward, year) %>% 
-  st_transform(crs = 3435) ## change to chicago coordinate system
+  st_transform(crs = 3435)
 
-ward_bound2024 <-st_read("../input/Wards_2024.geojson") 
+ward_bound2024 <- st_read("../input/Wards_2024.geojson")
 
-## make annual panel for the post-2023 ward map
 ward_bound2024 <- ward_bound2024 %>%
   filter(ward != "OUT") %>% 
   select(ward, geometry) %>%
   rowwise() %>%
-  mutate(year = list(2024:2025)) %>% # Switched to annual sequence
+  mutate(year = list(2024:2025)) %>%
   unnest(year) %>%
   select(year, ward, geometry) %>% 
   arrange(ward, year) %>% 
-  st_transform(crs = 3435) ## change to chicago coordinate system
+  st_transform(crs = 3435)
 
-
-## join to one large annual panel
 ward_panel_annual <- rbind(ward_bound1998, ward_bound2003, ward_bound2015, ward_bound2024) %>%
   mutate(ward = as.numeric(ward)) %>% 
   arrange(ward, year)
 
-# Save the annual ward panel
 st_write(ward_panel_annual, "../output/ward_panel.gpkg", delete_layer = TRUE)

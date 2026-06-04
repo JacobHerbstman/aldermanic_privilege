@@ -1,9 +1,23 @@
-# This code handmakes a panel of aldermen and uses the "majority of the month" rule to assign alderman to wards monthly from 2003-01 to 2025-06
-
-## run this line when editing code in Rstudio
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_data/code")
+# panel_end_month <- "2026-04"
 
 source("../../setup_environment/code/packages.R")
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(panel_end_month)
+}
+if (length(cli_args) != 1) {
+  stop("FATAL: Script requires 1 arg: <panel_end_month>.", call. = FALSE)
+}
+
+panel_end_month <- cli_args[1]
+panel_end_date <- as.Date(paste0(panel_end_month, "-01"))
+if (is.na(panel_end_date)) {
+  stop("panel_end_month must be YYYY-MM.", call. = FALSE)
+}
+current_panel_end_date <- seq(panel_end_date, by = "month", length.out = 2)[2] - 1
 
 # Aldermanic data
 alderman_data <- tribble(
@@ -96,7 +110,7 @@ alderman_data <- tribble(
   16, "Toni Foulkes",       "2015-05-18", "2019-05-19",
   16, "Stephanie Coleman",  "2019-05-20", "2025-06-24",
   
-  # 17th Ward (per your instruction)
+  # 17th Ward
   17, "Terry Peterson",     "1998-01-01", "2000-07-31",
   17, "Latasha Thomas",     "2000-08-01", "2015-05-17",
   17, "David Moore",        "2015-05-18", "2025-06-24",
@@ -257,99 +271,67 @@ alderman_data <- tribble(
   50, "Bernard Stone",      "1998-01-01", "2011-05-15",
   50, "Debra Silverstein",  "2011-05-16", "2025-06-24"
 ) %>%
-  mutate(across(c(start_date, end_date), as.Date))
+  mutate(across(c(start_date, end_date), as.Date)) %>%
+  mutate(
+    end_date = if_else(
+      end_date == as.Date("2025-06-24"),
+      current_panel_end_date,
+      end_date
+    )
+  )
 
-# # Finance Committee Chair data
-# finance_chair_data <- tribble(
-#   ~alderman, ~start_date, ~end_date,
-#   "Ed Burke", "2003-01-01", "2019-05-19",
-#   "Scott Waguespack", "2019-05-20", "2023-05-14",
-#   "Pat Dowell", "2023-05-15", "2025-06-24"
-# ) %>%
-#   mutate(across(c(start_date, end_date), as.Date), finance_chair = 1)
-# 
-# # Zoning Committee Chair data
-# zoning_chair_data <- tribble(
-#   ~alderman, ~start_date, ~end_date,
-#   "William J.P. Banks", "2003-01-01", "2011-05-15",
-#   "Daniel Solis", "2011-05-16", "2019-05-19",
-#   "James Cappleman", "2019-05-20", "2023-05-14",
-#   "Carlos Ramirez-Rosa", "2023-05-15", "2025-06-24"
-# ) %>%
-#   mutate(across(c(start_date, end_date), as.Date), zoning_chair = 1)
-# 
-# # Budget and Government Operations Committee Chair data
-# budget_chair_data <- tribble(
-#   ~alderman, ~start_date, ~end_date,
-#   "Carrie Austin", "2003-01-01", "2019-05-19",
-#   "Pat Dowell", "2019-05-20", "2023-05-14",
-#   "Jason Ervin", "2023-05-15", "2025-06-24"
-# ) %>%
-#   mutate(across(c(start_date, end_date), as.Date), budget_chair = 1)
+panel_months <- as.yearmon(seq(as.Date("1998-01-01"), panel_end_date, by = "months"))
 
-
-# Create a month-year panel using zoo::as.yearmon
 panel_grid <- expand_grid(
-  year_month = as.yearmon(seq(as.Date("1998-01-01"), as.Date("2025-06-01"), by = "months")),
+  month = panel_months,
   ward = 1:50
 )
 
-# --- New helpers: strict majority-of-month logic (month-length aware) ---
-gets_month_start <- function(date) {
-  # TRUE iff the incoming alderperson holds strictly more than half of the days in 'date''s month
-  if (is.na(date)) return(FALSE)
-  n <- lubridate::days_in_month(date)
-  remaining <- n - lubridate::day(date) + 1L
-  remaining > n/2
-}
-
-gets_month_end <- function(date) {
-  # TRUE iff the outgoing alderperson held strictly more than half of the days in 'date''s month
-  if (is.na(date)) return(FALSE)
-  n <- lubridate::days_in_month(date)
-  elapsed <- lubridate::day(date)
-  elapsed > n/2
-}
-
-# --- Replace your entire get_alderman() with this version ---
-get_alderman <- function(current_year_month, current_ward) {
-  ward_data <- alderman_data %>% dplyr::filter(ward == current_ward)
-  
-  # As before, we’ll compare in yearmon space (12ths of a year)
-  for (i in seq_len(nrow(ward_data))) {
-    term <- ward_data[i, ]
-    
-    start_month <- if (gets_month_start(term$start_date)) {
-      zoo::as.yearmon(term$start_date)
-    } else {
-      zoo::as.yearmon(term$start_date) + 1/12
-    }
-    
-    end_month <- if (gets_month_end(term$end_date)) {
-      zoo::as.yearmon(term$end_date)
-    } else {
-      zoo::as.yearmon(term$end_date) - 1/12
-    }
-    
-    # small numeric guard; compare on rounded yearmon
-    if (round(current_year_month, 4) >= round(start_month, 4) &&
-        round(current_year_month, 4) <= round(end_month, 4)) {
-      return(term$alderman)
-    }
-  }
-  return(NA_character_)  # if no one holds the strict majority that month
-}
-
-# Apply the function to the panel grid
-final_panel <- panel_grid %>%
+alderman_months <- alderman_data %>%
+  mutate(
+    term_order = row_number(),
+    start_month = as.yearmon(start_date) + if_else(
+      lubridate::days_in_month(start_date) - lubridate::day(start_date) + 1L >
+        lubridate::days_in_month(start_date) / 2,
+      0,
+      1 / 12
+    ),
+    end_month = as.yearmon(end_date) - if_else(
+      lubridate::day(end_date) > lubridate::days_in_month(end_date) / 2,
+      0,
+      1 / 12
+    )
+  ) %>%
+  filter(start_month <= end_month) %>%
   rowwise() %>%
-  mutate(alderman = get_alderman(year_month, ward)) %>%
-  ungroup()
+  # Preserve the panel's existing transition-month convention.
+  mutate(month = list(panel_months[
+    round(panel_months, 4) >= round(start_month, 4) &
+      round(panel_months, 4) <= round(end_month, 4)
+  ])) %>%
+  ungroup() %>%
+  select(ward, alderman, term_order, month) %>%
+  tidyr::unnest(month) %>%
+  arrange(ward, month, term_order) %>%
+  distinct(ward, month, .keep_all = TRUE) %>%
+  select(ward, month, alderman)
 
-final_panel <- final_panel %>%
-  rename(month = year_month)
+final_panel <- panel_grid %>%
+  left_join(alderman_months, by = c("ward", "month"), relationship = "one-to-one")
 
-# Write to CSV
+coverage <- final_panel %>%
+  summarise(
+    n_wards = n_distinct(ward),
+    n_missing_alderman = sum(is.na(alderman) | alderman == ""),
+    n_unique_aldermen = n_distinct(alderman, na.rm = TRUE),
+    .by = month
+  ) %>%
+  arrange(month)
+
+recent_missing <- coverage %>%
+  filter(month >= as.yearmon("2023-05"), n_missing_alderman > 0)
+if (nrow(recent_missing) > 0) {
+  stop("Alderman panel has missing post-2023 ward-month assignments.", call. = FALSE)
+}
+
 write_csv(final_panel, "../output/chicago_alderman_panel.csv")
-
-print("CSV file created successfully: chicago_alderman_panel.csv")

@@ -1,0 +1,21 @@
+SHELL := bash
+
+BANDWIDTH_FT ?= 500
+
+all: \
+	../output/rental_rd_amenity_distance_diagnostics_bw$(BANDWIDTH_FT).csv \
+	../output/rental_rd_cta_station_assignment_bw$(BANDWIDTH_FT).csv
+
+../output/rental_rd_amenity_distance_diagnostics_bw$(BANDWIDTH_FT).csv: run_rental_rd_characteristics_audit.R ../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet | ../output
+	$(R) $< $(BANDWIDTH_FT)
+
+../output/rental_rd_cta_station_assignment_bw$(BANDWIDTH_FT).csv: | ../output/rental_rd_amenity_distance_diagnostics_bw$(BANDWIDTH_FT).csv
+	@test -s "$@"
+
+../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet: ../../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet
+
+include ../../../shell_functions.make
+include ../../../generic.make

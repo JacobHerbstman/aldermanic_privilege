@@ -51,6 +51,24 @@ priority_dt <- merge(
   style_dt[, .(
     task,
     cli_scripts,
+    makefile_line_count,
+    script_count,
+    total_script_lines,
+    max_script_lines,
+    scripts_ge_500_lines,
+    scripts_ge_1000_lines,
+    diagnostic_keyword_lines,
+    scripts_with_diagnostic_keywords,
+    output_write_calls,
+    all_output_family_count,
+    all_output_families,
+    production_split_flag,
+    audit_named_task_outside_audits,
+    default_sidecar_output_count,
+    fixed_path_cli_arg_cmds,
+    scripts_with_file_exists,
+    file_exists_refs,
+    all_named_local_functions,
     named_local_functions,
     cli_scripts_gt2_local_helpers,
     non_lib_source_calls,
@@ -63,18 +81,38 @@ priority_dt <- merge(
 )
 
 for (col in c(
+  "makefile_line_count", "script_count", "total_script_lines", "max_script_lines",
+  "scripts_ge_500_lines", "scripts_ge_1000_lines", "diagnostic_keyword_lines",
+  "scripts_with_diagnostic_keywords", "output_write_calls", "all_output_family_count",
   "cli_scripts", "named_local_functions", "cli_scripts_gt2_local_helpers",
+  "all_named_local_functions",
+  "default_sidecar_output_count", "fixed_path_cli_arg_cmds",
+  "scripts_with_file_exists", "file_exists_refs",
   "non_lib_source_calls", "task_local_helper_files", "single_use_task_helper_files",
   "n_tex_refs", "n_tex_files", "n_paper_refs", "n_slide_refs"
 )) {
   priority_dt[is.na(get(col)), (col) := 0L]
 }
 
+priority_dt[is.na(production_split_flag), production_split_flag := FALSE]
+priority_dt[is.na(audit_named_task_outside_audits), audit_named_task_outside_audits := FALSE]
+priority_dt[is.na(all_output_families), all_output_families := ""]
+
 priority_dt[, priority_stage := fifelse(n_tex_refs > 0L, "paper_slides_first", "remaining_active")]
 priority_dt[, priority_score :=
   100000L * as.integer(n_tex_refs > 0L) +
+  20000L * as.integer(production_split_flag == TRUE) +
+  5000L * default_sidecar_output_count +
+  4000L * fixed_path_cli_arg_cmds +
+  2500L * scripts_ge_1000_lines +
+  1500L * scripts_ge_500_lines +
   1000L * cli_scripts_gt2_local_helpers +
-  100L * named_local_functions +
+  500L * as.integer(audit_named_task_outside_audits == TRUE) +
+  250L * pmin(diagnostic_keyword_lines, 50L) +
+  250L * pmin(output_write_calls, 20L) +
+  100L * all_named_local_functions +
+  100L * pmax(all_output_family_count - 1L, 0L) +
+  50L * file_exists_refs +
   25L * non_lib_source_calls +
   10L * single_use_task_helper_files +
   5L * n_tex_refs +
@@ -100,8 +138,39 @@ priority_dt[, priority_reason := vapply(seq_len(.N), function(i) {
       sprintf("%d CLI scripts with >2 local helpers", priority_dt$cli_scripts_gt2_local_helpers[i])
     )
   }
-  if (priority_dt$named_local_functions[i] > 0L) {
-    reasons <- c(reasons, sprintf("%d local helper defs in CLI scripts", priority_dt$named_local_functions[i]))
+  if (priority_dt$default_sidecar_output_count[i] > 0L) {
+    reasons <- c(reasons, sprintf("%d sidecar/QC outputs in default all", priority_dt$default_sidecar_output_count[i]))
+  }
+  if (priority_dt$production_split_flag[i] == TRUE) {
+    split_reasons <- character()
+    if (priority_dt$max_script_lines[i] > 500L) {
+      split_reasons <- c(split_reasons, sprintf("max script %d lines", priority_dt$max_script_lines[i]))
+    }
+    if (priority_dt$makefile_line_count[i] > 50L) {
+      split_reasons <- c(split_reasons, sprintf("Makefile %d lines", priority_dt$makefile_line_count[i]))
+    }
+    if (priority_dt$all_output_family_count[i] > 1L) {
+      split_reasons <- c(split_reasons, sprintf("%d output families", priority_dt$all_output_family_count[i]))
+    }
+    reasons <- c(reasons, sprintf("split candidate (%s)", paste(split_reasons, collapse = ", ")))
+  }
+  if (priority_dt$audit_named_task_outside_audits[i] == TRUE) {
+    reasons <- c(reasons, "audit/diagnostic-like task outside tasks/audits")
+  }
+  if (priority_dt$fixed_path_cli_arg_cmds[i] > 0L) {
+    reasons <- c(reasons, sprintf("%d recipe commands pass fixed paths", priority_dt$fixed_path_cli_arg_cmds[i]))
+  }
+  if (priority_dt$diagnostic_keyword_lines[i] > 0L) {
+    reasons <- c(reasons, sprintf("%d diagnostic/QC keyword lines", priority_dt$diagnostic_keyword_lines[i]))
+  }
+  if (priority_dt$output_write_calls[i] > 0L) {
+    reasons <- c(reasons, sprintf("%d write calls", priority_dt$output_write_calls[i]))
+  }
+  if (priority_dt$file_exists_refs[i] > 0L) {
+    reasons <- c(reasons, sprintf("%d file.exists refs", priority_dt$file_exists_refs[i]))
+  }
+  if (priority_dt$all_named_local_functions[i] > 0L) {
+    reasons <- c(reasons, sprintf("%d local helper defs", priority_dt$all_named_local_functions[i]))
   }
   if (priority_dt$non_lib_source_calls[i] > 0L) {
     reasons <- c(reasons, sprintf("%d non-_lib source() calls", priority_dt$non_lib_source_calls[i]))
@@ -122,7 +191,13 @@ priority_dt[, priority_rank := seq_len(.N)]
 setcolorder(priority_dt, c(
   "priority_rank", "task", "priority_stage", "priority_score", "priority_reason",
   "n_tex_refs", "n_paper_refs", "n_slide_refs", "n_tex_files",
-  "cli_scripts", "named_local_functions", "cli_scripts_gt2_local_helpers",
+  "makefile_line_count", "script_count", "total_script_lines", "max_script_lines",
+  "scripts_ge_500_lines", "scripts_ge_1000_lines", "diagnostic_keyword_lines",
+  "scripts_with_diagnostic_keywords", "output_write_calls", "all_output_family_count",
+  "all_output_families", "production_split_flag", "audit_named_task_outside_audits",
+  "cli_scripts", "default_sidecar_output_count", "fixed_path_cli_arg_cmds",
+  "scripts_with_file_exists", "file_exists_refs",
+  "all_named_local_functions", "named_local_functions", "cli_scripts_gt2_local_helpers",
   "non_lib_source_calls", "task_local_helper_files", "single_use_task_helper_files",
   "tex_priority"
 ))
@@ -137,8 +212,8 @@ lines <- c(
   sprintf("- Style file: `%s`", args[2]),
   sprintf("- Tasks ranked: %d", nrow(priority_dt)),
   "",
-  "| Rank | Task | Stage | Tex Refs | Local Functions | CLI Scripts >2 Helpers | Non-_lib Sources | Single-Use Helpers | Reason |",
-  "|---:|---|---|---:|---:|---:|---:|---:|---|"
+  "| Rank | Task | Stage | Tex Refs | Max Script Lines | Makefile Lines | Product Families | Diagnostic Lines | Write Calls | Sidecar `all` Outputs | Fixed Path CLI Cmds | File Exists Refs | Local Functions | Reason |",
+  "|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|"
 )
 
 for (i in seq_len(nrow(priority_dt))) {
@@ -146,15 +221,20 @@ for (i in seq_len(nrow(priority_dt))) {
   lines <- c(
     lines,
     sprintf(
-      "| %d | %s | %s | %d | %d | %d | %d | %d | %s |",
+      "| %d | %s | %s | %d | %d | %d | %d | %d | %d | %d | %d | %d | %d | %s |",
       rr$priority_rank,
       rr$task,
       rr$priority_stage,
       rr$n_tex_refs,
-      rr$named_local_functions,
-      rr$cli_scripts_gt2_local_helpers,
-      rr$non_lib_source_calls,
-      rr$single_use_task_helper_files,
+      rr$max_script_lines,
+      rr$makefile_line_count,
+      rr$all_output_family_count,
+      rr$diagnostic_keyword_lines,
+      rr$output_write_calls,
+      rr$default_sidecar_output_count,
+      rr$fixed_path_cli_arg_cmds,
+      rr$file_exists_refs,
+      rr$all_named_local_functions,
       rr$priority_reason
     )
   )

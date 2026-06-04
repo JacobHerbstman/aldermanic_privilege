@@ -23,7 +23,6 @@ nearest_distance_ft <- function(point_sf, target_sf, chunk_size = 100000L, label
       nearest_geom <- target_sf[nearest_idx, ]
       out[idx] <- as.numeric(st_distance(point_sf[idx, ], nearest_geom, by_element = TRUE))
     }
-    message(sprintf("  Processed %s / %s %s", format(e, big.mark = ","), format(nrow(point_sf), big.mark = ","), label))
   }
 
   out

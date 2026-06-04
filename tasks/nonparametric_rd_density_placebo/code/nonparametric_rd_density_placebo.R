@@ -1,6 +1,3 @@
-source("../../setup_environment/code/packages.R")
-source("../../_lib/border_pair_helpers.R")
-
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/nonparametric_rd_density_placebo/code")
 # yvar <- "density_far"
@@ -9,29 +6,32 @@ source("../../_lib/border_pair_helpers.R")
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
 # placebo_shift_m <- -152.4
-# input_csv <- "../input/parcels_with_ward_distances.csv"
-# output_pdf <- "../output/nonparametric_rd_density_placebo_log_density_far_500ft_all_shift_neg500ft.pdf"
+# start_construction_year <- 2006
+# end_construction_year <- 2022
 
-args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0) {
-  args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, placebo_shift_m, input_csv, output_pdf)
+source("../../setup_environment/code/packages.R")
+source("../../_lib/border_pair_helpers.R")
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(yvar, bandwidth_m, sample_filter, fe_spec, bins_per_side, placebo_shift_m, start_construction_year, end_construction_year)
 }
 
-if (!length(args) %in% c(8, 9)) {
+if (length(cli_args) != 8) {
   stop(
-    "FATAL: Script requires args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <placebo_shift_m> <input_csv> <output_pdf>",
+    "FATAL: Script requires 8 args: <yvar> <bandwidth_m> <sample_filter> <fe_spec> <bins_per_side> <placebo_shift_m> <start_construction_year> <end_construction_year>.",
     call. = FALSE
   )
 }
 
-yvar <- args[1]
-bandwidth_m <- as.numeric(args[2])
-sample_filter <- args[3]
-fe_spec <- args[4]
-bins_per_side <- as.integer(args[5])
-placebo_shift_m <- as.numeric(args[6])
-input_csv <- args[7]
-output_pdf <- args[8]
+yvar <- cli_args[1]
+bandwidth_m <- as.numeric(cli_args[2])
+sample_filter <- cli_args[3]
+fe_spec <- cli_args[4]
+bins_per_side <- as.integer(cli_args[5])
+placebo_shift_m <- as.numeric(cli_args[6])
+start_construction_year <- suppressWarnings(as.integer(cli_args[7]))
+end_construction_year <- suppressWarnings(as.integer(cli_args[8]))
 
 if (!yvar %in% c("density_far", "density_dupac")) {
   stop("yvar must be one of: density_far, density_dupac", call. = FALSE)
@@ -51,6 +51,21 @@ if (!is.finite(bins_per_side) || bins_per_side < 2) {
 if (!is.finite(placebo_shift_m)) {
   stop("placebo_shift_m must be numeric.", call. = FALSE)
 }
+if (
+  !is.finite(start_construction_year) ||
+    !is.finite(end_construction_year) ||
+    start_construction_year > end_construction_year
+) {
+  stop("start_construction_year and end_construction_year must be valid integer years with start <= end.", call. = FALSE)
+}
+
+distance_display <- distance_display_config("ft")
+bw_label <- format_distance_label(bandwidth_m, distance_display)
+shift_file_label <- paste0(
+  ifelse(placebo_shift_m < 0, "neg", "pos"),
+  format_distance_label(abs(placebo_shift_m), distance_display)
+)
+shift_display_label <- format_signed_distance_label(placebo_shift_m, distance_display)
 fe_formula <- dplyr::case_when(
   fe_spec == "zonegroup_segment_year_additive" ~ "zone_group + segment_id + construction_year",
   fe_spec == "zonegroup_pair_year_additive" ~ "zone_group + ward_pair + construction_year",
@@ -58,21 +73,13 @@ fe_formula <- dplyr::case_when(
   TRUE ~ NA_character_
 )
 
-stars <- function(p) {
-  if (!is.finite(p)) return("")
-  if (p <= 0.01) return("***")
-  if (p <= 0.05) return("**")
-  if (p <= 0.1) return("*")
-  ""
-}
-
 pretty_outcome <- dplyr::case_when(
   yvar == "density_far" ~ "Log(FAR)",
   yvar == "density_dupac" ~ "Log(DUPAC)",
   TRUE ~ yvar
 )
 
-raw <- read_csv(input_csv, show_col_types = FALSE) %>%
+raw <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FALSE) %>%
   ensure_meter_distance_columns()
 
 dat <- raw %>%
@@ -83,7 +90,8 @@ dat <- raw %>%
   filter(
     arealotsf > 1,
     areabuilding > 1,
-    construction_year >= 2006,
+    construction_year >= start_construction_year,
+    construction_year <= end_construction_year,
     !is.na(ward_pair),
     !is.na(construction_year),
     is.finite(signed_distance_m),
@@ -139,22 +147,6 @@ if (nrow(aug) != nobs(m_resid)) {
   stop("Residualized sample alignment failed.", call. = FALSE)
 }
 
-fml_linear <- as.formula(sprintf(
-  "outcome ~ side * running_distance + %s | %s",
-  paste(controls, collapse = " + "),
-  fe_formula
-))
-m_linear <- feols(fml_linear, data = aug, cluster = ~ward_pair)
-
-linear_row <- coeftable(m_linear)[rownames(coeftable(m_linear)) %in% "side", , drop = FALSE]
-if (nrow(linear_row) != 1) {
-  stop("Could not recover the placebo cutoff estimate.", call. = FALSE)
-}
-
-cutoff_estimate <- unname(linear_row[1, "Estimate"])
-cutoff_se <- unname(linear_row[1, "Std. Error"])
-cutoff_p <- unname(linear_row[1, "Pr(>|t|)"])
-
 m_display <- feols(
   residualized_outcome ~ side * running_distance,
   data = aug,
@@ -171,42 +163,32 @@ aug <- aug %>%
       length(breaks_m) - 1L
     ),
     bin_left_m = breaks_m[bin_idx],
-    bin_center_m = bin_left_m + bin_width_m / 2,
-    side_label = if_else(side == 1L, "Strict side", "Lenient side")
+    bin_center_m = bin_left_m + bin_width_m / 2
   )
 
 bins <- aug %>%
-  group_by(bin_idx, bin_center_m, side, side_label) %>%
+  group_by(bin_idx, bin_center_m, side) %>%
   summarise(
-    n = n(),
     mean_y = mean(residualized_outcome, na.rm = TRUE),
     .groups = "drop"
   ) %>%
   arrange(bin_center_m)
 
-coef_names <- names(coef(m_display))
 line_df <- tibble(
   running_distance = c(
     seq(-bandwidth_m, 0, length.out = 200),
     seq(0, bandwidth_m, length.out = 200)[-1]
   )
 ) %>%
-  mutate(
-    side = as.integer(running_distance > 0),
-    side_label = if_else(side == 1L, "Strict side", "Lenient side")
-  )
+  mutate(side = as.integer(running_distance > 0))
 
-xmat <- matrix(0, nrow = nrow(line_df), ncol = length(coef_names))
-colnames(xmat) <- coef_names
-if ("(Intercept)" %in% coef_names) xmat[, "(Intercept)"] <- 1
-if ("side" %in% coef_names) xmat[, "side"] <- line_df$side
-if ("running_distance" %in% coef_names) xmat[, "running_distance"] <- line_df$running_distance
-if ("side:running_distance" %in% coef_names) xmat[, "side:running_distance"] <- line_df$side * line_df$running_distance
-if ("running_distance:side" %in% coef_names) xmat[, "running_distance:side"] <- line_df$side * line_df$running_distance
-
-line_df <- line_df %>%
-  mutate(side_label = if_else(side == 1L, "Strict side", "Lenient side"))
-
+coef_names <- names(coef(m_display))
+xmat <- model.matrix(~ side * running_distance, data = line_df)
+missing_coef_names <- setdiff(coef_names, colnames(xmat))
+if (length(missing_coef_names) > 0) {
+  stop("Prediction design matrix does not match fitted model.", call. = FALSE)
+}
+xmat <- xmat[, coef_names, drop = FALSE]
 line_vcov <- vcov(m_display)
 line_crit <- qt(0.975, df = max(n_distinct(aug$ward_pair) - 1, 1))
 
@@ -225,34 +207,18 @@ if (!is.finite(y_span) || y_span <= 0) y_span <- 1
 y_pad <- max(0.15 * y_span, 0.05)
 y_limits <- c(y_min - y_pad, y_max + y_pad)
 
-sample_label <- ifelse(sample_filter == "all", "all construction", "multifamily")
-
-distance_display <- distance_display_config()
 x_limits <- c(-bandwidth_m, bandwidth_m) * distance_display$scale
 x_label <- sprintf(
   "Distance to placebo cutoff (%s; cutoff shifted %s)",
   distance_display$unit,
-  format_signed_distance_label(placebo_shift_m, distance_display)
+  shift_display_label
 )
-bw_label <- format_distance_label(bandwidth_m, distance_display)
-shift_label <- format_signed_distance_label(placebo_shift_m, distance_display)
 
 bins <- bins %>%
   mutate(bin_center_display = bin_center_m * distance_display$scale)
 
 line_df <- line_df %>%
   mutate(running_distance_display = running_distance * distance_display$scale)
-
-subtitle_label <- sprintf(
-  "Jump = %.3f%s (SE %.3f) | shift=%s | %s | bandwidth=%s | N=%d",
-  cutoff_estimate,
-  stars(cutoff_p),
-  cutoff_se,
-  shift_label,
-  sample_label,
-  bw_label,
-  nobs(m_resid)
-)
 
 p <- ggplot() +
   geom_ribbon(
@@ -283,12 +249,21 @@ p <- ggplot() +
   coord_cartesian(ylim = y_limits) +
   labs(
     title = paste0("Placebo Local-Linear RD: ", pretty_outcome),
-    subtitle = subtitle_label,
     x = x_label,
     y = paste("Residualized", pretty_outcome)
   ) +
   theme_bw(base_size = 11)
 
-ggsave(output_pdf, plot = p, width = 8.6, height = 6.0, dpi = 300)
-
-message(sprintf("Built %s", output_pdf))
+ggsave(
+  sprintf(
+    "../output/nonparametric_rd_density_placebo_log_%s_%s_%s_shift_%s.pdf",
+    yvar,
+    bw_label,
+    sample_filter,
+    shift_file_label
+  ),
+  plot = p,
+  width = 8.6,
+  height = 6.0,
+  dpi = 300
+)

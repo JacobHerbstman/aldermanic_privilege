@@ -1,7 +1,7 @@
 # zoning_data_cleaning
 
-Purpose: Handles zoning data cleaning.
+Purpose: Cleans Chicago zoning district geometries and selected zoning-code regulations.
 
-Produces: Produces files such as `output/zoning_data_clean.gpkg` and related task-specific outputs in `output/`.
+Produces: `output/zoning_data_clean.gpkg`.
 
 Approx. runtime: ~1-10 minutes.

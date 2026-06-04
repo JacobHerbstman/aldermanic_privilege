@@ -7,7 +7,6 @@ set -euo pipefail
 parcel_year="${1:-2025}"
 triad_name="${2:-City}"
 native_csv="../temp/parcel_universe_2025_city_native.csv"
-metadata_file="../output/parcel_universe_2025_city_metadata.csv"
 api_csv="https://datacatalog.cookcountyil.gov/resource/nj4t-kc8j.csv"
 api_json="https://datacatalog.cookcountyil.gov/resource/nj4t-kc8j.json"
 where_clause="year=${parcel_year} and triad_name='${triad_name}'"
@@ -96,7 +95,6 @@ if ! [[ "$expected_records" =~ ^[0-9]+$ ]]; then
 fi
 
 tmp_output="$tmp_dir/parcel_universe_2025_city_native.csv"
-tmp_metadata="$tmp_dir/parcel_universe_2025_city_metadata.csv"
 tmp_prefix_counts="$tmp_dir/prefix_counts.csv"
 
 echo "Downloading parcel universe data from Cook County Open Data..."
@@ -171,12 +169,6 @@ if (( ending_records != expected_records )); then
     exit 1
 fi
 
-{
-    echo "source_url,downloaded_at_utc,filter,partition,order_clause,rows,start_rows,end_rows"
-    echo "$api_csv,$(date -u +%Y-%m-%dT%H:%M:%SZ),\"${where_clause}\",\"pin_prefix_${prefix_width}\",\"${order_clause}\",$actual_records,$expected_records,$ending_records"
-} > "$tmp_metadata"
-
-mv "$tmp_metadata" "$metadata_file"
 mv "$tmp_output" "$native_csv"
 
 echo "Download complete: ${actual_records} records"

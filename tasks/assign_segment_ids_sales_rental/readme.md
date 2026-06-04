@@ -1,7 +1,11 @@
 # assign_segment_ids_sales_rental
 
-Purpose: Assigns segment ids sales rental.
+Purpose: Assigns boundary-segment IDs to sales and RentHub records using the nearest valid segment rule.
 
-Produces: Produces files such as `output/rent_pre_scores_full_with_segments.parquet`, `output/sales_pre_scores_with_segments.csv`, `output/segment_assignment_coverage_summary.csv` and related task-specific outputs in `output/`.
+Outputs:
+- `output/sales_pre_scores_with_segments.csv`
+- `output/rent_pre_scores_full_with_segments.parquet`
+
+The default segment-assignment radius is 457.2m, or 1500ft. The script hard-checks segment assignment consistency inside 500ft before writing the handoffs.
 
 Approx. runtime: ~1-10 minutes.

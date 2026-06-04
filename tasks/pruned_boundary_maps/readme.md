@@ -1,7 +1,7 @@
 # pruned_boundary_maps
 
-Purpose: Builds pruned boundary maps outputs.
+Purpose: Produces the paper-facing map of ward boundaries divided into segments.
 
-Produces: Produces files such as `output/pruned_boundaries_all_segments_by_era.pdf`, `output/pruned_boundaries_audit.md`, `output/pruned_boundaries_audit_borderline_drop.csv` and related task-specific outputs in `output/`.
+Produces: `output/pruned_boundaries_all_segments_by_era.pdf`.
 
 Approx. runtime: ~under 5 minutes.

@@ -22,7 +22,10 @@ HOSTILE_OUTPUTS = \
 
 all: $(HOSTILE_OUTPUTS)
 
-../output/hostile_claim_ledger.csv: run_hostile_replication_audit.R | ../output
+../output/hostile_claim_ledger.csv: run_hostile_replication_audit.R \
+	../../permit_event_study_audit/output/permit_block_assignment_review_log.csv \
+	../../permit_event_study_audit/output/permit_block_assignment_missing_2010.csv \
+	../../permit_event_study_audit/output/permit_block_assignment_missing_2020.csv | ../output
 	Rscript run_hostile_replication_audit.R
 
 ../output/claim_artifact_map_hostile.csv \
