@@ -3,18 +3,20 @@
 
 source("../../setup_environment/code/packages.R")
 
-ward_bound1998 <- st_read("../input/ward1998.shp")
+ward_bound1998 <- st_read("../input/Chicago_Wards_1998.geojson")
 
 ward_bound1998 <- ward_bound1998 %>%
-  janitor::clean_names() %>% 
+  janitor::clean_names() %>%
+  mutate(ward = as.character(ward)) %>%
+  filter(!is.na(ward), ward != "OUT") %>%
   mutate(ward = as.numeric(ward)) %>%
-  arrange(ward) %>% 
+  arrange(ward) %>%
   select(ward, geometry) %>%
   rowwise() %>%
   mutate(year = list(1998:2002)) %>%
   unnest(year) %>%
-  select(year, ward, geometry) %>% 
-  arrange(ward, year) %>% 
+  select(year, ward, geometry) %>%
+  arrange(ward, year) %>%
   st_transform(crs = 3435)
 
 ward_bound2003 <- st_read("../input/Wards_2014.geojson") 
@@ -47,7 +49,7 @@ ward_bound2024 <- ward_bound2024 %>%
   filter(ward != "OUT") %>% 
   select(ward, geometry) %>%
   rowwise() %>%
-  mutate(year = list(2024:2025)) %>%
+  mutate(year = list(2024:2026)) %>%
   unnest(year) %>%
   select(year, ward, geometry) %>% 
   arrange(ward, year) %>% 

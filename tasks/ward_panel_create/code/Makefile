@@ -1,9 +1,9 @@
 all: ../output/ward_panel.gpkg
 
-../output/ward_panel.gpkg: make_ward_panel.R ../input/ward1998.shp ../input/ward1998.dbf ../input/ward1998.prj ../input/ward1998.shx ../input/Wards_2014.geojson ../input/Wards_2015.geojson ../input/Wards_2024.geojson | ../output
+../output/ward_panel.gpkg: make_ward_panel.R ../input/Chicago_Wards_1998.geojson ../input/Wards_2014.geojson ../input/Wards_2015.geojson ../input/Wards_2024.geojson | ../output
 	Rscript $<
 
-../input/ward1998.shp ../input/ward1998.dbf ../input/ward1998.prj ../input/ward1998.shx: ../input/ward1998.%: ../../../data_raw/ward1998.% | ../input
+../input/Chicago_Wards_1998.geojson: ../../../data_raw/Chicago_Wards_1998.geojson | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/Wards_2014.geojson: ../../../data_raw/Wards_2014.geojson | ../input
@@ -15,6 +15,6 @@ all: ../output/ward_panel.gpkg
 ../input/Wards_2024.geojson: ../../../data_raw/Wards_2024.geojson | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/ward1998.shp ../input/ward1998.dbf ../input/ward1998.prj ../input/ward1998.shx ../input/Wards_2014.geojson ../input/Wards_2015.geojson ../input/Wards_2024.geojson
+link-inputs: ../input/Chicago_Wards_1998.geojson ../input/Wards_2014.geojson ../input/Wards_2015.geojson ../input/Wards_2024.geojson
 
 include ../../generic.make

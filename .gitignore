@@ -13,8 +13,12 @@ node_modules/
 slurmlogs/
 
 # --- Raw & Intermediate Data ---
-# Ignore the entire raw data directory
-data_raw/
+# Ignore raw data by default, except static ward boundaries required for replication.
+data_raw/*
+!data_raw/Chicago_Wards_1998.geojson
+!data_raw/Wards_2014.geojson
+!data_raw/Wards_2015.geojson
+!data_raw/Wards_2024.geojson
 
 # Ignore the contents of ALL input, output, and temp folders
 # for every task. The trailing slash is important.
