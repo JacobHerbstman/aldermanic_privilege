@@ -267,11 +267,25 @@ load_feature_layers <- function(ward_panel) {
     st_union() |>
     st_buffer(1500)
 
-  major_streets <- read_filtered_layer("../input/Major_Streets.shp", city_geom, "Major Streets")
+  major_streets <- read_filtered_layer("../input/major_streets.geojson", city_geom, "Major Streets")
   if (nrow(major_streets) > 0) {
     major_streets$source_layer <- "major_streets"
-    major_streets$road_name <- as.character(major_streets$STREET_NAM)
-    major_streets$road_class_code <- suppressWarnings(as.integer(major_streets$CLASS))
+    if ("STREET_NAM" %in% names(major_streets)) {
+      major_streets$road_name <- as.character(major_streets$STREET_NAM)
+    } else if ("street_nam" %in% names(major_streets)) {
+      major_streets$road_name <- as.character(major_streets$street_nam)
+    } else if ("STREETNAME" %in% names(major_streets)) {
+      major_streets$road_name <- as.character(major_streets$STREETNAME)
+    } else {
+      stop("Major Streets input is missing the street-name column.")
+    }
+    if ("CLASS" %in% names(major_streets)) {
+      major_streets$road_class_code <- suppressWarnings(as.integer(major_streets$CLASS))
+    } else if ("class" %in% names(major_streets)) {
+      major_streets$road_class_code <- suppressWarnings(as.integer(major_streets$class))
+    } else {
+      stop("Major Streets input is missing the road-class column.")
+    }
     major_streets$road_class_mapped <- fifelse(
       major_streets$road_class_code == 1L, "expressway",
       fifelse(

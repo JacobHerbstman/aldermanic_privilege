@@ -10,7 +10,7 @@ all: \
 ../output/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg: build_boundary_segments.R \
 	../../_lib/canonical_geometry_helpers.R \
 	../input/ward_panel.gpkg \
-	../input/Major_Streets.shp ../input/Major_Streets.dbf ../input/Major_Streets.prj ../input/Major_Streets.shx \
+	../input/major_streets.geojson \
 	../input/gis_osm_roads_free_1.shp ../input/gis_osm_roads_free_1.dbf ../input/gis_osm_roads_free_1.prj ../input/gis_osm_roads_free_1.shx ../input/gis_osm_roads_free_1.cpg \
 	../input/gis_osm_landuse_a_free_1.shp ../input/gis_osm_landuse_a_free_1.dbf ../input/gis_osm_landuse_a_free_1.prj ../input/gis_osm_landuse_a_free_1.shx ../input/gis_osm_landuse_a_free_1.cpg \
 	../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg \
@@ -24,24 +24,24 @@ all: \
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/Major_Streets.%: ../../../data_raw/Major_Streets.% | ../input
+../input/major_streets.geojson: ../../download_chicago_spatial_data/output/major_streets.geojson | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_roads_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_roads_free_1.% | ../input
+../input/gis_osm_roads_free_1.%: ../../download_osm_illinois_data/output/gis_osm_roads_free_1.% | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_landuse_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.% | ../input
+../input/gis_osm_landuse_a_free_1.%: ../../download_osm_illinois_data/output/gis_osm_landuse_a_free_1.% | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
+../input/gis_osm_water_a_free_1.%: ../../download_osm_illinois_data/output/gis_osm_water_a_free_1.% | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_waterways_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_waterways_free_1.% | ../input
+../input/gis_osm_waterways_free_1.%: ../../download_osm_illinois_data/output/gis_osm_waterways_free_1.% | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: \
 	../input/ward_panel.gpkg \
-	../input/Major_Streets.shp ../input/Major_Streets.dbf ../input/Major_Streets.prj ../input/Major_Streets.shx \
+	../input/major_streets.geojson \
 	../input/gis_osm_roads_free_1.shp ../input/gis_osm_roads_free_1.dbf ../input/gis_osm_roads_free_1.prj ../input/gis_osm_roads_free_1.shx ../input/gis_osm_roads_free_1.cpg \
 	../input/gis_osm_landuse_a_free_1.shp ../input/gis_osm_landuse_a_free_1.dbf ../input/gis_osm_landuse_a_free_1.prj ../input/gis_osm_landuse_a_free_1.shx ../input/gis_osm_landuse_a_free_1.cpg \
 	../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg \

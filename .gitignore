@@ -13,9 +13,10 @@ node_modules/
 slurmlogs/
 
 # --- Raw & Intermediate Data ---
-# Ignore raw data by default, except static ward boundaries required for replication.
+# Ignore raw data by default, except static boundaries required for replication.
 data_raw/*
 !data_raw/Chicago_Wards_1998.geojson
+!data_raw/Boundaries_-_Zoning_Districts_20250910.geojson
 !data_raw/Wards_2014.geojson
 !data_raw/Wards_2015.geojson
 !data_raw/Wards_2024.geojson

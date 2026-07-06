@@ -36,12 +36,13 @@ cta <- cta %>%
 st_write(cta, "../output/cta_stops.gpkg", delete_dsn = TRUE, quiet = TRUE)
 
 
-major_streets <- st_read("../input/Major_Streets.shp", quiet = TRUE) %>%
+major_streets <- st_read("../input/major_streets.geojson", quiet = TRUE) %>%
   st_zm(drop = TRUE, what = "ZM") %>%
   { if (is.na(st_crs(.))) st_set_crs(., 4326) else . } %>%
   st_make_valid() %>%
   st_transform(3435) %>%
   janitor::clean_names() %>%
+  { if ("streetname" %in% names(.)) . else rename(., streetname = street_nam) } %>%
   mutate(source = "major_streets") %>% 
   select(streetname, class, status, source, geometry)
 
@@ -60,7 +61,7 @@ parks <- st_read("../input/cpd_park_boundaries.geojson", quiet = TRUE) %>%
 st_write(parks, "../output/parks.gpkg", delete_dsn = TRUE, quiet = TRUE)
 
 
-schools <- st_read("../input/CPS_School_Locations_SY1415_20250925.geojson", quiet = TRUE) %>%
+schools <- st_read("../input/cps_school_locations_sy1415.geojson", quiet = TRUE) %>%
   st_zm(drop = TRUE, what = "ZM") %>%
   { if (is.na(st_crs(.))) st_set_crs(., 4326) else . } %>%
   st_make_valid() %>%
