@@ -69,7 +69,8 @@ if (use_deweypy) {
   tryCatch(
     deweydatar::download_files(
       files_df = file_list,
-      dest_folder = "../output/"
+      dest_folder = "../output/",
+      skip_exists = TRUE
     ),
     error = function(e) {
       stop(sprintf("Dewey file download failed: %s", conditionMessage(e)), call. = FALSE)
