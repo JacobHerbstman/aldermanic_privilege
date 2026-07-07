@@ -27,16 +27,16 @@ all: \
 ../input/major_streets.geojson: ../../download_chicago_spatial_data/output/major_streets.geojson | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_roads_free_1.%: ../../download_osm_illinois_data/output/gis_osm_roads_free_1.% | ../input
+../input/gis_osm_roads_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_roads_free_1.% | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_landuse_a_free_1.%: ../../download_osm_illinois_data/output/gis_osm_landuse_a_free_1.% | ../input
+../input/gis_osm_landuse_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.% | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_water_a_free_1.%: ../../download_osm_illinois_data/output/gis_osm_water_a_free_1.% | ../input
+../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/gis_osm_waterways_free_1.%: ../../download_osm_illinois_data/output/gis_osm_waterways_free_1.% | ../input
+../input/gis_osm_waterways_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_waterways_free_1.% | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: \
