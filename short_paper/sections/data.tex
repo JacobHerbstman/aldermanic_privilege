@@ -1,3 +1,5 @@
+% !TEX root = ../paper.tex
+
 \section{Institutional Background and Data}
 \label{sec:data}
 
@@ -178,10 +180,10 @@ Processing time is days from application to issuance.}
     \label{fig:permit_high_low_processing}
 \end{figure}
 
-\subsection{Aldermanic Stringency Scores}
+\subsection{Regulatory Stringency Scores}
 \label{subsec:stringency}
 
-I construct the stringency score using permit applications through December 2022 by residualizing permit processing times against ward and permit characteristics, then extracting the alderman-specific component.
+I construct the stringency score using permit applications through 2006-2022 by residualizing permit processing times against ward and permit characteristics, then extracting the alderman-specific component.
 The first stage regresses log processing time at the permit level on ward-level demographic controls (median household income, racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
 %
 \begin{equation} \label{eq:stringency_reg1}
@@ -189,7 +191,7 @@ The first stage regresses log processing time at the permit level on ward-level 
 \end{equation}
 %
 where $\gamma_{\text{ym}}$ are year-month fixed effects, $\delta_{\text{pt}}$ are permit-type fixed effects, and $\zeta_{\text{rt}}$ are review-type fixed effects.
-Table~\ref{tab:stage1_residualization} in the Appendix reports the coefficients on the stage-one controls.
+Table~\ref{tab:stage1_residualization} in the Appendix reports the coefficients on the first stage controls.
 
 The second stage aggregates these residuals to the ward-month level and projects the ward-month mean residual onto alderman indicator variables and the same lagged ward-month permit volume control, weighted by the number of permits observed in each ward-month:
 %
@@ -202,18 +204,18 @@ The raw alderman fixed effects $\hat{\alpha}_a$ can be noisy for aldermen with f
 I therefore apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to pull imprecise estimates toward the grand mean, then standardize the final scores to have mean zero and unit standard deviation.
 
 Appendix~\ref{app:stringency_validation} reports two validation checks.
-Appendix Table~\ref{tab:permit_validation} shows that higher stringency predicts fewer high-discretion permits and more evidence of regulatory friction in ward-month data.
-Appendix Figure~\ref{fig:predecessor_successor_stringency} shows that the correlation between predecessor and successor aldermen within the same ward is relatively low ($\rho \approx 0.18$), supporting the interpretation that the index captures an alderman-specific component of the development process rather than a fixed ward trait.
+Appendix Table~\ref{tab:permit_validation} shows that higher stringency predicts fewer high-discretion permits and more evidence of regulatory friction, derived from permit text descriptions.
+Appendix Figure~\ref{fig:predecessor_successor_stringency} shows that the correlation between predecessor and successor aldermen within the same ward is relatively low ($\rho \approx 0.18$), supporting the interpretation that the index captures an alderman-specific component of the development process rather than ward characteristics.
 
 Appendix Figure~\ref{fig:aldermanic_stringency_scores} shows the distribution of the final stringency scores, and Figure~\ref{fig:alderman_stringency_map} maps them across the city.
 The scores vary in wealthy and poor neighborhoods, on the North Side and South Side, which helps rule out the idea that they are simply proxying for location or local demand conditions.
 The score also appears specific to discretionary development friction rather than general permitting slowness.
-Appendix Table~\ref{tab:low_discretion_placebo} shows that the main stringency index does not predict residualized processing times for low-discretion permits, and Appendix Table~\ref{tab:low_discretion_density_placebo} shows that a placebo score built from low-discretion permits does not predict density outcomes at ward boundaries.
+Appendix Table~\ref{tab:low_discretion_placebo} shows that the main stringency index does not predict residualized processing times for low-discretion permits.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{../tasks/strictness_score_map/output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022-01.pdf}
-    \caption{Geographic Distribution of Aldermanic Stringency}
+    \caption{Geographic Distribution of Regulatory Stringency}
 \figurenotes{Map shows standardized stringency scores by ward, estimated using permit applications through December 2022 and displayed on the January 2022 ward map.
 Darker shades indicate more stringent aldermen.}
     \label{fig:alderman_stringency_map}
@@ -240,7 +242,7 @@ As a result, I focus on the multifamily sample but show that a gap exists for al
 \subsection{Rental Listings}
 
 The rental data come from RentHub, a company that scrapes rental listings nationwide.
-The data start in 2014 and I use listings through December 2022 to match my other dataset, and restrict to listings within the Chicago city limits.
+The data start in 2014 and I use listings through December 2022 to match my other data sources, and restrict to listings within the Chicago city limits.
 The raw data are scrape-level rows, so the same listing can appear many times in the same month.
 I clean addresses, coordinates, rent, bedrooms, bathrooms, square footage, and building type, then build property and floorplan proxies from normalized address, rounded coordinates, beds, baths, square feet, and building type.
 The main rental panel is one observation per floorplan proxy per month, with rent equal to the median of the daily median asking rent observed during that month.
@@ -255,8 +257,6 @@ I restrict the sample to arm's-length transactions of single-family homes and sm
 Sale prices are first deflated to 2022 dollars using the monthly Chicago CPI-U all-items series and then winsorized at the 1st and 99th percentiles.
 Each transaction is geocoded using the county parcel universe and assigned to the relevant ward based on the boundaries in effect at the sale date.
 Property-level hedonic controls such as building area, land area, building age, bedrooms, bathrooms, and garage all come from a rolling join to the most recent assessor record as of the sale year.
-
-For both rents and sales, the price analysis uses parcel or listing coordinates projected from longitude-latitude to EPSG:3435 before any distance calculation.
 The amenity controls are distances to the nearest school, Chicago Park District park-boundary polygon, major street, distance to the nearest CTA stop, and distance to Lake Michigan.
 
 As with the rental data, more detail on the data construction process can be found in Appendix~\ref{app:data_sources}.

@@ -1,13 +1,15 @@
+% !TEX root = ../paper.tex
+
 \section{Results}
 \label{sec:empirical_results}
 
 \subsection{Density at Ward Boundaries}
 \label{sec:empirical_results_density}
 
-The first test asks whether completed housing is less dense on the more stringent side of the same ward boundary.
-The comparison is local: parcels are within 500ft of a boundary segment, so they are exposed to similar neighborhood amenities and demand conditions, but they face different aldermen.
+I first examine whether completed housing is less dense on the more stringent side of the same ward boundary.
+I compare parcels that are within 500ft of a boundary segment, so they are exposed to similar neighborhood amenities and demand conditions, but face different aldermen.
 I residualize log FAR and log DUPAC using zoning-group, boundary-segment, and construction-year fixed effects plus own-side demographic controls, then estimate side-specific local-linear fits on either side of the boundary.
-The estimating equation behind the display is
+The estimating equation is:
 %
 \begin{equation} \label{eq:segment_fe}
     \ln(Y_{iwst}) =
@@ -28,7 +30,6 @@ The coefficient $\tau$ is the jump at the boundary from the more lenient side to
 
 Figure~\ref{fig:rd_fe_plots} shows the boundary discontinuity for all new construction and multifamily new construction.
 The estimates are negative in all four panels and largest for multifamily buildings, the projects where aldermanic discretion is most likely to bind.
-The pattern is also visually concentrated at the ward boundary rather than appearing as a smooth gradient across space.
 Appendix~\ref{sec:appendix_density} reports shifted-cutoff placebo checks and donut checks around the boundary.
 
 \begin{figure}[htbp]
@@ -49,9 +50,9 @@ Appendix~\ref{sec:appendix_density} reports shifted-cutoff placebo checks and do
 \label{sec:empirical_results_permits}
 
 The density comparison uses close parcels on opposite sides of a boundary.
-As a complementary test, I use the 2015 ward redistricting to compare the same census block before and after its alderman changes.
+As a complementary analysis using within-location variation, I use the 2015 ward redistricting to compare the same census blocks before and after their alderman changes.
 Some blocks were reassigned to more stringent aldermen, some were reassigned to more lenient aldermen, and nearby non-switching blocks remained under the same origin ward.
-This design holds fixed the physical block and asks whether permit activity changes when the political gatekeeper changes.
+This design holds fixed the physical block and asks whether permit activity changes when the informal regulatory environment shifts.
 
 The outcome is the count of high-discretion permits issued on each census block in each year from 2010 through 2020.
 These are permits for projects where aldermen are most likely to matter: new construction, major renovation, demolition, porch construction, and reinstated permits.
@@ -92,10 +93,8 @@ This suggests that aldermanic stringency affects not only the density of complet
 \subsection{Suggestive Evidence on Rents and Sale Prices}
 \label{sec:empirical_results_prices}
 
-The density and permit results show that more stringent aldermen reduce housing supply on two margins: the scale of completed new construction and the flow of high-discretion projects.
+The density and permit results show that more stringent aldermen reduce housing supply on two margins: the intensive margin of completed new construction and the extensive margin of new high-discretion permits that will likely involve the alderman in some capacity.
 I next ask whether housing-cost outcomes are higher on the more stringent side of ward boundaries.
-These comparisons are not structural pass-through estimates, since listed rents and sale prices reflect equilibrium sorting, amenities, and local demand as well as supply.
-They are nevertheless useful as suggestive downstream evidence because they use the same boundary comparison and test whether prices move in the direction predicted by restricted supply.
 
 For rents and sales, I estimate
 %
@@ -109,14 +108,12 @@ For rents and sales, I estimate
 \end{equation}
 %
 where $Y_{ist}$ is the real listed rent or real sale price for observation $i$ near boundary segment $s$ in period $t$.
-Rents and sale prices are deflated to 2022 dollars using the monthly Chicago CPI-U all-items series.
 The fixed effects are segment-by-month for rents and segment-by-quarter for sales.
 Controls include listing or property characteristics and distances to nearby schools, parks, major roads, and Lake Michigan; the rental specification also controls for distance to the nearest CTA stop open by the listing month.
 Standard errors are clustered by boundary segment.
 
-Figure~\ref{fig:rental_rd_flat} shows that listed rents are about 3\% higher on the more stringent side of a ward boundary after residualizing for segment-by-month fixed effects, hedonic controls, and observed amenity controls.
+Figure~\ref{fig:rental_rd_flat} shows that listed rents are almost 3\% higher on the more stringent side of a ward boundary after residualizing for segment-by-month fixed effects, hedonic controls, and observed amenity controls.
 Figure~\ref{fig:sales_rd_flat} shows a smaller home-sale price gap of about 1.5\%.
-The sale-price estimate is less precise, but the direction is consistent with the rent evidence and with the supply results above.
 Appendix~\ref{sec:appendix_price_rd} reports placebo-cutoff checks for both outcomes.
 
 \begin{figure}[htbp]
