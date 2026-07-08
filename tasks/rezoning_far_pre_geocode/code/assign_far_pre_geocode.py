@@ -1,0 +1,704 @@
+import argparse
+import math
+import re
+from datetime import datetime, timezone
+from pathlib import Path
+
+import pandas as pd
+
+STRUCTURAL_NA_CODES = {"PD", "POS"}
+THREE_PART_ZONE_RE = re.compile(r"\b([A-Z]{1,3})\s*-\s*(\d)\s*-\s*(\d+(?:\.\d+)?[A-Z]?)\b")
+ZONING_CODE_RE = re.compile(r"\b([A-Z]{1,4}\d?)\s*[- ]?\s*(\d+(?:\.\d+)?)([A-Z]?)\b")
+ALLOWED_ZONE_PREFIXES = {
+    "R",
+    "RS",
+    "RT",
+    "RM",
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "B6",
+    "B7",
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "M1",
+    "M2",
+    "M3",
+    "DR",
+    "DX",
+    "DC",
+    "DS",
+    "PMD",
+    "PMO",
+    "CL",
+    "CI",
+    "BL",
+    "ML",
+}
+CODE_TOKEN_RE = re.compile(
+    r"\b(?:[A-Z]{1,4}\d?\s*-\s*\d+(?:\.\d+)?[A-Z]?|R[1-8]|PD|POS|PMD(?:-\d+[A-Z]?)?|PMO(?:-\d+[A-Z]?)?|T)\b"
+)
+
+
+def is_structural_na_code(code: str | None) -> bool:
+    if not code:
+        return False
+    value = str(code).upper().strip()
+    return value in STRUCTURAL_NA_CODES or value.startswith("PMD") or value.startswith("PMO")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--in-master-csv", required=True)
+    parser.add_argument("--in-zoning-lookup-csv", required=True)
+    parser.add_argument("--out-far-csv", required=True)
+    parser.add_argument("--out-unresolved-csv", required=True)
+    return parser.parse_args()
+
+
+def ensure_parent(path: str) -> None:
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+
+
+def choose_column(columns: list[str], options: list[str], contains: list[str] | None = None) -> str | None:
+    lower_to_original = {col.lower(): col for col in columns}
+    for option in options:
+        if option.lower() in lower_to_original:
+            return lower_to_original[option.lower()]
+    if contains:
+        for col in columns:
+            lowered = col.lower()
+            if all(fragment in lowered for fragment in contains):
+                return col
+    return None
+
+
+def safe_float(value) -> float | None:
+    if pd.isna(value):
+        return None
+    try:
+        out = float(str(value).strip())
+    except Exception:  # noqa: BLE001
+        return None
+    if math.isnan(out) or math.isinf(out):
+        return None
+    return out
+
+
+def parse_lookup_date(value) -> pd.Timestamp | None:
+    ts = pd.to_datetime(value, errors="coerce")
+    if pd.isna(ts):
+        return None
+    return ts
+
+
+def is_plausible_zoning_code(code: str | None) -> bool:
+    if not code:
+        return False
+    value = str(code).upper().strip()
+    if value in {"PD", "POS", "T", "PMD", "PMO"}:
+        return True
+    if re.fullmatch(r"R[1-8]", value):
+        return True
+    if re.fullmatch(r"[BCM]\d", value):
+        return True
+    if "-" not in value:
+        return False
+    prefix, suffix = value.split("-", 1)
+    if prefix not in ALLOWED_ZONE_PREFIXES:
+        return False
+    numeric = re.match(r"^(\d{1,2})(?:\.(\d))?[A-Z]?$", suffix)
+    if not numeric:
+        return False
+    major = int(numeric.group(1))
+    return major <= 20
+
+
+def format_lookup_date(value: pd.Timestamp | None) -> str | None:
+    if value is None or pd.isna(value):
+        return None
+    return value.strftime("%Y-%m-%d")
+
+
+def clean_zone_text(value) -> str | None:
+    if pd.isna(value):
+        return None
+    text = str(value).upper().strip()
+    if not text:
+        return None
+    text = text.replace("\u2013", "-").replace("\u2014", "-")
+    text = text.replace("$", "S").replace("~", "-")
+    text = re.sub(r"[\[\]\{\}\(\)\"]", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r"^\s*[NA]\s+(?=[A-Z0-9])", "", text)
+    text = text.strip(" ,.;")
+    text = re.sub(r"-L\b", "-1", text)
+    text = re.sub(r"-I\b", "-1", text)
+    text = text.replace("BL-I", "BL-1").replace("BI-I", "BI-1").replace("ML-I", "ML-1")
+    text = text.replace("M1-I", "M1-1").replace("M2-I", "M2-1").replace("M3-I", "M3-1")
+    text = text.replace("B1-I", "B1-1").replace("B2-I", "B2-1").replace("B3-I", "B3-1")
+    text = re.sub(r"\bBI-(\d)\b", r"B1-\1", text)
+    text = re.sub(r"\bCI-(\d)\b", r"C1-\1", text)
+    text = re.sub(r"\b0([1-5])-(\d(?:\.\d+)?)\b", r"C\1-\2", text)
+    text = re.sub(r"\b33-(\d)\b", r"B3-\1", text)
+    text = re.sub(r"\b83-(\d)\b", r"B3-\1", text)
+    text = re.sub(r"\bBZ-(\d)\b", r"B2-\1", text)
+    text = re.sub(r"\bBZ\b(?=\s+NEIGHBORHOOD\s+MIXED-USE)", "B2-1", text)
+    text = re.sub(r"\bBZ\b", "B2", text)
+    text = re.sub(r"\bRMS\.?5\b", "RM-5.5", text)
+    text = re.sub(r"\bRMS\b", "RM-5", text)
+    text = re.sub(r"\bRM-S\b", "RM-5", text)
+    text = re.sub(r"\bRSI\b", "RS-1", text)
+    text = re.sub(r"\bRTS\.5\b", "RT-3.5", text)
+    text = re.sub(r"\b(RS|RT|RM|DR|DX|DC|DS)\s*([0-9]+(?:\.[0-9]+)?)\b", r"\1-\2", text)
+    text = re.sub(r"\b(RS|RT|RM)\s*-\s*(\d)\s*-\s*(\d)\b", r"\1-\2.\3", text)
+    text = text.replace("M1.-4", "M1-4")
+    text = text.replace("B1.4", "B1-4")
+    text = text.replace("B24", "B2-4")
+    text = text.replace("C24", "C2-4")
+    text = re.sub(r"\b([BCM])\s*-\s*(\d)\b", r"\1\2", text)
+    text = re.sub(r"\b([BCM])\s+(\d)\b", r"\1\2", text)
+    text = text.replace("-,", "-")
+    text = text.replace(",-", "-")
+    text = re.sub(r"\b([BCM][1-7])\?(\d(?:\.\d+)?)\b", r"\1-\2", text)
+    text = re.sub(r"\bRT\s*([34])\s*[\.-]\s*S\b", r"RT-\1.5", text)
+    text = re.sub(r"\bRT\s*([34])\s*-\s*5\b", r"RT-\1.5", text)
+    text = re.sub(r"\bR\s*1([34])\s*-\s*5\b", r"RT-\1.5", text)
+    text = re.sub(r"\bR\s*1\s*([34])[\.\-]?\s*5\b", r"RT-\1.5", text)
+    text = re.sub(r"\bR\s*\.\s*T\s*-\s*\.?\s*([34])\b", r"RT-\1", text)
+    text = re.sub(r"\bR\s*\.\s*S\s*-?\s*([1-8])\b", r"RS-\1", text)
+    text = re.sub(r"\bRT\s*([34])\s*\.?\s*5\b", r"RT-\1.5", text)
+    text = re.sub(r"\b([BCMR][1-9])-(\d(?:\.\d+)?)(?=[A-Z]{2,})", r"\1-\2 ", text)
+    text = re.sub(r"\b(C)\s+[LI1]\s*-\s*(\d(?:\.\d+)?)\b", r"C1-\2", text)
+    text = re.sub(r"\b(M[1-3])\s*[-,\.]\s*(\d)\b", r"\1-\2", text)
+    text = text.replace("M?,-", "M2-")
+    text = text.replace("M? -", "M2-")
+    text = text.replace("ALLM2-1", "M2-1")
+    text = text.replace("C2-2MOTOR", "C2-2 MOTOR")
+    text = text.replace("B3-3COMMUNITY", "B3-3 COMMUNITY")
+    text = text.replace("B1-1NEIGHBORHOOD", "B1-1 NEIGHBORHOOD")
+    text = text.replace("C1-1NEIGHBORHOOD", "C1-1 NEIGHBORHOOD")
+    text = text.replace("C1-2NEIGHBORHOOD", "C1-2 NEIGHBORHOOD")
+    text = text.replace("C1-3NEIGHBORHOOD", "C1-3 NEIGHBORHOOD")
+    text = text.replace("B3 L", "B3-1")
+    text = text.replace("81-1", "B1-1")
+    text = text.replace("B1-L", "B1-1")
+    text = text.replace("B2-L", "B2-1")
+    text = text.replace("B3-L", "B3-1")
+    text = text.replace("C1-L", "C1-1")
+    text = text.replace("RSS", "RS-3")
+    text = text.replace("RT3.S", "RT-3.5")
+    text = text.replace("RT 3 .5", "RT-3.5")
+    text = text.replace("RT4-5", "RT-4.5")
+    text = text.replace("RT-4-5", "RT-4.5")
+    text = text.replace("RM4.5", "RM-4.5")
+    text = text.replace("RS#", "RS-3")
+    text = re.sub(r"\bR[- ]?M[- ]?4[- ]?5\b", "RM-4.5", text)
+    text = re.sub(r"\bRA[- ]?4[- ]?5\b", "RM-4.5", text)
+    text = re.sub(r"\bRHD[- ]?4[- ]?5\b", "RM-4.5", text)
+    text = re.sub(r"\b([BCM][1-7]|C[1-5])-\!(?=\b|[^A-Z0-9])", r"\1-1", text)
+    text = re.sub(r"\b([BCM][1-7]|C[1-5]|RS|RT|RM|DR|DX|DC|DS)-L(?=[A-Z])", r"\1-1 ", text)
+    text = re.sub(r"\bBL-L(?=[A-Z])", "B1-1 ", text)
+    text = re.sub(r"\bCL-L(?=[A-Z])", "C1-1 ", text)
+    text = re.sub(r"\b([BCM][1-7])-S\b", r"\1-5", text)
+    text = re.sub(r"\bC\]-([1-7])\b", r"C1-\1", text)
+    text = re.sub(r"\bM\?\s*[-,]?\s*(\d)\b", r"M2-\1", text)
+    text = re.sub(r"\b132-(\d)\b", r"B2-\1", text)
+    text = re.sub(r"\bB([1-5])\s+NEIGHBORHOOD SHOPPING DISTRICT\b", r"B1-\1 NEIGHBORHOOD SHOPPING DISTRICT", text)
+    text = re.sub(r"\bB([1-5])\s+COMMUNITY SHOPPING DISTRICT\b", r"B3-\1 COMMUNITY SHOPPING DISTRICT", text)
+    text = re.sub(r"\bC([1-5])\s+NEIGHBORHOOD COMMERCIAL DISTRICT\b", r"C1-\1 NEIGHBORHOOD COMMERCIAL DISTRICT", text)
+    text = re.sub(r"\b([BCMR][1-9])-(\d(?:\.\d+)?)(?=[A-Z]{2,})", r"\1-\2 ", text)
+    text = text.replace("RPD", "PD")
+    text = re.sub(r"\b8([1-7]-\d(?:\.\d+)?)\b", r"B\1", text)
+    return text or None
+
+
+def parse_zoning_code(value) -> str | None:
+    text = clean_zone_text(value)
+    if not text:
+        return None
+
+    if "PLANNED DEVELOPMENT" in text or re.search(r"\bPD\b", text):
+        return "PD"
+    if "PLANNED MANUFACTURING DISTRICT" in text or re.search(r"\bPMD\b", text):
+        pmd_num = re.search(r"\bPMD\s*[- ]?(\d+[A-Z]?)\b", text)
+        if not pmd_num:
+            pmd_num = re.search(r"\b(?:NO\.?|NUMBER)\s*(\d+[A-Z]?)\b", text)
+        if pmd_num:
+            return f"PMD-{pmd_num.group(1)}"
+        return "PMD"
+    if "PLANNED OFFICE/MANUFACTURING" in text or re.search(r"\bPMO\b", text):
+        pmo_num = re.search(r"\bPMO\s*[- ]?(\d+[A-Z]?)\b", text)
+        if pmo_num:
+            return f"PMO-{pmo_num.group(1)}"
+        return "PMO"
+    if (
+        re.search(r"\bPOS\b", text)
+        or re.search(r"\bPARKS?\s+AND\s+OPEN\s+SPACE\b", text)
+        or re.search(r"\bOPEN\s+SPACE\s+DISTRICT\b", text)
+    ):
+        return "POS"
+    if (
+        text == "T"
+        or text.startswith("T TRANSPORTATION")
+        or text.startswith("T-TRANSPORTATION")
+        or text.startswith("T, TRANSPORTATION")
+        or "TRANSPORTATION DISTRICT" in text
+    ):
+        return "T"
+
+    old_r_match = re.search(r"\bR([1-8])\b", text)
+    if old_r_match:
+        return f"R{old_r_match.group(1)}"
+
+    if re.search(r"\bC\s*[- ]?4\b", text):
+        return "C4"
+
+    code = None
+    three_part = THREE_PART_ZONE_RE.search(text)
+    if three_part:
+        code = f"{three_part.group(1)}{three_part.group(2)}-{three_part.group(3)}"
+    else:
+        match = ZONING_CODE_RE.search(text)
+        if match:
+            code = f"{match.group(1)}-{match.group(2)}{match.group(3)}"
+
+    if code is None:
+        direct_match = re.search(r"\b([A-Z]{1,4}\d?-\d+(?:\.\d+)?[A-Z]?)\b", text)
+        if direct_match:
+            code = direct_match.group(1)
+
+    if code is None:
+        return None
+
+    code = code.replace("--", "-")
+    code = re.sub(r"\s+", "", code)
+    code = code.replace("-L", "-1")
+    code = code.replace("-I", "-1")
+    code = code.replace("MI-", "M1-")
+    code = code.replace("RTS-5", "RT-3.5")
+    code = code.replace("RT-3S", "RT-3.5")
+    code = code.replace("RT-4-5", "RT-4.5")
+    code = code.replace("R-3U", "RT-3.5")
+    code = re.sub(r"^((?:B[1-7]|C[1-5]|M[1-3]|BL|CL|CI|ML)-\d+(?:\.\d+)?)[A-Z]$", r"\1", code)
+    code = re.sub(r"^(RM|RT|RS)(\d)-5$", r"\1-\2.5", code)
+    code = re.sub(r"^R-13$", "RT-3.5", code)
+    code = re.sub(r"^R-20$", "RT-4", code)
+    code = re.sub(r"^RT-3$", "RT-3.5", code)
+    code = re.sub(r"^RT-4\.5$", "RM-4.5", code)
+    if code == "RM-4":
+        code = "RM-4.5"
+    code = re.sub(r"^R-(\d)$", r"R\1", code)
+    if code == "RS3":
+        code = "RS-3"
+    if code == "C-4":
+        code = "C4"
+    if not is_plausible_zoning_code(code):
+        return None
+    return code
+
+
+def parse_zoning_code_for_side(value, side: str) -> str | None:
+    if side not in {"from", "to"}:
+        return parse_zoning_code(value)
+    codes = extract_all_zoning_codes(value)
+    if len(codes) >= 2:
+        text = clean_zone_text(value) or ""
+        if re.search(r"\bTO\b", text) or re.search(r"\bFROM\b", text):
+            return codes[0] if side == "from" else codes[-1]
+        return codes[0] if side == "from" else codes[-1]
+    return parse_zoning_code(value)
+
+
+def extract_all_zoning_codes(value) -> list[str]:
+    text = clean_zone_text(value)
+    if not text:
+        return []
+    out: list[str] = []
+    seen = set()
+    for match in CODE_TOKEN_RE.finditer(text):
+        code = parse_zoning_code(match.group(0))
+        if not code:
+            continue
+        if code in seen:
+            continue
+        seen.add(code)
+        out.append(code)
+    return out
+
+
+def infer_missing_side_code_from_context(
+    row: pd.Series,
+    side: str,
+    other_code: str | None,
+) -> str | None:
+    if side not in {"from", "to"}:
+        return None
+    opposite = "to" if side == "from" else "from"
+    fields = [
+        f"{side}_zoning_canonical",
+        f"{side}_zoning_raw",
+        f"{side}_zoning",
+        f"{opposite}_zoning_canonical",
+        f"{opposite}_zoning_raw",
+        f"{opposite}_zoning",
+        "matter_title",
+    ]
+    codes: list[str] = []
+    seen = set()
+    for field in fields:
+        if field not in row.index:
+            continue
+        for code in extract_all_zoning_codes(row.get(field)):
+            if code in seen:
+                continue
+            seen.add(code)
+            codes.append(code)
+    if not codes:
+        return None
+
+    ordered = list(reversed(codes)) if side == "to" else codes
+    if other_code:
+        for code in ordered:
+            if code != other_code:
+                return code
+        return None
+
+    if len(codes) < 2:
+        return None
+    return ordered[0]
+
+
+def load_far_lookup(path: str) -> dict[str, list[dict]]:
+    df = pd.read_csv(path, dtype=str, low_memory=False)
+    columns = list(df.columns)
+    code_col = choose_column(columns, ["zone_code", "zoning_code", "district", "district_type", "code"], contains=["zone"])
+    if code_col is None:
+        code_col = columns[0]
+    far_col = choose_column(columns, ["floor_area_ratio", "max_far", "far", "maximum_far"], contains=["far"])
+    if far_col is None:
+        raise ValueError("Could not identify FAR column in lookup table.")
+    start_col = choose_column(columns, ["effective_start_date", "start_date", "valid_from"], contains=["start", "date"])
+    end_col = choose_column(columns, ["effective_end_date", "end_date", "valid_to"], contains=["end", "date"])
+    version_col = choose_column(columns, ["zoning_code_version", "version", "lookup_version"], contains=["version"])
+
+    lookup: dict[str, list[dict]] = {}
+    for _, row in df.iterrows():
+        code = parse_zoning_code(row.get(code_col))
+        far = safe_float(row.get(far_col))
+        if not code or far is None:
+            continue
+        record = {
+            "far": far,
+            "start": parse_lookup_date(row.get(start_col)) if start_col else None,
+            "end": parse_lookup_date(row.get(end_col)) if end_col else None,
+            "version": str(row.get(version_col)).strip() if version_col and pd.notna(row.get(version_col)) else None,
+        }
+        lookup.setdefault(code, []).append(record)
+
+    # Safety extensions from project notes.
+    for code, far in {"RT-4A": 1.2, "RM-4.5": 1.7, "T": 1.5}.items():
+        lookup.setdefault(code, []).append(
+            {
+                "far": far,
+                "start": pd.Timestamp("2004-11-01"),
+                "end": None,
+                "version": "post_2004_manual",
+            }
+        )
+
+    for code, records in lookup.items():
+        records.sort(
+            key=lambda rec: (
+                rec["start"] is None,
+                rec["start"] if rec["start"] is not None else pd.Timestamp.max,
+            )
+        )
+        lookup[code] = records
+    return lookup
+
+
+def choose_lookup_record(records: list[dict], intro_date_value) -> dict | None:
+    if not records:
+        return None
+    intro = pd.to_datetime(intro_date_value, errors="coerce")
+    if pd.isna(intro):
+        return records[-1]
+
+    applicable: list[dict] = []
+    for rec in records:
+        start = rec.get("start")
+        end = rec.get("end")
+        if start is not None and intro < start:
+            continue
+        if end is not None and intro > end:
+            continue
+        applicable.append(rec)
+
+    if applicable:
+        applicable.sort(
+            key=lambda rec: rec.get("start") if rec.get("start") is not None else pd.Timestamp.min,
+            reverse=True,
+        )
+        return applicable[0]
+
+    older = [rec for rec in records if rec.get("start") is not None and rec.get("start") <= intro]
+    if older:
+        older.sort(key=lambda rec: rec["start"], reverse=True)
+        return older[0]
+    return records[0]
+
+
+def resolve_code(
+    row: pd.Series,
+    side: str,
+    lookup: dict[str, list[dict]],
+) -> tuple[str | None, str | None, str]:
+    candidates: list[tuple[str, object]] = []
+    existing_code_col = f"{side}_code"
+    canonical_col = f"{side}_zoning_canonical"
+    raw_detail_col = f"{side}_zoning_raw"
+    raw_col = f"{side}_zoning"
+    journal_col = f"journal_{side}_code"
+
+    if row.get("record_source") == "clerk_journal_first_pass" and journal_col in row.index:
+        candidates.append((journal_col, row.get(journal_col)))
+    if raw_detail_col in row.index:
+        candidates.append((raw_detail_col, row.get(raw_detail_col)))
+    if raw_col in row.index:
+        candidates.append((raw_col, row.get(raw_col)))
+    if canonical_col in row.index:
+        candidates.append((canonical_col, row.get(canonical_col)))
+    if existing_code_col in row.index:
+        candidates.append((existing_code_col, row.get(existing_code_col)))
+
+    parsed_candidates: list[tuple[str, str]] = []
+    for source, value in candidates:
+        code = parse_zoning_code_for_side(value, side)
+        if code is None:
+            continue
+        parsed_candidates.append((source, code))
+        if is_structural_na_code(code) or code in lookup:
+            return code, source, "ok"
+
+    if parsed_candidates:
+        source, code = parsed_candidates[0]
+        return code, source, "lookup_missing"
+    return None, None, "unparseable"
+
+
+def code_status_for_lookup(code: str | None, lookup: dict[str, list[dict]]) -> str:
+    if code is None:
+        return "unparseable"
+    if is_structural_na_code(code) or code in lookup:
+        return "ok"
+    return "lookup_missing"
+
+
+def resolve_far(
+    code: str | None,
+    intro_date_value,
+    lookup: dict[str, list[dict]],
+) -> tuple[float | None, str | None, str | None, str | None, str]:
+    if code is None:
+        return None, None, None, None, "missing_code"
+    if is_structural_na_code(code):
+        return None, None, None, None, "structural_na"
+    records = lookup.get(code)
+    if not records:
+        inferred = infer_far_when_lookup_missing(code)
+        if inferred is not None:
+            return inferred, "inferred_from_code", None, None, "ok"
+        return None, None, None, None, "lookup_missing"
+    rec = choose_lookup_record(records, intro_date_value)
+    if rec is None:
+        inferred = infer_far_when_lookup_missing(code)
+        if inferred is not None:
+            return inferred, "inferred_from_code", None, None, "ok"
+        return None, None, None, None, "lookup_missing"
+    return rec["far"], rec.get("version"), format_lookup_date(rec.get("start")), format_lookup_date(rec.get("end")), "ok"
+
+
+def infer_far_when_lookup_missing(code: str | None) -> float | None:
+    if not code:
+        return None
+    value = str(code).upper().strip()
+    # Downtown D districts generally use the numeric suffix as FAR.
+    d_match = re.match(r"^(DX|DC|DS|DR)-(\d+(?:\.\d+)?)$", value)
+    if d_match:
+        return safe_float(d_match.group(2))
+    return None
+
+
+def compute_parseable_non_structural_mask(df: pd.DataFrame) -> pd.Series:
+    from_non_structural = df["from_code"].notna() & ~df["from_code"].map(is_structural_na_code)
+    to_non_structural = df["to_code"].notna() & ~df["to_code"].map(is_structural_na_code)
+    return from_non_structural & to_non_structural
+
+
+def main() -> int:
+    args = parse_args()
+    ensure_parent(args.out_far_csv)
+    ensure_parent(args.out_unresolved_csv)
+
+    master = pd.read_csv(args.in_master_csv, dtype=str, low_memory=False)
+    lookup = load_far_lookup(args.in_zoning_lookup_csv)
+
+    out = master.copy()
+    out["from_code"] = None
+    out["to_code"] = None
+    out["from_code_source"] = None
+    out["to_code_source"] = None
+    out["from_code_status"] = None
+    out["to_code_status"] = None
+
+    out["from_far"] = None
+    out["to_far"] = None
+    out["from_far_version"] = None
+    out["to_far_version"] = None
+    out["from_far_effective_start"] = None
+    out["from_far_effective_end"] = None
+    out["to_far_effective_start"] = None
+    out["to_far_effective_end"] = None
+    out["from_far_status"] = None
+    out["to_far_status"] = None
+    out["far_change"] = None
+    out["is_upzone"] = None
+    out["far_pair_status"] = None
+
+    for idx, row in out.iterrows():
+        from_code, from_source, from_code_status = resolve_code(row, "from", lookup)
+        to_code, to_source, to_code_status = resolve_code(row, "to", lookup)
+
+        if from_code is None and to_code is not None:
+            inferred = infer_missing_side_code_from_context(row, "from", to_code)
+            if inferred is not None:
+                from_code = inferred
+                from_source = "from_context_infer"
+                from_code_status = code_status_for_lookup(from_code, lookup)
+        if to_code is None and from_code is not None:
+            inferred = infer_missing_side_code_from_context(row, "to", from_code)
+            if inferred is not None:
+                to_code = inferred
+                to_source = "to_context_infer"
+                to_code_status = code_status_for_lookup(to_code, lookup)
+
+        out.at[idx, "from_code"] = from_code
+        out.at[idx, "to_code"] = to_code
+        out.at[idx, "from_code_source"] = from_source
+        out.at[idx, "to_code_source"] = to_source
+        out.at[idx, "from_code_status"] = from_code_status
+        out.at[idx, "to_code_status"] = to_code_status
+
+        intro = row.get("matter_intro_date")
+        from_far, from_version, from_start, from_end, from_far_status = resolve_far(from_code, intro, lookup)
+        to_far, to_version, to_start, to_end, to_far_status = resolve_far(to_code, intro, lookup)
+
+        out.at[idx, "from_far"] = from_far
+        out.at[idx, "to_far"] = to_far
+        out.at[idx, "from_far_version"] = from_version
+        out.at[idx, "to_far_version"] = to_version
+        out.at[idx, "from_far_effective_start"] = from_start
+        out.at[idx, "from_far_effective_end"] = from_end
+        out.at[idx, "to_far_effective_start"] = to_start
+        out.at[idx, "to_far_effective_end"] = to_end
+        out.at[idx, "from_far_status"] = from_far_status
+        out.at[idx, "to_far_status"] = to_far_status
+
+        if from_far is not None and to_far is not None:
+            change = round(float(to_far) - float(from_far), 6)
+            out.at[idx, "far_change"] = change
+            out.at[idx, "is_upzone"] = bool(change > 0)
+            out.at[idx, "far_pair_status"] = "resolved_both"
+        elif from_far is None and to_far is None:
+            out.at[idx, "far_pair_status"] = "missing_both"
+        else:
+            out.at[idx, "far_pair_status"] = "missing_one_side"
+
+    from_far_num = pd.to_numeric(out["from_far"], errors="coerce")
+    to_far_num = pd.to_numeric(out["to_far"], errors="coerce")
+    both_far_mask = from_far_num.notna() & to_far_num.notna()
+    all_rows_n = len(out)
+    both_sides_far_share_all_rows = float(both_far_mask.sum()) / float(all_rows_n) if all_rows_n else None
+
+    non_structural_mask = ~(
+        out["from_code"].map(is_structural_na_code) | out["to_code"].map(is_structural_na_code)
+    )
+    non_structural_n = int(non_structural_mask.sum())
+    both_sides_far_share_non_structural = (
+        float((both_far_mask & non_structural_mask).sum()) / float(non_structural_n)
+        if non_structural_n
+        else None
+    )
+
+    parseable_non_structural_mask = compute_parseable_non_structural_mask(out)
+    parseable_non_structural_row_count = int(parseable_non_structural_mask.sum())
+    parseable_non_structural_resolved_count = int((both_far_mask & parseable_non_structural_mask).sum())
+    parseable_non_structural_missing_count = int((~both_far_mask & parseable_non_structural_mask).sum())
+    parseable_non_structural_share = (
+        float(parseable_non_structural_resolved_count) / float(parseable_non_structural_row_count)
+        if parseable_non_structural_row_count
+        else None
+    )
+    parseable_non_structural_gate_pass = parseable_non_structural_missing_count == 0
+
+    unresolved_mask = ~both_far_mask
+    unresolved = out.loc[unresolved_mask].copy()
+    unresolved["far_unresolved_reason"] = unresolved["from_far_status"].fillna("unknown") + "|" + unresolved["to_far_status"].fillna("unknown")
+    unresolved["is_parseable_non_structural"] = compute_parseable_non_structural_mask(unresolved)
+    unresolved["blocks_geocode_gate"] = unresolved["is_parseable_non_structural"]
+    unresolved_cols = [
+        "matter_id",
+        "record_source",
+        "matter_intro_date",
+        "matter_title",
+        "from_zoning",
+        "to_zoning",
+        "from_code",
+        "to_code",
+        "from_code_source",
+        "to_code_source",
+        "from_code_status",
+        "to_code_status",
+        "from_far_status",
+        "to_far_status",
+        "far_unresolved_reason",
+        "is_parseable_non_structural",
+        "blocks_geocode_gate",
+    ]
+    unresolved = unresolved[[col for col in unresolved_cols if col in unresolved.columns]]
+
+    out.to_csv(args.out_far_csv, index=False)
+    unresolved.to_csv(args.out_unresolved_csv, index=False)
+
+    unresolved_codes = pd.concat(
+        [
+            out.loc[from_far_num.isna() & out["from_code"].notna(), "from_code"],
+            out.loc[to_far_num.isna() & out["to_code"].notna(), "to_code"],
+        ],
+        axis=0,
+    )
+
+    by_source = {}
+    if "record_source" in out.columns:
+        for source, part in out.groupby("record_source", dropna=False):
+            n = len(part)
+            part_both = (
+                pd.to_numeric(part["from_far"], errors="coerce").notna()
+                & pd.to_numeric(part["to_far"], errors="coerce").notna()
+            )
+            by_source[str(source)] = {
+                "rows": int(n),
+                "both_sides_far_share_all_rows": (float(part_both.sum()) / float(n)) if n else None,
+            }
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
