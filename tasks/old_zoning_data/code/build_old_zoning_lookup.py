@@ -11,7 +11,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--in-old-zoning-txt", default="../input/chicago_zoning_code1957.txt")
     parser.add_argument("--in-crosswalk-csv", default="../input/zoning_conversion_2004_crosswalk.csv")
     parser.add_argument("--out-bulk-csv", default="../output/old_zoning_bulk_density_1957_2004.csv")
-    parser.add_argument("--out-mentions-csv", default="../output/old_zoning_district_mentions_1957_2004.csv")
+    parser.add_argument("--out-mentions-csv")
     return parser.parse_args()
 
 
@@ -577,10 +577,12 @@ def main() -> int:
     )
 
     ensure_parent(args.out_bulk_csv)
-    ensure_parent(args.out_mentions_csv)
+    if args.out_mentions_csv:
+        ensure_parent(args.out_mentions_csv)
 
     bulk_df.to_csv(args.out_bulk_csv, index=False)
-    mentions_df.to_csv(args.out_mentions_csv, index=False)
+    if args.out_mentions_csv:
+        mentions_df.to_csv(args.out_mentions_csv, index=False)
 
     return 0
 

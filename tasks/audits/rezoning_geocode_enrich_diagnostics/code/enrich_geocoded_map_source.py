@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 import argparse
+from pathlib import Path
+import sys
 
 import pandas as pd
+
+PRODUCTION_CODE = Path(__file__).resolve().parents[3] / "rezoning_geocode_enrich" / "code"
+if str(PRODUCTION_CODE) not in sys.path:
+    sys.path.insert(0, str(PRODUCTION_CODE))
 
 from enrich_geocoded_rezonings import save_scatter_map
 
@@ -14,7 +20,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     tag = args.date_tag
-    df = pd.read_csv(f"../output/rezoning_geocoded_enriched_{tag}.csv", dtype=str, low_memory=False)
+    df = pd.read_csv(Path("../input") / f"rezoning_geocoded_enriched_{tag}.csv", dtype=str, low_memory=False)
     warning = save_scatter_map(
         df,
         color_col="geocode_source",
@@ -26,7 +32,7 @@ def main() -> int:
             "unknown": "#7f7f7f",
         },
         title="Geocoded Rezonings by Source",
-        out_path=f"../output/map_geocode_source_{tag}.pdf",
+        out_path=Path("../output") / f"map_geocode_source_{tag}.pdf",
     )
     if warning:
         print(warning)

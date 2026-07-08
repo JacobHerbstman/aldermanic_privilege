@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 import argparse
+from pathlib import Path
+import sys
 
 import pandas as pd
+
+PRODUCTION_CODE = Path(__file__).resolve().parents[3] / "rezoning_geocode_enrich" / "code"
+if str(PRODUCTION_CODE) not in sys.path:
+    sys.path.insert(0, str(PRODUCTION_CODE))
 
 from enrich_geocoded_rezonings import build_sponsor_validation, build_ward_counts, ensure_parent
 
@@ -14,9 +20,9 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     tag = args.date_tag
-    in_csv = f"../output/rezoning_geocoded_enriched_{tag}.csv"
-    ward_counts_csv = f"../output/ward_rezoning_counts_{tag}.csv"
-    sponsor_validation_csv = f"../output/sponsor_ward_validation_{tag}.csv"
+    in_csv = Path("../input") / f"rezoning_geocoded_enriched_{tag}.csv"
+    ward_counts_csv = Path("../output") / f"ward_rezoning_counts_{tag}.csv"
+    sponsor_validation_csv = Path("../output") / f"sponsor_ward_validation_{tag}.csv"
 
     df = pd.read_csv(in_csv, dtype=str, low_memory=False)
     ward_counts = build_ward_counts(df)

@@ -7,7 +7,9 @@ include ../../generic.make
 PYTHON ?= python3
 DATE_TAG ?= 19990101_20260212
 
-all: ../output/zoning_matters_far_$(DATE_TAG).csv ../output/far_unresolved_rows_$(DATE_TAG).csv ../output/rezoning_far_pre_geocode_summary_$(DATE_TAG).json
+all: ../output/zoning_matters_far_$(DATE_TAG).csv ../output/rezoning_far_pre_geocode_summary_$(DATE_TAG).json
+
+diagnostics: ../output/far_unresolved_rows_$(DATE_TAG).csv ../output/rezoning_far_pre_geocode_summary_$(DATE_TAG).json
 
 link-inputs: ../input/rezoning_dataset_harmonized_$(DATE_TAG).csv ../input/zoning_far_lookup_clean.csv
 

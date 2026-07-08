@@ -1,18 +1,20 @@
 # rezoning_geocode_stage1_parcel
 
 ## Purpose
-Matches rezoning addresses to Cook parcel coordinates and produces Stage 1 geocodes plus Chicago geocoder upload artifacts.
+Matches rezoning addresses to Cook parcel coordinates and produces Stage 1 geocodes. Separate handoff targets prepare rows for external geocoders.
 
 ## Inputs
 - `tasks/<REZONING_INPUT_TASK>/output/<REZONING_INPUT_BASENAME>_<DATE_TAG>.csv`
-  - default: `REZONING_INPUT_TASK=build_zoning_dataset`, `REZONING_INPUT_BASENAME=zoning_matters`
-  - FAR-first: `REZONING_INPUT_TASK=rezoning_far_pre_geocode`, `REZONING_INPUT_BASENAME=zoning_matters_far`
+  - default FAR-first input: `REZONING_INPUT_TASK=rezoning_far_pre_geocode`, `REZONING_INPUT_BASENAME=zoning_matters_far`
+  - raw harmonized input: `REZONING_INPUT_TASK=build_zoning_dataset`, `REZONING_INPUT_BASENAME=zoning_matters`
 - `tasks/rezoning_far_pre_geocode/output/rezoning_far_pre_geocode_summary_<DATE_TAG>.json` (required only when `REZONING_INPUT_TASK=rezoning_far_pre_geocode`)
 - `tasks/cook_parcel_addresses_download/output/parcel_addresses_3723-97qp.csv`
 - `tasks/cook_parcel_addresses_download/output/parcel_universe_pabr-t5kh.csv`
 
 ## Outputs
 - `tasks/rezoning_geocode_stage1_parcel/output/rezoning_geocode_stage1_<DATE_TAG>.csv`
+
+## Handoff Outputs
 - `tasks/rezoning_geocode_stage1_parcel/output/rezoning_geocode_stage1_unmatched_<DATE_TAG>.csv`
 - `tasks/rezoning_geocode_stage1_parcel/output/chicago_geocoder_upload_<DATE_TAG>.xlsx`
 - `tasks/rezoning_geocode_stage1_parcel/output/chicago_geocoder_upload_mapping_<DATE_TAG>.csv`
@@ -22,6 +24,11 @@ Matches rezoning addresses to Cook parcel coordinates and produces Stage 1 geoco
 cd tasks/rezoning_geocode_stage1_parcel/code
 make link-inputs
 make
+```
+
+To prepare the external geocoder handoff after Stage 1:
+```bash
+make handoff
 ```
 
 ## Approx Runtime

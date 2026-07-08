@@ -7,7 +7,9 @@ include ../../generic.make
 PYTHON ?= python3
 REZONING_DATE_TAG ?= 19990101_20260212
 
-all: ../output/rezoning_geocode_with_external_$(REZONING_DATE_TAG).csv ../output/rezoning_geocode_remaining_unmatched_$(REZONING_DATE_TAG).csv
+all: ../output/rezoning_geocode_with_external_$(REZONING_DATE_TAG).csv
+
+diagnostics: ../output/rezoning_geocode_remaining_unmatched_$(REZONING_DATE_TAG).csv
 
 link-inputs: ../input/rezoning_geocode_stage1_$(REZONING_DATE_TAG).csv ../input/rezoning_geocode_stage1_unmatched_$(REZONING_DATE_TAG).csv ../input/chicago_geocoder_upload_mapping_$(REZONING_DATE_TAG).csv ../input/chicago_geocoder_results_$(REZONING_DATE_TAG).csv ../input/census_geocoder_results_$(REZONING_DATE_TAG).csv
 
@@ -35,7 +37,10 @@ link-inputs: ../input/rezoning_geocode_stage1_$(REZONING_DATE_TAG).csv ../input/
 	$(R) $< \
 		--date-tag $(REZONING_DATE_TAG)
 
-../output/rezoning_geocode_remaining_unmatched_$(REZONING_DATE_TAG).csv: ../output/rezoning_geocode_with_external_$(REZONING_DATE_TAG).csv
+../output/rezoning_geocode_remaining_unmatched_$(REZONING_DATE_TAG).csv: merge_external_geocoders.R ../input/rezoning_geocode_stage1_$(REZONING_DATE_TAG).csv ../input/rezoning_geocode_stage1_unmatched_$(REZONING_DATE_TAG).csv ../input/chicago_geocoder_upload_mapping_$(REZONING_DATE_TAG).csv ../input/chicago_geocoder_results_$(REZONING_DATE_TAG).csv ../input/census_geocoder_results_$(REZONING_DATE_TAG).csv | ../output run.sbatch
+	$(R) $< \
+		--date-tag $(REZONING_DATE_TAG) \
+		--write-remaining-unmatched
 
 test: test_merge_external_geocoders.py merge_external_geocoders.py merge_external_geocoders.R convert_chicago_bulkgeo_xlsx.R
 	$(PYTHON) -m unittest test_merge_external_geocoders.py

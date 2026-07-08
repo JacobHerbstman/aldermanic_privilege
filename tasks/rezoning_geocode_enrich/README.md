@@ -10,10 +10,6 @@ Adds ward assignment, boundary distance, and date-aware FAR parsing to geocoded 
 
 ## Outputs
 - `tasks/rezoning_geocode_enrich/output/rezoning_geocoded_enriched_<DATE_TAG>.csv`
-- `tasks/rezoning_geocode_enrich/output/ward_rezoning_counts_<DATE_TAG>.csv`
-- `tasks/rezoning_geocode_enrich/output/sponsor_ward_validation_<DATE_TAG>.csv`
-- `tasks/rezoning_geocode_enrich/output/map_geocode_source_<DATE_TAG>.pdf`
-- `tasks/rezoning_geocode_enrich/output/map_upzone_downzone_<DATE_TAG>.pdf`
 
 ## Run
 ```bash
@@ -27,3 +23,4 @@ make
 
 ## Notes
 - FAR lookup is selected by `zone_code + matter_intro_date`, with the cutoff at `2004-11-01`.
+- Review counts and maps live in `tasks/audits/rezoning_geocode_enrich_diagnostics/`.

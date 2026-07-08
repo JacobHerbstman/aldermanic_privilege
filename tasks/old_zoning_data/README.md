@@ -9,6 +9,8 @@ Builds a simplified pre-2004 zoning lookup from targeted sections of the legacy 
 
 ## Outputs
 - `tasks/old_zoning_data/output/old_zoning_bulk_density_1957_2004.csv`
+
+## Diagnostic Output
 - `tasks/old_zoning_data/output/old_zoning_district_mentions_1957_2004.csv`
 
 ## Run
@@ -24,3 +26,4 @@ make
 ## Notes
 - This pass uses targeted extraction (FAR, lot area per unit, and unit restrictions) rather than full-book parsing.
 - `C5-5` is intentionally left unresolved (`NA`) in this version.
+- `make diagnostics` materializes the district-mention extraction file explicitly.

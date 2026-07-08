@@ -14,11 +14,10 @@ PARCEL_ADDRESSES_DATASET_ID ?= 3723-97qp
 NEAREST_MAX_DIFF ?= 50
 
 all: \
-	../output/rezoning_geocode_stage1_$(REZONING_DATE_TAG).csv \
-	../output/rezoning_geocode_stage1_unmatched_$(REZONING_DATE_TAG).csv \
-	../output/chicago_geocoder_upload_$(REZONING_DATE_TAG).xlsx \
-	../output/chicago_geocoder_upload_mapping_$(REZONING_DATE_TAG).csv
+	../output/rezoning_geocode_stage1_$(REZONING_DATE_TAG).csv
 
+diagnostics: ../output/rezoning_geocode_stage1_unmatched_$(REZONING_DATE_TAG).csv
+handoff: ../output/chicago_geocoder_upload_$(REZONING_DATE_TAG).xlsx ../output/chicago_geocoder_upload_mapping_$(REZONING_DATE_TAG).csv
 census-template: ../output/census_geocoder_upload_template_$(REZONING_DATE_TAG).csv
 
 link-inputs: ../input/$(REZONING_INPUT_BASENAME)_$(REZONING_DATE_TAG).csv ../input/parcel_addresses_$(PARCEL_ADDRESSES_DATASET_ID).csv ../input/parcel_universe_$(PARCEL_UNIVERSE_DATASET_ID).csv $(if $(FAR_GATE_REQUIRED),../input/rezoning_far_pre_geocode_summary_$(REZONING_DATE_TAG).json,)

@@ -13,6 +13,8 @@ Merges Chicago/Census geocoder results back into Stage 1 geocoded rezonings.
 
 ## Outputs
 - `tasks/rezoning_geocode_external_merge/output/rezoning_geocode_with_external_<DATE_TAG>.csv`
+
+## Diagnostic Output
 - `tasks/rezoning_geocode_external_merge/output/rezoning_geocode_remaining_unmatched_<DATE_TAG>.csv`
 
 ## Run
@@ -34,3 +36,4 @@ make
 - `census_geocoder_results_19990101_20260212.csv` supplements the 2011-2020 rows that had resolved FAR but missing latitude/longitude after parcel and Chicago geocoding. It was produced from the Census Geocoder one-line address endpoint, `https://geocoding.geo.census.gov/geocoder/locations/onelineaddress`, with `benchmark=Public_AR_Current`.
 - Broad or underspecified locations are kept in the Census audit file with `NO_QUERY` or `No_Match` rather than converted to an invented point.
 - Legacy historical combiner (`rezoning_dataset_combine_historical`) remains available for reproducibility checks.
+- `make diagnostics` materializes the remaining-unmatched review file explicitly.

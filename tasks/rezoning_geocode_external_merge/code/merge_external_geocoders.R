@@ -7,7 +7,7 @@
 source("../../setup_environment/code/packages.R")
 
 parse_args <- function(args) {
-  out <- list(date_tag = "19990101_20260212")
+  out <- list(date_tag = "19990101_20260212", write_remaining_unmatched = FALSE)
   i <- 1
   while (i <= length(args)) {
     arg <- args[[i]]
@@ -16,6 +16,8 @@ parse_args <- function(args) {
     } else if (arg == "--date-tag" && i < length(args)) {
       i <- i + 1
       out$date_tag <- args[[i]]
+    } else if (arg == "--write-remaining-unmatched") {
+      out$write_remaining_unmatched <- TRUE
     }
     i <- i + 1
   }
@@ -346,7 +348,9 @@ main <- function() {
 
   dir.create("../output", recursive = TRUE, showWarnings = FALSE)
   readr::write_csv(stage1_df, out_geocoded_csv)
-  readr::write_csv(remaining_unmatched, out_remaining_unmatched_csv)
+  if (opts$write_remaining_unmatched) {
+    readr::write_csv(remaining_unmatched, out_remaining_unmatched_csv)
+  }
 
   message("Chicago rows added: ", chicago_added)
   message("Census rows added: ", census_added)
