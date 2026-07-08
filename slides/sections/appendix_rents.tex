@@ -2,40 +2,53 @@
 % APPENDIX D: RENTS AND HOME SALES
 % ==============================================================================
 
-\begin{frame}[label=rental-permutation-noctrl]
-    \frametitle{Permutation Test: Rental FE (Controls)}
+\begin{frame}[label=rental-balance-appendix,shrink=8]
+    \frametitle{Rental Boundary Balance}
+
     \begin{center}
-        \includegraphics[width=0.92\textwidth,height=0.72\textheight,keepaspectratio]{../tasks/audits/rental_border_fe_sensitivity/output/permutation_test_2014_2022_all_bw500_ctrl_clust_ward_pair.pdf}
+    \resizebox{0.96\linewidth}{!}{\input{../tasks/rental_rd_paired_balance/output/rental_rd_paired_external_amenity_balance_bw500.tex}}
     \end{center}
-    \vspace{0.2em}
-    \small
-    2014--2022 sample, 500 ft bandwidth, controls included. \\
-    Permutation p-values: two-sided = 0.004; one-sided = 0.002.
-    \vfill\hfill\hyperlink{rental-fe-main}{\beamerreturnbutton{Back}}
+
+    \vfill\hfill
+    \hyperlink{rental-fe-main}{\beamerreturnbutton{Back}}
 \end{frame}
 
-\begin{frame}[label=supply-all-units-appendix]
-    \frametitle{Supply Channel: Fewer Available Rentals (All Units)}
+\begin{frame}[label=rental-attenuation-appendix,shrink=8]
+    \frametitle{Rent RD Controls and Location Cleaning}
+
+    \begin{center}
+    \resizebox{0.96\linewidth}{!}{\input{../tasks/rental_rd_rent_attenuation/output/rental_rd_rent_attenuation_clean_location_bw500.tex}}
+    \end{center}
+
+    \vfill\hfill
+    \hyperlink{rental-fe-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=rental-supply-clean-location]
+    \frametitle{Rental Supply: Clean-Location Sample}
+
+    \begin{center}
+        \includegraphics[width=0.84\textwidth,height=0.72\textheight,keepaspectratio]{../tasks/rental_rd_supply/output/rental_rd_supply_levels_clean_location_bw500.pdf}
+    \end{center}
+
+    \vfill\hfill
+    \hyperlink{supply-mf-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=price-rd-placebos]
+    \frametitle{Placebo Boundary Checks for Prices}
 
     \begin{columns}[T]
-    \begin{column}{0.58\textwidth}
+    \begin{column}{0.50\textwidth}
         \centering
-        \begin{figure}
-            \includegraphics[width=\textwidth,height=0.64\textheight,keepaspectratio]{../tasks/audits/rental_characteristics_at_borders/output/listing_units_unit_proxy_bw500_pre_2023_all_pct0_clust_ward_pair.pdf}
-        \end{figure}
+        \includegraphics[width=\textwidth,height=0.68\textheight,keepaspectratio]{../tasks/price_rd_stress_tests/output/rent_placebo_rd_main_style.pdf}
     \end{column}
-    \begin{column}{0.42\textwidth}
-        \scriptsize
-        \begin{center}
-        \input{../tasks/audits/rental_characteristics_at_borders/output/listing_units_ppml_fe_table_bw500_pre_2023_all_pct0_clust_ward_pair.tex}
-        \end{center}
-
-        \vspace{0.15em}
-        \scriptsize
-        \textbf{Outcome}: Distinct listed units, segment $\times$ side $\times$ year-month cells\\
-        \textbf{Interpretation}: 1 SD $\uparrow$ in stringency $\Rightarrow$ $\sim$9\% fewer listed units
+    \begin{column}{0.50\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,height=0.68\textheight,keepaspectratio]{../tasks/price_rd_stress_tests/output/sales_placebo_rd_main_style.pdf}
     \end{column}
     \end{columns}
 
-    \vfill\hfill\hyperlink{supply-mf-main}{\beamerreturnbutton{Back}}
+    \vfill\hfill
+    \hyperlink{rental-fe-main}{\beamerreturnbutton{Back}}
 \end{frame}

@@ -1,0 +1,30 @@
+\section{Additional Price Boundary Checks}
+\label{sec:appendix_price_rd}
+
+This appendix reports placebo-cutoff checks for the rent and home-sales boundary comparisons in Section~\ref{sec:empirical_results_prices}.
+The figures move the cutoff 1000ft inside each side of the true ward boundary and re-estimate the same 500ft boundary comparison around those fake cutoffs.
+The placebo windows do not overlap the main true-boundary 500ft sample.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{../tasks/price_rd_stress_tests/output/rent_placebo_rd_main_style.pdf}
+    \caption{Listed-Rent Placebo Cutoffs}
+    \figurenotes{Figure repeats the listed-rent boundary comparison at placebo cutoffs shifted 1000ft inside each side of the true ward boundary.
+    Left and right panels shift the cutoff into the lenient and stringent sides of the true boundary, respectively.
+    Distances are oriented so that positive values point toward the more stringent side of the corresponding true ward boundary.
+    Dots are binned means of log listed rent in 2022 dollars after removing segment-by-month fixed effects, hedonic controls, and amenity controls.
+    Panel subtitles report the corresponding placebo estimates from the same flat 500ft specification, with standard errors clustered by boundary segment.}
+    \label{fig:rent_placebo_boundaries}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{../tasks/price_rd_stress_tests/output/sales_placebo_rd_main_style.pdf}
+    \caption{Home-Sale Price Placebo Cutoffs}
+    \figurenotes{Figure repeats the home-sales boundary comparison at placebo cutoffs shifted 1000ft inside each side of the true ward boundary.
+    Left and right panels shift the cutoff into the lenient and stringent sides of the true boundary, respectively.
+    Distances are oriented so that positive values point toward the more stringent side of the corresponding true ward boundary.
+    Dots are binned means of log sale price in 2022 dollars after removing segment-by-quarter fixed effects, hedonic controls, and amenity controls.
+    Panel subtitles report the corresponding placebo estimates from the same flat 500ft specification, with standard errors clustered by boundary segment.}
+    \label{fig:sales_placebo_boundaries}
+\end{figure}

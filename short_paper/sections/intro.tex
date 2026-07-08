@@ -1,0 +1,61 @@
+\section{Introduction}
+\label{sec:intro}
+
+Housing costs in the United States have risen sharply, and a large literature points to land use regulation as a central cause.
+Restrictive zoning, minimum lot sizes, and density caps limit housing supply, raise prices, and distort the allocation of labor across cities \citep{glaeser_why_2005, saiz_geographic_2010, turner_land_2014, hsieh_housing_2019, duranton_urban_2023}.
+Formal rules, however, are only one part of the regulatory environment.
+A growing body of work argues that the \textit{process} of navigating the regulatory system---including permitting delays, discretionary review, and uncertainty about approval---may matter as much as the rules themselves \citep{mayer_residential_2000, paciorek_supply_2013, molloy_housing_2022, soltas_how_2026}.
+When developers face long and unpredictable timelines, projects shrink, marginal investments become unviable, and housing supply falls \citep{cunningham_house_2006, bloom_impact_2009, oh_land_2024}.
+There is less direct evidence on how local political discretion shapes development and housing supply.
+
+This paper studies regulatory discretion in the context of Chicago's ``aldermanic privilege,'' the informal power of each of Chicago's 50 city council members (aldermen) to unilaterally block or approve development in their ward.
+Chicago has no city charter, so there is no statutory basis for this power.
+It operates through deference: other aldermen vote with the local member on land use matters, city agencies follow the local alderman's lead, and developers understand that major projects require the alderman's blessing \citep{thale_aldermanic_2005, einstein_neighborhood_2019}.
+This creates sharp changes in regulatory authority at ward boundaries.
+Two parcels on opposite sides of the same street, in the same neighborhood, with the same zoning, can face very different political gatekeepers depending on which alderman controls the ward.
+I use this boundary variation to study how aldermanic privilege affects development.
+
+To measure the regulatory environment each alderman creates, I construct ``aldermanic stringency scores'' from permit processing times for projects where aldermen are most likely to matter: new construction, major renovation, demolition, porch construction, and reinstated permits.
+I residualize processing times against ward characteristics and time effects to strip out variation driven by geography and demand, then apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to reduce noise for aldermen with relatively few permits.
+The resulting scores reveal large cross-alderman differences that remain after controlling for location and ward demographics.
+The economic logic is simple: delay makes projects less valuable, and
+a developer who expects years of meetings, redesigns, and uncertainty may build a smaller project or not build at all \citep{kydland_time_1982, mayer_land_2000, paciorek_supply_2013, gyourko_local_2021, soltas_how_2026}.
+
+The empirical analysis proceeds in two steps.
+First, I estimate effects on housing supply by comparing new construction density near ward boundaries.
+On one side, developers deal with one alderman; across the street, they deal with another, which can result in a completely different regulatory environment.
+The neighborhood is nearly the same, but the political gatekeeper changes.
+Local-linear boundary plots show lower density on the more stringent side of ward boundaries.
+For multifamily new construction, floor-area ratio is about 0.27 log points lower and dwelling units per acre is about 0.36 log points lower on the more stringent side.
+The all-construction estimates point in the same direction but are smaller.
+
+I then use the 2015 ward redistricting to test whether permitting changes when a block receives a new alderman, keeping location fixed.
+Using this within-census-block variation, I find that blocks moved to more stringent aldermen experience a 7.4\% decline in permits for these ``high-discretion'' permits.
+This result shows that more stringent aldermen reduce not only the scale of completed projects, but also the flow of projects requiring discretionary review.
+
+I finally examine whether housing costs are higher in the places where the supply evidence predicts they should be.
+I once again focus on areas near ward boundaries using a border-discontinuity design.
+Listed rents are about 3\% higher on the more stringent side of a ward border after controlling for listing characteristics and nearby amenities.
+Home sale prices also appear to rise by about 1.5\%, though the estimate is less precise.
+I treat these estimates as suggestive downstream evidence that the supply effects may be reflected in housing costs.
+
+The paper contributes most directly to work on local control over housing supply and how incentives of particular neighborhoods and the aggregate city may not be aligned. 
+\citet{khan_decentralized_2021} studies the same Chicago setting and finds that aldermen approve smaller rezonings near ward boundaries where benefits spill over to adjacent wards.
+I study a broader margin by examining realized new construction rather than only statutory changes in allowed density through rezoned parcels to measure how the built environment can change in response to the regulatory environment.
+
+The paper also relates to work on permitting, time-to-build, and fragmented land-use authority.
+\citet{paciorek_supply_2013} shows that regulation reduces housing supply primarily through its effect on new construction timelines.
+\citet{mayer_residential_2000} and \citet{mayer_land_2000} show that development lags are a first-order determinant of the supply response to demand shocks.
+\citet{soltas_how_2026} provides new evidence that permitting costs are large enough to affect housing affordability.
+This paper shows that the discretionary layer of the regulatory process, beyond the formal rules themselves, changes housing supply within a single city.
+
+I also connect to the literature on how the fragmentation of decision-making authority leads to undersupply of housing.
+\citet{fischel_homevoter_2009} argues that homeowners use local political institutions to restrict development and protect property values.
+Subsequent work has documented how this plays out across municipalities, with each jurisdiction restricting development to a degree that may be locally rational but is collectively costly \citep{hilber_origins_2013, ortalo-magne_political_2014, kulka_how_2022, monarrez_dividing_2023, mast_warding_2024, bordeu_commuting_2025}.
+My results show that a similar coordination failure operates within a single city when informal authority is fragmented across local representatives, who can create substantial variation in the regulatory environment that changes discretely at political boundaries.
+
+The rest of the paper proceeds as follows.
+Section~\ref{sec:data} describes the institutional setting and data.
+Section~\ref{sec:model} presents a short time-to-build framework that organizes the supply predictions.
+Section~\ref{sec:empirical_results} presents the main results: density at ward boundaries, permit activity after redistricting, and suggestive rent and sale-price evidence.
+Section~\ref{sec:discussion} discusses interpretation and policy implications, and Section~\ref{sec:conclusion} concludes.

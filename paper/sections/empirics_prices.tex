@@ -23,7 +23,7 @@ The table reports the coefficient on the continuous stringency index measure.
 \subsection{Rents}
 
 The rental sample uses listed rents from 2014-2022.
-I collapse repeated scrape rows to a floorplan-month panel before estimating the boundary comparison since Renthub does have known issues with repeated listings of the same unit.
+I collapse repeated scrape rows to a floorplan-month panel before estimating the boundary comparison since RentHub does have known issues with repeated listings of the same unit.
 The outcome is log listed rent in 2022 dollars.
 Appendix Table~\ref{tab:rental_rd_controls_clean_location} repeats the analysis after dropping a small subset of listings whose locations appear to be unreliable near ward boundaries.
 
@@ -86,22 +86,20 @@ As with the density placebo checks, we see no equivalent jump in rents or sale p
 
 Motivated by the inability of observable unit characteristics or neighborhood amenities to fully explain the rent and price gaps, 
 I ask whether observed supply differences in the rental market could be driving the rent gap.
-While units within a border segment are close to each other and one may expect rents to equalize across the boundary, \cite{asquith_local_2023}
-shows that rents are very local and can vary in their response to new supply within a few neighborhood blocks.
+While units within a border segment are close to each other and one may expect rents to equalize across the boundary, \citet{asquith_local_2023}
+show that rents are very local and can vary in their response to new supply within a few neighborhood blocks.
 
-I repeat the same boundary-segment comparison using the count of listed floorplans in the rental data as the outcome, which is a direct measure of supply differences across the boundary, 
-proxied by Renthub's scraped listings.
+I repeat the same boundary-segment comparison using the count of listed floorplans in the rental data as the outcome, which proxies for supply differences across the boundary in RentHub's scraped listings.
 I once again use PPML to estimate the effect on a count variable, with segment-by-month fixed effects and standard errors clustered by boundary segment.
-While the measure is quite imprecise and not significantly different from zero, there is a $\approx 9\%$ lower quantity of observed rental listings 
-on the more stringent side of the boundary, which is consistent with the observed rent gap being driven by supply differences across the boundary, 
-which can be seen visually in Figure~\ref{fig:rental_supply_rd} as well.
-Appendix Figure~\ref{fig:rental_supply_rd_clean_location} repeats this listing-supply plot after dropping coordinate-risk listings.
+While the measure is imprecise and not statistically distinguishable from zero, Figure~\ref{fig:rental_supply_rd} shows about 10\% fewer observed floorplan-months on the more stringent side of the boundary (PPML estimate $=-10.2\%$, SE $=7.3$).
+Appendix Figure~\ref{fig:rental_supply_rd_clean_location} repeats the same exercise after dropping coordinate-risk listings; the estimate remains similar at $-8.6\%$ (SE $=7.7$).
+The pattern is consistent with the observed rent gap reflecting lower local rental supply on the more stringent side of the boundary.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.78\textwidth]{../tasks/rental_rd_supply/output/rental_rd_supply_levels_bw500.pdf}
     \caption{Rental Listing Supply by Side of Ward Boundary}
-    \figurenotes{Figure shows listed floorplan-month counts by distance to ward boundaries using rental listings from 2014--2022.
+    \figurenotes{Figure shows listed floorplan-month counts by distance to ward boundaries using the baseline rental listing sample from 2014--2022.
     Positive distance indicates the side represented by the more stringent alderman.
     Bins report mean floorplan-month counts per segment-month-bin.
     The subtitle reports the companion flat 500ft PPML estimate from segment-month-side counts with segment-by-month fixed effects; standard errors are clustered by boundary segment.}

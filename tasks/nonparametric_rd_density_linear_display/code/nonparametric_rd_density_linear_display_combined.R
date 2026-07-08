@@ -144,6 +144,32 @@ for (i in seq_len(nrow(panel_specs))) {
     stop("Residualized sample alignment failed.", call. = FALSE)
   }
 
+  fml_linear <- as.formula(sprintf(
+    "outcome ~ side * running_distance + %s | %s",
+    paste(controls, collapse = " + "),
+    fe_formula
+  ))
+  m_linear <- feols(fml_linear, data = aug, cluster = ~ward_pair)
+  linear_row <- coeftable(m_linear)[rownames(coeftable(m_linear)) %in% "side", , drop = FALSE]
+  if (nrow(linear_row) != 1L) {
+    stop("Could not recover the local-linear cutoff estimate.", call. = FALSE)
+  }
+  cutoff_estimate <- unname(linear_row[1, "Estimate"])
+  cutoff_se <- unname(linear_row[1, "Std. Error"])
+  cutoff_p <- unname(linear_row[1, "Pr(>|t|)"])
+  cutoff_stars <- dplyr::case_when(
+    is.finite(cutoff_p) & cutoff_p <= 0.01 ~ "***",
+    is.finite(cutoff_p) & cutoff_p <= 0.05 ~ "**",
+    is.finite(cutoff_p) & cutoff_p <= 0.10 ~ "*",
+    TRUE ~ ""
+  )
+  subtitle_label <- sprintf(
+    "Jump = %.3f%s (SE %.3f)",
+    cutoff_estimate,
+    cutoff_stars,
+    cutoff_se
+  )
+
   m_display <- feols(
     residualized_outcome ~ side * running_distance,
     data = aug,
@@ -242,12 +268,14 @@ for (i in seq_len(nrow(panel_specs))) {
     coord_cartesian(ylim = y_limits) +
     labs(
       title = paste(sample_label, pretty_outcome, sep = ": "),
+      subtitle = subtitle_label,
       x = x_label,
       y = paste("Residualized", pretty_outcome)
     ) +
     theme_bw(base_size = 9) +
     theme(
       plot.title = element_text(face = "bold", size = 10),
+      plot.subtitle = element_text(size = 8.2),
       axis.title = element_text(size = 8.5),
       axis.text = element_text(size = 7.5),
       panel.grid.minor = element_blank()

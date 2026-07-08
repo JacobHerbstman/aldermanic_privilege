@@ -320,17 +320,22 @@ writeLines(
   c(
     "\\begingroup",
     "\\centering",
-    "\\begin{tabular}{lcc}",
+    "\\begin{tabular}{lc}",
     "\\toprule",
-    "Outcome & Coef. on stringency & SE \\\\",
+    " & Low-discretion log days \\\\",
+    " & (1) \\\\",
     "\\midrule",
     sprintf(
-      "Mean residual low-discretion log days & %s & %s \\\\",
-      paste0(estimate_display, stars_display),
+      "Stringency index & %s \\\\",
+      paste0(estimate_display, stars_display)
+    ),
+    sprintf(
+      " & %s \\\\",
       paste0("(", se_display, ")")
     ),
     "\\midrule",
-    sprintf("N aldermen & %s &  \\\\", format(nobs(model), big.mark = ",")),
+    sprintf("Alderman observations & %s \\\\", format(nobs(model), big.mark = ",")),
+    "Heteroskedasticity-robust SEs & Yes \\\\",
     "\\bottomrule",
     "\\end{tabular}",
     paste0(

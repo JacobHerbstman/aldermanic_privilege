@@ -166,32 +166,35 @@ results <- results[match(
   c("n_permits", "share_unit_change", "units_reduced_text_permit")
 )]
 
-n_min <- min(results$n_obs, na.rm = TRUE)
-n_max <- max(results$n_obs, na.rm = TRUE)
-n_display <- if (n_min == n_max) {
-  formatC(n_min, format = "d", big.mark = ",")
-} else {
-  paste0(formatC(n_min, format = "d", big.mark = ","), "--", formatC(n_max, format = "d", big.mark = ","))
-}
+obs_display <- formatC(results$n_obs, format = "d", big.mark = ",")
 
 writeLines(
   c(
-    "\\begin{threeparttable}",
-    "\\begin{tabular}{lc}",
+    "\\begin{tabular}{lccc}",
     "\\toprule",
-    "Outcome (Ward-Month) & Coef. on Stringency Index \\\\",
+    " & \\multicolumn{3}{c}{Dependent variable} \\\\",
+    "\\cmidrule(lr){2-4}",
+    " & Permits & Any unit change & Units reduced \\\\",
+    " & (1) & (2) & (3) \\\\",
     "\\midrule",
-    sprintf("%s & $%s$ \\\\", results$outcome_label[1], results$coef_display[1]),
-    sprintf(" & %s \\\\", results$se_display[1]),
-    sprintf("%s & $%s$ \\\\", results$outcome_label[2], results$coef_display[2]),
-    sprintf(" & %s \\\\", results$se_display[2]),
-    sprintf("%s & $%s$ \\\\", results$outcome_label[3], results$coef_display[3]),
-    sprintf(" & %s \\\\", results$se_display[3]),
+    sprintf(
+      "Stringency index & $%s$ & $%s$ & $%s$ \\\\",
+      results$coef_display[1],
+      results$coef_display[2],
+      results$coef_display[3]
+    ),
+    sprintf(
+      " & %s & %s & %s \\\\",
+      results$se_display[1],
+      results$se_display[2],
+      results$se_display[3]
+    ),
     "\\midrule",
-    sprintf("N & %s \\\\", n_display),
+    sprintf("Ward-month observations & %s & %s & %s \\\\", obs_display[1], obs_display[2], obs_display[3]),
+    "Permit-count weights & \\multicolumn{3}{c}{Yes} \\\\",
+    "Sample & \\multicolumn{3}{c}{High-discretion permits} \\\\",
     "\\bottomrule",
-    "\\end{tabular}",
-    "\\end{threeparttable}"
+    "\\end{tabular}"
   ),
   con = sprintf("../output/permit_validation_table_uncertainty_%s.tex", spec)
 )

@@ -109,8 +109,8 @@ attenuation <- bind_rows(attenuation_rows) %>%
       p_value < 0.10 ~ "*",
       TRUE ~ ""
     ),
-    coefficient = paste0(formatC(100 * estimate, format = "f", digits = 2, big.mark = ","), star_text),
-    std_error_cell = paste0("(", formatC(100 * std_error, format = "f", digits = 2, big.mark = ","), ")")
+    coefficient = paste0(formatC(estimate, format = "f", digits = 3, big.mark = ","), star_text),
+    std_error_cell = paste0("(", formatC(std_error, format = "f", digits = 3, big.mark = ","), ")")
   )
 
 table_data <- attenuation %>%
@@ -174,7 +174,7 @@ writeLines(
     "\\bottomrule",
     "\\end{tabular}",
     sprintf(
-      "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Entries are percent log-rent effects of a one-standard-deviation increase in the aldermanic stringency index, with standard errors in parentheses. The sample uses listed-rent floorplan-month observations from 2014--2022 within %sft of ward boundaries. Dependent-variable means are real listed rents in 2022 dollars. Hedonic controls are log square feet, log bedrooms, log bathrooms, and building type. Amenity controls are distances to the nearest school, CPD park-boundary polygon, major street, CTA stop open by the listing month, and Lake Michigan.%s * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
+      "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: Entries are log-rent coefficients for a one-standard-deviation increase in the aldermanic stringency index, with standard errors in parentheses. The sample uses listed-rent floorplan-month observations from 2014--2022 within %sft of ward boundaries. Dependent-variable means are real listed rents in 2022 dollars. Hedonic controls are log square feet, log bedrooms, log bathrooms, and building type. Amenity controls are distances to the nearest school, CPD park-boundary polygon, major street, CTA stop open by the listing month, and Lake Michigan.%s * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
       bandwidth_label,
       clean_note
     ),

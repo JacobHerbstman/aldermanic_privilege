@@ -92,6 +92,25 @@ if (!"right" %in% names(coef(model))) {
   stop("Sales RD plot model did not estimate the stricter-side coefficient.", call. = FALSE)
 }
 estimate <- unname(coef(model)[["right"]])
+model_row <- coeftable(model)[rownames(coeftable(model)) %in% "right", , drop = FALSE]
+if (nrow(model_row) != 1L) {
+  stop("Could not recover the sales RD point estimate.", call. = FALSE)
+}
+std_error <- unname(model_row[1, "Std. Error"])
+p_value <- unname(model_row[1, "Pr(>|t|)"])
+stars <- dplyr::case_when(
+  is.finite(p_value) & p_value <= 0.01 ~ "***",
+  is.finite(p_value) & p_value <= 0.05 ~ "**",
+  is.finite(p_value) & p_value <= 0.10 ~ "*",
+  TRUE ~ ""
+)
+subtitle_label <- sprintf(
+  "Jump = %.3f%s (SE %.3f), N = %s",
+  estimate,
+  stars,
+  std_error,
+  format(nobs(model), big.mark = ",")
+)
 
 removed <- model$obs_selection$obsRemoved
 keep_idx <- if (is.null(removed)) {
@@ -121,6 +140,7 @@ plot <- ggplot() +
   ) +
   labs(
     title = "Home Sale Prices by Side of Ward Boundary",
+    subtitle = subtitle_label,
     x = "Distance to ward boundary (feet; positive = more stringent side)",
     y = "Segment-by-quarter adjusted log sale price"
   ) +

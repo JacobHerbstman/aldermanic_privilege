@@ -157,7 +157,21 @@
     \begin{column}{0.51\textwidth}
     \textbf{Summary statistics}:
     \vspace{0.2em}
-    \makebox[\linewidth][l]{\resizebox{1.10\linewidth}{!}{\input{../tasks/summary_stats_new_construction/output/summary_stats_tabular.tex}}}
+    \begin{center}
+    \scriptsize
+    \begin{tabular}{lcc}
+    \toprule
+     & All New & Multifamily \\
+    \midrule
+    Average FAR & 1.20 & 2.29 \\
+    Average units & 6.43 & 32.79 \\
+    Average stories & 2.28 & 2.76 \\
+    Average DUPAC & 27.84 & 74.48 \\
+    Median border distance & 930 ft & 832 ft \\
+    N & 12,476 & 2,132 \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
     \end{column}
     \end{columns}
 \end{frame}
@@ -194,25 +208,12 @@
 \begin{frame}[label=visual-rd-main]
     \frametitle{Main Results: FE-Adjusted Spatial RD at Ward Borders}
     
-    \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(FAR)}
-        \begin{figure}
-            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_far_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf}
-        \end{figure}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-        \centering
-        \textbf{Log(DUPAC)}
-        \begin{figure}
-            \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{../tasks/spatial_rd_fe/output/rd_fe_plot_log_density_dupac_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.pdf}
-        \end{figure}
-    \end{column}
-    \end{columns}
+    \begin{center}
+        \includegraphics[width=0.94\textwidth,height=0.72\textheight,keepaspectratio]{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5.pdf}
+    \end{center}
     
     \scriptsize
-    \textit{Notes}: Multifamily sample, 500 ft bandwidth, zoning-group + segment + year FE, ward-pair clustered SEs.
+    \textit{Notes}: All-construction and multifamily samples, 500 ft bandwidth, zoning-group + segment + year FE, ward-pair clustered SEs.
     
     \vfill\hfill
     \hyperlink{visual-rd-allunits}{\beamergotobutton{All Units}}
@@ -234,7 +235,7 @@
     $\ln(Y_i) = \beta \cdot \text{Stringency}_i + \alpha_{\text{zone group}} + \alpha_{\text{segment}} + \alpha_{\text{year}} + \varepsilon_i$\\
     
     \begin{center}
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_bw500_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
+    \input{../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
     \end{center}
     
     \vspace{0.1em}
@@ -243,9 +244,5 @@
     \vspace{-0.4em}
     \vfill\hfill
     \hyperlink{density-reg-pruned}{\beamergotobutton{Pruned Sample}}
-    \hspace{0.1em}
-    \hyperlink{density-reg-zone-pair-year}{\beamergotobutton{Zoning Group + Ward-Pair + Year FE}}
-    \hspace{0.1em}
-    \hyperlink{density-reg-bw250}{\beamergotobutton{Other Bandwidths}}
 
 \end{frame}

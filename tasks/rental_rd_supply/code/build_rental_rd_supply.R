@@ -241,10 +241,10 @@ for (i in seq_len(nrow(level_plot_defs))) {
       TRUE ~ ""
     )
     plot_subtitle <- sprintf(
-      "PPML jump = %.1f%%%s (SE %.1f), N = %s, %.0fft",
-      ppml_result$pct_change,
+      "PPML jump = %.3f%s (SE %.3f), N = %s, %.0fft",
+      ppml_result$estimate,
       stars,
-      100 * ppml_result$std_error,
+      ppml_result$std_error,
       format(ppml_result$n_obs, big.mark = ","),
       bandwidth_ft
     )

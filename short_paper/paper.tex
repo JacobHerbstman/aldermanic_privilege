@@ -1,0 +1,111 @@
+\documentclass[12pt]{article}
+
+% PACKAGES
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage[hyperfootnotes=false]{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{setspace}
+\usepackage{verbatim}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{threeparttable}
+\usepackage{enumitem}
+\usepackage[nomarkers, nolists, figuresfirst]{endfloat}
+\renewcommand{\efloatseparator}{\bigskip}
+
+% SETTINGS
+\doublespacing
+
+% Custom command for figure notes
+\newcommand{\figurenotes}[1]{\par\vspace{0.5em}\footnotesize\textit{Notes:} #1}
+
+\begin{document}
+
+\begingroup
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\begin{center}
+{\Large Regulatory Discretion and Housing Supply: \\ 
+Evidence from Chicago's Aldermanic Privilege}
+
+\vspace{1.5em}
+Jacob Herbstman\footnotemark[2]
+
+\vspace{0.5em}
+\today
+\end{center}
+
+\footnotetext[2]{University of Chicago, Harris School of Public Policy.
+Email: \url{jherbstman@uchicago.edu}.
+\par \smallskip I thank Eric Zwick, Justin Marlowe, Joshua Gottlieb, Asad Khan, Ayo George, and seminar participants at the Harris School PhD workshop,
+Economics Department Student Applied Micro Lunch, and the Notre Dame Housing Economics Conference for helpful comments and suggestions.}
+\endgroup
+\setcounter{footnote}{0}
+
+\vspace{1em}
+
+\begin{abstract}
+Land use regulation constrains housing supply, but formal zoning rules are only part of the regulatory environment developers face.
+I study informal regulatory discretion through Chicago's ``aldermanic privilege,'' under which city council members can effectively block, delay, or reshape development in their wards.
+I construct alderman-level stringency scores from permit processing times and compare places near the same ward boundary, where the neighborhood is similar but the alderman changes.
+At ward borders, multifamily FAR and dwelling-unit density are sharply lower on the more stringent side.
+A complementary event study approach shows that census blocks reassigned to more stringent aldermen experience a 7.4\% decline in permits.
+The price evidence is consistent with this supply channel: listed rents are about 3\% higher and home sale prices about 1.5\% higher on the more stringent side of ward boundaries.
+Together, the results show that informal regulatory discretion can reduce housing supply and put upward pressure on housing costs, calling into question the assumption that zoning reform alone will necessarily lead to more housing construction.
+\end{abstract}
+
+\clearpage
+
+\input{sections/intro.tex}
+\input{sections/data.tex}
+\input{sections/model.tex}
+\input{sections/empirics_results.tex}
+\input{sections/discussion.tex}
+\input{sections/conclusion.tex}
+
+\newpage
+
+\bibliographystyle{aea}
+\bibliography{sections/aldermanic_privilege.bib}
+
+\newpage
+
+% Process main text floats before appendices
+\processdelayedfloats
+\clearpage
+
+\appendix
+
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+\numberwithin{equation}{section}
+
+% Appendix A
+\input{sections/appendix_A_data.tex}
+\processdelayedfloats
+\clearpage
+
+% Appendix B
+\input{sections/appendix_B_permits.tex}
+\processdelayedfloats
+\clearpage
+
+% Appendix C
+\input{sections/appendix_C_alderman_fe.tex}
+\processdelayedfloats
+\clearpage
+
+% Appendix D
+\input{sections/appendix_D_density.tex}
+\processdelayedfloats
+\clearpage
+
+% Appendix E
+\input{sections/appendix_E_price_rd.tex}
+\processdelayedfloats
+\clearpage
+
+\end{document}

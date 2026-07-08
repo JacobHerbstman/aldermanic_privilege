@@ -66,6 +66,17 @@ paper/*.out
 paper/*.pdf
 paper/*.synctex.gz
 paper/*.ttt
+short_paper/*.aux
+short_paper/*.bbl
+short_paper/*.blg
+short_paper/*.fdb_latexmk
+short_paper/*.fff
+short_paper/*.fls
+short_paper/*.log
+short_paper/*.out
+short_paper/*.pdf
+short_paper/*.synctex.gz
+short_paper/*.ttt
 
 # Slides: ignore generated build artifacts, keep slide source tracked
 slides/*.aux
@@ -85,6 +96,17 @@ slides/figures/*
 !slides/images/home_price_growth.png
 !slides/images/rent_growth_headline.png
 !slides/figures/pipeline_tikz.tex
+mansueto_slides/*.aux
+mansueto_slides/*.bbl
+mansueto_slides/*.blg
+mansueto_slides/*.fdb_latexmk
+mansueto_slides/*.fls
+mansueto_slides/*.log
+mansueto_slides/*.nav
+mansueto_slides/*.out
+mansueto_slides/*.pdf
+mansueto_slides/*.snm
+mansueto_slides/*.toc
 
 tmp/
 

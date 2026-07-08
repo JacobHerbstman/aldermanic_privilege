@@ -34,11 +34,6 @@ if (!is.finite(placebo_cutoff_ft) || placebo_cutoff_ft <= 0 || placebo_cutoff_ft
 bins_per_side <- as.integer(bins_per_side)
 placebo_cutoff_ft <- as.integer(placebo_cutoff_ft)
 cutoffs_ft <- c(-placebo_cutoff_ft, 0, placebo_cutoff_ft)
-cutoff_levels <- c(
-  sprintf("%+dft placebo", -placebo_cutoff_ft),
-  "True boundary",
-  sprintf("%+dft placebo", placebo_cutoff_ft)
-)
 
 if (market == "rent") {
   source("../../_lib/amenity_distance_helpers.R")
@@ -215,6 +210,7 @@ if (market == "rent") {
 }
 
 plot_parts <- list()
+facet_levels <- character()
 for (cut_i in cutoffs_ft) {
   cutoff_value <- cut_i
   cutoff_text <- if (cutoff_value == 0) {
@@ -261,6 +257,26 @@ for (cut_i in cutoffs_ft) {
     stop(sprintf("Model did not estimate %s for %s / %s.", treatment, dataset_label, cutoff_text), call. = FALSE)
   }
   estimate <- unname(coef(fit)[[treatment]])
+  fit_row <- coeftable(fit)[rownames(coeftable(fit)) %in% treatment, , drop = FALSE]
+  if (nrow(fit_row) != 1L) {
+    stop(sprintf("Could not recover the point estimate for %s / %s.", dataset_label, cutoff_text), call. = FALSE)
+  }
+  std_error <- unname(fit_row[1, "Std. Error"])
+  p_value <- unname(fit_row[1, "Pr(>|t|)"])
+  stars <- dplyr::case_when(
+    is.finite(p_value) & p_value <= 0.01 ~ "***",
+    is.finite(p_value) & p_value <= 0.05 ~ "**",
+    is.finite(p_value) & p_value <= 0.10 ~ "*",
+    TRUE ~ ""
+  )
+  facet_label <- sprintf(
+    "%s\nJump = %.3f%s (SE %.3f)",
+    cutoff_text,
+    estimate,
+    stars,
+    std_error
+  )
+  facet_levels <- c(facet_levels, facet_label)
 
   removed <- fit$obs_selection$obsRemoved
   keep_idx <- if (is.null(removed)) {
@@ -272,7 +288,8 @@ for (cut_i in cutoffs_ft) {
     mutate(
       y_adjusted = as.numeric(resid(fit)) + estimate * .data[[treatment]],
       cutoff_ft = cutoff_value,
-      cutoff_label = cutoff_text
+      cutoff_label = cutoff_text,
+      cutoff_facet_label = facet_label
     )
 
   bin_width <- bandwidth_ft / bins_per_side
@@ -281,16 +298,16 @@ for (cut_i in cutoffs_ft) {
       bin_id = floor(running_ft / bin_width),
       bin_center = (bin_id + 0.5) * bin_width
     ) %>%
-    group_by(cutoff_ft, cutoff_label, bin_center) %>%
+    group_by(cutoff_ft, cutoff_label, cutoff_facet_label, bin_center) %>%
     summarise(
       mean_y = mean(y_adjusted, na.rm = TRUE),
       side = if_else(first(bin_center) >= 0, "More Stringent", "Less Stringent"),
       .groups = "drop"
-    ) %>%
-    mutate(cutoff_label = factor(cutoff_label, levels = cutoff_levels))
+    )
 }
 
-bins <- bind_rows(plot_parts)
+bins <- bind_rows(plot_parts) %>%
+  mutate(cutoff_facet_label = factor(cutoff_facet_label, levels = facet_levels))
 
 plot <- ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "gray30", linewidth = 0.7) +
@@ -306,6 +323,6 @@ plot <- ggplot() +
   ) +
   theme_bw(base_size = 11) +
   theme(legend.position = "bottom", panel.grid.minor = element_blank()) +
-  facet_wrap(~cutoff_label, nrow = 1)
+  facet_wrap(~cutoff_facet_label, nrow = 1)
 
 ggsave(sprintf("../output/%s_placebo_rd_main_style.pdf", market), plot, width = 12, height = 5.5, dpi = 300, bg = "white")

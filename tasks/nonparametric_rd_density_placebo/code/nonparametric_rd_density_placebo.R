@@ -147,6 +147,35 @@ if (nrow(aug) != nobs(m_resid)) {
   stop("Residualized sample alignment failed.", call. = FALSE)
 }
 
+fml_linear <- as.formula(sprintf(
+  "outcome ~ side * running_distance + %s | %s",
+  paste(controls, collapse = " + "),
+  fe_formula
+))
+m_linear <- feols(fml_linear, data = aug, cluster = ~ward_pair)
+linear_row <- coeftable(m_linear)[rownames(coeftable(m_linear)) %in% "side", , drop = FALSE]
+if (nrow(linear_row) != 1L) {
+  stop("Could not recover the placebo cutoff estimate.", call. = FALSE)
+}
+cutoff_estimate <- unname(linear_row[1, "Estimate"])
+cutoff_se <- unname(linear_row[1, "Std. Error"])
+cutoff_p <- unname(linear_row[1, "Pr(>|t|)"])
+cutoff_stars <- dplyr::case_when(
+  is.finite(cutoff_p) & cutoff_p <= 0.01 ~ "***",
+  is.finite(cutoff_p) & cutoff_p <= 0.05 ~ "**",
+  is.finite(cutoff_p) & cutoff_p <= 0.10 ~ "*",
+  TRUE ~ ""
+)
+subtitle_label <- sprintf(
+  "Jump = %.3f%s (SE %.3f) | %s | bandwidth=%s | N=%d",
+  cutoff_estimate,
+  cutoff_stars,
+  cutoff_se,
+  shift_display_label,
+  bw_label,
+  nobs(m_resid)
+)
+
 m_display <- feols(
   residualized_outcome ~ side * running_distance,
   data = aug,
@@ -249,6 +278,7 @@ p <- ggplot() +
   coord_cartesian(ylim = y_limits) +
   labs(
     title = paste0("Placebo Local-Linear RD: ", pretty_outcome),
+    subtitle = subtitle_label,
     x = x_label,
     y = paste("Residualized", pretty_outcome)
   ) +
