@@ -1,0 +1,56 @@
+matter_id,old_far,new_far,scope,confidence,old_source_attachment,old_source_page,new_source_attachment,new_source_page,evidence
+SO2016-6325,2.3,2.3,whole_pd,high,dpd_pd_archive_PD37,80,elms_03649d06e8929f4d,6,The prior and amended whole-PD tables both report FAR 2.3.
+SO2016-6338,10.15,10.65,whole_pd,high,dpd_pd_archive_PD1288,31,dpd_pd_archive_PD1288,9,The whole-PD maximum FAR rises from 10.15 to 10.65.
+SO2016-6363,2.2,2.2,whole_pd,high,dpd_pd_archive_PD1151,31,dpd_pd_archive_PD1151,15,The prior and amended whole-PD tables both report FAR 2.2.
+SO2016-7338,2.2,1.12,whole_pd,high,dpd_pd_archive_PD906,26,dpd_pd_archive_PD906,7,The whole-PD FAR falls from 2.2 to 1.12.
+SO2016-7341,2.5,2.5,whole_pd,high,dpd_pd_archive_PD982,28,dpd_pd_archive_PD982,7,The prior and amended whole-PD tables both report total FAR 2.5.
+SO2016-7342,9.75,10.25,whole_pd,high,dpd_pd_archive_PD1333,22,dpd_pd_archive_PD1333,8,The whole-PD maximum FAR rises from 9.75 to 10.25.
+SO2016-7343,4.52,4.52,whole_pd,high,dpd_pd_archive_PD1169,55,dpd_pd_archive_PD1169,31,The prior and amended master tables both report overall FAR 4.52.
+SO2016-8651,1.2,1.2,whole_pd,high,dpd_pd_archive_PD1215,35,dpd_pd_archive_PD1215,8,The prior and amended whole-PD tables both report FAR 1.2.
+SO2017-2183,6.6,6.6,whole_pd,high,dpd_pd_archive_PD1056,20,dpd_pd_archive_PD1056,5,Visual review of both scanned tables confirms whole-PD FAR 6.6.
+SO2017-3795,2.2,2.2,whole_pd,high,dpd_pd_archive_PD1261,68,dpd_pd_archive_PD1261,43,The prior and amended whole-PD tables both report FAR 2.2.
+SO2017-3843,4.65,5.0,whole_pd,high,dpd_pd_archive_PD1263,80,dpd_pd_archive_PD1263,38,The whole-PD FAR rises from 4.65 to 5.0.
+SO2017-4826,1.19,1.19,whole_pd,high,dpd_pd_archive_PD869,42,dpd_pd_archive_PD869,14,The prior and amended whole-PD tables both report overall FAR 1.19.
+SO2017-4850,2.2,2.2,whole_pd,high,dpd_pd_archive_PD64,62,dpd_pd_archive_PD64,9,The prior and amended whole-PD tables both report FAR 2.2.
+SO2017-5232,2.3,2.97,whole_pd,high,dpd_pd_archive_PD37,60,dpd_pd_archive_PD37,51,The whole-PD FAR rises from 2.3 to 2.97.
+SO2017-5622,1.761,0.54,whole_pd,high,dpd_pd_archive_PD347,12,dpd_pd_archive_PD347,3,The whole-PD FAR falls from 1.761 to 0.54.
+SO2017-6217,2.2,2.2,whole_pd,high,dpd_pd_archive_PD1243,30,dpd_pd_archive_PD1243,8,The prior and amended whole-PD tables both report FAR 2.2.
+SO2017-8762,33.72,35.97,whole_pd,high,dpd_pd_archive_PD1369,72,dpd_pd_archive_PD1369,37,The total maximum FAR rises from 33.72 to 35.97.
+SO2017-8982,5.0,5.0,whole_pd,high,dpd_pd_archive_PD1354,85,dpd_pd_archive_PD1354,60,The prior and amended whole-PD tables both report FAR 5.0.
+SO2017-8983,11.5,11.5,whole_pd,high,dpd_pd_archive_PD1359,50,dpd_pd_archive_PD1359,31,The prior and amended whole-PD tables both report FAR 11.5.
+SO2018-1906,18.4,18.4,whole_pd,high,dpd_pd_archive_PD1116,36,dpd_pd_archive_PD1116,11,The prior and amended whole-PD tables both report maximum FAR 18.4.
+SO2018-2453,5.0,5.0,whole_pd,high,dpd_pd_archive_PD1325,16,dpd_pd_archive_PD1325,11,The prior and amended whole-PD tables both report FAR 5.0.
+SO2018-2516,1.2,0.9,whole_pd,high,dpd_pd_archive_PD919,26,dpd_pd_archive_PD919,11,The whole-PD FAR falls from 1.2 to 0.9.
+SO2018-4022,6.0,6.13,whole_pd,high,dpd_pd_archive_PD1320,45,dpd_pd_archive_PD1320,26,The whole-PD maximum FAR rises from 6.0 to 6.13.
+SO2018-4958,5.0,5.0,whole_pd,high,dpd_pd_archive_PD1263,38,dpd_pd_archive_PD1263,21,The prior and amended whole-PD statements both report base FAR 5.0.
+SO2018-4962,3.0,3.0,whole_pd,high,dpd_pd_archive_PD1247,24,dpd_pd_archive_PD1247,6,The prior and amended whole-PD tables both report FAR 3.0.
+SO2018-6034,1.55,1.55,whole_pd,high,dpd_pd_archive_PD378,27,dpd_pd_archive_PD378,7,The prior and amended whole-PD tables both report FAR 1.55.
+SO2018-6128,0.285,0.31,whole_pd,high,dpd_pd_archive_PD1013,66,dpd_pd_archive_PD1013,13,The whole-PD FAR rises from 0.285 to 0.31.
+SO2018-7612,5.0,5.0,whole_pd,high,dpd_pd_archive_PD136,140,dpd_pd_archive_PD136,70,The prior and amended whole-PD tables both report FAR 5.0.
+SO2018-7736,35.97,37.1,whole_pd,high,dpd_pd_archive_PD1369,37,dpd_pd_archive_PD1369,9,The total maximum FAR rises from 35.97 to 37.10.
+SO2018-7750,7.57,11.25,whole_pd,high,dpd_pd_archive_PD1303,36,dpd_pd_archive_PD1303,15,The whole-PD maximum FAR rises from 7.57 to 11.25.
+SO2018-7773,15.49,15.49,whole_pd,high,dpd_pd_archive_PD790,41,dpd_pd_archive_PD790,7,The prior and amended whole-PD tables both report total FAR 15.49.
+SO2018-9330,5.5,8.1,whole_pd,high,dpd_pd_archive_PD1357,33,dpd_pd_archive_PD1357,8,The whole-PD maximum FAR rises from 5.5 to 8.1.
+SO2019-308,3.0,1.0,whole_pd,high,dpd_pd_archive_PD1025,36,dpd_pd_archive_PD1025,8,The whole-PD FAR falls from 3.0 to 1.0.
+SO2019-1391,12.0,12.0,whole_pd,high,dpd_pd_archive_PD768,33,dpd_pd_archive_PD768,19,The prior and amended whole-PD tables both report FAR 12.0.
+SO2019-1406,5.65,5.65,whole_pd,high,dpd_pd_archive_PD1434,141,dpd_pd_archive_PD1434,85,The prior and amended whole-PD tables both report FAR 5.65.
+SO2019-4340,2.81,2.81,whole_pd,high,dpd_pd_archive_PD50,106,dpd_pd_archive_PD50,25,The prior whole-PD table and amended whole-PD statement report FAR 2.81.
+SO2019-5518,17.5,17.5,whole_pd,high,dpd_pd_archive_PD381,62,dpd_pd_archive_PD381,32,The prior and amended whole-PD tables both report FAR 17.5.
+SO2019-5577,6.2,6.2,whole_pd,high,dpd_pd_archive_PD1384,37,dpd_pd_archive_PD1384,9,The prior and amended whole-PD tables both report FAR 6.2.
+SO2019-5584,5.0,5.0,whole_pd,high,dpd_pd_archive_PD1347,61,dpd_pd_archive_PD1347,34,The prior and amended whole-PD tables both report FAR 5.0.
+SO2019-6841,19.5,19.5,whole_pd,high,dpd_pd_archive_PD787,39,dpd_pd_archive_PD787,6,The prior and amended whole-PD tables both report FAR 19.5.
+SO2020-782,5.0,5.0,whole_pd,high,dpd_pd_archive_PD1329,34,dpd_pd_archive_PD1329,10,The prior and amended whole-PD tables both report FAR 5.0.
+SO2020-1891,1.4,1.4,whole_pd,high,dpd_pd_archive_PD1339,13,dpd_pd_archive_PD1339,7,The prior and amended whole-PD tables both report FAR 1.4.
+SO2020-1901,0.9,2.43,whole_pd,high,dpd_pd_archive_PD1321,36,dpd_pd_archive_PD1321,17,The whole-PD FAR rises from 0.9 to 2.43.
+SO2020-2406,11.15,11.15,whole_pd,high,dpd_pd_archive_PD1252,28,dpd_pd_archive_PD1252,10,The prior and amended whole-PD tables both report maximum FAR 11.15.
+SO2020-3081,5.0,5.0,whole_pd,high,dpd_pd_archive_PD138,43,dpd_pd_archive_PD138,34,The prior and amended whole-PD tables both report FAR 5.0.
+SO2020-3707,5.0,5.0,whole_pd,high,dpd_pd_archive_PD1347,34,dpd_pd_archive_PD1347,7,The prior and amended whole-PD tables both report FAR 5.0.
+SO2020-3720,3.0,1.5,whole_pd,high,dpd_pd_archive_PD1097,24,dpd_pd_archive_PD1097,10,The whole-PD FAR falls from 3.0 to 1.5.
+SO2020-3757,11.25,11.25,whole_pd,high,dpd_pd_archive_PD1303,15,dpd_pd_archive_PD1303,8,The prior and amended whole-PD tables both report maximum FAR 11.25.
+SO2020-4575,2.0,2.0,whole_pd,high,dpd_pd_archive_PD1430,77,dpd_pd_archive_PD1430,53,The prior and amended whole-PD tables both report overall FAR 2.0.
+SO2020-4578,5.0,5.0,whole_pd,high,dpd_pd_archive_PD1292,111,dpd_pd_archive_PD1292,65,The prior and amended whole-PD tables both report overall FAR 5.0.
+SO2020-4581,2.2,2.2,whole_pd,high,dpd_pd_archive_PD1261,43,dpd_pd_archive_PD1261,17,The prior and amended whole-PD tables both report FAR 2.2.
+SO2020-6226,1.33,1.4,whole_pd,high,dpd_pd_archive_PD92,34,dpd_pd_archive_PD92,7,The whole-PD FAR rises from 1.33 to 1.4.
+SO2017-2216,3.76,3.76,whole_pd,high,dpd_pd_archive_PD1164,67,dpd_pd_archive_PD1164,34,The prior and amended whole-PD tables both report FAR 3.76.
+SO2017-4853,2.2,2.225,affected_subarea,high,dpd_pd_archive_PD447,55,dpd_pd_archive_PD447,55,The amendment explicitly raises Subarea A-3 FAR from 2.20 to 2.225.
+SO2020-1897,11.57,11.57,affected_subarea,high,dpd_pd_archive_PD368,297,dpd_pd_archive_PD368,87,The prior and amended Subarea F tables both report total FAR 11.57.

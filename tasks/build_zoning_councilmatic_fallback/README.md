@@ -20,6 +20,7 @@ make
 ```
 
 ## Notes
+- The default source cutoff is February 12, 2026.
 - The output has one row per matter whose pre-Councilmatic zoning pair is incomplete.
 - The table records the pre-Councilmatic parse state, Councilmatic fetch status, Councilmatic text source, and parsed Councilmatic zoning pair.
 - `build_zoning_dataset` fails if this table does not cover every fallback row it needs.

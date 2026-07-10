@@ -2,12 +2,12 @@
 # setwd("/Users/jacobherbstman/Desktop/alderman_data/tasks/rezoning_geocode_stage1_parcel/code")
 #
 ## interactive argument examples (mirror Makefile inputs)
-# build_census_template.R --date-tag 20101201_20260212
+# date_tag <- "20101101_20201231"
 
 source("../../setup_environment/code/packages.R")
 
 parse_args <- function(args) {
-  out <- list(date_tag = "20101201_20260212")
+  out <- list(date_tag = "20101101_20201231")
   i <- 1
   while (i <= length(args)) {
     arg <- args[[i]]

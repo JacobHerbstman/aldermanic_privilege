@@ -21,4 +21,5 @@ make
 
 ## Notes
 - Requires internet access.
+- The default source window is frozen at November 1, 2010 through February 12, 2026 so later substitutes can be linked to ordinances introduced by 2020.
 - Uses `recordNumber` as canonical `matter_id` and includes `matter_guid`, `source_system`, and `date_imputed_from_final_action`.

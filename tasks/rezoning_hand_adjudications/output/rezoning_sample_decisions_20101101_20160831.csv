@@ -1,0 +1,13 @@
+matter_id,action,matter_intro_date,matter_passed_date,matter_title,from_zoning,to_zoning,evidence,reason
+O2011-6642,include,,2011-10-18,,,,Councilmatic passage action 2011-10-18,Passed property-specific zoning reclassification retained as Council Introduction in ELMS
+O2012-4976,include,,2012-09-27,,,,Councilmatic passage action 2012-09-27,Passed property-specific zoning reclassification retained as Council Introduction in ELMS
+O2013-7557,include,,2015-04-13,,,,Councilmatic passage action 2015-04-13,Passed property-specific zoning reclassification retained as Council Introduction in ELMS
+O2013-8638,include,,2014-02-27,,,,Councilmatic passage action 2014-02-27,Passed property-specific zoning reclassification retained as Council Introduction in ELMS
+O2013-8674,include,,2014-02-27,,,,Councilmatic passage action 2014-02-27,Passed property-specific zoning reclassification retained as Council Introduction in ELMS
+O2013-9449,include,,2014-02-27,,,,Councilmatic passage action 2014-02-27,Passed property-specific zoning reclassification retained as Council Introduction in ELMS
+O2014-3367,include,,2014-07-24,,,,Councilmatic passage action 2014-07-24,Passed property-specific zoning reclassification retained as Council Introduction in ELMS
+O2014-7033,include,,2014-12-09,,,,Councilmatic passage action 2014-12-09,Passed property-specific zoning reclassification retained as Council Introduction in ELMS
+O2016-647,include,,2016-03-14,,,,Councilmatic passage action 2016-03-14,Passed property-specific zoning reclassification retained as Council Introduction in ELMS
+SO2012-643,include,2012-02-15,2012-05-09,Zoning reclassification amendment for Institutional Planned Development No. 542,Institutional Planned Development No. 542,Institutional Planned Development No. 542,Final ordinance amends Institutional Planned Development 542,Property-specific PD amendment omitted because ordinance has no conventional from-to symbol sentence
+SO2014-6864,exclude,,,,,,Title 17 use standards and PD review amendment,Citywide zoning-code amendment rather than a property rezoning
+O2010-7170,exclude,,,,,,Final ordinance designates North Clark Street as a Pedestrian Street,No zoning-district reclassification

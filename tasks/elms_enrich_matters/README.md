@@ -25,3 +25,4 @@ make
 
 ## Notes
 - Requires internet access.
+- The default source cutoff is February 12, 2026; the analytical introduction-date restriction is applied downstream.

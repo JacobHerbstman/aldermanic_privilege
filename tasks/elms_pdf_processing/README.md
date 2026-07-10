@@ -23,4 +23,5 @@ make
 
 ## Notes
 - Downloads PDFs into `tasks/elms_pdf_processing/output/pdfs_<DATE_TAG>/`.
+- The default source cutoff is February 12, 2026 so later substitute ordinances remain available.
 - Supports string `matter_id` values from ELMS (`recordNumber`).

@@ -13,8 +13,8 @@ Builds the cleaned rezoning matter table used by downstream geocoding and enrich
 - `tasks/elms_pdf_processing/output/pdf_zoning_fields_<DATE_TAG>.csv`
 - `tasks/build_zoning_councilmatic_fallback/output/councilmatic_fallback_<DATE_TAG>.csv`
 
-## Outputs
-- `tasks/build_zoning_dataset/output/zoning_matters_<DATE_TAG>.csv`
+## Output
+- `tasks/build_zoning_dataset/output/zoning_matters_20101101_20201231.csv`
 
 ## Run
 ```bash
@@ -28,5 +28,6 @@ make
 
 ## Notes
 - The assembler reads a Make-managed Councilmatic fallback table and fails if any required fallback row is absent.
-- Modern source is ELMS-backed through upstream tasks.
+- Upstream ELMS records are frozen through February 12, 2026 so later substitutes and final actions can be linked correctly.
+- The output is then restricted to matters introduced from November 1, 2010 through December 31, 2020.
 - Output is restricted to map-reclassification rezonings using `rezoning_detection_method` (`title_map`, `pdf_from_to`, `both`).

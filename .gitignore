@@ -11,6 +11,7 @@ node_modules/
 # --- Log files ---
 *.log
 slurmlogs/
+tasks/*/code/run.sbatch
 
 # --- Raw & Intermediate Data ---
 # Ignore raw data by default, except static boundaries required for replication.
@@ -47,6 +48,18 @@ tasks/archive/*/temp/
 tasks/audits/*/input/
 tasks/audits/*/output/
 tasks/audits/*/temp/
+
+# Frozen hand-adjudicated rezoning inputs
+!tasks/rezoning_hand_adjudications/output/
+tasks/rezoning_hand_adjudications/output/*
+!tasks/rezoning_hand_adjudications/output/pd_far_text_review_updates_2011_2020.csv
+!tasks/rezoning_hand_adjudications/output/pd_to_pd_far_decisions_20101101_20160831.csv
+!tasks/rezoning_hand_adjudications/output/pd_to_pd_far_decisions_20160901_20201231.csv
+!tasks/rezoning_hand_adjudications/output/pd_queue_classifications_20160901_20201231.csv
+!tasks/rezoning_hand_adjudications/output/journal_zoning_code_fills_20101101_20160831.csv
+!tasks/rezoning_hand_adjudications/output/rezoning_sample_decisions_20101101_20160831.csv
+!tasks/rezoning_hand_adjudications/output/pd_transition_code_corrections_20101101_20160831.csv
+!tasks/rezoning_hand_adjudications/output/destination_code_corrections_20101101_20160831.csv
 
 # Exception: track the task flow graph for README
 !tasks/symlink_graph/output/

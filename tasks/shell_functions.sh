@@ -70,6 +70,20 @@ R_pc_and_slurm() {
 	fi
 } ;
 
+python_pc_and_slurm() {
+	if command -v sbatch > /dev/null ; then
+		command1="";
+		command2="python3 $@";
+		jobname1="${1%.*}_";
+		jobname2=$(echo ${@:2} | sed -e "s/ /_/g");
+		print_info Python $@;
+		sbatch -W --export=command1="$command1",command2="$command2" --job-name="$jobname1$jobname2" run.sbatch;
+	else
+		print_info Python $@;
+		python3 $@;
+	fi;
+} ;
+
 julia_pc_and_slurm() {
 	if command -v sbatch > /dev/null ; then
 		command1="module load julia";

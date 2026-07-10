@@ -1,0 +1,34 @@
+matter_id,expected_to_code,corrected_to_code,corrected_to_far,evidence_source,evidence
+O2011-7044,T,B2-2,2.2,ordinance Section 1,RS-3 to B2-2
+O2011-8879,T,B3-1,1.2,ordinance Section 1,B1-1 to B3-1
+O2012-1305,,B2-3,3,ordinance Section 1,Destination is B2-3
+O2012-600,,DX-7,7,ordinance Section 1,PD 1022 removed and underlying DX-7 restored
+O2013-4944,,B1-3,3,ordinance zoning narrative,Current B1-1 and proposed B1-3
+O2014-103,T,RT-3.5,1.05,ordinance Section 1,RM-5 to RT-3.5
+O2014-1518,,T,1.5,ordinance Section 1,Destination is T
+O2014-9428,,T,1.5,ordinance Section 1,Destination is T
+O2016-606,T,C2-1,1.2,ordinance Section 1,B1-2 to C2-1
+SO2011-7040,,B3-1,1.2,City Council introduction journal,Application 17341 proposes B3-1
+SO2011-8910,,PD,,ordinance Section 1,Destination is Institutional PD 842
+SO2011-9723,,PD,,ordinance Section 1,Destination is Institutional PD
+SO2012-2203,,PD,,ordinance Section 1,Destination is a planned development
+SO2012-3350,,PD,,ordinance Section 1,Destination is Residential-Business PD 447
+SO2012-35,,PD,,ordinance Section 1,Destination is Business PD
+SO2012-599,,PD,,ordinance Section 1,Destination is Residential-Business PD 233
+SO2012-626,,PD,,ordinance Section 1,Destination is Residential-Business PD
+SO2012-8201,,PD,,ordinance Section 1,Destination is Institutional-Residential PD
+SO2013-5510,,PD,,ordinance Section 1,Destination is Residential-Business PD
+SO2013-7556,,PD,,ordinance Section 1,Destination is Residential-Business PD
+SO2013-9417,,B2-3,3,City Council introduction journal,Application 17896 proposes B2-3
+SO2014-2318,,PD,,ordinance Section 1,Destination is Residential-Business PD
+SO2014-2350,,C1-2,2.2,ordinance zoning narrative,Proposed zoning is C1-2
+SO2014-2351,R3,PD,,ordinance Sections 1 and 2,Destination is Commercial-Institutional PD after C3-2
+SO2014-4169,T,PD,,ordinance Sections 1 through 3,Destination is a planned development after C1-5
+SO2014-4170,T,PD,,ordinance Section 1,Destination is Business PD 44
+SO2014-6803,,PD,,ordinance Section 1,Destination is Residential-Business PD
+SO2014-6808,T,PD,,ordinance Sections 1 and 2,Waterway-Industrial PD amendment with a separate PMD subarea
+SO2014-6811,,B2-3,3,ordinance zoning narrative,Proposed zoning is B2-3
+SO2014-9731,T,B2-3,3,ordinance Section 1,Destination is B2-3
+SO2015-40,,PD,,ordinance Sections 1 and 2,Destination is Business PD after C3-5
+SO2016-1635,,PD,,ordinance Section 1,Destination is Business PD
+SO2016-2659,T,PD,,ordinance Section 1,Destination is Residential PD

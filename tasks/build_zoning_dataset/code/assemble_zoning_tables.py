@@ -30,6 +30,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--in-pdf-text")
     parser.add_argument("--in-candidates", required=True)
     parser.add_argument("--in-councilmatic-fields", required=True)
+    parser.add_argument("--sample-start-date", required=True)
+    parser.add_argument("--sample-end-date", required=True)
     parser.add_argument("--out-csv", required=True)
     return parser.parse_args()
 
@@ -1515,6 +1517,11 @@ def main() -> int:
             "days_intro_to_passed",
         ]
     ].sort_values("matter_id")
+
+    intro_dates = pd.to_datetime(matters_out["matter_intro_date"], errors="coerce")
+    matters_out = matters_out.loc[
+        intro_dates.between(args.sample_start_date, args.sample_end_date, inclusive="both")
+    ].copy()
 
     matters_out.to_csv(args.out_csv, index=False)
 

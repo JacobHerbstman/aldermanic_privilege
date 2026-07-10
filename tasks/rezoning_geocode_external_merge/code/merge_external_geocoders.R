@@ -2,12 +2,12 @@
 # setwd("/Users/jacobherbstman/Desktop/alderman_data/tasks/rezoning_geocode_external_merge/code")
 #
 ## interactive argument examples (mirror Makefile inputs)
-# date_tag <- "19990101_20260212"
+# date_tag <- "20101101_20201231"
 
 source("../../setup_environment/code/packages.R")
 
 parse_args <- function(args) {
-  out <- list(date_tag = "19990101_20260212", write_remaining_unmatched = FALSE)
+  out <- list(date_tag = "20101101_20201231")
   i <- 1
   while (i <= length(args)) {
     arg <- args[[i]]
@@ -16,8 +16,6 @@ parse_args <- function(args) {
     } else if (arg == "--date-tag" && i < length(args)) {
       i <- i + 1
       out$date_tag <- args[[i]]
-    } else if (arg == "--write-remaining-unmatched") {
-      out$write_remaining_unmatched <- TRUE
     }
     i <- i + 1
   }
@@ -281,7 +279,6 @@ main <- function() {
   in_census_results_csv <- paste0("../input/census_geocoder_results_", tag, ".csv")
   in_chicago_upload_mapping_csv <- paste0("../input/chicago_geocoder_upload_mapping_", tag, ".csv")
   out_geocoded_csv <- paste0("../output/rezoning_geocode_with_external_", tag, ".csv")
-  out_remaining_unmatched_csv <- paste0("../output/rezoning_geocode_remaining_unmatched_", tag, ".csv")
 
   external_inputs <- c(in_chicago_results_csv, in_census_results_csv)
   missing_external_inputs <- external_inputs[!file.exists(external_inputs)]
@@ -341,16 +338,7 @@ main <- function() {
     stage1_df$geocode_confidence[[idx]] <- "external_geocoder"
   }
 
-  lat_num <- vapply(stage1_df$latitude, safe_float, numeric(1))
-  lon_num <- vapply(stage1_df$longitude, safe_float, numeric(1))
-  src <- tolower(trimws(as.character(stage1_df$geocode_source)))
-  remaining_unmatched <- stage1_df[is.na(lat_num) | is.na(lon_num) | src == "unmatched", ]
-
-  dir.create("../output", recursive = TRUE, showWarnings = FALSE)
   readr::write_csv(stage1_df, out_geocoded_csv)
-  if (opts$write_remaining_unmatched) {
-    readr::write_csv(remaining_unmatched, out_remaining_unmatched_csv)
-  }
 
   message("Chicago rows added: ", chicago_added)
   message("Census rows added: ", census_added)

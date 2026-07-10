@@ -49,5 +49,5 @@ only builds the harmonized pre-geocode file.
 ## Reproducibility notes
 - Local raw inputs required under `data_raw/`: `Boundaries_-_Zoning_Districts_20250910.geojson`, `zoning-code-summary-district-types.csv`, `chicago_zoning_code1957.txt`, and `zoning_conversion_2004_crosswalk.csv`.
 - Live-download stages: ELMS matters/attachments, ordinance PDFs, Clerk journal PDFs, Cook County parcel/address Socrata files, and Councilmatic fallback text.
-- Static committed handoffs: `tasks/rezoning_geocode_external_merge_ready/output/` and `tasks/rezoning_pd_far_merge_ready/output/`.
+- Static committed handoffs: `tasks/rezoning_geocode_external_merge_ready/output/` and `tasks/rezoning_hand_adjudications/output/`.
 - Python dependencies used by the rezoning tasks include `pandas`, `requests`, `PyMuPDF` (`fitz`), `pypdf`, `openpyxl`, and optionally `pypdfium2`, `pytesseract`, `Pillow`, and `geopandas` for OCR/map/geometry paths.

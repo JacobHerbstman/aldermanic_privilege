@@ -1,7 +1,6 @@
 import argparse
 import math
 import re
-from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -56,8 +55,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--in-master-csv", required=True)
     parser.add_argument("--in-zoning-lookup-csv", required=True)
+    parser.add_argument("--in-sample-decisions")
+    parser.add_argument("--in-journal-code-fills")
+    parser.add_argument("--in-pd-transition-corrections")
+    parser.add_argument("--in-destination-code-corrections")
+    parser.add_argument("--in-pd-to-pd-decisions", action="append", default=[])
     parser.add_argument("--out-far-csv", required=True)
-    parser.add_argument("--out-unresolved-csv", required=True)
     return parser.parse_args()
 
 
@@ -535,19 +538,65 @@ def infer_far_when_lookup_missing(code: str | None) -> float | None:
     return None
 
 
-def compute_parseable_non_structural_mask(df: pd.DataFrame) -> pd.Series:
-    from_non_structural = df["from_code"].notna() & ~df["from_code"].map(is_structural_na_code)
-    to_non_structural = df["to_code"].notna() & ~df["to_code"].map(is_structural_na_code)
-    return from_non_structural & to_non_structural
-
-
 def main() -> int:
     args = parse_args()
     ensure_parent(args.out_far_csv)
-    ensure_parent(args.out_unresolved_csv)
 
     master = pd.read_csv(args.in_master_csv, dtype=str, low_memory=False)
     lookup = load_far_lookup(args.in_zoning_lookup_csv)
+
+    if args.in_sample_decisions:
+        sample_decisions = pd.read_csv(args.in_sample_decisions, dtype=str)
+        if sample_decisions["matter_id"].duplicated().any():
+            raise ValueError("Rezoning sample decisions contain duplicate matter_id rows")
+        if not set(sample_decisions["action"]).issubset({"include", "exclude"}):
+            raise ValueError("Rezoning sample decision has an invalid action")
+
+        master = master.loc[
+            ~master["matter_id"].isin(sample_decisions.loc[sample_decisions["action"].eq("exclude"), "matter_id"])
+        ].copy()
+        for row in sample_decisions.loc[sample_decisions["action"].eq("include")].itertuples(index=False):
+            mask = master["matter_id"].eq(row.matter_id)
+            if mask.sum() == 0:
+                added = {column: pd.NA for column in master.columns}
+                added.update(
+                    {
+                        "matter_id": row.matter_id,
+                        "matter_file": row.matter_id,
+                        "matter_title": row.matter_title,
+                        "source_system": "hand_adjudication",
+                        "rezoning_detection_method": "ordinance_review",
+                        "matter_status_name": "90-FINAL",
+                        "matter_body_name": "City Council",
+                        "matter_intro_date": row.matter_intro_date,
+                        "matter_passed_date": row.matter_passed_date,
+                        "from_zoning": row.from_zoning,
+                        "to_zoning": row.to_zoning,
+                        "from_zoning_raw": row.from_zoning,
+                        "to_zoning_raw": row.to_zoning,
+                    }
+                )
+                master = pd.concat([master, pd.DataFrame([added])], ignore_index=True)
+            elif mask.sum() == 1:
+                master.loc[mask, "matter_status_name"] = "90-FINAL"
+                master.loc[mask, "matter_passed_date"] = row.matter_passed_date
+            else:
+                raise ValueError(f"Sample inclusion is not unique: {row.matter_id}")
+
+    journal_ids: set[str] = set()
+    if args.in_journal_code_fills:
+        journal_fills = pd.read_csv(args.in_journal_code_fills, dtype=str)
+        if journal_fills["matter_id"].duplicated().any():
+            raise ValueError("Journal code fills contain duplicate matter_id rows")
+        missing_ids = sorted(set(journal_fills["matter_id"]) - set(master["matter_id"]))
+        if missing_ids:
+            raise ValueError(f"Journal code fills absent from rezoning data: {missing_ids}")
+        journal_ids = set(journal_fills["matter_id"])
+        fills = journal_fills.set_index("matter_id")
+        for matter_id, row in fills.iterrows():
+            mask = master["matter_id"].eq(matter_id)
+            master.loc[mask, ["from_zoning", "from_zoning_raw"]] = row["from_code_journal"]
+            master.loc[mask, ["to_zoning", "to_zoning_raw"]] = row["to_code_journal"]
 
     out = master.copy()
     out["from_code"] = None
@@ -570,6 +619,7 @@ def main() -> int:
     out["far_change"] = None
     out["is_upzone"] = None
     out["far_pair_status"] = None
+    out["far_pair_source"] = None
 
     for idx, row in out.iterrows():
         from_code, from_source, from_code_status = resolve_code(row, "from", lookup)
@@ -615,87 +665,105 @@ def main() -> int:
             out.at[idx, "far_change"] = change
             out.at[idx, "is_upzone"] = bool(change > 0)
             out.at[idx, "far_pair_status"] = "resolved_both"
+            out.at[idx, "far_pair_source"] = "zoning_code_lookup"
         elif from_far is None and to_far is None:
             out.at[idx, "far_pair_status"] = "missing_both"
         else:
             out.at[idx, "far_pair_status"] = "missing_one_side"
 
-    from_far_num = pd.to_numeric(out["from_far"], errors="coerce")
-    to_far_num = pd.to_numeric(out["to_far"], errors="coerce")
-    both_far_mask = from_far_num.notna() & to_far_num.notna()
-    all_rows_n = len(out)
-    both_sides_far_share_all_rows = float(both_far_mask.sum()) / float(all_rows_n) if all_rows_n else None
+    for matter_id in journal_ids:
+        mask = out["matter_id"].eq(matter_id)
+        out.loc[mask, ["from_code_source", "to_code_source"]] = ["council_journal", "council_journal"]
 
-    non_structural_mask = ~(
-        out["from_code"].map(is_structural_na_code) | out["to_code"].map(is_structural_na_code)
-    )
-    non_structural_n = int(non_structural_mask.sum())
-    both_sides_far_share_non_structural = (
-        float((both_far_mask & non_structural_mask).sum()) / float(non_structural_n)
-        if non_structural_n
-        else None
-    )
+    code_corrections = []
+    if args.in_pd_transition_corrections:
+        pd_corrections = pd.read_csv(args.in_pd_transition_corrections, dtype=str)
+        pd_corrections = pd_corrections.rename(columns={"corrected_to_code": "to_code"})
+        pd_corrections["to_far"] = pd.NA
+        code_corrections.append(pd_corrections[["matter_id", "to_code", "to_far"]])
+    if args.in_destination_code_corrections:
+        destination_corrections = pd.read_csv(args.in_destination_code_corrections, dtype=str)
+        destination_corrections = destination_corrections.rename(
+            columns={"corrected_to_code": "to_code", "corrected_to_far": "to_far"}
+        )
+        code_corrections.append(destination_corrections[["matter_id", "to_code", "to_far"]])
 
-    parseable_non_structural_mask = compute_parseable_non_structural_mask(out)
-    parseable_non_structural_row_count = int(parseable_non_structural_mask.sum())
-    parseable_non_structural_resolved_count = int((both_far_mask & parseable_non_structural_mask).sum())
-    parseable_non_structural_missing_count = int((~both_far_mask & parseable_non_structural_mask).sum())
-    parseable_non_structural_share = (
-        float(parseable_non_structural_resolved_count) / float(parseable_non_structural_row_count)
-        if parseable_non_structural_row_count
-        else None
-    )
-    parseable_non_structural_gate_pass = parseable_non_structural_missing_count == 0
+    if code_corrections:
+        code_corrections = pd.concat(code_corrections, ignore_index=True)
+        if code_corrections["matter_id"].duplicated().any():
+            raise ValueError("Ordinance code corrections contain duplicate matter_id rows")
+        missing_ids = sorted(set(code_corrections["matter_id"]) - set(out["matter_id"]))
+        if missing_ids:
+            raise ValueError(f"Ordinance code corrections absent from rezoning data: {missing_ids}")
+        for row in code_corrections.itertuples(index=False):
+            idx = out.index[out["matter_id"].eq(row.matter_id)][0]
+            to_far, to_version, to_start, to_end, to_status = resolve_far(
+                row.to_code, out.at[idx, "matter_intro_date"], lookup
+            )
+            if pd.notna(row.to_far):
+                to_far = float(row.to_far)
+                to_version = "ordinance_code_correction"
+                to_start = None
+                to_end = None
+                to_status = "ok"
+            out.at[idx, "to_code"] = row.to_code
+            out.at[idx, "to_code_source"] = "ordinance_code_correction"
+            out.at[idx, "to_code_status"] = code_status_for_lookup(row.to_code, lookup)
+            out.at[idx, "to_far"] = to_far
+            out.at[idx, "to_far_version"] = to_version
+            out.at[idx, "to_far_effective_start"] = to_start
+            out.at[idx, "to_far_effective_end"] = to_end
+            out.at[idx, "to_far_status"] = to_status
+            out.at[idx, "far_pair_source"] = "ordinance_code_correction"
 
-    unresolved_mask = ~both_far_mask
-    unresolved = out.loc[unresolved_mask].copy()
-    unresolved["far_unresolved_reason"] = unresolved["from_far_status"].fillna("unknown") + "|" + unresolved["to_far_status"].fillna("unknown")
-    unresolved["is_parseable_non_structural"] = compute_parseable_non_structural_mask(unresolved)
-    unresolved["blocks_geocode_gate"] = unresolved["is_parseable_non_structural"]
-    unresolved_cols = [
-        "matter_id",
-        "record_source",
-        "matter_intro_date",
-        "matter_title",
-        "from_zoning",
-        "to_zoning",
-        "from_code",
-        "to_code",
-        "from_code_source",
-        "to_code_source",
-        "from_code_status",
-        "to_code_status",
-        "from_far_status",
-        "to_far_status",
-        "far_unresolved_reason",
-        "is_parseable_non_structural",
-        "blocks_geocode_gate",
-    ]
-    unresolved = unresolved[[col for col in unresolved_cols if col in unresolved.columns]]
+    if args.in_pd_to_pd_decisions:
+        decisions = pd.concat(
+            [pd.read_csv(path, dtype=str) for path in args.in_pd_to_pd_decisions],
+            ignore_index=True,
+        )
+        if decisions["matter_id"].duplicated().any():
+            raise ValueError("PD-to-PD FAR decisions contain duplicate matter_id rows")
+        if not decisions["confidence"].eq("high").all():
+            raise ValueError("Only high-confidence PD-to-PD decisions may enter production")
+        missing_ids = sorted(set(decisions["matter_id"]) - set(out["matter_id"]))
+        if missing_ids:
+            raise ValueError(f"PD-to-PD FAR decisions absent from rezoning data: {missing_ids}")
+
+        for row in decisions.itertuples(index=False):
+            idx = out.index[out["matter_id"].eq(row.matter_id)][0]
+            old_far = float(row.old_far)
+            new_far = float(row.new_far)
+            change = round(new_far - old_far, 6)
+            out.loc[idx, ["from_code", "to_code"]] = ["PD", "PD"]
+            out.loc[idx, ["from_code_source", "to_code_source"]] = ["ordinance_pd_review", "ordinance_pd_review"]
+            out.loc[idx, ["from_code_status", "to_code_status"]] = ["structural_na", "structural_na"]
+            out.loc[idx, ["from_far", "to_far"]] = [old_far, new_far]
+            out.loc[idx, ["from_far_version", "to_far_version"]] = ["ordinance_pd_review", "ordinance_pd_review"]
+            out.loc[
+                idx,
+                [
+                    "from_far_effective_start",
+                    "from_far_effective_end",
+                    "to_far_effective_start",
+                    "to_far_effective_end",
+                ],
+            ] = [None, None, None, None]
+            out.loc[idx, ["from_far_status", "to_far_status"]] = ["ok", "ok"]
+            out.loc[idx, "far_change"] = change
+            out.loc[idx, "is_upzone"] = bool(change > 0)
+            out.loc[idx, "far_pair_status"] = "resolved_both"
+            out.loc[idx, "far_pair_source"] = "ordinance_pd_review"
+
+    from_far = pd.to_numeric(out["from_far"], errors="coerce")
+    to_far = pd.to_numeric(out["to_far"], errors="coerce")
+    paired = from_far.notna() & to_far.notna()
+    out.loc[paired, "far_change"] = (to_far[paired] - from_far[paired]).round(6)
+    out.loc[paired, "is_upzone"] = out.loc[paired, "far_change"].astype(float).gt(0)
+    out.loc[paired, "far_pair_status"] = "resolved_both"
+    out.loc[~paired & from_far.isna() & to_far.isna(), "far_pair_status"] = "missing_both"
+    out.loc[~paired & (from_far.notna() | to_far.notna()), "far_pair_status"] = "missing_one_side"
 
     out.to_csv(args.out_far_csv, index=False)
-    unresolved.to_csv(args.out_unresolved_csv, index=False)
-
-    unresolved_codes = pd.concat(
-        [
-            out.loc[from_far_num.isna() & out["from_code"].notna(), "from_code"],
-            out.loc[to_far_num.isna() & out["to_code"].notna(), "to_code"],
-        ],
-        axis=0,
-    )
-
-    by_source = {}
-    if "record_source" in out.columns:
-        for source, part in out.groupby("record_source", dropna=False):
-            n = len(part)
-            part_both = (
-                pd.to_numeric(part["from_far"], errors="coerce").notna()
-                & pd.to_numeric(part["to_far"], errors="coerce").notna()
-            )
-            by_source[str(source)] = {
-                "rows": int(n),
-                "both_sides_far_share_all_rows": (float(part_both.sum()) / float(n)) if n else None,
-            }
 
     return 0
 

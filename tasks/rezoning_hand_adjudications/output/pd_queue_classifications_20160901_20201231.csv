@@ -1,0 +1,23 @@
+matter_id,include_in_pd_to_pd_queue,classification,pd_number,from_zoning,to_zoning,source_attachment,source_page,evidence
+SO2016-6368,False,base_to_pd,,PMD 6,Manufacturing-Business-Waterway PD,elms_82f3ca58ae4204f4,2,Ordinance changes Planned Manufacturing District 6 to a Manufacturing-Business-Waterway PD.
+SO2016-7309,False,base_to_pd,,M2-2,Industrial PD,elms_b84c839653084257,2,Ordinance changes M2-2 to an Industrial PD.
+SO2016-8050,False,base_to_pd,,RT-4,Institutional PD,elms_b6ce6aee5959e84b,2,Ordinance changes RT-4 to an Institutional PD.
+SO2017-156,False,base_to_pd,,DC-16,Waterway-Business PD,elms_4853548ddd1f4cb6,2,Ordinance changes DC-16 to a Waterway-Business PD.
+SO2017-2216,True,pd_to_pd,1164,Residential-Business PD 1164,Residential-Business PD 1164 as amended,elms_ea69c476b662ca4e,2,Ordinance changes all PD 1164 symbols to PD 1164 as amended.
+SO2017-4853,True,pd_to_pd,447,Residential-Business PD 447,Residential-Business PD 447 as amended,elms_f7e547c9af320b05,2,Ordinance changes all PD 447 symbols to PD 447 as amended.
+SO2017-6434,True,pd_to_pd,68,PD 68,PD 68 as amended,elms_347826954013f481,2,Ordinance changes all PD 68 symbols to PD 68 as amended.
+SO2017-7021,False,base_to_pd,,C1-1,Residential-Business PD,elms_4c54dd53b2f7f4b8,2,Ordinance changes C1-1 to a Residential-Business PD.
+SO2018-7756,True,multiple_pds_to_pd,376,Residential-Business PD 376 and Business PD 506,Residential-Business PD 376 as amended,elms_f7a087c39a5c81f4,2,Ordinance combines PD 376 and PD 506 into amended PD 376.
+SO2018-7759,True,pd_to_pd,70,Residential-Business PD 70,Residential-Business PD 70 as amended 2018,elms_360b6fad2db827c6,2,Ordinance changes PD 70 to PD 70 as amended in 2018.
+SO2018-8006,True,pd_to_pd,70,Residential-Business PD 70,Residential-Business PD 70 as amended 2019,elms_b6fc091dc322f6d7,2,Ordinance changes PD 70 to PD 70 as amended in 2019.
+SO2018-9255,False,base_to_pd,,PMD 10,Institutional PD,elms_877d603248963843,2,Ordinance changes PMD 10 to an Institutional PD.
+SO2019-1388,False,base_to_pd,,C1-3,Business PD,elms_dbedcc7adb527418,2,Ordinance changes C1-3 to a Business PD.
+SO2019-1502,True,two_step_pd_amendment,30,Institutional PD 30,Institutional PD 30 as amended,elms_214a5d4dd122a48f,2,Sections 1 and 2 change PD 30 to C2-5 and immediately back to amended PD 30.
+SO2019-259,True,pd_to_pd,368,Residential-Business PD 368,Residential-Business PD 368 as amended,elms_71cec9548393f19d,2,Ordinance changes all PD 368 symbols to PD 368 as amended.
+SO2019-6841,True,pd_to_pd,787,Residential-Business PD 787,Residential-Business PD 787 as amended,elms_0069d439f3b0bae3,2,Ordinance changes all PD 787 symbols to PD 787 as amended.
+SO2019-7968,False,base_to_pd,,M3-3,Waterway-Business PD,elms_01e9797347b58c9d,2,Ordinance changes M3-3 to a Waterway-Business PD.
+SO2019-8489,False,base_to_pd,,B1-2,Residential-Business PD,elms_c53dd8f8b7a33d7a,2,Ordinance changes B1-2 to a Residential-Business PD.
+SO2020-1897,True,pd_to_pd,368,Residential-Business PD 368,Residential-Business PD 368 as amended,elms_508659246601d368,2,Ordinance changes all PD 368 symbols to PD 368 as amended.
+SO2020-1908,False,base_to_pd,,PMD 6,Waterway-Industrial PD,elms_a2e51fb4909158e6,2,Ordinance changes PMD 6 to a Waterway-Industrial PD.
+SO2020-3706,False,base_to_pd,,B3-2,Residential-Business PD,elms_14ee0cfb0420c0e9,2,Ordinance changes B3-2 to a Residential-Business PD.
+SO2020-770,False,pd_to_pmd,1301,Commercial-Manufacturing PD 1301,PMD 11-B,elms_e81ef41d4921e474,2,Ordinance changes PD 1301 to Planned Manufacturing District 11-B.
