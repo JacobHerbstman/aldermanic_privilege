@@ -1,7 +1,6 @@
 import argparse
 import math
 import re
-from pathlib import Path
 
 import pandas as pd
 
@@ -53,19 +52,8 @@ def is_structural_na_code(code: str | None) -> bool:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--in-master-csv", required=True)
-    parser.add_argument("--in-zoning-lookup-csv", required=True)
-    parser.add_argument("--in-sample-decisions")
-    parser.add_argument("--in-journal-code-fills")
-    parser.add_argument("--in-pd-transition-corrections")
-    parser.add_argument("--in-destination-code-corrections")
-    parser.add_argument("--in-pd-to-pd-decisions", action="append", default=[])
-    parser.add_argument("--out-far-csv", required=True)
+    parser.add_argument("date_tag")
     return parser.parse_args()
-
-
-def ensure_parent(path: str) -> None:
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
 
 
 def choose_column(columns: list[str], options: list[str], contains: list[str] | None = None) -> str | None:
@@ -540,65 +528,78 @@ def infer_far_when_lookup_missing(code: str | None) -> float | None:
 
 def main() -> int:
     args = parse_args()
-    ensure_parent(args.out_far_csv)
+    master = pd.read_csv(
+        f"../input/zoning_matters_{args.date_tag}.csv",
+        dtype=str,
+        low_memory=False,
+    )
+    lookup = load_far_lookup("../input/zoning_far_lookup_clean.csv")
 
-    master = pd.read_csv(args.in_master_csv, dtype=str, low_memory=False)
-    lookup = load_far_lookup(args.in_zoning_lookup_csv)
+    sample_decisions = pd.read_csv(
+        "../input/rezoning_sample_decisions_20101101_20160831.csv",
+        dtype=str,
+    )
+    if sample_decisions["matter_id"].duplicated().any():
+        raise ValueError("Rezoning sample decisions contain duplicate matter_id rows")
+    if not set(sample_decisions["action"]).issubset({"include", "exclude"}):
+        raise ValueError("Rezoning sample decision has an invalid action")
 
-    if args.in_sample_decisions:
-        sample_decisions = pd.read_csv(args.in_sample_decisions, dtype=str)
-        if sample_decisions["matter_id"].duplicated().any():
-            raise ValueError("Rezoning sample decisions contain duplicate matter_id rows")
-        if not set(sample_decisions["action"]).issubset({"include", "exclude"}):
-            raise ValueError("Rezoning sample decision has an invalid action")
-
-        master = master.loc[
-            ~master["matter_id"].isin(sample_decisions.loc[sample_decisions["action"].eq("exclude"), "matter_id"])
-        ].copy()
-        for row in sample_decisions.loc[sample_decisions["action"].eq("include")].itertuples(index=False):
-            mask = master["matter_id"].eq(row.matter_id)
-            if mask.sum() == 0:
-                added = {column: pd.NA for column in master.columns}
-                added.update(
-                    {
-                        "matter_id": row.matter_id,
-                        "matter_file": row.matter_id,
-                        "matter_title": row.matter_title,
-                        "source_system": "hand_adjudication",
-                        "rezoning_detection_method": "ordinance_review",
-                        "matter_status_name": "90-FINAL",
-                        "matter_body_name": "City Council",
-                        "matter_intro_date": row.matter_intro_date,
-                        "matter_passed_date": row.matter_passed_date,
-                        "from_zoning": row.from_zoning,
-                        "to_zoning": row.to_zoning,
-                        "from_zoning_raw": row.from_zoning,
-                        "to_zoning_raw": row.to_zoning,
-                    }
-                )
-                master = pd.concat([master, pd.DataFrame([added])], ignore_index=True)
-            elif mask.sum() == 1:
-                master.loc[mask, "matter_status_name"] = "90-FINAL"
-                master.loc[mask, "matter_passed_date"] = row.matter_passed_date
-            else:
-                raise ValueError(f"Sample inclusion is not unique: {row.matter_id}")
+    master = master.loc[
+        ~master["matter_id"].isin(sample_decisions.loc[sample_decisions["action"].eq("exclude"), "matter_id"])
+    ].copy()
+    for row in sample_decisions.loc[sample_decisions["action"].eq("include")].itertuples(index=False):
+        mask = master["matter_id"].eq(row.matter_id)
+        if mask.sum() == 0:
+            added = {column: pd.NA for column in master.columns}
+            added.update(
+                {
+                    "matter_id": row.matter_id,
+                    "matter_file": row.matter_id,
+                    "matter_title": row.matter_title,
+                    "source_system": "hand_adjudication",
+                    "rezoning_detection_method": "ordinance_review",
+                    "matter_status_name": "90-FINAL",
+                    "matter_body_name": "City Council",
+                    "matter_intro_date": row.matter_intro_date,
+                    "matter_passed_date": row.matter_passed_date,
+                    "from_zoning": row.from_zoning,
+                    "to_zoning": row.to_zoning,
+                    "from_zoning_raw": row.from_zoning,
+                    "to_zoning_raw": row.to_zoning,
+                }
+            )
+            master = pd.concat([master, pd.DataFrame([added])], ignore_index=True)
+        elif mask.sum() == 1:
+            master.loc[mask, "matter_status_name"] = "90-FINAL"
+            master.loc[mask, "matter_passed_date"] = row.matter_passed_date
+        else:
+            raise ValueError(f"Sample inclusion is not unique: {row.matter_id}")
 
     journal_ids: set[str] = set()
-    if args.in_journal_code_fills:
-        journal_fills = pd.read_csv(args.in_journal_code_fills, dtype=str)
-        if journal_fills["matter_id"].duplicated().any():
-            raise ValueError("Journal code fills contain duplicate matter_id rows")
-        missing_ids = sorted(set(journal_fills["matter_id"]) - set(master["matter_id"]))
-        if missing_ids:
-            raise ValueError(f"Journal code fills absent from rezoning data: {missing_ids}")
-        journal_ids = set(journal_fills["matter_id"])
-        fills = journal_fills.set_index("matter_id")
-        for matter_id, row in fills.iterrows():
-            mask = master["matter_id"].eq(matter_id)
-            master.loc[mask, ["from_zoning", "from_zoning_raw"]] = row["from_code_journal"]
-            master.loc[mask, ["to_zoning", "to_zoning_raw"]] = row["to_code_journal"]
+    journal_fills = pd.read_csv(
+        "../input/journal_zoning_code_fills_20101101_20160831.csv",
+        dtype=str,
+    )
+    if journal_fills["matter_id"].duplicated().any():
+        raise ValueError("Journal code fills contain duplicate matter_id rows")
+    missing_ids = sorted(set(journal_fills["matter_id"]) - set(master["matter_id"]))
+    if missing_ids:
+        raise ValueError(f"Journal code fills absent from rezoning data: {missing_ids}")
+    journal_ids = set(journal_fills["matter_id"])
+    fills = journal_fills.set_index("matter_id")
+    for matter_id, row in fills.iterrows():
+        mask = master["matter_id"].eq(matter_id)
+        master.loc[mask, ["from_zoning", "from_zoning_raw"]] = row["from_code_journal"]
+        master.loc[mask, ["to_zoning", "to_zoning_raw"]] = row["to_code_journal"]
 
     out = master.copy()
+    out["from_code_count"] = out["from_zoning_raw"].map(lambda value: len(extract_all_zoning_codes(value)))
+    out["to_code_count"] = out["to_zoning_raw"].map(lambda value: len(extract_all_zoning_codes(value)))
+    out["far_transition_status"] = "scalar_candidate"
+    out.loc[
+        out["from_code_count"].gt(1) | out["to_code_count"].gt(1),
+        "far_transition_status",
+    ] = "requires_section_review"
     out["from_code"] = None
     out["to_code"] = None
     out["from_code_source"] = None
@@ -676,17 +677,22 @@ def main() -> int:
         out.loc[mask, ["from_code_source", "to_code_source"]] = ["council_journal", "council_journal"]
 
     code_corrections = []
-    if args.in_pd_transition_corrections:
-        pd_corrections = pd.read_csv(args.in_pd_transition_corrections, dtype=str)
-        pd_corrections = pd_corrections.rename(columns={"corrected_to_code": "to_code"})
-        pd_corrections["to_far"] = pd.NA
-        code_corrections.append(pd_corrections[["matter_id", "to_code", "to_far"]])
-    if args.in_destination_code_corrections:
-        destination_corrections = pd.read_csv(args.in_destination_code_corrections, dtype=str)
-        destination_corrections = destination_corrections.rename(
-            columns={"corrected_to_code": "to_code", "corrected_to_far": "to_far"}
-        )
-        code_corrections.append(destination_corrections[["matter_id", "to_code", "to_far"]])
+    pd_corrections = pd.read_csv(
+        "../input/pd_transition_code_corrections_20101101_20160831.csv",
+        dtype=str,
+    )
+    pd_corrections = pd_corrections.rename(columns={"corrected_to_code": "to_code"})
+    pd_corrections["to_far"] = pd.NA
+    code_corrections.append(pd_corrections[["matter_id", "to_code", "to_far"]])
+
+    destination_corrections = pd.concat(
+        [
+            pd.read_csv("../input/destination_code_corrections_20101101_20160831.csv", dtype=str),
+            pd.read_csv("../input/destination_code_corrections_20160901_20201231.csv", dtype=str),
+        ],
+        ignore_index=True,
+    ).rename(columns={"corrected_to_code": "to_code", "corrected_to_far": "to_far"})
+    code_corrections.append(destination_corrections[["matter_id", "to_code", "to_far"]])
 
     if code_corrections:
         code_corrections = pd.concat(code_corrections, ignore_index=True)
@@ -716,54 +722,72 @@ def main() -> int:
             out.at[idx, "to_far_status"] = to_status
             out.at[idx, "far_pair_source"] = "ordinance_code_correction"
 
-    if args.in_pd_to_pd_decisions:
-        decisions = pd.concat(
-            [pd.read_csv(path, dtype=str) for path in args.in_pd_to_pd_decisions],
-            ignore_index=True,
-        )
-        if decisions["matter_id"].duplicated().any():
-            raise ValueError("PD-to-PD FAR decisions contain duplicate matter_id rows")
-        if not decisions["confidence"].eq("high").all():
-            raise ValueError("Only high-confidence PD-to-PD decisions may enter production")
-        missing_ids = sorted(set(decisions["matter_id"]) - set(out["matter_id"]))
-        if missing_ids:
-            raise ValueError(f"PD-to-PD FAR decisions absent from rezoning data: {missing_ids}")
+    decisions = pd.concat(
+        [
+            pd.read_csv("../input/pd_to_pd_far_decisions_20101101_20160831.csv", dtype=str),
+            pd.read_csv("../input/pd_to_pd_far_decisions_20160901_20201231.csv", dtype=str),
+        ],
+        ignore_index=True,
+    )
+    if decisions["matter_id"].duplicated().any():
+        raise ValueError("PD-to-PD FAR decisions contain duplicate matter_id rows")
+    if not decisions["confidence"].eq("high").all():
+        raise ValueError("Only high-confidence PD-to-PD decisions may enter production")
+    missing_ids = sorted(set(decisions["matter_id"]) - set(out["matter_id"]))
+    if missing_ids:
+        raise ValueError(f"PD-to-PD FAR decisions absent from rezoning data: {missing_ids}")
 
-        for row in decisions.itertuples(index=False):
-            idx = out.index[out["matter_id"].eq(row.matter_id)][0]
-            old_far = float(row.old_far)
-            new_far = float(row.new_far)
-            change = round(new_far - old_far, 6)
-            out.loc[idx, ["from_code", "to_code"]] = ["PD", "PD"]
-            out.loc[idx, ["from_code_source", "to_code_source"]] = ["ordinance_pd_review", "ordinance_pd_review"]
-            out.loc[idx, ["from_code_status", "to_code_status"]] = ["structural_na", "structural_na"]
-            out.loc[idx, ["from_far", "to_far"]] = [old_far, new_far]
-            out.loc[idx, ["from_far_version", "to_far_version"]] = ["ordinance_pd_review", "ordinance_pd_review"]
-            out.loc[
-                idx,
-                [
-                    "from_far_effective_start",
-                    "from_far_effective_end",
-                    "to_far_effective_start",
-                    "to_far_effective_end",
-                ],
-            ] = [None, None, None, None]
-            out.loc[idx, ["from_far_status", "to_far_status"]] = ["ok", "ok"]
-            out.loc[idx, "far_change"] = change
-            out.loc[idx, "is_upzone"] = bool(change > 0)
-            out.loc[idx, "far_pair_status"] = "resolved_both"
-            out.loc[idx, "far_pair_source"] = "ordinance_pd_review"
+    for row in decisions.itertuples(index=False):
+        idx = out.index[out["matter_id"].eq(row.matter_id)][0]
+        old_far = float(row.old_far)
+        new_far = float(row.new_far)
+        change = round(new_far - old_far, 6)
+        out.loc[idx, ["from_code", "to_code"]] = ["PD", "PD"]
+        out.loc[idx, ["from_code_source", "to_code_source"]] = ["ordinance_pd_review", "ordinance_pd_review"]
+        out.loc[idx, ["from_code_status", "to_code_status"]] = ["structural_na", "structural_na"]
+        out.loc[idx, ["from_far", "to_far"]] = [old_far, new_far]
+        out.loc[idx, ["from_far_version", "to_far_version"]] = ["ordinance_pd_review", "ordinance_pd_review"]
+        out.loc[
+            idx,
+            [
+                "from_far_effective_start",
+                "from_far_effective_end",
+                "to_far_effective_start",
+                "to_far_effective_end",
+            ],
+        ] = [None, None, None, None]
+        out.loc[idx, ["from_far_status", "to_far_status"]] = ["ok", "ok"]
+        out.loc[idx, "far_change"] = change
+        out.loc[idx, "is_upzone"] = bool(change > 0)
+        out.loc[idx, "far_pair_status"] = "resolved_both"
+        out.loc[idx, "far_pair_source"] = "ordinance_pd_review"
+
+    non_scalar_decisions = pd.read_csv(
+        "../input/non_scalar_far_decisions_20101101_20201231.csv",
+        dtype=str,
+    )
+    if non_scalar_decisions["matter_id"].duplicated().any():
+        raise ValueError("Non-scalar FAR decisions contain duplicate matter_id rows")
+    missing_ids = sorted(set(non_scalar_decisions["matter_id"]) - set(out["matter_id"]))
+    if missing_ids:
+        raise ValueError(f"Non-scalar FAR decisions absent from rezoning data: {missing_ids}")
+    non_scalar = out["matter_id"].isin(non_scalar_decisions["matter_id"])
+    out.loc[non_scalar, "far_transition_status"] = "non_scalar_ordinance"
+    out.loc[non_scalar, ["from_far", "to_far", "far_change", "is_upzone"]] = None
+    out.loc[non_scalar, ["from_far_status", "to_far_status"]] = "non_scalar_ordinance"
+    out.loc[non_scalar, "far_pair_source"] = "non_scalar_ordinance_review"
 
     from_far = pd.to_numeric(out["from_far"], errors="coerce")
     to_far = pd.to_numeric(out["to_far"], errors="coerce")
-    paired = from_far.notna() & to_far.notna()
+    paired = from_far.notna() & to_far.notna() & ~non_scalar
     out.loc[paired, "far_change"] = (to_far[paired] - from_far[paired]).round(6)
     out.loc[paired, "is_upzone"] = out.loc[paired, "far_change"].astype(float).gt(0)
     out.loc[paired, "far_pair_status"] = "resolved_both"
-    out.loc[~paired & from_far.isna() & to_far.isna(), "far_pair_status"] = "missing_both"
-    out.loc[~paired & (from_far.notna() | to_far.notna()), "far_pair_status"] = "missing_one_side"
+    out.loc[~non_scalar & ~paired & from_far.isna() & to_far.isna(), "far_pair_status"] = "missing_both"
+    out.loc[~non_scalar & ~paired & (from_far.notna() | to_far.notna()), "far_pair_status"] = "missing_one_side"
+    out.loc[non_scalar, "far_pair_status"] = "non_scalar_ordinance"
 
-    out.to_csv(args.out_far_csv, index=False)
+    out.to_csv(f"../output/zoning_matters_far_{args.date_tag}.csv", index=False)
 
     return 0
 

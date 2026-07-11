@@ -59,6 +59,30 @@ blocks <- blocks %>%
   st_transform(3435) %>%
   transmute(census_block_id = GEOID10)
 
+reviewed_blocks <- read_csv(
+  "../input/reviewed_rezoning_block_assignments.csv",
+  show_col_types = FALSE,
+  col_types = cols(.default = col_character())
+) %>%
+  mutate(is_representative = toupper(is_representative) == "TRUE")
+
+if (any(is.na(reviewed_blocks$matter_id) | reviewed_blocks$matter_id == "")) {
+  stop("Reviewed block assignments contain missing matter IDs.", call. = FALSE)
+}
+if (any(!reviewed_blocks$matter_id %in% rezonings$matter_id)) {
+  stop("Reviewed block assignments contain matter IDs absent from the rezoning data.", call. = FALSE)
+}
+if (any(!reviewed_blocks$census_block_id %in% blocks$census_block_id)) {
+  stop("Reviewed block assignments contain invalid 2010 Census block IDs.", call. = FALSE)
+}
+if (anyDuplicated(reviewed_blocks[c("matter_id", "census_block_id")]) > 0) {
+  stop("Reviewed block assignments are not unique by matter and block.", call. = FALSE)
+}
+if (any(count(filter(reviewed_blocks, is_representative), matter_id)$n != 1) ||
+    n_distinct(filter(reviewed_blocks, is_representative)$matter_id) != n_distinct(reviewed_blocks$matter_id)) {
+  stop("Each reviewed matter must have exactly one representative block.", call. = FALSE)
+}
+
 valid_points <- rezonings %>%
   filter(valid_coordinate) %>%
   st_as_sf(coords = c("longitude_num", "latitude_num"), crs = 4326, remove = FALSE) %>%
@@ -72,6 +96,9 @@ if (anyDuplicated(valid_points$.row_order) > 0) {
 }
 if (any(is.na(valid_points$census_block_id))) {
   stop("At least one valid rezoning coordinate did not fall within a 2010 census block.", call. = FALSE)
+}
+if (any(reviewed_blocks$matter_id %in% rezonings$matter_id[rezonings$valid_coordinate])) {
+  stop("Reviewed block assignments may only replace matters without valid coordinates.", call. = FALSE)
 }
 
 parcel_matches <- read_csv(
@@ -116,16 +143,38 @@ if (any(is.na(parcel_blocks$census_block_id))) {
   stop("At least one matched parcel coordinate did not fall within a 2010 census block.", call. = FALSE)
 }
 
+reviewed_representatives <- reviewed_blocks %>%
+  filter(is_representative) %>%
+  transmute(
+    matter_id,
+    reviewed_census_block_id = census_block_id,
+    block_assignment_review_source = assignment_source,
+    block_assignment_evidence = evidence
+  )
+
 output <- rezonings %>%
-  left_join(valid_points, by = ".row_order", relationship = "one-to-one") %>%
+  left_join(
+    rename(valid_points, point_census_block_id = census_block_id),
+    by = ".row_order",
+    relationship = "one-to-one"
+  ) %>%
+  left_join(reviewed_representatives, by = "matter_id", relationship = "one-to-one") %>%
   mutate(
+    census_block_id = coalesce(reviewed_census_block_id, point_census_block_id),
     census_block_vintage = "2010",
     census_block_group_id = if_else(!is.na(census_block_id), substr(census_block_id, 1, 12), NA_character_),
     census_tract_id = if_else(!is.na(census_block_id), substr(census_block_id, 1, 11), NA_character_),
-    block_assignment_status = if_else(valid_coordinate, "assigned_within", "missing_coordinate")
+    block_assignment_status = case_when(
+      !is.na(reviewed_census_block_id) ~ "assigned_ordinance_review",
+      valid_coordinate ~ "assigned_within",
+      TRUE ~ "missing_coordinate"
+    )
   ) %>%
   arrange(.row_order) %>%
-  select(-.row_order, -latitude_num, -longitude_num, -valid_coordinate)
+  select(
+    -.row_order, -latitude_num, -longitude_num, -valid_coordinate,
+    -point_census_block_id, -reviewed_census_block_id
+  )
 
 if (nrow(output) != nrow(rezonings) || !identical(output$matter_id, rezonings$matter_id)) {
   stop("Census-block assignment changed the rezoning row set or order.", call. = FALSE)
@@ -133,10 +182,19 @@ if (nrow(output) != nrow(rezonings) || !identical(output$matter_id, rezonings$ma
 
 parcel_bridge <- parcel_blocks %>%
   count(matter_id, census_block_id, name = "matched_parcel_count") %>%
+  anti_join(reviewed_blocks %>% distinct(matter_id), by = "matter_id") %>%
   mutate(block_assignment_method = "matched_parcels")
 
+reviewed_bridge <- reviewed_blocks %>%
+  transmute(
+    matter_id,
+    census_block_id,
+    matched_parcel_count = NA_integer_,
+    block_assignment_method = assignment_source
+  )
+
 representative_bridge <- output %>%
-  anti_join(parcel_bridge %>% distinct(matter_id), by = "matter_id") %>%
+  anti_join(bind_rows(parcel_bridge, reviewed_bridge) %>% distinct(matter_id), by = "matter_id") %>%
   transmute(
     matter_id,
     census_block_id,
@@ -148,7 +206,7 @@ representative_bridge <- output %>%
     )
   )
 
-matter_block_bridge <- bind_rows(parcel_bridge, representative_bridge) %>%
+matter_block_bridge <- bind_rows(parcel_bridge, reviewed_bridge, representative_bridge) %>%
   mutate(
     census_block_vintage = "2010",
     census_block_group_id = if_else(!is.na(census_block_id), substr(census_block_id, 1, 12), NA_character_),
@@ -166,7 +224,8 @@ if (!setequal(matter_block_bridge$matter_id, output$matter_id)) {
 write_csv(output, paste0("../output/rezoning_census_blocks_", date_tag, ".csv"))
 write_csv(matter_block_bridge, paste0("../output/rezoning_matter_block_bridge_", date_tag, ".csv"))
 
-message("Rows assigned to 2010 census blocks: ", sum(output$block_assignment_status == "assigned_within"))
-message("Rows without coordinates: ", sum(output$block_assignment_status == "missing_coordinate"))
+message("Rows assigned by point: ", sum(output$block_assignment_status == "assigned_within"))
+message("Rows assigned by ordinance review: ", sum(output$block_assignment_status == "assigned_ordinance_review"))
+message("Rows remaining without a block: ", sum(output$block_assignment_status == "missing_coordinate"))
 message("Matter-block rows: ", nrow(matter_block_bridge))
 message("Matters spanning multiple blocks: ", sum(count(matter_block_bridge, matter_id)$n > 1))

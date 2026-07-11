@@ -14,6 +14,8 @@ the raw sources. The Makefile only verifies that the frozen files are present.
 - `output/rezoning_sample_decisions_20101101_20160831.csv`: verified inclusions and false-positive exclusions.
 - `output/pd_transition_code_corrections_20101101_20160831.csv`: ordinance-supported PD transition corrections.
 - `output/destination_code_corrections_20101101_20160831.csv`: ordinance-supported destination-code corrections.
+- `output/destination_code_corrections_20160901_20201231.csv`: post-Khan ordinance-supported destination-code corrections.
+- `output/non_scalar_far_decisions_20101101_20201231.csv`: ordinances that cannot be represented by one matter-level FAR pair.
 
 Evidence extraction, unresolved queues, comparisons, and summaries remain in
 `tasks/audits/rezoning_pd_ordinance_far_history/` and are not production outputs.

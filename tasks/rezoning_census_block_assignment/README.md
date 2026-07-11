@@ -7,6 +7,7 @@ redistricting event-study design.
 
 - `tasks/rezoning_geocode_external_merge/output/rezoning_geocode_with_external_20101101_20201231.csv`
 - `tasks/rezoning_geocode_stage1_parcel/output/rezoning_parcel_matches_20101101_20201231.csv`
+- `tasks/rezoning_block_hand_adjudications/output/reviewed_rezoning_block_assignments.csv`
 - `tasks/download_chicago_spatial_data/output/census_blocks_2010.csv`
 
 ## Output
@@ -25,3 +26,5 @@ The first output preserves one representative block per matter. The bridge uses
 all exact-address parcels and all matched parcels inside ordinance address ranges,
 so a multi-parcel rezoning may correctly appear in more than one block. Matters
 without exact parcel matches fall back to the reviewed representative point.
+Nine unusual ordinances use committed ordinance-geometry reviews in place of a
+point assignment.
