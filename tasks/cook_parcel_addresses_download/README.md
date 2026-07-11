@@ -1,14 +1,13 @@
 # cook_parcel_addresses_download
 
 ## Purpose
-Downloads Cook County parcel-address and parcel-universe CSVs through reproducible Socrata API pulls.
+Downloads Cook County parcel addresses through a reproducible Socrata API pull.
 
 ## Inputs
-- Live Cook County Socrata API datasets (default: `3723-97qp`, `pabr-t5kh`)
+- Live Cook County Socrata API dataset `3723-97qp`
 
 ## Outputs
-- `tasks/cook_parcel_addresses_download/output/parcel_addresses_3723-97qp.csv`
-- `tasks/cook_parcel_addresses_download/output/parcel_universe_pabr-t5kh.csv`
+- `tasks/cook_parcel_addresses_download/output/parcel_addresses_2025_chicago.csv`
 
 ## Run
 ```bash
@@ -17,7 +16,9 @@ make
 ```
 
 ## Approx Runtime
-- 10-45 minutes per dataset
+- 10-45 minutes
 
 ## Notes
 - Uses paginated API download with row-count checks.
+- Restricts the parcel-year table to 2025 Chicago rows so it matches the
+  canonical 2025 Chicago parcel universe used for coordinates.

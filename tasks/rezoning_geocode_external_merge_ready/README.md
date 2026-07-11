@@ -1,24 +1,18 @@
-# Rezoning External Geocoder Merge-Ready Handoff
+# Frozen Rezoning Geocodes
 
-This task publishes committed, merge-ready external geocoder results for the
-canonical rezoning dataset.
+This task publishes the committed external-geocoder coordinates used after the
+live Cook County parcel-address match.
 
-The current handoff files are:
+## Output
 
-- `output/chicago_geocoder_results_19990101_20260212.csv`
-- `output/chicago_geocoder_results_19990101_20260212.xlsx`
-- `output/chicago_geocoder_results_19990101_20260212_import_meta.json`
-- `output/census_geocoder_results_19990101_20260212.csv`
-- `output/census_geocoder_queries_19990101_20260212.csv`
+- `output/rezoning_external_geocodes_20101101_20201231.csv`
 
-The Chicago files come from the City of Chicago GIS Geocoder bulk single-column
-address workflow. The Census files supplement 2011-2020 rows with resolved FAR
-but missing latitude/longitude after parcel and Chicago geocoding, using the
-Census Geocoder one-line address endpoint with `benchmark=Public_AR_Current`.
+The file is unique by `external_row_id` and contains 233 Chicago GIS Geocoder
+matches, 38 earlier Census Geocoder matches, 118 additional reviewed Census
+address matches, 9 reviewed intersection matches, 2 title-direction corrections,
+and 2 parcel-supported manual matches. Raw uploads, downloads, row mappings, and
+reconciliation material are retained in
+`tasks/audits/rezoning_external_geocoder_handoff/`.
 
-The Census result file has 44 reviewed rows: 38 matched geocodes and 6
-documented unresolved rows. Broad or underspecified non-point locations remain
-unmatched rather than being assigned invented coordinates.
-
-Downstream tasks should read this committed handoff instead of local geocoder
-downloads in `tasks/rezoning_geocode_external_merge/input/`.
+The Makefile intentionally only verifies that the committed hand-adjudicated
+output is present.

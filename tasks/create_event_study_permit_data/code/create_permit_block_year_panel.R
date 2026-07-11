@@ -60,6 +60,9 @@ manual_block_assignments <- manual_block_assignments %>%
 if (anyDuplicated(manual_block_assignments[, c("id", "block_vintage")]) > 0) {
   stop("manual_permit_block_assignments.csv must be unique by id-block_vintage.", call. = FALSE)
 }
+if (any(!manual_block_assignments$block_vintage %in% c("2010", "2020"))) {
+  stop("manual_permit_block_assignments.csv contains an unsupported block vintage.", call. = FALSE)
+}
 
 permit_outcome_meta <- tibble(
   count_var = c(
@@ -301,7 +304,37 @@ for (block_vintage_label in c("2010", "2020")) {
     filter(is.na(block_id)) %>%
     distinct(id)
 
+  unused_reviews <- manual_block_assignments %>%
+    filter(block_vintage == block_vintage_label) %>%
+    anti_join(missing_matches, by = "id")
+  if (nrow(unused_reviews) > 0) {
+    stop(
+      sprintf(
+        "%d manual %s-vintage block reviews no longer correspond to unmatched permits.",
+        nrow(unused_reviews),
+        block_vintage_label
+      ),
+      call. = FALSE
+    )
+  }
+
   if (nrow(missing_matches) > 0) {
+    unreviewed_matches <- missing_matches %>%
+      anti_join(
+        manual_block_assignments %>% filter(block_vintage == block_vintage_label),
+        by = "id"
+      )
+    if (nrow(unreviewed_matches) > 0) {
+      stop(
+        sprintf(
+          "%d unmatched permits lack an explicit %s-vintage block review.",
+          nrow(unreviewed_matches),
+          block_vintage_label
+        ),
+        call. = FALSE
+      )
+    }
+
     missing_review <- missing_matches %>%
       left_join(
         manual_block_assignments %>% filter(block_vintage == block_vintage_label),

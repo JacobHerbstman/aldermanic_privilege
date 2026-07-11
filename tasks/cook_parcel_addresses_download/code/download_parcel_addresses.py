@@ -16,9 +16,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--order-by", default="pin")
     parser.add_argument("--max-batches", type=int, default=0)
     parser.add_argument("--where-clause")
+    parser.add_argument("--year", type=int)
+    parser.add_argument("--city")
     parser.add_argument("--request-timeout-seconds", type=int, default=180)
     parser.add_argument("--min-expected-rows", type=int, default=1_000_000)
-    parser.add_argument("--out-csv", required=True)
     return parser.parse_args()
 
 
@@ -184,13 +185,23 @@ def download_paginated(
 
 def main() -> int:
     args = parse_args()
+    out_csv = f"../output/parcel_addresses_{args.year}_chicago.csv"
 
-    ensure_parent(args.out_csv)
+    where_conditions = []
+    if args.where_clause:
+        where_conditions.append(f"({args.where_clause})")
+    if args.year is not None:
+        where_conditions.append(f"year = {args.year}")
+    if args.city:
+        city = args.city.replace("'", "''").upper()
+        where_conditions.append(f"upper(prop_address_city_name) = '{city}'")
+    where_clause = " AND ".join(where_conditions) or None
+
     expected_rows = query_row_count_with_where(
         domain=args.domain,
         dataset_id=args.dataset_id,
         timeout=args.request_timeout_seconds,
-        where_clause=args.where_clause,
+        where_clause=where_clause,
     )
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -202,7 +213,7 @@ def main() -> int:
             order_by=args.order_by,
             timeout=args.request_timeout_seconds,
             max_batches=args.max_batches,
-            where_clause=args.where_clause,
+            where_clause=where_clause,
             out_path=paginated_tmp,
         )
 
@@ -225,9 +236,9 @@ def main() -> int:
             )
             return 1
 
-        os.replace(paginated_tmp, args.out_csv)
+        os.replace(paginated_tmp, out_csv)
 
-    print(f"Wrote {downloaded_rows} rows to {args.out_csv} via paginated API")
+    print(f"Wrote {downloaded_rows} rows to {out_csv} via paginated API")
     return 0
 
 

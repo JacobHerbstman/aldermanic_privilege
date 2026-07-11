@@ -61,6 +61,17 @@ tasks/rezoning_hand_adjudications/output/*
 !tasks/rezoning_hand_adjudications/output/pd_transition_code_corrections_20101101_20160831.csv
 !tasks/rezoning_hand_adjudications/output/destination_code_corrections_20101101_20160831.csv
 
+# Frozen external geocodes and permit block decisions
+!tasks/rezoning_geocode_external_merge_ready/output/
+tasks/rezoning_geocode_external_merge_ready/output/*
+!tasks/rezoning_geocode_external_merge_ready/output/rezoning_external_geocodes_20101101_20201231.csv
+!tasks/permit_block_hand_adjudications/output/
+tasks/permit_block_hand_adjudications/output/*
+!tasks/permit_block_hand_adjudications/output/manual_permit_block_assignments.csv
+!tasks/audits/rezoning_external_geocoder_handoff/output/
+tasks/audits/rezoning_external_geocoder_handoff/output/*
+!tasks/audits/rezoning_external_geocoder_handoff/output/chicago_geocoder_upload_mapping_19990101_20260212.csv
+
 # Exception: track the task flow graph for README
 !tasks/symlink_graph/output/
 tasks/symlink_graph/output/graph.txt

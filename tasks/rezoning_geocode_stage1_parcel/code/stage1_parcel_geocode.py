@@ -2,7 +2,6 @@ import argparse
 import math
 import re
 from datetime import datetime, timezone
-from pathlib import Path
 
 import pandas as pd
 
@@ -40,7 +39,7 @@ UNIT_RE = re.compile(
 )
 BARE_UNIT_RE = re.compile(r"^(?:\d+[A-Z]+|[A-Z]\d+[A-Z]?|HSE|HOUSE|FLR|FL|1ST|2ND|3RD)$")
 TITLE_ADDRESS_RE = re.compile(
-    r"\bat\b\s+(.+?)(?:\s*(?:-\s*)?App(?:\s+No\.?)?\b|\s+-\s+[A-Z0-9-]+\s*$|\s*$)",
+    r"\bat\b\s+(.+?)(?:\s*(?:-\s*)?App(?:\s+No\.?)?\b|\s+-\s+Map\s+No\.?\b|\s+-\s+[A-Z0-9-]+\s*$|\s*$)",
     re.IGNORECASE,
 )
 MULTI_SPLIT_RE = re.compile(r"\s+(?:AND|&)\s+|;", re.IGNORECASE)
@@ -53,6 +52,7 @@ OCR_WORD_FIXES = {
     "INDIANAPOUS": "INDIANAPOLIS",
     "WESTEM": "WESTERN",
 }
+MAX_ADDRESS_RANGE_SPAN = 500
 
 
 def apply_ocr_word_fixes(text: str) -> str:
@@ -64,17 +64,11 @@ def apply_ocr_word_fixes(text: str) -> str:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--in-rezoning-csv", required=True)
-    parser.add_argument("--in-parcel-addresses-csv", required=True)
-    parser.add_argument("--in-parcel-universe-csv", required=True)
-    parser.add_argument("--nearest-max-diff", type=int, default=50)
-    parser.add_argument("--out-stage1-csv", required=True)
-    parser.add_argument("--out-unmatched-csv", required=True)
+    parser.add_argument("date_tag")
+    parser.add_argument("parcel_year", type=int)
+    parser.add_argument("nearest_max_diff", type=int)
+    parser.add_argument("max_address_range_span", type=int)
     return parser.parse_args()
-
-
-def ensure_parent(path: str) -> None:
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
 
 
 def choose_column(columns: list[str], options: list[str], contains: list[str] | None = None) -> str | None:
@@ -150,7 +144,7 @@ def has_house_number(text: str) -> bool:
 
 
 def split_address_variants(text: str | None) -> list[str]:
-    if not text:
+    if text is None or pd.isna(text):
         return []
     base = re.sub(r"\s+", " ", str(text)).strip(" ,;")
     if not base:
@@ -187,7 +181,7 @@ def split_address_variants(text: str | None) -> list[str]:
     return deduped
 
 
-def standardize_address(raw: str | None) -> dict:
+def standardize_address(raw: str | None, max_address_range_span: int = MAX_ADDRESS_RANGE_SPAN) -> dict:
     if raw is None:
         return {
             "raw": None,
@@ -221,12 +215,15 @@ def standardize_address(raw: str | None) -> dict:
     if range_match:
         range_start = int(range_match.group(1))
         range_end = int(range_match.group(2))
+        if range_end < range_start and len(range_match.group(2)) < len(range_match.group(1)):
+            prefix_length = len(range_match.group(1)) - len(range_match.group(2))
+            range_end = int(range_match.group(1)[:prefix_length] + range_match.group(2))
         is_range = True
         text = f"{range_match.group(1)} {text[range_match.end():].strip()}".strip()
 
     text = re.sub(r",?\s+CHICAGO\s*(,\s*)?IL(?:LINOIS)?\b", "", text)
-    text = re.sub(r"\bIL(?:LINOIS)?\b", "", text)
-    text = re.sub(r"\b\d{5}(?:-\d{4})?\b", "", text)
+    text = re.sub(r",?\s+IL(?:LINOIS)?\s*$", "", text)
+    text = re.sub(r",?\s+\d{5}(?:-\d{4})?\s*$", "", text)
     text = re.sub(r"\s+", " ", text).strip(" ,")
 
     tokens = text.split()
@@ -239,6 +236,9 @@ def standardize_address(raw: str | None) -> dict:
     text = re.sub(r"\s+", " ", text).strip()
 
     parsed = parse_address_components(text)
+    if is_range and abs(range_end - range_start) > max_address_range_span:
+        parsed["house_number"] = None
+        is_range = False
     return {
         "raw": raw,
         "standardized": text or None,
@@ -343,7 +343,7 @@ def parse_address_components(standardized: str | None) -> dict:
     }
 
 
-def build_candidate_addresses(row: pd.Series) -> list[dict]:
+def build_candidate_addresses(row: pd.Series, max_address_range_span: int) -> list[dict]:
     candidates: list[dict] = []
 
     address_raw = row.get("address_raw")
@@ -356,7 +356,7 @@ def build_candidate_addresses(row: pd.Series) -> list[dict]:
         ("matter_title", extract_title_address(matter_title)),
     ]:
         for piece in split_address_variants(candidate_text):
-            standardized = standardize_address(piece)
+            standardized = standardize_address(piece, max_address_range_span=max_address_range_span)
             std = standardized["standardized"]
             if not std:
                 continue
@@ -505,6 +505,7 @@ def read_parcel_tables(in_parcel_addresses_csv: str, in_parcel_universe_csv: str
 
 
 def build_exact_lookup(parcel_df: pd.DataFrame) -> dict:
+    parcel_df = parcel_df[parcel_df["house_number"].notna()].copy()
     grouped = (
         parcel_df.groupby("std_address", as_index=False)
         .agg(
@@ -548,13 +549,16 @@ def choose_row_for_house(group: pd.DataFrame, house_number: int) -> dict | None:
         "latitude": float(chosen["latitude"]),
         "longitude": float(chosen["longitude"]),
         "matched_std_address": chosen["std_address"],
+        "house_diff": 0,
     }
 
 
 def choose_row_nearest_house(group: pd.DataFrame, target: int, max_diff: int) -> dict | None:
     if group.empty:
         return None
-    g = group.copy()
+    g = group[group["house_number"] % 2 == target % 2].copy()
+    if g.empty:
+        return None
     g["diff"] = (g["house_number"] - target).abs()
     min_diff = int(g["diff"].min())
     if min_diff > max_diff:
@@ -574,17 +578,6 @@ def choose_row_nearest_house(group: pd.DataFrame, target: int, max_diff: int) ->
     }
 
 
-def choose_row_for_house_name_fallback(group: pd.DataFrame, house_number: int) -> dict | None:
-    if "street_key_full" not in group.columns:
-        return None
-    candidates = group[group["house_number"] == house_number]
-    if candidates.empty:
-        return None
-    if candidates["street_key_full"].dropna().nunique() != 1:
-        return None
-    return choose_row_for_house(candidates, house_number)
-
-
 def choose_row_for_range(group: pd.DataFrame, start: int, end: int) -> dict | None:
     if group.empty:
         return None
@@ -593,9 +586,13 @@ def choose_row_for_range(group: pd.DataFrame, start: int, end: int) -> dict | No
     midpoint = (low + high) / 2.0
 
     in_range = group[(group["house_number"] >= low) & (group["house_number"] <= high)]
+    if low % 2 == high % 2:
+        in_range = in_range[in_range["house_number"] % 2 == low % 2]
     if in_range.empty:
         block = low // 100
         in_range = group[(group["house_number"] // 100) == block]
+        if low % 2 == high % 2:
+            in_range = in_range[in_range["house_number"] % 2 == low % 2]
     if in_range.empty:
         return None
 
@@ -615,11 +612,10 @@ def match_candidate(
     exact_lookup: dict,
     street_groups_full: dict,
     street_groups_name: dict,
-    street_groups_loose: dict,
     nearest_max_diff: int,
 ) -> dict | None:
     std_address = candidate["candidate_standardized"]
-    if std_address in exact_lookup:
+    if candidate.get("house_number") is not None and std_address in exact_lookup:
         hit = exact_lookup[std_address]
         return {
             "matched_pin": hit["matched_pin"],
@@ -628,16 +624,31 @@ def match_candidate(
             "geocode_confidence": "exact",
             "match_method": "exact_std_address",
             "matched_std_address": std_address,
+            "house_diff": 0,
         }
 
     house_number = candidate.get("house_number")
     full_key = candidate.get("street_key_full")
     name_key = candidate.get("street_key_name")
-    loose_key = candidate.get("street_key_loose")
-
     group = street_groups_full.get(full_key) if full_key else None
+    group_source = "full"
     if group is None or group.empty:
-        group = street_groups_loose.get(loose_key) if loose_key else None
+        name_group = street_groups_name.get(name_key) if name_key else None
+        if name_group is not None and name_group["street_key_full"].dropna().nunique() == 1:
+            group = name_group
+            group_source = "name"
+        elif name_group is not None and house_number is not None:
+            exact_name_group = name_group[name_group["house_number"] == house_number]
+            if (
+                not exact_name_group.empty
+                and exact_name_group["street_key_full"].dropna().nunique() == 1
+            ):
+                exact_house = choose_row_for_house(exact_name_group, house_number)
+                return {
+                    **exact_house,
+                    "geocode_confidence": "fuzzy_address",
+                    "match_method": "house_and_street_name",
+                }
 
     if group is not None and house_number is not None:
         exact_house = choose_row_for_house(group, house_number)
@@ -645,7 +656,7 @@ def match_candidate(
             return {
                 **exact_house,
                 "geocode_confidence": "fuzzy_address",
-                "match_method": "house_and_street_exact",
+                "match_method": "house_and_street_exact" if group_source == "full" else "house_and_street_name",
             }
 
         nearest = choose_row_nearest_house(group, house_number, max_diff=nearest_max_diff)
@@ -653,17 +664,7 @@ def match_candidate(
             return {
                 **nearest,
                 "geocode_confidence": "fuzzy_address",
-                "match_method": "house_and_street_nearest",
-            }
-
-    name_group = street_groups_name.get(name_key) if name_key else None
-    if name_group is not None and house_number is not None:
-        name_fallback = choose_row_for_house_name_fallback(name_group, house_number)
-        if name_fallback:
-            return {
-                **name_fallback,
-                "geocode_confidence": "fuzzy_address",
-                "match_method": "house_and_street_name",
+                "match_method": "house_and_street_nearest" if group_source == "full" else "house_and_street_name_nearest",
             }
 
     if candidate.get("is_range") and group is not None:
@@ -675,7 +676,7 @@ def match_candidate(
                 return {
                     **range_hit,
                     "geocode_confidence": "fuzzy_block",
-                    "match_method": "range_block",
+                    "match_method": "range_block" if group_source == "full" else "range_block_name",
                 }
 
     return None
@@ -685,42 +686,131 @@ def run_stage1(
     rezoning_df: pd.DataFrame,
     parcel_df: pd.DataFrame,
     nearest_max_diff: int,
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict]:
+    max_address_range_span: int,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, dict]:
+    if "matter_id" not in rezoning_df.columns:
+        raise ValueError("Rezoning input is missing matter_id.")
+    matter_ids = rezoning_df["matter_id"].fillna("").astype(str).str.strip()
+    if (matter_ids == "").any():
+        raise ValueError("Rezoning input contains missing matter_id values.")
+    if matter_ids.duplicated().any():
+        raise ValueError("Rezoning input is not unique by matter_id.")
+
     exact_lookup = build_exact_lookup(parcel_df)
     street_groups_full = build_street_groups(parcel_df, key_col="street_key_full")
     street_groups_name = build_street_groups(parcel_df, key_col="street_key_name")
-    street_groups_loose = build_street_groups(parcel_df, key_col="street_key_loose")
+    parcel_rows_by_address = parcel_df.set_index("std_address", drop=False).sort_index()
 
     outputs = rezoning_df.copy()
-    outputs["external_row_id"] = outputs["matter_id"].astype(str)
+    outputs["external_row_id"] = matter_ids
 
     all_candidate_rows: list[dict] = []
+    parcel_match_records: list[dict] = []
     match_records: list[dict] = []
     unmatched_records: list[dict] = []
 
     for idx, row in outputs.iterrows():
         matter_id = row.get("matter_id")
-        candidates = build_candidate_addresses(row)
+        candidates = build_candidate_addresses(row, max_address_range_span=max_address_range_span)
         best_match = None
         best_candidate = None
+        parcel_backed_matches: list[tuple[dict, dict]] = []
 
         for rank, candidate in enumerate(candidates, start=1):
             candidate["matter_id"] = matter_id
             candidate["candidate_rank"] = rank
             all_candidate_rows.append(candidate)
 
-            matched = match_candidate(
-                candidate=candidate,
-                exact_lookup=exact_lookup,
-                street_groups_full=street_groups_full,
-                street_groups_name=street_groups_name,
-                street_groups_loose=street_groups_loose,
-                nearest_max_diff=nearest_max_diff,
-            )
-            if matched:
-                best_match = matched
-                best_candidate = candidate
-                break
+            parcel_matches = pd.DataFrame()
+            parcel_match_method = None
+            if candidate.get("is_range"):
+                street_group = street_groups_full.get(candidate.get("street_key_full"))
+                if street_group is None or street_group.empty:
+                    name_group = street_groups_name.get(candidate.get("street_key_name"))
+                    if name_group is not None and name_group["street_key_full"].dropna().nunique() == 1:
+                        street_group = name_group
+                if street_group is not None:
+                    low = min(candidate["range_start"], candidate["range_end"])
+                    high = max(candidate["range_start"], candidate["range_end"])
+                    parcel_matches = street_group[
+                        street_group["house_number"].between(low, high)
+                    ].copy()
+                    if low % 2 == high % 2:
+                        parcel_matches = parcel_matches[
+                            parcel_matches["house_number"] % 2 == low % 2
+                        ]
+                    parcel_match_method = "address_range"
+            elif candidate.get("house_number") is not None:
+                try:
+                    parcel_matches = parcel_rows_by_address.loc[
+                        [candidate["candidate_standardized"]],
+                        ["pin", "latitude", "longitude", "house_number", "std_address"],
+                    ].copy()
+                except KeyError:
+                    parcel_matches = pd.DataFrame()
+                parcel_match_method = "exact_address"
+                if parcel_matches.empty and candidate.get("house_number") is not None:
+                    street_group = street_groups_full.get(candidate.get("street_key_full"))
+                    if street_group is not None:
+                        parcel_matches = street_group[
+                            street_group["house_number"] == candidate["house_number"]
+                        ].copy()
+                        parcel_match_method = "exact_house_and_street"
+
+            for parcel in parcel_matches.itertuples(index=False):
+                parcel_match_records.append(
+                    {
+                        "matter_id": matter_id,
+                        "candidate_rank": rank,
+                        "candidate_source": candidate["candidate_source"],
+                        "candidate_standardized": candidate["candidate_standardized"],
+                        "matched_pin": parcel.pin,
+                        "latitude": parcel.latitude,
+                        "longitude": parcel.longitude,
+                        "parcel_match_method": parcel_match_method,
+                    }
+                )
+
+            if not parcel_matches.empty:
+                if candidate.get("is_range"):
+                    midpoint = (candidate["range_start"] + candidate["range_end"]) / 2
+                    representative = (
+                        parcel_matches.assign(
+                            distance_from_midpoint=lambda x: (x["house_number"] - midpoint).abs()
+                        )
+                        .sort_values(["distance_from_midpoint", "pin"])
+                        .iloc[0]
+                    )
+                    confidence = "fuzzy_block"
+                else:
+                    representative = parcel_matches.sort_values("pin").iloc[0]
+                    confidence = "exact"
+
+                parcel_backed_matches.append((candidate, {
+                    "matched_pin": representative["pin"],
+                    "latitude": float(representative["latitude"]),
+                    "longitude": float(representative["longitude"]),
+                    "matched_std_address": representative["std_address"],
+                    "house_diff": 0 if not candidate.get("is_range") else None,
+                    "geocode_confidence": confidence,
+                    "match_method": parcel_match_method,
+                }))
+
+        if parcel_backed_matches:
+            best_candidate, best_match = parcel_backed_matches[0]
+        else:
+            for candidate in candidates:
+                matched = match_candidate(
+                    candidate=candidate,
+                    exact_lookup=exact_lookup,
+                    street_groups_full=street_groups_full,
+                    street_groups_name=street_groups_name,
+                    nearest_max_diff=nearest_max_diff,
+                )
+                if matched:
+                    best_match = matched
+                    best_candidate = candidate
+                    break
 
         if best_match:
             outputs.at[idx, "latitude"] = best_match["latitude"]
@@ -734,6 +824,7 @@ def run_stage1(
             outputs.at[idx, "matched_address_candidate_std"] = (
                 best_candidate["candidate_standardized"] if best_candidate else None
             )
+            outputs.at[idx, "matched_house_number_difference"] = best_match.get("house_diff")
             outputs.at[idx, "address_source_used"] = best_candidate["candidate_source"] if best_candidate else None
             match_records.append(
                 {
@@ -744,6 +835,7 @@ def run_stage1(
                     "longitude": best_match["longitude"],
                     "geocode_confidence": best_match["geocode_confidence"],
                     "match_method": best_match["match_method"],
+                    "matched_house_number_difference": best_match.get("house_diff"),
                     "address_source_used": best_candidate["candidate_source"] if best_candidate else None,
                     "candidate_standardized": best_candidate["candidate_standardized"] if best_candidate else None,
                     "address_for_geocoding": best_candidate["external_address"] if best_candidate else None,
@@ -758,6 +850,7 @@ def run_stage1(
             outputs.at[idx, "match_method"] = None
             outputs.at[idx, "matched_address_std"] = None
             outputs.at[idx, "matched_address_candidate_std"] = None
+            outputs.at[idx, "matched_house_number_difference"] = None
             outputs.at[idx, "address_source_used"] = None
 
             fallback_external = candidates[0]["external_address"] if candidates else None
@@ -776,6 +869,13 @@ def run_stage1(
             )
 
     all_candidates_df = pd.DataFrame(all_candidate_rows)
+    parcel_matches_df = pd.DataFrame(parcel_match_records)
+    if not parcel_matches_df.empty:
+        parcel_matches_df = (
+            parcel_matches_df.sort_values(["matter_id", "candidate_rank", "matched_pin"])
+            .drop_duplicates(["matter_id", "matched_pin"], keep="first")
+            .reset_index(drop=True)
+        )
     matched_df = pd.DataFrame(match_records)
     unmatched_df = pd.DataFrame(unmatched_records)
 
@@ -796,31 +896,48 @@ def run_stage1(
         ),
         "match_method_counts": outputs["match_method"].fillna("unmatched").value_counts().to_dict(),
         "address_source_counts": outputs["address_source_used"].fillna("none").value_counts().to_dict(),
+        "matters_with_exact_or_range_parcels": (
+            int(parcel_matches_df["matter_id"].nunique()) if not parcel_matches_df.empty else 0
+        ),
+        "matter_parcel_rows": int(len(parcel_matches_df)),
     }
 
-    return outputs, unmatched_df, all_candidates_df, summary
+    return outputs, unmatched_df, all_candidates_df, parcel_matches_df, summary
 
 
 def main() -> int:
     args = parse_args()
+    if args.nearest_max_diff < 0:
+        raise ValueError("nearest-max-diff must be nonnegative.")
+    if args.max_address_range_span <= 0:
+        raise ValueError("max-address-range-span must be positive.")
 
-    rezoning_df = pd.read_csv(args.in_rezoning_csv, dtype=str, low_memory=False)
+    rezoning_df = pd.read_csv(
+        f"../input/zoning_matters_far_{args.date_tag}.csv",
+        dtype=str,
+        low_memory=False,
+    )
     parcel_df, parcel_diag = read_parcel_tables(
-        in_parcel_addresses_csv=args.in_parcel_addresses_csv,
-        in_parcel_universe_csv=args.in_parcel_universe_csv,
+        in_parcel_addresses_csv=f"../input/parcel_addresses_{args.parcel_year}_chicago.csv",
+        in_parcel_universe_csv="../input/parcel_universe_2025_city.csv",
     )
 
-    stage1_df, unmatched_df, candidates_df, summary = run_stage1(
+    stage1_df, unmatched_df, candidates_df, parcel_matches_df, summary = run_stage1(
         rezoning_df=rezoning_df,
         parcel_df=parcel_df,
         nearest_max_diff=args.nearest_max_diff,
+        max_address_range_span=args.max_address_range_span,
     )
 
-    ensure_parent(args.out_stage1_csv)
-    ensure_parent(args.out_unmatched_csv)
-
-    stage1_df.to_csv(args.out_stage1_csv, index=False)
-    unmatched_df.to_csv(args.out_unmatched_csv, index=False)
+    stage1_df.to_csv(f"../output/rezoning_geocode_stage1_{args.date_tag}.csv", index=False)
+    unmatched_df.to_csv(
+        f"../output/rezoning_geocode_stage1_unmatched_{args.date_tag}.csv",
+        index=False,
+    )
+    parcel_matches_df.to_csv(
+        f"../output/rezoning_parcel_matches_{args.date_tag}.csv",
+        index=False,
+    )
 
     return 0
 
