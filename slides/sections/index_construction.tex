@@ -64,26 +64,13 @@
 % SLIDE: INDEX VALIDATION
 % ==============================================================================
 \begin{frame}[label=strictness-validation-main]
-    \frametitle{Validation Checks: Permits and Within-Ward Correlation}
-    \begin{columns}[T]
-    \begin{column}{0.50\textwidth}
+    \frametitle{Validation Check: Within-Ward Correlation}
     \centering
-    \scriptsize
-    \resizebox{\linewidth}{!}{%
-        \input{../tasks/permit_stringency_table/output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex}%
-    }
-    
-    \vspace{0.5em}
-    \raggedright
+    \includegraphics[width=0.78\textwidth,height=0.65\textheight,keepaspectratio]{../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf}
+
+    \vspace{0.25em}
     \footnotesize
     \begin{itemize}\setlength{\itemsep}{2pt}\setlength{\topsep}{2pt}
-        \item Higher stringency predicts fewer permits and more regulatory friction
         \item Successor-predecessor correlation is only $0.18$: stringency is not just a ward-level effect
     \end{itemize}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth,height=0.60\textheight,keepaspectratio]{../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf}
-    \end{column}
-    \end{columns}
 \end{frame}
