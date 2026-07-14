@@ -3,7 +3,43 @@
 \section{Additional Permit Evidence}
 \label{sec:appendix_permits}
 
-This appendix reports the permit summary tables that complement the descriptive discussion in Section~\ref{sec:data}.
+This appendix reports additional permit evidence that complements the descriptive discussion in Section~\ref{sec:data} and the event study in Section~\ref{sec:empirical_results_permits}.
+
+\subsection{Permit Event-Study Estimates}
+
+Table~\ref{tab:permit_event_study_did} reports pooled estimates for years 0 through 5 after redistricting.
+The decline is concentrated in high-discretion applications.
+The corresponding estimate for low-discretion applications is small and statistically indistinguishable from zero.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Alderman Stringency and Permit Applications After Redistricting}
+    \label{tab:permit_event_study_did}
+    \input{../tasks/run_event_study_permit/output/did_table_permit_2015_application_frozen2014_stable_preperiod_controls_500ft_clust_ward_pair.tex}
+
+    \footnotesize
+    \textit{Notes:} PPML estimates use census-block-year observations from 2010--2020 within 500ft of a ward boundary.
+    The sample retains blocks whose 2014 origin and destination aldermen remained in office in 2015.
+    Stringency scores are estimated using permits filed from 2006 through 2014.
+    Each model includes block fixed effects, ward-pair $\times$ year fixed effects, and the outcome's pre-period volume and zero-volume indicator interacted with year.
+    Fixed-effect PPML drops blocks with no outcome in any sample year and ward-pair-year groups with no outcome.
+    Standard errors, in parentheses, are clustered by ward pair.
+    $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$.
+\end{table}
+
+Figure~\ref{fig:permit_event_study_low_discretion} shows the full event-study path for low-discretion applications.
+Unlike high-discretion applications, they do not fall after blocks move to more stringent aldermen.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_permit_2015_low_discretion_nosigns_application_frozen2014_stable_preperiod_controls_500ft_clust_ward_pair.pdf}
+    \caption{Placebo Event Study: Low-Discretion Permit Applications}
+    \figurenotes{The specification and sample match Figure~\ref{fig:permit_event_study}, but the outcome is low-discretion permit applications excluding signs.
+    Points report $\exp(\hat\beta_\tau)-1$; shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
+    The pooled post-period coefficient is $-0.017$ (SE $=0.048$; $p=0.731$).
+    Joint pre-trend test $p=0.090$.}
+    \label{fig:permit_event_study_low_discretion}
+\end{figure}
 
 \subsection{Permit Summary Statistics}
 \label{app:permit_summary_stats}

@@ -159,7 +159,7 @@ if (any(final_df$boundary_year == 2024L, na.rm = TRUE) || any(final_df$era == "p
 modal_base <- final_df %>%
   filter(
     is.finite(dist_m),
-    dist_m <= 500 * 0.3048,
+    dist_m <= 1500 * 0.3048,
     is.finite(modal_longitude),
     is.finite(modal_latitude)
   ) %>%

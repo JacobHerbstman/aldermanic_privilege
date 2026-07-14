@@ -73,6 +73,7 @@ tasks/permit_block_hand_adjudications/output/*
 !tasks/rezoning_block_hand_adjudications/output/
 tasks/rezoning_block_hand_adjudications/output/*
 !tasks/rezoning_block_hand_adjudications/output/reviewed_rezoning_block_assignments.csv
+!tasks/rezoning_hand_adjudications/output/section_review_decisions_20101101_20201231.csv
 !tasks/audits/rezoning_external_geocoder_handoff/output/
 tasks/audits/rezoning_external_geocoder_handoff/output/*
 !tasks/audits/rezoning_external_geocoder_handoff/output/chicago_geocoder_upload_mapping_19990101_20260212.csv

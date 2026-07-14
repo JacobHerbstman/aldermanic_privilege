@@ -20,13 +20,13 @@ all: \
 ../output/sales_transaction_panel_2023.parquet: ../output/sales_transaction_panel.parquet
 	@test -s "$@"
 
-../input/sales_with_ward_distances.csv: ../../../merge_event_study_scores/output/sales_with_ward_distances.csv | ../input
+../input/sales_with_ward_distances.csv: ../../../merge_event_study_scores/output/sales_with_ward_distances_through2022.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/residential_improvements_panel.parquet: ../../../process_residential_improvements_full/output/residential_improvements_panel.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/block_treatment_panel.csv: ../../../merge_event_study_scores/output/block_treatment_panel.csv | ../input
+../input/block_treatment_panel.csv: ../../../merge_event_study_scores/output/block_treatment_panel_through202604.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/census_blocks_2010.csv: ../../../../data_raw/CensusBlockTIGER2010_20250721.csv | ../input

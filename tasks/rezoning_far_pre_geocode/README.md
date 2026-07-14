@@ -11,6 +11,7 @@ the committed ordinance-supported adjudications.
 - `tasks/rezoning_hand_adjudications/output/destination_code_corrections_20101101_20160831.csv`
 - `tasks/rezoning_hand_adjudications/output/destination_code_corrections_20160901_20201231.csv`
 - `tasks/rezoning_hand_adjudications/output/non_scalar_far_decisions_20101101_20201231.csv`
+- `tasks/rezoning_hand_adjudications/output/section_review_decisions_20101101_20201231.csv`
 - `tasks/rezoning_hand_adjudications/output/pd_to_pd_far_decisions_20101101_20160831.csv`
 - `tasks/rezoning_hand_adjudications/output/pd_to_pd_far_decisions_20160901_20201231.csv`
 
@@ -19,6 +20,6 @@ the committed ordinance-supported adjudications.
 - `tasks/rezoning_far_pre_geocode/output/zoning_matters_far_20101101_20201231.csv`
 
 One-sided PD transitions remain unresolved. The production task does not apply
-Khan's underlying-zone or no-change assumptions. Review queues and summary checks
-belong in `tasks/audits/`. `far_transition_status` distinguishes scalar
-candidates, matters requiring section review, and reviewed non-scalar ordinances.
+Khan's underlying-zone or no-change assumptions. Multiple district codes remain
+scalar only when every code on a side has the same date-specific FAR; conflicting
+FARs are cleared. Review queues and summary checks belong in `tasks/audits/`.

@@ -20,19 +20,29 @@ if (anyDuplicated(ald_lookup[, c("ward", "month")]) > 0) {
     stop("Alderman panel must be unique by ward-month.", call. = FALSE)
 }
 
-sales_raw <- fread("../input/parcel_sales.csv")
+sales_raw <- fread(
+    "../input/parcel_sales.csv",
+    colClasses = list(character = c("pin", "sale_date", "sale_price", "row_id"))
+)
 
 sales <- sales_raw %>%
     filter(class %in% c(202, 203, 204, 205, 206, 207, 208, 209, 210, 211)) %>%
     mutate(
         sale_price_nominal = as.numeric(gsub("[$,]", "", sale_price)),
         year = as.numeric(year),
-        pin = as.character(pin),
+        pin = gsub("[^0-9]", "", trimws(pin)),
         sale_date = coalesce(
             as.Date(as.character(sale_date), format = "%B %d, %Y"),
             as.Date(substr(as.character(sale_date), 1, 10), format = "%Y-%m-%d")
         )
     ) %>%
+    mutate(pin = if_else(nchar(pin) == 13L, paste0("0", pin), pin))
+
+if (any(nchar(sales$pin) != 14L)) {
+    stop("Residential sales contain an invalid full PIN.", call. = FALSE)
+}
+
+sales <- sales %>%
     filter(!is.na(sale_price_nominal), sale_price_nominal > 10000, !is.na(year)) %>%
     filter(year >= 1999, year <= 2025) %>%
     filter(sale_deed_type %in% c("Warranty", "Trustee")) %>%
@@ -129,36 +139,49 @@ p99 <- quantile(sales$sale_price_real_2022_raw, 0.99, na.rm = TRUE)
 sales <- sales %>%
     mutate(sale_price = pmin(pmax(sale_price_real_2022_raw, p01), p99))
 
-parcels <- fread("../input/Assessor_-_Parcel_Universe__Current_Year_Only__20251004.csv",
-    select = c("pin", "pin10", "latitude", "longitude")
+parcels <- fread(
+    "../input/parcel_universe_2025_city.csv",
+    select = c("pin", "latitude", "longitude"),
+    colClasses = list(character = "pin")
 )
-parcels[, `:=`(pin = as.character(pin), pin10 = as.character(pin10))]
+parcels[, pin := gsub("[^0-9]", "", trimws(pin))]
+parcels[nchar(pin) == 13L, pin := paste0("0", pin)]
+if (any(nchar(parcels$pin) != 14L)) {
+    stop("Current parcel universe contains an invalid full PIN.", call. = FALSE)
+}
 if (anyDuplicated(parcels$pin) > 0) {
     stop("Parcel universe must be unique by pin.", call. = FALSE)
+}
+
+historical_parcels <- fread(
+    "../input/historical_sale_parcel_coordinates_1999_2025.csv",
+    colClasses = list(character = "pin")
+)
+if (anyDuplicated(historical_parcels[, .(pin, year)]) > 0) {
+    stop("Historical parcel coordinates must be unique by pin-year.", call. = FALSE)
 }
 
 sales_geo <- sales %>%
     left_join(parcels, by = "pin", relationship = "many-to-one")
 
-missing_coords <- sum(is.na(sales_geo$latitude))
-
-if (missing_coords > 0) {
-    sales_geo <- sales_geo %>%
-        mutate(pin10_sales = substr(pin, 1, 10))
-
-    sales_found <- sales_geo %>% filter(!is.na(latitude))
+if (any(is.na(sales_geo$latitude) | is.na(sales_geo$longitude))) {
+    sales_found <- sales_geo %>%
+        filter(!is.na(latitude), !is.na(longitude))
     sales_missing <- sales_geo %>%
-        filter(is.na(latitude)) %>%
-        select(-latitude, -longitude, -pin10)
+        filter(is.na(latitude) | is.na(longitude)) %>%
+        select(-latitude, -longitude)
+    sales_missing <- sales_missing %>%
+        left_join(
+            historical_parcels %>% select(pin, year, latitude, longitude),
+            by = c("pin", "year"),
+            relationship = "many-to-one"
+        )
+    sales_geo <- bind_rows(sales_found, sales_missing)
+}
 
-    parcels_pin10 <- parcels %>%
-        select(pin10, latitude, longitude) %>%
-        distinct(pin10, .keep_all = TRUE)
-
-    sales_missing_fixed <- sales_missing %>%
-        left_join(parcels_pin10, by = c("pin10_sales" = "pin10"), relationship = "many-to-one")
-
-    sales_geo <- bind_rows(sales_found, sales_missing_fixed)
+unresolved_coordinates <- is.na(sales_geo$latitude) | is.na(sales_geo$longitude)
+if (any(unresolved_coordinates & sales_geo$year >= 2006 & sales_geo$year <= 2022)) {
+    stop("A 2006-2022 sale has unresolved exact-PIN coordinates.", call. = FALSE)
 }
 
 sales_sf <- sales_geo %>%

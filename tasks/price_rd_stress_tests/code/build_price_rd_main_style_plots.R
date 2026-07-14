@@ -56,7 +56,7 @@ if (market == "rent") {
       right = as.integer(signed_dist_ft >= 0),
       building_type_factor = factor(coalesce(building_type_clean, "other")),
       log_sqft = if_else(is.finite(sqft) & sqft > 0, log(sqft), NA_real_),
-      log_beds = if_else(is.finite(beds) & beds > 0, log(beds), NA_real_),
+      beds_factor = factor(beds),
       log_baths = if_else(is.finite(baths) & baths > 0, log(baths), NA_real_)
     ) %>%
     filter(
@@ -70,20 +70,27 @@ if (market == "rent") {
       !is.na(strictness_neighbor),
       !is.na(segment_id),
       segment_id != "",
-      !is.na(ward_pair)
+      !is.na(ward_pair),
+      is.finite(beds),
+      beds >= 0
     )
 
-  for (flag_col in c(
+  location_flags <- c(
     "flag_location_questionable",
     "flag_modal_assignment_missing",
     "flag_modal_changes_ward",
     "flag_modal_changes_neighbor_ward",
     "flag_modal_changes_pair",
     "flag_modal_dist_diff_gt100ft"
-  )) {
-    if (!flag_col %in% names(rent)) {
-      rent[[flag_col]] <- FALSE
-    }
+  )
+  missing_location_flags <- setdiff(location_flags, names(rent))
+  if (length(missing_location_flags) > 0) {
+    stop(sprintf(
+      "Rental input is missing location-quality flags: %s.",
+      paste(missing_location_flags, collapse = ", ")
+    ), call. = FALSE)
+  }
+  for (flag_col in location_flags) {
     rent[[flag_col]] <- coalesce(as.logical(rent[[flag_col]]), FALSE)
   }
 
@@ -109,16 +116,69 @@ if (market == "rent") {
     chunk_n = 100000L,
     distance_units = "feet"
   )
-  rent_coords_sf <- st_as_sf(rent_coords, coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) %>%
+  cta_stops <- read_amenity_layer("../input/cta_stops.gpkg") %>%
+    mutate(
+      active_from_date = as.Date(active_from_date),
+      active_to_date = as.Date(active_to_date)
+    )
+  if (!all(c("active_from_date", "active_to_date") %in% names(cta_stops))) {
+    stop("CTA stop layer must include active_from_date and active_to_date.", call. = FALSE)
+  }
+  if (any(is.na(cta_stops$active_from_date))) {
+    stop("CTA stop layer has missing active_from_date values.", call. = FALSE)
+  }
+
+  rent_coords_month <- rent %>%
+    distinct(longitude, latitude, year_month) %>%
+    mutate(
+      month_start = as.Date(paste0(year_month, "-01")),
+      month_end = lubridate::ceiling_date(month_start, "month") - lubridate::days(1)
+    )
+  rent_coords_month_sf <- st_as_sf(
+    rent_coords_month,
+    coords = c("longitude", "latitude"),
+    crs = 4326,
+    remove = FALSE
+  ) %>%
     st_transform(3435)
-  rent_coords$nearest_cta_stop_dist_ft <- nearest_distance_ft(
-    rent_coords_sf,
-    read_amenity_layer("../input/cta_stops.gpkg"),
-    chunk_size = 100000L,
-    label = "rent coordinates"
-  )
+
+  cta_distance_rows <- list()
+  coords_by_month <- split(rent_coords_month_sf, rent_coords_month_sf$year_month)
+  for (month_i in names(coords_by_month)) {
+    month_points <- coords_by_month[[month_i]]
+    month_start <- unique(month_points$month_start)
+    month_end <- unique(month_points$month_end)
+    if (length(month_start) != 1L || length(month_end) != 1L) {
+      stop("CTA month split has non-unique month dates.", call. = FALSE)
+    }
+
+    active_cta <- cta_stops %>%
+      filter(
+        active_from_date <= month_end,
+        is.na(active_to_date) | active_to_date >= month_start
+      )
+    if (nrow(active_cta) == 0) {
+      stop(sprintf("No active CTA stations for %s.", month_i), call. = FALSE)
+    }
+
+    nearest_idx <- st_nearest_feature(month_points, active_cta)
+    nearest_cta <- active_cta[nearest_idx, ]
+    cta_distance_rows[[length(cta_distance_rows) + 1L]] <- st_drop_geometry(month_points) %>%
+      transmute(
+        longitude,
+        latitude,
+        year_month,
+        nearest_cta_stop_dist_ft = as.numeric(st_distance(month_points, nearest_cta, by_element = TRUE))
+      )
+  }
+  cta_distances <- bind_rows(cta_distance_rows)
+  if (anyDuplicated(cta_distances[c("longitude", "latitude", "year_month")]) > 0) {
+    stop("CTA distance table must be unique by coordinate-month.", call. = FALSE)
+  }
+
   rent <- rent %>%
     left_join(rent_coords, by = c("longitude", "latitude"), relationship = "many-to-one") %>%
+    left_join(cta_distances, by = c("longitude", "latitude", "year_month"), relationship = "many-to-one") %>%
     mutate(
       nearest_school_dist_kft = nearest_school_dist_ft / 1000,
       nearest_park_dist_kft = nearest_park_dist_ft / 1000,
@@ -132,7 +192,7 @@ if (market == "rent") {
 
   rent_controls <- c(
     "log_sqft",
-    "log_beds",
+    "beds_factor",
     "log_baths",
     "nearest_school_dist_kft",
     "nearest_park_dist_kft",
@@ -170,6 +230,7 @@ if (market == "rent") {
       nearest_school_dist_kft = nearest_school_dist_ft / 1000,
       nearest_park_dist_kft = nearest_park_dist_ft / 1000,
       nearest_major_road_dist_kft = nearest_major_road_dist_ft / 1000,
+      nearest_cta_stop_dist_kft = nearest_cta_stop_dist_ft / 1000,
       lake_michigan_dist_kft = lake_michigan_dist_ft / 1000
     ) %>%
     filter(
@@ -196,6 +257,7 @@ if (market == "rent") {
     "nearest_school_dist_kft",
     "nearest_park_dist_kft",
     "nearest_major_road_dist_kft",
+    "nearest_cta_stop_dist_kft",
     "lake_michigan_dist_kft"
   )
 

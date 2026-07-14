@@ -1,0 +1,13 @@
+matter_id,decision,corrected_from_code,corrected_to_code,review_note
+O2014-1444,non_scalar_multiple_far,,,RT-4 POS and M2-2 origins are combined in one ordinance area
+O2014-1522,non_scalar_multiple_far,,,RS-1 and RS-3 origins change to a transportation district
+SO2011-5141,non_scalar_multiple_far,,,M1-2 and RS-3 origins change to M2-2
+SO2013-3327,scalar_ordinance_review,B3-2,B2-3,B3-2 and C2-2 origins have equal FAR and change to B2-3 before PD
+SO2013-8395,non_scalar_multiple_far,,,C1-1 and M3-3 origins change to C3-3 before PD
+SO2014-4190,non_scalar_multiple_far,,,RM-5 and B3-2 origins change to B3-2 before PD
+SO2015-2402,non_scalar_multiple_far,,,RS-1 and B1-1 origins change to B3-1
+SO2016-2607,non_scalar_multiple_far,,,DC-12 and DC-16 origins change to a waterway business PD
+SO2016-2664,non_scalar_multiple_far,,,RT-4 B1-2 B3-2 and PD 707 are combined in one ordinance area
+SO2018-387,non_scalar_multiple_far,,,M1-1 and M2-2 origins change to M2-2 before PD
+SO2020-1899,unresolved_destination_scope,,,M2-2 and C1-2 origins change through POS to a PD without a comparable scalar destination FAR
+SO2020-3706,scalar_ordinance_review,B3-2,B3-3,Ordinance text states B3-2 to B3-3 and the parsed source field contains both codes

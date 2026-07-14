@@ -48,11 +48,18 @@ if (any(duplicated(segment_pair_lookup, by = c("era", "segment_id")))) {
   stop("Segment lookup has duplicate era/segment_id rows.", call. = FALSE)
 }
 
-sales_dt <- fread("../input/sales_pre_scores.csv")
+sales_dt <- fread(
+  "../input/sales_pre_scores.csv",
+  colClasses = list(character = "pin")
+)
 if (!all(c("pin", "sale_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(sales_dt))) {
   stop("sales_pre_scores.csv missing required columns.", call. = FALSE)
 }
-sales_dt[, pin := as.character(pin)]
+sales_dt[, pin := gsub("[^0-9]", "", trimws(pin))]
+sales_dt[nchar(pin) == 13L, pin := paste0("0", pin)]
+if (any(nchar(sales_dt$pin) != 14L)) {
+  stop("Sales input contains an invalid full PIN.", call. = FALSE)
+}
 sales_dt[, sale_date := as.Date(sale_date)]
 
 rent_dt <- as.data.table(read_parquet("../input/rent_pre_scores_full.parquet"))

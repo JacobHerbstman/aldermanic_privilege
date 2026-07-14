@@ -24,7 +24,7 @@ Official ward boundaries for the two eras used in the paper: pre-2015 and 2015--
 
 \paragraph{Amenity Data.}
 School locations, Chicago Park District park-boundary polygons, City of Chicago major streets, CTA stops, and Lake Michigan geometry used to construct distance controls for the rent and sales RDs.
-Rental CTA distances use stations open by the listing month.
+CTA distances use stations active in the listing or sale month.
 
 \paragraph{Census Data.}
 American Community Survey block group demographics and 2010/2020 decennial census block boundaries.
@@ -39,6 +39,7 @@ I restrict the sample to permits for projects where aldermen are most likely to 
 
 All remaining permit types are excluded from the high-discretion sample.
 In placebo analyses, low-discretion permits are the remaining routine permit types, excluding signs.
+The event-study outcomes include applications that were issued or later expired, while applications marked cancelled, revoked, or suspended are excluded.
 
 \paragraph{Processing Time.}
 For each permit, I compute processing time as the number of days between the application date and the issue date.
@@ -59,21 +60,23 @@ Census blocks are assigned to wards by largest-area overlap after projecting blo
 
 \paragraph{Predetermined Stringency.}
 Treatment intensity is measured using the difference between the destination and origin aldermen's baseline stringency scores.
-In the 2015-cohort design, origin and destination aldermen are assigned using the 2014 pre-redistricting ward-to-alderman mapping.
+For this design only, I re-estimate the stringency scores using permits filed from 2006 through 2014, before the redistricting took effect.
+Origin and destination aldermen are assigned using the 2014 pre-redistricting ward-to-alderman mapping.
 The change in stringency for block $i$ is
 \[
 \Delta\text{Stringency}_i = \text{Stringency}_{\text{dest}} - \text{Stringency}_{\text{origin}}.
 \]
-Binary specifications label blocks as ``moved to more stringent'' if $\Delta\text{Stringency}_i > 0$ and ``moved to more lenient'' if $\Delta\text{Stringency}_i < 0$.
 
-\paragraph{Contaminated Control Exclusion.}
-Control blocks may experience treatment through electoral turnover: the alderman changes through an election rather than redistricting.
-In the 2015-cohort design, I identify wards with alderman turnover between 2014 and 2015 and exclude non-switching blocks in these wards from the control group.
+\paragraph{Electoral-Turnover Exclusion.}
+I retain a block only if the 2014 aldermen serving both its origin and destination wards remained in their respective offices in 2015.
+Without this restriction, the measured change in stringency could reflect the 2015 election rather than redistricting, including for blocks whose origin ward elected a new alderman.
 
 \paragraph{Analysis Sample.}
-Permit outcomes are aggregated to block-year panels.
+Permit applications are aggregated to block-year panels using application year.
 The event study uses the 2015 implementation cohort with relative years $-5$ through $5$.
-The 1000ft local-support restriction and border-pair identifiers are based on the cohort's pre-redistricting boundary geometry: controls use the nearest incident pre-redistricting ward boundary, while treated blocks use the fixed origin-destination ward boundary created by redistricting.
+The 500ft local-support restriction is based on the distance from each census block polygon's centroid to the cohort's pre-redistricting boundary geometry.
+Controls use the nearest incident pre-redistricting ward boundary, while treated blocks use the fixed origin-destination ward boundary created by redistricting.
+The regressions control for each block's total permit volume in years $-5$ through $-1$ and an indicator for having no permits in those years, with both controls interacted with calendar year.
 
 \subsection{New Construction: Sample Construction}
 \label{subsec:new_construction_sample}
@@ -97,10 +100,10 @@ Table~\ref{tab:summary_stats} presents summary statistics for the new residentia
 The sample includes all new residential buildings constructed in Chicago between 2006 and 2022 that meet the restrictions described in Section~\ref{subsec:new_construction_sample}.
 Column (1) reports statistics for the full sample, while Column (2) restricts the sample to multifamily buildings with 2 or more units.
 
-The full sample contains 12,451 new residential buildings with an average of 6.45 dwelling units and 2.28 stories.
-The average Floor Area Ratio (FAR) is 1.20 and the average Dwelling Units Per Acre (DUPAC) is 27.91.
-Multifamily buildings are much denser, with an average of 32.85 units, 2.76 stories, FAR of 2.30, and DUPAC of 74.75.
-Median distance to the nearest ward boundary is about 930ft in the full sample and 840ft in the multifamily sample.
+The full sample contains 12,476 new residential buildings with an average of 6.43 dwelling units and 2.28 stories.
+The average Floor Area Ratio (FAR) is 1.20 and the average Dwelling Units Per Acre (DUPAC) is 27.84.
+Multifamily buildings are much denser, with an average of 32.79 units, 2.76 stories, FAR of 2.29, and DUPAC of 74.48.
+Median distance to the nearest ward boundary is about 930ft in the full sample and 830ft in the multifamily sample.
 
 \subsection{Home Sales: Sample Construction}
 \label{subsec:sales_sample}
@@ -114,8 +117,8 @@ I apply the following restrictions to construct the analysis sample: (1) residen
 Sale prices are first deflated to 2022 dollars using the monthly Chicago CPI-U all-items series and then winsorized at the 1st and 99th percentiles to limit the influence of outliers on mean calculations.
 
 \paragraph{Geocoding.}
-Each sale is geocoded by joining the property identification number (PIN) to the Cook County parcel universe, which contains latitude and longitude coordinates.
-Sales that cannot be matched on the full 14-digit PIN are matched on the first 10 digits (PIN10).
+Each sale is geocoded by matching its full 14-digit property identification number (PIN) to the 2025 Cook County parcel universe.
+If a PIN is absent from that file, I use its coordinates from the historical parcel universe in the sale year.
 
 \paragraph{Ward Assignment.}
 Sales are assigned to wards based on the ward boundaries in effect at the exact sale date.
@@ -140,5 +143,8 @@ This construction prevents daily scrape persistence from overweighting a listing
 When multiple rents appear for the same floorplan proxy on the same scrape date, I retain the group and use the median rent, while carrying flags for unusually large within-day rent dispersion.
 
 I keep observations with positive rent and valid coordinates that can be assigned to Chicago wards.
-I also carry forward diagnostic flags for questionable addresses, coordinate-only piles, one-day bulk listings, same-day rent spread, and modal-coordinate instability.
-The main rent analysis uses listings with valid ward assignment.
+The main rent analysis further restricts the sample to listings with reliable geographic assignments.
+I exclude manually rejected locations, addresses with unstable coordinate clusters, and addressless listings concentrated at generic coordinates.
+I also exclude listings when the modal coordinate for the address would change the assigned ward, neighboring ward, or ward pair, or would change the measured distance to the boundary by more than 100ft.
+The regression requires nonmissing square footage, bathrooms, and amenity controls.
+Bedrooms enter as categorical controls, so studios remain in the sample.

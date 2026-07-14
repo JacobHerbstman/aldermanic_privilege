@@ -41,7 +41,7 @@ if (!"signed_dist" %in% names(rent)) {
   stop("Rental input must include signed_dist in feet or signed_dist_m in meters.", call. = FALSE)
 }
 
-for (flag_col in c(
+location_flags <- c(
   "flag_location_questionable",
   "flag_modal_assignment_missing",
   "flag_modal_changes_ward",
@@ -49,10 +49,15 @@ for (flag_col in c(
   "flag_modal_changes_pair",
   "flag_modal_dist_diff_gt100ft",
   "flag_rd_location_questionable"
-)) {
-  if (!flag_col %in% names(rent)) {
-    rent[[flag_col]] <- FALSE
-  }
+)
+missing_location_flags <- setdiff(location_flags, names(rent))
+if (length(missing_location_flags) > 0) {
+  stop(sprintf(
+    "Rental input is missing location-quality flags: %s.",
+    paste(missing_location_flags, collapse = ", ")
+  ), call. = FALSE)
+}
+for (flag_col in location_flags) {
   rent[[flag_col]] <- coalesce(as.logical(rent[[flag_col]]), FALSE)
 }
 

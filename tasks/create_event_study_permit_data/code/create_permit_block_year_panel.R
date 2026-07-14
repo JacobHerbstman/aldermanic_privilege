@@ -137,6 +137,33 @@ if (anyDuplicated(paste(treatment_panel$cohort, treatment_panel$block_id, sep = 
   stop("Block treatment panel must be unique by cohort-block.", call. = FALSE)
 }
 
+aldermen <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
+  mutate(
+    month_date = as.Date(paste("01", month), format = "%d %b %Y"),
+    month_key = format(month_date, "%Y-%m")
+  ) %>%
+  filter(month_key %in% c("2014-06", "2015-06")) %>%
+  select(month_key, ward, alderman)
+if (anyDuplicated(aldermen[c("month_key", "ward")]) > 0) {
+  stop("Alderman lookup must be unique by month and ward.", call. = FALSE)
+}
+
+aldermen_2014 <- aldermen %>%
+  filter(month_key == "2014-06") %>%
+  select(ward, alderman_2014 = alderman)
+aldermen_2015 <- aldermen %>%
+  filter(month_key == "2015-06") %>%
+  select(ward, alderman_2015 = alderman)
+
+scores_2014 <- read_csv(
+  "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2014.csv",
+  show_col_types = FALSE
+) %>%
+  select(alderman, score_2014 = uncertainty_index)
+if (anyDuplicated(scores_2014$alderman) > 0) {
+  stop("Frozen stringency scores must be unique by alderman.", call. = FALSE)
+}
+
 block_inputs <- tibble(
   block_vintage = c("2010", "2020"),
   path = c("../input/census_blocks_2010.csv", "../input/census_blocks_2020.csv"),
@@ -233,7 +260,7 @@ permits_clean <- st_read(
     "SELECT id, pin, permit_type, high_discretion, permit_issued,",
     "application_start_date_ym, issue_date_ym, latitude, longitude, processing_time, geom",
     "FROM building_permits_clean",
-    "WHERE permit_issued = 1 OR permit_issued IS NULL"
+    "WHERE permit_status NOT IN ('CANCELLED', 'REVOKED', 'SUSPENDED') OR permit_status IS NULL"
   ),
   quiet = TRUE
 ) %>%
@@ -592,6 +619,53 @@ for (cohort_i in seq_len(nrow(cohort_specs))) {
 
 cohort_2015 <- cohort_panels[["2015"]]
 cohort_2023 <- cohort_panels[["2023"]]
+
+frozen_treatment_2015 <- cohort_2015 %>%
+  distinct(block_id, ward_origin, ward_dest) %>%
+  left_join(
+    aldermen_2014 %>% rename(ward_origin = ward, alderman_origin_2014 = alderman_2014),
+    by = "ward_origin",
+    relationship = "many-to-one"
+  ) %>%
+  left_join(
+    aldermen_2015 %>% rename(ward_origin = ward, alderman_origin_2015 = alderman_2015),
+    by = "ward_origin",
+    relationship = "many-to-one"
+  ) %>%
+  left_join(
+    aldermen_2014 %>% rename(ward_dest = ward, alderman_dest_2014 = alderman_2014),
+    by = "ward_dest",
+    relationship = "many-to-one"
+  ) %>%
+  left_join(
+    aldermen_2015 %>% rename(ward_dest = ward, alderman_dest_2015 = alderman_2015),
+    by = "ward_dest",
+    relationship = "many-to-one"
+  ) %>%
+  left_join(
+    scores_2014 %>% rename(alderman_origin_2014 = alderman, strictness_origin_frozen = score_2014),
+    by = "alderman_origin_2014",
+    relationship = "many-to-one"
+  ) %>%
+  left_join(
+    scores_2014 %>% rename(alderman_dest_2014 = alderman, strictness_dest_frozen = score_2014),
+    by = "alderman_dest_2014",
+    relationship = "many-to-one"
+  ) %>%
+  mutate(
+    stable_origin = alderman_origin_2014 == alderman_origin_2015,
+    stable_dest = alderman_dest_2014 == alderman_dest_2015,
+    stable_both = stable_origin & stable_dest,
+    strictness_change_frozen = strictness_dest_frozen - strictness_origin_frozen
+  )
+if (anyDuplicated(frozen_treatment_2015$block_id) > 0 ||
+    anyNA(frozen_treatment_2015$stable_both) ||
+    anyNA(frozen_treatment_2015$strictness_change_frozen)) {
+  stop("Frozen 2015 treatment mapping is incomplete or duplicated.", call. = FALSE)
+}
+
+cohort_2015 <- cohort_2015 %>%
+  left_join(frozen_treatment_2015, by = c("block_id", "ward_origin", "ward_dest"), relationship = "many-to-one")
 permit_panel <- bind_rows(cohort_2015, cohort_2023)
 
 event_rows_1000ft <- permit_panel %>%

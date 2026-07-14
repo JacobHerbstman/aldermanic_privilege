@@ -1,29 +1,15 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_event_study_scores/code")
-# score_column <- "uncertainty_index"
 
 source("../../setup_environment/code/packages.R")
 
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
-  cli_args <- c(score_column)
-}
-if (length(cli_args) != 1) {
-  stop("FATAL: Script requires 1 arg: <score_column>.", call. = FALSE)
-}
-
-score_column <- cli_args[1]
-
-scores_raw <- read_csv("../input/aldermen_uncertainty_scores.csv", show_col_types = FALSE)
-if (!score_column %in% names(scores_raw)) {
-  stop(sprintf(
-    "Score column '%s' not found. Available: %s",
-    score_column, paste(names(scores_raw), collapse = ", ")
-  ), call. = FALSE)
+scores_raw <- read_csv("../input/aldermen_uncertainty_scores_through2022.csv", show_col_types = FALSE)
+if (!"uncertainty_index" %in% names(scores_raw)) {
+  stop("Score input must include uncertainty_index.", call. = FALSE)
 }
 
 scores <- scores_raw %>%
-  select(alderman, score = all_of(score_column)) %>%
+  select(alderman, score = uncertainty_index) %>%
   filter(!is.na(alderman))
 if (anyDuplicated(scores$alderman) > 0) {
   stop("Score input must be unique by alderman.", call. = FALSE)
@@ -80,4 +66,4 @@ if (n_signed_dist_sign_mismatch > 0) {
   stop("Rental signed-distance sign does not agree with strictness sign.", call. = FALSE)
 }
 
-write_parquet(rent, "../output/rent_with_ward_distances_full.parquet")
+write_parquet(rent, "../output/rent_with_ward_distances_full_through2022.parquet")

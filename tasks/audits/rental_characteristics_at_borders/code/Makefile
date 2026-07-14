@@ -45,7 +45,7 @@ all: \
 ../temp/listing_units_bin_cells_bw$(BANDWIDTH_FT)_$(WINDOW)_%_pct$(MIN_STRICTNESS_DIFF_PCTILE)_$(UNIT_DEF)_bins$(BINS_PER_SIDE)_all.parquet: ../temp/listing_units_side_panel_bw$(BANDWIDTH_FT)_$(WINDOW)_%_pct$(MIN_STRICTNESS_DIFF_PCTILE)_$(UNIT_DEF)_all.parquet
 	@test -s "$@"
 
-../input/rent_with_ward_distances.parquet: ../../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
+../input/rent_with_ward_distances.parquet: ../../../merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/schools_2015.gpkg: ../../../prepare_amenities_data/output/schools_2015.gpkg | ../input

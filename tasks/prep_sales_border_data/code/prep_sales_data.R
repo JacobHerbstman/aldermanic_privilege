@@ -3,30 +3,46 @@
 
 source("../../setup_environment/code/packages.R")
 
-sales <- fread("../input/sales_with_ward_distances.csv")
+sales <- fread(
+  "../input/sales_with_ward_distances.csv",
+  colClasses = list(character = "pin")
+)
 if (!"segment_id" %in% names(sales)) {
   stop("Input sales_with_ward_distances.csv is missing segment_id. Rebuild merge_event_study_scores after segment assignment.", call. = FALSE)
 }
 sales[, `:=`(
-  pin = as.character(pin),
+  pin = gsub("[^0-9]", "", trimws(pin)),
   sale_date = as.Date(sale_date),
   sale_year = year(sale_date)
 )]
+sales[nchar(pin) == 13L, pin := paste0("0", pin)]
+if (any(nchar(sales$pin) != 14L)) {
+  stop("Sales input contains an invalid full PIN.", call. = FALSE)
+}
 
 improvements <- read_parquet("../input/residential_improvements_panel.parquet")
 setDT(improvements)
 improvements[, pin := as.character(pin)]
+improvements[, hedonic_tax_year := tax_year]
+if (anyDuplicated(improvements[, .(pin, tax_year)]) > 0) {
+  stop("Residential improvements must be unique by PIN-tax year.", call. = FALSE)
+}
 
 setkey(improvements, pin, tax_year)
 
 sales_h <- improvements[
   sales,
   on = .(pin, tax_year = sale_year),
-  roll = TRUE,
-  rollends = c(TRUE, FALSE)
+  roll = FALSE
 ]
-setnames(sales_h, "tax_year", "hedonic_tax_year")
 sales_h[, sale_year := year(sale_date)]
+
+if (any(
+  !is.na(sales_h$hedonic_tax_year) &
+    sales_h$hedonic_tax_year != sales_h$sale_year
+)) {
+  stop("Assessor characteristics must match the sale year exactly.", call. = FALSE)
+}
 
 sales_h[, `:=`(
   building_age = sale_year - year_built,

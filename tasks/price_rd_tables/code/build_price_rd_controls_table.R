@@ -196,6 +196,7 @@ sales_amenity <- sales_hedonic %>%
     !is.na(nearest_school_dist_ft),
     !is.na(nearest_park_dist_ft),
     !is.na(nearest_major_road_dist_ft),
+    !is.na(nearest_cta_stop_dist_ft),
     !is.na(lake_michigan_dist_ft)
   )
 
@@ -213,7 +214,8 @@ sales_hedonics <- feols(
 sales_amenities <- feols(
   log(sale_price) ~ strictness_std + log_sqft + log_land_sqft + log_building_age +
     log_bedrooms + log_baths + has_garage + nearest_school_dist_ft +
-    nearest_park_dist_ft + nearest_major_road_dist_ft + lake_michigan_dist_ft | segment_id^year_quarter,
+    nearest_park_dist_ft + nearest_major_road_dist_ft + nearest_cta_stop_dist_ft +
+    lake_michigan_dist_ft | segment_id^year_quarter,
   data = sales_amenity,
   cluster = ~segment_id
 )
@@ -237,7 +239,7 @@ table_lines <- c(
   "\\bottomrule",
   "\\end{tabular}",
   sprintf(
-    "\\par\\vspace{0.5em}\\parbox{0.92\\linewidth}{\\footnotesize Notes: Entries are log-price coefficients for a one-standard-deviation increase in the aldermanic stringency index, with standard errors in parentheses. Panel A uses listed-rent floorplan-month observations from 2014--2022. Panel B uses arm's-length residential sales from 2006--2022. Both panels restrict observations to within %sft of ward boundaries. Dependent-variable means are in 2022 dollars. Segment-by-time fixed effects are segment-by-month for listed rents and segment-by-quarter for home sales. Hedonic controls are log square feet, log bedrooms or bathrooms, building type for rents, and building area, land area, building age, bedrooms, bathrooms, and garage for sales. Amenity controls are distances to the nearest school, CPD park-boundary polygon, major street, CTA stop for rents, and Lake Michigan. Standard errors are clustered by boundary segment. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
+    "\\par\\vspace{0.5em}\\parbox{0.92\\linewidth}{\\footnotesize Notes: Entries are log-price coefficients for a one-standard-deviation increase in the aldermanic stringency index, with standard errors in parentheses. Panel A uses listed-rent floorplan-month observations from 2014--2022. Panel B uses arm's-length residential sales from 2006--2022. Both panels restrict observations to within %sft of ward boundaries. Dependent-variable means are in 2022 dollars. Segment-by-time fixed effects are segment-by-month for listed rents and segment-by-quarter for home sales. Hedonic controls are log square feet, bedroom categories, log bathrooms, and building type for rents, and log building area, log land area, log building age, log bedrooms, log bathrooms, and garage for sales. Amenity controls are distances to the nearest school, CPD park-boundary polygon, major street, CTA stop, and Lake Michigan. Standard errors are clustered by boundary segment. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}",
     bandwidth_label
   ),
   "\\par\\endgroup"

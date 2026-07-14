@@ -1,46 +1,44 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_event_study_scores/code")
-# score_column <- "uncertainty_index"
 
 source("../../setup_environment/code/packages.R")
 
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
-  cli_args <- c(score_column)
-}
-if (length(cli_args) != 1) {
-  stop("FATAL: Script requires 1 arg: <score_column>.", call. = FALSE)
+sales_scores_raw <- read_csv("../input/aldermen_uncertainty_scores_through2022.csv", show_col_types = FALSE)
+if (!"uncertainty_index" %in% names(sales_scores_raw)) {
+  stop("Through-2022 score input must include uncertainty_index.", call. = FALSE)
 }
 
-score_column <- cli_args[1]
-
-scores_raw <- read_csv("../input/aldermen_uncertainty_scores.csv", show_col_types = FALSE)
-if (!score_column %in% names(scores_raw)) {
-  stop(sprintf(
-    "Score column '%s' not found. Available: %s",
-    score_column, paste(names(scores_raw), collapse = ", ")
-  ), call. = FALSE)
-}
-
-scores <- scores_raw %>%
-  select(alderman, score = all_of(score_column)) %>%
+sales_scores <- sales_scores_raw %>%
+  select(alderman, score = uncertainty_index) %>%
   filter(!is.na(alderman))
-if (anyDuplicated(scores$alderman) > 0) {
-  stop("Score input must be unique by alderman.", call. = FALSE)
+if (anyDuplicated(sales_scores$alderman) > 0) {
+  stop("Through-2022 score input must be unique by alderman.", call. = FALSE)
 }
-if (any(!is.finite(scores$score))) {
-  stop("Score input contains non-finite scores.", call. = FALSE)
+if (any(!is.finite(sales_scores$score))) {
+  stop("Through-2022 score input contains non-finite scores.", call. = FALSE)
 }
 
-sales_pre <- read_csv("../input/sales_pre_scores.csv", show_col_types = FALSE)
+sales_pre <- read_csv(
+  "../input/sales_pre_scores.csv",
+  col_types = cols(pin = col_character(), .default = col_guess()),
+  show_col_types = FALSE
+)
 if (!all(c("alderman_own", "alderman_neighbor", "dist_m") %in% names(sales_pre))) {
   stop("Sales pre-score input must include alderman_own, alderman_neighbor, and dist_m.", call. = FALSE)
 }
+sales_pre <- sales_pre %>%
+  mutate(
+    pin = gsub("[^0-9]", "", trimws(pin)),
+    pin = if_else(nchar(pin) == 13L, paste0("0", pin), pin)
+  )
+if (any(nchar(sales_pre$pin) != 14L)) {
+  stop("Sales input contains an invalid full PIN.", call. = FALSE)
+}
 
 sales <- sales_pre %>%
-  left_join(scores, by = c("alderman_own" = "alderman"), relationship = "many-to-one") %>%
+  left_join(sales_scores, by = c("alderman_own" = "alderman"), relationship = "many-to-one") %>%
   rename(strictness_own = score) %>%
-  left_join(scores, by = c("alderman_neighbor" = "alderman"), relationship = "many-to-one") %>%
+  left_join(sales_scores, by = c("alderman_neighbor" = "alderman"), relationship = "many-to-one") %>%
   rename(strictness_neighbor = score) %>%
   mutate(
     sign = case_when(
@@ -74,7 +72,22 @@ sales <- sales %>%
     strictness_own, strictness_neighbor
   )
 
-write_csv(sales, "../output/sales_with_ward_distances.csv")
+write_csv(sales, "../output/sales_with_ward_distances_through2022.csv")
+
+treatment_scores_raw <- read_csv("../input/aldermen_uncertainty_scores_through202604.csv", show_col_types = FALSE)
+if (!"uncertainty_index" %in% names(treatment_scores_raw)) {
+  stop("Through-202604 score input must include uncertainty_index.", call. = FALSE)
+}
+
+treatment_scores <- treatment_scores_raw %>%
+  select(alderman, score = uncertainty_index) %>%
+  filter(!is.na(alderman))
+if (anyDuplicated(treatment_scores$alderman) > 0) {
+  stop("Through-202604 score input must be unique by alderman.", call. = FALSE)
+}
+if (any(!is.finite(treatment_scores$score))) {
+  stop("Through-202604 score input contains non-finite scores.", call. = FALSE)
+}
 
 treat_pre <- read_csv("../input/block_treatment_pre_scores.csv", show_col_types = FALSE)
 if (anyDuplicated(paste(treat_pre$cohort, treat_pre$block_id, sep = "\r")) > 0) {
@@ -125,11 +138,11 @@ treat_panel_full <- treat_pre %>%
     by = c("score_month_dest" = "month_key", "ward_dest"),
     relationship = "many-to-one"
   ) %>%
-  left_join(scores %>% rename(alderman_origin = alderman, strictness_origin = score),
+  left_join(treatment_scores %>% rename(alderman_origin = alderman, strictness_origin = score),
     by = "alderman_origin",
     relationship = "many-to-one"
   ) %>%
-  left_join(scores %>% rename(alderman_dest = alderman, strictness_dest = score),
+  left_join(treatment_scores %>% rename(alderman_dest = alderman, strictness_dest = score),
     by = "alderman_dest",
     relationship = "many-to-one"
   ) %>%
@@ -174,4 +187,4 @@ treat_panel <- treat_panel_full %>%
     ward_had_turnover, valid, cohort
   )
 
-write_csv(treat_panel, "../output/block_treatment_panel.csv")
+write_csv(treat_panel, "../output/block_treatment_panel_through202604.csv")

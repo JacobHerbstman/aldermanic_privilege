@@ -12,6 +12,8 @@ cta <- st_read("../input/cta_stations.geojson", quiet = TRUE) %>%
 
 cta_open_dates <- tibble::tribble(
   ~station_id, ~active_from_date, ~active_date_source,
+  "1510", as.Date("2012-05-18"), "CTA Morgan station opening announcement",
+  "1680", as.Date("2012-04-30"), "CTA Oakton-Skokie station opening announcement",
   "1690", as.Date("2015-02-09"), "CTA Cermak-McCormick Place opening announcement",
   "1700", as.Date("2017-08-31"), "CTA Washington/Wabash opening announcement",
   "1710", as.Date("2024-08-06"), "CTA Damen Green Line opening announcement"
@@ -24,7 +26,7 @@ cta <- cta %>%
   mutate(
     active_from_date = coalesce(active_from_date, as.Date("1900-01-01")),
     active_to_date = as.Date(NA),
-    active_date_source = coalesce(active_date_source, "CTA current station file; treated as open before 2014 sample start")
+    active_date_source = coalesce(active_date_source, "CTA current station file; treated as open before 2006 sample start")
   ) %>%
   select(
     station_id, longname, lines,

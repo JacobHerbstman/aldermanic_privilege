@@ -1,6 +1,6 @@
 all: paper.pdf
 
-paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
+paper.pdf: Makefile paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex \
 	../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex \
 	../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
@@ -60,22 +60,24 @@ paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/permit_stringency_table/output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
 	../tasks/within_ward_strictness/output/low_discretion_falsification_compact_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
 	../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf
+
+.SECONDEXPANSION:
+paper.pdf: | $$(addprefix task-check/,$$(patsubst ../tasks/%,%,$$(filter ../tasks/%,$$^)))
 	latexmk -pdf -pdflatex="pdflatex -interaction=nonstopmode" -use-make paper.tex
 
 paper.bbl: paper.aux sections/aldermanic_privilege.bib aea.bst
 	bibtex paper
 
-../tasks/%:
-	@case "$@" in \
-		../tasks/*/output/*) \
-			task=$$(printf '%s\n' "$@" | sed 's#^\.\./tasks/##; s#/output/.*##'); \
-			output=$$(printf '%s\n' "$@" | sed 's#^\.\./tasks/[^/]*/output/#../output/#'); \
-			$(MAKE) -C "../tasks/$$task/code" "$$output"; \
-			;; \
-		*) \
-			test -e "$@" || { echo "No paper upstream rule for $@"; false; }; \
-			;; \
-	esac
+../tasks/%: | task-check/%
+	@test -e "$@" || { echo "Task check did not produce $@"; false; }
+
+task-check/%: FORCE
+	@task=$$(printf '%s\n' "$*" | sed 's#/output/.*##'); \
+	output=$$(printf '%s\n' "$*" | sed 's#^[^/]*/output/#../output/#'); \
+	$(MAKE) -C "../tasks/$$task/code" "$$output"
+
+.PHONY: FORCE
+FORCE:
 
 clean:
 	latexmk -CA

@@ -40,7 +40,7 @@ full_sample_tables: \
 ../output/year_diagnostics_bw500_pre_2023_multifamily_only.csv: ../output/fe_table_rental_bw500_pre_2023_multifamily_only.csv
 	@test -s "$@"
 
-../input/rent_with_ward_distances.parquet: ../../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
+../input/rent_with_ward_distances.parquet: ../../../merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/rent_with_ward_distances.parquet

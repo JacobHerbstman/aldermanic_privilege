@@ -21,7 +21,7 @@ all: \
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/block_treatment_panel.csv: ../../merge_event_study_scores/output/block_treatment_panel.csv | ../input
+../input/block_treatment_panel.csv: ../../merge_event_study_scores/output/block_treatment_panel_through202604.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/census_blocks_2010.csv ../input/ward_panel.gpkg ../input/block_treatment_panel.csv

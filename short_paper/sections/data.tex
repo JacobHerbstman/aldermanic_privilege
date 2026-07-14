@@ -150,7 +150,8 @@ prerogative.}
 
 \subsection{Building Permits and the Permit Pipeline}
 
-The building permits data come from the City of Chicago's open data portal and include all permit applications filed since 2006 with valid geographic coordinates and non-negative processing times.
+The building permits data come from the City of Chicago's open data portal and include all permit applications filed since 2006.
+The processing-time analysis uses records with valid geographic coordinates and non-negative processing times; Appendix~\ref{subsec:event_study_panel} describes the separate sample used to count applications in the event study.
 I divide permits into two groups based on how much aldermanic discretion they are likely to face.
 
 \textit{High-discretion permits} are permits for projects where aldermen are most likely to matter: new construction, major renovation, demolition, porch construction, and reinstated permits.\footnote{Porch construction permits have received extra scrutiny since the \href{https://en.wikipedia.org/wiki/2003_Chicago_balcony_collapse}{2003 balcony collapse}.}
@@ -233,8 +234,8 @@ For each parcel I compute two standard density measures: Floor Area Ratio (FAR),
 Distance to the nearest ward boundary is computed after projecting parcels and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
 
 Table~\ref{tab:summary_stats} presents summary statistics.
-The full sample contains 12,471 new residential buildings.
-The 2,131 multifamily buildings (2+ units) are reported separately because aldermanic discretion is likely to matter most for larger projects.
+The full sample contains 12,476 new residential buildings.
+The 2,132 multifamily buildings (2+ units) are reported separately because aldermanic discretion is likely to matter most for larger projects.
 As a result, I focus on the multifamily sample but show that a gap exists for all new construction as well, albeit smaller in magnitude.
 
 \input{../tasks/summary_stats_new_construction/output/summary_stats.tex}
@@ -255,8 +256,8 @@ Home sales data come from the Cook County Assessor's Office and cover residentia
 The price analysis uses sales from 2006 through 2022 to match the paper's main outcome window.
 I restrict the sample to arm's-length transactions of single-family homes and small multifamily buildings (2-6 units), excluding nominal transfers, land-only sales, and intrafamily conveyances.
 Sale prices are first deflated to 2022 dollars using the monthly Chicago CPI-U all-items series and then winsorized at the 1st and 99th percentiles.
-Each transaction is geocoded using the county parcel universe and assigned to the relevant ward based on the boundaries in effect at the sale date.
-Property-level hedonic controls such as building area, land area, building age, bedrooms, bathrooms, and garage all come from a rolling join to the most recent assessor record as of the sale year.
+Each transaction is geocoded by its full 14-digit PIN and assigned to the relevant ward based on the boundaries in effect at the sale date.
+Property-level hedonic controls such as building area, land area, building age, bedrooms, bathrooms, and garage come from the same-tax-year assessor record.
 The amenity controls are distances to the nearest school, Chicago Park District park-boundary polygon, major street, distance to the nearest CTA stop, and distance to Lake Michigan.
 
 As with the rental data, more detail on the data construction process can be found in Appendix~\ref{app:data_sources}.

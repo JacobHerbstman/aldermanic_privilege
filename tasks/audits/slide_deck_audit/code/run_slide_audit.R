@@ -398,8 +398,8 @@ run_geometry_checks <- function() {
   parcel_segments <- read_csv(file.path(root_dir, "tasks/assign_segment_ids/output/parcel_segment_ids.csv"), show_col_types = FALSE)
   parcels_pre_scores <- read_csv(file.path(root_dir, "tasks/calculate_ward_boundary_distances/output/parcels_pre_scores.csv"), show_col_types = FALSE)
   merged_parcels <- read_csv(file.path(root_dir, "tasks/merge_in_scores/output/parcels_with_ward_distances.csv"), show_col_types = FALSE)
-  sales_panel <- read_csv(file.path(root_dir, "tasks/merge_event_study_scores/output/sales_with_ward_distances.csv"), show_col_types = FALSE)
-  rent_panel <- arrow::read_parquet(file.path(root_dir, "tasks/merge_event_study_scores/output/rent_with_ward_distances_full.parquet"))
+  sales_panel <- read_csv(file.path(root_dir, "tasks/merge_event_study_scores/output/sales_with_ward_distances_through2022.csv"), show_col_types = FALSE)
+  rent_panel <- arrow::read_parquet(file.path(root_dir, "tasks/merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet"))
   parcels_geom <- st_read(file.path(root_dir, "tasks/calculate_ward_boundary_distances/output/parcels_with_geometry.gpkg"), quiet = TRUE)
 
   parcel_segment_joined <- parcels_pre_scores %>%
@@ -415,8 +415,8 @@ run_geometry_checks <- function() {
     "distance_nonnegative_share", mean(parcels_pre_scores$dist_to_boundary < 0, na.rm = TRUE), 0, "0 negative distances", ifelse(mean(parcels_pre_scores$dist_to_boundary < 0, na.rm = TRUE) == 0, "verified", "mismatch"), "tasks/calculate_ward_boundary_distances/output/parcels_pre_scores.csv", "Unsigned parcel distance should never be negative",
     "merged_signed_distance_consistency", mean(sign(merged_parcels$signed_distance) == merged_parcels$sign, na.rm = TRUE), 0.99, ">= 0.99", ifelse(mean(sign(merged_parcels$signed_distance) == merged_parcels$sign, na.rm = TRUE) >= 0.99, "verified", "mismatch"), "tasks/merge_in_scores/output/parcels_with_ward_distances.csv", "Signed distance should agree with sign variable",
     "merged_segment_missing_share", mean(is.na(merged_parcels$segment_id[merged_parcels$dist_to_boundary <= 1000])), 0.10, "<= 0.10 within 1000 ft", ifelse(mean(is.na(merged_parcels$segment_id[merged_parcels$dist_to_boundary <= 1000])) <= 0.10, "verified", "code_risk"), "tasks/merge_in_scores/output/parcels_with_ward_distances.csv", "Regression-ready parcel file should have strong segment coverage inside the 1000 ft border sample",
-    "sales_signed_distance_consistency", mean(sign(sales_panel$signed_dist) == sales_panel$sign, na.rm = TRUE), 0.99, ">= 0.99", ifelse(mean(sign(sales_panel$signed_dist) == sales_panel$sign, na.rm = TRUE) >= 0.99, "verified", "mismatch"), "tasks/merge_event_study_scores/output/sales_with_ward_distances.csv", "Sales signed distance should agree with sign variable",
-    "rent_signed_distance_consistency", mean(sign(rent_panel$signed_dist) == rent_panel$sign, na.rm = TRUE), 0.99, ">= 0.99", ifelse(mean(sign(rent_panel$signed_dist) == rent_panel$sign, na.rm = TRUE) >= 0.99, "verified", "mismatch"), "tasks/merge_event_study_scores/output/rent_with_ward_distances_full.parquet", "Rental signed distance should agree with sign variable",
+    "sales_signed_distance_consistency", mean(sign(sales_panel$signed_dist) == sales_panel$sign, na.rm = TRUE), 0.99, ">= 0.99", ifelse(mean(sign(sales_panel$signed_dist) == sales_panel$sign, na.rm = TRUE) >= 0.99, "verified", "mismatch"), "tasks/merge_event_study_scores/output/sales_with_ward_distances_through2022.csv", "Sales signed distance should agree with sign variable",
+    "rent_signed_distance_consistency", mean(sign(rent_panel$signed_dist) == rent_panel$sign, na.rm = TRUE), 0.99, ">= 0.99", ifelse(mean(sign(rent_panel$signed_dist) == rent_panel$sign, na.rm = TRUE) >= 0.99, "verified", "mismatch"), "tasks/merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet", "Rental signed distance should agree with sign variable",
     "parcel_geometry_crs", st_crs(parcels_geom)$epsg, 3435, "EPSG 3435", ifelse(identical(st_crs(parcels_geom)$epsg, 3435L), "verified", "code_risk"), "tasks/calculate_ward_boundary_distances/output/parcels_with_geometry.gpkg", "Parcel geometry CRS should remain in Illinois State Plane East feet"
   )
 

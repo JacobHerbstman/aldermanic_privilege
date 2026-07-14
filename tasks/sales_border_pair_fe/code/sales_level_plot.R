@@ -69,6 +69,7 @@ amenity_controls <- c(
   "nearest_school_dist_ft",
   "nearest_park_dist_ft",
   "nearest_major_road_dist_ft",
+  "nearest_cta_stop_dist_ft",
   "lake_michigan_dist_ft"
 )
 sales <- sales %>%

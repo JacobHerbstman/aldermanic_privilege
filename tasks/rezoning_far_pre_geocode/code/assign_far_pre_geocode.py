@@ -526,6 +526,13 @@ def infer_far_when_lookup_missing(code: str | None) -> float | None:
     return None
 
 
+def distinct_side_fars(value, intro_date_value, lookup: dict[str, list[dict]]) -> tuple[int, bool]:
+    codes = extract_all_zoning_codes(value)
+    fars = [resolve_far(code, intro_date_value, lookup)[0] for code in codes]
+    complete = bool(codes) and all(far is not None for far in fars)
+    return len(set(fars)) if complete else 0, complete
+
+
 def main() -> int:
     args = parse_args()
     master = pd.read_csv(
@@ -595,6 +602,8 @@ def main() -> int:
     out = master.copy()
     out["from_code_count"] = out["from_zoning_raw"].map(lambda value: len(extract_all_zoning_codes(value)))
     out["to_code_count"] = out["to_zoning_raw"].map(lambda value: len(extract_all_zoning_codes(value)))
+    out["from_distinct_far_count"] = 0
+    out["to_distinct_far_count"] = 0
     out["far_transition_status"] = "scalar_candidate"
     out.loc[
         out["from_code_count"].gt(1) | out["to_code_count"].gt(1),
@@ -623,6 +632,15 @@ def main() -> int:
     out["far_pair_source"] = None
 
     for idx, row in out.iterrows():
+        from_far_count, from_side_complete = distinct_side_fars(
+            row.get("from_zoning_raw"), row.get("matter_intro_date"), lookup
+        )
+        to_far_count, to_side_complete = distinct_side_fars(
+            row.get("to_zoning_raw"), row.get("matter_intro_date"), lookup
+        )
+        out.at[idx, "from_distinct_far_count"] = from_far_count
+        out.at[idx, "to_distinct_far_count"] = to_far_count
+
         from_code, from_source, from_code_status = resolve_code(row, "from", lookup)
         to_code, to_source, to_code_status = resolve_code(row, "to", lookup)
 
@@ -671,6 +689,10 @@ def main() -> int:
             out.at[idx, "far_pair_status"] = "missing_both"
         else:
             out.at[idx, "far_pair_status"] = "missing_one_side"
+
+        multiple_codes = row.get("from_code_count", 0) > 1 or row.get("to_code_count", 0) > 1
+        if multiple_codes and from_side_complete and to_side_complete and from_far_count == 1 and to_far_count == 1:
+            out.at[idx, "far_transition_status"] = "scalar_equivalent_codes"
 
     for matter_id in journal_ids:
         mask = out["matter_id"].eq(matter_id)
@@ -761,6 +783,51 @@ def main() -> int:
         out.loc[idx, "is_upzone"] = bool(change > 0)
         out.loc[idx, "far_pair_status"] = "resolved_both"
         out.loc[idx, "far_pair_source"] = "ordinance_pd_review"
+        out.loc[idx, "far_transition_status"] = "scalar_ordinance_review"
+
+    section_decisions = pd.read_csv(
+        "../input/section_review_decisions_20101101_20201231.csv",
+        dtype=str,
+    )
+    if section_decisions["matter_id"].duplicated().any():
+        raise ValueError("Section-review decisions contain duplicate matter_id rows")
+    valid_section_decisions = {
+        "non_scalar_multiple_far",
+        "scalar_ordinance_review",
+        "unresolved_destination_scope",
+    }
+    if not set(section_decisions["decision"]).issubset(valid_section_decisions):
+        raise ValueError("Section-review decision has an invalid action")
+    missing_ids = sorted(set(section_decisions["matter_id"]) - set(out["matter_id"]))
+    if missing_ids:
+        raise ValueError(f"Section-review decisions absent from rezoning data: {missing_ids}")
+
+    scalar_section_decisions = section_decisions.loc[
+        section_decisions["decision"].eq("scalar_ordinance_review")
+    ]
+    for row in scalar_section_decisions.itertuples(index=False):
+        idx = out.index[out["matter_id"].eq(row.matter_id)][0]
+        from_far, from_version, from_start, from_end, from_status = resolve_far(
+            row.corrected_from_code, out.at[idx, "matter_intro_date"], lookup
+        )
+        to_far, to_version, to_start, to_end, to_status = resolve_far(
+            row.corrected_to_code, out.at[idx, "matter_intro_date"], lookup
+        )
+        if from_far is None or to_far is None:
+            raise ValueError(f"Section-review scalar decision lacks FAR values: {row.matter_id}")
+        out.loc[idx, ["from_code", "to_code"]] = [row.corrected_from_code, row.corrected_to_code]
+        out.loc[idx, ["from_code_source", "to_code_source"]] = [
+            "section_ordinance_review",
+            "section_ordinance_review",
+        ]
+        out.loc[idx, ["from_code_status", "to_code_status"]] = ["ok", "ok"]
+        out.loc[idx, ["from_far", "to_far"]] = [from_far, to_far]
+        out.loc[idx, ["from_far_version", "to_far_version"]] = [from_version, to_version]
+        out.loc[idx, ["from_far_effective_start", "from_far_effective_end"]] = [from_start, from_end]
+        out.loc[idx, ["to_far_effective_start", "to_far_effective_end"]] = [to_start, to_end]
+        out.loc[idx, ["from_far_status", "to_far_status"]] = [from_status, to_status]
+        out.loc[idx, "far_pair_source"] = "section_ordinance_review"
+        out.loc[idx, "far_transition_status"] = "scalar_ordinance_review"
 
     non_scalar_decisions = pd.read_csv(
         "../input/non_scalar_far_decisions_20101101_20201231.csv",
@@ -771,21 +838,44 @@ def main() -> int:
     missing_ids = sorted(set(non_scalar_decisions["matter_id"]) - set(out["matter_id"]))
     if missing_ids:
         raise ValueError(f"Non-scalar FAR decisions absent from rezoning data: {missing_ids}")
-    non_scalar = out["matter_id"].isin(non_scalar_decisions["matter_id"])
-    out.loc[non_scalar, "far_transition_status"] = "non_scalar_ordinance"
+
+    automatic_non_scalar = out["far_transition_status"].eq("requires_section_review") & (
+        out["from_distinct_far_count"].gt(1) | out["to_distinct_far_count"].gt(1)
+    )
+    reviewed_non_scalar = section_decisions.loc[
+        section_decisions["decision"].eq("non_scalar_multiple_far"), "matter_id"
+    ]
+    non_scalar = (
+        automatic_non_scalar
+        | out["matter_id"].isin(non_scalar_decisions["matter_id"])
+        | out["matter_id"].isin(reviewed_non_scalar)
+    )
+    unresolved_scope = out["matter_id"].isin(
+        section_decisions.loc[
+            section_decisions["decision"].eq("unresolved_destination_scope"), "matter_id"
+        ]
+    )
+
+    out.loc[non_scalar, "far_transition_status"] = "non_scalar_multiple_far"
     out.loc[non_scalar, ["from_far", "to_far", "far_change", "is_upzone"]] = None
-    out.loc[non_scalar, ["from_far_status", "to_far_status"]] = "non_scalar_ordinance"
-    out.loc[non_scalar, "far_pair_source"] = "non_scalar_ordinance_review"
+    out.loc[non_scalar, ["from_far_status", "to_far_status"]] = "non_scalar_multiple_far"
+    out.loc[non_scalar, "far_pair_source"] = "non_scalar_review"
+    out.loc[unresolved_scope, "far_transition_status"] = "unresolved_destination_scope"
+    out.loc[unresolved_scope, ["from_far", "to_far", "far_change", "is_upzone"]] = None
+    out.loc[unresolved_scope, ["from_far_status", "to_far_status"]] = "unresolved_destination_scope"
+    out.loc[unresolved_scope, "far_pair_source"] = "section_ordinance_review"
 
     from_far = pd.to_numeric(out["from_far"], errors="coerce")
     to_far = pd.to_numeric(out["to_far"], errors="coerce")
-    paired = from_far.notna() & to_far.notna() & ~non_scalar
+    paired = from_far.notna() & to_far.notna() & ~non_scalar & ~unresolved_scope
     out.loc[paired, "far_change"] = (to_far[paired] - from_far[paired]).round(6)
     out.loc[paired, "is_upzone"] = out.loc[paired, "far_change"].astype(float).gt(0)
     out.loc[paired, "far_pair_status"] = "resolved_both"
-    out.loc[~non_scalar & ~paired & from_far.isna() & to_far.isna(), "far_pair_status"] = "missing_both"
-    out.loc[~non_scalar & ~paired & (from_far.notna() | to_far.notna()), "far_pair_status"] = "missing_one_side"
-    out.loc[non_scalar, "far_pair_status"] = "non_scalar_ordinance"
+    ordinary = ~non_scalar & ~unresolved_scope
+    out.loc[ordinary & ~paired & from_far.isna() & to_far.isna(), "far_pair_status"] = "missing_both"
+    out.loc[ordinary & ~paired & (from_far.notna() | to_far.notna()), "far_pair_status"] = "missing_one_side"
+    out.loc[non_scalar, "far_pair_status"] = "non_scalar_multiple_far"
+    out.loc[unresolved_scope, "far_pair_status"] = "unresolved_destination_scope"
 
     out.to_csv(f"../output/zoning_matters_far_{args.date_tag}.csv", index=False)
 

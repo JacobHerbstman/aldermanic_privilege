@@ -14,7 +14,7 @@ all: \
 ../output/rental_listing_panel_2023.parquet: ../output/rental_listing_panel.parquet
 	@test -s "$@"
 
-../input/rent_with_ward_distances.parquet: ../../../merge_event_study_scores/output/rent_with_ward_distances_full.parquet | ../input
+../input/rent_with_ward_distances.parquet: ../../../merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/census_blocks_2010.csv: ../../../../data_raw/CensusBlockTIGER2010_20250721.csv | ../input
@@ -23,7 +23,7 @@ all: \
 ../input/census_blocks_2020.csv: ../../../census_block_2020_cleaning/output/census_blocks_2020.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/block_treatment_panel.csv: ../../../merge_event_study_scores/output/block_treatment_panel.csv | ../input
+../input/block_treatment_panel.csv: ../../../merge_event_study_scores/output/block_treatment_panel_through202604.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/ward_panel.gpkg: ../../../ward_panel_create/output/ward_panel.gpkg | ../input
