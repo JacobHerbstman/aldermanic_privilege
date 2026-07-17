@@ -2,7 +2,7 @@ EXACT_MATCH_FT ?= 10
 LOCAL_MATCH_FT ?= 150
 MAX_BUILDING_GAP ?= 0.10
 
-all: ../output/density_project_lineage.csv ../output/density_project_lineage_summary.csv ../output/density_project_lineage_unresolved_500ft.csv ../output/density_project_lineage_models.csv ../output/density_project_lineage_rd_4panel.png ../output/density_project_lineage_side_density_summary.csv ../output/density_historical_parcel_coverage.csv ../output/density_parcel_address_audit_summary.csv ../output/density_parcel_address_recovered_boundaries.csv ../output/density_bandwidth_fe_robustness.csv ../output/density_all_continuous_ward_pair_influence.csv ../output/density_final_regression_table_preview.tex
+all: ../output/density_project_lineage.csv ../output/density_project_lineage_summary.csv ../output/density_project_lineage_unresolved_500ft.csv ../output/density_project_lineage_models.csv ../output/density_project_lineage_rd_4panel.png ../output/density_project_lineage_side_density_summary.csv ../output/density_historical_parcel_coverage.csv ../output/density_parcel_address_audit_summary.csv ../output/density_parcel_address_recovered_boundaries.csv ../output/density_bandwidth_fe_robustness.csv ../output/density_all_continuous_ward_pair_influence.csv ../output/density_final_regression_table_preview.tex ../output/density_lineage_zoning_models.csv
 
 ../output/density_project_lineage.csv: build_density_project_lineage.R ../input/density_historical_coordinate_cases.csv ../input/density_historical_parcel_records.csv ../input/density_historical_recovery_membership.csv ../input/density_year_built_revision_cases.csv ../input/residential_cross_section.csv ../input/multifamily_data_cleaned.csv ../input/parcel_universe_2025_city.csv ../input/parcels_with_geometry.gpkg | ../output
 	Rscript $< $(EXACT_MATCH_FT) $(LOCAL_MATCH_FT) $(MAX_BUILDING_GAP)
@@ -79,6 +79,14 @@ all: ../output/density_project_lineage.csv ../output/density_project_lineage_sum
 
 ../output/density_final_regression_table_preview.tex: build_density_final_table_preview.R ../output/density_bandwidth_fe_robustness.csv | ../output
 	Rscript $<
+
+../output/density_lineage_zoning_models.csv: audit_density_lineage_zoning.R ../../../_lib/border_pair_helpers.R ../output/density_project_lineage.csv ../output/density_parcel_address_lineage_evidence.csv ../output/density_parcel_address_recovered_model_rows.csv ../input/density_historical_recovered_exact_rows.csv ../input/parcels_with_ward_distances.csv ../input/parcels_with_geometry.gpkg ../input/zoning_data_clean.gpkg | ../output
+	Rscript $<
+
+../output/density_lineage_zoning_attrition.csv \
+../output/density_lineage_zoning_excluded_rows.csv \
+../output/density_lineage_zoning_transitions.csv: ../output/density_lineage_zoning_models.csv
+	@test -s "$@"
 
 ../input/density_historical_coordinate_cases.csv: ../../paper_code_alignment_audit/output/density_historical_coordinate_cases.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
