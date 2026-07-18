@@ -84,6 +84,7 @@ positive_permits <- read_csv(
   show_col_types = FALSE,
   col_types = cols(id = col_character(), pin = col_character(), .default = col_guess())
 ) %>%
+  filter(processing_time > 0) %>%
   mutate(month = as.yearmon(month))
 
 zero_permits <- st_read(

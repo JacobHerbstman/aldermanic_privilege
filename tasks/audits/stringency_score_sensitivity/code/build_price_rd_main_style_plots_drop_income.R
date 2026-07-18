@@ -4,15 +4,19 @@
 # bandwidth_ft <- 500
 # bins_per_side <- 10
 # placebo_cutoff_ft <- 1000
+# control_spec <- "all_controls"
 
 source("../../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(market, bandwidth_ft, bins_per_side, placebo_cutoff_ft)
+  cli_args <- c(market, bandwidth_ft, bins_per_side, placebo_cutoff_ft, control_spec)
 }
-if (length(cli_args) != 4L) {
-  stop("FATAL: Script requires 4 args: <rent|sales> <bandwidth_ft> <bins_per_side> <placebo_cutoff_ft>.", call. = FALSE)
+if (length(cli_args) == 4L) {
+  cli_args <- c(cli_args, "all_controls")
+}
+if (length(cli_args) != 5L) {
+  stop("FATAL: Script requires 5 args: <rent|sales> <bandwidth_ft> <bins_per_side> <placebo_cutoff_ft> <all_controls|no_controls_fixed_sample>.", call. = FALSE)
 }
 market <- cli_args[1]
 if (!market %in% c("rent", "sales")) {
@@ -22,6 +26,7 @@ if (!market %in% c("rent", "sales")) {
 bandwidth_ft <- suppressWarnings(as.numeric(cli_args[2]))
 bins_per_side <- suppressWarnings(as.numeric(cli_args[3]))
 placebo_cutoff_ft <- suppressWarnings(as.numeric(cli_args[4]))
+control_spec <- cli_args[5]
 if (!is.finite(bandwidth_ft) || bandwidth_ft <= 0) {
   stop("bandwidth_ft must be a positive number.", call. = FALSE)
 }
@@ -33,6 +38,9 @@ if (!is.finite(placebo_cutoff_ft) || placebo_cutoff_ft <= 0 || placebo_cutoff_ft
 }
 bins_per_side <- as.integer(bins_per_side)
 placebo_cutoff_ft <- as.integer(placebo_cutoff_ft)
+if (!control_spec %in% c("all_controls", "no_controls_fixed_sample")) {
+  stop("control_spec must be 'all_controls' or 'no_controls_fixed_sample'.", call. = FALSE)
+}
 cutoffs_ft <- c(-placebo_cutoff_ft, 0, placebo_cutoff_ft)
 
 if (market == "rent") {
@@ -206,7 +214,8 @@ if (market == "rent") {
   dataset_label <- "Listed rents"
   outcome <- "rent_price"
   time_var <- "year_month"
-  controls <- rent_controls
+  sample_controls <- rent_controls
+  controls <- if (control_spec == "all_controls") rent_controls else character()
   cluster_var <- "segment_id"
   plot_title <- "Listed Rents: True and Placebo Cutoffs"
   plot_y_label <- "Segment-by-month adjusted log rent"
@@ -265,7 +274,8 @@ if (market == "rent") {
   dataset_label <- "Home sales"
   outcome <- "sale_price"
   time_var <- "year_quarter"
-  controls <- sales_controls
+  sample_controls <- sales_controls
+  controls <- if (control_spec == "all_controls") sales_controls else character()
   cluster_var <- "segment_id"
   plot_title <- "Home Sale Prices: True and Placebo Cutoffs"
   plot_y_label <- "Segment-by-quarter adjusted log sale price"
@@ -288,10 +298,10 @@ for (cut_i in cutoffs_ft) {
       cutoff_right = as.integer(running_ft >= 0)
     )
 
-  finite_controls <- character()
-  for (control_i in controls) {
+  finite_sample_controls <- character()
+  for (control_i in sample_controls) {
     if (is.numeric(d[[control_i]])) {
-      finite_controls <- c(finite_controls, control_i)
+      finite_sample_controls <- c(finite_sample_controls, control_i)
     }
   }
   d <- d %>%
@@ -302,8 +312,8 @@ for (cut_i in cutoffs_ft) {
       !is.na(.data[[cluster_var]]),
       .data[[cluster_var]] != ""
     )
-  if (length(finite_controls) > 0) {
-    d <- d %>% filter(if_all(all_of(finite_controls), ~ is.finite(.x)))
+  if (length(finite_sample_controls) > 0) {
+    d <- d %>% filter(if_all(all_of(finite_sample_controls), ~ is.finite(.x)))
   }
 
   if (nrow(d) == 0 || n_distinct(d[[treatment]]) < 2 || n_distinct(d[[cluster_var]]) < 2) {
@@ -397,8 +407,14 @@ plot <- ggplot() +
   theme(legend.position = "bottom", panel.grid.minor = element_blank()) +
   facet_wrap(~cutoff_facet_label, nrow = 1)
 
-ggsave(sprintf("../output/drop_income_%s_placebo_rd_main_style.pdf", market), plot, width = 12, height = 5.5, dpi = 300, bg = "white")
+output_stem <- if (control_spec == "all_controls") {
+  sprintf("drop_income_%s_placebo_rd_main_style", market)
+} else {
+  sprintf("%s_placebo_rd_no_controls", market)
+}
+ggsave(sprintf("../output/%s.pdf", output_stem), plot, width = 12, height = 5.5, dpi = 300, bg = "white")
+ggsave(sprintf("../output/%s.png", output_stem), plot, width = 12, height = 5.5, dpi = 220, bg = "white")
 write_csv(
   bind_rows(result_rows),
-  sprintf("../output/drop_income_%s_placebo_rd_results.csv", market)
+  sprintf("../output/%s_results.csv", output_stem)
 )

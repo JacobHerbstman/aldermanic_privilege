@@ -29,6 +29,7 @@ paper.pdf: Makefile paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_500ft_multifamily_above_median.pdf \
 	../tasks/nonparametric_rd_density_gap_split/output/nonparametric_rd_density_gap_split_log_density_far_500ft_multifamily_below_median.pdf \
 	../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5.pdf \
+	../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_estimates_500ft_all_multifamily_bins5.tex \
 	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_all_shift_neg500ft.pdf \
 	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_all_shift_pos500ft.pdf \
 	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_multifamily_shift_neg500ft.pdf \

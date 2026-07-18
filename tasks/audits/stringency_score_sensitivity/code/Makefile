@@ -218,6 +218,20 @@ all: ../output/alderman_scores.csv ../output/density_score_sensitivity_models.cs
 ../output/drop_income_rent_placebo_rd_results.csv: ../output/drop_income_rent_placebo_rd_main_style.pdf
 	@test -s "$@"
 
+../output/rent_placebo_rd_no_controls.pdf: build_price_rd_main_style_plots_drop_income.R ../../../_lib/amenity_distance_helpers.R ../input/rent_with_ward_distances_full_drop_income.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
+	Rscript $< rent 500 10 1000 no_controls_fixed_sample
+
+../output/rent_placebo_rd_no_controls.png \
+../output/rent_placebo_rd_no_controls_results.csv: ../output/rent_placebo_rd_no_controls.pdf
+	@test -s "$@"
+
+../output/sales_placebo_rd_no_controls.pdf: build_price_rd_main_style_plots_drop_income.R ../input/sales_with_hedonics_amenities_drop_income.parquet | ../output
+	Rscript $< sales 500 10 1000 no_controls_fixed_sample
+
+../output/sales_placebo_rd_no_controls.png \
+../output/sales_placebo_rd_no_controls_results.csv: ../output/sales_placebo_rd_no_controls.pdf
+	@test -s "$@"
+
 ../output/drop_income_sales_placebo_rd_results.csv: ../output/drop_income_sales_placebo_rd_main_style.pdf
 	@test -s "$@"
 
