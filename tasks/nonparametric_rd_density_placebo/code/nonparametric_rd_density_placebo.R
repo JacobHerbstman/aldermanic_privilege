@@ -5,7 +5,7 @@
 # sample_filter <- "all"
 # fe_spec <- "zonegroup_segment_year_additive"
 # bins_per_side <- 5
-# placebo_shift_m <- -152.4
+# placebo_shift_m <- -304.8
 # start_construction_year <- 2006
 # end_construction_year <- 2022
 

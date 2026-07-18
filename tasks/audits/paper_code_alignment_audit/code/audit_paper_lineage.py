@@ -18,8 +18,17 @@ artifact_rows = []
 line_rows = []
 
 for tex_file in tex_files:
+    inside_comment = False
     for line_number, line in enumerate(tex_file.read_text().splitlines(), start=1):
         stripped = line.strip()
+        if stripped.startswith("\\begin{comment}"):
+            inside_comment = True
+            continue
+        if stripped.startswith("\\end{comment}"):
+            inside_comment = False
+            continue
+        if inside_comment:
+            continue
         if not stripped or stripped.startswith("%"):
             continue
 

@@ -1,5 +1,6 @@
 from pathlib import Path
 import csv
+import os
 import subprocess
 
 
@@ -11,12 +12,15 @@ with (repo / "tasks/audits/paper_code_alignment_audit/output/artifact_inventory.
     artifacts = list(csv.DictReader(source))
 
 rows = []
+make_environment = os.environ.copy()
+make_environment["MAKEFLAGS"] = ""
 for artifact in artifacts:
     target = "../output/" + Path(artifact["artifact"]).name
     result = subprocess.run(
         ["make", "-q", target],
         cwd=repo / "tasks" / artifact["producer_task"] / "code",
         capture_output=True,
+        env=make_environment,
         text=True,
     )
     rows.append(

@@ -69,30 +69,3 @@ The weak relationship indicates that the index is not simply reflecting time-inv
     The low correlation indicates that the stringency measure is not simply a persistent ward-level attribute.}
     \label{fig:predecessor_successor_stringency}
 \end{figure}
-
-\subsection{Placebo Checks}
-
-Table~\ref{tab:low_discretion_placebo} asks whether the main stringency score predicts delays for low-discretion permits.
-It does not.
-
-\begin{table}[htbp]
-    \centering
-    \caption{Low-Discretion Processing Time as a Placebo Outcome}
-    \label{tab:low_discretion_placebo}
-    \input{../tasks/within_ward_strictness/output/low_discretion_falsification_compact_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex}
-\end{table}
-
-\begin{comment}
-\begin{table}[htbp]
-    \caption{Low-Discretion Score as a Placebo for Density Outcomes}
-    \label{tab:low_discretion_density_placebo}
-
-    \input{../tasks/new_construction_density_robustness/output/fe_table_500ft_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex}
-
-    \footnotesize
-    \textit{Notes:} Same 500ft all-construction density specification described in Section~\ref{sec:empirical_results_density}, but replacing the main aldermanic stringency score with a placebo score built from alderman-level mean residualized low-discretion log processing times.
-    Regressions include the same own-side controls, side-specific distance-to-boundary slopes, and fixed effects as the main density table.
-    Regressions are unweighted.
-    Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
-\end{table}
-\end{comment}
