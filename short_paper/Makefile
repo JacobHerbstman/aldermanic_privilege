@@ -1,6 +1,7 @@
 all: paper.pdf
 
 paper.pdf: Makefile paper.tex sections/*.tex sections/aldermanic_privilege.bib \
+	../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex \
 	../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
 	../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf \
 	../tasks/new_construction_density_robustness/output/fe_table_500ft_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex \
@@ -13,6 +14,7 @@ paper.pdf: Makefile paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_multifamily_donut25ft.pdf \
 	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_multifamily_donut50ft.pdf \
 	../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5.pdf \
+	../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_estimates_500ft_all_multifamily_bins5.tex \
 	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_all_shift_neg500ft.pdf \
 	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_all_shift_pos500ft.pdf \
 	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_multifamily_shift_neg500ft.pdf \
@@ -24,9 +26,11 @@ paper.pdf: Makefile paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf \
 	../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex \
 	../tasks/permit_summary_stats/output/permit_processing_time_volume_correlation.tex \
-	../tasks/run_event_study_permit/output/did_table_permit_2015_application_frozen2014_stable_preperiod_controls_500ft_clust_ward_pair.tex \
+	../tasks/permit_itt_balance/output/permit_itt_balance_500ft.tex \
+	../tasks/run_event_study_permit/output/did_table_permit_2015_application_frozen2014_itt_preperiod_controls_500ft_clust_ward_pair.tex \
+	../tasks/run_event_study_permit/output/event_study_permit_2015_high_discretion_application_frozen2014_itt_preperiod_controls_500ft_clust_ward_pair.pdf \
 	../tasks/run_event_study_permit/output/event_study_permit_2015_high_discretion_application_frozen2014_stable_preperiod_controls_500ft_clust_ward_pair.pdf \
-	../tasks/run_event_study_permit/output/event_study_permit_2015_low_discretion_nosigns_application_frozen2014_stable_preperiod_controls_500ft_clust_ward_pair.pdf \
+	../tasks/run_event_study_permit/output/event_study_permit_2015_low_discretion_nosigns_application_frozen2014_itt_preperiod_controls_500ft_clust_ward_pair.pdf \
 	../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls.pdf \
 	../tasks/price_rd_stress_tests/output/rent_placebo_rd_main_style.pdf \
 	../tasks/price_rd_stress_tests/output/sales_placebo_rd_main_style.pdf \

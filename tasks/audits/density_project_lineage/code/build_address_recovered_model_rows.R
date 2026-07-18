@@ -68,7 +68,7 @@ recovered_sf$segment_id <- assign_points_to_nearest_segments(
   era_values = recovered_sf$era,
   pair_values = recovered_sf$ward_pair,
   segment_layers = segment_layers,
-  max_distance = units::set_units(250, "m"),
+  max_distance = units::set_units(457.2, "m"),
   chunk_n = 50000L
 )
 

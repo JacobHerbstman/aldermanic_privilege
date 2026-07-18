@@ -70,6 +70,9 @@ tasks/rezoning_geocode_external_merge_ready/output/*
 !tasks/permit_block_hand_adjudications/output/
 tasks/permit_block_hand_adjudications/output/*
 !tasks/permit_block_hand_adjudications/output/manual_permit_block_assignments.csv
+!tasks/density_historical_coordinates/output/
+tasks/density_historical_coordinates/output/*
+!tasks/density_historical_coordinates/output/density_historical_coordinates.csv
 !tasks/rezoning_block_hand_adjudications/output/
 tasks/rezoning_block_hand_adjudications/output/*
 !tasks/rezoning_block_hand_adjudications/output/reviewed_rezoning_block_assignments.csv

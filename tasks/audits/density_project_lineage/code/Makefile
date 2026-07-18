@@ -2,7 +2,7 @@ EXACT_MATCH_FT ?= 10
 LOCAL_MATCH_FT ?= 150
 MAX_BUILDING_GAP ?= 0.10
 
-all: ../output/density_project_lineage.csv ../output/density_project_lineage_summary.csv ../output/density_project_lineage_unresolved_500ft.csv ../output/density_project_lineage_models.csv ../output/density_project_lineage_rd_4panel.png ../output/density_project_lineage_side_density_summary.csv ../output/density_historical_parcel_coverage.csv ../output/density_parcel_address_audit_summary.csv ../output/density_parcel_address_recovered_boundaries.csv ../output/density_bandwidth_fe_robustness.csv ../output/density_all_continuous_ward_pair_influence.csv ../output/density_final_regression_table_preview.tex ../output/density_lineage_zoning_models.csv
+all: ../output/density_project_lineage.csv ../output/density_project_lineage_summary.csv ../output/density_project_lineage_unresolved_500ft.csv ../output/density_project_lineage_models.csv ../output/density_project_lineage_rd_4panel.png ../output/density_project_lineage_side_density_summary.csv ../output/density_historical_parcel_coverage.csv ../output/density_parcel_address_audit_summary.csv ../output/density_parcel_address_recovered_boundaries.csv ../output/density_bandwidth_fe_robustness.csv ../output/density_all_continuous_ward_pair_influence.csv ../output/density_final_regression_table_preview.tex ../output/density_lineage_zoning_models.csv ../output/density_lineage_confirmed_card_models.csv ../output/density_unlogged_score_models.csv ../output/density_score_sensitivity_sample.csv ../output/density_unlogged_outcome_tail_projects.csv ../output/density_all_workload_rd_4panel.png ../output/density_all_workload_rd_units_2panel.png
 
 ../output/density_project_lineage.csv: build_density_project_lineage.R ../input/density_historical_coordinate_cases.csv ../input/density_historical_parcel_records.csv ../input/density_historical_recovery_membership.csv ../input/density_year_built_revision_cases.csv ../input/residential_cross_section.csv ../input/multifamily_data_cleaned.csv ../input/parcel_universe_2025_city.csv ../input/parcels_with_geometry.gpkg | ../output
 	Rscript $< $(EXACT_MATCH_FT) $(LOCAL_MATCH_FT) $(MAX_BUILDING_GAP)
@@ -88,6 +88,33 @@ all: ../output/density_project_lineage.csv ../output/density_project_lineage_sum
 ../output/density_lineage_zoning_transitions.csv: ../output/density_lineage_zoning_models.csv
 	@test -s "$@"
 
+../output/density_lineage_confirmed_card_models.csv: audit_density_lineage_confirmed_cards.R ../../../_lib/border_pair_helpers.R ../output/density_project_lineage.csv ../output/density_parcel_address_lineage_evidence.csv ../output/density_parcel_address_recovered_model_rows.csv ../input/density_historical_recovered_exact_rows.csv ../input/parcels_with_ward_distances.csv ../input/parcels_with_geometry.gpkg ../input/zoning_data_clean.gpkg ../input/density_residential_card_affected_rows.csv | ../output
+	Rscript $<
+
+../output/density_unlogged_score_models.csv: audit_density_unlogged_scores.R ../../../_lib/border_pair_helpers.R ../output/density_project_lineage.csv ../output/density_parcel_address_lineage_evidence.csv ../output/density_parcel_address_recovered_model_rows.csv ../output/density_historical_address_records.csv ../input/density_historical_recovered_exact_rows.csv ../input/parcels_with_ward_distances.csv ../input/parcels_with_geometry.gpkg ../input/zoning_data_clean.gpkg ../input/permit_zero_day_score_aldermen.csv ../input/parcel_addresses_2025_chicago.csv | ../output
+	Rscript $<
+
+../output/density_unlogged_outcome_tail_projects.csv: ../output/density_unlogged_score_models.csv
+	@test -s "$@"
+
+../output/density_score_sensitivity_sample.csv: ../output/density_unlogged_score_models.csv
+	@test -s "$@"
+
+../output/density_all_workload_rd_4panel.png \
+../output/density_all_workload_rd_4panel.pdf \
+../output/density_all_workload_rd_all_far.png \
+../output/density_all_workload_rd_multifamily_far.png \
+../output/density_all_workload_rd_all_dupac.png \
+../output/density_all_workload_rd_multifamily_dupac.png \
+../output/density_all_workload_rd_all_units.png \
+../output/density_all_workload_rd_multifamily_units.png \
+../output/density_all_workload_rd_units_2panel.png \
+../output/density_all_workload_rd_units_2panel.pdf: ../output/density_unlogged_score_models.csv
+	@test -s "$@"
+
+../output/density_lineage_confirmed_card_rows.csv: ../output/density_lineage_confirmed_card_models.csv
+	@test -s "$@"
+
 ../input/density_historical_coordinate_cases.csv: ../../paper_code_alignment_audit/output/density_historical_coordinate_cases.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
@@ -142,6 +169,12 @@ all: ../output/density_project_lineage.csv ../output/density_project_lineage_sum
 ../input/alderman_uncertainty_index_through2022.csv: ../../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/density_historical_coordinate_cases.csv ../input/density_historical_parcel_records.csv ../input/density_historical_recovery_membership.csv ../input/density_year_built_revision_cases.csv ../input/residential_cross_section.csv ../input/multifamily_data_cleaned.csv ../input/parcel_universe_2025_city.csv ../input/parcels_with_geometry.gpkg ../input/density_historical_recovered_exact_rows.csv ../input/parcels_with_ward_distances.csv ../input/parcel_addresses_2025_chicago.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_1320ft.gpkg ../input/zoning_data_clean.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls_2000_2023.csv ../input/alderman_uncertainty_index_through2022.csv
+../input/density_residential_card_affected_rows.csv: ../../paper_code_alignment_audit/output/density_residential_card_affected_rows.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+../input/permit_zero_day_score_aldermen.csv: ../../paper_code_alignment_audit/output/permit_zero_day_score_aldermen.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/density_historical_coordinate_cases.csv ../input/density_historical_parcel_records.csv ../input/density_historical_recovery_membership.csv ../input/density_year_built_revision_cases.csv ../input/residential_cross_section.csv ../input/multifamily_data_cleaned.csv ../input/parcel_universe_2025_city.csv ../input/parcels_with_geometry.gpkg ../input/density_historical_recovered_exact_rows.csv ../input/parcels_with_ward_distances.csv ../input/parcel_addresses_2025_chicago.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/boundary_segments_1320ft.gpkg ../input/zoning_data_clean.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls_2000_2023.csv ../input/alderman_uncertainty_index_through2022.csv ../input/density_residential_card_affected_rows.csv ../input/permit_zero_day_score_aldermen.csv
 
 include ../../../generic.make

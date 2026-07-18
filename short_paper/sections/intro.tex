@@ -17,7 +17,7 @@ This creates sharp changes in regulatory authority at ward boundaries, even when
 Two parcels on opposite sides of the same street, in the same neighborhood, with the same zoning, can face very different regulatory regimes depending on which alderman they interact with.
 I use this sharp change in regulatory authority to study how informal regulations affect housing supply and prices.
 
-To measure the regulatory environment each alderman creates, I construct ``regulatory stringency scores'' for each alderman from permit processing times for projects where aldermen are most likely to matter: new construction, renovation, demolition, porch construction, and reinstated permits.
+To measure the regulatory environment each alderman creates, I construct ``regulatory stringency scores'' from processing times for permits likely to involve substantial aldermanic discretion.
 I residualize processing times against ward characteristics and time effects to isolate the alderman-specific component of the variation, then apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to reduce noise for aldermen with relatively few permits.
 The motivation for using processing time variation is simple: delay makes projects less valueable, and
 a developer who expects years of meetings, redesigns, and uncertainty may build a smaller project or be deterred from building at all \citep{kydland_time_1982, mayer_land_2000, paciorek_supply_2013, gyourko_local_2021, soltas_how_2026}.
@@ -29,10 +29,9 @@ I use a spatial regression discontinuity design to compare new construction proj
 For multifamily new construction, floor-area ratio (FAR) is about $23\%$ lower and dwelling units per acre (DUPAC) is about $30\%$ lower on the more stringent side of the boundary.
 The all-construction estimates point in the same direction but are smaller, at about $10\%$ lower FAR and $14\%$ lower DUPAC.
 
-I then complement this analysis by using the 2015 ward redistricting to test whether permitting changes when a block receives a new alderman, keeping location fixed.
-To separate redistricting from the 2015 election, I keep only comparisons where the aldermen serving both the origin and destination wards remained in office through the transition.
-I also estimate the stringency scores for this design using only permits filed through 2014.
-Using this within-census-block variation, I find that a one-standard-deviation increase in aldermanic stringency reduces `high-discretion' permit applications by 13.2\% over the next 5 years, relative to nearby blocks whose regulatory environment does not change.
+I then complement this analysis by using the 2015 ward redistricting to test whether permitting changes when a block is reassigned to a different ward, keeping location fixed.
+I estimate the stringency scores for this design using only permits filed through 2014 and measure the assigned change using the origin and destination wards' pre-redistricting incumbents.
+Using this within-census-block variation, I find that a one-standard-deviation increase in assigned stringency reduces the annual flow of high-discretion permit applications by 9.2\% in the five years following the remap, relative to nearby blocks whose ward assignment does not change.
 This result shows that more stringent aldermen reduce not only the scale of completed projects, but also the flow of projects requiring discretionary review, suggesting that stringent aldermen deter development on the extensive margin as well.
 
 I finally examine whether housing costs are higher in the places where the supply evidence predicts they should be.

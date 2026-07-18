@@ -24,6 +24,8 @@ corrected_zone_group_from_code <- function(z) {
     str_starts(z, "DX-") | str_starts(z, "DR-") |
       str_starts(z, "DS-") | str_starts(z, "DC-") ~ "Downtown",
     str_starts(z, "PD") ~ "Planned Development",
+    str_starts(z, "PMD") ~ "Planned Manufacturing",
+    str_starts(z, "POS") ~ "Open Space",
     TRUE ~ "Other"
   )
 }
@@ -207,8 +209,8 @@ model_specs <- tribble(
   "stale_zoning_corrected_groups", "stale_zone_group_corrected", "stale_all",
   "drop_stale_planned_active_groups", "stale_zone_group_active", "drop_stale_planned",
   "drop_stale_planned_corrected_groups", "stale_zone_group_corrected", "drop_stale_planned",
-  "fresh_no_planned_active_groups", "fresh_zone_group_active", "fresh_available",
-  "fresh_no_planned_corrected_groups", "fresh_zone_group_corrected", "fresh_available"
+  "fresh_rebuild_active_groups", "fresh_zone_group_active", "fresh_available",
+  "fresh_rebuild_corrected_groups", "fresh_zone_group_corrected", "fresh_available"
 )
 
 model_rows <- list()
@@ -263,41 +265,51 @@ for (spec_i in seq_len(nrow(model_specs))) {
           "side"
         }
 
-        model <- feols(
-          as.formula(paste0(
-            "outcome_value ~ ", treatment_variable,
-            " + lenient_dist + strict_dist + ",
-            paste(demographic_controls, collapse = " + "),
-            " | ", zone_variable, " + segment_id + construction_year"
-          )),
-          data = outcome_rows,
-          cluster = ~ward_pair,
-          notes = FALSE
-        )
+        for (cluster_level in c("ward_pair", "segment")) {
+          cluster_variable <- if (cluster_level == "ward_pair") {
+            "ward_pair"
+          } else {
+            "segment_id"
+          }
 
-        coefficient_table <- coeftable(model)
-        used_rows <- obs(model)
-        model_rows[[length(model_rows) + 1L]] <- tibble(
-          specification,
-          construction_sample,
-          outcome,
-          treatment,
-          estimate = unname(
-            coefficient_table[treatment_variable, "Estimate"]
-          ),
-          se = unname(
-            coefficient_table[treatment_variable, "Std. Error"]
-          ),
-          p_value = unname(
-            coefficient_table[treatment_variable, "Pr(>|t|)"]
-          ),
-          n = nobs(model),
-          recovered_rows = sum(
-            outcome_rows$sample_source[used_rows] !=
-              "production_current_2025_coordinate"
-          ),
-          ward_pairs = n_distinct(outcome_rows$ward_pair[used_rows])
-        )
+          model <- feols(
+            as.formula(paste0(
+              "outcome_value ~ ", treatment_variable,
+              " + lenient_dist + strict_dist + ",
+              paste(demographic_controls, collapse = " + "),
+              " | ", zone_variable, " + segment_id + construction_year"
+            )),
+            data = outcome_rows,
+            cluster = as.formula(paste0("~", cluster_variable)),
+            notes = FALSE
+          )
+
+          coefficient_table <- coeftable(model)
+          used_rows <- obs(model)
+          model_rows[[length(model_rows) + 1L]] <- tibble(
+            specification,
+            construction_sample,
+            outcome,
+            treatment,
+            cluster_level,
+            estimate = unname(
+              coefficient_table[treatment_variable, "Estimate"]
+            ),
+            se = unname(
+              coefficient_table[treatment_variable, "Std. Error"]
+            ),
+            p_value = unname(
+              coefficient_table[treatment_variable, "Pr(>|t|)"]
+            ),
+            n = nobs(model),
+            recovered_rows = sum(
+              outcome_rows$sample_source[used_rows] !=
+                "production_current_2025_coordinate"
+            ),
+            ward_pairs = n_distinct(outcome_rows$ward_pair[used_rows]),
+            clusters = n_distinct(outcome_rows[[cluster_variable]][used_rows])
+          )
+        }
       }
     }
   }
@@ -321,7 +333,7 @@ base_sample %>%
     ),
     fresh_zoning_status = if_else(
       is.na(fresh_zone_code),
-      "missing from active no-PD source",
+      "missing from rebuilt source",
       "included district"
     )
   ) %>%

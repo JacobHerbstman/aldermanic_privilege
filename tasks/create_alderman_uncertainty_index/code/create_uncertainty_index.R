@@ -95,8 +95,8 @@ result <- build_residualized_uncertainty_index(
   config = config,
   variant_id = "baseline",
   stage1_outcome = "log_processing_time",
-  drop_covariates = c("share_bach_plus"),
-  construction_rule = "Baseline residualized score dropping share_bach_plus"
+  drop_covariates = c("share_bach_plus", "median_hh_income_10k"),
+  construction_rule = "Residualized alderman score used in the paper"
 )
 
 write_csv(result$alderman_index, sprintf("../output/alderman_uncertainty_index_%s.csv", output_suffix))

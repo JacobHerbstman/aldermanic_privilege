@@ -1,4 +1,4 @@
-# this code takes the parcels dataset from cook county assessor and merges in latitude and longitude for all pins i can find (residential and condo datasets)
+# Geocode whole-building construction records by original PIN.
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/geocode_ccao_data/code")
 
@@ -18,7 +18,11 @@ residential <- read_csv(
 parcels <- read_csv(
   "../input/parcels.csv",
   show_col_types = FALSE,
-  col_types = cols(pin = col_character(), pin10 = col_character(), .default = col_guess())
+  col_types = cols(pin = col_character(), pin10 = col_character(), .default = col_double()),
+  col_select = all_of(c(
+    "pin", "pin10", "latitude", "longitude",
+    "cmap_walkability_total_score", "cmap_walkability_no_transit_score"
+  ))
 )
 parcel_proximity <- read_csv(
   "../input/parcel_proximity.csv",
@@ -30,6 +34,40 @@ multifamily <- read_csv(
   show_col_types = FALSE,
   col_types = cols(pin = col_character(), .default = col_guess())
 )
+historical_coordinates <- read_csv(
+  "../input/density_historical_coordinates.csv",
+  show_col_types = FALSE,
+  col_types = cols(pin = col_character(), construction_year = col_integer(), .default = col_guess())
+)
+
+required_historical_columns <- c(
+  "pin", "construction_year", "longitude", "latitude", "coordinate_source"
+)
+if (!all(required_historical_columns %in% names(historical_coordinates))) {
+  stop("Historical density coordinates are missing required columns.", call. = FALSE)
+}
+if (anyNA(historical_coordinates$pin) ||
+    any(!str_detect(historical_coordinates$pin, "^[0-9]{14}$")) ||
+    anyNA(historical_coordinates$construction_year)) {
+  stop("Historical density coordinates contain an invalid PIN or construction year.", call. = FALSE)
+}
+if (anyDuplicated(historical_coordinates$pin) > 0) {
+  stop("Historical density coordinates are not unique by original PIN.", call. = FALSE)
+}
+if (any(!historical_coordinates$coordinate_source %in%
+        c("historical_parcel", "historical_address"))) {
+  stop("Historical density coordinates contain an unknown coordinate source.", call. = FALSE)
+}
+if (any(
+  !is.finite(historical_coordinates$latitude) |
+    !is.finite(historical_coordinates$longitude) |
+    historical_coordinates$latitude < chicago_lat_min |
+    historical_coordinates$latitude > chicago_lat_max |
+    historical_coordinates$longitude < chicago_lon_min |
+    historical_coordinates$longitude > chicago_lon_max
+)) {
+  stop("Historical density coordinates contain missing or out-of-bounds coordinates.", call. = FALSE)
+}
 
 # ---- Prep Parcels (Geo) ----
 parcels <- parcels %>%
@@ -69,7 +107,34 @@ if (nrow(out_of_bounds_parcels) > 0) {
 }
 
 parcels <- parcels %>%
-  select(pin, pin10, latitude, longitude, cmap_walkability_total_score, cmap_walkability_no_transit_score)
+  select(pin, pin10, latitude, longitude, cmap_walkability_total_score, cmap_walkability_no_transit_score) %>%
+  mutate(
+    coordinate_source = "parcel_universe_2025",
+    coordinate_construction_year = NA_integer_
+  )
+
+if (any(historical_coordinates$pin %in% parcels$pin)) {
+  stop("A frozen historical coordinate conflicts with a complete 2025 parcel coordinate.", call. = FALSE)
+}
+
+parcels <- bind_rows(
+  parcels,
+  historical_coordinates %>%
+    transmute(
+      pin,
+      pin10 = str_sub(pin, 1, 10),
+      latitude,
+      longitude,
+      cmap_walkability_total_score = NA_real_,
+      cmap_walkability_no_transit_score = NA_real_,
+      coordinate_source,
+      coordinate_construction_year = construction_year
+    )
+)
+
+if (anyDuplicated(parcels$pin) > 0) {
+  stop("Combined coordinate lookup is not unique by original PIN.", call. = FALSE)
+}
 
 parcel_proximity <- parcel_proximity %>%
   select(pin10, nearest_cta_route_dist_ft, nearest_hospital_dist_ft, nearest_major_road_dist_ft,
@@ -126,7 +191,8 @@ res_with_geo <- res_with_geo %>%
       (!is.na(type_of_residence) & type_of_residence %in% c("1 Story","1.5 Story","2 Story","3 Story +","Split Level")),
     unitscount = ifelse(is_sf & (is.na(unitscount) | unitscount == 0L), 1L, unitscount)
   ) %>%
-  select(pin, pin10, yearbuilt, arealotsf, areabuilding, unitscount, storiescount, bedroomscount, latitude, longitude, residential)
+  select(pin, pin10, yearbuilt, arealotsf, areabuilding, unitscount, storiescount, bedroomscount,
+         latitude, longitude, residential, coordinate_source, coordinate_construction_year)
 
 # ---- Process Commercial (Multifamily) ----
 multifamily_geo <- multifamily %>%
@@ -169,7 +235,8 @@ multifamily_geo <- multifamily %>%
   ) %>%
   
   # Select matching columns
-  select(pin, pin10, yearbuilt, arealotsf, areabuilding, unitscount, storiescount, bedroomscount, latitude, longitude, residential)
+  select(pin, pin10, yearbuilt, arealotsf, areabuilding, unitscount, storiescount, bedroomscount,
+         latitude, longitude, residential, coordinate_source, coordinate_construction_year)
 
 # ---- Combine and Save ----
 # Bind rows
@@ -185,6 +252,21 @@ all_parcels <- bind_rows(res_with_geo, multifamily_geo) %>%
 if (anyDuplicated(all_parcels$pin)) {
   stop("Combined geocoded parcel output still has duplicate PINs after prioritization.", call. = FALSE)
 }
+
+historical_output <- all_parcels %>%
+  filter(coordinate_source != "parcel_universe_2025")
+if (nrow(historical_output) != nrow(historical_coordinates) ||
+    !setequal(historical_output$pin, historical_coordinates$pin)) {
+  stop("Not every frozen historical coordinate appears exactly once in the geocoded output.", call. = FALSE)
+}
+if (anyNA(historical_output$yearbuilt) ||
+    anyNA(historical_output$coordinate_construction_year) ||
+    any(historical_output$yearbuilt != historical_output$coordinate_construction_year)) {
+  stop("A historical coordinate does not match the construction year of its original PIN.", call. = FALSE)
+}
+
+all_parcels <- all_parcels %>%
+  select(-coordinate_construction_year)
 
 invalid_output_coords <- all_parcels %>%
   filter(

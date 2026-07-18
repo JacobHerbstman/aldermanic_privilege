@@ -358,10 +358,16 @@ permits_analysis <- permits_with_controls %>%
   ) %>%
   filter(
     !is.na(alderman),
-    !is.na(log_processing_time),
+    is.finite(processing_time),
+    processing_time >= 0,
     !is.na(ward),
     !is.na(month)
   )
+
+if (any(is.na(permits_analysis$log_processing_time) !=
+        (permits_analysis$processing_time == 0))) {
+  stop("Log processing time must be missing exactly for same-day permits.", call. = FALSE)
+}
 
 output_data <- permits_analysis %>%
   select(

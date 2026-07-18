@@ -88,7 +88,7 @@ if (is.null(zone_col)) {
 
 zones_sf <- zones_raw %>%
   transmute(zone_code = norm_code(as.character(.data[[zone_col]])), geometry) %>%
-  filter(!is.na(zone_code), !str_detect(zone_code, "^(?:PD|PMD|POS)"))
+  filter(!is.na(zone_code))
 
 regs_raw <- read_csv(opt$in_zoning_lookup_csv, show_col_types = FALSE)
 code_col <- pick_col(regs_raw, c("district_type_code", "district", "district_type", "zoning_code", "code"), contains = c("district"))
@@ -107,7 +107,7 @@ regs <- regs_raw %>%
     lot_area_per_unit_raw = if (!is.null(lapu_col)) as.character(.data[[lapu_col]]) else NA_character_,
     maximum_building_height_raw = if (!is.null(height_col)) as.character(.data[[height_col]]) else NA_character_
   ) %>%
-  filter(!is.na(zone_code), !str_detect(zone_code, "^(?:PD|PMD|POS)")) %>%
+  filter(!is.na(zone_code)) %>%
   distinct(zone_code, .keep_all = TRUE) %>%
   mutate(
     floor_area_ratio = na_none(floor_area_ratio_raw),

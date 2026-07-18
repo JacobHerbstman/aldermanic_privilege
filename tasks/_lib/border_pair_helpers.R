@@ -134,11 +134,13 @@ zone_group_from_code <- function(z) {
   case_when(
     str_starts(z, "RS-") ~ "Single-Family Residential",
     str_starts(z, "RT-") | str_starts(z, "RM-") ~ "Multi-Family Residential",
-    str_starts(z, "B-") ~ "Neighborhood Mixed-Use",
-    str_starts(z, "C-") ~ "Commercial",
-    str_starts(z, "M-") ~ "Industrial",
+    str_detect(z, "^B-?[1-7]-") ~ "Neighborhood Mixed-Use",
+    str_detect(z, "^C-?[1-7]-") ~ "Commercial",
+    str_detect(z, "^M-?[1-7]-") ~ "Industrial",
     str_starts(z, "DX-") | str_starts(z, "DR-") | str_starts(z, "DS-") | str_starts(z, "DC-") ~ "Downtown",
     str_starts(z, "PD") ~ "Planned Development",
+    str_starts(z, "PMD") ~ "Planned Manufacturing",
+    str_starts(z, "POS") ~ "Open Space",
     TRUE ~ "Other"
   )
 }

@@ -7,11 +7,12 @@ This appendix provides additional detail on how the aldermanic stringency index 
 
 \subsection{Construction of the Stringency Index}
 
-Aldermanic stringency is measured using permit processing times from the high-discretion permit sample described in Section~\ref{subsec:permits_sample}: new construction, major renovation, demolition, porch construction, and reinstated permits.
-The score uses applications through December 2022 and residualizes processing times to remove the influence of ward characteristics.
+Aldermanic stringency is measured using processing times from the high-discretion permit sample described in Section~\ref{subsec:permits_sample}.
+The processing-time regression uses positive-duration applications through December 2022.
+Same-day applications remain in the lagged ward-month permit count.
 
 \paragraph{Stage 1: Residualization.}
-I regress permit-level log processing time on ward geographic fundamentals (distance to the CBD, distance to the lake, CTA station density), demographic controls (homeownership rate, population, median household income, racial composition), lagged ward-month permit volume, and fixed effects for month, permit type, and review type.
+I regress permit-level log processing time on ward geographic fundamentals (distance to the CBD, distance to the lake, CTA station density), demographic controls (homeownership rate, population, racial composition), lagged ward-month permit volume, and fixed effects for year-months, permit type, and review type.
 
 \paragraph{Stage 2: Alderman Fixed Effects.}
 I aggregate the Stage 1 residuals to ward-month mean residuals and regress those ward-month averages on alderman fixed effects $\alpha_{a(w,m)}$ and the same lagged permit-volume control, weighting observations by ward-month permit counts.
@@ -37,7 +38,7 @@ The purpose of this stage is to remove systematic differences in permit timing a
 
     \footnotesize
     \textit{Notes:} Permit-level OLS regression from the baseline uncertainty-index specification, using permit applications through December 2022.
-    Covariates are median household income, racial shares, homeownership, population, distance to the CBD, distance to the lake, CTA station density, and lag permit volume.
+    Covariates are racial shares, homeownership, population, distance to the CBD, distance to the lake, CTA station density, and lag permit volume.
     Fixed effects are listed in the table.
     Regressions are unweighted.
     Standard errors in parentheses. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.

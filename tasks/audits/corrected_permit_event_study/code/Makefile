@@ -6,6 +6,10 @@ CLUSTERS ?= block wardpair
 all: \
 	../output/corrected_permit_block_year_panel.parquet \
 	../output/corrected_permit_sample_summary.csv \
+	../output/corrected_permit_itt_discretion_difference_500ft.csv \
+	../output/corrected_permit_itt_discretion_transition_500ft.csv \
+	../output/corrected_permit_stable_discretion_difference_500ft.csv \
+	../output/corrected_permit_realized_discretion_difference_500ft.csv \
 	../output/corrected_permit_direction_indicator_500ft.pdf \
 	../output/corrected_permit_direction_indicator_500ft_estimates.csv \
 	../output/corrected_permit_direction_indicator_500ft_summary.csv \
@@ -72,6 +76,12 @@ all: \
 
 ../output/corrected_permit_sample_summary.csv: ../output/corrected_permit_block_year_panel.parquet
 	@test -s "$@"
+
+../output/corrected_permit_%_discretion_difference_500ft.csv: test_itt_discretion_difference.R ../output/corrected_permit_block_year_panel.parquet | ../output
+	$(R) $< $* 152.4 500ft
+
+../output/corrected_permit_itt_discretion_transition_500ft.csv: test_itt_transition_year.R ../output/corrected_permit_block_year_panel.parquet | ../output
+	$(R) $< 152.4 500ft
 
 ../output/corrected_permit_event_study_%_clust_block_$(BANDWIDTH_LABEL).pdf: run_corrected_permit_event_study.R ../output/corrected_permit_block_year_panel.parquet | ../output
 	$(R) $< $* block $(BANDWIDTH_M) $(BANDWIDTH_LABEL)

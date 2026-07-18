@@ -340,13 +340,13 @@ recovered_project_counts <- read_csv(
   show_col_types = FALSE,
   col_types = cols(pin = col_character(), .default = col_guess())
 ) %>%
-  filter(dist_to_boundary_m <= 304.8) %>%
+  filter(dist_to_boundary_m <= 457.2) %>%
   select(pin) %>%
   left_join(lineage_pin_lookup, by = "pin", relationship = "one-to-one") %>%
   count(project_key, name = "recovered_audit_pin_count")
 
 if (any(is.na(recovered_project_counts$project_key))) {
-  stop("A recovered 1,000-foot PIN is missing from project lineage.", call. = FALSE)
+  stop("A recovered 1,500-foot PIN is missing from project lineage.", call. = FALSE)
 }
 
 lineage <- lineage_all %>%

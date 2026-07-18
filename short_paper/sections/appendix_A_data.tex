@@ -35,7 +35,7 @@ American Community Survey block group demographics and 2010/2020 decennial censu
 The building permits data come from the City of Chicago's open data portal and include all permit applications and processing records.
 
 \paragraph{Sample Restrictions.}
-I restrict the sample to permits for projects where aldermen are most likely to matter: new construction, major renovation, demolition, porch construction, and permits that were reinstated after being previously revoked.
+I construct the high-discretion sample using the permit types defined in Section~\ref{subsec:permit_pipeline}.
 
 All remaining permit types are excluded from the high-discretion sample.
 In placebo analyses, low-discretion permits are the remaining routine permit types, excluding signs.
@@ -44,6 +44,7 @@ The event-study outcomes include applications that were issued or later expired,
 \paragraph{Processing Time.}
 For each permit, I compute processing time as the number of days between the application date and the issue date.
 Permits with missing dates or negative processing times are excluded.
+Same-day permits enter the lagged permit-volume control but not the log processing-time regression.
 
 \paragraph{Ward Assignment.}
 Permits are assigned to wards based on the permit's geographic coordinates and the ward boundaries in effect at the time of application.
@@ -67,9 +68,12 @@ The change in stringency for block $i$ is
 \Delta\text{Stringency}_i = \text{Stringency}_{\text{dest}} - \text{Stringency}_{\text{origin}}.
 \]
 
-\paragraph{Electoral-Turnover Exclusion.}
-I retain a block only if the 2014 aldermen serving both its origin and destination wards remained in their respective offices in 2015.
-Without this restriction, the measured change in stringency could reflect the 2015 election rather than redistricting, including for blocks whose origin ward elected a new alderman.
+\paragraph{Assigned Stringency.}
+For each block, I measure the change in stringency using the 2014 incumbents in its origin and destination wards.
+Some wards elected new aldermen when the new map took effect, so this assigned change does not always match the change under the alderman who ultimately took office.
+I nevertheless keep treatment tied to the pre-election incumbents.
+Defining treatment using the 2015 winner could mix the effect of aldermanic stringency with the ward's own demand for more or less development.
+I retain blocks regardless of electoral turnover and interpret the estimate as the effect of assigned stringency.
 
 \paragraph{Analysis Sample.}
 Permit applications are aggregated to block-year panels using application year.
@@ -92,6 +96,7 @@ For each parcel, I compute two density measures: Floor Area Ratio (FAR), defined
 
 \paragraph{Ward and Boundary Assignment.}
 Each parcel is assigned to a ward based on its centroid location and the ward boundaries in effect at the time of construction.
+Because the Assessor reports only the year built, I assign June 15 of that year as the construction date and use the ward map and alderman in office on that date.
 Distance to the nearest ward boundary is computed after projecting parcels and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
 
 \subsection{Summary Statistics: New Construction Sample}

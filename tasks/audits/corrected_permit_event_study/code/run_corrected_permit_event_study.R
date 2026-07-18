@@ -25,6 +25,8 @@ bandwidth_label <- cli_args[4]
 valid_specifications <- c(
   "issue_stable", "low_issue_stable", "application_stable", "issue_itt", "application_itt",
   "issue_stable_pre2015", "issue_itt_pre2015", "application_itt_pre2015",
+  "application_itt_pre2015_prevolume", "low_application_itt_pre2015",
+  "low_application_itt_pre2015_prevolume",
   "issue_realized_pre2015", "low_issue_realized_pre2015", "application_realized_pre2015",
   "issue_realized_pre2015_prevolume", "application_realized_pre2015_prevolume",
   "triple_issue_stable"
@@ -203,6 +205,12 @@ for (window_start in c(0L, 2L, 3L)) {
 }
 pooled_results <- bind_rows(pooled_results)
 full_post <- pooled_results %>% filter(window == "0-5")
+pooled_stars <- case_when(
+  full_post$p_value <= 0.01 ~ "***",
+  full_post$p_value <= 0.05 ~ "**",
+  full_post$p_value <= 0.10 ~ "*",
+  TRUE ~ ""
+)
 
 plot <- ggplot(event_estimates, aes(event_time, estimate)) +
   geom_hline(yintercept = 0, color = "gray50", linewidth = 0.4) +
@@ -210,14 +218,13 @@ plot <- ggplot(event_estimates, aes(event_time, estimate)) +
   geom_ribbon(aes(ymin = ci_low, ymax = ci_high), fill = "#B8D8CF", color = NA) +
   geom_line(color = "#176B58", linewidth = 0.9) +
   geom_point(color = "#176B58", size = 2.2) +
-  geom_text(aes(label = estimate_label), vjust = -0.8, size = 3, color = "#24413A") +
   scale_x_continuous(breaks = -5:5) +
   labs(
     title = sprintf("%s by %s", outcome_label, timing_label),
     subtitle = sprintf(
-      "%s; %s; clustered by %s%s\nPooled years 0-5 = %.3f (SE %.3f, p = %.3f)",
-      sample_label, score_label, cluster_label, control_subtitle,
-      full_post$effect, full_post$std_error_log, full_post$p_value
+      "Pooled estimate = %.3f%s (SE %.3f)\n%s; %s; clustered by %s%s",
+      full_post$estimate_log, pooled_stars, full_post$std_error_log,
+      sample_label, score_label, cluster_label, control_subtitle
     ),
     x = "Years relative to the 2015 ward remap",
     y = if_else(

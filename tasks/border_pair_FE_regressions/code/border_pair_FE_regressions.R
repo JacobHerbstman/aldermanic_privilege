@@ -56,16 +56,15 @@ outcome_label_dict <- c(
   "density_dupac" = "DUPAC",
   "density_far" = "FAR"
 )
-controls <- c(
-  "strictness_own",
-  "lenient_dist",
-  "strict_dist",
+demographic_controls <- c(
   "share_white_own",
   "share_black_own",
   "median_hh_income_own",
   "share_bach_plus_own",
   "homeownership_rate_own"
 )
+continuous_controls <- c("strictness_own", "lenient_dist", "strict_dist", demographic_controls)
+binary_controls <- c("side", "lenient_dist", "strict_dist", demographic_controls)
 needs_segment <- fe_spec %in% c("segment_year", "zonegroup_segment_year_additive") || cluster_level == "segment"
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 prune_suffix <- if (prune_sample == "pruned") "_pruned" else ""
@@ -82,7 +81,8 @@ parcels <- read_csv(
     segment_id = as.character(segment_id),
     zone_group = zone_group_from_code(zone_code),
     lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
-    strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0)
+    strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0),
+    side = as.integer(signed_distance_m > 0)
   ) %>%
   filter(
     arealotsf > 1,
@@ -175,6 +175,10 @@ for (sample_filter in c("all", "multifamily")) {
     if (is.finite(bandwidth_m)) {
       df <- df %>% filter(dist_to_boundary_m <= bandwidth_m)
     }
+    df <- df %>% filter(!is.na(ward_pair), is.finite(signed_distance_m))
+    if (str_starts(fe_spec, "zonegroup")) {
+      df <- df %>% filter(!is.na(zone_code))
+    }
     if (needs_segment) {
       df <- df %>% filter(!is.na(segment_id), segment_id != "")
     }
@@ -197,35 +201,40 @@ for (sample_filter in c("all", "multifamily")) {
       outcome_label <- paste0("ln(", outcome_label, ")")
     }
 
-    model <- feols(
-      as.formula(paste0(
-        yvar,
-        " ~ ",
-        paste(controls, collapse = " + "),
-        " | ",
-        fe_formulas[[fe_spec]]
-      )),
-      data = df,
-      cluster = cluster_formula
-    )
+    for (treatment_spec in c("continuous", "binary")) {
+      treatment_var <- if (treatment_spec == "continuous") "strictness_own" else "side"
+      model_controls <- if (treatment_spec == "continuous") continuous_controls else binary_controls
 
-    coef_table <- coeftable(model)
-    if (!"strictness_own" %in% rownames(coef_table)) {
-      stop(sprintf("Model failed to estimate strictness_own for '%s'.", yvar), call. = FALSE)
+      model <- feols(
+        as.formula(paste0(
+          yvar,
+          " ~ ",
+          paste(model_controls, collapse = " + "),
+          " | ",
+          fe_formulas[[fe_spec]]
+        )),
+        data = df,
+        cluster = cluster_formula
+      )
+
+      coef_table <- coeftable(model)
+      if (!treatment_var %in% rownames(coef_table)) {
+        stop(sprintf("Model failed to estimate %s for '%s'.", treatment_var, yvar), call. = FALSE)
+      }
+
+      summary_rows[[length(summary_rows) + 1L]] <- tibble(
+        treatment_spec = treatment_spec,
+        sample_label = sample_label,
+        yvar = yvar,
+        outcome_label = outcome_label,
+        estimate = unname(coef_table[treatment_var, "Estimate"]),
+        se = unname(coef_table[treatment_var, "Std. Error"]),
+        p_value = unname(coef_table[treatment_var, "Pr(>|t|)"]),
+        n_obs = nobs(model),
+        n_ward_pairs = n_distinct(df$ward_pair),
+        depvar_mean = mean(df[[base_var]], na.rm = TRUE)
+      )
     }
-
-    summary_i <- tibble(
-      sample_label = sample_label,
-      yvar = yvar,
-      outcome_label = outcome_label,
-      estimate = unname(coef_table["strictness_own", "Estimate"]),
-      se = unname(coef_table["strictness_own", "Std. Error"]),
-      p_value = unname(coef_table["strictness_own", "Pr(>|t|)"]),
-      n_obs = nobs(model),
-      n_ward_pairs = n_distinct(df$ward_pair),
-      depvar_mean = mean(df[[base_var]], na.rm = TRUE)
-    )
-    summary_rows[[length(summary_rows) + 1L]] <- summary_i
   }
 }
 
@@ -239,17 +248,18 @@ summaries <- bind_rows(summary_rows) %>%
   )
 
 expected_rows <- tidyr::expand_grid(
+  treatment_spec = c("continuous", "binary"),
   sample_label = c("All Construction", "Multifamily"),
   yvar = c("log(density_far)", "log(density_dupac)")
 )
 
 summary_keys <- summaries %>%
-  count(sample_label, yvar, name = "n")
+  count(treatment_spec, sample_label, yvar, name = "n")
 
 missing_rows <- anti_join(
   expected_rows,
   summary_keys,
-  by = c("sample_label", "yvar")
+  by = c("treatment_spec", "sample_label", "yvar")
 )
 
 duplicate_rows <- summary_keys %>% filter(n > 1)
@@ -279,10 +289,13 @@ ordered <- summaries %>%
     ),
     se_text = sprintf("(%.3f)", se)
   ) %>%
-  arrange(sample_order, outcome_order)
+  arrange(treatment_spec, sample_order, outcome_order)
 
-if (nrow(ordered) != 4) {
-  stop("Expected exactly four rows in the combined density FE table.", call. = FALSE)
+continuous <- ordered %>% filter(treatment_spec == "continuous")
+binary <- ordered %>% filter(treatment_spec == "binary")
+
+if (nrow(continuous) != 4 || nrow(binary) != 4) {
+  stop("Expected four continuous and four binary rows in the combined density FE table.", call. = FALSE)
 }
 
 table_lines <- c(
@@ -294,23 +307,39 @@ table_lines <- c(
   "                    & ln(FAR)       & ln(DUPAC)      & ln(FAR)       & ln(DUPAC) \\\\",
   "                    & (1)           & (2)            & (3)           & (4) \\\\",
   "   \\midrule",
+  "   \\multicolumn{5}{l}{\\textit{Panel A: Continuous Stringency Specification}} \\\\",
   paste0(
-    "   Stringency Index & ",
-    paste(ordered$estimate_text, collapse = " & "),
+    "   Stringency Index (1 SD) & ",
+    paste(continuous$estimate_text, collapse = " & "),
     " \\\\"
   ),
   paste0(
     "                    & ",
-    paste(ordered$se_text, collapse = " & "),
+    paste(continuous$se_text, collapse = " & "),
     " \\\\"
   ),
-  "    \\\\",
+  paste0("   N                & ", paste(trimws(format(continuous$n_obs, big.mark = ",")), collapse = " & "), " \\\\"),
+  paste0("   Dep. Var. Mean   & ", paste(sprintf("%.2f", continuous$depvar_mean), collapse = " & "), " \\\\"),
+  paste0("   Ward Pairs       & ", paste(trimws(format(continuous$n_ward_pairs, big.mark = ",")), collapse = " & "), " \\\\"),
+  "   \\addlinespace",
+  "   \\multicolumn{5}{l}{\\textit{Panel B: Binary Boundary Specification}} \\\\",
+  paste0(
+    "   More-Stringent Side & ",
+    paste(binary$estimate_text, collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "                    & ",
+    paste(binary$se_text, collapse = " & "),
+    " \\\\"
+  ),
+  paste0("   N                & ", paste(trimws(format(binary$n_obs, big.mark = ",")), collapse = " & "), " \\\\"),
+  paste0("   Dep. Var. Mean   & ", paste(sprintf("%.2f", binary$depvar_mean), collapse = " & "), " \\\\"),
+  paste0("   Ward Pairs       & ", paste(trimws(format(binary$n_ward_pairs, big.mark = ",")), collapse = " & "), " \\\\"),
+  "   \\midrule",
   "   Zoning Group FE  & $\\checkmark$  & $\\checkmark$   & $\\checkmark$  & $\\checkmark$ \\\\",
   "   Segment FE       & $\\checkmark$  & $\\checkmark$   & $\\checkmark$  & $\\checkmark$ \\\\",
   "   Year FE          & $\\checkmark$  & $\\checkmark$   & $\\checkmark$  & $\\checkmark$ \\\\",
-  paste0("   N                & ", paste(trimws(format(ordered$n_obs, big.mark = ",")), collapse = " & "), " \\\\"),
-  paste0("   Dep. Var. Mean   & ", paste(sprintf("%.2f", ordered$depvar_mean), collapse = " & "), " \\\\"),
-  paste0("   Ward Pairs       & ", paste(trimws(format(ordered$n_ward_pairs, big.mark = ",")), collapse = " & "), " \\\\"),
   "   \\bottomrule",
   "\\end{tabular}",
   "\\par\\endgroup"

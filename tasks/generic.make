@@ -27,17 +27,21 @@ link-inputs: sanitize-numbered-duplicates
 ../../_lib/% ../../../_lib/%:
 	@test -e "$@" || { echo "Missing shared library: $@"; false; }
 
-../../% ../../../% ../../../../%:
+.PHONY: FORCE_UPSTREAM
+FORCE_UPSTREAM:
+
+.SECONDEXPANSION:
+../../% ../../../% ../../../../%: $$(shell bash "$$(TASKS_ROOT)/check_upstream_status.sh" "$$@" "$$(MAKE_COMMAND)")
 	@case "$@" in \
 		../../../*/output/*) \
 			task=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./\.\./##; s#/output/.*##'); \
 			output=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./\.\./[^/]*/output/#../output/#'); \
-			$(MAKE_COMMAND) -C "../../../$$task/code" "$$output"; \
+			$(MAKE) -C "../../../$$task/code" "$$output"; \
 			;; \
 		../../*/output/*) \
 			task=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./##; s#/output/.*##'); \
 			output=$$(printf '%s\n' "$@" | sed 's#^\.\./\.\./[^/]*/output/#../output/#'); \
-			$(MAKE_COMMAND) -C "../../$$task/code" "$$output"; \
+			$(MAKE) -C "../../$$task/code" "$$output"; \
 			;; \
 		../../../data_raw/*|../../../../data_raw/*) \
 			test -e "$@" || { echo "Missing raw root: $@"; false; }; \

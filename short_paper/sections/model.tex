@@ -9,7 +9,8 @@ A developer who expects years of meetings, redesigns, and uncertainty may respon
 The model below turns that intuition into a simple time-to-build problem.
 
 Consider a developer choosing the scale $q \geq 0$ (units of housing) of a project on a given site.
-Construction costs are $C(q) = F + cq + \frac{\gamma}{2}q^2$ with $\gamma > 0$, so marginal costs rise with project size.
+Construction costs are $C(q) = F\mathbf{1}\{q>0\} + cq + \frac{\gamma}{2}q^2$ with $F,\gamma > 0$, so building requires a fixed cost and marginal costs rise with project size.
+The developer can instead leave the site unbuilt and earn zero.
 Let $p$ denote the local price level, taken as given at the project level.
 
 The local regulatory environment $s$ maps into an \textit{effective time-to-build} $T(s)$ with $T'(s) > 0$.
@@ -19,12 +20,19 @@ The developer solves
 \[
 \max_{q \geq 0} \;\; e^{-rT(s)} p \, q - C(q).
 \]
-The first-order condition gives
+Conditional on building, the first-order condition gives $q^I(T(s),p) = \left(e^{-rT(s)}p-c\right)/\gamma$.
+At this scale, the project's profit is $\left(e^{-rT(s)}p-c\right)^2/(2\gamma)-F$.
+The developer therefore builds only when the project covers its fixed cost, and the optimal choice is
 \[
-q^*(T(s), p) = \frac{e^{-rT(s)} p - c}{\gamma}
+q^*(T(s),p) =
+\begin{cases}
+\dfrac{e^{-rT(s)}p-c}{\gamma},
+& \text{if } e^{-rT(s)}p-c \geq \sqrt{2\gamma F}, \\
+0, & \text{otherwise.}
+\end{cases}
 \]
-when $e^{-rT(s)} p > c$, and $q^* = 0$ otherwise.
-The central comparative static is $\partial q^* / \partial T(s) < 0$: longer or more burdensome regulatory processes reduce project scale and can push marginal projects from ``build'' to ``don't build.''
+For projects that are built, $\partial q^*/\partial T(s)<0$.
+Longer or more burdensome regulatory processes therefore reduce project scale and can also push marginal projects from ``build'' to ``don't build.''
 
 \subsection{From Developer Choices to Empirical Predictions}
 

@@ -149,6 +149,7 @@ each city council candidate was asked specifically about their stance on alderma
 prerogative.}
 
 \subsection{Building Permits and the Permit Pipeline}
+\label{subsec:permit_pipeline}
 
 The building permits data come from the City of Chicago's open data portal and include all permit applications filed since 2006.
 The processing-time analysis uses records with valid geographic coordinates and non-negative processing times; Appendix~\ref{subsec:event_study_panel} describes the separate sample used to count applications in the event study.
@@ -161,7 +162,7 @@ I use them as a placebo comparison group because they are generally less exposed
 
 This distinction helps separate aldermanic discretion from general permitting capacity.
 High-discretion permits are the ones most likely to require interaction with the alderman.
-Low-discretion permits provide a useful comparison group: if the stringency scores are picking up something specific to the discretionary layer rather than general bureaucratic capacity, the effects should be concentrated in high-discretion permits and largely absent for low-discretion ones.
+Low-discretion permits provide a useful comparison group: if the stringency scores are picking up something specific to the discretionary layer rather than general bureaucratic capacity, the response should be more muted for low-discretion permits.
 
 The descriptive patterns are consistent with this interpretation.
 High-discretion permits take much longer to process and show more cross-alderman dispersion in mean processing time.
@@ -175,8 +176,7 @@ Appendix Table~\ref{tab:permit_summary_stats} reports the corresponding summary 
     \includegraphics[width=0.78\textwidth]{../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf}
     \caption{Alderman-Level Mean Processing Time for High- and Low-Discretion Permits}
 \figurenotes{Figure plots the distribution of alderman-level mean permit processing time separately for high- and low-discretion permit groups, using permit applications through December 2022.
-High-discretion permits are new construction, renovation/alteration, wrecking/demolition, porch construction, and reinstated permits.
-Low-discretion permits are all remaining non-high-discretion permit types, excluding signs.
+The high- and low-discretion permit groups are defined in Section~\ref{subsec:permit_pipeline}.
 Processing time is days from application to issuance.}
     \label{fig:permit_high_low_processing}
 \end{figure}
@@ -185,7 +185,7 @@ Processing time is days from application to issuance.}
 \label{subsec:stringency}
 
 I construct the stringency score using permit applications through 2006-2022 by residualizing permit processing times against ward and permit characteristics, then extracting the alderman-specific component.
-The first stage regresses log processing time at the permit level on ward-level demographic controls (median household income, racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
+The first stage regresses log processing time at the permit level on ward-level demographic controls (racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
 %
 \begin{equation} \label{eq:stringency_reg1}
     \log(\text{Processing Time}_{i}) = \mathbf{X}_i \beta + \gamma_{\text{ym}} + \delta_{\text{pt}} + \zeta_{\text{rt}} + \epsilon_{i}

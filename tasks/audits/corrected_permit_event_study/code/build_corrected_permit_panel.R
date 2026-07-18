@@ -90,7 +90,13 @@ if (anyNA(block_mapping$stable_both) || anyNA(block_mapping$assigned_change_2022
 }
 
 panel <- panel %>%
-  select(-strictness_origin, -strictness_dest, -strictness_change) %>%
+  select(
+    -strictness_origin, -strictness_dest, -strictness_change,
+    -alderman_origin_2014, -alderman_origin_2015,
+    -alderman_dest_2014, -alderman_dest_2015,
+    -strictness_origin_frozen, -strictness_dest_frozen, -strictness_change_frozen,
+    -stable_origin, -stable_dest, -stable_both
+  ) %>%
   left_join(
     block_mapping %>% select(
       block_id, alderman_origin_2014, alderman_dest_2014,

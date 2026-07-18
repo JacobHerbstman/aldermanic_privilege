@@ -35,7 +35,6 @@ data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
     dist_m <= bandwidth,
     relative_year >= min_period,
     relative_year <= max_period,
-    stable_both,
     !is.na(strictness_change_frozen),
     !is.na(ward_pair_id),
     ward_pair_id != ""
@@ -109,7 +108,7 @@ table_lines <- c(
   " & (1) & (2) \\\\",
   " & High-discretion & Low-discretion \\\\",
   "\\midrule",
-  sprintf("Post $\\times$ Stringency $\\Delta$ & %.4f%s & %.4f%s \\\\", estimates[1], stars[1], estimates[2], stars[2]),
+  sprintf("Post $\\times$ Assigned stringency $\\Delta$ & %.4f%s & %.4f%s \\\\", estimates[1], stars[1], estimates[2], stars[2]),
   sprintf(" & (%.4f) & (%.4f) \\\\", std_errors[1], std_errors[2]),
   "\\midrule",
   "Block fixed effects & Yes & Yes \\\\",
@@ -126,7 +125,7 @@ table_lines <- c(
 writeLines(
   table_lines,
   sprintf(
-    "../output/did_table_permit_2015_application_frozen2014_stable_preperiod_controls_%s_clust_ward_pair.tex",
+    "../output/did_table_permit_2015_application_frozen2014_itt_preperiod_controls_%s_clust_ward_pair.tex",
     bandwidth_label
   )
 )

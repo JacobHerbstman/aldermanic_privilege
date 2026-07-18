@@ -1,6 +1,7 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
 # outcome_family <- "high_discretion"
+# sample <- "itt"
 # bandwidth <- 152.4
 # bandwidth_label <- "500ft"
 # min_period <- -5
@@ -13,20 +14,24 @@ on.exit(grDevices::dev.off(), add = TRUE)
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(outcome_family, bandwidth, bandwidth_label, min_period, max_period)
+  cli_args <- c(outcome_family, sample, bandwidth, bandwidth_label, min_period, max_period)
 }
-if (length(cli_args) != 5) {
-  stop("Script requires outcome family, bandwidth, bandwidth label, minimum period, and maximum period.", call. = FALSE)
+if (length(cli_args) != 6) {
+  stop("Script requires outcome family, sample, bandwidth, bandwidth label, minimum period, and maximum period.", call. = FALSE)
 }
 
 outcome_family <- cli_args[1]
-bandwidth <- as.numeric(cli_args[2])
-bandwidth_label <- cli_args[3]
-min_period <- as.integer(cli_args[4])
-max_period <- as.integer(cli_args[5])
+sample <- cli_args[2]
+bandwidth <- as.numeric(cli_args[3])
+bandwidth_label <- cli_args[4]
+min_period <- as.integer(cli_args[5])
+max_period <- as.integer(cli_args[6])
 
 if (!outcome_family %in% c("high_discretion", "low_discretion_nosigns")) {
   stop("outcome_family must be high_discretion or low_discretion_nosigns.", call. = FALSE)
+}
+if (!sample %in% c("itt", "stable")) {
+  stop("sample must be itt or stable.", call. = FALSE)
 }
 if (!is.finite(bandwidth) || bandwidth <= 0) {
   stop("bandwidth must be positive.", call. = FALSE)
@@ -54,7 +59,6 @@ data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
     dist_m <= bandwidth,
     relative_year >= min_period,
     relative_year <= max_period,
-    stable_both,
     !is.na(strictness_change_frozen),
     !is.na(ward_pair_id),
     ward_pair_id != ""
@@ -63,6 +67,9 @@ data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
     outcome = .data[[outcome_var]],
     strictness_change = strictness_change_frozen
   )
+if (sample == "stable") {
+  data <- data %>% filter(stable_both)
+}
 
 if (anyDuplicated(data[c("block_id", "year")]) > 0) {
   stop("Permit event-study data must be unique by block and year.", call. = FALSE)
@@ -144,7 +151,7 @@ plot <- ggplot(event_estimates, aes(event_time, estimate)) +
       pooled_std_error
     ),
     x = "Years relative to the 2015 ward remap",
-    y = "Effect of a 1 SD increase in aldermanic stringency"
+    y = "Effect of a 1 SD increase in assigned stringency"
   ) +
   theme_minimal(base_size = 11) +
   theme(
@@ -156,8 +163,9 @@ plot <- ggplot(event_estimates, aes(event_time, estimate)) +
 
 ggsave(
   sprintf(
-    "../output/event_study_permit_2015_%s_application_frozen2014_stable_preperiod_controls_%s_clust_ward_pair.pdf",
+    "../output/event_study_permit_2015_%s_application_frozen2014_%s_preperiod_controls_%s_clust_ward_pair.pdf",
     outcome_family,
+    sample,
     bandwidth_label
   ),
   plot,
