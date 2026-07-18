@@ -139,29 +139,29 @@ The fixed effects are segment-by-month for rents and segment-by-quarter for sale
 Controls include listing or property characteristics and distances to nearby schools, parks, major roads, CTA stops, and Lake Michigan.
 Standard errors are clustered by boundary segment.
 
-Figure~\ref{fig:rental_rd_flat} shows that listed rents are about 3.5\% higher on the more stringent side of a ward boundary after residualizing for segment-by-month fixed effects, hedonic controls, and observed amenity controls.
-Figure~\ref{fig:sales_rd_flat} shows a smaller home-sale price gap of about 1.7\%.
+Figure~\ref{fig:price_rd_flat}, Panel A, shows that listed rents are about 1.7\% higher on the more stringent side of a ward boundary after residualizing for segment-by-month fixed effects, hedonic controls, and observed amenity controls.
+Panel B shows a smaller home-sale price gap of about 1.2\%.
 Appendix~\ref{sec:appendix_price_rd} reports placebo-cutoff checks for both outcomes.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.78\textwidth]{../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls.pdf}
-    \caption{Listed Rents by Side of Ward Boundary}
-    \figurenotes{Figure shows a flat 500ft boundary comparison using listed-rent floorplan-month observations from 2014--2022.
-    The sample is restricted to listings with reliable geographic assignments, as defined in Appendix~\ref{subsec:renthub_sample}, and includes studios.
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        \small\textbf{Panel A}
+        \includegraphics[width=\textwidth]{../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls_panel.pdf}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        \small\textbf{Panel B}
+        \includegraphics[width=\textwidth]{../tasks/sales_border_pair_fe/output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment_panel.pdf}
+    \end{minipage}
+    \caption{Listed Rents and Home Sale Prices by Side of Ward Boundary}
+    \figurenotes{Both panels show flat 500ft boundary comparisons after removing segment-by-time fixed effects, hedonic controls, and amenity controls.
+    Panel A uses listed-rent floorplan-month observations from 2014--2022, with segment-by-month fixed effects.
+    The rental sample is restricted to listings with reliable geographic assignments, as defined in Appendix~\ref{subsec:renthub_sample}, and includes studios.
+    Panel B uses filtered residential transactions from 2006--2022, with segment-by-quarter fixed effects.
     Positive distance indicates the side represented by the more stringent alderman.
-    Dots are binned means of log listed rent in 2022 dollars after removing segment-by-month fixed effects, hedonic controls, and amenity controls.
-    The subtitle reports the flat 500ft estimate; standard errors are clustered by boundary segment.}
-    \label{fig:rental_rd_flat}
-\end{figure}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.78\textwidth]{../tasks/sales_border_pair_fe/output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment.pdf}
-    \caption{Home Sale Prices by Side of Ward Boundary}
-    \figurenotes{Figure shows a flat 500ft boundary comparison using arm's-length residential transactions from 2006--2022.
-    Positive distance indicates the side represented by the more stringent alderman.
-    Dots are binned means of log sale price in 2022 dollars after removing segment-by-quarter fixed effects, hedonic controls, and amenity controls.
-    The subtitle reports the flat 500ft estimate; standard errors are clustered by boundary segment.}
-    \label{fig:sales_rd_flat}
+    Dots are binned means of log prices in 2022 dollars.
+    Subtitles report the flat 500ft estimates; standard errors are clustered by boundary segment.}
+    \label{fig:price_rd_flat}
 \end{figure}

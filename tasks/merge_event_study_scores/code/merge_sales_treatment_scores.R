@@ -58,6 +58,7 @@ if (nrow(sales) != nrow(sales_pre)) {
 sales <- sales %>%
   filter(!is.na(sign)) %>%
   select(
+    any_of(c("row_id", "sale_document_num")),
     pin, year, sale_date, sale_price,
     any_of(c(
       "sale_price_nominal",
@@ -66,7 +67,8 @@ sales <- sales %>%
       "sale_price_deflator_to_2022"
     )),
     class,
-    latitude, longitude, ward, neighbor_ward, ward_pair_id, any_of("segment_id"),
+    latitude, longitude, any_of(c("coordinate_source", "coordinate_year")),
+    ward, neighbor_ward, ward_pair_id, any_of("segment_id"),
     dist_m, signed_dist_m, sign,
     alderman_own, alderman_neighbor,
     strictness_own, strictness_neighbor

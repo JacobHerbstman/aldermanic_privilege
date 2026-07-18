@@ -11,6 +11,9 @@ all: ../output/sales_rd_flat_bw$(BANDWIDTH_FT)_year_quarter_amenity_clust_segmen
 ../output/sales_rd_flat_bw$(BANDWIDTH_FT)_year_quarter_amenity_clust_segment.pdf: sales_level_plot.R ../output/sales_with_hedonics_amenities.parquet | ../output
 	Rscript $< $(BANDWIDTH_FT) $(BINS_PER_SIDE) $(START_YEAR) $(END_YEAR)
 
+../output/sales_rd_flat_bw$(BANDWIDTH_FT)_year_quarter_amenity_clust_segment_panel.pdf: ../output/sales_rd_flat_bw$(BANDWIDTH_FT)_year_quarter_amenity_clust_segment.pdf
+	@test -s "$@"
+
 ../input/sales_with_hedonics.parquet: ../../prep_sales_border_data/output/sales_with_hedonics.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 

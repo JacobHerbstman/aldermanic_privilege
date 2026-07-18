@@ -94,7 +94,7 @@ dataset_specs <- list(
 for (dataset_name in names(dataset_specs)) {
   spec <- dataset_specs[[dataset_name]]
   dt <- copy(spec$dt)
-  dt[, row_id := .I]
+  dt[, assignment_row_id := .I]
   dt[, pair_dash := normalize_pair_dash(get(spec$pair_col))]
   dt[, obs_date := as.Date(get(spec$date_col))]
   dt[, era := canonical_era_from_date(obs_date, allow_pre_2003 = spec$allow_pre_2003)]
@@ -123,7 +123,7 @@ for (dataset_name in names(dataset_specs)) {
   if (length(assignable_idx) > 0) {
     pts <- st_as_sf(
       data.table(
-        row_id = assignable_idx,
+        assignment_row_id = assignable_idx,
         lon = dt[[spec$lon_col]][assignable_idx],
         lat = dt[[spec$lat_col]][assignable_idx]
       ),
@@ -144,7 +144,7 @@ for (dataset_name in names(dataset_specs)) {
     set(dt, i = assignable_idx, j = "segment_id", value = seg_ids)
   }
 
-  assigned_segments <- dt[!is.na(segment_id) & segment_id != "", .(row_id, era, pair_dash, segment_id)]
+  assigned_segments <- dt[!is.na(segment_id) & segment_id != "", .(assignment_row_id, era, pair_dash, segment_id)]
   if (nrow(assigned_segments) > 0) {
     assigned_segments <- merge(
       assigned_segments,
@@ -188,7 +188,7 @@ for (dataset_name in names(dataset_specs)) {
     )]
   }
 
-  dt[, c("row_id", "pair_dash", "obs_date", "era") := NULL]
+  dt[, c("assignment_row_id", "pair_dash", "obs_date", "era") := NULL]
   segment_outputs[[dataset_name]] <- dt
 }
 

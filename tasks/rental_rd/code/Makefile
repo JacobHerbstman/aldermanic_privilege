@@ -8,6 +8,9 @@ all: ../output/rental_rd_flat_bw$(BANDWIDTH_FT)_$(START_YEAR)_$(END_YEAR)_all_co
 ../output/rental_rd_flat_bw$(BANDWIDTH_FT)_$(START_YEAR)_$(END_YEAR)_all_controls.pdf: run_rental_rd.R ../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet | ../output
 	Rscript $< $(BANDWIDTH_FT) $(BINS_PER_SIDE) $(START_YEAR) $(END_YEAR)
 
+../output/rental_rd_flat_bw$(BANDWIDTH_FT)_$(START_YEAR)_$(END_YEAR)_all_controls_panel.pdf: ../output/rental_rd_flat_bw$(BANDWIDTH_FT)_$(START_YEAR)_$(END_YEAR)_all_controls.pdf
+	@test -s "$@"
+
 ../input/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet: ../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 

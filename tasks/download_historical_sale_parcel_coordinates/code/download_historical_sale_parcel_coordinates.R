@@ -1,6 +1,6 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/download_historical_sale_parcel_coordinates/code")
-# start_year <- 1999
-# end_year <- 2025
+# start_year <- 2006
+# end_year <- 2022
 
 source("../../setup_environment/code/packages.R")
 
@@ -22,88 +22,100 @@ if (!requireNamespace("curl", quietly = TRUE)) {
 }
 
 sales <- fread(
-  "../input/parcel_sales.csv",
-  select = c("pin", "year", "class"),
-  colClasses = list(character = "pin")
+    "../input/parcel_sales.csv",
+    select = c(
+      "pin", "year", "class", "sale_price", "sale_deed_type", "sale_type",
+      "sale_seller_name", "sale_buyer_name", "num_parcels_sale"
+    ),
+    colClasses = list(character = c("pin", "sale_price"))
 )
 sales[, `:=`(
   pin = gsub("[^0-9]", "", trimws(pin)),
   year = suppressWarnings(as.integer(year)),
-  class = suppressWarnings(as.integer(class))
+  class = suppressWarnings(as.integer(class)),
+  sale_price_nominal = suppressWarnings(as.numeric(gsub("[$,]", "", sale_price)))
 )]
 sales[nchar(pin) == 13L, pin := paste0("0", pin)]
-sales <- sales[
+sale_keys <- unique(sales[
   year >= start_year & year <= end_year &
-    class %in% 202:211
-]
-if (any(nchar(sales$pin) != 14L)) {
+    class %in% 202:211 &
+    is.finite(sale_price_nominal) & sale_price_nominal > 10000 &
+    sale_deed_type %in% c("Warranty", "Trustee") &
+    !is.na(sale_type) & sale_type != "LAND" &
+    !is.na(sale_seller_name) &
+    !sale_seller_name %in% c("", "-", "UNKNOWN", "..") &
+    !is.na(sale_buyer_name) &
+    !sale_buyer_name %in% c("", "-", "UNKNOWN", "..") &
+    sale_seller_name != sale_buyer_name &
+    num_parcels_sale == 1,
+  .(pin, year)
+])
+if (any(nchar(sale_keys$pin) != 14L)) {
   stop("Residential sales contain an invalid full PIN.", call. = FALSE)
 }
-
-current_parcels <- fread(
-  "../input/parcel_universe_2025_city.csv",
-  select = "pin",
-  colClasses = list(character = "pin")
-)
-current_parcels[, pin := gsub("[^0-9]", "", trimws(pin))]
-current_parcels[nchar(pin) == 13L, pin := paste0("0", pin)]
-if (any(nchar(current_parcels$pin) != 14L)) {
-  stop("Current parcel universe contains an invalid full PIN.", call. = FALSE)
-}
-if (anyDuplicated(current_parcels$pin) > 0) {
-  stop("Current parcel universe must be unique by full PIN.", call. = FALSE)
+if (nrow(sale_keys) == 0) {
+  stop("No residential sale PIN-years require historical coordinates.", call. = FALSE)
 }
 
-missing_pins <- sort(unique(sales[!pin %in% current_parcels$pin, pin]))
-if (length(missing_pins) == 0) {
-  stop("No residential sale PINs require historical coordinates.", call. = FALSE)
-}
-
-chunks <- split(missing_pins, ceiling(seq_along(missing_pins) / 100L))
-records <- vector("list", length(chunks))
+setorder(sale_keys, year, pin)
+records <- list()
 base_url <- "https://datacatalog.cookcountyil.gov/resource/nj4t-kc8j.json"
+request_handle <- curl::new_handle(connecttimeout = 30, timeout = 120)
 
-for (i in seq_along(chunks)) {
-  parameters <- c(
-    "$select" = "pin,year,lon,lat,x_3435,y_3435",
-    "$where" = sprintf(
-      "year between %d and %d and pin in(%s)",
-      start_year,
-      end_year,
-      paste(sprintf("'%s'", chunks[[i]]), collapse = ",")
-    ),
-    "$order" = "pin,year",
-    "$limit" = "50000"
-  )
-  query <- paste0(
-    base_url,
-    "?",
-    paste(
-      paste0(
-        URLencode(names(parameters), reserved = TRUE),
-        "=",
-        URLencode(unname(parameters), reserved = TRUE)
+for (year_i in sort(unique(sale_keys$year))) {
+  year_pins <- sale_keys[year == year_i, pin]
+  chunks <- split(year_pins, ceiling(seq_along(year_pins) / 200L))
+
+  for (chunk_i in seq_along(chunks)) {
+    parameters <- c(
+      "$select" = "pin,year,lon,lat,x_3435,y_3435",
+      "$where" = sprintf(
+        "year=%d and pin in(%s)",
+        year_i,
+        paste(sprintf("'%s'", chunks[[chunk_i]]), collapse = ",")
       ),
-      collapse = "&"
+      "$order" = "pin,year",
+      "$limit" = "50000"
     )
-  )
+    query <- paste0(
+      base_url,
+      "?",
+      paste(
+        paste0(
+          URLencode(names(parameters), reserved = TRUE),
+          "=",
+          URLencode(unname(parameters), reserved = TRUE)
+        ),
+        collapse = "&"
+      )
+    )
 
-  response <- NULL
-  for (attempt in 1:3) {
-    response <- tryCatch(curl::curl_fetch_memory(query), error = function(e) NULL)
-    if (!is.null(response) && response$status_code == 200L) {
-      break
+    response <- NULL
+    for (attempt in 1:3) {
+      response <- tryCatch(
+        curl::curl_fetch_memory(query, handle = request_handle),
+        error = function(e) NULL
+      )
+      if (!is.null(response) && response$status_code == 200L) {
+        break
+      }
+      Sys.sleep(attempt)
     }
-    Sys.sleep(attempt)
-  }
-  if (is.null(response) || response$status_code != 200L) {
-    stop(sprintf("Historical parcel download failed for chunk %d of %d.", i, length(chunks)), call. = FALSE)
-  }
+    if (is.null(response) || response$status_code != 200L) {
+      stop(sprintf(
+        "Historical parcel download failed for year %d, chunk %d of %d.",
+        year_i,
+        chunk_i,
+        length(chunks)
+      ), call. = FALSE)
+    }
 
-  payload <- jsonlite::fromJSON(rawToChar(response$content), simplifyDataFrame = TRUE)
-  if (is.data.frame(payload) && nrow(payload) > 0) {
-    records[[i]] <- as.data.table(payload)
+    payload <- jsonlite::fromJSON(rawToChar(response$content), simplifyDataFrame = TRUE)
+    if (is.data.frame(payload) && nrow(payload) > 0) {
+      records[[length(records) + 1L]] <- as.data.table(payload)
+    }
   }
+  message(sprintf("Downloaded historical coordinates for %d.", year_i))
 }
 
 historical_parcels <- rbindlist(records, use.names = TRUE, fill = TRUE)
@@ -122,6 +134,7 @@ historical_parcels[, c("lon", "lat", "x_3435", "y_3435") := NULL]
 historical_parcels <- historical_parcels[
   nchar(pin) == 14L &
     year >= start_year & year <= end_year &
+    paste(pin, year, sep = "\r") %in% paste(sale_keys$pin, sale_keys$year, sep = "\r") &
     is.finite(longitude) & is.finite(latitude)
 ]
 if (anyDuplicated(historical_parcels[, .(pin, year)]) > 0) {

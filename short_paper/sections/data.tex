@@ -250,9 +250,9 @@ Appendix~\ref{app:data_sources} gives additional detail on the data cleaning pro
 
 Home sales data come from the Cook County Assessor's Office and cover residential transactions from 1999 to the present.
 The price analysis uses sales from 2006 through 2022 to match the paper's main outcome window.
-I restrict the sample to arm's-length transactions of single-family homes and small multifamily buildings (2-6 units), excluding nominal transfers, land-only sales, and intrafamily conveyances.
-Sale prices are first deflated to 2022 dollars using the monthly Chicago CPI-U all-items series and then winsorized at the 1st and 99th percentiles.
-Each transaction is geocoded by its full 14-digit PIN and assigned to the relevant ward based on the boundaries in effect at the sale date.
+I restrict the sample to market transactions of single-family homes and small multifamily buildings (2-6 units), excluding nominal transfers, land-only sales, and transactions with missing or identical seller and buyer names.
+Sale prices are first deflated to 2022 dollars using the monthly Chicago CPI-U all-items series and then winsorized at the 1st and 99th percentiles within the 2006--2022 analysis period.
+Each transaction is geocoded by its full 14-digit PIN and assigned to the relevant ward and alderman based on the boundaries and officeholder in effect at the sale date.
 Property-level hedonic controls such as building area, land area, building age, bedrooms, bathrooms, and garage come from the same-tax-year assessor record.
 The amenity controls are distances to the nearest school, Chicago Park District park-boundary polygon, major street, distance to the nearest CTA stop, and distance to Lake Michigan.
 

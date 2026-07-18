@@ -156,3 +156,28 @@ ggsave(
   dpi = 300,
   bg = "white"
 )
+
+panel_plot <- plot +
+  labs(
+    x = "Distance to ward boundary (feet)",
+    y = "Adjusted log sale price"
+  ) +
+  theme_bw(base_size = 14) +
+  theme(
+    legend.position = "bottom",
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(size = 14),
+    plot.subtitle = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    axis.text = element_text(size = 10),
+    legend.text = element_text(size = 10)
+  )
+
+ggsave(
+  sprintf("../output/sales_rd_flat_bw%s_year_quarter_amenity_clust_segment_panel.pdf", bandwidth_label),
+  panel_plot,
+  width = 4.8,
+  height = 4.1,
+  dpi = 300,
+  bg = "white"
+)

@@ -87,6 +87,7 @@ for (i in seq_along(years)) {
   if (nrow(df_chunk) > 0) {
     df_chunk <- df_chunk %>%
       mutate(
+        assignment_date = as.Date(first_observed_date),
         renthub_latitude = latitude,
         renthub_longitude = longitude,
         geometry_latitude = coalesce(geometry_latitude, latitude),
@@ -96,14 +97,19 @@ for (i in seq_along(years)) {
           FALSE
         )
       ) %>%
-      filter(is.finite(geometry_latitude), is.finite(geometry_longitude), !is.na(file_date))
+      filter(
+        is.finite(geometry_latitude),
+        is.finite(geometry_longitude),
+        !is.na(file_date),
+        !is.na(assignment_date)
+      )
 
     if (nrow(df_chunk) > 0) {
       pts <- st_as_sf(df_chunk, coords = c("geometry_longitude", "geometry_latitude"), crs = 4326) %>%
         st_transform(crs_projected) %>%
         mutate(
-          boundary_year = canonical_boundary_year_from_date(file_date),
-          era = canonical_era_from_date(file_date, allow_pre_2003 = FALSE)
+          boundary_year = canonical_boundary_year_from_date(assignment_date),
+          era = canonical_era_from_date(assignment_date, allow_pre_2003 = FALSE)
         )
 
       boundary_assignments <- assign_points_to_boundaries(
@@ -164,7 +170,7 @@ modal_base <- final_df %>%
     is.finite(modal_latitude)
   ) %>%
   select(
-    rent_panel_id, file_date, ward, neighbor_ward, ward_pair_id, dist_m,
+    rent_panel_id, file_date, assignment_date, ward, neighbor_ward, ward_pair_id, dist_m,
     longitude, latitude, modal_longitude, modal_latitude
   )
 
@@ -176,7 +182,7 @@ if (nrow(modal_base) > 0) {
     remove = FALSE
   ) %>%
     st_transform(crs_projected) %>%
-    mutate(era = canonical_era_from_date(file_date, allow_pre_2003 = FALSE))
+    mutate(era = canonical_era_from_date(assignment_date, allow_pre_2003 = FALSE))
 
   modal_assignments <- assign_points_to_boundaries(
     points_sf = modal_pts,
@@ -205,7 +211,7 @@ if (nrow(modal_base) > 0) {
       flag_modal_dist_diff_gt100ft = is.finite(modal_dist_ft) & abs(modal_dist_ft - raw_dist_ft) > 100
     ) %>%
     select(
-      rent_panel_id, file_date, ward, neighbor_ward, ward_pair_id,
+      rent_panel_id, file_date, assignment_date, ward, neighbor_ward, ward_pair_id,
       modal_ward, modal_neighbor_ward, modal_ward_pair_id,
       raw_dist_ft, modal_dist_ft, dist_m, modal_dist_m,
       longitude, latitude, modal_longitude, modal_latitude,
@@ -217,6 +223,7 @@ if (nrow(modal_base) > 0) {
   modal_sensitivity <- tibble(
     rent_panel_id = character(),
     file_date = as.Date(character()),
+    assignment_date = as.Date(character()),
     ward = integer(),
     neighbor_ward = integer(),
     ward_pair_id = character(),
@@ -294,7 +301,15 @@ final_df <- final_df %>%
   )
 
 final_df <- final_df %>%
-  mutate(month_join = as.yearmon(file_date))
+  mutate(
+    month_join = as.yearmon(assignment_date),
+    # The monthly panel assigns May 2015 to the pre-remap alderman.
+    month_join = if_else(
+      assignment_date >= as.Date("2015-05-18") & assignment_date < as.Date("2015-06-01"),
+      as.yearmon("2015-06"),
+      month_join
+    )
+  )
 
 final_df <- final_df %>%
   left_join(alderman_lookup,

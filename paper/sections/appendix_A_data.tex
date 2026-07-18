@@ -87,6 +87,7 @@ For each parcel, I compute two density measures: Floor Area Ratio (FAR), defined
 
 \paragraph{Ward and Boundary Assignment.}
 Each parcel is assigned to a ward based on its centroid location and the ward boundaries in effect at the time of construction.
+Because the Assessor reports only the year built, I assign June 15 of that year as the construction date and use the ward map and alderman in office on that date.
 Distance to the nearest ward boundary is computed after projecting parcels and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
 
 \subsection{Summary Statistics: New Construction Sample}
@@ -106,17 +107,17 @@ Median distance to the nearest ward boundary is about 930ft in the full sample a
 The home sales data come from the Cook County Assessor's Office and include all residential property transactions in Chicago from 1999--2022.
 
 \paragraph{Sample Restrictions.}
-I apply the following restrictions to construct the analysis sample: (1) residential property classes only, including single-family homes (classes 202--210) and small multifamily buildings with 2--6 units (class 211), excluding mixed-use properties (class 212) and condominiums (classes 299, 399); (2) sale price exceeds \$10,000 to exclude nominal transfers and gifts; (3) market transactions only, defined as warranty or trustee deeds; (4) excludes land-only sales; (5) seller and buyer names are valid and non-identical, excluding intrafamily transfers; and (6) single-parcel transactions only.
+I apply the following restrictions to construct the analysis sample: (1) residential property classes only, including single-family homes (classes 202--210) and small multifamily buildings with 2--6 units (class 211), excluding mixed-use properties (class 212) and condominiums (classes 299, 399); (2) sale price exceeds \$10,000 to exclude nominal transfers and gifts; (3) market transactions only, defined as warranty or trustee deeds; (4) excludes land-only sales; (5) seller and buyer names are recorded and non-identical; and (6) single-parcel transactions only.
 
 \paragraph{Price Winsorization.}
-Sale prices are first deflated to 2022 dollars using the monthly Chicago CPI-U all-items series and then winsorized at the 1st and 99th percentiles to limit the influence of outliers on mean calculations.
+Sale prices are first deflated to 2022 dollars using the monthly Chicago CPI-U all-items series and then winsorized at the 1st and 99th percentiles of the 2006--2022 analysis sample to limit the influence of outliers on mean calculations.
 
 \paragraph{Geocoding.}
-Each sale is geocoded by matching its full 14-digit property identification number (PIN) to the 2025 Cook County parcel universe.
-If a PIN is absent from that file, I use its coordinates from the historical parcel universe in the sale year.
+Each sale is geocoded by matching its full 14-digit property identification number (PIN) to the Cook County historical parcel universe in the sale year.
+If an exact sale-year coordinate is unavailable, I use the PIN's coordinate from the 2025 parcel universe.
 
 \paragraph{Ward Assignment.}
-Sales are assigned to wards based on the ward boundaries in effect at the exact sale date.
+Sales are assigned to wards and to the aldermen in office based on the exact sale date.
 For the paper's sample window, sales before May 18, 2015 use pre-2015 boundaries and sales on or after May 18, 2015 use the 2015 ward boundaries.
 
 \paragraph{Distance to Ward Boundary.}
@@ -138,6 +139,7 @@ This construction prevents daily scrape persistence from overweighting a listing
 When multiple rents appear for the same floorplan proxy on the same scrape date, I retain the group and use the median rent, while carrying flags for unusually large within-day rent dispersion.
 
 I keep observations with positive rent and valid coordinates that can be assigned to Chicago wards.
+Ward boundaries and aldermen are assigned using the listing's first observed date, with the May 2015 transition split at May 18.
 I also carry forward diagnostic flags for questionable addresses, coordinate-only piles, one-day bulk listings, same-day rent spread, and modal-coordinate instability.
 The main rent analysis uses listings with valid ward assignment.
 A robustness specification drops listings whose coordinates appear unreliable near ward boundaries.

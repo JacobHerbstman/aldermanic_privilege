@@ -168,7 +168,7 @@ invisible(dbExecute(
           ELSE DATE_DIFF('day', TRY_CAST(DATE_POSTED AS DATE), TRY_CAST(SCRAPED_TIMESTAMP AS DATE))
         END AS posted_lag_days
       FROM raw_source
-      WHERE city_raw = 'CHICAGO'
+      WHERE city_raw IN ('CHICAGO', 'CHGO')
     ),
     keyed_base AS (
       SELECT

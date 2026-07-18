@@ -55,13 +55,13 @@ The sales table uses the same continuous stringency-index specification as the r
 Hedonic controls include building area, land area, building age, bedrooms, bathrooms, and garage presence.
 Amenity controls are parcel-level distances to the nearest school, Chicago Park District park boundary, major street, CTA stop, and Lake Michigan.
 
-Figure~\ref{fig:sales_rd_flat} plots the regression discontinuity estimate visually and there is a smaller but noticeable $1.7\%$ jump in sale prices on the more stringent side of the boundary within a border segment and year-quarter.
+Figure~\ref{fig:sales_rd_flat} plots the regression discontinuity estimate visually and there is a smaller but noticeable $1.2\%$ jump in sale prices on the more stringent side of the boundary within a border segment and year-quarter.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.78\textwidth]{../tasks/sales_border_pair_fe/output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment.pdf}
     \caption{Home Sale Prices by Side of Ward Boundary}
-    \figurenotes{Figure shows a flat 500ft boundary comparison using arm's-length residential transactions from 2006-2022.
+    \figurenotes{Figure shows a flat 500ft boundary comparison using filtered residential transactions from 2006-2022.
     Positive distance indicates the side represented by the more stringent alderman.
     Dots are binned means of log sale price in 2022 dollars after removing segment-by-quarter fixed effects, hedonic controls, and amenity controls.}
     \label{fig:sales_rd_flat}

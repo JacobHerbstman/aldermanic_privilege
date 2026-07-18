@@ -30,10 +30,10 @@ paper.pdf: Makefile paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/run_event_study_permit/output/event_study_permit_2015_high_discretion_application_frozen2014_itt_preperiod_controls_500ft_clust_ward_pair.pdf \
 	../tasks/run_event_study_permit/output/event_study_permit_2015_high_discretion_application_frozen2014_stable_preperiod_controls_500ft_clust_ward_pair.pdf \
 	../tasks/run_event_study_permit/output/event_study_permit_2015_low_discretion_nosigns_application_frozen2014_itt_preperiod_controls_500ft_clust_ward_pair.pdf \
-	../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls.pdf \
+	../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls_panel.pdf \
 	../tasks/price_rd_stress_tests/output/rent_placebo_rd_main_style.pdf \
 	../tasks/price_rd_stress_tests/output/sales_placebo_rd_main_style.pdf \
-	../tasks/sales_border_pair_fe/output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment.pdf \
+	../tasks/sales_border_pair_fe/output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment_panel.pdf \
 	../tasks/strictness_score_map/output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022-01.pdf \
 	../tasks/summary_stats_new_construction/output/summary_stats.tex \
 	../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf
