@@ -28,7 +28,7 @@ $(filter-out ../output/segment_assignment_coverage_sales.csv,$(OUTPUTS)): ../out
 ../input/sales_with_hedonics.parquet: ../../../prep_sales_border_data/output/sales_with_hedonics.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/rent_with_ward_distances_full.parquet: ../../../merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
+../input/rent_with_ward_distances_full.parquet: ../../../merge_rent_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/boundary_segments_1320ft.gpkg: ../../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input

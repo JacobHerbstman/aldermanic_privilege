@@ -1,21 +1,9 @@
-## run this line when editing code in Rstudio
-# setwd("/Users/jacobherbstman/Desktop/alderman_data/tasks/zoning_data_cleaning/code")
-#
-## interactive argument examples (mirror Makefile inputs)
-# clean_zoning_data.R --in-zoning-geojson ../input/raw_zoning_data.geojson --in-zoning-lookup-csv ../input/zoning-code-summary-district-types.csv --in-old-zoning-csv ../input/old_zoning_bulk_density_1957_2004.csv --out-far-lookup-csv ../output/zoning_far_lookup_clean.csv
+# --- Interactive Test Block ---
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/zoning_data_cleaning/code")
 
 source("../../setup_environment/code/packages.R")
 
 `%||%` <- function(a, b) if (is.null(a)) b else a
-
-option_list <- list(
-  make_option(c("--in-zoning-geojson"), dest = "in_zoning_geojson", type = "character", default = "../input/raw_zoning_data.geojson"),
-  make_option(c("--in-zoning-lookup-csv"), dest = "in_zoning_lookup_csv", type = "character", default = "../input/zoning-code-summary-district-types.csv"),
-  make_option(c("--in-old-zoning-csv"), dest = "in_old_zoning_csv", type = "character", default = "../input/old_zoning_bulk_density_1957_2004.csv"),
-  make_option(c("--out-zoning-gpkg"), dest = "out_zoning_gpkg", type = "character", default = NA_character_),
-  make_option(c("--out-far-lookup-csv"), dest = "out_far_lookup_csv", type = "character", default = "../output/zoning_far_lookup_clean.csv")
-)
-opt <- parse_args(OptionParser(option_list = option_list))
 
 norm_code <- function(x) {
   x %>%
@@ -80,7 +68,7 @@ pick_col <- function(df, candidates, contains = NULL) {
   return(NULL)
 }
 
-zones_raw <- st_read(opt$in_zoning_geojson, quiet = TRUE)
+zones_raw <- st_read("../input/raw_zoning_data.geojson", quiet = TRUE)
 zone_col <- pick_col(zones_raw, c("zone_class", "zoneclass", "zoning", "district", "zone"), contains = c("zone"))
 if (is.null(zone_col)) {
   stop("Could not identify zoning code column in zoning geojson")
@@ -90,7 +78,7 @@ zones_sf <- zones_raw %>%
   transmute(zone_code = norm_code(as.character(.data[[zone_col]])), geometry) %>%
   filter(!is.na(zone_code))
 
-regs_raw <- read_csv(opt$in_zoning_lookup_csv, show_col_types = FALSE)
+regs_raw <- read_csv("../input/zoning-code-summary-district-types.csv", show_col_types = FALSE)
 code_col <- pick_col(regs_raw, c("district_type_code", "district", "district_type", "zoning_code", "code"), contains = c("district"))
 far_col <- pick_col(regs_raw, c("floor_area_ratio", "max_far", "maximum_far", "far"), contains = c("far"))
 lapu_col <- pick_col(regs_raw, c("lot_area_per_unit"), contains = c("lot", "unit"))
@@ -166,31 +154,22 @@ modern_lookup <- regs %>%
   group_by(zone_code, effective_start_date, effective_end_date, zoning_code_version) %>%
   summarise(floor_area_ratio = first(floor_area_ratio), .groups = "drop")
 
-old_lookup <- tibble(
-  zone_code = character(),
-  floor_area_ratio = numeric(),
-  effective_start_date = character(),
-  effective_end_date = character(),
-  zoning_code_version = character()
-)
-
-if (file.exists(opt$in_old_zoning_csv)) {
-  old_raw <- read_csv(opt$in_old_zoning_csv, show_col_types = FALSE)
-  old_code_col <- pick_col(old_raw, c("district_code", "zone_code", "code"), contains = c("district"))
-  old_far_col <- pick_col(old_raw, c("basic_far", "floor_area_ratio", "max_far", "far"), contains = c("far"))
-
-  if (!is.null(old_code_col) && !is.null(old_far_col)) {
-    old_lookup <- old_raw %>%
-      transmute(
-        zone_code = norm_old_code(as.character(.data[[old_code_col]])),
-        floor_area_ratio = as.numeric(.data[[old_far_col]]),
-        effective_start_date = "1957-05-29",
-        effective_end_date = "2004-10-31",
-        zoning_code_version = "pre_2004"
-      ) %>%
-      filter(!is.na(zone_code), !is.na(floor_area_ratio))
-  }
+old_raw <- read_csv("../input/old_zoning_bulk_density_1957_2004.csv", show_col_types = FALSE)
+old_code_col <- pick_col(old_raw, c("district_code", "zone_code", "code"), contains = c("district"))
+old_far_col <- pick_col(old_raw, c("basic_far", "floor_area_ratio", "max_far", "far"), contains = c("far"))
+if (is.null(old_code_col) || is.null(old_far_col)) {
+  stop("Could not identify zoning code/FAR columns in the historical lookup.", call. = FALSE)
 }
+
+old_lookup <- old_raw %>%
+  transmute(
+    zone_code = norm_old_code(as.character(.data[[old_code_col]])),
+    floor_area_ratio = as.numeric(.data[[old_far_col]]),
+    effective_start_date = "1957-05-29",
+    effective_end_date = "2004-10-31",
+    zoning_code_version = "pre_2004"
+  ) %>%
+  filter(!is.na(zone_code), !is.na(floor_area_ratio))
 
 far_lookup <- bind_rows(old_lookup, modern_lookup) %>%
   distinct(zone_code, effective_start_date, effective_end_date, zoning_code_version, .keep_all = TRUE) %>%
@@ -206,12 +185,7 @@ zones_with_regs <- zones_sf %>%
     maximum_building_height = max_building_height_ft
   )
 
-dir.create(dirname(opt$out_far_lookup_csv), recursive = TRUE, showWarnings = FALSE)
-
-if (!is.na(opt$out_zoning_gpkg) && nzchar(opt$out_zoning_gpkg)) {
-  dir.create(dirname(opt$out_zoning_gpkg), recursive = TRUE, showWarnings = FALSE)
-  st_write(zones_with_regs, opt$out_zoning_gpkg, delete_dsn = TRUE, quiet = TRUE)
-}
-write_csv(far_lookup, opt$out_far_lookup_csv)
+st_write(zones_with_regs, "../output/zoning_data_clean.gpkg", delete_dsn = TRUE, quiet = TRUE)
+write_csv(far_lookup, "../output/zoning_far_lookup_clean.csv")
 
 cat(sprintf("Wrote %d FAR lookup rows\n", nrow(far_lookup)))

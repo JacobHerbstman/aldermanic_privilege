@@ -6,11 +6,7 @@ The project uses a task-based workflow. Each active task lives in `tasks/<task>/
 
 ## Code Organization
 
-The workflow is organized as a series of tasks whose outputs feed downstream tasks through explicit symlinks. Each task is run from its own `code/` folder with `make`, and the task graph is generated directly from those `../input <- ../../upstream/output` dependency rules.
-
-Task graph: [tasks/symlink_graph/output/task_flow.png](tasks/symlink_graph/output/task_flow.png)
-
-![Task graph](tasks/symlink_graph/output/task_flow.png)
+The workflow is organized as a series of tasks whose outputs feed downstream tasks through explicit symlinks. Each task is run from its own `code/` folder with `make`. A local task graph can be generated from those dependency rules with the audit task described below.
 
 ## Replication Notes
 
@@ -51,6 +47,8 @@ make
 Rebuild the task graph:
 
 ```bash
-cd tasks/symlink_graph/code
+cd tasks/audits/symlink_graph/code
 make
 ```
+
+The generated graph is written to `tasks/audits/symlink_graph/output/task_flow.png` and is not part of the production pipeline.

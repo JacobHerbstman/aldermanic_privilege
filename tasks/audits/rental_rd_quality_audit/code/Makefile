@@ -13,7 +13,7 @@ all: ../output/rd_sample_flag_balance.csv
 ../output/rd_sample_definition_summary.csv: ../output/rd_sample_flag_balance.csv
 	@test -s "$@"
 
-../input/rent_with_ward_distances.parquet: ../../../merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
+../input/rent_with_ward_distances.parquet: ../../../merge_rent_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/boundary_segments_1320ft.gpkg: ../../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input

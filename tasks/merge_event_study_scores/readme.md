@@ -1,12 +1,10 @@
 # merge_event_study_scores
 
-Purpose: Merges event study scores.
+Purpose: Assigns the frozen pre-redistricting stringency scores used by the 2015 permit event study.
 
-Rent and sales use scores estimated through December 2022. The treatment panel uses scores through April 2026 because it also covers the 2023 redistricting cohort.
+Origin and destination aldermen are fixed using the 2014 ward incumbents, and their scores are estimated using permits filed through 2014.
 
 Produces:
-- `output/sales_with_ward_distances_through2022.csv`
-- `output/block_treatment_panel_through202604.csv`
-- `output/rent_with_ward_distances_full_through2022.parquet`
+- `output/block_treatment_panel_frozen2014.csv`
 
 Approx. runtime: ~1-10 minutes.

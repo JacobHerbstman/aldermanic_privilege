@@ -168,7 +168,7 @@ panel_city_lineage <- dbGetQuery(
   )
 
 quality_flags <- read_parquet(
-  "../../../renthub_quality_flags/output/chicago_rent_panel_quality_flags.parquet"
+  "../../renthub_quality_diagnostics/output/chicago_rent_panel_quality_flags.parquet"
 ) %>%
   as_tibble() %>%
   select(

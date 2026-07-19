@@ -9,9 +9,9 @@ checkout. It combines the empirical results in one main-text section and keeps
 the compact appendix set:
 
 - Appendix A: data documentation
-- Appendix B: additional permit evidence
-- Appendix C: alderman fixed effects and index validation
-- Appendix D: density boundary robustness checks
+- Appendix B: alderman fixed effects and the stringency index
+- Appendix C: density boundary robustness checks
+- Appendix D: additional permit evidence
 - Appendix E: rent and home-sales boundary checks
 
 Build with:

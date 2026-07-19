@@ -81,11 +81,6 @@ tasks/rezoning_block_hand_adjudications/output/*
 tasks/audits/rezoning_external_geocoder_handoff/output/*
 !tasks/audits/rezoning_external_geocoder_handoff/output/chicago_geocoder_upload_mapping_19990101_20260212.csv
 
-# Exception: track the task flow graph for README
-!tasks/symlink_graph/output/
-tasks/symlink_graph/output/graph.txt
-!tasks/symlink_graph/output/task_flow.png
-
 # ================== ADDITIONS ==================
 
 # Paper: ignore generated build artifacts, keep paper source tracked

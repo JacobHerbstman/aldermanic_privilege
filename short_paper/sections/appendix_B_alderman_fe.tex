@@ -8,8 +8,8 @@ This appendix provides additional detail on how the aldermanic stringency index 
 \subsection{Construction of the Stringency Index}
 
 Aldermanic stringency is measured using processing times from the high-discretion permit sample described in Section~\ref{subsec:permits_sample}.
-The processing-time regression uses positive-duration applications through December 2022.
-Same-day applications remain in the lagged ward-month permit count.
+The processing-time regression uses positive-duration permits through December 2022.
+Same-day permits remain in the lagged ward-month permit count.
 
 \paragraph{Stage 1: Residualization.}
 I regress permit-level log processing time on ward geographic fundamentals (distance to the CBD, distance to the lake, CTA station density), demographic controls (homeownership rate, population, racial composition), lagged ward-month permit volume, and fixed effects for year-months, permit type, and review type.
@@ -37,7 +37,7 @@ The purpose of this stage is to remove systematic differences in permit timing a
     \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex}
 
     \footnotesize
-    \textit{Notes:} Permit-level OLS regression from the baseline uncertainty-index specification, using permit applications through December 2022.
+    \textit{Notes:} Permit-level OLS regression from the baseline uncertainty-index specification, using permit records through December 2022.
     Covariates are racial shares, homeownership, population, distance to the CBD, distance to the lake, CTA station density, and lag permit volume.
     Fixed effects are listed in the table.
     Regressions are unweighted.

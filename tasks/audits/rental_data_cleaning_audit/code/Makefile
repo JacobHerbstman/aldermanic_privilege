@@ -26,10 +26,10 @@ all: ../output/audit_summary.md
 ../input/chicago_rent_panel.parquet: ../../../process_rent_data/output/chicago_rent_panel.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/chicago_rent_panel_quality_flags.parquet: ../../../renthub_quality_flags/output/chicago_rent_panel_quality_flags.parquet | ../input
+../input/chicago_rent_panel_quality_flags.parquet: ../../renthub_quality_diagnostics/output/chicago_rent_panel_quality_flags.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/rent_with_ward_distances.parquet: ../../../merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
+../input/rent_with_ward_distances.parquet: ../../../merge_rent_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/rental_rd_characteristics_panel_bw500.parquet: ../../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw500.parquet | ../input

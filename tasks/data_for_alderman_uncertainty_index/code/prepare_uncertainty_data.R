@@ -2,6 +2,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/data_for_alderman_uncertainty_index/code")
 
 source("../../setup_environment/code/packages.R")
+source("../../_lib/canonical_geometry_helpers.R")
 
 assert_unique_key <- function(df, key_cols, label) {
   data <- if (inherits(df, "sf")) st_drop_geometry(df) else df
@@ -73,12 +74,17 @@ ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 
 permits <- st_read("../input/building_permits_clean.gpkg", quiet = TRUE) %>%
   mutate(
+    application_start_date = as.Date(application_start_date),
     application_start_date_ym = as.yearmon(application_start_date_ym),
-    application_year = year(as.Date(application_start_date_ym))
+    application_year = year(application_start_date)
   )
 
-alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
-  mutate(month = as.yearmon(month))
+alderman_terms <- read_csv("../input/chicago_alderman_terms.csv", show_col_types = FALSE) %>%
+  mutate(
+    ward = as.integer(ward),
+    start_date = as.Date(start_date),
+    end_date = as.Date(end_date)
+  )
 
 ward_controls <- read_csv("../input/ward_controls.csv", show_col_types = FALSE)
 
@@ -90,7 +96,7 @@ cta_stations <- st_read("../input/cta_stations.geojson", quiet = TRUE)
 water_osm <- st_read("../input/gis_osm_water_a_free_1.shp", quiet = TRUE)
 
 assert_unique_key(permits, "id", "Building permits")
-assert_unique_key(alderman_panel, c("ward", "month"), "Alderman panel")
+assert_unique_key(alderman_terms, c("ward", "start_date"), "Alderman terms")
 assert_unique_key(ward_controls, c("ward", "year"), "Ward controls")
 assert_unique_key(ward_panel, c("ward", "year"), "Ward panel")
 
@@ -118,7 +124,13 @@ if (st_crs(permits) != st_crs(ward_panel)) {
 assert_expected_crs(permits, 3435, "Building permits")
 
 permits_high_discretion <- permits %>%
-  filter(high_discretion == 1)
+  filter(high_discretion == 1) %>%
+  mutate(
+    ward_map_era = canonical_era_from_date(
+      application_start_date,
+      allow_pre_2003 = FALSE
+    )
+  )
 
 ward_geoms_map1 <- ward_panel %>%
   filter(year == 2014) %>%
@@ -150,14 +162,11 @@ if (any(c(
 }
 
 permits_pre2015 <- permits_high_discretion %>%
-  filter(application_start_date_ym < as.yearmon("2015-05"))
+  filter(ward_map_era == "2003_2014")
 permits_2015_2023 <- permits_high_discretion %>%
-  filter(
-    application_start_date_ym >= as.yearmon("2015-05") &
-      application_start_date_ym < as.yearmon("2023-05")
-  )
+  filter(ward_map_era == "2015_2023")
 permits_post2023 <- permits_high_discretion %>%
-  filter(application_start_date_ym >= as.yearmon("2023-05"))
+  filter(ward_map_era == "post_2023")
 
 ward_pre2015 <- assign_wards_for_era(permits_pre2015, ward_geoms_map1, "pre_2015")
 ward_2015_2023 <- assign_wards_for_era(permits_2015_2023, ward_geoms_map2, "2015_2023")
@@ -176,8 +185,8 @@ permits_ward_data <- permits_ward_data %>%
     map_version = coalesce(
       as.integer(map_version),
       case_when(
-        application_start_date_ym < as.yearmon("2015-05") ~ 1L,
-        application_start_date_ym < as.yearmon("2023-05") ~ 2L,
+        ward_map_era == "2003_2014" ~ 1L,
+        ward_map_era == "2015_2023" ~ 2L,
         TRUE ~ 3L
       )
     )
@@ -218,8 +227,12 @@ if (any(is.na(permits_ward_data$ca_id))) {
 
 permits_with_alderman_all <- permits_ward_data %>%
   left_join(
-    alderman_panel,
-    by = c("ward", "application_start_date_ym" = "month"),
+    alderman_terms,
+    by = join_by(
+      ward,
+      application_start_date >= start_date,
+      application_start_date <= end_date
+    ),
     relationship = "many-to-one"
   )
 

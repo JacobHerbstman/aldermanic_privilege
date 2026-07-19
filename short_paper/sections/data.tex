@@ -25,27 +25,15 @@ of their individual fiefdom.''
 \citep{keefe_pregnancy_2013}
 
 \paragraph{The formal mechanism.}
-Before Mayor Lightfoot eliminated the
-practice in July 2019, aldermanic authority over permitting had a formal
-institutional expression.
-The Department of Buildings required an ``aldermanic
-acknowledgement letter'' for building permits above a threshold value, giving the
-local alderman a formal 10-day hold on permit issuance---embedding aldermanic review
-directly into permit issuance as a matter of city procedure, not simply
-informal custom \citep{city_of_chicago_sixty-day_2019}.
-Ald.\ Carlos Ramirez-Rosa
-described the old norm: ``Rather than an alderman just picking up the phone and
-saying, `stop that permit,' we are going to make it transparent.''
-Ald.\ James Cappleman was blunter: ``Aldermen right now,
-we have 50 czars.''
-\citep{schutz_lightfoot_2019}
+Two distinct reforms changed this process in 2019.
+Before July, Chicago's building code generally required the Department of Buildings to notify the local alderman of permit applications and wait ten days.
+An applicant seeking a permit during that period could submit an aldermanic acknowledgement letter.
+A new construction code repealed that broad notice rule effective July 1 \citep{city_of_chicago_sixty-day_2019}.
+Mayor Lightfoot's Executive Order 2019-2, signed in May, separately directed city departments not to defer to aldermen as a matter of unwritten custom when municipal law did not require it \citep{mayors_press_office_mayor_2019}.
+The order did not repeal code-mandated notice provisions or City Council authority over zoning and other legislative approvals \citep{city_of_chicago_sixty-day_2019, schutz_lightfoot_2019}.
 
-Mayor Lightfoot's 2019 executive order eliminated the formal hold
-\citep{mayors_press_office_mayor_2019}, but the 60-day review her administration
-conducted that summer documented how deeply prerogative had penetrated agency
-practice: department by department, city agencies had organized their workflows
-around aldermanic deference, and those informal norms proved far more durable than
-the formal rule \citep{city_of_chicago_sixty-day_2019}.
+These reforms narrowed formal prerogative without eliminating aldermanic influence.
+The 60-day review documented that some notification and approval requirements remained in other parts of the municipal code, while departments continued to solicit aldermanic input \citep{city_of_chicago_sixty-day_2019}.
 As Lightfoot herself put it: ``If
 you've got 50 separate fiefdoms that you have to deal with on issues like affordable
 housing, or just getting a sign on your building, it makes doing business with the
@@ -151,8 +139,11 @@ prerogative.}
 \subsection{Building Permits and the Permit Pipeline}
 \label{subsec:permit_pipeline}
 
-The building permits data come from the City of Chicago's open data portal and include all permit applications filed since 2006.
-The processing-time analysis uses records with valid geographic coordinates and non-negative processing times; Appendix~\ref{subsec:event_study_panel} describes the separate sample used to count applications in the event study.
+The City's public data contain permits recorded by the Department of Buildings since 2006.
+Each record reports when the application began and when the permit was issued.
+The data do not capture projects abandoned before they generated a permit record.
+The processing-time regression uses records with valid geographic coordinates and positive processing times; same-day permits remain in the workload counts used to construct the score.
+Appendix~\ref{subsec:event_study_panel} describes the separate sample used to count permits in the event study.
 I divide permits into two groups based on how much aldermanic discretion they are likely to face.
 
 \textit{High-discretion permits} are permits for projects where aldermen are most likely to matter: new construction, major renovation, demolition, porch construction, and reinstated permits.\footnote{Porch construction permits have received extra scrutiny since the \href{https://en.wikipedia.org/wiki/2003_Chicago_balcony_collapse}{2003 balcony collapse}.}
@@ -175,7 +166,7 @@ Appendix Table~\ref{tab:permit_summary_stats} reports the corresponding summary 
     \centering
     \includegraphics[width=0.78\textwidth]{../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf}
     \caption{Alderman-Level Mean Processing Time for High- and Low-Discretion Permits}
-\figurenotes{Figure plots the distribution of alderman-level mean permit processing time separately for high- and low-discretion permit groups, using permit applications through December 2022.
+\figurenotes{Figure plots the distribution of alderman-level mean permit processing time separately for high- and low-discretion permit groups, using permit records through December 2022.
 The high- and low-discretion permit groups are defined in Section~\ref{subsec:permit_pipeline}.
 Processing time is days from application to issuance.}
     \label{fig:permit_high_low_processing}
@@ -184,7 +175,7 @@ Processing time is days from application to issuance.}
 \subsection{Regulatory Stringency Scores}
 \label{subsec:stringency}
 
-I construct the stringency score using permit applications through 2006-2022 by residualizing permit processing times against ward and permit characteristics, then extracting the alderman-specific component.
+I construct the stringency score using permit records from 2006--2022 by residualizing permit processing times against ward and permit characteristics, then extracting the alderman-specific component.
 The first stage regresses log processing time at the permit level on ward-level demographic controls (racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
 %
 \begin{equation} \label{eq:stringency_reg1}
@@ -204,7 +195,7 @@ Here $a(w,m)$ denotes the alderman serving ward $w$ in month $m$.
 The raw alderman fixed effects $\hat{\alpha}_a$ can be noisy for aldermen with few permits.
 I therefore apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to pull imprecise estimates toward the grand mean, then standardize the final scores to have mean zero and unit standard deviation.
 
-Appendix Figure~\ref{fig:predecessor_successor_stringency} shows that the correlation between predecessor and successor aldermen within the same ward is relatively low ($\rho \approx 0.18$), supporting the interpretation that the index captures an alderman-specific component of the development process rather than ward characteristics.
+Appendix Figure~\ref{fig:predecessor_successor_stringency} shows that the correlation between predecessor and successor aldermen within the same ward is relatively low ($\rho \approx 0.15$), supporting the interpretation that the index captures an alderman-specific component of the development process rather than ward characteristics.
 
 Appendix Figure~\ref{fig:aldermanic_stringency_scores} shows the distribution of the final stringency scores, and Figure~\ref{fig:alderman_stringency_map} maps them across the city.
 The scores vary in wealthy and poor neighborhoods, on the North Side and South Side, which helps rule out the idea that they are simply proxying for location or local demand conditions.
@@ -213,26 +204,26 @@ The scores vary in wealthy and poor neighborhoods, on the North Side and South S
     \centering
     \includegraphics[width=0.8\textwidth]{../tasks/strictness_score_map/output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022-01.pdf}
     \caption{Geographic Distribution of Regulatory Stringency}
-\figurenotes{Map shows standardized stringency scores by ward, estimated using permit applications through December 2022 and displayed on the January 2022 ward map.
+\figurenotes{Map shows standardized stringency scores by ward, estimated using permit records through December 2022 and displayed on the January 2022 ward map.
 Darker shades indicate more stringent aldermen.}
     \label{fig:alderman_stringency_map}
 \end{figure}
 
 \subsection{New Construction Data}
 
-I construct a dataset of all new residential construction in Chicago between 2006 and 2022 using publicly available data from the Cook County Assessor's Office.
-For buildings with up to six units, I use the residential improvement characteristics data, which provide building-level information on dwelling units, stories, and building area.
-For larger multifamily buildings, I use the commercial valuation dataset, which covers properties assessed under multifamily model groups and reports unit counts, building area, and land area.
-I merge both sources with the Assessor's parcel universe for precise location coordinates, assign each parcel to its ward using City of Chicago shapefiles, and define the construction date as June 15 of the recorded year built.
+I construct a citywide dataset of new residential construction in Chicago between 2006 and 2022 using publicly available data from the Cook County Assessor's Office.
+I combine residential improvement characteristics with commercial valuation records for properties assessed under multifamily model groups.
+Together, these files report dwelling units, stories, building area, and land area.
+I geocode the original parcel identifiers using current and historical Assessor parcel records, assign each parcel to its ward using City of Chicago shapefiles, and define the construction date as June 15 of the recorded year built.
 I keep parcels with positive lot area, positive building area, and at least one dwelling unit.
 
 For each parcel I compute two standard density measures: Floor Area Ratio (FAR), defined as total building area divided by lot area, and Dwelling Units Per Acre (DUPAC), defined as dwelling units divided by lot acreage.
 Distance to the nearest ward boundary is computed after projecting parcels and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
 
 Table~\ref{tab:summary_stats} presents summary statistics.
-The full sample contains 12,476 new residential buildings.
-The 2,132 multifamily buildings (2+ units) are reported separately because aldermanic discretion is likely to matter most for larger projects.
-As a result, I focus on the multifamily sample but show that a gap exists for all new construction as well, albeit smaller in magnitude.
+The full sample contains 12,867 new residential buildings.
+The 2,402 multifamily buildings (2+ units) are reported separately because aldermanic discretion is likely to matter most for larger projects.
+I focus on the multifamily sample and report the all-construction estimates for comparison.
 
 \input{../tasks/summary_stats_new_construction/output/summary_stats.tex}
 

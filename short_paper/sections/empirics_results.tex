@@ -30,6 +30,9 @@ The coefficient $\tau$ is the jump at the boundary from the more lenient side to
 
 Table~\ref{tab:density_main_table} reports both versions of the density comparison.
 Panel A replaces the side indicator with the standardized aldermanic stringency score, while Panel B reports the binary version of the comparison visualized in Figure~\ref{fig:rd_fe_plots}.
+A one-standard-deviation increase in stringency lowers multifamily FAR by about 11\% and multifamily DUPAC by about 10\%.
+The binary estimates imply gaps of about 20\% for multifamily FAR and 24\% for multifamily DUPAC.
+The all-construction estimates are small and statistically indistinguishable from zero in both specifications.
 
 \begin{table}[htbp]
     \caption{Continuous and Binary Estimates of Development Density (500ft)}
@@ -73,8 +76,9 @@ As a complementary analysis using within-location variation, I use the 2015 ward
 Some blocks moved toward wards represented before redistricting by more stringent aldermen, some moved toward more lenient aldermen, and nearby non-switching blocks remained under the same origin ward.
 This design holds fixed the physical block and asks whether permit activity changes with its assigned regulatory environment.
 
-The outcome is the count of high-discretion permit applications on each census block in each year from 2010 through 2020.
-I date permits by application because the outcome of interest is whether a project enters the permitting process, rather than how long it remains under review.
+The outcome is the number of high-discretion permits recorded on each census block in each year from 2010 through 2020.
+I count permits by the year their applications began rather than the year they were issued.
+The outcome therefore measures when projects observed in the permit data first appeared in the process.
 These are the high-discretion permits defined in Section~\ref{subsec:permit_pipeline}.
 I estimate a PPML event study with block fixed effects and border-pair-by-year fixed effects:
 %
@@ -92,28 +96,28 @@ Some wards elected new aldermen when the map took effect, so the assigned change
 I do not redefine treatment using the 2015 winner because that election may itself reflect local preferences toward development.
 I therefore interpret the main estimate as the effect of assigned rather than realized stringency.
 Appendix Figure~\ref{fig:permit_event_study_stable} restricts the sample to blocks whose 2014 origin- and destination-ward incumbents both remained in office in 2015.
-In that sample, the estimated annual flow of high-discretion applications is 11.9\% lower, suggesting that the gap between assigned and realized stringency is not driving the result.
+In that sample, the estimated annual number of high-discretion permits is 12.4\% lower, suggesting that the gap between assigned and realized stringency is not driving the result.
 
 Figure~\ref{fig:permit_event_study} presents the main permit result.
 Before redistricting, blocks that would experience larger increases in aldermanic stringency do not show a differential trend.
 After reassignment, permit activity falls.
-A one-standard-deviation increase in assigned stringency reduces the annual flow of high-discretion permit applications by 9.2\% in the five years following the remap.
-The pooled PPML coefficient is $-0.097$ (SE $=0.033$).
+A one-standard-deviation increase in assigned stringency reduces the annual number of high-discretion permits recorded by the city by 9.5\% in the five years following the remap.
+The pooled PPML coefficient is $-0.100$ (SE $=0.032$).
 This suggests that aldermanic stringency affects not only the density of completed projects but also the flow of projects requiring discretionary review.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_permit_2015_high_discretion_application_frozen2014_itt_preperiod_controls_500ft_clust_ward_pair.pdf}
-    \caption{Permit Event Study: Effect of Assigned Stringency on High-Discretion Applications}
+    \caption{Permit Event Study: Effect of Assigned Stringency on High-Discretion Permits}
     \figurenotes{Block-year PPML event study for calendar years 2010--2020.
-    Outcome is the count of high-discretion permit applications per block per year.
+    Outcome is the count of high-discretion permits per block per year, grouped by application year.
     The sample includes blocks within 500ft of ward boundaries.
     Stringency scores are estimated using permits filed from 2006 through 2014; treatment is the destination-minus-origin score difference.
     The model includes block and border-pair $\times$ year fixed effects plus pre-period permit volume and an indicator for no pre-period permits, each interacted with year.
     Year $-1$ omitted as reference.
     Points report $\exp(\hat\beta_\tau)-1$; shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
-    Pooled post-period coefficient: $-0.097$ (SE $= 0.033$), implying that the annual flow of applications is 9.2\% lower on average in years 0--5.
-    Joint pre-trend test $p = 0.729$.}
+    Pooled post-period coefficient: $-0.100$ (SE $= 0.032$), implying that the annual number of recorded permits is 9.5\% lower on average in years 0--5.
+    Joint pre-trend test $p = 0.770$.}
     \label{fig:permit_event_study}
 \end{figure}
 
@@ -140,7 +144,7 @@ Controls include listing or property characteristics and distances to nearby sch
 Standard errors are clustered by boundary segment.
 
 Figure~\ref{fig:price_rd_flat}, Panel A, shows that listed rents are about 1.7\% higher on the more stringent side of a ward boundary after residualizing for segment-by-month fixed effects, hedonic controls, and observed amenity controls.
-Panel B shows a smaller home-sale price gap of about 1.2\%.
+Panel B points to a smaller home-sale price gap of about 1.2\%, although that estimate is statistically imprecise.
 Appendix~\ref{sec:appendix_price_rd} reports placebo-cutoff checks for both outcomes.
 
 \begin{figure}[htbp]

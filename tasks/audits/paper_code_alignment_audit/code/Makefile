@@ -231,7 +231,7 @@ all: \
 ../output/permit_event_date_status_sensitivity.csv: ../output/permit_event_outcome_status_composition.csv
 	@test -s "$@"
 
-../output/rental_sample_attrition.csv: audit_rental_pipeline.R ../../../process_rent_data/output/chicago_rent_panel.parquet ../../../renthub_quality_flags/output/chicago_rent_panel_quality_flags.parquet ../../../calculate_rent_distances/output/rent_pre_scores_full.parquet ../../../merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet ../../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw500.parquet | ../output
+../output/rental_sample_attrition.csv: audit_rental_pipeline.R ../../../process_rent_data/output/chicago_rent_panel.parquet ../../renthub_quality_diagnostics/output/chicago_rent_panel_quality_flags.parquet ../../../calculate_rent_distances/output/rent_pre_scores_full.parquet ../../../merge_rent_scores/output/rent_with_ward_distances_full_through2022.parquet ../../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw500.parquet | ../output
 	Rscript $<
 
 ../output/rental_model_reproduction.csv \
@@ -251,7 +251,7 @@ all: \
 ../output/rental_trimming_by_year.csv: ../output/rental_trimming_summary.csv
 	@test -s "$@"
 
-../output/sales_sample_attrition.csv: audit_sales_pipeline.R ../../../download_parcel_sales_data/output/parcel_sales_city.csv ../../../calculate_sale_distances/output/sales_pre_scores.csv ../../../merge_event_study_scores/output/sales_with_ward_distances_through2022.csv ../../../prep_sales_border_data/output/sales_with_hedonics.parquet ../../../sales_border_pair_fe/output/sales_with_hedonics_amenities.parquet ../../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../../../create_alderman_data/output/chicago_alderman_panel.csv ../../../download_parcel_universe_data/output/parcel_universe_2025_city.csv ../../../download_historical_sale_parcel_coordinates/output/historical_sale_parcel_coordinates_1999_2025.csv | ../output
+../output/sales_sample_attrition.csv: audit_sales_pipeline.R ../../../download_parcel_sales_data/output/parcel_sales_city.csv ../../../calculate_sale_distances/output/sales_pre_scores.csv ../../../merge_sales_scores/output/sales_with_ward_distances_through2022.csv ../../../prep_sales_border_data/output/sales_with_hedonics.parquet ../../../sales_border_pair_fe/output/sales_with_hedonics_amenities.parquet ../../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../../../create_alderman_data/output/chicago_alderman_panel.csv ../../../download_parcel_universe_data/output/parcel_universe_2025_city.csv ../../../download_historical_sale_parcel_coordinates/output/historical_sale_parcel_coordinates_1999_2025.csv | ../output
 	Rscript $<
 
 ../output/sales_model_reproduction.csv \
@@ -389,7 +389,7 @@ all: \
 ../output/permit_balance_inference_sensitivity.csv: ../output/permit_balance_geography_summary.csv
 	@test -s "$@"
 
-../output/rental_city_raw_spatial_summary.csv: audit_rental_city_filter.R ../../../download_rent_data/output/download.done ../../../process_rent_data/output/chicago_rent_panel.parquet ../../../renthub_quality_flags/output/chicago_rent_panel_quality_flags.parquet ../../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw500.parquet ../../../ward_panel_create/output/ward_panel.gpkg | ../output
+../output/rental_city_raw_spatial_summary.csv: audit_rental_city_filter.R ../../../download_rent_data/output/download.done ../../../process_rent_data/output/chicago_rent_panel.parquet ../../renthub_quality_diagnostics/output/chicago_rent_panel_quality_flags.parquet ../../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw500.parquet ../../../ward_panel_create/output/ward_panel.gpkg | ../output
 	Rscript $<
 
 ../output/rental_city_panel_lineage_summary.csv \

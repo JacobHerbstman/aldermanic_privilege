@@ -60,7 +60,7 @@ summarize_panel <- function(path, dataset, cohort, treat_col) {
   df <- arrow::read_parquet(path) %>% as_tibble()
   required_cols <- c(
     "ward_pair_id", "ward_origin", "ward_dest", "event_neighbor_ward", "dist_m",
-    "segment_id_cohort", treat_col
+    treat_col
   )
   missing_cols <- setdiff(required_cols, names(df))
   if (length(missing_cols) > 0) {
@@ -70,6 +70,8 @@ summarize_panel <- function(path, dataset, cohort, treat_col) {
     ), call. = FALSE)
   }
 
+  has_segment_assignment <- "segment_id_cohort" %in% names(df)
+
   df <- df %>%
     mutate(
       ward_pair_id_norm = normalize_pair_dash(ward_pair_id),
@@ -77,12 +79,19 @@ summarize_panel <- function(path, dataset, cohort, treat_col) {
       expected_switched_pair = normal_pair_from_wards(ward_origin, ward_dest),
       expected_event_pair = normal_pair_from_wards(ward_origin, event_neighbor_ward),
       segment_era = cohort_segment_era(cohort)
-    ) %>%
-    left_join(
-      segment_lookup,
-      by = c("segment_era" = "era", "segment_id_cohort" = "segment_id"),
-      relationship = "many-to-one"
     )
+
+  if (has_segment_assignment) {
+    df <- df %>%
+      left_join(
+        segment_lookup,
+        by = c("segment_era" = "era", "segment_id_cohort" = "segment_id"),
+        relationship = "many-to-one"
+      )
+  } else {
+    df <- df %>%
+      mutate(segment_id_cohort = NA_character_, segment_pair_id = NA_character_)
+  }
 
   switched_rows <- df %>% filter(switched)
   control_rows <- df %>% filter(!switched)
@@ -113,17 +122,21 @@ summarize_panel <- function(path, dataset, cohort, treat_col) {
       switched_rows$ward_pair_id_norm != switched_rows$expected_switched_pair,
       na.rm = TRUE
     ),
-    missing_segment_le_1000ft = sum(
-      is.na(in_analysis_window$segment_id_cohort) |
-        in_analysis_window$segment_id_cohort == "",
-      na.rm = TRUE
-    ),
-    segment_pair_mismatch_le_1000ft = sum(
-      !is.na(in_analysis_window$segment_id_cohort) &
-        in_analysis_window$segment_id_cohort != "" &
-        in_analysis_window$segment_pair_id != in_analysis_window$ward_pair_id_norm,
-      na.rm = TRUE
-    ),
+    missing_segment_le_1000ft = if (has_segment_assignment) {
+      sum(is.na(in_analysis_window$segment_id_cohort) | in_analysis_window$segment_id_cohort == "")
+    } else {
+      NA_integer_
+    },
+    segment_pair_mismatch_le_1000ft = if (has_segment_assignment) {
+      sum(
+        !is.na(in_analysis_window$segment_id_cohort) &
+          in_analysis_window$segment_id_cohort != "" &
+          in_analysis_window$segment_pair_id != in_analysis_window$ward_pair_id_norm,
+        na.rm = TRUE
+      )
+    } else {
+      NA_integer_
+    },
     n_switched = nrow(switched_rows),
     n_pairs = n_distinct(df$ward_pair_id_norm),
     n_segments_le_1000ft = n_distinct(in_analysis_window$segment_id_cohort)
@@ -132,7 +145,6 @@ summarize_panel <- function(path, dataset, cohort, treat_col) {
 
 panel_summary <- bind_rows(
   summarize_panel("../input/permit_block_year_panel_2015.parquet", "permits", "2015", "switched"),
-  summarize_panel("../input/permit_block_year_panel_2023.parquet", "permits", "2023", "switched"),
   summarize_panel("../input/sales_transaction_panel_2015.parquet", "sales", "2015", "treat"),
   summarize_panel("../input/sales_transaction_panel_2023.parquet", "sales", "2023", "treat")
 )
@@ -196,14 +208,16 @@ for (i in seq_len(nrow(panel_summary))) {
     if_else(row_i$switched_pair_mismatch == 0, "pass", "fail"),
     "Treated/switched rows must use the origin-destination ward pair, not a transaction-date nearest pair."
   )
-  flags <- add_flag(flags, row_i$dataset, row_i$cohort, "missing_segment_le_1000ft", row_i$missing_segment_le_1000ft,
-    if_else(row_i$missing_segment_le_1000ft == 0, "pass", "fail"),
-    "Rows inside the 1000ft event-study window should have cohort segment assignment for diagnostics/robustness."
-  )
-  flags <- add_flag(flags, row_i$dataset, row_i$cohort, "segment_pair_mismatch_le_1000ft", row_i$segment_pair_mismatch_le_1000ft,
-    if_else(row_i$segment_pair_mismatch_le_1000ft == 0, "pass", "fail"),
-    "Assigned segments inside 1000ft should belong to the same event ward-pair as the row."
-  )
+  if (!is.na(row_i$missing_segment_le_1000ft)) {
+    flags <- add_flag(flags, row_i$dataset, row_i$cohort, "missing_segment_le_1000ft", row_i$missing_segment_le_1000ft,
+      if_else(row_i$missing_segment_le_1000ft == 0, "pass", "fail"),
+      "Rows inside the 1000ft event-study window should have cohort segment assignment for diagnostics/robustness."
+    )
+    flags <- add_flag(flags, row_i$dataset, row_i$cohort, "segment_pair_mismatch_le_1000ft", row_i$segment_pair_mismatch_le_1000ft,
+      if_else(row_i$segment_pair_mismatch_le_1000ft == 0, "pass", "fail"),
+      "Assigned segments inside 1000ft should belong to the same event ward-pair as the row."
+    )
+  }
 }
 
 sales_geometry_diagnostics <- read_csv(

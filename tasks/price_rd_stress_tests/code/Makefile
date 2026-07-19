@@ -15,7 +15,7 @@ all: \
 ../input/sales_with_hedonics_amenities.parquet: ../../sales_border_pair_fe/output/sales_with_hedonics_amenities.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/rent_with_ward_distances_full.parquet: ../../merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
+../input/rent_with_ward_distances_full.parquet: ../../merge_rent_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/schools_2015.gpkg: ../../prepare_amenities_data/output/schools_2015.gpkg | ../input

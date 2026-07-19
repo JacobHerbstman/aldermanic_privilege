@@ -6,7 +6,7 @@ all: \
 	../output/treatment_control_map_2015_$(MAP_BW_LABEL).pdf \
 	../output/ward_pair_vertical_$(PAIR_TO_MAP)_$(MAP_BW_LABEL).pdf
 
-../output/treatment_control_map_2015_$(MAP_BW_LABEL).pdf: plot_treatment_maps.R ../input/permit_block_year_panel_2015.parquet ../input/block_treatment_panel.csv ../input/census_blocks_2010.csv ../input/ward_panel.gpkg | ../output
+../output/treatment_control_map_2015_$(MAP_BW_LABEL).pdf: plot_treatment_maps.R ../input/permit_block_year_panel_2015.parquet ../input/census_blocks_2010.csv ../input/ward_panel.gpkg | ../output
 	Rscript $< $(MAP_BW_M) $(MAP_BW_LABEL) $(PAIR_TO_MAP)
 
 ../output/ward_pair_vertical_$(PAIR_TO_MAP)_$(MAP_BW_LABEL).pdf: ../output/treatment_control_map_2015_$(MAP_BW_LABEL).pdf
@@ -21,9 +21,6 @@ all: \
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/block_treatment_panel.csv: ../../merge_event_study_scores/output/block_treatment_panel_through202604.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
-
-link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/census_blocks_2010.csv ../input/ward_panel.gpkg ../input/block_treatment_panel.csv
+link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/census_blocks_2010.csv ../input/ward_panel.gpkg
 
 include ../../generic.make

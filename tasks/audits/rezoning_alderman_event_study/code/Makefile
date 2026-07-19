@@ -59,7 +59,7 @@ all: \
 ../input/permit_block_year_panel_2015.parquet: ../../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/block_treatment_panel.csv: ../../../merge_event_study_scores/output/block_treatment_panel_through202604.csv | ../input
+../input/block_treatment_panel.csv: ../../merge_extended_event_study_scores/output/block_treatment_panel_through202604.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/rezoning_census_blocks_20101101_20201231.csv: ../../../rezoning_census_block_assignment/output/rezoning_census_blocks_20101101_20201231.csv | ../input

@@ -60,7 +60,7 @@ pre_scores <- read_csv(
 ) %>%
   mutate(pin = if_else(nchar(pin) == 13L, paste0("0", pin), pin))
 scored <- read_csv(
-  "../../../merge_event_study_scores/output/sales_with_ward_distances_through2022.csv",
+  "../../../merge_sales_scores/output/sales_with_ward_distances_through2022.csv",
   col_types = cols(pin = col_character(), .default = col_guess()),
   show_col_types = FALSE
 ) %>%

@@ -6,18 +6,18 @@ source("../../../_lib/permit_event_study_sample_helpers.R")
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/permit_event_study_audit/code")
 # panel_mode <- "cohort_2015"
 # outcome_family <- "high_discretion"
-# date_basis <- "issue"
+# date_basis <- "application"
 # model_type <- "ppml"
 # treatment_type <- "continuous"
 # weighting <- "uniform"
-# bandwidth <- 300
+# bandwidth <- 152.4
 # fe_type <- "within_block"
 # post_window <- "full"
 # geo_fe_level <- "ward_pair"
-# cluster_level <- "block"
-# control_spec <- "none"
+# cluster_level <- "ward_pair"
+# control_spec <- "pre_high_level"
 # sample_restriction <- "none"
-# bandwidth_label <- "300m"
+# bandwidth_label <- "500ft"
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -76,19 +76,15 @@ CLUSTER_LEVEL <- cluster_level
 CONTROL_SPEC <- control_spec
 SAMPLE_RESTRICTION <- tolower(sample_restriction)
 
-if (PANEL_MODE == "pooled_implementation") {
-  PANEL_MODE <- "stacked_implementation"
-}
-
-valid_panel_modes <- c("stacked_implementation", "cohort_2015", "cohort_2023")
+valid_panel_modes <- "cohort_2015"
 if (!PANEL_MODE %in% valid_panel_modes) {
   stop(sprintf("--panel_mode must be one of: %s", paste(valid_panel_modes, collapse = ", ")), call. = FALSE)
 }
-if (!OUTCOME_FAMILY %in% c("new_construction", "new_construction_demolition", "low_discretion_nosigns", "high_discretion", "unit_increase")) {
-  stop("--outcome_family must be one of: new_construction, new_construction_demolition, low_discretion_nosigns, high_discretion, unit_increase", call. = FALSE)
+if (!OUTCOME_FAMILY %in% c("new_construction", "low_discretion_nosigns", "high_discretion")) {
+  stop("--outcome_family must be one of: new_construction, low_discretion_nosigns, high_discretion", call. = FALSE)
 }
-if (!DATE_BASIS %in% c("issue", "application")) {
-  stop("--date_basis must be one of: issue, application", call. = FALSE)
+if (DATE_BASIS != "application") {
+  stop("--date_basis must be application.", call. = FALSE)
 }
 if (!MODEL_TYPE %in% c("ppml", "binary", "log")) {
   stop("--model_type must be one of: ppml, binary, log", call. = FALSE)
@@ -128,68 +124,11 @@ if (GEO_FE_LEVEL == "segment" && BANDWIDTH > 800) {
   stop("Segment FE requested with bandwidth > 800m. Use bandwidth <= 800m.", call. = FALSE)
 }
 
-outcome_catalog <- tibble(
-  outcome_family = c(
-    "new_construction",
-    "new_construction",
-    "new_construction_demolition",
-    "new_construction_demolition",
-    "low_discretion_nosigns",
-    "low_discretion_nosigns",
-    "high_discretion",
-    "high_discretion",
-    "unit_increase",
-    "unit_increase"
-  ),
-  date_basis = c("issue", "application", "issue", "application", "issue", "application", "issue", "application", "issue", "application"),
-  count_var = c(
-    "n_new_construction_issue",
-    "n_new_construction_application",
-    "n_new_construction_demolition_issue",
-    "n_new_construction_demolition_application",
-    "n_low_discretion_nosigns_issue",
-    "n_low_discretion_nosigns_application",
-    "n_high_discretion_issue",
-    "n_high_discretion_application",
-    "n_unit_increase_issue",
-    "n_unit_increase_application"
-  ),
-  binary_var = c(
-    "has_new_construction_issue",
-    "has_new_construction_application",
-    "has_new_construction_demolition_issue",
-    "has_new_construction_demolition_application",
-    "has_low_discretion_nosigns_issue",
-    "has_low_discretion_nosigns_application",
-    "has_high_discretion_issue",
-    "has_high_discretion_application",
-    "has_unit_increase_issue",
-    "has_unit_increase_application"
-  ),
-  count_label = c(
-    "issued new-construction permits",
-    "issued new-construction permits (application timing)",
-    "issued new-construction or demolition permits",
-    "issued new-construction or demolition permits (application timing)",
-    "issued low-discretion permits (excluding signs)",
-    "issued low-discretion permits (excluding signs, application timing)",
-    "issued high-discretion permits",
-    "issued high-discretion permits (application timing)",
-    "issued curated unit-increase permits",
-    "issued curated unit-increase permits (application timing)"
-  ),
-  binary_label = c(
-    "any issued new-construction permit",
-    "any issued new-construction permit (application timing)",
-    "any issued new-construction or demolition permit",
-    "any issued new-construction or demolition permit (application timing)",
-    "any issued low-discretion permit (excluding signs)",
-    "any issued low-discretion permit (excluding signs, application timing)",
-    "any issued high-discretion permit",
-    "any issued high-discretion permit (application timing)",
-    "any issued curated unit-increase permit",
-    "any issued curated unit-increase permit (application timing)"
-  )
+outcome_catalog <- tribble(
+  ~outcome_family, ~date_basis, ~count_var, ~binary_var, ~count_label, ~binary_label,
+  "new_construction", "application", "n_new_construction_application", "has_new_construction_application", "new-construction permits by application year", "any new-construction permit by application year",
+  "low_discretion_nosigns", "application", "n_low_discretion_nosigns_application", "has_low_discretion_nosigns_application", "low-discretion permits excluding signs by application year", "any low-discretion permit excluding signs by application year",
+  "high_discretion", "application", "n_high_discretion_application", "has_high_discretion_application", "high-discretion permits by application year", "any high-discretion permit by application year"
 )
 
 outcome_row <- outcome_catalog %>%
@@ -201,17 +140,8 @@ if (nrow(outcome_row) != 1) {
 base_outcome_var <- if (MODEL_TYPE == "binary") outcome_row$binary_var[[1]] else outcome_row$count_var[[1]]
 outcome_label <- if (MODEL_TYPE == "binary") outcome_row$binary_label[[1]] else outcome_row$count_label[[1]]
 
-panel_title <- switch(PANEL_MODE,
-  "stacked_implementation" = "2015 + 2023 implementation cohorts (stacked)",
-  "cohort_2015" = "2015 implementation cohort",
-  "cohort_2023" = "2023 implementation cohort"
-)
-
-panel_input <- switch(PANEL_MODE,
-  "stacked_implementation" = "../input/permit_block_year_panel.parquet",
-  "cohort_2015" = "../input/permit_block_year_panel_2015.parquet",
-  "cohort_2023" = "../input/permit_block_year_panel_2023.parquet"
-)
+panel_title <- "2015 implementation cohort"
+panel_input <- "../input/permit_block_year_panel_2015.parquet"
 
 suffix <- sprintf(
   "yearly_%s_%s_%s_%s_%s_%s_%s_within_block_%s_clust_%s",
@@ -332,6 +262,15 @@ make_support_table <- function(df, event_var, time_fe_var, fe_group_var, block_v
 
 message("\nLoading permit block-year panel...")
 data <- read_parquet(panel_input) %>%
+  mutate(
+    strictness_origin = strictness_origin_frozen,
+    strictness_dest = strictness_dest_frozen,
+    strictness_change = strictness_change_frozen,
+    across(starts_with("n_"), as.numeric),
+    has_new_construction_application = as.integer(n_new_construction_application > 0),
+    has_low_discretion_nosigns_application = as.integer(n_low_discretion_nosigns_application > 0),
+    has_high_discretion_application = as.integer(n_high_discretion_application > 0)
+  ) %>%
   filter(!is.na(.data[[base_outcome_var]]))
 panel_input_n <- nrow(data)
 panel_input_missing_strictness_change_n <- sum(is.na(data$strictness_change))
@@ -492,18 +431,18 @@ if (CONTROL_SPEC == "baseline_demographics") {
     filter(if_all(all_of(control_vars), ~ !is.na(.x))) %>%
     mutate(across(all_of(control_vars), safe_scale, .names = "{.col}_z"))
 } else if (CONTROL_SPEC == "pre_high_level") {
-  if (!"n_high_discretion_issue" %in% names(data)) {
-    stop("pre_high_level controls require n_high_discretion_issue in the permit panel.", call. = FALSE)
+  if (!"n_high_discretion_application" %in% names(data)) {
+    stop("pre_high_level controls require n_high_discretion_application in the permit panel.", call. = FALSE)
   }
 
   pre_high_controls <- data %>%
     filter(relative_year < 0) %>%
     group_by(.data[[block_var]]) %>%
     summarise(
-      pre_high_discretion_issue = sum(n_high_discretion_issue, na.rm = TRUE),
+      pre_high_discretion_application = sum(n_high_discretion_application, na.rm = TRUE),
       .groups = "drop"
     ) %>%
-    mutate(no_pre_high_discretion = as.integer(pre_high_discretion_issue == 0L))
+    mutate(no_pre_high_discretion = as.integer(pre_high_discretion_application == 0L))
 
   if (anyDuplicated(pre_high_controls[[block_var]]) > 0) {
     stop("Pre-period high-discretion controls are not unique by block.", call. = FALSE)
@@ -512,7 +451,7 @@ if (CONTROL_SPEC == "baseline_demographics") {
   data <- data %>%
     left_join(pre_high_controls, by = block_var, relationship = "many-to-one") %>%
     mutate(
-      pre_high_discretion_issue = replace_na(pre_high_discretion_issue, 0),
+      pre_high_discretion_application = replace_na(pre_high_discretion_application, 0),
       no_pre_high_discretion = replace_na(no_pre_high_discretion, 1L)
     )
 }
@@ -558,7 +497,7 @@ control_terms <- switch(
   CONTROL_SPEC,
   "baseline_demographics" = paste(sprintf("%s:factor(year)", paste0(control_vars, "_z")), collapse = " + "),
   "pre_high_level" = paste(
-    "pre_high_discretion_issue:factor(year)",
+    "pre_high_discretion_application:factor(year)",
     "no_pre_high_discretion:factor(year)",
     sep = " + "
   ),

@@ -38,12 +38,16 @@ permit_blocks_2015 <- read_parquet("../input/permit_block_year_panel_2015.parque
     block_id != "",
     !is.na(ward_pair_id),
     ward_pair_id != "",
-    !is.na(strictness_change)
+    !is.na(strictness_change_frozen)
   ) %>%
   transmute(
     block_id = as.character(block_id),
     cohort = "2015",
-    ward_pair_id = gsub("_", "-", as.character(ward_pair_id), fixed = TRUE)
+    ward_pair_id = gsub("_", "-", as.character(ward_pair_id), fixed = TRUE),
+    ward_origin,
+    ward_dest,
+    treat,
+    strictness_change = strictness_change_frozen
   ) %>%
   distinct()
 
@@ -53,24 +57,7 @@ if (nrow(permit_blocks_2015 %>%
   stop("Permit event-study panel has multiple boundary assignments for the same cohort-block.", call. = FALSE)
 }
 
-block_treatment <- read_csv("../input/block_treatment_panel.csv", show_col_types = FALSE) %>%
-  mutate(
-    block_id = as.character(block_id),
-    cohort = as.character(cohort),
-    treat = as.integer(switched)
-  ) %>%
-  filter(valid, !is.na(strictness_change))
-
-if (nrow(block_treatment %>%
-  filter(cohort == "2015") %>%
-  count(block_id, cohort, name = "n_assignments") %>%
-  filter(n_assignments > 1)) > 0) {
-  stop("Block treatment panel has duplicate cohort-block assignments.", call. = FALSE)
-}
-
 sample_2015 <- permit_blocks_2015 %>%
-  left_join(block_treatment, by = c("block_id", "cohort"), relationship = "one-to-one") %>%
-  filter(!is.na(strictness_change)) %>%
   mutate(treatment_group = case_when(
     treat == 0 ~ "Control",
     strictness_change > 0 ~ "Moved to Stricter",

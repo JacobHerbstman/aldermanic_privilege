@@ -21,8 +21,8 @@ if (anyDuplicated(alderman_lookup[, c("ward", "month")]) > 0) {
 }
 
 ds <- arrow::open_dataset("../input/chicago_rent_panel.parquet")
-quality_ds <- arrow::open_dataset("../input/chicago_rent_panel_quality_flags.parquet")
-quality_cols <- c(
+location_ds <- arrow::open_dataset("../input/chicago_rent_panel_location_corrections.parquet")
+location_cols <- c(
   "rent_panel_id",
   "geometry_latitude",
   "geometry_longitude",
@@ -30,13 +30,12 @@ quality_cols <- c(
   "modal_longitude",
   "flag_geometry_uses_address_location_correction",
   "flag_location_questionable",
-  "location_quality_status",
-  "quality_flag_severity"
+  "location_quality_status"
 )
-missing_quality_cols <- setdiff(quality_cols, names(quality_ds))
-if (length(missing_quality_cols) > 0) {
+missing_location_cols <- setdiff(location_cols, names(location_ds))
+if (length(missing_location_cols) > 0) {
   stop(
-    sprintf("RentHub quality flags missing required columns: %s.", paste(missing_quality_cols, collapse = ", ")),
+    sprintf("RentHub location corrections are missing: %s.", paste(missing_location_cols, collapse = ", ")),
     call. = FALSE
   )
 }
@@ -65,20 +64,20 @@ for (i in seq_along(years)) {
     collect()
 
   if (nrow(df_chunk) > 0) {
-    quality_chunk <- quality_ds %>%
+    location_chunk <- location_ds %>%
       filter(year == yr) %>%
-      select(all_of(quality_cols)) %>%
+      select(all_of(location_cols)) %>%
       collect()
-    if (anyDuplicated(quality_chunk$rent_panel_id) > 0) {
-      stop(sprintf("Quality flags are not unique by rent_panel_id for year %d.", yr), call. = FALSE)
+    if (anyDuplicated(location_chunk$rent_panel_id) > 0) {
+      stop(sprintf("Location corrections are not unique by rent_panel_id for year %d.", yr), call. = FALSE)
     }
     df_chunk <- df_chunk %>%
-      left_join(quality_chunk, by = "rent_panel_id", relationship = "many-to-one")
-    n_missing_quality <- sum(is.na(df_chunk$quality_flag_severity))
-    if (n_missing_quality > 0) {
+      left_join(location_chunk, by = "rent_panel_id", relationship = "many-to-one")
+    n_missing_locations <- sum(is.na(df_chunk$location_quality_status))
+    if (n_missing_locations > 0) {
       stop(sprintf(
-        "Missing RentHub quality flags for %d panel rows in year %d.",
-        n_missing_quality,
+        "Missing RentHub location corrections for %d panel rows in year %d.",
+        n_missing_locations,
         yr
       ), call. = FALSE)
     }

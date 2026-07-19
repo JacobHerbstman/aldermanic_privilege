@@ -35,7 +35,7 @@ all: \
 ../output/rental_rd_supply_sample_summary_bw$(BANDWIDTH_FT).csv: ../output/rental_rd_supply_side_panel_bw$(BANDWIDTH_FT).parquet
 	@test -s "$@"
 
-../input/rent_with_ward_distances.parquet: ../../../merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
+../input/rent_with_ward_distances.parquet: ../../../merge_rent_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/confounded_segment_flags.csv: ../../../border_confound_pruning/output/confounded_segment_flags.csv | ../input

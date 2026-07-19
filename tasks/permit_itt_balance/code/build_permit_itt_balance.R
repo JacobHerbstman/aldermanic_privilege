@@ -145,12 +145,12 @@ balance_sample <- balance_sample %>%
 
 covariates <- tribble(
   ~section, ~variable, ~label, ~format,
-  "Permit history", "pre_high_discretion_applications", "High-discretion applications, 2010--2014", "decimal",
-  "Permit history", "no_pre_high_discretion_applications", "No high-discretion application, 2010--2014", "decimal",
-  "Permit history", "pre_low_discretion_applications", "Low-discretion applications, 2010--2014", "decimal",
-  "Permit history", "no_pre_low_discretion_applications", "No low-discretion application, 2010--2014", "decimal",
-  "Permit history", "pre_new_construction_applications", "New-construction applications, 2010--2014", "decimal",
-  "Permit history", "no_pre_new_construction_applications", "No new-construction application, 2010--2014", "decimal",
+  "Permit history", "pre_high_discretion_applications", "High-discretion permits, 2010--2014", "decimal",
+  "Permit history", "no_pre_high_discretion_applications", "No high-discretion permit, 2010--2014", "decimal",
+  "Permit history", "pre_low_discretion_applications", "Low-discretion permits, 2010--2014", "decimal",
+  "Permit history", "no_pre_low_discretion_applications", "No low-discretion permit, 2010--2014", "decimal",
+  "Permit history", "pre_new_construction_applications", "New-construction permits, 2010--2014", "decimal",
+  "Permit history", "no_pre_new_construction_applications", "No new-construction permit, 2010--2014", "decimal",
   "Neighborhood characteristics", "median_household_income", "Median household income", "integer",
   "Neighborhood characteristics", "homeownership_rate", "Homeownership rate", "decimal",
   "Neighborhood characteristics", "bachelors_share", "Bachelor's degree or higher share", "decimal",
@@ -279,7 +279,7 @@ lines <- c(
       "\\textit{Notes:} Treated blocks were reassigned to a different ward by the 2015 ward map; control blocks remained in their original ward. ",
       "The sample contains %s treated and %s control blocks within %s of a ward boundary in %s ward pairs containing both groups and is constructed before estimation. ",
       "The event-study samples are smaller because PPML drops blocks and ward-pair-year cells with no permits for the outcome being studied. ",
-      "Permit measures use application dates. Neighborhood characteristics are 2014 ACS five-year block-group estimates. ",
+      "Permits are grouped by application year. Neighborhood characteristics are 2014 ACS five-year block-group estimates. ",
       "Difference is the coefficient on the treated indicator from a regression with ward-pair fixed effects; standard errors are clustered by ward pair. ",
       "Means are unadjusted block-level means. The joint-test p-value for all listed covariates is %.3f ",
       "(complete-case $N=%s$).\\end{minipage}"

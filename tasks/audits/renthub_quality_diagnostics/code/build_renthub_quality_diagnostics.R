@@ -1,9 +1,9 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/renthub_quality_flags/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/renthub_quality_diagnostics/code")
 # start_date <- "2014-01-01"
 # end_date <- "2022-12-31"
 
-source("../../setup_environment/code/packages.R")
+source("../../../setup_environment/code/packages.R")
 
 library(DBI)
 library(duckdb)

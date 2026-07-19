@@ -319,7 +319,7 @@ all: ../output/alderman_scores.csv ../output/density_score_sensitivity_models.cs
 ../input/residualized_low_vs_high_processing_alderman_wide.csv: ../../../within_ward_strictness/output/residualized_low_vs_high_processing_alderman_wide_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/rent_with_ward_distances_full_source.parquet: ../../../merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
+../input/rent_with_ward_distances_full_source.parquet: ../../../merge_rent_scores/output/rent_with_ward_distances_full_through2022.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/sales_with_hedonics_amenities_source.parquet: ../../../sales_border_pair_fe/output/sales_with_hedonics_amenities.parquet | ../input

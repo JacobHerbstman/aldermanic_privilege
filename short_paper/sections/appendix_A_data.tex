@@ -17,7 +17,7 @@ Sales records, property assessments, and improvement characteristics for residen
 Rental listing records for Illinois from 2014--2022, restricted to Chicago using the ward assignment procedure described below.
 
 \paragraph{Chicago Building Permits.}
-Permit applications and processing records for project types where aldermen are most likely to matter.
+Permit records and processing times for project types where aldermen are most likely to matter.
 
 \paragraph{Ward Boundary Shapefiles.}
 Official ward boundaries for the two eras used in the paper: pre-2015 and 2015--2023.
@@ -32,14 +32,14 @@ American Community Survey block group demographics and 2010/2020 decennial censu
 \subsection{High-Discretion Permits: Sample Construction}
 \label{subsec:permits_sample}
 
-The building permits data come from the City of Chicago's open data portal and include all permit applications and processing records.
+The building permits data come from the City of Chicago's open data portal and contain permits recorded by the Department of Buildings since 2006.
 
 \paragraph{Sample Restrictions.}
 I construct the high-discretion sample using the permit types defined in Section~\ref{subsec:permit_pipeline}.
 
 All remaining permit types are excluded from the high-discretion sample.
 In placebo analyses, low-discretion permits are the remaining routine permit types, excluding signs.
-The event-study outcomes include applications that were issued or later expired, while applications marked cancelled, revoked, or suspended are excluded.
+The event-study outcomes retain observed permit records except those marked cancelled, revoked, or suspended.
 
 \paragraph{Processing Time.}
 For each permit, I compute processing time as the number of days between the application date and the issue date.
@@ -73,10 +73,10 @@ For each block, I measure the change in stringency using the 2014 incumbents in 
 Some wards elected new aldermen when the new map took effect, so this assigned change does not always match the change under the alderman who ultimately took office.
 I nevertheless keep treatment tied to the pre-election incumbents.
 Defining treatment using the 2015 winner could mix the effect of aldermanic stringency with the ward's own demand for more or less development.
-I retain blocks regardless of electoral turnover and interpret the estimate as the effect of assigned stringency.
+I retain all blocks with complete pre- and post-map ward assignments regardless of electoral turnover and interpret the estimate as the effect of assigned stringency.
 
 \paragraph{Analysis Sample.}
-Permit applications are aggregated to block-year panels using application year.
+Permits are aggregated to block-year panels using application year.
 The event study uses the 2015 implementation cohort with relative years $-5$ through $5$.
 The 500ft local-support restriction is based on the distance from each census block polygon's centroid to the cohort's pre-redistricting boundary geometry.
 Controls use the nearest incident pre-redistricting ward boundary, while treated blocks use the fixed origin-destination ward boundary created by redistricting.
@@ -91,6 +91,12 @@ The new construction sample for the density analysis comes from Cook County Asse
 I apply the following restrictions: (1) lot area is positive; (2) building area is positive; (3) at least one dwelling unit; and (4) construction year falls between 2006 and 2022.
 These restrictions exclude vacant parcels, data errors, and buildings outside the active sample window.
 
+\paragraph{Geocoding.}
+I first geocode each original PIN using the 2025 Parcel Universe.
+When an original PIN no longer appears there, I use its construction-year location from the Historical Parcel Universe.
+Four additional records are matched to a unique location using historical property addresses and parcel history.
+I retain a historical location only when the parcel history supports treating the original PIN as a distinct construction project rather than a predecessor of another observation already in the sample.
+
 \paragraph{Density Measures.}
 For each parcel, I compute two density measures: Floor Area Ratio (FAR), defined as total building area divided by lot area; and Dwelling Units Per Acre (DUPAC), defined as the number of dwelling units divided by lot acreage.
 
@@ -101,14 +107,14 @@ Distance to the nearest ward boundary is computed after projecting parcels and b
 
 \subsection{Summary Statistics: New Construction Sample}
 
-Table~\ref{tab:summary_stats} presents summary statistics for the new residential construction sample used in the density analysis.
-The sample includes all new residential buildings constructed in Chicago between 2006 and 2022 that meet the restrictions described in Section~\ref{subsec:new_construction_sample}.
+Table~\ref{tab:summary_stats} presents summary statistics for the citywide new residential construction sample before the 500ft boundary restriction.
+The sample includes geocoded new residential buildings constructed in Chicago between 2006 and 2022 that meet the restrictions described in Section~\ref{subsec:new_construction_sample}.
 Column (1) reports statistics for the full sample, while Column (2) restricts the sample to multifamily buildings with 2 or more units.
 
-The full sample contains 12,476 new residential buildings with an average of 6.43 dwelling units and 2.28 stories.
-The average Floor Area Ratio (FAR) is 1.20 and the average Dwelling Units Per Acre (DUPAC) is 27.84.
-Multifamily buildings are much denser, with an average of 32.79 units, 2.76 stories, FAR of 2.29, and DUPAC of 74.48.
-Median distance to the nearest ward boundary is about 930ft in the full sample and 830ft in the multifamily sample.
+The full sample contains 12,867 new residential buildings with an average of 6.36 dwelling units and 2.30 stories.
+The average Floor Area Ratio (FAR) is 1.23 and the average Dwelling Units Per Acre (DUPAC) is 28.28.
+Multifamily buildings are much denser, with an average of 29.70 units, 2.78 stories, FAR of 2.27, and DUPAC of 71.76.
+Median distance to the nearest ward boundary is about 908ft in the full sample and 769ft in the multifamily sample.
 
 \subsection{Home Sales: Sample Construction}
 \label{subsec:sales_sample}
@@ -146,6 +152,7 @@ A floorplan proxy adds beds, baths, square feet, and cleaned building type.
 I first collapse raw rows to floorplan-by-scrape-date observations using median rent, then collapse to one floorplan-month observation using the median daily rent observed in that month.
 This construction prevents daily scrape persistence from overweighting a listing while retaining multiple floorplans in large multifamily buildings.
 When multiple rents appear for the same floorplan proxy on the same scrape date, I retain the group and use the median rent, while carrying flags for unusually large within-day rent dispersion.
+Before aggregating to months, I trim rent and square footage at the 1st and 99th percentiles within year-by-bedroom cells.
 
 I keep observations with positive rent and valid coordinates that can be assigned to Chicago wards.
 Ward boundaries and aldermen are assigned using the listing's first observed date, with the May 2015 transition split at May 18.

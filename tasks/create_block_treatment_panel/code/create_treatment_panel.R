@@ -217,8 +217,7 @@ treatment_2015 <- assignments_2010 %>%
     left_join(ward_turnover_2015, by = c("ward_pre_2015" = "ward"), relationship = "many-to-one") %>%
     mutate(
         has_complete_ward_assignment_2015 = !is.na(ward_pre_2015) & !is.na(ward_post_2015),
-        valid_2015 = has_complete_ward_assignment_2015 &
-            (switched_2015 | (!switched_2015 & !ward_had_turnover_2015)),
+        valid_2015 = has_complete_ward_assignment_2015,
         valid_2015 = replace_na(valid_2015, FALSE)
     )
 

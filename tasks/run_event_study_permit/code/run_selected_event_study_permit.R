@@ -49,9 +49,9 @@ outcome_var <- if (outcome_family == "high_discretion") {
   "n_low_discretion_nosigns_application"
 }
 outcome_label <- if (outcome_family == "high_discretion") {
-  "High-discretion permit applications"
+  "High-discretion permits by application year"
 } else {
-  "Low-discretion permit applications"
+  "Low-discretion permits by application year"
 }
 
 data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%

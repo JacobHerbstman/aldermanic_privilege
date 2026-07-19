@@ -4,11 +4,11 @@ source("../../../setup_environment/code/packages.R")
 
 panel <- read_parquet("../../../process_rent_data/output/chicago_rent_panel.parquet") %>%
   as_tibble()
-quality <- read_parquet("../../../renthub_quality_flags/output/chicago_rent_panel_quality_flags.parquet") %>%
+quality <- read_parquet("../../renthub_quality_diagnostics/output/chicago_rent_panel_quality_flags.parquet") %>%
   as_tibble()
 pre_scores <- read_parquet("../../../calculate_rent_distances/output/rent_pre_scores_full.parquet") %>%
   as_tibble()
-scored <- read_parquet("../../../merge_event_study_scores/output/rent_with_ward_distances_full_through2022.parquet") %>%
+scored <- read_parquet("../../../merge_rent_scores/output/rent_with_ward_distances_full_through2022.parquet") %>%
   as_tibble()
 rent <- read_parquet("../../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw500.parquet") %>%
   as_tibble()
