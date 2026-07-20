@@ -1,0 +1,2 @@
+score_cutoff,n_draws,seed,workers,n_permits,n_bootstrap_cells,n_aldermen,elapsed_seconds
+2022,2000,20260719,8,120520,10156,113,325.40827894210815

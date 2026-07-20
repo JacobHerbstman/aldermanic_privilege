@@ -91,6 +91,11 @@ The new construction sample for the density analysis comes from Cook County Asse
 I apply the following restrictions: (1) lot area is positive; (2) building area is positive; (3) at least one dwelling unit; and (4) construction year falls between 2006 and 2022.
 These restrictions exclude vacant parcels, data errors, and buildings outside the active sample window.
 
+\paragraph{Construction Year.}
+For parcels represented by a single assessor card, I use the year built and property characteristics from the latest assessor record available by the end of 2022.
+If no qualifying record is available by then, I use the latest record available through 2025, and only use a later record when no earlier report exists.
+For parcels with multiple assessor cards, I retain the earliest reported construction year after 1998 and keep one observation per PIN.
+
 \paragraph{Geocoding.}
 I first geocode each original PIN using the 2025 Parcel Universe.
 When an original PIN no longer appears there, I use its construction-year location from the Historical Parcel Universe.
@@ -111,10 +116,10 @@ Table~\ref{tab:summary_stats} presents summary statistics for the citywide new r
 The sample includes geocoded new residential buildings constructed in Chicago between 2006 and 2022 that meet the restrictions described in Section~\ref{subsec:new_construction_sample}.
 Column (1) reports statistics for the full sample, while Column (2) restricts the sample to multifamily buildings with 2 or more units.
 
-The full sample contains 12,867 new residential buildings with an average of 6.36 dwelling units and 2.30 stories.
-The average Floor Area Ratio (FAR) is 1.23 and the average Dwelling Units Per Acre (DUPAC) is 28.28.
-Multifamily buildings are much denser, with an average of 29.70 units, 2.78 stories, FAR of 2.27, and DUPAC of 71.76.
-Median distance to the nearest ward boundary is about 908ft in the full sample and 769ft in the multifamily sample.
+The full sample contains 13,614 new residential buildings with an average of 6.08 dwelling units and 2.30 stories.
+The average Floor Area Ratio (FAR) is 1.22 and the average Dwelling Units Per Acre (DUPAC) is 27.90.
+Multifamily buildings are much denser, with an average of 28.38 units, 2.78 stories, FAR of 2.22, and DUPAC of 70.02.
+Median distance to the nearest ward boundary is about 904ft in the full sample and 786ft in the multifamily sample.
 
 \subsection{Home Sales: Sample Construction}
 \label{subsec:sales_sample}
