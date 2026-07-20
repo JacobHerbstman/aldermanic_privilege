@@ -44,6 +44,7 @@ fe_formula <- dplyr::case_when(
 )
 
 controls <- c(
+  "pair_average_score",
   "share_white_own",
   "share_black_own",
   "median_hh_income_own",
@@ -55,7 +56,10 @@ raw <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FAL
   ensure_meter_distance_columns()
 
 base_dat <- raw %>%
-  mutate(zone_group = zone_group_from_code(zone_code)) %>%
+  mutate(
+    zone_group = zone_group_from_code(zone_code),
+    pair_average_score = (strictness_own + strictness_neighbor) / 2
+  ) %>%
   filter(
     arealotsf > 1,
     areabuilding > 1,
@@ -168,6 +172,18 @@ for (i in seq_len(nrow(panel_specs))) {
     standard_error = unname(display_row[1, "Std. Error"]),
     p_value = unname(display_row[1, "Pr(>|t|)"])
   )
+  visual_stars <- case_when(
+    display_rows[[i]]$p_value <= 0.01 ~ "***",
+    display_rows[[i]]$p_value <= 0.05 ~ "**",
+    display_rows[[i]]$p_value <= 0.10 ~ "*",
+    TRUE ~ ""
+  )
+  visual_estimate_label <- sprintf(
+    "Visual estimate = %.3f%s (SE %.3f)",
+    display_rows[[i]]$estimate,
+    visual_stars,
+    display_rows[[i]]$standard_error
+  )
 
   breaks_m <- seq(-bandwidth_m, bandwidth_m, length.out = 2L * bins_per_side + 1L)
   bin_width_m <- bandwidth_m / bins_per_side
@@ -261,12 +277,14 @@ for (i in seq_len(nrow(panel_specs))) {
     coord_cartesian(ylim = y_limits) +
     labs(
       title = paste(sample_label, pretty_outcome, sep = ": "),
+      subtitle = visual_estimate_label,
       x = x_label,
       y = paste("Residualized", pretty_outcome)
     ) +
     theme_bw(base_size = 9) +
     theme(
       plot.title = element_text(face = "bold", size = 10),
+      plot.subtitle = element_text(size = 8.5, margin = margin(b = 4)),
       axis.title = element_text(size = 8.5),
       axis.text = element_text(size = 7.5),
       panel.grid.minor = element_blank()
@@ -289,33 +307,16 @@ ggsave(
   dpi = 300
 )
 
-display_results <- bind_rows(display_rows) %>%
-  mutate(
-    stars = case_when(
-      p_value <= 0.01 ~ "^{***}",
-      p_value <= 0.05 ~ "^{**}",
-      p_value <= 0.10 ~ "^{*}",
-      TRUE ~ ""
-    ),
-    estimate_text = sprintf("$%.3f%s$ (SE $%.3f$)", estimate, stars, standard_error),
-    result_label = case_when(
-      sample == "All" & outcome == "FAR" ~ "all-construction FAR",
-      sample == "Multifamily" & outcome == "FAR" ~ "multifamily FAR",
-      sample == "All" & outcome == "DUPAC" ~ "all-construction DUPAC",
-      sample == "Multifamily" & outcome == "DUPAC" ~ "multifamily DUPAC",
-      TRUE ~ NA_character_
-    )
-  )
+display_results <- bind_rows(display_rows)
 
-if (nrow(display_results) != 4L || anyNA(display_results$result_label)) {
+if (nrow(display_results) != 4L) {
   stop("Expected four plotted density differences.", call. = FALSE)
 }
 
 writeLines(
-  paste0(
-    "The plotted residualized differences are ",
-    paste0(display_results$estimate_text, " for ", display_results$result_label, collapse = ", "),
-    ". Table~\\ref{tab:density_main_table} reports the corresponding estimates from the full continuous and binary specifications."
+  paste(
+    "The estimates printed above the panels are the discontinuities in the residualized local-linear displays.",
+    "They are not the binary or continuous regression estimates reported in Table~\\ref{tab:density_main_table}."
   ),
   sprintf(
     "../output/nonparametric_rd_density_linear_display_estimates_%s_all_multifamily_bins%d.tex",

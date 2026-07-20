@@ -92,7 +92,11 @@ community_areas <- st_read("../input/community_areas.geojson", quiet = TRUE) %>%
   select(area_numbe, community) %>%
   rename(ca_id = area_numbe, ca_name = community)
 
-cta_stations <- st_read("../input/cta_stations.geojson", quiet = TRUE)
+cta_stations <- st_read("../input/cta_stops.gpkg", quiet = TRUE) %>%
+  mutate(
+    active_from_date = as.Date(active_from_date),
+    active_to_date = as.Date(active_to_date)
+  )
 water_osm <- st_read("../input/gis_osm_water_a_free_1.shp", quiet = TRUE)
 
 assert_unique_key(permits, "id", "Building permits")
@@ -266,7 +270,7 @@ if (any(is.na(permits_with_controls$homeownership_rate))) {
 }
 
 permit_points <- permits_high_discretion %>%
-  select(id) %>%
+  transmute(id, application_date = as.Date(application_start_date)) %>%
   semi_join(permits_with_controls %>% select(id), by = "id")
 
 metric_crs <- 26916
@@ -283,7 +287,35 @@ cbd_m <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>%
 
 dist_cbd_km <- as.numeric(units::set_units(st_distance(permit_points_m, cbd_m), "m")) / 1000
 
-n_rail_stations_800m <- lengths(st_is_within_distance(permit_points_m, cta_stations_m, dist = 800))
+network_change_dates <- sort(unique(c(
+  cta_stations_m$active_from_date,
+  cta_stations_m$active_to_date + 1
+)))
+network_change_dates <- network_change_dates[!is.na(network_change_dates)]
+network_group <- findInterval(
+  as.numeric(permit_points_m$application_date),
+  as.numeric(network_change_dates)
+)
+permit_rows <- split(seq_len(nrow(permit_points_m)), network_group)
+n_rail_stations_800m <- integer(nrow(permit_points_m))
+
+for (network_i in names(permit_rows)) {
+  row_i <- permit_rows[[network_i]]
+  application_date_i <- permit_points_m$application_date[row_i[1]]
+  active_cta <- cta_stations_m %>%
+    filter(
+      active_from_date <= application_date_i,
+      is.na(active_to_date) | active_to_date >= application_date_i
+    )
+  if (nrow(active_cta) == 0) {
+    stop(sprintf("No active CTA stations on %s.", application_date_i), call. = FALSE)
+  }
+  n_rail_stations_800m[row_i] <- lengths(st_is_within_distance(
+    permit_points_m[row_i, ],
+    active_cta,
+    dist = 800
+  ))
+}
 
 lake_michigan_features <- water_osm_m %>%
   filter(!is.na(name) & tolower(name) == "lake michigan") %>%

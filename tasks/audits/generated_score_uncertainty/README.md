@@ -34,3 +34,9 @@ The median draw has a correlation of 0.90 with the through-2022 production score
 The score-bootstrap standard deviation is 60%-79% as large as the paper's clustered standard error for the four multifamily density estimates, 67% for rents, 66% for sales, and 62% for the high-discretion permit estimate. The four density estimates retain their negative sign in at least 99.65% of score draws. The rent estimate is positive in 99.95%, the sales estimate in 99.5%, and the high-discretion permit estimate is negative in every draw.
 
 These sign frequencies condition on the outcome data and vary only the generated score. They are not p-values and do not combine score-estimation uncertainty with sampling uncertainty in the outcome regressions.
+
+## Continuous boundary specification
+
+`density_boundary_estimate_uncertainty_2000draws.csv` repeats the density propagation for the proposed boundary specifications. In every draw, it reconstructs the binary ranking, side-specific distances, half the own-minus-neighbor score difference, and the average score of the two aldermen. Both the binary and continuous models control for that pair-average score.
+
+The binary FAR and DUPAC estimates remain negative in 99.95% and 99.35% of draws. The continuous FAR and DUPAC estimates remain negative in 100% and 99.6% of draws. Score-bootstrap standard deviations are 81% and 72% as large as the clustered standard errors for binary FAR and DUPAC, and 86% and 104% as large for continuous FAR and DUPAC. These distributions replace the earlier absolute-own-score density propagation if the proposed boundary specifications enter production.

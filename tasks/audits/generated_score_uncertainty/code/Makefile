@@ -2,7 +2,13 @@ DRAWS := 2000
 SEED := 20260719
 WORKERS := 8
 
-all: ../output/headline_estimate_uncertainty_$(DRAWS)draws.csv ../output/pair_ordering_probabilities_$(DRAWS)draws.csv ../output/pair_ordering_summary_$(DRAWS)draws.csv ../output/score_draw_diagnostics_summary_$(DRAWS)draws.csv
+all: ../output/headline_estimate_uncertainty_$(DRAWS)draws.csv ../output/density_boundary_estimate_uncertainty_$(DRAWS)draws.csv ../output/pair_ordering_probabilities_$(DRAWS)draws.csv ../output/pair_ordering_summary_$(DRAWS)draws.csv ../output/score_draw_diagnostics_summary_$(DRAWS)draws.csv
+
+../output/density_boundary_estimate_uncertainty_$(DRAWS)draws.csv: propagate_density_boundary_score_uncertainty.R ../output/score_draws_through2022_$(DRAWS)draws.parquet ../input/alderman_uncertainty_index_through2022.csv ../input/parcels_with_ward_distances.csv | ../output
+	$(R) $< $(DRAWS) $(WORKERS)
+
+../output/density_boundary_estimate_uncertainty_summary_$(DRAWS)draws.csv: ../output/density_boundary_estimate_uncertainty_$(DRAWS)draws.csv
+	@test -s "$@"
 
 ../output/headline_estimate_uncertainty_$(DRAWS)draws.csv: propagate_score_uncertainty.R ../output/score_draws_through2022_$(DRAWS)draws.parquet ../output/score_draws_through2014_$(DRAWS)draws.parquet ../input/alderman_uncertainty_index_through2022.csv ../input/alderman_uncertainty_index_through2014.csv ../input/parcels_with_ward_distances.csv ../input/rental_rd_characteristics_panel_bw500.parquet ../input/sales_with_hedonics_amenities.parquet ../input/permit_block_year_panel_2015.parquet | ../output
 	$(R) $< $(DRAWS) $(WORKERS)

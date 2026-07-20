@@ -63,8 +63,20 @@ demographic_controls <- c(
   "share_bach_plus_own",
   "homeownership_rate_own"
 )
-continuous_controls <- c("strictness_own", "lenient_dist", "strict_dist", demographic_controls)
-binary_controls <- c("side", "lenient_dist", "strict_dist", demographic_controls)
+continuous_controls <- c(
+  "continuous_score_difference",
+  "pair_average_score",
+  "lenient_dist",
+  "strict_dist",
+  demographic_controls
+)
+binary_controls <- c(
+  "side",
+  "pair_average_score",
+  "lenient_dist",
+  "strict_dist",
+  demographic_controls
+)
 needs_segment <- fe_spec %in% c("segment_year", "zonegroup_segment_year_additive") || cluster_level == "segment"
 cluster_formula <- if (cluster_level == "segment") ~segment_id else ~ward_pair
 prune_suffix <- if (prune_sample == "pruned") "_pruned" else ""
@@ -82,7 +94,9 @@ parcels <- read_csv(
     zone_group = zone_group_from_code(zone_code),
     lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
     strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0),
-    side = as.integer(signed_distance_m > 0)
+    side = as.integer(signed_distance_m > 0),
+    continuous_score_difference = (strictness_own - strictness_neighbor) / 2,
+    pair_average_score = (strictness_own + strictness_neighbor) / 2
   ) %>%
   filter(
     arealotsf > 1,
@@ -201,8 +215,8 @@ for (sample_filter in c("all", "multifamily")) {
       outcome_label <- paste0("ln(", outcome_label, ")")
     }
 
-    for (treatment_spec in c("continuous", "binary")) {
-      treatment_var <- if (treatment_spec == "continuous") "strictness_own" else "side"
+    for (treatment_spec in c("binary", "continuous")) {
+      treatment_var <- if (treatment_spec == "continuous") "continuous_score_difference" else "side"
       model_controls <- if (treatment_spec == "continuous") continuous_controls else binary_controls
 
       model <- feols(
@@ -248,7 +262,7 @@ summaries <- bind_rows(summary_rows) %>%
   )
 
 expected_rows <- tidyr::expand_grid(
-  treatment_spec = c("continuous", "binary"),
+  treatment_spec = c("binary", "continuous"),
   sample_label = c("All Construction", "Multifamily"),
   yvar = c("log(density_far)", "log(density_dupac)")
 )
@@ -307,22 +321,7 @@ table_lines <- c(
   "                    & ln(FAR)       & ln(DUPAC)      & ln(FAR)       & ln(DUPAC) \\\\",
   "                    & (1)           & (2)            & (3)           & (4) \\\\",
   "   \\midrule",
-  "   \\multicolumn{5}{l}{\\textit{Panel A: Continuous Stringency Specification}} \\\\",
-  paste0(
-    "   Stringency Index (1 SD) & ",
-    paste(continuous$estimate_text, collapse = " & "),
-    " \\\\"
-  ),
-  paste0(
-    "                    & ",
-    paste(continuous$se_text, collapse = " & "),
-    " \\\\"
-  ),
-  paste0("   N                & ", paste(trimws(format(continuous$n_obs, big.mark = ",")), collapse = " & "), " \\\\"),
-  paste0("   Dep. Var. Mean   & ", paste(sprintf("%.2f", continuous$depvar_mean), collapse = " & "), " \\\\"),
-  paste0("   Ward Pairs       & ", paste(trimws(format(continuous$n_ward_pairs, big.mark = ",")), collapse = " & "), " \\\\"),
-  "   \\addlinespace",
-  "   \\multicolumn{5}{l}{\\textit{Panel B: Binary Boundary Specification}} \\\\",
+  "   \\multicolumn{5}{l}{\\textit{Panel A: Binary Boundary Comparison}} \\\\",
   paste0(
     "   More-Stringent Side & ",
     paste(binary$estimate_text, collapse = " & "),
@@ -336,7 +335,23 @@ table_lines <- c(
   paste0("   N                & ", paste(trimws(format(binary$n_obs, big.mark = ",")), collapse = " & "), " \\\\"),
   paste0("   Dep. Var. Mean   & ", paste(sprintf("%.2f", binary$depvar_mean), collapse = " & "), " \\\\"),
   paste0("   Ward Pairs       & ", paste(trimws(format(binary$n_ward_pairs, big.mark = ",")), collapse = " & "), " \\\\"),
+  "   \\addlinespace",
+  "   \\multicolumn{5}{l}{\\textit{Panel B: Continuous Boundary Comparison}} \\\\",
+  paste0(
+    "   Score Difference (1 SD) & ",
+    paste(continuous$estimate_text, collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "                    & ",
+    paste(continuous$se_text, collapse = " & "),
+    " \\\\"
+  ),
+  paste0("   N                & ", paste(trimws(format(continuous$n_obs, big.mark = ",")), collapse = " & "), " \\\\"),
+  paste0("   Dep. Var. Mean   & ", paste(sprintf("%.2f", continuous$depvar_mean), collapse = " & "), " \\\\"),
+  paste0("   Ward Pairs       & ", paste(trimws(format(continuous$n_ward_pairs, big.mark = ",")), collapse = " & "), " \\\\"),
   "   \\midrule",
+  "   Pair-Average Score & $\\checkmark$  & $\\checkmark$   & $\\checkmark$  & $\\checkmark$ \\\\",
   "   Zoning Group FE  & $\\checkmark$  & $\\checkmark$   & $\\checkmark$  & $\\checkmark$ \\\\",
   "   Segment FE       & $\\checkmark$  & $\\checkmark$   & $\\checkmark$  & $\\checkmark$ \\\\",
   "   Year FE          & $\\checkmark$  & $\\checkmark$   & $\\checkmark$  & $\\checkmark$ \\\\",

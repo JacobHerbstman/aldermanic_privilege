@@ -7,7 +7,7 @@ all: \
 ../output/predecessor_successor_scatter_uncertainty_$(UNCERTAINTY_SPEC).pdf: analyze_within_ward_variation.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv | ../output
 	Rscript $< $(UNCERTAINTY_SPEC)
 
-../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv: build_residualized_low_discretion_falsification.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/cta_stations.geojson ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
+../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv: build_residualized_low_discretion_falsification.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls.csv ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
 	Rscript $< $(UNCERTAINTY_SPEC)
 
 ../output/low_discretion_falsification_compact_uncertainty_$(UNCERTAINTY_SPEC).tex: ../output/residualized_low_vs_high_processing_alderman_wide_uncertainty_$(UNCERTAINTY_SPEC).csv
@@ -28,12 +28,12 @@ all: \
 ../input/ward_controls.csv: ../../create_ward_controls/output/ward_controls_2000_2023.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/cta_stations.geojson: ../../download_chicago_spatial_data/output/cta_stations.geojson | ../input
+../input/cta_stops.gpkg: ../../prepare_amenities_data/output/cta_stops.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/ward_controls.csv ../input/cta_stations.geojson ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
+link-inputs: ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/ward_controls.csv ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
 include ../../generic.make

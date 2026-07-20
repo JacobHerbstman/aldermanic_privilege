@@ -8,16 +8,20 @@ To compare truly similar neighborhoods, I build border segments along each ward 
 Since some ward borders are several miles long, this allows me to focus on truly local comparisons rather than comparing parcels in different community areas with different demand and demographic compositions.
 Appendix Figure~\ref{fig:pruned_border_segments} maps the boundary segments that enter the analysis.
 
-In the multifamily sample within 500ft of a ward boundary, a one standard deviation increase in aldermanic stringency lowers FAR by about $14\%$ and DUPAC by about 12\%.
-The all-construction estimates are smaller, about 4\% for FAR and 3\% for DUPAC.
+In the multifamily sample within 500ft of a ward boundary, FAR is about 24\% lower and DUPAC about 28\% lower on the more stringent side.
+A continuous comparison based on the score difference between neighboring aldermen implies that, at a boundary where their scores differ by one standard deviation, multifamily FAR is about 20\% lower and DUPAC about 16\% lower on the more stringent side.
 
 I estimate:
 %
 \begin{equation} \label{eq:segment_fe}
-    \ln(Y_{iwst}) = \beta \cdot \text{Stringency}_{w} + \lambda_L D^-_{iwst} + \lambda_S D^+_{iwst} + X_i'\theta + \alpha_{\text{zone group}} + \alpha_{\text{segment}} + \gamma_t + \varepsilon_{iwst}
+\begin{aligned}
+    \ln(Y_{iwst}) ={}& \tau \text{MoreStringent}_{iwst} + \eta \overline{S}_{ww't}
+    + \lambda_L D^-_{iwst} + \lambda_S D^+_{iwst} + X_i'\theta \\
+    &+ \alpha_{\text{zone group}} + \alpha_{\text{segment}} + \gamma_t + \varepsilon_{iwst}
+\end{aligned}
 \end{equation}
 %
-where $Y_{iwst}$ is a density outcome for parcel $i$ in ward $w$ on boundary segment $s$, built in year $t$; $D^-_{iwst}$ and $D^+_{iwst}$ are side-specific distances to the ward boundary on the lenient and stringent sides; and $X_i$ collects own-side demographic controls.
+where $Y_{iwst}$ is a density outcome for parcel $i$ in ward $w$ on boundary segment $s$, built in year $t$; $w'$ is the ward across the boundary; $\overline{S}_{ww't}=(S_{wt}+S_{w't})/2$ is the average score of the two aldermen; $D^-_{iwst}$ and $D^+_{iwst}$ are side-specific distances to the ward boundary on the lenient and stringent sides; and $X_i$ collects own-side demographic controls.
 The fixed effects enter additively: zoning-group fixed effects absorb differences across broad zoning environments, segment fixed effects absorb differences across boundary segments, and year fixed effects absorb citywide trends.
 The side-specific distance terms absorb smooth within-side gradients in development density as one moves toward or away from the boundary.
 Zoning-group fixed effects ensure that parcels are compared within broad zoning environments rather than across fundamentally different parts of the zoning code, which could be 
@@ -26,10 +30,11 @@ I estimate the specification for all new construction and for multifamily new co
 Standard errors are clustered conservatively at the ward-pair level.
 
 Table~\ref{tab:density_main_table} reports both versions of the density comparison.
-Panel A uses the standardized aldermanic stringency score, while Panel B reports the binary version of the comparison visualized in Figure~\ref{fig:rd_fe_plots}.
+Panel A reports the binary comparison visualized in Figure~\ref{fig:rd_fe_plots}.
+Panel B replaces the side indicator with $(S_{wt}-S_{w't})/2$, so crossing a boundary changes the treatment by the full score difference between the two aldermen.
 
 \begin{table}[htbp]
-    \caption{Continuous and Binary Estimates of Development Density (500ft)}
+    \caption{Binary and Continuous Estimates of Development Density (500ft)}
     \label{tab:density_main_table}
 
     \input{../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
@@ -39,8 +44,9 @@ Panel A uses the standardized aldermanic stringency score, while Panel B reports
     Regressions include side-specific linear distance-to-boundary controls and own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate.
     Fixed effects are listed in the table.
     Regressions are unweighted.
-    Panel A reports the effect of a one-standard-deviation increase in the standardized stringency score.
-    Panel B reports the jump from the more lenient to the more stringent side of the boundary.
+    Panel A reports the jump from the more lenient to the more stringent side of the boundary.
+    Panel B reports the continuous score-difference specification.
+    Both specifications control for the average score of the two aldermen.
     Standard errors clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
@@ -57,7 +63,7 @@ These results are somewhat stronger than the regression form and suggest some de
     \figurenotes{Left column: all construction; right column: multifamily.
     Top row: Log(FAR); bottom row: Log(DUPAC).
     Samples include new construction within 500ft of ward boundaries.
-    Outcomes are plotted after removing zoning-group, boundary-segment, and construction-year fixed effects plus own-side demographic controls.
+    Outcomes are plotted after removing zoning-group, boundary-segment, and construction-year fixed effects, own-side demographic controls, and the average score of the two aldermen.
     Colored dots show binned residual means and colored lines show side-specific local-linear fits.
     \input{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_estimates_500ft_all_multifamily_bins5.tex}
     Negative distance indicates the more lenient alderman's side; positive distance indicates the more stringent side.}

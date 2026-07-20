@@ -8,34 +8,43 @@
 
 I first examine whether completed housing is less dense on the more stringent side of the same ward boundary.
 I compare parcels that are within 500ft of a boundary segment, so they are exposed to similar neighborhood amenities and demand conditions, but face different aldermen.
-I residualize log FAR and log DUPAC using zoning-group, boundary-segment, and construction-year fixed effects plus own-side demographic controls, then estimate side-specific local-linear fits on either side of the boundary.
+I residualize log FAR and log DUPAC using zoning-group, boundary-segment, and construction-year fixed effects, own-side demographic controls, and the average score of the two aldermen, then estimate side-specific local-linear fits on either side of the boundary.
 The estimating equation is:
 %
 \begin{equation} \label{eq:segment_fe}
-    \ln(Y_{iwst}) =
+\begin{aligned}
+    \ln(Y_{iwst}) ={}&
     \tau \text{MoreStringent}_{iwst}
+    + \eta \overline{S}_{ww't}
     + \lambda_L D^-_{iwst}
     + \lambda_S D^+_{iwst}
     + X_i'\theta
+    \\
+    &\quad
     + \alpha_{\text{zone group}}
     + \alpha_{\text{segment}}
     + \gamma_t
     + \varepsilon_{iwst},
+\end{aligned}
 \end{equation}
 %
-where $Y_{iwst}$ is FAR or DUPAC for parcel $i$ in ward $w$ on boundary segment $s$, built in year $t$.
+where $Y_{iwst}$ is FAR or DUPAC for parcel $i$ in ward $w$ on boundary segment $s$, built in year $t$, and $w'$ denotes the ward across the boundary.
 $D^-_{iwst}$ and $D^+_{iwst}$ equal distance to the boundary on the more lenient and more stringent sides, respectively, and are zero on the opposite side.
 $X_i$ collects own-side demographic controls.
+$\overline{S}_{ww't}=(S_{wt}+S_{w't})/2$ is the average score of the two aldermen.
 The coefficient $\tau$ is the jump at the boundary from the more lenient side to the more stringent side.
 
 Table~\ref{tab:density_main_table} reports both versions of the density comparison.
-Panel A replaces the side indicator with the standardized aldermanic stringency score, while Panel B reports the binary version of the comparison visualized in Figure~\ref{fig:rd_fe_plots}.
-A one-standard-deviation increase in stringency lowers multifamily FAR by about 14\% and multifamily DUPAC by about 10\%.
-The binary estimates imply gaps of about 24\% for multifamily FAR and 28\% for multifamily DUPAC.
-The all-construction estimates are small and statistically indistinguishable from zero in both specifications.
+Panel A reports the binary comparison visualized in Figure~\ref{fig:rd_fe_plots}.
+Multifamily FAR is about 24\% lower and multifamily DUPAC about 28\% lower on the more stringent side.
+Panel B uses the continuous score difference $C_{iww't}=(S_{wt}-S_{w't})/2$ in place of the side indicator.
+The division by two means that crossing the boundary changes $C_{iww't}$ by the full score difference between the two aldermen.
+At a boundary where the aldermen's scores differ by one standard deviation, multifamily FAR is about 20\% lower and multifamily DUPAC about 16\% lower on the more stringent side.
+Across the ward pairs in the multifamily sample, the average score difference is 0.91 standard deviations.
+The all-construction estimates are much smaller; only the continuous FAR estimate is statistically distinguishable from zero.
 
 \begin{table}[htbp]
-    \caption{Continuous and Binary Estimates of Development Density (500ft)}
+    \caption{Binary and Continuous Estimates of Development Density (500ft)}
     \label{tab:density_main_table}
 
     \input{../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
@@ -45,8 +54,9 @@ The all-construction estimates are small and statistically indistinguishable fro
     Regressions include side-specific linear distance-to-boundary controls and own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate.
     Fixed effects are listed in the table.
     Regressions are unweighted.
-    Panel A reports the effect of a one-standard-deviation increase in the standardized stringency score.
-    Panel B reports the jump from the more lenient to the more stringent side of the boundary.
+    Panel A reports the jump from the more lenient to the more stringent side of the boundary.
+    Panel B replaces the side indicator with one-half of the difference between the project-side and across-boundary scores, so crossing a boundary changes the treatment by the full score difference between the two aldermen.
+    Both specifications control for the average score of the two aldermen.
     Standard errors are clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
@@ -61,7 +71,7 @@ Appendix~\ref{sec:appendix_density} reports shifted-cutoff placebo checks and do
     \figurenotes{Left column: all construction; right column: multifamily.
     Top row: Log(FAR); bottom row: Log(DUPAC).
     Samples include new construction within 500ft of ward boundaries.
-    Outcomes are plotted after removing zoning-group, boundary-segment, and construction-year fixed effects plus own-side demographic controls.
+    Outcomes are plotted after removing zoning-group, boundary-segment, and construction-year fixed effects, own-side demographic controls, and the average score of the two aldermen.
     Colored dots show five binned residual means on each side and colored lines show side-specific local-linear fits.
     \input{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_estimates_500ft_all_multifamily_bins5.tex}
     Negative distance indicates the more lenient alderman's side; positive distance indicates the more stringent side.}
@@ -101,8 +111,8 @@ In that sample, the estimated annual number of high-discretion permits is 12.4\%
 Figure~\ref{fig:permit_event_study} presents the main permit result.
 Before redistricting, blocks that would experience larger increases in aldermanic stringency do not show a differential trend.
 After reassignment, permit activity falls.
-A one-standard-deviation increase in assigned stringency reduces the annual number of high-discretion permits recorded by the city by 9.5\% in the five years following the remap.
-The pooled PPML coefficient is $-0.100$ (SE $=0.032$).
+A one-standard-deviation increase in assigned stringency reduces the annual number of high-discretion permits recorded by the city by 9.4\% in the five years following the remap.
+The pooled PPML coefficient is $-0.099$ (SE $=0.032$).
 This suggests that aldermanic stringency affects not only the density of completed projects but also the flow of projects requiring discretionary review.
 
 \begin{figure}[htbp]
@@ -116,8 +126,8 @@ This suggests that aldermanic stringency affects not only the density of complet
     The model includes block and border-pair $\times$ year fixed effects plus pre-period permit volume and an indicator for no pre-period permits, each interacted with year.
     Year $-1$ omitted as reference.
     Points report $\exp(\hat\beta_\tau)-1$; shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
-    Pooled post-period coefficient: $-0.100$ (SE $= 0.032$), implying that the annual number of recorded permits is 9.5\% lower on average in years 0--5.
-    Joint pre-trend test $p = 0.770$.}
+    Pooled post-period coefficient: $-0.099$ (SE $= 0.032$), implying that the annual number of recorded permits is 9.4\% lower on average in years 0--5.
+    Joint pre-trend test $p = 0.763$.}
     \label{fig:permit_event_study}
 \end{figure}
 

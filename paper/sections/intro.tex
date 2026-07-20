@@ -15,7 +15,7 @@ This creates sharp changes in regulatory authority at ward boundaries.
 Two parcels on opposite sides of the same street, in the same neighborhood, with the same zoning, can face very different political gatekeepers depending on which alderman controls the ward.
 I use this boundary variation to study how aldermanic privilege affects development.
 
-To measure the regulatory environment each alderman creates, I construct ``aldermanic stringency scores'' from permit processing times for projects where aldermen are most likely to matter: new construction, major renovation, demolition, porch construction, and reinstated permits.
+To measure the regulatory environment each alderman creates, I construct ``aldermanic stringency scores'' from permit processing times for projects where aldermen are most likely to matter: new construction, renovation or alteration, demolition, porch construction, and reinstated permits.
 I residualize processing times against ward characteristics and time effects to strip out variation driven by geography and demand, then apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to reduce noise for aldermen with relatively few permits.
 The resulting scores reveal large cross-alderman differences that remain after controlling for location and ward demographics.
 The economic logic is simple: delay makes projects less valuable, and
@@ -25,8 +25,8 @@ The empirical analysis proceeds in two steps.
 First, I estimate effects on housing supply by comparing new construction density near ward boundaries.
 On one side, developers deal with one alderman; across the street, they deal with another, which can result in a completely different regulatory environment.
 The neighborhood is nearly the same, but the political gatekeeper changes.
-Using border-segment fixed effects on new multifamily construction within 500ft of a ward boundary, I find that a one standard deviation increase in aldermanic stringency is associated with about 14\% lower floor-area ratio and 12\% lower dwelling units per acre.
-The multifamily estimates point in the same direction and are larger in magnitude, though estimated in a smaller sample.
+Using border-segment fixed effects on new multifamily construction within 500ft of a ward boundary, I find that floor-area ratio is about 24\% lower and dwelling units per acre about 28\% lower on the more stringent side.
+A continuous comparison based on the score difference between neighboring aldermen implies that, at a boundary where their scores differ by one standard deviation, multifamily floor-area ratio is about 20\% lower and dwelling units per acre about 16\% lower on the more stringent side.
 
 I then use the 2015 ward redistricting to test whether permitting changes when a block receives a new alderman, keeping location fixed.
 Using this within-census-block variation, I find that blocks moved to more stringent aldermen experience a 7.4\% decline in permits for these ``high-discretion'' permits.

@@ -146,7 +146,7 @@ The processing-time regression uses records with valid geographic coordinates an
 Appendix~\ref{subsec:event_study_panel} describes the separate sample used to count permits in the event study.
 I divide permits into two groups based on how much aldermanic discretion they are likely to face.
 
-\textit{High-discretion permits} are permits for projects where aldermen are most likely to matter: new construction, major renovation, demolition, porch construction, and reinstated permits.\footnote{Porch construction permits have received extra scrutiny since the \href{https://en.wikipedia.org/wiki/2003_Chicago_balcony_collapse}{2003 balcony collapse}.}
+\textit{High-discretion permits} are permits for projects where aldermen are most likely to matter: new construction, renovation or alteration, demolition, porch construction, and reinstated permits.\footnote{Porch construction permits have received extra scrutiny since the \href{https://en.wikipedia.org/wiki/2003_Chicago_balcony_collapse}{2003 balcony collapse}.}
 These are the permit types most likely to draw community opposition and face delays due to community meetings or direct aldermanic intervention.
 \textit{Low-discretion permits} are all remaining permit types outside this high-discretion group, excluding signs.
 I use them as a placebo comparison group because they are generally less exposed to discretionary aldermanic intervention.
@@ -195,7 +195,7 @@ Here $a(w,m)$ denotes the alderman serving ward $w$ in month $m$.
 The raw alderman fixed effects $\hat{\alpha}_a$ can be noisy for aldermen with few permits.
 I therefore apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to pull imprecise estimates toward the grand mean, then standardize the final scores to have mean zero and unit standard deviation.
 
-Appendix Figure~\ref{fig:predecessor_successor_stringency} shows that the correlation between predecessor and successor aldermen within the same ward is relatively low ($\rho \approx 0.15$), supporting the interpretation that the index captures an alderman-specific component of the development process rather than ward characteristics.
+Appendix Figure~\ref{fig:predecessor_successor_stringency} shows that the correlation between predecessor and successor aldermen within the same ward is relatively low ($\rho \approx 0.16$), supporting the interpretation that the index captures an alderman-specific component of the development process rather than ward characteristics.
 
 Appendix Figure~\ref{fig:aldermanic_stringency_scores} shows the distribution of the final stringency scores, and Figure~\ref{fig:alderman_stringency_map} maps them across the city.
 The scores vary in wealthy and poor neighborhoods, on the North Side and South Side, which helps rule out the idea that they are simply proxying for location or local demand conditions.

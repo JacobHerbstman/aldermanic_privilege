@@ -6,8 +6,12 @@ source("../../_lib/amenity_distance_helpers.R")
 chunk_n <- 100000L
 
 sales <- read_parquet("../input/sales_with_hedonics.parquet") %>% as_tibble()
-if (!"year_month" %in% names(sales)) {
-  stop("Sales input must include year_month.", call. = FALSE)
+if (!"sale_date" %in% names(sales)) {
+  stop("Sales input must include sale_date.", call. = FALSE)
+}
+sales <- sales %>% mutate(sale_date = as.Date(sale_date))
+if (any(is.na(sales$sale_date))) {
+  stop("Sales input has missing sale dates.", call. = FALSE)
 }
 
 coords <- build_unique_coordinate_amenity_table(
@@ -33,14 +37,10 @@ if (any(is.na(cta_stops$active_from_date))) {
   stop("CTA stop layer has missing active_from_date values.", call. = FALSE)
 }
 
-coords_month <- sales %>%
-  distinct(longitude, latitude, year_month) %>%
-  mutate(
-    month_start = as.Date(paste0(year_month, "-01")),
-    month_end = lubridate::ceiling_date(month_start, "month") - lubridate::days(1)
-  )
-coords_month_sf <- st_as_sf(
-  coords_month,
+coords_date <- sales %>%
+  distinct(longitude, latitude, sale_date)
+coords_date_sf <- st_as_sf(
+  coords_date,
   coords = c("longitude", "latitude"),
   crs = 4326,
   remove = FALSE
@@ -48,43 +48,48 @@ coords_month_sf <- st_as_sf(
   st_transform(3435)
 
 cta_distance_rows <- list()
-coords_by_month <- split(coords_month_sf, coords_month_sf$year_month)
-for (month_i in names(coords_by_month)) {
-  month_points <- coords_by_month[[month_i]]
-  month_start <- unique(month_points$month_start)
-  month_end <- unique(month_points$month_end)
-  if (length(month_start) != 1L || length(month_end) != 1L) {
-    stop("CTA month split has non-unique month dates.", call. = FALSE)
-  }
-
+network_change_dates <- sort(unique(c(
+  cta_stops$active_from_date,
+  cta_stops$active_to_date + 1
+)))
+network_change_dates <- network_change_dates[!is.na(network_change_dates)]
+network_group <- findInterval(
+  as.numeric(coords_date_sf$sale_date),
+  as.numeric(network_change_dates)
+)
+coords_by_network <- split(seq_len(nrow(coords_date_sf)), network_group)
+for (network_i in names(coords_by_network)) {
+  row_i <- coords_by_network[[network_i]]
+  date_points <- coords_date_sf[row_i, ]
+  sale_date_i <- date_points$sale_date[1]
   active_cta <- cta_stops %>%
     filter(
-      active_from_date <= month_end,
-      is.na(active_to_date) | active_to_date >= month_start
+      active_from_date <= sale_date_i,
+      is.na(active_to_date) | active_to_date >= sale_date_i
     )
   if (nrow(active_cta) == 0) {
-    stop(sprintf("No active CTA stations for %s.", month_i), call. = FALSE)
+    stop(sprintf("No active CTA stations on %s.", sale_date_i), call. = FALSE)
   }
 
-  nearest_idx <- st_nearest_feature(month_points, active_cta)
+  nearest_idx <- st_nearest_feature(date_points, active_cta)
   nearest_cta <- active_cta[nearest_idx, ]
-  cta_distance_rows[[length(cta_distance_rows) + 1L]] <- st_drop_geometry(month_points) %>%
+  cta_distance_rows[[length(cta_distance_rows) + 1L]] <- st_drop_geometry(date_points) %>%
     transmute(
       longitude,
       latitude,
-      year_month,
-      nearest_cta_stop_dist_ft = as.numeric(st_distance(month_points, nearest_cta, by_element = TRUE))
+      sale_date,
+      nearest_cta_stop_dist_ft = as.numeric(st_distance(date_points, nearest_cta, by_element = TRUE))
     )
 }
 cta_distances <- bind_rows(cta_distance_rows)
-if (anyDuplicated(cta_distances[c("longitude", "latitude", "year_month")]) > 0) {
-  stop("CTA distance table must be unique by coordinate-month.", call. = FALSE)
+if (anyDuplicated(cta_distances[c("longitude", "latitude", "sale_date")]) > 0) {
+  stop("CTA distance table must be unique by coordinate-date.", call. = FALSE)
 }
 
 sales_out <- append_amenity_distances(sales, coords, "longitude", "latitude") %>%
   left_join(
     cta_distances,
-    by = c("longitude", "latitude", "year_month"),
+    by = c("longitude", "latitude", "sale_date"),
     relationship = "many-to-one"
   )
 if (nrow(sales_out) != nrow(sales)) {
