@@ -4,6 +4,7 @@ paper.pdf: Makefile paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex \
 	../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
 	../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf \
+	../tasks/density_covariate_balance/output/density_covariate_balance.tex \
 	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_all_donut25ft.pdf \
 	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_all_donut50ft.pdf \
 	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_multifamily_donut25ft.pdf \

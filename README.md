@@ -6,7 +6,13 @@ The project uses a task-based workflow. Each active task lives in `tasks/<task>/
 
 ## Code Organization
 
-The workflow is organized as a series of tasks whose outputs feed downstream tasks through explicit symlinks. Each task is run from its own `code/` folder with `make`. A local task graph can be generated from those dependency rules with the audit task described below.
+The workflow is organized as a series of tasks whose outputs feed downstream tasks through explicit symlinks. Each task is run from its own `code/` folder with `make`. The production task graph below is generated from those dependency rules.
+
+### Production Task Graph
+
+The graph below is generated from the Makefiles in connected production tasks. Audit tasks are excluded, and generation fails if the declared dependencies contain a cycle.
+
+[![Production task dependency graph](tasks/audits/symlink_graph/output/task_flow.png)](tasks/audits/symlink_graph/output/task_flow.png)
 
 ## Replication Notes
 
@@ -21,7 +27,7 @@ The main paper pipeline uses a mix of frozen/local inputs and live downloads:
 - Live downloads: several tasks download current source data at build time, including Chicago building permits, Chicago spatial/open-data endpoints, ACS/NHGIS-derived inputs, Zillow/FRED benchmark series, and RentHub files from Dewey. These sources can change over time unless their downloaded outputs are archived separately.
 - Dewey/RentHub: `tasks/download_rent_data` requires `DEWEY_API_KEY`. Replicators need their own Dewey credentials. The downloader skips existing parquet files, so interrupted Dewey downloads can be resumed by rerunning `make`.
 
-The paper has been tested from a clean clone with empty task outputs, the local `data_raw/illinois-250919-free/` directory supplied, and live-download credentials available. Exact last-decimal equality is only expected when the live downloaded sources are the same snapshots.
+A final clean-clone rebuild will be run after the current production changes are complete. Until then, task-level and paper builds have been verified in the working repository, but the fresh-clone replication check remains pending. Exact last-decimal equality will require the same snapshots of live downloaded sources.
 
 Run a task from its own `code/` folder:
 
@@ -51,4 +57,4 @@ cd tasks/audits/symlink_graph/code
 make
 ```
 
-The generated graph is written to `tasks/audits/symlink_graph/output/task_flow.png` and is not part of the production pipeline.
+The generated graph is written to `tasks/audits/symlink_graph/output/task_flow.png`. The image is tracked so it appears on the repository home page, but generating it is not part of the production pipeline.

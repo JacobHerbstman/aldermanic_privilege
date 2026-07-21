@@ -49,6 +49,11 @@ tasks/audits/*/input/
 tasks/audits/*/output/
 tasks/audits/*/temp/
 
+# Production task graph displayed in the root README
+!tasks/audits/symlink_graph/output/
+tasks/audits/symlink_graph/output/*
+!tasks/audits/symlink_graph/output/task_flow.png
+
 # Frozen hand-adjudicated rezoning inputs
 !tasks/rezoning_hand_adjudications/output/
 tasks/rezoning_hand_adjudications/output/*
@@ -73,6 +78,9 @@ tasks/permit_block_hand_adjudications/output/*
 !tasks/density_historical_coordinates/output/
 tasks/density_historical_coordinates/output/*
 !tasks/density_historical_coordinates/output/density_historical_coordinates.csv
+!tasks/density_construction_zoning/output/
+tasks/density_construction_zoning/output/*
+!tasks/density_construction_zoning/output/density_construction_zoning.csv
 !tasks/rezoning_block_hand_adjudications/output/
 tasks/rezoning_block_hand_adjudications/output/*
 !tasks/rezoning_block_hand_adjudications/output/reviewed_rezoning_block_assignments.csv

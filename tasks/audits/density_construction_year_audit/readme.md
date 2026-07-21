@@ -89,17 +89,19 @@ observations overall and 881 multifamily observations.
 
 ## Regression results
 
-All models use the paper's current 500-foot sample definition, zoning groups,
-segment and year fixed effects, ward controls, alderman score, and ward-pair
-clustering. Commercial multifamily records and multicard residential PINs stay
-at their production values.
+All models use the paper's current 500-foot sample definition, binary and
+locally centered continuous treatments, pair-average score control, segment
+and year fixed effects, ward controls, and ward-pair clustering. The approved
+construction-year zoning group is held fixed by project so that the comparison
+isolates construction-year selection. Commercial multifamily records and
+multicard residential PINs stay at their production values.
 
 | Specification | Multifamily ln(FAR), continuous | Multifamily ln(DUPAC), continuous | Multifamily ln(FAR), binary | Multifamily ln(DUPAC), binary |
 | --- | ---: | ---: | ---: | ---: |
-| Former minimum-year rule, current downstream inputs | -.134 (.046) | -.096 (.042) | -.264 (.101) | -.281 (.095) |
-| Current production | -.153 (.056) | -.106 (.052) | -.272 (.096) | -.327 (.119) |
-| Exact one-year-early cases moved to permit year | -.154 (.056) | -.104 (.052) | -.282 (.097) | -.325 (.116) |
-| Stable reported years only | -.155 (.055) | -.107 (.051) | -.275 (.095) | -.330 (.119) |
+| Former minimum-year rule, current downstream inputs | -.195 (.065) | -.151 (.048) | -.230 (.109) | -.240 (.100) |
+| Current production | -.235 (.069) | -.176 (.057) | -.259 (.099) | -.319 (.122) |
+| Exact one-year-early cases moved to permit year | -.235 (.069) | -.173 (.056) | -.268 (.100) | -.316 (.118) |
+| Stable reported years only | -.236 (.068) | -.177 (.057) | -.262 (.097) | -.321 (.122) |
 
 Correcting the year does not weaken the multifamily result. All-construction
 estimates remain small and statistically insignificant under every rule. The
@@ -108,9 +110,9 @@ assigning existing projects to the corrected year, ward map, alderman, and year
 fixed effect, not from admitting corrected pre-2006 records.
 
 The exact-one-year sensitivity moves every mechanically matched revised PIN
-from the endpoint assessor year to the permit application year. Sixty-two such
+from the endpoint assessor year to the permit application year. Eighty-one such
 PINs are in the endpoint rule's 500-foot all-construction sample; five are
-multifamily. The all-construction sample falls by three observations after
+multifamily. The all-construction sample falls by four observations after
 reassignment, while the multifamily sample count is unchanged. The estimates
 are effectively unchanged, so the treatment of this narrow timing disagreement
 does not drive the density results.
@@ -118,8 +120,10 @@ does not drive the density results.
 The model stage changes construction-year selection only for single-card
 residential PINs. Commercial multifamily observations and multicard residential
 PINs remain fixed so that the year question is not mixed with the unresolved
-observation-unit question. All geography, zoning, scores, controls, and
-regression specifications otherwise match the current paper.
+observation-unit question. All geography, scores, controls, and regression
+specifications otherwise match the current paper. Alternative years retain the
+production construction-year zoning group rather than inventing a zoning state
+for a year the paper does not assign to the project.
 
 This task records the evidence and sensitivity checks behind the production
 rule. It does not modify production data or paper outputs.

@@ -164,10 +164,12 @@ density <- read_csv(
     segment_id = as.character(segment_id),
     endpoint_own = as.integer(ward),
     endpoint_neighbor = as.integer(other_ward),
-    zone_group = zone_group_from_code(zone_code),
+    zone_group = construction_zone_group,
     lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
     strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0),
-    side = as.integer(signed_distance_m > 0)
+    side = as.integer(signed_distance_m > 0),
+    continuous_score_difference = (strictness_own - strictness_neighbor) / 2,
+    pair_average_score = (strictness_own + strictness_neighbor) / 2
   ) %>%
   filter(
     arealotsf > 1,
@@ -176,7 +178,7 @@ density <- read_csv(
     dist_to_boundary_m <= 152.4,
     !is.na(ward_pair),
     is.finite(signed_distance_m),
-    !is.na(zone_code),
+    !is.na(construction_zone_group),
     !is.na(segment_id),
     segment_id != ""
   )
@@ -197,9 +199,10 @@ for (construction_sample in c("all", "multifamily")) {
       filter(is.finite(.data[[outcome]]), .data[[outcome]] > 0)
 
     for (treatment in c("continuous", "binary")) {
-      treatment_var <- if (treatment == "continuous") "strictness_own" else "side"
+      treatment_var <- if (treatment == "continuous") "continuous_score_difference" else "side"
       controls <- c(
         treatment_var,
+        "pair_average_score",
         "lenient_dist",
         "strict_dist",
         demographic_controls
@@ -422,9 +425,15 @@ leave_one_out_rows <- list()
 for (specification in names(density_models)) {
   full_model <- density_models[[specification]]
   full_data <- density_data[[specification]]
-  treatment_var <- if (grepl("__continuous$", specification)) "strictness_own" else "side"
+  treatment_var <- if (grepl("__continuous$", specification)) "continuous_score_difference" else "side"
   outcome <- if (grepl("density_far", specification)) "density_far" else "density_dupac"
-  controls <- c(treatment_var, "lenient_dist", "strict_dist", demographic_controls)
+  controls <- c(
+    treatment_var,
+    "pair_average_score",
+    "lenient_dist",
+    "strict_dist",
+    demographic_controls
+  )
   wards <- sort(unique(c(full_data$endpoint_own, full_data$endpoint_neighbor)))
 
   for (omitted_ward in wards) {

@@ -64,7 +64,7 @@ density <- read_csv(
   mutate(
     construction_year = suppressWarnings(as.integer(construction_year)),
     segment_id = as.character(segment_id),
-    zone_group = zone_group_from_code(zone_code)
+    zone_group = construction_zone_group
   ) %>%
   filter(
     arealotsf > 1,
@@ -74,7 +74,7 @@ density <- read_csv(
     unitscount > 1,
     dist_to_boundary_m <= 152.4,
     !is.na(ward_pair),
-    !is.na(zone_code),
+    !is.na(construction_zone_group),
     !is.na(segment_id),
     segment_id != "",
     is.finite(density_far),

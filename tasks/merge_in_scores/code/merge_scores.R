@@ -2,22 +2,27 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_in_scores/code")
 # score_column <- "uncertainty_index"
 # max_construction_year <- 2026
+# zoning_history_max_distance_ft <- 1500
 
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(score_column, max_construction_year)
+  cli_args <- c(score_column, max_construction_year, zoning_history_max_distance_ft)
 }
 
-if (length(cli_args) != 2) {
-  stop("FATAL: Script requires <score_column> <max_construction_year>.", call. = FALSE)
+if (length(cli_args) != 3) {
+  stop("FATAL: Script requires <score_column> <max_construction_year> <zoning_history_max_distance_ft>.", call. = FALSE)
 }
 
 score_column <- cli_args[1]
 max_construction_year <- suppressWarnings(as.integer(cli_args[2]))
+zoning_history_max_distance_ft <- suppressWarnings(as.numeric(cli_args[3]))
 if (!is.finite(max_construction_year)) {
   stop("max_construction_year must be a valid integer year.", call. = FALSE)
+}
+if (!is.finite(zoning_history_max_distance_ft) || zoning_history_max_distance_ft <= 0) {
+  stop("zoning_history_max_distance_ft must be positive.", call. = FALSE)
 }
 
 parcels <- read_csv(
@@ -41,6 +46,35 @@ segment_lookup <- read_csv(
 )
 
 scores <- read_csv("../input/aldermen_uncertainty_scores.csv", show_col_types = FALSE)
+
+construction_zoning <- read_csv(
+  "../input/density_construction_zoning.csv",
+  show_col_types = FALSE,
+  col_types = cols(
+    pin = col_character(),
+    construction_year = col_integer(),
+    construction_zone_group = col_character()
+  )
+)
+if (!identical(
+  names(construction_zoning),
+  c("pin", "construction_year", "construction_zone_group")
+)) {
+  stop("Construction-year zoning input must contain exactly pin, construction_year, and construction_zone_group.", call. = FALSE)
+}
+if (anyDuplicated(construction_zoning[c("pin", "construction_year")]) > 0) {
+  stop("Construction-year zoning input has duplicate PIN-year rows.", call. = FALSE)
+}
+if (any(
+  is.na(construction_zoning$pin) |
+    is.na(construction_zoning$construction_year) |
+    is.na(construction_zoning$construction_zone_group) |
+    construction_zoning$construction_zone_group == ""
+)) {
+  stop("Construction-year zoning input contains missing values.", call. = FALSE)
+}
+zoning_history_start_year <- min(construction_zoning$construction_year)
+zoning_history_end_year <- max(construction_zoning$construction_year)
 
 if (!score_column %in% names(scores)) {
   stop(paste("Score column", score_column, "not found in scores file. Available columns:",
@@ -94,6 +128,38 @@ parcels_with_scores <- parcels %>%
   )
 
 parcels_final <- parcels_with_scores %>%
-  filter(!is.na(signed_distance))
+  filter(!is.na(signed_distance)) %>%
+  left_join(
+    construction_zoning,
+    by = c("pin", "construction_year"),
+    relationship = "many-to-one"
+  )
+
+zoning_history_sample <- parcels_final %>%
+  filter(
+    construction_year >= zoning_history_start_year,
+    construction_year <= zoning_history_end_year,
+    dist_to_boundary <= zoning_history_max_distance_ft
+  ) %>%
+  distinct(pin, construction_year)
+
+if (nrow(anti_join(
+  zoning_history_sample,
+  construction_zoning,
+  by = c("pin", "construction_year")
+)) > 0 || nrow(anti_join(
+  construction_zoning,
+  zoning_history_sample,
+  by = c("pin", "construction_year")
+)) > 0) {
+  stop("Construction-year zoning input does not match the scored density PIN-year universe within the configured distance.", call. = FALSE)
+}
+if (any(is.na(parcels_final$construction_zone_group[
+  parcels_final$construction_year >= zoning_history_start_year &
+    parcels_final$construction_year <= zoning_history_end_year &
+    parcels_final$dist_to_boundary <= zoning_history_max_distance_ft
+]))) {
+  stop("Construction-year zoning is missing inside the supported density sample.", call. = FALSE)
+}
 
 write_csv(parcels_final, "../output/parcels_with_ward_distances.csv")

@@ -3,9 +3,30 @@
 \section{Additional Density RD Checks}
 \label{sec:appendix_density}
 
-This appendix reports the two density RD checks retained for the shorter draft.
+This appendix reports covariate balance and the two density RD checks retained for the shorter draft.
 The shifted-cutoff checks ask whether similar discontinuities appear at fake boundaries nearby.
 The donut checks ask whether the main pattern depends only on parcels immediately adjacent to the ward boundary.
+
+\subsection{Covariate Balance}
+
+Table~\ref{tab:density_covariate_balance} compares observed neighborhood characteristics across the ward boundaries used in the density analysis.
+The multifamily sample is broadly balanced, while balance is weaker in the all-construction sample, one reason I focus on multifamily projects and treat the all-construction estimates as supporting evidence.
+
+\begin{table}[H]
+    \centering
+    \caption{Covariate Balance at Ward Boundaries}
+    \label{tab:density_covariate_balance}
+    \input{../tasks/density_covariate_balance/output/density_covariate_balance.tex}
+    \begin{minipage}{0.94\textwidth}
+        \vspace{0.35em}
+        \footnotesize
+        \textit{Notes:} Entries are adjusted differences between the more- and less-stringent sides of ward boundaries, measured in standard deviation units.
+        The sample includes 2006--2022 new construction within 500ft of a ward boundary.
+        Each regression controls for the average score of the two aldermen, separate distance slopes on either side of the boundary, boundary-segment fixed effects, and construction-year fixed effects.
+        Standard errors are clustered by ward pair.
+        The joint test allows the balance equations to be correlated within ward pairs.
+    \end{minipage}
+\end{table}
 
 \subsection{Shifted-Cutoff Placebo Checks}
 

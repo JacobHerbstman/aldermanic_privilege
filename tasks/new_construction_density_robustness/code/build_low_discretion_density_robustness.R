@@ -41,7 +41,7 @@ parcels <- read_csv(
     pin = as.character(pin),
     construction_year = suppressWarnings(as.integer(construction_year)),
     segment_id = as.character(segment_id),
-    zone_group = zone_group_from_code(zone_code),
+    zone_group = construction_zone_group,
     lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
     strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0)
   ) %>%

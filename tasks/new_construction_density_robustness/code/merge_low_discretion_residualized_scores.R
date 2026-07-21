@@ -18,32 +18,15 @@ if (!is.finite(max_construction_year)) {
 }
 
 parcels <- read_csv(
-  "../input/parcels_pre_scores.csv",
+  "../input/parcels_with_ward_distances.csv",
   show_col_types = FALSE,
   col_types = cols(pin = col_character(), .default = col_guess())
 )
 if (!"dist_to_boundary_m" %in% names(parcels)) {
   stop("Parcels input must contain dist_to_boundary_m.", call. = FALSE)
 }
-if (!"construction_year" %in% names(parcels)) {
-  stop("Parcels input must contain construction_year.", call. = FALSE)
-}
-
-segment_lookup <- read_csv(
-  "../input/parcel_segment_ids.csv",
-  show_col_types = FALSE,
-  col_types = cols(
-    pin = col_character(),
-    segment_id = col_character(),
-    segment_reason = col_character(),
-    .default = col_guess()
-  )
-)
-if (!all(c("pin", "segment_id") %in% names(segment_lookup))) {
-  stop("Segment lookup must contain columns: pin, segment_id", call. = FALSE)
-}
-if (anyDuplicated(segment_lookup$pin) > 0) {
-  stop("Segment lookup has duplicate pin values; expected one row per pin.", call. = FALSE)
+if (!all(c("construction_year", "construction_zone_group", "segment_id") %in% names(parcels))) {
+  stop("Parcels input is missing construction year, construction zoning, or segment assignment.", call. = FALSE)
 }
 
 scores <- read_csv("../input/aldermen_uncertainty_scores.csv", show_col_types = FALSE)
@@ -58,17 +41,7 @@ if (anyDuplicated(scores_for_merge$alderman) > 0) {
 }
 
 parcels_final <- parcels %>%
-  mutate(pin = as.character(pin)) %>%
-  left_join(
-    segment_lookup %>%
-      mutate(
-        pin = as.character(pin),
-        segment_id = as.character(segment_id),
-        dist_to_segment_m = if ("dist_to_segment_m" %in% names(.)) as.numeric(dist_to_segment_m) else NA_real_
-      ),
-    by = "pin",
-    relationship = "many-to-one"
-  ) %>%
+  select(-any_of(c("strictness_own", "strictness_neighbor", "sign", "signed_distance", "signed_distance_m"))) %>%
   filter(!is.na(construction_year), construction_year <= max_construction_year) %>%
   left_join(scores_for_merge, by = c("alderman_own" = "alderman"), relationship = "many-to-one") %>%
   rename(strictness_own = score) %>%

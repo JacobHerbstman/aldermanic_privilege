@@ -91,7 +91,7 @@ parcels <- read_csv(
     pin = as.character(pin),
     construction_year = suppressWarnings(as.integer(construction_year)),
     segment_id = as.character(segment_id),
-    zone_group = zone_group_from_code(zone_code),
+    zone_group = construction_zone_group,
     lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
     strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0),
     side = as.integer(signed_distance_m > 0),
@@ -191,7 +191,7 @@ for (sample_filter in c("all", "multifamily")) {
     }
     df <- df %>% filter(!is.na(ward_pair), is.finite(signed_distance_m))
     if (str_starts(fe_spec, "zonegroup")) {
-      df <- df %>% filter(!is.na(zone_code))
+      df <- df %>% filter(!is.na(construction_zone_group))
     }
     if (needs_segment) {
       df <- df %>% filter(!is.na(segment_id), segment_id != "")

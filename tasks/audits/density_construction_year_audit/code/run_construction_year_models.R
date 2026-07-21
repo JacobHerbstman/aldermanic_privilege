@@ -75,7 +75,7 @@ if (anyDuplicated(minus_one_permit_matches$pin) > 0) {
 production_residential <- read_csv(
   "../input/residential_cross_section.csv",
   show_col_types = FALSE,
-  col_types = cols(pin = col_character(), .default = col_guess())
+  col_types = cols(pin = col_character(), class = col_character(), .default = col_guess())
 ) %>%
   mutate(
     pin = as.character(pin),
@@ -423,11 +423,26 @@ assignment_data <- assignment_sf %>%
       TRUE ~ NA_real_
     ),
     signed_distance_m = dist_to_boundary_m * sign,
-    zone_group = zone_group_from_code(zone_code),
     side = as.integer(signed_distance_m > 0),
+    continuous_score_difference = (strictness_own - strictness_neighbor) / 2,
+    pair_average_score = (strictness_own + strictness_neighbor) / 2,
     lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
     strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0)
   )
+
+production_panel <- read_csv(
+  "../input/parcels_with_ward_distances.csv",
+  show_col_types = FALSE,
+  col_types = cols(pin = col_character(), segment_id = col_character(), .default = col_guess())
+) %>%
+  ensure_meter_distance_columns()
+
+production_zoning <- production_panel %>%
+  filter(between(construction_year, min(paper_years), max(paper_years))) %>%
+  distinct(pin, construction_zone_group)
+if (anyDuplicated(production_zoning$pin) > 0) {
+  stop("Production construction-year zoning is not unique by PIN.", call. = FALSE)
+}
 
 alternative_model_data <- alternative_residential %>%
   inner_join(
@@ -435,22 +450,21 @@ alternative_model_data <- alternative_residential %>%
     by = c("pin", "construction_year"),
     relationship = "many-to-one"
   ) %>%
+  left_join(production_zoning, by = "pin", relationship = "many-to-one") %>%
   mutate(
+    zone_group = construction_zone_group,
     density_far = areabuilding / arealotsf,
     density_dupac = 43560 * unitscount / arealotsf
   )
 
-production_model_data <- read_csv(
-  "../input/parcels_with_ward_distances.csv",
-  show_col_types = FALSE,
-  col_types = cols(pin = col_character(), segment_id = col_character(), .default = col_guess())
-) %>%
-  ensure_meter_distance_columns() %>%
+production_model_data <- production_panel %>%
   mutate(
     variant = "production",
     source = source_choice$selected_source[match(pin, source_choice$pin)],
-    zone_group = zone_group_from_code(zone_code),
+    zone_group = construction_zone_group,
     side = as.integer(signed_distance_m > 0),
+    continuous_score_difference = (strictness_own - strictness_neighbor) / 2,
+    pair_average_score = (strictness_own + strictness_neighbor) / 2,
     lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
     strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0)
   )
@@ -469,8 +483,9 @@ commercial_by_variant <- alternative_residential %>%
 model_columns <- c(
   "variant", "pin", "construction_year", "arealotsf", "areabuilding",
   "unitscount", "density_far", "density_dupac", "source",
-  "dist_to_boundary_m", "ward_pair", "signed_distance_m", "zone_code",
-  "zone_group", "segment_id", "strictness_own", "side", "lenient_dist",
+  "dist_to_boundary_m", "ward_pair", "signed_distance_m", "zone_group",
+  "segment_id", "strictness_own", "strictness_neighbor", "side",
+  "continuous_score_difference", "pair_average_score", "lenient_dist",
   "strict_dist", demographic_controls
 )
 
@@ -488,7 +503,7 @@ all_model_data <- bind_rows(
     dist_to_boundary_m <= bandwidth_m,
     !is.na(ward_pair),
     is.finite(signed_distance_m),
-    !is.na(zone_code),
+    !is.na(zone_group),
     !is.na(segment_id),
     segment_id != ""
   )
@@ -522,10 +537,11 @@ for (variant_i in sort(unique(all_model_data$variant))) {
         mutate(outcome_value = log(.data[[outcome]]))
 
       for (treatment in c("continuous", "binary")) {
-        treatment_var <- if (treatment == "continuous") "strictness_own" else "side"
+        treatment_var <- if (treatment == "continuous") "continuous_score_difference" else "side"
         model <- feols(
           as.formula(paste0(
-            "outcome_value ~ ", treatment_var, " + lenient_dist + strict_dist + ",
+            "outcome_value ~ ", treatment_var,
+            " + pair_average_score + lenient_dist + strict_dist + ",
             paste(demographic_controls, collapse = " + "),
             " | zone_group + segment_id + construction_year"
           )),
@@ -567,6 +583,8 @@ production_assignment <- production_model_data %>%
     production_segment_id = segment_id,
     production_alderman = alderman_own,
     production_strictness = strictness_own,
+    production_neighbor_strictness = strictness_neighbor,
+    production_score_difference = continuous_score_difference,
     production_distance_m = dist_to_boundary_m
   )
 
@@ -580,6 +598,8 @@ changed_rows <- bind_rows(change_rows) %>%
         alternate_segment_id = segment_id,
         alternate_alderman = alderman_own,
         alternate_strictness = strictness_own,
+        alternate_neighbor_strictness = strictness_neighbor,
+        alternate_score_difference = continuous_score_difference,
         alternate_distance_m = dist_to_boundary_m
       ),
     by = c("pin", "alternate_year"),
@@ -589,7 +609,7 @@ changed_rows <- bind_rows(change_rows) %>%
   mutate(
     boundary_assignment_changed = production_ward_pair != alternate_ward_pair,
     alderman_changed = production_alderman != alternate_alderman,
-    treatment_value_changed = production_strictness != alternate_strictness,
+    treatment_value_changed = production_score_difference != alternate_score_difference,
     production_in_500ft = production_in_paper_window & production_distance_m <= bandwidth_m,
     alternate_in_500ft = alternate_in_paper_window & alternate_distance_m <= bandwidth_m
   ) %>%

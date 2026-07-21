@@ -217,6 +217,13 @@ Together, these files report dwelling units, stories, building area, and land ar
 I geocode the original parcel identifiers using current and historical Assessor parcel records, assign each parcel to its ward using City of Chicago shapefiles, and define the construction date as June 15 of the recorded year built.
 I keep parcels with positive lot area, positive building area, and at least one dwelling unit.
 
+Formal zoning is an important control, but zoning measured today may reflect changes made for the project itself.
+I therefore assign each project in the boundary samples to the broad zoning group in force on June 15 of its construction year.
+I reconstruct the zoning history from official City zoning maps from 2012, 2014, and 2016 and passed map amendments dating back to 2006.
+Annual Cook County parcel maps allow me to follow sites whose parcel identifiers changed over time, and I retain planned developments as a separate zoning group.
+The reconstruction covers every project used in the main and placebo boundary analyses and reproduces the classifications observed in later official zoning maps.
+Appendix~\ref{subsec:new_construction_sample} provides additional detail.
+
 For each parcel I compute two standard density measures: Floor Area Ratio (FAR), defined as total building area divided by lot area, and Dwelling Units Per Acre (DUPAC), defined as dwelling units divided by lot acreage.
 Distance to the nearest ward boundary is computed after projecting parcels and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
 

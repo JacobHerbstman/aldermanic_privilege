@@ -36,10 +36,10 @@ The coefficient $\tau$ is the jump at the boundary from the more lenient side to
 
 Table~\ref{tab:density_main_table} reports both versions of the density comparison.
 Panel A reports the binary comparison visualized in Figure~\ref{fig:rd_fe_plots}.
-Multifamily FAR is about 24\% lower and multifamily DUPAC about 28\% lower on the more stringent side.
+Multifamily FAR is about 23\% lower and multifamily DUPAC about 27\% lower on the more stringent side.
 Panel B uses the continuous score difference $C_{iww't}=(S_{wt}-S_{w't})/2$ in place of the side indicator.
 The division by two means that crossing the boundary changes $C_{iww't}$ by the full score difference between the two aldermen.
-At a boundary where the aldermen's scores differ by one standard deviation, multifamily FAR is about 20\% lower and multifamily DUPAC about 16\% lower on the more stringent side.
+At a boundary where the aldermen's scores differ by one standard deviation, multifamily FAR is about 21\% lower and multifamily DUPAC about 16\% lower on the more stringent side.
 Across the ward pairs in the multifamily sample, the average score difference is 0.91 standard deviations.
 The all-construction estimates are much smaller; only the continuous FAR estimate is statistically distinguishable from zero.
 
@@ -52,7 +52,7 @@ The all-construction estimates are much smaller; only the continuous FAR estimat
     \footnotesize
     \textit{Notes:} Samples include all new construction and multifamily new construction from 2006--2022 within 500ft of ward boundaries.
     Regressions include side-specific linear distance-to-boundary controls and own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate.
-    Fixed effects are listed in the table.
+    Zoning-group fixed effects use the group in force in the construction year. Other fixed effects are listed in the table.
     Regressions are unweighted.
     Panel A reports the jump from the more lenient to the more stringent side of the boundary.
     Panel B replaces the side indicator with one-half of the difference between the project-side and across-boundary scores, so crossing a boundary changes the treatment by the full score difference between the two aldermen.
@@ -71,7 +71,7 @@ Appendix~\ref{sec:appendix_density} reports shifted-cutoff placebo checks and do
     \figurenotes{Left column: all construction; right column: multifamily.
     Top row: Log(FAR); bottom row: Log(DUPAC).
     Samples include new construction within 500ft of ward boundaries.
-    Outcomes are plotted after removing zoning-group, boundary-segment, and construction-year fixed effects, own-side demographic controls, and the average score of the two aldermen.
+    Outcomes are plotted after removing construction-year zoning-group, boundary-segment, and construction-year fixed effects, own-side demographic controls, and the average score of the two aldermen.
     Colored dots show five binned residual means on each side and colored lines show side-specific local-linear fits.
     \input{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_estimates_500ft_all_multifamily_bins5.tex}
     Negative distance indicates the more lenient alderman's side; positive distance indicates the more stringent side.}

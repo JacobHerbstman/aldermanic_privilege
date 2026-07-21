@@ -84,7 +84,8 @@ raw <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FAL
 
 dat <- raw %>%
   mutate(
-    zone_group = zone_group_from_code(zone_code),
+    zone_group = construction_zone_group,
+    pair_average_score = (strictness_own + strictness_neighbor) / 2,
     running_distance = signed_distance_m - placebo_shift_m
   ) %>%
   filter(
@@ -95,7 +96,7 @@ dat <- raw %>%
     !is.na(ward_pair),
     !is.na(construction_year),
     is.finite(signed_distance_m),
-    !is.na(zone_code),
+    !is.na(construction_zone_group),
     !is.na(segment_id),
     segment_id != "",
     abs(running_distance) <= bandwidth_m
@@ -119,6 +120,7 @@ if (nrow(dat) == 0) {
 }
 
 controls <- c(
+  "pair_average_score",
   "share_white_own",
   "share_black_own",
   "median_hh_income_own",

@@ -4,7 +4,8 @@ This audit asks whether treating each ward boundary pair as an independent
 cluster understates uncertainty when different pairs share a ward.
 
 The script reproduces the current density, permit event-study, rental, and
-sales models. It then reports:
+sales models. The density models use the current locally centered score
+difference and pair-average score. The audit then reports:
 
 - the production clustering rule;
 - ward-pair clustering;
@@ -39,11 +40,14 @@ is 0.032 with production ward-pair clustering, 0.027 with directional two-way
 endpoint clustering, and 0.030 with the shared-ward dyadic calculation. The
 low-discretion estimate remains statistically insignificant under every rule.
 
-For multifamily density, the FAR estimates and binary DUPAC estimate remain
-significant under directional two-way endpoint clustering. Continuous DUPAC
-moves from -0.107 (SE 0.052) to -0.107 (SE 0.060), with p = 0.083. None of the
-six headline density and permit estimates changes sign when any single ward is
-omitted.
+For multifamily density, the FAR estimates and both binary estimates remain
+significant under directional two-way endpoint clustering. Continuous FAR is
+-0.235, with an SE of 0.069 under ward-pair clustering and 0.089 under endpoint
+clustering (p = 0.011). Binary FAR is -0.259 (endpoint-clustered SE 0.098,
+p = 0.012), and binary DUPAC is -0.319 (endpoint-clustered SE 0.095,
+p = 0.002). Continuous DUPAC is the exception: its estimate is -0.176, and its
+SE rises from 0.057 to 0.091 (p = 0.060). None of the six headline density and
+permit estimates changes sign when any single ward is omitted.
 
 Rental precision is more sensitive. Its estimate is 0.0169, with an SE of
 0.0083 under production segment clustering, 0.0095 under directional endpoint
