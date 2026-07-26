@@ -38,6 +38,14 @@ all: ../output/project_evidence_inventory.csv \
 	../output/provisional_validated_density_input.csv \
 	../output/provisional_validated_sample_changes.csv \
 	../output/provisional_validated_density_results.csv \
+	../output/audited_density_rd_current_no_income.pdf \
+	../output/audited_density_rd_current_no_income.png \
+	../output/audited_density_rd_education_added_back.pdf \
+	../output/audited_density_rd_education_added_back.png \
+	../output/audited_density_rd_income_added_back.pdf \
+	../output/audited_density_rd_income_added_back.png \
+	../output/audited_density_rd_all_covariates.pdf \
+	../output/audited_density_rd_all_covariates.png \
 	../output/project_evidence_summary.csv \
 	../output/initial_review_queue.csv \
 	../output/known_case_validation.csv
@@ -250,6 +258,20 @@ all: ../output/project_evidence_inventory.csv \
 	../output/provisional_validated_density_input.csv \
 	../input/score_control_variants.csv
 	$(R) $<
+
+../output/audited_density_rd_%.pdf: \
+	plot_provisional_validated_density_rd.R \
+	../output/provisional_validated_density_input.csv \
+	../output/provisional_validated_density_results.csv \
+	../input/score_control_variants.csv
+	$(R) $< $*
+
+../output/audited_density_rd_%.png: \
+	../output/audited_density_rd_%.pdf
+	pdftoppm -png -singlefile -r 160 $< ../output/audited_density_rd_$*
+
+../output/audited_density_rd_%_estimates.csv: \
+	../output/audited_density_rd_%.pdf
 
 ../output/project_evidence_summary.csv: ../output/project_evidence_inventory.csv
 
