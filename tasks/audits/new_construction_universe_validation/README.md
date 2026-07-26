@@ -54,8 +54,11 @@ building type. Against 256 externally reviewed projects:
 The seven exceptions are four class-295 apartment buildings and three
 class-211/212 collections of detached or attached single-family buildings.
 Six corrupt six-unit counts attached to class-278/295 parcels are therefore
-classified as nonmultifamily. Permits recover stable unit counts for the
-apartment buildings at 1343 N Western Avenue and 4846 S St. Lawrence Avenue.
+classified as nonmultifamily. A single-family project represented by one PIN
+and one assessor card receives one dwelling; grouped townhouse projects retain
+their project-level number of homes. Permits recover stable unit counts for
+the apartment buildings at 1343 N Western Avenue and 4846 S St. Lawrence
+Avenue.
 
 ## New-construction eligibility
 
@@ -139,12 +142,12 @@ ward-pair-clustered estimates are:
 | --- | --- | --- | ---: | ---: | ---: |
 | All construction | Log FAR | Continuous | -0.047 | 0.031 | 0.131 |
 | All construction | Log FAR | Binary | -0.107 | 0.054 | 0.049 |
-| All construction | Log DUPAC | Continuous | -0.042 | 0.041 | 0.308 |
-| All construction | Log DUPAC | Binary | -0.125 | 0.077 | 0.105 |
+| All construction | Log DUPAC | Continuous | -0.026 | 0.039 | 0.508 |
+| All construction | Log DUPAC | Binary | -0.103 | 0.079 | 0.193 |
 | Multifamily | Log FAR | Continuous | -0.092 | 0.062 | 0.142 |
 | Multifamily | Log FAR | Binary | -0.176 | 0.076 | 0.023 |
-| Multifamily | Log DUPAC | Continuous | -0.111 | 0.081 | 0.173 |
-| Multifamily | Log DUPAC | Binary | -0.160 | 0.116 | 0.170 |
+| Multifamily | Log DUPAC | Continuous | -0.111 | 0.081 | 0.174 |
+| Multifamily | Log DUPAC | Binary | -0.161 | 0.117 | 0.172 |
 
 The audit also reports segment-clustered estimates, common-outcome samples,
 and the four score-control variants in

@@ -107,11 +107,7 @@ adjudicated <- provisional |>
   dplyr::mutate(
     prior_dwelling_units = dwelling_units,
     prior_multifamily = dplyr::coalesce(external_multifamily, FALSE),
-    dwelling_units = dplyr::if_else(
-      permit_unit_recovery_eligible,
-      resolved_dwelling_units,
-      dwelling_units
-    ),
+    dwelling_units = resolved_dwelling_units,
     external_multifamily = proposed_multifamily,
     density_dupac = 43560 * dwelling_units / land_sqft,
     audit_sample_action = dplyr::case_when(

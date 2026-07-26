@@ -142,8 +142,30 @@ projects <- readr::read_csv(
     proposed_multifamily = dplyr::case_when(
       class_first_error ~ reviewed_multifamily,
       TRUE ~ class_first_multifamily
+    ),
+    resolved_dwelling_units = dplyr::case_when(
+      !proposed_multifamily &
+        project_kind == "single_pin_single_card" ~ 1,
+      TRUE ~ resolved_dwelling_units
+    ),
+    unit_count_rule = dplyr::case_when(
+      !proposed_multifamily &
+        project_kind == "single_pin_single_card" ~
+        "single_family_single_record",
+      TRUE ~ unit_count_rule
     )
   )
+
+if (
+  any(
+    projects$project_kind == "single_pin_single_card" &
+      !projects$proposed_multifamily &
+      projects$resolved_dwelling_units != 1,
+    na.rm = TRUE
+  )
+) {
+  stop("A single-record single-family project has more than one dwelling.")
+}
 
 reviewed <- projects |>
   dplyr::filter(externally_reviewed_classification)
