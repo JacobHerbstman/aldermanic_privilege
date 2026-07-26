@@ -11,6 +11,9 @@ all: ../output/project_evidence_inventory.csv \
 	../output/multifamily_classification_review_summary.csv \
 	../output/multifamily_classification_error_modes.csv \
 	../output/multifamily_classification_mode_b_review_sample.csv \
+	../output/multifamily_classification_blinded_review.csv \
+	../output/multifamily_holdout_blinded_comparison.csv \
+	../output/multifamily_holdout_blinded_summary.csv \
 	../output/multifamily_classification_new_review_queue.csv \
 	../output/multifamily_classification_known_exceptions.csv \
 	../output/multifamily_classification_decisions.csv \
@@ -35,6 +38,10 @@ all: ../output/project_evidence_inventory.csv \
 	../output/city_2015_footprint_evidence_summary.csv \
 	../output/residual_completed_density_attrition.csv \
 	../output/residual_completed_density_attrition_summary.csv \
+	../output/residual_density_proxy_recoverability.csv \
+	../output/residual_density_proxy_calibration.csv \
+	../output/residual_density_proxy_broad_calibration.csv \
+	../output/residual_density_proxy_summary.csv \
 	../output/density_attrition_balance_sample.csv \
 	../output/density_attrition_balance_results.csv \
 	../output/density_attrition_treatment_counts.csv \
@@ -121,6 +128,21 @@ all: ../output/project_evidence_inventory.csv \
 
 ../output/multifamily_classification_mode_b_review_sample.csv: \
 	../output/multifamily_classification_rule_validation.csv
+
+../output/multifamily_classification_blinded_review.csv: \
+	build_blinded_multifamily_holdout.R \
+	../output/multifamily_classification_mode_b_review_sample.csv \
+	../output/project_evidence_inventory.csv
+	$(R) $<
+
+../output/multifamily_holdout_blinded_comparison.csv: \
+	compare_blinded_multifamily_holdout.R \
+	../output/multifamily_classification_mode_b_review_sample.csv \
+	../adjudication/multifamily_holdout_blinded_decisions.csv
+	$(R) $<
+
+../output/multifamily_holdout_blinded_summary.csv: \
+	../output/multifamily_holdout_blinded_comparison.csv
 
 ../output/multifamily_classification_new_review_queue.csv: \
 	../output/multifamily_classification_rule_validation.csv
@@ -239,6 +261,28 @@ all: ../output/project_evidence_inventory.csv \
 ../output/residual_completed_density_attrition_summary.csv: \
 	../output/residual_completed_density_attrition.csv
 
+../output/residual_density_proxy_recoverability.csv: \
+	audit_residual_density_proxy_recoverability.R \
+	../output/residual_completed_density_attrition.csv \
+	../output/project_evidence_inventory.csv \
+	../input/residual_permit_footprint_2022_assessor_evidence.csv \
+	../input/residual_footprint_field_transitions.csv \
+	../input/permit_residual_city_building_footprint_links.csv \
+	../input/residual_permit_footprint_2022_parcel_matches.csv \
+	../input/residual_permit_footprint_2022_parcels.gpkg \
+	../input/preferred_project_year_geometry.gpkg \
+	../input/chicago_building_footprints_2015.zip
+	$(R) $<
+
+../output/residual_density_proxy_calibration.csv: \
+	../output/residual_density_proxy_recoverability.csv
+
+../output/residual_density_proxy_broad_calibration.csv: \
+	../output/residual_density_proxy_recoverability.csv
+
+../output/residual_density_proxy_summary.csv: \
+	../output/residual_density_proxy_recoverability.csv
+
 ../output/density_attrition_balance_results.csv: \
 	test_residual_density_attrition_balance.R \
 	../output/residual_completed_density_attrition.csv \
@@ -295,12 +339,34 @@ all: ../output/project_evidence_inventory.csv \
 	../input/score_control_variants.csv
 	$(R) $<
 
+../output/audited_density_rd_income_added_back_8bins.pdf: \
+	plot_provisional_validated_density_rd.R \
+	../output/provisional_validated_density_input.csv \
+	../output/provisional_validated_density_results.csv \
+	../input/score_control_variants.csv
+	$(R) $< income_added_back 8
+
+../output/audited_density_rd_income_added_back_10bins.pdf: \
+	plot_provisional_validated_density_rd.R \
+	../output/provisional_validated_density_input.csv \
+	../output/provisional_validated_density_results.csv \
+	../input/score_control_variants.csv
+	$(R) $< income_added_back 10
+
+../output/audited_density_rd_income_added_back_8bins.png: \
+	../output/audited_density_rd_income_added_back_8bins.pdf
+	pdftoppm -png -singlefile -r 160 $< ../output/audited_density_rd_income_added_back_8bins
+
+../output/audited_density_rd_income_added_back_10bins.png: \
+	../output/audited_density_rd_income_added_back_10bins.pdf
+	pdftoppm -png -singlefile -r 160 $< ../output/audited_density_rd_income_added_back_10bins
+
 ../output/audited_density_rd_%.pdf: \
 	plot_provisional_validated_density_rd.R \
 	../output/provisional_validated_density_input.csv \
 	../output/provisional_validated_density_results.csv \
 	../input/score_control_variants.csv
-	$(R) $< $*
+	$(R) $< $* 5
 
 ../output/audited_density_rd_%.png: \
 	../output/audited_density_rd_%.pdf
@@ -506,6 +572,24 @@ all: ../output/project_evidence_inventory.csv \
 	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
 	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
 
+../input/permit_residual_city_building_footprint_links.csv:
+	@source="../../commercial_new_construction_sample_audit/output/permit_residual_city_building_footprint_links.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/residual_permit_footprint_2022_parcel_matches.csv:
+	@source="../../commercial_new_construction_sample_audit/output/residual_permit_footprint_2022_parcel_matches.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/residual_permit_footprint_2022_parcels.gpkg:
+	@source="../../commercial_new_construction_sample_audit/output/residual_permit_footprint_2022_parcels.gpkg"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
 ../input/residual_footprint_field_transitions.csv:
 	@source="../../commercial_new_construction_sample_audit/output/residual_footprint_field_transitions.csv"; \
 	test -f "$$source"; \
@@ -562,6 +646,9 @@ link-inputs: ../input/final_new_construction_audit_ledger.csv \
 	../input/chicago_alderman_terms.csv \
 	../input/boundary_segments_1320ft.gpkg \
 	../input/residual_permit_footprint_2022_assessor_evidence.csv \
+	../input/permit_residual_city_building_footprint_links.csv \
+	../input/residual_permit_footprint_2022_parcel_matches.csv \
+	../input/residual_permit_footprint_2022_parcels.gpkg \
 	../input/residual_footprint_field_transitions.csv \
 	../input/residual_permit_historical_pin_reconciliation.csv \
 	../input/residual_permit_historical_residential_history.csv \

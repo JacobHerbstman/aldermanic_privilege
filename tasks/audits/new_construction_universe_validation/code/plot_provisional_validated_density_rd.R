@@ -1,16 +1,18 @@
 # setwd("tasks/audits/new_construction_universe_validation/code")
 # score_variant <- "all_covariates"
+# bins_per_side <- 5L
 
 source("../../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0L) {
-  cli_args <- score_variant
+  cli_args <- c(score_variant, bins_per_side)
 }
-if (length(cli_args) != 1L) {
-  stop("Expected one score variant.", call. = FALSE)
+if (length(cli_args) != 2L) {
+  stop("Expected one score variant and bins per side.", call. = FALSE)
 }
 score_variant <- cli_args[1]
+bins_per_side <- as.integer(cli_args[2])
 
 valid_variants <- c(
   "current_no_income",
@@ -18,8 +20,12 @@ valid_variants <- c(
   "income_added_back",
   "all_covariates"
 )
-if (!score_variant %in% valid_variants) {
-  stop("Unknown score variant.", call. = FALSE)
+if (
+  !score_variant %in% valid_variants ||
+    is.na(bins_per_side) ||
+    bins_per_side < 2L
+) {
+  stop("Unknown score variant or invalid bin count.", call. = FALSE)
 }
 
 data <- readr::read_csv(
@@ -249,14 +255,32 @@ for (i in seq_len(nrow(panel_specs))) {
 
   display_data <- display_data |>
     dplyr::mutate(
+      bin_width_ft = 500 / bins_per_side,
       bin = dplyr::case_when(
         running_distance_ft < 0 ~
-          pmax(floor((running_distance_ft + 500) / 100) + 1L, 1L),
-        TRUE ~ pmin(floor(running_distance_ft / 100) + 6L, 10L)
+          pmax(
+            floor(
+              (running_distance_ft + 500) / bin_width_ft
+            ) + 1L,
+            1L
+          ),
+        TRUE ~ pmin(
+          floor(running_distance_ft / bin_width_ft) +
+            bins_per_side + 1L,
+          2L * bins_per_side
+        )
       ),
       bin_center_ft = c(
-        -450, -350, -250, -150, -50,
-        50, 150, 250, 350, 450
+        seq(
+          -500 + 250 / bins_per_side,
+          -250 / bins_per_side,
+          length.out = bins_per_side
+        ),
+        seq(
+          250 / bins_per_side,
+          500 - 250 / bins_per_side,
+          length.out = bins_per_side
+        )
       )[bin]
     )
 
@@ -394,19 +418,32 @@ combined_plot <- (
   patchwork::plot_annotation(
     title = variant_title,
     subtitle = paste(
-      "Corrected audited construction sample; 500ft bandwidth.",
+      sprintf(
+        paste0(
+          "Corrected audited construction sample; 500ft bandwidth; ",
+          "%d bins per side."
+        ),
+        bins_per_side
+      ),
       "Visual estimates are residualized local-linear discontinuities."
     )
   )
 
+output_suffix <- if (bins_per_side == 5L) {
+  score_variant
+} else {
+  paste0(score_variant, "_", bins_per_side, "bins")
+}
+
 ggplot2::ggsave(
-  paste0("../output/audited_density_rd_", score_variant, ".pdf"),
+  paste0("../output/audited_density_rd_", output_suffix, ".pdf"),
   combined_plot,
   width = 11.2,
   height = 8.4
 )
 
 readr::write_csv(
-  dplyr::bind_rows(plot_estimates),
-  paste0("../output/audited_density_rd_", score_variant, "_estimates.csv")
+  dplyr::bind_rows(plot_estimates) |>
+    dplyr::mutate(bins_per_side = bins_per_side),
+  paste0("../output/audited_density_rd_", output_suffix, "_estimates.csv")
 )
