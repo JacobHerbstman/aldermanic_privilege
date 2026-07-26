@@ -31,9 +31,9 @@ The eight headline models are then re-estimated. The resulting distributions iso
 
 The first propagation file predates the paper's current locally centered density specification. Its density results are retained only as a record of the earlier exercise and are superseded below; its rental, sales, and permit results remain current.
 
-The median draw has a correlation of 0.90 with the through-2022 production score and 0.92 with the through-2014 production score. The expected observation-weighted probability that a production pair ordering flips is 13.1% for multifamily density, 10.8% for rents, 15.6% for sales, and 14.5% for the permit event study.
+The median draw has a correlation of 0.90 with the through-2022 production score and 0.92 with the through-2014 production score. The expected observation-weighted probability that a production pair ordering flips is 12.6% for multifamily density, 11.0% for rents, 16.2% for sales, and 14.6% for the permit event study.
 
-The score-bootstrap standard deviation is 60%-79% as large as the paper's clustered standard error for the four multifamily density estimates, 67% for rents, 66% for sales, and 62% for the high-discretion permit estimate. The four density estimates retain their negative sign in at least 99.65% of score draws. The rent estimate is positive in 99.95%, the sales estimate in 99.5%, and the high-discretion permit estimate is negative in every draw.
+The score-bootstrap standard deviation is 70% as large as the clustered standard error for binary rents, 67% for binary sales, and 62% for the high-discretion permit estimate. The initial density models retain their negative sign in at least 99.45% of score draws. The rent estimate is positive in every draw, the sales estimate in 99.5%, and the high-discretion permit estimate is negative in every draw. The paper's current continuous rent and sales models are propagated in `tasks/audits/income_score_current_results`.
 
 These sign frequencies condition on the outcome data and vary only the generated score. They are not p-values and do not combine score-estimation uncertainty with sampling uncertainty in the outcome regressions.
 
@@ -41,4 +41,4 @@ These sign frequencies condition on the outcome data and vary only the generated
 
 `density_boundary_estimate_uncertainty_2000draws.csv` repeats the density propagation for the paper's current boundary specifications and construction-year zoning groups. In every draw, it reconstructs the binary ranking, side-specific distances, half the own-minus-neighbor score difference, and the average score of the two aldermen. Both the binary and continuous models control for that pair-average score.
 
-The binary FAR and DUPAC estimates remain negative in 100% and 98.75% of draws. The continuous FAR and DUPAC estimates remain negative in 100% and 99.55% of draws. Score-bootstrap standard deviations are 77% as large as the clustered standard errors for both binary outcomes, and 86% and 109% as large for continuous FAR and DUPAC. These distributions supersede the earlier absolute-own-score density propagation.
+The binary FAR and DUPAC estimates remain negative in 99.7% and 98.55% of draws. The continuous FAR and DUPAC estimates remain negative in 99.85% and 98.5% of draws. Score-bootstrap standard deviations are 68% and 84% as large as the clustered standard errors for binary FAR and DUPAC, and 79% and 99% as large for continuous FAR and DUPAC. These distributions supersede the earlier absolute-own-score density propagation.

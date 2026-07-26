@@ -4,7 +4,51 @@ source("../../../setup_environment/code/packages.R")
 
 data <- readr::read_csv(
   "../output/provisional_validated_density_input.csv",
-  show_col_types = FALSE
+  show_col_types = FALSE,
+  col_select = c(
+    project_id,
+    construction_year,
+    ward_pair,
+    distance_to_boundary_ft,
+    within_500ft,
+    allow_far,
+    allow_dupac,
+    segment_id,
+    dwelling_units,
+    density_far,
+    density_dupac,
+    zone_group,
+    alderman_own,
+    alderman_neighbor,
+    share_white_own,
+    share_black_own,
+    median_hh_income_own,
+    share_bach_plus_own,
+    homeownership_rate_own,
+    external_multifamily
+  ),
+  col_types = readr::cols(
+    project_id = readr::col_character(),
+    construction_year = readr::col_double(),
+    ward_pair = readr::col_character(),
+    distance_to_boundary_ft = readr::col_double(),
+    within_500ft = readr::col_logical(),
+    allow_far = readr::col_logical(),
+    allow_dupac = readr::col_logical(),
+    segment_id = readr::col_character(),
+    dwelling_units = readr::col_double(),
+    density_far = readr::col_double(),
+    density_dupac = readr::col_double(),
+    zone_group = readr::col_character(),
+    alderman_own = readr::col_character(),
+    alderman_neighbor = readr::col_character(),
+    share_white_own = readr::col_double(),
+    share_black_own = readr::col_double(),
+    median_hh_income_own = readr::col_double(),
+    share_bach_plus_own = readr::col_double(),
+    homeownership_rate_own = readr::col_double(),
+    external_multifamily = readr::col_logical()
+  )
 )
 
 scores <- readr::read_csv(

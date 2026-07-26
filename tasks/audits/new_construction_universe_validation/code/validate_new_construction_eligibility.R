@@ -9,7 +9,9 @@ evidence <- readr::read_csv(
 
 analysis_projects <- readr::read_csv(
   "../input/multicard_external_reviewed_model_input.csv",
-  show_col_types = FALSE
+  show_col_types = FALSE,
+  col_select = project_id,
+  col_types = readr::cols(project_id = readr::col_character())
 ) |>
   dplyr::select(project_id)
 
@@ -27,7 +29,29 @@ commercial_completion <- readr::read_csv(
     city_year_built_values
   )
 
-for (x in list(evidence, analysis_projects, commercial_completion)) {
+predecessor_evidence <- readr::read_csv(
+  "../output/predecessor_assessor_evidence.csv",
+  show_col_types = FALSE
+) |>
+  dplyr::select(
+    project_id,
+    predecessor_evidence_status,
+    predecessor_same_structure_signal,
+    predecessor_replacement_signal,
+    predecessor_latest_tax_year,
+    predecessor_reported_years,
+    predecessor_building_sqft,
+    predecessor_dwelling_units
+  )
+
+for (
+  x in list(
+    evidence,
+    analysis_projects,
+    commercial_completion,
+    predecessor_evidence
+  )
+) {
   if (anyDuplicated(x$project_id)) {
     stop("An eligibility input is not uniquely keyed by project_id.")
   }
@@ -41,6 +65,11 @@ validation <- analysis_projects |>
   ) |>
   dplyr::left_join(
     commercial_completion,
+    by = "project_id",
+    relationship = "one-to-one"
+  ) |>
+  dplyr::left_join(
+    predecessor_evidence,
     by = "project_id",
     relationship = "one-to-one"
   )
@@ -66,10 +95,16 @@ validation <- validation |>
       ),
     positive_assessor_replacement =
       source_family == "residential" &
-      assessor_physical_change,
+      (
+        assessor_physical_change |
+          dplyr::coalesce(predecessor_replacement_signal, FALSE)
+      ),
     unchanged_preexisting_structure =
       source_family == "residential" &
-      assessor_year_only_recode &
+      (
+        assessor_year_only_recode |
+          dplyr::coalesce(predecessor_same_structure_signal, FALSE)
+      ) &
       !positive_permit_evidence,
     existing_work_without_new_building =
       direct_existing_building_work &
@@ -96,12 +131,19 @@ validation <- validation |>
     ),
     rule_evidence = dplyr::case_when(
       unchanged_preexisting_structure ~ paste0(
-        "Assessor history reports years ",
+        "The current or predecessor parcel contains the same physical ",
+        "structure before the reported construction year. Current years: ",
         history_year_values,
-        " with unchanged building area ",
+        "; current building area: ",
         history_building_area_values,
-        " and unchanged unit count ",
+        "; current units: ",
         history_unit_count_values,
+        "; predecessor years: ",
+        predecessor_reported_years,
+        "; predecessor building area: ",
+        predecessor_building_sqft,
+        "; predecessor units: ",
+        predecessor_dwelling_units,
         "."
       ),
       positive_permit_evidence ~ dplyr::coalesce(
@@ -115,10 +157,14 @@ validation <- validation |>
       ),
       existing_work_without_new_building ~ direct_permit_descriptions,
       positive_assessor_replacement ~ paste0(
-        "Assessor history changes building area from ",
+        "Current or predecessor assessor history changes building area from ",
         history_building_area_values,
+        " / ",
+        predecessor_building_sqft,
         " or unit count from ",
         history_unit_count_values,
+        " / ",
+        predecessor_dwelling_units,
         "."
       ),
       TRUE ~ decision_reason

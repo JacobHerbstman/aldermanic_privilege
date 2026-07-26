@@ -1,6 +1,5 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/generated_score_uncertainty/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/audits/income_score_current_results/code")
 # n_draws <- 2000
-# score_cutoff <- 2022
 # seed <- 20260719
 # workers <- 8
 
@@ -9,22 +8,18 @@ library(arrow)
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(n_draws, score_cutoff, seed, workers)
+  cli_args <- c(n_draws, seed, workers)
 }
-if (length(cli_args) != 4) {
-  stop("Script requires number of draws, score cutoff, seed, and workers.", call. = FALSE)
+if (length(cli_args) != 3) {
+  stop("Script requires number of draws, seed, and workers.", call. = FALSE)
 }
 
 n_draws <- as.integer(cli_args[1])
-score_cutoff <- as.integer(cli_args[2])
-seed <- as.integer(cli_args[3])
-workers <- as.integer(cli_args[4])
+seed <- as.integer(cli_args[2])
+workers <- as.integer(cli_args[3])
 
 if (!is.finite(n_draws) || n_draws < 1) {
   stop("n_draws must be a positive integer.", call. = FALSE)
-}
-if (!score_cutoff %in% c(2014L, 2022L)) {
-  stop("score_cutoff must be 2014 or 2022.", call. = FALSE)
 }
 if (!is.finite(seed) || seed < 1) {
   stop("seed must be a positive integer.", call. = FALSE)
@@ -34,9 +29,8 @@ if (!is.finite(workers) || workers < 1) {
 }
 
 config <- default_uncertainty_config()
-
 permits <- load_uncertainty_permits("../input/permits_for_uncertainty_index.csv") %>%
-  filter(month <= as.yearmon(as.Date(sprintf("%d-12-01", score_cutoff))))
+  filter(month <= as.yearmon("2022-12"))
 
 prepared <- prepare_uncertainty_sample(
   permits,
@@ -49,7 +43,7 @@ covariates <- get_stage1_covariates(
   prepared$place_covariates,
   prepared$include_volume_stage1,
   prepared$volume_var,
-  drop_covariates = character()
+  drop_covariates = "share_bach_plus"
 )
 fe_terms <- get_stage1_fe_terms(config)
 
@@ -58,7 +52,7 @@ stage1 <- fit_stage1_model(
   stage1_outcome = "log_processing_time",
   covariates = covariates,
   fe_terms = fe_terms,
-  variant_id = "baseline"
+  variant_id = "income_added_back"
 )
 
 stage1_data <- stage1$permits_for_reg %>%
@@ -98,22 +92,21 @@ cells_by_alderman <- split(cell_data$bootstrap_cell_id, cell_data$alderman)
 baseline <- build_residualized_uncertainty_index(
   permits = permits,
   config = config,
-  variant_id = "baseline",
+  variant_id = "income_added_back",
   stage1_outcome = "log_processing_time",
-  drop_covariates = character(),
-  construction_rule = "Paper score"
+  drop_covariates = "share_bach_plus",
+  construction_rule = "Median household income restored"
 )$alderman_index %>%
   arrange(alderman)
 
-published <- read_csv(
-  sprintf("../input/alderman_uncertainty_index_through%d.csv", score_cutoff),
-  show_col_types = FALSE
-) %>%
+expected <- read_csv("../output/current_income_scores.csv", show_col_types = FALSE) %>%
+  filter(cutoff == 2022L, variant == "income_added_back") %>%
+  transmute(alderman, uncertainty_index = score) %>%
   arrange(alderman)
 
-if (!identical(baseline$alderman, published$alderman) ||
-    max(abs(baseline$uncertainty_index - published$uncertainty_index)) > 1e-10) {
-  stop("Audit score reconstruction does not match the production score.", call. = FALSE)
+if (!identical(baseline$alderman, expected$alderman) ||
+    max(abs(baseline$uncertainty_index - expected$uncertainty_index)) > 1e-10) {
+  stop("Income-score reconstruction does not match the audit score.", call. = FALSE)
 }
 
 bootstrap_one_draw <- function(draw_id) {
@@ -215,7 +208,7 @@ draws <- parallel::mclapply(
 elapsed_seconds <- as.numeric(difftime(Sys.time(), started_at, units = "secs"))
 
 if (any(vapply(draws, inherits, logical(1), what = "try-error"))) {
-  stop("At least one score bootstrap draw failed.", call. = FALSE)
+  stop("At least one income-score bootstrap draw failed.", call. = FALSE)
 }
 
 draws <- bind_rows(draws) %>%
@@ -224,18 +217,17 @@ draws <- bind_rows(draws) %>%
 if (n_distinct(draws$draw) != n_draws ||
     any(count(draws, draw)$n != nrow(baseline)) ||
     any(!is.finite(draws$score))) {
-  stop("Score bootstrap output is incomplete or non-finite.", call. = FALSE)
+  stop("Income-score bootstrap output is incomplete or non-finite.", call. = FALSE)
 }
 
 write_parquet(
   draws,
-  sprintf("../output/score_draws_through%d_%ddraws.parquet", score_cutoff, n_draws),
+  sprintf("../output/income_score_draws_through2022_%ddraws.parquet", n_draws),
   compression = "zstd"
 )
 
 write_csv(
   tibble(
-    score_cutoff,
     n_draws,
     seed,
     workers,
@@ -244,5 +236,5 @@ write_csv(
     n_aldermen = nrow(baseline),
     elapsed_seconds
   ),
-  sprintf("../output/score_draws_through%d_%ddraws_summary.csv", score_cutoff, n_draws)
+  sprintf("../output/income_score_draws_through2022_%ddraws_summary.csv", n_draws)
 )

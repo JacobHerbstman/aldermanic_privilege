@@ -20,6 +20,12 @@ all: ../output/project_evidence_inventory.csv \
 	../output/eligibility_manual_review_queue.csv \
 	../output/permit_pin_geography_conflicts.csv \
 	../output/permit_pin_geography_conflict_summary.csv \
+	../output/commercial_manual_rule_coverage.csv \
+	../output/commercial_manual_rule_summary.csv \
+	../output/predecessor_assessor_evidence.csv \
+	../output/predecessor_assessor_evidence_summary.csv \
+	../output/city_2015_footprint_evidence.csv \
+	../output/city_2015_footprint_evidence_summary.csv \
 	../output/provisional_validated_density_input.csv \
 	../output/provisional_validated_sample_changes.csv \
 	../output/provisional_validated_density_results.csv \
@@ -97,7 +103,8 @@ all: ../output/project_evidence_inventory.csv \
 
 ../output/permit_rule_gap_review.csv: audit_permit_rule_coverage.R \
 	../output/project_evidence_inventory.csv \
-	../input/project_permit_chain_links.csv
+	../input/project_permit_chain_links.csv \
+	../input/building_permits_clean.gpkg
 	$(R) $<
 
 ../output/permit_rule_coverage_summary.csv: \
@@ -109,6 +116,7 @@ all: ../output/project_evidence_inventory.csv \
 ../output/eligibility_rule_validation.csv: \
 	validate_new_construction_eligibility.R \
 	../output/permit_rule_coverage.csv \
+	../output/predecessor_assessor_evidence.csv \
 	../input/multicard_external_reviewed_model_input.csv \
 	../input/commercial_completion_evidence.csv
 	$(R) $<
@@ -129,6 +137,42 @@ all: ../output/project_evidence_inventory.csv \
 
 ../output/permit_pin_geography_conflict_summary.csv: \
 	../output/permit_pin_geography_conflicts.csv
+
+../output/commercial_manual_rule_coverage.csv: \
+	audit_commercial_manual_rule_coverage.R \
+	../input/preferred_commercial_project_candidates.csv \
+	../input/preferred_commercial_project_ledger.csv \
+	../input/final_density_model_input.csv \
+	../input/commercial_unit_adjudication_evidence.csv \
+	../input/commercial_completion_evidence.csv \
+	../input/commercial_land_adjudication_evidence.csv \
+	../input/new_construction_permit_unit_mentions.csv \
+	../input/project_permit_chain_links.csv
+	$(R) $<
+
+../output/commercial_manual_rule_summary.csv: \
+	../output/commercial_manual_rule_coverage.csv
+
+../output/predecessor_assessor_evidence.csv: \
+	build_predecessor_assessor_evidence.R \
+	../output/permit_rule_coverage.csv \
+	../input/preferred_historical_predecessor_resolution.csv \
+	../input/residential_improvement_characteristics_full.csv
+	$(R) $<
+
+../output/predecessor_assessor_evidence_summary.csv: \
+	../output/predecessor_assessor_evidence.csv
+
+../output/city_2015_footprint_evidence.csv: \
+	build_2015_city_footprint_evidence.R \
+	../output/eligibility_rule_validation.csv \
+	../output/multifamily_classification_decisions.csv \
+	../input/preferred_project_year_geometry.gpkg \
+	../input/chicago_building_footprints_2015.zip
+	$(R) $<
+
+../output/city_2015_footprint_evidence_summary.csv: \
+	../output/city_2015_footprint_evidence.csv
 
 ../output/provisional_validated_density_input.csv: \
 	build_provisional_validated_sample.R \
@@ -260,6 +304,53 @@ all: ../output/project_evidence_inventory.csv \
 	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
 	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
 
+../input/preferred_commercial_project_candidates.csv:
+	@source="../../commercial_new_construction_sample_audit/output/preferred_commercial_project_candidates.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/preferred_commercial_project_ledger.csv:
+	@source="../../commercial_new_construction_sample_audit/output/preferred_commercial_project_ledger.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/commercial_unit_adjudication_evidence.csv:
+	@source="../../commercial_new_construction_sample_audit/output/commercial_unit_adjudication_evidence.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/commercial_land_adjudication_evidence.csv:
+	@source="../../commercial_new_construction_sample_audit/output/commercial_land_adjudication_evidence.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/preferred_historical_predecessor_resolution.csv:
+	@source="../../commercial_new_construction_sample_audit/output/preferred_historical_predecessor_resolution.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/residential_improvement_characteristics_full.csv:
+	@source="../../../download_residential_improvements_full/output/residential_improvement_characteristics_full.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/preferred_project_year_geometry.gpkg:
+	@source="../../commercial_new_construction_sample_audit/output/preferred_project_year_geometry.gpkg"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/chicago_building_footprints_2015.zip:
+	curl --fail --location \
+		"https://data.cityofchicago.org/api/views/syp8-uezg/files/Wir2BTHPb7-BTOWMkr8XcKCfKCt8U6y8wK20cV4Tjhw?download=true&filename=buildings.zip" \
+		--output $@
+
 ../input/score_control_variants.csv:
 	@source="../../commercial_new_construction_sample_audit/input/score_control_variants.csv"; \
 	test -f "$$source"; \
@@ -284,6 +375,14 @@ link-inputs: ../input/final_new_construction_audit_ledger.csv \
 	../input/multicard_successor_suppressions.csv \
 	../input/multicard_manual_episode_decisions.csv \
 	../input/commercial_completion_evidence.csv \
+	../input/preferred_commercial_project_candidates.csv \
+	../input/preferred_commercial_project_ledger.csv \
+	../input/commercial_unit_adjudication_evidence.csv \
+	../input/commercial_land_adjudication_evidence.csv \
+	../input/preferred_historical_predecessor_resolution.csv \
+	../input/residential_improvement_characteristics_full.csv \
+	../input/preferred_project_year_geometry.gpkg \
+	../input/chicago_building_footprints_2015.zip \
 	../input/score_control_variants.csv
 
 include ../../../shell_functions.make

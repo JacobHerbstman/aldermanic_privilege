@@ -35,24 +35,26 @@ permit panel has 107 pairs across 49 wards; the corresponding counts are four
 and eight.
 
 The permit result is not sensitive to allowing pairs that share a ward to be
-correlated. The high-discretion pooled estimate is -0.099. Its standard error
-is 0.032 with production ward-pair clustering, 0.027 with directional two-way
-endpoint clustering, and 0.030 with the shared-ward dyadic calculation. The
+correlated. The high-discretion pooled estimate is -0.101. Its standard error
+is 0.033 with production ward-pair clustering, 0.028 with directional two-way
+endpoint clustering, and 0.032 with the shared-ward dyadic calculation. The
 low-discretion estimate remains statistically insignificant under every rule.
 
-For multifamily density, the FAR estimates and both binary estimates remain
-significant under directional two-way endpoint clustering. Continuous FAR is
--0.235, with an SE of 0.069 under ward-pair clustering and 0.089 under endpoint
-clustering (p = 0.011). Binary FAR is -0.259 (endpoint-clustered SE 0.098,
-p = 0.012), and binary DUPAC is -0.319 (endpoint-clustered SE 0.095,
-p = 0.002). Continuous DUPAC is the exception: its estimate is -0.176, and its
-SE rises from 0.057 to 0.091 (p = 0.060). None of the six headline density and
-permit estimates changes sign when any single ward is omitted.
+The multifamily density point estimates do not change under alternative
+clustering, but their precision does. Continuous FAR is -0.215, with an SE of
+0.080 under ward-pair clustering and 0.114 under directional endpoint
+clustering (p = 0.067). Continuous DUPAC is -0.167; its SE rises from 0.070 to
+0.122 (p = 0.178). Binary FAR is -0.199 (endpoint-clustered SE 0.101,
+p = 0.056), and binary DUPAC is -0.263 (endpoint-clustered SE 0.098,
+p = 0.010). Under the shared-ward dyadic calculation, continuous FAR remains
+significant and continuous DUPAC is marginal. None of the six headline density
+and permit estimates changes sign when any single ward is omitted.
 
-Rental precision is more sensitive. Its estimate is 0.0169, with an SE of
-0.0083 under production segment clustering, 0.0095 under directional endpoint
-clustering, and 0.0115 under the shared-ward dyadic calculation. The sales
-estimate is already imprecise and remains so.
+The continuous rental estimate is 0.0232, with an SE of 0.0070 under production
+segment clustering, 0.0036 under directional endpoint clustering, and 0.0041
+under the shared-ward dyadic calculation. The continuous sales estimate is
+0.0174. Its SE is 0.0072 under production clustering, 0.0097 under directional
+endpoint clustering, and 0.0084 under the dyadic calculation.
 
 The dyadic covariance calculation is informative but not a proposed
 replacement for production inference. Some of its full finite-sample

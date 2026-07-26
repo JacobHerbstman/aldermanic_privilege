@@ -245,6 +245,8 @@ rent <- read_parquet("../input/rental_rd_characteristics_panel_bw500.parquet") %
     endpoint_own = as.integer(ward),
     endpoint_neighbor = as.integer(neighbor_ward),
     right = as.integer(signed_dist_ft >= 0),
+    relative_score = (strictness_own - strictness_neighbor) / 2,
+    pair_average_score = (strictness_own + strictness_neighbor) / 2,
     log_sqft = if_else(is.finite(sqft) & sqft > 0, log(sqft), NA_real_),
     beds_factor = factor(beds),
     log_baths = if_else(is.finite(baths) & baths > 0, log(baths), NA_real_),
@@ -284,7 +286,7 @@ rent <- read_parquet("../input/rental_rd_characteristics_panel_bw500.parquet") %
     )
   )
 
-rent_rhs <- "right + log_sqft + beds_factor + log_baths"
+rent_rhs <- "relative_score + pair_average_score + log_sqft + beds_factor + log_baths"
 if (n_distinct(rent$building_type_factor) > 1) {
   rent_rhs <- paste(rent_rhs, "+ building_type_factor")
 }
@@ -305,9 +307,9 @@ rent_model <- feols(
 inference_rows[[length(inference_rows) + 1L]] <- collect_inference(
   rent_model,
   rent,
-  "right",
+  "relative_score",
   "rental_rd",
-  "clean_location__500ft__all_controls",
+  "clean_location__500ft__continuous_all_controls",
   "segment_id"
 )
 network_rows[["rental_rd"]] <- add_network(model_rows(rent_model, rent), "rental_rd")
@@ -320,7 +322,9 @@ sales <- read_parquet("../input/sales_with_hedonics_amenities.parquet") %>%
     endpoint_own = as.integer(ward),
     endpoint_neighbor = as.integer(neighbor_ward),
     signed_dist_ft = as.numeric(signed_dist_m) / 0.3048,
-    right = as.integer(signed_dist_ft >= 0)
+    right = as.integer(signed_dist_ft >= 0),
+    relative_score = (strictness_own - strictness_neighbor) / 2,
+    pair_average_score = (strictness_own + strictness_neighbor) / 2
   ) %>%
   filter(
     !is.na(sale_price),
@@ -342,7 +346,8 @@ sales_controls <- c(
 sales <- sales %>% filter(if_all(all_of(sales_controls), ~ !is.na(.x)))
 sales_model <- feols(
   as.formula(paste0(
-    "log(sale_price) ~ right + ", paste(sales_controls, collapse = " + "),
+    "log(sale_price) ~ relative_score + pair_average_score + ",
+    paste(sales_controls, collapse = " + "),
     " | segment_id^year_quarter"
   )),
   data = sales,
@@ -351,9 +356,9 @@ sales_model <- feols(
 inference_rows[[length(inference_rows) + 1L]] <- collect_inference(
   sales_model,
   sales,
-  "right",
+  "relative_score",
   "sales_rd",
-  "500ft__hedonics_and_amenities",
+  "500ft__continuous_hedonics_and_amenities",
   "segment_id"
 )
 network_rows[["sales_rd"]] <- add_network(model_rows(sales_model, sales), "sales_rd")

@@ -133,6 +133,16 @@ permits <- DBI::dbGetQuery(
       stringr::str_detect(work_description, "\\bEXISTING\\b") &
       substantive_existing_work &
       !explicit_new_building,
+    valid_permit_status = permit_status %in% c(
+      "COMPLETE",
+      "ACTIVE",
+      "PHASED PERMITTING"
+    ),
+    valid_new_construction_permit =
+      permit_type == "PERMIT - NEW CONSTRUCTION" &
+      valid_permit_status &
+      !broad_existing_work &
+      !addition_or_accessory_scope,
     permit_number = as.character(permit_number)
   ) |>
   dplyr::inner_join(
@@ -151,7 +161,9 @@ permits <- DBI::dbGetQuery(
       application_year_gap <= 0L &
       application_year_gap >= -5L,
     positive_new_building_evidence =
-      in_construction_window & explicit_new_building,
+      in_construction_window &
+      valid_permit_status &
+      (explicit_new_building | valid_new_construction_permit),
     negative_existing_building_evidence =
       before_or_during_reported_construction &
       existing_building_work,

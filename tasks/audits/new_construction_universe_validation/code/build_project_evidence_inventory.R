@@ -247,7 +247,9 @@ exact_permits <- readr::read_csv(
       )
     ),
     explicit_new_building =
-      explicit_new_building_raw & !addition_to_existing_scope,
+      explicit_new_building_raw &
+      !addition_to_existing_scope &
+      permit_status %in% c("COMPLETE", "ACTIVE", "PHASED PERMITTING"),
     explicit_existing_work = stringr::str_detect(
       work_description,
       paste0(
@@ -311,7 +313,9 @@ spatial_permits <- dplyr::bind_rows(
       )
     ),
     explicit_new_building =
-      explicit_new_building_raw & !addition_to_existing_scope,
+      explicit_new_building_raw &
+      !addition_to_existing_scope &
+      permit_status %in% c("COMPLETE", "ACTIVE", "PHASED PERMITTING"),
     explicit_existing_work = stringr::str_detect(
       work_description,
       paste0(

@@ -9,7 +9,12 @@ projects <- readr::read_csv(
   dplyr::left_join(
     readr::read_csv(
       "../output/eligibility_rule_validation.csv",
-      show_col_types = FALSE
+      show_col_types = FALSE,
+      col_select = c(project_id, proposed_action),
+      col_types = readr::cols(
+        project_id = readr::col_character(),
+        proposed_action = readr::col_character()
+      )
     ) |>
       dplyr::select(project_id, proposed_action),
     by = "project_id",
@@ -57,13 +62,20 @@ projects <- readr::read_csv(
       spatial_permit_dwelling_units
     ),
     stable_permit_unit_count =
-      positive_new_building_permit &
       is.finite(explicit_permit_dwelling_units) &
       explicit_permit_dwelling_units > 1,
+    corroborated_permit_unit_count =
+      stable_permit_unit_count &
+      (
+        positive_new_building_permit |
+          exact_pin_post_construction_existing_work |
+          exact_pin_negative_existing_building |
+          exact_negative_existing_work
+      ),
     permit_unit_recovery_eligible =
       (class_211_212 | class_values == "EX") &
       dplyr::coalesce(dwelling_units <= 1, TRUE) &
-      stable_permit_unit_count,
+      corroborated_permit_unit_count,
     resolved_dwelling_units = dplyr::if_else(
       permit_unit_recovery_eligible,
       explicit_permit_dwelling_units,

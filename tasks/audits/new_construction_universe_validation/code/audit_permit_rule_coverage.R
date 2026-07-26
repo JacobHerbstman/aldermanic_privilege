@@ -55,6 +55,44 @@ permit_links <- readr::read_csv(
     by = c("project_id" = "alias"),
     relationship = "many-to-one"
   ) |>
+  dplyr::mutate(permit_id = as.character(permit_id))
+
+connection <- DBI::dbConnect(
+  RSQLite::SQLite(),
+  "../input/building_permits_clean.gpkg",
+  flags = RSQLite::SQLITE_RO
+)
+on.exit(DBI::dbDisconnect(connection), add = TRUE)
+
+DBI::dbWriteTable(
+  connection,
+  "linked_permit_ids",
+  permit_links |>
+    dplyr::distinct(permit_id),
+  temporary = TRUE,
+  overwrite = TRUE
+)
+
+permit_types <- DBI::dbGetQuery(
+  connection,
+  paste(
+    "SELECT",
+    "p.id AS permit_id,",
+    "p.permit_type,",
+    "p.permit_status AS source_permit_status",
+    "FROM building_permits_clean p",
+    "INNER JOIN linked_permit_ids l ON p.id = l.permit_id"
+  )
+) |>
+  tibble::as_tibble() |>
+  dplyr::mutate(permit_id = as.character(permit_id))
+
+permit_links <- permit_links |>
+  dplyr::left_join(
+    permit_types,
+    by = "permit_id",
+    relationship = "many-to-one"
+  ) |>
   dplyr::mutate(
     work_description = stringr::str_squish(
       stringr::str_to_upper(dplyr::coalesce(work_description, ""))
@@ -96,6 +134,15 @@ permit_links <- readr::read_csv(
         "\\bCONVERSION OF UNIT\\b"
       )
     ),
+    valid_new_construction_permit =
+      permit_type == "PERMIT - NEW CONSTRUCTION" &
+      source_permit_status %in% c(
+        "COMPLETE",
+        "ACTIVE",
+        "PHASED PERMITTING"
+      ) &
+      !addition_or_accessory_scope &
+      !explicit_existing_building_work,
     expanded_new_building_scope = stringr::str_detect(
       work_description,
       paste0(
@@ -124,7 +171,15 @@ permit_links <- readr::read_csv(
         "\\bAFFORDABLE HOUSING PROJECT\\b|",
         "\\bMULTI-FAMILY RESIDENTIAL DWELLINGS\\b"
       )
-    ) &
+    ) |
+      valid_new_construction_permit,
+    expanded_new_building_scope =
+      expanded_new_building_scope &
+      source_permit_status %in% c(
+        "COMPLETE",
+        "ACTIVE",
+        "PHASED PERMITTING"
+      ) &
       !addition_or_accessory_scope &
       !explicit_existing_building_work,
     direct_positive_new_building =
