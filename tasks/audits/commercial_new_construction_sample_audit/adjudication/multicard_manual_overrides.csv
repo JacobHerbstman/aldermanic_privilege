@@ -1,0 +1,7 @@
+project_id,disposition,final_units,final_building_sqft,confidence,evidence
+residential_multicard_14074070260000,retain,1,1775,high,"The parcel is one of five separately permitted single-family houses along Ravenswood/Winnemac. Its two identical 1,775-square-foot assessor cards describe the same house."
+residential_multicard_14074070270000,retain,1,1775,high,"The parcel is one of five separately permitted single-family houses along Ravenswood/Winnemac. Its two identical 1,775-square-foot assessor cards describe the same house."
+residential_multicard_19113250470000,retain,17,27200,high,"City new-construction permits describe eight townhomes at 3601 W 53rd and nine at 3603 W 53rd. The assessor has sixteen identical 1,600-square-foot cards, so the missing seventeenth card is restored at the common card size."
+residential_multicard_20023000260000,retain,9,19341,high,"City permit 2732443 authorizes nine townhomes at 4300-4318 S Drexel. The assessor has ten identical 2,149-square-foot cards, so one duplicate card is removed."
+residential_multicard_20023050330000,suppress_duplicate_parent,,,high,"The adjacent PIN 20023050320000 intersects the three four-townhome permits and links to all twelve successor parcels. This PIN repeats the same twelve identical assessor cards but has no independent permit or successor evidence."
+residential_multicard_20151120040000,retain,8,10845,high,"Eight current condominium PINs share the original 5619 S Calumet building and jointly report 10,845 square feet. The two historical cards undercount the completed building."
