@@ -92,19 +92,21 @@ classification <- readr::read_csv(
   )
 
 eligibility <- readr::read_csv(
-  "../output/eligibility_manual_review_queue.csv",
+  "../output/eligibility_manual_exception_ledger.csv",
   show_col_types = FALSE,
   col_select = c(
     project_id,
     within_500ft,
     eligibility_rule,
-    rule_evidence
+    rule_evidence,
+    proposed_action
   ),
   col_types = readr::cols(
     project_id = readr::col_character(),
     within_500ft = readr::col_logical(),
     eligibility_rule = readr::col_character(),
-    rule_evidence = readr::col_character()
+    rule_evidence = readr::col_character(),
+    proposed_action = readr::col_character()
   )
 ) |>
   dplyr::transmute(
@@ -112,9 +114,9 @@ eligibility <- readr::read_csv(
     exception_id = project_id,
     project_ids = project_id,
     projects_within_500ft = as.integer(within_500ft),
-    decision = eligibility_rule,
+    decision = paste(proposed_action, eligibility_rule, sep = ":"),
     evidence = rule_evidence,
-    reason = "Eligibility remains unresolved."
+    reason = "Eligibility requires case-specific external evidence."
   )
 
 exceptions <- dplyr::bind_rows(

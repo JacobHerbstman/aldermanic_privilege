@@ -126,12 +126,18 @@ permits <- DBI::dbGetQuery(
         "REMODELING|RENOVATION|RENOVATIONS|REHAB|ADDITION|ADDITIONS)\\b"
       )
     ),
+    non_new_construction_existing_work =
+      permit_type != "PERMIT - NEW CONSTRUCTION" &
+      substantive_existing_work,
     existing_building_work =
-      explicit_existing_building &
+      (explicit_existing_building | non_new_construction_existing_work) &
       substantive_existing_work &
       !explicit_new_building,
     broad_existing_work =
-      stringr::str_detect(work_description, "\\bEXISTING\\b") &
+      (
+        stringr::str_detect(work_description, "\\bEXISTING\\b") |
+          non_new_construction_existing_work
+      ) &
       substantive_existing_work &
       !explicit_new_building,
     mixed_new_addition_scope =

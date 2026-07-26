@@ -73,13 +73,27 @@ predecessor_evidence <- readr::read_csv(
     predecessor_dwelling_units
   )
 
+manual_exceptions <- readr::read_csv(
+  "../adjudication/eligibility_manual_exceptions.csv",
+  show_col_types = FALSE,
+  col_types = readr::cols(
+    project_id = readr::col_character(),
+    manual_action = readr::col_character(),
+    evidence = readr::col_character(),
+    reason = readr::col_character(),
+    source_1_url = readr::col_character(),
+    source_2_url = readr::col_character()
+  )
+)
+
 for (
   x in list(
     evidence,
     analysis_projects,
     commercial_completion,
     presample_structure,
-    predecessor_evidence
+    predecessor_evidence,
+    manual_exceptions
   )
 ) {
   if (anyDuplicated(x$project_id)) {
@@ -107,10 +121,21 @@ validation <- analysis_projects |>
     predecessor_evidence,
     by = "project_id",
     relationship = "one-to-one"
+  ) |>
+  dplyr::left_join(
+    manual_exceptions,
+    by = "project_id",
+    relationship = "one-to-one"
   )
 
 if (any(is.na(validation$source_family))) {
   stop("Not every analysis project appears in the evidence inventory.")
+}
+if (
+  any(!manual_exceptions$project_id %in% validation$project_id) ||
+    any(!manual_exceptions$manual_action %in% c("retain", "exclude"))
+) {
+  stop("The eligibility exception ledger failed validation.")
 }
 
 validation <- validation |>
@@ -246,6 +271,27 @@ validation <- validation |>
       ),
       TRUE ~ decision_reason
     )
+  ) |>
+  dplyr::mutate(
+    programmatic_eligibility_rule = eligibility_rule,
+    programmatic_proposed_action = proposed_action,
+    programmatic_rule_evidence = rule_evidence,
+    eligibility_rule = dplyr::case_when(
+      !is.na(manual_action) ~ paste0("manual_", manual_action),
+      TRUE ~ eligibility_rule
+    ),
+    proposed_action = dplyr::coalesce(manual_action, proposed_action),
+    rule_evidence = dplyr::case_when(
+      !is.na(manual_action) ~ paste(reason, evidence),
+      TRUE ~ rule_evidence
+    ),
+    retained_without_new_building_permit =
+      proposed_action == "retain" &
+      !positive_permit_evidence,
+    uncorroborated_assessor_retention =
+      proposed_action == "retain" &
+      programmatic_eligibility_rule ==
+        "retain_assessor_report_without_contradictory_evidence"
   )
 
 summary <- validation |>
@@ -276,6 +322,19 @@ review_queue <- validation |>
     project_id
   )
 
+manual_exception_ledger <- validation |>
+  dplyr::filter(!is.na(manual_action)) |>
+  dplyr::arrange(project_id)
+
+uncorroborated_retained <- validation |>
+  dplyr::filter(uncorroborated_assessor_retention) |>
+  dplyr::arrange(
+    dplyr::desc(within_500ft),
+    dplyr::desc(current_multifamily),
+    source_family,
+    project_id
+  )
+
 readr::write_csv(
   validation,
   "../output/eligibility_rule_validation.csv",
@@ -289,5 +348,15 @@ readr::write_csv(
 readr::write_csv(
   review_queue,
   "../output/eligibility_manual_review_queue.csv",
+  na = ""
+)
+readr::write_csv(
+  manual_exception_ledger,
+  "../output/eligibility_manual_exception_ledger.csv",
+  na = ""
+)
+readr::write_csv(
+  uncorroborated_retained,
+  "../output/eligibility_uncorroborated_retained.csv",
   na = ""
 )

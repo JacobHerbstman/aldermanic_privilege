@@ -53,13 +53,28 @@ projects <- readr::read_csv(
         TRUE ~ NA_real_
       )
     ),
+    exact_permit_dwelling_units = dplyr::if_else(
+      is.finite(permit_unit_min) & permit_unit_min == permit_unit_max,
+      permit_unit_max,
+      NA_real_
+    ),
     explicit_permit_dwelling_units = dplyr::coalesce(
-      dplyr::if_else(
-        is.finite(permit_unit_min) & permit_unit_min == permit_unit_max,
-        permit_unit_max,
-        NA_real_
-      ),
+      exact_permit_dwelling_units,
       spatial_permit_dwelling_units
+    ),
+    explicit_permit_unit_source = dplyr::case_when(
+      is.finite(exact_permit_dwelling_units) ~ paste0(
+        "exact_pin_permit:",
+        dplyr::coalesce(
+          exact_pin_positive_permit_numbers,
+          exact_pin_permit_numbers
+        )
+      ),
+      is.finite(spatial_permit_dwelling_units) ~ paste0(
+        "spatial_new_building_permit:",
+        strong_spatial_permit_numbers
+      ),
+      TRUE ~ NA_character_
     ),
     stable_permit_unit_count =
       is.finite(explicit_permit_dwelling_units) &
@@ -81,8 +96,18 @@ projects <- readr::read_csv(
       explicit_permit_dwelling_units,
       dwelling_units
     ),
+    resolved_unit_source = dplyr::if_else(
+      permit_unit_recovery_eligible,
+      explicit_permit_unit_source,
+      units_source
+    ),
     unit_count_rule = dplyr::case_when(
-      stable_permit_unit_count ~ "explicit_new_building_permit",
+      permit_unit_recovery_eligible &
+        is.finite(exact_permit_dwelling_units) ~
+        "explicit_exact_new_building_permit",
+      permit_unit_recovery_eligible &
+        is.finite(spatial_permit_dwelling_units) ~
+        "explicit_spatial_new_building_permit",
       TRUE ~ "retained_assessor_value"
     )
 ) |>
@@ -153,6 +178,12 @@ projects <- readr::read_csv(
         project_kind == "single_pin_single_card" ~
         "single_family_single_record",
       TRUE ~ unit_count_rule
+    ),
+    resolved_unit_source = dplyr::case_when(
+      !proposed_multifamily &
+        project_kind == "single_pin_single_card" ~
+        "single_family_class_rule",
+      TRUE ~ resolved_unit_source
     )
   )
 
@@ -168,7 +199,17 @@ if (
 }
 
 reviewed <- projects |>
-  dplyr::filter(externally_reviewed_classification)
+  dplyr::filter(externally_reviewed_classification) |>
+  dplyr::arrange(project_id)
+
+set.seed(20260726)
+retrospective_holdout_ids <- sample(
+  reviewed$project_id,
+  size = min(50L, nrow(reviewed)),
+  replace = FALSE
+)
+retrospective_holdout <- reviewed |>
+  dplyr::filter(project_id %in% retrospective_holdout_ids)
 
 validation <- dplyr::bind_rows(
   reviewed |>
@@ -184,6 +225,25 @@ validation <- dplyr::bind_rows(
   reviewed |>
     dplyr::summarise(
       rule = "assessor_class_first",
+      reviewed_projects = dplyr::n(),
+      programmatically_decided = sum(!is.na(class_first_multifamily)),
+      correct = sum(
+        class_first_multifamily == reviewed_multifamily,
+        na.rm = TRUE
+      ),
+      errors = sum(
+        class_first_multifamily != reviewed_multifamily,
+        na.rm = TRUE
+      ),
+      accuracy = mean(
+        class_first_multifamily == reviewed_multifamily,
+        na.rm = TRUE
+      ),
+      left_for_review = sum(is.na(class_first_multifamily))
+    ),
+  retrospective_holdout |>
+    dplyr::summarise(
+      rule = "assessor_class_first_retrospective_holdout",
       reviewed_projects = dplyr::n(),
       programmatically_decided = sum(!is.na(class_first_multifamily)),
       correct = sum(
@@ -218,8 +278,68 @@ validation <- dplyr::bind_rows(
           reviewed_multifamily[!requires_classification_review]
       ),
       left_for_review = sum(requires_classification_review)
-    )
+  )
 )
+
+error_modes <- projects |>
+  dplyr::mutate(
+    classification_mode = dplyr::case_when(
+      class_278_295 & dwelling_units > 1 ~
+        "single_family_class_with_multiple_reported_dwellings",
+      class_211_212 ~ "class_211_212",
+      TRUE ~ "other"
+    )
+  ) |>
+  dplyr::group_by(
+    classification_mode,
+    externally_reviewed_classification
+  ) |>
+  dplyr::summarise(
+    projects = dplyr::n(),
+    reviewed_errors = sum(class_first_error),
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(
+    classification_mode,
+    dplyr::desc(externally_reviewed_classification)
+  )
+
+set.seed(20260726)
+mode_b_candidates <- projects |>
+  dplyr::filter(
+    !externally_reviewed_classification,
+    class_211_212,
+    proposed_action != "exclude"
+  ) |>
+  dplyr::arrange(project_id)
+mode_b_review_sample <- mode_b_candidates |>
+  dplyr::slice_sample(n = min(50L, nrow(mode_b_candidates))) |>
+  dplyr::arrange(project_id) |>
+  dplyr::transmute(
+    project_id,
+    source_family,
+    component_pins,
+    project_kind,
+    construction_year,
+    class_values,
+    dwelling_units,
+    building_sqft,
+    current_property_addresses,
+    addresses,
+    exact_permit_addresses,
+    strong_spatial_permit_addresses,
+    exact_pin_permit_addresses,
+    exact_pin_permit_numbers,
+    exact_pin_positive_descriptions,
+    exact_pin_broad_negative_descriptions,
+    history_year_values,
+    history_building_area_values,
+    history_unit_count_values,
+    class_first_multifamily,
+    reviewed_multifamily = NA,
+    review_source = NA_character_,
+    reviewer_notes = NA_character_
+  )
 
 review_summary <- projects |>
   dplyr::filter(within_1500ft) |>
@@ -238,6 +358,16 @@ review_summary <- projects |>
 readr::write_csv(
   validation,
   "../output/multifamily_classification_rule_validation.csv",
+  na = ""
+)
+readr::write_csv(
+  error_modes,
+  "../output/multifamily_classification_error_modes.csv",
+  na = ""
+)
+readr::write_csv(
+  mode_b_review_sample,
+  "../output/multifamily_classification_mode_b_review_sample.csv",
   na = ""
 )
 readr::write_csv(

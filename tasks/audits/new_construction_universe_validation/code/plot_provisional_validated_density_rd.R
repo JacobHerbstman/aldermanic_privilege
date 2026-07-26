@@ -105,7 +105,7 @@ stored_results <- readr::read_csv(
 ) |>
   dplyr::filter(
     variant == score_variant,
-    sample_rule == "outcome_specific",
+    sample_rule == "common_density",
     treatment == "binary",
     cluster_level == "ward_pair"
   )
@@ -141,6 +141,12 @@ for (i in seq_len(nrow(panel_specs))) {
       within_500ft,
       dwelling_units > 0,
       sample_name == "all" | external_multifamily,
+      allow_far,
+      allow_dupac,
+      is.finite(density_far),
+      density_far > 0,
+      is.finite(density_dupac),
+      density_dupac > 0,
       .data[[eligibility_field]],
       is.finite(.data[[outcome]]),
       .data[[outcome]] > 0,
@@ -229,6 +235,7 @@ for (i in seq_len(nrow(panel_specs))) {
 
   plot_estimates[[i]] <- tibble::tibble(
     variant = score_variant,
+    sample_rule = "common_density",
     sample = sample_name,
     outcome,
     visual_estimate = display_estimate,
