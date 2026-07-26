@@ -513,12 +513,24 @@ evidence <- ledger |>
       exact_pin_positive_new_building,
       FALSE
     ),
+    exact_pin_issued_new_building = dplyr::coalesce(
+      exact_pin_issued_new_building,
+      FALSE
+    ),
     exact_pin_negative_existing_building = dplyr::coalesce(
       exact_pin_negative_existing_building,
       FALSE
     ),
     exact_pin_broad_negative_existing_work = dplyr::coalesce(
       exact_pin_broad_negative_existing_work,
+      FALSE
+    ),
+    exact_pin_pure_negative_existing_work = dplyr::coalesce(
+      exact_pin_pure_negative_existing_work,
+      FALSE
+    ),
+    exact_pin_mixed_negative_existing_work = dplyr::coalesce(
+      exact_pin_mixed_negative_existing_work,
       FALSE
     ),
     exact_pin_post_construction_existing_work = dplyr::coalesce(

@@ -26,7 +26,12 @@ projects <- readr::read_csv(
 
 analysis_projects <- readr::read_csv(
   "../input/multicard_external_reviewed_model_input.csv",
-  show_col_types = FALSE
+  show_col_types = FALSE,
+  col_select = "project_id",
+  col_types = readr::cols(
+    project_id = readr::col_character(),
+    .default = readr::col_skip()
+  )
 ) |>
   dplyr::select(project_id)
 
@@ -144,12 +149,18 @@ polygon_matches <- spatial_matches |>
     normalized_permit_address
   )
 
+polygon_matches_by_permit <- polygon_matches |>
+  dplyr::group_by(permit_number, normalized_permit_address) |>
+  tidyr::nest(polygon_matches = polygon_project_id) |>
+  dplyr::ungroup()
+
 conflicts <- exact_matches |>
   dplyr::inner_join(
-    polygon_matches,
+    polygon_matches_by_permit,
     by = c("permit_number", "normalized_permit_address"),
-    relationship = "many-to-many"
+    relationship = "many-to-one"
   ) |>
+  tidyr::unnest(polygon_matches) |>
   dplyr::filter(exact_project_id != polygon_project_id) |>
   dplyr::distinct() |>
   dplyr::left_join(

@@ -39,13 +39,26 @@ scope <- eligibility |>
     by = "project_id",
     relationship = "one-to-one"
   ) |>
+  dplyr::mutate(
+    validation_group = dplyr::case_when(
+      eligibility_rule ==
+        "retain_assessor_report_without_contradictory_evidence" ~
+        "weak_retained_multifamily",
+      eligibility_rule ==
+        "exclude_unchanged_structure_predates_reported_year" ~
+        "excluded_unchanged_structure",
+      TRUE ~ NA_character_
+    )
+  ) |>
   dplyr::filter(
     source_family == "residential",
     construction_year <= 2015,
     within_1500ft,
-    proposed_multifamily,
-    eligibility_rule ==
-      "retain_assessor_report_without_contradictory_evidence"
+    (
+      validation_group == "weak_retained_multifamily" &
+        proposed_multifamily
+    ) |
+      validation_group == "excluded_unchanged_structure"
   )
 
 project_polygons <- sf::st_read(
@@ -58,7 +71,8 @@ project_polygons <- sf::st_read(
       dplyr::select(
         project_id,
         construction_year,
-        within_500ft
+        within_500ft,
+        validation_group
       ),
     by = "project_id",
     relationship = "one-to-one"
@@ -95,7 +109,8 @@ project_points <- readr::read_csv(
       dplyr::select(
         project_id,
         construction_year,
-        within_500ft
+        within_500ft,
+        validation_group
       ),
     by = "project_id",
     relationship = "one-to-one"
@@ -106,7 +121,7 @@ if (
     any(!is.finite(project_points$x_3435)) ||
     any(!is.finite(project_points$y_3435))
 ) {
-  stop("Weak-project geometry is incomplete.")
+  stop("Project geometry is incomplete.")
 }
 
 project_points <- project_points |>
@@ -121,19 +136,34 @@ project_points <- project_points |>
     geometry_method = "audited_project_point"
   )
 
-archive <- paste0(
-  "/vsizip/",
-  normalizePath("../input/chicago_building_footprints_2015.zip"),
-  "/buildings.shp"
+geometry_provenance <- dplyr::bind_rows(
+  project_polygons |>
+    sf::st_drop_geometry() |>
+    dplyr::select(
+      project_id,
+      geometry_method,
+      geometry_year_gap
+    ),
+  project_points |>
+    sf::st_drop_geometry() |>
+    dplyr::select(
+      project_id,
+      geometry_method,
+      geometry_year_gap
+    )
 )
 
 footprints <- sf::st_read(
-  archive,
+  paste0(
+    "/vsizip/",
+    getwd(),
+    "/../input/chicago_building_footprints_2015.zip/buildings.shp"
+  ),
   query = paste(
     "SELECT",
     "BLDG_ID, HARRIS_STR, YEAR_BUILT, BLDG_SQ_FO, NO_OF_UNIT",
     "FROM buildings",
-    "WHERE YEAR_BUILT BETWEEN 2004 AND 2015"
+    "WHERE YEAR_BUILT BETWEEN 1800 AND 2015"
   ),
   quiet = TRUE
 ) |>
@@ -165,6 +195,7 @@ polygon_matches <- sf::st_join(
       project_id,
       target_year = construction_year,
       within_500ft,
+      validation_group,
       geometry_year_gap,
       geometry_method
   ),
@@ -198,7 +229,8 @@ matches <- dplyr::bind_rows(
   sf::st_drop_geometry() |>
   dplyr::mutate(
     year_gap = city_year_built - target_year,
-    near_reported_year = abs(year_gap) <= 1
+    near_reported_year = abs(year_gap) <= 1,
+    predates_reported_year = year_gap <= -2
   )
 
 evidence <- scope |>
@@ -209,6 +241,8 @@ evidence <- scope |>
         matched_city_footprints = dplyr::n_distinct(city_building_id),
         near_year_city_footprints =
           dplyr::n_distinct(city_building_id[near_reported_year]),
+        predating_city_footprints =
+          dplyr::n_distinct(city_building_id[predates_reported_year]),
         city_building_ids = paste(
           sort(unique(city_building_id)),
           collapse = "/"
@@ -225,16 +259,13 @@ evidence <- scope |>
           sort(unique(city_dwelling_units[is.finite(city_dwelling_units)])),
           collapse = "/"
         ),
-        geometry_method = paste(
-          sort(unique(geometry_method)),
-          collapse = "/"
-        ),
-        geometry_year_gap = paste(
-          sort(unique(geometry_year_gap)),
-          collapse = "/"
-        ),
         .groups = "drop"
       ),
+    by = "project_id",
+    relationship = "one-to-one"
+  ) |>
+  dplyr::left_join(
+    geometry_provenance,
     by = "project_id",
     relationship = "one-to-one"
   ) |>
@@ -247,8 +278,17 @@ evidence <- scope |>
       near_year_city_footprints,
       0L
     ),
-    city_footprint_support =
-      near_year_city_footprints > 0
+    predating_city_footprints = dplyr::coalesce(
+      predating_city_footprints,
+      0L
+    ),
+    city_footprint_support = dplyr::case_when(
+      validation_group == "weak_retained_multifamily" ~
+        near_year_city_footprints > 0,
+      validation_group == "excluded_unchanged_structure" ~
+        predating_city_footprints > 0,
+      TRUE ~ FALSE
+    )
   ) |>
   dplyr::arrange(
     dplyr::desc(within_500ft),
@@ -258,6 +298,7 @@ evidence <- scope |>
 
 summary <- evidence |>
   dplyr::count(
+    validation_group,
     construction_year,
     within_500ft,
     city_footprint_support,

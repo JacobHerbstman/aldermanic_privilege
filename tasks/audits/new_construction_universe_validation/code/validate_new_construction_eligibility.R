@@ -29,6 +29,35 @@ commercial_completion <- readr::read_csv(
     city_year_built_values
   )
 
+presample_structure <- readr::read_csv(
+  "../output/presample_assessor_structure_evidence.csv",
+  show_col_types = FALSE,
+  col_select = c(
+    project_id,
+    presample_structure_status,
+    presample_tax_year,
+    presample_reported_years,
+    presample_building_sqft,
+    presample_dwelling_units,
+    presample_building_area_ratio,
+    presample_dwelling_unit_ratio,
+    presample_same_structure_signal,
+    presample_replacement_signal
+  ),
+  col_types = readr::cols(
+    project_id = readr::col_character(),
+    presample_structure_status = readr::col_character(),
+    presample_tax_year = readr::col_double(),
+    presample_reported_years = readr::col_character(),
+    presample_building_sqft = readr::col_double(),
+    presample_dwelling_units = readr::col_double(),
+    presample_building_area_ratio = readr::col_double(),
+    presample_dwelling_unit_ratio = readr::col_double(),
+    presample_same_structure_signal = readr::col_logical(),
+    presample_replacement_signal = readr::col_logical()
+  )
+)
+
 predecessor_evidence <- readr::read_csv(
   "../output/predecessor_assessor_evidence.csv",
   show_col_types = FALSE
@@ -49,6 +78,7 @@ for (
     evidence,
     analysis_projects,
     commercial_completion,
+    presample_structure,
     predecessor_evidence
   )
 ) {
@@ -69,6 +99,11 @@ validation <- analysis_projects |>
     relationship = "one-to-one"
   ) |>
   dplyr::left_join(
+    presample_structure,
+    by = "project_id",
+    relationship = "one-to-one"
+  ) |>
+  dplyr::left_join(
     predecessor_evidence,
     by = "project_id",
     relationship = "one-to-one"
@@ -80,10 +115,21 @@ if (any(is.na(validation$source_family))) {
 
 validation <- validation |>
   dplyr::mutate(
+    issued_new_building_with_later_assessor =
+      exact_pin_issued_new_building &
+      is.finite(exact_pin_issued_new_building_issue_year_min) &
+      is.finite(maximum_history_year) &
+      maximum_history_year >=
+        exact_pin_issued_new_building_issue_year_min,
+    issued_new_building_year_conflict =
+      issued_new_building_with_later_assessor &
+      exact_pin_issued_new_building_issue_year_min >
+        construction_year + 1L,
     positive_permit_evidence =
       positive_new_building_permit |
       direct_expanded_new_building |
-      chain_expanded_new_building,
+      chain_expanded_new_building |
+      issued_new_building_with_later_assessor,
     positive_commercial_completion =
       source_family == "commercial" &
       dplyr::coalesce(
@@ -96,28 +142,37 @@ validation <- validation |>
     positive_assessor_replacement =
       source_family == "residential" &
       (
-        assessor_physical_change |
+        dplyr::coalesce(presample_replacement_signal, FALSE) |
           dplyr::coalesce(predecessor_replacement_signal, FALSE)
       ),
     unchanged_preexisting_structure =
       source_family == "residential" &
       (
-        assessor_year_only_recode |
+        dplyr::coalesce(presample_same_structure_signal, FALSE) |
           dplyr::coalesce(predecessor_same_structure_signal, FALSE)
       ) &
       !positive_permit_evidence,
-    existing_work_without_new_building =
+    exact_existing_work_without_new_building =
+      exact_pin_broad_negative_existing_work &
+      !positive_permit_evidence &
+      !positive_commercial_completion,
+    linked_existing_work_without_new_building =
       direct_existing_building_work &
+      !exact_pin_broad_negative_existing_work &
       !positive_permit_evidence &
       !positive_commercial_completion,
     eligibility_rule = dplyr::case_when(
       unchanged_preexisting_structure ~
         "exclude_unchanged_structure_predates_reported_year",
+      issued_new_building_year_conflict ~
+        "manual_review_construction_year",
       positive_permit_evidence ~
         "retain_new_building_permit",
       positive_commercial_completion ~
         "retain_commercial_completion_evidence",
-      existing_work_without_new_building ~
+      exact_existing_work_without_new_building ~
+        "exclude_work_on_existing_structure",
+      linked_existing_work_without_new_building ~
         "manual_review_existing_building_scope",
       positive_assessor_replacement ~
         "retain_assessor_physical_replacement",
@@ -138,6 +193,14 @@ validation <- validation |>
         history_building_area_values,
         "; current units: ",
         history_unit_count_values,
+        "; matched pre-sample tax year: ",
+        presample_tax_year,
+        "; matched pre-sample reported year: ",
+        presample_reported_years,
+        "; matched pre-sample building area: ",
+        presample_building_sqft,
+        "; matched pre-sample units: ",
+        presample_dwelling_units,
         "; predecessor years: ",
         predecessor_reported_years,
         "; predecessor building area: ",
@@ -146,8 +209,17 @@ validation <- validation |>
         predecessor_dwelling_units,
         "."
       ),
+      issued_new_building_year_conflict ~ paste0(
+        "The issued new-building permit postdates the reported construction ",
+        "year by more than one year. Reported year: ",
+        construction_year,
+        "; earliest permit issue year: ",
+        exact_pin_issued_new_building_issue_year_min,
+        "."
+      ),
       positive_permit_evidence ~ dplyr::coalesce(
         exact_pin_positive_descriptions,
+        exact_pin_issued_new_building_descriptions,
         direct_permit_descriptions,
         chain_permit_descriptions
       ),
@@ -155,7 +227,12 @@ validation <- validation |>
         new_construction_evidence,
         paste0("City building year: ", city_year_built_values)
       ),
-      existing_work_without_new_building ~ direct_permit_descriptions,
+      exact_existing_work_without_new_building ~
+        exact_pin_broad_negative_descriptions,
+      linked_existing_work_without_new_building ~ dplyr::coalesce(
+        exact_pin_broad_negative_descriptions,
+        direct_permit_descriptions
+      ),
       positive_assessor_replacement ~ paste0(
         "Current or predecessor assessor history changes building area from ",
         history_building_area_values,

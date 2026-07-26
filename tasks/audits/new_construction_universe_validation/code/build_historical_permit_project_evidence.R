@@ -75,6 +75,7 @@ permits <- DBI::dbGetQuery(
     application_start_date = as.Date(application_start_date),
     issue_date = as.Date(issue_date),
     application_year = lubridate::year(application_start_date),
+    issue_year = lubridate::year(issue_date),
     work_description = stringr::str_squish(
       stringr::str_to_upper(dplyr::coalesce(work_description, ""))
     ),
@@ -133,6 +134,17 @@ permits <- DBI::dbGetQuery(
       stringr::str_detect(work_description, "\\bEXISTING\\b") &
       substantive_existing_work &
       !explicit_new_building,
+    mixed_new_addition_scope =
+      broad_existing_work &
+      stringr::str_detect(
+        work_description,
+        paste0(
+          "\\bNEW\\b.*\\b(BUILDING|BLDG|STORY|STORIES)\\b",
+          ".*\\b(ADDITION|ADDITIONS)\\b|",
+          "\\bNEW\\b.*\\b(ADDITION|ADDITIONS)\\b",
+          ".*\\b(BUILDING|BLDG|STORY|STORIES)\\b"
+        )
+      ),
     valid_permit_status = permit_status %in% c(
       "COMPLETE",
       "ACTIVE",
@@ -141,6 +153,11 @@ permits <- DBI::dbGetQuery(
     valid_new_construction_permit =
       permit_type == "PERMIT - NEW CONSTRUCTION" &
       valid_permit_status &
+      !broad_existing_work &
+      !addition_or_accessory_scope,
+    issued_new_building_permit =
+      !is.na(issue_date) &
+      permit_type == "PERMIT - NEW CONSTRUCTION" &
       !broad_existing_work &
       !addition_or_accessory_scope,
     permit_number = as.character(permit_number)
@@ -164,12 +181,21 @@ permits <- DBI::dbGetQuery(
       in_construction_window &
       valid_permit_status &
       (explicit_new_building | valid_new_construction_permit),
+    issued_new_building_evidence =
+      in_construction_window &
+      issued_new_building_permit,
     negative_existing_building_evidence =
       before_or_during_reported_construction &
       existing_building_work,
     broad_negative_existing_work =
       before_or_during_reported_construction &
       broad_existing_work,
+    pure_negative_existing_work =
+      broad_negative_existing_work &
+      !mixed_new_addition_scope,
+    mixed_negative_existing_work =
+      broad_negative_existing_work &
+      mixed_new_addition_scope,
     post_construction_existing_work =
       application_year_gap == 1L &
       existing_building_work
@@ -178,6 +204,11 @@ permits <- DBI::dbGetQuery(
 collapse_values <- function(x) {
   values <- sort(unique(x[!is.na(x) & x != ""]))
   if (length(values) == 0) NA_character_ else paste(values, collapse = " | ")
+}
+
+minimum_value <- function(x) {
+  values <- x[is.finite(x)]
+  if (length(values) == 0) NA_real_ else min(values)
 }
 
 project_evidence <- permits |>
@@ -189,10 +220,16 @@ project_evidence <- permits |>
     exact_pin_permit_addresses = collapse_values(permit_address),
     exact_pin_positive_new_building =
       any(positive_new_building_evidence),
+    exact_pin_issued_new_building =
+      any(issued_new_building_evidence),
     exact_pin_negative_existing_building =
       any(negative_existing_building_evidence),
     exact_pin_broad_negative_existing_work =
       any(broad_negative_existing_work),
+    exact_pin_pure_negative_existing_work =
+      any(pure_negative_existing_work),
+    exact_pin_mixed_negative_existing_work =
+      any(mixed_negative_existing_work),
     exact_pin_post_construction_existing_work =
       any(post_construction_existing_work),
     exact_pin_positive_permit_numbers = collapse_values(
@@ -204,6 +241,18 @@ project_evidence <- permits |>
     exact_pin_positive_descriptions = collapse_values(
       work_description[positive_new_building_evidence]
     ),
+    exact_pin_issued_new_building_permit_numbers = collapse_values(
+      permit_number[issued_new_building_evidence]
+    ),
+    exact_pin_issued_new_building_descriptions = collapse_values(
+      work_description[issued_new_building_evidence]
+    ),
+    exact_pin_issued_new_building_issue_year_min = minimum_value(
+      issue_year[issued_new_building_evidence]
+    ),
+    exact_pin_issued_new_building_issue_year_max = -minimum_value(
+      -issue_year[issued_new_building_evidence]
+    ),
     exact_pin_negative_descriptions = collapse_values(
       work_description[negative_existing_building_evidence]
     ),
@@ -212,6 +261,12 @@ project_evidence <- permits |>
     ),
     exact_pin_broad_negative_descriptions = collapse_values(
       work_description[broad_negative_existing_work]
+    ),
+    exact_pin_pure_negative_application_year_max = -minimum_value(
+      -application_year[pure_negative_existing_work]
+    ),
+    exact_pin_mixed_negative_application_year_max = -minimum_value(
+      -application_year[mixed_negative_existing_work]
     ),
     exact_pin_application_year_min = min(application_year),
     exact_pin_application_year_max = max(application_year),

@@ -2,6 +2,25 @@
 
 source("../../../setup_environment/code/packages.R")
 
+parse_apartments <- function(x) {
+  value <- stringr::str_to_lower(
+    stringr::str_squish(as.character(x))
+  )
+  dplyr::case_when(
+    is.na(value) | value == "" ~ NA_real_,
+    value %in% c("none", "zero") ~ 0,
+    value == "one" ~ 1,
+    value == "two" ~ 2,
+    value == "three" ~ 3,
+    value == "four" ~ 4,
+    value == "five" ~ 5,
+    value == "six" ~ 6,
+    TRUE ~ suppressWarnings(as.numeric(
+      stringr::str_replace_all(value, "[^0-9.-]", "")
+    ))
+  )
+}
+
 projects <- readr::read_csv(
   "../output/permit_rule_coverage.csv",
   show_col_types = FALSE
@@ -86,7 +105,9 @@ history <- DBI::dbGetQuery(
     "CAST(h.class AS VARCHAR) AS class,",
     "TRY_CAST(h.char_yrblt AS INTEGER) AS reported_year_built,",
     "TRY_CAST(h.char_bldg_sf AS DOUBLE) AS building_sqft,",
-    "TRY_CAST(h.char_apts AS DOUBLE) AS dwelling_units,",
+    "CAST(h.char_apts AS VARCHAR) AS apartments_text,",
+    "CAST(h.char_type_resd AS VARCHAR) AS residence_type,",
+    "CAST(h.char_use AS VARCHAR) AS residence_use,",
     "CAST(h.row_id AS VARCHAR) AS row_id",
     "FROM read_csv_auto(",
     "'../input/residential_improvement_characteristics_full.csv',",
@@ -97,7 +118,28 @@ history <- DBI::dbGetQuery(
     "WHERE TRY_CAST(h.year AS INTEGER) < r.construction_year"
   )
 ) |>
-  tibble::as_tibble()
+  tibble::as_tibble() |>
+  dplyr::mutate(
+    parsed_apartments = parse_apartments(apartments_text),
+    single_family_record =
+      stringr::str_detect(
+        dplyr::coalesce(residence_use, ""),
+        stringr::regex("^single", ignore_case = TRUE)
+      ) |
+      residence_type %in% c(
+        "1 Story",
+        "1.5 Story",
+        "2 Story",
+        "3 Story +",
+        "Split Level"
+      ),
+    dwelling_units = dplyr::case_when(
+      is.finite(parsed_apartments) &
+        parsed_apartments > 0 ~ parsed_apartments,
+      single_family_record ~ 1,
+      TRUE ~ NA_real_
+    )
+  )
 
 latest_cards <- history |>
   dplyr::filter(

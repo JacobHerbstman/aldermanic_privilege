@@ -22,10 +22,19 @@ all: ../output/project_evidence_inventory.csv \
 	../output/permit_pin_geography_conflict_summary.csv \
 	../output/commercial_manual_rule_coverage.csv \
 	../output/commercial_manual_rule_summary.csv \
+	../output/commercial_minimal_exception_ledger.csv \
+	../output/presample_assessor_structure_evidence.csv \
+	../output/presample_assessor_structure_summary.csv \
 	../output/predecessor_assessor_evidence.csv \
 	../output/predecessor_assessor_evidence_summary.csv \
 	../output/city_2015_footprint_evidence.csv \
 	../output/city_2015_footprint_evidence_summary.csv \
+	../output/residual_completed_density_attrition.csv \
+	../output/residual_completed_density_attrition_summary.csv \
+	../output/minimal_manual_exception_ledger.csv \
+	../output/minimal_manual_exception_summary.csv \
+	../output/analysis_scope_omissions.csv \
+	../output/analysis_scope_reconciliation.csv \
 	../output/provisional_validated_density_input.csv \
 	../output/provisional_validated_sample_changes.csv \
 	../output/provisional_validated_density_results.csv \
@@ -116,6 +125,7 @@ all: ../output/project_evidence_inventory.csv \
 ../output/eligibility_rule_validation.csv: \
 	validate_new_construction_eligibility.R \
 	../output/permit_rule_coverage.csv \
+	../output/presample_assessor_structure_evidence.csv \
 	../output/predecessor_assessor_evidence.csv \
 	../input/multicard_external_reviewed_model_input.csv \
 	../input/commercial_completion_evidence.csv
@@ -147,11 +157,24 @@ all: ../output/project_evidence_inventory.csv \
 	../input/commercial_completion_evidence.csv \
 	../input/commercial_land_adjudication_evidence.csv \
 	../input/new_construction_permit_unit_mentions.csv \
-	../input/project_permit_chain_links.csv
+	../input/project_permit_chain_links.csv \
+	../input/building_permits_clean.gpkg
 	$(R) $<
 
 ../output/commercial_manual_rule_summary.csv: \
 	../output/commercial_manual_rule_coverage.csv
+
+../output/commercial_minimal_exception_ledger.csv: \
+	../output/commercial_manual_rule_coverage.csv
+
+../output/presample_assessor_structure_evidence.csv: \
+	build_presample_assessor_structure_evidence.R \
+	../output/permit_rule_coverage.csv \
+	../input/residential_improvement_characteristics_full.csv
+	$(R) $<
+
+../output/presample_assessor_structure_summary.csv: \
+	../output/presample_assessor_structure_evidence.csv
 
 ../output/predecessor_assessor_evidence.csv: \
 	build_predecessor_assessor_evidence.R \
@@ -167,12 +190,50 @@ all: ../output/project_evidence_inventory.csv \
 	build_2015_city_footprint_evidence.R \
 	../output/eligibility_rule_validation.csv \
 	../output/multifamily_classification_decisions.csv \
+	../output/project_evidence_inventory.csv \
 	../input/preferred_project_year_geometry.gpkg \
 	../input/chicago_building_footprints_2015.zip
 	$(R) $<
 
 ../output/city_2015_footprint_evidence_summary.csv: \
 	../output/city_2015_footprint_evidence.csv
+
+../output/residual_completed_density_attrition.csv: \
+	audit_residual_completed_density_attrition.R \
+	../input/final_residual_permit_chain_dispositions.csv \
+	../input/residual_permit_footprint_2022_assessor_evidence.csv \
+	../input/residual_footprint_field_transitions.csv \
+	../input/residual_permit_historical_pin_reconciliation.csv \
+	../input/residual_permit_historical_residential_history.csv \
+	../input/residual_permit_historical_commercial_history.csv
+	$(R) $<
+
+../output/residual_completed_density_attrition_summary.csv: \
+	../output/residual_completed_density_attrition.csv
+
+../output/minimal_manual_exception_ledger.csv: \
+	build_minimal_exception_ledger.R \
+	../output/commercial_minimal_exception_ledger.csv \
+	../output/parent_successor_cluster_review_queue.csv \
+	../output/project_evidence_inventory.csv \
+	../output/multifamily_classification_known_exceptions.csv \
+	../output/eligibility_manual_review_queue.csv \
+	../output/unresolved_duplicate_candidates.csv
+	$(R) $<
+
+../output/minimal_manual_exception_summary.csv: \
+	../output/minimal_manual_exception_ledger.csv
+
+../output/analysis_scope_omissions.csv: \
+	validate_analysis_scope.R \
+	../output/project_evidence_inventory.csv \
+	../output/parent_successor_project_actions.csv \
+	../input/multicard_external_reviewed_model_input.csv \
+	../input/multicard_external_review_queue.csv
+	$(R) $<
+
+../output/analysis_scope_reconciliation.csv: \
+	../output/analysis_scope_omissions.csv
 
 ../output/provisional_validated_density_input.csv: \
 	build_provisional_validated_sample.R \
@@ -357,6 +418,42 @@ all: ../output/project_evidence_inventory.csv \
 	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
 	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
 
+../input/final_residual_permit_chain_dispositions.csv:
+	@source="../../commercial_new_construction_sample_audit/output/final_residual_permit_chain_dispositions.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/residual_permit_footprint_2022_assessor_evidence.csv:
+	@source="../../commercial_new_construction_sample_audit/output/residual_permit_footprint_2022_assessor_evidence.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/residual_footprint_field_transitions.csv:
+	@source="../../commercial_new_construction_sample_audit/output/residual_footprint_field_transitions.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/residual_permit_historical_pin_reconciliation.csv:
+	@source="../../commercial_new_construction_sample_audit/output/residual_permit_historical_pin_reconciliation.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/residual_permit_historical_residential_history.csv:
+	@source="../../commercial_new_construction_sample_audit/output/residual_permit_historical_residential_history.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/residual_permit_historical_commercial_history.csv:
+	@source="../../commercial_new_construction_sample_audit/output/residual_permit_historical_commercial_history.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
 link-inputs: ../input/final_new_construction_audit_ledger.csv \
 	../input/final_density_model_input.csv \
 	../input/preferred_residential_project_ledger.csv \
@@ -383,7 +480,13 @@ link-inputs: ../input/final_new_construction_audit_ledger.csv \
 	../input/residential_improvement_characteristics_full.csv \
 	../input/preferred_project_year_geometry.gpkg \
 	../input/chicago_building_footprints_2015.zip \
-	../input/score_control_variants.csv
+	../input/score_control_variants.csv \
+	../input/final_residual_permit_chain_dispositions.csv \
+	../input/residual_permit_footprint_2022_assessor_evidence.csv \
+	../input/residual_footprint_field_transitions.csv \
+	../input/residual_permit_historical_pin_reconciliation.csv \
+	../input/residual_permit_historical_residential_history.csv \
+	../input/residual_permit_historical_commercial_history.csv
 
 include ../../../shell_functions.make
 include ../../../generic.make
