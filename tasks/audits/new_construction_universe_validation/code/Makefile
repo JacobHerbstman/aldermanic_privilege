@@ -11,6 +11,7 @@ all: ../output/project_evidence_inventory.csv \
 	../output/multifamily_classification_review_summary.csv \
 	../output/multifamily_classification_new_review_queue.csv \
 	../output/multifamily_classification_known_exceptions.csv \
+	../output/multifamily_classification_decisions.csv \
 	../output/permit_rule_coverage.csv \
 	../output/permit_rule_gap_review.csv \
 	../output/permit_rule_coverage_summary.csv \
@@ -19,6 +20,9 @@ all: ../output/project_evidence_inventory.csv \
 	../output/eligibility_manual_review_queue.csv \
 	../output/permit_pin_geography_conflicts.csv \
 	../output/permit_pin_geography_conflict_summary.csv \
+	../output/provisional_validated_density_input.csv \
+	../output/provisional_validated_sample_changes.csv \
+	../output/provisional_validated_density_results.csv \
 	../output/project_evidence_summary.csv \
 	../output/initial_review_queue.csv \
 	../output/known_case_validation.csv
@@ -88,6 +92,9 @@ all: ../output/project_evidence_inventory.csv \
 ../output/multifamily_classification_known_exceptions.csv: \
 	../output/multifamily_classification_rule_validation.csv
 
+../output/multifamily_classification_decisions.csv: \
+	../output/multifamily_classification_rule_validation.csv
+
 ../output/permit_rule_gap_review.csv: audit_permit_rule_coverage.R \
 	../output/project_evidence_inventory.csv \
 	../input/project_permit_chain_links.csv
@@ -122,6 +129,22 @@ all: ../output/project_evidence_inventory.csv \
 
 ../output/permit_pin_geography_conflict_summary.csv: \
 	../output/permit_pin_geography_conflicts.csv
+
+../output/provisional_validated_density_input.csv: \
+	build_provisional_validated_sample.R \
+	../input/multicard_external_reviewed_model_input.csv \
+	../output/eligibility_rule_validation.csv \
+	../output/multifamily_classification_decisions.csv
+	$(R) $<
+
+../output/provisional_validated_sample_changes.csv: \
+	../output/provisional_validated_density_input.csv
+
+../output/provisional_validated_density_results.csv: \
+	estimate_provisional_validated_density_models.R \
+	../output/provisional_validated_density_input.csv \
+	../input/score_control_variants.csv
+	$(R) $<
 
 ../output/project_evidence_summary.csv: ../output/project_evidence_inventory.csv
 
@@ -237,6 +260,12 @@ all: ../output/project_evidence_inventory.csv \
 	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
 	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
 
+../input/score_control_variants.csv:
+	@source="../../commercial_new_construction_sample_audit/input/score_control_variants.csv"; \
+	test -f "$$source"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
 link-inputs: ../input/final_new_construction_audit_ledger.csv \
 	../input/final_density_model_input.csv \
 	../input/preferred_residential_project_ledger.csv \
@@ -254,7 +283,8 @@ link-inputs: ../input/final_new_construction_audit_ledger.csv \
 	../input/multicard_component_successor_matches.csv \
 	../input/multicard_successor_suppressions.csv \
 	../input/multicard_manual_episode_decisions.csv \
-	../input/commercial_completion_evidence.csv
+	../input/commercial_completion_evidence.csv \
+	../input/score_control_variants.csv
 
 include ../../../shell_functions.make
 include ../../../generic.make

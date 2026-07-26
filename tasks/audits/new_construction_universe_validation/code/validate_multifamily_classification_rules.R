@@ -24,6 +24,30 @@ projects <- readr::read_csv(
         "([0-9]+)\\s*(?:DWELLING\\s+UNITS?|D\\.?\\s*U\\.?)"
       )[, 2]
     ),
+    spatial_permit_dwelling_units = dplyr::coalesce(
+      spatial_permit_dwelling_units,
+      dplyr::case_when(
+        stringr::str_detect(
+          stringr::str_to_upper(
+            dplyr::coalesce(strong_spatial_permit_descriptions, "")
+          ),
+          "\\bTWO[- ]DWELLING"
+        ) ~ 2,
+        stringr::str_detect(
+          stringr::str_to_upper(
+            dplyr::coalesce(strong_spatial_permit_descriptions, "")
+          ),
+          "\\bTHREE[- ]DWELLING"
+        ) ~ 3,
+        stringr::str_detect(
+          stringr::str_to_upper(
+            dplyr::coalesce(strong_spatial_permit_descriptions, "")
+          ),
+          "\\bFOUR[- ]DWELLING"
+        ) ~ 4,
+        TRUE ~ NA_real_
+      )
+    ),
     explicit_permit_dwelling_units = dplyr::coalesce(
       dplyr::if_else(
         is.finite(permit_unit_min) & permit_unit_min == permit_unit_max,
@@ -36,8 +60,12 @@ projects <- readr::read_csv(
       positive_new_building_permit &
       is.finite(explicit_permit_dwelling_units) &
       explicit_permit_dwelling_units > 1,
-    resolved_dwelling_units = dplyr::if_else(
+    permit_unit_recovery_eligible =
+      (class_211_212 | class_values == "EX") &
+      dplyr::coalesce(dwelling_units <= 1, TRUE) &
       stable_permit_unit_count,
+    resolved_dwelling_units = dplyr::if_else(
+      permit_unit_recovery_eligible,
       explicit_permit_dwelling_units,
       dwelling_units
     ),
@@ -203,5 +231,10 @@ readr::write_csv(
     dplyr::filter(class_first_error) |>
     dplyr::arrange(project_id),
   "../output/multifamily_classification_known_exceptions.csv",
+  na = ""
+)
+readr::write_csv(
+  projects,
+  "../output/multifamily_classification_decisions.csv",
   na = ""
 )

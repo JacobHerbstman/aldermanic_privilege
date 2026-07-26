@@ -95,6 +95,39 @@ permit count from turning those individual parcels into apartment buildings.
 The remaining link is 4846 S St. Lawrence, where the permit point lies inside
 the class-211 project polygon and explicitly authorizes six dwelling units.
 
-No production or paper file is changed by this task. The next step is to apply
-the validated rules to a provisional audit sample and re-estimate the density
-models before proposing production code.
+## Provisional validated sample
+
+Applying the eligibility and classification rules to the reviewed audit input
+reduces the 1,500ft sample from 8,995 to 8,774 projects and the 500ft sample
+from 3,905 to 3,790 projects. The 500ft multifamily sample falls from 895 to
+877 projects. Within 500ft, the changes comprise:
+
+- 115 assessor records excluded because the same structure predates its
+  reported construction year;
+- 10 projects reclassified from multifamily to single-family based on assessor
+  class and the external review;
+- two projects whose multifamily unit counts are recovered from new-building
+  permits; and
+- no unresolved eligibility or classification case.
+
+The preferred full-control, ward-pair-clustered estimates in this provisional
+sample are:
+
+| Sample | Outcome | Treatment | Estimate | SE | p-value |
+| --- | --- | --- | ---: | ---: | ---: |
+| All construction | Log FAR | Continuous | -0.028 | 0.025 | 0.275 |
+| All construction | Log FAR | Binary | -0.113 | 0.054 | 0.037 |
+| All construction | Log DUPAC | Continuous | -0.025 | 0.040 | 0.544 |
+| All construction | Log DUPAC | Binary | -0.130 | 0.076 | 0.089 |
+| Multifamily | Log FAR | Continuous | -0.106 | 0.065 | 0.107 |
+| Multifamily | Log FAR | Binary | -0.181 | 0.081 | 0.029 |
+| Multifamily | Log DUPAC | Continuous | -0.125 | 0.083 | 0.135 |
+| Multifamily | Log DUPAC | Binary | -0.199 | 0.110 | 0.074 |
+
+The multifamily estimates are close to the earlier externally reviewed audit
+sample. The all-construction continuous estimates attenuate after removing
+assessor year recodes, most of which are single-unit properties.
+
+No production or paper file is changed by this task. Commercial source
+priority and the weaker eligibility cases still require validation before
+these rules are suitable for production.
