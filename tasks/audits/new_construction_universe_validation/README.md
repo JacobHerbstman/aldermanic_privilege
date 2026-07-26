@@ -54,11 +54,24 @@ building type. In the 256 externally reviewed projects:
 The 97.3% figure is an in-sample description, not an external error rate. A
 fixed-seed retrospective 50-project split produces 49 correct classifications,
 but the rule was developed after examining the full reviewed set. It therefore
-does not provide prospective validation. The task also draws a reproducible
-random sample of 50 previously unreviewed class-211/212 projects in
-`multifamily_classification_mode_b_review_sample.csv`. That file is deliberately
-left unadjudicated so a later reviewer can supply an independent error estimate.
-The audit separately reports the size of each recurring error mode in
+does not provide prospective validation.
+
+The task also draws a reproducible random sample of 50 previously unreviewed
+class-211/212 projects. Their addresses, permits, and project descriptions were
+reviewed without displaying assessor class, assessor unit counts, or the
+programmatic classification. Decisions were frozen in
+`multifamily_holdout_blinded_decisions.csv` before the hidden classifications
+were merged back. Forty-eight projects could be resolved independently, and
+all 48 were confirmed as multifamily. Two historical projects remain
+ambiguous because their original addresses could not be tied to surviving
+property records. There were no disagreements among the resolved cases.
+The frozen decision ledger has SHA-256
+`96bd55afc81a799958f43f2714498be1915977dcfedd22c8897f0829bcacdfe9`.
+
+This holdout establishes strong positive predictive performance for
+unreviewed class-211/212 projects. It does not measure the rule's false-negative
+rate among projects classified as nonmultifamily. The audit separately reports
+the size of each recurring error mode in
 `multifamily_classification_error_modes.csv`.
 
 The seven exceptions are four class-295 apartment buildings and three
@@ -137,10 +150,24 @@ The permit-completion audit identifies 179 completed construction chains that
 are not in the project ledger because comparable assessor density fields are
 unavailable. Eighty-one lie within 500ft, and 70 of those may be multifamily.
 None can be recovered under the paper's existing outcome definitions using
-the same building area, dwelling-unit, and land-area fields. Building
-footprints or permit text could create alternative measures, but mixing those
-with assessor density outcomes would change the estimand rather than complete
-the current sample.
+the same building area, dwelling-unit, and land-area fields.
+
+A separate proxy audit combines permit unit counts and reported stories, City
+building footprints, and 2022 parcel polygons. It can construct all three
+proxy fields for 34 of the 70 possible multifamily chains within 500ft.
+Twenty-five have one matched building footprint, one containing parcel, and
+no conflict between permit and City unit counts. The other 36 still lack at
+least one required proxy field.
+
+The proxy is informative but not interchangeable with the paper's outcomes.
+Among 138 known multifamily projects with comparable archived footprints,
+`footprint area x permit stories` is 1.03 times assessor building area at the
+median, with an interquartile range of 0.89--1.13. The log-FAR correlation is
+0.83, but only 62% of proxy FAR values are within 20% of assessor FAR. Permit
+units equal assessor units for 72% of 279 multifamily projects and are within
+one unit for 85%. These measures can support a separately labeled sensitivity
+analysis. Mixing them into the assessor outcomes would change measurement
+within the estimation sample rather than simply restore missing observations.
 
 `test_residual_density_attrition_balance.R` compares the 70 omitted permit
 chains with 863 retained multifamily projects that have complete treatment
