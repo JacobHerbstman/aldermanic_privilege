@@ -95,7 +95,7 @@ result <- build_residualized_uncertainty_index(
   config = config,
   variant_id = "baseline",
   stage1_outcome = "log_processing_time",
-  drop_covariates = c("share_bach_plus", "median_hh_income_10k"),
+  drop_covariates = "share_bach_plus",
   construction_rule = "Residualized alderman score used in the paper"
 )
 

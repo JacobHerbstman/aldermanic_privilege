@@ -3,14 +3,14 @@
 \section{Additional Density RD Checks}
 \label{sec:appendix_density}
 
-This appendix reports covariate balance and the two density RD checks retained for the shorter draft.
-The shifted-cutoff checks ask whether similar discontinuities appear at fake boundaries nearby.
-The donut checks ask whether the main pattern depends only on parcels immediately adjacent to the ward boundary.
+This appendix reports covariate balance, shifted-cutoff placebos, and donut checks for the density analysis.
+All results use the final project ledger, the baseline stringency score, and the common FAR-DUPAC samples used in Table~\ref{tab:density_main_table}.
 
 \subsection{Covariate Balance}
 
-Table~\ref{tab:density_covariate_balance} compares observed neighborhood characteristics across the ward boundaries used in the density analysis.
-The multifamily sample is broadly balanced, while balance is weaker in the all-construction sample, one reason I focus on multifamily projects and treat the all-construction estimates as supporting evidence.
+Table~\ref{tab:density_covariate_balance} compares observed neighborhood characteristics across the two sides of the boundary.
+The differences are smaller in the multifamily sample, although its joint test narrowly rejects exact balance.
+Balance is weaker for all construction, consistent with treating those estimates as supporting evidence rather than the paper's main density result.
 
 \begin{table}[H]
     \centering
@@ -20,144 +20,69 @@ The multifamily sample is broadly balanced, while balance is weaker in the all-c
     \begin{minipage}{0.94\textwidth}
         \vspace{0.35em}
         \footnotesize
-        \textit{Notes:} Entries are adjusted differences between the more- and less-stringent sides of ward boundaries, measured in standard deviation units.
-        The sample includes 2006--2022 new construction within 500ft of a ward boundary.
-        Each regression controls for the average score of the two aldermen, separate distance slopes on either side of the boundary, boundary-segment fixed effects, and construction-year fixed effects.
+        \textit{Notes:} Neighborhood characteristics are standardized before estimation.
+        Entries are coefficients on the indicator for the more-stringent side.
+        Samples match the 500ft common FAR-DUPAC samples in Table~\ref{tab:density_main_table}.
+        Regressions include the average score of the two aldermen, side-specific linear distance controls, and construction-year zoning-group, boundary-segment, and construction-year fixed effects.
         Standard errors are clustered by ward pair.
-        The joint test allows the balance equations to be correlated within ward pairs.
+        The joint test uses the cross-equation covariance of the ward-pair score contributions.
     \end{minipage}
 \end{table}
 
-\subsection{Shifted-Cutoff Placebo Checks}
+\subsection{Shifted-Cutoff Placebos}
 
-Figures~\ref{fig:rd_placebo_shift_neg} and~\ref{fig:rd_placebo_shift_pos} shift the cutoff 1000ft into each ward and re-center the local-linear display on that pseudo-boundary.
-The shifted-cutoff displays do not reproduce the boundary pattern in Figure~\ref{fig:rd_fe_plots}.
+Figures~\ref{fig:rd_placebo_shift_neg} and~\ref{fig:rd_placebo_shift_pos} move the cutoff 1000ft into either side of the true ward boundary and estimate the same model in a 500ft window around the artificial cutoff.
+The placebo estimates are imprecise and do not reproduce the multifamily discontinuities at the true boundary.
 
 \begin{figure}[H]
     \centering
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_all_shift_neg1000ft.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_multifamily_shift_neg1000ft.pdf}
-    \end{minipage}
-
-    \vspace{0.3cm}
-
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_all_shift_neg1000ft.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_multifamily_shift_neg1000ft.pdf}
-    \end{minipage}
+    \includegraphics[width=0.96\textwidth]{../tasks/density_appendix_results/output/density_placebo_neg1000ft.pdf}
     \caption{Shifted-Cutoff Density Placebo: Cutoff Shifted into Lenient Ward}
-    \figurenotes{Cutoff shifted 1000ft inside the lenient ward, using 2006--2022 new construction.
+    \figurenotes{The cutoff is shifted 1000ft into the lenient side, and the model is estimated in a 500ft window around that artificial cutoff.
     Left column: all construction; right column: multifamily.
     Top row: Log(FAR); bottom row: Log(DUPAC).
-    Specifications mirror Figure~\ref{fig:rd_fe_plots}, using 500ft placebo windows.}
+    Samples use the final project ledger and the common FAR-DUPAC restriction.
+    Specifications and ward-pair clustering match Table~\ref{tab:density_main_table}.}
     \label{fig:rd_placebo_shift_neg}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_all_shift_pos1000ft.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_multifamily_shift_pos1000ft.pdf}
-    \end{minipage}
-
-    \vspace{0.3cm}
-
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_all_shift_pos1000ft.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_multifamily_shift_pos1000ft.pdf}
-    \end{minipage}
+    \includegraphics[width=0.96\textwidth]{../tasks/density_appendix_results/output/density_placebo_pos1000ft.pdf}
     \caption{Shifted-Cutoff Density Placebo: Cutoff Shifted into Stringent Ward}
-    \figurenotes{Cutoff shifted 1000ft inside the stringent ward, using 2006--2022 new construction.
+    \figurenotes{The cutoff is shifted 1000ft into the stringent side, and the model is estimated in a 500ft window around that artificial cutoff.
     Left column: all construction; right column: multifamily.
     Top row: Log(FAR); bottom row: Log(DUPAC).
-    Specifications mirror Figure~\ref{fig:rd_fe_plots}, using 500ft placebo windows.}
+    Samples use the final project ledger and the common FAR-DUPAC restriction.
+    Specifications and ward-pair clustering match Table~\ref{tab:density_main_table}.}
     \label{fig:rd_placebo_shift_pos}
 \end{figure}
 
 \subsection{Donut RD Checks}
 
-Figures~\ref{fig:rd_donut_25ft} and~\ref{fig:rd_donut_50ft} exclude parcels within 25ft or 50ft of the ward boundary in the 500ft samples.
-The fitted discontinuity stays negative in both outcomes, so the main pattern is not coming only from parcels right at the cutoff.
+Figures~\ref{fig:rd_donut_25ft} and~\ref{fig:rd_donut_50ft} exclude projects within 25ft or 50ft of the ward boundary.
+The multifamily estimates remain negative and statistically significant, so the main result is not driven only by projects immediately adjacent to the boundary.
 
 \begin{figure}[H]
     \centering
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_all_donut25ft.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_multifamily_donut25ft.pdf}
-    \end{minipage}
-
-    \vspace{0.3cm}
-
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_all_donut25ft.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_multifamily_donut25ft.pdf}
-    \end{minipage}
-    \caption{Local-Linear Donut RD Check: 25ft Donut}
-    \figurenotes{Parcels within 25ft of the ward boundary are excluded from the 2006--2022 new-construction sample.
+    \includegraphics[width=0.96\textwidth]{../tasks/density_appendix_results/output/density_donut25ft.pdf}
+    \caption{Density Boundary Estimates Excluding Projects Within 25ft}
+    \figurenotes{Projects within 25ft of the ward boundary are excluded from the 500ft sample.
     Left column: all construction; right column: multifamily.
     Top row: Log(FAR); bottom row: Log(DUPAC).
-    Specifications mirror Figure~\ref{fig:rd_fe_plots}, using the 500ft sample.}
+    Samples use the final project ledger and the common FAR-DUPAC restriction.
+    Specifications and ward-pair clustering match Table~\ref{tab:density_main_table}.}
     \label{fig:rd_donut_25ft}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_all_donut50ft.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_multifamily_donut50ft.pdf}
-    \end{minipage}
-
-    \vspace{0.3cm}
-
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_all_donut50ft.pdf}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.46\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_multifamily_donut50ft.pdf}
-    \end{minipage}
-    \caption{Local-Linear Donut RD Check: 50ft Donut}
-    \figurenotes{Parcels within 50ft of the ward boundary are excluded from the 2006--2022 new-construction sample.
+    \includegraphics[width=0.96\textwidth]{../tasks/density_appendix_results/output/density_donut50ft.pdf}
+    \caption{Density Boundary Estimates Excluding Projects Within 50ft}
+    \figurenotes{Projects within 50ft of the ward boundary are excluded from the 500ft sample.
     Left column: all construction; right column: multifamily.
     Top row: Log(FAR); bottom row: Log(DUPAC).
-    Specifications mirror Figure~\ref{fig:rd_fe_plots}, using the 500ft sample.}
+    Samples use the final project ledger and the common FAR-DUPAC restriction.
+    Specifications and ward-pair clustering match Table~\ref{tab:density_main_table}.}
     \label{fig:rd_donut_50ft}
 \end{figure}

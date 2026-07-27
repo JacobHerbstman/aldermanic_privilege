@@ -67,7 +67,7 @@ for (cutoff in c(2014L, 2022L)) {
     select(alderman, production_score = uncertainty_index)
 
   rebuilt_scores <- scores %>%
-    filter(cutoff == .env$cutoff, variant == "all_covariates") %>%
+    filter(cutoff == .env$cutoff, variant == "income_added_back") %>%
     select(alderman, rebuilt_score = score)
 
   score_check <- full_join(
@@ -78,7 +78,7 @@ for (cutoff in c(2014L, 2022L)) {
   )
 
   if (anyNA(score_check) || max(abs(score_check$production_score - score_check$rebuilt_score)) > 1e-8) {
-    stop(sprintf("The full-control score rebuild does not match production through %d.", cutoff), call. = FALSE)
+    stop(sprintf("The income-only score rebuild does not match production through %d.", cutoff), call. = FALSE)
   }
 }
 

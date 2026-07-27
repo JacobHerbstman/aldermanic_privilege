@@ -1,0 +1,7 @@
+project_id,project_decision,corrected_year,evidence_type,evidence_url,notes
+residential_17072010480000,retain_corrected,2007,exact_property_record,https://ilfls.com/listing/1858-w-superior-st-chicago-il-60622-290169,The exact parcel record dates 1858 W Superior to 2007.
+residential_17072010490000,exclude,2000,preperiod_sale_and_listing_record,https://www.redfin.com/IL/Chicago/1856-W-Superior-St-60622/home/26836775,The house sold in 2000 and the listing history dates it to the preperiod.
+residential_17091200190000,retain_selected,,exact_property_record,https://www.coldwellbankerhomes.com/il/chicago/425-w-superior-st/pid_65907420/,The exact parcel record identifies a 2006 house.
+residential_17091200200000,retain_selected,,exact_property_record,https://www.redfin.com/IL/Chicago/429-W-Superior-St-60654/home/45508016,The exact parcel record identifies a 2006 house.
+residential_17091200210000,retain_corrected,2007,exact_property_record,https://www.homes.com/property/431-w-superior-st-chicago-il/f7ykb8c2rrnye/,The exact parcel record dates the house to 2007.
+residential_17091200220000,retain_corrected,2007,exact_property_record,https://www.redfin.com/IL/Chicago/433-W-Superior-St-60654/home/21773635,The exact parcel record dates the house to 2007.

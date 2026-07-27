@@ -176,7 +176,7 @@ Processing time is days from application to issuance.}
 \label{subsec:stringency}
 
 I construct the stringency score using permit records from 2006--2022 by residualizing permit processing times against ward and permit characteristics, then extracting the alderman-specific component.
-The first stage regresses log processing time at the permit level on ward-level demographic controls (racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
+The first stage regresses log processing time at the permit level on ward-level demographic controls (median household income, racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
 %
 \begin{equation} \label{eq:stringency_reg1}
     \log(\text{Processing Time}_{i}) = \mathbf{X}_i \beta + \gamma_{\text{ym}} + \delta_{\text{pt}} + \zeta_{\text{rt}} + \epsilon_{i}
@@ -198,11 +198,11 @@ I therefore apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_di
 Appendix Figure~\ref{fig:predecessor_successor_stringency} shows that the correlation between predecessor and successor aldermen within the same ward is relatively low ($\rho \approx 0.16$), supporting the interpretation that the index captures an alderman-specific component of the development process rather than ward characteristics.
 
 Appendix Figure~\ref{fig:aldermanic_stringency_scores} shows the distribution of the final stringency scores, and Figure~\ref{fig:alderman_stringency_map} maps them across the city.
-The scores vary in wealthy and poor neighborhoods, on the North Side and South Side, which helps rule out the idea that they are simply proxying for location or local demand conditions.
+The scores vary across wealthy and poor neighborhoods and across the North and South Sides, rather than following a simple geographic pattern.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../tasks/strictness_score_map/output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022-01.pdf}
+    \includegraphics[width=0.8\textwidth]{../tasks/audits/income_score_current_results/output/income_score_map_2022.pdf}
     \caption{Geographic Distribution of Regulatory Stringency}
 \figurenotes{Map shows standardized stringency scores by ward, estimated using permit records through December 2022 and displayed on the January 2022 ward map.
 Darker shades indicate more stringent aldermen.}
@@ -228,11 +228,11 @@ For each parcel I compute two standard density measures: Floor Area Ratio (FAR),
 Distance to the nearest ward boundary is computed after projecting parcels and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
 
 Table~\ref{tab:summary_stats} presents summary statistics.
-The full sample contains 13,614 new residential buildings.
-The 2,527 multifamily buildings (2+ units) are reported separately because aldermanic discretion is likely to matter most for larger projects.
+The 500ft boundary sample contains 3,710 new residential projects, including 837 classified as multifamily.
+I report the multifamily sample separately because aldermanic discretion is likely to matter most for larger projects.
 I focus on the multifamily sample and report the all-construction estimates for comparison.
 
-\input{../tasks/summary_stats_new_construction/output/summary_stats.tex}
+\input{../tasks/density_main_results/output/density_sample_summary.tex}
 
 \subsection{Rental Listings}
 

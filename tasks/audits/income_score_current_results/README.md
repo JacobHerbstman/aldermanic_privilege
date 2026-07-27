@@ -1,11 +1,11 @@
 # Income and education controls in the stringency score
 
-This audit compares four otherwise identical stringency scores: omitting both median household income and bachelor's-degree share, adding back either control separately, and including both. It rebuilds the through-2014 and through-2022 scores from the current permit input, verifies that the full-control rebuild matches production, and re-estimates the density, permit, rental, and sales specifications. It does not modify production data, figures, tables, or manuscript text.
+This audit compares four otherwise identical stringency scores: omitting both median household income and bachelor's-degree share, adding back either control separately, and including both. It rebuilds the through-2014 and through-2022 scores from the current permit input, verifies that the income-only rebuild matches production, and re-estimates the density, permit, rental, and sales specifications. It does not modify production data, figures, tables, or manuscript text.
 
 ## Results
 
 The full-control and omit-both scores are highly correlated: 0.995 through
-2014 and 0.986 through 2022. The full-control score is reproduced exactly
+2014 and 0.986 through 2022. The income-only score is reproduced exactly
 before any outcome model is estimated.
 
 | Current paper specification | Estimate (SE) |

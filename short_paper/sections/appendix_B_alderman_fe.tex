@@ -12,7 +12,8 @@ The processing-time regression uses positive-duration permits through December 2
 Same-day permits remain in the lagged ward-month permit count.
 
 \paragraph{Stage 1: Residualization.}
-I regress permit-level log processing time on ward geographic fundamentals (distance to the CBD, distance to the lake, CTA station density), demographic controls (homeownership rate, population, racial composition), lagged ward-month permit volume, and fixed effects for year-months, permit type, and review type.
+I regress permit-level log processing time on ward geographic characteristics (distance to the CBD, distance to the lake, CTA station density), demographic controls (median household income, homeownership rate, population, racial composition), lagged ward-month permit volume, and fixed effects for year-months, permit type, and review type.
+Appendix~\ref{app:data_sources} describes how block group demographics are allocated across ward boundaries to construct the ward controls.
 
 \paragraph{Stage 2: Alderman Fixed Effects.}
 I aggregate the Stage 1 residuals to ward-month mean residuals and regress those ward-month averages on alderman fixed effects $\alpha_{a(w,m)}$ and the same lagged permit-volume control, weighting observations by ward-month permit counts.
@@ -28,25 +29,25 @@ Higher values indicate more stringent aldermen.
 
 Table~\ref{tab:stage1_residualization} reports the baseline Stage 1 residualization regression.
 The dependent variable is permit-level log processing time.
-The specification controls for ward fundamentals and lag permit volume while partialing out month, permit-type, and review-type fixed effects, since review and permit-type composition may be endogenously determined by the regulatory environment.
+The specification controls for ward characteristics and lag permit volume while partialing out month, permit-type, and review-type fixed effects, since review and permit-type composition may be endogenously determined by the regulatory environment.
 The purpose of this stage is to remove systematic differences in permit timing attributable to observable ward characteristics so that the resulting stringency score isolates the alderman-specific component.
 
 \begin{table}[htbp]
-    \caption{Stage 1 Residualization: Permit-Level Log Processing Time on Ward Fundamentals}
+    \caption{Stage 1 Residualization: Permit-Level Log Processing Time on Ward Characteristics}
     \label{tab:stage1_residualization}
-    \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex}
+    \input{../tasks/audits/income_score_current_results/output/income_score_stage1_2022.tex}
 
     \footnotesize
     \textit{Notes:} Permit-level OLS regression from the baseline uncertainty-index specification, using permit records through December 2022.
-    Covariates are racial shares, homeownership, population, distance to the CBD, distance to the lake, CTA station density, and lag permit volume.
+    Covariates are median household income, racial shares, homeownership, population, distance to the CBD, distance to the lake, CTA station density, and lag permit volume.
     Fixed effects are listed in the table.
     Regressions are unweighted.
-    Standard errors in parentheses. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    Standard errors clustered by ward in parentheses. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf}
+    \includegraphics[width=0.72\textwidth]{../tasks/audits/income_score_current_results/output/income_score_distribution_2022.pdf}
     \caption{Distribution of Aldermanic Stringency Scores}
 \figurenotes{Stringency scores are constructed from residualized permit processing times through December 2022 with empirical Bayes shrinkage.
 Scores are standardized to mean zero and unit standard deviation.
@@ -63,7 +64,7 @@ The weak relationship indicates that the index is not simply reflecting time-inv
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.72\textwidth]{../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf}
+    \includegraphics[width=0.72\textwidth]{../tasks/audits/income_score_current_results/output/income_score_predecessor_successor_2022.pdf}
     \caption{Predecessor and Successor Aldermanic Stringency Within the Same Ward}
     \figurenotes{Each point compares the stringency score of an alderman to that of the predecessor or successor who represented the same ward in an adjacent period.
     The low correlation indicates that the stringency measure is not simply a persistent ward-level attribute.}

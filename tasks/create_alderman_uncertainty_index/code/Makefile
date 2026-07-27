@@ -21,8 +21,7 @@ all: \
 	../output/alderman_uncertainty_index_$(PAPER_SPEC).csv \
 	../output/uncertainty_index_$(PAPER_SPEC).pdf \
 	../output/stage1_regression_$(PAPER_SPEC).tex \
-	../output/alderman_uncertainty_index_$(FROZEN_SPEC).csv \
-	../output/alderman_uncertainty_index_$(POST_2023_SPEC).csv
+	../output/alderman_uncertainty_index_$(FROZEN_SPEC).csv
 
 ../output/alderman_uncertainty_index_$(PAPER_SPEC).csv: create_uncertainty_index.R ../../_lib/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv | ../output
 	Rscript $< $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE) $(PAPER_CUTOFF) TRUE
