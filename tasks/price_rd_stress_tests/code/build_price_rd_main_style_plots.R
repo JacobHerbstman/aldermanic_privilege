@@ -35,11 +35,57 @@ bins_per_side <- as.integer(bins_per_side)
 placebo_cutoff_ft <- as.integer(placebo_cutoff_ft)
 cutoffs_ft <- c(-placebo_cutoff_ft, 0, placebo_cutoff_ft)
 
+scores <- readr::read_csv(
+  "../input/alderman_scores.csv",
+  show_col_types = FALSE
+) |>
+  dplyr::filter(
+    cutoff == 2022L,
+    variant == "income_added_back"
+  ) |>
+  dplyr::select(alderman, score)
+
+if (
+  nrow(scores) == 0L ||
+    anyDuplicated(scores$alderman) ||
+    any(is.na(scores$score))
+) {
+  stop("The income-only score crosswalk failed validation.")
+}
+
 if (market == "rent") {
   source("../../_lib/amenity_distance_helpers.R")
 
-  rent <- read_parquet("../input/rent_with_ward_distances_full.parquet") %>%
-    as_tibble()
+  rent <- read_parquet(
+    "../input/rent_with_ward_distances_full.parquet"
+  ) |>
+    as_tibble() |>
+    dplyr::select(
+      -dplyr::any_of(c(
+        "strictness_own",
+        "strictness_neighbor",
+        "score_own",
+        "score_neighbor"
+      ))
+    ) |>
+    dplyr::left_join(
+      scores |>
+        dplyr::rename(
+          alderman_own = alderman,
+          score_own = score
+        ),
+      by = "alderman_own",
+      relationship = "many-to-one"
+    ) |>
+    dplyr::left_join(
+      scores |>
+        dplyr::rename(
+          alderman_neighbor = alderman,
+          score_neighbor = score
+        ),
+      by = "alderman_neighbor",
+      relationship = "many-to-one"
+    )
 
   if (!"signed_dist_m" %in% names(rent)) {
     stop("Rental input must include signed_dist_m.", call. = FALSE)
@@ -50,10 +96,11 @@ if (market == "rent") {
       file_date = as.Date(file_date),
       year = lubridate::year(file_date),
       year_month = format(file_date, "%Y-%m"),
-      signed_dist_ft = as.numeric(signed_dist_m) / 0.3048,
+      right = as.integer(score_own > score_neighbor),
+      signed_dist_ft = abs(as.numeric(dist_m) / 0.3048) *
+        if_else(right == 1L, 1, -1),
       ward_pair = as.character(ward_pair_id),
       segment_id = as.character(segment_id),
-      right = as.integer(signed_dist_ft >= 0),
       building_type_factor = factor(coalesce(building_type_clean, "other")),
       log_sqft = if_else(is.finite(sqft) & sqft > 0, log(sqft), NA_real_),
       beds_factor = factor(beds),
@@ -66,8 +113,8 @@ if (market == "rent") {
       rent_price > 0,
       is.finite(signed_dist_ft),
       abs(signed_dist_ft) <= max(abs(cutoffs_ft)) + bandwidth_ft,
-      !is.na(strictness_own),
-      !is.na(strictness_neighbor),
+      is.finite(score_own),
+      is.finite(score_neighbor),
       !is.na(segment_id),
       segment_id != "",
       !is.na(ward_pair),
@@ -211,8 +258,36 @@ if (market == "rent") {
   plot_title <- "Listed Rents: True and Placebo Cutoffs"
   plot_y_label <- "Segment-by-month adjusted log rent"
 } else {
-  sales <- read_parquet("../input/sales_with_hedonics_amenities.parquet") %>%
-    as_tibble()
+  sales <- read_parquet(
+    "../input/sales_with_hedonics_amenities.parquet"
+  ) |>
+    as_tibble() |>
+    dplyr::select(
+      -dplyr::any_of(c(
+        "strictness_own",
+        "strictness_neighbor",
+        "score_own",
+        "score_neighbor"
+      ))
+    ) |>
+    dplyr::left_join(
+      scores |>
+        dplyr::rename(
+          alderman_own = alderman,
+          score_own = score
+        ),
+      by = "alderman_own",
+      relationship = "many-to-one"
+    ) |>
+    dplyr::left_join(
+      scores |>
+        dplyr::rename(
+          alderman_neighbor = alderman,
+          score_neighbor = score
+        ),
+      by = "alderman_neighbor",
+      relationship = "many-to-one"
+    )
 
   if (!"signed_dist_m" %in% names(sales)) {
     stop("Sales input must include signed_dist_m.", call. = FALSE)
@@ -223,10 +298,11 @@ if (market == "rent") {
       sale_date = as.Date(sale_date),
       year = lubridate::year(sale_date),
       year_quarter = paste0(year, "-Q", lubridate::quarter(sale_date)),
-      signed_dist_ft = as.numeric(signed_dist_m) / 0.3048,
+      right = as.integer(score_own > score_neighbor),
+      signed_dist_ft = abs(as.numeric(dist_m) / 0.3048) *
+        if_else(right == 1L, 1, -1),
       ward_pair = as.character(ward_pair_id),
       segment_id = as.character(segment_id),
-      right = as.integer(signed_dist_ft >= 0),
       nearest_school_dist_kft = nearest_school_dist_ft / 1000,
       nearest_park_dist_kft = nearest_park_dist_ft / 1000,
       nearest_major_road_dist_kft = nearest_major_road_dist_ft / 1000,
@@ -240,8 +316,8 @@ if (market == "rent") {
       sale_price > 0,
       is.finite(signed_dist_ft),
       abs(signed_dist_ft) <= max(abs(cutoffs_ft)) + bandwidth_ft,
-      !is.na(strictness_own),
-      !is.na(strictness_neighbor),
+      is.finite(score_own),
+      is.finite(score_neighbor),
       !is.na(segment_id),
       segment_id != "",
       !is.na(ward_pair)

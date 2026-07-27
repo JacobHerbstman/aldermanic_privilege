@@ -19,26 +19,24 @@ I use this sharp change in regulatory authority to study how informal regulation
 
 To measure the regulatory environment each alderman creates, I construct ``regulatory stringency scores'' from processing times for permits likely to involve substantial aldermanic discretion.
 I residualize processing times against ward characteristics and time effects to isolate the alderman-specific component of the variation, then apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to reduce noise for aldermen with relatively few permits.
-The motivation for using processing time variation is simple: delay makes projects less valueable, and
+The motivation for using processing time variation is simple: delay makes projects less valuable, and
 a developer who expects years of meetings, redesigns, and uncertainty may build a smaller project or be deterred from building at all \citep{kydland_time_1982, mayer_land_2000, paciorek_supply_2013, gyourko_local_2021, soltas_how_2026}.
 
-I then estimate effects on housing supply by comparing new construction density near ward boundaries.
-On one side, developers deal with one alderman; across the street, they deal with another, which can result in a completely different regulatory environment.
-The neighborhood and statuatory zoning are similar, but the informal regulatory environment changes sharply.
-I use a spatial regression discontinuity design to compare new construction projects on either side of ward boundaries, and find that moving to a more stringent alderman substantially reduces the density of new construction, particularly for multifamily projects.
-Multifamily FAR is about $23\%$ lower and DUPAC about $27\%$ lower on the more stringent side of the boundary.
-A continuous specification based on the score difference between neighboring aldermen gives the same pattern: at a boundary where their scores differ by one standard deviation, multifamily FAR is about $21\%$ lower and DUPAC about $16\%$ lower on the more stringent side.
-The all-construction estimates are much smaller.
-
-I then complement this analysis by using the 2015 ward redistricting to test whether permitting changes when a block is reassigned to a different ward, keeping location fixed.
+I first use the 2015 ward redistricting to test whether permitting changes when a block is reassigned to a different ward, keeping location fixed.
 I estimate the stringency scores for this design using only permits filed through 2014 and measure the assigned change using the origin and destination wards' pre-redistricting incumbents.
-Using this within-census-block variation, I find that a one-standard-deviation increase in assigned stringency reduces the annual number of high-discretion permits recorded by the city by 9.4\% in the five years following the remap, relative to nearby blocks whose ward assignment does not change.
-This result shows that more stringent aldermen reduce not only the scale of completed projects, but also observed permit activity for projects requiring discretionary review.
+Using this within-census-block variation, I find that reassignment toward greater stringency reduces the annual number of high-discretion permits recorded by the city by about 8\% in the five years following the remap.
+This result shows that more stringent aldermen reduce observed permit activity for projects requiring discretionary review.
+
+I then estimate effects on completed housing by comparing new construction near ward boundaries.
+On one side, developers deal with one alderman; across the street, they deal with another.
+The neighborhood and statutory zoning are similar, but the informal regulatory environment changes sharply.
+Among multifamily projects, FAR is about 15\% lower and dwelling units per acre about 19\% lower on the more-stringent side.
+The estimates for all new construction point in the same direction.
 
 I finally examine whether housing costs are higher in the places where the supply evidence predicts they should be.
 I once again focus on areas near ward boundaries using a border-discontinuity design.
-Listed rents are about 1.7\% higher on the more stringent side of a ward border after controlling for listing characteristics and nearby amenities.
-The home-sale estimate points to prices about 1.2\% higher on the more stringent side, but is statistically imprecise.
+Listed rents are about 1.7\% higher on the more-stringent side after controlling for listing characteristics and nearby amenities.
+Home sales provide suggestive evidence of prices about 1.6\% higher.
 These results are consistent with lower supply on the more stringent side of ward boundaries and suggest that the uncertainty induced by informal regulations and political actors can have direct effects on affordability.
 
 The paper contributes most directly to work on local control over housing supply and how incentives of particular neighborhoods and the aggregate city may not be aligned. 

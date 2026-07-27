@@ -321,7 +321,22 @@ table_lines <- c(
   "                    & ln(FAR)       & ln(DUPAC)      & ln(FAR)       & ln(DUPAC) \\\\",
   "                    & (1)           & (2)            & (3)           & (4) \\\\",
   "   \\midrule",
-  "   \\multicolumn{5}{l}{\\textit{Panel A: Binary Boundary Comparison}} \\\\",
+  "   \\multicolumn{5}{l}{\\textit{Panel A: Continuous Boundary Comparison}} \\\\",
+  paste0(
+    "   Relative Stringency (1 SD) & ",
+    paste(continuous$estimate_text, collapse = " & "),
+    " \\\\"
+  ),
+  paste0(
+    "                    & ",
+    paste(continuous$se_text, collapse = " & "),
+    " \\\\"
+  ),
+  paste0("   N                & ", paste(trimws(format(continuous$n_obs, big.mark = ",")), collapse = " & "), " \\\\"),
+  paste0("   Dep. Var. Mean   & ", paste(sprintf("%.2f", continuous$depvar_mean), collapse = " & "), " \\\\"),
+  paste0("   Ward Pairs       & ", paste(trimws(format(continuous$n_ward_pairs, big.mark = ",")), collapse = " & "), " \\\\"),
+  "   \\addlinespace",
+  "   \\multicolumn{5}{l}{\\textit{Panel B: Binary Boundary Comparison}} \\\\",
   paste0(
     "   More-Stringent Side & ",
     paste(binary$estimate_text, collapse = " & "),
@@ -335,21 +350,6 @@ table_lines <- c(
   paste0("   N                & ", paste(trimws(format(binary$n_obs, big.mark = ",")), collapse = " & "), " \\\\"),
   paste0("   Dep. Var. Mean   & ", paste(sprintf("%.2f", binary$depvar_mean), collapse = " & "), " \\\\"),
   paste0("   Ward Pairs       & ", paste(trimws(format(binary$n_ward_pairs, big.mark = ",")), collapse = " & "), " \\\\"),
-  "   \\addlinespace",
-  "   \\multicolumn{5}{l}{\\textit{Panel B: Continuous Boundary Comparison}} \\\\",
-  paste0(
-    "   Score Difference (1 SD) & ",
-    paste(continuous$estimate_text, collapse = " & "),
-    " \\\\"
-  ),
-  paste0(
-    "                    & ",
-    paste(continuous$se_text, collapse = " & "),
-    " \\\\"
-  ),
-  paste0("   N                & ", paste(trimws(format(continuous$n_obs, big.mark = ",")), collapse = " & "), " \\\\"),
-  paste0("   Dep. Var. Mean   & ", paste(sprintf("%.2f", continuous$depvar_mean), collapse = " & "), " \\\\"),
-  paste0("   Ward Pairs       & ", paste(trimws(format(continuous$n_ward_pairs, big.mark = ",")), collapse = " & "), " \\\\"),
   "   \\midrule",
   "   Pair-Average Score & $\\checkmark$  & $\\checkmark$   & $\\checkmark$  & $\\checkmark$ \\\\",
   "   Zoning Group FE  & $\\checkmark$  & $\\checkmark$   & $\\checkmark$  & $\\checkmark$ \\\\",

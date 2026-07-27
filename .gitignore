@@ -81,6 +81,9 @@ tasks/density_historical_coordinates/output/*
 !tasks/density_construction_zoning/output/
 tasks/density_construction_zoning/output/*
 !tasks/density_construction_zoning/output/density_construction_zoning.csv
+!tasks/new_construction_analysis_data/output/
+tasks/new_construction_analysis_data/output/*
+!tasks/new_construction_analysis_data/output/new_construction_analysis_data.csv
 !tasks/rezoning_block_hand_adjudications/output/
 tasks/rezoning_block_hand_adjudications/output/*
 !tasks/rezoning_block_hand_adjudications/output/reviewed_rezoning_block_assignments.csv

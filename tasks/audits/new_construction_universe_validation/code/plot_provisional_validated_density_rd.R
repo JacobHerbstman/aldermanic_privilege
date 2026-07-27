@@ -1,18 +1,20 @@
 # setwd("tasks/audits/new_construction_universe_validation/code")
 # score_variant <- "all_covariates"
 # bins_per_side <- 5L
+# output_style <- "audit"
 
 source("../../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0L) {
-  cli_args <- c(score_variant, bins_per_side)
+  cli_args <- c(score_variant, bins_per_side, output_style)
 }
-if (length(cli_args) != 2L) {
-  stop("Expected one score variant and bins per side.", call. = FALSE)
+if (!length(cli_args) %in% c(2L, 3L)) {
+  stop("Expected a score variant, bins per side, and optional style.", call. = FALSE)
 }
 score_variant <- cli_args[1]
 bins_per_side <- as.integer(cli_args[2])
+output_style <- if (length(cli_args) == 3L) cli_args[3] else "audit"
 
 valid_variants <- c(
   "current_no_income",
@@ -23,7 +25,8 @@ valid_variants <- c(
 if (
   !score_variant %in% valid_variants ||
     is.na(bins_per_side) ||
-    bins_per_side < 2L
+    bins_per_side < 2L ||
+    !output_style %in% c("audit", "paper")
 ) {
   stop("Unknown score variant or invalid bin count.", call. = FALSE)
 }
@@ -414,22 +417,28 @@ combined_plot <- (
   panels[[1]] | panels[[2]]
 ) / (
   panels[[3]] | panels[[4]]
-) +
-  patchwork::plot_annotation(
-    title = variant_title,
-    subtitle = paste(
-      sprintf(
-        paste0(
-          "Corrected audited construction sample; 500ft bandwidth; ",
-          "%d bins per side."
-        ),
-        bins_per_side
-      ),
-      "Visual estimates are residualized local-linear discontinuities."
-    )
-  )
+)
 
-output_suffix <- if (bins_per_side == 5L) {
+if (output_style == "audit") {
+  combined_plot <- combined_plot +
+    patchwork::plot_annotation(
+      title = variant_title,
+      subtitle = paste(
+        sprintf(
+          paste0(
+            "Corrected audited construction sample; 500ft bandwidth; ",
+            "%d bins per side."
+          ),
+          bins_per_side
+        ),
+        "Visual estimates are residualized local-linear discontinuities."
+      )
+    )
+}
+
+output_suffix <- if (output_style == "paper") {
+  paste0(score_variant, "_paper")
+} else if (bins_per_side == 5L) {
   score_variant
 } else {
   paste0(score_variant, "_", bins_per_side, "bins")

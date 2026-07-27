@@ -3,140 +3,137 @@
 \section{Results}
 \label{sec:empirical_results}
 
-\subsection{Density at Ward Boundaries}
-\label{sec:empirical_results_density}
-
-I first examine whether completed housing is less dense on the more stringent side of the same ward boundary.
-I compare parcels that are within 500ft of a boundary segment, so they are exposed to similar neighborhood amenities and demand conditions, but face different aldermen.
-I residualize log FAR and log DUPAC using zoning-group, boundary-segment, and construction-year fixed effects, own-side demographic controls, and the average score of the two aldermen, then estimate side-specific local-linear fits on either side of the boundary.
-The estimating equation is:
-%
-\begin{equation} \label{eq:segment_fe}
-\begin{aligned}
-    \ln(Y_{iwst}) ={}&
-    \tau \text{MoreStringent}_{iwst}
-    + \eta \overline{S}_{ww't}
-    + \lambda_L D^-_{iwst}
-    + \lambda_S D^+_{iwst}
-    + X_i'\theta
-    \\
-    &\quad
-    + \alpha_{\text{zone group}}
-    + \alpha_{\text{segment}}
-    + \gamma_t
-    + \varepsilon_{iwst},
-\end{aligned}
-\end{equation}
-%
-where $Y_{iwst}$ is FAR or DUPAC for parcel $i$ in ward $w$ on boundary segment $s$, built in year $t$, and $w'$ denotes the ward across the boundary.
-$D^-_{iwst}$ and $D^+_{iwst}$ equal distance to the boundary on the more lenient and more stringent sides, respectively, and are zero on the opposite side.
-$X_i$ collects own-side demographic controls.
-$\overline{S}_{ww't}=(S_{wt}+S_{w't})/2$ is the average score of the two aldermen.
-The coefficient $\tau$ is the jump at the boundary from the more lenient side to the more stringent side.
-
-Table~\ref{tab:density_main_table} reports both versions of the density comparison.
-Panel A reports the binary comparison visualized in Figure~\ref{fig:rd_fe_plots}.
-Multifamily FAR is about 23\% lower and multifamily DUPAC about 27\% lower on the more stringent side.
-Panel B uses the continuous score difference $C_{iww't}=(S_{wt}-S_{w't})/2$ in place of the side indicator.
-The division by two means that crossing the boundary changes $C_{iww't}$ by the full score difference between the two aldermen.
-At a boundary where the aldermen's scores differ by one standard deviation, multifamily FAR is about 21\% lower and multifamily DUPAC about 16\% lower on the more stringent side.
-Across the ward pairs in the multifamily sample, the average score difference is 0.91 standard deviations.
-The all-construction estimates are much smaller; only the continuous FAR estimate is statistically distinguishable from zero.
-
-\begin{table}[htbp]
-    \caption{Binary and Continuous Estimates of Development Density (500ft)}
-    \label{tab:density_main_table}
-
-    \input{../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
-
-    \footnotesize
-    \textit{Notes:} Samples include all new construction and multifamily new construction from 2006--2022 within 500ft of ward boundaries.
-    Regressions include side-specific linear distance-to-boundary controls and own-side controls for share White, share Black, median household income, bachelor's share, and homeownership rate.
-    Zoning-group fixed effects use the group in force in the construction year. Other fixed effects are listed in the table.
-    Regressions are unweighted.
-    Panel A reports the jump from the more lenient to the more stringent side of the boundary.
-    Panel B replaces the side indicator with one-half of the difference between the project-side and across-boundary scores, so crossing a boundary changes the treatment by the full score difference between the two aldermen.
-    Both specifications control for the average score of the two aldermen.
-    Standard errors are clustered at the ward-pair level. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
-\end{table}
-
-Figure~\ref{fig:rd_fe_plots} shows the boundary discontinuity for all new construction and multifamily new construction.
-The estimates are negative in all four panels and largest for multifamily buildings, the projects where aldermanic discretion is most likely to bind.
-Appendix~\ref{sec:appendix_density} reports shifted-cutoff placebo checks and donut checks around the boundary.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.96\textwidth]{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5.pdf}
-    \caption{Local-Linear Boundary Estimates: All and Multifamily New Construction (500ft)}
-    \figurenotes{Left column: all construction; right column: multifamily.
-    Top row: Log(FAR); bottom row: Log(DUPAC).
-    Samples include new construction within 500ft of ward boundaries.
-    Outcomes are plotted after removing construction-year zoning-group, boundary-segment, and construction-year fixed effects, own-side demographic controls, and the average score of the two aldermen.
-    Colored dots show five binned residual means on each side and colored lines show side-specific local-linear fits.
-    \input{../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_estimates_500ft_all_multifamily_bins5.tex}
-    Negative distance indicates the more lenient alderman's side; positive distance indicates the more stringent side.}
-    \label{fig:rd_fe_plots}
-\end{figure}
-
 \subsection{Permit Activity After Redistricting}
 \label{sec:empirical_results_permits}
 
-The density comparison uses close parcels on opposite sides of a boundary.
-As a complementary analysis using within-location variation, I use the 2015 ward redistricting to compare the same census blocks before and after their ward assignments change.
-Some blocks moved toward wards represented before redistricting by more stringent aldermen, some moved toward more lenient aldermen, and nearby non-switching blocks remained under the same origin ward.
-This design holds fixed the physical block and asks whether permit activity changes with its assigned regulatory environment.
+I first ask whether permit activity changes when the same location is assigned to a different alderman.
+Chicago's 2015 ward redistricting moved some census blocks toward wards represented by more stringent aldermen and others toward wards represented by more lenient aldermen.
+Nearby blocks that remained in their original ward provide the comparison group.
+The design therefore holds the physical location fixed while changing its assigned regulatory environment.
 
 The outcome is the number of high-discretion permits recorded on each census block in each year from 2010 through 2020.
 I count permits by the year their applications began rather than the year they were issued.
 The outcome therefore measures when projects observed in the permit data first appeared in the process.
 These are the high-discretion permits defined in Section~\ref{subsec:permit_pipeline}.
-I estimate a PPML event study with block fixed effects and border-pair-by-year fixed effects:
+
+I estimate a Poisson pseudo-maximum likelihood event study using a single signed measure of reassignment:
 %
 \begin{equation}
 \label{eq:event_study_permits}
-\log E[Y_{bt}] = \alpha_b + \lambda_{gt} + \mathbf{X}_b'\gamma_t + \sum_{\tau \neq -1} \beta_\tau \left( \Delta\text{Stringency}_b \times \mathbf{1}[r_{bt} = \tau] \right),
+\begin{aligned}
+\log E[Y_{bt}] ={}&
+\alpha_b + \lambda_{gt} + \mathbf{X}_b'\gamma_t \\
+&+ \sum_{\tau \neq -1}
+\beta_\tau Z_b \mathbf{1}\{r_{bt}=\tau\}.
+\end{aligned}
 \end{equation}
 %
-where $Y_{bt}$ is the permit count for block $b$ in year $t$, $\alpha_b$ is a block fixed effect, and $\lambda_{gt}$ is a border-pair-by-year fixed effect.
-$r_{bt}$ is the year relative to the 2015 redistricting event.
+Here $Y_{bt}$ is the permit count for block $b$ in year $t$, $\alpha_b$ is a block fixed effect, and $\lambda_{gt}$ is a border-pair-by-year fixed effect.
+$Z_b$ equals one when the new map assigned block $b$ toward a more stringent alderman, minus one when it assigned the block toward a more lenient alderman, and zero when the block remained in the same ward.
 The vector $\mathbf{X}_b$ contains the block's total pre-redistricting permit volume and an indicator for having no pre-redistricting permits, each allowed to have a different coefficient by year.
-I measure the change in stringency using the 2014 incumbents in each block's origin and destination wards, with scores estimated only from permits filed between 2006 and 2014.
-Positive values mean the block moved to a more stringent alderman, and I keep the measure fixed before the 2015 election.
-Some wards elected new aldermen when the map took effect, so the assigned change does not always match the change a block ultimately experienced.
-I do not redefine treatment using the 2015 winner because that election may itself reflect local preferences toward development.
-I therefore interpret the main estimate as the effect of assigned rather than realized stringency.
-Appendix Figure~\ref{fig:permit_event_study_stable} restricts the sample to blocks whose 2014 origin- and destination-ward incumbents both remained in office in 2015.
-In that sample, the estimated annual number of high-discretion permits is 12.4\% lower, suggesting that the gap between assigned and realized stringency is not driving the result.
+I classify moves using the 2014 incumbents in each block's origin and destination wards, with scores estimated only from permits filed between 2006 and 2014.
+I do not redefine treatment using the 2015 election winners because those elections may themselves reflect local preferences toward development.
+The coefficients therefore describe changes in assigned rather than realized stringency.
+This coding imposes equal-and-opposite effects in logs for assignments toward more stringent and more lenient aldermen.
+Appendix~\ref{sec:appendix_permit_unconstrained} relaxes that restriction and produces nearly identical estimates.
 
-Figure~\ref{fig:permit_event_study} presents the main permit result.
-Before redistricting, blocks that would experience larger increases in aldermanic stringency do not show a differential trend.
-After reassignment, permit activity falls.
-A one-standard-deviation increase in assigned stringency reduces the annual number of high-discretion permits recorded by the city by 9.4\% in the five years following the remap.
-The pooled PPML coefficient is $-0.099$ (SE $=0.032$).
-This suggests that aldermanic stringency affects not only the density of completed projects but also the flow of projects requiring discretionary review.
+Figure~\ref{fig:permit_event_study} plots the coefficients $\beta_\tau$.
+The pre-period coefficients show no systematic divergence, and the pre-trend test has a $p$-value of 0.684.
+After redistricting, the estimate becomes negative.
+The pooled estimate is $-0.087$ (SE $=0.036$), equivalent to an 8.3\% reduction in the annual number of high-discretion permits associated with a move toward greater stringency.
+The response on this extensive margin complements the building-density evidence below.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.7\textwidth]{../tasks/run_event_study_permit/output/event_study_permit_2015_high_discretion_application_frozen2014_itt_preperiod_controls_500ft_clust_ward_pair.pdf}
-    \caption{Permit Event Study: Effect of Assigned Stringency on High-Discretion Permits}
-    \figurenotes{Block-year PPML event study for calendar years 2010--2020.
-    Outcome is the count of high-discretion permits per block per year, grouped by application year.
+    \includegraphics[width=0.72\textwidth]{../tasks/audits/permit_event_study_audit/output/binary_signed_directional_event_study_high_discretion_income_added_back_500ft_paper.pdf}
+    \caption{Permit Activity After the 2015 Ward Redistricting}
+    \figurenotes{Block-year Poisson pseudo-maximum likelihood event study for calendar years 2010--2020.
+    The outcome is the number of high-discretion permits per block, grouped by application year.
     The sample includes blocks within 500ft of ward boundaries.
-    Stringency scores are estimated using permits filed from 2006 through 2014; treatment is the destination-minus-origin score difference.
-    The model includes block and border-pair $\times$ year fixed effects plus pre-period permit volume and an indicator for no pre-period permits, each interacted with year.
-    Year $-1$ omitted as reference.
-    Points report $\exp(\hat\beta_\tau)-1$; shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
-    Pooled post-period coefficient: $-0.099$ (SE $= 0.032$), implying that the annual number of recorded permits is 9.4\% lower on average in years 0--5.
-    Joint pre-trend test $p = 0.763$.}
+    Blocks are classified according to whether the 2015 map assigned them toward an alderman who was more or less stringent than the origin-ward alderman; unchanged blocks are the comparison group.
+    Stringency scores are estimated from permits filed between 2006 and 2014.
+    The model includes block and border-pair $\times$ year fixed effects, total pre-period permit volume, and an indicator for no pre-period permits, with both controls interacted with year.
+    Year $-1$ is omitted.
+    The reassignment variable equals one for blocks assigned toward greater stringency, minus one for blocks assigned toward greater leniency, and zero for unchanged blocks.
+    Each point reports the event-time coefficient on this variable.
+    Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
+    The pooled coefficient is $-0.087$ (SE $=0.036$), and the pre-trend test has $p=0.684$.}
     \label{fig:permit_event_study}
+\end{figure}
+
+\subsection{Density at Ward Boundaries}
+\label{sec:empirical_results_density}
+
+I next examine completed new construction on opposite sides of the same ward boundary.
+Projects within 500ft of the same boundary segment face similar neighborhood amenities and demand conditions, but different aldermen.
+The main specification compares the more stringent side with the more lenient side:
+%
+\begin{equation} \label{eq:segment_fe}
+\begin{aligned}
+    \ln(Y_{iwst}) ={}&
+    \tau \text{MoreStringent}_{iww't}
+    + \eta \overline{S}_{ww't}
+    + \lambda_L D^-_{iwst}
+    + \lambda_S D^+_{iwst}
+    + X_i'\theta \\
+    &\quad
+    + \alpha_{\text{zone group}}
+    + \alpha_{\text{segment}}
+    + \gamma_t
+    + \varepsilon_{iwst}.
+\end{aligned}
+\end{equation}
+%
+Here $Y_{iwst}$ is FAR or DUPAC for project $i$ in ward $w$ on boundary segment $s$, built in year $t$, and $w'$ denotes the ward across the boundary.
+$D^-_{iwst}$ and $D^+_{iwst}$ allow distance to have a different slope on each side.
+$X_i$ contains demographic characteristics on the project's side of the boundary, and $\overline{S}_{ww't}$ is the average score of the two aldermen.
+The zoning fixed effects use the broad zoning group in force when the project was built.
+
+Table~\ref{tab:density_main_table} reports the boundary estimates.
+Among multifamily projects, FAR is about 15.5\% lower and dwelling units per acre about 18.7\% lower on the more-stringent side.
+The estimates for all new construction point in the same direction: FAR and dwelling units per acre are each about 11\% lower, with the latter estimated less precisely.
+This similarity across outcomes suggests that stringent aldermen affect both the amount of floor space and the number of homes placed on a parcel.
+
+\begin{table}[htbp]
+    \caption{Development Density by Side of Ward Boundary (500ft)}
+    \label{tab:density_main_table}
+
+    \input{../tasks/density_main_results/output/density_main_table.tex}
+
+    \footnotesize
+    \textit{Notes:} Samples include all new construction and multifamily new construction from 2006--2022 within 500ft of ward boundaries.
+    Regressions include side-specific linear distance-to-boundary controls and demographic characteristics on the project's side of the boundary: share White, share Black, median household income, bachelor's share, and homeownership rate.
+    Zoning-group fixed effects use the group in force in the construction year.
+    Other fixed effects are listed in the table.
+    Regressions are unweighted and use a common FAR-DUPAC sample within each construction group.
+    The coefficient reports the difference between the more stringent and more lenient sides of the boundary.
+    Standard errors are clustered by ward pair. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
+
+Figure~\ref{fig:rd_fe_plots} shows the same boundary comparisons after residualizing the density outcomes.
+The visual discontinuities are negative in all four panels.
+They are not numerically identical to the table estimates because the figure uses a simple local-linear fit to display the residualized outcomes, while Table~\ref{tab:density_main_table} reports the full specification in Equation~\eqref{eq:segment_fe}.
+Appendix~\ref{sec:appendix_density} presents placebo and donut checks.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.96\textwidth]{../tasks/density_main_results/output/density_rd.pdf}
+    \caption{Development Density at Ward Boundaries}
+    \figurenotes{Left column: all construction; right column: multifamily.
+    Top row: Log(FAR); bottom row: Log(DUPAC).
+    Samples include new construction within 500ft of ward boundaries.
+    Outcomes are residualized using construction-year zoning-group, boundary-segment, and construction-year fixed effects, demographic characteristics on the project's side of the boundary, and the average score of the two aldermen.
+    Dots show eight binned residual means on each side, and lines show side-specific local-linear fits.
+    The visual estimates shown above each panel come from these local-linear fits; the preferred regression estimates are reported in Table~\ref{tab:density_main_table}.
+    Negative distance indicates the more lenient side and positive distance the more stringent side.}
+    \label{fig:rd_fe_plots}
 \end{figure}
 
 \subsection{Suggestive Evidence on Rents and Sale Prices}
 \label{sec:empirical_results_prices}
 
-The density and permit results show that more stringent aldermen reduce housing supply on two margins: the intensive margin of completed new construction and the extensive margin of new high-discretion permits that will likely involve the alderman in some capacity.
-I next ask whether housing-cost outcomes are higher on the more stringent side of ward boundaries.
-
+The permit and density results indicate that more stringent aldermen reduce development activity and the density of completed housing.
+I next ask whether housing costs are higher on the more stringent side of the same ward boundaries.
 For rents and sales, I estimate
 %
 \begin{equation}
@@ -144,38 +141,53 @@ For rents and sales, I estimate
     \log(Y_{ist}) =
     \beta \text{MoreStringent}_{is}
     + X_i'\gamma
-    + \alpha_{s t}
+    + \alpha_{st}
     + \varepsilon_{ist},
 \end{equation}
 %
 where $Y_{ist}$ is the real listed rent or real sale price for observation $i$ near boundary segment $s$ in period $t$.
-The fixed effects are segment-by-month for rents and segment-by-quarter for sales.
-Controls include listing or property characteristics and distances to nearby schools, parks, major roads, CTA stops, and Lake Michigan.
+The fixed effects compare observations near the same boundary segment in the same month for rents and the same quarter for sales.
+The controls include unit or property characteristics and distances to nearby schools, parks, major roads, CTA stops, and Lake Michigan.
 Standard errors are clustered by boundary segment.
 
-Figure~\ref{fig:price_rd_flat}, Panel A, shows that listed rents are about 1.7\% higher on the more stringent side of a ward boundary after residualizing for segment-by-month fixed effects, hedonic controls, and observed amenity controls.
-Panel B points to a smaller home-sale price gap of about 1.2\%, although that estimate is statistically imprecise.
-Appendix~\ref{sec:appendix_price_rd} reports placebo-cutoff checks for both outcomes.
+Table~\ref{tab:price_boundary_table} shows that listed rents are about 1.7\% higher on the more-stringent side.
+Home sale prices are about 1.6\% higher.
+I treat the sales result as suggestive because transactions are less frequent near any particular boundary and their composition is harder to hold fixed.
+Figure~\ref{fig:price_rd_flat} shows the corresponding boundary comparisons.
+Appendix~\ref{sec:appendix_price_rd} reports placebo-cutoff checks.
+
+\begin{table}[htbp]
+    \caption{Listed Rents and Home Sale Prices by Side of Ward Boundary (500ft)}
+    \label{tab:price_boundary_table}
+
+    \input{../tasks/price_boundary_regressions/output/price_boundary_regressions_500ft.tex}
+
+    \footnotesize
+    \textit{Notes:} Samples include listed-rent floorplan-month observations from 2014--2022 and filtered residential transactions from 2006--2022 within 500ft of ward boundaries.
+    The rental sample is restricted to listings with reliable geographic assignments, as defined in Appendix~\ref{subsec:renthub_sample}, and includes studios.
+    Both regressions control for unit or property characteristics and distances to nearby schools, parks, major roads, CTA stops, and Lake Michigan.
+    Rent models include boundary-segment-by-month fixed effects; sales models include boundary-segment-by-quarter fixed effects.
+    Standard errors are clustered by boundary segment. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
 
 \begin{figure}[htbp]
     \centering
     \begin{minipage}[t]{0.49\textwidth}
         \centering
         \small\textbf{Panel A}
-        \includegraphics[width=\textwidth]{../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls_panel.pdf}
+        \includegraphics[width=\textwidth]{../tasks/price_boundary_regressions/output/price_boundary_rent_500ft.pdf}
     \end{minipage}\hfill
     \begin{minipage}[t]{0.49\textwidth}
         \centering
         \small\textbf{Panel B}
-        \includegraphics[width=\textwidth]{../tasks/sales_border_pair_fe/output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment_panel.pdf}
+        \includegraphics[width=\textwidth]{../tasks/price_boundary_regressions/output/price_boundary_sales_500ft.pdf}
     \end{minipage}
-    \caption{Listed Rents and Home Sale Prices by Side of Ward Boundary}
-    \figurenotes{Both panels show flat 500ft boundary comparisons after removing segment-by-time fixed effects, hedonic controls, and amenity controls.
-    Panel A uses listed-rent floorplan-month observations from 2014--2022, with segment-by-month fixed effects.
-    The rental sample is restricted to listings with reliable geographic assignments, as defined in Appendix~\ref{subsec:renthub_sample}, and includes studios.
-    Panel B uses filtered residential transactions from 2006--2022, with segment-by-quarter fixed effects.
+    \caption{Listed Rents and Home Sale Prices at Ward Boundaries}
+    \figurenotes{Panel A uses listed-rent floorplan-month observations from 2014--2022 and segment-by-month fixed effects.
+    Panel B uses filtered residential transactions from 2006--2022 and segment-by-quarter fixed effects.
+    Both panels remove the fixed effects, hedonic controls, and amenity controls used in Table~\ref{tab:price_boundary_table}.
     Positive distance indicates the side represented by the more stringent alderman.
-    Dots are binned means of log prices in 2022 dollars.
-    Subtitles report the flat 500ft estimates; standard errors are clustered by boundary segment.}
+    Dots are binned means of adjusted log prices in 2022 dollars.
+    Subtitles report the estimates from Table~\ref{tab:price_boundary_table}; standard errors are clustered by boundary segment.}
     \label{fig:price_rd_flat}
 \end{figure}

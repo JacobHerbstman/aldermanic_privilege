@@ -52,6 +52,14 @@ all: ../output/project_evidence_inventory.csv \
 	../output/provisional_validated_density_input.csv \
 	../output/provisional_validated_sample_changes.csv \
 	../output/provisional_validated_density_results.csv \
+	../output/binary_density_main_summary_income_added_back.tex \
+	../output/binary_density_main_table_income_added_back.tex \
+	../output/binary_density_balance_income_added_back.tex \
+	../output/binary_density_placebo_neg1000ft_income_added_back.pdf \
+	../output/binary_density_placebo_pos1000ft_income_added_back.pdf \
+	../output/binary_density_donut25ft_income_added_back.pdf \
+	../output/binary_density_donut50ft_income_added_back.pdf \
+	../output/audited_density_rd_income_added_back_paper.pdf \
 	../output/audited_density_rd_current_no_income.pdf \
 	../output/audited_density_rd_current_no_income.png \
 	../output/audited_density_rd_education_added_back.pdf \
@@ -338,6 +346,54 @@ all: ../output/project_evidence_inventory.csv \
 	../output/provisional_validated_density_input.csv \
 	../input/score_control_variants.csv
 	$(R) $<
+
+../output/binary_density_main_table_income_added_back.tex: \
+	build_binary_main_density_table.R \
+	../output/provisional_validated_density_results.csv
+	$(R) $<
+
+../output/binary_density_main_summary_income_added_back.tex: \
+	build_binary_main_density_summary.R \
+	../output/provisional_validated_density_input.csv \
+	../input/score_control_variants.csv
+	$(R) $<
+
+../output/binary_density_balance_income_added_back.tex: \
+	build_binary_density_balance.R \
+	../output/provisional_validated_density_input.csv \
+	../input/score_control_variants.csv
+	$(R) $<
+
+../output/binary_density_placebo_neg1000ft_income_added_back.pdf: \
+	build_binary_density_appendix_plot.R \
+	../output/provisional_validated_density_input.csv \
+	../input/score_control_variants.csv
+	$(R) $< placebo_neg1000ft income_added_back 5
+
+../output/binary_density_placebo_pos1000ft_income_added_back.pdf: \
+	build_binary_density_appendix_plot.R \
+	../output/provisional_validated_density_input.csv \
+	../input/score_control_variants.csv
+	$(R) $< placebo_pos1000ft income_added_back 5
+
+../output/binary_density_donut25ft_income_added_back.pdf: \
+	build_binary_density_appendix_plot.R \
+	../output/provisional_validated_density_input.csv \
+	../input/score_control_variants.csv
+	$(R) $< donut25ft income_added_back 5
+
+../output/binary_density_donut50ft_income_added_back.pdf: \
+	build_binary_density_appendix_plot.R \
+	../output/provisional_validated_density_input.csv \
+	../input/score_control_variants.csv
+	$(R) $< donut50ft income_added_back 5
+
+../output/audited_density_rd_income_added_back_paper.pdf: \
+	plot_provisional_validated_density_rd.R \
+	../output/provisional_validated_density_input.csv \
+	../output/provisional_validated_density_results.csv \
+	../input/score_control_variants.csv
+	$(R) $< income_added_back 10 paper
 
 ../output/audited_density_rd_income_added_back_8bins.pdf: \
 	plot_provisional_validated_density_rd.R \
