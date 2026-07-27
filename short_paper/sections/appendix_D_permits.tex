@@ -21,7 +21,7 @@ Low-discretion permits show a more muted response.
     \centering
     \caption{Signed and Unconstrained Reassignment Estimates}
     \label{tab:permit_event_study_did}
-    \input{../tasks/audits/permit_event_study_audit/output/binary_event_study_appendix_income_added_back_500ft.tex}
+    \input{../tasks/run_event_study_permit/output/permit_event_study_appendix_500ft.tex}
 
     \footnotesize
     \textit{Notes:} PPML estimates use census-block-year observations from 2010--2020 within 500ft of a ward boundary.
@@ -31,7 +31,7 @@ Low-discretion permits show a more muted response.
     The unconstrained model estimates the two assignment effects separately.
     The directional contrast equals one-half of the difference between the more-stringent and more-lenient coefficients.
     The symmetry test evaluates whether the two unconstrained coefficients sum to zero.
-    Each model includes block fixed effects, ward-pair $\times$ year fixed effects, and the outcome's pre-period volume and zero-volume indicator interacted with year.
+    Each model includes block fixed effects, ward-pair $\times$ year fixed effects, and pre-period high-discretion permit volume and its zero-volume indicator interacted with year.
     Fixed-effect PPML drops blocks with no outcome in any sample year and ward-pair-year groups with no outcome.
     Standard errors, in parentheses, are clustered by ward pair.
     $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$.
@@ -48,7 +48,7 @@ The resulting directional contrast is nearly identical to the main estimate.
     \includegraphics[width=0.7\textwidth]{../tasks/audits/permit_event_study_audit/output/binary_joint_directional_event_study_high_discretion_income_added_back_500ft_paper.pdf}
     \caption{Permit Event Study: Unconstrained Directional Contrast}
     \figurenotes{The model estimates separate event-time coefficients for blocks assigned toward more stringent and more lenient aldermen.
-    Each point is one-half of the difference between those coefficients.
+    Each point converts one-half of the difference between those log coefficients to a proportional change using $\exp(\cdot)-1$.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
     The pooled directional contrast is $-0.086$ (SE $=0.037$).
     The symmetry test for the pooled coefficients has $p=0.885$, and the joint pre-trend test has $p=0.657$.}

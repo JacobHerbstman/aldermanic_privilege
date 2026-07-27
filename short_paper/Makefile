@@ -2,7 +2,7 @@ all: paper.pdf
 
 paper.pdf: Makefile paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/audits/income_score_current_results/output/income_score_map_2022.pdf \
-	../tasks/audits/income_score_current_results/output/income_score_stage1_2022.tex \
+	../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
 	../tasks/audits/income_score_current_results/output/income_score_distribution_2022.pdf \
 	../tasks/audits/income_score_current_results/output/income_score_predecessor_successor_2022.pdf \
 	../tasks/density_main_results/output/density_rd.pdf \
@@ -17,7 +17,7 @@ paper.pdf: Makefile paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/audits/permit_event_study_audit/output/binary_joint_directional_event_study_high_discretion_income_added_back_500ft_paper.pdf \
 	../tasks/audits/permit_event_study_audit/output/binary_signed_directional_event_study_low_discretion_nosigns_income_added_back_500ft_paper.pdf \
 	../tasks/audits/permit_event_study_audit/output/binary_signed_directional_event_study_high_discretion_income_added_back_500ft_stable_paper.pdf \
-	../tasks/audits/permit_event_study_audit/output/binary_event_study_appendix_income_added_back_500ft.tex \
+	../tasks/run_event_study_permit/output/permit_event_study_appendix_500ft.tex \
 	../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf \
 	../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex \
 	../tasks/permit_summary_stats/output/permit_processing_time_volume_correlation.tex \
