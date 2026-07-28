@@ -56,6 +56,17 @@ outcomes, controls, fixed effects, and standard-error calculation remain fixed.
 The script also verifies that the estimation sample does not change across the
 four scores.
 
+The shifted-cutoff figures apply the same saturated 100-foot-bin specification
+to artificial cutoffs 1,000 feet inside either ward. Each model uses the
+500-foot window around the artificial cutoff, so all projects on both sides of
+a placebo cutoff remain under the same alderman. The legend therefore describes
+positions below and above the artificial cutoff rather than aldermanic
+stringency. Before estimating these wider-window checks, the script replaces an
+assessor land area of one square foot or less with the complete
+construction-year parcel area when that area is available. This corrects one
+Taylor Street project outside the main 500-foot sample whose assessor land
+field equals one square foot.
+
 The 250-foot ribbon figure uses five equal 50-foot bins on each side. It keeps
 the same saturated-bin specification but estimates it only with projects
 within 250 feet of the boundary.
