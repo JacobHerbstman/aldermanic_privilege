@@ -31,6 +31,11 @@ all: ../output/density_model_adjusted_rd.pdf \
 	../output/density_nonparametric_bins_100ft_all_covariates_ribbons.pdf \
 	../output/density_nonparametric_bins_100ft_all_covariates_ribbons.png \
 	../output/density_nonparametric_score_comparison.csv \
+	../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.pdf \
+	../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.png \
+	../output/density_nonparametric_placebo_pos1000ft_100ft_ribbons.pdf \
+	../output/density_nonparametric_placebo_pos1000ft_100ft_ribbons.png \
+	../output/density_nonparametric_placebo_estimates.csv \
 	../output/density_distance_band_estimates.pdf \
 	../output/density_distance_band_estimates.png \
 	../output/density_distance_band_estimates.csv \
@@ -130,6 +135,20 @@ all: ../output/density_model_adjusted_rd.pdf \
 
 ../output/density_nonparametric_score_comparison.csv: ../output/density_nonparametric_bins_100ft_current_no_income_ribbons.pdf
 
+../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.pdf: \
+	build_density_nonparametric_placebos.R \
+	../input/new_construction_analysis_data.csv \
+	../input/commercial_land_adjudication_evidence.csv
+	$(R) $<
+
+../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.png: ../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.pdf
+
+../output/density_nonparametric_placebo_pos1000ft_100ft_ribbons.pdf: ../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.pdf
+
+../output/density_nonparametric_placebo_pos1000ft_100ft_ribbons.png: ../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.pdf
+
+../output/density_nonparametric_placebo_estimates.csv: ../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.pdf
+
 ../output/density_distance_band_estimates.pdf: \
 	build_density_distance_band_estimates.R \
 	../input/new_construction_analysis_data.csv
@@ -184,8 +203,14 @@ all: ../output/density_model_adjusted_rd.pdf \
 	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
 	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
 
+../input/commercial_land_adjudication_evidence.csv: ../../commercial_new_construction_sample_audit/output/commercial_land_adjudication_evidence.csv
+	@source="$<"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
 link-inputs: ../input/new_construction_analysis_data.csv \
-	../input/current_income_scores.csv
+	../input/current_income_scores.csv \
+	../input/commercial_land_adjudication_evidence.csv
 
 include ../../../shell_functions.make
 include ../../../generic.make
