@@ -42,7 +42,8 @@ balance_sample <- panel %>%
     dist_m <= bandwidth_m,
     !is.na(strictness_change_frozen),
     !is.na(ward_pair_id),
-    ward_pair_id != ""
+    ward_pair_id != "",
+    stable_both
   ) %>%
   transmute(
     block_id = as.character(block_id),
@@ -277,6 +278,7 @@ lines <- c(
     paste0(
       "\\begin{minipage}{0.98\\textwidth}\\footnotesize ",
       "\\textit{Notes:} Treated blocks were reassigned to a different ward by the 2015 ward map; control blocks remained in their original ward. ",
+      "The sample requires the 2014 origin- and destination-ward incumbents to remain in office when the new map took effect. ",
       "The sample contains %s treated and %s control blocks within %s of a ward boundary in %s ward pairs containing both groups and is constructed before estimation. ",
       "The event-study samples are smaller because PPML drops blocks and ward-pair-year cells with no permits for the outcome being studied. ",
       "Permits are grouped by application year. Neighborhood characteristics are 2014 ACS five-year block-group estimates. ",

@@ -41,7 +41,8 @@ data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
   ) %>%
   mutate(
     strictness_change = strictness_change_frozen,
-    post_treat = as.integer(relative_year >= 0) * strictness_change
+    post = as.integer(relative_year >= 0),
+    post_treat = post * strictness_change
   )
 
 if (anyDuplicated(data[c("block_id", "year")]) > 0) {
@@ -78,7 +79,7 @@ for (i in seq_along(outcomes)) {
   models[[i]] <- fepois(
     outcome ~ post_treat +
       pre_period_permit_volume:factor(year) +
-      no_pre_period_permits:factor(year) |
+      post:no_pre_period_permits |
       block_id + ward_pair_id^year,
     data = model_data,
     cluster = ~ward_pair_id,

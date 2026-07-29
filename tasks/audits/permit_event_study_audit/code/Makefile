@@ -14,6 +14,16 @@ all: \
 	../output/binary_signed_directional_event_study_low_discretion_nosigns_income_added_back_$(MAIN_BW_LABEL)_paper.pdf \
 	../output/binary_signed_directional_event_study_high_discretion_income_added_back_$(MAIN_BW_LABEL)_stable_paper.pdf \
 	../output/binary_event_study_appendix_income_added_back_$(MAIN_BW_LABEL).tex \
+	../output/binary_event_study_appendix_income_added_back_$(MAIN_BW_LABEL)_stable.tex \
+	../output/stable_binary_outcome_comparison_$(MAIN_BW_LABEL).csv \
+	../output/stable_preperiod_control_sensitivity_$(MAIN_BW_LABEL).csv \
+	../output/stable_preperiod_control_outcome_tests_$(MAIN_BW_LABEL).csv \
+	../output/stable_preperiod_control_balance_$(MAIN_BW_LABEL).csv \
+	../output/stable_zero_preperiod_observable_balance_$(MAIN_BW_LABEL).csv \
+	../output/stable_zero_preperiod_observable_joint_test_$(MAIN_BW_LABEL).csv \
+	../output/stable_preperiod_raw_trends_$(MAIN_BW_LABEL).png \
+	../output/stable_preperiod_raw_assignment_trends_$(MAIN_BW_LABEL).png \
+	../output/stable_preperiod_raw_pair_differences_$(MAIN_BW_LABEL).png \
 	$(foreach outcome,$(OUTCOMES),$(foreach score,$(SCORE_VARIANTS),../output/binary_aggregate_event_study_$(outcome)_$(score)_$(MAIN_BW_LABEL).pdf))
 
 ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_application_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_wardpair_ctrl_pre_high_level_geo_wardpair.csv: run_permit_event_study_audit.R ../../../_lib/event_study_plot_helpers.R ../../../_lib/permit_event_study_sample_helpers.R ../input/permit_block_year_panel_2015.parquet | ../output
@@ -70,13 +80,76 @@ $(foreach outcome,$(OUTCOMES),$(foreach score,$(SCORE_VARIANTS),$(eval $(call bi
 	../output/binary_event_study_pooled_low_discretion_nosigns_income_added_back_$(MAIN_BW_LABEL).csv | ../output
 	$(R) $< $(MAIN_BW_LABEL)
 
+../output/binary_event_study_pooled_high_discretion_income_added_back_$(MAIN_BW_LABEL)_stable.csv: \
+	run_binary_aggregate_event_study.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv | ../output
+	$(R) $< $(MAIN_BW_M) $(MAIN_BW_LABEL) income_added_back high_discretion stable
+
+../output/binary_event_study_pooled_low_discretion_nosigns_income_added_back_$(MAIN_BW_LABEL)_stable.csv: \
+	run_binary_aggregate_event_study.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv | ../output
+	$(R) $< $(MAIN_BW_M) $(MAIN_BW_LABEL) income_added_back low_discretion_nosigns stable
+
+../output/binary_event_study_appendix_income_added_back_$(MAIN_BW_LABEL)_stable.tex: \
+	build_binary_event_study_appendix_table.R \
+	../output/binary_event_study_pooled_high_discretion_income_added_back_$(MAIN_BW_LABEL)_stable.csv \
+	../output/binary_event_study_pooled_low_discretion_nosigns_income_added_back_$(MAIN_BW_LABEL)_stable.csv \
+	../output/stable_binary_outcome_comparison_$(MAIN_BW_LABEL).csv | ../output
+	$(R) $< $(MAIN_BW_LABEL) stable
+
+../output/stable_binary_outcome_comparison_$(MAIN_BW_LABEL).csv: \
+	compare_stable_binary_outcomes.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv \
+	../output/binary_event_study_pooled_high_discretion_income_added_back_$(MAIN_BW_LABEL)_stable.csv \
+	../output/binary_event_study_pooled_low_discretion_nosigns_income_added_back_$(MAIN_BW_LABEL)_stable.csv | ../output
+	$(R) $<
+
+../output/stable_preperiod_control_sensitivity_$(MAIN_BW_LABEL).csv: \
+	compare_stable_preperiod_controls.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv | ../output
+	$(R) $<
+
+../output/stable_preperiod_control_outcome_tests_$(MAIN_BW_LABEL).csv: \
+	../output/stable_preperiod_control_sensitivity_$(MAIN_BW_LABEL).csv
+
+../output/stable_preperiod_control_balance_$(MAIN_BW_LABEL).csv: \
+	../output/stable_preperiod_control_sensitivity_$(MAIN_BW_LABEL).csv
+
+../output/stable_zero_preperiod_observable_balance_$(MAIN_BW_LABEL).csv: \
+	compare_zero_preperiod_blocks.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/block_group_controls.csv | ../output
+	$(R) $<
+
+../output/stable_zero_preperiod_observable_joint_test_$(MAIN_BW_LABEL).csv: \
+	../output/stable_zero_preperiod_observable_balance_$(MAIN_BW_LABEL).csv
+
+../output/stable_preperiod_raw_trends_$(MAIN_BW_LABEL).png: \
+	plot_stable_preperiod_raw_trends.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv | ../output
+	$(R) $<
+
+../output/stable_preperiod_raw_assignment_trends_$(MAIN_BW_LABEL).png: \
+	../output/stable_preperiod_raw_trends_$(MAIN_BW_LABEL).png
+
+../output/stable_preperiod_raw_pair_differences_$(MAIN_BW_LABEL).png: \
+	../output/stable_preperiod_raw_trends_$(MAIN_BW_LABEL).png
+
 ../input/permit_block_year_panel_2015.parquet: ../../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/score_control_variants.csv: ../../income_score_current_results/output/current_income_scores.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/score_control_variants.csv
+../input/block_group_controls.csv: ../../../create_block_group_controls/output/block_group_controls.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/score_control_variants.csv ../input/block_group_controls.csv
 
 include ../../../shell_functions.make
 include ../../../generic.make

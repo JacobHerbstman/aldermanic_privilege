@@ -1,11 +1,14 @@
 # Permit event study
 
-Runs the paper-facing 2015 permit event study. The main specification uses permits indexed by application date, the stringency score estimated through 2014, a 500ft boundary sample, pre-period permit controls, and ward-pair-clustered standard errors.
+Runs the 2015 permit event study used in the paper. The main sample retains blocks whose origin- and destination-ward aldermen remained in office when the new map took effect. The regressions use permits grouped by application year, stringency scores estimated through 2014, a 500ft boundary sample, and standard errors clustered by ward pair.
+
+Pre-redistricting permit volume is allowed to have a different coefficient in each year. A single post-redistricting adjustment is included for blocks with no permits before the remap.
 
 Produces:
-- `output/event_study_permit_2015_high_discretion_application_frozen2014_itt_preperiod_controls_500ft_clust_ward_pair.pdf`
-- `output/event_study_permit_2015_low_discretion_nosigns_application_frozen2014_itt_preperiod_controls_500ft_clust_ward_pair.pdf`
-- `output/event_study_permit_2015_high_discretion_application_frozen2014_stable_preperiod_controls_500ft_clust_ward_pair.pdf`
-- `output/did_table_permit_2015_application_frozen2014_itt_preperiod_controls_500ft_clust_ward_pair.tex`
+- `output/permit_event_study_high_discretion_stable_signed_500ft.pdf`
+- `output/permit_event_study_high_discretion_stable_separate_500ft.pdf`
+- `output/permit_event_study_low_discretion_nosigns_stable_signed_500ft.pdf`
+- `output/permit_event_study_high_discretion_all_signed_500ft.pdf`
+- `output/permit_event_study_appendix_500ft.tex`
 
 Approx. runtime: ~3-20 minutes.

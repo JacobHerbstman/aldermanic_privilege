@@ -136,7 +136,7 @@ The practice has also been accused of accentuating racial segregation and violat
 each city council candidate was asked specifically about their stance on aldermanic
 prerogative.}
 
-\subsection{Building Permits and the Permit Pipeline}
+\subsection{Building Permits and the Permit Process}
 \label{subsec:permit_pipeline}
 
 The City's public data contain permits recorded by the Department of Buildings since 2006.
@@ -175,7 +175,8 @@ Processing time is days from application to issuance.}
 \subsection{Regulatory Stringency Scores}
 \label{subsec:stringency}
 
-I construct the stringency score using permit records from 2006--2022 by residualizing permit processing times against ward and permit characteristics, then extracting the alderman-specific component.
+I construct the stringency score using permit records from 2006--2022.
+I first adjust processing times for observed differences across wards, locations, permits, and months, then estimate the remaining alderman-specific differences.
 The first stage regresses log processing time at the permit level on ward-level demographic controls (median household income, racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
 %
 \begin{equation} \label{eq:stringency_reg1}
@@ -185,7 +186,8 @@ The first stage regresses log processing time at the permit level on ward-level 
 where $\gamma_{\text{ym}}$ are year-month fixed effects, $\delta_{\text{pt}}$ are permit-type fixed effects, and $\zeta_{\text{rt}}$ are review-type fixed effects.
 Table~\ref{tab:stage1_residualization} in the Appendix reports the coefficients on the first stage controls.
 
-The second stage aggregates these residuals to the ward-month level and projects the ward-month mean residual onto alderman indicator variables and the same lagged ward-month permit volume control, weighted by the number of permits observed in each ward-month:
+The second stage averages the adjusted processing times by ward and month, then regresses those averages on alderman indicators and the same lagged ward-month permit-volume control.
+Ward-months are weighted by the number of permits observed:
 %
 \begin{equation} \label{eq:stringency_reg2}
     \bar{\hat{\epsilon}}_{wm} = \mu + \alpha_{a(w,m)} + \lambda \text{Volume}_{w,m-1} + \eta_{wm}
@@ -202,7 +204,7 @@ The scores vary across wealthy and poor neighborhoods and across the North and S
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../tasks/audits/income_score_current_results/output/income_score_map_2022.pdf}
+    \includegraphics[width=0.8\textwidth]{../tasks/strictness_score_map/output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022-01.pdf}
     \caption{Geographic Distribution of Regulatory Stringency}
 \figurenotes{Map shows standardized stringency scores by ward, estimated using permit records through December 2022 and displayed on the January 2022 ward map.
 Darker shades indicate more stringent aldermen.}
@@ -214,8 +216,8 @@ Darker shades indicate more stringent aldermen.}
 I construct a citywide dataset of new residential construction in Chicago between 2006 and 2022 using publicly available data from the Cook County Assessor's Office.
 I combine residential improvement characteristics with commercial valuation records for properties assessed under multifamily model groups.
 Together, these files report dwelling units, stories, building area, and land area.
-I geocode the original parcel identifiers using current and historical Assessor parcel records, assign each parcel to its ward using City of Chicago shapefiles, and define the construction date as June 15 of the recorded year built.
-I keep parcels with positive lot area, positive building area, and at least one dwelling unit.
+I locate each project using current and historical Assessor parcel records, assign it to a ward using City of Chicago shapefiles, and define the construction date as June 15 of the recorded year built.
+I keep projects with positive lot area, positive building area, and at least one dwelling unit.
 
 Formal zoning is an important control, but zoning measured today may reflect changes made for the project itself.
 I therefore assign each project in the boundary samples to the broad zoning group in force on June 15 of its construction year.
@@ -224,11 +226,11 @@ Annual Cook County parcel maps allow me to follow sites whose parcel identifiers
 The reconstruction covers every project used in the main and placebo boundary analyses and reproduces the classifications observed in later official zoning maps.
 Appendix~\ref{subsec:new_construction_sample} provides additional detail.
 
-For each parcel I compute two standard density measures: Floor Area Ratio (FAR), defined as total building area divided by lot area, and Dwelling Units Per Acre (DUPAC), defined as dwelling units divided by lot acreage.
-Distance to the nearest ward boundary is computed after projecting parcels and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
+For each project I compute two standard density measures: Floor Area Ratio (FAR), defined as total building area divided by lot area, and Dwelling Units Per Acre (DUPAC), defined as dwelling units divided by lot acreage.
+Distance to the nearest ward boundary is computed after projecting project locations and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
 
 Table~\ref{tab:summary_stats} presents summary statistics.
-The 500ft boundary sample contains 3,710 new residential projects, including 837 classified as multifamily.
+The estimation sample contains 3,692 new residential projects within 500ft of a ward boundary, including 822 classified as multifamily.
 I report the multifamily sample separately because aldermanic discretion is likely to matter most for larger projects.
 I focus on the multifamily sample and report the all-construction estimates for comparison.
 

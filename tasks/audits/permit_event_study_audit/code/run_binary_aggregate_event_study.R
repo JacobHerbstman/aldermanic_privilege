@@ -111,6 +111,7 @@ data <- arrow::read_parquet(
       outcome_name == "low_discretion_nosigns" ~
         n_low_discretion_nosigns_application
     ),
+    post = as.integer(relative_year >= 0L),
     stricter = as.integer(score_change > 0),
     lenient = as.integer(score_change < 0),
     signed_direction = stricter - lenient
@@ -174,7 +175,7 @@ joint_event_model <- fixest::fepois(
     i(relative_year, stricter, ref = -1) +
     i(relative_year, lenient, ref = -1) +
     pre_period_permit_volume:factor(year) +
-    no_pre_period_permits:factor(year) |
+    post:no_pre_period_permits |
     block_id + ward_pair_id^year,
   data = data,
   cluster = ~ward_pair_id,
@@ -185,7 +186,7 @@ signed_event_model <- fixest::fepois(
   outcome ~
     i(relative_year, signed_direction, ref = -1) +
     pre_period_permit_volume:factor(year) +
-    no_pre_period_permits:factor(year) |
+    post:no_pre_period_permits |
     block_id + ward_pair_id^year,
   data = data,
   cluster = ~ward_pair_id,
@@ -389,7 +390,6 @@ signed_pretrend_p_value <- stats::pf(
 
 pooled_data <- data |>
   dplyr::mutate(
-    post = as.integer(relative_year >= 0L),
     post_stricter = post * stricter,
     post_lenient = post * lenient,
     post_signed = post * signed_direction
@@ -400,7 +400,7 @@ joint_pooled_model <- fixest::fepois(
     post_stricter +
     post_lenient +
     pre_period_permit_volume:factor(year) +
-    no_pre_period_permits:factor(year) |
+    post:no_pre_period_permits |
     block_id + ward_pair_id^year,
   data = pooled_data,
   cluster = ~ward_pair_id,
@@ -411,7 +411,7 @@ signed_pooled_model <- fixest::fepois(
   outcome ~
     post_signed +
     pre_period_permit_volume:factor(year) +
-    no_pre_period_permits:factor(year) |
+    post:no_pre_period_permits |
     block_id + ward_pair_id^year,
   data = pooled_data,
   cluster = ~ward_pair_id,

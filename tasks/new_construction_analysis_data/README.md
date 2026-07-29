@@ -18,6 +18,6 @@ The complete derivation, review evidence, and validation checks are in:
 - `tasks/audits/new_construction_universe_validation/`
 - `tasks/audits/new_construction_project_verification/`
 
-The production file intentionally omits audit URLs, review notes, intermediate
+The analysis file intentionally omits audit URLs, review notes, intermediate
 matches, and diagnostics. Its SHA-256 hash is
-`64cdb00adb87fcea6c49646983ba4346125f855eb2c49658508701202677fbff`.
+`9dc7953e91bdf21a909224d2d68697a8440b56b66f137c7d784bea6137bf8ea4`.

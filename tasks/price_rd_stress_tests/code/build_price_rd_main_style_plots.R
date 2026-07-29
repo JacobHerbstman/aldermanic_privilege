@@ -35,69 +35,17 @@ bins_per_side <- as.integer(bins_per_side)
 placebo_cutoff_ft <- as.integer(placebo_cutoff_ft)
 cutoffs_ft <- c(-placebo_cutoff_ft, 0, placebo_cutoff_ft)
 
-scores <- readr::read_csv(
-  "../input/alderman_scores.csv",
-  show_col_types = FALSE
-) |>
-  dplyr::filter(
-    cutoff == 2022L,
-    variant == "income_added_back"
-  ) |>
-  dplyr::select(alderman, score)
-
-if (
-  nrow(scores) == 0L ||
-    anyDuplicated(scores$alderman) ||
-    any(is.na(scores$score))
-) {
-  stop("The income-only score crosswalk failed validation.")
-}
-
 if (market == "rent") {
-  source("../../_lib/amenity_distance_helpers.R")
-
   rent <- read_parquet(
-    "../input/rent_with_ward_distances_full.parquet"
+    "../input/rental_rd_characteristics_panel_bw1500.parquet"
   ) |>
     as_tibble() |>
-    dplyr::select(
-      -dplyr::any_of(c(
-        "strictness_own",
-        "strictness_neighbor",
-        "score_own",
-        "score_neighbor"
-      ))
-    ) |>
-    dplyr::left_join(
-      scores |>
-        dplyr::rename(
-          alderman_own = alderman,
-          score_own = score
-        ),
-      by = "alderman_own",
-      relationship = "many-to-one"
-    ) |>
-    dplyr::left_join(
-      scores |>
-        dplyr::rename(
-          alderman_neighbor = alderman,
-          score_neighbor = score
-        ),
-      by = "alderman_neighbor",
-      relationship = "many-to-one"
-    )
-
-  if (!"signed_dist_m" %in% names(rent)) {
-    stop("Rental input must include signed_dist_m.", call. = FALSE)
-  }
-
-  rent <- rent %>%
     mutate(
       file_date = as.Date(file_date),
       year = lubridate::year(file_date),
       year_month = format(file_date, "%Y-%m"),
-      right = as.integer(score_own > score_neighbor),
-      signed_dist_ft = abs(as.numeric(dist_m) / 0.3048) *
+      right = as.integer(strictness_own > strictness_neighbor),
+      signed_dist_ft = abs(as.numeric(dist_ft)) *
         if_else(right == 1L, 1, -1),
       ward_pair = as.character(ward_pair_id),
       segment_id = as.character(segment_id),
@@ -113,129 +61,27 @@ if (market == "rent") {
       rent_price > 0,
       is.finite(signed_dist_ft),
       abs(signed_dist_ft) <= max(abs(cutoffs_ft)) + bandwidth_ft,
-      is.finite(score_own),
-      is.finite(score_neighbor),
+      is.finite(strictness_own),
+      is.finite(strictness_neighbor),
       !is.na(segment_id),
       segment_id != "",
       !is.na(ward_pair),
+      flag_clean_location_sample,
       is.finite(beds),
-      beds >= 0
-    )
-
-  location_flags <- c(
-    "flag_location_questionable",
-    "flag_modal_assignment_missing",
-    "flag_modal_changes_ward",
-    "flag_modal_changes_neighbor_ward",
-    "flag_modal_changes_pair",
-    "flag_modal_dist_diff_gt100ft"
-  )
-  missing_location_flags <- setdiff(location_flags, names(rent))
-  if (length(missing_location_flags) > 0) {
-    stop(sprintf(
-      "Rental input is missing location-quality flags: %s.",
-      paste(missing_location_flags, collapse = ", ")
-    ), call. = FALSE)
-  }
-  for (flag_col in location_flags) {
-    rent[[flag_col]] <- coalesce(as.logical(rent[[flag_col]]), FALSE)
-  }
-
-  rent <- rent %>%
-    mutate(
-      flag_clean_location_sample = !flag_location_questionable &
-        !flag_modal_assignment_missing &
-        !flag_modal_changes_ward &
-        !flag_modal_changes_neighbor_ward &
-        !flag_modal_changes_pair &
-        !flag_modal_dist_diff_gt100ft
-    ) %>%
-    filter(flag_clean_location_sample, is.finite(longitude), is.finite(latitude))
-
-  rent_coords <- build_unique_coordinate_amenity_table(
-    rent,
-    "longitude",
-    "latitude",
-    "../input/schools_2015.gpkg",
-    "../input/parks.gpkg",
-    "../input/major_streets.gpkg",
-    "../input/gis_osm_water_a_free_1.shp",
-    chunk_n = 100000L,
-    distance_units = "feet"
-  )
-  cta_stops <- read_amenity_layer("../input/cta_stops.gpkg") %>%
-    mutate(
-      active_from_date = as.Date(active_from_date),
-      active_to_date = as.Date(active_to_date)
-    )
-  if (!all(c("active_from_date", "active_to_date") %in% names(cta_stops))) {
-    stop("CTA stop layer must include active_from_date and active_to_date.", call. = FALSE)
-  }
-  if (any(is.na(cta_stops$active_from_date))) {
-    stop("CTA stop layer has missing active_from_date values.", call. = FALSE)
-  }
-
-  rent_coords_month <- rent %>%
-    distinct(longitude, latitude, year_month) %>%
-    mutate(
-      month_start = as.Date(paste0(year_month, "-01")),
-      month_end = lubridate::ceiling_date(month_start, "month") - lubridate::days(1)
-    )
-  rent_coords_month_sf <- st_as_sf(
-    rent_coords_month,
-    coords = c("longitude", "latitude"),
-    crs = 4326,
-    remove = FALSE
-  ) %>%
-    st_transform(3435)
-
-  cta_distance_rows <- list()
-  coords_by_month <- split(rent_coords_month_sf, rent_coords_month_sf$year_month)
-  for (month_i in names(coords_by_month)) {
-    month_points <- coords_by_month[[month_i]]
-    month_start <- unique(month_points$month_start)
-    month_end <- unique(month_points$month_end)
-    if (length(month_start) != 1L || length(month_end) != 1L) {
-      stop("CTA month split has non-unique month dates.", call. = FALSE)
-    }
-
-    active_cta <- cta_stops %>%
-      filter(
-        active_from_date <= month_end,
-        is.na(active_to_date) | active_to_date >= month_start
+      beds >= 0,
+      !is.na(log_sqft),
+      !is.na(log_baths),
+      if_all(
+        all_of(c(
+          "nearest_school_dist_kft",
+          "nearest_park_dist_kft",
+          "nearest_major_road_dist_kft",
+          "nearest_cta_stop_dist_kft",
+          "lake_michigan_dist_kft"
+        )),
+        is.finite
       )
-    if (nrow(active_cta) == 0) {
-      stop(sprintf("No active CTA stations for %s.", month_i), call. = FALSE)
-    }
-
-    nearest_idx <- st_nearest_feature(month_points, active_cta)
-    nearest_cta <- active_cta[nearest_idx, ]
-    cta_distance_rows[[length(cta_distance_rows) + 1L]] <- st_drop_geometry(month_points) %>%
-      transmute(
-        longitude,
-        latitude,
-        year_month,
-        nearest_cta_stop_dist_ft = as.numeric(st_distance(month_points, nearest_cta, by_element = TRUE))
-      )
-  }
-  cta_distances <- bind_rows(cta_distance_rows)
-  if (anyDuplicated(cta_distances[c("longitude", "latitude", "year_month")]) > 0) {
-    stop("CTA distance table must be unique by coordinate-month.", call. = FALSE)
-  }
-
-  rent <- rent %>%
-    left_join(rent_coords, by = c("longitude", "latitude"), relationship = "many-to-one") %>%
-    left_join(cta_distances, by = c("longitude", "latitude", "year_month"), relationship = "many-to-one") %>%
-    mutate(
-      nearest_school_dist_kft = nearest_school_dist_ft / 1000,
-      nearest_park_dist_kft = nearest_park_dist_ft / 1000,
-      nearest_major_road_dist_kft = nearest_major_road_dist_ft / 1000,
-      nearest_cta_stop_dist_kft = nearest_cta_stop_dist_ft / 1000,
-      lake_michigan_dist_kft = lake_michigan_dist_ft / 1000
     )
-  if (anyDuplicated(rent$rent_panel_id) > 0) {
-    stop("Rental amenity join expanded rent_panel_id rows.", call. = FALSE)
-  }
 
   rent_controls <- c(
     "log_sqft",
@@ -262,43 +108,11 @@ if (market == "rent") {
     "../input/sales_with_hedonics_amenities.parquet"
   ) |>
     as_tibble() |>
-    dplyr::select(
-      -dplyr::any_of(c(
-        "strictness_own",
-        "strictness_neighbor",
-        "score_own",
-        "score_neighbor"
-      ))
-    ) |>
-    dplyr::left_join(
-      scores |>
-        dplyr::rename(
-          alderman_own = alderman,
-          score_own = score
-        ),
-      by = "alderman_own",
-      relationship = "many-to-one"
-    ) |>
-    dplyr::left_join(
-      scores |>
-        dplyr::rename(
-          alderman_neighbor = alderman,
-          score_neighbor = score
-        ),
-      by = "alderman_neighbor",
-      relationship = "many-to-one"
-    )
-
-  if (!"signed_dist_m" %in% names(sales)) {
-    stop("Sales input must include signed_dist_m.", call. = FALSE)
-  }
-
-  sales <- sales %>%
     mutate(
       sale_date = as.Date(sale_date),
       year = lubridate::year(sale_date),
       year_quarter = paste0(year, "-Q", lubridate::quarter(sale_date)),
-      right = as.integer(score_own > score_neighbor),
+      right = as.integer(strictness_own > strictness_neighbor),
       signed_dist_ft = abs(as.numeric(dist_m) / 0.3048) *
         if_else(right == 1L, 1, -1),
       ward_pair = as.character(ward_pair_id),
@@ -316,8 +130,8 @@ if (market == "rent") {
       sale_price > 0,
       is.finite(signed_dist_ft),
       abs(signed_dist_ft) <= max(abs(cutoffs_ft)) + bandwidth_ft,
-      is.finite(score_own),
-      is.finite(score_neighbor),
+      is.finite(strictness_own),
+      is.finite(strictness_neighbor),
       !is.na(segment_id),
       segment_id != "",
       !is.na(ward_pair)

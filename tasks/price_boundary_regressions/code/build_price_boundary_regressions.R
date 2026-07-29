@@ -41,25 +41,6 @@ if (
   stop("Invalid price-boundary specification.")
 }
 
-scores <- readr::read_csv(
-  "../input/alderman_scores.csv",
-  show_col_types = FALSE
-) |>
-  dplyr::filter(
-    cutoff == 2022L,
-    variant == "income_added_back"
-  ) |>
-  dplyr::select(alderman, score)
-
-if (
-  nrow(scores) == 0L ||
-    anyDuplicated(scores$alderman) ||
-    any(is.na(scores$alderman)) ||
-    any(is.na(scores$score))
-) {
-  stop("The selected alderman score crosswalk failed validation.")
-}
-
 rent <- arrow::read_parquet(
   sprintf(
     "../input/rental_rd_characteristics_panel_bw%.0f.parquet",
@@ -67,31 +48,11 @@ rent <- arrow::read_parquet(
   )
 ) |>
   tibble::as_tibble() |>
-  dplyr::select(
-    -dplyr::any_of(c(
-      "strictness_own",
-      "strictness_neighbor",
-      "score_own",
-      "score_neighbor"
-    ))
-  ) |>
-  dplyr::left_join(
-    scores |>
-      dplyr::rename(alderman_own = alderman, score_own = score),
-    by = "alderman_own",
-    relationship = "many-to-one"
-  ) |>
-  dplyr::left_join(
-    scores |>
-      dplyr::rename(alderman_neighbor = alderman, score_neighbor = score),
-    by = "alderman_neighbor",
-    relationship = "many-to-one"
-  ) |>
   dplyr::mutate(
     file_date = as.Date(file_date),
     year = lubridate::year(file_date),
     year_month = format(file_date, "%Y-%m"),
-    right = as.integer(score_own > score_neighbor),
+    right = as.integer(strictness_own > strictness_neighbor),
     signed_dist_ft = abs(as.numeric(signed_dist)) * dplyr::if_else(
       right == 1L,
       1,
@@ -125,8 +86,8 @@ rent <- arrow::read_parquet(
     rent_price > 0,
     is.finite(signed_dist_ft),
     abs(signed_dist_ft) <= bandwidth_ft,
-    is.finite(score_own),
-    is.finite(score_neighbor),
+    is.finite(strictness_own),
+    is.finite(strictness_neighbor),
     !is.na(segment_id),
     segment_id != "",
     !is.na(ward_pair_id),
@@ -175,28 +136,8 @@ sales <- arrow::read_parquet(
   "../input/sales_with_hedonics_amenities.parquet"
 ) |>
   tibble::as_tibble() |>
-  dplyr::select(
-    -dplyr::any_of(c(
-      "strictness_own",
-      "strictness_neighbor",
-      "score_own",
-      "score_neighbor"
-    ))
-  ) |>
-  dplyr::left_join(
-    scores |>
-      dplyr::rename(alderman_own = alderman, score_own = score),
-    by = "alderman_own",
-    relationship = "many-to-one"
-  ) |>
-  dplyr::left_join(
-    scores |>
-      dplyr::rename(alderman_neighbor = alderman, score_neighbor = score),
-    by = "alderman_neighbor",
-    relationship = "many-to-one"
-  ) |>
   dplyr::mutate(
-    right = as.integer(score_own > score_neighbor),
+    right = as.integer(strictness_own > strictness_neighbor),
     signed_dist_ft = abs(as.numeric(signed_dist_m) / 0.3048) *
       dplyr::if_else(right == 1L, 1, -1)
   ) |>
@@ -210,8 +151,8 @@ sales <- arrow::read_parquet(
     segment_id != "",
     is.finite(signed_dist_ft),
     abs(signed_dist_ft) <= bandwidth_ft,
-    is.finite(score_own),
-    is.finite(score_neighbor)
+    is.finite(strictness_own),
+    is.finite(strictness_neighbor)
   )
 
 hedonic_controls <- c(

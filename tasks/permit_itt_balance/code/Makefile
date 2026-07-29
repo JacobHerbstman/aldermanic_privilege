@@ -8,10 +8,10 @@ all: ../output/permit_itt_balance_$(BANDWIDTH_LABEL).tex
 	Rscript $< $(BANDWIDTH_M) $(BANDWIDTH_LABEL) $(BASELINE_YEAR)
 
 ../input/permit_block_year_panel_2015.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/block_group_controls.csv: ../../create_block_group_controls/output/block_group_controls.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv
 
