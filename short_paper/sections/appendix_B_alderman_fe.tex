@@ -1,0 +1,73 @@
+% !TEX root = ../paper.tex
+
+\section{Alderman Fixed Effects and Index Validation}
+\label{sec:appendix_alderman_fe}
+
+This appendix provides additional detail on how the aldermanic stringency index is constructed and validated.
+
+\subsection{Construction of the Stringency Index}
+
+Aldermanic stringency is measured using processing times from the high-discretion permit sample described in Section~\ref{subsec:permits_sample}.
+The processing-time regression uses positive-duration permits through December 2022.
+Same-day permits remain in the lagged ward-month permit count.
+
+\paragraph{Stage 1: Adjusting Processing Times.}
+I regress permit-level log processing time on characteristics of the permit's location (distance to the CBD, distance to the lake, and nearby CTA stations), ward demographic controls (median household income, homeownership rate, population, and racial composition), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type.
+Appendix~\ref{app:data_sources} describes how block group demographics are allocated across ward boundaries to construct the ward controls.
+
+\paragraph{Stage 2: Alderman Differences.}
+I average the adjusted processing times by ward and month, then regress those ward-month averages on alderman indicators $\alpha_{a(w,m)}$ and the same lagged permit-volume control.
+Ward-months are weighted by their permit counts.
+Here $a(w,m)$ denotes the alderman serving ward $w$ in month $m$.
+The alderman fixed effect captures the systematic component of processing time attributable to the alderman.
+
+\paragraph{Empirical Bayes Shrinkage.}
+Raw alderman fixed effects are shrunk toward the grand mean using an empirical Bayes procedure: $\hat{\theta}_j^{\text{EB}} = B_j \cdot \hat{\theta}_j$, where $B_j = \hat{\tau}^2/(\hat{\tau}^2 + \hat{\sigma}_j^2)$ is the shrinkage factor.
+
+\paragraph{Index Standardization.}
+The final stringency index is standardized to have mean zero and unit standard deviation across aldermen.
+Higher values indicate more stringent aldermen.
+
+Table~\ref{tab:stage1_residualization} reports the first regression used to construct the stringency index.
+The dependent variable is permit-level log processing time.
+The specification controls for observed differences across wards and permit locations, as well as the mix of permit and review types.
+The purpose of this stage is to remove systematic differences in permit timing attributable to those observed characteristics before estimating the alderman-specific component.
+
+\begin{table}[htbp]
+    \caption{First-Stage Processing-Time Regression}
+    \label{tab:stage1_residualization}
+    \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex}
+
+    \footnotesize
+    \textit{Notes:} Permit-level OLS regression used to construct the stringency index, using permit records through December 2022.
+    Covariates are median household income, racial shares, homeownership, population, distance to the CBD, distance to the lake, CTA station density, and lag permit volume.
+    Fixed effects are listed in the table.
+    Regressions are unweighted.
+    Standard errors clustered by ward in parentheses. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.72\textwidth]{../tasks/strictness_score_map/output/uncertainty_score_distribution_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf}
+    \caption{Distribution of Aldermanic Stringency Scores}
+\figurenotes{Stringency scores are constructed from residualized permit processing times through December 2022 with empirical Bayes shrinkage.
+Scores are standardized to mean zero and unit standard deviation.
+Higher values indicate aldermen associated with longer permit processing times after controlling for ward demographics, permit-location characteristics, permit and review types, and time.}
+    \label{fig:aldermanic_stringency_scores}
+\end{figure}
+
+\subsection{Validation of the Stringency Index}
+\label{app:stringency_validation}
+
+The stringency index is intended to capture alderman-specific regulatory frictions rather than purely ward-level conditions.
+Figure~\ref{fig:predecessor_successor_stringency} compares predecessor and successor aldermen within the same ward.
+The weak relationship indicates that the index is not simply reflecting time-invariant ward characteristics.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.72\textwidth]{../tasks/strictness_score_map/output/uncertainty_score_predecessor_successor_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf}
+    \caption{Predecessor and Successor Aldermanic Stringency Within the Same Ward}
+    \figurenotes{Each point compares the stringency score of an alderman to that of the predecessor or successor who represented the same ward in an adjacent period.
+    The low correlation indicates that the stringency measure is not simply a persistent ward-level attribute.}
+    \label{fig:predecessor_successor_stringency}
+\end{figure}

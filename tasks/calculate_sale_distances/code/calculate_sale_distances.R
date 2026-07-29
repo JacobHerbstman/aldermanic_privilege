@@ -11,33 +11,54 @@ ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
 canonical_ward_maps <- load_canonical_ward_maps(ward_panel)
 canonical_boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg")
 
-alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
-    mutate(month = as.yearmon(month))
-ald_lookup <- alderman_panel %>%
-    select(ward, month, alderman) %>%
-    distinct()
-if (anyDuplicated(ald_lookup[, c("ward", "month")]) > 0) {
-    stop("Alderman panel must be unique by ward-month.", call. = FALSE)
+alderman_terms <- read_csv("../input/chicago_alderman_terms.csv", show_col_types = FALSE) %>%
+    mutate(
+        start_date = as.Date(start_date),
+        end_date = as.Date(end_date)
+    ) %>%
+    arrange(ward, start_date)
+term_overlaps <- alderman_terms %>%
+    group_by(ward) %>%
+    mutate(next_start_date = lead(start_date)) %>%
+    ungroup() %>%
+    filter(!is.na(next_start_date), next_start_date <= end_date)
+if (nrow(term_overlaps) > 0) {
+    stop("Alderman terms overlap within a ward.", call. = FALSE)
 }
 
-sales_raw <- fread("../input/parcel_sales.csv")
+sales_raw <- fread(
+    "../input/parcel_sales.csv",
+    colClasses = list(character = c("pin", "sale_date", "sale_price", "row_id"))
+)
 
 sales <- sales_raw %>%
     filter(class %in% c(202, 203, 204, 205, 206, 207, 208, 209, 210, 211)) %>%
     mutate(
         sale_price_nominal = as.numeric(gsub("[$,]", "", sale_price)),
         year = as.numeric(year),
-        pin = as.character(pin),
+        pin = gsub("[^0-9]", "", trimws(pin)),
         sale_date = coalesce(
             as.Date(as.character(sale_date), format = "%B %d, %Y"),
             as.Date(substr(as.character(sale_date), 1, 10), format = "%Y-%m-%d")
         )
     ) %>%
+    mutate(pin = if_else(nchar(pin) == 13L, paste0("0", pin), pin))
+
+if (any(nchar(sales$pin) != 14L)) {
+    stop("Residential sales contain an invalid full PIN.", call. = FALSE)
+}
+
+sales <- sales %>%
     filter(!is.na(sale_price_nominal), sale_price_nominal > 10000, !is.na(year)) %>%
     filter(year >= 1999, year <= 2025) %>%
     filter(sale_deed_type %in% c("Warranty", "Trustee")) %>%
     filter(sale_type != "LAND") %>%
-    filter(!sale_seller_name %in% c("", "-", "UNKNOWN", "..")) %>%
+    filter(
+        !is.na(sale_seller_name),
+        !sale_seller_name %in% c("", "-", "UNKNOWN", ".."),
+        !is.na(sale_buyer_name),
+        !sale_buyer_name %in% c("", "-", "UNKNOWN", "..")
+    ) %>%
     filter(sale_seller_name != sale_buyer_name) %>%
     filter(num_parcels_sale == 1) %>%
     mutate(
@@ -123,42 +144,84 @@ sales <- sales %>%
         sale_price_real_2022_raw = sale_price_nominal * sale_price_deflator_to_2022
     )
 
-p01 <- quantile(sales$sale_price_real_2022_raw, 0.01, na.rm = TRUE)
-p99 <- quantile(sales$sale_price_real_2022_raw, 0.99, na.rm = TRUE)
+analysis_prices <- sales %>%
+    filter(year >= 2006, year <= 2022) %>%
+    pull(sale_price_real_2022_raw)
+if (length(analysis_prices) == 0 || !any(is.finite(analysis_prices))) {
+    stop("No finite 2006-2022 sale prices are available for winsorization.", call. = FALSE)
+}
+p01 <- quantile(analysis_prices, 0.01, na.rm = TRUE)
+p99 <- quantile(analysis_prices, 0.99, na.rm = TRUE)
 
 sales <- sales %>%
     mutate(sale_price = pmin(pmax(sale_price_real_2022_raw, p01), p99))
 
-parcels <- fread("../input/Assessor_-_Parcel_Universe__Current_Year_Only__20251004.csv",
-    select = c("pin", "pin10", "latitude", "longitude")
+parcels <- fread(
+    "../input/parcel_universe_2025_city.csv",
+    select = c("pin", "latitude", "longitude"),
+    colClasses = list(character = "pin")
 )
-parcels[, `:=`(pin = as.character(pin), pin10 = as.character(pin10))]
+parcels[, pin := gsub("[^0-9]", "", trimws(pin))]
+parcels[nchar(pin) == 13L, pin := paste0("0", pin)]
+parcels[, `:=`(
+    current_latitude = suppressWarnings(as.numeric(latitude)),
+    current_longitude = suppressWarnings(as.numeric(longitude))
+)]
+parcels[, c("latitude", "longitude") := NULL]
+if (any(nchar(parcels$pin) != 14L)) {
+    stop("Current parcel universe contains an invalid full PIN.", call. = FALSE)
+}
 if (anyDuplicated(parcels$pin) > 0) {
     stop("Parcel universe must be unique by pin.", call. = FALSE)
 }
 
+historical_parcels <- fread(
+    "../input/historical_sale_parcel_coordinates_2006_2022.csv",
+    colClasses = list(character = "pin")
+)
+historical_parcels[, `:=`(
+    historical_latitude = suppressWarnings(as.numeric(latitude)),
+    historical_longitude = suppressWarnings(as.numeric(longitude))
+)]
+historical_parcels[, c("latitude", "longitude") := NULL]
+if (anyDuplicated(historical_parcels[, .(pin, year)]) > 0) {
+    stop("Historical parcel coordinates must be unique by pin-year.", call. = FALSE)
+}
+
 sales_geo <- sales %>%
-    left_join(parcels, by = "pin", relationship = "many-to-one")
+    left_join(
+        historical_parcels %>%
+            select(pin, year, historical_latitude, historical_longitude),
+        by = c("pin", "year"),
+        relationship = "many-to-one"
+    ) %>%
+    left_join(parcels, by = "pin", relationship = "many-to-one") %>%
+    mutate(
+        has_historical_coordinates = is.finite(historical_latitude) &
+            is.finite(historical_longitude),
+        has_current_coordinates = is.finite(current_latitude) &
+            is.finite(current_longitude),
+        latitude = if_else(
+            has_historical_coordinates,
+            historical_latitude,
+            current_latitude
+        ),
+        longitude = if_else(
+            has_historical_coordinates,
+            historical_longitude,
+            current_longitude
+        ),
+        coordinate_source = case_when(
+            has_historical_coordinates ~ "historical_exact_pin_year",
+            has_current_coordinates ~ "current_2025_fallback",
+            TRUE ~ NA_character_
+        ),
+        coordinate_year = if_else(has_historical_coordinates, year, 2025)
+    )
 
-missing_coords <- sum(is.na(sales_geo$latitude))
-
-if (missing_coords > 0) {
-    sales_geo <- sales_geo %>%
-        mutate(pin10_sales = substr(pin, 1, 10))
-
-    sales_found <- sales_geo %>% filter(!is.na(latitude))
-    sales_missing <- sales_geo %>%
-        filter(is.na(latitude)) %>%
-        select(-latitude, -longitude, -pin10)
-
-    parcels_pin10 <- parcels %>%
-        select(pin10, latitude, longitude) %>%
-        distinct(pin10, .keep_all = TRUE)
-
-    sales_missing_fixed <- sales_missing %>%
-        left_join(parcels_pin10, by = c("pin10_sales" = "pin10"), relationship = "many-to-one")
-
-    sales_geo <- bind_rows(sales_found, sales_missing_fixed)
+unresolved_coordinates <- !is.finite(sales_geo$latitude) | !is.finite(sales_geo$longitude)
+if (any(unresolved_coordinates & sales_geo$year >= 2006 & sales_geo$year <= 2022)) {
+    stop("A 2006-2022 sale has unresolved exact-PIN coordinates.", call. = FALSE)
 }
 
 sales_sf <- sales_geo %>%
@@ -197,27 +260,46 @@ final_df <- results_sf %>%
     as_tibble()
 
 final_df <- final_df %>%
-    mutate(month_join = as.yearmon(sale_date_use))
+    select(-any_of(c(
+        "historical_latitude", "historical_longitude",
+        "current_latitude", "current_longitude",
+        "has_historical_coordinates", "has_current_coordinates"
+    )))
+
+alderman_daily <- alderman_terms %>%
+    mutate(
+        start_date = pmax(start_date, min(final_df$sale_date_use, na.rm = TRUE)),
+        end_date = pmin(end_date, max(final_df$sale_date_use, na.rm = TRUE))
+    ) %>%
+    filter(start_date <= end_date) %>%
+    rowwise() %>%
+    mutate(sale_date_use = list(seq(start_date, end_date, by = "day"))) %>%
+    ungroup() %>%
+    select(ward, sale_date_use, alderman) %>%
+    tidyr::unnest(sale_date_use)
+if (anyDuplicated(alderman_daily[, c("ward", "sale_date_use")]) > 0) {
+    stop("Exact-date alderman lookup must be unique by ward-date.", call. = FALSE)
+}
 
 final_df <- final_df %>%
     left_join(
-        ald_lookup,
-        by = c("ward" = "ward", "month_join" = "month"),
+        alderman_daily,
+        by = c("ward", "sale_date_use"),
         relationship = "many-to-one"
     ) %>%
     rename(alderman_own = alderman)
 
 final_df <- final_df %>%
     left_join(
-        ald_lookup,
-        by = c("neighbor_ward" = "ward", "month_join" = "month"),
+        alderman_daily,
+        by = c("neighbor_ward" = "ward", "sale_date_use"),
         relationship = "many-to-one"
     ) %>%
     rename(alderman_neighbor = alderman)
 
 final_output <- final_df %>%
     select(
-        pin, year,
+        row_id, sale_document_num, pin, year,
         sale_date = sale_date_use,
         boundary_year,
         sale_price,
@@ -225,7 +307,7 @@ final_output <- final_df %>%
         sale_price_real_2022_raw,
         sale_price_cpi_chi_all_items,
         sale_price_deflator_to_2022,
-        class,
+        class, coordinate_source, coordinate_year,
         latitude, longitude, ward, neighbor_ward, ward_pair_id,
         dist_m,
         alderman_own, alderman_neighbor

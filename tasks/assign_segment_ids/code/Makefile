@@ -1,5 +1,5 @@
 SEGMENT_LENGTH_FT ?= 1320
-SEGMENT_BUFFER_M ?= 250
+SEGMENT_BUFFER_M ?= 457.2
 
 all: ../output/parcel_segment_ids.csv
 

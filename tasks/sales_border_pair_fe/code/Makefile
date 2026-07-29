@@ -5,7 +5,7 @@ END_YEAR ?= 2022
 
 all: ../output/sales_rd_flat_bw$(BANDWIDTH_FT)_year_quarter_amenity_clust_segment.pdf
 
-../output/sales_with_hedonics_amenities.parquet: enrich_sales_with_amenity_distances.R ../../_lib/amenity_distance_helpers.R ../input/sales_with_hedonics.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
+../output/sales_with_hedonics_amenities.parquet: enrich_sales_with_amenity_distances.R ../../_lib/amenity_distance_helpers.R ../input/sales_with_hedonics.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output
 	Rscript $<
 
 ../output/sales_rd_flat_bw$(BANDWIDTH_FT)_year_quarter_amenity_clust_segment.pdf: sales_level_plot.R ../output/sales_with_hedonics_amenities.parquet | ../output
@@ -23,6 +23,9 @@ all: ../output/sales_rd_flat_bw$(BANDWIDTH_FT)_year_quarter_amenity_clust_segmen
 ../input/major_streets.gpkg: ../../prepare_amenities_data/output/major_streets.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
+../input/cta_stops.gpkg: ../../prepare_amenities_data/output/cta_stops.gpkg | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
 ../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
@@ -31,6 +34,7 @@ link-inputs: \
 	../input/schools_2015.gpkg \
 	../input/parks.gpkg \
 	../input/major_streets.gpkg \
+	../input/cta_stops.gpkg \
 	../input/gis_osm_water_a_free_1.shp \
 	../input/gis_osm_water_a_free_1.dbf \
 	../input/gis_osm_water_a_free_1.prj \

@@ -1,7 +1,7 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids/code")
 # segment_length_ft <- 1320
-# segment_buffer_m <- 250
+# segment_buffer_m <- 457.2
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")

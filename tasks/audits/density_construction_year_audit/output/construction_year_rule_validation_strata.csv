@@ -1,0 +1,15 @@
+validation_stratum,selection_rule,pin_cards,in_paper_window,unique_new_construction_permit_matches,median_build_minus_permit_year,median_absolute_permit_gap,share_permit_zero_to_three_years_before_build
+all_single_card,latest_repeated_post_1999,27907,13333,4927,0,1,0.7450781408565049
+all_single_card,latest_report_all,27907,13333,4927,0,1,0.7452811041201542
+all_single_card,latest_report_at_sample_end,27907,13336,4927,0,1,0.7446722143292064
+all_single_card,latest_report_through_2022,25081,12667,4168,0,1,0.7068138195777351
+all_single_card,latest_report_through_2025,27455,13300,4868,0,1,0.7426047658175843
+all_single_card,minimum_post_1999,27907,12657,4927,0,1,0.6515120763141872
+all_single_card,modal_post_1999,27907,12686,4927,0,1,0.6975847371625735
+revised_post_1999,latest_repeated_post_1999,6888,4275,1741,1,1,0.8081562320505457
+revised_post_1999,latest_report_all,6888,4275,1741,1,1,0.8087306145893165
+revised_post_1999,latest_report_at_sample_end,6888,4278,1741,1,1,0.8070074669730041
+revised_post_1999,latest_report_through_2022,6881,4275,1740,1,1,0.8074712643678161
+revised_post_1999,latest_report_through_2025,6888,4275,1741,1,1,0.8081562320505457
+revised_post_1999,minimum_post_1999,6888,3599,1741,0,1,0.543365881677197
+revised_post_1999,modal_post_1999,6888,3628,1741,0,1,0.6737507179781734

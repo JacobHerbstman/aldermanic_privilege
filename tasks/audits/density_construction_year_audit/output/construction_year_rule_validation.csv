@@ -1,0 +1,8 @@
+selection_rule,single_card_pin_cards,in_paper_window,revised_post_1999,unique_new_construction_permit_matches,median_build_minus_permit_year,median_absolute_permit_gap,share_permit_zero_to_three_years_before_build,selected_year_after_tax_record
+latest_repeated_post_1999,27907,13333,6888,4927,0,1,0.7450781408565049,0
+latest_report_all,27907,13333,6888,4927,0,1,0.7452811041201542,0
+latest_report_at_sample_end,27907,13336,6888,4927,0,1,0.7446722143292064,1
+latest_report_through_2022,25081,12667,6881,4168,0,1,0.7068138195777351,1
+latest_report_through_2025,27455,13300,6888,4868,0,1,0.7426047658175843,0
+minimum_post_1999,27907,12657,6888,4927,0,1,0.6515120763141872,4
+modal_post_1999,27907,12686,6888,4927,0,1,0.6975847371625735,0

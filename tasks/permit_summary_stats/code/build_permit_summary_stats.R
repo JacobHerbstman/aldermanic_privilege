@@ -3,6 +3,7 @@
 # max_application_ym <- "2022-12"
 
 source("../../setup_environment/code/packages.R")
+source("../../_lib/canonical_geometry_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -33,20 +34,27 @@ integer_rows <- c(
 
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 
-alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
+alderman_terms <- read_csv("../input/chicago_alderman_terms.csv", show_col_types = FALSE) %>%
   mutate(
-    month = as.yearmon(month),
+    ward = as.integer(ward),
+    start_date = as.Date(start_date),
+    end_date = as.Date(end_date),
     alderman = gsub("\\s+", " ", trimws(as.character(alderman)))
   )
-if (anyDuplicated(alderman_panel[c("ward", "month")]) > 0) {
-  stop("Alderman panel must be unique by ward-month.", call. = FALSE)
+if (anyDuplicated(alderman_terms[c("ward", "start_date")]) > 0) {
+  stop("Alderman terms must be unique by ward and start date.", call. = FALSE)
 }
 
 permits <- st_read("../input/building_permits_clean.gpkg", quiet = TRUE) %>%
-  select(id, application_start_date_ym, processing_time, high_discretion, permit_type) %>%
+  select(id, application_start_date, application_start_date_ym, processing_time, high_discretion, permit_type) %>%
   mutate(
+    application_start_date = as.Date(application_start_date),
     application_start_date_ym = as.yearmon(application_start_date_ym),
-    high_discretion = as.integer(high_discretion)
+    high_discretion = as.integer(high_discretion),
+    ward_map_era = canonical_era_from_date(
+      application_start_date,
+      allow_pre_2003 = FALSE
+    )
   ) %>%
   filter(
     !is.na(application_start_date_ym),
@@ -71,26 +79,50 @@ ward_geoms_2016 <- ward_panel %>%
   group_by(ward) %>%
   summarise(.groups = "drop")
 
+ward_geoms_2024 <- ward_panel %>%
+  filter(year == max(year)) %>%
+  select(ward) %>%
+  group_by(ward) %>%
+  summarise(.groups = "drop")
+
 permits_pre_2015_ward <- permits %>%
-  filter(application_start_date_ym < as.yearmon("2015-05")) %>%
+  filter(ward_map_era == "2003_2014") %>%
   st_join(ward_geoms_2014, join = st_within) %>%
   filter(!is.na(ward)) %>%
   st_drop_geometry()
 
-permits_post_2015_ward <- permits %>%
-  filter(application_start_date_ym >= as.yearmon("2015-05")) %>%
+permits_2015_2023_ward <- permits %>%
+  filter(ward_map_era == "2015_2023") %>%
   st_join(ward_geoms_2016, join = st_within) %>%
   filter(!is.na(ward)) %>%
   st_drop_geometry()
 
-permits_with_ward <- bind_rows(permits_pre_2015_ward, permits_post_2015_ward)
+permits_post_2023_ward <- permits %>%
+  filter(ward_map_era == "post_2023") %>%
+  st_join(ward_geoms_2024, join = st_within) %>%
+  filter(!is.na(ward)) %>%
+  st_drop_geometry()
+
+permits_with_ward <- bind_rows(
+  permits_pre_2015_ward,
+  permits_2015_2023_ward,
+  permits_post_2023_ward
+)
 if (anyDuplicated(permits_with_ward$id) > 0) {
   stop("Ward spatial join assigned at least one permit to multiple wards.", call. = FALSE)
 }
 
 permits_analysis_all <- permits_with_ward %>%
   mutate(ward = as.integer(ward)) %>%
-  left_join(alderman_panel, by = c("ward", "application_start_date_ym" = "month"), relationship = "many-to-one") %>%
+  left_join(
+    alderman_terms,
+    by = join_by(
+      ward,
+      application_start_date >= start_date,
+      application_start_date <= end_date
+    ),
+    relationship = "many-to-one"
+  ) %>%
   mutate(alderman = gsub("\\s+", " ", trimws(as.character(alderman)))) %>%
   filter(!is.na(alderman), alderman != "")
 

@@ -1,55 +1,46 @@
 all: paper.pdf
 
-paper.pdf: paper.tex sections/*.tex sections/aldermanic_privilege.bib \
+paper.pdf: Makefile paper.tex sections/*.tex sections/aldermanic_privilege.bib \
+	../tasks/strictness_score_map/output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022-01.pdf \
 	../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
-	../tasks/create_alderman_uncertainty_index/output/uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf \
-	../tasks/new_construction_density_robustness/output/fe_table_500ft_all_zonegroup_segment_year_additive_clust_ward_pair_low_discretion_residualized_mainoutcomes.tex \
-	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_all_donut25ft.pdf \
-	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_all_donut50ft.pdf \
-	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_multifamily_donut25ft.pdf \
-	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_dupac_500ft_multifamily_donut50ft.pdf \
-	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_all_donut25ft.pdf \
-	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_all_donut50ft.pdf \
-	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_multifamily_donut25ft.pdf \
-	../tasks/nonparametric_rd_density_donut/output/nonparametric_rd_density_donut_log_density_far_500ft_multifamily_donut50ft.pdf \
-	../tasks/nonparametric_rd_density_linear_display/output/nonparametric_rd_density_linear_display_4panel_500ft_all_multifamily_bins5.pdf \
-	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_all_shift_neg500ft.pdf \
-	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_all_shift_pos500ft.pdf \
-	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_multifamily_shift_neg500ft.pdf \
-	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_dupac_500ft_multifamily_shift_pos500ft.pdf \
-	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_all_shift_neg500ft.pdf \
-	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_all_shift_pos500ft.pdf \
-	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_multifamily_shift_neg500ft.pdf \
-	../tasks/nonparametric_rd_density_placebo/output/nonparametric_rd_density_placebo_log_density_far_500ft_multifamily_shift_pos500ft.pdf \
+	../tasks/strictness_score_map/output/uncertainty_score_distribution_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf \
+	../tasks/strictness_score_map/output/uncertainty_score_predecessor_successor_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf \
+	../tasks/density_main_results/output/density_rd.pdf \
+	../tasks/density_main_results/output/density_sample_summary.tex \
+	../tasks/density_appendix_results/output/density_placebo_neg1000ft.pdf \
+	../tasks/density_appendix_results/output/density_placebo_pos1000ft.pdf \
+	../tasks/density_appendix_results/output/density_donut25ft.pdf \
+	../tasks/density_appendix_results/output/density_donut50ft.pdf \
+	../tasks/density_boundary_checks/output/density_boundary_robustness.tex \
+	../tasks/density_boundary_checks/output/density_location_continuity.tex \
+	../tasks/run_event_study_permit/output/permit_event_study_high_discretion_stable_signed_500ft.pdf \
+	../tasks/run_event_study_permit/output/permit_event_study_high_discretion_stable_separate_500ft.pdf \
+	../tasks/run_event_study_permit/output/permit_event_study_low_discretion_nosigns_stable_signed_500ft.pdf \
+	../tasks/run_event_study_permit/output/permit_event_study_high_discretion_all_signed_500ft.pdf \
+	../tasks/run_event_study_permit/output/permit_event_study_appendix_500ft.tex \
 	../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf \
 	../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex \
 	../tasks/permit_summary_stats/output/permit_processing_time_volume_correlation.tex \
-	../tasks/rental_rd/output/rental_rd_flat_bw500_2014_2022_all_controls.pdf \
-	../tasks/price_rd_stress_tests/output/rent_placebo_rd_main_style.pdf \
-	../tasks/price_rd_stress_tests/output/sales_placebo_rd_main_style.pdf \
-	../tasks/run_event_study_permit/output/event_study_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_1000ft_within_block_full_clust_block_geo_wardpair.pdf \
-	../tasks/sales_border_pair_fe/output/sales_rd_flat_bw500_year_quarter_amenity_clust_segment.pdf \
-	../tasks/strictness_score_map/output/uncertainty_score_map_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022_2022-01.pdf \
-	../tasks/summary_stats_new_construction/output/summary_stats.tex \
-	../tasks/permit_stringency_table/output/permit_validation_table_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
-	../tasks/within_ward_strictness/output/low_discretion_falsification_compact_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex \
-	../tasks/within_ward_strictness/output/predecessor_successor_scatter_uncertainty_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf
+	../tasks/permit_itt_balance/output/permit_itt_balance_500ft.tex \
+	../tasks/price_boundary_results/output/price_boundary_main.pdf \
+	../tasks/price_boundary_results/output/price_boundary_placebos.pdf \
+	../tasks/price_boundary_results/output/price_boundary_straight.pdf \
+	../tasks/price_boundary_results/output/price_boundary_donuts.pdf
+
+.SECONDEXPANSION:
+paper.pdf: | $$(addprefix task-check/,$$(patsubst ../tasks/%,%,$$(filter ../tasks/%,$$^)))
 	latexmk -pdf -pdflatex="pdflatex -interaction=nonstopmode" -use-make paper.tex
 
 paper.bbl: paper.aux sections/aldermanic_privilege.bib aea.bst
 	bibtex paper
 
-../tasks/%:
-	@case "$@" in \
-		../tasks/*/output/*) \
-			task=$$(printf '%s\n' "$@" | sed 's#^\.\./tasks/##; s#/output/.*##'); \
-			output=$$(printf '%s\n' "$@" | sed 's#^\.\./tasks/[^/]*/output/#../output/#'); \
-			$(MAKE) -C "../tasks/$$task/code" "$$output"; \
-			;; \
-		*) \
-			test -e "$@" || { echo "No paper upstream rule for $@"; false; }; \
-			;; \
-	esac
+../tasks/%: | task-check/%
+	@test -e "$@" || { echo "Task check did not produce $@"; false; }
 
-clean:
-	latexmk -CA
+task-check/%: FORCE
+	@task=$$(printf '%s\n' "$*" | sed 's#/output/.*##'); \
+	output=$$(printf '%s\n' "$*" | sed 's#^.*/output/#../output/#'); \
+	$(MAKE) -C "../tasks/$$task/code" "$$output"
+
+.PHONY: FORCE
+FORCE:

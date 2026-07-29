@@ -1,0 +1,3 @@
+file,source,retrieved_utc,rows,sha256
+commercial_historical_parcel_snapshot.gpkg,https://gis.cookcountyil.gov/traditional/rest/services/parcelHistorical/MapServer,2026-07-23 05:40:19 UTC,1628,fe68d35929618ebc6fddd151203928a3f7420a9a492e7ab3201fcac4bad8c5c8
+commercial_historical_parcel_absence_snapshot.csv,https://gis.cookcountyil.gov/traditional/rest/services/parcelHistorical/MapServer,2026-07-23 05:40:19 UTC,203,86d43d472c3b049dfcb240ae3096fabe2cede0fb1dcb06da5c11704aae2d587d

@@ -1,8 +1,9 @@
 all: ../output/task_flow.png
 
 
-../output/graph.txt: graphmaker.sh | ../output
+../output/graph.txt: graphmaker.sh Makefile $(wildcard ../../../*/code/Makefile) | ../output
 	bash graphmaker.sh
+	sed '1d; $$d' $@ | tr -d '"' | sed 's/->/ /' | tsort >/dev/null
 
 ../output/task_flow.png: ../output/graph.txt | ../output
 	dot -Grankdir=LR -Tpng ../output/graph.txt -o ../output/task_flow.png

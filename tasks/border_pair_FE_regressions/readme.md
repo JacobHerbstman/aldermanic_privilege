@@ -1,9 +1,8 @@
-# border_pair_FE_regressions
+# Density boundary regressions
 
-Purpose: Runs the paper-facing border-pair density FE regressions.
+Runs the paper-facing boundary regressions for all construction and multifamily construction.
 
 Produces:
 - `output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex`
-- `output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair_pruned.tex`
 
 Approx. runtime: ~2-15 minutes.

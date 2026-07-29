@@ -36,27 +36,22 @@ placebo_cutoff_ft <- as.integer(placebo_cutoff_ft)
 cutoffs_ft <- c(-placebo_cutoff_ft, 0, placebo_cutoff_ft)
 
 if (market == "rent") {
-  source("../../_lib/amenity_distance_helpers.R")
-
-  rent <- read_parquet("../input/rent_with_ward_distances_full.parquet") %>%
-    as_tibble()
-
-  if (!"signed_dist_m" %in% names(rent)) {
-    stop("Rental input must include signed_dist_m.", call. = FALSE)
-  }
-
-  rent <- rent %>%
+  rent <- read_parquet(
+    "../input/rental_rd_characteristics_panel_bw1500.parquet"
+  ) |>
+    as_tibble() |>
     mutate(
       file_date = as.Date(file_date),
       year = lubridate::year(file_date),
       year_month = format(file_date, "%Y-%m"),
-      signed_dist_ft = as.numeric(signed_dist_m) / 0.3048,
+      right = as.integer(strictness_own > strictness_neighbor),
+      signed_dist_ft = abs(as.numeric(dist_ft)) *
+        if_else(right == 1L, 1, -1),
       ward_pair = as.character(ward_pair_id),
       segment_id = as.character(segment_id),
-      right = as.integer(signed_dist_ft >= 0),
       building_type_factor = factor(coalesce(building_type_clean, "other")),
       log_sqft = if_else(is.finite(sqft) & sqft > 0, log(sqft), NA_real_),
-      log_beds = if_else(is.finite(beds) & beds > 0, log(beds), NA_real_),
+      beds_factor = factor(beds),
       log_baths = if_else(is.finite(baths) & baths > 0, log(baths), NA_real_)
     ) %>%
     filter(
@@ -66,73 +61,31 @@ if (market == "rent") {
       rent_price > 0,
       is.finite(signed_dist_ft),
       abs(signed_dist_ft) <= max(abs(cutoffs_ft)) + bandwidth_ft,
-      !is.na(strictness_own),
-      !is.na(strictness_neighbor),
+      is.finite(strictness_own),
+      is.finite(strictness_neighbor),
       !is.na(segment_id),
       segment_id != "",
-      !is.na(ward_pair)
+      !is.na(ward_pair),
+      flag_clean_location_sample,
+      is.finite(beds),
+      beds >= 0,
+      !is.na(log_sqft),
+      !is.na(log_baths),
+      if_all(
+        all_of(c(
+          "nearest_school_dist_kft",
+          "nearest_park_dist_kft",
+          "nearest_major_road_dist_kft",
+          "nearest_cta_stop_dist_kft",
+          "lake_michigan_dist_kft"
+        )),
+        is.finite
+      )
     )
-
-  for (flag_col in c(
-    "flag_location_questionable",
-    "flag_modal_assignment_missing",
-    "flag_modal_changes_ward",
-    "flag_modal_changes_neighbor_ward",
-    "flag_modal_changes_pair",
-    "flag_modal_dist_diff_gt100ft"
-  )) {
-    if (!flag_col %in% names(rent)) {
-      rent[[flag_col]] <- FALSE
-    }
-    rent[[flag_col]] <- coalesce(as.logical(rent[[flag_col]]), FALSE)
-  }
-
-  rent <- rent %>%
-    mutate(
-      flag_clean_location_sample = !flag_location_questionable &
-        !flag_modal_assignment_missing &
-        !flag_modal_changes_ward &
-        !flag_modal_changes_neighbor_ward &
-        !flag_modal_changes_pair &
-        !flag_modal_dist_diff_gt100ft
-    ) %>%
-    filter(flag_clean_location_sample, is.finite(longitude), is.finite(latitude))
-
-  rent_coords <- build_unique_coordinate_amenity_table(
-    rent,
-    "longitude",
-    "latitude",
-    "../input/schools_2015.gpkg",
-    "../input/parks.gpkg",
-    "../input/major_streets.gpkg",
-    "../input/gis_osm_water_a_free_1.shp",
-    chunk_n = 100000L,
-    distance_units = "feet"
-  )
-  rent_coords_sf <- st_as_sf(rent_coords, coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) %>%
-    st_transform(3435)
-  rent_coords$nearest_cta_stop_dist_ft <- nearest_distance_ft(
-    rent_coords_sf,
-    read_amenity_layer("../input/cta_stops.gpkg"),
-    chunk_size = 100000L,
-    label = "rent coordinates"
-  )
-  rent <- rent %>%
-    left_join(rent_coords, by = c("longitude", "latitude"), relationship = "many-to-one") %>%
-    mutate(
-      nearest_school_dist_kft = nearest_school_dist_ft / 1000,
-      nearest_park_dist_kft = nearest_park_dist_ft / 1000,
-      nearest_major_road_dist_kft = nearest_major_road_dist_ft / 1000,
-      nearest_cta_stop_dist_kft = nearest_cta_stop_dist_ft / 1000,
-      lake_michigan_dist_kft = lake_michigan_dist_ft / 1000
-    )
-  if (anyDuplicated(rent$rent_panel_id) > 0) {
-    stop("Rental amenity join expanded rent_panel_id rows.", call. = FALSE)
-  }
 
   rent_controls <- c(
     "log_sqft",
-    "log_beds",
+    "beds_factor",
     "log_baths",
     "nearest_school_dist_kft",
     "nearest_park_dist_kft",
@@ -151,25 +104,23 @@ if (market == "rent") {
   plot_title <- "Listed Rents: True and Placebo Cutoffs"
   plot_y_label <- "Segment-by-month adjusted log rent"
 } else {
-  sales <- read_parquet("../input/sales_with_hedonics_amenities.parquet") %>%
-    as_tibble()
-
-  if (!"signed_dist_m" %in% names(sales)) {
-    stop("Sales input must include signed_dist_m.", call. = FALSE)
-  }
-
-  sales <- sales %>%
+  sales <- read_parquet(
+    "../input/sales_with_hedonics_amenities.parquet"
+  ) |>
+    as_tibble() |>
     mutate(
       sale_date = as.Date(sale_date),
       year = lubridate::year(sale_date),
       year_quarter = paste0(year, "-Q", lubridate::quarter(sale_date)),
-      signed_dist_ft = as.numeric(signed_dist_m) / 0.3048,
+      right = as.integer(strictness_own > strictness_neighbor),
+      signed_dist_ft = abs(as.numeric(dist_m) / 0.3048) *
+        if_else(right == 1L, 1, -1),
       ward_pair = as.character(ward_pair_id),
       segment_id = as.character(segment_id),
-      right = as.integer(signed_dist_ft >= 0),
       nearest_school_dist_kft = nearest_school_dist_ft / 1000,
       nearest_park_dist_kft = nearest_park_dist_ft / 1000,
       nearest_major_road_dist_kft = nearest_major_road_dist_ft / 1000,
+      nearest_cta_stop_dist_kft = nearest_cta_stop_dist_ft / 1000,
       lake_michigan_dist_kft = lake_michigan_dist_ft / 1000
     ) %>%
     filter(
@@ -179,8 +130,8 @@ if (market == "rent") {
       sale_price > 0,
       is.finite(signed_dist_ft),
       abs(signed_dist_ft) <= max(abs(cutoffs_ft)) + bandwidth_ft,
-      !is.na(strictness_own),
-      !is.na(strictness_neighbor),
+      is.finite(strictness_own),
+      is.finite(strictness_neighbor),
       !is.na(segment_id),
       segment_id != "",
       !is.na(ward_pair)
@@ -196,6 +147,7 @@ if (market == "rent") {
     "nearest_school_dist_kft",
     "nearest_park_dist_kft",
     "nearest_major_road_dist_kft",
+    "nearest_cta_stop_dist_kft",
     "lake_michigan_dist_kft"
   )
 

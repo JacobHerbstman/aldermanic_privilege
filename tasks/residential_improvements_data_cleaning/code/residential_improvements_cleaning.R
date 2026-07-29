@@ -1,7 +1,3 @@
-# this code creates a dataset of unique properties in Chicago based on their build year. it is queried from:
-# https://datacatalog.cookcountyil.gov/Property-Taxation/Assessor-Single-and-Multi-Family-Improvement-Chara/x54s-btds
-# to include only buildings built on or after the year 1999 and in townships 70-77 (Chicago)
-
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/residential_improvements_data_cleaning/code")
 source("../../setup_environment/code/packages.R")
 
@@ -69,14 +65,24 @@ FROM read_csv(%s,
               ignore_errors = true,
               max_line_size = 10000000)
 WHERE try_cast(numeric_text(township_code) AS INTEGER) IN (70, 71, 72, 73, 74, 75, 76, 77)
-  AND try_cast(numeric_text(char_yrblt) AS INTEGER) >= 1999;
+  AND trim(pin) IS NOT NULL
+  AND trim(pin) != ''
+  AND trim(card) IS NOT NULL
+  AND trim(card) != '';
 ", dbQuoteString(con, "../input/residential_improvement_characteristics_full.csv"))))
 
-data <- dbGetQuery(con, "SELECT * FROM residential_improvements")
+data <- dbGetQuery(con, "
+WITH candidate_cards AS (
+  SELECT pin, card_num
+  FROM residential_improvements
+  GROUP BY pin, card_num
+  HAVING max(try_cast(numeric_text(year_built) AS INTEGER)) >= 1999
+)
+SELECT r.*
+FROM residential_improvements r
+INNER JOIN candidate_cards c USING (pin, card_num)
+")
 
-# - Convert spelled counts (None/Two/…) to integers for num_apartments
-# - Pull the numeric from "garage_size" strings like "2.5 cars"
-# - Coerce key numeric columns
 data <- data %>%
   dplyr::mutate(
     tax_year      = as.integer(parse_numeric(tax_year)),
@@ -97,34 +103,72 @@ data <- data %>%
     num_fireplaces    = parse_numeric(num_fireplaces),
     num_apartments = dplyr::case_when(
       is.na(num_apartments) ~ NA_integer_,
-      tolower(trimws(num_apartments)) %in% c("none","zero") ~ 0L,
-      tolower(trimws(num_apartments)) == "one"   ~ 1L,
-      tolower(trimws(num_apartments)) == "two"   ~ 2L,
+      tolower(trimws(num_apartments)) %in% c("none", "zero") ~ 0L,
+      tolower(trimws(num_apartments)) == "one" ~ 1L,
+      tolower(trimws(num_apartments)) == "two" ~ 2L,
       tolower(trimws(num_apartments)) == "three" ~ 3L,
-      tolower(trimws(num_apartments)) == "four"  ~ 4L,
-      tolower(trimws(num_apartments)) == "five"  ~ 5L,
-      tolower(trimws(num_apartments)) == "six"   ~ 6L,
+      tolower(trimws(num_apartments)) == "four" ~ 4L,
+      tolower(trimws(num_apartments)) == "five" ~ 5L,
+      tolower(trimws(num_apartments)) == "six" ~ 6L,
       TRUE ~ as.integer(parse_numeric(num_apartments))
     ),
     garage_size = parse_numeric(garage_size),
     num_commercial_units = as.integer(parse_numeric(num_commercial_units))
-  )
+  ) %>%
+  arrange(pin, card_num, tax_year, row_id) %>%
+  group_by(pin, card_num, tax_year) %>%
+  slice_tail(n = 1) %>%
+  ungroup() %>%
+  group_by(pin) %>%
+  mutate(cards_in_history = n_distinct(card_num)) %>%
+  ungroup()
 
-# ---------- 3) Cross-section: one row per building (pin, card_num) at build year ----------
-# Tie-breakers: earliest tax year, then largest building_sqft
-cross_section_buildings <- data %>%
-  dplyr::group_by(pin) %>%
-  dplyr::slice_min(order_by = dplyr::if_else(is.na(year_built), Inf, year_built), with_ties = TRUE) %>%  # earliest build year
-  dplyr::slice_min(order_by = tax_year, with_ties = TRUE) %>%                                            # then earliest tax year
-  dplyr::slice_max(order_by = building_sqft, with_ties = FALSE) %>%                                      # then largest sqft
-  dplyr::ungroup() %>%
-  dplyr::filter(!is.na(year_built)) 
+single_card_2022 <- data %>%
+  filter(cards_in_history == 1, year_built >= 1999, tax_year <= 2022) %>%
+  arrange(pin, desc(tax_year), desc(building_sqft), desc(year_built), desc(row_id)) %>%
+  group_by(pin) %>%
+  slice_head(n = 1) %>%
+  ungroup()
+
+single_card_2025 <- data %>%
+  filter(cards_in_history == 1, year_built >= 1999, tax_year <= 2025) %>%
+  anti_join(single_card_2022 %>% select(pin), by = "pin") %>%
+  arrange(pin, desc(tax_year), desc(building_sqft), desc(year_built), desc(row_id)) %>%
+  group_by(pin) %>%
+  slice_head(n = 1) %>%
+  ungroup()
+
+single_card_later <- data %>%
+  filter(cards_in_history == 1, year_built >= 1999) %>%
+  anti_join(bind_rows(single_card_2022, single_card_2025) %>% select(pin), by = "pin") %>%
+  arrange(pin, desc(tax_year), desc(building_sqft), desc(year_built), desc(row_id)) %>%
+  group_by(pin) %>%
+  slice_head(n = 1) %>%
+  ungroup()
+
+multicard <- data %>%
+  filter(cards_in_history > 1, year_built >= 1999) %>%
+  group_by(pin) %>%
+  slice_min(order_by = year_built, with_ties = TRUE) %>%
+  slice_min(order_by = tax_year, with_ties = TRUE) %>%
+  slice_max(order_by = building_sqft, with_ties = FALSE) %>%
+  ungroup()
+
+cross_section_buildings <- bind_rows(
+  single_card_2022,
+  single_card_2025,
+  single_card_later,
+  multicard
+) %>%
+  select(-cards_in_history) %>%
+  arrange(pin)
 
 if (any(cross_section_buildings$year_built < 1999, na.rm = TRUE)) {
   stop("New-construction residential cross-section contains pre-1999 buildings.", call. = FALSE)
 }
 
-# (Optional) sanity check uniqueness
-stopifnot(nrow(cross_section_buildings) == dplyr::n_distinct(cross_section_buildings$pin, cross_section_buildings$card_num))
+if (anyDuplicated(cross_section_buildings$pin) > 0) {
+  stop("Residential new-construction cross-section is not unique by PIN.", call. = FALSE)
+}
 
 write_csv(cross_section_buildings, "../output/residential_cross_section.csv")

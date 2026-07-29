@@ -245,7 +245,7 @@ fit_stage1_model <- function(permits, stage1_outcome, covariates, fe_terms, vari
       filter(!is.na(.data[[col]]))
   }
 
-  model <- feols(reg_formula, data = permits_for_reg, warn = FALSE)
+  model <- feols(reg_formula, data = permits_for_reg, cluster = ~ward, warn = FALSE)
   permits_for_reg <- permits_for_reg %>%
     mutate(
       stage1_fitted = as.numeric(predict(model, newdata = permits_for_reg)),

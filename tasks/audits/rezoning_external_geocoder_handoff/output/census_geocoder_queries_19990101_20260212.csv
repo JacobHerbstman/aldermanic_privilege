@@ -1,0 +1,45 @@
+external_row_id,matter_id,matter_intro_date,matter_title,address_phrase_source,address_phrase,census_query_address,query_note
+O2011-845,O2011-845,2011-02-09,"Zoning Reclassification Map No. 20-A and 22-A bounded by E 87th St, S Burley Ave, E 86th St snd S Greenbay Ave",matter_title_address_phrase,"and 22-A bounded by E 87th St, S Burley Ave, E 86th St snd S Greenbay Ave",,broad_bounded_area_not_point_geocoded
+O2011-4541,O2011-4541,2011-06-08,Zoning Reclassification Map No. 18-C at 7351 S Stony Island Ave,matter_title_address_phrase,7351 S Stony Island Ave,7351 S Stony Island Ave,address_query
+O2011-5455,O2011-5455,2011-07-06,Zoning Reclassification Map No. 1-G at 1049-1055 W Fulton Market - App No. 17292,address_raw,1049-1055 W Fulton Market,1049-1055 W Fulton Market,address_query
+SO2011-8028,SO2011-8028,2011-10-05,Zoning Reclassification Map No. 1-G at W Fulton Market - App No. 17352,address_raw,W Fulton Market,W Fulton Market,address_query
+O2011-9719,O2011-9719,2011-12-14,Zoning Reclassification Map No.5-H at 1951 N Westen Ave - App No. 17389,address_raw,1951 N Westen Ave,1951 N Western Ave,address_query
+O2011-9720,O2011-9720,2011-12-14,Zoning Reclassification Map No. 4-F at W 16th St to W 17th St from S Federal St to S Clark St - App No. 17390,address_raw,W 16th St to W 17th St from S Federal St to S Clark St,W 16th St to W 17th St from S Federal St to S Clark St,address_query
+SO2012-36,SO2012-36,2012-01-18,Zoning Reclassification Map No. 13-H at 1801-1819 W Argyle Ave -  App No. 17400,address_raw,1801-1819 W Argyle Ave,1801-1819 W Argyle Ave,address_query
+O2012-5591,O2012-5591,2012-09-12,Zoning Reclassification  App No. 17559 at 5018 S Kedvale Ave - Map No. 12-K,matter_title_address_phrase,5018 S Kedvale Ave - Map No. 12-K,5018 S Kedvale Ave,address_query
+O2012-5597,O2012-5597,2012-09-12,Zoning Reclassification  App No.17565 at 6301 S Major Ave - Map No. 16-M,matter_title_address_phrase,6301 S Major Ave - Map No. 16-M,6301 S Major Ave,address_query
+O2012-5686,O2012-5686,2012-09-12,Zoning Reclassification Map No. 5-G at W Webster Ave and N Dayton St,matter_title_address_phrase,W Webster Ave and N Dayton St,W Webster Ave and N Dayton St,address_query
+O2012-6644,O2012-6644,2012-10-03,Zoning Reclassification Map No. 12-F at W Garfield Blvd and Chicago Transit Authority Red Line right-of-way,matter_title_address_phrase,W Garfield Blvd and Chicago Transit Authority Red Line right-of-way,W Garfield Blvd and Chicago Transit Authority Red Line right-of-way,address_query
+O2013-2484,O2013-2484,2013-04-10,Zoning Reclassification Map No.5-1 at 3053 W Armitage Ave - App No. 17713,matter_title_address_phrase,3053 W Armitage Ave,3053 W Armitage Ave,address_query
+SO2013-4946,SO2013-4946,2013-06-26,Zoning Reclassification Map No. 5-G at 1907-1909 N Bissell Ave - App No. 17761T1,address_raw,1907-1909 N Bissell Ave,1907-1909 N Bissell Ave,address_query
+O2013-6409,O2013-6409,2013-09-11,Zoning Reclassification Map No. 5-G at 1906 N Halsted St,matter_title_address_phrase,1906 N Halsted St,1906 N Halsted St,address_query
+O2013-7532,O2013-7532,2013-10-16,Zoning Reclassification Map No. 14-D at 1525 E 55th St (a.k.a. 5500 S Lake Park Ave and 5505-5519 S Harper Ave) - App No. 17836,address_raw,1525 E 55th St (a.k.a. 5500 S Lake Park Ave and 5505-5519 S Harper Ave),1525 E 55th St,address_query
+O2013-7542,O2013-7542,2013-10-16,Zoning Reclassification Map No. 11-G at 4635-4641 N Broadway - App No. 17846,address_raw,4635-4641 N Broadway,4635-4641 N Broadway,address_query
+O2013-9415,O2013-9415,2013-12-11,Zoning Reclassification Map No. 16-N at 7155-7157 W 63rd St aka 6301-6319 S Harlem Ave - App No. 17894,address_raw,7155-7157 W 63rd St aka 6301-6319 S Harlem Ave,7155-7157 W 63rd St,address_query
+SO2014-2421,SO2014-2421,2014-04-02,"Zoning reclassification Map Nos. 5-H, 5-I and 5-J regarding establishment of 606 Trail and Park",none,,,606_trail_corridor_not_point_geocoded
+O2014-3296,O2014-3296,2014-04-30,Zoning Reclassification Map No.3-E at 900 N Dewitt Pl (240 E Delaware Pl) - App No. 18016,address_raw,900 N Dewitt Pl (240 E Delaware Pl),900 N Dewitt Pl,address_query
+O2014-4944,O2014-4944,2014-06-25,Zoning Reclassification Map No. 11-G at 4025-4027 N Broadway - App No. 18073T1,address_raw,4025-4027 N Broadway,4025-4027 N Broadway,address_query
+O2014-5815,O2014-5815,2014-07-30,Zoning Reclassification Map No. 20-I at 2843 W 79th St - App No. 18128,address_raw,2843 W 79th St,2843 W 79th St,address_query
+O2014-8750,O2014-8750,2014-10-08,Zoning Reclassification Map No. 11-H at 4416 N Winchester Ave,matter_title_address_phrase,4416 N Winchester Ave,4416 N Winchester Ave,address_query
+O2014-8795,O2014-8795,2014-11-05,Zoning Reclassification Map No. 5-J at 1652 N St Louis Ave - App No. 18209,address_raw,1652 N St Louis Ave,1652 N St Louis Ave,address_query
+O2014-9804,O2014-9804,2014-12-10,Zoning Reclassification Map No. 5-J at 1929 N Drake Ave - RS3 to RT4,matter_title_address_phrase,1929 N Drake Ave,1929 N Drake Ave,address_query
+O2015-1528,O2015-1528,2015-03-18,Zoning Reclassification Map No. 12-E at E 50th St and S Dr. Martin L. King Jr. Dr.,matter_title_address_phrase,E 50th St and S Dr. Martin L. King Jr. Dr.,E 50th St and S Dr. Martin L. King Jr. Dr.,address_query
+SO2015-3695,SO2015-3695,2015-05-06,Zoning Reclassification Map No. 1-G at 462 N May St - App No. 18370T1,address_raw,462 N May St,462 N May St,address_query
+O2015-6386,O2015-6386,2015-09-24,Zoning Reclassification Map No. 9-M at 5833 W Irving Park Rd - App No. 18495,address_raw,5833 W Irving Park Rd,5833 W Irving Park Rd,address_query
+SO2015-6407,SO2015-6407,2015-09-24,Zoning Reclassification Map No. 1-G at 768 N Aberdeen Ave - App No. 18517,address_raw,768 N Aberdeen Ave,768 N Aberdeen Ave,address_query
+O2015-8035,O2015-8035,2015-11-18,Zoning Reclassification Map No. 9-G at 1445 W Roscoe Ave - App No. 18575,address_raw,1445 W Roscoe Ave,1445 W Roscoe Ave,address_query
+O2016-2633,O2016-2633,2016-04-13,Zoning Reclassification Map No. 12-E at 4710-4714 S Dr. Martin L. King Jr. Dr. - App No. 18742T1,address_raw,4710-4714 S Dr. Martin L. King Jr. Dr.,4710-4714 S Dr. Martin L. King Jr. Dr.,address_query
+SO2016-2659,SO2016-2659,2016-04-13,Zoning Reclassification Map No. 5-N at 2120 N Natchez Ave - App No. 18747,address_raw,2120 N Natchez Ave,2120 N Natchez Ave,address_query
+SO2016-4763,SO2016-4763,2016-06-22,Zoning Reclassification Map No. 18-C at 2246-2256 W 73rd St - App No. 18845T1,address_raw,2246-2256 W 73rd St,2246-2256 W 73rd St,address_query
+SO2017-3798,SO2017-3798,2017-05-24,Zoning Reclassification Map No. 5-H at 1914-1918 N Milwaukee Ave (commonly know as 1914 N Milwaukee Ave) - App No. 19213T1,address_raw,1914-1918 N Milwaukee Ave (commonly know as 1914 N Milwaukee Ave),1914-1918 N Milwaukee Ave,address_query
+O2017-5516,O2017-5516,2017-07-26,Zoning Reclassification Map No. 5-H at 1842-1858 W Webster Ave amd 2200-2242 N Lister Ave - App No. 19323T1,address_raw,1842-1858 W Webster Ave amd 2200-2242 N Lister Ave,1842-1858 W Webster Ave and 2200-2242 N Lister Ave,address_query
+O2017-7043,O2017-7043,2017-10-11,Zoning Reclassification Map No. 5-J at 3418 W McLean Ave - App No. 19390,address_raw,3418 W McLean Ave,3418 W McLean Ave,address_query
+SO2017-8574,SO2017-8574,2017-12-13,Zoning Reclassification Map No. 13-H at 5348 N Ashland Ave - App No. 19459T1,address_raw,5348 N Ashland Ave,5348 N Ashland Ave,address_query
+SO2017-9014,SO2017-9014,2017-12-13,Zoning Reclassification Map No. 5-H at 2036 and 2038 W North Ave - Aoo No. 19490T1,matter_title_address_phrase,2036 and 2038 W North Ave,2036 and 2038 W North Ave,address_query
+O2018-2311,O2018-2311,2018-03-28,Zoning Reclassification Map No. 7-H at 2469 -2471 N Clybourne Ave - App No. 19590T1,address_raw,2469 -2471 N Clybourne Ave,2469 -2471 N Clybourne Ave,address_query
+O2018-3281,O2018-3281,2018-04-18,"Zoning Reclassification Map Nos. 11-G, 13-G and 15-G at W Hollywood Ave, N Winthrop Ave and various streets",matter_title_address_phrase,"W Hollywood Ave, N Winthrop Ave and various streets",,broad_various_streets_not_point_geocoded
+O2018-4974,O2018-4974,2018-06-27,Zoning Reclassification Map No. 9-H at 2121 W Addison St - App No. 19707,address_raw,2121 W Addison St,2121 W Addison St,address_query
+SO2018-4965,SO2018-4965,2018-06-27,Zoning Reclassification Map No. 1-I at 3127-3137 W Carroll St - App No. 19693T1,address_raw,3127-3137 W Carroll St,3127-3137 W Carroll St,address_query
+O2018-9298,O2018-9298,2018-12-12,Zoning Reclassification Map No. 3-K 1551 N Kostner  Ave - App No. 19896,matter_title_address_phrase,1551 N Kostner  Ave,1551 N Kostner Ave,address_query
+O2020-2374,O2020-2374,2020-05-20,Zoning Reclassification Map No. 6-J at 2417 S Christiana Ave - No. 20414,matter_title_address_phrase,2417 S Christiana Ave,2417 S Christiana Ave,address_query
+O2020-5580,O2020-5580,2020-11-16,Zoning Reclassification Map No. 5-J at 2156 N Kimball Ave - App No. 20538,address_raw,2156 N Kimball Ave,2156 N Kimball Ave,address_query

@@ -11,7 +11,7 @@ library(units)
 
 sf_use_s2(FALSE)
 
-segment_buffer_m <- 250
+segment_buffer_m <- 457.2
 density_bandwidth_m <- 152.4
 distance_tolerance_m <- 0.05
 
@@ -317,13 +317,6 @@ segment_lookup <- read_csv(
     lookup_segment_reason = as.character(segment_reason)
   ) %>%
   select(pin, lookup_segment_id, lookup_dist_to_segment_m, lookup_segment_reason)
-pair_constraint_audit <- read_csv(
-  "../input/parcel_segment_pair_constraint_audit.csv",
-  show_col_types = FALSE,
-  col_types = cols(pin = col_character(), .default = col_guess())
-) %>%
-  mutate(pin = as.character(pin))
-
 assert_unique(geom, "pin", "parcels_with_geometry.gpkg")
 assert_unique(scores, "pin", "parcels_with_ward_distances.csv")
 assert_unique(segment_lookup, "pin", "parcel_segment_ids.csv")
@@ -455,7 +448,7 @@ audit_summary <- bind_rows(
   summary_row("assigned_segment_valid", "regression_bw500ft", sum(audit$regression_bw500ft & !is.na(audit$stored_segment_id), na.rm = TRUE), sum(audit$regression_bw500ft & !audit$assigned_segment_valid, na.rm = TRUE), "500ft assigned segments should be marked valid in the segment validity metadata."),
   summary_row("assigned_segment_has_no_invalid_reason", "regression_bw500ft", sum(audit$regression_bw500ft & !is.na(audit$stored_segment_id), na.rm = TRUE), sum(audit$regression_bw500ft & !audit$assigned_segment_has_no_invalid_reason, na.rm = TRUE), "500ft assigned segments should not carry an invalid segment reason."),
   summary_row("assigned_segment_found_in_same_era_layer", "regression_bw500ft", sum(audit$regression_bw500ft & !is.na(audit$stored_segment_id), na.rm = TRUE), sum(audit$regression_bw500ft & !audit$assigned_segment_found_in_same_era_layer, na.rm = TRUE), "500ft assigned segments should resolve in the same canonical era segment layer."),
-  summary_row("segment_within_250m_buffer", "full", sum(!is.na(audit$stored_segment_id)), sum(!audit$segment_within_buffer, na.rm = TRUE), "Assigned segment is within the configured 250m segment radius."),
+  summary_row("segment_within_1500ft_buffer", "full", sum(!is.na(audit$stored_segment_id)), sum(!audit$segment_within_buffer, na.rm = TRUE), "Assigned segment is within the configured 1,500ft segment radius."),
   summary_row("audit_flags_no_na", "full", nrow(audit), sum(is.na(audit$final_segment_matches_lookup) | is.na(audit$segment_matches_recomputed) | is.na(audit$global_nearest_segment_matches_current)), "Core boolean audit flags should not be NA."),
   diagnostic_row("global_all_options_segment_matches_current", "full", sum(!is.na(audit$stored_segment_id)), sum(!audit$global_nearest_segment_matches_current & !is.na(audit$stored_segment_id), na.rm = TRUE), "Diagnostic only: purely geometric nearest segment among all same-era segments equals current assignment."),
   diagnostic_row("global_all_options_segment_matches_current", "regression_bw100m", sum(audit$regression_bw100m, na.rm = TRUE), sum(!audit$global_nearest_segment_matches_current & !is.na(audit$stored_segment_id) & audit$regression_bw100m, na.rm = TRUE), "Diagnostic only: purely geometric nearest segment among all same-era segments equals current assignment."),

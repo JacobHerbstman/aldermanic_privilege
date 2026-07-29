@@ -187,7 +187,7 @@ alderman_data <- tribble(
   32, "Scott Waguespack",   "2007-05-21", "2025-06-24",
   
   # 33rd Ward
-  33, "Dick Mell",          "1998-01-01", "2013-07-24",
+  33, "Dick Mell",          "1998-01-01", "2013-07-23",
   33, "Deb Mell",           "2013-07-24", "2019-05-19",
   33, "Rossana Rodriguez-Sanchez", "2019-05-20", "2025-06-24",
   
@@ -279,6 +279,18 @@ alderman_data <- tribble(
       end_date
     )
   )
+
+term_overlaps <- alderman_data %>%
+  arrange(ward, start_date) %>%
+  group_by(ward) %>%
+  mutate(next_start_date = lead(start_date)) %>%
+  ungroup() %>%
+  filter(!is.na(next_start_date), next_start_date <= end_date)
+if (nrow(term_overlaps) > 0) {
+  stop("Alderman terms overlap within a ward.", call. = FALSE)
+}
+
+write_csv(alderman_data, "../output/chicago_alderman_terms.csv")
 
 panel_months <- as.yearmon(seq(as.Date("1998-01-01"), panel_end_date, by = "months"))
 

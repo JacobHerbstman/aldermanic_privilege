@@ -2,6 +2,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/data_for_alderman_uncertainty_index/code")
 
 source("../../setup_environment/code/packages.R")
+source("../../_lib/canonical_geometry_helpers.R")
 
 assert_unique_key <- function(df, key_cols, label) {
   data <- if (inherits(df, "sf")) st_drop_geometry(df) else df
@@ -73,12 +74,17 @@ ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 
 permits <- st_read("../input/building_permits_clean.gpkg", quiet = TRUE) %>%
   mutate(
+    application_start_date = as.Date(application_start_date),
     application_start_date_ym = as.yearmon(application_start_date_ym),
-    application_year = year(as.Date(application_start_date_ym))
+    application_year = year(application_start_date)
   )
 
-alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
-  mutate(month = as.yearmon(month))
+alderman_terms <- read_csv("../input/chicago_alderman_terms.csv", show_col_types = FALSE) %>%
+  mutate(
+    ward = as.integer(ward),
+    start_date = as.Date(start_date),
+    end_date = as.Date(end_date)
+  )
 
 ward_controls <- read_csv("../input/ward_controls.csv", show_col_types = FALSE)
 
@@ -86,11 +92,15 @@ community_areas <- st_read("../input/community_areas.geojson", quiet = TRUE) %>%
   select(area_numbe, community) %>%
   rename(ca_id = area_numbe, ca_name = community)
 
-cta_stations <- st_read("../input/cta_stations.geojson", quiet = TRUE)
+cta_stations <- st_read("../input/cta_stops.gpkg", quiet = TRUE) %>%
+  mutate(
+    active_from_date = as.Date(active_from_date),
+    active_to_date = as.Date(active_to_date)
+  )
 water_osm <- st_read("../input/gis_osm_water_a_free_1.shp", quiet = TRUE)
 
 assert_unique_key(permits, "id", "Building permits")
-assert_unique_key(alderman_panel, c("ward", "month"), "Alderman panel")
+assert_unique_key(alderman_terms, c("ward", "start_date"), "Alderman terms")
 assert_unique_key(ward_controls, c("ward", "year"), "Ward controls")
 assert_unique_key(ward_panel, c("ward", "year"), "Ward panel")
 
@@ -118,7 +128,13 @@ if (st_crs(permits) != st_crs(ward_panel)) {
 assert_expected_crs(permits, 3435, "Building permits")
 
 permits_high_discretion <- permits %>%
-  filter(high_discretion == 1)
+  filter(high_discretion == 1) %>%
+  mutate(
+    ward_map_era = canonical_era_from_date(
+      application_start_date,
+      allow_pre_2003 = FALSE
+    )
+  )
 
 ward_geoms_map1 <- ward_panel %>%
   filter(year == 2014) %>%
@@ -150,14 +166,11 @@ if (any(c(
 }
 
 permits_pre2015 <- permits_high_discretion %>%
-  filter(application_start_date_ym < as.yearmon("2015-05"))
+  filter(ward_map_era == "2003_2014")
 permits_2015_2023 <- permits_high_discretion %>%
-  filter(
-    application_start_date_ym >= as.yearmon("2015-05") &
-      application_start_date_ym < as.yearmon("2023-05")
-  )
+  filter(ward_map_era == "2015_2023")
 permits_post2023 <- permits_high_discretion %>%
-  filter(application_start_date_ym >= as.yearmon("2023-05"))
+  filter(ward_map_era == "post_2023")
 
 ward_pre2015 <- assign_wards_for_era(permits_pre2015, ward_geoms_map1, "pre_2015")
 ward_2015_2023 <- assign_wards_for_era(permits_2015_2023, ward_geoms_map2, "2015_2023")
@@ -176,8 +189,8 @@ permits_ward_data <- permits_ward_data %>%
     map_version = coalesce(
       as.integer(map_version),
       case_when(
-        application_start_date_ym < as.yearmon("2015-05") ~ 1L,
-        application_start_date_ym < as.yearmon("2023-05") ~ 2L,
+        ward_map_era == "2003_2014" ~ 1L,
+        ward_map_era == "2015_2023" ~ 2L,
         TRUE ~ 3L
       )
     )
@@ -218,8 +231,12 @@ if (any(is.na(permits_ward_data$ca_id))) {
 
 permits_with_alderman_all <- permits_ward_data %>%
   left_join(
-    alderman_panel,
-    by = c("ward", "application_start_date_ym" = "month"),
+    alderman_terms,
+    by = join_by(
+      ward,
+      application_start_date >= start_date,
+      application_start_date <= end_date
+    ),
     relationship = "many-to-one"
   )
 
@@ -253,7 +270,7 @@ if (any(is.na(permits_with_controls$homeownership_rate))) {
 }
 
 permit_points <- permits_high_discretion %>%
-  select(id) %>%
+  transmute(id, application_date = as.Date(application_start_date)) %>%
   semi_join(permits_with_controls %>% select(id), by = "id")
 
 metric_crs <- 26916
@@ -270,7 +287,35 @@ cbd_m <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>%
 
 dist_cbd_km <- as.numeric(units::set_units(st_distance(permit_points_m, cbd_m), "m")) / 1000
 
-n_rail_stations_800m <- lengths(st_is_within_distance(permit_points_m, cta_stations_m, dist = 800))
+network_change_dates <- sort(unique(c(
+  cta_stations_m$active_from_date,
+  cta_stations_m$active_to_date + 1
+)))
+network_change_dates <- network_change_dates[!is.na(network_change_dates)]
+network_group <- findInterval(
+  as.numeric(permit_points_m$application_date),
+  as.numeric(network_change_dates)
+)
+permit_rows <- split(seq_len(nrow(permit_points_m)), network_group)
+n_rail_stations_800m <- integer(nrow(permit_points_m))
+
+for (network_i in names(permit_rows)) {
+  row_i <- permit_rows[[network_i]]
+  application_date_i <- permit_points_m$application_date[row_i[1]]
+  active_cta <- cta_stations_m %>%
+    filter(
+      active_from_date <= application_date_i,
+      is.na(active_to_date) | active_to_date >= application_date_i
+    )
+  if (nrow(active_cta) == 0) {
+    stop(sprintf("No active CTA stations on %s.", application_date_i), call. = FALSE)
+  }
+  n_rail_stations_800m[row_i] <- lengths(st_is_within_distance(
+    permit_points_m[row_i, ],
+    active_cta,
+    dist = 800
+  ))
+}
 
 lake_michigan_features <- water_osm_m %>%
   filter(!is.na(name) & tolower(name) == "lake michigan") %>%
@@ -358,10 +403,16 @@ permits_analysis <- permits_with_controls %>%
   ) %>%
   filter(
     !is.na(alderman),
-    !is.na(log_processing_time),
+    is.finite(processing_time),
+    processing_time >= 0,
     !is.na(ward),
     !is.na(month)
   )
+
+if (any(is.na(permits_analysis$log_processing_time) !=
+        (permits_analysis$processing_time == 0))) {
+  stop("Log processing time must be missing exactly for same-day permits.", call. = FALSE)
+}
 
 output_data <- permits_analysis %>%
   select(

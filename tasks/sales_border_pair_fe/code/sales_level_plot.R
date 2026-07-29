@@ -42,7 +42,8 @@ sales <- sales %>%
   mutate(
     ward_pair = as.character(ward_pair_id),
     signed_dist = as.numeric(signed_dist_m) / 0.3048,
-    right = as.integer(signed_dist >= 0)
+    right = as.integer(signed_dist >= 0),
+    pair_average_score = (strictness_own + strictness_neighbor) / 2
   ) %>%
   filter(
     !is.na(sale_price),
@@ -69,17 +70,24 @@ amenity_controls <- c(
   "nearest_school_dist_ft",
   "nearest_park_dist_ft",
   "nearest_major_road_dist_ft",
+  "nearest_cta_stop_dist_ft",
   "lake_michigan_dist_ft"
 )
 sales <- sales %>%
   filter(if_all(all_of(c(hedonic_controls, amenity_controls)), ~ !is.na(.x)))
-rhs <- paste(c("right", hedonic_controls, amenity_controls), collapse = " + ")
+rhs <- paste(
+  c("right", "pair_average_score", hedonic_controls, amenity_controls),
+  collapse = " + "
+)
 
 if (nrow(sales) == 0) {
   stop("No sales remain after RD filtering.", call. = FALSE)
 }
 if (n_distinct(sales$ward_pair) < 2) {
   stop("Sales RD plot has fewer than two ward pairs.", call. = FALSE)
+}
+if (any(sales$right != as.integer(sales$strictness_own > sales$strictness_neighbor))) {
+  stop("Sales distance signs do not match the alderman-score ordering.", call. = FALSE)
 }
 
 model <- feols(

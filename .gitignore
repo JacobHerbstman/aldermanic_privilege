@@ -11,6 +11,7 @@ node_modules/
 # --- Log files ---
 *.log
 slurmlogs/
+tasks/*/code/run.sbatch
 
 # --- Raw & Intermediate Data ---
 # Ignore raw data by default, except static boundaries required for replication.
@@ -48,10 +49,48 @@ tasks/audits/*/input/
 tasks/audits/*/output/
 tasks/audits/*/temp/
 
-# Exception: track the task flow graph for README
-!tasks/symlink_graph/output/
-tasks/symlink_graph/output/graph.txt
-!tasks/symlink_graph/output/task_flow.png
+# Production task graph displayed in the root README
+!tasks/audits/symlink_graph/output/
+tasks/audits/symlink_graph/output/*
+!tasks/audits/symlink_graph/output/task_flow.png
+
+# Frozen hand-adjudicated rezoning inputs
+!tasks/rezoning_hand_adjudications/output/
+tasks/rezoning_hand_adjudications/output/*
+!tasks/rezoning_hand_adjudications/output/pd_far_text_review_updates_2011_2020.csv
+!tasks/rezoning_hand_adjudications/output/pd_to_pd_far_decisions_20101101_20160831.csv
+!tasks/rezoning_hand_adjudications/output/pd_to_pd_far_decisions_20160901_20201231.csv
+!tasks/rezoning_hand_adjudications/output/pd_queue_classifications_20160901_20201231.csv
+!tasks/rezoning_hand_adjudications/output/journal_zoning_code_fills_20101101_20160831.csv
+!tasks/rezoning_hand_adjudications/output/rezoning_sample_decisions_20101101_20160831.csv
+!tasks/rezoning_hand_adjudications/output/pd_transition_code_corrections_20101101_20160831.csv
+!tasks/rezoning_hand_adjudications/output/destination_code_corrections_20101101_20160831.csv
+!tasks/rezoning_hand_adjudications/output/destination_code_corrections_20160901_20201231.csv
+!tasks/rezoning_hand_adjudications/output/non_scalar_far_decisions_20101101_20201231.csv
+
+# Frozen external geocodes and permit block decisions
+!tasks/rezoning_geocode_external_merge_ready/output/
+tasks/rezoning_geocode_external_merge_ready/output/*
+!tasks/rezoning_geocode_external_merge_ready/output/rezoning_external_geocodes_20101101_20201231.csv
+!tasks/permit_block_hand_adjudications/output/
+tasks/permit_block_hand_adjudications/output/*
+!tasks/permit_block_hand_adjudications/output/manual_permit_block_assignments.csv
+!tasks/density_historical_coordinates/output/
+tasks/density_historical_coordinates/output/*
+!tasks/density_historical_coordinates/output/density_historical_coordinates.csv
+!tasks/density_construction_zoning/output/
+tasks/density_construction_zoning/output/*
+!tasks/density_construction_zoning/output/density_construction_zoning.csv
+!tasks/new_construction_analysis_data/output/
+tasks/new_construction_analysis_data/output/*
+!tasks/new_construction_analysis_data/output/new_construction_analysis_data.csv
+!tasks/rezoning_block_hand_adjudications/output/
+tasks/rezoning_block_hand_adjudications/output/*
+!tasks/rezoning_block_hand_adjudications/output/reviewed_rezoning_block_assignments.csv
+!tasks/rezoning_hand_adjudications/output/section_review_decisions_20101101_20201231.csv
+!tasks/audits/rezoning_external_geocoder_handoff/output/
+tasks/audits/rezoning_external_geocoder_handoff/output/*
+!tasks/audits/rezoning_external_geocoder_handoff/output/chicago_geocoder_upload_mapping_19990101_20260212.csv
 
 # ================== ADDITIONS ==================
 

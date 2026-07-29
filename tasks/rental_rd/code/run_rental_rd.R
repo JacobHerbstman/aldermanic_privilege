@@ -51,6 +51,9 @@ if (!"signed_dist" %in% names(rent)) {
 if (!"segment_id" %in% names(rent)) {
   stop("Rental input must include segment_id for the main RD fixed effects.", call. = FALSE)
 }
+if (!"flag_clean_location_sample" %in% names(rent)) {
+  stop("Rental input must include flag_clean_location_sample.", call. = FALSE)
+}
 
 rent <- rent %>%
   mutate(
@@ -60,8 +63,9 @@ rent <- rent %>%
     signed_dist_ft = as.numeric(signed_dist),
     ward_pair = as.character(ward_pair_id),
     right = as.integer(signed_dist_ft >= 0),
+    pair_average_score = (strictness_own + strictness_neighbor) / 2,
     log_sqft = if_else(is.finite(sqft) & sqft > 0, log(sqft), NA_real_),
-    log_beds = if_else(is.finite(beds) & beds > 0, log(beds), NA_real_),
+    beds_factor = factor(beds),
     log_baths = if_else(is.finite(baths) & baths > 0, log(baths), NA_real_),
     building_type_factor = factor(coalesce(building_type_clean, "other"))
   ) %>%
@@ -77,7 +81,10 @@ rent <- rent %>%
     !is.na(strictness_neighbor),
     !is.na(segment_id),
     segment_id != "",
-    !is.na(ward_pair)
+    !is.na(ward_pair),
+    flag_clean_location_sample,
+    is.finite(beds),
+    beds >= 0
   )
 
 rent <- rent %>%
@@ -90,7 +97,6 @@ rent <- rent %>%
   ) %>%
   filter(
     !is.na(log_sqft),
-    !is.na(log_beds),
     !is.na(log_baths),
     if_all(
       all_of(c(
@@ -113,8 +119,11 @@ if (n_distinct(rent$segment_id) < 2) {
 if (n_distinct(rent$right) < 2) {
   stop("RD sample does not contain both sides of stricter/lenient borders.", call. = FALSE)
 }
+if (any(rent$right != as.integer(rent$strictness_own > rent$strictness_neighbor))) {
+  stop("Rental distance signs do not match the alderman-score ordering.", call. = FALSE)
+}
 
-rhs <- "right + log_sqft + log_beds + log_baths"
+rhs <- "right + pair_average_score + log_sqft + beds_factor + log_baths"
 if (n_distinct(rent$building_type_factor) > 1) {
   rhs <- paste(rhs, "+ building_type_factor")
 }

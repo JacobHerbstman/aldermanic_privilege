@@ -44,6 +44,7 @@ fe_formula <- dplyr::case_when(
 )
 
 controls <- c(
+  "pair_average_score",
   "share_white_own",
   "share_black_own",
   "median_hh_income_own",
@@ -55,7 +56,10 @@ raw <- read_csv("../input/parcels_with_ward_distances.csv", show_col_types = FAL
   ensure_meter_distance_columns()
 
 base_dat <- raw %>%
-  mutate(zone_group = zone_group_from_code(zone_code)) %>%
+  mutate(
+    zone_group = construction_zone_group,
+    pair_average_score = (strictness_own + strictness_neighbor) / 2
+  ) %>%
   filter(
     arealotsf > 1,
     areabuilding > 1,
@@ -64,7 +68,7 @@ base_dat <- raw %>%
     !is.na(ward_pair),
     !is.na(construction_year),
     is.finite(signed_distance_m),
-    !is.na(zone_code),
+    !is.na(construction_zone_group),
     !is.na(segment_id),
     segment_id != "",
     abs(signed_distance_m) <= bandwidth_m
@@ -82,6 +86,7 @@ panel_specs <- tribble(
 )
 
 panels <- vector("list", nrow(panel_specs))
+display_rows <- vector("list", nrow(panel_specs))
 
 for (i in seq_len(nrow(panel_specs))) {
   yvar <- panel_specs$yvar[i]
@@ -154,26 +159,30 @@ for (i in seq_len(nrow(panel_specs))) {
   if (nrow(linear_row) != 1L) {
     stop("Could not recover the local-linear cutoff estimate.", call. = FALSE)
   }
-  cutoff_estimate <- unname(linear_row[1, "Estimate"])
-  cutoff_se <- unname(linear_row[1, "Std. Error"])
-  cutoff_p <- unname(linear_row[1, "Pr(>|t|)"])
-  cutoff_stars <- dplyr::case_when(
-    is.finite(cutoff_p) & cutoff_p <= 0.01 ~ "***",
-    is.finite(cutoff_p) & cutoff_p <= 0.05 ~ "**",
-    is.finite(cutoff_p) & cutoff_p <= 0.10 ~ "*",
-    TRUE ~ ""
-  )
-  subtitle_label <- sprintf(
-    "Jump = %.3f%s (SE %.3f)",
-    cutoff_estimate,
-    cutoff_stars,
-    cutoff_se
-  )
-
   m_display <- feols(
     residualized_outcome ~ side * running_distance,
     data = aug,
     cluster = ~ward_pair
+  )
+  display_row <- coeftable(m_display)["side", , drop = FALSE]
+  display_rows[[i]] <- tibble(
+    outcome = outcome_name,
+    sample = sample_label,
+    estimate = unname(display_row[1, "Estimate"]),
+    standard_error = unname(display_row[1, "Std. Error"]),
+    p_value = unname(display_row[1, "Pr(>|t|)"])
+  )
+  visual_stars <- case_when(
+    display_rows[[i]]$p_value <= 0.01 ~ "***",
+    display_rows[[i]]$p_value <= 0.05 ~ "**",
+    display_rows[[i]]$p_value <= 0.10 ~ "*",
+    TRUE ~ ""
+  )
+  visual_estimate_label <- sprintf(
+    "Visual estimate = %.3f%s (SE %.3f)",
+    display_rows[[i]]$estimate,
+    visual_stars,
+    display_rows[[i]]$standard_error
   )
 
   breaks_m <- seq(-bandwidth_m, bandwidth_m, length.out = 2L * bins_per_side + 1L)
@@ -268,14 +277,14 @@ for (i in seq_len(nrow(panel_specs))) {
     coord_cartesian(ylim = y_limits) +
     labs(
       title = paste(sample_label, pretty_outcome, sep = ": "),
-      subtitle = subtitle_label,
+      subtitle = visual_estimate_label,
       x = x_label,
       y = paste("Residualized", pretty_outcome)
     ) +
     theme_bw(base_size = 9) +
     theme(
       plot.title = element_text(face = "bold", size = 10),
-      plot.subtitle = element_text(size = 8.2),
+      plot.subtitle = element_text(size = 8.5, margin = margin(b = 4)),
       axis.title = element_text(size = 8.5),
       axis.text = element_text(size = 7.5),
       panel.grid.minor = element_blank()
@@ -284,17 +293,7 @@ for (i in seq_len(nrow(panel_specs))) {
   panels[[i]] <- plot
 }
 
-combined_plot <- (panels[[1]] | panels[[2]]) / (panels[[3]] | panels[[4]]) +
-  plot_annotation(
-    title = sprintf(
-      "Local-Linear Spatial RD: All and Multifamily New Construction (%s, %s)",
-      bw_label,
-      "logs"
-    )
-  ) &
-  theme(
-    plot.title = element_text(face = "bold", size = 13)
-  )
+combined_plot <- (panels[[1]] | panels[[2]]) / (panels[[3]] | panels[[4]])
 
 ggsave(
   sprintf(
@@ -306,4 +305,22 @@ ggsave(
   width = 11.2,
   height = 8.4,
   dpi = 300
+)
+
+display_results <- bind_rows(display_rows)
+
+if (nrow(display_results) != 4L) {
+  stop("Expected four plotted density differences.", call. = FALSE)
+}
+
+writeLines(
+  paste(
+    "The estimates printed above the panels are the discontinuities in the residualized local-linear displays.",
+    "They are not the binary or continuous regression estimates reported in Table~\\ref{tab:density_main_table}."
+  ),
+  sprintf(
+    "../output/nonparametric_rd_density_linear_display_estimates_%s_all_multifamily_bins%d.tex",
+    bw_label,
+    bins_per_side
+  )
 )

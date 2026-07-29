@@ -146,7 +146,7 @@ analysis_sample <- read_csv(
   mutate(
     pin = as.character(pin),
     construction_year = suppressWarnings(as.integer(construction_year)),
-    zone_group = zone_group_from_code(zone_code),
+    zone_group = construction_zone_group,
     is_planned_development = as.integer(zone_group == "Planned Development"),
     score_side = case_when(
       signed_distance_m < 0 ~ "lenient",

@@ -23,19 +23,17 @@ ward_panel <- st_read("../input/ward_panel.gpkg") %>% st_transform(3435)
 # 2. VARIABLE DICTIONARIES
 # -----------------------------------------------------------------------------
 
-# A. ACS Variables (2013+) & 2013 Proxy for 2010-2012 Econ
+# A. ACS Variables (2013+) & 2013 Proxy for 2010-2012 Economics
 vars_acs <- c(
   tot_pop       = "B01003_001",
   tot_hhs       = "B11001_001",
   tot_units     = "B25003_001",
   owner_occ     = "B25003_002",
   renter_occ    = "B25003_003",
-  pop_white     = "B02001_002",
-  pop_black     = "B02001_003",
-  pop_hisp      = "B03003_003",
+  pop_white     = "B03002_003",
+  pop_black     = "B03002_004",
+  pop_hisp      = "B03002_012",
   median_income = "B19013_001",
-  agg_value     = "B25079_001",
-  agg_rent      = "B25065_001",
   pop_25plus    = "B15003_001",
   educ_bach     = "B15003_022",
   educ_mast     = "B15003_023",
@@ -47,28 +45,35 @@ vars_acs <- c(
 vars_2000 <- c(
   tot_pop       = "P001001",
   tot_hhs       = "P010001",
-  tot_units     = "H001001",
+  tot_units     = "H007001",
   owner_occ     = "H007002",
   renter_occ    = "H007003",
-  pop_white     = "P006002",
-  pop_black     = "P006003",
+  pop_white     = "P007003",
+  pop_black     = "P007004",
   pop_hisp      = "P007010",
   median_income = "P053001",
-  agg_value     = "H081001",
-  agg_rent      = "H065001",
-  pop_25plus    = "P037001"
+  pop_25plus    = "P037001",
+  educ_bach_m   = "P037015",
+  educ_mast_m   = "P037016",
+  educ_prof_m   = "P037017",
+  educ_doc_m    = "P037018",
+  educ_bach_f   = "P037032",
+  educ_mast_f   = "P037033",
+  educ_prof_f   = "P037034",
+  educ_doc_f    = "P037035"
 )
 
 # C. 2010 Decennial (SF1) - Counts Only (No Econ)
 vars_2010_sf1 <- c(
   tot_pop       = "P001001",
   tot_hhs       = "P018001",
-  tot_units     = "H001001",
-  owner_occ     = "H004002",
-  renter_occ    = "H004003",
-  pop_white     = "P003002",
-  pop_black     = "P003003",
-  pop_hisp      = "P004003"
+  tot_units     = "H004001",
+  owner_mortgage = "H004002",
+  owner_free_clear = "H004003",
+  renter_occ    = "H004004",
+  pop_white     = "P005003",
+  pop_black     = "P005004",
+  pop_hisp      = "P005010"
 )
 
 # 3. PRE-FETCH STATIC DATASETS (Regimes 1 & 2)
@@ -84,7 +89,19 @@ data_2000 <- data_2000_raw %>%
   st_transform(3435) %>%
   select(GEOID, variable, value, geometry) %>%
   pivot_wider(names_from = variable, values_from = value) %>%
-  mutate(educ_bach_plus = 0) # No 2000 education series in the current SF3 pull.
+  mutate(
+    educ_bach_plus = rowSums(
+      across(c(
+        educ_bach_m, educ_mast_m, educ_prof_m, educ_doc_m,
+        educ_bach_f, educ_mast_f, educ_prof_f, educ_doc_f
+      )),
+      na.rm = TRUE
+    )
+  )
+
+if (any(data_2000$owner_occ + data_2000$renter_occ != data_2000$tot_units, na.rm = TRUE)) {
+  stop("2000 tenure components do not sum to occupied housing units.", call. = FALSE)
+}
 
 # --- REGIME 2: 2010 HYBRID (2010-2012) ---
 message("Building 2010 Hybrid Dataset...")
@@ -101,7 +118,12 @@ data_2010_sf1_raw <- get_decennial(
 )
 data_2010_sf1 <- data_2010_sf1_raw %>%
   select(GEOID, variable, value) %>%
-  pivot_wider(names_from = variable, values_from = value)
+  pivot_wider(names_from = variable, values_from = value) %>%
+  mutate(owner_occ = owner_mortgage + owner_free_clear)
+
+if (any(data_2010_sf1$owner_occ + data_2010_sf1$renter_occ != data_2010_sf1$tot_units, na.rm = TRUE)) {
+  stop("2010 tenure components do not sum to occupied housing units.", call. = FALSE)
+}
 
 # C. Get 2013 ACS Economics (Proxy for 2010-2012 Econ)
 data_2013_econ_raw <- get_acs(
@@ -114,7 +136,7 @@ data_2013_econ <- data_2013_econ_raw %>%
   mutate(
     educ_bach_plus = rowSums(across(c(educ_bach, educ_mast, educ_prof, educ_doc)), na.rm = TRUE)
   ) %>%
-  select(GEOID, median_income, agg_value, agg_rent, educ_bach_plus, pop_25plus)
+  select(GEOID, median_income, educ_bach_plus, pop_25plus)
 
 # D. Merge to create the Hybrid 2010 Dataset
 data_2010_hybrid <- geo_2010 %>%
@@ -133,73 +155,11 @@ geo_2020 <- tigris::block_groups(state = "IL", county = "Cook", year = 2020, cb 
 years <- 2000:2023
 final_panel_list <- list()
 
-resolve_ambiguous_assignment <- function(bg_row_id_value, current_bgs, current_wards, candidate_assignments, current_year) {
-  bg <- current_bgs %>% filter(bg_row_id == bg_row_id_value)
-  candidate_wards <- candidate_assignments %>%
-    filter(bg_row_id == bg_row_id_value) %>%
-    pull(ward) %>%
-    unique() %>%
-    sort()
-
-  intersections <- suppressWarnings(
-    st_intersection(
-      current_wards %>% filter(ward %in% candidate_wards) %>% select(ward),
-      st_geometry(bg)
-    )
-  )
-  intersections$intersection_area_sqft <- as.numeric(st_area(intersections))
-
-  areas <- tibble(candidate_ward = candidate_wards) %>%
-    left_join(
-      intersections %>%
-        st_drop_geometry() %>%
-        group_by(candidate_ward = ward) %>%
-        summarize(intersection_area_sqft = sum(intersection_area_sqft, na.rm = TRUE), .groups = "drop"),
-      by = "candidate_ward",
-      relationship = "one-to-one"
-    ) %>%
-    mutate(intersection_area_sqft = coalesce(intersection_area_sqft, 0))
-
-  max_area <- max(areas$intersection_area_sqft, na.rm = TRUE)
-  if (!is.finite(max_area) || max_area <= 0) {
-    stop(
-      sprintf("Ambiguous ward assignment for GEOID %s in %s has no positive polygon overlap.", bg$GEOID[1], current_year),
-      call. = FALSE
-    )
-  }
-
-  selected_rows <- areas %>%
-    filter(abs(intersection_area_sqft - max_area) <= 1e-6)
-  if (nrow(selected_rows) > 1) {
-    stop(
-      sprintf("Ambiguous ward assignment for GEOID %s in %s has tied polygon overlaps.", bg$GEOID[1], current_year),
-      call. = FALSE
-    )
-  }
-  selected_ward <- selected_rows$candidate_ward[1]
-
-  areas %>%
-    mutate(
-      year = current_year,
-      GEOID = bg$GEOID[1],
-      candidate_wards = paste(candidate_wards, collapse = ";"),
-      selected_ward = selected_ward,
-      resolution_reason = "centroid matched multiple wards; selected largest block-group polygon overlap"
-    ) %>%
-    select(
-      year,
-      GEOID,
-      candidate_ward,
-      candidate_wards,
-      intersection_area_sqft,
-      selected_ward,
-      resolution_reason
-    )
-}
-
 assign_block_groups_to_wards <- function(current_bgs, current_wards, current_year) {
-  current_bgs <- current_bgs %>% mutate(bg_row_id = row_number())
-  current_wards <- current_wards %>% select(ward)
+  count_columns <- c(
+    "tot_pop", "tot_hhs", "tot_units", "owner_occ", "renter_occ",
+    "pop_white", "pop_black", "pop_hisp", "pop_25plus", "educ_bach_plus"
+  )
 
   if (anyDuplicated(current_bgs$GEOID) > 0) {
     stop(sprintf("Block-group data has duplicate GEOID values before ward assignment in %s.", current_year), call. = FALSE)
@@ -220,69 +180,62 @@ assign_block_groups_to_wards <- function(current_bgs, current_wards, current_yea
     stop(sprintf("Empty ward geometry found before ward assignment in %s.", current_year), call. = FALSE)
   }
 
+  current_bgs <- current_bgs %>%
+    st_make_valid() %>%
+    mutate(block_group_area = as.numeric(st_area(geometry)))
+  current_wards <- current_wards %>%
+    select(ward) %>%
+    st_make_valid()
 
-  candidate_assignments <- st_join(
-    st_centroid(current_bgs),
-    current_wards,
-    join = st_within,
-    left = FALSE
-  ) %>%
-    st_drop_geometry() %>%
-    select(bg_row_id, GEOID, ward)
-
-  if (nrow(candidate_assignments) == 0) {
-    return(tibble())
-  }
-
-  duplicate_candidates <- candidate_assignments %>%
-    count(bg_row_id, GEOID, name = "candidate_count") %>%
-    filter(candidate_count > 1)
-
-  assignment_diagnostics <- tibble(GEOID = character(), selected_ward = integer())
-  if (nrow(duplicate_candidates) > 0) {
-    assignment_diagnostics <- map_dfr(
-      duplicate_candidates$bg_row_id,
-      resolve_ambiguous_assignment,
-      current_bgs = current_bgs,
-      current_wards = current_wards,
-      candidate_assignments = candidate_assignments,
-      current_year = current_year
+  chicago_coverage <- suppressWarnings(
+    st_intersection(
+      current_bgs %>% select(GEOID, block_group_area),
+      st_union(current_wards)
     )
-  }
-
-  simple_assignments <- candidate_assignments %>%
-    anti_join(duplicate_candidates, by = c("bg_row_id", "GEOID")) %>%
-    distinct(bg_row_id, GEOID, ward)
-
-  resolved_assignments <- assignment_diagnostics %>%
-    distinct(GEOID, selected_ward) %>%
-    inner_join(
-      duplicate_candidates %>% select(bg_row_id, GEOID),
-      by = "GEOID",
-      relationship = "one-to-one"
-    ) %>%
-    transmute(bg_row_id, GEOID, ward = selected_ward)
-
-  assignments <- bind_rows(simple_assignments, resolved_assignments) %>%
-    arrange(bg_row_id)
-
-  duplicate_assignments <- assignments %>%
-    count(bg_row_id, GEOID, name = "n") %>%
-    filter(n > 1)
-  if (nrow(duplicate_assignments) > 0) {
-    stop(sprintf("Block-group ward assignment still has duplicates in %s.", current_year), call. = FALSE)
-  }
-
-  assigned_data <- current_bgs %>%
+  ) %>%
+    mutate(covered_area = as.numeric(st_area(geometry))) %>%
     st_drop_geometry() %>%
-    left_join(
-      assignments %>% select(bg_row_id, ward),
-      by = "bg_row_id",
-      relationship = "one-to-one"
+    group_by(GEOID) %>%
+    summarize(
+      covered_area_share = sum(covered_area) / first(block_group_area),
+      .groups = "drop"
+    )
+  if (any(!is.finite(chicago_coverage$covered_area_share)) ||
+      any(chicago_coverage$covered_area_share > 1.001)) {
+    stop(sprintf("Invalid block-group coverage shares in %s.", current_year), call. = FALSE)
+  }
+
+  assigned_data <- suppressWarnings(
+    st_intersection(
+      current_bgs %>%
+        select(GEOID, all_of(count_columns), median_income, block_group_area),
+      current_wards
+    )
+  ) %>%
+    mutate(intersection_area = as.numeric(st_area(geometry))) %>%
+    filter(intersection_area > 0) %>%
+    mutate(raw_area_share = intersection_area / block_group_area) %>%
+    st_drop_geometry() %>%
+    group_by(GEOID, ward) %>%
+    summarize(
+      across(all_of(count_columns), first),
+      median_income = first(median_income),
+      raw_area_share = sum(raw_area_share),
+      .groups = "drop"
     ) %>%
-    filter(!is.na(ward)) %>%
+    left_join(
+      chicago_coverage,
+      by = "GEOID",
+      relationship = "many-to-one"
+    ) %>%
+    group_by(GEOID) %>%
+    mutate(
+      area_share = raw_area_share * covered_area_share / sum(raw_area_share)
+    ) %>%
+    ungroup() %>%
+    mutate(across(all_of(count_columns), ~ .x * area_share)) %>%
     mutate(year = current_year) %>%
-    select(-bg_row_id)
+    select(-raw_area_share, -covered_area_share, -area_share)
 
   assigned_data
 }
@@ -320,7 +273,7 @@ for (y in years) {
     }
   }
 
-  # --- B. Assign block groups to wards by centroid ---
+  # --- B. Allocate block groups to wards by polygon overlap ---
   current_wards <- ward_panel %>% filter(year == y)
   if (nrow(current_wards) == 0) next
 
@@ -334,10 +287,10 @@ message("Aggregating to Ward-Year Level...")
 final_bg_panel <- bind_rows(final_panel_list)
 
 duplicate_bg_years <- final_bg_panel %>%
-  count(GEOID, year, name = "n") %>%
+  count(GEOID, ward, year, name = "n") %>%
   filter(n > 1)
 if (nrow(duplicate_bg_years) > 0) {
-  stop("Block group controls contain duplicate GEOID-year assignments.", call. = FALSE)
+  stop("Block group controls contain duplicate GEOID-ward-year assignments.", call. = FALSE)
 }
 
 ward_controls <- final_bg_panel %>%
@@ -358,12 +311,22 @@ ward_controls <- final_bg_panel %>%
     # --- Economics (Weighted Means/Medians) ---
     # Median income: household-weighted average of block group medians
     median_hh_income = weighted.mean(median_income, tot_hhs, na.rm = TRUE),
-    avg_home_value = sum(agg_value, na.rm = TRUE) / sum(owner_occ, na.rm = TRUE),
-    avg_rent = sum(agg_rent, na.rm = TRUE) / sum(renter_occ, na.rm = TRUE),
     .groups = "drop"
   ) %>%
   filter(pop_total > 0) %>%
   arrange(ward, year)
+
+if (any(!is.finite(ward_controls$median_hh_income)) ||
+    any(!is.finite(ward_controls$homeownership_rate)) ||
+    any(!is.finite(ward_controls$share_bach_plus))) {
+  stop("Ward controls contain non-finite socioeconomic measures.", call. = FALSE)
+}
+if (any(ward_controls$homeownership_rate < 0 | ward_controls$homeownership_rate > 1) ||
+    any(ward_controls$share_bach_plus < 0 | ward_controls$share_bach_plus > 1) ||
+    any(ward_controls$share_black < 0 | ward_controls$share_hisp < 0 | ward_controls$share_white < 0) ||
+    any(ward_controls$share_black + ward_controls$share_hisp + ward_controls$share_white > 1 + 1e-8)) {
+  stop("Ward controls contain invalid demographic shares.", call. = FALSE)
+}
 
 write_csv(ward_controls, "../output/ward_controls_2000_2023.csv")
 message("Ward Panel saved to: ../output/ward_controls_2000_2023.csv")

@@ -1,0 +1,149 @@
+matter_id,census_block_id,assignment_source,evidence,overlap_sqft,is_representative
+O2011-845,170314601001031,ordinance_legal_description,South Works legal boundary reaches the block east of S Green Bay Avenue,NA,FALSE
+O2011-845,170314601001032,ordinance_legal_description,"South Works legal boundary includes the block bounded by E 86th Street, E 87th Street, and S Burley Avenue",NA,TRUE
+O2011-9720,170313302002017,ordinance_legal_description_and_parcel,Official boundary and 1615 S Clark parcels fall in this block,NA,TRUE
+O2012-6644,170318356002027,city_zoning_clerk_document,City zoning polygon linked to O2012-6644,10947.601441949606,TRUE
+O2012-6644,170318356002028,city_zoning_clerk_document,City zoning polygon linked to O2012-6644,5149.131837704508,FALSE
+O2016-1620,170315304002001,city_zoning_clerk_document,City zoning polygon linked to O2016-1620,20716.19698044192,FALSE
+O2016-1620,170315304002002,city_zoning_clerk_document,City zoning polygon linked to O2016-1620,144636.15117020905,TRUE
+O2016-1620,170315304002003,city_zoning_clerk_document,City zoning polygon linked to O2016-1620,330.9854255146929,FALSE
+O2016-1620,170315304002004,city_zoning_clerk_document,City zoning polygon linked to O2016-1620,1810.1792724659972,FALSE
+O2016-1620,170315304002015,city_zoning_clerk_document,City zoning polygon linked to O2016-1620,5663.680671423674,FALSE
+O2016-1620,170315304002016,city_zoning_clerk_document,City zoning polygon linked to O2016-1620,12169.817641087808,FALSE
+O2016-1620,170315304002017,city_zoning_clerk_document,City zoning polygon linked to O2016-1620,17081.301297090948,FALSE
+O2018-3281,170310306031003,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,46843.62363963062,FALSE
+O2018-3281,170310306031004,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,40927.82271453738,FALSE
+O2018-3281,170310307011004,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,54190.78273445172,TRUE
+O2018-3281,170310307031001,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,47120.07934331894,FALSE
+O2018-3281,170310307031003,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,46614.97344923488,FALSE
+O2018-3281,170310307033001,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,149.95450866222382,FALSE
+O2018-3281,170310307033002,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,47672.34435361624,FALSE
+O2018-3281,170310312002003,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,33541.80967534028,FALSE
+O2018-3281,170310312002004,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,11302.525092950455,FALSE
+O2018-3281,170310312002005,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,17465.630446333962,FALSE
+O2018-3281,170310312002006,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,48787.51030040328,FALSE
+O2018-3281,170310312002007,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,252.83007531044564,FALSE
+O2018-3281,170310312003002,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,25868.77743028626,FALSE
+O2018-3281,170310312003006,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,53024.07683739817,FALSE
+O2018-3281,170318307002004,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,132.1178578734398,FALSE
+O2018-3281,170318307002005,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,36353.62359447181,FALSE
+O2018-3281,170318307002006,city_zoning_ordinance,City T-district polygon linked to ordinance A8390,9747.855462772233,FALSE
+SO2011-8028,170318330002020,ordinance_common_address_parcel,"Official 1241 W Fulton Market address, PIN 17083200030000",NA,TRUE
+SO2013-8665,170312229001007,city_zoning_ordinance,City PD 733 polygon linked to ordinance A7964,202438.01710790396,TRUE
+SO2014-2421,170312222002010,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,39659.521660387516,TRUE
+SO2014-2421,170312222002013,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,290.130174851176,FALSE
+SO2014-2421,170312222002015,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,3413.8322597970255,FALSE
+SO2014-2421,170312225001012,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,100.03566408292454,FALSE
+SO2014-2421,170312225001014,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,133.64935220277403,FALSE
+SO2014-2421,170312226001012,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,821.8731835223734,FALSE
+SO2014-2421,170312226001013,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,741.4034255607985,FALSE
+SO2014-2421,170312226001014,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,1080.799866565445,FALSE
+SO2014-2421,170312226001015,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,16905.85960773239,FALSE
+SO2014-2421,170312226001026,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,956.5841993459035,FALSE
+SO2014-2421,170312226001027,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,135.14259058624157,FALSE
+SO2014-2421,170312226001028,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,2524.73223212664,FALSE
+SO2014-2421,170312227001008,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,7383.444570034742,FALSE
+SO2014-2421,170312227001009,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,6831.060361391166,FALSE
+SO2014-2421,170312227001010,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,7734.957718534395,FALSE
+SO2014-2421,170312227001012,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,558.3934918237501,FALSE
+SO2014-2421,170312227001013,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,25966.213190722105,FALSE
+SO2014-2421,170312227001014,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,23280.8239535382,FALSE
+SO2014-2421,170312227002006,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,11221.88478901703,FALSE
+SO2014-2421,170312227002007,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,1200.9667872888967,FALSE
+SO2014-2421,170312227002010,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,20386.24206439918,FALSE
+SO2014-2421,170312227002011,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,14603.533340390772,FALSE
+SO2014-2421,170312227002015,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,21607.663867953946,FALSE
+SO2014-2421,170312227002016,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,21591.92863419678,FALSE
+SO2014-2421,170312228001011,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,13998.055261962116,FALSE
+SO2014-2421,170312228001012,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,21716.443054390373,FALSE
+SO2014-2421,170312228001013,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,21828.779355950886,FALSE
+SO2014-2421,170312228001014,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,37927.945777284476,FALSE
+SO2014-2421,170312229001007,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,11673.69830356352,FALSE
+SO2014-2421,170312229001015,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,10147.923231933266,FALSE
+SO2014-2421,170312229001017,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,4426.502449904801,FALSE
+SO2014-2421,170312229001018,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,3855.7239565160125,FALSE
+SO2014-2421,170312301001000,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,3233.059555860935,FALSE
+SO2014-2421,170312301001001,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,17765.5748097616,FALSE
+SO2014-2421,170312301001002,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,8072.581517397673,FALSE
+SO2014-2421,170312301001003,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,6817.033662442118,FALSE
+SO2014-2421,170312301001004,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,15836.634844647255,FALSE
+SO2014-2421,170312301001006,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,2021.0021345242858,FALSE
+SO2014-2421,170312301001007,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,716.7514004185796,FALSE
+SO2014-2421,170312302001004,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,108.60979519266402,FALSE
+SO2014-2421,170312304001000,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,17489.101355192717,FALSE
+SO2014-2421,170312304001001,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,18221.7528641041,FALSE
+SO2014-2421,170312304001002,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,31201.009567813206,FALSE
+SO2014-2421,170312402001000,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,16267.90271831723,FALSE
+SO2014-2421,170312402001001,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,16148.18984596897,FALSE
+SO2014-2421,170312402001002,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,7289.1562105659395,FALSE
+SO2014-2421,170312402001003,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,7077.6208865156805,FALSE
+SO2014-2421,170312402001004,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,21464.87682458408,FALSE
+SO2014-2421,170312402001020,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,22735.163378565543,FALSE
+SO2014-2421,170312403001000,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,16087.365753109101,FALSE
+SO2014-2421,170312403001001,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,16049.796977448277,FALSE
+SO2014-2421,170312403001002,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,15660.816623511817,FALSE
+SO2014-2421,170312403001003,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,35784.41115834232,FALSE
+SO2014-2421,170312405001000,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,20467.27811800525,FALSE
+SO2014-2421,170312405001001,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,36654.4637825808,FALSE
+SO2014-2421,170312406001000,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,4285.173955129692,FALSE
+SO2014-2421,170312406001001,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,4330.1214302969165,FALSE
+SO2014-2421,170312406001002,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,4144.426696659997,FALSE
+SO2014-2421,170312406001003,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,4377.440940008033,FALSE
+SO2014-2421,170312406001004,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,31613.007856940385,FALSE
+SO2014-2421,170312406001005,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,10688.08328040922,FALSE
+SO2014-2421,170312406001006,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,5305.098120837938,FALSE
+SO2014-2421,170312406001007,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,5411.583566106856,FALSE
+SO2014-2421,170312406001008,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,10569.34749905346,FALSE
+SO2014-2421,170312407001000,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,4476.1698383223265,FALSE
+SO2014-2421,170312407001001,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,4271.421055917861,FALSE
+SO2014-2421,170312407001002,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,3947.36849119456,FALSE
+SO2014-2421,170312407001003,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,3597.5253025187794,FALSE
+SO2014-2421,170312407001004,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,13580.319723577006,FALSE
+SO2014-2421,170312407001005,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,5830.2605005688965,FALSE
+SO2014-2421,170312407001006,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,5701.727930434514,FALSE
+SO2014-2421,170312407001007,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,5667.751009427011,FALSE
+SO2014-2421,170312407001008,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,5584.613752820063,FALSE
+SO2014-2421,170312407001009,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,5496.625947341323,FALSE
+SO2014-2421,170312407001010,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,5355.955791982589,FALSE
+SO2014-2421,170312408001000,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,12313.937232477125,FALSE
+SO2014-2421,170312408001001,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,12831.485714473878,FALSE
+SO2014-2421,170312408001006,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,3450.3262905795127,FALSE
+SO2014-2421,170312408002000,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,8853.133157171309,FALSE
+SO2014-2421,170312408002001,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,5018.145705000381,FALSE
+SO2014-2421,170312408002002,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,10382.920238237828,FALSE
+SO2014-2421,170312408002003,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,4242.4997426592745,FALSE
+SO2014-2421,170312408002009,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,4770.928169921157,FALSE
+SO2014-2421,170318310001000,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,5210.472145629115,FALSE
+SO2014-2421,170318310001001,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,1511.4570086849853,FALSE
+SO2014-2421,170318310001002,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,2994.2729993042885,FALSE
+SO2014-2421,170318310001003,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,20375.680836674757,FALSE
+SO2014-2421,170318310001004,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,3431.6202578861266,FALSE
+SO2014-2421,170318310001006,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,18567.440275478875,FALSE
+SO2014-2421,170318310002025,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,3100.8924420662224,FALSE
+SO2014-2421,170318323001047,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,29921.64900605497,FALSE
+SO2014-2421,170318323001086,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,5741.388160049915,FALSE
+SO2014-2421,170318324002015,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,13350.174960802527,FALSE
+SO2014-2421,170318324002016,city_zoning_ordinance,City zoning polygons linked to 606 Trail ordinance MA181,224.43197474698536,FALSE
+SO2016-7343,170313501001011,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,157.83726750818096,FALSE
+SO2016-7343,170313510001005,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,69706.43976514558,FALSE
+SO2016-7343,170313510001009,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,9741.268889696861,FALSE
+SO2016-7343,170313510002000,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,161570.46934883296,FALSE
+SO2016-7343,170313510002001,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,129732.31372386962,FALSE
+SO2016-7343,170313510002002,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,164567.80843818933,FALSE
+SO2016-7343,170313510002003,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,650224.4971843436,TRUE
+SO2016-7343,170313510002004,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,255325.28464383632,FALSE
+SO2016-7343,170313510002005,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,6078.952559498139,FALSE
+SO2016-7343,170313510002006,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,12420.171163352672,FALSE
+SO2016-7343,170313510003000,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,480866.3802853511,FALSE
+SO2016-7343,170313510003001,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,160608.3088296242,FALSE
+SO2016-7343,170313510003002,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,164378.56562576443,FALSE
+SO2016-7343,170313510003003,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,116438.03096157825,FALSE
+SO2016-7343,170313510003004,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,351582.5621586137,FALSE
+SO2016-7343,170313510003005,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,525604.6040383317,FALSE
+SO2016-7343,170313510003006,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,71633.43024131015,FALSE
+SO2016-7343,170313510003007,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,61945.93436745694,FALSE
+SO2016-7343,170313510003008,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,48297.753292769194,FALSE
+SO2016-7343,170313510003009,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,88906.35691565275,FALSE
+SO2016-7343,170313510003010,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,283364.93577267556,FALSE
+SO2016-7343,170313511003000,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,271.7264967127703,FALSE
+SO2016-7343,170313602001000,city_zoning_pd_boundary,City PD 1169 boundary retained by the 2017 amendment,469.51679914514534,FALSE

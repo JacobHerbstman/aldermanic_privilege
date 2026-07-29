@@ -1,113 +1,155 @@
-SHELL := bash
-
-MAIN_BW_M ?= 304.8
-MAIN_BW_LABEL ?= 1000ft
+MAIN_BW_M ?= 152.4
+MAIN_BW_LABEL ?= 500ft
+SCORE_VARIANTS := current_no_income education_added_back income_added_back all_covariates
+OUTCOMES := high_discretion low_discretion_nosigns
 
 all: \
-	../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_support_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_pretrend_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_metadata_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_support_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_pretrend_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_metadata_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_coefficients_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_support_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_pretrend_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_metadata_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_coefficients_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_support_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_pretrend_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_metadata_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv \
-	../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment500ft.csv \
-	../output/event_study_support_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment500ft.csv \
-	../output/event_study_pretrend_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment500ft.csv \
-	../output/event_study_metadata_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment500ft.csv \
-	../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv \
-	../output/event_study_support_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv \
-	../output/event_study_pretrend_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv \
-	../output/event_study_metadata_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv
+	../output/event_study_coefficients_yearly_cohort_2015_high_discretion_application_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_wardpair_ctrl_pre_high_level_geo_wardpair.csv \
+	../output/event_study_coefficients_yearly_cohort_2015_high_discretion_application_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_wardpair_ctrl_pre_high_level_geo_wardpair.csv \
+	../output/event_study_coefficients_yearly_cohort_2015_low_discretion_nosigns_application_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_wardpair_ctrl_pre_high_level_geo_wardpair.csv \
+	$(foreach outcome,$(OUTCOMES),$(foreach score,$(SCORE_VARIANTS),../output/binary_event_study_pooled_$(outcome)_$(score)_$(MAIN_BW_LABEL).csv)) \
+	$(foreach outcome,$(OUTCOMES),$(foreach score,$(SCORE_VARIANTS),../output/binary_joint_directional_event_study_$(outcome)_$(score)_$(MAIN_BW_LABEL).pdf)) \
+	../output/binary_joint_directional_event_study_high_discretion_income_added_back_$(MAIN_BW_LABEL)_paper.pdf \
+	../output/binary_signed_directional_event_study_high_discretion_income_added_back_$(MAIN_BW_LABEL)_paper.pdf \
+	../output/binary_signed_directional_event_study_low_discretion_nosigns_income_added_back_$(MAIN_BW_LABEL)_paper.pdf \
+	../output/binary_signed_directional_event_study_high_discretion_income_added_back_$(MAIN_BW_LABEL)_stable_paper.pdf \
+	../output/binary_event_study_appendix_income_added_back_$(MAIN_BW_LABEL).tex \
+	../output/binary_event_study_appendix_income_added_back_$(MAIN_BW_LABEL)_stable.tex \
+	../output/stable_binary_outcome_comparison_$(MAIN_BW_LABEL).csv \
+	../output/stable_preperiod_control_sensitivity_$(MAIN_BW_LABEL).csv \
+	../output/stable_preperiod_control_outcome_tests_$(MAIN_BW_LABEL).csv \
+	../output/stable_preperiod_control_balance_$(MAIN_BW_LABEL).csv \
+	../output/stable_zero_preperiod_observable_balance_$(MAIN_BW_LABEL).csv \
+	../output/stable_zero_preperiod_observable_joint_test_$(MAIN_BW_LABEL).csv \
+	../output/stable_preperiod_raw_trends_$(MAIN_BW_LABEL).png \
+	../output/stable_preperiod_raw_assignment_trends_$(MAIN_BW_LABEL).png \
+	../output/stable_preperiod_raw_pair_differences_$(MAIN_BW_LABEL).png \
+	$(foreach outcome,$(OUTCOMES),$(foreach score,$(SCORE_VARIANTS),../output/binary_aggregate_event_study_$(outcome)_$(score)_$(MAIN_BW_LABEL).pdf))
 
-../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: run_permit_event_study_audit.R ../../../_lib/event_study_plot_helpers.R ../../../_lib/permit_event_study_sample_helpers.R ../input/permit_block_year_panel_2015.parquet | ../output
-	$(R) $< cohort_2015 high_discretion issue ppml continuous uniform $(MAIN_BW_M) within_block full ward_pair block none none $(MAIN_BW_LABEL)
+../output/event_study_coefficients_yearly_cohort_2015_high_discretion_application_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_wardpair_ctrl_pre_high_level_geo_wardpair.csv: run_permit_event_study_audit.R ../../../_lib/event_study_plot_helpers.R ../../../_lib/permit_event_study_sample_helpers.R ../input/permit_block_year_panel_2015.parquet | ../output
+	$(R) $< cohort_2015 high_discretion application ppml continuous uniform $(MAIN_BW_M) within_block full ward_pair ward_pair pre_high_level none $(MAIN_BW_LABEL)
 
-../output/event_study_support_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: | ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv
-	@test -s "$@"
+../output/event_study_coefficients_yearly_cohort_2015_high_discretion_application_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_wardpair_ctrl_pre_high_level_geo_wardpair.csv: run_permit_event_study_audit.R ../../../_lib/event_study_plot_helpers.R ../../../_lib/permit_event_study_sample_helpers.R ../input/permit_block_year_panel_2015.parquet | ../output
+	$(R) $< cohort_2015 high_discretion application ppml continuous_split uniform $(MAIN_BW_M) within_block full ward_pair ward_pair pre_high_level none $(MAIN_BW_LABEL)
 
-../output/event_study_pretrend_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: | ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv
-	@test -s "$@"
+../output/event_study_coefficients_yearly_cohort_2015_low_discretion_nosigns_application_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_wardpair_ctrl_pre_high_level_geo_wardpair.csv: run_permit_event_study_audit.R ../../../_lib/event_study_plot_helpers.R ../../../_lib/permit_event_study_sample_helpers.R ../input/permit_block_year_panel_2015.parquet | ../output
+	$(R) $< cohort_2015 low_discretion_nosigns application ppml continuous uniform $(MAIN_BW_M) within_block full ward_pair ward_pair pre_high_level none $(MAIN_BW_LABEL)
 
-../output/event_study_metadata_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: | ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv
-	@test -s "$@"
+define binary_event_study_rule
+../output/binary_event_study_pooled_$(1)_$(2)_$(MAIN_BW_LABEL).csv: run_binary_aggregate_event_study.R ../input/permit_block_year_panel_2015.parquet ../input/score_control_variants.csv | ../output
+	$$(R) $$< $$(MAIN_BW_M) $$(MAIN_BW_LABEL) $(2) $(1)
+endef
 
-../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: run_permit_event_study_audit.R ../../../_lib/event_study_plot_helpers.R ../../../_lib/permit_event_study_sample_helpers.R ../input/permit_block_year_panel_2015.parquet | ../output
-	$(R) $< cohort_2015 high_discretion issue ppml continuous_split uniform $(MAIN_BW_M) within_block full ward_pair block none none $(MAIN_BW_LABEL)
+$(foreach outcome,$(OUTCOMES),$(foreach score,$(SCORE_VARIANTS),$(eval $(call binary_event_study_rule,$(outcome),$(score)))))
 
-../output/event_study_support_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: | ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv
-	@test -s "$@"
+../output/binary_joint_event_study_%_$(MAIN_BW_LABEL).csv \
+../output/binary_signed_event_study_%_$(MAIN_BW_LABEL).csv \
+../output/binary_joint_directional_event_study_%_$(MAIN_BW_LABEL).pdf \
+../output/binary_joint_directional_event_study_%_$(MAIN_BW_LABEL).png \
+../output/binary_aggregate_event_study_%_$(MAIN_BW_LABEL).pdf \
+../output/binary_aggregate_event_study_%_$(MAIN_BW_LABEL).png: \
+	../output/binary_event_study_pooled_%_$(MAIN_BW_LABEL).csv
 
-../output/event_study_pretrend_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: | ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv
-	@test -s "$@"
+../output/binary_joint_directional_event_study_high_discretion_income_added_back_$(MAIN_BW_LABEL)_paper.pdf: \
+	run_binary_aggregate_event_study.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv | ../output
+	$(R) $< $(MAIN_BW_M) $(MAIN_BW_LABEL) income_added_back high_discretion
 
-../output/event_study_metadata_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: | ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_split_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv
-	@test -s "$@"
+../output/binary_signed_directional_event_study_high_discretion_income_added_back_$(MAIN_BW_LABEL)_paper.pdf: \
+	run_binary_aggregate_event_study.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv | ../output
+	$(R) $< $(MAIN_BW_M) $(MAIN_BW_LABEL) income_added_back high_discretion
 
-../output/event_study_coefficients_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: run_permit_event_study_audit.R ../../../_lib/event_study_plot_helpers.R ../../../_lib/permit_event_study_sample_helpers.R ../input/permit_block_year_panel_2015.parquet | ../output
-	$(R) $< cohort_2015 low_discretion_nosigns issue ppml continuous uniform $(MAIN_BW_M) within_block full ward_pair block none none $(MAIN_BW_LABEL)
+../output/binary_signed_directional_event_study_low_discretion_nosigns_income_added_back_$(MAIN_BW_LABEL)_paper.pdf: \
+	run_binary_aggregate_event_study.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv | ../output
+	$(R) $< $(MAIN_BW_M) $(MAIN_BW_LABEL) income_added_back low_discretion_nosigns
 
-../output/event_study_support_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: | ../output/event_study_coefficients_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv
-	@test -s "$@"
+../output/binary_signed_directional_event_study_high_discretion_income_added_back_$(MAIN_BW_LABEL)_stable_paper.pdf: \
+	run_binary_aggregate_event_study.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv | ../output
+	$(R) $< $(MAIN_BW_M) $(MAIN_BW_LABEL) income_added_back high_discretion stable
 
-../output/event_study_pretrend_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: | ../output/event_study_coefficients_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv
-	@test -s "$@"
+../output/binary_event_study_appendix_income_added_back_$(MAIN_BW_LABEL).tex: \
+	build_binary_event_study_appendix_table.R \
+	../output/binary_event_study_pooled_high_discretion_income_added_back_$(MAIN_BW_LABEL).csv \
+	../output/binary_event_study_pooled_low_discretion_nosigns_income_added_back_$(MAIN_BW_LABEL).csv | ../output
+	$(R) $< $(MAIN_BW_LABEL)
 
-../output/event_study_metadata_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: | ../output/event_study_coefficients_yearly_cohort_2015_low_discretion_nosigns_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv
-	@test -s "$@"
+../output/binary_event_study_pooled_high_discretion_income_added_back_$(MAIN_BW_LABEL)_stable.csv: \
+	run_binary_aggregate_event_study.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv | ../output
+	$(R) $< $(MAIN_BW_M) $(MAIN_BW_LABEL) income_added_back high_discretion stable
 
-../output/event_study_coefficients_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: run_permit_event_study_audit.R ../../../_lib/event_study_plot_helpers.R ../../../_lib/permit_event_study_sample_helpers.R ../input/permit_block_year_panel.parquet | ../output
-	$(R) $< stacked_implementation high_discretion issue ppml continuous uniform $(MAIN_BW_M) within_block full ward_pair block none none $(MAIN_BW_LABEL)
+../output/binary_event_study_pooled_low_discretion_nosigns_income_added_back_$(MAIN_BW_LABEL)_stable.csv: \
+	run_binary_aggregate_event_study.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv | ../output
+	$(R) $< $(MAIN_BW_M) $(MAIN_BW_LABEL) income_added_back low_discretion_nosigns stable
 
-../output/event_study_support_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: | ../output/event_study_coefficients_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv
-	@test -s "$@"
+../output/binary_event_study_appendix_income_added_back_$(MAIN_BW_LABEL)_stable.tex: \
+	build_binary_event_study_appendix_table.R \
+	../output/binary_event_study_pooled_high_discretion_income_added_back_$(MAIN_BW_LABEL)_stable.csv \
+	../output/binary_event_study_pooled_low_discretion_nosigns_income_added_back_$(MAIN_BW_LABEL)_stable.csv \
+	../output/stable_binary_outcome_comparison_$(MAIN_BW_LABEL).csv | ../output
+	$(R) $< $(MAIN_BW_LABEL) stable
 
-../output/event_study_pretrend_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: | ../output/event_study_coefficients_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv
-	@test -s "$@"
+../output/stable_binary_outcome_comparison_$(MAIN_BW_LABEL).csv: \
+	compare_stable_binary_outcomes.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv \
+	../output/binary_event_study_pooled_high_discretion_income_added_back_$(MAIN_BW_LABEL)_stable.csv \
+	../output/binary_event_study_pooled_low_discretion_nosigns_income_added_back_$(MAIN_BW_LABEL)_stable.csv | ../output
+	$(R) $<
 
-../output/event_study_metadata_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv: | ../output/event_study_coefficients_yearly_stacked_implementation_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair.csv
-	@test -s "$@"
+../output/stable_preperiod_control_sensitivity_$(MAIN_BW_LABEL).csv: \
+	compare_stable_preperiod_controls.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv | ../output
+	$(R) $<
 
-../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment500ft.csv: run_permit_event_study_audit.R ../../../_lib/event_study_plot_helpers.R ../../../_lib/permit_event_study_sample_helpers.R ../input/permit_block_year_panel_2015.parquet | ../output
-	MIN_SEGMENT_LENGTH_FT=500 Rscript $< cohort_2015 high_discretion issue ppml continuous uniform $(MAIN_BW_M) within_block full ward_pair block none none $(MAIN_BW_LABEL)
+../output/stable_preperiod_control_outcome_tests_$(MAIN_BW_LABEL).csv: \
+	../output/stable_preperiod_control_sensitivity_$(MAIN_BW_LABEL).csv
 
-../output/event_study_support_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment500ft.csv: | ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment500ft.csv
-	@test -s "$@"
+../output/stable_preperiod_control_balance_$(MAIN_BW_LABEL).csv: \
+	../output/stable_preperiod_control_sensitivity_$(MAIN_BW_LABEL).csv
 
-../output/event_study_pretrend_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment500ft.csv: | ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment500ft.csv
-	@test -s "$@"
+../output/stable_zero_preperiod_observable_balance_$(MAIN_BW_LABEL).csv: \
+	compare_zero_preperiod_blocks.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/block_group_controls.csv | ../output
+	$(R) $<
 
-../output/event_study_metadata_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment500ft.csv: | ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment500ft.csv
-	@test -s "$@"
+../output/stable_zero_preperiod_observable_joint_test_$(MAIN_BW_LABEL).csv: \
+	../output/stable_zero_preperiod_observable_balance_$(MAIN_BW_LABEL).csv
 
-../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv: run_permit_event_study_audit.R ../../../_lib/event_study_plot_helpers.R ../../../_lib/permit_event_study_sample_helpers.R ../input/permit_block_year_panel_2015.parquet | ../output
-	MIN_SEGMENT_LENGTH_FT=1000 Rscript $< cohort_2015 high_discretion issue ppml continuous uniform $(MAIN_BW_M) within_block full ward_pair block none none $(MAIN_BW_LABEL)
+../output/stable_preperiod_raw_trends_$(MAIN_BW_LABEL).png: \
+	plot_stable_preperiod_raw_trends.R \
+	../input/permit_block_year_panel_2015.parquet \
+	../input/score_control_variants.csv | ../output
+	$(R) $<
 
-../output/event_study_support_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv: | ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv
-	@test -s "$@"
+../output/stable_preperiod_raw_assignment_trends_$(MAIN_BW_LABEL).png: \
+	../output/stable_preperiod_raw_trends_$(MAIN_BW_LABEL).png
 
-../output/event_study_pretrend_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv: | ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv
-	@test -s "$@"
-
-../output/event_study_metadata_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv: | ../output/event_study_coefficients_yearly_cohort_2015_high_discretion_issue_ppml_continuous_uniform_$(MAIN_BW_LABEL)_within_block_full_clust_block_geo_wardpair_minsegment1000ft.csv
-	@test -s "$@"
+../output/stable_preperiod_raw_pair_differences_$(MAIN_BW_LABEL).png: \
+	../output/stable_preperiod_raw_trends_$(MAIN_BW_LABEL).png
 
 ../input/permit_block_year_panel_2015.parquet: ../../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/permit_block_year_panel.parquet: ../../../create_event_study_permit_data/output/permit_block_year_panel.parquet | ../input
+../input/score_control_variants.csv: ../../income_score_current_results/output/current_income_scores.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/permit_block_year_panel.parquet
+../input/block_group_controls.csv: ../../../create_block_group_controls/output/block_group_controls.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/score_control_variants.csv ../input/block_group_controls.csv
 
 include ../../../shell_functions.make
 include ../../../generic.make

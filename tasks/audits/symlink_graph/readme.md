@@ -1,7 +1,10 @@
-# symlink_graph
+# Production task graph
 
-Purpose: Handles symlink graph.
+Builds the production task graph from input-output dependencies declared in top-level task Makefiles. Tasks under `tasks/audits/` are excluded.
+Graph generation fails if the declared task dependencies contain a cycle.
 
-Produces: Produces files such as `output/graph.txt`, `output/task_flow.png` and related task-specific outputs in `output/`.
+Produces:
+- `output/graph.txt`
+- `output/task_flow.png`
 
-Approx. runtime: ~1-10 minutes.
+Approx. runtime: less than one minute.

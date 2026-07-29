@@ -1,3 +1,5 @@
+% !TEX root = ../paper.tex
+
 \section{Conceptual Framework}
 \label{sec:model}
 \subsection{Developer Problem}
@@ -7,33 +9,41 @@ A developer who expects years of meetings, redesigns, and uncertainty may respon
 The model below turns that intuition into a simple time-to-build problem.
 
 Consider a developer choosing the scale $q \geq 0$ (units of housing) of a project on a given site.
-Construction costs are $C(q) = F + cq + \frac{\gamma}{2}q^2$ with $\gamma > 0$, so marginal costs rise with project size.
+Construction costs are $C(q) = F\mathbf{1}\{q>0\} + cq + \frac{\gamma}{2}q^2$ with $F,\gamma > 0$, so building requires a fixed cost and marginal costs rise with project size.
+The developer can instead leave the site unbuilt and earn zero.
 Let $p$ denote the local price level, taken as given at the project level.
 
 The local regulatory environment $s$ maps into an \textit{effective time-to-build} $T(s)$ with $T'(s) > 0$.
-I use $T(s)$ as a reduced-form representation of entitlement delay, redesign requirements, negotiation costs, financing frictions, and regulatory uncertainty that push expected revenue further into the future.
+The term $T(s)$ summarizes entitlement delay, redesign requirements, negotiation costs, financing frictions, and regulatory uncertainty that push expected revenue further into the future.
 If revenue arrives upon project completion, the developer's expected discounted revenue per unit is $e^{-rT(s)} p$, where $r$ is the relevant discount or financing rate.
 The developer solves
 \[
 \max_{q \geq 0} \;\; e^{-rT(s)} p \, q - C(q).
 \]
-The first-order condition gives
+Conditional on building, the first-order condition gives $q^I(T(s),p) = \left(e^{-rT(s)}p-c\right)/\gamma$.
+At this scale, the project's profit is $\left(e^{-rT(s)}p-c\right)^2/(2\gamma)-F$.
+The developer therefore builds only when the project covers its fixed cost, and the optimal choice is
 \[
-q^*(T(s), p) = \frac{e^{-rT(s)} p - c}{\gamma}
+q^*(T(s),p) =
+\begin{cases}
+\dfrac{e^{-rT(s)}p-c}{\gamma},
+& \text{if } e^{-rT(s)}p-c \geq \sqrt{2\gamma F}, \\
+0, & \text{otherwise.}
+\end{cases}
 \]
-when $e^{-rT(s)} p > c$, and $q^* = 0$ otherwise.
-The central comparative static is $\partial q^* / \partial T(s) < 0$: longer or more burdensome regulatory processes reduce project scale and can push marginal projects from ``build'' to ``don't build.''
+For projects that are built, $\partial q^*/\partial T(s)<0$.
+Longer or more burdensome regulatory processes therefore reduce project scale and can also push marginal projects from ``build'' to ``don't build.''
 
 \subsection{From Developer Choices to Empirical Predictions}
 
 Aggregating across sites, total housing supply is $Q = \sum_i q_i^*$.
 Higher $T(s)$ reduces $Q$ through two direct margins: projects that are built at lower density and marginal projects that are no longer built.
 These are the main predictions I take to the data.
-Sites in more stringent regulatory environments should have lower completed density (Section~\ref{sec:empirical_results_density}), and the flow of permits requiring aldermanic review should fall when stringency increases (Section~\ref{sec:empirical_results_permits}).
+The flow of permits requiring aldermanic review should fall when stringency increases (Section~\ref{sec:empirical_results_permits}), and sites in more stringent regulatory environments should have lower completed density (Section~\ref{sec:empirical_results_density}).
 
 With downward-sloping demand $p'(Q) < 0$, a supply contraction can also raise housing costs.
 That prediction is less sharp in the data because prices may adjust over a wider geography and because rents and sale prices are observed in different datasets.
-I therefore treat the price comparisons in Section~\ref{sec:empirical_results_prices} as downstream evidence rather than as the main identification pillar.
+I therefore treat the price comparisons in Section~\ref{sec:empirical_results_prices} as supporting evidence rather than as one of the paper's main causal results.
 
 \subsection{Interpretation of the Stringency Score}
 
@@ -42,6 +52,6 @@ A higher value means revenue arrives later and is worth less today.
 That affects both the developer's intensive-margin density choice and the extensive-margin decision to build or not.
 
 The aldermanic stringency score I construct in Section~\ref{subsec:stringency} is an empirical proxy for $T(s)$.
-It measures the effective delay each alderman imposes on the development process after removing variation attributable to ward characteristics.
+It captures alderman-specific differences in permit processing times after adjusting for observed ward characteristics.
 Other dimensions of regulatory friction, such as impact fees, design mandates, or community benefit requirements, would enter as additional costs in $C(\cdot)$ and reinforce the same qualitative predictions.
 The core idea is that longer observed processing times for permits on larger discretionary projects are a noisy but informative signal of delay that lowers density, reduces aggregate supply, and may raise prices.

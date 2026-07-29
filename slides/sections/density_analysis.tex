@@ -196,7 +196,7 @@
     Two specifications:
     \begin{itemize}
         \item \textbf{Visual RD}: FE-adjusted discontinuity plots
-        \item \textbf{Regressions}: FE regressions using continuous variation in the stringency index
+        \item \textbf{Regressions}: Binary boundary comparison and continuous score-difference specification
     \end{itemize}
 \end{frame}
 
@@ -232,14 +232,18 @@
     
     \small
     \textbf{Specification}: 
-    $\ln(Y_i) = \beta \cdot \text{Stringency}_i + \alpha_{\text{zone group}} + \alpha_{\text{segment}} + \alpha_{\text{year}} + \varepsilon_i$\\
+    $\ln(Y_i) = \beta T_i + \eta \overline{S}_{ww'} + \alpha_{\text{zone group}} + \alpha_{\text{segment}} + \alpha_{\text{year}} + \varepsilon_i$\\
+    \scriptsize $T_i$ is the more-stringent-side indicator in Panel A and one-half of the own-minus-neighbor score difference in Panel B.
+    \small
     
     \begin{center}
+    \scriptsize
     \input{../tasks/border_pair_FE_regressions/output/fe_table_500ft_all_multifamily_zonegroup_segment_year_additive_clust_ward_pair.tex}
     \end{center}
+    \small
     
     \vspace{0.1em}
-    \textbf{Interpretation}: A 1 SD $\uparrow$ in stringency is associated with roughly $10$\% lower multifamily density.
+    \textbf{Interpretation}: Multifamily FAR and DUPAC are about 24\% and 28\% lower on the more stringent side.
 
     \vspace{-0.4em}
     \vfill\hfill

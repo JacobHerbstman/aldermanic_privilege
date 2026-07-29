@@ -48,19 +48,26 @@ if (any(duplicated(segment_pair_lookup, by = c("era", "segment_id")))) {
   stop("Segment lookup has duplicate era/segment_id rows.", call. = FALSE)
 }
 
-sales_dt <- fread("../input/sales_pre_scores.csv")
+sales_dt <- fread(
+  "../input/sales_pre_scores.csv",
+  colClasses = list(character = "pin")
+)
 if (!all(c("pin", "sale_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(sales_dt))) {
   stop("sales_pre_scores.csv missing required columns.", call. = FALSE)
 }
-sales_dt[, pin := as.character(pin)]
+sales_dt[, pin := gsub("[^0-9]", "", trimws(pin))]
+sales_dt[nchar(pin) == 13L, pin := paste0("0", pin)]
+if (any(nchar(sales_dt$pin) != 14L)) {
+  stop("Sales input contains an invalid full PIN.", call. = FALSE)
+}
 sales_dt[, sale_date := as.Date(sale_date)]
 
 rent_dt <- as.data.table(read_parquet("../input/rent_pre_scores_full.parquet"))
-if (!all(c("id", "file_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(rent_dt))) {
+if (!all(c("id", "assignment_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(rent_dt))) {
   stop("rent_pre_scores_full.parquet missing required columns.", call. = FALSE)
 }
 rent_dt[, id := as.character(id)]
-rent_dt[, file_date := as.Date(file_date)]
+rent_dt[, assignment_date := as.Date(assignment_date)]
 
 segment_outputs <- list()
 dataset_specs <- list(
@@ -75,7 +82,7 @@ dataset_specs <- list(
   ),
   rental = list(
     dt = rent_dt,
-    date_col = "file_date",
+    date_col = "assignment_date",
     pair_col = "ward_pair_id",
     lon_col = "longitude",
     lat_col = "latitude",
@@ -87,7 +94,7 @@ dataset_specs <- list(
 for (dataset_name in names(dataset_specs)) {
   spec <- dataset_specs[[dataset_name]]
   dt <- copy(spec$dt)
-  dt[, row_id := .I]
+  dt[, assignment_row_id := .I]
   dt[, pair_dash := normalize_pair_dash(get(spec$pair_col))]
   dt[, obs_date := as.Date(get(spec$date_col))]
   dt[, era := canonical_era_from_date(obs_date, allow_pre_2003 = spec$allow_pre_2003)]
@@ -116,7 +123,7 @@ for (dataset_name in names(dataset_specs)) {
   if (length(assignable_idx) > 0) {
     pts <- st_as_sf(
       data.table(
-        row_id = assignable_idx,
+        assignment_row_id = assignable_idx,
         lon = dt[[spec$lon_col]][assignable_idx],
         lat = dt[[spec$lat_col]][assignable_idx]
       ),
@@ -137,7 +144,7 @@ for (dataset_name in names(dataset_specs)) {
     set(dt, i = assignable_idx, j = "segment_id", value = seg_ids)
   }
 
-  assigned_segments <- dt[!is.na(segment_id) & segment_id != "", .(row_id, era, pair_dash, segment_id)]
+  assigned_segments <- dt[!is.na(segment_id) & segment_id != "", .(assignment_row_id, era, pair_dash, segment_id)]
   if (nrow(assigned_segments) > 0) {
     assigned_segments <- merge(
       assigned_segments,
@@ -181,7 +188,7 @@ for (dataset_name in names(dataset_specs)) {
     )]
   }
 
-  dt[, c("row_id", "pair_dash", "obs_date", "era") := NULL]
+  dt[, c("assignment_row_id", "pair_dash", "obs_date", "era") := NULL]
   segment_outputs[[dataset_name]] <- dt
 }
 

@@ -1,0 +1,19 @@
+matter_id,journal_meeting_date,app_number,from_code_journal,to_code_journal,journal_evidence,journal_note
+O2010-5173,2010-11-03,17151,M1-1,M2-1,Journal 2010-11-03 committee text and index,Index and committee text agree
+O2010-5176,2010-11-03,17155,RM-5,B3-5,Journal 2010-11-03 committee text and index,Index and committee text agree
+O2010-5179,2010-11-03,17140,M2-3,B3-3,Journal 2010-11-03 compact zoning index,Full committee text also mentions B3-5 as existing district
+O2010-5180,2010-11-03,17152,RS-3,RT-4,Journal 2010-11-03 committee text and index,Index and committee text agree
+O2010-5181,2010-11-03,17153,RT-4,RM-5,Journal 2010-11-03 committee text and index,Index and committee text agree
+O2010-5182,2010-11-03,17146,RS-3,RT-4,Journal 2010-11-03 committee text and index,Index and committee text agree
+O2010-5615,2010-11-03,,POS,RM-5,Journal 2010-11-03 compact zoning index,No app number in ELMS title
+O2010-5773,2010-11-03,,C1-3,RM-5,Journal 2010-11-03 compact zoning index,No app number in ELMS title
+O2010-5910,2010-11-03,17148,B3-2,RT-4,Journal 2010-11-03 compact zoning index,Full committee text says existing RT4 and B3-2
+O2010-5912,2010-11-03,17143,RT-4,RM-4.5,Journal 2010-11-03 committee text and index,Index and committee text agree
+O2010-5916,2010-11-03,17149,RS-3,B3-2,Journal 2010-11-03 committee text,Committee text says proposed B3-2 and existing B3-2 plus RS3
+O2010-5917,2010-11-03,17147,RS-3,RT-4,Journal 2010-11-03 committee text and index,Index and committee text agree
+O2010-5919,2010-11-03,17144,C1-2,B2-3,Journal 2010-11-03 committee text and index,Index and committee text agree
+O2010-6271,2010-11-03,A-7658,RM-4.5,M3-3,Journal 2010-11-03 compact zoning index,No parsed app number in ELMS title because app is alphanumeric
+O2010-6272,2010-11-03,,RT-4,B3-2,Journal 2010-11-03 compact zoning index,No app number in ELMS title
+SO2010-5174,2010-11-03,17137,PD,PD,Journal 2010-11-03 committee text and index,Planned development amendment
+SO2010-5175,2010-11-03,17150,PD,PD,Journal 2010-11-03 committee text and index,Planned development amendment
+SO2010-5918,2010-11-03,17142,PD,PD,Journal 2010-11-03 committee text and index,Planned development amendment

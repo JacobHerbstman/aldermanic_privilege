@@ -1,0 +1,18 @@
+{
+  "timestamp_utc": "2026-02-18T20:07:22Z",
+  "source_xlsx": "../input/chicago_geocoder_results_19990101_20260212.xlsx",
+  "source_xlsx_sha256": "516f233fefe7f3938bb53f39d7ba2d57708493433f8e9689d932a836005d0d49",
+  "rows_in_xlsx": 644,
+  "rows_exported": 644,
+  "rows_with_valid_coords": 582,
+  "detected_columns": {
+    "row_col": "ROW_NUMBER",
+    "address_col": "address",
+    "full_address_col": "Full Address",
+    "status_col": "Status",
+    "lat_col": "Lat/Long Coordinates",
+    "lon_col": "Lat/Long Coordinates",
+    "latlon_col": "Lat/Long Coordinates"
+  },
+  "output_csv": "../input/chicago_geocoder_results_19990101_20260212.csv"
+}
