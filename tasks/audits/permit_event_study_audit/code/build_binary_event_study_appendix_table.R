@@ -1,26 +1,33 @@
 # setwd("tasks/audits/permit_event_study_audit/code")
 # bandwidth_label <- "500ft"
+# sample_rule <- "all"
 
 source("../../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0L) {
-  cli_args <- c(bandwidth_label)
+  cli_args <- c(bandwidth_label, sample_rule)
 }
-if (length(cli_args) != 1L) {
-  stop("Expected one bandwidth label.")
+if (!length(cli_args) %in% c(1L, 2L)) {
+  stop("Expected a bandwidth label and optional sample rule.")
 }
 bandwidth_label <- cli_args[1]
+sample_rule <- if (length(cli_args) == 2L) cli_args[2] else "all"
+if (!sample_rule %in% c("all", "stable")) {
+  stop("Sample rule must be all or stable.")
+}
+sample_suffix <- if (sample_rule == "stable") "_stable" else ""
 
 read_results <- function(outcome) {
   readr::read_csv(
     sprintf(
       paste0(
         "../output/binary_event_study_pooled_%s_",
-        "income_added_back_%s.csv"
+        "income_added_back_%s%s.csv"
       ),
       outcome,
-      bandwidth_label
+      bandwidth_label,
+      sample_suffix
     ),
     show_col_types = FALSE
   ) |>
@@ -30,7 +37,12 @@ read_results <- function(outcome) {
       se,
       p_value,
       n_obs,
-      symmetry_p_value
+      ward_pair_clusters,
+      control_blocks,
+      stricter_blocks,
+      lenient_blocks,
+      symmetry_p_value,
+      pretrend_p_value
     )
 }
 
@@ -81,13 +93,72 @@ format_symmetry_p <- function(data) {
   sprintf("%.3f", row$symmetry_p_value)
 }
 
+format_pretrend_p <- function(data, specification) {
+  row <- dplyr::filter(
+    data,
+    .data$specification == .env$specification
+  )
+  sprintf("%.3f", row$pretrend_p_value)
+}
+
+comparison_lines <- character()
+if (sample_rule == "stable") {
+  comparisons <- readr::read_csv(
+    sprintf(
+      "../output/stable_binary_outcome_comparison_%s.csv",
+      bandwidth_label
+    ),
+    show_col_types = FALSE
+  )
+  required_comparisons <- c(
+    "signed_direction",
+    "stricter",
+    "lenient",
+    "directional_contrast"
+  )
+  if (!all(required_comparisons %in% comparisons$specification)) {
+    stop("The stable outcome comparison is incomplete.")
+  }
+  comparison_p <- function(specification) {
+    comparisons |>
+      dplyr::filter(
+        .data$specification == .env$specification
+      ) |>
+      dplyr::pull(p_value) |>
+      sprintf(fmt = "%.3f")
+  }
+  comparison_lines <- c(
+    "\\addlinespace",
+    paste0(
+      "\\multicolumn{3}{l}{",
+      "\\textit{High- versus low-discretion tests}} \\\\"
+    ),
+    sprintf(
+      "Constrained effects equal, $p$-value & \\multicolumn{2}{c}{%s} \\\\",
+      comparison_p("signed_direction")
+    ),
+    sprintf(
+      "More-stringent effects equal, $p$-value & \\multicolumn{2}{c}{%s} \\\\",
+      comparison_p("stricter")
+    ),
+    sprintf(
+      "More-lenient effects equal, $p$-value & \\multicolumn{2}{c}{%s} \\\\",
+      comparison_p("lenient")
+    ),
+    sprintf(
+      "Directional contrasts equal, $p$-value & \\multicolumn{2}{c}{%s} \\\\",
+      comparison_p("directional_contrast")
+    )
+  )
+}
+
 table_lines <- c(
   "\\begin{tabular}{lcc}",
   "\\toprule",
   " & High-Discretion & Low-Discretion \\\\",
   "\\midrule",
   sprintf(
-    "Signed-direction effect & %s & %s \\\\",
+    "Constrained signed-direction effect & %s & %s \\\\",
     format_estimate(high, specifications[1]),
     format_estimate(low, specifications[1])
   ),
@@ -119,7 +190,7 @@ table_lines <- c(
     format_se(low, specifications[3])
   ),
   sprintf(
-    "Directional contrast & %s & %s \\\\",
+    "One-half directional contrast & %s & %s \\\\",
     format_estimate(high, specifications[4]),
     format_estimate(low, specifications[4])
   ),
@@ -129,15 +200,46 @@ table_lines <- c(
     format_se(low, specifications[4])
   ),
   sprintf(
-    "Symmetry test $p$-value & %s & %s \\\\",
+    "Symmetry test $p$-value (unconstrained) & %s & %s \\\\",
     format_symmetry_p(high),
     format_symmetry_p(low)
   ),
+  sprintf(
+    "Pre-trend test $p$-value (constrained) & %s & %s \\\\",
+    format_pretrend_p(high, specifications[1]),
+    format_pretrend_p(low, specifications[1])
+  ),
+  comparison_lines,
+  "\\midrule",
+  "Block fixed effects & Yes & Yes \\\\",
+  "Ward-pair $\\times$ year fixed effects & Yes & Yes \\\\",
+  "Pre-period permit volume $\\times$ year & Yes & Yes \\\\",
+  "No pre-period permits $\\times$ post & Yes & Yes \\\\",
   "\\midrule",
   sprintf(
-    "N & %s & %s \\\\",
+    "Observations & %s & %s \\\\",
     format(high$n_obs[1], big.mark = ","),
     format(low$n_obs[1], big.mark = ",")
+  ),
+  sprintf(
+    "Ward pairs & %s & %s \\\\",
+    high$ward_pair_clusters[1],
+    low$ward_pair_clusters[1]
+  ),
+  sprintf(
+    "Unchanged blocks in design sample & %s & %s \\\\",
+    format(high$control_blocks[1], big.mark = ","),
+    format(low$control_blocks[1], big.mark = ",")
+  ),
+  sprintf(
+    "More-stringent blocks in design sample & %s & %s \\\\",
+    format(high$stricter_blocks[1], big.mark = ","),
+    format(low$stricter_blocks[1], big.mark = ",")
+  ),
+  sprintf(
+    "More-lenient blocks in design sample & %s & %s \\\\",
+    format(high$lenient_blocks[1], big.mark = ","),
+    format(low$lenient_blocks[1], big.mark = ",")
   ),
   "\\bottomrule",
   "\\end{tabular}"
@@ -148,8 +250,9 @@ writeLines(
   sprintf(
     paste0(
       "../output/binary_event_study_appendix_",
-      "income_added_back_%s.tex"
+      "income_added_back_%s%s.tex"
     ),
-    bandwidth_label
+    bandwidth_label,
+    sample_suffix
   )
 )

@@ -3,33 +3,46 @@
 \section{Additional Price Boundary Checks}
 \label{sec:appendix_price_rd}
 
-This appendix reports placebo-cutoff checks for the rent and home-sales boundary comparisons in Section~\ref{sec:empirical_results_prices}.
-The figures move the cutoff 1000ft inside each side of the true ward boundary and re-estimate the same 500ft boundary comparison around those fake cutoffs.
-The placebo windows do not overlap the main true-boundary 500ft sample.
+Figure~\ref{fig:price_placebo_boundaries} moves the cutoff 1000ft inside each side of the true ward boundary.
+The placebo windows do not overlap the main 500ft sample.
+None of the nearest-bin or full-window placebo estimates is statistically distinguishable from zero.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{../tasks/price_rd_stress_tests/output/rent_placebo_rd_main_style.pdf}
-    \caption{Listed-Rent Placebo Cutoffs}
-    \figurenotes{Figure repeats the listed-rent boundary comparison at placebo cutoffs shifted 1000ft inside each side of the true ward boundary.
-    The sample applies the clean-location restriction defined in Appendix~\ref{subsec:renthub_sample} and includes studios.
-    The left panel shifts the cutoff into the lenient side, the center panel shows the true boundary, and the right panel shifts the cutoff into the stringent side.
-    Distances are oriented so that positive values point toward the more stringent side of the corresponding true ward boundary.
-    More-stringent and less-stringent sides use the same alderman scores as the main analysis.
-    Dots are binned means of log listed rent in 2022 dollars after removing segment-by-month fixed effects, hedonic controls, and amenity controls.
-    Panel subtitles report the corresponding placebo estimates from the same 500ft specification used in the main analysis, with standard errors clustered by boundary segment.}
-    \label{fig:rent_placebo_boundaries}
+    \includegraphics[width=0.98\textwidth]{../tasks/price_boundary_results/output/price_boundary_placebos.pdf}
+    \caption{Placebo Cutoffs for Listed Rents and Home Sale Prices}
+    \figurenotes{The left column places an artificial cutoff 1000ft inside the less-stringent ward; the right column places it 1000ft inside the more-stringent ward.
+    The top row reports listed rents and the bottom row reports home sale prices.
+    Each model uses a 500ft window around the artificial cutoff and otherwise follows the corresponding specification in Figure~\ref{fig:price_boundary_bins}.
+    Each point is the estimated difference between a 100ft distance band and the band immediately below the artificial cutoff.
+    Shaded areas are 95\% confidence intervals.
+    Standard errors are clustered by boundary segment.}
+    \label{fig:price_placebo_boundaries}
 \end{figure}
 
+Figure~\ref{fig:price_straight_boundaries} restricts the sample to locations where the ward boundary is approximately straight.
+The estimates are somewhat larger than the full-sample results.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{../tasks/price_rd_stress_tests/output/sales_placebo_rd_main_style.pdf}
-    \caption{Home-Sale Price Placebo Cutoffs}
-    \figurenotes{Figure repeats the home-sales boundary comparison at placebo cutoffs shifted 1000ft inside each side of the true ward boundary.
-    The left panel shifts the cutoff into the lenient side, the center panel shows the true boundary, and the right panel shifts the cutoff into the stringent side.
-    Distances are oriented so that positive values point toward the more stringent side of the corresponding true ward boundary.
-    More-stringent and less-stringent sides use the same alderman scores as the main analysis.
-    Dots are binned means of log sale price in 2022 dollars after removing segment-by-quarter fixed effects, hedonic controls, and amenity controls.
-    Panel subtitles report the corresponding placebo estimates from the same 500ft specification used in the main analysis, with standard errors clustered by boundary segment.}
-    \label{fig:sales_placebo_boundaries}
+    \includegraphics[width=0.98\textwidth]{../tasks/price_boundary_results/output/price_boundary_straight.pdf}
+    \caption{Price Comparisons Along Straight Ward Boundaries}
+    \figurenotes{A boundary is classified as locally straight when both endpoints of a 100-meter line tangent to the nearest boundary point lie within 15 meters of the actual boundary.
+    The models otherwise follow Figure~\ref{fig:price_boundary_bins}.
+    Shaded areas are 95\% confidence intervals, and standard errors are clustered by boundary segment.}
+    \label{fig:price_straight_boundaries}
+\end{figure}
+
+Figure~\ref{fig:price_boundary_donuts} excludes observations within 25ft or 50ft of the ward boundary.
+Both restrictions leave the full-window estimates nearly unchanged.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{../tasks/price_boundary_results/output/price_boundary_donuts.pdf}
+    \caption{Price Comparisons Excluding Observations Nearest the Boundary}
+    \figurenotes{The left column excludes observations within 25ft of the ward boundary; the right column excludes observations within 50ft.
+    The top row reports listed rents and the bottom row reports home sale prices.
+    The models otherwise follow Figure~\ref{fig:price_boundary_bins}.
+    Shaded areas are 95\% confidence intervals, and standard errors are clustered by boundary segment.}
+    \label{fig:price_boundary_donuts}
 \end{figure}

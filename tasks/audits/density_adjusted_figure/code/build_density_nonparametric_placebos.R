@@ -62,8 +62,9 @@ data <- data |>
     true_distance_ft = signed_distance_m / 0.3048
   )
 
-estimate_placebo <- function(
+estimate_check <- function(
     cutoff_ft,
+    donut_ft,
     sample_name,
     outcome,
     panel_title) {
@@ -83,6 +84,7 @@ estimate_placebo <- function(
       construction_year <= 2022,
       within_1500ft,
       abs(running_distance_ft) < 500,
+      donut_ft == 0 | abs(running_distance_ft) >= donut_ft,
       !is.na(distance_bin),
       dwelling_units > 0,
       sample_name == "all" | external_multifamily,
@@ -177,12 +179,14 @@ estimate_placebo <- function(
       ci_high = estimate + critical_value * std_error,
       ribbon_low = dplyr::if_else(distance_bin == "bin_05", 0, ci_low),
       ribbon_high = dplyr::if_else(distance_bin == "bin_05", 0, ci_high),
-      cutoff_side = dplyr::if_else(
-        bin_center_ft < 0,
-        "Below Placebo Cutoff",
-        "Above Placebo Cutoff"
+      cutoff_side = dplyr::case_when(
+        cutoff_ft == 0 & bin_center_ft < 0 ~ "Less Stringent",
+        cutoff_ft == 0 ~ "More Stringent",
+        bin_center_ft < 0 ~ "Below Placebo Cutoff",
+        TRUE ~ "Above Placebo Cutoff"
       ),
       cutoff_ft,
+      donut_ft,
       sample = sample_name,
       outcome,
       n_projects = stats::nobs(model),
@@ -233,14 +237,18 @@ estimate_placebo <- function(
     ggplot2::scale_color_manual(
       values = c(
         "Below Placebo Cutoff" = "#2478B5",
-        "Above Placebo Cutoff" = "#D92D27"
+        "Above Placebo Cutoff" = "#D92D27",
+        "Less Stringent" = "#2478B5",
+        "More Stringent" = "#D92D27"
       ),
       name = NULL
     ) +
     ggplot2::scale_fill_manual(
       values = c(
         "Below Placebo Cutoff" = "#2478B5",
-        "Above Placebo Cutoff" = "#D92D27"
+        "Above Placebo Cutoff" = "#D92D27",
+        "Less Stringent" = "#2478B5",
+        "More Stringent" = "#D92D27"
       ),
       guide = "none"
     ) +
@@ -256,8 +264,16 @@ estimate_placebo <- function(
         stars,
         nearest_above$std_error
       ),
-      x = "Distance to placebo cutoff (feet)",
-      y = "Difference from the nearest below-cutoff bin"
+      x = if (cutoff_ft == 0) {
+        "Distance to ward boundary (feet)"
+      } else {
+        "Distance to placebo cutoff (feet)"
+      },
+      y = if (cutoff_ft == 0) {
+        "Difference from the nearest less-stringent bin"
+      } else {
+        "Difference from the nearest below-cutoff bin"
+      }
     ) +
     ggplot2::theme_bw(base_size = 10) +
     ggplot2::theme(
@@ -272,15 +288,16 @@ estimate_placebo <- function(
   list(results = results, plot = plot)
 }
 
-all_results <- list()
+placebo_results <- list()
 
 for (cutoff_ft in c(-1000, 1000)) {
   panels <- vector("list", nrow(panel_specs))
   cutoff_results <- vector("list", nrow(panel_specs))
 
   for (i in seq_len(nrow(panel_specs))) {
-    estimated <- estimate_placebo(
+    estimated <- estimate_check(
       cutoff_ft,
+      0,
       panel_specs$sample[i],
       panel_specs$outcome[i],
       panel_specs$panel_title[i]
@@ -321,10 +338,68 @@ for (cutoff_ft in c(-1000, 1000)) {
     dpi = 220
   )
 
-  all_results[[cutoff_label]] <- dplyr::bind_rows(cutoff_results)
+  placebo_results[[cutoff_label]] <- dplyr::bind_rows(cutoff_results)
 }
 
 readr::write_csv(
-  dplyr::bind_rows(all_results),
+  dplyr::bind_rows(placebo_results),
   "../output/density_nonparametric_placebo_estimates.csv"
+)
+
+donut_results <- list()
+
+for (donut_ft in c(25, 50)) {
+  panels <- vector("list", nrow(panel_specs))
+  check_results <- vector("list", nrow(panel_specs))
+
+  for (i in seq_len(nrow(panel_specs))) {
+    estimated <- estimate_check(
+      0,
+      donut_ft,
+      panel_specs$sample[i],
+      panel_specs$outcome[i],
+      panel_specs$panel_title[i]
+    )
+    panels[[i]] <- estimated$plot
+    check_results[[i]] <- estimated$results
+  }
+
+  combined_plot <- patchwork::wrap_plots(panels, ncol = 2) +
+    patchwork::plot_annotation(
+      title = sprintf(
+        "True ward boundary, excluding projects within %d feet",
+        donut_ft
+      )
+    ) +
+    patchwork::plot_layout(guides = "collect") &
+    ggplot2::theme(legend.position = "bottom")
+
+  ggplot2::ggsave(
+    sprintf(
+      "../output/density_nonparametric_donut%dft_100ft_ribbons.pdf",
+      donut_ft
+    ),
+    combined_plot,
+    width = 12,
+    height = 8.5
+  )
+  ggplot2::ggsave(
+    sprintf(
+      "../output/density_nonparametric_donut%dft_100ft_ribbons.png",
+      donut_ft
+    ),
+    combined_plot,
+    width = 12,
+    height = 8.5,
+    dpi = 220
+  )
+
+  donut_results[[as.character(donut_ft)]] <- dplyr::bind_rows(
+    check_results
+  )
+}
+
+readr::write_csv(
+  dplyr::bind_rows(donut_results),
+  "../output/density_nonparametric_donut_estimates.csv"
 )

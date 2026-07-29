@@ -63,11 +63,11 @@ if (any(nchar(sales_dt$pin) != 14L)) {
 sales_dt[, sale_date := as.Date(sale_date)]
 
 rent_dt <- as.data.table(read_parquet("../input/rent_pre_scores_full.parquet"))
-if (!all(c("id", "file_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(rent_dt))) {
+if (!all(c("id", "assignment_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(rent_dt))) {
   stop("rent_pre_scores_full.parquet missing required columns.", call. = FALSE)
 }
 rent_dt[, id := as.character(id)]
-rent_dt[, file_date := as.Date(file_date)]
+rent_dt[, assignment_date := as.Date(assignment_date)]
 
 segment_outputs <- list()
 dataset_specs <- list(
@@ -82,7 +82,7 @@ dataset_specs <- list(
   ),
   rental = list(
     dt = rent_dt,
-    date_col = "file_date",
+    date_col = "assignment_date",
     pair_col = "ward_pair_id",
     lon_col = "longitude",
     lat_col = "latitude",

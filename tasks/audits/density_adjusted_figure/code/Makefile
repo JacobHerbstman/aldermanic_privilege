@@ -36,6 +36,17 @@ all: ../output/density_model_adjusted_rd.pdf \
 	../output/density_nonparametric_placebo_pos1000ft_100ft_ribbons.pdf \
 	../output/density_nonparametric_placebo_pos1000ft_100ft_ribbons.png \
 	../output/density_nonparametric_placebo_estimates.csv \
+	../output/density_nonparametric_donut25ft_100ft_ribbons.pdf \
+	../output/density_nonparametric_donut25ft_100ft_ribbons.png \
+	../output/density_nonparametric_donut50ft_100ft_ribbons.pdf \
+	../output/density_nonparametric_donut50ft_100ft_ribbons.png \
+	../output/density_nonparametric_donut_estimates.csv \
+	../output/density_nonparametric_boundary_feature_robustness.csv \
+	../output/density_segment_classifier_review.csv \
+	../output/density_segment_classifier_thresholds.csv \
+	../output/density_segment_classifier_recalculation.csv \
+	../output/density_segment_classifier_review.png \
+	../output/density_segment_classifier_any_contact_review.png \
 	../output/density_distance_band_estimates.pdf \
 	../output/density_distance_band_estimates.png \
 	../output/density_distance_band_estimates.csv \
@@ -149,6 +160,42 @@ all: ../output/density_model_adjusted_rd.pdf \
 
 ../output/density_nonparametric_placebo_estimates.csv: ../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.pdf
 
+../output/density_nonparametric_donut25ft_100ft_ribbons.pdf: ../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.pdf
+
+../output/density_nonparametric_donut25ft_100ft_ribbons.png: ../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.pdf
+
+../output/density_nonparametric_donut50ft_100ft_ribbons.pdf: ../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.pdf
+
+../output/density_nonparametric_donut50ft_100ft_ribbons.png: ../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.pdf
+
+../output/density_nonparametric_donut_estimates.csv: ../output/density_nonparametric_placebo_neg1000ft_100ft_ribbons.pdf
+
+../output/density_nonparametric_boundary_feature_robustness.csv: \
+	audit_density_boundary_features.R \
+	../input/new_construction_analysis_data.csv \
+	../input/segment_classification.csv
+	$(R) $<
+
+../output/density_segment_classifier_review.csv: \
+	audit_segment_feature_classifier.R \
+	../input/new_construction_analysis_data.csv \
+	../input/segment_classification.csv \
+	../input/boundary_segments_1320ft.gpkg \
+	../input/major_streets.geojson \
+	../input/gis_osm_roads_free_1.shp ../input/gis_osm_roads_free_1.dbf ../input/gis_osm_roads_free_1.prj ../input/gis_osm_roads_free_1.shx ../input/gis_osm_roads_free_1.cpg \
+	../input/gis_osm_landuse_a_free_1.shp ../input/gis_osm_landuse_a_free_1.dbf ../input/gis_osm_landuse_a_free_1.prj ../input/gis_osm_landuse_a_free_1.shx ../input/gis_osm_landuse_a_free_1.cpg \
+	../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg \
+	../input/gis_osm_waterways_free_1.shp ../input/gis_osm_waterways_free_1.dbf ../input/gis_osm_waterways_free_1.prj ../input/gis_osm_waterways_free_1.shx ../input/gis_osm_waterways_free_1.cpg
+	$(R) $<
+
+../output/density_segment_classifier_thresholds.csv: ../output/density_segment_classifier_review.csv
+
+../output/density_segment_classifier_recalculation.csv: ../output/density_segment_classifier_review.csv
+
+../output/density_segment_classifier_review.png: ../output/density_segment_classifier_review.csv
+
+../output/density_segment_classifier_any_contact_review.png: ../output/density_segment_classifier_review.csv
+
 ../output/density_distance_band_estimates.pdf: \
 	build_density_distance_band_estimates.R \
 	../input/new_construction_analysis_data.csv
@@ -208,9 +255,51 @@ all: ../output/density_model_adjusted_rd.pdf \
 	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
 	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
 
+../input/segment_classification.csv: ../../../border_segment_creation/output/segment_classification.csv
+	@source="$<"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/boundary_segments_1320ft.gpkg: ../../../border_segment_creation/output/boundary_segments_1320ft.gpkg
+	@source="$<"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/major_streets.geojson: ../../../download_chicago_spatial_data/output/major_streets.geojson
+	@source="$<"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/gis_osm_roads_free_1.%: ../../../../data_raw/illinois-250919-free/gis_osm_roads_free_1.%
+	@source="$<"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/gis_osm_landuse_a_free_1.%: ../../../../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.%
+	@source="$<"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/gis_osm_water_a_free_1.%: ../../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.%
+	@source="$<"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
+../input/gis_osm_waterways_free_1.%: ../../../../data_raw/illinois-250919-free/gis_osm_waterways_free_1.%
+	@source="$<"; \
+	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
+	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+
 link-inputs: ../input/new_construction_analysis_data.csv \
 	../input/current_income_scores.csv \
-	../input/commercial_land_adjudication_evidence.csv
+	../input/commercial_land_adjudication_evidence.csv \
+	../input/segment_classification.csv \
+	../input/boundary_segments_1320ft.gpkg \
+	../input/major_streets.geojson \
+	../input/gis_osm_roads_free_1.shp ../input/gis_osm_roads_free_1.dbf ../input/gis_osm_roads_free_1.prj ../input/gis_osm_roads_free_1.shx ../input/gis_osm_roads_free_1.cpg \
+	../input/gis_osm_landuse_a_free_1.shp ../input/gis_osm_landuse_a_free_1.dbf ../input/gis_osm_landuse_a_free_1.prj ../input/gis_osm_landuse_a_free_1.shx ../input/gis_osm_landuse_a_free_1.cpg \
+	../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg \
+	../input/gis_osm_waterways_free_1.shp ../input/gis_osm_waterways_free_1.dbf ../input/gis_osm_waterways_free_1.prj ../input/gis_osm_waterways_free_1.shx ../input/gis_osm_waterways_free_1.cpg
 
 include ../../../shell_functions.make
 include ../../../generic.make

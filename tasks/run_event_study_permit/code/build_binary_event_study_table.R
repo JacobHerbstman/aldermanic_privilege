@@ -32,7 +32,8 @@ data <- arrow::read_parquet(
     relative_year <= 5L,
     !is.na(strictness_change_frozen),
     !is.na(ward_pair_id),
-    ward_pair_id != ""
+    ward_pair_id != "",
+    stable_both
   ) |>
   dplyr::mutate(
     stricter = as.integer(strictness_change_frozen > 0),
@@ -93,7 +94,7 @@ for (i in seq_along(outcomes)) {
       post_stricter +
       post_lenient +
       pre_period_permit_volume:factor(year) +
-      no_pre_period_permits:factor(year) |
+      post:no_pre_period_permits |
       block_id + ward_pair_id^year,
     data = model_data,
     cluster = ~ward_pair_id,
@@ -103,7 +104,7 @@ for (i in seq_along(outcomes)) {
     outcome ~
       post_signed +
       pre_period_permit_volume:factor(year) +
-      no_pre_period_permits:factor(year) |
+      post:no_pre_period_permits |
       block_id + ward_pair_id^year,
     data = model_data,
     cluster = ~ward_pair_id,
@@ -211,7 +212,7 @@ table_lines <- c(
   " & High-Discretion & Low-Discretion \\\\",
   "\\midrule",
   sprintf(
-    "Signed-direction effect & %s & %s \\\\",
+    "Main estimate & %s & %s \\\\",
     format_estimate("high_discretion", "signed"),
     format_estimate("low_discretion", "signed")
   ),
@@ -221,7 +222,7 @@ table_lines <- c(
     format_se("low_discretion", "signed")
   ),
   "\\addlinespace",
-  "\\multicolumn{3}{l}{\\textit{Unconstrained assignment effects}} \\\\",
+  "\\multicolumn{3}{l}{\\textit{Directions estimated separately}} \\\\",
   sprintf(
     "Assigned toward more stringent & %s & %s \\\\",
     format_estimate("high_discretion", "stricter"),
@@ -243,7 +244,7 @@ table_lines <- c(
     format_se("low_discretion", "lenient")
   ),
   sprintf(
-    "Directional contrast & %s & %s \\\\",
+    "One-half difference between directions & %s & %s \\\\",
     format_estimate("high_discretion", "contrast"),
     format_estimate("low_discretion", "contrast")
   ),
@@ -253,7 +254,7 @@ table_lines <- c(
     format_se("low_discretion", "contrast")
   ),
   sprintf(
-    "Symmetry test $p$-value & %.3f & %.3f \\\\",
+    "Equal-and-opposite test $p$-value & %.3f & %.3f \\\\",
     results |>
       dplyr::filter(
         outcome == "high_discretion",
@@ -267,6 +268,11 @@ table_lines <- c(
       ) |>
       dplyr::pull(symmetry_p_value)
   ),
+  "\\midrule",
+  "Block fixed effects & Yes & Yes \\\\",
+  "Ward-pair $\\times$ year fixed effects & Yes & Yes \\\\",
+  "Pre-period permit volume $\\times$ year & Yes & Yes \\\\",
+  "No pre-period permits $\\times$ post & Yes & Yes \\\\",
   "\\midrule",
   sprintf(
     "N & %s & %s \\\\",

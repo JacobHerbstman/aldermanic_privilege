@@ -1,17 +1,27 @@
-BINS_PER_SIDE ?= 5
-CHECKS := placebo_neg1000ft placebo_pos1000ft donut25ft donut50ft
+all: ../output/density_placebo_neg1000ft.pdf \
+	../output/density_placebo_pos1000ft.pdf \
+	../output/density_donut25ft.pdf \
+	../output/density_donut50ft.pdf
 
-all: $(foreach check,$(CHECKS),../output/density_$(check).pdf)
+../output/density_placebo_neg1000ft.pdf: \
+	build_density_appendix_results.R \
+	../input/new_construction_analysis_data.csv | ../output
+	$(R) $<
 
-../output/density_%.pdf: \
-	build_density_appendix_plot.R \
-	../input/new_construction_analysis_data.csv
-	$(R) $< $* $(BINS_PER_SIDE)
+../output/density_placebo_pos1000ft.pdf: \
+	../output/density_placebo_neg1000ft.pdf
+	@test -s "$@"
 
-../input/new_construction_analysis_data.csv: ../../new_construction_analysis_data/output/new_construction_analysis_data.csv
-	@source="$<"; \
-	target=$$(cd "$$(dirname "$$source")" && pwd)/$$(basename "$$source"); \
-	if [ "$$(readlink "$@")" != "$$target" ]; then ln -sf "$$target" "$@"; fi
+../output/density_donut25ft.pdf: \
+	../output/density_placebo_neg1000ft.pdf
+	@test -s "$@"
+
+../output/density_donut50ft.pdf: \
+	../output/density_placebo_neg1000ft.pdf
+	@test -s "$@"
+
+../input/new_construction_analysis_data.csv: ../../new_construction_analysis_data/output/new_construction_analysis_data.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/new_construction_analysis_data.csv
 

@@ -73,63 +73,67 @@ The change in stringency for block $i$ is
 \]
 Blocks with a positive difference are classified as assigned toward greater stringency, blocks with a negative difference as assigned toward greater leniency, and blocks that remain in the same ward form the comparison group.
 
-\paragraph{Assigned Stringency.}
+\paragraph{Aldermanic Turnover.}
 For each block, I measure the change in stringency using the 2014 incumbents in its origin and destination wards.
-Some wards elected new aldermen when the new map took effect, so this assigned change does not always match the change under the alderman who ultimately took office.
-I nevertheless keep treatment tied to the pre-election incumbents.
-Defining treatment using the 2015 winner could mix the effect of aldermanic stringency with the ward's own demand for more or less development.
-I retain all blocks with complete pre- and post-map ward assignments regardless of electoral turnover and interpret the estimate as the effect of assigned stringency.
+The main sample retains blocks only when both incumbents remained in office when the new map took effect.
+The assigned change therefore matches the change the block actually experienced without defining treatment using the outcome of the 2015 election.
+Appendix~\ref{sec:appendix_permit_assigned} includes blocks from wards with electoral turnover and interprets the resulting estimate as the effect of assigned stringency.
 
 \paragraph{Analysis Sample.}
 Permits are aggregated to block-year panels using application year.
 The event study uses the 2015 implementation cohort with relative years $-5$ through $5$.
 The 500ft sample restriction is based on the distance from each census block polygon's centroid to the cohort's pre-redistricting boundary geometry.
 Controls use the nearest incident pre-redistricting ward boundary, while treated blocks use the fixed origin-destination ward boundary created by redistricting.
-The regressions control for each block's total permit volume in years $-5$ through $-1$ and an indicator for having no permits in those years, with both controls interacted with calendar year.
+The regressions allow each block's total permit volume in years $-5$ through $-1$ to have a different coefficient in each calendar year.
+They also include one interaction between the post-redistricting period and an indicator for having no permits in years $-5$ through $-1$.
 
 \subsection{New Construction: Sample Construction}
 \label{subsec:new_construction_sample}
 
 The new-construction sample combines residential improvement records and commercial valuation records from the Cook County Assessor.
-I reconcile the two sources at the project level so that predecessor and successor PINs, split parcels, and duplicate representations of the same construction episode do not enter as separate projects.
-I also compare the resulting ledger with every issued residential new-construction permit.
-This recovers completed projects absent from the initial Assessor ledger and identifies permit records that cannot support comparable whole-building density measures.
+The same project can appear more than once when a parcel is divided, receives a new PIN, or appears in both Assessor files.
+I link these records so that each construction project enters the sample once.
+I then compare the sample with every issued residential new-construction permit.
+This comparison adds completed projects missing from the Assessor records and identifies permits for which units, building area, and lot area cannot be measured consistently.
 
 \paragraph{Sample Restrictions.}
 I apply the following restrictions: (1) lot area is positive; (2) building area is positive; (3) at least one dwelling unit; and (4) construction year falls between 2006 and 2022.
-These restrictions exclude vacant parcels, data errors, and buildings outside the active sample window.
+These restrictions exclude vacant parcels, data errors, and buildings completed outside 2006--2022.
 Projects with a completed permit but no defensible combination of whole-building units, building area, and lot area are not added because their density outcomes would not be comparable to the Assessor-based measures.
 
 \paragraph{Construction Year.}
-I use the selected Assessor construction episode and retain permit or completion evidence when it is needed to resolve a project whose reported year changes across records.
-For multiple-card parcels, the project ledger suppresses successor records that represent the same construction and consolidates prorated PIN groups whose cards repeat whole-building characteristics.
-The remaining cases that cannot be resolved by the source-priority rules are recorded in a small, frozen decision ledger.
+Assessor records sometimes report different construction years for the same project.
+When they do, I use permit and completion dates to choose the year that best matches when the building was completed.
+Properties with multiple assessment cards can also repeat the same whole-building characteristics.
+I combine cards when they clearly describe one building and do not count later PINs that represent the same construction a second time.
+For 52 projects citywide, including 26 within 500ft of a ward boundary, these rules do not fully resolve the record.
+I record the decision for each project in a hard-coded spreadsheet included with the replication files.
 
 \paragraph{Geocoding.}
 I first locate each original PIN using the Historical Parcel Universe for the construction year.
-When the historical service has no matching parcel, I use an exact current-PIN centroid or an accepted historical address match.
-The project ledger retains the source of each location and suppresses predecessor or successor parcels that would duplicate another construction project.
+When those records have no matching parcel, I use the current location of the same PIN or a verified historical address.
+I keep one location for each project so that old and new PINs for the same site are not counted separately.
 
 \paragraph{Multifamily Classification.}
-Assessor class is the primary programmatic signal for distinguishing multifamily projects from collections of single-family buildings.
-Permit descriptions and external property records recover unit counts when the Assessor value is not a credible whole-building count.
-A frozen exception ledger handles the small number of projects for which the general class and permit rules do not determine a unique classification.
+I primarily use the Assessor's property class to distinguish multifamily projects from collections of single-family buildings.
+When the reported unit count does not plausibly describe the whole building, I use permit descriptions and other property records to recover it.
+A small hard-coded spreadsheet records the remaining case-by-case classifications.
 
 \paragraph{Zoning.}
 I assign each project the broad zoning group in force on June 15 of its construction year.
 The zoning history combines archived City zoning maps with passed map amendments and uses historical parcel boundaries to follow PIN changes over time.
 
 \paragraph{Density Measures.}
-For each parcel, I compute two density measures: Floor Area Ratio (FAR), defined as total building area divided by lot area; and Dwelling Units Per Acre (DUPAC), defined as the number of dwelling units divided by lot acreage.
+For each project, I compute two density measures: Floor Area Ratio (FAR), defined as total building area divided by lot area; and Dwelling Units Per Acre (DUPAC), defined as the number of dwelling units divided by lot acreage.
 
 \paragraph{Ward and Boundary Assignment.}
-Each parcel is assigned to a ward based on its centroid location and the ward boundaries in effect at the time of construction.
+Each project is assigned to a ward based on its location and the ward boundaries in effect at the time of construction.
 Because the Assessor reports only the year built, I assign June 15 of that year as the construction date and use the ward map and alderman in office on that date.
 Distance to the nearest ward boundary is computed after projecting parcels and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
 
 \subsection{Summary Statistics: New Construction Sample}
 
-Table~\ref{tab:summary_stats} presents summary statistics for the exact 500ft common sample used in the main FAR and DUPAC regressions.
+Table~\ref{tab:summary_stats} presents summary statistics for the projects within 500ft used in both the main FAR and DUPAC regressions.
 The sample contains 3,692 projects, including 822 classified as multifamily.
 Column (1) reports all new construction and Column (2) reports the multifamily sample.
 

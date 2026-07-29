@@ -7,10 +7,23 @@ LEGACY_BW_M := 304.8
 LEGACY_BW_LABEL := 1000ft
 
 all: \
-	$(foreach outcome,$(OUTCOMES),../output/event_study_permit_2015_$(outcome)_application_frozen2014_itt_preperiod_controls_$(MAIN_BW_LABEL)_clust_ward_pair.pdf) \
-	../output/event_study_permit_2015_high_discretion_application_frozen2014_stable_preperiod_controls_$(MAIN_BW_LABEL)_clust_ward_pair.pdf \
-	../output/did_table_permit_2015_application_frozen2014_itt_preperiod_controls_$(MAIN_BW_LABEL)_clust_ward_pair.tex \
+	../output/permit_event_study_high_discretion_stable_signed_$(MAIN_BW_LABEL).pdf \
+	../output/permit_event_study_high_discretion_stable_separate_$(MAIN_BW_LABEL).pdf \
+	../output/permit_event_study_low_discretion_nosigns_stable_signed_$(MAIN_BW_LABEL).pdf \
+	../output/permit_event_study_high_discretion_all_signed_$(MAIN_BW_LABEL).pdf \
 	../output/permit_event_study_appendix_$(MAIN_BW_LABEL).tex
+
+../output/permit_event_study_high_discretion_stable_signed_$(MAIN_BW_LABEL).pdf: run_binary_event_study_permit.R ../input/permit_block_year_panel_2015.parquet | ../output
+	Rscript $< high_discretion stable signed $(MAIN_BW_M) $(MAIN_BW_LABEL)
+
+../output/permit_event_study_high_discretion_stable_separate_$(MAIN_BW_LABEL).pdf: run_binary_event_study_permit.R ../input/permit_block_year_panel_2015.parquet | ../output
+	Rscript $< high_discretion stable separate $(MAIN_BW_M) $(MAIN_BW_LABEL)
+
+../output/permit_event_study_low_discretion_nosigns_stable_signed_$(MAIN_BW_LABEL).pdf: run_binary_event_study_permit.R ../input/permit_block_year_panel_2015.parquet | ../output
+	Rscript $< low_discretion_nosigns stable signed $(MAIN_BW_M) $(MAIN_BW_LABEL)
+
+../output/permit_event_study_high_discretion_all_signed_$(MAIN_BW_LABEL).pdf: run_binary_event_study_permit.R ../input/permit_block_year_panel_2015.parquet | ../output
+	Rscript $< high_discretion all signed $(MAIN_BW_M) $(MAIN_BW_LABEL)
 
 ../output/event_study_permit_2015_%_application_frozen2014_itt_preperiod_controls_$(MAIN_BW_LABEL)_clust_ward_pair.pdf: run_selected_event_study_permit.R ../input/permit_block_year_panel_2015.parquet | ../output
 	Rscript $< $* itt $(MAIN_BW_M) $(MAIN_BW_LABEL) $(MIN_REL_YEAR) $(MAX_REL_YEAR)

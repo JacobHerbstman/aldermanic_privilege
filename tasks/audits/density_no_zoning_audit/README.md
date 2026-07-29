@@ -1,12 +1,19 @@
-# Density Results Without Zoning Fixed Effects
+# Density Results Without Zoning Controls
 
-This audit reproduces every density result shown in the short paper after removing zoning-group fixed effects. It does not change production outputs or the paper.
+This audit re-estimates the short paper's current 100-foot distance-band
+comparisons after removing construction-year zoning-group fixed effects. It
+does not change the paper.
 
-The main regression comparison separates two changes:
+The output distinguishes:
 
-- `No zoning FE, common sample` removes the zoning fixed effects while retaining only observations with a production zoning code.
-- `No zoning FE, full sample` also retains otherwise eligible observations whose zoning code is missing.
+- the current model with zoning-group fixed effects;
+- the same observations without zoning controls; and
+- all otherwise eligible projects without zoning controls.
 
-All versions retain the current alderman score, 500ft bandwidth, side-specific linear distance controls, own-side demographic controls, pair-average score control, segment and construction-year fixed effects, and ward-pair clustering.
+All models retain the alderman-pair average score, neighborhood
+characteristics, boundary-segment and construction-year fixed effects, and
+ward-pair clustering.
 
-Run `make` from `code/`. The complete comparison is in `output/density_no_zoning_report.pdf`, with machine-readable estimates in `output/density_no_zoning_estimates.csv`.
+Run `make` from `code/`. Estimates are in
+`output/current_density_no_zoning_estimates.csv`; the figure reproduces the
+main density plot on the common sample without zoning controls.

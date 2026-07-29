@@ -110,16 +110,19 @@ resolution <- candidates %>%
       later_assessor_report_after_permit,
     exact_land_recovery =
       is.na(manual_action) &
-      decision_reason == "missing_or_nonpositive_land_area" &
+      (
+        decision_reason == "missing_or_nonpositive_land_area" |
+          (is.finite(land_sqft) & land_sqft <= 1)
+      ) &
       geography_status == "complete_construction_year_geometry" &
       is.finite(project_land_area_sqft) & project_land_area_sqft > 0 &
       !land_review_required,
     resolution_status = case_when(
       !is.na(manual_action) ~ "manual_decision_complete",
       candidate_status == "exclude_outside_period" ~ "outside_study_period",
-      candidate_status == "retain_mechanical" ~ "mechanical_candidate",
       stable_assessor_after_permit ~ "evidence_rule_complete",
       exact_land_recovery ~ "evidence_rule_complete",
+      candidate_status == "retain_mechanical" ~ "mechanical_candidate",
       review_scope == "review_within_1500ft" ~ "manual_review_required",
       review_scope == "review_geography_unresolved" ~ "geography_review_required",
       TRUE ~ "outside_manual_review_scope"
@@ -127,10 +130,10 @@ resolution <- candidates %>%
     resolution_reason = case_when(
       !is.na(manual_action) ~ paste0("manual_", manual_action),
       candidate_status == "exclude_outside_period" ~ decision_reason,
-      candidate_status == "retain_mechanical" ~ decision_reason,
       stable_assessor_after_permit ~
         "stable_two_vintage_assessor_count_after_issued_new_construction_permit",
       exact_land_recovery ~ "complete_construction_year_parcel_union_recovers_land",
+      candidate_status == "retain_mechanical" ~ decision_reason,
       TRUE ~ decision_reason
     )
   )

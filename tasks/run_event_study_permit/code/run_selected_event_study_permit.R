@@ -65,6 +65,7 @@ data <- read_parquet("../input/permit_block_year_panel_2015.parquet") %>%
   ) %>%
   mutate(
     outcome = .data[[outcome_var]],
+    post = as.integer(relative_year >= 0),
     strictness_change = strictness_change_frozen
   )
 if (sample == "stable") {
@@ -92,9 +93,9 @@ data <- data %>%
   left_join(pre_period_controls, by = "block_id", relationship = "many-to-one")
 
 event_model <- fepois(
-  outcome ~ i(relative_year, strictness_change, ref = -1) +
+    outcome ~ i(relative_year, strictness_change, ref = -1) +
     pre_period_permit_volume:factor(year) +
-    no_pre_period_permits:factor(year) |
+    post:no_pre_period_permits |
     block_id + ward_pair_id^year,
   data = data,
   cluster = ~ward_pair_id,
@@ -113,12 +114,12 @@ event_estimates <- iplot(event_model, .plot = FALSE)[[1]] %>%
   filter(event_time >= min_period, event_time <= max_period)
 
 pooled_data <- data %>%
-  mutate(post_treat = as.integer(relative_year >= 0) * strictness_change)
+  mutate(post_treat = post * strictness_change)
 
 pooled_model <- fepois(
   outcome ~ post_treat +
     pre_period_permit_volume:factor(year) +
-    no_pre_period_permits:factor(year) |
+    post:no_pre_period_permits |
     block_id + ward_pair_id^year,
   data = pooled_data,
   cluster = ~ward_pair_id,
