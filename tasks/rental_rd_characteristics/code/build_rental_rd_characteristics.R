@@ -1,6 +1,6 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_characteristics/code")
-# bandwidth_ft <- 500
+# bandwidth_ft <- 1500
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/amenity_distance_helpers.R")
@@ -32,7 +32,7 @@ if (anyDuplicated(rent$rent_panel_id) > 0) {
   stop("Rental input must be unique by rent_panel_id.", call. = FALSE)
 }
 if (!all(c("longitude", "latitude") %in% names(rent))) {
-  stop("Rental input must include longitude and latitude from the audited geometry task.", call. = FALSE)
+  stop("Rental input must include corrected longitude and latitude.", call. = FALSE)
 }
 if (!"signed_dist" %in% names(rent) && "signed_dist_m" %in% names(rent)) {
   rent <- rent %>% mutate(signed_dist = signed_dist_m / 0.3048)

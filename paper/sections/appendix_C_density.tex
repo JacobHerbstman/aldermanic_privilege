@@ -1,0 +1,112 @@
+% !TEX root = ../paper.tex
+
+\section{Additional Density RD Checks}
+\label{sec:appendix_density}
+
+This appendix checks whether the density result appears at false cutoffs, reflects fixed differences in location, or depends on unusual boundary geometry or projects closest to the boundary.
+Unless otherwise noted, each estimate compares the two 100ft bands immediately across the ward boundary using Equation~\eqref{eq:segment_fe}.
+
+\subsection{Placebo Cutoffs}
+
+Figures~\ref{fig:rd_placebo_shift_neg} and~\ref{fig:rd_placebo_shift_pos} move the cutoff 1000ft inside either side of the true ward boundary.
+These locations do not mark a change in aldermanic authority, and none of the eight nearest-band estimates is statistically distinguishable from zero.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.96\textwidth]{../tasks/density_appendix_results/output/density_placebo_neg1000ft.pdf}
+    \caption{Density Placebo 1000ft Inside the Less-Stringent Side}
+    \figurenotes{The artificial cutoff is 1000ft inside the less-stringent side of the true ward boundary.
+    The model is estimated in a 500ft window around that cutoff using the same 100ft distance bands, controls, and fixed effects as Equation~\eqref{eq:segment_fe}.
+    The nearest band below the artificial cutoff is omitted and normalized to zero.
+    Subtitles report the difference in the nearest band above the artificial cutoff.
+    Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
+    \label{fig:rd_placebo_shift_neg}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.96\textwidth]{../tasks/density_appendix_results/output/density_placebo_pos1000ft.pdf}
+    \caption{Density Placebo 1000ft Inside the More-Stringent Side}
+    \figurenotes{The artificial cutoff is 1000ft inside the more-stringent side of the true ward boundary.
+    The model is estimated in a 500ft window around that cutoff using the same 100ft distance bands, controls, and fixed effects as Equation~\eqref{eq:segment_fe}.
+    The nearest band below the artificial cutoff is omitted and normalized to zero.
+    Subtitles report the difference in the nearest band above the artificial cutoff.
+    Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
+    \label{fig:rd_placebo_shift_pos}
+\end{figure}
+
+\subsection{Continuity in Location Characteristics}
+
+Table~\ref{tab:density_location_continuity} tests whether fixed features of a project's location change at the ward boundary.
+None of the differences in distance to downtown, the nearest school, the nearest park, or Lake Michigan is statistically distinguishable from zero in either sample.
+
+\begin{table}[H]
+    \centering
+    \caption{Continuity in Location Characteristics at Ward Boundaries}
+    \label{tab:density_location_continuity}
+    \input{../tasks/density_boundary_checks/output/density_location_continuity.tex}
+    \begin{minipage}{0.94\textwidth}
+        \vspace{0.35em}
+        \footnotesize
+        \textit{Notes:} Each row uses the listed location characteristic as the dependent variable.
+        The reported coefficient compares the 0--100ft band on the more-stringent side with the 0--100ft band on the less-stringent side.
+        Regressions include 100ft distance-band indicators, boundary-segment fixed effects, and construction-year fixed effects.
+        Standard errors are clustered by ward pair.
+        * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \end{minipage}
+\end{table}
+
+\subsection{Boundary Geometry}
+
+Some ward boundaries follow expressways, waterways, arterial roads, or other physical features.
+Table~\ref{tab:density_boundary_robustness} therefore repeats the analysis after restricting the sample based on the geometry of the assigned boundary segment.
+Removing segments with substantial expressway or water overlap leaves the estimates almost unchanged.
+A broader physical-feature and arterial-road restriction attenuates the multifamily estimates, while the all-construction estimates remain negative.
+Restricting the sample to locally straight boundaries also produces four negative estimates.
+These estimates are generally smaller and less precise in the reduced sample, but they do not suggest that boundary curvature alone creates the main pattern.
+
+\begin{table}[H]
+    \centering
+    \caption{Density Estimates Under Boundary-Sample Restrictions}
+    \label{tab:density_boundary_robustness}
+    \resizebox{0.98\textwidth}{!}{%
+        \input{../tasks/density_boundary_checks/output/density_boundary_robustness.tex}%
+    }
+    \begin{minipage}{0.98\textwidth}
+        \vspace{0.35em}
+        \footnotesize
+        \textit{Notes:} Entries compare the two 100ft bands immediately across the boundary using Equation~\eqref{eq:segment_fe}.
+        The expressway-or-water restriction removes segments for which either feature overlaps at least half of the segment.
+        The broader restriction removes segments with at least 50\% park, water, or cemetery overlap, 40\% expressway overlap, or 75\% arterial-road overlap.
+        A boundary is locally straight when both endpoints of a 100-meter line tangent to the project's nearest boundary point fall within 15 meters of the actual boundary.
+        Standard errors are clustered by ward pair.
+        * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \end{minipage}
+\end{table}
+
+\subsection{Donut RD Checks}
+
+Figures~\ref{fig:rd_donut_25ft} and~\ref{fig:rd_donut_50ft} exclude projects within 25ft or 50ft of the ward boundary.
+The nearest-band estimates remain negative in all four panels, so the main result is not driven only by projects immediately adjacent to the boundary.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.96\textwidth]{../tasks/density_appendix_results/output/density_donut25ft.pdf}
+    \caption{Density Boundary Estimates Excluding Projects Within 25ft}
+    \figurenotes{Projects within 25ft of the ward boundary are excluded from the 500ft sample.
+    Each point is the coefficient for a 100ft distance band from Equation~\eqref{eq:segment_fe}.
+    The nearest remaining observations in the $-100$ to 0ft band form the omitted category.
+    Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
+    \label{fig:rd_donut_25ft}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.96\textwidth]{../tasks/density_appendix_results/output/density_donut50ft.pdf}
+    \caption{Density Boundary Estimates Excluding Projects Within 50ft}
+    \figurenotes{Projects within 50ft of the ward boundary are excluded from the 500ft sample.
+    Each point is the coefficient for a 100ft distance band from Equation~\eqref{eq:segment_fe}.
+    The nearest remaining observations in the $-100$ to 0ft band form the omitted category.
+    Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
+    \label{fig:rd_donut_50ft}
+\end{figure}

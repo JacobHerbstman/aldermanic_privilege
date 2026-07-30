@@ -103,5 +103,4 @@ write_csv(result$alderman_index, sprintf("../output/alderman_uncertainty_index_%
 
 if (write_paper_bundle) {
   write_stage1_regression_table(result$stage1_model, sprintf("../output/stage1_regression_%s.tex", output_suffix), result$stage1_outcome)
-  write_uncertainty_plot(result$alderman_index, sprintf("../output/uncertainty_index_%s.pdf", output_suffix))
 }

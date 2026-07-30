@@ -28,8 +28,8 @@ if (!is.finite(permit_start_year) || !is.finite(permit_end_year) || permit_start
 sf_use_s2(FALSE)
 
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
-ward_maps <- load_canonical_ward_maps(ward_panel)
-boundary_lines <- build_canonical_boundary_list(ward_panel)
+ward_maps <- load_canonical_ward_maps(ward_panel, "2003_2014")
+boundary_lines <- build_canonical_boundary_list(ward_panel, "2003_2014")
 
 blocks <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
   rename(geometry = the_geom) %>%

@@ -4,11 +4,23 @@
 
 set -euo pipefail
 
+if [[ "$#" -ne 2 ]]; then
+    echo "Usage: $0 START_YEAR END_YEAR" >&2
+    exit 1
+fi
+
+start_year="$1"
+end_year="$2"
+if ! [[ "$start_year" =~ ^[0-9]{4}$ && "$end_year" =~ ^[0-9]{4}$ && "$start_year" -le "$end_year" ]]; then
+    echo "ERROR: START_YEAR and END_YEAR must define a valid year range" >&2
+    exit 1
+fi
+
 output_file="../output/parcel_sales_city.csv"
 api_csv="https://datacatalog.cookcountyil.gov/resource/wvhk-k5uv.csv"
 api_json="https://datacatalog.cookcountyil.gov/resource/wvhk-k5uv.json"
 batch_size=1000000
-where_clause="township_code in('70','71','72','73','74','75','76','77')"
+where_clause="township_code in('70','71','72','73','74','75','76','77') and year between ${start_year} and ${end_year}"
 order_clause="row_id"
 select_columns="pin,year,township_code,nbhd as neighborhood_code,class,sale_date,is_mydec_date,sale_price,doc_no as sale_document_num,deed_type as sale_deed_type,mydec_deed_type,seller_name as sale_seller_name,is_multisale,num_parcels_sale,buyer_name as sale_buyer_name,sale_type,sale_filter_same_sale_within_365,sale_filter_less_than_10k,sale_filter_deed_type,row_id"
 

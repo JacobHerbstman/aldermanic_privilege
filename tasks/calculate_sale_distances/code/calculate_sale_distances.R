@@ -5,11 +5,12 @@ source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
 crs_projected <- 3435
+analysis_eras <- c("2003_2014", "2015_2023")
 
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
     st_transform(crs_projected)
-canonical_ward_maps <- load_canonical_ward_maps(ward_panel)
-canonical_boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg")
+canonical_ward_maps <- load_canonical_ward_maps(ward_panel, analysis_eras)
+canonical_boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg", analysis_eras)
 
 alderman_terms <- read_csv("../input/chicago_alderman_terms.csv", show_col_types = FALSE) %>%
     mutate(
@@ -50,7 +51,7 @@ if (any(nchar(sales$pin) != 14L)) {
 
 sales <- sales %>%
     filter(!is.na(sale_price_nominal), sale_price_nominal > 10000, !is.na(year)) %>%
-    filter(year >= 1999, year <= 2025) %>%
+    filter(year >= 2006, year <= 2022) %>%
     filter(sale_deed_type %in% c("Warranty", "Trustee")) %>%
     filter(sale_type != "LAND") %>%
     filter(

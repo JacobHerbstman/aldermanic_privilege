@@ -2,7 +2,6 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_segment_creation/code")
 # segment_length_ft <- 1320
 # segment_layer_bws_m <- "100 250 400"
-# feature_buffer_m <- 30
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
@@ -12,22 +11,20 @@ library(sf)
 
 st_agr("constant")
 
-eras <- c("1998_2002", "2003_2014", "2015_2023", "post_2023")
+eras <- c("2003_2014", "2015_2023")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(segment_length_ft, segment_layer_bws_m, feature_buffer_m)
+  cli_args <- c(segment_length_ft, segment_layer_bws_m)
 }
-if (length(cli_args) != 3) {
-  stop("FATAL: Script requires 3 args: <segment_length_ft> <segment_layer_bws_m> <feature_buffer_m>.", call. = FALSE)
+if (length(cli_args) != 2) {
+  stop("FATAL: Script requires 2 args: <segment_length_ft> <segment_layer_bws_m>.", call. = FALSE)
 }
 
 segment_length_ft <- as.numeric(cli_args[1])
 if (length(segment_length_ft) != 1 || !is.finite(segment_length_ft) || segment_length_ft <= 0) {
   stop("segment_length_ft must be a positive numeric segment length in feet.", call. = FALSE)
 }
-segment_length_m <- segment_length_ft * 0.3048
-
 segment_layer_bws_m <- scan(text = cli_args[2], quiet = TRUE)
 if (length(segment_layer_bws_m) == 0 || any(!is.finite(segment_layer_bws_m)) || any(segment_layer_bws_m <= 0)) {
   stop("segment_layer_bws_m must contain positive numeric bandwidths in meters.", call. = FALSE)
@@ -37,47 +34,9 @@ bws_ft <- bws_m / 0.3048
 
 segment_output <- sprintf("../output/boundary_segments_%dft.gpkg", as.integer(round(segment_length_ft)))
 
-feature_buffer_m <- as.numeric(cli_args[3])
-feature_buffer_ft <- feature_buffer_m / 0.3048
-if (!is.finite(feature_buffer_m) || feature_buffer_m <= 0) {
-  stop("feature_buffer_m must be positive.", call. = FALSE)
-}
-if (!is.finite(feature_buffer_ft) || feature_buffer_ft <= 0) {
-  stop("feature_buffer_m must imply a positive feature buffer in feet.", call. = FALSE)
-}
-
 expected_layer_names <- c(
   eras,
   as.vector(outer(eras, paste0("bw", bws_m, "m"), paste, sep = "_"))
-)
-
-required_segment_cols <- c(
-  "segment_id", "ward_pair_id", "ward_a", "ward_b", "era", "segment_number",
-  "n_segments_in_pair", "segment_length_m", "segment_length_ft", "centroid_lat", "centroid_lon",
-  "segment_type", "nearest_street_name", "nearest_street_class",
-  "nearest_street_class_mapped", "distance_to_nearest_street_m", "distance_to_nearest_street_ft",
-  "major_overlap_arterial_m", "major_overlap_arterial_ft",
-  "major_overlap_collector_m", "major_overlap_collector_ft",
-  "major_overlap_residential_m", "major_overlap_residential_ft",
-  "water_area_share", "park_area_share",
-  "cemetery_area_share", "park_cemetery_area_share",
-  "waterway_overlap_m", "waterway_overlap_ft",
-  "major_overlap_expressway_m", "major_overlap_expressway_ft",
-  "major_overlap_ramp_m", "major_overlap_ramp_ft",
-  "osm_overlap_expressway_m", "osm_overlap_expressway_ft",
-  "expressway_overlap_m", "expressway_overlap_ft",
-  "feature_buffer_m", "feature_buffer_ft"
-)
-
-segment_validity_cols <- c(
-  "raw_segment_id", "analysis_segment_id", "valid_segment", "invalid_reason", "merge_reason",
-  "component_type", "short_segment", "terminal_segment", "segment_lt500ft", "segment_lt1000ft",
-  "nearest_same_pair_segment_id", "nearest_same_pair_segment_number", "nearest_same_pair_distance_ft",
-  "n_touching_same_pair_1ft", "n_near_same_pair_10ft", "two_sided_all_offsets",
-  "left_offset_ward_5ft", "right_offset_ward_5ft", "two_sided_pass_5ft",
-  "left_offset_ward_20ft", "right_offset_ward_20ft", "two_sided_pass_20ft",
-  "left_offset_ward_50ft", "right_offset_ward_50ft", "two_sided_pass_50ft",
-  "left_offset_ward_100ft", "right_offset_ward_100ft", "two_sided_pass_100ft"
 )
 
 split_linestring_into_segments <- function(line_geom, target_len, crs_obj) {
@@ -170,7 +129,7 @@ split_linestring_into_segments <- function(line_geom, target_len, crs_obj) {
   st_sfc(seg_out, crs = crs_obj)
 }
 
-build_segments_raw <- function(boundary_list, target_len_ft, target_len_m = target_len_ft * 0.3048) {
+build_segments_raw <- function(boundary_list, target_len_ft) {
   rows <- list()
   geoms <- list()
 
@@ -200,36 +159,7 @@ build_segments_raw <- function(boundary_list, target_len_ft, target_len_m = targ
           segment_length_ft = as.numeric(st_length(seg_geom)),
           centroid_lat = as.numeric(cc[1, "Y"]),
           centroid_lon = as.numeric(cc[1, "X"]),
-          segment_type = "no_feature",
-          nearest_street_name = NA_character_,
-          nearest_street_class = NA_real_,
-          nearest_street_class_mapped = NA_character_,
-          distance_to_nearest_street_m = NA_real_,
-          distance_to_nearest_street_ft = NA_real_,
-          major_overlap_arterial_m = 0,
-          major_overlap_arterial_ft = 0,
-          major_overlap_collector_m = 0,
-          major_overlap_collector_ft = 0,
-          major_overlap_residential_m = 0,
-          major_overlap_residential_ft = 0,
-          water_area_share = 0,
-          park_area_share = 0,
-          cemetery_area_share = 0,
-          park_cemetery_area_share = 0,
-          waterway_overlap_m = 0,
-          waterway_overlap_ft = 0,
-          major_overlap_expressway_m = 0,
-          major_overlap_expressway_ft = 0,
-          major_overlap_ramp_m = 0,
-          major_overlap_ramp_ft = 0,
-          osm_overlap_expressway_m = 0,
-          osm_overlap_expressway_ft = 0,
-          expressway_overlap_m = 0,
-          expressway_overlap_ft = 0,
-          feature_buffer_m = feature_buffer_m,
-          feature_buffer_ft = feature_buffer_ft,
-          target_length_ft = as.numeric(target_len_ft),
-          target_length_m = as.numeric(target_len_m)
+          target_length_ft = as.numeric(target_len_ft)
         )
         geoms[[length(geoms) + 1L]] <- seg_geom[[1]]
       }
@@ -246,305 +176,19 @@ build_segments_raw <- function(boundary_list, target_len_ft, target_len_m = targ
   sf
 }
 
-read_filtered_layer <- function(path, filter_geom_3435, label) {
-  x <- st_read(path, quiet = TRUE)
-
-  if (nrow(x) == 0) {
-    return(st_sf(data.table(), geometry = st_sfc(crs = st_crs(filter_geom_3435))))
-  }
-
-  x <- st_zm(x, drop = TRUE, what = "ZM")
-  if (is.na(st_crs(x))) {
-    st_crs(x) <- st_crs(4326)
-  }
-  x <- st_make_valid(st_transform(x, st_crs(filter_geom_3435)))
-  suppressWarnings(st_filter(x, filter_geom_3435, .predicate = st_intersects))
-}
-
-load_feature_layers <- function(ward_panel) {
-  city_geom <- ward_panel |>
-    st_make_valid() |>
-    st_union() |>
-    st_buffer(1500)
-
-  major_streets <- read_filtered_layer("../input/major_streets.geojson", city_geom, "Major Streets")
-  if (nrow(major_streets) > 0) {
-    major_streets$source_layer <- "major_streets"
-    if ("STREET_NAM" %in% names(major_streets)) {
-      major_streets$road_name <- as.character(major_streets$STREET_NAM)
-    } else if ("street_nam" %in% names(major_streets)) {
-      major_streets$road_name <- as.character(major_streets$street_nam)
-    } else if ("STREETNAME" %in% names(major_streets)) {
-      major_streets$road_name <- as.character(major_streets$STREETNAME)
-    } else {
-      stop("Major Streets input is missing the street-name column.")
-    }
-    if ("CLASS" %in% names(major_streets)) {
-      major_streets$road_class_code <- suppressWarnings(as.integer(major_streets$CLASS))
-    } else if ("class" %in% names(major_streets)) {
-      major_streets$road_class_code <- suppressWarnings(as.integer(major_streets$class))
-    } else {
-      stop("Major Streets input is missing the road-class column.")
-    }
-    major_streets$road_class_mapped <- fifelse(
-      major_streets$road_class_code == 1L, "expressway",
-      fifelse(
-        major_streets$road_class_code == 2L, "arterial",
-        fifelse(
-          major_streets$road_class_code == 3L, "collector",
-          fifelse(major_streets$road_class_code == 9L, "ramp", "other")
-        )
-      )
-    )
-  } else {
-    major_streets$source_layer <- character()
-    major_streets$road_name <- character()
-    major_streets$road_class_code <- integer()
-    major_streets$road_class_mapped <- character()
-  }
-
-  osm_roads <- read_filtered_layer("../input/gis_osm_roads_free_1.shp", city_geom, "OSM roads")
-  if (nrow(osm_roads) > 0) {
-    osm_roads$source_layer <- "osm_roads"
-    osm_roads$road_name <- as.character(osm_roads$name)
-    osm_roads$road_class_code <- suppressWarnings(as.integer(osm_roads$code))
-    osm_roads$fclass_clean <- tolower(trimws(as.character(osm_roads$fclass)))
-    osm_roads$fclass_clean[is.na(osm_roads$fclass_clean)] <- ""
-    osm_roads$road_class_mapped <- fifelse(
-      osm_roads$fclass_clean %in% c("motorway", "motorway_link", "trunk", "trunk_link"), "expressway",
-      fifelse(
-        osm_roads$fclass_clean %in% c("primary", "primary_link", "secondary", "secondary_link"), "arterial",
-        fifelse(
-          osm_roads$fclass_clean %in% c("tertiary", "tertiary_link"), "collector",
-          fifelse(osm_roads$fclass_clean %in% c("residential", "living_street", "unclassified", "service"), "residential", "other")
-        )
-      )
-    )
-  } else {
-    osm_roads$source_layer <- character()
-    osm_roads$road_name <- character()
-    osm_roads$road_class_code <- integer()
-    osm_roads$fclass_clean <- character()
-    osm_roads$road_class_mapped <- character()
-  }
-
-  osm_major_roads <- osm_roads[osm_roads$road_class_mapped %in% c("expressway", "arterial", "collector"), ]
-  roads_all <- rbind(
-    major_streets[, c("source_layer", "road_name", "road_class_code", "road_class_mapped", "geometry")],
-    osm_major_roads[, c("source_layer", "road_name", "road_class_code", "road_class_mapped", "geometry")]
-  )
-  roads_all <- roads_all[!st_is_empty(roads_all), ]
-
-  osm_landuse <- read_filtered_layer("../input/gis_osm_landuse_a_free_1.shp", city_geom, "OSM landuse polygons")
-  if (nrow(osm_landuse) > 0) {
-    osm_landuse$fclass_clean <- tolower(trimws(as.character(osm_landuse$fclass)))
-    osm_landuse$fclass_clean[is.na(osm_landuse$fclass_clean)] <- ""
-  } else {
-    osm_landuse$fclass_clean <- character()
-  }
-
-  osm_water <- read_filtered_layer("../input/gis_osm_water_a_free_1.shp", city_geom, "OSM water polygons")
-  if (nrow(osm_water) > 0) {
-    osm_water$fclass_clean <- tolower(trimws(as.character(osm_water$fclass)))
-    osm_water$fclass_clean[is.na(osm_water$fclass_clean)] <- ""
-  } else {
-    osm_water$fclass_clean <- character()
-  }
-
-  osm_waterways <- read_filtered_layer("../input/gis_osm_waterways_free_1.shp", city_geom, "OSM waterways")
-  if (nrow(osm_waterways) > 0) {
-    osm_waterways$fclass_clean <- tolower(trimws(as.character(osm_waterways$fclass)))
-    osm_waterways$fclass_clean[is.na(osm_waterways$fclass_clean)] <- ""
-  } else {
-    osm_waterways$fclass_clean <- character()
-  }
-
-  park_fclasses <- c(
-    "park", "recreation_ground", "grass", "forest", "nature_reserve",
-    "meadow", "village_green", "greenfield"
-  )
-  cemetery_fclasses <- c("cemetery")
-
-  list(
-    roads_all = roads_all,
-    major_expressway = major_streets[major_streets$road_class_mapped == "expressway", ],
-    major_ramp = major_streets[major_streets$road_class_mapped == "ramp", ],
-    major_arterial = major_streets[major_streets$road_class_mapped == "arterial", ],
-    major_collector = major_streets[major_streets$road_class_mapped == "collector", ],
-    osm_expressway = osm_roads[osm_roads$road_class_mapped == "expressway", ],
-    water_polygons = osm_water,
-    waterways = osm_waterways,
-    park_polygons = osm_landuse[osm_landuse$fclass_clean %in% park_fclasses, ],
-    cemetery_polygons = osm_landuse[osm_landuse$fclass_clean %in% cemetery_fclasses, ]
-  )
-}
-
-line_buffer_overlap_ft <- function(segment_sf, feature_sf, buffer_ft) {
-  if (nrow(segment_sf) == 0 || is.null(feature_sf) || nrow(feature_sf) == 0) {
-    return(rep(0, nrow(segment_sf)))
-  }
-
-  feature_sf <- feature_sf[!st_is_empty(feature_sf), ]
-  if (nrow(feature_sf) == 0) {
-    return(rep(0, nrow(segment_sf)))
-  }
-
-  seg_lines <- st_sf(segment_row = seq_len(nrow(segment_sf)), geometry = st_geometry(segment_sf))
-  feature_union <- st_sf(geometry = st_union(st_buffer(st_geometry(feature_sf), buffer_ft)))
-  inter <- suppressWarnings(st_intersection(seg_lines, feature_union))
-  out <- rep(0, nrow(segment_sf))
-  if (nrow(inter) == 0) {
-    return(out)
-  }
-
-  inter$overlap_ft <- as.numeric(st_length(inter))
-  sums <- tapply(inter$overlap_ft, inter$segment_row, sum, na.rm = TRUE)
-  out[as.integer(names(sums))] <- as.numeric(sums)
-  out
-}
-
-area_share <- function(segment_sf, polygon_sf, buffer_ft) {
-  if (nrow(segment_sf) == 0 || is.null(polygon_sf) || nrow(polygon_sf) == 0) {
-    return(rep(0, nrow(segment_sf)))
-  }
-
-  polygon_sf <- polygon_sf[!st_is_empty(polygon_sf), ]
-  if (nrow(polygon_sf) == 0) {
-    return(rep(0, nrow(segment_sf)))
-  }
-
-  corridors <- st_sf(
-    segment_row = seq_len(nrow(segment_sf)),
-    geometry = st_buffer(st_geometry(segment_sf), buffer_ft, endCapStyle = "FLAT")
-  )
-  corridor_area <- as.numeric(st_area(corridors))
-  polygon_union <- st_sf(geometry = st_union(st_geometry(polygon_sf)))
-  inter <- suppressWarnings(st_intersection(corridors, polygon_union))
-  out <- rep(0, nrow(segment_sf))
-  if (nrow(inter) == 0) {
-    return(out)
-  }
-
-  inter$overlap_area <- as.numeric(st_area(inter))
-  sums <- tapply(inter$overlap_area, inter$segment_row, sum, na.rm = TRUE)
-  idx <- as.integer(names(sums))
-  out[idx] <- pmin(1, as.numeric(sums) / corridor_area[idx])
-  out[!is.finite(out)] <- 0
-  out
-}
-
-classify_segments_from_features <- function(segment_sf, features) {
-  if (nrow(segment_sf) == 0) {
-    return(segment_sf)
-  }
-
-  nearest <- data.table(
-    nearest_street_name = rep(NA_character_, nrow(segment_sf)),
-    nearest_street_class = rep(NA_real_, nrow(segment_sf)),
-    nearest_street_class_mapped = rep(NA_character_, nrow(segment_sf)),
-    distance_to_nearest_street_m = rep(NA_real_, nrow(segment_sf)),
-    distance_to_nearest_street_ft = rep(NA_real_, nrow(segment_sf))
-  )
-  if (!is.null(features$roads_all) && nrow(features$roads_all) > 0) {
-    segment_midpoints <- st_centroid(st_geometry(segment_sf))
-    nearest_idx <- st_nearest_feature(segment_midpoints, features$roads_all)
-    nearest$nearest_street_name <- as.character(features$roads_all$road_name[nearest_idx])
-    nearest$nearest_street_class <- suppressWarnings(as.numeric(features$roads_all$road_class_code[nearest_idx]))
-    nearest$nearest_street_class_mapped <- as.character(features$roads_all$road_class_mapped[nearest_idx])
-    nearest$distance_to_nearest_street_ft <- as.numeric(st_distance(segment_midpoints, features$roads_all[nearest_idx, ], by_element = TRUE))
-    nearest$distance_to_nearest_street_m <- nearest$distance_to_nearest_street_ft * 0.3048
-  }
-  segment_sf$nearest_street_name <- nearest$nearest_street_name
-  segment_sf$nearest_street_class <- nearest$nearest_street_class
-  segment_sf$nearest_street_class_mapped <- nearest$nearest_street_class_mapped
-  segment_sf$distance_to_nearest_street_m <- nearest$distance_to_nearest_street_m
-  segment_sf$distance_to_nearest_street_ft <- nearest$distance_to_nearest_street_ft
-
-  segment_sf$major_overlap_expressway_ft <- line_buffer_overlap_ft(segment_sf, features$major_expressway, feature_buffer_ft)
-  segment_sf$major_overlap_ramp_ft <- line_buffer_overlap_ft(segment_sf, features$major_ramp, feature_buffer_ft)
-  segment_sf$major_overlap_arterial_ft <- line_buffer_overlap_ft(segment_sf, features$major_arterial, feature_buffer_ft)
-  segment_sf$major_overlap_collector_ft <- line_buffer_overlap_ft(segment_sf, features$major_collector, feature_buffer_ft)
-  segment_sf$major_overlap_residential_ft <- 0
-  segment_sf$osm_overlap_expressway_ft <- line_buffer_overlap_ft(segment_sf, features$osm_expressway, feature_buffer_ft)
-
-  expressway_layers <- list(
-    features$major_expressway,
-    features$major_ramp,
-    features$osm_expressway
-  )
-  expressway_feature_layers <- list()
-  for (i in seq_along(expressway_layers)) {
-    if (!is.null(expressway_layers[[i]]) && nrow(expressway_layers[[i]]) > 0) {
-      expressway_feature_layers[[length(expressway_feature_layers) + 1L]] <- expressway_layers[[i]]
-    }
-  }
-  expressway_features <- NULL
-  if (length(expressway_feature_layers) > 0) {
-    expressway_features <- st_sf(
-      geometry = st_sfc(
-        do.call(c, lapply(expressway_feature_layers, st_geometry)),
-        crs = st_crs(expressway_feature_layers[[1]])
-      )
-    )
-  }
-  segment_sf$expressway_overlap_ft <- line_buffer_overlap_ft(segment_sf, expressway_features, feature_buffer_ft)
-  segment_sf$waterway_overlap_ft <- line_buffer_overlap_ft(segment_sf, features$waterways, feature_buffer_ft)
-
-  segment_sf$water_area_share <- area_share(segment_sf, features$water_polygons, feature_buffer_ft)
-  segment_sf$park_area_share <- area_share(segment_sf, features$park_polygons, feature_buffer_ft)
-  segment_sf$cemetery_area_share <- area_share(segment_sf, features$cemetery_polygons, feature_buffer_ft)
-  segment_sf$park_cemetery_area_share <- pmin(
-    1,
-    segment_sf$park_area_share + segment_sf$cemetery_area_share
-  )
-  segment_sf$major_overlap_expressway_m <- segment_sf$major_overlap_expressway_ft * 0.3048
-  segment_sf$major_overlap_ramp_m <- segment_sf$major_overlap_ramp_ft * 0.3048
-  segment_sf$major_overlap_arterial_m <- segment_sf$major_overlap_arterial_ft * 0.3048
-  segment_sf$major_overlap_collector_m <- segment_sf$major_overlap_collector_ft * 0.3048
-  segment_sf$major_overlap_residential_m <- segment_sf$major_overlap_residential_ft * 0.3048
-  segment_sf$osm_overlap_expressway_m <- segment_sf$osm_overlap_expressway_ft * 0.3048
-  segment_sf$expressway_overlap_m <- segment_sf$expressway_overlap_ft * 0.3048
-  segment_sf$waterway_overlap_m <- segment_sf$waterway_overlap_ft * 0.3048
-  segment_sf$feature_buffer_m <- feature_buffer_m
-  segment_sf$feature_buffer_ft <- feature_buffer_ft
-
-  feature_flags <- data.table(
-    expressway = segment_sf$expressway_overlap_m > 0,
-    arterial = segment_sf$major_overlap_arterial_m > 0,
-    collector = segment_sf$major_overlap_collector_m > 0,
-    residential = segment_sf$major_overlap_residential_m > 0,
-    park_water = (
-      segment_sf$water_area_share > 0 |
-        segment_sf$park_area_share > 0 |
-        segment_sf$waterway_overlap_m > 0
-    ),
-    cemetery = segment_sf$cemetery_area_share > 0
-  )
-  feature_count <- rowSums(feature_flags, na.rm = TRUE)
-  segment_sf$segment_type <- "no_feature"
-  segment_sf$segment_type[feature_count > 1] <- "mixed"
-  for (nm in names(feature_flags)) {
-    segment_sf$segment_type[feature_count == 1 & feature_flags[[nm]]] <- nm
-  }
-
-  segment_sf
-}
-
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 ward_panel$year <- as.integer(ward_panel$year)
 ward_panel$ward <- as.integer(ward_panel$ward)
 ward_panel <- ward_panel[order(ward_panel$year, ward_panel$ward), ]
 
-boundary_list <- build_canonical_boundary_list(ward_panel)
+boundary_list <- build_canonical_boundary_list(ward_panel, eras)
 if (length(boundary_list) == 0 || all(vapply(boundary_list, is.null, logical(1)))) {
   stop("Failed to build ward-pair boundaries from ward panel.", call. = FALSE)
 }
 
-segments <- build_segments_raw(boundary_list, segment_length_ft, segment_length_m)
-feature_layers <- load_feature_layers(ward_panel)
-segments <- classify_segments_from_features(segments, feature_layers)
+segments <- build_segments_raw(boundary_list, segment_length_ft)
 
-ward_maps <- load_canonical_ward_maps(ward_panel)
+ward_maps <- load_canonical_ward_maps(ward_panel, eras)
 segments <- annotate_boundary_segment_validity(segments, ward_maps)
 
 unlink(segment_output)
@@ -593,55 +237,6 @@ if (!wrote_any_boundaries) {
   stop("No boundary layers written.", call. = FALSE)
 }
 
-pick_cols <- c(required_segment_cols, segment_validity_cols, "target_length_ft", "target_length_m")
-class_dt <- st_drop_geometry(segments[, pick_cols])
-setDT(class_dt)
-setorder(class_dt, era, ward_pair_id, target_length_ft, segment_number)
-
-target_segment_length_ft <- segment_length_ft
-segment_feature_check <- copy(class_dt)
-segment_feature_check[, target_length_ft := as.numeric(target_length_ft)]
-segment_feature_check <- segment_feature_check[abs(target_length_ft - target_segment_length_ft) < 1e-8]
-if (nrow(segment_feature_check) == 0) {
-  stop(sprintf("No %.0fft rows found in segment_classification.csv.", target_segment_length_ft), call. = FALSE)
-}
-segment_feature_check[, water_area_share := as.numeric(water_area_share)]
-segment_feature_check[, park_area_share := as.numeric(park_area_share)]
-segment_feature_check[, cemetery_area_share := as.numeric(cemetery_area_share)]
-segment_feature_check[, park_cemetery_area_share := as.numeric(park_cemetery_area_share)]
-segment_feature_check[, waterway_overlap_m := as.numeric(waterway_overlap_m)]
-segment_feature_check[, major_overlap_arterial_m := as.numeric(major_overlap_arterial_m)]
-segment_feature_check[, expressway_overlap_m := as.numeric(expressway_overlap_m)]
-segment_feature_check[!is.finite(water_area_share), water_area_share := 0]
-segment_feature_check[!is.finite(park_area_share), park_area_share := 0]
-segment_feature_check[!is.finite(cemetery_area_share), cemetery_area_share := 0]
-segment_feature_check[!is.finite(park_cemetery_area_share), park_cemetery_area_share := 0]
-segment_feature_check[!is.finite(waterway_overlap_m), waterway_overlap_m := 0]
-segment_feature_check[!is.finite(major_overlap_arterial_m), major_overlap_arterial_m := 0]
-segment_feature_check[!is.finite(expressway_overlap_m), expressway_overlap_m := 0]
-if (!any(
-  !(as.character(segment_feature_check$segment_type) %in% c("no_feature", "", NA_character_)) |
-    segment_feature_check$water_area_share > 0 |
-    segment_feature_check$park_area_share > 0 |
-    segment_feature_check$cemetery_area_share > 0 |
-    segment_feature_check$waterway_overlap_m > 0 |
-    segment_feature_check$expressway_overlap_m > 0 |
-    segment_feature_check$major_overlap_arterial_m > 0,
-  na.rm = TRUE
-)) {
-  stop(
-    sprintf("segment_classification.csv has no park/water/arterial feature metrics after the %.0fft filter.", target_segment_length_ft),
-    call. = FALSE
-  )
-}
-if (!any(segment_feature_check$major_overlap_arterial_m > 0 | segment_feature_check$expressway_overlap_m > 0, na.rm = TRUE)) {
-  stop(
-    sprintf("segment_classification.csv has no arterial or expressway overlap after the %.0fft filter. Check the road-buffer overlap construction.", target_segment_length_ft),
-    call. = FALSE
-  )
-}
-fwrite(class_dt, "../output/segment_classification.csv")
-
 summary_dt <- build_boundary_summary(boundary_list)
 
 all_eras_present <- all(vapply(
@@ -676,7 +271,4 @@ if (!setequal(st_layers(segment_output)$name, expected_layer_names)) {
 }
 if (!setequal(st_layers("../output/ward_pair_boundaries.gpkg")$name, eras)) {
   stop("Unexpected layer set in ../output/ward_pair_boundaries.gpkg.", call. = FALSE)
-}
-if (nrow(fread("../output/segment_classification.csv")) == 0) {
-  stop("segment_classification.csv is empty.", call. = FALSE)
 }

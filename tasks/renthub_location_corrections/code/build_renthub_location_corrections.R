@@ -23,6 +23,33 @@ if (is.na(start_date) || is.na(end_date) || start_date > end_date) {
   stop("Start and end dates must define a valid window.", call. = FALSE)
 }
 
+renthub_manifest <- read_csv(
+  "../input/renthub_manifest.csv",
+  col_types = cols(
+    source_date = col_date(),
+    file_name = col_character(),
+    file_size_bytes = col_double(),
+    source_modified_utc = col_character(),
+    md5 = col_character()
+  )
+)
+if (nrow(renthub_manifest) == 0 || anyDuplicated(renthub_manifest$file_name)) {
+  stop("The RentHub manifest must contain unique file names.", call. = FALSE)
+}
+if (any(renthub_manifest$source_date < start_date |
+        renthub_manifest$source_date > end_date)) {
+  stop("The RentHub manifest contains files outside the requested date window.", call. = FALSE)
+}
+
+manifest_files <- file.path("../input/renthub_raw", renthub_manifest$file_name)
+if (any(!file.exists(manifest_files))) {
+  stop("The RentHub raw folder is missing files listed in the manifest.", call. = FALSE)
+}
+duckdb_manifest_files <- sprintf(
+  "['%s']",
+  paste(gsub("'", "''", manifest_files, fixed = TRUE), collapse = "', '")
+)
+
 address_location_radius_ft <- 200
 primary_location_share_cutoff <- 0.85
 far_secondary_share_cutoff <- 0.10
@@ -98,7 +125,7 @@ invisible(dbExecute(
         TRY_CAST(LONGITUDE AS DOUBLE) AS longitude,
         CAST(ZIP AS VARCHAR) AS zip,
         CAST(NEIGHBORHOOD AS VARCHAR) AS neighborhood
-      FROM read_parquet('../input/renthub_raw/*.parquet', union_by_name = true)
+      FROM read_parquet(%s, union_by_name = true)
       WHERE TRY_CAST(SCRAPED_TIMESTAMP AS DATE) BETWEEN CAST('%s' AS DATE) AND CAST('%s' AS DATE)
     ),
     cleaned AS (
@@ -135,6 +162,7 @@ invisible(dbExecute(
     WHERE latitude BETWEEN 41.55 AND 42.10
       AND longitude BETWEEN -88.10 AND -87.40
     ",
+    duckdb_manifest_files,
     start_date,
     end_date
   )

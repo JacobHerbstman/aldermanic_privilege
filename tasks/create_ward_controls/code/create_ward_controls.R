@@ -1,11 +1,26 @@
-## This code creates a comprehensive Ward-Year Panel (2000-2023) with Controls
+## This code creates a comprehensive ward-year panel with controls.
 ## Sources: 2000 Decennial, 2010 Decennial, and Annual ACS 5-Year Estimates
 
 ## --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_ward_controls/code")
+# start_year <- 2006
+# end_year <- 2022
 
 source("../../setup_environment/code/packages.R")
 library(tigris) # Required for the geometry fix
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(start_year, end_year)
+}
+if (length(cli_args) != 2) {
+  stop("Script requires 2 arguments: <start_year> <end_year>.", call. = FALSE)
+}
+start_year <- suppressWarnings(as.integer(cli_args[1]))
+end_year <- suppressWarnings(as.integer(cli_args[2]))
+if (!is.finite(start_year) || !is.finite(end_year) || start_year > end_year) {
+  stop("start_year and end_year must be valid integers with start_year <= end_year.", call. = FALSE)
+}
 
 # 1. SETUP & INPUTS
 # -----------------------------------------------------------------------------
@@ -152,7 +167,7 @@ geo_2020 <- tigris::block_groups(state = "IL", county = "Cook", year = 2020, cb 
 
 # 4. THE PANEL CONSTRUCTION LOOP
 # -----------------------------------------------------------------------------
-years <- 2000:2023
+years <- start_year:end_year
 final_panel_list <- list()
 
 assign_block_groups_to_wards <- function(current_bgs, current_wards, current_year) {
@@ -328,7 +343,9 @@ if (any(ward_controls$homeownership_rate < 0 | ward_controls$homeownership_rate 
   stop("Ward controls contain invalid demographic shares.", call. = FALSE)
 }
 
-write_csv(ward_controls, "../output/ward_controls_2000_2023.csv")
-message("Ward Panel saved to: ../output/ward_controls_2000_2023.csv")
+write_csv(
+  ward_controls,
+  sprintf("../output/ward_controls_%d_%d.csv", start_year, end_year)
+)
 
 message("Done! Ward Panel Created.")

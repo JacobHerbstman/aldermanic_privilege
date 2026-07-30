@@ -1,6 +1,6 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_data/code")
-# panel_end_month <- "2026-04"
+# panel_end_month <- "2022-12"
 
 source("../../setup_environment/code/packages.R")
 
@@ -272,13 +272,8 @@ alderman_data <- tribble(
   50, "Debra Silverstein",  "2011-05-16", "2025-06-24"
 ) %>%
   mutate(across(c(start_date, end_date), as.Date)) %>%
-  mutate(
-    end_date = if_else(
-      end_date == as.Date("2025-06-24"),
-      current_panel_end_date,
-      end_date
-    )
-  )
+  filter(start_date <= current_panel_end_date) %>%
+  mutate(end_date = pmin(end_date, current_panel_end_date))
 
 term_overlaps <- alderman_data %>%
   arrange(ward, start_date) %>%
@@ -340,10 +335,8 @@ coverage <- final_panel %>%
   ) %>%
   arrange(month)
 
-recent_missing <- coverage %>%
-  filter(month >= as.yearmon("2023-05"), n_missing_alderman > 0)
-if (nrow(recent_missing) > 0) {
-  stop("Alderman panel has missing post-2023 ward-month assignments.", call. = FALSE)
+if (coverage$n_missing_alderman[coverage$month == max(coverage$month)] > 0) {
+  stop("Alderman panel has missing assignments in its final month.", call. = FALSE)
 }
 
 write_csv(final_panel, "../output/chicago_alderman_panel.csv")

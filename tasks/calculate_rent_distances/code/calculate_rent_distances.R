@@ -5,11 +5,12 @@ source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
 
 crs_projected <- 3435
+analysis_eras <- c("2003_2014", "2015_2023")
 
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
   st_transform(crs_projected)
-canonical_ward_maps <- load_canonical_ward_maps(ward_panel)
-canonical_boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg")
+canonical_ward_maps <- load_canonical_ward_maps(ward_panel, analysis_eras)
+canonical_boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg", analysis_eras)
 
 alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
   mutate(month = as.yearmon(month))
@@ -362,7 +363,8 @@ cpi <- tibble(observation_date = seq(cpi_start_month, cpi_end_month, by = "month
         cpi_value = suppressWarnings(as.numeric(CUURA207SA0))
       ) %>%
       filter(!is.na(observation_date)),
-    by = "observation_date"
+    by = "observation_date",
+    relationship = "one-to-one"
   ) %>%
   arrange(observation_date)
 
@@ -421,7 +423,7 @@ final_df <- final_df %>%
   )
 
 if (!"building_type_clean" %in% names(final_df)) {
-  stop("Rental panel must provide audited building_type_clean.", call. = FALSE)
+  stop("Rental panel must provide cleaned building_type_clean.", call. = FALSE)
 }
 n_missing_building_type_clean <- sum(is.na(final_df$building_type_clean) | final_df$building_type_clean == "")
 if (n_missing_building_type_clean > 0) {

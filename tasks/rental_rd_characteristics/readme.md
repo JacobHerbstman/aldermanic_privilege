@@ -8,5 +8,5 @@ Inputs:
 
 Produces: `output/rental_rd_characteristics_panel_bw<bandwidth>.parquet`.
 
-The default bandwidth is 500 feet. The price-placebo task requests the same
-panel at 1,500 feet so it can move the cutoff 1,000 feet into either ward.
+The default bandwidth is 1,500 feet so the paper can estimate the main
+500-foot comparison and move the cutoff 1,000 feet into either ward.

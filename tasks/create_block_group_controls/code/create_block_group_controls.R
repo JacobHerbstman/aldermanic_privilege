@@ -1,194 +1,121 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_block_group_controls/code")
+# acs_year <- 2014
+# geometry_year <- 2019
 
 source("../../setup_environment/code/packages.R")
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(acs_year, geometry_year)
+}
+if (length(cli_args) != 2) {
+  stop("Script requires the ACS year and geometry year.", call. = FALSE)
+}
+
+acs_year <- as.integer(cli_args[1])
+geometry_year <- as.integer(cli_args[2])
+if (any(!is.finite(c(acs_year, geometry_year)))) {
+  stop("ACS and geometry years must be integers.", call. = FALSE)
+}
 
 if (Sys.getenv("CENSUS_API_KEY") == "") {
   stop("CENSUS_API_KEY not found in the environment.", call. = FALSE)
 }
 census_api_key(Sys.getenv("CENSUS_API_KEY"))
 
-# -----------------------------------------------------------------------------
-# 1. DEFINE VARIABLES
-# -----------------------------------------------------------------------------
 acs_vars <- c(
-  # Population and Race/Ethnicity
   total_population = "B01003_001",
-  white_population = "B03002_003", # White alone, not Hispanic
-  black_population = "B03002_004", # Black alone
-  hispanic_population = "B03003_003", # Hispanic/Latino
-
-  # Housing Tenure
+  white_population = "B03002_003",
+  black_population = "B03002_004",
+  hispanic_population = "B03003_003",
   total_units = "B25003_001",
   owner_occupied = "B25003_002",
-  renter_occupied = "B25003_003",
-
-  # Income
   median_income = "B19013_001",
-
-  # Average Household Size
   avg_household_size = "B25010_001",
-
-  # Median Gross Rent
   median_rent = "B25064_001",
-
-  # Median Home Value (owner-occupied)
   median_home_value = "B25077_001",
-
-  # Education (Population 25+)
-  pop_25_plus = "B15003_001", # Total population 25+
-  bach_degree = "B15003_022", # Bachelor's degree
-  masters_degree = "B15003_023", # Master's degree
-  professional_degree = "B15003_024", # Professional school degree
-  doctorate_degree = "B15003_025", # Doctorate degree
-
-  # Age Structure
+  pop_25_plus = "B15003_001",
+  bach_degree = "B15003_022",
+  masters_degree = "B15003_023",
+  professional_degree = "B15003_024",
+  doctorate_degree = "B15003_025",
   median_age = "B01002_001"
 )
 
-# -----------------------------------------------------------------------------
-# 2. DOWNLOAD ACS DATA FOR PRE- and POST-PERIODS
-# -----------------------------------------------------------------------------
-get_bg_data <- function(year_to_get) {
-  acs_raw <- get_acs(
-    geography = "block group",
-    variables = acs_vars,
-    state = "IL",
-    county = "Cook",
-    year = year_to_get,
-    survey = "acs5",
-    output = "wide"
-  )
-
-  acs_raw %>%
-    st_drop_geometry() %>%
-    select(GEOID, ends_with("E")) %>%
-    rename_with(~ sub("E$", "", .), .cols = everything())
-}
-
-# Download the pre-period (2009-2013) and post-period (2015-2019) data
-message("Downloading pre-period ACS data (2014 5-year)...")
-pre_period_data <- get_bg_data(2014)
-message("Downloading post-period ACS data (2019 5-year)...")
-post_period_data <- get_bg_data(2019)
-
-# -----------------------------------------------------------------------------
-# 3. CREATE THE FULL 2010-2019 CONTROL PANEL
-# -----------------------------------------------------------------------------
-# Create a template with every block group for every year in the panel
-panel_template <- expand.grid(
-  GEOID = unique(c(pre_period_data$GEOID, post_period_data$GEOID)),
-  year = 2006:2024,
-  stringsAsFactors = FALSE
+message(sprintf("Downloading %d ACS 5-year block-group controls...", acs_year))
+block_group_controls <- get_acs(
+  geography = "block group",
+  variables = acs_vars,
+  state = "IL",
+  county = "Cook",
+  year = acs_year,
+  survey = "acs5",
+  output = "wide"
 ) %>%
-  # Create a period key to join on
-  mutate(period = if_else(year < 2015, "pre", "post"))
+  st_drop_geometry() %>%
+  select(GEOID, ends_with("E")) %>%
+  rename_with(~ sub("E$", "", .), .cols = everything())
 
-# Combine the pre- and post- data into one file with the same period key
-combined_acs_data <- bind_rows(
-  pre_period_data %>% mutate(period = "pre"),
-  post_period_data %>% mutate(period = "post")
-)
-
-# Join the ACS data to the panel template
-bg_controls_raw <- panel_template %>%
-  left_join(combined_acs_data, by = c("GEOID", "period"), relationship = "many-to-one")
-
-# -----------------------------------------------------------------------------
-# 4. CALCULATE FINAL CONTROL VARIABLES
-# -----------------------------------------------------------------------------
-# Population density requires area, which is time-invariant
-message("Getting block group geometries for area calculation...")
-block_group_geometry_2019_raw <- get_acs(
-  geography = "block group", variables = "B01003_001",
-  state = "IL", county = "Cook", year = 2019, geometry = TRUE
-)
-block_group_geometry_2019 <- block_group_geometry_2019_raw %>%
+message(sprintf("Downloading %d block-group geometry...", geometry_year))
+block_group_geometry <- get_acs(
+  geography = "block group",
+  variables = "B01003_001",
+  state = "IL",
+  county = "Cook",
+  year = geometry_year,
+  geometry = TRUE
+) %>%
   select(GEOID, geometry)
 
-if (nrow(block_group_geometry_2019) == 0) {
-  stop("No block-group geometries retrieved from ACS 2019.", call. = FALSE)
+if (nrow(block_group_geometry) == 0) {
+  stop("No block-group geometries retrieved.", call. = FALSE)
 }
-empty_geometry_count <- sum(st_is_empty(block_group_geometry_2019$geometry))
-if (empty_geometry_count > 0) {
-  message(sprintf(
-    "Dropping %d block groups with empty ACS geometries.",
-    empty_geometry_count
-  ))
-  block_group_geometry_2019 <- block_group_geometry_2019 %>%
-    filter(!st_is_empty(geometry))
-}
-if (any(is.na(block_group_geometry_2019$GEOID) | block_group_geometry_2019$GEOID == "")) {
-  stop("Block-group geometry has missing GEOID values.", call. = FALSE)
-}
-if (any(duplicated(block_group_geometry_2019$GEOID))) {
-  stop("Block-group geometry GEOID values are not unique.", call. = FALSE)
-}
-if (nrow(block_group_geometry_2019) == 0) {
-  stop("No non-empty block-group geometries remain after filtering.", call. = FALSE)
-}
-if (any(st_is_empty(block_group_geometry_2019$geometry))) {
-  stop("Block-group geometry contains empty geometries.", call. = FALSE)
+block_group_geometry <- block_group_geometry %>%
+  filter(!st_is_empty(geometry))
+if (
+  nrow(block_group_geometry) == 0 ||
+    any(is.na(block_group_geometry$GEOID) | block_group_geometry$GEOID == "") ||
+    anyDuplicated(block_group_geometry$GEOID) > 0
+) {
+  stop("Block-group geometry identifiers must be nonmissing and unique.", call. = FALSE)
 }
 
-block_group_areas <- block_group_geometry_2019 %>%
+block_group_areas <- block_group_geometry %>%
   mutate(land_area_sqkm = as.numeric(st_area(geometry)) / 1e6) %>%
   st_drop_geometry() %>%
   select(GEOID, land_area_sqkm)
 
-# Calculate the final variables
-message("Calculating derived variables...")
-bg_controls <- bg_controls_raw %>%
+block_group_controls <- block_group_controls %>%
   left_join(block_group_areas, by = "GEOID", relationship = "many-to-one") %>%
   mutate(
-    # Race/Ethnicity shares
+    year = acs_year,
     percent_white = white_population / total_population,
     percent_black = black_population / total_population,
     percent_hispanic = hispanic_population / total_population,
-
-    # Housing
     homeownership_rate = owner_occupied / total_units,
-
-    # Education (share with bachelor's or higher)
     bach_plus = bach_degree + masters_degree + professional_degree + doctorate_degree,
     share_bach_plus = bach_plus / pop_25_plus,
-
-    # Density
     population_density = total_population / land_area_sqkm
   ) %>%
-  # Keep only the final variables for merging
   select(
     GEOID,
     year,
-    # Race/Ethnicity
     percent_white,
     percent_black,
     percent_hispanic,
-    # Housing
     homeownership_rate,
     median_rent,
     median_home_value,
-    # Income & Education
     median_income,
     share_bach_plus,
-    # Demographics
     avg_household_size,
     median_age,
-    # Density
     population_density
   )
 
-message(sprintf("Final dataset: %d rows, %d columns", nrow(bg_controls), ncol(bg_controls)))
-message(sprintf("Block groups: %d", n_distinct(bg_controls$GEOID)))
-message(sprintf("Years: %s to %s", min(bg_controls$year), max(bg_controls$year)))
+if (anyDuplicated(block_group_controls$GEOID) > 0) {
+  stop("Block-group controls must be unique by GEOID.", call. = FALSE)
+}
 
-write_csv(bg_controls, "../output/block_group_controls.csv")
-message("Saved to ../output/block_group_controls.csv")
-
-st_write(
-  block_group_geometry_2019,
-  "../output/block_group_geometry_2019.gpkg",
-  delete_dsn = TRUE,
-  quiet = TRUE
-)
-message("Saved to ../output/block_group_geometry_2019.gpkg")
+write_csv(block_group_controls, "../output/block_group_controls.csv")

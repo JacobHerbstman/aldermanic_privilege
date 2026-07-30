@@ -1,7 +1,10 @@
-all: ../output/ward_controls_2000_2023.csv
+START_YEAR ?= 2006
+END_YEAR ?= 2022
 
-../output/ward_controls_2000_2023.csv: create_ward_controls.R ../input/ward_panel.gpkg | ../output
-	Rscript $<
+all: ../output/ward_controls_$(START_YEAR)_$(END_YEAR).csv
+
+../output/ward_controls_$(START_YEAR)_$(END_YEAR).csv: create_ward_controls.R ../input/ward_panel.gpkg | ../output
+	Rscript $< $(START_YEAR) $(END_YEAR)
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"

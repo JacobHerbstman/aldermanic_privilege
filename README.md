@@ -1,60 +1,77 @@
 # Aldermanic Privilege
 
-This repository contains the code underlying a paper and slide deck on aldermanic discretion, housing supply, rents, and home prices in Chicago. The current workflow builds a regulatory stringency index from permit processing times, merges that index into canonical border geometry, and estimates density, rental, and home-sales results at ward boundaries.
+This repository contains the code for a paper on aldermanic discretion, housing
+supply, rents, and home prices in Chicago. The analysis estimates alderman
+stringency from permit processing times and studies outcomes near ward
+boundaries.
 
-The project uses a task-based workflow. Each active task lives in `tasks/<task>/` and contains `input/`, `code/`, and `output/` folders.
+Each task lives in `tasks/<task>/` and has its own `code/`, `input/`, and
+`output/` folders. Makefiles connect tasks through explicit file dependencies.
+Running `make` at the repository root follows those dependencies through to the
+paper.
 
-## Code Organization
+## Paper Task Graph
 
-The workflow is organized as a series of tasks whose outputs feed downstream tasks through explicit symlinks. Each task is run from its own `code/` folder with `make`. The production task graph below is generated from those dependency rules.
+The graph shows the data tasks required by `paper/Makefile`. Arrows point from
+an upstream task to the task that uses its output. Research checks, old
+specifications, rezoning work, and slides are not part of this graph.
 
-### Production Task Graph
+[![Paper task dependency graph](docs/paper_task_flow.svg)](docs/paper_task_flow.svg)
 
-The graph below is generated from the Makefiles in connected production tasks. Audit tasks are excluded, and generation fails if the declared dependencies contain a cycle.
+The graph contains no cycles. Shared R package setup and helper files are used
+throughout but are omitted from the figure because they do not produce data
+outputs.
 
-[![Production task dependency graph](tasks/audits/symlink_graph/output/task_flow.png)](tasks/audits/symlink_graph/output/task_flow.png)
+## Data Inputs
 
-## Replication Notes
+The paper uses three kinds of inputs:
 
-The project is implemented through task-level Makefiles, R scripts, shell scripts, and symbolic links. A fresh clone should be run from the repository root or from task-level `code/` folders; task inputs are resolved through Makefile dependencies and symlinks.
+- **Files committed to the repository.** These include two ward-boundary
+  files, the final new-construction analysis file, the boundary characteristics
+  used for the density continuity checks, small files containing hand-reviewed
+  coordinate and block-assignment decisions, and the water layer from the
+  September 19, 2025 Geofabrik Illinois OpenStreetMap extract. The paper build
+  checks the OpenStreetMap files against
+  `data_raw/illinois-250919-free.sha256`.
+- **Live downloads.** The build downloads Chicago building permits and spatial
+  data, Census ACS data, Cook County assessor and sales data, park boundaries,
+  FRED CPI data, and RentHub listings from Dewey. Public agencies can revise
+  historical records, so exact last-decimal equality requires the same source
+  snapshots used for the submitted paper.
 
-### Data Inputs
+The Census downloads require `CENSUS_API_KEY`, and the RentHub download
+requires `DEWEY_API_KEY`. Replicators need their own credentials for both
+services. Interrupted RentHub downloads can be resumed by running `make`
+again.
 
-The main paper pipeline uses a mix of frozen/local inputs and live downloads:
+## Build
 
-- Tracked static inputs: small ward and zoning GeoJSON files in `data_raw/` are committed to git.
-- Required untracked local input: the Geofabrik Illinois OpenStreetMap vintage `data_raw/illinois-250919-free/` is not committed because it is large. To run the paper from a fresh clone, place that directory locally under `data_raw/`. It must include the `gis_osm_roads_free_1`, `gis_osm_landuse_a_free_1`, `gis_osm_water_a_free_1`, and `gis_osm_waterways_free_1` shapefile sidecars (`.shp`, `.dbf`, `.shx`, `.prj`, `.cpg`).
-- Live downloads: several tasks download current source data at build time, including Chicago building permits, Chicago spatial/open-data endpoints, ACS/NHGIS-derived inputs, Zillow/FRED benchmark series, and RentHub files from Dewey. These sources can change over time unless their downloaded outputs are archived separately.
-- Dewey/RentHub: `tasks/download_rent_data` requires `DEWEY_API_KEY`. Replicators need their own Dewey credentials. The downloader skips existing parquet files, so interrupted Dewey downloads can be resumed by rerunning `make`.
+The build requires R, GNU Make, Bash, Python 3, `curl`, `unzip`, and a LaTeX
+installation providing `pdflatex` and `bibtex`. The machine must also have the
+system libraries required by the R packages `sf`, `units`, and `arrow`.
 
-A final clean-clone rebuild will be run after the current production changes are complete. Until then, task-level and paper builds have been verified in the working repository, but the fresh-clone replication check remains pending. Exact last-decimal equality will require the same snapshots of live downloaded sources.
-
-Run a task from its own `code/` folder:
+Install the required R packages:
 
 ```bash
-cd tasks/<task>/code
+cd tasks/setup_environment/code
 make
 ```
 
-Build the paper:
+Set `CENSUS_API_KEY` and `DEWEY_API_KEY`, and run:
 
 ```bash
-cd paper
 make
 ```
 
-Build the slides:
+Individual tasks can also be run from their `code/` folders.
+
+## Replication Archive
+
+The research repository retains checks and analyses that are not needed to
+reproduce the paper. `.gitattributes` excludes those folders from the paper
+replication archive. Create the archive from a committed revision with:
 
 ```bash
-cd slides
-make
+git archive --format=tar.gz --prefix=aldermanic_privilege/ \
+  -o aldermanic_privilege_replication.tar.gz HEAD
 ```
-
-Rebuild the task graph:
-
-```bash
-cd tasks/audits/symlink_graph/code
-make
-```
-
-The generated graph is written to `tasks/audits/symlink_graph/output/task_flow.png`. The image is tracked so it appears on the repository home page, but generating it is not part of the production pipeline.

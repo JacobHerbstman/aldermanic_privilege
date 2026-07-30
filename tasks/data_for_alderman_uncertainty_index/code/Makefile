@@ -24,7 +24,7 @@ all: ../output/permits_for_uncertainty_index.csv
 ../input/chicago_alderman_terms.csv: ../../create_alderman_data/output/chicago_alderman_terms.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/ward_controls.csv: ../../create_ward_controls/output/ward_controls_2000_2023.csv | ../input
+../input/ward_controls.csv: ../../create_ward_controls/output/ward_controls_2006_2022.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/community_areas.geojson: ../../download_chicago_spatial_data/output/community_areas.geojson | ../input

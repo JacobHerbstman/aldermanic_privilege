@@ -179,13 +179,6 @@ case "$dataset" in
 			"Polygon,MultiPolygon" \
 			77
 		;;
-	city_boundary)
-		download_geojson \
-			"../output/city_boundary.geojson" \
-			"https://data.cityofchicago.org/api/geospatial/qqq8-j68g?method=export&format=GeoJSON" \
-			"Polygon,MultiPolygon" \
-			1
-		;;
 	census_blocks_2010)
 		download_census_blocks_2010
 		;;

@@ -12,12 +12,7 @@ adjudication. Every project within the main bandwidth that was retained
 principally from the Assessor's new-construction designation received a final
 row-level review.
 
-The complete derivation, review evidence, and validation checks are in:
-
-- `tasks/audits/commercial_new_construction_sample_audit/`
-- `tasks/audits/new_construction_universe_validation/`
-- `tasks/audits/new_construction_project_verification/`
-
-The analysis file intentionally omits audit URLs, review notes, intermediate
-matches, and diagnostics. Its SHA-256 hash is
+The committed file contains only the fields used by the paper. Review notes,
+source links, intermediate matches, and diagnostic files are kept separately
+from the replication archive. Its SHA-256 hash is
 `9dc7953e91bdf21a909224d2d68697a8440b56b66f137c7d784bea6137bf8ea4`.

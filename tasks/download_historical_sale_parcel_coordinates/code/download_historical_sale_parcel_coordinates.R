@@ -58,13 +58,12 @@ if (nrow(sale_keys) == 0) {
 }
 
 setorder(sale_keys, year, pin)
-records <- list()
 base_url <- "https://datacatalog.cookcountyil.gov/resource/nj4t-kc8j.json"
-request_handle <- curl::new_handle(connecttimeout = 30, timeout = 120)
+request_plan <- list()
 
 for (year_i in sort(unique(sale_keys$year))) {
   year_pins <- sale_keys[year == year_i, pin]
-  chunks <- split(year_pins, ceiling(seq_along(year_pins) / 200L))
+  chunks <- split(year_pins, ceiling(seq_along(year_pins) / 500L))
 
   for (chunk_i in seq_along(chunks)) {
     parameters <- c(
@@ -89,35 +88,61 @@ for (year_i in sort(unique(sale_keys$year))) {
         collapse = "&"
       )
     )
-
-    response <- NULL
-    for (attempt in 1:3) {
-      response <- tryCatch(
-        curl::curl_fetch_memory(query, handle = request_handle),
-        error = function(e) NULL
+    request_plan[[length(request_plan) + 1L]] <- data.table(
+      year = year_i,
+      chunk = chunk_i,
+      query = query,
+      destination = tempfile(
+        sprintf("historical_parcels_%d_%04d_", year_i, chunk_i),
+        fileext = ".json"
       )
-      if (!is.null(response) && response$status_code == 200L) {
-        break
-      }
-      Sys.sleep(attempt)
-    }
-    if (is.null(response) || response$status_code != 200L) {
-      stop(sprintf(
-        "Historical parcel download failed for year %d, chunk %d of %d.",
-        year_i,
-        chunk_i,
-        length(chunks)
-      ), call. = FALSE)
-    }
-
-    payload <- jsonlite::fromJSON(rawToChar(response$content), simplifyDataFrame = TRUE)
-    if (is.data.frame(payload) && nrow(payload) > 0) {
-      records[[length(records) + 1L]] <- as.data.table(payload)
-    }
+    )
   }
-  message(sprintf("Downloaded historical coordinates for %d.", year_i))
 }
 
+request_plan <- rbindlist(request_plan)
+downloaded <- rep(FALSE, nrow(request_plan))
+
+for (batch_start in seq(1L, nrow(request_plan), by = 24L)) {
+  batch <- batch_start:min(batch_start + 23L, nrow(request_plan))
+
+  for (attempt in 1:3) {
+    pending <- batch[!downloaded[batch]]
+    if (length(pending) == 0) {
+      break
+    }
+    results <- curl::multi_download(
+      request_plan$query[pending],
+      request_plan$destination[pending],
+      progress = FALSE,
+      connecttimeout = 30,
+      timeout = 120
+    )
+    downloaded[pending] <- results$success & results$status_code == 200L
+    if (any(!downloaded[batch])) {
+      Sys.sleep(attempt)
+    }
+  }
+}
+if (any(!downloaded)) {
+  failed <- request_plan[!downloaded, sprintf("%d/%d", year, chunk)]
+  stop(
+    sprintf(
+      "Historical parcel download failed for %d requests, including %s.",
+      length(failed),
+      paste(head(failed, 3), collapse = ", ")
+    ),
+    call. = FALSE
+  )
+}
+
+records <- lapply(
+  request_plan$destination,
+  jsonlite::fromJSON,
+  simplifyDataFrame = TRUE
+)
+unlink(request_plan$destination)
+records <- Filter(\(x) is.data.frame(x) && nrow(x) > 0, records)
 historical_parcels <- rbindlist(records, use.names = TRUE, fill = TRUE)
 if (nrow(historical_parcels) == 0) {
   stop("Historical parcel download returned no coordinates.", call. = FALSE)

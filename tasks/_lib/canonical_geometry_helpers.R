@@ -94,8 +94,7 @@ aggregate_ward_map <- function(ward_panel, map_year) {
     sf::st_as_sf(crs = sf::st_crs(ward_sf))
 }
 
-load_canonical_ward_maps <- function(ward_panel) {
-  eras <- canonical_era_levels()
+load_canonical_ward_maps <- function(ward_panel, eras = canonical_era_levels()) {
   out <- lapply(eras, function(era_i) {
     aggregate_ward_map(ward_panel, canonical_map_year_for_era(era_i))
   })
@@ -143,9 +142,8 @@ extract_shared_line_geometry <- function(geom_a, geom_b) {
   merged
 }
 
-build_canonical_boundary_list <- function(ward_panel) {
-  ward_maps <- load_canonical_ward_maps(ward_panel)
-  eras <- canonical_era_levels()
+build_canonical_boundary_list <- function(ward_panel, eras = canonical_era_levels()) {
+  ward_maps <- load_canonical_ward_maps(ward_panel, eras)
 
   out <- lapply(eras, function(era_i) {
     ward_sf <- ward_maps[[era_i]]
@@ -197,8 +195,7 @@ build_canonical_boundary_list <- function(ward_panel) {
   out
 }
 
-build_boundary_summary <- function(boundary_list) {
-  eras <- canonical_era_levels()
+build_boundary_summary <- function(boundary_list, eras = names(boundary_list)) {
   data.table::rbindlist(lapply(eras, function(era_i) {
     d <- boundary_list[[era_i]]
     data.table::data.table(

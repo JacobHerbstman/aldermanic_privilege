@@ -131,7 +131,9 @@ while IFS=, read -r pin_prefix slice_rows; do
         exit 1
     fi
 
-    slice_where="${where_clause} and substring(pin,1,${prefix_width}) = '${pin_prefix}'"
+    pin_lower="${pin_prefix}00000000000"
+    pin_upper="${pin_prefix}99999999999"
+    slice_where="${where_clause} and pin between '${pin_lower}' and '${pin_upper}'"
     slice_file="$tmp_dir/prefix_${pin_prefix}.csv"
     download_slice "$slice_file" "$slice_where" "$slice_rows"
 

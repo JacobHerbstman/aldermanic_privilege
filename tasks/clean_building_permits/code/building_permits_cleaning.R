@@ -1,11 +1,31 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/clean_building_permits/code")
+# start_year <- 2006
+# end_year <- 2022
 
 source("../../setup_environment/code/packages.R")
 
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(start_year, end_year)
+}
+if (length(cli_args) != 2) {
+  stop("Script requires 2 arguments: <start_year> <end_year>.", call. = FALSE)
+}
+start_year <- suppressWarnings(as.integer(cli_args[1]))
+end_year <- suppressWarnings(as.integer(cli_args[2]))
+if (!is.finite(start_year) || !is.finite(end_year) || start_year > end_year) {
+  stop("start_year and end_year must be valid integers with start_year <= end_year.", call. = FALSE)
+}
+
 crs_projected <- 3435
 
-building_permits <- read_csv("../input/building_permits.csv", show_col_types = FALSE)
+building_permits <- read_csv(
+  sprintf("../input/building_permits_%d_%d.csv", start_year, end_year),
+  col_types = cols(id = col_character()),
+  show_col_types = FALSE,
+  guess_max = Inf
+)
 
 building_permits_clean <- building_permits %>% 
   janitor::clean_names() %>% 
@@ -58,7 +78,10 @@ building_permits_clean <- building_permits_clean %>%
 building_permits_clean <- building_permits_clean %>% 
   dplyr::mutate(issue_date = as.Date(issue_date, format = "%m/%d/%Y")) %>% 
   dplyr::mutate(application_start_date = as.Date(application_start_date, format = "%m/%d/%Y")) %>% 
-  dplyr::filter(application_start_date >= as.Date("2006-01-01")) %>% 
+  dplyr::filter(
+    application_start_date >= as.Date(sprintf("%d-01-01", start_year)),
+    application_start_date <= as.Date(sprintf("%d-12-31", end_year))
+  ) %>%
   dplyr::mutate(issue_date_ym = zoo::as.yearmon(issue_date)) %>% 
   dplyr::mutate(application_start_date_ym = zoo::as.yearmon(application_start_date)) %>% 
   arrange(application_start_date) %>% 

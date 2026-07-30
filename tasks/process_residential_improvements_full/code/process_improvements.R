@@ -1,5 +1,23 @@
+# --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/process_residential_improvements_full/code")
+# start_year <- 2006
+# end_year <- 2022
+
 source("../../setup_environment/code/packages.R")
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (length(cli_args) == 0) {
+  cli_args <- c(start_year, end_year)
+}
+if (length(cli_args) != 2) {
+  stop("Script requires start and end tax years.", call. = FALSE)
+}
+
+start_year <- as.integer(cli_args[1])
+end_year <- as.integer(cli_args[2])
+if (any(!is.finite(c(start_year, end_year))) || start_year > end_year) {
+  stop("Tax-year range is invalid.", call. = FALSE)
+}
 
 con <- dbConnect(duckdb())
 on.exit(dbDisconnect(con, shutdown = TRUE), add = TRUE)
@@ -34,7 +52,7 @@ FROM read_csv('../input/residential_improvement_characteristics_full.csv',
               max_line_size = 10000000)
 "))
 
-invisible(dbExecute(con, "
+invisible(dbExecute(con, sprintf("
 CREATE TABLE improvements_clean AS
 SELECT
   pin,
@@ -62,7 +80,8 @@ SELECT
   try_cast(numeric_text(row_id_raw) AS BIGINT) AS row_id
 FROM improvements_raw
 WHERE try_cast(numeric_text(township_code_raw) AS INTEGER) IN (70, 71, 72, 73, 74, 75, 76, 77)
-"))
+  AND try_cast(numeric_text(tax_year_raw) AS INTEGER) BETWEEN %d AND %d
+", start_year, end_year)))
 
 n_chicago <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM improvements_clean")$n
 n_pre_1999 <- dbGetQuery(con, "
@@ -75,7 +94,7 @@ if (n_chicago == 0) {
   stop("No Chicago township residential improvement rows were retained.", call. = FALSE)
 }
 if (n_pre_1999 == 0) {
-  stop("Full residential improvements panel has no pre-1999 buildings; sales hedonics would be new-construction-only.", call. = FALSE)
+  stop("Residential improvements panel has no pre-1999 buildings; sales hedonics would be new-construction-only.", call. = FALSE)
 }
 
 invisible(dbExecute(con, "
@@ -118,7 +137,7 @@ FROM improvements_panel
 ")
 
 if (panel_summary$pre_1999_rows == 0 || panel_summary$pre_1999_pins == 0) {
-  stop("Deduplicated full residential improvements panel lost all pre-1999 buildings.", call. = FALSE)
+  stop("Deduplicated residential improvements panel lost all pre-1999 buildings.", call. = FALSE)
 }
 
 invisible(dbExecute(con, "

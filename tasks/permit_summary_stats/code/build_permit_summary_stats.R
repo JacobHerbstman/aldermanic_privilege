@@ -79,12 +79,6 @@ ward_geoms_2016 <- ward_panel %>%
   group_by(ward) %>%
   summarise(.groups = "drop")
 
-ward_geoms_2024 <- ward_panel %>%
-  filter(year == max(year)) %>%
-  select(ward) %>%
-  group_by(ward) %>%
-  summarise(.groups = "drop")
-
 permits_pre_2015_ward <- permits %>%
   filter(ward_map_era == "2003_2014") %>%
   st_join(ward_geoms_2014, join = st_within) %>%
@@ -97,16 +91,9 @@ permits_2015_2023_ward <- permits %>%
   filter(!is.na(ward)) %>%
   st_drop_geometry()
 
-permits_post_2023_ward <- permits %>%
-  filter(ward_map_era == "post_2023") %>%
-  st_join(ward_geoms_2024, join = st_within) %>%
-  filter(!is.na(ward)) %>%
-  st_drop_geometry()
-
 permits_with_ward <- bind_rows(
   permits_pre_2015_ward,
-  permits_2015_2023_ward,
-  permits_post_2023_ward
+  permits_2015_2023_ward
 )
 if (anyDuplicated(permits_with_ward$id) > 0) {
   stop("Ward spatial join assigned at least one permit to multiple wards.", call. = FALSE)

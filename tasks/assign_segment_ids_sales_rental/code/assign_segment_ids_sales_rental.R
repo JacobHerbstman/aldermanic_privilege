@@ -1,5 +1,6 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/assign_segment_ids_sales_rental/code")
+# dataset_name <- "rental"
 # segment_length_ft <- 1320
 # segment_buffer_m <- 457.2
 
@@ -14,15 +15,19 @@ suppressMessages(sf_use_s2(FALSE))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(segment_length_ft, segment_buffer_m)
+  cli_args <- c(dataset_name, segment_length_ft, segment_buffer_m)
 }
-if (length(cli_args) != 2) {
-  stop("FATAL: Script requires 2 args: <segment_length_ft> <segment_buffer_m>.", call. = FALSE)
+if (length(cli_args) != 3) {
+  stop("FATAL: Script requires 3 args: <dataset_name> <segment_length_ft> <segment_buffer_m>.", call. = FALSE)
 }
 
-segment_length_ft <- as.integer(cli_args[1])
-segment_buffer_m <- as.numeric(cli_args[2])
+dataset_name <- as.character(cli_args[1])
+segment_length_ft <- as.integer(cli_args[2])
+segment_buffer_m <- as.numeric(cli_args[3])
 
+if (!dataset_name %in% c("sales", "rental")) {
+  stop("dataset_name must be sales or rental.", call. = FALSE)
+}
 if (!is.finite(segment_length_ft) || segment_length_ft <= 0) {
   stop("segment_length_ft must be positive.", call. = FALSE)
 }
@@ -32,7 +37,10 @@ if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
 
 segment_gpkg <- sprintf("../input/boundary_segments_%sft.gpkg", segment_length_ft)
 
-segments_by_era <- load_segment_line_layers(segment_gpkg)
+segments_by_era <- load_segment_line_layers(
+  segment_gpkg,
+  c("2003_2014", "2015_2023")
+)
 segment_metadata <- segment_metadata_from_layers(segments_by_era)
 segment_metadata_key <- paste(segment_metadata$era, segment_metadata$segment_id, sep = "\r")
 segment_pair_lookup_list <- list()
@@ -48,48 +56,51 @@ if (any(duplicated(segment_pair_lookup, by = c("era", "segment_id")))) {
   stop("Segment lookup has duplicate era/segment_id rows.", call. = FALSE)
 }
 
-sales_dt <- fread(
-  "../input/sales_pre_scores.csv",
-  colClasses = list(character = "pin")
-)
-if (!all(c("pin", "sale_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(sales_dt))) {
-  stop("sales_pre_scores.csv missing required columns.", call. = FALSE)
-}
-sales_dt[, pin := gsub("[^0-9]", "", trimws(pin))]
-sales_dt[nchar(pin) == 13L, pin := paste0("0", pin)]
-if (any(nchar(sales_dt$pin) != 14L)) {
-  stop("Sales input contains an invalid full PIN.", call. = FALSE)
-}
-sales_dt[, sale_date := as.Date(sale_date)]
-
-rent_dt <- as.data.table(read_parquet("../input/rent_pre_scores_full.parquet"))
-if (!all(c("id", "assignment_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(rent_dt))) {
-  stop("rent_pre_scores_full.parquet missing required columns.", call. = FALSE)
-}
-rent_dt[, id := as.character(id)]
-rent_dt[, assignment_date := as.Date(assignment_date)]
-
 segment_outputs <- list()
-dataset_specs <- list(
-  sales = list(
-    dt = sales_dt,
-    date_col = "sale_date",
-    pair_col = "ward_pair_id",
-    lon_col = "longitude",
-    lat_col = "latitude",
-    allow_pre_2003 = TRUE,
-    chunk_n = 50000L
-  ),
-  rental = list(
-    dt = rent_dt,
-    date_col = "assignment_date",
-    pair_col = "ward_pair_id",
-    lon_col = "longitude",
-    lat_col = "latitude",
-    allow_pre_2003 = FALSE,
-    chunk_n = 80000L
+if (dataset_name == "sales") {
+  sales_dt <- fread(
+    "../input/sales_pre_scores.csv",
+    colClasses = list(character = "pin")
   )
-)
+  if (!all(c("pin", "sale_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(sales_dt))) {
+    stop("sales_pre_scores.csv missing required columns.", call. = FALSE)
+  }
+  sales_dt[, pin := gsub("[^0-9]", "", trimws(pin))]
+  sales_dt[nchar(pin) == 13L, pin := paste0("0", pin)]
+  if (any(nchar(sales_dt$pin) != 14L)) {
+    stop("Sales input contains an invalid full PIN.", call. = FALSE)
+  }
+  sales_dt[, sale_date := as.Date(sale_date)]
+  dataset_specs <- list(
+    sales = list(
+      dt = sales_dt,
+      date_col = "sale_date",
+      pair_col = "ward_pair_id",
+      lon_col = "longitude",
+      lat_col = "latitude",
+      allow_pre_2003 = TRUE,
+      chunk_n = 50000L
+    )
+  )
+} else {
+  rent_dt <- as.data.table(read_parquet("../input/rent_pre_scores_full.parquet"))
+  if (!all(c("id", "assignment_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(rent_dt))) {
+    stop("rent_pre_scores_full.parquet missing required columns.", call. = FALSE)
+  }
+  rent_dt[, id := as.character(id)]
+  rent_dt[, assignment_date := as.Date(assignment_date)]
+  dataset_specs <- list(
+    rental = list(
+      dt = rent_dt,
+      date_col = "assignment_date",
+      pair_col = "ward_pair_id",
+      lon_col = "longitude",
+      lat_col = "latitude",
+      allow_pre_2003 = FALSE,
+      chunk_n = 80000L
+    )
+  )
+}
 
 for (dataset_name in names(dataset_specs)) {
   spec <- dataset_specs[[dataset_name]]
@@ -192,5 +203,11 @@ for (dataset_name in names(dataset_specs)) {
   segment_outputs[[dataset_name]] <- dt
 }
 
-write_parquet(as.data.frame(segment_outputs[["rental"]]), "../output/rent_pre_scores_full_with_segments.parquet")
-fwrite(segment_outputs[["sales"]], "../output/sales_pre_scores_with_segments.csv")
+if (dataset_name == "sales") {
+  fwrite(segment_outputs[["sales"]], "../output/sales_pre_scores_with_segments.csv")
+} else {
+  write_parquet(
+    as.data.frame(segment_outputs[["rental"]]),
+    "../output/rent_pre_scores_full_with_segments.parquet"
+  )
+}

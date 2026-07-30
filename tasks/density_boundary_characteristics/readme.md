@@ -11,9 +11,9 @@ test in Kulka, Sood, and Chiumenti (2022). The feature indicators use the overla
 each assigned boundary segment with expressways, water, parks, cemeteries, and major
 arterials.
 
-The file was constructed and checked in
-`tasks/audits/density_boundary_design_checks`. It is frozen here so the paper build
-does not depend on exploratory geometry code or live spatial sources.
+The committed file records the checked project classifications used in the
+paper. Keeping those classifications fixed prevents later changes to live
+spatial sources from changing the submitted results.
 
 Its SHA-256 hash is
 `6314345aa121c925d3ee24e7aad47a8e431f58ed09ebb59891bcf1a8192eb1d9`.

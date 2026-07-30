@@ -3,7 +3,7 @@ TRIAD_NAME := City
 
 all: ../output/parcel_universe_2025_city.csv
 
-../temp/parcel_universe_2025_city_native.csv: download_parcel_universe_data.sh | ../temp ../output
+../temp/parcel_universe_2025_city_native.csv: download_parcel_universe_data.sh Makefile | ../temp ../output
 	bash $< $(PARCEL_YEAR) $(TRIAD_NAME)
 
 ../output/parcel_universe_2025_city.csv: rewrite_parcel_universe_schema.R ../temp/parcel_universe_2025_city_native.csv | ../output

@@ -4,7 +4,7 @@ BASELINE_YEAR ?= 2014
 
 all: ../output/permit_itt_balance_$(BANDWIDTH_LABEL).tex
 
-../output/permit_itt_balance_$(BANDWIDTH_LABEL).tex: build_permit_itt_balance.R ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv | ../output
+../output/permit_itt_balance_$(BANDWIDTH_LABEL).tex: build_permit_itt_balance.R ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv Makefile | ../output
 	Rscript $< $(BANDWIDTH_M) $(BANDWIDTH_LABEL) $(BASELINE_YEAR)
 
 ../input/permit_block_year_panel_2015.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input

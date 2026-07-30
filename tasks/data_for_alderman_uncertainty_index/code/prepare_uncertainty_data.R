@@ -150,17 +150,9 @@ ward_geoms_map2 <- ward_panel %>%
   summarise(.groups = "drop") %>%
   mutate(map_version = 2L)
 
-ward_geoms_map3 <- ward_panel %>%
-  filter(year == max(year)) %>%
-  select(ward) %>%
-  group_by(ward) %>%
-  summarise(.groups = "drop") %>%
-  mutate(map_version = 3L)
-
 if (any(c(
   n_distinct(ward_geoms_map1$ward),
-  n_distinct(ward_geoms_map2$ward),
-  n_distinct(ward_geoms_map3$ward)
+  n_distinct(ward_geoms_map2$ward)
 ) != 50)) {
   stop("Expected 50 wards in each uncertainty-index map-year geometry.", call. = FALSE)
 }
@@ -169,17 +161,12 @@ permits_pre2015 <- permits_high_discretion %>%
   filter(ward_map_era == "2003_2014")
 permits_2015_2023 <- permits_high_discretion %>%
   filter(ward_map_era == "2015_2023")
-permits_post2023 <- permits_high_discretion %>%
-  filter(ward_map_era == "post_2023")
-
 ward_pre2015 <- assign_wards_for_era(permits_pre2015, ward_geoms_map1, "pre_2015")
 ward_2015_2023 <- assign_wards_for_era(permits_2015_2023, ward_geoms_map2, "2015_2023")
-ward_post2023 <- assign_wards_for_era(permits_post2023, ward_geoms_map3, "post_2023")
 
 permits_ward_data <- bind_rows(
   ward_pre2015,
-  ward_2015_2023,
-  ward_post2023
+  ward_2015_2023
 )
 
 assert_unique_key(permits_ward_data, "id", "Permits after ward spatial join")
@@ -190,8 +177,7 @@ permits_ward_data <- permits_ward_data %>%
       as.integer(map_version),
       case_when(
         ward_map_era == "2003_2014" ~ 1L,
-        ward_map_era == "2015_2023" ~ 2L,
-        TRUE ~ 3L
+        ward_map_era == "2015_2023" ~ 2L
       )
     )
   )

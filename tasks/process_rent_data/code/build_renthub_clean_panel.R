@@ -19,11 +19,52 @@ if (is.na(start_date) || is.na(end_date) || start_date > end_date) {
   stop("start_date and end_date must define a valid date window.", call. = FALSE)
 }
 
-raw_glob <- "../input/renthub_raw/*.parquet"
-raw_files <- Sys.glob(raw_glob)
-if (length(raw_files) == 0) {
-  stop("No RentHub parquet files found in ../input/renthub_raw.", call. = FALSE)
+renthub_manifest <- read_csv(
+  "../input/renthub_manifest.csv",
+  col_types = cols(
+    source_date = col_date(),
+    file_name = col_character(),
+    file_size_bytes = col_double(),
+    source_modified_utc = col_character(),
+    md5 = col_character()
+  )
+)
+if (anyDuplicated(renthub_manifest$file_name)) {
+  stop("The RentHub manifest contains duplicate file names.", call. = FALSE)
 }
+if (nrow(renthub_manifest) == 0) {
+  stop("The RentHub manifest is empty.", call. = FALSE)
+}
+if (any(renthub_manifest$source_date < start_date |
+        renthub_manifest$source_date > end_date)) {
+  stop("The RentHub manifest contains files outside the requested date window.", call. = FALSE)
+}
+
+manifest_files <- file.path("../input/renthub_raw", renthub_manifest$file_name)
+missing_manifest_files <- !file.exists(manifest_files)
+if (any(missing_manifest_files)) {
+  stop(
+    sprintf(
+      "The RentHub raw folder is missing %s files listed in the manifest.",
+      sum(missing_manifest_files)
+    ),
+    call. = FALSE
+  )
+}
+
+manifest_sizes <- file.info(manifest_files)$size
+if (any(is.na(manifest_sizes) |
+        manifest_sizes != renthub_manifest$file_size_bytes)) {
+  stop("One or more RentHub files do not match the manifest byte sizes.", call. = FALSE)
+}
+if (any(unname(tools::md5sum(manifest_files)) != renthub_manifest$md5)) {
+  stop("One or more RentHub files do not match the manifest hashes.", call. = FALSE)
+}
+
+duckdb_manifest_files <- sprintf(
+  "['%s']",
+  paste(gsub("'", "''", manifest_files, fixed = TRUE), collapse = "', '")
+)
 
 con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:")
 on.exit(dbDisconnect(con, shutdown = TRUE), add = TRUE)
@@ -43,7 +84,7 @@ invisible(dbExecute(
         UPPER(TRIM(CAST(ADDRESS AS VARCHAR))) AS address_raw,
         UPPER(TRIM(CAST(BUILDING_TYPE AS VARCHAR))) AS building_type_raw,
         UPPER(TRIM(CAST(CITY AS VARCHAR))) AS city_raw
-      FROM read_parquet('%s', union_by_name = true)
+      FROM read_parquet(%s, union_by_name = true)
       WHERE TRY_CAST(SCRAPED_TIMESTAMP AS DATE) >= CAST('%s' AS DATE)
         AND TRY_CAST(SCRAPED_TIMESTAMP AS DATE) <= CAST('%s' AS DATE)
     )
@@ -127,7 +168,7 @@ invisible(dbExecute(
     FROM raw_source
     WHERE city_raw IN ('CHICAGO', 'CHGO')
     ",
-    gsub("'", "''", raw_glob, fixed = TRUE),
+    duckdb_manifest_files,
     start_date,
     end_date
   )

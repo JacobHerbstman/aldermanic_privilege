@@ -1,4 +1,4 @@
-BANDWIDTH_FT ?= 500
+BANDWIDTH_FT ?= 1500
 
 all: ../output/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet
 

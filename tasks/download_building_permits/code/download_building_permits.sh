@@ -1,18 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-output_file="../output/building_permits.csv"
+if [[ $# -ne 2 || ! "$1" =~ ^[0-9]{4}$ || ! "$2" =~ ^[0-9]{4}$ || "$1" -gt "$2" ]]; then
+    echo "Usage: $0 START_YEAR END_YEAR" >&2
+    exit 1
+fi
+
+start_year="$1"
+end_year="$2"
+output_file="../output/building_permits_${start_year}_${end_year}.csv"
 api_csv="https://data.cityofchicago.org/resource/ydr8-5enu.csv"
 api_json="https://data.cityofchicago.org/resource/ydr8-5enu.json"
 batch_size=50000
 order_clause="id"
+where_clause="application_start_date between '${start_year}-01-01T00:00:00' and '${end_year}-12-31T23:59:59'"
 
 tmp_dir=$(mktemp -d "../output/.building_permits.XXXXXX")
 trap 'rm -rf "$tmp_dir"' EXIT
 
 read_socrata_count() {
     curl --fail --show-error --retry 5 --retry-delay 2 --retry-connrefused --connect-timeout 60 --max-time 600 -sG "$api_json" \
-        --data-urlencode "\$select=count(*)" |
+        --data-urlencode "\$select=count(*)" \
+        --data-urlencode "\$where=$where_clause" |
         python3 -c 'import json, sys; print(json.load(sys.stdin)[0]["count"])'
 }
 
@@ -23,6 +32,7 @@ download_batch() {
     curl --fail --show-error --retry 5 --retry-delay 2 --retry-connrefused --connect-timeout 60 --max-time 600 -sG -o "$target_file" "$api_csv" \
         --data-urlencode "\$limit=$batch_size" \
         --data-urlencode "\$offset=$offset" \
+        --data-urlencode "\$where=$where_clause" \
         --data-urlencode "\$order=$order_clause"
 }
 

@@ -1,9 +1,9 @@
 # download_rent_data
 
-Purpose: Downloads the customized Illinois RentHub parquet export from Dewey when the rental pipeline is explicitly used.
+Purpose: Downloads the Illinois RentHub parquet files used by the rental analysis.
 
-Requires `DEWEY_API_KEY`. Uses DeweyPy `speedy-download` when `uvx` is available, otherwise falls back to `deweydatar`. Set `DEWEY_DOWNLOAD_METHOD=deweypy` or `DEWEY_DOWNLOAD_METHOD=deweydatar` to force one path.
+Requires `DEWEY_API_KEY`. The default download covers January 2014 through December 2022, matching the paper sample. The dates can be changed with `START_DATE` and `END_DATE` in the Makefile.
 
-Produces: Dewey parquet files in `output/` and `output/download.done`.
+Produces: Dewey parquet files in `output/` and `output/renthub_manifest.csv`. The manifest records the source date, source modification time, byte size, and local hash for every requested file.
 
 Approx. runtime: ~10-60+ minutes.

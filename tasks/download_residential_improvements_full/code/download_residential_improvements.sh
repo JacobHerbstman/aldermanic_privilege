@@ -1,14 +1,21 @@
 #!/usr/bin/env bash
-# Download full residential improvement characteristics from Cook County Assessor.
+# Download residential improvement characteristics from Cook County Assessor.
 # Data source: https://datacatalog.cookcountyil.gov/Property-Taxation/Assessor-Single-and-Multi-Family-Improvement-Chara/x54s-btds
 
 set -euo pipefail
 
+if [[ $# -ne 2 || ! "$1" =~ ^[0-9]{4}$ || ! "$2" =~ ^[0-9]{4}$ || "$1" -gt "$2" ]]; then
+    echo "Usage: $0 START_YEAR END_YEAR" >&2
+    exit 1
+fi
+
+start_year="$1"
+end_year="$2"
 output_file="../output/residential_improvement_characteristics_full.csv"
 api_csv="https://datacatalog.cookcountyil.gov/resource/x54s-btds.csv"
 api_json="https://datacatalog.cookcountyil.gov/resource/x54s-btds.json"
 batch_size=500000
-where_clause="township_code in('70','71','72','73','74','75','76','77')"
+where_clause="township_code in('70','71','72','73','74','75','76','77') and year between ${start_year} and ${end_year}"
 order_clause="pin,year,card,row_id"
 
 tmp_dir=$(mktemp -d "../output/.residential_improvements.XXXXXX")
@@ -94,7 +101,7 @@ offset=0
 batch_index=0
 expected_header=""
 
-echo "Downloading full residential improvement characteristics for Chicago townships..."
+echo "Downloading ${start_year}-${end_year} residential improvement characteristics for Chicago townships..."
 echo "Filter: ${where_clause}"
 echo "Expected records: ${expected_records}"
 

@@ -131,7 +131,7 @@ sales <- arrow::read_parquet(
 boundaries <- do.call(
   rbind,
   lapply(
-    c("1998_2002", "2003_2014", "2015_2023", "post_2023"),
+    c("2003_2014", "2015_2023"),
     function(layer_name) {
       sf::st_read(
         "../input/ward_pair_boundaries.gpkg",
