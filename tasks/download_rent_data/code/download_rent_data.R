@@ -48,16 +48,37 @@ if (!is.data.frame(file_list) || nrow(file_list) == 0) {
 }
 
 message("Downloading RentHub data...")
-tryCatch(
-  deweydatar::download_files(
-    files_df = file_list,
-    dest_folder = "../output/",
-    skip_exists = TRUE
-  ),
-  error = function(e) {
-    stop(sprintf("Dewey file download failed: %s", conditionMessage(e)), call. = FALSE)
+download_error <- NULL
+for (attempt in seq_len(5L)) {
+  download_error <- tryCatch(
+    {
+      deweydatar::download_files(
+        files_df = file_list,
+        dest_folder = "../output/",
+        skip_exists = TRUE
+      )
+      NULL
+    },
+    error = function(e) e
+  )
+  if (is.null(download_error)) {
+    break
   }
-)
+  if (attempt < 5L) {
+    message(sprintf(
+      "Dewey download attempt %s failed: %s. Retrying without redownloading completed files...",
+      attempt,
+      conditionMessage(download_error)
+    ))
+    Sys.sleep(10)
+  }
+}
+if (!is.null(download_error)) {
+  stop(sprintf(
+    "Dewey file download failed after 5 attempts: %s",
+    conditionMessage(download_error)
+  ), call. = FALSE)
+}
 
 if (anyDuplicated(file_list$file_name)) {
   stop("Dewey returned duplicate RentHub file names.", call. = FALSE)

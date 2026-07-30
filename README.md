@@ -42,7 +42,7 @@ The paper uses three kinds of inputs:
 The Census downloads require `CENSUS_API_KEY`, and the RentHub download
 requires `DEWEY_API_KEY`. Replicators need their own credentials for both
 services. Interrupted RentHub downloads can be resumed by running `make`
-again.
+again, and transient download failures are retried automatically.
 
 ## Build
 
