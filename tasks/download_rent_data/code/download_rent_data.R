@@ -48,36 +48,46 @@ if (!is.data.frame(file_list) || nrow(file_list) == 0) {
 }
 
 message("Downloading RentHub data...")
-download_error <- NULL
-for (attempt in seq_len(5L)) {
-  download_error <- tryCatch(
-    {
-      deweydatar::download_files(
-        files_df = file_list,
-        dest_folder = "../output/",
-        skip_exists = TRUE
-      )
-      NULL
-    },
-    error = function(e) e
-  )
-  if (is.null(download_error)) {
-    break
+download_batches <- split(
+  seq_len(nrow(file_list)),
+  ceiling(seq_len(nrow(file_list)) / 50L)
+)
+for (batch_number in seq_along(download_batches)) {
+  download_error <- NULL
+  for (attempt in seq_len(5L)) {
+    download_error <- tryCatch(
+      {
+        deweydatar::download_files(
+          files_df = file_list[download_batches[[batch_number]], , drop = FALSE],
+          dest_folder = "../output/",
+          skip_exists = TRUE
+        )
+        NULL
+      },
+      error = function(e) e
+    )
+    if (is.null(download_error)) {
+      break
+    }
+    if (attempt < 5L) {
+      message(sprintf(
+        "Dewey batch %s of %s failed on attempt %s: %s. Retrying without redownloading completed files...",
+        batch_number,
+        length(download_batches),
+        attempt,
+        conditionMessage(download_error)
+      ))
+      Sys.sleep(10)
+    }
   }
-  if (attempt < 5L) {
-    message(sprintf(
-      "Dewey download attempt %s failed: %s. Retrying without redownloading completed files...",
-      attempt,
+  if (!is.null(download_error)) {
+    stop(sprintf(
+      "Dewey batch %s of %s failed after 5 attempts: %s",
+      batch_number,
+      length(download_batches),
       conditionMessage(download_error)
-    ))
-    Sys.sleep(10)
+    ), call. = FALSE)
   }
-}
-if (!is.null(download_error)) {
-  stop(sprintf(
-    "Dewey file download failed after 5 attempts: %s",
-    conditionMessage(download_error)
-  ), call. = FALSE)
 }
 
 if (anyDuplicated(file_list$file_name)) {
