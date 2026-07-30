@@ -33,6 +33,7 @@ paper.pdf: | osm-check $$(addprefix task-check/,$$(patsubst ../tasks/%,%,$$(filt
 	bibtex paper
 	pdflatex -interaction=nonstopmode paper.tex
 	pdflatex -interaction=nonstopmode paper.tex
+	pdflatex -interaction=nonstopmode paper.tex
 
 osm-check:
 	@cd .. && shasum -a 256 -c data_raw/illinois-250919-free.sha256
