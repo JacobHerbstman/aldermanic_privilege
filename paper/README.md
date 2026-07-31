@@ -4,8 +4,8 @@ This directory contains the current manuscript and its appendices:
 
 - Appendix A: data documentation
 - Appendix B: alderman fixed effects and the stringency index
-- Appendix C: density boundary robustness checks
-- Appendix D: additional permit evidence
+- Appendix C: additional permit evidence
+- Appendix D: density boundary robustness checks
 - Appendix E: rent and home-sales boundary checks
 
 From this directory, build the paper with:
