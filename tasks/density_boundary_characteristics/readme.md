@@ -5,11 +5,11 @@ file contains the four location measures reported in the appendix, an indicator 
 projects near locally straight boundary segments, and two boundary-feature
 classifications.
 
-The location measures are distances to downtown Chicago, the nearest school, the
-nearest park, and Lake Michigan. The straight-segment indicator follows the geometric
-test in Kulka, Sood, and Chiumenti (2022). The feature indicators use the overlap of
-each assigned boundary segment with expressways, water, parks, cemeteries, and major
-arterials.
+The location measures are distances to downtown Chicago, the nearest school,
+the nearest park, and Lake Michigan. The straight-segment indicator follows
+the geometric test in Kulka, Sood, and Chiumenti (2026). The feature indicators
+use the overlap of each assigned boundary segment with expressways, water,
+parks, cemeteries, and major arterials.
 
 The committed file records the checked project classifications used in the
 paper. Keeping those classifications fixed prevents later changes to live

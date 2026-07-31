@@ -8,11 +8,13 @@ This directory contains the current manuscript and its appendices:
 - Appendix D: additional permit evidence
 - Appendix E: rent and home-sales boundary checks
 
-Build with:
+From this directory, build the paper with:
 
 ```sh
 make
 ```
 
 The Makefile lists every generated table and figure used by the manuscript.
-Running `make` checks each upstream task before compiling `paper.pdf`.
+Running `make` checks the task that creates each one before compiling
+`paper.pdf`. From the repository root, the equivalent command is simply
+`make`.

@@ -13,7 +13,7 @@ all: ../output/permits_for_uncertainty_index.csv
 	../input/gis_osm_water_a_free_1.prj \
 	../input/gis_osm_water_a_free_1.shx \
 	../input/gis_osm_water_a_free_1.cpg | ../output
-	Rscript $<
+	$(R) $<
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
@@ -38,4 +38,5 @@ all: ../output/permits_for_uncertainty_index.csv
 
 link-inputs: ../input/ward_panel.gpkg ../input/building_permits_clean.gpkg ../input/chicago_alderman_terms.csv ../input/ward_controls.csv ../input/community_areas.geojson ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
+include ../../shell_functions.make
 include ../../generic.make

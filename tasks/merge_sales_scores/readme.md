@@ -1,5 +1,5 @@
-# merge_sales_scores
+# Add Stringency Scores to Sales
 
-Purpose: Adds the December 2022 alderman stringency scores to the geocoded home-sales boundary sample.
-
-Produces: `output/sales_with_ward_distances_through2022.csv`.
+This task adds the December 2022 alderman stringency scores to the home-sales
+boundary data and writes
+`output/sales_with_ward_distances_through2022.csv`.

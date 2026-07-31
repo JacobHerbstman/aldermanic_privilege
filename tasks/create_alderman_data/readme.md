@@ -1,8 +1,8 @@
-# create_alderman_data
+# Alderman Terms
 
-Purpose: Creates the monthly Chicago alderman panel.
+This task records the dates that each alderman served and expands those terms
+to a monthly ward panel through December 2022.
 
-Produces:
+It writes:
 - `output/chicago_alderman_panel.csv`
-
-Approx. runtime: ~1-10 minutes.
+- `output/chicago_alderman_terms.csv`

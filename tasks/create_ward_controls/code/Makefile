@@ -4,7 +4,7 @@ END_YEAR ?= 2022
 all: ../output/ward_controls_$(START_YEAR)_$(END_YEAR).csv
 
 ../output/ward_controls_$(START_YEAR)_$(END_YEAR).csv: create_ward_controls.R ../input/ward_panel.gpkg | ../output
-	Rscript $< $(START_YEAR) $(END_YEAR)
+	$(R) $< $(START_YEAR) $(END_YEAR)
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
@@ -12,4 +12,5 @@ all: ../output/ward_controls_$(START_YEAR)_$(END_YEAR).csv
 
 link-inputs: ../input/ward_panel.gpkg
 
+include ../../shell_functions.make
 include ../../generic.make

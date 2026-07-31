@@ -6,10 +6,10 @@ all: \
 	../output/rent_pre_scores_full_with_segments.parquet
 
 ../output/sales_pre_scores_with_segments.csv: assign_segment_ids_sales_rental.R ../../_lib/canonical_geometry_helpers.R ../input/sales_pre_scores.csv ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg Makefile | ../output
-	Rscript $< sales $(SEGMENT_LENGTH_FT) $(SEGMENT_BUFFER_M)
+	$(R) $< sales $(SEGMENT_LENGTH_FT) $(SEGMENT_BUFFER_M)
 
 ../output/rent_pre_scores_full_with_segments.parquet: assign_segment_ids_sales_rental.R ../../_lib/canonical_geometry_helpers.R ../input/rent_pre_scores_full.parquet ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg Makefile | ../output
-	Rscript $< rental $(SEGMENT_LENGTH_FT) $(SEGMENT_BUFFER_M)
+	$(R) $< rental $(SEGMENT_LENGTH_FT) $(SEGMENT_BUFFER_M)
 
 ../input/sales_pre_scores.csv: ../../calculate_sale_distances/output/sales_pre_scores.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
@@ -22,4 +22,5 @@ all: \
 
 link-inputs: ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg
 
+include ../../shell_functions.make
 include ../../generic.make

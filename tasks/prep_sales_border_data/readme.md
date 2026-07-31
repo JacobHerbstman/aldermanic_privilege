@@ -1,7 +1,6 @@
-# prep_sales_border_data
+# Add Property Characteristics to Sales
 
-Purpose: Prepares sales border data.
-
-Produces: `output/sales_with_hedonics.parquet`.
-
-Approx. runtime: ~1-10 minutes.
+This task joins each sale to the Assessor's residential characteristics for the
+same PIN and tax year. It constructs the housing controls used in the sales
+regressions and writes `output/sales_with_hedonics.parquet`. The join does not
+roll to a different tax year.

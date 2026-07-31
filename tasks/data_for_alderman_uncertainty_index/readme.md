@@ -1,7 +1,6 @@
-# data_for_alderman_uncertainty_index
+# Permit Data for the Stringency Score
 
-Purpose: Builds the permit-level input for the alderman uncertainty index.
-
-Produces: `output/permits_for_uncertainty_index.csv`
-
-Approx. runtime: ~1-10 minutes.
+This task assigns high-discretion permits to the ward and alderman in place on
+the application date and adds the ward, location, and workload controls used to
+estimate the stringency score. It writes
+`output/permits_for_uncertainty_index.csv`.

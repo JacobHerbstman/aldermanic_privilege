@@ -6,7 +6,7 @@ all: \
 	../output/census_blocks_2010.csv
 
 ../output/major_streets.geojson: download_major_streets.R | ../output ../temp
-	Rscript $<
+	$(R) $<
 
 ../output/cta_stations.geojson: download_chicago_spatial_data.sh | ../output ../temp
 	bash $< cta_stations
@@ -20,4 +20,5 @@ all: \
 ../output/census_blocks_2010.csv: download_chicago_spatial_data.sh | ../output ../temp
 	bash $< census_blocks_2010
 
+include ../../shell_functions.make
 include ../../generic.make

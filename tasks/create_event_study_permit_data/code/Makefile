@@ -5,7 +5,7 @@ PERMIT_END_YEAR ?= 2020
 all: ../output/permit_block_year_panel_2015.parquet
 
 ../output/permit_block_year_panel_2015.parquet: create_permit_block_year_panel.R ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/block_treatment_panel_frozen2014.csv ../input/census_blocks_2010.csv ../input/manual_permit_block_assignments.csv ../input/ward_panel.gpkg Makefile | ../output
-	Rscript $< $(PANEL_MAX_DISTANCE_M) $(PERMIT_START_YEAR) $(PERMIT_END_YEAR)
+	$(R) $< $(PANEL_MAX_DISTANCE_M) $(PERMIT_START_YEAR) $(PERMIT_END_YEAR)
 
 ../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean.gpkg | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
@@ -24,4 +24,5 @@ all: ../output/permit_block_year_panel_2015.parquet
 
 link-inputs: ../input/building_permits_clean.gpkg ../input/block_treatment_panel_frozen2014.csv ../input/census_blocks_2010.csv ../input/manual_permit_block_assignments.csv ../input/ward_panel.gpkg
 
+include ../../shell_functions.make
 include ../../generic.make

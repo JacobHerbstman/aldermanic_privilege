@@ -6,7 +6,7 @@ all: \
 	../output/permit_processing_time_volume_correlation.tex
 
 ../output/permit_processing_time_high_vs_low_alderman_summary.tex: build_permit_summary_stats.R ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_terms.csv Makefile | ../output
-	Rscript $< $(MAX_APPLICATION_YM)
+	$(R) $< $(MAX_APPLICATION_YM)
 
 ../output/alderman_mean_processing_time_high_vs_low_density.pdf: ../output/permit_processing_time_high_vs_low_alderman_summary.tex
 	@test -s "$@"
@@ -25,4 +25,5 @@ all: \
 
 link-inputs: ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_terms.csv
 
+include ../../shell_functions.make
 include ../../generic.make

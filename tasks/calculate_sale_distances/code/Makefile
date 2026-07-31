@@ -1,7 +1,7 @@
 all: ../output/sales_pre_scores.csv
 
 ../output/sales_pre_scores.csv: calculate_sale_distances.R ../../_lib/canonical_geometry_helpers.R ../input/parcel_sales.csv ../input/parcel_universe_2025_city.csv ../input/historical_sale_parcel_coordinates_2006_2022.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_terms.csv ../input/fred_cpi_cuura207sa0.csv | ../output
-	Rscript $<
+	$(R) $<
 
 ../input/parcel_sales.csv: ../../download_parcel_sales_data/output/parcel_sales_city.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
@@ -26,4 +26,5 @@ all: ../output/sales_pre_scores.csv
 
 link-inputs: ../input/parcel_sales.csv ../input/parcel_universe_2025_city.csv ../input/historical_sale_parcel_coordinates_2006_2022.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_terms.csv ../input/fred_cpi_cuura207sa0.csv
 
+include ../../shell_functions.make
 include ../../generic.make

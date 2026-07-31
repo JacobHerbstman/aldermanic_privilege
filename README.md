@@ -1,20 +1,20 @@
 # Aldermanic Privilege
 
-This repository contains the code for a paper on aldermanic discretion, housing
-supply, rents, and home prices in Chicago. The analysis estimates alderman
-stringency from permit processing times and studies outcomes near ward
-boundaries.
+This repository contains the code and data needed to reproduce the paper's
+analysis of aldermanic discretion, housing supply, rents, and home prices in
+Chicago. The paper measures differences in alderman stringency using permit
+processing times and compares outcomes across ward boundaries.
 
 Each task lives in `tasks/<task>/` and has its own `code/`, `input/`, and
 `output/` folders. Makefiles connect tasks through explicit file dependencies.
 Running `make` at the repository root follows those dependencies through to the
 paper.
 
-## Paper Task Graph
+## Task Graph
 
-The graph shows the data tasks required by `paper/Makefile`. Arrows point from
-an upstream task to the task that uses its output. Research checks, old
-specifications, rezoning work, and slides are not part of this graph.
+The graph shows every data task required by `paper/Makefile`. Arrows point from
+a task to the next task that uses its output. Research checks, old
+specifications, rezoning work, and slides are not part of the paper build.
 
 [![Paper task dependency graph](docs/paper_task_flow.svg)](docs/paper_task_flow.svg)
 
@@ -24,31 +24,33 @@ outputs.
 
 ## Data Inputs
 
-The paper uses three kinds of inputs:
+The paper uses two kinds of inputs:
 
-- **Files committed to the repository.** These include two ward-boundary
-  files, the final new-construction analysis file, the boundary characteristics
-  used for the density continuity checks, small files containing hand-reviewed
-  coordinate and block-assignment decisions, and the water layer from the
-  September 19, 2025 Geofabrik Illinois OpenStreetMap extract. The paper build
-  checks the OpenStreetMap files against
+- **Files committed to the repository.** These include the 2014 and 2015 ward
+  maps, the final new-construction analysis file, the location characteristics
+  used for the density boundary checks, small spreadsheets containing
+  hand-reviewed coordinate and block-assignment decisions, and the water layer
+  from the September 19, 2025 Geofabrik Illinois OpenStreetMap extract. The
+  paper build checks the OpenStreetMap files against
   `data_raw/illinois-250919-free.sha256`.
 - **Live downloads.** The build downloads Chicago building permits and spatial
   data, Census ACS data, Cook County assessor and sales data, park boundaries,
   FRED CPI data, and RentHub listings from Dewey. Public agencies can revise
-  historical records, so exact last-decimal equality requires the same source
-  snapshots used for the submitted paper.
+  historical records. A later download may therefore differ from the data
+  available when the paper was submitted.
 
 The Census downloads require `CENSUS_API_KEY`, and the RentHub download
 requires `DEWEY_API_KEY`. Replicators need their own credentials for both
 services. Interrupted RentHub downloads can be resumed by running `make`
 again, and transient download failures are retried automatically.
 
-## Build
+## Reproduce the Paper
 
 The build requires R, GNU Make, Bash, Python 3, `curl`, `unzip`, and a LaTeX
 installation providing `pdflatex` and `bibtex`. The machine must also have the
-system libraries required by the R packages `sf`, `units`, and `arrow`.
+system libraries required by the R packages `sf`, `units`, and `arrow`. The
+clean replication was tested with R 4.5.2, GNU Make 3.81, Python 3.13.6, and
+TeX Live 2024 on macOS.
 
 Install the required R packages:
 
@@ -63,7 +65,23 @@ Set `CENSUS_API_KEY` and `DEWEY_API_KEY`, and run:
 make
 ```
 
-Individual tasks can also be run from their `code/` folders.
+The command downloads the public inputs, rebuilds the analysis, and writes the
+manuscript to `paper/paper.pdf`. If a download is interrupted, run `make`
+again. Completed files are retained, and Make resumes from the first missing or
+out-of-date input. Individual tasks can also be run from their `code/`
+folders.
+
+### Observed Running Time
+
+A clean run from the replication archive on July 30, 2026 took **1 hour,
+34 minutes, and 43 seconds** on a 15-core Apple M5 Pro MacBook Pro with 24 GB
+of memory, after the required software and R packages were installed. The
+RentHub download took about 33 minutes, the remaining rental steps took about
+14 minutes, and the Cook County sales and property-data branch took about 27
+minutes. The permit, score, density, and permit-event-study tasks together took
+about 20 minutes. Download times will vary with the external services and the
+network connection; these figures report one complete run rather than a
+promised range.
 
 ## Replication Archive
 

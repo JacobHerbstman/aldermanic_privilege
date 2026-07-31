@@ -4,6 +4,7 @@ GEOMETRY_YEAR ?= 2019
 all: ../output/block_group_controls.csv
 
 ../output/block_group_controls.csv: create_block_group_controls.R Makefile | ../output
-	Rscript $< $(ACS_YEAR) $(GEOMETRY_YEAR)
+	$(R) $< $(ACS_YEAR) $(GEOMETRY_YEAR)
 
+include ../../shell_functions.make
 include ../../generic.make

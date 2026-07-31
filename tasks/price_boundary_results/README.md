@@ -1,4 +1,4 @@
-# Price boundary results
+# Rent and Home-Price Boundary Results
 
 This task compares listed rents and home sale prices on opposite sides of ward
 boundaries. It uses 100-foot distance bands within 500 feet of each boundary.

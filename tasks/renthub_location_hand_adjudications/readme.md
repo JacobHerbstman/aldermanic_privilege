@@ -1,7 +1,10 @@
-# renthub_location_hand_adjudications
+# Hand-Reviewed RentHub Locations
 
-Purpose: Preserves the manually verified coordinates used to resolve unstable high-volume RentHub addresses.
+This task stores the manually verified coordinates used to resolve unstable
+high-volume RentHub addresses.
 
-Each accepted row records a normalized address, verified coordinates, review status, and source URL. The downstream location-correction task applies a manual coordinate only when the row is marked `verified`.
+Each accepted row records a normalized address, verified coordinates, review
+status, and source URL. The downstream location-correction task applies a
+manual coordinate only when the row is marked `verified`.
 
 Produces: `output/manual_verified_address_locations.csv`.

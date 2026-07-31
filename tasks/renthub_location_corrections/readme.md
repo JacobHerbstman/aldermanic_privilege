@@ -1,9 +1,13 @@
-# renthub_location_corrections
+# RentHub Location Corrections
 
-Purpose: Produces the location corrections and location-quality flags used by the rental analysis.
+This task identifies addresses whose reported coordinates are sufficiently
+stable for the rental analysis and applies the hand-reviewed coordinates when
+needed.
 
-Address stems are normalized before grouping. Coordinate clusters within an address are grouped at 200ft. The primary coordinate is used when its cluster contains at least 85% of the address's raw rows and no secondary cluster contains at least 10% of rows more than 500ft away. Verified coordinates from `renthub_location_hand_adjudications` take priority.
+Address stems are normalized before grouping. Coordinates within 200 feet are
+treated as one cluster. The largest cluster is used when it contains at least
+85% of an address's rows and no second cluster contains at least 10% of the
+rows more than 500 feet away. Hand-reviewed coordinates take priority.
 
-This task does not filter listings or create general RentHub diagnostics.
-
-Produces: `output/chicago_rent_panel_location_corrections.parquet`.
+The task writes `output/chicago_rent_panel_location_corrections.parquet`. It
+does not otherwise filter the rental panel.

@@ -1,11 +1,8 @@
-# ward_panel_create
+# Ward Maps by Year
 
-Purpose: Builds the annual Chicago ward geometry panel.
-
-Produces: `output/ward_panel.gpkg`.
+This task uses the committed 2014 and 2015 ward maps to create the annual ward
+geometry file `output/ward_panel.gpkg`.
 
 Static raw inputs:
 - `data_raw/Wards_2014.geojson`
 - `data_raw/Wards_2015.geojson`
-
-Approx. runtime: ~1-10 minutes.

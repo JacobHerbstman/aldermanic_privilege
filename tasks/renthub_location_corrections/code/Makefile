@@ -4,7 +4,7 @@ END_DATE ?= 2022-12-31
 all: ../output/chicago_rent_panel_location_corrections.parquet
 
 ../output/chicago_rent_panel_location_corrections.parquet: build_renthub_location_corrections.R ../input/manual_verified_address_locations.csv ../input/renthub_manifest.csv ../input/chicago_rent_panel.parquet Makefile | ../output ../input/renthub_raw
-	Rscript $< $(START_DATE) $(END_DATE)
+	$(R) $< $(START_DATE) $(END_DATE)
 
 ../input/renthub_raw: | ../../download_rent_data/output/renthub_manifest.csv ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "../../download_rent_data/output" || ln -sfn "../../download_rent_data/output" "$@"
@@ -20,4 +20,5 @@ all: ../output/chicago_rent_panel_location_corrections.parquet
 
 link-inputs: ../input/renthub_manifest.csv ../input/renthub_raw ../input/chicago_rent_panel.parquet ../input/manual_verified_address_locations.csv
 
+include ../../shell_functions.make
 include ../../generic.make

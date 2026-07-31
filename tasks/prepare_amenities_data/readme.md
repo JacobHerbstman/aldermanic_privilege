@@ -1,15 +1,20 @@
-# prepare_amenities_data
+# Prepare Amenity Locations
 
-Purpose: Converts local raw amenities layers into cleaned EPSG:3435 GeoPackages.
-
-Produces: `output/cta_stops.gpkg`, `output/major_streets.gpkg`, `output/parks.gpkg`, and `output/schools_2015.gpkg`.
+This task prepares the CTA, major-street, park, and school locations used in the
+rent and sales controls. All four output files use EPSG:3435.
 
 Main amenity sources:
 
 - Lake Michigan: OSM water geometry is read downstream and treated as static.
-- Major streets: City of Chicago Major Streets shapefile, treated as a stable major-road-access proxy.
-- Parks: official Chicago Park District park-boundary polygons from `download_park_boundaries_data`, not CPD facility points.
-- Schools: CPS SY2014-15 school locations, treated as the current static baseline school-access proxy.
-- CTA stops: CTA current station points plus Washington/State, Madison/Wabash, and Randolph/Wabash, the three stations that closed during the 2006--2022 study period. The output carries opening and closing dates so downstream rent and sales controls can use the permanent station network in place during each observation month. Opening dates are also recorded for Morgan, Oakton-Skokie, Cermak-McCormick Place, Washington/Wabash, and Damen Green Line.
-
-Approx. runtime: ~1 minute.
+- Major streets: City of Chicago Major Streets shapefile, treated as a stable
+  measure of access to major roads.
+- Parks: official Chicago Park District park-boundary polygons from
+  `download_park_boundaries_data`, not CPD facility points.
+- Schools: CPS SY2014-15 school locations, treated as a fixed measure of school
+  access.
+- CTA stops: CTA current station points plus Washington/State, Madison/Wabash,
+  and Randolph/Wabash, the three stations that closed during 2006--2022. The
+  output records opening and closing dates so the rent and sales controls use
+  the stations open in each observation month. Opening dates are also recorded
+  for Morgan, Oakton-Skokie, Cermak-McCormick Place, Washington/Wabash, and the
+  Damen Green Line station.

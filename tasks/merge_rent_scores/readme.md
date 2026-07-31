@@ -1,5 +1,5 @@
-# merge_rent_scores
+# Add Stringency Scores to Rents
 
-Purpose: Adds the December 2022 alderman stringency scores to the geocoded rental boundary sample.
-
-Produces: `output/rent_with_ward_distances_full_through2022.parquet`.
+This task adds the December 2022 alderman stringency scores to the rental
+boundary data and writes
+`output/rent_with_ward_distances_full_through2022.parquet`.

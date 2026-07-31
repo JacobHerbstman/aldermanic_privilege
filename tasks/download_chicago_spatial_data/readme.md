@@ -1,6 +1,7 @@
 # Download Chicago Spatial Data
 
-Downloads public Chicago spatial inputs used by the paper pipeline from official machine-readable sources.
+This task downloads the public Chicago spatial files used in the analysis from
+official machine-readable sources.
 
 Sources:
 - Major Streets: Chicago Data Portal file dataset `ueqs-5wr6`

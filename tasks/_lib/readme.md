@@ -1,7 +1,4 @@
-# _lib
+# Shared R Code
 
-Purpose: Shared helper code used by other tasks in the project.
-
-Produces: No standalone task outputs; this folder provides reusable code for downstream tasks.
-
-Approx. runtime: Not run directly.
+This folder contains spatial and score-estimation code used by more than one
+task. It does not create an output on its own.

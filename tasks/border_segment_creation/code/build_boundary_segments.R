@@ -1,7 +1,7 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_segment_creation/code")
 # segment_length_ft <- 1320
-# segment_layer_bws_m <- "100 250 400"
+# segment_layer_bws_m <- "100,250,400"
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
@@ -25,7 +25,7 @@ segment_length_ft <- as.numeric(cli_args[1])
 if (length(segment_length_ft) != 1 || !is.finite(segment_length_ft) || segment_length_ft <= 0) {
   stop("segment_length_ft must be a positive numeric segment length in feet.", call. = FALSE)
 }
-segment_layer_bws_m <- scan(text = cli_args[2], quiet = TRUE)
+segment_layer_bws_m <- scan(text = gsub(",", " ", cli_args[2]), quiet = TRUE)
 if (length(segment_layer_bws_m) == 0 || any(!is.finite(segment_layer_bws_m)) || any(segment_layer_bws_m <= 0)) {
   stop("segment_layer_bws_m must contain positive numeric bandwidths in meters.", call. = FALSE)
 }

@@ -1,7 +1,7 @@
 all: ../output/sales_with_ward_distances_through2022.csv
 
 ../output/sales_with_ward_distances_through2022.csv: merge_sales_scores.R ../input/sales_pre_scores.csv ../input/aldermen_uncertainty_scores_through2022.csv | ../output
-	Rscript $<
+	$(R) $<
 
 ../input/sales_pre_scores.csv: ../../assign_segment_ids_sales_rental/output/sales_pre_scores_with_segments.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
@@ -11,4 +11,5 @@ all: ../output/sales_with_ward_distances_through2022.csv
 
 link-inputs: ../input/sales_pre_scores.csv ../input/aldermen_uncertainty_scores_through2022.csv
 
+include ../../shell_functions.make
 include ../../generic.make

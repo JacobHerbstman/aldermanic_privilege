@@ -3,6 +3,7 @@ SERIES_ID := CUURA207SA0
 all: ../output/fred_cpi_cuura207sa0.csv
 
 ../output/fred_cpi_cuura207sa0.csv: download_fred_cpi.R Makefile | ../output
-	Rscript $< $(SERIES_ID)
+	$(R) $< $(SERIES_ID)
 
+include ../../shell_functions.make
 include ../../generic.make

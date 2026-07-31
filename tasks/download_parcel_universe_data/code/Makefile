@@ -7,6 +7,7 @@ all: ../output/parcel_universe_2025_city.csv
 	bash $< $(PARCEL_YEAR) $(TRIAD_NAME)
 
 ../output/parcel_universe_2025_city.csv: rewrite_parcel_universe_schema.R ../temp/parcel_universe_2025_city_native.csv | ../output
-	Rscript $<
+	$(R) $<
 
+include ../../shell_functions.make
 include ../../generic.make

@@ -1,7 +1,5 @@
-# setup_environment
+# Software Setup
 
-Purpose: Installs and checks the project software environment.
-
-Produces: Package-install logs in `output/` when run.
-
-Approx. runtime: ~5-30 minutes, depending on package installs.
+This task installs any missing R packages and records their versions in
+`output/R_packages.txt`. The Dewey package is installed from the exact GitHub
+revision listed in `packages.R`; the remaining packages come from CRAN.

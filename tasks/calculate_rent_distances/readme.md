@@ -1,8 +1,8 @@
-# calculate_rent_distances
+# Rental Locations and Ward Boundaries
 
-Purpose: Builds the RentHub floorplan-month distance handoff with nearest in-ward ward-boundary distances and 2022-dollar listed rents.
+This task assigns each RentHub floorplan-month to the ward map in place on its
+first observed date, measures the distance to the nearest boundary of that
+ward, and expresses listed rents in 2022 dollars.
 
-Produces:
+It writes:
 - `output/rent_pre_scores_full.parquet`
-
-Approx. runtime: ~1-10 minutes.
