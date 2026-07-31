@@ -1,7 +1,0 @@
-project_id_1,project_id_2,disposition,evidence
-residential_17174190070000,residential_multicard_17174190080000,retain_distinct_projects,"Separate four-unit projects at 917 and 919 S Aberdeen have distinct PINs, current addresses, centroids, and new-construction permits 3118664 and 3170169."
-residential_20231140410000,residential_multicard_20231140240000,retain_distinct_projects,"Separate three-unit projects at 6504 and 6506-6508 S Ingleside have distinct PINs, current addresses, centroids, and new-construction permits."
-residential_20231140400000,residential_multicard_20231140240000,retain_distinct_projects,"Separate three-unit projects at 6500 and 6506-6508 S Ingleside have distinct PINs, current addresses, centroids, and new-construction permits."
-residential_multicard_20211200290000,residential_tieback_20211200220000,retain_distinct_projects,"The ten-unit projects at 500 W 66th and 501-505 W 65th Place occupy separate parcels and separate 2008 building footprints. Their identical card totals reflect repeated building plans, not duplicate records."
-residential_14293050220000,residential_multicard_14293050620000,retain_distinct_projects,"The independently permitted house at 2734 N Magnolia and the reviewed house at 2744 N Magnolia have distinct PINs, addresses, centroids, and construction years."
-residential_14293050210000,residential_multicard_14293050620000,retain_distinct_projects,"The independently permitted house at 2736 N Magnolia and the reviewed house at 2744 N Magnolia have distinct PINs, addresses, centroids, and construction years."

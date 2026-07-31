@@ -16,7 +16,7 @@ The graph shows every data task required by `paper/Makefile`. Arrows point from
 a task to the next task that uses its output. Research checks, old
 specifications, rezoning work, and slides are not part of the paper build.
 
-[![Paper task dependency graph](docs/paper_task_flow.svg)](docs/paper_task_flow.svg)
+[![Paper task dependency graph](task_graph/paper_task_flow.svg)](task_graph/paper_task_flow.svg)
 
 The graph contains no cycles. Shared R package setup and helper files are used
 throughout but are omitted from the figure because they do not produce data
@@ -42,7 +42,8 @@ The paper uses two kinds of inputs:
 The Census downloads require `CENSUS_API_KEY`, and the RentHub download
 requires `DEWEY_API_KEY`. Replicators need their own credentials for both
 services. Interrupted RentHub downloads can be resumed by running `make`
-again, and transient download failures are retried automatically.
+again. If a live source is temporarily unavailable, rerun `make` after the
+service returns.
 
 ## Reproduce the Paper
 
@@ -73,7 +74,7 @@ folders.
 
 ### Observed Running Time
 
-A clean run from the replication archive on July 30, 2026 took **1 hour,
+A clean run from a fresh clone on July 30, 2026 took **1 hour,
 34 minutes, and 43 seconds** on a 15-core Apple M5 Pro MacBook Pro with 24 GB
 of memory, after the required software and R packages were installed. The
 RentHub download took about 33 minutes, the remaining rental steps took about
@@ -83,13 +84,14 @@ about 20 minutes. Download times will vary with the external services and the
 network connection; these figures report one complete run rather than a
 promised range.
 
-## Replication Archive
+## Research Archive
 
-The research repository retains checks and analyses that are not needed to
-reproduce the paper. `.gitattributes` excludes those folders from the paper
-replication archive. Create the archive from a committed revision with:
+The `main` branch contains only the data and code needed to reproduce the
+paper. Audits, exploratory specifications, rezoning work, old analyses, and
+presentation files are preserved on the
+[`research-archive`](https://github.com/JacobHerbstman/aldermanic_privilege/tree/research-archive)
+branch. To recover one of those files without switching branches, use:
 
 ```bash
-git archive --format=tar.gz --prefix=aldermanic_privilege/ \
-  -o aldermanic_privilege_replication.tar.gz HEAD
+git restore --source research-archive -- path/to/file
 ```

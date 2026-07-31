@@ -1,6 +1,0 @@
-project_id,cutoff_ft,expected_within_cutoff,permit_numbers,decision_reason
-commercial_14194140460000,500,TRUE,100603054,"The current component-parcel centroid and the construction-year predecessor centroid both place the 3400 N Lincoln project inside 500 feet."
-commercial_14202220280000,500,TRUE,100468692/100485701,"The current parcel centroid, construction-year predecessor centroid, foundation permit, and full-building permit all place 3740 N Halsted inside 500 feet."
-commercial_17093010120000,500,FALSE,100185071/100201776/100228331,"The exact project parcel and permits for the Trio tower at 660-670 W Wayman place the building outside 500 feet. The predecessor centroid falls inside because it represents a larger parent site."
-commercial_20114080610000,1500,TRUE,100541714/100605272,"The exact project parcel and the foundation and full-building permits for Vue53 at 1330 E 53rd place the building inside 1500 feet. The predecessor centroid falls just outside because it represents the parent site."
-residential_16241000490000,500,FALSE,100186285/100186300,"The accepted address point and both new-construction permits for 1234-1236 S Troy place the building outside 500 feet."

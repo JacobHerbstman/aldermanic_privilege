@@ -1,3 +1,0 @@
-project_id,component_pin,target_year,parcel_year,evidence_ids,decision_reason,confidence
-commercial_16242010140000,16242010140000,2010,2009,permit_100349959/historical_parcel_2009_object_39282,"Use the exact official parcel immediately before the August 2010 construction permit.",high
-commercial_16242010140000,16242010150000,2010,2009,permit_100349959/historical_parcel_2009_object_39290/historical_parcel_2011_object_177339,"Use the exact official parcel immediately before the August 2010 construction permit; the same polygon is unchanged in the 2011 archive.",high

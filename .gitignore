@@ -14,13 +14,10 @@ slurmlogs/
 tasks/*/code/run.sbatch
 
 # --- Raw & Intermediate Data ---
-# Ignore raw data by default, except static boundaries required for replication.
+# Ignore raw data by default, except static files required for replication.
 data_raw/*
-!data_raw/Chicago_Wards_1998.geojson
-!data_raw/Boundaries_-_Zoning_Districts_20250910.geojson
 !data_raw/Wards_2014.geojson
 !data_raw/Wards_2015.geojson
-!data_raw/Wards_2024.geojson
 !data_raw/illinois-250919-free.sha256
 !data_raw/illinois-250919-free/
 data_raw/illinois-250919-free/*
@@ -47,56 +44,21 @@ CLAUDE.md
 .Renviron
 
 
-# Archive task folders (two levels deep)
-tasks/_deprecated/
+# Local remnants from the research-archive branch.
+tasks/audits/
 tasks/archive/
-tasks/archive/*/input/
-tasks/archive/*/output/
-tasks/archive/*/temp/
-tasks/audits/*/input/
-tasks/audits/*/output/
-tasks/audits/*/temp/
+tasks/_deprecated/
 
-# Frozen hand-adjudicated rezoning inputs
-!tasks/rezoning_hand_adjudications/output/
-tasks/rezoning_hand_adjudications/output/*
-!tasks/rezoning_hand_adjudications/output/pd_far_text_review_updates_2011_2020.csv
-!tasks/rezoning_hand_adjudications/output/pd_to_pd_far_decisions_20101101_20160831.csv
-!tasks/rezoning_hand_adjudications/output/pd_to_pd_far_decisions_20160901_20201231.csv
-!tasks/rezoning_hand_adjudications/output/pd_queue_classifications_20160901_20201231.csv
-!tasks/rezoning_hand_adjudications/output/journal_zoning_code_fills_20101101_20160831.csv
-!tasks/rezoning_hand_adjudications/output/rezoning_sample_decisions_20101101_20160831.csv
-!tasks/rezoning_hand_adjudications/output/pd_transition_code_corrections_20101101_20160831.csv
-!tasks/rezoning_hand_adjudications/output/destination_code_corrections_20101101_20160831.csv
-!tasks/rezoning_hand_adjudications/output/destination_code_corrections_20160901_20201231.csv
-!tasks/rezoning_hand_adjudications/output/non_scalar_far_decisions_20101101_20201231.csv
-
-# Frozen external geocodes and permit block decisions
-!tasks/rezoning_geocode_external_merge_ready/output/
-tasks/rezoning_geocode_external_merge_ready/output/*
-!tasks/rezoning_geocode_external_merge_ready/output/rezoning_external_geocodes_20101101_20201231.csv
+# Frozen files required by the paper.
 !tasks/permit_block_hand_adjudications/output/
 tasks/permit_block_hand_adjudications/output/*
 !tasks/permit_block_hand_adjudications/output/manual_permit_block_assignments.csv
-!tasks/density_historical_coordinates/output/
-tasks/density_historical_coordinates/output/*
-!tasks/density_historical_coordinates/output/density_historical_coordinates.csv
-!tasks/density_construction_zoning/output/
-tasks/density_construction_zoning/output/*
-!tasks/density_construction_zoning/output/density_construction_zoning.csv
 !tasks/new_construction_analysis_data/output/
 tasks/new_construction_analysis_data/output/*
 !tasks/new_construction_analysis_data/output/new_construction_analysis_data.csv
 !tasks/density_boundary_characteristics/output/
 tasks/density_boundary_characteristics/output/*
 !tasks/density_boundary_characteristics/output/density_boundary_characteristics.csv
-!tasks/rezoning_block_hand_adjudications/output/
-tasks/rezoning_block_hand_adjudications/output/*
-!tasks/rezoning_block_hand_adjudications/output/reviewed_rezoning_block_assignments.csv
-!tasks/rezoning_hand_adjudications/output/section_review_decisions_20101101_20201231.csv
-!tasks/audits/rezoning_external_geocoder_handoff/output/
-tasks/audits/rezoning_external_geocoder_handoff/output/*
-!tasks/audits/rezoning_external_geocoder_handoff/output/chicago_geocoder_upload_mapping_19990101_20260212.csv
 
 # ================== ADDITIONS ==================
 
@@ -112,40 +74,9 @@ paper/*.pdf
 paper/*.synctex.gz
 paper/*.ttt
 
-# Slides: ignore generated build artifacts, keep slide source tracked
-slides/*.aux
-slides/*.bbl
-slides/*.blg
-slides/*.fdb_latexmk
-slides/*.fls
-slides/*.log
-slides/*.nav
-slides/*.out
-slides/*.pdf
-slides/*.synctex.gz
-slides/*.snm
-slides/*.toc
-slides/images/*
-slides/figures/*
-!slides/images/home_price_growth.png
-!slides/images/rent_growth_headline.png
-!slides/figures/pipeline_tikz.tex
-mansueto_slides/*.aux
-mansueto_slides/*.bbl
-mansueto_slides/*.blg
-mansueto_slides/*.fdb_latexmk
-mansueto_slides/*.fls
-mansueto_slides/*.log
-mansueto_slides/*.nav
-mansueto_slides/*.out
-mansueto_slides/*.pdf
-mansueto_slides/*.snm
-mansueto_slides/*.toc
-
 tmp/
 
 # Local-only verification scratch
-tasks/audits/run_event_study_rental_guangbin_wardblock/
 tasks/create_event_study_permit_data/code/manual_permit_block_review.csv
 
 # Ignore auto-generated R graphics in any code/ folder
