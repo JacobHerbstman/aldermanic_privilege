@@ -61,7 +61,7 @@ This decline in permit activity complements the building-density evidence below.
     The reassignment variable equals one for blocks assigned toward greater stringency, minus one for blocks assigned toward greater leniency, and zero for unchanged blocks.
     Each point reports the event-time coefficient on this variable.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
-    The pooled coefficient is $-0.124$ (SE $=0.046$), and the pre-trend test has $p=0.385$.}
+    The pooled coefficient is $-0.124$ (SE $=0.046$), and the pre-trend test has $p=0.390$.}
     \label{fig:permit_event_study}
 \end{figure}
 
@@ -135,23 +135,24 @@ For rents and sales, I estimate
 \begin{equation}
 \label{eq:price_rd}
     \log(Y_{ist}) =
-    \beta \text{MoreStringent}_{is}
+    \sum_{b \in \mathcal{B}}
+    \tau_b \mathbf{1}\{d_{is} \in b\}
     + X_i'\gamma
     + \alpha_{st}
     + \varepsilon_{ist},
 \end{equation}
 %
 where $Y_{ist}$ is the real listed rent or real sale price for observation $i$ near boundary segment $s$ in period $t$.
+As in the density analysis, $\mathcal{B}$ contains ten 100ft distance bands and the band from $-100$ to 0ft is omitted.
+The coefficient $\tau_{[0,100)}$ therefore compares observations in the two bands immediately across the boundary.
 The fixed effects compare observations near the same boundary segment in the same month for rents and the same quarter for sales.
 The controls include unit or property characteristics and distances to nearby schools, parks, major roads, CTA stops, and Lake Michigan.
 Standard errors are clustered by boundary segment.
 
-Figure~\ref{fig:price_boundary_bins} also divides distance into 100ft bands and compares each band with the band immediately inside the less-stringent ward.
-The estimate in each panel compares the two bands closest to the boundary.
+Figure~\ref{fig:price_boundary_bins} plots these distance-band estimates.
 
-Listed rents are 1.7\% higher on the more-stringent side across the full sample.
-The difference in the two bands closest to the boundary is similar in magnitude but less precise.
-Home sale prices are 1.6\% higher across the full sample and 4.6\% higher in the two bands closest to the boundary.
+Listed rents are 1.7\% higher in the two bands closest to the boundary, although the estimate is imprecise.
+Home sale prices are 4.6\% higher in the two bands closest to the boundary.
 I treat the sales result as suggestive because transactions are less frequent near any particular boundary and their composition is harder to hold fixed.
 Appendix~\ref{sec:appendix_price_rd} shows that the result disappears at artificial cutoffs inside either ward and is similar when I restrict the sample to straight boundaries or exclude observations immediately next to the boundary.
 

@@ -316,12 +316,6 @@ outcome_label <- dplyr::if_else(
   "High-discretion permits by application year",
   "Low-discretion permits (excluding signs) by application year"
 )
-subtitle_label <- dplyr::if_else(
-  direction_rule == "signed",
-  "Pooled estimate",
-  "Pooled directional contrast"
-)
-
 plot <- ggplot2::ggplot(
   event_results,
   ggplot2::aes(event_time, estimate)
@@ -348,8 +342,7 @@ plot <- ggplot2::ggplot(
   ggplot2::labs(
     title = outcome_label,
     subtitle = sprintf(
-      "%s = %.3f%s (SE %.3f)",
-      subtitle_label,
+      "Pooled estimate = %.3f%s (SE %.3f)",
       pooled_estimate,
       pooled_stars,
       pooled_se
