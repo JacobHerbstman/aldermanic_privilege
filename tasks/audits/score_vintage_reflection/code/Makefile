@@ -1,5 +1,7 @@
 all: ../output/boundary_score_robustness.csv \
 	../output/score_stability_summary.csv \
+	../output/score_change_decomposition.csv \
+	../output/score_period_scale.csv \
 	../output/boundary_classification_stability.csv \
 	../output/leaveout_classification_stability.csv \
 	../output/current_vintage_correlations.csv
@@ -17,6 +19,15 @@ all: ../output/boundary_score_robustness.csv \
 	$(R) $< 8
 
 ../output/score_stability_summary.csv: ../output/score_leaveout_data.rds
+	@test -s "$@"
+
+../output/score_change_decomposition.csv: \
+	explain_score_changes.R \
+	../../../_lib/alderman_uncertainty_helpers.R \
+	../input/permits_for_uncertainty_index.csv | ../output
+	$(R) $<
+
+../output/score_period_scale.csv: ../output/score_change_decomposition.csv
 	@test -s "$@"
 
 ../output/boundary_score_robustness.csv: \
