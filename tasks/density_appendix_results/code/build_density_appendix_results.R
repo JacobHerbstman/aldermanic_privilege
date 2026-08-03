@@ -73,7 +73,6 @@ for (check_i in seq_len(nrow(check_specs))) {
         density_far > 0,
         is.finite(density_dupac),
         density_dupac > 0,
-        is.finite(pair_average_score),
         is.finite(share_white_own),
         is.finite(share_black_own),
         is.finite(median_hh_income_own),
@@ -90,7 +89,6 @@ for (check_i in seq_len(nrow(check_specs))) {
     model <- fixest::feols(
       log_outcome ~
         i(distance_bin, ref = "bin_05") +
-        pair_average_score +
         share_white_own +
         share_black_own +
         median_hh_income_own +

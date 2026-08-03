@@ -102,7 +102,6 @@ projects <- projects |>
     density_far > 0,
     is.finite(density_dupac),
     density_dupac > 0,
-    is.finite(pair_average_score),
     is.finite(share_white_own),
     is.finite(share_black_own),
     is.finite(median_hh_income_own),
@@ -249,7 +248,6 @@ for (version in names(score_versions)) {
         TRUE ~ NA_real_
       ),
       running_distance_ft = abs(distance_to_boundary_ft) * score_sign,
-      pair_average_score_model = (score_own + score_neighbor) / 2,
       distance_bin = cut(
         running_distance_ft,
         breaks = seq(-500, 500, by = 100),
@@ -258,7 +256,7 @@ for (version in names(score_versions)) {
         right = FALSE
       )
     ) |>
-    dplyr::filter(!is.na(distance_bin), is.finite(pair_average_score_model))
+    dplyr::filter(!is.na(distance_bin))
 
   for (sample in names(sample_labels)) {
     model_sample <- scored_projects |>
@@ -270,7 +268,6 @@ for (version in names(score_versions)) {
       model <- fixest::feols(
         log_outcome ~
           i(distance_bin, ref = "bin_05") +
-          pair_average_score_model +
           share_white_own +
           share_black_own +
           median_hh_income_own +

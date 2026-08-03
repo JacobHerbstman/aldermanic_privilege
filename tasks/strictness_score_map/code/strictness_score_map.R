@@ -1,104 +1,117 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/strictness_score_map/code")
-# date_str <- "2022-01"
+# early_date <- "2014-01"
+# late_date <- "2022-01"
 # uncertainty_spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"
 
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
-  cli_args <- c(date_str, uncertainty_spec)
+  cli_args <- c(early_date, late_date, uncertainty_spec)
 }
 
-if (length(cli_args) != 2) {
-  stop("FATAL: Script requires 2 args: <date_str> <uncertainty_spec>.", call. = FALSE)
+if (length(cli_args) != 3) {
+  stop(
+    "Script requires 3 arguments: <early_date> <late_date> <uncertainty_spec>.",
+    call. = FALSE
+  )
 }
 
-date_str <- cli_args[1]
-uncertainty_spec <- cli_args[2]
+early_date <- cli_args[1]
+late_date <- cli_args[2]
+uncertainty_spec <- cli_args[3]
 
-month_dt <- as.Date(paste0(date_str, "-01"))
-use_year <- as.integer(format(month_dt, "%Y"))
+early_month <- as.Date(paste0(early_date, "-01"))
+late_month <- as.Date(paste0(late_date, "-01"))
+early_year <- as.integer(format(early_month, "%Y"))
+late_year <- as.integer(format(late_month, "%Y"))
 
-wards <- st_read("../input/ward_panel.gpkg", quiet = TRUE) %>%
-  filter(year == use_year)
-if (anyDuplicated(st_drop_geometry(wards)$ward) > 0) {
-  stop("Ward panel must be unique by ward for the selected map year.", call. = FALSE)
+ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
+early_wards <- ward_panel %>% filter(year == early_year)
+late_wards <- ward_panel %>% filter(year == late_year)
+if (anyDuplicated(st_drop_geometry(early_wards)$ward) > 0 ||
+    anyDuplicated(st_drop_geometry(late_wards)$ward) > 0) {
+  stop("Ward panel must be unique by ward and map year.", call. = FALSE)
 }
 
-scores_raw <- read_csv(sprintf("../input/alderman_uncertainty_index_%s.csv", uncertainty_spec),
-                   show_col_types = FALSE) %>%
+scores <- read_csv(
+  sprintf("../input/alderman_uncertainty_index_%s.csv", uncertainty_spec),
+  show_col_types = FALSE
+) %>%
   mutate(alderman = str_squish(str_to_lower(alderman)))
-
-if (!"uncertainty_index" %in% names(scores_raw)) {
-  stop("Score column not found: uncertainty_index", call. = FALSE)
+if (!"uncertainty_index" %in% names(scores)) {
+  stop("Score file must contain uncertainty_index.", call. = FALSE)
 }
-
-scores <- scores_raw %>%
-  transmute(alderman,
-            score = suppressWarnings(as.numeric(uncertainty_index)))
+scores <- scores %>%
+  transmute(alderman, score = as.numeric(uncertainty_index))
 if (anyDuplicated(scores$alderman) > 0) {
-  stop("Scores must be unique by alderman before joining to wards.", call. = FALSE)
+  stop("Scores must be unique by alderman.", call. = FALSE)
 }
 
-panel <- read_csv("../input/chicago_alderman_panel.csv",
-                  show_col_types = FALSE) %>%
+alderman_panel <- read_csv(
+  "../input/chicago_alderman_panel.csv",
+  show_col_types = FALSE
+) %>%
   mutate(month = as.yearmon(month)) %>%
-  filter(month == as.yearmon(month_dt)) %>%
-  transmute(ward,
-            alderman = str_squish(str_to_lower(alderman)))
-if (anyDuplicated(panel$ward) > 0) {
-  stop("Alderman panel must be unique by ward for the selected map month.", call. = FALSE)
+  mutate(alderman = str_squish(str_to_lower(alderman)))
+early_aldermen <- alderman_panel %>%
+  filter(month == as.yearmon(early_month)) %>%
+  transmute(ward, alderman)
+late_aldermen <- alderman_panel %>%
+  filter(month == as.yearmon(late_month)) %>%
+  transmute(ward, alderman)
+if (anyDuplicated(early_aldermen$ward) > 0 ||
+    anyDuplicated(late_aldermen$ward) > 0) {
+  stop("Alderman panel must be unique by ward and selected month.", call. = FALSE)
 }
 
-ward_scores <- panel %>%
-  left_join(scores, by = "alderman", relationship = "many-to-one")
-if (any(is.na(ward_scores$score))) {
-  missing_scores <- ward_scores %>%
-    filter(is.na(score)) %>%
-    arrange(ward)
-  stop(
-    paste0(
-      "Missing uncertainty scores for map aldermen: ",
-      paste(unique(missing_scores$alderman), collapse = ", ")
-    ),
-    call. = FALSE
+early_map <- early_wards %>%
+  left_join(early_aldermen, by = "ward", relationship = "one-to-one") %>%
+  left_join(scores, by = "alderman", relationship = "many-to-one") %>%
+  mutate(vintage = "Panel A: January 2014")
+late_map <- late_wards %>%
+  left_join(late_aldermen, by = "ward", relationship = "one-to-one") %>%
+  left_join(scores, by = "alderman", relationship = "many-to-one") %>%
+  mutate(vintage = "Panel B: January 2022")
+if (any(is.na(early_map$score)) || any(is.na(late_map$score))) {
+  stop("Every mapped ward must have an alderman and score.", call. = FALSE)
+}
+
+map_data <- bind_rows(early_map, late_map) %>%
+  mutate(
+    vintage = factor(
+      vintage,
+      levels = c(
+        "Panel A: January 2014",
+        "Panel B: January 2022"
+      )
+    )
   )
-}
-if (anyDuplicated(ward_scores$ward) > 0) {
-  stop("Ward scores must be unique by ward before joining to ward geometries.", call. = FALSE)
-}
+score_limit <- max(abs(map_data$score))
 
-ward_map <- wards %>%
-  left_join(ward_scores, by = "ward", relationship = "many-to-one")
-if (any(is.na(ward_map$score))) {
-  missing_wards <- ward_map %>%
-    st_drop_geometry() %>%
-    filter(is.na(score)) %>%
-    arrange(ward)
-  stop(
-    paste0(
-      "Ward map has geometries without matched scores: ",
-      paste(missing_wards$ward, collapse = ", ")
-    ),
-    call. = FALSE
-  )
-}
-
-p <- ggplot(ward_map) +
+p <- ggplot(map_data) +
   geom_sf(aes(fill = score), color = "grey20", linewidth = 0.2) +
-  scale_fill_distiller(palette = "RdYlBu", direction = -1, name = "Regulatory Stringency Index", na.value = "grey90") +
-  labs(
-    title = sprintf("Regulatory Stringency Index by Ward (%s)", date_str)
+  facet_wrap(~vintage, nrow = 1) +
+  scale_fill_gradient2(
+    low = "#2c7bb6",
+    mid = "#ffffbf",
+    high = "#d7191c",
+    midpoint = 0,
+    limits = c(-score_limit, score_limit),
+    name = "Regulatory stringency"
   ) +
   theme_void() +
-  theme(legend.position = "bottom",
-        plot.title = element_text(hjust = 0.5))
+  theme(
+    legend.position = "bottom",
+    strip.text = element_text(face = "bold", size = 11),
+    panel.spacing = grid::unit(0.5, "cm")
+  )
 
 ggsave(
-  sprintf("../output/uncertainty_score_map_%s_%s.pdf", uncertainty_spec, date_str),
+  "../output/uncertainty_score_map_comparison.pdf",
   plot = p,
-  width = 8,
-  height = 10,
+  width = 11,
+  height = 6.5,
   dpi = 300
 )

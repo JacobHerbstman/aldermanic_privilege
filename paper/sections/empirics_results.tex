@@ -10,11 +10,10 @@ I first ask whether permit activity changes when the same location is assigned t
 Chicago's 2015 ward redistricting moved some census blocks toward wards represented by more stringent aldermen and others toward wards represented by more lenient aldermen.
 Nearby blocks that remained in their original ward provide the comparison group.
 The design therefore holds the physical location fixed while changing its assigned regulatory environment.
-The main sample retains boundaries where the aldermen representing both the origin and destination wards in 2014 remained in office when the new map took effect.
-The assigned change in stringency therefore matches the change that blocks actually experienced.
+The primary analysis sample keeps all boundaries where the aldermen representing both the origin and destination wards in 2014 remained in office when the new map took effect,
+since newly elected aldermen could have preferences toward development that are endogenous to the previous development activity in the ward.
 
 The outcome is the number of high-discretion permits recorded on each census block in each year from 2010 through 2020.
-I count permits by the year their applications began rather than the year they were issued.
 The outcome therefore measures when projects observed in the permit data first appeared in the process.
 These are the high-discretion permits defined in Section~\ref{subsec:permit_pipeline}.
 
@@ -41,7 +40,7 @@ This coding imposes equal-and-opposite effects in logs for assignments toward mo
 Appendix~\ref{sec:appendix_permit_unconstrained} relaxes that restriction and produces nearly identical estimates.
 
 Figure~\ref{fig:permit_event_study} plots the coefficients $\beta_\tau$.
-The pre-period coefficients show no systematic divergence, and the pre-trend test has a $p$-value of 0.385.
+The pre-period coefficients show no systematic divergence, and the pre-trend test has a $p$-value of 0.390.
 After redistricting, the estimate becomes negative.
 The pooled estimate is $-0.124$ (SE $=0.046$), equivalent to an 11.6\% reduction in the annual number of high-discretion permits associated with a move toward greater stringency.
 This decline in permit activity complements the building-density evidence below.
@@ -79,7 +78,6 @@ I estimate
     \ln(Y_{ist}) ={}&
     \sum_{b \in \mathcal{B},\,b \neq [-100,0)}
     \tau_b \mathbf{1}\{d_{is} \in b\}
-    + \eta \overline{S}_{ww't}
     + X_i'\theta \\
     &\quad
     + \alpha_{z(i,t)}
@@ -94,12 +92,12 @@ The running variable $d_{is}$ is negative on the less-stringent side and positiv
 The set $\mathcal{B}$ contains ten 100ft bands from $-500$ to 500ft.
 The band from $-100$ to 0ft is omitted, so $\tau_{[0,100)}$ compares projects immediately across the boundary.
 The vector $X_i$ contains share White, share Black, median household income, bachelor's share, and homeownership on the project's side of the boundary.
-The model also includes the average score of the two aldermen, the zoning group in force when the project was built, boundary-segment fixed effects, and construction-year fixed effects.
+The model also includes the zoning group in force when the project was built, boundary-segment fixed effects, and construction-year fixed effects.
 Standard errors are clustered by ward pair.
 
 Figure~\ref{fig:rd_fe_plots} plots the distance-band estimates.
 The omitted band is normalized to zero, and the subtitle in each panel reports $\tau_{[0,100)}$.
-For all new construction, FAR is about 12\% lower and dwelling units per acre about 15\% lower immediately across the boundary on the more-stringent side.
+For all new construction, FAR is about 12\% lower and dwelling units per acre about 16\% lower immediately across the boundary on the more-stringent side.
 Among multifamily projects, FAR is about 14\% lower and dwelling units per acre about 18\% lower.
 All four differences are statistically distinguishable from zero at the 10\% level or better.
 The similar results for FAR and dwelling units per acre indicate that the difference is present in both floor space and the number of homes placed on a parcel.
@@ -125,11 +123,11 @@ Figures~\ref{fig:rd_placebo_shift_neg} and~\ref{fig:rd_placebo_shift_pos} show n
 The contrast with the true boundary makes it less likely that the main estimates reflect a general spatial pattern within wards.
 Appendix~\ref{sec:appendix_density} presents the placebo figures along with continuity tests for fixed location characteristics, restrictions based on boundary geometry, and donut checks.
 
-\subsection{Suggestive Evidence on Rents and Sale Prices}
+\subsection{Evidence on Rents and Sale Prices}
 \label{sec:empirical_results_prices}
 
 The permit and density results indicate that more stringent aldermen reduce development activity and the density of completed housing.
-I next ask whether housing costs are higher on the more stringent side of the same ward boundaries.
+The model in \ref{sec:model}, indicates that this should feed into prices, which is the most directly policy-relevant outcome given Chicago's current rent and price growth.
 For rents and sales, I estimate
 %
 \begin{equation}
