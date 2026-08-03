@@ -98,8 +98,7 @@ The model also includes the average score of the two aldermen, the zoning group 
 Standard errors are clustered by ward pair.
 
 Figure~\ref{fig:rd_fe_plots} plots the distance-band estimates.
-The omitted band is normalized to zero.
-The first estimate in each panel reports $\tau_{[0,100)}$, while the second compares projects on the two sides across the full 500ft sample using the same controls and fixed effects.
+The omitted band is normalized to zero, and the subtitle in each panel reports $\tau_{[0,100)}$.
 For all new construction, FAR is about 12\% lower and dwelling units per acre about 15\% lower immediately across the boundary on the more-stringent side.
 Among multifamily projects, FAR is about 14\% lower and dwelling units per acre about 18\% lower.
 All four differences are statistically distinguishable from zero at the 10\% level or better.
@@ -114,7 +113,7 @@ The similar results for FAR and dwelling units per acre indicate that the differ
     Samples include new construction within 500ft of ward boundaries.
     Each point is the coefficient for a 100ft distance band from Equation~\eqref{eq:segment_fe}.
     The nearest band on the less-stringent side, from $-100$ to 0ft, is omitted and normalized to zero.
-    The nearest-bin estimate compares the two bands adjacent to the boundary; the full 500ft estimate compares all projects on the two sides using the same controls and fixed effects.
+    Subtitles report the coefficient for the nearest band on the more-stringent side, from 0 to 100ft.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
     Negative distance indicates the less-stringent side and positive distance the more-stringent side.}
     \label{fig:rd_fe_plots}
@@ -148,8 +147,7 @@ The controls include unit or property characteristics and distances to nearby sc
 Standard errors are clustered by boundary segment.
 
 Figure~\ref{fig:price_boundary_bins} also divides distance into 100ft bands and compares each band with the band immediately inside the less-stringent ward.
-The first estimate in each panel compares the two bands closest to the boundary.
-The second is the average difference between the two sides across the full 500ft sample from Equation~\eqref{eq:price_rd}.
+The estimate in each panel compares the two bands closest to the boundary.
 
 Listed rents are 1.7\% higher on the more-stringent side across the full sample.
 The difference in the two bands closest to the boundary is similar in magnitude but less precise.
@@ -166,7 +164,7 @@ Appendix~\ref{sec:appendix_price_rd} shows that the result disappears at artific
     Both panels include housing characteristics, distances to nearby amenities, and the fixed effects described in the text.
     Each point is the estimated difference between a 100ft distance band and the band immediately inside the less-stringent side, which is normalized to zero.
     Shaded areas are 95\% confidence intervals.
-    The nearest-bin estimate compares the two bands adjacent to the boundary; the full 500ft estimate compares all observations on the two sides.
+    Subtitles report the comparison between the two bands adjacent to the boundary.
     Standard errors are clustered by boundary segment. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
     \label{fig:price_boundary_bins}
 \end{figure}

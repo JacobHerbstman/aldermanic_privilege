@@ -58,7 +58,6 @@ for (i in seq_len(nrow(panel_specs))) {
     ) |>
     dplyr::mutate(
       running_distance_ft = signed_distance_m / 0.3048,
-      cutoff_right = as.integer(running_distance_ft >= 0),
       log_outcome = log(.data[[outcome]]),
       distance_bin = cut(
         running_distance_ft,
@@ -76,22 +75,6 @@ for (i in seq_len(nrow(panel_specs))) {
   model <- fixest::feols(
     log_outcome ~
       i(distance_bin, ref = "bin_05") +
-      pair_average_score +
-      share_white_own +
-      share_black_own +
-      median_hh_income_own +
-      share_bach_plus_own +
-      homeownership_rate_own |
-      zone_group + segment_id + construction_year,
-    data = model_data,
-    cluster = ~ward_pair,
-    warn = FALSE,
-    notes = FALSE
-  )
-
-  full_window_model <- fixest::feols(
-    log_outcome ~
-      cutoff_right +
       pair_average_score +
       share_white_own +
       share_black_own +
@@ -170,22 +153,6 @@ for (i in seq_len(nrow(panel_specs))) {
     nearest_stringent$p_value < 0.10 ~ "*",
     TRUE ~ ""
   )
-  full_window_table <- fixest::coeftable(full_window_model)
-  full_window_estimate <- unname(
-    full_window_table["cutoff_right", "Estimate"]
-  )
-  full_window_std_error <- unname(
-    full_window_table["cutoff_right", "Std. Error"]
-  )
-  full_window_p_value <- unname(
-    full_window_table["cutoff_right", "Pr(>|t|)"]
-  )
-  full_window_stars <- dplyr::case_when(
-    full_window_p_value < 0.01 ~ "***",
-    full_window_p_value < 0.05 ~ "**",
-    full_window_p_value < 0.10 ~ "*",
-    TRUE ~ ""
-  )
 
   panels[[i]] <- ggplot2::ggplot(
     results,
@@ -240,16 +207,10 @@ for (i in seq_len(nrow(panel_specs))) {
     ggplot2::labs(
       title = panel_specs$panel_title[i],
       subtitle = sprintf(
-        paste0(
-          "Nearest-bin difference = %.3f%s (SE %.3f)\n",
-          "Full 500ft difference = %.3f%s (SE %.3f)"
-        ),
+        "Nearest-bin difference = %.3f%s (SE %.3f)",
         nearest_stringent$estimate,
         stars,
-        nearest_stringent$std_error,
-        full_window_estimate,
-        full_window_stars,
-        full_window_std_error
+        nearest_stringent$std_error
       ),
       x = "Distance to ward boundary (feet)",
       y = "Difference from nearest less-stringent bin"

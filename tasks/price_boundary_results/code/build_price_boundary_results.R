@@ -394,7 +394,6 @@ estimate_bins <- function(
   model_data <- data |>
     dplyr::mutate(
       running_distance_ft = signed_dist_ft - cutoff_ft,
-      cutoff_right = as.integer(running_distance_ft >= 0),
       distance_bin = cut(
         running_distance_ft,
         breaks = seq(-500, 500, by = 100),
@@ -418,19 +417,6 @@ estimate_bins <- function(
   ))
   model <- fixest::feols(
     formula,
-    data = model_data,
-    cluster = ~segment_id,
-    warn = FALSE,
-    notes = FALSE
-  )
-  full_window_formula <- stats::as.formula(sprintf(
-    "log(%s) ~ cutoff_right + %s | %s",
-    outcome,
-    paste(controls, collapse = " + "),
-    fixed_effects
-  ))
-  full_window_model <- fixest::feols(
-    full_window_formula,
     data = model_data,
     cluster = ~segment_id,
     warn = FALSE,
@@ -505,17 +491,6 @@ estimate_bins <- function(
   nearest_above <- results |>
     dplyr::filter(bin_start_ft == 0)
   nearest_stars <- star_string(nearest_above$p_value)
-  full_window_table <- fixest::coeftable(full_window_model)
-  full_window_estimate <- unname(
-    full_window_table["cutoff_right", "Estimate"]
-  )
-  full_window_std_error <- unname(
-    full_window_table["cutoff_right", "Std. Error"]
-  )
-  full_window_p_value <- unname(
-    full_window_table["cutoff_right", "Pr(>|t|)"]
-  )
-  full_window_stars <- star_string(full_window_p_value)
 
   plot <- ggplot2::ggplot(
     results,
@@ -574,16 +549,10 @@ estimate_bins <- function(
     ggplot2::labs(
       title = panel_title,
       subtitle = sprintf(
-        paste0(
-          "Nearest-bin difference = %.3f%s (SE %.3f)\n",
-          "Full 500ft difference = %.3f%s (SE %.3f)"
-        ),
+        "Nearest-bin difference = %.3f%s (SE %.3f)",
         nearest_above$estimate,
         nearest_stars,
-        nearest_above$std_error,
-        full_window_estimate,
-        full_window_stars,
-        full_window_std_error
+        nearest_above$std_error
       ),
       x = if (cutoff_ft == 0) {
         "Distance to ward boundary (feet)"

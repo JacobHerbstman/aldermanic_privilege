@@ -50,7 +50,6 @@ for (check_i in seq_len(nrow(check_specs))) {
     model_data <- projects |>
       dplyr::mutate(
         running_distance_ft = true_distance_ft - cutoff_ft,
-        cutoff_right = as.integer(running_distance_ft >= 0),
         distance_bin = cut(
           running_distance_ft,
           breaks = seq(-500, 500, by = 100),
@@ -91,22 +90,6 @@ for (check_i in seq_len(nrow(check_specs))) {
     model <- fixest::feols(
       log_outcome ~
         i(distance_bin, ref = "bin_05") +
-        pair_average_score +
-        share_white_own +
-        share_black_own +
-        median_hh_income_own +
-        share_bach_plus_own +
-        homeownership_rate_own |
-        zone_group + segment_id + construction_year,
-      data = model_data,
-      cluster = ~ward_pair,
-      warn = FALSE,
-      notes = FALSE
-    )
-
-    full_window_model <- fixest::feols(
-      log_outcome ~
-        cutoff_right +
         pair_average_score +
         share_white_own +
         share_black_own +
@@ -201,22 +184,6 @@ for (check_i in seq_len(nrow(check_specs))) {
       nearest_above$p_value < 0.10 ~ "*",
       TRUE ~ ""
     )
-    full_window_table <- fixest::coeftable(full_window_model)
-    full_window_estimate <- unname(
-      full_window_table["cutoff_right", "Estimate"]
-    )
-    full_window_std_error <- unname(
-      full_window_table["cutoff_right", "Std. Error"]
-    )
-    full_window_p_value <- unname(
-      full_window_table["cutoff_right", "Pr(>|t|)"]
-    )
-    full_window_stars <- dplyr::case_when(
-      full_window_p_value < 0.01 ~ "***",
-      full_window_p_value < 0.05 ~ "**",
-      full_window_p_value < 0.10 ~ "*",
-      TRUE ~ ""
-    )
 
     panels[[panel_i]] <- ggplot2::ggplot(
       results,
@@ -275,16 +242,10 @@ for (check_i in seq_len(nrow(check_specs))) {
       ggplot2::labs(
         title = panel_specs$panel_title[panel_i],
         subtitle = sprintf(
-          paste0(
-            "Nearest-bin difference = %.3f%s (SE %.3f)\n",
-            "Full 500ft difference = %.3f%s (SE %.3f)"
-          ),
+          "Nearest-bin difference = %.3f%s (SE %.3f)",
           nearest_above$estimate,
           stars,
-          nearest_above$std_error,
-          full_window_estimate,
-          full_window_stars,
-          full_window_std_error
+          nearest_above$std_error
         ),
         x = if (cutoff_ft == 0) {
           "Distance to ward boundary (feet)"
