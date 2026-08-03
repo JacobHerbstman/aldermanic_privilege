@@ -44,7 +44,7 @@ These locations do not mark a change in aldermanic authority, and none of the ei
     \figurenotes{The artificial cutoff is 1000ft inside the less-stringent side of the true ward boundary.
     The model is estimated in a 500ft window around that cutoff using the same 100ft distance bands, controls, and fixed effects as Equation~\eqref{eq:segment_fe}.
     The nearest band below the artificial cutoff is omitted and normalized to zero.
-    Subtitles report the difference in the nearest band above the artificial cutoff.
+    The nearest-bin estimate compares the two bands adjacent to the artificial cutoff; the full 500ft estimate compares all projects on the two sides of that cutoff.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
     \label{fig:rd_placebo_shift_neg}
 \end{figure}
@@ -56,7 +56,7 @@ These locations do not mark a change in aldermanic authority, and none of the ei
     \figurenotes{The artificial cutoff is 1000ft inside the more-stringent side of the true ward boundary.
     The model is estimated in a 500ft window around that cutoff using the same 100ft distance bands, controls, and fixed effects as Equation~\eqref{eq:segment_fe}.
     The nearest band below the artificial cutoff is omitted and normalized to zero.
-    Subtitles report the difference in the nearest band above the artificial cutoff.
+    The nearest-bin estimate compares the two bands adjacent to the artificial cutoff; the full 500ft estimate compares all projects on the two sides of that cutoff.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
     \label{fig:rd_placebo_shift_pos}
 \end{figure}
@@ -122,6 +122,7 @@ The nearest-band estimates remain negative in all four panels, so the main resul
     \figurenotes{Projects within 25ft of the ward boundary are excluded from the 500ft sample.
     Each point is the coefficient for a 100ft distance band from Equation~\eqref{eq:segment_fe}.
     The nearest remaining observations in the $-100$ to 0ft band form the omitted category.
+    The subtitle also reports the difference between all projects on the two sides in the remaining 500ft sample.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
     \label{fig:rd_donut_25ft}
 \end{figure}
@@ -133,6 +134,7 @@ The nearest-band estimates remain negative in all four panels, so the main resul
     \figurenotes{Projects within 50ft of the ward boundary are excluded from the 500ft sample.
     Each point is the coefficient for a 100ft distance band from Equation~\eqref{eq:segment_fe}.
     The nearest remaining observations in the $-100$ to 0ft band form the omitted category.
+    The subtitle also reports the difference between all projects on the two sides in the remaining 500ft sample.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
     \label{fig:rd_donut_50ft}
 \end{figure}
