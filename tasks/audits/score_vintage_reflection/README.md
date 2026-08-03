@@ -162,3 +162,38 @@ that the pooled-score results are not confined to nearly tied aldermen. They do
 not resolve the separate vintage problem. The intact-regime scores are not stable,
 and using them to classify the same projects materially changes the density
 results. No paper files or main analysis tasks have been changed.
+
+## Influential Boundary Comparisons
+
+The pair decomposition starts from the pooled-score common-sample model and
+changes one alderman pair at a time to its period-specific classification. These
+effects are not additive because each reclassification changes the model matrix,
+but they show which comparisons account for the attenuation.
+
+For all construction, Mitts--Carothers is the largest single comparison. Changing
+only that pair attenuates the FAR coefficient by .041 and the DUPAC coefficient by
+.054. The pair has 60 reclassified projects, including 29 in the nearest 100 feet.
+This result is fragile: the pooled score places Mitts .654 standard deviations
+above Carothers, while the 2006--2014 scores differ by only .002 standard
+deviations in the opposite direction. The next-largest all-construction
+comparisons are Fioretti--Burnett, Waguespack--Tunney, Michele Smith--Waguespack,
+Maldonado--Burnett, and Solis--Thompson.
+
+The multifamily attenuation is spread across several North and Near West Side
+comparisons:
+
+| Reclassified pair | MF projects (nearest 100ft) | FAR attenuation | DUPAC attenuation |
+| --- | ---: | ---: | ---: |
+| Waguespack--Tunney | 4 (3) | .063 | .081 |
+| Hopkins--Waguespack | 10 (5) | .058 | .046 |
+| Fioretti--Burnett | 23 (4) | .036 | .224 |
+| Maldonado--Burnett | 7 (3) | .022 | .054 |
+| Ervin--Burnett | 24 (4) | .022 | .029 |
+| Ed Smith--Haithcock | 7 (2) | .022 | .034 |
+
+Fioretti--Burnett alone accounts for much of the DUPAC change. The pooled score
+places Fioretti above Burnett by .222 standard deviations; the 2006--2014 score
+places Burnett above Fioretti by .303. Waguespack is more stringent than Tunney
+and Hopkins in the pooled score, but the 2015--June 2019 score reverses both
+comparisons. Burnett is more stringent than Maldonado in the pooled score, while
+the later score places Maldonado above Burnett by .740 standard deviations.

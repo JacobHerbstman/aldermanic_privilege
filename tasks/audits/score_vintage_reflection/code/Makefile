@@ -8,6 +8,8 @@ all: ../output/boundary_score_robustness.csv \
 	../output/regime_density_results.csv \
 	../output/regime_classification_stability.csv \
 	../output/regime_flip_contributors.csv \
+	../output/regime_pair_influence.csv \
+	../output/regime_alderman_influence.csv \
 	../output/regime_score_coverage.csv \
 	../output/regime_density_rd_pooled_full.pdf \
 	../output/regime_density_rd_pooled_common.pdf \
@@ -68,6 +70,16 @@ all: ../output/boundary_score_robustness.csv \
 	@test -s "$@"
 
 ../output/regime_flip_contributors.csv: ../output/regime_density_results.csv
+	@test -s "$@"
+
+../output/regime_pair_influence.csv: \
+	decompose_regime_pair_influence.R \
+	../output/regime_scores.rds \
+	../output/score_leaveout_data.rds \
+	../input/new_construction_analysis_data.csv | ../output
+	$(R) $<
+
+../output/regime_alderman_influence.csv: ../output/regime_pair_influence.csv
 	@test -s "$@"
 
 ../output/regime_score_coverage.csv: ../output/regime_density_results.csv
