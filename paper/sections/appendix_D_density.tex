@@ -6,6 +6,32 @@
 This appendix checks whether the density result appears at false cutoffs, reflects fixed differences in location, or depends on unusual boundary geometry or projects closest to the boundary.
 Unless otherwise noted, each estimate compares the two 100ft bands immediately across the ward boundary using Equation~\eqref{eq:segment_fe}.
 
+\subsection{Stringency-Score Checks}
+
+The first check asks whether a project's own permits influence the score used to classify its boundary.
+For each project, I recalculate the scores for the two aldermen after removing permits matched to that project.
+The estimates are effectively unchanged.
+The second check drops boundaries where the two alderman scores are close.
+All four point estimates remain negative when the minimum gap is either 0.25 or 0.50 standard deviations, although the multifamily estimates become less precise as the sample shrinks.
+
+\begin{table}[H]
+    \centering
+    \caption{Density Estimates Under Alternative Score Classifications}
+    \label{tab:density_score_robustness}
+    \resizebox{0.98\textwidth}{!}{%
+        \input{../tasks/density_score_robustness/output/density_score_robustness.tex}%
+    }
+    \begin{minipage}{0.98\textwidth}
+        \vspace{0.35em}
+        \footnotesize
+        \textit{Notes:} Entries compare the two 100ft bands immediately across the boundary using Equation~\eqref{eq:segment_fe}.
+        The second row removes permits matched to each construction project before recalculating the alderman scores used for that project.
+        The minimum-gap rows retain boundaries where the absolute difference between the two scores is at least the stated number of standard deviations.
+        Standard errors are clustered by ward pair.
+        * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \end{minipage}
+\end{table}
+
 \subsection{Placebo Cutoffs}
 
 Figures~\ref{fig:rd_placebo_shift_neg} and~\ref{fig:rd_placebo_shift_pos} move the cutoff 1000ft inside either side of the true ward boundary.

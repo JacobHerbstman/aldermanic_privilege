@@ -25,6 +25,7 @@ digraph paper_tasks {
   "create_alderman_uncertainty_index" -> "merge_event_study_scores";
   "create_alderman_uncertainty_index" -> "merge_rent_scores";
   "create_alderman_uncertainty_index" -> "merge_sales_scores";
+  "create_alderman_uncertainty_index" -> "density_score_robustness";
   "create_alderman_uncertainty_index" -> "strictness_score_map";
   "create_block_group_controls" -> "permit_itt_balance";
   "create_block_treatment_panel" -> "merge_event_study_scores";
@@ -32,6 +33,7 @@ digraph paper_tasks {
   "create_event_study_permit_data" -> "run_event_study_permit";
   "create_ward_controls" -> "data_for_alderman_uncertainty_index";
   "data_for_alderman_uncertainty_index" -> "create_alderman_uncertainty_index";
+  "data_for_alderman_uncertainty_index" -> "density_score_robustness";
   "density_boundary_characteristics" -> "density_boundary_checks";
   "download_building_permits" -> "clean_building_permits";
   "download_chicago_spatial_data" -> "create_block_treatment_panel";
@@ -54,6 +56,7 @@ digraph paper_tasks {
   "new_construction_analysis_data" -> "density_appendix_results";
   "new_construction_analysis_data" -> "density_boundary_checks";
   "new_construction_analysis_data" -> "density_main_results";
+  "new_construction_analysis_data" -> "density_score_robustness";
   "permit_block_hand_adjudications" -> "create_event_study_permit_data";
   "prep_sales_border_data" -> "sales_border_pair_fe";
   "prepare_amenities_data" -> "data_for_alderman_uncertainty_index";
@@ -79,6 +82,7 @@ digraph paper_tasks {
   "density_appendix_results" -> paper;
   "density_boundary_checks" -> paper;
   "density_main_results" -> paper;
+  "density_score_robustness" -> paper;
   "permit_itt_balance" -> paper;
   "permit_summary_stats" -> paper;
   "price_boundary_results" -> paper;

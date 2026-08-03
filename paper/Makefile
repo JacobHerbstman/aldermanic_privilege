@@ -13,6 +13,7 @@ paper.pdf: Makefile paper.tex sections/*.tex sections/aldermanic_privilege.bib \
 	../tasks/density_appendix_results/output/density_donut50ft.pdf \
 	../tasks/density_boundary_checks/output/density_boundary_robustness.tex \
 	../tasks/density_boundary_checks/output/density_location_continuity.tex \
+	../tasks/density_score_robustness/output/density_score_robustness.tex \
 	../tasks/run_event_study_permit/output/permit_event_study_high_discretion_stable_signed_500ft.pdf \
 	../tasks/run_event_study_permit/output/permit_event_study_high_discretion_stable_separate_500ft.pdf \
 	../tasks/run_event_study_permit/output/permit_event_study_low_discretion_nosigns_stable_signed_500ft.pdf \
