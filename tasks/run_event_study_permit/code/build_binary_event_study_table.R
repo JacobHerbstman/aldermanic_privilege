@@ -55,7 +55,7 @@ if (
   stop("Binary treatment assignment failed validation.", call. = FALSE)
 }
 
-pre_period_controls <- data |>
+pre_period_activity <- data |>
   dplyr::filter(relative_year < 0L) |>
   dplyr::summarise(
     pre_period_permit_volume = sum(
@@ -63,21 +63,19 @@ pre_period_controls <- data |>
       na.rm = TRUE
     ),
     .by = block_id
-  ) |>
-  dplyr::mutate(
-    no_pre_period_permits = as.integer(pre_period_permit_volume == 0)
   )
 
-if (anyDuplicated(pre_period_controls$block_id)) {
-  stop("Pre-period controls must be unique by block.", call. = FALSE)
+if (anyDuplicated(pre_period_activity$block_id)) {
+  stop("Pre-period activity must be unique by block.", call. = FALSE)
 }
 
 data <- data |>
   dplyr::left_join(
-    pre_period_controls,
+    pre_period_activity,
     by = "block_id",
     relationship = "many-to-one"
-  )
+  ) |>
+  dplyr::filter(pre_period_permit_volume > 0)
 
 outcomes <- c(
   high_discretion = "n_high_discretion_application",
@@ -92,19 +90,14 @@ for (i in seq_along(outcomes)) {
   joint_model <- fixest::fepois(
     outcome ~
       post_stricter +
-      post_lenient +
-      pre_period_permit_volume:factor(year) +
-      post:no_pre_period_permits |
+      post_lenient |
       block_id + ward_pair_id^year,
     data = model_data,
     cluster = ~ward_pair_id,
     notes = FALSE
   )
   signed_model <- fixest::fepois(
-    outcome ~
-      post_signed +
-      pre_period_permit_volume:factor(year) +
-      post:no_pre_period_permits |
+    outcome ~ post_signed |
       block_id + ward_pair_id^year,
     data = model_data,
     cluster = ~ward_pair_id,
@@ -271,8 +264,7 @@ table_lines <- c(
   "\\midrule",
   "Block fixed effects & Yes & Yes \\\\",
   "Ward-pair $\\times$ year fixed effects & Yes & Yes \\\\",
-  "Pre-period permit volume $\\times$ year & Yes & Yes \\\\",
-  "No pre-period permits $\\times$ post & Yes & Yes \\\\",
+  "Positive pre-period permit activity required & Yes & Yes \\\\",
   "\\midrule",
   sprintf(
     "N & %s & %s \\\\",

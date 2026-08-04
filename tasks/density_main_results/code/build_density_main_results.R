@@ -217,7 +217,7 @@ for (i in seq_len(nrow(panel_specs))) {
     ggplot2::theme(
       legend.position = "bottom",
       plot.title = ggplot2::element_text(face = "bold", size = 11),
-      plot.subtitle = ggplot2::element_text(size = 9),
+      plot.subtitle = ggplot2::element_text(size = 14, face = "bold"),
       axis.title = ggplot2::element_text(size = 9),
       axis.text = ggplot2::element_text(size = 8),
       panel.grid.minor = ggplot2::element_blank()

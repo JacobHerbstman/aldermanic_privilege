@@ -3,46 +3,36 @@
 \section{Additional Price Boundary Checks}
 \label{sec:appendix_price_rd}
 
-Figure~\ref{fig:price_placebo_boundaries} moves the cutoff 1000ft inside each side of the true ward boundary.
-The placebo windows do not overlap the main 500ft sample.
-None of the nearest-bin placebo estimates is statistically distinguishable from zero.
-
-\begin{figure}[H]
+\begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.98\textwidth]{../tasks/price_boundary_results/output/price_boundary_placebos.pdf}
+    \includegraphics[width=0.88\textwidth]{../tasks/price_boundary_results/output/price_boundary_placebos.pdf}
     \caption{Placebo Cutoffs for Listed Rents and Home Sale Prices}
-    \figurenotes{The left column places an artificial cutoff 1000ft inside the less-stringent ward; the right column places it 1000ft inside the more-stringent ward.
+    \figurenotes{The placebo windows do not overlap the main 500ft sample, and none of the nearest-bin estimates is statistically distinguishable from zero.
+    The left column places an artificial cutoff 1000ft inside the less-stringent ward; the right column places it 1000ft inside the more-stringent ward.
     The top row reports listed rents and the bottom row reports home sale prices.
     Each model uses a 500ft window around the artificial cutoff and otherwise follows the corresponding specification in Figure~\ref{fig:price_boundary_bins}.
     Each point is the estimated difference between a 100ft distance band and the band immediately below the artificial cutoff.
     Shaded areas are 95\% confidence intervals.
-    Standard errors are clustered by boundary segment.}
+    Standard errors are clustered by ward pair.}
     \label{fig:price_placebo_boundaries}
 \end{figure}
 
-Figure~\ref{fig:price_straight_boundaries} restricts the sample to locations where the ward boundary is approximately straight.
-The estimates are somewhat larger than the full-sample results.
-
-\begin{figure}[H]
+\begin{figure}[p]
     \centering
-    \includegraphics[width=0.98\textwidth]{../tasks/price_boundary_results/output/price_boundary_straight.pdf}
-    \caption{Price Comparisons Along Straight Ward Boundaries}
-    \figurenotes{A boundary is classified as locally straight when both endpoints of a 100-meter line tangent to the nearest boundary point lie within 15 meters of the actual boundary.
-    The models otherwise follow Figure~\ref{fig:price_boundary_bins}.
-    Shaded areas are 95\% confidence intervals, and standard errors are clustered by boundary segment.}
+    \textbf{Panel A: Locally straight boundaries}\par
+    \includegraphics[width=0.82\textwidth]{../tasks/price_boundary_results/output/price_boundary_straight.pdf}
+
+    \vspace{0.6em}
+    \textbf{Panel B: Donut samples}\par
+    \includegraphics[width=0.82\textwidth]{../tasks/price_boundary_results/output/price_boundary_donuts.pdf}
+    \caption{Additional Price-Boundary Robustness Checks}
+    \figurenotes{Panel A restricts the sample to locally straight boundaries; its estimates are somewhat larger than the full-sample results.
+    It retains locations where both endpoints of a 100-meter line tangent to the nearest boundary point lie within 15 meters of the actual boundary.
+    In Panel B, the left column excludes observations within 25ft and the right column excludes observations within 50ft; the top row reports listed rents and the bottom row home sale prices.
+    The donut estimates are similar to the full-sample results.
+    All models otherwise follow Figure~\ref{fig:price_boundary_bins}.
+    Shaded areas are 95\% confidence intervals, and standard errors are clustered by ward pair.}
+    \label{fig:price_boundary_robustness}
     \label{fig:price_straight_boundaries}
-\end{figure}
-
-Figure~\ref{fig:price_boundary_donuts} excludes observations within 25ft or 50ft of the ward boundary.
-The estimates are similar after either restriction.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.98\textwidth]{../tasks/price_boundary_results/output/price_boundary_donuts.pdf}
-    \caption{Price Comparisons Excluding Observations Nearest the Boundary}
-    \figurenotes{The left column excludes observations within 25ft of the ward boundary; the right column excludes observations within 50ft.
-    The top row reports listed rents and the bottom row reports home sale prices.
-    The models otherwise follow Figure~\ref{fig:price_boundary_bins}.
-    Shaded areas are 95\% confidence intervals, and standard errors are clustered by boundary segment.}
     \label{fig:price_boundary_donuts}
 \end{figure}

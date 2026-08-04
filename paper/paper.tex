@@ -14,14 +14,22 @@
 \usepackage{caption}
 \usepackage{threeparttable}
 \usepackage{enumitem}
-\usepackage[nomarkers, nolists, figuresfirst]{endfloat}
-\renewcommand{\efloatseparator}{\bigskip}
+\ifdefined\workingpaperversion
+\else
+    \usepackage[nomarkers, nolists, figuresfirst]{endfloat}
+    \renewcommand{\efloatseparator}{\bigskip}
+\fi
 
 % SETTINGS
 \doublespacing
 
 % Custom command for figure notes
 \newcommand{\figurenotes}[1]{\par\vspace{0.5em}\footnotesize\textit{Notes:} #1}
+\ifdefined\workingpaperversion
+    \newcommand{\onlineappendixlink}[2]{\hyperref[#2]{Online Appendix #1}}
+\else
+    \newcommand{\onlineappendixlink}[2]{Online Appendix #1}
+\fi
 
 \begin{document}
 
@@ -41,7 +49,8 @@ Jacob Herbstman\footnotemark[2]
 \footnotetext[2]{Harris School of Public Policy, University of Chicago.
 Email: \url{jherbstman@uchicago.edu}.
 \par \smallskip I thank Eric Zwick, Justin Marlowe, Joshua Gottlieb, Asad Khan, Chris Berry, Ayo George, and seminar participants at the Harris School PhD workshop,
-Economics Department Student Applied Micro Lunch, and the Notre Dame Housing Economics Conference for helpful comments and suggestions.}
+Economics Department Student Applied Micro Lunch, and the Notre Dame Housing Economics Conference for helpful comments and suggestions.
+I acknowledge the use of ChatGPT's codex for assistance in writing code for data cleaning and analysis.}
 \endgroup
 \setcounter{footnote}{0}
 
@@ -74,39 +83,25 @@ These findings show that informal political discretion can constrain housing sup
 
 \newpage
 
-% Process main text floats before appendices
-\processdelayedfloats
-\clearpage
+\ifdefined\workingpaperversion
+    \clearpage
+    \appendix
+    \numberwithin{figure}{section}
+    \numberwithin{table}{section}
+    \numberwithin{equation}{section}
 
-\appendix
-
-\numberwithin{figure}{section}
-\numberwithin{table}{section}
-\numberwithin{equation}{section}
-
-% Appendix A
-\input{sections/appendix_A_data.tex}
-\processdelayedfloats
-\clearpage
-
-% Appendix B
-\input{sections/appendix_B_alderman_fe.tex}
-\processdelayedfloats
-\clearpage
-
-% Appendix C
-\input{sections/appendix_C_permits.tex}
-\processdelayedfloats
-\clearpage
-
-% Appendix D
-\input{sections/appendix_D_density.tex}
-\processdelayedfloats
-\clearpage
-
-% Appendix E
-\input{sections/appendix_E_price_rd.tex}
-\processdelayedfloats
-\clearpage
+    \input{sections/appendix_A_data.tex}
+    \clearpage
+    \input{sections/appendix_B_alderman_fe.tex}
+    \clearpage
+    \input{sections/appendix_C_permits.tex}
+    \clearpage
+    \input{sections/appendix_D_density.tex}
+    \clearpage
+    \input{sections/appendix_E_price_rd.tex}
+\else
+    % Process main text floats after the references for journal submission.
+    \processdelayedfloats
+\fi
 
 \end{document}

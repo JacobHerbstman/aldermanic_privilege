@@ -141,7 +141,7 @@ prerogative.}
 The City's public data contain permits recorded by the Department of Buildings since 2006.
 Each record reports when the application began and when the permit was issued, but inherently won't catpure any projects abandoned before they were far along enough in the process to generate a permit record.
 I use the universe of ``high-discretion'' permits from 2006-2022 that have valid geographic coordinates and nonnegative processing times.
-Appendix~\ref{subsec:event_study_panel} describes the separate sample used to estimate stringency scores in the event study.
+\onlineappendixlink{A.3}{subsec:event_study_panel} describes the separate sample used to estimate stringency scores in the event study.
 I divide permits into two groups based on how much aldermanic discretion they are likely to face.
 
 \textit{High-discretion permits} are permits for projects where aldermen are most likely to matter: new construction, renovation or alteration, demolition, porch construction, and reinstated permits.\footnote{Porch construction permits have received extra scrutiny since the \href{https://en.wikipedia.org/wiki/2003_Chicago_balcony_collapse}{2003 balcony collapse}.}
@@ -154,7 +154,7 @@ High-discretion permits take much longer to process and show more cross-alderman
 The average high-discretion permit takes 57.3 days from application to issuance, compared with 26.2 days for lower-discretion permits; the medians are 30 days and 6 days.
 Across ward-month cells, longer mean processing times for high-discretion permits are associated with \textit{lower} permit volume, while low-discretion processing times are weakly positively correlated with permit volume, suggesting that they reflect administrative capacity rather than regulatory friction.
 Figure~\ref{fig:permit_high_low_processing} shows these patterns.
-Appendix Table~\ref{tab:permit_summary_stats} reports the corresponding summary statistics, and Appendix Table~\ref{tab:permit_volume_correlation} reports the relationship between processing time and ward-month permit volume, which is actually negative for high-discretion permits but positive for low-discretion ones.
+\onlineappendixlink{Table C.3}{tab:permit_summary_stats} reports the corresponding summary statistics and the relationship between processing time and ward-month permit volume, which is actually negative for high-discretion permits but positive for low-discretion ones.
 
 \begin{figure}[htbp]
     \centering
@@ -178,7 +178,7 @@ The first stage regresses log processing time at the permit level on ward-level 
 \end{equation}
 %
 where $\gamma_{\text{ym}}$ are year-month fixed effects, $\delta_{\text{pt}}$ are permit-type fixed effects, and $\zeta_{\text{rt}}$ are review-type fixed effects.
-Table~\ref{tab:stage1_residualization} in the Appendix reports the coefficients on the first stage controls.
+\onlineappendixlink{Table B.1}{tab:stage1_residualization} reports the coefficients on the first-stage controls.
 
 The second stage averages the adjusted processing times by ward and month, then regresses those averages on alderman indicators and the same lagged ward-month permit-volume control.
 Ward-months are weighted by the number of permits observed:
@@ -191,9 +191,9 @@ Here $a(w,m)$ denotes the alderman serving ward $w$ in month $m$.
 The raw alderman fixed effects $\hat{\alpha}_a$ can be noisy for aldermen with few permits.
 I therefore apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to pull imprecise estimates toward the grand mean, then standardize the final scores to have mean zero and unit standard deviation.
 
-Appendix Figure~\ref{fig:predecessor_successor_stringency} shows that the correlation between predecessor and successor aldermen within the same ward is relatively low ($\rho \approx 0.16$), supporting the interpretation that the index captures an alderman-specific component of the development process rather than ward characteristics.
+\onlineappendixlink{Figure B.1}{fig:stringency_diagnostics} shows that the correlation between predecessor and successor aldermen within the same ward is relatively low ($\rho \approx 0.16$), supporting the interpretation that the index captures an alderman-specific component of the development process rather than ward characteristics.
 
-Appendix Figure~\ref{fig:aldermanic_stringency_scores} shows the distribution of the final stringency scores, and Appendix Figure~\ref{fig:alderman_stringency_map} maps them in 2014 and 2022.
+\onlineappendixlink{Figure B.1}{fig:stringency_diagnostics} shows the distribution of the final stringency scores and maps them in 2014 and 2022.
 The scores vary across wealthy and poor neighborhoods and across the North and South Sides, rather than following a simple geographic pattern.
 
 \subsection{New Construction Data}
@@ -209,7 +209,7 @@ I therefore assign each project in the boundary samples to the broad zoning grou
 I reconstruct the zoning history from official City zoning maps from 2012, 2014, and 2016 and passed map amendments dating back to 2006.
 Annual Cook County parcel maps allow me to follow sites whose parcel identifiers changed over time, and I retain planned developments as a separate zoning group.
 The reconstruction covers every project used in the main and placebo boundary analyses and reproduces the classifications observed in later official zoning maps.
-Appendix~\ref{subsec:new_construction_sample} provides additional detail.
+\onlineappendixlink{A.4}{subsec:new_construction_sample} provides additional detail.
 
 For each project I compute two standard density measures: Floor Area Ratio (FAR), defined as total building area divided by lot area, and Dwelling Units Per Acre (DUPAC), defined as dwelling units divided by lot acreage.
 Distance to the nearest ward boundary is computed after projecting project locations and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
@@ -240,4 +240,4 @@ Each transaction is geocoded by its full 14-digit PIN and assigned to the releva
 Property-level hedonic controls such as building area, land area, building age, bedrooms, bathrooms, and garage come from the same-tax-year assessor record.
 The amenity controls are distances to the nearest school, Chicago Park District park-boundary polygon, major street, distance to the nearest CTA stop, and distance to Lake Michigan.
 
-For both the rental and home sales data, more detail on the data construction process can be found in Appendix~\ref{app:data_sources}.
+For both the rental and home sales data, more detail on the data construction process can be found in \onlineappendixlink{A}{app:data_sources}.

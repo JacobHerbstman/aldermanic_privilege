@@ -7,9 +7,9 @@ the alderman scores are estimated using data through 2014, the sample is
 limited to 500 feet from a ward boundary, and standard errors are clustered by
 ward pair.
 
-Pre-redistricting permit volume is allowed to have a different coefficient in
-each year. A single post-redistricting adjustment is included for blocks with
-no permits before the remap.
+The sample requires at least one high-discretion permit during the five years
+before redistricting. The regressions include block fixed effects and ward-pair
+by year fixed effects.
 
 Produces:
 - `output/permit_event_study_high_discretion_stable_signed_500ft.pdf`

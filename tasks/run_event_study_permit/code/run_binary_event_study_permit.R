@@ -94,9 +94,6 @@ pre_period_controls <- data |>
       na.rm = TRUE
     ),
     .by = block_id
-  ) |>
-  dplyr::mutate(
-    no_pre_period_permits = as.integer(pre_period_permit_volume == 0)
   )
 
 if (anyDuplicated(pre_period_controls$block_id)) {
@@ -108,7 +105,8 @@ data <- data |>
     pre_period_controls,
     by = "block_id",
     relationship = "many-to-one"
-  )
+  ) |>
+  dplyr::filter(pre_period_permit_volume > 0)
 
 event_times <- -5L:5L
 pre_periods <- -5L:-2L
@@ -116,9 +114,7 @@ pre_periods <- -5L:-2L
 if (direction_rule == "signed") {
   event_model <- fixest::fepois(
     outcome ~
-      i(relative_year, signed_direction, ref = -1) +
-      pre_period_permit_volume:factor(year) +
-      post:no_pre_period_permits |
+      i(relative_year, signed_direction, ref = -1) |
       block_id + ward_pair_id^year,
     data = data,
     cluster = ~ward_pair_id,
@@ -128,10 +124,7 @@ if (direction_rule == "signed") {
   pooled_data <- data |>
     dplyr::mutate(post_treatment = post * signed_direction)
   pooled_model <- fixest::fepois(
-    outcome ~
-      post_treatment +
-      pre_period_permit_volume:factor(year) +
-      post:no_pre_period_permits |
+    outcome ~ post_treatment |
       block_id + ward_pair_id^year,
     data = pooled_data,
     cluster = ~ward_pair_id,
@@ -176,9 +169,7 @@ if (direction_rule == "signed") {
   event_model <- fixest::fepois(
     outcome ~
       i(relative_year, stricter, ref = -1) +
-      i(relative_year, lenient, ref = -1) +
-      pre_period_permit_volume:factor(year) +
-      post:no_pre_period_permits |
+      i(relative_year, lenient, ref = -1) |
       block_id + ward_pair_id^year,
     data = data,
     cluster = ~ward_pair_id,
@@ -193,9 +184,7 @@ if (direction_rule == "signed") {
   pooled_model <- fixest::fepois(
     outcome ~
       post_stricter +
-      post_lenient +
-      pre_period_permit_volume:factor(year) +
-      post:no_pre_period_permits |
+      post_lenient |
       block_id + ward_pair_id^year,
     data = pooled_data,
     cluster = ~ward_pair_id,
@@ -207,36 +196,34 @@ if (direction_rule == "signed") {
   event_df <- fixest::degrees_freedom(event_model, type = "t")
   critical_value <- stats::qt(0.975, df = event_df)
 
-  event_rows <- lapply(event_times, function(event_time) {
-    if (event_time == -1L) {
-      return(tibble::tibble(event_time, estimate_log = 0, se = 0))
+  event_results <- lapply(
+    c("stricter", "lenient"),
+    function(direction) {
+      dplyr::bind_rows(lapply(event_times, function(event_time) {
+        if (event_time == -1L) {
+          return(tibble::tibble(
+            direction,
+            event_time,
+            estimate_log = 0,
+            se = 0
+          ))
+        }
+        coefficient_name <- paste0(
+          "relative_year::",
+          event_time,
+          ":",
+          direction
+        )
+        tibble::tibble(
+          direction,
+          event_time,
+          estimate_log = unname(event_coefficients[coefficient_name]),
+          se = sqrt(event_vcov[coefficient_name, coefficient_name])
+        )
+      }))
     }
-    stricter_name <- paste0(
-      "relative_year::",
-      event_time,
-      ":stricter"
-    )
-    lenient_name <- paste0(
-      "relative_year::",
-      event_time,
-      ":lenient"
-    )
-    estimate_log <- (
-      event_coefficients[stricter_name] -
-        event_coefficients[lenient_name]
-    ) / 2
-    variance <- (
-      event_vcov[stricter_name, stricter_name] +
-        event_vcov[lenient_name, lenient_name] -
-        2 * event_vcov[stricter_name, lenient_name]
-    ) / 4
-    tibble::tibble(
-      event_time,
-      estimate_log = unname(estimate_log),
-      se = sqrt(variance)
-    )
-  })
-  event_results <- dplyr::bind_rows(event_rows)
+  ) |>
+    dplyr::bind_rows()
 
   pretrend_matrix <- matrix(
     0,
@@ -287,8 +274,18 @@ if (direction_rule == "signed") {
     (
       pooled_vcov["post_stricter", "post_stricter"] +
         pooled_vcov["post_lenient", "post_lenient"] -
-        2 * pooled_vcov["post_stricter", "post_lenient"]
+      2 * pooled_vcov["post_stricter", "post_lenient"]
     ) / 4
+  )
+  direction_pooled_results <- tibble::tibble(
+    direction = c("stricter", "lenient"),
+    estimate = unname(
+      pooled_coefficients[c("post_stricter", "post_lenient")]
+    ),
+    se = sqrt(diag(
+      pooled_vcov[c("post_stricter", "post_lenient"),
+                  c("post_stricter", "post_lenient")]
+    ))
   )
 }
 
@@ -316,50 +313,150 @@ outcome_label <- dplyr::if_else(
   "High-discretion permits by application year",
   "Low-discretion permits (excluding signs) by application year"
 )
-plot <- ggplot2::ggplot(
-  event_results,
-  ggplot2::aes(event_time, estimate)
-) +
-  ggplot2::geom_hline(
-    yintercept = 0,
-    color = "gray50",
-    linewidth = 0.4
+
+if (direction_rule == "signed") {
+  plot_title <- if (
+    outcome_family == "high_discretion" &&
+      sample_rule == "stable"
+  ) {
+    "Panel A: Combined estimate"
+  } else {
+    outcome_label
+  }
+  plot <- ggplot2::ggplot(
+    event_results,
+    ggplot2::aes(event_time, estimate)
   ) +
-  ggplot2::geom_vline(
-    xintercept = -0.5,
-    linetype = "dashed",
-    color = "gray60",
-    linewidth = 0.4
-  ) +
-  ggplot2::geom_ribbon(
-    ggplot2::aes(ymin = ci_low, ymax = ci_high),
-    fill = "#176B58",
-    alpha = 0.18
-  ) +
-  ggplot2::geom_line(color = "#176B58", linewidth = 0.85) +
-  ggplot2::geom_point(color = "#176B58", size = 2) +
-  ggplot2::scale_x_continuous(breaks = event_times) +
-  ggplot2::labs(
-    title = outcome_label,
-    subtitle = sprintf(
-      "Pooled estimate = %.3f%s (SE %.3f)",
-      pooled_estimate,
-      pooled_stars,
-      pooled_se
-    ),
-    x = "Years relative to the 2015 ward remap",
-    y = "Effect of assignment toward greater stringency"
-  ) +
-  ggplot2::theme_minimal(base_size = 11) +
-  ggplot2::theme(
-    panel.grid.minor = ggplot2::element_blank(),
-    panel.grid.major.x = ggplot2::element_blank(),
-    plot.title = ggplot2::element_text(face = "bold"),
-    axis.title.x = ggplot2::element_text(
-      hjust = 0.5,
-      margin = ggplot2::margin(t = 8)
+    ggplot2::geom_hline(
+      yintercept = 0,
+      color = "gray50",
+      linewidth = 0.4
+    ) +
+    ggplot2::geom_vline(
+      xintercept = -0.5,
+      linetype = "dashed",
+      color = "gray60",
+      linewidth = 0.4
+    ) +
+    ggplot2::geom_ribbon(
+      ggplot2::aes(ymin = ci_low, ymax = ci_high),
+      fill = "#176B58",
+      alpha = 0.18
+    ) +
+    ggplot2::geom_line(color = "#176B58", linewidth = 0.85) +
+    ggplot2::geom_point(color = "#176B58", size = 2) +
+    ggplot2::scale_x_continuous(breaks = event_times) +
+    ggplot2::labs(
+      title = plot_title,
+      subtitle = sprintf(
+        "Pooled estimate = %.3f%s (SE %.3f)",
+        pooled_estimate,
+        pooled_stars,
+        pooled_se
+      ),
+      x = "Years relative to the 2015 ward remap",
+      y = "Effect of assignment toward greater stringency"
+    ) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major.x = ggplot2::element_blank(),
+      plot.title = ggplot2::element_text(face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 15, face = "bold"),
+      axis.title.x = ggplot2::element_text(
+        hjust = 0.5,
+        margin = ggplot2::margin(t = 8)
+      )
     )
+  plot_width <- 7.6
+  plot_height <- 5.5
+} else {
+  direction_pooled_results <- direction_pooled_results |>
+    dplyr::mutate(
+      p_value = 2 * stats::pt(-abs(estimate / se), df = pooled_df),
+      stars = dplyr::case_when(
+        p_value <= 0.01 ~ "***",
+        p_value <= 0.05 ~ "**",
+        p_value <= 0.10 ~ "*",
+        TRUE ~ ""
+      )
+    )
+  direction_labels <- tibble::tribble(
+    ~direction, ~title, ~color, ~fill,
+    "stricter", "Panel B: Assigned toward more stringent",
+    "#A23B32", "#E8BDB8",
+    "lenient", "Panel C: Assigned toward more lenient",
+    "#176B58", "#B8D8CF"
   )
+  direction_limits <- range(
+    c(event_results$ci_low, event_results$ci_high),
+    finite = TRUE
+  )
+  direction_plots <- lapply(
+    seq_len(nrow(direction_labels)),
+    function(i) {
+      direction_i <- direction_labels$direction[i]
+      pooled_i <- direction_pooled_results |>
+        dplyr::filter(direction == direction_i)
+      ggplot2::ggplot(
+        event_results |>
+          dplyr::filter(direction == direction_i),
+        ggplot2::aes(event_time, estimate)
+      ) +
+        ggplot2::geom_hline(
+          yintercept = 0,
+          color = "gray50",
+          linewidth = 0.4
+        ) +
+        ggplot2::geom_vline(
+          xintercept = -0.5,
+          linetype = "dashed",
+          color = "gray60",
+          linewidth = 0.4
+        ) +
+        ggplot2::geom_ribbon(
+          ggplot2::aes(ymin = ci_low, ymax = ci_high),
+          fill = direction_labels$fill[i],
+          alpha = 0.45
+        ) +
+        ggplot2::geom_line(
+          color = direction_labels$color[i],
+          linewidth = 0.85
+        ) +
+        ggplot2::geom_point(
+          color = direction_labels$color[i],
+          size = 2
+        ) +
+        ggplot2::scale_x_continuous(breaks = event_times) +
+        ggplot2::coord_cartesian(ylim = direction_limits) +
+        ggplot2::labs(
+          title = direction_labels$title[i],
+          subtitle = sprintf(
+            "Pooled estimate = %.3f%s (SE %.3f)",
+            pooled_i$estimate,
+            pooled_i$stars,
+            pooled_i$se
+          ),
+          x = "Years relative to the 2015 ward remap",
+          y = "Effect relative to unchanged blocks"
+        ) +
+        ggplot2::theme_minimal(base_size = 10.5) +
+        ggplot2::theme(
+          panel.grid.minor = ggplot2::element_blank(),
+          panel.grid.major.x = ggplot2::element_blank(),
+          plot.title = ggplot2::element_text(face = "bold"),
+          plot.subtitle = ggplot2::element_text(size = 14.5, face = "bold"),
+          axis.title.x = ggplot2::element_text(
+            hjust = 0.5,
+            margin = ggplot2::margin(t = 8)
+          )
+        )
+    }
+  )
+  plot <- direction_plots[[1]] + direction_plots[[2]]
+  plot_width <- 11.2
+  plot_height <- 4.3
+}
 
 ggplot2::ggsave(
   sprintf(
@@ -370,7 +467,7 @@ ggplot2::ggsave(
     bandwidth_label
   ),
   plot,
-  width = 7.6,
-  height = 5.5,
+  width = plot_width,
+  height = plot_height,
   bg = "white"
 )

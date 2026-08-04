@@ -143,7 +143,10 @@ turnover_plot <- ggplot2::ggplot(
   ) +
   ggplot2::coord_fixed() +
   ggplot2::theme_minimal(base_size = 11) +
-  ggplot2::theme(panel.grid.minor = ggplot2::element_blank())
+  ggplot2::theme(
+    panel.grid.minor = ggplot2::element_blank(),
+    plot.subtitle = ggplot2::element_text(size = 14, face = "bold")
+  )
 
 ggplot2::ggsave(
   sprintf(

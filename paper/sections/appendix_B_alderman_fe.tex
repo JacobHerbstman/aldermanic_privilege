@@ -32,6 +32,14 @@ Table~\ref{tab:stage1_residualization} reports the first regression used to cons
 The dependent variable is permit-level log processing time.
 The specification controls for observed differences across wards and permit locations, as well as the mix of permit and review types.
 The purpose of this stage is to remove systematic differences in permit timing attributable to those observed characteristics before estimating the alderman-specific component.
+Panel B of Figure~\ref{fig:stringency_diagnostics} shows the distribution of the final stringency scores.
+
+\subsection{Validation of the Stringency Index}
+\label{app:stringency_validation}
+
+The stringency index is intended to capture alderman-specific regulatory frictions rather than purely ward-level conditions.
+Panel C of Figure~\ref{fig:stringency_diagnostics} compares predecessor and successor aldermen within the same ward.
+The weak relationship indicates that the index is not simply reflecting time-invariant ward characteristics.
 
 \begin{table}[htbp]
     \caption{First-Stage Processing-Time Regression}
@@ -46,39 +54,27 @@ The purpose of this stage is to remove systematic differences in permit timing a
     Standard errors clustered by ward in parentheses. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
 \end{table}
 
-\begin{figure}[htbp]
+\begin{figure}[p]
     \centering
-    \includegraphics[width=0.98\textwidth]{../tasks/strictness_score_map/output/uncertainty_score_map_comparison.pdf}
-    \caption{Geographic Distribution of Regulatory Stringency in 2014 and 2022}
-    \figurenotes{Both panels use the stringency scores estimated from permit records through December 2022.
-    Panel A maps the scores of aldermen serving in January 2014 onto the January 2014 wards; Panel B does the same for January 2022.
-    Both panels use the same color scale.
-    Darker shades indicate more stringent aldermen.}
+    \textbf{Panel A: Stringency maps in 2014 and 2022}\par
+    \includegraphics[width=0.72\textwidth]{../tasks/strictness_score_map/output/uncertainty_score_map_comparison.pdf}
+
+    \begin{minipage}[t]{0.43\textwidth}
+        \centering
+        \textbf{Panel B: Score distribution}\par
+        \includegraphics[width=\linewidth]{../tasks/strictness_score_map/output/uncertainty_score_distribution_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.43\textwidth}
+        \centering
+        \textbf{Panel C: Predecessors and successors}\par
+        \includegraphics[width=\linewidth]{../tasks/strictness_score_map/output/uncertainty_score_predecessor_successor_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf}
+    \end{minipage}
+    \caption{Geography, Distribution, and Within-Ward Persistence of Aldermanic Stringency}
+    \figurenotes{Stringency scores are constructed from residualized permit processing times through December 2022 with empirical Bayes shrinkage and standardized to mean zero and unit standard deviation.
+    Panel A maps the scores of aldermen serving in January 2014 and January 2022 onto the corresponding ward boundaries; both maps use the same color scale, with darker shades indicating more stringent aldermen.
+    Panel C compares each alderman's score with that of a predecessor or successor who represented the same ward in an adjacent period.}
+    \label{fig:stringency_diagnostics}
     \label{fig:alderman_stringency_map}
-\end{figure}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.72\textwidth]{../tasks/strictness_score_map/output/uncertainty_score_distribution_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf}
-    \caption{Distribution of Aldermanic Stringency Scores}
-\figurenotes{Stringency scores are constructed from residualized permit processing times through December 2022 with empirical Bayes shrinkage.
-Scores are standardized to mean zero and unit standard deviation.
-Higher values indicate aldermen associated with longer permit processing times after controlling for ward demographics, permit-location characteristics, permit and review types, and time.}
     \label{fig:aldermanic_stringency_scores}
-\end{figure}
-
-\subsection{Validation of the Stringency Index}
-\label{app:stringency_validation}
-
-The stringency index is intended to capture alderman-specific regulatory frictions rather than purely ward-level conditions.
-Figure~\ref{fig:predecessor_successor_stringency} compares predecessor and successor aldermen within the same ward.
-The weak relationship indicates that the index is not simply reflecting time-invariant ward characteristics.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.72\textwidth]{../tasks/strictness_score_map/output/uncertainty_score_predecessor_successor_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf}
-    \caption{Predecessor and Successor Aldermanic Stringency Within the Same Ward}
-    \figurenotes{Each point compares the stringency score of an alderman to that of the predecessor or successor who represented the same ward in an adjacent period.
-    The low correlation indicates that the stringency measure is not simply a persistent ward-level attribute.}
     \label{fig:predecessor_successor_stringency}
 \end{figure}

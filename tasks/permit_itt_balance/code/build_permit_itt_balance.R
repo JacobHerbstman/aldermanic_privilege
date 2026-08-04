@@ -59,19 +59,6 @@ if (!all(balance_sample$treated %in% c(0L, 1L))) {
   stop("Treatment must indicate whether a block switched wards.", call. = FALSE)
 }
 
-identifying_pairs <- balance_sample %>%
-  group_by(ward_pair_id) %>%
-  summarise(treatment_groups = n_distinct(treated), .groups = "drop") %>%
-  filter(treatment_groups == 2L) %>%
-  select(ward_pair_id)
-
-if (anyDuplicated(identifying_pairs$ward_pair_id) > 0) {
-  stop("Identifying ward pairs must be unique.", call. = FALSE)
-}
-
-balance_sample <- balance_sample %>%
-  semi_join(identifying_pairs, by = "ward_pair_id")
-
 pre_period <- panel %>%
   transmute(
     block_id = as.character(block_id),
@@ -101,7 +88,6 @@ pre_period <- pre_period %>%
   group_by(block_id) %>%
   summarise(
     pre_high_discretion_applications = sum(n_high_discretion_application),
-    no_pre_high_discretion_applications = as.integer(pre_high_discretion_applications == 0),
     pre_low_discretion_applications = sum(n_low_discretion_nosigns_application),
     no_pre_low_discretion_applications = as.integer(pre_low_discretion_applications == 0),
     pre_new_construction_applications = sum(n_new_construction_application),
@@ -142,12 +128,25 @@ if (anyDuplicated(block_group_controls$block_group_id) > 0) {
 
 balance_sample <- balance_sample %>%
   left_join(pre_period, by = "block_id", relationship = "one-to-one") %>%
+  filter(pre_high_discretion_applications > 0)
+
+identifying_pairs <- balance_sample %>%
+  group_by(ward_pair_id) %>%
+  summarise(treatment_groups = n_distinct(treated), .groups = "drop") %>%
+  filter(treatment_groups == 2L) %>%
+  select(ward_pair_id)
+
+if (anyDuplicated(identifying_pairs$ward_pair_id) > 0) {
+  stop("Identifying ward pairs must be unique.", call. = FALSE)
+}
+
+balance_sample <- balance_sample %>%
+  semi_join(identifying_pairs, by = "ward_pair_id") %>%
   left_join(block_group_controls, by = "block_group_id", relationship = "many-to-one")
 
 covariates <- tribble(
   ~section, ~variable, ~label, ~format,
   "Permit history", "pre_high_discretion_applications", "High-discretion permits, 2010--2014", "decimal",
-  "Permit history", "no_pre_high_discretion_applications", "No high-discretion permit, 2010--2014", "decimal",
   "Permit history", "pre_low_discretion_applications", "Low-discretion permits, 2010--2014", "decimal",
   "Permit history", "no_pre_low_discretion_applications", "No low-discretion permit, 2010--2014", "decimal",
   "Permit history", "pre_new_construction_applications", "New-construction permits, 2010--2014", "decimal",
@@ -279,8 +278,10 @@ lines <- c(
       "\\begin{minipage}{0.98\\textwidth}\\footnotesize ",
       "\\textit{Notes:} Treated blocks were reassigned to a different ward by the 2015 ward map; control blocks remained in their original ward. ",
       "The sample requires the 2014 origin- and destination-ward incumbents to remain in office when the new map took effect. ",
+      "It also requires at least one high-discretion permit during 2010--2014. ",
       "The sample contains %s treated and %s control blocks within %s of a ward boundary in %s ward pairs containing both groups and is constructed before estimation. ",
-      "The event-study samples are smaller because PPML drops blocks and ward-pair-year cells with no permits for the outcome being studied. ",
+      "The event study can also compare blocks reassigned in opposite directions and therefore includes additional blocks. ",
+      "PPML drops blocks and ward-pair-year cells with no permits for the outcome being studied. ",
       "Permits are grouped by application year. Neighborhood characteristics are 2014 ACS five-year block-group estimates. ",
       "Difference is the coefficient on the treated indicator from a regression with ward-pair fixed effects; standard errors are clustered by ward pair. ",
       "Means are unadjusted block-level means. The joint-test p-value for all listed covariates is %.3f ",

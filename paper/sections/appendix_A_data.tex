@@ -1,185 +1,107 @@
-% !TEX root = ../paper.tex
+% !TEX root = ../online_appendix.tex
 
 \section{Data and Sample Construction}
 \label{app:data_sources}
 \label{sec:appendix_data}
 
-This appendix documents the data sources and sample construction procedures used in the analysis.
+This appendix provides additional detail on the data sources and sample rules described in Section~\ref{sec:data}.
 
 \subsection{Data Sources}
 
-The analysis draws on the following administrative and proprietary datasets:
+The property data come from Cook County Assessor sales, assessment, parcel, and improvement files.
+RentHub provides rental listings from 2014--2022.
+Building permits and ward boundaries come from the City of Chicago.
+The amenity controls use school locations, Chicago Park District boundaries, major streets, CTA stops, and Lake Michigan geometry; CTA distances use the permanent station network in place during the listing month or on the sale date.
 
-\paragraph{Cook County Assessor Data.}
-Sales records, property assessments, and improvement characteristics for residential parcels in Cook County.
+Demographic controls come from American Community Survey block groups and 2010 and 2020 census blocks.
+I allocate population, households, tenure, race, ethnicity, and education counts to wards according to the share of each block group's area falling within the relevant ward boundaries.
+Ward shares use those allocated counts, while ward median household income is the household-weighted mean of block group medians.
+When historical ward polygons overlap slightly, I scale the intersections to the block group's area inside the union of Chicago wards so no area is counted twice.
 
-\paragraph{RentHub Listings.}
-RentHub rental listings for Illinois from 2014--2022, restricted to Chicago using the ward assignment procedure described below.
-
-\paragraph{Chicago Building Permits.}
-Permit records and processing times for project types where aldermen are most likely to matter.
-
-\paragraph{Ward Boundary Shapefiles.}
-Official ward boundaries for the two eras used in the paper: pre-2015 and 2015--2023.
-
-\paragraph{Amenity Data.}
-School locations, Chicago Park District park-boundary polygons, City of Chicago major streets, CTA stops, and Lake Michigan geometry used to construct distance controls for the rent and sales RDs.
-CTA distances use the permanent station network in place during the listing month or on the sale date.
-
-\paragraph{Census Data.}
-American Community Survey block group demographics and 2010/2020 decennial census block boundaries.
-I construct ward-level demographic controls by overlaying block groups with the ward boundaries in effect in each year.
-Population, household, tenure, race, ethnicity, and education counts are allocated to wards in proportion to each block group's area in the ward, and ward shares are calculated from those allocated counts.
-Ward median household income is the household-weighted mean of block group medians using the same allocation.
-Where historical ward polygons overlap slightly, I scale the ward-specific intersections to the block group's area inside the union of Chicago wards so that no area is counted twice.
-
-\subsection{High-Discretion Permits: Sample Construction}
+\subsection{High-Discretion Permits}
 \label{subsec:permits_sample}
 
-The building permits data come from the City of Chicago's open data portal and contain permits recorded by the Department of Buildings since 2006.
+The permit records cover Department of Buildings permits since 2006.
+The high-discretion group contains the permit types defined in Section~\ref{subsec:permit_pipeline}; low-discretion placebo permits are the remaining routine types, excluding signs.
+The event-study outcomes omit records marked cancelled, revoked, or suspended.
 
-\paragraph{Sample Restrictions.}
-I construct the high-discretion sample using the permit types defined in Section~\ref{subsec:permit_pipeline}.
+Processing time is the number of days between application and issuance.
+The processing-time regression excludes missing dates, negative durations, and same-day permits; same-day permits remain in the lagged ward-month permit count.
+I assign each permit to the ward containing its coordinates under the boundaries in force on its application date.
 
-All remaining permit types are excluded from the high-discretion sample.
-In placebo analyses, low-discretion permits are the remaining routine permit types, excluding signs.
-The event-study outcomes retain observed permit records except those marked cancelled, revoked, or suspended.
-
-\paragraph{Processing Time.}
-For each permit, I compute processing time as the number of days between the application date and the issue date.
-Permits with missing dates or negative processing times are excluded.
-Same-day permits enter the lagged permit-volume control but not the log processing-time regression.
-
-\paragraph{Ward Assignment.}
-Permits are assigned to wards based on the permit's geographic coordinates and the ward boundaries in effect at the time of application.
-
-\subsection{Permit Event-Study Panel Construction}
+\subsection{Permit Event-Study Panel}
 \label{subsec:event_study_panel}
 
-For the permit event study, I construct a block-level treatment panel around the 2015 redistricting.
-
-\paragraph{Treatment Assignment.}
-Blocks are classified as treated if they were redistricted from one ward to another.
-In the 2015 cohort, I compare ward assignments under the pre-2015 map (2014 boundaries) to post-2015 boundaries.
-Census blocks are assigned to wards by largest-area overlap after projecting blocks and wards to EPSG:3435.
-
-\paragraph{Predetermined Stringency.}
-Treatment assignment is based on the difference between the destination and origin aldermen's baseline stringency scores.
-For this design only, I re-estimate the stringency scores using permits filed from 2006 through 2014, before the redistricting took effect.
-Origin and destination aldermen are assigned using the 2014 pre-redistricting ward-to-alderman mapping.
-The change in stringency for block $i$ is
+The treatment panel compares each census block's ward under the pre-2015 and post-2015 maps.
+Blocks are projected to EPSG:3435 and assigned by largest-area overlap.
+Blocks moved to a different ward are classified using the difference between the destination and origin aldermen's stringency scores:
 \[
 \Delta\text{Stringency}_i = \text{Stringency}_{\text{dest}} - \text{Stringency}_{\text{origin}}.
 \]
-Blocks with a positive difference are classified as assigned toward greater stringency, blocks with a negative difference as assigned toward greater leniency, and blocks that remain in the same ward form the comparison group.
+Positive values indicate assignment toward greater stringency, negative values indicate assignment toward greater leniency, and unchanged blocks form the comparison group.
 
-\paragraph{Aldermanic Turnover.}
-For each block, I measure the change in stringency using the 2014 incumbents in its origin and destination wards.
-The main sample retains blocks only when both incumbents remained in office when the new map took effect.
-The assigned change therefore matches the change the block actually experienced without defining treatment using the outcome of the 2015 election.
-Appendix~\ref{sec:appendix_permit_assigned} includes blocks from wards with electoral turnover and interprets the resulting estimate as the effect of assigned stringency.
+For this design, stringency scores use permits filed from 2006 through 2014.
+Both origin and destination scores are assigned using the incumbents serving in 2014.
+The main sample retains blocks only when both incumbents remained in office when the new map took effect, so treatment matches the change the block experienced without using the outcome of the 2015 election.
+Online Appendix C.4 adds wards with electoral turnover and interprets the resulting estimate as assigned rather than necessarily realized stringency.
 
-\paragraph{Analysis Sample.}
-Permits are aggregated to block-year panels using application year.
-The event study uses the 2015 implementation cohort with relative years $-5$ through $5$.
-The 500ft sample restriction is based on the distance from each census block polygon's centroid to the cohort's pre-redistricting boundary geometry.
-Controls use the nearest incident pre-redistricting ward boundary, while treated blocks use the fixed origin-destination ward boundary created by redistricting.
-The regressions allow each block's total permit volume in years $-5$ through $-1$ to have a different coefficient in each calendar year.
-They also include one interaction between the post-redistricting period and an indicator for having no permits in years $-5$ through $-1$.
+Permits are aggregated by block and application year for relative years $-5$ through $5$.
+The sample includes blocks whose polygon centroid is within 500ft of a pre-redistricting boundary.
+Treated blocks use the fixed origin-destination boundary created by redistricting; comparison blocks use their nearest incident pre-redistricting boundary.
+The estimation sample requires at least one high-discretion permit during years $-5$ through $-1$.
 
-\subsection{New Construction: Sample Construction}
+\subsection{New Construction}
 \label{subsec:new_construction_sample}
 
-The new-construction sample combines residential improvement records and commercial valuation records from the Cook County Assessor.
-The same project can appear more than once when a parcel is divided, receives a new PIN, or appears in both Assessor files.
-I link these records so that each construction project enters the sample once.
-I then compare the sample with every issued residential new-construction permit.
-This comparison adds completed projects missing from the Assessor records and identifies permits for which units, building area, and lot area cannot be measured consistently.
+The construction sample combines Cook County residential improvement records with commercial valuation records for properties assessed under multifamily model groups.
+I link records across parcel divisions, replacement PINs, and the two Assessor sources so that each project enters once.
+I then compare the resulting sample with every issued residential new-construction permit, adding completed projects absent from the Assessor files when units, building area, and lot area can be measured consistently.
 
-\paragraph{Sample Restrictions.}
-I apply the following restrictions: (1) lot area is positive; (2) building area is positive; (3) at least one dwelling unit; and (4) construction year falls between 2006 and 2022.
-These restrictions exclude vacant parcels, data errors, and buildings completed outside 2006--2022.
-Projects with a completed permit but no defensible combination of whole-building units, building area, and lot area are not added because their density outcomes would not be comparable to the Assessor-based measures.
+Projects must have positive lot area, positive building area, at least one dwelling unit, and a construction year from 2006 through 2022.
+Assessor histories sometimes report different years or repeat whole-building characteristics across assessment cards.
+I use permit and completion dates to select the year that best matches completion, combine cards that clearly describe one building, and remove later PINs representing the same project.
+For 52 projects citywide, including 26 within 500ft of a ward boundary, the administrative records do not fully resolve the case; the replication files include a spreadsheet recording each decision.
 
-\paragraph{Construction Year.}
-Assessor records sometimes report different construction years for the same project.
-When they do, I use permit and completion dates to choose the year that best matches when the building was completed.
-Properties with multiple assessment cards can also repeat the same whole-building characteristics.
-I combine cards when they clearly describe one building and do not count later PINs that represent the same construction a second time.
-For 52 projects citywide, including 26 within 500ft of a ward boundary, these rules do not fully resolve the record.
-I record the decision for each project in a hard-coded spreadsheet included with the replication files.
+Locations first come from the Historical Parcel Universe in the construction year.
+When the original PIN is unavailable there, I use the current location of that PIN or a verified historical address.
+Each project retains one location, preventing predecessor and successor PINs from entering separately.
+Multifamily status primarily follows Assessor property class.
+When the reported unit count does not plausibly describe the whole building, permit descriptions and other property records determine the whole-building count, with the remaining decisions recorded in the same spreadsheet.
 
-\paragraph{Geocoding.}
-I first locate each original PIN using the Historical Parcel Universe for the construction year.
-When those records have no matching parcel, I use the current location of the same PIN or a verified historical address.
-I keep one location for each project so that old and new PINs for the same site are not counted separately.
+Each project receives the broad zoning group in force on June 15 of its construction year.
+The zoning history combines archived City maps and passed map amendments and uses historical parcel boundaries to follow PIN changes.
+FAR is total building area divided by lot area; DUPAC is dwelling units divided by lot acreage.
+Projects are assigned to the ward map and alderman in office on June 15 of the reported construction year because the Assessor does not provide an exact completion date.
+All ward assignment and distance calculations use EPSG:3435, with distance reported in feet.
 
-\paragraph{Multifamily Classification.}
-I primarily use the Assessor's property class to distinguish multifamily projects from collections of single-family buildings.
-When the reported unit count does not plausibly describe the whole building, I use permit descriptions and other property records to recover it.
-A small hard-coded spreadsheet records the remaining case-by-case classifications.
+\subsection{New-Construction Summary Statistics}
 
-\paragraph{Zoning.}
-I assign each project the broad zoning group in force on June 15 of its construction year.
-The zoning history combines archived City zoning maps with passed map amendments and uses historical parcel boundaries to follow PIN changes over time.
+Table~\ref{tab:summary_stats} describes the 3,692 projects within 500ft used in both main density regressions, including 822 multifamily projects.
 
-\paragraph{Density Measures.}
-For each project, I compute two density measures: Floor Area Ratio (FAR), defined as total building area divided by lot area; and Dwelling Units Per Acre (DUPAC), defined as the number of dwelling units divided by lot acreage.
-
-\paragraph{Ward and Boundary Assignment.}
-Each project is assigned to a ward based on its location and the ward boundaries in effect at the time of construction.
-Because the Assessor reports only the year built, I assign June 15 of that year as the construction date and use the ward map and alderman in office on that date.
-Distance to the nearest ward boundary is computed after projecting parcels and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
-
-\subsection{Summary Statistics: New Construction Sample}
-
-Table~\ref{tab:summary_stats} presents summary statistics for the projects within 500ft used in both the main FAR and DUPAC regressions.
-The sample contains 3,692 projects, including 822 classified as multifamily.
-Column (1) reports all new construction and Column (2) reports the multifamily sample.
-
-\subsection{Home Sales: Sample Construction}
+\subsection{Home Sales}
 \label{subsec:sales_sample}
 
-The home sales data come from the Cook County Assessor's Office and include all residential property transactions in Chicago from 1999--2022.
+The sales sample covers Chicago transactions from 1999--2022, with the analysis restricted to 2006--2022.
+It includes residential classes 202--211 but excludes mixed-use properties and condominiums.
+Sales must exceed \$10,000, use a warranty or trustee deed, include recorded and non-identical seller and buyer names, and involve a single parcel; land-only transactions are excluded.
+Prices are deflated to 2022 dollars using the monthly Chicago CPI-U and winsorized at the 1st and 99th percentiles of the analysis sample.
 
-\paragraph{Sample Restrictions.}
-I apply the following restrictions to construct the analysis sample: (1) residential property classes only, including single-family homes (classes 202--210) and small multifamily buildings with 2--6 units (class 211), excluding mixed-use properties (class 212) and condominiums (classes 299, 399); (2) sale price exceeds \$10,000 to exclude nominal transfers and gifts; (3) market transactions only, defined as warranty or trustee deeds; (4) excludes land-only sales; (5) seller and buyer names are recorded and non-identical; and (6) single-parcel transactions only.
+I geocode each sale by matching its full PIN to the Historical Parcel Universe in the sale year, falling back to the 2025 location of the same PIN when necessary.
+Ward and alderman assignments use the exact sale date: transactions before May 18, 2015 use the old map, and those on or after that date use the new map.
+Signed distances are calculated in EPSG:3435 and oriented by relative aldermanic stringency.
 
-\paragraph{Price Winsorization.}
-Sale prices are first deflated to 2022 dollars using the monthly Chicago CPI-U all-items series and then winsorized at the 1st and 99th percentiles of the 2006--2022 analysis sample to limit the influence of outliers on mean calculations.
-
-\paragraph{Geocoding.}
-Each sale is geocoded by matching its full 14-digit property identification number (PIN) to the Cook County historical parcel universe in the sale year.
-If an exact sale-year coordinate is unavailable, I use the PIN's coordinate from the 2025 parcel universe.
-
-\paragraph{Ward Assignment.}
-Sales are assigned to wards and to the aldermen in office based on the exact sale date.
-For the paper's sample window, sales before May 18, 2015 use pre-2015 boundaries and sales on or after May 18, 2015 use the 2015 ward boundaries.
-
-\paragraph{Distance to Ward Boundary.}
-Distance calculations follow the same procedure as for new construction (Section~\ref{subsec:new_construction_sample}).
-I project the data to the Illinois East State Plane coordinate system (EPSG:3435) before computing signed distance based on relative aldermanic stringency.
-
-\subsection{RentHub Listings: Sample Construction}
+\subsection{RentHub Listings}
 \label{subsec:renthub_sample}
 
-The rental panel starts from scrape-level listing rows.
-I clean addresses and listing characteristics before constructing proxy identifiers.
-Address strings coded as zero, blank, NA, N/A, NULL, NONE, or UNKNOWN are treated as missing.
-Building types are recoded with townhouse and condo categories handled before broader house or commercial categories.
+The rental data begin as scrape-level listings.
+I standardize addresses and building types and treat zero, blank, NA, N/A, NULL, NONE, and UNKNOWN addresses as missing.
+Because the data do not identify units, a property proxy combines normalized address and rounded coordinates, using coordinates alone when address is missing.
+A floorplan proxy adds bedrooms, bathrooms, square feet, and building type.
+I collapse repeated scrapes to the median rent for each floorplan and scrape date and then to the median daily rent for each floorplan-month.
+Before monthly aggregation, rent and square footage are trimmed at the 1st and 99th percentiles within year-by-bedroom cells.
 
-Because the raw data do not identify true units, I use a transparent floorplan proxy.
-A property proxy combines normalized address and rounded coordinates; if address is missing, the proxy uses coordinates only and carries an address-missing flag.
-A floorplan proxy adds beds, baths, square feet, and cleaned building type.
-I first collapse raw rows to floorplan-by-scrape-date observations using median rent, then collapse to one floorplan-month observation using the median daily rent observed in that month.
-This construction prevents daily scrape persistence from overweighting a listing while retaining multiple floorplans in large multifamily buildings.
-When multiple rents appear for the same floorplan proxy on the same scrape date, I retain the group and use the median rent, while carrying flags for unusually large within-day rent dispersion.
-Before aggregating to months, I trim rent and square footage at the 1st and 99th percentiles within year-by-bedroom cells.
-
-I keep observations with positive rent and valid coordinates that can be assigned to Chicago wards.
-Ward boundaries and aldermen are assigned using the listing's first observed date, with the May 2015 transition split at May 18.
-The main rent analysis further restricts the sample to listings with reliable geographic assignments.
-I exclude manually rejected locations, addresses with unstable coordinate clusters, and addressless listings concentrated at generic coordinates.
-I also exclude listings when the modal coordinate for the address would change the assigned ward, neighboring ward, or ward pair, or would change the measured distance to the boundary by more than 100ft.
-The regression requires nonmissing square footage, bathrooms, and amenity controls.
-Bedrooms enter as categorical controls, so studios remain in the sample.
+The sample requires positive rent, valid coordinates, and assignment to a Chicago ward.
+Ward and alderman assignments use the listing's first observed date and split May 2015 at May 18.
+The main analysis retains only reliable locations: it excludes manually rejected coordinates, unstable address clusters, addressless listings concentrated at generic coordinates, and cases where the address's modal coordinate changes the ward, neighboring ward, ward pair, or measured boundary distance by more than 100ft.
+Regressions also require square footage, bathrooms, and amenity controls.
+Bedrooms enter categorically, so studios remain in the sample.

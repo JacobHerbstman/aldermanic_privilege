@@ -6,7 +6,7 @@ The band immediately inside the less-stringent side is the reference group.
 
 Rental regressions use listings with reliable geographic assignments, housing
 characteristics, nearby amenities, boundary-segment-by-month fixed effects, and
-standard errors clustered by boundary segment. Sales regressions use the
+standard errors clustered by ward pair. Sales regressions use the
 corresponding property and amenity controls, boundary-segment-by-quarter fixed
 effects, and boundary-segment clustering.
 

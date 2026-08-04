@@ -418,7 +418,7 @@ estimate_bins <- function(
   model <- fixest::feols(
     formula,
     data = model_data,
-    cluster = ~segment_id,
+    cluster = ~ward_pair,
     warn = FALSE,
     notes = FALSE
   )
@@ -439,7 +439,7 @@ estimate_bins <- function(
     p_value = coefficient_table[coefficient_rows, "Pr(>|t|)"]
   )
 
-  cluster_count <- dplyr::n_distinct(model_data$segment_id)
+  cluster_count <- dplyr::n_distinct(model_data$ward_pair)
   critical_value <- stats::qt(0.975, df = cluster_count - 1L)
   results <- tibble::tibble(
     distance_bin = sprintf("bin_%02d", 1:10),
@@ -569,7 +569,7 @@ estimate_bins <- function(
     ggplot2::theme(
       legend.position = "bottom",
       plot.title = ggplot2::element_text(face = "bold", size = 11),
-      plot.subtitle = ggplot2::element_text(size = 9),
+      plot.subtitle = ggplot2::element_text(size = 14, face = "bold"),
       axis.title = ggplot2::element_text(size = 9),
       axis.text = ggplot2::element_text(size = 8),
       panel.grid.minor = ggplot2::element_blank()

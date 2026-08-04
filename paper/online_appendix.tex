@@ -1,0 +1,45 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{xr-hyper}
+\usepackage[hyperfootnotes=false]{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{threeparttable}
+\usepackage{enumitem}
+
+\externaldocument{paper}
+\doublespacing
+
+\newcommand{\figurenotes}[1]{\par\vspace{0.5em}\footnotesize\textit{Notes:} #1}
+
+\begin{document}
+
+\begin{center}
+{\Large Online Appendix to ``Regulatory Discretion and Housing Supply: \\
+Evidence from Chicago's Aldermanic Privilege''}
+
+\vspace{1em}
+Jacob Herbstman
+\end{center}
+
+\appendix
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+\numberwithin{equation}{section}
+
+\input{sections/appendix_A_data.tex}
+\input{sections/appendix_B_alderman_fe.tex}
+\clearpage
+\input{sections/appendix_C_permits.tex}
+\input{sections/appendix_D_density.tex}
+\clearpage
+\input{sections/appendix_E_price_rd.tex}
+
+\end{document}
