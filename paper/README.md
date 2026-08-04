@@ -22,5 +22,7 @@ Running `make` checks the task that creates each one before compiling:
 - `online_appendix.pdf`: the separately submitted online appendix
 - `working_paper.pdf`: the complete paper with figures, tables, appendices, and
   internal links in one document
+- `word_count.pdf`: pages 2--22 of the submission paper, containing only the
+  main text, equations, and notes required by the journal's word-count tool
 
 From the repository root, the equivalent command is simply `make`.

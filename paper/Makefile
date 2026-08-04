@@ -1,4 +1,4 @@
-all: paper.pdf online_appendix.pdf working_paper.pdf
+all: paper.pdf online_appendix.pdf working_paper.pdf word_count.pdf
 
 paper.pdf: Makefile paper.tex sections/intro.tex sections/data.tex sections/model.tex \
 	sections/empirics_results.tex sections/discussion.tex sections/conclusion.tex \
@@ -68,6 +68,8 @@ working_paper.pdf: Makefile working_paper.tex paper.tex sections/intro.tex \
 	../tasks/price_boundary_results/output/price_boundary_straight.pdf \
 	../tasks/price_boundary_results/output/price_boundary_donuts.pdf
 
+word_count.pdf: Makefile word_count.tex paper.pdf
+
 .SECONDEXPANSION:
 paper.pdf: | osm-check $$(addprefix task-check/,$$(patsubst ../tasks/%,%,$$(filter ../tasks/%,$$^)))
 	pdflatex -interaction=nonstopmode paper.tex
@@ -85,6 +87,9 @@ working_paper.pdf: | osm-check $$(addprefix task-check/,$$(patsubst ../tasks/%,%
 	pdflatex -interaction=nonstopmode working_paper.tex
 	pdflatex -interaction=nonstopmode working_paper.tex
 	pdflatex -interaction=nonstopmode working_paper.tex
+
+word_count.pdf:
+	pdflatex -interaction=nonstopmode word_count.tex
 
 osm-check:
 	@cd .. && shasum -a 256 -c data_raw/illinois-250919-free.sha256

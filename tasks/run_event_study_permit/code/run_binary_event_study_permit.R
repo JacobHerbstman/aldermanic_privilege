@@ -384,9 +384,9 @@ if (direction_rule == "signed") {
   direction_labels <- tibble::tribble(
     ~direction, ~title, ~color, ~fill,
     "stricter", "Panel B: Assigned toward more stringent",
-    "#A23B32", "#E8BDB8",
+    "#D92D27", "#D92D27",
     "lenient", "Panel C: Assigned toward more lenient",
-    "#176B58", "#B8D8CF"
+    "#2478B5", "#2478B5"
   )
   direction_limits <- range(
     c(event_results$ci_low, event_results$ci_high),
@@ -417,7 +417,7 @@ if (direction_rule == "signed") {
         ggplot2::geom_ribbon(
           ggplot2::aes(ymin = ci_low, ymax = ci_high),
           fill = direction_labels$fill[i],
-          alpha = 0.45
+          alpha = 0.16
         ) +
         ggplot2::geom_line(
           color = direction_labels$color[i],
