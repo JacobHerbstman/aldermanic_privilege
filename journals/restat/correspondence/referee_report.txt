@@ -1,0 +1,10 @@
+My first take on the paper is that it's a clean, straightforward short paper, that needs to do more to establish its contribution.
+
+The paper provides the first stage for a really nice instrument: movements in ward boundaries that resulted in shifts in the zoning authority over land parcels between more and less stringent ward "aldermen."  As with many instruments, this is a unique circumstance, so the estimates are not of interest because they generalize, but instead because they provide evidence of a certain mechanism and/or could be used to identify parameters of broader economic interest.
+
+The intro flags two literatures that the paper's results have direct contributions.  The first is a literature on fragmented local political/land use control.  The second is on permitting delays and time-to-build.  Both of these contributions may be a bit niche for ReStat but, aside from that, they are underdeveloped in the current draft.  I expect the reduced-form result would be useful/will be cited by people working in these literatures, but I found the paper, while clean and easy to read, didn't flesh out the implications of these results for models in either of those areas enough to actually make a major contribution to either.
+
+The other way that the paper could make a major "ReStat"-level contribution would be to apply the instrument to a broader economic question.  As you say, this could be a big deal for measuring housing supply elasticities and/or neighborhood effects from local development.  I have to say that I'm puzzled at why the author didn't hold onto this instrument to write that type of paper.  Perhaps because they think that others already covered that territory (Baum-Snow and Han on the supply elasticities and Asquith, Mast and Reed on the local impacts of new housing supply).
+
+So, if I were you, I would probably pass.
+
