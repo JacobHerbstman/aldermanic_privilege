@@ -1,4 +1,4 @@
-ALDERMAN_PANEL_END_MONTH ?= 2022-12
+ALDERMAN_PANEL_END_MONTH ?= 2023-06
 
 all: ../output/chicago_alderman_panel.csv ../output/chicago_alderman_terms.csv
 

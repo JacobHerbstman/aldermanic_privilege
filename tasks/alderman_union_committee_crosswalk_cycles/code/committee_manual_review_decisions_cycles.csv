@@ -1,0 +1,138 @@
+cycle_year,committee_id,decision,correct_owner_person,correct_owner_type,correct_owner_ward,matched_target_alderman_id,include_candidate_clean,include_candidate_all,include_expanded_validated,exclude_reason,review_notes,reviewer,review_date
+2003,16845,include_main_candidate,Manuel Flores,candidate,1,manuel_flores,True,True,False,,Registry name identifies Flores and active dates cover cycle,codex_registry_review,2026-06-03
+2003,4357,include_main_candidate,Toni Preckwinkle,candidate,4,toni_preckwinkle,True,True,False,,Registry purpose identifies Toni Preckwinkle candidacy,codex_registry_review,2026-06-03
+2003,17491,include_main_candidate,James Balcer,candidate,11,james_balcer,True,True,False,,Registry purpose identifies James Balcer candidacy,codex_registry_review,2026-06-03
+2003,4410,include_main_candidate,Ed Burke,candidate,14,ed_burke,True,True,False,,Registry name identifies Edward M Burke candidate committee,codex_registry_review,2026-06-03
+2003,9487,include_main_candidate,Ricardo Munoz,candidate,22,ricardo_munoz,True,True,False,,Registry name identifies Munoz candidate committee,codex_registry_review,2026-06-03
+2003,14156,include_main_candidate,Michael Zalewski,candidate,23,michael_zalewski,True,True,False,,Registry name identifies Mike Zalewski candidate committee,codex_registry_review,2026-06-03
+2003,9662,include_main_candidate,Billy Ocasio,candidate,26,billy_ocasio,True,True,False,,Registry purpose identifies Billy Ocasio for alderman,codex_registry_review,2026-06-03
+2003,11710,include_main_candidate,Isaac Carothers,candidate,29,isaac_carothers,True,True,False,,Registry purpose identifies Isaac Carothers for alderman,codex_registry_review,2026-06-03
+2003,14461,include_main_candidate,Theodore Matlak,candidate,32,theodore_matlak,True,True,False,,Registry purpose identifies Theodore Matlak seeking public office,codex_registry_review,2026-06-03
+2003,15112,include_main_candidate,Theodore Matlak,candidate,32,theodore_matlak,True,True,False,,Registry purpose identifies Theodore Matlak election committee,codex_registry_review,2026-06-03
+2003,4317,include_main_candidate,Dick Mell,candidate,33,dick_mell,True,True,False,,Registry purpose identifies Richard Mell alderman committee,codex_registry_review,2026-06-03
+2003,4289,include_main_candidate,Burton Natarus,candidate,42,burton_natarus,True,True,False,,Registry name identifies Natarus political committee,codex_registry_review,2026-06-03
+2003,4565,include_main_candidate,Brian Doherty,candidate,41,brian_doherty,True,True,False,,Registry purpose identifies Brian G Doherty committee,codex_registry_review,2026-06-03
+2003,17150,include_main_candidate,Tom Tunney,candidate,44,tom_tunney,True,True,False,,Registry purpose identifies Tom Tunney candidacy,codex_registry_review,2026-06-03
+2003,4614,include_main_candidate,Helen Shiller,candidate,46,helen_shiller,True,True,False,,Registry purpose identifies Helen Shiller for alderman,codex_registry_review,2026-06-03
+2003,4285,include_main_candidate,Eugene Schulter,candidate,47,eugene_schulter,True,True,False,,Registry purpose identifies Eugene Schulter committee,codex_registry_review,2026-06-03
+2007,16845,include_main_candidate,Manuel Flores,candidate,1,manuel_flores,True,True,False,,Registry name identifies Flores and active dates cover cycle,codex_registry_review,2026-06-03
+2007,19819,include_main_candidate,Robert Fioretti,candidate,2,robert_fioretti,True,True,False,,Registry purpose identifies Robert Fioretti for alderman,codex_registry_review,2026-06-03
+2007,4357,include_main_candidate,Toni Preckwinkle,candidate,4,toni_preckwinkle,True,True,False,,Registry purpose identifies Toni Preckwinkle candidacy,codex_registry_review,2026-06-03
+2007,17491,include_main_candidate,James Balcer,candidate,11,james_balcer,True,True,False,,Registry purpose identifies James Balcer candidacy,codex_registry_review,2026-06-03
+2007,4410,include_main_candidate,Ed Burke,candidate,14,ed_burke,True,True,False,,Registry name identifies Edward M Burke candidate committee,codex_registry_review,2026-06-03
+2007,9487,include_main_candidate,Ricardo Munoz,candidate,22,ricardo_munoz,True,True,False,,Registry name identifies Munoz candidate committee,codex_registry_review,2026-06-03
+2007,14156,include_main_candidate,Michael Zalewski,candidate,23,michael_zalewski,True,True,False,,Registry name identifies Mike Zalewski candidate committee,codex_registry_review,2026-06-03
+2007,9662,include_main_candidate,Billy Ocasio,candidate,26,billy_ocasio,True,True,False,,Registry purpose identifies Billy Ocasio for alderman,codex_registry_review,2026-06-03
+2007,11710,include_main_candidate,Isaac Carothers,candidate,29,isaac_carothers,True,True,False,,Registry purpose identifies Isaac Carothers for alderman,codex_registry_review,2026-06-03
+2007,19898,include_main_candidate,Scott Waguespack,candidate,32,scott_waguespack,True,True,False,,Registry purpose identifies alderman committee for 32nd Ward,codex_registry_review,2026-06-03
+2007,4317,include_main_candidate,Dick Mell,candidate,33,dick_mell,True,True,False,,Registry purpose identifies Richard Mell alderman committee,codex_registry_review,2026-06-03
+2007,4565,include_main_candidate,Brian Doherty,candidate,41,brian_doherty,True,True,False,,Registry purpose identifies Brian G Doherty committee,codex_registry_review,2026-06-03
+2007,19263,include_main_candidate,Brendan Reilly,candidate,42,brendan_reilly,True,True,False,,Registry purpose identifies Brendan Reilly candidacy,codex_registry_review,2026-06-03
+2007,17150,include_main_candidate,Tom Tunney,candidate,44,tom_tunney,True,True,False,,Registry purpose identifies Tom Tunney candidacy,codex_registry_review,2026-06-03
+2007,4614,include_main_candidate,Helen Shiller,candidate,46,helen_shiller,True,True,False,,Registry purpose identifies Helen Shiller for alderman,codex_registry_review,2026-06-03
+2007,4285,include_main_candidate,Eugene Schulter,candidate,47,eugene_schulter,True,True,False,,Registry purpose identifies Eugene Schulter committee,codex_registry_review,2026-06-03
+2011,19819,include_main_candidate,Robert Fioretti,candidate,2,robert_fioretti,True,True,False,,Registry purpose identifies Robert Fioretti for alderman,codex_registry_review,2026-06-03
+2011,20749,include_main_candidate,William D. Burns,candidate,4,william_d_burns,True,True,False,,Registry name identifies Will Burns committee,codex_registry_review,2026-06-03
+2011,17491,include_main_candidate,James Balcer,candidate,11,james_balcer,True,True,False,,Registry purpose identifies James Balcer candidacy,codex_registry_review,2026-06-03
+2011,4410,include_main_candidate,Ed Burke,candidate,14,ed_burke,True,True,False,,Registry name identifies Edward M Burke candidate committee,codex_registry_review,2026-06-03
+2011,22919,include_main_candidate,Matthew O'Shea,candidate,19,matthew_o_shea,True,True,False,,Registry name identifies Matt OShea committee,codex_registry_review,2026-06-03
+2011,9487,include_main_candidate,Ricardo Munoz,candidate,22,ricardo_munoz,True,True,False,,Registry name identifies Munoz candidate committee,codex_registry_review,2026-06-03
+2011,14156,include_main_candidate,Michael Zalewski,candidate,23,michael_zalewski,True,True,False,,Registry name identifies Mike Zalewski candidate committee,codex_registry_review,2026-06-03
+2011,9533,include_main_candidate,Roberto Maldonado,candidate,26,roberto_maldonado,True,True,False,,Registry purpose identifies Roberto Maldonado candidacy,codex_registry_review,2026-06-03
+2011,23112,include_main_candidate,Jason Ervin,candidate,28,jason_ervin,True,True,False,,Registry purpose identifies Jason C Ervin political efforts,codex_registry_review,2026-06-03
+2011,19898,include_main_candidate,Scott Waguespack,candidate,32,scott_waguespack,True,True,False,,Registry purpose identifies alderman committee for 32nd Ward,codex_registry_review,2026-06-03
+2011,4317,include_main_candidate,Dick Mell,candidate,33,dick_mell,True,True,False,,Registry purpose identifies Richard Mell alderman committee,codex_registry_review,2026-06-03
+2011,23111,include_main_candidate,Timothy Cullerton,candidate,38,timothy_cullerton,True,True,False,,Registry purpose identifies Tim Cullerton for alderman,codex_registry_review,2026-06-03
+2011,19263,include_main_candidate,Brendan Reilly,candidate,42,brendan_reilly,True,True,False,,Registry purpose identifies Brendan Reilly candidacy,codex_registry_review,2026-06-03
+2011,17150,include_main_candidate,Tom Tunney,candidate,44,tom_tunney,True,True,False,,Registry purpose identifies Tom Tunney candidacy,codex_registry_review,2026-06-03
+2011,19747,include_main_candidate,James Cappleman,candidate,46,james_cappleman,True,True,False,,Registry purpose identifies James Cappleman public office committee,codex_registry_review,2026-06-03
+2015,25653,include_main_candidate,Brian Hopkins,candidate,2,brian_hopkins,True,True,False,,Registry purpose identifies Brian Hopkins for alderman,codex_registry_review,2026-06-03
+2015,20749,include_main_candidate,William D. Burns,candidate,4,william_d_burns,True,True,False,,Registry name identifies Will Burns committee,codex_registry_review,2026-06-03
+2015,22816,include_main_candidate,Gregory Mitchell,candidate,7,gregory_mitchell,True,True,False,,Registry purpose identifies Greg Mitchell for alderman,codex_registry_review,2026-06-03
+2015,4410,include_main_candidate,Ed Burke,candidate,14,ed_burke,True,True,False,,Registry name identifies Edward M Burke candidate committee,codex_registry_review,2026-06-03
+2015,22919,include_main_candidate,Matthew O'Shea,candidate,19,matthew_o_shea,True,True,False,,Registry name identifies Matt OShea committee,codex_registry_review,2026-06-03
+2015,9487,include_main_candidate,Ricardo Munoz,candidate,22,ricardo_munoz,True,True,False,,Registry name identifies Munoz candidate committee,codex_registry_review,2026-06-03
+2015,14156,include_main_candidate,Michael Zalewski,candidate,23,michael_zalewski,True,True,False,,Registry name identifies Mike Zalewski candidate committee,codex_registry_review,2026-06-03
+2015,12260,include_main_candidate,Daniel Solis,candidate,25,daniel_solis,True,True,False,,Registry purpose identifies Daniel Solis election committee,codex_registry_review,2026-06-03
+2015,9533,include_main_candidate,Roberto Maldonado,candidate,26,roberto_maldonado,True,True,False,,Registry purpose identifies Roberto Maldonado candidacy,codex_registry_review,2026-06-03
+2015,23112,include_main_candidate,Jason Ervin,candidate,28,jason_ervin,True,True,False,,Registry purpose identifies Jason C Ervin political efforts,codex_registry_review,2026-06-03
+2015,26162,include_main_candidate,Milagros Santiago,candidate,31,milagros_santiago,True,True,False,,Registry purpose identifies Milagros Santiago candidacy,codex_registry_review,2026-06-03
+2015,19898,include_main_candidate,Scott Waguespack,candidate,32,scott_waguespack,True,True,False,,Registry purpose identifies alderman committee for 32nd Ward,codex_registry_review,2026-06-03
+2015,26021,include_main_candidate,Carlos Ramirez-Rosa,candidate,35,carlos_ramirez_rosa,True,True,False,,Registry purpose identifies Carlos Rosa election committee,codex_registry_review,2026-06-03
+2015,19263,include_main_candidate,Brendan Reilly,candidate,42,brendan_reilly,True,True,False,,Registry purpose identifies Brendan Reilly candidacy,codex_registry_review,2026-06-03
+2015,17150,include_main_candidate,Tom Tunney,candidate,44,tom_tunney,True,True,False,,Registry purpose identifies Tom Tunney candidacy,codex_registry_review,2026-06-03
+2015,19747,include_main_candidate,James Cappleman,candidate,46,james_cappleman,True,True,False,,Registry purpose identifies James Cappleman public office committee,codex_registry_review,2026-06-03
+2019,25653,include_main_candidate,Brian Hopkins,candidate,2,brian_hopkins,True,True,False,,Registry purpose identifies Brian Hopkins for alderman,codex_registry_review,2026-06-03
+2019,22816,include_main_candidate,Gregory Mitchell,candidate,7,gregory_mitchell,True,True,False,,Registry purpose identifies Greg Mitchell for alderman,codex_registry_review,2026-06-03
+2019,4410,include_main_candidate,Ed Burke,candidate,14,ed_burke,True,True,False,,Registry name identifies Edward M Burke candidate committee,codex_registry_review,2026-06-03
+2019,22919,include_main_candidate,Matthew O'Shea,candidate,19,matthew_o_shea,True,True,False,,Registry name identifies Matt OShea committee,codex_registry_review,2026-06-03
+2019,23775,include_main_candidate,Silvana Tabares,candidate,23,silvana_tabares,True,True,False,,Registry purpose identifies Silvana Tabares election committee,codex_registry_review,2026-06-03
+2019,9533,include_main_candidate,Roberto Maldonado,candidate,26,roberto_maldonado,True,True,False,,Registry purpose identifies Roberto Maldonado candidacy,codex_registry_review,2026-06-03
+2019,23112,include_main_candidate,Jason Ervin,candidate,28,jason_ervin,True,True,False,,Registry purpose identifies Jason C Ervin political efforts,codex_registry_review,2026-06-03
+2019,19898,include_main_candidate,Scott Waguespack,candidate,32,scott_waguespack,True,True,False,,Registry purpose identifies alderman committee for 32nd Ward,codex_registry_review,2026-06-03
+2019,34611,include_main_candidate,Rossana Rodriguez-Sanchez,candidate,33,rossana_rodriguez_sanchez,True,True,False,,Registry purpose identifies Rossana Rodriguez for alderman,codex_registry_review,2026-06-03
+2019,26021,include_main_candidate,Carlos Ramirez-Rosa,candidate,35,carlos_ramirez_rosa,True,True,False,,Registry purpose identifies Carlos Rosa election committee,codex_registry_review,2026-06-03
+2019,34524,include_main_candidate,Andre Vasquez,candidate,40,andre_vasquez,True,True,False,,Registry purpose identifies Andre Vasquez election committee,codex_registry_review,2026-06-03
+2019,19263,include_main_candidate,Brendan Reilly,candidate,42,brendan_reilly,True,True,False,,Registry purpose identifies Brendan Reilly candidacy,codex_registry_review,2026-06-03
+2019,17150,include_main_candidate,Tom Tunney,candidate,44,tom_tunney,True,True,False,,Registry purpose identifies Tom Tunney candidacy,codex_registry_review,2026-06-03
+2019,19747,include_main_candidate,James Cappleman,candidate,46,james_cappleman,True,True,False,,Registry purpose identifies James Cappleman public office committee,codex_registry_review,2026-06-03
+2019,34202,include_main_candidate,Maria Hadden,candidate,49,maria_hadden,True,True,False,,Registry purpose identifies Maria Hadden election committee,codex_registry_review,2026-06-03
+2023,25653,include_main_candidate,Brian Hopkins,candidate,2,brian_hopkins,True,True,False,,Registry purpose identifies Brian Hopkins for alderman,codex_registry_review,2026-06-03
+2023,22816,include_main_candidate,Gregory Mitchell,candidate,7,gregory_mitchell,True,True,False,,Registry purpose identifies Greg Mitchell for alderman,codex_registry_review,2026-06-03
+2023,38809,include_main_candidate,Julia Ramirez,candidate,12,julia_ramirez,True,True,False,,Registry purpose identifies Julia Ramirez election committee,codex_registry_review,2026-06-03
+2023,22919,include_main_candidate,Matthew O'Shea,candidate,19,matthew_o_shea,True,True,False,,Registry name identifies Matt OShea committee,codex_registry_review,2026-06-03
+2023,23775,include_main_candidate,Silvana Tabares,candidate,23,silvana_tabares,True,True,False,,Registry purpose identifies Silvana Tabares election committee,codex_registry_review,2026-06-03
+2023,23112,include_main_candidate,Jason Ervin,candidate,28,jason_ervin,True,True,False,,Registry purpose identifies Jason C Ervin political efforts,codex_registry_review,2026-06-03
+2023,19898,include_main_candidate,Scott Waguespack,candidate,32,scott_waguespack,True,True,False,,Registry purpose identifies alderman committee for 32nd Ward,codex_registry_review,2026-06-03
+2023,34611,include_main_candidate,Rossana Rodriguez-Sanchez,candidate,33,rossana_rodriguez_sanchez,True,True,False,,Registry purpose identifies Rossana Rodriguez for alderman,codex_registry_review,2026-06-03
+2023,26021,include_main_candidate,Carlos Ramirez-Rosa,candidate,35,carlos_ramirez_rosa,True,True,False,,Registry purpose identifies Carlos Rosa election committee,codex_registry_review,2026-06-03
+2023,34524,include_main_candidate,Andre Vasquez,candidate,40,andre_vasquez,True,True,False,,Registry purpose identifies Andre Vasquez election committee,codex_registry_review,2026-06-03
+2023,19263,include_main_candidate,Brendan Reilly,candidate,42,brendan_reilly,True,True,False,,Registry purpose identifies Brendan Reilly candidacy,codex_registry_review,2026-06-03
+2023,34202,include_main_candidate,Maria Hadden,candidate,49,maria_hadden,True,True,False,,Registry purpose identifies Maria Hadden election committee,codex_registry_review,2026-06-03
+2007,20103,include_main_candidate,Sharon Denise Dixon,candidate,24,sharon_denise_dixon,True,True,False,,Registry purpose identifies Sharon Denise Dixon public office committee,codex_registry_review,2026-06-03
+2007,20208,include_main_candidate,Sharon Denise Dixon,candidate,24,sharon_denise_dixon,True,True,False,,Registry name identifies Denise Dixon candidate committee active during cycle,codex_registry_review,2026-06-03
+2011,23005,include_main_candidate,Michael Chandler,candidate,24,michael_chandler,True,True,False,,Registry purpose identifies Michael Chandler for alderman,codex_registry_review,2026-06-03
+2003,6965,include_named_recipient_committee,Shirley Coleman,ward_org,16,shirley_coleman,True,True,False,,Registry purpose names Shirley Coleman for 16th Ward alderman,codex_registry_review,2026-06-03
+2003,11832,exclude_not_candidate_committee,Ricardo Munoz,ward_org,22,ricardo_munoz,False,False,False,committeeman_or_party_org,Committee is 22nd Ward Democratic Committeeman Fund,codex_registry_review,2026-06-03
+2003,12107,exclude_not_candidate_committee,Michael Chandler,ward_org,24,michael_chandler,False,False,False,committeeman_or_party_org,Committee purpose is 24th Ward Democratic Committeeman,codex_registry_review,2026-06-03
+2003,11996,exclude_not_candidate_committee,Billy Ocasio,ward_org,26,billy_ocasio,False,False,False,committeeman_or_party_org,Committee purpose is 26th Ward Democratic Committeeman,codex_registry_review,2026-06-03
+2003,10153,include_named_recipient_committee,Thomas Allen,other_office,38,thomas_allen,True,True,False,,Registry purpose names Thomas R Allen political committee,codex_registry_review,2026-06-03
+2003,899,exclude_not_candidate_committee,William Beavers,ward_org,7,william_beavers,False,False,False,committeeman_or_party_org,Committee purpose is 7th Ward Committeeman,codex_registry_review,2026-06-03
+2007,11832,exclude_not_candidate_committee,Ricardo Munoz,ward_org,22,ricardo_munoz,False,False,False,committeeman_or_party_org,Committee is 22nd Ward Democratic Committeeman Fund,codex_registry_review,2026-06-03
+2007,10153,include_named_recipient_committee,Thomas Allen,other_office,38,thomas_allen,True,True,False,,Registry purpose names Thomas R Allen political committee,codex_registry_review,2026-06-03
+2007,553,exclude_not_candidate_committee,Michelle A. Harris,ward_org,8,michelle_a_harris,False,False,False,committeeman_or_party_org,Committee is 8th Ward Regular Democratic Org,codex_registry_review,2026-06-03
+2011,11832,exclude_not_candidate_committee,Ricardo Munoz,ward_org,22,ricardo_munoz,False,False,False,committeeman_or_party_org,Committee is 22nd Ward Democratic Committeeman Fund,codex_registry_review,2026-06-03
+2011,21222,exclude_other_office,Michael Zalewski,other_office,23,michael_zalewski,False,False,False,other_office,Committee name is State Representative committee,codex_registry_review,2026-06-03
+2011,15492,exclude_not_candidate_committee,Roberto Maldonado,ward_org,26,roberto_maldonado,False,False,False,committeeman_or_party_org,Committee is 26th Ward Democratic Organization,codex_registry_review,2026-06-03
+2011,21838,exclude_other_office,Deborah Graham,other_office,29,deborah_graham,False,False,False,other_office,Committee purpose is District 202 Board of Education,codex_registry_review,2026-06-03
+2011,553,exclude_not_candidate_committee,Michelle A. Harris,ward_org,8,michelle_a_harris,False,False,False,committeeman_or_party_org,Committee is 8th Ward Regular Democratic Org,codex_registry_review,2026-06-03
+2015,11832,exclude_not_candidate_committee,Ricardo Munoz,ward_org,22,ricardo_munoz,False,False,False,committeeman_or_party_org,Committee is 22nd Ward Democratic Committeeman Fund,codex_registry_review,2026-06-03
+2015,21222,exclude_other_office,Michael Zalewski,other_office,23,michael_zalewski,False,False,False,other_office,Committee name is State Representative committee,codex_registry_review,2026-06-03
+2015,15492,exclude_not_candidate_committee,Roberto Maldonado,ward_org,26,roberto_maldonado,False,False,False,committeeman_or_party_org,Committee is 26th Ward Democratic Organization,codex_registry_review,2026-06-03
+2015,24204,exclude_not_candidate_committee,Nicholas Sposato,ward_org,38,nicholas_sposato,False,False,False,committeeman_or_party_org,Committee is 36th Ward Independent Democratic Organization,codex_registry_review,2026-06-03
+2015,23931,exclude_not_candidate_committee,Brendan Reilly,ward_org,42,brendan_reilly,False,False,False,committeeman_or_party_org,Committee purpose is Ward Committeeman,codex_registry_review,2026-06-03
+2015,24368,exclude_not_candidate_committee,John Arena,ward_org,45,john_arena,False,False,False,committeeman_or_party_org,Committee purpose is 45th Ward Democratic party and committeeman,codex_registry_review,2026-06-03
+2015,553,exclude_not_candidate_committee,Michelle A. Harris,ward_org,8,michelle_a_harris,False,False,False,committeeman_or_party_org,Committee is 8th Ward Regular Democratic Org,codex_registry_review,2026-06-03
+2019,31825,exclude_not_candidate_committee,Susan Sadlowski Garza,ward_org,10,susan_sadlowski_garza,False,False,False,ward_or_party_org,Committee is 10th Ward Democratic Organization,codex_registry_review,2026-06-03
+2019,15492,exclude_not_candidate_committee,Roberto Maldonado,ward_org,26,roberto_maldonado,False,False,False,committeeman_or_party_org,Committee is 26th Ward Democratic Organization,codex_registry_review,2026-06-03
+2019,31983,exclude_not_candidate_committee,Jason Ervin,ward_org,28,jason_ervin,False,False,False,committeeman_or_party_org,Committee purpose is Ward Committeeman,codex_registry_review,2026-06-03
+2019,32197,exclude_not_candidate_committee,Chris Taliaferro,ward_org,29,chris_taliaferro,False,False,False,committeeman_or_party_org,Committee is 29th Ward Democratic Organization,codex_registry_review,2026-06-03
+2019,553,exclude_not_candidate_committee,Michelle A. Harris,ward_org,8,michelle_a_harris,False,False,False,committeeman_or_party_org,Committee is 8th Ward Regular Democratic Org,codex_registry_review,2026-06-03
+2023,36871,exclude_other_office,David Moore,other_office,17,david_moore,False,False,False,other_office,Committee purpose is Secretary of State,codex_registry_review,2026-06-03
+2023,31983,exclude_not_candidate_committee,Jason Ervin,ward_org,28,jason_ervin,False,False,False,committeeman_or_party_org,Committee purpose is Ward Committeeman,codex_registry_review,2026-06-03
+2023,32197,exclude_not_candidate_committee,Chris Taliaferro,ward_org,29,chris_taliaferro,False,False,False,committeeman_or_party_org,Committee is 29th Ward Democratic Organization,codex_registry_review,2026-06-03
+2023,36448,exclude_not_candidate_committee,Gilbert Villegas,ward_org,36,gilbert_villegas,False,False,False,committeeman_or_party_org,Committee is 36th Ward Dems led by committeeperson,codex_registry_review,2026-06-03
+2023,35747,exclude_not_candidate_committee,Gilbert Villegas,ward_org,36,gilbert_villegas,False,False,False,committeeman_or_party_org,Committee purpose is State Central Committeeman,codex_registry_review,2026-06-03
+2023,35902,exclude_not_candidate_committee,Jim Gardiner,ward_org,45,jim_gardiner,False,False,False,committeeman_or_party_org,Committee purpose is Ward Committeeman,codex_registry_review,2026-06-03
+2023,553,exclude_not_candidate_committee,Michelle A. Harris,ward_org,8,michelle_a_harris,False,False,False,committeeman_or_party_org,Committee is 8th Ward Regular Democratic Org,codex_registry_review,2026-06-03
+2003,14153,include_named_recipient_committee,Fredrenna Lyle,other_office,6,fredrenna_lyle,True,True,False,,Registry purpose names Freddrenna M Lyle political committee,codex_registry_review,2026-06-03
+2007,14153,include_named_recipient_committee,Fredrenna Lyle,other_office,6,fredrenna_lyle,True,True,False,,Registry purpose names Freddrenna M Lyle political committee,codex_registry_review,2026-06-03
+2003,14602,include_named_recipient_committee,Frank Olivo,candidate,13,frank_olivo,True,True,False,,Registry purpose says Elect Alderman Frank J Olivo; researcher approved named-recipient inclusion despite status date before cycle,codex_registry_review,2026-06-03
+2007,14602,include_named_recipient_committee,Frank Olivo,candidate,13,frank_olivo,True,True,False,,Registry purpose says Elect Alderman Frank J Olivo; researcher approved named-recipient inclusion despite status date before cycle,codex_registry_review,2026-06-03
+2003,6724,include_named_recipient_committee,Arenda Troutman,ward_org,20,arenda_troutman,True,True,False,,Registry name says Citizens for Troutman and purpose references 20th Ward development; researcher approved surname/ward inclusion,codex_registry_review,2026-06-03
+2003,12260,include_named_recipient_committee,Daniel Solis,candidate,25,daniel_solis,True,True,False,,Registry purpose identifies Daniel S Solis election committee; researcher approved named-recipient inclusion despite creation after cycle,codex_registry_review,2026-06-03
+2007,12260,include_named_recipient_committee,Daniel Solis,candidate,25,daniel_solis,True,True,False,,Registry purpose identifies Daniel S Solis election committee; researcher approved named-recipient inclusion despite creation after cycle,codex_registry_review,2026-06-03
+2011,12260,include_named_recipient_committee,Daniel Solis,candidate,25,daniel_solis,True,True,False,,Registry purpose identifies Daniel S Solis election committee; researcher approved named-recipient inclusion despite creation after cycle,codex_registry_review,2026-06-03
+2003,6555,include_named_recipient_committee,Ray Suarez,candidate,31,ray_suarez,True,True,False,,Registry purpose identifies Regner Ray Suarez political committee; researcher approved named-recipient inclusion despite creation after cycle,codex_registry_review,2026-06-03
+2007,6555,include_named_recipient_committee,Ray Suarez,candidate,31,ray_suarez,True,True,False,,Registry purpose identifies Regner Ray Suarez political committee; researcher approved named-recipient inclusion despite creation after cycle,codex_registry_review,2026-06-03
+2011,6555,include_named_recipient_committee,Ray Suarez,candidate,31,ray_suarez,True,True,False,,Registry purpose identifies Regner Ray Suarez political committee; researcher approved named-recipient inclusion despite creation after cycle,codex_registry_review,2026-06-03

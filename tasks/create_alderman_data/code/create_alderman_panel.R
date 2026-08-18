@@ -1,6 +1,6 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_data/code")
-# panel_end_month <- "2022-12"
+# panel_end_month <- "2023-06"
 
 source("../../setup_environment/code/packages.R")
 

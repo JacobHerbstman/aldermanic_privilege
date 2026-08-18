@@ -12,7 +12,13 @@ records and parcels with multiple building cards. Every project within the main
 bandwidth that was retained principally from the Assessor's new-construction
 designation received a final row-level review.
 
-The committed file contains only the fields used by the paper. Review notes,
-source links, and intermediate matches are kept outside the replication
-archive. Its SHA-256 hash is
+The committed analysis file contains only the fields used by the submitted
+paper. Review notes, source links, and intermediate matches are kept outside
+the replication archive. Its SHA-256 hash is
 `9dc7953e91bdf21a909224d2d68697a8440b56b66f137c7d784bea6137bf8ea4`.
+
+`output/new_construction_project_locations.csv` is the matching frozen
+one-row-per-project location crosswalk for spatial extensions. It records the
+reviewed project coordinates in EPSG:3435 for all 8,648 project IDs. Its
+SHA-256 hash is
+`43a98de01a99111f195881aa8726fecc248c75762af976377d270cc62530a385`.
