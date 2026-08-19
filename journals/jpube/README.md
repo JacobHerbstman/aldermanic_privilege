@@ -12,6 +12,9 @@ August 19, 2026.
 - `submission/cover_letter.pdf`
 - `submission/conflict_of_interest_statement.docx`
 
+The editable cover-letter source is preserved as
+`submission/cover_letter.tex`.
+
 The main-paper and working-paper PDFs include the generative-AI declaration
 required for the journal submission. The public-facing manuscript in `paper/`
 does not include that declaration.
