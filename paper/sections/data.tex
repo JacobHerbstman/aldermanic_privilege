@@ -4,6 +4,7 @@
 \label{sec:data}
 
 \subsection{Aldermanic Privilege and the Development Process}
+\label{subsec:aldermanic_privilege}
 
 Chicago's City Council consists of 50 aldermen, each representing a single ward.
 Chicago's uniquely informal norms give each alderman broad authority over
@@ -173,19 +174,18 @@ I therefore apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_di
 The scores vary across wealthy and poor neighborhoods and across the North and South Sides, supporting an alderman-specific rather than ward-level interpretation.
 
 \subsection{New Construction Data}
+\label{subsec:new_construction_data}
 
 I construct a citywide dataset of new residential construction in Chicago between 2006 and 2022 using publicly available data from the Cook County Assessor's Office.
 I combine residential improvement characteristics with commercial valuation records for properties assessed under multifamily model groups.
 Together, these files report dwelling units, stories, building area, and land area.
 I locate each project using Assessor parcel records, assign it to a ward using City of Chicago shapefiles, and define the construction date as June 15 of the recorded year built since I cannot observe an exact date.
+For the boundary-discontinuity analyses, I divide ward boundaries into approximately 1,320 foot segments and assign each project to the nearest segment.
+Since some ward boundaries are several miles long, this approach allows me to focus on projects that are not only on the same ward boundary but also geographically close to each other to ensure meaningful comparisons.
 I keep projects with positive lot area, positive building area, and at least one dwelling unit.
 
-Formal zoning is an important control, but zoning measured today may reflect changes made for the project itself.
-I therefore assign each project in the boundary samples to the broad zoning group in force on June 15 of its construction year.
-I reconstruct the zoning history from official City zoning maps from 2012, 2014, and 2016 and passed map amendments dating back to 2006.
-Annual Cook County parcel maps allow me to follow sites whose parcel identifiers changed over time, and I retain planned developments as a separate zoning group.
-The reconstruction covers every project used in the main and placebo boundary analyses and reproduces the classifications observed in later official zoning maps.
-\onlineappendixlink{A.4}{subsec:new_construction_sample} provides additional detail.
+Because zoning measured today may reflect subsequent changes, I assign each project the broad zoning group in force on its assigned construction date.
+\onlineappendixlink{A.4}{subsec:new_construction_sample} describes the historical zoning reconstruction.
 
 For each project I compute two standard density measures: Floor Area Ratio (FAR), defined as total building area divided by lot area, and Dwelling Units Per Acre (DUPAC), defined as dwelling units divided by lot acreage.
 Distance to the nearest ward boundary is computed after projecting project locations and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
@@ -193,17 +193,18 @@ Distance to the nearest ward boundary is computed after projecting project locat
 Table~\ref{tab:summary_stats} presents summary statistics.
 The estimation sample contains 3,692 new residential projects within 500ft of a ward boundary, including 822 classified as multifamily.
 I report the multifamily sample separately because aldermanic discretion is likely to matter most for larger projects.
-I focus on the multifamily sample and report the all-construction estimates for comparison.
 
 \input{../tasks/density_main_results/output/density_sample_summary.tex}
 
 \subsection{Rental Listings}
+\label{subsec:rental_listings}
 
 RentHub provides scraped rental listings.
 I use Chicago listings from 2014 through December 2022 and collapse repeated scrapes to one floorplan-month observation, using the median asking rent observed that month.
 Rents are expressed in 2022 dollars using the monthly Chicago CPI-U.
 
 \subsection{Home Sales}
+\label{subsec:home_sales}
 
 Home sales come from Cook County Assessor records.
 I use valid market transactions of single-family homes and small multifamily buildings (2--6 units) from 2006 through 2022.

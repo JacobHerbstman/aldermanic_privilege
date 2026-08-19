@@ -38,21 +38,16 @@ For blocks that change wards, $Z_b=\operatorname{sign}(\Delta S_b)$; it equals z
 I classify moves using the 2014 incumbents in each block's origin and destination wards, with scores estimated only from permits filed between 2006 and 2014.
 I do not redefine treatment using the 2015 election winners because those elections may themselves reflect local preferences toward development.
 This specification imposes equal-and-opposite effects in logs for assignments toward more stringent and more lenient aldermen.
-Panels B and C relax that restriction by estimating the two directions separately.
-\onlineappendixlink{Table C.2}{tab:permit_event_study_did} reports the corresponding pooled estimates without this restriction and shows the results are nearly identical.
+Panel A of Figure~\ref{fig:permit_event_study} plots the coefficients $\beta_t$.
+The pre-trends are not distinguishable from zero, and the post-redistricting estimate continually declines through the 5 year period and the pooled post-period estimate is $-0.127$ (SE $=0.049$), equivalent to an 11.9\% reduction in the annual number of high-discretion permits associated with a move toward greater stringency.
+Panels B and C relax the symmetry restriction by estimating the two directions separately.
 An interesting heterogeneity appears when the two directions are estimated separately: the decline in permitting activity mostly comes from movements toward more stringent aldermen,
 who see a 23\% reduction in high-discretion permits, while blocks assigned toward more lenient aldermen see a 6.5\% increase.
-So it appears that aldermanic discretion comes from uniquely stringent aldermen blocking activity that would otherwise have occurred, rather than uniquely lenient aldermen allowing activity that would generally be blocked under formal city regulations.
+\onlineappendixlink{Table C.2}{tab:permit_event_study_did} reports the corresponding pooled estimates without the symmetry restriction and shows the results are nearly identical.
+
+It appears that aldermanic discretion comes from uniquely stringent aldermen blocking activity that would otherwise have occurred, rather than uniquely lenient aldermen allowing activity that would generally be blocked under formal city regulations.
 This difference is crucial for determining the likely aggregate effect of this informal regulatory discretion on housing supply, since it is ex-ante possible that informal discretion allows a few particularly pro-development aldermen to approve more housing than a centralized system.
 My results suggest that this is not the case and it appears that this system of informal regulations likely reduces housing supply relative to a more centralized counterfactual.
-
-
-Panel A of Figure~\ref{fig:permit_event_study} plots the coefficients $\beta_t$.
-The pre-period coefficients show no systematic divergence, and the pre-trend test has a $p$-value of 0.394.
-After redistricting, the estimate becomes negative.
-The pooled estimate is $-0.127$ (SE $=0.049$), equivalent to an 11.9\% reduction in the annual number of high-discretion permits associated with a move toward greater stringency.
-Panels B and C show that the decline comes from blocks assigned toward more stringent aldermen rather than a corresponding increase among blocks assigned toward more lenient aldermen.
-This decline in permit activity complements the building-density evidence below.
 
 \begin{figure}[htbp]
     \centering
@@ -82,7 +77,7 @@ This decline in permit activity complements the building-density evidence below.
 \subsection{Density at Ward Boundaries}
 \label{sec:empirical_results_density}
 
-I next examine completed new construction on opposite sides of the same ward boundary.
+I next examine the individual new construction projects described in Section~\ref{subsec:new_construction_data} on opposite sides of the same ward boundary, moving the unit of analysis from census blocks to projects.
 Projects within 500ft of the same boundary segment face similar neighborhood amenities and demand conditions, but different aldermen.
 Following \citet{bayer_unified_2007} and \citet{kulka_under_2026}, I divide signed distance to the boundary into 100ft bands and compare projects in each band with projects in the nearest band on the less-stringent side.
 This flexible specification does not require density to follow a linear or polynomial relationship with distance.
@@ -164,8 +159,8 @@ Standard errors are clustered by ward pair.
 
 Figure~\ref{fig:price_boundary_bins} plots these distance-band estimates.
 
-Listed rents are 1.7\% higher in the two bands closest to the boundary, although the estimate is imprecise.
-Home sale prices are 4.6\% higher in the two bands closest to the boundary.
+Listed rents are 1.7\% higher in the band closest to the boundary, although the estimate is imprecise.
+Home sale prices are 4.6\% higher in the band closest to the boundary.
 I treat the sales result as suggestive because transactions are less frequent near any particular boundary and their composition is harder to hold fixed.
 \onlineappendixlink{E}{sec:appendix_price_rd} shows that the result disappears at artificial cutoffs inside either ward and is similar when I restrict the sample to straight boundaries or exclude observations immediately next to the boundary.
 

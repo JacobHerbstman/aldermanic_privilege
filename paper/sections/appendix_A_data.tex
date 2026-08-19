@@ -7,6 +7,7 @@
 This appendix provides additional detail on the data sources and sample rules described in Section~\ref{sec:data}.
 
 \subsection{Data Sources}
+\label{subsec:appendix_data_sources}
 
 The property data come from Cook County Assessor sales, assessment, parcel, and improvement files.
 RentHub provides rental listings from 2014--2022.
@@ -70,12 +71,14 @@ Multifamily status primarily follows Assessor property class.
 When the reported unit count does not plausibly describe the whole building, permit descriptions and other property records determine the whole-building count, with the remaining decisions recorded in the same spreadsheet.
 
 Each project receives the broad zoning group in force on June 15 of its construction year.
-The zoning history combines archived City maps and passed map amendments and uses historical parcel boundaries to follow PIN changes.
+I combine official City zoning maps from 2012, 2014, and 2016 with passed map amendments dating to 2006, use annual parcel maps to follow sites whose PINs change, and retain planned developments as a separate zoning group.
+The reconstruction covers every project in the main and placebo boundary samples and reproduces the classifications observed in later official zoning maps.
 FAR is total building area divided by lot area; DUPAC is dwelling units divided by lot acreage.
 Projects are assigned to the ward map and alderman in office on June 15 of the reported construction year because the Assessor does not provide an exact completion date.
 All ward assignment and distance calculations use EPSG:3435, with distance reported in feet.
 
 \subsection{New-Construction Summary Statistics}
+\label{subsec:new_construction_summary_stats}
 
 Table~\ref{tab:summary_stats} describes the 3,692 projects within 500ft used in both main density regressions, including 822 multifamily projects.
 

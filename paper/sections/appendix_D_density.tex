@@ -7,6 +7,7 @@ This appendix checks whether the density result appears at false cutoffs, reflec
 Unless otherwise noted, each estimate compares the two 100ft bands immediately across the ward boundary using Equation~\eqref{eq:segment_fe}.
 
 \subsection{Stringency-Score Checks}
+\label{subsec:density_stringency_checks}
 
 The first check asks whether a project's own permits influence the score used to classify its boundary.
 For each project, I recalculate the scores for the two aldermen after removing permits matched to that project.
@@ -33,6 +34,7 @@ All four point estimates remain negative when the minimum gap is either 0.25 or 
 \end{table}
 
 \subsection{Placebo Cutoffs}
+\label{subsec:density_placebo_cutoffs}
 
 Figure~\ref{fig:rd_placebo_shifts} moves the cutoff 1000ft inside either side of the true ward boundary.
 These locations do not mark a change in aldermanic authority, and none of the eight nearest-band estimates is statistically distinguishable from zero.
@@ -56,6 +58,7 @@ These locations do not mark a change in aldermanic authority, and none of the ei
 \end{figure}
 
 \subsection{Continuity in Location Characteristics}
+\label{subsec:density_location_continuity}
 
 Table~\ref{tab:density_location_continuity} tests whether fixed features of a project's location change at the ward boundary.
 None of the differences in distance to downtown, the nearest school, the nearest park, or Lake Michigan is statistically distinguishable from zero in either sample.
@@ -77,6 +80,7 @@ None of the differences in distance to downtown, the nearest school, the nearest
 \end{table}
 
 \subsection{Boundary Geometry}
+\label{subsec:density_boundary_geometry}
 
 Some ward boundaries follow expressways, waterways, arterial roads, or other physical features.
 Table~\ref{tab:density_boundary_robustness} therefore repeats the analysis after restricting the sample based on the geometry of the assigned boundary segment.
