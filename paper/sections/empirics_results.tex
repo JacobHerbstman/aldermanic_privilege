@@ -24,15 +24,17 @@ I estimate a Poisson pseudo-maximum likelihood event study that treats moves tow
 \begin{equation}
 \label{eq:event_study_permits}
 \begin{aligned}
-\log E[Y_{bt}] ={}&
-\alpha_b + \lambda_{gt}
-+ \sum_{\tau \neq -1}
-\beta_\tau Z_b \mathbf{1}\{r_{bt}=\tau\}.
+\log \mathbb{E}[Y_{by}\mid\cdot] ={}&
+\mu_b + \lambda_{g(b),y}
++ \sum_{t \neq -1}
+\beta_t Z_b \mathbf{1}\{y-2015=t\}.
 \end{aligned}
 \end{equation}
 %
-Here $Y_{bt}$ is the permit count for block $b$ in year $t$, $\alpha_b$ is a block fixed effect, and $\lambda_{gt}$ is a border-pair-by-year fixed effect.
-$Z_b$ equals one when the new map assigned block $b$ toward a more stringent alderman, minus one when it assigned the block toward a more lenient alderman, and zero when the block remained in the same ward.
+Here $Y_{by}$ is the permit count for block $b$ in calendar year $y$, $\mu_b$ is a block fixed effect, and $\lambda_{g(b),y}$ is a ward-pair-by-year fixed effect for the ward pair $g(b)$ containing block $b$.
+Event time is $t=y-2015$, with $t=-1$ omitted.
+Let $\Delta S_b$ be the destination-minus-origin difference in standardized aldermanic stringency for block $b$.
+For blocks that change wards, $Z_b=\operatorname{sign}(\Delta S_b)$; it equals zero for blocks that remain in the same ward.
 I classify moves using the 2014 incumbents in each block's origin and destination wards, with scores estimated only from permits filed between 2006 and 2014.
 I do not redefine treatment using the 2015 election winners because those elections may themselves reflect local preferences toward development.
 This specification imposes equal-and-opposite effects in logs for assignments toward more stringent and more lenient aldermen.
@@ -45,7 +47,7 @@ This difference is crucial for determining the likely aggregate effect of this i
 My results suggest that this is not the case and it appears that this system of informal regulations likely reduces housing supply relative to a more centralized counterfactual.
 
 
-Panel A of Figure~\ref{fig:permit_event_study} plots the coefficients $\beta_\tau$.
+Panel A of Figure~\ref{fig:permit_event_study} plots the coefficients $\beta_t$.
 The pre-period coefficients show no systematic divergence, and the pre-trend test has a $p$-value of 0.394.
 After redistricting, the estimate becomes negative.
 The pooled estimate is $-0.127$ (SE $=0.049$), equivalent to an 11.9\% reduction in the annual number of high-discretion permits associated with a move toward greater stringency.
@@ -63,11 +65,11 @@ This decline in permit activity complements the building-density evidence below.
     The outcome is the number of high-discretion permits per block, grouped by application year.
     The sample includes blocks within 500ft of ward boundaries.
     It retains blocks whose 2014 origin- and destination-ward incumbents remained in office when the new map took effect.
-    Blocks must have at least one high-discretion permit during years $-5$ through $-1$.
+    Blocks must have at least one high-discretion permit during event times $t=-5$ through $t=-1$.
     Blocks are classified according to whether the 2015 map assigned them toward an alderman who was more or less stringent than the origin-ward alderman; unchanged blocks are the comparison group.
     Stringency scores are estimated from permits filed between 2006 and 2014.
-    The model includes block and border-pair $\times$ year fixed effects.
-    Year $-1$ is omitted.
+    The model includes block and ward-pair $\times$ year fixed effects.
+    Event time $t=-1$ is omitted.
     Panel A uses a reassignment variable equal to one for blocks assigned toward greater stringency, minus one for blocks assigned toward greater leniency, and zero for unchanged blocks.
     Panels B and C estimate the two reassignment directions separately relative to unchanged blocks.
     Each point reports the corresponding event-time coefficient.
@@ -88,28 +90,28 @@ I estimate
 %
 \begin{equation} \label{eq:segment_fe}
 \begin{aligned}
-    \ln(Y_{ist}) ={}&
-    \sum_{b \in \mathcal{B},\,b \neq [-100,0)}
-    \tau_b \mathbf{1}\{d_{is} \in b\}
+    \log(Y_{isy}) ={}&
+    \sum_{k \in \mathcal{K},\,k \neq [-100,0)}
+    \kappa_k \mathbf{1}\{d_{is} \in k\}
     + X_i'\theta \\
     &\quad
-    + \alpha_{z(i,t)}
+    + \zeta_{z(i,y)}
     + \delta_s
-    + \gamma_t
-    + \varepsilon_{ist}.
+    + \gamma_y
+    + \varepsilon_{isy}.
 \end{aligned}
 \end{equation}
 %
-Here $Y_{ist}$ is FAR or DUPAC for project $i$ on boundary segment $s$, built in year $t$.
+Here $Y_{isy}$ is FAR or DUPAC for project $i$ on boundary segment $s$, built in calendar year $y$.
 The running variable $d_{is}$ is negative on the less-stringent side and positive on the more-stringent side.
-The set $\mathcal{B}$ contains ten 100ft bands from $-500$ to 500ft.
-The band from $-100$ to 0ft is omitted, so $\tau_{[0,100)}$ compares projects immediately across the boundary.
+The set $\mathcal{K}$ contains ten 100ft bands from $-500$ to 500ft.
+The band from $-100$ to 0ft is omitted, so $\kappa_{[0,100)}$ compares projects immediately across the boundary.
 The vector $X_i$ contains share White, share Black, median household income, bachelor's share, and homeownership on the project's side of the boundary.
 The model also includes the zoning group in force when the project was built, boundary-segment fixed effects, and construction-year fixed effects.
 Standard errors are clustered by ward pair.
 
 Figure~\ref{fig:rd_fe_plots} plots the distance-band estimates.
-The omitted band is normalized to zero, and the subtitle in each panel reports $\tau_{[0,100)}$.
+The omitted band is normalized to zero, and the subtitle in each panel reports $\kappa_{[0,100)}$.
 For all new construction, FAR is about 12\% lower and dwelling units per acre about 16\% lower immediately across the boundary on the more-stringent side.
 Among multifamily projects, FAR is about 14\% lower and dwelling units per acre about 18\% lower.
 All four differences are statistically distinguishable from zero at the 10\% level or better.
@@ -145,17 +147,17 @@ For rents and sales, I estimate
 %
 \begin{equation}
 \label{eq:price_rd}
-    \log(Y_{ist}) =
-    \sum_{b \in \mathcal{B}}
-    \tau_b \mathbf{1}\{d_{is} \in b\}
-    + X_i'\gamma
-    + \alpha_{st}
-    + \varepsilon_{ist},
+    \log(Y_{isp}) =
+    \sum_{k \in \mathcal{K},\,k \neq [-100,0)}
+    \kappa_k \mathbf{1}\{d_{is} \in k\}
+    + X_i'\theta
+    + \delta_{sp}
+    + \varepsilon_{isp},
 \end{equation}
 %
-where $Y_{ist}$ is the real listed rent or real sale price for observation $i$ near boundary segment $s$ in period $t$.
-As in the density analysis, $\mathcal{B}$ contains ten 100ft distance bands and the band from $-100$ to 0ft is omitted.
-The coefficient $\tau_{[0,100)}$ therefore compares observations in the two bands immediately across the boundary.
+where $Y_{isp}$ is the real listed rent or real sale price for observation $i$ near boundary segment $s$ in calendar period $p$.
+As in the density analysis, $\mathcal{K}$ contains ten 100ft distance bands and the band from $-100$ to 0ft is omitted.
+The coefficient $\kappa_{[0,100)}$ therefore compares observations in the two bands immediately across the boundary.
 The fixed effects compare observations near the same boundary segment in the same month for rents and the same quarter for sales.
 The controls include unit or property characteristics and distances to nearby schools, parks, major roads, CTA stops, and Lake Michigan.
 Standard errors are clustered by ward pair.

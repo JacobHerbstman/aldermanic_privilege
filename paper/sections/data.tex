@@ -152,22 +152,22 @@ I first adjust processing times for observed differences across wards, locations
 The first stage regresses log processing time at the permit level on ward-level demographic controls (median household income, racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
 %
 \begin{equation} \label{eq:stringency_reg1}
-    \log(\text{Processing Time}_{i}) = \mathbf{X}_i \beta + \gamma_{\text{ym}} + \delta_{\text{pt}} + \zeta_{\text{rt}} + \epsilon_{i}
+    \log(\text{Processing Time}_{i}) = X_i'\theta + \phi_{m(i)} + \psi_{c(i)} + \xi_{v(i)} + \varepsilon_{i}
 \end{equation}
 %
-where $\gamma_{\text{ym}}$ are year-month fixed effects, $\delta_{\text{pt}}$ are permit-type fixed effects, and $\zeta_{\text{rt}}$ are review-type fixed effects.
+where $i$ indexes permits, $X_i$ contains the observed permit and location controls, and $m(i)$, $c(i)$, and $v(i)$ denote the permit's year-month, permit class, and review type.
 \onlineappendixlink{Table B.1}{tab:stage1_residualization} reports the coefficients on the first-stage controls.
 
 The second stage averages the adjusted processing times by ward and month, then regresses those averages on alderman indicators and the same lagged ward-month permit-volume control.
 Ward-months are weighted by the number of permits observed:
 %
 \begin{equation} \label{eq:stringency_reg2}
-    \bar{\hat{\epsilon}}_{wm} = \mu + \alpha_{a(w,m)} + \lambda \text{Volume}_{w,m-1} + \eta_{wm}
+    \bar{\hat{\varepsilon}}_{wm} = \mu + \alpha_{a(w,m)} + \chi \text{Volume}_{w,m-1} + \nu_{wm}
 \end{equation}
 %
 Here $a(w,m)$ denotes the alderman serving ward $w$ in month $m$.
 The raw alderman fixed effects $\hat{\alpha}_a$ can be noisy for aldermen with few permits.
-I therefore apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to pull imprecise estimates toward the grand mean, then standardize the final scores to have mean zero and unit standard deviation.
+I therefore apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to pull imprecise estimates toward the grand mean, then standardize the final scores, denoted $S_a$, to have mean zero and unit standard deviation.
 
 \onlineappendixlink{Figure B.1}{fig:stringency_diagnostics} maps the final stringency scores in 2014 and 2022, shows their distribution, and reports a low within-ward correlation between predecessor and successor aldermen ($\rho \approx 0.16$).
 The scores vary across wealthy and poor neighborhoods and across the North and South Sides, supporting an alderman-specific rather than ward-level interpretation.

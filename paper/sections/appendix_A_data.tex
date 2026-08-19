@@ -34,9 +34,10 @@ I assign each permit to the ward containing its coordinates under the boundaries
 
 The treatment panel compares each census block's ward under the pre-2015 and post-2015 maps.
 Blocks are projected to EPSG:3435 and assigned by largest-area overlap.
-Blocks moved to a different ward are classified using the difference between the destination and origin aldermen's stringency scores:
+Let $a_o(b)$ and $a_d(b)$ denote the aldermen representing census block $b$ under the origin and destination ward maps.
+Blocks moved to a different ward are classified using the difference between these aldermen's stringency scores:
 \[
-\Delta\text{Stringency}_i = \text{Stringency}_{\text{dest}} - \text{Stringency}_{\text{origin}}.
+\Delta S_b = S_{a_d(b)} - S_{a_o(b)}.
 \]
 Positive values indicate assignment toward greater stringency, negative values indicate assignment toward greater leniency, and unchanged blocks form the comparison group.
 
@@ -45,10 +46,10 @@ Both origin and destination scores are assigned using the incumbents serving in 
 The main sample retains blocks only when both incumbents remained in office when the new map took effect, so treatment matches the change the block experienced without using the outcome of the 2015 election.
 Online Appendix C.4 adds wards with electoral turnover and interprets the resulting estimate as assigned rather than necessarily realized stringency.
 
-Permits are aggregated by block and application year for relative years $-5$ through $5$.
+Permits are aggregated by block and application year for event times $t=-5$ through $t=5$.
 The sample includes blocks whose polygon centroid is within 500ft of a pre-redistricting boundary.
 Treated blocks use the fixed origin-destination boundary created by redistricting; comparison blocks use their nearest incident pre-redistricting boundary.
-The estimation sample requires at least one high-discretion permit during years $-5$ through $-1$.
+The estimation sample requires at least one high-discretion permit during event times $t=-5$ through $t=-1$.
 
 \subsection{New Construction}
 \label{subsec:new_construction_sample}

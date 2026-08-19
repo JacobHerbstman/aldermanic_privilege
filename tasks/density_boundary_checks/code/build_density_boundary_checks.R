@@ -174,7 +174,7 @@ robustness_lines <- c(
   "\\toprule",
   " & \\multicolumn{2}{c}{All Construction} & \\multicolumn{2}{c}{Multifamily} \\\\",
   "\\cmidrule(lr){2-3} \\cmidrule(lr){4-5}",
-  " & ln(FAR) & ln(DUPAC) & ln(FAR) & ln(DUPAC) \\\\",
+  " & Log(FAR) & Log(DUPAC) & Log(FAR) & Log(DUPAC) \\\\",
   "\\midrule"
 )
 

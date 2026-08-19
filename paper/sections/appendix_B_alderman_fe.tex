@@ -22,10 +22,10 @@ Here $a(w,m)$ denotes the alderman serving ward $w$ in month $m$.
 The alderman fixed effect captures the systematic component of processing time attributable to the alderman.
 
 \paragraph{Empirical Bayes Shrinkage.}
-Raw alderman fixed effects are shrunk toward the grand mean using an empirical Bayes procedure: $\hat{\theta}_j^{\text{EB}} = B_j \cdot \hat{\theta}_j$, where $B_j = \hat{\tau}^2/(\hat{\tau}^2 + \hat{\sigma}_j^2)$ is the shrinkage factor.
+Raw alderman fixed effects are shrunk toward the grand mean using an empirical Bayes procedure: $\hat{\alpha}_a^{\text{EB}} = B_a \hat{\alpha}_a$, where $B_a = \hat{\omega}^2/(\hat{\omega}^2 + \hat{\sigma}_a^2)$ is the shrinkage factor and $\hat{\omega}^2$ is the estimated between-alderman variance.
 
 \paragraph{Index Standardization.}
-The final stringency index is standardized to have mean zero and unit standard deviation across aldermen.
+The final stringency index, $S_a$, is standardized to have mean zero and unit standard deviation across aldermen.
 Higher values indicate more stringent aldermen.
 
 Table~\ref{tab:stage1_residualization} reports the first regression used to construct the stringency index.
