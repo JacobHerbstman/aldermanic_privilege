@@ -43,10 +43,9 @@ Aldermanic
 discretion enters well before formal permit issuance and continues after a project is filed.
 
 \textit{Pre-application.}
-Experienced Chicago developers know that any project
-requiring rezoning, or smaller project modifications, will require 
-obtaining the alderman's support before formal papers are filed.
-While not a legal requirement, it is all but required in practice: without the alderman's support, a
+Experienced Chicago developers know that projects requiring rezoning or smaller
+modifications need the alderman's support before formal papers are filed.
+Although not legally required, aldermanic support is all but essential in practice: without it, a
 developer risks investing heavily in design, legal, and engineering work
 before facing rejection at the political stage.
 One anonymous Chicago architect
@@ -77,7 +76,7 @@ to kill a planned 465-unit apartment project.
 
 \textit{Permit processing.}
 For projects that proceed by right under existing
-zoning, the alderman still retains substantial informal influence over the Department of
+zoning, the alderman retains substantial informal influence over the Department of
 Buildings permit queue.
 The corruption case against Ald.\ Ed Burke illustrated the
 mechanism in an extreme form: federal prosecutors documented how his staff
@@ -87,7 +86,7 @@ restaurant--until the property owner directed legal business to Burke's law firm
 The case made visible what developers had long
 understood: in Chicago, permit timing is another lever aldermen can use to delay and suppress
 projects they oppose.
-Interviews I have conducted with a former alderman detailed substantial use of the permit process to deter developers from trying to overrule the alderman on rezoning and planning matters earlier in the process.
+In interviews, a former alderman described substantial use of the permit process to deter developers from trying to overrule the alderman on rezoning and planning matters earlier in the process.
 
 \paragraph{A recent example.}
 Developer Fern Hill began community
@@ -111,7 +110,7 @@ four-year ordeal signals to other developers the cost of attempting large projec
 in wards with active aldermanic gatekeeping (extensive margin).
 
 \paragraph{Federal scrutiny.}
-In 2023, HUD concluded that aldermanic prerogative operates as a “local veto” that allows wards to block, deter, or downsize affordable housing, especially in majority-white areas \citep{chase_chicago_2023}; outside groups have made similar civil-rights arguments \citep{shriver_center_on_poverty_law_city_2019}.
+In 2023, HUD concluded that aldermanic prerogative operates as a ``local veto'' that allows wards to block, deter, or downsize affordable housing, especially in majority-white areas \citep{chase_chicago_2023}; outside groups have made similar civil-rights arguments \citep{shriver_center_on_poverty_law_city_2019}.
 The question of whether to reform or abolish aldermanic privilege remains a central issue in Chicago politics.\footnote{See
 \url{https://news.wttw.com/elections/voters-guide/2023/races/city-council}, where
 each city council candidate was asked specifically about their stance on aldermanic
@@ -121,8 +120,8 @@ prerogative.}
 \label{subsec:permit_pipeline}
 
 The City's public data contain permits recorded by the Department of Buildings since 2006.
-Each record reports when the application began and when the permit was issued, but inherently won't capture any projects abandoned before they were far along enough in the process to generate a permit record.
-I use the universe of ``high-discretion'' permits from 2006-2022 that have valid geographic coordinates and nonnegative processing times.
+Each record reports when the application began and when the permit was issued, but cannot capture projects abandoned before they progress far enough to generate a permit record.
+I use the universe of ``high-discretion'' permits from 2006--2022 that have valid geographic coordinates and nonnegative processing times.
 \onlineappendixlink{A.3}{subsec:event_study_panel} describes the separate sample used to estimate stringency scores in the event study.
 I divide permits into two groups based on how much aldermanic discretion they are likely to face.
 
@@ -139,7 +138,7 @@ Processing time is negatively associated with ward-month permit volume for high-
     \centering
     \includegraphics[width=0.78\textwidth]{../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf}
     \caption{Alderman-Level Mean Processing Time for High- and Low-Discretion Permits}
-\figurenotes{Figure plots the distribution of alderman-level mean permit processing time separately for high- and low-discretion permit groups, using permit records through December 2022.
+\figurenotes{The figure plots the distribution of alderman-level mean permit processing times separately for high- and low-discretion permit groups, using permit records through December 2022.
 The high- and low-discretion permit groups are defined in Section~\ref{subsec:permit_pipeline}.
 Processing time is days from application to issuance.}
     \label{fig:permit_high_low_processing}
@@ -153,7 +152,7 @@ I first adjust processing times for observed differences across wards, locations
 The first stage regresses log processing time at the permit level on ward-level demographic controls (median household income, racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
 %
 \begin{equation} \label{eq:stringency_reg1}
-    \log(\text{Processing Time}_{i}) = X_i'\theta + \phi_{m(i)} + \psi_{c(i)} + \xi_{v(i)} + \varepsilon_{i}
+    \log(\text{Processing Time}_{i}) = X_i'\theta + \phi_{m(i)} + \psi_{c(i)} + \xi_{v(i)} + \varepsilon_{i},
 \end{equation}
 %
 where $i$ indexes permits, $X_i$ contains the observed permit and location controls, and $m(i)$, $c(i)$, and $v(i)$ denote the permit's year-month, permit class, and review type.
@@ -163,7 +162,7 @@ The second stage averages the adjusted processing times by ward and month, then 
 Ward-months are weighted by the number of permits observed:
 %
 \begin{equation} \label{eq:stringency_reg2}
-    \bar{\hat{\varepsilon}}_{wm} = \mu + \alpha_{a(w,m)} + \chi \text{Volume}_{w,m-1} + \nu_{wm}
+    \bar{\hat{\varepsilon}}_{wm} = \mu + \alpha_{a(w,m)} + \chi \text{Volume}_{w,m-1} + \nu_{wm}.
 \end{equation}
 %
 Here $a(w,m)$ denotes the alderman serving ward $w$ in month $m$.
@@ -180,8 +179,8 @@ I construct a citywide dataset of new residential construction in Chicago betwee
 I combine residential improvement characteristics with commercial valuation records for properties assessed under multifamily model groups.
 Together, these files report dwelling units, stories, building area, and land area.
 I locate each project using Assessor parcel records, assign it to a ward using City of Chicago shapefiles, and define the construction date as June 15 of the recorded year built since I cannot observe an exact date.
-For the boundary-discontinuity analyses, I divide ward boundaries into approximately 1,320 foot segments and assign each project to the nearest segment.
-Since some ward boundaries are several miles long, this approach allows me to focus on projects that are not only on the same ward boundary but also geographically close to each other to ensure meaningful comparisons.
+For the boundary-discontinuity analyses, I divide ward boundaries into approximately 1,320-foot segments and assign each project to the nearest segment.
+Because some ward boundaries are several miles long, the segments ensure that compared projects are near both the same boundary and each other.
 I keep projects with positive lot area, positive building area, and at least one dwelling unit.
 
 Because zoning measured today may reflect subsequent changes, I assign each project the broad zoning group in force on its assigned construction date.
@@ -191,7 +190,7 @@ For each project I compute two standard density measures: Floor Area Ratio (FAR)
 Distance to the nearest ward boundary is computed after projecting project locations and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
 
 Table~\ref{tab:summary_stats} presents summary statistics.
-The estimation sample contains 3,692 new residential projects within 500ft of a ward boundary, including 822 classified as multifamily.
+The estimation sample contains 3,692 new residential projects within 500~ft of a ward boundary, including 822 classified as multifamily.
 I report the multifamily sample separately because aldermanic discretion is likely to matter most for larger projects.
 
 \input{../tasks/density_main_results/output/density_sample_summary.tex}
@@ -211,4 +210,4 @@ I use valid market transactions of single-family homes and small multifamily bui
 Prices are expressed in 2022 dollars using the monthly Chicago CPI-U and winsorized at the 1st and 99th percentiles.
 Full 14-digit PINs determine location and date-specific ward assignments, and same-year Assessor records provide property characteristics.
 
-For both the rental and home sales data, more detail on the data construction process can be found in \onlineappendixlink{A}{app:data_sources}.
+\onlineappendixlink{A}{app:data_sources} provides additional detail on the rental and home sales data.

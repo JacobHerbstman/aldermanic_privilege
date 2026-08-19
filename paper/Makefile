@@ -1,4 +1,4 @@
-all: paper.pdf online_appendix.pdf working_paper.pdf word_count.pdf
+all: paper.pdf online_appendix.pdf working_paper.pdf word_count.pdf cover_letter.pdf
 
 paper.pdf: Makefile paper.tex sections/intro.tex sections/data.tex sections/model.tex \
 	sections/empirics_results.tex sections/discussion.tex sections/conclusion.tex \
@@ -70,6 +70,8 @@ working_paper.pdf: Makefile working_paper.tex paper.tex sections/intro.tex \
 
 word_count.pdf: Makefile word_count.tex paper.pdf
 
+cover_letter.pdf: Makefile cover_letter.tex
+
 .SECONDEXPANSION:
 paper.pdf: | osm-check $$(addprefix task-check/,$$(patsubst ../tasks/%,%,$$(filter ../tasks/%,$$^)))
 	pdflatex -interaction=nonstopmode paper.tex
@@ -90,6 +92,9 @@ working_paper.pdf: | osm-check $$(addprefix task-check/,$$(patsubst ../tasks/%,%
 
 word_count.pdf:
 	pdflatex -interaction=nonstopmode word_count.tex
+
+cover_letter.pdf:
+	pdflatex -interaction=nonstopmode cover_letter.tex
 
 osm-check:
 	@cd .. && shasum -a 256 -c data_raw/illinois-250919-free.sha256

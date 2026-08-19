@@ -10,8 +10,8 @@ I first ask whether permit activity changes when the same location is assigned t
 Chicago's 2015 ward redistricting moved some census blocks toward wards represented by more stringent aldermen and others toward wards represented by more lenient aldermen.
 Nearby blocks that remained in their original ward provide the comparison group.
 The design therefore holds the physical location fixed while changing its assigned regulatory environment.
-The primary analysis sample keeps all boundaries where the aldermen representing both the origin and destination wards in 2014 remained in office when the new map took effect,
-since newly elected aldermen could have preferences toward development that are endogenous to the previous development activity in the ward.
+The primary analysis sample keeps boundaries for which both the origin- and destination-ward aldermen serving in 2014 remained in office when the new map took effect,
+since newly elected aldermen's development preferences could be endogenous to prior development activity in the ward.
 I also require each block to have at least one high-discretion permit during the five years before redistricting.
 Without that restriction, any later permit on a block with no previous activity would mechanically appear as an increase.
 
@@ -39,15 +39,16 @@ I classify moves using the 2014 incumbents in each block's origin and destinatio
 I do not redefine treatment using the 2015 election winners because those elections may themselves reflect local preferences toward development.
 This specification imposes equal-and-opposite effects in logs for assignments toward more stringent and more lenient aldermen.
 Panel A of Figure~\ref{fig:permit_event_study} plots the coefficients $\beta_t$.
-The pre-trends are not distinguishable from zero, and the post-redistricting estimate continually declines through the 5 year period and the pooled post-period estimate is $-0.127$ (SE $=0.049$), equivalent to an 11.9\% reduction in the annual number of high-discretion permits associated with a move toward greater stringency.
+The pre-trends are not distinguishable from zero.
+The post-redistricting estimates become increasingly negative over the five-year period.
+The pooled post-period estimate is $-0.127$ (SE $=0.049$), equivalent to an 11.9\% reduction in the annual number of high-discretion permits associated with a move toward greater stringency.
 Panels B and C relax the symmetry restriction by estimating the two directions separately.
-An interesting heterogeneity appears when the two directions are estimated separately: the decline in permitting activity mostly comes from movements toward more stringent aldermen,
-who see a 23\% reduction in high-discretion permits, while blocks assigned toward more lenient aldermen see a 6.5\% increase.
+The decline in permitting activity comes mostly from moves toward more stringent aldermen, which reduce high-discretion permits by 23\%; blocks assigned toward more lenient aldermen experience a 6.5\% increase.
 \onlineappendixlink{Table C.2}{tab:permit_event_study_did} reports the corresponding pooled estimates without the symmetry restriction and shows the results are nearly identical.
 
-It appears that aldermanic discretion comes from uniquely stringent aldermen blocking activity that would otherwise have occurred, rather than uniquely lenient aldermen allowing activity that would generally be blocked under formal city regulations.
-This difference is crucial for determining the likely aggregate effect of this informal regulatory discretion on housing supply, since it is ex-ante possible that informal discretion allows a few particularly pro-development aldermen to approve more housing than a centralized system.
-My results suggest that this is not the case and it appears that this system of informal regulations likely reduces housing supply relative to a more centralized counterfactual.
+This asymmetry suggests that aldermanic discretion operates through uniquely stringent aldermen blocking activity that would otherwise occur, rather than uniquely lenient aldermen allowing activity that formal city regulations would otherwise block.
+This distinction matters for the likely aggregate effect of informal regulatory discretion on housing supply because it is possible ex ante that a few particularly pro-development aldermen approve more housing than a centralized system would.
+The results instead suggest that informal aldermanic discretion reduces housing supply relative to a more centralized counterfactual.
 
 \begin{figure}[htbp]
     \centering
@@ -58,7 +59,7 @@ My results suggest that this is not the case and it appears that this system of 
     \caption{Permit Activity After the 2015 Ward Redistricting}
     \figurenotes{Block-year Poisson pseudo-maximum likelihood event study for calendar years 2010--2020.
     The outcome is the number of high-discretion permits per block, grouped by application year.
-    The sample includes blocks within 500ft of ward boundaries.
+    The sample includes blocks within 500~ft of ward boundaries.
     It retains blocks whose 2014 origin- and destination-ward incumbents remained in office when the new map took effect.
     Blocks must have at least one high-discretion permit during event times $t=-5$ through $t=-1$.
     Blocks are classified according to whether the 2015 map assigned them toward an alderman who was more or less stringent than the origin-ward alderman; unchanged blocks are the comparison group.
@@ -78,8 +79,8 @@ My results suggest that this is not the case and it appears that this system of 
 \label{sec:empirical_results_density}
 
 I next examine the individual new construction projects described in Section~\ref{subsec:new_construction_data} on opposite sides of the same ward boundary, moving the unit of analysis from census blocks to projects.
-Projects within 500ft of the same boundary segment face similar neighborhood amenities and demand conditions, but different aldermen.
-Following \citet{bayer_unified_2007} and \citet{kulka_under_2026}, I divide signed distance to the boundary into 100ft bands and compare projects in each band with projects in the nearest band on the less-stringent side.
+Projects within 500~ft of the same boundary segment face similar neighborhood amenities and demand conditions, but different aldermen.
+Following \citet{bayer_unified_2007} and \citet{kulka_under_2026}, I divide signed distance to the boundary into 100~ft bands and compare projects in each band with projects in the nearest band on the less-stringent side.
 This flexible specification does not require density to follow a linear or polynomial relationship with distance.
 I estimate
 %
@@ -97,11 +98,11 @@ I estimate
 \end{aligned}
 \end{equation}
 %
-Here $Y_{isy}$ is FAR or DUPAC for project $i$ on boundary segment $s$, built in calendar year $y$.
+Here $Y_{isy}$ is FAR or DUPAC for project $i$, assigned to boundary segment $s$ and built in calendar year $y$.
 The running variable $d_{is}$ is negative on the less-stringent side and positive on the more-stringent side.
-The set $\mathcal{K}$ contains ten 100ft bands from $-500$ to 500ft.
-The band from $-100$ to 0ft is omitted, so $\kappa_{[0,100)}$ compares projects immediately across the boundary.
-The vector $X_i$ contains share White, share Black, median household income, bachelor's share, and homeownership on the project's side of the boundary.
+The set $\mathcal{K}$ contains ten 100~ft bands from $-500$ to 500~ft.
+The band from $-100$ to 0~ft is omitted, so $\kappa_{[0,100)}$ compares projects immediately across the boundary.
+The vector $X_i$ contains the White population share, the Black population share, median household income, the bachelor's-degree share, and the homeownership rate on the project's side of the boundary.
 The model also includes the zoning group in force when the project was built, boundary-segment fixed effects, and construction-year fixed effects.
 Standard errors are clustered by ward pair.
 
@@ -117,17 +118,17 @@ The similar results for FAR and dwelling units per acre indicate that the differ
     \includegraphics[width=0.96\textwidth]{../tasks/density_main_results/output/density_rd.pdf}
     \caption{Development Density at Ward Boundaries}
     \figurenotes{Left column: all construction; right column: multifamily.
-    Top row: Log(FAR); bottom row: Log(DUPAC).
-    Samples include new construction within 500ft of ward boundaries.
-    Each point is the coefficient for a 100ft distance band from Equation~\eqref{eq:segment_fe}.
-    The nearest band on the less-stringent side, from $-100$ to 0ft, is omitted and normalized to zero.
-    Subtitles report the coefficient for the nearest band on the more-stringent side, from 0 to 100ft.
+    Top row: log(FAR); bottom row: log(DUPAC).
+    Samples include new construction within 500~ft of ward boundaries.
+    Each point is the coefficient for a 100~ft distance band from Equation~\eqref{eq:segment_fe}.
+    The nearest band on the less-stringent side, from $-100$ to 0~ft, is omitted and normalized to zero.
+    Subtitles report the coefficient for the nearest band on the more-stringent side, from 0 to 100~ft.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
     Negative distance indicates the less-stringent side and positive distance the more-stringent side.}
     \label{fig:rd_fe_plots}
 \end{figure}
 
-As a falsification test, I repeat the same comparison at artificial cutoffs 1000ft inside either side of the true ward boundary.
+As a falsification test, I repeat the same comparison at artificial cutoffs 1000~ft inside either side of the true ward boundary.
 These locations do not mark a change in aldermanic authority.
 \onlineappendixlink{Figure D.1}{fig:rd_placebo_shifts} shows no corresponding break: none of the eight nearest-band placebo estimates is statistically distinguishable from zero.
 The contrast with the true boundary makes it less likely that the main estimates reflect a general spatial pattern within wards.
@@ -137,7 +138,7 @@ The contrast with the true boundary makes it less likely that the main estimates
 \label{sec:empirical_results_prices}
 
 The permit and density results indicate that more stringent aldermen reduce development activity and the density of completed housing.
-The model in \ref{sec:model}, indicates that this should feed into prices, which is the most directly policy-relevant outcome given Chicago's current rent and price growth.
+The model in Section~\ref{sec:model} indicates that this should feed into housing costs, the most directly policy-relevant outcome given Chicago's current rent and price growth.
 For rents and sales, I estimate
 %
 \begin{equation}
@@ -151,7 +152,7 @@ For rents and sales, I estimate
 \end{equation}
 %
 where $Y_{isp}$ is the real listed rent or real sale price for observation $i$ near boundary segment $s$ in calendar period $p$.
-As in the density analysis, $\mathcal{K}$ contains ten 100ft distance bands and the band from $-100$ to 0ft is omitted.
+As in the density analysis, $\mathcal{K}$ contains ten 100~ft distance bands and the band from $-100$ to 0~ft is omitted.
 The coefficient $\kappa_{[0,100)}$ therefore compares observations in the two bands immediately across the boundary.
 The fixed effects compare observations near the same boundary segment in the same month for rents and the same quarter for sales.
 The controls include unit or property characteristics and distances to nearby schools, parks, major roads, CTA stops, and Lake Michigan.
@@ -171,7 +172,7 @@ I treat the sales result as suggestive because transactions are less frequent ne
     \figurenotes{Panel A uses listed-rent floorplan-month observations from 2014--2022 and segment-by-month fixed effects.
     Panel B uses filtered residential transactions from 2006--2022 and segment-by-quarter fixed effects.
     Both panels include housing characteristics, distances to nearby amenities, and the fixed effects described in the text.
-    Each point is the estimated difference between a 100ft distance band and the band immediately inside the less-stringent side, which is normalized to zero.
+    Each point is the estimated difference between a 100~ft distance band and the band immediately inside the less-stringent side, which is normalized to zero.
     Shaded areas are 95\% confidence intervals.
     Subtitles report the comparison between the two bands adjacent to the boundary.
     Standard errors are clustered by ward pair. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}

@@ -4,7 +4,7 @@
 \label{sec:appendix_density}
 
 This appendix checks whether the density result appears at false cutoffs, reflects fixed differences in location, or depends on unusual boundary geometry or projects closest to the boundary.
-Unless otherwise noted, each estimate compares the two 100ft bands immediately across the ward boundary using Equation~\eqref{eq:segment_fe}.
+Unless otherwise noted, each estimate compares the two 100~ft bands immediately across the ward boundary using Equation~\eqref{eq:segment_fe}.
 
 \subsection{Stringency-Score Checks}
 \label{subsec:density_stringency_checks}
@@ -25,7 +25,7 @@ All four point estimates remain negative when the minimum gap is either 0.25 or 
     \begin{minipage}{0.98\textwidth}
         \vspace{0.35em}
         \footnotesize
-        \textit{Notes:} Entries compare the two 100ft bands immediately across the boundary using Equation~\eqref{eq:segment_fe}.
+        \textit{Notes:} Entries compare the two 100~ft bands immediately across the boundary using Equation~\eqref{eq:segment_fe}.
         The second row removes permits matched to each construction project before recalculating the alderman scores used for that project.
         The minimum-gap rows retain boundaries where the absolute difference between the two scores is at least the stated number of standard deviations.
         Standard errors are clustered by ward pair.
@@ -36,20 +36,20 @@ All four point estimates remain negative when the minimum gap is either 0.25 or 
 \subsection{Placebo Cutoffs}
 \label{subsec:density_placebo_cutoffs}
 
-Figure~\ref{fig:rd_placebo_shifts} moves the cutoff 1000ft inside either side of the true ward boundary.
+Figure~\ref{fig:rd_placebo_shifts} moves the cutoff 1000~ft inside either side of the true ward boundary.
 These locations do not mark a change in aldermanic authority, and none of the eight nearest-band estimates is statistically distinguishable from zero.
 
 \begin{figure}[p]
     \centering
-    \textbf{Panel A: 1000ft inside the less-stringent side}\par
+    \textbf{Panel A: 1000~ft inside the less-stringent side}\par
     \includegraphics[width=0.75\textwidth]{../tasks/density_appendix_results/output/density_placebo_neg1000ft.pdf}
 
     \vspace{0.5em}
-    \textbf{Panel B: 1000ft inside the more-stringent side}\par
+    \textbf{Panel B: 1000~ft inside the more-stringent side}\par
     \includegraphics[width=0.75\textwidth]{../tasks/density_appendix_results/output/density_placebo_pos1000ft.pdf}
     \caption{Density Estimates at Placebo Cutoffs}
-    \figurenotes{Each artificial cutoff lies 1000ft inside the indicated side of the true ward boundary.
-    The model uses a 500ft window around the artificial cutoff and the same 100ft distance bands, controls, and fixed effects as Equation~\eqref{eq:segment_fe}.
+    \figurenotes{Each artificial cutoff lies 1000~ft inside the indicated side of the true ward boundary.
+    The model uses a 500~ft window around the artificial cutoff and the same 100~ft distance bands, controls, and fixed effects as Equation~\eqref{eq:segment_fe}.
     The nearest band below the artificial cutoff is omitted and normalized to zero; subtitles report the difference in the nearest band above it.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
     \label{fig:rd_placebo_shifts}
@@ -72,8 +72,8 @@ None of the differences in distance to downtown, the nearest school, the nearest
         \vspace{0.35em}
         \footnotesize
         \textit{Notes:} Each row uses the listed location characteristic as the dependent variable.
-        The reported coefficient compares the 0--100ft band on the more-stringent side with the 0--100ft band on the less-stringent side.
-        Regressions include 100ft distance-band indicators, boundary-segment fixed effects, and construction-year fixed effects.
+        The reported coefficient compares the 0--100~ft band on the more-stringent side with the $-100$ to 0~ft band on the less-stringent side.
+        Regressions include 100~ft distance-band indicators, boundary-segment fixed effects, and construction-year fixed effects.
         Standard errors are clustered by ward pair.
         * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
     \end{minipage}
@@ -99,10 +99,10 @@ These estimates are generally smaller and less precise in the reduced sample, bu
     \begin{minipage}{0.98\textwidth}
         \vspace{0.35em}
         \footnotesize
-        \textit{Notes:} Entries compare the two 100ft bands immediately across the boundary using Equation~\eqref{eq:segment_fe}.
+        \textit{Notes:} Entries compare the two 100~ft bands immediately across the boundary using Equation~\eqref{eq:segment_fe}.
         The expressway-or-water restriction removes segments for which either feature overlaps at least half of the segment.
         The broader restriction removes segments with at least 50\% park, water, or cemetery overlap, 40\% expressway overlap, or 75\% arterial-road overlap.
-        A boundary is locally straight when both endpoints of a 328ft line tangent to the project's nearest boundary point fall within 49ft of the actual boundary.
+        A boundary is locally straight when both endpoints of a 328~ft line tangent to the project's nearest boundary point fall within 49~ft of the actual boundary.
         Standard errors are clustered by ward pair.
         * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
     \end{minipage}
@@ -110,16 +110,16 @@ These estimates are generally smaller and less precise in the reduced sample, bu
 
 \begin{figure}[p]
     \centering
-    \textbf{Panel A: Excluding projects within 25ft}\par
+    \textbf{Panel A: Excluding projects within 25~ft}\par
     \includegraphics[width=0.75\textwidth]{../tasks/density_appendix_results/output/density_donut25ft.pdf}
 
     \vspace{0.5em}
-    \textbf{Panel B: Excluding projects within 50ft}\par
+    \textbf{Panel B: Excluding projects within 50~ft}\par
     \includegraphics[width=0.75\textwidth]{../tasks/density_appendix_results/output/density_donut50ft.pdf}
     \caption{Density Estimates Excluding Projects Nearest the Boundary}
     \figurenotes{This check asks whether projects immediately adjacent to a boundary drive the main result.
-    Each panel excludes projects within the indicated distance and otherwise uses the 500ft sample and Equation~\eqref{eq:segment_fe}.
-    After each exclusion, the remaining portion of the $-100$ to 0ft band forms the omitted category.
+    Each panel excludes projects within the indicated distance and otherwise uses the 500~ft sample and Equation~\eqref{eq:segment_fe}.
+    After each exclusion, the remaining portion of the $-100$ to 0~ft band forms the omitted category.
     All four nearest-band estimates remain negative.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
     \label{fig:rd_donuts}

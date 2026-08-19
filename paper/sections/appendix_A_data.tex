@@ -48,7 +48,7 @@ The main sample retains blocks only when both incumbents remained in office when
 Online Appendix C.4 adds wards with electoral turnover and interprets the resulting estimate as assigned rather than necessarily realized stringency.
 
 Permits are aggregated by block and application year for event times $t=-5$ through $t=5$.
-The sample includes blocks whose polygon centroid is within 500ft of a pre-redistricting boundary.
+The sample includes blocks whose polygon centroid is within 500~ft of a pre-redistricting boundary.
 Treated blocks use the fixed origin-destination boundary created by redistricting; comparison blocks use their nearest incident pre-redistricting boundary.
 The estimation sample requires at least one high-discretion permit during event times $t=-5$ through $t=-1$.
 
@@ -62,7 +62,7 @@ I then compare the resulting sample with every issued residential new-constructi
 Projects must have positive lot area, positive building area, at least one dwelling unit, and a construction year from 2006 through 2022.
 Assessor histories sometimes report different years or repeat whole-building characteristics across assessment cards.
 I use permit and completion dates to select the year that best matches completion, combine cards that clearly describe one building, and remove later PINs representing the same project.
-For 52 projects citywide, including 26 within 500ft of a ward boundary, the administrative records do not fully resolve the case; the replication files include a spreadsheet recording each decision.
+For 52 projects citywide, including 26 within 500~ft of a ward boundary, the administrative records require manual resolution; the replication files include a spreadsheet recording each decision.
 
 Locations first come from the Historical Parcel Universe in the construction year.
 When the original PIN is unavailable there, I use the current location of that PIN or a verified historical address.
@@ -80,7 +80,7 @@ All ward assignment and distance calculations use EPSG:3435, with distance repor
 \subsection{New-Construction Summary Statistics}
 \label{subsec:new_construction_summary_stats}
 
-Table~\ref{tab:summary_stats} describes the 3,692 projects within 500ft used in both main density regressions, including 822 multifamily projects.
+Table~\ref{tab:summary_stats} describes the 3,692 projects within 500~ft used in both main density regressions, including 822 multifamily projects.
 
 \subsection{Home Sales}
 \label{subsec:sales_sample}
@@ -91,7 +91,7 @@ Sales must exceed \$10,000, use a warranty or trustee deed, include recorded and
 Prices are deflated to 2022 dollars using the monthly Chicago CPI-U and winsorized at the 1st and 99th percentiles of the analysis sample.
 
 I geocode each sale by matching its full PIN to the Historical Parcel Universe in the sale year, falling back to the 2025 location of the same PIN when necessary.
-Ward and alderman assignments use the exact sale date: transactions before May 18, 2015 use the old map, and those on or after that date use the new map.
+Ward and alderman assignments use the exact sale date: transactions before May 18, 2015, use the old map, and those on or after that date use the new map.
 Signed distances are calculated in EPSG:3435 and oriented by relative aldermanic stringency.
 
 \subsection{RentHub Listings}
@@ -105,7 +105,7 @@ I collapse repeated scrapes to the median rent for each floorplan and scrape dat
 Before monthly aggregation, rent and square footage are trimmed at the 1st and 99th percentiles within year-by-bedroom cells.
 
 The sample requires positive rent, valid coordinates, and assignment to a Chicago ward.
-Ward and alderman assignments use the listing's first observed date and split May 2015 at May 18.
-The main analysis retains only reliable locations: it excludes manually rejected coordinates, unstable address clusters, addressless listings concentrated at generic coordinates, and cases where the address's modal coordinate changes the ward, neighboring ward, ward pair, or measured boundary distance by more than 100ft.
+Ward and alderman assignments use the listing's first observed date, with May 18 as the map transition date.
+The main analysis retains only reliable locations: it excludes manually rejected coordinates, unstable address clusters, addressless listings concentrated at generic coordinates, and cases where the address's modal coordinate changes the ward, neighboring ward, ward pair, or measured boundary distance by more than 100~ft.
 Regressions also require square footage, bathrooms, and amenity controls.
 Bedrooms enter categorically, so studios remain in the sample.
