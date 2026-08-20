@@ -110,7 +110,7 @@ four-year ordeal signals to other developers the cost of attempting large projec
 in wards with active aldermanic gatekeeping (extensive margin).
 
 \paragraph{Federal scrutiny.}
-In 2023, HUD concluded that aldermanic prerogative operates as a ``local veto'' that allows wards to block, deter, or downsize affordable housing, especially in majority-white areas \citep{chase_chicago_2023}; outside groups have made similar civil-rights arguments \citep{shriver_center_on_poverty_law_city_2019}.
+In 2023, the U.S. Department of Housing and Urban Development (HUD) concluded that aldermanic prerogative operates as a ``local veto'' that allows wards to block, deter, or downsize affordable housing, especially in majority-white areas \citep{chase_chicago_2023}; outside groups have made similar civil-rights arguments \citep{shriver_center_on_poverty_law_city_2019}.
 The question of whether to reform or abolish aldermanic privilege remains a central issue in Chicago politics.\footnote{See
 \url{https://news.wttw.com/elections/voters-guide/2023/races/city-council}, where
 each city council candidate was asked specifically about their stance on aldermanic
@@ -149,7 +149,7 @@ Processing time is days from application to issuance.}
 
 I construct the stringency score using permit records from 2006--2022.
 I first adjust processing times for observed differences across wards, locations, permits, and months, then estimate the remaining alderman-specific differences.
-The first stage regresses log processing time at the permit level on ward-level demographic controls (median household income, racial composition, homeownership rate, population), permit-location geographic controls (distance to CBD, lakefront proximity, CTA rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
+The first stage regresses log processing time at the permit level on ward-level demographic controls (median household income, racial composition, homeownership rate, population), permit-location geographic controls (distance to the central business district (CBD), lakefront proximity, Chicago Transit Authority (CTA) rail access), lagged ward-month permit volume, and fixed effects for year-month, permit type, and review type:
 %
 \begin{equation} \label{eq:stringency_reg1}
     \log(\text{Processing Time}_{i}) = X_i'\theta + \phi_{m(i)} + \psi_{c(i)} + \xi_{v(i)} + \varepsilon_{i},
@@ -208,6 +208,6 @@ Rents are expressed in 2022 dollars using the monthly Chicago CPI-U.
 Home sales come from Cook County Assessor records.
 I use valid market transactions of single-family homes and small multifamily buildings (2--6 units) from 2006 through 2022.
 Prices are expressed in 2022 dollars using the monthly Chicago CPI-U and winsorized at the 1st and 99th percentiles.
-Full 14-digit PINs determine location and date-specific ward assignments, and same-year Assessor records provide property characteristics.
+Full 14-digit property index numbers (PINs) determine location and date-specific ward assignments, and same-year Assessor records provide property characteristics.
 
 \onlineappendixlink{A}{app:data_sources} provides additional detail on the rental and home sales data.

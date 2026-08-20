@@ -560,9 +560,9 @@ estimate_bins <- function(
         "Distance to placebo cutoff (feet)"
       },
       y = if (cutoff_ft == 0) {
-        "Difference from nearest less-stringent bin"
+        "Log difference from nearest less-stringent bin"
       } else {
-        "Difference from nearest below-cutoff bin"
+        "Log difference from nearest below-cutoff bin"
       }
     ) +
     ggplot2::theme_bw(base_size = 10) +
@@ -599,18 +599,18 @@ for (market_name in c("rent", "sales")) {
       check_name == "main" ~ market_label,
       check_name == "placebo_neg1000ft" ~ paste0(
         market_label,
-        ": 1,000ft inside less-stringent side"
+        ": 1,000 ft inside less-stringent side"
       ),
       check_name == "placebo_pos1000ft" ~ paste0(
         market_label,
-        ": 1,000ft inside more-stringent side"
+        ": 1,000 ft inside more-stringent side"
       ),
       check_name == "straight" ~ market_label,
       check_name == "donut25ft" ~ paste0(
         market_label,
-        ": exclude nearest 25ft"
+        ": exclude nearest 25 ft"
       ),
-      TRUE ~ paste0(market_label, ": exclude nearest 50ft")
+      TRUE ~ paste0(market_label, ": exclude nearest 50 ft")
     )
 
     fits[[paste(market_name, check_name, sep = "_")]] <- estimate_bins(

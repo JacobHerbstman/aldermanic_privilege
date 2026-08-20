@@ -40,10 +40,10 @@ I do not redefine treatment using the 2015 election winners because those electi
 This specification imposes equal-and-opposite effects in logs for assignments toward more stringent and more lenient aldermen.
 Panel A of Figure~\ref{fig:permit_event_study} plots the coefficients $\beta_t$.
 The pre-trends are not distinguishable from zero.
-The post-redistricting estimates become increasingly negative over the five-year period.
+The post-redistricting estimates are mostly negative, with the largest declines appearing in later years.
 The pooled post-period estimate is $-0.127$ (SE $=0.049$), equivalent to an 11.9\% reduction in the annual number of high-discretion permits associated with a move toward greater stringency.
 Panels B and C relax the symmetry restriction by estimating the two directions separately.
-The decline in permitting activity comes mostly from moves toward more stringent aldermen, which reduce high-discretion permits by 23\%; blocks assigned toward more lenient aldermen experience a 6.5\% increase.
+The decline in permitting activity comes mostly from moves toward more stringent aldermen, which reduce high-discretion permits by 20.6\%; blocks assigned toward more lenient aldermen experience a 6.9\% increase.
 \onlineappendixlink{Table C.2}{tab:permit_event_study_did} reports the corresponding pooled estimates without the symmetry restriction and shows the results are nearly identical.
 
 This asymmetry suggests that aldermanic discretion operates through uniquely stringent aldermen blocking activity that would otherwise occur, rather than uniquely lenient aldermen allowing activity that formal city regulations would otherwise block.
@@ -68,7 +68,7 @@ The results instead suggest that informal aldermanic discretion reduces housing 
     Event time $t=-1$ is omitted.
     Panel A uses a reassignment variable equal to one for blocks assigned toward greater stringency, minus one for blocks assigned toward greater leniency, and zero for unchanged blocks.
     Panels B and C estimate the two reassignment directions separately relative to unchanged blocks.
-    Each point reports the corresponding event-time coefficient.
+    Each point shows the percentage change in permits relative to the year before redistricting and the subtitles report the pooled estimates in logs.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
     The pooled coefficients are $-0.127$ (SE $=0.049$) in Panel A, $-0.231$ (SE $=0.096$) in Panel B, and $0.067$ (SE $=0.059$) in Panel C.
     The Panel A pre-trend test has $p=0.394$.}
@@ -160,8 +160,8 @@ Standard errors are clustered by ward pair.
 
 Figure~\ref{fig:price_boundary_bins} plots these distance-band estimates.
 
-Listed rents are 1.7\% higher in the band closest to the boundary, although the estimate is imprecise.
-Home sale prices are 4.6\% higher in the band closest to the boundary.
+Listed rents are 1.7\% higher on the more-stringent side relative to the less-stringent side, although the estimate is imprecise.
+Home sale prices are 4.6\% higher on the more-stringent side relative to the less-stringent side.
 I treat the sales result as suggestive because transactions are less frequent near any particular boundary and their composition is harder to hold fixed.
 \onlineappendixlink{E}{sec:appendix_price_rd} shows that the result disappears at artificial cutoffs inside either ward and is similar when I restrict the sample to straight boundaries or exclude observations immediately next to the boundary.
 
@@ -172,7 +172,7 @@ I treat the sales result as suggestive because transactions are less frequent ne
     \figurenotes{Panel A uses listed-rent floorplan-month observations from 2014--2022 and segment-by-month fixed effects.
     Panel B uses filtered residential transactions from 2006--2022 and segment-by-quarter fixed effects.
     Both panels include housing characteristics, distances to nearby amenities, and the fixed effects described in the text.
-    Each point is the estimated difference between a 100~ft distance band and the band immediately inside the less-stringent side, which is normalized to zero.
+    Each point is the estimated log difference between a 100~ft distance band and the band immediately inside the less-stringent side, which is normalized to zero.
     Shaded areas are 95\% confidence intervals.
     Subtitles report the comparison between the two bands adjacent to the boundary.
     Standard errors are clustered by ward pair. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}

@@ -69,11 +69,11 @@ if (anyDuplicated(early_aldermen$ward) > 0 ||
 early_map <- early_wards %>%
   left_join(early_aldermen, by = "ward", relationship = "one-to-one") %>%
   left_join(scores, by = "alderman", relationship = "many-to-one") %>%
-  mutate(vintage = "Panel A: January 2014")
+  mutate(vintage = format(early_month, "%B %Y"))
 late_map <- late_wards %>%
   left_join(late_aldermen, by = "ward", relationship = "one-to-one") %>%
   left_join(scores, by = "alderman", relationship = "many-to-one") %>%
-  mutate(vintage = "Panel B: January 2022")
+  mutate(vintage = format(late_month, "%B %Y"))
 if (any(is.na(early_map$score)) || any(is.na(late_map$score))) {
   stop("Every mapped ward must have an alderman and score.", call. = FALSE)
 }
@@ -83,8 +83,8 @@ map_data <- bind_rows(early_map, late_map) %>%
     vintage = factor(
       vintage,
       levels = c(
-        "Panel A: January 2014",
-        "Panel B: January 2022"
+        format(early_month, "%B %Y"),
+        format(late_month, "%B %Y")
       )
     )
   )
