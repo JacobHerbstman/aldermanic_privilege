@@ -1,7 +1,7 @@
 # Journal of Public Economics submission
 
 This folder preserves the JPubE Short Paper submission vintage prepared on
-August 19, 2026.
+August 20, 2026.
 
 ## Submission documents
 
