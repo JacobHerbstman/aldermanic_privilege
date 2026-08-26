@@ -14,11 +14,8 @@
 \usepackage{caption}
 \usepackage{threeparttable}
 \usepackage{enumitem}
-\ifdefined\workingpaperversion
-\else
-    \usepackage[nomarkers, nolists, figuresfirst]{endfloat}
-    \renewcommand{\efloatseparator}{\bigskip}
-\fi
+\usepackage[nomarkers, nolists, figuresfirst]{endfloat}
+\renewcommand{\efloatseparator}{\bigskip}
 
 % SETTINGS
 \doublespacing
@@ -87,25 +84,31 @@ These results show that informal regulation can distort housing supply and poten
 
 \newpage
 
+% Process main-text floats after the references.
+\processdelayedfloats
+\clearpage
+
 \ifdefined\workingpaperversion
-    \clearpage
     \appendix
     \numberwithin{figure}{section}
     \numberwithin{table}{section}
     \numberwithin{equation}{section}
 
     \input{sections/appendix_A_data.tex}
+    \processdelayedfloats
     \clearpage
     \input{sections/appendix_B_alderman_fe.tex}
+    \processdelayedfloats
     \clearpage
     \input{sections/appendix_C_permits.tex}
+    \processdelayedfloats
     \clearpage
     \input{sections/appendix_D_density.tex}
+    \processdelayedfloats
     \clearpage
     \input{sections/appendix_E_price_rd.tex}
-\else
-    % Process main text floats after the references for journal submission.
     \processdelayedfloats
+    \clearpage
 \fi
 
 \end{document}
