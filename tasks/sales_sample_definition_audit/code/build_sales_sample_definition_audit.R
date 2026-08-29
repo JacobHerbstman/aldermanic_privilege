@@ -63,7 +63,7 @@ sales[, same_named_party := seller_valid & buyer_valid &
   seller_normalized != "" & seller_normalized == buyer_normalized]
 sales[, common_eligible :=
   year >= 2006L & year <= 2022L &
-  class_numeric %in% 202:211 &
+  class_numeric %in% c(202:211, 234, 278, 295) &
   is.finite(sale_price_numeric) & sale_price_numeric > 10000 &
   !is.na(sale_type) & sale_type != "LAND" &
   is.finite(num_parcels_sale) & num_parcels_sale == 1]

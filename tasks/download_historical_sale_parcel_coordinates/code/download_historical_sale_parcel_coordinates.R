@@ -38,7 +38,7 @@ sales[, `:=`(
 sales[nchar(pin) == 13L, pin := paste0("0", pin)]
 sale_keys <- unique(sales[
   year >= start_year & year <= end_year &
-    class %in% 202:211 &
+    class %in% c(202:211, 234, 278, 295) &
     is.finite(sale_price_nominal) & sale_price_nominal > 10000 &
     sale_deed_type %in% c("Warranty", "Trustee") &
     !is.na(sale_type) & sale_type != "LAND" &

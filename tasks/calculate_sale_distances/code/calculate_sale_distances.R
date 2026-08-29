@@ -33,7 +33,7 @@ sales_raw <- fread(
 )
 
 sales <- sales_raw %>%
-    filter(class %in% c(202, 203, 204, 205, 206, 207, 208, 209, 210, 211)) %>%
+    filter(class %in% c(202:211, 234, 278, 295)) %>%
     mutate(
         sale_price_nominal = as.numeric(gsub("[$,]", "", sale_price)),
         year = as.numeric(year),
