@@ -32,7 +32,15 @@ CREATE TABLE improvements_raw AS
 SELECT
   trim(pin) AS pin,
   trim(year) AS tax_year_raw,
+  trim(card) AS card_raw,
+  trim(class) AS improvement_class_raw,
   trim(township_code) AS township_code_raw,
+  trim(pin_is_multicard) AS pin_is_multicard_raw,
+  trim(pin_num_cards) AS pin_num_cards_raw,
+  trim(pin_is_multiland) AS pin_is_multiland_raw,
+  trim(pin_num_landlines) AS pin_num_landlines_raw,
+  trim(tieback_proration_rate) AS tieback_proration_rate_raw,
+  trim(card_proration_rate) AS card_proration_rate_raw,
   trim(char_yrblt) AS year_built_raw,
   trim(char_bldg_sf) AS building_sqft_raw,
   trim(char_land_sf) AS land_sqft_raw,
@@ -57,7 +65,15 @@ CREATE TABLE improvements_clean AS
 SELECT
   pin,
   try_cast(numeric_text(tax_year_raw) AS INTEGER) AS tax_year,
+  try_cast(numeric_text(card_raw) AS INTEGER) AS card,
+  try_cast(numeric_text(improvement_class_raw) AS INTEGER) AS improvement_class,
   try_cast(numeric_text(township_code_raw) AS INTEGER) AS township_code,
+  lower(pin_is_multicard_raw) = 'true' AS pin_is_multicard,
+  try_cast(numeric_text(pin_num_cards_raw) AS INTEGER) AS pin_num_cards,
+  lower(pin_is_multiland_raw) = 'true' AS pin_is_multiland,
+  try_cast(numeric_text(pin_num_landlines_raw) AS INTEGER) AS pin_num_landlines,
+  try_cast(numeric_text(tieback_proration_rate_raw) AS DOUBLE) AS tieback_proration_rate,
+  try_cast(numeric_text(card_proration_rate_raw) AS DOUBLE) AS card_proration_rate,
   try_cast(numeric_text(year_built_raw) AS INTEGER) AS year_built,
   try_cast(numeric_text(building_sqft_raw) AS DOUBLE) AS building_sqft,
   try_cast(numeric_text(land_sqft_raw) AS DOUBLE) AS land_sqft,
@@ -102,6 +118,13 @@ CREATE TABLE improvements_panel AS
 SELECT
   pin,
   tax_year,
+  improvement_class,
+  num_buildings,
+  is_multibuilding,
+  is_multiland,
+  num_landlines,
+  tieback_proration_rate,
+  card_proration_rate,
   year_built,
   building_sqft,
   land_sqft_pin_year AS land_sqft,
@@ -116,6 +139,20 @@ FROM (
   SELECT
     *,
     max(land_sqft) OVER (PARTITION BY pin, tax_year) AS land_sqft_pin_year,
+    coalesce(
+      max(pin_num_cards) OVER (PARTITION BY pin, tax_year),
+      count(*) OVER (PARTITION BY pin, tax_year)
+    ) AS num_buildings,
+    coalesce(
+      bool_or(pin_is_multicard) OVER (PARTITION BY pin, tax_year),
+      count(*) OVER (PARTITION BY pin, tax_year) > 1
+    ) AS is_multibuilding,
+    coalesce(
+      bool_or(pin_is_multiland) OVER (PARTITION BY pin, tax_year),
+      false
+    ) AS is_multiland,
+    max(pin_num_landlines) OVER (PARTITION BY pin, tax_year) AS num_landlines,
+    max(tieback_proration_rate) OVER (PARTITION BY pin, tax_year) AS tieback_proration_rate,
     row_number() OVER (
       PARTITION BY pin, tax_year
       ORDER BY building_sqft DESC NULLS LAST, row_id ASC NULLS LAST
@@ -138,6 +175,17 @@ FROM improvements_panel
 
 if (panel_summary$pre_1999_rows == 0 || panel_summary$pre_1999_pins == 0) {
   stop("Deduplicated residential improvements panel lost all pre-1999 buildings.", call. = FALSE)
+}
+
+n_invalid_structure <- dbGetQuery(con, "
+SELECT COUNT(*) AS n
+FROM improvements_panel
+WHERE num_buildings IS NULL
+  OR num_buildings < 1
+  OR is_multibuilding <> (num_buildings > 1)
+")$n
+if (n_invalid_structure > 0) {
+  stop("Residential improvements contain inconsistent official building counts.", call. = FALSE)
 }
 
 invisible(dbExecute(con, "

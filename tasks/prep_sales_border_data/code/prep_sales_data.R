@@ -47,7 +47,15 @@ if (any(
 sales_h[, `:=`(
   building_age = sale_year - year_built,
   baths_total = num_full_baths + 0.5 * fifelse(is.na(num_half_baths), 0, num_half_baths),
-  has_garage = as.integer(garage_size > 0 & !is.na(garage_size))
+  has_garage = as.integer(garage_size > 0 & !is.na(garage_size)),
+  improvement_class_mismatch = !is.na(improvement_class) & class != improvement_class,
+  baseline_sale_eligible =
+    !is.na(hedonic_tax_year) &
+    num_buildings == 1 &
+    !is_multibuilding &
+    is.finite(tieback_proration_rate) &
+    abs(tieback_proration_rate - 1) < 0.000001 &
+    is.finite(building_sqft) & building_sqft > 0
 )]
 sales_h[building_age < 0, building_age := NA]
 
@@ -65,6 +73,21 @@ sales_h[, `:=`(
   year_month = format(sale_date, "%Y-%m")
 )]
 
-sales_out <- sales_h[sale_year >= 2006]
+sales_out <- sales_h[sale_year >= 2006 & baseline_sale_eligible]
+
+if (anyDuplicated(sales_out$row_id) > 0) {
+  stop("Final residential sales data must be unique by source row_id.", call. = FALSE)
+}
+if (any(
+  is.na(sales_out$num_buildings) |
+    sales_out$num_buildings != 1 |
+    sales_out$is_multibuilding |
+    !is.finite(sales_out$tieback_proration_rate) |
+    abs(sales_out$tieback_proration_rate - 1) >= 0.000001 |
+    !is.finite(sales_out$building_sqft) |
+    sales_out$building_sqft <= 0
+)) {
+  stop("Final residential sales data violate the structural eligibility rules.", call. = FALSE)
+}
 
 write_parquet(sales_out, "../output/sales_with_hedonics.parquet")

@@ -21,37 +21,14 @@ if (!requireNamespace("curl", quietly = TRUE)) {
   stop("The curl R package is required to download historical parcel coordinates.", call. = FALSE)
 }
 
-sales <- fread(
-    "../input/parcel_sales.csv",
-    select = c(
-      "pin", "year", "class", "sale_price", "sale_deed_type", "sale_type",
-      "sale_seller_name", "sale_buyer_name", "num_parcels_sale"
-    ),
-    colClasses = list(character = c("pin", "sale_price"))
+sales <- read_parquet(
+  "../input/residential_sales_clean.parquet",
+  col_select = c("pin", "year")
 )
-sales[, `:=`(
-  pin = gsub("[^0-9]", "", trimws(pin)),
-  year = suppressWarnings(as.integer(year)),
-  class = suppressWarnings(as.integer(class)),
-  sale_price_nominal = suppressWarnings(as.numeric(gsub("[$,]", "", sale_price)))
-)]
-sales[nchar(pin) == 13L, pin := paste0("0", pin)]
-sale_keys <- unique(sales[
-  year >= start_year & year <= end_year &
-    class %in% c(202:211, 234, 278, 295) &
-    is.finite(sale_price_nominal) & sale_price_nominal > 10000 &
-    sale_deed_type %in% c("Warranty", "Trustee") &
-    !is.na(sale_type) & sale_type != "LAND" &
-    !is.na(sale_seller_name) &
-    !sale_seller_name %in% c("", "-", "UNKNOWN", "..") &
-    !is.na(sale_buyer_name) &
-    !sale_buyer_name %in% c("", "-", "UNKNOWN", "..") &
-    sale_seller_name != sale_buyer_name &
-    num_parcels_sale == 1,
-  .(pin, year)
-])
+setDT(sales)
+sale_keys <- unique(sales[year %between% c(start_year, end_year), .(pin, year)])
 if (any(nchar(sale_keys$pin) != 14L)) {
-  stop("Residential sales contain an invalid full PIN.", call. = FALSE)
+  stop("Clean residential sales contain an invalid full PIN.", call. = FALSE)
 }
 if (nrow(sale_keys) == 0) {
   stop("No residential sale PIN-years require historical coordinates.", call. = FALSE)

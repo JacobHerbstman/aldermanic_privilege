@@ -47,7 +47,6 @@ if (nrow(sales) != nrow(sales_pre)) {
 }
 
 sales <- sales %>%
-  filter(!is.na(sign)) %>%
   select(
     any_of(c("row_id", "sale_document_num")),
     pin, year, sale_date, sale_price,

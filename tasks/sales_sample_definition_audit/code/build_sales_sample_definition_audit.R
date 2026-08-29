@@ -53,11 +53,11 @@ if (anyDuplicated(sales$row_id) > 0L) {
 
 sales[, `:=`(
   seller_valid = !is.na(sale_seller_name) &
-    !trimws(sale_seller_name) %chin% c("", "-", "UNKNOWN", ".."),
+    !toupper(trimws(sale_seller_name)) %chin% c("", "-", "UNKNOWN", ".."),
   buyer_valid = !is.na(sale_buyer_name) &
-    !trimws(sale_buyer_name) %chin% c("", "-", "UNKNOWN", ".."),
-  seller_normalized = toupper(gsub("[^A-Z0-9]", "", trimws(fifelse(is.na(sale_seller_name), "", sale_seller_name)))),
-  buyer_normalized = toupper(gsub("[^A-Z0-9]", "", trimws(fifelse(is.na(sale_buyer_name), "", sale_buyer_name))))
+    !toupper(trimws(sale_buyer_name)) %chin% c("", "-", "UNKNOWN", ".."),
+  seller_normalized = gsub("[^A-Z0-9]", "", toupper(trimws(fifelse(is.na(sale_seller_name), "", sale_seller_name)))),
+  buyer_normalized = gsub("[^A-Z0-9]", "", toupper(trimws(fifelse(is.na(sale_buyer_name), "", sale_buyer_name))))
 )]
 sales[, same_named_party := seller_valid & buyer_valid &
   seller_normalized != "" & seller_normalized == buyer_normalized]
@@ -65,7 +65,7 @@ sales[, common_eligible :=
   year >= 2006L & year <= 2022L &
   class_numeric %in% c(202:211, 234, 278, 295) &
   is.finite(sale_price_numeric) & sale_price_numeric > 10000 &
-  !is.na(sale_type) & sale_type != "LAND" &
+  (is.na(sale_type) | sale_type != "LAND") &
   is.finite(num_parcels_sale) & num_parcels_sale == 1]
 sales[, official_flags_pass :=
   sale_filter_same_sale_within_365 == FALSE &
@@ -141,7 +141,13 @@ if (anyDuplicated(improvements[, .(pin, year)]) > 0L) {
 improvements[, `:=`(
   building_age = year - year_built,
   baths_total = num_full_baths + 0.5 * fifelse(is.na(num_half_baths), 0, num_half_baths),
-  has_garage = as.integer(is.finite(garage_size) & garage_size > 0)
+  has_garage = as.integer(is.finite(garage_size) & garage_size > 0),
+  structure_eligible =
+    num_buildings == 1 &
+    !is_multibuilding &
+    is.finite(tieback_proration_rate) &
+    abs(tieback_proration_rate - 1) < 0.000001 &
+    is.finite(building_sqft) & building_sqft > 0
 )]
 improvements[, `:=`(
   log_sqft = fifelse(is.finite(building_sqft) & building_sqft > 0, log(building_sqft), NA_real_),
@@ -152,7 +158,7 @@ improvements[, `:=`(
 )]
 improvements <- improvements[, .(
   pin, year, log_sqft, log_land_sqft, log_building_age,
-  log_bedrooms, log_baths, has_garage
+  log_bedrooms, log_baths, has_garage, structure_eligible
 )]
 sales <- merge(
   sales,
@@ -162,6 +168,7 @@ sales <- merge(
   sort = FALSE
 )
 sales[, complete_hedonics :=
+  structure_eligible == TRUE &
   is.finite(log_sqft) &
   is.finite(log_land_sqft) &
   is.finite(log_building_age) &
@@ -355,6 +362,7 @@ candidate_output <- sales[union_eligible == TRUE, c(
   "sale_deed_type", "mydec_deed_type", "neighborhood_code",
   "seller_valid", "buyer_valid", "same_named_party",
   "official_flags_pass", "nonmarket_mydec", "market_deed_type",
+  "structure_eligible",
   "log_sqft", "log_land_sqft", "log_building_age", "log_bedrooms",
   "log_baths", "has_garage", "complete_hedonics",
   sample_order

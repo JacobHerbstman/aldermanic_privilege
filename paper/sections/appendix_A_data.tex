@@ -85,12 +85,15 @@ Table~\ref{tab:summary_stats} describes the 3,692 projects within 500~ft used in
 \subsection{Home Sales}
 \label{subsec:sales_sample}
 
-The sales sample covers Chicago transactions from 1999--2022, with the analysis restricted to 2006--2022.
+The sales sample contains 235,005 Chicago transactions from 2006--2022.
 It includes residential classes 202--211, 234, 278, and 295 but excludes mixed-use properties and condominiums.
-Sales must exceed \$10,000, use a warranty or trustee deed, include recorded and non-identical seller and buyer names, and involve a single parcel; land-only transactions are excluded.
-Prices are deflated to 2022 dollars using the monthly Chicago CPI-U and winsorized at the 1st and 99th percentiles of the analysis sample.
+Sales must exceed \$10,000, use a warranty or trustee deed, involve one parcel and one building, and pass the Assessor's three published sale-quality flags; land-only transactions and prorated PINs are excluded.
+I do not require recorded buyer and seller names, but I exclude records in which the same usable name appears on both sides after removing punctuation and capitalization differences.
+I match each sale to the Assessor's improvement record for the same PIN and tax year and require positive building area.
+The resulting panel retains same-year construction and 125 observations for which the sale and improvement files report different residential subclasses, with both class fields available for sensitivity checks.
+Prices are deflated to 2022 dollars using the monthly Chicago CPI-U and are not censored or winsorized in the data file.
 
-I geocode each sale by matching its full PIN to the Historical Parcel Universe in the sale year, falling back to the 2025 location of the same PIN when necessary.
+I geocode each sale by matching its full PIN to the Historical Parcel Universe in the sale year; all retained sales match an exact historical PIN-year location.
 Ward and alderman assignments use the exact sale date: transactions before May 18, 2015, use the old map, and those on or after that date use the new map.
 Signed distances are calculated in EPSG:3435 and oriented by relative aldermanic stringency.
 
