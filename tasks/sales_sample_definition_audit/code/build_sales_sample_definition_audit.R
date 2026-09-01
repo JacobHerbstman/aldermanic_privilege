@@ -3,9 +3,9 @@
 source("../../setup_environment/code/packages.R")
 
 sample_order <- c(
-  "Production current",
+  "Legacy names-required",
   "Warranty/trustee, names optional",
-  "Warranty/trustee, official flags, names optional",
+  "Production current",
   "Official flags, inclusive",
   "Official flags, exclude nonmarket labels",
   "Official flags, market deed types"
@@ -76,7 +76,7 @@ sales[, market_deed_type :=
   sale_deed_type %chin% c("Warranty", "Trustee") |
   mydec_deed_type %chin% market_warranty_mydec_types]
 
-sales[, `Production current` :=
+sales[, `Legacy names-required` :=
   common_eligible &
   sale_deed_type %chin% c("Warranty", "Trustee") &
   seller_valid & buyer_valid &
@@ -85,7 +85,7 @@ sales[, `Warranty/trustee, names optional` :=
   common_eligible &
   sale_deed_type %chin% c("Warranty", "Trustee") &
   !same_named_party]
-sales[, `Warranty/trustee, official flags, names optional` :=
+sales[, `Production current` :=
   common_eligible & official_flags_pass &
   sale_deed_type %chin% c("Warranty", "Trustee") &
   !same_named_party]

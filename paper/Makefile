@@ -31,6 +31,7 @@ online_appendix.pdf: Makefile online_appendix.tex paper.pdf sections/appendix_A_
 	../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex \
 	../tasks/permit_summary_stats/output/permit_processing_time_volume_correlation.tex \
 	../tasks/permit_itt_balance/output/permit_itt_balance_500ft.tex \
+	../tasks/sales_sample_definition_audit/output/sales_sample_flow.tex \
 	../tasks/price_boundary_results/output/price_boundary_placebos.pdf \
 	../tasks/price_boundary_results/output/price_boundary_straight.pdf \
 	../tasks/price_boundary_results/output/price_boundary_donuts.pdf
@@ -64,6 +65,7 @@ working_paper.pdf: Makefile working_paper.tex paper.tex sections/intro.tex \
 	../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex \
 	../tasks/permit_summary_stats/output/permit_processing_time_volume_correlation.tex \
 	../tasks/permit_itt_balance/output/permit_itt_balance_500ft.tex \
+	../tasks/sales_sample_definition_audit/output/sales_sample_flow.tex \
 	../tasks/price_boundary_results/output/price_boundary_placebos.pdf \
 	../tasks/price_boundary_results/output/price_boundary_straight.pdf \
 	../tasks/price_boundary_results/output/price_boundary_donuts.pdf

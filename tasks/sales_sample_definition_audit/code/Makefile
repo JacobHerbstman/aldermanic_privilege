@@ -1,4 +1,6 @@
 all: \
+	../output/sales_sample_flow.csv \
+	../output/sales_sample_flow.tex \
 	../output/sales_sample_definition_summary.csv \
 	../output/sales_sample_definition_by_year.csv \
 	../output/sales_sample_definition_deed_composition.csv \
@@ -12,6 +14,19 @@ all: \
 	../output/sales_sample_definition_spatial_coverage.csv \
 	../output/sales_sample_definition_rd_estimates.pdf \
 	../output/sales_sample_definition_comparison.pdf
+
+../output/sales_sample_flow.csv: build_sales_sample_flow.R \
+	../input/parcel_sales_city.csv \
+	../input/residential_sales_clean.parquet \
+	../input/residential_improvements_panel.parquet \
+	../input/sales_pre_scores.csv \
+	../input/sales_with_hedonics.parquet \
+	../input/production_sales_with_hedonics_amenities.parquet \
+	../input/price_boundary_property_type_fe_estimates.csv | ../output
+	$(R) $<
+
+../output/sales_sample_flow.tex: ../output/sales_sample_flow.csv
+	@test -s "$@"
 
 ../output/sales_sample_definition_summary.csv: build_sales_sample_definition_audit.R ../input/parcel_sales_city.csv ../input/residential_improvements_panel.parquet ../input/fred_cpi_cuura207sa0.csv | ../output
 	$(R) $<
@@ -60,13 +75,25 @@ all: \
 ../input/parcel_sales_city.csv: ../../download_parcel_sales_data/output/parcel_sales_city.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
+../input/residential_sales_clean.parquet: ../../clean_residential_sales/output/residential_sales_clean.parquet | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
 ../input/residential_improvements_panel.parquet: ../../process_residential_improvements_full/output/residential_improvements_panel.parquet | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+../input/sales_pre_scores.csv: ../../calculate_sale_distances/output/sales_pre_scores.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+../input/sales_with_hedonics.parquet: ../../prep_sales_border_data/output/sales_with_hedonics.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/fred_cpi_cuura207sa0.csv: ../../download_fred_cpi/output/fred_cpi_cuura207sa0.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/production_sales_with_hedonics_amenities.parquet: ../../sales_border_pair_fe/output/sales_with_hedonics_amenities.parquet | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+../input/price_boundary_property_type_fe_estimates.csv: ../../price_boundary_results/output/price_boundary_property_type_fe_estimates.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/parcel_universe_2025_city.csv: ../../download_parcel_universe_data/output/parcel_universe_2025_city.csv | ../input
@@ -104,9 +131,13 @@ all: \
 
 link-inputs: \
 	../input/parcel_sales_city.csv \
+	../input/residential_sales_clean.parquet \
 	../input/residential_improvements_panel.parquet \
+	../input/sales_pre_scores.csv \
+	../input/sales_with_hedonics.parquet \
 	../input/fred_cpi_cuura207sa0.csv \
 	../input/production_sales_with_hedonics_amenities.parquet \
+	../input/price_boundary_property_type_fe_estimates.csv \
 	../input/parcel_universe_2025_city.csv \
 	../input/ward_panel.gpkg \
 	../input/ward_pair_boundaries.gpkg \

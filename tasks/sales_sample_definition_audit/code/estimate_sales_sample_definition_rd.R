@@ -7,9 +7,9 @@ source("../../_lib/amenity_distance_helpers.R")
 sf_use_s2(FALSE)
 
 sample_order <- c(
-  "Production current",
+  "Legacy names-required",
   "Warranty/trustee, names optional",
-  "Warranty/trustee, official flags, names optional",
+  "Production current",
   "Official flags, inclusive",
   "Official flags, exclude nonmarket labels",
   "Official flags, market deed types"
