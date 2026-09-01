@@ -146,6 +146,7 @@ For rents and sales, I estimate
     \sum_{k \in \mathcal{K},\,k \neq [-100,0)}
     \kappa_k \mathbf{1}\{d_{is} \in k\}
     + X_i'\theta
+    + \lambda_{t(i)}
     + \delta_{sp}
     + \varepsilon_{isp},
 \end{equation}
@@ -154,8 +155,8 @@ where $Y_{isp}$ is the real listed rent or real sale price for observation $i$ n
 As in the density analysis, $\mathcal{K}$ contains ten 100~ft distance bands and the band from $-100$ to 0~ft is omitted.
 The coefficient $\kappa_{[0,100)}$ therefore compares observations in the two bands immediately across the boundary.
 The fixed effects compare observations near the same boundary segment in the same month for rents and the same quarter for sales.
-The controls include unit or property characteristics and distances to nearby schools, parks, major roads, CTA stops, and Lake Michigan.
-The rent specification includes listing building-type fixed effects, and the sales specification includes Assessor property-class fixed effects.
+$X_i$ includes unit or property characteristics and distances to nearby schools, parks, major roads, CTA stops, and Lake Michigan.
+The term $\lambda_{t(i)}$ denotes property-type fixed effects: cleaned listing building type for rents and Cook County Assessor property class for sales.
 Standard errors are clustered by ward pair.
 
 Figure~\ref{fig:price_boundary_bins} plots these distance-band estimates.
