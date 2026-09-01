@@ -1,6 +1,5 @@
 all: \
 	../output/sales_sample_flow.csv \
-	../output/sales_sample_flow.tex \
 	../output/sales_sample_definition_summary.csv \
 	../output/sales_sample_definition_by_year.csv \
 	../output/sales_sample_definition_deed_composition.csv \
@@ -24,10 +23,6 @@ all: \
 	../input/production_sales_with_hedonics_amenities.parquet \
 	../input/price_boundary_property_type_fe_estimates.csv | ../output
 	$(R) $<
-
-../output/sales_sample_flow.tex: ../output/sales_sample_flow.csv
-	@test -s "$@"
-
 ../output/sales_sample_definition_summary.csv: build_sales_sample_definition_audit.R ../input/parcel_sales_city.csv ../input/residential_improvements_panel.parquet ../input/fred_cpi_cuura207sa0.csv | ../output
 	$(R) $<
 
