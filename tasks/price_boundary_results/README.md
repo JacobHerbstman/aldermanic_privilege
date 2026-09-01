@@ -8,10 +8,15 @@ Rental regressions use listings with reliable geographic assignments, housing
 characteristics, nearby amenities, boundary-segment-by-month fixed effects, and
 standard errors clustered by ward pair. Sales regressions use the
 corresponding property and amenity controls, boundary-segment-by-quarter fixed
-effects, and boundary-segment clustering.
+effects, and ward-pair clustering.
 
-Each panel reports the difference between the two bands nearest the cutoff and
-the pooled difference between the two sides across the full 500-foot window.
+Each panel reports the difference between the two bands nearest the cutoff.
 The additional figures move the cutoff 1,000 feet into either ward, restrict the
 sample to locally straight boundaries, and exclude observations within 25 or 50
 feet of the boundary.
+
+The official conditional-price specifications include categorical dwelling-type
+fixed effects. For rental listings, the categorical control is the cleaned
+listing building type. For sales, it is the Cook County Assessor property class.
+The property-type comparison reports otherwise identical specifications with
+and without these controls.

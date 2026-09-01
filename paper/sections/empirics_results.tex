@@ -155,12 +155,13 @@ As in the density analysis, $\mathcal{K}$ contains ten 100~ft distance bands and
 The coefficient $\kappa_{[0,100)}$ therefore compares observations in the two bands immediately across the boundary.
 The fixed effects compare observations near the same boundary segment in the same month for rents and the same quarter for sales.
 The controls include unit or property characteristics and distances to nearby schools, parks, major roads, CTA stops, and Lake Michigan.
+The rent specification includes listing building-type fixed effects, and the sales specification includes Assessor property-class fixed effects.
 Standard errors are clustered by ward pair.
 
 Figure~\ref{fig:price_boundary_bins} plots these distance-band estimates.
 
 Listed rents are 1.7\% higher on the more-stringent side relative to the less-stringent side, although the estimate is imprecise.
-Home sale prices are 2.7\% higher on the more-stringent side relative to the less-stringent side.
+Home sale prices are 2.9\% higher on the more-stringent side relative to the less-stringent side.
 I treat the sales result as suggestive because transactions are less frequent near any particular boundary and their composition is harder to hold fixed.
 \onlineappendixlink{E}{sec:appendix_price_rd} shows that the result disappears at artificial cutoffs inside either ward and is similar when I restrict the sample to straight boundaries or exclude observations immediately next to the boundary.
 
@@ -171,6 +172,7 @@ I treat the sales result as suggestive because transactions are less frequent ne
     \figurenotes{Panel A uses listed-rent floorplan-month observations from 2014--2022 and segment-by-month fixed effects.
     Panel B uses filtered residential transactions from 2006--2022 and segment-by-quarter fixed effects.
     Both panels include housing characteristics, distances to nearby amenities, and the fixed effects described in the text.
+    Rental controls include listing building-type fixed effects; sales controls include Cook County Assessor property-class fixed effects.
     Each point is the estimated log difference between a 100~ft distance band and the band immediately inside the less-stringent side, which is normalized to zero.
     Shaded areas are 95\% confidence intervals.
     Subtitles report the comparison between the two bands adjacent to the boundary.

@@ -1,4 +1,20 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/price_boundary_results/code")
+# official_property_type_fe <- "TRUE"
+
+cli_args <- if (interactive()) {
+  c(official_property_type_fe)
+} else {
+  commandArgs(trailingOnly = TRUE)
+}
+
+if (
+  length(cli_args) != 1L ||
+    !cli_args[[1]] %in% c("TRUE", "FALSE")
+) {
+  stop("Expected one TRUE/FALSE argument: official_property_type_fe.")
+}
+
+official_property_type_fe <- cli_args[[1]] == "TRUE"
 
 source("../../setup_environment/code/packages.R")
 source("../../_lib/canonical_geometry_helpers.R")
@@ -88,6 +104,7 @@ sales <- arrow::read_parquet(
     signed_dist_ft = as.numeric(signed_dist_m) / 0.3048,
     ward_pair = as.character(ward_pair_id),
     segment_id = as.character(segment_id),
+    property_class_factor = factor(class),
     era = canonical_era_from_date(
       sale_date,
       allow_pre_2003 = TRUE
@@ -346,7 +363,6 @@ rent_controls <- c(
   "log_sqft",
   "beds_factor",
   "log_baths",
-  "building_type_factor",
   "nearest_school_dist_kft",
   "nearest_park_dist_kft",
   "nearest_major_road_dist_kft",
@@ -382,8 +398,19 @@ estimate_bins <- function(
     cutoff_ft,
     donut_ft,
     straight_only,
+    property_type_fe,
     panel_title) {
   controls <- if (market == "rent") rent_controls else sales_controls
+  if (property_type_fe) {
+    controls <- c(
+      controls,
+      if (market == "rent") {
+        "building_type_factor"
+      } else {
+        "property_class_factor"
+      }
+    )
+  }
   outcome <- if (market == "rent") "rent_price" else "sale_price"
   fixed_effects <- if (market == "rent") {
     "segment_id^year_month"
@@ -575,7 +602,22 @@ estimate_bins <- function(
       panel.grid.minor = ggplot2::element_blank()
     )
 
-  plot
+  summary <- tibble::tibble(
+    market = market,
+    property_type_fe = property_type_fe,
+    n = stats::nobs(model),
+    ward_pair_clusters = cluster_count,
+    estimate = nearest_above$estimate,
+    std_error = nearest_above$std_error,
+    p_value = nearest_above$p_value,
+    confidence_low = nearest_above$ci_low,
+    confidence_high = nearest_above$ci_high,
+    percent_effect = 100 * (exp(nearest_above$estimate) - 1),
+    percent_confidence_low = 100 * (exp(nearest_above$ci_low) - 1),
+    percent_confidence_high = 100 * (exp(nearest_above$ci_high) - 1)
+  )
+
+  list(plot = plot, summary = summary)
 }
 
 checks <- tibble::tribble(
@@ -619,14 +661,15 @@ for (market_name in c("rent", "sales")) {
       cutoff_ft = checks$cutoff_ft[check_i],
       donut_ft = checks$donut_ft[check_i],
       straight_only = checks$straight_only[check_i],
+      property_type_fe = official_property_type_fe,
       panel_title = check_label
     )
   }
 }
 
 main_plot <- patchwork::wrap_plots(
-  fits$rent_main,
-  fits$sales_main,
+  fits$rent_main$plot,
+  fits$sales_main$plot,
   ncol = 2
 ) +
   patchwork::plot_annotation(
@@ -636,10 +679,10 @@ main_plot <- patchwork::wrap_plots(
   ggplot2::theme(legend.position = "bottom")
 
 placebo_plot <- patchwork::wrap_plots(
-  fits$rent_placebo_neg1000ft,
-  fits$rent_placebo_pos1000ft,
-  fits$sales_placebo_neg1000ft,
-  fits$sales_placebo_pos1000ft,
+  fits$rent_placebo_neg1000ft$plot,
+  fits$rent_placebo_pos1000ft$plot,
+  fits$sales_placebo_neg1000ft$plot,
+  fits$sales_placebo_pos1000ft$plot,
   ncol = 2
 ) +
   patchwork::plot_annotation(
@@ -649,8 +692,8 @@ placebo_plot <- patchwork::wrap_plots(
   ggplot2::theme(legend.position = "bottom")
 
 straight_plot <- patchwork::wrap_plots(
-  fits$rent_straight,
-  fits$sales_straight,
+  fits$rent_straight$plot,
+  fits$sales_straight$plot,
   ncol = 2
 ) +
   patchwork::plot_annotation(
@@ -660,10 +703,10 @@ straight_plot <- patchwork::wrap_plots(
   ggplot2::theme(legend.position = "bottom")
 
 donut_plot <- patchwork::wrap_plots(
-  fits$rent_donut25ft,
-  fits$rent_donut50ft,
-  fits$sales_donut25ft,
-  fits$sales_donut50ft,
+  fits$rent_donut25ft$plot,
+  fits$rent_donut50ft$plot,
+  fits$sales_donut25ft$plot,
+  fits$sales_donut50ft$plot,
   ncol = 2
 ) +
   patchwork::plot_annotation(
@@ -671,6 +714,75 @@ donut_plot <- patchwork::wrap_plots(
   ) +
   patchwork::plot_layout(guides = "collect") &
   ggplot2::theme(legend.position = "bottom")
+
+property_type_fits <- list(
+  rent_without = estimate_bins(
+    data = rent,
+    market = "rent",
+    cutoff_ft = 0,
+    donut_ft = 0,
+    straight_only = FALSE,
+    property_type_fe = FALSE,
+    panel_title = "Listed rents: without building-type FE"
+  ),
+  rent_with = estimate_bins(
+    data = rent,
+    market = "rent",
+    cutoff_ft = 0,
+    donut_ft = 0,
+    straight_only = FALSE,
+    property_type_fe = TRUE,
+    panel_title = "Listed rents: with building-type FE"
+  ),
+  sales_without = estimate_bins(
+    data = sales,
+    market = "sales",
+    cutoff_ft = 0,
+    donut_ft = 0,
+    straight_only = FALSE,
+    property_type_fe = FALSE,
+    panel_title = "Home sales: without property-class FE"
+  ),
+  sales_with = estimate_bins(
+    data = sales,
+    market = "sales",
+    cutoff_ft = 0,
+    donut_ft = 0,
+    straight_only = FALSE,
+    property_type_fe = TRUE,
+    panel_title = "Home sales: with property-class FE"
+  )
+)
+
+property_type_plot <- patchwork::wrap_plots(
+  property_type_fits$rent_without$plot,
+  property_type_fits$rent_with$plot,
+  property_type_fits$sales_without$plot,
+  property_type_fits$sales_with$plot,
+  ncol = 2
+) +
+  patchwork::plot_annotation(
+    title = "Price-boundary estimates with and without property-type fixed effects"
+  ) +
+  patchwork::plot_layout(guides = "collect") &
+  ggplot2::theme(legend.position = "bottom")
+
+property_type_estimates <- dplyr::bind_rows(
+  property_type_fits$rent_without$summary |>
+    dplyr::mutate(specification = "without building-type FE"),
+  property_type_fits$rent_with$summary |>
+    dplyr::mutate(specification = "with building-type FE"),
+  property_type_fits$sales_without$summary |>
+    dplyr::mutate(specification = "without property-class FE"),
+  property_type_fits$sales_with$summary |>
+    dplyr::mutate(specification = "with property-class FE")
+) |>
+  dplyr::select(
+    market,
+    specification,
+    property_type_fe,
+    dplyr::everything()
+  )
 
 ggplot2::ggsave(
   "../output/price_boundary_main.pdf",
@@ -699,4 +811,15 @@ ggplot2::ggsave(
   width = 12,
   height = 10,
   bg = "white"
+)
+ggplot2::ggsave(
+  "../output/price_boundary_property_type_fe_comparison.pdf",
+  property_type_plot,
+  width = 12,
+  height = 10,
+  bg = "white"
+)
+readr::write_csv(
+  property_type_estimates,
+  "../output/price_boundary_property_type_fe_estimates.csv"
 )
