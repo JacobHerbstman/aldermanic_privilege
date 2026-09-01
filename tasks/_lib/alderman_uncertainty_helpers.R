@@ -578,19 +578,19 @@ write_stage1_regression_table <- function(model, output_path, stage1_outcome) {
     depvar = FALSE,
     headers = c(outcome_label),
     dict = c(
-      median_hh_income_10k = "Median HH Income ($10k)",
-      share_black = "Share Black",
-      share_hisp = "Share Hispanic",
-      share_white = "Share White",
+      median_hh_income_10k = "Median Household Income ($10,000)",
+      share_black = "Black Population Share",
+      share_hisp = "Hispanic Population Share",
+      share_white = "White Population Share",
       homeownership_rate = "Homeownership Rate",
-      share_bach_plus = "Share Bachelor's+",
-      pop_total_10k = "Population (10k)",
-      dist_cbd_km = "Dist. to CBD (km)",
-      dist_lake_km = "Dist. to Lake (km)",
+      share_bach_plus = "Share with Bachelor's Degree",
+      pop_total_10k = "Population (10,000)",
+      dist_cbd_km = "Distance to Downtown (km)",
+      dist_lake_km = "Distance to Lake (km)",
       lakefront_share_1km = "Lakefront Share",
-      n_rail_stations_800m = "CTA Stations (800m)",
-      n_permits_wm = "Current Permits",
-      n_permits_wm_l1 = "Lag Permits"
+      n_rail_stations_800m = "CTA Stations within 800 m",
+      n_permits_wm = "Permits in Current Month",
+      n_permits_wm_l1 = "Permits in Previous Month"
     ),
     fitstat = ~ n + r2,
     file = output_path,
@@ -620,22 +620,22 @@ write_stage1_regression_table <- function(model, output_path, stage1_outcome) {
   }
   table_tex <- sub(
     "^\\s*month\\s*&",
-    "   Year $\\\\times$ Month FE    &",
+    "   Calendar Month Fixed Effects    &",
     table_tex
   )
   table_tex <- sub(
     "^\\s*permit\\\\_type\\\\_clean\\s*&",
-    "   Permit Type FE            &",
+    "   Permit Type Fixed Effects            &",
     table_tex
   )
   table_tex <- sub(
     "^\\s*review\\\\_type\\\\_clean\\s*&",
-    "   Review Type FE            &",
+    "   Review Type Fixed Effects            &",
     table_tex
   )
   table_tex <- sub(
     "^\\s*ca\\\\_id\\s*&",
-    "   Community Area FE         &",
+    "   Community Area Fixed Effects         &",
     table_tex
   )
   bottom_idx <- grep("^\\s*\\\\bottomrule", table_tex)

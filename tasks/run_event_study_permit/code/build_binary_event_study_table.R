@@ -205,7 +205,7 @@ table_lines <- c(
   " & High-Discretion & Low-Discretion \\\\",
   "\\midrule",
   sprintf(
-    "Main estimate & %s & %s \\\\",
+    "Combined reassignment effect & %s & %s \\\\",
     format_estimate("high_discretion", "signed"),
     format_estimate("low_discretion", "signed")
   ),

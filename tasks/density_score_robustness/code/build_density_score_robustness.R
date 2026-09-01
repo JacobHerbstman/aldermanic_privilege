@@ -227,10 +227,10 @@ for (threshold in gap_thresholds) {
 }
 
 version_labels <- c(
-  current_score = "Current score",
+  current_score = "Full-sample score",
   project_leaveout = "Score excluding the project's permits",
   stats::setNames(
-    sprintf("Minimum score gap: %.2f SD", gap_thresholds),
+    sprintf("Score difference at least %.2f SD", gap_thresholds),
     sprintf("gap_%0.2f", gap_thresholds)
   )
 )

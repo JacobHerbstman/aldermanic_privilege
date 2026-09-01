@@ -1,9 +1,10 @@
 % !TEX root = ../paper.tex
 
-\section{Additional Density RD Checks}
+\section{Additional Density Boundary Checks}
 \label{sec:appendix_density}
 
-This appendix checks whether the density result appears at false cutoffs, reflects fixed differences in location, or depends on unusual boundary geometry or projects closest to the boundary.
+This appendix asks whether the density result could be an artifact of how I measure aldermanic stringency or where ward boundaries happen to lie.
+It also tests for jumps away from true boundaries and checks whether projects immediately next to a boundary drive the result.
 Unless otherwise noted, each estimate compares the two 100~ft bands immediately across the ward boundary using Equation~\eqref{eq:segment_fe}.
 
 \subsection{Stringency-Score Checks}
@@ -12,12 +13,12 @@ Unless otherwise noted, each estimate compares the two 100~ft bands immediately 
 The first check asks whether a project's own permits influence the score used to classify its boundary.
 For each project, I recalculate the scores for the two aldermen after removing permits matched to that project.
 The estimates are effectively unchanged.
-The second check drops boundaries where the two alderman scores are close.
-All four point estimates remain negative when the minimum gap is either 0.25 or 0.50 standard deviations, although the multifamily estimates become less precise as the sample shrinks.
+The second check drops boundaries where the two aldermen receive similar scores and the more-stringent side is therefore harder to distinguish.
+The estimates of FAR and units per acre remain negative in both construction samples when the required score difference is either 0.25 or 0.50 standard deviations, although the multifamily estimates become less precise as the sample shrinks.
 
 \begin{table}[htbp]
     \centering
-    \caption{Density Estimates Under Alternative Score Classifications}
+    \caption{Density Estimates Under Alternative Measures of Boundary Stringency}
     \label{tab:density_score_robustness}
     \resizebox{0.98\textwidth}{!}{%
         \input{../tasks/density_score_robustness/output/density_score_robustness.tex}%
@@ -27,7 +28,7 @@ All four point estimates remain negative when the minimum gap is either 0.25 or 
         \footnotesize
         \textit{Notes:} Entries compare the two 100~ft bands immediately across the boundary using Equation~\eqref{eq:segment_fe}.
         The second row removes permits matched to each construction project before recalculating the alderman scores used for that project.
-        The minimum-gap rows retain boundaries where the absolute difference between the two scores is at least the stated number of standard deviations.
+        The score-difference rows retain boundaries where the absolute difference between the two alderman scores is at least the stated number of standard deviations.
         Standard errors are clustered by ward pair.
         * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
     \end{minipage}
@@ -37,7 +38,8 @@ All four point estimates remain negative when the minimum gap is either 0.25 or 
 \label{subsec:density_placebo_cutoffs}
 
 Figure~\ref{fig:rd_placebo_shifts} moves the cutoff 1000~ft inside either side of the true ward boundary.
-These locations do not mark a change in aldermanic authority, and none of the eight nearest-band estimates is statistically distinguishable from zero.
+These locations do not mark a change in aldermanic authority.
+Across the two outcomes and two construction samples, none of the estimated differences across an artificial cutoff is statistically distinguishable from zero.
 
 \begin{figure}[p]
     \centering
@@ -50,7 +52,7 @@ These locations do not mark a change in aldermanic authority, and none of the ei
     \caption{Density Estimates at Placebo Cutoffs}
     \figurenotes{Each artificial cutoff lies 1000~ft inside the indicated side of the true ward boundary.
     The model uses a 500~ft window around the artificial cutoff and the same 100~ft distance bands, controls, and fixed effects as Equation~\eqref{eq:segment_fe}.
-    The nearest band below the artificial cutoff is omitted and normalized to zero; subtitles report the difference in the nearest band above it.
+    The 100~ft band just below the artificial cutoff is the reference group; subtitles report the difference for the 100~ft band just above it.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
     \label{fig:rd_placebo_shifts}
     \label{fig:rd_placebo_shift_neg}
@@ -86,7 +88,7 @@ Some ward boundaries follow expressways, waterways, arterial roads, or other phy
 Table~\ref{tab:density_boundary_robustness} therefore repeats the analysis after restricting the sample based on the geometry of the assigned boundary segment.
 Removing segments with substantial expressway or water overlap leaves the estimates almost unchanged.
 A broader physical-feature and arterial-road restriction attenuates the multifamily estimates, while the all-construction estimates remain negative.
-Restricting the sample to locally straight boundaries also produces four negative estimates.
+Restricting the sample to locally straight boundaries also produces negative estimates for FAR and units per acre in both construction samples.
 These estimates are generally smaller and less precise in the reduced sample, but they do not suggest that boundary curvature alone creates the main pattern.
 
 \begin{table}[htbp]
@@ -102,7 +104,7 @@ These estimates are generally smaller and less precise in the reduced sample, bu
         \textit{Notes:} Entries compare the two 100~ft bands immediately across the boundary using Equation~\eqref{eq:segment_fe}.
         The expressway-or-water restriction removes segments for which either feature overlaps at least half of the segment.
         The broader restriction removes segments with at least 50\% park, water, or cemetery overlap, 40\% expressway overlap, or 75\% arterial-road overlap.
-        A boundary is locally straight when both endpoints of a 328~ft line tangent to the project's nearest boundary point fall within 49~ft of the actual boundary.
+        A boundary is classified as locally straight when a 328~ft straight line centered on the project's nearest boundary point stays within 49~ft of the actual boundary at both ends.
         Standard errors are clustered by ward pair.
         * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
     \end{minipage}
@@ -119,8 +121,8 @@ These estimates are generally smaller and less precise in the reduced sample, bu
     \caption{Density Estimates Excluding Projects Nearest the Boundary}
     \figurenotes{This check asks whether projects immediately adjacent to a boundary drive the main result.
     Each panel excludes projects within the indicated distance and otherwise uses the 500~ft sample and Equation~\eqref{eq:segment_fe}.
-    After each exclusion, the remaining portion of the $-100$ to 0~ft band forms the omitted category.
-    In each panel, all four nearest-band estimates remain negative.
+    After each exclusion, the remaining part of the $-100$ to 0~ft band on the less-stringent side is the reference group.
+    In each panel, the estimated difference across the boundary remains negative for FAR and units per acre in both construction samples.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
     \label{fig:rd_donuts}
     \label{fig:rd_donut_25ft}

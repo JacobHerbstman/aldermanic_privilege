@@ -239,7 +239,7 @@ lines <- c(
   "\\footnotesize",
   "\\begin{tabular*}{\\textwidth}{@{\\extracolsep{\\fill}}lrrrrrr}",
   "\\toprule",
-  "Variable & Control & Treated & Difference & SE & $p$-value & $N$ \\\\",
+  "Variable & Stayed & Moved & Difference & SE & $p$-value & $N$ \\\\",
   "\\midrule"
 )
 
@@ -276,14 +276,12 @@ lines <- c(
   sprintf(
     paste0(
       "\\begin{minipage}{0.98\\textwidth}\\footnotesize ",
-      "\\textit{Notes:} Treated blocks were reassigned to a different ward by the 2015 ward map; control blocks remained in their original ward. ",
+      "\\textit{Notes:} Reassigned blocks moved to a different ward under the 2015 map; unchanged blocks remained in their original ward. ",
       "The sample requires the 2014 origin- and destination-ward incumbents to remain in office when the new map took effect. ",
       "It also requires at least one high-discretion permit during 2010--2014. ",
-      "The sample contains %s treated and %s control blocks within %s of a ward boundary in %s ward pairs containing both groups and is constructed before estimation. ",
-      "The event study can also compare blocks reassigned in opposite directions and therefore includes additional blocks. ",
-      "PPML drops blocks and ward-pair-year cells with no permits for the outcome being studied. ",
+      "The sample contains %s reassigned and %s unchanged blocks within %s of a ward boundary in %s ward pairs containing both groups. ",
       "Permits are grouped by application year. Neighborhood characteristics are 2014 ACS five-year block-group estimates. ",
-      "Difference is the coefficient on the treated indicator from a regression with ward-pair fixed effects; standard errors are clustered by ward pair. ",
+      "Difference compares reassigned and unchanged blocks within the same ward pair; standard errors are clustered by ward pair. ",
       "Means are unadjusted block-level means. The joint-test p-value for all listed covariates is %.3f ",
       "(complete-case $N=%s$).\\end{minipage}"
     ),

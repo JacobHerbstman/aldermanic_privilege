@@ -235,7 +235,7 @@ writeLines(alderman_summary_tex_lines, "../output/permit_processing_time_high_vs
 correlation_tex_lines <- c(
   "\\begin{tabular}{lr}",
   "\\toprule",
-  "Permit group & Corr. of mean processing time and ward-month permit volume \\\\",
+  "Permit group & Correlation with ward-month permit volume \\\\",
   "\\midrule"
 )
 
