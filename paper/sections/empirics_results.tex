@@ -56,21 +56,14 @@ The results instead suggest that informal aldermanic discretion reduces housing 
     \vspace{0.3em}
     \includegraphics[width=0.96\textwidth]{../tasks/run_event_study_permit/output/permit_event_study_high_discretion_stable_separate_500ft.pdf}
     \caption{Permit Activity After the 2015 Ward Redistricting}
-    \figurenotes{Block-year Poisson pseudo-maximum likelihood event study for calendar years 2010--2020.
-    The outcome is the number of high-discretion permits per block, grouped by application year.
-    The sample includes blocks within 500~ft of ward boundaries.
-    It retains blocks whose 2014 origin- and destination-ward incumbents remained in office when the new map took effect.
-    Blocks must have at least one high-discretion permit during event times $t=-5$ through $t=-1$.
-    Blocks are classified according to whether the 2015 map assigned them toward an alderman who was more or less stringent than the origin-ward alderman; unchanged blocks are the comparison group.
-    Stringency scores are estimated from permits filed between 2006 and 2014.
-    The model includes block and ward-pair $\times$ year fixed effects.
-    Event time $t=-1$ is omitted.
-    Panel A uses a reassignment variable equal to one for blocks assigned toward greater stringency, minus one for blocks assigned toward greater leniency, and zero for unchanged blocks.
-    Panels B and C estimate the two reassignment directions separately relative to unchanged blocks.
-    Each point shows the percentage change in permits relative to the year before redistricting and the subtitles report the pooled estimates in logs.
+    \figurenotes{The figure compares annual high-discretion permit activity on blocks reassigned to more- or less-stringent aldermen in 2015 with nearby blocks that stayed in their wards.
+    The 2010--2020 sample includes blocks within 500~ft of ward boundaries; \onlineappendixlink{A.3}{subsec:event_study_panel} details sample construction.
+    Panel A combines both reassignment directions using Equation~\eqref{eq:event_study_permits}; Panels B and C allow the effects of the two directions to differ.
+    Points show proportional changes relative to 2014, so 0.10 means a 10\% increase.
+    Subtitles report pooled 2015--2020 coefficients in logs.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
-    The pooled coefficients are $-0.127$ (SE $=0.049$) in Panel A, $-0.231$ (SE $=0.096$) in Panel B, and $0.067$ (SE $=0.059$) in Panel C.
-    The Panel A pre-trend test has $p=0.394$.}
+    The joint pre-trend test in Panel A gives $p=0.394$.
+    * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
     \label{fig:permit_event_study}
 \end{figure}
 
@@ -170,9 +163,9 @@ I treat the sales result as suggestive because transactions are less frequent ne
     \centering
     \includegraphics[width=0.98\textwidth]{../tasks/price_boundary_results/output/price_boundary_main.pdf}
     \caption{Listed Rents and Home Sale Prices at Ward Boundaries}
-    \figurenotes{Panel A uses listed-rent floorplan-month observations from 2014--2022 and segment-by-month fixed effects.
-    Panel B uses 58,735 filtered residential transactions from 2006--2022 and segment-by-quarter fixed effects.
-    Both panels include housing characteristics, distances to nearby amenities, and the fixed effects described in the text.
+    \figurenotes{The left panel uses monthly asking rents by floorplan from 2014--2022, with segment-by-month fixed effects.
+    The right panel uses 58,735 sales of detached houses, townhouses, and apartment buildings with two to six units from 2006--2022, with segment-by-quarter fixed effects.
+    Both panels control for housing characteristics and distances to nearby amenities.
     Rental controls include listing building-type fixed effects; sales controls include Cook County Assessor property-class fixed effects.
     Each point is the estimated log difference between a 100~ft distance band and the band immediately inside the less-stringent side, which is normalized to zero.
     Shaded areas are 95\% confidence intervals.
