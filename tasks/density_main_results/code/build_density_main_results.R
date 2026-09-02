@@ -205,13 +205,17 @@ for (i in seq_len(nrow(panel_specs))) {
     ggplot2::labs(
       title = panel_specs$panel_title[i],
       subtitle = sprintf(
-        "Nearest-bin difference = %.3f%s (SE %.3f)",
+        "Difference across boundary = %.3f%s (SE %.3f)",
         nearest_stringent$estimate,
         stars,
         nearest_stringent$std_error
       ),
       x = "Distance to ward boundary (feet)",
-      y = "Difference from nearest less-stringent bin"
+      y = if (outcome == "density_far") {
+        "Floor-area ratio (log difference)"
+      } else {
+        "Units per acre (log difference)"
+      }
     ) +
     ggplot2::theme_bw(base_size = 10) +
     ggplot2::theme(

@@ -12,6 +12,7 @@
     The top row reports listed rents and the bottom row reports home sale prices.
     Each model uses a 500~ft window around the artificial cutoff and otherwise follows Equation~\eqref{eq:price_rd}.
     Each point is the estimated log difference between a 100~ft distance band and the band immediately below the artificial cutoff.
+    Subtitles compare the bands immediately above and below the cutoff.
     Shaded areas are 95\% confidence intervals.
     Standard errors are clustered by ward pair.}
     \label{fig:price_placebo_boundaries}
@@ -26,11 +27,11 @@
     \textbf{Panel B: Excluding observations nearest the boundary}\par
     \includegraphics[width=0.80\textwidth]{../tasks/price_boundary_results/output/price_boundary_donuts.pdf}
     \caption{Additional Price-Boundary Robustness Checks}
-    \figurenotes{Panel A restricts the sample to locally straight boundaries; its estimates are somewhat larger than the full-sample results.
-    It retains locations where a 328~ft straight line centered on the nearest boundary point stays within 49~ft of the actual boundary at both ends.
-    In Panel B, the left column excludes observations within 25~ft and the right column excludes observations within 50~ft; the top row reports listed rents and the bottom row home sale prices.
-    Estimates after excluding the observations closest to the boundary are similar to the full-sample results.
+    \figurenotes{Panel A retains locally straight boundaries: a 328~ft line centered on the nearest boundary point stays within 49~ft of the boundary at both ends.
+    Panel B excludes observations within 25~ft (left) or 50~ft (right); the top row reports listed rents and the bottom row home sale prices.
     All models otherwise follow Equation~\eqref{eq:price_rd}.
+    Points report log differences from the nearest 100~ft band on the less-stringent side, normalized to zero; subtitles compare the bands across the boundary.
+    Panel B uses the remaining observations in each band after exclusion.
     Shaded areas are 95\% confidence intervals, and standard errors are clustered by ward pair.
     * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
     \label{fig:price_boundary_robustness}

@@ -576,7 +576,12 @@ estimate_bins <- function(
     ggplot2::labs(
       title = panel_title,
       subtitle = sprintf(
-        "Nearest-bin difference = %.3f%s (SE %.3f)",
+        "%s = %.3f%s (SE %.3f)",
+        if (cutoff_ft == 0) {
+          "Difference across boundary"
+        } else {
+          "Difference at placebo cutoff"
+        },
         nearest_above$estimate,
         nearest_stars,
         nearest_above$std_error
@@ -586,10 +591,10 @@ estimate_bins <- function(
       } else {
         "Distance to placebo cutoff (feet)"
       },
-      y = if (cutoff_ft == 0) {
-        "Log difference from nearest less-stringent bin"
+      y = if (market == "rent") {
+        "Rent (log difference)"
       } else {
-        "Log difference from nearest below-cutoff bin"
+        "Sale price (log difference)"
       }
     ) +
     ggplot2::theme_bw(base_size = 10) +

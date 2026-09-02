@@ -240,7 +240,12 @@ for (check_i in seq_len(nrow(check_specs))) {
       ggplot2::labs(
         title = panel_specs$panel_title[panel_i],
         subtitle = sprintf(
-          "Nearest-bin difference = %.3f%s (SE %.3f)",
+          "%s = %.3f%s (SE %.3f)",
+          if (cutoff_ft == 0) {
+            "Difference across boundary"
+          } else {
+            "Difference at placebo cutoff"
+          },
           nearest_above$estimate,
           stars,
           nearest_above$std_error
@@ -250,10 +255,10 @@ for (check_i in seq_len(nrow(check_specs))) {
         } else {
           "Distance to placebo cutoff (feet)"
         },
-        y = if (cutoff_ft == 0) {
-          "Difference from nearest less-stringent bin"
+        y = if (outcome == "density_far") {
+          "Floor-area ratio (log difference)"
         } else {
-          "Difference from nearest below-cutoff bin"
+          "Units per acre (log difference)"
         }
       ) +
       ggplot2::theme_bw(base_size = 10) +

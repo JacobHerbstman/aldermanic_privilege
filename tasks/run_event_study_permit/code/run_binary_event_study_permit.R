@@ -303,9 +303,9 @@ pooled_stars <- dplyr::case_when(
 
 event_results <- event_results |>
   dplyr::mutate(
-    estimate = expm1(estimate_log),
-    ci_low = expm1(estimate_log - critical_value * se),
-    ci_high = expm1(estimate_log + critical_value * se)
+    estimate = estimate_log,
+    ci_low = estimate_log - critical_value * se,
+    ci_high = estimate_log + critical_value * se
   )
 
 outcome_label <- dplyr::if_else(
@@ -349,13 +349,13 @@ if (direction_rule == "signed") {
     ggplot2::labs(
       title = plot_title,
       subtitle = sprintf(
-        "Pooled estimate = %.3f%s (SE %.3f)",
+        "Pooled 2015-2020 effect = %.3f%s (SE %.3f)",
         pooled_estimate,
         pooled_stars,
         pooled_se
       ),
       x = "Years relative to the 2015 ward remap",
-      y = "Effect of assignment toward greater stringency"
+      y = "Effect on annual permits (log points)"
     ) +
     ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(
@@ -432,13 +432,13 @@ if (direction_rule == "signed") {
         ggplot2::labs(
           title = direction_labels$title[i],
           subtitle = sprintf(
-            "Pooled estimate = %.3f%s (SE %.3f)",
+            "Pooled 2015-2020 effect = %.3f%s (SE %.3f)",
             pooled_i$estimate,
             pooled_i$stars,
             pooled_i$se
           ),
           x = "Years relative to the 2015 ward remap",
-          y = "Effect relative to unchanged blocks"
+          y = "Effect on annual permits (log points)"
         ) +
         ggplot2::theme_minimal(base_size = 10.5) +
         ggplot2::theme(
