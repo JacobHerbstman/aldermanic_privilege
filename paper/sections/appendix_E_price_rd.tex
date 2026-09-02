@@ -20,18 +20,19 @@
 \begin{figure}[p]
     \centering
     \textbf{Panel A: Locally straight boundaries}\par
-    \includegraphics[width=0.82\textwidth]{../tasks/price_boundary_results/output/price_boundary_straight.pdf}
+    \includegraphics[width=0.80\textwidth]{../tasks/price_boundary_results/output/price_boundary_straight.pdf}
 
     \vspace{0.6em}
     \textbf{Panel B: Excluding observations nearest the boundary}\par
-    \includegraphics[width=0.82\textwidth]{../tasks/price_boundary_results/output/price_boundary_donuts.pdf}
+    \includegraphics[width=0.80\textwidth]{../tasks/price_boundary_results/output/price_boundary_donuts.pdf}
     \caption{Additional Price-Boundary Robustness Checks}
     \figurenotes{Panel A restricts the sample to locally straight boundaries; its estimates are somewhat larger than the full-sample results.
     It retains locations where a 328~ft straight line centered on the nearest boundary point stays within 49~ft of the actual boundary at both ends.
     In Panel B, the left column excludes observations within 25~ft and the right column excludes observations within 50~ft; the top row reports listed rents and the bottom row home sale prices.
     Estimates after excluding the observations closest to the boundary are similar to the full-sample results.
     All models otherwise follow Equation~\eqref{eq:price_rd}.
-    Shaded areas are 95\% confidence intervals, and standard errors are clustered by ward pair.}
+    Shaded areas are 95\% confidence intervals, and standard errors are clustered by ward pair.
+    * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
     \label{fig:price_boundary_robustness}
     \label{fig:price_straight_boundaries}
     \label{fig:price_boundary_donuts}
