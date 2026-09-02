@@ -343,7 +343,7 @@ if (direction_rule == "signed") {
     ggplot2::labs(
       title = plot_title,
       subtitle = sprintf(
-        "Pooled 2015-2020 effect = %.3f%s (SE %.3f)",
+        "Pooled Estimate = %.3f%s (SE %.3f)",
         pooled_estimate,
         pooled_stars,
         pooled_se
@@ -426,7 +426,7 @@ if (direction_rule == "signed") {
         ggplot2::labs(
           title = direction_labels$title[i],
           subtitle = sprintf(
-            "Pooled 2015-2020 effect = %.3f%s (SE %.3f)",
+            "Pooled Estimate = %.3f%s (SE %.3f)",
             pooled_i$estimate,
             pooled_i$stars,
             pooled_i$se
