@@ -54,7 +54,7 @@ Table~\ref{tab:permit_event_study_did} shows that this comparison is nearly iden
 Panel A of Figure~\ref{fig:permit_event_study_checks} shows the corresponding path for low-discretion permits.
 The response is more muted than for high-discretion permits.
 
-\subsection{Broader Assigned-Change Sample}
+\subsection{Including Wards with Alderman Turnover}
 \label{sec:appendix_permit_assigned}
 
 Panel B includes blocks from wards that elected new aldermen in 2015.
@@ -71,15 +71,16 @@ The annual number of high-discretion permits is 8.3\% lower, a somewhat smaller 
     \end{minipage}\hfill
     \begin{minipage}[t]{0.48\textwidth}
         \centering
-        \textbf{Panel B: Broader assigned-change sample}\par
+        \textbf{Panel B: Including wards with alderman turnover}\par
         \includegraphics[width=\linewidth]{../tasks/run_event_study_permit/output/permit_event_study_high_discretion_all_signed_500ft.pdf}
     \end{minipage}
     \caption{Additional Permit Event-Study Checks}
-    \figurenotes{Panel A uses low-discretion permits excluding signs; Panel B adds blocks from wards with aldermanic turnover while retaining treatment based on the 2014 incumbents.
+    \figurenotes{Panel A uses low-discretion permits excluding signs.
+    Panel B uses high-discretion permits and includes wards with alderman turnover; assignment still uses the 2014 incumbents.
     Both panels combine the two reassignment directions using Equation~\eqref{eq:event_study_permits}; negative coefficients indicate fewer permits under assignment toward greater stringency.
     Points show effects in log points relative to 2014; subtitles report pooled 2015--2020 coefficients on the same scale.
     The pooled effects correspond to reductions of 1.7\% and 8.3\% in annual permits, respectively.
-    The joint pre-trend tests give $p=0.066$ in Panel A and $p=0.665$ in Panel B.
+    Tests that the pre-2015 effects are jointly zero give $p=0.066$ in Panel A and $p=0.665$ in Panel B.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
     * $p\leq0.10$, ** $p\leq0.05$, *** $p\leq0.01$.}
     \label{fig:permit_event_study_checks}

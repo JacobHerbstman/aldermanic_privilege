@@ -19,10 +19,10 @@ if (anyDuplicated(projects$project_id) > 0L) {
 
 panel_specs <- tibble::tribble(
   ~sample, ~outcome, ~panel_title,
-  "all", "density_far", "All construction: Log(FAR)",
-  "multifamily", "density_far", "Multifamily: Log(FAR)",
-  "all", "density_dupac", "All construction: Log(DUPAC)",
-  "multifamily", "density_dupac", "Multifamily: Log(DUPAC)"
+  "all", "density_far", "Floor-area ratio\nAll residential new construction",
+  "multifamily", "density_far", "Floor-area ratio\nNew multifamily construction",
+  "all", "density_dupac", "Dwelling units per acre\nAll residential new construction",
+  "multifamily", "density_dupac", "Dwelling units per acre\nNew multifamily construction"
 )
 
 panels <- vector("list", nrow(panel_specs))

@@ -264,10 +264,8 @@ p_density <- ggplot(
   scale_fill_manual(values = c("High-Discretion" = "#b74d2c", "Low-Discretion" = "#1f3c4a")) +
   theme_bw(base_size = 12) +
   labs(
-    title = "Alderman-Level Mean Permit Processing Times",
-    subtitle = NULL,
-    x = "Alderman-level mean processing time (days)",
-    y = "Density",
+    x = "Mean processing time per alderman (days)",
+    y = "Probability density",
     color = NULL,
     fill = NULL
   ) +

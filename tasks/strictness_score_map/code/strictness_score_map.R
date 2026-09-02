@@ -99,7 +99,7 @@ p <- ggplot(map_data) +
     high = "#d7191c",
     midpoint = 0,
     limits = c(-score_limit, score_limit),
-    name = "Regulatory stringency"
+    name = "Stringency score (standard deviations)"
   ) +
   theme_void() +
   theme(

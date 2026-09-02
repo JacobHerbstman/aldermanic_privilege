@@ -44,7 +44,7 @@ distribution_plot <- ggplot2::ggplot(scores, ggplot2::aes(score)) +
     linewidth = 0.35
   ) +
   ggplot2::labs(
-    x = "Standardized aldermanic stringency score",
+    x = "Stringency score (standard deviations)",
     y = "Number of aldermen"
   ) +
   ggplot2::theme_minimal(base_size = 11) +
@@ -138,8 +138,8 @@ turnover_plot <- ggplot2::ggplot(
   ) +
   ggplot2::labs(
     subtitle = sprintf("Correlation = %.2f", correlation),
-    x = "Predecessor stringency score",
-    y = "Successor stringency score"
+    x = "Predecessor's score (standard deviations)",
+    y = "Successor's score (standard deviations)"
   ) +
   ggplot2::coord_fixed() +
   ggplot2::theme_minimal(base_size = 11) +

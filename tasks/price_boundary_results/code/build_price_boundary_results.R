@@ -510,8 +510,8 @@ estimate_bins <- function(
       side_label = dplyr::case_when(
         cutoff_ft == 0 & bin_center_ft < 0 ~ "Less Stringent",
         cutoff_ft == 0 ~ "More Stringent",
-        bin_center_ft < 0 ~ "Below Placebo Cutoff",
-        TRUE ~ "Above Placebo Cutoff"
+        bin_center_ft < 0 ~ "Left of cutoff",
+        TRUE ~ "Right of cutoff"
       )
     )
 
@@ -555,8 +555,8 @@ estimate_bins <- function(
       values = c(
         "Less Stringent" = "#2478B5",
         "More Stringent" = "#D92D27",
-        "Below Placebo Cutoff" = "#2478B5",
-        "Above Placebo Cutoff" = "#D92D27"
+        "Left of cutoff" = "#2478B5",
+        "Right of cutoff" = "#D92D27"
       ),
       name = NULL
     ) +
@@ -564,8 +564,8 @@ estimate_bins <- function(
       values = c(
         "Less Stringent" = "#2478B5",
         "More Stringent" = "#D92D27",
-        "Below Placebo Cutoff" = "#2478B5",
-        "Above Placebo Cutoff" = "#D92D27"
+        "Left of cutoff" = "#2478B5",
+        "Right of cutoff" = "#D92D27"
       ),
       guide = "none"
     ) +
@@ -691,7 +691,7 @@ placebo_plot <- patchwork::wrap_plots(
   ncol = 2
 ) +
   patchwork::plot_annotation(
-    title = "Shifted-cutoff price placebos"
+    title = "Prices at artificial boundaries"
   ) +
   patchwork::plot_layout(guides = "collect") &
   ggplot2::theme(legend.position = "bottom")
@@ -701,9 +701,6 @@ straight_plot <- patchwork::wrap_plots(
   fits$sales_straight$plot,
   ncol = 2
 ) +
-  patchwork::plot_annotation(
-    title = "Price estimates near locally straight ward boundaries"
-  ) +
   patchwork::plot_layout(guides = "collect") &
   ggplot2::theme(legend.position = "bottom")
 
@@ -714,9 +711,6 @@ donut_plot <- patchwork::wrap_plots(
   fits$sales_donut50ft$plot,
   ncol = 2
 ) +
-  patchwork::plot_annotation(
-    title = "Price estimates excluding observations nearest the boundary"
-  ) +
   patchwork::plot_layout(guides = "collect") &
   ggplot2::theme(legend.position = "bottom")
 

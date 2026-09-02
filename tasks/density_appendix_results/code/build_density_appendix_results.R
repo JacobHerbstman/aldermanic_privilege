@@ -20,22 +20,18 @@ if (anyDuplicated(projects$project_id) > 0L) {
 
 panel_specs <- tibble::tribble(
   ~sample, ~outcome, ~panel_title,
-  "all", "density_far", "All construction: Log(FAR)",
-  "multifamily", "density_far", "Multifamily: Log(FAR)",
-  "all", "density_dupac", "All construction: Log(DUPAC)",
-  "multifamily", "density_dupac", "Multifamily: Log(DUPAC)"
+  "all", "density_far", "Floor-area ratio\nAll residential new construction",
+  "multifamily", "density_far", "Floor-area ratio\nNew multifamily construction",
+  "all", "density_dupac", "Dwelling units per acre\nAll residential new construction",
+  "multifamily", "density_dupac", "Dwelling units per acre\nNew multifamily construction"
 )
 
 check_specs <- tibble::tribble(
-  ~check, ~cutoff_ft, ~donut_ft, ~figure_title,
+  ~check, ~cutoff_ft, ~donut_ft,
   "placebo_neg1000ft", -1000, 0,
-  "Placebo cutoff 1,000 feet inside the less-stringent ward",
   "placebo_pos1000ft", 1000, 0,
-  "Placebo cutoff 1,000 feet inside the more-stringent ward",
   "donut25ft", 0, 25,
-  "True ward boundary, excluding projects within 25 feet",
-  "donut50ft", 0, 50,
-  "True ward boundary, excluding projects within 50 feet"
+  "donut50ft", 0, 50
 )
 
 for (check_i in seq_len(nrow(check_specs))) {
@@ -162,8 +158,8 @@ for (check_i in seq_len(nrow(check_specs))) {
         cutoff_side = dplyr::case_when(
           cutoff_ft == 0 & bin_center_ft < 0 ~ "Less Stringent",
           cutoff_ft == 0 ~ "More Stringent",
-          bin_center_ft < 0 ~ "Below Placebo Cutoff",
-          TRUE ~ "Above Placebo Cutoff"
+          bin_center_ft < 0 ~ "Left of cutoff",
+          TRUE ~ "Right of cutoff"
         ),
         check = check_specs$check[check_i],
         cutoff_ft,
@@ -217,8 +213,8 @@ for (check_i in seq_len(nrow(check_specs))) {
       ggplot2::geom_point(size = 2.3) +
       ggplot2::scale_color_manual(
         values = c(
-          "Below Placebo Cutoff" = "#2478B5",
-          "Above Placebo Cutoff" = "#D92D27",
+          "Left of cutoff" = "#2478B5",
+          "Right of cutoff" = "#D92D27",
           "Less Stringent" = "#2478B5",
           "More Stringent" = "#D92D27"
         ),
@@ -226,8 +222,8 @@ for (check_i in seq_len(nrow(check_specs))) {
       ) +
       ggplot2::scale_fill_manual(
         values = c(
-          "Below Placebo Cutoff" = "#2478B5",
-          "Above Placebo Cutoff" = "#D92D27",
+          "Left of cutoff" = "#2478B5",
+          "Right of cutoff" = "#D92D27",
           "Less Stringent" = "#2478B5",
           "More Stringent" = "#D92D27"
         ),
@@ -274,9 +270,6 @@ for (check_i in seq_len(nrow(check_specs))) {
   }
 
   combined_plot <- patchwork::wrap_plots(panels, ncol = 2) +
-    patchwork::plot_annotation(
-      title = check_specs$figure_title[check_i]
-    ) +
     patchwork::plot_layout(guides = "collect") &
     ggplot2::theme(legend.position = "bottom")
 

@@ -217,7 +217,7 @@ table_lines <- c(
   "\\addlinespace",
   "\\multicolumn{3}{l}{\\textit{Directions estimated separately}} \\\\",
   sprintf(
-    "Assigned toward more stringent & %s & %s \\\\",
+    "Assigned to more stringent aldermen & %s & %s \\\\",
     format_estimate("high_discretion", "stricter"),
     format_estimate("low_discretion", "stricter")
   ),
@@ -227,7 +227,7 @@ table_lines <- c(
     format_se("low_discretion", "stricter")
   ),
   sprintf(
-    "Assigned toward more lenient & %s & %s \\\\",
+    "Assigned to more lenient aldermen & %s & %s \\\\",
     format_estimate("high_discretion", "lenient"),
     format_estimate("low_discretion", "lenient")
   ),
