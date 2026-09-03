@@ -569,7 +569,7 @@ write_stage1_regression_table <- function(model, output_path, stage1_outcome) {
   outcome_label <- if (stage1_outcome == "processing_time") {
     "Processing Time (days)"
   } else {
-    "Log Processing Time"
+    "Log Processing Time (days)"
   }
   etable(
     model,

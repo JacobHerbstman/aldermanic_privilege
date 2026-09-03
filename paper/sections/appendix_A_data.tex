@@ -93,16 +93,23 @@ I exclude mixed-use class 212, condominiums, cooperatives, larger apartment buil
 Transactions must have a nominal price above \$10,000, not be explicitly identified as land-only, involve one parcel, use a warranty or trustee deed, and pass all three Assessor sale-quality flags: no duplicate sale of the same property within 365 days, no low-price flag, and no excluded-deed flag.
 Missing buyer or seller names do not by themselves disqualify a sale.
 When both names are present, I remove transfers in which the normalized buyer and seller names are identical.
-These transaction rules leave 238,705 sales with valid dates and full 14-digit property identification numbers (PINs).
+These transaction rules leave 238,705 sales with valid months and full 14-digit property identification numbers (PINs).
+
+Some older records without an IDOR-refined date report the first day of the month even though the exact day is unavailable.
+I exclude these sales when either adjoining ward changes aldermen during that month, or when the ward map changes during the month, because the record does not identify the relevant alderman or ward map.
+This removes 1,289 transactions citywide and leaves 237,416.
+I retain records with precise IDOR dates and unrefined dates that are not recorded on the first of the month.
 
 I measure property characteristics using the Assessor record for the same PIN and tax year as the sale rather than carrying information forward or backward from another year.
 I keep properties with one recorded building, positive building area, and an Assessor proration rate of one, which indicates that the record describes the entire property rather than a fractional share.
-These restrictions leave 235,005 sales.
+These restrictions leave 233,744 sales.
+I then exclude 45 sales whose property records report more bedrooms than total rooms, leaving 233,699 sales.
+Missing apartment counts do not disqualify class-211 buildings because unit counts are not required by the price specification.
 When the sale and improvement files report different residential subclasses, I use the class recorded in the sale file for the property-class fixed effect.
 I express prices in 2022 dollars using the monthly Chicago CPI-U, with the mean 2022 index as the base, and do not trim or cap the price distribution.
 
 I locate each transaction by matching its PIN to the parcel map for the year of sale; all 238,705 transaction-clean sales receive an exact historical location.
-Ward, neighboring ward, and alderman assignments use the exact sale date: transactions before May 18, 2015, use the 2003 ward map, and those on or after that date use the 2015 map.
+For retained transactions, ward, neighboring ward, and alderman assignments use the recorded sale date: transactions before May 18, 2015, use the 2003 ward map, and those on or after that date use the 2015 map.
 I calculate distance to the nearest boundary of the property's ward in the Illinois State Plane coordinate system.
 Distance is positive on the side represented by the more-stringent alderman and negative on the other side.
 I drop boundaries if either alderman lacks a stringency score or the two scores are identical.
@@ -111,7 +118,7 @@ For the boundary-price design, I split ward-pair boundaries into approximately 1
 To compare similar homes in similar locations, the regression controls for log building area, log land area, log building age, log bedrooms, log bathrooms, a garage indicator, and distances to the nearest school, park, major road, CTA station open on the sale date, and Lake Michigan.
 Building age is sale year minus reported year built, and total bathrooms equal full bathrooms plus one-half of half bathrooms.
 The logged property characteristics must be positive, so properties sold in their reported construction year are excluded because their measured age is zero.
-The preferred 500-ft sample contains 58,735 sales.
+The preferred 500-ft sample contains 58,468 sales.
 Property-class fixed effects compare sales within the same Assessor class, while segment-by-sale-quarter fixed effects compare sales near the same short stretch of boundary in the same three-month period.
 Standard errors are clustered by ward pair.
 

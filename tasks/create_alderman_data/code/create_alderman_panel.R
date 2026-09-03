@@ -25,7 +25,9 @@ alderman_data <- tribble(
   
   # 1st Ward
   1, "Jesse Granato",       "1998-01-01", "2003-05-04",
-  1, "Manuel Flores",       "2003-05-05", "2010-01-04",
+  # January 13 is the last verified Council service day. The precise
+  # resignation date remains unresolved, so the subsequent days stay vacant.
+  1, "Manuel Flores",       "2003-05-05", "2010-01-13",
   1, "Proco Joe Moreno",    "2010-03-26", "2019-05-19",
   1, "Daniel La Spata",     "2019-05-20", "2025-06-24",
   
@@ -59,7 +61,8 @@ alderman_data <- tribble(
   # 7th Ward
   7, "William Beavers",     "1998-01-01", "2006-12-03",
   7, "Darcel Beavers",      "2006-12-04", "2007-05-20",
-  7, "Sandi Jackson",       "2007-05-21", "2013-01-11",
+  # Resignation effective January 15, 2013.
+  7, "Sandi Jackson",       "2007-05-21", "2013-01-14",
   7, "Natashia Holmes",     "2013-02-13", "2015-05-17",
   7, "Gregory Mitchell",    "2015-05-18", "2025-06-24",
   
@@ -154,8 +157,9 @@ alderman_data <- tribble(
   25, "Byron Sigcho-Lopez", "2019-05-20", "2025-06-24",
   
   # 26th Ward
-  26, "Billy Ocasio",       "1998-01-01", "2009-07-26",
-  26, "Roberto Maldonado",  "2009-08-01", "2023-05-14",
+  # Ocasio resigned May 29; Maldonado took the oath July 29, 2009.
+  26, "Billy Ocasio",       "1998-01-01", "2009-05-28",
+  26, "Roberto Maldonado",  "2009-07-29", "2023-05-14",
   26, "Jessie Fuentes",     "2023-05-15", "2025-06-24",
   
   # 27th Ward

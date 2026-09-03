@@ -1,7 +1,11 @@
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/prep_sales_border_data/code")
+# drop_inconsistent_rooms <- "TRUE"
 
 source("../../setup_environment/code/packages.R")
+args <- if (interactive()) c(drop_inconsistent_rooms) else commandArgs(trailingOnly = TRUE)
+stopifnot(length(args) == 1L, args[1] %in% c("TRUE", "FALSE"))
+drop_inconsistent_rooms <- args[1] == "TRUE"
 
 sales <- fread(
   "../input/sales_with_ward_distances.csv",
@@ -74,6 +78,12 @@ sales_h[, `:=`(
 )]
 
 sales_out <- sales_h[sale_year >= 2006 & baseline_sale_eligible]
+
+# Missing apartment counts remain eligible; no upper-tail price screen is applied.
+if (drop_inconsistent_rooms) {
+  sales_out <- sales_out[is.na(num_rooms) | is.na(num_bedrooms) | num_bedrooms <= num_rooms]
+  stopifnot(!any(sales_out$num_bedrooms > sales_out$num_rooms, na.rm = TRUE))
+}
 
 if (anyDuplicated(sales_out$row_id) > 0) {
   stop("Final residential sales data must be unique by source row_id.", call. = FALSE)

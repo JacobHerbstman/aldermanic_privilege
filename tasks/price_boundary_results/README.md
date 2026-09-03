@@ -20,3 +20,10 @@ fixed effects. For rental listings, the categorical control is the cleaned
 listing building type. For sales, it is the Cook County Assessor property class.
 The property-type comparison reports otherwise identical specifications with
 and without these controls.
+
+Every sales specification reads the same property-cleaned, amenity-enriched
+panel. The rooms rule is applied in `prep_sales_border_data`, before amenity
+enrichment, not separately in each regression. Missing apartment counts are
+allowed and no upper-tail price trimming is applied to the baseline. Annual
+99.9th-percentile price-per-square-foot trimming remains a separate audit
+sensitivity check, not a dependency of the paper figures.

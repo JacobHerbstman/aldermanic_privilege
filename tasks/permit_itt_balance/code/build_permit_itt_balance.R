@@ -237,9 +237,10 @@ lines <- c(
   "\\caption{Pre-Redistricting Balance Between Reassigned and Unchanged Blocks}",
   "\\label{tab:permit_itt_balance}",
   "\\footnotesize",
+  "\\setlength{\\tabcolsep}{4pt}",
   "\\begin{tabular*}{\\textwidth}{@{\\extracolsep{\\fill}}lrrrrrr}",
   "\\toprule",
-  "Variable & Stayed & Moved & Difference & SE & $p$-value & $N$ \\\\",
+  "Variable & Unchanged & Reassigned & Difference & SE & $p$-value & $N$ \\\\",
   "\\midrule"
 )
 

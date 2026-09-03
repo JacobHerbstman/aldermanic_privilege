@@ -112,9 +112,9 @@ flow <- rbind(flow, data.table(
 
 clean_sales <- as.data.table(read_parquet(
   "../input/residential_sales_clean.parquet",
-  col_select = c("row_id", "pin", "year")
+  col_select = c("row_id", "pin", "year", "sale_date", "is_mydec_date")
 ))
-clean_sales[, row_id := as.character(row_id)]
+clean_sales[, `:=`(row_id = as.character(row_id), sale_date = as.IDate(sale_date))]
 if (
   nrow(clean_sales) != sum(keep) ||
     !setequal(clean_sales$row_id, sales$row_id[keep])
@@ -128,16 +128,28 @@ sales_locations <- fread(
 )
 sales_locations[, row_id := as.character(row_id)]
 if (
-  nrow(sales_locations) != nrow(clean_sales) ||
-    !setequal(sales_locations$row_id, clean_sales$row_id) ||
+  !all(sales_locations$row_id %in% clean_sales$row_id) ||
     any(sales_locations$coordinate_source != "historical_exact_pin_year") ||
     any(is.na(sales_locations$ward)) ||
     any(is.na(sales_locations$neighbor_ward)) ||
     any(is.na(sales_locations$ward_pair_id) | sales_locations$ward_pair_id == "") ||
     any(!is.finite(sales_locations$dist_m))
 ) {
-  stop("Canonical clean sales do not all have exact historical locations and ward-boundary assignments.", call. = FALSE)
+  stop("Retained sales must have exact historical locations and complete ward-boundary assignments.", call. = FALSE)
 }
+
+date_exclusions <- clean_sales[!row_id %in% sales_locations$row_id]
+if (nrow(date_exclusions) > 0L &&
+    any(date_exclusions$is_mydec_date | day(date_exclusions$sale_date) != 1L)) {
+  stop("The distance task dropped sales for a reason other than the documented date rule.", call. = FALSE)
+}
+flow <- rbind(flow, data.table(
+  stage = "Transaction file",
+  restriction = "Exclude unrefined first-of-month dates when an adjoining alderman or ward map changes within the month",
+  retained = nrow(sales_locations),
+  dropped = nrow(date_exclusions)
+))
+clean_sales <- clean_sales[row_id %in% sales_locations$row_id]
 
 improvements <- as.data.table(read_parquet(
   "../input/residential_improvements_panel.parquet"
@@ -215,7 +227,7 @@ if (
 }
 
 analysis_sales <- as.data.table(read_parquet(
-  "../input/production_sales_with_hedonics_amenities.parquet"
+  "../input/unfiltered_sales_with_hedonics_amenities.parquet"
 ))
 analysis_sales[, `:=`(
   row_id = as.character(row_id),
@@ -229,6 +241,21 @@ if (
 ) {
   stop("Amenity enrichment changed the comparable sales panel.", call. = FALSE)
 }
+
+clean_properties <- as.data.table(read_parquet(
+  "../input/clean_sales_with_hedonics_amenities.parquet", col_select = "row_id"
+))
+clean_properties[, row_id := as.character(row_id)]
+keep_quality <- with(analysis_sales,
+  is.na(num_rooms) | is.na(num_bedrooms) | num_bedrooms <= num_rooms)
+stopifnot(!anyDuplicated(clean_properties$row_id),
+          setequal(clean_properties$row_id, analysis_sales$row_id[keep_quality]))
+flow <- rbind(flow, data.table(
+  stage = "Comparable-property panel",
+  restriction = "Exclude records with more bedrooms than total rooms; missing apartment counts remain eligible",
+  retained = sum(keep_quality), dropped = sum(!keep_quality)
+))
+analysis_sales <- analysis_sales[keep_quality]
 
 keep_analysis <-
   is.finite(analysis_sales$signed_dist_ft) &

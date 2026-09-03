@@ -49,7 +49,7 @@ if (
 }
 
 production <- as.data.table(read_parquet(
-  "../input/production_sales_with_hedonics_amenities.parquet"
+  "../input/unfiltered_sales_with_hedonics_amenities.parquet"
 ))
 production[, row_id := as.character(row_id)]
 production_spatial <- production[, c(

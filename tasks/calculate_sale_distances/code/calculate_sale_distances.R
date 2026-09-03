@@ -224,6 +224,44 @@ final_df <- results_sf %>%
     st_drop_geometry() %>%
     as_tibble()
 
+# Unrefined first-of-month dates do not identify the serving alderman when
+# either side of the boundary changes office during that month. Drop those
+# sales instead of assigning them mechanically to the first day.
+transition_months <- bind_rows(
+    alderman_terms %>% transmute(ward, transition_date = start_date),
+    alderman_terms %>% transmute(ward, transition_date = end_date + days(1))
+) %>%
+    filter(day(transition_date) > 1L) %>%
+    mutate(year_month = format(transition_date, "%Y-%m")) %>%
+    distinct(ward, year_month)
+
+final_df <- final_df %>%
+    mutate(
+        year_month = format(sale_date_use, "%Y-%m"),
+        unrefined_first_of_month = !is_mydec_date & day(sale_date_use) == 1L,
+        map_can_change_within_month = canonical_era_from_date(floor_date(sale_date_use, "month")) !=
+            canonical_era_from_date(ceiling_date(sale_date_use, "month") - days(1))
+    ) %>%
+    left_join(
+        transition_months %>% mutate(own_transition = TRUE),
+        by = c("ward", "year_month"),
+        relationship = "many-to-one"
+    ) %>%
+    left_join(
+        transition_months %>%
+            rename(neighbor_ward = ward) %>%
+            mutate(neighbor_transition = TRUE),
+        by = c("neighbor_ward", "year_month"),
+        relationship = "many-to-one"
+    ) %>%
+    filter(!(
+        unrefined_first_of_month &
+            (coalesce(own_transition, FALSE) | coalesce(neighbor_transition, FALSE) |
+                map_can_change_within_month)
+    )) %>%
+    select(-year_month, -unrefined_first_of_month, -map_can_change_within_month,
+           -own_transition, -neighbor_transition)
+
 final_df <- final_df %>%
     select(-any_of(c(
         "historical_latitude", "historical_longitude",

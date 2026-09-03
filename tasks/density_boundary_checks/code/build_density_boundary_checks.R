@@ -29,7 +29,29 @@ if (anyDuplicated(boundary_characteristics$project_id) > 0L) {
   stop("Boundary characteristics must be unique by project ID.")
 }
 
+scores <- readr::read_csv(
+  "../input/alderman_uncertainty_index_through2022.csv",
+  show_col_types = FALSE
+) |>
+  dplyr::select(alderman, uncertainty_index)
+if (anyDuplicated(scores$alderman) > 0L) {
+  stop("Alderman scores must be unique by alderman.")
+}
+
 projects <- projects |>
+  dplyr::select(-strictness_own, -strictness_neighbor) |>
+  dplyr::left_join(
+    scores |>
+      dplyr::rename(alderman_own = alderman, strictness_own = uncertainty_index),
+    by = "alderman_own",
+    relationship = "many-to-one"
+  ) |>
+  dplyr::left_join(
+    scores |>
+      dplyr::rename(alderman_neighbor = alderman, strictness_neighbor = uncertainty_index),
+    by = "alderman_neighbor",
+    relationship = "many-to-one"
+  ) |>
   dplyr::inner_join(
     boundary_characteristics,
     by = "project_id",
@@ -58,7 +80,8 @@ projects <- projects |>
     ward_pair != ""
   ) |>
   dplyr::mutate(
-    running_distance_ft = signed_distance_m / 0.3048,
+    running_distance_ft = abs(signed_distance_m / 0.3048) *
+      sign(strictness_own - strictness_neighbor),
     distance_bin = cut(
       running_distance_ft,
       breaks = seq(-500, 500, by = 100),
@@ -174,7 +197,7 @@ robustness_lines <- c(
   "\\toprule",
   " & \\multicolumn{2}{c}{All Construction} & \\multicolumn{2}{c}{Multifamily} \\\\",
   "\\cmidrule(lr){2-3} \\cmidrule(lr){4-5}",
-  " & Log(FAR) & Log(DUPAC) & Log(FAR) & Log(DUPAC) \\\\",
+  " & Log floor-area ratio & Log units per acre & Log floor-area ratio & Log units per acre \\\\",
   "\\midrule"
 )
 

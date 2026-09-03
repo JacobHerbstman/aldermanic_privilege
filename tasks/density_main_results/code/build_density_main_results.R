@@ -17,6 +17,33 @@ if (anyDuplicated(projects$project_id) > 0L) {
   stop("New-construction data must be unique by project ID.")
 }
 
+scores <- readr::read_csv(
+  "../input/alderman_uncertainty_index_through2022.csv",
+  show_col_types = FALSE
+) |>
+  dplyr::select(alderman, uncertainty_index)
+if (anyDuplicated(scores$alderman) > 0L) {
+  stop("Alderman scores must be unique by alderman.")
+}
+
+projects <- projects |>
+  dplyr::select(-strictness_own, -strictness_neighbor) |>
+  dplyr::left_join(
+    scores |>
+      dplyr::rename(alderman_own = alderman, strictness_own = uncertainty_index),
+    by = "alderman_own",
+    relationship = "many-to-one"
+  ) |>
+  dplyr::left_join(
+    scores |>
+      dplyr::rename(alderman_neighbor = alderman, strictness_neighbor = uncertainty_index),
+    by = "alderman_neighbor",
+    relationship = "many-to-one"
+  ) |>
+  dplyr::mutate(
+    signed_distance_m = abs(signed_distance_m) * sign(strictness_own - strictness_neighbor)
+  )
+
 panel_specs <- tibble::tribble(
   ~sample, ~outcome, ~panel_title,
   "all", "density_far", "Floor-area ratio\nAll residential new construction",

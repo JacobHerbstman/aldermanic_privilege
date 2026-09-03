@@ -7,4 +7,5 @@ arterials. The other tests whether four fixed location characteristics change
 at the ward boundary.
 
 Both tables use the same 100-foot distance bands and common FAR-DUPAC samples
-as the main density figure. Standard errors are clustered by ward pair.
+as the main density figure. Boundary sides use the current through-2022
+alderman score. Standard errors are clustered by ward pair.

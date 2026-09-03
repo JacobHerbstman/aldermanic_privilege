@@ -22,6 +22,9 @@ The graph contains no cycles. Shared R package setup and helper files are used
 throughout but are omitted from the figure because they do not produce data
 outputs.
 
+The diagram is generated from the paper and task Makefile prerequisites. After
+changing dependencies, rebuild it with `make -C task_graph` (requires Graphviz).
+
 ## Data Inputs
 
 The paper uses two kinds of inputs:

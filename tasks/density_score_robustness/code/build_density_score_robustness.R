@@ -127,11 +127,9 @@ projects <- projects |>
 
 if (
   any(!is.finite(projects$baseline_score_own)) ||
-    any(!is.finite(projects$baseline_score_neighbor)) ||
-    max(abs(projects$strictness_own - projects$baseline_score_own)) > 1e-10 ||
-    max(abs(projects$strictness_neighbor - projects$baseline_score_neighbor)) > 1e-10
+    any(!is.finite(projects$baseline_score_neighbor))
 ) {
-  stop("Construction data do not contain the current through-2022 scores.", call. = FALSE)
+  stop("Current scores are missing for a construction-sample alderman.", call. = FALSE)
 }
 if (!identical(c(nrow(projects), sum(projects$external_multifamily)), c(3692L, 822L))) {
   stop("The baseline density samples do not match the paper.", call. = FALSE)
@@ -235,7 +233,10 @@ version_labels <- c(
   )
 )
 sample_labels <- c(all = "All Construction", multifamily = "Multifamily")
-outcome_labels <- c(density_far = "Log(FAR)", density_dupac = "Log(DUPAC)")
+outcome_labels <- c(
+  density_far = "Log floor-area ratio",
+  density_dupac = "Log units per acre"
+)
 
 results <- list()
 result_i <- 0L
@@ -319,7 +320,7 @@ table_lines <- c(
   "\\toprule",
   " & \\multicolumn{2}{c}{All Construction} & \\multicolumn{2}{c}{Multifamily} \\\\",
   "\\cmidrule(lr){2-3} \\cmidrule(lr){4-5}",
-  " & Log(FAR) & Log(DUPAC) & Log(FAR) & Log(DUPAC) \\\\",
+  " & Log floor-area ratio & Log units per acre & Log floor-area ratio & Log units per acre \\\\",
   "\\midrule",
   "\\multicolumn{5}{l}{\\textit{Panel A: Removing permits linked to each project}} \\\\"
 )

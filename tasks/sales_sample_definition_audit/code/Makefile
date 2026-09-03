@@ -20,7 +20,8 @@ all: \
 	../input/residential_improvements_panel.parquet \
 	../input/sales_pre_scores.csv \
 	../input/sales_with_hedonics.parquet \
-	../input/production_sales_with_hedonics_amenities.parquet \
+	../input/unfiltered_sales_with_hedonics_amenities.parquet \
+	../input/clean_sales_with_hedonics_amenities.parquet \
 	../input/price_boundary_property_type_fe_estimates.csv | ../output
 	$(R) $<
 ../output/sales_sample_definition_summary.csv: build_sales_sample_definition_audit.R ../input/parcel_sales_city.csv ../input/residential_improvements_panel.parquet ../input/fred_cpi_cuura207sa0.csv | ../output
@@ -44,7 +45,7 @@ all: \
 	../../_lib/amenity_distance_helpers.R \
 	../output/sales_sample_definition_candidates.parquet \
 	../output/sales_sample_definition_historical_coordinates.csv \
-	../input/production_sales_with_hedonics_amenities.parquet \
+	../input/unfiltered_sales_with_hedonics_amenities.parquet \
 	../input/parcel_universe_2025_city.csv \
 	../input/ward_panel.gpkg \
 	../input/ward_pair_boundaries.gpkg \
@@ -79,13 +80,16 @@ all: \
 ../input/sales_pre_scores.csv: ../../calculate_sale_distances/output/sales_pre_scores.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/sales_with_hedonics.parquet: ../../prep_sales_border_data/output/sales_with_hedonics.parquet | ../input
+../input/sales_with_hedonics.parquet: ../../sales_record_quality_audit/output/sales_with_hedonics.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/fred_cpi_cuura207sa0.csv: ../../download_fred_cpi/output/fred_cpi_cuura207sa0.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
-../input/production_sales_with_hedonics_amenities.parquet: ../../sales_border_pair_fe/output/sales_with_hedonics_amenities.parquet | ../input
+../input/unfiltered_sales_with_hedonics_amenities.parquet: ../../sales_record_quality_audit/output/sales_with_hedonics_amenities.parquet | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+../input/clean_sales_with_hedonics_amenities.parquet: ../../sales_border_pair_fe/output/sales_with_hedonics_amenities.parquet | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
 
 ../input/price_boundary_property_type_fe_estimates.csv: ../../price_boundary_results/output/price_boundary_property_type_fe_estimates.csv | ../input
@@ -131,7 +135,8 @@ link-inputs: \
 	../input/sales_pre_scores.csv \
 	../input/sales_with_hedonics.parquet \
 	../input/fred_cpi_cuura207sa0.csv \
-	../input/production_sales_with_hedonics_amenities.parquet \
+	../input/unfiltered_sales_with_hedonics_amenities.parquet \
+	../input/clean_sales_with_hedonics_amenities.parquet \
 	../input/price_boundary_property_type_fe_estimates.csv \
 	../input/parcel_universe_2025_city.csv \
 	../input/ward_panel.gpkg \
