@@ -245,8 +245,13 @@ multicard_candidates <- multicard_cards %>%
     study_cards = sum(study_period_card),
     study_year_values = n_distinct(year_built[study_period_card], na.rm = TRUE),
     construction_year = single_finite_value(year_built[study_period_card]),
-    dwelling_units = sum(card_units[study_period_card], na.rm = TRUE),
-    building_sqft = sum(building_sqft[study_period_card], na.rm = TRUE),
+    complete_units = all(is.finite(card_units[study_period_card]) & card_units[study_period_card] > 0),
+    complete_building = all(is.finite(building_sqft[study_period_card]) & building_sqft[study_period_card] > 0),
+    measurements_observed_together = study_cards == 0L ||
+      (all(complete_episode_snapshot[study_period_card]) &&
+       n_distinct(tax_year[study_period_card]) == 1L),
+    dwelling_units = if (complete_units && measurements_observed_together) sum(card_units[study_period_card]) else NA_real_,
+    building_sqft = if (complete_building && measurements_observed_together) sum(building_sqft[study_period_card]) else NA_real_,
     land_values = n_distinct(land_sqft[study_period_card], na.rm = TRUE),
     land_sqft = single_finite_value(land_sqft[study_period_card]),
     class_values = paste(sort(unique(class[study_period_card])), collapse = "/"),
@@ -260,7 +265,7 @@ multicard_candidates <- multicard_cards %>%
     current_within_1500ft = first(within_1500ft),
     candidate_status = case_when(
       study_cards == 0 ~ "exclude_outside_period",
-      study_year_values != 1 ~ "review_required",
+      study_year_values != 1 | !measurements_observed_together ~ "review_required",
       !is.finite(dwelling_units) | dwelling_units <= 0 |
         !is.finite(building_sqft) | building_sqft <= 0 |
         !is.finite(land_sqft) | land_sqft <= 0 ~ "review_required",
@@ -269,9 +274,10 @@ multicard_candidates <- multicard_cards %>%
     decision_reason = case_when(
       study_cards == 0 ~ "no_card_built_from_2006_through_2022",
       study_year_values > 1 ~ "cards_report_multiple_study_period_construction_years",
-      !is.finite(dwelling_units) | dwelling_units <= 0 ~ "missing_or_nonpositive_units",
-      !is.finite(building_sqft) | building_sqft <= 0 ~ "missing_or_nonpositive_building_area",
+      !complete_units ~ "missing_or_nonpositive_units",
+      !complete_building ~ "missing_or_nonpositive_building_area",
       !is.finite(land_sqft) | land_sqft <= 0 ~ "missing_or_nonpositive_land_area",
+      !measurements_observed_together ~ "no_complete_assessment_for_selected_components",
       TRUE ~ "same_year_cards_aggregated_land_counted_once"
     ),
     .groups = "drop"

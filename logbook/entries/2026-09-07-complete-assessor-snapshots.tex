@@ -1,0 +1,51 @@
+\section*{September 7, 2026: Require complete component measurements}
+\textit{Agent-drafted entry; Jacob approved the assessment-snapshot selection rule.}
+
+Selecting the preferred assessment separately for each building card can produce
+a total that never appears in any assessment year. Four mechanically retained
+multiple-card candidates had this defect. Another candidate selected an old
+pre-redevelopment report for one card and a new-building report for another,
+omitting part of the new construction. These are problems with assembling source
+records, before any density regression is run.
+
+Jacob approved requiring a complete snapshot under the existing 2022/2025/later
+priority. The card producer now selects one assessment for each proposed
+construction-year episode. The snapshot must contain exactly the selected
+component cards, with positive units and building areas and one positive parcel
+land value. An extra card is a membership conflict, not permission to choose a
+convenient subset. The project producer requires support from one assessment year
+before adding the components. The later evidence reader consumes that selection
+instead of constructing a second one.
+
+The candidate inventory still contains 27,831 records. Construction years, parcel
+membership, land values, and preliminary boundary distances are unchanged. Three
+previously mechanically retained candidates now require reconciliation: the
+Washington Boulevard records never provide the selected components together;
+Ingleside has an extra rebuilt component; and another group combines retired and
+reclassified cards. The intermediate review count rises from 190 to 193.
+No new sample exclusion or case-specific ledger entry was introduced.
+
+Twelve unit totals and twelve building-area totals become missing because their
+components lack complete support. Three other floor-area totals now come from
+complete snapshots: 3,934 becomes 3,976 square feet; 3,302 becomes 3,289; and a
+partial six-card sum of 4,284 becomes 12,744. The six-card project already required
+review because its cards report different construction years. These are changes
+to Assessor candidate measurements, not adopted final density outcomes.
+
+Snapshot consistency does not establish physical identity. The existing review
+for 42 E 90th Street identifies one house despite two cards appearing together
+in 2009. Its physical-identity correction must still enter downstream. Card
+renumbering, redevelopment, and subdivision therefore remain the next membership
+questions. The frozen paper input was not replaced and no new estimates were run.
+
+\small
+\textit{Reproduction and scope.} The actual construction Make build regenerates
+\path{residential_multicard_cards.csv} and
+\path{residential_assessor_project_candidates.csv} and their standard reports.
+The comparison is against revision \texttt{36094f8} using the same pinned sources.
+All 2,209 card rows with a selected complete snapshot match their source records;
+no selected construction-year group mixes assessment years. A downstream Make
+replay holds later project, permit, and geographic inputs fixed, so it verifies
+the affected readers rather than a complete final-sample rebuild. Comparison
+hashes are recorded in the release audit's \path{restored_stage_checks.csv}.
+\normalsize

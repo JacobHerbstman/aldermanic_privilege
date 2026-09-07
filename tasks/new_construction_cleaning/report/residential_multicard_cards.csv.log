@@ -1,31 +1,32 @@
 File: residential_multicard_cards.csv
 Rows: 6520
-Columns: 21
-SHA-256 (saved bytes): 8f59a7ac14c9afbe4706fd20d5bbf2e1c567d7c2f3560c99cfa345c71246e1ba
+Columns: 22
+SHA-256 (saved bytes): b57d43771a7be5e36779e8e9111bba61dd943c561c7ee68b381faf5dbc99b8fc
 Key: pin, card_num
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                 column inferred_type non_missing distinct                min               max                mean                  sd
-                    pin       VARCHAR        6520     1558                  -                 -                   -                   -
-               card_num        BIGINT        6520       60                  1                60  4.9894171779141105     6.2470765647592
-               tax_year        BIGINT        6520       28               1999              2026   2009.815490797546   7.723487082399278
-                  class       VARCHAR        6520       22                  -                 -                   -                   -
-             year_built        BIGINT        6520      116               1853              2026  1998.0159509202454   30.16610542337554
-          building_sqft        BIGINT        6417     1552                  0             16755   2223.017453638772  1249.7612535120907
-              land_sqft        BIGINT        5002      812                251            821106   26379.83906437425   60757.04107301389
-         num_apartments        BIGINT        6317        6                  0                 6 0.36441348741491214  1.0726551190520515
-     pin_proration_rate        DOUBLE        6520       32                0.0               1.0  0.8515052147239281  0.2917931990753814
-    card_proration_rate        DOUBLE        6383       42                0.0               0.9 0.08314178286072357 0.19099194735876496
-             card_count        BIGINT        6520       35                  2                60   8.969018404907976   9.857690745713896
-card_proration_complete       BOOLEAN        6520        2                  -                 -                   -                   -
-     card_proration_sum        DOUBLE        6520       91                0.0               9.0  0.4809368098159509   1.179616359383552
-        post_1998_cards        BIGINT        6520       37                  0                60   8.779294478527607   9.993550648891445
-     study_period_cards        BIGINT        6520       27                  0                43  3.1216257668711656  6.8917355902380795
-          selected_card        BIGINT        6520       15                  1                27  2.3391104294478526  3.1457714026159938
-          selected_year        BIGINT        6520       28               1999              2026  2006.8691717791412    7.13481386441351
-         selected_class       VARCHAR        6520       17                  -                 -                   -                   -
-     dist_to_boundary_m        DOUBLE        1524      570 10.355144147210671 4216.874543533596   329.0470347205839  337.02401127744855
-          within_1500ft       BOOLEAN        6520        2                  -                 -                   -                   -
-                 row_id       VARCHAR        6520     6520                  -                 -                   -                   -
+                   column inferred_type non_missing distinct                min               max                mean                  sd
+                      pin       VARCHAR        6520     1558                  -                 -                   -                   -
+                 card_num        BIGINT        6520       60                  1                60  4.9894171779141105     6.2470765647592
+                 tax_year        BIGINT        6520       28               1999              2026  2009.8056748466258   7.718458123330425
+                    class       VARCHAR        6520       22                  -                 -                   -                   -
+               year_built        BIGINT        6520      116               1853              2026  1998.0159509202454   30.16610542337554
+            building_sqft        BIGINT        6421     1553                  0             16755    2222.80470331724   1249.436037706836
+                land_sqft        BIGINT        5002      812                251            821106   26379.83906437425   60757.04107301389
+           num_apartments        BIGINT        6321        6                  0                 6  0.3640246796392976  1.0718919754274483
+       pin_proration_rate        DOUBLE        6520       32                0.0               1.0  0.8507536809815969  0.2930969495149165
+      card_proration_rate        DOUBLE        6385       42                0.0               0.9 0.08292779953014857 0.19078684836574386
+               card_count        BIGINT        6520       35                  2                60   8.969018404907976   9.857690745713896
+  card_proration_complete       BOOLEAN        6520        2                  -                 -                   -                   -
+       card_proration_sum        DOUBLE        6520       90                0.0               9.0 0.47952576687116555   1.177325180140598
+          post_1998_cards        BIGINT        6520       37                  0                60   8.779294478527607   9.993550648891445
+       study_period_cards        BIGINT        6520       27                  0                43  3.1216257668711656  6.8917355902380795
+            selected_card        BIGINT        6520       15                  1                27  2.3391104294478526  3.1457714026159938
+            selected_year        BIGINT        6520       28               1999              2026  2006.8691717791412    7.13481386441351
+           selected_class       VARCHAR        6520       17                  -                 -                   -                   -
+       dist_to_boundary_m        DOUBLE        1524      570 10.355144147210671 4216.874543533596   329.0470347205839  337.02401127744855
+            within_1500ft       BOOLEAN        6520        2                  -                 -                   -                   -
+                   row_id       VARCHAR        6520     6520                  -                 -                   -                   -
+complete_episode_snapshot       BOOLEAN        6520        2                  -                 -                   -                   -

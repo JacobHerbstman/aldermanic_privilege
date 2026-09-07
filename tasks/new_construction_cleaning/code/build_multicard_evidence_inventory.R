@@ -112,38 +112,16 @@ if (anyDuplicated(history[c("pin", "card_num", "tax_year")])) {
   stop("Multicard history is not unique by PIN-card-year.", call. = FALSE)
 }
 
-# Verify that the selected card values actually coexist in an assessment year.
-# A maximum card count alone can combine different buildings or reporting episodes.
-target_card_fields <- cards |>
+# The card producer selects and validates the complete assessment snapshot.
+# Keep its chosen observation year rather than reconstructing a second selection.
+inventory_snapshots <- cards |>
   dplyr::filter(target_card) |>
-  dplyr::transmute(
-    pin, card_num, target_class = class, target_year_built = year_built,
-    target_building_sqft = building_sqft, target_units = card_units
-  )
-if (anyDuplicated(target_card_fields[c("pin", "card_num")])) {
-  stop("Selected card inventory must be unique by PIN and card number.")
-}
-target_card_counts <- target_card_fields |>
-  dplyr::count(pin, name = "target_card_count")
-inventory_snapshots <- history |>
-  dplyr::inner_join(target_card_fields, by = c("pin", "card_num"), relationship = "many-to-one") |>
-  dplyr::mutate(
-    historical_card_units = dplyr::if_else(
-      class %in% c("211", "212") & is.finite(num_apartments) & num_apartments > 0,
-      num_apartments, 1
-    )
-  ) |>
-  dplyr::filter(
-    class == target_class, year_built == target_year_built,
-    building_sqft == target_building_sqft, historical_card_units == target_units
-  ) |>
-  dplyr::count(pin, tax_year, name = "matching_cards") |>
-  dplyr::left_join(target_card_counts, by = "pin", relationship = "many-to-one") |>
-  dplyr::filter(matching_cards == target_card_count) |>
   dplyr::group_by(pin) |>
   dplyr::summarise(
-    inventory_observation_years = paste(sort(tax_year), collapse = "/"),
-    inventory_same_year_observed = TRUE,
+    inventory_same_year_observed = all(complete_episode_snapshot),
+    inventory_observation_years = if (all(complete_episode_snapshot)) {
+      paste(sort(unique(tax_year)), collapse = "/")
+    } else NA_character_,
     .groups = "drop"
   )
 

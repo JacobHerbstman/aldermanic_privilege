@@ -607,7 +607,57 @@ multicard_pins <- candidate_inventory %>%
     within_1500ft
   )
 
-multicard_cards <- latest_card_report %>%
+# Choose one complete assessment for each proposed construction-year episode.
+# Card-by-card priorities can combine measurements that never existed together.
+selected_episode_cards <- latest_card_report %>%
+  semi_join(multicard_pins, by = "pin") %>%
+  filter(between(year_built, 2006L, 2022L)) %>%
+  select(pin, card_num, selected_construction_year = year_built)
+episode_sizes <- selected_episode_cards %>%
+  count(pin, selected_construction_year, name = "episode_cards")
+
+complete_snapshots <- history %>%
+  inner_join(
+    episode_sizes, by = c("pin", "year_built" = "selected_construction_year"),
+    relationship = "many-to-one"
+  ) %>%
+  left_join(selected_episode_cards, by = c("pin", "card_num"), relationship = "many-to-one") %>%
+  mutate(card_units = if_else(class %in% c("211", "212"), num_apartments, 1)) %>%
+  group_by(pin, year_built, tax_year) %>%
+  summarise(
+    complete_membership = n() == first(episode_cards) &
+      all(!is.na(selected_construction_year) & selected_construction_year == year_built),
+    complete_measurements =
+      all(is.finite(card_units) & card_units > 0) &
+      all(is.finite(building_sqft) & building_sqft > 0) &
+      all(is.finite(land_sqft) & land_sqft > 0) & n_distinct(land_sqft) == 1,
+    .groups = "drop"
+  ) %>%
+  filter(complete_membership, complete_measurements) %>%
+  mutate(report_priority = case_when(
+    tax_year <= preferred_assessment_year ~ 1L,
+    tax_year <= fallback_assessment_year ~ 2L,
+    TRUE ~ 3L
+  )) %>%
+  arrange(pin, year_built, report_priority, desc(tax_year)) %>%
+  group_by(pin, year_built) %>%
+  slice_head(n = 1) %>%
+  ungroup() %>%
+  select(pin, year_built, tax_year)
+
+snapshot_cards <- history %>%
+  inner_join(complete_snapshots, by = c("pin", "year_built", "tax_year"), relationship = "many-to-one")
+stopifnot(!anyDuplicated(snapshot_cards[c("pin", "card_num")]))
+
+multicard_reports <- bind_rows(
+  latest_card_report %>%
+    semi_join(multicard_pins, by = "pin") %>%
+    anti_join(snapshot_cards %>% select(pin, card_num), by = c("pin", "card_num")) %>%
+    mutate(complete_episode_snapshot = FALSE),
+  snapshot_cards %>% mutate(complete_episode_snapshot = TRUE)
+) %>% arrange(pin, card_num)
+
+multicard_cards <- multicard_reports %>%
   inner_join(multicard_pins, by = "pin", relationship = "many-to-one") %>%
   group_by(pin) %>%
   mutate(
@@ -639,7 +689,8 @@ multicard_cards <- latest_card_report %>%
     selected_class,
     dist_to_boundary_m,
     within_1500ft,
-    row_id
+    row_id,
+    complete_episode_snapshot
   )
 
 readr::write_csv(candidate_inventory, "../output/residential_project_candidate_inventory.csv")

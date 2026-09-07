@@ -58,7 +58,7 @@ make ../report/residential_assessor_project_candidates.csv.log
    consumes them before applying the existing permit evidence and adding other
    residential project forms.
 
-The actual production build produced 27,831 candidates: 25,610 ordinary parcels,
+The initial consolidation (`36094f8`) produced 27,831 candidates: 25,610 ordinary parcels,
 1,045 tied-parcel groups, and 1,176 multiple-card parcels. This inventory includes
 out-of-period records. Existing rules label 12,904 mechanically retained, 14,728
 outside the period, 190 requiring further evidence, and 9 deferred to commercial
@@ -81,6 +81,41 @@ resolved construction year and project geometry. Card/successor duplication,
 completion-year evidence, and measurement scope remain to be resolved before
 calculating final density ratios and making one final geographic assignment.
 No new case-specific decisions or exclusions were introduced here.
+
+## Complete assessment snapshots for multiple-card measurements
+
+Jacob approved choosing one complete assessment snapshot under the existing
+2022/2025/later priority. `build_residential_project_candidates.R` now does this
+before exporting the card table. Within each proposed construction-year episode,
+a qualifying snapshot must contain exactly the selected component cards, with
+positive unit and building-area measurements and one positive parcel-land value.
+It cannot silently omit missing cards or add unselected cards. The selected source
+row IDs and assessment years remain in `residential_multicard_cards.csv`, together
+with `complete_episode_snapshot`.
+
+The project producer sums only complete component measurements supported by one
+assessment year. Unsupported totals remain missing and the candidate requires
+reconciliation. The later multicard evidence reader uses the producer's snapshot
+flag and chosen assessment year; it no longer reconstructs its own selection.
+No project or source-history row is deleted by this change.
+
+All 27,831 candidate identities, construction years, land values, and preliminary
+distances are unchanged. Three additional candidates require reconciliation,
+bringing that intermediate count to 193; mechanically retained candidates number
+12,901. Twelve unit totals and twelve building-area totals become missing because
+they lack complete support. Three other building-area totals now use complete
+snapshots, including one previously partial six-card sum. This is not a claim
+that those Assessor totals identify distinct physical buildings.
+
+The remaining distinction matters. Two cards can coexist and still duplicate one
+house: the recorded review for 42 E 90th Street provides that counterexample.
+Conversely, the Ingleside candidate omits a rebuilt card because its older report
+wins the historical selection rule; the full snapshot contains an extra component.
+The general snapshot rule exposes that mismatch rather than silently choosing a
+subset. Existing physical-identity reviews still enter downstream, and the final
+dataset remains unfinished. The next membership work must distinguish card
+renumbering, replacement buildings, and parcel subdivision before those records
+can contribute density measurements.
 
 ## First consolidation: analytical assignment
 
