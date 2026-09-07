@@ -1,0 +1,39 @@
+File: multicard_episode_component_summary.csv
+Rows: 107
+Columns: 29
+SHA-256 (saved bytes): d721473c126e76bcfcbc8c4f263fb1a53c222b7d0bdff8c5355bab45544322bb
+Key: component_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                       column inferred_type non_missing distinct                 min               max                 mean                  sd
+                 component_id       VARCHAR         107      107                   -                 -                    -                   -
+                component_key       VARCHAR         107      107                   -                 -                    -                   -
+                  graph_nodes        BIGINT         107       22                   2                47     7.08411214953271   8.014281468665915
+              parent_projects        BIGINT         107        3                   1                 3   1.0467289719626167  0.2526530012850968
+         root_parent_projects        BIGINT         107        4                   0                 3     1.02803738317757  0.2554294912581717
+        intermediate_projects        BIGINT         107        2                   0                 2 0.018691588785046728 0.19334729780913273
+      terminal_child_projects        BIGINT         107       21                   1                46    6.037383177570093   7.992833150196752
+           parent_project_ids       VARCHAR         107      107                   -                 -                    -                   -
+      root_parent_project_ids       VARCHAR         106      106                   -                 -                    -                   -
+   terminal_child_project_ids       VARCHAR         107      107                   -                 -                    -                   -
+             root_parent_pins       VARCHAR         106      106                   -                 -                    -                   -
+            root_parent_years       VARCHAR         106       18                   -                 -                    -                   -
+                 within_500ft       BOOLEAN         107        2                   -                 -                    -                   -
+ minimum_boundary_distance_ft        DOUBLE         106      106   49.22455487329204 1473.294112609551    620.4404783365446  391.96171832678647
+                   ward_pairs       VARCHAR         106       38                   -                 -                    -                   -
+            root_target_cards        BIGINT         107       21                   0                43    6.009345794392523   7.276863474108032
+              root_card_units        BIGINT         107       21                   0                43   6.4392523364485985   7.303627387855385
+      root_card_building_sqft        BIGINT         107      103                   0             83226              12457.0  13825.840843787259
+         terminal_child_units        BIGINT         107       22                   1                46   6.4766355140186915   8.005123117142775
+ terminal_child_building_sqft        BIGINT         107      105                1435             83022   12334.364485981308  14398.810918143994
+     terminal_child_land_sqft        BIGINT         107      106                 808             54518   10312.383177570093   8888.115316538808
+               root_addresses       VARCHAR           0        0                   -                 -                    -                   -
+     terminal_child_addresses       VARCHAR           0        0                   -                 -                    -                   -
+                   unit_ratio        DOUBLE         106       27 0.14285714285714285 2.888888888888889   1.0326635777790825   0.412092920378059
+          building_sqft_ratio        DOUBLE         106       68  0.1311405706649659 2.916354556803995   1.0454534144032575 0.43421312478728374
+                  exact_units       BOOLEAN         107        2                   -                 -                    -                   -
+          close_building_sqft       BOOLEAN         107        2                   -                 -                    -                   -
+             component_status       VARCHAR         107        5                   -                 -                    -                   -
+automatic_resolution_eligible       BOOLEAN         107        2                   -                 -                    -                   -

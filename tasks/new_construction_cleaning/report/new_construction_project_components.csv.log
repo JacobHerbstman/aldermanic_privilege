@@ -1,0 +1,24 @@
+File: new_construction_project_components.csv
+Rows: 32371
+Columns: 14
+SHA-256 (saved bytes): 32890d85e135eb35a87aedbc02c5ec9757bd9f17ce7686e7a6d6f2e6f63d78c2
+Key: project_id, component_pin
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                     column inferred_type non_missing distinct  min     max               mean                 sd
+              source_family       VARCHAR       32371        2    -       -                  -                  -
+                 project_id       VARCHAR       32371    29705    -       -                  -                  -
+              component_pin       VARCHAR       32371    31774    -       -                  -                  -
+         candidate_year_min        BIGINT       32371      107 1878    2026 2008.3245806431682 11.216909086954503
+         candidate_year_max        BIGINT       32371      103 1878    2026 2008.4530907293565   10.8878058528291
+        candidate_units_min        BIGINT       31607      254    0    1679   9.32505457651786 53.909093443707384
+        candidate_units_max        BIGINT       31607      258    0    1679  9.912487740057582  54.84546292586808
+candidate_building_sqft_min        BIGINT       31999     5742    0 1380640  12681.94496703022  62121.21341377213
+candidate_building_sqft_max        BIGINT       31999     5762    0 1380640  12919.23866370824  62400.15398131975
+    candidate_land_sqft_min        BIGINT       31166     6053    0  821106  6785.053102740166 26069.430985778363
+    candidate_land_sqft_max        BIGINT       31166     6059    0  821106  7412.388949496246 28312.279718575413
+            review_category       VARCHAR       32371        6    -       -                  -                  -
+              within_1500ft       BOOLEAN       32371        2    -       -                  -                  -
+                      pin10       VARCHAR       32371    31757    -       -                  -                  -

@@ -1,0 +1,23 @@
+File: preferred_residential_boundary_scope.csv
+Rows: 13088
+Columns: 13
+SHA-256 (saved bytes): d05d02e55668383aedb30b5f56f60d27595de501c8f0cec629fce5c94f530674
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct                min               max               mean                 sd
+             project_id       VARCHAR       13088    13088                  -                 -                  -                  -
+      construction_year        BIGINT       13088       17               2006              2022  2012.388141809291  5.379651142327412
+      construction_date          DATE       13088       17                  -                 -                  -                  -
+          boundary_year        BIGINT       13088        2               2003              2015  2007.270782396088  5.745635631847798
+                    era       VARCHAR       13088        2                  -                 -                  -                  -
+                   ward        BIGINT       13088       50                  1                50  24.45713630806846 15.123252455758031
+          neighbor_ward        BIGINT       13088       49                  1                50  23.46026894865526  15.59042850535596
+              ward_pair       VARCHAR       13088      137                  -                 -                  -                  -
+distance_to_boundary_ft        DOUBLE       13088    12872 1.0214760848636961 27623.33171603177 1426.5562977618256 1775.1227844108887
+          within_1500ft       BOOLEAN       13088        2                  -                 -                  -                  -
+           within_500ft       BOOLEAN       13088        2                  -                 -                  -                  -
+              allow_far       BOOLEAN       13088        2                  -                 -                  -                  -
+            allow_dupac       BOOLEAN       13088        1                  -                 -                  -                  -

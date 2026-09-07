@@ -1,0 +1,19 @@
+File: new_construction_permit_unit_mentions.csv
+Rows: 2390
+Columns: 9
+SHA-256 (saved bytes): 4e5f0d62ff1fde70a2ab94829991e88d950a2f3a290dce9784c271c723cfe319
+Key: project_id, component_pin, permit_id, mention_order
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+         column inferred_type non_missing distinct       min       max               mean                  sd
+  source_family       VARCHAR        2390        2         -         -                  -                   -
+     project_id       VARCHAR        2390     1656         -         -                  -                   -
+  component_pin       VARCHAR        2390     1906         -         -                  -                   -
+      permit_id        BIGINT        2390     1714   1781178   3434877  2924802.559832636  380072.74245982635
+  permit_number        BIGINT        2390     1714 100163994 101077615  100766337.0046025  222871.99776103464
+  mention_order        BIGINT        2390        4         1         4 1.0481171548117154 0.24505705949767984
+   unit_mention       VARCHAR        2390      358         -         -                  -                   -
+     unit_count        BIGINT        2390      148         1      4318  38.45774058577406  169.33995820500243
+mention_context       VARCHAR        2390     1658         -         -                  -                   -

@@ -1,0 +1,40 @@
+File: new_construction_exact_permit_matches.csv
+Rows: 9356
+Columns: 30
+SHA-256 (saved bytes): fd868f37e345077dee6bbdb3cf8a9e0a65322dfb4eec3a5aca48c9b7eb95ab42
+Key: project_id, component_pin, permit_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                      column inferred_type non_missing distinct                min                max               mean                 sd
+               source_family       VARCHAR        9356        2                  -                  -                  -                  -
+                  project_id       VARCHAR        9356     7339                  -                  -                  -                  -
+               component_pin       VARCHAR        9356     7721                  -                  -                  -                  -
+          candidate_year_min        BIGINT        9356       69               1878               2026 2016.5797349294571 11.733963175118829
+          candidate_year_max        BIGINT        9356       65               1878               2026 2016.7545959811885 11.113094112624358
+         candidate_units_min        BIGINT        8849      165                  0               1679  21.70030511922251  75.53580101058144
+         candidate_units_max        BIGINT        8849      166                  0               1679  21.88043846762346   75.8362045253185
+ candidate_building_sqft_min        BIGINT        9181     3364                  0            1380640 27771.956213920053  92910.10812540425
+ candidate_building_sqft_max        BIGINT        9181     3371                  0            1380640 27933.484696656138  93051.47548774826
+     candidate_land_sqft_min        BIGINT        9343     1847                  0             722222  9079.746548217918  18575.22796690428
+     candidate_land_sqft_max        BIGINT        9343     1849                  0             722222   9135.14042598737 18655.025967961366
+             review_category       VARCHAR        9356        6                  -                  -                  -                  -
+               within_1500ft       BOOLEAN        9356        2                  -                  -                  -                  -
+                       pin10       VARCHAR        9356     7717                  -                  -                  -                  -
+                   permit_id        BIGINT        9356     8280            1644645            3449123  2834330.389162035 392478.23715839186
+               permit_number        BIGINT        9356     8280          100091106          101083313 100712365.57973494 229830.90424750163
+                         pin       VARCHAR        9356     7717                  -                  -                  -                  -
+            application_date          DATE        9356     3435                  -                  -                  -                  -
+                  issue_date          DATE        9356     3445                  -                  -                  -                  -
+            application_year        BIGINT        9356       21               2006               2026  2017.192817443352 4.4739540468922305
+                  issue_year        BIGINT        9356       20               2007               2026 2017.3337964942284   4.51874832553881
+               permit_status       VARCHAR        9356        7                  -                  -                  -                  -
+              permit_address       VARCHAR        9356     7663                  -                  -                  -                  -
+   referenced_permit_numbers       VARCHAR         808      504                  -                  -                  -                  -
+               permit_x_3435        DOUBLE        9356     7663 1119848.6776540554 1202129.3178022248 1161974.0840713705  11331.69746966684
+               permit_y_3435        DOUBLE        9356     7660 1816531.8720476606 1950305.9415435349 1906759.6939801709 23086.755779566174
+            work_description       VARCHAR        9356     7470                  -                  -                  -                  -
+                match_method       VARCHAR        9356        1                  -                  -                  -                  -
+plausible_application_window       BOOLEAN        9356        2                  -                  -                  -                  -
+      plausible_issue_window       BOOLEAN        9356        2                  -                  -                  -                  -

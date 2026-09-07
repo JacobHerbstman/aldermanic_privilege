@@ -1,0 +1,40 @@
+File: multicard_episode_component_nodes.csv
+Rows: 758
+Columns: 30
+SHA-256 (saved bytes): 37e3b01c74a04df8d43031ade784d214be85cde1faca78e80fa85ffd257efc61
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                   column inferred_type non_missing distinct                min                max               mean                 sd
+               project_id       VARCHAR         758      758                  -                  -                  -                  -
+            raw_component        BIGINT         758      107                  1                107 54.382585751978894  26.56412321500941
+            component_key       VARCHAR         758      107                  -                  -                  -                  -
+             component_id       VARCHAR         758      107                  -                  -                  -                  -
+                is_parent       BOOLEAN         758        2                  -                  -                  -                  -
+                 is_child       BOOLEAN         758        2                  -                  -                  -                  -
+           is_root_parent       BOOLEAN         758        2                  -                  -                  -                  -
+        is_terminal_child       BOOLEAN         758        2                  -                  -                  -                  -
+               parent_pin        BIGINT         112      112     12252050380000     25194030030000 16602439264875.018 3004067405063.1675
+        construction_year        BIGINT         112       16               2006               2022          2011.5625  5.490009353607941
+             within_500ft       BOOLEAN         112        2                  -                  -                  -                  -
+  distance_to_boundary_ft        DOUBLE         112      112  49.22455487329204  1473.294112609551  612.3600464541869  384.1920216249817
+                ward_pair       VARCHAR         112       38                  -                  -                  -                  -
+             target_cards        BIGINT         112       20                  2                 43  5.776785714285714  6.833555023556498
+        summed_card_units        BIGINT         112       20                  2                 43             6.1875  6.875378777444433
+summed_card_building_sqft        BIGINT         112      107               2052              83226 11964.276785714286 13070.531667681033
+           selected_units        BIGINT         112        4                  1                  4 1.1428571428571428 0.5672303956509399
+   selected_building_sqft        BIGINT         112       98               1026               7200 2303.0446428571427   789.800252868092
+        current_addresses       VARCHAR           2        2                  -                  -                  -                  -
+           manual_address       VARCHAR           0        0                  -                  -                  -                  -
+            source_family       VARCHAR         758        1                  -                  -                  -                  -
+             project_kind       VARCHAR         758        3                  -                  -                  -                  -
+         source_addresses       VARCHAR           0        0                  -                  -                  -                  -
+           component_pins       VARCHAR         758      758                  -                  -                  -                  -
+             project_year        BIGINT         758       17               2006               2022 2011.3007915567282  4.958136438417447
+            project_units        BIGINT         758       21                  1                 43 1.8284960422163588 3.2193488033995274
+    project_building_sqft        BIGINT         758      306               1302              83226  3508.939313984169  6149.413462295579
+        project_land_sqft        DOUBLE         758      561              571.0           307739.0 4460.3269201490275 17612.817103152836
+                   x_3435        DOUBLE         758      756 1126801.7935877538  1194754.014725387 1164922.1956606708 11622.445198420091
+                   y_3435        DOUBLE         758      755 1828206.5831250015 1939043.5797221088 1892782.9134598344 21477.043007946802

@@ -1,0 +1,18 @@
+File: project_permit_chain_unit_mentions.csv
+Rows: 4353
+Columns: 8
+SHA-256 (saved bytes): b1536c0412da835d3b78854ba8ea84937815fa17b1516ca4e9212d3571c07ab2
+Key: project_id, permit_number, mention_order
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+         column inferred_type non_missing distinct       min       max               mean                  sd
+  source_family       VARCHAR        4353        2         -         -                  -                   -
+     project_id       VARCHAR        4353     2363         -         -                  -                   -
+permit_chain_id       VARCHAR        4353     2004         -         -                  -                   -
+  permit_number        BIGINT        4353     2150 100080895 101077615 100580367.17022742   296987.8974010912
+  mention_order        BIGINT        4353        4         1         4 1.0323914541695383 0.20808166445259846
+   unit_mention       VARCHAR        4353      424         -         -                  -                   -
+     unit_count        BIGINT        4353      173         1      4318  43.39972432804962   341.3616617571033
+mention_context       VARCHAR        4353     2051         -         -                  -                   -

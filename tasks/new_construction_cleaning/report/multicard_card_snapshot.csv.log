@@ -1,0 +1,34 @@
+File: multicard_card_snapshot.csv
+Rows: 1139
+Columns: 24
+SHA-256 (saved bytes): fc5d91f0ea31ccad0d8716eed3418cf7504906d4a75d7dd8d0726c56f7df881c
+Key: pin, card_num
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct                   min                   max                   mean                    sd
+                    pin        BIGINT        1139      273        11303200330000        25221030430000     16550589460133.465     2672756403559.963
+               card_num        BIGINT        1139       43                     1                    43      6.003511852502195     7.439385164644654
+               tax_year        BIGINT        1139       27                  2000                  2026      2013.920105355575     6.117459641625862
+                  class       VARCHAR        1139       19                     -                     -                      -                     -
+             year_built        BIGINT        1139       62                  1853                  2024     1999.0474100087797     36.11339103682792
+          building_sqft        BIGINT        1130      436                   315                 12406      2184.883185840708    1137.6004778837112
+              land_sqft        BIGINT        1112      203                  1936                307739     29202.428057553956     47858.16343367293
+         num_apartments        BIGINT        1103        5                     0                     6    0.36355394378966455     1.070650729302695
+     pin_proration_rate        BIGINT        1139        1                     1                     1                    1.0                   0.0
+    card_proration_rate        BIGINT        1051        1                     0                     0                    0.0                   0.0
+             card_count        BIGINT        1139       22                     2                    43     10.963125548726953    11.663503050258102
+card_proration_complete       BOOLEAN        1139        2                     -                     -                      -                     -
+     card_proration_sum        BIGINT        1139        1                     0                     0                    0.0                   0.0
+        post_1998_cards        BIGINT        1139       23                     1                    43     10.746268656716419     11.83415240437054
+     study_period_cards        BIGINT        1139       23                     1                    43      10.74451273046532    11.835525341507237
+          selected_card        BIGINT        1139        9                     1                    11      2.433713784021071    2.9010853963445546
+          selected_year        BIGINT        1139       17                  2006                  2022     2011.3160667251975    5.5873174220242525
+         selected_class       VARCHAR        1139       13                     -                     -                      -                     -
+     dist_to_boundary_m        DOUBLE         518      159     16.63499575032271     438.7805448505377     190.93111475013833    111.57681670084564
+          within_1500ft       BOOLEAN        1139        2                     -                     -                      -                     -
+                 row_id        DOUBLE        1139     1139 1.130320033000012e+18 2.024429003000027e+19 4.5407836060792556e+18 6.092024839747996e+18
+            target_card       BOOLEAN        1139        2                     -                     -                      -                     -
+             card_units        BIGINT        1058        5                     1                     6     1.2438563327032137    0.7836340797940906
+         card_signature       VARCHAR        1139      490                     -                     -                      -                     -

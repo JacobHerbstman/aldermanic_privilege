@@ -1,0 +1,22 @@
+File: project_permit_chain_summary.csv
+Rows: 9674
+Columns: 12
+SHA-256 (saved bytes): 27fbde32ead919baa18d72f3e597b69800fcd46b1b59af0101b7149d51760e19
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                    column inferred_type non_missing distinct min max                mean                 sd
+             source_family       VARCHAR        9674        2   -   -                   -                  -
+                project_id       VARCHAR        9674     9674   -   -                   -                  -
+             permit_chains        BIGINT        9674       23   1  44  1.7005375232582178 3.0796561063148498
+  directly_matched_permits        BIGINT        9674       25   1  44   1.815174695058921  3.242268593063085
+         all_chain_permits        BIGINT        9674       26   1  44  2.0116807938805046  3.670605731411239
+ earliest_application_date          DATE        9674     3683   -   -                   -                  -
+       earliest_issue_date          DATE        9674     3711   -   -                   -                  -
+         latest_issue_date          DATE        9674     3722   -   -                   -                  -
+            permit_numbers       VARCHAR        9674     8394   -   -                   -                  -
+permits_with_unit_mentions        BIGINT        9674       16   0  18  0.4379780855902419 1.3110827419757456
+      distinct_unit_counts        BIGINT        9674        7   0   6 0.28757494314657844 0.5640938320492089
+               unit_counts       VARCHAR        2363      219   -   -                   -                  -

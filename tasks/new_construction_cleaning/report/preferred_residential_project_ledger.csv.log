@@ -1,0 +1,34 @@
+File: preferred_residential_project_ledger.csv
+Rows: 13088
+Columns: 24
+SHA-256 (saved bytes): 518782501fdace0612a336422275568ef65350aec5b9b3224298be3ab2257f61
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct                min                max               mean                 sd
+        project_id       VARCHAR       13088    13088                  -                  -                  -                  -
+source_project_ids       VARCHAR       13088    13086                  -                  -                  -                  -
+    component_pins       VARCHAR       13088    13088                  -                  -                  -                  -
+      project_kind       VARCHAR       13088        7                  -                  -                  -                  -
+ construction_year        BIGINT       13088       17               2006               2022  2012.388141809291  5.379651142327412
+    dwelling_units        BIGINT       13088       26                  1                350 1.4773838630806846   3.39196261454976
+     building_sqft        BIGINT       13079     3788                246              88950 3062.8721614802357 2684.0507355470254
+         land_sqft        DOUBLE       13088     3633              430.0           307739.0 3853.2222498069195  7991.251126967694
+      class_values       VARCHAR       13088       20                  -                  -                  -                  -
+       year_source       VARCHAR       13088    12783                  -                  -                  -                  -
+      units_source       VARCHAR       13088    12788                  -                  -                  -                  -
+   building_source       VARCHAR       13088    12777                  -                  -                  -                  -
+       land_source       VARCHAR       13088    12782                  -                  -                  -                  -
+ membership_source       VARCHAR       13088      136                  -                  -                  -                  -
+      evidence_ids       VARCHAR       13088    13088                  -                  -                  -                  -
+   decision_reason       VARCHAR       13088       62                  -                  -                  -                  -
+        confidence       VARCHAR       13088        3                  -                  -                  -                  -
+   decision_source       VARCHAR       13088        8                  -                  -                  -                  -
+   geometry_source       VARCHAR       13088       10                  -                  -                  -                  -
+ geometry_evidence       VARCHAR       13088    13088                  -                  -                  -                  -
+            x_3435        DOUBLE       13088    12844 1119172.9510746428 1203743.2364409526 1161799.7733279536  13065.48808436857
+            y_3435        DOUBLE       13088    12844 1816533.4699999988 1949781.5401818515 1901175.9307778128 26243.184294618022
+         allow_far       BOOLEAN       13088        2                  -                  -                  -                  -
+       allow_dupac       BOOLEAN       13088        1                  -                  -                  -                  -

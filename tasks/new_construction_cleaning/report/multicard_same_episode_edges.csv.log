@@ -1,0 +1,37 @@
+File: multicard_same_episode_edges.csv
+Rows: 692
+Columns: 27
+SHA-256 (saved bytes): 4c6038e20839af362cc46fd74735d8f0c76904ad11be6ef2ef0e659e7298e369
+Key: project_id, child_project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct            min            max               mean                  sd
+                      project_id       VARCHAR         692      112              -              -                  -                   -
+                child_project_id       VARCHAR         692      648              -              -                  -                   -
+                     current_pin        BIGINT         692      648 12252050430000 25194030440000 16716627097485.549  2548910702719.8774
+          search_geometry_source       VARCHAR         692        2              -              -                  -                   -
+                      parent_pin        BIGINT         692      112 12252050380000 25194030030000 16716685715231.229  2548922111228.4976
+                     parent_year        BIGINT         692       16           2006           2022 2010.7268786127167   5.068471834850251
+                    within_500ft       BOOLEAN         692        2              -              -                  -                   -
+                   within_1500ft       BOOLEAN         692        1              -              -                  -                   -
+                       ward_pair       VARCHAR         692       38              -              -                  -                   -
+                    target_cards        BIGINT         692       20              2             43  12.68063583815029  12.116560083177449
+                  target_classes       VARCHAR         692        7              -              -                  -                   -
+             target_card_numbers       VARCHAR         692       22              -              -                  -                   -
+          target_card_signatures        BIGINT         692        9              1             12 2.8641618497109826  2.4368229220659976
+               summed_card_units        BIGINT         692       20              2             43 12.877167630057803  12.028942379677284
+       summed_card_building_sqft        BIGINT         692      107           2052          83226 24253.726878612717   22729.54469348326
+                  selected_units        BIGINT         692        4              1              4 1.0621387283236994  0.3772242951610367
+          selected_building_sqft        BIGINT         692       98           1026           7200  2186.875722543353   613.5024562608666
+             child_source_family       VARCHAR         692        1              -              -                  -                   -
+              child_project_kind       VARCHAR         692        3              -              -                  -                   -
+            child_component_pins       VARCHAR         692      648              -              -                  -                   -
+                      child_year        BIGINT         692       17           2006           2022  2010.992774566474   4.802761487487331
+                     child_units        BIGINT         692        4              1              4 1.0751445086705202 0.39183505631718635
+             child_building_sqft        BIGINT         692      201           1302           7175 2046.8265895953757   640.1390080481127
+                 child_land_sqft        BIGINT         692      455            571          12065 1729.5968208092486  1198.6605817839882
+                        year_gap        BIGINT         692        5             -2              2 0.2658959537572254  0.8897837462345551
+same_construction_episode_window       BOOLEAN         692        1              -              -                  -                   -
+             exact_parcel_search       BOOLEAN         692        1              -              -                  -                   -

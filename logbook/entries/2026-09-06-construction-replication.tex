@@ -1,0 +1,143 @@
+\section*{September 6, 2026: Recovering the construction data's derivation}
+\textit{Codex draft. The restoration remains in progress on the sales\_sample\_exploration branch.}
+
+The construction decisions and much of their supporting code survive in the
+research archive. The earlier claim that the central cleaning could not be
+traced was too strong. Production had become disconnected from that derivation:
+it started with a saved analysis dataset rather than rebuilding the projects
+from source records and recorded decisions. Jacob authorized restoring that
+connection on this branch. Repeating human reviews each time the paper compiles
+is unnecessary; their recorded decisions must enter the build as inputs.
+
+Replaying the recovered code has reproduced substantial parts of the earlier
+cleaning. The residential review stage reproduces all 184 source dispositions
+and its 139 retained projects. The commercial decision stage reproduces all
+1,128 source dispositions and 815 retained projects. Historical parcel matching
+reproduces the saved coverage and predecessor decisions, including the geometry
+and attributes of 11,794 source parcels and 3,770 selected predecessor
+geometries. These checks use preserved upstream inputs where their producers
+have not yet been restored. An earlier partial chain also reproduced the
+8,648-row final construction export. None of these comparisons establishes a
+complete rebuild from raw data with unchanged estimates.
+
+Two confirmed programming errors affected the preservation of conflicting
+source information. The historical coordinate screen counted distinct unit and
+building-area values after aggregation had already replaced them. Counting the
+original values first reduces the accepted coordinate file from 391 to 387
+rows. The four removed locations are outside the 500-foot sample. Separately,
+the commercial summary discarded lists of competing source values after
+collapsing them to a single value. Preserving those lists restores evidence
+about conflicting years, units, and areas; the commercial candidate decisions
+remain unchanged in the replay. These corrections are in the restored code.
+The production construction export has not been replaced.
+
+The exact original full residential Assessor download remains unlocated.
+Jacob does not know of another backup. A fresh, pinned download contains every
+previously selected residential PIN and 199 additional PINs. Its effects require
+more than a row-count comparison. With the preserved candidate inventory, it
+makes two previously unresolved parcel groups eligible for mechanical retention
+because they now have a complete 2026 assessment snapshot. Both projects already
+enter the frozen final dataset through later resolution. One lies 419 feet from
+its ward boundary: the later snapshot reports 2,976 square feet of land and
+3,115 square feet of building area, whereas the existing resolution uses 1,440
+and 3,114, respectively. The earlier resolution comes from selected 2022
+building-card evidence. This difference has not been adopted. The existing
+review-coverage check rejects a changed review cohort; it must not be removed
+merely to make the new source pass.
+
+Zoning replay also revealed that the grouping function called an absent map
+match ``Other.'' Preserving missingness instead changes one project's 2012
+snapshot evidence. Its final Downtown classification still comes from validated
+component evidence. In the replay, no final zoning group or assignment source
+changes. The missing-value correction is in both restored zoning stages.
+
+The remaining work is to restore the outstanding parcel, building, permit,
+and historical zoning producers, reconcile the replacement source with the
+recorded resolutions, and run the resulting chain through the paper. Source
+extracts need explicit query coverage so that an unqueried location cannot
+be classified as having no match. Jacob also authorized moving the shared
+files required by this pipeline to \path{tasks/shared/code/} and updating their
+callers. A separate Make 3.81 experiment verified recovery when either member
+of a two-output producer is deleted, including parallel execution. The full
+paper build still needs verification; changing shared include paths must not
+silently refresh mutable source datasets. The parcel-universe task now replays
+its preserved source snapshot by default, with a separate Make entry point for
+a deliberate API refresh. Its 882,741-row consumer dataset reproduces the
+existing file byte for byte. Both the source and rewritten data have unique,
+nonmissing parcel identifiers. Other mutable downloads still need this vintage
+check before running the full paper build.
+
+A separate comparison raises a land-denominator question for retained projects
+with several building cards. Among 248 such projects in the frozen paper data,
+89 have a recorded successor match for every target card. Four projects within
+500 feet have complete matches that reproduce their building totals, yet their
+parent land area exceeds the matched successor lots' combined area by more than
+a factor of two. This is a diagnostic comparison, not a new exclusion rule.
+
+The largest difference concerns the seven-card Park Place Homes parent,
+PIN 19111200130000. The paper data assign its seven units and 13,753 square feet
+of building area to 307,739 square feet of land. Its seven matched successor
+lots total 21,069 square feet, a factor of 14.6 smaller. All seven successor rows
+are absent from the final dataset, so this comparison does not demonstrate
+double counting. The recorded review supports the card inventory; a later web
+review identifies the development but explicitly does not independently verify
+the parent's unit count. Subdivision and common land may explain some of the
+land difference. The outstanding question is whether the numerator and
+denominator describe the same construction episode. No replacement land area
+or sample exclusion has been adopted.
+
+The follow-up review checked all four parent land values against the selected
+historical Assessor cards and mapped parcels. The 13-home Calumet parent's
+27,738 square feet agree with its 2008 polygon; all 13 matched homes lie inside,
+with no additional reported residential units. Keeping that denominator is
+supported because the smaller individual lots exclude additional site land.
+The other three cases remain open. Fletcher's parent covers five homes while
+its numerator counts two, and the other three homes remain separate observations.
+Park Place includes a much larger tract and later development phases. The
+29-home Eastgate parent's area is confirmed by its 2008 polygon, but the site
+contains six additional homes in the recorded successor evidence. Allocating
+land or changing episode definitions is necessary before clearing those density
+values. These are review recommendations; no production values were changed.
+The case evidence and maps are generated by the release audit's
+\path{review_denominator_cases.R}; the detailed interpretation is in
+\path{denominator_review.md} in that audit directory.
+
+\small
+The permit follow-up makes the reported years less reliable for these sites.
+Fletcher's selected homes and the two Campbell Avenue homes received new-construction
+permits on December 1, 2006. The permits identify components of larger building
+groups, so the five homes inside the tax parent are not necessarily one complete
+building. At Eastgate, the five southern homes received a new-construction permit
+on August 10, 2006, although four successor records report year built 2005.
+Permit issuance is not completion evidence, but these records do not support
+classifying those four homes as established pre-study housing. Park Place's
+seven matched successors span the subareas in the 2013 development drawing;
+the drawing's separate seven-unit subarea is therefore not a valid substitute.
+No new denominator or year has been adopted. The question of excluding unresolved
+density observations versus imputing shared land remains with Jacob.
+
+A separate restoration reproduced the recorded evidence for construction episodes
+linked across parcel identifiers: 123 project records and 596 assessment-year
+episode records match the preserved files byte for byte. The restored Make rules
+regenerated a deleted secondary output during a parallel build, then ran no
+producer on the unchanged next build. This check uses the preserved review bundle
+and assessment history, so it does not establish reconciliation of the replacement
+source vintage or completion of the full upstream chain.
+
+\textbf{Reproduction note.}
+The recovered code is from research-archive commit
+\nolinkurl{010a1f8497c1}.
+The new production task is \path{tasks/new_construction_cleaning/}; its default
+build is incomplete while upstream producers remain missing. Recorded stage
+comparisons and the four affected tieback candidates are documented in
+the release audit files \path{restored_stage_checks.csv} and
+\path{current_assessor_temporal_candidate_changes.csv}.
+Source vintages and hashes are in \path{data_raw/construction_review/}.
+The land comparison is generated by the release audit's
+\path{code/review_multicard_land_scope.R} from the frozen paper data and the
+recorded review baseline in that audit's \path{reference/} directory. These
+baseline files are computed historical review products, not raw data or a
+substitute for restoring their production derivation.
+The experiments were run locally; they do not establish execution on a cluster.
+Compile this entry with \texttt{make} in \path{logbook/}.
+\normalsize

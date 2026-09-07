@@ -1,0 +1,70 @@
+File: multicard_external_reviewed_model_input.csv
+Rows: 8995
+Columns: 60
+SHA-256 (saved bytes): a8cf7ef0425284fecd95e0bd9419dcd2d7c50e3cb78fdfe52ebf18874ea29508
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                     column inferred_type non_missing distinct                  min                max                  mean                  sd
+                 project_id       VARCHAR        8995     8995                    -                  -                     -                   -
+              source_family       VARCHAR        8995        2                    -                  -                     -                   -
+              ledger_action       VARCHAR        8995        2                    -                  -                     -                   -
+               project_kind       VARCHAR        8995        9                    -                  -                     -                   -
+          construction_year        BIGINT        8995       17                 2006               2022    2012.6957198443579   5.366656223676666
+          construction_date          DATE        8995       17                    -                  -                     -                   -
+                       ward        BIGINT        8995       49                    1                 50      23.9816564758199   15.29865740961072
+              neighbor_ward        BIGINT        8995       49                    1                 50    23.988326848249027  15.567686945793666
+                  ward_pair       VARCHAR        8995      134                    -                  -                     -                   -
+    distance_to_boundary_ft        DOUBLE        8995     8938    1.021476084863696 1498.6502188053703     643.5739055206919   399.6975419492559
+               within_500ft       BOOLEAN        8995        2                    -                  -                     -                   -
+              within_1500ft       BOOLEAN        8995        1                    -                  -                     -                   -
+                  allow_far       BOOLEAN        8994        2                    -                  -                     -                   -
+                allow_dupac       BOOLEAN        8994        2                    -                  -                     -                   -
+                 segment_id       VARCHAR        8995     1260                    -                  -                     -                   -
+             dwelling_units        BIGINT        8993      175                    1                848     6.112643166907595   34.34300904216568
+              building_sqft        BIGINT        8979     3586                  246            1284706     9029.206370419868   45875.56162766708
+                  land_sqft        DOUBLE        8994     3074                  1.0          1540260.0     5118.259357339254  20125.755972259354
+                density_far        DOUBLE        8978     7601 0.011528406099704652            53022.0     7.102640806022243   559.5742153232023
+              density_dupac        DOUBLE        8992     3316  0.19434108734641434          3179880.0     381.9772129929769   33533.51783512189
+                 zone_group       VARCHAR        8995        8                    -                  -                     -                   -
+               alderman_own       VARCHAR        8994      102                    -                  -                     -                   -
+          alderman_neighbor       VARCHAR        8990      104                    -                  -                     -                   -
+             strictness_own        DOUBLE        8994      102  -3.4399763217894574  3.336560147956221    0.2771681714386303  0.8193493441597658
+        strictness_neighbor        DOUBLE        8990      104  -3.4399763217894574  3.336560147956221   0.26870382839367857  0.8433393069508509
+          signed_distance_m        DOUBLE        8989     8933   -456.7885866918769  456.7582004518269     5.267098599385109   230.8870347639618
+               lenient_dist        DOUBLE        8989     4479                  0.0  456.7885866918769     95.45847332953642  129.16509017274586
+                strict_dist        DOUBLE        8989     4456                  0.0  456.7582004518269    100.72557192892144  131.88193248476966
+                       side        BIGINT        8989        2                    0                  1    0.5001668706196463  0.5000277862432865
+continuous_score_difference        DOUBLE        8989      518   -2.255591674383129 1.9494208817811784 0.0041593241217562455  0.5202624855858555
+         pair_average_score        DOUBLE        8989      292   -2.953073455577414  3.063083711794118    0.2727624204016739  0.6485705178107581
+            share_white_own        DOUBLE        8995      426  0.00358238087470588  0.872029224787542    0.4036952268945802  0.2630159767156306
+            share_black_own        DOUBLE        8995      426  0.00606358527153015 0.9760814204807162   0.23351356200358372  0.3060395060498606
+       median_hh_income_own        DOUBLE        8995      426    17794.77018835824 156816.80301053703     60339.29298766046  28748.552750382052
+        share_bach_plus_own        DOUBLE        8995      400  0.05282434878746028 0.8917022350312006    0.4088124752789216 0.24189905130286538
+     homeownership_rate_own        DOUBLE        8995      426  0.18817021270261344 0.8254221558463539    0.4036482519555093 0.11125472454734496
+          final_disposition       VARCHAR         256        1                    -                  -                     -                   -
+        adjudication_reason       VARCHAR         256        5                    -                  -                     -                   -
+    adjudication_confidence       VARCHAR         256        2                    -                  -                     -                   -
+    original_dwelling_units        BIGINT        8993      175                    1                848     6.102190592683198   34.33575175565606
+     original_building_sqft        BIGINT        8979     3589                  246            1284706     9029.227419534469   45875.54339282955
+        externally_reviewed       BOOLEAN        8995        2                    -                  -                     -                   -
+       external_multifamily       BOOLEAN        8993        2                    -                  -                     -                   -
+        external_value_used       BOOLEAN        8995        2                    -                  -                     -                   -
+                        pin        BIGINT         256      256       11303200330000     25194060030000    15944068934359.383  2742482363283.0127
+            review_priority        BIGINT         256        5                    1                  5             3.1953125  1.0557673076218728
+             review_address       VARCHAR         255      255                    -                  -                     -                   -
+              review_status       VARCHAR         256        1                    -                  -                     -                   -
+   external_structure_class       VARCHAR         256        4                    -                  -                     -                   -
+    multifamily_disposition       VARCHAR         256        2                    -                  -                     -                   -
+      classification_source       VARCHAR         256        2                    -                  -                     -                   -
+    external_building_count        BIGINT         256       22                    1                 70            4.85546875   9.770634744417757
+        external_unit_count        BIGINT          28       15                    1                 70    10.571428571428571   15.90114967059177
+     external_building_sqft        BIGINT          12       12                 1946              19350     6003.333333333333   4808.460769279185
+               source_1_url       VARCHAR         256      242                    -                  -                     -                   -
+               source_2_url       VARCHAR         200      188                    -                  -                     -                   -
+     supports_building_type       BOOLEAN         256        1                    -                  -                     -                   -
+       supports_final_units       BOOLEAN         256        2                    -                  -                     -                   -
+             reviewer_notes       VARCHAR         256      252                    -                  -                     -                   -
+                review_date          DATE         256        1                    -                  -                     -                   -
