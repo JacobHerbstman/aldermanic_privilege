@@ -2,13 +2,14 @@
 
 September 7, 2026. Evidence review on `sales_sample_exploration`, against the
 frozen paper input. No production measurement, eligibility flag, or estimate was
-changed. Recommendations below are not adopted decisions.
+changed. Recommendations below are not adopted measurement decisions. Jacob has
+approved accepting an Assessor-year proxy for Natchez if completion cannot be verified.
 
 Jacob has confirmed that new buildings replacing demolished buildings qualify,
 while renovations, additions, and conversions do not themselves qualify. He has
-approved combining the two 4400 Grove buildings, requested investigating a
-combined Natchez observation dated to full completion, and left Roosevelt Square
-grouping open.
+approved combining the two 4400 Grove buildings. Following the evidence review,
+he suggested keeping Natchez A/B/C separate and authorized Assessor-year proxies
+if exact completion dates cannot be found. Roosevelt Square grouping remains open.
 
 ## Current paper observations
 
@@ -152,10 +153,10 @@ not evidence that every B building was complete in 2018. No exact final
 completion date for all fourteen buildings has been established here.
 
 **Recommendation:** keep B combined as 84 units on its measured site. Do not merge
-A, B, and C merely to manufacture one final completion date. The choice still
-needed is how to treat the unresolved full-completion year: obtain building-level
-occupancy dates, or explicitly accept an Assessor-year proxy with sensitivity
-analysis. Calling 2020 verified full completion would overstate the evidence.
+A, B, and C merely to manufacture one final completion date. Jacob subsequently approved accepting an Assessor-year proxy if completion
+cannot be verified; the follow-up below records the search and source years.
+Sensitivity to the conflicting years remains unestimated. Calling 2020 verified
+full completion would overstate the evidence.
 Changing only the year leaves the density arithmetic unchanged, but requires
 reassigning year-dependent geography, zoning, aldermen, and scores. No such
 reassignment or sensitivity estimation was performed in this review.
@@ -216,6 +217,51 @@ whether it shares project land with adjacent buildings. Resolve the four-versus-
 units and 2005-versus-2006 timing before final density eligibility. A broad
 development-level year or unit total cannot settle those building-specific facts.
 
+## Follow-up: land recommendation and completion search
+
+Jacob asked whether 97,215 is the appropriate Grove denominator, suggested keeping
+Natchez A/B/C separate, and authorized Assessor-year proxies where exact completion
+cannot be found. These are distinct from approving every existing measurement.
+
+**Grove:** 97,215 is the best-supported measured parcel denominator presently
+available: the assessment identifies both component PINs, and their archived
+polygons reproduce the sum to approximately one square foot. I recommend it over
+the whole-development 196,020. This remains conditional on the two parcels covering
+the first phase's shared land; the 5,422-square-foot difference from approved
+Subarea A has not been explained. The recommended general method is to identify
+project parcels and sum their land once, with planning material checking scope.
+The numerical agreement does not validate a row-specific fixed-area override.
+
+**Natchez:** retain three areas and the existing Assessor proxies: A = 2017,
+B = 2020, C = 2020. The pinned 2024 commercial assessment reports these exact years
+and respectively 72, 84, and 39 units. A's 2017 year is also present in 2021;
+B's 2021 assessment instead reports 2017. The proxy selection must retain that
+source conflict rather than call 2020 independently verified completion.
+
+The new [Northmarq Q2 2025 report](https://www.northmarq.com/sites/default/files/docs/NM%20Market%20Insights_2025Q2_Chicago_0.pdf),
+PDF page 4, lists North Oak Lofts at 6533 W Palmer with year built 2020 and 237 units.
+That scope exceeds A/B/C's 195 units. It corroborates a broad complex-level year,
+not each subarea's completion. The developer's completed-project pages provide
+no dated completion statement. The search did not establish exact final occupancy
+dates for B or C. This review adopts Jacob's proxy fallback for Natchez only;
+it neither changes the general source hierarchy nor validates C's land/component
+scope. No regression or geographic assignment changed.
+
+**Roosevelt:** a [May 9, 2023 housing conference presentation](https://www.ballardspahr.com/-/jssmedia/Main/Event-Materials/2023/20230509-Housing-Authority-SummitFaircloth-to-RAD.pdf?hash=E7D5396BEF850216E07891EF8B9372AC&rev=2078198516b046489237b3b49d923e08),
+PDF page 3, slide 15, lists the 184-unit Roosevelt Square I rental phase as
+completed in 2006. However, a [court-filed July 20, 2005 construction report](https://clearinghouse-umich-production.s3.amazonaws.com/media/doc/132874.pdf)
+reports its first units completed in July 2005. These facts are compatible:
+buildings were delivered before the phase finished. Neither identifies the
+completion of 1217 W Arthington. Current real-estate listings repeat the later
+Assessor year and count; they are not independent corroboration. Original permits,
+building-specific occupancy records, or placed-in-service schedules are the
+remaining useful evidence, rather than another neighborhood completion article.
+
+The 2022 four-unit renovation description still does not document downsizing.
+We need the original building count and date. Retaining six and 2006 as provisional
+Assessor values is different from verifying them; 2005 would exclude the building
+from the study period. This follow-up makes no new Roosevelt coding decision.
+
 ## Evidence preservation and reproduction
 
 The source extracts remain unchanged. The ordinary Make target
@@ -241,3 +287,10 @@ PDF text was extracted with `pdftotext -layout`, with visual checks of the Natch
 master plan and Grove numeric land table. Underlying web review pages were read
 September 7, 2026; a later web page may change. No manual override has been changed
 on the basis of this review.
+
+The Northmarq PDF is preserved through the same acquisition task, with its
+checksum recorded and its page 4 table visually inspected. The Roosevelt conference
+PDF was readable through web extraction, but direct acquisition returned HTTP 403
+and a rendered screenshot was unavailable. The court report was available through
+web search text. Those two linked sources have not been added to the pinned source
+archive and do not independently resolve the exact-building completion date.

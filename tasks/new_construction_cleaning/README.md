@@ -25,13 +25,14 @@ Jacob confirmed combining the two 42-unit buildings at 4400 Grove into one
 84-unit observation. This agrees with the existing commercial decision; no
 measurement or sample change follows from this confirmation alone.
 
-For Natchez, Jacob requested investigating one combined observation dated to
-completion of the whole included group. This is conditional on establishing
-the group's component buildings, matching units/floor area/land, and actual full
-completion timing. The existing 84-unit record uses 2020, but that year has not
-been newly verified as full completion. A permit's issue date and its current
-completed status do not establish its completion date. Other Natchez records
-exist; a common development name does not establish shared membership.
+For Natchez, Jacob subsequently suggested keeping the City's A/B/C areas separate
+and approved accepting Assessor-year proxies if exact completion could not be
+verified. The follow-up search did not establish final building-level occupancy
+dates. Retain the existing A = 2017, B = 2020, C = 2020 as proxies, with their
+source history documented in the release audit's `phased_project_review.md`.
+This does not validate every area's component membership or land denominator.
+A permit's issue date and its current completed status do not date completion;
+a modern complex-level year does not date every earlier phase.
 
 Roosevelt Square grouping remains unresolved. The existing review supports a
 separately measured six-unit building, but that does not decide whether the

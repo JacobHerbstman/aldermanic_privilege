@@ -1,6 +1,9 @@
 include ../../shared/code/shell_functions.make
 
-all: ../output/eastgate_pd986.pdf ../output/park_place_2013_submission.pdf ../output/grove_pd1395.pdf
+all: ../output/eastgate_pd986.pdf ../output/park_place_2013_submission.pdf ../output/grove_pd1395.pdf ../output/northmarq_chicago_2025q2.pdf
+
+../output/northmarq_chicago_2025q2.pdf: Makefile | ../output ../temp
+	curl --fail --location 'https://www.northmarq.com/sites/default/files/docs/NM%20Market%20Insights_2025Q2_Chicago_0.pdf' --output ../temp/northmarq_chicago_2025q2.pdf && pdfinfo ../temp/northmarq_chicago_2025q2.pdf >/dev/null && mv ../temp/northmarq_chicago_2025q2.pdf $@
 
 ../output/grove_pd1395.pdf: Makefile | ../output ../temp
 	curl --fail --location 'https://gisapps.chicago.gov/gisimages/zoning_pds/PD1395.pdf' --output ../temp/grove_pd1395.pdf && pdfinfo ../temp/grove_pd1395.pdf >/dev/null && mv ../temp/grove_pd1395.pdf $@

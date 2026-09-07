@@ -2,6 +2,8 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-07-construction-completion-followup.tex ../tasks/download_construction_development_records/output/northmarq_chicago_2025q2.pdf
+
 logbook.pdf: entries/2026-09-07-construction-definition.tex ../tasks/new_construction_cleaning/adjudication/commercial_manual_decisions.csv ../tasks/new_construction_cleaning/adjudication/commercial_cross_family_decisions.csv ../tasks/new_construction_cleaning/adjudication/project_manual_reviews.csv
 
 logbook.pdf: entries/2026-09-07-phased-project-evidence.tex ../tasks/working_paper_release_audit/phased_project_review.md ../tasks/working_paper_release_audit/output/phased_project_permits.csv ../tasks/download_construction_development_records/output/grove_pd1395.pdf
