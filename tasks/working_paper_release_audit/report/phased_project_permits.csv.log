@@ -1,0 +1,23 @@
+File: phased_project_permits.csv
+Rows: 181
+Columns: 13
+SHA-256 (saved bytes): 3b6ed6206b7c82f03e61039f7847315a56cda070b43b05b6d36317be168c8686
+Key: id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct  min  max               mean                sd
+           review_site       VARCHAR         181        3    -    -                  -                 -
+                    id       VARCHAR         181      181    -    -                  -                 -
+               permit_       VARCHAR         181      181    -    -                  -                 -
+           permit_type       VARCHAR         181        7    -    -                  -                 -
+         permit_status       VARCHAR          99        4    -    -                  -                 -
+      permit_milestone       VARCHAR          99        5    -    -                  -                 -
+application_start_date     TIMESTAMP         181      100    -    -                  -                 -
+            issue_date     TIMESTAMP         181      104    -    -                  -                 -
+         street_number        BIGINT         181       66 1207 6547 3463.9558011049726 1781.592292876124
+      street_direction       VARCHAR         181        3    -    -                  -                 -
+           street_name       VARCHAR         181        6    -    -                  -                 -
+      work_description       VARCHAR         181      164    -    -                  -                 -
+              pin_list       VARCHAR         123       37    -    -                  -                 -

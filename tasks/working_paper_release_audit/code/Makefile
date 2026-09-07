@@ -1,6 +1,12 @@
 include ../../shared/code/shell_functions.make
 
-all: ../report/restored_stage_checks.csv.log ../output/manual_episode_increment.csv ../report/manual_episode_increment.csv.log ../output/manual_review_increment.csv ../report/manual_review_increment.csv.log ../output/multicard_followup_permits.csv ../report/multicard_followup_permits.csv.log ../output/multicard_parent_coverage.csv ../report/multicard_parent_coverage.csv.log ../output/density_exclusion_comparison.csv ../report/density_exclusion_comparison.csv.log ../output/denominator_permit_evidence.csv ../report/denominator_permit_evidence.csv.log ../output/model_checks.csv ../output/score_checks.csv ../output/data_checks.csv ../output/multicard_land_scope.csv ../report/multicard_land_scope.csv.log ../output/denominator_case_review.csv ../output/denominator_case_members.csv ../output/denominator_case_maps.pdf ../report/denominator_case_review.csv.log ../report/denominator_case_members.csv.log
+all: ../report/phased_project_permits.csv.log ../report/restored_stage_checks.csv.log ../output/manual_episode_increment.csv ../report/manual_episode_increment.csv.log ../output/manual_review_increment.csv ../report/manual_review_increment.csv.log ../output/multicard_followup_permits.csv ../report/multicard_followup_permits.csv.log ../output/multicard_parent_coverage.csv ../report/multicard_parent_coverage.csv.log ../output/density_exclusion_comparison.csv ../report/density_exclusion_comparison.csv.log ../output/denominator_permit_evidence.csv ../report/denominator_permit_evidence.csv.log ../output/model_checks.csv ../output/score_checks.csv ../output/data_checks.csv ../output/multicard_land_scope.csv ../report/multicard_land_scope.csv.log ../output/denominator_case_review.csv ../output/denominator_case_members.csv ../output/denominator_case_maps.pdf ../report/denominator_case_review.csv.log ../report/denominator_case_members.csv.log
+
+../output/phased_project_permits.csv: review_phased_project_permits.py ../../setup_environment/code/report_requirements.txt ../input/building_permits_full.csv | ../output
+	$(PYTHON) $<
+
+../report/phased_project_permits.csv.log: ../../shared/code/report.py ../output/phased_project_permits.csv | ../report
+	$(PYTHON) $< ../output/phased_project_permits.csv $@ id
 
 ../report/restored_stage_checks.csv.log: ../../shared/code/report.py ../restored_stage_checks.csv | ../report
 	$(PYTHON) $< ../restored_stage_checks.csv $@

@@ -14,6 +14,32 @@ still reads the committed 8,648-row file owned by
 not rebuild the construction history. Do not replace it until the restored chain
 and the resulting sample and estimates have been reconciled.
 
+## Agreed construction definition and pending grouping decisions
+
+On September 7, Jacob confirmed that wholly new residential buildings qualify
+even when they replace demolished buildings. Renovations, additions, and
+conversions do not themselves qualify. Parcel subdivision is an administrative
+change to trace for physical identity, not a construction event.
+
+Jacob confirmed combining the two 42-unit buildings at 4400 Grove into one
+84-unit observation. This agrees with the existing commercial decision; no
+measurement or sample change follows from this confirmation alone.
+
+For Natchez, Jacob requested investigating one combined observation dated to
+completion of the whole included group. This is conditional on establishing
+the group's component buildings, matching units/floor area/land, and actual full
+completion timing. The existing 84-unit record uses 2020, but that year has not
+been newly verified as full completion. A permit's issue date and its current
+completed status do not establish its completion date. Other Natchez records
+exist; a common development name does not establish shared membership.
+
+Roosevelt Square grouping remains unresolved. The existing review supports a
+separately measured six-unit building, but that does not decide whether the
+intended observation should cover a larger construction group. Establish the
+relevant component set and measurement scope before retaining or aggregating it.
+Jacob requested seeing questionable evidence before consequential judgments.
+These decisions do not authorize combining every phase of a named development.
+
 ## Read the research in chronological order
 
 The table distinguishes the intended research sequence from the current code.
