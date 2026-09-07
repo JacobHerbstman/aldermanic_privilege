@@ -14,7 +14,13 @@ HISTORICAL_EXACT_MATCH_FT ?= 10
 HISTORICAL_LOCAL_MATCH_FT ?= 150
 HISTORICAL_MAX_BUILDING_GAP ?= 0.10
 
-all: ../report/provisional_validated_density_input.csv.log \
+all: ../report/residential_project_history_summary.csv.log \
+	../report/residential_fractional_base_groups.csv.log \
+	../report/residential_tieback_groups_full.csv.log \
+	../report/residential_tieback_members_full.csv.log \
+	../report/residential_multicard_cards.csv.log \
+	../report/residential_assessor_project_candidates.csv.log \
+	../report/provisional_validated_density_input.csv.log \
 	../report/final_density_model_input.csv.log \
 	../report/preferred_density_model_production_card_input.csv.log \
 	../report/multifamily_classification_decisions.csv.log \
@@ -349,7 +355,7 @@ ifneq ($(filter-out $(wildcard ../output/multicard_card_snapshot.csv ../output/m
 .PHONY: ../output/multicard_card_snapshot.csv
 endif
 
-../output/multicard_card_snapshot.csv: build_multicard_evidence_inventory.R ../adjudication/early_multicard_manual_review.csv ../input/parcel_addresses_2025_chicago.csv ../input/residential_improvement_characteristics_full.csv ../output/final_density_model_input.csv ../output/preferred_residential_project_ledger.csv ../output/project_permit_chain_links.csv ../output/project_permit_chain_unit_mentions.csv ../output/residential_multicard_cards.csv ../../setup_environment/code/packages.R | ../output
+../output/multicard_card_snapshot.csv: build_multicard_evidence_inventory.R ../adjudication/early_multicard_manual_review.csv ../input/parcel_addresses_2025_chicago.csv ../input/residential_assessor_history.parquet ../output/final_density_model_input.csv ../output/preferred_residential_project_ledger.csv ../output/project_permit_chain_links.csv ../output/project_permit_chain_unit_mentions.csv ../output/residential_multicard_cards.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/multicard_external_review_queue.csv: build_multicard_external_review_queue.R ../adjudication/multicard_external_web_reviews.csv ../output/multicard_card_snapshot.csv ../output/multicard_current_successor_project_summary.csv ../output/multicard_final_adjudication.csv ../../setup_environment/code/packages.R | ../output
@@ -409,8 +415,8 @@ ifneq ($(filter-out $(wildcard ../output/residential_project_candidate_inventory
 .PHONY: ../output/residential_project_candidate_inventory.csv
 endif
 
-../output/residential_project_candidate_inventory.csv: build_residential_project_candidates.R ../input/residential_improvement_characteristics_full.csv ../output/geocoded_residential_data.gpkg ../output/multifamily_data_cleaned.csv ../output/construction_parcel_boundary_distances.csv ../output/residential_cross_section.csv ../../setup_environment/code/packages.R | ../output
-	$(R) $<
+../output/residential_project_candidate_inventory.csv: build_residential_project_candidates.R ../input/residential_assessor_history.parquet ../output/geocoded_residential_data.gpkg ../output/multifamily_data_cleaned.csv ../output/construction_parcel_boundary_distances.csv ../output/residential_cross_section.csv ../../setup_environment/code/packages.R Makefile | ../output
+	$(R) $< $(PREFERRED_ASSESSMENT_YEAR) $(FALLBACK_ASSESSMENT_YEAR)
 
 ../output/residential_project_history_summary.csv: ../output/residential_project_candidate_inventory.csv
 	@test -f "$@"
@@ -586,7 +592,7 @@ ifneq ($(filter-out $(wildcard ../output/residential_tieback_temporal_lineage_ev
 .PHONY: ../output/residential_tieback_temporal_lineage_evidence.csv
 endif
 
-../output/residential_tieback_temporal_lineage_evidence.csv: build_residential_tieback_temporal_evidence.R ../input/residential_improvement_characteristics_full.csv ../output/residential_fractional_base_groups.csv ../output/residential_project_candidate_inventory.csv ../../setup_environment/code/packages.R | ../output
+../output/residential_tieback_temporal_lineage_evidence.csv: build_residential_tieback_temporal_evidence.R ../input/residential_assessor_history.parquet ../output/residential_fractional_base_groups.csv ../output/residential_project_candidate_inventory.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/residential_tieback_temporal_snapshots.csv: ../output/residential_tieback_temporal_lineage_evidence.csv
@@ -596,7 +602,13 @@ ifneq ($(filter-out $(wildcard ../output/preferred_residential_project_candidate
 .PHONY: ../output/preferred_residential_project_candidates.csv
 endif
 
-../output/preferred_residential_project_candidates.csv: build_preferred_residential_candidates.R ../../shared/code/assessor_classification.R ../output/project_permit_chain_links.csv ../output/project_permit_chain_unit_mentions.csv ../output/residential_multicard_cards.csv ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../../setup_environment/code/packages.R | ../output
+../output/residential_assessor_project_candidates.csv: build_residential_assessor_projects.R ../../setup_environment/code/packages.R ../../shared/code/assessor_classification.R ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../output/residential_multicard_cards.csv | ../output
+	$(R) $<
+
+../report/residential_assessor_project_candidates.csv.log: ../../shared/code/report.py ../output/residential_assessor_project_candidates.csv | ../report
+	$(PYTHON) $< ../output/residential_assessor_project_candidates.csv $@ project_id
+
+../output/preferred_residential_project_candidates.csv: build_preferred_residential_candidates.R ../../shared/code/assessor_classification.R ../output/project_permit_chain_links.csv ../output/project_permit_chain_unit_mentions.csv ../output/residential_assessor_project_candidates.csv ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/preferred_residential_project_components.csv: ../output/preferred_residential_project_candidates.csv
@@ -786,7 +798,7 @@ endif
 ../output/density_historical_building_universe.csv: build_historical_coordinate_requests.R ../../setup_environment/code/packages.R ../output/residential_discovery_cross_section.csv ../output/multifamily_data_cleaned.csv ../input/parcel_universe_2025_city.csv Makefile | ../output
 	$(R) $< $(HISTORY_START_YEAR) $(HISTORY_END_YEAR) $(MIN_INITIAL_AREA_SQFT)
 
-../output/residential_discovery_cross_section.csv: build_residential_discovery_cross_section.R ../../setup_environment/code/packages.R ../input/residential_improvement_characteristics_full.csv Makefile | ../output
+../output/residential_discovery_cross_section.csv: build_residential_discovery_cross_section.R ../../setup_environment/code/packages.R ../input/residential_assessor_history.parquet Makefile | ../output
 	$(R) $< $(MIN_CONSTRUCTION_YEAR)
 
 ../output/multifamily_data_cleaned.csv: build_commercial_cross_section.R ../../setup_environment/code/packages.R ../input/commercial_value_raw.csv ../adjudication/initial_commercial_unit_overrides.csv | ../output
@@ -801,7 +813,7 @@ endif
 ../output/density_historical_coordinate_candidates.csv: build_historical_coordinates.R ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R ../output/density_historical_building_universe.csv ../input/density_historical_parcel_records.csv ../adjudication/historical_address_matches.csv ../input/parcel_universe_2025_city.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg Makefile | ../output
 	$(R) $< $(MAX_DISTANCE_FT)
 
-../output/residential_cross_section.csv: build_residential_cross_section.R ../../setup_environment/code/packages.R ../input/residential_improvement_characteristics_full.csv Makefile | ../output
+../output/residential_cross_section.csv: build_residential_cross_section.R ../../setup_environment/code/packages.R ../input/residential_assessor_history.parquet Makefile | ../output
 	$(R) $< $(MIN_CONSTRUCTION_YEAR) $(PREFERRED_ASSESSMENT_YEAR) $(FALLBACK_ASSESSMENT_YEAR)
 
 ../report/residential_cross_section.csv.log: ../output/residential_cross_section.csv ../../shared/code/report.py | ../report
@@ -815,6 +827,21 @@ endif
 
 ../report/density_historical_coordinates.csv.log: ../output/density_historical_coordinates.csv ../../shared/code/report.py | ../report
 	$(PYTHON) ../../shared/code/report.py $< $@ pin
+
+../report/residential_project_history_summary.csv.log: ../../shared/code/report.py ../output/residential_project_history_summary.csv | ../report
+	$(PYTHON) $< ../output/residential_project_history_summary.csv $@ pin
+
+../report/residential_fractional_base_groups.csv.log: ../../shared/code/report.py ../output/residential_fractional_base_groups.csv | ../report
+	$(PYTHON) $< ../output/residential_fractional_base_groups.csv $@ base_pin
+
+../report/residential_tieback_groups_full.csv.log: ../../shared/code/report.py ../output/residential_tieback_groups_full.csv | ../report
+	$(PYTHON) $< ../output/residential_tieback_groups_full.csv $@ tieback_group
+
+../report/residential_tieback_members_full.csv.log: ../../shared/code/report.py ../output/residential_tieback_members_full.csv | ../report
+	$(PYTHON) $< ../output/residential_tieback_members_full.csv $@ tieback_group pin
+
+../report/residential_multicard_cards.csv.log: ../../shared/code/report.py ../output/residential_multicard_cards.csv | ../report
+	$(PYTHON) $< ../output/residential_multicard_cards.csv $@ pin card_num
 
 ../report/residential_project_candidate_inventory.csv.log: ../output/residential_project_candidate_inventory.csv ../../shared/code/report.py | ../report
 	$(PYTHON) ../../shared/code/report.py $< $@ pin
@@ -886,6 +913,9 @@ endif
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/residential_assessor_history.parquet: ../../prepare_construction_assessor_history/output/residential_assessor_history.parquet | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/O2017-7056.pdf: ../../../data_raw/construction_review/O2017-7056.pdf | ../input
@@ -990,6 +1020,6 @@ endif
 ../input/preferred_predecessor_source_queries.csv: ../../../data_raw/construction_review/preferred_predecessor_source_queries.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/O2017-7056.pdf ../input/O2020-2959.pdf ../input/O2022-2464.pdf ../input/O2023-1331.pdf ../input/O2024-0008982.pdf ../input/O2024-0010153.pdf ../input/SO2017-7051.pdf ../input/SO2018-4452.pdf ../input/SO2018-7749.pdf ../input/SO2018-863.pdf ../input/SO2019-4107.pdf ../input/SO2023-43.pdf ../input/matters_20101101_20260212.csv ../input/zoning_map_index.geojson ../input/building_permits_clean.gpkg ../input/preferred_predecessor_source_queries.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../input/preferred_historical_parcel_source.gpkg ../input/zoning_sep2025.geojson ../input/zoning_jan2016.zip ../input/zoning_sep2014.zip ../input/zoning_nov2012.zip ../input/Wards_2024.geojson ../input/Wards_2015.geojson ../input/Wards_2014.geojson ../input/Chicago_Wards_1998.geojson ../input/historical_parcel_requests.csv ../input/official_building_footprints_2022.gpkg ../input/official_building_footprints_2008.gpkg ../input/chicago_building_footprints_2015.zip ../input/density_historical_address_records.csv ../input/density_historical_parcel_records.csv ../input/building_permits_full.csv ../input/parcel_sales_city.csv ../input/chicago_alderman_terms.csv ../input/ward_controls_2000_2023.csv ../input/boundary_segments_1320ft.gpkg ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/parcel_addresses_2025_chicago.csv  ../input/residential_improvement_characteristics_full.csv ../input/commercial_value_raw.csv ../input/parcel_universe_2025_city.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg
+link-inputs: ../input/residential_assessor_history.parquet ../input/O2017-7056.pdf ../input/O2020-2959.pdf ../input/O2022-2464.pdf ../input/O2023-1331.pdf ../input/O2024-0008982.pdf ../input/O2024-0010153.pdf ../input/SO2017-7051.pdf ../input/SO2018-4452.pdf ../input/SO2018-7749.pdf ../input/SO2018-863.pdf ../input/SO2019-4107.pdf ../input/SO2023-43.pdf ../input/matters_20101101_20260212.csv ../input/zoning_map_index.geojson ../input/building_permits_clean.gpkg ../input/preferred_predecessor_source_queries.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../input/preferred_historical_parcel_source.gpkg ../input/zoning_sep2025.geojson ../input/zoning_jan2016.zip ../input/zoning_sep2014.zip ../input/zoning_nov2012.zip ../input/Wards_2024.geojson ../input/Wards_2015.geojson ../input/Wards_2014.geojson ../input/Chicago_Wards_1998.geojson ../input/historical_parcel_requests.csv ../input/official_building_footprints_2022.gpkg ../input/official_building_footprints_2008.gpkg ../input/chicago_building_footprints_2015.zip ../input/density_historical_address_records.csv ../input/density_historical_parcel_records.csv ../input/building_permits_full.csv ../input/parcel_sales_city.csv ../input/chicago_alderman_terms.csv ../input/ward_controls_2000_2023.csv ../input/boundary_segments_1320ft.gpkg ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/parcel_addresses_2025_chicago.csv  ../input/residential_improvement_characteristics_full.csv ../input/commercial_value_raw.csv ../input/parcel_universe_2025_city.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg
 
 include ../../shared/code/generic.make

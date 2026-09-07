@@ -1,0 +1,50 @@
+\section*{September 7, 2026: Assemble residential Assessor candidates}
+\textit{Agent-drafted entry; existing research choices are preserved.}
+
+The residential Assessor branch now builds a common source history and a table
+that puts project membership beside its initial measurements. The source-preparation
+task retains all 12,320,011 reports in the currently pinned full CSV, including
+assessment year, reported construction year, parcel and card identifiers, units,
+and areas. Five readers now use that typed history. Two readers' repeated
+2022/2025/later selections have become a single ranking operation, preserving the
+existing priority. The earlier-report discovery rule remains separate.
+
+One producer now assembles the ordinary, tied-parcel, and multiple-card project
+forms before the existing permit reconciliation. The actual Make build produced
+27,831 candidates with component parcels, source records, construction year, units,
+building area, land area, and measurement provenance. This count includes records
+outside the study period. Existing rules mark 12,904 mechanically retained, 14,728
+outside the period, 190 requiring further evidence, and 9 deferred to commercial
+reconciliation. These are intermediate labels: mechanically retained records can
+still be duplicates, and unresolved records may admit general rules rather than
+manual decisions. Another 255 class-297 candidates and 45 residential/commercial
+overlaps enter the existing downstream resolver.
+
+A controlled comparison held the pinned source, geographic inputs, and permit
+inputs fixed. Fourteen of the fifteen existing CSV products were byte-identical.
+The 6,520-card table changed only row order; every keyed record and the downstream
+candidate measurements agreed. The actual production candidate build also agreed
+exactly with the replay. Two fresh source-preparation builds also produced identical Parquet bytes and
+reports after fixing the writer's row-group layout. Standard reports check the
+saved datasets and their keys.
+Deleting three companion outputs caused their producers to regenerate them in a
+parallel GNU Make 3.81 build. Unchanged builds ran no substantive producer.
+
+This establishes a working connection between source history, membership, and
+initial measurements for these residential project forms. It does not finish the
+new-construction dataset. Completion timing, predecessor/successor duplication,
+and measurement scope still require reconciliation. The distance carried here is
+preliminary geographic evidence; final density and ward-boundary assignment must
+follow the resolved project facts. No new case-specific decisions or exclusions
+were introduced, and the paper's frozen input and estimates were not replaced.
+
+\small
+\textit{Reproduction and limits.} Run Make in
+\path{tasks/prepare_construction_assessor_history/code/}, then build
+\path{../report/residential_assessor_project_candidates.csv.log} from
+\path{tasks/new_construction_cleaning/code/}. The source vintage and hash are
+recorded in the source-preparation README; this is the available pinned source,
+not a recovery of the missing original vintage. Comparison hashes and scopes are
+in the release audit's \path{restored_stage_checks.csv}. The branch builds on
+revision \texttt{d38f18c}; the broader construction reconstruction remains unfinished.
+\normalsize

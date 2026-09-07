@@ -1,0 +1,29 @@
+File: residential_assessor_project_candidates.csv
+Rows: 27831
+Columns: 19
+SHA-256 (saved bytes): 04ef2c922d584ffac1fcadb1b559ef109f91bef3dc2450b5fe01f475e289b9b5
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+               column inferred_type non_missing distinct                 min               max               mean                  sd
+           project_id       VARCHAR       27831    27831                   -                 -                  -                   -
+        source_family       VARCHAR       27831        1                   -                 -                  -                   -
+         project_kind       VARCHAR       27831        3                   -                 -                  -                   -
+       component_pins       VARCHAR       27831    27831                   -                 -                  -                   -
+      component_count        BIGINT       27831        8                   1                10 1.0426143509036685 0.24957451250419876
+    construction_year        BIGINT       27074       68                1878              2026 2008.4105414789096   8.484906633632253
+       dwelling_units        BIGINT       27440       26                   0                43 1.3266763848396501   1.162600892626925
+        building_sqft        BIGINT       27433     4762                   0             83226 2695.1143877811396   2089.179277696016
+            land_sqft        BIGINT       26207     4979                  72         228167280 18168.494219101765   1718146.298812548
+         class_values       VARCHAR       27114       30                   -                 -                  -                   -
+       source_row_ids       VARCHAR       26752    26752                   -                 -                  -                   -
+          year_source       VARCHAR       27469    26095                   -                 -                  -                   -
+         units_source       VARCHAR       27469    26095                   -                 -                  -                   -
+      building_source       VARCHAR       27469    26095                   -                 -                  -                   -
+          land_source       VARCHAR       27469    26095                   -                 -                  -                   -
+   current_distance_m        DOUBLE       25400    25338 0.31134218570016264 8512.934950058308  434.2548371277784   521.9626074285186
+current_within_1500ft       BOOLEAN       27831        2                   -                 -                  -                   -
+     candidate_status       VARCHAR       27831        4                   -                 -                  -                   -
+      decision_reason       VARCHAR       27831       18                   -                 -                  -                   -

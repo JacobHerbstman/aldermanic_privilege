@@ -1,0 +1,23 @@
+File: residential_project_history_summary.csv
+Rows: 29262
+Columns: 13
+SHA-256 (saved bytes): 740e4078735ba65eb2ba132f698f8bf1d85b2928ed3aedff876c0ec715adac29
+Key: pin
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                      column inferred_type non_missing distinct min max               mean                  sd
+                         pin       VARCHAR       29262    29262   -   -                  -                   -
+             history_reports        BIGINT       29262       77   1 297  19.27807395256647   9.714464030282135
+            historical_cards        BIGINT       29262       36   1  60 1.2029936436333812  1.2669441144932485
+         history_year_values        BIGINT       29262        7   1   7 1.6676577130749777   0.867193114205787
+history_building_area_values        BIGINT       29262       11   0  12  1.477786890848199  0.7534494335884722
+    history_land_area_values        BIGINT       29262        5   0   5 0.9767274964117285 0.19851740428757858
+         history_unit_values        BIGINT       29262        6   0   5 1.1516301004716014 0.43896138825596237
+                source_years       VARCHAR       29262     3715   -   -                  -                   -
+       source_building_areas       VARCHAR       29213    13648   -   -                  -                   -
+           source_land_areas       VARCHAR       28382     5427   -   -                  -                   -
+          source_unit_counts       VARCHAR       28842       51   -   -                  -                   -
+    maximum_concurrent_cards        BIGINT       29262       36   1  60 1.1695714578634406  1.2563306276270303
+   years_with_multiple_cards        BIGINT       29262       29   0  28 0.2624564281320484  1.8707449777772482

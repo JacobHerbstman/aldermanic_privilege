@@ -95,54 +95,14 @@ DBI::dbWriteTable(
   overwrite = TRUE
 )
 
-invisible(DBI::dbExecute(con, "
-CREATE OR REPLACE MACRO numeric_text(x) AS
-  nullif(regexp_replace(cast(x AS VARCHAR), '[^0-9.-]', '', 'g'), '');
-"))
-
 history <- DBI::dbGetQuery(con, "
-SELECT
-  regexp_replace(trim(r.pin), '[^0-9]', '', 'g') AS pin,
-  try_cast(numeric_text(r.year) AS INTEGER) AS tax_year,
-  try_cast(numeric_text(r.card) AS INTEGER) AS card_num,
-  trim(r.class) AS class,
-  try_cast(numeric_text(r.char_yrblt) AS INTEGER) AS year_built,
-  try_cast(numeric_text(r.char_bldg_sf) AS DOUBLE) AS building_sqft,
-  try_cast(numeric_text(r.char_land_sf) AS DOUBLE) AS land_sqft,
-  trim(r.char_apts) AS apartments_text,
-  trim(r.char_use) AS single_v_multi_family,
-  trim(r.char_type_resd) AS type_of_residence,
-  try_cast(numeric_text(r.card_proration_rate) AS DOUBLE) AS card_proration_rate,
-  trim(r.row_id) AS row_id
-FROM read_csv(
-  '../input/residential_improvement_characteristics_full.csv',
-  all_varchar = true,
-  header = true,
-  ignore_errors = false,
-  max_line_size = 10000000
-) r
-INNER JOIN multicard_pins p
-  ON regexp_replace(trim(r.pin), '[^0-9]', '', 'g') = p.pin
-WHERE trim(r.card) IS NOT NULL
-  AND trim(r.card) != ''
-ORDER BY pin, tax_year, card_num, row_id
+SELECT r.pin, tax_year, card_num, class, year_built, building_sqft, land_sqft,
+  apartments_text, single_v_multi_family, type_of_residence,
+  card_proration_rate, row_id, num_apartments
+FROM read_parquet('../input/residential_assessor_history.parquet') r
+INNER JOIN multicard_pins p ON r.pin = p.pin
+ORDER BY r.pin, tax_year, card_num, row_id
 ") |>
-  dplyr::mutate(
-    num_apartments = dplyr::case_when(
-      is.na(apartments_text) | stringr::str_squish(apartments_text) == "" ~ NA_real_,
-      stringr::str_to_lower(stringr::str_squish(apartments_text)) %in%
-        c("none", "zero") ~ 0,
-      stringr::str_to_lower(stringr::str_squish(apartments_text)) == "one" ~ 1,
-      stringr::str_to_lower(stringr::str_squish(apartments_text)) == "two" ~ 2,
-      stringr::str_to_lower(stringr::str_squish(apartments_text)) == "three" ~ 3,
-      stringr::str_to_lower(stringr::str_squish(apartments_text)) == "four" ~ 4,
-      stringr::str_to_lower(stringr::str_squish(apartments_text)) == "five" ~ 5,
-      stringr::str_to_lower(stringr::str_squish(apartments_text)) == "six" ~ 6,
-      TRUE ~ suppressWarnings(as.numeric(
-        stringr::str_replace_all(apartments_text, "[^0-9.-]", "")
-      ))
-    )
-  ) |>
   dplyr::arrange(pin, card_num, tax_year, row_id) |>
   dplyr::group_by(pin, card_num, tax_year) |>
   dplyr::slice_tail(n = 1) |>

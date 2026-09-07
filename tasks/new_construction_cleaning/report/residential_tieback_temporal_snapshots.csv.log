@@ -1,0 +1,33 @@
+File: residential_tieback_temporal_snapshots.csv
+Rows: 10213
+Columns: 23
+SHA-256 (saved bytes): 47f15d3a53fcc99d670b345bf4df34c3b235a4139dcdda9e48e8c8387bdb2f83
+Key: tieback_lineage_id, tax_year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                  column inferred_type non_missing distinct  min     max               mean                  sd
+      tieback_lineage_id       VARCHAR       10213     1045    -       -                  -                   -
+                tax_year        BIGINT       10213       28 1999    2026 2015.2484088906297   7.565387938348093
+  pin_proration_complete       BOOLEAN       10213        1    -       -                  -                   -
+       pin_proration_sum        DOUBLE       10213       69  0.0     3.0 0.9925076275335354 0.15901997303764637
+        one_card_per_pin       BOOLEAN       10213        2    -       -                  -                   -
+       pin_land_complete       BOOLEAN       10213        2    -       -                  -                   -
+               land_sqft        BIGINT       10213      656    0 1150464  7345.141094683247   40492.25965491183
+          tieback_groups       VARCHAR       10213     1165    -       -                  -                   -
+     tieback_group_count        BIGINT       10213        4    1       4 1.0475864094781162  0.2335192459916215
+             member_pins       VARCHAR       10213     1121    -       -                  -                   -
+        member_pin_count        BIGINT       10213        8    1      10  2.102516400665818  0.4774246800878234
+                   cards        BIGINT       10213       24    1      36  2.386664055615392  1.8721384651945057
+construction_year_values        BIGINT       10213        5    1       5 1.0544404190737295 0.23990204110385108
+       construction_year        BIGINT        9684      110 1858    2026 1994.9665427509294  28.110776499988997
+    building_area_values        BIGINT       10213        9    0       8 1.0499363556251835 0.33682064245706433
+           building_sqft        BIGINT        9668      926    0  214088  4386.417976830782   3827.034778928258
+             unit_values        BIGINT       10213        3    0       2 1.0038186624889847 0.14232247418844152
+          dwelling_units        BIGINT       10006        6    1       6 1.7285628622826303  1.5909783365471328
+          source_row_ids       VARCHAR       10213    10213    -       -                  -                   -
+   duplicate_source_keys        BIGINT       10213        1    0       0                0.0                 0.0
+ duplicate_key_conflicts        BIGINT       10213        1    0       0                0.0                 0.0
+     snapshot_mechanical       BOOLEAN       10213        2    -       -                  -                   -
+  snapshot_review_reason       VARCHAR       10213        7    -       -                  -                   -

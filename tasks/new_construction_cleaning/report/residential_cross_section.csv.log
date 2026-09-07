@@ -1,0 +1,54 @@
+File: residential_cross_section.csv
+Rows: 29262
+Columns: 44
+SHA-256 (saved bytes): ffaa7a550f5c62dff8442e5ec1f6e3f7bf3341c419e9842bdcb656c2ffd8bbd0
+Key: pin
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                  column inferred_type non_missing distinct  min       max                 mean                  sd
+                     pin       VARCHAR       29262    29262    -         -                    -                   -
+                tax_year        BIGINT       29262       27 2000      2026    2020.772264370173   5.027841455170382
+                card_num        BIGINT       29262       15    1        27   1.0698516847788941  0.4557304107883467
+                   class       VARCHAR       29262       20    -         -                    -                   -
+           township_code        BIGINT       29262        8   70        77    73.82181669058848   2.561228293943369
+       proration_key_pin       VARCHAR        1987     1122    -         -                    -                   -
+      pin_proration_rate        DOUBLE       29262       76  0.0       1.0   0.9629071799603587 0.14597692073053387
+     card_proration_rate        DOUBLE       28178       75  0.0      0.98 0.031083465824401992 0.12421732778819532
+                     cdu       VARCHAR       25252        3    -         -                    -                   -
+        pin_is_multicard       BOOLEAN       29262        2    -         -                    -                   -
+           pin_num_cards        BIGINT       29262       35    1        60   1.1538514113867815  1.2215017828812464
+        pin_is_multiland       BOOLEAN       29262        2    -         -                    -                   -
+       pin_num_landlines        BIGINT       29262        4    1         4   1.0041008816895634 0.06855185853256497
+              year_built        BIGINT       29262       28 1999      2026    2008.700738158704   7.880455639271305
+           building_sqft        BIGINT       29171     4890    0    643884    2915.472489801515   5409.060688974876
+               land_sqft        BIGINT       28229     5276    7 228167280   17306.891352864077   1655472.567459818
+            num_bedrooms        BIGINT       29033       29    0        37    4.386560121241346   2.571441577324299
+               num_rooms        BIGINT       29030       51    1        66    9.018911470892181  5.1251874944466245
+          num_full_baths        BIGINT       29033       22    0        99    3.014845176178831   1.793778877349387
+          num_half_baths        BIGINT       28569       11    0        12   0.9347544541286009  0.8119190144870853
+          num_fireplaces        BIGINT       26210        9    0         8   0.7405951926745517   0.975946095643362
+       type_of_residence       VARCHAR       29170        5    -         -                    -                   -
+    construction_quality       VARCHAR       29262        3    -         -                    -                   -
+          num_apartments        BIGINT       28494        6    0         6   0.5454481645258651  1.3474518383104233
+            attic_finish       VARCHAR       28358        3    -         -                    -                   -
+         garage_attached       BOOLEAN       28095        2    -         -                    -                   -
+    garage_area_included       BOOLEAN       28065        2    -         -                    -                   -
+             garage_size        DOUBLE       28919        8  0.0       4.0   1.6579757253017047  0.9105991119883495
+garage_ext_wall_material       VARCHAR       23330        4    -         -                    -                   -
+              attic_type       VARCHAR       29021        3    -         -                    -                   -
+           basement_type       VARCHAR       29029        4    -         -                    -                   -
+       ext_wall_material       VARCHAR       29073        4    -         -                    -                   -
+         central_heating       VARCHAR       28926        4    -         -                    -                   -
+        repair_condition       VARCHAR       29012        3    -         -                    -                   -
+         basement_finish       VARCHAR       28836        3    -         -                    -                   -
+           roof_material       VARCHAR       29036        6    -         -                    -                   -
+   single_v_multi_family       VARCHAR       29151        2    -         -                    -                   -
+       site_desirability       VARCHAR       28994        3    -         -                    -                   -
+    num_commercial_units        BIGINT       25913        5    0         4  0.02149500250839347 0.16518386328895146
+              renovation       BOOLEAN          84        1    -         -                    -                   -
+                   porch       VARCHAR       28377        3    -         -                    -                   -
+             central_air       VARCHAR       29049        2    -         -                    -                   -
+             design_plan       VARCHAR       29018        3    -         -                    -                   -
+                  row_id       VARCHAR       29262    29262    -         -                    -                   -

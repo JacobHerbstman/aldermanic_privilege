@@ -1,0 +1,52 @@
+File: residential_project_candidate_inventory.csv
+Rows: 29262
+Columns: 42
+SHA-256 (saved bytes): 472090b75f1eb4f616a3585b5a92b66587d4ee0a64b68bea4a78bb2bbeeb3d67
+Key: pin
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                column inferred_type non_missing distinct                 min                max                 mean                  sd
+                                   pin       VARCHAR       29262    29262                   -                  -                    -                   -
+                              tax_year        BIGINT       29262       27                2000               2026    2020.772264370173   5.027841455170382
+                              card_num        BIGINT       29262       15                   1                 27   1.0698516847788941  0.4557304107883467
+                                 class       VARCHAR       29262       20                   -                  -                    -                   -
+                            year_built        BIGINT       29262       28                1999               2026    2008.700738158704   7.880455639271305
+                         building_sqft        BIGINT       29171     4890                   0             643884    2915.472489801515   5409.060688974876
+                             land_sqft        BIGINT       28229     5276                   7          228167280   17306.891352864077   1655472.567459818
+                        num_apartments        BIGINT       28494        6                   0                  6   0.5454481645258651  1.3474518383104233
+                 single_v_multi_family       VARCHAR       29151        2                   -                  -                    -                   -
+                     type_of_residence       VARCHAR       29170        5                   -                  -                    -                   -
+                         tieback_group       VARCHAR        1987     1122                   -                  -                    -                   -
+                    tieback_lineage_id       VARCHAR        2165     1163                   -                  -                    -                   -
+         historical_tieback_membership       BOOLEAN       29262        2                   -                  -                    -                   -
+             historical_tieback_groups       VARCHAR        2165     1270                   -                  -                    -                   -
+                       history_reports        BIGINT       29262       77                   1                297    19.27807395256647   9.714464030282135
+                      historical_cards        BIGINT       29262       36                   1                 60   1.2029936436333812  1.2669441144932485
+              maximum_concurrent_cards        BIGINT       29262       36                   1                 60   1.1695714578634406  1.2563306276270303
+             years_with_multiple_cards        BIGINT       29262       29                   0                 28   0.2624564281320484  1.8707449777772482
+                   history_year_values        BIGINT       29262        7                   1                  7   1.6676577130749777   0.867193114205787
+          history_building_area_values        BIGINT       29262       11                   0                 12    1.477786890848199  0.7534494335884722
+              history_land_area_values        BIGINT       29262        5                   0                  5   0.9767274964117285 0.19851740428757858
+                   history_unit_values        BIGINT       29262        6                   0                  5   1.1516301004716014 0.43896138825596237
+                          source_years       VARCHAR       29262     3715                   -                  -                    -                   -
+                 source_building_areas       VARCHAR       29213    13648                   -                  -                    -                   -
+                     source_land_areas       VARCHAR       28382     5427                   -                  -                    -                   -
+                    source_unit_counts       VARCHAR       28842       51                   -                  -                    -                   -
+                    pin_proration_rate        DOUBLE       29262       76                 0.0                1.0   0.9629071799603587 0.14597692073053387
+                   card_proration_rate        DOUBLE       28178       75                 0.0               0.98 0.031083465824401992 0.12421732778819532
+                      pin_is_multicard       BOOLEAN       29262        2                   -                  -                    -                   -
+                         pin_num_cards        BIGINT       29262       35                   1                 60   1.1538514113867815  1.2215017828812464
+                      pin_is_multiland       BOOLEAN       29262        2                   -                  -                    -                   -
+                     pin_num_landlines        BIGINT       29262        4                   1                  4   1.0041008816895634 0.06855185853256497
+explicit_multifamily_one_unit_conflict       BOOLEAN       29262        2                   -                  -                    -                   -
+                  in_commercial_source       BOOLEAN       29262        2                   -                  -                    -                   -
+                     coordinate_x_3435        DOUBLE       26437    26362  1117092.0532665455  1203937.152964387   1162488.5119869933  13320.679431835413
+                     coordinate_y_3435        DOUBLE       26437    26362  1815984.7597150211 1949782.0850451984   1900343.9616506465  26350.128713537946
+                     coordinate_source       VARCHAR       26437        3                   -                  -                    -                   -
+                    dist_to_boundary_m        DOUBLE       26343    26271 0.31134218570016264  8521.104052695033   435.02660976519127   527.9874377424055
+                         within_1500ft       BOOLEAN       29262        2                   -                  -                    -                   -
+                       review_category       VARCHAR       29262        5                   -                  -                    -                   -
+                     mechanical_status       VARCHAR       29262        3                   -                  -                    -                   -
+                                row_id       VARCHAR       29262    29262                   -                  -                    -                   -

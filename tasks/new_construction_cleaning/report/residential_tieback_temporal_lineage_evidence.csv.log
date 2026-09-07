@@ -1,0 +1,44 @@
+File: residential_tieback_temporal_lineage_evidence.csv
+Rows: 1045
+Columns: 34
+SHA-256 (saved bytes): f1d5a494a470400814ad7ec3de72f413f0a2903b8a44120412bbed9d6970af6a
+Key: tieback_lineage_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                            column inferred_type non_missing distinct               min               max                 mean                  sd
+                tieback_lineage_id       VARCHAR        1045     1045                 -                 -                    -                   -
+                reported_tax_years        BIGINT        1045       28                 1                28    9.773205741626795   9.212645906493659
+           reported_tieback_groups        BIGINT        1045        3                 1                 3   1.1148325358851674  0.3638608630727335
+                complete_snapshots        BIGINT        1045       28                 0                27    7.411483253588517    8.50349613703921
+              complete_member_sets        BIGINT        1045        4                 0                 3   0.6660287081339713 0.49946716737172364
+ complete_construction_year_values        BIGINT        1045        5                 0                 4   0.8430622009569378  0.7670552494480951
+     complete_building_area_values        BIGINT        1045        5                 0                 4   0.7655502392344498  0.6547496732998386
+              complete_unit_values        BIGINT        1045        3                 0                 2   0.6669856459330143  0.4991477456785574
+                     lineage_nodes        BIGINT        1045        8                 1                10   2.1626794258373208  0.6783067842016048
+                source_member_pins        BIGINT        1045        8                 1                10   2.1435406698564594  0.6783946140818481
+                    key_only_nodes        BIGINT        1045        2                 0                 1 0.019138755980861243    0.13707824512928
+                  all_lineage_pins       VARCHAR        1045     1045                 -                 -                    -                   -
+                 selected_tax_year        BIGINT         683       25              2002              2026    2020.745241581259   4.764493559498594
+           selected_tieback_groups       VARCHAR         683      683                 -                 -                    -                   -
+           selected_component_pins       VARCHAR         683      683                 -                 -                    -                   -
+          selected_component_count        BIGINT         683        7                 1                10   2.1273792093704245  0.5249186625789884
+        selected_construction_year        BIGINT         683       68              1878              2026   2005.0849194729137  23.718383019619097
+           selected_dwelling_units        BIGINT         683        6                 1                 6     2.20497803806735  1.9694525917744674
+            selected_building_sqft        BIGINT         683      602                 1             55401    5711.392386530015  4742.3474984393215
+                selected_land_sqft        BIGINT         683      447               834           1150464    8425.172767203514   45279.81216412232
+           selected_source_row_ids       VARCHAR         683      683                 -                 -                    -                   -
+              selected_report_tier        BIGINT         683        3                 1                 3   1.2269399707174231  0.5191696287624351
+             candidate_member_pins        BIGINT        1045        8                 1                10   2.0717703349282295  0.7068474780071851
+       candidate_study_period_pins        BIGINT        1045        8                 0                10   0.9760765550239234  1.1322518140320759
+      candidate_construction_years       VARCHAR        1045       58                 -                 -                    -                   -
+              candidate_year_count        BIGINT        1045        3                 1                 3   1.0497607655502392 0.22191356958786793
+    candidate_in_period_year_count        BIGINT        1045        3                 0                 2   0.5033492822966508  0.5353752913589349
+unique_candidate_construction_year        BIGINT         994       28              1999              2026   2010.2806841046277   8.497893177369786
+                 candidate_classes       VARCHAR        1045       22                 -                 -                    -                   -
+       candidate_review_categories       VARCHAR        1045        7                 -                 -                    -                   -
+                 any_within_1500ft       BOOLEAN        1045        2                 -                 -                    -                   -
+       minimum_boundary_distance_m        DOUBLE         760      760 13.12344036932762 8512.934950058308    503.6160020935281   748.6694523677996
+                   temporal_status       VARCHAR        1045        2                 -                 -                    -                   -
+                   temporal_reason       VARCHAR        1045        5                 -                 -                    -                   -

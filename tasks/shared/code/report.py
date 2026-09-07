@@ -1,4 +1,4 @@
-"""Read-only CSV reports, adapted from Jacob's project-template report.py.
+"""Read-only CSV and Parquet reports, adapted from Jacob's project-template report.py.
 
 DuckDB computes the saved-file summary. Distinct counts are exact up to 100,000 rows and approximate above that;
 row counts, non-missing counts, declared-key checks, and file SHA-256 are exact.
@@ -16,7 +16,14 @@ def quote_identifier(value):
 
 
 def write_summary(source_file, report_file, keys):
-    source = "read_csv('" + source_file.replace("'", "''") + "', sample_size=-1, nullstr=['', 'NA'])"
+    if Path(source_file).suffix == '.parquet':
+        source = "read_parquet('" + source_file.replace("'", "''") + "')"
+        key_source = source
+        type_description = 'Types: Stored Parquet schema.\n'
+    else:
+        source = "read_csv('" + source_file.replace("'", "''") + "', sample_size=-1, nullstr=['', 'NA'])"
+        key_source = source[:-1] + ', all_varchar=true)'
+        type_description = 'Types: DuckDB inference from the complete saved CSV.\n'
     con = duckdb.connect()
     con.execute("SET threads=1")
     summary = con.execute(f"SUMMARIZE SELECT * FROM {source}").fetchdf()
@@ -26,7 +33,6 @@ def write_summary(source_file, report_file, keys):
         raise ValueError('Declared key column is absent from saved data')
     if keys:
         # Check identifiers as source text to preserve leading zeros and precision.
-        key_source = source[:-1] + ', all_varchar=true)'
         key_columns = ', '.join(quote_identifier(key) for key in keys)
         missing = ' OR '.join(quote_identifier(key) + ' IS NULL' for key in keys)
         missing_keys = con.execute(f'SELECT count(*) FROM {key_source} WHERE {missing}').fetchone()[0]
@@ -61,7 +67,7 @@ def write_summary(source_file, report_file, keys):
         f'File: {Path(source_file).name}\nRows: {row_count}\nColumns: {len(columns)}\n'
         f'SHA-256 (saved bytes): {digest.hexdigest()}\n'
         f'Key: {", ".join(keys) if keys else "not declared in this report"}\n'
-        'Types: DuckDB inference from the complete saved CSV.\n'
+        f'{type_description}'
         f'Distinct counts: {distinct_method} (exact up to 100,000 rows).\n'
         'Row counts, non-missing counts, and declared-key checks: exact.\n\n'
         + summary.astype(object).fillna("-").to_string(index=False) + '\n'

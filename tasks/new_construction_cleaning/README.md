@@ -1,5 +1,8 @@
 # Construction cleaning
 
+The intended product is one dataset of new residential construction projects,
+with floor-area ratio, dwelling units per acre, and distance to ward boundaries.
+
 This task reconstructs residential construction projects from Assessor records,
 permits, historical parcels, building footprints, zoning evidence, and recorded
 human decisions. A project can contain several parcels or building cards. Parcel
@@ -19,7 +22,7 @@ The concrete dependencies remain in [`code/Makefile`](code/Makefile).
 
 | Research question | Current implementation | Simplification required |
 |---|---|---|
-| What did each source report, and when? | `build_residential_cross_section.R`, `build_residential_discovery_cross_section.R`, `build_commercial_cross_section.R`, `build_construction_permit_history.R` | Normalize each pinned source once while retaining its history. Keep observation year separate from reported construction year. The two residential selections use different rules; do not silently replace one with the other. |
+| What did each source report, and when? | `../prepare_construction_assessor_history/`, `build_residential_cross_section.R`, `build_residential_discovery_cross_section.R`, `build_commercial_cross_section.R`, `build_construction_permit_history.R` | Five residential readers now share one normalized full-history source. Extend this to the remaining readers. Keep observation year separate from reported construction year. The two residential selections use different rules; do not silently replace one with the other. |
 | Which records describe the same construction project? | `build_residential_project_candidates.R`, `build_residential_tieback_temporal_evidence.R`, commercial candidate scripts, historical recovery, and later multicard matching | Resolve membership and predecessor/successor relationships before choosing project totals. Keep parcel/card membership in keyed tables rather than repeatedly assembling and splitting identifier strings. Related permits are not necessarily revisions of the same building. |
 | When was that project built, and how much housing and land belong to it? | Preferred candidate/ledger scripts, `build_final_multicard_adjudication.R`, external reviews, classification, and final verification | Give each resolved year, unit count, floor area, and land area one owner and a source of the same scope. Eliminate the sequence that aggregates cards, restores a selected card, and later reconstructs totals. Preserve unresolved evidence and committed exceptions. |
 | Is it eligible residential new construction? | `validate_new_construction_eligibility.R`, `validate_multifamily_classification_rules.R`, and the project-verification/review scripts | Assemble corroborating evidence before one inclusion/classification decision. Preserve evidence checks; eliminate repeated overwrites and copies of unchanged confirmations. Geography can support matching and review scope before final assignment. |
@@ -30,6 +33,54 @@ There is no target number of scripts. Separate source preparation, project
 construction, and analysis because they own different data products. Keep a
 coherent transformation in one readable script; do not create one task per step
 or hide a long script inside a large helper function.
+
+## Residential Assessor branch: history, membership, measurements
+
+The first three pieces now build together. Run from `code/`:
+
+```sh
+make ../report/residential_assessor_project_candidates.csv.log
+```
+
+1. `../prepare_construction_assessor_history/` preserves all 12,320,011 source
+   reports in typed Parquet. Five readers use this shared history instead of
+   separately parsing the full CSV. No source vintage was refreshed.
+2. `build_residential_cross_section.R` selects candidate PINs;
+   `build_residential_project_candidates.R` assembles card and parcel history;
+   `build_residential_tieback_temporal_evidence.R` checks membership and measurements
+   within the same assessment snapshot. The 2022/2025/later preference is now one
+   ranking operation in each applicable reader, with both cutoffs exposed in Make.
+   Discovery still uses its existing earlier-report rule.
+3. `build_residential_assessor_projects.R` assembles the ordinary, tied-parcel,
+   and multiple-card project forms in one table. It records component PINs, source
+   rows, year, units, building area, land area, and measurement provenance. It now
+   owns those initial Assessor measurements; `build_preferred_residential_candidates.R`
+   consumes them before applying the existing permit evidence and adding other
+   residential project forms.
+
+The actual production build produced 27,831 candidates: 25,610 ordinary parcels,
+1,045 tied-parcel groups, and 1,176 multiple-card parcels. This inventory includes
+out-of-period records. Existing rules label 12,904 mechanically retained, 14,728
+outside the period, 190 requiring further evidence, and 9 deferred to commercial
+reconciliation. These labels are intermediate rules, not final verification or
+an estimate of the unavoidable manual workload. Later duplicate reconciliation
+can affect mechanically retained candidates too. Another 255 class-297 candidates
+and 45 residential/commercial overlaps enter the existing downstream resolver.
+
+The resulting candidate table agrees exactly with the controlled replay, including
+its preliminary distances. Across the fifteen existing CSV products compared before
+and after this consolidation, fourteen are byte-identical. The 6,520-row card table
+has a different row order after the ranking simplification; its keyed records and
+all downstream candidate measurements are unchanged. These comparisons use the
+same currently pinned full source on both sides; they do not establish equivalence
+to the missing original source vintage or to the paper's final sample.
+
+This is a working candidate branch, not the finished density dataset. The carried
+`current_distance_m` is preliminary spatial evidence. Final distance must use the
+resolved construction year and project geometry. Card/successor duplication,
+completion-year evidence, and measurement scope remain to be resolved before
+calculating final density ratios and making one final geographic assignment.
+No new case-specific decisions or exclusions were introduced here.
 
 ## First consolidation: analytical assignment
 

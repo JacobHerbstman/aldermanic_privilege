@@ -35,62 +35,15 @@ if (anyDuplicated(candidate_pins$pin) > 0) {
 
 con <- DBI::dbConnect(duckdb::duckdb())
 
-invisible(DBI::dbExecute(con, "
-CREATE OR REPLACE MACRO numeric_text(x) AS
-  nullif(regexp_replace(cast(x AS VARCHAR), '[^0-9.-]', '', 'g'), '');
-"))
-
 tieback_history <- DBI::dbGetQuery(con, "
-WITH source AS (
-  SELECT
-    regexp_replace(trim(pin), '[^0-9]', '', 'g') AS pin,
-    try_cast(numeric_text(year) AS INTEGER) AS tax_year,
-    try_cast(numeric_text(card) AS INTEGER) AS card_num,
-    trim(class) AS class,
-    regexp_replace(trim(tieback_key_pin), '[^0-9]', '', 'g') AS tieback_group,
-    try_cast(numeric_text(tieback_proration_rate) AS DOUBLE) AS pin_proration_rate,
-    try_cast(numeric_text(card_proration_rate) AS DOUBLE) AS card_proration_rate,
-    try_cast(numeric_text(char_yrblt) AS INTEGER) AS year_built,
-    try_cast(numeric_text(char_bldg_sf) AS DOUBLE) AS building_sqft,
-    try_cast(numeric_text(char_land_sf) AS DOUBLE) AS land_sqft,
-    trim(char_apts) AS apartments_text,
-    trim(char_type_resd) AS type_of_residence,
-    trim(char_use) AS single_v_multi_family,
-    trim(row_id) AS row_id
-  FROM read_csv(
-    '../input/residential_improvement_characteristics_full.csv',
-    all_varchar = true,
-    header = true,
-    ignore_errors = false,
-    max_line_size = 10000000
-  )
-  WHERE try_cast(numeric_text(township_code) AS INTEGER)
-        IN (70, 71, 72, 73, 74, 75, 76, 77)
-)
-SELECT *
-FROM source
-WHERE pin IS NOT NULL
-  AND pin != ''
-  AND tieback_group IS NOT NULL
-  AND tieback_group != ''
-  AND tax_year IS NOT NULL
-  AND card_num IS NOT NULL
-  AND row_id IS NOT NULL
-  AND row_id != ''
+SELECT pin, tax_year, card_num, class, proration_key_pin AS tieback_group,
+  pin_proration_rate, card_proration_rate, year_built, building_sqft, land_sqft,
+  apartments_text, type_of_residence, single_v_multi_family, row_id, num_apartments
+FROM read_parquet('../input/residential_assessor_history.parquet')
+WHERE proration_key_pin IS NOT NULL AND proration_key_pin != ''
+ORDER BY source_row_order
 ") %>%
   mutate(
-    apartments_text = str_to_lower(str_squish(apartments_text)),
-    num_apartments = case_when(
-      is.na(apartments_text) | apartments_text == "" ~ NA_real_,
-      apartments_text %in% c("none", "zero") ~ 0,
-      apartments_text == "one" ~ 1,
-      apartments_text == "two" ~ 2,
-      apartments_text == "three" ~ 3,
-      apartments_text == "four" ~ 4,
-      apartments_text == "five" ~ 5,
-      apartments_text == "six" ~ 6,
-      TRUE ~ suppressWarnings(as.numeric(str_replace_all(apartments_text, "[^0-9.-]", "")))
-    ),
     assessor_single_family =
       str_detect(single_v_multi_family, regex("^single", ignore_case = TRUE)) |
       type_of_residence %in% c(
