@@ -14,7 +14,10 @@ HISTORICAL_EXACT_MATCH_FT ?= 10
 HISTORICAL_LOCAL_MATCH_FT ?= 150
 HISTORICAL_MAX_BUILDING_GAP ?= 0.10
 
-all: ../report/multifamily_classification_decisions.csv.log \
+all: ../report/provisional_validated_density_input.csv.log \
+	../report/final_density_model_input.csv.log \
+	../report/preferred_density_model_production_card_input.csv.log \
+	../report/multifamily_classification_decisions.csv.log \
 	../report/new_construction_project_components.csv.log \
 	../report/project_permit_chain_links.csv.log \
 	../report/project_permit_chain_unit_mentions.csv.log \
@@ -74,6 +77,15 @@ all: ../report/multifamily_classification_decisions.csv.log \
 	../report/residential_tieback_episode_candidates.csv.log \
 	../report/residential_tieback_no_snapshot_review.csv.log \
 	../report/final_new_construction_zoning.csv.log
+
+../report/preferred_density_model_production_card_input.csv.log: ../../shared/code/report.py ../output/preferred_density_model_production_card_input.csv | ../report
+	$(PYTHON) $< ../output/preferred_density_model_production_card_input.csv $@ project_id
+
+../report/final_density_model_input.csv.log: ../../shared/code/report.py ../output/final_density_model_input.csv | ../report
+	$(PYTHON) $< ../output/final_density_model_input.csv $@ project_id
+
+../report/provisional_validated_density_input.csv.log: ../../shared/code/report.py ../output/provisional_validated_density_input.csv | ../report
+	$(PYTHON) $< ../output/provisional_validated_density_input.csv $@ project_id
 
 ../report/multifamily_classification_decisions.csv.log: ../../shared/code/report.py ../output/multifamily_classification_decisions.csv | ../report
 	$(PYTHON) $< ../output/multifamily_classification_decisions.csv $@ project_id
@@ -314,7 +326,7 @@ ifneq ($(filter-out $(wildcard ../output/multicard_final_adjudication.csv ../out
 .PHONY: ../output/multicard_final_adjudication.csv
 endif
 
-../output/multicard_final_adjudication.csv: build_final_multicard_adjudication.R ../adjudication/multicard_cross_project_suppressions.csv ../adjudication/multicard_manual_episode_decisions.csv ../adjudication/multicard_manual_overrides.csv ../adjudication/multicard_parent_pair_decisions.csv ../adjudication/multicard_year_overrides.csv ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/boundary_segments_1320ft.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls_2000_2023.csv ../input/ward_pair_boundaries.gpkg ../input/ward_panel.gpkg ../output/final_density_model_input.csv ../output/final_new_construction_boundary_scope.csv ../output/multicard_component_successor_matches.csv ../output/multicard_final_review_bundle.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
+../output/multicard_final_adjudication.csv: build_final_multicard_adjudication.R ../adjudication/multicard_cross_project_suppressions.csv ../adjudication/multicard_manual_episode_decisions.csv ../adjudication/multicard_manual_overrides.csv ../adjudication/multicard_parent_pair_decisions.csv ../adjudication/multicard_year_overrides.csv ../input/boundary_segments_1320ft.gpkg ../input/ward_pair_boundaries.gpkg ../input/ward_panel.gpkg ../output/final_density_model_input.csv ../output/final_new_construction_boundary_scope.csv ../output/multicard_component_successor_matches.csv ../output/multicard_final_review_bundle.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
 	$(R) $<
 
 ../output/multicard_final_review_bundle.csv: build_multicard_final_review_bundle.R ../output/multicard_successor_match_summary.csv ../adjudication/early_multicard_manual_review.csv ../output/multicard_adjudication_evidence.csv ../output/multicard_episode_component_nodes.csv ../output/multicard_episode_component_summary.csv ../output/multicard_successor_building_candidates.csv ../../setup_environment/code/packages.R | ../output
@@ -510,10 +522,10 @@ endif
 ../output/preferred_new_construction_project_centroids.gpkg: ../output/preferred_new_construction_project_ledger.csv
 	@test -f "$@"
 
-../output/preferred_density_model_production_card_input.csv: build_preferred_density_input.R ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/boundary_segments_1320ft.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls_2000_2023.csv ../output/preferred_new_construction_boundary_scope.csv ../output/preferred_new_construction_project_centroids.gpkg ../output/preferred_new_construction_project_ledger.csv ../output/preferred_new_construction_zoning.csv ../output/residential_cross_section.csv ../output/residential_multicard_cards.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
+../output/preferred_density_model_production_card_input.csv: build_preferred_density_input.R ../input/boundary_segments_1320ft.gpkg ../output/preferred_new_construction_boundary_scope.csv ../output/preferred_new_construction_project_centroids.gpkg ../output/preferred_new_construction_project_ledger.csv ../output/preferred_new_construction_zoning.csv ../output/residential_cross_section.csv ../output/residential_multicard_cards.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
 	$(R) $<
 
-../output/final_density_model_input.csv: build_final_density_input.R ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/boundary_segments_1320ft.gpkg ../input/chicago_alderman_panel.csv ../input/ward_controls_2000_2023.csv ../output/final_new_construction_audit_ledger.csv ../output/final_new_construction_boundary_scope.csv ../output/final_new_construction_zoning.csv ../output/preferred_density_model_production_card_input.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
+../output/final_density_model_input.csv: build_final_density_input.R ../input/boundary_segments_1320ft.gpkg ../output/final_new_construction_audit_ledger.csv ../output/final_new_construction_boundary_scope.csv ../output/final_new_construction_zoning.csv ../output/preferred_density_model_production_card_input.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
 	$(R) $<
 
 ../output/commercial_post_evidence_resolution.csv: build_commercial_post_evidence_queue.R ../adjudication/commercial_manual_decisions.csv ../output/commercial_completion_evidence.csv ../output/commercial_land_adjudication_evidence.csv ../output/commercial_unit_adjudication_evidence.csv ../output/preferred_adjudication_scope.csv ../output/preferred_commercial_project_candidates.csv ../../setup_environment/code/packages.R | ../output
@@ -939,9 +951,6 @@ endif
 ../input/official_building_footprints_2022.gpkg: ../../../data_raw/construction_review/official_building_footprints_2022.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
-
 ../input/historical_parcel_requests.csv: ../../../data_raw/construction_review/historical_parcel_requests_2026-09-04.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
@@ -981,6 +990,6 @@ endif
 ../input/preferred_predecessor_source_queries.csv: ../../../data_raw/construction_review/preferred_predecessor_source_queries.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/O2017-7056.pdf ../input/O2020-2959.pdf ../input/O2022-2464.pdf ../input/O2023-1331.pdf ../input/O2024-0008982.pdf ../input/O2024-0010153.pdf ../input/SO2017-7051.pdf ../input/SO2018-4452.pdf ../input/SO2018-7749.pdf ../input/SO2018-863.pdf ../input/SO2019-4107.pdf ../input/SO2023-43.pdf ../input/matters_20101101_20260212.csv ../input/zoning_map_index.geojson ../input/building_permits_clean.gpkg ../input/preferred_predecessor_source_queries.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../input/preferred_historical_parcel_source.gpkg ../input/zoning_sep2025.geojson ../input/zoning_jan2016.zip ../input/zoning_sep2014.zip ../input/zoning_nov2012.zip ../input/Wards_2024.geojson ../input/Wards_2015.geojson ../input/Wards_2014.geojson ../input/Chicago_Wards_1998.geojson ../input/historical_parcel_requests.csv ../input/chicago_alderman_panel.csv ../input/official_building_footprints_2022.gpkg ../input/official_building_footprints_2008.gpkg ../input/chicago_building_footprints_2015.zip ../input/density_historical_address_records.csv ../input/density_historical_parcel_records.csv ../input/building_permits_full.csv ../input/parcel_sales_city.csv ../input/chicago_alderman_terms.csv ../input/ward_controls_2000_2023.csv ../input/boundary_segments_1320ft.gpkg ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/parcel_addresses_2025_chicago.csv  ../input/residential_improvement_characteristics_full.csv ../input/commercial_value_raw.csv ../input/parcel_universe_2025_city.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg
+link-inputs: ../input/O2017-7056.pdf ../input/O2020-2959.pdf ../input/O2022-2464.pdf ../input/O2023-1331.pdf ../input/O2024-0008982.pdf ../input/O2024-0010153.pdf ../input/SO2017-7051.pdf ../input/SO2018-4452.pdf ../input/SO2018-7749.pdf ../input/SO2018-863.pdf ../input/SO2019-4107.pdf ../input/SO2023-43.pdf ../input/matters_20101101_20260212.csv ../input/zoning_map_index.geojson ../input/building_permits_clean.gpkg ../input/preferred_predecessor_source_queries.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../input/preferred_historical_parcel_source.gpkg ../input/zoning_sep2025.geojson ../input/zoning_jan2016.zip ../input/zoning_sep2014.zip ../input/zoning_nov2012.zip ../input/Wards_2024.geojson ../input/Wards_2015.geojson ../input/Wards_2014.geojson ../input/Chicago_Wards_1998.geojson ../input/historical_parcel_requests.csv ../input/official_building_footprints_2022.gpkg ../input/official_building_footprints_2008.gpkg ../input/chicago_building_footprints_2015.zip ../input/density_historical_address_records.csv ../input/density_historical_parcel_records.csv ../input/building_permits_full.csv ../input/parcel_sales_city.csv ../input/chicago_alderman_terms.csv ../input/ward_controls_2000_2023.csv ../input/boundary_segments_1320ft.gpkg ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/parcel_addresses_2025_chicago.csv  ../input/residential_improvement_characteristics_full.csv ../input/commercial_value_raw.csv ../input/parcel_universe_2025_city.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg
 
 include ../../shared/code/generic.make

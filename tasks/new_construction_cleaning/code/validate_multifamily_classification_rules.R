@@ -5,8 +5,15 @@ source("../../shared/code/assessor_classification.R")
 
 projects <- readr::read_csv(
   "../output/project_evidence_inventory.csv",
-  show_col_types = FALSE
-) |>
+  show_col_types = FALSE,
+  col_types = readr::cols(
+    external_unit_count = readr::col_double(),
+    external_building_sqft = readr::col_double()
+  )
+)
+stopifnot(nrow(readr::problems(projects)) == 0L)
+
+projects <- projects |>
   dplyr::left_join(
     readr::read_csv(
       "../output/eligibility_rule_validation.csv",

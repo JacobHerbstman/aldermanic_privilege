@@ -718,85 +718,9 @@ override_assignment$segment_id <- assign_points_to_nearest_segments(
   chunk_n = 100L
 )
 
-aldermen <- readr::read_csv(
-  "../input/chicago_alderman_panel.csv",
-  show_col_types = FALSE
-) |>
-  dplyr::transmute(
-    ward = as.integer(ward),
-    yearmon_key = as.character(
-      zoo::as.yearmon(month, format = "%b %Y")
-    ),
-    alderman
-  )
-scores <- readr::read_csv(
-  "../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv",
-  show_col_types = FALSE
-) |>
-  dplyr::select(alderman, score = uncertainty_index)
-controls <- readr::read_csv(
-  "../input/ward_controls_2000_2023.csv",
-  show_col_types = FALSE
-)
-
-if (
-  anyDuplicated(aldermen[c("ward", "yearmon_key")]) ||
-    anyDuplicated(scores$alderman) ||
-    anyDuplicated(controls[c("ward", "year")])
-) {
-  stop("A year-reassignment lookup is not unique.", call. = FALSE)
-}
-
+# Year corrections change the geographic assignment used by subsequent review.
+# Aldermen, treatment, and controls are assigned once after all year decisions.
 override_assignment <- override_assignment |>
-  dplyr::mutate(
-    yearmon_key = as.character(zoo::as.yearmon(construction_date)),
-    dist_to_boundary_m = distance_to_boundary_ft * 0.3048
-  ) |>
-  dplyr::left_join(
-    aldermen,
-    by = c("ward", "yearmon_key"),
-    relationship = "many-to-one"
-  ) |>
-  dplyr::rename(alderman_own = alderman) |>
-  dplyr::left_join(
-    aldermen |>
-      dplyr::rename(alderman_neighbor = alderman),
-    by = c("neighbor_ward" = "ward", "yearmon_key"),
-    relationship = "many-to-one"
-  ) |>
-  dplyr::left_join(
-    scores,
-    by = c("alderman_own" = "alderman"),
-    relationship = "many-to-one"
-  ) |>
-  dplyr::rename(strictness_own = score) |>
-  dplyr::left_join(
-    scores,
-    by = c("alderman_neighbor" = "alderman"),
-    relationship = "many-to-one"
-  ) |>
-  dplyr::rename(strictness_neighbor = score) |>
-  dplyr::left_join(
-    controls,
-    by = c("ward", "construction_year" = "year"),
-    relationship = "many-to-one"
-  ) |>
-  dplyr::mutate(
-    signed_distance_m = dist_to_boundary_m * dplyr::case_when(
-      strictness_own > strictness_neighbor ~ 1,
-      strictness_own < strictness_neighbor ~ -1,
-      TRUE ~ NA_real_
-    ),
-    lenient_dist = abs(signed_distance_m) *
-      as.integer(signed_distance_m <= 0),
-    strict_dist = abs(signed_distance_m) *
-      as.integer(signed_distance_m > 0),
-    side = as.integer(signed_distance_m > 0),
-    continuous_score_difference =
-      (strictness_own - strictness_neighbor) / 2,
-    pair_average_score =
-      (strictness_own + strictness_neighbor) / 2
-  ) |>
   dplyr::select(
     project_id,
     construction_year,
@@ -807,22 +731,7 @@ override_assignment <- override_assignment |>
     distance_to_boundary_ft,
     within_500ft,
     within_1500ft,
-    segment_id,
-    alderman_own,
-    alderman_neighbor,
-    strictness_own,
-    strictness_neighbor,
-    signed_distance_m,
-    lenient_dist,
-    strict_dist,
-    side,
-    continuous_score_difference,
-    pair_average_score,
-    share_white_own = share_white,
-    share_black_own = share_black,
-    median_hh_income_own = median_hh_income,
-    share_bach_plus_own = share_bach_plus,
-    homeownership_rate_own = homeownership_rate
+    segment_id
   )
 
 reassigned_fields <- setdiff(

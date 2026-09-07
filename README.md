@@ -10,6 +10,11 @@ Each task lives in `tasks/<task>/` and has its own `code/`, `input/`, and
 Running `make` at the repository root follows those dependencies through to the
 paper.
 
+Construction provenance is being reconstructed on this branch. The paper still
+uses a committed construction snapshot; the upstream cleaning build remains
+incomplete. See the [construction workflow](tasks/new_construction_cleaning/README.md)
+for the current source-to-project logic and release limits.
+
 ## Task Graph
 
 The graph shows every data task required by `paper/Makefile`. Arrows point from

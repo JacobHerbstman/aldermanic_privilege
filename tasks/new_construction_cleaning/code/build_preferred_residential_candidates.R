@@ -270,28 +270,15 @@ tieback_selected_flags <- inventory %>%
 
 tieback_candidates <- tieback_temporal %>%
   mutate(
-    all_candidate_years_outside_period = purrr::map_lgl(
-      candidate_construction_years,
-      function(x) {
-        values <- suppressWarnings(as.numeric(str_split_1(coalesce(x, ""), "/")))
-        values <- values[is.finite(values)]
-        length(values) > 0L && all(!between(values, 2006L, 2022L))
-      }
-    ),
-    fallback_construction_year = purrr::map_dbl(
-      candidate_construction_years,
-      function(x) {
-        values <- suppressWarnings(as.numeric(str_split_1(coalesce(x, ""), "/")))
-        single_finite_value(values)
-      }
-    ),
+    all_candidate_years_outside_period =
+      candidate_year_count > 0L & candidate_in_period_year_count == 0L,
     component_pins = coalesce(selected_component_pins, all_lineage_pins),
     component_count = if_else(
       is.na(component_pins) | component_pins == "",
       NA_integer_,
       str_count(component_pins, fixed("/")) + 1L
     ),
-    construction_year = coalesce(selected_construction_year, fallback_construction_year),
+    construction_year = coalesce(selected_construction_year, unique_candidate_construction_year),
     dwelling_units = selected_dwelling_units,
     building_sqft = selected_building_sqft,
     land_sqft = selected_land_sqft,
@@ -658,23 +645,9 @@ if (anyDuplicated(residential_candidates$project_id) > 0) {
   stop("Preferred residential candidate IDs are not unique.", call. = FALSE)
 }
 
-component_rows <- bind_rows(
-  ordinary_candidates %>%
-    select(project_id, source_family, project_kind, component_pins) %>%
-    tidyr::separate_longer_delim(component_pins, delim = "/"),
-  tieback_candidates %>%
-    select(project_id, source_family, project_kind, component_pins) %>%
-    tidyr::separate_longer_delim(component_pins, delim = "/"),
-  multicard_candidates %>%
-    select(project_id, source_family, project_kind, component_pins) %>%
-    tidyr::separate_longer_delim(component_pins, delim = "/"),
-  class_297_candidates %>%
-    select(project_id, source_family, project_kind, component_pins) %>%
-    tidyr::separate_longer_delim(component_pins, delim = "/"),
-  commercial_overlap_candidates %>%
-    select(project_id, source_family, project_kind, component_pins) %>%
-    tidyr::separate_longer_delim(component_pins, delim = "/")
-) %>%
+component_rows <- residential_candidates %>%
+  select(project_id, source_family, project_kind, component_pins) %>%
+  tidyr::separate_longer_delim(component_pins, delim = "/") %>%
   rename(component_pin = component_pins) %>%
   distinct(project_id, component_pin, .keep_all = TRUE) %>%
   arrange(project_id, component_pin)
