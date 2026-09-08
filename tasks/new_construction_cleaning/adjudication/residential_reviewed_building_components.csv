@@ -1,6 +1,9 @@
-project_id,construction_year,pin,row_id,reason
-residential_adjudicated_vernon_2020,2020,20034000310000,2003400031000012022,Five townhomes across three parcels; 2020 approved by user; all measurements from complete 2022 assessment; permit 100802189
-residential_adjudicated_vernon_2020,2020,20034000310000,2003400031000022022,Five townhomes across three parcels; 2020 approved by user; all measurements from complete 2022 assessment; permit 100802189
-residential_adjudicated_vernon_2020,2020,20034000320000,2003400032000012022,Five townhomes across three parcels; 2020 approved by user; all measurements from complete 2022 assessment; permit 100802189
-residential_adjudicated_vernon_2020,2020,20034000320000,2003400032000022022,Five townhomes across three parcels; 2020 approved by user; all measurements from complete 2022 assessment; permit 100802189
-residential_adjudicated_vernon_2020,2020,20034000330000,2003400033000012022,Five townhomes across three parcels; 2020 approved by user; all measurements from complete 2022 assessment; permit 100802189
+project_id,construction_year,pin,row_id,reason,source_project_id
+residential_adjudicated_vernon_2020,2020,20034000310000,2003400031000012022,Five townhomes across three parcels; 2020 approved by user; all measurements from complete 2022 assessment; permit 100802189,residential_multicard_20034000310000
+residential_adjudicated_vernon_2020,2020,20034000310000,2003400031000022022,Five townhomes across three parcels; 2020 approved by user; all measurements from complete 2022 assessment; permit 100802189,residential_multicard_20034000310000
+residential_adjudicated_vernon_2020,2020,20034000320000,2003400032000012022,Five townhomes across three parcels; 2020 approved by user; all measurements from complete 2022 assessment; permit 100802189,residential_multicard_20034000320000
+residential_adjudicated_vernon_2020,2020,20034000320000,2003400032000022022,Five townhomes across three parcels; 2020 approved by user; all measurements from complete 2022 assessment; permit 100802189,residential_multicard_20034000320000
+residential_adjudicated_vernon_2020,2020,20034000330000,2003400033000012022,Five townhomes across three parcels; 2020 approved by user; all measurements from complete 2022 assessment; permit 100802189,residential_20034000330000
+residential_adjudicated_geneva_2007,2007,14283040840000,1428304084000012014,Original residence before the documented 2013 addition appears in assessments 2008-2014 at 5756 sqft; later storage permit 100538073 is not another house,residential_tieback_14283040840000
+residential_14324160450000,2018,14324160450000,1432416045000012022,Retain the separately assessed new home with the existing 2022 Assessor year and measurements; historical linkage describes the demolished 1888 buildings,residential_tieback_14324160450000
+residential_14324160460000,2019,14324160460000,1432416046000012022,Retain the separately assessed new home with the existing 2022 Assessor year and measurements; historical linkage describes the demolished 1888 buildings,residential_tieback_14324160450000

@@ -1,17 +1,17 @@
 File: preferred_historical_parcel_source.gpkg
-Rows: 12990
+Rows: 12992
 Columns: 7
-SHA-256 (saved bytes): c26905c20a623612ba48e8e23982b3608ea19906e0cbf940facf60bfafd08fb4
+SHA-256 (saved bytes): b69b5251dfdb25ac650a232e7b682365553a67a8c564770b2e942b34f99841c3
 Key: target_year, object_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-        column inferred_type non_missing distinct  min     max               mean                sd
-           fid        BIGINT       12990    12990    1   12990             6495.5 3750.034333176164
-   target_year        BIGINT       12990       17 2006    2022 2013.1491916859122 5.320600480831756
-      layer_id        DOUBLE       12990       17  6.0  2022.0  140.5347959969207 489.3828695640334
-     object_id        BIGINT       12990    12753   44 1849492  692211.2296381833 489818.1705802896
-         pin14       VARCHAR       12990    11894    -       -                  -                 -
-         pin10       VARCHAR       12990    11894    -       -                  -                 -
-geometry_valid        BIGINT       12990        1    1       1                1.0               0.0
+        column inferred_type non_missing distinct  min     max               mean                 sd
+           fid        BIGINT       12992    12992    1   12992             6496.5 3750.6116834457816
+   target_year        BIGINT       12992       17 2006    2022 2013.1491687192117  5.320712075070285
+      layer_id        DOUBLE       12992       17  6.0  2022.0  140.5153171182266   489.347723128143
+     object_id        BIGINT       12992    12755   44 1849492  692324.7829433498  489866.8343615153
+         pin14       VARCHAR       12992    11896    -       -                  -                  -
+         pin10       VARCHAR       12992    11896    -       -                  -                  -
+geometry_valid        BIGINT       12992        1    1       1                1.0                0.0

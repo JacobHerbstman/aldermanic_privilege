@@ -1,25 +1,25 @@
 File: preferred_project_component_geometry.gpkg
-Rows: 15591
+Rows: 15596
 Columns: 15
-SHA-256 (saved bytes): 1d23ba19b73d9879abd38763875463d482ff3ceb4d80cfaf3fb3d52ea979915c
+SHA-256 (saved bytes): b3081df951bd89fa0a5e2cd136f01843886c6d4515b688665c82bb25a043b144
 Key: request_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
            column inferred_type non_missing distinct    min       max               mean                 sd
-              fid        BIGINT       15591    15591      1     15591             7796.0  4500.878358720662
-       request_id       VARCHAR       15591    15591      -         -                  -                  -
-    source_family       VARCHAR       15591        2      -         -                  -                  -
-       project_id       VARCHAR       15591    13929      -         -                  -                  -
-     project_kind       VARCHAR       15591        7      -         -                  -                  -
- candidate_status       VARCHAR       15591        5      -         -                  -                  -
-    component_pin       VARCHAR       15591    15548      -         -                  -                  -
-  requested_pin10       VARCHAR       15591    15540      -         -                  -                  -
-      target_year        DOUBLE       15591       17 2006.0    2022.0 2012.6673080623436  5.400860685686071
-     match_method       VARCHAR       15591        3      -         -                  -                  -
-         layer_id        DOUBLE       11787       17    6.0    2022.0  153.0259608042759  511.1058742239354
-        object_id        DOUBLE       11787    11711   44.0 1849492.0  691875.5007211334 486407.87022446963
-parcel_object_ids       VARCHAR       15591    13016      -         -                  -                  -
-     parcel_pin14       VARCHAR       15591    12807      -         -                  -                  -
-     parcel_pin10       VARCHAR       15591    12807      -         -                  -                  -
+              fid        BIGINT       15596    15596      1     15596             7798.5  4502.321734394378
+       request_id       VARCHAR       15596    15596      -         -                  -                  -
+    source_family       VARCHAR       15596        2      -         -                  -                  -
+       project_id       VARCHAR       15596    13934      -         -                  -                  -
+     project_kind       VARCHAR       15596        7      -         -                  -                  -
+ candidate_status       VARCHAR       15596        5      -         -                  -                  -
+    component_pin       VARCHAR       15596    15551      -         -                  -                  -
+  requested_pin10       VARCHAR       15596    15543      -         -                  -                  -
+      target_year        DOUBLE       15596       17 2006.0    2022.0  2012.668761220826  5.401416581596867
+     match_method       VARCHAR       15596        3      -         -                  -                  -
+         layer_id        DOUBLE       11792       17    6.0    2022.0 152.96904681139756     511.0049822744
+        object_id        DOUBLE       11792    11716   44.0 1849492.0  692094.3169945726 486450.61625820684
+parcel_object_ids       VARCHAR       15596    13021      -         -                  -                  -
+     parcel_pin14       VARCHAR       15596    12810      -         -                  -                  -
+     parcel_pin10       VARCHAR       15596    12810      -         -                  -                  -

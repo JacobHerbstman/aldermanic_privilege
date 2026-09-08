@@ -163,6 +163,12 @@ for (i in which(is.finite(review$history_x_3435) & is.finite(review$history_y_34
   review$history_candidate_parcel_pins[i] <- paste(sort(unique(shapes$predecessor_pin14[hits])), collapse = "/")
 }
 
+prior_cases <- read_csv("../reference/prior_construction_cases.csv", show_col_types = FALSE)
+stopifnot(!anyDuplicated(prior_cases$project_id))
+review <- review |> left_join(prior_cases |> select(
+  current_project_id = project_id, prior_case_result = review_result, verified_findings, remaining_question),
+  by = "current_project_id", relationship = "many-to-one")
+
 review <- review |> mutate(
   review_route = case_when(
     grepl("^exclude", candidate_status) ~ "closed_excluded_source_record",
@@ -170,6 +176,7 @@ review <- review |> mutate(
       geography_status == "complete_construction_year_geometry" ~ "resolved_reviewed_identity_and_location",
     geography_status == "reviewed_permit_location" ~ "resolved_by_reviewed_permit_location",
     initial_checkpoint_resolved ~ "resolved_by_general_parcel_rule",
+    prior_case_result == "investigate" ~ "investigate_recorded_case_evidence",
     construction_year_unresolved ~ "reconcile_construction_episode_before_assigning_year",
     centroid_outside_parcel & polygon_parts == 1L ~ "concave_shape_explains_exterior_centroid_check_project_land_scope",
     centroid_outside_parcel ~ "check_multipart_project_land_scope",

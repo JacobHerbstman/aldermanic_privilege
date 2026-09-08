@@ -611,3 +611,22 @@ The boundary scope identifies them as `reviewed_permit_location`. Their density
 land areas come from the separately approved land-area input in the Assessor
 project producer. The geography audit checks their ward assignments and distances
 while restricting polygon-area checks to observations with actual parcel maps.
+
+### Reconciliation of earlier year-case recommendations
+
+The reviewed building-component ledger now identifies the candidate each selected
+Assessor row replaces. The producer validates that each row belongs to that source,
+uses its recorded assessment measurements, and retains the superseded candidate as
+an excluded source record. Only the reviewed buildings enter component membership.
+This preserves Vernon while restoring Geneva's pre-addition residence and treating
+the two Maud houses separately. The reviewed identity ledger also supports one
+obsolete record being replaced by several retained homes, as at Springfield and
+Nashville. It verifies that every replacement exists and remains eligible.
+
+The earlier Seeley exclusion is withdrawn: its cited permit was on Orchard Street.
+The correct Seeley permits include both an addition and a new house. Its floor-area
+identity remains unresolved. The older final-ledger script now rejects a pending
+source decision rather than silently treating it as an exclusion. That older branch
+still has missing source dependencies and has not been rebuilt. The ten-case review
+in `working_paper_release_audit` distinguishes applied resolutions from open evidence
+questions; a historical recommendation is not proof that a current row is resolved.

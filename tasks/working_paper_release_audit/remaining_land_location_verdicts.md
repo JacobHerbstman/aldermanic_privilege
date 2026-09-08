@@ -250,3 +250,65 @@ The independent audit checks 13,926 saved boundary distances against exhaustive 
 The review file preserves 140 historical questions covering 134 candidate projects. It now labels excluded source records as closed instead of asking for new locations for duplicates. Its remaining flags cover 79 candidate projects; these are review flags, not 79 established data errors. Across the full current geography scope, 78 records lack distances, but 41 are excluded duplicates. The other 37 consist of 33 mechanically retained candidates and four candidates already marked for review. Some remaining flags concern land coverage or construction years rather than missing coordinates.
 
 This completes the four-home location check and verifies Huron's measurement decision in the commercial output. It does not complete the single final density dataset. A trial of the older residential finishing branch stopped at missing producer rules for `residential_review_city_building_footprints.gpkg` and, when tracing the next dependency, `residential_successor_condo_base_year_summary.csv`. That branch was not presented as successfully rebuilt. The next assembly work must connect the current chronological reconstruction to final eligibility and explicitly resolve those remaining dependencies, rather than silently reuse old outputs or resurrect unverified sources.
+
+## Ten earlier year conflicts: source recheck and applied resolutions
+
+This section supersedes the earlier recommendations for these ten cases where they
+conflict. The generated `prior_construction_decision_review.csv` checks the current
+producer against the recorded case findings. Four cases are now resolved in the
+current reconstruction:
+
+- **Geneva:** one original 2007 residence, 5,756 building square feet and 5,522 land
+  square feet, selected from its 2014 Assessor record. These measurements persist
+  from 2008 through 2014, before the assessment incorporates the documented addition.
+  Permit 100538073 describes accessory storage, not another home. Its saved 2007
+  parcel gives a boundary distance of 2,372.403 feet.
+- **Maud:** two separately assessed homes, each 3,220 building square feet and 2,500
+  land square feet. Retain the existing 2022 Assessor years, 2018 and 2019. Their old
+  tax linkage describes the earlier 1888 buildings; it does not make the new homes
+  one project. Their boundary distances are 213.379 and 213.380 feet. The earlier
+  suggested blanket 2017 permit-year assignment is not adopted.
+- **Springfield:** preserve the four retained individual homes and exclude the
+  obsolete combined source. Their lot areas sum to exactly 12,586 square feet,
+  matching the original two lots, and all four current points are inside the saved
+  historical parcel union. Their individual years remain 2006, 2006, 2007 and 2007.
+- **Nashville:** preserve the two individual homes and exclude the combined source.
+  Permits 100405266 and 100412191 cite the old PIN at the two retained addresses;
+  their successor points lie inside the historical parcel maps. Individual years
+  and measurements remain unchanged.
+
+Six cases remain open for concrete reasons:
+
+| Case | Verified finding | What remains unresolved |
+| --- | --- | --- |
+| Lincoln | The saved maps cover two of the three old parcels. Some successor points are outside that partial coverage; the inspected City footprint map also omits a row of current homes. | Complete physical coverage of the obsolete combined record before confirming its exclusion. |
+| Campbell | Eight individual homes occupy two mapped townhouse rows. Both City footprint records say 2007; the two permits were issued in November 2006. Seven Assessor years say 2005 and one says 2006. The eight private lot areas total 12,715 square feet; the earlier site total adds a 2,255-square-foot common parcel. | Completion proxy and common-land treatment. The City year is corroborating evidence, not a verified completion certificate. |
+| Seeley | The earlier cited permit 100503607 is for 1857 N Orchard. Actual Seeley permits include an addition at 3531 (100464213) and a new house at 3529 (100550250). The later parcel repeats the old home's 2,442-square-foot area. | The new house's independent measurement and physical relationship to the old house. The blanket exclusion is withdrawn. |
+| 38th | The main parcel has three house cards and the second parcel has one related card. Equal 1,779-square-foot entries do not establish which cards repeat the same house. | Physical building count and land allocation; the earlier two-house total is not established. |
+| Calumet | The actual permits specify six, three and three apartments, not three four-unit buildings. The Assessor repeats the 7,896- and 4,575-square-foot building entries across parcels. | Match each building to its land without counting shared land twice. |
+| Marquette | Four permits and repeated three-unit Assessor entries support investigating four buildings. Seven cards across three parcels must not simply be summed. The 2008 polygons total about 22,100 square feet; one differs from its reported Assessor land field. | Match buildings to the three parcels and establish the denominator before separating or combining. |
+
+The pinned City footprint ZIP was inspected for these sites, including unlabeled
+nearby footprints. Its mapping omits the Calumet and Marquette buildings and still
+shows the older Seeley house; the filename's 2015 date does not establish current
+building coverage. No missing footprint was interpreted as evidence that a new
+building did not exist. Supplemental web listings were inconsistent and supplied no
+adopted measurements or years. These six cases remain evidence investigations, not
+six requests for Jacob to repeat an earlier decision.
+
+### Follow-up with 2022 Cook County building outlines
+
+The six additional bounded County queries were downloaded through the acquisition
+Makefile and their original GeoJSON bytes preserved. These are physical-outline
+checks; no floor area, unit count, or construction year was taken from them.
+
+The newer outlines show four Marquette buildings crossing the diagonal parcel
+boundaries: assigning one parcel to each building would be incorrect. The 2008
+parcel union is about 22,100 square feet, versus 24,613 in summed Assessor land fields.
+Calumet has three main building outlines; at least one crosses a historical lot line,
+so address correspondence alone is insufficient for assigning the denominator.
+At Seeley, the outline connects the space on the two parcels; it does not establish
+a separately measured new house. At 38th, one connected outline spans both parcels
+and does not identify interior townhouse divisions. These observations narrow the
+remaining questions but do not establish the missing measurements. The four applied
+case resolutions above are unchanged.

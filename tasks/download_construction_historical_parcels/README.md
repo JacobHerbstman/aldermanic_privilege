@@ -262,3 +262,22 @@ preserved as `remaining_home_parcels_2018_2026-09-08.geojson`,
 `remaining_home_parcels_2025_2026-09-08.geojson` in the raw-source folder, with
 checksums in `remaining_home_snapshot.sha256`. They support the reviewed source
 identity and land decisions; they do not replace construction-year parcel maps.
+
+The September 8 Geneva/Maud supplement preserves the two additional exact-PIN queries
+needed after restoring the original Geneva residence and separating the Maud homes:
+2007/1428304084 and 2019/1432416046. The existing annual download rules retrieved
+both polygons; `geneva_maud_parcels_2026-09-08.gpkg` and its query CSV preserve the
+returned source bytes under `data_raw/construction_review/`. They enter the normal
+source combiner through declared links and the recorded SHA-256 checks. The other
+Maud home's 2018 parcel was already present. Unchanged builds reuse these sources.
+
+Six bounded 2022 Cook County building-outline queries in
+`remaining_review_sources.make` support the recheck of Lincoln, Campbell, Seeley,
+38th Street, Calumet and Marquette. They use fixed 3435 bounding boxes centered on
+recorded parcel coordinates and the public `buildingFootprint_2022` service. They
+are inspection evidence, not new building measurements in the construction dataset.
+The September 8 response bytes are preserved in `data_raw/construction_review/`
+with `review_footprint_snapshot.sha256`; source refreshes must be compared against
+that record. Each query validates a complete nonempty GeoJSON response and its recorded
+SHA-256 before publishing its output. All six queries were replayed and reproduced
+the saved bytes exactly. The audit map consumes these outputs through Make links.

@@ -1,20 +1,20 @@
 File: preferred_project_year_centroids.gpkg
-Rows: 13926
+Rows: 13931
 Columns: 10
-SHA-256 (saved bytes): 70b15088b0b0954923a3c4fb95b6a0933c6af7265bd2937bcdf3e9c94d808c0a
+SHA-256 (saved bytes): 86277483ec55103db3813205172dc84dea4068ed38c8053886f179e86aa013af
 Key: source_family, project_id, target_year
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                    column inferred_type non_missing distinct                min               max               mean                 sd
-                       fid        BIGINT       13926    13926                  1             13926             6963.5  4020.234259343602
-             source_family       VARCHAR       13926        2                  -                 -                  -                  -
-                project_id       VARCHAR       13926    13926                  -                 -                  -                  -
-               target_year        DOUBLE       13926       17             2006.0            2022.0 2012.4804681889989  5.391876244173393
-     project_polygon_valid        DOUBLE       13924        1                1.0               1.0                1.0                0.0
-    project_land_area_sqft        DOUBLE       13924    11367 176.29144966672175 904026.4079986904 13674.431165659566 42356.544786181854
-           location_source       VARCHAR       13926        5                  -                 -                  -                  -
-   location_reference_year        DOUBLE       13926       18             2006.0            2023.0 2012.5781990521327 5.3627503141802295
-location_reference_row_ids       VARCHAR        1370     1358                  -                 -                  -                  -
-    location_reference_pin       VARCHAR        1368     1356                  -                 -                  -                  -
+                    column inferred_type non_missing distinct                min               max               mean                sd
+                       fid        BIGINT       13931    13931                  1             13931             6966.0 4021.677635017506
+             source_family       VARCHAR       13931        2                  -                 -                  -                 -
+                project_id       VARCHAR       13931    13931                  -                 -                  -                 -
+               target_year        DOUBLE       13931       17             2006.0            2022.0 2012.4821620845596 5.392560329897448
+     project_polygon_valid        DOUBLE       13929        1                1.0               1.0                1.0               0.0
+    project_land_area_sqft        DOUBLE       13929    11372 176.29144966672175 904026.4079986904  13670.67655438275 42349.41201759343
+           location_source       VARCHAR       13931        5                  -                 -                  -                 -
+   location_reference_year        DOUBLE       13931       18             2006.0            2023.0 2012.5798578709353 5.363418058931678
+location_reference_row_ids       VARCHAR        1370     1358                  -                 -                  -                 -
+    location_reference_pin       VARCHAR        1368     1356                  -                 -                  -                 -

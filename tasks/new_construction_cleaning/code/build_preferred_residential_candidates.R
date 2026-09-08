@@ -491,7 +491,9 @@ if (anyDuplicated(residential_candidates$project_id) > 0) {
   stop("Preferred residential candidate IDs are not unique.", call. = FALSE)
 }
 
+# Superseded combined records remain in the candidate ledger, not in building membership.
 component_rows <- residential_candidates %>%
+  filter(decision_reason != "source_replaced_by_reviewed_assessor_buildings") %>%
   select(project_id, source_family, project_kind, component_pins) %>%
   tidyr::separate_longer_delim(component_pins, delim = "/") %>%
   rename(component_pin = component_pins) %>%

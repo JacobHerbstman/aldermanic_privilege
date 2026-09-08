@@ -12,6 +12,17 @@ all: ../report/candidate_geography_checks.csv.log ../report/candidate_geography_
 
 all: ../report/remaining_project_location_checks.csv.log
 
+all: ../report/prior_construction_decision_review.csv.log ../output/prior_construction_case_maps.pdf
+
+../output/prior_construction_case_maps.pdf: map_prior_construction_cases.R ../reference/prior_construction_cases.csv ../input/preferred_residential_project_candidates.csv ../input/parcel_universe_2025_city.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_historical_parcel_source.gpkg ../input/lincoln_footprints_2022.geojson ../input/campbell_footprints_2022.geojson ../input/seeley_footprints_2022.geojson ../input/street38_footprints_2022.geojson ../input/calumet_footprints_2022.geojson ../input/marquette_footprints_2022.geojson | ../output
+	$(R) $<
+
+../output/prior_construction_decision_review.csv: review_prior_construction_decisions.R ../reference/prior_construction_cases.csv ../input/preferred_residential_project_candidates.csv | ../output
+	$(R) $<
+
+../report/prior_construction_decision_review.csv.log: ../../shared/code/report.py ../output/prior_construction_decision_review.csv | ../report
+	$(PYTHON) $< ../output/prior_construction_decision_review.csv $@ project_id
+
 all: ../report/remaining_project_successor_evidence.csv.log
 
 ../output/remaining_project_successor_evidence.csv: review_remaining_successor_locations.R ../output/candidate_geography_review_queue.csv ../input/preferred_residential_project_candidates.csv ../input/parcel_universe_2025_city.csv | ../output
@@ -29,7 +40,7 @@ all: ../report/remaining_project_successor_evidence.csv.log
 ../output/candidate_geography_checks.csv: review_candidate_geography.R ../input/preferred_project_boundary_scope.csv ../input/preferred_project_year_geometry.gpkg ../input/preferred_project_year_centroids.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg | ../output
 	$(R) $<
 
-../output/candidate_geography_review_queue.csv: build_candidate_geography_review_queue.R ../input/history_reference_parcels.gpkg ../input/history_reference_queries.csv ../input/residential_multicard_cards.csv ../input/residential_tieback_temporal_lineage_evidence.csv ../input/current_predecessor_parcel_source.gpkg ../input/preferred_residential_project_candidates.csv ../input/preferred_commercial_project_candidates.csv ../input/historical_project_predecessor_resolution.csv ../input/preferred_historical_predecessor_resolution.csv ../input/preferred_adjudication_scope.csv ../input/preferred_project_boundary_scope.csv ../output/candidate_geography_checks.csv ../output/geocoding_parcel_history_review.csv | ../output
+../output/candidate_geography_review_queue.csv: build_candidate_geography_review_queue.R ../reference/prior_construction_cases.csv ../input/history_reference_parcels.gpkg ../input/history_reference_queries.csv ../input/residential_multicard_cards.csv ../input/residential_tieback_temporal_lineage_evidence.csv ../input/current_predecessor_parcel_source.gpkg ../input/preferred_residential_project_candidates.csv ../input/preferred_commercial_project_candidates.csv ../input/historical_project_predecessor_resolution.csv ../input/preferred_historical_predecessor_resolution.csv ../input/preferred_adjudication_scope.csv ../input/preferred_project_boundary_scope.csv ../output/candidate_geography_checks.csv ../output/geocoding_parcel_history_review.csv | ../output
 	$(R) $<
 
 ../report/candidate_geography_checks.csv.log: ../../shared/code/report.py ../output/candidate_geography_checks.csv | ../report
@@ -267,5 +278,40 @@ link-inputs: ../input/history_reference_parcels.gpkg ../input/history_reference_
 	@if [ "$$(readlink "$@")" != "../../cook_parcel_addresses_download/output/parcel_addresses_2025_chicago.csv" ]; then ln -sf ../../cook_parcel_addresses_download/output/parcel_addresses_2025_chicago.csv "$@"; fi
 
 link-inputs: ../input/parcel_addresses_2025_chicago.csv
+
+../input/lincoln_footprints_2022.geojson: ../../download_construction_historical_parcels/output/lincoln_footprints_2022.geojson | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/lincoln_footprints_2022.geojson
+
+../input/campbell_footprints_2022.geojson: ../../download_construction_historical_parcels/output/campbell_footprints_2022.geojson | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/campbell_footprints_2022.geojson
+
+../input/seeley_footprints_2022.geojson: ../../download_construction_historical_parcels/output/seeley_footprints_2022.geojson | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/seeley_footprints_2022.geojson
+
+../input/street38_footprints_2022.geojson: ../../download_construction_historical_parcels/output/street38_footprints_2022.geojson | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/street38_footprints_2022.geojson
+
+../input/calumet_footprints_2022.geojson: ../../download_construction_historical_parcels/output/calumet_footprints_2022.geojson | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/calumet_footprints_2022.geojson
+
+../input/marquette_footprints_2022.geojson: ../../download_construction_historical_parcels/output/marquette_footprints_2022.geojson | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/marquette_footprints_2022.geojson
+
+../input/preferred_historical_parcel_source.gpkg: ../../download_construction_historical_parcels/output/preferred_historical_parcel_source.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/preferred_historical_parcel_source.gpkg
 
 include ../../shared/code/generic.make

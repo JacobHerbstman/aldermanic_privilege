@@ -32,6 +32,10 @@ dispositions <- readr::read_csv(
   )
 )
 
+if (any(dispositions$disposition == "review_required")) {
+  stop("A source decision remains unresolved; do not silently exclude it from the final ledger.", call. = FALSE)
+}
+
 manual_projects <- readr::read_csv(
   "../adjudication/residential_unresolved_final_projects.csv",
   show_col_types = FALSE,

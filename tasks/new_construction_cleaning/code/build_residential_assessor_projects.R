@@ -511,7 +511,13 @@ stopifnot(!anyNA(assessor_projects$project_id), !anyDuplicated(assessor_projects
 reviewed_components <- readr::read_csv(
   "../adjudication/residential_reviewed_building_components.csv",
   col_types = readr::cols(construction_year = readr::col_integer(), .default = readr::col_character()))
-stopifnot(!anyDuplicated(reviewed_components$row_id))
+stopifnot(!anyDuplicated(reviewed_components$row_id),
+  all(reviewed_components$source_project_id %in% assessor_projects$project_id))
+reviewed_membership <- assessor_projects %>%
+  select(source_project_id = project_id, pin = component_pins) %>%
+  tidyr::separate_longer_delim(pin, delim = "/")
+stopifnot(nrow(anti_join(reviewed_components, reviewed_membership,
+  by = c("source_project_id", "pin"))) == 0L)
 con <- DBI::dbConnect(duckdb::duckdb())
 DBI::dbWriteTable(con, "reviewed_components", reviewed_components)
 reviewed_measurements <- DBI::dbGetQuery(con, "
@@ -528,8 +534,7 @@ for (id in unique(reviewed_components$project_id)) {
   land <- rows %>% distinct(pin, land_sqft)
   stopifnot(!anyDuplicated(land$pin), all(is.finite(land$land_sqft) & land$land_sqft > 0))
   units <- ifelse(rows$class %in% single_family_assessor_classes, 1, rows$num_apartments)
-  stopifnot(all(is.finite(units) & units > 0),
-    all(rows$pin %in% assessor_projects$component_pins))
+  stopifnot(all(is.finite(units) & units > 0))
   source_ids <- paste(sort(rows$row_id), collapse = "/")
   site <- tibble::tibble(project_id = id, source_family = "residential",
     project_kind = "reviewed_multi_parcel_building",
@@ -544,9 +549,17 @@ for (id in unique(reviewed_components$project_id)) {
     current_distance_m = NA_real_, current_within_1500ft = FALSE,
     candidate_status = "retain_mechanical", decision_reason = "reviewed_complete_site_and_construction_year",
     replacement_project_ids = NA_character_, replacement_check = NA_character_)
-  # Component identities are recorded in the ledger; do not also count their old candidates.
-  assessor_projects <- assessor_projects %>% filter(!component_pins %in% rows$pin) %>% bind_rows(site)
+  assessor_projects <- bind_rows(assessor_projects, site)
 }
+# Keep the superseded source records visible, but count only their reviewed buildings.
+reviewed_replacements <- reviewed_components %>%
+  group_by(source_project_id) %>%
+  summarise(replacements = paste(sort(unique(project_id)), collapse = "/"), .groups = "drop")
+i <- match(reviewed_replacements$source_project_id, assessor_projects$project_id)
+assessor_projects$candidate_status[i] <- "exclude_source_duplicate_keep_successors"
+assessor_projects$decision_reason[i] <- "source_replaced_by_reviewed_assessor_buildings"
+assessor_projects$replacement_project_ids[i] <- reviewed_replacements$replacements
+assessor_projects$replacement_check[i] <- "reviewed_same_building_identity"
 reviewed_exclusions <- readr::read_csv("../adjudication/residential_reviewed_source_exclusions.csv",
   col_types = readr::cols(.default = readr::col_character()))
 stopifnot(!anyDuplicated(reviewed_exclusions$project_id),
@@ -557,12 +570,15 @@ assessor_projects$decision_reason[i] <- reviewed_exclusions$reason
 # Reviewed identities handle proven duplicates that fail the strict automatic crosswalk.
 reviewed_duplicates <- readr::read_csv("../adjudication/residential_reviewed_source_duplicates.csv",
   col_types = readr::cols(.default = readr::col_character()))
+duplicate_replacements <- reviewed_duplicates %>%
+  select(project_id, replacement_project_id) %>%
+  tidyr::separate_longer_delim(replacement_project_id, delim = "/")
 stopifnot(!anyDuplicated(reviewed_duplicates$project_id),
   all(reviewed_duplicates$project_id %in% assessor_projects$project_id),
-  all(reviewed_duplicates$replacement_project_id %in% assessor_projects$project_id),
-  !any(reviewed_duplicates$replacement_project_id %in% reviewed_duplicates$project_id))
+  all(duplicate_replacements$replacement_project_id %in% assessor_projects$project_id),
+  !any(duplicate_replacements$replacement_project_id %in% reviewed_duplicates$project_id))
 i <- match(reviewed_duplicates$project_id, assessor_projects$project_id)
-j <- match(reviewed_duplicates$replacement_project_id, assessor_projects$project_id)
+j <- match(duplicate_replacements$replacement_project_id, assessor_projects$project_id)
 stopifnot(all(assessor_projects$candidate_status[j] == "retain_mechanical"))
 assessor_projects$candidate_status[i] <- "exclude_source_duplicate_keep_successors"
 assessor_projects$decision_reason[i] <- reviewed_duplicates$reason

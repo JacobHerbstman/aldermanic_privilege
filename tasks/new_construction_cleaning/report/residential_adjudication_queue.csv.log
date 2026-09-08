@@ -1,22 +1,22 @@
 File: residential_adjudication_queue.csv
-Rows: 241
+Rows: 237
 Columns: 20
-SHA-256 (saved bytes): bcc3a4825f8e92bf7631d31c8fb204a75495b6864933967ebb4dfb8bb80fdf9a
+SHA-256 (saved bytes): 6617cdbbaf54e45a75f4be8cb80666d737a1cff135d0d042f8a01d70845715b9
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                column inferred_type non_missing distinct               min                max               mean                 sd
-           project_id       VARCHAR         241      241                 -                  -                  -                  -
-         project_kind       VARCHAR         241        4                 -                  -                  -                  -
-       component_pins       VARCHAR         241      241                 -                  -                  -                  -
-      component_count        BIGINT         241        5                 1                  5 1.7385892116182573 0.7760238407311505
+           project_id       VARCHAR         237      237                 -                  -                  -                  -
+         project_kind       VARCHAR         237        4                 -                  -                  -                  -
+       component_pins       VARCHAR         237      237                 -                  -                  -                  -
+      component_count        BIGINT         237        5                 1                  5  1.729957805907173 0.7776466551371599
     construction_year        BIGINT         231       17              2006               2022 2014.7099567099567  6.113266791796319
        dwelling_units        BIGINT          91        7                 1                  7  3.142857142857143 1.6638070706226633
         building_sqft        BIGINT          98       53                 0             309180 12820.663265306122  47611.61308586401
             land_sqft        BIGINT          99       73              1117             466245 18269.282828282827 56990.746722253156
-         class_values        BIGINT         241       10               203                297 257.85477178423236 41.705311263097755
+         class_values        BIGINT         237       10               203                297 258.42194092827003  41.62869599345076
        source_row_ids       VARCHAR         103      103                 -                  -                  -                  -
      permit_chain_ids       VARCHAR          45       45                 -                  -                  -                  -
        permit_numbers       VARCHAR           8        8                 -                  -                  -                  -
@@ -24,7 +24,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
          units_source       VARCHAR          91       70                 -                  -                  -                  -
       building_source       VARCHAR          99       78                 -                  -                  -                  -
           land_source       VARCHAR          99       78                 -                  -                  -                  -
-   current_distance_m        DOUBLE         140      140 16.79765761020505 2067.1068483816994 301.78617853167765 264.34499652570304
-current_within_1500ft       BOOLEAN         241        2                 -                  -                  -                  -
-     candidate_status       VARCHAR         241        2                 -                  -                  -                  -
-      decision_reason       VARCHAR         241       10                 -                  -                  -                  -
+   current_distance_m        DOUBLE         138      138 16.79765761020505 2067.1068483816994  304.2578443745093 265.33686813787875
+current_within_1500ft       BOOLEAN         237        2                 -                  -                  -                  -
+     candidate_status       VARCHAR         237        2                 -                  -                  -                  -
+      decision_reason       VARCHAR         237       10                 -                  -                  -                  -

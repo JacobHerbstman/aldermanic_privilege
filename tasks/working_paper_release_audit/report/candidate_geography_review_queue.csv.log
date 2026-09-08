@@ -1,28 +1,28 @@
 File: candidate_geography_review_queue.csv
-Rows: 140
-Columns: 45
-SHA-256 (saved bytes): cfe2a1cd80a9b4bc0f7667e528e618d64bac39f0fbc71869ea960ac22356a51e
+Rows: 136
+Columns: 48
+SHA-256 (saved bytes): c4e7029c4211cca8a5286bb6414246fd2485ddd95a892c830b458dde1288f581
 Key: case_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                          column inferred_type non_missing distinct                    min                    max                   mean                     sd
-                  source_family       VARCHAR         140        2                      -                      -                      -                      -
-                     project_id       VARCHAR         140      134                      -                      -                      -                      -
+                  source_family       VARCHAR         136        2                      -                      -                      -                      -
+                     project_id       VARCHAR         136      130                      -                      -                      -                      -
                   component_pin        BIGINT          95       95         13154070500000         25031190320000     17293818764736.842      1938603334104.736
                     target_year        BIGINT         130       16                   2006                   2022     2013.2230769230769      4.699109901886323
      initial_predecessor_status       VARCHAR          30        2                      -                      -                      -                      -
      current_predecessor_status       VARCHAR          95        4                      -                      -                      -                      -
-   construction_year_unresolved       BOOLEAN         140        2                      -                      -                      -                      -
+   construction_year_unresolved       BOOLEAN         136        2                      -                      -                      -                      -
      centroid_outside_parcel_ft        DOUBLE          35       25     0.7285562703129237     284.10522140384313      35.60521812765643      57.61732044772508
                   polygon_parts        BIGINT          35        7                      1                     14     2.4571428571428573     3.0902394457279154
      maximum_part_separation_ft        DOUBLE          35       16                    0.0      3410.799542159241     232.20301985958397      652.6420528871253
-     initial_checkpoint_pending       BOOLEAN         140        2                      -                      -                      -                      -
-        centroid_outside_parcel       BOOLEAN         140        2                      -                      -                      -                      -
-                        case_id       VARCHAR         140      140                      -                      -                      -                      -
-                   project_kind       VARCHAR         140        5                      -                      -                      -                      -
-               candidate_status       VARCHAR         140        3                      -                      -                      -                      -
+     initial_checkpoint_pending       BOOLEAN         136        2                      -                      -                      -                      -
+        centroid_outside_parcel       BOOLEAN         136        2                      -                      -                      -                      -
+                        case_id       VARCHAR         136      136                      -                      -                      -                      -
+                   project_kind       VARCHAR         136        5                      -                      -                      -                      -
+               candidate_status       VARCHAR         136        3                      -                      -                      -                      -
                geography_status       VARCHAR         130        3                      -                      -                      -                      -
            requested_components        BIGINT         130       11                      1                     57     2.3153846153846156      5.633557559939973
             resolved_components        BIGINT         130       12                      0                     57      1.523076923076923      5.764385960179362
@@ -37,19 +37,22 @@ Row counts, non-missing counts, and declared-key checks: exact.
                  history_x_3435        DOUBLE          46       46      1149039.401752993     1186169.9069446786      1173680.288553724        7792.7701635582
                  history_y_3435        DOUBLE          46       46     1874536.7561659827     1923976.4116691416     1885481.8816178178     13353.330921799414
                  history_status       VARCHAR          65        2                      -                      -                      -                      -
-  next_year_exact_pin_candidate       BOOLEAN         140        2                      -                      -                      -                      -
+  next_year_exact_pin_candidate       BOOLEAN         136        2                      -                      -                      -                      -
       predecessor_min_area_sqft        DOUBLE          31       20      1392.858187293401     136077.37661029305      28048.81690880559     34216.259196044644
       predecessor_max_area_sqft        DOUBLE          31       20     3003.1776000261307     143808.17479837686      35741.92412485019     35093.918046759456
   predecessor_shapes_equivalent       BOOLEAN          31        2                      -                      -                      -                      -
-    initial_checkpoint_resolved       BOOLEAN         140        2                      -                      -                      -                      -
-      candidate_decision_reason       VARCHAR         140       21                      -                      -                      -                      -
+    initial_checkpoint_resolved       BOOLEAN         136        2                      -                      -                      -                      -
+      candidate_decision_reason       VARCHAR         136       21                      -                      -                      -                      -
     candidate_construction_year        BIGINT         130       16                   2006                   2022     2013.2230769230769      4.699109901886323
    candidate_assessor_land_sqft        DOUBLE         128      101                  850.0               816149.0            37914.53125       102784.273370081
-    reported_construction_years       VARCHAR          16       12                      -                      -                      -                      -
+    reported_construction_years       VARCHAR          12        9                      -                      -                      -                      -
       reported_assessment_years        BIGINT           3        3                   2015                   2022     2018.6666666666667     3.5118845842842195
-                 lineage_reason       VARCHAR          13        2                      -                      -                      -                      -
+                 lineage_reason       VARCHAR           9        2                      -                      -                      -                      -
 history_candidate_polygon_count        BIGINT          46        3                      0                      3     0.9130434782608695    0.46313362393934254
   history_candidate_parcel_pins       VARCHAR          40       10                      -                      -                      -                      -
-                   review_route       VARCHAR         140       11                      -                      -                      -                      -
-               production_owner       VARCHAR         140        4                      -                      -                      -                      -
+              prior_case_result       VARCHAR           6        1                      -                      -                      -                      -
+              verified_findings       VARCHAR           6        6                      -                      -                      -                      -
+             remaining_question       VARCHAR           6        6                      -                      -                      -                      -
+                   review_route       VARCHAR         136       11                      -                      -                      -                      -
+               production_owner       VARCHAR         136        4                      -                      -                      -                      -
             initial_project_ids       VARCHAR          30       24                      -                      -                      -                      -

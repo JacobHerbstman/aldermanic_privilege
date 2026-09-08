@@ -1,15 +1,15 @@
 File: preferred_adjudication_scope.csv
-Rows: 412
+Rows: 408
 Columns: 11
-SHA-256 (saved bytes): 1ec820df2ddbef4da9675eeb80d95b19d6896d43b15a9e0d3a8d013351e74c2d
+SHA-256 (saved bytes): 5d2332120be51670cd3a03da3c1631d2ff07b283bbebeb974e4745bee23b9e83
 Key: source_family, project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                  column inferred_type non_missing distinct               min                max                 mean                  sd
-          source_family       VARCHAR         412        2                 -                  -                    -                   -
-             project_id       VARCHAR         412      412                 -                  -                    -                   -
+          source_family       VARCHAR         408        2                 -                  -                    -                   -
+             project_id       VARCHAR         408      408                 -                  -                    -                   -
            project_kind       VARCHAR         402        5                 -                  -                    -                   -
             target_year        BIGINT         402       17              2006               2022    2014.915422885572   5.661068072014616
        geography_status       VARCHAR         402        2                 -                  -                    -                   -
@@ -18,4 +18,4 @@ Row counts, non-missing counts, and declared-key checks: exact.
 distance_to_boundary_ft        DOUBLE         398      388 31.27532083875283 10402.461692437024    1071.129289308673   978.9840222899384
           within_1500ft       BOOLEAN         398        2                 -                  -                    -                   -
            within_500ft       BOOLEAN         398        2                 -                  -                    -                   -
-           review_scope       VARCHAR         412        4                 -                  -                    -                   -
+           review_scope       VARCHAR         408        4                 -                  -                    -                   -
