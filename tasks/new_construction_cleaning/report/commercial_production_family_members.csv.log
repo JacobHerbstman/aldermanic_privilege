@@ -1,0 +1,19 @@
+File: commercial_production_family_members.csv
+Rows: 1215
+Columns: 9
+SHA-256 (saved bytes): d0eb3e1bc306d3c646110949c3d44f295871865f75ff383f436cbf9ba259f290
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct                min               max               mean                 sd
+              keypin       VARCHAR        1215     1215                  -                 -                  -                  -
+production_yearbuilt        BIGINT        1215       27               1999              2025 2012.8962962962962  6.913738521268509
+    production_units        BIGINT        1215      258                  1              1679  74.11604938271606 131.04443150649635
+   production_bldgsf        BIGINT        1064      955                456           1380640  94786.96898496241 169071.81070357386
+   production_landsf        BIGINT        1214     1071                  0            816149 27188.962108731466  51163.75859202678
+  production_address       VARCHAR        1213     1198                  -                 -                  -                  -
+  dist_to_boundary_m        DOUBLE        1197     1194 3.6231312740335855 4220.098270641938  337.7633752625457  357.5383347328983
+       within_1500ft       BOOLEAN        1215        2                  -                 -                  -                  -
+   project_family_id       VARCHAR        1215     1128                  -                 -                  -                  -

@@ -1,4 +1,4 @@
-"""Read-only CSV, Parquet, and single-layer GeoPackage attribute reports.
+"""Read-only CSV, Parquet, and GeoPackage attribute reports.
 
 DuckDB computes the saved-file summary. Distinct counts are exact up to 100,000 rows and approximate above that;
 row counts, non-missing counts, declared-key checks, and file SHA-256 are exact.
@@ -17,17 +17,17 @@ def quote_identifier(value):
     return '"' + value.replace('"', '""') + '"'
 
 
-def write_summary(source_file, report_file, keys):
+def summarize_data(source_file, keys, layer=None, include_layer=False):
     con = duckdb.connect()
     con.execute("SET threads=1")
     if Path(source_file).suffix == '.gpkg':
         # Summarize saved attributes without loading an extension or interpreting
         # geometry blobs. The producing spatial script owns geometry validation.
         with sqlite3.connect(Path(source_file).resolve().as_uri() + '?mode=ro', uri=True) as spatial:
-            layers = spatial.execute('SELECT table_name, column_name FROM gpkg_geometry_columns').fetchall()
-            if len(layers) != 1:
-                raise ValueError('A GeoPackage report requires exactly one spatial layer')
-            table, geometry = layers[0]
+            table, geometry = spatial.execute(
+                'SELECT table_name, column_name FROM gpkg_geometry_columns WHERE table_name = ?',
+                [layer],
+            ).fetchone()
             attributes = [row[1] for row in spatial.execute('PRAGMA table_info(' + quote_identifier(table) + ')')
                           if row[1] != geometry]
             frame = pd.read_sql_query('SELECT ' + ', '.join(map(quote_identifier, attributes))
@@ -81,7 +81,9 @@ def write_summary(source_file, report_file, keys):
         for chunk in iter(lambda: file.read(1024 * 1024), b''):
             digest.update(chunk)
     text = (
-        f'File: {Path(source_file).name}\nRows: {row_count}\nColumns: {len(columns)}\n'
+        f'File: {Path(source_file).name}\n'
+        + (f'Layer: {layer}\n' if include_layer else '')
+        + f'Rows: {row_count}\nColumns: {len(columns)}\n'
         f'SHA-256 (saved bytes): {digest.hexdigest()}\n'
         f'Key: {", ".join(keys) if keys else "not declared in this report"}\n'
         f'{type_description}'
@@ -90,6 +92,18 @@ def write_summary(source_file, report_file, keys):
         + summary.astype(object).fillna("-").to_string(index=False) + '\n'
     )
     con.close()
+    return text
+
+
+def write_summary(source_file, report_file, keys):
+    layers = [None]
+    if Path(source_file).suffix == '.gpkg':
+        with sqlite3.connect(Path(source_file).resolve().as_uri() + '?mode=ro', uri=True) as spatial:
+            layers = [row[0] for row in spatial.execute(
+                'SELECT table_name FROM gpkg_geometry_columns ORDER BY table_name')]
+        if not layers:
+            raise ValueError('A GeoPackage report requires at least one spatial layer')
+    text = '\n'.join(summarize_data(source_file, keys, layer, len(layers) > 1) for layer in layers)
     # A failed computation must leave the previous report intact.
     temporary = Path(report_file + '.tmp')
     temporary.write_text(text)

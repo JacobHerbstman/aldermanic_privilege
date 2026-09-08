@@ -1,7 +1,7 @@
 File: historical_project_year_geometry.gpkg
 Rows: 9523
 Columns: 6
-SHA-256 (saved bytes): b739aa610a55d7381728f4c18b27ce915468bedd0ac990fec3b93d88342436a8
+SHA-256 (saved bytes): bcd2af56bbbf8a18c00ab477053466a3aab5bbcac457afb3fd203619e4140b33
 Key: source_family, project_id, target_year
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).

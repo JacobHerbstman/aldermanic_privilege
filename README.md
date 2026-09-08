@@ -30,6 +30,21 @@ outputs.
 The diagram is generated from the paper and task Makefile prerequisites. After
 changing dependencies, rebuild it with `make -C task_graph` (requires Graphviz).
 
+## Construction data being reconstructed
+
+The current construction build is separate from the frozen construction file in
+the paper graph above. This diagram shows the source tasks that hand files directly
+to construction cleaning; it does not depict every upstream download dependency.
+
+[![Current construction source tasks](task_graph/construction_tasks.svg)](task_graph/construction_tasks.svg)
+
+Read the [cleaning rules and chronological guide](tasks/new_construction_cleaning/README.md),
+the [exact script progression](task_graph/construction_steps.md), or the
+[full diagram within construction cleaning](task_graph/construction_scripts.svg).
+Both construction diagrams and the script progression are generated from the
+current default Make targets. The older unfinished final assembly is excluded
+from that default, and remains a release blocker.
+
 ## Data Inputs
 
 The paper uses two kinds of inputs:

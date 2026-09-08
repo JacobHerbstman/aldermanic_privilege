@@ -1,0 +1,15 @@
+File: density_historical_coordinate_candidates.csv
+Rows: 747
+Columns: 5
+SHA-256 (saved bytes): 8e823e80d5040e38a2561115572c23d2ecfcc856a2ec0d9c3531392959edb8fe
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct                min                max               mean                  sd
+              pin        BIGINT         747      747     10314090390000     25194030030000   15902534891107.1   2384440996843.049
+construction_year        BIGINT         747       17               2006               2022 2012.7202141900937   5.900030077368141
+        longitude        DOUBLE         747      747 -87.81491457463007 -87.56203773490776 -87.67269982829374 0.03726460581120648
+         latitude        DOUBLE         747      747 41.684240097393456  42.01292245204019  41.89218206903114 0.05595233866795076
+coordinate_source       VARCHAR         747        2                  -                  -                  -                   -

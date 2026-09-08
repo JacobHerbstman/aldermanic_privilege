@@ -1,0 +1,42 @@
+File: commercial_project_family_review.csv
+Rows: 1128
+Columns: 32
+SHA-256 (saved bytes): e87014068280407b5688b1e3a9028aacbb6b207bc4f35ff9ddfa93f12ff3f010
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                      column inferred_type non_missing distinct                min               max                mean                  sd
+           project_family_id       VARCHAR        1128     1128                  -                 -                   -                   -
+                 source_rows        BIGINT        1128       10                  1                23  1.8608156028368794  1.0561637440123914
+                     keypins        BIGINT        1128        9                  1                22  1.0859929078014185  0.9413401535983845
+          valuation_vintages        BIGINT        1128        2                  1                 2  1.7783687943262412  0.4155284408624004
+            yearbuilt_values        BIGINT        1128        5                  1                 5    1.74645390070922  0.4648093708181749
+                 unit_values        BIGINT        1128        6                  1                 9  1.1551418439716312 0.47646488943582943
+        building_area_values        BIGINT        1128        8                  0                12   1.073581560283688  0.6268841912669236
+            land_area_values        BIGINT        1128       11                  0                23  1.2952127659574468  1.0792444319361938
+  missing_building_area_rows        BIGINT        1128        2                  0                 1 0.14627659574468085  0.3535400408956935
+              source_keypins       VARCHAR        1128     1128                  -                 -                   -                   -
+            source_yearbuilt       VARCHAR        1128      151                  -                 -                   -                   -
+                source_units       VARCHAR        1128      359                  -                 -                   -                   -
+              component_pins        BIGINT        1128       20                  1                57  2.4202127659574466   2.868427891804956
+          component_pin_list       VARCHAR        1128     1128                  -                 -                   -                   -
+       parser_repair_applied       BOOLEAN        1128        2                  -                 -                   -                   -
+      parser_numeric_residue       BOOLEAN        1128        2                  -                 -                   -                   -
+         production_entities        BIGINT        1128        8                  1                22   1.077127659574468  0.9278735521894811
+          production_keypins       VARCHAR        1128     1128                  -                 -                   -                   -
+           any_within_1500ft       BOOLEAN        1128        2                  -                 -                   -                   -
+ minimum_boundary_distance_m        DOUBLE        1110     1108 3.6231312740335855 4220.098270641938   336.1155864967538   366.4817702628503
+               both_vintages       BOOLEAN        1128        2                  -                 -                   -                   -
+     within_vintage_conflict       BOOLEAN        1128        2                  -                 -                   -                   -
+component_membership_changed       BOOLEAN        1128        2                  -                 -                   -                   -
+           yearbuilt_changed       BOOLEAN        1128        2                  -                 -                   -                   -
+               units_changed       BOOLEAN        1128        2                  -                 -                   -                   -
+       building_area_changed       BOOLEAN        1128        2                  -                 -                   -                   -
+           land_area_changed       BOOLEAN        1128        2                  -                 -                   -                   -
+      stable_physical_fields       BOOLEAN        1128        2                  -                 -                   -                   -
+ cross_vintage_review_reason       VARCHAR        1128        7                  -                 -                   -                   -
+             requires_review       BOOLEAN        1128        2                  -                 -                   -                   -
+        legacy_review_reason       VARCHAR        1128        9                  -                 -                   -                   -
+               review_reason       VARCHAR        1128        7                  -                 -                   -                   -

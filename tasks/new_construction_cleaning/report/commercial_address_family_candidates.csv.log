@@ -1,0 +1,17 @@
+File: commercial_address_family_candidates.csv
+Rows: 7
+Columns: 7
+SHA-256 (saved bytes): 343ef14b2d0c91086de2bc6f98f1c02ca972ff641c85d402178ffe573fc9fde5
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct min max               mean                 sd
+       address_key       VARCHAR           7        7   -   -                  -                  -
+  project_families        BIGINT           7        2   2   7 2.7142857142857144 1.8898223650461359
+     families_2021        BIGINT           7        3   1   7 2.2857142857142856  2.138089935299395
+     families_2024        BIGINT           7        3   1   7 2.4285714285714284 2.0701966780270626
+project_family_ids       VARCHAR           7        7   -   -                  -                  -
+           keypins       VARCHAR           7        7   -   -                  -                  -
+  source_addresses       VARCHAR           7        7   -   -                  -                  -

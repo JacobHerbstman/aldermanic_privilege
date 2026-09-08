@@ -1,0 +1,19 @@
+File: commercial_permit_address_evidence.csv
+Rows: 302
+Columns: 9
+SHA-256 (saved bytes): 77eaeedb14e5eb3e17ba52e345cd9ef281ed9358b4f3864ae60198812247b926
+Key: project_id, address_key
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                    column inferred_type non_missing distinct min max               mean                 sd
+                project_id       VARCHAR         302      146   -   -                  -                  -
+               address_key       VARCHAR         302      263   -   -                  -                  -
+             permit_chains        BIGINT         302        7   1   7  1.281456953642384  0.883732944245888
+permits_with_unit_mentions        BIGINT         302        5   0   4 0.9105960264900662 0.4977894413882046
+      distinct_unit_counts        BIGINT         302        5   0   4 0.9105960264900662 0.5109631733329036
+               unit_counts       VARCHAR         254       78   -   -                  -                  -
+             unit_contexts       VARCHAR         302      222   -   -                  -                  -
+    resolved_address_units        BIGINT         238       62   3 441  34.10084033613445  69.53940023429064
+        address_resolution       VARCHAR         302        3   -   -                  -                  -

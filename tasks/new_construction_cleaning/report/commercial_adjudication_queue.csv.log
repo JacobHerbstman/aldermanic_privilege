@@ -1,0 +1,54 @@
+File: commercial_adjudication_queue.csv
+Rows: 171
+Columns: 44
+SHA-256 (saved bytes): 007a7ea8e9dd9010850eb5278595b92df20676718d10e30115b7216172d4c21d
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                       column inferred_type non_missing distinct                min                max               mean                 sd
+                   project_id       VARCHAR         171      171                  -                  -                  -                  -
+                source_family       VARCHAR         171        1                  -                  -                  -                  -
+                 project_kind       VARCHAR         171        1                  -                  -                  -                  -
+               component_pins       VARCHAR         171      171                  -                  -                  -                  -
+              component_count        BIGINT         171       14                  1                 57 3.4210526315789473  5.209541139625341
+            construction_year        BIGINT         171       17               2006               2022 2015.1929824561403 4.9897728222172235
+               dwelling_units        BIGINT         169       99                  4               1679  103.7810650887574 182.59076183093626
+                building_sqft        BIGINT         156      152               3272            1380640 131190.71153846153 218403.18081838283
+                    land_sqft        BIGINT         170      151                  0             816149  45503.32941176471   99498.6296927898
+                 class_values       VARCHAR         171        2                  -                  -                  -                  -
+               source_row_ids       VARCHAR         171      171                  -                  -                  -                  -
+             permit_chain_ids       VARCHAR         146      145                  -                  -                  -                  -
+               permit_numbers       VARCHAR         146      145                  -                  -                  -                  -
+            direct_permit_ids       VARCHAR         146      146                  -                  -                  -                  -
+                  year_source       VARCHAR         171      171                  -                  -                  -                  -
+                 units_source       VARCHAR         171      171                  -                  -                  -                  -
+              building_source       VARCHAR         171      171                  -                  -                  -                  -
+                  land_source       VARCHAR         171      171                  -                  -                  -                  -
+           current_distance_m        DOUBLE         169      169 14.793168248251378 3175.6352399409056  308.6290619679879  339.4318049192783
+        current_within_1500ft       BOOLEAN         171        2                  -                  -                  -                  -
+             selected_vintage        BIGINT         171        2               2021               2024  2023.877192982456 0.5961694026502428
+    selected_source_addresses       VARCHAR         171      171                  -                  -                  -                  -
+   selected_property_type_use       VARCHAR         169       17                  -                  -                  -                  -
+selected_property_description       VARCHAR           0        0                  -                  -                  -                  -
+                observed_2021       BOOLEAN         171        2                  -                  -                  -                  -
+                observed_2024       BOOLEAN         171        2                  -                  -                  -                  -
+    selected_vintage_conflict       BOOLEAN         171        2                  -                  -                  -                  -
+  stable_component_membership       BOOLEAN         171        2                  -                  -                  -                  -
+      substantive_unit_change       BOOLEAN         171        2                  -                  -                  -                  -
+  substantive_building_change       BOOLEAN         171        2                  -                  -                  -                  -
+      substantive_land_change       BOOLEAN         171        2                  -                  -                  -                  -
+       selected_parser_repair       BOOLEAN         171        2                  -                  -                  -                  -
+      selected_parser_residue       BOOLEAN         171        1                  -                  -                  -                  -
+    same_address_cross_family       BOOLEAN         171        2                  -                  -                  -                  -
+       documented_manual_case       BOOLEAN         171        2                  -                  -                  -                  -
+              student_housing       BOOLEAN         171        2                  -                  -                  -                  -
+         permit_unit_mismatch       BOOLEAN         171        2                  -                  -                  -                  -
+         permit_unit_evidence       VARCHAR         134       87                  -                  -                  -                  -
+         documented_case_pins       VARCHAR           7        7                  -                  -                  -                  -
+      documented_case_actions       VARCHAR           7        6                  -                  -                  -                  -
+     documented_case_evidence       VARCHAR           7        7                  -                  -                  -                  -
+   documented_case_confidence       VARCHAR           7        3                  -                  -                  -                  -
+             candidate_status       VARCHAR         171        1                  -                  -                  -                  -
+              decision_reason       VARCHAR         171        8                  -                  -                  -                  -

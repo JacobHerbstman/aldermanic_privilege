@@ -1,0 +1,32 @@
+File: commercial_family_vintage_summary.csv
+Rows: 2006
+Columns: 22
+SHA-256 (saved bytes): edaf8efda572bfaf511344fa71097eda011bfe8162a3ed62bfedf2500ec3416f
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct  min     max               mean                  sd
+      project_family_id       VARCHAR        2006     1128    -       -                  -                   -
+         valuation_year        BIGINT        2006        2 2021    2024   2022.61814556331  1.4957128262474544
+            source_rows        BIGINT        2006        9    1      22 1.0463609172482553   0.705761269781183
+                keypins        BIGINT        2006        9    1      22 1.0458624127617149  0.7054404393563375
+         source_keypins       VARCHAR        2006     1163    -       -                  -                   -
+       yearbuilt_values        BIGINT        2006        6    0       5  1.006480558325025 0.13569026035055842
+            unit_values        BIGINT        2006        5    1       7 1.0139581256231307 0.19160585646242517
+   building_area_values        BIGINT        2006        7    0      11 0.9431704885343968 0.46713507671413296
+       land_area_values        BIGINT        2006       10    0      22  1.038384845463609  0.7048263849115487
+              yearbuilt        BIGINT        1995       69 1888    2025 2010.9518796992481  13.875528136570875
+         reported_units        BIGINT        1988      286    1    1732  79.42505030181087  142.15500770868312
+                 bldgsf        BIGINT        1822     1070  456 1380640 100404.81064763996    175578.433412976
+                 landsf        BIGINT        1970     1061    0 1540260 27409.964974619288   64725.77427613188
+       source_yearbuilt       VARCHAR        2004       78    -       -                  -                   -
+           source_units       VARCHAR        2006      303    -       -                  -                   -
+  source_building_areas       VARCHAR        1842     1090    -       -                  -                   -
+      source_land_areas       VARCHAR        1996     1087    -       -                  -                   -
+within_vintage_conflict       BOOLEAN        2006        2    -       -                  -                   -
+         component_pins        BIGINT        2006       23    1      57 2.3803589232303093   2.873629882055106
+     component_pin_list       VARCHAR        2006     1170    -       -                  -                   -
+  parser_repair_applied       BOOLEAN        2006        2    -       -                  -                   -
+ parser_numeric_residue       BOOLEAN        2006        2    -       -                  -                   -

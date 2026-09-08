@@ -1,24 +1,24 @@
 File: preferred_project_year_geometry_coverage.csv
-Rows: 14009
+Rows: 14017
 Columns: 14
-SHA-256 (saved bytes): f2d00d9ec0e791fb7ef349a6135059e9786b5e3185f25862ca7ede99b14d67c4
+SHA-256 (saved bytes): bd366f4dc21c4b53ffc4493a9629bc3e2007ba4dae473427121e9f9968d0b7fa
 Key: source_family, project_id, target_year
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                   column inferred_type non_missing distinct  min  max                  mean                  sd
-            source_family       VARCHAR       14009        2    -    -                     -                   -
-               project_id       VARCHAR       14009    14009    -    -                     -                   -
-             project_kind       VARCHAR       14009        7    -    -                     -                   -
-         candidate_status       VARCHAR       14009        5    -    -                     -                   -
-              target_year        BIGINT       14009       17 2006 2022     2012.491469769434   5.389704731512302
-     requested_components        BIGINT       14009       17    1   57     1.119351845242344  0.8207598631203873
-      resolved_components        BIGINT       14009       18    0   57    1.1132843172246414  0.8230517461231917
- distinct_parcel_polygons        BIGINT       14009       17    0   57    1.1086444428581625  0.7972971168906086
-           component_pins       VARCHAR       13934    13906    -    -                     -                   -
-              parcel_pins       VARCHAR       13934    11361    -    -                     -                   -
-            match_methods       VARCHAR       13934        5    -    -                     -                   -
-    unresolved_components        BIGINT       14009        4    0    4  0.006067528017702905 0.08553434194574341
-     collapsed_components        BIGINT       14009        9    0   15 0.0046398743664786924 0.17976966832528848
-complete_project_geometry       BOOLEAN       14009        2    -    -                     -                   -
+                   column inferred_type non_missing distinct  min  max                 mean                  sd
+            source_family       VARCHAR       14017        2    -    -                    -                   -
+               project_id       VARCHAR       14017    14017    -    -                    -                   -
+             project_kind       VARCHAR       14017        7    -    -                    -                   -
+         candidate_status       VARCHAR       14017        5    -    -                    -                   -
+              target_year        BIGINT       14017       17 2006 2022   2012.4889776699722  5.3895255243350695
+     requested_components        BIGINT       14017       17    1   57   1.1194264107869016  0.8206836801931757
+      resolved_components        BIGINT       14017       18    0   57   1.1133623457230506  0.8229750311355614
+ distinct_parcel_polygons        BIGINT       14017       17    0   57   1.1087251194977528  0.7972333240793735
+           component_pins       VARCHAR       13942    13914    -    -                    -                   -
+              parcel_pins       VARCHAR       13942    11362    -    -                    -                   -
+            match_methods       VARCHAR       13942        5    -    -                    -                   -
+    unresolved_components        BIGINT       14017        4    0    4 0.006064065063851038 0.08551005077476359
+     collapsed_components        BIGINT       14017        9    0   15 0.004637226225297853 0.17971839104040047
+complete_project_geometry       BOOLEAN       14017        2    -    -                    -                   -

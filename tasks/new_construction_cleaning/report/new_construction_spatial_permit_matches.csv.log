@@ -1,0 +1,30 @@
+File: new_construction_spatial_permit_matches.csv
+Rows: 46858
+Columns: 20
+SHA-256 (saved bytes): b3035d5230d2cd23213d193969530c45e487a3c9d717a760935033c490d3cffe
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                      column inferred_type non_missing distinct       min               max               mean                 sd
+               source_family       VARCHAR       46858        2         -                 -                  -                  -
+                  project_id       VARCHAR       46858     8471         -                 -                  -                  -
+                 target_year        BIGINT       46858       17      2006              2022 2012.4080413163174 5.0992167476726165
+                   permit_id        BIGINT       46858    10621   1393747           3399975 2322857.9766955483  500769.7411783661
+               permit_number        BIGINT       46858    10621 100011654         101062852 100436181.56419395  257864.6368664383
+            application_date          DATE       46858     3629         -                 -                  -                  -
+                  issue_date          DATE       46858     3595         -                 -                  -                  -
+            application_year        BIGINT       46858       21      2004              2024 2011.8948525331853  4.913831497315965
+                  issue_year        BIGINT       46858       19      2006              2024 2011.9841009005934  4.908739152452178
+               permit_status       VARCHAR       46858        7         -                 -                  -                  -
+              permit_address       VARCHAR       46858     9321         -                 -                  -                  -
+   referenced_permit_numbers       VARCHAR        4069      596         -                 -                  -                  -
+            work_description       VARCHAR       46858     9373         -                 -                  -                  -
+         polygon_distance_ft        DOUBLE       46858    24013       0.0 199.9916410380515  72.86783723773588  67.50858445359994
+        application_year_gap        BIGINT       46858        9        -2                 6 0.5131887831320159 1.5290009323483174
+              issue_year_gap        BIGINT       46858        7        -2                 4 0.4239404157241026  1.508662225964591
+plausible_application_window       BOOLEAN       46858        1         -                 -                  -                  -
+      plausible_issue_window       BOOLEAN       46858        1         -                 -                  -                  -
+             exact_pin_match       BOOLEAN       46858        2         -                 -                  -                  -
+        spatial_match_method       VARCHAR       46858        3         -                 -                  -                  -

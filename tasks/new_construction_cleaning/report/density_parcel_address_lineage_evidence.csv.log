@@ -1,0 +1,62 @@
+File: density_parcel_address_lineage_evidence.csv
+Rows: 666
+Columns: 52
+SHA-256 (saved bytes): 9d899d340f0dbcf289eaf191378046e37ea0d9750a00a985713b6725a3d36827
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                 column inferred_type non_missing distinct                    min                max                mean                  sd
+                            project_key       VARCHAR         666      666                      -                  -                   -                   -
+                                 source       VARCHAR         666        2                      -                  -                   -                   -
+                            member_pins       VARCHAR         666      666                      -                  -                   -                   -
+                       member_pin_count        BIGINT         666        5                      1                 10   1.117117117117117  0.5039167864006299
+             reported_construction_year        BIGINT         666       17                   2006               2022  2012.6186186186187  5.9485423916414675
+            distinct_construction_years        BIGINT         666        1                      1                  1                 1.0                 0.0
+                   distinct_unit_counts        BIGINT         666        2                      1                  2   1.003003003003003 0.05475844417999407
+                distinct_building_areas        BIGINT         666        2                      1                  2  1.0105105105105106 0.10205723314264141
+                             unitscount        BIGINT         666       12                      1                245  2.9864864864864864  11.339257668770227
+                           areabuilding        BIGINT         666      520                   1026             400024   6375.315315315315  23294.471523078708
+             exact_coordinate_pin_count        BIGINT         666        5                      1                 10  1.1156156156156156  0.5027706656638059
+                           historical_x        DOUBLE         666      666             1125274.01 1194753.7653362772  1164238.4738612685  10479.174237726258
+                           historical_y        DOUBLE         666      666     1828231.6198057164  1947967.229579701  1903260.0899159007     20631.945908426
+              historical_subdivision_id       VARCHAR         300      216                      -                  -                   -                   -
+                historical_pin_prefix_8        BIGINT         666      455               10314090           25194030  16012674.582582582   2430338.095903712
+                  source_group_conflict       BOOLEAN         666        2                      -                  -                   -                   -
+          same_year_current_member_pins       VARCHAR         666      488                      -                  -                   -                   -
+           same_year_current_unitscount        BIGINT         666       37                      1                698    9.49099099099099  48.946778614744595
+         same_year_current_areabuilding        BIGINT         666      429                    464             781284  12631.557057057056   57043.68525238731
+same_year_current_source_group_conflict       BOOLEAN         666        2                      -                  -                   -                   -
+       same_year_current_subdivision_id       VARCHAR         656      367                      -                  -                   -                   -
+         same_year_current_pin_prefix_8        BIGINT         666      414               11311110           25194030  16024190.512012012  2437013.9911853597
+          same_year_project_distance_ft        DOUBLE         666      666  8.358434748578419e-06   10121.6841953006  1184.2963003579648  1463.0235816504105
+           nearest_current_project_pins       VARCHAR         666      546                      -                  -                   -                   -
+           nearest_current_project_year        BIGINT         666       17                   2006               2022  2012.9384384384384   5.144597279368101
+          nearest_current_project_units        BIGINT         666       28                      1                735   7.927927927927928    38.6425403619492
+  nearest_current_project_building_area        BIGINT         666      458                   1064            1284706  11515.118618618619   58644.90171206258
+    nearest_current_project_distance_ft        DOUBLE         666      666 6.3871778098003046e-06 1893.7025546436464  157.42846892321762  215.73838436633193
+                     same_year_unit_gap        BIGINT         666       43                      0                580   8.531531531531531   44.08658326312323
+                 same_year_building_gap        DOUBLE         666      525                    0.0 0.9887417395724644  0.3649587209650047 0.30303157869162045
+                same_year_same_prefix_8       BOOLEAN         666        2                      -                  -                   -                   -
+             same_year_same_subdivision       BOOLEAN         663        2                      -                  -                   -                   -
+                 successor_match_reason       VARCHAR         126        4                      -                  -                   -                   -
+              high_confidence_successor       BOOLEAN         666        2                      -                  -                   -                   -
+                     probable_successor       BOOLEAN         666        2                      -                  -                   -                   -
+          nearby_different_year_project       BOOLEAN         666        2                      -                  -                   -                   -
+                         lineage_status       VARCHAR         666        6                      -                  -                   -                   -
+                     recommended_action       VARCHAR         666        3                      -                  -                   -                   -
+              recovered_audit_pin_count        BIGINT         666        5                      1                 10  1.1156156156156156  0.5027706656638059
+                   target_address_count        BIGINT         666        4                      1                  6  1.0825825825825826  0.3521319770485023
+                       target_addresses       VARCHAR         666      661                      -                  -                   -                   -
+                    candidate_pin_count        BIGINT         666        4                      1                  4  1.8243243243243243 0.48192275602616924
+                candidate_address_count        BIGINT         666        4                      1                  4  1.7972972972972974  0.4449129933276644
+                    candidate_addresses       VARCHAR         666      585                      -                  -                   -                   -
+              nearest_project_addresses       VARCHAR         664      543                      -                  -                   -                   -
+                    exact_address_match       BOOLEAN         666        2                      -                  -                   -                   -
+    exact_nearest_project_address_match       BOOLEAN         666        2                      -                  -                   -                   -
+               address_lineage_evidence       VARCHAR         666        2                      -                  -                   -                   -
+           nearest_project_building_gap        DOUBLE         666      507                    0.0 0.9914323041211258 0.32297281069220213  0.3228266787278888
+               nearest_project_unit_gap        BIGINT         666       34                      0                734   7.208708708708708   37.73692054427131
+         address_duplicate_confirmation       BOOLEAN         666        2                      -                  -                   -                   -
+           address_audit_recommendation       VARCHAR         666        4                      -                  -                   -                   -

@@ -1,0 +1,48 @@
+File: density_project_lineage.csv
+Rows: 1117
+Columns: 38
+SHA-256 (saved bytes): fe046c64c529fce1afeeb4c50adb9b144d11f7a40ff7d80389c2d590cc2f77b6
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                 column inferred_type non_missing distinct                    min                max                mean                   sd
+                            project_key       VARCHAR        1117     1117                      -                  -                   -                    -
+                                 source       VARCHAR        1117        2                      -                  -                   -                    -
+                            member_pins       VARCHAR        1117     1117                      -                  -                   -                    -
+                       member_pin_count        BIGINT        1117        6                      1                 10  1.1047448522829006   0.4406992369607599
+             reported_construction_year        BIGINT        1117       17                   2006               2022  2012.0617726051926   5.7628411770683625
+            distinct_construction_years        BIGINT        1117        2                      1                  2   1.000895255147717 0.029920814623220063
+                   distinct_unit_counts        BIGINT        1117        2                      1                  2   1.001790510295434  0.04229545951432487
+                distinct_building_areas        BIGINT        1117        2                      1                  2  1.0071620411817368  0.08436301312992751
+                             unitscount        BIGINT        1117       15                      1                279   2.748433303491495    12.09321285988329
+                           areabuilding        BIGINT        1117      747                   1026             400024   5898.623992837959   23513.977667302937
+             exact_coordinate_pin_count        BIGINT        1117        7                      0                 10  0.9059982094897046   0.6229840692460968
+                           historical_x        DOUBLE         899      897     1119990.2753195493 1200320.4976668772  1164440.7766490444   12081.514108214871
+                           historical_y        DOUBLE         899      897      1823463.348947222 1949345.8399999999  1900835.6481050379    22684.27849548205
+              historical_subdivision_id       VARCHAR         391      282                      -                  -                   -                    -
+                historical_pin_prefix_8       VARCHAR        1117      668                      -                  -                   -                    -
+                  source_group_conflict       BOOLEAN        1117        2                      -                  -                   -                    -
+          same_year_current_member_pins       VARCHAR         899      672                      -                  -                   -                    -
+           same_year_current_unitscount        BIGINT         899       42                      1                698   9.142380422691879    46.62535818578888
+         same_year_current_areabuilding        BIGINT         899      575                    464             781284  12512.467185761958    54514.32712989444
+same_year_current_source_group_conflict       BOOLEAN         899        2                      -                  -                   -                    -
+       same_year_current_subdivision_id       VARCHAR         886      502                      -                  -                   -                    -
+         same_year_current_pin_prefix_8       VARCHAR         899      559                      -                  -                   -                    -
+          same_year_project_distance_ft        DOUBLE         899      897  8.358434748578419e-06  17801.59071786431  1205.3659143692362   1652.3466333319266
+           nearest_current_project_pins       VARCHAR         899      753                      -                  -                   -                    -
+           nearest_current_project_year        BIGINT         899       17                   2006               2022  2012.8520578420466    5.277734431284241
+          nearest_current_project_units        BIGINT         899       33                      1                735   7.401557285873192    38.20114443737182
+  nearest_current_project_building_area        BIGINT         899      608                   1064            1284706  10720.499443826473     55437.8514758972
+    nearest_current_project_distance_ft        DOUBLE         899      897 6.3871778098003046e-06 1980.7075478638442     151.59145643415    223.1531044195512
+                     same_year_unit_gap        BIGINT         899       49                      0                580   8.062291434927698   42.353225025042384
+                 same_year_building_gap        DOUBLE         899      703                    0.0  0.990908787504589 0.34441569004656075   0.3019849205989553
+                same_year_same_prefix_8       BOOLEAN         899        2                      -                  -                   -                    -
+             same_year_same_subdivision       BOOLEAN        1113        2                      -                  -                   -                    -
+                 successor_match_reason       VARCHAR         180        4                      -                  -                   -                    -
+              high_confidence_successor       BOOLEAN        1117        2                      -                  -                   -                    -
+                     probable_successor       BOOLEAN         899        2                      -                  -                   -                    -
+          nearby_different_year_project       BOOLEAN         899        2                      -                  -                   -                    -
+                         lineage_status       VARCHAR        1117        7                      -                  -                   -                    -
+                     recommended_action       VARCHAR        1117        3                      -                  -                   -                    -

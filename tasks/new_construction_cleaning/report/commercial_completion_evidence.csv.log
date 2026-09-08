@@ -1,0 +1,84 @@
+File: commercial_completion_evidence.csv
+Rows: 800
+Columns: 74
+SHA-256 (saved bytes): cac25b0ab5b3045bf080690f46fb7471d71df42419e31476ef9e497b023961bc
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                     column inferred_type non_missing distinct                min               max                mean                  sd
+                                 project_id       VARCHAR         800      800                  -                 -                   -                   -
+                              source_family       VARCHAR         800        1                  -                 -                   -                   -
+                               project_kind       VARCHAR         800        1                  -                 -                   -                   -
+                             component_pins       VARCHAR         800      800                  -                 -                   -                   -
+                            component_count        BIGINT         800       17                  1                57              2.4425  2.9984048742184846
+                          construction_year        BIGINT         800       17               2006              2022           2013.8625   5.218249842070205
+                             dwelling_units        BIGINT         798      225                  1              1679   84.46115288220551  142.83614207452692
+                              building_sqft        BIGINT         785      738               1144           1380640  108163.25605095542   184391.7948278367
+                                  land_sqft        BIGINT         799      705                  0           1540260   33683.36921151439   88285.91644467585
+                               class_values       VARCHAR         800        2                  -                 -                   -                   -
+                             source_row_ids       VARCHAR         800      800                  -                 -                   -                   -
+                           permit_chain_ids       VARCHAR         502      498                  -                 -                   -                   -
+                             permit_numbers       VARCHAR         502      498                  -                 -                   -                   -
+                          direct_permit_ids       VARCHAR         502      499                  -                 -                   -                   -
+                                year_source       VARCHAR         800      800                  -                 -                   -                   -
+                               units_source       VARCHAR         800      800                  -                 -                   -                   -
+                            building_source       VARCHAR         800      800                  -                 -                   -                   -
+                                land_source       VARCHAR         800      800                  -                 -                   -                   -
+                         current_distance_m        DOUBLE         794      792 3.6231312740335855 4220.098270641938   345.9148078384921  380.79630336934133
+                      current_within_1500ft       BOOLEAN         800        2                  -                 -                   -                   -
+                           selected_vintage        BIGINT         800        2               2021              2024          2023.85375  0.6464389310789502
+                  selected_source_addresses       VARCHAR         800      790                  -                 -                   -                   -
+                 selected_property_type_use       VARCHAR         789       19                  -                 -                   -                   -
+              selected_property_description       VARCHAR           0        0                  -                 -                   -                   -
+                              observed_2021       BOOLEAN         800        2                  -                 -                   -                   -
+                              observed_2024       BOOLEAN         800        2                  -                 -                   -                   -
+                  selected_vintage_conflict       BOOLEAN         800        2                  -                 -                   -                   -
+                stable_component_membership       BOOLEAN         800        2                  -                 -                   -                   -
+                    substantive_unit_change       BOOLEAN         800        2                  -                 -                   -                   -
+                substantive_building_change       BOOLEAN         800        2                  -                 -                   -                   -
+                    substantive_land_change       BOOLEAN         800        2                  -                 -                   -                   -
+                     selected_parser_repair       BOOLEAN         800        2                  -                 -                   -                   -
+                    selected_parser_residue       BOOLEAN         800        1                  -                 -                   -                   -
+                  same_address_cross_family       BOOLEAN         800        2                  -                 -                   -                   -
+                     documented_manual_case       BOOLEAN         800        2                  -                 -                   -                   -
+                            student_housing       BOOLEAN         800        2                  -                 -                   -                   -
+                       permit_unit_mismatch       BOOLEAN         800        2                  -                 -                   -                   -
+                       permit_unit_evidence       VARCHAR         410      177                  -                 -                   -                   -
+                       documented_case_pins       VARCHAR           7        7                  -                 -                   -                   -
+                    documented_case_actions       VARCHAR           7        6                  -                 -                   -                   -
+                   documented_case_evidence       VARCHAR           7        7                  -                 -                   -                   -
+                 documented_case_confidence       VARCHAR           7        3                  -                 -                   -                   -
+                           candidate_status       VARCHAR         800        2                  -                 -                   -                   -
+                            decision_reason       VARCHAR         800       13                  -                 -                   -                   -
+            issued_new_construction_permits        BIGINT         800       12                  0                15              1.0025   1.498432639616922
+         completed_new_construction_permits        BIGINT         800       12                  0                15              0.9075  1.4804335021177892
+           expired_new_construction_permits        BIGINT         800        3                  0                 2             0.08375  0.3030688881074289
+nearby_residential_new_construction_permits        BIGINT         800        9                  0                 8             0.55875   1.134970764290756
+      earliest_new_construction_application          DATE         490      416                  -                 -                   -                   -
+            earliest_new_construction_issue          DATE         490      406                  -                 -                   -                   -
+              latest_new_construction_issue          DATE         490      412                  -                 -                   -                   -
+            new_construction_permit_numbers       VARCHAR         490      485                  -                 -                   -                   -
+           new_construction_permit_statuses       VARCHAR         490        9                  -                 -                   -                   -
+                  new_construction_evidence       VARCHAR         490      485                  -                 -                   -                   -
+           nearby_new_construction_evidence       VARCHAR         233      233                  -                 -                   -                   -
+                         demolition_permits        BIGINT         800        4                  0                 3             0.04625 0.24837078644528468
+                        demolition_evidence       VARCHAR          31       30                  -                 -                   -                   -
+      existing_building_or_addition_permits        BIGINT         800        4                  0                 3             0.02625 0.20152345304618904
+                 existing_building_evidence       VARCHAR          16       16                  -                 -                   -                   -
+             residential_history_components        BIGINT         800        7                  0                 7              0.2975  0.7630344205267778
+                 residential_first_tax_year        BIGINT         800       23                  0              2024           390.88375   794.7030854214739
+                  residential_last_tax_year        BIGINT         800       24                  0              2026             393.005   799.0127371748896
+                      cards_observed_before        BIGINT         800       11                  0                15               0.315  1.0896141857750856
+                       cards_observed_after        BIGINT         800        9                  0                12             0.15625  0.7280099144547623
+        cards_with_old_structure_persisting        BIGINT         800        5                  0                 5              0.0475  0.3207371827922853
+                        transition_evidence       VARCHAR         156      156                  -                 -                   -                   -
+                 residential_history_screen       VARCHAR         800        3                  -                 -                   -                   -
+                    matched_city_footprints        BIGINT         800       15                  0                25                1.23  1.9330729328467224
+                     city_year_built_values       VARCHAR         435      137                  -                 -                   -                   -
+                   city_year_coverage_share        DOUBLE         543       77                0.0               1.0  0.7562832579263146  0.4020804958943349
+                     city_near_target_share        DOUBLE         435        5                0.0               1.0 0.43750575205690595  0.4955648390046913
+                    city_old_building_share        BIGINT         435        2                  0                 1  0.5149425287356322  0.5003521192452591
+         later_assessor_report_after_permit       BOOLEAN         800        2                  -                 -                   -                   -
+                 completion_evidence_status       VARCHAR         800        6                  -                 -                   -                   -

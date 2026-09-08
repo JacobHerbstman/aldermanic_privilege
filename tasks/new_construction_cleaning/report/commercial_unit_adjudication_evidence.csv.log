@@ -1,0 +1,79 @@
+File: commercial_unit_adjudication_evidence.csv
+Rows: 1128
+Columns: 69
+SHA-256 (saved bytes): 467dd2177e153047f6ff5001222278b08e812f470ed7552ed66bcf4b65ad1c67
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct                min               max                mean                 sd
+                      project_id       VARCHAR        1128     1128                  -                 -                   -                  -
+                   source_family       VARCHAR        1128        1                  -                 -                   -                  -
+                    project_kind       VARCHAR        1128        1                  -                 -                   -                  -
+                  component_pins       VARCHAR        1128     1128                  -                 -                   -                  -
+                 component_count        BIGINT        1128       20                  1                57  2.4166666666666665  2.868326971511158
+               construction_year        BIGINT        1128       58               1888              2025  2010.4397163120568  15.69942551775691
+                  dwelling_units        BIGINT        1126      262                  1              1732    79.4715808170515 142.51180564145443
+                   building_sqft        BIGINT        1086     1012                456           1380640   98190.59208103131 173313.73416679644
+                       land_sqft        BIGINT        1127      983                  0           1540260  30446.298136645964  76288.63973213335
+                    class_values       VARCHAR        1128        2                  -                 -                   -                  -
+                  source_row_ids       VARCHAR        1128     1128                  -                 -                   -                  -
+                permit_chain_ids       VARCHAR         591      586                  -                 -                   -                  -
+                  permit_numbers       VARCHAR         591      586                  -                 -                   -                  -
+               direct_permit_ids       VARCHAR         591      588                  -                 -                   -                  -
+                     year_source       VARCHAR        1128     1128                  -                 -                   -                  -
+                    units_source       VARCHAR        1128     1128                  -                 -                   -                  -
+                 building_source       VARCHAR        1128     1128                  -                 -                   -                  -
+                     land_source       VARCHAR        1128     1128                  -                 -                   -                  -
+              current_distance_m        DOUBLE        1110     1108 3.6231312740335855 4220.098270641938   336.1155864967539  366.4817702628503
+           current_within_1500ft       BOOLEAN        1128        2                  -                 -                   -                  -
+                selected_vintage        BIGINT        1128        2               2021              2024   2023.877659574468 0.5936046483193419
+       selected_source_addresses       VARCHAR        1128     1115                  -                 -                   -                  -
+      selected_property_type_use       VARCHAR        1110       21                  -                 -                   -                  -
+   selected_property_description       VARCHAR           0        0                  -                 -                   -                  -
+                   observed_2021       BOOLEAN        1128        2                  -                 -                   -                  -
+                   observed_2024       BOOLEAN        1128        2                  -                 -                   -                  -
+       selected_vintage_conflict       BOOLEAN        1128        2                  -                 -                   -                  -
+     stable_component_membership       BOOLEAN        1128        2                  -                 -                   -                  -
+         substantive_unit_change       BOOLEAN        1128        2                  -                 -                   -                  -
+     substantive_building_change       BOOLEAN        1128        2                  -                 -                   -                  -
+         substantive_land_change       BOOLEAN        1128        2                  -                 -                   -                  -
+          selected_parser_repair       BOOLEAN        1128        2                  -                 -                   -                  -
+         selected_parser_residue       BOOLEAN        1128        1                  -                 -                   -                  -
+       same_address_cross_family       BOOLEAN        1128        2                  -                 -                   -                  -
+          documented_manual_case       BOOLEAN        1128        2                  -                 -                   -                  -
+                 student_housing       BOOLEAN        1128        2                  -                 -                   -                  -
+            permit_unit_mismatch       BOOLEAN        1128        2                  -                 -                   -                  -
+            permit_unit_evidence       VARCHAR         489      198                  -                 -                   -                  -
+            documented_case_pins       VARCHAR           7        7                  -                 -                   -                  -
+         documented_case_actions       VARCHAR           7        6                  -                 -                   -                  -
+        documented_case_evidence       VARCHAR           7        7                  -                 -                   -                  -
+      documented_case_confidence       VARCHAR           7        3                  -                 -                   -                  -
+                candidate_status       VARCHAR        1128        3                  -                 -                   -                  -
+                 decision_reason       VARCHAR        1128       14                  -                 -                   -                  -
+                      units_2021        BIGINT         908      222                  1              1668    76.4295154185022  139.1523658224597
+                      units_2024        BIGINT        1080      262                  1              1732   81.94351851851852  144.6474848057827
+                permit_addresses        BIGINT        1128       10                  0                16 0.26773049645390073 1.1777082817355955
+      addresses_with_unit_counts        BIGINT        1128       12                  0                15   0.225177304964539   1.02011924270334
+   addresses_with_resolved_units        BIGINT        1128       12                  0                15 0.21099290780141844  1.013565349975978
+       resolved_address_unit_sum        BIGINT         119       71                  3               441   64.60504201680672  87.95995029397503
+     resolved_permit_unit_values       VARCHAR         121       74                  -                 -                   -                  -
+resolved_permit_address_evidence       VARCHAR         146      121                  -                 -                   -                  -
+           unit_permit_chain_ids       VARCHAR         134      133                  -                 -                   -                  -
+             unit_permit_numbers       VARCHAR         134      133                  -                 -                   -                  -
+           unit_permit_addresses       VARCHAR         134      133                  -                 -                   -                  -
+              unit_permit_counts       VARCHAR         134       96                  -                 -                   -                  -
+            unit_permit_contexts       VARCHAR         134      133                  -                 -                   -                  -
+        unit_permit_descriptions       VARCHAR         134      133                  -                 -                   -                  -
+             stable_two_vintages       BOOLEAN        1128        2                  -                 -                   -                  -
+            changed_two_vintages       BOOLEAN        1128        2                  -                 -                   -                  -
+                       only_2021       BOOLEAN        1128        2                  -                 -                   -                  -
+                       only_2024       BOOLEAN        1128        2                  -                 -                   -                  -
+            permit_supports_2021       BOOLEAN        1128        2                  -                 -                   -                  -
+            permit_supports_2024       BOOLEAN        1128        2                  -                 -                   -                  -
+            source_count_pattern       VARCHAR        1128        5                  -                 -                   -                  -
+               recommended_units        BIGINT        1108      254                  1              1679   76.64801444043322 132.08773440602465
+        recommended_units_source       VARCHAR        1108        5                  -                 -                   -                  -
+            unit_review_required       BOOLEAN        1128        2                  -                 -                   -                  -
+              unit_review_reason       VARCHAR        1128        5                  -                 -                   -                  -

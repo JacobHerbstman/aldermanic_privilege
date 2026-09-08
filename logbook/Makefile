@@ -2,6 +2,8 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-08-construction-code-reading.tex ../tasks/new_construction_cleaning/README.md ../tasks/new_construction_cleaning/report/construction_discovery_boundaries.gpkg.log
+
 logbook.pdf: entries/2026-09-08-lake-park-year.tex ../tasks/new_construction_cleaning/report/residential_assessor_project_candidates.csv.log ../tasks/new_construction_cleaning/report/preferred_residential_project_candidates.csv.log ../tasks/new_construction_cleaning/report/preferred_project_boundary_scope.csv.log
 
 logbook.pdf: entries/2026-09-08-parcel-identities-and-home-locations.tex ../tasks/prepare_construction_assessor_history/report/residential_assessor_history.parquet.log ../tasks/new_construction_cleaning/report/preferred_residential_project_candidates.csv.log ../tasks/new_construction_cleaning/report/preferred_project_boundary_scope.csv.log ../tasks/download_construction_historical_parcels/report/preferred_historical_parcel_source.gpkg.log ../tasks/working_paper_release_audit/report/candidate_geography_checks.csv.log

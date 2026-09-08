@@ -1,0 +1,44 @@
+\clearpage
+\section*{September 8, 2026: Make construction cleaning readable}
+\addcontentsline{toc}{section}{September 8, 2026: Make construction cleaning readable}
+\textit{Agent-drafted research entry.}
+
+The current construction build has been separated from older review and
+unfinished final-assembly requests. The main Makefile now contains the candidate
+build; a separately named included Makefile preserves the older explicit targets
+and their dependencies. Existing analytical options are collected in one small
+settings file. The residential candidate script no longer computes unused permit
+and measurement summaries. No construction definition, accepted case decision,
+matching threshold, or density measurement was changed.
+
+All 75 current data products match the saved files from immediately before this
+cleanup. CSV comparisons used exact file hashes; spatial comparisons used every
+saved feature's attributes and geometry, excluding GeoPackage administrative
+metadata. The frozen 8,648-row construction input used by the paper is unchanged.
+Some refreshed reports differ from their earlier committed versions because those
+reports lagged the saved data from preceding case work; these are not new data
+changes caused by the cleanup. Previously unreported intermediate products now
+have ordinary data reports. The shared reporter was extended to describe all four
+layers of the discovery boundary file, which contain 118, 117, 122, and 121 ward-pair
+boundaries. Its earlier single-layer restriction stopped the new report build.
+
+The reading guide now distinguishes initial assessment selection, building
+identity, permit evidence, and construction-year geography. The detailed diagram
+and script progression are generated from the Make prerequisites: the current
+path still contains 46 scripts. It needs preliminary geography to check permits
+and final geography after projects are selected. Separating old rules makes this
+path easier to trace, but does not eliminate that substantive dependency or finish
+the final density dataset. Missing older final-assembly inputs and the required
+reconciliation of the earlier 30 parcel requests remain release checkpoints.
+
+\textit{Reproduction.} Run \texttt{make} in
+\texttt{tasks/new\_construction\_cleaning/code} and
+\texttt{make -C task\_graph} at the repository root. This comparison uses the
+recorded sources and decisions following commit \texttt{3805c515} on
+\texttt{sales\_sample\_exploration}; no source refresh or regression rerun was
+performed. With GNU Make 3.81, an isolated three-output residential producer ran
+once for a fresh parallel build, zero times when unchanged, and once after a
+secondary output was deleted. Those checks establish output recovery, not the
+validity of every source measurement. The logbook was compiled through Make using
+its saved historical exhibits; earlier regressions and audit exhibits were not
+refreshed for this code-reading entry.

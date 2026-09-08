@@ -74,12 +74,7 @@ permit_chain_evidence <- permit_links %>%
       directly_matched & direct_match_method == "exact_pin",
       na.rm = TRUE
     ),
-    directly_matched_inside_polygon = any(
-      directly_matched & direct_match_method == "inside_project_polygon",
-      na.rm = TRUE
-    ),
     earliest_application_date = min(application_date, na.rm = TRUE),
-    earliest_issue_date = min(issue_date, na.rm = TRUE),
     permit_numbers = paste(sort(unique(permit_number)), collapse = "/"),
     .groups = "drop"
   ) %>%
@@ -88,32 +83,14 @@ permit_chain_evidence <- permit_links %>%
       is.infinite(as.numeric(earliest_application_date)),
       as.Date(NA),
       earliest_application_date
-    ),
-    earliest_issue_date = if_else(
-      is.infinite(as.numeric(earliest_issue_date)),
-      as.Date(NA),
-      earliest_issue_date
     )
   )
 
 permit_unit_evidence <- permit_units %>%
   group_by(project_id, permit_chain_id) %>%
   summarise(
-    distinct_unit_counts = n_distinct(unit_count, na.rm = TRUE),
     permit_unit_count = single_finite_value(unit_count),
-    permit_unit_values = paste(sort(unique(unit_count)), collapse = "/"),
     .groups = "drop"
-  )
-
-permit_chain_evidence <- permit_chain_evidence %>%
-  left_join(
-    permit_unit_evidence,
-    by = c("project_id", "permit_chain_id"),
-    relationship = "one-to-one"
-  ) %>%
-  mutate(
-    distinct_unit_counts = coalesce(distinct_unit_counts, 0L),
-    permit_unit_values = coalesce(permit_unit_values, "")
   )
 
 exact_permit_year <- permit_chain_evidence %>%
@@ -360,17 +337,13 @@ class_297_candidates <- class_297_rows %>%
     project_kind = "class_297",
     component_pins = paste(sort(unique(pin)), collapse = "/"),
     component_count = n_distinct(pin),
-    year_values = n_distinct(year_built, na.rm = TRUE),
     construction_year = single_finite_value(year_built),
-    assessor_unit_values = n_distinct(num_apartments, na.rm = TRUE),
     assessor_units = single_finite_value(num_apartments),
-    building_values = n_distinct(building_sqft, na.rm = TRUE),
     building_sqft = if_else(
       component_count == 1,
       first(building_sqft),
       NA_real_
     ),
-    land_values = n_distinct(land_sqft, na.rm = TRUE),
     land_sqft = if_else(
       component_count == 1,
       first(land_sqft),

@@ -1,16 +1,16 @@
 File: preferred_project_year_geometry.gpkg
-Rows: 13929
+Rows: 13937
 Columns: 6
-SHA-256 (saved bytes): 0ecbff55fe6183b96fe58df449feb8ac056ce7f7c848a3683cde55ea26ed6e8b
+SHA-256 (saved bytes): 663daee33760cf688a3b71975d2f6a9a9ab3dc7ccc44f54dd89a88c6188af45c
 Key: source_family, project_id, target_year
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                 column inferred_type non_missing distinct                min               max               mean                 sd
-                   fid        BIGINT       13929    13929                  1             13929             6965.0 4021.1002847479444
-         source_family       VARCHAR       13929        2                  -                 -                  -                  -
-            project_id       VARCHAR       13929    13929                  -                 -                  -                  -
-           target_year        DOUBLE       13929       17             2006.0            2022.0 2012.4819441453083  5.392916814008746
- project_polygon_valid        BIGINT       13929        1                  1                 1                1.0                0.0
-project_land_area_sqft        DOUBLE       13929    11372 176.29144966672175 904026.4079986904  13670.67655438283  42349.41201759346
+                   fid        BIGINT       13937    13937                  1             13937             6969.0   4023.40968582619
+         source_family       VARCHAR       13937        2                  -                 -                  -                  -
+            project_id       VARCHAR       13937    13937                  -                 -                  -                  -
+           target_year        DOUBLE       13937       17             2006.0            2022.0  2012.479443208725  5.392730418461038
+ project_polygon_valid        BIGINT       13937        1                  1                 1                1.0                0.0
+project_land_area_sqft        DOUBLE       13937    11373 176.29144966672175 904026.4079986904 13669.970221611555 42337.275769544896

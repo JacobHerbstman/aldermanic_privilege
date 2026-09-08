@@ -1,0 +1,33 @@
+File: commercial_land_adjudication_evidence.csv
+Rows: 800
+Columns: 23
+SHA-256 (saved bytes): bec0685ee7965b8281e110faa8bbe375f1b3b4c5f836998318cbda9738a6a969
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                            column inferred_type non_missing distinct                    min                max               mean                 sd
+                        project_id       VARCHAR         800      800                      -                  -                  -                  -
+                 construction_year        BIGINT         800       17                   2006               2022          2013.8625  5.218249842070448
+         selected_source_addresses       VARCHAR         800      790                      -                  -                  -                  -
+                    component_pins       VARCHAR         800      800                      -                  -                  -                  -
+                   component_count        BIGINT         800       17                      1                 57             2.4425  2.998404874218485
+                  selected_vintage        BIGINT         800        2                   2021               2024         2023.85375 0.6464389310790009
+                    source_row_ids       VARCHAR         800      800                      -                  -                  -                  -
+                assessor_land_sqft        BIGINT         799      705                      0            1540260  33683.36921151439  88285.91644467594
+            project_land_area_sqft        DOUBLE         793      790     2249.8159374018433  724182.9306449294 28639.556886977338  56548.67224881108
+     assessor_to_parcel_land_ratio        DOUBLE         777      777 1.4828571340757131e-05 133.35418540177122  1.475204149443917  5.091430969746315
+     land_area_agrees_within_10pct       BOOLEAN         800        2                      -                  -                  -                  -
+     land_area_agrees_within_25pct       BOOLEAN         800        2                      -                  -                  -                  -
+exact_construction_year_components       BOOLEAN         800        2                      -                  -                  -                  -
+                  geography_status       VARCHAR         800        2                      -                  -                  -                  -
+              requested_components        BIGINT         800       17                      1                 57             2.4425  2.998404874218485
+               resolved_components        BIGINT         800       18                      0                 57             2.4275   2.99807927666806
+              collapsed_components        BIGINT         800        8                      0                 15               0.07 0.7353747139808744
+                     within_1500ft       BOOLEAN         793        2                      -                  -                  -                  -
+                      within_500ft       BOOLEAN         793        2                      -                  -                  -                  -
+                  candidate_status       VARCHAR         800        2                      -                  -                  -                  -
+                   decision_reason       VARCHAR         800       13                      -                  -                  -                  -
+              land_review_required       BOOLEAN         800        2                      -                  -                  -                  -
+                land_review_reason       VARCHAR         800        4                      -                  -                  -                  -

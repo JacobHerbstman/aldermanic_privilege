@@ -1,0 +1,28 @@
+digraph construction {
+rankdir=LR;
+graph [bgcolor="white", pad=.25, nodesep=.25, ranksep=.5];
+node [shape=box, style="rounded,filled", fillcolor="#eef4fa", fontname="Helvetica", fontsize=10];
+edge [color="#64748b"];
+"Pinned local sources" [label="Pinned local sources"];
+"Recorded decisions" [label="Recorded decisions"];
+"border_segment_creation" [label="border segment creation"];
+"cook_parcel_addresses_download" [label="cook parcel addresses download"];
+"download_city_building_footprints" [label="download city building footprints"];
+"download_construction_address_geocodes" [label="download construction address geocodes"];
+"download_construction_historical_parcels" [label="download construction historical parcels"];
+"download_parcel_universe_data" [label="download parcel universe data"];
+"new_construction_cleaning" [label="new construction cleaning"];
+"prepare_construction_assessor_history" [label="prepare construction assessor history"];
+"ward_panel_create" [label="ward panel create"];
+"Pinned local sources" -> "new_construction_cleaning";
+"Recorded decisions" -> "new_construction_cleaning";
+"border_segment_creation" -> "new_construction_cleaning";
+"cook_parcel_addresses_download" -> "new_construction_cleaning";
+"download_city_building_footprints" -> "new_construction_cleaning";
+"download_construction_address_geocodes" -> "new_construction_cleaning";
+"download_construction_historical_parcels" -> "new_construction_cleaning";
+"download_parcel_universe_data" -> "new_construction_cleaning";
+"prepare_construction_assessor_history" -> "new_construction_cleaning";
+"ward_panel_create" -> "new_construction_cleaning";
+label="Current construction build — separate from the paper’s frozen construction input";
+}

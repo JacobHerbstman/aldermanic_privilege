@@ -1,0 +1,25 @@
+File: commercial_residential_history_evidence.csv
+Rows: 800
+Columns: 15
+SHA-256 (saved bytes): 47a273cd9caf1779f2808e814ec01aef377d828f5cd725ccf1f9f237c25f3edd
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                             column inferred_type non_missing distinct  min  max      mean                 sd
+                         project_id       VARCHAR         800      800    -    -         -                  -
+                  construction_year        BIGINT         800       17 2006 2022 2013.8625   5.21824984207051
+              current_within_1500ft       BOOLEAN         800        2    -    -         -                  -
+                    component_count        BIGINT         800       17    1   57    2.4425 2.9984048742184846
+     residential_history_components        BIGINT         800        7    0    7    0.2975 0.7630344205267776
+          residential_history_cards        BIGINT         800       11    0   15   0.39625  1.184689959599334
+         residential_first_tax_year        BIGINT         800       23    0 2024 390.88375  794.7030854214738
+          residential_last_tax_year        BIGINT         800       24    0 2026   393.005  799.0127371748896
+              cards_observed_before        BIGINT         800       11    0   15     0.315 1.0896141857750856
+               cards_observed_after        BIGINT         800        9    0   12   0.15625 0.7280099144547624
+        cards_same_area_across_year        BIGINT         800        6    0   12    0.0675 0.5438874119669624
+             cards_with_year_recode        BIGINT         800        1    0    0       0.0                0.0
+cards_with_old_structure_persisting        BIGINT         800        5    0    5    0.0475 0.3207371827922854
+                transition_evidence       VARCHAR         156      156    -    -         -                  -
+         residential_history_screen       VARCHAR         800        3    -    -         -                  -

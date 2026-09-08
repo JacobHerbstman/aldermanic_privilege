@@ -1,0 +1,13 @@
+File: construction_discovery_ward_maps.gpkg
+Rows: 200
+Columns: 3
+SHA-256 (saved bytes): 06b6f8cf9e5aeefc7f5aafe7f73d4423b4772d3417dc001e614e6b09e58ea4d7
+Key: not declared in this report
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+column inferred_type non_missing distinct  min  max   mean                 sd
+   fid        BIGINT         200      200    1  200  100.5 57.879184513951124
+  year        BIGINT         200        4 1998 2024 2010.0 10.199024487788655
+  ward        BIGINT         200       50    1   50   25.5 14.467082719472522

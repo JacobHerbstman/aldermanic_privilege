@@ -1,0 +1,75 @@
+File: construction_discovery_boundaries.gpkg
+Layer: 1998_2002
+Rows: 118
+Columns: 7
+SHA-256 (saved bytes): 098ca531285ae60892a1525e38c2318be6ea21367ce92919deb4aae8e2caed01
+Key: not declared in this report
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+          column inferred_type non_missing distinct                min               max               mean                 sd
+             fid        BIGINT         118      118                  1               118               59.5  34.20769893849434
+        map_year        BIGINT         118        1               1998              1998             1998.0                0.0
+             era       VARCHAR         118        1                  -                 -                  -                  -
+          ward_a        BIGINT         118       40                  1                49  20.78813559322034   13.6211573079826
+          ward_b        BIGINT         118       46                  3                50 28.279661016949152 13.207667802189654
+    ward_pair_id       VARCHAR         118      118                  -                 -                  -                  -
+shared_length_ft        DOUBLE         118      118 353.50016120583376 43173.53387567992  12302.05086866859   8733.11446547675
+
+File: construction_discovery_boundaries.gpkg
+Layer: 2003_2014
+Rows: 117
+Columns: 7
+SHA-256 (saved bytes): 098ca531285ae60892a1525e38c2318be6ea21367ce92919deb4aae8e2caed01
+Key: not declared in this report
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+          column inferred_type non_missing distinct               min               max               mean                 sd
+             fid        BIGINT         117      117                 1               117               59.0  33.91902121229326
+        map_year        BIGINT         117        1              2003              2003             2003.0                0.0
+             era       VARCHAR         117        1                 -                 -                  -                  -
+          ward_a        BIGINT         117       43                 1                49  20.54700854700855 14.182003972066836
+          ward_b        BIGINT         117       46                 3                50  28.88034188034188 13.016675242352363
+    ward_pair_id       VARCHAR         117      117                 -                 -                  -                  -
+shared_length_ft        DOUBLE         117      117 32.25218015893175 44371.14036105134 11444.358332117929  9480.208667649942
+
+File: construction_discovery_boundaries.gpkg
+Layer: 2015_2023
+Rows: 122
+Columns: 7
+SHA-256 (saved bytes): 098ca531285ae60892a1525e38c2318be6ea21367ce92919deb4aae8e2caed01
+Key: not declared in this report
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+          column inferred_type non_missing distinct                min                max               mean                 sd
+             fid        BIGINT         122      122                  1                122               61.5  35.36240942017385
+        map_year        BIGINT         122        1               2015               2015             2015.0                0.0
+             era       VARCHAR         122        1                  -                  -                  -                  -
+          ward_a        BIGINT         122       42                  1                 49  21.19672131147541 13.699031361221875
+          ward_b        BIGINT         122       46                  2                 50 29.221311475409838 12.877369665637744
+    ward_pair_id       VARCHAR         122      122                  -                  -                  -                  -
+shared_length_ft        DOUBLE         122      122 331.03424090270585 63249.409534828206 13965.627465013185 11239.446946820293
+
+File: construction_discovery_boundaries.gpkg
+Layer: post_2023
+Rows: 121
+Columns: 7
+SHA-256 (saved bytes): 098ca531285ae60892a1525e38c2318be6ea21367ce92919deb4aae8e2caed01
+Key: not declared in this report
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+          column inferred_type non_missing distinct               min                max               mean                 sd
+             fid        BIGINT         121      121                 1                121               61.0 35.073731861133155
+        map_year        BIGINT         121        1              2024               2024             2024.0                0.0
+             era       VARCHAR         121        1                 -                  -                  -                  -
+          ward_a        BIGINT         121       42                 1                 49  20.90082644628099 13.852439591805771
+          ward_b        BIGINT         121       44                 4                 50  29.65289256198347 12.729042084803329
+    ward_pair_id       VARCHAR         121      121                 -                  -                  -                  -
+shared_length_ft        DOUBLE         121      121 666.3882797694082 37975.289248755325 13493.426599981158   9531.26787977444
