@@ -1,0 +1,17 @@
+File: predecessor_parcels_download.gpkg
+Rows: 1
+Columns: 7
+SHA-256 (saved bytes): c7880b8bf98eb2d312455ab2979ae938e541db1fe4634f344e7393271261b479
+Key: target_year, object_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct    min    max     mean sd
+              fid        BIGINT           1        1      1      1      1.0  -
+      target_year        DOUBLE           1        1 2007.0 2007.0   2007.0  -
+         layer_id        DOUBLE           1        1    7.0    7.0      7.0  -
+        object_id        BIGINT           1        1 641141 641141 641141.0  -
+predecessor_pin14       VARCHAR           1        1      -      -        -  -
+predecessor_pin10       VARCHAR           1        1      -      -        -  -
+   geometry_valid        BIGINT           1        1      1      1      1.0  -

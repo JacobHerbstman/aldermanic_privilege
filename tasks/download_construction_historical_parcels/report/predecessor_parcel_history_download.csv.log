@@ -1,0 +1,18 @@
+File: predecessor_parcel_history_download.csv
+Rows: 31571
+Columns: 8
+SHA-256 (saved bytes): af91eae1d8dee2642014d428a1324ba94b91599855c21fcd640e9943a16a48ed
+Key: row_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+column inferred_type non_missing distinct                min                max                   mean                    sd
+   pin        BIGINT       31571     2576     11321130300000     25194140510000     15874789837859.365    2527478718148.7603
+ pin10        BIGINT       31571     2576         1132113030         2519414051     1587478983.7857528    252747871.81477997
+  year        BIGINT       31571       19               2007               2025     2018.2364828481834     4.934414385679133
+   lon        DOUBLE       31570     9149 -87.81490637109455 -87.56203720706708     -87.68186301267194  0.044869080076037834
+   lat        DOUBLE       31570     9160  41.67833995038094 42.008267258723635      41.88258740751523    0.0613694958919807
+x_3435        DOUBLE       31570     6630 1125276.2328916162 1194754.0147933236     1161659.1773255772    12305.330246630356
+y_3435        DOUBLE       31570     6640 1826074.6076434173 1946306.0113419814     1900481.4606027233     22316.70520805557
+row_id        BIGINT       31571    31571 113211303000002010 251941405100002025 1.5874789837859568e+17 2.527478718148789e+16

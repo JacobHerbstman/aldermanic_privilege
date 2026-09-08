@@ -18,6 +18,8 @@ all: ../report/commercial_city_building_footprints.gpkg.log \
 	../report/historical_project_parcel_requests.csv.log \
 	../report/historical_project_parcel_coverage.csv.log \
 	../report/historical_project_year_geometry.gpkg.log \
+	../report/missing_project_reference_points.csv.log \
+	../report/historical_project_predecessor_resolution.csv.log \
 	../report/preferred_commercial_projects.csv.log \
 	../report/preferred_commercial_source_disposition.csv.log \
 	../report/residential_project_history_summary.csv.log \
@@ -791,7 +793,19 @@ endif
 ../report/historical_project_parcel_coverage.csv.log: ../../shared/code/report.py ../output/historical_project_parcel_coverage.csv | ../report
 	$(PYTHON) $< ../output/historical_project_parcel_coverage.csv $@ source_family project_id component_pin target_year
 
-../output/historical_project_year_geometry.gpkg: build_historical_project_geography.R ../output/historical_project_parcel_coverage.csv ../input/historical_project_parcel_source.gpkg ../output/historical_project_predecessor_parcels.gpkg ../output/historical_project_predecessor_resolution.csv ../../setup_environment/code/packages.R | ../output
+../output/missing_project_reference_points.csv: build_missing_project_reference_points.R ../output/historical_project_parcel_coverage.csv ../input/predecessor_parcel_history.csv ../input/predecessor_history_queries.csv ../../setup_environment/code/packages.R | ../output
+	$(R) $<
+
+../output/historical_project_predecessor_resolution.csv: build_historical_project_predecessor_resolution.R ../output/missing_project_reference_points.csv ../input/historical_predecessor_parcel_source.gpkg ../input/historical_predecessor_source_queries.csv ../../setup_environment/code/packages.R | ../output
+	$(R) $<
+
+../report/missing_project_reference_points.csv.log: ../../shared/code/report.py ../output/missing_project_reference_points.csv | ../report
+	$(PYTHON) $< ../output/missing_project_reference_points.csv $@ source_family project_id component_pin target_year
+
+../report/historical_project_predecessor_resolution.csv.log: ../../shared/code/report.py ../output/historical_project_predecessor_resolution.csv | ../report
+	$(PYTHON) $< ../output/historical_project_predecessor_resolution.csv $@
+
+../output/historical_project_year_geometry.gpkg: build_historical_project_geography.R ../output/historical_project_parcel_coverage.csv ../input/historical_project_parcel_source.gpkg ../input/historical_predecessor_parcel_source.gpkg ../output/historical_project_predecessor_resolution.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../report/historical_project_year_geometry.gpkg.log: ../../shared/code/report.py ../output/historical_project_year_geometry.gpkg | ../report
@@ -921,7 +935,19 @@ endif
 ../input/historical_project_parcel_source_queries.csv: ../../download_construction_historical_parcels/output/historical_project_parcel_source_queries.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/historical_project_parcel_source.gpkg ../input/historical_project_parcel_source_queries.csv
+../input/predecessor_parcel_history.csv: ../../download_construction_historical_parcels/output/predecessor_parcel_history.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/predecessor_history_queries.csv: ../../download_construction_historical_parcels/output/predecessor_history_queries.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/historical_predecessor_parcel_source.gpkg: ../../download_construction_historical_parcels/output/historical_predecessor_parcel_source.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/historical_predecessor_source_queries.csv: ../../download_construction_historical_parcels/output/historical_predecessor_source_queries.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/historical_project_parcel_source.gpkg ../input/historical_project_parcel_source_queries.csv ../input/predecessor_parcel_history.csv ../input/predecessor_history_queries.csv ../input/historical_predecessor_parcel_source.gpkg ../input/historical_predecessor_source_queries.csv
 
 ../input/residential_improvement_characteristics_full.csv: ../../../data_raw/construction_review/residential_improvement_characteristics_full.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

@@ -1,10 +1,40 @@
 include ../../shared/code/shell_functions.make
 
 PARCEL_YEARS := 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022
+HISTORY_START_YEAR := 1999
+HISTORY_END_YEAR := 2025
 
 all: ../report/historical_parcel_queries_additional.csv.log $(foreach year,$(PARCEL_YEARS),../output/historical_parcels_additional_$(year).gpkg ../report/historical_parcels_additional_$(year).gpkg.log)
 
 all: ../output/historical_parcels_additional.gpkg ../report/historical_parcels_additional.gpkg.log
+
+all: ../report/predecessor_parcel_history_download.csv.log ../report/predecessor_history_queries_download.csv.log
+
+all: ../report/predecessor_parcels_download.gpkg.log ../report/predecessor_spatial_queries_download.csv.log
+
+../output/predecessor_parcels_download.gpkg: download_predecessor_parcels.R download_recipes.make ../output/predecessor_spatial_queries_download.csv ../input/historical_project_parcel_layers.csv ../../setup_environment/code/packages.R | ../output ../temp
+	$(R) $<
+
+../output/predecessor_spatial_queries_download.csv: prepare_predecessor_spatial_queries.R ../input/missing_project_reference_points.csv ../input/historical_predecessor_queries_2026-07-27.csv ../../setup_environment/code/packages.R | ../output
+	$(R) $<
+
+../report/predecessor_parcels_download.gpkg.log: ../../shared/code/report.py ../output/predecessor_parcels_download.gpkg | ../report
+	$(PYTHON) $< ../output/predecessor_parcels_download.gpkg $@ target_year object_id
+
+../report/predecessor_spatial_queries_download.csv.log: ../../shared/code/report.py ../output/predecessor_spatial_queries_download.csv | ../report
+	$(PYTHON) $< ../output/predecessor_spatial_queries_download.csv $@ target_year reference_x_3435 reference_y_3435
+
+../output/predecessor_parcel_history_download.csv: download_predecessor_parcel_history.R download_recipes.make ../output/predecessor_history_queries_download.csv ../../setup_environment/code/packages.R | ../output ../temp
+	$(R) $< $(HISTORY_START_YEAR) $(HISTORY_END_YEAR)
+
+../output/predecessor_history_queries_download.csv: prepare_predecessor_history_queries.R ../input/historical_project_parcel_coverage.csv ../../setup_environment/code/packages.R | ../output
+	$(R) $<
+
+../report/predecessor_parcel_history_download.csv.log: ../../shared/code/report.py ../output/predecessor_parcel_history_download.csv | ../report
+	$(PYTHON) $< ../output/predecessor_parcel_history_download.csv $@ row_id
+
+../report/predecessor_history_queries_download.csv.log: ../../shared/code/report.py ../output/predecessor_history_queries_download.csv | ../report
+	$(PYTHON) $< ../output/predecessor_history_queries_download.csv $@ pin
 
 ../output/historical_parcels_additional.gpkg: combine_additional_parcel_years.R $(foreach year,$(PARCEL_YEARS),../output/historical_parcels_additional_$(year).gpkg) ../../setup_environment/code/packages.R | ../output
 	$(R) $<
@@ -26,6 +56,17 @@ all: ../output/historical_parcels_additional.gpkg ../report/historical_parcels_a
 
 ../input/historical_project_parcel_requests.csv: ../../new_construction_cleaning/output/historical_project_parcel_requests.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/historical_project_parcel_coverage.csv: ../../new_construction_cleaning/output/historical_project_parcel_coverage.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/missing_project_reference_points.csv: ../../new_construction_cleaning/output/missing_project_reference_points.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/historical_predecessor_queries_2026-07-27.csv: ../../../data_raw/construction_review/historical_predecessor_queries_2026-07-27.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/historical_project_parcel_coverage.csv ../input/missing_project_reference_points.csv ../input/historical_predecessor_queries_2026-07-27.csv
 
 ../input/historical_project_parcel_layers.csv: ../../../data_raw/construction_review/historical_project_parcel_layers_2026-07-27.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

@@ -2,6 +2,8 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-07-predecessor-recovery.tex ../tasks/download_construction_historical_parcels/report/predecessor_parcel_history.csv.log ../tasks/download_construction_historical_parcels/report/historical_predecessor_parcel_source.gpkg.log ../tasks/new_construction_cleaning/report/missing_project_reference_points.csv.log ../tasks/new_construction_cleaning/report/historical_project_predecessor_resolution.csv.log ../tasks/new_construction_cleaning/report/historical_project_year_geometry.gpkg.log
+
 logbook.pdf: entries/2026-09-07-historical-parcel-coverage.tex ../tasks/download_construction_historical_parcels/report/historical_project_parcel_source.gpkg.log ../tasks/download_construction_historical_parcels/report/historical_project_parcel_source_queries.csv.log ../tasks/new_construction_cleaning/report/historical_project_parcel_requests.csv.log ../tasks/new_construction_cleaning/report/historical_project_parcel_coverage.csv.log
 
 logbook.pdf: entries/2026-09-07-city-footprint-reconstruction.tex ../tasks/new_construction_cleaning/report/commercial_city_building_footprints.gpkg.log ../tasks/new_construction_cleaning/report/commercial_ground_up_evidence.csv.log ../tasks/new_construction_cleaning/report/preferred_commercial_projects.csv.log

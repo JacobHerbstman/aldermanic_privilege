@@ -102,7 +102,7 @@ if (anyDuplicated(predecessor_resolution$request_id) > 0) {
 }
 
 predecessor_parcels <- sf::st_read(
-  "../output/historical_project_predecessor_parcels.gpkg",
+  "../input/historical_predecessor_parcel_source.gpkg",
   quiet = TRUE
 ) %>%
   sf::st_transform(3435)

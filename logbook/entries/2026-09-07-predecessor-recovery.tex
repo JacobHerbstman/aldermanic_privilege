@@ -1,0 +1,53 @@
+\section*{September 7, 2026: Reconstruct predecessor parcel matches}
+\textit{Agent-drafted reconstruction and source checks.}
+
+Initial project shapes can now be rebuilt through predecessor matching. The old
+download script also selected location records, including silently retaining one
+row per parcel-year. The replacement preserves every returned record before
+checking uniqueness and choosing a location. A fresh Cook County download contains
+31,571 rows for 2,576 parcels, with no duplicate parcel-years. All 31,552 previously
+used records retain the same values. The additions are 18 years for one newly
+requested parcel and one record with missing coordinates that the old filter omitted.
+
+For each missing annual parcel lookup, the calculation selects the nearest
+assessment-year location for the exact parcel number, preferring the earlier year
+in a tie. All 2,593 current requests have this evidence. Missing history remains
+explicitly unresolved; this stage does not substitute the old, unused current-parcel
+or permit-coordinate fallbacks. The resulting point is intersected with that year's
+polygons. Every intersecting polygon remains a candidate, including at boundaries;
+only a unique match is accepted here. This locates a candidate historical tax
+parcel, not necessarily the final land denominator for the construction project.
+
+The restored selection reproduces all 2,592 old reference points, selected years,
+and source-record identifiers exactly. Recalculating spatial matches with original
+candidates reproduces all 2,623 match rows byte for byte. The downstream calculation
+also reproduces all 9,505 original project-year shapes and their attributes exactly.
+Predecessor decisions are now recomputed rather than held fixed in this comparison.
+
+The added request uses a parcel's 2008 location to find its 2007 predecessor;
+the public service returned one polygon. The unchanged July source contains 1,050
+polygons, supplemented by that one feature. Current recovery yields 2,563 requests
+with a unique polygon, 24 with multiple candidates, and six with none. All old
+matches remain unchanged on project, component, year, and polygon identifiers.
+The 30 unresolved requests remain available for later reconciliation.
+
+Current initial geography contains 9,530 complete candidate project-year shapes.
+All 9,501 shared shapes retain identical attributes and geometry; 29 enter and four
+leave following upstream candidate changes. These are not 29 new construction
+projects. Seventeen additions are study-year polygons for one parcel with conflicting
+Assessor years spanning 1893--2024. Its construction episode remains for later rules
+to resolve. No new density exclusions or manual decisions were made in this step.
+
+\textit{Reproduction and limits.} Work follows \path{3ece2e8} on
+\path{sales_sample_exploration}. Acquisition and pinned source hashes are in
+\path{tasks/download_construction_historical_parcels/}; construction cleaning owns
+reference selection, spatial matching, and project shapes. The current build ran
+through its actual Make dependencies. Original-data comparisons use preserved
+candidate components with source selection and predecessor matches recomputed.
+Duplicate-history and unqueried-point failures, ambiguous boundary intersections,
+missing evidence, failed downloads, report recovery, and incrementality were checked.
+The next missing dependency in the later geography branch is the Chicago address
+geocode producer. Final measurements, boundary distances, and full replication
+remain unfinished. The paper's input is unchanged and estimates were not rerun.
+Logbook compilation retains the earlier holds on unfinished audit products,
+the residential candidate baseline, and previously verified development documents.

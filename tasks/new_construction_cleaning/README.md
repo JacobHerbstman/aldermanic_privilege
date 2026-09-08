@@ -287,8 +287,31 @@ with the archived coverage retain their match fields exactly. A controlled repla
 with original candidates reproduced the archived coverage bytes and all 9,505
 project-year geometries, holding predecessor evidence fixed.
 
+Initial predecessor recovery is now restored as well. It reads the complete pinned
+Parcel Universe history, checks uniqueness before selecting records, and chooses
+the closest assessment year for each exact PIN (preferring the earlier year in a
+tie). All 2,593 current requests have that history. The old unused current-parcel
+and permit-coordinate fallbacks are not carried into this stage; absent history
+remains explicitly unresolved. Annual point-polygon intersections retain every
+candidate and accept only a unique polygon. Boundary points are not silently
+assigned to one of several parcels.
+
+With original candidates, this recomputes all 2,623 predecessor-resolution rows
+byte for byte and reproduces all 9,505 project-year geometries exactly, without
+holding accepted predecessor decisions fixed. Current predecessor recovery has
+2,563 uniquely matched requests, 24 with multiple candidates, and six without a
+polygon. These unresolved requests are preserved for later evidence and identity
+reconciliation; they are not new density exclusions.
+
+The current initial geography builds 9,530 complete candidate project-year shapes.
+All 9,501 shapes shared with the original output retain identical attributes and
+geometry; 29 candidate project-years enter and four leave following the upstream
+candidate changes. Seventeen additions are annual shapes for one parcel whose
+conflicting source years still need later resolution. These are not 29 new projects
+or finalized density observations.
+
 The dependency inventory was a static count, not a successful build. The remaining
-work includes historical predecessor parcels, duplicate reconciliation, condominium
+work includes later address-based geography, duplicate reconciliation, condominium
 successors, and ordinance reconstruction. The exact original residential download
 remains unavailable, and the pinned replacement vintage is not fully reconciled.
 

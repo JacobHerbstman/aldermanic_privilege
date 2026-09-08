@@ -45,3 +45,33 @@ baseline unchanged. Coverage stops explicitly if a new candidate requires a quer
 outside the pinned combined scope, instead of classifying an unqueried parcel as
 missing. The single September query with no result is retained as missing; it
 does not by itself exclude a construction observation.
+
+Predecessor recovery also needs parcel location history for candidates absent
+from the annual polygon lookup. The intentional acquisition entry point derives
+the requested PINs from current coverage and retrieves 1999–2025 records from
+Cook County Parcel Universe (`nj4t-kc8j`). It saves every returned record, including
+missing coordinates and duplicate parcel-years, before construction cleaning
+checks keys and selects the nearest assessment year. This replaces selection
+inside the old downloader. Both the response table and requested PINs must be
+pinned before ordinary production uses them. The September 7 snapshot contains
+31,571 rows for 2,576 PINs, without duplicate PIN-years. It preserves all 31,552
+records used by the earlier location calculation with unchanged values, adds 18
+years for the new PIN, and retains one row with missing coordinates that the old
+downloader removed. `history_snapshot.sha256` records the source and query files.
+
+The predecessor polygon inputs are the unchanged July 27 extract (1,050 features)
+and its 2,576 distinct year-and-coordinate queries, plus one September query and
+returned polygon. The July query scope was recovered from the original reference
+point export; matching decisions are recalculated locally. The July GPKG records
+its write time as `2026-07-27T05:58:36.224Z`. The four dated inputs are named
+`historical_predecessor_parcels_2026-07-27.gpkg`,
+`historical_predecessor_queries_2026-07-27.csv`,
+`historical_predecessor_parcels_2026-09-07.gpkg`, and
+`historical_predecessor_queries_2026-09-07.csv`, under
+`data_raw/construction_review/`; `predecessor_snapshot.sha256` fixes their bytes.
+
+Ordinary Make combines those polygon and query inputs and reproduces their reports.
+The intentional download recipes derive additional spatial queries from the
+current reference points and request intersecting polygons in EPSG:3435. They
+preserve the July responses. Source points outside the recorded query scope fail
+in construction cleaning rather than being interpreted as unmatched.
