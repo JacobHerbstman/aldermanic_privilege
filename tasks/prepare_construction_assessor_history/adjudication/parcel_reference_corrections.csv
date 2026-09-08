@@ -1,0 +1,2 @@
+row_id,reported_proration_key_pin,corrected_proration_key_pin,reason
+2017414032000012014,29174140310000,20174140310000,The neighboring 2014 PIN2017414031 reports the identical 2013 six-unit building and 9036 building square feet with the complementary 0.6 share; this row has share 0.4. The reported 2917414031 points to unrelated distant land. Correct the reference only; preserve the reported key and all measurements.

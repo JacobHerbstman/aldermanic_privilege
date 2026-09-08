@@ -66,7 +66,10 @@ located_projects <- bind_cols(
     distance_to_boundary_ft = dist_ft,
     within_1500ft = is.finite(dist_ft) & dist_ft <= 1500,
     within_500ft = is.finite(dist_ft) & dist_ft <= 500,
-    project_land_area_sqft
+    project_land_area_sqft,
+    location_source,
+    location_reference_year,
+    location_reference_row_ids
   )
 
 if (anyDuplicated(located_projects[c("source_family", "project_id", "target_year")]) > 0) {

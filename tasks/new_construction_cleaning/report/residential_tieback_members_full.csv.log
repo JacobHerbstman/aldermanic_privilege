@@ -1,14 +1,14 @@
 File: residential_tieback_members_full.csv
 Rows: 2373
 Columns: 23
-SHA-256 (saved bytes): 5fd554762dbec2071546c1d0e5bb9a1d603ac5ec54924ac902ea81387f6eae60
+SHA-256 (saved bytes): 844d97e26333ad52a17781346de7477df20ef05c259289f8dae0bdc0715d17ec
 Key: tieback_group, pin
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                            column inferred_type non_missing distinct               min               max               mean                  sd
-                    tieback_group       VARCHAR        2373     1271                 -                 -                  -                   -
+                    tieback_group       VARCHAR        2373     1270                 -                 -                  -                   -
                               pin       VARCHAR        2373     2208                 -                 -                  -                   -
                          card_num        BIGINT        2373        4                 1                 4 1.0598398651495997  0.2657379707876973
                          tax_year        BIGINT        2373       28              1999              2026 2017.0488832701221   7.974514885853568

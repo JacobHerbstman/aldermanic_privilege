@@ -197,3 +197,23 @@ the acquisition outputs, in `data_raw/construction_review/` as
 now contains 12,987 features and 16,879 queried pairs. All 12,983 previous features
 retain identical attributes and spatially equal geometry. Ordinary builds reuse
 these pinned inputs and require no network.
+
+## September 8 Maplewood identity evidence
+
+The recorded evidence request in `code/parcel_evidence_requests.csv` adds the
+2018 map for PIN 16364050790000, the assessment-era parcel for the ten-card
+Maplewood record. This is an identity check, not a construction-year override.
+The same annual Make acquisition returned one valid polygon (layer 20,
+object 1429057), measuring 14,310.04 square feet. It contains exactly the ten
+retained individual homes, each reporting 2,060 building square feet.
+
+The returned feature and query are pinned unchanged as
+`preferred_parcel_evidence_2026-09-08.gpkg` and
+`preferred_parcel_evidence_queries_2026-09-08.csv` in the established raw-source
+folder. The ordinary source combiner and checksum file include them. The query
+preparer subtracts this pinned query on future runs. The construction producer
+uses the polygon in its existing complete-individual-coverage rule; neither
+individual land areas nor construction years are supplied by this request.
+
+The combined source contains 12,988 features and 16,880 queried year/PIN pairs.
+All previous features retain identical attributes and geometry bytes.

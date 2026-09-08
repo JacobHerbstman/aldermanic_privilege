@@ -218,6 +218,46 @@ project_centroids <- sf::st_centroid(project_geometry) %>%
     geometry
   )
 
+# A former development parcel can contain many separately recorded homes.
+# Locate each individual home from its own contemporaneous parcel point when
+# available, while retaining the historical polygon as coverage evidence.
+history_points <- bind_rows(
+  readr::read_csv("../input/predecessor_parcel_history.csv", col_types = readr::cols(
+    pin = readr::col_character(), year = readr::col_integer(), lon = readr::col_double(),
+    lat = readr::col_double(), row_id = readr::col_character(), .default = readr::col_skip())),
+  readr::read_csv("../input/geocoding_parcel_history.csv", col_types = readr::cols(
+    pin = readr::col_character(), year = readr::col_integer(), lon = readr::col_double(),
+    lat = readr::col_double(), row_id = readr::col_character(), .default = readr::col_skip())),
+  readr::read_csv("../input/density_historical_parcel_records.csv", col_types = readr::cols(
+    pin = readr::col_character(), year = readr::col_integer(), longitude = readr::col_double(),
+    latitude = readr::col_double(), row_id = readr::col_character(), .default = readr::col_skip())) %>%
+    rename(lon = longitude, lat = latitude)
+) %>% filter(is.finite(lon), is.finite(lat)) %>% distinct()
+individual_parents <- project_year_coverage %>%
+  filter(complete_project_geometry, project_kind == "single_pin_single_card",
+    requested_components == 1L, component_pins != parcel_pins)
+project_centroids$location_source <- "historical_parcel_centroid"
+project_centroids$location_reference_year <- project_centroids$target_year
+project_centroids$location_reference_row_ids <- NA_character_
+for (j in seq_len(nrow(individual_parents))) {
+  site <- individual_parents[j, ]
+  i <- which(project_centroids$project_id == site$project_id & project_centroids$target_year == site$target_year)
+  stopifnot(length(i) == 1L)
+  project_centroids$location_source[i] <- "former_parcel_centroid_unresolved_individual"
+  points <- history_points %>% filter(pin == site$component_pins,
+    year %in% c(site$target_year, site$target_year + 1L))
+  if (!nrow(points)) next
+  points <- points %>% filter(year == min(year))
+  if (nrow(distinct(points, lon, lat)) != 1L) next
+  point <- sf::st_transform(sf::st_as_sf(points[1, ], coords = c("lon", "lat"), crs = 4326), 3435)
+  if (length(sf::st_within(point, project_geometry[i, ])[[1]]) != 1L) next
+  sf::st_geometry(project_centroids)[i] <- sf::st_geometry(point)
+  project_centroids$location_source[i] <- if (points$year[1] == site$target_year)
+    "exact_pin_construction_year_point" else "exact_pin_next_year_point"
+  project_centroids$location_reference_year[i] <- points$year[1]
+  project_centroids$location_reference_row_ids[i] <- paste(sort(unique(points$row_id)), collapse = "/")
+}
+
 sf::st_write(
   project_geometry,
   "../output/preferred_project_year_geometry.gpkg",

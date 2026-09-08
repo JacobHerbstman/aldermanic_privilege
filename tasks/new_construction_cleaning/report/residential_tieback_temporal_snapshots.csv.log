@@ -1,33 +1,33 @@
 File: residential_tieback_temporal_snapshots.csv
-Rows: 10160
+Rows: 10159
 Columns: 23
-SHA-256 (saved bytes): 5b2336176b96a8b7a06c005580a8c9ebc78483b5c3f8ff6bb75d96b82505da8f
+SHA-256 (saved bytes): d4f32298d9c3333d6f3ddbd8a7c590bcecbbbab804e6cb24933bbc878e6aacad
 Key: tieback_lineage_id, tax_year
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                   column inferred_type non_missing distinct  min     max               mean                  sd
-      tieback_lineage_id       VARCHAR       10160     1031    -       -                  -                   -
-                tax_year        BIGINT       10160       28 1999    2026 2015.2667322834645   7.564358869201048
-  pin_proration_complete       BOOLEAN       10160        1    -       -                  -                   -
-       pin_proration_sum        DOUBLE       10160       65  0.0     3.0  0.993121112204724 0.15781286668073788
-        one_card_per_pin       BOOLEAN       10160        2    -       -                  -                   -
-       pin_land_complete       BOOLEAN       10160        2    -       -                  -                   -
-               land_sqft        BIGINT       10160      650    0 1150464  7340.670275590551   40575.13152655726
-          tieback_groups       VARCHAR       10160     1148    -       -                  -                   -
-     tieback_group_count        BIGINT       10160        4    1       4  1.047244094488189 0.23295793612687982
-             member_pins       VARCHAR       10160     1106    -       -                  -                   -
-        member_pin_count        BIGINT       10160        8    1      10 2.1016732283464568 0.47581239609223963
-                   cards        BIGINT       10160       24    1      36  2.386023622047244   1.874075297243745
-construction_year_values        BIGINT       10160        4    1       4  1.054232283464567 0.23710321802692289
-       construction_year        BIGINT        9633      108 1858    2026 1995.1219765389806  28.017628523003864
-    building_area_values        BIGINT       10160        9    0       8 1.0521653543307086  0.3344498683817196
-           building_sqft        BIGINT        9635      922    0  214088  4358.876180591593  3797.9253785390724
-             unit_values        BIGINT       10160        3    0       2 1.0058070866141733  0.1355492455939068
-          dwelling_units        BIGINT        9973        6    1       6 1.7241552190915472  1.5899349677697383
-          source_row_ids       VARCHAR       10160    10160    -       -                  -                   -
-   duplicate_source_keys        BIGINT       10160        1    0       0                0.0                 0.0
- duplicate_key_conflicts        BIGINT       10160        1    0       0                0.0                 0.0
-     snapshot_mechanical       BOOLEAN       10160        2    -       -                  -                   -
-  snapshot_review_reason       VARCHAR       10160        7    -       -                  -                   -
+      tieback_lineage_id       VARCHAR       10159     1030    -       -                  -                   -
+                tax_year        BIGINT       10159       28 1999    2026 2015.2668569741115   7.564720753151756
+  pin_proration_complete       BOOLEAN       10159        1    -       -                  -                   -
+       pin_proration_sum        DOUBLE       10159       65  0.0     3.0 0.9932188699675161 0.15766261962043696
+        one_card_per_pin       BOOLEAN       10159        2    -       -                  -                   -
+       pin_land_complete       BOOLEAN       10159        2    -       -                  -                   -
+               land_sqft        BIGINT       10159      650    0 1150464  7341.392853627325  40577.091268615244
+          tieback_groups       VARCHAR       10159     1147    -       -                  -                   -
+     tieback_group_count        BIGINT       10159        4    1       4 1.0472487449552121  0.2329689309375634
+             member_pins       VARCHAR       10159     1105    -       -                  -                   -
+        member_pin_count        BIGINT       10159        8    1      10  2.101880106309676   0.475585678446857
+                   cards        BIGINT       10159       24    1      36  2.386258490008859    1.87407052988278
+construction_year_values        BIGINT       10159        4    1       4 1.0542376218131706 0.23711427789515888
+       construction_year        BIGINT        9632      108 1858    2026 1995.1201204318936  28.018490751119334
+    building_area_values        BIGINT       10159        9    0       8 1.0521704892213801  0.3344659298511787
+           building_sqft        BIGINT        9634      922    0  214088  4358.390699605564    3797.82351252745
+             unit_values        BIGINT       10159        3    0       2 1.0058076582340783 0.13555590522745517
+          dwelling_units        BIGINT        9972        6    1       6 1.7237264340152427  1.5894379321311944
+          source_row_ids       VARCHAR       10159    10159    -       -                  -                   -
+   duplicate_source_keys        BIGINT       10159        1    0       0                0.0                 0.0
+ duplicate_key_conflicts        BIGINT       10159        1    0       0                0.0                 0.0
+     snapshot_mechanical       BOOLEAN       10159        2    -       -                  -                   -
+  snapshot_review_reason       VARCHAR       10159        7    -       -                  -                   -

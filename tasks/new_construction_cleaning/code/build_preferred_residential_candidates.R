@@ -213,6 +213,7 @@ ordinary_candidates <- assessor_projects %>%
     permit_chain_ids = exact_permit_chain_id,
     permit_numbers = exact_permit_numbers,
     candidate_status = case_when(
+      candidate_status == "exclude_source_duplicate_keep_successors" ~ candidate_status,
       !between(construction_year, 2006L, 2022L) ~ "exclude_outside_period",
       !is.finite(dwelling_units) | dwelling_units <= 0 |
         !is.finite(building_sqft) | building_sqft <= 0 |
@@ -220,6 +221,7 @@ ordinary_candidates <- assessor_projects %>%
       TRUE ~ "retain_mechanical"
     ),
     decision_reason = case_when(
+      candidate_status == "exclude_source_duplicate_keep_successors" ~ decision_reason,
       !between(construction_year, 2006L, 2022L) ~ "construction_year_outside_2006_2022",
       !is.finite(dwelling_units) | dwelling_units <= 0 ~ "missing_or_nonpositive_units",
       !is.finite(building_sqft) | building_sqft <= 0 ~ "missing_or_nonpositive_building_area",
@@ -478,6 +480,10 @@ residential_candidates <- bind_rows(
   commercial_overlap_candidates
 ) %>%
   arrange(project_kind, project_id)
+
+assessor_match <- match(residential_candidates$project_id, assessor_projects$project_id)
+residential_candidates$replacement_project_ids <- assessor_projects$replacement_project_ids[assessor_match]
+residential_candidates$replacement_check <- assessor_projects$replacement_check[assessor_match]
 
 if (anyDuplicated(residential_candidates$project_id) > 0) {
   stop("Preferred residential candidate IDs are not unique.", call. = FALSE)

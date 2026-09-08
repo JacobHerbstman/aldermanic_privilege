@@ -75,6 +75,19 @@ FROM history
 ")
 stopifnot(keys$records > 0, keys$records == keys$source_ids, keys$invalid_keys == 0)
 
+# Apply reviewed reference typos before any consumer builds parcel relationships.
+corrections <- readr::read_csv("../adjudication/parcel_reference_corrections.csv",
+  col_types = readr::cols(.default = readr::col_character()))
+stopifnot(!anyDuplicated(corrections$row_id))
+DBI::dbWriteTable(con, "corrections", corrections)
+matched <- DBI::dbGetQuery(con, "SELECT count(*) AS n FROM history h INNER JOIN corrections c
+  ON h.row_id = c.row_id AND h.proration_key_pin = c.reported_proration_key_pin")
+stopifnot(matched$n == nrow(corrections))
+invisible(DBI::dbExecute(con, "ALTER TABLE history ADD COLUMN reported_proration_key_pin VARCHAR"))
+invisible(DBI::dbExecute(con, "UPDATE history SET reported_proration_key_pin = proration_key_pin"))
+invisible(DBI::dbExecute(con, "UPDATE history SET proration_key_pin = c.corrected_proration_key_pin
+  FROM corrections c WHERE history.row_id = c.row_id"))
+
 # Fix Parquet row-group layout as well as row order across repeated builds.
 invisible(DBI::dbExecute(con, "SET threads = 1"))
 invisible(DBI::dbExecute(con, "

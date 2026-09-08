@@ -22,3 +22,11 @@ apartment text is retained alongside its parsed value. Source row order is
 retained only to reproduce existing selection tie-breaking; `row_id` identifies
 the source record. Neither missing measurements nor conflicting reports are
 replaced with invented values. Consumers own and document their selection rules.
+
+Reviewed parcel-reference typos are applied from
+`adjudication/parcel_reference_corrections.csv` before consumers form building
+relationships. Each correction names an exact source row and expected reported
+value; a mismatch stops the build. `reported_proration_key_pin` preserves the
+original reference. The September 8 Green Street correction joins the two
+neighboring records with identical building fields and complementary shares;
+it does not change their year, units, floor area or land area.

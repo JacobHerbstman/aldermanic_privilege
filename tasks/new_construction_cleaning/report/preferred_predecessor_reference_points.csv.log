@@ -1,7 +1,7 @@
 File: preferred_predecessor_reference_points.csv
 Rows: 3889
 Columns: 22
-SHA-256 (saved bytes): a60ff1ba632568b6bf793b710d15a82c6eb968e0b16b6ef348de6bb64b3c47ff
+SHA-256 (saved bytes): 2aa66cb20deb7ecca8be8d17b2c3e83860bbc22497a1effb292d752406900b4e
 Key: request_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -12,7 +12,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
           source_family       VARCHAR        3889        2                  -                  -                  -                  -
              project_id       VARCHAR        3889     3764                  -                  -                  -                  -
            project_kind       VARCHAR        3889        6                  -                  -                  -                  -
-       candidate_status       VARCHAR        3889        3                  -                  -                  -                  -
+       candidate_status       VARCHAR        3889        4                  -                  -                  -                  -
           component_pin       VARCHAR        3889     3887                  -                  -                  -                  -
                   pin10       VARCHAR        3889     3887                  -                  -                  -                  -
             target_year        BIGINT        3889       17               2006               2022 2011.0686551812805  4.956671032344806

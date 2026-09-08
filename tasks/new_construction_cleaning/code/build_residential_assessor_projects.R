@@ -1,17 +1,24 @@
 # setwd("tasks/new_construction_cleaning/code")
 # maximum_building_gap <- 0.02
 # maximum_year_gap <- 2
+# successor_point_tolerance_ft <- 1
+# successor_land_tolerance <- 0.005
 
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/assessor_classification.R")
 
 args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(maximum_building_gap, maximum_year_gap)
-stopifnot(length(args) == 2L)
+if (interactive()) args <- c(maximum_building_gap, maximum_year_gap,
+  successor_point_tolerance_ft, successor_land_tolerance)
+stopifnot(length(args) == 4L)
 maximum_building_gap <- as.numeric(args[1])
 maximum_year_gap <- as.integer(args[2])
+successor_point_tolerance_ft <- as.numeric(args[3])
+successor_land_tolerance <- as.numeric(args[4])
 stopifnot(is.finite(maximum_building_gap), maximum_building_gap >= 0,
-  !is.na(maximum_year_gap), maximum_year_gap >= 0)
+  !is.na(maximum_year_gap), maximum_year_gap >= 0,
+  is.finite(successor_point_tolerance_ft), successor_point_tolerance_ft >= 0,
+  is.finite(successor_land_tolerance), successor_land_tolerance >= 0)
 
 single_finite_value <- function(x) {
   values <- sort(unique(x[is.finite(x)]))
@@ -308,6 +315,86 @@ current_parcels <- readr::read_csv(
     latitude = readr::col_double(), .default = readr::col_skip())
 )
 stopifnot(!anyDuplicated(current_parcels$pin))
+
+# Recognize a home whose parcel number changes between consecutive assessments.
+# The successor's reported construction predates the old assessment, so this is
+# not permission to merge a later replacement building at the same address.
+con <- DBI::dbConnect(duckdb::duckdb())
+assessment_periods <- DBI::dbGetQuery(con, "SELECT pin, min(tax_year) AS first_assessment,
+  max(tax_year) AS last_assessment FROM read_parquet('../input/residential_assessor_history.parquet')
+  WHERE building_sqft IS NOT NULL OR num_apartments IS NOT NULL GROUP BY pin")
+DBI::dbDisconnect(con, shutdown = TRUE)
+historical_points <- bind_rows(
+  readr::read_csv("../input/geocoding_parcel_history.csv", col_types = readr::cols(
+    pin = readr::col_character(), year = readr::col_integer(), lon = readr::col_double(),
+    lat = readr::col_double(), .default = readr::col_skip())),
+  readr::read_csv("../input/predecessor_parcel_history.csv", col_types = readr::cols(
+    pin = readr::col_character(), year = readr::col_integer(), lon = readr::col_double(),
+    lat = readr::col_double(), .default = readr::col_skip())),
+  readr::read_csv("../input/density_historical_parcel_records.csv", col_types = readr::cols(
+    pin = readr::col_character(), year = readr::col_integer(), longitude = readr::col_double(),
+    latitude = readr::col_double(), .default = readr::col_skip())) %>% rename(lon = longitude, lat = latitude)
+) %>% filter(is.finite(lon), is.finite(lat)) %>% distinct()
+old_homes <- ordinary_candidates %>%
+  filter(candidate_status == "retain_mechanical", dwelling_units == 1,
+    !component_pins %in% current_parcels$pin) %>%
+  left_join(assessment_periods, by = c("component_pins" = "pin"), relationship = "one-to-one")
+historical_points <- historical_points %>%
+  inner_join(old_homes %>% select(component_pins, last_assessment),
+    by = c("pin" = "component_pins"), relationship = "many-to-one") %>%
+  filter(year <= last_assessment) %>% group_by(pin) %>%
+  filter(year == max(year)) %>% filter(n() == 1L) %>% ungroup()
+old_homes <- old_homes %>% inner_join(historical_points %>% select(pin, lon, lat),
+  by = c("component_pins" = "pin"), relationship = "one-to-one")
+new_homes <- ordinary_candidates %>%
+  filter(candidate_status == "retain_mechanical", dwelling_units == 1) %>%
+  inner_join(current_parcels, by = c("component_pins" = "pin"), relationship = "one-to-one") %>%
+  filter(is.finite(longitude), is.finite(latitude)) %>%
+  left_join(assessment_periods, by = c("component_pins" = "pin"), relationship = "one-to-one")
+old_addresses <- readr::read_csv("../input/density_historical_address_records.csv",
+  col_types = readr::cols(pin = readr::col_character(), year = readr::col_integer(),
+    property_address = readr::col_character(), .default = readr::col_skip()))
+new_addresses <- readr::read_csv("../input/parcel_addresses_2025_chicago.csv",
+  col_types = readr::cols(pin = readr::col_character(), prop_address_full = readr::col_character(),
+    .default = readr::col_skip()))
+stopifnot(!anyDuplicated(new_addresses$pin))
+hits <- sf::st_is_within_distance(
+  sf::st_transform(sf::st_as_sf(old_homes, coords = c("lon", "lat"), crs = 4326), 3435),
+  sf::st_transform(sf::st_as_sf(new_homes, coords = c("longitude", "latitude"), crs = 4326), 3435),
+  dist = successor_point_tolerance_ft)
+ordinary_candidates$replacement_project_ids <- NA_character_
+ordinary_candidates$replacement_check <- NA_character_
+for (i in which(lengths(hits) == 1L)) {
+  old <- old_homes[i, ]; new <- new_homes[hits[[i]], ]
+  addresses <- old_addresses %>% filter(pin == old$component_pins, year <= old$last_assessment)
+  if (!nrow(addresses)) next
+  addresses <- addresses %>% filter(year == max(year))
+  # A missing trailing unit letter does not change the street address; the
+  # unique parcel point and land match still distinguish individual homes.
+  old_address <- unique(str_remove(str_to_upper(str_squish(addresses$property_address)), " [A-Z]$"))
+  new_address <- new_addresses$prop_address_full[match(new$component_pins, new_addresses$pin)]
+  new_address <- str_remove(str_to_upper(str_squish(new_address)), " [A-Z]$")
+  if (length(old_address) != 1L || is.na(old_address) || is.na(new_address) ||
+      old_address == "" || old_address != new_address ||
+      new$first_assessment != old$last_assessment + 1L ||
+      new$construction_year > old$first_assessment ||
+      abs(new$land_sqft / old$land_sqft - 1) > successor_land_tolerance) next
+  j <- match(old$project_id, ordinary_candidates$project_id)
+  ordinary_candidates$replacement_project_ids[j] <- new$project_id
+  ordinary_candidates$replacement_check[j] <- "same_home_consecutive_parcel_numbers"
+}
+# Ambiguous reuse is never converted into automatic suppression.
+reused <- ordinary_candidates$replacement_project_ids[
+  duplicated(ordinary_candidates$replacement_project_ids) & !is.na(ordinary_candidates$replacement_project_ids)]
+for (j in which(!is.na(ordinary_candidates$replacement_project_ids))) {
+  if (ordinary_candidates$replacement_project_ids[j] %in% reused) {
+    ordinary_candidates$replacement_project_ids[j] <- NA_character_
+    ordinary_candidates$replacement_check[j] <- "successor_claimed_by_multiple_old_homes"
+  } else {
+    ordinary_candidates$candidate_status[j] <- "exclude_source_duplicate_keep_successors"
+    ordinary_candidates$decision_reason[j] <- ordinary_candidates$replacement_check[j]
+  }
+}
 individuals <- ordinary_candidates %>%
   inner_join(current_parcels, by = c("component_pins" = "pin"), relationship = "one-to-one") %>%
   filter(is.finite(longitude), is.finite(latitude)) %>%

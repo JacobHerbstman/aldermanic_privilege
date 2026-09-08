@@ -1,23 +1,23 @@
 File: project_permit_chain_links.csv
-Rows: 19461
+Rows: 19718
 Columns: 13
-SHA-256 (saved bytes): dabc50a3d6578b30324d88edd20e0246403599cd5d9abcf79235a2b6c2850048
+SHA-256 (saved bytes): 9bb00c35787d30d096d67d84f65733a68fbd9f4d1a3001c7bf584103d3bd88b3
 Key: project_id, permit_number
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                   column inferred_type non_missing distinct       min       max               mean                 sd
-            source_family       VARCHAR       19461        2         -         -                  -                  -
-               project_id       VARCHAR       19461     9674         -         -                  -                  -
-          permit_chain_id       VARCHAR       19461     9813         -         -                  -                  -
-                permit_id        BIGINT       19461    10482   1617872   3449123 2518891.2676635324  557378.6095685443
-            permit_number        BIGINT       19461    10482 100074882 101083313 100545336.97220081 300692.73929300986
-         directly_matched       BOOLEAN       19461        2         -         -                  -                  -
-      direct_match_method       VARCHAR       17560        2         -         -                  -                  -
-         application_date          DATE       19461     3968         -         -                  -                  -
-               issue_date          DATE       19461     3971         -         -                  -                  -
-            permit_status       VARCHAR       19461        7         -         -                  -                  -
-           permit_address       VARCHAR       19461     9578         -         -                  -                  -
-referenced_permit_numbers       VARCHAR        3329      617         -         -                  -                  -
-         work_description       VARCHAR       19461     9263         -         -                  -                  -
+                   column inferred_type non_missing distinct       min       max               mean                sd
+            source_family       VARCHAR       19718        2         -         -                  -                 -
+               project_id       VARCHAR       19718     9815         -         -                  -                 -
+          permit_chain_id       VARCHAR       19718     9973         -         -                  -                 -
+                permit_id        BIGINT       19718    10645   1568680   3449123 2518485.7125976267 563438.6301910417
+            permit_number        BIGINT       19718    10645 100048001 101083313 100545507.24601887 304219.6384565138
+         directly_matched       BOOLEAN       19718        2         -         -                  -                 -
+      direct_match_method       VARCHAR       17813        2         -         -                  -                 -
+         application_date          DATE       19718     4031         -         -                  -                 -
+               issue_date          DATE       19718     3998         -         -                  -                 -
+            permit_status       VARCHAR       19718        7         -         -                  -                 -
+           permit_address       VARCHAR       19718     9734         -         -                  -                 -
+referenced_permit_numbers       VARCHAR        3334      619         -         -                  -                 -
+         work_description       VARCHAR       19718     9385         -         -                  -                 -
