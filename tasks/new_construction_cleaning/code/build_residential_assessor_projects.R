@@ -363,6 +363,21 @@ for (i in seq_len(nrow(multicard_candidates))) {
   multicard_candidates$replacement_project_ids[i] <- paste(sort(homes$project_id), collapse = "/")
   multicard_candidates$replacement_check[i] <- "complete_individual_coverage"
 }
+# Approved exceptions document identity where strict measurement/point tests fail.
+reviewed_replacements <- readr::read_csv(
+  "../adjudication/residential_reviewed_home_replacements.csv",
+  col_types = readr::cols(.default = readr::col_character()))
+stopifnot(!anyDuplicated(reviewed_replacements$project_id),
+  all(reviewed_replacements$project_id %in% multicard_candidates$project_id))
+for (j in seq_len(nrow(reviewed_replacements))) {
+  i <- match(reviewed_replacements$project_id[j], multicard_candidates$project_id)
+  ids <- strsplit(reviewed_replacements$replacement_project_ids[j], "/", fixed = TRUE)[[1]]
+  homes <- ordinary_candidates %>% filter(project_id %in% ids)
+  stopifnot(!anyDuplicated(ids), nrow(homes) == length(ids),
+    all(homes$candidate_status == "retain_mechanical"), all(homes$dwelling_units == 1))
+  multicard_candidates$replacement_project_ids[i] <- paste(sort(ids), collapse = "/")
+  multicard_candidates$replacement_check[i] <- "reviewed_individual_coverage"
+}
 # One individual cannot be used to clear two old parcels automatically.
 replacement_ids <- strsplit(na.omit(multicard_candidates$replacement_project_ids), "/", fixed = TRUE)
 reused_ids <- names(which(table(unlist(replacement_ids)) > 1L))
@@ -373,7 +388,7 @@ for (i in which(!is.na(multicard_candidates$replacement_project_ids))) {
     multicard_candidates$replacement_check[i] <- "individuals_claimed_by_multiple_parents"
   } else {
     multicard_candidates$candidate_status[i] <- "exclude_source_duplicate_keep_successors"
-    multicard_candidates$decision_reason[i] <- "complete_individual_coverage"
+    multicard_candidates$decision_reason[i] <- multicard_candidates$replacement_check[i]
   }
 }
 

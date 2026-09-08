@@ -535,3 +535,30 @@ Assessor years. These decisions do not waive unresolved duplicate matching.
 Fletcher's announced development size is not an observation count or a reason
 to add homes. Its six recorded cards still require reconciliation with individual
 properties. No news report creates observations.
+
+## September 8: Approved building identities
+
+Jacob approved the preferred resolutions for Eddy, Bell, Cullerton/Prairie,
+31st Street, Dearborn, Washington, and Ingleside. Two small source ledgers record
+these exceptions instead of placing property identifiers in executable code.
+`adjudication/residential_reviewed_card_selections.csv` selects three existing
+Assessor rows: Dearborn 2022 card 1; Washington 2025 card 1; Ingleside 2025 card 1.
+The existing card producer applies these choices before counting components or
+adding their areas. It rejects absent source rows, duplicate cards, mixed
+assessment snapshots, and unusable measurements. No numerical field is invented.
+Washington's three units remain an Assessor proxy from 2025, not an independently
+verified original unit count.
+
+`adjudication/residential_reviewed_home_replacements.csv` identifies six old
+combined records and their thirty individually retained homes. The existing
+project producer applies the reviewed correspondences alongside the automatic
+rule, validates that the individual homes are present and eligible, and rejects
+competing claims on the same home. The six cases preserve their original values
+for inspection but are marked excluded as duplicates. Individual home fields do
+not change. These are explicit reviewed exceptions; the general 2% area and
+two-year automatic tolerances have not been loosened.
+
+The accepted fixes resolve nine of the fifteen remaining records from the
+original review. Fletcher, 32nd Place, Vernon, and three Broad/Pitney records
+remain under review. This does not remove independently measured individual
+homes near those unresolved records. The paper's frozen input remains unchanged.

@@ -452,7 +452,7 @@ ifneq ($(filter-out $(wildcard ../output/residential_project_candidate_inventory
 .PHONY: ../output/residential_project_candidate_inventory.csv
 endif
 
-../output/residential_project_candidate_inventory.csv: build_residential_project_candidates.R ../input/residential_assessor_history.parquet ../output/geocoded_residential_data.gpkg ../output/multifamily_data_cleaned.csv ../output/construction_parcel_boundary_distances.csv ../output/residential_cross_section.csv ../../setup_environment/code/packages.R Makefile | ../output
+../output/residential_project_candidate_inventory.csv: build_residential_project_candidates.R ../adjudication/residential_reviewed_card_selections.csv ../input/residential_assessor_history.parquet ../output/geocoded_residential_data.gpkg ../output/multifamily_data_cleaned.csv ../output/construction_parcel_boundary_distances.csv ../output/residential_cross_section.csv ../../setup_environment/code/packages.R Makefile | ../output
 	$(R) $< $(PREFERRED_ASSESSMENT_YEAR) $(FALLBACK_ASSESSMENT_YEAR)
 
 ../output/residential_project_history_summary.csv: ../output/residential_project_candidate_inventory.csv
@@ -645,7 +645,7 @@ ifneq ($(filter-out $(wildcard ../output/preferred_residential_project_candidate
 .PHONY: ../output/preferred_residential_project_candidates.csv
 endif
 
-../output/residential_assessor_project_candidates.csv: build_residential_assessor_projects.R ../../setup_environment/code/packages.R ../../shared/code/assessor_classification.R ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../output/residential_multicard_cards.csv Makefile ../input/parcel_universe_2025_city.csv ../input/preferred_historical_parcel_source.gpkg ../input/preferred_predecessor_parcel_source.gpkg | ../output
+../output/residential_assessor_project_candidates.csv: build_residential_assessor_projects.R ../adjudication/residential_reviewed_home_replacements.csv ../../setup_environment/code/packages.R ../../shared/code/assessor_classification.R ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../output/residential_multicard_cards.csv Makefile ../input/parcel_universe_2025_city.csv ../input/preferred_historical_parcel_source.gpkg ../input/preferred_predecessor_parcel_source.gpkg | ../output
 	$(R) $< $(AUTOMATIC_CARD_BUILDING_GAP) $(EPISODE_YEAR_WINDOW)
 
 ../report/residential_assessor_project_candidates.csv.log: ../../shared/code/report.py ../output/residential_assessor_project_candidates.csv | ../report

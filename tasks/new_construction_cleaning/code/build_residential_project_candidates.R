@@ -661,6 +661,25 @@ multicard_reports <- bind_rows(
   snapshot_cards %>% mutate(complete_episode_snapshot = TRUE)
 ) %>% arrange(pin, card_num)
 
+# Reviewed physical identities select source rows before units and areas are added.
+# The ledger records why other cards for the same PIN are not separate buildings.
+reviewed_cards <- readr::read_csv("../adjudication/residential_reviewed_card_selections.csv",
+  col_types = readr::cols(.default = readr::col_character()))
+stopifnot(!anyDuplicated(reviewed_cards$row_id),
+  all(reviewed_cards$pin %in% multicard_pins$pin))
+reviewed_reports <- history %>%
+  semi_join(reviewed_cards, by = c("pin", "row_id")) %>%
+  mutate(complete_episode_snapshot = TRUE)
+stopifnot(nrow(reviewed_reports) == nrow(reviewed_cards),
+  !anyDuplicated(reviewed_reports[c("pin", "card_num")]),
+  all(is.finite(reviewed_reports$building_sqft) & reviewed_reports$building_sqft > 0),
+  all(is.finite(reviewed_reports$land_sqft) & reviewed_reports$land_sqft > 0))
+stopifnot(all(reviewed_reports %>% count(pin, tax_year) %>% count(pin) %>% pull(n) == 1L))
+multicard_reports <- bind_rows(
+  multicard_reports %>% anti_join(reviewed_cards %>% distinct(pin), by = "pin"),
+  reviewed_reports
+) %>% arrange(pin, card_num)
+
 multicard_cards <- multicard_reports %>%
   inner_join(multicard_pins, by = "pin", relationship = "many-to-one") %>%
   group_by(pin) %>%
