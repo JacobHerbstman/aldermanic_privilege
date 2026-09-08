@@ -2,6 +2,17 @@ include ../../shared/code/shell_functions.make
 
 all: ../report/phased_project_permits.csv.log ../report/restored_stage_checks.csv.log ../output/manual_episode_increment.csv ../report/manual_episode_increment.csv.log ../output/manual_review_increment.csv ../report/manual_review_increment.csv.log ../output/multicard_followup_permits.csv ../report/multicard_followup_permits.csv.log ../output/multicard_parent_coverage.csv ../report/multicard_parent_coverage.csv.log ../output/density_exclusion_comparison.csv ../report/density_exclusion_comparison.csv.log ../output/denominator_permit_evidence.csv ../report/denominator_permit_evidence.csv.log ../output/model_checks.csv ../output/score_checks.csv ../output/data_checks.csv ../output/multicard_land_scope.csv ../report/multicard_land_scope.csv.log ../output/denominator_case_review.csv ../output/denominator_case_members.csv ../output/denominator_case_maps.pdf ../report/denominator_case_review.csv.log ../report/denominator_case_members.csv.log
 
+all: ../report/natchez_building_land_coverage.csv.log ../output/natchez_parcel_coverage.pdf
+
+../output/natchez_building_land_coverage.csv: review_natchez_land.R ../input/natchez_footprints_2022.geojson ../input/natchez_historical_parcels.gpkg ../input/natchez_zoning_2025.geojson | ../output
+	$(R) $<
+
+../report/natchez_building_land_coverage.csv.log: ../../shared/code/report.py ../output/natchez_building_land_coverage.csv | ../report
+	$(PYTHON) $< ../output/natchez_building_land_coverage.csv $@ footprint_id
+
+../output/natchez_parcel_coverage.pdf: plot_natchez_land.R ../output/natchez_building_land_coverage.csv ../input/natchez_footprints_2022.geojson ../input/natchez_historical_parcels.gpkg | ../output
+	$(R) $<
+
 ../output/phased_project_permits.csv: review_phased_project_permits.py ../../setup_environment/code/report_requirements.txt ../input/building_permits_full.csv | ../output
 	$(PYTHON) $<
 
@@ -122,5 +133,14 @@ link-inputs: ../input/parcel_universe_2025_city.csv ../input/density_denominator
 
 ../input/multicard_manual_episode_decisions.csv: ../../new_construction_cleaning/adjudication/multicard_manual_episode_decisions.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/multicard_manual_episode_decisions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/multicard_manual_episode_decisions.csv "$@"; fi
+
+../input/natchez_footprints_2022.geojson: ../../download_construction_development_records/output/natchez_footprints_2022.geojson | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/natchez_historical_parcels.gpkg: ../../../data_raw/construction_review/preferred_historical_parcel_source.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/natchez_zoning_2025.geojson: ../../../data_raw/construction_review/zoning_sep2025.geojson | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 include ../../shared/code/generic.make

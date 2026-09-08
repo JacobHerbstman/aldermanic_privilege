@@ -23,3 +23,15 @@ report about the broader complex, not proof of the completion of each earlier
 subarea. Preserve the recorded bytes and checksum under the same vintage policy.
 The May 2023 Roosevelt conference PDF linked in the release audit returned HTTP
 403 on direct download; it remains unpinned web evidence, not a production input.
+
+Natchez sources acquired September 7, 2026 are declared in
+`code/natchez_sources.make`, included by the ordinary Makefile. `natchez_pd1345.pdf`
+is the City's 71-page compilation: the September 20, 2018 amendment and October 5,
+2016 adoption. Its PDF page 14 reproduces the amended master plan.
+`natchez_footprints_2022.geojson` preserves the complete Cook County 2022 footprint
+response for the declared EPSG:3435 envelope (1131800,1912900,1132900,1914500),
+with output coordinates in EPSG:4326. The response has 170 unique footprint IDs
+and does not exceed the service transfer limit. Both files have recorded hashes.
+This is a broader site query than the older review footprint extract, which
+contains only four of the eight western residences; absence from that extract
+must not be interpreted as absence of a building.

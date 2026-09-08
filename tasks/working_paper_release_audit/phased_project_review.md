@@ -27,6 +27,47 @@ unit count is retained. The commercial Make build cannot yet propagate the
 Grove decision because `commercial_city_building_footprints.gpkg` has no producer
 rule. The frozen paper input and estimates remain unchanged.
 
+## Natchez C: resolved disposition after parcel research
+
+Jacob approved excluding C from density pending a reliable site boundary. Its
+39 units, 2020 year, and separate identity remain recorded. A and B are unchanged.
+The existing density-exclusion input now has seven records rather than six.
+The added record is outside 500 feet in the frozen paper data, so this exclusion
+adds no change to the current main regression sample. Wider samples must honor it.
+
+The former 16,031-square-foot denominator is not a complete residential site.
+The 2020 polygons measure 16,031.588 square feet for PIN 13312050180000 and
+395,698.236 for PIN 13315000020000. Their union is 411,729.575 square feet; the
+second parcel extends along the rail corridor well beyond the project. The
+complete 2022 footprint query identifies the eight western residential buildings
+and their community center. All eight residences cross both source parcels.
+The retained strip contains only 9.7% to 25.5% of each residential footprint.
+The excluded corridor contains most of each footprint. The southern residence
+also extends onto B's parcel, as does approximately half the community center.
+These are footprint-overlap measurements, not floor-area estimates.
+
+An automatic intersection of the two source parcels with the pinned 2025 PD 1345
+geometry produces 86,560.14 square feet, but includes only 82.7% of the southern
+residence and 48.9% of the community-center footprint. This alternative is rejected
+as a final site boundary too. The 2025 zoning polygon references the 2018 ordinance;
+its use here is a diagnostic comparison, not verified 2020 boundary reconstruction.
+Neither all-or-nothing parcel selection nor that intersection resolves the site.
+
+Evidence is reproducible through `review_natchez_land.R` and
+`plot_natchez_land.R`, using declared local input links. The nine-row
+`natchez_building_land_coverage.csv` has unique footprint IDs and a standard report;
+`natchez_parcel_coverage.pdf` shows the parcel lines crossing the buildings.
+The published 2018 amendment's master plan is PDF page 14 of the newly pinned
+`natchez_pd1345.pdf`. Eight 2019 new-building permits sum to 39 units; the community
+center has its own permit 100792884. The older archived 2022 footprint extract was
+incomplete for this site, so the new acquisition preserves a full bounding-box
+query (170 features), not just previously selected building candidates.
+
+No replacement land area is adopted. The final production exporter already applies
+`density_denominator_decisions.csv` before calculating density, retaining rows and
+setting both density eligibility flags false. Full propagation remains blocked by
+the incomplete upstream reconstruction; the frozen paper input is unchanged.
+
 ## Current paper observations
 
 | Observation | Year | Units | Building sq ft | Land sq ft | FAR | Units/acre | Boundary distance, ft |

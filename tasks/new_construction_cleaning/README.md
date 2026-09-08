@@ -31,7 +31,10 @@ Jacob finalized the following choices on September 7, 2026:
   12, 14, and 8 buildings and 72, 84, and 39 units. Use their existing Assessor-year
   proxies of 2017, 2020, and 2020. All three already occur separately in the frozen
   dataset; A and B enter the main 500-foot sample, while C is outside it. This
-  settles grouping and timing, not C's existing land denominator or parcel scope.
+  settles grouping and timing. Subsequent footprint review established that C's
+  strip-only land denominator is incomplete; Jacob approved excluding C from
+  density pending a reliable site boundary. The existing density-exclusion ledger
+  records that decision and retains the construction observation.
 - Use the later Assessor year 2006 for 1217 W Arthington at Roosevelt Square.
   The project review ledger labels this an accepted Assessor proxy. The earlier
   2005 source value remains evidence; the accepted date is not independently
