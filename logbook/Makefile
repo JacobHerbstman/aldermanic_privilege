@@ -2,6 +2,8 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-08-remaining-land-location-verdicts.tex ../tasks/working_paper_release_audit/remaining_land_location_verdicts.md ../tasks/working_paper_release_audit/report/remaining_project_location_checks.csv.log ../tasks/working_paper_release_audit/report/remaining_project_successor_evidence.csv.log ../tasks/working_paper_release_audit/report/candidate_geography_review_queue.csv.log
+
 logbook.pdf: entries/2026-09-08-final-townhome-decisions.tex ../tasks/new_construction_cleaning/report/residential_assessor_project_candidates.csv.log ../tasks/new_construction_cleaning/report/preferred_residential_project_candidates.csv.log ../tasks/new_construction_cleaning/report/preferred_project_year_geometry_coverage.csv.log ../tasks/new_construction_cleaning/report/preferred_project_boundary_scope.csv.log ../tasks/download_construction_historical_parcels/report/preferred_historical_parcel_source.gpkg.log ../tasks/download_construction_historical_parcels/report/preferred_historical_parcel_source_queries.csv.log
 
 logbook.pdf: entries/2026-09-08-accepted-card-decisions.tex ../tasks/new_construction_cleaning/report/residential_assessor_project_candidates.csv.log ../tasks/new_construction_cleaning/report/residential_multicard_cards.csv.log ../tasks/new_construction_cleaning/report/preferred_residential_project_candidates.csv.log ../tasks/new_construction_cleaning/report/residential_adjudication_queue.csv.log

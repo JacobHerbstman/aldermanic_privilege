@@ -10,6 +10,22 @@ all: ../report/geocoder_mismatch_review.csv.log ../report/geocoding_parcel_histo
 
 all: ../report/candidate_geography_checks.csv.log ../report/candidate_geography_review_queue.csv.log
 
+all: ../report/remaining_project_location_checks.csv.log
+
+all: ../report/remaining_project_successor_evidence.csv.log
+
+../output/remaining_project_successor_evidence.csv: review_remaining_successor_locations.R ../output/candidate_geography_review_queue.csv ../input/preferred_residential_project_candidates.csv ../input/parcel_universe_2025_city.csv | ../output
+	$(R) $<
+
+../report/remaining_project_successor_evidence.csv.log: ../../shared/code/report.py ../output/remaining_project_successor_evidence.csv | ../report
+	$(PYTHON) $< ../output/remaining_project_successor_evidence.csv $@ case_id
+
+../output/remaining_project_location_checks.csv: review_remaining_project_locations.R ../output/candidate_geography_review_queue.csv ../input/preferred_residential_project_candidates.csv ../input/preferred_commercial_project_candidates.csv ../input/preferred_project_boundary_scope.csv ../input/parcel_universe_2025_city.csv ../input/parcel_addresses_2025_chicago.csv ../input/preferred_project_year_geometry.gpkg ../input/ward_pair_boundaries.gpkg | ../output
+	$(R) $<
+
+../report/remaining_project_location_checks.csv.log: ../../shared/code/report.py ../output/remaining_project_location_checks.csv | ../report
+	$(PYTHON) $< ../output/remaining_project_location_checks.csv $@ project_id
+
 ../output/candidate_geography_checks.csv: review_candidate_geography.R ../input/preferred_project_boundary_scope.csv ../input/preferred_project_year_geometry.gpkg ../input/preferred_project_year_centroids.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg | ../output
 	$(R) $<
 
@@ -246,5 +262,10 @@ link-inputs: ../input/current_predecessor_parcel_source.gpkg ../input/preferred_
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/history_reference_parcels.gpkg ../input/history_reference_queries.csv ../input/residential_multicard_cards.csv ../input/residential_tieback_temporal_lineage_evidence.csv
+
+../input/parcel_addresses_2025_chicago.csv: ../../cook_parcel_addresses_download/output/parcel_addresses_2025_chicago.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../cook_parcel_addresses_download/output/parcel_addresses_2025_chicago.csv" ]; then ln -sf ../../cook_parcel_addresses_download/output/parcel_addresses_2025_chicago.csv "$@"; fi
+
+link-inputs: ../input/parcel_addresses_2025_chicago.csv
 
 include ../../shared/code/generic.make

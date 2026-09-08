@@ -1,0 +1,30 @@
+File: remaining_project_location_checks.csv
+Rows: 140
+Columns: 20
+SHA-256 (saved bytes): 95cc50cdca98d23535dfa53bb9474acb9d53caf7438b98bd4671c88a670c45e2
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                  column inferred_type non_missing distinct                min                max               mean                 sd
+                              project_id       VARCHAR         140      140                  -                  -                  -                  -
+                           source_family       VARCHAR         140        2                  -                  -                  -                  -
+                          component_pins       VARCHAR         140      140                  -                  -                  -                  -
+                       construction_year        BIGINT         130       17               2006               2022 2012.9692307692308  4.764107506546238
+                          dwelling_units        BIGINT         123       27                  1                735   45.2520325203252 117.74427649560863
+                           building_sqft        BIGINT         124       81                  1            1284706 63104.403225806454 174408.75373010885
+                               land_sqft        BIGINT         127      106                802             816149  37701.02362204724 104091.50898764428
+                        candidate_status       VARCHAR         140        3                  -                  -                  -                  -
+                         decision_reason       VARCHAR         140       18                  -                  -                  -                  -
+                        geography_status       VARCHAR         130        2                  -                  -                  -                  -
+                  project_land_area_sqft        DOUBLE          50       35 3003.1776000261307  411729.5751497799 59019.508111783565   88504.2502237605
+                 distance_to_boundary_ft        DOUBLE          50       36  31.27532083875283  3671.819496096857 1265.1081639522172  905.2159735668401
+                       current_addresses       VARCHAR          85       84                  -                  -                  -                  -
+                     current_point_count        BIGINT         140       11                  0                 57 1.6214285714285714  5.481778655242942
+maximum_point_outside_historical_site_ft        DOUBLE          48        5                0.0 16.740130136007107 0.7294203913709344  2.981964029874799
+       current_point_minimum_boundary_ft        DOUBLE          70       68  84.83668262165635  3743.323084413925 1249.7357235749041  937.3528250703554
+       current_point_maximum_boundary_ft        DOUBLE          70       68 104.04982261230587  3743.323084413925 1341.3253083792576  916.5166390048412
+              current_points_cross_500ft       BOOLEAN         140        2                  -                  -                  -                  -
+      current_point_disagrees_with_500ft       BOOLEAN         140        2                  -                  -                  -                  -
+           mapped_to_assessor_land_ratio        DOUBLE          48       46 0.2308171039234555  92.50823418285113 14.454450811871832 25.493946429267265
