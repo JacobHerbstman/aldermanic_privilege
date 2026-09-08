@@ -322,23 +322,37 @@ requests have no selected historical address. Before the acceptance change below
 both services reproduced the old chosen-match records exactly on the shared 211
 requests.
 
-Both geocoders now require agreement on the full street address after standard
+Both geocoders require agreement on the full street address after standard
 abbreviation normalization; an omitted trailing unit label is allowed. Direction
-and street type must agree. The Census rule flags four previously accepted
-responses, leaving 190 accepted requests. All 114 Chicago acceptances are
-unchanged. Three reference points consequently become unresolved; the fourth
-has an accepted City point. These are not density exclusions. The pinned permit
-history supports all four alternative street labels, so the historical address
-itself may be wrong. Address evidence alone does not establish a parcel identity.
-The release audit records the permit evidence for each mismatch.
+and street type must agree. The first strict-street review flagged four Census
+responses, leaving 190 accepted requests and all 114 Chicago acceptances unchanged.
+Three reference points became unresolved; the fourth had an accepted City point.
+The pinned permits supported the alternative labels. These were not density
+exclusions. The release audit records evidence for the remaining mismatches.
 
-The preferred predecessor lookup now reads a pinned source union from its
-acquisition task. One additional year-and-coordinate query returns one 2007
-polygon, PIN 17073250410000. All 1,693 original source features retain their
-attributes and geometry. Relative to the archived selected polygons, 3,768 shared
-shapes are spatially equal, two selections disappear under the stricter address
-rule, and one new selection enters. The lookup and its reports rebuild through
-Make; later project geography has not yet been rebuilt.
+Jacob subsequently confirmed that 1236 N Troy Street is an Assessor error and the
+address is 1236 S Troy Street. `adjudication/historical_address_corrections.csv`
+records the parcel, original address, correction, evidence, and decision date.
+`build_historical_address_history.R` applies that table before geocoding and keeps
+the original selected address alongside the corrected one. The correction must
+match the selected source address exactly; stale or unmatched decisions stop the
+build. No address or parcel identifier is hardcoded in the correction code.
+
+For every construction request needing an address geocode, an accepted Chicago
+point takes priority over Census. This ordering already existed and is retained.
+Historical and current exact-parcel coordinates take precedence over both address
+services. The broader proposal to add newly recovered historical exact-PIN points
+is still pending. Both services now have pinned responses for the corrected South
+Troy address, and a pinned query covers its Chicago point in the 2008 parcel layer.
+
+The preferred predecessor lookup reads a pinned source union from its acquisition
+task. It preserves all 1,693 original features, adds one 2007 polygon for a newly
+queried point, and adds the 2008 South Troy polygon. The first restored lookup had
+3,768 shapes spatially equal to the archived selections, two removed selections
+under the strict street rule, and one new selection. The subsequent Troy correction
+preserves all 3,769 selections from that build and adds Troy, yielding 3,770.
+The lookup and its reports rebuild through Make; later project geography has not
+yet been rebuilt.
 
 The release audit also examines complete 1999–2025 exact-PIN location history for
 all 216 address requests: 447 source rows provide finite coordinates for 191

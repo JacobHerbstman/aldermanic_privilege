@@ -1,17 +1,17 @@
 File: restored_stage_checks.csv
-Rows: 199
+Rows: 202
 Columns: 7
-SHA-256 (saved bytes): b64139d805054d01f369906a82db9d27a1270d63c1df4767ca507a6f87486346
+SHA-256 (saved bytes): d21794ae22d51773cb34e2ee00637c1ae80e9ca45263fd21d84234b66c7df63f
 Key: not declared in this report
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
             column inferred_type non_missing distinct min max mean sd
-             stage       VARCHAR         199      146   -   -    -  -
-reference_location       VARCHAR         199      184   -   -    -  -
-  reference_sha256       VARCHAR         199      172   -   -    -  -
-   restored_sha256       VARCHAR         199      190   -   -    -  -
-        comparison       VARCHAR         199       56   -   -    -  -
-       check_scope       VARCHAR         199       40   -   -    -  -
-      checked_date          DATE         199        3   -   -    -  -
+             stage       VARCHAR         202      147   -   -    -  -
+reference_location       VARCHAR         202      187   -   -    -  -
+  reference_sha256       VARCHAR         202      175   -   -    -  -
+   restored_sha256       VARCHAR         202      193   -   -    -  -
+        comparison       VARCHAR         202       59   -   -    -  -
+       check_scope       VARCHAR         202       43   -   -    -  -
+      checked_date          DATE         202        3   -   -    -  -

@@ -64,4 +64,17 @@ selected_history <- targets %>%
     )
   )
 
+# Apply recorded address corrections before any consumer requests a geocode.
+corrections <- read_csv("../adjudication/historical_address_corrections.csv",
+  col_types = cols(.default = col_character()))
+stopifnot(!anyNA(corrections), !anyDuplicated(corrections[c("pin", "original_address")]),
+  nrow(anti_join(corrections, selected_history,
+    by = c("pin", "original_address" = "selected_address_normalized"))) == 0L)
+selected_history <- selected_history %>%
+  left_join(corrections %>% select(pin, original_address, corrected_address, address_correction_reason = reason),
+    by = c("pin", "selected_address_normalized" = "original_address"), relationship = "one-to-one") %>%
+  mutate(source_selected_address = selected_address,
+    selected_address = coalesce(corrected_address, selected_address),
+    selected_address_normalized = normalize_address(selected_address)) %>%
+  select(-corrected_address)
 write_csv(selected_history, "../output/density_parcel_address_selected_history.csv")

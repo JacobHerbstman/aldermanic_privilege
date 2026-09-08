@@ -14,7 +14,8 @@ HISTORICAL_EXACT_MATCH_FT ?= 10
 HISTORICAL_LOCAL_MATCH_FT ?= 150
 HISTORICAL_MAX_BUILDING_GAP ?= 0.10
 
-all: ../report/commercial_city_building_footprints.gpkg.log \
+all: ../report/density_parcel_address_selected_history.csv.log \
+	../report/commercial_city_building_footprints.gpkg.log \
 	../report/preferred_predecessor_reference_points.csv.log \
 	../report/preferred_historical_predecessor_resolution.csv.log \
 	../report/preferred_historical_predecessor_selected.gpkg.log \
@@ -892,7 +893,10 @@ endif
 ../output/multifamily_data_cleaned.csv: build_commercial_cross_section.R ../../setup_environment/code/packages.R ../input/commercial_value_raw.csv ../adjudication/initial_commercial_unit_overrides.csv | ../output
 	$(R) $<
 
-../output/density_parcel_address_selected_history.csv: build_historical_address_history.R ../../setup_environment/code/packages.R ../input/historical_parcel_requests.csv ../input/density_historical_address_records.csv ../../shared/code/normalize_chicago_address.R | ../output
+../report/density_parcel_address_selected_history.csv.log: ../../shared/code/report.py ../output/density_parcel_address_selected_history.csv | ../report
+	$(PYTHON) $< ../output/density_parcel_address_selected_history.csv $@ pin
+
+../output/density_parcel_address_selected_history.csv: build_historical_address_history.R ../../setup_environment/code/packages.R ../input/historical_parcel_requests.csv ../input/density_historical_address_records.csv ../../shared/code/normalize_chicago_address.R ../adjudication/historical_address_corrections.csv | ../output
 	$(R) $<
 
 ../output/density_parcel_address_lineage_evidence.csv: build_historical_address_screen.R ../../setup_environment/code/packages.R ../output/density_project_lineage.csv ../output/density_historical_building_universe.csv ../output/density_historical_coordinate_candidates.csv ../output/density_parcel_address_selected_history.csv ../input/parcel_addresses_2025_chicago.csv Makefile | ../output

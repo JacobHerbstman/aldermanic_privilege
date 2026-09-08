@@ -1,28 +1,28 @@
 File: geocoder_mismatch_review.csv
-Rows: 4
+Rows: 3
 Columns: 18
-SHA-256 (saved bytes): 06562883d0054a7c8e8a5a1373f3496b8b392b479e13d7dab77c4773f35679ce
+SHA-256 (saved bytes): 64a2731bac8aa91f283fda54b3ce1fc00ec0656ad1d46689b4bf53fdde9ce9b5
 Key: request_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                         column inferred_type non_missing distinct            min            max             mean                 sd
-                     request_id       VARCHAR           4        4              -              -                -                  -
-                     project_id       VARCHAR           4        4              -              -                -                  -
-                  component_pin        BIGINT           4        4 16241000490000 19111230110000 17918697687500.0 1432864728979.2659
-                    target_year        BIGINT           4        3           2006           2008           2007.0 0.8164965809277028
-               selected_address       VARCHAR           4        4              -              -                -                  -
-          selected_address_year        BIGINT           4        3           2007           2025           2012.0  8.679477710861004
-                matched_address       VARCHAR           4        4              -              -                -                  -
-           query_street_address       VARCHAR           4        4              -              -                -                  -
-         matched_street_address       VARCHAR           4        4              -              -                -                  -
-                  census_status       VARCHAR           4        1              -              -                -                  -
-                 chicago_status       VARCHAR           4        2              -              -                -                  -
-        chicago_matched_address       VARCHAR           1        1              -              -                -                  -
-          query_address_permits        BIGINT           4        1              0              0              0.0                0.0
-    alternative_address_permits        BIGINT           4        2              1              3              1.5                1.0
-         alternative_permit_ids       VARCHAR           4        4              -              -                -                  -
-       alternative_permit_dates       VARCHAR           4        4              -              -                -                  -
-alternative_permit_descriptions       VARCHAR           4        4              -              -                -                  -
-   alternative_permit_pin_lists       VARCHAR           2        2              -              -                -                  -
+                         column inferred_type non_missing distinct            min            max               mean                 sd
+                     request_id       VARCHAR           3        3              -              -                  -                  -
+                     project_id       VARCHAR           3        3              -              -                  -                  -
+                  component_pin        BIGINT           3        3 17211330050000 19111230110000 18477930086666.668 1096907808187.6345
+                    target_year        BIGINT           3        2           2006           2007 2006.6666666666667 0.5773502691896093
+               selected_address       VARCHAR           3        3              -              -                  -                  -
+          selected_address_year        BIGINT           3        2           2007           2008 2007.6666666666667 0.5773502691896093
+                matched_address       VARCHAR           3        3              -              -                  -                  -
+           query_street_address       VARCHAR           3        3              -              -                  -                  -
+         matched_street_address       VARCHAR           3        3              -              -                  -                  -
+                  census_status       VARCHAR           3        1              -              -                  -                  -
+                 chicago_status       VARCHAR           3        2              -              -                  -                  -
+        chicago_matched_address       VARCHAR           1        1              -              -                  -                  -
+          query_address_permits        BIGINT           3        1              0              0                0.0                0.0
+    alternative_address_permits        BIGINT           3        2              1              3 1.6666666666666667 1.1547005383792517
+         alternative_permit_ids       VARCHAR           3        3              -              -                  -                  -
+       alternative_permit_dates       VARCHAR           3        3              -              -                  -                  -
+alternative_permit_descriptions       VARCHAR           3        3              -              -                  -                  -
+   alternative_permit_pin_lists       VARCHAR           2        2              -              -                  -                  -

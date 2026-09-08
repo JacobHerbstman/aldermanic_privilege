@@ -40,3 +40,14 @@ inputs and generates reports. Intentional acquisition writes separate
 files so it cannot replace the production snapshot. The cleaning task fails if
 its requests exceed the recorded responses. A new request scope requires an
 explicit acquisition and snapshot update.
+
+Jacob's September 7 correction of North Troy to South Troy adds one query per
+service. `address_geocodes_census_additional_2026-09-07.csv` and
+`address_geocodes_chicago_additional_2026-09-07.csv` preserve the full South Troy
+responses, retrieved with the existing Make downloader using a one-address query
+table. The source checksum file covers all four inputs. Ordinary Make combines
+the original 196 responses with the additional response for each service, requiring
+disjoint address keys. It does not replace any original response. Census returns
+South Troy for either direction; Chicago returns the same South Troy point with
+score 92.78 for North and 100 for South. Cleaning gives accepted Chicago points
+priority over Census coordinates.

@@ -1,0 +1,55 @@
+\section*{September 7, 2026: Correct Troy to South and retain Chicago first}
+\textit{Agent-drafted implementation of Jacob's address decision.}
+
+Jacob confirmed that the Assessor's 1236 N Troy Street address is erroneous and
+should be 1236 S Troy Street. Both Census and Chicago return South Troy when
+queried with either direction. Chicago returns the same individual address point
+with a score of 92.78 for the North query and 100 for South. New-construction
+permit 100186300 also identifies South Troy. The earlier account of Chicago
+having no accepted match referred to our score requirement; Chicago did return
+the South address. Agreement between services was therefore stronger than that
+account conveyed.
+
+The correction is recorded by parcel number and original address in
+\path{historical_address_corrections.csv}. The historical-address producer applies
+this table before geocoding, preserving the original selected address and the
+reason for the correction. It changes only Troy among 1,234 selected-address
+records; every original field in the other records is unchanged. An unmatched
+or stale decision fails explicitly. The scripts contain no Troy-specific address
+or parcel-number condition. This is a recorded research decision, not an automatic
+rule to change directions whenever two geocoders agree.
+
+Chicago already takes precedence over Census for every construction observation
+that needs address geocoding. An accepted Chicago match must be a unique individual
+address point with score 100 and full street agreement. Census is the next address
+source when that criterion fails. Historical and current exact-parcel coordinates
+remain ahead of both services. Jacob's suggestion to try Chicago first therefore
+retains the existing ordering; it does not replace parcel coordinates with address
+estimates. The separate proposal to expand the use of historical exact-parcel
+coordinates remains pending.
+
+The corrected South query is preserved as an additional full response for each
+service, keeping all original responses unchanged. The Chicago point lies in one
+2008 parcel, 16241000360000. That polygon and the exact query are preserved as
+additional source inputs for the preferred predecessor lookup. These changes
+resolve the address disagreement and supply a historical parcel candidate; they
+do not independently establish every aspect of the construction episode or its
+final density measurement.
+
+The actual production rebuild accepts South Troy in both services and selects
+Chicago's point. Only Troy changes in the 216 address requests and 3,889 reference
+locations. The parcel lookup uniquely selects the 2008 parcel above, increasing
+selected requests from 3,769 to 3,770. All previously selected shapes and their
+attributes are unchanged. Three other street-label mismatches remain in the audit.
+
+\textit{Reproduction and limits.} Work follows \path{cba6575} on
+\path{sales_sample_exploration}. The construction task's historical-address,
+geocoder, and preferred predecessor reports record the rebuilt stages. Both
+acquisition tasks verify the additional source hashes in ordinary Make. The
+South-address API queries and 2008 spatial query used the existing Make
+downloaders in disposable tasks with their query tables fixed. Tests check the
+single-address change, rejection of a stale correction, and fresh parallel replay
+of both geocoder response sources. Logbook compilation retains the previously
+documented holds on unrelated unfinished stages. No final density export or
+regression rebuild is included in this change, and the 30-case checkpoint remains
+open.

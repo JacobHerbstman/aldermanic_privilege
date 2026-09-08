@@ -6,3 +6,6 @@ data_raw/construction_review/preferred_predecessor_source_queries.csv -text whit
 data_raw/construction_review/preferred_predecessor_queries_2026-09-07.csv -text
 data_raw/construction_review/geocoding_parcel_history_2026-09-07.csv -text
 data_raw/construction_review/geocoding_history_queries_2026-09-07.csv -text
+data_raw/construction_review/address_geocodes_census_additional_2026-09-07.csv -text
+data_raw/construction_review/address_geocodes_chicago_additional_2026-09-07.csv -text
+data_raw/construction_review/preferred_predecessor_troy_queries_2026-09-07.csv -text

@@ -112,3 +112,13 @@ fields as its `initial` scope and does not select coordinates during acquisition
 The release audit evaluates nearest-year coordinate availability. Adopting these
 locations ahead of address geocoding remains a proposed method change, not an
 implemented production priority.
+
+The approved South Troy address correction requires another spatial query: its
+Chicago address point in the 2008 layer. The existing Make downloader returned
+one polygon, PIN 16241000360000 (object ID 169033). The full polygon extract and
+query are pinned as `preferred_predecessor_troy_parcels_2026-09-07.gpkg` and
+`preferred_predecessor_troy_queries_2026-09-07.csv`. Both are included in
+`preferred_predecessor_snapshot.sha256`. The ordinary source union retains the
+earlier 1,694 polygons and adds this one. The query was submitted in EPSG:3435 at
+x=1155481.6903695965, y=1894116.3050945636; construction cleaning must independently
+produce that point from the corrected address response before using this lookup.

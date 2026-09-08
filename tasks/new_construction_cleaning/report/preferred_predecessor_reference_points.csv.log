@@ -1,7 +1,7 @@
 File: preferred_predecessor_reference_points.csv
 Rows: 3889
 Columns: 22
-SHA-256 (saved bytes): 1e2f2165a00bfd4c8ed43e8720e43f55eaa793b0a4c5cf119ef9e674f09580e5
+SHA-256 (saved bytes): a60ff1ba632568b6bf793b710d15a82c6eb968e0b16b6ef348de6bb64b3c47ff
 Key: request_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -18,15 +18,15 @@ Row counts, non-missing counts, and declared-key checks: exact.
             target_year        BIGINT        3889       17               2006               2022 2011.0686551812805  4.956671032344806
         coverage_status       VARCHAR        3889        1                  -                  -                  -                  -
        reference_status       VARCHAR        3889        2                  -                  -                  -                  -
-       reference_source       VARCHAR        3865        4                  -                  -                  -                  -
-       reference_x_3435        DOUBLE        3865     3771 1119499.7135786538 1203743.2364409526 1164014.4370186022  13986.29215837924
-       reference_y_3435        DOUBLE        3865     3771  1823634.806017771  1949720.200967388  1895980.412703893   23483.1890035285
-       selected_address       VARCHAR         190      185                  -                  -                  -                  -
-  selected_address_year        BIGINT         190       15               2007               2025 2013.5684210526315  5.671151598811162
-        matched_address       VARCHAR         190      146                  -                  -                  -                  -
-          tiger_line_id        BIGINT         190       73          111755466          657179306  336793882.6157895 253719777.47362214
-chicago_matched_address       VARCHAR         114      113                  -                  -                  -                  -
-          chicago_score        BIGINT         114        1                100                100              100.0                0.0
-        chicago_locator       VARCHAR         114        1                  -                  -                  -                  -
+       reference_source       VARCHAR        3866        4                  -                  -                  -                  -
+       reference_x_3435        DOUBLE        3866     3772 1119499.7135786538 1203743.2364409526 1164012.2298932401 13985.156020772729
+       reference_y_3435        DOUBLE        3866     3772  1823634.806017771  1949720.200967388  1895979.930523963 23480.170018594694
+       selected_address       VARCHAR         191      186                  -                  -                  -                  -
+  selected_address_year        BIGINT         191       15               2007               2025  2013.628272251309  5.716369536985717
+        matched_address       VARCHAR         191      147                  -                  -                  -                  -
+          tiger_line_id        BIGINT         191       74          111755466          657179306 338198337.57591623  253794528.5130744
+chicago_matched_address       VARCHAR         115      114                  -                  -                  -                  -
+          chicago_score        BIGINT         115        1                100                100              100.0                0.0
+        chicago_locator       VARCHAR         115        1                  -                  -                  -                  -
              permit_ids        BIGINT           8        8            2024046            2749118          2551423.5 255895.52912523833
  permit_point_spread_ft        BIGINT           8        1                  0                  0                0.0                0.0

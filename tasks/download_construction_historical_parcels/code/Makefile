@@ -10,10 +10,10 @@ all: ../report/preferred_historical_parcel_source.gpkg.log ../report/preferred_h
 
 all: ../report/preferred_predecessor_parcel_source.gpkg.log ../report/preferred_predecessor_source_queries.csv.log
 
-../output/preferred_predecessor_parcel_source.gpkg: combine_preferred_predecessor_parcels.R ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg ../output/preferred_predecessor_source_queries.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_predecessor_parcel_source.gpkg: combine_preferred_predecessor_parcels.R ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../output/preferred_predecessor_source_queries.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
-../output/preferred_predecessor_source_queries.csv: combine_preferred_predecessor_queries.R ../input/preferred_predecessor_source_queries.csv ../input/preferred_predecessor_queries_2026-09-07.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg preferred_predecessor_snapshot.sha256 ../../setup_environment/code/packages.R | ../output
+../output/preferred_predecessor_source_queries.csv: combine_preferred_predecessor_queries.R ../input/preferred_predecessor_source_queries.csv ../input/preferred_predecessor_queries_2026-09-07.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_queries_2026-09-07.csv preferred_predecessor_snapshot.sha256 ../../setup_environment/code/packages.R | ../output
 	shasum -a 256 -c preferred_predecessor_snapshot.sha256
 	$(R) $<
 
@@ -162,5 +162,13 @@ link-inputs: ../input/preferred_predecessor_parcel_source.gpkg ../input/preferre
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/geocoding_parcel_history_2026-09-07.csv ../input/geocoding_history_queries_2026-09-07.csv
+
+../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg: ../../../data_raw/construction_review/preferred_predecessor_troy_parcels_2026-09-07.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_predecessor_troy_queries_2026-09-07.csv: ../../../data_raw/construction_review/preferred_predecessor_troy_queries_2026-09-07.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_queries_2026-09-07.csv
 
 include ../../shared/code/generic.make

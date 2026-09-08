@@ -1,7 +1,7 @@
 File: preferred_historical_address_geocodes.csv
 Rows: 216
 Columns: 32
-SHA-256 (saved bytes): 3c95969d8170339d9db54f5b7268788abc511ea8db7ef0ae69371758a6a7e844
+SHA-256 (saved bytes): 33af05dc6342b5e8ba785e82743b0d0868edd180e66306313ae1385f3d5553b7
 Key: request_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -38,5 +38,5 @@ selected_address_normalized       VARCHAR         204      196                  
               tiger_line_id        BIGINT         195       77          111714402          657179306  341545471.2205128   254302928.06582853
             tiger_line_side       VARCHAR         195        2                  -                  -                  -                    -
              response_error       VARCHAR           0        0                  -                  -                  -                    -
-              census_x_3435        DOUBLE         190      146 1131820.4726952561 1195899.0496944538 1167366.7534584338   13740.810349833806
-              census_y_3435        DOUBLE         190      146  1829502.544754645 1948253.5903468179  1892686.726716692   19233.999557638344
+              census_x_3435        DOUBLE         191      147 1131820.4726952561 1195899.0496944538 1167304.8139696023   13731.311097995938
+              census_y_3435        DOUBLE         191      147  1829502.544754645 1948253.5903468179 1892694.5411336476   19183.620990829153

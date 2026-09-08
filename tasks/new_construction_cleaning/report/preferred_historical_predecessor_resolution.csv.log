@@ -1,7 +1,7 @@
 File: preferred_historical_predecessor_resolution.csv
 Rows: 4001
 Columns: 28
-SHA-256 (saved bytes): 30940376afb6d83636923263b5e03b14f1443d17e556a057030ab4fede9ec216
+SHA-256 (saved bytes): 564faa816638038be3d3ff58d2b3ec97751b252281826fd63e01135e5a9dc7aa
 Key: not declared in this report
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -18,21 +18,21 @@ Row counts, non-missing counts, and declared-key checks: exact.
                           target_year        BIGINT        4001       17               2006               2022 2011.1394651337166  4.937514011506465
                       coverage_status       VARCHAR        4001        1                  -                  -                  -                  -
                      reference_status       VARCHAR        4001        2                  -                  -                  -                  -
-                     reference_source       VARCHAR        3977        4                  -                  -                  -                  -
-                     reference_x_3435        DOUBLE        3977     3771 1119499.7135786538 1203743.2364409526  1164280.246265927 13885.285672185875
-                     reference_y_3435        DOUBLE        3977     3771  1823634.806017771  1949720.200967388 1896455.1822926635 23340.843647001773
-                     selected_address       VARCHAR         192      185                  -                  -                  -                  -
-                selected_address_year        BIGINT         192       15               2007               2025 2013.6666666666667  5.722494726845937
-                      matched_address       VARCHAR         192      146                  -                  -                  -                  -
-                        tiger_line_id        BIGINT         192       73          111755466          657179306  339588216.4010417  253860842.5718159
-              chicago_matched_address       VARCHAR         116      113                  -                  -                  -                  -
-                        chicago_score        BIGINT         116        1                100                100              100.0                0.0
-                      chicago_locator       VARCHAR         116        1                  -                  -                  -                  -
+                     reference_source       VARCHAR        3978        4                  -                  -                  -                  -
+                     reference_x_3435        DOUBLE        3978     3772 1119499.7135786538 1203743.2364409526  1164278.034462032 13884.240700677718
+                     reference_y_3435        DOUBLE        3978     3772  1823634.806017771  1949720.200967388 1896454.5943396222  23337.93844550777
+                     selected_address       VARCHAR         193      186                  -                  -                  -                  -
+                selected_address_year        BIGINT         193       15               2007               2025 2013.7253886010362  5.765579254946724
+                      matched_address       VARCHAR         193      147                  -                  -                  -                  -
+                        tiger_line_id        BIGINT         193       74          111755466          657179306  340963639.0103627 253918864.21416086
+              chicago_matched_address       VARCHAR         117      114                  -                  -                  -                  -
+                        chicago_score        BIGINT         117        1                100                100              100.0                0.0
+                      chicago_locator       VARCHAR         117        1                  -                  -                  -                  -
                            permit_ids        BIGINT           8        8            2024046            2749118          2551423.5 255895.52912523833
                permit_point_spread_ft        BIGINT           8        1                  0                  0                0.0                0.0
-                            object_id        BIGINT        3901     1661               2104            2025902   678013.678031274   536550.699329011
-                    predecessor_pin14       VARCHAR        3901     1565                  -                  -                  -                  -
-                    predecessor_pin10       VARCHAR        3901     1565                  -                  -                  -                  -
-            predecessor_polygon_count        BIGINT        4001        6                  0                 34 1.5668582854286428  4.274879103806548
+                            object_id        BIGINT        3902     1662               2104            2025902   677883.237057919  536543.7975763201
+                    predecessor_pin14       VARCHAR        3902     1566                  -                  -                  -                  -
+                    predecessor_pin10       VARCHAR        3902     1566                  -                  -                  -                  -
+            predecessor_polygon_count        BIGINT        4001        6                  0                 34 1.5671082229442639  4.274816704905002
                    predecessor_status       VARCHAR        4001        5                  -                  -                  -                  -
-all_predecessor_geometries_equivalent       BOOLEAN        3901        2                  -                  -                  -                  -
+all_predecessor_geometries_equivalent       BOOLEAN        3902        2                  -                  -                  -                  -
