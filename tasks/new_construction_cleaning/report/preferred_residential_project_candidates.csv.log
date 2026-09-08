@@ -1,7 +1,7 @@
 File: preferred_residential_project_candidates.csv
 Rows: 28067
 Columns: 23
-SHA-256 (saved bytes): b4ee1c3ff7e12918aa82402bfff452b255e1ec9b86f2cd2175f0f47d50624643
+SHA-256 (saved bytes): df4b890b0f92af0377484eb80ec0b412093470ef50029878e66a24bc5bd6e4b1
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -13,7 +13,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
            project_kind       VARCHAR       28067        6                   -                 -                  -                   -
          component_pins       VARCHAR       28067    28067                   -                 -                  -                   -
         component_count        BIGINT       28067        8                   1                10 1.0420066269996793 0.24780617895657936
-      construction_year        BIGINT       27318       67                1878              2026 2008.5771652390365   8.558079410755575
+      construction_year        BIGINT       27318       67                1878              2026 2008.5757010030018    8.55646688406848
          dwelling_units        BIGINT       27690       26                   0                43  1.347670639219935  1.1856457679422008
           building_sqft        BIGINT       27711     4854                   0            643884  2786.043628883837  5335.8984914527655
               land_sqft        BIGINT       26481     5035                  72         228167280  18081.93689815339  1709237.8869774912
@@ -28,6 +28,6 @@ Row counts, non-missing counts, and declared-key checks: exact.
      current_distance_m        DOUBLE       25545    25482 0.31134218570016264 8512.934950058308   433.130450832481   520.8916985587541
   current_within_1500ft       BOOLEAN       28067        2                   -                 -                  -                   -
        candidate_status       VARCHAR       28067        6                   -                 -                  -                   -
-        decision_reason       VARCHAR       28067       28                   -                 -                  -                   -
-replacement_project_ids       VARCHAR         128      128                   -                 -                  -                   -
-      replacement_check       VARCHAR        1201        8                   -                 -                  -                   -
+        decision_reason       VARCHAR       28067       29                   -                 -                  -                   -
+replacement_project_ids       VARCHAR         148      148                   -                 -                  -                   -
+      replacement_check       VARCHAR        1221        8                   -                 -                  -                   -

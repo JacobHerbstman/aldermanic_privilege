@@ -217,3 +217,21 @@ individual land areas nor construction years are supplied by this request.
 
 The combined source contains 12,988 features and 16,880 queried year/PIN pairs.
 All previous features retain identical attributes and geometry bytes.
+
+## Lake Park 2017 lookup
+
+After approval of 2017 for the twenty individual homes, the existing Make
+acquisition queried their twenty newer parcel numbers in the 2017 layer.
+All returned no exact parcel. The coordinate queries then returned one valid
+former development parcel: PIN 20024050500000, layer 18, object 914985.
+All twenty home locations fall within it. The full polygon is coverage evidence,
+not an individual home's density denominator.
+
+The direct empty extract and its twenty queries are pinned as
+`lake_park_direct_parcels_2026-09-08.gpkg` and
+`lake_park_direct_queries_2026-09-08.csv`. The spatial extract and its twenty
+queries are pinned as `lake_park_predecessor_parcels_2026-09-08.gpkg` and
+`lake_park_predecessor_queries_2026-09-08.csv`. Both checksum files and ordinary
+source combiners declare these inputs. Previously pinned extracts are unchanged.
+The spatial query preparer subtracts the complete combined query history, so
+these intentional additions do not refresh previously queried locations.

@@ -1,16 +1,16 @@
 File: preferred_predecessor_parcel_source.gpkg
-Rows: 1695
+Rows: 1696
 Columns: 6
-SHA-256 (saved bytes): 7651dae204ca22211d146bcd4367dc93ed8c672b28dcfa9d81ed233aafcacb5c
+SHA-256 (saved bytes): ee6a135960e80bdba0b1a12577db3cf7919a67bdf55fd7306f4b9480c89eccdf
 Key: target_year, object_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-           column inferred_type non_missing distinct    min     max               mean                 sd
-              fid        BIGINT        1695     1695      1    1695              848.0 489.44866942305606
-      target_year        DOUBLE        1695       17 2006.0  2022.0 2011.3091445427729  4.912937902205238
-         layer_id        DOUBLE        1695       17    6.0  2022.0 56.670796460176994  297.7580754408104
-        object_id        BIGINT        1695     1675   2104 2025902  652717.5262536873  517491.5765273475
-predecessor_pin14       VARCHAR        1695     1578      -       -                  -                  -
-predecessor_pin10       VARCHAR        1695     1578      -       -                  -                  -
+           column inferred_type non_missing distinct    min     max               mean                sd
+              fid        BIGINT        1696     1696      1    1696              848.5 489.7373445701958
+      target_year        DOUBLE        1696       17 2006.0  2022.0          2011.3125 4.913432014314715
+         layer_id        DOUBLE        1696       17    6.0  2022.0 56.647995283018865 297.6717093058265
+        object_id        BIGINT        1696     1676   2104 2025902  652872.1650943396 517378.0975947129
+predecessor_pin14       VARCHAR        1696     1579      -       -                  -                 -
+predecessor_pin10       VARCHAR        1696     1579      -       -                  -                 -

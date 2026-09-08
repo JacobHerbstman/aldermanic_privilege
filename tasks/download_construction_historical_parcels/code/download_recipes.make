@@ -31,7 +31,7 @@ all: ../report/history_reference_parcels_download.gpkg.log ../report/history_ref
 ../output/preferred_predecessor_parcels_download.gpkg: download_predecessor_parcels.R download_recipes.make ../output/preferred_predecessor_spatial_queries_download.csv ../input/historical_project_parcel_layers.csv ../../setup_environment/code/packages.R | ../output ../temp
 	$(R) $< preferred
 
-../output/preferred_predecessor_spatial_queries_download.csv: prepare_preferred_predecessor_queries.R ../input/preferred_predecessor_reference_points.csv ../input/preferred_predecessor_source_queries.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_predecessor_spatial_queries_download.csv: prepare_preferred_predecessor_queries.R ../input/preferred_predecessor_reference_points.csv ../output/preferred_predecessor_source_queries.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../report/preferred_predecessor_parcels_download.gpkg.log: ../../shared/code/report.py ../output/preferred_predecessor_parcels_download.gpkg | ../report

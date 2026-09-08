@@ -69,7 +69,8 @@ located_projects <- bind_cols(
     project_land_area_sqft,
     location_source,
     location_reference_year,
-    location_reference_row_ids
+    location_reference_row_ids,
+    location_reference_pin
   )
 
 if (anyDuplicated(located_projects[c("source_family", "project_id", "target_year")]) > 0) {

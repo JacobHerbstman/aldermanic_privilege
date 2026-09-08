@@ -25,10 +25,10 @@ all: ../report/history_reference_parcels.gpkg.log ../report/history_reference_qu
 ../report/history_reference_queries.csv.log: ../../shared/code/report.py ../output/history_reference_queries.csv | ../report
 	$(PYTHON) $< ../output/history_reference_queries.csv $@ target_year reference_x_3435 reference_y_3435
 
-../output/preferred_predecessor_parcel_source.gpkg: combine_preferred_predecessor_parcels.R ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../output/preferred_predecessor_source_queries.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_predecessor_parcel_source.gpkg: combine_preferred_predecessor_parcels.R ../input/lake_park_predecessor_parcels_2026-09-08.gpkg ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../output/preferred_predecessor_source_queries.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
-../output/preferred_predecessor_source_queries.csv: combine_preferred_predecessor_queries.R ../input/preferred_predecessor_source_queries.csv ../input/preferred_predecessor_queries_2026-09-07.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_queries_2026-09-07.csv preferred_predecessor_snapshot.sha256 ../../setup_environment/code/packages.R | ../output
+../output/preferred_predecessor_source_queries.csv: combine_preferred_predecessor_queries.R ../input/lake_park_predecessor_parcels_2026-09-08.gpkg ../input/lake_park_predecessor_queries_2026-09-08.csv ../input/preferred_predecessor_source_queries.csv ../input/preferred_predecessor_queries_2026-09-07.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_queries_2026-09-07.csv preferred_predecessor_snapshot.sha256 ../../setup_environment/code/packages.R | ../output
 	shasum -a 256 -c preferred_predecessor_snapshot.sha256
 	$(R) $<
 
@@ -54,10 +54,10 @@ all: ../report/geocoding_parcel_history.csv.log ../report/geocoding_history_quer
 ../report/geocoding_history_queries.csv.log: ../../shared/code/report.py ../output/geocoding_history_queries.csv | ../report
 	$(PYTHON) $< ../output/geocoding_history_queries.csv $@ pin
 
-../output/preferred_historical_parcel_source.gpkg: combine_preferred_parcel_sources.R ../input/preferred_parcel_evidence_2026-09-08.gpkg ../input/preferred_parcel_supplement_2026-09-08.gpkg ../input/preferred_historical_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../output/historical_project_parcel_source.gpkg ../input/preferred_parcel_supplement_2026-09-07.gpkg ../output/preferred_historical_parcel_source_queries.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_historical_parcel_source.gpkg: combine_preferred_parcel_sources.R ../input/lake_park_direct_parcels_2026-09-08.gpkg ../input/preferred_parcel_evidence_2026-09-08.gpkg ../input/preferred_parcel_supplement_2026-09-08.gpkg ../input/preferred_historical_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../output/historical_project_parcel_source.gpkg ../input/preferred_parcel_supplement_2026-09-07.gpkg ../output/preferred_historical_parcel_source_queries.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
-../output/preferred_historical_parcel_source_queries.csv: combine_preferred_parcel_queries.R ../input/preferred_parcel_evidence_2026-09-08.gpkg ../input/preferred_parcel_evidence_queries_2026-09-08.csv ../input/preferred_parcel_supplement_2026-09-08.gpkg ../input/preferred_parcel_supplement_queries_2026-09-08.csv ../input/preferred_historical_parcel_source_queries.csv ../input/preferred_historical_parcel_source.gpkg ../input/preferred_parcel_supplement_queries_2026-09-07.csv ../input/preferred_parcel_supplement_2026-09-07.gpkg ../output/historical_project_parcel_source_queries.csv preferred_snapshot.sha256 ../../setup_environment/code/packages.R | ../output
+../output/preferred_historical_parcel_source_queries.csv: combine_preferred_parcel_queries.R ../input/lake_park_direct_parcels_2026-09-08.gpkg ../input/lake_park_direct_queries_2026-09-08.csv ../input/preferred_parcel_evidence_2026-09-08.gpkg ../input/preferred_parcel_evidence_queries_2026-09-08.csv ../input/preferred_parcel_supplement_2026-09-08.gpkg ../input/preferred_parcel_supplement_queries_2026-09-08.csv ../input/preferred_historical_parcel_source_queries.csv ../input/preferred_historical_parcel_source.gpkg ../input/preferred_parcel_supplement_queries_2026-09-07.csv ../input/preferred_parcel_supplement_2026-09-07.gpkg ../output/historical_project_parcel_source_queries.csv preferred_snapshot.sha256 ../../setup_environment/code/packages.R | ../output
 	shasum -a 256 -c preferred_snapshot.sha256
 	$(R) $<
 
@@ -106,6 +106,18 @@ all: ../report/geocoding_parcel_history.csv.log ../report/geocoding_history_quer
 
 ../report/historical_project_parcel_source_queries.csv.log: ../../shared/code/report.py ../output/historical_project_parcel_source_queries.csv | ../report
 	$(PYTHON) $< ../output/historical_project_parcel_source_queries.csv $@ target_year pin10
+
+../input/lake_park_predecessor_parcels_2026-09-08.gpkg: ../../../data_raw/construction_review/lake_park_predecessor_parcels_2026-09-08.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/lake_park_predecessor_queries_2026-09-08.csv: ../../../data_raw/construction_review/lake_park_predecessor_queries_2026-09-08.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/lake_park_direct_parcels_2026-09-08.gpkg: ../../../data_raw/construction_review/lake_park_direct_parcels_2026-09-08.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/lake_park_direct_queries_2026-09-08.csv: ../../../data_raw/construction_review/lake_park_direct_queries_2026-09-08.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/preferred_parcel_evidence_2026-09-08.gpkg: ../../../data_raw/construction_review/preferred_parcel_evidence_2026-09-08.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

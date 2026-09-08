@@ -647,7 +647,7 @@ ifneq ($(filter-out $(wildcard ../output/preferred_residential_project_candidate
 .PHONY: ../output/preferred_residential_project_candidates.csv
 endif
 
-../output/residential_assessor_project_candidates.csv: build_residential_assessor_projects.R ../adjudication/residential_reviewed_building_components.csv ../adjudication/residential_reviewed_source_exclusions.csv ../input/residential_assessor_history.parquet ../adjudication/residential_reviewed_home_replacements.csv ../../setup_environment/code/packages.R ../../shared/code/assessor_classification.R ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../output/residential_multicard_cards.csv Makefile ../input/parcel_universe_2025_city.csv ../input/preferred_historical_parcel_source.gpkg ../input/preferred_predecessor_parcel_source.gpkg | ../output
+../output/residential_assessor_project_candidates.csv: build_residential_assessor_projects.R ../adjudication/residential_reviewed_construction_years.csv ../adjudication/residential_reviewed_building_components.csv ../adjudication/residential_reviewed_source_exclusions.csv ../input/residential_assessor_history.parquet ../adjudication/residential_reviewed_home_replacements.csv ../../setup_environment/code/packages.R ../../shared/code/assessor_classification.R ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../output/residential_multicard_cards.csv Makefile ../input/parcel_universe_2025_city.csv ../input/preferred_historical_parcel_source.gpkg ../input/preferred_predecessor_parcel_source.gpkg | ../output
 	$(R) $< $(AUTOMATIC_CARD_BUILDING_GAP) $(EPISODE_YEAR_WINDOW) $(SUCCESSOR_POINT_TOLERANCE_FT) $(SUCCESSOR_LAND_TOLERANCE)
 
 ../output/residential_assessor_project_candidates.csv: ../input/geocoding_parcel_history.csv ../input/predecessor_parcel_history.csv ../input/density_historical_parcel_records.csv ../input/density_historical_address_records.csv ../input/parcel_addresses_2025_chicago.csv
@@ -732,7 +732,7 @@ endif
 ../output/preferred_project_year_geometry.gpkg: build_preferred_project_geography.R ../output/preferred_historical_parcel_coverage.csv ../output/preferred_historical_parcels.gpkg ../output/preferred_historical_predecessor_selected.gpkg ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
-../output/preferred_project_year_geometry.gpkg: ../input/predecessor_parcel_history.csv ../input/geocoding_parcel_history.csv ../input/density_historical_parcel_records.csv
+../output/preferred_project_year_geometry.gpkg: ../output/preferred_residential_project_candidates.csv ../input/predecessor_parcel_history.csv ../input/geocoding_parcel_history.csv ../input/density_historical_parcel_records.csv
 
 ../output/preferred_project_component_geometry.gpkg: ../output/preferred_project_year_geometry.gpkg
 	@test -f "$@"

@@ -208,8 +208,10 @@ ordinary_candidates <- assessor_projects %>%
     by = c("project_id" = "source_project_id"), relationship = "one-to-one"
   ) %>%
   mutate(
-    construction_year = preferred_year,
-    year_source = corrected_year_source,
+    construction_year = if_else(str_starts(year_source, "reviewed_construction_year:"),
+      construction_year, preferred_year),
+    year_source = if_else(str_starts(year_source, "reviewed_construction_year:"),
+      year_source, corrected_year_source),
     permit_chain_ids = exact_permit_chain_id,
     permit_numbers = exact_permit_numbers,
     candidate_status = case_when(

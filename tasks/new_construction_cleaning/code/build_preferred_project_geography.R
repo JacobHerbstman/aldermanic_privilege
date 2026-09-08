@@ -233,12 +233,26 @@ history_points <- bind_rows(
     latitude = readr::col_double(), row_id = readr::col_character(), .default = readr::col_skip())) %>%
     rename(lon = longitude, lat = latitude)
 ) %>% filter(is.finite(lon), is.finite(lat)) %>% distinct()
+# A verified parcel-number replacement can carry the same home's older point.
+# Keep the source PIN so this is never presented as an exact match to the new PIN.
+history_points$point_source_pin <- history_points$pin
+replacements <- readr::read_csv("../output/preferred_residential_project_candidates.csv",
+  col_types = readr::cols(.default = readr::col_character())) %>%
+  filter(replacement_check == "same_home_consecutive_parcel_numbers",
+    candidate_status == "exclude_source_duplicate_keep_successors") %>%
+  transmute(old_pin = component_pins, new_pin = str_remove(replacement_project_ids, "^residential_"))
+stopifnot(!anyDuplicated(replacements$old_pin), !anyDuplicated(replacements$new_pin))
+previous_points <- history_points %>% inner_join(replacements,
+  by = c("pin" = "old_pin"), relationship = "many-to-one") %>%
+  mutate(pin = new_pin) %>% select(-new_pin)
+history_points <- bind_rows(history_points, previous_points)
 individual_parents <- project_year_coverage %>%
   filter(complete_project_geometry, project_kind == "single_pin_single_card",
     requested_components == 1L, component_pins != parcel_pins)
 project_centroids$location_source <- "historical_parcel_centroid"
 project_centroids$location_reference_year <- project_centroids$target_year
 project_centroids$location_reference_row_ids <- NA_character_
+project_centroids$location_reference_pin <- NA_character_
 for (j in seq_len(nrow(individual_parents))) {
   site <- individual_parents[j, ]
   i <- which(project_centroids$project_id == site$project_id & project_centroids$target_year == site$target_year)
@@ -248,12 +262,17 @@ for (j in seq_len(nrow(individual_parents))) {
     year %in% c(site$target_year, site$target_year + 1L))
   if (!nrow(points)) next
   points <- points %>% filter(year == min(year))
+  if (any(points$point_source_pin == site$component_pins))
+    points <- points %>% filter(point_source_pin == site$component_pins)
   if (nrow(distinct(points, lon, lat)) != 1L) next
   point <- sf::st_transform(sf::st_as_sf(points[1, ], coords = c("lon", "lat"), crs = 4326), 3435)
   if (length(sf::st_within(point, project_geometry[i, ])[[1]]) != 1L) next
   sf::st_geometry(project_centroids)[i] <- sf::st_geometry(point)
   project_centroids$location_source[i] <- if (points$year[1] == site$target_year)
     "exact_pin_construction_year_point" else "exact_pin_next_year_point"
+  if (points$point_source_pin[1] != site$component_pins)
+    project_centroids$location_source[i] <- "verified_previous_pin_historical_point"
+  project_centroids$location_reference_pin[i] <- points$point_source_pin[1]
   project_centroids$location_reference_year[i] <- points$year[1]
   project_centroids$location_reference_row_ids[i] <- paste(sort(unique(points$row_id)), collapse = "/")
 }

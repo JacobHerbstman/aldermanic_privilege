@@ -1,7 +1,7 @@
 File: preferred_project_year_centroids.gpkg
 Rows: 13924
-Columns: 9
-SHA-256 (saved bytes): d487d4272ac35dbde856c4756adbdba98702906138fca1f7b8be8626f60e8af5
+Columns: 10
+SHA-256 (saved bytes): c4e82af547804eb8103d0c8334dfdc90aa6e7663beeda26ee44f1caeaafb8c14
 Key: source_family, project_id, target_year
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -11,9 +11,10 @@ Row counts, non-missing counts, and declared-key checks: exact.
                        fid        BIGINT       13924    13924                  1             13924             6962.5   4019.65690907404
              source_family       VARCHAR       13924        2                  -                 -                  -                  -
                 project_id       VARCHAR       13924    13924                  -                 -                  -                  -
-               target_year        DOUBLE       13924       17             2006.0            2022.0 2012.4828353921287  5.394984767142793
+               target_year        DOUBLE       13924       17             2006.0            2022.0 2012.4799626544097  5.392045193989754
      project_polygon_valid        BIGINT       13924        1                  1                 1                1.0                0.0
-    project_land_area_sqft        DOUBLE       13924    11387 176.29144966672175 904026.4079986904 13627.729928817625 42352.656046928765
-           location_source       VARCHAR       13924        3                  -                 -                  -                  -
-   location_reference_year        DOUBLE       13924       18             2006.0            2023.0 2012.5791439241598  5.364510946141859
-location_reference_row_ids       VARCHAR        1341     1341                  -                 -                  -                  -
+    project_land_area_sqft        DOUBLE       13924    11367 176.29144966672175 904026.4079986904 13674.431167277455 42356.544785864564
+           location_source       VARCHAR       13924        4                  -                 -                  -                  -
+   location_reference_year        DOUBLE       13924       18             2006.0            2023.0    2012.5777075553   5.36292507310532
+location_reference_row_ids       VARCHAR        1368     1356                  -                 -                  -                  -
+    location_reference_pin       VARCHAR        1368     1356                  -                 -                  -                  -

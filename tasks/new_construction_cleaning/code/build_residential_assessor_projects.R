@@ -301,6 +301,18 @@ multicard_candidates <- multicard_cards %>%
   ) %>%
   select(all_of(names(ordinary_candidates)))
 
+# Recorded completion-year decisions apply before matching old and new records.
+reviewed_years <- readr::read_csv("../adjudication/residential_reviewed_construction_years.csv",
+  col_types = readr::cols(project_id = readr::col_character(), reported_year = readr::col_integer(),
+    construction_year = readr::col_integer(), .default = readr::col_character()))
+stopifnot(!anyDuplicated(reviewed_years$project_id),
+  all(reviewed_years$project_id %in% ordinary_candidates$project_id))
+i <- match(reviewed_years$project_id, ordinary_candidates$project_id)
+stopifnot(all(ordinary_candidates$construction_year[i] == reviewed_years$reported_year),
+  all(between(reviewed_years$construction_year, 2006L, 2022L)))
+ordinary_candidates$construction_year[i] <- reviewed_years$construction_year
+ordinary_candidates$year_source[i] <- paste0("reviewed_construction_year:", reviewed_years$project_id)
+
 # An old parcel may describe homes that now have individual property numbers.
 # Suppress it only when all of its homes have separately accepted replacements.
 old_parcels <- bind_rows(
@@ -317,7 +329,7 @@ current_parcels <- readr::read_csv(
 stopifnot(!anyDuplicated(current_parcels$pin))
 
 # Recognize a home whose parcel number changes between consecutive assessments.
-# The successor's reported construction predates the old assessment, so this is
+# The successor's accepted construction year predates the old assessment, so this is
 # not permission to merge a later replacement building at the same address.
 con <- DBI::dbConnect(duckdb::duckdb())
 assessment_periods <- DBI::dbGetQuery(con, "SELECT pin, min(tax_year) AS first_assessment,
