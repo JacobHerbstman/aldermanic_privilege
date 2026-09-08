@@ -2,6 +2,8 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-08-candidate-geography.tex ../tasks/new_construction_cleaning/report/preferred_project_year_geometry.gpkg.log ../tasks/new_construction_cleaning/report/preferred_project_component_geometry.gpkg.log ../tasks/new_construction_cleaning/report/preferred_project_year_centroids.gpkg.log ../tasks/new_construction_cleaning/report/preferred_project_year_geometry_coverage.csv.log ../tasks/new_construction_cleaning/report/preferred_project_boundary_scope.csv.log ../tasks/new_construction_cleaning/report/preferred_adjudication_scope.csv.log ../tasks/working_paper_release_audit/report/candidate_geography_checks.csv.log ../tasks/working_paper_release_audit/report/candidate_geography_review_queue.csv.log
+
 logbook.pdf: entries/2026-09-07-troy-address-correction.tex ../tasks/new_construction_cleaning/adjudication/historical_address_corrections.csv ../tasks/new_construction_cleaning/report/density_parcel_address_selected_history.csv.log
 
 logbook.pdf: entries/2026-09-07-geocode-address-review.tex ../tasks/working_paper_release_audit/report/geocoder_mismatch_review.csv.log ../tasks/working_paper_release_audit/report/geocoding_parcel_history_review.csv.log ../tasks/download_construction_historical_parcels/report/preferred_predecessor_parcel_source.gpkg.log ../tasks/download_construction_historical_parcels/report/preferred_predecessor_source_queries.csv.log ../tasks/new_construction_cleaning/report/preferred_predecessor_reference_points.csv.log ../tasks/new_construction_cleaning/report/preferred_historical_predecessor_resolution.csv.log ../tasks/new_construction_cleaning/report/preferred_historical_predecessor_selected.gpkg.log

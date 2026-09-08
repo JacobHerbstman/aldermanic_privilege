@@ -1,0 +1,21 @@
+File: preferred_adjudication_scope.csv
+Rows: 445
+Columns: 11
+SHA-256 (saved bytes): 6920789ab85ae58234281899cdbc91132a0d416852438e9a9617fe661d880404
+Key: source_family, project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct               min                max                 mean                  sd
+          source_family       VARCHAR         445        2                 -                  -                    -                   -
+             project_id       VARCHAR         445      445                 -                  -                    -                   -
+           project_kind       VARCHAR         422        6                 -                  -                    -                   -
+            target_year        BIGINT         422       17              2006               2022    2014.803317535545   5.615696392696104
+       geography_status       VARCHAR         422        2                 -                  -                    -                   -
+  unresolved_components        BIGINT         422        2                 0                  1 0.011848341232227487 0.10833174935750431
+   collapsed_components        BIGINT         422        4                 0                  9  0.04265402843601896  0.5321766076943655
+distance_to_boundary_ft        DOUBLE         417      407 31.27532083875283 10402.461692437024   1061.4099421220035   969.6190134954744
+          within_1500ft       BOOLEAN         417        2                 -                  -                    -                   -
+           within_500ft       BOOLEAN         417        2                 -                  -                    -                   -
+           review_scope       VARCHAR         445        4                 -                  -                    -                   -

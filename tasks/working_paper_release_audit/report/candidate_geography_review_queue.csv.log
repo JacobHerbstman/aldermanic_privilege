@@ -1,0 +1,38 @@
+File: candidate_geography_review_queue.csv
+Rows: 194
+Columns: 28
+SHA-256 (saved bytes): db9b4e5618cb222dfa8583bfc02311164d2f763ab665116f82da17af0558f06e
+Key: case_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                       column inferred_type non_missing distinct                    min                    max                   mean                    sd
+                source_family       VARCHAR         194        2                      -                      -                      -                     -
+                   project_id       VARCHAR         194      188                      -                      -                      -                     -
+                component_pin        BIGINT         130      129         13154070500000         25031190320000      17389175853230.77    2008035176995.5154
+                  target_year        BIGINT         171       17                   2006                   2022     2012.6666666666667     4.891769798825972
+   initial_predecessor_status       VARCHAR          30        2                      -                      -                      -                     -
+   current_predecessor_status       VARCHAR         119        3                      -                      -                      -                     -
+ construction_year_unresolved       BOOLEAN         194        2                      -                      -                      -                     -
+   centroid_outside_parcel_ft        DOUBLE          41       26     0.4032169084891958     30490.433232875777      774.1129694963251      4757.24309701032
+   initial_checkpoint_pending       BOOLEAN         194        2                      -                      -                      -                     -
+      centroid_outside_parcel       BOOLEAN         194        2                      -                      -                      -                     -
+                      case_id       VARCHAR         194      194                      -                      -                      -                     -
+                 project_kind       VARCHAR         170        5                      -                      -                      -                     -
+             candidate_status       VARCHAR         170        2                      -                      -                      -                     -
+             geography_status       VARCHAR         170        2                      -                      -                      -                     -
+         requested_components        BIGINT         170       11                      1                     57     2.0176470588235293     4.952404866076247
+          resolved_components        BIGINT         170       12                      0                     57     1.2117647058823529     5.072478515233394
+     candidate_component_pins       VARCHAR          57       56                      -                      -                      -                     -
+        candidate_parcel_pins       VARCHAR          57       41                      -                      -                      -                     -
+      distance_to_boundary_ft        DOUBLE          51       36      31.27532083875283      3671.819496096857     1257.0818839704123     897.9493968549748
+                 within_500ft       BOOLEAN          51        2                      -                      -                      -                     -
+             selected_address       VARCHAR          81       74                      -                      -                      -                     -
+                 history_year        BIGINT          74        9                   2007                   2023     2015.3918918918919    4.7995934975347385
+             history_year_gap        BIGINT          74        4                      1                      4      2.445945945945946    1.4443265662289975
+               history_row_id        DOUBLE          74       74 1.3333270060000202e+17 2.0261220470000202e+17 1.7769121032973174e+17 1.803767763509187e+16
+               history_x_3435        DOUBLE          74       74     1141323.9122122556     1186169.9069446786     1172994.3918839493      11433.1348207673
+               history_y_3435        DOUBLE          74       74     1856256.1871792164     1923976.4116691416      1885788.494625134    14153.032002952366
+               history_status       VARCHAR          93        2                      -                      -                      -                     -
+next_year_exact_pin_candidate       BOOLEAN         194        2                      -                      -                      -                     -

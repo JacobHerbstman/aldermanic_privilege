@@ -8,6 +8,20 @@ all: ../report/natchez_b_land_coverage.csv.log
 
 all: ../report/geocoder_mismatch_review.csv.log ../report/geocoding_parcel_history_review.csv.log
 
+all: ../report/candidate_geography_checks.csv.log ../report/candidate_geography_review_queue.csv.log
+
+../output/candidate_geography_checks.csv: review_candidate_geography.R ../input/preferred_project_boundary_scope.csv ../input/preferred_project_year_geometry.gpkg ../input/preferred_project_year_centroids.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg | ../output
+	$(R) $<
+
+../output/candidate_geography_review_queue.csv: build_candidate_geography_review_queue.R ../input/historical_project_predecessor_resolution.csv ../input/preferred_historical_predecessor_resolution.csv ../input/preferred_adjudication_scope.csv ../input/preferred_project_boundary_scope.csv ../output/candidate_geography_checks.csv ../output/geocoding_parcel_history_review.csv | ../output
+	$(R) $<
+
+../report/candidate_geography_checks.csv.log: ../../shared/code/report.py ../output/candidate_geography_checks.csv | ../report
+	$(PYTHON) $< ../output/candidate_geography_checks.csv $@ project_id
+
+../report/candidate_geography_review_queue.csv.log: ../../shared/code/report.py ../output/candidate_geography_review_queue.csv | ../report
+	$(PYTHON) $< ../output/candidate_geography_review_queue.csv $@ case_id
+
 ../output/geocoder_mismatch_review.csv: review_geocoder_mismatches.R ../input/preferred_historical_address_geocodes.csv ../input/preferred_chicago_address_geocodes.csv ../input/building_permits_full.csv ../../shared/code/normalize_chicago_address.R | ../output
 	$(R) $<
 
@@ -181,5 +195,31 @@ link-inputs: ../input/parcel_universe_2025_city.csv ../input/density_denominator
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/preferred_address_geocode_requests.csv ../input/preferred_historical_address_geocodes.csv ../input/preferred_chicago_address_geocodes.csv ../input/geocoding_parcel_history.csv ../input/geocoding_history_queries.csv
+
+../input/preferred_project_boundary_scope.csv: ../../new_construction_cleaning/output/preferred_project_boundary_scope.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_project_year_geometry.gpkg: ../../new_construction_cleaning/output/preferred_project_year_geometry.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_project_year_centroids.gpkg: ../../new_construction_cleaning/output/preferred_project_year_centroids.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_adjudication_scope.csv: ../../new_construction_cleaning/output/preferred_adjudication_scope.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/historical_project_predecessor_resolution.csv: ../../new_construction_cleaning/output/historical_project_predecessor_resolution.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_historical_predecessor_resolution.csv: ../../new_construction_cleaning/output/preferred_historical_predecessor_resolution.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/ward_pair_boundaries.gpkg: ../../border_segment_creation/output/ward_pair_boundaries.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/preferred_project_boundary_scope.csv ../input/preferred_project_year_geometry.gpkg ../input/preferred_project_year_centroids.gpkg ../input/preferred_adjudication_scope.csv ../input/historical_project_predecessor_resolution.csv ../input/preferred_historical_predecessor_resolution.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg
 
 include ../../shared/code/generic.make

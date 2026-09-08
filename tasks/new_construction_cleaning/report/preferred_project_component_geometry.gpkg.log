@@ -1,0 +1,25 @@
+File: preferred_project_component_geometry.gpkg
+Rows: 15572
+Columns: 15
+SHA-256 (saved bytes): 5916e53485a267f0514a8daefc8c948b3127b6f37aae6ce71ebf90ec1e9183ff
+Key: request_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct    min       max               mean                 sd
+              fid        BIGINT       15572    15572      1     15572             7786.5  4495.393531160536
+       request_id       VARCHAR       15572    15572      -         -                  -                  -
+    source_family       VARCHAR       15572        2      -         -                  -                  -
+       project_id       VARCHAR       15572    13909      -         -                  -                  -
+     project_kind       VARCHAR       15572        6      -         -                  -                  -
+ candidate_status       VARCHAR       15572        3      -         -                  -                  -
+    component_pin       VARCHAR       15572    15527      -         -                  -                  -
+  requested_pin10       VARCHAR       15572    15518      -         -                  -                  -
+      target_year        DOUBLE       15572       17 2006.0    2022.0 2012.6724248651426  5.400687840110542
+     match_method       VARCHAR       15572        3      -         -                  -                  -
+         layer_id        DOUBLE       11802       17    6.0    2022.0 152.84816132858836 510.80526621234395
+        object_id        DOUBLE       11802    11724   44.0 1849492.0   691565.458820539  486436.6626015827
+parcel_object_ids       VARCHAR       15572    13040      -         -                  -                  -
+     parcel_pin14       VARCHAR       15572    12828      -         -                  -                  -
+     parcel_pin10       VARCHAR       15572    12828      -         -                  -                  -

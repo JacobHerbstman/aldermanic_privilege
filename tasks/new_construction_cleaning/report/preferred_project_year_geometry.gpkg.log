@@ -1,0 +1,16 @@
+File: preferred_project_year_geometry.gpkg
+Rows: 13903
+Columns: 6
+SHA-256 (saved bytes): bb928608969c79131ac7b50936af45e84b0ae8d91dd51555c361d71e1541043f
+Key: source_family, project_id, target_year
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct                min               max               mean                sd
+                   fid        BIGINT       13903    13903                  1             13903             6952.0 4013.594731243635
+         source_family       VARCHAR       13903        2                  -                 -                  -                 -
+            project_id       VARCHAR       13903    13903                  -                 -                  -                 -
+           target_year        DOUBLE       13903       17             2006.0            2022.0   2012.48687333669 5.393222369935751
+ project_polygon_valid        BIGINT       13903        1                  1                 1                1.0               0.0
+project_land_area_sqft        DOUBLE       13903    11390 176.29144966672175 904026.4079986904 13490.797740176988 42184.95977972723

@@ -366,8 +366,8 @@ queried point, and adds the 2008 South Troy polygon. The first restored lookup h
 3,768 shapes spatially equal to the archived selections, two removed selections
 under the strict street rule, and one new selection. The subsequent Troy correction
 preserves all 3,769 selections from that build and adds Troy, yielding 3,770.
-The lookup and its reports rebuild through Make; later project geography has not
-yet been rebuilt.
+The lookup and its reports rebuild through Make. The September 8 candidate
+geography build below now carries these results through boundary assignment.
 
 The release audit also examines complete 1999–2025 exact-PIN location history for
 all 216 address requests: 447 source rows provide finite coordinates for 191
@@ -395,3 +395,46 @@ restoration evidence and source limitations remain in
 and the logbook. The paper dependency graph remains generated from actual Make
 prerequisites with `make -C task_graph`; the unconnected reconstruction does not
 appear as though it already feeds the paper.
+
+## Candidate geography and boundary distances: September 8
+
+The existing preferred-project geography and boundary producers now build together
+from the restored parcel inputs. `preferred_project_boundary_scope.csv` accounts
+for all 14,017 requested candidate project-years in 2006–2022: 13,903 have complete
+parcel geometry and boundary distances; 114 remain explicitly unresolved, with
+missing distances. Another 23 review candidates have no selected construction year
+and remain in `preferred_adjudication_scope.csv`. These are candidate groups, not
+the final density sample or final project identities.
+
+`build_preferred_project_geography.R` unions the matched component parcels only
+when all requested components are located. It saves component shapes, project
+shapes, centroids, and complete coverage accounting. `build_preferred_boundary_scope.R`
+uses June 15 of the recorded year, as stated in the paper, to choose the ward map.
+It measures distance from the project centroid to the nearest shared boundary of
+its ward in EPSG:3435. Unresolved geometry receives no assigned ward or distance.
+Assertions reject duplicate source keys, unmatched accepted components, nonpositive
+areas, and centroids that lie in zero or multiple ward polygons. All six outputs
+have standard Make-generated reports.
+
+The release audit's `candidate_geography_checks.csv` independently computes
+distances to every boundary of the assigned ward. All 13,903 distances and assigned
+pairs agree to within 0.000001 feet. It also identifies 41 centroids outside their
+project polygons (nine within 500 feet of a ward boundary). Such shapes need review;
+they are not automatically excluded or moved to a different point. The largest
+case is a review-required Assessor tieback linking parcels 20174140320000 and
+29174140310000, approximately 12.6 miles apart. A calculated centroid is not evidence
+that those two parcels form one building.
+
+`candidate_geography_review_queue.csv` in the release audit consolidates 194 review
+items across 188 project identifiers: unresolved component locations, the 23 unknown
+years, the 41 centroid flags, and all 30 initial predecessor checkpoints. These
+categories overlap. It preserves historical exact-PIN coordinate candidates as
+evidence, including the one-year-ahead locations for 763 W 15th and 3609 W 50th;
+those coordinates are not adopted by this build. No identifiers are hardcoded in
+the audit rules. Final identity, measurements, zoning, and density eligibility
+remain downstream work.
+
+The same audit measures the existing 2015 timing convention: using the old ward
+map instead changes the ward for 179 of 754 located 2015 candidates and changes
+500-foot membership for 189. This is a sensitivity calculation, not an adopted
+date or map change. The paper's June 15 convention remains in force.

@@ -215,6 +215,26 @@ all: ../report/density_parcel_address_selected_history.csv.log \
 ../output/historical_zoning_2006_candidate.gpkg: build_candidate_2006_zoning_map.R ../../setup_environment/code/packages.R ../input/zoning_nov2012.zip ../input/zoning_map_index.geojson ../output/historical_zoning_ordinances_2006_2012.csv ../output/historical_zoning_matter_parsing.csv | ../output
 	$(R) $<
 
+all: ../report/preferred_project_year_geometry.gpkg.log ../report/preferred_project_component_geometry.gpkg.log ../report/preferred_project_year_centroids.gpkg.log ../report/preferred_project_year_geometry_coverage.csv.log ../report/preferred_project_boundary_scope.csv.log ../report/preferred_adjudication_scope.csv.log
+
+../report/preferred_project_year_geometry.gpkg.log: ../../shared/code/report.py ../output/preferred_project_year_geometry.gpkg | ../report
+	$(PYTHON) $< ../output/preferred_project_year_geometry.gpkg $@ source_family project_id target_year
+
+../report/preferred_project_component_geometry.gpkg.log: ../../shared/code/report.py ../output/preferred_project_component_geometry.gpkg | ../report
+	$(PYTHON) $< ../output/preferred_project_component_geometry.gpkg $@ request_id
+
+../report/preferred_project_year_centroids.gpkg.log: ../../shared/code/report.py ../output/preferred_project_year_centroids.gpkg | ../report
+	$(PYTHON) $< ../output/preferred_project_year_centroids.gpkg $@ source_family project_id target_year
+
+../report/preferred_project_year_geometry_coverage.csv.log: ../../shared/code/report.py ../output/preferred_project_year_geometry_coverage.csv | ../report
+	$(PYTHON) $< ../output/preferred_project_year_geometry_coverage.csv $@ source_family project_id target_year
+
+../report/preferred_project_boundary_scope.csv.log: ../../shared/code/report.py ../output/preferred_project_boundary_scope.csv | ../report
+	$(PYTHON) $< ../output/preferred_project_boundary_scope.csv $@ source_family project_id target_year
+
+../report/preferred_adjudication_scope.csv.log: ../../shared/code/report.py ../output/preferred_adjudication_scope.csv | ../report
+	$(PYTHON) $< ../output/preferred_adjudication_scope.csv $@ source_family project_id
+
 ifneq ($(filter-out $(wildcard ../output/residential_review_current_parcel_links.csv ../output/residential_successor_condo_requests.csv),../output/residential_review_current_parcel_links.csv ../output/residential_successor_condo_requests.csv),)
 .PHONY: ../output/residential_successor_condo_requests.csv
 endif
