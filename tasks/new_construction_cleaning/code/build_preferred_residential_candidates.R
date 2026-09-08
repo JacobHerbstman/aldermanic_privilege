@@ -240,7 +240,7 @@ tieback_candidates <- assessor_projects %>%
   select(all_of(names(ordinary_candidates)))
 
 multicard_candidates <- assessor_projects %>%
-  filter(project_kind == "same_pin_multiple_cards") %>%
+  filter(project_kind %in% c("same_pin_multiple_cards", "reviewed_multi_parcel_building")) %>%
   mutate(permit_chain_ids = NA_character_, permit_numbers = NA_character_) %>%
   select(all_of(names(ordinary_candidates)), replacement_project_ids, replacement_check)
 

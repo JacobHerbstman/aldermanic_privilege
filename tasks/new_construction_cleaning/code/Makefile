@@ -645,7 +645,7 @@ ifneq ($(filter-out $(wildcard ../output/preferred_residential_project_candidate
 .PHONY: ../output/preferred_residential_project_candidates.csv
 endif
 
-../output/residential_assessor_project_candidates.csv: build_residential_assessor_projects.R ../adjudication/residential_reviewed_home_replacements.csv ../../setup_environment/code/packages.R ../../shared/code/assessor_classification.R ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../output/residential_multicard_cards.csv Makefile ../input/parcel_universe_2025_city.csv ../input/preferred_historical_parcel_source.gpkg ../input/preferred_predecessor_parcel_source.gpkg | ../output
+../output/residential_assessor_project_candidates.csv: build_residential_assessor_projects.R ../adjudication/residential_reviewed_building_components.csv ../adjudication/residential_reviewed_source_exclusions.csv ../input/residential_assessor_history.parquet ../adjudication/residential_reviewed_home_replacements.csv ../../setup_environment/code/packages.R ../../shared/code/assessor_classification.R ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../output/residential_multicard_cards.csv Makefile ../input/parcel_universe_2025_city.csv ../input/preferred_historical_parcel_source.gpkg ../input/preferred_predecessor_parcel_source.gpkg | ../output
 	$(R) $< $(AUTOMATIC_CARD_BUILDING_GAP) $(EPISODE_YEAR_WINDOW)
 
 ../report/residential_assessor_project_candidates.csv.log: ../../shared/code/report.py ../output/residential_assessor_project_candidates.csv | ../report

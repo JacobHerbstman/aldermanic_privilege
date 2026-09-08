@@ -1,12 +1,12 @@
 File: preferred_historical_parcel_source_queries.csv
-Rows: 16874
+Rows: 16879
 Columns: 2
-SHA-256 (saved bytes): b0fab1a9fa513130dbfa2747d76495954b7a3f9b66fd71f2644e8d80528a5b27
+SHA-256 (saved bytes): 7378837b888e788d58baf33a84d0a7b932063a19f3a5f92b607a9ad7bb38876a
 Key: target_year, pin10
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
      column inferred_type non_missing distinct  min  max               mean                sd
-target_year        BIGINT       16874       17 2006 2022 2012.6564537157758 5.310651034756778
-      pin10       VARCHAR       16874    15754    -    -                  -                 -
+target_year        BIGINT       16879       17 2006 2022 2012.6571479353042 5.311066254540264
+      pin10       VARCHAR       16879    15755    -    -                  -                 -

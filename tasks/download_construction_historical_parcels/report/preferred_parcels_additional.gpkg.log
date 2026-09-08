@@ -1,17 +1,17 @@
 File: preferred_parcels_additional.gpkg
-Rows: 6
+Rows: 4
 Columns: 7
-SHA-256 (saved bytes): 9a646d723255b3a54270b6057ee0239f63bc0a7c0ede5cd69e2a8600f51932da
+SHA-256 (saved bytes): da05f0339c714d70f86d762755b801f2125cb1b92f7c6fc13facf557dbdc850d
 Key: target_year, object_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-        column inferred_type non_missing distinct    min     max               mean                 sd
-           fid        BIGINT           6        6      1       6                3.5 1.8708286933869707
-   target_year        BIGINT           6        3   2014    2022             2020.5 3.2093613071762372
-      layer_id        DOUBLE           6        3   15.0  2022.0 1354.3333333333333 1034.3478460685587
-     object_id        BIGINT           6        6 442566 1044723           819404.0 219874.50295566334
-         pin14       VARCHAR           6        6      -       -                  -                  -
-         pin10       VARCHAR           6        6      -       -                  -                  -
-geometry_valid        BIGINT           6        1      1       1                1.0                0.0
+        column inferred_type non_missing distinct    min     max      mean                 sd
+           fid        BIGINT           4        4      1       4       2.5 1.2909944487358056
+   target_year        BIGINT           4        2   2007    2020   2016.75 6.4999999999999805
+      layer_id        DOUBLE           4        2    7.0    22.0     18.25                7.5
+     object_id        BIGINT           4        4 918030 1222052 994036.25 152010.50000219283
+         pin14       VARCHAR           4        4      -       -         -                  -
+         pin10       VARCHAR           4        4      -       -         -                  -
+geometry_valid        BIGINT           4        1      1       1       1.0                0.0

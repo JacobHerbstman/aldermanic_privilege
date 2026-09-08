@@ -1,31 +1,31 @@
 File: residential_assessor_project_candidates.csv
-Rows: 27774
+Rows: 27772
 Columns: 21
-SHA-256 (saved bytes): 2d4eb383f65504dbb097c7a77ad341d25af2134e5252145400ae383a6892a2aa
+SHA-256 (saved bytes): 19eec9a6245c4b1f4912c4dc1121f72d01a1b634170a0d88db459c774a4d9bea
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                  column inferred_type non_missing distinct                 min               max               mean                  sd
-             project_id       VARCHAR       27774    27774                   -                 -                  -                   -
-          source_family       VARCHAR       27774        1                   -                 -                  -                   -
-           project_kind       VARCHAR       27774        3                   -                 -                  -                   -
-         component_pins       VARCHAR       27774    27774                   -                 -                  -                   -
-        component_count        BIGINT       27774        8                   1                10 1.0421977388924895 0.24846370214779684
-      construction_year        BIGINT       27024       67                1878              2026 2008.4224763173474    8.47568489855993
-         dwelling_units        BIGINT       27421       26                   0                43 1.3264286495751432  1.1613634363447047
-          building_sqft        BIGINT       27420     4757                   0             83226 2694.3941283734503  2084.1671100125272
-              land_sqft        BIGINT       26195     4979                  72         228167280 18174.551059362475  1718539.7889850703
-           class_values       VARCHAR       27062       28                   -                 -                  -                   -
-         source_row_ids       VARCHAR       26712    26712                   -                 -                  -                   -
-            year_source       VARCHAR       27424    26057                   -                 -                  -                   -
-           units_source       VARCHAR       27424    26057                   -                 -                  -                   -
-        building_source       VARCHAR       27424    26057                   -                 -                  -                   -
-            land_source       VARCHAR       27424    26057                   -                 -                  -                   -
-     current_distance_m        DOUBLE       25382    25320 0.31134218570016264 8512.934950058308 434.34414862639017   522.0952217549648
-  current_within_1500ft       BOOLEAN       27774        2                   -                 -                  -                   -
-       candidate_status       VARCHAR       27774        5                   -                 -                  -                   -
-        decision_reason       VARCHAR       27774       19                   -                 -                  -                   -
-replacement_project_ids       VARCHAR          90       90                   -                 -                  -                   -
-      replacement_check       VARCHAR        1167        7                   -                 -                  -                   -
+             project_id       VARCHAR       27772    27772                   -                 -                  -                   -
+          source_family       VARCHAR       27772        1                   -                 -                  -                   -
+           project_kind       VARCHAR       27772        4                   -                 -                  -                   -
+         component_pins       VARCHAR       27772    27772                   -                 -                  -                   -
+        component_count        BIGINT       27772        8                   1                10 1.0422727927408901 0.24874983527402172
+      construction_year        BIGINT       27023       67                1878              2026 2008.4219738741072    8.47544361940391
+         dwelling_units        BIGINT       27420       26                   0                43 1.3265499635302698  1.1615876875910005
+          building_sqft        BIGINT       27419     4758                   0             83226 2694.6673109887306  2084.9129607612686
+              land_sqft        BIGINT       26193     4980                  72         228167280 18175.938800442866  1718605.3941279466
+           class_values       VARCHAR       27060       28                   -                 -                  -                   -
+         source_row_ids       VARCHAR       26710    26710                   -                 -                  -                   -
+            year_source       VARCHAR       27422    26055                   -                 -                  -                   -
+           units_source       VARCHAR       27422    26055                   -                 -                  -                   -
+        building_source       VARCHAR       27422    26055                   -                 -                  -                   -
+            land_source       VARCHAR       27422    26055                   -                 -                  -                   -
+     current_distance_m        DOUBLE       25379    25317 0.31134218570016264 8512.934950058308 434.37713833964096   522.1172566043189
+  current_within_1500ft       BOOLEAN       27772        2                   -                 -                  -                   -
+       candidate_status       VARCHAR       27772        6                   -                 -                  -                   -
+        decision_reason       VARCHAR       27772       20                   -                 -                  -                   -
+replacement_project_ids       VARCHAR          91       91                   -                 -                  -                   -
+      replacement_check       VARCHAR        1165        7                   -                 -                  -                   -

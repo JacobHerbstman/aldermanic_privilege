@@ -562,3 +562,37 @@ The accepted fixes resolve nine of the fifteen remaining records from the
 original review. Fletcher, 32nd Place, Vernon, and three Broad/Pitney records
 remain under review. This does not remove independently measured individual
 homes near those unresolved records. The paper's frozen input remains unchanged.
+
+## September 8: Final decisions for the remaining townhome records
+
+Vernon is one reviewed five-home site dated 2020, as approved by Jacob. The
+component ledger identifies five actual 2022 Assessor rows across PINs
+20034000310000, 20034000320000, and 20034000330000. The existing project producer
+reads those rows, requires one assessment snapshot, sums building areas and units,
+and counts each parcel's land once. It produces 11,891 square feet of building
+and 9,015 square feet of land. The three prior parcel candidates are absorbed
+into that one site; their membership remains explicit in the source ledger.
+The reviewed year is distinguished from the original card years in year_source.
+The preferred candidate consumer retains this reviewed project and all three
+component PINs for construction-year geography.
+
+Fletcher's six individual homes (PINs 13252030460000 through 13252030510000)
+are retained under the approved reviewed correspondence. The sixth point lies
+1.55 feet outside the old polygon; this is not grounds for dropping the house.
+The combined record is suppressed, and no individual year or area is overwritten.
+
+The 32nd Place combined record is excluded as unreliable rather than treated as
+additional construction. Its complete set of eighteen building areas matches
+individual 2008 assessments on PINs 16362010530000 through 16362010700000, all
+reporting construction in 2007. This covers both the odd- and even-numbered rows
+of nine homes. The parent record's later 2011 dates and its conflicting parcel
+location do not justify adding eighteen more homes. All individual records retain
+their own fields, including later revisions to individual building measurements.
+
+The three Broad/Pitney combined records are likewise excluded as unreliable.
+The five newer Broad Street homes retain 2022 individually. The eight other
+individually recorded Broad/Pitney homes retain their Assessor 2006/2007 years;
+the decision about the 2022 cohort is not an unsupported redating of older homes.
+These source exclusions are recorded in residential_reviewed_source_exclusions.csv
+and applied by the existing project producer. The paper's frozen input is not
+replaced by this reconstruction.

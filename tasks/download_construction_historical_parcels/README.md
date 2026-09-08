@@ -170,3 +170,30 @@ snapshots remain unchanged. The construction coverage producer now classifies
 Armitage 2008 as an exact PIN14 match and completes successfully. This establishes
 the historical parcel location, not an independently verified completion date
 or a new rule for selecting density denominators.
+
+## September 8 Vernon and Western supplement
+
+The reviewed Vernon site requires its three exact parcel numbers on the 2020
+map. The refreshed candidate requests also require Western Avenue PIN
+24132240320000 in 2007 after the earlier empty-card correction. The existing
+annual downloader retrieved all four queries successfully. Vernon's three
+2020 features have object IDs 918030, 918031, and 918032 in layer 22. Their
+nonoverlapping polygons cover 9,243.905 square feet together. The Assessor site
+land denominator is separately recorded as 9,015 square feet; these map areas
+do not overwrite that approved denominator.
+
+The intentional acquisition command was `make -f Makefile -f download_recipes.make
+../report/preferred_parcels_additional.gpkg.log
+../report/preferred_parcel_queries_additional.csv.log` in `code/`. The query
+preparer now subtracts the complete pinned query scope, including prior supplements,
+so it does not refresh previously recorded queries. Annual years without new
+requests produce empty extracts without contacting the service.
+
+The four returned features and four queries are preserved, byte for byte from
+the acquisition outputs, in `data_raw/construction_review/` as
+`preferred_parcel_supplement_2026-09-08.gpkg` and
+`preferred_parcel_supplement_queries_2026-09-08.csv`. They are included in
+`preferred_snapshot.sha256` and ordinary Make dependencies. The preferred source
+now contains 12,987 features and 16,879 queried pairs. All 12,983 previous features
+retain identical attributes and spatially equal geometry. Ordinary builds reuse
+these pinned inputs and require no network.

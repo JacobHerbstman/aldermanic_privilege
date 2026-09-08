@@ -1,20 +1,20 @@
 File: preferred_historical_parcel_coverage.csv
-Rows: 15691
+Rows: 15677
 Columns: 10
-SHA-256 (saved bytes): 1be08b1be4f7ddc1134d3ea38089b63cc628c73fa1a1bbe1b7ca7441d4ca6893
+SHA-256 (saved bytes): d9d26bc81a0c1b77536afd068ec48af2d976c4be58c582a346f340918d688cbb
 Key: project_id, component_pin, target_year
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-               column inferred_type non_missing distinct  min  max               mean                  sd
-        source_family       VARCHAR       15691        2    -    -                  -                   -
-           project_id       VARCHAR       15691    14017    -    -                  -                   -
-         project_kind       VARCHAR       15691        6    -    -                  -                   -
-     candidate_status       VARCHAR       15691        3    -    -                  -                   -
-          target_year        BIGINT       15691       17 2006 2022  2012.678031992862    5.39718441354985
-        component_pin       VARCHAR       15691    15646    -    -                  -                   -
-                pin10       VARCHAR       15691    15637    -    -                  -                   -
-  polygon_count_pin10        BIGINT       15691        6    0    6 0.7536804537633038 0.43937603896870825
-exact_pin14_available       BOOLEAN       15691        2    -    -                  -                   -
-      coverage_status       VARCHAR       15691        3    -    -                  -                   -
+               column inferred_type non_missing distinct  min  max               mean                 sd
+        source_family       VARCHAR       15677        2    -    -                  -                  -
+           project_id       VARCHAR       15677    14005    -    -                  -                  -
+         project_kind       VARCHAR       15677        7    -    -                  -                  -
+     candidate_status       VARCHAR       15677        5    -    -                  -                  -
+          target_year        BIGINT       15677       17 2006 2022 2012.6778720418447 5.3991676527897114
+        component_pin       VARCHAR       15677    15634    -    -                  -                  -
+                pin10       VARCHAR       15677    15626    -    -                  -                  -
+  polygon_count_pin10        BIGINT       15677        6    0    6 0.7534604835108758 0.4395105004644035
+exact_pin14_available       BOOLEAN       15677        2    -    -                  -                  -
+      coverage_status       VARCHAR       15677        3    -    -                  -                  -

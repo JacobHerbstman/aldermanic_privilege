@@ -104,7 +104,7 @@ all: ../report/preferred_parcels_additional.gpkg.log ../report/preferred_parcel_
 ../output/preferred_parcels_additional_%.gpkg: download_historical_parcels.R download_recipes.make ../output/preferred_parcel_queries_additional.csv ../input/historical_project_parcel_layers.csv ../../setup_environment/code/packages.R | ../output ../temp
 	$(R) $< $* preferred
 
-../output/preferred_parcel_queries_additional.csv: prepare_preferred_parcel_queries.R ../input/preferred_project_geography_requests.csv ../input/preferred_historical_parcel_source_queries.csv ../input/historical_project_parcel_queries_2026-07-27.csv ../input/historical_project_parcel_queries_2026-09-07.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_parcel_queries_additional.csv: prepare_preferred_parcel_queries.R ../input/preferred_project_geography_requests.csv ../output/preferred_historical_parcel_source_queries.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../report/preferred_parcel_queries_additional.csv.log: ../../shared/code/report.py ../output/preferred_parcel_queries_additional.csv | ../report

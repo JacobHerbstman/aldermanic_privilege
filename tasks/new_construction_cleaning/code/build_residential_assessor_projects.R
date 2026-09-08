@@ -396,4 +396,53 @@ for (i in which(!is.na(multicard_candidates$replacement_project_ids))) {
 assessor_projects <- bind_rows(ordinary_candidates, tieback_candidates, multicard_candidates) %>%
   arrange(project_kind, project_id)
 stopifnot(!anyNA(assessor_projects$project_id), !anyDuplicated(assessor_projects$project_id))
+# Reviewed sites combine identified buildings from one assessment across parcels.
+reviewed_components <- readr::read_csv(
+  "../adjudication/residential_reviewed_building_components.csv",
+  col_types = readr::cols(construction_year = readr::col_integer(), .default = readr::col_character()))
+stopifnot(!anyDuplicated(reviewed_components$row_id))
+con <- DBI::dbConnect(duckdb::duckdb())
+DBI::dbWriteTable(con, "reviewed_components", reviewed_components)
+reviewed_measurements <- DBI::dbGetQuery(con, "
+  SELECT c.project_id, c.construction_year, h.*
+  FROM read_parquet('../input/residential_assessor_history.parquet') h
+  INNER JOIN reviewed_components c ON h.row_id = c.row_id AND h.pin = c.pin")
+DBI::dbDisconnect(con, shutdown = TRUE)
+stopifnot(nrow(reviewed_measurements) == nrow(reviewed_components))
+for (id in unique(reviewed_components$project_id)) {
+  rows <- reviewed_measurements %>% filter(project_id == id)
+  stopifnot(n_distinct(rows$tax_year) == 1L, n_distinct(rows$construction_year) == 1L,
+    !anyDuplicated(rows[c("pin", "card_num")]),
+    all(is.finite(rows$building_sqft) & rows$building_sqft > 0))
+  land <- rows %>% distinct(pin, land_sqft)
+  stopifnot(!anyDuplicated(land$pin), all(is.finite(land$land_sqft) & land$land_sqft > 0))
+  units <- ifelse(rows$class %in% single_family_assessor_classes, 1, rows$num_apartments)
+  stopifnot(all(is.finite(units) & units > 0),
+    all(rows$pin %in% assessor_projects$component_pins))
+  source_ids <- paste(sort(rows$row_id), collapse = "/")
+  site <- tibble::tibble(project_id = id, source_family = "residential",
+    project_kind = "reviewed_multi_parcel_building",
+    component_pins = paste(sort(unique(rows$pin)), collapse = "/"), component_count = nrow(land),
+    construction_year = first(rows$construction_year), dwelling_units = sum(units),
+    building_sqft = sum(rows$building_sqft), land_sqft = sum(land$land_sqft),
+    class_values = paste(sort(unique(rows$class)), collapse = "/"), source_row_ids = source_ids,
+    year_source = paste0("reviewed_building_year:", id),
+    units_source = paste0("reviewed_assessor_components:", source_ids),
+    building_source = paste0("reviewed_assessor_components:", source_ids),
+    land_source = paste0("distinct_component_parcels_in_assessment:", first(rows$tax_year)),
+    current_distance_m = NA_real_, current_within_1500ft = FALSE,
+    candidate_status = "retain_mechanical", decision_reason = "reviewed_complete_site_and_construction_year",
+    replacement_project_ids = NA_character_, replacement_check = NA_character_)
+  # Component identities are recorded in the ledger; do not also count their old candidates.
+  assessor_projects <- assessor_projects %>% filter(!component_pins %in% rows$pin) %>% bind_rows(site)
+}
+reviewed_exclusions <- readr::read_csv("../adjudication/residential_reviewed_source_exclusions.csv",
+  col_types = readr::cols(.default = readr::col_character()))
+stopifnot(!anyDuplicated(reviewed_exclusions$project_id),
+  all(reviewed_exclusions$project_id %in% assessor_projects$project_id))
+i <- match(reviewed_exclusions$project_id, assessor_projects$project_id)
+assessor_projects$candidate_status[i] <- "exclude_unreliable_combined_record"
+assessor_projects$decision_reason[i] <- reviewed_exclusions$reason
+assessor_projects <- assessor_projects %>% arrange(project_kind, project_id)
+stopifnot(!anyDuplicated(assessor_projects$project_id))
 readr::write_csv(assessor_projects, "../output/residential_assessor_project_candidates.csv")
