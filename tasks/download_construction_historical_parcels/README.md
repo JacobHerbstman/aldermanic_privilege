@@ -151,3 +151,22 @@ when the original predecessor lookup has no reference point or finds no polygon.
 Construction cleaning applies this general fallback to the construction-year map;
 multiple unequal polygons remain unresolved. The broader nearest-year priority
 proposal remains unadopted.
+
+## September 8 Armitage lookup
+
+The corrected Assessor selection dates 2706 W Armitage (PIN 13362280330000)
+to 2008. Its year/PIN10 pair was outside the pinned query scope. Running
+`make -f Makefile -f download_recipes.make ../output/historical_parcels_additional_2008.gpkg`
+from `code/` returned the exact PIN in the 2008 layer: object 262782, layer 8,
+valid EPSG:3435 geometry, approximately 3,000.352 square feet. The downloader
+also re-queried one previously acquired 2008 pair; that refreshed result was
+not adopted. Only the previously unqueried pair and its returned feature were
+preserved as `historical_project_parcel_source_2026-09-08.gpkg` and
+`historical_project_parcel_queries_2026-09-08.csv` in the existing raw-source
+folder. The source checksum file and ordinary Make dependencies include both.
+
+The source now contains 8,473 polygons and 11,047 queried pairs. Earlier
+snapshots remain unchanged. The construction coverage producer now classifies
+Armitage 2008 as an exact PIN14 match and completes successfully. This establishes
+the historical parcel location, not an independently verified completion date
+or a new rule for selecting density denominators.

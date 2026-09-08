@@ -94,10 +94,10 @@ all: ../report/geocoding_parcel_history.csv.log ../report/geocoding_history_quer
 ../report/predecessor_history_queries.csv.log: ../../shared/code/report.py ../output/predecessor_history_queries.csv | ../report
 	$(PYTHON) $< ../output/predecessor_history_queries.csv $@ pin
 
-../output/historical_project_parcel_source.gpkg: combine_parcel_sources.R ../input/historical_project_parcel_source_2026-07-27.gpkg ../input/historical_project_parcel_source_2026-09-07.gpkg ../output/historical_project_parcel_source_queries.csv ../../setup_environment/code/packages.R | ../output
+../output/historical_project_parcel_source.gpkg: combine_parcel_sources.R ../input/historical_project_parcel_source_2026-09-08.gpkg ../input/historical_project_parcel_source_2026-07-27.gpkg ../input/historical_project_parcel_source_2026-09-07.gpkg ../output/historical_project_parcel_source_queries.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
-../output/historical_project_parcel_source_queries.csv: combine_parcel_queries.R ../input/historical_project_parcel_queries_2026-07-27.csv ../input/historical_project_parcel_queries_2026-09-07.csv ../input/historical_project_parcel_source_2026-07-27.gpkg ../input/historical_project_parcel_source_2026-09-07.gpkg ../input/historical_project_parcel_layers.csv source_snapshot.sha256 ../../setup_environment/code/packages.R | ../output
+../output/historical_project_parcel_source_queries.csv: combine_parcel_queries.R ../input/historical_project_parcel_queries_2026-09-08.csv ../input/historical_project_parcel_source_2026-09-08.gpkg ../input/historical_project_parcel_queries_2026-07-27.csv ../input/historical_project_parcel_queries_2026-09-07.csv ../input/historical_project_parcel_source_2026-07-27.gpkg ../input/historical_project_parcel_source_2026-09-07.gpkg ../input/historical_project_parcel_layers.csv source_snapshot.sha256 ../../setup_environment/code/packages.R | ../output
 	shasum -a 256 -c source_snapshot.sha256
 	$(R) $<
 
@@ -106,6 +106,12 @@ all: ../report/geocoding_parcel_history.csv.log ../report/geocoding_history_quer
 
 ../report/historical_project_parcel_source_queries.csv.log: ../../shared/code/report.py ../output/historical_project_parcel_source_queries.csv | ../report
 	$(PYTHON) $< ../output/historical_project_parcel_source_queries.csv $@ target_year pin10
+
+../input/historical_project_parcel_source_2026-09-08.gpkg: ../../../data_raw/construction_review/historical_project_parcel_source_2026-09-08.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/historical_project_parcel_queries_2026-09-08.csv: ../../../data_raw/construction_review/historical_project_parcel_queries_2026-09-08.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/historical_project_parcel_source_2026-07-27.gpkg: ../../../data_raw/construction_review/historical_project_parcel_source_2026-07-27.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

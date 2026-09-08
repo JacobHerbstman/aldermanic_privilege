@@ -1,18 +1,18 @@
 File: historical_project_parcel_coverage.csv
-Rows: 11108
+Rows: 11102
 Columns: 8
-SHA-256 (saved bytes): 490201aa407a27eea8a30d23be4da26cf735763f6de1e927d56fb60a4dce318b
+SHA-256 (saved bytes): 0a6fbb0a3679cf17a2a11e25ea55379d796858d062e2126836a092cccfd7fd5d
 Key: source_family, project_id, component_pin, target_year
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-               column inferred_type non_missing distinct            min            max               mean                 sd
-        source_family       VARCHAR       11108        2              -              -                  -                  -
-           project_id       VARCHAR       11108     9400              -              -                  -                  -
-        component_pin        BIGINT       11108    10497 10314090390000 25322100320000 15919827893930.953  2631151778293.807
-                pin10        BIGINT       11108    10491     1031409039     2532210032 1591982789.3924198 263115177.82911366
-          target_year        BIGINT       11108       17           2006           2022 2012.8439863161686  5.327017559449552
-  polygon_count_pin10        BIGINT       11108        4              0              6 0.7681850918257112 0.4325460907177739
-exact_pin14_available       BOOLEAN       11108        2              -              -                  -                  -
-      coverage_status       VARCHAR       11108        3              -              -                  -                  -
+               column inferred_type non_missing distinct            min            max               mean                  sd
+        source_family       VARCHAR       11102        2              -              -                  -                   -
+           project_id       VARCHAR       11102     9394              -              -                  -                   -
+        component_pin        BIGINT       11102    10494 10314090390000 25322100320000 15920397704455.506  2631572189991.7744
+                pin10        BIGINT       11102    10488     1031409039     2532210032 1592039770.4448748  263157218.99890995
+          target_year        BIGINT       11102       17           2006           2022 2012.8440821473607   5.327852365406653
+  polygon_count_pin10        BIGINT       11102        4              0              6 0.7680598090434156 0.43262938387615724
+exact_pin14_available       BOOLEAN       11102        2              -              -                  -                   -
+      coverage_status       VARCHAR       11102        3              -              -                  -                   -
