@@ -104,6 +104,85 @@ if (nrow(predecessor_resolution %>% distinct(request_id)) != nrow(reference_poin
   stop("One or more predecessor requests disappeared during spatial matching.", call. = FALSE)
 }
 
+# When the first location fails, try the same PIN's coordinate one year later.
+# The parcel geometry still comes from the construction-year map.
+predecessor_resolution <- predecessor_resolution %>% mutate(
+  first_attempt_status = predecessor_status,
+  first_reference_source = reference_source,
+  first_reference_x_3435 = reference_x_3435,
+  first_reference_y_3435 = reference_y_3435,
+  history_coordinate_year = NA_integer_, history_coordinate_row_id = NA_character_)
+history <- readr::read_csv("../input/geocoding_parcel_history.csv",
+  col_types = readr::cols(pin = readr::col_character(), row_id = readr::col_character(),
+    .default = readr::col_guess())) %>% filter(is.finite(lon), is.finite(lat))
+earlier_history <- readr::read_csv("../input/predecessor_parcel_history.csv",
+  col_types = readr::cols(pin = readr::col_character(), row_id = readr::col_character(),
+    .default = readr::col_guess())) %>% filter(is.finite(lon), is.finite(lat))
+overlap_history <- inner_join(history %>% select(pin, year, lon, lat, row_id),
+  earlier_history %>% select(pin, year, lon, lat, row_id),
+  by = c("pin", "year"), relationship = "one-to-one")
+stopifnot(all(overlap_history$lon.x == overlap_history$lon.y),
+  all(overlap_history$lat.x == overlap_history$lat.y),
+  all(overlap_history$row_id.x == overlap_history$row_id.y))
+history <- bind_rows(history, anti_join(earlier_history, history, by = c("pin", "year")))
+stopifnot(!anyDuplicated(history[c("pin", "year")]))
+history_points <- sf::st_as_sf(history, coords = c("lon", "lat"), crs = 4326) %>%
+  sf::st_transform(3435)
+fallback <- predecessor_resolution %>%
+  filter(predecessor_status %in% c("no_reference_point", "no_predecessor_polygon")) %>%
+  select(request_id, component_pin, target_year) %>%
+  inner_join(history %>% transmute(component_pin = pin, target_year = year - 1L,
+    coordinate_year = year, coordinate_row_id = row_id,
+    x = sf::st_coordinates(history_points)[, 1], y = sf::st_coordinates(history_points)[, 2]),
+    by = c("component_pin", "target_year"), relationship = "many-to-one")
+fallback_queries <- readr::read_csv("../input/history_reference_queries.csv", show_col_types = FALSE)
+stopifnot(!anyDuplicated(fallback$request_id), !anyDuplicated(fallback_queries))
+fallback_parcels <- sf::st_read("../input/history_reference_parcels.gpkg", quiet = TRUE)
+names(fallback_parcels)[names(fallback_parcels) == attr(fallback_parcels, "sf_column")] <- "geometry"
+sf::st_geometry(fallback_parcels) <- "geometry"
+fallback_parcels <- fallback_parcels %>% select(all_of(names(predecessor_parcels)))
+stopifnot(sf::st_crs(fallback_parcels)$epsg == 3435,
+  !anyDuplicated(sf::st_drop_geometry(fallback_parcels)[c("target_year", "object_id")]),
+  all(sf::st_is_valid(fallback_parcels)), !any(sf::st_is_empty(fallback_parcels)))
+fallback_rows <- list()
+for (i in seq_len(nrow(fallback))) {
+  # CSV round trips can change the last binary digit; this is not a spatial buffer.
+  stopifnot(any(fallback_queries$target_year == fallback$target_year[i] &
+    abs(fallback_queries$reference_x_3435 - fallback$x[i]) < 1e-6 &
+    abs(fallback_queries$reference_y_3435 - fallback$y[i]) < 1e-6))
+  point <- sf::st_as_sf(fallback[i, ], coords = c("x", "y"), crs = 3435)
+  parcels <- fallback_parcels %>% filter(target_year == fallback$target_year[i])
+  hits <- sf::st_within(point, parcels)[[1]]
+  row <- predecessor_resolution %>% filter(request_id == fallback$request_id[i])
+  stopifnot(nrow(row) == 1L)
+  row <- row[rep(1L, max(1L, length(hits))), ]
+  row$reference_source <- "exact_pin_coordinate_one_year_after_construction"
+  row$reference_status <- "reference_point_available"
+  row$reference_x_3435 <- fallback$x[i]
+  row$reference_y_3435 <- fallback$y[i]
+  row$history_coordinate_year <- fallback$coordinate_year[i]
+  row$history_coordinate_row_id <- fallback$coordinate_row_id[i]
+  row$object_id <- if (length(hits)) parcels$object_id[hits] else NA_integer_
+  row$predecessor_pin14 <- if (length(hits)) parcels$predecessor_pin14[hits] else NA_character_
+  row$predecessor_pin10 <- if (length(hits)) parcels$predecessor_pin10[hits] else NA_character_
+  row$predecessor_polygon_count <- length(hits)
+  row$predecessor_status <- if (length(hits) == 1L) "unique_predecessor_polygon" else
+    if (length(hits) > 1L) "multiple_predecessor_polygons" else "no_predecessor_polygon"
+  fallback_rows[[i]] <- row
+  index <- match(fallback$request_id[i], reference_points$request_id)
+  reference_points$reference_source[index] <- row$reference_source[1]
+}
+predecessor_resolution <- bind_rows(
+  anti_join(predecessor_resolution, fallback, by = "request_id"), bind_rows(fallback_rows))
+
+# Preserve the pinned original geometry when both downloads contain an object.
+overlap <- match(paste(fallback_parcels$target_year, fallback_parcels$object_id),
+  paste(predecessor_parcels$target_year, predecessor_parcels$object_id))
+for (i in which(!is.na(overlap))) {
+  stopifnot(length(sf::st_equals(fallback_parcels[i, ], predecessor_parcels[overlap[i], ])[[1]]) == 1L)
+}
+predecessor_parcels <- rbind(predecessor_parcels, fallback_parcels[is.na(overlap), ])
+
 candidate_geometry <- predecessor_parcels %>%
   inner_join(
     predecessor_resolution %>%
@@ -208,6 +287,6 @@ sf::st_write(
   quiet = TRUE
 )
 readr::write_csv(
-  predecessor_resolution,
+  arrange(predecessor_resolution, target_year, source_family, project_id, component_pin, object_id),
   "../output/preferred_historical_predecessor_resolution.csv"
 )

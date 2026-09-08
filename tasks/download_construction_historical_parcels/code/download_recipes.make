@@ -14,6 +14,20 @@ all: ../report/predecessor_parcels_download.gpkg.log ../report/predecessor_spati
 
 all: ../report/preferred_predecessor_parcels_download.gpkg.log ../report/preferred_predecessor_spatial_queries_download.csv.log
 
+all: ../report/history_reference_parcels_download.gpkg.log ../report/history_reference_spatial_queries_download.csv.log
+
+../output/history_reference_parcels_download.gpkg: download_predecessor_parcels.R download_recipes.make ../output/history_reference_spatial_queries_download.csv ../input/historical_project_parcel_layers.csv ../../setup_environment/code/packages.R | ../output ../temp
+	$(R) $< history_reference
+
+../output/history_reference_spatial_queries_download.csv: prepare_history_reference_queries.R ../output/predecessor_parcel_history.csv ../input/preferred_predecessor_reference_points.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_address_geocode_requests.csv ../output/geocoding_parcel_history.csv | ../output
+	$(R) $<
+
+../report/history_reference_parcels_download.gpkg.log: ../../shared/code/report.py ../output/history_reference_parcels_download.gpkg | ../report
+	$(PYTHON) $< ../output/history_reference_parcels_download.gpkg $@ target_year object_id
+
+../report/history_reference_spatial_queries_download.csv.log: ../../shared/code/report.py ../output/history_reference_spatial_queries_download.csv | ../report
+	$(PYTHON) $< ../output/history_reference_spatial_queries_download.csv $@ target_year reference_x_3435 reference_y_3435
+
 ../output/preferred_predecessor_parcels_download.gpkg: download_predecessor_parcels.R download_recipes.make ../output/preferred_predecessor_spatial_queries_download.csv ../input/historical_project_parcel_layers.csv ../../setup_environment/code/packages.R | ../output ../temp
 	$(R) $< preferred
 

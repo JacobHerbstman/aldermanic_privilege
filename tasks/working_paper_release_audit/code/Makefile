@@ -13,7 +13,7 @@ all: ../report/candidate_geography_checks.csv.log ../report/candidate_geography_
 ../output/candidate_geography_checks.csv: review_candidate_geography.R ../input/preferred_project_boundary_scope.csv ../input/preferred_project_year_geometry.gpkg ../input/preferred_project_year_centroids.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg | ../output
 	$(R) $<
 
-../output/candidate_geography_review_queue.csv: build_candidate_geography_review_queue.R ../input/historical_project_predecessor_resolution.csv ../input/preferred_historical_predecessor_resolution.csv ../input/preferred_adjudication_scope.csv ../input/preferred_project_boundary_scope.csv ../output/candidate_geography_checks.csv ../output/geocoding_parcel_history_review.csv | ../output
+../output/candidate_geography_review_queue.csv: build_candidate_geography_review_queue.R ../input/history_reference_parcels.gpkg ../input/history_reference_queries.csv ../input/residential_multicard_cards.csv ../input/residential_tieback_temporal_lineage_evidence.csv ../input/current_predecessor_parcel_source.gpkg ../input/preferred_residential_project_candidates.csv ../input/preferred_commercial_project_candidates.csv ../input/historical_project_predecessor_resolution.csv ../input/preferred_historical_predecessor_resolution.csv ../input/preferred_adjudication_scope.csv ../input/preferred_project_boundary_scope.csv ../output/candidate_geography_checks.csv ../output/geocoding_parcel_history_review.csv | ../output
 	$(R) $<
 
 ../report/candidate_geography_checks.csv.log: ../../shared/code/report.py ../output/candidate_geography_checks.csv | ../report
@@ -221,5 +221,30 @@ link-inputs: ../input/preferred_address_geocode_requests.csv ../input/preferred_
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/preferred_project_boundary_scope.csv ../input/preferred_project_year_geometry.gpkg ../input/preferred_project_year_centroids.gpkg ../input/preferred_adjudication_scope.csv ../input/historical_project_predecessor_resolution.csv ../input/preferred_historical_predecessor_resolution.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg
+
+../input/current_predecessor_parcel_source.gpkg: ../../download_construction_historical_parcels/output/preferred_predecessor_parcel_source.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_residential_project_candidates.csv: ../../new_construction_cleaning/output/preferred_residential_project_candidates.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_commercial_project_candidates.csv: ../../new_construction_cleaning/output/preferred_commercial_project_candidates.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/current_predecessor_parcel_source.gpkg ../input/preferred_residential_project_candidates.csv ../input/preferred_commercial_project_candidates.csv
+
+../input/history_reference_parcels.gpkg: ../../download_construction_historical_parcels/output/history_reference_parcels.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/history_reference_queries.csv: ../../download_construction_historical_parcels/output/history_reference_queries.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/residential_multicard_cards.csv: ../../new_construction_cleaning/output/residential_multicard_cards.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/residential_tieback_temporal_lineage_evidence.csv: ../../new_construction_cleaning/output/residential_tieback_temporal_lineage_evidence.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/history_reference_parcels.gpkg ../input/history_reference_queries.csv ../input/residential_multicard_cards.csv ../input/residential_tieback_temporal_lineage_evidence.csv
 
 include ../../shared/code/generic.make

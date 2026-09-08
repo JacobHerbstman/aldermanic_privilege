@@ -1,7 +1,7 @@
 File: preferred_project_year_geometry_coverage.csv
 Rows: 14017
 Columns: 14
-SHA-256 (saved bytes): bdba077541e2157e770fa57a3df589643ac0b161e8c27ad3a5dc09495d7dd0b2
+SHA-256 (saved bytes): 1cc81f9cdf33bd9a7c48843d137c3ab74f3a7ccbdb7672ba07dbf2d82a6c3e8b
 Key: source_family, project_id, target_year
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -14,11 +14,11 @@ Row counts, non-missing counts, and declared-key checks: exact.
          candidate_status       VARCHAR       14017        3    -    -                    -                   -
               target_year        BIGINT       14017       17 2006 2022    2012.493900263965   5.390354042212473
      requested_components        BIGINT       14017       17    1   57   1.1194264107869016  0.8205097895866703
-      resolved_components        BIGINT       14017       18    0   57   1.1109367196975102  0.8245178732056789
- distinct_parcel_polygons        BIGINT       14017       17    0   57   1.1062281515302848  0.7987766349938585
-           component_pins       VARCHAR       13909    13880    -    -                    -                   -
-              parcel_pins       VARCHAR       13909    11380    -    -                    -                   -
-            match_methods       VARCHAR       13909        5    -    -                    -                   -
-    unresolved_components        BIGINT       14017        4    0    4 0.008489691089391453 0.09850108315077133
+      resolved_components        BIGINT       14017       18    0   57   1.1133623457230506  0.8228016247825021
+ distinct_parcel_polygons        BIGINT       14017       17    0   57   1.1086537775558252  0.7970192891028102
+           component_pins       VARCHAR       13942    13913    -    -                    -                   -
+              parcel_pins       VARCHAR       13942    11386    -    -                    -                   -
+            match_methods       VARCHAR       13942        5    -    -                    -                   -
+    unresolved_components        BIGINT       14017        4    0    4 0.006064065063851038 0.08551005077476362
      collapsed_components        BIGINT       14017        9    0   15 0.004708568167225512  0.1799149252158436
 complete_project_geometry       BOOLEAN       14017        2    -    -                    -                   -

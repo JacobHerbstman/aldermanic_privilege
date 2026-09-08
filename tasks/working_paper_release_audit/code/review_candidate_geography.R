@@ -25,6 +25,15 @@ checks <- checks |> select(source_family, project_id, target_year, boundary_year
     area_difference_sqft = project_land_area_sqft - as.numeric(st_area(polygons)),
     old_map_ward_2015 = NA_integer_, old_map_distance_ft_2015 = NA_real_)
 
+# A concave parcel can have an exterior centroid without any location error.
+stopifnot(all(st_geometry_type(polygons) == "MULTIPOLYGON"))
+checks$polygon_parts <- lengths(st_geometry(polygons))
+checks$maximum_part_separation_ft <- 0
+for (i in which(checks$polygon_parts > 1L)) {
+  parts <- suppressWarnings(st_cast(st_geometry(polygons[i, ]), "POLYGON"))
+  checks$maximum_part_separation_ft[i] <- max(as.numeric(st_distance(parts)))
+}
+
 for (era_value in unique(checks$era)) {
   rows <- which(checks$era == era_value)
   map_year <- unique(checks$boundary_year[rows])

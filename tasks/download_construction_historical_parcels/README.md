@@ -122,3 +122,32 @@ query are pinned as `preferred_predecessor_troy_parcels_2026-09-07.gpkg` and
 earlier 1,694 polygons and adds this one. The query was submitted in EPSG:3435 at
 x=1155481.6903695965, y=1894116.3050945636; construction cleaning must independently
 produce that point from the corrected address response before using this lookup.
+
+## September 8 historical-coordinate parcel queries
+
+The consolidated review queries every finite exact-PIN location in the pinned
+September 7 geocoding coordinate history against the requested construction-year
+maps, plus next-year coordinates from the earlier history extract for failed
+initial locations.
+`prepare_history_reference_queries.R` produces 238 distinct coordinate/year
+queries; the existing parcel downloader's `history_reference` scope returns 87
+polygons. The 62 objects also present in the earlier predecessor source have
+spatially identical shapes. No project decision is encoded in these source files.
+
+The received polygons and query scope are preserved as
+`data_raw/construction_review/history_reference_parcels_complete_2026-09-08.gpkg` and
+`history_reference_queries_complete_2026-09-08.csv`. `history_reference_snapshot.sha256`
+checks both. Ordinary Make restores `history_reference_parcels.gpkg` and
+`history_reference_queries.csv` and their reports without contacting the service.
+The deliberate acquisition command is `make -f Makefile -f download_recipes.make
+../report/history_reference_parcels_download.gpkg.log
+../report/history_reference_spatial_queries_download.csv.log` from `code/`.
+It uses Cook County's `parcelHistorical/MapServer` service and the recorded
+year-to-layer table, and refuses incomplete API responses. A refresh is a new
+source vintage, not part of an unchanged build.
+
+Jacob approved using the exact PIN's coordinate from one year after construction
+when the original predecessor lookup has no reference point or finds no polygon.
+Construction cleaning applies this general fallback to the construction-year map;
+multiple unequal polygons remain unresolved. The broader nearest-year priority
+proposal remains unadopted.

@@ -815,7 +815,7 @@ ifneq ($(filter-out $(wildcard ../output/preferred_historical_predecessor_select
 .PHONY: ../output/preferred_historical_predecessor_selected.gpkg
 endif
 
-../output/preferred_historical_predecessor_selected.gpkg: recover_preferred_historical_predecessors.R ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_source_queries.csv ../output/preferred_predecessor_reference_points.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_historical_predecessor_selected.gpkg: recover_preferred_historical_predecessors.R ../input/predecessor_parcel_history.csv ../input/geocoding_parcel_history.csv ../input/history_reference_parcels.gpkg ../input/history_reference_queries.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_source_queries.csv ../output/preferred_predecessor_reference_points.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/preferred_historical_predecessor_resolution.csv: ../output/preferred_historical_predecessor_selected.gpkg
@@ -1161,5 +1161,16 @@ link-inputs: ../input/address_geocodes_census.csv ../input/address_geocodes_chic
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/residential_assessor_history.parquet ../input/O2017-7056.pdf ../input/O2020-2959.pdf ../input/O2022-2464.pdf ../input/O2023-1331.pdf ../input/O2024-0008982.pdf ../input/O2024-0010153.pdf ../input/SO2017-7051.pdf ../input/SO2018-4452.pdf ../input/SO2018-7749.pdf ../input/SO2018-863.pdf ../input/SO2019-4107.pdf ../input/SO2023-43.pdf ../input/matters_20101101_20260212.csv ../input/zoning_map_index.geojson ../input/building_permits_clean.gpkg ../input/preferred_predecessor_source_queries.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../input/preferred_historical_parcel_source.gpkg ../input/zoning_sep2025.geojson ../input/zoning_jan2016.zip ../input/zoning_sep2014.zip ../input/zoning_nov2012.zip ../input/Wards_2024.geojson ../input/Wards_2015.geojson ../input/Wards_2014.geojson ../input/Chicago_Wards_1998.geojson ../input/historical_parcel_requests.csv ../input/official_building_footprints_2022.gpkg ../input/official_building_footprints_2008.gpkg ../input/chicago_building_footprints_2015.zip ../input/density_historical_address_records.csv ../input/density_historical_parcel_records.csv ../input/building_permits_full.csv ../input/parcel_sales_city.csv ../input/chicago_alderman_terms.csv ../input/ward_controls_2000_2023.csv ../input/boundary_segments_1320ft.gpkg ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/parcel_addresses_2025_chicago.csv  ../input/residential_improvement_characteristics_full.csv ../input/commercial_value_raw.csv ../input/parcel_universe_2025_city.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg
+
+../input/geocoding_parcel_history.csv: ../../download_construction_historical_parcels/output/geocoding_parcel_history.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/history_reference_parcels.gpkg: ../../download_construction_historical_parcels/output/history_reference_parcels.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/history_reference_queries.csv: ../../download_construction_historical_parcels/output/history_reference_queries.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/geocoding_parcel_history.csv ../input/history_reference_parcels.gpkg ../input/history_reference_queries.csv
 
 include ../../shared/code/generic.make

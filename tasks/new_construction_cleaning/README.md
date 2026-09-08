@@ -312,7 +312,8 @@ year in `historical_project_predecessor_resolution.csv`; filter
 and count distinct requests rather than candidate-polygon rows. Do not treat this
 checkpoint as completed merely because the later code builds.
 
-**Carry forward with unresolved locations:** Jacob asked to retain the following
+**September 7 carry-forward decision (superseded by the September 8 rule below):**
+Jacob asked to retain the following
 two cases in the unresolved review. The exact-PIN coordinates from one year after
 construction are the leading candidates, not approved final locations or grounds
 for exclusion. Check their construction-year parcel matches as the candidate
@@ -438,3 +439,55 @@ The same audit measures the existing 2015 timing convention: using the old ward
 map instead changes the ward for 179 of 754 located 2015 candidates and changes
 500-foot membership for 189. This is a sensitivity calculation, not an adopted
 date or map change. The paper's June 15 convention remains in force.
+
+## Consolidated geography review: September 8 follow-up
+
+Jacob approved a general fallback after reviewing the new parcel evidence. If the
+original predecessor lookup has no reference point or finds no polygon,
+`recover_preferred_historical_predecessors.R` looks for the exact PIN's coordinate
+in the following year and queries the construction-year parcel map. It accepts
+a unique polygon; the existing exact-equivalence rule handles duplicate shapes.
+Unequal overlapping polygons remain unresolved. It does not change construction
+years, adopt later-year parcel geometry, or replace previously accepted matches.
+
+The producer reads both pinned coordinate-history extracts, verifies agreement
+on overlapping PIN/year records, and preserves the original attempt alongside
+the selected coordinate year and source row identifier. New coordinates must be
+inside the recorded spatial-query scope. The tolerance for comparing query
+coordinates is 0.000001 feet, solely for decimal serialization; it does not buffer
+points when matching parcels. The new parcel snapshot is a downloaded source
+input, not a manual decision ledger. No case-specific correction was added.
+
+The source review finds 41 requests with a next-year coordinate: 34 yield one
+construction-year polygon, six have no polygon, and one has multiple unequal
+polygons. Both 763 W 15th and 3609 W 50th now have unique historical parcel
+matches. The six empty results concern the 2016 map; the next-year coordinates
+agree closely with the original exact-PIN reference locations. These need
+historical-map coverage evidence, not another address-direction correction.
+
+The release audit now records the responsible production script, candidate
+measurement/year reason, source years, competing land areas, and historical
+coordinate parcel matches for the remaining review items. It traces changed
+project identifiers by a unique component/year match. Ten original checkpoint
+requests are resolved by the existing equivalent-shape rule; their records stay
+in the audit with `initial_checkpoint_resolved`. The other 20 remain pending.
+A centroid outside one concave polygon is distinguished from a project assembled
+from multiple polygon parts. Neither flag automatically changes the centroid or
+certifies that the parcel scope belongs to one construction episode.
+
+Choices about project membership or construction episodes belong in the upstream
+Assessor/commercial candidate producers. Parcel-match rules belong in the
+predecessor producer. Only an irreducible project-specific judgment should become
+a committed adjudication input, with identifiers, evidence, reason, and a
+producer check that it still matches the source. The audit output is not an input
+to production, and the final dataset must not be edited to implement decisions.
+
+After the actual rebuild, 13,937 candidate project-years are located and 80 remain
+unresolved. All 13,903 previously located records are unchanged; seven of the 34
+newly located candidates lie within 500 feet, bringing that count to 4,221. The
+independent distance check passes for all 13,937. The consolidated audit retains
+159 records, including ten resolved checkpoints: 149 open items across 144 current
+projects. Their routes are 39 older-coordinate candidates, 21 overlapping-parcel
+cases, 19 missing-location cases, six empty-map cases, 23 year conflicts, and 41
+centroid flags. One duplicate audit entry under an older project identifier has
+been consolidated; `initial_project_ids` preserves the checkpoint identity.

@@ -7,12 +7,14 @@ library(sf)
 
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(scope)
-stopifnot(length(args) == 1L, args[1] %in% c("initial", "preferred"))
+stopifnot(length(args) == 1L, args[1] %in% c("initial", "preferred", "history_reference"))
 scope <- args[1]
 if (scope == "initial") {
   queries <- read_csv("../output/predecessor_spatial_queries_download.csv", show_col_types = FALSE)
-} else {
+} else if (scope == "preferred") {
   queries <- read_csv("../output/preferred_predecessor_spatial_queries_download.csv", show_col_types = FALSE)
+} else {
+  queries <- read_csv("../output/history_reference_spatial_queries_download.csv", show_col_types = FALSE)
 }
 layers <- read_csv("../input/historical_project_parcel_layers.csv", show_col_types = FALSE)
 stopifnot(!anyNA(queries), !anyDuplicated(queries), !anyDuplicated(layers$target_year),
@@ -74,6 +76,8 @@ st_write(parcels, paste0("../temp/", scope, "_predecessor_parcels_download.gpkg"
   layer = "historical_project_predecessor_parcels", delete_dsn = TRUE, quiet = TRUE)
 if (scope == "initial") {
   stopifnot(file.rename("../temp/initial_predecessor_parcels_download.gpkg", "../output/predecessor_parcels_download.gpkg"))
-} else {
+} else if (scope == "preferred") {
   stopifnot(file.rename("../temp/preferred_predecessor_parcels_download.gpkg", "../output/preferred_predecessor_parcels_download.gpkg"))
+} else {
+  stopifnot(file.rename("../temp/history_reference_predecessor_parcels_download.gpkg", "../output/history_reference_parcels_download.gpkg"))
 }

@@ -1,0 +1,17 @@
+File: history_reference_parcels_download.gpkg
+Rows: 87
+Columns: 7
+SHA-256 (saved bytes): 1e378c4b7e86fe498d98df5d163c5ab2aaa560619231e42e7a0aba5ec5f301b5
+Key: target_year, object_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct    min     max               mean                 sd
+              fid        BIGINT          87       87      1      87               44.0  25.25866188063018
+      target_year        DOUBLE          87       14 2006.0  2022.0 2011.0459770114942  5.121564182345357
+         layer_id        DOUBLE          87       14    6.0  2022.0 172.32183908045977   550.332045524756
+        object_id        BIGINT          87       87  17243 1571675  619037.4137931034 493179.77872514696
+predecessor_pin14       VARCHAR          87       84      -       -                  -                  -
+predecessor_pin10       VARCHAR          87       84      -       -                  -                  -
+   geometry_valid        BIGINT          87        1      1       1                1.0                0.0

@@ -1,0 +1,55 @@
+\section*{September 8, 2026: Resolve locations with recorded parcel history}
+\textit{Agent-drafted implementation of Jacob's general-rule decision.}
+
+The first consolidated review resolves 34 previously unlocated candidate
+project-years without adding any project-specific decision. Jacob approved
+using an exact parcel's coordinate from one year after construction when the
+original lookup has no location or finds no polygon. The polygon must still come
+from the construction-year map. The existing predecessor producer applies this
+rule, retaining unequal overlapping polygons as unresolved and recording the
+original attempt, coordinate year, and source row identifier.
+
+The two preserved history extracts provide next-year coordinates for 41 failed
+requests: 34 fall inside one polygon, six find none, and one finds multiple
+unequal polygons. Both 763 W 15th and 3609 W 50th now have unique parcel
+matches. The six empty results concern the 2016 map; their historical coordinates
+closely agree with the original exact-parcel locations. They require map-coverage
+investigation rather than another address correction.
+
+The candidate geography now contains 13,937 located project-years and 80 unresolved
+ones. Seven newly located candidates are within 500 feet, bringing that count to
+4,221. Every field of the 13,903 previously located candidate records is unchanged;
+the original 3,770 accepted predecessor shapes and attributes are also unchanged.
+Independent exhaustive distance calculations verify all 13,937 located records.
+These results concern candidate geography, not final construction identities,
+density eligibility, or changes in the paper's estimates.
+
+The consolidated list also traces the original 30 predecessor checkpoints. Ten
+were already resolved by the general rule recognizing geometrically identical
+parcel records; 20 remain pending. One former single-card identifier now appears
+under its multiple-card identifier. Matching its component and year removes a
+duplicate review entry while preserving the original identifier. The updated list contains 159 records,
+including the ten resolved checkpoints: 149 open items across 144 projects.
+
+The open items separate into 39 older-coordinate candidates, 21 overlapping-parcel
+cases, 19 missing-location cases, six empty-map cases, 23 construction-year
+conflicts, and 41 exterior-centroid flags. Of the centroid flags, 23 involve one
+concave polygon and 18 involve multiple polygon parts. An exterior centroid is
+not itself proof of a bad location; the assembled land must still correspond to
+the construction episode. Among the older-coordinate candidates, 36 are dated
+2014 and map to six parent parcels. Their grouping and timing merit review before
+extending the coordinate rule beyond one year. No broader priority change or
+additional exclusion has been adopted.
+
+The audit identifies each issue's producing script and retains source years,
+candidate reasons, competing parcel areas, and historical-coordinate matches.
+General corrections belong in those producers. Only a remaining judgment about
+a specific project should become a committed adjudication input. The new spatial
+source snapshot is a public download, not a manually chosen set of project fixes.
+
+\textit{Reproduction and limits.} Work follows \path{b1ea87d5} on
+\path{sales_sample_exploration}. The acquisition task pins 87 polygons and 238 coordinate/year queries. The
+construction and release-audit reports record the Make rebuild. Tests cover
+unchanged prior selections, missing queries, conflicting histories, and source
+recovery. The paper input is unchanged. Logbook compilation retains the documented
+holds; full replication and the remaining review are unfinished.

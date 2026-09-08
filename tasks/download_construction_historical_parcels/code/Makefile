@@ -10,6 +10,21 @@ all: ../report/preferred_historical_parcel_source.gpkg.log ../report/preferred_h
 
 all: ../report/preferred_predecessor_parcel_source.gpkg.log ../report/preferred_predecessor_source_queries.csv.log
 
+all: ../report/history_reference_parcels.gpkg.log ../report/history_reference_queries.csv.log
+
+../output/history_reference_parcels.gpkg: ../input/history_reference_parcels_complete_2026-09-08.gpkg ../output/history_reference_queries.csv | ../output
+	cp $< $@
+
+../output/history_reference_queries.csv: ../input/history_reference_queries_complete_2026-09-08.csv ../input/history_reference_parcels_complete_2026-09-08.gpkg history_reference_snapshot.sha256 | ../output
+	shasum -a 256 -c history_reference_snapshot.sha256
+	cp $< $@
+
+../report/history_reference_parcels.gpkg.log: ../../shared/code/report.py ../output/history_reference_parcels.gpkg | ../report
+	$(PYTHON) $< ../output/history_reference_parcels.gpkg $@ target_year object_id
+
+../report/history_reference_queries.csv.log: ../../shared/code/report.py ../output/history_reference_queries.csv | ../report
+	$(PYTHON) $< ../output/history_reference_queries.csv $@ target_year reference_x_3435 reference_y_3435
+
 ../output/preferred_predecessor_parcel_source.gpkg: combine_preferred_predecessor_parcels.R ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../output/preferred_predecessor_source_queries.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
@@ -170,5 +185,13 @@ link-inputs: ../input/geocoding_parcel_history_2026-09-07.csv ../input/geocoding
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_queries_2026-09-07.csv
+
+../input/history_reference_parcels_complete_2026-09-08.gpkg: ../../../data_raw/construction_review/history_reference_parcels_complete_2026-09-08.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/history_reference_queries_complete_2026-09-08.csv: ../../../data_raw/construction_review/history_reference_queries_complete_2026-09-08.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/history_reference_parcels_complete_2026-09-08.gpkg ../input/history_reference_queries_complete_2026-09-08.csv
 
 include ../../shared/code/generic.make

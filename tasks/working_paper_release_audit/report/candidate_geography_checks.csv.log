@@ -1,31 +1,33 @@
 File: candidate_geography_checks.csv
-Rows: 13903
-Columns: 21
-SHA-256 (saved bytes): 6550890bd1494c825f81cf586e766d8c65ada0029fa7491454a54ad118971cf7
+Rows: 13937
+Columns: 23
+SHA-256 (saved bytes): 67b72cab9cde81b4ee6f1e155d2ab326a084dd7951fb5064f1f8fe894ee757b1
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                      column inferred_type non_missing distinct                     min                    max                    mean                     sd
-              source_family       VARCHAR       13903        2                       -                      -                       -                      -
-                 project_id       VARCHAR       13903    13903                       -                      -                       -                      -
-                target_year        BIGINT       13903       17                    2006                   2022        2012.48687333669       5.39322236993764
-              boundary_year        BIGINT       13903        2                    2003                   2015      2007.3743077033735      5.775770425197723
-                        era       VARCHAR       13903        2                       -                      -                       -                      -
-                       ward        BIGINT       13903       50                       1                     50      24.495648421204056      15.18719686278854
-                  ward_pair       VARCHAR       13903      140                       -                      -                       -                      -
-    distance_to_boundary_ft        DOUBLE       13903    11442         18.153489116343      27623.33171603177      1405.6711748212226     1745.4510215399273
-               within_500ft       BOOLEAN       13903        2                       -                      -                       -                      -
-     project_land_area_sqft        DOUBLE       13903    11390      176.29144966672175      904026.4079986904        13490.7977401769      42184.95977972728
-          ward_polygon_hits        BIGINT       13903        1                       1                      1                     1.0                    0.0
-    independent_distance_ft        DOUBLE       13903    11442         18.153489116343      27623.33171603177      1405.6711748212226     1745.4510215399273
-  assigned_pair_distance_ft        DOUBLE       13903    11442         18.153489116343      27623.33171603177      1405.6711748212226     1745.4510215399273
- centroid_outside_parcel_ft        DOUBLE       13903       27                     0.0     30490.433232875777       2.282862098061521     258.60966795388623
-       area_difference_sqft        DOUBLE       13903       19 -2.9103830456733704e-11 2.9103830456733704e-11 -1.4072865404509904e-14 1.3414906456395242e-12
-          old_map_ward_2015        BIGINT         754       38                       1                     50      28.125994694960212     15.217634564271533
-   old_map_distance_ft_2015        DOUBLE         754      728       16.66429737603768     12958.289742396548      1342.1044726429964      1622.881989213452
-     distance_difference_ft        DOUBLE       13903       20 -1.8189894035458565e-12  3.637978807091713e-12   1.178530927614753e-15 1.2334304729921633e-13
-pair_distance_difference_ft        BIGINT       13903        1                       0                      0                     0.0                    0.0
-  old_map_changes_ward_2015       BOOLEAN         754        2                       -                      -                       -                      -
- old_map_changes_500ft_2015       BOOLEAN         754        2                       -                      -                       -                      -
+              source_family       VARCHAR       13937        2                       -                      -                       -                      -
+                 project_id       VARCHAR       13937    13937                       -                      -                       -                      -
+                target_year        BIGINT       13937       17                    2006                   2022      2012.4843940589797      5.393571936473933
+              boundary_year        BIGINT       13937        2                    2003                   2015       2007.377412642606      5.776643020411086
+                        era       VARCHAR       13937        2                       -                      -                       -                      -
+                       ward        BIGINT       13937       50                       1                     50       24.47542512735883     15.188898204517718
+                  ward_pair       VARCHAR       13937      140                       -                      -                       -                      -
+    distance_to_boundary_ft        DOUBLE       13937    11449         18.153489116343      27623.33171603177       1405.262147303334        1743.6771771887
+               within_500ft       BOOLEAN       13937        2                       -                      -                       -                      -
+     project_land_area_sqft        DOUBLE       13937    11397      176.29144966672175      904026.4079986904      13624.583769113808     42336.560813977034
+          ward_polygon_hits        BIGINT       13937        1                       1                      1                     1.0                    0.0
+    independent_distance_ft        DOUBLE       13937    11449         18.153489116343      27623.33171603177       1405.262147303334        1743.6771771887
+  assigned_pair_distance_ft        DOUBLE       13937    11449         18.153489116343      27623.33171603177       1405.262147303334        1743.6771771887
+ centroid_outside_parcel_ft        DOUBLE       13937       27                     0.0     30490.433232875777       2.277292943197914      258.2940316918618
+       area_difference_sqft        DOUBLE       13937       19 -2.9103830456733704e-11 2.9103830456733704e-11 -1.3124928025692773e-14  1.345609306504139e-12
+          old_map_ward_2015        BIGINT         756       38                       1                     50       28.08068783068783     15.222938340271003
+   old_map_distance_ft_2015        DOUBLE         756      728       16.66429737603768     12958.289742396548       1348.852823941762      1626.026000059892
+              polygon_parts        BIGINT       13937        7                       1                     14      1.0087536772619645    0.19774345024177598
+ maximum_part_separation_ft        DOUBLE       13937       50                     0.0      66647.44896784598      5.5907935798770945      565.6385168792503
+     distance_difference_ft        DOUBLE       13937       20 -1.8189894035458565e-12  3.637978807091713e-12   9.972171852957997e-16 1.2336528825594853e-13
+pair_distance_difference_ft        BIGINT       13937        1                       0                      0                     0.0                    0.0
+  old_map_changes_ward_2015       BOOLEAN         756        2                       -                      -                       -                      -
+ old_map_changes_500ft_2015       BOOLEAN         756        2                       -                      -                       -                      -

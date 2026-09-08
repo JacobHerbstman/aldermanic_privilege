@@ -1,7 +1,7 @@
 File: preferred_project_boundary_scope.csv
 Rows: 14017
 Columns: 25
-SHA-256 (saved bytes): ad6a75c1890149f6ce4c126bf9c25f5b8e9e6a3139d08293962ab1fc908ba2c7
+SHA-256 (saved bytes): e001020cc14e6ec86a61908a07cefa86a81c69c3880775bacfd8ddd2ba9c8cfe
 Key: source_family, project_id, target_year
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -14,22 +14,22 @@ Row counts, non-missing counts, and declared-key checks: exact.
          candidate_status       VARCHAR       14017        3                  -                 -                    -                   -
               target_year        BIGINT       14017       17               2006              2022    2012.493900263965   5.390354042212473
      requested_components        BIGINT       14017       17                  1                57   1.1194264107869016  0.8205097895866703
-      resolved_components        BIGINT       14017       18                  0                57   1.1109367196975102  0.8245178732056789
- distinct_parcel_polygons        BIGINT       14017       17                  0                57   1.1062281515302848  0.7987766349938585
-           component_pins       VARCHAR       13909    13880                  -                 -                    -                   -
-              parcel_pins       VARCHAR       13909    11380                  -                 -                    -                   -
-            match_methods       VARCHAR       13909        5                  -                 -                    -                   -
-    unresolved_components        BIGINT       14017        4                  0                 4 0.008489691089391453 0.09850108315077133
+      resolved_components        BIGINT       14017       18                  0                57   1.1133623457230506  0.8228016247825021
+ distinct_parcel_polygons        BIGINT       14017       17                  0                57   1.1086537775558252  0.7970192891028102
+           component_pins       VARCHAR       13942    13913                  -                 -                    -                   -
+              parcel_pins       VARCHAR       13942    11386                  -                 -                    -                   -
+            match_methods       VARCHAR       13942        5                  -                 -                    -                   -
+    unresolved_components        BIGINT       14017        4                  0                 4 0.006064065063851038 0.08551005077476362
      collapsed_components        BIGINT       14017        9                  0                15 0.004708568167225512  0.1799149252158436
 complete_project_geometry       BOOLEAN       14017        2                  -                 -                    -                   -
-        construction_date          DATE       13903       17                  -                 -                    -                   -
-            boundary_year        BIGINT       13903        2               2003              2015   2007.3743077033735   5.775770425197723
-                      era       VARCHAR       13903        2                  -                 -                    -                   -
-                     ward        BIGINT       13903       50                  1                50   24.495648421204056   15.18719686278854
-            neighbor_ward        BIGINT       13903       50                  1                50   23.447817017909802  15.609576873747127
-                ward_pair       VARCHAR       13903      140                  -                 -                    -                   -
-  distance_to_boundary_ft        DOUBLE       13903    11442    18.153489116343 27623.33171603177   1405.6711748212226  1745.4510215399273
-            within_1500ft       BOOLEAN       13903        2                  -                 -                    -                   -
-             within_500ft       BOOLEAN       13903        2                  -                 -                    -                   -
-   project_land_area_sqft        DOUBLE       13903    11390 176.29144966672175 904026.4079986904   13490.797740176888   42184.95977972728
+        construction_date          DATE       13937       17                  -                 -                    -                   -
+            boundary_year        BIGINT       13937        2               2003              2015    2007.377412642606   5.776643020411086
+                      era       VARCHAR       13937        2                  -                 -                    -                   -
+                     ward        BIGINT       13937       50                  1                50    24.47542512735883  15.188898204517718
+            neighbor_ward        BIGINT       13937       50                  1                50    23.43438329626175   15.61088224092917
+                ward_pair       VARCHAR       13937      140                  -                 -                    -                   -
+  distance_to_boundary_ft        DOUBLE       13937    11449    18.153489116343 27623.33171603177    1405.262147303334     1743.6771771887
+            within_1500ft       BOOLEAN       13937        2                  -                 -                    -                   -
+             within_500ft       BOOLEAN       13937        2                  -                 -                    -                   -
+   project_land_area_sqft        DOUBLE       13937    11397 176.29144966672175 904026.4079986904   13624.583769113795  42336.560813977034
          geography_status       VARCHAR       14017        2                  -                 -                    -                   -
