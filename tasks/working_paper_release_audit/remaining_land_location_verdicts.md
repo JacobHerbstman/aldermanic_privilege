@@ -227,3 +227,26 @@ Sources: pinned `commercial_valuation_data.csv` (2021 key PINs 17-08-213-009-000
 ### Huron decision adopted after the investigation
 
 Jacob approved using the residential component's 176,608 square feet and 141 apartments, excluding the separate air-rights component from density. Retain 32,634 square feet of land and 2009 completion. The existing component ledger identifies retained PIN 17082130110000, excluded PIN 17082130090000, and source row 81116 from 2021. The superseded combined-area row was removed from the manual ledger. FAR is 5.4118 and units per acre are 188.207. This is a component-scope decision, not a finding that every air-rights record in the data is nonphysical space. The attempted normal commercial build stopped at missing pinned historical parcel query coverage, before the final commercial output; final propagation is not yet verified. Paper data are unchanged.
+
+## Verified home locations and remaining review scope, September 8
+
+The four homes below now have their approved measurements and saved distances in the current reconstruction:
+
+| Home | Construction year | Assessor building square feet | Adopted land square feet | Boundary distance, feet | Location source |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 1373 E 64th | 2017 | 2,070 | 5,424 | 817.485 | Exact 2017 parcel |
+| 1375 E 64th | 2018 | 2,072 | 6,870 | 754.940 | Exact 2018 parcel |
+| 435 W Deming | 2014 | 6,884 | 3,523.5 | 2,119.360 | Completed permit 100519657 |
+| 439 W Deming | 2014 | 6,848 | 3,523.5 | 2,182.704 | Completed permit 100527799 |
+
+Each is one home. Deming's land areas come from Jacob's approved City plan measurements; the two points come from the individual completed new-house permits, not from the common development parcel. The map output deliberately leaves Deming's individual polygon area missing. This does not erase the separately documented land denominator. The existing geography producer applies the two recorded permit selections after validating permit status, type, address, unique identity, and the project year.
+
+The new 64th Street source contains exactly two queried pairs and two polygons. Their areas are 5,424.198 and 6,869.805 square feet. The annual source now contains 12,990 polygons and 16,902 recorded queries. The old and new parcel comparison remains available in the saved 2018/2019 evidence. Seven later duplicate records—five at Vernon and two at 64th Street—are excluded through the source-identity ledger; they do not create additional homes. The approved 2020 Vernon site remains retained with its prior measurements.
+
+The commercial producer now successfully writes Huron as 141 units, 176,608 building square feet, 32,634 land square feet, and completion in 2009. Only PIN 17082130110000 is retained; the excluded air-rights component is not in the saved commercial row.
+
+The independent audit checks 13,926 saved boundary distances against exhaustive distances to the assigned ward's boundary segments. The largest absolute difference is approximately 3.64e-12 feet. It checks polygon areas where a polygon exists and explicitly recognizes the two reviewed permit points. The normal affected Make targets are incremental after rebuilding. The paper input still has SHA-256 `9dc7953e91bdf21a909224d2d68697a8440b56b66f137c7d784bea6137bf8ea4`.
+
+The review file preserves 140 historical questions covering 134 candidate projects. It now labels excluded source records as closed instead of asking for new locations for duplicates. Its remaining flags cover 79 candidate projects; these are review flags, not 79 established data errors. Across the full current geography scope, 78 records lack distances, but 41 are excluded duplicates. The other 37 consist of 33 mechanically retained candidates and four candidates already marked for review. Some remaining flags concern land coverage or construction years rather than missing coordinates.
+
+This completes the four-home location check and verifies Huron's measurement decision in the commercial output. It does not complete the single final density dataset. A trial of the older residential finishing branch stopped at missing producer rules for `residential_review_city_building_footprints.gpkg` and, when tracing the next dependency, `residential_successor_condo_base_year_summary.csv`. That branch was not presented as successfully rebuilt. The next assembly work must connect the current chronological reconstruction to final eligibility and explicitly resolve those remaining dependencies, rather than silently reuse old outputs or resurrect unverified sources.

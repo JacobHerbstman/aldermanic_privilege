@@ -61,3 +61,7 @@ include ../tasks/shared/code/generic.make
 logbook.pdf: entries/2026-09-08-huron-floor-area.tex ../tasks/download_construction_development_records/report/huron_energy_benchmarking.csv.log ../tasks/download_construction_development_records/output/huron_pd356.pdf
 
 logbook.pdf: ../tasks/new_construction_cleaning/adjudication/commercial_component_overrides.csv ../tasks/new_construction_cleaning/adjudication/commercial_manual_decisions.csv
+
+logbook.pdf: entries/2026-09-08-deming-and-64th-locations.tex ../tasks/new_construction_cleaning/report/preferred_project_boundary_scope.csv.log ../tasks/new_construction_cleaning/report/preferred_commercial_projects.csv.log ../tasks/new_construction_cleaning/adjudication/residential_reviewed_permit_locations.csv ../tasks/working_paper_release_audit/report/candidate_geography_checks.csv.log
+
+logbook.pdf: ../tasks/new_construction_cleaning/report/preferred_residential_project_candidates.csv.log ../tasks/working_paper_release_audit/report/candidate_geography_review_queue.csv.log

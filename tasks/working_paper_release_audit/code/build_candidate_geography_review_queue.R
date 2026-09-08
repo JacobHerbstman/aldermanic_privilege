@@ -120,6 +120,9 @@ review <- review |> mutate(
 
 residential <- read_csv("../input/preferred_residential_project_candidates.csv", show_col_types = FALSE)
 commercial <- read_csv("../input/preferred_commercial_project_candidates.csv", show_col_types = FALSE)
+reviewed_replacement_ids <- residential |>
+  filter(replacement_check == "reviewed_same_building_identity") |>
+  pull(replacement_project_ids) |> unique()
 candidate_reasons <- bind_rows(residential, commercial) |>
   select(source_family, current_project_id = project_id, candidate_decision_reason = decision_reason,
     upstream_candidate_status = candidate_status, upstream_project_kind = project_kind,
@@ -162,6 +165,10 @@ for (i in which(is.finite(review$history_x_3435) & is.finite(review$history_y_34
 
 review <- review |> mutate(
   review_route = case_when(
+    grepl("^exclude", candidate_status) ~ "closed_excluded_source_record",
+    current_project_id %in% reviewed_replacement_ids &
+      geography_status == "complete_construction_year_geometry" ~ "resolved_reviewed_identity_and_location",
+    geography_status == "reviewed_permit_location" ~ "resolved_by_reviewed_permit_location",
     initial_checkpoint_resolved ~ "resolved_by_general_parcel_rule",
     construction_year_unresolved ~ "reconcile_construction_episode_before_assigning_year",
     centroid_outside_parcel & polygon_parts == 1L ~ "concave_shape_explains_exterior_centroid_check_project_land_scope",

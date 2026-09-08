@@ -10,25 +10,31 @@ points <- st_read("../input/preferred_project_year_centroids.gpkg", quiet = TRUE
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
 stopifnot(st_crs(points)$epsg == 3435, st_crs(polygons)$epsg == 3435,
   st_crs(ward_panel)$epsg == 3435, !anyDuplicated(scope$project_id),
-  !anyDuplicated(points$project_id), !anyDuplicated(polygons$project_id))
+  !anyDuplicated(points$project_id), !anyDuplicated(polygons$project_id),
+  setequal(polygons$project_id, scope$project_id[scope$complete_project_geometry]))
 polygons <- polygons[match(points$project_id, polygons$project_id), ]
-checks <- scope |> filter(complete_project_geometry)
+checks <- scope |> filter(!is.na(distance_to_boundary_ft))
 checks <- checks[match(points$project_id, checks$project_id), ]
-stopifnot(!anyNA(checks$project_id), identical(points$target_year, polygons$target_year),
+stopifnot(!anyNA(checks$project_id), all(points$target_year[!is.na(polygons$project_id)] == polygons$target_year[!is.na(polygons$project_id)]),
   all(points$target_year == checks$target_year),
-  setequal(checks$project_id, scope$project_id[scope$complete_project_geometry]))
+  setequal(checks$project_id, scope$project_id[!is.na(scope$distance_to_boundary_ft)]))
+has_polygon <- !is.na(polygons$project_id)
+stopifnot(all(checks$complete_project_geometry == has_polygon),
+  all(points$location_source[!has_polygon] == "reviewed_completed_permit_point"),
+  all(is.na(points$project_land_area_sqft[!has_polygon])))
 checks <- checks |> select(source_family, project_id, target_year, boundary_year, era,
   ward, ward_pair, distance_to_boundary_ft, within_500ft, project_land_area_sqft) |>
-  mutate(ward_polygon_hits = NA_integer_, independent_distance_ft = NA_real_,
+  mutate(has_parcel_polygon = has_polygon, ward_polygon_hits = NA_integer_, independent_distance_ft = NA_real_,
     assigned_pair_distance_ft = NA_real_, centroid_outside_parcel_ft =
       as.numeric(st_distance(points, polygons, by_element = TRUE)),
     area_difference_sqft = project_land_area_sqft - as.numeric(st_area(polygons)),
     old_map_ward_2015 = NA_integer_, old_map_distance_ft_2015 = NA_real_)
 
 # A concave parcel can have an exterior centroid without any location error.
-stopifnot(all(st_geometry_type(polygons) == "MULTIPOLYGON"))
+stopifnot(all(st_geometry_type(polygons[has_polygon, ]) == "MULTIPOLYGON"))
 checks$polygon_parts <- lengths(st_geometry(polygons))
-checks$maximum_part_separation_ft <- 0
+checks$polygon_parts[!has_polygon] <- NA_integer_
+checks$maximum_part_separation_ft <- ifelse(has_polygon, 0, NA_real_)
 for (i in which(checks$polygon_parts > 1L)) {
   parts <- suppressWarnings(st_cast(st_geometry(polygons[i, ]), "POLYGON"))
   checks$maximum_part_separation_ft[i] <- max(as.numeric(st_distance(parts)))
@@ -80,5 +86,6 @@ checks <- checks |> mutate(
 stopifnot(all(is.finite(checks$distance_difference_ft)),
   all(abs(checks$distance_difference_ft) < 1e-6),
   all(abs(checks$pair_distance_difference_ft) < 1e-6),
-  all(abs(checks$area_difference_sqft) < 1e-6))
+  all(abs(checks$area_difference_sqft[checks$has_parcel_polygon]) < 1e-6),
+  all(is.na(checks$area_difference_sqft[!checks$has_parcel_polygon])))
 write_csv(checks, "../output/candidate_geography_checks.csv")

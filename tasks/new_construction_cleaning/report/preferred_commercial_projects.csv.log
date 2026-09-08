@@ -1,7 +1,7 @@
 File: preferred_commercial_projects.csv
 Rows: 815
 Columns: 25
-SHA-256 (saved bytes): 6a860b77dec920d5b33c141cc86b577e1e8ca4f979baf22f3c9e571a60c3e197
+SHA-256 (saved bytes): 9c5e474ba645f5c4045f499ce6ec2c178a4af1dc0a2b1651a7f78e9203b8f879
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -13,23 +13,23 @@ Row counts, non-missing counts, and declared-key checks: exact.
            source_row_ids       VARCHAR         815      815      -         -                  -                  -
 selected_source_addresses       VARCHAR         815      798      -         -                  -                  -
            component_pins       VARCHAR         815      815      -         -                  -                  -
-          component_count        BIGINT         815       15      1        16  2.214723926380368  2.028489747237574
+          component_count        BIGINT         815       15      1        16 2.2134969325153375  2.028922183260778
         construction_year        BIGINT         815       17   2006      2022  2013.636809815951   5.20400711528367
            dwelling_units        BIGINT         813      213      1       848  77.25584255842558 126.79302587204072
-            building_sqft        BIGINT         805      739   1144   1284706 101355.23229813665 171918.07396163602
+            building_sqft        BIGINT         805      739   1144   1284706           101207.6 171802.17746812783
                 land_sqft        DOUBLE         815      741 1919.0 1540260.0 30022.605815425854  76511.19728541723
                 allow_far       BOOLEAN         815        2      -         -                  -                  -
               allow_dupac       BOOLEAN         815        2      -         -                  -                  -
-        membership_source       VARCHAR         815       23      -         -                  -                  -
+        membership_source       VARCHAR         815       24      -         -                  -                  -
               year_source       VARCHAR         815      685      -         -                  -                  -
-             units_source       VARCHAR         815      642      -         -                  -                  -
-          building_source       VARCHAR         806      645      -         -                  -                  -
-              land_source       VARCHAR         815      644      -         -                  -                  -
+             units_source       VARCHAR         815      641      -         -                  -                  -
+          building_source       VARCHAR         806      646      -         -                  -                  -
+              land_source       VARCHAR         815      645      -         -                  -                  -
           decision_source       VARCHAR         815        6      -         -                  -                  -
           decision_action       VARCHAR         815       18      -         -                  -                  -
               decision_id       VARCHAR         815      773      -         -                  -                  -
-               confidence       VARCHAR         815        3      -         -                  -                  -
-             evidence_ids       VARCHAR         252      123      -         -                  -                  -
+               confidence       VARCHAR         815        4      -         -                  -                  -
+             evidence_ids       VARCHAR         253      123      -         -                  -                  -
             evidence_urls       VARCHAR          41       41      -         -                  -                  -
           decision_reason       VARCHAR         815      137      -         -                  -                  -
         unresolved_caveat       VARCHAR          68       40      -         -                  -                  -

@@ -1,20 +1,20 @@
 File: preferred_project_year_centroids.gpkg
-Rows: 13924
+Rows: 13926
 Columns: 10
-SHA-256 (saved bytes): c4e82af547804eb8103d0c8334dfdc90aa6e7663beeda26ee44f1caeaafb8c14
+SHA-256 (saved bytes): 70b15088b0b0954923a3c4fb95b6a0933c6af7265bd2937bcdf3e9c94d808c0a
 Key: source_family, project_id, target_year
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                     column inferred_type non_missing distinct                min               max               mean                 sd
-                       fid        BIGINT       13924    13924                  1             13924             6962.5   4019.65690907404
-             source_family       VARCHAR       13924        2                  -                 -                  -                  -
-                project_id       VARCHAR       13924    13924                  -                 -                  -                  -
-               target_year        DOUBLE       13924       17             2006.0            2022.0 2012.4799626544097  5.392045193989754
-     project_polygon_valid        BIGINT       13924        1                  1                 1                1.0                0.0
-    project_land_area_sqft        DOUBLE       13924    11367 176.29144966672175 904026.4079986904 13674.431167277455 42356.544785864564
-           location_source       VARCHAR       13924        4                  -                 -                  -                  -
-   location_reference_year        DOUBLE       13924       18             2006.0            2023.0    2012.5777075553   5.36292507310532
-location_reference_row_ids       VARCHAR        1368     1356                  -                 -                  -                  -
+                       fid        BIGINT       13926    13926                  1             13926             6963.5  4020.234259343602
+             source_family       VARCHAR       13926        2                  -                 -                  -                  -
+                project_id       VARCHAR       13926    13926                  -                 -                  -                  -
+               target_year        DOUBLE       13926       17             2006.0            2022.0 2012.4804681889989  5.391876244173393
+     project_polygon_valid        DOUBLE       13924        1                1.0               1.0                1.0                0.0
+    project_land_area_sqft        DOUBLE       13924    11367 176.29144966672175 904026.4079986904 13674.431165659566 42356.544786181854
+           location_source       VARCHAR       13926        5                  -                 -                  -                  -
+   location_reference_year        DOUBLE       13926       18             2006.0            2023.0 2012.5781990521327 5.3627503141802295
+location_reference_row_ids       VARCHAR        1370     1358                  -                 -                  -                  -
     location_reference_pin       VARCHAR        1368     1356                  -                 -                  -                  -

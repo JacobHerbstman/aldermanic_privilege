@@ -1,7 +1,7 @@
 File: preferred_commercial_source_disposition.csv
 Rows: 1128
 Columns: 9
-SHA-256 (saved bytes): 18d97f224446706d4cbc370ebc90b953e188e0394b64a04a0c7dca28ff2d4f85
+SHA-256 (saved bytes): 91aaec1048dbbd699eb0631e559778e8b1876bbc89d17474f68ae66cb4bcbf2d
 Key: source_project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -13,7 +13,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
      resolution_status       VARCHAR        1128        7   -   -                 -                  -
        decision_source       VARCHAR        1128        7   -   -                 -                  -
        selected_action       VARCHAR        1128       22   -   -                 -                  -
-component_decision_ids       VARCHAR          45       42   -   -                 -                  -
+component_decision_ids       VARCHAR          46       43   -   -                 -                  -
 retained_project_count        BIGINT        1128        6   0  22 0.726063829787234 0.9056432185043635
   retained_project_ids       VARCHAR         772      768   -   -                 -                  -
            disposition       VARCHAR        1128        5   -   -                 -                  -

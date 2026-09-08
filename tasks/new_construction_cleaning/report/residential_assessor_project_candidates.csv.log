@@ -1,7 +1,7 @@
 File: residential_assessor_project_candidates.csv
 Rows: 27771
 Columns: 21
-SHA-256 (saved bytes): 6099d4b3a26d0376e1b9151c4ca0c2731e213c73851160d6b814550dfd2879bd
+SHA-256 (saved bytes): 9d8563020e50d0f2ce70042b1b349019ad8bf55fcd2bb9f1712a7b2093b58c13
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -13,10 +13,10 @@ Row counts, non-missing counts, and declared-key checks: exact.
            project_kind       VARCHAR       27771        4                   -                 -                  -                   -
          component_pins       VARCHAR       27771    27771                   -                 -                  -                   -
         component_count        BIGINT       27771        8                   1                10 1.0422743149328435 0.24875418463636548
-      construction_year        BIGINT       27022       67                1878              2026 2008.4203241802975   8.473881479661467
+      construction_year        BIGINT       27022       67                1878              2026 2008.4204722078307   8.474013889173758
          dwelling_units        BIGINT       27421       26                   0                43 1.3267203967761934  1.1619093162238223
           building_sqft        BIGINT       27420     4758                   0             83226 2694.8985776805252    2085.22662037371
-              land_sqft        BIGINT       26194     4981                  72         228167280 18175.505192028708  1718572.5886696808
+              land_sqft        DOUBLE       26194     4981                72.0       228167280.0 18164.794074979003  1718572.2427795685
            class_values       VARCHAR       27059       28                   -                 -                  -                   -
          source_row_ids       VARCHAR       26711    26711                   -                 -                  -                   -
             year_source       VARCHAR       27423    26055                   -                 -                  -                   -
@@ -26,6 +26,6 @@ Row counts, non-missing counts, and declared-key checks: exact.
      current_distance_m        DOUBLE       25378    25316 0.31134218570016264 8512.934950058308  434.3848063285405   522.1261146631703
   current_within_1500ft       BOOLEAN       27771        2                   -                 -                  -                   -
        candidate_status       VARCHAR       27771        6                   -                 -                  -                   -
-        decision_reason       VARCHAR       27771       22                   -                 -                  -                   -
-replacement_project_ids       VARCHAR         148      148                   -                 -                  -                   -
-      replacement_check       VARCHAR        1221        8                   -                 -                  -                   -
+        decision_reason       VARCHAR       27771       24                   -                 -                  -                   -
+replacement_project_ids       VARCHAR         155      151                   -                 -                  -                   -
+      replacement_check       VARCHAR        1228        9                   -                 -                  -                   -

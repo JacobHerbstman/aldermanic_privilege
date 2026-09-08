@@ -277,6 +277,40 @@ for (j in seq_len(nrow(individual_parents))) {
   project_centroids$location_reference_row_ids[i] <- paste(sort(unique(points$row_id)), collapse = "/")
 }
 
+# Some individually measured homes share a development-wide tax polygon.
+# Use a reviewed completed-permit point without claiming an individual parcel map.
+permit_locations <- readr::read_csv("../adjudication/residential_reviewed_permit_locations.csv",
+  col_types = readr::cols(project_id = readr::col_character(), permit = readr::col_character(),
+    street_number = readr::col_double(), target_year = readr::col_integer(), .default = readr::col_character()))
+stopifnot(!anyDuplicated(permit_locations$project_id), !anyDuplicated(permit_locations$permit),
+  all(str_detect(permit_locations$permit, "^[0-9]+$")),
+  !any(permit_locations$project_id %in% project_centroids$project_id))
+permit_points <- sf::st_read("../output/building_permits_for_verification.gpkg",
+  query = paste0("SELECT * FROM building_permits_clean WHERE permit IN ('",
+    paste(permit_locations$permit, collapse = "','"), "')"), quiet = TRUE) %>%
+  sf::st_transform(3435)
+stopifnot(nrow(permit_points) == nrow(permit_locations), !anyDuplicated(permit_points$permit),
+  all(permit_points$permit_status == "COMPLETE"),
+  all(permit_points$permit_type == "PERMIT - NEW CONSTRUCTION"),
+  !any(sf::st_is_empty(permit_points)))
+i <- match(permit_locations$permit, permit_points$permit)
+stopifnot(all(permit_points$street_number[i] == permit_locations$street_number),
+  all(permit_points$street_direction[i] == permit_locations$street_direction),
+  all(permit_points$street_name[i] == permit_locations$street_name))
+permit_locations <- permit_locations %>% inner_join(
+  project_year_coverage %>% select(project_id, target_year, source_family, complete_project_geometry),
+  by = c("project_id", "target_year"), relationship = "one-to-one")
+stopifnot(nrow(permit_locations) == nrow(permit_points), !any(permit_locations$complete_project_geometry))
+i <- match(permit_locations$permit, permit_points$permit)
+reviewed_points <- sf::st_sf(permit_locations %>% transmute(source_family, project_id, target_year,
+  project_polygon_valid = NA, project_land_area_sqft = NA_real_,
+  location_source = "reviewed_completed_permit_point",
+  location_reference_year = as.integer(format(as.Date(permit_points$issue_date[i]), "%Y")),
+  location_reference_row_ids = permit, location_reference_pin = NA_character_),
+  geometry = sf::st_geometry(permit_points)[i])
+project_centroids <- bind_rows(project_centroids, reviewed_points) %>% arrange(target_year, source_family, project_id)
+stopifnot(!anyDuplicated(project_centroids$project_id))
+
 sf::st_write(
   project_geometry,
   "../output/preferred_project_year_geometry.gpkg",

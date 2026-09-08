@@ -301,6 +301,18 @@ multicard_candidates <- multicard_cards %>%
   ) %>%
   select(all_of(names(ordinary_candidates)))
 
+# Approved survey measurements replace development-wide land repeated on a home.
+reviewed_land <- readr::read_csv("../adjudication/residential_reviewed_land_areas.csv",
+  col_types = readr::cols(project_id = readr::col_character(), reported_land_sqft = readr::col_double(),
+    land_sqft = readr::col_double(), .default = readr::col_character()))
+stopifnot(!anyDuplicated(reviewed_land$project_id),
+  all(reviewed_land$project_id %in% ordinary_candidates$project_id))
+i <- match(reviewed_land$project_id, ordinary_candidates$project_id)
+stopifnot(all(ordinary_candidates$land_sqft[i] == reviewed_land$reported_land_sqft),
+  all(is.finite(reviewed_land$land_sqft) & reviewed_land$land_sqft > 0))
+ordinary_candidates$land_sqft[i] <- reviewed_land$land_sqft
+ordinary_candidates$land_source[i] <- paste0("reviewed_land_area:", reviewed_land$project_id)
+
 # Recorded completion-year decisions apply before matching old and new records.
 reviewed_years <- readr::read_csv("../adjudication/residential_reviewed_construction_years.csv",
   col_types = readr::cols(project_id = readr::col_character(), reported_year = readr::col_integer(),
@@ -542,6 +554,20 @@ stopifnot(!anyDuplicated(reviewed_exclusions$project_id),
 i <- match(reviewed_exclusions$project_id, assessor_projects$project_id)
 assessor_projects$candidate_status[i] <- "exclude_unreliable_combined_record"
 assessor_projects$decision_reason[i] <- reviewed_exclusions$reason
+# Reviewed identities handle proven duplicates that fail the strict automatic crosswalk.
+reviewed_duplicates <- readr::read_csv("../adjudication/residential_reviewed_source_duplicates.csv",
+  col_types = readr::cols(.default = readr::col_character()))
+stopifnot(!anyDuplicated(reviewed_duplicates$project_id),
+  all(reviewed_duplicates$project_id %in% assessor_projects$project_id),
+  all(reviewed_duplicates$replacement_project_id %in% assessor_projects$project_id),
+  !any(reviewed_duplicates$replacement_project_id %in% reviewed_duplicates$project_id))
+i <- match(reviewed_duplicates$project_id, assessor_projects$project_id)
+j <- match(reviewed_duplicates$replacement_project_id, assessor_projects$project_id)
+stopifnot(all(assessor_projects$candidate_status[j] == "retain_mechanical"))
+assessor_projects$candidate_status[i] <- "exclude_source_duplicate_keep_successors"
+assessor_projects$decision_reason[i] <- reviewed_duplicates$reason
+assessor_projects$replacement_project_ids[i] <- reviewed_duplicates$replacement_project_id
+assessor_projects$replacement_check[i] <- "reviewed_same_building_identity"
 assessor_projects <- assessor_projects %>% arrange(project_kind, project_id)
 stopifnot(!anyDuplicated(assessor_projects$project_id))
 readr::write_csv(assessor_projects, "../output/residential_assessor_project_candidates.csv")

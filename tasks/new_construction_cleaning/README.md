@@ -596,3 +596,18 @@ the decision about the 2022 cohort is not an unsupported redating of older homes
 These source exclusions are recorded in residential_reviewed_source_exclusions.csv
 and applied by the existing project producer. The paper's frozen input is not
 replaced by this reconstruction.
+
+## Reviewed individual locations above a shared garage
+
+The two Deming homes have approved individual lot areas but overlapping,
+development-wide tax polygons. `residential_reviewed_permit_locations.csv`
+records their completed new-house permits and expected addresses.
+`build_preferred_project_geography.R` validates those permit identities and
+addresses, then carries their recorded points into boundary assignment. It does
+not fabricate individual lot polygons or assign the garage's area to either home.
+These points have `location_source = reviewed_completed_permit_point`; their
+mapped land area remains missing and `complete_project_geometry` remains false.
+The boundary scope identifies them as `reviewed_permit_location`. Their density
+land areas come from the separately approved land-area input in the Assessor
+project producer. The geography audit checks their ward assignments and distances
+while restricting polygon-area checks to observations with actual parcel maps.

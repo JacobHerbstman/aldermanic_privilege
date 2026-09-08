@@ -235,3 +235,30 @@ queries are pinned as `lake_park_predecessor_parcels_2026-09-08.gpkg` and
 source combiners declare these inputs. Previously pinned extracts are unchanged.
 The spatial query preparer subtracts the complete combined query history, so
 these intentional additions do not refresh previously queried locations.
+
+## September 8 construction-year maps for the two 64th Street homes
+
+After the approved year decisions, the ordinary candidate requests required two
+new year/PIN pairs: 2017/2023213098 (1373 E 64th) and 2018/2023213097 (1375 E 64th).
+The existing annual acquisition rules returned one exact parcel for each:
+layer 18/object 970149 and layer 20/object 924443. Their mapped areas are
+5,424.198 and 6,869.805 square feet, respectively, consistent with the retained
+Assessor land areas of 5,424 and 6,870 square feet. The maps do not overwrite
+those Assessor measurements.
+
+The acquisition command was `make -f Makefile -f download_recipes.make
+../report/preferred_parcels_additional.gpkg.log
+../report/preferred_parcel_queries_additional.csv.log`. The two returned features
+and two queries are preserved unchanged as `east_64th_parcels_2026-09-08.gpkg`
+and `east_64th_queries_2026-09-08.csv` in `data_raw/construction_review/`.
+The ordinary source combiners and `preferred_snapshot.sha256` include them.
+Future missing-query preparation subtracts these recorded queries; unchanged
+production builds reuse the saved vintage without network access.
+
+The earlier Deming/Vernon/64th comparison queries are declared in
+`remaining_review_sources.make`. Their unchanged September 8 responses are also
+preserved as `remaining_home_parcels_2018_2026-09-08.geojson`,
+`remaining_home_parcels_2019_2026-09-08.geojson`, and
+`remaining_home_parcels_2025_2026-09-08.geojson` in the raw-source folder, with
+checksums in `remaining_home_snapshot.sha256`. They support the reviewed source
+identity and land decisions; they do not replace construction-year parcel maps.
