@@ -1,7 +1,7 @@
 File: preferred_historical_address_geocodes.csv
 Rows: 216
-Columns: 30
-SHA-256 (saved bytes): aa12fa1ed780f972056af7b9da9c02e0349e069c9b64bcad1713a1970233242f
+Columns: 32
+SHA-256 (saved bytes): 3c95969d8170339d9db54f5b7268788abc511ea8db7ef0ae69371758a6a7e844
 Key: request_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -27,8 +27,10 @@ selected_address_normalized       VARCHAR         204      196                  
    address_selection_status       VARCHAR         204        1                  -                  -                  -                    -
               address_query       VARCHAR         204      196                  -                  -                  -                    -
          query_house_number        BIGINT         198      152                 14              11252  2913.489898989899   1898.5348498354163
+       query_street_address       VARCHAR         198      154                  -                  -                  -                    -
+     matched_street_address       VARCHAR         195      151                  -                  -                  -                    -
          census_match_count        BIGINT         216        2                  0                  1 0.9027777777777778   0.2969483028637197
-              census_status       VARCHAR         216        4                  -                  -                  -                    -
+              census_status       VARCHAR         216        5                  -                  -                  -                    -
             matched_address       VARCHAR         195      151                  -                  -                  -                    -
        matched_house_number        BIGINT         195      150                 14              11252 2953.6615384615384    1884.953990061059
                   longitude        DOUBLE         195      151   -87.792332955031   -87.558047899182 -87.66165085769148  0.04995452162515075
@@ -36,5 +38,5 @@ selected_address_normalized       VARCHAR         204      196                  
               tiger_line_id        BIGINT         195       77          111714402          657179306  341545471.2205128   254302928.06582853
             tiger_line_side       VARCHAR         195        2                  -                  -                  -                    -
              response_error       VARCHAR           0        0                  -                  -                  -                    -
-              census_x_3435        DOUBLE         194      150 1131820.4726952561 1195899.0496944538 1167178.8782827477    13703.89771980239
-              census_y_3435        DOUBLE         194      150  1829502.544754645 1948253.5903468179 1892468.9657445145    19163.35690626663
+              census_x_3435        DOUBLE         190      146 1131820.4726952561 1195899.0496944538 1167366.7534584338   13740.810349833806
+              census_y_3435        DOUBLE         190      146  1829502.544754645 1948253.5903468179  1892686.726716692   19233.999557638344

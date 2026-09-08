@@ -1,10 +1,19 @@
 # setwd("tasks/download_construction_historical_parcels/code")
+# scope <- "initial"
 
 library(dplyr)
 library(readr)
 library(sf)
 
-queries <- read_csv("../output/predecessor_spatial_queries_download.csv", show_col_types = FALSE)
+args <- commandArgs(trailingOnly = TRUE)
+if (interactive()) args <- c(scope)
+stopifnot(length(args) == 1L, args[1] %in% c("initial", "preferred"))
+scope <- args[1]
+if (scope == "initial") {
+  queries <- read_csv("../output/predecessor_spatial_queries_download.csv", show_col_types = FALSE)
+} else {
+  queries <- read_csv("../output/preferred_predecessor_spatial_queries_download.csv", show_col_types = FALSE)
+}
 layers <- read_csv("../input/historical_project_parcel_layers.csv", show_col_types = FALSE)
 stopifnot(!anyNA(queries), !anyDuplicated(queries), !anyDuplicated(layers$target_year),
           all(queries$target_year %in% layers$target_year))
@@ -44,8 +53,8 @@ for (year in sort(unique(queries$target_year))) {
   for (ids in split(object_ids, ceiling(seq_along(object_ids) / 300))) {
     body <- request_parcels(list(objectIds = paste(ids, collapse = ","), outFields = "*",
       returnGeometry = "true", outSR = "3435", f = "geojson"))
-    writeLines(body, "../temp/predecessor_parcels.geojson", useBytes = TRUE)
-    batch <- st_read("../temp/predecessor_parcels.geojson", quiet = TRUE) |> st_transform(3435)
+    writeLines(body, paste0("../temp/", scope, "_predecessor_parcels.geojson"), useBytes = TRUE)
+    batch <- st_read(paste0("../temp/", scope, "_predecessor_parcels.geojson"), quiet = TRUE) |> st_transform(3435)
     pin14_field <- intersect(c("PIN14", "Name", "NAME"), names(batch))[1]
     pin10_field <- intersect(c("PIN10", "Pin10", "pin10"), names(batch))[1]
     stopifnot(!is.na(pin14_field), !is.na(pin10_field), !anyDuplicated(batch$OBJECTID),
@@ -61,6 +70,10 @@ for (year in sort(unique(queries$target_year))) {
 stopifnot(!anyDuplicated(st_drop_geometry(parcels)[c("target_year", "object_id")]),
           all(st_is_valid(parcels)), !any(st_is_empty(parcels)))
 parcels <- arrange(parcels, target_year, predecessor_pin10, predecessor_pin14, object_id)
-st_write(parcels, "../temp/predecessor_parcels_download.gpkg",
+st_write(parcels, paste0("../temp/", scope, "_predecessor_parcels_download.gpkg"),
   layer = "historical_project_predecessor_parcels", delete_dsn = TRUE, quiet = TRUE)
-stopifnot(file.rename("../temp/predecessor_parcels_download.gpkg", "../output/predecessor_parcels_download.gpkg"))
+if (scope == "initial") {
+  stopifnot(file.rename("../temp/initial_predecessor_parcels_download.gpkg", "../output/predecessor_parcels_download.gpkg"))
+} else {
+  stopifnot(file.rename("../temp/preferred_predecessor_parcels_download.gpkg", "../output/preferred_predecessor_parcels_download.gpkg"))
+}

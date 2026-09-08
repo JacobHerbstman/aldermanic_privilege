@@ -1,0 +1,38 @@
+File: preferred_historical_predecessor_resolution.csv
+Rows: 4001
+Columns: 28
+SHA-256 (saved bytes): 30940376afb6d83636923263b5e03b14f1443d17e556a057030ab4fede9ec216
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                               column inferred_type non_missing distinct                min                max               mean                 sd
+                           request_id       VARCHAR        4001     3889                  -                  -                  -                  -
+                        source_family       VARCHAR        4001        2                  -                  -                  -                  -
+                           project_id       VARCHAR        4001     3764                  -                  -                  -                  -
+                         project_kind       VARCHAR        4001        6                  -                  -                  -                  -
+                     candidate_status       VARCHAR        4001        3                  -                  -                  -                  -
+                        component_pin       VARCHAR        4001     3887                  -                  -                  -                  -
+                                pin10       VARCHAR        4001     3887                  -                  -                  -                  -
+                          target_year        BIGINT        4001       17               2006               2022 2011.1394651337166  4.937514011506465
+                      coverage_status       VARCHAR        4001        1                  -                  -                  -                  -
+                     reference_status       VARCHAR        4001        2                  -                  -                  -                  -
+                     reference_source       VARCHAR        3977        4                  -                  -                  -                  -
+                     reference_x_3435        DOUBLE        3977     3771 1119499.7135786538 1203743.2364409526  1164280.246265927 13885.285672185875
+                     reference_y_3435        DOUBLE        3977     3771  1823634.806017771  1949720.200967388 1896455.1822926635 23340.843647001773
+                     selected_address       VARCHAR         192      185                  -                  -                  -                  -
+                selected_address_year        BIGINT         192       15               2007               2025 2013.6666666666667  5.722494726845937
+                      matched_address       VARCHAR         192      146                  -                  -                  -                  -
+                        tiger_line_id        BIGINT         192       73          111755466          657179306  339588216.4010417  253860842.5718159
+              chicago_matched_address       VARCHAR         116      113                  -                  -                  -                  -
+                        chicago_score        BIGINT         116        1                100                100              100.0                0.0
+                      chicago_locator       VARCHAR         116        1                  -                  -                  -                  -
+                           permit_ids        BIGINT           8        8            2024046            2749118          2551423.5 255895.52912523833
+               permit_point_spread_ft        BIGINT           8        1                  0                  0                0.0                0.0
+                            object_id        BIGINT        3901     1661               2104            2025902   678013.678031274   536550.699329011
+                    predecessor_pin14       VARCHAR        3901     1565                  -                  -                  -                  -
+                    predecessor_pin10       VARCHAR        3901     1565                  -                  -                  -                  -
+            predecessor_polygon_count        BIGINT        4001        6                  0                 34 1.5668582854286428  4.274879103806548
+                   predecessor_status       VARCHAR        4001        5                  -                  -                  -                  -
+all_predecessor_geometries_equivalent       BOOLEAN        3901        2                  -                  -                  -                  -

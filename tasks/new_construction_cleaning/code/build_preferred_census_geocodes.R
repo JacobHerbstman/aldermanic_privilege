@@ -3,6 +3,7 @@
 library(dplyr)
 library(readr)
 library(stringr)
+source("../../shared/code/normalize_chicago_address.R")
 
 requests <- read_csv("../output/preferred_address_geocode_requests.csv",
   col_types = cols(request_id = col_character(), component_pin = col_character(), pin10 = col_character(),
@@ -15,13 +16,14 @@ missing_queries <- requests |>
   anti_join(responses, by = c("selected_address", "address_query"))
 if (nrow(missing_queries)) stop("Census requests exceed the pinned response coverage; acquire and pin the missing queries.")
 geocodes <- requests |>
-  mutate(census_match_count = 0L, census_status = "no_selected_historical_address",
+  mutate(query_street_address = geocode_street_address(selected_address),
+    matched_street_address = NA_character_, census_match_count = 0L, census_status = "no_selected_historical_address",
     matched_address = NA_character_, matched_house_number = NA_character_,
     longitude = NA_real_, latitude = NA_real_, tiger_line_id = NA_character_,
     tiger_line_side = NA_character_, response_error = NA_character_,
     census_x_3435 = NA_real_, census_y_3435 = NA_real_)
 
-# Replay the original house-number rule. Street agreement remains under review.
+# A unique candidate must match the full street address, allowing an omitted unit label.
 for (i in which(!is.na(geocodes$selected_address))) {
   response <- jsonlite::fromJSON(responses$response_json[match(geocodes$selected_address[i], responses$selected_address)],
     simplifyVector = FALSE)
@@ -37,6 +39,7 @@ for (i in which(!is.na(geocodes$selected_address))) {
             length(candidate$coordinates$y) == 1L, length(candidate$tigerLine$tigerLineId) == 1L,
             length(candidate$tigerLine$side) == 1L)
   geocodes$matched_address[i] <- candidate$matchedAddress
+  geocodes$matched_street_address[i] <- geocode_street_address(candidate$matchedAddress)
   geocodes$matched_house_number[i] <- str_extract(candidate$matchedAddress, "^[0-9]+")
   geocodes$longitude[i] <- as.numeric(candidate$coordinates$x)
   geocodes$latitude[i] <- as.numeric(candidate$coordinates$y)
@@ -45,6 +48,8 @@ for (i in which(!is.na(geocodes$selected_address))) {
   geocodes$census_status[i] <- case_when(
     is.na(geocodes$query_house_number[i]) | is.na(geocodes$matched_house_number[i]) |
       geocodes$query_house_number[i] != geocodes$matched_house_number[i] ~ "house_number_mismatch",
+    is.na(geocodes$query_street_address[i]) | is.na(geocodes$matched_street_address[i]) ~ "street_address_unresolved",
+    geocodes$query_street_address[i] != geocodes$matched_street_address[i] ~ "street_address_mismatch",
     !is.finite(geocodes$longitude[i]) | !is.finite(geocodes$latitude[i]) |
       !between(geocodes$longitude[i], -88, -87.5) | !between(geocodes$latitude[i], 41.6, 42.1) ~ "coordinate_outside_chicago_bounds",
     TRUE ~ "accepted_reference_point")

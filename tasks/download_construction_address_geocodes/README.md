@@ -27,7 +27,10 @@ address, and some shared an address). Replaying the original acceptance rules on
 these complete responses reproduces every field of both original chosen-match
 tables, including coordinates. This verifies this particular replay; it does not
 establish that every accepted location is correct. Four Census matches change the
-requested street direction or type, and their acceptance remains under review.
+requested street direction or type. Construction cleaning now flags those four
+under a general full-street agreement rule. The preserved responses are unchanged;
+the correct physical locations remain under review because historical source
+addresses can also be wrong.
 
 The immutable inputs are `address_geocodes_census_2026-09-07.csv` and
 `address_geocodes_chicago_2026-09-07.csv` in `data_raw/construction_review/`;

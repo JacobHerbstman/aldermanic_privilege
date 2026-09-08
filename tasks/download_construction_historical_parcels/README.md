@@ -89,3 +89,26 @@ priority, including its empty results; combining sources never silently refreshe
 an already queried parcel. `download_recipes.make` prepares and downloads only
 the additional preferred queries, using the same annual API rules as the initial
 lookup.
+
+The preferred predecessor lookup preserves its original 1,693 polygons and spatial
+queries, then adds one September 7 query and one returned 2007 polygon (object ID
+641141, PIN 17073250410000). Its four pinned files are
+`preferred_predecessor_parcel_source.gpkg`,
+`preferred_predecessor_source_queries.csv`,
+`preferred_predecessor_parcels_2026-09-07.gpkg`, and
+`preferred_predecessor_queries_2026-09-07.csv`, under
+`data_raw/construction_review/`. `preferred_predecessor_snapshot.sha256` fixes
+their bytes. Ordinary Make combines the two sources and query scopes. Intentional
+acquisition derives only unqueried points from current preferred reference points.
+The polygon downloader uses an explicit `initial` or `preferred` scope; its spatial
+query and source-validation rules are the same for both.
+
+A separate September 7 extract preserves all 447 Parcel Universe records in
+1999–2025 for the 216 exact PINs requested by address geocoding. The pinned files
+are `geocoding_parcel_history_2026-09-07.csv` and
+`geocoding_history_queries_2026-09-07.csv`; `geocoding_history_snapshot.sha256`
+fixes their bytes. The history downloader's `geocoding` scope retrieves the same
+fields as its `initial` scope and does not select coordinates during acquisition.
+The release audit evaluates nearest-year coordinate availability. Adopting these
+locations ahead of address geocoding remains a proposed method change, not an
+implemented production priority.

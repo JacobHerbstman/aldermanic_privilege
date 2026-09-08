@@ -2,3 +2,7 @@ data_raw/construction_review/preferred_historical_parcel_source_queries.csv -tex
 data_raw/construction_review/preferred_parcel_supplement_queries_2026-09-07.csv -text
 data_raw/construction_review/address_geocodes_census_2026-09-07.csv -text
 data_raw/construction_review/address_geocodes_chicago_2026-09-07.csv -text
+data_raw/construction_review/preferred_predecessor_source_queries.csv -text whitespace=cr-at-eol
+data_raw/construction_review/preferred_predecessor_queries_2026-09-07.csv -text
+data_raw/construction_review/geocoding_parcel_history_2026-09-07.csv -text
+data_raw/construction_review/geocoding_history_queries_2026-09-07.csv -text

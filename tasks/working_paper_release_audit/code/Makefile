@@ -6,6 +6,20 @@ all: ../report/natchez_building_land_coverage.csv.log ../output/natchez_parcel_c
 
 all: ../report/natchez_b_land_coverage.csv.log
 
+all: ../report/geocoder_mismatch_review.csv.log ../report/geocoding_parcel_history_review.csv.log
+
+../output/geocoder_mismatch_review.csv: review_geocoder_mismatches.R ../input/preferred_historical_address_geocodes.csv ../input/preferred_chicago_address_geocodes.csv ../input/building_permits_full.csv ../../shared/code/normalize_chicago_address.R | ../output
+	$(R) $<
+
+../output/geocoding_parcel_history_review.csv: review_geocoding_parcel_history.R ../input/preferred_address_geocode_requests.csv ../input/geocoding_parcel_history.csv ../input/geocoding_history_queries.csv | ../output
+	$(R) $<
+
+../report/geocoder_mismatch_review.csv.log: ../../shared/code/report.py ../output/geocoder_mismatch_review.csv | ../report
+	$(PYTHON) $< ../output/geocoder_mismatch_review.csv $@ request_id
+
+../report/geocoding_parcel_history_review.csv.log: ../../shared/code/report.py ../output/geocoding_parcel_history_review.csv | ../report
+	$(PYTHON) $< ../output/geocoding_parcel_history_review.csv $@ request_id
+
 ../output/natchez_b_land_coverage.csv: review_natchez_b_land.R ../input/natchez_historical_parcels.gpkg ../input/natchez_footprints_2022.geojson ../output/natchez_building_land_coverage.csv | ../output
 	$(R) $<
 
@@ -150,5 +164,22 @@ link-inputs: ../input/parcel_universe_2025_city.csv ../input/density_denominator
 
 ../input/natchez_zoning_2025.geojson: ../../../data_raw/construction_review/zoning_sep2025.geojson | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_address_geocode_requests.csv: ../../new_construction_cleaning/output/preferred_address_geocode_requests.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_historical_address_geocodes.csv: ../../new_construction_cleaning/output/preferred_historical_address_geocodes.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_chicago_address_geocodes.csv: ../../new_construction_cleaning/output/preferred_chicago_address_geocodes.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/geocoding_parcel_history.csv: ../../download_construction_historical_parcels/output/geocoding_parcel_history.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/geocoding_history_queries.csv: ../../download_construction_historical_parcels/output/geocoding_history_queries.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/preferred_address_geocode_requests.csv ../input/preferred_historical_address_geocodes.csv ../input/preferred_chicago_address_geocodes.csv ../input/geocoding_parcel_history.csv ../input/geocoding_history_queries.csv
 
 include ../../shared/code/generic.make

@@ -2,6 +2,8 @@
 
 library(dplyr)
 library(readr)
+library(stringr)
+source("../../shared/code/normalize_chicago_address.R")
 
 requests <- read_csv("../output/preferred_address_geocode_requests.csv",
   col_types = cols(request_id = col_character(), component_pin = col_character(), pin10 = col_character(),
@@ -17,13 +19,14 @@ geocodes <- requests |>
   select(request_id, source_family, project_id, project_kind, candidate_status,
     component_pin, pin10, target_year, selected_address, selected_address_normalized,
     selected_address_year, selected_address_year_gap) |>
-  mutate(chicago_candidate_count = 0L, chicago_exact_point_count = 0L,
+  mutate(query_street_address = geocode_street_address(selected_address),
+    matched_street_address = NA_character_, chicago_candidate_count = 0L, chicago_exact_point_count = 0L,
     chicago_status = "no_selected_historical_address", chicago_matched_address = NA_character_,
     chicago_house_number = NA_character_, chicago_score = NA_real_,
     chicago_x_3435 = NA_real_, chicago_y_3435 = NA_real_, chicago_locator = NA_character_,
     chicago_address_type = NA_character_, response_error = NA_character_)
 
-# Keep the original unique score-100 point-address rule for the replay comparison.
+# Require a unique score-100 point candidate with the same full street address.
 for (i in which(!is.na(geocodes$selected_address))) {
   response <- jsonlite::fromJSON(responses$response_json[match(geocodes$selected_address[i], responses$selected_address)],
     simplifyVector = FALSE)
@@ -56,7 +59,16 @@ for (i in which(!is.na(geocodes$selected_address))) {
   geocodes$chicago_exact_point_count[i] <- nrow(exact)
   geocodes$chicago_status[i] <- case_when(nrow(exact) == 0L ~ "no_exact_point_address",
     nrow(exact) > 1L ~ "multiple_exact_point_addresses", TRUE ~ "accepted_reference_point")
-  if (nrow(exact) == 1L) geocodes[i, names(exact)] <- exact
+  if (nrow(exact) == 1L) {
+    geocodes$matched_street_address[i] <- geocode_street_address(exact$chicago_matched_address)
+    if (is.na(geocodes$query_street_address[i]) || is.na(geocodes$matched_street_address[i])) {
+      geocodes$chicago_status[i] <- "street_address_unresolved"
+    } else if (geocodes$query_street_address[i] != geocodes$matched_street_address[i]) {
+      geocodes$chicago_status[i] <- "street_address_mismatch"
+    } else {
+      geocodes[i, names(exact)] <- exact
+    }
+  }
 }
 geocodes <- arrange(geocodes, target_year, source_family, project_id, component_pin)
 stopifnot(nrow(geocodes) == nrow(requests), !anyDuplicated(geocodes$request_id))

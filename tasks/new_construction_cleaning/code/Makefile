@@ -15,6 +15,9 @@ HISTORICAL_LOCAL_MATCH_FT ?= 150
 HISTORICAL_MAX_BUILDING_GAP ?= 0.10
 
 all: ../report/commercial_city_building_footprints.gpkg.log \
+	../report/preferred_predecessor_reference_points.csv.log \
+	../report/preferred_historical_predecessor_resolution.csv.log \
+	../report/preferred_historical_predecessor_selected.gpkg.log \
 	../report/preferred_historical_parcels.gpkg.log \
 	../report/preferred_historical_parcel_coverage.csv.log \
 	../report/preferred_address_geocode_requests.csv.log \
@@ -741,16 +744,25 @@ endif
 ../output/preferred_project_geography_requests.csv: build_preferred_geography_requests.R ../output/preferred_commercial_project_candidates.csv ../output/preferred_residential_project_candidates.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
+../report/preferred_predecessor_reference_points.csv.log: ../../shared/code/report.py ../output/preferred_predecessor_reference_points.csv | ../report
+	$(PYTHON) $< ../output/preferred_predecessor_reference_points.csv $@ request_id
+
+../report/preferred_historical_predecessor_resolution.csv.log: ../../shared/code/report.py ../output/preferred_historical_predecessor_resolution.csv | ../report
+	$(PYTHON) $< ../output/preferred_historical_predecessor_resolution.csv $@
+
+../report/preferred_historical_predecessor_selected.gpkg.log: ../../shared/code/report.py ../output/preferred_historical_predecessor_selected.gpkg | ../report
+	$(PYTHON) $< ../output/preferred_historical_predecessor_selected.gpkg $@ request_id
+
 ../output/preferred_predecessor_reference_points.csv: build_preferred_predecessor_reference_points.R ../input/parcel_universe_2025_city.csv ../output/density_historical_coordinates.csv ../output/new_construction_exact_permit_matches.csv ../output/preferred_chicago_address_geocodes.csv ../output/preferred_historical_address_geocodes.csv ../output/preferred_historical_parcel_coverage.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/preferred_address_geocode_requests.csv: build_preferred_address_geocode_requests.R ../output/preferred_historical_parcel_coverage.csv ../output/density_historical_coordinates.csv ../output/density_parcel_address_selected_history.csv ../input/parcel_universe_2025_city.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
-../output/preferred_historical_address_geocodes.csv: build_preferred_census_geocodes.R ../output/preferred_address_geocode_requests.csv ../input/address_geocodes_census.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_historical_address_geocodes.csv: build_preferred_census_geocodes.R ../output/preferred_address_geocode_requests.csv ../input/address_geocodes_census.csv ../../setup_environment/code/packages.R ../../shared/code/normalize_chicago_address.R | ../output
 	$(R) $<
 
-../output/preferred_chicago_address_geocodes.csv: build_preferred_chicago_geocodes.R ../output/preferred_address_geocode_requests.csv ../input/address_geocodes_chicago.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_chicago_address_geocodes.csv: build_preferred_chicago_geocodes.R ../output/preferred_address_geocode_requests.csv ../input/address_geocodes_chicago.csv ../../setup_environment/code/packages.R ../../shared/code/normalize_chicago_address.R | ../output
 	$(R) $<
 
 ../report/preferred_address_geocode_requests.csv.log: ../../shared/code/report.py ../output/preferred_address_geocode_requests.csv | ../report
@@ -880,7 +892,7 @@ endif
 ../output/multifamily_data_cleaned.csv: build_commercial_cross_section.R ../../setup_environment/code/packages.R ../input/commercial_value_raw.csv ../adjudication/initial_commercial_unit_overrides.csv | ../output
 	$(R) $<
 
-../output/density_parcel_address_selected_history.csv: build_historical_address_history.R ../../setup_environment/code/packages.R ../input/historical_parcel_requests.csv ../input/density_historical_address_records.csv | ../output
+../output/density_parcel_address_selected_history.csv: build_historical_address_history.R ../../setup_environment/code/packages.R ../input/historical_parcel_requests.csv ../input/density_historical_address_records.csv ../../shared/code/normalize_chicago_address.R | ../output
 	$(R) $<
 
 ../output/density_parcel_address_lineage_evidence.csv: build_historical_address_screen.R ../../setup_environment/code/packages.R ../output/density_project_lineage.csv ../output/density_historical_building_universe.csv ../output/density_historical_coordinate_candidates.csv ../output/density_parcel_address_selected_history.csv ../input/parcel_addresses_2025_chicago.csv Makefile | ../output
@@ -1110,7 +1122,7 @@ link-inputs: ../input/historical_project_parcel_source.gpkg ../input/historical_
 ../input/preferred_historical_parcel_source_queries.csv: ../../download_construction_historical_parcels/output/preferred_historical_parcel_source_queries.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/preferred_predecessor_parcel_source.gpkg: ../../../data_raw/construction_review/preferred_predecessor_parcel_source.gpkg | ../input
+../input/preferred_predecessor_parcel_source.gpkg: ../../download_construction_historical_parcels/output/preferred_predecessor_parcel_source.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/address_geocodes_census.csv: ../../download_construction_address_geocodes/output/address_geocodes_census.csv | ../input
@@ -1121,7 +1133,7 @@ link-inputs: ../input/historical_project_parcel_source.gpkg ../input/historical_
 
 link-inputs: ../input/address_geocodes_census.csv ../input/address_geocodes_chicago.csv
 
-../input/preferred_predecessor_source_queries.csv: ../../../data_raw/construction_review/preferred_predecessor_source_queries.csv | ../input
+../input/preferred_predecessor_source_queries.csv: ../../download_construction_historical_parcels/output/preferred_predecessor_source_queries.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/residential_assessor_history.parquet ../input/O2017-7056.pdf ../input/O2020-2959.pdf ../input/O2022-2464.pdf ../input/O2023-1331.pdf ../input/O2024-0008982.pdf ../input/O2024-0010153.pdf ../input/SO2017-7051.pdf ../input/SO2018-4452.pdf ../input/SO2018-7749.pdf ../input/SO2018-863.pdf ../input/SO2019-4107.pdf ../input/SO2023-43.pdf ../input/matters_20101101_20260212.csv ../input/zoning_map_index.geojson ../input/building_permits_clean.gpkg ../input/preferred_predecessor_source_queries.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../input/preferred_historical_parcel_source.gpkg ../input/zoning_sep2025.geojson ../input/zoning_jan2016.zip ../input/zoning_sep2014.zip ../input/zoning_nov2012.zip ../input/Wards_2024.geojson ../input/Wards_2015.geojson ../input/Wards_2014.geojson ../input/Chicago_Wards_1998.geojson ../input/historical_parcel_requests.csv ../input/official_building_footprints_2022.gpkg ../input/official_building_footprints_2008.gpkg ../input/chicago_building_footprints_2015.zip ../input/density_historical_address_records.csv ../input/density_historical_parcel_records.csv ../input/building_permits_full.csv ../input/parcel_sales_city.csv ../input/chicago_alderman_terms.csv ../input/ward_controls_2000_2023.csv ../input/boundary_segments_1320ft.gpkg ../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv ../input/parcel_addresses_2025_chicago.csv  ../input/residential_improvement_characteristics_full.csv ../input/commercial_value_raw.csv ../input/parcel_universe_2025_city.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg

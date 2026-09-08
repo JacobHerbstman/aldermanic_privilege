@@ -1,7 +1,7 @@
 File: preferred_chicago_address_geocodes.csv
 Rows: 216
-Columns: 23
-SHA-256 (saved bytes): c87ddf4cc9eea314ea701d9ca9b06f68d6e91862f814ba35e727723935e92756
+Columns: 25
+SHA-256 (saved bytes): 7e1f2604f2d782641d9a894a81d26c46baabb8740dc37e409a7d5eb37621ceaa
 Key: request_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -20,6 +20,8 @@ Row counts, non-missing counts, and declared-key checks: exact.
 selected_address_normalized       VARCHAR         204      196                  -                  -                  -                  -
       selected_address_year        BIGINT         204       15               2007               2025 2013.3382352941176  5.733688263842195
   selected_address_year_gap        BIGINT         204       11                  1                 19  2.377450980392157  2.779176858777355
+       query_street_address       VARCHAR         198      154                  -                  -                  -                  -
+     matched_street_address       VARCHAR         114      113                  -                  -                  -                  -
     chicago_candidate_count        BIGINT         216        7                  0                  6  2.689814814814815 0.9935082134527649
   chicago_exact_point_count        BIGINT         216        2                  0                  1 0.5277777777777778 0.5003874467842141
              chicago_status       VARCHAR         216        4                  -                  -                  -                  -

@@ -318,19 +318,34 @@ historical address only when both historical and current exact-PIN coordinates
 are unavailable. The two geocode scripts replay pinned responses from
 `download_construction_address_geocodes`; they make no network calls. Current
 requests number 216: all 211 original requests are unchanged, and five additional
-requests have no selected historical address. Both services reproduce the old
-chosen-match records exactly on the shared 211 requests.
+requests have no selected historical address. Before the acceptance change below,
+both services reproduced the old chosen-match records exactly on the shared 211
+requests.
 
-**Geocode acceptance remains under review before the full rerun.** The preserved
-Census rule checks one match, house-number agreement, and Chicago coordinate
-bounds. It accepts four responses that change the requested direction or street
-type. Three of those responses entered the old reference-point calculation; a
-City point match superseded the fourth. Do not infer a corrected location or a
-density exclusion from this comparison alone: the source historical address can
-also be wrong. The proposed general full-street agreement rule, including how to
-handle omitted unit labels, still needs Jacob's decision. The reconstruction
-currently retains the old rules as a comparison baseline, not a completed
-location validation.
+Both geocoders now require agreement on the full street address after standard
+abbreviation normalization; an omitted trailing unit label is allowed. Direction
+and street type must agree. The Census rule flags four previously accepted
+responses, leaving 190 accepted requests. All 114 Chicago acceptances are
+unchanged. Three reference points consequently become unresolved; the fourth
+has an accepted City point. These are not density exclusions. The pinned permit
+history supports all four alternative street labels, so the historical address
+itself may be wrong. Address evidence alone does not establish a parcel identity.
+The release audit records the permit evidence for each mismatch.
+
+The preferred predecessor lookup now reads a pinned source union from its
+acquisition task. One additional year-and-coordinate query returns one 2007
+polygon, PIN 17073250410000. All 1,693 original source features retain their
+attributes and geometry. Relative to the archived selected polygons, 3,768 shared
+shapes are spatially equal, two selections disappear under the stricter address
+rule, and one new selection enters. The lookup and its reports rebuild through
+Make; later project geography has not yet been rebuilt.
+
+The release audit also examines complete 1999–2025 exact-PIN location history for
+all 216 address requests: 447 source rows provide finite coordinates for 191
+requests. The nearest-year choice follows the existing initial predecessor rule,
+including earlier-year tie breaking. Applying these points before address
+geocoding remains a recommendation awaiting Jacob's decision; production does
+not consume the audit's selected points.
 
 The current initial geography builds 9,530 complete candidate project-year shapes.
 All 9,501 shapes shared with the original output retain identical attributes and

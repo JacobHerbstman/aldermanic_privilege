@@ -1,0 +1,55 @@
+\section*{September 7, 2026: Review street matches and restore parcel lookup}
+\textit{Agent-drafted audit; historical-coordinate priority remains a recommendation.}
+
+The geocoder review confirms four street-label mismatches, but does not establish
+that all four old locations were wrong. Both acceptance scripts now compare house
+number, direction, street name, and street type after abbreviation normalization,
+allowing an omitted trailing unit label. This flags four Census responses and
+reduces accepted Census requests from 194 to 190. All 114 Chicago acceptances and
+their coordinates are unchanged. Three requests lose their reference points;
+the fourth still has an accepted City point. These are unresolved locations at an
+intermediate stage, not new density exclusions.
+
+The pinned permit history supports the alternative street labels. At 1236 S Troy
+Street, a July 2007 permit describes a new three-unit building. At 3609 W 50th
+Place, a November 2007 permit describes four townhomes; a March 2008 amendment
+changes its description to one unit. Another March 2008 amendment changes an
+address from 3619 to 3623 W 50th Place. A 2025 roofing permit identifies 763 W 15th
+Street and a successor parcel. No permits in the pinned source match the four
+original full street labels. These records corroborate addresses, but do not by
+themselves prove links between historical parent parcels and successors. The
+previous entry's description of the City's 3623 match as the ``correct requested
+street'' should be read only as agreement with the query, not independent proof
+of the physical address. No units or construction years were changed in this review.
+
+The preferred predecessor lookup also required one additional spatial query. It
+returns a unique 2007 polygon, parcel 17073250410000. The combined source preserves
+all 1,693 original features and adds this one polygon. Relative to the archived
+selected polygons, all 3,768 shared shapes are spatially equal; two selections
+disappear after rejecting the mismatched addresses and the new query adds one.
+Two shared shapes have different binary serializations despite spatial equality.
+The lookup now builds from pinned source polygons and query scopes through Make.
+
+An additional public-source extract contains 447 exact-parcel records from
+1999--2025 for all 216 address requests. Choosing the nearest assessment year,
+with the earlier year winning ties, supplies finite coordinates for 191 requests,
+including three of the four street mismatches. The selected years are one to
+eleven years from the requested year. Troy has no finite coordinate in this source
+window. Codex recommends applying the existing nearest-year rule to these exact
+parcel records before using address geocoding. Jacob's decision is pending: the
+audit evaluates this priority, but production does not consume its selected points.
+
+\textit{Reproduction and limits.} Work follows \path{b37c9c3} on
+\path{sales_sample_exploration}. Make builds the two geocoder reports and preferred
+predecessor reference, resolution, and selected-polygon reports in
+\path{tasks/new_construction_cleaning/code/}. The release audit's
+\path{geocoder_mismatch_review.csv} and \path{geocoding_parcel_history_review.csv}
+record the evidence. Source snapshots and hashes are owned by
+\path{download_construction_historical_parcels}. Checks confirm unchanged fields
+for every unchanged-status geocoder request, preservation of original source
+features, recovery of either missing lookup output with one producer under parallel
+Make, and an unchanged second build. The new reports build through actual upstream
+dependencies. Logbook compilation retains the earlier holds on unfinished audit
+products and historical commercial reports. Later project geography, final density,
+and estimates were not rebuilt. The paper input remains unchanged. The required
+review of 30 initial predecessor cases remains open before the full rerun.

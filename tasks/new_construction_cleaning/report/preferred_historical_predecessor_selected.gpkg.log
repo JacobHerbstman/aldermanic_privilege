@@ -1,0 +1,24 @@
+File: preferred_historical_predecessor_selected.gpkg
+Rows: 3769
+Columns: 14
+SHA-256 (saved bytes): 8fab529f42cfa55705339273a6aaefa43b29fe99769e000abab57fdff89a23e8
+Key: request_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct    min    max               mean                sd
+                   fid        BIGINT        3769     3769      1   3769             1885.0 1088.160910282421
+            request_id       VARCHAR        3769     3769      -      -                  -                 -
+         source_family       VARCHAR        3769        2      -      -                  -                 -
+            project_id       VARCHAR        3769     3652      -      -                  -                 -
+          project_kind       VARCHAR        3769        6      -      -                  -                 -
+      candidate_status       VARCHAR        3769        3      -      -                  -                 -
+         component_pin       VARCHAR        3769     3767      -      -                  -                 -
+                 pin10       VARCHAR        3769     3767      -      -                  -                 -
+           target_year        DOUBLE        3769       17 2006.0 2022.0 2010.9954895197666 4.941991616379832
+      reference_source       VARCHAR        3769        4      -      -                  -                 -
+    predecessor_status       VARCHAR        3769        2      -      -                  -                 -
+predecessor_object_ids       VARCHAR        3769     1581      -      -                  -                 -
+    predecessor_pin14s       VARCHAR        3769     1490      -      -                  -                 -
+    predecessor_pin10s       VARCHAR        3769     1490      -      -                  -                 -
