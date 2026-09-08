@@ -21,25 +21,29 @@ even when they replace demolished buildings. Renovations, additions, and
 conversions do not themselves qualify. Parcel subdivision is an administrative
 change to trace for physical identity, not a construction event.
 
-Jacob confirmed combining the two 42-unit buildings at 4400 Grove into one
-84-unit observation. This agrees with the existing commercial decision; no
-measurement or sample change follows from this confirmation alone.
+Jacob finalized the following choices on September 7, 2026:
 
-For Natchez, Jacob subsequently suggested keeping the City's A/B/C areas separate
-and approved accepting Assessor-year proxies if exact completion could not be
-verified. The follow-up search did not establish final building-level occupancy
-dates. Retain the existing A = 2017, B = 2020, C = 2020 as proxies, with their
-source history documented in the release audit's `phased_project_review.md`.
-This does not validate every area's component membership or land denominator.
-A permit's issue date and its current completed status do not date completion;
-a modern complex-level year does not date every earlier phase.
+- Combine the two 42-unit buildings at 4400 Grove. Use the 97,215-square-foot
+  Assessor land denominator for their combined 84 units, retaining the existing
+  114,070-square-foot architect building area and 2020 completion year. The
+  commercial manual ledger records this decision and the two parcel identifiers.
+- Keep Natchez A/B/C as three separate construction groups, containing respectively
+  12, 14, and 8 buildings and 72, 84, and 39 units. Use their existing Assessor-year
+  proxies of 2017, 2020, and 2020. All three already occur separately in the frozen
+  dataset; A and B enter the main 500-foot sample, while C is outside it. This
+  settles grouping and timing, not C's existing land denominator or parcel scope.
+- Use the later Assessor year 2006 for 1217 W Arthington at Roosevelt Square.
+  The project review ledger labels this an accepted Assessor proxy. The earlier
+  2005 source value remains evidence; the accepted date is not independently
+  verified building-level completion. The existing six-unit count is unchanged;
+  its conflict with the 2022 renovation description remains unresolved.
 
-Roosevelt Square grouping remains unresolved. The existing review supports a
-separately measured six-unit building, but that does not decide whether the
-intended observation should cover a larger construction group. Establish the
-relevant component set and measurement scope before retaining or aggregating it.
-Jacob requested seeing questionable evidence before consequential judgments.
-These decisions do not authorize combining every phase of a named development.
+A group may contain multiple buildings. These choices do not authorize splitting
+site totals into individual-building observations or merging every phase of a
+named development. The accepted Grove area and Roosevelt year do not require
+further approval. The commercial rebuild currently stops at the missing producer
+for `commercial_city_building_footprints.gpkg`; changes to the decision inputs have
+not yet propagated to the paper's frozen dataset.
 
 ## Read the research in chronological order
 

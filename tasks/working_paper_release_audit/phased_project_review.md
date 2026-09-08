@@ -1,15 +1,31 @@
 # Construction grouping: 4400 Grove, Natchez, and Roosevelt Square
 
 September 7, 2026. Evidence review on `sales_sample_exploration`, against the
-frozen paper input. No production measurement, eligibility flag, or estimate was
-changed. Recommendations below are not adopted measurement decisions. Jacob has
-approved accepting an Assessor-year proxy for Natchez if completion cannot be verified.
+frozen paper input. The earlier recommendations and evidence below are retained
+as a dated record; the final decisions immediately below supersede them.
 
-Jacob has confirmed that new buildings replacing demolished buildings qualify,
-while renovations, additions, and conversions do not themselves qualify. He has
-approved combining the two 4400 Grove buildings. Following the evidence review,
-he suggested keeping Natchez A/B/C separate and authorized Assessor-year proxies
-if exact completion dates cannot be found. Roosevelt Square grouping remains open.
+## Final decisions after follow-up
+
+Jacob finalized Grove's Assessor denominator at **97,215 square feet**, accepted
+**2006** as the Roosevelt building's Assessor-year proxy, and approved retaining
+**Natchez A/B/C separately**, with their existing 2017/2020/2020 proxies. These are
+recorded in the owning construction decision inputs. No new row-specific code or
+sample exclusion was introduced. Grove's units, floor area, and year are unchanged.
+Its approved denominator implies FAR 1.1734 and 37.6386 units per acre.
+
+All three Natchez records are already in the frozen dataset: A has 72 units at
+377.0 feet from the boundary, B has 84 at 419.6 feet, and C has 39 at 656.9 feet.
+A and B pass the main regression sample restrictions; C fails the 500-foot cutoff.
+The three observations represent groups of 12, 14, and 8 buildings respectively,
+not three individual buildings. The old C ledger's six-building description was
+corrected to match the plan and permits without changing its measurements.
+
+Grove's denominator and Roosevelt's year no longer await judgment. C's parcel
+scope and land measurement still need checking, and Roosevelt's original
+four-versus-six unit count is not settled by accepting its year. The existing
+unit count is retained. The commercial Make build cannot yet propagate the
+Grove decision because `commercial_city_building_footprints.gpkg` has no producer
+rule. The frozen paper input and estimates remain unchanged.
 
 ## Current paper observations
 
