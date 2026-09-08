@@ -59,3 +59,5 @@ logbook.pdf: entries/2026-09-07-complete-assessor-snapshots.tex entries/2026-09-
 include ../tasks/shared/code/generic.make
 
 logbook.pdf: entries/2026-09-08-huron-floor-area.tex ../tasks/download_construction_development_records/report/huron_energy_benchmarking.csv.log ../tasks/download_construction_development_records/output/huron_pd356.pdf
+
+logbook.pdf: ../tasks/new_construction_cleaning/adjudication/commercial_component_overrides.csv ../tasks/new_construction_cleaning/adjudication/commercial_manual_decisions.csv
