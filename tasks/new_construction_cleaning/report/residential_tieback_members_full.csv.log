@@ -1,33 +1,33 @@
 File: residential_tieback_members_full.csv
-Rows: 2404
+Rows: 2373
 Columns: 23
-SHA-256 (saved bytes): ae8373b794c77eeb033b7bcd154365063977a195e4dfc4f360abc806974c22d8
+SHA-256 (saved bytes): 5fd554762dbec2071546c1d0e5bb9a1d603ac5ec54924ac902ea81387f6eae60
 Key: tieback_group, pin
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                            column inferred_type non_missing distinct               min               max               mean                  sd
-                    tieback_group       VARCHAR        2404     1292                 -                 -                  -                   -
-                              pin       VARCHAR        2404     2236                 -                 -                  -                   -
-                         card_num        BIGINT        2404        4                 1                 4 1.0590682196339434  0.2641046659535485
-                         tax_year        BIGINT        2404       28              1999              2026 2016.9688019966723   7.999601013504122
-                            class        BIGINT        2404       18               202               297 238.63394342762064   38.87353649280546
-                       year_built        BIGINT        2404      108              1878              2026 2000.1472545757072  29.816834876696195
-                    building_sqft        BIGINT        2359      936                 0             55401  5439.061890631624   5559.165018251784
-                        land_sqft        BIGINT        2076      877                 7            415550   4776.27408477842  15908.482654535619
-                   num_apartments        BIGINT        2243        6                 0                 6  1.514489522960321  2.3676641803799643
-               pin_proration_rate        DOUBLE        2404       79               0.0               1.0 0.4560604409317803 0.19832883124304757
-              card_proration_rate        DOUBLE        2358       77               0.0              0.98 0.4466366836301952 0.19527925309871855
-                 pin_is_multicard       BOOLEAN        2404        2                 -                 -                  -                   -
-                 pin_is_multiland       BOOLEAN        2404        2                 -                 -                  -                   -
-        membership_first_tax_year        BIGINT        2404       28              1999              2026   2010.67387687188   8.669026843412365
-         membership_last_tax_year        BIGINT        2404       28              1999              2026  2018.689683860233   9.226346508550924
-               membership_reports        BIGINT        2404       40                 1               112 10.136023294509151   9.973592272309503
-                 membership_cards        BIGINT        2404       16                 1                22 1.5411813643926788  1.6997861661952216
-historical_tieback_groups_for_pin        BIGINT        2404        3                 1                 3 1.1455906821963395 0.37672795742284226
-        selected_for_construction       BOOLEAN        2404        2                 -                 -                  -                   -
-                    selected_year        BIGINT        2325       28              1999              2026  2010.094193548387   8.520966639227456
-               dist_to_boundary_m        DOUBLE        1636     1513 13.12344036932762 8521.104052695033    508.26925659106   729.9728975953201
-                    within_1500ft       BOOLEAN        2325        2                 -                 -                  -                   -
-                           row_id       VARCHAR        2404     2404                 -                 -                  -                   -
+                    tieback_group       VARCHAR        2373     1271                 -                 -                  -                   -
+                              pin       VARCHAR        2373     2208                 -                 -                  -                   -
+                         card_num        BIGINT        2373        4                 1                 4 1.0598398651495997  0.2657379707876973
+                         tax_year        BIGINT        2373       28              1999              2026 2017.0488832701221   7.974514885853568
+                            class        BIGINT        2373       16               202               297  238.8630425621576  38.974634424365604
+                       year_built        BIGINT        2373      106              1878              2026 2000.3168984407923  29.727172093838913
+                    building_sqft        BIGINT        2351      933                 0             55401  5417.243300723097    5553.36922761546
+                        land_sqft        BIGINT        2054      870                 7            415550   4723.41723466407  15707.664963162057
+                   num_apartments        BIGINT        2235        6                 0                 6 1.5069351230425057  2.3670222469662843
+               pin_proration_rate        DOUBLE        2373       72               0.0               1.0   0.45622393594606 0.19858864586674863
+              card_proration_rate        DOUBLE        2327       70               0.0              0.98 0.4468325741297808  0.1953646083157839
+                 pin_is_multicard       BOOLEAN        2373        2                 -                 -                  -                   -
+                 pin_is_multiland       BOOLEAN        2373        2                 -                 -                  -                   -
+        membership_first_tax_year        BIGINT        2373       28              1999              2026  2010.716392751791   8.686650520709994
+         membership_last_tax_year        BIGINT        2373       28              1999              2026 2018.7871892119679   9.199437500034918
+               membership_reports        BIGINT        2373       40                 1               112  10.21070375052676   9.986007244809935
+                 membership_cards        BIGINT        2373       16                 1                22 1.5419300463548251  1.7071763469019414
+historical_tieback_groups_for_pin        BIGINT        2373        3                 1                 3 1.1449641803624104 0.37644176017111824
+        selected_for_construction       BOOLEAN        2373        2                 -                 -                  -                   -
+                    selected_year        BIGINT        2293       28              1999              2026  2010.168774531182   8.527895000003326
+               dist_to_boundary_m        DOUBLE        1623     1503 13.12344036932762 8521.104052695033 510.52511641618173   732.3200290486794
+                    within_1500ft       BOOLEAN        2293        2                 -                 -                  -                   -
+                           row_id       VARCHAR        2373     2373                 -                 -                  -                   -

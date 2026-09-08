@@ -26,6 +26,8 @@ con <- DBI::dbConnect(duckdb::duckdb())
 data <- DBI::dbGetQuery(con, sprintf("
 WITH history AS (
   SELECT * FROM read_parquet('../input/residential_assessor_history.parquet')
+  -- Empty assessment records cannot establish a building or construction year.
+  WHERE building_sqft IS NOT NULL OR num_apartments IS NOT NULL
 ), candidate_cards AS (
   SELECT pin, card_num FROM history
   GROUP BY pin, card_num HAVING max(year_built) >= %d

@@ -1,29 +1,29 @@
 File: residential_assessor_project_candidates.csv
-Rows: 27831
+Rows: 27774
 Columns: 19
-SHA-256 (saved bytes): 1da80c5c13da1ee716f7191d347759c4df0fb51866497a17e8e5c87d72f93f18
+SHA-256 (saved bytes): 8ae2ee38345194093b6f6ebb5f29f4442ad19e1e0919236d4977e090a4fe13b4
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                column inferred_type non_missing distinct                 min               max               mean                  sd
-           project_id       VARCHAR       27831    27831                   -                 -                  -                   -
-        source_family       VARCHAR       27831        1                   -                 -                  -                   -
-         project_kind       VARCHAR       27831        3                   -                 -                  -                   -
-       component_pins       VARCHAR       27831    27831                   -                 -                  -                   -
-      component_count        BIGINT       27831        8                   1                10 1.0426143509036685 0.24957451250419876
-    construction_year        BIGINT       27074       68                1878              2026 2008.4105414789096   8.484906633632253
-       dwelling_units        BIGINT       27428       26                   0                43 1.3260172086918478   1.161397586887609
-        building_sqft        BIGINT       27421     4756                   0             83226  2693.721308486197  2084.9937000347327
-            land_sqft        BIGINT       26207     4979                  72         228167280 18168.494219101765   1718146.298812548
-         class_values       VARCHAR       27114       30                   -                 -                  -                   -
-       source_row_ids       VARCHAR       26752    26752                   -                 -                  -                   -
-          year_source       VARCHAR       27469    26095                   -                 -                  -                   -
-         units_source       VARCHAR       27469    26095                   -                 -                  -                   -
-      building_source       VARCHAR       27469    26095                   -                 -                  -                   -
-          land_source       VARCHAR       27469    26095                   -                 -                  -                   -
-   current_distance_m        DOUBLE       25400    25338 0.31134218570016264 8512.934950058308  434.2548371277784   521.9626074285186
-current_within_1500ft       BOOLEAN       27831        2                   -                 -                  -                   -
-     candidate_status       VARCHAR       27831        4                   -                 -                  -                   -
-      decision_reason       VARCHAR       27831       19                   -                 -                  -                   -
+           project_id       VARCHAR       27774    27774                   -                 -                  -                   -
+        source_family       VARCHAR       27774        1                   -                 -                  -                   -
+         project_kind       VARCHAR       27774        3                   -                 -                  -                   -
+       component_pins       VARCHAR       27774    27774                   -                 -                  -                   -
+      component_count        BIGINT       27774        8                   1                10 1.0421977388924895 0.24846370214779684
+    construction_year        BIGINT       27024       67                1878              2026 2008.4224763173474    8.47568489855993
+       dwelling_units        BIGINT       27418       26                   0                43 1.3263184769129768  1.1613373333816879
+        building_sqft        BIGINT       27417     4756                   0             83226  2694.191158770106  2084.1783052899023
+            land_sqft        BIGINT       26194     4979                  72         228167280 18175.209437275713  1718572.5906940084
+         class_values       VARCHAR       27062       28                   -                 -                  -                   -
+       source_row_ids       VARCHAR       26712    26712                   -                 -                  -                   -
+          year_source       VARCHAR       27424    26057                   -                 -                  -                   -
+         units_source       VARCHAR       27424    26057                   -                 -                  -                   -
+      building_source       VARCHAR       27424    26057                   -                 -                  -                   -
+          land_source       VARCHAR       27424    26057                   -                 -                  -                   -
+   current_distance_m        DOUBLE       25382    25320 0.31134218570016264 8512.934950058308 434.34414862639017   522.0952217549648
+current_within_1500ft       BOOLEAN       27774        2                   -                 -                  -                   -
+     candidate_status       VARCHAR       27774        4                   -                 -                  -                   -
+      decision_reason       VARCHAR       27774       18                   -                 -                  -                   -

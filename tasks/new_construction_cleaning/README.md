@@ -491,3 +491,17 @@ projects. Their routes are 39 older-coordinate candidates, 21 overlapping-parcel
 cases, 19 missing-location cases, six empty-map cases, 23 year conflicts, and 41
 centroid flags. One duplicate audit entry under an older project identifier has
 been consolidated; `initial_project_ids` preserves the checkpoint identity.
+
+## September 8: Empty assessment records
+
+Before selecting a residential assessment, omit rows where both building square
+feet and apartment count are missing. A reported zero is not treated as missing,
+and a row with either field present still proceeds to the existing substantive
+checks. Apply this before construction-year discovery and report ranking in
+`build_residential_cross_section.R`, and before card selection and complete
+assessment selection in `build_residential_project_candidates.R`. The pinned
+history and the history used for tracing parcel relationships remain intact.
+
+This removes empty records as evidence of additional buildings; it does not
+establish that every property with only empty records lacks new construction.
+Other source branches remain available. No case identifiers enter this rule.

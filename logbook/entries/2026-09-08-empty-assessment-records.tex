@@ -1,0 +1,41 @@
+\section*{September 8, 2026: Exclude empty assessments before selecting buildings}
+\textit{Agent-drafted entry; Jacob approved excluding empty cards before selection.}
+
+An assessment with neither building area nor an apartment count cannot establish
+an additional building. These rows now leave the pool of eligible records before
+construction-year discovery, report ranking, and complete-assessment selection.
+Rows with either field present remain subject to the existing checks; zero is
+not treated as missing. The source history is preserved. No property-specific
+exceptions were added.
+
+The broad residential selection falls from 29,262 to 29,186 properties. All 76
+removed properties lack a nonempty assessment reporting construction from 1999
+onward; 17 previously reported a year within 2006--2022. This does not prove
+that none contains new construction. It means this source provides no measured
+qualifying record. Another 17 properties select different records.
+
+The project table falls from 27,831 to 27,774 rows. None of the 57 removed
+projects was mechanically accepted: 45 were outside the study period, 11 needed
+review, and one was deferred to commercial reconciliation. Only three surviving
+project rows change. Armitage (2706 W) now reports one three-unit building with
+7,688 square feet and Assessor year 2008; Western (10548 S) reports one three-unit
+building with 7,770 square feet and Assessor year 2007. These follow the existing
+assessment priority, not a new completion-date judgment. The third changed
+property is outside the study period. The multiple-card evidence falls from
+6,520 to 6,418 rows, with no added card identifiers.
+
+For the six initially examined properties, archived permits support one new
+three-unit mixed-use building at Armitage (100100122) and Western (100106040).
+The other four retain older buildings; the available permits describe additions,
+alterations, conversions, or garages. The exact administrative reason for the
+empty records is not established. Western's 2010 permit reinstatement means the
+Assessor year should not be described as independently verified completion.
+
+\textit{Reproduction:} Run the residential cross-section, multiple-card, and
+Assessor-project report targets through Make in the construction-cleaning code
+folder, using the pinned Assessor history and existing 1999/2022/2025 selection
+settings. The targeted build and unchanged second build passed. All removed
+selection records were checked against the source history. The frozen 8,648-row
+paper input retains its recorded checksum; no regressions were run. Older
+logbook dependencies were held at their existing outputs for this entry's PDF
+compilation; downstream geography and final dataset rebuilding remain pending.

@@ -179,6 +179,8 @@ history <- DBI::dbGetQuery(con, "SELECT * FROM relevant_history") %>%
 # Rank reports once within each PIN-card, using the same assessment windows
 # as the cross-section. The discovery selection has a different purpose.
 latest_card_report <- history %>%
+  # Keep empty records in the history, but never select them as buildings.
+  filter(!is.na(building_sqft) | !is.na(num_apartments)) %>%
   mutate(report_priority = case_when(
     tax_year <= preferred_assessment_year ~ 1L,
     tax_year <= fallback_assessment_year ~ 2L,
@@ -617,6 +619,7 @@ episode_sizes <- selected_episode_cards %>%
   count(pin, selected_construction_year, name = "episode_cards")
 
 complete_snapshots <- history %>%
+  filter(!is.na(building_sqft) | !is.na(num_apartments)) %>%
   inner_join(
     episode_sizes, by = c("pin", "year_built" = "selected_construction_year"),
     relationship = "many-to-one"
@@ -646,6 +649,7 @@ complete_snapshots <- history %>%
   select(pin, year_built, tax_year)
 
 snapshot_cards <- history %>%
+  filter(!is.na(building_sqft) | !is.na(num_apartments)) %>%
   inner_join(complete_snapshots, by = c("pin", "year_built", "tax_year"), relationship = "many-to-one")
 stopifnot(!anyDuplicated(snapshot_cards[c("pin", "card_num")]))
 
