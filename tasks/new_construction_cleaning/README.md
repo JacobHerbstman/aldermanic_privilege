@@ -312,6 +312,21 @@ year in `historical_project_predecessor_resolution.csv`; filter
 and count distinct requests rather than candidate-polygon rows. Do not treat this
 checkpoint as completed merely because the later code builds.
 
+**Carry forward with unresolved locations:** Jacob asked to retain the following
+two cases in the unresolved review. The exact-PIN coordinates from one year after
+construction are the leading candidates, not approved final locations or grounds
+for exclusion. Check their construction-year parcel matches as the candidate
+geography is assembled. The evidence is preserved in the release audit's
+`geocoding_parcel_history_review.csv` and its pinned Parcel Universe source.
+
+| Address needing resolution | Exact PIN | Construction year | Candidate coordinate year |
+| --- | --- | --- | --- |
+| 763 W 15th Place / Street | 17211330050000 | 2006 | 2007 |
+| 3609 W 50th Street / Place | 19111230100000 | 2007 | 2008 |
+
+Reconcile these with the earlier 30-case checkpoint by identifier; do not assume
+they are two additional distinct projects without checking overlap.
+
 Address geocoding now separates request eligibility, full source responses, and
 match selection. `build_preferred_address_geocode_requests.R` requests a selected
 historical address only when both historical and current exact-PIN coordinates

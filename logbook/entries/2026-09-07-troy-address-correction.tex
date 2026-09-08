@@ -42,14 +42,17 @@ locations. The parcel lookup uniquely selects the 2008 parcel above, increasing
 selected requests from 3,769 to 3,770. All previously selected shapes and their
 attributes are unchanged. Three other street-label mismatches remain in the audit.
 
+Jacob subsequently asked to carry 763 W 15th and 3609 W 50th forward as unresolved,
+with their exact-parcel coordinates from one year after construction as the leading
+candidates. Their locations are not yet adopted and neither is excluded by this
+decision. The construction README records the parcel numbers and coordinate years
+for the next geography review.
+
 \textit{Reproduction and limits.} Work follows \path{cba6575} on
 \path{sales_sample_exploration}. The construction task's historical-address,
-geocoder, and preferred predecessor reports record the rebuilt stages. Both
-acquisition tasks verify the additional source hashes in ordinary Make. The
-South-address API queries and 2008 spatial query used the existing Make
-downloaders in disposable tasks with their query tables fixed. Tests check the
-single-address change, rejection of a stale correction, and fresh parallel replay
-of both geocoder response sources. Logbook compilation retains the previously
-documented holds on unrelated unfinished stages. No final density export or
-regression rebuild is included in this change, and the 30-case checkpoint remains
-open.
+geocoder, and preferred predecessor reports record the actual Make rebuild.
+Existing Make downloaders retrieved the additional geocoder and parcel responses;
+ordinary builds verify their pinned hashes. Tests cover the single-address change,
+stale corrections, and fresh parallel source replay. Logbook compilation retains
+the documented holds on unfinished stages. Final density and regressions were not
+rebuilt; the 30-case checkpoint remains open.
