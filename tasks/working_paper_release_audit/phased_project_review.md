@@ -68,6 +68,47 @@ No replacement land area is adopted. The final production exporter already appli
 setting both density eligibility flags false. Full propagation remains blocked by
 the incomplete upstream reconstruction; the frozen paper input is unchanged.
 
+## B follow-up: retain the existing measured project
+
+The focused B review supports retaining the existing 84-unit observation with
+124,620 building square feet, 210,101 land square feet, and accepted year 2020.
+No measurement, grouping, or eligibility change is introduced for B. This closes
+the Natchez review under the agreed Assessor-based measurement approach: A and B
+remain separate; C is excluded from density pending a reliable site boundary.
+
+The original October 5, 2016 PD 1345 approval, PDF pages 46–47 of the pinned
+compilation, specifically authorizes 14 buildings and 84 units on a 207,228-square-
+foot net site. Page 51 depicts the southern group and its private streets,
+parking, and accessory garages, before C's proposed expansion. This is independent
+support for B's own site, not a residual obtained by subtracting A and C from a
+whole-development total. The 210,101 Assessor denominator is 1.386% larger.
+Residential assessments from 2018 and 2019 already report that land area; the
+2021 and 2024 commercial assessments preserve it. The 2020 parcel polygon measures
+210,101.234 square feet. Its scope therefore predates the 2019 C building permits.
+
+The complete 2022 footprint query finds 18 polygons touching the B parcel:
+14 approximately 37–39-foot-high residential buildings fully inside it, one
+approximately 13-foot-high accessory garage fully inside it, a small edge of
+another garage, and parts of the C residence and community center discussed above.
+The residential pattern matches the 2016 site plan and the fourteen six-unit
+permits. Every intersecting footprint remains in the audit output, including
+accessories and C, to avoid silently treating all overlaps as residential members.
+
+C's overlapping footprints total 2,510.918 square feet, 1.195% of the B tax parcel.
+That documents a small allocation uncertainty; it does not establish the total
+shared-land area or justify subtracting roof outlines from a project denominator.
+Using the original approved 207,228-square-foot net site as an arithmetic check
+would move FAR from 0.5931 to 0.6014 and units per acre from 17.4156 to 17.6571,
+a 1.386% increase in both. This is not a regression sensitivity result or a claim
+that all possible shared-land definitions fall within that interval.
+
+**Conclusion:** retain B's Assessor site as the supported project-level measure,
+with the residual boundary uncertainty recorded. Unlike C's retained strip, it
+contains every one of its residential buildings and closely agrees with the
+independent original site approval. No surveyed phase boundary or exact allocation
+of later shared amenities has been established. No further Natchez coding decision
+is pending; full pipeline reconstruction and broader validation remain separate work.
+
 ## Current paper observations
 
 | Observation | Year | Units | Building sq ft | Land sq ft | FAR | Units/acre | Boundary distance, ft |

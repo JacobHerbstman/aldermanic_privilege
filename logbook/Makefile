@@ -2,6 +2,8 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-07-natchez-b-review.tex ../tasks/working_paper_release_audit/output/natchez_b_land_coverage.csv
+
 logbook.pdf: entries/2026-09-07-natchez-land-resolution.tex ../tasks/working_paper_release_audit/output/natchez_building_land_coverage.csv ../tasks/working_paper_release_audit/output/natchez_parcel_coverage.pdf ../tasks/download_construction_development_records/output/natchez_pd1345.pdf
 
 logbook.pdf: entries/2026-09-07-final-group-decisions.tex ../tasks/new_construction_cleaning/adjudication/commercial_component_overrides.csv

@@ -34,7 +34,11 @@ Jacob finalized the following choices on September 7, 2026:
   settles grouping and timing. Subsequent footprint review established that C's
   strip-only land denominator is incomplete; Jacob approved excluding C from
   density pending a reliable site boundary. The existing density-exclusion ledger
-  records that decision and retains the construction observation.
+  records that decision and retains the construction observation. B's focused
+  follow-up supports retaining its 210,101-square-foot Assessor site: all fourteen
+  residences are inside it, and the original 2016 approval independently specifies
+  84 units on 207,228 square feet. The 1.39% area difference and later C overlaps
+  remain documented measurement uncertainty, not a pending Natchez coding choice.
 - Use the later Assessor year 2006 for 1217 W Arthington at Roosevelt Square.
   The project review ledger labels this an accepted Assessor proxy. The earlier
   2005 source value remains evidence; the accepted date is not independently

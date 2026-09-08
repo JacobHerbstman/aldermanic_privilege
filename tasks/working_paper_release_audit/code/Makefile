@@ -4,6 +4,14 @@ all: ../report/phased_project_permits.csv.log ../report/restored_stage_checks.cs
 
 all: ../report/natchez_building_land_coverage.csv.log ../output/natchez_parcel_coverage.pdf
 
+all: ../report/natchez_b_land_coverage.csv.log
+
+../output/natchez_b_land_coverage.csv: review_natchez_b_land.R ../input/natchez_historical_parcels.gpkg ../input/natchez_footprints_2022.geojson ../output/natchez_building_land_coverage.csv | ../output
+	$(R) $<
+
+../report/natchez_b_land_coverage.csv.log: ../../shared/code/report.py ../output/natchez_b_land_coverage.csv | ../report
+	$(PYTHON) $< ../output/natchez_b_land_coverage.csv $@ footprint_id
+
 ../output/natchez_building_land_coverage.csv: review_natchez_land.R ../input/natchez_footprints_2022.geojson ../input/natchez_historical_parcels.gpkg ../input/natchez_zoning_2025.geojson | ../output
 	$(R) $<
 
