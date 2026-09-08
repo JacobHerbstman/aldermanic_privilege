@@ -48,9 +48,40 @@ Jacob finalized the following choices on September 7, 2026:
 A group may contain multiple buildings. These choices do not authorize splitting
 site totals into individual-building observations or merging every phase of a
 named development. The accepted Grove area and Roosevelt year do not require
-further approval. The commercial rebuild currently stops at the missing producer
-for `commercial_city_building_footprints.gpkg`; changes to the decision inputs have
-not yet propagated to the paper's frozen dataset.
+further approval. A controlled replay of the commercial decision producer now
+verifies A/B retention, C's two density flags set to false, and Grove's approved
+land area. It preserves 815 project identities. This replay holds earlier project
+and evidence inputs fixed; these changes have not propagated to the paper's
+frozen dataset. The next commercial build gap is historical parcel coverage.
+
+## Local City footprint evidence
+
+`../download_city_building_footprints/` now acquires the complete August 2015 City
+shapefile from its recorded public attachment URL. A fresh download reproduced the
+preserved ZIP's SHA-256 exactly. The same input supplies the existing 2015
+verification extract and `build_commercial_city_building_footprints.R`.
+
+The commercial producer selects every source footprint intersecting an in-period
+commercial project polygon, then standardizes the address, year, units, and area
+fields used by its evidence consumer. It validates identifiers and geometry in
+that scope. The consumer retains its existing matching and classification rules.
+This replaces the missing producer's project-by-project circular API queries.
+It does not assign project land, construction years, or density eligibility.
+
+On the preserved 793 project geometries, the local producer selects 1,241
+footprints. Eleven were missing from the old API extract; five of those pass the
+existing overlap rule and change footprint summaries for three projects. With
+the same current permit inputs on both sides, all 800 candidate evidence
+classifications and review flags agree. Other area differences are below
+0.000002 square feet and arise from the old longitude/latitude round trip.
+This is a controlled comparison on fixed geometry and candidates, not a complete
+rebuild of those inputs or a claim about final regression results.
+
+The saved reports for the footprints, commercial evidence, and commercial
+decisions record these controlled replay baselines. The standard reporter now
+supports a single-layer GeoPackage's attributes; the spatial producer separately
+validates geometry. The final-source chain still stops at
+`historical_project_parcel_coverage.csv`, whose producer has not been restored.
 
 ## Read the research in chronological order
 
@@ -219,7 +250,7 @@ fields; its 10,202 assessment snapshots remain byte-identical.
   are reconciled. Old counts remain useful comparisons in the audit.
 
 The approved two-year episode window and all-date permit history remain in force.
-The six approved density exclusions remain recorded in
+The seven approved density exclusions remain recorded in
 `adjudication/density_denominator_decisions.csv`. The broader automatic card-area
 matching band is still a proposal; the active setting remains 0.02. No additional
 exclusions or measurement-source choices were adopted in this consolidation.
@@ -240,9 +271,10 @@ standard reports in `report/`. Shared code lives in `tasks/shared/code/`. Report
 and meaningful key/evidence assertions complement each other. An unchanged build
 must run no producer; a deleted member of a multiple-output product must regenerate.
 
-The declared final-output dependency closure currently reaches 99 local scripts
-and 188 internal output paths; 38 of those output paths still lack producer rules.
-This is a static count of declared prerequisites, not a successful build. The
+The earlier declared final-output dependency inventory reached 99 local scripts
+and 188 internal output paths, with 38 missing producer rules. The City footprint
+producer has since been restored. That inventory was a static count of declared
+prerequisites, not a successful build. The
 missing work includes historical parcels, duplicate reconciliation, condominium
 successors, and ordinance reconstruction. The exact original residential download
 remains unavailable, and the pinned replacement vintage is not fully reconciled.

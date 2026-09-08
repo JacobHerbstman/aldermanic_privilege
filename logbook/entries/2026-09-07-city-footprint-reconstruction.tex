@@ -1,0 +1,40 @@
+\section*{September 7, 2026: Reconstruct City footprint evidence locally}
+\textit{Agent-drafted verification of source recovery and approved decisions.}
+
+The commercial construction evidence can now be reconstructed from the complete
+August 2015 City building shapefile. A fresh download from the original public
+attachment reproduces the preserved archive exactly. Local extraction replaces
+the missing producer's circular queries around individual project sites.
+
+On the preserved 793 commercial project geometries, the local extraction finds
+1,241 intersecting footprints. Eleven were absent from the earlier query extract;
+five pass the existing building-to-site matching rule and change the footprint
+summaries for three projects. The old query circles did not cover all parts of
+some sites or large buildings. The replacement reads the whole City layer and
+applies the existing intersection rule locally. It makes no case-specific
+exceptions. All selected identifiers are unique and all selected shapes are valid.
+
+With current permits and candidates held fixed, all 800 projects keep the same
+evidence classification and review flag. Outside the three
+coverage changes, footprint-area differences are less than 0.000002 square feet,
+consistent with the earlier coordinate conversion. This establishes the effect
+of the footprint repair on this evidence stage; it does not establish unchanged
+final estimates. The 2015 source cannot establish that a later building is absent.
+
+A separate replay of the commercial decision producer retains all 815 project
+identities. Natchez A retains 72 units and its 2017 year; B retains 84 units,
+124,620 building square feet, 210,101 land square feet, and its 2020 year.
+Both remain density-eligible. C retains its 39-unit construction observation and
+2020 year, with both density flags false. Grove uses the approved 97,215-square-foot
+land area. These checks apply the committed decisions to preserved earlier inputs.
+
+\textit{Reproduction and limits.} The acquisition task is
+\path{tasks/download_city_building_footprints/}; construction cleaning owns the
+local extraction and evidence. Tests used the production Make rules in disposable
+directories with earlier geometry, candidates, and permit inputs held fixed.
+Fresh acquisition, failed-download handling, missing-output recovery, and
+unchanged second builds were checked. Saved reports and the stage-comparison
+record distinguish these replays from an end-to-end build. The next missing
+producer is historical parcel coverage. The paper still uses its frozen input.
+Logbook compilation holds its existing unfinished audit products, the unchanged
+residential candidate baseline, and previously verified development documents.

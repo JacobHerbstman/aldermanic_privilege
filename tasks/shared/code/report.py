@@ -1,14 +1,16 @@
-"""Read-only CSV and Parquet reports, adapted from Jacob's project-template report.py.
+"""Read-only CSV, Parquet, and single-layer GeoPackage attribute reports.
 
 DuckDB computes the saved-file summary. Distinct counts are exact up to 100,000 rows and approximate above that;
 row counts, non-missing counts, declared-key checks, and file SHA-256 are exact.
 CSV column types are inferred by DuckDB, not a schema stored in the CSV.
 """
 import hashlib
+import sqlite3
 import sys
 from pathlib import Path
 
 import duckdb
+import pandas as pd
 
 
 def quote_identifier(value):
@@ -16,7 +18,24 @@ def quote_identifier(value):
 
 
 def write_summary(source_file, report_file, keys):
-    if Path(source_file).suffix == '.parquet':
+    con = duckdb.connect()
+    con.execute("SET threads=1")
+    if Path(source_file).suffix == '.gpkg':
+        # Summarize saved attributes without loading an extension or interpreting
+        # geometry blobs. The producing spatial script owns geometry validation.
+        with sqlite3.connect(Path(source_file).resolve().as_uri() + '?mode=ro', uri=True) as spatial:
+            layers = spatial.execute('SELECT table_name, column_name FROM gpkg_geometry_columns').fetchall()
+            if len(layers) != 1:
+                raise ValueError('A GeoPackage report requires exactly one spatial layer')
+            table, geometry = layers[0]
+            attributes = [row[1] for row in spatial.execute('PRAGMA table_info(' + quote_identifier(table) + ')')
+                          if row[1] != geometry]
+            frame = pd.read_sql_query('SELECT ' + ', '.join(map(quote_identifier, attributes))
+                                      + ' FROM ' + quote_identifier(table), spatial)
+        con.register('saved_attributes', frame)
+        source = key_source = 'saved_attributes'
+        type_description = 'Types: SQLite attributes read through pandas; geometry excluded.\n'
+    elif Path(source_file).suffix == '.parquet':
         source = "read_parquet('" + source_file.replace("'", "''") + "')"
         key_source = source
         type_description = 'Types: Stored Parquet schema.\n'
@@ -24,8 +43,6 @@ def write_summary(source_file, report_file, keys):
         source = "read_csv('" + source_file.replace("'", "''") + "', sample_size=-1, nullstr=['', 'NA'])"
         key_source = source[:-1] + ', all_varchar=true)'
         type_description = 'Types: DuckDB inference from the complete saved CSV.\n'
-    con = duckdb.connect()
-    con.execute("SET threads=1")
     summary = con.execute(f"SUMMARIZE SELECT * FROM {source}").fetchdf()
     columns = summary['column_name'].tolist()
     row_count = int(summary['count'].iloc[0])
@@ -81,5 +98,5 @@ def write_summary(source_file, report_file, keys):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        raise SystemExit('Usage: report.py source.csv report.csv.log [key columns ...]')
+        raise SystemExit('Usage: report.py source.{csv,parquet,gpkg} report.log [key columns ...]')
     write_summary(sys.argv[1], sys.argv[2], sys.argv[3:])

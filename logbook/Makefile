@@ -2,6 +2,8 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-07-city-footprint-reconstruction.tex ../tasks/new_construction_cleaning/report/commercial_city_building_footprints.gpkg.log ../tasks/new_construction_cleaning/report/commercial_ground_up_evidence.csv.log ../tasks/new_construction_cleaning/report/preferred_commercial_projects.csv.log
+
 logbook.pdf: entries/2026-09-07-natchez-b-review.tex ../tasks/working_paper_release_audit/output/natchez_b_land_coverage.csv
 
 logbook.pdf: entries/2026-09-07-natchez-land-resolution.tex ../tasks/working_paper_release_audit/output/natchez_building_land_coverage.csv ../tasks/working_paper_release_audit/output/natchez_parcel_coverage.pdf ../tasks/download_construction_development_records/output/natchez_pd1345.pdf

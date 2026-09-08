@@ -14,7 +14,10 @@ HISTORICAL_EXACT_MATCH_FT ?= 10
 HISTORICAL_LOCAL_MATCH_FT ?= 150
 HISTORICAL_MAX_BUILDING_GAP ?= 0.10
 
-all: ../report/residential_project_history_summary.csv.log \
+all: ../report/commercial_city_building_footprints.gpkg.log \
+	../report/preferred_commercial_projects.csv.log \
+	../report/preferred_commercial_source_disposition.csv.log \
+	../report/residential_project_history_summary.csv.log \
 	../report/residential_fractional_base_groups.csv.log \
 	../report/residential_tieback_groups_full.csv.log \
 	../report/residential_tieback_members_full.csv.log \
@@ -544,6 +547,12 @@ endif
 ../output/preferred_commercial_projects.csv: build_preferred_commercial_ledger.R ../adjudication/commercial_component_overrides.csv ../adjudication/commercial_cross_family_decisions.csv ../adjudication/commercial_field_decisions.csv ../adjudication/commercial_manual_decisions.csv ../adjudication/commercial_semantic_decisions.csv ../output/commercial_entity_version_candidates.csv ../output/commercial_post_evidence_resolution.csv ../output/preferred_commercial_project_candidates.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
+../report/preferred_commercial_projects.csv.log: ../../shared/code/report.py ../output/preferred_commercial_projects.csv | ../report
+	$(PYTHON) $< ../output/preferred_commercial_projects.csv $@ project_id
+
+../report/preferred_commercial_source_disposition.csv.log: ../../shared/code/report.py ../output/preferred_commercial_source_disposition.csv | ../report
+	$(PYTHON) $< ../output/preferred_commercial_source_disposition.csv $@ source_project_id
+
 ../output/preferred_commercial_source_disposition.csv: ../output/preferred_commercial_projects.csv
 	@test -f "$@"
 
@@ -744,6 +753,12 @@ endif
 
 ../output/preferred_historical_predecessor_resolution.csv: ../output/preferred_historical_predecessor_selected.gpkg
 	@test -f "$@"
+
+../output/commercial_city_building_footprints.gpkg: build_commercial_city_building_footprints.R ../input/chicago_building_footprints_2015.zip ../output/preferred_project_year_geometry.gpkg ../../setup_environment/code/packages.R | ../output
+	$(R) $<
+
+../report/commercial_city_building_footprints.gpkg.log: ../../shared/code/report.py ../output/commercial_city_building_footprints.gpkg | ../report
+	$(PYTHON) $< ../output/commercial_city_building_footprints.gpkg $@ footprint_id
 
 ../output/commercial_ground_up_evidence.csv: build_commercial_ground_up_evidence.R ../output/building_permits_for_verification.gpkg ../output/commercial_city_building_footprints.gpkg ../output/new_construction_exact_permit_matches.csv ../output/new_construction_spatial_permit_matches.csv ../output/preferred_commercial_project_candidates.csv ../output/preferred_project_year_geometry.gpkg ../output/project_permit_chain_links.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
@@ -972,7 +987,7 @@ endif
 ../input/density_historical_address_records.csv: ../../../data_raw/construction_review/density_historical_address_records_2026-09-04.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/chicago_building_footprints_2015.zip: ../../../data_raw/construction_review/chicago_building_footprints_2015.zip | ../input
+../input/chicago_building_footprints_2015.zip: ../../download_city_building_footprints/output/chicago_building_footprints_2015.zip | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/official_building_footprints_2008.gpkg: ../../../data_raw/construction_review/official_building_footprints_2008.gpkg | ../input
