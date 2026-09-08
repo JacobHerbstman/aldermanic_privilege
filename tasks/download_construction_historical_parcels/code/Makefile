@@ -6,6 +6,21 @@ all: ../report/predecessor_parcel_history.csv.log ../report/predecessor_history_
 
 all: ../report/historical_predecessor_parcel_source.gpkg.log ../report/historical_predecessor_source_queries.csv.log
 
+all: ../report/preferred_historical_parcel_source.gpkg.log ../report/preferred_historical_parcel_source_queries.csv.log
+
+../output/preferred_historical_parcel_source.gpkg: combine_preferred_parcel_sources.R ../input/preferred_historical_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../output/historical_project_parcel_source.gpkg ../input/preferred_parcel_supplement_2026-09-07.gpkg ../output/preferred_historical_parcel_source_queries.csv ../../setup_environment/code/packages.R | ../output
+	$(R) $<
+
+../output/preferred_historical_parcel_source_queries.csv: combine_preferred_parcel_queries.R ../input/preferred_historical_parcel_source_queries.csv ../input/preferred_historical_parcel_source.gpkg ../input/preferred_parcel_supplement_queries_2026-09-07.csv ../input/preferred_parcel_supplement_2026-09-07.gpkg ../output/historical_project_parcel_source_queries.csv preferred_snapshot.sha256 ../../setup_environment/code/packages.R | ../output
+	shasum -a 256 -c preferred_snapshot.sha256
+	$(R) $<
+
+../report/preferred_historical_parcel_source.gpkg.log: ../../shared/code/report.py ../output/preferred_historical_parcel_source.gpkg | ../report
+	$(PYTHON) $< ../output/preferred_historical_parcel_source.gpkg $@ target_year object_id
+
+../report/preferred_historical_parcel_source_queries.csv.log: ../../shared/code/report.py ../output/preferred_historical_parcel_source_queries.csv | ../report
+	$(PYTHON) $< ../output/preferred_historical_parcel_source_queries.csv $@ target_year pin10
+
 ../output/historical_predecessor_parcel_source.gpkg: combine_predecessor_parcels.R ../input/historical_predecessor_parcels_2026-07-27.gpkg ../input/historical_predecessor_parcels_2026-09-07.gpkg ../output/historical_predecessor_source_queries.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
@@ -79,7 +94,19 @@ all: ../report/historical_predecessor_parcel_source.gpkg.log ../report/historica
 ../input/historical_predecessor_queries_2026-09-07.csv: ../../../data_raw/construction_review/historical_predecessor_queries_2026-09-07.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-link-inputs: ../input/historical_predecessor_parcels_2026-07-27.gpkg ../input/historical_predecessor_parcels_2026-09-07.gpkg ../input/historical_predecessor_queries_2026-07-27.csv ../input/historical_predecessor_queries_2026-09-07.csv
+../input/preferred_historical_parcel_source.gpkg: ../../../data_raw/construction_review/preferred_historical_parcel_source.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_historical_parcel_source_queries.csv: ../../../data_raw/construction_review/preferred_historical_parcel_source_queries.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_parcel_supplement_2026-09-07.gpkg: ../../../data_raw/construction_review/preferred_parcel_supplement_2026-09-07.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_parcel_supplement_queries_2026-09-07.csv: ../../../data_raw/construction_review/preferred_parcel_supplement_queries_2026-09-07.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/preferred_historical_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../input/preferred_parcel_supplement_2026-09-07.gpkg ../input/preferred_parcel_supplement_queries_2026-09-07.csv ../input/historical_predecessor_parcels_2026-07-27.gpkg ../input/historical_predecessor_parcels_2026-09-07.gpkg ../input/historical_predecessor_queries_2026-07-27.csv ../input/historical_predecessor_queries_2026-09-07.csv
 
 link-inputs: ../input/predecessor_parcel_history_2026-09-07.csv ../input/predecessor_history_queries_2026-09-07.csv ../input/historical_project_parcel_source_2026-07-27.gpkg ../input/historical_project_parcel_source_2026-09-07.gpkg ../input/historical_project_parcel_queries_2026-07-27.csv ../input/historical_project_parcel_queries_2026-09-07.csv ../input/historical_project_parcel_layers.csv
 

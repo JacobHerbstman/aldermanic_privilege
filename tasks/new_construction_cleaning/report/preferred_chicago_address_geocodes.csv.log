@@ -1,0 +1,33 @@
+File: preferred_chicago_address_geocodes.csv
+Rows: 216
+Columns: 23
+SHA-256 (saved bytes): c87ddf4cc9eea314ea701d9ca9b06f68d6e91862f814ba35e727723935e92756
+Key: request_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                     column inferred_type non_missing distinct                min                max               mean                 sd
+                 request_id       VARCHAR         216      216                  -                  -                  -                  -
+              source_family       VARCHAR         216        2                  -                  -                  -                  -
+                 project_id       VARCHAR         216      213                  -                  -                  -                  -
+               project_kind       VARCHAR         216        5                  -                  -                  -                  -
+           candidate_status       VARCHAR         216        2                  -                  -                  -                  -
+              component_pin        BIGINT         216      216     10253280110000     26071050350000 16944365534305.555  2432929322411.798
+                      pin10        BIGINT         216      216         1025328011         2607105035 1694436553.4305556 243292932.24117988
+                target_year        BIGINT         216       16               2006               2022 2011.1527777777778  4.978072071634562
+           selected_address       VARCHAR         204      196                  -                  -                  -                  -
+selected_address_normalized       VARCHAR         204      196                  -                  -                  -                  -
+      selected_address_year        BIGINT         204       15               2007               2025 2013.3382352941176  5.733688263842195
+  selected_address_year_gap        BIGINT         204       11                  1                 19  2.377450980392157  2.779176858777355
+    chicago_candidate_count        BIGINT         216        7                  0                  6  2.689814814814815 0.9935082134527649
+  chicago_exact_point_count        BIGINT         216        2                  0                  1 0.5277777777777778 0.5003874467842141
+             chicago_status       VARCHAR         216        4                  -                  -                  -                  -
+    chicago_matched_address       VARCHAR         114      113                  -                  -                  -                  -
+       chicago_house_number        BIGINT         114      113                 14               9536 2439.5087719298244  1973.345549875745
+              chicago_score        BIGINT         114        1                100                100              100.0                0.0
+             chicago_x_3435        DOUBLE         114      100  1131601.159979024 1195798.0153152498 1163527.3713187024 14543.033122908651
+             chicago_y_3435        DOUBLE         114      100 1842047.9315260104  1948143.731677953 1899072.7044006055  19403.69582843232
+            chicago_locator       VARCHAR         114        1                  -                  -                  -                  -
+       chicago_address_type       VARCHAR         114        1                  -                  -                  -                  -
+             response_error       VARCHAR           0        0                  -                  -                  -                  -

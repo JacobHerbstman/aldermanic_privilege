@@ -2,6 +2,8 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-07-address-geocode-replay.tex ../tasks/download_construction_address_geocodes/report/address_geocodes_census.csv.log ../tasks/download_construction_address_geocodes/report/address_geocodes_chicago.csv.log ../tasks/download_construction_historical_parcels/report/preferred_historical_parcel_source.gpkg.log ../tasks/new_construction_cleaning/report/preferred_historical_parcel_coverage.csv.log ../tasks/new_construction_cleaning/report/preferred_address_geocode_requests.csv.log ../tasks/new_construction_cleaning/report/preferred_historical_address_geocodes.csv.log ../tasks/new_construction_cleaning/report/preferred_chicago_address_geocodes.csv.log
+
 logbook.pdf: entries/2026-09-07-predecessor-recovery.tex ../tasks/download_construction_historical_parcels/report/predecessor_parcel_history.csv.log ../tasks/download_construction_historical_parcels/report/historical_predecessor_parcel_source.gpkg.log ../tasks/new_construction_cleaning/report/missing_project_reference_points.csv.log ../tasks/new_construction_cleaning/report/historical_project_predecessor_resolution.csv.log ../tasks/new_construction_cleaning/report/historical_project_year_geometry.gpkg.log
 
 logbook.pdf: entries/2026-09-07-historical-parcel-coverage.tex ../tasks/download_construction_historical_parcels/report/historical_project_parcel_source.gpkg.log ../tasks/download_construction_historical_parcels/report/historical_project_parcel_source_queries.csv.log ../tasks/new_construction_cleaning/report/historical_project_parcel_requests.csv.log ../tasks/new_construction_cleaning/report/historical_project_parcel_coverage.csv.log

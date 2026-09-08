@@ -15,6 +15,11 @@ HISTORICAL_LOCAL_MATCH_FT ?= 150
 HISTORICAL_MAX_BUILDING_GAP ?= 0.10
 
 all: ../report/commercial_city_building_footprints.gpkg.log \
+	../report/preferred_historical_parcels.gpkg.log \
+	../report/preferred_historical_parcel_coverage.csv.log \
+	../report/preferred_address_geocode_requests.csv.log \
+	../report/preferred_historical_address_geocodes.csv.log \
+	../report/preferred_chicago_address_geocodes.csv.log \
 	../report/historical_project_parcel_requests.csv.log \
 	../report/historical_project_parcel_coverage.csv.log \
 	../report/historical_project_year_geometry.gpkg.log \
@@ -739,6 +744,30 @@ endif
 ../output/preferred_predecessor_reference_points.csv: build_preferred_predecessor_reference_points.R ../input/parcel_universe_2025_city.csv ../output/density_historical_coordinates.csv ../output/new_construction_exact_permit_matches.csv ../output/preferred_chicago_address_geocodes.csv ../output/preferred_historical_address_geocodes.csv ../output/preferred_historical_parcel_coverage.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
+../output/preferred_address_geocode_requests.csv: build_preferred_address_geocode_requests.R ../output/preferred_historical_parcel_coverage.csv ../output/density_historical_coordinates.csv ../output/density_parcel_address_selected_history.csv ../input/parcel_universe_2025_city.csv ../../setup_environment/code/packages.R | ../output
+	$(R) $<
+
+../output/preferred_historical_address_geocodes.csv: build_preferred_census_geocodes.R ../output/preferred_address_geocode_requests.csv ../input/address_geocodes_census.csv ../../setup_environment/code/packages.R | ../output
+	$(R) $<
+
+../output/preferred_chicago_address_geocodes.csv: build_preferred_chicago_geocodes.R ../output/preferred_address_geocode_requests.csv ../input/address_geocodes_chicago.csv ../../setup_environment/code/packages.R | ../output
+	$(R) $<
+
+../report/preferred_address_geocode_requests.csv.log: ../../shared/code/report.py ../output/preferred_address_geocode_requests.csv | ../report
+	$(PYTHON) $< ../output/preferred_address_geocode_requests.csv $@ request_id
+
+../report/preferred_historical_address_geocodes.csv.log: ../../shared/code/report.py ../output/preferred_historical_address_geocodes.csv | ../report
+	$(PYTHON) $< ../output/preferred_historical_address_geocodes.csv $@ request_id
+
+../report/preferred_chicago_address_geocodes.csv.log: ../../shared/code/report.py ../output/preferred_chicago_address_geocodes.csv | ../report
+	$(PYTHON) $< ../output/preferred_chicago_address_geocodes.csv $@ request_id
+
+../report/preferred_historical_parcels.gpkg.log: ../../shared/code/report.py ../output/preferred_historical_parcels.gpkg | ../report
+	$(PYTHON) $< ../output/preferred_historical_parcels.gpkg $@ target_year object_id
+
+../report/preferred_historical_parcel_coverage.csv.log: ../../shared/code/report.py ../output/preferred_historical_parcel_coverage.csv | ../report
+	$(PYTHON) $< ../output/preferred_historical_parcel_coverage.csv $@ project_id component_pin target_year
+
 ifneq ($(filter-out $(wildcard ../output/preferred_historical_parcels.gpkg ../output/preferred_historical_parcel_coverage.csv),../output/preferred_historical_parcels.gpkg ../output/preferred_historical_parcel_coverage.csv),)
 .PHONY: ../output/preferred_historical_parcels.gpkg
 endif
@@ -1075,14 +1104,22 @@ link-inputs: ../input/historical_project_parcel_source.gpkg ../input/historical_
 ../input/zoning_sep2025.geojson: ../../../data_raw/construction_review/zoning_sep2025.geojson | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/preferred_historical_parcel_source.gpkg: ../../../data_raw/construction_review/preferred_historical_parcel_source.gpkg | ../input
+../input/preferred_historical_parcel_source.gpkg: ../../download_construction_historical_parcels/output/preferred_historical_parcel_source.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
-../input/preferred_historical_parcel_source_queries.csv: ../../../data_raw/construction_review/preferred_historical_parcel_source_queries.csv | ../input
+../input/preferred_historical_parcel_source_queries.csv: ../../download_construction_historical_parcels/output/preferred_historical_parcel_source_queries.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 ../input/preferred_predecessor_parcel_source.gpkg: ../../../data_raw/construction_review/preferred_predecessor_parcel_source.gpkg | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/address_geocodes_census.csv: ../../download_construction_address_geocodes/output/address_geocodes_census.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/address_geocodes_chicago.csv: ../../download_construction_address_geocodes/output/address_geocodes_chicago.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/address_geocodes_census.csv ../input/address_geocodes_chicago.csv
 
 ../input/preferred_predecessor_source_queries.csv: ../../../data_raw/construction_review/preferred_predecessor_source_queries.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

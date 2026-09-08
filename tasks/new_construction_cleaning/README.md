@@ -303,6 +303,35 @@ holding accepted predecessor decisions fixed. Current predecessor recovery has
 polygon. These unresolved requests are preserved for later evidence and identity
 reconciliation; they are not new density exclusions.
 
+**Required checkpoint before the full rerun:** revisit all 30 unresolved initial
+predecessor requests (24 with multiple polygons; six with none). Trace each through
+the later pipeline and record whether it is resolved, remains ineligible, or needs
+Jacob's judgment. Identify them by source family, project, component PIN, and target
+year in `historical_project_predecessor_resolution.csv`; filter
+`predecessor_status` to `multiple_predecessor_polygons` or `no_predecessor_polygon`
+and count distinct requests rather than candidate-polygon rows. Do not treat this
+checkpoint as completed merely because the later code builds.
+
+Address geocoding now separates request eligibility, full source responses, and
+match selection. `build_preferred_address_geocode_requests.R` requests a selected
+historical address only when both historical and current exact-PIN coordinates
+are unavailable. The two geocode scripts replay pinned responses from
+`download_construction_address_geocodes`; they make no network calls. Current
+requests number 216: all 211 original requests are unchanged, and five additional
+requests have no selected historical address. Both services reproduce the old
+chosen-match records exactly on the shared 211 requests.
+
+**Geocode acceptance remains under review before the full rerun.** The preserved
+Census rule checks one match, house-number agreement, and Chicago coordinate
+bounds. It accepts four responses that change the requested direction or street
+type. Three of those responses entered the old reference-point calculation; a
+City point match superseded the fourth. Do not infer a corrected location or a
+density exclusion from this comparison alone: the source historical address can
+also be wrong. The proposed general full-street agreement rule, including how to
+handle omitted unit labels, still needs Jacob's decision. The reconstruction
+currently retains the old rules as a comparison baseline, not a completed
+location validation.
+
 The current initial geography builds 9,530 complete candidate project-year shapes.
 All 9,501 shapes shared with the original output retain identical attributes and
 geometry; 29 candidate project-years enter and four leave following the upstream

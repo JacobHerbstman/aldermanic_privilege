@@ -37,13 +37,13 @@ all: ../report/predecessor_parcels_download.gpkg.log ../report/predecessor_spati
 	$(PYTHON) $< ../output/predecessor_history_queries_download.csv $@ pin
 
 ../output/historical_parcels_additional.gpkg: combine_additional_parcel_years.R $(foreach year,$(PARCEL_YEARS),../output/historical_parcels_additional_$(year).gpkg) ../../setup_environment/code/packages.R | ../output
-	$(R) $<
+	$(R) $< historical
 
 ../report/historical_parcels_additional.gpkg.log: ../../shared/code/report.py ../output/historical_parcels_additional.gpkg | ../report
 	$(PYTHON) $< ../output/historical_parcels_additional.gpkg $@ target_year object_id
 
 ../output/historical_parcels_additional_%.gpkg: download_historical_parcels.R download_recipes.make ../output/historical_parcel_queries_additional.csv ../input/historical_project_parcel_layers.csv ../../setup_environment/code/packages.R | ../output ../temp
-	$(R) $< $*
+	$(R) $< $* historical
 
 ../output/historical_parcel_queries_additional.csv: prepare_additional_parcel_queries.R ../input/historical_project_parcel_requests.csv ../input/historical_project_parcel_queries_2026-07-27.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
@@ -53,6 +53,37 @@ all: ../report/predecessor_parcels_download.gpkg.log ../report/predecessor_spati
 
 ../report/historical_parcels_additional_%.gpkg.log: ../../shared/code/report.py ../output/historical_parcels_additional_%.gpkg | ../report
 	$(PYTHON) $< ../output/historical_parcels_additional_$*.gpkg $@ target_year object_id
+
+all: ../report/preferred_parcels_additional.gpkg.log ../report/preferred_parcel_queries_additional.csv.log $(foreach year,$(PARCEL_YEARS),../output/preferred_parcels_additional_$(year).gpkg ../report/preferred_parcels_additional_$(year).gpkg.log)
+
+../output/preferred_parcels_additional.gpkg: combine_additional_parcel_years.R $(foreach year,$(PARCEL_YEARS),../output/preferred_parcels_additional_$(year).gpkg) ../../setup_environment/code/packages.R | ../output
+	$(R) $< preferred
+
+../output/preferred_parcels_additional_%.gpkg: download_historical_parcels.R download_recipes.make ../output/preferred_parcel_queries_additional.csv ../input/historical_project_parcel_layers.csv ../../setup_environment/code/packages.R | ../output ../temp
+	$(R) $< $* preferred
+
+../output/preferred_parcel_queries_additional.csv: prepare_preferred_parcel_queries.R ../input/preferred_project_geography_requests.csv ../input/preferred_historical_parcel_source_queries.csv ../input/historical_project_parcel_queries_2026-07-27.csv ../input/historical_project_parcel_queries_2026-09-07.csv ../../setup_environment/code/packages.R | ../output
+	$(R) $<
+
+../report/preferred_parcel_queries_additional.csv.log: ../../shared/code/report.py ../output/preferred_parcel_queries_additional.csv | ../report
+	$(PYTHON) $< ../output/preferred_parcel_queries_additional.csv $@ target_year pin10
+
+../report/preferred_parcels_additional.gpkg.log: ../../shared/code/report.py ../output/preferred_parcels_additional.gpkg | ../report
+	$(PYTHON) $< ../output/preferred_parcels_additional.gpkg $@ target_year object_id
+
+../report/preferred_parcels_additional_%.gpkg.log: ../../shared/code/report.py ../output/preferred_parcels_additional_%.gpkg | ../report
+	$(PYTHON) $< ../output/preferred_parcels_additional_$*.gpkg $@ target_year object_id
+
+../input/preferred_project_geography_requests.csv: ../../new_construction_cleaning/output/preferred_project_geography_requests.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/preferred_historical_parcel_source_queries.csv: ../../../data_raw/construction_review/preferred_historical_parcel_source_queries.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/historical_project_parcel_queries_2026-09-07.csv: ../../../data_raw/construction_review/historical_project_parcel_queries_2026-09-07.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/preferred_project_geography_requests.csv ../input/preferred_historical_parcel_source_queries.csv ../input/historical_project_parcel_queries_2026-09-07.csv
 
 ../input/historical_project_parcel_requests.csv: ../../new_construction_cleaning/output/historical_project_parcel_requests.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"

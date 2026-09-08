@@ -75,3 +75,17 @@ The intentional download recipes derive additional spatial queries from the
 current reference points and request intersecting polygons in EPSG:3435. They
 preserve the July responses. Source points outside the recorded query scope fail
 in construction cleaning rather than being interpreted as unmatched.
+
+The later preferred-project parcel lookup now also has a reproducible source
+union. It retains the original `preferred_historical_parcel_source.gpkg` and
+query table unchanged, then uses the initial parcel source for queries outside
+that original scope. Current preferred candidates required 17 additional
+year/PIN10 pairs: six were already queried in the initial source and 11 required
+new queries. The latter are pinned as
+`preferred_parcel_supplement_2026-09-07.gpkg` and
+`preferred_parcel_supplement_queries_2026-09-07.csv`. All four preferred inputs
+are fixed by `preferred_snapshot.sha256`. The original query scope takes
+priority, including its empty results; combining sources never silently refreshes
+an already queried parcel. `download_recipes.make` prepares and downloads only
+the additional preferred queries, using the same annual API rules as the initial
+lookup.
