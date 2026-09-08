@@ -1,7 +1,17 @@
 # setwd("tasks/new_construction_cleaning/code")
+# maximum_building_gap <- 0.02
+# maximum_year_gap <- 2
 
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/assessor_classification.R")
+
+args <- commandArgs(trailingOnly = TRUE)
+if (interactive()) args <- c(maximum_building_gap, maximum_year_gap)
+stopifnot(length(args) == 2L)
+maximum_building_gap <- as.numeric(args[1])
+maximum_year_gap <- as.integer(args[2])
+stopifnot(is.finite(maximum_building_gap), maximum_building_gap >= 0,
+  !is.na(maximum_year_gap), maximum_year_gap >= 0)
 
 single_finite_value <- function(x) {
   values <- sort(unique(x[is.finite(x)]))
@@ -283,6 +293,89 @@ multicard_candidates <- multicard_cards %>%
     .groups = "drop"
   ) %>%
   select(all_of(names(ordinary_candidates)))
+
+# An old parcel may describe homes that now have individual property numbers.
+# Suppress it only when all of its homes have separately accepted replacements.
+old_parcels <- bind_rows(
+  sf::st_read("../input/preferred_historical_parcel_source.gpkg", quiet = TRUE) %>%
+    transmute(pin = pin14, map_year = target_year),
+  sf::st_read("../input/preferred_predecessor_parcel_source.gpkg", quiet = TRUE) %>%
+    transmute(pin = predecessor_pin14, map_year = target_year)
+) %>% sf::st_transform(3435)
+current_parcels <- readr::read_csv(
+  "../input/parcel_universe_2025_city.csv", show_col_types = FALSE,
+  col_types = readr::cols(pin = readr::col_character(), longitude = readr::col_double(),
+    latitude = readr::col_double(), .default = readr::col_skip())
+)
+stopifnot(!anyDuplicated(current_parcels$pin))
+individuals <- ordinary_candidates %>%
+  inner_join(current_parcels, by = c("component_pins" = "pin"), relationship = "one-to-one") %>%
+  filter(is.finite(longitude), is.finite(latitude)) %>%
+  sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326) %>%
+  sf::st_transform(3435)
+multicard_candidates$replacement_project_ids <- NA_character_
+multicard_candidates$replacement_check <- "not_checked"
+for (i in seq_len(nrow(multicard_candidates))) {
+  parent_pin <- multicard_candidates$component_pins[i]
+  cards <- multicard_cards %>%
+    filter(pin == parent_pin, between(year_built, 2006L, 2022L))
+  # A surviving current parcel is not automatically replaced by nearby homes.
+  if (parent_pin %in% current_parcels$pin) {
+    multicard_candidates$replacement_check[i] <- "parent_still_in_current_parcel_source"
+    next
+  }
+  if (nrow(cards) < 2L || anyNA(cards$year_built) ||
+      any(!between(cards$year_built, 2006L, 2022L)) ||
+      any(!cards$class %in% single_family_assessor_classes) ||
+      any(!is.finite(cards$building_sqft) | cards$building_sqft <= 0) ||
+      n_distinct(cards$tax_year) != 1L) {
+    multicard_candidates$replacement_check[i] <- "incomplete_or_mixed_parent_cards"
+    next
+  }
+  shapes <- old_parcels %>% filter(pin == parent_pin, map_year <= max(cards$tax_year))
+  if (nrow(shapes) == 0L) {
+    multicard_candidates$replacement_check[i] <- "missing_exact_parent_parcel"
+    next
+  }
+  shapes <- shapes %>% filter(map_year == max(map_year))
+  if (any(!sf::st_is_valid(shapes)) ||
+      !all(lengths(sf::st_equals(shapes)) == nrow(shapes))) {
+    multicard_candidates$replacement_check[i] <- "conflicting_parent_parcels"
+    next
+  }
+  homes <- individuals[lengths(sf::st_within(individuals, shapes[1, ])) == 1L, ] %>%
+    filter(between(construction_year, min(cards$year_built) - maximum_year_gap,
+      max(cards$year_built) + maximum_year_gap))
+  if (nrow(homes) != nrow(cards) ||
+      any(homes$candidate_status != "retain_mechanical") ||
+      any(homes$dwelling_units != 1) || anyNA(homes$dwelling_units)) {
+    multicard_candidates$replacement_check[i] <- "individual_count_or_eligibility_conflict"
+    next
+  }
+  # Compare every home, not just total floor area; identical sizes may repeat.
+  homes <- homes %>% arrange(building_sqft, construction_year, project_id)
+  cards <- cards %>% arrange(building_sqft, year_built, card_num)
+  if (any(abs(homes$building_sqft / cards$building_sqft - 1) > maximum_building_gap) ||
+      any(abs(homes$construction_year - cards$year_built) > maximum_year_gap)) {
+    multicard_candidates$replacement_check[i] <- "individual_measurement_or_year_conflict"
+    next
+  }
+  multicard_candidates$replacement_project_ids[i] <- paste(sort(homes$project_id), collapse = "/")
+  multicard_candidates$replacement_check[i] <- "complete_individual_coverage"
+}
+# One individual cannot be used to clear two old parcels automatically.
+replacement_ids <- strsplit(na.omit(multicard_candidates$replacement_project_ids), "/", fixed = TRUE)
+reused_ids <- names(which(table(unlist(replacement_ids)) > 1L))
+for (i in which(!is.na(multicard_candidates$replacement_project_ids))) {
+  ids <- strsplit(multicard_candidates$replacement_project_ids[i], "/", fixed = TRUE)[[1]]
+  if (any(ids %in% reused_ids)) {
+    multicard_candidates$replacement_project_ids[i] <- NA_character_
+    multicard_candidates$replacement_check[i] <- "individuals_claimed_by_multiple_parents"
+  } else {
+    multicard_candidates$candidate_status[i] <- "exclude_source_duplicate_keep_successors"
+    multicard_candidates$decision_reason[i] <- "complete_individual_coverage"
+  }
+}
 
 # Membership and measurements are built together from the same source records.
 assessor_projects <- bind_rows(ordinary_candidates, tieback_candidates, multicard_candidates) %>%

@@ -505,3 +505,33 @@ history and the history used for tracing parcel relationships remain intact.
 This removes empty records as evidence of additional buildings; it does not
 establish that every property with only empty records lacks new construction.
 Other source branches remain available. No case identifiers enter this rule.
+
+## September 8: Prefer individual homes to duplicate combined records
+
+`build_residential_assessor_projects.R` now identifies complete replacements
+before preferred candidate selection. It uses pinned historical polygons for the
+exact old PIN and exact-PIN current coordinates. The old PIN must have disappeared
+from the current parcel source. A single assessment must describe its study-period
+house cards with positive areas. Within the latest available old-parcel map no
+later than that assessment, separately accepted one-unit homes must account for
+all those cards. Restrict possible replacements to the existing two-year window;
+compare their sorted individual areas and associated years using the existing
+2% area and two-year tolerances. Conflicting shapes, incomplete counts, measurement
+conflicts, or homes claimed by multiple old parcels prevent automatic replacement.
+This is evidence of complete replacement, not a universal parcel genealogy.
+
+The project table keeps the old row marked
+`exclude_source_duplicate_keep_successors`, with replacement project IDs and a
+reason for each unsuccessful check. Preferred candidate selection carries those
+fields forward. No individual fields are overwritten and no case IDs enter the
+rule. Older manual-resolution stages remain unfinished and must respect these
+source dispositions before the final dataset can be rebuilt.
+
+Jacob confirmed keeping separately recorded townhomes separately. Specific
+review decisions are: Eddy's three individual homes retain 2022; Bell's eleven
+retain their individual Assessor years; 2403--2419 W 32nd Place's nine individual
+homes retain 2007; Cullerton/Prairie's twelve remain individual with their own
+Assessor years. These decisions do not waive unresolved duplicate matching.
+Fletcher's announced development size is not an observation count or a reason
+to add homes. Its six recorded cards still require reconciliation with individual
+properties. No news report creates observations.

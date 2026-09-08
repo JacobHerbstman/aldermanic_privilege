@@ -1,29 +1,31 @@
 File: residential_assessor_project_candidates.csv
 Rows: 27774
-Columns: 19
-SHA-256 (saved bytes): 8ae2ee38345194093b6f6ebb5f29f4442ad19e1e0919236d4977e090a4fe13b4
+Columns: 21
+SHA-256 (saved bytes): d77bb990be5b1676921e856f0369eb8d87e9c04f31b8fca911e5e2b3adb6ff07
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-               column inferred_type non_missing distinct                 min               max               mean                  sd
-           project_id       VARCHAR       27774    27774                   -                 -                  -                   -
-        source_family       VARCHAR       27774        1                   -                 -                  -                   -
-         project_kind       VARCHAR       27774        3                   -                 -                  -                   -
-       component_pins       VARCHAR       27774    27774                   -                 -                  -                   -
-      component_count        BIGINT       27774        8                   1                10 1.0421977388924895 0.24846370214779684
-    construction_year        BIGINT       27024       67                1878              2026 2008.4224763173474    8.47568489855993
-       dwelling_units        BIGINT       27418       26                   0                43 1.3263184769129768  1.1613373333816879
-        building_sqft        BIGINT       27417     4756                   0             83226  2694.191158770106  2084.1783052899023
-            land_sqft        BIGINT       26194     4979                  72         228167280 18175.209437275713  1718572.5906940084
-         class_values       VARCHAR       27062       28                   -                 -                  -                   -
-       source_row_ids       VARCHAR       26712    26712                   -                 -                  -                   -
-          year_source       VARCHAR       27424    26057                   -                 -                  -                   -
-         units_source       VARCHAR       27424    26057                   -                 -                  -                   -
-      building_source       VARCHAR       27424    26057                   -                 -                  -                   -
-          land_source       VARCHAR       27424    26057                   -                 -                  -                   -
-   current_distance_m        DOUBLE       25382    25320 0.31134218570016264 8512.934950058308 434.34414862639017   522.0952217549648
-current_within_1500ft       BOOLEAN       27774        2                   -                 -                  -                   -
-     candidate_status       VARCHAR       27774        4                   -                 -                  -                   -
-      decision_reason       VARCHAR       27774       18                   -                 -                  -                   -
+                 column inferred_type non_missing distinct                 min               max               mean                  sd
+             project_id       VARCHAR       27774    27774                   -                 -                  -                   -
+          source_family       VARCHAR       27774        1                   -                 -                  -                   -
+           project_kind       VARCHAR       27774        3                   -                 -                  -                   -
+         component_pins       VARCHAR       27774    27774                   -                 -                  -                   -
+        component_count        BIGINT       27774        8                   1                10 1.0421977388924895 0.24846370214779684
+      construction_year        BIGINT       27024       67                1878              2026 2008.4224763173474    8.47568489855993
+         dwelling_units        BIGINT       27418       26                   0                43 1.3263184769129768  1.1613373333816879
+          building_sqft        BIGINT       27417     4756                   0             83226  2694.191158770106  2084.1783052899023
+              land_sqft        BIGINT       26194     4979                  72         228167280 18175.209437275713  1718572.5906940084
+           class_values       VARCHAR       27062       28                   -                 -                  -                   -
+         source_row_ids       VARCHAR       26712    26712                   -                 -                  -                   -
+            year_source       VARCHAR       27424    26057                   -                 -                  -                   -
+           units_source       VARCHAR       27424    26057                   -                 -                  -                   -
+        building_source       VARCHAR       27424    26057                   -                 -                  -                   -
+            land_source       VARCHAR       27424    26057                   -                 -                  -                   -
+     current_distance_m        DOUBLE       25382    25320 0.31134218570016264 8512.934950058308 434.34414862639017   522.0952217549648
+  current_within_1500ft       BOOLEAN       27774        2                   -                 -                  -                   -
+       candidate_status       VARCHAR       27774        5                   -                 -                  -                   -
+        decision_reason       VARCHAR       27774       18                   -                 -                  -                   -
+replacement_project_ids       VARCHAR          84       84                   -                 -                  -                   -
+      replacement_check       VARCHAR        1167        6                   -                 -                  -                   -

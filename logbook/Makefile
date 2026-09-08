@@ -2,6 +2,8 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-08-individual-home-replacements.tex ../tasks/new_construction_cleaning/report/residential_assessor_project_candidates.csv.log
+
 logbook.pdf: entries/2026-09-08-empty-assessment-records.tex ../tasks/new_construction_cleaning/report/residential_cross_section.csv.log ../tasks/new_construction_cleaning/report/residential_multicard_cards.csv.log ../tasks/new_construction_cleaning/report/residential_assessor_project_candidates.csv.log
 
 logbook.pdf: entries/2026-09-08-geography-review.tex ../tasks/new_construction_cleaning/report/preferred_historical_predecessor_resolution.csv.log ../tasks/download_construction_historical_parcels/report/history_reference_parcels.gpkg.log ../tasks/download_construction_historical_parcels/report/history_reference_queries.csv.log

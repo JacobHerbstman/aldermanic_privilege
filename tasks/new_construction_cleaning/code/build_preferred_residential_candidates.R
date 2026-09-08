@@ -242,7 +242,7 @@ tieback_candidates <- assessor_projects %>%
 multicard_candidates <- assessor_projects %>%
   filter(project_kind == "same_pin_multiple_cards") %>%
   mutate(permit_chain_ids = NA_character_, permit_numbers = NA_character_) %>%
-  select(all_of(names(ordinary_candidates)))
+  select(all_of(names(ordinary_candidates)), replacement_project_ids, replacement_check)
 
 class_297_rows <- inventory %>%
   filter(
