@@ -1,13 +1,13 @@
 File: preferred_predecessor_source_queries.csv
-Rows: 3802
+Rows: 3810
 Columns: 3
-SHA-256 (saved bytes): 0ca441c6ff08efd5e83cf46d5ae6ce626def9e773ede1d297042b3395c8631b5
+SHA-256 (saved bytes): eac07b9f5fd70c3ed39eed5607ece6a394b5ddb1383b52648f471ed82c82967b
 Key: target_year, reference_x_3435, reference_y_3435
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
           column inferred_type non_missing distinct                min                max               mean                 sd
-     target_year        BIGINT        3802       17               2006               2022 2011.0439242503946 4.9633665793128765
-reference_x_3435        DOUBLE        3802     3775 1119499.7135786538 1203743.2364409526 1163846.6499595584 14020.059629106156
-reference_y_3435        DOUBLE        3802     3775  1823634.806017771  1949720.200967388 1896016.7442528314 23584.084443177315
+     target_year        BIGINT        3810       17               2006               2022 2011.0354330708662  4.961606771254708
+reference_x_3435        DOUBLE        3810     3782 1119499.7135786538 1203743.2364409526  1163837.153754622 14006.859227637362
+reference_y_3435        DOUBLE        3810     3782  1823634.806017771  1949720.200967388 1896049.8530122128 23570.361536158158

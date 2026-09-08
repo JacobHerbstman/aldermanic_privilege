@@ -42,3 +42,40 @@ a case. The affected candidate and geography builds and independent distance aud
 passed. The older final residential branch still has missing source dependencies;
 this work does not establish complete replication. The paper input and regressions
 remain unchanged.
+
+\subsection*{Later decisions: use recorded measurements and stop reconstruction}
+Jacob approved keeping Lincoln's individual homes and excluding the unsupported
+old combined record; keeping Campbell's eight homes separately with a 2007 completion
+proxy and their recorded private lots; and excluding Seeley and 38th Street from
+density because their new-building measurements and physical home count remain
+unverified. Calumet is one three-building site with 12 apartments, 17,046 square feet
+of building area, and 15,752 of land, using selected 2022 Assessor records and the
+approved 2015 completion proxy.
+
+Jacob then clarified that land area must be reported by the Assessor or another
+accessible source. Analyst-calculated parcel areas are not replacement density
+measurements. Marquette's proposed calculated 22,100-square-foot denominator was
+withdrawn. Its four-building interpretation is documented, but it remains ineligible
+for density because the reported land conflicts with historical parcel coverage.
+General cleaning and accessible recorded measurements take priority; missing or
+unreliable fields should lead to an explicit exclusion, not hours of reconstruction.
+
+The candidate rebuild applies these decisions in the existing Assessor producer.
+Calumet's areas are calculated by summing selected recorded building measurements
+and distinct recorded parcel areas, not by measuring a map. Campbell's eight
+individual records now all carry 2007. Superseded numerical rows in the older final
+ledger inputs, including the unsupported two-home 38th row, have been removed.
+
+The existing location rule locates all eight Campbell homes within the saved 2007
+parent parcel; their assigned boundary distance is about 1,241 feet. Calumet's
+three-parcel site is about 1,315 feet from its 2015 boundary. Neither enters the
+500-foot sample. The independent ward and distance checks pass. The query responses
+are pinned, including the negative searches for Campbell's individual parcel numbers.
+No density land area was taken from those polygons.
+
+Verification covered the affected candidate, location, and review outputs. The
+unchanged cleaning Makefile was held fixed during the scoped rebuild after the
+withdrawn land-calculation edit. This is not a completed release rebuild: the older
+final residential entry still has a missing building-footprint dependency, and the
+combined final entry has a missing commercial historical-parcel dependency. The
+paper input retains its previous checksum and no regressions were rerun.

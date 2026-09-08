@@ -630,3 +630,14 @@ source decision rather than silently treating it as an exclusion. That older bra
 still has missing source dependencies and has not been rebuilt. The ten-case review
 in `working_paper_release_audit` distinguishes applied resolutions from open evidence
 questions; a historical recommendation is not proof that a current row is resolved.
+
+### Recorded measurements and a stopping rule for case review
+
+For density, use land area reported by the Assessor or another accessible source.
+Do not construct replacement land measurements by calculating parcel polygon areas.
+Maps can check identities, coverage, and locations; they are not a license to invent
+missing density fields. Apply general cleaning rules first and existing approved
+source decisions next. If required measurements remain unavailable or unreliable,
+retain the record and exclusion reason in the inventory and leave it out of the
+relevant density analysis. Do not spend hours reconstructing an individual property
+just to retain it. Jacob clarified this stopping rule on September 8, 2026.

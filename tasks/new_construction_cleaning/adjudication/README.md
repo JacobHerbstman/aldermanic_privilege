@@ -113,3 +113,26 @@ exact unit matches, no extra compatible successor, and area agreement within
 2 percent. A diagnostic using the existing broader matching band resolves six
 additional cases; adoption awaits Jacob's decision. No additional density
 exclusions have been made.
+
+### Final decisions on the six remaining earlier year cases (September 8, 2026)
+
+Jacob approved the six recommendations together. Lincoln's unsupported old combined
+record is ineligible; independently measured homes remain. This is not a claim that
+all old Lincoln homes have been matched. Campbell retains eight individual homes,
+using a 2007 completion proxy supported by late-2006 permits and City building
+records. Each uses its recorded private lot; common parcel 1336422058 is not allocated.
+Seeley and 38th Street remain in the source inventory but are ineligible for density:
+Seeley's independent new-dwelling measurement and 38th's physical home count remain
+unknown. Seeley is not classified as proven non-new construction.
+
+Calumet becomes one three-building site: the selected 2022 cards describe six,
+three, and three apartments. Each parcel's land is counted once. Its approved year
+is the 2015 Assessor completion proxy.
+
+Jacob subsequently clarified that land area must be reported by the Assessor or
+another source; analyst-calculated polygon areas are not permitted as replacement
+density denominators. Marquette's four-building and twelve-apartment interpretation
+remains documented, but it is ineligible for density pending a reliable reported
+land area. The Assessor total of 24613 square feet conflicts with historical parcel
+coverage. The proposed calculated 22100-square-foot replacement was withdrawn
+before adoption. No new polygon-area calculation remains in the producer.

@@ -312,3 +312,30 @@ a separately measured new house. At 38th, one connected outline spans both parce
 and does not identify interior townhouse divisions. These observations narrow the
 remaining questions but do not establish the missing measurements. The four applied
 case resolutions above are unchanged.
+
+## Approved treatment of the final six earlier cases
+
+Jacob approved the recommendations on September 8, then clarified the stopping rule:
+use readily accessible recorded measurements; do not calculate substitute land areas
+from parcel polygons or spend hours reconstructing individual properties.
+
+- Lincoln: retain individual homes; exclude the unsupported old combined record.
+  Complete successor coverage is not certified and need not be reconstructed to
+  justify refusing to add that unsupported combined observation.
+- Campbell: eight individual homes, 2007 completion proxy, recorded private lots.
+  The separate common parcel is not allocated to homes.
+- Seeley: exclude from density pending independent new-dwelling identity and area.
+  The corrected permit evidence does not establish a usable separate measurement.
+- 38th: exclude from density pending physical home count; the earlier two-home
+  numerical row is withdrawn.
+- Calumet: one site with three buildings and twelve apartments, 2015 proxy, using
+  selected 2022 Assessor records for 17046 building sqft and 15752 land sqft.
+- Marquette: exclude from density pending reliable source-reported land area.
+  Four buildings and twelve apartments are supported, but the Assessor land total
+  conflicts with the historical map. The proposed polygon-derived 22100 sqft was
+  withdrawn following Jacob's clarification.
+
+The source exclusions, Campbell years, and Calumet building selections belong in the
+existing Assessor project producer. Superseded numerical rows and Campbell's old
+individual-home suppression are removed from the older final ledger inputs so that
+an eventual downstream rebuild cannot restore these rejected treatments.

@@ -16,8 +16,10 @@ old <- st_read("../input/preferred_predecessor_parcel_source.gpkg", quiet = TRUE
 lots <- st_read("../input/preferred_historical_parcel_source.gpkg", quiet = TRUE) |>
   select(pin14, target_year, geom) |> bind_rows(old)
 stopifnot(st_crs(lots)$epsg == 3435)
-review <- read_csv("../reference/prior_construction_cases.csv", show_col_types = FALSE) |> filter(review_result == "investigate")
-candidates <- read_csv("../input/preferred_residential_project_candidates.csv", show_col_types = FALSE)
+review <- read_csv("../reference/prior_construction_cases.csv", show_col_types = FALSE) |>
+  filter(site %in% footprints$site)
+candidates <- read_csv("../input/preferred_residential_project_candidates.csv", show_col_types = FALSE,
+  col_types = cols(class_values = col_character()))
 universe <- read_csv("../input/parcel_universe_2025_city.csv", col_types = cols(
   pin = col_character(), longitude = col_double(), latitude = col_double(), .default = col_skip()))
 stopifnot(!anyDuplicated(candidates$project_id), !anyDuplicated(universe$pin))

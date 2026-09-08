@@ -324,6 +324,10 @@ stopifnot(all(ordinary_candidates$construction_year[i] == reviewed_years$reporte
   all(between(reviewed_years$construction_year, 2006L, 2022L)))
 ordinary_candidates$construction_year[i] <- reviewed_years$construction_year
 ordinary_candidates$year_source[i] <- paste0("reviewed_construction_year:", reviewed_years$project_id)
+ordinary_candidates$candidate_status[i] <- "retain_mechanical"
+ordinary_candidates$decision_reason[i] <- "reviewed_construction_year_with_recorded_assessor_measurements"
+stopifnot(all(ordinary_candidates$dwelling_units[i] > 0),
+  all(ordinary_candidates$building_sqft[i] > 0), all(ordinary_candidates$land_sqft[i] > 0))
 
 # An old parcel may describe homes that now have individual property numbers.
 # Suppress it only when all of its homes have separately accepted replacements.

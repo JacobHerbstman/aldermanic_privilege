@@ -118,8 +118,11 @@ review <- review |> mutate(
       predecessor_shapes_equivalent, FALSE),
   initial_checkpoint_pending = initial_checkpoint_pending & !initial_checkpoint_resolved)
 
-residential <- read_csv("../input/preferred_residential_project_candidates.csv", show_col_types = FALSE)
-commercial <- read_csv("../input/preferred_commercial_project_candidates.csv", show_col_types = FALSE)
+residential <- read_csv("../input/preferred_residential_project_candidates.csv", show_col_types = FALSE,
+  col_types = cols(class_values = col_character()))
+commercial <- read_csv("../input/preferred_commercial_project_candidates.csv", show_col_types = FALSE,
+  col_types = cols(class_values = col_character()))
+stopifnot(nrow(problems(residential)) == 0L, nrow(problems(commercial)) == 0L)
 reviewed_replacement_ids <- residential |>
   filter(replacement_check == "reviewed_same_building_identity") |>
   pull(replacement_project_ids) |> unique()

@@ -281,3 +281,22 @@ with `review_footprint_snapshot.sha256`; source refreshes must be compared again
 that record. Each query validates a complete nonempty GeoJSON response and its recorded
 SHA-256 before publishing its output. All six queries were replayed and reproduced
 the saved bytes exactly. The audit map consumes these outputs through Make links.
+
+Campbell's approved 2007 year adds eight direct parcel-number queries, PIN10
+1336422050 through 1336422057. On September 8, 2026, the existing
+`download_recipes.make` / `download_historical_parcels.R` acquisition returned no
+2007 polygons for these individual successor numbers. The query table and empty
+GeoPackage are preserved as `campbell_queries_2026-09-08.csv` and
+`campbell_parcels_2026-09-08.gpkg` under `data_raw/construction_review`, with hashes in
+`preferred_snapshot.sha256`. The ordinary Make build includes these recorded
+negative results; it does not pretend that an unqueried parcel was absent. The
+endpoint is the recorded 2007 layer of Cook County's `parcelHistorical/MapServer`.
+These are location queries, not replacements for the homes' Assessor land areas.
+
+The existing location fallback then queried the eight recorded Campbell reference
+coordinates in the same 2007 layer. It returned historical parcel 13364220230000
+(object 174426). The source response and query coordinates are preserved as
+`campbell_predecessor_parcels_2026-09-08.gpkg` and
+`campbell_predecessor_queries_2026-09-08.csv`, with hashes in
+`preferred_predecessor_snapshot.sha256`. The existing spatial matching rules decide
+which points that polygon covers; this acquisition does not assign a new land area.
