@@ -35,3 +35,19 @@ and does not exceed the service transfer limit. Both files have recorded hashes.
 This is a broader site query than the older review footprint extract, which
 contains only four of the eight western residences; absence from that extract
 must not be interpreted as absence of a building.
+
+The September 8, 2026 Deming and Huron sources are declared in
+`code/remaining_sources.make`. `deming_pd853.pdf` contains the approved division
+into two home lots (PDF pages 15–16 and 24). `huron_pd356_2011.pdf` is the 2011
+amendment; `huron_pd356.pdf` is the City's 44-page compilation. Their development
+wide floor-area limits are not measurements of 910 W Huron alone.
+`huron_energy_benchmarking.csv` preserves the eight City energy records for
+property 251926, reporting years 2016–2023, retrieved by the literal address query
+in Make. Its floor-area series switches between approximately 175,000 and
+300,000 square feet; it does not independently resolve the Assessor discrepancy.
+The query validates property identity and unique year-property row IDs before
+publishing the file. Its standard report is part of the ordinary build.
+These URLs are mutable. Preserve the recorded bytes with the source archive,
+reuse them on unchanged builds, and compare checksums and reports before any
+intentional refresh. The Huron sources support an investigation, not an adopted
+floor-area override or exclusion.
