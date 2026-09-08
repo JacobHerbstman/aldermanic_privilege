@@ -273,9 +273,22 @@ must run no producer; a deleted member of a multiple-output product must regener
 
 The earlier declared final-output dependency inventory reached 99 local scripts
 and 188 internal output paths, with 38 missing producer rules. The City footprint
-producer has since been restored. That inventory was a static count of declared
-prerequisites, not a successful build. The
-missing work includes historical parcels, duplicate reconciliation, condominium
+producer and initial historical parcel coverage have since been restored. Coverage
+now builds from the current candidate components through pinned administrative
+polygons and recorded query scope. It first matches the exact annual parcel
+identifier, then a unique polygon sharing the ten-digit base identifier; other
+cases remain ambiguous or missing. It fails if a requested parcel-year has never
+been queried. No row-specific exceptions enter this rule.
+
+The updated coverage has 11,108 component-year requests: 8,508 exact matches,
+seven unique base-identifier matches, and 2,593 missing matches. These are candidate
+component-years, not final projects or density exclusions. All 11,079 rows shared
+with the archived coverage retain their match fields exactly. A controlled replay
+with original candidates reproduced the archived coverage bytes and all 9,505
+project-year geometries, holding predecessor evidence fixed.
+
+The dependency inventory was a static count, not a successful build. The remaining
+work includes historical predecessor parcels, duplicate reconciliation, condominium
 successors, and ordinance reconstruction. The exact original residential download
 remains unavailable, and the pinned replacement vintage is not fully reconciled.
 

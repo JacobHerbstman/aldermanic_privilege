@@ -1,0 +1,50 @@
+\section*{September 7, 2026: Restore historical parcel coverage}
+\textit{Agent-drafted source and reconstruction checks.}
+
+Historical parcel coverage now builds from the current construction candidates
+and pinned Cook County polygons. The calculation first looks for a project's
+exact parcel number in each candidate construction year. If that number is absent,
+it accepts a unique polygon with the same ten-digit base identifier. Multiple
+possible polygons remain ambiguous. A query returning no polygon is recorded as missing.
+These rules apply to every requested component-year without case-specific fixes.
+
+The recovered July source contains 8,444 polygons from 11,017 distinct parcel-year
+queries. Its query scope includes requests that returned nothing. Rebuilding the
+original candidates' coverage reproduces all 11,085 rows byte for byte. With the
+original predecessor evidence held fixed, the downstream calculation also
+reproduces all 9,505 project-year geometries and their attributes exactly.
+This checks restoration of the calculation; it does not validate the predecessor
+evidence or prove that each tax parcel describes the intended construction site.
+
+The updated candidate build requires 29 queries outside the July extract. Cook
+County returned polygons for 28; the remaining query returned none. A dated
+September supplement preserves those responses without refreshing the July
+features. All 8,444 original features retain identical attributes and geometry.
+The source now contains 8,472 polygons and records 11,046 queried parcel-year pairs.
+A coverage build fails if a requested pair is outside that recorded scope, so an
+unqueried parcel cannot silently become a missing match.
+
+Current coverage contains 11,108 component-year requests: 8,508 exact matches,
+seven unique base-identifier matches, and 2,593 missing matches. All 11,079 rows
+shared with the original coverage retain their match fields exactly. The updated
+upstream candidates introduce 29 requested rows and omit six old ones. These are
+candidate component-years, sometimes several years for one project, rather than
+final construction observations or new density exclusions.
+
+The next missing producer is predecessor-parcel recovery. It must reconstruct
+the historical site when a later parcel number did not yet exist, using recorded
+location evidence and annual polygons. The present checks do not finish project
+measurements, boundary distances, or raw-to-final replication. The paper continues
+to use its unchanged frozen input; estimates have not been rerun.
+
+\textit{Reproduction and limits.} Work continues on
+\path{sales_sample_exploration} after \path{e73df85}.
+\path{tasks/download_construction_historical_parcels/} owns the dated source
+extracts and explicit API recipes; construction cleaning owns requests and matches.
+The current coverage was built through its actual Make dependencies. The original
+comparison used a disposable Make replay with candidates and predecessor inputs
+held fixed. Source preservation, all four matching outcomes, failure on unqueried
+pairs, failed-download handling, missing-report recovery, and unchanged second
+builds were checked. The stage-comparison record stores hashes and comparison scope.
+Logbook compilation retains the earlier holds on unfinished audit products,
+the residential candidate baseline, and previously verified development documents.

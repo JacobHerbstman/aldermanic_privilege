@@ -1,0 +1,17 @@
+File: historical_project_parcel_source.gpkg
+Rows: 8472
+Columns: 7
+SHA-256 (saved bytes): dade235c0fffe1b30347e564f6635d1f1affecdea671f881aa64a436b57c171e
+Key: target_year, object_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct  min     max               mean                 sd
+           fid        BIGINT        8472     8472    1    8472             4236.5 2445.8000735955507
+   target_year        BIGINT        8472       17 2006    2022  2013.376298394712  5.309146211285045
+      layer_id        DOUBLE        8472       17  6.0  2022.0 146.27726628895184   499.081818695126
+     object_id        BIGINT        8472     8299   61 1847101  699469.5597261568   483139.502230801
+         pin14       VARCHAR        8472     7931    -       -                  -                  -
+         pin10       VARCHAR        8472     7931    -       -                  -                  -
+geometry_valid        BIGINT        8472        1    1       1                1.0                0.0

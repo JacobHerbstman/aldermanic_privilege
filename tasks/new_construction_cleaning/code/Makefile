@@ -15,6 +15,9 @@ HISTORICAL_LOCAL_MATCH_FT ?= 150
 HISTORICAL_MAX_BUILDING_GAP ?= 0.10
 
 all: ../report/commercial_city_building_footprints.gpkg.log \
+	../report/historical_project_parcel_requests.csv.log \
+	../report/historical_project_parcel_coverage.csv.log \
+	../report/historical_project_year_geometry.gpkg.log \
 	../report/preferred_commercial_projects.csv.log \
 	../report/preferred_commercial_source_disposition.csv.log \
 	../report/residential_project_history_summary.csv.log \
@@ -776,8 +779,23 @@ endif
 ../output/commercial_permit_address_evidence.csv: ../output/commercial_permit_project_evidence.csv
 	@test -f "$@"
 
-../output/historical_project_year_geometry.gpkg: build_historical_project_geography.R ../output/historical_project_parcel_coverage.csv ../output/historical_project_parcels.gpkg ../output/historical_project_predecessor_parcels.gpkg ../output/historical_project_predecessor_resolution.csv ../../setup_environment/code/packages.R | ../output
+../output/historical_project_parcel_requests.csv: build_historical_project_parcel_requests.R ../output/new_construction_project_components.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
+
+../output/historical_project_parcel_coverage.csv: build_historical_project_parcel_coverage.R ../output/historical_project_parcel_requests.csv ../input/historical_project_parcel_source.gpkg ../input/historical_project_parcel_source_queries.csv ../../setup_environment/code/packages.R | ../output
+	$(R) $<
+
+../report/historical_project_parcel_requests.csv.log: ../../shared/code/report.py ../output/historical_project_parcel_requests.csv | ../report
+	$(PYTHON) $< ../output/historical_project_parcel_requests.csv $@ source_family project_id component_pin target_year
+
+../report/historical_project_parcel_coverage.csv.log: ../../shared/code/report.py ../output/historical_project_parcel_coverage.csv | ../report
+	$(PYTHON) $< ../output/historical_project_parcel_coverage.csv $@ source_family project_id component_pin target_year
+
+../output/historical_project_year_geometry.gpkg: build_historical_project_geography.R ../output/historical_project_parcel_coverage.csv ../input/historical_project_parcel_source.gpkg ../output/historical_project_predecessor_parcels.gpkg ../output/historical_project_predecessor_resolution.csv ../../setup_environment/code/packages.R | ../output
+	$(R) $<
+
+../report/historical_project_year_geometry.gpkg.log: ../../shared/code/report.py ../output/historical_project_year_geometry.gpkg | ../report
+	$(PYTHON) $< ../output/historical_project_year_geometry.gpkg $@ source_family project_id target_year
 
 ../output/preferred_new_construction_zoning.csv: build_preferred_construction_zoning.R ../input/zoning_jan2016.zip ../input/zoning_nov2012.zip ../input/zoning_sep2014.zip ../input/zoning_sep2025.geojson ../output/historical_zoning_2006_candidate.gpkg ../output/historical_zoning_project_construction_year.csv ../output/preferred_new_construction_boundary_scope.csv ../output/preferred_new_construction_project_centroids.gpkg ../output/preferred_new_construction_project_components.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
@@ -896,6 +914,14 @@ endif
 
 ../report/final_new_construction_zoning.csv.log: ../../shared/code/report.py ../output/final_new_construction_zoning.csv | ../report
 	$(PYTHON) $< ../output/final_new_construction_zoning.csv $@ project_id
+
+../input/historical_project_parcel_source.gpkg: ../../download_construction_historical_parcels/output/historical_project_parcel_source.gpkg | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+../input/historical_project_parcel_source_queries.csv: ../../download_construction_historical_parcels/output/historical_project_parcel_source_queries.csv | ../input
+	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+
+link-inputs: ../input/historical_project_parcel_source.gpkg ../input/historical_project_parcel_source_queries.csv
 
 ../input/residential_improvement_characteristics_full.csv: ../../../data_raw/construction_review/residential_improvement_characteristics_full.csv | ../input
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
