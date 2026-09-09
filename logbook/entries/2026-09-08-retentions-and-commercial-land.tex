@@ -1,0 +1,26 @@
+\clearpage
+\section*{September 8, 2026: Retained buildings and commercial land review}
+\addcontentsline{toc}{section}{September 8, 2026: Retained buildings and commercial land review}
+\textit{Agent-drafted research entry. Accepted treatments are implemented; the commercial land alternatives remain recommendations.}
+
+Jacob closed the investigations of ten unlocatable residential records and the unsupported California and Morgan combined records. Their source observations remain recorded but excluded from density. The two Kildare homes are held out because the reviewed listings identify new homes in 2024. Lamon retains the Assessor's 2022 proxy: Redfin also reports 2022 and records a September 2022 sale. Its completed new-building permit provides an exact address and point. A general check rejects one-square-foot area placeholders as usable density measurements.
+
+The residential producer now preserves approved source exclusions when selecting preferred candidates. The candidate file remains at 28,074 rows: 12,821 mechanically retained, 197 requiring review, 24 reviewed source exclusions, and one unusable-area exclusion, alongside the existing period, duplicate, and commercial-reconciliation dispositions. These are source-record statuses, not regression sample counts.
+
+Thirty residential records in the agreed retention list now have retained source measurements and finite construction-year boundary distances. Twenty-three reviewed exact-parcel points locate the Dearborn, Oak, Newport, Hermitage, 32nd/33rd and Bowen records. Source parcel numbers and years are retained; where a historical polygon exists, the point must lie inside it. Four exact completed new-building permits locate Kenmore's two homes, Lamon and Washington. Lincoln home 6, Irving Park and Federal retain their already available geometry. No density land area was drawn or allocated for these records.
+
+The commercial location producer now reads selected years and components, uses recorded historical parcels, and reuses a candidate location only when its year and parcel list agree. Reviewed source points locate Wells, Western and La Casa. All seven named commercial retentions have finite construction-year distances. The producer preserves other unresolved locations explicitly rather than calculating a center from an incomplete component set: 784 of 815 selected commercial records are located, while 31 remain ineligible in this output. This does not imply 31 new substantive adjudications; several already have selected years or components requiring corresponding geography. The full density assembly remains unfinished.
+
+La Casa retains 15 source-coded units, not 100 student beds. Its component decision selects the coherent 2021 residential-building row: 27,150 building and 6,250 land square feet on the original two parcels. The later record includes two additional resource-center parcels. The owner's opening announcement supplies 2012. The reported Assessor floor area is preserved rather than replaced with a differently scoped architect gross-area figure.
+
+The 56 selected commercial records using map-derived land were compared with their candidate Assessor values. Forty-one have values above one square foot. The median absolute map/source difference is 0.747 percent; 34 differ by at most five percent. Thirty-nine have unchanged component lists. For Clark and Roosevelt, the selected historical components instead match the 2021 source: 30,529 and 338,807 square feet, respectively. Those source figures are much closer to the existing map areas than the later, different-parcel comparison suggests. These comparisons are not an automatic tolerance rule.
+
+Among the other 15 records, five have complete, disjoint earlier Assessor parcel rows with usable reported land. The Michigan and Prairie rollups also reveal incomplete later floor areas: the older complete source totals are 40,923 and 9,816 square feet. Other source totals reveal unit or floor-area inconsistencies, so recovering land alone does not certify FAR. External sources identify specific land for Taylor Street, Drexel, 43rd Street and Montclare. The original 2018 Montclare planned-development table directly reports 152,677 square feet for its 134-unit residential subarea; the existing map denominator includes neighboring commercial land. The downloaded plan was inspected visually. No value in the 56-record land comparison has yet been changed.
+
+\paragraph{Evidence and reproduction.}
+The release-audit review, \texttt{commercial\_land\_followup.md}, records the detailed comparisons and source links.
+The 56-row comparison is produced through Make from the selected commercial data,
+Assessor candidates and source-version rows, with exact disjoint-component checks
+and a standard data report. Construction outputs are rebuilt through the task's
+Makefile. The logbook uses saved earlier exhibits, without rerunning unrelated
+regressions. The paper's frozen input remains unchanged.

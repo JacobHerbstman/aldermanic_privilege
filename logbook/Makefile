@@ -2,6 +2,10 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-08-retentions-and-commercial-land.tex ../tasks/working_paper_release_audit/commercial_land_followup.md ../tasks/working_paper_release_audit/report/commercial_reported_land_comparison.csv.log ../tasks/new_construction_cleaning/report/preferred_commercial_boundary_scope.csv.log ../tasks/new_construction_cleaning/report/preferred_project_boundary_scope.csv.log ../tasks/download_construction_development_records/output/montclare_pd1412.pdf
+
+logbook.pdf: entries/2026-09-08-remaining-construction-verdicts.tex ../tasks/working_paper_release_audit/remaining_land_location_verdicts.md
+
 logbook.pdf: entries/2026-09-08-construction-code-reading.tex ../tasks/new_construction_cleaning/README.md ../tasks/new_construction_cleaning/report/construction_discovery_boundaries.gpkg.log
 
 logbook.pdf: entries/2026-09-08-lake-park-year.tex ../tasks/new_construction_cleaning/report/residential_assessor_project_candidates.csv.log ../tasks/new_construction_cleaning/report/preferred_residential_project_candidates.csv.log ../tasks/new_construction_cleaning/report/preferred_project_boundary_scope.csv.log

@@ -362,22 +362,6 @@ endif
 ../output/final_density_model_input.csv: build_final_density_input.R ../input/boundary_segments_1320ft.gpkg ../output/final_new_construction_audit_ledger.csv ../output/final_new_construction_boundary_scope.csv ../output/final_new_construction_zoning.csv ../output/preferred_density_model_production_card_input.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
 	$(R) $<
 
-ifneq ($(filter-out $(wildcard ../output/preferred_commercial_project_ledger.csv ../output/preferred_commercial_project_component_locations.csv ../output/preferred_commercial_project_centroids.gpkg ../output/preferred_commercial_boundary_scope.csv),../output/preferred_commercial_project_ledger.csv ../output/preferred_commercial_project_component_locations.csv ../output/preferred_commercial_project_centroids.gpkg ../output/preferred_commercial_boundary_scope.csv),)
-.PHONY: ../output/preferred_commercial_project_ledger.csv
-endif
-
-../output/preferred_commercial_project_ledger.csv: build_preferred_commercial_final_geography.R ../input/parcel_universe_2025_city.csv ../input/ward_pair_boundaries.gpkg ../input/ward_panel.gpkg ../output/preferred_commercial_final_historical_parcels.gpkg ../output/preferred_commercial_final_parcel_coverage.csv ../output/preferred_commercial_projects.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
-	$(R) $<
-
-../output/preferred_commercial_project_component_locations.csv: ../output/preferred_commercial_project_ledger.csv
-	@test -f "$@"
-
-../output/preferred_commercial_project_centroids.gpkg: ../output/preferred_commercial_project_ledger.csv
-	@test -f "$@"
-
-../output/preferred_commercial_boundary_scope.csv: ../output/preferred_commercial_project_ledger.csv
-	@test -f "$@"
-
 ifneq ($(filter-out $(wildcard ../output/residential_unresolved_accepted_episode_geometry.gpkg ../output/residential_unresolved_accepted_episode_geometry_coverage.csv),../output/residential_unresolved_accepted_episode_geometry.gpkg ../output/residential_unresolved_accepted_episode_geometry_coverage.csv),)
 .PHONY: ../output/residential_unresolved_accepted_episode_geometry.gpkg
 endif

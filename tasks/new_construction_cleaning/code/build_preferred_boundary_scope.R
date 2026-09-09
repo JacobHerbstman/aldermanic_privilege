@@ -92,6 +92,7 @@ project_scope <- project_coverage %>%
     geography_status = case_when(
       complete_project_geometry ~ "complete_construction_year_geometry",
       location_source == "reviewed_completed_permit_point" ~ "reviewed_permit_location",
+      location_source == "reviewed_exact_parcel_point" ~ "reviewed_parcel_location",
       TRUE ~ "unresolved_construction_year_geometry"
     )
   ) %>%
@@ -101,7 +102,7 @@ if (any(project_scope$complete_project_geometry & is.na(project_scope$ward))) {
   stop("A complete project disappeared during boundary assignment.", call. = FALSE)
 }
 if (any(!project_scope$complete_project_geometry & !is.na(project_scope$ward) &
-    project_scope$location_source != "reviewed_completed_permit_point")) {
+    !project_scope$location_source %in% c("reviewed_completed_permit_point", "reviewed_exact_parcel_point"))) {
   stop("An incomplete project received a boundary assignment.", call. = FALSE)
 }
 

@@ -4,6 +4,14 @@ all: ../report/phased_project_permits.csv.log ../report/restored_stage_checks.cs
 
 all: ../report/natchez_building_land_coverage.csv.log ../output/natchez_parcel_coverage.pdf
 
+all: ../report/commercial_reported_land_comparison.csv.log
+
+../output/commercial_reported_land_comparison.csv: review_commercial_reported_land.py ../input/preferred_commercial_projects.csv ../input/preferred_commercial_project_candidates.csv ../input/commercial_entity_version_candidates.csv | ../output
+	$(PYTHON) $<
+
+../report/commercial_reported_land_comparison.csv.log: ../../shared/code/report.py ../output/commercial_reported_land_comparison.csv | ../report
+	$(PYTHON) $< ../output/commercial_reported_land_comparison.csv $@ project_id
+
 all: ../report/natchez_b_land_coverage.csv.log
 
 all: ../report/geocoder_mismatch_review.csv.log ../report/geocoding_parcel_history_review.csv.log
@@ -313,5 +321,11 @@ link-inputs: ../input/marquette_footprints_2022.geojson
 	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
 
 link-inputs: ../input/preferred_historical_parcel_source.gpkg
+
+../input/preferred_commercial_projects.csv: ../../new_construction_cleaning/output/preferred_commercial_projects.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/preferred_commercial_projects.csv" ]; then ln -sf ../../new_construction_cleaning/output/preferred_commercial_projects.csv "$@"; fi
+
+../input/commercial_entity_version_candidates.csv: ../../new_construction_cleaning/output/commercial_entity_version_candidates.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/commercial_entity_version_candidates.csv" ]; then ln -sf ../../new_construction_cleaning/output/commercial_entity_version_candidates.csv "$@"; fi
 
 include ../../shared/code/generic.make

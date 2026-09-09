@@ -1,21 +1,21 @@
 File: preferred_adjudication_scope.csv
-Rows: 402
+Rows: 400
 Columns: 11
-SHA-256 (saved bytes): e62bae6aa6e87e157cf45970a59301c26894e552bdbfb2c29e73d4864608dab8
+SHA-256 (saved bytes): 578ad3c7a6b3edce1cadaacf444e0f38369c0e03017efade0715e7fe959933a1
 Key: source_family, project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                 column inferred_type non_missing distinct               min                max                 mean                  sd
-          source_family       VARCHAR         402        2                 -                  -                    -                   -
-             project_id       VARCHAR         402      402                 -                  -                    -                   -
-           project_kind       VARCHAR         402        5                 -                  -                    -                   -
-            target_year        BIGINT         402       17              2006               2022    2014.915422885572   5.661068072014616
-       geography_status       VARCHAR         402        2                 -                  -                    -                   -
-  unresolved_components        BIGINT         402        2                 0                  1 0.009950248756218905 0.09937709993985872
-   collapsed_components        BIGINT         402        4                 0                  9  0.04228855721393035  0.5431071008658246
-distance_to_boundary_ft        DOUBLE         398      388 31.27532083875283 10402.461692437024    1071.129289308673   978.9840222899384
-          within_1500ft       BOOLEAN         398        2                 -                  -                    -                   -
-           within_500ft       BOOLEAN         398        2                 -                  -                    -                   -
-           review_scope       VARCHAR         402        3                 -                  -                    -                   -
+                 column inferred_type non_missing distinct               min                max              mean                  sd
+          source_family       VARCHAR         400        2                 -                  -                 -                   -
+             project_id       VARCHAR         400      400                 -                  -                 -                   -
+           project_kind       VARCHAR         400        5                 -                  -                 -                   -
+            target_year        BIGINT         400       17              2006               2022          2014.905   5.672867755503346
+       geography_status       VARCHAR         400        2                 -                  -                 -                   -
+  unresolved_components        BIGINT         400        2                 0                  1            0.0075 0.08638521873004429
+   collapsed_components        BIGINT         400        4                 0                  9            0.0425  0.5444582969270759
+distance_to_boundary_ft        DOUBLE         397      387 31.27532083875283 10402.461692437024 1067.936804486059    978.142780580647
+          within_1500ft       BOOLEAN         397        2                 -                  -                 -                   -
+           within_500ft       BOOLEAN         397        2                 -                  -                 -                   -
+           review_scope       VARCHAR         400        3                 -                  -                 -                   -

@@ -277,6 +277,47 @@ for (j in seq_len(nrow(individual_parents))) {
   project_centroids$location_reference_row_ids[i] <- paste(sort(unique(points$row_id)), collapse = "/")
 }
 
+# Reviewed home identities permit an exact parcel point when the old map covers
+# several homes, or when overlapping old polygons prevent a unique map match.
+reviewed_locations <- readr::read_csv("../adjudication/residential_reviewed_parcel_locations.csv",
+  col_types = readr::cols(project_id = readr::col_character(), pin = readr::col_character(),
+    reference_year = readr::col_integer(), target_year = readr::col_integer(), .default = readr::col_character()))
+current_points <- readr::read_csv("../input/parcel_universe_2025_city.csv",
+  col_types = readr::cols(pin = readr::col_character(), tax_year = readr::col_integer(),
+    longitude = readr::col_double(), latitude = readr::col_double(),
+    row_id = readr::col_character(), .default = readr::col_skip())) %>%
+  transmute(pin, year = tax_year, lon = longitude, lat = latitude, row_id,
+    point_source_pin = pin, source = "parcel_universe_2025")
+location_evidence <- bind_rows(history_points %>% mutate(source = "historical_parcel_history"), current_points)
+stopifnot(!anyDuplicated(reviewed_locations$project_id),
+  all(reviewed_locations$project_id %in% project_year_coverage$project_id))
+for (j in seq_len(nrow(reviewed_locations))) {
+  review <- reviewed_locations[j, ]
+  stopifnot(any(coverage$project_id == review$project_id & coverage$component_pin == review$pin &
+    coverage$target_year == review$target_year))
+  points <- location_evidence %>% filter(pin == review$pin, point_source_pin == review$pin,
+    year == review$reference_year, source == review$source)
+  stopifnot(nrow(points) > 0L, nrow(distinct(points, lon, lat)) == 1L,
+    all(is.finite(points$lon)), all(is.finite(points$lat)))
+  point <- sf::st_transform(sf::st_as_sf(points[1, ], coords = c("lon", "lat"), crs = 4326), 3435)
+  old <- which(project_centroids$project_id == review$project_id)
+  polygon <- which(project_geometry$project_id == review$project_id)
+  if (length(polygon)) stopifnot(length(sf::st_within(point, project_geometry[polygon, ])[[1]]) == 1L)
+  row <- sf::st_sf(source_family = "residential", project_id = review$project_id,
+    target_year = review$target_year, project_polygon_valid = NA,
+    project_land_area_sqft = NA_real_, location_source = "reviewed_exact_parcel_point",
+    location_reference_year = review$reference_year,
+    location_reference_row_ids = paste(sort(unique(points$row_id)), collapse = "/"),
+    location_reference_pin = review$pin, geometry = sf::st_geometry(point))
+  if (length(old)) {
+    stopifnot(length(old) == 1L, project_centroids$target_year[old] == review$target_year)
+    row$project_polygon_valid <- project_centroids$project_polygon_valid[old]
+    row$project_land_area_sqft <- project_centroids$project_land_area_sqft[old]
+    project_centroids <- project_centroids[-old, ]
+  }
+  project_centroids <- bind_rows(project_centroids, row)
+}
+
 # Some individually measured homes share a development-wide tax polygon.
 # Use a reviewed completed-permit point without claiming an individual parcel map.
 permit_locations <- readr::read_csv("../adjudication/residential_reviewed_permit_locations.csv",

@@ -1,3 +1,242 @@
+# Remaining construction decisions: consolidated review
+
+Agent-drafted initial verdicts, September 8, 2026, after commit `a32cbf85`.
+These are recommendations for Jacob's review. No new cleaning decision or regression
+was applied. The observations below are source records, not an additive count of
+new buildings to exclude. Saved candidate and commercial project files were inspected
+alongside the existing decisions, source-version rows, full pinned permit history,
+and the public sources linked below.
+
+## What is actually left
+
+The saved geography review contains 130 questions about 124 source project records.
+56 questions are already classified as closed or resolved; the remaining 74 questions
+refer to 69 project records. Some of those 69 also already have commercial decisions
+that the earlier geography list does not follow. Therefore neither 130 nor 69 is a
+count of decisions Jacob still needs to make. The original 30 requests are included:
+10 now resolve geometrically; the other 20 represent 15 project records, including
+nine Dearborn homes and a commercial record whose approved year has changed.
+
+The separate residential candidate file still marks 199 records for review. They are
+not an additional 199 verified errors or necessarily distinct buildings. 36 have an
+action in an existing decision table; the other 163 require a general eligibility
+or source-reconciliation treatment, described below. Presence of an old decision is
+not proof that it complies with the latest source-reported-measurement requirement.
+These counts overlap the geography list and must not be added.
+
+## Recommended case treatments
+
+| Building or group | Initial verdict | Evidence and remaining limitation |
+| --- | --- | --- |
+| 1225 N Wells / Old Town | Keep the already approved 250 units and 2012 year. Rebuild its location for 2012. | [JDL dates completion to August 2012](https://jdlcorp.com/projects/1225-old-town); [Hines also says summer 2012](https://www.hines.com/properties/1225-old-town-chicago). The early location request still says 2014. Keep the recorded Assessor measurements; Hines' different published floor-area scope is not a replacement measurement. |
+| 1201 N LaSalle / Sinclair | Recommend 2017 instead of 2016; retain 390 units. | [The developer reports completion in 2017](https://www.fifieldco.com/projects/the-sinclair/). The current 2016 parcel query has no match for three components. Correct the year before treating this as an unlocatable building. Existing Assessor land is 68,857 sq ft; do not invent another denominator. |
+| 1005–1021 N Dearborn, nine records | Keep the individually measured homes and Assessor 2007 proxies. Resolve location once for the group; do not choose overlapping parent lots as their density denominators. | Pinned permit 100088920 at 1003 N Dearborn describes ten new townhomes; 100275284 ties 1021 to that permit. The nine flagged records are not all ten permitted homes. A [1005 listing says 2008](https://www.atproperties.com/8500625/1005-n-dearborn-street-chicago-illinois-60610-nei), insufficient to overwrite all nine Assessor dates. Current exact-PIN points are about 866–988 ft from the boundary, but require explicit location acceptance before production use. |
+| 2133 and 2141 N Kenmore | Keep separately, 2016. Use the exact new-house permit locations if ordinary parcel matching remains unavailable. | Pinned permits 100615403 and 100637628 identify the individual houses in 2015/2016. Source land is 5,088 and 3,802 sq ft; the [2133 listing repeats its 5,658-sq-ft building and 5,088-sq-ft lot](https://www.zillow.com/homedetails/2133-N-Kenmore-Ave-Chicago-IL-60614/245563552_zpid/). This supports the recorded fields, not independent completion certification. |
+| 440 W Oak | Keep as one individually measured townhome, 2016, subject to a supported individual location. | The [listing record calls it a 2016 townhome](https://www.compass.com/building/440-w-oak-st-chicago-il-60610/592788452655344501/). Its 47-unit development description must not replace this home's one-unit record. Nearby permit 100541762 is for nine homes at 434 W Oak, not an exact 440 match. Retain the 935-sq-ft Assessor lot; do not allocate the whole development. |
+| 1845 N Western | Keep the 15-unit building and source measurements provisionally; location needs the correct building/site match. | Exact pinned permit 100073282 authorizes 15 homes and two retail spaces. Two Assessor vintages support the selected building fields. Competing historical polygons do not settle which site boundary applies. Retail occupation before the Assessor 2010 proxy warrants caution about precise completion, not a guessed replacement year. |
+| 841 W Agatite / Eight Eleven Uptown | Keep 381 units and 2018. No need to change to the earlier permit's 373. | [JDL reports 381 units, completed August 2018](https://jdlcorp.com/projects/eight-eleven-uptown). The recorded source address differs from the marketed 811 address; site membership remains the relevant land check. Keep source-reported land if the component set is unchanged. |
+| 1035 W Van Buren / Landmark West Loop | Keep 300 apartments, 2017; select its 39,860-sq-ft 2021 site, excluding the added neighbor. | [Related reports first residents on August 1, 2017](https://www.relatedmidwest.com/press-releases/2017-10-31/related-midwest-celebrates-opening-landmark-west-loop-chicago). Assessor row 83266 reports 466,117 building sq ft and 39,860 land. Separate row 83267 reports 1001 W Van Buren, 33,828 land. Later row 61007 adds that parcel: 39,860 + 33,828 = 73,688, without adding its building area. The student-housing label does not establish a bed-count issue for Landmark. |
+| 660/670 W Wayman / Trio | Keep the 100-unit high-rise separately, 2009; fix the permit/building correspondence before accepting its distance. | Pinned permits 100083113/100085129 cover two mid-rises totaling 109 units; 100083121 covers the separate 100-unit high-rise at 670. [The developer describes the 209-unit development, completed in 2009](https://www.rdm-co.com/trio). The Assessor's 660 record says high-rise and repeats 100 units, 147,119 building sq ft, 7,950 land in both vintages. Do not replace 100 by 109 or 209. Which tower location matches that record still needs verification. |
+| 225 N Columbus / Aqua | Exclude the current partial-building record from density unless a coherent whole-building source is already available. | The 474 apartments are only part of a tower containing condominiums and a hotel. [The architect describes those uses](https://studiogang.com/projects/aqua-tower/). Assessor floor area is unchanged at 449,445 while land jumps from 178,085 to 341,770 sq ft across vintages with the same listed PINs. Do not estimate residential shares or substitute the architect's whole-building area for an apartment-only numerator. |
+| 455 E Waterside / 211 N Harbor, three source records | Treat Cascade and Cirrus as two buildings; do not count three tax records as three towers. Recommend Cascade 503 units, 2021; leave density ineligible where building-specific source land is unavailable. | [Lendlease distinguishes Cascade, 503 apartments, from Cirrus, 350 condos](https://www.lendlease.com/media-releases/2021/01/lendlease-and-magellan-development-group/). [Cascade opened in August 2021](https://www.lendlease.com/media-centre/media-releases/lendlease-and-magellan-development-group-welcome-first-residents-to-cascade/). The two residential records share Cirrus' 47-story permit/address; the commercial 503-unit record describes Cascade despite the current Harbor address. Shared podium/park land cannot be allocated from maps. The commercial 2022 date needs a recorded correction; Cirrus' final completion proxy remains a separate check. |
+| 4200/4202 N Kildare | Recommend exclusion from the 2006–2022 sample unless recorded completion evidence supports an earlier date. | The permit was issued in 2020, but [4200 was marketed as new in 2024](https://www.zillow.com/homedetails/4200-N-Kildare-Ave-Chicago-IL-60641/444796470_zpid/), and [4202 was advertised as new and ready for occupancy in 2024](https://www.redfin.com/IL/Chicago/4202-N-Kildare-Ave-60641/home/190081194). That is evidence against assuming the Assessor 2022 date is completion. Do not use the permit year as a substitute. |
+| 184 N Lamon | Recommend holding out of the study-period sample pending an earlier completion record; 2023 is the leading proxy. | Exact new-building permit 100948755 was issued January 2022. A [rental record says built 2023](https://www.apartments.com/184-n-lamon-ave-chicago-il/e3gpf3m/) and a [broker listing appeared April 2023](https://www.loopnet.com/Listing/184-N-Lamon-Ave-Chicago-IL/28269835/). These do not prove the exact completion date, but do not justify treating the permit year as completion. |
+| 3030 W Washington | Keep one three-unit building, Assessor 2008 proxy; reconcile the recorded 3028/3030 address and use the exact new-building permit location. | Permit 100168699 authorizes the new apartment building in 2007. Later permit 100976594 explicitly identifies 3028 as the other address for the existing three-unit building. This is recoverable recorded address evidence, not a new building created by the later repair. |
+| 2827 W Belden | Retain the source measurements provisionally; do not replace land merely because the historical map differs. | Both Assessor rows 59359/79687 report 37,152 building and 15,357 land sq ft for the same PIN. The mapped 12,693-sq-ft result alone does not disprove the source denominator. No independently verified new completion date was found. |
+| Newport (three), Hermitage (six), 1302 W 33rd/1315 W 32nd, Bowen (two) | Keep individually measured buildings. Use supported individual locations, not one old development center for all. | Saved points fall inside the former sites; each has its own source measurements. Large former parcels are not their density denominators. This settles the direction of treatment; later current points are not automatically accepted as construction-year locations. |
+| 2101 W Irving Park, 4300 S Federal, 531 W Division | Clear the shape-only concern; keep recorded source measurements. | A centroid outside a concave parcel is not evidence that the building is elsewhere. Federal's source and mapped land agree (47,614 sq ft); Division's agree (30,195 sq ft). The flag itself does not justify exclusion. |
+| 5001 N Lincoln, home 6 | Keep one home and its two recorded land pieces, subject to same-home parcel confirmation. | Assessor land is 896 sq ft. The [listing displays two records for home 6 with 259 and 637 sq ft](https://www.realtor.com/realestateandhomes-detail/5001-N-Lincoln-Ave-Apt-6_Chicago_IL_60625_M74461-84033); those sum to 896 and support, rather than replace, the Assessor measurement. Do not use the 9,133-sq-ft parent map as its denominator. |
+| 1657/1659 W 18th / La Casa | Recommend 2012 as opening year; exclude from ordinary dwelling-unit density unless dormitory suites are explicitly part of the outcome definition. | Pinned permits 100312231/100403067 describe a dormitory revised to 15 units. [The owner identifies five- and six-bedroom suites for 100 students](https://resurrectionproject.org/la-casa-wins-ala-and-nbcuniversal-awards/) and [an October 2012 opening](https://resurrectionproject.org/es/governor-quinn-joins-trp-at-la-casa-ribbon-cutting-trp-announces-la-casa-giving-campaign/). Those 15 suites are not 100 apartments. The separate resource-center parcel also needs to be excluded from a dormitory-only measurement, so FAR is not automatically cleared. |
+| 3616–3642 W 50th / 49th Place | Provisionally keep the reported 78-unit site group and existing 2016 proxy; do not manufacture individual building areas. | Assessor rows 31475 and 53714 have the same four components, 78 units, and 84,984 building sq ft; land is 105,177 versus 105,077. The earlier row says 2017. Pinned new-building permits identify several 3- and 6-unit buildings, so they are components, not competing totals for one tower. Prefer separate records only if their complete measurements already exist; otherwise retain the coherent reported group, with the year explicitly a proxy. |
+| Unlocatable residential PINs and incomplete Karlov address | Recommend exclusion from boundary-based density where neither an exact historical parcel nor a verified complete address/permit location is available. | Nine PIN-only searches returned no indexed results; the recorded history lacks property addresses. Karlov has only the street name. Guessing an address or conducting unlimited bespoke searches would violate the agreed stopping rule. Exact IDs are listed below. |
+| Residential record 17042060100000 | Exclude from floor-area-ratio analysis; do not treat its one-square-foot building field as a usable positive measurement. | The candidate carries six units, one square foot of building, 39,658 land, and no accepted location. Units-per-acre also remains unavailable until physical identity and location are established. |
+| 1716 N California; Morgan/35th Place combined record | Apply recorded building-level decisions where their source measurements are available; exclude an unresolved combined record. | California already has a six-unit 2018 successor decision, but its older final row uses a parcel-derived land source that must be reconciled with the new rule. Morgan's combined row has no complete units, building area, or land; do not revive it as one project. |
+
+## Settled treatment that must not be reopened
+
+The commercial project output already splits Belmont into two separately measured
+27-unit buildings, merges the duplicate Addison records, uses the construction-time
+Altgeld component set, and replaces the two flagged Oakwood rollups with 14 and 22
+separately measured rows. It excludes the Leavitt/Clybourn holding, the 63rd Street
+holding, and the inseparable 103rd Street records. Natchez C's approved density
+exclusion, Huron's approved measurements, and the settled residential card/year
+cases remain decisions to carry through. These are not fresh questions for Jacob.
+Some of their source-land fields still need the general check below.
+
+## General treatment needed beyond named location cases
+
+**Map-derived land remains in 56 selected commercial rows.** Of those, 41 have a
+candidate Assessor land value greater than one square foot; 39 of those also retain
+the same listed component set. Those are candidates for restoring source land,
+not 39 certified observations. Two have changed component sets and require the
+matching source vintage. The other 15 have missing, zero, or one-square-foot land
+in that candidate source. Check the recorded source rows once; absent usable
+reported land, exclude from both density measures. Do not calculate replacements.
+This implements the already stated research preference, not a new parcel-area
+threshold. The rows and both land fields are listed below.
+
+**199 residential records remain marked for review.** The reasons are: 76 combined
+records containing multiple cards; 50 without a complete contemporaneous snapshot;
+41 without usable building area; 19 combined records containing class-297 rows;
+eight with unresolved units; four sharing a permit chain; one with conflicting
+permit counts. My recommendation is to apply the existing verified decisions first,
+retain separately measured buildings where the identity is supported, and exclude
+unresolved combined records rather than invent totals. Missing floor area alone
+need not bar units-per-acre if units, source land, identity, and location are sound.
+The count is not a proposed blanket 199-record exclusion, and the 36 recorded
+actions have not all been re-certified against raw evidence in this review.
+
+**Final implementation remains work, not an additional substantive choice.** After
+review, apply decisions in the measurement/identity producers, regenerate geography
+for the selected year and components, enforce the appropriate density eligibility,
+and reconcile the final sample. No claim is made here that the working paper's
+results are unchanged under the proposed treatments; it has not been rebuilt.
+
+## Exact records behind the grouped location recommendations
+
+| Project record | Recorded address | Current open concern |
+| --- | --- | --- |
+| `commercial_13203280120000` | 3207 N NARRAGANSETT AVE; 6340 W BELMONT AVE | check multipart project land scope |
+| `commercial_13312050180000` | 1634 N NATCHEZ AVE; W GRAND AVE | concave shape explains exterior centroid check project land scope |
+| `commercial_13361070340000` | 2827 W BELDEN AVE | check multipart project land scope |
+| `commercial_14172290080000` | 824 W MONTROSE AVE; 826 W MONTROSE AVE; 828 W MONTROSE AVE; 830 W MONTROSE AVE; 832 W MONTROSE AVE; 839 W AGATITE AVE; 841 W AGATITE AVE | check multipart project land scope |
+| `commercial_14204030040000` | No complete address in inspected extract | evaluate exact pin history before manual geocoding |
+| `commercial_14204030750000` | 1025 ADDISON | check multipart project land scope |
+| `commercial_14294190580000` | 930 W ALTGELD ST | reconcile overlapping historical parcels |
+| `commercial_14301230060000` | 2737 N HOYNE AVE; 2810 N LEAVITT ST; 2846 N CLYBOURN AVE | check multipart project land scope |
+| `commercial_14313090210000` | 1845 N WESTERN AVE | reconcile overlapping historical parcels |
+| `commercial_17042210990000` | 1225 N WELLS ST | reconcile overlapping historical parcels |
+| `commercial_17042220640000` | 1201 N LA SALLE ST | historical map has no polygon at exact pin location |
+| `commercial_17043040290000` | 531 W DIVISION ST | concave shape explains exterior centroid check project land scope |
+| `commercial_17093010120000` | 660 W WAYMAN ST | check multipart project land scope |
+| `commercial_17103180710000` | 225 N COLUMBUS DR | reconcile overlapping historical parcels |
+| `commercial_17104000510000` | 211 N HARBOR DR | reconcile overlapping historical parcels |
+| `commercial_17172310020000` | 1001 W VAN BUREN ST; 1035 W VAN BUREN ST | check multipart project land scope |
+| `commercial_17194110010000` | 1656 W 18TH PL; 1657 W 18TH ST; 1658 W 18TH PL; 1659 W 18TH ST | check multipart project land scope |
+| `commercial_17344170280000` | 3711 S VINCENNES AVE F; 3711 S VINCENNES AVE R; 3738 S LANGLEY AVE; 3741 S VINCENNES AVE; 3751 S LANGLEY AVE; 3807 S VINCENNES AVE; 3825 S VINCENNES AVE; 554 E 39TH ST; 617 E 37TH PL; 622 E 38TH ST; 627 E 38TH ST; 632 E 37TH PL; 632 E 38TH ST; 649 E 37TH ST; 715 E 37TH PL | check multipart project land scope |
+| `commercial_17344190130000` | 3810 S COTTAGE GROVE AVE; 3816 S COTTAGE GROVE AVE; 3833 S EVANS AVE; 3836 S COTTAGE GROVE AVE; 3842 S COTTAGE GROVE AVE; 3846 S COTTAGE GROVE AVE; 3853 S ELLIS AVE; 3854 S LANGLEY AVE; 3855 S LANGLEY AVE; 633 E 38TH PL; 634 E PERSHING RD; 638 E PERSHING RD; 641 E 38TH PL; 642 E PERSHING RD; 649 E 38TH ST; 650 E 38TH PL; 650 E PERSHING RD; 651 E 38TH PL; 707 E 38TH ST; 729 E 38TH ST; 743 E 38TH ST; 752 E 38TH PL; 856 E PERSHING RD; 860 E PERSHING RD | check multipart project land scope |
+| `commercial_19111240120000` | 3616 W 50TH ST; 3629 W 49TH PL; 3630 W 49TH PL; 3642 W 50TH ST | check multipart project land scope |
+| `commercial_20163250190000` | 400 W 63RD ST; 414 W 63RD ST; 418 W 63RD ST; 419 W 63RD ST; 423 W 63RD ST; 426 W 63RD ST; 435 W 63RD ST; 449 W 63RD ST; 452 W 63RD ST; 453 W 63RD ST; 507 W 63RD ST; 508 W 63RD ST; 519 W 63RD ST; 532 W 63RD ST; 536 W 63RD ST; 540 W 63RD ST; 543 W 63RD ST; 6253 S NORMAL AVE; 6253 W 63RD ST; 6254 W 63RD ST; 6306 S NORMAL BLVD; 6306 S STEWART AVE; 6308 S STEWART AVE; 6311 S EGGLESTON AVE; 6311 S PARNELL AVE; 6312 S EGGLESTON AVE; 6313 S NORMAL BLVD; 6314 S EGGLESTON AVE; 6314 S PARNELL AVE; 6315 S NORMAL BLVD; 6315 S PARNELL AVE; 6316 S PARNELL AVE; 6317 S PARNELL AVE; 6318 S PARNELL AVE; 6320 S PARNELL AVE; 6350 S NORMAL BLVD; 6356 S NORMAL BLVD; 6750 S NORMAL AVE; 6800 S NORMAL AVE; 6808 S NORMAL AVE | check multipart project land scope |
+| `commercial_25074130200000` | 1820 W 103RD ST; 1824 W 103RD ST; 1830 W 103RD ST | check multipart project land scope |
+| `residential_13154070500000` | 4200 N KILDARE  AVE | obtain missing location evidence |
+| `residential_13154070510000` | 4202 N KILDARE  AVE | obtain missing location evidence |
+| `residential_13243050880000` | 3032 W NEWPORT AVE | concave shape explains exterior centroid check project land scope |
+| `residential_13243050890000` | 3034 W NEWPORT AVE | concave shape explains exterior centroid check project land scope |
+| `residential_13243050900000` | 3036 W NEWPORT AVE | concave shape explains exterior centroid check project land scope |
+| `residential_14073210420000` | No complete address in inspected extract | obtain missing location evidence |
+| `residential_14073210430000` | No complete address in inspected extract | obtain missing location evidence |
+| `residential_14183110440000` | No complete address in inspected extract | obtain missing location evidence |
+| `residential_14191050330000` | 2101 W IRVING PARK RD | concave shape explains exterior centroid check project land scope |
+| `residential_14304032120000` | 2652 N HERMITAGE AVE | concave shape explains exterior centroid check project land scope |
+| `residential_14304032130000` | 2654 N HERMITAGE AVE | concave shape explains exterior centroid check project land scope |
+| `residential_14304032140000` | 2656 N HERMITAGE AVE | concave shape explains exterior centroid check project land scope |
+| `residential_14304032150000` | 2658 N HERMITAGE AVE | concave shape explains exterior centroid check project land scope |
+| `residential_14304032190000` | 2700 N HERMITAGE AVE | concave shape explains exterior centroid check project land scope |
+| `residential_14304032200000` | 2702 N HERMITAGE AVE | concave shape explains exterior centroid check project land scope |
+| `residential_14322160600000` | 2133 N KENMORE AVE | historical map has no polygon at exact pin location |
+| `residential_14322160640000` | 2141 N KENMORE AVE | historical map has no polygon at exact pin location |
+| `residential_16094170260000` | 184 N LAMON AVE | obtain missing location evidence |
+| `residential_16123200360000` | 3030 W WASHINGTON  BLVD | obtain missing location evidence |
+| `residential_16222200490000` | No complete address in inspected extract | evaluate exact pin history before manual geocoding |
+| `residential_17043200540000` | 440 W OAK ST | historical map has no polygon at exact pin location |
+| `residential_17044240570000` | 1005 N DEARBORN ST | reconcile overlapping historical parcels |
+| `residential_17044240580000` | 1007 N DEARBORN ST | reconcile overlapping historical parcels |
+| `residential_17044240590000` | 1009 N DEARBORN ST | reconcile overlapping historical parcels |
+| `residential_17044240610000` | 1013 N DEARBORN ST | reconcile overlapping historical parcels |
+| `residential_17044240620000` | 1015 N DEARBORN ST | reconcile overlapping historical parcels |
+| `residential_17044240630000` | 1017 N DEARBORN ST | reconcile overlapping historical parcels |
+| `residential_17044240640000` | 1019 N DEARBORN ST | reconcile overlapping historical parcels |
+| `residential_17044240650000` | 1021 N DEARBORN ST | reconcile overlapping historical parcels |
+| `residential_17083340580000` | No complete address in inspected extract | obtain missing location evidence |
+| `residential_17093140230000` | No complete address in inspected extract | obtain missing location evidence |
+| `residential_17321190580000` | 1302 W 33RD ST | check multipart project land scope |
+| `residential_17321190670000` | 1315 W 32ND PL | check multipart project land scope |
+| `residential_20021180580000` | 1125 E BOWEN AVE | concave shape explains exterior centroid check project land scope |
+| `residential_20021180640000` | 1113 E BOWEN AVE | concave shape explains exterior centroid check project land scope |
+| `residential_20032000620000` | No complete address in inspected extract | obtain missing location evidence |
+| `residential_20032250580000` | No complete address in inspected extract | obtain missing location evidence |
+| `residential_20033030390000` | No complete address in inspected extract | obtain missing location evidence |
+| `residential_20044040260000` | 4300 S FEDERAL ST | check multipart project land scope |
+| `residential_25031190320000` | No complete address in inspected extract | obtain missing location evidence |
+| `residential_297_group_17042060100000` | No complete address in inspected extract | evaluate exact pin history before manual geocoding |
+| `residential_297_group_17104000490000` | No complete address in inspected extract | reconcile overlapping historical parcels |
+| `residential_297_group_17104000540000` | 211 N HARBOR DR | reconcile overlapping historical parcels |
+| `residential_multicard_17044240600000` | 1011 N DEARBORN ST | reconcile overlapping historical parcels |
+| `residential_tieback_13124111050000` | 5001 N LINCOLN AVE 6 | concave shape explains exterior centroid check project land scope |
+| `residential_tieback_13362320330000` | 1716 N CALIFORNIA AVE; 1718 N CALIFORNIA AVE | obtain missing location evidence |
+| `residential_tieback_17324070080000` | 819 W 35TH PL | check multipart project land scope |
+
+## Source-land check: 56 commercial rows
+
+These are selected map-derived values, not proposed replacements. The last column
+is the earlier candidate Assessor field; source identity must agree before use.
+
+| Project | Source address | Selected map land, sq ft | Candidate Assessor land, sq ft |
+| --- | --- | ---: | ---: |
+| `commercial_11293000160000` | 1531 W HOWARD CHICAGO | 14914 | 15011 |
+| `commercial_11323310360000` | 6418 N SHERIDAN CHICAGO | 40262 | 45094 |
+| `commercial_13093170070000` | 5522 W HIGGINS CHICAGO | 7618 | 7500 |
+| `commercial_13142030200000` | 4738 N KIMBALL CHICAGO | 24837 | 24835 |
+| `commercial_13222030300000` | 3939 N KEELER CHICAGO | 10246 | 9594 |
+| `commercial_13252200010000` | 2943 N ROCKWELL CHICAGO | 4946 | 5255 |
+| `commercial_13253150250000` | 2510 N WILLETTS CHICAGO | 5853 | 6000 |
+| `commercial_13361030360000` | 2346 N CALIFORNIA CHICAGO | 30166 | 31548 |
+| `commercial_13364140420000` | 2404 W. Moffat St. | 4408 | 4450 |
+| `commercial_14084040010000` | 5077 N BROADWAY CHICAGO | 13331 | 13500 |
+| `commercial_14171200250000` | 4410 N CLARK CHICAGO | 10029 | 10000 |
+| `commercial_14201040060000` | 3839 N CLARK CHICAGO | 5142 | 5140 |
+| `commercial_14202240190000` | 1118 W PATTERSON CHICAGO | 11989 | 11868 |
+| `commercial_14202300160000` | 3600 N HALSTED CHICAGO | 163152 | 163152 |
+| `commercial_14203080100000` | 3415 N ASHLAND CHICAGO | 16371 | 16585 |
+| `commercial_14204180360000` | 3300 N CLARK CHICAGO | 23268 | 23267 |
+| `commercial_14213040110000` | 3478 N BROADWAY CHICAGO | 68669 | 69112 |
+| `commercial_14213120380000` | 434 W MELROSE CHICAGO | 10758 | 10956 |
+| `commercial_14283160520000` | 518 W ARLINGTON CHICAGO | 4842 | 4334 |
+| `commercial_14291000140000` | 3113 N LINCOLN CHICAGO | 3825 | 3992 |
+| `commercial_14301040010000` | 3123 N OAKLEY CHICAGO | 5681 | 5681 |
+| `commercial_14303020298002` | 2737  HOYNE CHICAGO | 161662.96648534096 | 0 |
+| `commercial_16013050010000` | 1057 N SACRAMENTO CHICAGO | 37737 | 37732 |
+| `commercial_16014000010000` | 2751 W DIVISION CHICAGO | 14828 | 14640 |
+| `commercial_16022280210000` | 3250 W DIVISION CHICAGO | 12401 | 12401 |
+| `commercial_16111020190000` | 740 N AVERS CHICAGO | 6032 | 6000 |
+| `commercial_16134200390000` | 900 S WESTERN CHICAGO | 4606 | 4607 |
+| `commercial_16242020090000` | 2652 W 12TH | 2638 | 2650 |
+| `commercial_17042000430000` | 1437 N SEDGWICK CHICAGO | 3359 | 3350 |
+| `commercial_17042120010000` | 1367 N SEDGWICK CHICAGO | 16235 | 16286 |
+| `commercial_17053010190000` | 1517 W HADDON CHICAGO | 12404 | 12936 |
+| `commercial_17062350680000` | 1640 W DIVISION CHICAGO | 29623 | 21959 |
+| `commercial_17083320080000` | 1554 W MADISON CHICAGO | 7209 | 7207 |
+| `commercial_17092610280000` | 71 W HUBBARD CHICAGO | 35163 | 39324 |
+| `commercial_17164050110000` | 633 S CLARK CHICAGO | 30705 | 17860 |
+| `commercial_17164160140000` | 150 W ROOSEVELT CHICAGO | 338806 | 341355 |
+| `commercial_17173220138002` | 1346  TAYLOR CHICAGO | 67437.37997546978 | 1 |
+| `commercial_17201250120000` | 1461 S BLUE ISLAND CHICAGO | 54129 | 54127 |
+| `commercial_17202070620000` | 1140 W 13TH | 7682 | 7682 |
+| `commercial_17221060620000` | 1417 S STATE CHICAGO | 40733 | 40379 |
+| `commercial_17223180290000` | 2111 S WABASH CHICAGO | 42542 | 42541 |
+| `commercial_17312140380000` | 3216 S. Ashland | 6062.112657252699 | Missing |
+| `commercial_19024290170000` | 3256 W 47TH CHICAGO | 15510 | 15724 |
+| `commercial_20021110010000` | 4137 S COTTAGE GROVE CHICAGO | 23076.578284282237 | 0 |
+| `commercial_20021130010000` | 4101 S DREXEL CHICAGO | 9231.697075407952 | 0 |
+| `commercial_20021200190000` | 920 E 43RD CHICAGO | 16232.011092425382 | 0 |
+| `commercial_20023050190000` | 4434 S DREXEL | 47436 | 47700 |
+| `commercial_20031200120000` | 4251 S MICHIGAN CHICAGO | 58337.60598914232 | 0 |
+| `commercial_20031210190000` | 4200 S PRAIRIE CHICAGO | 24247.42119973153 | 0 |
+| `commercial_20031210430000` | 4220 S PRAIRIE CHICAGO | 32083 | 0 |
+| `commercial_20143060140000` | 1156 E 61ST CHICAGO | 126343.32099667795 | 0 |
+| `commercial_20151060280000` | 333 E 55TH CHICAGO | 24724 | 0 |
+| `commercial_20153020180000` | 120 E 60TH CHICAGO | 33915 | 0 |
+| `commercial_20153100130000` | 6049 S PRAIRIE CHICAGO | 19222.988835055032 | 0 |
+| `commercial_20153150080000` | 6145 S INDIANA CHICAGO | 32399.397211305797 | 0 |
+| `commercial_25013240390000` | 9401 S STONEY ISLAND CHICAGO | 239421.25976997617 | 0 |
+
+---
+
+# Earlier review, preserved for its evidence
+
+The dated review above supersedes earlier pending counts and recommendations where
+the subsequent source checks or recorded decisions differ.
+
 # Initial verdicts on the remaining construction land and location cases
 
 Agent-drafted review, September 8, 2026. **These are initial recommendations, not newly adopted production decisions.** The paper input and density regressions are unchanged. No new exclusions, years, coordinates or land values were applied in this review.

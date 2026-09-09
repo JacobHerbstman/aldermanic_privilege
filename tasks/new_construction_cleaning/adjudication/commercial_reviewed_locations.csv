@@ -1,0 +1,4 @@
+project_id,construction_year,source,source_id,street_number,street_direction,street_name,reason,evidence_url
+commercial_14313090210000,2010,completed_permit,100073282,1845,N,WESTERN AVE,Exact new-building permit confirms 15 apartments and two retail spaces; retain Assessor completion proxy,
+commercial_17042210990000,2012,reviewed_current_exact_pin,17042210990000,1225,N,WELLS ST,Reviewed unchanged Old Town building identity; exact current source parcel point locates the completed 250-unit project; boundary year remains approved 2012,https://jdlcorp.com/projects/1225-old-town
+commercial_17194110010000,2012,completed_permit,100312231,1657,W,18TH ST,Completed permit identifies the new 15-unit La Casa building separately from the additional site parcels,https://resurrectionproject.org/es/governor-quinn-joins-trp-at-la-casa-ribbon-cutting-trp-announces-la-casa-giving-campaign/

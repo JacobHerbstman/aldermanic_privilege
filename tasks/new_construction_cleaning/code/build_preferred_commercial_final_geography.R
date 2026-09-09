@@ -1,0 +1,110 @@
+# setwd("tasks/new_construction_cleaning/code")
+source("../../setup_environment/code/packages.R")
+source("../../shared/code/canonical_geometry_helpers.R")
+
+projects <- readr::read_csv("../output/preferred_commercial_projects.csv",
+  col_types = readr::cols(project_id = readr::col_character(), component_pins = readr::col_character(), .default = readr::col_guess()))
+stopifnot(!anyDuplicated(projects$project_id))
+requests <- projects %>% select(project_id, target_year = construction_year, component_pins) %>%
+  tidyr::separate_longer_delim(component_pins, delim = "/") %>% rename(component_pin = component_pins)
+stopifnot(!anyDuplicated(requests[c("project_id", "component_pin")]))
+# Only the selected construction year and selected parcel set define the site.
+parcels <- sf::st_read("../input/preferred_historical_parcel_source.gpkg", quiet = TRUE) %>%
+  sf::st_transform(3435)
+names(parcels)[names(parcels) == attr(parcels, "sf_column")] <- "geometry"
+sf::st_geometry(parcels) <- "geometry"
+parcels <- parcels %>% group_by(target_year, pin14) %>%
+  summarise(location_evidence = paste(sort(unique(object_id)), collapse = "/"), .groups = "drop")
+stopifnot(!anyDuplicated(sf::st_drop_geometry(parcels)[c("target_year", "pin14")]))
+components <- parcels %>% inner_join(requests,
+  by = c("target_year", "pin14" = "component_pin"), relationship = "one-to-many") %>%
+  rename(component_pin = pin14)
+component_coverage <- requests %>% left_join(sf::st_drop_geometry(components) %>%
+  select(project_id, component_pin, location_evidence),
+  by = c("project_id", "component_pin"), relationship = "one-to-one") %>%
+  mutate(location_source = if_else(!is.na(location_evidence), "exact_construction_year_parcel", NA_character_))
+complete <- component_coverage %>% group_by(project_id) %>%
+  summarise(complete = all(!is.na(location_source)), .groups = "drop") %>% filter(complete)
+centroids <- components %>% semi_join(complete, by = "project_id") %>%
+  group_by(project_id) %>% summarise(
+    project_geometry_source = "construction_year_component_union",
+    project_geometry_evidence = paste(sort(unique(location_evidence)), collapse = "/"),
+    project_polygon_area_sqft = as.numeric(sf::st_area(sf::st_union(geometry))), .groups = "drop") %>%
+  sf::st_centroid()
+# Reuse a reviewed candidate location only when both its year and parcel set agree.
+candidates <- readr::read_csv("../output/preferred_commercial_project_candidates.csv",
+  col_types = readr::cols(project_id = readr::col_character(), component_pins = readr::col_character(), .default = readr::col_guess()))
+candidate_points <- sf::st_read("../output/preferred_project_year_centroids.gpkg", quiet = TRUE) %>%
+  filter(source_family == "commercial")
+names(candidate_points)[names(candidate_points) == attr(candidate_points, "sf_column")] <- "geometry"
+sf::st_geometry(candidate_points) <- "geometry"
+unchanged <- projects %>% select(project_id, construction_year, component_pins) %>%
+  inner_join(candidates %>% select(project_id, construction_year, component_pins),
+    by = c("project_id", "construction_year", "component_pins"), relationship = "one-to-one")
+reused <- candidate_points %>% inner_join(unchanged,
+  by = c("project_id", "target_year" = "construction_year"), relationship = "one-to-one") %>%
+  filter(!project_id %in% centroids$project_id) %>%
+  transmute(project_id, project_geometry_source = location_source,
+    project_geometry_evidence = paste0("candidate_year:", target_year, ";parcels:", component_pins),
+    project_polygon_area_sqft = project_land_area_sqft)
+centroids <- bind_rows(centroids, reused)
+
+reviews <- readr::read_csv("../adjudication/commercial_reviewed_locations.csv",
+  col_types = readr::cols(.default = readr::col_character()))
+stopifnot(!anyDuplicated(reviews$project_id), all(reviews$project_id %in% projects$project_id))
+permits <- sf::st_read("../output/building_permits_for_verification.gpkg",
+  query = paste0("SELECT * FROM building_permits_clean WHERE permit IN ('",
+    paste(reviews$source_id[reviews$source == "completed_permit"], collapse = "','"), "')"), quiet = TRUE) %>% sf::st_transform(3435)
+current <- readr::read_csv("../input/parcel_universe_2025_city.csv",
+  col_types = readr::cols(pin = readr::col_character(), longitude = readr::col_double(),
+    latitude = readr::col_double(), .default = readr::col_skip()))
+for (j in seq_len(nrow(reviews))) {
+  r <- reviews[j, ]
+  stopifnot(projects$construction_year[match(r$project_id, projects$project_id)] == as.integer(r$construction_year))
+  if (r$source == "completed_permit") {
+    point <- permits %>% filter(permit == r$source_id)
+    stopifnot(nrow(point) == 1L, point$permit_status == "COMPLETE",
+      point$permit_type == "PERMIT - NEW CONSTRUCTION",
+      point$street_number == as.numeric(r$street_number), point$street_direction == r$street_direction,
+      point$street_name == r$street_name)
+  } else {
+    stopifnot(r$source == "reviewed_current_exact_pin",
+      r$source_id %in% strsplit(projects$component_pins[match(r$project_id, projects$project_id)], "/", fixed = TRUE)[[1]])
+    point <- current %>% filter(pin == r$source_id)
+    stopifnot(nrow(point) == 1L, is.finite(point$longitude), is.finite(point$latitude))
+    point <- sf::st_transform(sf::st_as_sf(point, coords = c("longitude", "latitude"), crs = 4326), 3435)
+  }
+  centroids <- centroids %>% filter(project_id != r$project_id)
+  centroids <- bind_rows(centroids, sf::st_sf(project_id = r$project_id,
+    project_geometry_source = r$source, project_geometry_evidence = r$source_id,
+    project_polygon_area_sqft = NA_real_, geometry = sf::st_geometry(point)))
+}
+stopifnot(!anyDuplicated(centroids$project_id), !any(sf::st_is_empty(centroids)), all(sf::st_is_valid(centroids)))
+centroids <- centroids %>% arrange(project_id)
+points <- centroids %>% inner_join(projects %>% select(project_id, construction_year),
+  by = "project_id", relationship = "one-to-one") %>%
+  mutate(construction_date = as.Date(paste0(construction_year, "-06-15")),
+    boundary_year = canonical_boundary_year_from_date(construction_date), era = canonical_era_from_boundary_year(boundary_year))
+ward_panel <- sf::st_read("../input/ward_panel.gpkg", quiet = TRUE) %>% sf::st_transform(3435)
+ward_maps <- load_canonical_ward_maps(ward_panel, eras = unique(points$era))
+boundary_lines <- load_boundary_layers("../input/ward_pair_boundaries.gpkg", eras = unique(points$era))
+for (era_value in unique(points$era)) stopifnot(all(lengths(sf::st_within(points[points$era == era_value, ], ward_maps[[era_value]])) == 1L))
+assignment <- assign_points_to_boundaries(points, points$era, ward_maps, boundary_lines, chunk_n = 2000L)
+located <- bind_cols(sf::st_drop_geometry(points), assignment) %>%
+  transmute(project_id, construction_year, construction_date, boundary_year, era,
+    ward, neighbor_ward, ward_pair = ward_pair_id, distance_to_boundary_ft = dist_ft,
+    within_1500ft = dist_ft <= 1500, within_500ft = dist_ft <= 500)
+stopifnot(all(is.finite(located$distance_to_boundary_ft)), !anyNA(located$ward_pair))
+boundary_scope <- projects %>% select(project_id, construction_year, allow_far, allow_dupac) %>%
+  left_join(located, by = c("project_id", "construction_year"), relationship = "one-to-one") %>%
+  mutate(location_resolved = !is.na(distance_to_boundary_ft),
+    allow_far = allow_far & location_resolved, allow_dupac = allow_dupac & location_resolved)
+xy <- sf::st_coordinates(centroids)
+commercial_ledger <- projects %>% left_join(sf::st_drop_geometry(centroids) %>%
+  mutate(x_3435 = xy[,1], y_3435 = xy[,2]), by = "project_id", relationship = "one-to-one") %>%
+  mutate(location_resolved = !is.na(x_3435), allow_far = allow_far & location_resolved,
+    allow_dupac = allow_dupac & location_resolved)
+readr::write_csv(commercial_ledger, "../output/preferred_commercial_project_ledger.csv")
+readr::write_csv(component_coverage, "../output/preferred_commercial_project_component_locations.csv")
+readr::write_csv(boundary_scope, "../output/preferred_commercial_boundary_scope.csv")
+sf::st_write(centroids, "../output/preferred_commercial_project_centroids.gpkg", delete_dsn = TRUE, quiet = TRUE)

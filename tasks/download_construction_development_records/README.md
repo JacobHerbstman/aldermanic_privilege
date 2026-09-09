@@ -51,3 +51,13 @@ These URLs are mutable. Preserve the recorded bytes with the source archive,
 reuse them on unchanged builds, and compare checksums and reports before any
 intentional refresh. The Huron sources support an investigation, not an adopted
 floor-area override or exclusion.
+
+## Montclare land evidence
+
+`make ../output/montclare_pd1412.pdf` in `code/` retrieves the City of Chicago's
+PD1412 document from its literal public URL and verifies `montclare_pd1412.sha256`
+before publishing the PDF. This September 8, 2026 snapshot includes the original
+2018 table on PDF page 33: residential Subarea A has 152,677 square feet of net
+land and 134 dwellings. Later amendment pages are preserved in the source file.
+The area is reported in the plan, not calculated from its drawing. A source
+refresh requires deliberately updating the recorded checksum after review.

@@ -53,7 +53,7 @@ for (i in which(review$initial_checkpoint_pending)) {
 
 scope <- read_csv("../input/preferred_project_boundary_scope.csv", show_col_types = FALSE) |>
   select(source_family, project_id, target_year, project_kind, candidate_status,
-    geography_status, requested_components, resolved_components,
+    geography_status, location_source, requested_components, resolved_components,
     candidate_component_pins = component_pins, candidate_parcel_pins = parcel_pins,
     distance_to_boundary_ft, within_500ft)
 history <- read_csv("../output/geocoding_parcel_history_review.csv",
@@ -178,6 +178,7 @@ review <- review |> mutate(
     current_project_id %in% reviewed_replacement_ids &
       geography_status == "complete_construction_year_geometry" ~ "resolved_reviewed_identity_and_location",
     geography_status == "reviewed_permit_location" ~ "resolved_by_reviewed_permit_location",
+    location_source == "reviewed_exact_parcel_point" ~ "resolved_by_reviewed_parcel_location",
     initial_checkpoint_resolved ~ "resolved_by_general_parcel_rule",
     prior_case_result == "investigate" ~ "investigate_recorded_case_evidence",
     construction_year_unresolved ~ "reconcile_construction_episode_before_assigning_year",

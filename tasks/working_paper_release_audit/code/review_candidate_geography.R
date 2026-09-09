@@ -20,7 +20,7 @@ stopifnot(!anyNA(checks$project_id), all(points$target_year[!is.na(polygons$proj
   setequal(checks$project_id, scope$project_id[!is.na(scope$distance_to_boundary_ft)]))
 has_polygon <- !is.na(polygons$project_id)
 stopifnot(all(checks$complete_project_geometry == has_polygon),
-  all(points$location_source[!has_polygon] == "reviewed_completed_permit_point"),
+  all(points$location_source[!has_polygon] %in% c("reviewed_completed_permit_point", "reviewed_exact_parcel_point")),
   all(is.na(points$project_land_area_sqft[!has_polygon])))
 checks <- checks |> select(source_family, project_id, target_year, boundary_year, era,
   ward, ward_pair, distance_to_boundary_ft, within_500ft, project_land_area_sqft) |>

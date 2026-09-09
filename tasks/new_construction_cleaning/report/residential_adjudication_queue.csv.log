@@ -1,22 +1,22 @@
 File: residential_adjudication_queue.csv
-Rows: 231
+Rows: 229
 Columns: 20
-SHA-256 (saved bytes): e8ef0570e0804d7fda789c667943e84cf8d808e6226013ec0a2f1939a12dd59b
+SHA-256 (saved bytes): 30c28988d57529fd3caf708e07926bd5b9a928923491e73c1ba99256d5b9350c
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                column inferred_type non_missing distinct               min                max               mean                 sd
-           project_id       VARCHAR         231      231                 -                  -                  -                  -
-         project_kind       VARCHAR         231        4                 -                  -                  -                  -
-       component_pins       VARCHAR         231      231                 -                  -                  -                  -
-      component_count        BIGINT         231        5                 1                  5   1.70995670995671 0.7733807756886518
-    construction_year        BIGINT         231       17              2006               2022 2014.7099567099567  6.113266791796319
+           project_id       VARCHAR         229      229                 -                  -                  -                  -
+         project_kind       VARCHAR         229        4                 -                  -                  -                  -
+       component_pins       VARCHAR         229      229                 -                  -                  -                  -
+      component_count        BIGINT         229        5                 1                  5 1.6986899563318778 0.7672278847484132
+    construction_year        BIGINT         229       17              2006               2022 2014.6899563318777  6.135526007120153
        dwelling_units        BIGINT          91        7                 1                  7  3.142857142857143 1.6638070706226633
         building_sqft        BIGINT          98       53                 0             309180 12820.663265306122  47611.61308586401
             land_sqft        BIGINT          99       73              1117             466245 18269.282828282827 56990.746722253156
-         class_values        BIGINT         231       10               203                297 258.27272727272725  41.70683492008695
+         class_values        BIGINT         229       10               203                297 258.31877729257644 41.701304686226756
        source_row_ids       VARCHAR         103      103                 -                  -                  -                  -
      permit_chain_ids       VARCHAR          45       45                 -                  -                  -                  -
        permit_numbers       VARCHAR           8        8                 -                  -                  -                  -
@@ -24,7 +24,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
          units_source       VARCHAR          91       70                 -                  -                  -                  -
       building_source       VARCHAR          99       78                 -                  -                  -                  -
           land_source       VARCHAR          99       78                 -                  -                  -                  -
-   current_distance_m        DOUBLE         133      133 16.79765761020505 2067.1068483816994 305.12845787079675 269.47484960188154
-current_within_1500ft       BOOLEAN         231        2                 -                  -                  -                  -
-     candidate_status       VARCHAR         231        2                 -                  -                  -                  -
-      decision_reason       VARCHAR         231        9                 -                  -                  -                  -
+   current_distance_m        DOUBLE         132      132 16.79765761020505 2067.1068483816994  305.4131360699479 270.48134807909395
+current_within_1500ft       BOOLEAN         229        2                 -                  -                  -                  -
+     candidate_status       VARCHAR         229        2                 -                  -                  -                  -
+      decision_reason       VARCHAR         229        9                 -                  -                  -                  -

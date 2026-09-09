@@ -1,0 +1,15 @@
+File: preferred_commercial_project_centroids.gpkg
+Rows: 784
+Columns: 5
+SHA-256 (saved bytes): 50a9ffe7c5b19a704e874b8f3ae55aa5f59bc3fd4977934bc045db1f606c34e1
+Key: project_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                   column inferred_type non_missing distinct                min               max               mean                 sd
+                      fid        BIGINT         784      784                  1               784              392.5 226.46559709295067
+               project_id       VARCHAR         784      784                  -                 -                  -                  -
+  project_geometry_source       VARCHAR         784        4                  -                 -                  -                  -
+project_geometry_evidence       VARCHAR         784      784                  -                 -                  -                  -
+project_polygon_area_sqft        DOUBLE         781      778 2249.8159374018433 417736.2262001708 23131.299594579523  34858.91608814839

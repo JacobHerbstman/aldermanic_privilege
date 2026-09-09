@@ -77,6 +77,36 @@ all: ../report/building_permits_for_verification.gpkg.log \
 	../report/residential_tieback_temporal_lineage_evidence.csv.log \
 	../report/residential_tieback_temporal_snapshots.csv.log
 
+all: ../report/preferred_commercial_project_ledger.csv.log ../report/preferred_commercial_project_component_locations.csv.log ../report/preferred_commercial_project_centroids.gpkg.log ../report/preferred_commercial_boundary_scope.csv.log
+
+ifneq ($(filter-out $(wildcard ../output/preferred_commercial_project_ledger.csv ../output/preferred_commercial_project_component_locations.csv ../output/preferred_commercial_project_centroids.gpkg ../output/preferred_commercial_boundary_scope.csv),../output/preferred_commercial_project_ledger.csv ../output/preferred_commercial_project_component_locations.csv ../output/preferred_commercial_project_centroids.gpkg ../output/preferred_commercial_boundary_scope.csv),)
+.PHONY: ../output/preferred_commercial_project_ledger.csv
+endif
+
+../output/preferred_commercial_project_ledger.csv: build_preferred_commercial_final_geography.R ../adjudication/commercial_reviewed_locations.csv ../input/preferred_historical_parcel_source.gpkg ../output/preferred_commercial_project_candidates.csv ../output/preferred_project_year_centroids.gpkg ../output/building_permits_for_verification.gpkg ../input/parcel_universe_2025_city.csv ../input/ward_pair_boundaries.gpkg ../input/ward_panel.gpkg ../output/preferred_commercial_projects.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
+	$(R) $<
+
+../output/preferred_commercial_project_component_locations.csv: ../output/preferred_commercial_project_ledger.csv
+	@test -f "$@"
+
+../output/preferred_commercial_project_centroids.gpkg: ../output/preferred_commercial_project_ledger.csv
+	@test -f "$@"
+
+../output/preferred_commercial_boundary_scope.csv: ../output/preferred_commercial_project_ledger.csv
+	@test -f "$@"
+
+../report/preferred_commercial_project_ledger.csv.log: ../../shared/code/report.py ../output/preferred_commercial_project_ledger.csv | ../report
+	$(PYTHON) $< ../output/preferred_commercial_project_ledger.csv $@ project_id
+
+../report/preferred_commercial_project_component_locations.csv.log: ../../shared/code/report.py ../output/preferred_commercial_project_component_locations.csv | ../report
+	$(PYTHON) $< ../output/preferred_commercial_project_component_locations.csv $@ project_id component_pin
+
+../report/preferred_commercial_project_centroids.gpkg.log: ../../shared/code/report.py ../output/preferred_commercial_project_centroids.gpkg | ../report
+	$(PYTHON) $< ../output/preferred_commercial_project_centroids.gpkg $@ project_id
+
+../report/preferred_commercial_boundary_scope.csv.log: ../../shared/code/report.py ../output/preferred_commercial_boundary_scope.csv | ../report
+	$(PYTHON) $< ../output/preferred_commercial_boundary_scope.csv $@ project_id
+
 ../report/new_construction_project_components.csv.log: ../../shared/code/report.py ../output/new_construction_project_components.csv | ../report
 	$(PYTHON) $< ../output/new_construction_project_components.csv $@ project_id component_pin
 
@@ -292,7 +322,7 @@ ifneq ($(filter-out $(wildcard ../output/preferred_project_year_geometry.gpkg ..
 .PHONY: ../output/preferred_project_year_geometry.gpkg
 endif
 
-../output/preferred_project_year_geometry.gpkg: build_preferred_project_geography.R ../adjudication/residential_reviewed_permit_locations.csv ../output/building_permits_for_verification.gpkg ../output/preferred_historical_parcel_coverage.csv ../output/preferred_historical_parcels.gpkg ../output/preferred_historical_predecessor_selected.gpkg ../../setup_environment/code/packages.R | ../output
+../output/preferred_project_year_geometry.gpkg: build_preferred_project_geography.R ../adjudication/residential_reviewed_parcel_locations.csv ../input/parcel_universe_2025_city.csv ../adjudication/residential_reviewed_permit_locations.csv ../output/building_permits_for_verification.gpkg ../output/preferred_historical_parcel_coverage.csv ../output/preferred_historical_parcels.gpkg ../output/preferred_historical_predecessor_selected.gpkg ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/preferred_project_year_geometry.gpkg: ../output/preferred_residential_project_candidates.csv ../input/predecessor_parcel_history.csv ../input/geocoding_parcel_history.csv ../input/density_historical_parcel_records.csv

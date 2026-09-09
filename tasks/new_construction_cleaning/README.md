@@ -21,7 +21,7 @@ inputs and remain outside the default candidate build.
 | 4. Check permits and construction years | Match permits to candidates, recover historical parcels where necessary, and link revisions of the same permit. An exact single permit chain can correct an Assessor year one year before its application. Reviewed years retain priority. Ambiguity remains recorded. | `build_new_construction_permit_evidence.R`, `build_historical_project_geography.R`, `build_spatial_permit_evidence.R`, `build_permit_revision_evidence.R`, `build_preferred_residential_candidates.R` |
 | 5. Locate the selected projects | Match the construction-year parcel. If it is unavailable, use the recorded parcel/address evidence and the approved fallback rules. Address matches require street agreement; Chicago geocoding takes priority over Census where used. An exact parcel's coordinate from one year later can identify a unique construction-year polygon. | `build_preferred_geography_requests.R` through `recover_preferred_historical_predecessors.R`, `build_preferred_project_geography.R` |
 | 6. Measure boundary distances | Use the selected project geometry and the ward boundaries for its construction year, in the Chicago working coordinate system (EPSG:3435, feet). Preserve unresolved locations. | `build_preferred_boundary_scope.R` |
-| 7. Finish the commercial-source branch | Use Assessor, permit, footprint, and recorded evidence to distinguish new buildings, construction timing, units, and land. Commercial-source residential buildings are reconciled separately from ordinary residential Assessor records. | `build_preferred_commercial_candidates.R` through `build_preferred_commercial_ledger.R` |
+| 7. Finish the commercial-source branch | Use Assessor, permit, footprint, and recorded evidence to distinguish new buildings, construction timing, units, and land. Then locate the selected year and component set; unresolved locations remain ineligible. | `build_preferred_commercial_candidates.R` through `build_preferred_commercial_ledger.R`, then `build_preferred_commercial_final_geography.R` |
 
 This table summarizes the logic; it does not imply seven scripts or perfectly
 separate stages. In particular, permit checking needs preliminary project
@@ -61,6 +61,9 @@ candidate path and the standard data reports. The main products are:
 - `output/preferred_commercial_projects.csv`: reviewed commercial-source projects.
 - `output/preferred_project_boundary_scope.csv`: candidate construction-year
   boundary distances and geography status.
+- `output/preferred_commercial_project_ledger.csv` and
+  `output/preferred_commercial_boundary_scope.csv`: selected commercial records
+  and their construction-year distances; missing locations are explicitly ineligible.
 
 The main [Makefile](code/Makefile) contains their current ancestors. Earlier
 review and final-assembly targets remain explicitly callable through
@@ -75,16 +78,20 @@ Rebuild the diagrams with `make -C task_graph` from the repository root.
 
 ## Before replacing the paper's frozen input
 
-The unfinished final assembly still asks for residential review footprints,
-condominium successor-year evidence, and commercial final historical parcels
-without complete producing rules. Reconcile those old requests against the
+The unfinished final assembly still asks for residential review footprints and
+condominium successor-year evidence without complete producing rules. The current
+commercial location producer now reads the recorded historical parcels directly;
+31 other selected commercial records still lack accepted final locations. Reconcile those old requests against the
 current approved project decisions before choosing the final assembly path.
 Then verify one final row per included observation, eligibility for each density
 measure, and construction-year distances. Compare the new sample and estimates
 with the frozen file before switching the paper to it.
 
-The earlier 30 unresolved parcel requests remain a required pre-rerun checkpoint:
-trace their identifiers through the later resolutions rather than assuming the
-current build closes them. See the [preserved reconstruction history](reconstruction_history.md)
-for the evidence, dated case decisions, and prior comparisons. A successful
-candidate build is not a claim that all source uncertainty has disappeared.
+The agreed retention list has now been carried through: 30 residential records
+and seven named commercial records have retained measurements and supported
+construction-year distances. The original 30 parcel requests were not 30 remaining
+building decisions. See the [current land review](../working_paper_release_audit/commercial_land_followup.md)
+for the completed exclusions/retentions and the 56 older commercial map-denominator
+choices still awaiting source-land decisions. The [preserved reconstruction history](reconstruction_history.md)
+records earlier evidence and comparisons. A successful candidate build is not a
+claim that the final paper input or every reviewed measurement is complete.

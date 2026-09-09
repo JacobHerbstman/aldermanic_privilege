@@ -1,7 +1,7 @@
 File: preferred_chicago_address_geocodes.csv
 Rows: 216
 Columns: 25
-SHA-256 (saved bytes): b4b2af54919caaa695833267339eb3e2451b3025084544438672444e3c2becf9
+SHA-256 (saved bytes): 59d5d065f41c32f0e286247662d79a8ec0e249520d8ad114a0af336592104a80
 Key: request_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -12,7 +12,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
               source_family       VARCHAR         216        2                  -                  -                  -                  -
                  project_id       VARCHAR         216      213                  -                  -                  -                  -
                project_kind       VARCHAR         216        5                  -                  -                  -                  -
-           candidate_status       VARCHAR         216        3                  -                  -                  -                  -
+           candidate_status       VARCHAR         216        5                  -                  -                  -                  -
               component_pin        BIGINT         216      216     10253280110000     26071050350000 16944365534305.555  2432929322411.798
                       pin10        BIGINT         216      216         1025328011         2607105035 1694436553.4305556 243292932.24117988
                 target_year        BIGINT         216       16               2006               2022 2011.1527777777778  4.978072071634562

@@ -1,0 +1,41 @@
+File: preferred_commercial_project_ledger.csv
+Rows: 815
+Columns: 31
+SHA-256 (saved bytes): ce4b75f42b9bc80f293322b7787473ae89afcaa200d40dced0fc61d360fa51cc
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                   column inferred_type non_missing distinct                min                max               mean                 sd
+               project_id       VARCHAR         815      815                  -                  -                  -                  -
+       source_project_ids       VARCHAR         815      768                  -                  -                  -                  -
+           source_row_ids       VARCHAR         815      815                  -                  -                  -                  -
+selected_source_addresses       VARCHAR         815      798                  -                  -                  -                  -
+           component_pins       VARCHAR         815      815                  -                  -                  -                  -
+          component_count        BIGINT         815       15                  1                 16  2.211042944785276 2.0279680264578372
+        construction_year        BIGINT         815       17               2006               2022  2013.638036809816 5.2035025128842785
+           dwelling_units        BIGINT         813      213                  1                848  77.25584255842558 126.79302587204072
+            building_sqft        BIGINT         805      739               1144            1284706 101201.23354037268  171804.8300130373
+                land_sqft        DOUBLE         815      741             1919.0          1540260.0  30014.93710376941  76513.26892298173
+                allow_far       BOOLEAN         815        2                  -                  -                  -                  -
+              allow_dupac       BOOLEAN         815        2                  -                  -                  -                  -
+        membership_source       VARCHAR         815       24                  -                  -                  -                  -
+              year_source       VARCHAR         815      686                  -                  -                  -                  -
+             units_source       VARCHAR         815      641                  -                  -                  -                  -
+          building_source       VARCHAR         806      647                  -                  -                  -                  -
+              land_source       VARCHAR         815      646                  -                  -                  -                  -
+          decision_source       VARCHAR         815        6                  -                  -                  -                  -
+          decision_action       VARCHAR         815       18                  -                  -                  -                  -
+              decision_id       VARCHAR         815      773                  -                  -                  -                  -
+               confidence       VARCHAR         815        4                  -                  -                  -                  -
+             evidence_ids       VARCHAR         253      123                  -                  -                  -                  -
+            evidence_urls       VARCHAR          42       42                  -                  -                  -                  -
+          decision_reason       VARCHAR         815      137                  -                  -                  -                  -
+        unresolved_caveat       VARCHAR          69       41                  -                  -                  -                  -
+  project_geometry_source       VARCHAR         784        4                  -                  -                  -                  -
+project_geometry_evidence       VARCHAR         784      784                  -                  -                  -                  -
+project_polygon_area_sqft        DOUBLE         781      778 2249.8159374018433  417736.2262001708 23131.299594579523  34858.91608814839
+                   x_3435        DOUBLE         784      781 1124181.9019028947 1199504.8726696013 1166492.3695749475 12436.222738673208
+                   y_3435        DOUBLE         784      781 1824809.4202887826 1947343.8882133919 1902607.1245761288   21490.7791292654
+        location_resolved       BOOLEAN         815        2                  -                  -                  -                  -

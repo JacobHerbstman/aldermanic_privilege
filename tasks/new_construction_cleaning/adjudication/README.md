@@ -136,3 +136,26 @@ remains documented, but it is ineligible for density pending a reliable reported
 land area. The Assessor total of 24613 square feet conflicts with historical parcel
 coverage. The proposed calculated 22100-square-foot replacement was withdrawn
 before adoption. No new polygon-area calculation remains in the producer.
+
+### Retention locations and source exclusions (September 8, 2026)
+
+The source-exclusion ledger now also records the ten unlocatable residential
+records, the two Kildare holdouts, and the unsupported California/Morgan combined
+records whose investigation Jacob closed. The preferred candidate producer
+preserves these upstream exclusions. A general one-square-foot placeholder rule
+prevents treating an unmeasured building or lot as usable density data.
+
+`residential_reviewed_parcel_locations.csv` identifies exact source parcel points
+for 23 reviewed homes/buildings, retaining source year and parcel number. It does
+not contain analyst-drawn coordinates or density areas. The producer checks the
+source key and, where an accepted historical site exists, containment within it.
+Four added `residential_reviewed_permit_locations.csv` entries use exact completed
+new-building permits for Kenmore, Lamon and Washington. Lamon's 2022 proxy is
+recorded after reviewing its 2022 sale history.
+
+`commercial_reviewed_locations.csv` records Western and La Casa's exact completed
+permits and Wells' reviewed current exact-parcel point. The selected construction
+year, not the point's source year, determines the ward boundary. La Casa retains
+15 source-coded units and the coherent 2021 building/land record on its two original
+parcels; its opening year is 2012. The 56 commercial land comparisons are proposals
+in the release audit, not new overrides in these ledgers.

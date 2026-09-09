@@ -192,7 +192,7 @@ ordinary_candidates <- assessor_projects %>%
     permit_chain_ids = exact_permit_chain_id,
     permit_numbers = exact_permit_numbers,
     candidate_status = case_when(
-      candidate_status == "exclude_source_duplicate_keep_successors" ~ candidate_status,
+      str_starts(candidate_status, "exclude_") ~ candidate_status,
       !between(construction_year, 2006L, 2022L) ~ "exclude_outside_period",
       !is.finite(dwelling_units) | dwelling_units <= 0 |
         !is.finite(building_sqft) | building_sqft <= 0 |
@@ -200,7 +200,7 @@ ordinary_candidates <- assessor_projects %>%
       TRUE ~ "retain_mechanical"
     ),
     decision_reason = case_when(
-      candidate_status == "exclude_source_duplicate_keep_successors" ~ decision_reason,
+      str_starts(candidate_status, "exclude_") ~ decision_reason,
       !between(construction_year, 2006L, 2022L) ~ "construction_year_outside_2006_2022",
       !is.finite(dwelling_units) | dwelling_units <= 0 ~ "missing_or_nonpositive_units",
       !is.finite(building_sqft) | building_sqft <= 0 ~ "missing_or_nonpositive_building_area",
@@ -455,6 +455,14 @@ residential_candidates <- bind_rows(
   commercial_overlap_candidates
 ) %>%
   arrange(project_kind, project_id)
+
+# A one-square-foot area is a source placeholder, not a measured building or lot.
+placeholder <- with(residential_candidates,
+  candidate_status == "retain_mechanical" &
+    ((!is.na(building_sqft) & building_sqft <= 1) |
+     (!is.na(land_sqft) & land_sqft <= 1)))
+residential_candidates$candidate_status[placeholder] <- "exclude_unusable_measurement"
+residential_candidates$decision_reason[placeholder] <- "source_area_placeholder_not_usable_density_measurement"
 
 assessor_match <- match(residential_candidates$project_id, assessor_projects$project_id)
 residential_candidates$replacement_project_ids <- assessor_projects$replacement_project_ids[assessor_match]

@@ -20,3 +20,6 @@ all: ../report/huron_energy_benchmarking.csv.log
 
 ../report/huron_energy_benchmarking.csv.log: ../../shared/code/report.py ../output/huron_energy_benchmarking.csv | ../report
 	$(PYTHON) $< ../output/huron_energy_benchmarking.csv $@ row_id
+
+../output/montclare_pd1412.pdf: remaining_sources.make montclare_pd1412.sha256 | ../output ../temp
+	curl --fail --location 'https://gisapps.chicago.gov/gisimages/zoning_pds/PD1412.pdf' --output ../temp/montclare_pd1412.pdf && pdfinfo ../temp/montclare_pd1412.pdf >/dev/null && shasum -a 256 -c montclare_pd1412.sha256 && mv ../temp/montclare_pd1412.pdf $@

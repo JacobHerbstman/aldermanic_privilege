@@ -139,3 +139,7 @@ The older final-assembly rules are excluded from the default build; the paper st
 ## Dependency level 30
 
 - [build_preferred_commercial_ledger.R](../tasks/new_construction_cleaning/code/build_preferred_commercial_ledger.R): `preferred_commercial_projects.csv`, `preferred_commercial_source_disposition.csv`
+
+## Dependency level 31
+
+- [build_preferred_commercial_final_geography.R](../tasks/new_construction_cleaning/code/build_preferred_commercial_final_geography.R): `preferred_commercial_boundary_scope.csv`, `preferred_commercial_project_centroids.gpkg`, `preferred_commercial_project_component_locations.csv`, `preferred_commercial_project_ledger.csv`
