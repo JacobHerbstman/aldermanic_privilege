@@ -1,16 +1,16 @@
 File: preferred_project_year_geometry.gpkg
 Rows: 13937
 Columns: 6
-SHA-256 (saved bytes): 020928922b7e956247c8188d48749bf68a725db0912e20a9a31419a06e07c574
+SHA-256 (saved bytes): b3921079d936f6a09f6e5521eb7577614ef11dfc998085207ffcf242822510fe
 Key: source_family, project_id, target_year
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                column inferred_type non_missing distinct                min               max               mean                 sd
-                   fid        BIGINT       13937    13937                  1             13937             6969.0   4023.40968582619
-         source_family       VARCHAR       13937        2                  -                 -                  -                  -
-            project_id       VARCHAR       13937    13937                  -                 -                  -                  -
-           target_year        DOUBLE       13937       17             2006.0            2022.0  2012.479443208725  5.392730418461038
- project_polygon_valid        BIGINT       13937        1                  1                 1                1.0                0.0
-project_land_area_sqft        DOUBLE       13937    11373 176.29144966672175 904026.4079986904 13669.970221611555 42337.275769544896
+                column inferred_type non_missing distinct                min               max               mean                sd
+                   fid        BIGINT       13937    13937                  1             13937             6969.0  4023.40968582619
+         source_family       VARCHAR       13937        2                  -                 -                  -                 -
+            project_id       VARCHAR       13937    13937                  -                 -                  -                 -
+           target_year        DOUBLE       13937       17             2006.0            2022.0 2012.4795867116309 5.392744269770391
+ project_polygon_valid        BIGINT       13937        1                  1                 1                1.0               0.0
+project_land_area_sqft        DOUBLE       13937    11374 176.29144966672175 904026.4079986904 13669.758493205138 42337.32201310305

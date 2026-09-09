@@ -3,7 +3,7 @@ import pandas as pd
 
 cases = pd.read_csv('../reference/individual_location_remaining_cases.csv', dtype=str)
 projects = pd.read_csv('../input/preferred_residential_project_candidates.csv', dtype={'component_pins': str})
-review = cases.merge(projects[['project_id', 'construction_year', 'dwelling_units', 'building_sqft', 'land_sqft']],
+review = cases.merge(projects[['project_id', 'candidate_status', 'construction_year', 'dwelling_units', 'building_sqft', 'land_sqft']],
     on='project_id', validate='one_to_one')
 years = pd.read_csv('../input/residential_reviewed_construction_years.csv')
 review = review.merge(years[['project_id', 'reported_year']], on='project_id', how='left', validate='one_to_one')
@@ -55,15 +55,18 @@ review = review.merge(pd.DataFrame(records), on='project_id', validate='one_to_o
 scope = pd.read_csv('../input/preferred_project_boundary_scope.csv',
     usecols=['project_id','location_source','distance_to_boundary_ft'])
 review = review.merge(scope, on='project_id', validate='one_to_one')
-review['location_resolved'] = review.location_source.isin(['same_property_later_exact_parcel_point', 'verified_chicago_individual_address_point'])
+review['location_resolved'] = review.distance_to_boundary_ft.notna() & review.location_source.notna() & review.location_source.ne('former_parcel_centroid_unresolved_individual')
 review['finding'] = 'No saved point from an assessment year with matching building measurements'
 review.loc[review.matching_point_years.ne(''), 'finding'] = 'Matching assessment and point exist; point does not fit the historical site'
-review.loc[review.location_resolved, 'finding'] = 'Individual lot located using matching assessment and parcel point'
+review.loc[review.location_resolved, 'finding'] = 'Individual property has an accepted location in production'
+review.loc[review.location_source.eq('same_property_later_exact_parcel_point'), 'finding'] = 'Individual lot located using matching assessment and parcel point'
 review.loc[review.location_source.eq('verified_chicago_individual_address_point'), 'finding'] = 'Individual building located by the already verified exact Chicago address match'
 review['building_check'] = 'No measurement or construction-year discrepancy in the latest available assessment'
 review.loc[review.last_assessment_year.lt(2025), 'building_check'] = 'Property number no longer has a residential assessment in 2025; older record remains available'
 review.loc[review.floor_change_sqft.ne(0), 'building_check'] = 'Later assessment changes floor area; preserve selected source measurement pending interpretation'
 review.loc[review.year_changed, 'building_check'] = 'Later assessment changes construction year; location evidence does not resolve completion year'
 review.loc[review.reported_year.notna(), 'building_check'] = 'Construction year already corrected in the committed decision ledger; preserve approved year'
+review['excluded'] = review.candidate_status.str.startswith('exclude')
+review.loc[review.excluded, 'finding'] = 'Excluded from construction analysis by the recorded decision; no location repair needed'
 assert len(review) == 69 and not review.project_id.duplicated().any()
 review.sort_values('project_id').to_csv('../output/remaining_individual_location_findings.csv', index=False)

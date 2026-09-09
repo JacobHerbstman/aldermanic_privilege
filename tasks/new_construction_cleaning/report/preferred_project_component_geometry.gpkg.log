@@ -1,7 +1,7 @@
 File: preferred_project_component_geometry.gpkg
 Rows: 15606
 Columns: 15
-SHA-256 (saved bytes): 563c27aa7d0eb189ae81739e57b016e79b4dea350106af3189589c69318ca102
+SHA-256 (saved bytes): b7bc1159d0dbf649781b34cc59dcbcd001b133dc84fd9c9d55fea183cb67c881
 Key: request_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -13,13 +13,13 @@ Row counts, non-missing counts, and declared-key checks: exact.
     source_family       VARCHAR       15606        2      -         -                  -                  -
        project_id       VARCHAR       15606    13942      -         -                  -                  -
      project_kind       VARCHAR       15606        7      -         -                  -                  -
- candidate_status       VARCHAR       15606        6      -         -                  -                  -
+ candidate_status       VARCHAR       15606        7      -         -                  -                  -
     component_pin       VARCHAR       15606    15561      -         -                  -                  -
   requested_pin10       VARCHAR       15606    15553      -         -                  -                  -
-      target_year        DOUBLE       15606       17 2006.0    2022.0 2012.6667307445855  5.401043407344076
+      target_year        DOUBLE       15606       17 2006.0    2022.0  2012.666858900423  5.401051314129538
      match_method       VARCHAR       15606        3      -         -                  -                  -
-         layer_id        DOUBLE       11795       17    6.0    2022.0 152.93420941076727 510.94465549842755
-        object_id        DOUBLE       11795    11719   44.0 1849492.0  692012.5364137347 486415.76968066185
+         layer_id        DOUBLE       11796       17    6.0    2022.0 152.92251610715496 510.92457408626683
+        object_id        DOUBLE       11796    11720   44.0 1849492.0  692073.5662936589  486440.3124211853
 parcel_object_ids       VARCHAR       15606    13024      -         -                  -                  -
-     parcel_pin14       VARCHAR       15606    12813      -         -                  -                  -
-     parcel_pin10       VARCHAR       15606    12813      -         -                  -                  -
+     parcel_pin14       VARCHAR       15606    12814      -         -                  -                  -
+     parcel_pin10       VARCHAR       15606    12814      -         -                  -                  -

@@ -8,7 +8,7 @@ library(sf)
 
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(target_year, scope)
-stopifnot(length(args) == 2L, args[2] %in% c("historical", "preferred"))
+stopifnot(length(args) == 2L, args[2] %in% c("historical", "preferred", "reviewed"))
 target_year <- as.integer(args[1])
 scope <- args[2]
 layers <- read_csv("../input/historical_project_parcel_layers.csv", show_col_types = FALSE)

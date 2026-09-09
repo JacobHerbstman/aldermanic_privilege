@@ -12,8 +12,9 @@ lake_park <- read_csv("../input/lake_park_direct_queries_2026-09-08.csv", col_ty
 east_64th <- read_csv("../input/east_64th_queries_2026-09-08.csv", col_types = cols(target_year = col_integer(), pin10 = col_character()))
 geneva_maud <- read_csv("../input/geneva_maud_queries_2026-09-08.csv", col_types = cols(target_year = col_integer(), pin10 = col_character()))
 campbell <- read_csv("../input/campbell_queries_2026-09-08.csv", col_types = cols(target_year = col_integer(), pin10 = col_character()))
+reviewed <- read_csv("../output/reviewed_parcel_queries_additional.csv", col_types = cols(target_year = col_integer(), pin10 = col_character()))
 stopifnot(!anyDuplicated(original), !anyDuplicated(initial), !anyDuplicated(additional))
-queries <- bind_rows(original, anti_join(initial, original, by = c("target_year", "pin10")), additional, latest, evidence, lake_park, east_64th, geneva_maud, campbell) |>
+queries <- bind_rows(original, anti_join(initial, original, by = c("target_year", "pin10")), additional, latest, evidence, lake_park, east_64th, geneva_maud, campbell, reviewed) |>
   arrange(target_year, pin10)
 stopifnot(!anyNA(queries), !anyDuplicated(queries))
 write_csv(queries, "../output/preferred_historical_parcel_source_queries.csv")

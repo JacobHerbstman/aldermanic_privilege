@@ -1,7 +1,7 @@
 File: preferred_project_year_centroids.gpkg
 Rows: 13953
 Columns: 10
-SHA-256 (saved bytes): 07df51a182acb4c80f1475f08988fb6a6005569193c042005f4787bc29c3f853
+SHA-256 (saved bytes): 852f24cc490b54f68269a79660de598d995d1f98c16b0ddb9259cdde71b8d176
 Key: source_family, project_id, target_year
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -11,10 +11,10 @@ Row counts, non-missing counts, and declared-key checks: exact.
                        fid        BIGINT       13953    13953                  1             13953             6977.0 4028.0284879826754
              source_family       VARCHAR       13953        2                  -                 -                  -                  -
                 project_id       VARCHAR       13953    13953                  -                 -                  -                  -
-               target_year        DOUBLE       13953       17             2006.0            2022.0 2012.4772450369096  5.392447049799988
+               target_year        DOUBLE       13953       17             2006.0            2022.0 2012.4773883752598  5.392460944391172
      project_polygon_valid        DOUBLE       13937        1                1.0               1.0                1.0                0.0
-    project_land_area_sqft        DOUBLE       13937    11373 176.29144966672175 904026.4079986904 13669.970221611475 42337.275769544925
+    project_land_area_sqft        DOUBLE       13937    11374 176.29144966672175 904026.4079986904 13669.758493205058  42337.32201310319
            location_source       VARCHAR       13953        8                  -                 -                  -                  -
-   location_reference_year        DOUBLE       13953       20             2006.0            2025.0 2014.6013760481617  6.633902478720559
+   location_reference_year        DOUBLE       13953       20             2006.0            2025.0 2014.6015193865119  6.633867873761339
 location_reference_row_ids       VARCHAR        3469     3457                  -                 -                  -                  -
     location_reference_pin       VARCHAR        3463     3451                  -                 -                  -                  -

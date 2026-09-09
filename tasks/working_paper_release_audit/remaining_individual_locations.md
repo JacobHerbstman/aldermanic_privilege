@@ -42,3 +42,9 @@ The following updates supersede the corresponding initial verdicts above. This r
 - **Wabash:** The [MRED listing reproduced on Redfin](https://www.redfin.com/IL/Chicago/3807-S-Wabash-Ave-60653/home/14071295) dates extensive rebuilding to 2010 and describes replaced systems, roof, windows, finishes, facade and basement slab. Together with the saved 2009 remodel permit, this supports renovation of the older structure. Recommend exclusion from new construction. The listing's headline year is not evidence of a wholly new building.
 
 Several listing sites syndicate the same MLS or tax data. Their agreement is not counted as independent verification. Advertised floor area, Assessor building area, and lot area have not been interchanged.
+
+## Approved decisions — September 8, 2026
+
+Jacob approved dropping the duplicate Sangamon record (PIN 17324080370000) while retaining the continuing house under PIN 17324080380000, with 1,998 square feet of floor area and 903 square feet of Assessor land. The land areas are not added together. Wabash is excluded as renovation; Indiana and Oakenwald are excluded because their claimed new construction is unsupported. Oakenwald's current vacancy supports caution but does not establish that no building ever existed there.
+
+Greenview uses the approved 2014 completion proxy, preserving the uncertainty around the December 2013/January 2014 sale and retaining Assessor measurements. Lowe, Avers, and 34th Street unit D retain their existing measurements and years. These decisions settle construction eligibility and measurements for this review; they do not independently establish precise individual-building locations where those remain unavailable. The production ledgers apply the exclusions and year decision before geography and density analysis.

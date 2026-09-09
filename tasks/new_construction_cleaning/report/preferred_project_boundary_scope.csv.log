@@ -1,7 +1,7 @@
 File: preferred_project_boundary_scope.csv
 Rows: 14017
 Columns: 29
-SHA-256 (saved bytes): c2e18e68a4a818dac807adbc8441178d7b5fb37a2ce45af34564dc70290731e7
+SHA-256 (saved bytes): 5f55e79a2355c7c7e4bbae06756f9b50029dce86cdfb227f61437d705d85851b
 Key: source_family, project_id, target_year
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -11,13 +11,13 @@ Row counts, non-missing counts, and declared-key checks: exact.
              source_family       VARCHAR       14017        2                  -                 -                    -                   -
                 project_id       VARCHAR       14017    14017                  -                 -                    -                   -
               project_kind       VARCHAR       14017        7                  -                 -                    -                   -
-          candidate_status       VARCHAR       14017        7                  -                 -                    -                   -
-               target_year        BIGINT       14017       17               2006              2022   2012.4889776699722  5.3895255243350695
-      requested_components        BIGINT       14017       17                  1                57   1.1194264107869016  0.8206836801931757
-       resolved_components        BIGINT       14017       18                  0                57   1.1133623457230506  0.8229750311355614
+          candidate_status       VARCHAR       14017        8                  -                 -                    -                   -
+               target_year        BIGINT       14017       17               2006              2022    2012.489120353856   5.389539052348512
+      requested_components        BIGINT       14017       17                  1                57   1.1194264107869016  0.8206836801931762
+       resolved_components        BIGINT       14017       18                  0                57   1.1133623457230506  0.8229750311355613
   distinct_parcel_polygons        BIGINT       14017       17                  0                57   1.1087251194977528  0.7972333240793735
             component_pins       VARCHAR       13942    13914                  -                 -                    -                   -
-               parcel_pins       VARCHAR       13942    11362                  -                 -                    -                   -
+               parcel_pins       VARCHAR       13942    11363                  -                 -                    -                   -
              match_methods       VARCHAR       13942        5                  -                 -                    -                   -
      unresolved_components        BIGINT       14017        4                  0                 4 0.006064065063851038 0.08551005077476359
       collapsed_components        BIGINT       14017        9                  0                15 0.004637226225297853 0.17971839104040047
@@ -25,15 +25,15 @@ Row counts, non-missing counts, and declared-key checks: exact.
          construction_date          DATE       13953       17                  -                 -                    -                   -
              boundary_year        BIGINT       13953        2               2003              2015   2007.3766931842615   5.776440632986698
                        era       VARCHAR       13953        2                  -                 -                    -                   -
-                      ward        BIGINT       13953       50                  1                50   24.469074750949616  15.199723734878086
-             neighbor_ward        BIGINT       13953       50                  1                50   23.452949186554864  15.604305931821747
+                      ward        BIGINT       13953       50                  1                50   24.469074750949616  15.199723734878082
+             neighbor_ward        BIGINT       13953       50                  1                50   23.452949186554864  15.604305931821735
                  ward_pair       VARCHAR       13953      140                  -                 -                    -                   -
-   distance_to_boundary_ft        DOUBLE       13953    13850 1.0214899430226334 27623.33171603177   1404.9031058243638  1743.0156624082408
+   distance_to_boundary_ft        DOUBLE       13953    13850 1.0214899430226334 27623.33171603177   1404.9032728947798  1743.0157441897584
              within_1500ft       BOOLEAN       13953        2                  -                 -                    -                   -
               within_500ft       BOOLEAN       13953        2                  -                 -                    -                   -
-    project_land_area_sqft        DOUBLE       13937    11373 176.29144966672175 904026.4079986904   13669.970221611475  42337.275769544925
+    project_land_area_sqft        DOUBLE       13937    11374 176.29144966672175 904026.4079986904   13669.758493205058   42337.32201310319
            location_source       VARCHAR       13953        8                  -                 -                    -                   -
-   location_reference_year        BIGINT       13953       20               2006              2025   2014.6013760481617   6.633902478720559
+   location_reference_year        BIGINT       13953       20               2006              2025   2014.6015193865119   6.633867873761339
 location_reference_row_ids       VARCHAR        3469     3457                  -                 -                    -                   -
     location_reference_pin       VARCHAR        3463     3451                  -                 -                    -                   -
           geography_status       VARCHAR       14017        4                  -                 -                    -                   -

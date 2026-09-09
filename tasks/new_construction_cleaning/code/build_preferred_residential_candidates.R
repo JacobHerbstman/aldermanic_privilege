@@ -466,15 +466,18 @@ condo_decisions <- readr::read_csv(
 ) %>% transmute(project_id = source_project_id, action = override_action, decision_reason)
 eligibility_decisions <- readr::read_csv(
   "../adjudication/eligibility_manual_exceptions.csv", show_col_types = FALSE
-) %>% filter(manual_action == "exclude") %>%
-  transmute(project_id, action = "exclude_not_ground_up", decision_reason = reason)
+) %>% filter(manual_action %in% c("exclude", "exclude_unverified_construction")) %>%
+  transmute(project_id, action = if_else(manual_action == "exclude",
+    "exclude_not_ground_up", manual_action), decision_reason = reason)
 not_new <- bind_rows(no_snapshot_decisions, condo_decisions, eligibility_decisions) %>%
-  filter(action == "exclude_not_ground_up")
+  filter(action %in% c("exclude_not_ground_up", "exclude_unverified_construction"))
 stopifnot(!anyDuplicated(not_new$project_id))
 reviewed_exclusion <- match(residential_candidates$project_id, not_new$project_id)
-apply_exclusion <- residential_candidates$candidate_status == "review_required" &
+apply_exclusion <- residential_candidates$candidate_status %in% c("review_required", "retain_mechanical") &
   !is.na(reviewed_exclusion)
-residential_candidates$candidate_status[apply_exclusion] <- "exclude_not_new_construction"
+residential_candidates$candidate_status[apply_exclusion] <- if_else(
+  not_new$action[reviewed_exclusion[apply_exclusion]] == "exclude_unverified_construction",
+  "exclude_unverified_construction", "exclude_not_new_construction")
 residential_candidates$decision_reason[apply_exclusion] <-
   not_new$decision_reason[reviewed_exclusion[apply_exclusion]]
 

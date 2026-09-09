@@ -1,7 +1,7 @@
 File: preferred_historical_parcel_coverage.csv
 Rows: 15691
 Columns: 10
-SHA-256 (saved bytes): b06e482ad9adc57e4a44e6f8145f83bb044da446eb288713464d51309b282bcd
+SHA-256 (saved bytes): de307f2394b052e237b6e8f1a35bd49dfc4580692199a433a8fa44693a95a1f7
 Key: project_id, component_pin, target_year
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -11,10 +11,10 @@ Row counts, non-missing counts, and declared-key checks: exact.
         source_family       VARCHAR       15691        2    -    -                  -                  -
            project_id       VARCHAR       15691    14017    -    -                  -                  -
          project_kind       VARCHAR       15691        7    -    -                  -                  -
-     candidate_status       VARCHAR       15691        7    -    -                  -                  -
-          target_year        BIGINT       15691       17 2006 2022 2012.6749729144096  5.397166370897224
+     candidate_status       VARCHAR       15691        8    -    -                  -                  -
+          target_year        BIGINT       15691       17 2006 2022 2012.6751003760116   5.39717404584018
         component_pin       VARCHAR       15691    15646    -    -                  -                  -
                 pin10       VARCHAR       15691    15638    -    -                  -                  -
-  polygon_count_pin10        BIGINT       15691        6    0    6 0.7532343381556306 0.4396333252079911
+  polygon_count_pin10        BIGINT       15691        6    0    6 0.7532980689567268 0.4395966069703892
 exact_pin14_available       BOOLEAN       15691        2    -    -                  -                  -
       coverage_status       VARCHAR       15691        3    -    -                  -                  -

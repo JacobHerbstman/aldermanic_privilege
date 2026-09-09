@@ -300,3 +300,7 @@ coordinates in the same 2007 layer. It returned historical parcel 13364220230000
 `campbell_predecessor_queries_2026-09-08.csv`, with hashes in
 `preferred_predecessor_snapshot.sha256`. The existing spatial matching rules decide
 which points that polygon covers; this acquisition does not assign a new land area.
+
+### Reviewed construction-year query, September 8, 2026
+
+Greenview's approved completion proxy changed from 2012 to 2014. `code/reviewed_parcel_queries.csv` records the additional 2014 query for PIN10 1429319062. The ordinary Makefile calls the existing historical-parcel downloader and includes its result in the preferred source. This query only retrieves an official parcel polygon; it does not replace reported land area with calculated polygon area. Cook County returned object 1411921 from historical layer 15. The saved `output/reviewed_parcels_additional_2014.gpkg` is retained as the source snapshot (SHA-256 `2c0db954b74582705d3405328398152df47fa1ce3f18d8e90a29aea9f8627c86`). Unchanged builds reuse it. Deleting it or changing its acquisition prerequisites deliberately queries the public service again; compare the resulting report before accepting a refreshed vintage.
