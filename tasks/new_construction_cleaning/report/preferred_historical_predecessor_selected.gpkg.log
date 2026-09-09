@@ -1,7 +1,7 @@
 File: preferred_historical_predecessor_selected.gpkg
 Rows: 3811
 Columns: 14
-SHA-256 (saved bytes): 2fe5202b7460e85f632158eafaacdc3df951b3ca341ef384adfa1dbd8fea2825
+SHA-256 (saved bytes): 7ab7aa84765afe7b132c2e7b0d60bfc187b511a1d6ee42ab371c29930acbf83f
 Key: request_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -13,7 +13,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
          source_family       VARCHAR        3811        2      -      -                  -                  -
             project_id       VARCHAR        3811     3694      -      -                  -                  -
           project_kind       VARCHAR        3811        6      -      -                  -                  -
-      candidate_status       VARCHAR        3811        4      -      -                  -                  -
+      candidate_status       VARCHAR        3811        5      -      -                  -                  -
          component_pin       VARCHAR        3811     3809      -      -                  -                  -
                  pin10       VARCHAR        3811     3809      -      -                  -                  -
            target_year        DOUBLE        3811       17 2006.0 2022.0 2010.9813697192337  4.929734018530371

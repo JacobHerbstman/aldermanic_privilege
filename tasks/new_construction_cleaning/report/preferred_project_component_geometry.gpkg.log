@@ -1,7 +1,7 @@
 File: preferred_project_component_geometry.gpkg
 Rows: 15606
 Columns: 15
-SHA-256 (saved bytes): f4d7563cde71530a2e61b35f5efe9d3f9397b01e67e1f1911198cf4b91a3ba65
+SHA-256 (saved bytes): 563c27aa7d0eb189ae81739e57b016e79b4dea350106af3189589c69318ca102
 Key: request_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -13,7 +13,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
     source_family       VARCHAR       15606        2      -         -                  -                  -
        project_id       VARCHAR       15606    13942      -         -                  -                  -
      project_kind       VARCHAR       15606        7      -         -                  -                  -
- candidate_status       VARCHAR       15606        5      -         -                  -                  -
+ candidate_status       VARCHAR       15606        6      -         -                  -                  -
     component_pin       VARCHAR       15606    15561      -         -                  -                  -
   requested_pin10       VARCHAR       15606    15553      -         -                  -                  -
       target_year        DOUBLE       15606       17 2006.0    2022.0 2012.6667307445855  5.401043407344076

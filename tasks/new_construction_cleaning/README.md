@@ -76,6 +76,16 @@ reads local recorded responses; source refreshes are deliberate. Data reports
 are in `report/`, and research checks live in `../working_paper_release_audit/`.
 Rebuild the diagrams with `make -C task_graph` from the repository root.
 
+## Current decision reconciliation
+
+The [current unfinished-record list](../working_paper_release_audit/output/current_construction_questions.csv)
+compares current records with the existing decisions. The residential candidate
+producer now carries through six recorded exclusions for buildings that are not
+new construction and one recorded duplicate whose successor still matches its
+units and floor area. The remaining 190 review labels are not all new judgments.
+The list also includes retained homes whose locations still use the center of an
+older larger parcel; a computed distance does not establish an individual location.
+
 ## Before replacing the paper's frozen input
 
 The unfinished final assembly still asks for residential review footprints and

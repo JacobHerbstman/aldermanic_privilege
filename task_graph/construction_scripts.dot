@@ -79,6 +79,7 @@ edge [color="#64748b"];
 "Recorded decisions" -> "build_preferred_commercial_final_geography.R";
 "Recorded decisions" -> "build_preferred_commercial_ledger.R";
 "Recorded decisions" -> "build_preferred_project_geography.R";
+"Recorded decisions" -> "build_preferred_residential_candidates.R";
 "Recorded decisions" -> "build_residential_assessor_projects.R";
 "Recorded decisions" -> "build_residential_project_candidates.R";
 "Recorded decisions" -> "select_historical_coordinates.R";

@@ -1,7 +1,7 @@
 File: preferred_historical_predecessor_resolution.csv
 Rows: 4010
 Columns: 34
-SHA-256 (saved bytes): 8ea77613eae200764d96663303536a4cb008bee6e0508046dd857eaee9bcfeec
+SHA-256 (saved bytes): 7268d6c1e5ae21bd30c8b92d45b2728a8b83f1368860980194d11d1f44a58ab1
 Key: not declared in this report
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -12,7 +12,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
                         source_family       VARCHAR        4010        2                  -                  -                      -                      -
                            project_id       VARCHAR        4010     3771                  -                  -                      -                      -
                          project_kind       VARCHAR        4010        6                  -                  -                      -                      -
-                     candidate_status       VARCHAR        4010        6                  -                  -                      -                      -
+                     candidate_status       VARCHAR        4010        7                  -                  -                      -                      -
                         component_pin       VARCHAR        4010     3894                  -                  -                      -                      -
                                 pin10       VARCHAR        4010     3894                  -                  -                      -                      -
                           target_year        BIGINT        4010       17               2006               2022     2011.1279301745635      4.926837430767614

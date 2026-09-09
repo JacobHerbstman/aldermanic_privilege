@@ -1,7 +1,7 @@
 File: preferred_residential_project_candidates.csv
 Rows: 28074
 Columns: 23
-SHA-256 (saved bytes): b6dc425585db3307736220fcc3b0831f45f2ffebfdf16937e853d3ff727d32fc
+SHA-256 (saved bytes): 034b2efa4ada60357d9ddc980155a9b2b37f7d271394ac4a4de4745031f2ea9b
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -27,7 +27,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
             land_source       VARCHAR       27721    26350                   -                 -                  -                   -
      current_distance_m        DOUBLE       25548    25485 0.31134218570016264 8512.934950058308   433.097821865861   520.8698212165482
   current_within_1500ft       BOOLEAN       28074        2                   -                 -                  -                   -
-       candidate_status       VARCHAR       28074        7                   -                 -                  -                   -
-        decision_reason       VARCHAR       28074       42                   -                 -                  -                   -
-replacement_project_ids       VARCHAR         163      156                   -                 -                  -                   -
-      replacement_check       VARCHAR        1236        9                   -                 -                  -                   -
+       candidate_status       VARCHAR       28074        8                   -                 -                  -                   -
+        decision_reason       VARCHAR       28074       49                   -                 -                  -                   -
+replacement_project_ids       VARCHAR         164      157                   -                 -                  -                   -
+      replacement_check       VARCHAR        1237       10                   -                 -                  -                   -

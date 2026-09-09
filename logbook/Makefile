@@ -2,6 +2,8 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-08-current-construction-questions.tex ../tasks/working_paper_release_audit/report/current_construction_questions.csv.log ../tasks/new_construction_cleaning/report/preferred_residential_project_candidates.csv.log
+
 logbook.pdf: entries/2026-09-08-source-reported-commercial-land.tex ../tasks/new_construction_cleaning/report/preferred_commercial_projects.csv.log ../tasks/working_paper_release_audit/report/commercial_reported_land_comparison.csv.log
 
 logbook.pdf: entries/2026-09-08-retentions-and-commercial-land.tex ../tasks/working_paper_release_audit/commercial_land_followup.md ../tasks/working_paper_release_audit/report/commercial_reported_land_comparison.csv.log ../tasks/new_construction_cleaning/report/preferred_commercial_boundary_scope.csv.log ../tasks/new_construction_cleaning/report/preferred_project_boundary_scope.csv.log ../tasks/download_construction_development_records/output/montclare_pd1412.pdf

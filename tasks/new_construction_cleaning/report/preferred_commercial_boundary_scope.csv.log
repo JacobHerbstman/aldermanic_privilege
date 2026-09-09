@@ -1,7 +1,7 @@
 File: preferred_commercial_boundary_scope.csv
 Rows: 815
 Columns: 14
-SHA-256 (saved bytes): 3290ea6d8b3e90ff81f546a7880fe477607a927d00a2db384ec123cafd226e15
+SHA-256 (saved bytes): c88bc2d6ce62f5124dec388bb89e096263a077a8aa4e18fac308c9d121b27f82
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -9,7 +9,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
 
                  column inferred_type non_missing distinct                min                max               mean                 sd
              project_id       VARCHAR         815      815                  -                  -                  -                  -
-      construction_year        BIGINT         815       17               2006               2022  2013.638036809816 5.2035025128842785
+      construction_year        BIGINT         815       17               2006               2022  2013.639263803681  5.204178008564033
               allow_far       BOOLEAN         815        2                  -                  -                  -                  -
             allow_dupac       BOOLEAN         815        2                  -                  -                  -                  -
       construction_date          DATE         784       17                  -                  -                  -                  -
@@ -18,7 +18,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
                    ward        BIGINT         784       48                  1                 50 23.599489795918366 16.478332063075868
           neighbor_ward        BIGINT         784       47                  1                 50  21.93622448979592 16.305152451151354
               ward_pair       VARCHAR         784       89                  -                  -                  -                  -
-distance_to_boundary_ft        DOUBLE         784      781 48.534013135909824 13958.588592165468 1137.9084849998837 1240.3349534242302
+distance_to_boundary_ft        DOUBLE         784      781 48.534013135909824 13958.588592165468 1138.0779288004985 1240.2665962182753
           within_1500ft       BOOLEAN         784        2                  -                  -                  -                  -
            within_500ft       BOOLEAN         784        2                  -                  -                  -                  -
       location_resolved       BOOLEAN         815        2                  -                  -                  -                  -

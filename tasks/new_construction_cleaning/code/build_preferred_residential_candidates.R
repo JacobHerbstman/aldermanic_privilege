@@ -456,6 +456,28 @@ residential_candidates <- bind_rows(
 ) %>%
   arrange(project_kind, project_id)
 
+# Recorded alterations and conversions are not new buildings. Apply these
+# existing exclusions here instead of leaving them in the unfinished review branch.
+no_snapshot_decisions <- readr::read_csv(
+  "../adjudication/residential_tieback_no_snapshot_decisions.csv", show_col_types = FALSE
+) %>% transmute(project_id = source_project_id, action = decision_action, decision_reason)
+condo_decisions <- readr::read_csv(
+  "../adjudication/residential_class297_exceptions.csv", show_col_types = FALSE
+) %>% transmute(project_id = source_project_id, action = override_action, decision_reason)
+eligibility_decisions <- readr::read_csv(
+  "../adjudication/eligibility_manual_exceptions.csv", show_col_types = FALSE
+) %>% filter(manual_action == "exclude") %>%
+  transmute(project_id, action = "exclude_not_ground_up", decision_reason = reason)
+not_new <- bind_rows(no_snapshot_decisions, condo_decisions, eligibility_decisions) %>%
+  filter(action == "exclude_not_ground_up")
+stopifnot(!anyDuplicated(not_new$project_id))
+reviewed_exclusion <- match(residential_candidates$project_id, not_new$project_id)
+apply_exclusion <- residential_candidates$candidate_status == "review_required" &
+  !is.na(reviewed_exclusion)
+residential_candidates$candidate_status[apply_exclusion] <- "exclude_not_new_construction"
+residential_candidates$decision_reason[apply_exclusion] <-
+  not_new$decision_reason[reviewed_exclusion[apply_exclusion]]
+
 # A one-square-foot area is a source placeholder, not a measured building or lot.
 placeholder <- with(residential_candidates,
   candidate_status == "retain_mechanical" &
@@ -467,6 +489,28 @@ residential_candidates$decision_reason[placeholder] <- "source_area_placeholder_
 assessor_match <- match(residential_candidates$project_id, assessor_projects$project_id)
 residential_candidates$replacement_project_ids <- assessor_projects$replacement_project_ids[assessor_match]
 residential_candidates$replacement_check <- assessor_projects$replacement_check[assessor_match]
+
+# Carry forward a recorded duplicate decision only when the retained successor
+# still has the same unit count and building area. Conflicting decisions stay open.
+overlap_decisions <- readr::read_csv(
+  "../adjudication/residential_overlap_decisions.csv", show_col_types = FALSE
+) %>% filter(overlap_action == "replace_by_residential_successor")
+stopifnot(!anyDuplicated(overlap_decisions$source_project_id))
+for (i in seq_len(nrow(overlap_decisions))) {
+  old <- match(overlap_decisions$source_project_id[i], residential_candidates$project_id)
+  successor <- match(overlap_decisions$replacement_project_id[i], residential_candidates$project_id)
+  if (is.na(old) || is.na(successor)) next
+  if (residential_candidates$candidate_status[old] != "review_required") next
+  same_building <- residential_candidates$candidate_status[successor] == "retain_mechanical" &&
+    isTRUE(residential_candidates$building_sqft[old] == residential_candidates$building_sqft[successor]) &&
+    isTRUE(residential_candidates$dwelling_units[old] == residential_candidates$dwelling_units[successor])
+  if (same_building) {
+    residential_candidates$candidate_status[old] <- "exclude_source_duplicate_keep_successors"
+    residential_candidates$decision_reason[old] <- overlap_decisions$decision_reason[i]
+    residential_candidates$replacement_project_ids[old] <- overlap_decisions$replacement_project_id[i]
+    residential_candidates$replacement_check[old] <- "recorded_identity_and_matching_units_and_building_area"
+  }
+}
 
 if (anyDuplicated(residential_candidates$project_id) > 0) {
   stop("Preferred residential candidate IDs are not unique.", call. = FALSE)

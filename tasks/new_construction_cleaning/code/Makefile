@@ -261,7 +261,7 @@ endif
 ../report/residential_assessor_project_candidates.csv.log: ../../shared/code/report.py ../output/residential_assessor_project_candidates.csv | ../report
 	$(PYTHON) $< ../output/residential_assessor_project_candidates.csv $@ project_id
 
-../output/preferred_residential_project_candidates.csv: build_preferred_residential_candidates.R ../../shared/code/assessor_classification.R ../output/project_permit_chain_links.csv ../output/project_permit_chain_unit_mentions.csv ../output/residential_assessor_project_candidates.csv ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_residential_project_candidates.csv: build_preferred_residential_candidates.R ../adjudication/residential_overlap_decisions.csv ../adjudication/eligibility_manual_exceptions.csv ../adjudication/residential_tieback_no_snapshot_decisions.csv ../adjudication/residential_class297_exceptions.csv ../../shared/code/assessor_classification.R ../output/project_permit_chain_links.csv ../output/project_permit_chain_unit_mentions.csv ../output/residential_assessor_project_candidates.csv ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/preferred_residential_project_components.csv: ../output/preferred_residential_project_candidates.csv

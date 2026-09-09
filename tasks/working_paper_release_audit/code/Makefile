@@ -6,6 +6,15 @@ all: ../report/natchez_building_land_coverage.csv.log ../output/natchez_parcel_c
 
 all: ../report/commercial_reported_land_comparison.csv.log
 
+all: ../report/current_construction_questions.csv.log
+
+../output/current_construction_questions.csv: reconcile_construction_decisions.py ../input/eligibility_manual_exceptions.csv ../input/residential_successor_condo_overrides.csv ../reference/remaining_building_decision_questions.csv ../input/preferred_residential_project_candidates.csv ../input/preferred_commercial_projects.csv ../input/preferred_commercial_project_ledger.csv ../input/preferred_project_boundary_scope.csv ../input/parcel_addresses_2025_chicago.csv ../input/residential_tieback_no_snapshot_decisions.csv ../input/residential_class297_exceptions.csv ../input/residential_overlap_decisions.csv ../input/residential_remaining_case_decisions.csv ../input/residential_unresolved_source_dispositions.csv ../input/project_manual_reviews.csv | ../output
+	$(PYTHON) $<
+
+../report/current_construction_questions.csv.log: ../../shared/code/report.py ../output/current_construction_questions.csv | ../report
+	$(PYTHON) $< ../output/current_construction_questions.csv $@ project_id
+
+
 ../output/commercial_reported_land_comparison.csv: review_commercial_reported_land.py ../reference/commercial_map_land_baseline.csv ../input/preferred_commercial_projects.csv ../input/preferred_commercial_project_candidates.csv ../input/commercial_entity_version_candidates.csv | ../output
 	$(PYTHON) $<
 
@@ -327,5 +336,34 @@ link-inputs: ../input/preferred_historical_parcel_source.gpkg
 
 ../input/commercial_entity_version_candidates.csv: ../../new_construction_cleaning/output/commercial_entity_version_candidates.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/commercial_entity_version_candidates.csv" ]; then ln -sf ../../new_construction_cleaning/output/commercial_entity_version_candidates.csv "$@"; fi
+
+
+../input/preferred_commercial_project_ledger.csv: ../../new_construction_cleaning/output/preferred_commercial_project_ledger.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/preferred_commercial_project_ledger.csv" ]; then ln -sf ../../new_construction_cleaning/output/preferred_commercial_project_ledger.csv "$@"; fi
+
+../input/residential_tieback_no_snapshot_decisions.csv: ../../new_construction_cleaning/adjudication/residential_tieback_no_snapshot_decisions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_tieback_no_snapshot_decisions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_tieback_no_snapshot_decisions.csv "$@"; fi
+
+../input/residential_class297_exceptions.csv: ../../new_construction_cleaning/adjudication/residential_class297_exceptions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_class297_exceptions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_class297_exceptions.csv "$@"; fi
+
+../input/residential_overlap_decisions.csv: ../../new_construction_cleaning/adjudication/residential_overlap_decisions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_overlap_decisions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_overlap_decisions.csv "$@"; fi
+
+../input/residential_remaining_case_decisions.csv: ../../new_construction_cleaning/adjudication/residential_remaining_case_decisions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_remaining_case_decisions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_remaining_case_decisions.csv "$@"; fi
+
+../input/residential_unresolved_source_dispositions.csv: ../../new_construction_cleaning/adjudication/residential_unresolved_source_dispositions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_unresolved_source_dispositions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_unresolved_source_dispositions.csv "$@"; fi
+
+../input/project_manual_reviews.csv: ../../new_construction_cleaning/adjudication/project_manual_reviews.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/project_manual_reviews.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/project_manual_reviews.csv "$@"; fi
+
+
+../input/eligibility_manual_exceptions.csv: ../../new_construction_cleaning/adjudication/eligibility_manual_exceptions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/eligibility_manual_exceptions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/eligibility_manual_exceptions.csv "$@"; fi
+
+../input/residential_successor_condo_overrides.csv: ../../new_construction_cleaning/adjudication/residential_successor_condo_overrides.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_successor_condo_overrides.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_successor_condo_overrides.csv "$@"; fi
 
 include ../../shared/code/generic.make
