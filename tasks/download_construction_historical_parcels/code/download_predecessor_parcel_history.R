@@ -8,13 +8,15 @@ library(readr)
 
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(history_start_year, history_end_year, scope)
-stopifnot(length(args) == 3L, args[3] %in% c("initial", "geocoding"))
+stopifnot(length(args) == 3L, args[3] %in% c("initial", "geocoding", "reviewed"))
 scope <- args[3]
 history_start_year <- as.integer(args[1])
 history_end_year <- as.integer(args[2])
 stopifnot(!anyNA(c(history_start_year, history_end_year)), history_start_year <= history_end_year)
 if (scope == "initial") {
   queries <- read_csv("../output/predecessor_history_queries_download.csv", col_types = cols(pin = col_character()))
+} else if (scope == "reviewed") {
+  queries <- read_csv("reviewed_history_queries.csv", col_types = cols(pin = col_character()))
 } else {
   queries <- read_csv("../output/geocoding_history_queries_download.csv", col_types = cols(pin = col_character()))
 }
@@ -48,6 +50,9 @@ history <- arrange(history, pin, year, row_id)
 if (scope == "initial") {
   write_csv(history, "../temp/predecessor_parcel_history_download.csv")
   stopifnot(file.rename("../temp/predecessor_parcel_history_download.csv", "../output/predecessor_parcel_history_download.csv"))
+} else if (scope == "reviewed") {
+  write_csv(history, "../temp/reviewed_parcel_history.csv")
+  stopifnot(file.rename("../temp/reviewed_parcel_history.csv", "../output/reviewed_parcel_history.csv"))
 } else {
   write_csv(history, "../temp/geocoding_parcel_history_download.csv")
   stopifnot(file.rename("../temp/geocoding_parcel_history_download.csv", "../output/geocoding_parcel_history_download.csv"))

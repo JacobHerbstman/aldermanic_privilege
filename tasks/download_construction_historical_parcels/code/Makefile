@@ -2,7 +2,7 @@ include ../../shared/code/shell_functions.make
 
 all: ../report/reviewed_parcels_additional_2014.gpkg.log ../report/reviewed_parcel_queries_additional.csv.log
 
-../output/reviewed_parcels_additional_2014.gpkg: download_historical_parcels.R Makefile ../output/reviewed_parcel_queries_additional.csv ../input/historical_project_parcel_layers.csv ../../setup_environment/code/packages.R | ../output ../temp
+../output/reviewed_parcels_additional_2014.gpkg: download_historical_parcels.R ../output/reviewed_parcel_queries_additional.csv ../input/historical_project_parcel_layers.csv ../../setup_environment/code/packages.R | ../output ../temp
 	$(R) $< 2014 reviewed
 
 ../output/reviewed_parcel_queries_additional.csv: reviewed_parcel_queries.csv | ../output
@@ -52,18 +52,26 @@ all: ../report/history_reference_parcels.gpkg.log ../report/history_reference_qu
 ../report/preferred_predecessor_source_queries.csv.log: ../../shared/code/report.py ../output/preferred_predecessor_source_queries.csv | ../report
 	$(PYTHON) $< ../output/preferred_predecessor_source_queries.csv $@ target_year reference_x_3435 reference_y_3435
 
+all: ../report/reviewed_parcel_history.csv.log
+
+../output/reviewed_parcel_history.csv: download_predecessor_parcel_history.R reviewed_history_queries.csv ../../setup_environment/code/packages.R | ../output ../temp
+	$(R) $< 1999 2025 reviewed
+
+../report/reviewed_parcel_history.csv.log: ../../shared/code/report.py ../output/reviewed_parcel_history.csv | ../report
+	$(PYTHON) $< ../output/reviewed_parcel_history.csv $@ pin year
+
 all: ../report/geocoding_parcel_history.csv.log ../report/geocoding_history_queries.csv.log
 
-../output/geocoding_parcel_history.csv: ../input/geocoding_parcel_history_2026-09-07.csv ../input/geocoding_history_queries_2026-09-07.csv geocoding_history_snapshot.sha256 | ../output
+../output/geocoding_parcel_history.csv: combine_geocoding_history.R ../output/reviewed_parcel_history.csv ../input/geocoding_parcel_history_2026-09-07.csv ../input/geocoding_history_queries_2026-09-07.csv geocoding_history_snapshot.sha256 | ../output
 	shasum -a 256 -c geocoding_history_snapshot.sha256
-	cp $< $@
+	$(R) $<
 
 ../report/geocoding_parcel_history.csv.log: ../../shared/code/report.py ../output/geocoding_parcel_history.csv | ../report
 	$(PYTHON) $< ../output/geocoding_parcel_history.csv $@ pin year
 
-../output/geocoding_history_queries.csv: ../input/geocoding_history_queries_2026-09-07.csv ../input/geocoding_parcel_history_2026-09-07.csv geocoding_history_snapshot.sha256 | ../output
+../output/geocoding_history_queries.csv: reviewed_history_queries.csv ../input/geocoding_history_queries_2026-09-07.csv ../input/geocoding_parcel_history_2026-09-07.csv geocoding_history_snapshot.sha256 | ../output
 	shasum -a 256 -c geocoding_history_snapshot.sha256
-	cp $< $@
+	(head -n 1 $<; tail -n +2 ../input/geocoding_history_queries_2026-09-07.csv; tail -n +2 $<) > $@
 
 ../report/geocoding_history_queries.csv.log: ../../shared/code/report.py ../output/geocoding_history_queries.csv | ../report
 	$(PYTHON) $< ../output/geocoding_history_queries.csv $@ pin
