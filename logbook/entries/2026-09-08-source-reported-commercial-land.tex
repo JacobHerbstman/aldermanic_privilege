@@ -1,0 +1,14 @@
+\clearpage
+\section*{September 8, 2026: Replace map land with reported property areas}
+\addcontentsline{toc}{section}{September 8, 2026: Replace map land with reported property areas}
+\textit{Agent-drafted entry.}
+
+The 56 reviewed commercial records no longer use land measured from maps for density. All 41 with usable Assessor land now use the assessment covering the selected property. For 633 S Clark and 150 W Roosevelt, the matching older records report 30,529 and 338,807 square feet. The later assessments describe different parcel sets.
+
+Ten of the other 15 have recoverable land: five from complete earlier Assessor lots and five from published site or property measurements. This corrects the earlier count of nine promising recoveries. The published measurements cover Taylor, Cottage Grove, Drexel, 43rd Street and Montclare. Montclare uses the approved plan's residential subarea of 152,677 square feet, excluding the commercial subareas. Cottage Grove uses the listing's rounded 0.54 acre; conversion to square feet does not add precision.
+
+The complete older assessments also correct the Michigan group's floor area to 40,923 square feet and the Prairie group's to 9,816. Their unit totals match the retained counts of 35 and 12. Grouping and construction years remain unchanged. At 6049 S Prairie and 6145 S Indiana the conflicting floor areas remain excluded from floor-area-ratio analysis, while reported land supports apartments per acre. Taylor is likewise excluded from floor-area ratio because the sources describe apartment and whole-building/library floor areas differently. Montclare's earlier floor-area exclusion remains.
+
+Lathrop, 3216 S Ashland, 4220 S Prairie, Woodlawn Commons and 120 E 60th lack supported land for the full property. They remain in the records but are excluded from density. No site boundary was drawn and no shared land was allocated. The selected file still has 815 records. The paper's frozen dataset and regressions are unchanged.
+
+\paragraph{Reproduction.} The existing commercial selection script applies the source-land rule after establishing building membership. Five external measurements are reviewed inputs with source URLs; Assessor recoveries are computed from the recorded source rows. The release audit retains the original 56 map denominators only for comparison. Task Make builds regenerate the commercial records, locations and standard reports. The logbook build uses saved earlier exhibits. This entry records the land correction following commit \texttt{3ceddb80}; it does not certify completion of the full construction reconstruction.

@@ -92,6 +92,6 @@ and seven named commercial records have retained measurements and supported
 construction-year distances. The original 30 parcel requests were not 30 remaining
 building decisions. See the [current land review](../working_paper_release_audit/commercial_land_followup.md)
 for the completed exclusions/retentions and the 56 older commercial map-denominator
-choices still awaiting source-land decisions. The [preserved reconstruction history](reconstruction_history.md)
+choices now replaced by reported source areas or density exclusions. The selection script matches the full selected parcel set before using Assessor land; five external reported measurements are explicit reviewed inputs. Maps supply locations, not these density denominators. The [preserved reconstruction history](reconstruction_history.md)
 records earlier evidence and comparisons. A successful candidate build is not a
 claim that the final paper input or every reviewed measurement is complete.

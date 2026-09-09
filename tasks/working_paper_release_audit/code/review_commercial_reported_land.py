@@ -6,10 +6,11 @@ selected = pd.read_csv("../input/preferred_commercial_projects.csv", dtype={"pro
 candidates = pd.read_csv("../input/preferred_commercial_project_candidates.csv", dtype={"project_id": str, "component_pins": str})
 versions = pd.read_csv("../input/commercial_entity_version_candidates.csv", dtype={"project_family_id": str, "raw_row": str, "pins": str})
 assert selected.project_id.is_unique and candidates.project_id.is_unique and versions.raw_row.is_unique
-review = selected.loc[selected.land_source.isin([
-    "construction_year_parcel_union", "construction_year_parcel_polygon",
-    "construction_year_union_of_2021_components"
-])].merge(candidates[["project_id", "land_sqft", "building_sqft", "dwelling_units", "component_pins", "land_source"]],
+baseline = pd.read_csv("../reference/commercial_map_land_baseline.csv", dtype={"project_id": str})
+assert baseline.project_id.is_unique
+current = selected[["project_id", "land_sqft", "land_source", "allow_far", "allow_dupac", "building_sqft"]].rename(columns={c: "current_" + c for c in ["land_sqft", "land_source", "allow_far", "allow_dupac", "building_sqft"]})
+review = selected.drop(columns=["land_sqft", "land_source"]).merge(baseline, on="project_id", validate="one_to_one")
+review = review.merge(current, on="project_id", validate="one_to_one").merge(candidates[["project_id", "land_sqft", "building_sqft", "dwelling_units", "component_pins", "land_source"]],
     on="project_id", suffixes=("", "_candidate"), validate="one_to_one")
 review["map_minus_assessor_sqft"] = review.land_sqft - review.land_sqft_candidate
 review["map_minus_assessor_percent"] = (100 * (review.land_sqft / review.land_sqft_candidate - 1)).where(review.land_sqft_candidate > 1)

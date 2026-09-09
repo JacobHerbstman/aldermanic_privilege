@@ -6,7 +6,7 @@ all: ../report/natchez_building_land_coverage.csv.log ../output/natchez_parcel_c
 
 all: ../report/commercial_reported_land_comparison.csv.log
 
-../output/commercial_reported_land_comparison.csv: review_commercial_reported_land.py ../input/preferred_commercial_projects.csv ../input/preferred_commercial_project_candidates.csv ../input/commercial_entity_version_candidates.csv | ../output
+../output/commercial_reported_land_comparison.csv: review_commercial_reported_land.py ../reference/commercial_map_land_baseline.csv ../input/preferred_commercial_projects.csv ../input/preferred_commercial_project_candidates.csv ../input/commercial_entity_version_candidates.csv | ../output
 	$(PYTHON) $<
 
 ../report/commercial_reported_land_comparison.csv.log: ../../shared/code/report.py ../output/commercial_reported_land_comparison.csv | ../report

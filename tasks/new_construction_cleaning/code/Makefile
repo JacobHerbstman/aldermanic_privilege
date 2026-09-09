@@ -212,7 +212,7 @@ ifneq ($(filter-out $(wildcard ../output/preferred_commercial_projects.csv ../ou
 .PHONY: ../output/preferred_commercial_projects.csv
 endif
 
-../output/preferred_commercial_projects.csv: build_preferred_commercial_ledger.R ../adjudication/commercial_component_overrides.csv ../adjudication/commercial_cross_family_decisions.csv ../adjudication/commercial_field_decisions.csv ../adjudication/commercial_manual_decisions.csv ../adjudication/commercial_semantic_decisions.csv ../output/commercial_entity_version_candidates.csv ../output/commercial_post_evidence_resolution.csv ../output/preferred_commercial_project_candidates.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_commercial_projects.csv: build_preferred_commercial_ledger.R ../adjudication/commercial_reported_land_decisions.csv ../adjudication/commercial_component_overrides.csv ../adjudication/commercial_cross_family_decisions.csv ../adjudication/commercial_field_decisions.csv ../adjudication/commercial_manual_decisions.csv ../adjudication/commercial_semantic_decisions.csv ../output/commercial_entity_version_candidates.csv ../output/commercial_post_evidence_resolution.csv ../output/preferred_commercial_project_candidates.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../report/preferred_commercial_projects.csv.log: ../../shared/code/report.py ../output/preferred_commercial_projects.csv | ../report

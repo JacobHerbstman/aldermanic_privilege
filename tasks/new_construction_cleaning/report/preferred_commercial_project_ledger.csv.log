@@ -1,7 +1,7 @@
 File: preferred_commercial_project_ledger.csv
 Rows: 815
-Columns: 31
-SHA-256 (saved bytes): ce4b75f42b9bc80f293322b7787473ae89afcaa200d40dced0fc61d360fa51cc
+Columns: 32
+SHA-256 (saved bytes): bc44ddb6d3e645c9ec75e28d7723c5fdf165855d7ec593fd7d2892e2d7c739d4
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -16,23 +16,24 @@ selected_source_addresses       VARCHAR         815      798                  - 
           component_count        BIGINT         815       15                  1                 16  2.211042944785276 2.0279680264578372
         construction_year        BIGINT         815       17               2006               2022  2013.638036809816 5.2035025128842785
            dwelling_units        BIGINT         813      213                  1                848  77.25584255842558 126.79302587204072
-            building_sqft        BIGINT         805      739               1144            1284706 101201.23354037268  171804.8300130373
-                land_sqft        DOUBLE         815      741             1919.0          1540260.0  30014.93710376941  76513.26892298173
+            building_sqft        BIGINT         805      739               1144            1284706 101224.99254658385  171794.2800126424
+                land_sqft        DOUBLE         810      730             1919.0          1540260.0 29653.069629629626  76292.06894350416
                 allow_far       BOOLEAN         815        2                  -                  -                  -                  -
               allow_dupac       BOOLEAN         815        2                  -                  -                  -                  -
         membership_source       VARCHAR         815       24                  -                  -                  -                  -
               year_source       VARCHAR         815      686                  -                  -                  -                  -
              units_source       VARCHAR         815      641                  -                  -                  -                  -
-          building_source       VARCHAR         806      647                  -                  -                  -                  -
-              land_source       VARCHAR         815      646                  -                  -                  -                  -
+          building_source       VARCHAR         806      646                  -                  -                  -                  -
+              land_source       VARCHAR         815      689                  -                  -                  -                  -
           decision_source       VARCHAR         815        6                  -                  -                  -                  -
           decision_action       VARCHAR         815       18                  -                  -                  -                  -
               decision_id       VARCHAR         815      773                  -                  -                  -                  -
                confidence       VARCHAR         815        4                  -                  -                  -                  -
              evidence_ids       VARCHAR         253      123                  -                  -                  -                  -
-            evidence_urls       VARCHAR          42       42                  -                  -                  -                  -
-          decision_reason       VARCHAR         815      137                  -                  -                  -                  -
-        unresolved_caveat       VARCHAR          69       41                  -                  -                  -                  -
+            evidence_urls       VARCHAR          46       46                  -                  -                  -                  -
+          decision_reason       VARCHAR         815      141                  -                  -                  -                  -
+        unresolved_caveat       VARCHAR          74       41                  -                  -                  -                  -
+      land_source_row_ids       VARCHAR          46       46                  -                  -                  -                  -
   project_geometry_source       VARCHAR         784        4                  -                  -                  -                  -
 project_geometry_evidence       VARCHAR         784      784                  -                  -                  -                  -
 project_polygon_area_sqft        DOUBLE         781      778 2249.8159374018433  417736.2262001708 23131.299594579523  34858.91608814839

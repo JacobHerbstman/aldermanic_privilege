@@ -1,6 +1,18 @@
 # Commercial land review and accepted retention decisions
 
-Agent-drafted review, September 8, 2026. The 56 commercial land recommendations below have **not** been applied. Approved residential exclusions, Kildare's holdout, Lamon's retention, La Casa's source-coded 15 units, and the previously listed retention locations have been applied in the construction task. The paper's frozen input is unchanged.
+Agent-drafted review, September 8, 2026. The 56 commercial land decisions have now been applied in the selecting script. The tables below preserve the preceding comparison and recommendations; the implementation update immediately below states the final outcome. Approved residential exclusions, Kildare's holdout, Lamon's retention, La Casa's source-coded 15 units, and the previously listed retention locations have been applied in the construction task. The paper's frozen input is unchanged.
+
+## Implementation update: September 8, 2026
+
+All 41 records with usable matching Assessor land now use that source. Thirty-nine use the candidate source; Clark and Roosevelt use the exact matching 2021 parcels. The rule is applied in the existing commercial selection script after building membership is established. It does not add 41 manual decisions.
+
+Of the other 15, **10 have recovered source land**, correcting the earlier shorthand count of nine: five use complete, disjoint 2021 Assessor lots, and five use reported measurements from SOM, LoopNet, Redfin, Realtor, or PD1412. The five external measurements are recorded in `commercial_reported_land_decisions.csv` with URLs, scope explanations, units and review date. These web facts are transcribed reviewed inputs; compilation does not query changing property websites. The approved Montclare PDF is preserved by its acquisition task. Cottage Grove's 0.54 acre is rounded source acreage, converted to square feet, not a map estimate.
+
+Michigan's complete earlier floor area is 40,923 square feet; Prairie's is 9,816. Both earlier unit totals equal the selected group totals (35 and 12). Existing grouping and construction years are preserved in this land correction. At 333 E 55th the full two-row floor area already equals the selected 70,376; the previously approved 54 apartments remain. Prairie 6049 and Indiana 6145 retain apartments-per-acre but lose FAR because the building measurements conflict. Taylor also loses FAR because apartment and whole-building/library floor areas have different scopes. Montclare was already excluded from FAR and remains so.
+
+The five without full-property source land are **Lathrop, 3216 S Ashland, 4220 S Prairie, Woodlawn Commons, and 120 E 60th**. They remain recorded but are ineligible for both density measures. Ashland's near-matching listing identifies only one of the two selected parcels; no unsupported allocation is used.
+
+The saved comparison population is the original 56 IDs and map areas in `reference/commercial_map_land_baseline.csv`. Make regenerates the comparison against current production, including current areas and eligibility. This baseline is audit-only and cannot supply production measurements. All 815 selected records remain recorded; the correction changes measurements and density eligibility, not the number of selected records. No regressions or paper input were rebuilt.
 
 ## What was completed
 
@@ -18,7 +30,7 @@ The median absolute difference between the old map denominator and candidate Ass
 
 Thirty-nine retain the same listed components as the candidate Assessor row. For the other two, the 2021 source matches the selected construction-time components: **633 S Clark has 30,529 sq ft** (old map 30,705), and **150 W Roosevelt has 338,807 sq ft** (old map 338,806). Comparing Clark with its later 17,860-sq-ft record exaggerated the disagreement by comparing different parcels.
 
-Recommendation: use compatible source land, including the two matching older assessments, rather than the map measurement. The larger same-component differences deserve explicit review: Sheridan, Keeler, Rockwell, Arlington, Division, and Hubbard. Equal parcel lists establish which records are being compared; they do not prove every source measurement correct. No land value has been changed in this group yet.
+Recommendation: use compatible source land, including the two matching older assessments, rather than the map measurement. The larger same-component differences deserve explicit review: Sheridan, Keeler, Rockwell, Arlington, Division, and Hubbard. Equal parcel lists establish which records are being compared; they do not prove every source measurement correct. These recommendations are now implemented as described in the dated update above.
 
 | Address | Map land, sq ft | Candidate Assessor land, sq ft | Map minus Assessor | Same parcel list? |
 |---|---:|---:|---:|---|
@@ -66,7 +78,7 @@ Recommendation: use compatible source land, including the two matching older ass
 
 ## The 15 without usable candidate Assessor land
 
-These are recommendations for review, not changes already applied. Source-reported square feet and sums of disjoint recorded lots are distinguished from calculated map areas.
+This table preserves the initial recommendations; see the implementation update above for final dispositions. Source-reported square feet and sums of disjoint recorded lots are distinguished from calculated map areas.
 
 | Property | Existing map land | What the recorded evidence supplies | Initial verdict |
 |---|---:|---|---|
