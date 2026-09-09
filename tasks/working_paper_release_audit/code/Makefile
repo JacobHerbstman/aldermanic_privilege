@@ -6,6 +6,15 @@ all: ../report/natchez_building_land_coverage.csv.log ../output/natchez_parcel_c
 
 all: ../report/commercial_reported_land_comparison.csv.log
 
+all: ../report/individual_home_location_comparison.csv.log
+
+../output/individual_home_location_comparison.csv: review_individual_home_locations.R ../input/preferred_project_boundary_scope.csv ../input/preferred_residential_project_candidates.csv ../input/parcel_universe_2025_city.csv ../input/residential_assessor_history.parquet ../input/preferred_project_year_geometry.gpkg ../input/preferred_project_year_centroids.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/frozen_construction_analysis.csv ../../setup_environment/code/packages.R ../../shared/code/assessor_classification.R ../../shared/code/canonical_geometry_helpers.R | ../output
+	$(R) $<
+
+../report/individual_home_location_comparison.csv.log: ../../shared/code/report.py ../output/individual_home_location_comparison.csv | ../report
+	$(PYTHON) $< ../output/individual_home_location_comparison.csv $@ project_id
+
+
 all: ../report/current_construction_questions.csv.log
 
 ../output/current_construction_questions.csv: reconcile_construction_decisions.py ../input/eligibility_manual_exceptions.csv ../input/residential_successor_condo_overrides.csv ../reference/remaining_building_decision_questions.csv ../input/preferred_residential_project_candidates.csv ../input/preferred_commercial_projects.csv ../input/preferred_commercial_project_ledger.csv ../input/preferred_project_boundary_scope.csv ../input/parcel_addresses_2025_chicago.csv ../input/residential_tieback_no_snapshot_decisions.csv ../input/residential_class297_exceptions.csv ../input/residential_overlap_decisions.csv ../input/residential_remaining_case_decisions.csv ../input/residential_unresolved_source_dispositions.csv ../input/project_manual_reviews.csv | ../output
@@ -365,5 +374,13 @@ link-inputs: ../input/preferred_historical_parcel_source.gpkg
 
 ../input/residential_successor_condo_overrides.csv: ../../new_construction_cleaning/adjudication/residential_successor_condo_overrides.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_successor_condo_overrides.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_successor_condo_overrides.csv "$@"; fi
+
+
+../input/residential_assessor_history.parquet: ../../prepare_construction_assessor_history/output/residential_assessor_history.parquet | ../input
+	@if [ "$$(readlink "$@")" != "../../prepare_construction_assessor_history/output/residential_assessor_history.parquet" ]; then ln -sf ../../prepare_construction_assessor_history/output/residential_assessor_history.parquet "$@"; fi
+
+
+../input/frozen_construction_analysis.csv: ../../new_construction_analysis_data/output/new_construction_analysis_data.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_analysis_data/output/new_construction_analysis_data.csv" ]; then ln -sf ../../new_construction_analysis_data/output/new_construction_analysis_data.csv "$@"; fi
 
 include ../../shared/code/generic.make

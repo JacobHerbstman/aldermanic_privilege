@@ -92,3 +92,7 @@ project's land denominator or completion year. No production decisions change.
 `review_manual_episode_increment.py` separately compares the 42 recorded episode
 decisions with the computed disposition and numerical fields in the preserved
 adjudication. It does not certify successor suppressions or the expanded graph.
+
+### Individual-lot location comparison
+
+`review_individual_home_locations.R` tests later exact-parcel coordinates for retained individual residential records still using a historical predecessor centroid. It requires exact agreement in 2025 units, floor area, reported land area and construction year, one occupied assessment card, and containment in the record’s historical site. It compares boundary distances using construction-year ward maps and separately matches the frozen paper input by project identifier. The output is an audit proposal, not a production input. Run the specific report target while holding `../../new_construction_analysis_data/output/new_construction_analysis_data.csv` with Make `-o` to preserve the frozen comparison.
