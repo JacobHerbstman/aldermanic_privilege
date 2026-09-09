@@ -322,7 +322,7 @@ ifneq ($(filter-out $(wildcard ../output/preferred_project_year_geometry.gpkg ..
 .PHONY: ../output/preferred_project_year_geometry.gpkg
 endif
 
-../output/preferred_project_year_geometry.gpkg: build_preferred_project_geography.R ../adjudication/residential_reviewed_parcel_locations.csv ../input/parcel_universe_2025_city.csv ../adjudication/residential_reviewed_permit_locations.csv ../output/building_permits_for_verification.gpkg ../output/preferred_historical_parcel_coverage.csv ../output/preferred_historical_parcels.gpkg ../output/preferred_historical_predecessor_selected.gpkg ../../setup_environment/code/packages.R | ../output
+../output/preferred_project_year_geometry.gpkg: build_preferred_project_geography.R ../output/preferred_chicago_address_geocodes.csv ../adjudication/residential_reviewed_construction_years.csv ../input/residential_assessor_history.parquet ../../shared/code/assessor_classification.R ../adjudication/residential_reviewed_parcel_locations.csv ../input/parcel_universe_2025_city.csv ../adjudication/residential_reviewed_permit_locations.csv ../output/building_permits_for_verification.gpkg ../output/preferred_historical_parcel_coverage.csv ../output/preferred_historical_parcels.gpkg ../output/preferred_historical_predecessor_selected.gpkg ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/preferred_project_year_geometry.gpkg: ../output/preferred_residential_project_candidates.csv ../input/predecessor_parcel_history.csv ../input/geocoding_parcel_history.csv ../input/density_historical_parcel_records.csv

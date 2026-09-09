@@ -1,7 +1,7 @@
 File: preferred_project_year_centroids.gpkg
 Rows: 13953
 Columns: 10
-SHA-256 (saved bytes): 10fc76e1cfd7845edc28fb3b1c4dd34c9bef9cfd6238d2728a7ff4b818fc6115
+SHA-256 (saved bytes): 07df51a182acb4c80f1475f08988fb6a6005569193c042005f4787bc29c3f853
 Key: source_family, project_id, target_year
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -14,7 +14,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
                target_year        DOUBLE       13953       17             2006.0            2022.0 2012.4772450369096  5.392447049799988
      project_polygon_valid        DOUBLE       13937        1                1.0               1.0                1.0                0.0
     project_land_area_sqft        DOUBLE       13937    11373 176.29144966672175 904026.4079986904 13669.970221611475 42337.275769544925
-           location_source       VARCHAR       13953        6                  -                 -                  -                  -
-   location_reference_year        DOUBLE       13953       19             2006.0            2025.0 2012.5905540027234  5.374118733874092
-location_reference_row_ids       VARCHAR        1397     1385                  -                 -                  -                  -
-    location_reference_pin       VARCHAR        1391     1379                  -                 -                  -                  -
+           location_source       VARCHAR       13953        8                  -                 -                  -                  -
+   location_reference_year        DOUBLE       13953       20             2006.0            2025.0 2014.6013760481617  6.633902478720559
+location_reference_row_ids       VARCHAR        3469     3457                  -                 -                  -                  -
+    location_reference_pin       VARCHAR        3463     3451                  -                 -                  -                  -

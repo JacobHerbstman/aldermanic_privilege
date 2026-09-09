@@ -1,22 +1,22 @@
 File: current_construction_questions.csv
-Rows: 2346
+Rows: 276
 Columns: 12
-SHA-256 (saved bytes): e7e9692b610c26738d3641e46bfd5156a28e0cfaaecb2255d563916755e8ed34
+SHA-256 (saved bytes): 70916244ae2a8b87e7e0e7d30d23f262a955d59d4bacff64b942629ccc17fcb6
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                 column inferred_type non_missing distinct                min                max               mean                 sd
-             project_id       VARCHAR        2346     2346                  -                  -                  -                  -
-          source_family       VARCHAR        2346        2                  -                  -                  -                  -
-                address       VARCHAR        2176     2133                  -                  -                  -                  -
-      construction_year        DOUBLE        2346       22             2000.0             2022.0 2011.5959079283887   4.94545604435195
-                  issue       VARCHAR        2346        7                  -                  -                  -                  -
-               question       VARCHAR        2346       14                  -                  -                  -                  -
-      recorded_decision       VARCHAR         110       87                  -                  -                  -                  -
-         component_pins       VARCHAR        2346     2346                  -                  -                  -                  -
-         dwelling_units        DOUBLE        2214       32                1.0              735.0  4.021680216802168 31.996914103279835
-          building_sqft        DOUBLE        2219      857                0.0          1284706.0  6827.069851284362 50271.061937866034
-              land_sqft        DOUBLE        2216     1401              430.0           466245.0  4150.037906137184   16703.7479321815
-distance_to_boundary_ft        DOUBLE        2298     1086 36.778960564868626 17120.483561710513  1739.173746606518 1986.9372593244348
+                 column inferred_type non_missing distinct                min               max               mean                 sd
+             project_id       VARCHAR         276      276                  -                 -                  -                  -
+          source_family       VARCHAR         276        2                  -                 -                  -                  -
+                address       VARCHAR         151      151                  -                 -                  -                  -
+      construction_year        DOUBLE         276       22             2000.0            2022.0 2013.9855072463768  6.569334276216794
+                  issue       VARCHAR         276        8                  -                 -                  -                  -
+               question       VARCHAR         276       17                  -                 -                  -                  -
+      recorded_decision       VARCHAR          84       64                  -                 -                  -                  -
+         component_pins       VARCHAR         276      276                  -                 -                  -                  -
+         dwelling_units        DOUBLE         144       32                1.0             735.0  42.97222222222222 119.15588570072859
+          building_sqft        DOUBLE         149       94                0.0         1284706.0  66201.29530201343  184499.8899120562
+              land_sqft        DOUBLE         146      117              430.0          466245.0  26874.68493150685  60554.82114964559
+distance_to_boundary_ft        DOUBLE         228      222 57.529373310821555 6777.314812430097  1173.829878438655  938.7932039389339

@@ -96,3 +96,7 @@ adjudication. It does not certify successor suppressions or the expanded graph.
 ### Individual-lot location comparison
 
 `review_individual_home_locations.R` tests later exact-parcel coordinates for retained individual residential records still using a historical predecessor centroid. It requires exact agreement in 2025 units, floor area, reported land area and construction year, one occupied assessment card, and containment in the record’s historical site. It compares boundary distances using construction-year ward maps and separately matches the frozen paper input by project identifier. The output is an audit proposal, not a production input. Run the specific report target while holding `../../new_construction_analysis_data/output/new_construction_analysis_data.csv` with Make `-o` to preserve the frozen comparison.
+
+### The 69 location exceptions
+
+`review_remaining_individual_locations.py` follows the fixed 69-record cohort in `reference/individual_location_remaining_cases.csv`, compares all available residential assessment years and saved parcel points, and records the current production location result. It generates `remaining_individual_location_findings.csv` and its standard report. The reference records which cases were investigated, not cleaning decisions. `remaining_individual_locations.md` records the substantive follow-up and initial verdicts. Three construction-age concerns are also retained in the consolidated questions reference so successful geocoding does not close them accidentally.

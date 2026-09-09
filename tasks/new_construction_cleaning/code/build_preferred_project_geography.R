@@ -1,6 +1,7 @@
 # setwd("tasks/new_construction_cleaning/code")
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/assessor_classification.R")
 
 coverage <- readr::read_csv(
   "../output/preferred_historical_parcel_coverage.csv",
@@ -288,6 +289,84 @@ current_points <- readr::read_csv("../input/parcel_universe_2025_city.csv",
     row_id = readr::col_character(), .default = readr::col_skip())) %>%
   transmute(pin, year = tax_year, lon = longitude, lat = latitude, row_id,
     point_source_pin = pin, source = "parcel_universe_2025")
+# A later point can locate the same building and lot. Require unchanged reported
+# measurements and construction year; retain the construction-year ward map.
+unchanged <- readr::read_csv("../output/preferred_residential_project_candidates.csv",
+  col_types = readr::cols(project_id = "c", component_pins = "c", construction_year = "d",
+    dwelling_units = "d", building_sqft = "d", land_sqft = "d", .default = readr::col_skip())) %>%
+  semi_join(project_centroids %>% sf::st_drop_geometry() %>%
+    filter(source_family == "residential",
+      location_source == "former_parcel_centroid_unresolved_individual"), by = "project_id") %>%
+  rename(pin = component_pins)
+stopifnot(!anyDuplicated(unchanged$pin), !anyDuplicated(current_points$pin))
+con <- DBI::dbConnect(duckdb::duckdb())
+DBI::dbWriteTable(con, "location_pins", unchanged %>% select(pin))
+assessment <- DBI::dbGetQuery(con, "SELECT h.pin, h.tax_year, h.card_num, h.class, h.year_built,
+  h.building_sqft, h.land_sqft, h.num_apartments
+  FROM read_parquet('../input/residential_assessor_history.parquet') h
+  INNER JOIN location_pins p ON h.pin = p.pin
+  WHERE h.building_sqft > 1")
+DBI::dbDisconnect(con, shutdown = TRUE)
+stopifnot(!anyDuplicated(assessment[c("pin", "tax_year", "card_num")]))
+assessment <- assessment %>% add_count(pin, tax_year) %>% filter(n == 1L) %>%
+  transmute(pin, year = tax_year, construction_year = year_built, building_sqft, land_sqft,
+    dwelling_units = if_else(class %in% single_family_assessor_classes, 1, num_apartments))
+year_decisions <- readr::read_csv("../adjudication/residential_reviewed_construction_years.csv",
+  col_types = readr::cols(project_id = "c", reported_year = "d", construction_year = "d",
+    .default = readr::col_skip()))
+stopifnot(!anyDuplicated(year_decisions$project_id))
+unchanged <- unchanged %>% left_join(year_decisions,
+  by = c("project_id", "construction_year"), relationship = "one-to-one") %>%
+  mutate(match_year = coalesce(reported_year, construction_year)) %>%
+  inner_join(assessment,
+  by = c("pin", "match_year" = "construction_year", "building_sqft", "land_sqft", "dwelling_units"),
+  relationship = "one-to-many", na_matches = "never")
+location_evidence <- bind_rows(history_points, current_points %>% select(-source)) %>%
+  filter(pin == point_source_pin, is.finite(lon), is.finite(lat)) %>%
+  group_by(pin, year) %>%
+  filter(n_distinct(paste(lon, lat)) == 1L) %>%
+  summarise(lon = first(lon), lat = first(lat),
+    row_id = paste(sort(unique(row_id)), collapse = "/"), .groups = "drop")
+unchanged <- unchanged %>%
+  inner_join(location_evidence, by = c("pin", "year"), relationship = "many-to-one") %>%
+  filter(year >= construction_year) %>% group_by(project_id) %>%
+  slice_max(year, n = 1L, with_ties = FALSE) %>% ungroup()
+points <- sf::st_transform(sf::st_as_sf(unchanged, coords = c("lon", "lat"), crs = 4326), 3435)
+polygon <- match(points$project_id, project_geometry$project_id)
+stopifnot(!anyNA(polygon), !anyDuplicated(points$project_id))
+# One thousandth of a foot accommodates coordinate rounding at the lot edge.
+inside <- as.numeric(sf::st_distance(points, project_geometry[polygon, ], by_element = TRUE)) <= 0.001
+points <- points[inside, ]
+i <- match(points$project_id, project_centroids$project_id)
+sf::st_geometry(project_centroids)[i] <- sf::st_geometry(points)
+project_centroids$location_source[i] <- "same_property_later_exact_parcel_point"
+project_centroids$location_reference_pin[i] <- points$pin
+project_centroids$location_reference_year[i] <- points$year
+project_centroids$location_reference_row_ids[i] <- points$row_id
+
+# Keep the exact Chicago address point already verified upstream, rather than
+# replacing it with the center of the larger parcel found around that address.
+address_points <- readr::read_csv("../output/preferred_chicago_address_geocodes.csv",
+  col_types = readr::cols(project_id = "c", request_id = "c", component_pin = "c",
+    chicago_status = "c", chicago_x_3435 = "d", chicago_y_3435 = "d",
+    selected_address_year = "d", .default = readr::col_skip())) %>%
+  filter(chicago_status == "accepted_reference_point") %>%
+  semi_join(project_centroids %>% sf::st_drop_geometry() %>%
+    filter(source_family == "residential",
+      location_source == "former_parcel_centroid_unresolved_individual"), by = "project_id") %>%
+  sf::st_as_sf(coords = c("chicago_x_3435", "chicago_y_3435"), crs = 3435)
+stopifnot(!anyDuplicated(address_points$project_id))
+polygon <- match(address_points$project_id, project_geometry$project_id)
+stopifnot(!anyNA(polygon))
+inside <- as.numeric(sf::st_distance(address_points, project_geometry[polygon, ], by_element = TRUE)) <= 0.001
+address_points <- address_points[inside, ]
+i <- match(address_points$project_id, project_centroids$project_id)
+sf::st_geometry(project_centroids)[i] <- sf::st_geometry(address_points)
+project_centroids$location_source[i] <- "verified_chicago_individual_address_point"
+project_centroids$location_reference_pin[i] <- address_points$component_pin
+project_centroids$location_reference_year[i] <- address_points$selected_address_year
+project_centroids$location_reference_row_ids[i] <- address_points$request_id
+
 location_evidence <- bind_rows(history_points %>% mutate(source = "historical_parcel_history"), current_points)
 stopifnot(!anyDuplicated(reviewed_locations$project_id),
   all(reviewed_locations$project_id %in% project_year_coverage$project_id))

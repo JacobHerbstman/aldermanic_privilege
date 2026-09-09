@@ -105,3 +105,9 @@ for the completed exclusions/retentions and the 56 older commercial map-denomina
 choices now replaced by reported source areas or density exclusions. The selection script matches the full selected parcel set before using Assessor land; five external reported measurements are explicit reviewed inputs. Maps supply locations, not these density denominators. The [preserved reconstruction history](reconstruction_history.md)
 records earlier evidence and comparisons. A successful candidate build is not a
 claim that the final paper input or every reviewed measurement is complete.
+
+### Individual residential locations
+
+For an individually recorded home on a former parcel, `build_preferred_project_geography.R` first uses the existing construction-year/next-year parcel point. If unavailable, it uses the latest saved exact-PIN point whose assessment from the same year reports the selected units, floor area, land area and construction year. Existing committed construction-year corrections supply the expected reported year for this comparison. Only assessments with one occupied card qualify, and the point must fall within the historical site (0.001-foot tolerance for coordinate rounding). If that check cannot supply a point, an already accepted exact Chicago address point can locate the individual property, subject to the same site check. The address producer requires a unique score-100 point-address match, including street direction and house number.
+
+These rules retain the source-reported density measurements and the construction-year ward map. A later vacant or exempt classification does not itself invalidate earlier construction, but it does not satisfy the same-assessment check either. Location provenance is retained in the centroid output. Location success does not adjudicate contradictory construction years or prove that a recorded episode was a new building.

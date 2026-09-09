@@ -2,6 +2,8 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-08-individual-lot-locations.tex ../tasks/working_paper_release_audit/report/remaining_individual_location_findings.csv.log ../tasks/working_paper_release_audit/remaining_individual_locations.md ../tasks/new_construction_cleaning/report/preferred_project_year_centroids.gpkg.log ../tasks/new_construction_cleaning/report/preferred_project_boundary_scope.csv.log
+
 logbook.pdf: ../tasks/working_paper_release_audit/report/individual_home_location_comparison.csv.log entries/2026-09-08-current-construction-questions.tex ../tasks/working_paper_release_audit/report/current_construction_questions.csv.log ../tasks/new_construction_cleaning/report/preferred_residential_project_candidates.csv.log
 
 logbook.pdf: entries/2026-09-08-source-reported-commercial-land.tex ../tasks/new_construction_cleaning/report/preferred_commercial_projects.csv.log ../tasks/working_paper_release_audit/report/commercial_reported_land_comparison.csv.log
