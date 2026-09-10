@@ -310,3 +310,43 @@ Greenview's approved completion proxy changed from 2012 to 2014. `code/reviewed_
 The earlier history requests selected missing parcel coverage or address-geocoding requests. They omitted 1454 S Avers, 951 W 34th unit D, and 4179 S Lowe because larger historical parcels already supplied coverage. Absence from those saved responses was not evidence that the County lacked older coordinates. Direct checks found histories beginning in 2007, 2010, and 2007 respectively.
 
 `code/reviewed_history_queries.csv` records the three additional source requests, not cleaning judgments. The ordinary Makefile reuses `download_predecessor_parcel_history.R` to retrieve 1999–2025 records from Cook County's `nj4t-kc8j` endpoint. The retained `output/reviewed_parcel_history.csv` snapshot has 54 rows and SHA-256 `ffea115017b23ff75c0dee5e68c2893066f34db38282242619c4665804e81ba6`. `combine_geocoding_history.R` adds these records to the pinned history with unique row and parcel-year checks. Unchanged builds reuse the snapshot; changing acquisition inputs or removing it deliberately retrieves a new vintage. No measurements or location selection rules change.
+
+### Additional 2017 coverage, September 9, 2026
+
+The reviewed-query table now contains 91 parcel-year requests. This update adds
+2017 PIN10 `1431138009`, requested while checking the effect of expanded permit
+history on residential years. The corrected year rule continues to use its
+new-construction permit and selects 2018; the additional 2017 query is retained
+as acquired evidence and does not change that year.
+Cook County returned object `537258`. The existing Make acquisition and source
+combination rules carry it into the historical parcel source; no polygon-derived
+land denominator is adopted. The refreshed
+`output/reviewed_parcels_additional_2017.gpkg` snapshot has SHA-256
+`55e28770703e2ee565a54b9a2395420607deee0583877574e05dc7471438f5f2`.
+The shared reviewed-query prerequisite caused the other reviewed-year extracts
+to be refreshed through the existing rules too; their current standard reports
+record the resulting files. This does not certify equality with every older
+snapshot.
+
+September 9 paired-building review: added 2008 queries for PIN10 2023103037 and 2023116022 (93 reviewed queries total). The existing Make rules refreshed the reviewed-year requests. Comparison against preserved pre-refresh snapshots found no removed or changed source records or geometries in any reviewed year; only these two 2008 polygons were added. The 2008 GPKG SHA-256 is `53b40f1c70825f58d4453a67905cf498bd16f7824c0a8eba2fa03861ddb8c919`. These polygons establish location and boundary distance, not land denominators.
+
+September 9 approved ten-property follow-through: seventeen exact parcel/year
+queries and thirteen coordinate/year queries extend the recorded source coverage
+for corrected completion years and the completed Giles condominium identity.
+The normal acquisition Makefile now includes 2016 among reviewed parcel years.
+These public Cook County polygons support location and construction-year boundary
+assignment only; the approved density denominators remain source-reported areas.
+
+September 9 final-ten implementation adds 33 exact parcel/year queries for the
+approved completion dates and completed-building identities. The existing Make
+acquisition returned two additional 2017 Winnebago polygons; the other new
+individual parcel/year queries returned no polygons. Comparison with copies of
+every pre-refresh reviewed-year source found no removed or changed source records
+or geometries. These queries establish map coverage, including recorded absence;
+they do not change any reported land denominator.
+
+The same completion-year changes also add 31 coordinate/year queries through
+`reviewed_predecessor_queries.csv`. The existing downloader returned eleven
+additional historical polygons; all twenty-two previously saved reviewed
+predecessor polygons and their attributes are unchanged. These responses support
+the existing point-containment and exact-parcel location rules.

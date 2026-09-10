@@ -159,3 +159,46 @@ year, not the point's source year, determines the ward boundary. La Casa retains
 15 source-coded units and the coherent 2021 building/land record on its two original
 parcels; its opening year is 2012. The 56 commercial land comparisons are proposals
 in the release audit, not new overrides in these ledgers.
+
+### Completed-building and duplicate reviews (September 9)
+
+`residential_reviewed_construction_years.csv` applies approved year corrections
+in the Assessor producer, before identity matching and geography. Oakley's
+fifteen individual homes retain their own measurements with the approved 2014
+year.
+
+`residential_class297_component_overrides.csv` can identify either the former
+parcel components or the actual completed condominium PINs. The project
+selection script checks completed PINs against the pinned condominium history
+and the recorded final building identity. This lets separately measured
+Sheffield buildings and the shared Walton Row site use their completed parcel
+identities without assigning portions of a former development's land.
+
+For `residential_unresolved_source_dispositions.csv`, duplicate decisions with
+explicit `final_project_ids` now apply in the same project selection script.
+Every named replacement must exist and be retained; the old source is excluded
+without copying or altering its replacements' measurements. Blank legacy
+replacement lists do not establish a verified match and are not applied by this
+rule. The Oakley review links its three old groups collectively to the same
+fifteen homes; these links do not create extra output rows.
+
+Reviewed component overrides may include an accessory land parcel explicitly named by `supporting_permit_number`. The residential candidate producer requires that new-construction permit to match an original source parcel directly and checks every added parcel against its recorded parcel list. It does not infer extra parcels from nearby addresses or allocate land. Milwaukee uses this reviewed path for its approved 875-square-foot additional lot.
+
+A source disposition of `withhold_density` preserves a selected building but disables both density measures in the residential candidate producer. Aqua Parkhomes uses this recorded hold because its reported land has not been separated from the shared Aqua site. Duplicate retirement does not remove that hold.
+
+### Reviewed complete building measurements
+
+`residential_reviewed_building_measurements.csv` records whole-building decisions
+when reported counts include commercial space, tied parcels repeat a building,
+or a completed condo replaces an older building record. The existing preferred
+residential candidate producer applies these rows before geography and density.
+Every row identifies its source, final building, reported measurements and
+evidence; multiple source rows with one final ID must agree on all measurements.
+Recorded component replacements are checked against actual source parcel or
+completed-condominium membership. This ledger does not authorize calculated land
+areas or create a separate post-estimation cleaning step.
+
+Approved `withhold_density` dispositions remove unresolved residential sources
+from the density selection while preserving their source rows and reasons. For
+cross-source records, the corresponding commercial decision also disables both
+density measures, so changing source cannot reintroduce an excluded record.

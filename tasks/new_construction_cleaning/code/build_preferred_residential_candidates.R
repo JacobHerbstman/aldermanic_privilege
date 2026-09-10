@@ -48,7 +48,7 @@ permit_links <- readr::read_csv(
     .default = readr::col_guess()
   )
 ) %>%
-  filter(source_family == "residential")
+  filter(source_family == "residential", permit_type == "PERMIT - NEW CONSTRUCTION")
 
 permit_units <- readr::read_csv(
   "../output/project_permit_chain_unit_mentions.csv",
@@ -443,8 +443,10 @@ commercial_overlap_candidates <- inventory %>%
     land_source = paste0("assessor_row:", row_id),
     current_distance_m = dist_to_boundary_m,
     current_within_1500ft = within_1500ft,
-    candidate_status = "defer_to_commercial_reconciliation",
-    decision_reason = "pin_also_appears_in_commercial_source"
+    candidate_status = if_else(between(construction_year, 2006L, 2022L),
+      "defer_to_commercial_reconciliation", "exclude_outside_period"),
+    decision_reason = if_else(between(construction_year, 2006L, 2022L),
+      "pin_also_appears_in_commercial_source", "construction_year_outside_2006_2022")
   )
 
 residential_candidates <- bind_rows(
@@ -469,15 +471,18 @@ eligibility_decisions <- readr::read_csv(
 ) %>% filter(manual_action %in% c("exclude", "exclude_unverified_construction")) %>%
   transmute(project_id, action = if_else(manual_action == "exclude",
     "exclude_not_ground_up", manual_action), decision_reason = reason)
-not_new <- bind_rows(no_snapshot_decisions, condo_decisions, eligibility_decisions) %>%
-  filter(action %in% c("exclude_not_ground_up", "exclude_unverified_construction"))
+overlap_exclusions <- readr::read_csv("../adjudication/residential_overlap_decisions.csv", show_col_types = FALSE) %>%
+  filter(overlap_action == "exclude_not_new_construction") %>%
+  transmute(project_id = source_project_id, action = "exclude_not_ground_up", decision_reason)
+not_new <- bind_rows(no_snapshot_decisions, condo_decisions, eligibility_decisions, overlap_exclusions) %>%
+  filter(action %in% c("exclude_not_ground_up", "exclude_unverified_construction", "exclude_unbuilt"))
 stopifnot(!anyDuplicated(not_new$project_id))
 reviewed_exclusion <- match(residential_candidates$project_id, not_new$project_id)
-apply_exclusion <- residential_candidates$candidate_status %in% c("review_required", "retain_mechanical") &
+apply_exclusion <- residential_candidates$candidate_status %in% c("review_required", "retain_mechanical", "defer_to_commercial_reconciliation") &
   !is.na(reviewed_exclusion)
 residential_candidates$candidate_status[apply_exclusion] <- if_else(
-  not_new$action[reviewed_exclusion[apply_exclusion]] == "exclude_unverified_construction",
-  "exclude_unverified_construction", "exclude_not_new_construction")
+  not_new$action[reviewed_exclusion[apply_exclusion]] == "exclude_not_ground_up",
+  "exclude_not_new_construction", not_new$action[reviewed_exclusion[apply_exclusion]])
 residential_candidates$decision_reason[apply_exclusion] <-
   not_new$decision_reason[reviewed_exclusion[apply_exclusion]]
 
@@ -492,6 +497,125 @@ residential_candidates$decision_reason[placeholder] <- "source_area_placeholder_
 assessor_match <- match(residential_candidates$project_id, assessor_projects$project_id)
 residential_candidates$replacement_project_ids <- assessor_projects$replacement_project_ids[assessor_match]
 residential_candidates$replacement_check <- assessor_projects$replacement_check[assessor_match]
+
+# Apply already recorded complete building measurements at the project-selection
+# stage. Shared final IDs produce one building, with the old sources suppressed.
+recorded_buildings <- readr::read_csv("../adjudication/residential_tieback_no_snapshot_decisions.csv",
+  show_col_types = FALSE) %>% filter(decision_action == "retain_override") %>%
+  select(source_project_id, final_project_id, construction_year, dwelling_units,
+    building_sqft, land_sqft, allow_far, allow_dupac, decision_reason) %>%
+  mutate(decision_source = "residential_tieback_no_snapshot_decisions.csv")
+recorded_condos <- readr::read_csv("../adjudication/residential_class297_exceptions.csv",
+  show_col_types = FALSE) %>% filter(override_action == "retain_override") %>%
+  transmute(source_project_id, final_project_id = override_final_project_id,
+    construction_year = override_year, dwelling_units = override_units,
+    building_sqft = override_building_sqft, land_sqft = override_land_sqft,
+    allow_far = override_allow_far, allow_dupac = override_allow_dupac, decision_reason,
+    decision_source = "residential_class297_exceptions.csv")
+reviewed_measurements <- readr::read_csv("../adjudication/residential_reviewed_building_measurements.csv",
+  show_col_types = FALSE)
+stopifnot(!anyDuplicated(reviewed_measurements$source_project_id),
+  all(reviewed_measurements$source_project_id %in% residential_candidates$project_id),
+  all(!is.na(reviewed_measurements$evidence_ids) & nzchar(reviewed_measurements$evidence_ids)))
+# Explicit building reviews can correct an otherwise complete assessment too:
+# a reported apartment count may include a shop, or two lots may repeat one building.
+recorded_buildings <- bind_rows(recorded_buildings, recorded_condos) %>%
+  semi_join(residential_candidates %>% filter(candidate_status == "review_required"),
+    by = c("source_project_id" = "project_id")) %>%
+  bind_rows(reviewed_measurements %>% select(-evidence_ids, -evidence_urls) %>%
+    mutate(decision_source = "residential_reviewed_building_measurements.csv"))
+stopifnot(!anyDuplicated(recorded_buildings[c("source_project_id", "final_project_id")]))
+recorded_components <- readr::read_csv("../adjudication/residential_class297_component_overrides.csv",
+  col_types = readr::cols(.default = readr::col_character()))
+stopifnot(!anyDuplicated(recorded_components$final_project_id))
+completed_condo_pins <- readr::read_csv("../input/construction_condominium_history.csv",
+  col_types = readr::cols(pin = readr::col_character(), pin10 = readr::col_character(),
+    .default = readr::col_skip())) %>% distinct(pin, pin10)
+split_sources <- recorded_buildings %>% count(source_project_id) %>% filter(n > 1)
+stopifnot(all(recorded_buildings$final_project_id[recorded_buildings$source_project_id %in%
+  split_sources$source_project_id] %in% recorded_components$final_project_id))
+for (id in unique(recorded_buildings$final_project_id)) {
+  decisions <- recorded_buildings %>% filter(final_project_id == id)
+  fields <- c("construction_year", "dwelling_units", "building_sqft", "land_sqft", "allow_far", "allow_dupac")
+  stopifnot(all(vapply(decisions[fields], dplyr::n_distinct, integer(1)) == 1L),
+    between(decisions$construction_year[1], 2006L, 2022L),
+    is.finite(decisions$dwelling_units[1]), decisions$dwelling_units[1] > 0,
+    is.finite(decisions$land_sqft[1]), decisions$land_sqft[1] > 1,
+    !decisions$allow_far[1] || (is.finite(decisions$building_sqft[1]) && decisions$building_sqft[1] > 1))
+  old <- match(decisions$source_project_id, residential_candidates$project_id)
+  stopifnot(!anyNA(old))
+  row <- residential_candidates[old[1], ]
+  row$project_id <- id
+  pins <- sort(unique(unlist(strsplit(residential_candidates$component_pins[old], "/", fixed = TRUE))))
+  component_decision <- match(id, recorded_components$final_project_id)
+  if (!is.na(component_decision)) {
+    reviewed_pins <- strsplit(recorded_components$component_pins[component_decision], "/", fixed = TRUE)[[1]]
+    # A reviewed completed condo parcel can replace its former development PINs.
+    # Require both the recorded final building identity and actual source records.
+    completed_pins <- completed_condo_pins$pin[
+      paste0("residential_condo_", completed_condo_pins$pin10) == id]
+    # A reviewed permit may also identify a separate accessory land parcel.
+    permit_pins <- character()
+    supporting_permit <- recorded_components$supporting_permit_number[component_decision]
+    if (!is.na(supporting_permit)) {
+      stopifnot(grepl("^[0-9]+$", supporting_permit),
+        any(permit_links$project_id %in% decisions$source_project_id &
+          permit_links$permit_number == supporting_permit &
+          permit_links$directly_matched & permit_links$direct_match_method == "exact_pin"))
+      permit_record <- sf::st_read("../output/building_permits_for_verification.gpkg",
+        query = paste0("SELECT pin FROM building_permits_clean WHERE permit = '",
+          supporting_permit, "'"), quiet = TRUE)
+      stopifnot(nrow(permit_record) == 1L)
+      permit_pins <- paste0(trimws(strsplit(permit_record$pin, "|", fixed = TRUE)[[1]]), "0000")
+    }
+    stopifnot(all(reviewed_pins %in% c(pins, permit_pins)) || all(reviewed_pins %in% completed_pins))
+    pins <- reviewed_pins
+  }
+  row$component_pins <- paste(pins, collapse = "/")
+  row$component_count <- length(pins)
+  row$project_kind <- "reviewed_multi_parcel_building"
+  for (field in c("construction_year", "dwelling_units", "building_sqft", "land_sqft"))
+    row[[field]] <- decisions[[field]][1]
+  for (field in c("year_source", "units_source", "building_source", "land_source"))
+    row[[field]] <- paste0("recorded_project_decision:", decisions$decision_source[1], ":", id)
+  row$candidate_status <- "retain_mechanical"
+  row$decision_reason <- paste(sort(unique(decisions$decision_reason)), collapse = " | ")
+  row$replacement_project_ids <- NA_character_
+  row$replacement_check <- NA_character_
+  if (id %in% decisions$source_project_id) {
+    stopifnot(length(old) == 1L)
+    residential_candidates[old, ] <- row
+  } else {
+    stopifnot(!id %in% residential_candidates$project_id)
+    residential_candidates$candidate_status[old] <- "exclude_replaced_by_recorded_project"
+    for (j in old) residential_candidates$replacement_project_ids[j] <- paste(
+      recorded_buildings$final_project_id[recorded_buildings$source_project_id == residential_candidates$project_id[j]],
+      collapse = "/")
+    residential_candidates$replacement_check[old] <- "recorded_complete_building_decision"
+    residential_candidates <- bind_rows(residential_candidates, row)
+  }
+}
+
+# Suppress a condo predecessor only when its recorded replacement measurements
+# agree with the commercial decision supplying the complete project.
+commercial_replacements <- readr::read_csv("../adjudication/residential_class297_exceptions.csv",
+  show_col_types = FALSE) %>% filter(override_action == "replace_by_commercial",
+    is.finite(override_units), is.finite(override_land_sqft))
+commercial_decisions <- readr::read_csv("../adjudication/commercial_manual_decisions.csv",
+  show_col_types = FALSE) %>% filter(str_detect(action, "^retain"))
+for (i in seq_len(nrow(commercial_replacements))) {
+  decision <- commercial_replacements[i, ]
+  complete <- commercial_decisions %>% filter(final_project_id == decision$override_final_project_id)
+  stopifnot(nrow(complete) == 1L, complete$final_year == decision$override_year,
+    complete$final_units == decision$override_units, complete$final_land_sqft == decision$override_land_sqft,
+    complete$allow_far == decision$override_allow_far, complete$allow_dupac == decision$override_allow_dupac)
+  old <- match(decision$source_project_id, residential_candidates$project_id)
+  stopifnot(!is.na(old))
+  residential_candidates$candidate_status[old] <- "exclude_replaced_by_recorded_project"
+  residential_candidates$replacement_project_ids[old] <- decision$override_final_project_id
+  residential_candidates$replacement_check[old] <- "recorded_complete_commercial_project"
+  residential_candidates$decision_reason[old] <- decision$decision_reason
+}
 
 # Carry forward a recorded duplicate decision only when the retained successor
 # still has the same unit count and building area. Conflicting decisions stay open.
@@ -515,13 +639,54 @@ for (i in seq_len(nrow(overlap_decisions))) {
   }
 }
 
+# Recorded identity reviews can retire an old development record even when its
+# obsolete cards do not reproduce the completed homes' measurements.
+reviewed_duplicates <- readr::read_csv("../adjudication/residential_unresolved_source_dispositions.csv",
+  col_types = readr::cols(.default = readr::col_character())) %>%
+  filter(disposition == "exclude_source_duplicate_keep_successors", !is.na(final_project_ids))
+stopifnot(!anyDuplicated(reviewed_duplicates$source_project_id))
+for (j in seq_len(nrow(reviewed_duplicates))) {
+  old <- match(reviewed_duplicates$source_project_id[j], residential_candidates$project_id)
+  ids <- strsplit(reviewed_duplicates$final_project_ids[j], "/", fixed = TRUE)[[1]]
+  successors <- match(ids, residential_candidates$project_id)
+  stopifnot(!is.na(old), !anyNA(successors), !anyDuplicated(ids), !old %in% successors,
+    all(residential_candidates$candidate_status[successors] == "retain_mechanical"))
+  residential_candidates$candidate_status[old] <- "exclude_source_duplicate_keep_successors"
+  residential_candidates$replacement_project_ids[old] <- paste(sort(ids), collapse = "/")
+  residential_candidates$replacement_check[old] <- "recorded_completed_home_identity_review"
+  residential_candidates$decision_reason[old] <- reviewed_duplicates$decision_reason[j]
+}
+
 if (anyDuplicated(residential_candidates$project_id) > 0) {
   stop("Preferred residential candidate IDs are not unique.", call. = FALSE)
 }
 
+residential_candidates <- residential_candidates %>% mutate(
+  allow_dupac = candidate_status == "retain_mechanical" &
+    is.finite(dwelling_units) & dwelling_units > 0 & is.finite(land_sqft) & land_sqft > 1,
+  allow_far = allow_dupac & is.finite(building_sqft) & building_sqft > 1)
+
+# A recorded shared-site problem can withhold density without deleting buildings.
+density_holds <- readr::read_csv("../adjudication/residential_unresolved_source_dispositions.csv",
+  col_types = readr::cols(.default = readr::col_character())) %>%
+  filter(disposition == "withhold_density")
+stopifnot(!anyDuplicated(density_holds$source_project_id),
+  all(density_holds$source_project_id %in% residential_candidates$project_id))
+hold <- match(density_holds$source_project_id, residential_candidates$project_id)
+residential_candidates$allow_far[hold] <- FALSE
+residential_candidates$allow_dupac[hold] <- FALSE
+residential_candidates$decision_reason[hold] <- density_holds$decision_reason
+# An approved measurement exclusion closes an unresolved source without inventing
+# a complete building or allowing a second source to retain it for density.
+withheld_unresolved <- hold[residential_candidates$candidate_status[hold] %in%
+  c("review_required", "defer_to_commercial_reconciliation")]
+residential_candidates$candidate_status[withheld_unresolved] <- "exclude_density_unresolved"
+
+
 # Superseded combined records remain in the candidate ledger, not in building membership.
 component_rows <- residential_candidates %>%
-  filter(decision_reason != "source_replaced_by_reviewed_assessor_buildings") %>%
+  filter(decision_reason != "source_replaced_by_reviewed_assessor_buildings",
+    !candidate_status %in% c("exclude_replaced_by_recorded_project", "exclude_source_duplicate_keep_successors")) %>%
   select(project_id, source_family, project_kind, component_pins) %>%
   tidyr::separate_longer_delim(component_pins, delim = "/") %>%
   rename(component_pin = component_pins) %>%
@@ -584,6 +749,7 @@ if (any(str_detect(names(adjudication_queue), regex(
 )))) {
   stop("Residential adjudication queue contains a prohibited analysis field.", call. = FALSE)
 }
+
 
 readr::write_csv(
   residential_candidates,

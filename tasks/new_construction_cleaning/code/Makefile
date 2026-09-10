@@ -1,7 +1,21 @@
 include ../../shared/code/shell_functions.make
 include construction_settings.make
 
-all: ../report/building_permits_for_verification.gpkg.log \
+all: ../report/preferred_new_construction_project_ledger.csv.log \
+	../report/preferred_new_construction_project_components.csv.log \
+	../report/preferred_new_construction_boundary_scope.csv.log \
+	../report/preferred_new_construction_project_centroids.gpkg.log \
+	../report/preferred_residential_project_ledger.csv.log \
+	../report/preferred_residential_project_components_final.csv.log \
+	../report/preferred_residential_project_centroids.gpkg.log \
+	../report/preferred_residential_boundary_scope.csv.log \
+	../report/residential_adjudicated_project_geometry.gpkg.log \
+	../report/residential_review_resolution_projects.csv.log \
+	../report/residential_review_resolution_components.csv.log \
+	../report/residential_review_source_dispositions.csv.log \
+	../report/residential_overlap_resolution.csv.log \
+	../report/residential_tieback_episode_resolution.csv.log \
+	../report/residential_class297_resolution.csv.log ../report/residential_class297_source_disposition.csv.log ../report/building_permits_for_verification.gpkg.log \
 	../report/commercial_address_family_candidates.csv.log \
 	../report/commercial_address_permit_history.csv.log \
 	../report/commercial_adjudication_queue.csv.log \
@@ -83,7 +97,7 @@ ifneq ($(filter-out $(wildcard ../output/preferred_commercial_project_ledger.csv
 .PHONY: ../output/preferred_commercial_project_ledger.csv
 endif
 
-../output/preferred_commercial_project_ledger.csv: build_preferred_commercial_final_geography.R ../adjudication/commercial_reviewed_locations.csv ../input/preferred_historical_parcel_source.gpkg ../output/preferred_commercial_project_candidates.csv ../output/preferred_project_year_centroids.gpkg ../output/building_permits_for_verification.gpkg ../input/parcel_universe_2025_city.csv ../input/ward_pair_boundaries.gpkg ../input/ward_panel.gpkg ../output/preferred_commercial_projects.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
+../output/preferred_commercial_project_ledger.csv: build_preferred_commercial_final_geography.R ../input/preferred_predecessor_parcel_source.gpkg ../adjudication/commercial_reviewed_locations.csv ../input/preferred_historical_parcel_source.gpkg ../output/preferred_commercial_project_candidates.csv ../output/preferred_project_year_centroids.gpkg ../output/building_permits_for_verification.gpkg ../input/parcel_universe_2025_city.csv ../input/ward_pair_boundaries.gpkg ../input/ward_panel.gpkg ../output/preferred_commercial_projects.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
 	$(R) $<
 
 ../output/preferred_commercial_project_component_locations.csv: ../output/preferred_commercial_project_ledger.csv
@@ -212,7 +226,7 @@ ifneq ($(filter-out $(wildcard ../output/preferred_commercial_projects.csv ../ou
 .PHONY: ../output/preferred_commercial_projects.csv
 endif
 
-../output/preferred_commercial_projects.csv: build_preferred_commercial_ledger.R ../adjudication/commercial_reported_land_decisions.csv ../adjudication/commercial_component_overrides.csv ../adjudication/commercial_cross_family_decisions.csv ../adjudication/commercial_field_decisions.csv ../adjudication/commercial_manual_decisions.csv ../adjudication/commercial_semantic_decisions.csv ../output/commercial_entity_version_candidates.csv ../output/commercial_post_evidence_resolution.csv ../output/preferred_commercial_project_candidates.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_commercial_projects.csv: build_preferred_commercial_ledger.R ../input/cascade_developer.html ../adjudication/commercial_reported_land_decisions.csv ../adjudication/commercial_component_overrides.csv ../adjudication/commercial_cross_family_decisions.csv ../adjudication/commercial_field_decisions.csv ../adjudication/commercial_manual_decisions.csv ../adjudication/commercial_semantic_decisions.csv ../output/commercial_entity_version_candidates.csv ../output/commercial_post_evidence_resolution.csv ../output/preferred_commercial_project_candidates.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../report/preferred_commercial_projects.csv.log: ../../shared/code/report.py ../output/preferred_commercial_projects.csv | ../report
@@ -261,7 +275,7 @@ endif
 ../report/residential_assessor_project_candidates.csv.log: ../../shared/code/report.py ../output/residential_assessor_project_candidates.csv | ../report
 	$(PYTHON) $< ../output/residential_assessor_project_candidates.csv $@ project_id
 
-../output/preferred_residential_project_candidates.csv: build_preferred_residential_candidates.R ../adjudication/residential_overlap_decisions.csv ../adjudication/eligibility_manual_exceptions.csv ../adjudication/residential_tieback_no_snapshot_decisions.csv ../adjudication/residential_class297_exceptions.csv ../../shared/code/assessor_classification.R ../output/project_permit_chain_links.csv ../output/project_permit_chain_unit_mentions.csv ../output/residential_assessor_project_candidates.csv ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_residential_project_candidates.csv: build_preferred_residential_candidates.R ../adjudication/residential_reviewed_building_measurements.csv ../output/building_permits_for_verification.gpkg ../adjudication/residential_unresolved_source_dispositions.csv ../input/construction_condominium_history.csv ../adjudication/residential_class297_component_overrides.csv ../adjudication/commercial_manual_decisions.csv ../input/cirrus_developer.html ../adjudication/residential_overlap_decisions.csv ../adjudication/eligibility_manual_exceptions.csv ../adjudication/residential_tieback_no_snapshot_decisions.csv ../adjudication/residential_class297_exceptions.csv ../../shared/code/assessor_classification.R ../output/project_permit_chain_links.csv ../output/project_permit_chain_unit_mentions.csv ../output/residential_assessor_project_candidates.csv ../output/residential_project_candidate_inventory.csv ../output/residential_tieback_temporal_lineage_evidence.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/preferred_residential_project_components.csv: ../output/preferred_residential_project_candidates.csv
@@ -740,4 +754,13 @@ link-inputs: ../input/historical_project_parcel_source.gpkg \
 
 # Earlier review and final-assembly targets remain available explicitly.
 include legacy_construction.make
+../input/cascade_developer.html: ../../download_construction_development_records/output/cascade_developer.html | ../input
+	@if [ "$$(readlink "$@")" != "../../download_construction_development_records/output/cascade_developer.html" ]; then ln -sf ../../download_construction_development_records/output/cascade_developer.html "$@"; fi
+
+../input/cirrus_developer.html: ../../download_construction_development_records/output/cirrus_developer.html | ../input
+	@if [ "$$(readlink "$@")" != "../../download_construction_development_records/output/cirrus_developer.html" ]; then ln -sf ../../download_construction_development_records/output/cirrus_developer.html "$@"; fi
+
+../input/construction_condominium_history.csv: ../../download_construction_assessor_history/output/construction_condominium_history.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../download_construction_assessor_history/output/construction_condominium_history.csv" ]; then ln -sf ../../download_construction_assessor_history/output/construction_condominium_history.csv "$@"; fi
+
 include ../../shared/code/generic.make

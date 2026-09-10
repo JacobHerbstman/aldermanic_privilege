@@ -2,6 +2,42 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-09-last-fifteen.tex ../tasks/working_paper_release_audit/last_fifteen_review.md
+
+logbook.pdf: entries/2026-09-09-next-ten-homes.tex
+
+logbook.pdf: entries/2026-09-09-three-site-followup.tex
+
+logbook.pdf: entries/2026-09-09-honore-and-next-ten.tex
+
+logbook.pdf: entries/2026-09-09-halsted-batch-applied.tex
+
+logbook.pdf: entries/2026-09-09-halsted-ten-record-review.tex
+
+logbook.pdf: entries/2026-09-09-milwaukee-site.tex
+
+logbook.pdf: entries/2026-09-09-diversey-and-duplicate-sites.tex
+
+logbook.pdf: entries/2026-09-09-oakley-sheffield-walton.tex
+
+logbook.pdf: entries/2026-09-09-sheffield-ashland-applied.tex
+
+logbook.pdf: entries/2026-09-09-second-ten-case-review.tex
+
+logbook.pdf: entries/2026-09-09-ten-construction-cases.tex ../tasks/new_construction_cleaning/report/preferred_new_construction_project_ledger.csv.log
+
+logbook.pdf: entries/2026-09-09-eddy-and-estimation-handoff.tex ../tasks/new_construction_cleaning/report/residential_class297_resolution.csv.log ../tasks/working_paper_release_audit/report/construction_reconciliation_progress.csv.log
+
+logbook.pdf: entries/2026-09-09-townhome-sites-and-paired-buildings.tex ../tasks/new_construction_cleaning/report/preferred_new_construction_project_ledger.csv.log ../tasks/working_paper_release_audit/report/construction_reconciliation_progress.csv.log
+
+logbook.pdf: entries/2026-09-09-peoria-and-independent-lots.tex ../tasks/new_construction_cleaning/report/preferred_residential_project_ledger.csv.log ../tasks/working_paper_release_audit/report/construction_reconciliation_progress.csv.log
+
+logbook.pdf: entries/2026-09-09-completed-permit-counts.tex ../tasks/working_paper_release_audit/report/construction_reconciliation_progress.csv.log ../tasks/new_construction_cleaning/report/residential_class297_resolution.csv.log ../tasks/new_construction_cleaning/report/project_permit_chain_summary.csv.log ../tasks/new_construction_cleaning/report/preferred_residential_project_ledger.csv.log
+
+logbook.pdf: entries/2026-09-09-construction-reconciliation.tex ../tasks/working_paper_release_audit/report/construction_reconciliation_progress.csv.log ../tasks/new_construction_cleaning/report/residential_review_source_dispositions.csv.log ../tasks/new_construction_cleaning/report/residential_class297_resolution.csv.log
+
+logbook.pdf: entries/2026-09-09-one-chicago.tex ../tasks/new_construction_cleaning/report/preferred_commercial_project_ledger.csv.log ../tasks/new_construction_cleaning/report/preferred_commercial_boundary_scope.csv.log ../tasks/new_construction_cleaning/report/preferred_residential_project_candidates.csv.log ../tasks/download_construction_development_records/output/one_chicago_pd1401.pdf
+
 logbook.pdf: entries/2026-09-08-individual-lot-locations.tex ../tasks/working_paper_release_audit/report/remaining_individual_location_findings.csv.log ../tasks/working_paper_release_audit/remaining_individual_locations.md ../tasks/new_construction_cleaning/report/preferred_project_year_centroids.gpkg.log ../tasks/new_construction_cleaning/report/preferred_project_boundary_scope.csv.log
 
 logbook.pdf: ../tasks/working_paper_release_audit/report/individual_home_location_comparison.csv.log entries/2026-09-08-current-construction-questions.tex ../tasks/working_paper_release_audit/report/current_construction_questions.csv.log ../tasks/new_construction_cleaning/report/preferred_residential_project_candidates.csv.log

@@ -5,11 +5,32 @@ residential = pd.read_csv("../input/preferred_residential_project_candidates.csv
 commercial = pd.read_csv("../input/preferred_commercial_projects.csv", dtype={"project_id": str, "component_pins": str})
 locations = pd.read_csv("../input/preferred_commercial_project_ledger.csv", dtype={"project_id": str})
 geography = pd.read_csv("../input/preferred_project_boundary_scope.csv", dtype={"project_id": str})
+resolutions = pd.read_csv("../input/residential_review_source_dispositions.csv", dtype=str).fillna("").set_index("source_project_id")
+selected = pd.read_csv("../input/preferred_residential_project_ledger.csv").set_index("project_id")
+assert resolutions.index.is_unique and selected.index.is_unique
+verified_resolutions = set()
+for source, decision in resolutions.iterrows():
+    if decision.final_disposition in ["retained_as_resolved_project", "replaced_by_existing_residential_project"]:
+        targets = decision.final_project_ids.split("/")
+        if all(p in selected.index and bool(selected.loc[p, "location_resolved"]) for p in targets):
+            verified_resolutions.add(source)
+    elif decision.final_disposition == "excluded_outside_study_period":
+        assert decision.resolution_action == "exclude_outside_study_period" and decision.evidence_ids
+        assert source not in selected.index
+        verified_resolutions.add(source)
+    elif decision.final_disposition == "replaced_by_commercial_project":
+        targets = decision.final_project_ids.split("/")
+        if all(p in set(commercial.project_id) and bool(locations.set_index("project_id").loc[p, "location_resolved"]) for p in targets):
+            verified_resolutions.add(source)
 questions = pd.read_csv("../reference/remaining_building_decision_questions.csv", dtype=str).set_index("project_id")
 addresses = pd.read_csv("../input/parcel_addresses_2025_chicago.csv", dtype=str, usecols=["pin", "prop_address_full"])
 assert questions.index.is_unique
 assert addresses.pin.is_unique
-address_by_pin = addresses.set_index("pin").prop_address_full.to_dict()
+historical_addresses = pd.read_csv("../input/density_parcel_address_selected_history.csv", dtype=str,
+    usecols=["pin", "selected_address"])
+assert historical_addresses.pin.is_unique
+address_by_pin = historical_addresses.set_index("pin").selected_address.dropna().to_dict()
+address_by_pin.update(addresses.set_index("pin").prop_address_full.dropna().to_dict())
 for frame in [residential, commercial, locations, geography]:
     assert frame.project_id.is_unique
 assert set(questions.index) <= set(residential.project_id) | set(commercial.project_id)
@@ -27,7 +48,11 @@ for filename, table, id_column, action_column, reason_column in [
     ("residential_successor_condo_overrides.csv", pd.read_csv("../input/residential_successor_condo_overrides.csv", dtype=str).fillna(""), "project_id", "reason", "evidence"),
     ("project_manual_reviews.csv", pd.read_csv("../input/project_manual_reviews.csv", dtype=str).fillna(""), "project_id", "review_status", "notes"),
 ]:
-    assert table[id_column].is_unique
+    if filename == "residential_class297_exceptions.csv":
+        # One old development may resolve to several separately measured buildings.
+        assert not table.duplicated([id_column, "override_final_project_id"]).any()
+    else:
+        assert table[id_column].is_unique
     for _, decision in table.iterrows():
         recorded.append({"project_id": decision[id_column], "recorded_decision": filename + ": " + decision[action_column] + "; " + decision[reason_column]})
 recorded = pd.DataFrame(recorded).groupby("project_id", as_index=False).agg(recorded_decision=("recorded_decision", " | ".join))
@@ -47,7 +72,7 @@ reason_text = {
 }
 open_records = []
 for _, row in residential.iterrows():
-    if row.candidate_status.startswith("exclude_"):
+    if row.project_id in verified_resolutions or row.candidate_status.startswith("exclude_"):
         continue
     issues, explanation = [], []
     decision = row.recorded_decision if pd.notna(row.recorded_decision) else ""
@@ -88,8 +113,12 @@ for _, row in commercial.iterrows():
         construction_year=row.construction_year, issue=" / ".join(issues), question=" ".join(explanation),
         recorded_decision=row.decision_reason, component_pins=row.component_pins, dwelling_units=row.dwelling_units,
         building_sqft=row.building_sqft, land_sqft=row.land_sqft, distance_to_boundary_ft=float("nan")))
-review = pd.DataFrame(open_records).sort_values(["issue", "source_family", "project_id"])
+review = pd.DataFrame(open_records, columns=[
+    "project_id", "source_family", "address", "construction_year", "issue", "question",
+    "recorded_decision", "component_pins", "dwelling_units", "building_sqft", "land_sqft",
+    "distance_to_boundary_ft"
+]).sort_values(["issue", "source_family", "project_id"])
 assert review.project_id.is_unique
-assert set(residential.loc[residential.candidate_status == "review_required", "project_id"]) <= set(review.project_id)
+assert set(residential.loc[residential.candidate_status == "review_required", "project_id"]) <= set(review.project_id) | verified_resolutions
 assert set(commercial.loc[(commercial.allow_far | commercial.allow_dupac) & ~commercial.location_resolved, "project_id"]) <= set(review.project_id)
 review.to_csv("../output/current_construction_questions.csv", index=False)

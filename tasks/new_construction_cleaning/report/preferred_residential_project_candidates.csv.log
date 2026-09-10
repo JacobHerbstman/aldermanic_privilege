@@ -1,33 +1,35 @@
 File: preferred_residential_project_candidates.csv
-Rows: 28074
-Columns: 23
-SHA-256 (saved bytes): 2a0d3fce60212f5e8436dc60653be79a4c895fea3c077d77bc232e24db2ea6ef
+Rows: 28122
+Columns: 25
+SHA-256 (saved bytes): 53a089ac7bad7f7dfadbb0e9a037ba43a52d7325934ed9e6dd73ba0bf1833e27
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                 column inferred_type non_missing distinct                 min               max               mean                  sd
-             project_id       VARCHAR       28074    28074                   -                 -                  -                   -
-          source_family       VARCHAR       28074        1                   -                 -                  -                   -
-           project_kind       VARCHAR       28074        6                   -                 -                  -                   -
-         component_pins       VARCHAR       28074    28073                   -                 -                  -                   -
-        component_count        BIGINT       28074        8                   1                10 1.0420673933176605 0.24805146017283808
-      construction_year        BIGINT       27324       67                1878              2026  2008.578282828283   8.556704967799002
-         dwelling_units        BIGINT       27696       26                   0                43  1.348028596187175  1.1872578646171237
-          building_sqft        BIGINT       27717     4855                   0            643884 2786.7515243352454   5336.050851410124
-              land_sqft        DOUBLE       26488     5037                72.0       228167280.0 18067.898406825734  1709011.6830078233
-           class_values       VARCHAR       27362       28                   -                 -                  -                   -
-         source_row_ids       VARCHAR       27014    27014                   -                 -                  -                   -
-       permit_chain_ids       VARCHAR        5687     5595                   -                 -                  -                   -
-         permit_numbers       VARCHAR        5478     5386                   -                 -                  -                   -
-            year_source       VARCHAR       27726    26357                   -                 -                  -                   -
-           units_source       VARCHAR       27699    26331                   -                 -                  -                   -
-        building_source       VARCHAR       27721    26353                   -                 -                  -                   -
-            land_source       VARCHAR       27721    26350                   -                 -                  -                   -
-     current_distance_m        DOUBLE       25548    25485 0.31134218570016264 8512.934950058308   433.097821865861   520.8698212165482
-  current_within_1500ft       BOOLEAN       28074        2                   -                 -                  -                   -
-       candidate_status       VARCHAR       28074        9                   -                 -                  -                   -
-        decision_reason       VARCHAR       28074       53                   -                 -                  -                   -
-replacement_project_ids       VARCHAR         165      158                   -                 -                  -                   -
-      replacement_check       VARCHAR        1238       10                   -                 -                  -                   -
+                 column inferred_type non_missing distinct                 min               max               mean                 sd
+             project_id       VARCHAR       28122    28122                   -                 -                  -                  -
+          source_family       VARCHAR       28122        1                   -                 -                  -                  -
+           project_kind       VARCHAR       28122        6                   -                 -                  -                  -
+         component_pins       VARCHAR       28122    28100                   -                 -                  -                  -
+        component_count        BIGINT       28122        9                   1                12 1.0434890832799943 0.2650681351812901
+      construction_year        BIGINT       27372       67                1878              2026 2008.5939646353938   8.55798866746406
+         dwelling_units        BIGINT       27770       28                   0               350 1.3689593086064098  2.422255399162071
+          building_sqft        BIGINT       27784     4885                   0            652094 2824.2641448315576  6621.337806477965
+              land_sqft        DOUBLE       26561     5053                72.0       228167280.0 18033.682504423778  1706661.619181105
+           class_values       VARCHAR       27410       28                   -                 -                  -                  -
+         source_row_ids       VARCHAR       27050    27040                   -                 -                  -                  -
+       permit_chain_ids       VARCHAR        5696     5596                   -                 -                  -                  -
+         permit_numbers       VARCHAR        5479     5387                   -                 -                  -                  -
+            year_source       VARCHAR       27799    26430                   -                 -                  -                  -
+           units_source       VARCHAR       27773    26405                   -                 -                  -                  -
+        building_source       VARCHAR       27794    26426                   -                 -                  -                  -
+            land_source       VARCHAR       27794    26418                   -                 -                  -                  -
+     current_distance_m        DOUBLE       25581    25485 0.31134218570016264 8512.934950058308  432.9841240160875  520.7040761094194
+  current_within_1500ft       BOOLEAN       28122        2                   -                 -                  -                  -
+       candidate_status       VARCHAR       28122       12                   -                 -                  -                  -
+        decision_reason       VARCHAR       28122      138                   -                 -                  -                  -
+replacement_project_ids       VARCHAR         249      235                   -                 -                  -                  -
+      replacement_check       VARCHAR        1322       13                   -                 -                  -                  -
+            allow_dupac       BOOLEAN       28122        2                   -                 -                  -                  -
+              allow_far       BOOLEAN       28122        2                   -                 -                  -                  -
