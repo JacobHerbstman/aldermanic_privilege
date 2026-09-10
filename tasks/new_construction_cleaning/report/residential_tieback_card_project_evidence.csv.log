@@ -1,0 +1,36 @@
+File: residential_tieback_card_project_evidence.csv
+Rows: 123
+Columns: 26
+SHA-256 (saved bytes): 8085a5b86c40400568ff15772bf09b62ff4da3349123fa4af2454043ed2b072d
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                              column inferred_type  non_missing  distinct               min               max                mean                  sd
+                          project_id       VARCHAR          123       123                 -                 -                   -                   -
+         candidate_construction_year        BIGINT          123        17              2006              2022  2013.1626016260163   5.680530429717655
+                      component_pins       VARCHAR          123       123                 -                 -                   -                   -
+             distance_to_boundary_ft        DOUBLE          123       117 55.03420649843826 1494.802618497043   708.3371531275648  436.28842552126935
+         candidate_review_categories       VARCHAR          123         6                 -                 -                   -                   -
+                     temporal_status       VARCHAR          123         2                 -                 -                   -                   -
+                     temporal_reason       VARCHAR          123         3                 -                 -                   -                   -
+               permit_chain_evidence       VARCHAR           47        45                 -                 -                   -                   -
+                permit_unit_evidence       VARCHAR           30        29                 -                 -                   -                   -
+             city_footprint_evidence       VARCHAR           80        80                 -                 -                   -                   -
+             matched_city_footprints        BIGINT          123         7                 0                 6  1.3333333333333333  1.4238407229643297
+                  overlap_candidates        BIGINT          123         2                 0                 1 0.07317073170731707  0.2614816455119252
+                   selected_tax_year        BIGINT           93        14              2007              2025  2018.8279569892472   5.096084720291676
+                      selection_tier        BIGINT           93         2                 1                 2   1.064516129032258 0.24700165520054565
+      selected_study_period_episodes        BIGINT           93         2                 1                 2   1.021505376344086 0.14584794223227643
+         selected_study_period_years       VARCHAR           93        17                 -                 -                   -                   -
+      selected_active_physical_cards        BIGINT           93        10                 1                18  2.5161290322580645   2.635926135510128
+         selected_study_period_cards        BIGINT           93        10                 1                18  2.4623655913978495  2.6562442420804957
+      selected_card_number_conflicts        BIGINT           93         4                 0                 6 0.45161290322580644  1.0269851299911807
+ selected_cards_repeated_across_pins        BIGINT           93         8                 0                 9  1.3225806451612903  2.1877191334841464
+             selected_site_land_sqft        BIGINT           93        78              1440            224142  17860.344086021505   36921.04303736929
+              selected_card_evidence       VARCHAR           93        93                 -                 -                   -                   -
+            selected_snapshot_reason       VARCHAR           93         3                 -                 -                   -                   -
+           selected_episode_evidence       VARCHAR           93        93                 -                 -                   -                   -
+selected_all_episode_fields_complete       BOOLEAN           93         1                 -                 -                   -                   -
+                     evidence_status       VARCHAR          123         5                 -                 -                   -                   -

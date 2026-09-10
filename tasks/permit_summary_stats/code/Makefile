@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 MAX_APPLICATION_YM ?= 2022-12
 
 all: \
@@ -5,7 +7,7 @@ all: \
 	../output/alderman_mean_processing_time_high_vs_low_density.pdf \
 	../output/permit_processing_time_volume_correlation.tex
 
-../output/permit_processing_time_high_vs_low_alderman_summary.tex: build_permit_summary_stats.R ../../_lib/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_terms.csv Makefile | ../output
+../output/permit_processing_time_high_vs_low_alderman_summary.tex: build_permit_summary_stats.R ../../shared/code/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_terms.csv Makefile | ../output
 	$(R) $< $(MAX_APPLICATION_YM)
 
 ../output/alderman_mean_processing_time_high_vs_low_density.pdf: ../output/permit_processing_time_high_vs_low_alderman_summary.tex
@@ -25,5 +27,4 @@ all: \
 
 link-inputs: ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_terms.csv
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

@@ -57,12 +57,17 @@ stopifnot(!anyNA(site$project_id), !anyNA(old$project_id), sf::st_crs(site)$epsg
 # Require containment in this record's own site, not any other reviewed site's polygon.
 points$inside_historical_site <- vapply(seq_len(nrow(points)), function(i)
   length(sf::st_within(points[i, ], site[i, ])[[1]]) == 1L, logical(1))
-points$outside_site_ft <- as.numeric(sf::st_distance(points, site, by_element = TRUE))
-points$point_shift_ft <- as.numeric(sf::st_distance(points, old, by_element = TRUE))
-ward_panel <- sf::st_read("../input/ward_panel.gpkg", quiet = TRUE) %>% sf::st_transform(3435)
-ward_maps <- load_canonical_ward_maps(ward_panel, eras = unique(points$era))
-boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg", eras = unique(points$era))
-assignment <- assign_points_to_boundaries(points, points$era, ward_maps, boundaries, chunk_n = 2000L)
+points$outside_site_ft <- numeric(nrow(points))
+points$point_shift_ft <- numeric(nrow(points))
+assignment <- tibble(ward = numeric(), ward_pair_id = character(), dist_ft = numeric())
+if (nrow(points) > 0L) {
+  points$outside_site_ft <- as.numeric(sf::st_distance(points, site, by_element = TRUE))
+  points$point_shift_ft <- as.numeric(sf::st_distance(points, old, by_element = TRUE))
+  ward_panel <- sf::st_read("../input/ward_panel.gpkg", quiet = TRUE) %>% sf::st_transform(3435)
+  ward_maps <- load_canonical_ward_maps(ward_panel, eras = unique(points$era))
+  boundaries <- load_boundary_layers("../input/ward_pair_boundaries.gpkg", eras = unique(points$era))
+  assignment <- assign_points_to_boundaries(points, points$era, ward_maps, boundaries, chunk_n = 2000L)
+}
 comparison <- bind_cols(sf::st_drop_geometry(points), assignment) %>%
   transmute(project_id, inside_historical_site, outside_site_ft, point_shift_ft,
     new_ward = ward, new_ward_pair = ward_pair_id, new_distance_ft = dist_ft)

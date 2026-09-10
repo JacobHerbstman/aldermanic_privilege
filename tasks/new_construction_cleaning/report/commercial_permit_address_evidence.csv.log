@@ -1,19 +1,19 @@
 File: commercial_permit_address_evidence.csv
-Rows: 302
+Rows: 319
 Columns: 9
-SHA-256 (saved bytes): 77eaeedb14e5eb3e17ba52e345cd9ef281ed9358b4f3864ae60198812247b926
+SHA-256 (saved bytes): 4b23794701b2fface7a2648bd6ddf213869076c8663143d8c9d37fd783862c92
 Key: project_id, address_key
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                     column inferred_type non_missing distinct min max               mean                 sd
-                project_id       VARCHAR         302      146   -   -                  -                  -
-               address_key       VARCHAR         302      263   -   -                  -                  -
-             permit_chains        BIGINT         302        7   1   7  1.281456953642384  0.883732944245888
-permits_with_unit_mentions        BIGINT         302        5   0   4 0.9105960264900662 0.4977894413882046
-      distinct_unit_counts        BIGINT         302        5   0   4 0.9105960264900662 0.5109631733329036
-               unit_counts       VARCHAR         254       78   -   -                  -                  -
-             unit_contexts       VARCHAR         302      222   -   -                  -                  -
-    resolved_address_units        BIGINT         238       62   3 441  34.10084033613445  69.53940023429064
-        address_resolution       VARCHAR         302        3   -   -                  -                  -
+                project_id       VARCHAR         319      147   -   -                  -                  -
+               address_key       VARCHAR         319      280   -   -                  -                  -
+             permit_chains        BIGINT         319        7   1   7 1.2695924764890283 0.8629608367297916
+permits_with_unit_mentions        BIGINT         319        5   0   4 0.9780564263322884 0.6265769915707126
+      distinct_unit_counts        BIGINT         319        5   0   4 0.9153605015673981  0.534103414780556
+               unit_counts       VARCHAR         265       85   -   -                  -                  -
+             unit_contexts       VARCHAR         319      233   -   -                  -                  -
+    resolved_address_units        BIGINT         243       63   3 405 29.901234567901234   58.0714731189513
+        address_resolution       VARCHAR         319        3   -   -                  -                  -

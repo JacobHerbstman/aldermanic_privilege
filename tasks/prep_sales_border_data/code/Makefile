@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 DROP_INCONSISTENT_ROOMS ?= TRUE
 
 all: ../output/sales_with_hedonics.parquet
@@ -13,5 +15,4 @@ all: ../output/sales_with_hedonics.parquet
 
 link-inputs: ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

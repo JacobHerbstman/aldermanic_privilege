@@ -1,18 +1,18 @@
 File: project_permit_chain_unit_mentions.csv
-Rows: 4420
+Rows: 5095
 Columns: 8
-SHA-256 (saved bytes): 60060960d6572390d8868101088515989af476bc6b29abf72d31c918de7d905b
+SHA-256 (saved bytes): e8e4e0f0aeb66e63c92c60e46c32c4c3fa028ef9760ee06ef5cf7e735d54e389
 Key: project_id, permit_number, mention_order
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-         column inferred_type non_missing distinct       min       max               mean                  sd
-  source_family       VARCHAR        4420        2         -         -                  -                   -
-     project_id       VARCHAR        4420     2426         -         -                  -                   -
-permit_chain_id       VARCHAR        4420     2048         -         -                  -                   -
-  permit_number        BIGINT        4420     2194 100056604 101082380 100580163.25723982  301879.97340258013
-  mention_order        BIGINT        4420        4         1         4  1.031900452488688 0.20653612382727995
-   unit_mention       VARCHAR        4420      425         -         -                  -                   -
-     unit_count        BIGINT        4420      173         1      4318 42.838235294117645  338.79788263998734
-mention_context       VARCHAR        4420     2089         -         -                  -                   -
+         column inferred_type non_missing distinct min  max               mean                  sd
+  source_family       VARCHAR        5095        2   -    -                  -                   -
+     project_id       VARCHAR        5095     2523   -    -                  -                   -
+permit_chain_id       VARCHAR        5095     2142   -    -                  -                   -
+  permit_number       VARCHAR        5095     2479   -    -                  -                   -
+  mention_order        BIGINT        5095        4   1    4 1.0420019627085377 0.23570708265634366
+   unit_mention       VARCHAR        5095      505   -    -                  -                   -
+     unit_count        BIGINT        5095      180   0 4318  40.03101079489696  316.59840721764107
+mention_context       VARCHAR        5095     2407   -    -                  -                   -

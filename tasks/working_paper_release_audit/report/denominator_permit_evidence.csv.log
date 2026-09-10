@@ -1,0 +1,21 @@
+File: denominator_permit_evidence.csv
+Rows: 196
+Columns: 11
+SHA-256 (saved bytes): 9dd1bef316e4dd893a50472ac8bd4a918ba5947cd1136a2dc72ec94933464f8c
+Key: id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct        min        max               mean                sd
+           review_site       VARCHAR         196        3          -          -                  -                 -
+                    id       VARCHAR         196      196          -          -                  -                 -
+               permit_       VARCHAR         196      196          -          -                  -                 -
+           permit_type       VARCHAR         196        8          -          -                  -                 -
+application_start_date     TIMESTAMP         196      118          -          -                  -                 -
+            issue_date     TIMESTAMP         196      123          -          -                  -                 -
+         street_number        BIGINT         196       73        340       3654 2631.8673469387754 830.4960907023576
+      street_direction       VARCHAR         196        4          -          -                  -                 -
+           street_name       VARCHAR         196       11          -          -                  -                 -
+      work_description       VARCHAR         193      173          -          -                  -                 -
+              pin_list        BIGINT          45       30 1225203057 1911306007 1554080935.8444445 254659049.1432115

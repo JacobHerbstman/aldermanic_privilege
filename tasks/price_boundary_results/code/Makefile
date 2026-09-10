@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 OFFICIAL_PROPERTY_TYPE_FE = TRUE
 
 all: ../output/price_boundary_main.pdf \
@@ -7,7 +9,7 @@ all: ../output/price_boundary_main.pdf \
 	../output/price_boundary_property_type_fe_comparison.pdf \
 	../output/price_boundary_property_type_fe_estimates.csv
 
-../output/price_boundary_main.pdf: build_price_boundary_results.R ../../_lib/canonical_geometry_helpers.R ../input/rental_rd_characteristics_panel_bw1500.parquet ../input/sales_with_hedonics_amenities.parquet ../input/ward_pair_boundaries.gpkg | ../output
+../output/price_boundary_main.pdf: build_price_boundary_results.R ../../shared/code/canonical_geometry_helpers.R ../input/rental_rd_characteristics_panel_bw1500.parquet ../input/sales_with_hedonics_amenities.parquet ../input/ward_pair_boundaries.gpkg | ../output
 	$(R) $< $(OFFICIAL_PROPERTY_TYPE_FE)
 
 ../output/price_boundary_placebos.pdf: ../output/price_boundary_main.pdf
@@ -38,5 +40,4 @@ link-inputs: ../input/rental_rd_characteristics_panel_bw1500.parquet \
 	../input/sales_with_hedonics_amenities.parquet \
 	../input/ward_pair_boundaries.gpkg
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

@@ -192,11 +192,11 @@ if (any(decision_map$decision_source == "unresolved")) {
   stop("At least one commercial source project remains unresolved.", call. = FALSE)
 }
 if (any(
-  decision_map$semantic_action == "resolved_by_component_ledger" &
+  decision_map$measurement_action == "resolved_by_component_ledger" &
     decision_map$decision_source != "component_ledger",
   na.rm = TRUE
 )) {
-  stop("A semantic row defers to a missing component decision.", call. = FALSE)
+  stop("A measurement row defers to a missing component decision.", call. = FALSE)
 }
 
 component_addresses <- component_decisions %>%

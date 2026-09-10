@@ -16,6 +16,13 @@ tasks/*/code/run.sbatch
 # --- Raw & Intermediate Data ---
 # Ignore raw data by default, except static files required for replication.
 data_raw/*
+!data_raw/replication_sources/
+data_raw/replication_sources/*
+!data_raw/replication_sources/README.md
+!data_raw/construction_review/
+data_raw/construction_review/*
+!data_raw/construction_review/README.md
+!data_raw/construction_review/SHA256SUMS
 !data_raw/Wards_2014.geojson
 !data_raw/Wards_2015.geojson
 !data_raw/illinois-250919-free.sha256
@@ -82,3 +89,23 @@ tasks/create_event_study_permit_data/code/manual_permit_block_review.csv
 # Ignore auto-generated R graphics in any code/ folder
 Rplots.pdf
 **/code/Rplots.pdf
+
+# Historical ward maps used by construction discovery.
+!/data_raw/Chicago_Wards_1998.geojson
+!/data_raw/Wards_2024.geojson
+
+# Compiled research logbook.
+/logbook/*.pdf
+/logbook/*.aux
+/logbook/*.log
+/logbook/*.out
+/logbook/*.toc
+
+# Standard data reports remain versioned.
+!tasks/*/report/
+!tasks/*/report/*.csv.log
+
+# Versioned source archive is distributed separately from Git.
+/replication/*.tar.gz
+/replication/*.tmp
+!data_raw/construction_review/construction_condominium_history_20260909.csv

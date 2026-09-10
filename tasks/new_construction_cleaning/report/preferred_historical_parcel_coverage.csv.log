@@ -1,20 +1,20 @@
 File: preferred_historical_parcel_coverage.csv
-Rows: 15691
+Rows: 15781
 Columns: 10
-SHA-256 (saved bytes): de307f2394b052e237b6e8f1a35bd49dfc4580692199a433a8fa44693a95a1f7
+SHA-256 (saved bytes): c1f606ce7bf159c2a9e1a310a6c18ff10caf292a95edf8b19d96d5c110f6fe1f
 Key: project_id, component_pin, target_year
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                column inferred_type non_missing distinct  min  max               mean                 sd
-        source_family       VARCHAR       15691        2    -    -                  -                  -
-           project_id       VARCHAR       15691    14017    -    -                  -                  -
-         project_kind       VARCHAR       15691        7    -    -                  -                  -
-     candidate_status       VARCHAR       15691        8    -    -                  -                  -
-          target_year        BIGINT       15691       17 2006 2022 2012.6751003760116   5.39717404584018
-        component_pin       VARCHAR       15691    15646    -    -                  -                  -
-                pin10       VARCHAR       15691    15638    -    -                  -                  -
-  polygon_count_pin10        BIGINT       15691        6    0    6 0.7532980689567268 0.4395966069703892
-exact_pin14_available       BOOLEAN       15691        2    -    -                  -                  -
-      coverage_status       VARCHAR       15691        3    -    -                  -                  -
+        source_family       VARCHAR       15781        2    -    -                  -                  -
+           project_id       VARCHAR       15781    14065    -    -                  -                  -
+         project_kind       VARCHAR       15781        7    -    -                  -                  -
+     candidate_status       VARCHAR       15781       12    -    -                  -                  -
+          target_year        BIGINT       15781       17 2006 2022 2012.6993219694568  5.401510624882719
+        component_pin       VARCHAR       15781    15687    -    -                  -                  -
+                pin10       VARCHAR       15781    15645    -    -                  -                  -
+  polygon_count_pin10        BIGINT       15781        6    0    6 0.7529307394968633 0.4397600562273948
+exact_pin14_available       BOOLEAN       15781        2    -    -                  -                  -
+      coverage_status       VARCHAR       15781        3    -    -                  -                  -

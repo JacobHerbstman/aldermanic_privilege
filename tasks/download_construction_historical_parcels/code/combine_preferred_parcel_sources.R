@@ -11,7 +11,9 @@ lake_park <- st_read("../input/lake_park_direct_parcels_2026-09-08.gpkg", quiet 
 east_64th <- st_read("../input/east_64th_parcels_2026-09-08.gpkg", quiet = TRUE)
 geneva_maud <- st_read("../input/geneva_maud_parcels_2026-09-08.gpkg", quiet = TRUE)
 campbell <- st_read("../input/campbell_parcels_2026-09-08.gpkg", quiet = TRUE)
-reviewed <- st_read("../output/reviewed_parcels_additional_2014.gpkg", quiet = TRUE)
+reviewed_queries <- read_csv("../output/reviewed_parcel_queries_additional.csv", show_col_types = FALSE)
+reviewed <- lapply(sort(unique(reviewed_queries$target_year)), function(year)
+  st_read(paste0("../output/reviewed_parcels_additional_", year, ".gpkg"), quiet = TRUE)) |> bind_rows()
 original_queries <- read_csv("../input/preferred_historical_parcel_source_queries.csv", col_types = cols(target_year = col_integer(), pin10 = col_character()))
 initial <- st_read("../output/historical_project_parcel_source.gpkg", quiet = TRUE) |>
   anti_join(original_queries, by = c("target_year", "pin10"))

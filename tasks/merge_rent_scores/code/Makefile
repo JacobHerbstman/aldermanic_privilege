@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 all: ../output/rent_with_ward_distances_full_through2022.parquet
 
 ../output/rent_with_ward_distances_full_through2022.parquet: merge_rent_scores.R ../input/rent_pre_scores_full.parquet ../input/aldermen_uncertainty_scores_through2022.csv | ../output
@@ -11,5 +13,4 @@ all: ../output/rent_with_ward_distances_full_through2022.parquet
 
 link-inputs: ../input/rent_pre_scores_full.parquet ../input/aldermen_uncertainty_scores_through2022.csv
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

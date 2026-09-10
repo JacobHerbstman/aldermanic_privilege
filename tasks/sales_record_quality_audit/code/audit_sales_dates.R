@@ -1,7 +1,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_record_quality_audit/code")
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 sales <- as.data.table(read_parquet("../output/quality_records.parquet"))
 stopifnot(!anyDuplicated(sales$row_id), !anyNA(sales$is_mydec_date))
 terms <- fread("../input/chicago_alderman_terms.csv")

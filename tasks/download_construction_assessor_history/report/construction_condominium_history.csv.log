@@ -1,0 +1,35 @@
+File: construction_condominium_history.csv
+Rows: 4560
+Columns: 25
+SHA-256 (saved bytes): be6833fbf1e4dcb122ddf24e37b63550282928824e0be7f81f42e3b837b8e612
+Key: pin, year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct                min                max                  mean                     sd
+                    pin        BIGINT        4560     1133     13124250581001     20024041151003    16737519695535.309      1093211185361.945
+                  pin10        BIGINT        4560       66         1312425058         2002404115    1673751969.4333334     109321118.52748883
+                   card        DOUBLE        4560        1                1.0                1.0                   1.0                    0.0
+                   year        DOUBLE        4560        5             2021.0             2025.0     2023.290350877193     1.3772487395178967
+                  class        BIGINT        4560        1                299                299                 299.0                    0.0
+          township_code        BIGINT        4560        6                 70                 77     75.65438596491228     1.2543683075549725
+        tieback_key_pin       VARCHAR        4560       86                  -                  -                     -                      -
+ tieback_proration_rate        DOUBLE        4560      461           0.000281               0.57  0.050561197850877204    0.10685125774927602
+    card_proration_rate        DOUBLE        4559      460           0.000281               0.57  0.050484297038824316    0.10672974562381284
+             char_yrblt        DOUBLE        4560        9             2007.0             2023.0    2012.9127192982455      5.918938829544323
+       char_building_sf        DOUBLE         794       48             2586.0            56295.0    13245.892947103275      13737.39083342762
+          char_bedrooms        DOUBLE         736        4                2.0                5.0    2.9932065217391304     0.8222799170918906
+        char_full_baths        DOUBLE         740        3                2.0                5.0     2.287837837837838     0.6063383529810104
+        char_half_baths        DOUBLE         368        2                0.0                1.0    0.7445652173913043     0.4366990697024342
+char_building_non_units        DOUBLE        4560        8                0.0              308.0    206.54122807017544     140.42824722541735
+     char_building_pins        DOUBLE        4560       15                2.0              596.0    402.85087719298247      266.9067178006709
+           char_land_sf        DOUBLE        4560       58             2827.0            95780.0     39850.35833333333      22250.36316362105
+       pin_is_multiland       BOOLEAN        4560        1                  -                  -                     -                      -
+      pin_num_landlines        DOUBLE        4560        1                1.0                1.0                   1.0                    0.0
+      bldg_is_mixed_use       BOOLEAN        4560        1                  -                  -                     -                      -
+       is_parking_space       BOOLEAN        4560        2                  -                  -                     -                      -
+         is_common_area       BOOLEAN        4560        1                  -                  -                     -                      -
+                 row_id        BIGINT        4560     4560 131242505810012023 200240411510032025 1.673751969553551e+17 1.0932111853619676e+16
+           char_unit_sf        DOUBLE         440       40              900.0             4700.0    1976.8022727272728      795.8059964900319
+                    cdu       VARCHAR        2049        3                  -                  -                     -                      -

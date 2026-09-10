@@ -1,52 +1,52 @@
 File: individual_home_location_comparison.csv
-Rows: 2078
+Rows: 0
 Columns: 42
-SHA-256 (saved bytes): 5c639088434e164cedb5902bc8c6a39febf071af37d59372bf8dc3665fcaa168
+SHA-256 (saved bytes): 98a2165a5e8ddd27940197b66c6c5555c7b1e99e11ee2e8697e91a68aea16643
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                           column inferred_type non_missing distinct                   min                    max                  mean                     sd
-                       project_id       VARCHAR        2078     2078                     -                      -                     -                      -
-                      target_year        BIGINT        2078       17                  2006                   2022    2011.2728585178056      4.595966979834977
-                    boundary_year        BIGINT        2078        2                  2003                   2015     2005.177093358999      4.625546573066789
-                              era       VARCHAR        2078        2                     -                      -                     -                      -
-                         old_ward        BIGINT        2078       46                     1                     50    19.173724735322427     14.181339590154382
-                    old_ward_pair       VARCHAR        2078       87                     -                      -                     -                      -
-                  old_distance_ft        DOUBLE        2078      878    36.778960564868626     17120.483561710513     1805.235982567877      2059.098543993747
-             historical_land_sqft        DOUBLE        2078      867     1348.556800050661     464054.21875797585     25750.00711346986      48101.13260909216
-                              pin       VARCHAR        2078     2078                     -                      -                     -                      -
-                construction_year        BIGINT        2078       17                  2006                   2022    2011.2728585178056      4.595966979834977
-                   dwelling_units        BIGINT        2078        6                     1                      6      1.31665062560154     0.9077964051051874
-                    building_sqft        BIGINT        2078      778                  1083                  16486    2561.7593840230993     1448.2788010768277
-                        land_sqft        BIGINT        2078     1315                   430                  19509     2552.074590952839     1649.7524287851008
-                        longitude        DOUBLE        2042     2025        -87.8361558077         -87.5296441458     -87.6726081798753   0.052896936397166784
-                         latitude        DOUBLE        2042     2025         41.6715753355          42.0184162112     41.86325959375385     0.0684698313638167
-                           row_id       VARCHAR        2048     2048                     -                      -                     -                      -
-                has_current_point       BOOLEAN        2078        2                     -                      -                     -                      -
-historical_to_reported_land_ratio        DOUBLE        2078     1833    0.2474592359504673     337.98133549142426    16.326652018000143     31.531376177925726
-              occupied_cards_2025        BIGINT        2041        1                     1                      1                   1.0                    0.0
-              assessment_row_2025       VARCHAR        2041     2041                     -                      -                     -                      -
-                        year_2025        BIGINT        2041       20                  1886                   2022     2011.186673199412      6.011340488292865
-               building_sqft_2025        BIGINT        2041      765                  1083                  16486    2539.2072513473786     1386.4547844342883
-                   land_sqft_2025        BIGINT        2041     1290                   530                  15012     2543.534051935326     1604.4539838266926
-                       units_2025        BIGINT        2041        7                     0                      6     1.301812836844684     0.8845302543356756
-       same_building_measurements       BOOLEAN        2078        2                     -                      -                     -                      -
-           same_construction_year       BOOLEAN        2078        2                     -                      -                     -                      -
-           inside_historical_site       BOOLEAN        2042        2                     -                      -                     -                      -
-                  outside_site_ft        DOUBLE        2042        3                   0.0 1.1952279338983175e-05 9.931150110646251e-09 3.2228716569169134e-07
-                   point_shift_ft        DOUBLE        2042     2026 4.834471858583288e-06      551.8636387556567     48.62189400263875      62.79025236288361
-                         new_ward        BIGINT        2042       46                     1                     50      19.0847208619001     14.223531221778202
-                    new_ward_pair       VARCHAR        2042       88                     -                      -                     -                      -
-                  new_distance_ft        DOUBLE        2042     2025    42.484964690991696     17183.156119628606    1818.7872325124335      2071.043773261401
-           conservative_rule_pass       BOOLEAN        2078        2                     -                      -                     -                      -
-               distance_change_ft        DOUBLE        2042     2026     -377.249898462062     288.88667838374386    -1.952977008725694      55.65964949394492
-                     enters_500ft       BOOLEAN        2048        2                     -                      -                     -                      -
-                     leaves_500ft       BOOLEAN        2072        2                     -                      -                     -                      -
-                     ward_changes       BOOLEAN        2042        1                     -                      -                     -                      -
-                     pair_changes       BOOLEAN        2042        2                     -                      -                     -                      -
-                      rule_result       VARCHAR        2078        5                     -                      -                     -                      -
-                paper_distance_ft        DOUBLE         788      764     44.52463268904987     1490.4210801059244     687.2006668423072      391.2595096678561
-               paper_within_500ft       BOOLEAN         788        2                     -                      -                     -                      -
-                exact_id_in_paper       BOOLEAN        2078        2                     -                      -                     -                      -
+                           column inferred_type non_missing distinct min max mean sd
+                       project_id       VARCHAR           0        0   -   -    -  -
+                      target_year       VARCHAR           0        0   -   -    -  -
+                    boundary_year       VARCHAR           0        0   -   -    -  -
+                              era       VARCHAR           0        0   -   -    -  -
+                         old_ward       VARCHAR           0        0   -   -    -  -
+                    old_ward_pair       VARCHAR           0        0   -   -    -  -
+                  old_distance_ft       VARCHAR           0        0   -   -    -  -
+             historical_land_sqft       VARCHAR           0        0   -   -    -  -
+                              pin       VARCHAR           0        0   -   -    -  -
+                construction_year       VARCHAR           0        0   -   -    -  -
+                   dwelling_units       VARCHAR           0        0   -   -    -  -
+                    building_sqft       VARCHAR           0        0   -   -    -  -
+                        land_sqft       VARCHAR           0        0   -   -    -  -
+                        longitude       VARCHAR           0        0   -   -    -  -
+                         latitude       VARCHAR           0        0   -   -    -  -
+                           row_id       VARCHAR           0        0   -   -    -  -
+                has_current_point       VARCHAR           0        0   -   -    -  -
+historical_to_reported_land_ratio       VARCHAR           0        0   -   -    -  -
+              occupied_cards_2025       VARCHAR           0        0   -   -    -  -
+              assessment_row_2025       VARCHAR           0        0   -   -    -  -
+                        year_2025       VARCHAR           0        0   -   -    -  -
+               building_sqft_2025       VARCHAR           0        0   -   -    -  -
+                   land_sqft_2025       VARCHAR           0        0   -   -    -  -
+                       units_2025       VARCHAR           0        0   -   -    -  -
+       same_building_measurements       VARCHAR           0        0   -   -    -  -
+           same_construction_year       VARCHAR           0        0   -   -    -  -
+           inside_historical_site       VARCHAR           0        0   -   -    -  -
+                  outside_site_ft       VARCHAR           0        0   -   -    -  -
+                   point_shift_ft       VARCHAR           0        0   -   -    -  -
+                         new_ward       VARCHAR           0        0   -   -    -  -
+                    new_ward_pair       VARCHAR           0        0   -   -    -  -
+                  new_distance_ft       VARCHAR           0        0   -   -    -  -
+           conservative_rule_pass       VARCHAR           0        0   -   -    -  -
+               distance_change_ft       VARCHAR           0        0   -   -    -  -
+                     enters_500ft       VARCHAR           0        0   -   -    -  -
+                     leaves_500ft       VARCHAR           0        0   -   -    -  -
+                     ward_changes       VARCHAR           0        0   -   -    -  -
+                     pair_changes       VARCHAR           0        0   -   -    -  -
+                      rule_result       VARCHAR           0        0   -   -    -  -
+                paper_distance_ft       VARCHAR           0        0   -   -    -  -
+               paper_within_500ft       VARCHAR           0        0   -   -    -  -
+                exact_id_in_paper       VARCHAR           0        0   -   -    -  -

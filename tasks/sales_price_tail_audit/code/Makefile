@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 TAIL_PROBABILITY ?= 0.999
 AREA_CHANGE_RATIO ?= 1.5
 REVIEW_SEED ?= 42
@@ -33,5 +35,4 @@ all: ../output/tail_review.csv ../output/tail_cutoffs.csv ../output/tail_counts.
 
 link-inputs: ../input/quality_records.parquet ../input/clean_sales_with_hedonics_amenities.parquet ../input/parcel_sales_city.csv ../input/residential_improvement_characteristics_full.csv ../input/price_boundary_property_type_fe_estimates.csv
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

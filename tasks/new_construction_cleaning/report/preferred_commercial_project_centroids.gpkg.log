@@ -1,15 +1,15 @@
 File: preferred_commercial_project_centroids.gpkg
-Rows: 813
+Rows: 808
 Columns: 5
-SHA-256 (saved bytes): 36e5939b12fe45ab0b1eaf6f67dcdcd51b19ef4e574fddbcffd6bc2e90ae3201
+SHA-256 (saved bytes): 223bd59ae15c75f87dc99969a23c2ad751f83942ad93ef2380901d741cd0ac57
 Key: project_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                   column inferred_type non_missing distinct                min               max              mean                sd
-                      fid        BIGINT         813      813                  1               813             407.0 234.8371776359101
-               project_id       VARCHAR         813      813                  -                 -                 -                 -
-  project_geometry_source       VARCHAR         813        5                  -                 -                 -                 -
-project_geometry_evidence       VARCHAR         813      813                  -                 -                 -                 -
-project_polygon_area_sqft        DOUBLE         798      795 2249.8159374018433 417736.2262001708 24209.27679631833 37319.95865271308
+                   column inferred_type non_missing distinct                min               max               mean                 sd
+                      fid        BIGINT         808      808                  1               808              404.5 233.39380168861953
+               project_id       VARCHAR         808      808                  -                 -                  -                  -
+  project_geometry_source       VARCHAR         808        5                  -                 -                  -                  -
+project_geometry_evidence       VARCHAR         808      808                  -                 -                  -                  -
+project_polygon_area_sqft        DOUBLE         790      787 2249.8159374018433 417736.2262001708 24165.914488107777 37385.704805042355

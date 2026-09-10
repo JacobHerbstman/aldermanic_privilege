@@ -6,8 +6,10 @@ library(sf)
 
 queue <- read_csv("../output/candidate_geography_review_queue.csv", show_col_types = FALSE)
 candidates <- bind_rows(
-  read_csv("../input/preferred_residential_project_candidates.csv", show_col_types = FALSE),
-  read_csv("../input/preferred_commercial_project_candidates.csv", show_col_types = FALSE))
+  read_csv("../input/preferred_residential_project_candidates.csv", show_col_types = FALSE,
+    col_types = cols(class_values = col_character(), component_pins = col_character())),
+  read_csv("../input/preferred_commercial_project_candidates.csv", show_col_types = FALSE,
+    col_types = cols(class_values = col_character(), component_pins = col_character())))
 scope <- read_csv("../input/preferred_project_boundary_scope.csv", show_col_types = FALSE)
 stopifnot(!anyDuplicated(candidates$project_id), !anyDuplicated(scope$project_id),
   all(scope$project_id[!scope$complete_project_geometry] %in% queue$project_id))

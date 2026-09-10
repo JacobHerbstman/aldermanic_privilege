@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 all: \
 	../output/major_streets.geojson \
 	../output/cta_stations.geojson \
@@ -20,5 +22,4 @@ all: \
 ../output/census_blocks_2010.csv: download_chicago_spatial_data.sh | ../output ../temp
 	bash $< census_blocks_2010
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

@@ -1,29 +1,29 @@
 File: preferred_address_geocode_requests.csv
-Rows: 216
+Rows: 217
 Columns: 19
-SHA-256 (saved bytes): 5ea4b09600f82dba23c171daa2bfd4bb064b7c3c3b604a98b9ce5b4a9032023c
+SHA-256 (saved bytes): 545a8d4ca8d0cac139497b054b5d90f530fbf4f8a0481ed29117ccedf0ee8a08
 Key: request_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                      column inferred_type non_missing distinct            min            max               mean                 sd
-              source_family       VARCHAR         216        2              -              -                  -                  -
-                 project_id       VARCHAR         216      213              -              -                  -                  -
-               project_kind       VARCHAR         216        5              -              -                  -                  -
-           candidate_status       VARCHAR         216        5              -              -                  -                  -
-                target_year        BIGINT         216       16           2006           2022 2011.1527777777778  4.978072071634562
-              component_pin        BIGINT         216      216 10253280110000 26071050350000 16944365534305.555  2432929322411.798
-                      pin10        BIGINT         216      216     1025328011     2607105035 1694436553.4305556 243292932.24117988
-        polygon_count_pin10        BIGINT         216        1              0              0                0.0                0.0
-      exact_pin14_available       BOOLEAN         216        1              -              -                  -                  -
-            coverage_status       VARCHAR         216        1              -              -                  -                  -
-                 request_id       VARCHAR         216      216              -              -                  -                  -
-           selected_address       VARCHAR         204      196              -              -                  -                  -
-selected_address_normalized       VARCHAR         204      196              -              -                  -                  -
-      selected_address_year        BIGINT         204       15           2007           2025 2013.3382352941176  5.733688263842195
-  selected_address_year_gap        BIGINT         204       11              1             19  2.377450980392157  2.779176858777355
-      nearest_address_count        BIGINT         204        1              1              1                1.0                0.0
-   address_selection_status       VARCHAR         204        1              -              -                  -                  -
-              address_query       VARCHAR         204      196              -              -                  -                  -
-         query_house_number        BIGINT         198      152             14          11252  2913.489898989899 1898.5348498354163
+              source_family       VARCHAR         217        2              -              -                  -                  -
+                 project_id       VARCHAR         217      214              -              -                  -                  -
+               project_kind       VARCHAR         217        6              -              -                  -                  -
+           candidate_status       VARCHAR         217        7              -              -                  -                  -
+                target_year        BIGINT         217       16           2006           2022 2011.2027649769586  5.020826229139245
+              component_pin        BIGINT         217      216 10253280110000 26071050350000 16945101179262.672  2427315198531.182
+                      pin10        BIGINT         217      216     1025328011     2607105035 1694510117.9262674 242731519.85311833
+        polygon_count_pin10        BIGINT         217        1              0              0                0.0                0.0
+      exact_pin14_available       BOOLEAN         217        1              -              -                  -                  -
+            coverage_status       VARCHAR         217        1              -              -                  -                  -
+                 request_id       VARCHAR         217      217              -              -                  -                  -
+           selected_address       VARCHAR         205      196              -              -                  -                  -
+selected_address_normalized       VARCHAR         205      196              -              -                  -                  -
+      selected_address_year        BIGINT         205       15           2007           2025 2013.3853658536586  5.759287511064108
+  selected_address_year_gap        BIGINT         205       11              1             19  2.370731707317073 2.7740255224555557
+      nearest_address_count        BIGINT         205        1              1              1                1.0                0.0
+   address_selection_status       VARCHAR         205        1              -              -                  -                  -
+              address_query       VARCHAR         205      196              -              -                  -                  -
+         query_house_number        BIGINT         199      152             14          11252 2899.9095477386936 1903.3998852291134

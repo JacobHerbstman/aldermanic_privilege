@@ -1,0 +1,42 @@
+File: residential_remaining_case_evidence.csv
+Rows: 7
+Columns: 32
+SHA-256 (saved bytes): fd5ec5983b1ed113453d3b8b2299af94da6618a466c0f358c316b9737d7bcdcf
+Key: source_project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type  non_missing  distinct               min               max               mean                 sd
+               source_project_id       VARCHAR            7         7                 -                 -                  -                  -
+                    project_kind       VARCHAR            7         2                 -                 -                  -                  -
+                  component_pins        BIGINT            7         7    13203250170000    17211330040000 15062028884285.715 1713940791307.5007
+               construction_year        BIGINT            7         6              2013              2021  2016.142857142857 3.2877840272018863
+                  dwelling_units        BIGINT            6         4                 0                 8 2.1666666666666665 3.0605010483034745
+                   building_sqft        BIGINT            6         2                 0             20028             3338.0 8176.3967614102485
+                       land_sqft        BIGINT            6         6              1875              3925             3287.5  768.6728172636261
+                  source_row_ids       VARCHAR            7         7                 -                 -                  -                  -
+         distance_to_boundary_ft        DOUBLE            7         7 235.7776535819772 1468.541911340734   668.078326594066 409.50992117148854
+      component_history_evidence       VARCHAR            7         7                 -                 -                  -                  -
+              multicard_evidence       VARCHAR            4         4                 -                 -                  -                  -
+           permit_chain_evidence       VARCHAR            2         2                 -                 -                  -                  -
+            permit_unit_evidence       VARCHAR            2         2                 -                 -                  -                  -
+         city_footprint_evidence       VARCHAR            4         4                 -                 -                  -                  -
+               current_addresses       VARCHAR            7         7                 -                 -                  -                  -
+           current_noncondo_pins        BIGINT            6         3                 1                 8 2.3333333333333335  2.804757862395017
+          current_assessor_years        BIGINT            6         6              1889              2021 1968.6666666666667 58.260335277671295
+          current_assessor_units        BIGINT            6         4                 1                 8 3.1666666666666665   2.48327740429189
+  current_assessor_building_sqft        BIGINT            6         6              1902             20060  6179.333333333333  6942.621282099914
+      current_assessor_land_sqft        BIGINT            6         6              2976              9508  4415.833333333333 2516.3219521092024
+           current_assessor_rows       VARCHAR            6         6                 -                 -                  -                  -
+           successor_condo_bases        BIGINT            1         1        1421313073        1421313073       1421313073.0                  -
+           successor_condo_units        BIGINT            1         1                 3                 3                3.0                  -
+ successor_condo_building_values        BIGINT            1         1                 1                 1                1.0                  -
+   successor_condo_building_sqft        BIGINT            1         1              6612              6612             6612.0                  -
+     successor_condo_land_values        BIGINT            1         1                 1                 1                1.0                  -
+       successor_condo_land_sqft        BIGINT            1         1              3982              3982             3982.0                  -
+            successor_condo_rows       VARCHAR            1         1                 -                 -                  -                  -
+           project_polygon_valid       BOOLEAN            7         1                 -                 -                  -                  -
+          project_land_area_sqft        DOUBLE            7         7 2996.982999387139 9664.805472963024  4373.336524402299  2362.397352604852
+address_new_construction_permits       VARCHAR            4         4                 -                 -                  -                  -
+         spatial_permit_evidence       VARCHAR            2         2                 -                 -                  -                  -

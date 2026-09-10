@@ -1,7 +1,7 @@
 File: commercial_completion_evidence.csv
 Rows: 800
 Columns: 74
-SHA-256 (saved bytes): cac25b0ab5b3045bf080690f46fb7471d71df42419e31476ef9e497b023961bc
+SHA-256 (saved bytes): 2a4f3b6cf88ba4482bad62385150820feed19bc241ffa2da1aa6db9a07e2db52
 Key: not declared in this report
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -45,19 +45,19 @@ Row counts, non-missing counts, and declared-key checks: exact.
                      documented_manual_case       BOOLEAN         800        2                  -                 -                   -                   -
                             student_housing       BOOLEAN         800        2                  -                 -                   -                   -
                        permit_unit_mismatch       BOOLEAN         800        2                  -                 -                   -                   -
-                       permit_unit_evidence       VARCHAR         410      177                  -                 -                   -                   -
+                       permit_unit_evidence       VARCHAR         423      189                  -                 -                   -                   -
                        documented_case_pins       VARCHAR           7        7                  -                 -                   -                   -
                     documented_case_actions       VARCHAR           7        6                  -                 -                   -                   -
                    documented_case_evidence       VARCHAR           7        7                  -                 -                   -                   -
                  documented_case_confidence       VARCHAR           7        3                  -                 -                   -                   -
                            candidate_status       VARCHAR         800        2                  -                 -                   -                   -
                             decision_reason       VARCHAR         800       13                  -                 -                   -                   -
-            issued_new_construction_permits        BIGINT         800       12                  0                15              1.0025   1.498432639616922
-         completed_new_construction_permits        BIGINT         800       12                  0                15              0.9075  1.4804335021177892
+            issued_new_construction_permits        BIGINT         800       12                  0                15               1.005  1.5000959502061122
+         completed_new_construction_permits        BIGINT         800       12                  0                15             0.90875  1.4809337910983802
            expired_new_construction_permits        BIGINT         800        3                  0                 2             0.08375  0.3030688881074289
 nearby_residential_new_construction_permits        BIGINT         800        9                  0                 8             0.55875   1.134970764290756
       earliest_new_construction_application          DATE         490      416                  -                 -                   -                   -
-            earliest_new_construction_issue          DATE         490      406                  -                 -                   -                   -
+            earliest_new_construction_issue          DATE         490      405                  -                 -                   -                   -
               latest_new_construction_issue          DATE         490      412                  -                 -                   -                   -
             new_construction_permit_numbers       VARCHAR         490      485                  -                 -                   -                   -
            new_construction_permit_statuses       VARCHAR         490        9                  -                 -                   -                   -

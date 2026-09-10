@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 all: ../output/block_treatment_panel_frozen2014.csv
 
 ../output/block_treatment_panel_frozen2014.csv: merge_event_study_scores.R ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores_through2014.csv | ../output
@@ -14,5 +16,4 @@ all: ../output/block_treatment_panel_frozen2014.csv
 
 link-inputs: ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores_through2014.csv
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

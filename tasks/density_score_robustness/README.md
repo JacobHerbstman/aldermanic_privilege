@@ -6,6 +6,16 @@ First, it recalculates the two alderman scores for each construction project aft
 
 Second, it excludes boundaries where the two alderman scores differ by less than 0.25 or 0.50 standard deviations. These restrictions test whether close rankings drive the main result.
 
-The committed file `adjudication/project_permit_matches.csv` records the project-to-permit matches established while constructing the final new-construction sample. Keeping this two-column file here makes the check reproducible without relying on the separate audit branch. Its SHA-256 checksum is `7de81866eb4fd1f017117e8f8ce33cb4a6e5a152277a1c631565514254d41975`.
+The recorded matches in `adjudication/project_permit_matches.csv` remain inputs.
+`build_project_permit_matches.R` retains matches for surviving project IDs and
+adds exact component-parcel matches or permits inside a saved parcel polygon
+with the same project ID and construction year. Nearby permits alone do not
+qualify. New matches use the existing window: application from six years before
+through two years after construction, and issue from four years before through
+two years after. These broad windows support the leave-project-out check; they
+do not determine a building's completion year. Jacob approved this rule on
+September 10, 2026. The output records each match's source, with one row per
+project/permit pair. A permit may relate to more than one building on a site;
+the score calculation removes its ID only once for each project's check.
 
 Running `make` from `code/` creates `output/density_score_robustness.tex`, which appears in Appendix D.

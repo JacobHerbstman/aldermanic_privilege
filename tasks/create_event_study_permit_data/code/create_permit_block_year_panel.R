@@ -5,7 +5,7 @@
 # permit_end_year <- 2020
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {

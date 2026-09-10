@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 MAIN_BW_M ?= 152.4
 MAIN_BW_LABEL ?= 500ft
 
@@ -28,5 +30,4 @@ all: \
 
 link-inputs: ../input/permit_block_year_panel_2015.parquet
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

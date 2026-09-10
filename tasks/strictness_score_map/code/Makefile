@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 EARLY_DATE ?= 2014-01
 LATE_DATE ?= 2022-01
 UNCERTAINTY_SPEC ?= ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022
@@ -26,5 +28,4 @@ all: ../output/uncertainty_score_map_comparison.pdf \
 
 link-inputs: ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv ../input/ward_panel.gpkg
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

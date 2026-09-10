@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 SEGMENT_LENGTH_FT ?= 1320
 SEGMENT_LAYER_BWS_M ?= 100,250,400
 
@@ -6,7 +8,7 @@ all: \
 	../output/ward_pair_boundaries.gpkg
 
 ../output/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg: build_boundary_segments.R \
-	../../_lib/canonical_geometry_helpers.R \
+	../../shared/code/canonical_geometry_helpers.R \
 	../input/ward_panel.gpkg \
 	Makefile | ../output
 	$(R) $< $(SEGMENT_LENGTH_FT) $(SEGMENT_LAYER_BWS_M)
@@ -19,5 +21,4 @@ all: \
 
 link-inputs: ../input/ward_panel.gpkg
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

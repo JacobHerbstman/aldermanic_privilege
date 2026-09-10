@@ -316,9 +316,15 @@ year_decisions <- readr::read_csv("../adjudication/residential_reviewed_construc
     .default = readr::col_skip()))
 stopifnot(!anyDuplicated(year_decisions$project_id))
 unchanged <- unchanged %>% left_join(year_decisions,
-  by = c("project_id", "construction_year"), relationship = "one-to-one") %>%
-  mutate(match_year = coalesce(reported_year, construction_year)) %>%
-  inner_join(assessment,
+  by = c("project_id", "construction_year"), relationship = "one-to-one")
+# A later report can repeat either the original Assessor year or its documented
+# correction. It must still match the exact parcel, home count and both areas.
+unchanged <- bind_rows(
+  unchanged %>% mutate(match_year = construction_year),
+  unchanged %>% filter(!is.na(reported_year)) %>% mutate(match_year = reported_year)) %>%
+  distinct(project_id, match_year, .keep_all = TRUE)
+stopifnot(!anyDuplicated(unchanged[c("pin", "match_year", "building_sqft", "land_sqft", "dwelling_units")]))
+unchanged <- unchanged %>% inner_join(assessment,
   by = c("pin", "match_year" = "construction_year", "building_sqft", "land_sqft", "dwelling_units"),
   relationship = "one-to-many", na_matches = "never")
 location_evidence <- bind_rows(history_points, current_points %>% select(-source)) %>%
@@ -372,8 +378,12 @@ stopifnot(!anyDuplicated(reviewed_locations$project_id),
   all(reviewed_locations$project_id %in% project_year_coverage$project_id))
 for (j in seq_len(nrow(reviewed_locations))) {
   review <- reviewed_locations[j, ]
-  stopifnot(any(coverage$project_id == review$project_id & coverage$component_pin == review$pin &
-    coverage$target_year == review$target_year))
+  # A reviewed finished condo identity can locate its building inside the older
+  # development parcel without treating the entire development as its lot.
+  stopifnot(any(coverage$project_id == review$project_id &
+    coverage$target_year == review$target_year &
+    (coverage$component_pin == review$pin |
+      review$project_id == paste0("residential_condo_", substr(review$pin, 1, 10)))))
   points <- location_evidence %>% filter(pin == review$pin, point_source_pin == review$pin,
     year == review$reference_year, source == review$source)
   stopifnot(nrow(points) > 0L, nrow(distinct(points, lon, lat)) == 1L,

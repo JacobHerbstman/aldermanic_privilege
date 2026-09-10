@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 START_YEAR ?= 2006
 END_YEAR ?= 2022
 
@@ -12,5 +14,4 @@ all: ../output/ward_controls_$(START_YEAR)_$(END_YEAR).csv
 
 link-inputs: ../input/ward_panel.gpkg
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

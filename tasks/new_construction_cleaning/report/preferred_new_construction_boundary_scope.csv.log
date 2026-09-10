@@ -1,25 +1,25 @@
 File: preferred_new_construction_boundary_scope.csv
-Rows: 13764
+Rows: 13714
 Columns: 15
-SHA-256 (saved bytes): 5b65c8e3e0bbb5c768d9a569ea5601e32a796e6decfce62744936a3d5fccd219
+SHA-256 (saved bytes): 2497453c7418733aade0a721be9068bb5a4d512cb5446361f91f85b897a15d64
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                  column inferred_type non_missing distinct                min               max               mean                 sd
-          source_family       VARCHAR       13764        2                  -                 -                  -                  -
-             project_id       VARCHAR       13764    13764                  -                 -                  -                  -
-      construction_year        BIGINT       13764       17               2006              2022  2012.474716652136  5.386130782819184
-              allow_far       BOOLEAN       13764        2                  -                 -                  -                  -
-            allow_dupac       BOOLEAN       13764        2                  -                 -                  -                  -
-      location_resolved       BOOLEAN       13764        2                  -                 -                  -                  -
-      construction_date          DATE       13762       17                  -                 -                  -                  -
-          boundary_year        BIGINT       13762        2               2003              2015  2007.355471588432  5.770437233063105
-                    era       VARCHAR       13762        2                  -                 -                  -                  -
-                   ward        BIGINT       13762       50                  1                50 24.515186746112484 15.201209237987502
-          neighbor_ward        BIGINT       13762       50                  1                50 23.454803080947535  15.62598884310307
-              ward_pair       VARCHAR       13762      139                  -                 -                  -                  -
-distance_to_boundary_ft        DOUBLE       13762    13705 1.0214899430226334 27623.33171603177  1404.760824946847 1747.7764306386619
-          within_1500ft       BOOLEAN       13762        2                  -                 -                  -                  -
-           within_500ft       BOOLEAN       13762        2                  -                 -                  -                  -
+          source_family       VARCHAR       13714        2                  -                 -                  -                  -
+             project_id       VARCHAR       13714    13714                  -                 -                  -                  -
+      construction_year        BIGINT       13714       17               2006              2022 2012.4924894268631  5.388039767652919
+              allow_far       BOOLEAN       13714        2                  -                 -                  -                  -
+            allow_dupac       BOOLEAN       13714        2                  -                 -                  -                  -
+      location_resolved       BOOLEAN       13714        2                  -                 -                  -                  -
+      construction_date          DATE       13712       17                  -                 -                  -                  -
+          boundary_year        BIGINT       13712        2               2003              2015 2007.3722287047842  5.775187701742546
+                    era       VARCHAR       13712        2                  -                 -                  -                  -
+                   ward        BIGINT       13712       50                  1                50 24.501458576429403 15.198840040987633
+          neighbor_ward        BIGINT       13712       50                  1                50 23.447710035005834 15.623801263844488
+              ward_pair       VARCHAR       13712      139                  -                 -                  -                  -
+distance_to_boundary_ft        DOUBLE       13712    13655 1.0214899430226334 27623.33171603177 1409.3268841593456 1749.4086970933765
+          within_1500ft       BOOLEAN       13712        2                  -                 -                  -                  -
+           within_500ft       BOOLEAN       13712        2                  -                 -                  -                  -

@@ -386,16 +386,24 @@ reviewed_years <- readr::read_csv("../adjudication/residential_reviewed_construc
   col_types = readr::cols(project_id = readr::col_character(), reported_year = readr::col_integer(),
     construction_year = readr::col_integer(), .default = readr::col_character()))
 stopifnot(!anyDuplicated(reviewed_years$project_id),
-  all(reviewed_years$project_id %in% ordinary_candidates$project_id))
-i <- match(reviewed_years$project_id, ordinary_candidates$project_id)
-stopifnot(all(ordinary_candidates$construction_year[i] == reviewed_years$reported_year),
-  all(between(reviewed_years$construction_year, 2006L, 2022L)))
-ordinary_candidates$construction_year[i] <- reviewed_years$construction_year
-ordinary_candidates$year_source[i] <- paste0("reviewed_construction_year:", reviewed_years$project_id)
-ordinary_candidates$candidate_status[i] <- "retain_mechanical"
-ordinary_candidates$decision_reason[i] <- "reviewed_construction_year_with_recorded_assessor_measurements"
-stopifnot(all(ordinary_candidates$dwelling_units[i] > 0),
-  all(ordinary_candidates$building_sqft[i] > 0), all(ordinary_candidates$land_sqft[i] > 0))
+  all(reviewed_years$project_id %in% c(ordinary_candidates$project_id,
+    tieback_candidates$project_id, multicard_candidates$project_id)),
+  all(!is.na(reviewed_years$construction_year) & reviewed_years$construction_year > 0 &
+    reviewed_years$construction_year <= 2022L))
+for (candidate_name in c("ordinary_candidates", "tieback_candidates", "multicard_candidates")) {
+  candidates <- get(candidate_name)
+  decisions <- reviewed_years %>% filter(project_id %in% candidates$project_id)
+  i <- match(decisions$project_id, candidates$project_id)
+  stopifnot(all(candidates$construction_year[i] == decisions$reported_year),
+    all(candidates$dwelling_units[i] > 0), all(candidates$building_sqft[i] > 0),
+    all(candidates$land_sqft[i] > 0))
+  candidates$construction_year[i] <- decisions$construction_year
+  candidates$year_source[i] <- paste0("reviewed_construction_year:", decisions$project_id)
+  candidates$candidate_status[i] <- ifelse(decisions$construction_year < 2006L,
+    "exclude_outside_period", "retain_mechanical")
+  candidates$decision_reason[i] <- "reviewed_construction_year_with_recorded_assessor_measurements"
+  assign(candidate_name, candidates)
+}
 
 # An old parcel may describe homes that now have individual property numbers.
 # Suppress it only when all of its homes have separately accepted replacements.

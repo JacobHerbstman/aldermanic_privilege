@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 START_YEAR ?= 2006
 END_YEAR ?= 2022
 
@@ -11,5 +13,4 @@ all: ../output/historical_sale_parcel_coordinates_$(START_YEAR)_$(END_YEAR).csv
 
 link-inputs: ../input/residential_sales_clean.parquet
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 all: ../output/sales_with_ward_distances_through2022.csv
 
 ../output/sales_with_ward_distances_through2022.csv: merge_sales_scores.R ../input/sales_pre_scores.csv ../input/aldermen_uncertainty_scores_through2022.csv | ../output
@@ -11,5 +13,4 @@ all: ../output/sales_with_ward_distances_through2022.csv
 
 link-inputs: ../input/sales_pre_scores.csv ../input/aldermen_uncertainty_scores_through2022.csv
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

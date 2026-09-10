@@ -11,7 +11,7 @@
 # max_permit_cutoff <- "2022"
 # write_paper_bundle <- TRUE
 
-source("../../_lib/alderman_uncertainty_helpers.R")
+source("../../shared/code/alderman_uncertainty_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {

@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 BANDWIDTH_FT ?= 1500
 
 all: ../output/rental_rd_characteristics_panel_bw$(BANDWIDTH_FT).parquet
@@ -35,5 +37,4 @@ link-inputs: \
 	../input/gis_osm_water_a_free_1.shx \
 	../input/gis_osm_water_a_free_1.cpg
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

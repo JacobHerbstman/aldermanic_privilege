@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 START_YEAR ?= 2003
 END_YEAR ?= 2022
 
@@ -14,5 +16,4 @@ all: ../output/ward_panel.gpkg
 
 link-inputs: ../input/Wards_2014.geojson ../input/Wards_2015.geojson
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

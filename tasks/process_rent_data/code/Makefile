@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 START_DATE ?= 2014-01-01
 END_DATE ?= 2022-12-31
 
@@ -14,5 +16,4 @@ all: ../output/chicago_rent_panel.parquet
 
 link-inputs: ../input/renthub_manifest.csv ../input/renthub_raw
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

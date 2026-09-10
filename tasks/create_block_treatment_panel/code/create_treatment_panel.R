@@ -2,7 +2,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_block_treatment_panel/code")
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 
 suppressMessages(sf_use_s2(FALSE))
 

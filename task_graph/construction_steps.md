@@ -1,7 +1,7 @@
 # Current construction cleaning: execution order
 
 Generated from the current Make targets. Steps at the same level are independent.
-The older final-assembly rules are excluded from the default build; the paper still uses its frozen input.
+The chronological construction outputs feed the density analyses; older unused final-assembly rules are excluded.
 
 ## Dependency level 1
 
@@ -175,3 +175,7 @@ The older final-assembly rules are excluded from the default build; the paper st
 ## Dependency level 38
 
 - [build_preferred_new_construction_ledger.R](../tasks/new_construction_cleaning/code/build_preferred_new_construction_ledger.R): `preferred_new_construction_boundary_scope.csv`, `preferred_new_construction_project_centroids.gpkg`, `preferred_new_construction_project_components.csv`, `preferred_new_construction_project_ledger.csv`
+
+## Dependency level 39
+
+- [build_preferred_construction_zoning.R](../tasks/new_construction_cleaning/code/build_preferred_construction_zoning.R): `preferred_new_construction_zoning.csv`

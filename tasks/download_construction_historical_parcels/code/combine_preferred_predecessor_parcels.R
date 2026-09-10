@@ -14,6 +14,16 @@ stopifnot(st_crs(original)$epsg == 3435, st_crs(additional)$epsg == 3435,
   st_crs(address_correction)$epsg == 3435)
 parcels <- bind_rows(original, additional, address_correction, lake_park, campbell) |>
   arrange(target_year, predecessor_pin10, predecessor_pin14, object_id)
+reviewed <- st_read("../output/reviewed_predecessor_parcels.gpkg", quiet = TRUE) |> select(-geometry_valid)
+for (i in seq_len(nrow(reviewed))) {
+  same <- which(parcels$target_year == reviewed$target_year[i] & parcels$object_id == reviewed$object_id[i])
+  if (length(same)) stopifnot(length(same) == 1L,
+    parcels$predecessor_pin14[same] == reviewed$predecessor_pin14[i],
+    lengths(st_equals(reviewed[i, ], parcels[same, ])) == 1L)
+}
+reviewed <- reviewed |> anti_join(st_drop_geometry(parcels) |> select(target_year, object_id),
+  by = c("target_year", "object_id"))
+parcels <- bind_rows(parcels, reviewed) |> arrange(target_year, predecessor_pin10, predecessor_pin14, object_id)
 stopifnot(!anyDuplicated(st_drop_geometry(parcels)[c("target_year", "object_id")]),
           all(st_is_valid(parcels)), !any(st_is_empty(parcels)))
 st_write(parcels, "../output/preferred_predecessor_parcel_source.gpkg",

@@ -17,7 +17,7 @@ if (
 official_property_type_fe <- cli_args[[1]] == "TRUE"
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 
 rent <- arrow::read_parquet(
   "../input/rental_rd_characteristics_panel_bw1500.parquet"

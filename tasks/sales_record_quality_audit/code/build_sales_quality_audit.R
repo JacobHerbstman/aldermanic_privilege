@@ -7,7 +7,7 @@
 # low_ppsf <- 5
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 args <- if (interactive()) {
   c(start_year, end_year, bandwidth_ft, high_ppsf, review_ppsf, low_ppsf)
 } else commandArgs(trailingOnly = TRUE)

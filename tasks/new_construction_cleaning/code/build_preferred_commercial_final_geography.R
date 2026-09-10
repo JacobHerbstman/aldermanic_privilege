@@ -18,6 +18,13 @@ requests <- projects %>% select(project_id, target_year = construction_year, com
   tidyr::separate_longer_delim(component_pins, delim = "/") %>% rename(component_pin = component_pins)
 stopifnot(!anyDuplicated(requests[c("project_id", "component_pin")]))
 # Only the selected construction year and selected parcel set define the site.
+queried <- readr::read_csv("../input/preferred_historical_parcel_source_queries.csv",
+  col_types = readr::cols(target_year = "i", pin10 = "c"))
+stopifnot(!anyDuplicated(queried[c("target_year", "pin10")]))
+missing_queries <- requests %>%
+  semi_join(projects %>% filter(allow_far | allow_dupac), by = "project_id") %>% mutate(pin10 = substr(component_pin, 1, 10)) %>%
+  anti_join(queried, by = c("target_year", "pin10"))
+
 parcels <- sf::st_read("../input/preferred_historical_parcel_source.gpkg", quiet = TRUE) %>%
   sf::st_transform(3435)
 names(parcels)[names(parcels) == attr(parcels, "sf_column")] <- "geometry"
@@ -131,6 +138,12 @@ for (j in seq_len(nrow(reviews))) {
 }
 stopifnot(!anyDuplicated(centroids$project_id), !any(sf::st_is_empty(centroids)), all(sf::st_is_valid(centroids)))
 centroids <- centroids %>% arrange(project_id)
+if (any(missing_queries$project_id %in% setdiff(projects$project_id, centroids$project_id))) {
+  stop("Unlocated commercial projects have unqueried construction-year parcels: ",
+    paste(unique(missing_queries$project_id[missing_queries$project_id %in%
+      setdiff(projects$project_id, centroids$project_id)]), collapse = ", "))
+}
+
 points <- centroids %>% inner_join(projects %>% select(project_id, construction_year),
   by = "project_id", relationship = "one-to-one") %>%
   mutate(construction_date = as.Date(paste0(construction_year, "-06-15")),

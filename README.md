@@ -10,10 +10,12 @@ Each task lives in `tasks/<task>/` and has its own `code/`, `input/`, and
 Running `make` at the repository root follows those dependencies through to the
 paper.
 
-Construction provenance is being reconstructed on this branch. The paper still
-uses a committed construction snapshot; the upstream cleaning build remains
-incomplete. See the [construction workflow](tasks/new_construction_cleaning/README.md)
-for the current source-to-project logic and release limits.
+The density analyses now use the chronological construction pipeline on this
+branch. See the [construction workflow](tasks/new_construction_cleaning/README.md)
+for the source-to-project logic and the preserved-history limitations.
+Before the first build, run `make -C replication` to obtain the exact recorded
+source inputs from the [source release](https://github.com/JacobHerbstman/aldermanic_privilege/releases/tag/recorded-sources-2026-09-10).
+The source archive supplements Git; a code-only clone does not contain every input.
 
 ## Task Graph
 
@@ -30,10 +32,10 @@ outputs.
 The diagram is generated from the paper and task Makefile prerequisites. After
 changing dependencies, rebuild it with `make -C task_graph` (requires Graphviz).
 
-## Construction data being reconstructed
+## Construction data
 
-The current construction build is separate from the frozen construction file in
-the paper graph above. This diagram shows the source tasks that hand files directly
+The construction build feeds the density analysis tasks in the graph above.
+This diagram shows the source tasks that hand files directly
 to construction cleaning; it does not depict every upstream download dependency.
 
 [![Current construction source tasks](task_graph/construction_tasks.svg)](task_graph/construction_tasks.svg)
@@ -42,16 +44,15 @@ Read the [cleaning rules and chronological guide](tasks/new_construction_cleanin
 the [exact script progression](task_graph/construction_steps.md), or the
 [full diagram within construction cleaning](task_graph/construction_scripts.svg).
 Both construction diagrams and the script progression are generated from the
-current default Make targets. The older unfinished final assembly is excluded
-from that default, and remains a release blocker.
+current default Make targets. Older unused final-assembly rules are excluded
+from that default.
 
 ## Data Inputs
 
 The paper uses two kinds of inputs:
 
 - **Files committed to the repository.** These include the 2014 and 2015 ward
-  maps, the final new-construction analysis file, the location characteristics
-  used for the density boundary checks, small spreadsheets containing
+  maps, small spreadsheets containing
   hand-reviewed coordinate and block-assignment decisions, and the water layer
   from the September 19, 2025 Geofabrik Illinois OpenStreetMap extract. The
   paper build checks the OpenStreetMap files against
@@ -71,7 +72,7 @@ service returns.
 ## Reproduce the Paper
 
 The build requires R, GNU Make, Bash, Python 3, `curl`, `unzip`, and a LaTeX
-installation providing `pdflatex` and `bibtex`. The machine must also have the
+installation providing `pdflatex` and `bibtex`, plus `wget`, `tar`, and `shasum`. The machine must also have the
 system libraries required by the R packages `sf`, `units`, and `arrow`. The
 clean replication was tested with R 4.5.2, GNU Make 3.81, Python 3.13.6, and
 TeX Live 2024 on macOS.
@@ -79,14 +80,14 @@ TeX Live 2024 on macOS.
 Install the required R packages:
 
 ```bash
-cd tasks/setup_environment/code
-make
+make -C tasks/setup_environment/code
 ```
 
-Set `CENSUS_API_KEY` and `DEWEY_API_KEY`, and run:
+From the repository root, set `CENSUS_API_KEY` and `DEWEY_API_KEY`, and run:
 
 ```bash
-make
+make -C replication
+make -C paper
 ```
 
 The command downloads the public inputs, rebuilds the analysis, and writes the
@@ -97,7 +98,7 @@ folders.
 
 ### Observed Running Time
 
-A clean run from a fresh clone on July 30, 2026 took **1 hour,
+For the earlier July pipeline, a clean run from a fresh clone on July 30, 2026 took **1 hour,
 34 minutes, and 43 seconds** on a 15-core Apple M5 Pro MacBook Pro with 24 GB
 of memory, after the required software and R packages were installed. The
 RentHub download took about 33 minutes, the remaining rental steps took about
@@ -105,7 +106,7 @@ RentHub download took about 33 minutes, the remaining rental steps took about
 minutes. The permit, score, density, and permit-event-study tasks together took
 about 20 minutes. Download times will vary with the external services and the
 network connection; these figures report one complete run rather than a
-promised range.
+promised range. They do not measure the expanded construction rebuild on this branch.
 
 ## Research Archive
 

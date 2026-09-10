@@ -1,17 +1,17 @@
 File: preferred_project_geography_requests.csv
-Rows: 15691
+Rows: 15781
 Columns: 7
-SHA-256 (saved bytes): 7cf84304b0c6d301013531133ae3e8767894494f7e792e4e70ba426d2d60bb1c
+SHA-256 (saved bytes): 370f8169570a7bd4ccfa3adbedbe547cc86e504c260d7647374844c9014fb65e
 Key: not declared in this report
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-          column inferred_type non_missing distinct  min  max               mean               sd
-   source_family       VARCHAR       15691        2    -    -                  -                -
-      project_id       VARCHAR       15691    14017    -    -                  -                -
-    project_kind       VARCHAR       15691        7    -    -                  -                -
-candidate_status       VARCHAR       15691        8    -    -                  -                -
-     target_year        BIGINT       15691       17 2006 2022 2012.6751003760116 5.39717404584018
-   component_pin       VARCHAR       15691    15646    -    -                  -                -
-           pin10       VARCHAR       15691    15638    -    -                  -                -
+          column inferred_type non_missing distinct  min  max               mean                sd
+   source_family       VARCHAR       15781        2    -    -                  -                 -
+      project_id       VARCHAR       15781    14065    -    -                  -                 -
+    project_kind       VARCHAR       15781        7    -    -                  -                 -
+candidate_status       VARCHAR       15781       12    -    -                  -                 -
+     target_year        BIGINT       15781       17 2006 2022 2012.6993219694568 5.401510624882719
+   component_pin       VARCHAR       15781    15687    -    -                  -                 -
+           pin10       VARCHAR       15781    15645    -    -                  -                 -

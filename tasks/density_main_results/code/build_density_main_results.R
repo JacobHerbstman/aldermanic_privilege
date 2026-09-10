@@ -53,6 +53,7 @@ panel_specs <- tibble::tribble(
 )
 
 panels <- vector("list", nrow(panel_specs))
+sample_summaries <- vector("list", nrow(panel_specs))
 
 for (i in seq_len(nrow(panel_specs))) {
   sample_name <- panel_specs$sample[i]
@@ -63,14 +64,10 @@ for (i in seq_len(nrow(panel_specs))) {
       construction_year >= 2006L,
       construction_year <= 2022L,
       within_500ft,
-      dwelling_units > 0,
       sample_name == "all" | external_multifamily,
-      allow_far,
-      allow_dupac,
-      is.finite(density_far),
-      density_far > 0,
-      is.finite(density_dupac),
-      density_dupac > 0,
+      if (outcome == "density_far") allow_far else allow_dupac,
+      is.finite(.data[[outcome]]),
+      .data[[outcome]] > 0,
       is.finite(share_white_own),
       is.finite(share_black_own),
       is.finite(median_hh_income_own),
@@ -112,6 +109,13 @@ for (i in seq_len(nrow(panel_specs))) {
     warn = FALSE,
     notes = FALSE
   )
+  sample_summaries[[i]] <- model_data[fixest::obs(model), ] |>
+    dplyr::summarise(sample = sample_name, outcome = .env$outcome,
+      mean_density = mean(.data[[outcome]]), average_units = mean(dwelling_units, na.rm = TRUE),
+      median_distance = median(distance_to_boundary_ft),
+      ward_pairs = dplyr::n_distinct(ward_pair), segments = dplyr::n_distinct(segment_id),
+      n = dplyr::n())
+
 
   coefficient_table <- fixest::coeftable(model)
   coefficient_rows <- grepl(
@@ -268,108 +272,21 @@ ggplot2::ggsave(
   bg = "white"
 )
 
-common_sample <- projects |>
-  dplyr::filter(
-    construction_year >= 2006L,
-    construction_year <= 2022L,
-    within_500ft,
-    dwelling_units > 0,
-    allow_far,
-    allow_dupac,
-    is.finite(density_far),
-    density_far > 0,
-    is.finite(density_dupac),
-    density_dupac > 0,
-    is.finite(share_white_own),
-    is.finite(share_black_own),
-    is.finite(median_hh_income_own),
-    is.finite(share_bach_plus_own),
-    is.finite(homeownership_rate_own),
-    !is.na(zone_group),
-    !is.na(segment_id),
-    segment_id != "",
-    abs(signed_distance_m / 0.3048) < 500
-  )
-
-summaries <- dplyr::bind_rows(
-  common_sample |>
-    dplyr::mutate(sample = "All Construction"),
-  common_sample |>
-    dplyr::filter(external_multifamily) |>
-    dplyr::mutate(sample = "Multifamily")
-) |>
-  dplyr::summarise(
-    average_far = mean(density_far),
-    average_units = mean(dwelling_units),
-    average_dupac = mean(density_dupac),
-    median_distance = median(abs(distance_to_boundary_ft)),
-    ward_pairs = dplyr::n_distinct(ward_pair),
-    segments = dplyr::n_distinct(segment_id),
-    n = dplyr::n(),
-    .by = sample
-  ) |>
-  dplyr::arrange(factor(sample, c("All Construction", "Multifamily")))
-
-if (
-  nrow(summaries) != 2L ||
-    !identical(as.integer(summaries$n), c(3692L, 822L))
-) {
-  stop("The density summary sample does not match the regressions.")
+summaries <- dplyr::bind_rows(sample_summaries) |>
+  dplyr::arrange(factor(sample, c("all", "multifamily")), factor(outcome, c("density_far", "density_dupac")))
+stopifnot(nrow(summaries) == 4L, all(summaries$n > 0))
+summary_lines <- c(
+  "\\begin{table}[htbp]", "\\centering",
+  "\\caption{Summary Statistics for the Density Analysis Samples}",
+  "\\label{tab:summary_stats}", "\\begin{tabular}{lcccc}", "\\toprule",
+  " & \\multicolumn{2}{c}{All New Construction} & \\multicolumn{2}{c}{Multifamily} \\\\",
+  " & FAR sample & DUPAC sample & FAR sample & DUPAC sample \\\\", "\\midrule")
+for (field in c("mean_density", "average_units", "median_distance", "n")) {
+  label <- switch(field, mean_density = "Mean density (outcome units)", average_units = "Average homes",
+    median_distance = "Median boundary distance (ft)", n = "Observations")
+  values <- if (field == "n") format(summaries[[field]], big.mark = ",", trim = TRUE) else sprintf("%.2f", summaries[[field]])
+  summary_lines <- c(summary_lines, paste0(label, " & ", paste(values, collapse = " & "), " \\\\"))
 }
-
-writeLines(
-  c(
-    "\\begin{table}[htbp]",
-    "\\centering",
-    "\\caption{Summary Statistics for the Density Analysis Sample}",
-    "\\label{tab:summary_stats}",
-    "\\begin{tabular}{lcc}",
-    "\\toprule",
-    " & All New Construction & Multifamily \\\\",
-    "\\midrule",
-    sprintf(
-      "Average FAR & %.2f & %.2f \\\\",
-      summaries$average_far[1],
-      summaries$average_far[2]
-    ),
-    sprintf(
-      "Average Units & %.2f & %.2f \\\\",
-      summaries$average_units[1],
-      summaries$average_units[2]
-    ),
-    sprintf(
-      "Average DUPAC & %.2f & %.2f \\\\",
-      summaries$average_dupac[1],
-      summaries$average_dupac[2]
-    ),
-    sprintf(
-      "Median Distance to Boundary (ft) & %.0f & %.0f \\\\",
-      summaries$median_distance[1],
-      summaries$median_distance[2]
-    ),
-    sprintf(
-      "Ward/Segment Counts & %s/%s & %s/%s \\\\",
-      summaries$ward_pairs[1],
-      summaries$segments[1],
-      summaries$ward_pairs[2],
-      summaries$segments[2]
-    ),
-    "\\midrule",
-    sprintf(
-      "N & %s & %s \\\\",
-      trimws(format(summaries$n[1], big.mark = ",")),
-      trimws(format(summaries$n[2], big.mark = ","))
-    ),
-    "\\bottomrule",
-    "\\end{tabular}",
-    paste0(
-      "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize ",
-      "Notes: Samples include new residential construction from 2006--2022 ",
-      "within 500ft of ward boundaries and use the same projects for the FAR ",
-      "and DUPAC estimates. Multifamily status follows the final project ",
-      "classification used in the density analysis.}"
-    ),
-    "\\end{table}"
-  ),
-  "../output/density_sample_summary.tex"
-)
+writeLines(c(summary_lines, "\\bottomrule", "\\end{tabular}",
+  "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: New residential construction from 2006--2022 within 500ft of ward boundaries. Each outcome uses buildings with usable inputs for that density measure and complete regression covariates. Counts are observations used by the fitted models. Average homes uses available home counts.}",
+  "\\end{table}"), "../output/density_sample_summary.tex")

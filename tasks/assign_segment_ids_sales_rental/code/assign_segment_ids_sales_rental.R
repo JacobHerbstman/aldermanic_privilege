@@ -5,7 +5,7 @@
 # segment_buffer_m <- 457.2
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 
 library(arrow)
 library(data.table)

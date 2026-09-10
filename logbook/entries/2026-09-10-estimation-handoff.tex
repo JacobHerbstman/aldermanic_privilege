@@ -1,0 +1,217 @@
+\clearpage
+\section*{September 10, 2026: checking the construction-to-estimation handoff}
+\addcontentsline{toc}{section}{September 10, 2026: checking the construction-to-estimation handoff}
+\textit{Agent-drafted entry; main estimation inputs connected using preserved zoning.}
+
+Checking the completed construction data against earlier recorded decisions found instructions affecting 109 projects that had not carried forward. The completed 268-case review covered a fixed subset, so it did not establish that every older decision was applied. The missing instructions have been restored to the existing cleaning stages. Newer explicit decisions take priority. The regression preparation code does not correct years, home counts, floor areas or land areas.
+
+Relative to the 13,764-project dataset preserved at the start of this handoff, the rebuild removes 50 previously excluded records and changes construction years for 51 retained projects and home counts for five. No retained project's reported floor or land area changes. Six recorded decisions withhold density while preserving the buildings and their evidence. These counts describe the full construction dataset, not changes in the paper's 500-foot estimation sample. Restored year corrections also require locations and boundary distances to use the corrected year. The three location follow-ups now resolve through the existing source rules, and an unchanged second construction build requires no work.
+
+Regression preparation attaches the existing boundary segments, daily alderman assignments, scores and ward controls to finished buildings, preserving the June 15 date proxy. Floor-area-ratio regressions now require usable floor and land area; homes-per-acre regressions require usable home counts and land area. A missing home count alone no longer excludes an otherwise usable floor-area ratio. An isolated main-regression run using the newly connected data succeeds. It uses 4,060 floor-area-ratio observations and 4,071 homes-per-acre observations, compared with the former common sample of 3,692. The corresponding multifamily counts rise from 822 to 863 and 874. At the handoff, production estimates had not yet been rerun.
+
+Jacob approved using the preserved historical zoning table and reviewed map for this run. Zoning is assigned to all 9,530 records within 1,500 feet in the connected analysis data. Nine exact project/year matches use existing corrected-year zoning decisions. Reconstructing the preserved history from the original ordinances remains outstanding for raw-source replication.
+
+Within 500 feet, the floor-area-ratio comparison retains 3,631 old observations, removes 61 and adds 429. The homes-per-acre comparison retains 3,632, removes 60 and adds 439. These are changes in sample records; changed identifiers and replacements need not represent newly discovered buildings. Of the retained observations, 99 in the floor-area-ratio sample and 100 in the homes-per-acre sample change at least one construction year, home count, floor area or land area. The old paper input remains preserved for comparison. The connected analysis input now replaces the old input, but paper estimates remained unchanged at that stage.
+
+The main input build and targeted comparison reports pass. Specialized boundary-characteristic and project-to-permit inputs still require reconnection before a full paper rerun. The construction graph regenerates; the full paper graph still reaches an absent legacy task.
+
+\textit{Reproduction note.} Branch: \texttt{sales\_sample\_exploration}. Run Make in the construction cleaning and analysis-data tasks. The release audit owns the two \texttt{construction\_estimation} comparison CSVs and preserves the old analysis input under \texttt{reference/}. The main-estimator check ran in a temporary copy.
+
+\subsection*{Main density estimates rerun}
+Jacob then requested the main density rerun. The production Make build succeeds and replaces the main density figure and sample summary. The estimated log difference on the more stringent side changes from $-0.131$ to $-0.104$ (standard error $0.047$) for floor-area ratio and from $-0.174$ to $-0.152$ ($0.073$) for homes per acre. For multifamily construction, the respective estimates change from $-0.149$ to $-0.138$ ($0.070$) and from $-0.194$ to $-0.198$ ($0.109$). All four remain negative. The overall estimates are smaller in magnitude; the multifamily estimates are less precise. The sample counts match the comparison above. These are the main specifications only, not a completed rerun of the robustness checks.
+
+Jacob requested that the manuscript remain unchanged while he reviews these results. The temporary manuscript edits were reversed and the paper build was stopped before LaTeX compilation; the new main regression outputs remain available separately.
+
+\subsection*{What accounts for the smaller overall estimates?}
+A sequential decomposition reproduces both the old and new main estimates. On the project IDs common to the two samples, after updating measurements, years, locations and controls, the coefficients are $-0.132$ for FAR and $-0.180$ for DUPAC. Adding the 368 entering observations classified as individual houses or townhomes moves them to $-0.104$ and $-0.149$. Adding the entering multifamily observations then gives the final $-0.104$ and $-0.152$. Thus the added house and townhome observations account for almost all of the attenuation in the overall estimates in this ordering. Removing departing records makes both estimates more negative; corrections to retained records have a smaller net contribution. This is an accounting exercise whose individual contributions can depend on ordering, not a causal explanation of differences between building types.
+The multifamily pattern differs: FAR attenuation comes mainly from measurement corrections among retained projects, while multifamily DUPAC does not attenuate overall. The audit's \texttt{density\_change\_decomposition.csv} records every fitted stage, sample size, estimate and standard error. The manuscript is unchanged.
+
+\subsection*{Construction-year zoning review}
+The 18 added sample records requiring a closer zoning check contain one confirmed broad-group error. The 2012 building at 1612 W Ontario inherited single-family zoning from a nearby preserved 2011 record. Ordinance O2011-8884 passed on December 14, 2011, changing the site to RT4 before the construction-date proxy. Its construction-year classification is multifamily. The other 17 retain their groups: ten have agreement across all five recorded maps, six have passed zoning amendments before construction consistent with the current map, and the Throop property has the same parcel in the preserved reviewed planned-development history and agreeing later maps.
+
+The general correction prevents borrowing zoning from an adjacent year when the current map records an amendment between that year and construction. Across all 9,530 records, this changes four broad groups, including Ontario; three are within 500 feet. The other changes concern two Montana properties and one Washtenaw property. No buildings, construction dates, density measurements or locations change. The connected analysis data have been rebuilt; the regression estimates reported above have not been refreshed for these zoning-control corrections. This review uses the approved preserved history and does not establish full reconstruction of every historical ordinance.
+
+\textit{Reproduction note.} The release audit's \texttt{added\_zoning\_eighteen\_review.csv} records the original cohort, map classifications, preserved historical support and passed ordinance evidence from the recorded City matters extract. Build its report target through the release-audit Makefile. The date check belongs in the construction zoning producer, rather than an observation-specific correction table. The manuscript remains unchanged.
+
+\subsection*{Connecting the remaining density checks}
+The zoning corrections leave the main FAR estimate at $-0.104$ and move DUPAC from $-0.152$ to $-0.151$, rounded to three decimals. The multifamily estimates remain $-0.138$ and $-0.198$. Sample counts remain 4,060 and 4,071 overall, and 863 and 874 for multifamily construction.
+
+The boundary-characteristic task now recalculates its inputs for the connected construction dataset. Its road, water, park and cemetery measurements reproduce the old measurements across all 2,435 boundary segments up to numerical rounding. Among 3,645 retained project IDs in the old characteristics file, six change the straight-boundary indicator; the overlap indicators change for three of those six. The latter three have changed assigned segments, including one with a changed construction year. Amenity distances for most retained projects agree up to rounding. The location and boundary-restriction regression tables rebuild successfully.
+
+Jacob approved retaining the recorded project-permit matches and adding exact-parcel or inside-parcel matches under the existing application and issue windows. Nearby permits alone do not qualify. A new producer records each match's source before the leave-project-out score check. This procedure does not change construction years or density measurements.
+
+The clean-checkout test exposed an absent parcel-address source task and required historical source files not distributed in Git. The address task now restores a checksum-verified recorded snapshot. Jacob approved uploading the 103-file recorded-source archive to the repository's GitHub release. Its compressed size is 968,577,788 bytes. The source bootstrap has passed download-checksum verification, missing-file restoration and unchanged-build checks on GNU Make 3.81. Full construction reconstruction in the isolated checkout is still being checked; these packaging checks alone do not establish full paper replication.
+
+\subsection*{Added observations are concentrated in the historical second ward}
+The saved attenuation comparison adds the same 368 observations outside the
+external multifamily category to both the FAR and DUPAC samples. Of these, 355
+report one dwelling and 13 report multiple dwellings. Thus the earlier description
+of all 368 as individual homes or townhomes was too broad.
+
+The historical second ward accounts for 113 additions: 77 under Robert Fioretti,
+35 under Madeline Haithcock, and one under Brian Hopkins. Of these, 106 have
+construction years 2006 or 2007. This predominantly concerns the old ward geography.
+Other concentrations are ward 26 (31), ward 35 (26), and wards 1 and 32 (22 each).
+There are 218 additions on the lower-score side and 150 on the higher-score side;
+111 of the second ward's 113 additions are on the lower-score side.
+All recorded own-ward and neighboring-ward aldermen match the recorded terms at
+the construction-date proxy used in the analysis. This check does not independently
+reverify the locations or establish any ward's contribution to attenuation.
+
+The audit reads the saved comparison and existing analysis, terms and score
+files, without rebuilding production. Its output is
+\texttt{entering\_home\_assignments.csv} in the working-paper release audit.
+The task README records the Make invocation that holds those inputs fixed.
+This is the first report for this 368-row assignment audit.
+
+Jacob paused the rebuild and requires all necessary files to be committed before
+the next clean-clone test. A missing committed input or a build failure requires
+a repository fix and a new clone, rather than patching and continuing the failed
+clone. The stopped exploratory run is not the final replication test. The
+manuscript remains unchanged.
+
+\subsection*{Historical assessments contradict some selected construction years}
+A follow-up review of all 113 second-ward additions found a substantive problem.
+All selected years match their cited Assessor rows, but 37 properties already
+have the same reported floor and land areas in an assessment before the selected
+construction year. Thirty-five are selected as 2006 and two as 2007. For example,
+a home at 26 South Aberdeen has 1,778 square feet of building and 1,106 square feet
+of land in 2005. Its reported construction year is 2004 through the 2021
+assessment, then changes to 2006 in 2022 without a change in those measurements.
+Eleven additional properties selected as 2007 have earlier reports of 2005;
+their available histories begin in 2009, so the contradiction is less direct.
+
+These dates were not manually invented. Selecting the later Assessor report
+allowed conflicting year revisions into the analysis. The 37 direct conflicts
+cannot be treated as verified construction dates. A general chronological check
+is needed before the production rerun, with care not to confuse an older building
+with a replacement building on the same parcel. No production years or sample
+inclusions have been changed by this audit. The remaining properties' identities
+and shared-land coverage are not certified by this year check.
+
+The saved audit is \texttt{ward\_two\_year\_review.csv}; the release-audit README
+records its frozen-input Make invocation. Its first standard report contains
+113 unique project records. The rebuild remains paused.
+
+\subsection*{Earlier Assessor years are not uniformly better}
+Web research and preserved permits distinguish the 37 direct chronological
+conflicts from the 11 Union Row homes. A purchase recorded in March 2004 at
+26 South Aberdeen corroborates early development there, although the page does
+not identify the individual unit. Current listing years disagree and do not
+resolve the chronology by themselves. Selecting the latest reported year no
+later than the first assessment with the same measurements would give 33 dates
+of 2004 and four of 2005 for the 37 conflicts, putting them outside the study.
+This is a proposed correction, not an applied result.
+
+For Union Row, original new-building permits issued May 17, 2007 explicitly
+cover the affected addresses. Thus automatically replacing 2007 with the older
+Assessor report of 2005 would be inappropriate. Belgravia dates completion of the
+whole 35-home development to 2010, without identifying individual completion
+dates. The individual Assessor year 2007 remains a proxy, not a independently
+verified completion date. The proposed general rule is to select a reported
+Assessor year consistent with the identified building's assessment and original
+permit history, keeping contradictory cases unresolved rather than inventing a
+year. The audit README records URLs and limitations. Production and estimation
+remain unchanged.
+
+\subsection*{Population trial of chronological year selection}
+Jacob approved correcting the 37 and requested a population check before broader
+adoption. The existing assessment-selection script now tests the chronological
+rule. All 37 receive the approved pre-period dates: 33 in 2004 and four in 2005.
+The eleven Union Row dates remain 2007. Across 28,100 residential candidates,
+981 years change; units, floor area, land area and measurement-row identifiers
+are unchanged. The build used preserved inputs and stopped at selection.
+
+Against the saved final population, 869 projects would change, including 273
+within 500 feet. Sixty of those 273 would move before 2006. Twenty-six proposed
+changes exceed three years and require scrutiny before broad adoption. These
+are trial results, not adopted changes to the final sample or new estimates.
+
+A separate screen covers all 13,714 final projects using the preserved residential,
+commercial and condominium measurements. It finds 924 potential contradictions,
+11,958 without a direct contradiction and 832 without a comparable historical
+snapshot. The latter are unverified by this check, not identified errors.
+The commercial contradictions concern 4654 North Sheridan and 202 West Hill:
+2021 source records report 2020 construction, while later records report 2022.
+No commercial year change has been applied. Shared sites and changing card sets
+need more than measurement equality to establish building continuity.
+
+The population audit and its standard report record every project's status;
+the release-audit README gives the frozen-input Make command. Final dataset,
+geography, estimation and manuscript remain unchanged. The draft rule requires
+review before an ordinary downstream build is resumed.
+
+\subsection*{Review of all 26 large year changes}
+The bounded review recommends retaining seven as new construction, excluding
+fourteen existing buildings or additions, excluding two pre-2006 buildings, and
+holding out three whose new-building identity is insufficiently supported.
+These remain recommendations. Only four are in the current 500-foot sample:
+retain 2425 West Arthington, exclude 2340 North Leavitt and 5921 South Monitor,
+and hold out 1308 North La Salle.
+
+The draft rule would incorrectly assign some replacements their demolished
+building's year. Arthington has original 2008 demolition and new-building permits;
+a listing explicitly describes a 2010 rebuild. Early assessments nevertheless
+carry 1892 onto the new building's measurements. Exact-address searches also found
+new-building permits missing from existing project links. The chronological rule
+must account for those original permits and building episodes before selecting
+an older year. The review does not justify adopting all draft corrections.
+
+The saved 26-row review provides every address, proposed treatment, evidence and
+remaining uncertainty. Overhill's 2008 and Ridgeway's 2008 remain Assessor proxies,
+not independently established completion dates. The production dataset and
+manuscript remain unchanged; the release-audit README records reproduction.
+
+\subsection*{Approved correction limited to 37 buildings}
+The broad automatic construction-year rule is withdrawn. Jacob approved correcting
+only the 37 reviewed buildings whose matching historical Assessor records support
+pre-period construction. Thirty-three receive 2004 and four receive 2005. The
+existing recorded-year input applies these decisions before project selection;
+these buildings therefore fall outside the 2006--2022 analysis period. The other
+recommendations from the 26-case review remain unadopted.
+
+Comparison with the assessment selection saved before the experiment confirms
+exactly these 37 construction-year changes. Dwelling counts, floor areas and land
+areas are unchanged throughout that comparison. This incremental rebuild does
+not replace the planned clean-clone replication test. The manuscript remains
+unchanged.
+
+
+The rebuilt construction ledger has 13,677 records, down from 13,714; the analysis
+data have 9,493, down from 9,530. Every surviving record is unchanged in every
+column. All 37 removed observations were within 500 feet and outside the
+multifamily subsample. The all-construction FAR estimate moves from $-0.104$
+(SE 0.047) to $-0.097$ (SE 0.045); DUPAC moves from $-0.151$ (SE 0.073) to
+$-0.148$ (SE 0.073). Both remain significant at five percent. Their regression
+samples contain 4,023 and 4,034 observations. Multifamily estimates and sample
+counts are unchanged. These corrections do not reverse the previously observed
+attenuation.
+
+The incremental build used Make in the density main-results task, followed by
+the producing tasks' data reports. A subsequent dry run schedules no substantive
+producer. The saved density figure was inspected; the manuscript was not compiled. An accidental root Make invocation was stopped
+during upstream checks before document compilation.
+
+\subsection*{Score sensitivity rechecked before the release review}
+On the preserved permit input, sequential and joint estimation each use 120,505
+permits. The correlation between their unshrunk alderman effects remains 0.348
+(rank correlation 0.339). The joint model changes the control coefficients as
+well as the alderman effects: the income coefficient per \$10,000 changes from
+$-0.0150$ to $-0.0626$. This comparison does not establish that either score
+identifies a causal alderman effect. Neighborhood characteristics and alderman
+identity overlap substantially by construction; the two procedures allocate
+these differences differently.
+
+The absorbed joint fit warns about redundant fixed effects. Re-estimating with
+explicit alderman indicators, using a common reference alderman, reproduces its
+alderman differences within $5.3\times10^{-7}$ log points. This rules out that
+normalization issue as the explanation for the observed ranking change. The
+comparison is recorded in the existing score audit, including the control
+coefficients and an assertion checking equivalent parameterizations. Production
+scores and the manuscript have not been changed.
+
+The broader production review is ongoing. Known open questions include the
+score interpretation, the incomplete first-stage exclusion in the own-project
+score sensitivity, rental date assignment and aggregation, and live-source
+vintages outside the preserved construction archive. A checkpoint commit should
+not be read as clearance of these issues or completion of the fresh-clone test.

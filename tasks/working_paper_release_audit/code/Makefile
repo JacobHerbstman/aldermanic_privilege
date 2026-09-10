@@ -1,6 +1,22 @@
 include ../../shared/code/shell_functions.make
 
-all: ../report/phased_project_permits.csv.log ../report/restored_stage_checks.csv.log ../output/manual_episode_increment.csv ../report/manual_episode_increment.csv.log ../output/manual_review_increment.csv ../report/manual_review_increment.csv.log ../output/multicard_followup_permits.csv ../report/multicard_followup_permits.csv.log ../output/multicard_parent_coverage.csv ../report/multicard_parent_coverage.csv.log ../output/density_exclusion_comparison.csv ../report/density_exclusion_comparison.csv.log ../output/denominator_permit_evidence.csv ../report/denominator_permit_evidence.csv.log ../output/model_checks.csv ../output/score_checks.csv ../output/data_checks.csv ../output/multicard_land_scope.csv ../report/multicard_land_scope.csv.log ../output/denominator_case_review.csv ../output/denominator_case_members.csv ../output/denominator_case_maps.pdf ../report/denominator_case_review.csv.log ../report/denominator_case_members.csv.log
+all: ../report/added_zoning_eighteen_review.csv.log
+
+../output/added_zoning_eighteen_review.csv: review_added_zoning.py ../reference/added_zoning_eighteen.csv ../input/preferred_new_construction_zoning.csv ../input/historical_zoning_project_construction_year.csv ../input/zoning_review_matters.csv | ../output
+	$(PYTHON) $<
+
+../report/added_zoning_eighteen_review.csv.log: ../../shared/code/report.py ../output/added_zoning_eighteen_review.csv | ../report
+	$(PYTHON) $< ../output/added_zoning_eighteen_review.csv $@ project_id
+
+all: ../report/construction_reconciliation_progress.csv.log
+
+../output/construction_reconciliation_progress.csv: review_construction_reconciliation.py ../input/residential_tieback_temporal_snapshots.csv ../input/frozen_construction_analysis.csv ../input/residential_successor_condo_requests.csv ../input/construction_condominium_history.csv ../reference/construction_reconciliation_cohort.csv ../output/current_construction_questions.csv ../input/preferred_residential_project_candidates.csv ../input/preferred_commercial_project_ledger.csv ../input/residential_review_source_dispositions.csv ../input/preferred_residential_project_ledger.csv | ../output
+	$(PYTHON) $<
+
+../report/construction_reconciliation_progress.csv.log: ../../shared/code/report.py ../output/construction_reconciliation_progress.csv | ../report
+	$(PYTHON) $< ../output/construction_reconciliation_progress.csv $@ project_id
+
+all: ../report/score_covariate_comparison.csv.log ../report/phased_project_permits.csv.log ../report/restored_stage_checks.csv.log ../output/manual_episode_increment.csv ../report/manual_episode_increment.csv.log ../output/manual_review_increment.csv ../report/manual_review_increment.csv.log ../output/multicard_followup_permits.csv ../report/multicard_followup_permits.csv.log ../output/multicard_parent_coverage.csv ../report/multicard_parent_coverage.csv.log ../output/density_exclusion_comparison.csv ../report/density_exclusion_comparison.csv.log ../output/denominator_permit_evidence.csv ../report/denominator_permit_evidence.csv.log ../output/model_checks.csv ../output/score_checks.csv ../output/data_checks.csv ../output/multicard_land_scope.csv ../report/multicard_land_scope.csv.log ../output/denominator_case_review.csv ../output/denominator_case_members.csv ../output/denominator_case_maps.pdf ../report/denominator_case_review.csv.log ../report/denominator_case_members.csv.log
 
 all: ../report/natchez_building_land_coverage.csv.log ../output/natchez_parcel_coverage.pdf
 
@@ -25,7 +41,7 @@ all: ../report/individual_home_location_comparison.csv.log
 
 all: ../report/current_construction_questions.csv.log
 
-../output/current_construction_questions.csv: reconcile_construction_decisions.py ../input/eligibility_manual_exceptions.csv ../input/residential_successor_condo_overrides.csv ../reference/remaining_building_decision_questions.csv ../input/preferred_residential_project_candidates.csv ../input/preferred_commercial_projects.csv ../input/preferred_commercial_project_ledger.csv ../input/preferred_project_boundary_scope.csv ../input/parcel_addresses_2025_chicago.csv ../input/residential_tieback_no_snapshot_decisions.csv ../input/residential_class297_exceptions.csv ../input/residential_overlap_decisions.csv ../input/residential_remaining_case_decisions.csv ../input/residential_unresolved_source_dispositions.csv ../input/project_manual_reviews.csv | ../output
+../output/current_construction_questions.csv: reconcile_construction_decisions.py ../input/eligibility_manual_exceptions.csv ../input/residential_successor_condo_overrides.csv ../reference/remaining_building_decision_questions.csv ../input/preferred_residential_project_candidates.csv ../input/preferred_commercial_projects.csv ../input/preferred_commercial_project_ledger.csv ../input/preferred_project_boundary_scope.csv ../input/parcel_addresses_2025_chicago.csv ../input/residential_tieback_no_snapshot_decisions.csv ../input/residential_class297_exceptions.csv ../input/residential_overlap_decisions.csv ../input/residential_remaining_case_decisions.csv ../input/residential_unresolved_source_dispositions.csv ../input/project_manual_reviews.csv ../input/residential_review_source_dispositions.csv ../input/preferred_residential_project_ledger.csv ../input/density_parcel_address_selected_history.csv | ../output
 	$(PYTHON) $<
 
 ../report/current_construction_questions.csv.log: ../../shared/code/report.py ../output/current_construction_questions.csv | ../report
@@ -183,7 +199,16 @@ endif
 ../output/model_checks.csv: review_models.R ../input/projects.csv ../input/terms.csv ../input/scores.csv ../input/rents.parquet ../input/sales.parquet ../input/permits.parquet | ../output
 	$(R) $<
 
-../output/score_checks.csv: review_scores.R ../../_lib/alderman_uncertainty_helpers.R ../input/score_permits.csv ../input/scores.csv ../input/projects.csv | ../output
+ifneq ($(filter-out $(wildcard ../output/score_checks.csv ../output/score_comparison_by_alderman.csv ../output/density_joint_adjustment.csv ../output/score_covariate_comparison.csv),../output/score_checks.csv ../output/score_comparison_by_alderman.csv ../output/density_joint_adjustment.csv ../output/score_covariate_comparison.csv),)
+.PHONY: ../output/score_checks.csv
+endif
+
+../output/score_comparison_by_alderman.csv ../output/density_joint_adjustment.csv ../output/score_covariate_comparison.csv: ../output/score_checks.csv
+
+../report/score_covariate_comparison.csv.log: ../../shared/code/report.py ../output/score_covariate_comparison.csv | ../report
+	$(PYTHON) $< ../output/score_covariate_comparison.csv $@ term
+
+../output/score_checks.csv: review_scores.R ../../shared/code/alderman_uncertainty_helpers.R ../input/score_permits.csv ../input/scores.csv ../input/projects.csv | ../output
 	$(R) $<
 
 ../output/data_checks.csv: review_data.R ../input/rents.parquet ../input/sales.parquet ../input/projects.csv | ../output
@@ -388,8 +413,8 @@ link-inputs: ../input/preferred_historical_parcel_source.gpkg
 	@if [ "$$(readlink "$@")" != "../../prepare_construction_assessor_history/output/residential_assessor_history.parquet" ]; then ln -sf ../../prepare_construction_assessor_history/output/residential_assessor_history.parquet "$@"; fi
 
 
-../input/frozen_construction_analysis.csv: ../../new_construction_analysis_data/output/new_construction_analysis_data.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_analysis_data/output/new_construction_analysis_data.csv" ]; then ln -sf ../../new_construction_analysis_data/output/new_construction_analysis_data.csv "$@"; fi
+../input/frozen_construction_analysis.csv: ../reference/new_construction_analysis_data_before_reconnection.csv Makefile | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "../reference/new_construction_analysis_data_before_reconnection.csv" || ln -sf ../reference/new_construction_analysis_data_before_reconnection.csv "$@"
 
 ../input/residential_reviewed_construction_years.csv: ../../new_construction_cleaning/adjudication/residential_reviewed_construction_years.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_reviewed_construction_years.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_reviewed_construction_years.csv "$@"; fi
@@ -402,5 +427,98 @@ link-inputs: ../input/preferred_historical_parcel_source.gpkg
 
 ../input/density_historical_address_records.csv: ../../../data_raw/construction_review/density_historical_address_records_2026-09-04.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../../data_raw/construction_review/density_historical_address_records_2026-09-04.csv" ]; then ln -sf ../../../data_raw/construction_review/density_historical_address_records_2026-09-04.csv "$@"; fi
+
+../input/residential_successor_condo_requests.csv: ../../new_construction_cleaning/output/residential_successor_condo_requests.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/residential_successor_condo_requests.csv" ]; then ln -sf ../../new_construction_cleaning/output/residential_successor_condo_requests.csv "$@"; fi
+
+../input/construction_condominium_history.csv: ../../download_construction_assessor_history/output/construction_condominium_history.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../download_construction_assessor_history/output/construction_condominium_history.csv" ]; then ln -sf ../../download_construction_assessor_history/output/construction_condominium_history.csv "$@"; fi
+
+../input/residential_tieback_temporal_snapshots.csv: ../../new_construction_cleaning/output/residential_tieback_temporal_snapshots.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/residential_tieback_temporal_snapshots.csv" ]; then ln -sf ../../new_construction_cleaning/output/residential_tieback_temporal_snapshots.csv "$@"; fi
+
+../input/residential_review_source_dispositions.csv: ../../new_construction_cleaning/output/residential_review_source_dispositions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/residential_review_source_dispositions.csv" ]; then ln -sf ../../new_construction_cleaning/output/residential_review_source_dispositions.csv "$@"; fi
+
+../input/preferred_residential_project_ledger.csv: ../../new_construction_cleaning/output/preferred_residential_project_ledger.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/preferred_residential_project_ledger.csv" ]; then ln -sf ../../new_construction_cleaning/output/preferred_residential_project_ledger.csv "$@"; fi
+
+../input/density_parcel_address_selected_history.csv: ../../new_construction_cleaning/output/density_parcel_address_selected_history.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/density_parcel_address_selected_history.csv" ]; then ln -sf ../../new_construction_cleaning/output/density_parcel_address_selected_history.csv "$@"; fi
+
+# Compare the preserved paper input with the newly connected construction data.
+ifneq ($(filter-out $(wildcard ../output/construction_estimation_project_changes.csv ../output/construction_estimation_sample_comparison.csv),../output/construction_estimation_project_changes.csv ../output/construction_estimation_sample_comparison.csv),)
+.PHONY: ../output/construction_estimation_project_changes.csv
+endif
+
+../output/construction_estimation_project_changes.csv: compare_construction_estimation_samples.R ../../setup_environment/code/packages.R ../reference/new_construction_analysis_data_before_reconnection.csv ../input/current_construction_analysis.csv ../input/preferred_new_construction_project_ledger.csv | ../output
+	$(R) $<
+
+../output/construction_estimation_sample_comparison.csv: ../output/construction_estimation_project_changes.csv
+
+../report/construction_estimation_project_changes.csv.log: ../../shared/code/report.py ../output/construction_estimation_project_changes.csv | ../report
+	$(PYTHON) $< ../output/construction_estimation_project_changes.csv $@ project_id
+
+../report/construction_estimation_sample_comparison.csv.log: ../../shared/code/report.py ../output/construction_estimation_sample_comparison.csv | ../report
+	$(PYTHON) $< ../output/construction_estimation_sample_comparison.csv $@ sample outcome
+
+../input/preferred_new_construction_project_ledger.csv: ../../new_construction_cleaning/output/preferred_new_construction_project_ledger.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+../input/current_construction_analysis.csv: ../../new_construction_analysis_data/output/new_construction_analysis_data.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+../output/density_change_decomposition.csv: decompose_density_changes.R ../../setup_environment/code/packages.R ../input/scores.csv ../reference/new_construction_analysis_data_before_reconnection.csv ../input/current_construction_analysis.csv ../output/construction_estimation_project_changes.csv | ../output
+	$(R) $<
+
+../report/density_change_decomposition.csv.log: ../../shared/code/report.py ../output/density_change_decomposition.csv | ../report
+	$(PYTHON) $< ../output/density_change_decomposition.csv $@ sample outcome stage
+
+../input/preferred_new_construction_zoning.csv: ../../new_construction_cleaning/output/preferred_new_construction_zoning.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+../input/historical_zoning_project_construction_year.csv: ../../new_construction_cleaning/adjudication/historical_zoning_project_construction_year.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+../input/zoning_review_matters.csv: ../../../data_raw/construction_review/matters_20101101_20260212.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+all: ../report/entering_home_assignments.csv.log
+
+../output/entering_home_assignments.csv: review_entering_home_assignments.py ../output/construction_estimation_project_changes.csv ../input/current_construction_analysis.csv ../input/terms.csv ../input/scores.csv | ../output
+	$(PYTHON) $<
+
+../report/entering_home_assignments.csv.log: ../../shared/code/report.py ../output/entering_home_assignments.csv | ../report
+	$(PYTHON) $< ../output/entering_home_assignments.csv $@ project_id
+
+all: ../report/ward_two_year_review.csv.log
+
+../output/ward_two_year_review.csv: review_ward_two_years.py ../output/entering_home_assignments.csv ../input/current_construction_analysis.csv ../input/residential_assessor_history.parquet ../input/parcel_addresses_2025_chicago.csv | ../output
+	$(PYTHON) $<
+
+../report/ward_two_year_review.csv.log: ../../shared/code/report.py ../output/ward_two_year_review.csv | ../report
+	$(PYTHON) $< ../output/ward_two_year_review.csv $@ project_id
+
+all: ../report/population_chronology_review.csv.log
+
+../output/population_chronology_review.csv: review_population_chronology.py ../input/residential_assessor_history.parquet ../input/commercial_value_raw.csv ../input/construction_condominium_history.csv ../reference/residential_assessments_before_chronology.csv ../input/residential_selected_assessments.csv ../input/preferred_new_construction_project_ledger.csv ../input/current_construction_analysis.csv | ../output
+	$(PYTHON) $<
+
+../report/population_chronology_review.csv.log: ../../shared/code/report.py ../output/population_chronology_review.csv | ../report
+	$(PYTHON) $< ../output/population_chronology_review.csv $@ project_id
+
+../input/residential_selected_assessments.csv: ../../new_construction_cleaning/output/residential_selected_assessments.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+../input/commercial_value_raw.csv: ../../download_construction_assessor_history/output/commercial_valuation_data.csv | ../input
+	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+
+all: ../report/large_year_change_review.csv.log
+
+../output/large_year_change_review.csv: review_large_year_changes.py ../reference/large_year_change_recommendations.csv ../output/population_chronology_review.csv ../input/parcel_addresses_2025_chicago.csv | ../output
+	$(PYTHON) $<
+
+../report/large_year_change_review.csv.log: ../../shared/code/report.py ../output/large_year_change_review.csv | ../report
+	$(PYTHON) $< ../output/large_year_change_review.csv $@ project_id
 
 include ../../shared/code/generic.make

@@ -1,7 +1,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_sample_definition_audit/code")
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 source("../../_lib/amenity_distance_helpers.R")
 
 sf_use_s2(FALSE)

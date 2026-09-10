@@ -1,7 +1,7 @@
 File: preferred_project_component_geometry.gpkg
 Rows: 15694
 Columns: 15
-SHA-256 (saved bytes): 4e0ce3e948007b3b0b85d6819c59185e44ace962e39e4876be6607a31daeae92
+SHA-256 (saved bytes): f1ae68f487d76e5f3d2edc2db77e21c46178614aeeeb200d4ec829648d289b21
 Key: request_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -13,13 +13,13 @@ Row counts, non-missing counts, and declared-key checks: exact.
     source_family       VARCHAR       15694        2      -         -                  -                  -
        project_id       VARCHAR       15694    13989      -         -                  -                  -
      project_kind       VARCHAR       15694        7      -         -                  -                  -
- candidate_status       VARCHAR       15694       10      -         -                  -                  -
+ candidate_status       VARCHAR       15694       11      -         -                  -                  -
     component_pin       VARCHAR       15694    15602      -         -                  -                  -
   requested_pin10       VARCHAR       15694    15560      -         -                  -                  -
-      target_year        DOUBLE       15694       17 2006.0    2022.0  2012.687205301389  5.403725375497965
+      target_year        DOUBLE       15694       17 2006.0    2022.0 2012.6900726392253  5.404745451037115
      match_method       VARCHAR       15694        3      -         -                  -                  -
-         layer_id        DOUBLE       11843       17    6.0    2022.0 154.57350333530354  513.7082930352259
-        object_id        DOUBLE       11843    11734   44.0 1849492.0  692289.5515494385 486246.87995270616
-parcel_object_ids       VARCHAR       15694    13050      -         -                  -                  -
-     parcel_pin14       VARCHAR       15694    12822      -         -                  -                  -
-     parcel_pin10       VARCHAR       15694    12822      -         -                  -                  -
+         layer_id        DOUBLE       11858       17    6.0    2022.0 154.40605498397707  513.4047835536453
+        object_id        DOUBLE       11858    11749   44.0 1849492.0  692576.4985663687 486063.97661617206
+parcel_object_ids       VARCHAR       15694    13060      -         -                  -                  -
+     parcel_pin14       VARCHAR       15694    12833      -         -                  -                  -
+     parcel_pin10       VARCHAR       15694    12833      -         -                  -                  -

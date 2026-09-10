@@ -1,27 +1,27 @@
 File: commercial_permit_chain_evidence.csv
-Rows: 324
+Rows: 331
 Columns: 17
-SHA-256 (saved bytes): ef94741805e8f3c615f050c863c65addc713da6dfbac9ab05b246e1d87631ed6
+SHA-256 (saved bytes): ac8e225e6079acd85302449953fa5cd6ef81e2d876a0e46927cebbe19143af38
 Key: project_id, permit_chain_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                    column inferred_type non_missing distinct min max               mean                 sd
-               project_id       VARCHAR         324      146   -   -                  -                  -
-          permit_chain_id       VARCHAR         324      312   -   -                  -                  -
-           permit_records        BIGINT         324        7   1   9 1.3549382716049383 1.0262530644119703
- directly_matched_permits        BIGINT         324        7   1   9 1.1975308641975309 0.7067959026203119
-           permit_numbers       VARCHAR         324      312   -   -                  -                  -
-         permit_addresses       VARCHAR         324      233   -   -                  -                  -
-             address_keys       VARCHAR         324      233   -   -                  -                  -
-earliest_application_date          DATE         324      243   -   -                  -                  -
-      earliest_issue_date          DATE         324      239   -   -                  -                  -
-        latest_issue_date          DATE         324      238   -   -                  -                  -
-          permit_statuses       VARCHAR         324        6   -   -                  -                  -
-        work_descriptions       VARCHAR         324      312   -   -                  -                  -
-     distinct_unit_counts        BIGINT         324        5   0   4 0.7469135802469136 0.5815717828768306
-              unit_counts       VARCHAR         223       80   -   -                  -                  -
-            unit_contexts       VARCHAR         223      212   -   -                  -                  -
-     resolved_chain_units        BIGINT         208       65   3 498  58.27884615384615 109.09375985473189
-         chain_resolution       VARCHAR         324        3   -   -                  -                  -
+               project_id       VARCHAR         331      147   -   -                  -                  -
+          permit_chain_id       VARCHAR         331      319   -   -                  -                  -
+           permit_records        BIGINT         331       11   1  14  2.117824773413897 1.7376445515077068
+ directly_matched_permits        BIGINT         331        7   1   9 1.1993957703927491 0.7110382488839796
+           permit_numbers       VARCHAR         331      319   -   -                  -                  -
+         permit_addresses       VARCHAR         331      242   -   -                  -                  -
+             address_keys       VARCHAR         331      242   -   -                  -                  -
+earliest_application_date          DATE         331      246   -   -                  -                  -
+      earliest_issue_date          DATE         331      241   -   -                  -                  -
+        latest_issue_date          DATE         331      249   -   -                  -                  -
+          permit_statuses       VARCHAR         331        5   -   -                  -                  -
+        work_descriptions       VARCHAR         331      319   -   -                  -                  -
+     distinct_unit_counts        BIGINT         331        5   0   4 0.7764350453172205 0.5914957756284368
+              unit_counts       VARCHAR         233       87   -   -                  -                  -
+            unit_contexts       VARCHAR         233      222   -   -                  -                  -
+     resolved_chain_units        BIGINT         213       67   3 498  58.53051643192488 110.82216443650798
+         chain_resolution       VARCHAR         331        3   -   -                  -                  -

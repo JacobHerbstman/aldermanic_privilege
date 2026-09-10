@@ -2,7 +2,7 @@
 # workers <- 8
 # gap_thresholds <- c(0.25, 0.50)
 
-source("../../_lib/alderman_uncertainty_helpers.R")
+source("../../shared/code/alderman_uncertainty_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (length(cli_args) == 0) {
@@ -95,13 +95,8 @@ projects <- projects |>
     construction_year >= 2006L,
     construction_year <= 2022L,
     within_500ft,
-    dwelling_units > 0,
-    allow_far,
-    allow_dupac,
-    is.finite(density_far),
-    density_far > 0,
-    is.finite(density_dupac),
-    density_dupac > 0,
+    (allow_far & is.finite(density_far) & density_far > 0) |
+      (allow_dupac & is.finite(density_dupac) & density_dupac > 0),
     is.finite(share_white_own),
     is.finite(share_black_own),
     is.finite(median_hh_income_own),
@@ -131,12 +126,10 @@ if (
 ) {
   stop("Current scores are missing for a construction-sample alderman.", call. = FALSE)
 }
-if (!identical(c(nrow(projects), sum(projects$external_multifamily)), c(3692L, 822L))) {
-  stop("The baseline density samples do not match the paper.", call. = FALSE)
-}
+stopifnot(nrow(projects) > 0, !anyDuplicated(projects$project_id))
 
 project_permits <- readr::read_csv(
-  "../adjudication/project_permit_matches.csv",
+  "../output/project_permit_matches.csv",
   show_col_types = FALSE,
   col_types = readr::cols(
     project_id = readr::col_character(),
@@ -265,6 +258,8 @@ for (version in names(score_versions)) {
 
     for (outcome in names(outcome_labels)) {
       model_data <- model_sample |>
+        dplyr::filter(if (outcome == "density_far") allow_far else allow_dupac,
+          is.finite(.data[[outcome]]), .data[[outcome]] > 0) |>
         dplyr::mutate(log_outcome = log(.data[[outcome]]))
       model <- fixest::feols(
         log_outcome ~

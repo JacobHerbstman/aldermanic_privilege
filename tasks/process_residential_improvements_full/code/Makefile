@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 START_YEAR ?= 2006
 END_YEAR ?= 2022
 
@@ -11,5 +13,4 @@ all: ../output/residential_improvements_panel.parquet
 
 link-inputs: ../input/residential_improvement_characteristics_full.csv
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

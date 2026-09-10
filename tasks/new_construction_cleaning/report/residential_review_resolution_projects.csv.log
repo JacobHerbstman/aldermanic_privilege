@@ -1,0 +1,31 @@
+File: residential_review_resolution_projects.csv
+Rows: 41
+Columns: 21
+SHA-256 (saved bytes): 7051bb56f4f159f2d3d90edb9fbb6a9ec1ba0e3669285d7451e9ca3a2d25398c
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                     column inferred_type non_missing distinct  min   max               mean                 sd
+                 project_id       VARCHAR          41       41    -     -                  -                  -
+         source_project_ids       VARCHAR          41       41    -     -                  -                  -
+             component_pins       VARCHAR          41       41    -     -                  -                  -
+          construction_year        BIGINT          41        6 2013  2022  2020.560975609756 2.3243147429705604
+             dwelling_units        BIGINT          41        8    2    31 4.7073170731707314  4.691715584085552
+              building_sqft        BIGINT          37       36 3900 16440  7320.648648648648  3062.413066486915
+                  land_sqft        BIGINT          41       35 2917 12435  4366.170731707317 2023.4904484879467
+                  allow_far       BOOLEAN          41        2    -     -                  -                  -
+                allow_dupac       BOOLEAN          41        1    -     -                  -                  -
+          membership_source       VARCHAR          41       38    -     -                  -                  -
+                year_source       VARCHAR          41       38    -     -                  -                  -
+               units_source       VARCHAR          41       38    -     -                  -                  -
+            building_source       VARCHAR          41       38    -     -                  -                  -
+                land_source       VARCHAR          41       38    -     -                  -                  -
+               evidence_ids       VARCHAR          41       41    -     -                  -                  -
+            decision_reason       VARCHAR          41        4    -     -                  -                  -
+                 confidence       VARCHAR          40        2    -     -                  -                  -
+            decision_source       VARCHAR          41        2    -     -                  -                  -
+               project_kind       VARCHAR          41        3    -     -                  -                  -
+               class_values        BIGINT          41        3  211   297  286.5365853658537   28.4254266115529
+geometry_source_project_ids       VARCHAR          41       41    -     -                  -                  -

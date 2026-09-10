@@ -1,0 +1,17 @@
+File: residential_successor_condo_requests.csv
+Rows: 67
+Columns: 7
+SHA-256 (saved bytes): e880a6590a6ec1affbea5d60ef81f2b4fa2b2815fbb6bca195d05741157ff9f6
+Key: project_id, pin10
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct        min        max               mean                  sd
+             project_id       VARCHAR          67       61          -          -                  -                   -
+           project_kind       VARCHAR          67        3          -          -                  -                   -
+            target_year        BIGINT          67        9       2006       2022 2019.8059701492537   4.243493436374079
+                  pin10        BIGINT          67       66 1312425058 2002404115  1523558460.283582  146542229.87321842
+            link_method       VARCHAR          67        2          -          -                  -                   -
+            link_reason       VARCHAR           1        1          -          -                  -                   -
+projects_per_condo_base        BIGINT          67        2          1          2 1.0298507462686568 0.17145979772029107

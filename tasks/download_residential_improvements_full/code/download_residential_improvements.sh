@@ -11,7 +11,7 @@ fi
 
 start_year="$1"
 end_year="$2"
-output_file="../output/residential_improvement_characteristics_full.csv"
+output_file="../output/residential_improvement_characteristics_full_current.csv"
 api_csv="https://datacatalog.cookcountyil.gov/resource/x54s-btds.csv"
 api_json="https://datacatalog.cookcountyil.gov/resource/x54s-btds.json"
 batch_size=500000
@@ -41,8 +41,9 @@ download_batch() {
             --data-urlencode "\$limit=${batch_size}" \
             --data-urlencode "\$offset=${offset}"; then
             return 0
+        else
+            rc=$?
         fi
-        rc=$?
         echo "  Download attempt ${attempt} failed at offset ${offset} with curl exit ${rc}; retrying..." >&2
         sleep $(( attempt * 10 ))
     done

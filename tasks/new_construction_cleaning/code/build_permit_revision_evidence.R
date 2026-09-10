@@ -8,7 +8,7 @@ extract_unit_mentions <- function(permit_number, work_description) {
   locations <- str_locate_all(
     text,
     paste0(
-    "\\b[0-9]{1,4}\\s*(?:TOTAL\\s+)?(?:DWELLING\\s+|RESIDENTIAL\\s+|APARTMENT\\s+|EFFICIENCY\\s+)?(?:UNITS?|D\\.?U\\.?)\\b",
+    "\\b[0-9]{1,4}\\)?\\s*(?:TOTAL\\s+)?(?:DWELLING\\s+|RESIDENTI?AL\\s+|APARTMENT\\s+|EFFICIENCY\\s+)*(?:UNITS?|D\\.?U\\.?)\\b",
       "|", attached_house_count_pattern
     )
   )[[1]]
@@ -33,11 +33,11 @@ extract_unit_mentions <- function(permit_number, work_description) {
 permits <- sf::st_read("../output/building_permits_for_verification.gpkg", quiet = TRUE) %>%
   sf::st_drop_geometry() %>%
   filter(
-    permit_type == "PERMIT - NEW CONSTRUCTION",
     !is.na(application_start_date),
     !is.na(issue_date)
   ) %>%
   transmute(
+    permit_type,
     permit_id = as.character(id),
     permit_number = as.character(permit),
     application_date = as.Date(application_start_date),
@@ -56,7 +56,7 @@ permits <- sf::st_read("../output/building_permits_for_verification.gpkg", quiet
   )
 
 if (anyDuplicated(permits$permit_id) > 0 || anyDuplicated(permits$permit_number) > 0) {
-  stop("Issued new-construction permit IDs and numbers must each be unique.", call. = FALSE)
+  stop("Issued permit IDs and numbers must each be unique.", call. = FALSE)
 }
 
 permit_edges <- permits %>%
@@ -98,10 +98,12 @@ permit_components <- tibble::tibble(
   permit_number = names(igraph::components(permit_graph)$membership),
   graph_component = as.integer(igraph::components(permit_graph)$membership)
 ) %>%
+  left_join(permits %>% select(permit_number, permit_type), by = "permit_number", relationship = "one-to-one") %>%
   group_by(graph_component) %>%
-  mutate(permit_chain_id = paste0("permit_chain_", min(permit_number))) %>%
+  mutate(permit_chain_id = paste0("permit_chain_", min(permit_number[permit_type == "PERMIT - NEW CONSTRUCTION" |
+    !any(permit_type == "PERMIT - NEW CONSTRUCTION")]))) %>%
   ungroup() %>%
-  select(-graph_component)
+  select(-graph_component, -permit_type)
 
 exact_links <- readr::read_csv(
   "../output/new_construction_exact_permit_matches.csv",
@@ -185,6 +187,7 @@ project_chains <- direct_links %>%
     permit_chain_id,
     permit_id,
     permit_number,
+    permit_type,
     directly_matched,
     direct_match_method,
     application_date,
@@ -229,7 +232,27 @@ chain_unit_mentions <- project_chains %>%
   ) %>%
   arrange(source_family, project_id, permit_chain_id, permit_number, mention_order)
 
+# Separately numbered buildings can corroborate a whole-development count.
+# Require a complete consecutive building list, one completed permit per building,
+# and one residential count per permit. Do not add revisions or parking counts.
+permit_counts <- unit_mentions %>% group_by(permit_number) %>%
+  summarise(unit_count = if (n_distinct(unit_count) == 1) first(unit_count) else NA_real_, .groups = "drop")
+numbered_buildings <- project_chains %>%
+  left_join(permit_counts, by = "permit_number", relationship = "many-to-one") %>%
+  filter(permit_type == "PERMIT - NEW CONSTRUCTION" | is.finite(unit_count)) %>%
+  mutate(building_number = as.integer(str_match(str_to_upper(work_description),
+    "\\bBUILDING\\s*#?\\s*([0-9]+)\\b")[, 2]),
+    nonresidential_amenity = str_detect(str_to_upper(work_description), "COMMUNITY CENTER|AMENITY BUILDING") & is.na(unit_count)) %>%
+  filter(!nonresidential_amenity) %>% group_by(source_family, project_id) %>%
+  summarise(numbered_building_units = if (n() > 1 && all(!is.na(building_number)) &&
+      n_distinct(building_number) == n() && setequal(building_number, seq_len(n())) &&
+      all(!is.na(permit_status) & permit_status == "COMPLETE" & permit_type == "PERMIT - NEW CONSTRUCTION" &
+        is.finite(unit_count) & unit_count > 0) &&
+      !any(str_detect(str_to_upper(work_description), "REVISION|ALTERATION|CONVERT|FOUNDATION")))
+      sum(unit_count) else NA_real_, .groups = "drop")
+
 project_summary <- project_chains %>%
+  filter(permit_type == "PERMIT - NEW CONSTRUCTION") %>%
   group_by(source_family, project_id) %>%
   summarise(
     permit_chains = n_distinct(permit_chain_id),
@@ -253,6 +276,7 @@ project_summary <- project_chains %>%
     by = c("source_family", "project_id"),
     relationship = "one-to-one"
   ) %>%
+  left_join(numbered_buildings, by = c("source_family", "project_id"), relationship = "one-to-one") %>%
   mutate(
     permits_with_unit_mentions = coalesce(permits_with_unit_mentions, 0L),
     distinct_unit_counts = coalesce(distinct_unit_counts, 0L),

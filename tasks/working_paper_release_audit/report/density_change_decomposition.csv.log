@@ -1,0 +1,18 @@
+File: density_change_decomposition.csv
+Rows: 34
+Columns: 8
+SHA-256 (saved bytes): 25a8b84345b86a368fb2f5076c7ec0b03034770e436cdf95781df1cdfbd34b62
+Key: sample, outcome, stage
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct                   min                  max                 mean                   sd
+              sample       VARCHAR          34        2                     -                    -                    -                    -
+             outcome       VARCHAR          34        2                     -                    -                    -                    -
+               stage       VARCHAR          34        9                     -                    -                    -                    -
+                   n        BIGINT          34       12                   801                 4071   2355.6176470588234   1481.9003977224831
+            estimate        DOUBLE          34       30  -0.20643019742812757 -0.10391520934464687 -0.15803447543939014  0.02668789595402372
+      standard_error        DOUBLE          34       30   0.04673098667884008  0.10929495104401533   0.0717584372391646 0.020100027835677606
+             p_value        DOUBLE          34       30 0.0046036117235942735  0.09014207580215217  0.03439586911794321 0.027376910953248262
+change_from_previous        DOUBLE          30       27 -0.022849296648622036  0.03127844084574205 0.001930481669313284 0.010754142933927945

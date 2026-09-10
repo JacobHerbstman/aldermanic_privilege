@@ -350,3 +350,12 @@ The same completion-year changes also add 31 coordinate/year queries through
 additional historical polygons; all twenty-two previously saved reviewed
 predecessor polygons and their attributes are unchanged. These responses support
 the existing point-containment and exact-parcel location rules.
+
+
+September 10 estimation handoff: restoring recorded completion-year corrections
+required 51 additional year/PIN10 queries and nine additional year/coordinate
+queries. These requests are included in `reviewed_parcel_queries.csv` and
+`reviewed_predecessor_queries.csv`; the existing Make-owned download rules retrieve
+them. Query rows specify source retrieval, not manual building measurements.
+Existing recorded construction decisions supply the corrected years. Parcel
+geometry continues to establish location and identity, never density land area.

@@ -316,9 +316,6 @@ endif
 ../report/final_verified_density_input.csv.log: ../output/final_verified_density_input.csv ../../shared/code/report.py | ../report
 	$(PYTHON) ../../shared/code/report.py $< $@ project_id
 
-../report/preferred_new_construction_zoning.csv.log: ../../shared/code/report.py ../output/preferred_new_construction_zoning.csv | ../report
-	$(PYTHON) $< ../output/preferred_new_construction_zoning.csv $@ project_id
-
 ../report/residential_tieback_episode_candidates.csv.log: ../../shared/code/report.py ../output/residential_tieback_episode_candidates.csv | ../report
 	$(PYTHON) $< ../output/residential_tieback_episode_candidates.csv $@ proposed_project_id
 

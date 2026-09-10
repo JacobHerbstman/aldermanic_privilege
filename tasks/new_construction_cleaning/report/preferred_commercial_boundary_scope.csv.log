@@ -1,24 +1,24 @@
 File: preferred_commercial_boundary_scope.csv
-Rows: 815
+Rows: 810
 Columns: 14
-SHA-256 (saved bytes): c24e48358f550475f1db9e886b4e27b0f83eab30dee3e02989b71df106d3a42f
+SHA-256 (saved bytes): b352ea5ba896820fe651c480da63339d934cfb79e5eda18382130ba076b61ae9
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                 column inferred_type non_missing distinct                min                max               mean                 sd
-             project_id       VARCHAR         815      815                  -                  -                  -                  -
-      construction_year        BIGINT         815       17               2006               2022 2013.6319018404909  5.207909613811849
-              allow_far       BOOLEAN         815        2                  -                  -                  -                  -
-            allow_dupac       BOOLEAN         815        2                  -                  -                  -                  -
-      construction_date          DATE         813       17                  -                  -                  -                  -
-          boundary_year        BIGINT         813        2               2003               2015 2008.4464944649446  5.978092446347231
-                    era       VARCHAR         813        2                  -                  -                  -                  -
-                   ward        BIGINT         813       49                  1                 50  23.60762607626076 16.488607528367602
-          neighbor_ward        BIGINT         813       47                  1                 50  21.93111931119311 16.356110271202265
-              ward_pair       VARCHAR         813       90                  -                  -                  -                  -
-distance_to_boundary_ft        DOUBLE         813      810 48.534013135909824 13958.588592165468 1141.9959207143806 1236.3247795405225
-          within_1500ft       BOOLEAN         813        2                  -                  -                  -                  -
-           within_500ft       BOOLEAN         813        2                  -                  -                  -                  -
-      location_resolved       BOOLEAN         815        2                  -                  -                  -                  -
+                 column inferred_type non_missing distinct               min                max               mean                 sd
+             project_id       VARCHAR         810      810                 -                  -                  -                  -
+      construction_year        BIGINT         810       17              2006               2022 2013.6592592592592  5.211468236606296
+              allow_far       BOOLEAN         810        2                 -                  -                  -                  -
+            allow_dupac       BOOLEAN         810        2                 -                  -                  -                  -
+      construction_date          DATE         808       17                 -                  -                  -                  -
+          boundary_year        BIGINT         808        2              2003               2015  2008.480198019802  5.981143766354262
+                    era       VARCHAR         808        2                 -                  -                  -                  -
+                   ward        BIGINT         808       49                 1                 50 23.667079207920793 16.524603124881917
+          neighbor_ward        BIGINT         808       47                 1                 50 22.018564356435643  16.35111649324838
+              ward_pair       VARCHAR         808       90                 -                  -                  -                  -
+distance_to_boundary_ft        DOUBLE         808      805 40.00000231388564 13958.588592165468  1147.230366337999 1238.3925529713624
+          within_1500ft       BOOLEAN         808        2                 -                  -                  -                  -
+           within_500ft       BOOLEAN         808        2                 -                  -                  -                  -
+      location_resolved       BOOLEAN         810        2                 -                  -                  -                  -

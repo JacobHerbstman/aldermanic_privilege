@@ -1,6 +1,8 @@
+include ../../shared/code/shell_functions.make
+
 all: ../output/sales_pre_scores.csv
 
-../output/sales_pre_scores.csv: calculate_sale_distances.R ../../_lib/canonical_geometry_helpers.R ../input/residential_sales_clean.parquet ../input/parcel_universe_2025_city.csv ../input/historical_sale_parcel_coordinates_2006_2022.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_terms.csv ../input/fred_cpi_cuura207sa0.csv | ../output
+../output/sales_pre_scores.csv: calculate_sale_distances.R ../../shared/code/canonical_geometry_helpers.R ../input/residential_sales_clean.parquet ../input/parcel_universe_2025_city.csv ../input/historical_sale_parcel_coordinates_2006_2022.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_terms.csv ../input/fred_cpi_cuura207sa0.csv | ../output
 	$(R) $<
 
 ../input/residential_sales_clean.parquet: ../../clean_residential_sales/output/residential_sales_clean.parquet | ../input
@@ -26,5 +28,4 @@ all: ../output/sales_pre_scores.csv
 
 link-inputs: ../input/residential_sales_clean.parquet ../input/parcel_universe_2025_city.csv ../input/historical_sale_parcel_coordinates_2006_2022.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_terms.csv ../input/fred_cpi_cuura207sa0.csv
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

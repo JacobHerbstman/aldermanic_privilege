@@ -1,0 +1,54 @@
+File: residential_improvement_characteristics_full.csv
+Rows: 7489601
+Columns: 44
+SHA-256 (saved bytes): 9a0bf16c9d88e1a734ecccdc8bfd618a2d758f09c0cb1dcb944ae5cbfb3800d7
+Key: row_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type  non_missing  distinct    min      max                 mean                  sd
+                   pin       VARCHAR      7489601    441774      -        -                    -                   -
+                  year        DOUBLE      7489601        17 2006.0   2022.0    2013.985924884383   4.899280762782149
+                  card        DOUBLE      7489601        45    1.0     43.0    1.017175280765958 0.22568424778356683
+                 class       VARCHAR      7489601        25      -        -                    -                   -
+         township_code        BIGINT      7489601         9     70       77    72.47415169379516  2.2792134388993808
+       tieback_key_pin       VARCHAR       181823      6461      -        -                    -                   -
+tieback_proration_rate        DOUBLE      7489601       173    0.0      1.0   0.9873959040512782 0.08504166055492919
+   card_proration_rate        DOUBLE      7487514       189    0.0   3770.3 0.014379886992999545   2.742996605091447
+                   cdu       VARCHAR      7487489         6      -        -                    -                   -
+      pin_is_multicard       BOOLEAN      7489601         2      -        -                    -                   -
+         pin_num_cards        DOUBLE      7489601        30    1.0     43.0   1.0341895382677928  0.3674556604149812
+      pin_is_multiland       BOOLEAN      7489601         2      -        -                    -                   -
+     pin_num_landlines        DOUBLE      7489601         5    1.0      5.0   1.0101210999090606 0.10750999805926999
+            char_yrblt        DOUBLE      7489531       242 1801.0   2023.0    1930.654655945746  30.665782756288273
+          char_bldg_sf        DOUBLE      7486927     10034    0.0 330535.0   1851.9511742267555  1245.9635880509927
+          char_land_sf        DOUBLE      7488372     11732    1.0 584880.0    3996.026789400954   2199.670419777975
+             char_beds        DOUBLE      7486700        35    0.0     90.0    3.727187412344558   1.886707278512018
+            char_rooms        DOUBLE      7486629        56    1.0     64.0    7.460690118342982   4.143917326624134
+            char_fbath        DOUBLE      7486702        26    0.0     99.0   1.7348359798480024  1.0115074006278812
+            char_hbath        DOUBLE      7486122        13    0.0     17.0   0.2879378668955702  0.5406754088382637
+             char_frpl        DOUBLE      7485089        11    0.0      9.0  0.14605197079152968  0.4762016095338281
+        char_type_resd       VARCHAR      7486806         5      -        -                    -                   -
+        char_cnst_qlty       VARCHAR      7489601         3      -        -                    -                   -
+             char_apts       VARCHAR      7262165         6      -        -                    -                   -
+       char_attic_fnsh       VARCHAR      7486326         3      -        -                    -                   -
+         char_gar1_att       BOOLEAN      7485787         2      -        -                    -                   -
+        char_gar1_area       BOOLEAN      7485770         2      -        -                    -                   -
+        char_gar1_size       VARCHAR      7486598         7      -        -                    -                   -
+        char_gar1_cnst       VARCHAR      5512460         4      -        -                    -                   -
+       char_attic_type       VARCHAR      7486665         3      -        -                    -                   -
+             char_bsmt       VARCHAR      7486694         4      -        -                    -                   -
+         char_ext_wall       VARCHAR      7486708         4      -        -                    -                   -
+             char_heat       VARCHAR      7486474         4      -        -                    -                   -
+       char_repair_cnd       VARCHAR      7486694         3      -        -                    -                   -
+         char_bsmt_fin       VARCHAR      7486465         3      -        -                    -                   -
+        char_roof_cnst       VARCHAR      7486701         6      -        -                    -                   -
+              char_use       VARCHAR      7486739         2      -        -                    -                   -
+             char_site       VARCHAR      7486688         3      -        -                    -                   -
+              char_ncu        BIGINT      7487549         6      0        5   0.0286753382181539 0.19286207068381755
+       char_renovation       BOOLEAN        20406         1      -        -                    -                   -
+            char_porch       VARCHAR      7486111         3      -        -                    -                   -
+              char_air       VARCHAR      7486682         2      -        -                    -                   -
+          char_tp_plan       VARCHAR      7486675         3      -        -                    -                   -
+                row_id       VARCHAR      7489601   6726001      -        -                    -                   -

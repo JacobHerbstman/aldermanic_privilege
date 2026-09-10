@@ -6,4 +6,4 @@ all: ../output/building_permits_$(START_YEAR)_$(END_YEAR).csv
 ../output/building_permits_$(START_YEAR)_$(END_YEAR).csv: download_building_permits.sh | ../output
 	bash $< $(START_YEAR) $(END_YEAR)
 
-include ../../generic.make
+include ../../shared/code/generic.make

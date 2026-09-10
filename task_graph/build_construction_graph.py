@@ -87,7 +87,7 @@ for node in script_inputs:
 if mode == "steps":
     lines = ["# Current construction cleaning: execution order", "",
              "Generated from the current Make targets. Steps at the same level are independent.",
-             "The older final-assembly rules are excluded from the default build; the paper still uses its frozen input.", ""]
+             "The chronological construction outputs feed the density analyses; older unused final-assembly rules are excluded.", ""]
     for step in sorted(set(levels.values())):
         scripts = sorted(x for x in script_inputs if levels[x] == step)
         if not scripts:
@@ -113,5 +113,5 @@ else:
         lines.append(f'"{node}" [label="{label}"];')
     for parent, child in sorted(edges):
         lines.append(f'"{parent}" -> "{child}";')
-    lines += ['label="Current construction build — separate from the paper’s frozen construction input";', "}"]
+    lines += ['label="Current construction build — feeds the density analyses";', "}"]
     Path(f"construction_{mode}.dot").write_text("\n".join(lines) + "\n")

@@ -1,0 +1,86 @@
+File: residential_manual_review_bundle.csv
+Rows: 184
+Columns: 76
+SHA-256 (saved bytes): bf0c8b8a86c10a6042ad364407f69c883081c111d086cdb0e533cf3c21e99631
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                           column inferred_type  non_missing  distinct                min               max                 mean                  sd
+                       project_id       VARCHAR          184       184                  -                 -                    -                   -
+                     project_kind       VARCHAR          184         5                  -                 -                    -                   -
+                   component_pins       VARCHAR          184       184                  -                 -                    -                   -
+                  component_count        BIGINT          184         5                  1                 5    1.684782608695652  0.7813306266307437
+                construction_year        BIGINT          184        17               2006              2022   2014.6902173913043    5.91254218959489
+                   dwelling_units        BIGINT           72         9                  0                 8   3.2222222222222223  1.8402558167408445
+                    building_sqft        BIGINT           76        42                  0            309180   11849.644736842105   49451.19707582523
+                        land_sqft        BIGINT           77        61               1875            210101    13654.83116883117  37389.205041239606
+                     class_values        BIGINT          184        10                204               297    253.2336956521739   42.54222917020514
+                   source_row_ids       VARCHAR           82        82                  -                 -                    -                   -
+                 permit_chain_ids       VARCHAR           37        37                  -                 -                    -                   -
+                   permit_numbers        BIGINT            5         5          100359807         100525347          100393023.6   73971.07087774102
+                      year_source       VARCHAR           82        65                  -                 -                    -                   -
+                     units_source       VARCHAR           74        57                  -                 -                    -                   -
+                  building_source       VARCHAR           78        61                  -                 -                    -                   -
+                      land_source       VARCHAR           78        61                  -                 -                    -                   -
+               current_distance_m        DOUBLE          113       113  16.79765761020505 452.0904299461831   202.39040429098284  126.92888479714618
+            current_within_1500ft       BOOLEAN          184         2                  -                 -                    -                   -
+                 candidate_status       VARCHAR          184         2                  -                 -                    -                   -
+                  decision_reason       VARCHAR          184        11                  -                 -                    -                   -
+          distance_to_boundary_ft        DOUBLE          184       178  55.03420649843826 1494.802618497043    696.7888376575919   425.9553076146831
+                     within_500ft       BOOLEAN          184         2                  -                 -                    -                   -
+                     review_scope       VARCHAR          184         1                  -                 -                    -                   -
+               reported_tax_years        BIGINT          123        17                  1                20    4.430894308943089   4.900788328711637
+          reported_tieback_groups        BIGINT          123         3                  1                 3   1.0731707317073171 0.29114617215854816
+               complete_snapshots        BIGINT          123        10                  0                20   1.0731707317073171  3.6082117902183586
+             complete_member_sets        BIGINT          123         2                  0                 1  0.17073170731707318 0.37781331744509017
+complete_construction_year_values        BIGINT          123         4                  0                 3  0.22764227642276422  0.5699152673587066
+    complete_building_area_values        BIGINT          123         2                  0                 1  0.17073170731707318 0.37781331744509017
+             complete_unit_values        BIGINT          123         2                  0                 1  0.17073170731707318 0.37781331744509017
+                    lineage_nodes        BIGINT          123         5                  1                 5                  2.0  0.7788179357521117
+               source_member_pins        BIGINT          123         5                  1                 5    1.991869918699187  0.7840200624665121
+                   key_only_nodes        BIGINT          123         2                  0                 1 0.008130081300813009 0.09016696346674323
+                 all_lineage_pins       VARCHAR          123       123                  -                 -                    -                   -
+                selected_tax_year        BIGINT           21         4               2007              2025               2022.0  3.7549966711037306
+          selected_tieback_groups       VARCHAR           21        21                  -                 -                    -                   -
+          selected_component_pins       VARCHAR           21        21                  -                 -                    -                   -
+         selected_component_count        BIGINT           21         3                  1                 3    2.142857142857143  0.4780914437337574
+       selected_construction_year        BIGINT           21        11               2006              2022   2015.2857142857142    6.07571277417604
+          selected_dwelling_units        BIGINT           21         4                  1                 6    3.142857142857143  2.4142434484888695
+           selected_building_sqft        BIGINT           21        20               1238             24153    8037.952380952381   5168.370318351719
+               selected_land_sqft        BIGINT           21        19               2500             18750    6532.714285714285  3295.3486635386116
+          selected_source_row_ids       VARCHAR           21        21                  -                 -                    -                   -
+             selected_report_tier        BIGINT           21         2                  1                 2   1.2857142857142858 0.46291004988627577
+            candidate_member_pins        BIGINT          123         5                  1                 5   1.7967479674796747  0.8680045855576536
+      candidate_study_period_pins        BIGINT          123         5                  1                 5   1.7967479674796747  0.8680045855576536
+     candidate_construction_years       VARCHAR          123        19                  -                 -                    -                   -
+                candidate_classes        BIGINT          123         9                205               297    246.3089430894309   41.57003375330398
+      candidate_review_categories       VARCHAR          123         6                  -                 -                    -                   -
+                any_within_1500ft       BOOLEAN          123         2                  -                 -                    -                   -
+      minimum_boundary_distance_m        DOUBLE           83        83  16.79765761020505 452.0904299461831   207.91024918022953  133.81640302474318
+                  temporal_status       VARCHAR          123         2                  -                 -                    -                   -
+                  temporal_reason       VARCHAR          123         3                  -                 -                    -                   -
+        tieback_snapshot_evidence       VARCHAR          123       123                  -                 -                    -                   -
+       component_history_evidence       VARCHAR          184       184                  -                 -                    -                   -
+               multicard_evidence       VARCHAR           56        56                  -                 -                    -                   -
+            permit_chain_evidence       VARCHAR           91        89                  -                 -                    -                   -
+             permit_unit_evidence       VARCHAR           74        73                  -                 -                    -                   -
+          parcel_address_evidence       VARCHAR           67        67                  -                 -                    -                   -
+         geocode_address_evidence       VARCHAR            2         2                  -                 -                    -                   -
+      commercial_overlap_evidence       VARCHAR           25        25                  -                 -                    -                   -
+                      target_year        BIGINT          127        16               2006              2022   2015.1496062992126   6.295726366249572
+          matched_city_footprints        BIGINT          184         7                  0                 6   1.3478260869565217   1.288323200537244
+               city_footprint_ids       VARCHAR          127       126                  -                 -                    -                   -
+         city_footprint_addresses       VARCHAR          127       126                  -                 -                    -                   -
+                 city_harris_pins       VARCHAR           85        84                  -                 -                    -                   -
+           city_year_built_values       VARCHAR          112        50                  -                 -                    -                   -
+                 city_unit_values       VARCHAR           82        11                  -                 -                    -                   -
+        city_building_sqft_values       VARCHAR           75        72                  -                 -                    -                   -
+           city_building_sqft_sum        BIGINT           75        72                660             33300    3927.266666666667   5357.604722295249
+         city_footprint_area_sqft        DOUBLE          127       126 292.12500007712515   48498.874999305    4502.138980790933  6557.0944217640845
+      city_near_target_footprints        BIGINT          127         5                  0                 6   0.3779527559055118  0.9422123059567378
+              city_old_footprints        BIGINT          127         4                  0                 3   0.7952755905511811  0.7052927195657602
+          city_footprint_evidence       VARCHAR          127       126                  -                 -                    -                   -
+               overlap_candidates        BIGINT          184         3                  0                 2  0.16304347826086957  0.3988281718580283
+         project_overlap_evidence       VARCHAR           28        28                  -                 -                    -                   -

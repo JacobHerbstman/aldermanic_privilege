@@ -1,0 +1,17 @@
+\clearpage
+\section*{September 9, 2026: Eddy and the connection to estimation}
+\addcontentsline{toc}{section}{September 9, 2026: Eddy and the connection to estimation}
+\textit{Agent-drafted entry.}
+
+The tied-parcel record for 1165 W Eddy can be resolved from the finished condominium assessment. Completed City permit 100545879 describes one six-home building. The 2022 condominium assessment records six homes, construction in 2014, 5,400 square feet of building area and 6,232 square feet of land. These reported measurements enter once. The building lies about 2,066 feet from the construction-year ward boundary, outside the density estimation bandwidths.
+
+The existing condominium check had covered development-class records and unfinished single-card records, but not ordinary tied-parcel groups. It now examines matched tied-parcel groups as well, requiring an unambiguous completed new-building permit to confirm the home count. The same requirements for a unique finished building, complete condominium membership and consistent reported measurements still apply. This is a general eligibility extension, with no Eddy-specific numeric override. The previous development-class decisions retain their existing standard. The rebuilt review has 191 closed and 77 open questions; the combined candidate contains 13,735 projects. The construction build and targeted report passed, and an unchanged construction build does no work.
+
+Two Lake Street reviews also establish a useful fact without yet settling their years. Completed permits 100095921 and 100095926 at 1002 and 1016 W Lake each describe one dwelling plus commercial space. The residential count of two should not become two homes. Residential assessments report 2007 and the older commercial extract reports 2010; the new-building permits were issued in April 2006. No year or source override was made pending resolution of that discrepancy.
+
+Checking the connection to estimation found two concrete unfinished pieces beyond property reviews. The old preferred-density exporter replaces reviewed multiple-card measurements with the older cross-section selection. That compatibility step must not survive the switch to the corrected dataset. Historical zoning also has missing active production rules: a dry run stops at the ordinance table used to reconstruct the 2006 map. Related source outputs remain locally available in the historical-zoning audit directory, but their production dependencies must be restored. The existing final exporters also reapply older field decisions and need to be checked against the now-authoritative project measurements.
+
+These findings do not establish that the zoning assignments or paper estimates are wrong. They establish why closing the property list alone is not enough to declare an end-to-end rerun ready. The paper's frozen input and regressions were not changed.
+
+\medskip
+\noindent\textit{Reproduction.} September 9 working changes on \texttt{sales\_sample\_exploration}. Build the construction-cleaning task and the targeted fixed-cohort reconciliation report through Make. The saved condominium resolution records the permit, source assessment rows and selected measurements. The failed estimation-target dry run is described in the release-review notes; no missing dependency was bypassed.

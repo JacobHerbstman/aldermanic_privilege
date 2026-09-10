@@ -249,3 +249,36 @@ Approved `withhold_density` dispositions remove unresolved residential sources
 from the density selection while preserving their source rows and reasons. For
 cross-source records, the corresponding commercial decision also disables both
 density measures, so changing source cannot reintroduce an excluded record.
+
+## Recorded decisions restored during the estimation handoff (September 10)
+
+The earlier 268-case reconciliation did not cover all historical decisions.
+Comparing the finished building file with `project_manual_reviews.csv`,
+`final_project_overrides.csv`, and `density_denominator_decisions.csv` identified
+unapplied instructions affecting 109 projects. The active tables now carry 50
+recorded exclusions, 45 residential year corrections, two residential home-count
+corrections, seven commercial year/home-count corrections, and six density holds.
+One project receives both a year and home-count correction. These are existing
+recorded judgments, not new property reviews. The historical files remain the
+evidence trail; the active tables apply the measurement instructions once.
+
+Year decisions are in `residential_reviewed_construction_years.csv`, before
+identity matching. The year producer now accepts ordinary, tied-parcel and
+multiple-card candidates. Sparse `selected_fields` rows in
+`residential_building_corrections.csv` change only their nonblank measurement
+fields, leaving the chosen assessment's other values intact. A previous year
+correction does not prevent a separately documented home-count correction.
+`residential_source_decisions.csv` owns the restored exclusions and density holds.
+Commercial instructions are incorporated into their existing component or
+measurement rows. Later explicit building decisions remain in force, and no old
+map-derived land value has been restored.
+
+September 10 zoning handoff: Jacob approved using the preserved
+`historical_zoning_2006_candidate.gpkg` and
+`historical_zoning_project_construction_year.csv` for this estimation run.
+`build_preferred_construction_zoning.R` reads these files directly, together
+with the recorded official snapshots, and applies `corrected_year_zoning_decisions.csv`
+once for exact project/year matches. The original ordinance-level reconstruction
+remains outstanding; these files are explicit recorded inputs, not outputs
+claimed to have been regenerated from ordinances. The old recovered-project
+zoning override has no matching project in the selected construction dataset.

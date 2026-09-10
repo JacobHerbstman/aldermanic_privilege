@@ -1,0 +1,24 @@
+File: ward_two_year_review.csv
+Rows: 113
+Columns: 14
+SHA-256 (saved bytes): 3410323ac425807588720eb0b546c63562f4fe3bf45e97ff6e904bf4c0af0ec4
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                   column inferred_type non_missing distinct            min            max               mean                  sd
+                               project_id       VARCHAR         113      113              -              -                  -                   -
+                           component_pins        BIGINT         113      113 17063060140000 17341230340000 17233311252743.363   51036947893.27196
+                        construction_year        BIGINT         113        5           2006           2022 2007.0353982300885  1.9129689132893557
+                           dwelling_units        BIGINT         113        3              1              9 1.1150442477876106  0.8839058247082795
+                            building_sqft        BIGINT         113       26            464          19407 1984.9823008849557  1840.3363482483153
+                                land_sqft        BIGINT         113       84            730          10586 1186.0088495575221  1220.3565967106795
+                              year_source       VARCHAR         113      113              -              -                  -                   -
+                          decision_source       VARCHAR         113        1              -              -                  -                   -
+                                  address       VARCHAR         108      107              -              -                  -                   -
+                         historical_years       VARCHAR         113        8              -              -                  -                   -
+                         first_assessment        BIGINT         113        7           1999           2015 2007.2920353982302    2.16168508976387
+first_earlier_same_measurement_assessment        BIGINT          37        2           2005           2006  2005.054054054054 0.22924343513511244
+        same_measurement_historical_years       VARCHAR         111        8              -              -                  -                   -
+                                  finding       VARCHAR         113        3              -              -                  -                   -

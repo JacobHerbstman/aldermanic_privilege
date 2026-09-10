@@ -1,15 +1,17 @@
 include ../../shared/code/shell_functions.make
 
-all: ../report/reviewed_parcels_additional_2014.gpkg.log ../report/reviewed_parcel_queries_additional.csv.log
+REVIEWED_PARCEL_YEARS := 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022
 
-../output/reviewed_parcels_additional_2014.gpkg: download_historical_parcels.R ../output/reviewed_parcel_queries_additional.csv ../input/historical_project_parcel_layers.csv ../../setup_environment/code/packages.R | ../output ../temp
-	$(R) $< 2014 reviewed
+all: $(foreach year,$(REVIEWED_PARCEL_YEARS),../report/reviewed_parcels_additional_$(year).gpkg.log) ../report/reviewed_parcel_queries_additional.csv.log
+
+../output/reviewed_parcels_additional_%.gpkg: download_historical_parcels.R ../output/reviewed_parcel_queries_additional.csv ../input/historical_project_parcel_layers.csv ../../setup_environment/code/packages.R | ../output ../temp
+	$(R) $< $* reviewed
 
 ../output/reviewed_parcel_queries_additional.csv: reviewed_parcel_queries.csv | ../output
 	cp $< $@
 
-../report/reviewed_parcels_additional_2014.gpkg.log: ../../shared/code/report.py ../output/reviewed_parcels_additional_2014.gpkg | ../report
-	$(PYTHON) $< ../output/reviewed_parcels_additional_2014.gpkg $@ target_year object_id
+../report/reviewed_parcels_additional_%.gpkg.log: ../../shared/code/report.py ../output/reviewed_parcels_additional_%.gpkg | ../report
+	$(PYTHON) $< ../output/reviewed_parcels_additional_$*.gpkg $@ target_year object_id
 
 ../report/reviewed_parcel_queries_additional.csv.log: ../../shared/code/report.py ../output/reviewed_parcel_queries_additional.csv | ../report
 	$(PYTHON) $< ../output/reviewed_parcel_queries_additional.csv $@ target_year pin10
@@ -39,10 +41,18 @@ all: ../report/history_reference_parcels.gpkg.log ../report/history_reference_qu
 ../report/history_reference_queries.csv.log: ../../shared/code/report.py ../output/history_reference_queries.csv | ../report
 	$(PYTHON) $< ../output/history_reference_queries.csv $@ target_year reference_x_3435 reference_y_3435
 
-../output/preferred_predecessor_parcel_source.gpkg: combine_preferred_predecessor_parcels.R ../input/campbell_predecessor_parcels_2026-09-08.gpkg ../input/lake_park_predecessor_parcels_2026-09-08.gpkg ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../output/preferred_predecessor_source_queries.csv ../../setup_environment/code/packages.R | ../output
+../output/reviewed_predecessor_parcels.gpkg: download_predecessor_parcels.R reviewed_predecessor_queries.csv ../input/historical_project_parcel_layers.csv | ../output ../temp
+	$(R) $< reviewed
+
+../report/reviewed_predecessor_parcels.gpkg.log: ../../shared/code/report.py ../output/reviewed_predecessor_parcels.gpkg | ../report
+	$(PYTHON) $< ../output/reviewed_predecessor_parcels.gpkg $@ target_year object_id
+
+all: ../report/reviewed_predecessor_parcels.gpkg.log
+
+../output/preferred_predecessor_parcel_source.gpkg: combine_preferred_predecessor_parcels.R ../output/reviewed_predecessor_parcels.gpkg ../input/campbell_predecessor_parcels_2026-09-08.gpkg ../input/lake_park_predecessor_parcels_2026-09-08.gpkg ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../output/preferred_predecessor_source_queries.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
-../output/preferred_predecessor_source_queries.csv: combine_preferred_predecessor_queries.R ../input/campbell_predecessor_parcels_2026-09-08.gpkg ../input/campbell_predecessor_queries_2026-09-08.csv ../input/lake_park_predecessor_parcels_2026-09-08.gpkg ../input/lake_park_predecessor_queries_2026-09-08.csv ../input/preferred_predecessor_source_queries.csv ../input/preferred_predecessor_queries_2026-09-07.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_queries_2026-09-07.csv preferred_predecessor_snapshot.sha256 ../../setup_environment/code/packages.R | ../output
+../output/preferred_predecessor_source_queries.csv: combine_preferred_predecessor_queries.R reviewed_predecessor_queries.csv ../input/campbell_predecessor_parcels_2026-09-08.gpkg ../input/campbell_predecessor_queries_2026-09-08.csv ../input/lake_park_predecessor_parcels_2026-09-08.gpkg ../input/lake_park_predecessor_queries_2026-09-08.csv ../input/preferred_predecessor_source_queries.csv ../input/preferred_predecessor_queries_2026-09-07.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/preferred_predecessor_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_parcels_2026-09-07.gpkg ../input/preferred_predecessor_troy_queries_2026-09-07.csv preferred_predecessor_snapshot.sha256 ../../setup_environment/code/packages.R | ../output
 	shasum -a 256 -c preferred_predecessor_snapshot.sha256
 	$(R) $<
 
@@ -76,7 +86,7 @@ all: ../report/geocoding_parcel_history.csv.log ../report/geocoding_history_quer
 ../report/geocoding_history_queries.csv.log: ../../shared/code/report.py ../output/geocoding_history_queries.csv | ../report
 	$(PYTHON) $< ../output/geocoding_history_queries.csv $@ pin
 
-../output/preferred_historical_parcel_source.gpkg: combine_preferred_parcel_sources.R ../output/reviewed_parcels_additional_2014.gpkg ../input/campbell_parcels_2026-09-08.gpkg ../input/geneva_maud_parcels_2026-09-08.gpkg ../input/east_64th_parcels_2026-09-08.gpkg ../input/lake_park_direct_parcels_2026-09-08.gpkg ../input/preferred_parcel_evidence_2026-09-08.gpkg ../input/preferred_parcel_supplement_2026-09-08.gpkg ../input/preferred_historical_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../output/historical_project_parcel_source.gpkg ../input/preferred_parcel_supplement_2026-09-07.gpkg ../output/preferred_historical_parcel_source_queries.csv ../../setup_environment/code/packages.R | ../output
+../output/preferred_historical_parcel_source.gpkg: combine_preferred_parcel_sources.R $(foreach year,$(REVIEWED_PARCEL_YEARS),../output/reviewed_parcels_additional_$(year).gpkg) ../input/campbell_parcels_2026-09-08.gpkg ../input/geneva_maud_parcels_2026-09-08.gpkg ../input/east_64th_parcels_2026-09-08.gpkg ../input/lake_park_direct_parcels_2026-09-08.gpkg ../input/preferred_parcel_evidence_2026-09-08.gpkg ../input/preferred_parcel_supplement_2026-09-08.gpkg ../input/preferred_historical_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../output/historical_project_parcel_source.gpkg ../input/preferred_parcel_supplement_2026-09-07.gpkg ../output/preferred_historical_parcel_source_queries.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/preferred_historical_parcel_source_queries.csv: combine_preferred_parcel_queries.R ../output/reviewed_parcel_queries_additional.csv ../input/campbell_parcels_2026-09-08.gpkg ../input/campbell_queries_2026-09-08.csv ../input/geneva_maud_parcels_2026-09-08.gpkg ../input/geneva_maud_queries_2026-09-08.csv ../input/east_64th_parcels_2026-09-08.gpkg ../input/east_64th_queries_2026-09-08.csv ../input/lake_park_direct_parcels_2026-09-08.gpkg ../input/lake_park_direct_queries_2026-09-08.csv ../input/preferred_parcel_evidence_2026-09-08.gpkg ../input/preferred_parcel_evidence_queries_2026-09-08.csv ../input/preferred_parcel_supplement_2026-09-08.gpkg ../input/preferred_parcel_supplement_queries_2026-09-08.csv ../input/preferred_historical_parcel_source_queries.csv ../input/preferred_historical_parcel_source.gpkg ../input/preferred_parcel_supplement_queries_2026-09-07.csv ../input/preferred_parcel_supplement_2026-09-07.gpkg ../output/historical_project_parcel_source_queries.csv preferred_snapshot.sha256 ../../setup_environment/code/packages.R | ../output

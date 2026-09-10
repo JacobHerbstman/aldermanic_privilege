@@ -23,3 +23,24 @@ all: ../report/huron_energy_benchmarking.csv.log
 
 ../output/montclare_pd1412.pdf: remaining_sources.make montclare_pd1412.sha256 | ../output ../temp
 	curl --fail --location 'https://gisapps.chicago.gov/gisimages/zoning_pds/PD1412.pdf' --output ../temp/montclare_pd1412.pdf && pdfinfo ../temp/montclare_pd1412.pdf >/dev/null && shasum -a 256 -c montclare_pd1412.sha256 && mv ../temp/montclare_pd1412.pdf $@
+
+all: ../output/cascade_developer.html
+
+../output/cascade_developer.html: remaining_sources.make | ../output ../temp
+	curl --fail --location --retry 3 'https://www.magellandevelopment.com/projects/cascade/' --output ../temp/cascade_developer.html
+	python3 -c 'from pathlib import Path; s=Path("../temp/cascade_developer.html").read_text(); assert "Site Size" in s and "Initial Occupancy" in s and "Building Size" in s'
+	mv ../temp/cascade_developer.html $@
+
+all: ../output/cirrus_developer.html
+
+../output/cirrus_developer.html: remaining_sources.make | ../output ../temp
+	curl --fail --location --retry 3 'https://www.magellandevelopment.com/projects/cirrus/' --output ../temp/cirrus_developer.html
+	python3 -c 'from pathlib import Path; s=Path("../temp/cirrus_developer.html").read_text(); assert "Site Size" in s and "Initial Occupancy" in s and "Building Size" in s'
+	mv ../temp/cirrus_developer.html $@
+
+all: ../output/one_chicago_pd1401.pdf
+
+../output/one_chicago_pd1401.pdf: remaining_sources.make | ../output ../temp
+	curl --fail --location --retry 3 'https://gisapps.chicago.gov/gisimages/zoning_pds/PD1401.pdf' --output ../temp/one_chicago_pd1401.pdf
+	pdfinfo ../temp/one_chicago_pd1401.pdf >/dev/null
+	mv ../temp/one_chicago_pd1401.pdf $@

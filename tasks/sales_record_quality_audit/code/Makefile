@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 START_YEAR ?= 2006
 END_YEAR ?= 2022
 BANDWIDTH_FT ?= 500
@@ -10,14 +12,14 @@ DROP_INCONSISTENT_ROOMS ?= FALSE
 
 all: ../output/quality_summary.csv ../output/quality_records.parquet ../output/property_review.csv ../output/property_sale_history.csv ../output/property_improvement_history.csv ../output/property_history_spells.csv ../output/apartment_count_evidence.csv ../output/apartment_count_summary.csv ../output/apartment_count_by_year.csv ../output/apartment_count_composition.csv ../output/date_summary.csv ../output/date_assignment_review.csv ../output/date_assignment_possibilities.csv ../output/date_cta_review.csv ../output/current_county_comparison.csv ../output/current_county_sales.csv ../output/current_county_improvements.csv ../output/current_characteristic_comparison.csv ../output/quality_rd_sensitivity.csv ../output/flagged_price_influence.csv ../output/date_rd_sensitivity.csv ../output/date_row_diagnosis.csv ../output/date_diagnosis_by_month.csv
 
-../output/quality_summary.csv: build_sales_quality_audit.R Makefile ../../_lib/canonical_geometry_helpers.R ../input/sales_with_hedonics_amenities.parquet ../input/clean_sales_with_hedonics_amenities.parquet ../input/residential_sales_clean.parquet ../input/parcel_sales_city.csv ../input/residential_improvement_characteristics_full.csv ../input/price_boundary_property_type_fe_estimates.csv | ../output
+../output/quality_summary.csv: build_sales_quality_audit.R Makefile ../../shared/code/canonical_geometry_helpers.R ../input/sales_with_hedonics_amenities.parquet ../input/clean_sales_with_hedonics_amenities.parquet ../input/residential_sales_clean.parquet ../input/parcel_sales_city.csv ../input/residential_improvement_characteristics_full.csv ../input/price_boundary_property_type_fe_estimates.csv | ../output
 	$(R) $< $(START_YEAR) $(END_YEAR) $(BANDWIDTH_FT) $(HIGH_PPSF) $(REVIEW_PPSF) $(LOW_PPSF)
 	touch -r "$@" ../output/quality_records.parquet ../output/property_review.csv ../output/property_sale_history.csv ../output/property_improvement_history.csv ../output/property_history_spells.csv ../output/apartment_count_evidence.csv ../output/apartment_count_summary.csv ../output/apartment_count_by_year.csv ../output/apartment_count_composition.csv
 
 ../output/quality_records.parquet ../output/property_review.csv ../output/property_sale_history.csv ../output/property_improvement_history.csv ../output/property_history_spells.csv ../output/apartment_count_evidence.csv ../output/apartment_count_summary.csv ../output/apartment_count_by_year.csv ../output/apartment_count_composition.csv: ../output/quality_summary.csv
 	@test -s "$@"
 
-../output/date_summary.csv: audit_sales_dates.R ../../_lib/canonical_geometry_helpers.R ../output/quality_records.parquet ../input/chicago_alderman_terms.csv ../input/aldermen_uncertainty_scores.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/cta_stops.gpkg | ../output
+../output/date_summary.csv: audit_sales_dates.R ../../shared/code/canonical_geometry_helpers.R ../output/quality_records.parquet ../input/chicago_alderman_terms.csv ../input/aldermen_uncertainty_scores.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/cta_stops.gpkg | ../output
 	$(R) $<
 	touch -r "$@" ../output/date_assignment_review.csv ../output/date_assignment_possibilities.csv ../output/date_cta_review.csv
 
@@ -107,5 +109,4 @@ all: ../output/quality_summary.csv ../output/quality_records.parquet ../output/p
 
 link-inputs: ../input/sales_with_hedonics_amenities.parquet ../input/clean_sales_with_hedonics_amenities.parquet ../input/residential_sales_clean.parquet ../input/parcel_sales_city.csv ../input/residential_improvement_characteristics_full.csv ../input/price_boundary_property_type_fe_estimates.csv ../input/chicago_alderman_terms.csv ../input/aldermen_uncertainty_scores.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/cta_stops.gpkg ../input/sales_with_ward_distances.csv ../input/residential_improvements_panel.parquet ../input/sales_with_hedonics.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

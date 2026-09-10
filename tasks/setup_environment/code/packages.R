@@ -1,8 +1,8 @@
 cran_packages <- c(
-  "DBI", "readr", "fixest", "stringr", "tidycensus", "dplyr", "sf", "purrr",
+  "RSQLite", "igraph", "DBI", "readr", "fixest", "stringr", "tidycensus", "dplyr", "sf", "purrr",
   "data.table", "tigris", "zoo", "patchwork", "glue", "arrow", "duckdb",
   "ggplot2", "tidyr", "tibble", "curl", "janitor", "lubridate", "units",
-  "remotes", "jsonlite", "xml2"
+  "remotes", "jsonlite", "xml2", "nabor", "httr2"
 )
 
 user_lib <- Sys.getenv("R_LIBS_USER")

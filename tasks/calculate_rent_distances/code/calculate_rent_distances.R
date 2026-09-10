@@ -2,7 +2,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_rent_distances/code")
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 
 crs_projected <- 3435
 analysis_eras <- c("2003_2014", "2015_2023")

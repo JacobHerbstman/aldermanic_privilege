@@ -4,7 +4,7 @@
 # segment_layer_bws_m <- "100,250,400"
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 
 library(data.table)
 library(sf)

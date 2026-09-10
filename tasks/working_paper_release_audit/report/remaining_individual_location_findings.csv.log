@@ -1,7 +1,7 @@
 File: remaining_individual_location_findings.csv
 Rows: 69
 Columns: 27
-SHA-256 (saved bytes): b988eb33b3b538c79d9bad3defa3840bd0a1a642024f0506fac53d8c66cfda8d
+SHA-256 (saved bytes): 48d26eb44a728330675db28c1b66fd24f25e68288af3742e0bfaa31a7c6fe9ec
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -11,7 +11,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
                        project_id       VARCHAR          69       69                  -                 -                  -                  -
                               pin        BIGINT          69       69     10253100450000    21311010230000 16528287883623.188 2488532904576.8696
                       rule_result       VARCHAR          69        4                  -                 -                  -                  -
-                 candidate_status       VARCHAR          69        4                  -                 -                  -                  -
+                 candidate_status       VARCHAR          69        6                  -                 -                  -                  -
                 construction_year        DOUBLE          69       13             2006.0            2022.0 2009.1304347826087  4.083370304476236
                    dwelling_units        DOUBLE          69        4                1.0               6.0 1.8405797101449275 1.3679438026575967
                     building_sqft        DOUBLE          69       47             1619.0           13929.0  3691.014492753623  2504.720510959689

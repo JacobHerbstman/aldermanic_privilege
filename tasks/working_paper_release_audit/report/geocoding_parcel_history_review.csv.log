@@ -1,21 +1,21 @@
 File: geocoding_parcel_history_review.csv
-Rows: 216
+Rows: 217
 Columns: 11
-SHA-256 (saved bytes): 292b91db36a6fff9f8ef823ebc1e723033452c00bfb630c9d653926765658ef3
+SHA-256 (saved bytes): 6f0d1f01ffe39e98996956550ff22243c35bd002ecbdd3a60bea53d7394dde6b
 Key: request_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-          column inferred_type non_missing distinct                min                max                   mean                     sd
-      request_id       VARCHAR         216      216                  -                  -                      -                      -
-      project_id       VARCHAR         216      213                  -                  -                      -                      -
-   component_pin        BIGINT         216      216     10253280110000     26071050350000     16944365534305.555      2432929322411.798
-     target_year        BIGINT         216       16               2006               2022     2011.1527777777778      4.978072071634562
-selected_address       VARCHAR         204      196                  -                  -                      -                      -
-    history_year        BIGINT         191       15               2007               2023     2012.4921465968587      4.913857001483672
-history_year_gap        BIGINT         191        8                  1                 11     1.9528795811518325     1.6133911918857624
-  history_row_id        BIGINT         191      191 102532801100002013 260710503500002009 1.6885519016911197e+17 2.3342587624377484e+16
-  history_x_3435        DOUBLE         191      191 1131640.7472867416 1195807.2396244796     1167045.0965698727     13850.980799416859
-  history_y_3435        DOUBLE         191      191  1829588.863511675 1948175.2184973017     1892981.6054371514      18904.30912731698
-  history_status       VARCHAR         216        2                  -                  -                      -                      -
+          column inferred_type non_missing distinct                min                max                 mean                    sd
+      request_id       VARCHAR         217      217                  -                  -                    -                     -
+      project_id       VARCHAR         217      214                  -                  -                    -                     -
+   component_pin        BIGINT         217      216     10253280110000     26071050350000   16945101179262.672     2427315198531.182
+     target_year        BIGINT         217       16               2006               2022   2011.2027649769586     5.020826229139245
+selected_address       VARCHAR         205      196                  -                  -                    -                     -
+    history_year        BIGINT         192       15               2007               2023          2012.546875     4.959299332477548
+history_year_gap        BIGINT         192        8                  1                 11   1.9479166666666667    1.6106308585932114
+  history_row_id        BIGINT         192      191 102532801100002013 260710503500002009 1.68866569412502e+17 2.328193511147819e+16
+  history_x_3435        DOUBLE         192      191 1131640.7472867416 1195807.2396244796   1167111.8888178724     13845.64089596045
+  history_y_3435        DOUBLE         192      191  1829588.863511675 1948175.2184973017    1893028.919475782     18866.15106382436
+  history_status       VARCHAR         217        2                  -                  -                    -                     -

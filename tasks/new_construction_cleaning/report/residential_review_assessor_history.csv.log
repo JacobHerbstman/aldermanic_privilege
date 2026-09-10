@@ -1,0 +1,25 @@
+File: residential_review_assessor_history.csv
+Rows: 4627
+Columns: 15
+SHA-256 (saved bytes): d5d4d935724677aa02a8f22ac39ad954553e1a5d6a943092bc6ce3ea07082c69
+Key: project_id, pin, tax_year, card_num
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+               column inferred_type  non_missing  distinct                   min                    max                   mean                     sd
+           project_id       VARCHAR         4627       184                     -                      -                      -                      -
+                  pin        BIGINT         4627       310        11321160120000         20231190130000     15229081111716.664     2053018606459.3738
+             tax_year        BIGINT         4627        28                  1999                   2026     2012.6135725091851      7.511096671260566
+             card_num        BIGINT         4627        21                     1                     21     1.9079317052085585     2.0080242673757294
+                class        BIGINT         4627        18                   202                    297      231.7175275556516      37.09359345526963
+           year_built        BIGINT         4627        75                  1868                   2022     1955.6038469850876      58.06429128195737
+      apartments_text       VARCHAR         4422         6                     -                      -                      -                      -
+        building_sqft        BIGINT         4558       313                     0                 309180     3407.1086002632733      7199.390071409995
+            land_sqft        BIGINT         3723       182                     1                 224142      9366.470588235294     25515.068707294766
+    type_of_residence       VARCHAR         4558         5                     -                      -                      -                      -
+single_v_multi_family       VARCHAR         4555         2                     -                      -                      -                      -
+        tieback_group        BIGINT         2066       144        11321160120000         20231190130000      15572838545093.42     2321101410380.7104
+   pin_proration_rate        DOUBLE         4627        39                   0.0                    1.0     0.7496629565593241       0.31706255973502
+  card_proration_rate        DOUBLE         4538        44                   0.0                   0.96    0.18997587042750058      0.261811139662969
+               row_id        DOUBLE         4627       692 1.132116012000012e+18 1.7181010060000182e+19 1.6479269428325937e+18 1.3170890313400896e+18

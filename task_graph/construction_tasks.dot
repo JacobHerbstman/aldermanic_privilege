@@ -28,5 +28,5 @@ edge [color="#64748b"];
 "download_parcel_universe_data" -> "new_construction_cleaning";
 "prepare_construction_assessor_history" -> "new_construction_cleaning";
 "ward_panel_create" -> "new_construction_cleaning";
-label="Current construction build — separate from the paper’s frozen construction input";
+label="Current construction build — feeds the density analyses";
 }

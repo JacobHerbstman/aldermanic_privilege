@@ -61,3 +61,16 @@ before publishing the PDF. This September 8, 2026 snapshot includes the original
 land and 134 dwellings. Later amendment pages are preserved in the source file.
 The area is reported in the plan, not calculated from its drawing. A source
 refresh requires deliberately updating the recorded checksum after review.
+
+## September 8, 2026 reconciliation sources
+
+Magellan reports separate completed buildings at https://www.magellandevelopment.com/projects/cascade/ and https://www.magellandevelopment.com/projects/cirrus/. Jacob approved these measurements and initial-occupancy years. The HTML snapshots preserve the reported site and building areas; no land area is calculated from a map. Refreshing these mutable pages is a deliberate source change.
+
+- `cascade_developer.html` SHA-256: `f1c372a8c360df3112d72c81d7f6be88e51d2cd12d98a1cac07cdff8818422e1`.
+- `cirrus_developer.html` SHA-256: `34fc718059329b4c2806b12226e1c2662e196f8ef318f2fd8a5acd7d47afc697`.
+
+## One Chicago site evidence
+
+`make ../output/one_chicago_pd1401.pdf` in `code/` retrieves the City plan from https://gisapps.chicago.gov/gisimages/zoning_pds/PD1401.pdf. The saved plan reports one 96,218-square-foot site; this corroborates the Assessor denominator but does not replace it. Planned maximum dwellings and permitted floor area are not completed-building measurements. Preserve this mutable source snapshot; refresh deliberately after comparison.
+
+- `one_chicago_pd1401.pdf` SHA-256: `3b6a0da3cd39aaf4fe8050d39ffb86686e7c25611a1d81da2ba9b78e73439a64`.

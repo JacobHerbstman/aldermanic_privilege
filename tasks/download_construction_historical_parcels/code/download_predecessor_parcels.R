@@ -7,12 +7,14 @@ library(sf)
 
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(scope)
-stopifnot(length(args) == 1L, args[1] %in% c("initial", "preferred", "history_reference"))
+stopifnot(length(args) == 1L, args[1] %in% c("initial", "preferred", "history_reference", "reviewed"))
 scope <- args[1]
 if (scope == "initial") {
   queries <- read_csv("../output/predecessor_spatial_queries_download.csv", show_col_types = FALSE)
 } else if (scope == "preferred") {
   queries <- read_csv("../output/preferred_predecessor_spatial_queries_download.csv", show_col_types = FALSE)
+} else if (scope == "reviewed") {
+  queries <- read_csv("reviewed_predecessor_queries.csv", show_col_types = FALSE)
 } else {
   queries <- read_csv("../output/history_reference_spatial_queries_download.csv", show_col_types = FALSE)
 }
@@ -78,6 +80,8 @@ if (scope == "initial") {
   stopifnot(file.rename("../temp/initial_predecessor_parcels_download.gpkg", "../output/predecessor_parcels_download.gpkg"))
 } else if (scope == "preferred") {
   stopifnot(file.rename("../temp/preferred_predecessor_parcels_download.gpkg", "../output/preferred_predecessor_parcels_download.gpkg"))
+} else if (scope == "reviewed") {
+  stopifnot(file.rename("../temp/reviewed_predecessor_parcels_download.gpkg", "../output/reviewed_predecessor_parcels.gpkg"))
 } else {
   stopifnot(file.rename("../temp/history_reference_predecessor_parcels_download.gpkg", "../output/history_reference_parcels_download.gpkg"))
 }

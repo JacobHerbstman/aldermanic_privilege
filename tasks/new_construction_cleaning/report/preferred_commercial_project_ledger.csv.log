@@ -1,42 +1,42 @@
 File: preferred_commercial_project_ledger.csv
-Rows: 815
+Rows: 810
 Columns: 32
-SHA-256 (saved bytes): 108e43af5d6b3a6a321b1c0ab3f598f5e00b23f7806dd928b2c7f76f0a564b54
+SHA-256 (saved bytes): 0425533b50c3e0e32427c0659c7414aa2fcb9fd4dc7d1d0e832c65cac1e71180
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                    column inferred_type non_missing distinct                min                max               mean                 sd
-               project_id       VARCHAR         815      815                  -                  -                  -                  -
-       source_project_ids       VARCHAR         815      768                  -                  -                  -                  -
-           source_row_ids       VARCHAR         815      815                  -                  -                  -                  -
-selected_source_addresses       VARCHAR         815      798                  -                  -                  -                  -
-           component_pins       VARCHAR         815      815                  -                  -                  -                  -
-          component_count        BIGINT         815       15                  1                 16 2.2098159509202455 2.0235473366289645
-        construction_year        BIGINT         815       17               2006               2022 2013.6319018404909  5.207909613811849
-           dwelling_units        BIGINT         813      213                  1                848  77.35547355473555 127.31000655348593
-            building_sqft        BIGINT         804      739               1144            1252885  99820.28233830846 166896.74853873168
-                land_sqft        DOUBLE         810      730             1919.0          1540260.0 29500.547407407405  76159.33566102626
-                allow_far       BOOLEAN         815        2                  -                  -                  -                  -
-              allow_dupac       BOOLEAN         815        2                  -                  -                  -                  -
-        membership_source       VARCHAR         815       25                  -                  -                  -                  -
-              year_source       VARCHAR         815      685                  -                  -                  -                  -
-             units_source       VARCHAR         815      640                  -                  -                  -                  -
-          building_source       VARCHAR         805      645                  -                  -                  -                  -
-              land_source       VARCHAR         815      688                  -                  -                  -                  -
-          decision_source       VARCHAR         815        6                  -                  -                  -                  -
-          decision_action       VARCHAR         815       21                  -                  -                  -                  -
-              decision_id       VARCHAR         815      773                  -                  -                  -                  -
-               confidence       VARCHAR         815        5                  -                  -                  -                  -
-             evidence_ids       VARCHAR         259      128                  -                  -                  -                  -
-            evidence_urls       VARCHAR          56       53                  -                  -                  -                  -
-          decision_reason       VARCHAR         815      147                  -                  -                  -                  -
-        unresolved_caveat       VARCHAR          80       44                  -                  -                  -                  -
+               project_id       VARCHAR         810      810                  -                  -                  -                  -
+       source_project_ids       VARCHAR         810      764                  -                  -                  -                  -
+           source_row_ids       VARCHAR         810      810                  -                  -                  -                  -
+selected_source_addresses       VARCHAR         810      794                  -                  -                  -                  -
+           component_pins       VARCHAR         810      810                  -                  -                  -                  -
+          component_count        BIGINT         810       15                  1                 16 2.2111111111111112  2.027895692443621
+        construction_year        BIGINT         810       17               2006               2022 2013.6592592592592  5.211468236606296
+           dwelling_units        BIGINT         808      214                  1                848  77.65965346534654  127.6270968182656
+            building_sqft        BIGINT         799      734               1144            1252885 100246.14392991239  167321.7348774257
+                land_sqft        DOUBLE         805      725             1919.0          1540260.0 29509.528447204968  76357.21173470742
+                allow_far       BOOLEAN         810        2                  -                  -                  -                  -
+              allow_dupac       BOOLEAN         810        2                  -                  -                  -                  -
+        membership_source       VARCHAR         810       25                  -                  -                  -                  -
+              year_source       VARCHAR         810      683                  -                  -                  -                  -
+             units_source       VARCHAR         810      639                  -                  -                  -                  -
+          building_source       VARCHAR         800      642                  -                  -                  -                  -
+              land_source       VARCHAR         810      685                  -                  -                  -                  -
+          decision_source       VARCHAR         810        6                  -                  -                  -                  -
+          decision_action       VARCHAR         810       21                  -                  -                  -                  -
+              decision_id       VARCHAR         810      768                  -                  -                  -                  -
+               confidence       VARCHAR         810        5                  -                  -                  -                  -
+             evidence_ids       VARCHAR         262      133                  -                  -                  -                  -
+            evidence_urls       VARCHAR          61       58                  -                  -                  -                  -
+          decision_reason       VARCHAR         810      149                  -                  -                  -                  -
+        unresolved_caveat       VARCHAR          79       43                  -                  -                  -                  -
       land_source_row_ids       VARCHAR          46       46                  -                  -                  -                  -
-  project_geometry_source       VARCHAR         813        5                  -                  -                  -                  -
-project_geometry_evidence       VARCHAR         813      813                  -                  -                  -                  -
-project_polygon_area_sqft        DOUBLE         798      795 2249.8159374018433  417736.2262001708  24209.27679631833  37319.95865271308
-                   x_3435        DOUBLE         813      810 1124181.9019028947 1199504.8726696013 1166595.3500161597 12329.460750697328
-                   y_3435        DOUBLE         813      810 1824809.4202887826 1950246.4238502712 1902680.3247929083  21312.33824808459
-        location_resolved       BOOLEAN         815        2                  -                  -                  -                  -
+  project_geometry_source       VARCHAR         808        5                  -                  -                  -                  -
+project_geometry_evidence       VARCHAR         808      808                  -                  -                  -                  -
+project_polygon_area_sqft        DOUBLE         790      787 2249.8159374018433  417736.2262001708 24165.914488107777 37385.704805042355
+                   x_3435        DOUBLE         808      805 1124181.9019028947 1199504.8726696013 1166564.1089313447 12348.523626855875
+                   y_3435        DOUBLE         808      805 1824809.4202887826 1950246.4238502712  1902748.783291558  21343.36234606823
+        location_resolved       BOOLEAN         810        2                  -                  -                  -                  -

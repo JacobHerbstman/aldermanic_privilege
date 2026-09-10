@@ -1,26 +1,26 @@
 File: preferred_predecessor_reference_points.csv
-Rows: 3896
+Rows: 3923
 Columns: 22
-SHA-256 (saved bytes): f6d1dc16a39f2cdc501f7e495357300e169f56ddeafe1fcbfbd6bb7a48afed9f
+SHA-256 (saved bytes): 243118254a9c99c95e88e41cbd0714d8d0697f3494b56093d491a6a0cad67d7f
 Key: request_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                  column inferred_type non_missing distinct                min                max               mean                 sd
-             request_id       VARCHAR        3896     3896                  -                  -                  -                  -
-          source_family       VARCHAR        3896        2                  -                  -                  -                  -
-             project_id       VARCHAR        3896     3771                  -                  -                  -                  -
-           project_kind       VARCHAR        3896        6                  -                  -                  -                  -
-       candidate_status       VARCHAR        3896        7                  -                  -                  -                  -
-          component_pin       VARCHAR        3896     3894                  -                  -                  -                  -
-                  pin10       VARCHAR        3896     3894                  -                  -                  -                  -
-            target_year        BIGINT        3896       17               2006               2022 2011.0513347022588  4.940564146391996
-        coverage_status       VARCHAR        3896        1                  -                  -                  -                  -
-       reference_status       VARCHAR        3896        2                  -                  -                  -                  -
-       reference_source       VARCHAR        3873        4                  -                  -                  -                  -
-       reference_x_3435        DOUBLE        3873     3779 1119499.7135786538 1203743.2364409526 1164003.7597694655  13973.92701074555
-       reference_y_3435        DOUBLE        3873     3779  1823634.806017771  1949720.200967388 1896008.5049353787 23468.547902533814
+             request_id       VARCHAR        3923     3923                  -                  -                  -                  -
+          source_family       VARCHAR        3923        2                  -                  -                  -                  -
+             project_id       VARCHAR        3923     3763                  -                  -                  -                  -
+           project_kind       VARCHAR        3923        7                  -                  -                  -                  -
+       candidate_status       VARCHAR        3923       10                  -                  -                  -                  -
+          component_pin       VARCHAR        3923     3911                  -                  -                  -                  -
+                  pin10       VARCHAR        3923     3877                  -                  -                  -                  -
+            target_year        BIGINT        3923       17               2006               2022  2011.100688248789  4.961021657397976
+        coverage_status       VARCHAR        3923        1                  -                  -                  -                  -
+       reference_status       VARCHAR        3923        2                  -                  -                  -                  -
+       reference_source       VARCHAR        3899        4                  -                  -                  -                  -
+       reference_x_3435        DOUBLE        3899     3762 1119499.7135786538 1203743.2364409526 1164059.6256820448 13966.198959327672
+       reference_y_3435        DOUBLE        3899     3762  1823634.806017771  1949720.200967388 1896146.0990975688 23448.487552901413
        selected_address       VARCHAR         191      186                  -                  -                  -                  -
   selected_address_year        BIGINT         191       15               2007               2025  2013.628272251309  5.716369536985717
         matched_address       VARCHAR         191      147                  -                  -                  -                  -

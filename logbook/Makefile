@@ -2,6 +2,8 @@ include ../tasks/shared/code/shell_functions.make
 
 all: logbook.pdf
 
+logbook.pdf: entries/2026-09-10-estimation-handoff.tex ../tasks/working_paper_release_audit/report/density_change_decomposition.csv.log ../tasks/density_main_results/output/density_rd.pdf ../tasks/density_main_results/output/density_sample_summary.tex ../tasks/new_construction_analysis_data/report/new_construction_analysis_data.csv.log ../tasks/new_construction_cleaning/report/preferred_new_construction_zoning.csv.log ../tasks/working_paper_release_audit/report/construction_estimation_sample_comparison.csv.log ../tasks/working_paper_release_audit/report/construction_estimation_project_changes.csv.log
+
 logbook.pdf: entries/2026-09-09-last-fifteen.tex ../tasks/working_paper_release_audit/last_fifteen_review.md
 
 logbook.pdf: entries/2026-09-09-next-ten-homes.tex

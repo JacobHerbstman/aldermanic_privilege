@@ -1,9 +1,13 @@
-SERIES_ID := CUURA207SA0
+include ../../shared/code/shell_functions.make
 
-all: ../output/fred_cpi_cuura207sa0.csv
+all: ../output/fred_cpi_cuura207sa0.csv ../report/fred_cpi_cuura207sa0.csv.log
 
-../output/fred_cpi_cuura207sa0.csv: download_fred_cpi.R Makefile | ../output
-	$(R) $< $(SERIES_ID)
+../output/fred_cpi_cuura207sa0.csv: ../../../data_raw/replication_sources/fred_cpi_cuura207sa0_20260731.csv source_snapshot.sha256 Makefile | ../output
+	shasum -a 256 -c source_snapshot.sha256
+	cp $< $@.tmp
+	mv $@.tmp $@
 
-include ../../shell_functions.make
-include ../../generic.make
+../report/fred_cpi_cuura207sa0.csv.log: ../../shared/code/report.py ../output/fred_cpi_cuura207sa0.csv | ../report
+	$(PYTHON) $< ../output/fred_cpi_cuura207sa0.csv $@ observation_date
+
+include ../../shared/code/generic.make

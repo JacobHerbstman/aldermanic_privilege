@@ -1,0 +1,24 @@
+File: residential_review_city_building_evidence.csv
+Rows: 184
+Columns: 14
+SHA-256 (saved bytes): 07f0d4d4be889e308d775b9e6b6c9f71c62b5b3b424b03bcacc3bb877c3ecb5e
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                     column inferred_type  non_missing  distinct                min             max               mean                 sd
+                 project_id       VARCHAR          184       184                  -               -                  -                  -
+                target_year        BIGINT          127        16               2006            2022 2015.1496062992126  6.295726366249494
+    matched_city_footprints        BIGINT          184         7                  0               6 1.3478260869565217 1.2883232005372436
+         city_footprint_ids       VARCHAR          127       126                  -               -                  -                  -
+   city_footprint_addresses       VARCHAR          127       126                  -               -                  -                  -
+           city_harris_pins       VARCHAR           85        84                  -               -                  -                  -
+     city_year_built_values       VARCHAR          112        50                  -               -                  -                  -
+           city_unit_values       VARCHAR           82        11                  -               -                  -                  -
+  city_building_sqft_values       VARCHAR           75        72                  -               -                  -                  -
+     city_building_sqft_sum        BIGINT           75        72                660           33300  3927.266666666667   5357.60472229525
+   city_footprint_area_sqft        DOUBLE          127       126 292.12500007712515 48498.874999305  4502.138980790934 6557.0944217640845
+city_near_target_footprints        BIGINT          127         5                  0               6 0.3779527559055118 0.9422123059567377
+        city_old_footprints        BIGINT          127         4                  0               3 0.7952755905511811 0.7052927195657601
+    city_footprint_evidence       VARCHAR          127       126                  -               -                  -                  -

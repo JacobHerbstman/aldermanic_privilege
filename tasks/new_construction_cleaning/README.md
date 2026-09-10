@@ -111,3 +111,7 @@ another stage of the default cleaning. Earlier evidence is documented in the
 [reconstruction history](reconstruction_history.md), decision inputs, release audit
 and logbook. Reconnect the paper to the completed new data separately, after
 verifying the replication inputs and comparing the estimation sample.
+
+### September 10 handoff check
+
+The fixed 268-case review did not cover every older recorded decision. Comparing all retained project IDs with the historical review inputs found instructions affecting 109 projects that had not carried forward. Those existing decisions now enter the chronological cleaning stages above, with newer explicit decisions preserved. The resulting dataset removes 50 previously excluded records and changes 51 construction years and five home counts; it changes no retained building or land area. Regression preparation attaches covariates only. The September 10 estimation handoff uses the preserved zoning history, as approved by Jacob. Reconstructing that history from the original ordinances remains outstanding for raw-source replication.

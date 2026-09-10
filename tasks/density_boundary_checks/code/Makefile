@@ -1,8 +1,14 @@
+include ../../shared/code/shell_functions.make
+
 all: ../output/density_boundary_robustness.tex \
 	../output/density_location_continuity.tex
 
+ifneq ($(filter-out $(wildcard ../output/density_boundary_robustness.tex ../output/density_location_continuity.tex),../output/density_boundary_robustness.tex ../output/density_location_continuity.tex),)
+.PHONY: ../output/density_boundary_robustness.tex
+endif
+
 ../output/density_boundary_robustness.tex: \
-	build_density_boundary_checks.R \
+	build_density_boundary_checks.R Makefile ../../setup_environment/code/packages.R \
 	../input/new_construction_analysis_data.csv \
 	../input/alderman_uncertainty_index_through2022.csv \
 	../input/density_boundary_characteristics.csv | ../output
@@ -10,7 +16,6 @@ all: ../output/density_boundary_robustness.tex \
 
 ../output/density_location_continuity.tex: \
 	../output/density_boundary_robustness.tex
-	@test -s "$@"
 
 ../input/new_construction_analysis_data.csv: ../../new_construction_analysis_data/output/new_construction_analysis_data.csv | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
@@ -26,5 +31,4 @@ link-inputs: \
 	../input/alderman_uncertainty_index_through2022.csv \
 	../input/density_boundary_characteristics.csv
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

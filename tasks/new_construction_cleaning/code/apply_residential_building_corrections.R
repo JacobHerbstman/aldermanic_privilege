@@ -36,7 +36,7 @@ overlap_exclusions <- overlap_decisions %>% filter(overlap_action == "exclude_no
   transmute(project_id = source_project_id, action = "exclude_not_ground_up", decision_reason)
 not_new <- bind_rows(source_decisions %>% transmute(project_id = source_project_id, action, decision_reason),
   eligibility_decisions, overlap_exclusions) %>%
-  filter(action %in% c("exclude_not_ground_up", "exclude_unverified_construction", "exclude_unbuilt"))
+  filter(action %in% c("exclude_not_ground_up", "exclude_unverified_construction", "exclude_unbuilt", "exclude_recorded_review"))
 stopifnot(!anyDuplicated(not_new$project_id))
 reviewed_exclusion <- match(residential_candidates$project_id, not_new$project_id)
 apply_exclusion <- residential_candidates$candidate_status %in% c("review_required", "retain_mechanical", "defer_to_commercial_reconciliation") &
@@ -62,10 +62,10 @@ recorded_buildings <- readr::read_csv("../adjudication/residential_building_corr
     construction_year = "d", dwelling_units = "d", building_sqft = "d", land_sqft = "d",
     allow_far = "l", allow_dupac = "l", .default = readr::col_character()))
 stopifnot(!anyDuplicated(recorded_buildings[c("source_project_id", "final_project_id")]),
-  all(recorded_buildings$application_scope %in% c("unresolved_building", "selected_building")),
+  all(recorded_buildings$application_scope %in% c("unresolved_building", "selected_building", "selected_fields")),
   all(recorded_buildings$source_project_id %in% residential_candidates$project_id),
   all(!is.na(recorded_buildings$evidence_ids) & nzchar(recorded_buildings$evidence_ids)))
-recorded_buildings <- recorded_buildings %>% filter(application_scope == "selected_building" |
+recorded_buildings <- recorded_buildings %>% filter(application_scope %in% c("selected_building", "selected_fields") |
   source_project_id %in% residential_candidates$project_id[residential_candidates$candidate_status == "review_required"])
 # A source may split into several buildings, but may not receive competing corrections.
 stopifnot(all(recorded_buildings %>% count(source_project_id, final_project_id) %>% pull(n) == 1L))
@@ -78,7 +78,25 @@ completed_condo_pins <- readr::read_csv("../input/construction_condominium_histo
 split_sources <- recorded_buildings %>% count(source_project_id) %>% filter(n > 1)
 stopifnot(all(recorded_buildings$final_project_id[recorded_buildings$source_project_id %in%
   split_sources$source_project_id] %in% recorded_components$final_project_id))
-for (id in unique(recorded_buildings$final_project_id)) {
+# Sparse field corrections preserve the rest of the chosen assessment. Each
+# nonblank field has one owner; a reviewed year can coexist with a unit correction.
+field_corrections <- recorded_buildings %>% filter(application_scope == "selected_fields")
+for (j in seq_len(nrow(field_corrections))) {
+  decision <- field_corrections[j, ]
+  stopifnot(decision$source_project_id == decision$final_project_id)
+  i <- match(decision$source_project_id, residential_candidates$project_id)
+  stopifnot(!is.na(i), residential_candidates$candidate_status[i] == "retain_mechanical")
+  for (field in c("construction_year", "dwelling_units", "building_sqft", "land_sqft")) {
+    if (is.na(decision[[field]])) next
+    source_field <- c(construction_year = "year_source", dwelling_units = "units_source",
+      building_sqft = "building_source", land_sqft = "land_source")[[field]]
+    stopifnot(!grepl("^(reviewed_|recorded_project_decision:)", residential_candidates[[source_field]][i]))
+    residential_candidates[[field]][i] <- decision[[field]]
+    residential_candidates[[source_field]][i] <- paste0("recorded_project_decision:", decision$decision_source, ":", decision$final_project_id)
+  }
+  residential_candidates$decision_reason[i] <- decision$decision_reason
+}
+for (id in unique(recorded_buildings$final_project_id[recorded_buildings$application_scope != "selected_fields"])) {
   decisions <- recorded_buildings %>% filter(final_project_id == id)
   fields <- c("construction_year", "dwelling_units", "building_sqft", "land_sqft", "allow_far", "allow_dupac")
   stopifnot(all(vapply(decisions[fields], dplyr::n_distinct, integer(1)) == 1L),
@@ -215,7 +233,9 @@ residential_candidates$allow_far <- residential_candidates$allow_far & coalesce(
 residential_candidates$allow_dupac <- residential_candidates$allow_dupac & coalesce(reviewed_flags$allow_dupac[flag], TRUE)
 
 # A recorded shared-site problem can withhold density without deleting buildings.
-density_holds <- source_dispositions %>% filter(disposition == "withhold_density")
+density_holds <- bind_rows(
+  source_dispositions %>% filter(disposition == "withhold_density") %>% select(source_project_id, decision_reason),
+  source_decisions %>% filter(action == "withhold_density") %>% select(source_project_id, decision_reason))
 stopifnot(!anyDuplicated(density_holds$source_project_id),
   all(density_holds$source_project_id %in% residential_candidates$project_id))
 hold <- match(density_holds$source_project_id, residential_candidates$project_id)

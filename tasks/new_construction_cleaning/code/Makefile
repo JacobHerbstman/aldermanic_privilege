@@ -1,7 +1,7 @@
 include ../../shared/code/shell_functions.make
 include construction_settings.make
 
-all: ../report/new_construction_measurements.csv.log ../report/residential_selected_buildings.csv.log ../report/residential_selected_assessments.csv.log ../report/preferred_new_construction_project_ledger.csv.log \
+all: ../report/preferred_new_construction_zoning.csv.log ../report/new_construction_measurements.csv.log ../report/residential_selected_buildings.csv.log ../report/residential_selected_assessments.csv.log ../report/preferred_new_construction_project_ledger.csv.log \
 	../report/preferred_new_construction_project_components.csv.log \
 	../report/preferred_new_construction_boundary_scope.csv.log \
 	../report/preferred_new_construction_project_centroids.gpkg.log \
@@ -214,7 +214,10 @@ endif
 ../output/residential_overlap_resolution.csv: build_residential_overlap_resolution.R ../output/preferred_commercial_project_candidates.csv ../output/preferred_commercial_source_disposition.csv ../adjudication/residential_overlap_decisions.csv ../output/preferred_commercial_projects.csv ../output/preferred_residential_project_candidates.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
-../output/preferred_new_construction_zoning.csv: build_preferred_construction_zoning.R ../input/zoning_jan2016.zip ../input/zoning_nov2012.zip ../input/zoning_sep2014.zip ../input/zoning_sep2025.geojson ../output/historical_zoning_2006_candidate.gpkg ../output/historical_zoning_project_construction_year.csv ../output/preferred_new_construction_boundary_scope.csv ../output/preferred_new_construction_project_centroids.gpkg ../output/preferred_new_construction_project_components.csv ../../setup_environment/code/packages.R | ../output
+../report/preferred_new_construction_zoning.csv.log: ../../shared/code/report.py ../output/preferred_new_construction_zoning.csv | ../report
+	$(PYTHON) $< ../output/preferred_new_construction_zoning.csv $@ project_id
+
+../output/preferred_new_construction_zoning.csv: build_preferred_construction_zoning.R Makefile ../adjudication/corrected_year_zoning_decisions.csv ../input/zoning_jan2016.zip ../input/zoning_nov2012.zip ../input/zoning_sep2014.zip ../input/zoning_sep2025.geojson ../adjudication/historical_zoning_2006_candidate.gpkg ../adjudication/historical_zoning_project_construction_year.csv ../output/preferred_new_construction_boundary_scope.csv ../output/preferred_new_construction_project_centroids.gpkg ../output/preferred_new_construction_project_components.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/residential_tieback_episode_candidates.csv: build_residential_tieback_resolution_candidates.R ../output/residential_class297_source_disposition.csv ../output/residential_manual_review_bundle.csv ../output/residential_overlap_resolution.csv ../output/residential_tieback_card_project_evidence.csv ../output/residential_tieback_construction_episode_evidence.csv ../../setup_environment/code/packages.R | ../output
@@ -255,7 +258,7 @@ ifneq ($(filter-out $(wildcard ../output/preferred_commercial_project_ledger.csv
 .PHONY: ../output/preferred_commercial_project_ledger.csv
 endif
 
-../output/preferred_commercial_project_ledger.csv: build_preferred_commercial_final_geography.R ../output/new_construction_measurements.csv ../input/preferred_predecessor_parcel_source.gpkg ../adjudication/commercial_reviewed_locations.csv ../input/preferred_historical_parcel_source.gpkg ../output/preferred_commercial_project_candidates.csv ../output/preferred_project_year_centroids.gpkg ../output/building_permits_for_verification.gpkg ../input/parcel_universe_2025_city.csv ../input/ward_pair_boundaries.gpkg ../input/ward_panel.gpkg ../output/preferred_commercial_projects.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
+../output/preferred_commercial_project_ledger.csv: build_preferred_commercial_final_geography.R ../output/new_construction_measurements.csv ../input/preferred_predecessor_parcel_source.gpkg ../adjudication/commercial_reviewed_locations.csv ../input/preferred_historical_parcel_source.gpkg ../output/preferred_commercial_project_candidates.csv ../output/preferred_project_year_centroids.gpkg ../output/building_permits_for_verification.gpkg ../input/parcel_universe_2025_city.csv ../input/ward_pair_boundaries.gpkg ../input/ward_panel.gpkg ../output/preferred_commercial_projects.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R ../input/preferred_historical_parcel_source_queries.csv | ../output
 	$(R) $<
 
 ../output/preferred_commercial_project_component_locations.csv: ../output/preferred_commercial_project_ledger.csv

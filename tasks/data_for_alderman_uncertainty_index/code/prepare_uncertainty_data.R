@@ -2,7 +2,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/data_for_alderman_uncertainty_index/code")
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 
 assert_unique_key <- function(df, key_cols, label) {
   data <- if (inherits(df, "sf")) st_drop_geometry(df) else df

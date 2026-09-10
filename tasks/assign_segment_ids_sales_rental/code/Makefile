@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 SEGMENT_LENGTH_FT ?= 1320
 SEGMENT_BUFFER_M ?= 457.2
 
@@ -5,10 +7,10 @@ all: \
 	../output/sales_pre_scores_with_segments.csv \
 	../output/rent_pre_scores_full_with_segments.parquet
 
-../output/sales_pre_scores_with_segments.csv: assign_segment_ids_sales_rental.R ../../_lib/canonical_geometry_helpers.R ../input/sales_pre_scores.csv ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg Makefile | ../output
+../output/sales_pre_scores_with_segments.csv: assign_segment_ids_sales_rental.R ../../shared/code/canonical_geometry_helpers.R ../input/sales_pre_scores.csv ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg Makefile | ../output
 	$(R) $< sales $(SEGMENT_LENGTH_FT) $(SEGMENT_BUFFER_M)
 
-../output/rent_pre_scores_full_with_segments.parquet: assign_segment_ids_sales_rental.R ../../_lib/canonical_geometry_helpers.R ../input/rent_pre_scores_full.parquet ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg Makefile | ../output
+../output/rent_pre_scores_full_with_segments.parquet: assign_segment_ids_sales_rental.R ../../shared/code/canonical_geometry_helpers.R ../input/rent_pre_scores_full.parquet ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg Makefile | ../output
 	$(R) $< rental $(SEGMENT_LENGTH_FT) $(SEGMENT_BUFFER_M)
 
 ../input/sales_pre_scores.csv: ../../calculate_sale_distances/output/sales_pre_scores.csv | ../input
@@ -22,5 +24,4 @@ all: \
 
 link-inputs: ../input/sales_pre_scores.csv ../input/rent_pre_scores_full.parquet ../input/boundary_segments_$(SEGMENT_LENGTH_FT)ft.gpkg
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

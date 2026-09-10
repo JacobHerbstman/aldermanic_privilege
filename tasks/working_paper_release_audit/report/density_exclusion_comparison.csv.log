@@ -1,0 +1,20 @@
+File: density_exclusion_comparison.csv
+Rows: 108
+Columns: 10
+SHA-256 (saved bytes): 6fe5f777e5839320f6b49e11ff514ab08fc7101f000c36dd38fafe98fc75a258
+Key: scenario, sample, outcome, term
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct                    min                   max                 mean                   sd
+          scenario       VARCHAR         108        3                      -                     -                    -                    -
+            sample       VARCHAR         108        2                      -                     -                    -                    -
+           outcome       VARCHAR         108        2                      -                     -                    -                    -
+              term       VARCHAR         108        9                      -                     -                    -                    -
+          estimate        DOUBLE         108       72    -0.3154559554151208 -0.025035963609555827 -0.13629302441948232  0.05898190144007056
+         std_error        DOUBLE         108       72    0.03686199498881273    0.1759045655937342  0.07822720978444367 0.032270186036250544
+           p_value        DOUBLE         108       72 0.00015778893750529558    0.8400878812272515  0.14917320443811943   0.2152141916813633
+percent_difference        DOUBLE         108       72    -27.054380107173603    -2.472516300582328  -12.592414231078774   5.0786114513772045
+        n_projects        BIGINT         108        4                    822                  3692   2255.8333333333335   1440.5184133031482
+      n_ward_pairs        BIGINT         108        2                     87                   124                105.5   18.586247553792052

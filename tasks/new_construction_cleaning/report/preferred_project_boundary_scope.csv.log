@@ -1,39 +1,39 @@
 File: preferred_project_boundary_scope.csv
-Rows: 14017
+Rows: 14065
 Columns: 29
-SHA-256 (saved bytes): b3b1ef230e671ddc81ae13183951adccc08ebd781e54d1a268fbadc9fbe2d878
+SHA-256 (saved bytes): e0600d37acb5c84de171be1d07aec82c4a711b0fcd5ed2c2a1ad4fbbd747bb96
 Key: source_family, project_id, target_year
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                     column inferred_type non_missing distinct                min               max                 mean                  sd
-             source_family       VARCHAR       14017        2                  -                 -                    -                   -
-                project_id       VARCHAR       14017    14017                  -                 -                    -                   -
-              project_kind       VARCHAR       14017        7                  -                 -                    -                   -
-          candidate_status       VARCHAR       14017        8                  -                 -                    -                   -
-               target_year        BIGINT       14017       17               2006              2022    2012.489120353856   5.389539052348512
-      requested_components        BIGINT       14017       17                  1                57   1.1194264107869016  0.8206836801931762
-       resolved_components        BIGINT       14017       18                  0                57   1.1133623457230506  0.8229750311355613
-  distinct_parcel_polygons        BIGINT       14017       17                  0                57   1.1087251194977528  0.7972333240793735
-            component_pins       VARCHAR       13942    13914                  -                 -                    -                   -
-               parcel_pins       VARCHAR       13942    11363                  -                 -                    -                   -
-             match_methods       VARCHAR       13942        5                  -                 -                    -                   -
-     unresolved_components        BIGINT       14017        4                  0                 4 0.006064065063851038 0.08551005077476359
-      collapsed_components        BIGINT       14017        9                  0                15 0.004637226225297853 0.17971839104040047
- complete_project_geometry       BOOLEAN       14017        2                  -                 -                    -                   -
-         construction_date          DATE       13953       17                  -                 -                    -                   -
-             boundary_year        BIGINT       13953        2               2003              2015   2007.3766931842615   5.776440632986698
-                       era       VARCHAR       13953        2                  -                 -                    -                   -
-                      ward        BIGINT       13953       50                  1                50   24.469074750949616  15.199723734878082
-             neighbor_ward        BIGINT       13953       50                  1                50   23.452949186554864  15.604305931821735
-                 ward_pair       VARCHAR       13953      140                  -                 -                    -                   -
-   distance_to_boundary_ft        DOUBLE       13953    13850 1.0214899430226334 27623.33171603177    1404.901866016457   1743.011954687138
-             within_1500ft       BOOLEAN       13953        2                  -                 -                    -                   -
-              within_500ft       BOOLEAN       13953        2                  -                 -                    -                   -
-    project_land_area_sqft        DOUBLE       13937    11374 176.29144966672175 904026.4079986904   13669.758493205058   42337.32201310319
-           location_source       VARCHAR       13953        8                  -                 -                    -                   -
-   location_reference_year        BIGINT       13953       20               2006              2025    2014.601734394037   6.633637685402003
-location_reference_row_ids       VARCHAR        3472     3460                  -                 -                    -                   -
-    location_reference_pin       VARCHAR        3466     3454                  -                 -                    -                   -
-          geography_status       VARCHAR       14017        4                  -                 -                    -                   -
+             source_family       VARCHAR       14065        2                  -                 -                    -                   -
+                project_id       VARCHAR       14065    14065                  -                 -                    -                   -
+              project_kind       VARCHAR       14065        7                  -                 -                    -                   -
+          candidate_status       VARCHAR       14065       12                  -                 -                    -                   -
+               target_year        BIGINT       14065       17               2006              2022   2012.5090650551012   5.391453269699033
+      requested_components        BIGINT       14065       17                  1                57   1.1220049768929967  0.8297408111476666
+       resolved_components        BIGINT       14065       18                  0                57   1.1158194098826875  0.8320381081093641
+  distinct_parcel_polygons        BIGINT       14065       17                  0                57   1.1087806612157838  0.7971777930648087
+            component_pins       VARCHAR       13989    13940                  -                 -                    -                   -
+               parcel_pins       VARCHAR       13989    11402                  -                 -                    -                   -
+             match_methods       VARCHAR       13989        5                  -                 -                    -                   -
+     unresolved_components        BIGINT       14065        5                  0                 4 0.006185567010309278 0.08700467459216807
+      collapsed_components        BIGINT       14065       11                  0                15 0.007038748666903662 0.21896422776455335
+ complete_project_geometry       BOOLEAN       14065        2                  -                 -                    -                   -
+         construction_date          DATE       14001       17                  -                 -                    -                   -
+             boundary_year        BIGINT       14001        2               2003              2015   2007.3865438182986   5.779199307215944
+                       era       VARCHAR       14001        2                  -                 -                    -                   -
+                      ward        BIGINT       14001       50                  1                50   24.463109777873008  15.203155678533786
+             neighbor_ward        BIGINT       14001       50                  1                50       23.43804013999  15.610341123346561
+                 ward_pair       VARCHAR       14001      140                  -                 -                    -                   -
+   distance_to_boundary_ft        DOUBLE       14001    13887 1.0214899430226334 27623.33171603177   1404.1807895519066   1741.212552099976
+             within_1500ft       BOOLEAN       14001        2                  -                 -                    -                   -
+              within_500ft       BOOLEAN       14001        2                  -                 -                    -                   -
+    project_land_area_sqft        DOUBLE       13984    11414 176.29144966672175 904026.4079986904   13605.627717882093  42244.064877767174
+           location_source       VARCHAR       14001        8                  -                 -                    -                   -
+   location_reference_year        BIGINT       14001       20               2006              2025   2014.5967430897792   6.621012069187116
+location_reference_row_ids       VARCHAR        3470     3458                  -                 -                    -                   -
+    location_reference_pin       VARCHAR        3463     3451                  -                 -                    -                   -
+          geography_status       VARCHAR       14065        4                  -                 -                    -                   -

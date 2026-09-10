@@ -1,0 +1,23 @@
+File: construction_estimation_sample_comparison.csv
+Rows: 4
+Columns: 13
+SHA-256 (saved bytes): 45b57e38286e2702ba6bb51d3fe4dcf63549d70c996332c8f4cb22c14cf53d9b
+Key: sample, outcome
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                        column inferred_type non_missing distinct min  max   mean                 sd
+                        sample       VARCHAR           4        2   -    -      -                  -
+                       outcome       VARCHAR           4        2   -    -      -                  -
+                        before        BIGINT           4        2 822 3692 2257.0  1656.995272574226
+                         after        BIGINT           4        4 863 4071 2467.0  1845.799736338335
+                      retained        BIGINT           4        4 801 3632 2216.5 1633.9013638119857
+                       removed        BIGINT           4        4  20   61   40.5 23.101226518664905
+                         added        BIGINT           4        4  62  439  250.5 211.96619227288738
+         retained_year_changed        BIGINT           4        2   9   58   33.5 28.290163190291665
+        retained_units_changed        BIGINT           4        4   4    8    6.0 1.8257418583505538
+retained_building_area_changed        BIGINT           4        4   8   18   13.0  5.228129047119374
+    retained_land_area_changed        BIGINT           4        2  21   22   21.5 0.5773502691896263
+       retained_zoning_changed        BIGINT           4        2   0    1    0.5 0.5773502691896257
+      retained_segment_changed        BIGINT           4        2   2    5    3.5 1.7320508075688772

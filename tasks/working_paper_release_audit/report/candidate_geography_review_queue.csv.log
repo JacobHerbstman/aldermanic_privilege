@@ -1,59 +1,59 @@
 File: candidate_geography_review_queue.csv
-Rows: 117
+Rows: 121
 Columns: 49
-SHA-256 (saved bytes): 4f1a1e52fe22568bf6c16fbc4be9952a527543fbd11fbc64b459daeef7450070
+SHA-256 (saved bytes): 1cdf9fa695dced3733d5bb5cfbaebfe59a3460289bc66b3ae60b8b5683f09465
 Key: case_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                          column inferred_type non_missing distinct                    min                    max                   mean                     sd
-                  source_family       VARCHAR         117        2                      -                      -                      -                      -
-                     project_id       VARCHAR         117      111                      -                      -                      -                      -
-                  component_pin        BIGINT          95       95         13154070500000         25031190320000     17293818764736.842      1938603334104.736
-                    target_year        BIGINT         117       16                   2006                   2022     2013.7350427350427      4.575785522149159
+                  source_family       VARCHAR         121        2                      -                      -                      -                      -
+                     project_id       VARCHAR         121      114                      -                      -                      -                      -
+                  component_pin        BIGINT          97       95         13154070500000         25031190320000     17289904986391.752     1918494873106.2144
+                    target_year        BIGINT         121       16                   2006                   2022     2013.7603305785124      4.685126809718195
      initial_predecessor_status       VARCHAR          30        2                      -                      -                      -                      -
-     current_predecessor_status       VARCHAR          95        4                      -                      -                      -                      -
-   construction_year_unresolved       BOOLEAN         117        1                      -                      -                      -                      -
-     centroid_outside_parcel_ft        DOUBLE          22       22     0.7285562703129237     284.10522140384313      44.69057358478736      71.21243423550541
-                  polygon_parts        BIGINT          22        7                      1                     14      3.227272727272727     3.7024035717074675
-     maximum_part_separation_ft        DOUBLE          22       16                    0.0      3410.799542159241     369.41389523115635      797.8211037697657
-     initial_checkpoint_pending       BOOLEAN         117        2                      -                      -                      -                      -
-        centroid_outside_parcel       BOOLEAN         117        2                      -                      -                      -                      -
-                        case_id       VARCHAR         117      117                      -                      -                      -                      -
-                   project_kind       VARCHAR         117        5                      -                      -                      -                      -
-               candidate_status       VARCHAR         117        5                      -                      -                      -                      -
-               geography_status       VARCHAR         117        4                      -                      -                      -                      -
-                location_source       VARCHAR          48        4                      -                      -                      -                      -
-           requested_components        BIGINT         117       11                      1                     57     2.4615384615384617      5.922689366906728
-            resolved_components        BIGINT         117       12                      0                     57     1.5811965811965811      6.076011787801722
-       candidate_component_pins       VARCHAR          37       36                      -                      -                      -                      -
-          candidate_parcel_pins       VARCHAR          37       35                      -                      -                      -                      -
-        distance_to_boundary_ft        DOUBLE          48       47      31.27532083875283     3237.0207391928657     1062.7343448781378      658.7099572682949
-                   within_500ft       BOOLEAN          48        2                      -                      -                      -                      -
-               selected_address       VARCHAR          47       44                      -                      -                      -                      -
-                   history_year        BIGINT          46        6                   2008                   2023     2017.7608695652175     1.7786984331083286
-               history_year_gap        BIGINT          46        4                      1                      4     3.3260869565217392     1.1363557311977999
-                 history_row_id        DOUBLE          46       46 1.4204030700000202e+17 2.0024050980000202e+17 1.7632463098478454e+17 1.4822097912167118e+16
-                 history_x_3435        DOUBLE          46       46      1149039.401752993     1186169.9069446786      1173680.288553724        7792.7701635582
-                 history_y_3435        DOUBLE          46       46     1874536.7561659827     1923976.4116691416     1885481.8816178178     13353.330921799414
-                 history_status       VARCHAR          65        2                      -                      -                      -                      -
-  next_year_exact_pin_candidate       BOOLEAN         117        2                      -                      -                      -                      -
-      predecessor_min_area_sqft        DOUBLE          31       20      1392.858187293401     136077.37661029305      28048.81690880559     34216.259196044644
-      predecessor_max_area_sqft        DOUBLE          31       20     3003.1776000261307     143808.17479837686      35741.92412485019     35093.918046759456
-  predecessor_shapes_equivalent       BOOLEAN          31        2                      -                      -                      -                      -
-    initial_checkpoint_resolved       BOOLEAN         117        2                      -                      -                      -                      -
-      candidate_decision_reason       VARCHAR         117       21                      -                      -                      -                      -
-    candidate_construction_year        BIGINT         117       16                   2006                   2022     2013.7350427350427      4.575785522149159
-   candidate_assessor_land_sqft        DOUBLE         115       90                  850.0               816149.0      41973.10434782608     107728.73652284798
+     current_predecessor_status       VARCHAR          97        4                      -                      -                      -                      -
+   construction_year_unresolved       BOOLEAN         121        1                      -                      -                      -                      -
+     centroid_outside_parcel_ft        DOUBLE          24       24  8.327129186956468e-06     284.10522140384313      40.60644525317655      69.40337295169367
+                  polygon_parts        BIGINT          24        7                      1                     14     3.0416666666666665      3.593220266565629
+     maximum_part_separation_ft        DOUBLE          24       16                    0.0      3410.799542159241      338.6294039618933      769.4458084809083
+     initial_checkpoint_pending       BOOLEAN         121        2                      -                      -                      -                      -
+        centroid_outside_parcel       BOOLEAN         121        2                      -                      -                      -                      -
+                        case_id       VARCHAR         121      121                      -                      -                      -                      -
+                   project_kind       VARCHAR         121        6                      -                      -                      -                      -
+               candidate_status       VARCHAR         121        6                      -                      -                      -                      -
+               geography_status       VARCHAR         121        4                      -                      -                      -                      -
+                location_source       VARCHAR          52        4                      -                      -                      -                      -
+           requested_components        BIGINT         121       11                      1                     57     2.4297520661157024      5.826414629771599
+            resolved_components        BIGINT         121       12                      0                     57     1.5454545454545454      5.977736472389303
+       candidate_component_pins       VARCHAR          39       38                      -                      -                      -                      -
+          candidate_parcel_pins       VARCHAR          39       38                      -                      -                      -                      -
+        distance_to_boundary_ft        DOUBLE          52       50      31.27532083875283      3397.233695809138     1180.2224653185704      847.3033631224916
+                   within_500ft       BOOLEAN          52        2                      -                      -                      -                      -
+               selected_address       VARCHAR          48       44                      -                      -                      -                      -
+                   history_year        BIGINT          47        6                   2008                   2023      2017.872340425532      1.918072189743999
+               history_year_gap        BIGINT          47        4                      1                      4      3.276595744680851     1.1740329537552332
+                 history_row_id        DOUBLE          47       46 1.4204030700000202e+17 2.0024050980000202e+17 1.7621219213191683e+17 1.4680354714398048e+16
+                 history_x_3435        DOUBLE          47       46      1149039.401752993     1186169.9069446786     1173811.9676948322      7760.287396043574
+                 history_y_3435        DOUBLE          47       46     1874536.7561659827     1923976.4116691416      1885834.733090933     13427.092258819139
+                 history_status       VARCHAR          66        2                      -                      -                      -                      -
+  next_year_exact_pin_candidate       BOOLEAN         121        2                      -                      -                      -                      -
+      predecessor_min_area_sqft        DOUBLE          33       20      1392.858187293401     136077.37661029305     29145.267846419945      33418.51072197808
+      predecessor_max_area_sqft        DOUBLE          33       20     3003.1776000261307     143808.17479837686      37019.87137541496      34361.51931999488
+  predecessor_shapes_equivalent       BOOLEAN          33        2                      -                      -                      -                      -
+    initial_checkpoint_resolved       BOOLEAN         121        2                      -                      -                      -                      -
+      candidate_decision_reason       VARCHAR         121       21                      -                      -                      -                      -
+    candidate_construction_year        BIGINT         121       16                   2006                   2022     2013.7603305785124      4.685126809718195
+   candidate_assessor_land_sqft        DOUBLE         119       93                  850.0               816149.0      41498.61344537815     105995.91649688476
     reported_construction_years        BIGINT           6        5                   2006                   2018                 2012.5      4.888762624632155
       reported_assessment_years        BIGINT           3        3                   2015                   2022     2018.6666666666667     3.5118845842842195
                  lineage_reason       VARCHAR           3        2                      -                      -                      -                      -
-history_candidate_polygon_count        BIGINT          46        3                      0                      3     0.9130434782608695    0.46313362393934254
-  history_candidate_parcel_pins       VARCHAR          40       10                      -                      -                      -                      -
+history_candidate_polygon_count        BIGINT          47        3                      0                      3     0.9574468085106383     0.5499978975655719
+  history_candidate_parcel_pins       VARCHAR          41       10                      -                      -                      -                      -
               prior_case_result       VARCHAR           0        0                      -                      -                      -                      -
               verified_findings       VARCHAR           0        0                      -                      -                      -                      -
              remaining_question       VARCHAR           0        0                      -                      -                      -                      -
-                   review_route       VARCHAR         117       10                      -                      -                      -                      -
-               production_owner       VARCHAR         117        3                      -                      -                      -                      -
+                   review_route       VARCHAR         121       10                      -                      -                      -                      -
+               production_owner       VARCHAR         121        3                      -                      -                      -                      -
             initial_project_ids       VARCHAR          30       24                      -                      -                      -                      -

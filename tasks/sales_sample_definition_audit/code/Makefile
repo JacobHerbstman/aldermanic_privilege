@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 all: \
 	../output/sales_sample_flow.csv \
 	../output/sales_sample_definition_summary.csv \
@@ -41,7 +43,7 @@ all: \
 
 ../output/sales_sample_definition_rd_estimates.csv: \
 	estimate_sales_sample_definition_rd.R \
-	../../_lib/canonical_geometry_helpers.R \
+	../../shared/code/canonical_geometry_helpers.R \
 	../../_lib/amenity_distance_helpers.R \
 	../output/sales_sample_definition_candidates.parquet \
 	../output/sales_sample_definition_historical_coordinates.csv \
@@ -154,5 +156,4 @@ link-inputs: \
 	../input/gis_osm_water_a_free_1.shx \
 	../input/gis_osm_water_a_free_1.cpg
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

@@ -1,0 +1,12 @@
+File: preferred_residential_project_components_final.csv
+Rows: 13360
+Columns: 2
+SHA-256 (saved bytes): 0cd43a2f510e4d6a72640f451f4dc3caddb0671ecba2b1f0e3d82885bf99f729
+Key: project_id, component_pin
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+       column inferred_type non_missing distinct min max mean sd
+   project_id       VARCHAR       13360    12904   -   -    -  -
+component_pin       VARCHAR       13360    13360   -   -    -  -

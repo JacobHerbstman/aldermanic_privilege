@@ -1,3 +1,5 @@
+include ../../shared/code/shell_functions.make
+
 all: ../output/cta_stops.gpkg ../output/major_streets.gpkg ../output/parks.gpkg ../output/schools_2015.gpkg
 
 ../output/cta_stops.gpkg: prepare_amenities_data.R ../input/major_streets.geojson ../input/cta_stations.geojson ../input/cpd_park_boundaries.geojson ../input/cps_school_locations_sy1415.geojson | ../output
@@ -20,5 +22,4 @@ all: ../output/cta_stops.gpkg ../output/major_streets.gpkg ../output/parks.gpkg 
 
 link-inputs: ../input/major_streets.geojson ../input/cta_stations.geojson ../input/cpd_park_boundaries.geojson ../input/cps_school_locations_sy1415.geojson
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

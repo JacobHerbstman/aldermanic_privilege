@@ -52,7 +52,7 @@ projects <- projects |>
     by = "alderman_neighbor",
     relationship = "many-to-one"
   ) |>
-  dplyr::inner_join(
+  dplyr::left_join(
     boundary_characteristics,
     by = "project_id",
     relationship = "one-to-one"
@@ -61,13 +61,8 @@ projects <- projects |>
     construction_year >= 2006L,
     construction_year <= 2022L,
     within_500ft,
-    dwelling_units > 0,
-    allow_far,
-    allow_dupac,
-    is.finite(density_far),
-    density_far > 0,
-    is.finite(density_dupac),
-    density_dupac > 0,
+    (allow_far & is.finite(density_far) & density_far > 0) |
+      (allow_dupac & is.finite(density_dupac) & density_dupac > 0),
     is.finite(share_white_own),
     is.finite(share_black_own),
     is.finite(median_hh_income_own),
@@ -95,9 +90,6 @@ projects <- projects |>
     !is.na(distance_bin)
   )
 
-if (nrow(projects) != nrow(boundary_characteristics)) {
-  stop("Boundary characteristics do not match the density analysis sample.")
-}
 if (
   anyNA(projects$straight_boundary) ||
     anyNA(projects$simple_overlap_keep) ||
@@ -137,6 +129,9 @@ for (rule_i in seq_len(nrow(sample_rules))) {
     model_data <- projects |>
       dplyr::filter(
         keep,
+        if (panel_specs$outcome[panel_i] == "density_far") allow_far else allow_dupac,
+        is.finite(.data[[panel_specs$outcome[panel_i]]]),
+        .data[[panel_specs$outcome[panel_i]]] > 0,
         panel_specs$sample[panel_i] == "all" | external_multifamily
       ) |>
       dplyr::mutate(
