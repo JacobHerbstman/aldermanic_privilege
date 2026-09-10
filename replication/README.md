@@ -37,3 +37,16 @@ committed file is missing or any build step breaks, fix and commit the cause,
 then restart the test from another new clone. Do not patch and resume the failed
 clone as evidence of a successful from-scratch build. Wait for the author's
 instructions before restarting; the manuscript must remain unchanged.
+
+The author authorized a new test on `conference-replication`. Use a new empty
+`TIGRIS_CACHE_DIR` for each attempt, exported before running setup, source
+acquisition and the paper Makefile. This prevents the Census geography package
+from borrowing an existing user cache. The documented Census and Dewey credentials
+and installed software remain prerequisites. Compile the manuscript only in the
+fresh clone; leave the development checkout's manuscript untouched.
+
+The first isolated-cache run at commit `29dc42a4` failed on one of 470 live Cook
+County sales-parcel requests (2022, batch 19). The same request subsequently
+returned all 500 records. Retry ordering was revised to revisit failures after
+the other requests, and a new clone is required to test the revision. This failed
+run does not establish end-to-end replication.

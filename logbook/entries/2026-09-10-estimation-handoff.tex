@@ -225,3 +225,19 @@ delays may also contain unobserved neighborhood or project differences; the
 score is not a separately identified causal alderman effect. This decision
 resolves which score the forthcoming rerun should use, without changing the
 construction corrections or clearing the other open review items.
+
+\subsection*{Fresh-clone download failure}
+The conference replication attempt at commit \texttt{29dc42a4} reproduced all
+13,677 construction records exactly and the main density coefficients at their
+reported precision. It did not complete: one of 470 Cook County sales-location
+requests failed after three attempts. The identical request subsequently returned
+all 500 parcel records in approximately ten seconds, supporting a temporary
+service failure rather than unavailable data. This run is not a successful
+end-to-end replication.
+
+The downloader now retries unsuccessful requests after the other batches finish,
+giving the service time to recover. Successful requests are not repeated, and
+an unresolved failure still stops the build before publishing data. A disposable
+test verified both recovery from a temporary failure and rejection of a persistent
+failure. The full build must restart from a new remote clone with an empty Census
+geography cache. No failed-clone outputs will be supplied to that test.

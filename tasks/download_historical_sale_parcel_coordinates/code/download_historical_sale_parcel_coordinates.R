@@ -80,25 +80,29 @@ for (year_i in sort(unique(sale_keys$year))) {
 request_plan <- rbindlist(request_plan)
 downloaded <- rep(FALSE, nrow(request_plan))
 
-for (batch_start in seq(1L, nrow(request_plan), by = 24L)) {
-  batch <- batch_start:min(batch_start + 23L, nrow(request_plan))
-
-  for (attempt in 1:3) {
-    pending <- batch[!downloaded[batch]]
-    if (length(pending) == 0) {
-      break
-    }
+# Retry failed requests after the other batches, allowing the service to recover.
+for (attempt in 1:3) {
+  pending <- which(!downloaded)
+  if (length(pending) == 0) {
+    break
+  }
+  if (attempt > 1) {
+    Sys.sleep(10 * (attempt - 1))
+  }
+  for (batch_start in seq(1L, length(pending), by = 24L)) {
+    batch <- pending[batch_start:min(batch_start + 23L, length(pending))]
     results <- curl::multi_download(
-      request_plan$query[pending],
-      request_plan$destination[pending],
+      request_plan$query[batch],
+      request_plan$destination[batch],
       progress = FALSE,
       connecttimeout = 30,
       timeout = 120
     )
-    downloaded[pending] <- results$success & results$status_code == 200L
-    if (any(!downloaded[batch])) {
-      Sys.sleep(attempt)
-    }
+    downloaded[batch] <- results$success & results$status_code == 200L
+    message(sprintf(
+      "Historical parcel requests: %d/%d successful (attempt %d).",
+      sum(downloaded), nrow(request_plan), attempt
+    ))
   }
 }
 if (any(!downloaded)) {
