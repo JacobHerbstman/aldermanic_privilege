@@ -1,24 +1,24 @@
 File: preferred_historical_predecessor_selected.gpkg
-Rows: 3810
+Rows: 3851
 Columns: 14
-SHA-256 (saved bytes): ec1b4bfa51ca8166c5f2554639f0025a021e35becb9ed38f27df57589fd359e2
+SHA-256 (saved bytes): 18d8e5025f956588e550156cd8937b6af0bc779a1b7b9af50b6560913ad8a4c4
 Key: request_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                column inferred_type non_missing distinct    min    max               mean                 sd
-                   fid        BIGINT        3810     3810      1   3810             1905.5 1099.9965909038083
-            request_id       VARCHAR        3810     3810      -      -                  -                  -
-         source_family       VARCHAR        3810        2      -      -                  -                  -
-            project_id       VARCHAR        3810     3693      -      -                  -                  -
-          project_kind       VARCHAR        3810        6      -      -                  -                  -
-      candidate_status       VARCHAR        3810        6      -      -                  -                  -
-         component_pin       VARCHAR        3810     3808      -      -                  -                  -
-                 pin10       VARCHAR        3810     3808      -      -                  -                  -
-           target_year        DOUBLE        3810       17 2006.0 2022.0 2010.9811023622046  4.930353459703981
-      reference_source       VARCHAR        3810        5      -      -                  -                  -
-    predecessor_status       VARCHAR        3810        2      -      -                  -                  -
-predecessor_object_ids       VARCHAR        3810     1570      -      -                  -                  -
-    predecessor_pin14s       VARCHAR        3810     1480      -      -                  -                  -
-    predecessor_pin10s       VARCHAR        3810     1480      -      -                  -                  -
+                column inferred_type non_missing distinct    min    max             mean                 sd
+                   fid        BIGINT        3851     3851      1   3851           1926.0 1111.8322715230026
+            request_id       VARCHAR        3851     3851      -      -                -                  -
+         source_family       VARCHAR        3851        2      -      -                -                  -
+            project_id       VARCHAR        3851     3700      -      -                -                  -
+          project_kind       VARCHAR        3851        7      -      -                -                  -
+      candidate_status       VARCHAR        3851        8      -      -                -                  -
+         component_pin       VARCHAR        3851     3841      -      -                -                  -
+                 pin10       VARCHAR        3851     3807      -      -                -                  -
+           target_year        DOUBLE        3851       17 2006.0 2022.0 2011.05063619839  4.954418884012744
+      reference_source       VARCHAR        3851        5      -      -                -                  -
+    predecessor_status       VARCHAR        3851        2      -      -                -                  -
+predecessor_object_ids       VARCHAR        3851     1575      -      -                -                  -
+    predecessor_pin14s       VARCHAR        3851     1484      -      -                -                  -
+    predecessor_pin10s       VARCHAR        3851     1484      -      -                -                  -

@@ -115,3 +115,5 @@ logbook.pdf: entries/2026-09-08-deming-and-64th-locations.tex ../tasks/new_const
 logbook.pdf: ../tasks/new_construction_cleaning/report/preferred_residential_project_candidates.csv.log ../tasks/working_paper_release_audit/report/candidate_geography_review_queue.csv.log
 
 logbook.pdf: entries/2026-09-08-prior-construction-decisions.tex ../tasks/working_paper_release_audit/report/prior_construction_decision_review.csv.log ../tasks/new_construction_cleaning/report/residential_assessor_project_candidates.csv.log ../tasks/new_construction_cleaning/report/preferred_residential_project_candidates.csv.log ../tasks/new_construction_cleaning/report/preferred_project_boundary_scope.csv.log ../tasks/working_paper_release_audit/report/candidate_geography_checks.csv.log
+
+logbook.pdf: entries/2026-09-09-linear-construction-cleaning.tex ../tasks/new_construction_cleaning/report/new_construction_measurements.csv.log ../tasks/new_construction_cleaning/report/preferred_new_construction_project_ledger.csv.log ../tasks/new_construction_cleaning/report/preferred_new_construction_boundary_scope.csv.log ../tasks/working_paper_release_audit/manual_review_inventory.md

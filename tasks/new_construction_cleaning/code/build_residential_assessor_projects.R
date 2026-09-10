@@ -90,6 +90,31 @@ inventory <- inventory %>%
     )
   )
 
+# Fill an absent floor area only from the same building on the same lot.
+# Keep every card when checking that a later assessment contains one record.
+missing_floor <- inventory %>% filter(review_category == "ordinary",
+  !is.finite(building_sqft) | building_sqft <= 0) %>% select(pin)
+con <- DBI::dbConnect(duckdb::duckdb())
+DBI::dbWriteTable(con, "missing_floor", missing_floor)
+later_measurements <- DBI::dbGetQuery(con, "SELECT h.*
+  FROM read_parquet('../input/residential_assessor_history.parquet') h
+  INNER JOIN missing_floor m ON h.pin = m.pin") %>% as_tibble() %>%
+  group_by(pin, tax_year) %>% filter(n() == 1L) %>% ungroup() %>%
+  mutate(comparable_units = if_else(class %in% single_family_assessor_classes, 1, num_apartments))
+DBI::dbDisconnect(con, shutdown = TRUE)
+for (i in which(inventory$pin %in% missing_floor$pin)) {
+  selected_units <- if (inventory$class[i] %in% single_family_assessor_classes) 1 else inventory$assessor_units[i]
+  matches <- later_measurements %>% filter(pin == inventory$pin[i],
+    tax_year > inventory$tax_year[i], year_built == inventory$year_built[i],
+    comparable_units == selected_units, land_sqft == inventory$land_sqft[i],
+    is.finite(building_sqft), building_sqft > 0) %>%
+    arrange(desc(tax_year == 2025), tax_year)
+  if (nrow(matches) == 0L) next
+  inventory$building_sqft[i] <- matches$building_sqft[1]
+  # The complete later row also reports the unchanged year, units, and land.
+  inventory$row_id[i] <- matches$row_id[1]
+}
+
 tieback_pin_lineage <- tieback_temporal %>%
   select(tieback_lineage_id, pin = all_lineage_pins) %>%
   tidyr::separate_longer_delim(pin, delim = "/") %>%
@@ -99,6 +124,59 @@ tieback_pin_lineage <- tieback_temporal %>%
 if (anyDuplicated(tieback_pin_lineage$pin) > 0) {
   stop("A residential PIN maps to multiple corrected tieback lineages.", call. = FALSE)
 }
+
+# A historical self-reference can disappear in a later complete assessment.
+# Use that whole assessment only for the same single-card building: same PIN,
+# class, construction year, floor area and residential count. Its reported lot
+# replaces the old shared-site value; no tax share or polygon area is used.
+self_references <- tieback_pin_lineage %>% group_by(tieback_lineage_id) %>%
+  filter(n() == 1L) %>% ungroup() %>% inner_join(inventory, by = "pin", relationship = "one-to-one") %>%
+  filter(review_category == "tieback", maximum_concurrent_cards == 1,
+    !in_commercial_source, class != "297", between(year_built, 2006L, 2022L)) %>% select(pin)
+con <- DBI::dbConnect(duckdb::duckdb())
+DBI::dbWriteTable(con, "self_references", self_references)
+independent_reports <- DBI::dbGetQuery(con, "SELECT h.*
+  FROM read_parquet('../input/residential_assessor_history.parquet') h
+  INNER JOIN self_references s ON h.pin = s.pin") %>% as_tibble() %>%
+  group_by(pin, tax_year) %>% filter(n() == 1L) %>% ungroup()
+DBI::dbDisconnect(con, shutdown = TRUE)
+for (i in which(inventory$pin %in% self_references$pin)) {
+  matches <- independent_reports %>% filter(pin == inventory$pin[i],
+    tax_year > inventory$tax_year[i], is.na(proration_key_pin), pin_proration_rate == 1,
+    class == inventory$class[i], year_built == inventory$year_built[i],
+    building_sqft == inventory$building_sqft[i], is.finite(building_sqft), building_sqft > 1,
+    coalesce(num_apartments, -1) == coalesce(inventory$num_apartments[i], -1),
+    is.finite(land_sqft), land_sqft > 1) %>%
+    arrange(desc(tax_year == 2025), tax_year)
+  if (nrow(matches) == 0L) next
+  for (field in c("tax_year", "card_num", "land_sqft", "pin_proration_rate", "card_proration_rate", "row_id"))
+    inventory[[field]][i] <- matches[[field]][1]
+  inventory$tieback_group[i] <- NA_character_
+}
+
+# A tie that ended before the new construction does not combine the new buildings.
+# Require independent, complete, single-card reports for every current member.
+# A historical self-reference alone does not tie a parcel to another property.
+con <- DBI::dbConnect(duckdb::duckdb())
+last_ties <- DBI::dbGetQuery(con, "SELECT pin, max(tax_year) AS last_tied_year
+  FROM read_parquet('../input/residential_assessor_history.parquet')
+  WHERE proration_key_pin IS NOT NULL AND proration_key_pin != '' GROUP BY pin")
+DBI::dbDisconnect(con, shutdown = TRUE)
+lineage_last_ties <- tieback_pin_lineage %>% left_join(last_ties, by = "pin", relationship = "many-to-one") %>%
+  group_by(tieback_lineage_id) %>% summarise(last_tied_year = max(last_tied_year, na.rm = TRUE),
+    lineage_pin_count = n_distinct(pin), .groups = "drop")
+independent_members <- inventory %>% inner_join(tieback_pin_lineage, by = "pin", relationship = "one-to-one",
+  suffix = c("", "_historical")) %>%
+  left_join(lineage_last_ties, by = c("tieback_lineage_id_historical" = "tieback_lineage_id"), relationship = "many-to-one") %>%
+  group_by(tieback_lineage_id_historical) %>%
+  filter(all(is.finite(last_tied_year) & (year_built > last_tied_year | lineage_pin_count == 1) & between(year_built, 2006L, 2022L) &
+    is.na(tieback_group) & pin_proration_rate == 1 & maximum_concurrent_cards == 1 &
+    !in_commercial_source & class != "297" & is.finite(building_sqft) & building_sqft > 1 &
+    is.finite(land_sqft) & land_sqft > 1 &
+    (class %in% single_family_assessor_classes | (is.finite(assessor_units) & assessor_units > 0)))) %>% ungroup()
+inventory$review_category[inventory$pin %in% independent_members$pin] <- "ordinary"
+tieback_pin_lineage <- tieback_pin_lineage %>%
+  filter(!tieback_lineage_id %in% independent_members$tieback_lineage_id_historical)
 
 ordinary_candidates <- inventory %>%
   filter(
@@ -161,6 +239,8 @@ tieback_selected_flags <- inventory %>%
     .groups = "drop"
   )
 
+# A complete snapshot already requires one card per parcel. Historical extra
+# cards do not invalidate that selected, complete assessment.
 tieback_candidates <- tieback_temporal %>%
   mutate(
     all_candidate_years_outside_period =
@@ -217,7 +297,7 @@ tieback_candidates <- tieback_temporal %>%
         (!is.finite(construction_year) & all_candidate_years_outside_period) ~
         "exclude_outside_period",
       has_commercial_overlap ~ "defer_to_commercial_reconciliation",
-      temporal_status != "temporally_resolved" | has_class_297 | has_multicard ~
+      temporal_status != "temporally_resolved" | has_class_297 ~
         "review_required",
       !is.finite(dwelling_units) | dwelling_units <= 0 |
         !is.finite(building_sqft) | building_sqft <= 0 |
@@ -231,7 +311,7 @@ tieback_candidates <- tieback_temporal %>%
       !between(construction_year, 2006L, 2022L) ~ "construction_year_outside_2006_2022",
       has_commercial_overlap ~ "tieback_contains_commercial_source_pin",
       has_class_297 ~ "tieback_contains_class_297",
-      has_multicard ~ "tieback_contains_multicard_pin",
+      has_multicard & temporal_status != "temporally_resolved" ~ "tieback_contains_multicard_pin",
       temporal_status != "temporally_resolved" ~ temporal_reason,
       !is.finite(dwelling_units) | dwelling_units <= 0 ~ "missing_or_nonpositive_units",
       !is.finite(building_sqft) | building_sqft <= 0 ~ "missing_or_nonpositive_building_area",
@@ -300,18 +380,6 @@ multicard_candidates <- multicard_cards %>%
     .groups = "drop"
   ) %>%
   select(all_of(names(ordinary_candidates)))
-
-# Approved survey measurements replace development-wide land repeated on a home.
-reviewed_land <- readr::read_csv("../adjudication/residential_reviewed_land_areas.csv",
-  col_types = readr::cols(project_id = readr::col_character(), reported_land_sqft = readr::col_double(),
-    land_sqft = readr::col_double(), .default = readr::col_character()))
-stopifnot(!anyDuplicated(reviewed_land$project_id),
-  all(reviewed_land$project_id %in% ordinary_candidates$project_id))
-i <- match(reviewed_land$project_id, ordinary_candidates$project_id)
-stopifnot(all(ordinary_candidates$land_sqft[i] == reviewed_land$reported_land_sqft),
-  all(is.finite(reviewed_land$land_sqft) & reviewed_land$land_sqft > 0))
-ordinary_candidates$land_sqft[i] <- reviewed_land$land_sqft
-ordinary_candidates$land_source[i] <- paste0("reviewed_land_area:", reviewed_land$project_id)
 
 # Recorded completion-year decisions apply before matching old and new records.
 reviewed_years <- readr::read_csv("../adjudication/residential_reviewed_construction_years.csv",
@@ -511,6 +579,21 @@ for (i in which(!is.na(multicard_candidates$replacement_project_ids))) {
 assessor_projects <- bind_rows(ordinary_candidates, tieback_candidates, multicard_candidates) %>%
   arrange(project_kind, project_id)
 stopifnot(!anyNA(assessor_projects$project_id), !anyDuplicated(assessor_projects$project_id))
+for (id in unique(independent_members$tieback_lineage_id_historical)) {
+  members <- independent_members %>% filter(tieback_lineage_id_historical == id)
+  replacements <- paste0("residential_", members$pin)
+  j <- match(replacements, assessor_projects$project_id)
+  stopifnot(!anyNA(j), all(assessor_projects$candidate_status[j] == "retain_mechanical"))
+  old <- match(id, assessor_projects$project_id)
+  stopifnot(!is.na(old))
+  assessor_projects$candidate_status[old] <- "exclude_source_duplicate_keep_successors"
+  assessor_projects$decision_reason[old] <- if (all(members$year_built > members$last_tied_year))
+    "historical_tie_ended_before_independently_reported_new_buildings" else
+    "historical_self_reference_only_current_complete_independent_property"
+  assessor_projects$replacement_project_ids[old] <- paste(sort(replacements), collapse = "/")
+  assessor_projects$replacement_check[old] <- "complete_independent_assessor_reports_after_old_tie_ended_or_self_reference_only"
+}
+
 # Reviewed sites combine identified buildings from one assessment across parcels.
 reviewed_components <- readr::read_csv(
   "../adjudication/residential_reviewed_building_components.csv",

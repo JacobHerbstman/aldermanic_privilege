@@ -5,6 +5,15 @@ source("../../shared/code/canonical_geometry_helpers.R")
 projects <- readr::read_csv("../output/preferred_commercial_projects.csv",
   col_types = readr::cols(project_id = readr::col_character(), component_pins = readr::col_character(), .default = readr::col_guess()))
 stopifnot(!anyDuplicated(projects$project_id))
+# Density and physical measurements are complete before final geography starts.
+measurements <- readr::read_csv("../output/new_construction_measurements.csv",
+  col_types = readr::cols(.default = readr::col_guess())) %>% filter(source_family == "commercial")
+stopifnot(!anyDuplicated(measurements$project_id), setequal(projects$project_id, measurements$project_id))
+measurements <- measurements[match(projects$project_id, measurements$project_id), ]
+for (field in c("construction_year", "dwelling_units", "building_sqft", "land_sqft", "allow_far", "allow_dupac")) {
+  stopifnot(isTRUE(all.equal(projects[[field]], measurements[[field]], check.attributes = FALSE)))
+}
+
 requests <- projects %>% select(project_id, target_year = construction_year, component_pins) %>%
   tidyr::separate_longer_delim(component_pins, delim = "/") %>% rename(component_pin = component_pins)
 stopifnot(!anyDuplicated(requests[c("project_id", "component_pin")]))
@@ -19,10 +28,30 @@ stopifnot(!anyDuplicated(sf::st_drop_geometry(parcels)[c("target_year", "pin14")
 components <- parcels %>% inner_join(requests,
   by = c("target_year", "pin14" = "component_pin"), relationship = "one-to-many") %>%
   rename(component_pin = pin14)
+# The next year's exact parcel can identify a unique construction-year parcel.
+# Its polygon supplies location only; density continues to use reported land.
+future <- parcels %>% mutate(target_year = target_year - 1L) %>%
+  inner_join(requests, by = c("target_year", "pin14" = "component_pin"), relationship = "one-to-many") %>%
+  rename(component_pin = pin14) %>%
+  anti_join(sf::st_drop_geometry(components) %>% select(project_id, component_pin),
+    by = c("project_id", "component_pin")) %>% sf::st_centroid()
+predecessors <- sf::st_read("../input/preferred_predecessor_parcel_source.gpkg", quiet = TRUE) %>%
+  sf::st_transform(3435)
+for (i in seq_len(nrow(future))) {
+  historical <- predecessors %>% filter(target_year == future$target_year[i])
+  containing <- sf::st_within(future[i, ], historical)[[1]]
+  if (length(containing) != 1L) next
+  old <- historical[containing, ]
+  components <- bind_rows(components, sf::st_sf(target_year = future$target_year[i],
+    location_evidence = paste0("next_year_exact_parcel:", future$location_evidence[i],
+      ";construction_year_parcel:", old$object_id), project_id = future$project_id[i],
+    component_pin = future$component_pin[i], geometry = sf::st_geometry(old)))
+}
 component_coverage <- requests %>% left_join(sf::st_drop_geometry(components) %>%
   select(project_id, component_pin, location_evidence),
   by = c("project_id", "component_pin"), relationship = "one-to-one") %>%
-  mutate(location_source = if_else(!is.na(location_evidence), "exact_construction_year_parcel", NA_character_))
+  mutate(location_source = if_else(!is.na(location_evidence), if_else(str_detect(location_evidence, "^next_year_exact_parcel:"),
+    "next_year_exact_parcel_identifies_construction_year_polygon", "exact_construction_year_parcel"), NA_character_))
 complete <- component_coverage %>% group_by(project_id) %>%
   summarise(complete = all(!is.na(location_source)), .groups = "drop") %>% filter(complete)
 centroids <- components %>% semi_join(complete, by = "project_id") %>%
@@ -49,6 +78,27 @@ reused <- candidate_points %>% inner_join(unchanged,
     project_polygon_area_sqft = project_land_area_sqft)
 centroids <- bind_rows(centroids, reused)
 
+# A completed new-building permit already cited by the selected decision can
+# locate that project when every cited building permit identifies the same point.
+permit_links <- projects %>% filter(allow_far | allow_dupac) %>%
+  anti_join(sf::st_drop_geometry(centroids) %>% select(project_id), by = "project_id") %>%
+  transmute(project_id, permit = str_extract_all(coalesce(evidence_ids, ""), "(?<![0-9])1[0-9]{8}(?![0-9])")) %>%
+  tidyr::unnest_longer(permit) %>% distinct(project_id, permit)
+location_permits <- sf::st_read("../output/building_permits_for_verification.gpkg",
+  query = "SELECT * FROM building_permits_clean WHERE permit_status = 'COMPLETE' AND permit_type = 'PERMIT - NEW CONSTRUCTION'",
+  quiet = TRUE) %>% sf::st_transform(3435) %>%
+  filter(str_detect(work_description, regex("RESIDENTIAL (BUILDING|TOWER)|APARTMENT (BUILDING|TOWER)|FULL BUILDING|FULL PERMIT|CONSTRUCT NEW", ignore_case = TRUE)))
+stopifnot(!anyDuplicated(location_permits$permit))
+permit_points <- location_permits %>% inner_join(permit_links, by = "permit", relationship = "one-to-many")
+for (id in unique(permit_points$project_id)) {
+  points <- permit_points %>% filter(project_id == .env$id)
+  xy <- sf::st_coordinates(points)
+  if (nrow(unique(as.data.frame(xy))) != 1L || any(!is.finite(xy))) next
+  centroids <- bind_rows(centroids, sf::st_sf(project_id = id,
+    project_geometry_source = "completed_permits_in_recorded_building_decision",
+    project_geometry_evidence = paste(sort(unique(points$permit)), collapse = "/"),
+    project_polygon_area_sqft = NA_real_, geometry = sf::st_geometry(points[1, ])))
+}
 reviews <- readr::read_csv("../adjudication/commercial_reviewed_locations.csv",
   col_types = readr::cols(.default = readr::col_character()))
 stopifnot(!anyDuplicated(reviews$project_id), all(reviews$project_id %in% projects$project_id))

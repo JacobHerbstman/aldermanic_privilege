@@ -1,5 +1,72 @@
 # Remaining dependence on manual construction decisions
 
+## September 9 update: current building workflow
+
+The current audit starts from the combined candidate Make targets, rather than
+counting every historical file in the adjudication directory. Before cleanup,
+the active path required 30 decision CSVs with 685 rows. Consolidation leaves
+26 active CSVs with 666 rows. These are recorded inputs, not 666 distinct
+buildings or independent numeric corrections. Source links, retained-source
+confirmations, exclusions and location decisions all contribute rows.
+
+The three residential retained-building inputs now have one owner:
+`apply_residential_building_corrections.R` reads
+`residential_building_corrections.csv` after `residential_selected_assessments.csv`.
+Its 53 source-to-building rows identify 49 final buildings. Two old source records
+are absent from the current candidate population and are not copied into the new
+active table. Thirteen exclusions or commercial replacement links from the same
+older files are in `residential_source_decisions.csv`; commercial replacement
+measurements are validated from the finished commercial output, not copied into
+that residential table.
+
+Commercial field and unit-definition corrections are consolidated from 57 rows
+in two inputs to 52 applying rows in one table. Eight whole-project decisions
+already superseded by component decisions are preserved separately. The commercial
+producer rejects overlapping source coverage among its component, measurement
+and whole-project decisions. The empty condo-link override reader and the two
+early commercial unit corrections were removed. Final commercial cleaning owns
+the unit definition; preliminary source records preserve reported values.
+
+The preliminary commercial land heuristic that used low implied density was
+removed from parcel discovery. The existing final reported-land selection remains
+the owner of density land. Forty-seven obsolete map-derived numeric land values
+were cleared from active decision tables; the approved source-reported selections
+and external land decisions remain. This removes the sequence of applying a map
+value and then replacing it with a reported value.
+
+`calculate_construction_density.R` now calculates both density measures from
+`new_construction_measurements.csv`'s selected building inputs, before final
+geography. Final geography and combined assembly assert that construction year,
+units, building area and land area agree with that saved measurement dataset.
+Identity-related year corrections remain earlier because they help distinguish
+old combined records from their individual successor homes. They are not applied
+again to final measurements. The final residential correction producer rejects
+an attempt to overwrite a field already reviewed during identity construction.
+
+The completed local comparison preserves all 13,764 final project IDs and every
+pre-existing project-ledger field, all 15,206 parcel membership rows, and the
+complete boundary-distance table. The added `far` and `dupac` columns are calculated
+from the same final measurements. Within 500 feet, eligibility remains 4,139 for
+at least one density outcome and 4,128 for both. The preliminary commercial source
+file changes two raw unit values and three raw land values because those early
+adjustments have been removed; none changes the final reviewed measurements.
+This is an output-preserving cleanup of the candidate building dataset, not a
+new regression run or a claim that a fresh clone already reproduces the paper.
+
+Verification completed September 10 on GNU Make 3.81. The full task build passed;
+an unchanged second build reported nothing to do. A parallel build restored a
+missing measurement CSV and a missing secondary residential-component CSV with
+identical saved bytes. All 268 fixed review cases remain closed and the current
+question table has zero rows. The 53 consolidated residential and 52 commercial
+measurement-decision rows were checked against their original recorded values
+and evidence, allowing only the explicitly cleared obsolete map denominators.
+
+Earlier counts and proposed reductions below describe the September 7 recovery
+and are preserved as history; they are not the current active-input inventory.
+
+---
+
+
 September 7, 2026. Agent-drafted audit, not a replacement cleaning specification.
 Jacob requested general rules wherever possible and case-specific ledgers only
 as a last resort. No decisions or production observations were changed here.

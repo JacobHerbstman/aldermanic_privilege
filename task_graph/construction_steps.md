@@ -80,66 +80,98 @@ The older final-assembly rules are excluded from the default build; the paper st
 ## Dependency level 17
 
 - [build_preferred_commercial_candidates.R](../tasks/new_construction_cleaning/code/build_preferred_commercial_candidates.R): `commercial_adjudication_queue.csv`, `preferred_commercial_project_candidates.csv`, `preferred_commercial_project_components.csv`
-- [build_preferred_residential_candidates.R](../tasks/new_construction_cleaning/code/build_preferred_residential_candidates.R): `preferred_residential_project_candidates.csv`, `preferred_residential_project_components.csv`, `residential_adjudication_queue.csv`
+- [select_residential_assessments.R](../tasks/new_construction_cleaning/code/select_residential_assessments.R): `residential_selected_assessments.csv`
 
 ## Dependency level 18
 
+- [apply_residential_building_corrections.R](../tasks/new_construction_cleaning/code/apply_residential_building_corrections.R): `preferred_residential_project_candidates.csv`, `preferred_residential_project_components.csv`, `residential_adjudication_queue.csv`
 - [build_commercial_permit_adjudication_evidence.R](../tasks/new_construction_cleaning/code/build_commercial_permit_adjudication_evidence.R): `commercial_permit_address_evidence.csv`, `commercial_permit_chain_evidence.csv`, `commercial_permit_project_evidence.csv`
 - [build_commercial_residential_history_evidence.R](../tasks/new_construction_cleaning/code/build_commercial_residential_history_evidence.R): `commercial_residential_history_evidence.csv`
-- [build_preferred_geography_requests.R](../tasks/new_construction_cleaning/code/build_preferred_geography_requests.R): `preferred_project_geography_requests.csv`
 
 ## Dependency level 19
 
 - [build_commercial_unit_adjudication_evidence.R](../tasks/new_construction_cleaning/code/build_commercial_unit_adjudication_evidence.R): `commercial_unit_adjudication_evidence.csv`
-- [build_preferred_historical_parcels.R](../tasks/new_construction_cleaning/code/build_preferred_historical_parcels.R): `preferred_historical_parcel_coverage.csv`, `preferred_historical_parcels.gpkg`
+- [build_preferred_geography_requests.R](../tasks/new_construction_cleaning/code/build_preferred_geography_requests.R): `preferred_project_geography_requests.csv`
 
 ## Dependency level 20
 
-- [build_preferred_address_geocode_requests.R](../tasks/new_construction_cleaning/code/build_preferred_address_geocode_requests.R): `preferred_address_geocode_requests.csv`
+- [build_preferred_historical_parcels.R](../tasks/new_construction_cleaning/code/build_preferred_historical_parcels.R): `preferred_historical_parcel_coverage.csv`, `preferred_historical_parcels.gpkg`
 
 ## Dependency level 21
+
+- [build_preferred_address_geocode_requests.R](../tasks/new_construction_cleaning/code/build_preferred_address_geocode_requests.R): `preferred_address_geocode_requests.csv`
+
+## Dependency level 22
 
 - [build_preferred_census_geocodes.R](../tasks/new_construction_cleaning/code/build_preferred_census_geocodes.R): `preferred_historical_address_geocodes.csv`
 - [build_preferred_chicago_geocodes.R](../tasks/new_construction_cleaning/code/build_preferred_chicago_geocodes.R): `preferred_chicago_address_geocodes.csv`
 
-## Dependency level 22
+## Dependency level 23
 
 - [build_preferred_predecessor_reference_points.R](../tasks/new_construction_cleaning/code/build_preferred_predecessor_reference_points.R): `preferred_predecessor_reference_points.csv`
 
-## Dependency level 23
+## Dependency level 24
 
 - [recover_preferred_historical_predecessors.R](../tasks/new_construction_cleaning/code/recover_preferred_historical_predecessors.R): `preferred_historical_predecessor_resolution.csv`, `preferred_historical_predecessor_selected.gpkg`
 
-## Dependency level 24
+## Dependency level 25
 
 - [build_preferred_project_geography.R](../tasks/new_construction_cleaning/code/build_preferred_project_geography.R): `preferred_project_component_geometry.gpkg`, `preferred_project_year_centroids.gpkg`, `preferred_project_year_geometry.gpkg`, `preferred_project_year_geometry_coverage.csv`
 
-## Dependency level 25
+## Dependency level 26
 
 - [build_commercial_city_building_footprints.R](../tasks/new_construction_cleaning/code/build_commercial_city_building_footprints.R): `commercial_city_building_footprints.gpkg`
 - [build_preferred_boundary_scope.R](../tasks/new_construction_cleaning/code/build_preferred_boundary_scope.R): `preferred_adjudication_scope.csv`, `preferred_project_boundary_scope.csv`
-
-## Dependency level 26
-
-- [build_commercial_ground_up_evidence.R](../tasks/new_construction_cleaning/code/build_commercial_ground_up_evidence.R): `commercial_ground_up_evidence.csv`
-- [build_commercial_land_adjudication_evidence.R](../tasks/new_construction_cleaning/code/build_commercial_land_adjudication_evidence.R): `commercial_land_adjudication_evidence.csv`
+- [build_residential_successor_condo_requests.R](../tasks/new_construction_cleaning/code/build_residential_successor_condo_requests.R): `residential_successor_condo_requests.csv`
+- [build_residential_tieback_episode_resolution.R](../tasks/new_construction_cleaning/code/build_residential_tieback_episode_resolution.R): `residential_tieback_episode_resolution.csv`
 
 ## Dependency level 27
 
-- [build_commercial_address_permit_history.R](../tasks/new_construction_cleaning/code/build_commercial_address_permit_history.R): `commercial_address_permit_history.csv`
+- [build_commercial_ground_up_evidence.R](../tasks/new_construction_cleaning/code/build_commercial_ground_up_evidence.R): `commercial_ground_up_evidence.csv`
+- [build_commercial_land_adjudication_evidence.R](../tasks/new_construction_cleaning/code/build_commercial_land_adjudication_evidence.R): `commercial_land_adjudication_evidence.csv`
+- [build_residential_class297_resolution.R](../tasks/new_construction_cleaning/code/build_residential_class297_resolution.R): `residential_class297_resolution.csv`, `residential_class297_source_disposition.csv`
 
 ## Dependency level 28
 
-- [build_commercial_completion_evidence.R](../tasks/new_construction_cleaning/code/build_commercial_completion_evidence.R): `commercial_completion_evidence.csv`
+- [build_commercial_address_permit_history.R](../tasks/new_construction_cleaning/code/build_commercial_address_permit_history.R): `commercial_address_permit_history.csv`
 
 ## Dependency level 29
 
-- [build_commercial_post_evidence_queue.R](../tasks/new_construction_cleaning/code/build_commercial_post_evidence_queue.R): `commercial_post_evidence_resolution.csv`
+- [build_commercial_completion_evidence.R](../tasks/new_construction_cleaning/code/build_commercial_completion_evidence.R): `commercial_completion_evidence.csv`
 
 ## Dependency level 30
 
-- [build_preferred_commercial_ledger.R](../tasks/new_construction_cleaning/code/build_preferred_commercial_ledger.R): `preferred_commercial_projects.csv`, `preferred_commercial_source_disposition.csv`
+- [build_commercial_post_evidence_queue.R](../tasks/new_construction_cleaning/code/build_commercial_post_evidence_queue.R): `commercial_post_evidence_resolution.csv`
 
 ## Dependency level 31
 
+- [build_preferred_commercial_ledger.R](../tasks/new_construction_cleaning/code/build_preferred_commercial_ledger.R): `preferred_commercial_projects.csv`, `preferred_commercial_source_disposition.csv`
+
+## Dependency level 32
+
+- [build_residential_overlap_resolution.R](../tasks/new_construction_cleaning/code/build_residential_overlap_resolution.R): `residential_overlap_resolution.csv`
+
+## Dependency level 33
+
+- [build_residential_review_resolution_ledger.R](../tasks/new_construction_cleaning/code/build_residential_review_resolution_ledger.R): `residential_review_resolution_components.csv`, `residential_review_resolution_projects.csv`, `residential_review_source_dispositions.csv`
+
+## Dependency level 34
+
+- [select_residential_buildings.R](../tasks/new_construction_cleaning/code/select_residential_buildings.R): `residential_selected_buildings.csv`
+
+## Dependency level 35
+
+- [calculate_construction_density.R](../tasks/new_construction_cleaning/code/calculate_construction_density.R): `new_construction_measurements.csv`
+
+## Dependency level 36
+
 - [build_preferred_commercial_final_geography.R](../tasks/new_construction_cleaning/code/build_preferred_commercial_final_geography.R): `preferred_commercial_boundary_scope.csv`, `preferred_commercial_project_centroids.gpkg`, `preferred_commercial_project_component_locations.csv`, `preferred_commercial_project_ledger.csv`
+- [build_residential_unresolved_final_ledger.R](../tasks/new_construction_cleaning/code/build_residential_unresolved_final_ledger.R): `preferred_residential_project_centroids.gpkg`, `preferred_residential_project_components_final.csv`, `preferred_residential_project_ledger.csv`, `residential_adjudicated_project_geometry.gpkg`
+
+## Dependency level 37
+
+- [validate_preferred_residential_ledger.R](../tasks/new_construction_cleaning/code/validate_preferred_residential_ledger.R): `preferred_residential_boundary_scope.csv`
+
+## Dependency level 38
+
+- [build_preferred_new_construction_ledger.R](../tasks/new_construction_cleaning/code/build_preferred_new_construction_ledger.R): `preferred_new_construction_boundary_scope.csv`, `preferred_new_construction_project_centroids.gpkg`, `preferred_new_construction_project_components.csv`, `preferred_new_construction_project_ledger.csv`

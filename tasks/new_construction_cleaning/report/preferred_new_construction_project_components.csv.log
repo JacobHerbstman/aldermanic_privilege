@@ -1,0 +1,14 @@
+File: preferred_new_construction_project_components.csv
+Rows: 15206
+Columns: 4
+SHA-256 (saved bytes): be8e3e8d200406b6fcb5abe41e618ed15c015b580fdd0e165b1901bbfe70818c
+Key: project_id, component_pin
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+       column inferred_type non_missing distinct min max mean sd
+   project_id       VARCHAR       15206    13764   -   -    -  -
+source_family       VARCHAR       15206        2   -   -    -  -
+ project_kind       VARCHAR       15206        7   -   -    -  -
+component_pin       VARCHAR       15206    15206   -   -    -  -

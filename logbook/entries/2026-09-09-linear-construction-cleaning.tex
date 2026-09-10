@@ -1,0 +1,55 @@
+\clearpage
+\section*{September 9, 2026: construction corrections in execution order}
+\addcontentsline{toc}{section}{September 9, 2026: construction corrections in execution order}
+\textit{Agent-drafted entry.}
+
+Jacob chose a chronological construction workflow: read sources and remove empty
+cards; identify distinct buildings; select complete assessment measurements;
+apply remaining recorded corrections; calculate density; and attach
+construction-year ward-boundary distances. Identity-related year decisions stay
+before duplicate matching, because they help establish which records describe
+the same construction episode. Other measurement corrections follow assessment
+selection. Final geography cannot revise physical measurements.
+
+The active decision inputs have been reduced from 30 CSVs containing 685 rows to
+26 containing 666 rows. These counts include source links, exclusions, retained
+source choices and locations; they are not numbers of distinct manually corrected
+buildings. Three overlapping residential measurement inputs now feed one table
+with 53 source-to-building rows for 49 final buildings. Two commercial measurement
+inputs are combined, omitting five superseded entries. Eight additional
+whole-project decisions already superseded by component decisions are preserved
+outside the active input. The commercial producer rejects competing correction
+coverage, and residential final corrections cannot overwrite measurements already
+reviewed during identity construction.
+
+The early commercial discovery file now preserves source measurements. Its two
+unit overrides and its low-density land heuristic were removed from that stage;
+final commercial cleaning owns the reported unit and land choices. This restores
+raw unit values on two preliminary rows and raw land values on three, without
+changing final building measurements. Forty-seven obsolete map-derived numeric
+land values were also cleared from active decision inputs. Approved reported-land
+selection and external reported measurements remain; maps establish location and
+identity, not density denominators.
+
+The rebuilt combined data contain the same 13,764 project records as immediately
+before this cleanup. Every existing project-ledger field agrees, including units,
+years, floor and land areas, eligibility, coordinates and source provenance.
+The 15,206 project-parcel links and all construction-year boundary-distance records
+also agree. Within 500 feet, 4,139 projects remain eligible for at least one density
+measure and 4,128 for both. Two new columns carry the density calculations from the
+finished measurement file: floor area divided by land area, and homes times 43,560
+divided by land area. No additional building review or measurement choice was made.
+
+Verification completed September 10 using GNU Make 3.81. The full build passed,
+an unchanged second build did no work, and a parallel build restored two missing
+generated CSVs with identical contents. All 268 fixed review cases remain closed;
+the current question table has zero rows.
+
+\paragraph{Reproduction.}
+Run Make in \texttt{tasks/new\_construction\_cleaning/code}. The selected
+measurements are saved as \texttt{new\_construction\_measurements.csv}, before
+final geography. The source inventory and cleanup comparison are documented in
+\path{tasks/working_paper_release_audit/manual_review_inventory.md}; the
+current task README and Make-derived graph describe the chronology. The paper's
+frozen estimation input remains unchanged. This local rebuild does not by itself
+establish replication from a fresh public clone.

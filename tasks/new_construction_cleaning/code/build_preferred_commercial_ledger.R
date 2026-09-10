@@ -48,16 +48,10 @@ component_decisions <- readr::read_csv(
   )
 )
 
-field_decisions <- readr::read_csv(
-  "../adjudication/commercial_field_decisions.csv",
+measurement_decisions <- readr::read_csv(
+  "../adjudication/commercial_measurement_corrections.csv",
   show_col_types = FALSE,
-  col_types = readr::cols(project_id = readr::col_character(), .default = readr::col_guess())
-)
-
-semantic_decisions <- readr::read_csv(
-  "../adjudication/commercial_semantic_decisions.csv",
-  show_col_types = FALSE,
-  col_types = readr::cols(project_id = readr::col_character(), .default = readr::col_guess())
+  col_types = readr::cols(project_id = "c", .default = readr::col_guess())
 )
 
 manual_decisions <- readr::read_csv(
@@ -69,8 +63,7 @@ manual_decisions <- readr::read_csv(
     final_project_id = readr::col_character(),
     .default = readr::col_guess()
   )
-) %>%
-  mutate(manual_decision_id = row_number())
+)
 
 cross_family_decisions <- readr::read_csv(
   "../adjudication/commercial_cross_family_decisions.csv",
@@ -97,15 +90,10 @@ if (anyDuplicated(entity_versions$raw_row) > 0) {
 if (anyDuplicated(component_decisions$decision_group_id) > 0) {
   stop("Component decision IDs are not unique.", call. = FALSE)
 }
-if (anyDuplicated(field_decisions$project_id) > 0) {
-  stop("Field decisions are not unique by source project.", call. = FALSE)
-}
-if (anyDuplicated(semantic_decisions$project_id) > 0) {
-  stop("Semantic decisions are not unique by source project.", call. = FALSE)
-}
+stopifnot(!anyDuplicated(measurement_decisions$project_id),
+  all(measurement_decisions$decision_source %in% c("field_ledger", "semantic_ledger")))
 if (any(component_decisions$status != "reviewed_evidence") ||
-    any(field_decisions$status != "reviewed_evidence") ||
-    any(semantic_decisions$status != "reviewed_evidence") ||
+    any(measurement_decisions$status != "reviewed_evidence") ||
     any(manual_decisions$status != "reviewed_evidence") ||
     any(cross_family_decisions$status != "reviewed_evidence")) {
   stop("Every adjudication row must have reviewed_evidence status.", call. = FALSE)
@@ -141,10 +129,13 @@ if (any(manual_coverage$manual_action_count != 1)) {
   stop("A source project has conflicting manual decisions.", call. = FALSE)
 }
 
+stopifnot(!any(measurement_decisions$project_id %in% component_coverage$project_id),
+  !any(manual_coverage$project_id %in% component_coverage$project_id),
+  !any(manual_coverage$project_id %in% measurement_decisions$project_id))
+
 decision_ids <- unique(c(
   component_coverage$project_id,
-  field_decisions$project_id,
-  semantic_decisions$project_id,
+  measurement_decisions$project_id,
   manual_coverage$project_id
 ))
 if (!all(decision_ids %in% candidates$project_id)) {
@@ -167,14 +158,9 @@ decision_map <- resolution %>%
     relationship = "one-to-one"
   ) %>%
   left_join(
-    field_decisions %>% select(project_id, field_action = action),
-    by = "project_id",
-    relationship = "one-to-one"
-  ) %>%
-  left_join(
-    semantic_decisions %>% select(project_id, semantic_action = action),
-    by = "project_id",
-    relationship = "one-to-one"
+    measurement_decisions %>% select(project_id, measurement_action = action,
+      measurement_decision_source = decision_source),
+    by = "project_id", relationship = "one-to-one"
   ) %>%
   left_join(
     manual_coverage %>% select(-manual_action_count),
@@ -184,8 +170,7 @@ decision_map <- resolution %>%
   mutate(
     decision_source = case_when(
       !is.na(component_action) ~ "component_ledger",
-      !is.na(field_action) ~ "field_ledger",
-      !is.na(semantic_action) ~ "semantic_ledger",
+      !is.na(measurement_action) ~ measurement_decision_source,
       !is.na(manual_action) ~ "manual_ledger",
       resolution_status == "evidence_rule_complete" ~ "evidence_rule",
       candidate_status == "retain_mechanical" ~ "mechanical_rule",
@@ -194,8 +179,7 @@ decision_map <- resolution %>%
     ),
     selected_action = case_when(
       decision_source == "component_ledger" ~ component_action,
-      decision_source == "field_ledger" ~ field_action,
-      decision_source == "semantic_ledger" ~ semantic_action,
+      decision_source %in% c("field_ledger", "semantic_ledger") ~ measurement_action,
       decision_source == "manual_ledger" ~ manual_action,
       decision_source == "evidence_rule" ~ "retain_evidence_rule",
       decision_source == "mechanical_rule" ~ "retain_mechanical",
@@ -346,42 +330,9 @@ candidate_fields <- candidates %>%
     land_sqft
   )
 
-field_rows <- field_decisions %>%
+measurement_rows <- measurement_decisions %>%
   semi_join(
-    decision_map %>% filter(decision_source == "field_ledger"),
-    by = "project_id"
-  ) %>%
-  left_join(candidate_fields, by = "project_id", relationship = "one-to-one") %>%
-  transmute(
-    project_id,
-    source_project_ids = project_id,
-    source_row_ids,
-    selected_source_addresses,
-    component_pins,
-    construction_year = as.integer(final_year),
-    dwelling_units = as.numeric(final_units),
-    building_sqft = as.numeric(final_building_sqft),
-    land_sqft = as.numeric(final_land_sqft),
-    allow_far,
-    allow_dupac,
-    membership_source = "preferred_candidate_membership",
-    year_source,
-    units_source,
-    building_source,
-    land_source,
-    decision_source = "field_ledger",
-    decision_action = action,
-    decision_id = project_id,
-    confidence,
-    evidence_ids,
-    evidence_urls,
-    decision_reason,
-    unresolved_caveat
-  )
-
-semantic_rows <- semantic_decisions %>%
-  semi_join(
-    decision_map %>% filter(decision_source == "semantic_ledger"),
+    decision_map %>% filter(decision_source %in% c("field_ledger", "semantic_ledger")),
     by = "project_id"
   ) %>%
   filter(str_detect(action, "^retain")) %>%
@@ -403,7 +354,7 @@ semantic_rows <- semantic_decisions %>%
     units_source,
     building_source,
     land_source,
-    decision_source = "semantic_ledger",
+    decision_source,
     decision_action = action,
     decision_id = project_id,
     confidence,
@@ -413,24 +364,7 @@ semantic_rows <- semantic_decisions %>%
     unresolved_caveat
   )
 
-selected_manual_decisions <- manual_decisions %>%
-  select(manual_decision_id, source_project_ids) %>%
-  tidyr::separate_longer_delim(source_project_ids, delim = ";") %>%
-  mutate(source_project_ids = str_trim(source_project_ids)) %>%
-  left_join(
-    decision_map %>% select(project_id, decision_source),
-    by = c("source_project_ids" = "project_id"),
-    relationship = "many-to-one"
-  ) %>%
-  group_by(manual_decision_id) %>%
-  summarise(
-    all_sources_select_manual = all(decision_source == "manual_ledger"),
-    .groups = "drop"
-  ) %>%
-  filter(all_sources_select_manual)
-
 manual_rows <- manual_decisions %>%
-  semi_join(selected_manual_decisions, by = "manual_decision_id") %>%
   filter(str_detect(action, "^(retain|merge)")) %>%
   left_join(
     candidate_fields,
@@ -484,13 +418,13 @@ evidence_rows <- resolution %>%
     building_sqft = as.numeric(building_sqft),
     land_sqft = if_else(
       exact_land_recovery,
-      as.numeric(project_land_area_sqft),
+      NA_real_,
       as.numeric(land_sqft)
     ),
     allow_far = is.finite(building_sqft) & building_sqft > 0 &
-      is.finite(land_sqft) & land_sqft > 0,
+      (exact_land_recovery | (is.finite(land_sqft) & land_sqft > 0)),
     allow_dupac = is.finite(dwelling_units) & dwelling_units > 0 &
-      is.finite(land_sqft) & land_sqft > 0,
+      (exact_land_recovery | (is.finite(land_sqft) & land_sqft > 0)),
     membership_source = "preferred_candidate_membership",
     year_source,
     units_source = if_else(
@@ -551,8 +485,7 @@ mechanical_rows <- candidates %>%
 preferred_projects <- bind_rows(
   component_rows,
   split_rows,
-  field_rows,
-  semantic_rows,
+  measurement_rows,
   manual_rows,
   evidence_rows,
   mechanical_rows
@@ -595,7 +528,8 @@ preferred_projects <- bind_rows(
   arrange(project_id)
 
 # Land must be reported for the selected property; map polygons locate it only.
-# Apply this rule to every map-based denominator, including older ledger choices.
+# Older map-based choices carry no numeric denominator. Resolve source-reported
+# land first, then apply the recorded external reported-land exceptions.
 reported_land <- readr::read_csv(
   "../adjudication/commercial_reported_land_decisions.csv", show_col_types = FALSE
 )
@@ -620,7 +554,14 @@ for (i in which(map_land)) {
     setequal(strsplit(candidate$component_pins, "/", fixed = TRUE)[[1]], target_pins)
   preferred_projects$land_sqft[i] <- NA_real_
   preferred_projects$land_source[i] <- "unresolved_no_reported_full_site_land"
-  if (same_candidate && is.finite(candidate$land_sqft) && candidate$land_sqft > 1) {
+  external <- reported_land %>% filter(project_id == project$project_id)
+  if (nrow(external) == 1) {
+    preferred_projects$land_sqft[i] <- external$land_sqft
+    preferred_projects$land_source[i] <- external$land_source
+    preferred_projects$evidence_urls[i] <- paste(na.omit(c(project$evidence_urls, external$evidence_url)), collapse = " / ")
+    preferred_projects$decision_reason[i] <- paste(project$decision_reason, external$decision_reason)
+    if (external$exclude_far) preferred_projects$allow_far[i] <- FALSE
+  } else if (same_candidate && is.finite(candidate$land_sqft) && candidate$land_sqft > 1) {
     preferred_projects$land_sqft[i] <- candidate$land_sqft
     preferred_projects$land_source[i] <- candidate$land_source
     preferred_projects$land_source_row_ids[i] <- candidate$source_row_ids
@@ -647,14 +588,6 @@ for (i in which(map_land)) {
         preferred_projects$unresolved_caveat[i] <- "Full-site land recovered; conflicting component floor areas remain excluded from FAR."
       }
     }
-  }
-  external <- reported_land %>% filter(project_id == project$project_id)
-  if (nrow(external) == 1) {
-    preferred_projects$land_sqft[i] <- external$land_sqft
-    preferred_projects$land_source[i] <- external$land_source
-    preferred_projects$evidence_urls[i] <- paste(na.omit(c(project$evidence_urls, external$evidence_url)), collapse = " / ")
-    preferred_projects$decision_reason[i] <- paste(project$decision_reason, external$decision_reason)
-    if (external$exclude_far) preferred_projects$allow_far[i] <- FALSE
   }
   if (!is.finite(preferred_projects$land_sqft[i])) {
     preferred_projects$allow_far[i] <- FALSE

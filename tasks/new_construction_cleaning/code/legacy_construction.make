@@ -13,9 +13,6 @@
 ../report/multifamily_classification_decisions.csv.log: ../../shared/code/report.py ../output/multifamily_classification_decisions.csv | ../report
 	$(PYTHON) $< ../output/multifamily_classification_decisions.csv $@ project_id
 
-../report/preferred_residential_boundary_scope.csv.log: ../../shared/code/report.py ../output/preferred_residential_boundary_scope.csv | ../report
-	$(PYTHON) $< ../output/preferred_residential_boundary_scope.csv $@ project_id
-
 ../report/multicard_permit_adjudication_links.csv.log: ../../shared/code/report.py ../output/multicard_permit_adjudication_links.csv | ../report
 	$(PYTHON) $< ../output/multicard_permit_adjudication_links.csv $@ project_id permit_id
 
@@ -33,12 +30,6 @@
 
 ../report/project_evidence_inventory.csv.log: ../../shared/code/report.py ../output/project_evidence_inventory.csv | ../report
 	$(PYTHON) $< ../output/project_evidence_inventory.csv $@ project_id
-
-../report/preferred_new_construction_project_ledger.csv.log: ../../shared/code/report.py ../output/preferred_new_construction_project_ledger.csv | ../report
-	$(PYTHON) $< ../output/preferred_new_construction_project_ledger.csv $@ project_id
-
-../report/preferred_residential_project_ledger.csv.log: ../../shared/code/report.py ../output/preferred_residential_project_ledger.csv | ../report
-	$(PYTHON) $< ../output/preferred_residential_project_ledger.csv $@ project_id
 
 ../report/multicard_adjudication_evidence.csv.log: ../../shared/code/report.py ../output/multicard_adjudication_evidence.csv | ../report
 	$(PYTHON) $< ../output/multicard_adjudication_evidence.csv $@ project_id
@@ -83,7 +74,7 @@ ifneq ($(filter-out $(wildcard ../output/residential_review_current_parcel_links
 .PHONY: ../output/residential_successor_condo_requests.csv
 endif
 
-../output/residential_successor_condo_requests.csv: build_residential_successor_condo_requests.R ../../setup_environment/code/packages.R ../adjudication/residential_successor_condo_overrides.csv ../input/parcel_universe_2025_city.csv ../output/preferred_project_year_geometry.gpkg ../output/residential_manual_review_bundle.csv | ../output
+../output/residential_successor_condo_requests.csv: build_residential_successor_condo_requests.R ../../setup_environment/code/packages.R ../input/parcel_universe_2025_city.csv ../output/preferred_project_year_geometry.gpkg ../output/preferred_residential_project_candidates.csv | ../output
 	$(R) $<
 
 ../output/residential_review_current_parcel_links.csv: ../output/residential_successor_condo_requests.csv
@@ -138,33 +129,17 @@ endif
 ../output/residential_unresolved_predecessor_selected.gpkg: build_residential_unresolved_predecessor_selections.R ../../setup_environment/code/packages.R ../adjudication/residential_unresolved_predecessor_selections.csv ../output/residential_unresolved_predecessor_candidates.gpkg | ../output
 	$(R) $<
 
-../report/residential_class297_resolution.csv.log: ../../shared/code/report.py ../output/residential_class297_resolution.csv | ../report
-	$(PYTHON) $< ../output/residential_class297_resolution.csv $@
-
 ../output/residential_class297_condo_cohort_evidence.csv: build_residential_class297_condo_evidence.R ../../setup_environment/code/packages.R ../output/residential_manual_review_bundle.csv ../output/residential_successor_condo_base_year_summary.csv ../output/residential_successor_condo_requests.csv | ../output
 	$(R) $<
 
-ifneq ($(filter-out $(wildcard ../output/residential_class297_resolution.csv ../output/residential_class297_source_disposition.csv),../output/residential_class297_resolution.csv ../output/residential_class297_source_disposition.csv),)
-.PHONY: ../output/residential_class297_resolution.csv
-endif
-
-../output/residential_class297_source_disposition.csv: ../output/residential_class297_resolution.csv
-	@test -f "$@"
-
 ../report/residential_class297_condo_cohort_evidence.csv.log: ../../shared/code/report.py ../output/residential_class297_condo_cohort_evidence.csv | ../report
 	$(PYTHON) $< ../output/residential_class297_condo_cohort_evidence.csv $@ project_id pin10
-
-../report/residential_class297_source_disposition.csv.log: ../../shared/code/report.py ../output/residential_class297_source_disposition.csv | ../report
-	$(PYTHON) $< ../output/residential_class297_source_disposition.csv $@ source_project_id
 
 ../output/project_overlap_evidence.csv: build_project_overlap_evidence.R ../../setup_environment/code/packages.R ../output/preferred_adjudication_scope.csv ../output/preferred_commercial_project_candidates.csv ../output/preferred_project_year_geometry.gpkg ../output/preferred_residential_project_candidates.csv | ../output
 	$(R) $<
 
 ../report/project_overlap_evidence.csv.log: ../../shared/code/report.py ../output/project_overlap_evidence.csv | ../report
 	$(PYTHON) $< ../output/project_overlap_evidence.csv $@ source_family project_id
-
-../output/residential_remaining_case_evidence.csv: build_residential_remaining_case_evidence.R ../../setup_environment/code/packages.R ../input/building_permits_clean.gpkg ../input/parcel_addresses_2025_chicago.csv ../output/new_construction_spatial_permit_matches.csv ../output/preferred_project_year_geometry.gpkg ../output/residential_class297_source_disposition.csv ../output/residential_manual_review_bundle.csv ../output/residential_overlap_resolution.csv ../output/residential_review_current_parcel_links.csv ../output/residential_successor_condo_evidence.csv ../output/residential_tieback_episode_resolution.csv ../output/residential_tieback_no_snapshot_resolution.csv ../input/residential_improvement_characteristics_full.csv | ../output
-	$(R) $<
 
 ../report/residential_remaining_case_evidence.csv.log: ../../shared/code/report.py ../output/residential_remaining_case_evidence.csv | ../report
 	$(PYTHON) $< ../output/residential_remaining_case_evidence.csv $@ source_project_id
@@ -220,18 +195,12 @@ ifneq ($(filter-out $(wildcard ../output/multicard_episode_component_summary.csv
 .PHONY: ../output/multicard_episode_component_summary.csv
 endif
 
-../output/multicard_episode_component_summary.csv: build_multicard_episode_components.R ../output/multicard_project_evidence_base.csv ../output/multicard_same_episode_edges.csv ../output/preferred_new_construction_project_ledger.csv ../../setup_environment/code/packages.R | ../output
-	$(R) $<
-
 ../output/multicard_project_evidence_base.csv: ../output/multicard_card_snapshot.csv
 	@test -f "$@"
 
 ifneq ($(filter-out $(wildcard ../output/multicard_card_snapshot.csv ../output/multicard_project_evidence_base.csv),../output/multicard_card_snapshot.csv ../output/multicard_project_evidence_base.csv),)
 .PHONY: ../output/multicard_card_snapshot.csv
 endif
-
-../output/multicard_card_snapshot.csv: build_multicard_evidence_inventory.R ../adjudication/early_multicard_manual_review.csv ../input/parcel_addresses_2025_chicago.csv ../input/residential_assessor_history.parquet ../output/final_density_model_input.csv ../output/preferred_residential_project_ledger.csv ../output/project_permit_chain_links.csv ../output/project_permit_chain_unit_mentions.csv ../output/residential_multicard_cards.csv ../../setup_environment/code/packages.R | ../output
-	$(R) $<
 
 ../output/multicard_external_review_queue.csv: build_multicard_external_review_queue.R ../adjudication/multicard_external_web_reviews.csv ../output/multicard_card_snapshot.csv ../output/multicard_current_successor_project_summary.csv ../output/multicard_final_adjudication.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
@@ -240,13 +209,7 @@ ifneq ($(filter-out $(wildcard ../output/multicard_current_successor_project_sum
 .PHONY: ../output/multicard_current_successor_project_summary.csv
 endif
 
-../output/multicard_current_successor_project_summary.csv: build_multicard_current_successor_evidence.R ../input/parcel_addresses_2025_chicago.csv ../input/parcel_universe_2025_city.csv ../input/residential_improvement_characteristics_full.csv ../output/multicard_project_evidence_base.csv ../output/preferred_new_construction_project_centroids.gpkg ../output/preferred_new_construction_project_components.csv ../output/preferred_project_year_geometry.gpkg ../output/residential_unresolved_adjacent_year_parcels.gpkg ../../setup_environment/code/packages.R | ../output
-	$(R) $<
-
 ../output/permit_rule_coverage.csv: audit_permit_rule_coverage.R ../output/building_permits_for_verification.gpkg ../output/project_evidence_inventory.csv ../output/project_permit_chain_links.csv ../../setup_environment/code/packages.R | ../output
-	$(R) $<
-
-../output/project_evidence_inventory.csv: build_project_evidence_inventory.R ../output/final_density_model_input.csv ../output/final_new_construction_audit_ledger.csv ../output/historical_permit_project_evidence.csv ../output/multicard_external_review_queue.csv ../output/new_construction_exact_permit_matches.csv ../output/new_construction_permit_unit_mentions.csv ../output/new_construction_spatial_permit_matches.csv ../output/preferred_project_duplicate_dispositions.csv ../output/preferred_residential_project_ledger.csv ../output/residential_project_candidate_inventory.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/historical_permit_project_evidence.csv: build_historical_permit_project_evidence.R ../output/building_permits_for_verification.gpkg ../output/final_new_construction_audit_ledger.csv ../../setup_environment/code/packages.R | ../output
@@ -283,18 +246,12 @@ endif
 ../output/multicard_component_successor_matches.csv: match_multicard_components_to_successors.R construction_settings.make ../output/multicard_card_snapshot.csv ../output/multicard_episode_component_nodes.csv ../output/multicard_successor_building_candidates.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $< $(AUTOMATIC_CARD_BUILDING_GAP)
 
-../output/multicard_same_episode_edges.csv: build_multicard_episode_overlap.R ../output/multicard_current_successor_links.csv ../output/multicard_project_evidence_base.csv ../output/preferred_new_construction_project_ledger.csv ../../setup_environment/code/packages.R construction_settings.make | ../output
-	$(R) $< $(EPISODE_YEAR_WINDOW)
-
 ../output/multicard_footprint_evidence.csv: build_multicard_footprint_evidence.R ../output/cook_building_footprints_2006_2008.gpkg ../output/multicard_city_building_footprints.gpkg ../output/multicard_project_query_geometries.gpkg ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ifneq ($(filter-out $(wildcard ../output/final_new_construction_audit_ledger.csv ../output/final_recovered_missing_project_dedupe_screen.csv ../output/final_recovered_missing_project_pair_screen.csv ../output/final_residual_permit_chain_dispositions.csv),../output/final_new_construction_audit_ledger.csv ../output/final_recovered_missing_project_dedupe_screen.csv ../output/final_recovered_missing_project_pair_screen.csv ../output/final_residual_permit_chain_dispositions.csv),)
 .PHONY: ../output/final_new_construction_audit_ledger.csv
 endif
-
-../output/final_new_construction_audit_ledger.csv: build_final_new_construction_audit_ledger.R ../adjudication/residual_historical_candidate_overrides.csv ../input/parcel_universe_2025_city.csv ../output/preferred_new_construction_project_ledger.csv ../output/preferred_project_duplicate_dispositions.csv ../output/residual_footprint_field_transitions.csv ../output/residual_footprint_multi_parcel_evidence.csv ../output/residual_permit_footprint_2022_assessor_evidence.csv ../output/residual_permit_historical_chain_evidence.csv ../output/residual_permit_historical_parcels.gpkg ../output/residual_permit_historical_pin_reconciliation.csv ../output/residual_permit_nearest_historical_parcels.gpkg ../../setup_environment/code/packages.R | ../output
-	$(R) $<
 
 ../output/final_recovered_missing_project_dedupe_screen.csv: ../output/final_new_construction_audit_ledger.csv
 	@test -f "$@"
@@ -312,51 +269,10 @@ ifneq ($(filter-out $(wildcard ../output/multicard_successor_condo_requests.csv 
 .PHONY: ../output/multicard_successor_condo_requests.csv
 endif
 
-../output/multicard_successor_condo_requests.csv: build_multicard_successor_condo_requests.R ../input/parcel_universe_2025_city.csv ../output/multicard_project_evidence_base.csv ../output/preferred_new_construction_project_centroids.gpkg ../output/preferred_project_year_geometry.gpkg ../output/residential_unresolved_adjacent_year_parcels.gpkg ../../setup_environment/code/packages.R | ../output
-	$(R) $<
-
 ../output/multicard_successor_condo_links.csv: ../output/multicard_successor_condo_requests.csv
 	@test -f "$@"
 
 ../output/final_new_construction_zoning.csv: build_final_construction_zoning.R ../../setup_environment/code/packages.R ../output/historical_zoning_2006_candidate.gpkg ../adjudication/recovered_project_zoning_overrides.csv ../input/zoning_jan2016.zip ../input/zoning_nov2012.zip ../input/zoning_sep2014.zip ../input/zoning_sep2025.geojson ../output/final_new_construction_audit_ledger.csv ../output/final_new_construction_boundary_scope.csv ../output/historical_zoning_project_construction_year.csv ../output/preferred_new_construction_zoning.csv | ../output
-	$(R) $<
-
-ifneq ($(filter-out $(wildcard ../output/preferred_residential_project_ledger.csv ../output/preferred_residential_project_components_final.csv ../output/residential_adjudicated_project_geometry.gpkg ../output/preferred_residential_project_centroids.gpkg),../output/preferred_residential_project_ledger.csv ../output/preferred_residential_project_components_final.csv ../output/residential_adjudicated_project_geometry.gpkg ../output/preferred_residential_project_centroids.gpkg),)
-.PHONY: ../output/preferred_residential_project_ledger.csv
-endif
-
-../output/preferred_residential_project_ledger.csv: build_residential_unresolved_final_ledger.R ../adjudication/residential_additional_candidate_decisions.csv ../adjudication/residential_candidate_suppressions.csv ../adjudication/residential_unresolved_final_projects.csv ../adjudication/residential_unresolved_source_dispositions.csv ../output/building_permits_for_verification.gpkg ../output/preferred_commercial_projects.csv ../output/preferred_predecessor_reference_points.csv ../output/preferred_project_component_geometry.gpkg ../output/preferred_project_year_centroids.gpkg ../output/preferred_residential_project_candidates.csv ../output/preferred_residential_project_components.csv ../output/residential_review_resolution_components.csv ../output/residential_review_resolution_projects.csv ../output/residential_review_source_dispositions.csv ../output/residential_shared_site_location_review.csv ../output/residential_unresolved_accepted_episode_geometry.gpkg ../output/residential_unresolved_adjacent_year_parcels.gpkg ../output/residential_unresolved_adjudication_evidence.csv ../output/residential_unresolved_episode_component_geometry.gpkg ../output/residential_unresolved_predecessor_reference_points.csv ../../setup_environment/code/packages.R | ../output
-	$(R) $<
-
-../output/preferred_residential_project_components_final.csv: ../output/preferred_residential_project_ledger.csv
-	@test -f "$@"
-
-../output/residential_adjudicated_project_geometry.gpkg: ../output/preferred_residential_project_ledger.csv
-	@test -f "$@"
-
-../output/preferred_residential_project_centroids.gpkg: ../output/preferred_residential_project_ledger.csv
-	@test -f "$@"
-
-../output/preferred_residential_boundary_scope.csv: validate_preferred_residential_ledger.R ../adjudication/residential_additional_candidate_decisions.csv ../adjudication/residential_candidate_suppressions.csv ../adjudication/residential_class297_component_overrides.csv ../adjudication/residential_unresolved_final_projects.csv ../adjudication/residential_unresolved_source_dispositions.csv ../input/ward_pair_boundaries.gpkg ../input/ward_panel.gpkg ../output/preferred_adjudication_scope.csv ../output/preferred_commercial_projects.csv ../output/preferred_project_year_geometry.gpkg ../output/preferred_residential_project_candidates.csv ../output/preferred_residential_project_centroids.gpkg ../output/preferred_residential_project_components_final.csv ../output/preferred_residential_project_ledger.csv ../output/residential_adjudicated_project_geometry.gpkg ../output/residential_review_resolution_projects.csv ../output/residential_review_source_dispositions.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
-	$(R) $<
-
-ifneq ($(filter-out $(wildcard ../output/preferred_new_construction_project_ledger.csv ../output/preferred_new_construction_project_components.csv ../output/preferred_new_construction_boundary_scope.csv ../output/preferred_new_construction_project_centroids.gpkg),../output/preferred_new_construction_project_ledger.csv ../output/preferred_new_construction_project_components.csv ../output/preferred_new_construction_boundary_scope.csv ../output/preferred_new_construction_project_centroids.gpkg),)
-.PHONY: ../output/preferred_new_construction_project_ledger.csv
-endif
-
-../output/preferred_new_construction_project_ledger.csv: build_preferred_new_construction_ledger.R ../adjudication/residential_additional_candidate_decisions.csv ../output/preferred_commercial_boundary_scope.csv ../output/preferred_commercial_project_centroids.gpkg ../output/preferred_commercial_project_component_locations.csv ../output/preferred_commercial_project_ledger.csv ../output/preferred_residential_boundary_scope.csv ../output/preferred_residential_project_centroids.gpkg ../output/preferred_residential_project_components_final.csv ../output/preferred_residential_project_ledger.csv ../../setup_environment/code/packages.R | ../output
-	$(R) $<
-
-../output/preferred_new_construction_project_components.csv: ../output/preferred_new_construction_project_ledger.csv
-	@test -f "$@"
-
-../output/preferred_new_construction_boundary_scope.csv: ../output/preferred_new_construction_project_ledger.csv
-	@test -f "$@"
-
-../output/preferred_new_construction_project_centroids.gpkg: ../output/preferred_new_construction_project_ledger.csv
-	@test -f "$@"
-
-../output/preferred_density_model_production_card_input.csv: build_preferred_density_input.R ../input/boundary_segments_1320ft.gpkg ../output/preferred_new_construction_boundary_scope.csv ../output/preferred_new_construction_project_centroids.gpkg ../output/preferred_new_construction_project_ledger.csv ../output/preferred_new_construction_zoning.csv ../output/residential_cross_section.csv ../output/residential_multicard_cards.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
 	$(R) $<
 
 ../output/final_density_model_input.csv: build_final_density_input.R ../input/boundary_segments_1320ft.gpkg ../output/final_new_construction_audit_ledger.csv ../output/final_new_construction_boundary_scope.csv ../output/final_new_construction_zoning.csv ../output/preferred_density_model_production_card_input.csv ../../setup_environment/code/packages.R ../../shared/code/canonical_geometry_helpers.R | ../output
@@ -372,43 +288,15 @@ endif
 ../output/residential_unresolved_accepted_episode_geometry_coverage.csv: ../output/residential_unresolved_accepted_episode_geometry.gpkg
 	@test -f "$@"
 
-ifneq ($(filter-out $(wildcard ../output/residential_review_resolution_projects.csv ../output/residential_review_resolution_components.csv ../output/residential_review_source_dispositions.csv),../output/residential_review_resolution_projects.csv ../output/residential_review_resolution_components.csv ../output/residential_review_source_dispositions.csv),)
-.PHONY: ../output/residential_review_resolution_projects.csv
-endif
-
-../output/residential_review_resolution_projects.csv: build_residential_review_resolution_ledger.R ../adjudication/residential_class297_component_overrides.csv ../output/preferred_adjudication_scope.csv ../output/preferred_residential_project_candidates.csv ../output/residential_class297_resolution.csv ../output/residential_overlap_resolution.csv ../output/residential_remaining_case_resolution.csv ../output/residential_tieback_episode_resolution.csv ../output/residential_tieback_no_snapshot_resolution.csv ../../setup_environment/code/packages.R | ../output
-	$(R) $<
-
-../output/residential_review_resolution_components.csv: ../output/residential_review_resolution_projects.csv
-	@test -f "$@"
-
-../output/residential_review_source_dispositions.csv: ../output/residential_review_resolution_projects.csv
-	@test -f "$@"
-
-../output/residential_class297_resolution.csv: build_residential_class297_resolution.R ../adjudication/residential_class297_exceptions.csv ../output/residential_class297_condo_cohort_evidence.csv ../output/residential_manual_review_bundle.csv ../output/residential_successor_condo_evidence.csv ../../setup_environment/code/packages.R | ../output
-	$(R) $<
-
-../output/residential_tieback_episode_resolution.csv: build_residential_tieback_episode_resolution.R ../adjudication/residential_tieback_episode_exceptions.csv ../output/residential_tieback_episode_candidates.csv ../../setup_environment/code/packages.R | ../output
-	$(R) $<
-
 ../output/residential_tieback_no_snapshot_resolution.csv: build_residential_tieback_no_snapshot_resolution.R ../adjudication/residential_tieback_no_snapshot_decisions.csv ../output/residential_tieback_no_snapshot_review.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
 ../output/residential_remaining_case_resolution.csv: build_residential_remaining_case_resolution.R ../adjudication/residential_remaining_case_decisions.csv ../output/residential_remaining_case_evidence.csv ../../setup_environment/code/packages.R | ../output
 	$(R) $<
 
-../output/residential_overlap_resolution.csv: build_residential_overlap_resolution.R ../adjudication/residential_overlap_decisions.csv ../output/preferred_commercial_projects.csv ../output/preferred_residential_project_candidates.csv ../output/residential_manual_review_bundle.csv ../../setup_environment/code/packages.R | ../output
-	$(R) $<
-
-../output/preferred_new_construction_zoning.csv: build_preferred_construction_zoning.R ../input/zoning_jan2016.zip ../input/zoning_nov2012.zip ../input/zoning_sep2014.zip ../input/zoning_sep2025.geojson ../output/historical_zoning_2006_candidate.gpkg ../output/historical_zoning_project_construction_year.csv ../output/preferred_new_construction_boundary_scope.csv ../output/preferred_new_construction_project_centroids.gpkg ../output/preferred_new_construction_project_components.csv ../../setup_environment/code/packages.R | ../output
-	$(R) $<
-
 ifneq ($(filter-out $(wildcard ../output/residential_tieback_episode_candidates.csv ../output/residential_tieback_no_snapshot_review.csv),../output/residential_tieback_episode_candidates.csv ../output/residential_tieback_no_snapshot_review.csv),)
 .PHONY: ../output/residential_tieback_episode_candidates.csv
 endif
-
-../output/residential_tieback_episode_candidates.csv: build_residential_tieback_resolution_candidates.R ../output/residential_class297_source_disposition.csv ../output/residential_manual_review_bundle.csv ../output/residential_overlap_resolution.csv ../output/residential_tieback_card_project_evidence.csv ../output/residential_tieback_construction_episode_evidence.csv ../../setup_environment/code/packages.R | ../output
-	$(R) $<
 
 ../output/residential_tieback_no_snapshot_review.csv: ../output/residential_tieback_episode_candidates.csv
 	@test -f "$@"

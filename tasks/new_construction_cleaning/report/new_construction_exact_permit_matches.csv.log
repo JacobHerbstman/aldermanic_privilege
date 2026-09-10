@@ -1,7 +1,7 @@
 File: new_construction_exact_permit_matches.csv
 Rows: 9465
 Columns: 30
-SHA-256 (saved bytes): f1b936a1ce6366acc81eae449b4a800db63f0d55d375042c744435e4d7b400da
+SHA-256 (saved bytes): 916146ee31d1ebe398e78d84e39233509c5a862546528d983d99d3ed28287518
 Key: project_id, component_pin, permit_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -13,12 +13,12 @@ Row counts, non-missing counts, and declared-key checks: exact.
                component_pin       VARCHAR        9465     7809                  -                  -                  -                  -
           candidate_year_min        BIGINT        9465       68               1878               2026 2016.7358689910195 11.584239193127688
           candidate_year_max        BIGINT        9465       64               1878               2026 2016.9087163232964 10.959895437415003
-         candidate_units_min        BIGINT        8943      165                  0               1679 21.505646874650566  75.16175612987084
-         candidate_units_max        BIGINT        8943      166                  0               1679  21.68388683886839   75.4609434515011
+         candidate_units_min        BIGINT        8943      164                  0               1732  21.64027731186403  77.12471039920688
+         candidate_units_max        BIGINT        8943      165                  0               1732 21.818517276081852  77.41600194927561
  candidate_building_sqft_min        BIGINT        9311     3381                  0            1380640 27440.583073783695  92301.68523825583
  candidate_building_sqft_max        BIGINT        9311     3388                  0            1380640  27599.85629900118  92442.57049757014
-     candidate_land_sqft_min        BIGINT        9454     1869                  0             722222  8942.670509837106 18078.192797527285
-     candidate_land_sqft_max        BIGINT        9454     1871                  0             722222  8997.414004654114 18159.628704812927
+     candidate_land_sqft_min        BIGINT        9454     1869                  0            1097936  9051.546646921937  21257.59540820088
+     candidate_land_sqft_max        BIGINT        9454     1871                  0            1097936  9106.290141738946  21326.61484224209
              review_category       VARCHAR        9465        6                  -                  -                  -                  -
                within_1500ft       BOOLEAN        9465        2                  -                  -                  -                  -
                        pin10       VARCHAR        9465     7807                  -                  -                  -                  -

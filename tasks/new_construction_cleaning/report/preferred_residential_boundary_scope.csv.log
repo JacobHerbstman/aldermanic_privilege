@@ -1,23 +1,24 @@
 File: preferred_residential_boundary_scope.csv
-Rows: 13088
-Columns: 13
-SHA-256 (saved bytes): d05d02e55668383aedb30b5f56f60d27595de501c8f0cec629fce5c94f530674
+Rows: 12949
+Columns: 14
+SHA-256 (saved bytes): 6f3f6f6f739bba5d25e7ddcf9ae9bad8c5650e6ebcea9c651ff6dd58a1f7e6ef
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                  column inferred_type non_missing distinct                min               max               mean                 sd
-             project_id       VARCHAR       13088    13088                  -                 -                  -                  -
-      construction_year        BIGINT       13088       17               2006              2022  2012.388141809291  5.379651142327412
-      construction_date          DATE       13088       17                  -                 -                  -                  -
-          boundary_year        BIGINT       13088        2               2003              2015  2007.270782396088  5.745635631847798
-                    era       VARCHAR       13088        2                  -                 -                  -                  -
-                   ward        BIGINT       13088       50                  1                50  24.45713630806846 15.123252455758031
-          neighbor_ward        BIGINT       13088       49                  1                50  23.46026894865526  15.59042850535596
-              ward_pair       VARCHAR       13088      137                  -                 -                  -                  -
-distance_to_boundary_ft        DOUBLE       13088    12872 1.0214760848636961 27623.33171603177 1426.5562977618256 1775.1227844108887
-          within_1500ft       BOOLEAN       13088        2                  -                 -                  -                  -
-           within_500ft       BOOLEAN       13088        2                  -                 -                  -                  -
-              allow_far       BOOLEAN       13088        2                  -                 -                  -                  -
-            allow_dupac       BOOLEAN       13088        1                  -                 -                  -                  -
+             project_id       VARCHAR       12949    12949                  -                 -                  -                  -
+      construction_year        BIGINT       12949       17               2006              2022  2012.401884315391 5.3890399108038665
+              allow_far       BOOLEAN       12949        2                  -                 -                  -                  -
+            allow_dupac       BOOLEAN       12949        2                  -                 -                  -                  -
+      location_resolved       BOOLEAN       12949        1                  -                 -                  -                  -
+      construction_date          DATE       12949       17                  -                 -                  -                  -
+          boundary_year        BIGINT       12949        2               2003              2015 2007.2869719669472  5.750485951250877
+                    era       VARCHAR       12949        2                  -                 -                  -                  -
+                   ward        BIGINT       12949       50                  1                50 24.572167734960228 15.115592633400713
+          neighbor_ward        BIGINT       12949       49                  1                50 23.550467217545755 15.574693392550596
+              ward_pair       VARCHAR       12949      137                  -                 -                  -                  -
+distance_to_boundary_ft        DOUBLE       12949    12895 1.0214899430226334 27623.33171603177 1421.2584592924343 1773.7147365145775
+          within_1500ft       BOOLEAN       12949        2                  -                 -                  -                  -
+           within_500ft       BOOLEAN       12949        2                  -                 -                  -                  -

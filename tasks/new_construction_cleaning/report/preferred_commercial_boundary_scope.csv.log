@@ -1,7 +1,7 @@
 File: preferred_commercial_boundary_scope.csv
 Rows: 815
 Columns: 14
-SHA-256 (saved bytes): c88bc2d6ce62f5124dec388bb89e096263a077a8aa4e18fac308c9d121b27f82
+SHA-256 (saved bytes): c24e48358f550475f1db9e886b4e27b0f83eab30dee3e02989b71df106d3a42f
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -9,16 +9,16 @@ Row counts, non-missing counts, and declared-key checks: exact.
 
                  column inferred_type non_missing distinct                min                max               mean                 sd
              project_id       VARCHAR         815      815                  -                  -                  -                  -
-      construction_year        BIGINT         815       17               2006               2022  2013.639263803681  5.204178008564033
+      construction_year        BIGINT         815       17               2006               2022 2013.6319018404909  5.207909613811849
               allow_far       BOOLEAN         815        2                  -                  -                  -                  -
             allow_dupac       BOOLEAN         815        2                  -                  -                  -                  -
-      construction_date          DATE         784       17                  -                  -                  -                  -
-          boundary_year        BIGINT         784        2               2003               2015  2008.357142857143 5.9692699644132965
-                    era       VARCHAR         784        2                  -                  -                  -                  -
-                   ward        BIGINT         784       48                  1                 50 23.599489795918366 16.478332063075868
-          neighbor_ward        BIGINT         784       47                  1                 50  21.93622448979592 16.305152451151354
-              ward_pair       VARCHAR         784       89                  -                  -                  -                  -
-distance_to_boundary_ft        DOUBLE         784      781 48.534013135909824 13958.588592165468 1138.0779288004985 1240.2665962182753
-          within_1500ft       BOOLEAN         784        2                  -                  -                  -                  -
-           within_500ft       BOOLEAN         784        2                  -                  -                  -                  -
+      construction_date          DATE         813       17                  -                  -                  -                  -
+          boundary_year        BIGINT         813        2               2003               2015 2008.4464944649446  5.978092446347231
+                    era       VARCHAR         813        2                  -                  -                  -                  -
+                   ward        BIGINT         813       49                  1                 50  23.60762607626076 16.488607528367602
+          neighbor_ward        BIGINT         813       47                  1                 50  21.93111931119311 16.356110271202265
+              ward_pair       VARCHAR         813       90                  -                  -                  -                  -
+distance_to_boundary_ft        DOUBLE         813      810 48.534013135909824 13958.588592165468 1141.9959207143806 1236.3247795405225
+          within_1500ft       BOOLEAN         813        2                  -                  -                  -                  -
+           within_500ft       BOOLEAN         813        2                  -                  -                  -                  -
       location_resolved       BOOLEAN         815        2                  -                  -                  -                  -
