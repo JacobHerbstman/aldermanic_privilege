@@ -145,7 +145,7 @@ res_with_geo <- residential %>%
   left_join(parcels, by = "pin", relationship = "many-to-one") %>%
   mutate(residential = TRUE) %>%
   # drop rows without coordinates
-  filter(!is.na(latitude) & !is.na(longitude)) %>% 
+  filter(!is.na(latitude) & !is.na(longitude)) %>%
   relocate(pin, pin10)
 
 # Harmonize RES types
@@ -164,10 +164,10 @@ res_with_geo <- res_with_geo %>%
     residential   = as.logical(residential)
   ) %>%
   # Standardize columns to match final schema
-  rename(yearbuilt = year_built, 
+  rename(yearbuilt = year_built,
          arealotsf = land_sqft,
          areabuilding = building_sqft,
-         unitscount = num_apartments, 
+         unitscount = num_apartments,
          roomscount = num_rooms,
          bedroomscount = num_bedrooms,
          fullbathcount = num_full_baths,
@@ -178,8 +178,8 @@ res_with_geo <- res_with_geo %>%
       str_detect(type_of_residence, regex("^1\\s*Story$", ignore_case = TRUE))    ~ 1,
       str_detect(type_of_residence, regex("^1\\.5\\s*Story$", ignore_case = TRUE))~ 1.5,
       str_detect(type_of_residence, regex("^2\\s*Story$", ignore_case = TRUE))    ~ 2,
-      str_detect(type_of_residence, regex("^3\\s*Story\\s*\\+$", ignore_case=TRUE)) ~ 3,   
-      str_detect(type_of_residence, regex("Split\\s*Level", ignore_case = TRUE))  ~ 2,     
+      str_detect(type_of_residence, regex("^3\\s*Story\\s*\\+$", ignore_case=TRUE)) ~ 3,
+      str_detect(type_of_residence, regex("Split\\s*Level", ignore_case = TRUE))  ~ 2,
       TRUE ~ NA_real_
     ),
     is_sf = (!is.na(single_v_multi_family) & grepl("^single", single_v_multi_family, ignore.case=TRUE)) |
@@ -193,16 +193,16 @@ res_with_geo <- res_with_geo %>%
 multifamily_geo <- multifamily %>%
   # Create pin10 for joining proximity
   mutate(pin10 = str_sub(pin, 1, 10)) %>%
-  
+
   # Join Geo Data
   left_join(parcels, by = "pin", relationship = "many-to-one") %>%
   # Handle pin10 overlap from parcels join (keep the one we generated if needed, or coalesce)
   mutate(pin10 = coalesce(pin10.x, pin10.y)) %>%
   select(-pin10.x, -pin10.y) %>%
-  
+
   # Filter for valid geo
   filter(!is.na(latitude) & !is.na(longitude)) %>%
-  
+
   # Calculate total bedrooms from the unit mix columns (0*studios + 1*1br + 2*2br...)
   mutate(
     bedroomscount = (
@@ -215,7 +215,7 @@ multifamily_geo <- multifamily %>%
     # If bedroom calculation resulted in 0 but units > 0, it might just be missing mix data, so set to NA
     bedroomscount = ifelse(bedroomscount == 0 & tot_units > 0, NA_real_, bedroomscount)
   ) %>%
-  
+
   # Map to standard schema
   mutate(
     arealotsf = landsf,
@@ -225,7 +225,7 @@ multifamily_geo <- multifamily %>%
     is_sf = FALSE, # By definition, these are commercial multifamily
     storiescount = NA_real_ # We don't have reliable stories in this dataset
   ) %>%
-  
+
   # Select matching columns
   select(pin, pin10, yearbuilt, arealotsf, areabuilding, unitscount, storiescount, bedroomscount,
          latitude, longitude, residential, coordinate_source, coordinate_construction_year)
@@ -233,8 +233,8 @@ multifamily_geo <- multifamily %>%
 # ---- Combine and Save ----
 # Bind rows
 all_parcels <- bind_rows(res_with_geo, multifamily_geo) %>%
-  # DEDUPLICATE: 
-  # If a PIN exists in both Class 2 (Residential) and Class 3 (Commercial), 
+  # DEDUPLICATE:
+  # If a PIN exists in both Class 2 (Residential) and Class 3 (Commercial),
   # prioritize Commercial if units > 6 (since Class 2 caps at 6).
   group_by(pin) %>%
   arrange(desc(unitscount)) %>% # Keeps the record with higher unit count if duplicates exist

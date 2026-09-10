@@ -18,8 +18,8 @@ if (anyNA(building_permits$id) || anyDuplicated(building_permits$id) ||
   stop("Permit source records must parse successfully and have unique IDs.")
 }
 
-building_permits_clean <- building_permits %>% 
-  janitor::clean_names() %>% 
+building_permits_clean <- building_permits %>%
+  janitor::clean_names() %>%
   mutate(across(
     .cols = matches("cost|fee|paid|waived|subtotal"),
     .fns = ~ as.numeric(gsub("[^0-9.-]", "", .x))
@@ -47,14 +47,14 @@ converted_sf <- st_as_sf(
     remove = FALSE
   ) %>%
   st_transform(crs = 4326)
-  
+
 new_coords <- st_coordinates(converted_sf)
 building_permits_clean$longitude[needs_conversion_mask] <- new_coords[, "X"]
 building_permits_clean$latitude[needs_conversion_mask] <- new_coords[, "Y"]
 
-building_permits_clean <- building_permits_clean %>% 
-  dplyr::filter(!is.na(latitude)) %>% 
-  dplyr::filter(!is.na(longitude)) %>% 
+building_permits_clean <- building_permits_clean %>%
+  dplyr::filter(!is.na(latitude)) %>%
+  dplyr::filter(!is.na(longitude)) %>%
   dplyr::filter(latitude >= chicago_lat_min) %>%
   dplyr::filter(latitude <= chicago_lat_max) %>%
   dplyr::filter(longitude >= chicago_lon_min) %>%
@@ -66,13 +66,13 @@ building_permits_clean <- building_permits_clean %>%
     )
   )
 
-building_permits_clean <- building_permits_clean %>% 
-  dplyr::mutate(issue_date = as.Date(substr(issue_date, 1, 10))) %>% 
-  dplyr::mutate(application_start_date = as.Date(substr(application_start_date, 1, 10))) %>% 
-  dplyr::mutate(issue_date_ym = zoo::as.yearmon(issue_date)) %>% 
-  dplyr::mutate(application_start_date_ym = zoo::as.yearmon(application_start_date)) %>% 
-  arrange(application_start_date) %>% 
-  rename(pin = pin_list) %>% 
+building_permits_clean <- building_permits_clean %>%
+  dplyr::mutate(issue_date = as.Date(substr(issue_date, 1, 10))) %>%
+  dplyr::mutate(application_start_date = as.Date(substr(application_start_date, 1, 10))) %>%
+  dplyr::mutate(issue_date_ym = zoo::as.yearmon(issue_date)) %>%
+  dplyr::mutate(application_start_date_ym = zoo::as.yearmon(application_start_date)) %>%
+  arrange(application_start_date) %>%
+  rename(pin = pin_list) %>%
   dplyr::select(id, pin, ward, application_start_date_ym, issue_date_ym, everything())
 
 
@@ -92,12 +92,12 @@ minor_permits <- c(
 )
 
 building_permits_clean2 <- building_permits_clean %>%
-  mutate(high_discretion = ifelse(permit_type %in% high_discretion_permits, 1, 0)) %>% 
+  mutate(high_discretion = ifelse(permit_type %in% high_discretion_permits, 1, 0)) %>%
   mutate(minor_permit = ifelse(permit_type %in% minor_permits, 1, 0))
 
 
-building_permits_clean2 <- building_permits_clean2 %>% 
-  dplyr::filter(processing_time >= 0) 
+building_permits_clean2 <- building_permits_clean2 %>%
+  dplyr::filter(processing_time >= 0)
 
 building_permits_final <- building_permits_clean2 %>%
   mutate(
@@ -110,12 +110,12 @@ building_permits_final <- building_permits_clean2 %>%
       if_any(
         starts_with("contact_") & ends_with("_name"),
         ~ str_detect(
-          str_to_upper(coalesce(.x, "")), 
+          str_to_upper(coalesce(.x, "")),
           "IN|SERVICE|CO|LLC|INC|CORP|LTD|LLP|PC|ASSOCIATE|GROUP|COMPANY|CONSTRUCTION|DEVELOPMENT|PROPERTY|PROPERTIES"
         )
       )
     )
-  ) %>% 
+  ) %>%
   dplyr::select(
     id, pin, ward, application_start_date_ym, issue_date_ym,
     processing_time, reported_cost, total_fee,
@@ -129,10 +129,10 @@ building_permits_sf <- st_as_sf(
   coords = c("longitude", "latitude"),
   crs = 4326,
   remove = FALSE
-) %>% 
+) %>%
   st_transform(crs_projected) %>%
   mutate(across(c(application_start_date_ym, issue_date_ym), as.Date))
-        
+
 st_write(
   building_permits_sf,
   "../output/building_permits_for_verification.gpkg",

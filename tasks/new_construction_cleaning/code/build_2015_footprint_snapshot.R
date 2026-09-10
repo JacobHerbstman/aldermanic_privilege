@@ -106,4 +106,3 @@ sf::st_write(
   delete_dsn = TRUE,
   quiet = TRUE
 )
-
