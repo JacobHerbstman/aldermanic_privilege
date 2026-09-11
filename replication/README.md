@@ -18,10 +18,25 @@ creates the archive from the explicitly listed local sources. A new vintage need
 its own release name, checksum, source comparison and documentation; do not replace
 an existing release's source bytes silently.
 
-The September 10 clean-checkout test is in progress. Publication of the source
-archive alone does not establish that the full paper has been rerun successfully.
+The September 10 clean-checkout test **passed** at commit `da074ae3` on
+`conference-replication`. Starting from a new remote clone and an empty Census
+geography cache, the documented setup, source acquisition, and paper Makefiles
+completed in 2 hours, 23 minutes, and 55 seconds without patches, copied local
+outputs, or manual intervention. Installed software and the documented Census
+and Dewey credentials were available. All 2,545 rental files were retrieved;
+all 470 county sales-parcel requests succeeded on their first attempt.
 
-The diagnostic run has now compiled `paper.pdf`, `online_appendix.pdf`,
+The resulting four PDFs compiled without unresolved references or LaTeX errors.
+The construction ledger and sales-parcel coordinates match the earlier verified
+files byte for byte. Main density and price estimates and sample sizes match the
+diagnostic build at reported precision; rent coefficients differ only at about
+the fifteenth decimal place. All 56 working-paper pages match the inspected
+diagnostic pages when rendered at 80 dpi. An unchanged second paper build ran
+no analysis or document compiler. This closes the fresh-build test, not the
+separate manuscript update: prose still contains older numbers, and the density
+summary table has the previously noted modest overflow beyond the text width.
+
+Before the final test, the diagnostic run compiled `paper.pdf`, `online_appendix.pdf`,
 `working_paper.pdf`, and `word_count.pdf` after download and validation repairs.
 It began at `2c7166ca` and was patched during execution, so it is not the final
 fresh-clone test. The complete construction ledger and sales-parcel coordinates

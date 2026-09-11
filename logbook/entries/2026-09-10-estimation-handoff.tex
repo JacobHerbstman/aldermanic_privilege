@@ -300,3 +300,27 @@ Deleting only the parcel report regenerated only that report, without another
 download. An unchanged price-task build and an unchanged full paper build ran
 no substantive producer or document compiler. These checks completed in the
 diagnostic checkout before the fixes were prepared for the final fresh clone.
+
+\subsection*{Final fresh-clone build passed}
+A new remote clone of \texttt{conference-replication} at \texttt{da074ae3}
+completed setup, source acquisition, and the entire paper build without patches,
+copied local outputs, or manual intervention. The run used an empty Census
+geography cache and the documented installed software and access credentials.
+Elapsed time from setup through document compilation was 2 hours, 23 minutes,
+and 55 seconds on September 10, 2026 (Chicago time). All 2,545 rental files were
+retrieved, and all 470 county sales-parcel requests succeeded on the first attempt.
+
+The construction ledger and sales-parcel coordinates match the previously
+verified files byte for byte. Main density coefficients and sample sizes match
+the diagnostic build. Sales estimates match exactly; rent coefficients differ
+by less than $2\times10^{-15}$. The construction analysis has the same 9,493
+records and the same non-score fields as the diagnostic build; score differences
+are below $1.4\times10^{-12}$. Boundary characteristics match the diagnostic
+file exactly. Historical parcel geometry is unchanged; its file timestamp differs.
+
+All four documents compiled without unresolved references or LaTeX errors.
+The 56 working-paper pages match the inspected diagnostic version when rendered
+at 80 dpi. An unchanged second paper build ran no analysis or document compiler;
+the two repaired tasks generated their data reports without rerunning their data
+producers. This completes the replication test. Live-source limits remain;
+manuscript prose and the summary-table overflow await the separate manuscript pass.

@@ -98,6 +98,16 @@ folders.
 
 ### Observed Running Time
 
+The September 10, 2026 fresh-clone test of `conference-replication` at
+`da074ae3` completed setup, recorded-source acquisition, and the full paper build
+in **2 hours, 23 minutes, and 55 seconds** on the macOS environment described
+above. It used a new empty Census geography cache, downloaded its own inputs,
+and required no patches or manual intervention. Required software and access
+credentials were already available. All four paper PDFs compiled, and an
+unchanged second paper build ran no analysis or document compiler. See
+[`replication/README.md`](replication/README.md) for the source-vintage limits
+and the distinction between successful compilation and updating manuscript prose.
+
 For the earlier July pipeline, a clean run from a fresh clone on July 30, 2026 took **1 hour,
 34 minutes, and 43 seconds** on a 15-core Apple M5 Pro MacBook Pro with 24 GB
 of memory, after the required software and R packages were installed. The
