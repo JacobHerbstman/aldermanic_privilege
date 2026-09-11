@@ -81,7 +81,7 @@ request_plan <- rbindlist(request_plan)
 downloaded <- rep(FALSE, nrow(request_plan))
 
 # Retry failed requests after the other batches, allowing the service to recover.
-for (attempt in 1:3) {
+for (attempt in 1:5) {
   pending <- which(!downloaded)
   if (length(pending) == 0) {
     break
@@ -89,16 +89,27 @@ for (attempt in 1:3) {
   if (attempt > 1) {
     Sys.sleep(10 * (attempt - 1))
   }
-  for (batch_start in seq(1L, length(pending), by = 24L)) {
-    batch <- pending[batch_start:min(batch_start + 23L, length(pending))]
+  # curl permits six connections per host; queued requests also consume timeouts.
+  for (batch_start in seq(1L, length(pending), by = 6L)) {
+    batch <- pending[batch_start:min(batch_start + 5L, length(pending))]
     results <- curl::multi_download(
       request_plan$query[batch],
       request_plan$destination[batch],
       progress = FALSE,
-      connecttimeout = 30,
-      timeout = 120
+      connecttimeout = 120,
+      timeout = 300
     )
     downloaded[batch] <- results$success & results$status_code == 200L
+    if (any(!downloaded[batch])) {
+      failed_in_batch <- which(!downloaded[batch])
+      message(paste(sprintf(
+        "Request %d/%d: HTTP %s; %s",
+        request_plan$year[batch[failed_in_batch]],
+        request_plan$chunk[batch[failed_in_batch]],
+        results$status_code[failed_in_batch],
+        results$error[failed_in_batch]
+      ), collapse = "\n"))
+    }
     message(sprintf(
       "Historical parcel requests: %d/%d successful (attempt %d).",
       sum(downloaded), nrow(request_plan), attempt

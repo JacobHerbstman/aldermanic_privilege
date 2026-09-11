@@ -203,9 +203,9 @@ locations <- dplyr::bind_rows(
     )
 ) |>
   dplyr::summarise(
-    expected_distance_ft = median(expected_distance_ft),
     distance_spread_ft = max(expected_distance_ft) -
       min(expected_distance_ft),
+    expected_distance_ft = median(expected_distance_ft),
     .by = dplyr::all_of(location_keys)
   )
 

@@ -241,3 +241,62 @@ an unresolved failure still stops the build before publishing data. A disposable
 test verified both recovery from a temporary failure and rejection of a persistent
 failure. The full build must restart from a new remote clone with an empty Census
 geography cache. No failed-clone outputs will be supplied to that test.
+
+Jacob subsequently revised the testing sequence: complete the ongoing build as
+a diagnostic run, fixing and resuming after failures instead of restarting each
+time. Collect and commit the repairs before one final fresh-clone validation.
+A successfully patched diagnostic build will not be described as an unattended
+replication.
+
+The diagnostic run exposed a further download risk: batches contained 24 requests,
+whereas the installed curl pool permits six connections per host. Curl counts
+queueing time toward connection timeouts, so waiting requests can expire before
+they connect. The batch size was reduced to six without changing query contents.
+All 24 requests in a live four-batch check succeeded. This removes the unnecessary
+queue; it does not guarantee that the external service will always respond.
+
+The six-request full download still left four 2022 requests unsuccessful after
+three attempts. A direct check of batches 9--12 returned successful responses
+in 24--44 seconds. Connection and total time limits were increased to 120 and
+300 seconds, respectively, with at most five attempts and explicit error
+messages identifying unsuccessful requests. The diagnostic build was resumed
+again, retaining completed upstream analyses.
+
+Two downstream implementation issues were also corrected during the diagnostic
+run. The price-results consistency check now computes the range of original
+distances before replacing them with their median; previously it always found
+a zero range. The same task now regenerates its jointly produced figures when
+one is missing, declares its Makefile and package setup as dependencies, and
+produces a standard report for its saved coefficient table. These changes do
+not alter the regression specification.
+
+\subsection*{Diagnostic build completed}
+The diagnostic checkout compiled the main paper (31 pages), online appendix
+(21 pages), combined working paper (56 pages), and word-count document
+(20 pages), with no unresolved references or LaTeX errors. Its construction
+ledger exactly matches the approved 13,677-record file. The 231,800 sales-parcel
+coordinate records also match the previous file byte for byte. With six-request
+batches and the longer time limits, all 470 source requests succeeded on the
+first attempt.
+
+The main full-sample density coefficients remain $-0.097$ for FAR and $-0.148$
+for DUPAC at reported precision. The main rent and sales coefficients are
+approximately $0.0175$ and $0.0300$, matching the prior estimates to numerical
+precision, with unchanged samples of 240,713 rental records and 58,468 sales.
+The refreshed live permit source produces small score differences without
+changing these main results or boundary-side assignments. The repaired distance
+check found no contradiction in the prior inputs: the maximum within-location
+difference was less than $4\times10^{-9}$ feet across 81,315 locations.
+
+All working-paper pages were rendered and inspected. One density table extends
+slightly beyond the text width without clipping. Manuscript prose remains
+unchanged at Jacob's request and still contains older density estimates and
+sample counts; compilation alone does not make it ready to circulate. The
+patched diagnostic build is not the final fresh-clone validation.
+
+GNU Make 3.81 regenerated missing price figures with one producer invocation
+under a four-job build and refreshed the coefficient report in that same run.
+Deleting only the parcel report regenerated only that report, without another
+download. An unchanged price-task build and an unchanged full paper build ran
+no substantive producer or document compiler. These checks completed in the
+diagnostic checkout before the fixes were prepared for the final fresh clone.

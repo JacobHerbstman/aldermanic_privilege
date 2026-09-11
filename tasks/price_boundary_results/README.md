@@ -27,3 +27,8 @@ enrichment, not separately in each regression. Missing apartment counts are
 allowed and no upper-tail price trimming is applied to the baseline. Annual
 99.9th-percentile price-per-square-foot trimming remains a separate audit
 sensitivity check, not a dependency of the paper figures.
+
+The task also generates a standard report for its coefficient table. If any
+jointly produced figure or coefficient file is missing, Make regenerates the
+complete set with one producer run. The distance-consistency check compares
+original distances within a location before calculating their median.

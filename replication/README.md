@@ -21,11 +21,31 @@ an existing release's source bytes silently.
 The September 10 clean-checkout test is in progress. Publication of the source
 archive alone does not establish that the full paper has been rerun successfully.
 
+The diagnostic run has now compiled `paper.pdf`, `online_appendix.pdf`,
+`working_paper.pdf`, and `word_count.pdf` after download and validation repairs.
+It began at `2c7166ca` and was patched during execution, so it is not the final
+fresh-clone test. The complete construction ledger and sales-parcel coordinates
+match the prior approved files exactly; main density and price estimates match
+at reported precision. Some other sources are still live: the permit download
+produced small score changes, though boundary-side assignments and the main
+reported results did not change. The manuscript prose was left untouched and
+contains older density numbers and sample counts that need a separate update.
+GNU Make 3.81 passed missing-price-output recovery, missing-source-report
+recovery, and an unchanged full-paper rebuild with no producer or compiler runs
+in the diagnostic checkout.
+
 Verified locally: a download through the public release URL matches the recorded
 SHA-256; extraction restores all 103 listed files; deleting a non-primary member
 causes restoration; an unchanged second Make run performs no work (GNU Make 3.81).
 
 ### Fresh-clone validation requirement (September 10, 2026)
+
+Current instruction: first finish a diagnostic build, fixing failures and resuming
+the same checkout so all necessary repairs can be collected together. Record
+every repair, commit and push the complete set, then perform one final fresh-clone
+test. A patched diagnostic run is not evidence of an unattended fresh build.
+The strict restart requirement below applies to that final validation, not to
+the ongoing diagnostic run.
 
 The exploratory clone and local rebuild were stopped at the author's request.
 They do not count as the final replication test. Before a new test, all required
