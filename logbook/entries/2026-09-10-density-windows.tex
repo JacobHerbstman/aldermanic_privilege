@@ -1,0 +1,38 @@
+\section*{Density comparisons across wider boundary windows}
+\textit{September 10, 2026. Agent-drafted exploratory results; not adopted as the paper specification.}
+
+Jacob requested a comparison of all construction within 100, 200, 300, 400 and
+500 feet on each side of the ward boundary. Each regression replaces the paper's
+signed distance-band indicators with one more-stringent-side indicator, retaining
+its neighborhood controls and zoning-group, boundary-segment and construction-year
+fixed effects. Controls are re-estimated within each window, and standard errors
+are clustered by ward pair. There are no distance slopes. This estimates an
+adjusted difference across the entire window rather than the paper's comparison
+between the two nearest 100-foot bands.
+
+For all construction, FAR is 12.5\% lower within 100 feet and 12.2\% lower within
+200 feet. DUPAC is 14.7\% and 12.4\% lower, respectively. All four estimates are
+significant at 5\%. At 300--500 feet the differences are small and statistically
+indistinguishable from zero; at 500 feet the estimates are +1.3\% for FAR and
++0.1\% for DUPAC. The wider averages therefore do not establish uniformly lower
+density throughout the full boundary strip.
+
+Multifamily estimates are less stable. At 100 feet, FAR and DUPAC are 44.5\% and
+39.6\% lower, but the samples contain only 193 and 194 construction observations.
+At 500 feet the differences are -4.5\% and -8.0\%, neither significant at 5\%.
+Changing the window changes both the observations and the fitted controls, so
+this exercise does not isolate which change explains the large narrow-window
+multifamily estimate. The main paper specification remains unchanged.
+
+\begin{center}
+\includegraphics[width=0.98\textwidth]{../tasks/audits/density_window_comparison/output/density_windows.pdf}
+\end{center}
+
+\textit{Reproduction:} Run Make in
+\texttt{tasks/audits/density\_window\_comparison/code}.
+The 20-model coefficient file records fitted samples and 95\% confidence intervals;
+its standard report verifies unique sample--outcome--window keys. This run used the
+completed fresh-clone inputs at \texttt{da074ae3}. The four 500-foot sample sizes
+match the main density regressions. An unchanged Make check schedules no work.
+The gallery also shows the existing placebo figures: none of the eight density
+or four price placebo estimates is significant at 10\%.
