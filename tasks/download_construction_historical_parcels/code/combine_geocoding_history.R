@@ -1,3 +1,4 @@
+source("../../shared/code/save_data.R")
 # setwd("tasks/download_construction_historical_parcels/code")
 library(dplyr)
 library(readr)
@@ -6,4 +7,4 @@ history <- bind_rows(
   read_csv("../output/reviewed_parcel_history.csv", col_types = cols(.default = col_character()))) |>
   arrange(pin, year, row_id)
 stopifnot(!anyNA(history$row_id), !anyDuplicated(history$row_id), !anyDuplicated(history[c("pin", "year")]))
-write_csv(history, "../output/geocoding_parcel_history.csv")
+SaveData(history, c("pin", "year"), "../output/geocoding_parcel_history.csv")

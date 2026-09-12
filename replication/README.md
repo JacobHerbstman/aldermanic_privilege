@@ -13,7 +13,7 @@ and qualifications remain in the owning task READMEs and the two source-folder
 READMEs. The preserved reviewed zoning history remains a recorded input as
 approved; the ordinary build does not reconstruct every historical ordinance.
 
-For maintainers deliberately assembling a new vintage, `make -f build_archive.make`
+For maintainers deliberately assembling a new vintage, `make build-source-archive`
 creates the archive from the explicitly listed local sources. A new vintage needs
 its own release name, checksum, source comparison and documentation; do not replace
 an existing release's source bytes silently.
@@ -85,3 +85,6 @@ County sales-parcel requests (2022, batch 19). The same request subsequently
 returned all 500 records. Retry ordering was revised to revisit failures after
 the other requests, and a new clone is required to test the revision. This failed
 run does not establish end-to-end replication.
+
+`make build-source-archive` writes `source-archive-current.tar.gz` for review. It
+does not overwrite the downloaded September 10 release archive or publish a release.

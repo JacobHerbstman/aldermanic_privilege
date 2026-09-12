@@ -5,8 +5,9 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(start_year, end_year)
 }
 if (length(cli_args) != 2) {
@@ -146,9 +147,4 @@ building_permits_sf <- st_as_sf(
   st_transform(crs_projected) %>%
   mutate(across(c(application_start_date_ym, issue_date_ym), as.Date))
         
-st_write(
-  building_permits_sf,
-  "../output/building_permits_clean.gpkg",
-  delete_layer = TRUE,
-  quiet = TRUE
-)
+SaveData(building_permits_sf, c("id"), "../output/building_permits_clean.gpkg", delete_layer = TRUE, quiet = TRUE)

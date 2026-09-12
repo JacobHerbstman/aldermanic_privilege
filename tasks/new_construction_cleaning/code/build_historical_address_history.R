@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 source("../../shared/code/normalize_chicago_address.R")
 
 targets <- read_csv(
@@ -65,7 +66,7 @@ selected_history <- targets %>%
   )
 
 # Apply recorded address corrections before any consumer requests a geocode.
-corrections <- read_csv("../adjudication/historical_address_corrections.csv",
+corrections <- read_csv("../input/historical_address_corrections.csv",
   col_types = cols(.default = col_character()))
 stopifnot(!anyNA(corrections), !anyDuplicated(corrections[c("pin", "original_address")]),
   nrow(anti_join(corrections, selected_history,
@@ -77,4 +78,4 @@ selected_history <- selected_history %>%
     selected_address = coalesce(corrected_address, selected_address),
     selected_address_normalized = normalize_address(selected_address)) %>%
   select(-corrected_address)
-write_csv(selected_history, "../output/density_parcel_address_selected_history.csv")
+SaveData(selected_history, c("pin"), "../output/density_parcel_address_selected_history.csv")

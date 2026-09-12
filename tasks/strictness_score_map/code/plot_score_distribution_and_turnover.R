@@ -4,7 +4,7 @@
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(uncertainty_spec)
 }
 if (length(cli_args) != 1) {

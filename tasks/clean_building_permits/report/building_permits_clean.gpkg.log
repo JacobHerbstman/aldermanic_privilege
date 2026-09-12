@@ -1,0 +1,58 @@
+File: building_permits_clean.gpkg
+Rows: 716345
+Columns: 48
+SHA-256 (saved bytes): ec6311912ccea37c10e25dc5ed0837f291c4bc8319bd9fc105584e985816f25b
+Key: id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                   column inferred_type non_missing distinct                min                max                mean                  sd
+                      fid        BIGINT      716345   789341                  1             716345            358173.0  206791.13362883814
+                       id       VARCHAR      716345   732248                  -                  -                   -                   -
+                      pin       VARCHAR      317734   158326                  -                  -                   -                   -
+                     ward        DOUBLE      645039       54                0.0               50.0   26.85242287675629  14.867479368950569
+application_start_date_ym       VARCHAR      716345      173                  -                  -                   -                   -
+            issue_date_ym       VARCHAR      716345      191                  -                  -                   -                   -
+          processing_time        DOUBLE      716345     1751                0.0             5176.0  19.795350005932896   77.31101880840409
+            reported_cost        DOUBLE      692815    41786            -1000.0       9999999999.0  146890.52542087794   18596544.25830512
+                total_fee        DOUBLE      716345    57098                0.0          5772092.0    939.232625606364  11215.793481864297
+          high_discretion        DOUBLE      716345        2                0.0                1.0 0.27584055168947924 0.44693715507121357
+            permit_issued        DOUBLE      419802        2                0.0                1.0   0.968394624132329 0.17494727488886538
+      corporate_applicant        BIGINT      716345        2                  0                  1  0.8730178894247883  0.3329531632585161
+                   permit       VARCHAR      716345   870760                  -                  -                   -                   -
+            permit_status       VARCHAR      419802        7                  -                  -                   -                   -
+         permit_milestone       VARCHAR      419802        9                  -                  -                   -                   -
+              permit_type       VARCHAR      716345       12                  -                  -                   -                   -
+              review_type       VARCHAR      716342       11                  -                  -                   -                   -
+   application_start_date       VARCHAR      716345     5321                  -                  -                   -                   -
+               issue_date       VARCHAR      716345     6237                  -                  -                   -                   -
+            street_number        DOUBLE      716345    11806                1.0            13786.0   3408.555870425563  2910.0609586511177
+         street_direction       VARCHAR      716345        4                  -                  -                   -                   -
+              street_name       VARCHAR      716345     1739                  -                  -                   -                   -
+                work_type       VARCHAR      248342        4                  -                  -                   -                   -
+         work_description       VARCHAR      715585   608079                  -                  -                   -                   -
+         permit_condition       VARCHAR        9674     9624                  -                  -                   -                   -
+        building_fee_paid        DOUBLE      716345    48240                0.0           882191.2   679.9634865183481   5769.476281165346
+          zoning_fee_paid        DOUBLE      716345     1532                0.0           42123.42  53.640759312900926  228.07733870877766
+           other_fee_paid        DOUBLE      716345     1994                0.0           363413.0   81.77183239919307  1939.6885675029873
+            subtotal_paid        DOUBLE      716345    59121                0.0          999683.92   815.3760782304431  6970.3378890067615
+      building_fee_unpaid        DOUBLE      716345      420            -3000.0           92142.12  1.8394255421619472  126.40633036378438
+        zoning_fee_unpaid        DOUBLE      716345       10                0.0              704.0 0.02856375070671255   2.032640257217804
+         other_fee_unpaid        DOUBLE      716345       35                0.0            57576.0  0.2410207372146103   72.14388881081798
+          subtotal_unpaid        DOUBLE      716345      560            -3000.0          149811.12    2.10901003008327  191.77463128539856
+      building_fee_waived        DOUBLE      716345     4591                0.0          5772017.0  112.18678317012048    8532.95860109243
+    building_fee_subtotal        DOUBLE      716345    50663             -100.0          5772017.0    793.989695230632  10306.859907878597
+      zoning_fee_subtotal        DOUBLE      716345     1652                0.0           102250.0  55.482894485199175   265.2272805248047
+       other_fee_subtotal        DOUBLE      716345     2177                0.0           363413.0   89.75883953960722   2197.242596718583
+        zoning_fee_waived        DOUBLE      716345      130                0.0           102250.0  1.8135714215915517  135.83154388783606
+         other_fee_waived        DOUBLE      716345      171                0.0           263020.0   7.745986403199575  1029.9817260031891
+          subtotal_waived        DOUBLE      716345     3898                0.0          5772092.0  121.74634099491169   8645.842287471745
+           community_area        DOUBLE      645035       92                0.0               77.0  31.414991434573317   21.74672689079026
+             census_tract        DOUBLE      644978     2015                0.0           980100.0   305723.7916425056   278991.3271844373
+              xcoordinate        DOUBLE      716345   255962 1091101.2551974289  1205100.197973304  1164529.7603916004  15548.130158395394
+              ycoordinate        DOUBLE      716345   271364  1813939.552358355 1951598.2626020291   1895616.192684007  30307.384844558415
+                 latitude        DOUBLE      716345   302363  41.64467013219805  42.02281295956641  41.869170998844815  0.0833160362283446
+                longitude        DOUBLE      716345   291922 -87.94022499291826 -87.52467708496278  -87.67147123323797 0.05669760008498395
+                 location       VARCHAR      706353   222059                  -                  -                   -                   -
+             minor_permit        DOUBLE      716345        2                0.0                1.0  0.6990081594762301 0.45868948774697865

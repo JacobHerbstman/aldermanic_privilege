@@ -1,5 +1,6 @@
-# setwd("tasks/density_score_robustness/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_score_robustness/code")
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 projects <- read_csv("../input/new_construction_analysis_data.csv", show_col_types = FALSE,
   col_types = cols(project_id = "c", component_pins = "c", .default = col_guess()))
 recorded <- read_csv("../adjudication/project_permit_matches.csv", col_types = cols(.default = "c"))
@@ -41,4 +42,4 @@ result <- bind_rows(recorded, additions) |> group_by(project_id, permit_id) |>
   summarise(match_source = paste(sort(unique(match_source)), collapse = "/"), .groups = "drop") |>
   arrange(project_id, permit_id)
 stopifnot(!anyDuplicated(result[c("project_id", "permit_id")]), !anyNA(result))
-write_csv(result, "../output/project_permit_matches.csv")
+SaveData(result, c("project_id", "permit_id"), "../output/project_permit_matches.csv")

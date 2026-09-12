@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 # Restore the selection used in the July 18, 2026 export. The comparison
 # universe for lineage screening must precede historical-coordinate recovery.
 projects <- readr::read_csv(
@@ -29,7 +30,7 @@ candidates <- readr::read_csv(
   col_types = readr::cols(pin = readr::col_character(), .default = readr::col_guess())
 )
 year_corrections <- readr::read_csv(
-  "../adjudication/historical_coordinate_year_corrections.csv",
+  "../input/historical_coordinate_year_corrections.csv",
   show_col_types = FALSE,
   col_types = readr::cols(
     pin = readr::col_character(),
@@ -85,4 +86,4 @@ if (anyDuplicated(coordinates$pin) ||
     any(!is.finite(coordinates$longitude) | !is.finite(coordinates$latitude))) {
   stop("Accepted historical coordinates are duplicated or incomplete.")
 }
-readr::write_csv(coordinates, "../output/density_historical_coordinates.csv")
+SaveData(coordinates, c("pin"), "../output/density_historical_coordinates.csv")

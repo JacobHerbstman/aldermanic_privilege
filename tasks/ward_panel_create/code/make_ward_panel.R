@@ -5,8 +5,9 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(start_year, end_year)
 }
 if (length(cli_args) != 2) {
@@ -49,4 +50,4 @@ ward_panel_annual <- rbind(ward_bound2003, ward_bound2015) %>%
   mutate(ward = as.numeric(ward)) %>% 
   arrange(ward, year)
 
-st_write(ward_panel_annual, "../output/ward_panel.gpkg", delete_layer = TRUE)
+SaveData(ward_panel_annual, c("ward", "year"), "../output/ward_panel.gpkg", delete_layer = TRUE)

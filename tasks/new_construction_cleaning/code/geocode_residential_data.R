@@ -4,6 +4,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 chicago_lat_min <- 41
 chicago_lat_max <- 43
 chicago_lon_min <- -89
@@ -296,4 +297,4 @@ message(sprintf(
   max(all_parcels$longitude, na.rm = TRUE)
 ))
 
-st_write(sf_chi, "../output/geocoded_residential_data.gpkg", delete_dsn = TRUE, quiet = TRUE)
+SaveData(sf_chi, character(), "../output/geocoded_residential_data.gpkg", delete_dsn = TRUE, quiet = TRUE)

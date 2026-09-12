@@ -1,3 +1,4 @@
+source("../../shared/code/save_data.R")
 # setwd("tasks/new_construction_cleaning/code")
 
 library(dplyr)
@@ -36,4 +37,4 @@ requests <- coverage |>
     query_house_number = str_extract(selected_address, "^[0-9]+")) |>
   arrange(target_year, source_family, project_id, component_pin)
 stopifnot(!anyDuplicated(requests$request_id))
-write_csv(requests, "../output/preferred_address_geocode_requests.csv")
+SaveData(requests, c("request_id"), "../output/preferred_address_geocode_requests.csv")

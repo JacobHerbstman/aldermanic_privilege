@@ -1,3 +1,4 @@
+source("../../shared/code/save_data.R")
 # setwd("tasks/download_construction_historical_parcels/code")
 
 library(dplyr)
@@ -17,4 +18,4 @@ stopifnot(!anyDuplicated(original), !anyDuplicated(initial), !anyDuplicated(addi
 queries <- bind_rows(original, anti_join(initial, original, by = c("target_year", "pin10")), additional, latest, evidence, lake_park, east_64th, geneva_maud, campbell, reviewed) |>
   arrange(target_year, pin10)
 stopifnot(!anyNA(queries), !anyDuplicated(queries))
-write_csv(queries, "../output/preferred_historical_parcel_source_queries.csv")
+SaveData(queries, c("target_year", "pin10"), "../output/preferred_historical_parcel_source_queries.csv")

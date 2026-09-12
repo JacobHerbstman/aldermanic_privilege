@@ -1,6 +1,7 @@
 # setwd("tasks/new_construction_cleaning/code")
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/assessor_classification.R")
 
 single_finite_value <- function(x) {
@@ -463,4 +464,4 @@ assessor_match <- match(residential_candidates$project_id, assessor_projects$pro
 residential_candidates$replacement_project_ids <- assessor_projects$replacement_project_ids[assessor_match]
 residential_candidates$replacement_check <- assessor_projects$replacement_check[assessor_match]
 stopifnot(!anyDuplicated(residential_candidates$project_id))
-readr::write_csv(residential_candidates, "../output/residential_selected_assessments.csv")
+SaveData(residential_candidates, c("project_id"), "../output/residential_selected_assessments.csv")

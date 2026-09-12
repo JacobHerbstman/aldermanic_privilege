@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 candidate_pins <- readr::read_csv(
   "../output/residential_project_candidate_inventory.csv",
   show_col_types = FALSE,
@@ -385,13 +386,7 @@ if (any(is.na(lineage_evidence$any_within_1500ft))) {
   stop("A corrected tieback lineage has no candidate-sample scope.", call. = FALSE)
 }
 
-readr::write_csv(
-  lineage_evidence,
-  "../output/residential_tieback_temporal_lineage_evidence.csv"
-)
-readr::write_csv(
-  snapshots,
-  "../output/residential_tieback_temporal_snapshots.csv"
-)
+SaveData(lineage_evidence, c("tieback_lineage_id"), "../output/residential_tieback_temporal_lineage_evidence.csv")
+SaveData(snapshots, c("tieback_lineage_id", "tax_year"), "../output/residential_tieback_temporal_snapshots.csv")
 
 DBI::dbDisconnect(con, shutdown = TRUE)

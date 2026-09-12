@@ -5,6 +5,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(exact_match_ft, local_match_ft, max_building_gap)
 if (length(args) != 3L) stop("Expected exact distance, local distance, and building-area gap.")
@@ -198,4 +199,4 @@ lineage <- lineage |>
   ) |>
   dplyr::select(-lineage_row) |>
   dplyr::arrange(project_key)
-readr::write_csv(lineage, "../output/density_project_lineage.csv")
+SaveData(lineage, character(), "../output/density_project_lineage.csv")

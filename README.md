@@ -10,9 +10,16 @@ Each task lives in `tasks/<task>/` and has its own `code/`, `input/`, and
 Running `make` at the repository root follows those dependencies through to the
 paper.
 
+Data-producing R scripts write their standard reports when they save data,
+using `SaveData` in `tasks/shared/code/save_data.R`. Production Makefiles name
+datasets and exhibits as targets. Reports accompany those files in `report/`;
+deleting a report alone does not rerun its data producer.
+
 The density analyses now use the chronological construction pipeline on this
 branch. See the [construction workflow](tasks/new_construction_cleaning/README.md)
 for the source-to-project logic and the preserved-history limitations.
+The [recorded construction decisions](tasks/new_construction_corrections/README.md)
+are committed CSV inputs in a separate task with no R scripts.
 Before the first build, run `make -C replication` to obtain the exact recorded
 source inputs from the [source release](https://github.com/JacobHerbstman/aldermanic_privilege/releases/tag/recorded-sources-2026-09-10).
 The source archive supplements Git; a code-only clone does not contain every input.
@@ -44,8 +51,8 @@ Read the [cleaning rules and chronological guide](tasks/new_construction_cleanin
 the [exact script progression](task_graph/construction_steps.md), or the
 [full diagram within construction cleaning](task_graph/construction_scripts.svg).
 Both construction diagrams and the script progression are generated from the
-current default Make targets. Older unused final-assembly rules are excluded
-from that default.
+current default Make targets. Superseded assembly code is preserved in Git
+history and is not part of the current checkout.
 
 ## Data Inputs
 
@@ -57,22 +64,25 @@ The paper uses two kinds of inputs:
   from the September 19, 2025 Geofabrik Illinois OpenStreetMap extract. The
   paper build checks the OpenStreetMap files against
   `data_raw/illinois-250919-free.sha256`.
+  Recorded Census counts and geography, major streets, sale-parcel coordinates,
+  and completed construction-review parcel searches are stored in their source
+  tasks. The Census and coordinate archives decompress to the original saved bytes.
 - **Live downloads.** The build downloads Chicago building permits and spatial
-  data, Census ACS data, Cook County assessor and sales data, park boundaries,
+  data, Cook County assessor and sales data, park boundaries,
   FRED CPI data, and RentHub listings from Dewey. Public agencies can revise
   historical records. A later download may therefore differ from the data
   available when the paper was submitted.
 
-The Census downloads require `CENSUS_API_KEY`, and the RentHub download
-requires `DEWEY_API_KEY`. Replicators need their own credentials for both
-services. Interrupted RentHub downloads can be resumed by running `make`
+RentHub acquisition requires the replicator's `DEWEY_API_KEY`. A deliberate
+refresh of the recorded Census inputs requires `CENSUS_API_KEY`; ordinary builds
+reuse the committed Census sources. Interrupted RentHub downloads can be resumed by running `make`
 again. If a live source is temporarily unavailable, rerun `make` after the
 service returns.
 
 ## Reproduce the Paper
 
 The build requires R, GNU Make, Bash, Python 3, `curl`, `unzip`, and a LaTeX
-installation providing `pdflatex` and `bibtex`, plus `wget`, `tar`, and `shasum`. The machine must also have the
+installation providing `pdflatex` and `bibtex`, plus `wget`, `tar`, `gzip`, and `shasum`. The machine must also have the
 system libraries required by the R packages `sf`, `units`, and `arrow`. The
 clean replication was tested with R 4.5.2, GNU Make 3.81, Python 3.13.6, and
 TeX Live 2024 on macOS.
@@ -83,7 +93,7 @@ Install the required R packages:
 make -C tasks/setup_environment/code
 ```
 
-From the repository root, set `CENSUS_API_KEY` and `DEWEY_API_KEY`, and run:
+From the repository root, set `DEWEY_API_KEY` for RentHub acquisition, and run:
 
 ```bash
 make -C replication
@@ -94,7 +104,17 @@ The command downloads the public inputs, rebuilds the analysis, and writes the
 manuscript to `paper/paper.pdf`. If a download is interrupted, run `make`
 again. Completed files are retained, and Make resumes from the first missing or
 out-of-date input. Individual tasks can also be run from their `code/`
-folders.
+folders against prepared upstream inputs. `make -C paper` is the end-to-end
+freshness check: shared Make rules check each concrete upstream product before
+its consumer. Run one build at a time in a checkout. The supported Make 3.81
+workflow serializes task execution; separate concurrent Make processes can still
+write the same outputs.
+
+Settings live in the task Makefile that consumes them. Only execution settings
+and the common upstream rule are shared includes. For a script that produces
+several fixed files, a multiple-target pattern rule groups those products using
+the `output` directory as its stem. This is supported by GNU Make 3.81 and
+recovers a missing member without existence-only checks or stamp files.
 
 ### Observed Running Time
 

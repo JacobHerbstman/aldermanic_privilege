@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-output_file="../output/commercial_valuation_data.csv"
+output_file="../output/commercial_valuation_data_current.csv"
 api_csv="https://datacatalog.cookcountyil.gov/resource/csik-bsws.csv"
 api_json="https://datacatalog.cookcountyil.gov/resource/csik-bsws.json"
 batch_size=50000

@@ -2,6 +2,7 @@
 # maximum_distance_ft <- 1500
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -23,7 +24,7 @@ historical <- readr::read_csv(
   show_col_types = FALSE
 )
 address_matches <- readr::read_csv(
-  "../adjudication/historical_address_matches.csv",
+  "../input/historical_address_matches.csv",
   col_types = readr::cols(pin = readr::col_character(), matched_pin = readr::col_character(), .default = readr::col_guess()),
   show_col_types = FALSE
 )
@@ -81,4 +82,4 @@ coordinates <- coordinates |>
 if (anyNA(coordinates$pin) || anyDuplicated(coordinates$pin)) {
   stop("Recovered coordinates must be unique by original building PIN.")
 }
-readr::write_csv(coordinates, "../output/density_historical_coordinate_candidates.csv")
+SaveData(coordinates, character(), "../output/density_historical_coordinate_candidates.csv")

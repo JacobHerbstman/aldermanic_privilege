@@ -52,7 +52,18 @@ CLAUDE.md
 
 
 # Local remnants from the research-archive branch.
-tasks/audits/
+tasks/audits/*
+!tasks/audits/construction_review_history/
+!tasks/audits/density_common_sample/
+tasks/audits/density_common_sample/input/
+tasks/audits/density_common_sample/output/
+tasks/audits/density_common_sample/temp/
+!tasks/audits/density_common_sample/report/*.csv.log
+!tasks/audits/density_window_comparison/
+tasks/audits/density_window_comparison/input/
+tasks/audits/density_window_comparison/output/
+tasks/audits/density_window_comparison/temp/
+!tasks/audits/density_window_comparison/report/*.csv.log
 tasks/archive/
 tasks/_deprecated/
 
@@ -109,3 +120,8 @@ Rplots.pdf
 /replication/*.tar.gz
 /replication/*.tmp
 !data_raw/construction_review/construction_condominium_history_20260909.csv
+
+# Final construction decisions and preserved zoning history are replication inputs.
+!tasks/new_construction_corrections/output/
+!tasks/construction_zoning_history/output/
+!tasks/construction_zoning_history/report/*.gpkg.log

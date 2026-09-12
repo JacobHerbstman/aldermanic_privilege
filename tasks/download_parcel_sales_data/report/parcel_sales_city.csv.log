@@ -7,24 +7,24 @@ Types: DuckDB inference from the complete saved CSV.
 Distinct counts: approximate (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                          column inferred_type  non_missing  distinct     min         max               mean                 sd
-                             pin       VARCHAR       902830    493731       -           -                  -                  -
-                            year        DOUBLE       902830        17  2006.0      2022.0 2014.6760796606227  4.804418095499781
-                   township_code        BIGINT       902830         9      70          77  73.32017544831253 2.3642460995107717
-               neighborhood_code        BIGINT       902830       160   70000       77999  73430.71555663856 2331.2022243457745
-                           class       VARCHAR       902830        94       -           -                  -                  -
-                       sale_date     TIMESTAMP       902830      3632       -           -                  -                  -
-                   is_mydec_date       BOOLEAN       902830         2       -           -                  -                  -
-                      sale_price        DOUBLE       902830     34211     0.0 901838000.0 1083206.0412835197  10659904.41235922
-               sale_document_num       VARCHAR       902830    679347       -           -                  -                  -
-                  sale_deed_type       VARCHAR       902229         5       -           -                  -                  -
-                 mydec_deed_type       VARCHAR       349355        24       -           -                  -                  -
-                sale_seller_name       VARCHAR       874155    530871       -           -                  -                  -
-                    is_multisale       BOOLEAN       902830         2       -           -                  -                  -
-                num_parcels_sale        DOUBLE       902830       119     1.0       532.0  4.256238716037349 29.177565245276995
-                 sale_buyer_name       VARCHAR       877781    668816       -           -                  -                  -
-                       sale_type       VARCHAR       777756         2       -           -                  -                  -
-sale_filter_same_sale_within_365       BOOLEAN       902830         2       -           -                  -                  -
-       sale_filter_less_than_10k       BOOLEAN       902830         2       -           -                  -                  -
-           sale_filter_deed_type       BOOLEAN       902830         2       -           -                  -                  -
-                          row_id        BIGINT       902830    993320 7087402    98484850  84819538.09771164  31106937.60659246
+                          column inferred_type non_missing distinct     min         max               mean                 sd
+                             pin       VARCHAR      902830   493731       -           -                  -                  -
+                            year        DOUBLE      902830       17  2006.0      2022.0 2014.6760796606227  4.804418095499781
+                   township_code        BIGINT      902830        9      70          77  73.32017544831253 2.3642460995107717
+               neighborhood_code        BIGINT      902830      160   70000       77999  73430.71555663856 2331.2022243457745
+                           class       VARCHAR      902830       94       -           -                  -                  -
+                       sale_date     TIMESTAMP      902830     3632       -           -                  -                  -
+                   is_mydec_date       BOOLEAN      902830        2       -           -                  -                  -
+                      sale_price        DOUBLE      902830    34211     0.0 901838000.0 1083206.0412835197  10659904.41235922
+               sale_document_num       VARCHAR      902830   679347       -           -                  -                  -
+                  sale_deed_type       VARCHAR      902229        5       -           -                  -                  -
+                 mydec_deed_type       VARCHAR      349355       24       -           -                  -                  -
+                sale_seller_name       VARCHAR      874155   530871       -           -                  -                  -
+                    is_multisale       BOOLEAN      902830        2       -           -                  -                  -
+                num_parcels_sale        DOUBLE      902830      119     1.0       532.0  4.256238716037349 29.177565245276995
+                 sale_buyer_name       VARCHAR      877781   668816       -           -                  -                  -
+                       sale_type       VARCHAR      777756        2       -           -                  -                  -
+sale_filter_same_sale_within_365       BOOLEAN      902830        2       -           -                  -                  -
+       sale_filter_less_than_10k       BOOLEAN      902830        2       -           -                  -                  -
+           sale_filter_deed_type       BOOLEAN      902830        2       -           -                  -                  -
+                          row_id        BIGINT      902830   993320 7087402    98484850  84819538.09771164  31106937.60659246

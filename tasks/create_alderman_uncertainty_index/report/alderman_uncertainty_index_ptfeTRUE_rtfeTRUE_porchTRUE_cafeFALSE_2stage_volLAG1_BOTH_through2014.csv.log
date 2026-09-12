@@ -1,0 +1,17 @@
+File: alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2014.csv
+Rows: 83
+Columns: 7
+SHA-256 (saved bytes): decc35308d9fc948ed674e82bba814ca36db8556b049b58cdcb39308f9b687aa
+Key: alderman
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct                  min                 max                    mean                  sd
+         alderman       VARCHAR          83       83                    -                   -                       -                   -
+        n_permits        BIGINT          83       80                   18                6278       856.1325301204819    850.107995593965
+       mean_resid        DOUBLE          83       83  -0.3221247967341454  0.3657540141165622   -0.001369166005241967 0.12214012557980108
+  alderman_fe_raw        DOUBLE          83       83 -0.37370356715037506 0.47604210605781117 -1.6720226274475249e-18 0.15943566713153545
+      alderman_se        DOUBLE          83       83 0.030240186492986803  0.3170411418601261      0.0676643052407312 0.03802632147900054
+      shrinkage_B        DOUBLE          83       83   0.1618698714510003  0.9550124692784137      0.8129760509381295 0.13149133043319833
+uncertainty_index        DOUBLE          83       83  -2.6261282212235453   3.005754074503074  2.6752362039160398e-17  1.0000000000000002

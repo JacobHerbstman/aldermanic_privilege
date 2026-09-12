@@ -1,10 +1,11 @@
 # setwd("tasks/new_construction_cleaning/code")
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 candidates <- readr::read_csv("../output/preferred_residential_project_candidates.csv",
   col_types = readr::cols(project_id = readr::col_character(), component_pins = readr::col_character(),
     class_values = readr::col_character(), .default = readr::col_guess()))
-decisions <- readr::read_csv("../adjudication/residential_overlap_decisions.csv",
+decisions <- readr::read_csv("../input/residential_overlap_decisions.csv",
   col_types = readr::cols(.default = readr::col_character()))
 commercial <- readr::read_csv("../output/preferred_commercial_projects.csv",
   col_types = readr::cols(project_id = readr::col_character(), component_pins = readr::col_character(),
@@ -79,4 +80,4 @@ for (i in seq_len(nrow(resolution))) {
 stopifnot(!anyDuplicated(resolution$source_project_id),
   setequal(resolution$source_project_id,
     candidates$project_id[candidates$candidate_status == "defer_to_commercial_reconciliation"]))
-readr::write_csv(arrange(resolution, source_project_id), "../output/residential_overlap_resolution.csv")
+SaveData(arrange(resolution, source_project_id), c("source_project_id"), "../output/residential_overlap_resolution.csv")

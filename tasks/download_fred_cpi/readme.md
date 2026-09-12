@@ -9,7 +9,7 @@ in [`data_raw/replication_sources/README.md`](../../data_raw/replication_sources
 The checksum is in `code/source_snapshot.sha256`. These preserved files still
 need inclusion in the distributed replication data bundle.
 
-To request a deliberate candidate refresh, run `make -f download_recipes.make`
+To request a deliberate candidate refresh, run `make download-current`
 in `code/`. The existing source-specific download script writes a separate
 `_current.csv`; the normal pipeline continues to use the recorded snapshot.
 Query choices belong to that refresh recipe. Compare the candidate with the

@@ -1,0 +1,57 @@
+\section*{Construction eligibility and recorded manual decisions}
+\textit{September 11, 2026. Agent-drafted comparison requested by Jacob.}
+
+Jacob asked whether using the same projects for FAR and DUPAC would simplify the
+paper without materially changing its results. The proposed rule requires both
+density measures to be eligible, finite and positive. Scores, controls, fixed
+effects, distance bands and clustering remain as in the current specifications.
+This comparison does not adopt the proposed rule in production.
+
+The main comparison would remove 11 multifamily projects from DUPAC, reducing
+the full sample from 4,034 to 4,023 and the multifamily sample from 874 to 863.
+These projects have usable units and land but unresolved floor area. The main
+FAR sample is unchanged. Estimated percentage differences immediately across
+the boundary are:
+
+\begin{center}
+\begin{tabular}{llrr}
+Sample & Outcome & Current & Common sample \\
+\hline
+All projects & FAR & $-9.24$ & $-9.24$ \\
+All projects & DUPAC & $-13.79$ & $-13.70$ \\
+Multifamily & FAR & $-12.85$ & $-12.85$ \\
+Multifamily & DUPAC & $-17.93$ & $-17.36$ \\
+\end{tabular}
+\end{center}
+
+The comparison also reproduces the two placebo cutoffs, two donut exclusions,
+three boundary-type restrictions and two minimum score gaps. Across these
+checks and the main estimates, no coefficient crosses a 1, 5 or 10 percent
+significance threshold. All eight placebo estimates remain insignificant at
+10 percent. Main and donut estimates remain negative. One FAR observation is
+also removed from the positive-placebo sample. Score re-estimation after
+own-project permit exclusion is outside this comparison. Table 1 already uses
+a citywide common sample and would not change. The recommendation is to use the
+common sample for comparability; the cost is discarding valid DUPAC information
+for buildings whose floor area remains unresolved.
+
+The current construction Make dependencies reach 26 committed decision tables
+containing 809 entries. Entries are not unique projects: they include repeated
+project identifiers, source confirmations, exclusions, location decisions and
+measurement corrections. This count excludes separate downstream building-type
+and zoning reviews. The appendix's 52-project total and single-spreadsheet
+description are therefore not a verified description of the current process.
+The inventory documents the scope; a count-free replacement describing the
+decisions and supporting evidence is recommended but has not been applied.
+
+Jacob separately approved the permit-period correction. Appendix A now states
+that permit applications are counted by block and year from 2010 through 2020.
+No other manuscript passage or production estimate changes in this step.
+
+\smallskip
+\noindent\textit{Verification:} Make builds the 80-row comparison and its
+standard report in \texttt{tasks/audits/density\_common\_sample/code/}.
+Every estimate, standard error and $p$-value is finite; the common FAR and DUPAC
+samples have identical sizes within each specification. A second Make dry run
+reports no work. The paper was rebuilt through its Makefile in the completed
+replication clone, and the revised appendix page was inspected.

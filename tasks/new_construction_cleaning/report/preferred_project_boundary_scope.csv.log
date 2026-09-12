@@ -1,39 +1,39 @@
 File: preferred_project_boundary_scope.csv
-Rows: 14065
+Rows: 14028
 Columns: 29
-SHA-256 (saved bytes): e0600d37acb5c84de171be1d07aec82c4a711b0fcd5ed2c2a1ad4fbbd747bb96
+SHA-256 (saved bytes): 98bd19fce62297cfa39523dde0320b8374ada2e261d5347cd86bb8a45dc307fb
 Key: source_family, project_id, target_year
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                     column inferred_type non_missing distinct                min               max                 mean                  sd
-             source_family       VARCHAR       14065        2                  -                 -                    -                   -
-                project_id       VARCHAR       14065    14065                  -                 -                    -                   -
-              project_kind       VARCHAR       14065        7                  -                 -                    -                   -
-          candidate_status       VARCHAR       14065       12                  -                 -                    -                   -
-               target_year        BIGINT       14065       17               2006              2022   2012.5090650551012   5.391453269699033
-      requested_components        BIGINT       14065       17                  1                57   1.1220049768929967  0.8297408111476666
-       resolved_components        BIGINT       14065       18                  0                57   1.1158194098826875  0.8320381081093641
-  distinct_parcel_polygons        BIGINT       14065       17                  0                57   1.1087806612157838  0.7971777930648087
-            component_pins       VARCHAR       13989    13940                  -                 -                    -                   -
-               parcel_pins       VARCHAR       13989    11402                  -                 -                    -                   -
-             match_methods       VARCHAR       13989        5                  -                 -                    -                   -
-     unresolved_components        BIGINT       14065        5                  0                 4 0.006185567010309278 0.08700467459216807
-      collapsed_components        BIGINT       14065       11                  0                15 0.007038748666903662 0.21896422776455335
- complete_project_geometry       BOOLEAN       14065        2                  -                 -                    -                   -
-         construction_date          DATE       14001       17                  -                 -                    -                   -
-             boundary_year        BIGINT       14001        2               2003              2015   2007.3865438182986   5.779199307215944
-                       era       VARCHAR       14001        2                  -                 -                    -                   -
-                      ward        BIGINT       14001       50                  1                50   24.463109777873008  15.203155678533786
-             neighbor_ward        BIGINT       14001       50                  1                50       23.43804013999  15.610341123346561
-                 ward_pair       VARCHAR       14001      140                  -                 -                    -                   -
-   distance_to_boundary_ft        DOUBLE       14001    13887 1.0214899430226334 27623.33171603177   1404.1807895519066   1741.212552099976
-             within_1500ft       BOOLEAN       14001        2                  -                 -                    -                   -
-              within_500ft       BOOLEAN       14001        2                  -                 -                    -                   -
-    project_land_area_sqft        DOUBLE       13984    11414 176.29144966672175 904026.4079986904   13605.627717882093  42244.064877767174
-           location_source       VARCHAR       14001        8                  -                 -                    -                   -
-   location_reference_year        BIGINT       14001       20               2006              2025   2014.5967430897792   6.621012069187116
+             source_family       VARCHAR       14028        2                  -                 -                    -                   -
+                project_id       VARCHAR       14028    14028                  -                 -                    -                   -
+              project_kind       VARCHAR       14028        7                  -                 -                    -                   -
+          candidate_status       VARCHAR       14028       12                  -                 -                    -                   -
+               target_year        BIGINT       14028       17               2006              2022   2012.5260906757912   5.388330843205411
+      requested_components        BIGINT       14028       17                  1                57    1.122326775021386  0.8308107313829916
+       resolved_components        BIGINT       14028       18                  0                57   1.1161248930710008  0.8331134566163869
+  distinct_parcel_polygons        BIGINT       14028       17                  0                57   1.1090675791274593   0.798208883043281
+            component_pins       VARCHAR       13952    13903                  -                 -                    -                   -
+               parcel_pins       VARCHAR       13952    11365                  -                 -                    -                   -
+             match_methods       VARCHAR       13952        5                  -                 -                    -                   -
+     unresolved_components        BIGINT       14028        5                  0                 4 0.006201881950384945 0.08711876742212896
+      collapsed_components        BIGINT       14028       11                  0                15 0.007057313943541489  0.2192525274017452
+ complete_project_geometry       BOOLEAN       14028        2                  -                 -                    -                   -
+         construction_date          DATE       13964       17                  -                 -                    -                   -
+             boundary_year        BIGINT       13964        2               2003              2015   2007.3981667144085  5.7824324125407305
+                       era       VARCHAR       13964        2                  -                 -                    -                   -
+                      ward        BIGINT       13964       50                  1                50    24.52262961902034  15.179189082766237
+             neighbor_ward        BIGINT       13964       50                  1                50   23.430320824978516  15.629004712690316
+                 ward_pair       VARCHAR       13964      140                  -                 -                    -                   -
+   distance_to_boundary_ft        DOUBLE       13964    13850 1.0214899430226334 27623.33171603177     1407.25880794959  1742.4882378977911
+             within_1500ft       BOOLEAN       13964        2                  -                 -                    -                   -
+              within_500ft       BOOLEAN       13964        2                  -                 -                    -                   -
+    project_land_area_sqft        DOUBLE       13947    11377 176.29144966672175 904026.4079986904   13639.361650897268   42294.98151428829
+           location_source       VARCHAR       13964        8                  -                 -                    -                   -
+   location_reference_year        BIGINT       13964       20               2006              2025    2014.619378401604   6.615129379269884
 location_reference_row_ids       VARCHAR        3470     3458                  -                 -                    -                   -
     location_reference_pin       VARCHAR        3463     3451                  -                 -                    -                   -
-          geography_status       VARCHAR       14065        4                  -                 -                    -                   -
+          geography_status       VARCHAR       14028        4                  -                 -                    -                   -

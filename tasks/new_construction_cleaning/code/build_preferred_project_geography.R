@@ -1,6 +1,7 @@
 # setwd("tasks/new_construction_cleaning/code")
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/assessor_classification.R")
 
 coverage <- readr::read_csv(
@@ -280,7 +281,7 @@ for (j in seq_len(nrow(individual_parents))) {
 
 # Reviewed home identities permit an exact parcel point when the old map covers
 # several homes, or when overlapping old polygons prevent a unique map match.
-reviewed_locations <- readr::read_csv("../adjudication/residential_reviewed_parcel_locations.csv",
+reviewed_locations <- readr::read_csv("../input/residential_reviewed_parcel_locations.csv",
   col_types = readr::cols(project_id = readr::col_character(), pin = readr::col_character(),
     reference_year = readr::col_integer(), target_year = readr::col_integer(), .default = readr::col_character()))
 current_points <- readr::read_csv("../input/parcel_universe_2025_city.csv",
@@ -311,9 +312,11 @@ stopifnot(!anyDuplicated(assessment[c("pin", "tax_year", "card_num")]))
 assessment <- assessment %>% add_count(pin, tax_year) %>% filter(n == 1L) %>%
   transmute(pin, year = tax_year, construction_year = year_built, building_sqft, land_sqft,
     dwelling_units = if_else(class %in% single_family_assessor_classes, 1, num_apartments))
-year_decisions <- readr::read_csv("../adjudication/residential_reviewed_construction_years.csv",
-  col_types = readr::cols(project_id = "c", reported_year = "d", construction_year = "d",
-    .default = readr::col_skip()))
+year_decisions <- readr::read_csv("../input/construction_modifications.csv",
+  col_types = readr::cols(source_project_id = "c", source_family = "c", application_stage = "c",
+    reported_construction_year = "d", construction_year = "d", .default = readr::col_skip())) %>%
+  filter(source_family == "residential", application_stage == "project_identity") %>%
+  transmute(project_id = source_project_id, reported_year = reported_construction_year, construction_year)
 stopifnot(!anyDuplicated(year_decisions$project_id))
 unchanged <- unchanged %>% left_join(year_decisions,
   by = c("project_id", "construction_year"), relationship = "one-to-one")
@@ -409,7 +412,7 @@ for (j in seq_len(nrow(reviewed_locations))) {
 
 # Some individually measured homes share a development-wide tax polygon.
 # Use a reviewed completed-permit point without claiming an individual parcel map.
-permit_locations <- readr::read_csv("../adjudication/residential_reviewed_permit_locations.csv",
+permit_locations <- readr::read_csv("../input/residential_reviewed_permit_locations.csv",
   col_types = readr::cols(project_id = readr::col_character(), permit = readr::col_character(),
     street_number = readr::col_double(), target_year = readr::col_integer(), .default = readr::col_character()))
 stopifnot(!anyDuplicated(permit_locations$project_id), !anyDuplicated(permit_locations$permit),
@@ -441,25 +444,7 @@ reviewed_points <- sf::st_sf(permit_locations %>% transmute(source_family, proje
 project_centroids <- bind_rows(project_centroids, reviewed_points) %>% arrange(target_year, source_family, project_id)
 stopifnot(!anyDuplicated(project_centroids$project_id))
 
-sf::st_write(
-  project_geometry,
-  "../output/preferred_project_year_geometry.gpkg",
-  delete_dsn = TRUE,
-  quiet = TRUE
-)
-sf::st_write(
-  component_geometry,
-  "../output/preferred_project_component_geometry.gpkg",
-  delete_dsn = TRUE,
-  quiet = TRUE
-)
-sf::st_write(
-  project_centroids,
-  "../output/preferred_project_year_centroids.gpkg",
-  delete_dsn = TRUE,
-  quiet = TRUE
-)
-readr::write_csv(
-  project_year_coverage,
-  "../output/preferred_project_year_geometry_coverage.csv"
-)
+SaveData(project_geometry, c("source_family", "project_id", "target_year"), "../output/preferred_project_year_geometry.gpkg", delete_dsn = TRUE, quiet = TRUE)
+SaveData(component_geometry, c("request_id"), "../output/preferred_project_component_geometry.gpkg", delete_dsn = TRUE, quiet = TRUE)
+SaveData(project_centroids, c("source_family", "project_id", "target_year"), "../output/preferred_project_year_centroids.gpkg", delete_dsn = TRUE, quiet = TRUE)
+SaveData(project_year_coverage, c("source_family", "project_id", "target_year"), "../output/preferred_project_year_geometry_coverage.csv")

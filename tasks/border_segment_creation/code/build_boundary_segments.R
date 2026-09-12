@@ -4,6 +4,7 @@
 # segment_layer_bws_m <- "100,250,400"
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
 library(data.table)
@@ -14,7 +15,7 @@ st_agr("constant")
 eras <- c("2003_2014", "2015_2023")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(segment_length_ft, segment_layer_bws_m)
 }
 if (length(cli_args) != 2) {
@@ -272,3 +273,6 @@ if (!setequal(st_layers(segment_output)$name, expected_layer_names)) {
 if (!setequal(st_layers("../output/ward_pair_boundaries.gpkg")$name, eras)) {
   stop("Unexpected layer set in ../output/ward_pair_boundaries.gpkg.", call. = FALSE)
 }
+
+ReportData(segment_output, "segment_id")
+ReportData("../output/ward_pair_boundaries.gpkg", "ward_pair_id")

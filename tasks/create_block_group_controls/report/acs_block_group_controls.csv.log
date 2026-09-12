@@ -1,0 +1,44 @@
+File: acs_block_group_controls.csv
+Rows: 3993
+Columns: 34
+SHA-256 (saved bytes): dedb83e445283dc583ac577f26847fc03bd755181602184d0a935c4a63562b9c
+Key: GEOID
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct          min          max               mean                  sd
+               GEOID        BIGINT        3993     3993 170310101001 170319900000 170315867988.41574  2925293.9336269884
+                NAME       VARCHAR        3993     3993            -            -                  -                   -
+   total_populationE        BIGINT        3993     1754            0         8881 1309.2479338842975   611.3290714529866
+   total_populationM        BIGINT        3993      591            7         1338 330.91885800150266  129.53099430046484
+   white_populationE        BIGINT        3993     1428            0         3954  567.6521412471826   535.0563400522494
+   white_populationM        BIGINT        3993      498            2          939  166.9113448534936   119.7595878072527
+   black_populationE        BIGINT        3993     1102            0         5969  312.6316053092913   470.4398900530841
+   black_populationM        BIGINT        3993      536            2          889  132.5449536689206  143.84324211379447
+hispanic_populationE        BIGINT        3993     1086            0         3471 320.86576508890556  451.34414595594313
+hispanic_populationM        BIGINT        3993      608            2          921 167.27823691460054   157.3208781029115
+        total_unitsE        BIGINT        3993      922            0         4016 485.11394941147006  256.65346342652765
+        total_unitsM        BIGINT        3993      215            6          628   94.5740045078888   37.41800783095027
+     owner_occupiedE        BIGINT        3993      760            0         1975  279.3541197094916  191.32737689358697
+     owner_occupiedM        BIGINT        3993      187            5          471  74.51740545955423  31.720121252363963
+      median_incomeE        BIGINT        3979     3489         4042       250001 60072.613470721284   33052.45625727975
+      median_incomeM        BIGINT        3972     3771          953       200622 21232.756042296074  16236.289071414307
+ avg_household_sizeE        DOUBLE        3981      363         1.02         5.99  2.779487565938206  0.6920986500242982
+ avg_household_sizeM        DOUBLE        3981      147         0.04         2.06 0.4961868877166535 0.23589768508407397
+        median_rentE        BIGINT        3248     1032          200         2001 1035.4316502463055   316.2570173520888
+        median_rentM        BIGINT        3182      718            5         4270 236.26587052168446  255.55513051458948
+  median_home_valueE        BIGINT        3883     2385         9999      1000001   243320.244141128  146613.23602530267
+  median_home_valueM        BIGINT        3869     3780         1231      1008843  56813.48151977255    67289.8311363101
+        pop_25_plusE        BIGINT        3993     1374            0         5789  879.8908089156023  426.82305166548593
+        pop_25_plusM        BIGINT        3993      402            7          975 205.95291760581017    79.8290181036336
+        bach_degreeE        BIGINT        3993      645            0         1967 186.84147257700977  177.99292718332907
+        bach_degreeM        BIGINT        3993      273            2          524  84.81342349110945   53.38614202624227
+     masters_degreeE        BIGINT        3993      394            0         1050  86.41347357876283   95.24834425304327
+     masters_degreeM        BIGINT        3993      198            2          369   51.5557225144002   38.08617960742864
+professional_degreeE        BIGINT        3993      217            0          565  24.73153017781117   46.67523653393357
+professional_degreeM        BIGINT        3993      151            2          326 25.570999248685197  25.892931820571768
+   doctorate_degreeE        BIGINT        3993      145            0          628 12.294515401953419  27.303275447685206
+   doctorate_degreeM        BIGINT        3993      123            2          304 19.186826947157524   18.88669031133269
+         median_ageE        DOUBLE        3982      436         14.0         84.9   37.6009291813159   8.602585244373866
+         median_ageM        DOUBLE        3982      268          0.2         51.8 7.8107483676544325   5.014790482110752

@@ -6,7 +6,7 @@ source("../../setup_environment/code/packages.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(max_application_ym)
 }
 

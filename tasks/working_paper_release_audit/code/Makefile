@@ -216,120 +216,120 @@ endif
 
 
 ../input/parcel_universe_2025_city.csv: ../../download_parcel_universe_data/output/parcel_universe_2025_city.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
-../input/density_denominator_decisions.csv: ../../new_construction_cleaning/adjudication/density_denominator_decisions.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+../input/density_denominator_decisions.csv: ../../audits/construction_review_history/records/density_denominator_decisions.csv | ../input
+	ln -sf $< $@
 
 ../input/building_permits_full.csv: ../../../data_raw/construction_review/building_permits_full.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/residential_improvement_characteristics_full.csv: ../../../data_raw/construction_review/residential_improvement_characteristics_full.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 ../input/preferred_predecessor_parcel_source.gpkg: ../../../data_raw/construction_review/preferred_predecessor_parcel_source.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/multicard_component_successor_matches.csv: ../reference/multicard_component_successor_matches.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 ../input/multicard_final_adjudication.csv: ../reference/multicard_final_adjudication.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
-../input/multicard_external_web_reviews.csv: ../../new_construction_cleaning/adjudication/multicard_external_web_reviews.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
+../input/multicard_external_web_reviews.csv: ../../audits/construction_review_history/records/multicard_external_web_reviews.csv | ../input
+	ln -sf $< $@
 
 ../input/projects.csv: ../../new_construction_analysis_data/output/new_construction_analysis_data.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 ../input/terms.csv: ../../create_alderman_data/output/chicago_alderman_terms.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 ../input/scores.csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 ../input/rents.parquet: ../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw1500.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 ../input/sales.parquet: ../../sales_border_pair_fe/output/sales_with_hedonics_amenities.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 ../input/permits.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 ../input/score_permits.csv: ../../data_for_alderman_uncertainty_index/output/permits_for_uncertainty_index.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/parcel_universe_2025_city.csv ../input/density_denominator_decisions.csv ../input/building_permits_full.csv ../input/residential_improvement_characteristics_full.csv ../input/preferred_predecessor_parcel_source.gpkg ../input/multicard_component_successor_matches.csv ../input/multicard_final_adjudication.csv ../input/multicard_external_web_reviews.csv ../input/projects.csv ../input/terms.csv ../input/scores.csv ../input/rents.parquet ../input/sales.parquet ../input/permits.parquet ../input/score_permits.csv
 
-../input/multicard_manual_episode_decisions.csv: ../../new_construction_cleaning/adjudication/multicard_manual_episode_decisions.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/multicard_manual_episode_decisions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/multicard_manual_episode_decisions.csv "$@"; fi
+../input/multicard_manual_episode_decisions.csv: ../../audits/construction_review_history/records/multicard_manual_episode_decisions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../audits/construction_review_history/records/multicard_manual_episode_decisions.csv" ]; then ln -sf ../../audits/construction_review_history/records/multicard_manual_episode_decisions.csv "$@"; fi
 
 ../input/natchez_footprints_2022.geojson: ../../download_construction_development_records/output/natchez_footprints_2022.geojson | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/natchez_historical_parcels.gpkg: ../../../data_raw/construction_review/preferred_historical_parcel_source.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/natchez_zoning_2025.geojson: ../../../data_raw/construction_review/zoning_sep2025.geojson | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/preferred_address_geocode_requests.csv: ../../new_construction_cleaning/output/preferred_address_geocode_requests.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/preferred_historical_address_geocodes.csv: ../../new_construction_cleaning/output/preferred_historical_address_geocodes.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/preferred_chicago_address_geocodes.csv: ../../new_construction_cleaning/output/preferred_chicago_address_geocodes.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/geocoding_parcel_history.csv: ../../download_construction_historical_parcels/output/geocoding_parcel_history.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/geocoding_history_queries.csv: ../../download_construction_historical_parcels/output/geocoding_history_queries.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/preferred_address_geocode_requests.csv ../input/preferred_historical_address_geocodes.csv ../input/preferred_chicago_address_geocodes.csv ../input/geocoding_parcel_history.csv ../input/geocoding_history_queries.csv
 
 ../input/preferred_project_boundary_scope.csv: ../../new_construction_cleaning/output/preferred_project_boundary_scope.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/preferred_project_year_geometry.gpkg: ../../new_construction_cleaning/output/preferred_project_year_geometry.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/preferred_project_year_centroids.gpkg: ../../new_construction_cleaning/output/preferred_project_year_centroids.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/preferred_adjudication_scope.csv: ../../new_construction_cleaning/output/preferred_adjudication_scope.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/historical_project_predecessor_resolution.csv: ../../new_construction_cleaning/output/historical_project_predecessor_resolution.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/preferred_historical_predecessor_resolution.csv: ../../new_construction_cleaning/output/preferred_historical_predecessor_resolution.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/ward_pair_boundaries.gpkg: ../../border_segment_creation/output/ward_pair_boundaries.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/preferred_project_boundary_scope.csv ../input/preferred_project_year_geometry.gpkg ../input/preferred_project_year_centroids.gpkg ../input/preferred_adjudication_scope.csv ../input/historical_project_predecessor_resolution.csv ../input/preferred_historical_predecessor_resolution.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg
 
 ../input/current_predecessor_parcel_source.gpkg: ../../download_construction_historical_parcels/output/preferred_predecessor_parcel_source.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/preferred_residential_project_candidates.csv: ../../new_construction_cleaning/output/preferred_residential_project_candidates.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/preferred_commercial_project_candidates.csv: ../../new_construction_cleaning/output/preferred_commercial_project_candidates.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/current_predecessor_parcel_source.gpkg ../input/preferred_residential_project_candidates.csv ../input/preferred_commercial_project_candidates.csv
 
 ../input/history_reference_parcels.gpkg: ../../download_construction_historical_parcels/output/history_reference_parcels.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/history_reference_queries.csv: ../../download_construction_historical_parcels/output/history_reference_queries.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/residential_multicard_cards.csv: ../../new_construction_cleaning/output/residential_multicard_cards.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/residential_tieback_temporal_lineage_evidence.csv: ../../new_construction_cleaning/output/residential_tieback_temporal_lineage_evidence.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/history_reference_parcels.gpkg ../input/history_reference_queries.csv ../input/residential_multicard_cards.csv ../input/residential_tieback_temporal_lineage_evidence.csv
 
@@ -339,37 +339,37 @@ link-inputs: ../input/history_reference_parcels.gpkg ../input/history_reference_
 link-inputs: ../input/parcel_addresses_2025_chicago.csv
 
 ../input/lincoln_footprints_2022.geojson: ../../download_construction_historical_parcels/output/lincoln_footprints_2022.geojson | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/lincoln_footprints_2022.geojson
 
 ../input/campbell_footprints_2022.geojson: ../../download_construction_historical_parcels/output/campbell_footprints_2022.geojson | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/campbell_footprints_2022.geojson
 
 ../input/seeley_footprints_2022.geojson: ../../download_construction_historical_parcels/output/seeley_footprints_2022.geojson | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/seeley_footprints_2022.geojson
 
 ../input/street38_footprints_2022.geojson: ../../download_construction_historical_parcels/output/street38_footprints_2022.geojson | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/street38_footprints_2022.geojson
 
 ../input/calumet_footprints_2022.geojson: ../../download_construction_historical_parcels/output/calumet_footprints_2022.geojson | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/calumet_footprints_2022.geojson
 
 ../input/marquette_footprints_2022.geojson: ../../download_construction_historical_parcels/output/marquette_footprints_2022.geojson | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/marquette_footprints_2022.geojson
 
 ../input/preferred_historical_parcel_source.gpkg: ../../download_construction_historical_parcels/output/preferred_historical_parcel_source.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/preferred_historical_parcel_source.gpkg
 
@@ -383,30 +383,30 @@ link-inputs: ../input/preferred_historical_parcel_source.gpkg
 ../input/preferred_commercial_project_ledger.csv: ../../new_construction_cleaning/output/preferred_commercial_project_ledger.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/preferred_commercial_project_ledger.csv" ]; then ln -sf ../../new_construction_cleaning/output/preferred_commercial_project_ledger.csv "$@"; fi
 
-../input/residential_tieback_no_snapshot_decisions.csv: ../../new_construction_cleaning/adjudication/residential_tieback_no_snapshot_decisions.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_tieback_no_snapshot_decisions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_tieback_no_snapshot_decisions.csv "$@"; fi
+../input/residential_tieback_no_snapshot_decisions.csv: ../../audits/construction_review_history/records/residential_tieback_no_snapshot_decisions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../audits/construction_review_history/records/residential_tieback_no_snapshot_decisions.csv" ]; then ln -sf ../../audits/construction_review_history/records/residential_tieback_no_snapshot_decisions.csv "$@"; fi
 
-../input/residential_class297_exceptions.csv: ../../new_construction_cleaning/adjudication/residential_class297_exceptions.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_class297_exceptions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_class297_exceptions.csv "$@"; fi
+../input/residential_class297_exceptions.csv: ../../audits/construction_review_history/records/residential_class297_exceptions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../audits/construction_review_history/records/residential_class297_exceptions.csv" ]; then ln -sf ../../audits/construction_review_history/records/residential_class297_exceptions.csv "$@"; fi
 
-../input/residential_overlap_decisions.csv: ../../new_construction_cleaning/adjudication/residential_overlap_decisions.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_overlap_decisions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_overlap_decisions.csv "$@"; fi
+../input/residential_overlap_decisions.csv: ../../new_construction_corrections/output/residential_overlap_decisions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_corrections/output/residential_overlap_decisions.csv" ]; then ln -sf ../../new_construction_corrections/output/residential_overlap_decisions.csv "$@"; fi
 
-../input/residential_remaining_case_decisions.csv: ../../new_construction_cleaning/adjudication/residential_remaining_case_decisions.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_remaining_case_decisions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_remaining_case_decisions.csv "$@"; fi
+../input/residential_remaining_case_decisions.csv: ../../audits/construction_review_history/records/residential_remaining_case_decisions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../audits/construction_review_history/records/residential_remaining_case_decisions.csv" ]; then ln -sf ../../audits/construction_review_history/records/residential_remaining_case_decisions.csv "$@"; fi
 
-../input/residential_unresolved_source_dispositions.csv: ../../new_construction_cleaning/adjudication/residential_unresolved_source_dispositions.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_unresolved_source_dispositions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_unresolved_source_dispositions.csv "$@"; fi
+../input/residential_unresolved_source_dispositions.csv: ../../new_construction_corrections/output/residential_unresolved_source_dispositions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_corrections/output/residential_unresolved_source_dispositions.csv" ]; then ln -sf ../../new_construction_corrections/output/residential_unresolved_source_dispositions.csv "$@"; fi
 
-../input/project_manual_reviews.csv: ../../new_construction_cleaning/adjudication/project_manual_reviews.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/project_manual_reviews.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/project_manual_reviews.csv "$@"; fi
+../input/project_manual_reviews.csv: ../../audits/construction_review_history/records/project_manual_reviews.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../audits/construction_review_history/records/project_manual_reviews.csv" ]; then ln -sf ../../audits/construction_review_history/records/project_manual_reviews.csv "$@"; fi
 
 
-../input/eligibility_manual_exceptions.csv: ../../new_construction_cleaning/adjudication/eligibility_manual_exceptions.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/eligibility_manual_exceptions.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/eligibility_manual_exceptions.csv "$@"; fi
+../input/eligibility_manual_exceptions.csv: ../../new_construction_corrections/output/eligibility_manual_exceptions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_corrections/output/eligibility_manual_exceptions.csv" ]; then ln -sf ../../new_construction_corrections/output/eligibility_manual_exceptions.csv "$@"; fi
 
-../input/residential_successor_condo_overrides.csv: ../../new_construction_cleaning/adjudication/residential_successor_condo_overrides.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_successor_condo_overrides.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_successor_condo_overrides.csv "$@"; fi
+../input/residential_successor_condo_overrides.csv: ../../audits/construction_review_history/records/residential_successor_condo_overrides.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../audits/construction_review_history/records/residential_successor_condo_overrides.csv" ]; then ln -sf ../../audits/construction_review_history/records/residential_successor_condo_overrides.csv "$@"; fi
 
 
 ../input/residential_assessor_history.parquet: ../../prepare_construction_assessor_history/output/residential_assessor_history.parquet | ../input
@@ -416,8 +416,8 @@ link-inputs: ../input/preferred_historical_parcel_source.gpkg
 ../input/frozen_construction_analysis.csv: ../reference/new_construction_analysis_data_before_reconnection.csv Makefile | ../input
 	@test "$$(readlink "$@" 2>/dev/null)" = "../reference/new_construction_analysis_data_before_reconnection.csv" || ln -sf ../reference/new_construction_analysis_data_before_reconnection.csv "$@"
 
-../input/residential_reviewed_construction_years.csv: ../../new_construction_cleaning/adjudication/residential_reviewed_construction_years.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/adjudication/residential_reviewed_construction_years.csv" ]; then ln -sf ../../new_construction_cleaning/adjudication/residential_reviewed_construction_years.csv "$@"; fi
+../input/residential_reviewed_construction_years.csv: ../../audits/construction_review_history/records/residential_reviewed_construction_years.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../audits/construction_review_history/records/residential_reviewed_construction_years.csv" ]; then ln -sf ../../audits/construction_review_history/records/residential_reviewed_construction_years.csv "$@"; fi
 
 ../input/predecessor_parcel_history.csv: ../../download_construction_historical_parcels/output/predecessor_parcel_history.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../download_construction_historical_parcels/output/predecessor_parcel_history.csv" ]; then ln -sf ../../download_construction_historical_parcels/output/predecessor_parcel_history.csv "$@"; fi
@@ -463,10 +463,10 @@ endif
 	$(PYTHON) $< ../output/construction_estimation_sample_comparison.csv $@ sample outcome
 
 ../input/preferred_new_construction_project_ledger.csv: ../../new_construction_cleaning/output/preferred_new_construction_project_ledger.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/current_construction_analysis.csv: ../../new_construction_analysis_data/output/new_construction_analysis_data.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../output/density_change_decomposition.csv: decompose_density_changes.R ../../setup_environment/code/packages.R ../input/scores.csv ../reference/new_construction_analysis_data_before_reconnection.csv ../input/current_construction_analysis.csv ../output/construction_estimation_project_changes.csv | ../output
 	$(R) $<
@@ -475,13 +475,13 @@ endif
 	$(PYTHON) $< ../output/density_change_decomposition.csv $@ sample outcome stage
 
 ../input/preferred_new_construction_zoning.csv: ../../new_construction_cleaning/output/preferred_new_construction_zoning.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
-../input/historical_zoning_project_construction_year.csv: ../../new_construction_cleaning/adjudication/historical_zoning_project_construction_year.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+../input/historical_zoning_project_construction_year.csv: ../../construction_zoning_history/output/historical_zoning_project_construction_year.csv | ../input
+	ln -sf $< $@
 
 ../input/zoning_review_matters.csv: ../../../data_raw/construction_review/matters_20101101_20260212.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 all: ../report/entering_home_assignments.csv.log
 
@@ -508,10 +508,10 @@ all: ../report/population_chronology_review.csv.log
 	$(PYTHON) $< ../output/population_chronology_review.csv $@ project_id
 
 ../input/residential_selected_assessments.csv: ../../new_construction_cleaning/output/residential_selected_assessments.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/commercial_value_raw.csv: ../../download_construction_assessor_history/output/commercial_valuation_data.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 all: ../report/large_year_change_review.csv.log
 

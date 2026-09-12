@@ -1,6 +1,15 @@
 # setwd("tasks/audits/density_window_comparison/code")
+# outcome_scale <- "log"
+# boundary_rule <- "all"
 
 source("../../../setup_environment/code/packages.R")
+
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0L) args <- c(outcome_scale, boundary_rule)
+stopifnot(length(args) == 2L, args[1] %in% c("log", "levels"),
+  args[2] %in% c("all", "straight"))
+outcome_scale <- args[1]
+boundary_rule <- args[2]
 
 projects <- readr::read_csv(
   "../input/new_construction_analysis_data.csv",
@@ -15,6 +24,17 @@ projects <- readr::read_csv(
 
 if (anyDuplicated(projects$project_id) > 0L) {
   stop("New-construction data must be unique by project ID.")
+}
+
+if (boundary_rule == "straight") {
+  boundaries <- readr::read_csv("../input/density_boundary_characteristics.csv",
+    show_col_types = FALSE) |>
+    dplyr::select(project_id, straight_boundary)
+  stopifnot(!anyDuplicated(boundaries$project_id))
+  projects <- projects |>
+    dplyr::left_join(boundaries, by = "project_id", relationship = "one-to-one")
+  stopifnot(!anyNA(projects$straight_boundary[projects$within_500ft]))
+  projects <- projects |> dplyr::filter(straight_boundary)
 }
 
 scores <- readr::read_csv(
@@ -60,8 +80,7 @@ for (i in seq_len(nrow(panel_specs))) {
     dplyr::filter(
       construction_year >= 2006L, construction_year <= 2022L, within_500ft,
       sample_name == "all" | external_multifamily,
-      if (outcome == "density_far") allow_far else allow_dupac,
-      is.finite(.data[[outcome]]), .data[[outcome]] > 0,
+      density_eligible,
       is.finite(share_white_own), is.finite(share_black_own),
       is.finite(median_hh_income_own), is.finite(share_bach_plus_own),
       is.finite(homeownership_rate_own), !is.na(zone_group),
@@ -71,12 +90,12 @@ for (i in seq_len(nrow(panel_specs))) {
     ) |>
     dplyr::mutate(distance_ft = signed_distance_m / 0.3048,
       more_stringent = as.integer(strictness_own > strictness_neighbor),
-      log_outcome = log(.data[[outcome]]))
+      model_outcome = if (outcome_scale == "log") log(.data[[outcome]]) else .data[[outcome]])
   for (window_ft in c(100, 200, 300, 400, 500)) {
     model_data <- eligible |> dplyr::filter(abs(distance_ft) < window_ft)
     stopifnot(dplyr::n_distinct(model_data$more_stringent) == 2L)
     model <- fixest::feols(
-      log_outcome ~ more_stringent + share_white_own + share_black_own +
+      model_outcome ~ more_stringent + share_white_own + share_black_own +
         median_hh_income_own + share_bach_plus_own + homeownership_rate_own |
         zone_group + segment_id + construction_year,
       data = model_data, cluster = ~ward_pair, notes = FALSE
@@ -97,9 +116,17 @@ for (i in seq_len(nrow(panel_specs))) {
   }
 }
 results <- dplyr::bind_rows(results) |>
-  dplyr::mutate(percent_difference = 100 * expm1(estimate),
-    percent_ci_low = 100 * expm1(ci_low), percent_ci_high = 100 * expm1(ci_high))
+  dplyr::mutate(percent_difference = if (outcome_scale == "log") 100 * expm1(estimate) else NA_real_,
+    percent_ci_low = if (outcome_scale == "log") 100 * expm1(ci_low) else NA_real_,
+    percent_ci_high = if (outcome_scale == "log") 100 * expm1(ci_high) else NA_real_)
 stopifnot(nrow(results) == 20L, !anyDuplicated(results[c("sample", "outcome", "window_ft")]),
   all(results$n == results$n_more_stringent + results$n_less_stringent),
   all(is.finite(results$estimate)), all(results$std_error > 0))
-readr::write_csv(results, "../output/density_window_estimates.csv")
+if (boundary_rule == "straight") {
+  stopifnot(outcome_scale == "log")
+  readr::write_csv(results, "../output/density_window_estimates_straight.csv")
+} else if (outcome_scale == "log") {
+  readr::write_csv(results, "../output/density_window_estimates.csv")
+} else {
+  readr::write_csv(results, "../output/density_window_estimates_levels.csv")
+}

@@ -10,6 +10,7 @@ digraph paper_tasks {
   "border_segment_creation" -> "calculate_rent_distances";
   "border_segment_creation" -> "calculate_sale_distances";
   "border_segment_creation" -> "density_boundary_characteristics";
+  "border_segment_creation" -> "density_main_results";
   "border_segment_creation" -> "new_construction_analysis_data";
   "border_segment_creation" -> "new_construction_cleaning";
   "border_segment_creation" -> "price_boundary_results";
@@ -19,7 +20,7 @@ digraph paper_tasks {
   "clean_building_permits" -> "data_for_alderman_uncertainty_index";
   "clean_building_permits" -> "permit_summary_stats";
   "clean_residential_sales" -> "calculate_sale_distances";
-  "clean_residential_sales" -> "download_historical_sale_parcel_coordinates";
+  "construction_zoning_history" -> "new_construction_cleaning";
   "cook_parcel_addresses_download" -> "new_construction_cleaning";
   "create_alderman_data" -> "calculate_rent_distances";
   "create_alderman_data" -> "calculate_sale_distances";
@@ -61,7 +62,6 @@ digraph paper_tasks {
   "download_city_building_footprints" -> "new_construction_cleaning";
   "download_construction_address_geocodes" -> "new_construction_cleaning";
   "download_construction_assessor_history" -> "new_construction_cleaning";
-  "download_construction_development_records" -> "new_construction_cleaning";
   "download_construction_historical_parcels" -> "new_construction_cleaning";
   "download_fred_cpi" -> "calculate_rent_distances";
   "download_fred_cpi" -> "calculate_sale_distances";
@@ -81,8 +81,10 @@ digraph paper_tasks {
   "new_construction_analysis_data" -> "density_boundary_checks";
   "new_construction_analysis_data" -> "density_main_results";
   "new_construction_analysis_data" -> "density_score_robustness";
+  "new_construction_cleaning" -> "density_main_results";
   "new_construction_cleaning" -> "density_score_robustness";
   "new_construction_cleaning" -> "new_construction_analysis_data";
+  "new_construction_corrections" -> "new_construction_cleaning";
   "permit_block_hand_adjudications" -> "create_event_study_permit_data";
   "permit_itt_balance" -> "paper";
   "permit_summary_stats" -> "paper";

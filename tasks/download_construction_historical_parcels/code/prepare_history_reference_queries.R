@@ -1,3 +1,4 @@
+source("../../shared/code/save_data.R")
 # setwd("tasks/download_construction_historical_parcels/code")
 
 library(dplyr)
@@ -49,4 +50,4 @@ queries <- bind_rows(queries, additional |> transmute(target_year,
   reference_x_3435 = st_coordinates(points)[, 1], reference_y_3435 = st_coordinates(points)[, 2])) |>
   distinct() |> arrange(target_year, reference_x_3435, reference_y_3435)
 stopifnot(!anyNA(queries), !anyDuplicated(queries))
-write_csv(queries, "../output/history_reference_spatial_queries_download.csv")
+SaveData(queries, c("target_year", "reference_x_3435", "reference_y_3435"), "../output/history_reference_spatial_queries_download.csv")

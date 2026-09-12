@@ -1,6 +1,8 @@
 # setwd("tasks/download_construction_historical_parcels/code")
 # scope <- "initial"
 
+source("../../shared/code/save_data.R")
+
 library(dplyr)
 library(readr)
 library(sf)
@@ -78,10 +80,14 @@ st_write(parcels, paste0("../temp/", scope, "_predecessor_parcels_download.gpkg"
   layer = "historical_project_predecessor_parcels", delete_dsn = TRUE, quiet = TRUE)
 if (scope == "initial") {
   stopifnot(file.rename("../temp/initial_predecessor_parcels_download.gpkg", "../output/predecessor_parcels_download.gpkg"))
+  ReportData("../output/predecessor_parcels_download.gpkg", c("target_year", "object_id"))
 } else if (scope == "preferred") {
   stopifnot(file.rename("../temp/preferred_predecessor_parcels_download.gpkg", "../output/preferred_predecessor_parcels_download.gpkg"))
+  ReportData("../output/preferred_predecessor_parcels_download.gpkg", c("target_year", "object_id"))
 } else if (scope == "reviewed") {
-  stopifnot(file.rename("../temp/reviewed_predecessor_parcels_download.gpkg", "../output/reviewed_predecessor_parcels.gpkg"))
+  stopifnot(file.rename("../temp/reviewed_predecessor_parcels_download.gpkg", "../output/reviewed_predecessor_parcels_current.gpkg"))
+  ReportData("../output/reviewed_predecessor_parcels_current.gpkg", c("target_year", "object_id"))
 } else {
   stopifnot(file.rename("../temp/history_reference_predecessor_parcels_download.gpkg", "../output/history_reference_parcels_download.gpkg"))
+  ReportData("../output/history_reference_parcels_download.gpkg", c("target_year", "object_id"))
 }

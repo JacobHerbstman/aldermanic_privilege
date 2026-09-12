@@ -1,3 +1,4 @@
+source("../../shared/code/save_data.R")
 # setwd("tasks/download_construction_historical_parcels/code")
 
 library(dplyr)
@@ -12,4 +13,4 @@ reviewed <- read_csv("reviewed_predecessor_queries.csv", show_col_types = FALSE)
 queries <- bind_rows(original, additional, address_correction, lake_park, campbell, reviewed) |>
   arrange(target_year, reference_x_3435, reference_y_3435)
 stopifnot(!anyNA(queries), !anyDuplicated(queries))
-write_csv(queries, "../output/preferred_predecessor_source_queries.csv")
+SaveData(queries, c("target_year", "reference_x_3435", "reference_y_3435"), "../output/preferred_predecessor_source_queries.csv")

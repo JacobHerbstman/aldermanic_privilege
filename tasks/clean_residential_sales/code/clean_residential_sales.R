@@ -5,8 +5,9 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(start_year, end_year)
 }
 if (length(cli_args) != 2) {
@@ -107,4 +108,4 @@ sales <- sales[, .(
 )]
 setorder(sales, year, sale_date, pin, row_id)
 
-write_parquet(sales, "../output/residential_sales_clean.parquet")
+SaveData(sales, c("row_id"), "../output/residential_sales_clean.parquet")

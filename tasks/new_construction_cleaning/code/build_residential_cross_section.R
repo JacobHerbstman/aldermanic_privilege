@@ -5,6 +5,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) {
   args <- c(minimum_construction_year, preferred_assessment_year, fallback_assessment_year)
@@ -23,19 +24,35 @@ if (anyNA(c(minimum_construction_year, preferred_assessment_year, fallback_asses
 
 con <- DBI::dbConnect(duckdb::duckdb())
 
-data <- DBI::dbGetQuery(con, sprintf("
-WITH history AS (
-  SELECT * FROM read_parquet('../input/residential_assessor_history.parquet')
-  -- Empty assessment records cannot establish a building or construction year.
-  WHERE building_sqft IS NOT NULL OR num_apartments IS NOT NULL
-), candidate_cards AS (
-  SELECT pin, card_num FROM history
+# Read the Assessor history once. Both selections retain the original source order
+# for ties; the first supplies historical parcel searches, the second measurements.
+history <- DBI::dbGetQuery(con, sprintf("
+WITH candidate_cards AS (
+  SELECT pin, card_num FROM read_parquet('../input/residential_assessor_history.parquet')
   GROUP BY pin, card_num HAVING max(year_built) >= %d
 )
 SELECT r.* EXCLUDE (apartments_text, source_row_order)
-FROM history r INNER JOIN candidate_cards USING (pin, card_num)
+FROM read_parquet('../input/residential_assessor_history.parquet') r
+INNER JOIN candidate_cards USING (pin, card_num)
 ORDER BY source_row_order
-", minimum_construction_year)) %>%
+", minimum_construction_year))
+
+# Historical parcel searches retain the earliest reported building year.
+discovery <- history %>%
+  filter(year_built >= minimum_construction_year) %>%
+  group_by(pin) %>%
+  slice_min(year_built, with_ties = TRUE) %>%
+  slice_min(tax_year, with_ties = TRUE) %>%
+  slice_max(building_sqft, with_ties = FALSE) %>%
+  ungroup()
+stopifnot(!anyDuplicated(discovery$pin))
+
+# Empty cards cannot establish the building used for measurement selection.
+data <- history %>%
+  filter(!is.na(building_sqft) | !is.na(num_apartments)) %>%
+  group_by(pin, card_num) %>%
+  filter(any(year_built >= minimum_construction_year, na.rm = TRUE)) %>%
+  ungroup() %>%
   arrange(pin, card_num, tax_year, row_id) %>%
   group_by(pin, card_num, tax_year) %>%
   slice_tail(n = 1) %>%
@@ -84,4 +101,5 @@ if (anyDuplicated(cross_section_buildings$pin) > 0) {
 
 dbDisconnect(con, shutdown = TRUE)
 
-write_csv(cross_section_buildings, "../output/residential_cross_section.csv")
+SaveData(discovery, c("pin"), "../output/residential_discovery_cross_section.csv")
+SaveData(cross_section_buildings, c("pin"), "../output/residential_cross_section.csv")

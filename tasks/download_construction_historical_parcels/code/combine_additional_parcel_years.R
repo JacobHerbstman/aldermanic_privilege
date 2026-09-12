@@ -1,6 +1,8 @@
 # setwd("tasks/download_construction_historical_parcels/code")
 # scope <- "historical"
 
+source("../../shared/code/save_data.R")
+
 library(sf)
 library(dplyr)
 
@@ -18,3 +20,5 @@ stopifnot(!anyDuplicated(st_drop_geometry(parcels)[c("target_year", "object_id")
           all(st_is_valid(parcels)), !any(st_is_empty(parcels)))
 st_write(parcels, paste0("../output/", scope, "_parcels_additional.gpkg"),
          layer = "historical_parcels", delete_dsn = TRUE, quiet = TRUE)
+
+ReportData(paste0("../output/", scope, "_parcels_additional.gpkg"), c("target_year", "object_id"))

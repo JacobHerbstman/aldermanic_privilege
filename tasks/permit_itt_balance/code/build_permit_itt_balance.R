@@ -8,7 +8,7 @@ source("../../setup_environment/code/packages.R")
 library(fixest)
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(bandwidth_m, bandwidth_label, baseline_year)
 }
 if (length(cli_args) != 3) {

@@ -51,7 +51,9 @@ geometry, and removed empty features. Projects without parcel polygons used
 support the recorded review cohort; changed spatial review scope requires a new
 acquisition. The original code is
 `research-archive:tasks/audits/new_construction_project_verification/code/download_official_footprint_snapshot.R`.
-The acquisition code is restored in `tasks/download_construction_footprints/`.
+The acquisition code is preserved in
+`tasks/download_construction_footprints/archive/`; its original review cohort is
+not the current construction sample.
 The recorded extracts are included in the source archive above.
 
 The September 4, 2026 full Assessor acquisition is now pinned here as

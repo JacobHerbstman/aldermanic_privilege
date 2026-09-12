@@ -1,6 +1,7 @@
 # setwd("tasks/new_construction_cleaning/code")
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 # Assessment selection is complete. Apply recorded building decisions once,
 # then determine which density measurements have usable inputs.
 residential_candidates <- readr::read_csv("../output/residential_selected_assessments.csv", na = "NA",
@@ -11,10 +12,15 @@ permit_links <- readr::read_csv("../output/project_permit_chain_links.csv",
   col_types = readr::cols(project_id = "c", permit_number = "c", .default = readr::col_guess())) %>%
   filter(source_family == "residential", permit_type == "PERMIT - NEW CONSTRUCTION")
 
-# Approved survey measurements replace development-wide land repeated on a home.
-reviewed_land <- readr::read_csv("../adjudication/residential_reviewed_land_areas.csv",
-  col_types = readr::cols(project_id = readr::col_character(), reported_land_sqft = readr::col_double(),
-    land_sqft = readr::col_double(), .default = readr::col_character()))
+modifications <- readr::read_csv("../input/construction_modifications.csv",
+  col_types = readr::cols(construction_year = "d", dwelling_units = "d", building_sqft = "d",
+    land_sqft = "d", reported_land_sqft = "d", allow_far = "l", allow_dupac = "l",
+    .default = readr::col_character())) %>%
+  filter(source_family == "residential", application_stage == "building_measurements")
+
+# Approved individual lots replace development-wide land repeated on a home.
+reviewed_land <- modifications %>% filter(application_scope == "land_area") %>%
+  transmute(project_id = source_project_id, reported_land_sqft, land_sqft)
 stopifnot(!anyDuplicated(reviewed_land$project_id),
   all(reviewed_land$project_id %in% residential_candidates$project_id))
 i <- match(reviewed_land$project_id, residential_candidates$project_id)
@@ -25,13 +31,13 @@ residential_candidates$land_source[i] <- paste0("reviewed_land_area:", reviewed_
 
 # Recorded alterations and conversions are not new buildings. Apply these
 # existing exclusions here instead of leaving them in the unfinished review branch.
-source_decisions <- readr::read_csv("../adjudication/residential_source_decisions.csv",
+source_decisions <- readr::read_csv("../input/residential_source_decisions.csv",
   col_types = readr::cols(.default = readr::col_character()))
-eligibility_decisions <- readr::read_csv("../adjudication/eligibility_manual_exceptions.csv",
+eligibility_decisions <- readr::read_csv("../input/eligibility_manual_exceptions.csv",
   show_col_types = FALSE) %>% filter(manual_action %in% c("exclude", "exclude_unverified_construction")) %>%
   transmute(project_id, action = if_else(manual_action == "exclude", "exclude_not_ground_up", manual_action),
     decision_reason = reason)
-overlap_decisions <- readr::read_csv("../adjudication/residential_overlap_decisions.csv", show_col_types = FALSE)
+overlap_decisions <- readr::read_csv("../input/residential_overlap_decisions.csv", show_col_types = FALSE)
 overlap_exclusions <- overlap_decisions %>% filter(overlap_action == "exclude_not_new_construction") %>%
   transmute(project_id = source_project_id, action = "exclude_not_ground_up", decision_reason)
 not_new <- bind_rows(source_decisions %>% transmute(project_id = source_project_id, action, decision_reason),
@@ -57,10 +63,7 @@ residential_candidates$decision_reason[placeholder] <- "source_area_placeholder_
 
 # Apply already recorded complete building measurements at the project-selection
 # stage. Shared final IDs produce one building, with the old sources suppressed.
-recorded_buildings <- readr::read_csv("../adjudication/residential_building_corrections.csv",
-  col_types = readr::cols(source_project_id = "c", final_project_id = "c",
-    construction_year = "d", dwelling_units = "d", building_sqft = "d", land_sqft = "d",
-    allow_far = "l", allow_dupac = "l", .default = readr::col_character()))
+recorded_buildings <- modifications %>% filter(application_scope != "land_area")
 stopifnot(!anyDuplicated(recorded_buildings[c("source_project_id", "final_project_id")]),
   all(recorded_buildings$application_scope %in% c("unresolved_building", "selected_building", "selected_fields")),
   all(recorded_buildings$source_project_id %in% residential_candidates$project_id),
@@ -69,7 +72,7 @@ recorded_buildings <- recorded_buildings %>% filter(application_scope %in% c("se
   source_project_id %in% residential_candidates$project_id[residential_candidates$candidate_status == "review_required"])
 # A source may split into several buildings, but may not receive competing corrections.
 stopifnot(all(recorded_buildings %>% count(source_project_id, final_project_id) %>% pull(n) == 1L))
-recorded_components <- readr::read_csv("../adjudication/residential_class297_component_overrides.csv",
+recorded_components <- readr::read_csv("../input/residential_class297_component_overrides.csv",
   col_types = readr::cols(.default = readr::col_character()))
 stopifnot(!anyDuplicated(recorded_components$final_project_id))
 completed_condo_pins <- readr::read_csv("../input/construction_condominium_history.csv",
@@ -200,7 +203,7 @@ for (i in seq_len(nrow(overlap_decisions))) {
 
 # Recorded identity reviews can retire an old development record even when its
 # obsolete cards do not reproduce the completed homes' measurements.
-source_dispositions <- readr::read_csv("../adjudication/residential_unresolved_source_dispositions.csv",
+source_dispositions <- readr::read_csv("../input/residential_unresolved_source_dispositions.csv",
   col_types = readr::cols(.default = readr::col_character()))
 reviewed_duplicates <- source_dispositions %>% filter(disposition == "exclude_source_duplicate_keep_successors", !is.na(final_project_ids))
 stopifnot(!anyDuplicated(reviewed_duplicates$source_project_id))
@@ -317,15 +320,6 @@ if (any(str_detect(names(adjudication_queue), regex(
 }
 
 
-readr::write_csv(
-  residential_candidates,
-  "../output/preferred_residential_project_candidates.csv"
-)
-readr::write_csv(
-  component_rows,
-  "../output/preferred_residential_project_components.csv"
-)
-readr::write_csv(
-  adjudication_queue,
-  "../output/residential_adjudication_queue.csv"
-)
+SaveData(residential_candidates, c("project_id"), "../output/preferred_residential_project_candidates.csv")
+SaveData(component_rows, c("project_id", "component_pin"), "../output/preferred_residential_project_components.csv")
+SaveData(adjudication_queue, c("project_id"), "../output/residential_adjudication_queue.csv")

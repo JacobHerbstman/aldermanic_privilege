@@ -18,14 +18,17 @@ building's ward pair and uses the existing 1,320-foot boundary segments. Chicago
 geometry is in EPSG:3435. Ward controls retain their existing definitions and
 2006–2022 producer; the score estimator is unchanged.
 
-Multifamily classification follows the existing Assessor-class rule and recorded
-building-type reviews. Groups of individually classified houses or townhomes
+Multifamily classification is read from the finished construction measurement
+file. Its producer applies the Assessor-class rule and recorded building-type
+reviews once. Groups of individually classified houses or townhomes
 are not automatically apartment buildings. These reviews supply classification
 only; their old measurements never overwrite the finished building data here.
 
-Each outcome uses its own density permission and positive, finite measurement.
-A missing floor area therefore does not remove a building from homes-per-acre
-analysis. Missing regression covariates are never filled with fabricated values.
+`density_eligible` identifies the common FAR and DUPAC sample: both measurements
+must be allowed, positive and finite. The main and appendix density tasks use
+this one eligibility field. All project rows and their recorded measurements
+remain in the saved data. Missing regression covariates are never filled with
+fabricated values.
 
 The prior 8,648-row paper input is preserved for comparison in
 `tasks/working_paper_release_audit/reference/new_construction_analysis_data_before_reconnection.csv`.

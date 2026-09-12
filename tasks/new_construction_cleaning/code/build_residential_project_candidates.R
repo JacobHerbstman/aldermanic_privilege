@@ -4,6 +4,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(preferred_assessment_year, fallback_assessment_year)
 if (length(args) != 2L) stop("Expected preferred and fallback assessment years.")
@@ -663,7 +664,7 @@ multicard_reports <- bind_rows(
 
 # Reviewed physical identities select source rows before units and areas are added.
 # The ledger records why other cards for the same PIN are not separate buildings.
-reviewed_cards <- readr::read_csv("../adjudication/residential_reviewed_card_selections.csv",
+reviewed_cards <- readr::read_csv("../input/residential_reviewed_card_selections.csv",
   col_types = readr::cols(.default = readr::col_character()))
 stopifnot(!anyDuplicated(reviewed_cards$row_id),
   all(reviewed_cards$pin %in% multicard_pins$pin))
@@ -716,11 +717,11 @@ multicard_cards <- multicard_reports %>%
     complete_episode_snapshot
   )
 
-readr::write_csv(candidate_inventory, "../output/residential_project_candidate_inventory.csv")
-readr::write_csv(residential_history_summary, "../output/residential_project_history_summary.csv")
-readr::write_csv(fractional_base_groups, "../output/residential_fractional_base_groups.csv")
-readr::write_csv(tieback_groups, "../output/residential_tieback_groups_full.csv")
-readr::write_csv(tieback_members, "../output/residential_tieback_members_full.csv")
-readr::write_csv(multicard_cards, "../output/residential_multicard_cards.csv")
+SaveData(candidate_inventory, c("pin"), "../output/residential_project_candidate_inventory.csv")
+SaveData(residential_history_summary, c("pin"), "../output/residential_project_history_summary.csv")
+SaveData(fractional_base_groups, c("base_pin"), "../output/residential_fractional_base_groups.csv")
+SaveData(tieback_groups, c("tieback_group"), "../output/residential_tieback_groups_full.csv")
+SaveData(tieback_members, c("tieback_group", "pin"), "../output/residential_tieback_members_full.csv")
+SaveData(multicard_cards, c("pin", "card_num"), "../output/residential_multicard_cards.csv")
 
 DBI::dbDisconnect(con, shutdown = TRUE)

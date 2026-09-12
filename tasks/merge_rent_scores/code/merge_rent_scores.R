@@ -3,6 +3,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 scores <- read_csv("../input/aldermen_uncertainty_scores_through2022.csv", show_col_types = FALSE) %>%
   select(alderman, score = uncertainty_index) %>%
   filter(!is.na(alderman))
@@ -49,4 +50,4 @@ if (any(
   stop("Rental signed distance does not agree with the stringency ordering.", call. = FALSE)
 }
 
-write_parquet(rent, "../output/rent_with_ward_distances_full_through2022.parquet")
+SaveData(rent, c("rent_panel_id"), "../output/rent_with_ward_distances_full_through2022.parquet")

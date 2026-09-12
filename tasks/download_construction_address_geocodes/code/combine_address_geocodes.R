@@ -1,6 +1,8 @@
 # setwd("tasks/download_construction_address_geocodes/code")
 # provider <- "census"
 
+source("../../shared/code/save_data.R")
+
 library(dplyr)
 library(readr)
 
@@ -15,3 +17,5 @@ additional <- read_csv(paste0("../input/address_geocodes_", provider, "_addition
 responses <- bind_rows(original, additional) |> arrange(selected_address)
 stopifnot(!anyNA(responses), !anyDuplicated(responses$selected_address))
 write_csv(responses, paste0("../output/address_geocodes_", provider, ".csv"))
+
+ReportData(paste0("../output/address_geocodes_", provider, ".csv"), "selected_address")

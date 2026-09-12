@@ -1,19 +1,23 @@
 include ../../shared/code/shell_functions.make
 
-all: ../output/parcel_universe_2025_city.csv ../report/parcel_universe_2025_city.csv.log ../report/parcel_universe_2025_city_native.csv.log
+PARCEL_YEAR := 2025
+TRIAD_NAME := City
 
-../output/parcel_universe_2025_city.csv: rewrite_parcel_universe_schema.R ../temp/parcel_universe_2025_city_native.csv | ../output
+all: ../output/parcel_universe_2025_city.csv
+
+download-current: ../output/parcel_universe_2025_city_native_current.csv
+
+../output/parcel_universe_2025_city.csv: rewrite_parcel_universe_schema.R ../../shared/code/save_data.R ../../shared/code/report.py ../temp/parcel_universe_2025_city_native.csv ../../setup_environment/code/packages.R | ../output ../report
 	$(R) $<
-
-../report/parcel_universe_2025_city.csv.log: ../../shared/code/report.py ../output/parcel_universe_2025_city.csv | ../report
-	$(PYTHON) $< ../output/parcel_universe_2025_city.csv $@ pin
-
-../report/parcel_universe_2025_city_native.csv.log: ../../shared/code/report.py ../temp/parcel_universe_2025_city_native.csv | ../report
-	$(PYTHON) $< ../temp/parcel_universe_2025_city_native.csv $@ pin
 
 ../temp/parcel_universe_2025_city_native.csv: ../../../data_raw/construction_review/parcel_universe_2025_city_native.csv parcel_universe_snapshot.sha256 Makefile | ../temp
 	shasum -a 256 -c parcel_universe_snapshot.sha256
 	cp $< $@.tmp
 	mv $@.tmp $@
+
+../output/parcel_universe_2025_city_native_current.csv: download_parcel_universe_data.sh Makefile | ../temp ../output
+	bash $< $(PARCEL_YEAR) $(TRIAD_NAME)
+
+.PHONY: download-current
 
 include ../../shared/code/generic.make

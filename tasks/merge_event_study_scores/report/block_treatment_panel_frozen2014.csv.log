@@ -1,0 +1,38 @@
+File: block_treatment_panel_frozen2014.csv
+Rows: 46311
+Columns: 28
+SHA-256 (saved bytes): 89c61f8233e7476688a17fa18aa48fa4dd1f547388c8af3c95d586198c6b859c
+Key: block_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                      column inferred_type non_missing distinct                    min                max                  mean                   sd
+                    block_id        BIGINT       46311    46311        170310101001000    170319801001010    170314549020899.25    2781490527.071728
+               block_vintage        BIGINT       46311        1                   2010               2010                2010.0                  0.0
+                 ward_origin        BIGINT       46311       50                      1                 50    23.899613482757875   13.759893323929916
+                   ward_dest        BIGINT       46311       50                      1                 50    24.090496858197838    13.56041507476605
+           ward_origin_share        DOUBLE       46311    18915  0.0002621919387148584 1.0000000000996676    0.9972842345496695 0.035827138731012266
+             ward_dest_share        DOUBLE       46311    19806 0.00026124731817282385 1.0000000000996676    0.9974865844596228   0.0346950347908134
+         ward_origin_n_wards        BIGINT       46311        4                      1                  4     1.144242188680875    0.363185544278266
+           ward_dest_n_wards        BIGINT       46311        4                      1                  4    1.1647772667400833  0.38357512770000735
+                    switched       BOOLEAN       46311        2                      -                  -                     -                    -
+           ward_had_turnover       BOOLEAN       46311        2                      -                  -                     -                    -
+                       valid       BOOLEAN       46311        1                      -                  -                     -                    -
+has_complete_ward_assignment       BOOLEAN       46311        1                      -                  -                     -                    -
+                      cohort        BIGINT       46311        1                   2015               2015                2015.0                  0.0
+        min_assignment_share        DOUBLE       46311    22423 0.00026124731817282385 1.0000000000996676    0.9966434642013571  0.03825837084811423
+        alderman_origin_2014       VARCHAR       46311       50                      -                  -                     -                    -
+        alderman_origin_2015       VARCHAR       46311       50                      -                  -                     -                    -
+          alderman_dest_2014       VARCHAR       46311       50                      -                  -                     -                    -
+          alderman_dest_2015       VARCHAR       46311       50                      -                  -                     -                    -
+    strictness_origin_frozen        DOUBLE       46311       50    -2.6261282212235453 1.5587271875762565   0.10184299275815462   0.8740176700526259
+      strictness_dest_frozen        DOUBLE       46311       50    -2.6261282212235453 1.5587271875762565   0.08273425097896887   0.8719021575215145
+               stable_origin       BOOLEAN       46311        2                      -                  -                     -                    -
+                 stable_dest       BOOLEAN       46311        2                      -                  -                     -                    -
+                 stable_both       BOOLEAN       46311        2                      -                  -                     -                    -
+           strictness_origin        DOUBLE       46311       50    -2.6261282212235453 1.5587271875762565   0.10184299275815462   0.8740176700526259
+             strictness_dest        DOUBLE       46311       50    -2.6261282212235453 1.5587271875762565   0.08273425097896887   0.8719021575215145
+           strictness_change        DOUBLE       46311      158     -3.503006985994272 3.2128691985143365 -0.019108741779197018   0.6249821709757386
+    strictness_change_frozen        DOUBLE       46311      158     -3.503006985994272 3.2128691985143365 -0.019108741779197018   0.6249821709757386
+                 switch_type       VARCHAR       46311        3                      -                  -                     -                    -

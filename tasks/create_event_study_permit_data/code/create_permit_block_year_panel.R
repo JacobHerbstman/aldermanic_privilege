@@ -5,10 +5,11 @@
 # permit_end_year <- 2020
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(panel_max_distance_m, permit_start_year, permit_end_year)
 }
 if (length(cli_args) != 3) {
@@ -250,4 +251,4 @@ if (anyDuplicated(panel[c("block_id", "year")]) > 0) {
   stop("The permit event-study panel must be unique by block and year.", call. = FALSE)
 }
 
-write_parquet(panel, "../output/permit_block_year_panel_2015.parquet")
+SaveData(panel, c("block_id", "year"), "../output/permit_block_year_panel_2015.parquet")

@@ -2,7 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/canonical_geometry_helpers.R")
-source("../../_lib/amenity_distance_helpers.R")
+source("../../shared/code/amenity_distance_helpers.R")
 
 sf_use_s2(FALSE)
 

@@ -1,5 +1,6 @@
 # setwd("tasks/density_boundary_characteristics/code")
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 projects <- read_csv("../input/new_construction_analysis_data.csv", show_col_types = FALSE,
   col_types = cols(project_id = "c", ward_pair = "c", segment_id = "c", .default = col_guess()))
 stopifnot(!anyDuplicated(projects$project_id), all(is.finite(projects$x_3435)), all(is.finite(projects$y_3435)))
@@ -118,4 +119,4 @@ result <- st_drop_geometry(points) |> left_join(features, by = "segment_id", rel
   select(project_id, straight_boundary, simple_overlap_keep, share_based_keep,
     distance_to_cbd_miles, distance_to_school_miles, distance_to_park_miles, distance_to_lake_miles)
 stopifnot(!anyNA(result))
-write_csv(result, "../output/density_boundary_characteristics.csv")
+SaveData(result, c("project_id"), "../output/density_boundary_characteristics.csv")

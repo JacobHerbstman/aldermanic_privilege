@@ -1,5 +1,6 @@
 # setwd("tasks/new_construction_cleaning/code")
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
 projects <- readr::read_csv("../output/preferred_commercial_projects.csv",
@@ -106,7 +107,7 @@ for (id in unique(permit_points$project_id)) {
     project_geometry_evidence = paste(sort(unique(points$permit)), collapse = "/"),
     project_polygon_area_sqft = NA_real_, geometry = sf::st_geometry(points[1, ])))
 }
-reviews <- readr::read_csv("../adjudication/commercial_reviewed_locations.csv",
+reviews <- readr::read_csv("../input/commercial_reviewed_locations.csv",
   col_types = readr::cols(.default = readr::col_character()))
 stopifnot(!anyDuplicated(reviews$project_id), all(reviews$project_id %in% projects$project_id))
 permits <- sf::st_read("../output/building_permits_for_verification.gpkg",
@@ -167,7 +168,7 @@ commercial_ledger <- projects %>% left_join(sf::st_drop_geometry(centroids) %>%
   mutate(x_3435 = xy[,1], y_3435 = xy[,2]), by = "project_id", relationship = "one-to-one") %>%
   mutate(location_resolved = !is.na(x_3435), allow_far = allow_far & location_resolved,
     allow_dupac = allow_dupac & location_resolved)
-readr::write_csv(commercial_ledger, "../output/preferred_commercial_project_ledger.csv")
-readr::write_csv(component_coverage, "../output/preferred_commercial_project_component_locations.csv")
-readr::write_csv(boundary_scope, "../output/preferred_commercial_boundary_scope.csv")
-sf::st_write(centroids, "../output/preferred_commercial_project_centroids.gpkg", delete_dsn = TRUE, quiet = TRUE)
+SaveData(commercial_ledger, c("project_id"), "../output/preferred_commercial_project_ledger.csv")
+SaveData(component_coverage, c("project_id", "component_pin"), "../output/preferred_commercial_project_component_locations.csv")
+SaveData(boundary_scope, c("project_id"), "../output/preferred_commercial_boundary_scope.csv")
+SaveData(centroids, c("project_id"), "../output/preferred_commercial_project_centroids.gpkg", delete_dsn = TRUE, quiet = TRUE)

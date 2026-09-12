@@ -3,6 +3,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 scores <- read_csv("../input/aldermen_uncertainty_scores_through2022.csv", show_col_types = FALSE) %>%
   select(alderman, score = uncertainty_index) %>%
   filter(!is.na(alderman))
@@ -64,4 +65,4 @@ sales <- sales %>%
     strictness_own, strictness_neighbor
   )
 
-write_csv(sales, "../output/sales_with_ward_distances_through2022.csv")
+SaveData(sales, c("row_id"), "../output/sales_with_ward_distances_through2022.csv")

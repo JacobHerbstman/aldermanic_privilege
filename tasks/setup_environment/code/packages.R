@@ -5,58 +5,34 @@ cran_packages <- c(
   "remotes", "jsonlite", "xml2", "nabor", "httr2"
 )
 
-user_lib <- Sys.getenv("R_LIBS_USER")
-dir.create(user_lib, showWarnings = FALSE, recursive = TRUE)
-.libPaths(c(user_lib, .libPaths()))
-
-options(repos = c(CRAN = "https://cloud.r-project.org"))
-
-load_package <- function(pkg) {
-  suppressPackageStartupMessages(require(pkg, character.only = TRUE, quietly = TRUE))
+# Running this file through setup_environment/Makefile installs missing packages.
+# Analysis scripts source it only to load the recorded environment.
+install_missing <- sys.nframe() == 0L
+if (install_missing) {
+  dir.create(Sys.getenv("R_LIBS_USER"), showWarnings = FALSE, recursive = TRUE)
 }
+.libPaths(c(Sys.getenv("R_LIBS_USER"), .libPaths()))
 
-package_version_line <- function(pkg) {
-  version <- tryCatch(packageDescription(pkg, fields = "Version"), error = function(e) NA)
-  paste(pkg, version, sep = " : ")
-}
-
-install_cran_package <- function(pkg) {
-  message(sprintf("Installing %s ...", pkg))
-  install.packages(pkg, dependencies = NA)
-}
-
-install_github_package <- function(pkg, repo) {
-  message(sprintf("Installing %s from GitHub...", pkg))
-  remotes::install_github(repo, upgrade = "never", dependencies = NA)
-}
-
-output <- character()
-
-for (pkg in cran_packages) {
-  if (!load_package(pkg)) {
-    install_cran_package(pkg)
+for (pkg in c(cran_packages, "deweydatar")) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    if (!install_missing) {
+      stop(paste("Missing R package:", pkg, "— run make in tasks/setup_environment/code."), call. = FALSE)
+    }
+    if (pkg == "deweydatar") {
+      remotes::install_github(
+        "Dewey-Data/deweydatar@964c887e19bb3817d4f6b8c668c5016ebe762aba",
+        upgrade = "never", dependencies = NA
+      )
+    } else {
+      install.packages(pkg, repos = "https://cloud.r-project.org", dependencies = NA)
+    }
   }
-  if (!load_package(pkg)) {
-    warning(sprintf("Package %s could not be installed or loaded.", pkg))
-  }
-  output <- c(output, package_version_line(pkg))
+  suppressPackageStartupMessages(library(pkg, character.only = TRUE))
 }
 
-github_packages <- list(
-  deweydatar = "Dewey-Data/deweydatar@964c887e19bb3817d4f6b8c668c5016ebe762aba"
-)
-
-for (pkg in names(github_packages)) {
-  if (!load_package(pkg)) {
-    install_github_package(pkg, github_packages[[pkg]])
-  }
-  if (!load_package(pkg)) {
-    warning(sprintf("Package %s could not be installed or loaded.", pkg))
-  }
-  output <- c(output, package_version_line(pkg))
-}
-
-output_log <- paste("Packages installed:", paste(output, collapse = "\n"), sep = "\n")
-if (sys.nframe() == 0) {
-  writeLines(output_log, "../output/R_packages.txt")
+if (install_missing) {
+  versions <- vapply(c(cran_packages, "deweydatar"), function(pkg) {
+    paste(pkg, packageVersion(pkg), sep = " : ")
+  }, character(1))
+  writeLines(c("Packages installed:", versions), "../output/R_packages.txt")
 }

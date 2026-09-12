@@ -1,0 +1,24 @@
+File: block_treatment_pre_scores.csv
+Rows: 46311
+Columns: 14
+SHA-256 (saved bytes): 14a08ff735946448ec76993af7d53942f97a668a21af6e4d6344a50cc28cb348
+Key: block_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                      column inferred_type non_missing distinct                    min                max               mean                  sd
+                    block_id        BIGINT       46311    46311        170310101001000    170319801001010 170314549020899.25   2781490527.071728
+               block_vintage        BIGINT       46311        1                   2010               2010             2010.0                 0.0
+                 ward_origin        BIGINT       46311       50                      1                 50 23.899613482757875  13.759893323929916
+                   ward_dest        BIGINT       46311       50                      1                 50 24.090496858197838   13.56041507476605
+           ward_origin_share        DOUBLE       46311    22648  0.0002621919387148584 1.0000000000996676 0.9972842345496695 0.03582713873101227
+             ward_dest_share        DOUBLE       46311    23443 0.00026124731817282385 1.0000000000996676 0.9974865844596228  0.0346950347908134
+         ward_origin_n_wards        BIGINT       46311        4                      1                  4  1.144242188680875   0.363185544278266
+           ward_dest_n_wards        BIGINT       46311        4                      1                  4 1.1647772667400833 0.38357512770000735
+                    switched       BOOLEAN       46311        2                      -                  -                  -                   -
+           ward_had_turnover       BOOLEAN       46311        2                      -                  -                  -                   -
+                       valid       BOOLEAN       46311        1                      -                  -                  -                   -
+has_complete_ward_assignment       BOOLEAN       46311        1                      -                  -                  -                   -
+                      cohort        BIGINT       46311        1                   2015               2015             2015.0                 0.0
+        min_assignment_share        DOUBLE       46311    25884 0.00026124731817282385 1.0000000000996676 0.9966434642013571 0.03825837084811423

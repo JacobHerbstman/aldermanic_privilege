@@ -1,7 +1,7 @@
 File: preferred_residential_project_candidates.csv
 Rows: 28122
 Columns: 25
-SHA-256 (saved bytes): 8b78609e483005e09ec0cc952637c572084979934c3618b411e847473d54c711
+SHA-256 (saved bytes): b72109c851c66a5bae667d230a8f82ea1f78bd204bd9c9b93810294ff4762586
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -13,7 +13,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
            project_kind       VARCHAR       28122        6                   -                 -                  -                  -
          component_pins       VARCHAR       28122    28100                   -                 -                  -                  -
         component_count        BIGINT       28122        9                   1                12 1.0434890832799943 0.2650681351812901
-      construction_year        BIGINT       27372       67                1878              2026  2008.595389449072  8.559044386363366
+      construction_year        BIGINT       27372       67                1878              2026   2008.59275902382  8.560127571222903
          dwelling_units        BIGINT       27770       28                   0               350 1.3688872884407635  2.422221767766113
           building_sqft        BIGINT       27784     4885                   0            652094 2824.2641448315576  6621.337806477965
               land_sqft        DOUBLE       26561     5053                72.0       228167280.0 18033.682504423778  1706661.619181105

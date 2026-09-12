@@ -1,7 +1,8 @@
-# setwd("tasks/new_construction_cleaning/code")
+# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_cleaning/code")
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 residential_projects <- readr::read_csv(
   "../output/preferred_residential_project_ledger.csv",
   show_col_types = FALSE,
@@ -57,7 +58,7 @@ commercial_boundary <- readr::read_csv(
 )
 
 additional_decisions <- readr::read_csv(
-  "../adjudication/residential_additional_candidate_decisions.csv",
+  "../input/residential_additional_candidate_decisions.csv",
   show_col_types = FALSE,
   col_types = readr::cols(
     candidate_project_id = readr::col_character(),
@@ -71,7 +72,7 @@ stopifnot(!anyDuplicated(residential_projects$project_id),
 
 # Final geography may withhold an observation, but may not change its measurements.
 projects <- readr::read_csv("../output/new_construction_measurements.csv",
-  col_types = readr::cols(component_pins = "c", .default = readr::col_guess()))
+  col_types = readr::cols(component_pins = "c", class_values = "c", .default = readr::col_guess()))
 located <- bind_rows(
   residential_projects %>% transmute(project_id, construction_year, dwelling_units, building_sqft, land_sqft,
     allow_far, allow_dupac, geometry_source = project_geometry_source,
@@ -94,7 +95,8 @@ projects <- projects %>% select(-allow_far, -allow_dupac) %>%
     construction_year, dwelling_units, building_sqft, land_sqft, allow_far, allow_dupac,
     membership_source, year_source, units_source, building_source, land_source, evidence_ids,
     decision_reason, confidence, decision_source, decision_action, geometry_source, geometry_evidence,
-    x_3435, y_3435, location_resolved, far, dupac) %>% arrange(source_family, project_id)
+    x_3435, y_3435, location_resolved, far, dupac, class_values, external_multifamily,
+    multifamily_source) %>% arrange(source_family, project_id)
 
 components <- bind_rows(
   residential_components %>%
@@ -294,21 +296,7 @@ if (any(boundary_counts$n_far_within_500ft > boundary_counts$n_within_500ft) ||
   stop("Combined boundary eligibility counts exceed their geographic samples.", call. = FALSE)
 }
 
-readr::write_csv(
-  projects,
-  "../output/preferred_new_construction_project_ledger.csv"
-)
-readr::write_csv(
-  components,
-  "../output/preferred_new_construction_project_components.csv"
-)
-readr::write_csv(
-  boundary,
-  "../output/preferred_new_construction_boundary_scope.csv"
-)
-sf::st_write(
-  centroids,
-  "../output/preferred_new_construction_project_centroids.gpkg",
-  delete_dsn = TRUE,
-  quiet = TRUE
-)
+SaveData(projects, c("project_id"), "../output/preferred_new_construction_project_ledger.csv")
+SaveData(components, c("project_id", "component_pin"), "../output/preferred_new_construction_project_components.csv")
+SaveData(boundary, c("project_id"), "../output/preferred_new_construction_boundary_scope.csv")
+SaveData(centroids, c("project_id"), "../output/preferred_new_construction_project_centroids.gpkg", delete_dsn = TRUE, quiet = TRUE)

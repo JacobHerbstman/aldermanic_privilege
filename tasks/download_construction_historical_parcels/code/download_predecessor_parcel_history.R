@@ -3,6 +3,8 @@
 # history_end_year <- 2025L
 # scope <- "initial"
 
+source("../../shared/code/save_data.R")
+
 library(dplyr)
 library(readr)
 
@@ -50,10 +52,13 @@ history <- arrange(history, pin, year, row_id)
 if (scope == "initial") {
   write_csv(history, "../temp/predecessor_parcel_history_download.csv")
   stopifnot(file.rename("../temp/predecessor_parcel_history_download.csv", "../output/predecessor_parcel_history_download.csv"))
+  ReportData("../output/predecessor_parcel_history_download.csv", "row_id")
 } else if (scope == "reviewed") {
   write_csv(history, "../temp/reviewed_parcel_history.csv")
-  stopifnot(file.rename("../temp/reviewed_parcel_history.csv", "../output/reviewed_parcel_history.csv"))
+  stopifnot(file.rename("../temp/reviewed_parcel_history.csv", "../output/reviewed_parcel_history_current.csv"))
+  ReportData("../output/reviewed_parcel_history_current.csv", c("pin", "year"))
 } else {
   write_csv(history, "../temp/geocoding_parcel_history_download.csv")
   stopifnot(file.rename("../temp/geocoding_parcel_history_download.csv", "../output/geocoding_parcel_history_download.csv"))
+  ReportData("../output/geocoding_parcel_history_download.csv", c("pin", "year"))
 }

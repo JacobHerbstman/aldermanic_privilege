@@ -1,0 +1,64 @@
+\section*{Write data reports when saving data}
+\textit{September 12, 2026. Agent-drafted record of the reporting cleanup.}
+
+Dataset reports now accompany saved data instead of controlling the production
+build. Forty-nine task Makefiles no longer name \texttt{.log} files. R producers
+write the same datasets, with the same formats and row order, and describe them
+when saving. Deleting a dataset invokes its producer; deleting only its report
+does not recalculate the data. This follows Jacob's requested use of
+\texttt{SaveData} and supersedes the earlier missing-report recovery checks.
+
+The recorded construction decisions and their review history are committed in
+\texttt{a463ab6a}. The decision task contains 25 active CSV tables and no R
+scripts. These are the existing instructions, with their evidence preserved.
+The larger construction task now contains 46 calculation scripts. Removing
+the report targets does not complete the requested consolidation of that code.
+Jacob confirmed that ordinary Assessor cleaning must remain executable from the
+recorded sources; only reviewed decisions should become fixed correction inputs.
+
+The review also found that changes to reporting code could trigger new searches
+for parcel evidence already used in the construction decisions. Nineteen saved
+Cook County responses, totaling 1.82 MB, are now preserved byte for byte in the
+historical-parcel acquisition task's \texttt{sources/} folder. They include the
+seventeen annual parcel extracts, the reviewed predecessor polygons, and the
+54-row coordinate history. Ordinary Make restores these recorded files.
+Deliberate acquisition writes separate current responses for comparison; it
+does not overwrite the preserved vintage.
+
+Eight other existing source extracts are preserved in compressed form in
+\texttt{5850a187}: Census counts and geography, Chicago streets, and historical
+sale-parcel coordinates. Their uncompressed bytes match the previous inputs.
+Ordinary builds restore these sources locally and recalculate the controls and
+distances. Isolated checks confirm fresh restoration, unchanged builds and
+missing-file recovery. A damaged compressed source fails without overwriting
+the previous valid output.
+
+Two commercial research-summary scripts now belong to the commercial construction
+review audit. The production consumer computes its issued-permit condition
+directly; all 800 completion flags and all 1,128 source decisions agree with the
+previous calculation. The residential cross-section producer reads history once,
+and final building selection combines ordinary and resolved projects in memory.
+Two redundant scripts and two unused intermediate tables were removed. Fresh
+and missing-output builds of the five affected production files reproduce their
+previous bytes, including a parallel Make invocation. These changes do not
+convert ordinary source selections into manual instructions.
+
+All 63 top-level task Makefiles passed dry-run parsing, and 167 active R files
+parsed. An isolated Make 3.81 check covered CSV, Parquet and GeoPackage saving,
+unchanged builds, changed inputs, missing datasets, and missing reports. It
+also confirmed that duplicate required keys are rejected before the prior
+dataset is overwritten.
+
+The reporting cleanup reproduced all 101 saved CSV and GeoPackage datasets.
+After consolidation, all 97 remaining production datasets and both datasets
+moved to the audit still agree with the copies preserved before this change;
+the other two files were unused intermediates. CSV bytes, spatial attributes
+and geometry bytes agree. GeoPackage integrity and coordinate-system records
+passed inspection. A second ordinary Make dry run schedules no data production.
+The downstream analysis still contains the same 9,493 projects and
+unchanged construction measurements, locations, controls and sample membership.
+Reestimated stringency scores differ by at most $7.9\times 10^{-12}$; the other
+analysis fields agree exactly. Table 1's saved CSV and TeX, the project-permit
+matches and the score-robustness table are unchanged. An ordinary Make in
+\texttt{paper/}, using no source overrides, completed the paper and appendix.
+Its unchanged second dry run scheduled no data or document production.

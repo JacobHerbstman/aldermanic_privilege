@@ -2,6 +2,8 @@
 # target_year <- 2006L
 # scope <- "historical"
 
+source("../../shared/code/save_data.R")
+
 library(dplyr)
 library(readr)
 library(sf)
@@ -70,7 +72,9 @@ for (ids in split(object_ids, ceiling(seq_along(object_ids) / 300))) {
 stopifnot(setequal(parcels$object_id, object_ids), !anyDuplicated(parcels$object_id),
           all(parcels$pin10 %in% requests$pin10), all(st_is_valid(parcels)), !any(st_is_empty(parcels)))
 parcels <- arrange(parcels, target_year, pin10, pin14, object_id)
-st_write(parcels, paste0("../temp/", scope, "_parcels_additional_", target_year, ".gpkg"),
+filename <- paste0(scope, "_parcels_additional_", target_year,
+  if (scope == "reviewed") "_current" else "", ".gpkg")
+st_write(parcels, paste0("../temp/", filename),
   layer = "historical_parcels", delete_dsn = TRUE, quiet = TRUE)
-stopifnot(file.rename(paste0("../temp/", scope, "_parcels_additional_", target_year, ".gpkg"),
-                      paste0("../output/", scope, "_parcels_additional_", target_year, ".gpkg")))
+stopifnot(file.rename(paste0("../temp/", filename), paste0("../output/", filename)))
+ReportData(paste0("../output/", filename), c("target_year", "object_id"))

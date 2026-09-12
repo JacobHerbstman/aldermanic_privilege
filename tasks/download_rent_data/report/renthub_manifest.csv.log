@@ -1,0 +1,15 @@
+File: renthub_manifest.csv
+Rows: 2545
+Columns: 5
+SHA-256 (saved bytes): e45ca95163c8619c0b7642b56625f42d4bdb1f9a80d13a16ed70497b9dc36330
+Key: file_name
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column            inferred_type non_missing distinct  min      max               mean                sd
+        source_date                     DATE        2545     2545    -        -                  -                 -
+          file_name                  VARCHAR        2545     2545    -        -                  -                 -
+    file_size_bytes                   BIGINT        2545     2540 6962 30522415 1171844.5587426326 2732902.088117402
+source_modified_utc TIMESTAMP WITH TIME ZONE        2545     2464    -        -                  -                 -
+                md5                  VARCHAR        2545     2545    -        -                  -                 -

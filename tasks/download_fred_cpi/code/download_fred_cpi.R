@@ -5,7 +5,7 @@
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(series_id)
 }
 if (length(cli_args) != 1) {

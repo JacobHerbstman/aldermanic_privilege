@@ -14,7 +14,7 @@ with `SingleLine` equal to the historical address, `outFields=*`, `outSR=3435`,
 and `f=json`. Both services are mutable; old chosen-match exports do not contain
 the full historical responses.
 
-Run intentional acquisition through `make -f download_recipes.make` in `code/`.
+Run intentional acquisition through `make download-current` in `code/`.
 Each saved row contains the exact address query and the complete returned JSON,
 including all candidates or an empty match list. Request failures and API errors
 stop the build before replacing an output. Record a dated source snapshot and

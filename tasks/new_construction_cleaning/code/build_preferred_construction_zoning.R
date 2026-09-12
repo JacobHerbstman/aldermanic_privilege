@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 library(sf)
 
 zone_group <- function(zone_code) {
@@ -58,7 +59,7 @@ if (anyDuplicated(points$project_id)) {
 }
 
 validated <- readr::read_csv(
-  "../adjudication/historical_zoning_project_construction_year.csv",
+  "../input/historical_zoning_project_construction_year.csv",
   show_col_types = FALSE,
   col_types = readr::cols(pin = readr::col_character())
 ) |>
@@ -106,7 +107,7 @@ component_matches <- components |>
   )
 
 zoning_2006 <- sf::st_read(
-  "../adjudication/historical_zoning_2006_candidate.gpkg",
+  "../input/historical_zoning_2006_candidate.gpkg",
   quiet = TRUE
 ) |>
   dplyr::select(zone_group_2006 = candidate_zone_group_2006)
@@ -260,7 +261,7 @@ points <- points |>
 
 # Apply the recorded zoning decisions once, at the zoning producer. A reviewed
 # construction year must match; an old decision cannot override a different year.
-year_decisions <- readr::read_csv("../adjudication/corrected_year_zoning_decisions.csv",
+year_decisions <- readr::read_csv("../input/corrected_year_zoning_decisions.csv",
   show_col_types = FALSE) |>
   dplyr::transmute(project_id, construction_year,
     reviewed_zone_group = construction_zone_group,
@@ -309,8 +310,4 @@ if (nrow(flat) != nrow(projects) || anyDuplicated(flat$project_id)) {
   stop("Preferred construction-zoning output is not one row per project.", call. = FALSE)
 }
 
-readr::write_csv(
-  flat,
-  "../output/preferred_new_construction_zoning.csv",
-  na = ""
-)
+SaveData(flat, c("project_id"), "../output/preferred_new_construction_zoning.csv", na = "")

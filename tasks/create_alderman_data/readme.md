@@ -1,6 +1,8 @@
 # Alderman Terms
 
-This task records the dates that each alderman served and expands those terms
+The recorded terms are in `adjudication/alderman_terms.csv`; historical evidence for corrected transitions is listed below. The CSV preserves the complete date table formerly embedded in the R script, including terms after the paper period.
+
+This task reads those dates and expands the terms
 to a monthly ward panel through December 2022.
 
 It writes:

@@ -7,6 +7,6 @@ Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-          column inferred_type  non_missing  distinct  min     max               mean                sd
-observation_date          DATE         1339      1339    -       -                  -                 -
-     CUURA207SA0        DOUBLE         1095       794 10.0 312.867 108.63635342465753 87.66609487251979
+          column inferred_type non_missing distinct  min     max               mean                sd
+observation_date          DATE        1339     1339    -       -                  -                 -
+     CUURA207SA0        DOUBLE        1095      794 10.0 312.867 108.63635342465753 87.66609487251979

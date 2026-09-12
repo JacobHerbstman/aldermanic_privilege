@@ -1,0 +1,28 @@
+File: parcel_addresses_2025_chicago.csv
+Rows: 883640
+Columns: 18
+SHA-256 (saved bytes): fa2d866fb853deab79da4230e7c50a120227adb7b5078fcbce57535c57c3757c
+Key: pin
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct  min   max              mean                sd
+                    pin       VARCHAR      883640   817673    -     -                 -                 -
+                  pin10       VARCHAR      883640   448197    -     -                 -                 -
+                   year        BIGINT      883640        1 2025  2025            2025.0               0.0
+      prop_address_full       VARCHAR      882744   835760    -     -                 -                 -
+ prop_address_city_name       VARCHAR      883640        2    -     -                 -                 -
+     prop_address_state       VARCHAR      872290        1    -     -                 -                 -
+ prop_address_zipcode_1        BIGINT      857464       79    0 69612 60621.57357276807 714.4517203169252
+      mail_address_name       VARCHAR      823205   636402    -     -                 -                 -
+      mail_address_full       VARCHAR      823215   539562    -     -                 -                 -
+ mail_address_city_name       VARCHAR      823211     3497    -     -                 -                 -
+     mail_address_state       VARCHAR      823213       62    -     -                 -                 -
+ mail_address_zipcode_1       VARCHAR      821192     6428    -     -                 -                 -
+     owner_address_name       VARCHAR      883637   621809    -     -                 -                 -
+     owner_address_full       VARCHAR      880157   640613    -     -                 -                 -
+owner_address_city_name       VARCHAR      880605     3597    -     -                 -                 -
+    owner_address_state       VARCHAR      880601       62    -     -                 -                 -
+owner_address_zipcode_1       VARCHAR      878379     5773    -     -                 -                 -
+                 row_id       VARCHAR      883640   769348    -     -                 -                 -

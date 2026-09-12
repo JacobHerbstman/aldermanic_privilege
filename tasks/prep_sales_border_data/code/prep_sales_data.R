@@ -3,6 +3,7 @@
 # drop_inconsistent_rooms <- "TRUE"
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 args <- if (interactive()) c(drop_inconsistent_rooms) else commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1L, args[1] %in% c("TRUE", "FALSE"))
 drop_inconsistent_rooms <- args[1] == "TRUE"
@@ -100,4 +101,4 @@ if (any(
   stop("Final residential sales data violate the structural eligibility rules.", call. = FALSE)
 }
 
-write_parquet(sales_out, "../output/sales_with_hedonics.parquet")
+SaveData(sales_out, c("row_id"), "../output/sales_with_hedonics.parquet")

@@ -1,6 +1,7 @@
 # setwd("tasks/new_construction_cleaning/code")
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/permit_unit_patterns.R")
 
 extract_unit_mentions <- function(permit_number, work_description) {
@@ -283,6 +284,6 @@ project_summary <- project_chains %>%
     unit_counts = coalesce(unit_counts, "")
   )
 
-readr::write_csv(project_chains, "../output/project_permit_chain_links.csv")
-readr::write_csv(chain_unit_mentions, "../output/project_permit_chain_unit_mentions.csv")
-readr::write_csv(project_summary, "../output/project_permit_chain_summary.csv")
+SaveData(project_chains, c("project_id", "permit_number"), "../output/project_permit_chain_links.csv")
+SaveData(chain_unit_mentions, c("project_id", "permit_number", "mention_order"), "../output/project_permit_chain_unit_mentions.csv")
+SaveData(project_summary, c("project_id"), "../output/project_permit_chain_summary.csv")

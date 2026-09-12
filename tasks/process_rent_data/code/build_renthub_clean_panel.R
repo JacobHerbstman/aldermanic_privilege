@@ -4,9 +4,10 @@
 # end_date <- "2022-12-31"
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(start_date, end_date)
 }
 if (length(cli_args) != 2) {
@@ -567,3 +568,5 @@ if (
 ) {
   stop("Main rent panel does not span the expected complete monthly window.", call. = FALSE)
 }
+
+ReportData("../output/chicago_rent_panel.parquet", "rent_panel_id")

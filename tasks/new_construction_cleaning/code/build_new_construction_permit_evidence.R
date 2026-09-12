@@ -1,6 +1,7 @@
 # setwd("tasks/new_construction_cleaning/code")
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/permit_unit_patterns.R")
 
 normalize_pin <- function(x) {
@@ -313,6 +314,6 @@ permit_unit_mentions <- purrr::map_dfr(
   ) %>%
   arrange(source_family, project_id, permit_id, mention_order)
 
-readr::write_csv(exact_permit_matches, "../output/new_construction_exact_permit_matches.csv")
-readr::write_csv(permit_unit_mentions, "../output/new_construction_permit_unit_mentions.csv")
-readr::write_csv(project_components, "../output/new_construction_project_components.csv")
+SaveData(exact_permit_matches, c("project_id", "component_pin", "permit_id"), "../output/new_construction_exact_permit_matches.csv")
+SaveData(permit_unit_mentions, c("project_id", "component_pin", "permit_id", "mention_order"), "../output/new_construction_permit_unit_mentions.csv")
+SaveData(project_components, c("project_id", "component_pin"), "../output/new_construction_project_components.csv")

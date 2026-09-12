@@ -5,12 +5,13 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 library(DBI)
 library(duckdb)
 library(data.table)
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(start_date, end_date)
 }
 if (length(cli_args) != 2) {
@@ -475,4 +476,4 @@ if (nrow(location_output) != panel_counts$n ||
   stop("Location corrections must match the monthly rental panel one-to-one.", call. = FALSE)
 }
 
-write_parquet(location_output, "../output/chicago_rent_panel_location_corrections.parquet")
+SaveData(location_output, c("rent_panel_id"), "../output/chicago_rent_panel_location_corrections.parquet")

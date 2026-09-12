@@ -2,6 +2,9 @@
 
 This task checks two concerns about how aldermanic stringency classifies the two sides of a ward boundary.
 
+Both density outcomes use the analysis-data producer's common `density_eligible`
+field, requiring usable, positive FAR and DUPAC for the same projects.
+
 First, it recalculates the two alderman scores for each construction project after removing permit records matched to that project. The permit-level adjustment is estimated once, and the alderman scores are then recalculated without the project's own permit outcomes. This prevents a project's processing time from directly affecting the score used to classify its boundary.
 
 Second, it excludes boundaries where the two alderman scores differ by less than 0.25 or 0.50 standard deviations. These restrictions test whether close rankings drive the main result.

@@ -19,19 +19,19 @@ all: ../output/tail_review.csv ../output/tail_cutoffs.csv ../output/tail_counts.
 	$(R) $< $*
 
 ../input/quality_records.parquet: ../../sales_record_quality_audit/output/quality_records.parquet | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/clean_sales_with_hedonics_amenities.parquet: ../../sales_border_pair_fe/output/sales_with_hedonics_amenities.parquet | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/parcel_sales_city.csv: ../../download_parcel_sales_data/output/parcel_sales_city.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/residential_improvement_characteristics_full.csv: ../../download_residential_improvements_full/output/residential_improvement_characteristics_full.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/price_boundary_property_type_fe_estimates.csv: ../../price_boundary_results/output/price_boundary_property_type_fe_estimates.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/quality_records.parquet ../input/clean_sales_with_hedonics_amenities.parquet ../input/parcel_sales_city.csv ../input/residential_improvement_characteristics_full.csv ../input/price_boundary_property_type_fe_estimates.csv
 

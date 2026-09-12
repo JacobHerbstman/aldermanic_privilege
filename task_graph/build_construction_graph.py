@@ -24,7 +24,10 @@ def read_make(path):
                 read_make(path.parent / name)
         elif ":" in line and not re.search(r"[:?+]?=", line):
             targets, inputs = line.split(":", 1)
-            if "%" not in targets and not targets.startswith(".PHONY"):
+            if not targets.startswith(".PHONY"):
+                targets = targets.replace("../%/", "../output/")
+                if "%" in targets:
+                    continue
                 for target in targets.split():
                     rules.setdefault(target, []).extend(inputs.split("|")[0].split())
 

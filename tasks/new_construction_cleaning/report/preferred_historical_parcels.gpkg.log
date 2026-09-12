@@ -1,17 +1,17 @@
 File: preferred_historical_parcels.gpkg
-Rows: 11829
+Rows: 11792
 Columns: 7
-SHA-256 (saved bytes): 33a889c9824f2aa5e3c3d5b1eb0c94e4344e802bbb297b2ff8b57814b11fccf3
+SHA-256 (saved bytes): 88172e6881ab7633e1b63b2695445e50f279896ed9b097709260d61ee199d52e
 Key: target_year, object_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
         column inferred_type non_missing distinct  min     max               mean                 sd
-           fid        BIGINT       11829    11829    1   11829             5915.0 3414.8825016389656
-   target_year        BIGINT       11829       17 2006    2022 2013.2267309155466  5.429287707005128
-      layer_id        DOUBLE       11829       17  6.0  2022.0  151.5396060529208 508.52617321496217
-     object_id        BIGINT       11829    11773   44 1849492   692823.499196889 486168.56527624256
-         pin14       VARCHAR       11829    11771    -       -                  -                  -
-         pin10       VARCHAR       11829    11771    -       -                  -                  -
-geometry_valid        BIGINT       11829        1    1       1                1.0                0.0
+           fid        BIGINT       11792    11792    1   11792             5896.5  3404.201521649387
+   target_year        BIGINT       11792       17 2006    2022  2013.249236770692  5.422873410692001
+      layer_id        DOUBLE       11792       17  6.0  2022.0 151.99609905020353 509.25801053851586
+     object_id        BIGINT       11792    11736   44 1849492   690170.355495251  484614.1334012377
+         pin14       VARCHAR       11792    11734    -       -                  -                  -
+         pin10       VARCHAR       11792    11734    -       -                  -                  -
+geometry_valid        BIGINT       11792        1    1       1                1.0                0.0

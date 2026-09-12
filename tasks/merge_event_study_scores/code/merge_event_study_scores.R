@@ -3,6 +3,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 treatment <- read_csv("../input/block_treatment_pre_scores.csv", show_col_types = FALSE) %>%
   mutate(block_id = as.character(block_id), cohort = as.character(cohort)) %>%
   filter(cohort == "2015")
@@ -84,4 +85,4 @@ if (any(treatment$valid & (is.na(treatment$strictness_change) | is.na(treatment$
   stop("Valid treatment rows must have complete frozen scores and incumbent status.", call. = FALSE)
 }
 
-write_csv(treatment, "../output/block_treatment_panel_frozen2014.csv")
+SaveData(treatment, c("block_id"), "../output/block_treatment_panel_frozen2014.csv")

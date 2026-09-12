@@ -2,10 +2,12 @@
 # start_year <- 2006
 # end_year <- 2022
 
+source("../../shared/code/save_data.R")
+
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(start_year, end_year)
 }
 if (length(cli_args) != 2) {
@@ -161,5 +163,7 @@ if (anyDuplicated(historical_parcels[, .(pin, year)]) > 0) {
 setorder(historical_parcels, pin, year)
 fwrite(
   historical_parcels,
-  sprintf("../output/historical_sale_parcel_coordinates_%d_%d.csv", start_year, end_year)
+  sprintf("../output/historical_sale_parcel_coordinates_%d_%d_current.csv", start_year, end_year)
 )
+
+ReportData(sprintf("../output/historical_sale_parcel_coordinates_%d_%d_current.csv", start_year, end_year), c("pin", "year"))

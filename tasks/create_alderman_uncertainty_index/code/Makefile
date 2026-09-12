@@ -16,22 +16,18 @@ FROZEN_CUTOFF_LABEL := through$(subst -,,$(FROZEN_CUTOFF))
 PAPER_SPEC := ptfe$(PTFE)_rtfe$(RTFE)_porch$(PORCH)_cafe$(CAFE)_2stage_vol$(VOLUME_CTRL)_$(VOLUME_STAGE)_$(PAPER_CUTOFF_LABEL)
 FROZEN_SPEC := ptfe$(PTFE)_rtfe$(RTFE)_porch$(PORCH)_cafe$(CAFE)_2stage_vol$(VOLUME_CTRL)_$(VOLUME_STAGE)_$(FROZEN_CUTOFF_LABEL)
 
-all: \
+all: ../output/alderman_uncertainty_index_$(FROZEN_SPEC).csv \
 	../output/alderman_uncertainty_index_$(PAPER_SPEC).csv \
-	../output/stage1_regression_$(PAPER_SPEC).tex \
-	../output/alderman_uncertainty_index_$(FROZEN_SPEC).csv
+	../output/stage1_regression_$(PAPER_SPEC).tex
 
-../output/alderman_uncertainty_index_$(PAPER_SPEC).csv: create_uncertainty_index.R ../../shared/code/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv Makefile | ../output
+../%/alderman_uncertainty_index_$(PAPER_SPEC).csv ../%/stage1_regression_$(PAPER_SPEC).tex: create_uncertainty_index.R ../../shared/code/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv Makefile ../../setup_environment/code/packages.R ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
 	$(R) $< $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE) $(PAPER_CUTOFF) TRUE
 
-../output/stage1_regression_$(PAPER_SPEC).tex: create_uncertainty_index.R ../../shared/code/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv ../output/alderman_uncertainty_index_$(PAPER_SPEC).csv | ../output
-	@test -s "$@"
-
-../output/alderman_uncertainty_index_$(FROZEN_SPEC).csv: create_uncertainty_index.R ../../shared/code/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv Makefile | ../output
+../output/alderman_uncertainty_index_$(FROZEN_SPEC).csv: create_uncertainty_index.R ../../shared/code/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv Makefile ../../setup_environment/code/packages.R ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
 	$(R) $< $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE) $(FROZEN_CUTOFF) FALSE
 
 ../input/permits_for_uncertainty_index.csv: ../../data_for_alderman_uncertainty_index/output/permits_for_uncertainty_index.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/permits_for_uncertainty_index.csv
 

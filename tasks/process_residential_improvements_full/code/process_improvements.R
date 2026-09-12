@@ -4,9 +4,10 @@
 # end_year <- 2022
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(start_year, end_year)
 }
 if (length(cli_args) != 2) {
@@ -53,7 +54,7 @@ SELECT
   trim(char_gar1_size) AS garage_size_raw,
   trim(row_id) AS row_id_raw
 FROM read_csv('../input/residential_improvement_characteristics_full.csv',
-              ignore_errors = true,
+              ignore_errors = false,
               all_varchar = true,
               header = true,
               auto_detect = true,
@@ -195,3 +196,5 @@ COPY (
   ORDER BY pin, tax_year
 ) TO '../output/residential_improvements_panel.parquet' (FORMAT PARQUET)
 "))
+
+ReportData("../output/residential_improvements_panel.parquet", c("pin", "tax_year"))

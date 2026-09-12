@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 candidates <- readr::read_csv(
   "../output/preferred_commercial_project_candidates.csv",
   show_col_types = FALSE,
@@ -36,7 +37,7 @@ entity_versions <- readr::read_csv(
 )
 
 component_decisions <- readr::read_csv(
-  "../adjudication/commercial_component_overrides.csv",
+  "../input/commercial_component_overrides.csv",
   show_col_types = FALSE,
   col_types = readr::cols(
     source_project_ids = readr::col_character(),
@@ -48,14 +49,15 @@ component_decisions <- readr::read_csv(
   )
 )
 
-measurement_decisions <- readr::read_csv(
-  "../adjudication/commercial_measurement_corrections.csv",
-  show_col_types = FALSE,
-  col_types = readr::cols(project_id = "c", .default = readr::col_guess())
-)
+measurement_decisions <- readr::read_csv("../input/construction_modifications.csv",
+  col_types = readr::cols(construction_year = "d", dwelling_units = "d", building_sqft = "d",
+    land_sqft = "d", allow_far = "l", allow_dupac = "l", .default = readr::col_character())) %>%
+  filter(source_family == "commercial", application_scope == "commercial_measurements") %>%
+  rename(project_id = source_project_id, final_year = construction_year,
+    final_units = dwelling_units, final_building_sqft = building_sqft, final_land_sqft = land_sqft)
 
 manual_decisions <- readr::read_csv(
-  "../adjudication/commercial_manual_decisions.csv",
+  "../input/commercial_manual_decisions.csv",
   show_col_types = FALSE,
   col_types = readr::cols(
     source_project_ids = readr::col_character(),
@@ -66,7 +68,7 @@ manual_decisions <- readr::read_csv(
 )
 
 cross_family_decisions <- readr::read_csv(
-  "../adjudication/commercial_cross_family_decisions.csv",
+  "../input/commercial_cross_family_decisions.csv",
   show_col_types = FALSE,
   col_types = readr::cols(
     source_project_ids = readr::col_character(),
@@ -531,7 +533,7 @@ preferred_projects <- bind_rows(
 # Older map-based choices carry no numeric denominator. Resolve source-reported
 # land first, then apply the recorded external reported-land exceptions.
 reported_land <- readr::read_csv(
-  "../adjudication/commercial_reported_land_decisions.csv", show_col_types = FALSE
+  "../input/commercial_reported_land_decisions.csv", show_col_types = FALSE
 )
 stopifnot(!anyDuplicated(reported_land$project_id),
           all(reported_land$project_id %in% preferred_projects$project_id),
@@ -788,11 +790,5 @@ if (any(str_detect(
   stop("Preferred commercial ledger contains a prohibited analysis field.", call. = FALSE)
 }
 
-readr::write_csv(
-  preferred_projects,
-  "../output/preferred_commercial_projects.csv"
-)
-readr::write_csv(
-  source_disposition,
-  "../output/preferred_commercial_source_disposition.csv"
-)
+SaveData(preferred_projects, c("project_id"), "../output/preferred_commercial_projects.csv")
+SaveData(source_disposition, c("source_project_id"), "../output/preferred_commercial_source_disposition.csv")

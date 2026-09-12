@@ -1,17 +1,17 @@
 File: residential_review_current_parcel_links.csv
-Rows: 1701
+Rows: 393
 Columns: 7
-SHA-256 (saved bytes): 0d6b4c7a18e01ddd8f013c62fc7a4e6c2c13beaadfc941e1df3cf9ca8d572c4f
+SHA-256 (saved bytes): b421cd264178f55116b783b1b428cce49941fc08a4090e662ab94709bf21edc1
 Key: project_id, pin
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                   column inferred_type non_missing distinct            min            max               mean                 sd
-              project_id       VARCHAR        1701      150              -              -                  -                  -
-             target_year        BIGINT        1701       17           2006           2022 2013.7954144620812 6.4855860197279105
-                     pin        BIGINT        1701     1559 12241070580000 25124230240000 16580853637761.355 1477319546705.0713
-                   pin10        BIGINT        1701      504     1224107058     2512423024 1658085363.6942976  147731954.6601696
-                tax_year        BIGINT        1701        1           2025           2025             2025.0                0.0
-                   class       VARCHAR        1701       24              -              -                  -                  -
-projects_per_current_pin        BIGINT        1701        3              1              7 1.3433274544385656 1.2086688756420474
+              project_id       VARCHAR         393       53              -              -                  -                  -
+             target_year        BIGINT         393        8           2006           2022 2020.8447837150127  2.985309185870688
+                     pin        BIGINT         393      393 13044110430000 20024041151003 15870230057223.443 1491871805971.4744
+                   pin10        BIGINT         393       80     1304411043     2002404115 1587023005.6284988 149187180.59354687
+                tax_year        BIGINT         393        1           2025           2025             2025.0                0.0
+                   class        BIGINT         393        8            203            599 300.04071246819336  27.54955408175131
+projects_per_current_pin        BIGINT         393        1              1              1                1.0                0.0

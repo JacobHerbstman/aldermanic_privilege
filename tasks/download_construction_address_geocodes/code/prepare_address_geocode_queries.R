@@ -1,3 +1,4 @@
+source("../../shared/code/save_data.R")
 # setwd("tasks/download_construction_address_geocodes/code")
 
 library(dplyr)
@@ -8,4 +9,4 @@ queries <- read_csv("../input/preferred_address_geocode_requests.csv",
   filter(!is.na(selected_address), !is.na(address_query)) |>
   distinct() |> arrange(selected_address)
 stopifnot(!anyDuplicated(queries$selected_address))
-write_csv(queries, "../output/address_geocode_queries.csv")
+SaveData(queries, c("selected_address"), "../output/address_geocode_queries.csv")

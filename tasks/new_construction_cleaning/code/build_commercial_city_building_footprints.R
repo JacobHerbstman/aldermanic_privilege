@@ -1,3 +1,4 @@
+source("../../shared/code/save_data.R")
 # setwd("tasks/new_construction_cleaning/code")
 
 library(sf)
@@ -38,5 +39,4 @@ footprints <- footprints |>
 stopifnot(nrow(footprints) > 0L, !anyDuplicated(footprints$footprint_id),
           !anyNA(footprints$footprint_id), !any(st_is_empty(footprints)),
           all(st_is_valid(footprints)), all(footprints$city_shape_area_sqft > 0))
-st_write(footprints, "../output/commercial_city_building_footprints.gpkg",
-         layer = "commercial_city_building_footprints", delete_dsn = TRUE, quiet = TRUE)
+SaveData(footprints, c("footprint_id"), "../output/commercial_city_building_footprints.gpkg", layer = "commercial_city_building_footprints", delete_dsn = TRUE, quiet = TRUE)

@@ -10,7 +10,7 @@ The task reuses the existing Cook County download script with an explicit
 present in the surviving full-history source copies used during the original
 construction work. The sales download retains its separate 2006–2022 window.
 
-Run `make` from `code/`. The source is Cook County's
+Run `make download-current` from `code/` for new residential and commercial extracts, saved with `_current` filenames. Ordinary `make` restores the recorded condominium extract. The residential source is Cook County's
 [residential improvement characteristics dataset](https://datacatalog.cookcountyil.gov/Property-Taxation/Assessor-Single-and-Multi-Family-Improvement-Chara/x54s-btds).
 The downloader orders records by PIN, assessment year, card, and row ID and
 checks CSV structure, batch counts, and the total source count before replacing
@@ -37,5 +37,5 @@ The condominium extract contains 4,560 parcel-year records for the requested suc
 The ordinary condominium build now restores the committed September 9 source
 snapshot and verifies `code/condominium_snapshot.sha256`. This makes the recorded
 vintage available to a fresh clone instead of downloading mutable records again.
-Run `make -f download_recipes.make` for a separate current extract; adopting it
+Run `make download-current` for a separate current extract; adopting it
 requires a comparison and deliberate source update.

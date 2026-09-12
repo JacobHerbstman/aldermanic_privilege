@@ -1,0 +1,63 @@
+\section*{Correct Table 1 to the citywide descriptive sample}
+\textit{September 11, 2026. Agent-drafted correction following Jacob's clarification.}
+
+The preceding common-sample table used the wrong population. Jacob intended
+all citywide new construction, not the 500-foot estimation sample. The older
+\texttt{summary\_stats\_new\_construction} script confirms that its summary had
+no boundary-distance cutoff. The current analysis-data producer also imposes a
+1,500-foot restriction, so removing the 500-foot filter alone would not suffice.
+
+The table now reads the full cleaned project ledger and construction-year
+boundary distances directly. It retains 2006--2022 construction with both FAR
+and DUPAC usable and positive units, without distance, score, zoning-control or
+regression-complete-case restrictions. The two-column layout is retained.
+Building-type classification follows the current reviewed classification and is
+checked against the existing analysis records where they overlap. Regression
+samples and methods are unchanged.
+
+The citywide common descriptive sample has 13,635 observations, including 2,582
+multifamily observations. Median distance is 914.94 feet overall and 825.93 feet
+for multifamily. Mean FAR is 1.158 and 2.085; mean DUPAC is 26.936 and 65.181;
+mean units are 5.805 and 26.105. The first citywide version omitted the
+ward-pair/segment-count row. The note and accompanying prose explicitly state
+the citywide scope. This entry supersedes the prior entry's table population.
+
+Jacob subsequently chose the September 3 draft as the presentation reference,
+with citywide Table 1 as the exception. Its original caption, two columns, row
+order and dividing rules are restored, including the ward/segment row. That
+row reports 139 nearest ward pairs and 1,388 segments overall, and 112 pairs
+and 805 segments for multifamily. The note clarifies that these are ward pairs,
+not a count of Chicago wards. Every eligible citywide project is assigned to
+the nearest segment of its recorded construction-year ward boundary, without
+a distance cutoff; assignments agree with the existing analysis records where
+both are available. Other descriptive statistics are unchanged.
+
+The manuscript comparison uses revision \texttt{2e406330}. Outside the necessary
+citywide sample description, differences in wording are limited to the numerical
+updates and Jacob's previously approved permit-period and placebo sentences.
+The original significance and donut descriptions remain. Figure layouts and
+labels are unchanged; plotted values are the rerun results. The July draft's
+extra stories and stringency rows and older building-type definition are not
+adopted. This restores presentation without undoing the approved data corrections
+or outcome-specific regression samples.
+
+\smallskip
+\noindent\textit{Reproduction:} Run Make in
+\texttt{tasks/density\_main\_results/code/}, then in \texttt{paper/}.
+The summary CSV now produces the table and data report through separate file
+rules. The saved report has two rows and eight columns, adding the two geographic
+counts. Builds and rendered exhibits were checked in the completed replication
+clone on the \texttt{conference-replication} branch.
+
+\smallskip
+\noindent\textit{Approved wording revision.} Jacob approved the displayed
+before-and-after wording changes across the paper. Table 1 is now titled
+``New Residential Construction in Chicago, 2006--2022.'' Its note defines the
+measurements and multifamily buildings directly. Row labels identify units per
+project, ward pairs and boundary segments, and the number of projects. The
+citywide common sample and existing building-type classification are retained.
+The approved edits also simplify the introduction, data descriptions, and
+appendix table titles and notes, and remove unnecessary ``final'' references
+to stringency scores. Jacob reserved the three factual passages on density
+eligibility, the event-study period, and the count of manually reviewed projects
+for a separate discussion. Those passages are unchanged in this revision.

@@ -1,0 +1,42 @@
+\section*{Main results with outcomes in levels}
+\textit{September 10, 2026. Agent-drafted exploratory comparison requested by Jacob.}
+
+These regressions use the main paper's distance bands and controls but replace
+log FAR, log DUPAC and log prices with their unlogged outcomes. Property controls
+retain their existing functional forms. Permit results use linear count models
+on the observations retained by each corresponding Poisson model. All fitted
+samples match the originals; there is no additional trimming or winsorization.
+These comparisons are separate from the cumulative-window exercise.
+
+Immediately across the ward boundary, all-construction FAR is 0.167 lower
+(SE 0.061, $p=0.007$) and DUPAC is 8.55 lower (SE 4.24, $p=0.046$).
+Multifamily FAR is 0.382 lower (SE 0.211, $p=0.074$), while multifamily DUPAC
+is 22.98 lower (SE 14.70, $p=0.122$). The all-construction pattern survives;
+the multifamily DUPAC result is not statistically significant in levels.
+
+The listed-rent difference is +\$38.90 per month (SE \$57.41, $p=0.499$),
+and the sale-price difference is +\$703 (SE \$7,245, $p=0.923$), in 2022 dollars.
+The sale-price 95\% interval runs from about -\$13,621 to +\$15,027.
+The positive, significant log-price result therefore does not carry over to the
+absolute-dollar specification on the same observations. Levels and logs target
+different economic comparisons and respond differently to high-price properties;
+this check alone does not identify the source of the difference.
+
+The combined linear permit estimate is -0.054 permits per block-year
+(SE 0.024, $p=0.025$). Separate directions give -0.093 for assignment toward
+greater stringency ($p=0.011$) and +0.029 toward greater leniency ($p=0.330$).
+The qualitative asymmetry in permit activity remains. These count differences
+must not be described as percentage changes.
+
+\textit{Reproduction:} Run Make in \texttt{tasks/audits/main\_results\_levels/code}.
+The three coefficient files preserve the level and baseline log/Poisson estimates,
+standard errors, confidence intervals and fitted sample counts. The audit uses
+the completed fresh-clone inputs at \texttt{da074ae3}. The original specifications
+were independently refitted to verify sample consistency; the main analysis and
+manuscript remain unchanged.
+
+\begin{center}
+\includegraphics[width=0.98\textwidth]{../tasks/audits/main_results_levels/output/density_levels.pdf}
+\includegraphics[width=0.98\textwidth]{../tasks/audits/main_results_levels/output/price_levels.pdf}
+\includegraphics[width=0.98\textwidth]{../tasks/audits/main_results_levels/output/permit_levels.pdf}
+\end{center}

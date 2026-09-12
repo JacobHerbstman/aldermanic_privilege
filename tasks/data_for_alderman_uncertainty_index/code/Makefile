@@ -14,29 +14,29 @@ all: ../output/permits_for_uncertainty_index.csv
 	../input/gis_osm_water_a_free_1.dbf \
 	../input/gis_osm_water_a_free_1.prj \
 	../input/gis_osm_water_a_free_1.shx \
-	../input/gis_osm_water_a_free_1.cpg | ../output
+	../input/gis_osm_water_a_free_1.cpg ../../setup_environment/code/packages.R Makefile ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
 	$(R) $<
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean.gpkg | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/chicago_alderman_terms.csv: ../../create_alderman_data/output/chicago_alderman_terms.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/ward_controls.csv: ../../create_ward_controls/output/ward_controls_2006_2022.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/community_areas.geojson: ../../download_chicago_spatial_data/output/community_areas.geojson | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/cta_stops.gpkg: ../../prepare_amenities_data/output/cta_stops.gpkg | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/ward_panel.gpkg ../input/building_permits_clean.gpkg ../input/chicago_alderman_terms.csv ../input/ward_controls.csv ../input/community_areas.geojson ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg
 

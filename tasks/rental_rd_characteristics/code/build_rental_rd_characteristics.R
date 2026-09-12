@@ -3,10 +3,11 @@
 # bandwidth_ft <- 1500
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/amenity_distance_helpers.R")
+source("../../shared/code/save_data.R")
+source("../../shared/code/amenity_distance_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(bandwidth_ft)
 }
 if (length(cli_args) != 1) {
@@ -34,11 +35,8 @@ if (anyDuplicated(rent$rent_panel_id) > 0) {
 if (!all(c("longitude", "latitude") %in% names(rent))) {
   stop("Rental input must include corrected longitude and latitude.", call. = FALSE)
 }
-if (!"signed_dist" %in% names(rent) && "signed_dist_m" %in% names(rent)) {
-  rent <- rent %>% mutate(signed_dist = signed_dist_m / 0.3048)
-}
 if (!"signed_dist" %in% names(rent)) {
-  stop("Rental input must include signed_dist in feet or signed_dist_m in meters.", call. = FALSE)
+  stop("Rental input must include signed_dist in feet.", call. = FALSE)
 }
 
 location_flags <- c(
@@ -208,7 +206,4 @@ if (anyDuplicated(rent$rent_panel_id) > 0) {
   stop("Amenity join expanded rent_panel_id rows.", call. = FALSE)
 }
 
-write_parquet(
-  as.data.frame(rent),
-  sprintf("../output/rental_rd_characteristics_panel_bw%s.parquet", bandwidth_label)
-)
+SaveData(as.data.frame(rent), c("rent_panel_id"), sprintf("../output/rental_rd_characteristics_panel_bw%s.parquet", bandwidth_label))

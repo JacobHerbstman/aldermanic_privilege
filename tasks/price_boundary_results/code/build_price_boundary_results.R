@@ -17,6 +17,7 @@ if (
 official_property_type_fe <- cli_args[[1]] == "TRUE"
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
 rent <- arrow::read_parquet(
@@ -818,7 +819,4 @@ ggplot2::ggsave(
   height = 10,
   bg = "white"
 )
-readr::write_csv(
-  property_type_estimates,
-  "../output/price_boundary_property_type_fe_estimates.csv"
-)
+SaveData(property_type_estimates, c("market", "specification"), "../output/price_boundary_property_type_fe_estimates.csv")

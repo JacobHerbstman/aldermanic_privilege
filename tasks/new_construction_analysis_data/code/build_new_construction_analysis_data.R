@@ -1,6 +1,7 @@
 # setwd("tasks/new_construction_analysis_data/code")
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 projects <- readr::read_csv("../output/construction_regressors.csv",
   col_types = readr::cols(project_id = "c", component_pins = "c", ward_pair = "c", segment_id = "c", .default = readr::col_guess()))
 zoning <- readr::read_csv("../input/preferred_new_construction_zoning.csv",
@@ -11,9 +12,12 @@ stopifnot(!anyDuplicated(projects$project_id), !anyDuplicated(zoning$project_id)
 projects <- projects |>
   left_join(zoning |> select(project_id, zoning_year = construction_year,
     zone_group = construction_zone_group, zoning_assignment_source),
-    by = "project_id", relationship = "one-to-one")
+    by = "project_id", relationship = "one-to-one") |>
+  mutate(density_eligible = allow_far & allow_dupac &
+    is.finite(density_far) & density_far > 0 &
+    is.finite(density_dupac) & density_dupac > 0)
+stopifnot(!anyNA(projects$density_eligible))
 stopifnot(all(projects$construction_year == projects$zoning_year),
   !any(projects$within_500ft & (projects$allow_far | projects$allow_dupac) &
     (is.na(projects$zone_group) | projects$zone_group == "")))
-readr::write_csv(projects |> select(-zoning_year) |> arrange(construction_year, project_id),
-  "../output/new_construction_analysis_data.csv", na = "")
+SaveData(projects |> select(-zoning_year) |> arrange(construction_year, project_id), c("project_id"), "../output/new_construction_analysis_data.csv", na = "")

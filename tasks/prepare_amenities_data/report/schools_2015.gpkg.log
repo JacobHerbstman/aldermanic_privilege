@@ -1,0 +1,16 @@
+File: schools_2015.gpkg
+Rows: 680
+Columns: 6
+SHA-256 (saved bytes): a461aad260e90be322077e4f900a07ad22b4e45e0aaa2ddc8bcb646e114f0840
+Key: fid
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+   column inferred_type non_missing distinct min max  mean                 sd
+      fid        BIGINT         680      680   1 680 340.5 196.44337606547083
+school_id       VARCHAR         680      680   -   -     -                  -
+school_nm       VARCHAR         680      680   -   -     -                  -
+grade_cat       VARCHAR         680        2   -   -     -                  -
+ sch_type       VARCHAR         680        5   -   -     -                  -
+   source       VARCHAR         680        1   -   -     -                  -

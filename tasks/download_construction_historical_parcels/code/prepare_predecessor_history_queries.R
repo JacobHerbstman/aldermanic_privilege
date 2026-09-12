@@ -1,3 +1,4 @@
+source("../../shared/code/save_data.R")
 # setwd("tasks/download_construction_historical_parcels/code")
 
 library(dplyr)
@@ -9,4 +10,4 @@ queries <- read_csv("../input/historical_project_parcel_coverage.csv",
   distinct(pin = component_pin) |>
   arrange(pin)
 stopifnot(!anyNA(queries), all(grepl("^[0-9]{14}$", queries$pin)))
-write_csv(queries, "../output/predecessor_history_queries_download.csv")
+SaveData(queries, c("pin"), "../output/predecessor_history_queries_download.csv")

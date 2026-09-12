@@ -1,6 +1,8 @@
 # setwd("tasks/download_construction_address_geocodes/code")
 # provider <- "census"
 
+source("../../shared/code/save_data.R")
+
 library(readr)
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -34,3 +36,5 @@ for (body in queries$response_json) {
 write_csv(queries, paste0("../temp/address_geocodes_", provider, ".csv"))
 stopifnot(file.rename(paste0("../temp/address_geocodes_", provider, ".csv"),
                       paste0("../output/address_geocodes_", provider, "_download.csv")))
+
+ReportData(paste0("../output/address_geocodes_", provider, "_download.csv"), "selected_address")

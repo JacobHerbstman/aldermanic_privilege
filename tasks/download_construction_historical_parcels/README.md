@@ -1,5 +1,12 @@
 # Historical parcel polygons for initial construction candidates
 
+The September 12 cleanup also preserves the nineteen completed review-search
+responses in the committed [`sources/`](sources/README.md) folder. Ordinary Make
+copies these responses into `output/`. A deliberate `make download-reviewed-current`
+saves refreshed responses under separate names for comparison. Changes to report
+code therefore do not repeat these searches or change the recorded source vintage.
+The dated notes below describe the earlier acquisitions and their original commands.
+
 The ordinary Make entry point combines two pinned Cook County historical parcel
 extracts. The July 27, 2026 source contains 8,444 polygons from 11,017 requested
 year/PIN10 pairs. Updated construction candidates required 29 additional queries;
@@ -31,7 +38,7 @@ combining them preserves every original feature's attributes and geometry.
 Run `make` in `code/` to reproduce the pinned inputs and their standard reports.
 An ordinary build never refreshes a historical source silently. A current public
 query cannot guarantee the July bytes. For an intentional expansion, run
-`make -f download_recipes.make` in `code/`. Make obtains the current construction
+`make download-current` in `code/`. Make obtains the current construction
 request table through its upstream producer and queries only year/PIN10 pairs
 absent from the July scope. It saves annual extracts and their combined supplement.
 Download responses must contain every requested object ID and valid geometry;
@@ -86,7 +93,7 @@ new queries. The latter are pinned as
 `preferred_parcel_supplement_queries_2026-09-07.csv`. All four preferred inputs
 are fixed by `preferred_snapshot.sha256`. The original query scope takes
 priority, including its empty results; combining sources never silently refreshes
-an already queried parcel. `download_recipes.make` prepares and downloads only
+an already queried parcel. `Makefile` prepares and downloads only
 the additional preferred queries, using the same annual API rules as the initial
 lookup.
 
@@ -256,7 +263,7 @@ Future missing-query preparation subtracts these recorded queries; unchanged
 production builds reuse the saved vintage without network access.
 
 The earlier Deming/Vernon/64th comparison queries are declared in
-`remaining_review_sources.make`. Their unchanged September 8 responses are also
+`Makefile`. Their unchanged September 8 responses are also
 preserved as `remaining_home_parcels_2018_2026-09-08.geojson`,
 `remaining_home_parcels_2019_2026-09-08.geojson`, and
 `remaining_home_parcels_2025_2026-09-08.geojson` in the raw-source folder, with
@@ -272,7 +279,7 @@ source combiner through declared links and the recorded SHA-256 checks. The othe
 Maud home's 2018 parcel was already present. Unchanged builds reuse these sources.
 
 Six bounded 2022 Cook County building-outline queries in
-`remaining_review_sources.make` support the recheck of Lincoln, Campbell, Seeley,
+`Makefile` support the recheck of Lincoln, Campbell, Seeley,
 38th Street, Calumet and Marquette. They use fixed 3435 bounding boxes centered on
 recorded parcel coordinates and the public `buildingFootprint_2022` service. They
 are inspection evidence, not new building measurements in the construction dataset.
@@ -284,7 +291,7 @@ the saved bytes exactly. The audit map consumes these outputs through Make links
 
 Campbell's approved 2007 year adds eight direct parcel-number queries, PIN10
 1336422050 through 1336422057. On September 8, 2026, the existing
-`download_recipes.make` / `download_historical_parcels.R` acquisition returned no
+`Makefile` / `download_historical_parcels.R` acquisition returned no
 2007 polygons for these individual successor numbers. The query table and empty
 GeoPackage are preserved as `campbell_queries_2026-09-08.csv` and
 `campbell_parcels_2026-09-08.gpkg` under `data_raw/construction_review`, with hashes in

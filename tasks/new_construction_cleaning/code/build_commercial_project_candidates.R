@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 normalize_pin <- function(x) {
   value <- str_replace_all(str_squish(as.character(x)), "[^0-9]", "")
   if_else(str_length(value) == 14, value, NA_character_)
@@ -86,11 +87,8 @@ raw <- readr::read_csv(
   show_col_types = FALSE,
   col_types = readr::cols(.default = readr::col_character())
 ) %>%
-  janitor::clean_names()
-
-if (!"modelgroup" %in% names(raw) && "sheet" %in% names(raw)) {
-  raw <- raw %>% rename(modelgroup = sheet)
-}
+  janitor::clean_names() %>%
+  rename(modelgroup = sheet)
 
 raw <- raw %>%
   mutate(
@@ -479,9 +477,9 @@ family_review <- family_rows %>%
   ) %>%
   arrange(desc(any_within_1500ft), desc(requires_review), project_family_id)
 
-readr::write_csv(entity_rows, "../output/commercial_entity_version_candidates.csv")
-readr::write_csv(commercial_address_family_candidates, "../output/commercial_address_family_candidates.csv")
-readr::write_csv(entity_components, "../output/commercial_entity_component_candidates.csv")
-readr::write_csv(family_vintages, "../output/commercial_family_vintage_summary.csv")
-readr::write_csv(production_families, "../output/commercial_production_family_members.csv")
-readr::write_csv(family_review, "../output/commercial_project_family_review.csv")
+SaveData(entity_rows, character(), "../output/commercial_entity_version_candidates.csv")
+SaveData(commercial_address_family_candidates, character(), "../output/commercial_address_family_candidates.csv")
+SaveData(entity_components, character(), "../output/commercial_entity_component_candidates.csv")
+SaveData(family_vintages, character(), "../output/commercial_family_vintage_summary.csv")
+SaveData(production_families, character(), "../output/commercial_production_family_members.csv")
+SaveData(family_review, character(), "../output/commercial_project_family_review.csv")

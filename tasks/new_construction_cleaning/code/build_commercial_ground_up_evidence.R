@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 projects <- sf::st_read(
   "../output/preferred_project_year_geometry.gpkg",
   quiet = TRUE
@@ -433,7 +434,4 @@ if (any(str_detect(names(ground_up_review), regex(
   stop("Commercial ground-up review contains a prohibited analysis field.", call. = FALSE)
 }
 
-readr::write_csv(
-  ground_up_evidence,
-  "../output/commercial_ground_up_evidence.csv"
-)
+SaveData(ground_up_evidence, c("project_id"), "../output/commercial_ground_up_evidence.csv")

@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 family_review <- readr::read_csv(
   "../output/commercial_project_family_review.csv",
   show_col_types = FALSE,
@@ -51,7 +52,7 @@ address_candidates <- readr::read_csv(
 )
 
 verified_cases <- readr::read_csv(
-  "../adjudication/commercial_verified_case_review.csv",
+  "../input/commercial_verified_case_review.csv",
   show_col_types = FALSE,
   col_types = readr::cols(pin = readr::col_character(), .default = readr::col_guess())
 )
@@ -436,15 +437,6 @@ if (any(str_detect(names(adjudication_queue), regex(
   stop("Commercial adjudication queue contains a prohibited analysis field.", call. = FALSE)
 }
 
-readr::write_csv(
-  commercial_candidates,
-  "../output/preferred_commercial_project_candidates.csv"
-)
-readr::write_csv(
-  component_rows,
-  "../output/preferred_commercial_project_components.csv"
-)
-readr::write_csv(
-  adjudication_queue,
-  "../output/commercial_adjudication_queue.csv"
-)
+SaveData(commercial_candidates, character(), "../output/preferred_commercial_project_candidates.csv")
+SaveData(component_rows, character(), "../output/preferred_commercial_project_components.csv")
+SaveData(adjudication_queue, character(), "../output/commercial_adjudication_queue.csv")

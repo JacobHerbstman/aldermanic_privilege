@@ -1,6 +1,7 @@
 # setwd("tasks/density_boundary_characteristics/code")
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 # Reused geometric operations retain the original 30-metre feature corridor.
 line_buffer_overlap_ft <- function(segment_sf, feature_sf, buffer_ft) {
   if (nrow(segment_sf) == 0 || is.null(feature_sf) || nrow(feature_sf) == 0) {
@@ -83,4 +84,4 @@ features <- tibble(segment_id = segments$segment_id,
   park_area_share = area_share(segments, land[land$fclass %in% c("park", "recreation_ground", "grass", "forest", "nature_reserve", "meadow", "village_green", "greenfield"), ], 30 / 0.3048),
   cemetery_area_share = area_share(segments, land[land$fclass %in% "cemetery", ], 30 / 0.3048))
 stopifnot(all(features$segment_length_ft > 0), !anyNA(features))
-write_csv(features, "../output/boundary_feature_measurements.csv")
+SaveData(features, c("segment_id"), "../output/boundary_feature_measurements.csv")

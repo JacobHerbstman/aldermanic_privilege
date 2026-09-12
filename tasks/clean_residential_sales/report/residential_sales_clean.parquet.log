@@ -1,0 +1,31 @@
+File: residential_sales_clean.parquet
+Rows: 238705
+Columns: 21
+SHA-256 (saved bytes): e32a3315fed1f52bf0a948be22a15cad4019000461531718b30ab328483bce20
+Key: row_id
+Types: Stored Parquet schema.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct     min         max               mean                 sd
+                          row_id       VARCHAR      238705   244489       -           -                  -                  -
+               sale_document_num       VARCHAR      238705   251148       -           -                  -                  -
+                             pin       VARCHAR      238705   174840       -           -                  -                  -
+                            year       INTEGER      238705       19    2006        2022 2014.2082696214993  5.354215674900466
+                       sale_date          DATE      238705     3739       -           -                  -                  -
+              sale_price_nominal        DOUBLE      238705     6946 10074.0 225000001.0  354258.3225822668  852473.9639013349
+                           class       INTEGER      238705       13     202         295  214.0447204708741  23.93100024396208
+                   township_code       INTEGER      238705        9      70          77  72.53740390859011  2.283607115262186
+               neighborhood_code       INTEGER      238705      151   70010       77170  72691.12440041055 2249.0638066474403
+                   is_mydec_date       BOOLEAN      238705        2       -           -                  -                  -
+                  sale_deed_type       VARCHAR      238705        2       -           -                  -                  -
+                 mydec_deed_type       VARCHAR      238705        3       -           -                  -                  -
+                       sale_type       VARCHAR      238705        2       -           -                  -                  -
+                sale_seller_name       VARCHAR      238705   171359       -           -                  -                  -
+                 sale_buyer_name       VARCHAR      238705   185608       -           -                  -                  -
+              seller_name_usable       BOOLEAN      238705        2       -           -                  -                  -
+               buyer_name_usable       BOOLEAN      238705        2       -           -                  -                  -
+                num_parcels_sale        DOUBLE      238705        1     1.0         1.0                1.0                0.0
+sale_filter_same_sale_within_365       BOOLEAN      238705        1       -           -                  -                  -
+       sale_filter_less_than_10k       BOOLEAN      238705        1       -           -                  -                  -
+           sale_filter_deed_type       BOOLEAN      238705        1       -           -                  -                  -

@@ -2,6 +2,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/data_for_alderman_uncertainty_index/code")
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
 assert_unique_key <- function(df, key_cols, label) {
@@ -413,4 +414,4 @@ output_data <- permits_analysis %>%
   )
 assert_unique_key(output_data, "id", "Uncertainty-index permit output")
 
-write_csv(output_data, "../output/permits_for_uncertainty_index.csv")
+SaveData(output_data, c("id"), "../output/permits_for_uncertainty_index.csv")

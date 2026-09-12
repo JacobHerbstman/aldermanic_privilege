@@ -5,6 +5,7 @@
 # minimum_area_sqft <- 1
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(start_year, end_year, minimum_area_sqft)
@@ -125,4 +126,4 @@ buildings %>%
     multifamily = unitscount > 1
   ) %>%
   arrange(pin) %>%
-  write_csv("../output/density_historical_building_universe.csv")
+  SaveData(key = "pin", outfile = "../output/density_historical_building_universe.csv")

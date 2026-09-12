@@ -61,8 +61,7 @@ projects <- projects |>
     construction_year >= 2006L,
     construction_year <= 2022L,
     within_500ft,
-    (allow_far & is.finite(density_far) & density_far > 0) |
-      (allow_dupac & is.finite(density_dupac) & density_dupac > 0),
+    density_eligible,
     is.finite(share_white_own),
     is.finite(share_black_own),
     is.finite(median_hh_income_own),
@@ -129,9 +128,6 @@ for (rule_i in seq_len(nrow(sample_rules))) {
     model_data <- projects |>
       dplyr::filter(
         keep,
-        if (panel_specs$outcome[panel_i] == "density_far") allow_far else allow_dupac,
-        is.finite(.data[[panel_specs$outcome[panel_i]]]),
-        .data[[panel_specs$outcome[panel_i]]] > 0,
         panel_specs$sample[panel_i] == "all" | external_multifamily
       ) |>
       dplyr::mutate(

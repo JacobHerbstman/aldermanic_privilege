@@ -15,11 +15,11 @@ construction_tasks.svg: construction_tasks.dot
 construction_scripts.svg: construction_scripts.dot
 	dot -Tsvg $< -o $@
 
-construction_tasks.dot: build_construction_graph.py ../tasks/new_construction_cleaning/code/Makefile ../tasks/new_construction_cleaning/code/construction_settings.make ../tasks/new_construction_cleaning/code/legacy_construction.make
+construction_tasks.dot: build_construction_graph.py ../tasks/new_construction_cleaning/code/Makefile
 	python3 $< tasks
 
-construction_scripts.dot: build_construction_graph.py ../tasks/new_construction_cleaning/code/Makefile ../tasks/new_construction_cleaning/code/construction_settings.make ../tasks/new_construction_cleaning/code/legacy_construction.make
+construction_scripts.dot: build_construction_graph.py ../tasks/new_construction_cleaning/code/Makefile
 	python3 $< scripts
 
-construction_steps.md: build_construction_graph.py ../tasks/new_construction_cleaning/code/Makefile ../tasks/new_construction_cleaning/code/construction_settings.make ../tasks/new_construction_cleaning/code/legacy_construction.make
+construction_steps.md: build_construction_graph.py ../tasks/new_construction_cleaning/code/Makefile
 	python3 $< steps

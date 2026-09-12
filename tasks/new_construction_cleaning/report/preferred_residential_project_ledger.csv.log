@@ -1,38 +1,38 @@
 File: preferred_residential_project_ledger.csv
-Rows: 12904
+Rows: 12867
 Columns: 28
-SHA-256 (saved bytes): 7a6b2810059a2004a4abc7334daa4c4164051d38f658acbcf4c174fb0dab823f
+SHA-256 (saved bytes): 9d32aca398a9d22de4704a6bd4248029b651eae7324a87f952637e3a0de155cb
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                      column inferred_type non_missing distinct                min                max               mean                 sd
-                 project_id       VARCHAR       12904    12904                  -                  -                  -                  -
-         source_project_ids       VARCHAR       12904    12904                  -                  -                  -                  -
-geometry_source_project_ids       VARCHAR       12904    12904                  -                  -                  -                  -
-             component_pins       VARCHAR       12904    12904                  -                  -                  -                  -
-               project_kind       VARCHAR       12904        6                  -                  -                  -                  -
-          construction_year        BIGINT       12904       17               2006               2022 2012.4192498450093  5.390708911333265
-             dwelling_units        BIGINT       12904       25                  1                350 1.4485430874147551 3.3809720598208983
-              building_sqft        BIGINT       12894     3717                246             652094 3062.0760818985573  6266.457323998749
-                  land_sqft        DOUBLE       12904     3542              176.0          1150464.0 3761.3970861748294 12137.044353784333
-                  allow_far       BOOLEAN       12904        2                  -                  -                  -                  -
-                allow_dupac       BOOLEAN       12904        2                  -                  -                  -                  -
-               class_values       VARCHAR       12904       20                  -                  -                  -                  -
-          membership_source       VARCHAR       12904       39                  -                  -                  -                  -
-                year_source       VARCHAR       12904    12597                  -                  -                  -                  -
-               units_source       VARCHAR       12904    12596                  -                  -                  -                  -
-            building_source       VARCHAR       12904    12596                  -                  -                  -                  -
-                land_source       VARCHAR       12904    12588                  -                  -                  -                  -
-               evidence_ids       VARCHAR       12867    12866                  -                  -                  -                  -
-            decision_reason       VARCHAR       12904       70                  -                  -                  -                  -
-                 confidence       VARCHAR       12903        3                  -                  -                  -                  -
-            decision_source       VARCHAR       12904        3                  -                  -                  -                  -
-    project_geometry_source       VARCHAR       12904        7                  -                  -                  -                  -
-    location_reference_year        BIGINT       12904       20               2006               2025  2014.677231866088 6.7059950016705905
+                 project_id       VARCHAR       12867    12867                  -                  -                  -                  -
+         source_project_ids       VARCHAR       12867    12867                  -                  -                  -                  -
+geometry_source_project_ids       VARCHAR       12867    12867                  -                  -                  -                  -
+             component_pins       VARCHAR       12867    12867                  -                  -                  -                  -
+               project_kind       VARCHAR       12867        6                  -                  -                  -                  -
+          construction_year        BIGINT       12867       17               2006               2022 2012.4375534312583  5.387607578423845
+             dwelling_units        BIGINT       12867       25                  1                350 1.4498329058832673 3.3857443750015515
+              building_sqft        BIGINT       12857     3717                246             652094  3065.988022089134 6275.0296631448255
+                  land_sqft        DOUBLE       12867     3536              176.0          1150464.0  3769.654775783011 12153.503778968237
+                  allow_far       BOOLEAN       12867        2                  -                  -                  -                  -
+                allow_dupac       BOOLEAN       12867        2                  -                  -                  -                  -
+               class_values       VARCHAR       12867       20                  -                  -                  -                  -
+          membership_source       VARCHAR       12867       39                  -                  -                  -                  -
+                year_source       VARCHAR       12867    12560                  -                  -                  -                  -
+               units_source       VARCHAR       12867    12559                  -                  -                  -                  -
+            building_source       VARCHAR       12867    12559                  -                  -                  -                  -
+                land_source       VARCHAR       12867    12551                  -                  -                  -                  -
+               evidence_ids       VARCHAR       12830    12829                  -                  -                  -                  -
+            decision_reason       VARCHAR       12867       70                  -                  -                  -                  -
+                 confidence       VARCHAR       12866        3                  -                  -                  -                  -
+            decision_source       VARCHAR       12867        3                  -                  -                  -                  -
+    project_geometry_source       VARCHAR       12867        7                  -                  -                  -                  -
+    location_reference_year        BIGINT       12867       20               2006               2025  2014.702028444859  6.699633624957319
  location_reference_row_ids       VARCHAR        3423     3423                  -                  -                  -                  -
      location_reference_pin       VARCHAR        3416     3416                  -                  -                  -                  -
-                     x_3435        DOUBLE       12904    12848 1119172.9510746428  1203743.236447373  1161737.571257284 13066.015368852291
-                     y_3435        DOUBLE       12904    12848 1816533.4699999988 1949781.5401818515 1901283.2619765727 26273.694717649534
-          location_resolved       BOOLEAN       12904        1                  -                  -                  -                  -
+                     x_3435        DOUBLE       12867    12811 1119172.9510746428  1203743.236447373 1161716.3859367368 13078.577735373876
+                     y_3435        DOUBLE       12867    12811 1816533.4699999988 1949781.5401818515  1901287.780316656  26311.21263053012
+          location_resolved       BOOLEAN       12867        1                  -                  -                  -                  -

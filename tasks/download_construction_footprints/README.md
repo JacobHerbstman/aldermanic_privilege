@@ -1,16 +1,20 @@
-# Construction review footprint acquisition
+# Historical construction-review footprints
 
-This restores the original Cook County 2008/2022 acquisition from
-`research-archive:tasks/audits/new_construction_project_verification/code/download_official_footprint_snapshot.R`
-at commit `010a1f8497c1f32e2c79b5933d1c5baf9af44be3`.
+Run `make` from `code/` to read the recorded Cook County 2008 and 2022 footprint
+extracts and produce their data reports. The exact source files are included in
+the recorded-source release restored by `make -C replication` at the repository
+root. This task does not refresh the source vintage.
 
-The downloader queries the official feature services around the 795-project
-review cohort, then retains footprints near their project search sites. The code
-records the tiling, buffers, requested fields, paging, geometry normalization,
-and feature filtering. It retains the original acquisition manifest.
+The original downloader is preserved in
+`archive/download_official_footprint_snapshot.R`. It queried tiles around a fixed
+795-project review cohort, retained nearby footprints, and recorded the requests.
+Its original code and task context are also preserved at commit
+`010a1f8497c1f32e2c79b5933d1c5baf9af44be3` in
+`tasks/audits/new_construction_project_verification/`.
 
-Running this task creates a fresh source extract. Replication instead reads the
-preserved extracts in `data_raw/construction_review/`, whose hashes are recorded.
-A refreshed extract must be compared with those preserved inputs before adoption.
-This task has not yet been executed during restoration because its upstream
-project-geometry producers are still being restored.
+That historical cohort is not the current construction sample. Its later
+restoration depended on 21 intermediate files with neither a producer nor a
+preserved output in this checkout. The obsolete restoration rules were retired;
+they are available at commit `1b5dae29`. The archived downloader retains its
+original paths as a record of acquisition and is not an active build target.
+A future source refresh requires an explicit new query cohort.

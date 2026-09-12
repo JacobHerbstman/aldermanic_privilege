@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 reference_points <- readr::read_csv(
   "../output/preferred_predecessor_reference_points.csv",
   show_col_types = FALSE,
@@ -280,13 +281,5 @@ if (any(!sf::st_is_valid(selected_predecessors)) || any(sf::st_is_empty(selected
   stop("Selected predecessor geometries must be valid and nonempty.", call. = FALSE)
 }
 
-sf::st_write(
-  selected_predecessors,
-  "../output/preferred_historical_predecessor_selected.gpkg",
-  delete_dsn = TRUE,
-  quiet = TRUE
-)
-readr::write_csv(
-  arrange(predecessor_resolution, target_year, source_family, project_id, component_pin, object_id),
-  "../output/preferred_historical_predecessor_resolution.csv"
-)
+SaveData(selected_predecessors, c("request_id"), "../output/preferred_historical_predecessor_selected.gpkg", delete_dsn = TRUE, quiet = TRUE)
+SaveData(arrange(predecessor_resolution, target_year, source_family, project_id, component_pin, object_id), character(), "../output/preferred_historical_predecessor_resolution.csv")

@@ -1,7 +1,7 @@
 File: preferred_predecessor_parcel_source.gpkg
 Rows: 1732
 Columns: 6
-SHA-256 (saved bytes): 8bd47e363fa4cce48f1869ed724ba200ea5d62a0e539f39ec5c6151a55f79f88
+SHA-256 (saved bytes): c8a68175b3a478e389e9ebd30d75dde3d11d6a52784de69eb1d95dd2434e4da4
 Key: target_year, object_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).

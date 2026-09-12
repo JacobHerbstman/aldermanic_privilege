@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 project_geometry <- sf::st_read(
   "../output/historical_project_year_geometry.gpkg",
   quiet = TRUE
@@ -118,4 +119,4 @@ spatial_matches <- purrr::map2_dfr(
   distinct(source_family, project_id, target_year, permit_id, .keep_all = TRUE) %>%
   arrange(source_family, project_id, target_year, polygon_distance_ft, application_date, permit_id)
 
-readr::write_csv(spatial_matches, "../output/new_construction_spatial_permit_matches.csv")
+SaveData(spatial_matches, character(), "../output/new_construction_spatial_permit_matches.csv")

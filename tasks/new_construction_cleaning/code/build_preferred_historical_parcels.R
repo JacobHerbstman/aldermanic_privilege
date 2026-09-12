@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 requests <- readr::read_csv(
   "../output/preferred_project_geography_requests.csv",
   show_col_types = FALSE,
@@ -70,13 +71,5 @@ coverage <- requests %>%
   ) %>%
   arrange(target_year, project_id, component_pin)
 
-sf::st_write(
-  historical_parcels,
-  "../output/preferred_historical_parcels.gpkg",
-  delete_dsn = TRUE,
-  quiet = TRUE
-)
-readr::write_csv(
-  coverage,
-  "../output/preferred_historical_parcel_coverage.csv"
-)
+SaveData(historical_parcels, c("target_year", "object_id"), "../output/preferred_historical_parcels.gpkg", delete_dsn = TRUE, quiet = TRUE)
+SaveData(coverage, c("project_id", "component_pin", "target_year"), "../output/preferred_historical_parcel_coverage.csv")

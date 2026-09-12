@@ -1,3 +1,4 @@
+source("../../shared/code/save_data.R")
 # setwd("tasks/download_construction_historical_parcels/code")
 
 library(dplyr)
@@ -11,4 +12,4 @@ queried <- read_csv("../input/historical_project_parcel_queries_2026-07-27.csv",
 stopifnot(!anyNA(requests), !anyDuplicated(queried))
 additional <- anti_join(requests, queried, by = c("target_year", "pin10")) |>
   arrange(target_year, pin10)
-write_csv(additional, "../output/historical_parcel_queries_additional.csv")
+SaveData(additional, c("target_year", "pin10"), "../output/historical_parcel_queries_additional.csv")

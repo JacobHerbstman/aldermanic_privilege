@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 normalize_address <- function(x) {
   str_to_upper(coalesce(as.character(x), "")) %>%
     str_replace_all("\\bCHICAGO\\b", "") %>%
@@ -139,4 +140,4 @@ if (anyDuplicated(matches[c("project_id", "permit_id")]) > 0) {
   stop("Commercial address-permit history has duplicate project-permit keys.", call. = FALSE)
 }
 
-readr::write_csv(matches, "../output/commercial_address_permit_history.csv")
+SaveData(matches, character(), "../output/commercial_address_permit_history.csv")

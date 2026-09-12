@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 residential <- readr::read_csv(
   "../output/preferred_residential_project_candidates.csv",
   show_col_types = FALSE,
@@ -71,4 +72,4 @@ if (anyDuplicated(requests[c("project_id", "component_pin", "target_year")]) > 0
   stop("Preferred project-component-year requests are not unique.", call. = FALSE)
 }
 
-readr::write_csv(requests, "../output/preferred_project_geography_requests.csv")
+SaveData(requests, character(), "../output/preferred_project_geography_requests.csv")

@@ -1,0 +1,435 @@
+File: boundary_segments_1320ft.gpkg
+Layer: 2003_2014
+Rows: 1142
+Columns: 41
+SHA-256 (saved bytes): f0110d55425c6006f0477e9315b6f7c6d8054ac17838777701129960a008e234
+Key: segment_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct                min                max                mean                  sd
+                             fid        BIGINT        1142     1142                  1               1142               571.5  329.81130969085945
+                      segment_id       VARCHAR        1142     1142                  -                  -                   -                   -
+                    ward_pair_id       VARCHAR        1142      117                  -                  -                   -                   -
+                          ward_a        BIGINT        1142       43                  1                 49   18.69614711033275  13.880785875382447
+                          ward_b        BIGINT        1142       46                  3                 50  28.137478108581437  12.481762890422143
+                             era       VARCHAR        1142        1                  -                  -                   -                   -
+                  segment_number        BIGINT        1142       34                  1                 34    7.73029772329247   6.106054501598325
+              n_segments_in_pair        BIGINT        1142       26                  1                 34   14.46059544658494   7.731681683884058
+                segment_length_m        DOUBLE        1142     1140 3.0520770215619906 500.16545062896716   357.3766454436578  120.30881071293196
+               segment_length_ft        DOUBLE        1142     1140 10.013376054993406  1640.962764530732  1172.4955559175105   394.7139459085695
+                    centroid_lat        DOUBLE        1142     1142  41.65812765649198  42.01764919231056   41.85898757797445 0.08514855627457986
+                    centroid_lon        DOUBLE        1142     1142 -87.85283383743685 -87.56224640538828  -87.68147276345266  0.0518686339580855
+                target_length_ft        DOUBLE        1142        1             1320.0             1320.0              1320.0                 0.0
+                  raw_segment_id       VARCHAR        1142     1142                  -                  -                   -                   -
+                   short_segment        BIGINT        1142        2                  0                  1 0.05866900175131348 0.23510710797354945
+                terminal_segment        BIGINT        1142        2                  0                  1 0.19614711033274956 0.39725509467019243
+    nearest_same_pair_segment_id       VARCHAR          66       60                  -                  -                   -                   -
+nearest_same_pair_segment_number        DOUBLE          66       16                1.0               19.0  7.4393939393939394   4.300729054040768
+   nearest_same_pair_distance_ft        DOUBLE          66       52  25.27943828187216 1680.7909670198592  340.78258206906406   331.9710008590753
+        n_touching_same_pair_1ft        DOUBLE          67        1                0.0                0.0                 0.0                 0.0
+           n_near_same_pair_10ft        DOUBLE          67        1                0.0                0.0                 0.0                 0.0
+           two_sided_all_offsets        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+                  component_type       VARCHAR        1142        4                  -                  -                   -                   -
+                   valid_segment        BIGINT        1142        1                  1                  1                 1.0                 0.0
+                  invalid_reason       VARCHAR        1142        1                  -                  -                   -                   -
+             analysis_segment_id       VARCHAR        1142     1142                  -                  -                   -                   -
+                    merge_reason       VARCHAR        1142        1                  -                  -                   -                   -
+                 segment_lt500ft        BIGINT        1142        2                  0                  1  0.1190893169877408  0.3240354836198602
+                segment_lt1000ft        BIGINT        1142        2                  0                  1 0.12259194395796848 0.32811191717035565
+            left_offset_ward_5ft       VARCHAR          67       11                  -                  -                   -                   -
+           right_offset_ward_5ft       VARCHAR          67        7                  -                  -                   -                   -
+              two_sided_pass_5ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+           left_offset_ward_20ft       VARCHAR          67       11                  -                  -                   -                   -
+          right_offset_ward_20ft       VARCHAR          67        7                  -                  -                   -                   -
+             two_sided_pass_20ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+           left_offset_ward_50ft       VARCHAR          67       11                  -                  -                   -                   -
+          right_offset_ward_50ft       VARCHAR          67        7                  -                  -                   -                   -
+             two_sided_pass_50ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+          left_offset_ward_100ft       VARCHAR          67       11                  -                  -                   -                   -
+         right_offset_ward_100ft       VARCHAR          67        7                  -                  -                   -                   -
+            two_sided_pass_100ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+
+File: boundary_segments_1320ft.gpkg
+Layer: 2003_2014_bw100m
+Rows: 1142
+Columns: 43
+SHA-256 (saved bytes): f0110d55425c6006f0477e9315b6f7c6d8054ac17838777701129960a008e234
+Key: segment_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct                min                max                mean                  sd
+                             fid        BIGINT        1142     1142                  1               1142               571.5  329.81130969085945
+                      segment_id       VARCHAR        1142     1142                  -                  -                   -                   -
+                    ward_pair_id       VARCHAR        1142      117                  -                  -                   -                   -
+                          ward_a        BIGINT        1142       43                  1                 49   18.69614711033275  13.880785875382447
+                          ward_b        BIGINT        1142       46                  3                 50  28.137478108581437  12.481762890422143
+                             era       VARCHAR        1142        1                  -                  -                   -                   -
+                  segment_number        BIGINT        1142       34                  1                 34    7.73029772329247   6.106054501598325
+              n_segments_in_pair        BIGINT        1142       26                  1                 34   14.46059544658494   7.731681683884058
+                segment_length_m        DOUBLE        1142     1140 3.0520770215619906 500.16545062896716   357.3766454436578  120.30881071293196
+               segment_length_ft        DOUBLE        1142     1140 10.013376054993406  1640.962764530732  1172.4955559175105   394.7139459085695
+                    centroid_lat        DOUBLE        1142     1142  41.65812765649198  42.01764919231056   41.85898757797445 0.08514855627457986
+                    centroid_lon        DOUBLE        1142     1142 -87.85283383743685 -87.56224640538828  -87.68147276345266  0.0518686339580855
+                target_length_ft        DOUBLE        1142        1             1320.0             1320.0              1320.0                 0.0
+                  raw_segment_id       VARCHAR        1142     1142                  -                  -                   -                   -
+                   short_segment        BIGINT        1142        2                  0                  1 0.05866900175131348 0.23510710797354945
+                terminal_segment        BIGINT        1142        2                  0                  1 0.19614711033274956 0.39725509467019243
+    nearest_same_pair_segment_id       VARCHAR          66       60                  -                  -                   -                   -
+nearest_same_pair_segment_number        DOUBLE          66       16                1.0               19.0  7.4393939393939394   4.300729054040768
+   nearest_same_pair_distance_ft        DOUBLE          66       52  25.27943828187216 1680.7909670198592  340.78258206906406   331.9710008590753
+        n_touching_same_pair_1ft        DOUBLE          67        1                0.0                0.0                 0.0                 0.0
+           n_near_same_pair_10ft        DOUBLE          67        1                0.0                0.0                 0.0                 0.0
+           two_sided_all_offsets        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+                  component_type       VARCHAR        1142        4                  -                  -                   -                   -
+                   valid_segment        BIGINT        1142        1                  1                  1                 1.0                 0.0
+                  invalid_reason       VARCHAR        1142        1                  -                  -                   -                   -
+             analysis_segment_id       VARCHAR        1142     1142                  -                  -                   -                   -
+                    merge_reason       VARCHAR        1142        1                  -                  -                   -                   -
+                 segment_lt500ft        BIGINT        1142        2                  0                  1  0.1190893169877408  0.3240354836198602
+                segment_lt1000ft        BIGINT        1142        2                  0                  1 0.12259194395796848 0.32811191717035565
+            left_offset_ward_5ft       VARCHAR          67       11                  -                  -                   -                   -
+           right_offset_ward_5ft       VARCHAR          67        7                  -                  -                   -                   -
+              two_sided_pass_5ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+           left_offset_ward_20ft       VARCHAR          67       11                  -                  -                   -                   -
+          right_offset_ward_20ft       VARCHAR          67        7                  -                  -                   -                   -
+             two_sided_pass_20ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+           left_offset_ward_50ft       VARCHAR          67       11                  -                  -                   -                   -
+          right_offset_ward_50ft       VARCHAR          67        7                  -                  -                   -                   -
+             two_sided_pass_50ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+          left_offset_ward_100ft       VARCHAR          67       11                  -                  -                   -                   -
+         right_offset_ward_100ft       VARCHAR          67        7                  -                  -                   -                   -
+            two_sided_pass_100ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+                       buffer_ft        DOUBLE        1142        1  328.0839895013123  328.0839895013123   328.0839895013096                 0.0
+                        buffer_m        DOUBLE        1142        1              100.0              100.0               100.0                 0.0
+
+File: boundary_segments_1320ft.gpkg
+Layer: 2003_2014_bw250m
+Rows: 1142
+Columns: 43
+SHA-256 (saved bytes): f0110d55425c6006f0477e9315b6f7c6d8054ac17838777701129960a008e234
+Key: segment_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct                min                max                mean                  sd
+                             fid        BIGINT        1142     1142                  1               1142               571.5  329.81130969085945
+                      segment_id       VARCHAR        1142     1142                  -                  -                   -                   -
+                    ward_pair_id       VARCHAR        1142      117                  -                  -                   -                   -
+                          ward_a        BIGINT        1142       43                  1                 49   18.69614711033275  13.880785875382447
+                          ward_b        BIGINT        1142       46                  3                 50  28.137478108581437  12.481762890422143
+                             era       VARCHAR        1142        1                  -                  -                   -                   -
+                  segment_number        BIGINT        1142       34                  1                 34    7.73029772329247   6.106054501598325
+              n_segments_in_pair        BIGINT        1142       26                  1                 34   14.46059544658494   7.731681683884058
+                segment_length_m        DOUBLE        1142     1140 3.0520770215619906 500.16545062896716   357.3766454436578  120.30881071293196
+               segment_length_ft        DOUBLE        1142     1140 10.013376054993406  1640.962764530732  1172.4955559175105   394.7139459085695
+                    centroid_lat        DOUBLE        1142     1142  41.65812765649198  42.01764919231056   41.85898757797445 0.08514855627457986
+                    centroid_lon        DOUBLE        1142     1142 -87.85283383743685 -87.56224640538828  -87.68147276345266  0.0518686339580855
+                target_length_ft        DOUBLE        1142        1             1320.0             1320.0              1320.0                 0.0
+                  raw_segment_id       VARCHAR        1142     1142                  -                  -                   -                   -
+                   short_segment        BIGINT        1142        2                  0                  1 0.05866900175131348 0.23510710797354945
+                terminal_segment        BIGINT        1142        2                  0                  1 0.19614711033274956 0.39725509467019243
+    nearest_same_pair_segment_id       VARCHAR          66       60                  -                  -                   -                   -
+nearest_same_pair_segment_number        DOUBLE          66       16                1.0               19.0  7.4393939393939394   4.300729054040768
+   nearest_same_pair_distance_ft        DOUBLE          66       52  25.27943828187216 1680.7909670198592  340.78258206906406   331.9710008590753
+        n_touching_same_pair_1ft        DOUBLE          67        1                0.0                0.0                 0.0                 0.0
+           n_near_same_pair_10ft        DOUBLE          67        1                0.0                0.0                 0.0                 0.0
+           two_sided_all_offsets        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+                  component_type       VARCHAR        1142        4                  -                  -                   -                   -
+                   valid_segment        BIGINT        1142        1                  1                  1                 1.0                 0.0
+                  invalid_reason       VARCHAR        1142        1                  -                  -                   -                   -
+             analysis_segment_id       VARCHAR        1142     1142                  -                  -                   -                   -
+                    merge_reason       VARCHAR        1142        1                  -                  -                   -                   -
+                 segment_lt500ft        BIGINT        1142        2                  0                  1  0.1190893169877408  0.3240354836198602
+                segment_lt1000ft        BIGINT        1142        2                  0                  1 0.12259194395796848 0.32811191717035565
+            left_offset_ward_5ft       VARCHAR          67       11                  -                  -                   -                   -
+           right_offset_ward_5ft       VARCHAR          67        7                  -                  -                   -                   -
+              two_sided_pass_5ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+           left_offset_ward_20ft       VARCHAR          67       11                  -                  -                   -                   -
+          right_offset_ward_20ft       VARCHAR          67        7                  -                  -                   -                   -
+             two_sided_pass_20ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+           left_offset_ward_50ft       VARCHAR          67       11                  -                  -                   -                   -
+          right_offset_ward_50ft       VARCHAR          67        7                  -                  -                   -                   -
+             two_sided_pass_50ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+          left_offset_ward_100ft       VARCHAR          67       11                  -                  -                   -                   -
+         right_offset_ward_100ft       VARCHAR          67        7                  -                  -                   -                   -
+            two_sided_pass_100ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+                       buffer_ft        DOUBLE        1142        1  820.2099737532808  820.2099737532808    820.209973753289                 0.0
+                        buffer_m        DOUBLE        1142        1              250.0              250.0               250.0                 0.0
+
+File: boundary_segments_1320ft.gpkg
+Layer: 2003_2014_bw400m
+Rows: 1142
+Columns: 43
+SHA-256 (saved bytes): f0110d55425c6006f0477e9315b6f7c6d8054ac17838777701129960a008e234
+Key: segment_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct                min                max                mean                  sd
+                             fid        BIGINT        1142     1142                  1               1142               571.5  329.81130969085945
+                      segment_id       VARCHAR        1142     1142                  -                  -                   -                   -
+                    ward_pair_id       VARCHAR        1142      117                  -                  -                   -                   -
+                          ward_a        BIGINT        1142       43                  1                 49   18.69614711033275  13.880785875382447
+                          ward_b        BIGINT        1142       46                  3                 50  28.137478108581437  12.481762890422143
+                             era       VARCHAR        1142        1                  -                  -                   -                   -
+                  segment_number        BIGINT        1142       34                  1                 34    7.73029772329247   6.106054501598325
+              n_segments_in_pair        BIGINT        1142       26                  1                 34   14.46059544658494   7.731681683884058
+                segment_length_m        DOUBLE        1142     1140 3.0520770215619906 500.16545062896716   357.3766454436578  120.30881071293196
+               segment_length_ft        DOUBLE        1142     1140 10.013376054993406  1640.962764530732  1172.4955559175105   394.7139459085695
+                    centroid_lat        DOUBLE        1142     1142  41.65812765649198  42.01764919231056   41.85898757797445 0.08514855627457986
+                    centroid_lon        DOUBLE        1142     1142 -87.85283383743685 -87.56224640538828  -87.68147276345266  0.0518686339580855
+                target_length_ft        DOUBLE        1142        1             1320.0             1320.0              1320.0                 0.0
+                  raw_segment_id       VARCHAR        1142     1142                  -                  -                   -                   -
+                   short_segment        BIGINT        1142        2                  0                  1 0.05866900175131348 0.23510710797354945
+                terminal_segment        BIGINT        1142        2                  0                  1 0.19614711033274956 0.39725509467019243
+    nearest_same_pair_segment_id       VARCHAR          66       60                  -                  -                   -                   -
+nearest_same_pair_segment_number        DOUBLE          66       16                1.0               19.0  7.4393939393939394   4.300729054040768
+   nearest_same_pair_distance_ft        DOUBLE          66       52  25.27943828187216 1680.7909670198592  340.78258206906406   331.9710008590753
+        n_touching_same_pair_1ft        DOUBLE          67        1                0.0                0.0                 0.0                 0.0
+           n_near_same_pair_10ft        DOUBLE          67        1                0.0                0.0                 0.0                 0.0
+           two_sided_all_offsets        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+                  component_type       VARCHAR        1142        4                  -                  -                   -                   -
+                   valid_segment        BIGINT        1142        1                  1                  1                 1.0                 0.0
+                  invalid_reason       VARCHAR        1142        1                  -                  -                   -                   -
+             analysis_segment_id       VARCHAR        1142     1142                  -                  -                   -                   -
+                    merge_reason       VARCHAR        1142        1                  -                  -                   -                   -
+                 segment_lt500ft        BIGINT        1142        2                  0                  1  0.1190893169877408  0.3240354836198602
+                segment_lt1000ft        BIGINT        1142        2                  0                  1 0.12259194395796848 0.32811191717035565
+            left_offset_ward_5ft       VARCHAR          67       11                  -                  -                   -                   -
+           right_offset_ward_5ft       VARCHAR          67        7                  -                  -                   -                   -
+              two_sided_pass_5ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+           left_offset_ward_20ft       VARCHAR          67       11                  -                  -                   -                   -
+          right_offset_ward_20ft       VARCHAR          67        7                  -                  -                   -                   -
+             two_sided_pass_20ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+           left_offset_ward_50ft       VARCHAR          67       11                  -                  -                   -                   -
+          right_offset_ward_50ft       VARCHAR          67        7                  -                  -                   -                   -
+             two_sided_pass_50ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+          left_offset_ward_100ft       VARCHAR          67       11                  -                  -                   -                   -
+         right_offset_ward_100ft       VARCHAR          67        7                  -                  -                   -                   -
+            two_sided_pass_100ft        DOUBLE          67        1                1.0                1.0                 1.0                 0.0
+                       buffer_ft        DOUBLE        1142        1 1312.3359580052493 1312.3359580052493  1312.3359580052384                 0.0
+                        buffer_m        DOUBLE        1142        1              400.0              400.0               400.0                 0.0
+
+File: boundary_segments_1320ft.gpkg
+Layer: 2015_2023
+Rows: 1293
+Columns: 41
+SHA-256 (saved bytes): f0110d55425c6006f0477e9315b6f7c6d8054ac17838777701129960a008e234
+Key: segment_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct                min                max                  mean                   sd
+                             fid        BIGINT        1293     1293                  1               1293                 647.0    373.4012587016814
+                      segment_id       VARCHAR        1293     1293                  -                  -                     -                    -
+                    ward_pair_id       VARCHAR        1293      122                  -                  -                     -                    -
+                          ward_a        BIGINT        1293       42                  1                 49     17.66434648105182   12.852711895740308
+                          ward_b        BIGINT        1293       46                  2                 50     26.30549110595514    12.41386206514336
+                             era       VARCHAR        1293        1                  -                  -                     -                    -
+                  segment_number        BIGINT        1293       48                  1                 48     9.161639597834494    7.934777534579066
+              n_segments_in_pair        BIGINT        1293       30                  1                 48    17.323279195668988   10.679429218530329
+                segment_length_m        DOUBLE        1293     1287 100.89923662714475  599.0067399833553     401.6397808685174   17.637699291325365
+               segment_length_ft        DOUBLE        1293     1287 331.03424090270585 1965.2452099191446    1317.7158164977625   57.866467491224775
+                    centroid_lat        DOUBLE        1293     1293  41.64649847499353  42.01807885478107     41.84906537033594  0.08557393035116277
+                    centroid_lon        DOUBLE        1293     1293  -87.8528338334487  -87.5327972854422    -87.67950067600562  0.05847330651701969
+                target_length_ft        DOUBLE        1293        1             1320.0             1320.0                1320.0                  0.0
+                  raw_segment_id       VARCHAR        1293     1293                  -                  -                     -                    -
+                   short_segment        BIGINT        1293        1                  0                  0                   0.0                  0.0
+                terminal_segment        BIGINT        1293        2                  0                  1    0.1871616395978345   0.3901921444761951
+    nearest_same_pair_segment_id       INTEGER           0        0                  -                  -                     -                    -
+nearest_same_pair_segment_number       INTEGER           0        0                  -                  -                     -                    -
+   nearest_same_pair_distance_ft       INTEGER           0        0                  -                  -                     -                    -
+        n_touching_same_pair_1ft       INTEGER           0        0                  -                  -                     -                    -
+           n_near_same_pair_10ft       INTEGER           0        0                  -                  -                     -                    -
+           two_sided_all_offsets       INTEGER           0        0                  -                  -                     -                    -
+                  component_type       VARCHAR        1293        1                  -                  -                     -                    -
+                   valid_segment        BIGINT        1293        1                  1                  1                   1.0                  0.0
+                  invalid_reason       VARCHAR        1293        1                  -                  -                     -                    -
+             analysis_segment_id       VARCHAR        1293     1293                  -                  -                     -                    -
+                    merge_reason       VARCHAR        1293        1                  -                  -                     -                    -
+                 segment_lt500ft        BIGINT        1293        2                  0                  1 0.0007733952049497294 0.027809983907757463
+                segment_lt1000ft        BIGINT        1293        2                  0                  1 0.0030935808197989174  0.05555535602083064
+            left_offset_ward_5ft       INTEGER           0        0                  -                  -                     -                    -
+           right_offset_ward_5ft       INTEGER           0        0                  -                  -                     -                    -
+              two_sided_pass_5ft       INTEGER           0        0                  -                  -                     -                    -
+           left_offset_ward_20ft       INTEGER           0        0                  -                  -                     -                    -
+          right_offset_ward_20ft       INTEGER           0        0                  -                  -                     -                    -
+             two_sided_pass_20ft       INTEGER           0        0                  -                  -                     -                    -
+           left_offset_ward_50ft       INTEGER           0        0                  -                  -                     -                    -
+          right_offset_ward_50ft       INTEGER           0        0                  -                  -                     -                    -
+             two_sided_pass_50ft       INTEGER           0        0                  -                  -                     -                    -
+          left_offset_ward_100ft       INTEGER           0        0                  -                  -                     -                    -
+         right_offset_ward_100ft       INTEGER           0        0                  -                  -                     -                    -
+            two_sided_pass_100ft       INTEGER           0        0                  -                  -                     -                    -
+
+File: boundary_segments_1320ft.gpkg
+Layer: 2015_2023_bw100m
+Rows: 1293
+Columns: 43
+SHA-256 (saved bytes): f0110d55425c6006f0477e9315b6f7c6d8054ac17838777701129960a008e234
+Key: segment_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct                min                max                  mean                   sd
+                             fid        BIGINT        1293     1293                  1               1293                 647.0    373.4012587016814
+                      segment_id       VARCHAR        1293     1293                  -                  -                     -                    -
+                    ward_pair_id       VARCHAR        1293      122                  -                  -                     -                    -
+                          ward_a        BIGINT        1293       42                  1                 49     17.66434648105182   12.852711895740308
+                          ward_b        BIGINT        1293       46                  2                 50     26.30549110595514    12.41386206514336
+                             era       VARCHAR        1293        1                  -                  -                     -                    -
+                  segment_number        BIGINT        1293       48                  1                 48     9.161639597834494    7.934777534579066
+              n_segments_in_pair        BIGINT        1293       30                  1                 48    17.323279195668988   10.679429218530329
+                segment_length_m        DOUBLE        1293     1287 100.89923662714475  599.0067399833553     401.6397808685174   17.637699291325365
+               segment_length_ft        DOUBLE        1293     1287 331.03424090270585 1965.2452099191446    1317.7158164977625   57.866467491224775
+                    centroid_lat        DOUBLE        1293     1293  41.64649847499353  42.01807885478107     41.84906537033594  0.08557393035116277
+                    centroid_lon        DOUBLE        1293     1293  -87.8528338334487  -87.5327972854422    -87.67950067600562  0.05847330651701969
+                target_length_ft        DOUBLE        1293        1             1320.0             1320.0                1320.0                  0.0
+                  raw_segment_id       VARCHAR        1293     1293                  -                  -                     -                    -
+                   short_segment        BIGINT        1293        1                  0                  0                   0.0                  0.0
+                terminal_segment        BIGINT        1293        2                  0                  1    0.1871616395978345   0.3901921444761951
+    nearest_same_pair_segment_id       INTEGER           0        0                  -                  -                     -                    -
+nearest_same_pair_segment_number       INTEGER           0        0                  -                  -                     -                    -
+   nearest_same_pair_distance_ft       INTEGER           0        0                  -                  -                     -                    -
+        n_touching_same_pair_1ft       INTEGER           0        0                  -                  -                     -                    -
+           n_near_same_pair_10ft       INTEGER           0        0                  -                  -                     -                    -
+           two_sided_all_offsets       INTEGER           0        0                  -                  -                     -                    -
+                  component_type       VARCHAR        1293        1                  -                  -                     -                    -
+                   valid_segment        BIGINT        1293        1                  1                  1                   1.0                  0.0
+                  invalid_reason       VARCHAR        1293        1                  -                  -                     -                    -
+             analysis_segment_id       VARCHAR        1293     1293                  -                  -                     -                    -
+                    merge_reason       VARCHAR        1293        1                  -                  -                     -                    -
+                 segment_lt500ft        BIGINT        1293        2                  0                  1 0.0007733952049497294 0.027809983907757463
+                segment_lt1000ft        BIGINT        1293        2                  0                  1 0.0030935808197989174  0.05555535602083064
+            left_offset_ward_5ft       INTEGER           0        0                  -                  -                     -                    -
+           right_offset_ward_5ft       INTEGER           0        0                  -                  -                     -                    -
+              two_sided_pass_5ft       INTEGER           0        0                  -                  -                     -                    -
+           left_offset_ward_20ft       INTEGER           0        0                  -                  -                     -                    -
+          right_offset_ward_20ft       INTEGER           0        0                  -                  -                     -                    -
+             two_sided_pass_20ft       INTEGER           0        0                  -                  -                     -                    -
+           left_offset_ward_50ft       INTEGER           0        0                  -                  -                     -                    -
+          right_offset_ward_50ft       INTEGER           0        0                  -                  -                     -                    -
+             two_sided_pass_50ft       INTEGER           0        0                  -                  -                     -                    -
+          left_offset_ward_100ft       INTEGER           0        0                  -                  -                     -                    -
+         right_offset_ward_100ft       INTEGER           0        0                  -                  -                     -                    -
+            two_sided_pass_100ft       INTEGER           0        0                  -                  -                     -                    -
+                       buffer_ft        DOUBLE        1293        1  328.0839895013123  328.0839895013123    328.08398950130737                  0.0
+                        buffer_m        DOUBLE        1293        1              100.0              100.0                 100.0                  0.0
+
+File: boundary_segments_1320ft.gpkg
+Layer: 2015_2023_bw250m
+Rows: 1293
+Columns: 43
+SHA-256 (saved bytes): f0110d55425c6006f0477e9315b6f7c6d8054ac17838777701129960a008e234
+Key: segment_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct                min                max                  mean                   sd
+                             fid        BIGINT        1293     1293                  1               1293                 647.0    373.4012587016814
+                      segment_id       VARCHAR        1293     1293                  -                  -                     -                    -
+                    ward_pair_id       VARCHAR        1293      122                  -                  -                     -                    -
+                          ward_a        BIGINT        1293       42                  1                 49     17.66434648105182   12.852711895740308
+                          ward_b        BIGINT        1293       46                  2                 50     26.30549110595514    12.41386206514336
+                             era       VARCHAR        1293        1                  -                  -                     -                    -
+                  segment_number        BIGINT        1293       48                  1                 48     9.161639597834494    7.934777534579066
+              n_segments_in_pair        BIGINT        1293       30                  1                 48    17.323279195668988   10.679429218530329
+                segment_length_m        DOUBLE        1293     1287 100.89923662714475  599.0067399833553     401.6397808685174   17.637699291325365
+               segment_length_ft        DOUBLE        1293     1287 331.03424090270585 1965.2452099191446    1317.7158164977625   57.866467491224775
+                    centroid_lat        DOUBLE        1293     1293  41.64649847499353  42.01807885478107     41.84906537033594  0.08557393035116277
+                    centroid_lon        DOUBLE        1293     1293  -87.8528338334487  -87.5327972854422    -87.67950067600562  0.05847330651701969
+                target_length_ft        DOUBLE        1293        1             1320.0             1320.0                1320.0                  0.0
+                  raw_segment_id       VARCHAR        1293     1293                  -                  -                     -                    -
+                   short_segment        BIGINT        1293        1                  0                  0                   0.0                  0.0
+                terminal_segment        BIGINT        1293        2                  0                  1    0.1871616395978345   0.3901921444761951
+    nearest_same_pair_segment_id       INTEGER           0        0                  -                  -                     -                    -
+nearest_same_pair_segment_number       INTEGER           0        0                  -                  -                     -                    -
+   nearest_same_pair_distance_ft       INTEGER           0        0                  -                  -                     -                    -
+        n_touching_same_pair_1ft       INTEGER           0        0                  -                  -                     -                    -
+           n_near_same_pair_10ft       INTEGER           0        0                  -                  -                     -                    -
+           two_sided_all_offsets       INTEGER           0        0                  -                  -                     -                    -
+                  component_type       VARCHAR        1293        1                  -                  -                     -                    -
+                   valid_segment        BIGINT        1293        1                  1                  1                   1.0                  0.0
+                  invalid_reason       VARCHAR        1293        1                  -                  -                     -                    -
+             analysis_segment_id       VARCHAR        1293     1293                  -                  -                     -                    -
+                    merge_reason       VARCHAR        1293        1                  -                  -                     -                    -
+                 segment_lt500ft        BIGINT        1293        2                  0                  1 0.0007733952049497294 0.027809983907757463
+                segment_lt1000ft        BIGINT        1293        2                  0                  1 0.0030935808197989174  0.05555535602083064
+            left_offset_ward_5ft       INTEGER           0        0                  -                  -                     -                    -
+           right_offset_ward_5ft       INTEGER           0        0                  -                  -                     -                    -
+              two_sided_pass_5ft       INTEGER           0        0                  -                  -                     -                    -
+           left_offset_ward_20ft       INTEGER           0        0                  -                  -                     -                    -
+          right_offset_ward_20ft       INTEGER           0        0                  -                  -                     -                    -
+             two_sided_pass_20ft       INTEGER           0        0                  -                  -                     -                    -
+           left_offset_ward_50ft       INTEGER           0        0                  -                  -                     -                    -
+          right_offset_ward_50ft       INTEGER           0        0                  -                  -                     -                    -
+             two_sided_pass_50ft       INTEGER           0        0                  -                  -                     -                    -
+          left_offset_ward_100ft       INTEGER           0        0                  -                  -                     -                    -
+         right_offset_ward_100ft       INTEGER           0        0                  -                  -                     -                    -
+            two_sided_pass_100ft       INTEGER           0        0                  -                  -                     -                    -
+                       buffer_ft        DOUBLE        1293        1  820.2099737532808  820.2099737532808     820.2099737532906                  0.0
+                        buffer_m        DOUBLE        1293        1              250.0              250.0                 250.0                  0.0
+
+File: boundary_segments_1320ft.gpkg
+Layer: 2015_2023_bw400m
+Rows: 1293
+Columns: 43
+SHA-256 (saved bytes): f0110d55425c6006f0477e9315b6f7c6d8054ac17838777701129960a008e234
+Key: segment_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct                min                max                  mean                   sd
+                             fid        BIGINT        1293     1293                  1               1293                 647.0    373.4012587016814
+                      segment_id       VARCHAR        1293     1293                  -                  -                     -                    -
+                    ward_pair_id       VARCHAR        1293      122                  -                  -                     -                    -
+                          ward_a        BIGINT        1293       42                  1                 49     17.66434648105182   12.852711895740308
+                          ward_b        BIGINT        1293       46                  2                 50     26.30549110595514    12.41386206514336
+                             era       VARCHAR        1293        1                  -                  -                     -                    -
+                  segment_number        BIGINT        1293       48                  1                 48     9.161639597834494    7.934777534579066
+              n_segments_in_pair        BIGINT        1293       30                  1                 48    17.323279195668988   10.679429218530329
+                segment_length_m        DOUBLE        1293     1287 100.89923662714475  599.0067399833553     401.6397808685174   17.637699291325365
+               segment_length_ft        DOUBLE        1293     1287 331.03424090270585 1965.2452099191446    1317.7158164977625   57.866467491224775
+                    centroid_lat        DOUBLE        1293     1293  41.64649847499353  42.01807885478107     41.84906537033594  0.08557393035116277
+                    centroid_lon        DOUBLE        1293     1293  -87.8528338334487  -87.5327972854422    -87.67950067600562  0.05847330651701969
+                target_length_ft        DOUBLE        1293        1             1320.0             1320.0                1320.0                  0.0
+                  raw_segment_id       VARCHAR        1293     1293                  -                  -                     -                    -
+                   short_segment        BIGINT        1293        1                  0                  0                   0.0                  0.0
+                terminal_segment        BIGINT        1293        2                  0                  1    0.1871616395978345   0.3901921444761951
+    nearest_same_pair_segment_id       INTEGER           0        0                  -                  -                     -                    -
+nearest_same_pair_segment_number       INTEGER           0        0                  -                  -                     -                    -
+   nearest_same_pair_distance_ft       INTEGER           0        0                  -                  -                     -                    -
+        n_touching_same_pair_1ft       INTEGER           0        0                  -                  -                     -                    -
+           n_near_same_pair_10ft       INTEGER           0        0                  -                  -                     -                    -
+           two_sided_all_offsets       INTEGER           0        0                  -                  -                     -                    -
+                  component_type       VARCHAR        1293        1                  -                  -                     -                    -
+                   valid_segment        BIGINT        1293        1                  1                  1                   1.0                  0.0
+                  invalid_reason       VARCHAR        1293        1                  -                  -                     -                    -
+             analysis_segment_id       VARCHAR        1293     1293                  -                  -                     -                    -
+                    merge_reason       VARCHAR        1293        1                  -                  -                     -                    -
+                 segment_lt500ft        BIGINT        1293        2                  0                  1 0.0007733952049497294 0.027809983907757463
+                segment_lt1000ft        BIGINT        1293        2                  0                  1 0.0030935808197989174  0.05555535602083064
+            left_offset_ward_5ft       INTEGER           0        0                  -                  -                     -                    -
+           right_offset_ward_5ft       INTEGER           0        0                  -                  -                     -                    -
+              two_sided_pass_5ft       INTEGER           0        0                  -                  -                     -                    -
+           left_offset_ward_20ft       INTEGER           0        0                  -                  -                     -                    -
+          right_offset_ward_20ft       INTEGER           0        0                  -                  -                     -                    -
+             two_sided_pass_20ft       INTEGER           0        0                  -                  -                     -                    -
+           left_offset_ward_50ft       INTEGER           0        0                  -                  -                     -                    -
+          right_offset_ward_50ft       INTEGER           0        0                  -                  -                     -                    -
+             two_sided_pass_50ft       INTEGER           0        0                  -                  -                     -                    -
+          left_offset_ward_100ft       INTEGER           0        0                  -                  -                     -                    -
+         right_offset_ward_100ft       INTEGER           0        0                  -                  -                     -                    -
+            two_sided_pass_100ft       INTEGER           0        0                  -                  -                     -                    -
+                       buffer_ft        DOUBLE        1293        1 1312.3359580052493 1312.3359580052493    1312.3359580052295                  0.0
+                        buffer_m        DOUBLE        1293        1              400.0              400.0                 400.0                  0.0

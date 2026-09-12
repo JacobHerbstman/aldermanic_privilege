@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 # Keep all dates in the pinned permit source for construction verification.
 # Study-period restrictions belong in the consuming analyses.
 crs_projected <- 3435
@@ -133,10 +134,4 @@ building_permits_sf <- st_as_sf(
   st_transform(crs_projected) %>%
   mutate(across(c(application_start_date_ym, issue_date_ym), as.Date))
 
-st_write(
-  building_permits_sf,
-  "../output/building_permits_for_verification.gpkg",
-  layer = "building_permits_clean",
-  delete_layer = TRUE,
-  quiet = TRUE
-)
+SaveData(building_permits_sf, character(), "../output/building_permits_for_verification.gpkg", layer = "building_permits_clean", delete_layer = TRUE, quiet = TRUE)

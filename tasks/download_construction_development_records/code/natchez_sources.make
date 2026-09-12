@@ -1,5 +1,0 @@
-../output/natchez_pd1345.pdf: natchez_sources.make | ../output ../temp
-	curl --fail --location 'https://gisapps.chicago.gov/gisimages/zoning_pds/PD1345.pdf' --output ../temp/natchez_pd1345.pdf && pdfinfo ../temp/natchez_pd1345.pdf >/dev/null && mv ../temp/natchez_pd1345.pdf $@
-
-../output/natchez_footprints_2022.geojson: natchez_sources.make | ../output ../temp
-	curl --fail --location 'https://gis.cookcountyil.gov/traditional/rest/services/buildingFootprint_2022/MapServer/0/query?where=1%3D1&geometry=1131800%2C1912900%2C1132900%2C1914500&geometryType=esriGeometryEnvelope&inSR=3435&spatialRel=esriSpatialRelIntersects&outFields=OBJECTID%2CArea_SQFT%2CYear%2CHeight%2CGlobalID&returnGeometry=true&outSR=4326&orderByFields=OBJECTID&resultRecordCount=2000&f=geojson' --output ../temp/natchez_footprints_2022.geojson && python3 -c 'import json; d=json.load(open("../temp/natchez_footprints_2022.geojson")); assert d["type"] == "FeatureCollection" and d["features"] and not d.get("exceededTransferLimit", False)' && mv ../temp/natchez_footprints_2022.geojson $@

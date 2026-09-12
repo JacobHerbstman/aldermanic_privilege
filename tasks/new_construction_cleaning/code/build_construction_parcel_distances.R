@@ -3,6 +3,7 @@
 # maximum_construction_year <- 2026
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(minimum_construction_year, maximum_construction_year)
@@ -37,4 +38,4 @@ tibble(pin = parcels$pin, dist_to_boundary_m = assignments$dist_ft * 0.3048,
          is.na(assignments$ward) ~ "outside_ward_map",
          !ward_has_boundary ~ "ward_has_no_shared_boundary_in_source_map",
          TRUE ~ "assigned")) |>
-  write_csv("../output/construction_parcel_boundary_distances.csv")
+  SaveData(key = "pin", outfile = "../output/construction_parcel_boundary_distances.csv")

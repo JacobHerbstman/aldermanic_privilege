@@ -1,6 +1,7 @@
 # setwd("tasks/new_construction_cleaning/code")
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
 project_coverage <- readr::read_csv(
@@ -158,11 +159,5 @@ if (any(is.na(adjudication_scope$review_scope))) {
   stop("Every queued project must receive a review scope.", call. = FALSE)
 }
 
-readr::write_csv(
-  project_scope,
-  "../output/preferred_project_boundary_scope.csv"
-)
-readr::write_csv(
-  adjudication_scope,
-  "../output/preferred_adjudication_scope.csv"
-)
+SaveData(project_scope, c("source_family", "project_id", "target_year"), "../output/preferred_project_boundary_scope.csv")
+SaveData(adjudication_scope, c("source_family", "project_id"), "../output/preferred_adjudication_scope.csv")

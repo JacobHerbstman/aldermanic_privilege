@@ -1,25 +1,25 @@
 File: preferred_project_component_geometry.gpkg
-Rows: 15694
+Rows: 15657
 Columns: 15
-SHA-256 (saved bytes): f1ae68f487d76e5f3d2edc2db77e21c46178614aeeeb200d4ec829648d289b21
+SHA-256 (saved bytes): 9b3c8ede592a9a4445ba007ac096bfbf094a3d5d469a05ad8d8317f695af106e
 Key: request_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-           column inferred_type non_missing distinct    min       max               mean                 sd
-              fid        BIGINT       15694    15694      1     15694             7847.5  4530.611897599117
-       request_id       VARCHAR       15694    15694      -         -                  -                  -
-    source_family       VARCHAR       15694        2      -         -                  -                  -
-       project_id       VARCHAR       15694    13989      -         -                  -                  -
-     project_kind       VARCHAR       15694        7      -         -                  -                  -
- candidate_status       VARCHAR       15694       11      -         -                  -                  -
-    component_pin       VARCHAR       15694    15602      -         -                  -                  -
-  requested_pin10       VARCHAR       15694    15560      -         -                  -                  -
-      target_year        DOUBLE       15694       17 2006.0    2022.0 2012.6900726392253  5.404745451037115
-     match_method       VARCHAR       15694        3      -         -                  -                  -
-         layer_id        DOUBLE       11858       17    6.0    2022.0 154.40605498397707  513.4047835536453
-        object_id        DOUBLE       11858    11749   44.0 1849492.0  692576.4985663687 486063.97661617206
-parcel_object_ids       VARCHAR       15694    13060      -         -                  -                  -
-     parcel_pin14       VARCHAR       15694    12833      -         -                  -                  -
-     parcel_pin10       VARCHAR       15694    12833      -         -                  -                  -
+           column inferred_type non_missing distinct    min       max               mean                sd
+              fid        BIGINT       15657    15657      1     15657             7829.0 4519.930917613675
+       request_id       VARCHAR       15657    15657      -         -                  -                 -
+    source_family       VARCHAR       15657        2      -         -                  -                 -
+       project_id       VARCHAR       15657    13952      -         -                  -                 -
+     project_kind       VARCHAR       15657        7      -         -                  -                 -
+ candidate_status       VARCHAR       15657       11      -         -                  -                 -
+    component_pin       VARCHAR       15657    15565      -         -                  -                 -
+  requested_pin10       VARCHAR       15657    15523      -         -                  -                 -
+      target_year        DOUBLE       15657       17 2006.0    2022.0 2012.7057546145495 5.401469190104096
+     match_method       VARCHAR       15657        3      -         -                  -                 -
+         layer_id        DOUBLE       11821       17    6.0    2022.0 154.87040013535233 514.1405049565459
+        object_id        DOUBLE       11821    11712   44.0 1849492.0   689929.090601472  484511.365404721
+parcel_object_ids       VARCHAR       15657    13023      -         -                  -                 -
+     parcel_pin14       VARCHAR       15657    12796      -         -                  -                 -
+     parcel_pin10       VARCHAR       15657    12796      -         -                  -                 -

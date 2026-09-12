@@ -2,7 +2,8 @@ include ../../shared/code/shell_functions.make
 
 SHELL := bash
 
-all: ../output/R_packages.txt ../output/Python_report_packages.txt
+all: ../output/R_packages.txt \
+	../output/Python_report_packages.txt
 
 ../output/R_packages.txt: packages.R | ../output
 	$(R) $<

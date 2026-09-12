@@ -14,7 +14,7 @@ date. Source: Cook County Assessor Parcel Universe, Socrata `nj4t-kc8j`, query
 The script checks each partition's record count and schema, and checks the total
 before and after retrieval. The schema rewrite preserves source values.
 
-An intentional API refresh uses `make -f download_recipes.make` from `code/`.
+An intentional API refresh uses `make download-current` from `code/`.
 Its separate output is `parcel_universe_2025_city_native_current.csv`. An unchanged
 refresh build reuses that file; `make -B -f download_recipes.make` explicitly requests
 a new retrieval. Transfers are validated in a temporary directory before replacing

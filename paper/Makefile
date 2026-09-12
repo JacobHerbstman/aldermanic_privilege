@@ -70,18 +70,17 @@ working_paper.pdf: Makefile working_paper.tex paper.tex sections/intro.tex \
 
 word_count.pdf: Makefile word_count.tex paper.pdf
 
-.SECONDEXPANSION:
-paper.pdf: | osm-check $$(addprefix task-check/,$$(patsubst ../tasks/%,%,$$(filter ../tasks/%,$$^)))
+paper.pdf: | osm-check
 	pdflatex -interaction=nonstopmode paper.tex
 	bibtex paper
 	pdflatex -interaction=nonstopmode paper.tex
 	pdflatex -interaction=nonstopmode paper.tex
 
-online_appendix.pdf: | osm-check $$(addprefix task-check/,$$(patsubst ../tasks/%,%,$$(filter ../tasks/%,$$^)))
+online_appendix.pdf: | osm-check
 	pdflatex -interaction=nonstopmode online_appendix.tex
 	pdflatex -interaction=nonstopmode online_appendix.tex
 
-working_paper.pdf: | osm-check $$(addprefix task-check/,$$(patsubst ../tasks/%,%,$$(filter ../tasks/%,$$^)))
+working_paper.pdf: | osm-check
 	pdflatex -interaction=nonstopmode working_paper.tex
 	bibtex working_paper
 	pdflatex -interaction=nonstopmode working_paper.tex
@@ -94,13 +93,6 @@ word_count.pdf:
 osm-check:
 	@cd .. && shasum -a 256 -c data_raw/illinois-250919-free.sha256
 
-../tasks/%: | task-check/%
-	@test -e "$@" || { echo "Task check did not produce $@"; false; }
+.PHONY: osm-check
 
-task-check/%: FORCE
-	@task=$$(printf '%s\n' "$*" | sed 's#/output/.*##'); \
-	output=$$(printf '%s\n' "$*" | sed 's#^.*/output/#../output/#'); \
-	$(MAKE) -C "../tasks/$$task/code" "$$output"
-
-.PHONY: FORCE osm-check
-FORCE:
+include ../tasks/shared/code/generic.make

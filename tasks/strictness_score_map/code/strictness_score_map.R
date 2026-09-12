@@ -7,7 +7,7 @@
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(early_date, late_date, uncertainty_spec)
 }
 

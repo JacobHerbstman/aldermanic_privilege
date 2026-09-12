@@ -1,18 +1,18 @@
-include ../../shared/code/shell_functions.make
+all: ../output/official_building_footprints_2008.gpkg \
+	../output/official_building_footprints_2022.gpkg
 
-SNAPSHOT_YEARS ?= 2008 2022
+../output/official_building_footprints_2008.gpkg: ../input/official_building_footprints_2008.gpkg | ../output
+	cp $< $@
 
-all: $(foreach year,$(SNAPSHOT_YEARS),../output/official_building_footprints_$(year).gpkg)
+../output/official_building_footprints_2022.gpkg: ../input/official_building_footprints_2022.gpkg | ../output
+	cp $< $@
 
-../output/official_building_footprints_%.gpkg: download_official_footprint_snapshot.R ../../setup_environment/code/packages.R ../input/eligibility_uncorroborated_retained.csv ../input/preferred_project_year_geometry.gpkg | ../output
-	$(R) $< $*
+../input/official_building_footprints_2008.gpkg: ../../../data_raw/construction_review/official_building_footprints_2008.gpkg | ../input
+	ln -sf $< $@
 
-../input/eligibility_uncorroborated_retained.csv: ../../new_construction_cleaning/output/eligibility_uncorroborated_retained.csv | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
+../input/official_building_footprints_2022.gpkg: ../../../data_raw/construction_review/official_building_footprints_2022.gpkg | ../input
+	ln -sf $< $@
 
-../input/preferred_project_year_geometry.gpkg: ../../new_construction_cleaning/output/preferred_project_year_geometry.gpkg | ../input
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
-
-link-inputs: ../input/eligibility_uncorroborated_retained.csv ../input/preferred_project_year_geometry.gpkg
+link-inputs: ../input/official_building_footprints_2008.gpkg ../input/official_building_footprints_2022.gpkg
 
 include ../../shared/code/generic.make

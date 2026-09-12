@@ -1,0 +1,20 @@
+File: density_common_sample_estimates.csv
+Rows: 80
+Columns: 10
+SHA-256 (saved bytes): d66426f29e7e1915f630101c027ac858c92eb6baf1bb72bd1c9a93c29694cf8c
+Key: check, sample, outcome, eligibility
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct                  min                  max                 mean                   sd
+         check       VARCHAR          80       10                    -                    -                    -                    -
+        sample       VARCHAR          80        2                    -                    -                    -                    -
+       outcome       VARCHAR          80        2                    -                    -                    -                    -
+   eligibility       VARCHAR          80        2                    -                    -                    -                    -
+  n_candidates        BIGINT          80       39                  423                 4034              1990.95    1366.384779100295
+             n        BIGINT          80       39                  423                 4034              1990.95    1366.384779100295
+      estimate        DOUBLE          80       58  -0.1999240683911049 0.056081602825272844 -0.10235016536965758  0.06799628057646342
+     std_error        DOUBLE          80       58  0.03316759701023463  0.12640317760353786  0.07499138709951692 0.024513969741111766
+       p_value        DOUBLE          80       58 0.029486334050701987   0.9696003817921571  0.20559047336460945  0.24167633184044054
+percent_effect        DOUBLE          80       58   -18.12070770183845     5.76839902169846   -9.518457026785045    6.330456079611829

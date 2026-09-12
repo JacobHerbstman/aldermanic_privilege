@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 coverage <- readr::read_csv(
   "../output/preferred_historical_parcel_coverage.csv",
   show_col_types = FALSE,
@@ -238,7 +239,4 @@ if (anyDuplicated(reference_points$request_id) > 0) {
   stop("Preferred predecessor reference requests are not unique.", call. = FALSE)
 }
 
-readr::write_csv(
-  reference_points,
-  "../output/preferred_predecessor_reference_points.csv"
-)
+SaveData(reference_points, c("request_id"), "../output/preferred_predecessor_reference_points.csv")

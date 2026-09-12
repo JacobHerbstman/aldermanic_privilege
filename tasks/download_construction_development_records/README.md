@@ -25,7 +25,7 @@ The May 2023 Roosevelt conference PDF linked in the release audit returned HTTP
 403 on direct download; it remains unpinned web evidence, not a production input.
 
 Natchez sources acquired September 7, 2026 are declared in
-`code/natchez_sources.make`, included by the ordinary Makefile. `natchez_pd1345.pdf`
+`code/Makefile`. `natchez_pd1345.pdf`
 is the City's 71-page compilation: the September 20, 2018 amendment and October 5,
 2016 adoption. Its PDF page 14 reproduces the amended master plan.
 `natchez_footprints_2022.geojson` preserves the complete Cook County 2022 footprint
@@ -37,7 +37,7 @@ contains only four of the eight western residences; absence from that extract
 must not be interpreted as absence of a building.
 
 The September 8, 2026 Deming and Huron sources are declared in
-`code/remaining_sources.make`. `deming_pd853.pdf` contains the approved division
+`code/Makefile`. `deming_pd853.pdf` contains the approved division
 into two home lots (PDF pages 15–16 and 24). `huron_pd356_2011.pdf` is the 2011
 amendment; `huron_pd356.pdf` is the City's 44-page compilation. Their development
 wide floor-area limits are not measurements of 910 W Huron alone.
@@ -74,3 +74,6 @@ Magellan reports separate completed buildings at https://www.magellandevelopment
 `make ../output/one_chicago_pd1401.pdf` in `code/` retrieves the City plan from https://gisapps.chicago.gov/gisimages/zoning_pds/PD1401.pdf. The saved plan reports one 96,218-square-foot site; this corroborates the Assessor denominator but does not replace it. Planned maximum dwellings and permitted floor area are not completed-building measurements. Preserve this mutable source snapshot; refresh deliberately after comparison.
 
 - `one_chicago_pd1401.pdf` SHA-256: `3b6a0da3cd39aaf4fe8050d39ffb86686e7c25611a1d81da2ba9b78e73439a64`.
+
+Each acquisition recipe verifies the recorded SHA-256 before replacing an output.
+A changed remote document fails that check and requires an explicit source update.

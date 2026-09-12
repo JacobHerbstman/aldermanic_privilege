@@ -1,3 +1,4 @@
+source("../../shared/code/save_data.R")
 # setwd("tasks/download_construction_historical_parcels/code")
 
 library(dplyr)
@@ -24,5 +25,4 @@ parcels <- bind_rows(original, initial, additional, latest, evidence, lake_park,
 stopifnot(!anyDuplicated(st_drop_geometry(parcels)[c("target_year", "object_id")]),
           all(st_is_valid(parcels)), !any(st_is_empty(parcels)),
           nrow(anti_join(st_drop_geometry(parcels), queries, by = c("target_year", "pin10"))) == 0L)
-st_write(parcels, "../output/preferred_historical_parcel_source.gpkg",
-  layer = "historical_parcels", delete_dsn = TRUE, quiet = TRUE)
+SaveData(parcels, c("target_year", "object_id"), "../output/preferred_historical_parcel_source.gpkg", layer = "historical_parcels", delete_dsn = TRUE, quiet = TRUE)

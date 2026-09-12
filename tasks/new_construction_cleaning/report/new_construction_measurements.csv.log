@@ -1,34 +1,37 @@
 File: new_construction_measurements.csv
 Rows: 13677
-Columns: 24
-SHA-256 (saved bytes): d078538a18e944cd2d1c03403003e9218cb508c72ff58e8d4d31acffac022774
+Columns: 27
+SHA-256 (saved bytes): 8686407fb732a011ea8c0b193f33b16659697f9a256b6118e8413cab57475c56
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-            column inferred_type non_missing distinct                 min                max               mean                 sd
-        project_id       VARCHAR       13677    13677                   -                  -                  -                  -
-     source_family       VARCHAR       13677        2                   -                  -                  -                  -
-source_project_ids       VARCHAR       13677    13631                   -                  -                  -                  -
-  source_addresses       VARCHAR         810      794                   -                  -                  -                  -
-    component_pins       VARCHAR       13677    13677                   -                  -                  -                  -
-      project_kind       VARCHAR       13677        7                   -                  -                  -                  -
- construction_year        BIGINT       13677       17                2006               2022 2012.5099071433795  5.384879030109651
-    dwelling_units        BIGINT       13675      214                   1                848  5.952760511882998  35.98626235383191
-     building_sqft        BIGINT       13656     4430                 246            1252885  8751.909563561805  46834.40980049891
-         land_sqft        DOUBLE       13672     4170               176.0          1540260.0  5285.204681100059  22773.15901254397
-         allow_far       BOOLEAN       13677        2                   -                  -                  -                  -
-       allow_dupac       BOOLEAN       13677        2                   -                  -                  -                  -
- membership_source       VARCHAR       13677       64                   -                  -                  -                  -
-       year_source       VARCHAR       13677    13243                   -                  -                  -                  -
-      units_source       VARCHAR       13677    13198                   -                  -                  -                  -
-   building_source       VARCHAR       13667    13201                   -                  -                  -                  -
-       land_source       VARCHAR       13677    13236                   -                  -                  -                  -
-      evidence_ids       VARCHAR       13092    12962                   -                  -                  -                  -
-   decision_reason       VARCHAR       13677      219                   -                  -                  -                  -
-        confidence       VARCHAR       13676        7                   -                  -                  -                  -
-   decision_source       VARCHAR       13677        9                   -                  -                  -                  -
-   decision_action       VARCHAR       13677       24                   -                  -                  -                  -
-               far        DOUBLE       13636    11431 0.01421252642412105 39.667305129913395 1.1579530028559248  1.358608442138848
-             dupac        DOUBLE       13659     4558 0.03786298397863819  914.1505662891406 27.036685576692435 45.374473773733726
+              column inferred_type non_missing distinct                 min                max               mean                 sd
+          project_id       VARCHAR       13677    13677                   -                  -                  -                  -
+       source_family       VARCHAR       13677        2                   -                  -                  -                  -
+        class_values       VARCHAR       12867       20                   -                  -                  -                  -
+  source_project_ids       VARCHAR       13677    13631                   -                  -                  -                  -
+    source_addresses       VARCHAR         810      794                   -                  -                  -                  -
+      component_pins       VARCHAR       13677    13677                   -                  -                  -                  -
+        project_kind       VARCHAR       13677        7                   -                  -                  -                  -
+   construction_year        BIGINT       13677       17                2006               2022 2012.5099071433795  5.384879030109651
+      dwelling_units        BIGINT       13675      214                   1                848  5.952760511882998  35.98626235383191
+       building_sqft        BIGINT       13656     4430                 246            1252885  8751.909563561805  46834.40980049891
+           land_sqft        DOUBLE       13672     4170               176.0          1540260.0  5285.204681100059  22773.15901254397
+           allow_far       BOOLEAN       13677        2                   -                  -                  -                  -
+         allow_dupac       BOOLEAN       13677        2                   -                  -                  -                  -
+   membership_source       VARCHAR       13677       64                   -                  -                  -                  -
+         year_source       VARCHAR       13677    13243                   -                  -                  -                  -
+        units_source       VARCHAR       13677    13198                   -                  -                  -                  -
+     building_source       VARCHAR       13667    13201                   -                  -                  -                  -
+         land_source       VARCHAR       13677    13236                   -                  -                  -                  -
+        evidence_ids       VARCHAR       13092    12962                   -                  -                  -                  -
+     decision_reason       VARCHAR       13677      219                   -                  -                  -                  -
+          confidence       VARCHAR       13676        7                   -                  -                  -                  -
+     decision_source       VARCHAR       13677        9                   -                  -                  -                  -
+     decision_action       VARCHAR       13677       24                   -                  -                  -                  -
+external_multifamily       BOOLEAN       13677        2                   -                  -                  -                  -
+  multifamily_source       VARCHAR       13677        4                   -                  -                  -                  -
+                 far        DOUBLE       13636    11431 0.01421252642412105 39.667305129913395 1.1579530028559248  1.358608442138848
+               dupac        DOUBLE       13659     4558 0.03786298397863819  914.1505662891406 27.036685576692435 45.374473773733726

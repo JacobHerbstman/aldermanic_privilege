@@ -1,0 +1,38 @@
+File: permits_for_uncertainty_index.csv
+Rows: 197202
+Columns: 28
+SHA-256 (saved bytes): 274157bce3f073dc468c3f982378f5f6362386bcbdc733e4d49e754b19d2af6b
+Key: id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct                  min                max                mean                  sd
+                  id        BIGINT      197202   187448              1549457            3299526  2518093.9648634396  489409.27356322366
+                 pin       VARCHAR      144314    81806                    -                  -                   -                   -
+                ward        BIGINT      197202       45                    1                 50  26.988965629151835  15.200926249043428
+            alderman       VARCHAR      197202      111                    -                  -                   -                   -
+               month       VARCHAR      197202      221                    -                  -                   -                   -
+                year        BIGINT      197202       19                 2006               2022  2013.7745661808704   4.934971531542109
+               ca_id        BIGINT      197202       76                    1                 77   29.81599071003337  21.056496311377142
+             ca_name       VARCHAR      197202       79                    -                  -                   -                   -
+     processing_time        BIGINT      197202      984                    0               1886   35.25928743116196   73.86032981457743
+ log_processing_time        DOUBLE      121405      874                  0.0  7.542213463193403  3.2054270375465075  1.4487790855220595
+         permit_type       VARCHAR      197202        5                    -                  -                   -                   -
+   permit_type_clean       VARCHAR      197202        5                    -                  -                   -                   -
+         review_type       VARCHAR      197199        6                    -                  -                   -                   -
+   review_type_clean       VARCHAR      197202        7                    -                  -                   -                   -
+       reported_cost        DOUBLE      197202    14980              -1000.0       6666666666.0  379114.76301631535  26270241.173045628
+   log_reported_cost        DOUBLE      196271    13462   -4.605170185988091  22.62038582173229    9.15785342832424    3.72550006266734
+            is_porch       BOOLEAN      197202        2                    -                  -                   -                   -
+           pop_total        DOUBLE      197202      550    38014.39904833495  77798.29844689366   56792.43362833321  7028.3316739347865
+    median_hh_income        DOUBLE      197202      506    17794.77018835824 156816.80301053703   61537.63644009903   28280.40246063508
+         share_black        DOUBLE      197202      668  0.00606358527153015 0.9760814204807162 0.28899385113751913 0.33174038871246225
+          share_hisp        DOUBLE      197202      510  0.00553737071597929 0.9275669878878908 0.21828865645303058 0.21741074393197024
+         share_white        DOUBLE      197202      573  0.00358238087470588  0.872029224787542 0.40109859838534706 0.28454174545832955
+  homeownership_rate        DOUBLE      197202      567  0.18817021270261344 0.8331291977771729   0.423996031766705  0.1316268008602751
+     share_bach_plus        DOUBLE      197202      493  0.05282434878746028 0.8956085911763237 0.42692683005053705   0.263911436636626
+         dist_cbd_km        DOUBLE      197202   111605 0.019487992829721596  27.60056426398292   8.677026457523386   5.646377386108803
+        dist_lake_km        DOUBLE      197202   115707 0.017052906921930164 21.660214084495756   4.935835070977871  3.7442808160485996
+n_rail_stations_800m        BIGINT      197202       22                    0                 19  1.7938104076023569   3.394225800392542
+         map_version        BIGINT      197202        2                    1                  2  1.4485045790610642 0.49734241314940697

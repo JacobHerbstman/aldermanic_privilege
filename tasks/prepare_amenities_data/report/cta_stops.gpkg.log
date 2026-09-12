@@ -1,0 +1,21 @@
+File: cta_stops.gpkg
+Rows: 148
+Columns: 11
+SHA-256 (saved bytes): 9e4ee10ca74820b8f851382cd18f5e101657474deb6cf2a76431d190129171eb
+Key: station_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct min max mean                sd
+               fid        BIGINT         148      148   1 148 74.5 42.86801449410349
+        station_id       VARCHAR         148      148   -   -    -                 -
+          longname       VARCHAR         148      148   -   -    -                 -
+             lines       VARCHAR         148       22   -   -    -                 -
+           point_x       VARCHAR         148      148   -   -    -                 -
+           point_y       VARCHAR         148      148   -   -    -                 -
+            legend       VARCHAR         148        8   -   -    -                 -
+  active_from_date       VARCHAR         148        6   -   -    -                 -
+    active_to_date       VARCHAR           3        3   -   -    -                 -
+active_date_source       VARCHAR         148        9   -   -    -                 -
+            source       VARCHAR         148        2   -   -    -                 -

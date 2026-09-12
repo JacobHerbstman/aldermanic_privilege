@@ -1,0 +1,15 @@
+File: major_streets.gpkg
+Rows: 16065
+Columns: 5
+SHA-256 (saved bytes): a34a92fae2e0e53a8a5a34f07d8d3d15b81144983f0d72141727ab69e917e8ca
+Key: fid
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+    column inferred_type non_missing distinct min     max              mean                 sd
+       fid        BIGINT       16065    16065   1   16065            8033.0 4637.7103725868865
+streetname        DOUBLE       16065      623 0.0 76237.0 1821.231621537504  5559.150531335787
+     class       VARCHAR       16065        4   -       -                 -                  -
+    status       VARCHAR       16063        1   -       -                 -                  -
+    source       VARCHAR       16065        1   -       -                 -                  -

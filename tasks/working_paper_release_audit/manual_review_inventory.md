@@ -1,5 +1,32 @@
 # Remaining dependence on manual construction decisions
 
+## September 11 update: manuscript description
+
+Following the literal prerequisites of `preferred_new_construction_project_ledger.csv`
+and `preferred_new_construction_boundary_scope.csv` in the construction-cleaning
+Makefile identifies **26 active adjudication CSVs containing 809 rows**. All 26
+files are tracked in Git. This count covers the construction identity,
+measurement, eligibility and location inputs to those two outputs. It excludes
+separate downstream building-type and zoning reviews.
+
+These are recorded entries, not 809 distinct projects or independent corrections.
+A project can occur in more than one table; entries also record source selection,
+confirmation, exclusion, component membership and location. For example, the
+construction-year table contains 191 rows, the residential building-correction
+table contains 55 source-to-building rows identifying 51 final buildings, and the
+commercial measurement-correction table contains 60 rows.
+
+The manuscript's statement that 52 citywide projects, including 26 within 500 feet,
+required manual resolution is not a verified total for the current cleaning
+process. The decisions are now stored in multiple committed tables. Neither the
+809 entry count nor a count from a single commercial decision category should
+replace 52 as a count of unique manually corrected projects. A defensible paper
+description should explain the decisions and their supporting records without
+claiming a distinct-project total that this inventory does not establish.
+
+The September 9 counts below describe the earlier state and are preserved as
+history.
+
 ## September 9 update: current building workflow
 
 The current audit starts from the combined candidate Make targets, rather than
@@ -151,54 +178,54 @@ Rows are counted from the complete CSVs. All links point to the restored inputs.
 
 | Decision/review input | Rows |
 |---|---:|
-| [assessor_default_project_exceptions.csv](../new_construction_cleaning/adjudication/assessor_default_project_exceptions.csv) | 6 |
-| [assessor_default_site_reviews.csv](../new_construction_cleaning/adjudication/assessor_default_site_reviews.csv) | 56 |
-| [commercial_component_overrides.csv](../new_construction_cleaning/adjudication/commercial_component_overrides.csv) | 47 |
-| [commercial_cross_family_decisions.csv](../new_construction_cleaning/adjudication/commercial_cross_family_decisions.csv) | 21 |
-| [commercial_field_decisions.csv](../new_construction_cleaning/adjudication/commercial_field_decisions.csv) | 18 |
-| [commercial_manual_decisions.csv](../new_construction_cleaning/adjudication/commercial_manual_decisions.csv) | 80 |
-| [commercial_parcel_year_overrides.csv](../new_construction_cleaning/adjudication/commercial_parcel_year_overrides.csv) | 2 |
-| [commercial_semantic_decisions.csv](../new_construction_cleaning/adjudication/commercial_semantic_decisions.csv) | 29 |
-| [commercial_verified_case_review.csv](../new_construction_cleaning/adjudication/commercial_verified_case_review.csv) | 10 |
-| [corrected_year_zoning_decisions.csv](../new_construction_cleaning/adjudication/corrected_year_zoning_decisions.csv) | 12 |
-| [density_denominator_decisions.csv](../new_construction_cleaning/adjudication/density_denominator_decisions.csv) | 6 |
-| [early_multicard_manual_review.csv](../new_construction_cleaning/adjudication/early_multicard_manual_review.csv) | 13 |
-| [eligibility_manual_exceptions.csv](../new_construction_cleaning/adjudication/eligibility_manual_exceptions.csv) | 1 |
-| [final_project_overrides.csv](../new_construction_cleaning/adjudication/final_project_overrides.csv) | 12 |
-| [historical_address_matches.csv](../new_construction_cleaning/adjudication/historical_address_matches.csv) | 4 |
-| [historical_coordinate_year_corrections.csv](../new_construction_cleaning/adjudication/historical_coordinate_year_corrections.csv) | 2 |
-| [historical_zoning_exact_preconstruction_support.csv](../new_construction_cleaning/adjudication/historical_zoning_exact_preconstruction_support.csv) | 5 |
-| [historical_zoning_recovered_ordinance_dates.csv](../new_construction_cleaning/adjudication/historical_zoning_recovered_ordinance_dates.csv) | 1 |
-| [historical_zoning_reviewed_events.csv](../new_construction_cleaning/adjudication/historical_zoning_reviewed_events.csv) | 14 |
-| [initial_commercial_unit_overrides.csv](../new_construction_cleaning/adjudication/initial_commercial_unit_overrides.csv) | 2 |
-| [multicard_cross_pair_decisions.csv](../new_construction_cleaning/adjudication/multicard_cross_pair_decisions.csv) | 6 |
-| [multicard_cross_project_suppressions.csv](../new_construction_cleaning/adjudication/multicard_cross_project_suppressions.csv) | 2 |
-| [multicard_external_web_reviews.csv](../new_construction_cleaning/adjudication/multicard_external_web_reviews.csv) | 273 |
-| [multicard_manual_episode_decisions.csv](../new_construction_cleaning/adjudication/multicard_manual_episode_decisions.csv) | 42 |
-| [multicard_manual_overrides.csv](../new_construction_cleaning/adjudication/multicard_manual_overrides.csv) | 6 |
-| [multicard_parent_pair_decisions.csv](../new_construction_cleaning/adjudication/multicard_parent_pair_decisions.csv) | 12 |
-| [multicard_year_overrides.csv](../new_construction_cleaning/adjudication/multicard_year_overrides.csv) | 5 |
-| [preferred_project_duplicate_overrides.csv](../new_construction_cleaning/adjudication/preferred_project_duplicate_overrides.csv) | 17 |
-| [project_manual_reviews.csv](../new_construction_cleaning/adjudication/project_manual_reviews.csv) | 179 |
-| [recovered_project_duplicate_pair_decisions.csv](../new_construction_cleaning/adjudication/recovered_project_duplicate_pair_decisions.csv) | 9 |
-| [recovered_project_zoning_overrides.csv](../new_construction_cleaning/adjudication/recovered_project_zoning_overrides.csv) | 1 |
-| [residential_additional_candidate_decisions.csv](../new_construction_cleaning/adjudication/residential_additional_candidate_decisions.csv) | 10 |
-| [residential_candidate_suppressions.csv](../new_construction_cleaning/adjudication/residential_candidate_suppressions.csv) | 13 |
-| [residential_class297_component_overrides.csv](../new_construction_cleaning/adjudication/residential_class297_component_overrides.csv) | 2 |
-| [residential_class297_exceptions.csv](../new_construction_cleaning/adjudication/residential_class297_exceptions.csv) | 11 |
-| [residential_overlap_decisions.csv](../new_construction_cleaning/adjudication/residential_overlap_decisions.csv) | 28 |
-| [residential_remaining_case_decisions.csv](../new_construction_cleaning/adjudication/residential_remaining_case_decisions.csv) | 7 |
-| [residential_successor_condo_overrides.csv](../new_construction_cleaning/adjudication/residential_successor_condo_overrides.csv) | 1 |
-| [residential_tieback_episode_exceptions.csv](../new_construction_cleaning/adjudication/residential_tieback_episode_exceptions.csv) | 1 |
-| [residential_tieback_no_snapshot_decisions.csv](../new_construction_cleaning/adjudication/residential_tieback_no_snapshot_decisions.csv) | 23 |
-| [residential_unresolved_final_projects.csv](../new_construction_cleaning/adjudication/residential_unresolved_final_projects.csv) | 14 |
-| [residential_unresolved_predecessor_reference_overrides.csv](../new_construction_cleaning/adjudication/residential_unresolved_predecessor_reference_overrides.csv) | 1 |
-| [residential_unresolved_predecessor_selections.csv](../new_construction_cleaning/adjudication/residential_unresolved_predecessor_selections.csv) | 22 |
-| [residential_unresolved_source_dispositions.csv](../new_construction_cleaning/adjudication/residential_unresolved_source_dispositions.csv) | 44 |
-| [residential_unresolved_successor_condo_overrides.csv](../new_construction_cleaning/adjudication/residential_unresolved_successor_condo_overrides.csv) | 2 |
-| [residual_footprint_candidate_overrides.csv](../new_construction_cleaning/adjudication/residual_footprint_candidate_overrides.csv) | 5 |
-| [residual_historical_candidate_overrides.csv](../new_construction_cleaning/adjudication/residual_historical_candidate_overrides.csv) | 6 |
-| [threshold_sensitive_coordinate_decisions.csv](../new_construction_cleaning/adjudication/threshold_sensitive_coordinate_decisions.csv) | 5 |
+| [assessor_default_project_exceptions.csv](../audits/construction_review_history/records/assessor_default_project_exceptions.csv) | 6 |
+| [assessor_default_site_reviews.csv](../audits/construction_review_history/records/assessor_default_site_reviews.csv) | 56 |
+| [commercial_component_overrides.csv](../new_construction_corrections/output/commercial_component_overrides.csv) | 47 |
+| [commercial_cross_family_decisions.csv](../new_construction_corrections/output/commercial_cross_family_decisions.csv) | 21 |
+| [commercial_field_decisions.csv](../audits/construction_review_history/records/commercial_field_decisions.csv) | 18 |
+| [commercial_manual_decisions.csv](../new_construction_corrections/output/commercial_manual_decisions.csv) | 80 |
+| [commercial_parcel_year_overrides.csv](../audits/construction_review_history/records/commercial_parcel_year_overrides.csv) | 2 |
+| [commercial_semantic_decisions.csv](../audits/construction_review_history/records/commercial_semantic_decisions.csv) | 29 |
+| [commercial_verified_case_review.csv](../new_construction_corrections/output/commercial_verified_case_review.csv) | 10 |
+| [corrected_year_zoning_decisions.csv](../new_construction_corrections/output/corrected_year_zoning_decisions.csv) | 12 |
+| [density_denominator_decisions.csv](../audits/construction_review_history/records/density_denominator_decisions.csv) | 6 |
+| [early_multicard_manual_review.csv](../audits/construction_review_history/records/early_multicard_manual_review.csv) | 13 |
+| [eligibility_manual_exceptions.csv](../new_construction_corrections/output/eligibility_manual_exceptions.csv) | 1 |
+| [final_project_overrides.csv](../audits/construction_review_history/records/final_project_overrides.csv) | 12 |
+| [historical_address_matches.csv](../new_construction_corrections/output/historical_address_matches.csv) | 4 |
+| [historical_coordinate_year_corrections.csv](../new_construction_corrections/output/historical_coordinate_year_corrections.csv) | 2 |
+| [historical_zoning_exact_preconstruction_support.csv](../audits/construction_review_history/records/historical_zoning_exact_preconstruction_support.csv) | 5 |
+| [historical_zoning_recovered_ordinance_dates.csv](../audits/construction_review_history/records/historical_zoning_recovered_ordinance_dates.csv) | 1 |
+| [historical_zoning_reviewed_events.csv](../audits/construction_review_history/records/historical_zoning_reviewed_events.csv) | 14 |
+| [initial_commercial_unit_overrides.csv](../audits/construction_review_history/records/initial_commercial_unit_overrides.csv) | 2 |
+| [multicard_cross_pair_decisions.csv](../audits/construction_review_history/records/multicard_cross_pair_decisions.csv) | 6 |
+| [multicard_cross_project_suppressions.csv](../audits/construction_review_history/records/multicard_cross_project_suppressions.csv) | 2 |
+| [multicard_external_web_reviews.csv](../audits/construction_review_history/records/multicard_external_web_reviews.csv) | 273 |
+| [multicard_manual_episode_decisions.csv](../audits/construction_review_history/records/multicard_manual_episode_decisions.csv) | 42 |
+| [multicard_manual_overrides.csv](../audits/construction_review_history/records/multicard_manual_overrides.csv) | 6 |
+| [multicard_parent_pair_decisions.csv](../audits/construction_review_history/records/multicard_parent_pair_decisions.csv) | 12 |
+| [multicard_year_overrides.csv](../audits/construction_review_history/records/multicard_year_overrides.csv) | 5 |
+| [preferred_project_duplicate_overrides.csv](../audits/construction_review_history/records/preferred_project_duplicate_overrides.csv) | 17 |
+| [project_manual_reviews.csv](../audits/construction_review_history/records/project_manual_reviews.csv) | 179 |
+| [recovered_project_duplicate_pair_decisions.csv](../audits/construction_review_history/records/recovered_project_duplicate_pair_decisions.csv) | 9 |
+| [recovered_project_zoning_overrides.csv](../audits/construction_review_history/records/recovered_project_zoning_overrides.csv) | 1 |
+| [residential_additional_candidate_decisions.csv](../new_construction_corrections/output/residential_additional_candidate_decisions.csv) | 10 |
+| [residential_candidate_suppressions.csv](../audits/construction_review_history/records/residential_candidate_suppressions.csv) | 13 |
+| [residential_class297_component_overrides.csv](../new_construction_corrections/output/residential_class297_component_overrides.csv) | 2 |
+| [residential_class297_exceptions.csv](../audits/construction_review_history/records/residential_class297_exceptions.csv) | 11 |
+| [residential_overlap_decisions.csv](../new_construction_corrections/output/residential_overlap_decisions.csv) | 28 |
+| [residential_remaining_case_decisions.csv](../audits/construction_review_history/records/residential_remaining_case_decisions.csv) | 7 |
+| [residential_successor_condo_overrides.csv](../audits/construction_review_history/records/residential_successor_condo_overrides.csv) | 1 |
+| [residential_tieback_episode_exceptions.csv](../audits/construction_review_history/records/residential_tieback_episode_exceptions.csv) | 1 |
+| [residential_tieback_no_snapshot_decisions.csv](../audits/construction_review_history/records/residential_tieback_no_snapshot_decisions.csv) | 23 |
+| [residential_unresolved_final_projects.csv](../audits/construction_review_history/records/residential_unresolved_final_projects.csv) | 14 |
+| [residential_unresolved_predecessor_reference_overrides.csv](../audits/construction_review_history/records/residential_unresolved_predecessor_reference_overrides.csv) | 1 |
+| [residential_unresolved_predecessor_selections.csv](../audits/construction_review_history/records/residential_unresolved_predecessor_selections.csv) | 22 |
+| [residential_unresolved_source_dispositions.csv](../new_construction_corrections/output/residential_unresolved_source_dispositions.csv) | 44 |
+| [residential_unresolved_successor_condo_overrides.csv](../audits/construction_review_history/records/residential_unresolved_successor_condo_overrides.csv) | 2 |
+| [residual_footprint_candidate_overrides.csv](../audits/construction_review_history/records/residual_footprint_candidate_overrides.csv) | 5 |
+| [residual_historical_candidate_overrides.csv](../audits/construction_review_history/records/residual_historical_candidate_overrides.csv) | 6 |
+| [threshold_sensitive_coordinate_decisions.csv](../audits/construction_review_history/records/threshold_sensitive_coordinate_decisions.csv) | 5 |
 
 
 ## September 7 implementation update

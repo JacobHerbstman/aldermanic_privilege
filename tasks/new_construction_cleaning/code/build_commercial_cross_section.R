@@ -3,12 +3,10 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_cleaning/code")
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 data <- readr::read_csv("../input/commercial_value_raw.csv", col_types = readr::cols(.default = "c"), show_col_types = FALSE) %>%
-  janitor::clean_names()
-
-if (!"modelgroup" %in% names(data) && "sheet" %in% names(data)) {
-  data <- data %>% dplyr::rename(modelgroup = sheet)
-}
+  janitor::clean_names() %>%
+  dplyr::rename(modelgroup = sheet)
 
 numeric_cols <- c(
   "year", "studiounits", "x1brunits", "x2brunits", "x3brunits", "x4brunits",
@@ -154,4 +152,4 @@ if (anyNA(multifamily_data_deduped$pin) || anyDuplicated(multifamily_data_dedupe
   stop("Commercial cross-section must have unique nonmissing PINs.")
 }
 
-write_csv(multifamily_data_deduped, "../output/multifamily_data_cleaned.csv")
+SaveData(multifamily_data_deduped, c("pin"), "../output/multifamily_data_cleaned.csv")

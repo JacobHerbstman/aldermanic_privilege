@@ -1,0 +1,16 @@
+File: parks.gpkg
+Rows: 617
+Columns: 6
+SHA-256 (saved bytes): 1bc7fd92d117969aeb72a576f8a7f97c27569ddf7d3dae01ddcae4c699153ad8
+Key: fid
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+    column inferred_type non_missing distinct min max  mean                sd
+       fid        BIGINT         617      617   1 617 309.0 178.2568371760253
+      park       VARCHAR         617      617   -   -     -                 -
+   park_no       VARCHAR         617      617   -   -     -                 -
+park_class       VARCHAR         617       13   -   -     -                 -
+     acres       VARCHAR         617      419   -   -     -                 -
+    source       VARCHAR         617        1   -   -     -                 -

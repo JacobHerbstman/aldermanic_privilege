@@ -1,43 +1,22 @@
 SHELL := bash
+SHARED_CODE := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
-GENERIC_MAKE := $(lastword $(MAKEFILE_LIST))
-SHARED_CODE := $(patsubst %/,%,$(dir $(GENERIC_MAKE)))
-TASKS_ROOT := $(SHARED_CODE)/../..
+.NOTPARALLEL:
 
 ../input ../output ../report ../temp slurmlogs:
 	mkdir -p $@
 
-run.sbatch: $(TASKS_ROOT)/setup_environment/code/run.sbatch | slurmlogs
-	@test "$$(readlink "$@")" = "$<" || ln -sf "$<" "$@"
-
-../../shared/code/% ../../../shared/code/%:
-	@test -e "$@" || { echo "Missing shared library: $@"; false; }
+run.sbatch: $(SHARED_CODE)/../../setup_environment/code/run.sbatch | slurmlogs
+	ln -sf $< $@
 
 .PHONY: FORCE_UPSTREAM
 FORCE_UPSTREAM:
 
 .SECONDEXPANSION:
-../tasks/% ../../% ../../../% ../../../../%: $$(shell bash "$$(SHARED_CODE)/check_upstream_status.sh" "$$@" "$$(MAKE_COMMAND)")
+../tasks/% ../../% ../../../% ../../../../%: $$(if $$(or $$(findstring /output/,$$@),$$(findstring /report/,$$@)),FORCE_UPSTREAM)
 	@case "$@" in \
-		../tasks/*/output/*|../tasks/*/report/*) \
-			task=$$(printf '%s\n' "$@" | sed -E 's#^\.\./tasks/##; s#/(output|report)/.*##'); \
-			output=$$(printf '%s\n' "$@" | sed -E 's#^.*/(output|report)/#../\1/#'); \
-			$(MAKE) -C "../tasks/$$task/code" "$$output"; \
-			;; \
-		../../../*/output/*|../../../*/report/*) \
-			task=$$(printf '%s\n' "$@" | sed -E 's#^\.\./\.\./\.\./##; s#/(output|report)/.*##'); \
-			output=$$(printf '%s\n' "$@" | sed -E 's#^.*/(output|report)/#../\1/#'); \
-			$(MAKE) -C "../../../$$task/code" "$$output"; \
-			;; \
-		../../*/output/*|../../*/report/*) \
-			task=$$(printf '%s\n' "$@" | sed -E 's#^\.\./\.\./##; s#/(output|report)/.*##'); \
-			output=$$(printf '%s\n' "$@" | sed -E 's#^.*/(output|report)/#../\1/#'); \
-			$(MAKE) -C "../../$$task/code" "$$output"; \
-			;; \
-		../../../data_raw/*|../../../../data_raw/*) \
-			test -e "$@" || { echo "Missing raw root: $@"; false; }; \
-			;; \
-		*) \
-			test -e "$@" || { echo "No generic upstream rule for $@"; false; }; \
-			;; \
-	esac
+		*/output/*) target="$@"; task="$${target%/output/*}"; output="../output/$${target##*/output/}" ;; \
+		*/report/*) target="$@"; task="$${target%/report/*}"; output="../report/$${target##*/report/}" ;; \
+		*) echo "Missing prerequisite: $@" >&2; exit 1 ;; \
+	esac; \
+	$(MAKE) -C "$$task/code" "$$output"

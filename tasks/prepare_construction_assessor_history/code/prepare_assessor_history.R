@@ -1,6 +1,7 @@
 # setwd("tasks/prepare_construction_assessor_history/code")
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 
 con <- DBI::dbConnect(duckdb::duckdb())
 invisible(DBI::dbExecute(con, "
@@ -95,3 +96,5 @@ COPY (SELECT * FROM history ORDER BY source_row_order)
 TO '../output/residential_assessor_history.parquet' (FORMAT PARQUET, COMPRESSION ZSTD);
 "))
 DBI::dbDisconnect(con, shutdown = TRUE)
+
+ReportData("../output/residential_assessor_history.parquet", "row_id")

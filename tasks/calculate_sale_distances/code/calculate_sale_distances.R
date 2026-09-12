@@ -2,6 +2,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
 crs_projected <- 3435
@@ -316,4 +317,4 @@ final_output <- final_df %>%
         alderman_own, alderman_neighbor
     )
 
-write_csv(final_output, "../output/sales_pre_scores.csv")
+SaveData(final_output, c("row_id"), "../output/sales_pre_scores.csv")

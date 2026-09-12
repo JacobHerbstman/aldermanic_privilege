@@ -2,6 +2,7 @@
 # max_building_gap <- 0.10
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(max_building_gap)
 if (length(args) != 1L) stop("Expected the maximum building-area gap.")
@@ -201,4 +202,4 @@ lineage_evidence <- lineage %>%
     )
   )
 
-write_csv(lineage_evidence, "../output/density_parcel_address_lineage_evidence.csv")
+SaveData(lineage_evidence, character(), "../output/density_parcel_address_lineage_evidence.csv")

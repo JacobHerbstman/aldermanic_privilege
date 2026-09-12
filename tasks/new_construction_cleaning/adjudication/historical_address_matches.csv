@@ -1,5 +1,0 @@
-pin,construction_year,matched_pin,address,address_record_year,decision_reason
-13164300370000,2014,13164300360000,4054 N MILWAUKEE AVE,2017,recover_unique_address_confirmed_by_parcel_history
-14064080550000,2007,14064080580000,1645 W ROSEHILL DR,2008,recover_unique_address_confirmed_by_parcel_history
-14064080560000,2007,14064080570000,1647 W ROSEHILL DR,2008,recover_unique_address_confirmed_by_parcel_history
-17271290150000,2007,17271290690000,344 E EASTGATE PL,2008,recover_unique_address_confirmed_by_parcel_history

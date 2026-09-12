@@ -2,6 +2,7 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_rent_distances/code")
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
 crs_projected <- 3435
@@ -276,19 +277,6 @@ final_df <- final_df %>%
     flag_modal_dist_diff_gt100ft = coalesce(flag_modal_dist_diff_gt100ft, FALSE)
   )
 
-if (!"flag_location_questionable" %in% names(final_df)) {
-  final_df <- final_df %>%
-    mutate(
-      flag_location_questionable = coalesce(flag_address_location_unstable, FALSE) |
-        coalesce(flag_coordinate_only_generic_pile, FALSE),
-      location_quality_status = if_else(
-        flag_location_questionable,
-        "questionable_location",
-        "not_flagged"
-      )
-    )
-}
-
 final_df <- final_df %>%
   mutate(
     flag_location_questionable = coalesce(flag_location_questionable, FALSE),
@@ -436,4 +424,4 @@ if (n_missing_building_type_clean > 0) {
 final_df <- final_df %>%
   select(-any_of("dist_ft"))
 
-write_parquet(final_df, "../output/rent_pre_scores_full.parquet")
+SaveData(final_df, c("rent_panel_id"), "../output/rent_pre_scores_full.parquet")

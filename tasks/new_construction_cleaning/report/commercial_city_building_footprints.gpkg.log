@@ -1,7 +1,7 @@
 File: commercial_city_building_footprints.gpkg
 Rows: 1241
 Columns: 7
-SHA-256 (saved bytes): 9ca4bbaadef8d4ec1275e836b2c9dde1108b5ccdfa916e736b6b36abc1a2ea78
+SHA-256 (saved bytes): c8c7b3d22fecf344efe2337dd70a81e5360e9735954341ba67487de983f958cf
 Key: footprint_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).

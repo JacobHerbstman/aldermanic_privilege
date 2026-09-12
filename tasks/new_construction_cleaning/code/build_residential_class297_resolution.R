@@ -1,6 +1,7 @@
 # setwd("tasks/new_construction_cleaning/code")
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 requests <- readr::read_csv("../output/residential_successor_condo_requests.csv",
   col_types = readr::cols(project_id = readr::col_character(), pin10 = readr::col_character(), .default = readr::col_guess()))
 
@@ -144,5 +145,5 @@ stopifnot(setequal(projects$project_id, decisions$source_project_id),
 source_disposition <- decisions %>% group_by(source_project_id) %>% summarise(
   decision_rows = n(), actions = paste(sort(unique(decision_action)), collapse = "/"),
   retained_projects = sum(allow_dupac), final_project_ids = paste(sort(na.omit(final_project_id)), collapse = "/"), .groups = "drop")
-readr::write_csv(decisions, "../output/residential_class297_resolution.csv")
-readr::write_csv(source_disposition, "../output/residential_class297_source_disposition.csv")
+SaveData(decisions, character(), "../output/residential_class297_resolution.csv")
+SaveData(source_disposition, c("source_project_id"), "../output/residential_class297_source_disposition.csv")

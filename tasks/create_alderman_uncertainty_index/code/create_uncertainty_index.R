@@ -1,3 +1,4 @@
+source("../../shared/code/save_data.R")
 # --- Interactive Test Block ---
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_alderman_uncertainty_index/code")
 # permit_type_fe <- TRUE
@@ -14,7 +15,7 @@
 source("../../shared/code/alderman_uncertainty_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(
     permit_type_fe,
     review_type_fe,
@@ -99,7 +100,7 @@ result <- build_residualized_uncertainty_index(
   construction_rule = "Residualized alderman score used in the paper"
 )
 
-write_csv(result$alderman_index, sprintf("../output/alderman_uncertainty_index_%s.csv", output_suffix))
+SaveData(result$alderman_index, c("alderman"), sprintf("../output/alderman_uncertainty_index_%s.csv", output_suffix))
 
 if (write_paper_bundle) {
   write_stage1_regression_table(result$stage1_model, sprintf("../output/stage1_regression_%s.tex", output_suffix), result$stage1_outcome)

@@ -3,6 +3,7 @@
 # maximum_building_gap <- 0.02
 # successor_land_tolerance <- 0.005
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 args <- commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 3)
 episode_year_window <- as.integer(args[1])
@@ -141,4 +142,4 @@ for (i in seq_len(nrow(parents))) {
     break
   }
 }
-readr::write_csv(resolution, "../output/residential_tieback_episode_resolution.csv")
+SaveData(resolution, c("source_project_id"), "../output/residential_tieback_episode_resolution.csv")

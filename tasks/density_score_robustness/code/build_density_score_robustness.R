@@ -5,7 +5,7 @@
 source("../../shared/code/alderman_uncertainty_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(workers, paste(gap_thresholds, collapse = ","))
 }
 if (length(cli_args) != 2) {
@@ -95,8 +95,7 @@ projects <- projects |>
     construction_year >= 2006L,
     construction_year <= 2022L,
     within_500ft,
-    (allow_far & is.finite(density_far) & density_far > 0) |
-      (allow_dupac & is.finite(density_dupac) & density_dupac > 0),
+    density_eligible,
     is.finite(share_white_own),
     is.finite(share_black_own),
     is.finite(median_hh_income_own),
@@ -258,8 +257,6 @@ for (version in names(score_versions)) {
 
     for (outcome in names(outcome_labels)) {
       model_data <- model_sample |>
-        dplyr::filter(if (outcome == "density_far") allow_far else allow_dupac,
-          is.finite(.data[[outcome]]), .data[[outcome]] > 0) |>
         dplyr::mutate(log_outcome = log(.data[[outcome]]))
       model <- fixest::feols(
         log_outcome ~

@@ -1,17 +1,17 @@
 File: preferred_project_geography_requests.csv
-Rows: 15781
+Rows: 15744
 Columns: 7
-SHA-256 (saved bytes): 370f8169570a7bd4ccfa3adbedbe547cc86e504c260d7647374844c9014fb65e
+SHA-256 (saved bytes): db3ea53c6001e9645ed74e53a74a8afe06ef9c2f7a09f20c3f4a35e24e01a90a
 Key: not declared in this report
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
           column inferred_type non_missing distinct  min  max               mean                sd
-   source_family       VARCHAR       15781        2    -    -                  -                 -
-      project_id       VARCHAR       15781    14065    -    -                  -                 -
-    project_kind       VARCHAR       15781        7    -    -                  -                 -
-candidate_status       VARCHAR       15781       12    -    -                  -                 -
-     target_year        BIGINT       15781       17 2006 2022 2012.6993219694568 5.401510624882719
-   component_pin       VARCHAR       15781    15687    -    -                  -                 -
-           pin10       VARCHAR       15781    15645    -    -                  -                 -
+   source_family       VARCHAR       15744        2    -    -                  -                 -
+      project_id       VARCHAR       15744    14028    -    -                  -                 -
+    project_kind       VARCHAR       15744        7    -    -                  -                 -
+candidate_status       VARCHAR       15744       12    -    -                  -                 -
+     target_year        BIGINT       15744       17 2006 2022 2012.7149390243903 5.398216233962683
+   component_pin       VARCHAR       15744    15650    -    -                  -                 -
+           pin10       VARCHAR       15744    15608    -    -                  -                 -

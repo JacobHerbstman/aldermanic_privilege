@@ -2,6 +2,7 @@
 
 source("../../setup_environment/code/packages.R")
 
+source("../../shared/code/save_data.R")
 review_projects <- readr::read_csv(
   "../output/preferred_residential_project_candidates.csv",
   show_col_types = FALSE,
@@ -107,5 +108,5 @@ condo_requests <- spatial_condo_requests %>%
 
 stopifnot(!anyDuplicated(current_parcel_links[c("project_id", "pin")]),
   !anyDuplicated(condo_requests[c("project_id", "pin10")]))
-readr::write_csv(current_parcel_links, "../output/residential_review_current_parcel_links.csv")
-readr::write_csv(condo_requests, "../output/residential_successor_condo_requests.csv")
+SaveData(current_parcel_links, c("project_id", "pin"), "../output/residential_review_current_parcel_links.csv")
+SaveData(condo_requests, c("project_id", "pin10"), "../output/residential_successor_condo_requests.csv")

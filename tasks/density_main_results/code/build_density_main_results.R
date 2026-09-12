@@ -53,7 +53,6 @@ panel_specs <- tibble::tribble(
 )
 
 panels <- vector("list", nrow(panel_specs))
-sample_summaries <- vector("list", nrow(panel_specs))
 
 for (i in seq_len(nrow(panel_specs))) {
   sample_name <- panel_specs$sample[i]
@@ -65,9 +64,7 @@ for (i in seq_len(nrow(panel_specs))) {
       construction_year <= 2022L,
       within_500ft,
       sample_name == "all" | external_multifamily,
-      if (outcome == "density_far") allow_far else allow_dupac,
-      is.finite(.data[[outcome]]),
-      .data[[outcome]] > 0,
+      density_eligible,
       is.finite(share_white_own),
       is.finite(share_black_own),
       is.finite(median_hh_income_own),
@@ -109,12 +106,6 @@ for (i in seq_len(nrow(panel_specs))) {
     warn = FALSE,
     notes = FALSE
   )
-  sample_summaries[[i]] <- model_data[fixest::obs(model), ] |>
-    dplyr::summarise(sample = sample_name, outcome = .env$outcome,
-      mean_density = mean(.data[[outcome]]), average_units = mean(dwelling_units, na.rm = TRUE),
-      median_distance = median(distance_to_boundary_ft),
-      ward_pairs = dplyr::n_distinct(ward_pair), segments = dplyr::n_distinct(segment_id),
-      n = dplyr::n())
 
 
   coefficient_table <- fixest::coeftable(model)
@@ -271,22 +262,3 @@ ggplot2::ggsave(
   height = 8.5,
   bg = "white"
 )
-
-summaries <- dplyr::bind_rows(sample_summaries) |>
-  dplyr::arrange(factor(sample, c("all", "multifamily")), factor(outcome, c("density_far", "density_dupac")))
-stopifnot(nrow(summaries) == 4L, all(summaries$n > 0))
-summary_lines <- c(
-  "\\begin{table}[htbp]", "\\centering",
-  "\\caption{Summary Statistics for the Density Analysis Samples}",
-  "\\label{tab:summary_stats}", "\\begin{tabular}{lcccc}", "\\toprule",
-  " & \\multicolumn{2}{c}{All New Construction} & \\multicolumn{2}{c}{Multifamily} \\\\",
-  " & FAR sample & DUPAC sample & FAR sample & DUPAC sample \\\\", "\\midrule")
-for (field in c("mean_density", "average_units", "median_distance", "n")) {
-  label <- switch(field, mean_density = "Mean density (outcome units)", average_units = "Average homes",
-    median_distance = "Median boundary distance (ft)", n = "Observations")
-  values <- if (field == "n") format(summaries[[field]], big.mark = ",", trim = TRUE) else sprintf("%.2f", summaries[[field]])
-  summary_lines <- c(summary_lines, paste0(label, " & ", paste(values, collapse = " & "), " \\\\"))
-}
-writeLines(c(summary_lines, "\\bottomrule", "\\end{tabular}",
-  "\\par\\vspace{0.5em}\\parbox{0.9\\linewidth}{\\footnotesize Notes: New residential construction from 2006--2022 within 500ft of ward boundaries. Each outcome uses buildings with usable inputs for that density measure and complete regression covariates. Counts are observations used by the fitted models. Average homes uses available home counts.}",
-  "\\end{table}"), "../output/density_sample_summary.tex")
