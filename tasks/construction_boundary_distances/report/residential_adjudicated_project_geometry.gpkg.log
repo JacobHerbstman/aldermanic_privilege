@@ -1,0 +1,12 @@
+File: residential_adjudicated_project_geometry.gpkg
+Rows: 41
+Columns: 2
+SHA-256 (saved bytes): 572f4912a706c9a9e4a85947bacb2e93f70f6a8ec097aa6b903f24743f18fea4
+Key: project_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+    column inferred_type non_missing distinct min max mean                 sd
+       fid        BIGINT          41       41   1  41 21.0 11.979148550710939
+project_id       VARCHAR          41       41   -   -    -                  -

@@ -265,13 +265,13 @@ link-inputs: ../input/parcel_universe_2025_city.csv ../input/density_denominator
 ../input/natchez_zoning_2025.geojson: ../../../data_raw/construction_review/zoning_sep2025.geojson | ../input
 	ln -sf $< $@
 
-../input/preferred_address_geocode_requests.csv: ../../new_construction_cleaning/output/preferred_address_geocode_requests.csv | ../input
+../input/preferred_address_geocode_requests.csv: ../../construction_project_locations/output/preferred_address_geocode_requests.csv | ../input
 	ln -sf $< $@
 
-../input/preferred_historical_address_geocodes.csv: ../../new_construction_cleaning/output/preferred_historical_address_geocodes.csv | ../input
+../input/preferred_historical_address_geocodes.csv: ../../construction_project_locations/output/preferred_historical_address_geocodes.csv | ../input
 	ln -sf $< $@
 
-../input/preferred_chicago_address_geocodes.csv: ../../new_construction_cleaning/output/preferred_chicago_address_geocodes.csv | ../input
+../input/preferred_chicago_address_geocodes.csv: ../../construction_project_locations/output/preferred_chicago_address_geocodes.csv | ../input
 	ln -sf $< $@
 
 ../input/geocoding_parcel_history.csv: ../../download_construction_historical_parcels/output/geocoding_parcel_history.csv | ../input
@@ -282,22 +282,22 @@ link-inputs: ../input/parcel_universe_2025_city.csv ../input/density_denominator
 
 link-inputs: ../input/preferred_address_geocode_requests.csv ../input/preferred_historical_address_geocodes.csv ../input/preferred_chicago_address_geocodes.csv ../input/geocoding_parcel_history.csv ../input/geocoding_history_queries.csv
 
-../input/preferred_project_boundary_scope.csv: ../../new_construction_cleaning/output/preferred_project_boundary_scope.csv | ../input
+../input/preferred_project_boundary_scope.csv: ../../construction_project_locations/output/preferred_project_boundary_scope.csv | ../input
 	ln -sf $< $@
 
-../input/preferred_project_year_geometry.gpkg: ../../new_construction_cleaning/output/preferred_project_year_geometry.gpkg | ../input
+../input/preferred_project_year_geometry.gpkg: ../../construction_project_locations/output/preferred_project_year_geometry.gpkg | ../input
 	ln -sf $< $@
 
-../input/preferred_project_year_centroids.gpkg: ../../new_construction_cleaning/output/preferred_project_year_centroids.gpkg | ../input
+../input/preferred_project_year_centroids.gpkg: ../../construction_project_locations/output/preferred_project_year_centroids.gpkg | ../input
 	ln -sf $< $@
 
-../input/preferred_adjudication_scope.csv: ../../new_construction_cleaning/output/preferred_adjudication_scope.csv | ../input
+../input/preferred_adjudication_scope.csv: ../../construction_project_locations/output/preferred_adjudication_scope.csv | ../input
 	ln -sf $< $@
 
-../input/historical_project_predecessor_resolution.csv: ../../new_construction_cleaning/output/historical_project_predecessor_resolution.csv | ../input
+../input/historical_project_predecessor_resolution.csv: ../../construction_historical_sites/output/historical_project_predecessor_resolution.csv | ../input
 	ln -sf $< $@
 
-../input/preferred_historical_predecessor_resolution.csv: ../../new_construction_cleaning/output/preferred_historical_predecessor_resolution.csv | ../input
+../input/preferred_historical_predecessor_resolution.csv: ../../construction_project_locations/output/preferred_historical_predecessor_resolution.csv | ../input
 	ln -sf $< $@
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
@@ -311,10 +311,10 @@ link-inputs: ../input/preferred_project_boundary_scope.csv ../input/preferred_pr
 ../input/current_predecessor_parcel_source.gpkg: ../../download_construction_historical_parcels/output/preferred_predecessor_parcel_source.gpkg | ../input
 	ln -sf $< $@
 
-../input/preferred_residential_project_candidates.csv: ../../new_construction_cleaning/output/preferred_residential_project_candidates.csv | ../input
+../input/preferred_residential_project_candidates.csv: ../../construction_residential_measurements/output/preferred_residential_project_candidates.csv | ../input
 	ln -sf $< $@
 
-../input/preferred_commercial_project_candidates.csv: ../../new_construction_cleaning/output/preferred_commercial_project_candidates.csv | ../input
+../input/preferred_commercial_project_candidates.csv: ../../construction_commercial_measurements/output/preferred_commercial_project_candidates.csv | ../input
 	ln -sf $< $@
 
 link-inputs: ../input/current_predecessor_parcel_source.gpkg ../input/preferred_residential_project_candidates.csv ../input/preferred_commercial_project_candidates.csv
@@ -325,10 +325,10 @@ link-inputs: ../input/current_predecessor_parcel_source.gpkg ../input/preferred_
 ../input/history_reference_queries.csv: ../../download_construction_historical_parcels/output/history_reference_queries.csv | ../input
 	ln -sf $< $@
 
-../input/residential_multicard_cards.csv: ../../new_construction_cleaning/output/residential_multicard_cards.csv | ../input
+../input/residential_multicard_cards.csv: ../../construction_project_candidates/output/residential_multicard_cards.csv | ../input
 	ln -sf $< $@
 
-../input/residential_tieback_temporal_lineage_evidence.csv: ../../new_construction_cleaning/output/residential_tieback_temporal_lineage_evidence.csv | ../input
+../input/residential_tieback_temporal_lineage_evidence.csv: ../../construction_residential_identity/output/residential_tieback_temporal_lineage_evidence.csv | ../input
 	ln -sf $< $@
 
 link-inputs: ../input/history_reference_parcels.gpkg ../input/history_reference_queries.csv ../input/residential_multicard_cards.csv ../input/residential_tieback_temporal_lineage_evidence.csv
@@ -373,15 +373,15 @@ link-inputs: ../input/marquette_footprints_2022.geojson
 
 link-inputs: ../input/preferred_historical_parcel_source.gpkg
 
-../input/preferred_commercial_projects.csv: ../../new_construction_cleaning/output/preferred_commercial_projects.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/preferred_commercial_projects.csv" ]; then ln -sf ../../new_construction_cleaning/output/preferred_commercial_projects.csv "$@"; fi
+../input/preferred_commercial_projects.csv: ../../construction_commercial_measurements/output/preferred_commercial_projects.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../construction_commercial_measurements/output/preferred_commercial_projects.csv" ]; then ln -sf ../../construction_commercial_measurements/output/preferred_commercial_projects.csv "$@"; fi
 
-../input/commercial_entity_version_candidates.csv: ../../new_construction_cleaning/output/commercial_entity_version_candidates.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/commercial_entity_version_candidates.csv" ]; then ln -sf ../../new_construction_cleaning/output/commercial_entity_version_candidates.csv "$@"; fi
+../input/commercial_entity_version_candidates.csv: ../../construction_project_candidates/output/commercial_entity_version_candidates.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../construction_project_candidates/output/commercial_entity_version_candidates.csv" ]; then ln -sf ../../construction_project_candidates/output/commercial_entity_version_candidates.csv "$@"; fi
 
 
-../input/preferred_commercial_project_ledger.csv: ../../new_construction_cleaning/output/preferred_commercial_project_ledger.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/preferred_commercial_project_ledger.csv" ]; then ln -sf ../../new_construction_cleaning/output/preferred_commercial_project_ledger.csv "$@"; fi
+../input/preferred_commercial_project_ledger.csv: ../../construction_boundary_distances/output/preferred_commercial_project_ledger.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../construction_boundary_distances/output/preferred_commercial_project_ledger.csv" ]; then ln -sf ../../construction_boundary_distances/output/preferred_commercial_project_ledger.csv "$@"; fi
 
 ../input/residential_tieback_no_snapshot_decisions.csv: ../../audits/construction_review_history/records/residential_tieback_no_snapshot_decisions.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../audits/construction_review_history/records/residential_tieback_no_snapshot_decisions.csv" ]; then ln -sf ../../audits/construction_review_history/records/residential_tieback_no_snapshot_decisions.csv "$@"; fi
@@ -389,21 +389,21 @@ link-inputs: ../input/preferred_historical_parcel_source.gpkg
 ../input/residential_class297_exceptions.csv: ../../audits/construction_review_history/records/residential_class297_exceptions.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../audits/construction_review_history/records/residential_class297_exceptions.csv" ]; then ln -sf ../../audits/construction_review_history/records/residential_class297_exceptions.csv "$@"; fi
 
-../input/residential_overlap_decisions.csv: ../../new_construction_corrections/output/residential_overlap_decisions.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_corrections/output/residential_overlap_decisions.csv" ]; then ln -sf ../../new_construction_corrections/output/residential_overlap_decisions.csv "$@"; fi
+../input/residential_overlap_decisions.csv: ../../new_construction_cleaning/output/residential_overlap_decisions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/residential_overlap_decisions.csv" ]; then ln -sf ../../new_construction_cleaning/output/residential_overlap_decisions.csv "$@"; fi
 
 ../input/residential_remaining_case_decisions.csv: ../../audits/construction_review_history/records/residential_remaining_case_decisions.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../audits/construction_review_history/records/residential_remaining_case_decisions.csv" ]; then ln -sf ../../audits/construction_review_history/records/residential_remaining_case_decisions.csv "$@"; fi
 
-../input/residential_unresolved_source_dispositions.csv: ../../new_construction_corrections/output/residential_unresolved_source_dispositions.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_corrections/output/residential_unresolved_source_dispositions.csv" ]; then ln -sf ../../new_construction_corrections/output/residential_unresolved_source_dispositions.csv "$@"; fi
+../input/residential_unresolved_source_dispositions.csv: ../../new_construction_cleaning/output/residential_unresolved_source_dispositions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/residential_unresolved_source_dispositions.csv" ]; then ln -sf ../../new_construction_cleaning/output/residential_unresolved_source_dispositions.csv "$@"; fi
 
 ../input/project_manual_reviews.csv: ../../audits/construction_review_history/records/project_manual_reviews.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../audits/construction_review_history/records/project_manual_reviews.csv" ]; then ln -sf ../../audits/construction_review_history/records/project_manual_reviews.csv "$@"; fi
 
 
-../input/eligibility_manual_exceptions.csv: ../../new_construction_corrections/output/eligibility_manual_exceptions.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_corrections/output/eligibility_manual_exceptions.csv" ]; then ln -sf ../../new_construction_corrections/output/eligibility_manual_exceptions.csv "$@"; fi
+../input/eligibility_manual_exceptions.csv: ../../new_construction_cleaning/output/eligibility_manual_exceptions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/eligibility_manual_exceptions.csv" ]; then ln -sf ../../new_construction_cleaning/output/eligibility_manual_exceptions.csv "$@"; fi
 
 ../input/residential_successor_condo_overrides.csv: ../../audits/construction_review_history/records/residential_successor_condo_overrides.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../audits/construction_review_history/records/residential_successor_condo_overrides.csv" ]; then ln -sf ../../audits/construction_review_history/records/residential_successor_condo_overrides.csv "$@"; fi
@@ -428,23 +428,23 @@ link-inputs: ../input/preferred_historical_parcel_source.gpkg
 ../input/density_historical_address_records.csv: ../../../data_raw/construction_review/density_historical_address_records_2026-09-04.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../../data_raw/construction_review/density_historical_address_records_2026-09-04.csv" ]; then ln -sf ../../../data_raw/construction_review/density_historical_address_records_2026-09-04.csv "$@"; fi
 
-../input/residential_successor_condo_requests.csv: ../../new_construction_cleaning/output/residential_successor_condo_requests.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/residential_successor_condo_requests.csv" ]; then ln -sf ../../new_construction_cleaning/output/residential_successor_condo_requests.csv "$@"; fi
+../input/residential_successor_condo_requests.csv: ../../construction_residential_measurements/output/residential_successor_condo_requests.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../construction_residential_measurements/output/residential_successor_condo_requests.csv" ]; then ln -sf ../../construction_residential_measurements/output/residential_successor_condo_requests.csv "$@"; fi
 
 ../input/construction_condominium_history.csv: ../../download_construction_assessor_history/output/construction_condominium_history.csv | ../input
 	@if [ "$$(readlink "$@")" != "../../download_construction_assessor_history/output/construction_condominium_history.csv" ]; then ln -sf ../../download_construction_assessor_history/output/construction_condominium_history.csv "$@"; fi
 
-../input/residential_tieback_temporal_snapshots.csv: ../../new_construction_cleaning/output/residential_tieback_temporal_snapshots.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/residential_tieback_temporal_snapshots.csv" ]; then ln -sf ../../new_construction_cleaning/output/residential_tieback_temporal_snapshots.csv "$@"; fi
+../input/residential_tieback_temporal_snapshots.csv: ../../construction_residential_identity/output/residential_tieback_temporal_snapshots.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../construction_residential_identity/output/residential_tieback_temporal_snapshots.csv" ]; then ln -sf ../../construction_residential_identity/output/residential_tieback_temporal_snapshots.csv "$@"; fi
 
-../input/residential_review_source_dispositions.csv: ../../new_construction_cleaning/output/residential_review_source_dispositions.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/residential_review_source_dispositions.csv" ]; then ln -sf ../../new_construction_cleaning/output/residential_review_source_dispositions.csv "$@"; fi
+../input/residential_review_source_dispositions.csv: ../../construction_residential_measurements/output/residential_review_source_dispositions.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../construction_residential_measurements/output/residential_review_source_dispositions.csv" ]; then ln -sf ../../construction_residential_measurements/output/residential_review_source_dispositions.csv "$@"; fi
 
-../input/preferred_residential_project_ledger.csv: ../../new_construction_cleaning/output/preferred_residential_project_ledger.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/preferred_residential_project_ledger.csv" ]; then ln -sf ../../new_construction_cleaning/output/preferred_residential_project_ledger.csv "$@"; fi
+../input/preferred_residential_project_ledger.csv: ../../construction_boundary_distances/output/preferred_residential_project_ledger.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../construction_boundary_distances/output/preferred_residential_project_ledger.csv" ]; then ln -sf ../../construction_boundary_distances/output/preferred_residential_project_ledger.csv "$@"; fi
 
-../input/density_parcel_address_selected_history.csv: ../../new_construction_cleaning/output/density_parcel_address_selected_history.csv | ../input
-	@if [ "$$(readlink "$@")" != "../../new_construction_cleaning/output/density_parcel_address_selected_history.csv" ]; then ln -sf ../../new_construction_cleaning/output/density_parcel_address_selected_history.csv "$@"; fi
+../input/density_parcel_address_selected_history.csv: ../../construction_historical_coordinates/output/density_parcel_address_selected_history.csv | ../input
+	@if [ "$$(readlink "$@")" != "../../construction_historical_coordinates/output/density_parcel_address_selected_history.csv" ]; then ln -sf ../../construction_historical_coordinates/output/density_parcel_address_selected_history.csv "$@"; fi
 
 # Compare the preserved paper input with the newly connected construction data.
 ifneq ($(filter-out $(wildcard ../output/construction_estimation_project_changes.csv ../output/construction_estimation_sample_comparison.csv),../output/construction_estimation_project_changes.csv ../output/construction_estimation_sample_comparison.csv),)
@@ -462,7 +462,7 @@ endif
 ../report/construction_estimation_sample_comparison.csv.log: ../../shared/code/report.py ../output/construction_estimation_sample_comparison.csv | ../report
 	$(PYTHON) $< ../output/construction_estimation_sample_comparison.csv $@ sample outcome
 
-../input/preferred_new_construction_project_ledger.csv: ../../new_construction_cleaning/output/preferred_new_construction_project_ledger.csv | ../input
+../input/preferred_new_construction_project_ledger.csv: ../../construction_boundary_distances/output/preferred_new_construction_project_ledger.csv | ../input
 	ln -sf $< $@
 
 ../input/current_construction_analysis.csv: ../../new_construction_analysis_data/output/new_construction_analysis_data.csv | ../input
@@ -474,7 +474,7 @@ endif
 ../report/density_change_decomposition.csv.log: ../../shared/code/report.py ../output/density_change_decomposition.csv | ../report
 	$(PYTHON) $< ../output/density_change_decomposition.csv $@ sample outcome stage
 
-../input/preferred_new_construction_zoning.csv: ../../new_construction_cleaning/output/preferred_new_construction_zoning.csv | ../input
+../input/preferred_new_construction_zoning.csv: ../../construction_boundary_distances/output/preferred_new_construction_zoning.csv | ../input
 	ln -sf $< $@
 
 ../input/historical_zoning_project_construction_year.csv: ../../construction_zoning_history/output/historical_zoning_project_construction_year.csv | ../input
@@ -507,7 +507,7 @@ all: ../report/population_chronology_review.csv.log
 ../report/population_chronology_review.csv.log: ../../shared/code/report.py ../output/population_chronology_review.csv | ../report
 	$(PYTHON) $< ../output/population_chronology_review.csv $@ project_id
 
-../input/residential_selected_assessments.csv: ../../new_construction_cleaning/output/residential_selected_assessments.csv | ../input
+../input/residential_selected_assessments.csv: ../../construction_residential_measurements/output/residential_selected_assessments.csv | ../input
 	ln -sf $< $@
 
 ../input/commercial_value_raw.csv: ../../download_construction_assessor_history/output/commercial_valuation_data.csv | ../input

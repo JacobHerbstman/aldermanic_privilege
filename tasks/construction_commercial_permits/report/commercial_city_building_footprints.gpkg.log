@@ -1,0 +1,17 @@
+File: commercial_city_building_footprints.gpkg
+Rows: 1241
+Columns: 7
+SHA-256 (saved bytes): 92289d01a804a64eb053b46cc3b376e3c40dfccbd9f846e90f0b455eeed749eb
+Key: footprint_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct  min               max               mean                 sd
+                 fid        BIGINT        1241     1241    1              1241              621.0  358.3901505343025
+        footprint_id       VARCHAR        1241     1241    -                 -                  -                  -
+        city_address       VARCHAR        1241     1105    -                 -                  -                  -
+     city_year_built        BIGINT        1241      120    0              2015  1295.473811442385  929.4644466464194
+          city_units        DOUBLE        1241       55  0.0             500.0  7.900080580177276  46.83834252659528
+  city_building_sqft        DOUBLE        1241      202  0.0          280100.0 2532.0733279613214  12180.11584186422
+city_shape_area_sqft        DOUBLE        1241     1239 79.0 223284.7250003405  7029.399806940236 13096.713607804304

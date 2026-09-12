@@ -12,5 +12,5 @@ rule. Its completion flags agree for all 800 in-period source projects, and the
 resulting decisions agree for all 1,128 commercial source records.
 
 The current decision inputs are documented in
-[new_construction_corrections](../../new_construction_corrections/README.md).
+[new_construction_cleaning](../../new_construction_cleaning/README.md).
 These audit outputs supply research context and do not override those decisions.

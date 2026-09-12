@@ -16,13 +16,13 @@ all: ../output/construction_regressors.csv \
 ../output/new_construction_analysis_data.csv: build_new_construction_analysis_data.R Makefile ../../setup_environment/code/packages.R ../output/construction_regressors.csv ../input/preferred_new_construction_zoning.csv ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
 	$(R) $<
 
-../input/preferred_new_construction_project_ledger.csv: ../../new_construction_cleaning/output/preferred_new_construction_project_ledger.csv | ../input
+../input/preferred_new_construction_project_ledger.csv: ../../construction_boundary_distances/output/preferred_new_construction_project_ledger.csv | ../input
 	ln -sf $< $@
 
-../input/preferred_new_construction_boundary_scope.csv: ../../new_construction_cleaning/output/preferred_new_construction_boundary_scope.csv | ../input
+../input/preferred_new_construction_boundary_scope.csv: ../../construction_boundary_distances/output/preferred_new_construction_boundary_scope.csv | ../input
 	ln -sf $< $@
 
-../input/preferred_new_construction_zoning.csv: ../../new_construction_cleaning/output/preferred_new_construction_zoning.csv | ../input
+../input/preferred_new_construction_zoning.csv: ../../construction_boundary_distances/output/preferred_new_construction_zoning.csv | ../input
 	ln -sf $< $@
 
 ../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input

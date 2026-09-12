@@ -379,22 +379,22 @@ download-reviewed-current: $(foreach year,$(REVIEWED_PARCEL_YEARS),../output/rev
 ../input/marquette_footprints_2022_review_2026-09-08.geojson: ../../../data_raw/construction_review/marquette_footprints_2022_review_2026-09-08.geojson | ../input
 	ln -sf $< $@
 
-../input/preferred_project_geography_requests.csv: ../../new_construction_cleaning/output/preferred_project_geography_requests.csv | ../input
+../input/preferred_project_geography_requests.csv: ../../construction_historical_sites/output/preferred_project_geography_requests.csv | ../input
 	ln -sf $< $@
 
-../input/historical_project_parcel_requests.csv: ../../new_construction_cleaning/output/historical_project_parcel_requests.csv | ../input
+../input/historical_project_parcel_requests.csv: ../../construction_historical_sites/output/historical_project_parcel_requests.csv | ../input
 	ln -sf $< $@
 
-../input/historical_project_parcel_coverage.csv: ../../new_construction_cleaning/output/historical_project_parcel_coverage.csv | ../input
+../input/historical_project_parcel_coverage.csv: ../../construction_historical_sites/output/historical_project_parcel_coverage.csv | ../input
 	ln -sf $< $@
 
-../input/missing_project_reference_points.csv: ../../new_construction_cleaning/output/missing_project_reference_points.csv | ../input
+../input/missing_project_reference_points.csv: ../../construction_historical_sites/output/missing_project_reference_points.csv | ../input
 	ln -sf $< $@
 
-../input/preferred_predecessor_reference_points.csv: ../../new_construction_cleaning/output/preferred_predecessor_reference_points.csv | ../input
+../input/preferred_predecessor_reference_points.csv: ../../construction_project_locations/output/preferred_predecessor_reference_points.csv | ../input
 	ln -sf $< $@
 
-../input/preferred_address_geocode_requests.csv: ../../new_construction_cleaning/output/preferred_address_geocode_requests.csv | ../input
+../input/preferred_address_geocode_requests.csv: ../../construction_project_locations/output/preferred_address_geocode_requests.csv | ../input
 	ln -sf $< $@
 
 link-inputs: ../input/preferred_historical_parcel_source.gpkg ../input/preferred_historical_parcel_source_queries.csv ../input/preferred_parcel_supplement_2026-09-07.gpkg ../input/preferred_parcel_supplement_queries_2026-09-07.csv ../input/historical_predecessor_parcels_2026-07-27.gpkg ../input/historical_predecessor_parcels_2026-09-07.gpkg ../input/historical_predecessor_queries_2026-07-27.csv ../input/historical_predecessor_queries_2026-09-07.csv \

@@ -28,7 +28,7 @@ download-current: $(foreach provider,$(GEOCODERS),../output/address_geocodes_$(p
 ../input/address_geocodes_chicago_additional_2026-09-07.csv: ../../../data_raw/construction_review/address_geocodes_chicago_additional_2026-09-07.csv | ../input
 	ln -sf $< $@
 
-../input/preferred_address_geocode_requests.csv: ../../new_construction_cleaning/output/preferred_address_geocode_requests.csv | ../input
+../input/preferred_address_geocode_requests.csv: ../../construction_project_locations/output/preferred_address_geocode_requests.csv | ../input
 	ln -sf $< $@
 
 link-inputs: ../input/address_geocodes_census_2026-09-07.csv ../input/address_geocodes_chicago_2026-09-07.csv ../input/address_geocodes_census_additional_2026-09-07.csv ../input/address_geocodes_chicago_additional_2026-09-07.csv

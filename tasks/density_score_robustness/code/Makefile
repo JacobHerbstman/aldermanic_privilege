@@ -27,10 +27,10 @@ all: ../output/density_score_robustness.tex \
 ../input/alderman_uncertainty_index_through2022.csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv | ../input
 	ln -sf $< $@
 
-../input/building_permits_for_verification.gpkg: ../../new_construction_cleaning/output/building_permits_for_verification.gpkg | ../input
+../input/building_permits_for_verification.gpkg: ../../construction_project_permits/output/building_permits_for_verification.gpkg | ../input
 	ln -sf $< $@
 
-../input/preferred_project_year_geometry.gpkg: ../../new_construction_cleaning/output/preferred_project_year_geometry.gpkg | ../input
+../input/preferred_project_year_geometry.gpkg: ../../construction_project_locations/output/preferred_project_year_geometry.gpkg | ../input
 	ln -sf $< $@
 
 link-inputs: \

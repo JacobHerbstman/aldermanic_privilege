@@ -16,9 +16,9 @@ datasets and exhibits as targets. Reports accompany those files in `report/`;
 deleting a report alone does not rerun its data producer.
 
 The density analyses now use the chronological construction pipeline on this
-branch. See the [construction workflow](tasks/new_construction_cleaning/README.md)
+branch. See the [construction workflow](tasks/construction_boundary_distances/README.md)
 for the source-to-project logic and the preserved-history limitations.
-The [recorded construction decisions](tasks/new_construction_corrections/README.md)
+The [recorded construction decisions](tasks/new_construction_cleaning/README.md)
 are committed CSV inputs in a separate task with no R scripts.
 Before the first build, run `make -C replication` to obtain the exact recorded
 source inputs from the [source release](https://github.com/JacobHerbstman/aldermanic_privilege/releases/tag/recorded-sources-2026-09-10).
@@ -32,7 +32,7 @@ specifications, rezoning work, and slides are not part of the paper build.
 
 [![Paper task dependency graph](task_graph/paper_task_flow.svg)](task_graph/paper_task_flow.svg)
 
-The graph contains no cycles. Shared R package setup and helper files are used
+The file dependencies determine execution order. Shared R package setup and helper files are used
 throughout but are omitted from the figure because they do not produce data
 outputs.
 
@@ -42,14 +42,13 @@ changing dependencies, rebuild it with `make -C task_graph` (requires Graphviz).
 ## Construction data
 
 The construction build feeds the density analysis tasks in the graph above.
-This diagram shows the source tasks that hand files directly
-to construction cleaning; it does not depict every upstream download dependency.
+This diagram shows the tasks that prepare construction records, apply the recorded decisions, and calculate density and boundary distances.
 
 [![Current construction source tasks](task_graph/construction_tasks.svg)](task_graph/construction_tasks.svg)
 
-Read the [cleaning rules and chronological guide](tasks/new_construction_cleaning/README.md),
+Read the [cleaning rules and chronological guide](tasks/construction_boundary_distances/README.md),
 the [exact script progression](task_graph/construction_steps.md), or the
-[full diagram within construction cleaning](task_graph/construction_scripts.svg).
+[construction script diagram](task_graph/construction_scripts.svg).
 Both construction diagrams and the script progression are generated from the
 current default Make targets. Superseded assembly code is preserved in Git
 history and is not part of the current checkout.

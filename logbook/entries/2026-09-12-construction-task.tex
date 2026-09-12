@@ -1,0 +1,56 @@
+\section*{Separate construction decisions from ordinary cleaning}
+\textit{September 12, 2026. Agent-drafted record of the construction task reorganization.}
+
+Jacob requested that the Desktop checkout's \texttt{new\_construction\_cleaning}
+task contain the committed review decisions and no R scripts. The earlier
+separation placed those decisions in a different folder while leaving the
+calculation scripts in the original task. That did not meet the request. The
+original task now contains its simple Makefile, the same 25 decision CSVs,
+their saved reports, and documentation. The separate corrections folder has
+been removed. All 25 decision files retain their previous bytes.
+
+Ordinary Assessor cleaning remains executable from the recorded sources.
+The 46 prior scripts are organized as 25 linear scripts across 13 tasks,
+with one or two scripts per task. The tasks identify records and buildings,
+match permits and historical parcels, select measurements, apply the recorded
+corrections, calculate FAR and DUPAC, and attach boundary distances and zoning.
+The transformation expressions remain in their original order. Correction
+ownership, source priorities, thresholds, and the distinction between an early
+identity decision and a later measurement correction are unchanged.
+
+The old output directory also contained five superseded commercial review
+displays with no active Make producer. They are preserved with their reports
+in the construction review archive. Thus the current build has 92 produced
+construction datasets; the earlier report's count of 97 files also included
+those five stale displays. No ordinary source selection has been converted
+into a fixed manual instruction.
+
+The revised Makefiles use direct file prerequisites and input links, and the
+existing shared execution rules. Standard data reports remain saving
+byproducts. Isolated checks of the actual Make rules verified fresh production,
+unchanged builds, recovery of 30 individual missing outputs, propagation of a
+changed input, and no data rebuild when only a report is missing, including
+parallel Make invocations. The generated construction script graph follows
+the current file dependencies.
+
+The rebuilt construction data agree with the saved pre-change files: all 92
+produced datasets and all 25 decision inputs match. CSV bytes, spatial
+attributes, and geometry bytes are identical; GeoPackage integrity and
+coordinate-system records pass inspection. All 13,677 construction records
+retain their years, units, floor areas, land areas, FAR, DUPAC, locations, and
+boundary distances. The rebuilt regressor and analysis CSVs are also
+byte-identical, retaining the same 9,493 analysis observations.
+
+The full construction Make graph was run through the final assembly. Each of
+the 13 producing tasks then passed a local Make and an unchanged dry run
+against those rebuilt inputs. Those local checks held the already-checked
+shared upstream traversal fixed. This is a verification of the reorganization
+in the Desktop checkout, rather than a new code-only clone exercise.
+
+The downstream density tasks and the commercial review audit rebuilt against
+these verified inputs. Table 1, the project-permit matches, and the
+score-robustness table match the preserved comparison files. Make rebuilt
+the paper, online appendix, working paper, and word-count PDF in the real
+\texttt{paper/} folder, with the verified upstream data held fixed. Its second
+dry run scheduled no data or document production. Manuscript wording was not
+edited as part of this cleanup.

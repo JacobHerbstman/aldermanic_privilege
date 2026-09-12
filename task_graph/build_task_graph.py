@@ -7,6 +7,7 @@ repository = Path("..").resolve()
 edges = set()
 visited = set()
 visiting = set()
+local_rules = {}
 
 
 def visit(task, target):
@@ -19,18 +20,27 @@ def visit(task, target):
     directory = repository / ("paper" if task == "paper" else f"tasks/{task}/code")
 
     # Ask Make to expand variables and pattern rules without running producers.
-    # Suppress only the shared recursive check while inspecting this task's rules.
-    result = subprocess.run(
-        ["make", "-qpRr", "--no-print-directory", "-o", "FORCE_UPSTREAM", target],
-        cwd=directory, capture_output=True, text=True,
-    )
-    if result.returncode not in (0, 1):
-        raise RuntimeError(f"Cannot read {task}: {target}\n{result.stderr}")
-    declarations = [line for line in result.stdout.splitlines()
-                    if line.startswith(target + ":")]
-    if len(declarations) != 1:
-        raise ValueError(f"Expected one expanded rule for {task}: {target}")
-    dependencies = declarations[0].split(":", 1)[1].split("|", 1)[0].split()
+    # Query local rules only; the traversal below visits upstream tasks explicitly.
+    # Recursive Make recipes must not launch builds while drawing the graph.
+    if key not in local_rules:
+        result = subprocess.run(
+            ["make", "-qpRr", "--no-print-directory", "-o", "FORCE_UPSTREAM", "MAKE=:", target],
+            cwd=directory, capture_output=True, text=True,
+        )
+        if result.returncode not in (0, 1):
+            raise RuntimeError(f"Cannot read {task}: {target}\n{result.stderr}")
+        for line in result.stdout.splitlines():
+            if line.startswith(("#", "\t", " ")) or ":" not in line or "=" in line:
+                continue
+            name, prerequisites = line.split(":", 1)
+            if "%" in name or len(name.split()) != 1:
+                continue
+            prerequisites = prerequisites.split("|", 1)[0].split()
+            if prerequisites or name == target:
+                local_rules[(task, name)] = prerequisites
+        if key not in local_rules:
+            raise ValueError(f"No expanded Make rule for {task}: {target}")
+    dependencies = local_rules[key]
 
     for dependency in dependencies:
         path = Path(os.path.normpath(directory / dependency))

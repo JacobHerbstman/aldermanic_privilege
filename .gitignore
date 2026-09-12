@@ -127,6 +127,8 @@ Rplots.pdf
 !data_raw/construction_review/construction_condominium_history_20260909.csv
 
 # Final construction decisions and preserved zoning history are replication inputs.
-!tasks/new_construction_corrections/output/
+!tasks/new_construction_cleaning/output/
 !tasks/construction_zoning_history/output/
-!tasks/construction_zoning_history/report/*.gpkg.log
+!tasks/construction_*/report/*.gpkg.log
+
+!tasks/audits/construction_review_history/report/*.log

@@ -2,7 +2,7 @@
 
 This directory preserves superseded construction reviews and their supporting
 notes. It is an archive, with no Makefile or default build. The paper reads the
-[current decision inputs](../../new_construction_corrections/README.md).
+[current decision inputs](../../new_construction_cleaning/README.md).
 
 [The earlier research record](history.md) contains the recovery history, source
 references, recorded decisions, and explanations of later replacements. Files
@@ -16,7 +16,7 @@ override the currently applied instructions.
 old construction task's paths and are historical source, not a runnable task in
 this directory. Their original dependency graph is available at Git commit
 `1b5dae29`. General unit-count and parcel-coverage rules remain in production in
-`select_commercial_evidence_rules.R`; the discarded calculations assembled
+`tasks/construction_commercial_measurements/code/select_commercial_measurements.R`; the discarded calculations assembled
 review displays and alternative recommendations that the final ledger did not
 use. No automatically selected building was converted into a manual exception.
 
@@ -27,7 +27,11 @@ approved manual decisions fixed.
 
 The September 11 source separation also preserves the original four measurement
 instruction tables and both building-type review spreadsheets in `records/`.
-Their normalized instructions are in `new_construction_corrections/output/`.
+Their normalized instructions are in `new_construction_cleaning/output/`.
 All six original files retain their exact bytes; the new source README documents
 the field mapping and production owners. The other historical tables moved here
 remain available to their release-audit readers.
+
+The five superseded commercial unit, land, and permit review displays are preserved in `records/`, with their original data reports in `report/`. They have no production consumers.
+
+The other superseded inspection reports from the former construction folder are retained in `report/` as historical records. Their original production code and Make rules remain available in Git history.

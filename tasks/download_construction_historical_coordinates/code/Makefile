@@ -15,7 +15,7 @@ all: ../output/density_historical_parcel_records.csv \
 ../output/historical_parcel_requests.csv: prepare_historical_parcel_requests.R ../../setup_environment/code/packages.R ../input/density_historical_building_universe.csv | ../output
 	$(R) $<
 
-../input/density_historical_building_universe.csv: ../../new_construction_cleaning/output/density_historical_building_universe.csv | ../input
+../input/density_historical_building_universe.csv: ../../construction_historical_coordinates/output/density_historical_building_universe.csv | ../input
 	ln -sf $< $@
 
 link-inputs: ../input/density_historical_building_universe.csv

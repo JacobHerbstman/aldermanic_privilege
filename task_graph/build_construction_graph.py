@@ -1,120 +1,108 @@
-"""Display the current construction build from its literal Make prerequisites."""
+"""Draw construction task and script dependencies from their literal Make rules."""
 from pathlib import Path
+import os
 import re
 import sys
 
 mode = sys.argv[1]
 assert mode in ("tasks", "scripts", "steps")
-root = Path("../tasks/new_construction_cleaning/code")
+repository = Path("..").resolve()
 rules = {}
-read_files = set()
+scripts = {}
 
-
-def read_make(path):
-    if path in read_files:
-        return
-    read_files.add(path)
-    for line in path.read_text().replace("\\\n", " ").splitlines():
-        if line.startswith("\t"):
+# Construction producers use literal paths; scalar settings do not alter their names.
+for makefile in sorted((repository / "tasks").glob("construction_*/code/Makefile")):
+    for line in makefile.read_text().replace("\\\n", " ").splitlines():
+        if line.startswith(("\t", "#", "include")) or ":" not in line or "=" in line:
             continue
-        line = line.split("#", 1)[0].strip()
-        if line.startswith("include "):
-            name = line.split()[1]
-            if "/shared/" not in name:
-                read_make(path.parent / name)
-        elif ":" in line and not re.search(r"[:?+]?=", line):
-            targets, inputs = line.split(":", 1)
-            if not targets.startswith(".PHONY"):
-                targets = targets.replace("../%/", "../output/")
-                if "%" in targets:
-                    continue
-                for target in targets.split():
-                    rules.setdefault(target, []).extend(inputs.split("|")[0].split())
+        targets, inputs = line.split(":", 1)
+        targets = targets.replace("../%/", "../output/")
+        if "%" in targets:
+            continue
+        dependencies = [Path(os.path.normpath(makefile.parent / x))
+                        for x in inputs.split("|", 1)[0].split()]
+        for target in targets.split():
+            path = Path(os.path.normpath(makefile.parent / target))
+            rules.setdefault(path, []).extend(dependencies)
+            code = [x for x in dependencies if x.suffix == ".R" and x.parent == makefile.parent]
+            if code:
+                scripts[path] = code[0]
 
-
-read_make(root / "Makefile")
-assert rules.get("all"), "The current build has no default products"
 script_inputs = {}
 script_outputs = {}
-source_nodes = {}
+source_nodes = set()
 resolving = set()
 
 
-def producer(target):
-    if target in resolving:
-        raise ValueError(f"Construction dependency cycle: {target}")
-    resolving.add(target)
-    dependencies = rules.get(target, [])
-    if target.startswith("../report/"):
-        result = producer(target.replace("../report/", "../output/").removesuffix(".log"))
-    elif target.startswith("../input/") and len(dependencies) == 1:
+def producer(path):
+    if path in resolving:
+        raise ValueError(f"Construction file dependency cycle: {path}")
+    resolving.add(path)
+    dependencies = rules.get(path, [])
+    if path in scripts:
+        result = scripts[path]
+        script_outputs.setdefault(result, set()).add(path)
+        if result not in script_inputs:
+            script_inputs[result] = set()
+            for item in dependencies:
+                if item.parent.name in ("input", "output"):
+                    script_inputs[result].add(producer(item))
+    elif path.parent.name == "input" and len(dependencies) == 1:
         result = producer(dependencies[0])
-    elif target.startswith("../output/"):
-        scripts = [x for x in dependencies if "/" not in x and x.endswith(".R")]
-        if scripts:
-            result = scripts[0]
-            script_outputs.setdefault(result, set()).add(target)
-            if result not in script_inputs:
-                script_inputs[result] = set()
-                for item in dependencies:
-                    if item.startswith(("../output/", "../input/", "../adjudication/")):
-                        script_inputs[result].add(producer(item))
-        else:
-            parents = [x for x in dependencies if x.startswith("../output/")]
-            if len(parents) != 1:
-                raise ValueError(f"No unique producer for {target}")
-            result = producer(parents[0])
-            script_outputs.setdefault(result, set()).add(target)
     else:
-        match = re.match(r"../../([^/]+)/output/", target)
-        result = match.group(1) if match else (
-            "Recorded decisions" if target.startswith("../adjudication/") else "Pinned local sources")
-        source_nodes.setdefault(result, set()).add(target)
-    resolving.remove(target)
+        result = path
+        source_nodes.add(path)
+    resolving.remove(path)
     return result
 
 
-for target in rules["all"]:
+root = repository / "tasks/construction_boundary_distances/code/all"
+for target in rules[root]:
     producer(target)
+assert script_inputs, "No construction producers found"
 levels = {}
+visiting = set()
 
 
 def level(node):
+    if node in visiting:
+        raise ValueError(f"Construction producer cycle: {node}")
     if node not in levels:
+        visiting.add(node)
         levels[node] = 1 + max((level(x) for x in script_inputs.get(node, [])), default=-1)
+        visiting.remove(node)
     return levels[node]
 
 
 for node in script_inputs:
     level(node)
 if mode == "steps":
-    lines = ["# Current construction cleaning: execution order", "",
-             "Generated from the current Make targets. Steps at the same level are independent.",
-             "The chronological construction outputs feed the density analyses; older unused final-assembly rules are excluded.", ""]
+    lines = ["# Construction data: execution order", "",
+             "Generated from the current Makefile prerequisites. Scripts at the same level are independent.", ""]
     for step in sorted(set(levels.values())):
-        scripts = sorted(x for x in script_inputs if levels[x] == step)
-        if not scripts:
+        nodes = sorted(x for x in script_inputs if levels[x] == step)
+        if not nodes:
             continue
         lines += [f"## Dependency level {step}", ""]
-        for script in scripts:
-            lines += [f"- [{script}](../tasks/new_construction_cleaning/code/{script}): " +
-                      ", ".join(f"`{x.removeprefix('../output/')}`" for x in sorted(script_outputs[script]))]
+        for node in nodes:
+            relative = node.relative_to(repository)
+            lines += [f"- [{relative}](../{relative}): " +
+                      ", ".join(f"`{x.name}`" for x in sorted(script_outputs[node]))]
         lines.append("")
     Path("construction_steps.md").write_text("\n".join(lines).rstrip() + "\n")
 else:
-    edges = {(parent, script) for script, parents in script_inputs.items() for parent in parents}
+    edges = {(parent, child) for child, parents in script_inputs.items() for parent in parents}
     if mode == "tasks":
-        edges = {(parent, "new_construction_cleaning") for parent in source_nodes}
-        # These are the actual direct task handoffs to the current construction build.
-    nodes = set(x for edge in edges for x in edge)
-    lines = ["digraph construction {", "rankdir=LR;",
-             'graph [bgcolor="white", pad=.25, nodesep=.25, ranksep=.5];',
-             'node [shape=box, style="rounded,filled", fillcolor="#eef4fa", fontname="Helvetica", fontsize=10];',
-             'edge [color="#64748b"];']
-    for node in sorted(nodes):
-        label = node.removesuffix(".R").replace("_", " ")
+        edges = {(x.parent.parent.name, y.parent.parent.name) for x, y in edges
+                 if x.parent.parent != y.parent.parent}
+    else:
+        edges = {(str(x.relative_to(repository)), str(y.relative_to(repository))) for x, y in edges}
+    lines = ["digraph construction {", "rankdir=LR;", "graph [bgcolor=white];",
+             'node [shape=box, fontname="Helvetica", fontsize=9];']
+    for node in sorted({x for pair in edges for x in pair}):
+        label = node.replace("tasks/", "").replace("/code/", "\\n").replace("/output/", "\\n")
         lines.append(f'"{node}" [label="{label}"];')
     for parent, child in sorted(edges):
         lines.append(f'"{parent}" -> "{child}";')
-    lines += ['label="Current construction build — feeds the density analyses";', "}"]
+    lines.append("}")
     Path(f"construction_{mode}.dot").write_text("\n".join(lines) + "\n")

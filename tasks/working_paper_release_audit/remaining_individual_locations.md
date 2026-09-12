@@ -21,7 +21,7 @@ Eight Campbell homes already have approved 2007 years in the committed construct
 
 ## Sources
 
-Permit descriptions above come from the pinned City permit source, via `new_construction_cleaning/output/building_permits_for_verification.gpkg`, queried by full street number, direction and street name. Assessment comparisons come from the recorded residential Assessor history and selected project rows. Exact-address searches can miss permits filed under another address; their absence is not proof that no permit exists.
+Permit descriptions above come from the pinned City permit source, via `construction_project_permits/output/building_permits_for_verification.gpkg`, queried by full street number, direction and street name. Assessment comparisons come from the recorded residential Assessor history and selected project rows. Exact-address searches can miss permits filed under another address; their absence is not proof that no permit exists.
 
 - [CHA 2025 site list, including 951 W 34th](https://www.thecha.org/sites/default/files/2025-04/Event3271-Site-Addresses_03.25_Procurement.pdf).
 - [3626 S Sangamon listing](https://www.trulia.com/home/3626-s-sangamon-st-chicago-il-60609-113952558). Its headline and detailed lot areas disagree; only the detailed 430-square-foot value corroborates the existing Assessor value. No listing value replaces the Assessor measurement.
