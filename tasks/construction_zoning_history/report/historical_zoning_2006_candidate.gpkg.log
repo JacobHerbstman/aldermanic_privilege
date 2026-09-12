@@ -1,0 +1,34 @@
+File: historical_zoning_2006_candidate.gpkg
+Rows: 11294
+Columns: 24
+SHA-256 (saved bytes): 60d90d6da8da0a463271ff982625284a487cfaf907112f28ff895297c8bed815
+Key: not declared in this report
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                        column inferred_type non_missing distinct                  min                max                mean                  sd
+                           fid        BIGINT       11294    11294                    1              11294              5647.5    3260.44130448625
+             zoning_polygon_id        BIGINT       11294    11294                    1              11294              5647.5    3260.44130448625
+                zone_code_2012       VARCHAR       11294     1185                    -                  -                   -                   -
+               zone_group_2012       VARCHAR       11294       10                    -                  -                   -                   -
+          application_key_2012       VARCHAR        3344     3253                    -                  -                   -                   -
+           ordinance_date_2012       VARCHAR        3115      174                    -                  -                   -                   -
+         source_geometry_valid        BIGINT       11294        2                    0                  1  0.9907915707455286 0.09552194505375888
+              zoning_map_grids       VARCHAR       11294     1116                    -                  -                   -                   -
+        event_selection_status       VARCHAR       11294        5                    -                  -                   -                   -
+         event_application_key       VARCHAR        1706     1668                    -                  -                   -                   -
+                  event_source       VARCHAR        1706        2                    -                  -                   -                   -
+        event_journal_filename       VARCHAR        1696       80                    -                  -                   -                   -
+         event_pdf_page_number       VARCHAR        1696      902                    -                  -                   -                   -
+             event_map_numbers       VARCHAR        1696      260                    -                  -                   -                   -
+           event_source_groups       VARCHAR        1662       51                    -                  -                   -                   -
+      event_destination_groups       VARCHAR        1662       33                    -                  -                   -                   -
+            event_clause_count        DOUBLE        1706        6                  0.0                5.0    1.08968347010551  0.4231417398557218
+       candidate_origin_groups       VARCHAR        1706       27                    -                  -                   -                   -
+     candidate_zone_group_2006       VARCHAR       11070       10                    -                  -                   -                   -
+         reconstruction_status       VARCHAR       11294        6                    -                  -                   -                   -
+         january_2006_evidence       VARCHAR       11294        3                    -                  -                   -                   -
+       reconstruction_resolved        BIGINT       11294        2                    0                  1  0.9801664600672924 0.13943418541341746
+broad_group_changed_since_2006        BIGINT       11294        2                    0                  1 0.09296971843456703 0.29040285298747026
+             polygon_area_sqft        DOUBLE       11294    11294 0.009471732220845297 268546096.25896704   570527.0133001482  4134943.3412829414

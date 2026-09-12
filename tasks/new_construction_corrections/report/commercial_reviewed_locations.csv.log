@@ -1,0 +1,19 @@
+File: commercial_reviewed_locations.csv
+Rows: 7
+Columns: 9
+SHA-256 (saved bytes): bb6bdcee448347074f75b8fee0b36e5fb8a1f88b8c57870380227b2a85f91967
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct       min            max               mean                 sd
+       project_id       VARCHAR           7        7         -              -                  -                  -
+construction_year        BIGINT           7        4      2007           2012  2009.142857142857 2.2677868380553585
+           source       VARCHAR           7        2         -              -                  -                  -
+        source_id        BIGINT           7        7 100073282 17084220340000  8933141755519.143    8599776381213.9
+    street_number        BIGINT           7        7       670           1845 1277.5714285714287  417.3171684074585
+ street_direction       VARCHAR           7        2         -              -                  -                  -
+      street_name       VARCHAR           7        6         -              -                  -                  -
+           reason       VARCHAR           7        6         -              -                  -                  -
+     evidence_url       VARCHAR           5        3         -              -                  -                  -

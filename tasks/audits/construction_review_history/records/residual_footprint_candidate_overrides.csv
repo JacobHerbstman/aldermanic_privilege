@@ -1,0 +1,6 @@
+permit_chain_id,decision,unit_override,decision_reason,evidence
+permit_chain_100097244,exclude_density_fields_stale,,"The permit was completed and the property was rebuilt, but the assessor row still describes the predecessor 960-square-foot house",redfin_rebuilt_2009_and_assessor_predecessor_fields
+permit_chain_100124408,include,3,The permit and listing both identify a three-unit building and the current assessor row supplies coherent whole-building and land fields,permit_three_units_redfin_three_flat_assessor_whole_building_fields
+permit_chain_100135050,include,3,The full-building permit identifies three original dwelling units plus retail; use the permit count rather than the current four-unit assessor count,permit_three_units_current_assessor_whole_building_fields
+permit_chain_100152499,include,3,The full-building permit identifies three original dwelling units plus commercial use; use the permit count rather than the current four-unit assessor count,permit_three_units_current_assessor_whole_building_fields
+permit_chain_100252923,exclude_not_completed,,The current property remains the 1880 bungalow described by the assessor and listing; the 2008 new-construction permit was not completed,current_building_is_1880_bungalow

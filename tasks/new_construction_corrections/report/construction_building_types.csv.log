@@ -1,0 +1,16 @@
+File: construction_building_types.csv
+Rows: 56
+Columns: 6
+SHA-256 (saved bytes): 688de8bd8453139c0c9bb1b8040ad38879b4a1b68914bdda1ef2b144a407ed6d
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+               column inferred_type non_missing distinct min max mean sd
+           project_id       VARCHAR          56       56   -   -    -  -
+          multifamily       BOOLEAN          56        2   -   -    -  -
+classification_source       VARCHAR          56        2   -   -    -  -
+        evidence_urls       VARCHAR          34       29   -   -    -  -
+      decision_reason       VARCHAR          56       40   -   -    -  -
+          review_date          DATE           8        1   -   -    -  -

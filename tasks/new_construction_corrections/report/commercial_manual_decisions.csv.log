@@ -1,0 +1,33 @@
+File: commercial_manual_decisions.csv
+Rows: 71
+Columns: 23
+SHA-256 (saved bytes): 2559758a35d122a0395dcf18c57a00862533007448be913a5899b99ef2523dca
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+               column inferred_type non_missing distinct  min    max               mean                 sd
+   source_project_ids       VARCHAR          71       71    -      -                  -                  -
+               action       VARCHAR          71        6    -      -                  -                  -
+    preferred_vintage        BIGINT          71        2 2021   2024 2023.1549295774648 1.3590741315210748
+preferred_source_rows       VARCHAR          71       71    -      -                  -                  -
+     final_project_id       VARCHAR          52       52    -      -                  -                  -
+           final_year        BIGINT          52       16 2006   2022 2014.1346153846155  5.502330508579145
+          final_units        BIGINT          50       39    2    812             101.64 152.14503821374268
+  final_building_sqft        BIGINT          50       50 2700 652620          108395.84 140300.55671967744
+      final_land_sqft        BIGINT          35       35 3006 210101 43062.828571428574 47729.653483100075
+            allow_far       BOOLEAN          71        2    -      -                  -                  -
+          allow_dupac       BOOLEAN          71        2    -      -                  -                  -
+          year_source       VARCHAR          71       21    -      -                  -                  -
+         units_source       VARCHAR          71       31    -      -                  -                  -
+      building_source       VARCHAR          70        5    -      -                  -                  -
+          land_source       VARCHAR          71        5    -      -                  -                  -
+         evidence_ids       VARCHAR          71       60    -      -                  -                  -
+        evidence_urls       VARCHAR          22       21    -      -                  -                  -
+           confidence       VARCHAR          71        2    -      -                  -                  -
+      decision_reason       VARCHAR          71       70    -      -                  -                  -
+    unresolved_caveat       VARCHAR          30       23    -      -                  -                  -
+             reviewer       VARCHAR          71        3    -      -                  -                  -
+          review_date          DATE          71        3    -      -                  -                  -
+               status       VARCHAR          71        1    -      -                  -                  -

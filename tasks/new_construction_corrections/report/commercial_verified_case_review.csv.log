@@ -1,0 +1,18 @@
+File: commercial_verified_case_review.csv
+Rows: 10
+Columns: 8
+SHA-256 (saved bytes): 65c7b344346fb5ede8fd0b470d2776fd2f3189ad49c6351222db2a8fe1a529fe
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+               column inferred_type non_missing distinct            min            max             mean                 sd
+                  pin        BIGINT          10       10 14202300160000 20151060290000 16288019275000.0 1975207064637.4097
+         audit_action       VARCHAR          10        7              -              -                -                  -
+        revised_units        BIGINT           8        7             12            173             84.5  66.43794096749237
+revised_building_sqft        BIGINT           4        4          13203         185094         113286.5  82062.96931218937
+    revised_land_sqft        BIGINT           4        4          11235         163152          54272.5   72742.8274333628
+             evidence       VARCHAR          10       10              -              -                -                  -
+           confidence       VARCHAR          10        2              -              -                -                  -
+     remaining_caveat       VARCHAR          10        7              -              -                -                  -

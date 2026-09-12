@@ -1,0 +1,7 @@
+permit_chain_id,physical_project_id,decision,dwelling_units,building_sqft,land_sqft,completion_year,component_pin,decision_reason
+permit_chain_100640528,missing_project_30_e_balbo,include_phase,81,148200,13240,2017,17153000220000,Foundation phase of the same 81-unit building as permit chain 100647019
+permit_chain_100647019,missing_project_30_e_balbo,include_project,81,148200,13240,2017,17153000220000,Full-building permit and coherent whole-building commercial assessor record
+permit_chain_100839326,missing_project_5137_w_carmen,include_project,1,2100,3150,2019,13094080080000,Completed single-family residence with coherent residential assessor fields
+permit_chain_100993692,missing_project_3609_w_marquette,include_project,1,1254,3125,2022,19233030180000,Completed single-family residence with coherent residential assessor fields
+permit_chain_100148247,missing_project_6227_w_henderson,include_project,1,2336,3175,2006,13203210130000,Completed single-family residence with coherent residential assessor fields
+permit_chain_100148248,missing_project_6229_w_henderson,include_project,1,2336,3175,2008,13203210120000,Distinct completed single-family residence with coherent residential assessor fields

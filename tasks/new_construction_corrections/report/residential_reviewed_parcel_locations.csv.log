@@ -1,0 +1,18 @@
+File: residential_reviewed_parcel_locations.csv
+Rows: 62
+Columns: 8
+SHA-256 (saved bytes): f0412ba5d24010e9275fe5116a5f57bd0934e8b0fddc3c7970bd49cc5015705e
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct            min            max               mean                 sd
+    project_id       VARCHAR          62       62              -              -                  -                  -
+           pin        BIGINT          62       62 13243050880000 20021180640000 16513422485613.064 1475109062787.0623
+reference_year        BIGINT          62        3           2008           2025 2022.3870967741937  6.085065940372246
+   target_year        BIGINT          62       11           2007           2022  2011.274193548387  3.649250337740625
+        source       VARCHAR          62        2              -              -                  -                  -
+        reason       VARCHAR          62        7              -              -                  -                  -
+      reviewer       VARCHAR          62        1              -              -                  -                  -
+   review_date          DATE          62        2              -              -                  -                  -

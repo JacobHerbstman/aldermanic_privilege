@@ -1,0 +1,16 @@
+File: historical_address_matches.csv
+Rows: 4
+Columns: 6
+SHA-256 (saved bytes): 05cfae6baf78907d1e8f6bb6f18955035606ec789f684ce2980ab307b3fd8031
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column inferred_type non_missing distinct            min            max             mean                 sd
+                pin        BIGINT           4        4 13164300370000 17271290150000 14640937907500.0 1804137850151.2815
+  construction_year        BIGINT           4        2           2007           2014          2008.75  3.499999999999981
+        matched_pin        BIGINT           4        4 13164300360000 17271290690000 14640938050000.0 1804138111048.2515
+            address       VARCHAR           4        4              -              -                -                  -
+address_record_year        BIGINT           4        2           2008           2017          2010.25                4.5
+    decision_reason       VARCHAR           4        1              -              -                -                  -

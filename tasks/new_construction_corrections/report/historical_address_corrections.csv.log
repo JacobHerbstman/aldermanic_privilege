@@ -1,0 +1,16 @@
+File: historical_address_corrections.csv
+Rows: 1
+Columns: 6
+SHA-256 (saved bytes): d0377bfcabd4b44d2cd95ddaeab164fac4ab2ec6f54f9d63453c967db69843b4
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct            min            max             mean sd
+              pin        BIGINT           1        1 16241000490000 16241000490000 16241000490000.0  -
+ original_address       VARCHAR           1        1              -              -                -  -
+corrected_address       VARCHAR           1        1              -              -                -  -
+           reason       VARCHAR           1        1              -              -                -  -
+         evidence       VARCHAR           1        1              -              -                -  -
+    decision_date          DATE           1        1              -              -                -  -

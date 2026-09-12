@@ -1,0 +1,14 @@
+File: residential_reviewed_card_selections.csv
+Rows: 3
+Columns: 4
+SHA-256 (saved bytes): 77dfa751288048edb9ab36d4cd04a9b782b6afc27b973e27588dc65b66d64a0a
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+  column inferred_type non_missing distinct                 min                 max                   mean                    sd
+     pin        BIGINT           3        3      17044240600000      20231140240000     18116210443333.332     1831640365096.499
+  row_id        BIGINT           3        3 1704424060000012022 2023114024000012025 1.8116210443333455e+18 1.831640365096499e+17
+  reason       VARCHAR           3        3                   -                   -                      -                     -
+evidence       VARCHAR           3        3                   -                   -                      -                     -
