@@ -54,6 +54,11 @@ CLAUDE.md
 # Local remnants from the research-archive branch.
 tasks/audits/*
 !tasks/audits/construction_review_history/
+!tasks/audits/commercial_construction_review/
+tasks/audits/commercial_construction_review/input/
+tasks/audits/commercial_construction_review/output/
+tasks/audits/commercial_construction_review/temp/
+!tasks/audits/commercial_construction_review/report/*.csv.log
 !tasks/audits/density_common_sample/
 tasks/audits/density_common_sample/input/
 tasks/audits/density_common_sample/output/
