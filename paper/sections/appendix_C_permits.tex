@@ -10,7 +10,7 @@ This appendix reports additional permit evidence that complements the descriptiv
 
 Table~\ref{tab:permit_itt_balance} compares blocks that changed wards in 2015 with nearby blocks that remained in the same ward.
 Before the new map took effect, the two groups were broadly similar in permit activity and neighborhood characteristics.
-The joint test across all listed characteristics has a $p$-value of 0.333.
+The joint test across all listed characteristics has a $p$-value of 0.350.
 
 \input{../tasks/permit_itt_balance/output/permit_itt_balance_500ft.tex}
 
@@ -60,7 +60,7 @@ The response is more muted than for high-discretion permits.
 Panel B includes blocks from wards that elected new aldermen in 2015.
 The reassignment classification still uses the two aldermen serving in 2014.
 For blocks whose alderman subsequently changed, this measures the change implied by the map rather than the stringency the block necessarily experienced under the newly elected alderman.
-The annual number of high-discretion permits is 8.3\% lower, a somewhat smaller estimate than in the main sample.
+The annual number of high-discretion permits is 8.2\% lower, a somewhat smaller estimate than in the main sample.
 
 \begin{figure}[htbp]
     \centering
@@ -79,8 +79,8 @@ The annual number of high-discretion permits is 8.3\% lower, a somewhat smaller 
     Panel B uses high-discretion permits and includes wards with alderman turnover; assignment still uses the 2014 incumbents.
     Both panels combine the two reassignment directions using Equation~\eqref{eq:event_study_permits}; negative coefficients indicate fewer permits under assignment toward greater stringency.
     Points show effects in log points relative to 2014; subtitles report pooled 2015--2020 coefficients on the same scale.
-    The pooled effects correspond to reductions of 1.7\% and 8.3\% in annual permits, respectively.
-    Tests that the pre-2015 effects are jointly zero give $p=0.066$ in Panel A and $p=0.665$ in Panel B.
+    The pooled effects correspond to reductions of 1.7\% and 8.2\% in annual permits, respectively.
+    Tests that the pre-2015 effects are jointly zero give $p=0.074$ in Panel A and $p=0.670$ in Panel B.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
     * $p\leq0.10$, ** $p\leq0.05$, *** $p\leq0.01$.}
     \label{fig:permit_event_study_checks}
@@ -110,8 +110,8 @@ Low-discretion permits show a weak positive relationship instead.
     \label{tab:permit_volume_correlation}
 
     \footnotesize
-    \textit{Notes:} The sample uses positive-duration permit records with applications begun through December 2022.
+    \textit{Notes:} The sample uses permits issued at least one day after application, with applications begun through December 2022.
     The permit groups are defined in Section~\ref{subsec:permit_pipeline}.
     The alderman-level interquartile range is computed across alderman-specific mean processing times.
-    Panel B reports Pearson correlations across ward-month cells.
+    Panel B reports Pearson correlations. Each observation represents one ward in one month.
 \end{table}

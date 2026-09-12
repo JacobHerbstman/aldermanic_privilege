@@ -6,6 +6,7 @@
 This appendix asks whether the density result could be an artifact of how I measure aldermanic stringency or where ward boundaries happen to lie.
 It also tests for jumps away from true boundaries and checks whether projects immediately next to a boundary drive the result.
 Unless otherwise noted, each estimate compares the two 100~ft bands immediately across the ward boundary using Equation~\eqref{eq:segment_fe}.
+All checks use projects with both FAR and DUPAC available.
 
 \subsection{Stringency-Score Checks}
 \label{subsec:density_stringency_checks}
@@ -39,8 +40,7 @@ The estimates of FAR and units per acre remain negative in both construction sam
 
 Figure~\ref{fig:rd_placebo_shifts} moves the cutoff 1,000~ft inside either side of the true ward boundary.
 These locations do not mark a change in aldermanic authority.
-Across the two outcomes and two construction samples, seven of the eight estimated differences are not statistically distinguishable from zero.
-The remaining estimate is marginally significant at the 10\% level, but it is roughly one-third as large as the corresponding estimate at the true boundary.
+None of the eight placebo estimates is statistically distinguishable from zero at the 10\% level.
 
 \begin{figure}[p]
     \centering
@@ -94,7 +94,7 @@ These estimates are generally smaller and less precise in the reduced sample, bu
 
 \begin{table}[htbp]
     \centering
-    \caption{Density Estimates Under Boundary-Sample Restrictions}
+    \caption{Density Estimates Along Different Types of Ward Boundaries}
     \label{tab:density_boundary_robustness}
     \resizebox{0.98\textwidth}{!}{%
         \input{../tasks/density_boundary_checks/output/density_boundary_robustness.tex}%
