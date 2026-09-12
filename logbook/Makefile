@@ -72,7 +72,8 @@ logbook.pdf: logbook.tex \
 	entries/2026-09-11-code-cleanup.tex \
 	entries/2026-09-12-data-reports.tex \
 	entries/2026-09-12-construction-task.tex \
-	../tasks/working_paper_release_audit/output/natchez_parcel_coverage.pdf \
+	entries/2026-09-12-single-construction-correction.tex \
+	../tasks/audits/construction_review_history/records/natchez_parcel_coverage.pdf \
 	../tasks/audits/density_window_comparison/output/density_windows.pdf \
 	../tasks/audits/density_window_comparison/output/density_windows_levels.pdf \
 	../tasks/audits/main_results_levels/output/density_levels.pdf \

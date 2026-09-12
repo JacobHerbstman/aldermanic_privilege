@@ -11,7 +11,8 @@ rules = {}
 scripts = {}
 
 # Construction producers use literal paths; scalar settings do not alter their names.
-for makefile in sorted((repository / "tasks").glob("construction_*/code/Makefile")):
+for task in ("new_construction_cleaning", "prepare_new_construction", "new_construction_analysis_data"):
+    makefile = repository / "tasks" / task / "code/Makefile"
     for line in makefile.read_text().replace("\\\n", " ").splitlines():
         if line.startswith(("\t", "#", "include")) or ":" not in line or "=" in line:
             continue
@@ -56,7 +57,7 @@ def producer(path):
     return result
 
 
-root = repository / "tasks/construction_boundary_distances/code/all"
+root = repository / "tasks/new_construction_analysis_data/code/all"
 for target in rules[root]:
     producer(target)
 assert script_inputs, "No construction producers found"

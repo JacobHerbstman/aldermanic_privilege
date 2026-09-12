@@ -1,6 +1,9 @@
 include ../../shared/code/shell_functions.make
 
 WORKERS := 8
+APPLICATION_YEARS_BEFORE := 6
+ISSUE_YEARS_BEFORE := 4
+PERMIT_YEARS_AFTER := 2
 GAP_THRESHOLDS := 0.25,0.50
 
 all: ../output/density_score_robustness.tex \
@@ -16,7 +19,7 @@ all: ../output/density_score_robustness.tex \
 	$(R) $< $(WORKERS) $(GAP_THRESHOLDS)
 
 ../output/project_permit_matches.csv: build_project_permit_matches.R Makefile ../../setup_environment/code/packages.R ../adjudication/project_permit_matches.csv ../input/new_construction_analysis_data.csv ../input/building_permits_for_verification.gpkg ../input/preferred_project_year_geometry.gpkg ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
-	$(R) $<
+	$(R) $< $(APPLICATION_YEARS_BEFORE) $(ISSUE_YEARS_BEFORE) $(PERMIT_YEARS_AFTER)
 
 ../input/new_construction_analysis_data.csv: ../../new_construction_analysis_data/output/new_construction_analysis_data.csv | ../input
 	ln -sf $< $@
@@ -27,10 +30,10 @@ all: ../output/density_score_robustness.tex \
 ../input/alderman_uncertainty_index_through2022.csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv | ../input
 	ln -sf $< $@
 
-../input/building_permits_for_verification.gpkg: ../../construction_project_permits/output/building_permits_for_verification.gpkg | ../input
+../input/building_permits_for_verification.gpkg: ../../prepare_new_construction/output/building_permits_for_verification.gpkg | ../input
 	ln -sf $< $@
 
-../input/preferred_project_year_geometry.gpkg: ../../construction_project_locations/output/preferred_project_year_geometry.gpkg | ../input
+../input/preferred_project_year_geometry.gpkg: ../../prepare_new_construction/output/preferred_project_year_geometry.gpkg | ../input
 	ln -sf $< $@
 
 link-inputs: \

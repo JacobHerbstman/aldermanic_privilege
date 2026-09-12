@@ -1,0 +1,11 @@
+project_id,source_file,source_row,reason
+residential_tieback_14324090340000,residential_overlap_decisions.csv,25,Original consumer applied this replacement only to unresolved measurements; the complete assessment superseded it.
+residential_14073210380000,residential_additional_candidate_decisions.csv,2,Historical review entry; the adopted consumer uses this table only for replacement by commercial records.
+residential_14073210420000,residential_additional_candidate_decisions.csv,3,Historical review entry; the adopted consumer uses this table only for replacement by commercial records.
+residential_14073210430000,residential_additional_candidate_decisions.csv,4,Historical review entry; the adopted consumer uses this table only for replacement by commercial records.
+residential_14183110430000,residential_additional_candidate_decisions.csv,5,Historical review entry; the adopted consumer uses this table only for replacement by commercial records.
+residential_14183110440000,residential_additional_candidate_decisions.csv,6,Historical review entry; the adopted consumer uses this table only for replacement by commercial records.
+residential_17083340580000,residential_additional_candidate_decisions.csv,7,Historical review entry; the adopted consumer uses this table only for replacement by commercial records.
+residential_297_group_17042060100000,residential_additional_candidate_decisions.csv,8,Historical review entry; the adopted consumer uses this table only for replacement by commercial records.
+residential_tieback_14283190780000,residential_additional_candidate_decisions.csv,9,Historical review entry; the adopted consumer uses this table only for replacement by commercial records.
+residential_13141090480000,residential_additional_candidate_decisions.csv,10,Historical review entry; the adopted consumer uses this table only for replacement by commercial records.

@@ -1,0 +1,73 @@
+\section*{One construction correction input}
+\textit{September 12, 2026. Agent-drafted record of the construction rewrite.}
+
+Jacob rejected the thirteen-task reorganization because it preserved too much
+of the review process in production. He requested one place to insert the
+recorded replacements, followed by ordinary treatment of every building. The
+previous version was committed and pushed at \texttt{bb91ea84} before the rewrite.
+
+The thirteen intermediate tasks, containing 25 R scripts and 10,793 lines, have
+been removed. The replacement task,
+\texttt{prepare\_new\_construction}, has two scripts totaling 1,128 lines. The first reads the recorded
+Assessor histories, removes empty cards, selects complete assessments, and
+constructs the ordinary building records. The second reads the committed
+correction CSV once, replaces the specified records and fields, resolves the
+remaining ordinary identity matches, calculates FAR and DUPAC, and assigns
+construction-year geography. The existing analysis-data task attaches aldermen,
+controls, and construction-year zoning. No downstream task reads the correction
+CSV.
+
+The correction input contains 742 instructions, including updates, replacements,
+and exclusions. This is not a count of additional buildings. Measurements from
+explicitly reviewed assessment cards are recorded as replacement values with
+their source-row references. The production build therefore does not repeat
+those reviews. Unreviewed buildings continue to obtain their measurements from
+the preserved Assessor sources. The source importer retains its separate,
+documented correction to one mistyped parcel-reference number, applied once
+before parcel relationships are constructed.
+
+The previous 25 decision tables retain their original bytes in the construction
+review archive. Consolidation distinguished active instructions from historical
+notes that the checkpoint pipeline no longer applied. In particular, the older
+additional-candidate table supplied only the cross-source replacement in that
+pipeline; its other earlier proposals were not silently activated. The archive
+records these distinctions and the one-time translation. Optional source searches
+and the earlier review displays also remain in the audit archive.
+
+The measurement comparison reproduces all 13,677 construction observations,
+including their identifiers, component parcels, construction years, dwelling-unit
+counts, floor areas, land areas, FAR, DUPAC, and density-measure eligibility.
+Multifamily classification, location eligibility, wards, ward pairs, boundary
+eras, and membership in the 500- and 1,500-foot windows also agree. The largest
+boundary-distance difference is 0.0000031 feet from numerical rounding; the
+corresponding boundary-characteristic differences are below $2\times10^{-9}$.
+
+The analysis dataset retains 9,493 rows and the same regression variables. The
+main regression sample remains 4,023 observations, including 863 multifamily
+observations. One source-class label, for parcel 17073250490000, now reflects the
+default Assessor snapshot (OA2) rather than the reviewed card's class (211). Its
+recorded multifamily classification is unchanged. Table 1's CSV and LaTeX are
+identical, and the main density figure is identical when rendered. The placebo
+and donut figures reproduce their displayed estimates; the boundary-check and
+score-robustness tables are identical.
+
+The own-project permit check previously received parcel geometry under earlier
+building IDs. It now reads the finished-building parcel file. Applying the same
+parcel and date-window rule adds 28 links across 15 buildings, including 17 permit
+IDs not previously linked anywhere; no old link is removed. Ten added links
+belong to four buildings in the common 500-foot sample. Re-estimating the
+project-specific score check leaves the published robustness table unchanged.
+
+GNU Make 3.81 checks in a disposable copy cover a fresh task build, all nine
+missing outputs individually, correction-only and raw-source propagation, an
+unchanged rebuild, and parallel invocation. These checks caught an intermediate
+source table being discarded; the task now lists its saved source tables
+explicitly in \texttt{all}. Actual construction and analysis rebuilds succeed,
+and subsequent builds execute no producers. All written GeoPackages include
+the EPSG:3435 coordinate-system definition. The 25 archived decision tables
+match their original bytes, and every consolidated instruction has a reason
+and a source reference.
+
+The paper Makefile rebuilds all four PDFs in the repository's paper directory.
+Their extracted text matches the checkpoint, and all 56 rendered pages of the
+working paper are pixel-identical. The manuscript source was unchanged.

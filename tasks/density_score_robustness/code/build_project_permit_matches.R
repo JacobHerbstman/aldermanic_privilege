@@ -1,6 +1,16 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/density_score_robustness/code")
+# application_years_before <- 6
+# issue_years_before <- 4
+# permit_years_after <- 2
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
+args <- commandArgs(trailingOnly = TRUE)
+if (interactive()) args <- c(application_years_before, issue_years_before, permit_years_after)
+stopifnot(length(args) == 3L)
+application_years_before <- as.integer(args[1])
+issue_years_before <- as.integer(args[2])
+permit_years_after <- as.integer(args[3])
+
 projects <- read_csv("../input/new_construction_analysis_data.csv", show_col_types = FALSE,
   col_types = cols(project_id = "c", component_pins = "c", .default = col_guess()))
 recorded <- read_csv("../adjudication/project_permit_matches.csv", col_types = cols(.default = "c"))
@@ -35,7 +45,8 @@ for (i in seq_len(nrow(polygons))) {
 additions <- bind_rows(links) |>
   left_join(projects |> select(project_id, construction_year), by = "project_id", relationship = "many-to-one") |>
   left_join(st_drop_geometry(permits) |> select(permit_id, application_year, issue_year), by = "permit_id", relationship = "many-to-one") |>
-  filter(between(construction_year - application_year, -2, 6), between(construction_year - issue_year, -2, 4)) |>
+  filter(between(construction_year - application_year, -permit_years_after, application_years_before),
+    between(construction_year - issue_year, -permit_years_after, issue_years_before)) |>
   select(project_id, permit_id, match_source)
 recorded <- recorded |> semi_join(projects, by = "project_id") |> mutate(match_source = "recorded_match")
 result <- bind_rows(recorded, additions) |> group_by(project_id, permit_id) |>

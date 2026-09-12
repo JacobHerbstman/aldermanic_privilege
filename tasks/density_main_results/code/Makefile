@@ -22,10 +22,10 @@ all: ../output/density_sample_summary.csv \
 ../input/alderman_uncertainty_index_through2022.csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv | ../input
 	ln -sf $< $@
 
-../input/preferred_new_construction_project_ledger.csv: ../../construction_boundary_distances/output/preferred_new_construction_project_ledger.csv | ../input
+../input/preferred_new_construction_project_ledger.csv: ../../prepare_new_construction/output/preferred_new_construction_project_ledger.csv | ../input
 	ln -sf $< $@
 
-../input/preferred_new_construction_boundary_scope.csv: ../../construction_boundary_distances/output/preferred_new_construction_boundary_scope.csv | ../input
+../input/preferred_new_construction_boundary_scope.csv: ../../prepare_new_construction/output/preferred_new_construction_boundary_scope.csv | ../input
 	ln -sf $< $@
 
 ../input/boundary_segments_1320ft.gpkg: ../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input

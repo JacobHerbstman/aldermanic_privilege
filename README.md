@@ -16,7 +16,7 @@ datasets and exhibits as targets. Reports accompany those files in `report/`;
 deleting a report alone does not rerun its data producer.
 
 The density analyses now use the chronological construction pipeline on this
-branch. See the [construction workflow](tasks/construction_boundary_distances/README.md)
+branch. See the [construction workflow](tasks/prepare_new_construction/README.md)
 for the source-to-project logic and the preserved-history limitations.
 The [recorded construction decisions](tasks/new_construction_cleaning/README.md)
 are committed CSV inputs in a separate task with no R scripts.
@@ -46,7 +46,7 @@ This diagram shows the tasks that prepare construction records, apply the record
 
 [![Current construction source tasks](task_graph/construction_tasks.svg)](task_graph/construction_tasks.svg)
 
-Read the [cleaning rules and chronological guide](tasks/construction_boundary_distances/README.md),
+Read the [cleaning rules and chronological guide](tasks/prepare_new_construction/README.md),
 the [exact script progression](task_graph/construction_steps.md), or the
 [construction script diagram](task_graph/construction_scripts.svg).
 Both construction diagrams and the script progression are generated from the

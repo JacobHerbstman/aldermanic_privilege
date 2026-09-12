@@ -1,11 +1,17 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_analysis_data/code")
+# boundary_window_ft <- 1500
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
+args <- commandArgs(trailingOnly = TRUE)
+if (interactive()) args <- c(boundary_window_ft)
+stopifnot(length(args) == 1L)
+boundary_window_ft <- as.numeric(args[1])
+
 # Finished buildings supply every measurement. This task only attaches regressors.
 projects <- readr::read_csv("../input/preferred_new_construction_project_ledger.csv",
-  col_types = readr::cols(component_pins = "c", class_values = "c", .default = readr::col_guess()))
+  col_types = readr::cols(component_pins = "c", class_values = "c", zoning_group = "c", zoning_source = "c", zoning_note = "c", zoning_year = "i", .default = readr::col_guess()))
 boundaries <- readr::read_csv("../input/preferred_new_construction_boundary_scope.csv",
   col_types = readr::cols(ward_pair = "c", .default = readr::col_guess()))
 stopifnot(!anyDuplicated(projects$project_id), !anyDuplicated(boundaries$project_id),
@@ -27,10 +33,10 @@ points <- sf::st_as_sf(projects, coords = c("x_3435", "y_3435"), crs = 3435, rem
 segments <- load_segment_line_layers("../input/boundary_segments_1320ft.gpkg",
   eras = sort(unique(projects$era)))
 projects$segment_id <- assign_points_to_nearest_segments(points, projects$era, projects$ward_pair,
-  segments, max_distance = units::set_units(1500, "ft"))
+  segments, max_distance = units::set_units(boundary_window_ft, "ft"))
 assert_event_segment_contract(points, projects$era, projects$ward_pair, segments,
   projects$segment_id, projects$distance_to_boundary_ft * 0.3048,
-  max_distance_m = 457.2, analysis_window_m = 457.2, context = "new construction")
+  max_distance_m = boundary_window_ft * 0.3048, analysis_window_m = boundary_window_ft * 0.3048, context = "new construction")
 
 # June 15 is the existing within-year date proxy. Use the actual daily term table.
 terms <- readr::read_csv("../input/chicago_alderman_terms.csv", show_col_types = FALSE,

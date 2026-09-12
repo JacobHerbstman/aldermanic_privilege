@@ -1,0 +1,14 @@
+File: inactive_decisions.csv
+Rows: 10
+Columns: 4
+SHA-256 (saved bytes): bd9a7a325ac6015606187b19bc8e28bf70b82d128631a7bc61cec25b8ffa19d4
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+     column inferred_type non_missing distinct min max mean                sd
+ project_id       VARCHAR          10       10   -   -    -                 -
+source_file       VARCHAR          10        2   -   -    -                 -
+ source_row        BIGINT          10       10   2  25  7.9 6.539622822966678
+     reason       VARCHAR          10        2   -   -    -                 -

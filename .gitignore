@@ -132,3 +132,11 @@ Rplots.pdf
 !tasks/construction_*/report/*.gpkg.log
 
 !tasks/audits/construction_review_history/report/*.log
+
+# Historical review code retains documents and decisions, not disposable caches.
+tasks/audits/construction_review_history/**/input/
+tasks/audits/construction_review_history/**/output/
+tasks/audits/construction_review_history/**/temp/
+!tasks/audits/construction_review_history/**/report/*.log
+!tasks/audits/construction_review_history/report/**/*.log
+!tasks/prepare_new_construction/report/*.gpkg.log

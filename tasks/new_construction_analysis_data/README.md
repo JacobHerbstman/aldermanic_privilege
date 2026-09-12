@@ -1,51 +1,27 @@
 # New-construction regression inputs
 
-This task connects the finished construction dataset to the density regressions.
-It does not choose buildings or change construction years, units, building area,
-land area, density permissions, or the two saved density measures.
+This task attaches the regressors to the finished building dataset from
+`prepare_new_construction`.
 
-1. `attach_construction_regressors.R` reads the finished building and boundary
-   files, retains projects within 1,500 feet, and attaches boundary segments,
-   daily alderman terms, the existing through-2022 score, and ward-year controls.
-   It saves `construction_regressors.csv`.
-2. `build_new_construction_analysis_data.R` attaches construction-year zoning
-   and saves `new_construction_analysis_data.csv`, which the density tasks read.
+1. `attach_construction_regressors.R` retains projects within 1,500 feet of a ward
+   boundary and attaches boundary segments, daily alderman terms, the existing
+   through-2022 score, and ward-year controls.
+2. `build_new_construction_analysis_data.R` assigns construction-year zoning from
+   the preserved zoning history and official snapshots, then saves
+   `new_construction_analysis_data.csv` for the density tasks. Reviewed zoning
+   references arrive as columns on the building records.
 
-The construction-date proxy remains June 15 of the recorded completion year.
-A vacancy or an alderman without a score remains explicitly recorded and cannot
-supply a signed boundary distance. Segment matching is constrained to the
-building's ward pair and uses the existing 1,320-foot boundary segments. Chicago
-geometry is in EPSG:3435. Ward controls retain their existing definitions and
-2006–2022 producer; the score estimator is unchanged.
+The construction-date proxy is June 15 of the recorded completion year. Segment
+matching uses the building's ward pair and the existing 1,320-foot segments.
+Chicago geometry is in EPSG:3435. Buildings retain their density measures and
+multifamily classification from the construction producer.
 
-Multifamily classification is read from the finished construction measurement
-file. Its producer applies the Assessor-class rule and recorded building-type
-reviews once. Groups of individually classified houses or townhomes
-are not automatically apartment buildings. These reviews supply classification
-only; their old measurements never overwrite the finished building data here.
+`density_eligible` identifies the common FAR and DUPAC sample: both measures must
+be allowed, positive and finite. A missing alderman score remains missing and
+cannot supply a signed boundary distance.
 
-`density_eligible` identifies the common FAR and DUPAC sample: both measurements
-must be allowed, positive and finite. The main and appendix density tasks use
-this one eligibility field. All project rows and their recorded measurements
-remain in the saved data. Missing regression covariates are never filled with
-fabricated values.
-
-The prior 8,648-row paper input is preserved for comparison in
-`tasks/working_paper_release_audit/reference/new_construction_analysis_data_before_reconnection.csv`.
-Its SHA-256 is
-`9dc7953e91bdf21a909224d2d68697a8440b56b66f137c7d784bea6137bf8ea4`.
-The comparison task reports additions, removals and changed measurements; project
-ID changes must be interpreted using the recorded source-project links.
-
-## Current integration status
-
-Jacob approved using the preserved zoning history on September 10. The zoning
-producer reads the recorded 2006 map and construction-year history from the
-construction task's adjudication directory, alongside the pinned official
-snapshots. It applies existing corrected-year zoning decisions once, keyed to
-both project and year. Those inputs define the zoning replication boundary for
-this run; reconstruction from the underlying ordinances remains outstanding.
-
-Boundary characteristics and project-permit matches now have producers that read
-this dataset. Fresh-checkout verification and distribution of the recorded source
-archive are tracked separately in `replication/README.md`.
+The preserved zoning history defines the zoning inputs for this replication;
+reconstruction from the underlying ordinances remains separate work. The
+[replication instructions](../../replication/README.md) describe the recorded
+source archive. The [review archive](../audits/construction_review_history/README.md)
+retains earlier sample comparisons.
