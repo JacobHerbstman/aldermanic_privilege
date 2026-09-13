@@ -13,8 +13,9 @@ not a claim about the original download date. Its uncompressed SHA-256 is
 The Makefile verifies the compressed snapshot before extracting the unchanged
 CSV, then writes a standard data report. The separate compressed asset is
 `building_permits_2006_2022_preserved_20260912.csv.gz` in the repository's recorded
-source release. Publication of that additional asset is pending approval;
-until it is uploaded, restoration has only been verified using the local copy.
+source release. The asset was uploaded with approval on September 12, 2026.
+Retrieval through the Makefile's public URL reproduces both the compressed
+snapshot and the original CSV exactly, verified by their SHA-256 checksums.
 The original September 10 archive is unchanged.
 
 For a deliberate refresh, `make download-current` retrieves the Makefile's

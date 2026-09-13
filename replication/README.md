@@ -7,8 +7,9 @@ under `data_raw/`. A missing member is restored through the same extraction rule
 Unchanged builds reuse the archive and extracted files.
 
 The building-permit task separately restores the exact 721,958-record extract
-preserved on September 12, 2026. Upload of that additional asset is pending
-approval, so a fresh clone cannot yet retrieve it. Its filename and checksum are
+preserved on September 12, 2026. The additional asset is available in the same
+release; its public download was verified against the preserved file.
+Its filename and checksum are
 documented in [`tasks/download_building_permits/README.md`](../tasks/download_building_permits/README.md).
 The original September 10 archive has not been replaced.
 
