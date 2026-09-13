@@ -1,0 +1,32 @@
+File: property_sale_history.csv
+Rows: 129
+Columns: 22
+SHA-256 (saved bytes): feb60c855cde4337507f604971e2396ed4b42c579cb86d50fe6f402dcff3aaa0
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column            inferred_type non_missing distinct            min            max               mean                 sd
+                             pin                   BIGINT         129       62 11311030280000 25281140210000 17387353500852.713 4022101875599.9546
+                            year                   BIGINT         129       17           2006           2022 2014.2403100775193  5.539312899909306
+                   township_code                   BIGINT         129        7             70             77  73.17829457364341 2.3400374342728916
+               neighborhood_code                   BIGINT         129       39          70080          77170  73343.64341085272 2297.7722934346198
+                           class                   BIGINT         129       12            201            295  216.3798449612403 26.265529275093144
+                       sale_date TIMESTAMP WITH TIME ZONE         129      109              -              -                  -                  -
+                   is_mydec_date                  BOOLEAN         129        2              -              -                  -                  -
+                      sale_price                   DOUBLE         129      106            0.0    225000001.0  6304001.333333333 30072654.938749652
+               sale_document_num                   BIGINT         129      129      602045043     2235713048 1452162827.2945735   551996570.064276
+                  sale_deed_type                  VARCHAR         129        5              -              -                  -                  -
+                 mydec_deed_type                  VARCHAR          61        5              -              -                  -                  -
+                sale_seller_name                  VARCHAR         126      122              -              -                  -                  -
+                    is_multisale                  BOOLEAN         129        2              -              -                  -                  -
+                num_parcels_sale                   BIGINT         129        3              1              6  1.054263565891473 0.4560372366817322
+                 sale_buyer_name                  VARCHAR         126      126              -              -                  -                  -
+                       sale_type                  VARCHAR         107        1              -              -                  -                  -
+sale_filter_same_sale_within_365                  BOOLEAN         129        2              -              -                  -                  -
+       sale_filter_less_than_10k                  BOOLEAN         129        2              -              -                  -                  -
+           sale_filter_deed_type                  BOOLEAN         129        2              -              -                  -                  -
+                          row_id                   BIGINT         129      129        7130492       98458530  81966432.96899225   33995133.0661352
+     in_clean_transaction_sample                  BOOLEAN         129        2              -              -                  -                  -
+                      in_main_rd                  BOOLEAN         129        2              -              -                  -                  -

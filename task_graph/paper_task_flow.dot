@@ -30,9 +30,6 @@ digraph paper_tasks {
   "create_alderman_data" -> "new_construction_analysis_data";
   "create_alderman_data" -> "permit_summary_stats";
   "create_alderman_data" -> "strictness_score_map";
-  "create_alderman_uncertainty_index" -> "density_appendix_results";
-  "create_alderman_uncertainty_index" -> "density_boundary_checks";
-  "create_alderman_uncertainty_index" -> "density_main_results";
   "create_alderman_uncertainty_index" -> "density_score_robustness";
   "create_alderman_uncertainty_index" -> "merge_event_study_scores";
   "create_alderman_uncertainty_index" -> "merge_rent_scores";

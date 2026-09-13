@@ -1,7 +1,10 @@
-# --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/renthub_location_corrections/code")
+# setwd("tasks/renthub_location_corrections/code")
 # start_date <- "2014-01-01"
 # end_date <- "2022-12-31"
+# address_location_radius_ft <- 200
+# primary_location_share_cutoff <- 0.85
+# far_secondary_share_cutoff <- 0.10
+# far_secondary_distance_ft <- 500
 
 source("../../setup_environment/code/packages.R")
 
@@ -12,10 +15,10 @@ library(data.table)
 
 cli_args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) {
-  cli_args <- c(start_date, end_date)
+  cli_args <- c(start_date, end_date, address_location_radius_ft, primary_location_share_cutoff, far_secondary_share_cutoff, far_secondary_distance_ft)
 }
-if (length(cli_args) != 2) {
-  stop("Script requires a start date and end date.", call. = FALSE)
+if (length(cli_args) != 6) {
+  stop("Expected dates and four location thresholds from Makefile.", call. = FALSE)
 }
 
 start_date <- as.Date(cli_args[1])
@@ -51,10 +54,14 @@ duckdb_manifest_files <- sprintf(
   paste(gsub("'", "''", manifest_files, fixed = TRUE), collapse = "', '")
 )
 
-address_location_radius_ft <- 200
-primary_location_share_cutoff <- 0.85
-far_secondary_share_cutoff <- 0.10
-far_secondary_distance_ft <- 500
+address_location_radius_ft <- as.numeric(cli_args[3])
+primary_location_share_cutoff <- as.numeric(cli_args[4])
+far_secondary_share_cutoff <- as.numeric(cli_args[5])
+far_secondary_distance_ft <- as.numeric(cli_args[6])
+
+stopifnot(address_location_radius_ft > 0, far_secondary_distance_ft > 0,
+  primary_location_share_cutoff > 0, primary_location_share_cutoff <= 1,
+  far_secondary_share_cutoff >= 0, far_secondary_share_cutoff <= 1)
 
 con <- dbConnect(duckdb::duckdb(), dbdir = ":memory:")
 on.exit(dbDisconnect(con, shutdown = TRUE), add = TRUE)

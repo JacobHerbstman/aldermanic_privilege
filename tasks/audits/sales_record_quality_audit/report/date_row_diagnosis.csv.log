@@ -1,0 +1,52 @@
+File: date_row_diagnosis.csv
+Rows: 0
+Columns: 42
+SHA-256 (saved bytes): 4bc8fe5012b926009c6c8ea6d9326817acf6279b6cf7d8d35295f29158a5bf88
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                           column inferred_type non_missing distinct min max mean sd
+                           row_id       VARCHAR           0        0   -   -    -  -
+                              pin       VARCHAR           0        0   -   -    -  -
+                sale_document_num       VARCHAR           0        0   -   -    -  -
+                        sale_date       VARCHAR           0        0   -   -    -  -
+                    is_mydec_date       VARCHAR           0        0   -   -    -  -
+               sale_price_nominal       VARCHAR           0        0   -   -    -  -
+                            class       VARCHAR           0        0   -   -    -  -
+                             ward       VARCHAR           0        0   -   -    -  -
+                    neighbor_ward       VARCHAR           0        0   -   -    -  -
+                   signed_dist_ft       VARCHAR           0        0   -   -    -  -
+                     alderman_own       VARCHAR           0        0   -   -    -  -
+                alderman_neighbor       VARCHAR           0        0   -   -    -  -
+                   strictness_own       VARCHAR           0        0   -   -    -  -
+              strictness_neighbor       VARCHAR           0        0   -   -    -  -
+            affects_rd_assignment       VARCHAR           0        0   -   -    -  -
+  sign_changes_with_both_eligible       VARCHAR           0        0   -   -    -  -
+        score_eligibility_changes       VARCHAR           0        0   -   -    -  -
+            possible_own_aldermen       VARCHAR           0        0   -   -    -  -
+       possible_neighbor_aldermen       VARCHAR           0        0   -   -    -  -
+            county_record_checked       VARCHAR           0        0   -   -    -  -
+         county_identifier_agrees       VARCHAR           0        0   -   -    -  -
+                      county_date       VARCHAR           0        0   -   -    -  -
+              county_date_changed       VARCHAR           0        0   -   -    -  -
+county_refined_date_now_available       VARCHAR           0        0   -   -    -  -
+                        diagnosis       VARCHAR           0        0   -   -    -  -
+                   clerk_document       VARCHAR           0        0   -   -    -  -
+                clerk_index_found       VARCHAR           0        0   -   -    -  -
+                        clerk_pin       VARCHAR           0        0   -   -    -  -
+                   clerk_recorded       VARCHAR           0        0   -   -    -  -
+                   clerk_executed       VARCHAR           0        0   -   -    -  -
+              clerk_document_type       VARCHAR           0        0   -   -    -  -
+                 clerk_result_url       VARCHAR           0        0   -   -    -  -
+                 clerk_detail_url       VARCHAR           0        0   -   -    -  -
+                 clerk_under_pins       VARCHAR           0        0   -   -    -  -
+              clerk_property_type       VARCHAR           0        0   -   -    -  -
+             clerk_fetched_at_utc       VARCHAR           0        0   -   -    -  -
+                 clerk_pin_agrees       VARCHAR           0        0   -   -    -  -
+           recording_month_agrees       VARCHAR           0        0   -   -    -  -
+           execution_month_agrees       VARCHAR           0        0   -   -    -  -
+         recording_quarter_agrees       VARCHAR           0        0   -   -    -  -
+           clerk_under_pin_agrees       VARCHAR           0        0   -   -    -  -
+                    clerk_linkage       VARCHAR           0        0   -   -    -  -

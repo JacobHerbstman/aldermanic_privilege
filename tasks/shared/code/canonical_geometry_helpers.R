@@ -280,54 +280,6 @@ distance_to_boundary_pair_m <- function(points_sf, pair_values, boundary_sf, chu
   out
 }
 
-load_segment_layers <- function(segment_gpkg, buffer_m = NULL, buffer_ft = NULL, eras = canonical_era_levels()) {
-  layer_names <- sf::st_layers(segment_gpkg)$name
-  if (!is.null(buffer_m) && !is.null(buffer_ft)) {
-    stop("Supply only one of buffer_m or buffer_ft.", call. = FALSE)
-  }
-  if (is.null(buffer_m) && is.null(buffer_ft)) {
-    stop("Supply buffer_m or buffer_ft explicitly.", call. = FALSE)
-  }
-
-  if (!is.null(buffer_m)) {
-    if (!is.finite(buffer_m) || buffer_m <= 0) {
-      stop("buffer_m must be positive.", call. = FALSE)
-    }
-    needed_layers <- paste0(eras, "_bw", as.integer(round(buffer_m)), "m")
-  } else {
-    if (!is.finite(buffer_ft) || buffer_ft <= 0) {
-      stop("buffer_ft must be positive.", call. = FALSE)
-    }
-    needed_layers <- paste0(eras, "_bw", as.integer(round(buffer_ft)))
-  }
-
-  missing_layers <- setdiff(needed_layers, layer_names)
-  if (length(missing_layers) > 0) {
-    stop(sprintf(
-      "Segment GPKG is missing layers: %s",
-      paste(missing_layers, collapse = ", ")
-    ), call. = FALSE)
-  }
-
-  out <- lapply(eras, function(era_i) {
-    layer_name <- if (!is.null(buffer_m)) {
-      paste0(era_i, "_bw", as.integer(round(buffer_m)), "m")
-    } else {
-      paste0(era_i, "_bw", as.integer(round(buffer_ft)))
-    }
-    d <- sf::st_read(segment_gpkg, layer = layer_name, quiet = TRUE)
-    if ("valid_segment" %in% names(d)) {
-      valid_segment <- coerce_segment_valid_flag(d$valid_segment)
-      d <- d[is.na(valid_segment) | valid_segment, ]
-    }
-    d$segment_id <- as.character(d$segment_id)
-    d$pair_dash <- normalize_pair_dash(d$ward_pair_id)
-    d[!is.na(d$pair_dash), ]
-  })
-  names(out) <- eras
-  out
-}
-
 load_segment_line_layers <- function(segment_gpkg, eras = canonical_era_levels()) {
   layer_names <- sf::st_layers(segment_gpkg)$name
   missing_layers <- setdiff(eras, layer_names)
@@ -766,13 +718,6 @@ assign_points_to_boundaries <- function(points_sf, era_values, ward_maps, bounda
     ward_pair_id = out_pair,
     dist_m = out_dist * 0.3048,
     dist_ft = out_dist
-  )
-}
-
-assign_points_to_segments <- function(points_sf, era_values, pair_values, segment_layers, chunk_n = 50000L) {
-  stop(
-    "assign_points_to_segments() used buffered-polygon first-hit assignment and is deprecated. Use load_segment_line_layers() with assign_points_to_nearest_segments().",
-    call. = FALSE
   )
 }
 

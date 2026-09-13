@@ -1,0 +1,40 @@
+File: property_review.csv
+Rows: 69
+Columns: 30
+SHA-256 (saved bytes): 72fd41226901108d88ab5b2edb877dbca0a96ae40337a25f3d1661e9c05abffc
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                      column inferred_type non_missing distinct               min              max                mean                 sd
+                      row_id        BIGINT          69       69           7164863         98458530   80325145.49275362 35439215.510861605
+                         pin        BIGINT          69       62    11311030280000   25281140210000  17607168646666.668 3914652090989.6606
+           sale_document_num        BIGINT          69       69         602045043       2232613277  1426865872.8550725  584040901.6221104
+                   sale_date          DATE          69       60                 -                -                   -                  -
+                       class        BIGINT          69       11               202              295  217.17391304347825 26.438583948986782
+                  in_main_rd       BOOLEAN          69        2                 -                -                   -                  -
+              signed_dist_ft        DOUBLE          69       65 -13732.1960949953 4842.54222453835 -224.59969634713588 2536.0516969303176
+          sale_price_nominal        BIGINT          69       66             23500        225000001   11458668.11594203 40544489.797685064
+               building_sqft        BIGINT          69       62               680             8910   2401.855072463768 1608.9938605827583
+                nominal_ppsf        DOUBLE          69       69  7.01073985680191 154025.974025974   7669.862438345952  29755.46060357224
+                   num_rooms        BIGINT          69       14                 2               24   6.028985507246377 3.8193432392492093
+                num_bedrooms        BIGINT          69       14                 2               42   6.463768115942029  5.797006606214785
+              num_full_baths        BIGINT          69        8                 1                8   2.463768115942029 1.7284786760832023
+              num_half_baths        BIGINT          69        5                 0                4   0.463768115942029 0.9168313422570847
+                  char_rooms        DOUBLE          69       14               2.0             24.0   6.028985507246377 3.8193432392492093
+                   char_beds        DOUBLE          69       14               2.0             42.0   6.463768115942029  5.797006606214785
+                  char_fbath        DOUBLE          69        8               1.0              8.0   2.463768115942029 1.7284786760832023
+                  char_hbath        DOUBLE          69        5               0.0              4.0   0.463768115942029 0.9168313422570847
+                   char_apts       VARCHAR          69        6                 -                -                   -                  -
+           raw_document_rows        BIGINT          69        1                 1                1                 1.0                0.0
+           raw_document_pins        BIGINT          69        1                 1                1                 1.0                0.0
+            actual_card_rows        BIGINT          69        1                 1                1                 1.0                0.0
+              sale_deed_type       VARCHAR          69        2                 -                -                   -                  -
+             mydec_deed_type       VARCHAR          40        2                 -                -                   -                  -
+               is_mydec_date       BOOLEAN          69        2                 -                -                   -                  -
+              flag_high_ppsf       BOOLEAN          69        2                 -                -                   -                  -
+            flag_review_ppsf       BOOLEAN          69        2                 -                -                   -                  -
+   flag_rooms_below_bedrooms       BOOLEAN          69        2                 -                -                   -                  -
+flag_negative_characteristic       BOOLEAN          69        1                 -                -                   -                  -
+   flag_future_building_year       BOOLEAN          69        1                 -                -                   -                  -

@@ -1,7 +1,7 @@
 File: sales_with_ward_distances_through2022.csv
 Rows: 237416
 Columns: 26
-SHA-256 (saved bytes): ab39a13fc468c684b88d0215e98f146e7e9ecb8e9c9f24d5082c71d6b9d1b83c
+SHA-256 (saved bytes): 9be1dcfa8637a7687d2f2bf1e85b0f1876a224424513a67fb2eae520a9596a36
 Key: row_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: approximate (exact up to 100,000 rows).
@@ -32,5 +32,5 @@ sale_price_cpi_chi_all_items        DOUBLE      237416      212              197
                         sign        BIGINT      236941        2                 -1                 1  0.07095015214758105  0.9974819673269398
                 alderman_own       VARCHAR      237192      111                  -                 -                    -                   -
            alderman_neighbor       VARCHAR      237182      111                  -                 -                    -                   -
-              strictness_own        DOUBLE      237186      109 -3.445576092831579 3.335724428971037  0.13137489443886746  0.9337632894330294
-         strictness_neighbor        DOUBLE      237171      109 -3.445576092831579 3.335724428971037 0.055513767231708554  0.9331128280986051
+              strictness_own        DOUBLE      237186      102 -3.445576092831627 3.335724428970233   0.1313748944388496  0.9337632894330972
+         strictness_neighbor        DOUBLE      237171      102 -3.445576092831627 3.335724428970233 0.055513767231691366  0.9331128280986654

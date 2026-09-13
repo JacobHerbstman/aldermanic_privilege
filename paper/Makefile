@@ -94,5 +94,6 @@ osm-check:
 	@cd .. && shasum -a 256 -c data_raw/illinois-250919-free.sha256
 
 .PHONY: osm-check
+.DELETE_ON_ERROR:
 
 include ../tasks/shared/code/generic.make

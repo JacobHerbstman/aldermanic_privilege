@@ -2,8 +2,8 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/prep_sales_border_data/code")
 # drop_inconsistent_rooms <- "TRUE"
 
-source("../../setup_environment/code/packages.R")
-source("../../shared/code/save_data.R")
+source("../input/packages.R")
+source("../input/save_data.R")
 args <- if (interactive()) c(drop_inconsistent_rooms) else commandArgs(trailingOnly = TRUE)
 stopifnot(length(args) == 1L, args[1] %in% c("TRUE", "FALSE"))
 drop_inconsistent_rooms <- args[1] == "TRUE"

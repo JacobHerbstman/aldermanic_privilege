@@ -3,9 +3,10 @@
 # boundary_rule <- "all"
 
 source("../../../setup_environment/code/packages.R")
+source("../../../shared/code/save_data.R")
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) == 0L) args <- c(outcome_scale, boundary_rule)
+if (interactive()) args <- c(outcome_scale, boundary_rule)
 stopifnot(length(args) == 2L, args[1] %in% c("log", "levels"),
   args[2] %in% c("all", "straight"))
 outcome_scale <- args[1]
@@ -36,33 +37,6 @@ if (boundary_rule == "straight") {
   stopifnot(!anyNA(projects$straight_boundary[projects$within_500ft]))
   projects <- projects |> dplyr::filter(straight_boundary)
 }
-
-scores <- readr::read_csv(
-  "../input/alderman_uncertainty_index_through2022.csv",
-  show_col_types = FALSE
-) |>
-  dplyr::select(alderman, uncertainty_index)
-if (anyDuplicated(scores$alderman) > 0L) {
-  stop("Alderman scores must be unique by alderman.")
-}
-
-projects <- projects |>
-  dplyr::select(-strictness_own, -strictness_neighbor) |>
-  dplyr::left_join(
-    scores |>
-      dplyr::rename(alderman_own = alderman, strictness_own = uncertainty_index),
-    by = "alderman_own",
-    relationship = "many-to-one"
-  ) |>
-  dplyr::left_join(
-    scores |>
-      dplyr::rename(alderman_neighbor = alderman, strictness_neighbor = uncertainty_index),
-    by = "alderman_neighbor",
-    relationship = "many-to-one"
-  ) |>
-  dplyr::mutate(
-    signed_distance_m = abs(signed_distance_m) * sign(strictness_own - strictness_neighbor)
-  )
 
 panel_specs <- tibble::tribble(
   ~sample, ~outcome, ~panel_title,
@@ -124,9 +98,9 @@ stopifnot(nrow(results) == 20L, !anyDuplicated(results[c("sample", "outcome", "w
   all(is.finite(results$estimate)), all(results$std_error > 0))
 if (boundary_rule == "straight") {
   stopifnot(outcome_scale == "log")
-  readr::write_csv(results, "../output/density_window_estimates_straight.csv")
+  SaveData(results, c("sample", "outcome", "window_ft"), "../output/density_window_estimates_straight.csv")
 } else if (outcome_scale == "log") {
-  readr::write_csv(results, "../output/density_window_estimates.csv")
+  SaveData(results, c("sample", "outcome", "window_ft"), "../output/density_window_estimates.csv")
 } else {
-  readr::write_csv(results, "../output/density_window_estimates_levels.csv")
+  SaveData(results, c("sample", "outcome", "window_ft"), "../output/density_window_estimates_levels.csv")
 }

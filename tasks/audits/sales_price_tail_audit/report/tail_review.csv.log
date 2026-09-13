@@ -1,0 +1,60 @@
+File: tail_review.csv
+Rows: 276
+Columns: 50
+SHA-256 (saved bytes): c9c460d6c1daf492c071b7754c0b915e5981ee7a0fc29d73fceca81f6a0b60a0
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                    column inferred_type non_missing distinct               min              max               mean                 sd
+                    row_id        BIGINT         276      276           7100051         98480635  81972788.88405797  33915471.53219513
+                       pin       VARCHAR         276      262                 -                -                  -                  -
+         sale_document_num        BIGINT         276      276         602041122       2236245095 1368632705.5905797  558833553.4678034
+                 sale_date          DATE         276      207                 -                -                  -                  -
+                      year        BIGINT         276       17              2006             2022 2013.3840579710145  5.579602414989521
+                     class        BIGINT         276       12               202              295 211.42391304347825 21.778004097037748
+                 selection       VARCHAR         276        3                 -                -                  -                  -
+          tail_probability        DOUBLE         276        1             0.999            0.999 0.9989999999999986                0.0
+               flag_annual       BOOLEAN         276        2                 -                -                  -                  -
+               flag_pooled       BOOLEAN         276        2                 -                -                  -                  -
+       flag_annual_nominal       BOOLEAN         276        2                 -                -                  -                  -
+       sampled_for_reading       BOOLEAN         276        2                 -                -                  -                  -
+        in_current_main_rd       BOOLEAN         276        2                 -                -                  -                  -
+            signed_dist_ft        DOUBLE         276      271 -13732.1960949953 7758.49203988068 243.96860163516607 1985.7658291310436
+                      ward        BIGINT         276       34                 1               50  35.19202898550725 12.989341429700678
+             neighbor_ward        BIGINT         276       37                 1               50 27.768115942028984 17.260692013967866
+                segment_id       VARCHAR         187      109                 -                -                  -                  -
+        sale_price_nominal        BIGINT         276      237            499000        225000001 4834762.3369565215 20606353.327508833
+             building_sqft        BIGINT         276      227               483            13133            1824.25 1525.1697321341594
+                 real_ppsf        DOUBLE         276      276  1120.19428835882  210099.48598474 3852.6655501345767  20171.38469267092
+              nominal_ppsf        DOUBLE         276      271  892.857142857143 154025.974025974 3002.9839597379128  15034.47385745136
+        annual_cutoff_real        DOUBLE         276       17  1118.57642061513 1552.71005897563 1276.3620871468877 136.96651807487618
+        pooled_cutoff_real        DOUBLE         276        1  1240.39581435965 1240.39581435965 1240.3958143596533                0.0
+                 land_sqft        BIGINT         276      130               950             9160  3526.981884057971 1204.1439462568337
+                year_built        BIGINT         276       88              1868             2021 1916.5144927536232  40.32165860716388
+                 num_rooms        BIGINT         276       18                 3               21 6.8731884057971016 3.1034066877914546
+              num_bedrooms        BIGINT         276       10                 1               10  3.380434782608696 1.5574505365863287
+            num_full_baths        BIGINT         276        7                 1                7 1.8876811594202898 1.2409939065736104
+            num_half_baths        BIGINT         276        5                 0                4 0.3695652173913043 0.6275619428350172
+            sale_deed_type       VARCHAR         276        2                 -                -                  -                  -
+           mydec_deed_type       VARCHAR         150        2                 -                -                  -                  -
+             is_mydec_date       BOOLEAN         276        2                 -                -                  -                  -
+          sale_seller_name       VARCHAR         275      253                 -                -                  -                  -
+           sale_buyer_name       VARCHAR         275      270                 -                -                  -                  -
+         raw_document_pins        BIGINT         276        1                 1                1                1.0                0.0
+          actual_card_rows        BIGINT         276        1                 1                1                1.0                0.0
+improvement_class_mismatch       BOOLEAN         276        1                 -                -                  -                  -
+        history_first_year        BIGINT         276        9              2006             2018 2006.3152173913043 1.6663253932546975
+         history_last_year        BIGINT         276       10              2006             2022 2021.3840579710145  2.836957304176035
+          history_min_sqft        BIGINT         276      223               483            13133 1760.0253623188405 1473.9604593468748
+          history_max_sqft        BIGINT         276      251               500            13133 2671.5434782608695 1517.6740942259592
+         first_larger_year        BIGINT         126       15              2007             2022 2015.6825396825398  5.000241264020934
+         first_larger_sqft        BIGINT         126      117              1030             5040  2719.722222222222  804.2088647995756
+   first_larger_year_built        BIGINT         126       47              1878             2022 1961.0555555555557  56.13545126645807
+           prior_sale_date          DATE         161      144                 -                -                  -                  -
+          prior_sale_price        DOUBLE         161      134           15000.0       14500000.0  916795.6149068323 1349889.9543063506
+       prior_sale_retained       BOOLEAN         161        2                 -                -                  -                  -
+            next_sale_date          DATE         100       98                 -                -                  -                  -
+           next_sale_price        DOUBLE         100       95           25000.0       37850000.0         1973092.67   3925024.96406292
+        next_sale_retained       BOOLEAN         100        2                 -                -                  -                  -

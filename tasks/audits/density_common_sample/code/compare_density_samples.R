@@ -1,21 +1,15 @@
 # setwd("tasks/audits/density_common_sample/code")
 source("../../../setup_environment/code/packages.R")
+source("../../../shared/code/save_data.R")
 
 projects <- readr::read_csv("../input/new_construction_analysis_data.csv", show_col_types = FALSE,
   col_types = readr::cols(project_id = "c", ward_pair = "c", segment_id = "c", .default = readr::col_guess()))
-scores <- readr::read_csv("../input/alderman_uncertainty_index_through2022.csv", show_col_types = FALSE) |>
-  select(alderman, uncertainty_index)
 boundaries <- readr::read_csv("../input/density_boundary_characteristics.csv", show_col_types = FALSE)
-stopifnot(!anyDuplicated(projects$project_id), !anyDuplicated(scores$alderman),
+stopifnot(!anyDuplicated(projects$project_id),
   !anyDuplicated(boundaries$project_id))
 projects <- projects |>
-  select(-strictness_own, -strictness_neighbor) |>
-  left_join(scores |> rename(alderman_own = alderman, strictness_own = uncertainty_index),
-    by = "alderman_own", relationship = "many-to-one") |>
-  left_join(scores |> rename(alderman_neighbor = alderman, strictness_neighbor = uncertainty_index),
-    by = "alderman_neighbor", relationship = "many-to-one") |>
   left_join(boundaries, by = "project_id", relationship = "one-to-one") |>
-  mutate(true_distance_ft = abs(signed_distance_m / 0.3048) * sign(strictness_own - strictness_neighbor),
+  mutate(true_distance_ft = signed_distance_m / 0.3048,
     far_valid = allow_far & is.finite(density_far) & density_far > 0,
     dupac_valid = allow_dupac & is.finite(density_dupac) & density_dupac > 0,
     both_valid = far_valid & dupac_valid) |>
@@ -77,7 +71,7 @@ stopifnot(all(is.finite(results$estimate)), all(is.finite(results$std_error)),
 common <- results |> filter(eligibility == "common") |>
   summarise(same_sample_size = n_distinct(n) == 1L, .by = c(check, sample))
 stopifnot(all(common$same_sample_size))
-readr::write_csv(results, "../output/density_common_sample_estimates.csv")
+SaveData(results, c("check", "sample", "outcome", "eligibility"), "../output/density_common_sample_estimates.csv")
 cat("Main DUPAC candidates lost under common eligibility:\n")
 print(projects |> filter(within_500ft, abs(true_distance_ft) < 500, dupac_valid, !both_valid) |>
   select(project_id, source_addresses, construction_year, dwelling_units, building_sqft, land_sqft,

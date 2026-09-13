@@ -1,0 +1,16 @@
+File: sales_sample_definition_historical_coordinates.csv
+Rows: 284002
+Columns: 6
+SHA-256 (saved bytes): 1dcc38e2f052e059a5dae81327d123b9324bd4271616c255589f641c50181b48
+Key: pin, year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column inferred_type non_missing distinct               min               max               mean                  sd
+                pin       VARCHAR      284002   202389                 -                 -                  -                   -
+               year        BIGINT      284002       19              2006              2022 2014.2108400645066  5.0918964134987785
+          longitude        DOUBLE      284002   245380 -87.8461794943848 -87.5248067824485 -87.69196899664423 0.06406502274732193
+           latitude        DOUBLE      284002   186862  41.6448644623124  42.0226431371196  41.84715669692998  0.0985903958763527
+centroid_x_crs_3435        DOUBLE      284002   234425  1116738.87562271  1205074.99544737 1159013.7120534447   17620.43930355373
+centroid_y_crs_3435        DOUBLE      284002   259065  1813998.15962768        1951539.72 1887553.3451660061   35847.46688158116

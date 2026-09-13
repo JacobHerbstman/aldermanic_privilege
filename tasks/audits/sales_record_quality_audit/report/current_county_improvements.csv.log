@@ -1,0 +1,25 @@
+File: current_county_improvements.csv
+Rows: 1669
+Columns: 15
+SHA-256 (saved bytes): 08461c9fd10a696dfb25caccf202613081e4a50338666f7567c22aeafeeb473f
+Key: pin, year, card
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct            min            max                mean                  sd
+                   pin        BIGINT        1669       62 11311030280000 25281140210000  17613055752672.258  4007199006686.3823
+                  year        DOUBLE        1669       28         1999.0         2026.0   2012.415817855003   8.057996549915966
+                  card        DOUBLE        1669        2            1.0            2.0  1.0077890952666266 0.08793781103730235
+                 class        BIGINT        1669       13            202            295  215.26123427201918  24.615972542864426
+            char_yrblt        DOUBLE        1669       55         1878.0         2022.0  1930.3541042540444   34.44731253318518
+          char_bldg_sf        DOUBLE        1669      110          680.0         8910.0   2247.424206111444  1623.3269830204283
+            char_rooms        DOUBLE        1669       20            2.0           32.0   6.745955662073098   4.813692326414379
+             char_beds        DOUBLE        1669       15            2.0           42.0    5.52786099460755   5.358153117855342
+            char_fbath        DOUBLE        1669        8            1.0            8.0     2.1929298981426  1.4961734911387734
+            char_hbath        DOUBLE        1667        5            0.0            4.0 0.34913017396520696  0.7345063260915979
+             char_apts       VARCHAR        1623        6              -              -                   -                   -
+         pin_num_cards        DOUBLE        1669        1            1.0            1.0                 1.0                 0.0
+      pin_is_multicard       BOOLEAN        1669        1              -              -                   -                   -
+tieback_proration_rate        DOUBLE        1669        1            1.0            1.0                 1.0                 0.0
+        fetched_at_utc     TIMESTAMP        1669        1              -              -                   -                   -

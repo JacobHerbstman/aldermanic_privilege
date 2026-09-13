@@ -1,0 +1,19 @@
+File: sales_sample_definition_by_year.csv
+Rows: 102
+Columns: 9
+SHA-256 (saved bytes): 94cb7f0175d7c26b8c8f0e8277f2a9d71c4efa8cce29bfab8ecbeacf5e0a651b
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                   column inferred_type non_missing distinct                min              max               mean                 sd
+                   sample       VARCHAR         102        6                  -                -                  -                  -
+                     year        BIGINT         102       17               2006             2022             2014.0  4.923172123984296
+                        n        BIGINT         102       95               7130            27024 15353.264705882353  4401.410169899244
+   median_price_real_2022        DOUBLE         102       77   170248.031264282 372023.928126659  277569.8672865361   55294.4182390474
+      p10_price_real_2022        DOUBLE         102       82   28028.8759691091 171447.618748955   78950.7026048567  38358.35475848864
+      p90_price_real_2022        DOUBLE         102       93   541314.153489361 924632.136419479  797981.0545926259  84854.34138955886
+           pct_other_deed        DOUBLE         102       49                0.0 38.9505479067154  8.307438001918776 11.881985636729324
+pct_missing_mydec_subtype        DOUBLE         102       95 0.0422322775263952 99.9944775789706  42.04983099704085 47.926756031343764
+pct_nonmarket_mydec_label        DOUBLE         102       15                0.0 3.11046812028521 0.2337337552259003 0.7514935308294306

@@ -1,4 +1,29 @@
 # setwd("tasks/density_boundary_checks/code")
+# start_year <- 2006
+# end_year <- 2022
+# bandwidth_ft <- 500
+# bin_width_ft <- 100
+# controls <- "share_white_own + share_black_own + median_hh_income_own + share_bach_plus_own + homeownership_rate_own"
+# fixed_effects <- "zone_group + segment_id + construction_year"
+# cluster <- "ward_pair"
+# continuity_fixed_effects <- "segment_id + construction_year"
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (interactive()) cli_args <- c(start_year, end_year, bandwidth_ft, bin_width_ft, controls, fixed_effects, cluster, continuity_fixed_effects)
+stopifnot(length(cli_args) == 8L)
+start_year <- as.integer(cli_args[1])
+end_year <- as.integer(cli_args[2])
+bandwidth_ft <- as.integer(cli_args[3])
+bin_width_ft <- as.integer(cli_args[4])
+controls <- cli_args[5]
+fixed_effects <- cli_args[6]
+cluster <- cli_args[7]
+continuity_fixed_effects <- cli_args[8]
+stopifnot(start_year <= end_year, bandwidth_ft > 0, bin_width_ft > 0,
+  bandwidth_ft %% bin_width_ft == 0)
+bin_edges <- seq(-bandwidth_ft, bandwidth_ft, by = bin_width_ft)
+bin_labels <- sprintf("bin_%02d", seq_len(length(bin_edges) - 1L))
+reference_bin <- bin_labels[bandwidth_ft / bin_width_ft]
 
 source("../../setup_environment/code/packages.R")
 
@@ -29,38 +54,16 @@ if (anyDuplicated(boundary_characteristics$project_id) > 0L) {
   stop("Boundary characteristics must be unique by project ID.")
 }
 
-scores <- readr::read_csv(
-  "../input/alderman_uncertainty_index_through2022.csv",
-  show_col_types = FALSE
-) |>
-  dplyr::select(alderman, uncertainty_index)
-if (anyDuplicated(scores$alderman) > 0L) {
-  stop("Alderman scores must be unique by alderman.")
-}
-
 projects <- projects |>
-  dplyr::select(-strictness_own, -strictness_neighbor) |>
-  dplyr::left_join(
-    scores |>
-      dplyr::rename(alderman_own = alderman, strictness_own = uncertainty_index),
-    by = "alderman_own",
-    relationship = "many-to-one"
-  ) |>
-  dplyr::left_join(
-    scores |>
-      dplyr::rename(alderman_neighbor = alderman, strictness_neighbor = uncertainty_index),
-    by = "alderman_neighbor",
-    relationship = "many-to-one"
-  ) |>
   dplyr::left_join(
     boundary_characteristics,
     by = "project_id",
     relationship = "one-to-one"
   ) |>
   dplyr::filter(
-    construction_year >= 2006L,
-    construction_year <= 2022L,
-    within_500ft,
+    construction_year >= start_year,
+    construction_year <= end_year,
+    abs(signed_distance_m / 0.3048) <= bandwidth_ft,
     density_eligible,
     is.finite(share_white_own),
     is.finite(share_black_own),
@@ -74,18 +77,17 @@ projects <- projects |>
     ward_pair != ""
   ) |>
   dplyr::mutate(
-    running_distance_ft = abs(signed_distance_m / 0.3048) *
-      sign(strictness_own - strictness_neighbor),
+    running_distance_ft = signed_distance_m / 0.3048,
     distance_bin = cut(
       running_distance_ft,
-      breaks = seq(-500, 500, by = 100),
-      labels = sprintf("bin_%02d", 1:10),
+      breaks = bin_edges,
+      labels = bin_labels,
       include.lowest = TRUE,
       right = FALSE
     )
   ) |>
   dplyr::filter(
-    abs(running_distance_ft) < 500,
+    abs(running_distance_ft) < bandwidth_ft,
     !is.na(distance_bin)
   )
 
@@ -136,21 +138,17 @@ for (rule_i in seq_len(nrow(sample_rules))) {
       )
 
     model <- fixest::feols(
-      log_outcome ~
-        i(distance_bin, ref = "bin_05") +
-        share_white_own +
-        share_black_own +
-        median_hh_income_own +
-        share_bach_plus_own +
-        homeownership_rate_own |
-        zone_group + segment_id + construction_year,
+      stats::as.formula(sprintf(
+        "log_outcome ~ i(distance_bin, ref = '%s') + %s | %s",
+        reference_bin, controls, fixed_effects
+      )),
       data = model_data,
-      cluster = ~ward_pair,
+      cluster = stats::as.formula(paste("~", cluster)),
       warn = FALSE,
       notes = FALSE
     )
 
-    coefficient <- fixest::coeftable(model)["distance_bin::bin_06", ]
+    coefficient <- fixest::coeftable(model)[paste0("distance_bin::", bin_labels[bandwidth_ft / bin_width_ft + 1L]), ]
     robustness_rows[[length(robustness_rows) + 1L]] <- tibble::tibble(
       restriction = sample_rules$restriction[rule_i],
       sample = panel_specs$sample[panel_i],
@@ -256,16 +254,16 @@ for (sample_name in c("all", "multifamily")) {
     model <- fixest::feols(
       stats::as.formula(paste0(
         location_measures$variable[i],
-        " ~ i(distance_bin, ref = 'bin_05')",
-        " | segment_id + construction_year"
+        " ~ i(distance_bin, ref = '", reference_bin, "') | ",
+        continuity_fixed_effects
       )),
       data = sample_data,
-      cluster = ~ward_pair,
+      cluster = stats::as.formula(paste("~", cluster)),
       warn = FALSE,
       notes = FALSE
     )
 
-    coefficient <- fixest::coeftable(model)["distance_bin::bin_06", ]
+    coefficient <- fixest::coeftable(model)[paste0("distance_bin::", bin_labels[bandwidth_ft / bin_width_ft + 1L]), ]
     continuity_rows[[length(continuity_rows) + 1L]] <- tibble::tibble(
       sample = sample_name,
       variable = location_measures$variable[i],

@@ -17,8 +17,7 @@ hand-entered building measurements. Git records the saved source files.
   in `../code/reviewed_history_queries.csv`, years 1999–2025, from
   `https://datacatalog.cookcountyil.gov/resource/nj4t-kc8j.json`.
 
-The task README records the acquisition history and the decisions that motivated
-these searches. The ordinary build copies these saved responses. Explicit
-`make download-reviewed-current` queries the services into separate `_current`
-outputs for comparison. Adopting a refreshed source requires reviewing that
-comparison and updating these committed inputs deliberately.
+Acquisition history and the original query scripts are preserved in
+`tasks/audits/construction_review_history/source_acquisition/`. Ordinary
+production reads and combines these saved responses. Adopting refreshed sources
+requires comparing and updating the committed inputs deliberately.

@@ -1,7 +1,7 @@
 File: permit_block_year_panel_2015.parquet
 Rows: 359579
 Columns: 28
-SHA-256 (saved bytes): 42c32864d55b9a9f6d750722170a1cdfb1321f3269eb2debaf3da067441eae38
+SHA-256 (saved bytes): 3d863624a0b42999f9f195dbe846929539ea0e1de92be121ba802bdbc964659a
 Key: block_id, year
 Types: Stored Parquet schema.
 Distinct counts: approximate (exact up to 100,000 rows).
@@ -15,9 +15,9 @@ Row counts, non-missing counts, and declared-key checks: exact.
                            ward_dest        DOUBLE      359579       52                 1.0               50.0     24.662057572883846 13.621501729357176
                             switched       BOOLEAN      359579        2                   -                  -                      -                  -
                                treat       INTEGER      359579        2                   0                  1     0.2146287742053902 0.4105651376691499
-            strictness_origin_frozen        DOUBLE      359579       47 -2.6261282212235453 1.5587271875762565  -0.007286383720482263 0.8686272367087764
-              strictness_dest_frozen        DOUBLE      359579       47 -2.6261282212235453 1.5587271875762565 -0.0017593817660700383 0.8616060737108123
-            strictness_change_frozen        DOUBLE      359579      136 -3.2128691985143365 3.2128691985143365    0.00552700195442701 0.5087859844728715
+            strictness_origin_frozen        DOUBLE      359579       50 -2.6261282212235035 1.5587271875761726  -0.007286383720483613   0.86862723670876
+              strictness_dest_frozen        DOUBLE      359579       50 -2.6261282212235035 1.5587271875761726 -0.0017593817660733462 0.8616060737107962
+            strictness_change_frozen        DOUBLE      359579      147  -3.212869198514254  3.212869198514254   0.005527001954428258 0.5087859844728618
                 alderman_origin_2014       VARCHAR      359579       50                   -                  -                      -                  -
                 alderman_origin_2015       VARCHAR      359579       45                   -                  -                      -                  -
                   alderman_dest_2014       VARCHAR      359579       50                   -                  -                      -                  -

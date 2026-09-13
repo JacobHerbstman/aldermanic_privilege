@@ -1,7 +1,7 @@
 File: preferred_historical_parcel_source.gpkg
 Rows: 13149
 Columns: 7
-SHA-256 (saved bytes): b20ba625055060f6044c4e0137069c1a4e01599271296fb7e40120f652407a5f
+SHA-256 (saved bytes): ab8d6e437abb527486c029fdeb4e4c11517f9af6f9d9a1da2356c1f7b7fba333
 Key: target_year, object_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).

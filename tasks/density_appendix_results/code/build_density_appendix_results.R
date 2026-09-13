@@ -1,4 +1,33 @@
 # setwd("tasks/density_appendix_results/code")
+# start_year <- 2006
+# end_year <- 2022
+# bandwidth_ft <- 500
+# bin_width_ft <- 100
+# controls <- "share_white_own + share_black_own + median_hh_income_own + share_bach_plus_own + homeownership_rate_own"
+# fixed_effects <- "zone_group + segment_id + construction_year"
+# cluster <- "ward_pair"
+# placebo_ft <- 1000
+# donut_inner_ft <- 25
+# donut_outer_ft <- 50
+
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (interactive()) cli_args <- c(start_year, end_year, bandwidth_ft, bin_width_ft, controls, fixed_effects, cluster, placebo_ft, donut_inner_ft, donut_outer_ft)
+stopifnot(length(cli_args) == 10L)
+start_year <- as.integer(cli_args[1])
+end_year <- as.integer(cli_args[2])
+bandwidth_ft <- as.integer(cli_args[3])
+bin_width_ft <- as.integer(cli_args[4])
+controls <- cli_args[5]
+fixed_effects <- cli_args[6]
+cluster <- cli_args[7]
+placebo_ft <- as.integer(cli_args[8])
+donut_inner_ft <- as.integer(cli_args[9])
+donut_outer_ft <- as.integer(cli_args[10])
+stopifnot(start_year <= end_year, bandwidth_ft > 0, bin_width_ft > 0,
+  bandwidth_ft %% bin_width_ft == 0)
+bin_edges <- seq(-bandwidth_ft, bandwidth_ft, by = bin_width_ft)
+bin_labels <- sprintf("bin_%02d", seq_len(length(bin_edges) - 1L))
+reference_bin <- bin_labels[bandwidth_ft / bin_width_ft]
 
 source("../../setup_environment/code/packages.R")
 
@@ -17,33 +46,8 @@ if (anyDuplicated(projects$project_id) > 0L) {
   stop("New-construction data must be unique by project ID.")
 }
 
-scores <- readr::read_csv(
-  "../input/alderman_uncertainty_index_through2022.csv",
-  show_col_types = FALSE
-) |>
-  dplyr::select(alderman, uncertainty_index)
-if (anyDuplicated(scores$alderman) > 0L) {
-  stop("Alderman scores must be unique by alderman.")
-}
-
 projects <- projects |>
-  dplyr::select(-strictness_own, -strictness_neighbor) |>
-  dplyr::left_join(
-    scores |>
-      dplyr::rename(alderman_own = alderman, strictness_own = uncertainty_index),
-    by = "alderman_own",
-    relationship = "many-to-one"
-  ) |>
-  dplyr::left_join(
-    scores |>
-      dplyr::rename(alderman_neighbor = alderman, strictness_neighbor = uncertainty_index),
-    by = "alderman_neighbor",
-    relationship = "many-to-one"
-  ) |>
-  dplyr::mutate(
-    true_distance_ft = abs(signed_distance_m / 0.3048) *
-      sign(strictness_own - strictness_neighbor)
-  )
+  dplyr::mutate(true_distance_ft = signed_distance_m / 0.3048)
 
 panel_specs <- tibble::tribble(
   ~sample, ~outcome, ~panel_title,
@@ -55,10 +59,10 @@ panel_specs <- tibble::tribble(
 
 check_specs <- tibble::tribble(
   ~check, ~cutoff_ft, ~donut_ft,
-  "placebo_neg1000ft", -1000, 0,
-  "placebo_pos1000ft", 1000, 0,
-  "donut25ft", 0, 25,
-  "donut50ft", 0, 50
+  paste0("placebo_neg", placebo_ft, "ft"), -placebo_ft, 0,
+  paste0("placebo_pos", placebo_ft, "ft"), placebo_ft, 0,
+  paste0("donut", donut_inner_ft, "ft"), 0, donut_inner_ft,
+  paste0("donut", donut_outer_ft, "ft"), 0, donut_outer_ft
 )
 
 for (check_i in seq_len(nrow(check_specs))) {
@@ -75,17 +79,17 @@ for (check_i in seq_len(nrow(check_specs))) {
         running_distance_ft = true_distance_ft - cutoff_ft,
         distance_bin = cut(
           running_distance_ft,
-          breaks = seq(-500, 500, by = 100),
-          labels = sprintf("bin_%02d", 1:10),
+          breaks = bin_edges,
+          labels = bin_labels,
           include.lowest = TRUE,
           right = FALSE
         )
       ) |>
       dplyr::filter(
-        construction_year >= 2006L,
-        construction_year <= 2022L,
-        within_1500ft,
-        abs(running_distance_ft) < 500,
+        construction_year >= start_year,
+        construction_year <= end_year,
+        abs(true_distance_ft) <= placebo_ft + bandwidth_ft,
+        abs(running_distance_ft) < bandwidth_ft,
         donut_ft == 0 | abs(running_distance_ft) >= donut_ft,
         !is.na(distance_bin),
         sample_name == "all" | external_multifamily,
@@ -104,16 +108,12 @@ for (check_i in seq_len(nrow(check_specs))) {
       dplyr::mutate(log_outcome = log(.data[[outcome]]))
 
     model <- fixest::feols(
-      log_outcome ~
-        i(distance_bin, ref = "bin_05") +
-        share_white_own +
-        share_black_own +
-        median_hh_income_own +
-        share_bach_plus_own +
-        homeownership_rate_own |
-        zone_group + segment_id + construction_year,
+      stats::as.formula(sprintf(
+        "log_outcome ~ i(distance_bin, ref = '%s') + %s | %s",
+        reference_bin, controls, fixed_effects
+      )),
       data = model_data,
-      cluster = ~ward_pair,
+      cluster = stats::as.formula(paste("~", cluster)),
       warn = FALSE,
       notes = FALSE
     )
@@ -134,14 +134,14 @@ for (check_i in seq_len(nrow(check_specs))) {
       p_value = coefficient_table[coefficient_rows, "Pr(>|t|)"]
     )
 
-    cluster_count <- dplyr::n_distinct(model_data$ward_pair)
+    cluster_count <- dplyr::n_distinct(model_data[[cluster]])
     critical_value <- stats::qt(0.975, df = cluster_count - 1L)
 
     results <- tibble::tibble(
-      distance_bin = sprintf("bin_%02d", 1:10),
-      bin_start_ft = seq(-500, 400, by = 100),
-      bin_end_ft = seq(-400, 500, by = 100),
-      bin_center_ft = seq(-450, 450, by = 100)
+      distance_bin = bin_labels,
+      bin_start_ft = head(bin_edges, -1),
+      bin_end_ft = tail(bin_edges, -1),
+      bin_center_ft = head(bin_edges, -1) + bin_width_ft / 2
     ) |>
       dplyr::left_join(
         estimates,
@@ -150,29 +150,29 @@ for (check_i in seq_len(nrow(check_specs))) {
       ) |>
       dplyr::mutate(
         estimate = dplyr::if_else(
-          distance_bin == "bin_05",
+          distance_bin == reference_bin,
           0,
           estimate
         ),
         std_error = dplyr::if_else(
-          distance_bin == "bin_05",
+          distance_bin == reference_bin,
           NA_real_,
           std_error
         ),
         p_value = dplyr::if_else(
-          distance_bin == "bin_05",
+          distance_bin == reference_bin,
           NA_real_,
           p_value
         ),
         ci_low = estimate - critical_value * std_error,
         ci_high = estimate + critical_value * std_error,
         ribbon_low = dplyr::if_else(
-          distance_bin == "bin_05",
+          distance_bin == reference_bin,
           0,
           ci_low
         ),
         ribbon_high = dplyr::if_else(
-          distance_bin == "bin_05",
+          distance_bin == reference_bin,
           0,
           ci_high
         ),
@@ -251,8 +251,8 @@ for (check_i in seq_len(nrow(check_specs))) {
         guide = "none"
       ) +
       ggplot2::scale_x_continuous(
-        limits = c(-500, 500),
-        breaks = c(-500, -250, 0, 250, 500)
+        limits = c(-bandwidth_ft, bandwidth_ft),
+        breaks = seq(-bandwidth_ft, bandwidth_ft, length.out = 5)
       ) +
       ggplot2::labs(
         title = panel_specs$panel_title[panel_i],

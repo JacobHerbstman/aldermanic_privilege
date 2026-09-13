@@ -1,0 +1,17 @@
+File: apartment_count_composition.csv
+Rows: 2
+Columns: 7
+SHA-256 (saved bytes): 31bf24575631237ebd8bc58a6685d90c6f7cf5a5111e217ac2259247a4d59e0c
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                   column inferred_type non_missing distinct               min               max               mean                   sd
+  flag_unknown_apartments       BOOLEAN           2        2                 -                 -                  -                    -
+                    sales        BIGINT           2        2              2051             19638            10844.5   12435.886960727812
+     median_nominal_price        DOUBLE           2        2          200000.0          325000.0           262500.0    88388.34764831843
+     median_building_sqft        BIGINT           2        2              2258              2434             2346.0   124.45079348883236
+          median_bedrooms        BIGINT           2        2                 4                 5                4.5   0.7071067811865476
+             median_rooms        BIGINT           2        2                 8                10                9.0   1.4142135623730951
+share_more_stringent_side        DOUBLE           2        2 0.504073734596191 0.512920526572404 0.5084971305842975 0.006255626598126925

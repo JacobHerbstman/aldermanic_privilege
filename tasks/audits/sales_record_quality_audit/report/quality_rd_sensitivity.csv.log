@@ -1,0 +1,21 @@
+File: quality_rd_sensitivity.csv
+Rows: 6
+Columns: 11
+SHA-256 (saved bytes): c9b4403aa38a59a5238244ee65ee81ad8d0bb8ced5294a8c1aea282a146794a6
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct                min                max                 mean                     sd
+         specification       VARCHAR           6        6                  -                  -                    -                      -
+ price_per_sqft_cutoff        BIGINT           6        1               2000               2000               2000.0                    0.0
+          observations        BIGINT           6        5              58458              58478   58469.333333333336       7.36659125149858
+              excluded        BIGINT           6        5                  0                 20    8.666666666666666      7.366591251499344
+              estimate        DOUBLE           6        4 0.0294109137119904  0.030066306422432   0.0298299920797586 0.00029004248574003143
+             std_error        DOUBLE           6        6 0.0133881333685385 0.0134120637517823 0.013398343370212751  9.183191800598897e-06
+               p_value        DOUBLE           6        6 0.0264386780726353 0.0297988044176228 0.027616134302795015  0.0015505111900053546
+    percent_difference        DOUBLE           6        4    2.9847686077578   3.05228619724103    3.027939952307623   0.029879851852396572
+  percent_ci_low.2.5 %        DOUBLE           6        6  0.292662216413422   0.35764801758025  0.33463710161043464   0.029854349049732772
+percent_ci_high.97.5 %        DOUBLE           6        6   5.74913788117303   5.81927637378542    5.793539702367837   0.029987223978045333
+max_coefficient_change        DOUBLE           6        4                0.0 0.0298923815579841 0.010521739412959441   0.014276039205528418

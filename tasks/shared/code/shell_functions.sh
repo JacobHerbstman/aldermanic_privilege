@@ -48,39 +48,41 @@ stata_pc_and_slurm() {
 
 R_pc_and_slurm() {
 	if command -v sbatch > /dev/null ; then
+		export command1 command2;
 		command1="module load R/4.0/4.0.2";
 		if [ "$1" == "--no-job-name" ]; then
 			shift;
-			command2="Rscript $@";
+			printf -v command2 '%q ' Rscript "$@";
 			print_info R $@;
-        	sbatch -W --export=command1="$command1",command2="$command2" run.sbatch;
+			sbatch -W --export=ALL,command1,command2 run.sbatch;
 		else
-			command2="Rscript $@";
+			printf -v command2 '%q ' Rscript "$@";
 			jobname1="${1%.*}_";
         	jobname2=$(echo ${@:2} | sed -e "s/ /_/g");
 			print_info R $@;
-			sbatch -W --export=command1="$command1",command2="$command2" --job-name="$jobname1$jobname2" run.sbatch;
+			sbatch -W --export=ALL,command1,command2 --job-name="$jobname1$jobname2" run.sbatch;
 		fi;
 	else
         if [ "$1" == "--no-job-name" ]; then
             shift;
         fi;
         print_info R $@;
-        Rscript $@;
+        Rscript "$@";
 	fi
 } ;
 
 python_pc_and_slurm() {
 	if command -v sbatch > /dev/null ; then
+		export command1 command2;
 		command1="";
-		command2="python3 $@";
+		printf -v command2 '%q ' python3 "$@";
 		jobname1="${1%.*}_";
 		jobname2=$(echo ${@:2} | sed -e "s/ /_/g");
 		print_info Python $@;
-		sbatch -W --export=command1="$command1",command2="$command2" --job-name="$jobname1$jobname2" run.sbatch;
+		sbatch -W --export=ALL,command1,command2 --job-name="$jobname1$jobname2" run.sbatch;
 	else
 		print_info Python $@;
-		python3 $@;
+		python3 "$@";
 	fi;
 } ;
 

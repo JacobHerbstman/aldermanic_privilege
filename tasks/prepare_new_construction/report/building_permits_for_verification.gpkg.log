@@ -1,7 +1,7 @@
 File: building_permits_for_verification.gpkg
 Rows: 833465
 Columns: 11
-SHA-256 (saved bytes): 1def8bc4670f7107153abe654087719e89c0b46933d24f8ce8f6f9a36565b271
+SHA-256 (saved bytes): 9829a16c86b20b6c2170637ed262010fcb313eea1620cafebf90d57ef721d10c
 Key: id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: approximate (exact up to 100,000 rows).

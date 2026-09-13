@@ -1,8 +1,8 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_border_pair_fe/code")
 
-source("../../setup_environment/code/packages.R")
-source("../../shared/code/save_data.R")
-source("../../shared/code/amenity_distance_helpers.R")
+source("../input/packages.R")
+source("../input/save_data.R")
+source("../input/amenity_distance_helpers.R")
 
 chunk_n <- 100000L
 

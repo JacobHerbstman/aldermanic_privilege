@@ -1,7 +1,7 @@
 File: sales_with_hedonics_amenities.parquet
 Rows: 233699
 Columns: 63
-SHA-256 (saved bytes): 33e2ef17acecc656c3c4b0d0d38826e30cc136b64d52ed3bf6fed7b91d9f63cb
+SHA-256 (saved bytes): 9e4b484b6346784623789447fd876fe2858fec0bc20e3089ee26e50e783efe20
 Key: row_id
 Types: Stored Parquet schema.
 Distinct counts: approximate (exact up to 100,000 rows).
@@ -55,8 +55,8 @@ sale_price_cpi_chi_all_items        DOUBLE      233699      212              197
                         sign       INTEGER      233240        2                 -1                  1   0.07150574515520494    0.9974423261198596
                 alderman_own       VARCHAR      233484      111                  -                  -                     -                     -
            alderman_neighbor       VARCHAR      233469      111                  -                  -                     -                     -
-              strictness_own        DOUBLE      233479      109 -3.445576092831579  3.335724428971037   0.12903641594951942    0.9347139851733092
-         strictness_neighbor        DOUBLE      233460      109 -3.445576092831579  3.335724428971037   0.05264869873140808    0.9336084713937833
+              strictness_own        DOUBLE      233479      102 -3.445576092831627  3.335724428970233   0.12903641594945367    0.9347139851733748
+         strictness_neighbor        DOUBLE      233460      102 -3.445576092831627  3.335724428970233   0.05264869873132733    0.9336084713938467
                    sale_year        DOUBLE      233699       17             2006.0             2022.0    2014.2530562817983     5.345620202785347
                 building_age        DOUBLE      233696      191                0.0              189.0     81.51207979597426     33.78666525111794
                  baths_total        DOUBLE      233698       21                1.0               14.0    1.9337585259608554    1.0838109729441212

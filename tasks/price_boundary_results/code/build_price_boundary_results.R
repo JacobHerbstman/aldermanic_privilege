@@ -1,24 +1,46 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/price_boundary_results/code")
+# setwd("tasks/price_boundary_results/code")
 # official_property_type_fe <- "TRUE"
+# start_year <- 2006
+# end_year <- 2022
+# bandwidth_ft <- 500
+# bin_width_ft <- 100
+# placebo_ft <- 1000
+# donut_inner_ft <- 25
+# donut_outer_ft <- 50
+# rent_controls <- "log_sqft + beds_factor + log_baths + nearest_school_dist_kft + nearest_park_dist_kft + nearest_major_road_dist_kft + nearest_cta_stop_dist_kft + lake_michigan_dist_kft"
+# sales_controls <- "log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage + nearest_school_dist_ft + nearest_park_dist_ft + nearest_major_road_dist_ft + nearest_cta_stop_dist_ft + lake_michigan_dist_ft"
+# rent_fixed_effects <- "segment_id^year_month"
+# sales_fixed_effects <- "segment_id^year_quarter"
+# cluster <- "ward_pair"
+# rent_start_year <- 2014
 
-cli_args <- if (interactive()) {
-  c(official_property_type_fe)
-} else {
-  commandArgs(trailingOnly = TRUE)
-}
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (interactive()) cli_args <- c(official_property_type_fe, start_year, end_year, bandwidth_ft, bin_width_ft, placebo_ft, donut_inner_ft, donut_outer_ft, rent_controls, sales_controls, rent_fixed_effects, sales_fixed_effects, cluster, rent_start_year)
+stopifnot(length(cli_args) == 14L)
+official_property_type_fe <- cli_args[1]
+start_year <- as.integer(cli_args[2])
+end_year <- as.integer(cli_args[3])
+bandwidth_ft <- as.integer(cli_args[4])
+bin_width_ft <- as.integer(cli_args[5])
+placebo_ft <- as.integer(cli_args[6])
+donut_inner_ft <- as.integer(cli_args[7])
+donut_outer_ft <- as.integer(cli_args[8])
+rent_controls <- cli_args[9]
+sales_controls <- cli_args[10]
+rent_fixed_effects <- cli_args[11]
+sales_fixed_effects <- cli_args[12]
+cluster <- cli_args[13]
+rent_start_year <- as.integer(cli_args[14])
+stopifnot(start_year <= end_year, bandwidth_ft > 0, bin_width_ft > 0,
+  bandwidth_ft %% bin_width_ft == 0)
 
-if (
-  length(cli_args) != 1L ||
-    !cli_args[[1]] %in% c("TRUE", "FALSE")
-) {
-  stop("Expected one TRUE/FALSE argument: official_property_type_fe.")
-}
-
-official_property_type_fe <- cli_args[[1]] == "TRUE"
+stopifnot(official_property_type_fe %in% c("TRUE", "FALSE"))
+official_property_type_fe <- official_property_type_fe == "TRUE"
 
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
+source("../../shared/code/price_boundary_helpers.R")
 
 rent <- arrow::read_parquet(
   "../input/rental_rd_characteristics_panel_bw1500.parquet"
@@ -60,12 +82,12 @@ rent <- rent |>
   ) |>
   dplyr::filter(
     !is.na(file_date),
-    year >= 2014L,
-    year <= 2022L,
+    year >= rent_start_year,
+    year <= end_year,
     is.finite(rent_price),
     rent_price > 0,
     is.finite(signed_dist_ft),
-    abs(signed_dist_ft) < 1500,
+    abs(signed_dist_ft) < placebo_ft + bandwidth_ft,
     is.finite(strictness_own),
     is.finite(strictness_neighbor),
     !score_tie,
@@ -114,10 +136,10 @@ sales <- arrow::read_parquet(
   dplyr::filter(
     !is.na(sale_price),
     sale_price > 0,
-    year >= 2006L,
-    year <= 2022L,
+    year >= start_year,
+    year <= end_year,
     is.finite(signed_dist_ft),
-    abs(signed_dist_ft) < 1500,
+    abs(signed_dist_ft) < placebo_ft + bandwidth_ft,
     is.finite(strictness_own),
     is.finite(strictness_neighbor),
     !score_tie,
@@ -354,286 +376,20 @@ sales <- sales |>
   )
 
 if (
-  anyNA(rent$straight_boundary[abs(rent$signed_dist_ft) < 500]) ||
-    anyNA(sales$straight_boundary[abs(sales$signed_dist_ft) < 500])
+  anyNA(rent$straight_boundary[abs(rent$signed_dist_ft) < bandwidth_ft]) ||
+    anyNA(sales$straight_boundary[abs(sales$signed_dist_ft) < bandwidth_ft])
 ) {
   stop("Some true-boundary price observations lack a straightness flag.")
-}
-
-rent_controls <- c(
-  "log_sqft",
-  "beds_factor",
-  "log_baths",
-  "nearest_school_dist_kft",
-  "nearest_park_dist_kft",
-  "nearest_major_road_dist_kft",
-  "nearest_cta_stop_dist_kft",
-  "lake_michigan_dist_kft"
-)
-sales_controls <- c(
-  "log_sqft",
-  "log_land_sqft",
-  "log_building_age",
-  "log_bedrooms",
-  "log_baths",
-  "has_garage",
-  "nearest_school_dist_ft",
-  "nearest_park_dist_ft",
-  "nearest_major_road_dist_ft",
-  "nearest_cta_stop_dist_ft",
-  "lake_michigan_dist_ft"
-)
-
-star_string <- function(p_value) {
-  dplyr::case_when(
-    p_value < 0.01 ~ "***",
-    p_value < 0.05 ~ "**",
-    p_value < 0.10 ~ "*",
-    TRUE ~ ""
-  )
-}
-
-estimate_bins <- function(
-    data,
-    market,
-    cutoff_ft,
-    donut_ft,
-    straight_only,
-    property_type_fe,
-    panel_title) {
-  controls <- if (market == "rent") rent_controls else sales_controls
-  if (property_type_fe) {
-    controls <- c(
-      controls,
-      if (market == "rent") {
-        "building_type_factor"
-      } else {
-        "property_class_factor"
-      }
-    )
-  }
-  outcome <- if (market == "rent") "rent_price" else "sale_price"
-  fixed_effects <- if (market == "rent") {
-    "segment_id^year_month"
-  } else {
-    "segment_id^year_quarter"
-  }
-
-  model_data <- data |>
-    dplyr::mutate(
-      running_distance_ft = signed_dist_ft - cutoff_ft,
-      distance_bin = cut(
-        running_distance_ft,
-        breaks = seq(-500, 500, by = 100),
-        labels = sprintf("bin_%02d", 1:10),
-        include.lowest = TRUE,
-        right = FALSE
-      )
-    ) |>
-    dplyr::filter(
-      abs(running_distance_ft) < 500,
-      donut_ft == 0 | abs(running_distance_ft) >= donut_ft,
-      !straight_only | straight_boundary,
-      !is.na(distance_bin)
-    )
-
-  formula <- stats::as.formula(sprintf(
-    "log(%s) ~ i(distance_bin, ref = 'bin_05') + %s | %s",
-    outcome,
-    paste(controls, collapse = " + "),
-    fixed_effects
-  ))
-  model <- fixest::feols(
-    formula,
-    data = model_data,
-    cluster = ~ward_pair,
-    warn = FALSE,
-    notes = FALSE
-  )
-
-  coefficient_table <- fixest::coeftable(model)
-  coefficient_rows <- grepl(
-    "^distance_bin::",
-    rownames(coefficient_table)
-  )
-  estimates <- tibble::tibble(
-    distance_bin = sub(
-      "^distance_bin::",
-      "",
-      rownames(coefficient_table)[coefficient_rows]
-    ),
-    estimate = coefficient_table[coefficient_rows, "Estimate"],
-    std_error = coefficient_table[coefficient_rows, "Std. Error"],
-    p_value = coefficient_table[coefficient_rows, "Pr(>|t|)"]
-  )
-
-  cluster_count <- dplyr::n_distinct(model_data$ward_pair)
-  critical_value <- stats::qt(0.975, df = cluster_count - 1L)
-  results <- tibble::tibble(
-    distance_bin = sprintf("bin_%02d", 1:10),
-    bin_start_ft = seq(-500, 400, by = 100),
-    bin_end_ft = seq(-400, 500, by = 100),
-    bin_center_ft = seq(-450, 450, by = 100)
-  ) |>
-    dplyr::left_join(
-      estimates,
-      by = "distance_bin",
-      relationship = "one-to-one"
-    ) |>
-    dplyr::mutate(
-      estimate = dplyr::if_else(
-        distance_bin == "bin_05",
-        0,
-        estimate
-      ),
-      std_error = dplyr::if_else(
-        distance_bin == "bin_05",
-        NA_real_,
-        std_error
-      ),
-      p_value = dplyr::if_else(
-        distance_bin == "bin_05",
-        NA_real_,
-        p_value
-      ),
-      ci_low = estimate - critical_value * std_error,
-      ci_high = estimate + critical_value * std_error,
-      ribbon_low = dplyr::if_else(
-        distance_bin == "bin_05",
-        0,
-        ci_low
-      ),
-      ribbon_high = dplyr::if_else(
-        distance_bin == "bin_05",
-        0,
-        ci_high
-      ),
-      side_label = dplyr::case_when(
-        cutoff_ft == 0 & bin_center_ft < 0 ~ "Less Stringent",
-        cutoff_ft == 0 ~ "More Stringent",
-        bin_center_ft < 0 ~ "Left of cutoff",
-        TRUE ~ "Right of cutoff"
-      )
-    )
-
-  nearest_above <- results |>
-    dplyr::filter(bin_start_ft == 0)
-  nearest_stars <- star_string(nearest_above$p_value)
-
-  plot <- ggplot2::ggplot(
-    results,
-    ggplot2::aes(
-      x = bin_center_ft,
-      y = estimate,
-      color = side_label,
-      group = side_label
-    )
-  ) +
-    ggplot2::geom_hline(
-      yintercept = 0,
-      linetype = "dotted",
-      color = "gray55",
-      linewidth = 0.4
-    ) +
-    ggplot2::geom_vline(
-      xintercept = 0,
-      linetype = "dashed",
-      color = "gray35",
-      linewidth = 0.4
-    ) +
-    ggplot2::geom_ribbon(
-      ggplot2::aes(
-        ymin = ribbon_low,
-        ymax = ribbon_high,
-        fill = side_label
-      ),
-      alpha = 0.16,
-      color = NA
-    ) +
-    ggplot2::geom_line(linewidth = 0.65) +
-    ggplot2::geom_point(size = 2.3) +
-    ggplot2::scale_color_manual(
-      values = c(
-        "Less Stringent" = "#2478B5",
-        "More Stringent" = "#D92D27",
-        "Left of cutoff" = "#2478B5",
-        "Right of cutoff" = "#D92D27"
-      ),
-      name = NULL
-    ) +
-    ggplot2::scale_fill_manual(
-      values = c(
-        "Less Stringent" = "#2478B5",
-        "More Stringent" = "#D92D27",
-        "Left of cutoff" = "#2478B5",
-        "Right of cutoff" = "#D92D27"
-      ),
-      guide = "none"
-    ) +
-    ggplot2::scale_x_continuous(
-      limits = c(-500, 500),
-      breaks = c(-500, -250, 0, 250, 500)
-    ) +
-    ggplot2::labs(
-      title = panel_title,
-      subtitle = sprintf(
-        "%s = %.3f%s (SE %.3f)",
-        if (cutoff_ft == 0) {
-          "Difference across boundary"
-        } else {
-          "Difference at placebo cutoff"
-        },
-        nearest_above$estimate,
-        nearest_stars,
-        nearest_above$std_error
-      ),
-      x = if (cutoff_ft == 0) {
-        "Distance to ward boundary (feet)"
-      } else {
-        "Distance to placebo cutoff (feet)"
-      },
-      y = if (market == "rent") {
-        "Rent (log difference)"
-      } else {
-        "Sale price (log difference)"
-      }
-    ) +
-    ggplot2::theme_bw(base_size = 10) +
-    ggplot2::theme(
-      legend.position = "bottom",
-      plot.title = ggplot2::element_text(face = "bold", size = 11),
-      plot.subtitle = ggplot2::element_text(size = 14, face = "bold"),
-      axis.title = ggplot2::element_text(size = 9),
-      axis.text = ggplot2::element_text(size = 8),
-      panel.grid.minor = ggplot2::element_blank()
-    )
-
-  summary <- tibble::tibble(
-    market = market,
-    property_type_fe = property_type_fe,
-    n = stats::nobs(model),
-    ward_pair_clusters = cluster_count,
-    estimate = nearest_above$estimate,
-    std_error = nearest_above$std_error,
-    p_value = nearest_above$p_value,
-    confidence_low = nearest_above$ci_low,
-    confidence_high = nearest_above$ci_high,
-    percent_effect = 100 * (exp(nearest_above$estimate) - 1),
-    percent_confidence_low = 100 * (exp(nearest_above$ci_low) - 1),
-    percent_confidence_high = 100 * (exp(nearest_above$ci_high) - 1)
-  )
-
-  list(plot = plot, summary = summary)
 }
 
 checks <- tibble::tribble(
   ~check, ~cutoff_ft, ~donut_ft, ~straight_only,
   "main", 0, 0, FALSE,
-  "placebo_neg1000ft", -1000, 0, FALSE,
-  "placebo_pos1000ft", 1000, 0, FALSE,
+  "placebo_neg1000ft", -placebo_ft, 0, FALSE,
+  "placebo_pos1000ft", placebo_ft, 0, FALSE,
   "straight", 0, 0, TRUE,
-  "donut25ft", 0, 25, FALSE,
-  "donut50ft", 0, 50, FALSE
+  "donut25ft", 0, donut_inner_ft, FALSE,
+  "donut50ft", 0, donut_outer_ft, FALSE
 )
 
 fits <- list()
@@ -647,18 +403,18 @@ for (market_name in c("rent", "sales")) {
       check_name == "main" ~ market_label,
       check_name == "placebo_neg1000ft" ~ paste0(
         market_label,
-        ": 1,000 ft inside less-stringent side"
+        ": ", format(placebo_ft, big.mark = ","), " ft inside less-stringent side"
       ),
       check_name == "placebo_pos1000ft" ~ paste0(
         market_label,
-        ": 1,000 ft inside more-stringent side"
+        ": ", format(placebo_ft, big.mark = ","), " ft inside more-stringent side"
       ),
       check_name == "straight" ~ market_label,
       check_name == "donut25ft" ~ paste0(
         market_label,
-        ": exclude nearest 25 ft"
+        ": exclude nearest ", donut_inner_ft, " ft"
       ),
-      TRUE ~ paste0(market_label, ": exclude nearest 50 ft")
+      TRUE ~ paste0(market_label, ": exclude nearest ", donut_outer_ft, " ft")
     )
 
     fits[[paste(market_name, check_name, sep = "_")]] <- estimate_bins(
@@ -668,7 +424,10 @@ for (market_name in c("rent", "sales")) {
       donut_ft = checks$donut_ft[check_i],
       straight_only = checks$straight_only[check_i],
       property_type_fe = official_property_type_fe,
-      panel_title = check_label
+      panel_title = check_label,
+      rent_controls = rent_controls, sales_controls = sales_controls,
+      rent_fixed_effects = rent_fixed_effects, sales_fixed_effects = sales_fixed_effects,
+      bandwidth_ft = bandwidth_ft, bin_width_ft = bin_width_ft, cluster = cluster
     )
   }
 }
@@ -715,75 +474,6 @@ donut_plot <- patchwork::wrap_plots(
   patchwork::plot_layout(guides = "collect") &
   ggplot2::theme(legend.position = "bottom")
 
-property_type_fits <- list(
-  rent_without = estimate_bins(
-    data = rent,
-    market = "rent",
-    cutoff_ft = 0,
-    donut_ft = 0,
-    straight_only = FALSE,
-    property_type_fe = FALSE,
-    panel_title = "Listed rents: without building-type FE"
-  ),
-  rent_with = estimate_bins(
-    data = rent,
-    market = "rent",
-    cutoff_ft = 0,
-    donut_ft = 0,
-    straight_only = FALSE,
-    property_type_fe = TRUE,
-    panel_title = "Listed rents: with building-type FE"
-  ),
-  sales_without = estimate_bins(
-    data = sales,
-    market = "sales",
-    cutoff_ft = 0,
-    donut_ft = 0,
-    straight_only = FALSE,
-    property_type_fe = FALSE,
-    panel_title = "Home sales: without property-class FE"
-  ),
-  sales_with = estimate_bins(
-    data = sales,
-    market = "sales",
-    cutoff_ft = 0,
-    donut_ft = 0,
-    straight_only = FALSE,
-    property_type_fe = TRUE,
-    panel_title = "Home sales: with property-class FE"
-  )
-)
-
-property_type_plot <- patchwork::wrap_plots(
-  property_type_fits$rent_without$plot,
-  property_type_fits$rent_with$plot,
-  property_type_fits$sales_without$plot,
-  property_type_fits$sales_with$plot,
-  ncol = 2
-) +
-  patchwork::plot_annotation(
-    title = "Price-boundary estimates with and without property-type fixed effects"
-  ) +
-  patchwork::plot_layout(guides = "collect") &
-  ggplot2::theme(legend.position = "bottom")
-
-property_type_estimates <- dplyr::bind_rows(
-  property_type_fits$rent_without$summary |>
-    dplyr::mutate(specification = "without building-type FE"),
-  property_type_fits$rent_with$summary |>
-    dplyr::mutate(specification = "with building-type FE"),
-  property_type_fits$sales_without$summary |>
-    dplyr::mutate(specification = "without property-class FE"),
-  property_type_fits$sales_with$summary |>
-    dplyr::mutate(specification = "with property-class FE")
-) |>
-  dplyr::select(
-    market,
-    specification,
-    property_type_fe,
-    dplyr::everything()
-  )
-
 ggplot2::ggsave(
   "../output/price_boundary_main.pdf",
   main_plot,
@@ -812,11 +502,3 @@ ggplot2::ggsave(
   height = 10,
   bg = "white"
 )
-ggplot2::ggsave(
-  "../output/price_boundary_property_type_fe_comparison.pdf",
-  property_type_plot,
-  width = 12,
-  height = 10,
-  bg = "white"
-)
-SaveData(property_type_estimates, c("market", "specification"), "../output/price_boundary_property_type_fe_estimates.csv")

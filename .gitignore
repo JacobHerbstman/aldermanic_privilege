@@ -140,3 +140,21 @@ tasks/audits/construction_review_history/**/temp/
 !tasks/audits/construction_review_history/**/report/*.log
 !tasks/audits/construction_review_history/report/**/*.log
 !tasks/prepare_new_construction/report/*.gpkg.log
+
+# Reusable sales audits.
+!tasks/audits/sales_price_tail_audit/
+tasks/audits/sales_price_tail_audit/input/
+tasks/audits/sales_price_tail_audit/output/
+tasks/audits/sales_price_tail_audit/temp/
+!tasks/audits/sales_price_tail_audit/report/*.log
+!tasks/audits/sales_record_quality_audit/
+tasks/audits/sales_record_quality_audit/input/
+tasks/audits/sales_record_quality_audit/output/
+tasks/audits/sales_record_quality_audit/temp/
+!tasks/audits/sales_record_quality_audit/report/*.log
+!tasks/audits/sales_sample_definition_audit/
+tasks/audits/sales_sample_definition_audit/input/
+tasks/audits/sales_sample_definition_audit/output/
+tasks/audits/sales_sample_definition_audit/temp/
+!tasks/audits/sales_sample_definition_audit/report/*.log
+!tasks/download_construction_historical_parcels/report/*.gpkg.log

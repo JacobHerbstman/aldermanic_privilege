@@ -496,68 +496,6 @@ build_residualized_uncertainty_index <- function(
   )
 }
 
-build_raw_rank_uncertainty_index <- function(
-    permits,
-    config = default_uncertainty_config(),
-    variant_id = "raw_rank_days",
-    construction_rule = variant_construction_rule(variant_id)) {
-  prepared <- prepare_uncertainty_sample(
-    permits,
-    include_porch = config$include_porch,
-    volume_ctrl = config$volume_ctrl,
-    volume_stage = config$volume_stage
-  )
-
-  analysis_sample <- prepared$permits %>%
-    filter(!is.na(alderman), is.finite(processing_time), processing_time > 0)
-
-  alderman_index <- analysis_sample %>%
-    group_by(alderman) %>%
-    summarise(
-      n_permits = n(),
-      mean_processing_time_raw = mean(processing_time, na.rm = TRUE),
-      .groups = "drop"
-    ) %>%
-    mutate(
-      raw_rank = rank(mean_processing_time_raw, ties.method = "average"),
-      uncertainty_index = standardize_uncertainty(raw_rank)
-    ) %>%
-    select(alderman, n_permits, mean_processing_time_raw, raw_rank, uncertainty_index)
-
-  list(
-    alderman_index = alderman_index,
-    metadata = tibble(
-      variant_id = variant_id,
-      variant_label = variant_display_label(variant_id),
-      construction_rule = construction_rule,
-      n_aldermen = nrow(alderman_index),
-      n_permits_used = nrow(analysis_sample),
-      stage1_outcome = NA_character_,
-      stage1_nobs = NA_real_,
-      stage1_r2 = NA_real_,
-      stage2_nobs = NA_real_,
-      stage2_r2 = NA_real_,
-      stage2_tau2 = NA_real_,
-      stage2_se_min = NA_real_,
-      stage2_se_max = NA_real_,
-      stage2_shrinkage_min = NA_real_,
-      stage2_shrinkage_max = NA_real_
-    ),
-    stage1_terms = tibble(
-      variant_id = character(),
-      term = character(),
-      estimate = numeric(),
-      std_error = numeric(),
-      p_value = numeric()
-    ),
-    stage1_model = NULL,
-    stage2_model = NULL,
-    covariates = character(),
-    fe_terms = character(),
-    stage1_outcome = NA_character_
-  )
-}
-
 write_stage1_regression_table <- function(model, output_path, stage1_outcome) {
   outcome_label <- if (stage1_outcome == "processing_time") {
     "Processing Time (days)"
@@ -636,24 +574,4 @@ write_stage1_regression_table <- function(model, output_path, stage1_outcome) {
     table_tex <- append(table_tex, n_line, after = bottom_idx - 1L)
   }
   writeLines(table_tex, output_path)
-}
-
-write_stage2_regression_table <- function(model, output_path) {
-  etable(
-    model,
-    digits = 3,
-    se.below = TRUE,
-    depvar = FALSE,
-    headers = c("Mean Residual"),
-    fitstat = ~ n + r2,
-    file = output_path,
-    replace = TRUE,
-    style.tex = style.tex(
-      main = "aer",
-      model.format = "",
-      fixef.title = "",
-      fixef.suffix = "",
-      yesNo = c("$\\checkmark$", "")
-    )
-  )
 }

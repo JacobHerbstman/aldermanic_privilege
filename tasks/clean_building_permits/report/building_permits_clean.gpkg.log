@@ -1,7 +1,7 @@
 File: building_permits_clean.gpkg
 Rows: 716345
 Columns: 48
-SHA-256 (saved bytes): ec6311912ccea37c10e25dc5ed0837f291c4bc8319bd9fc105584e985816f25b
+SHA-256 (saved bytes): 83da04ceca616c3fbbe68141539d7d117615abcf2102b3b8293bfe481e905b5a
 Key: id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: approximate (exact up to 100,000 rows).
