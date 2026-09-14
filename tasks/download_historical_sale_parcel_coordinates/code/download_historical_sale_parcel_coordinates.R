@@ -2,10 +2,12 @@
 # start_year <- 2006
 # end_year <- 2022
 
+source("../../shared/code/save_data.R")
+
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(start_year, end_year)
 }
 if (length(cli_args) != 2) {
@@ -21,37 +23,14 @@ if (!requireNamespace("curl", quietly = TRUE)) {
   stop("The curl R package is required to download historical parcel coordinates.", call. = FALSE)
 }
 
-sales <- fread(
-    "../input/parcel_sales.csv",
-    select = c(
-      "pin", "year", "class", "sale_price", "sale_deed_type", "sale_type",
-      "sale_seller_name", "sale_buyer_name", "num_parcels_sale"
-    ),
-    colClasses = list(character = c("pin", "sale_price"))
+sales <- read_parquet(
+  "../input/residential_sales_clean.parquet",
+  col_select = c("pin", "year")
 )
-sales[, `:=`(
-  pin = gsub("[^0-9]", "", trimws(pin)),
-  year = suppressWarnings(as.integer(year)),
-  class = suppressWarnings(as.integer(class)),
-  sale_price_nominal = suppressWarnings(as.numeric(gsub("[$,]", "", sale_price)))
-)]
-sales[nchar(pin) == 13L, pin := paste0("0", pin)]
-sale_keys <- unique(sales[
-  year >= start_year & year <= end_year &
-    class %in% 202:211 &
-    is.finite(sale_price_nominal) & sale_price_nominal > 10000 &
-    sale_deed_type %in% c("Warranty", "Trustee") &
-    !is.na(sale_type) & sale_type != "LAND" &
-    !is.na(sale_seller_name) &
-    !sale_seller_name %in% c("", "-", "UNKNOWN", "..") &
-    !is.na(sale_buyer_name) &
-    !sale_buyer_name %in% c("", "-", "UNKNOWN", "..") &
-    sale_seller_name != sale_buyer_name &
-    num_parcels_sale == 1,
-  .(pin, year)
-])
+setDT(sales)
+sale_keys <- unique(sales[year %between% c(start_year, end_year), .(pin, year)])
 if (any(nchar(sale_keys$pin) != 14L)) {
-  stop("Residential sales contain an invalid full PIN.", call. = FALSE)
+  stop("Clean residential sales contain an invalid full PIN.", call. = FALSE)
 }
 if (nrow(sale_keys) == 0) {
   stop("No residential sale PIN-years require historical coordinates.", call. = FALSE)
@@ -103,25 +82,40 @@ for (year_i in sort(unique(sale_keys$year))) {
 request_plan <- rbindlist(request_plan)
 downloaded <- rep(FALSE, nrow(request_plan))
 
-for (batch_start in seq(1L, nrow(request_plan), by = 24L)) {
-  batch <- batch_start:min(batch_start + 23L, nrow(request_plan))
-
-  for (attempt in 1:3) {
-    pending <- batch[!downloaded[batch]]
-    if (length(pending) == 0) {
-      break
-    }
+# Retry failed requests after the other batches, allowing the service to recover.
+for (attempt in 1:5) {
+  pending <- which(!downloaded)
+  if (length(pending) == 0) {
+    break
+  }
+  if (attempt > 1) {
+    Sys.sleep(10 * (attempt - 1))
+  }
+  # curl permits six connections per host; queued requests also consume timeouts.
+  for (batch_start in seq(1L, length(pending), by = 6L)) {
+    batch <- pending[batch_start:min(batch_start + 5L, length(pending))]
     results <- curl::multi_download(
-      request_plan$query[pending],
-      request_plan$destination[pending],
+      request_plan$query[batch],
+      request_plan$destination[batch],
       progress = FALSE,
-      connecttimeout = 30,
-      timeout = 120
+      connecttimeout = 120,
+      timeout = 300
     )
-    downloaded[pending] <- results$success & results$status_code == 200L
+    downloaded[batch] <- results$success & results$status_code == 200L
     if (any(!downloaded[batch])) {
-      Sys.sleep(attempt)
+      failed_in_batch <- which(!downloaded[batch])
+      message(paste(sprintf(
+        "Request %d/%d: HTTP %s; %s",
+        request_plan$year[batch[failed_in_batch]],
+        request_plan$chunk[batch[failed_in_batch]],
+        results$status_code[failed_in_batch],
+        results$error[failed_in_batch]
+      ), collapse = "\n"))
     }
+    message(sprintf(
+      "Historical parcel requests: %d/%d successful (attempt %d).",
+      sum(downloaded), nrow(request_plan), attempt
+    ))
   }
 }
 if (any(!downloaded)) {
@@ -169,5 +163,7 @@ if (anyDuplicated(historical_parcels[, .(pin, year)]) > 0) {
 setorder(historical_parcels, pin, year)
 fwrite(
   historical_parcels,
-  sprintf("../output/historical_sale_parcel_coordinates_%d_%d.csv", start_year, end_year)
+  sprintf("../output/historical_sale_parcel_coordinates_%d_%d_current.csv", start_year, end_year)
 )
+
+ReportData(sprintf("../output/historical_sale_parcel_coordinates_%d_%d_current.csv", start_year, end_year), c("pin", "year"))

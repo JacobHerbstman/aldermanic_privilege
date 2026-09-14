@@ -2,7 +2,8 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/save_data.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 
 crs_projected <- 3435
 analysis_eras <- c("2003_2014", "2015_2023")
@@ -27,47 +28,20 @@ if (nrow(term_overlaps) > 0) {
     stop("Alderman terms overlap within a ward.", call. = FALSE)
 }
 
-sales_raw <- fread(
-    "../input/parcel_sales.csv",
-    colClasses = list(character = c("pin", "sale_date", "sale_price", "row_id"))
-)
-
-sales <- sales_raw %>%
-    filter(class %in% c(202, 203, 204, 205, 206, 207, 208, 209, 210, 211)) %>%
+sales <- read_parquet("../input/residential_sales_clean.parquet") %>%
     mutate(
-        sale_price_nominal = as.numeric(gsub("[$,]", "", sale_price)),
         year = as.numeric(year),
-        pin = gsub("[^0-9]", "", trimws(pin)),
-        sale_date = coalesce(
-            as.Date(as.character(sale_date), format = "%B %d, %Y"),
-            as.Date(substr(as.character(sale_date), 1, 10), format = "%Y-%m-%d")
-        )
-    ) %>%
-    mutate(pin = if_else(nchar(pin) == 13L, paste0("0", pin), pin))
+        pin = as.character(pin),
+        sale_date = as.Date(sale_date)
+    )
 
 if (any(nchar(sales$pin) != 14L)) {
     stop("Residential sales contain an invalid full PIN.", call. = FALSE)
 }
 
 sales <- sales %>%
-    filter(!is.na(sale_price_nominal), sale_price_nominal > 10000, !is.na(year)) %>%
-    filter(year >= 2006, year <= 2022) %>%
-    filter(sale_deed_type %in% c("Warranty", "Trustee")) %>%
-    filter(sale_type != "LAND") %>%
-    filter(
-        !is.na(sale_seller_name),
-        !sale_seller_name %in% c("", "-", "UNKNOWN", ".."),
-        !is.na(sale_buyer_name),
-        !sale_buyer_name %in% c("", "-", "UNKNOWN", "..")
-    ) %>%
-    filter(sale_seller_name != sale_buyer_name) %>%
-    filter(num_parcels_sale == 1) %>%
     mutate(
-        sale_date_for_price = if_else(
-            !is.na(sale_date),
-            sale_date,
-            as.Date(paste0(as.integer(year), "-06-15"))
-        ),
+        sale_date_for_price = sale_date,
         sale_year_month = format(sale_date_for_price, "%Y-%m")
     )
 
@@ -145,17 +119,8 @@ sales <- sales %>%
         sale_price_real_2022_raw = sale_price_nominal * sale_price_deflator_to_2022
     )
 
-analysis_prices <- sales %>%
-    filter(year >= 2006, year <= 2022) %>%
-    pull(sale_price_real_2022_raw)
-if (length(analysis_prices) == 0 || !any(is.finite(analysis_prices))) {
-    stop("No finite 2006-2022 sale prices are available for winsorization.", call. = FALSE)
-}
-p01 <- quantile(analysis_prices, 0.01, na.rm = TRUE)
-p99 <- quantile(analysis_prices, 0.99, na.rm = TRUE)
-
 sales <- sales %>%
-    mutate(sale_price = pmin(pmax(sale_price_real_2022_raw, p01), p99))
+    mutate(sale_price = sale_price_real_2022_raw)
 
 parcels <- fread(
     "../input/parcel_universe_2025_city.csv",
@@ -230,7 +195,7 @@ sales_sf <- sales_geo %>%
     st_as_sf(coords = c("longitude", "latitude"), crs = 4326) %>%
     st_transform(crs_projected)
 
-rm(sales_raw, sales, sales_geo, parcels)
+rm(sales, sales_geo, parcels)
 invisible(gc())
 
 sales_sf <- sales_sf %>%
@@ -259,6 +224,44 @@ final_df <- results_sf %>%
     ) %>%
     st_drop_geometry() %>%
     as_tibble()
+
+# Unrefined first-of-month dates do not identify the serving alderman when
+# either side of the boundary changes office during that month. Drop those
+# sales instead of assigning them mechanically to the first day.
+transition_months <- bind_rows(
+    alderman_terms %>% transmute(ward, transition_date = start_date),
+    alderman_terms %>% transmute(ward, transition_date = end_date + days(1))
+) %>%
+    filter(day(transition_date) > 1L) %>%
+    mutate(year_month = format(transition_date, "%Y-%m")) %>%
+    distinct(ward, year_month)
+
+final_df <- final_df %>%
+    mutate(
+        year_month = format(sale_date_use, "%Y-%m"),
+        unrefined_first_of_month = !is_mydec_date & day(sale_date_use) == 1L,
+        map_can_change_within_month = canonical_era_from_date(floor_date(sale_date_use, "month")) !=
+            canonical_era_from_date(ceiling_date(sale_date_use, "month") - days(1))
+    ) %>%
+    left_join(
+        transition_months %>% mutate(own_transition = TRUE),
+        by = c("ward", "year_month"),
+        relationship = "many-to-one"
+    ) %>%
+    left_join(
+        transition_months %>%
+            rename(neighbor_ward = ward) %>%
+            mutate(neighbor_transition = TRUE),
+        by = c("neighbor_ward", "year_month"),
+        relationship = "many-to-one"
+    ) %>%
+    filter(!(
+        unrefined_first_of_month &
+            (coalesce(own_transition, FALSE) | coalesce(neighbor_transition, FALSE) |
+                map_can_change_within_month)
+    )) %>%
+    select(-year_month, -unrefined_first_of_month, -map_can_change_within_month,
+           -own_transition, -neighbor_transition)
 
 final_df <- final_df %>%
     select(-any_of(c(
@@ -314,4 +317,4 @@ final_output <- final_df %>%
         alderman_own, alderman_neighbor
     )
 
-write_csv(final_output, "../output/sales_pre_scores.csv")
+SaveData(final_output, c("row_id"), "../output/sales_pre_scores.csv")

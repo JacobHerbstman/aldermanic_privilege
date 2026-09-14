@@ -1,0 +1,48 @@
+\section*{Adopt a common FAR and DUPAC sample}
+\textit{September 11, 2026. Agent-drafted record of Jacob's approved change.}
+
+Jacob approved requiring usable values of both FAR and DUPAC for inclusion in
+either density analysis. He clarified that each regression keeps its existing
+distance restriction. Table 1 retains its citywide sample. The full working
+paper now uses this common eligibility rule in the main figure, both placebo
+figures, both donut figures, the boundary-type table, location-continuity table,
+and stringency-score checks.
+
+The analysis-data producer records the rule once as \texttt{density\_eligible}:
+both density measures must be allowed, finite and positive. All 9,493 project
+rows and their previously recorded values remain unchanged. The added field
+marks 9,465 eligible projects within the 1,500-foot input population; regression
+distance restrictions and complete controls determine each fitted sample.
+
+The main sample has 4,023 projects overall and 863 multifamily projects for both
+outcomes. Relative to the preceding version, this removes 11 projects from
+DUPAC and leaves the main FAR sample unchanged. The estimated differences are
+$-9.24\%$ for all-project FAR, $-13.70\%$ for all-project DUPAC, $-12.85\%$ for
+multifamily FAR and $-17.36\%$ for multifamily DUPAC. The rounded multifamily
+DUPAC effect changes from 18 to 17 percent in the abstract, results and
+conclusion. Main differences remain significant at the 10 percent level or
+better. Placebo estimates remain insignificant at 10 percent, and all donut
+estimates remain negative. The location-continuity table still has no
+significant differences at 10 percent. Table 1's data and formatted table are
+unchanged, as are the existing permit and price results.
+
+The own-project permit check was rebuilt on the common sample. Its coefficients
+and standard errors match the main estimates at the table's reported precision.
+Both score-gap restrictions retain their previous significance pattern. The
+recorded project-permit matches and boundary-characteristic values are unchanged.
+
+Jacob also approved explaining manual research directly. Appendix A now says
+that construction years and lot or building areas sometimes appear inconsistent
+in the Assessor files, that these records are supplemented with manual research
+using permits, property records and other documented sources, and that the
+replication files contain the decisions and supporting evidence. This replaces
+the unverified 52-project total and single-spreadsheet description.
+
+\smallskip
+\noindent\textit{Reproduction:} The analysis-data Make target creates the common
+eligibility field and standard report. The four density result tasks consume
+that field. Run Make in \texttt{paper/} to build the complete working paper.
+The analysis-data report has 9,493 unique project IDs and 66 columns; the only
+added column is the common eligibility field. Unchanged Make dry runs for the
+analysis and density tasks report no work. The completed paper and this entry
+were compiled through Make and inspected as rendered PDFs.

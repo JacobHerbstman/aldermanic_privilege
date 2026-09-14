@@ -1,0 +1,40 @@
+File: residential_shared_site_location_review.csv
+Rows: 2699
+Columns: 30
+SHA-256 (saved bytes): 7cf9bc87d0c2195a48459198422d4dbeef1412d3988ea4c4c4eb9ab94c37c2a4
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                           column inferred_type  non_missing  distinct                min                max               mean                 sd
+                       project_id       VARCHAR         2699      2699                  -                  -                  -                  -
+                    component_pin       VARCHAR         2699      2699                  -                  -                  -                  -
+                construction_year        BIGINT         2699        17               2006               2022  2010.968877361986  5.054681926365524
+                     match_method       VARCHAR         2699         1                  -                  -                  -                  -
+                parcel_object_ids        BIGINT         2699       643               2227            1573370  665173.0011115228   541386.946177096
+        projects_on_selected_site        BIGINT         2699        28                  2                 47 10.161541311596888 10.541027332436903
+                 reference_source       VARCHAR         2699         4                  -                  -                  -                  -
+ reference_point_in_selected_site       BOOLEAN         2699         1                  -                  -                  -                  -
+              old_geometry_source       VARCHAR         2699         1                  -                  -                  -                  -
+                       old_x_3435        DOUBLE         2699       629  1120749.756160296  1203622.383682968 1162844.1999695953 14022.981670472387
+                       old_y_3435        DOUBLE         2699       629 1825379.3308276199 1944071.5145604517  1895627.738890066 23384.780896248005
+                 reference_x_3435        DOUBLE         2699      2668   1120749.72200975 1203743.2364409526  1162846.915261418 14020.283319674149
+                 reference_y_3435        DOUBLE         2699      2667 1825344.6563432775 1944080.2286789832 1895626.9722158462 23384.649539526927
+                         shift_ft        DOUBLE         2699      2668                0.0  690.9619319634811  70.60191284559204  79.93967207601429
+                         old_ward        BIGINT         2699        45                  1                 50 19.745090774360875 13.937095554241228
+                   reference_ward        BIGINT         2699        45                  1                 50 19.745090774360875 13.937095554241228
+                    old_ward_pair       VARCHAR         2699        81                  -                  -                  -                  -
+              reference_ward_pair       VARCHAR         2699        82                  -                  -                  -                  -
+      old_distance_to_boundary_ft        DOUBLE         2699       632  52.12200484593065 17120.483561710513 1300.3618206753279 1671.8552586796532
+reference_distance_to_boundary_ft        DOUBLE         2699      2670 1.0214760848636961  17183.15611444631 1297.2868699621852 1671.2996439175436
+                old_within_1500ft       BOOLEAN         2699         2                  -                  -                  -                  -
+          reference_within_1500ft       BOOLEAN         2699         2                  -                  -                  -                  -
+                 old_within_500ft       BOOLEAN         2699         2                  -                  -                  -                  -
+           reference_within_500ft       BOOLEAN         2699         2                  -                  -                  -                  -
+                     ward_changed       BOOLEAN         2699         1                  -                  -                  -                  -
+                ward_pair_changed       BOOLEAN         2699         2                  -                  -                  -                  -
+                    enters_1500ft       BOOLEAN         2699         2                  -                  -                  -                  -
+                    leaves_1500ft       BOOLEAN         2699         2                  -                  -                  -                  -
+                     enters_500ft       BOOLEAN         2699         2                  -                  -                  -                  -
+                     leaves_500ft       BOOLEAN         2699         2                  -                  -                  -                  -

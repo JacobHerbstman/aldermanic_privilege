@@ -1,0 +1,17 @@
+File: historical_parcels_additional_2006.gpkg
+Rows: 1
+Columns: 7
+SHA-256 (saved bytes): ba3aec88a4323cd1fb27589e1edc27c6bb5573eedd9bbdefa2ed2019b95c9be8
+Key: target_year, object_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct   min   max    mean sd
+           fid        BIGINT           1        1     1     1     1.0  -
+   target_year        BIGINT           1        1  2006  2006  2006.0  -
+      layer_id        DOUBLE           1        1   6.0   6.0     6.0  -
+     object_id        BIGINT           1        1 85499 85499 85499.0  -
+         pin14       VARCHAR           1        1     -     -       -  -
+         pin10       VARCHAR           1        1     -     -       -  -
+geometry_valid        BIGINT           1        1     1     1     1.0  -

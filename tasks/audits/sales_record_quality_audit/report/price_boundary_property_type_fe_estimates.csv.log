@@ -1,0 +1,23 @@
+File: price_boundary_property_type_fe_estimates.csv
+Rows: 4
+Columns: 13
+SHA-256 (saved bytes): b07102b0d9c8beb29f06b6d254013486ca045ce5bda26304e9eb00a98dd4b3ce
+Key: market, specification
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct                   min                  max                  mean                    sd
+                 market       VARCHAR           4        2                     -                    -                     -                     -
+          specification       VARCHAR           4        4                     -                    -                     -                     -
+       property_type_fe       BOOLEAN           4        2                     -                    -                     -                     -
+                      n        BIGINT           4        2                 58468               240713              149590.5    105219.19980846334
+     ward_pair_clusters        BIGINT           4        2                   140                  141                 140.5    0.5773502691896216
+               estimate        DOUBLE           4        4  0.017484905482970867 0.029960663422066765  0.023338846795073215  0.006467047717606845
+              std_error        DOUBLE           4        4  0.013388133368538292 0.016327420561311916  0.014803982163017648 0.0014369042697757357
+                p_value        DOUBLE           4        4   0.02681005858307847  0.26941841697302665   0.15240674452083602     0.134398837502877
+         confidence_low        DOUBLE           4        4 -0.014177881305927877 0.003491604546532922 -0.005930414568444046  0.009263458775018097
+        confidence_high        DOUBLE           4        4   0.04855680391630348  0.05642972229760061  0.052608108158590475 0.0037399555845186515
+         percent_effect        DOUBLE           4        4    1.7638661270727551    3.041400019567031     2.362938429704636    0.6620730401265984
+ percent_confidence_low        DOUBLE           4        4   -1.4077848456078401  0.34977072984192503   -0.5880870985638276    0.9210565287613358
+percent_confidence_high        DOUBLE           4        4     4.975500032192026    5.805225470584907     5.402203195913419     0.394165974991049

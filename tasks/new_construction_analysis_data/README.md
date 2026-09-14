@@ -1,18 +1,27 @@
-# New-Construction Analysis Data
+# New-construction regression inputs
 
-`output/new_construction_analysis_data.csv` is the committed project-level input
-for the density analysis. It contains 8,648 projects built from 2006 through
-2022 and located within 1,500ft of a ward boundary. Of these, 3,710 are within
-the 500ft main bandwidth.
+This task attaches the regressors to the finished building dataset from
+`prepare_new_construction`.
 
-The source combines Assessor residential and commercial new-construction
-records, completed new-building permit chains, historical parcel coordinates,
-construction-year zoning, and project-by-project decisions for duplicate
-records and parcels with multiple building cards. Every project within the main
-bandwidth that was retained principally from the Assessor's new-construction
-designation received a final row-level review.
+1. `attach_construction_regressors.R` retains projects within 1,500 feet of a ward
+   boundary and attaches boundary segments, daily alderman terms, the existing
+   through-2022 score, and ward-year controls.
+2. `build_new_construction_analysis_data.R` assigns construction-year zoning from
+   the preserved zoning history and official snapshots, then saves
+   `new_construction_analysis_data.csv` for the density tasks. Reviewed zoning
+   references arrive as columns on the building records.
 
-The committed file contains only the fields used by the paper. Review notes,
-source links, and intermediate matches are kept outside the replication
-archive. Its SHA-256 hash is
-`9dc7953e91bdf21a909224d2d68697a8440b56b66f137c7d784bea6137bf8ea4`.
+The construction-date proxy is June 15 of the recorded completion year. Segment
+matching uses the building's ward pair and the existing 1,320-foot segments.
+Chicago geometry is in EPSG:3435. Buildings retain their density measures and
+multifamily classification from the construction producer.
+
+`density_eligible` identifies the common FAR and DUPAC sample: both measures must
+be allowed, positive and finite. A missing alderman score remains missing and
+cannot supply a signed boundary distance.
+
+The preserved zoning history defines the zoning inputs for this replication;
+reconstruction from the underlying ordinances remains separate work. The
+[replication instructions](../../replication/README.md) describe the recorded
+source archive. The [review archive](../audits/construction_review_history/README.md)
+retains earlier sample comparisons.

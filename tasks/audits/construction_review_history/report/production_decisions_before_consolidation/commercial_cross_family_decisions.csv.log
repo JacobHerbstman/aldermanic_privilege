@@ -1,0 +1,22 @@
+File: commercial_cross_family_decisions.csv
+Rows: 21
+Columns: 12
+SHA-256 (saved bytes): babdb78425556d961cc360785f88117de799ac9ee00bc230755f106d6fa8e424
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                   column inferred_type non_missing distinct min max mean sd
+duplicate_review_group_id       VARCHAR          21       21   -   -    -  -
+       source_project_ids       VARCHAR          21       21   -   -    -  -
+                   action       VARCHAR          21        2   -   -    -  -
+        final_project_ids       VARCHAR          21       21   -   -    -  -
+        identity_evidence       VARCHAR          21       13   -   -    -  -
+            evidence_urls       VARCHAR           6        6   -   -    -  -
+               confidence       VARCHAR          21        2   -   -    -  -
+          decision_reason       VARCHAR          21       21   -   -    -  -
+        unresolved_caveat       VARCHAR          21       21   -   -    -  -
+                 reviewer       VARCHAR          21        1   -   -    -  -
+              review_date          DATE          21        1   -   -    -  -
+                   status       VARCHAR          21        1   -   -    -  -

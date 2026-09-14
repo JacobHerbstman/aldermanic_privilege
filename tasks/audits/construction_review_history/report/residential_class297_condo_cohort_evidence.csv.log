@@ -1,0 +1,29 @@
+File: residential_class297_condo_cohort_evidence.csv
+Rows: 52
+Columns: 19
+SHA-256 (saved bytes): ab28bf4bdfce8baad2369393744fc203061df0ba4bc0ce713e9a676a9326ba19
+Key: project_id, pin10
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                      column inferred_type  non_missing  distinct        min        max               mean                  sd
+                  project_id       VARCHAR           52        48          -          -                  -                   -
+                project_kind       VARCHAR           52         2          -          -                  -                   -
+                 target_year        BIGINT           52         4       2014       2022  2021.326923076923  1.3822566636348679
+                       pin10        BIGINT           52        51 1312425058 1734105056 1520126786.1730769   134344033.3477473
+                 link_method       VARCHAR           52         2          -          -                  -                   -
+                 link_reason       VARCHAR            1         1          -          -                  -                   -
+     projects_per_condo_base        BIGINT           52         2          1          2 1.0384615384615385 0.19418390934515437
+                        year        BIGINT           52         5       2017       2024 2022.6923076923076  1.2608503439122067
+           condo_pin_records        BIGINT           52        15          2        137 11.403846153846153  23.433895021900135
+     residential_pin_records        BIGINT           52        14          2         77  9.288461538461538    16.3866714590943
+         parking_pin_records        BIGINT           52         6          0         79 2.1153846153846154  11.161301923766965
+     common_area_pin_records        BIGINT           52         1          0          0                0.0                 0.0
+    unclassified_pin_records        BIGINT           52         1          0          0                0.0                 0.0
+           year_built_values       VARCHAR           52         8          -          -                  -                   -
+        building_sqft_values        BIGINT           33        33       4387      56295  9547.272727272728   9284.039356177109
+            land_sqft_values       VARCHAR           52        48          -          -                  -                   -
+     reported_nonunit_values        BIGINT           52         6          0         79 2.1153846153846154  11.161301923766965
+reported_building_pin_values        BIGINT           52        15          2        137 11.403846153846153  23.433895021900135
+       condo_evidence_status       VARCHAR           52         1          -          -                  -                   -

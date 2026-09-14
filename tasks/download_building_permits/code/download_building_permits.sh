@@ -8,14 +8,14 @@ fi
 
 start_year="$1"
 end_year="$2"
-output_file="../output/building_permits_${start_year}_${end_year}.csv"
+output_file="../temp/building_permits_current_${start_year}_${end_year}.csv"
 api_csv="https://data.cityofchicago.org/resource/ydr8-5enu.csv"
 api_json="https://data.cityofchicago.org/resource/ydr8-5enu.json"
 batch_size=50000
 order_clause="id"
 where_clause="application_start_date between '${start_year}-01-01T00:00:00' and '${end_year}-12-31T23:59:59'"
 
-tmp_dir=$(mktemp -d "../output/.building_permits.XXXXXX")
+tmp_dir=$(mktemp -d "../temp/.building_permits.XXXXXX")
 trap 'rm -rf "$tmp_dir"' EXIT
 
 read_socrata_count() {

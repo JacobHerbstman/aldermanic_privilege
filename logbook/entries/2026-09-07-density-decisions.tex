@@ -1,0 +1,121 @@
+\section*{September 7, 2026: Recorded density exclusions}
+\textit{Codex draft. The exclusion decision was confirmed by Jacob.}
+
+Jacob approved excluding the Fletcher two-home parent, Eastgate 29-home parent,
+and Park Place seven-home parent from density estimation because the counted
+homes cannot be assigned a defensible land denominator. Their construction
+records remain. The three decisions are recorded by project identifier, reason,
+evidence and date in a committed source ledger. The restored exporter reads
+that ledger and disables both density eligibility flags before calculating
+floor-area ratio and dwelling units per acre. No land allocation is imputed.
+
+All three observations enter both current all-construction density regressions,
+which use 3,692 projects. None enters the multifamily-only regressions, which
+use 822 projects. This was checked against the observations used by the fitted
+models. A controlled replay of the restored exporter retained all 8,648 records
+and changed only the two eligibility flags and two density measures for the three
+ledger identifiers. The frozen paper input and figures remain unchanged until
+the restored production chain and resulting estimates are verified.
+
+The residential manual-review bundle producer was also restored. Its 184 rows
+and 76 columns match the preserved evidence bundle byte for byte. Its inputs
+include parcel histories, permit chains, building evidence and previously
+recorded address matches. This verifies one stage on preserved inputs; it does
+not resolve the remaining acquisition, historical zoning or source-vintage work.
+
+Further restoration reproduced the City-building evidence for all 184 reviewed
+projects and the eight accepted predecessor-parcel geometries. The condominium
+review also reproduces 52 cohort-evidence rows, 57 decisions and 53 source-project
+dispositions. The restored script had calculated the source dispositions but
+omitted the write needed downstream; that omission is now fixed without changing
+any decision. Deleting that generated output in a temporary parallel Make build
+caused it to be regenerated, and the next unchanged build ran no producer.
+
+For the preserved review scope, the replacement Assessor source returns the same
+4,627 history rows. Three fields differ, all in 2026 records: one reported
+construction year changes from 1895 to 2019, and two parcel-proration rates change
+from one each to 0.6 and 0.4. Replaying the construction-episode evidence adds one
+historical episode row, from 596 to 597, but leaves the selected evidence for all
+123 reviewed projects unchanged. This comparison narrows the vintage concern
+for this fixed scope; it does not establish that the changed discovery universe
+or other source uses are reconciled.
+
+Holding the current project data, alderman scores and regression specification
+fixed, excluding the three ledger observations changes the estimated FAR
+reduction immediately across the boundary from 12.31\% to 12.59\%. The estimated
+reduction in dwelling units per acre changes from 16.01\% to 16.28\%.
+The corresponding all-construction sample falls from 3,692 to 3,689.
+The multifamily estimates remain exactly unchanged. This sensitivity calculation
+isolates the approved exclusions; it does not predict the combined effect of
+all unfinished reconstruction changes. The release audit's
+\path{density_exclusion_comparison.csv} records all distance-bin estimates,
+standard errors, p-values and sample sizes for both scenarios.
+
+\paragraph{Wider review and the Lenox decision.}
+The broader screen covers all 248 retained multicard projects. It finds 27
+parent polygons containing current parcel points associated with other retained
+projects, including 11 parents within 500 feet. These are review leads, not 27
+confirmed duplicate projects. Nine projects lack a usable parcel polygon in the
+preserved query file and remain unassessed by this check.
+
+The Lenox site illustrates why a date conflict needs direct review. Its two-house
+parent reports 2008, while two individually retained successors report 2019.
+The original 2007 permits were reinstated in 2018, so the later date cannot be
+assumed to be a reporting error. Jacob approved excluding all three records
+from density until completion timing is resolved. The exporter preserves the
+records and changes only their four density eligibility/outcome fields.
+Adding this decision reduces the all-construction regression sample to 3,688;
+the headline reductions remain 12.59\% for FAR and 16.28\% for units per acre
+at displayed precision. The multifamily results remain unchanged. The audit
+now reports separate scenarios for the original land decisions and all six
+exclusions, with current scores and construction records held fixed.
+
+The wider review also exposed a mismatch between a one-year window in the
+project-overlap screen and a two-year window in the subsequent card matcher.
+One five-townhouse project at 33rd/Prairie is represented by a 2019 parent and
+five 2021 successor rows. Its permit identifies five units, and parent and successor building-area totals
+differ by 0.4\%. Jacob approved a consistent two-year automatic window. The
+first stage comparison adds 62 overlap edges and 15 card matches, while eight
+parents change review category. Three newly required manual decisions and the
+existing decisions affected by changed group membership still need reconciliation.
+The final adjudicator was checked and stops with the affected project identifiers.
+The component check also precedes the final single-family unit correction:
+it sees 20 units in the five Prairie successors, which later become five units.
+Across the expanded graph, five records in two groups differ from their later
+unit classification. These comparisons do not yet establish revised density results.
+Rockwell's 2006 house permits have 2005 application dates, which the archived
+verification filter dropped. Jacob approved retaining all dates in the pinned
+permit source. The revised stage adds 5,228 permits, including both Rockwell
+house permits; all 828,237 previous records are unchanged. Existing coordinate
+and processing-time validity rules remain. This restores evidence without
+settling the houses' completion years or changing analysis-specific date limits.
+
+\paragraph{Further restoration checks.}
+Five more preserved outputs reproduce exactly: project-overlap evidence (313
+rows), remaining residential cases (7), condominium requests (75), current parcel
+links (1,789), and shared-site location review (2,699). The construction-year
+zoning replay reproduces 9,609 rows after moving its embedded judgments into
+explicit inputs. The reconstructed map preserves all 11,294 geometries; its
+current parser changes two group fields on one RT4A polygon relative to the
+preserved map. Replaying the next two zoning stages changes no project output
+cells on the preserved-input comparison. Upstream ordinance extraction and
+matching are still unfinished.
+
+Ordinary CPI, parcel-sales and residential-characteristics builds now verify and
+restore preserved source bytes. Separate refresh recipes write candidate files.
+Their 1,339, 902,830 and 7,489,601 rows respectively reproduce the prior inputs
+exactly, and their declared keys pass validation. Missing-output and failed-source
+checks use a disposable fixture. Census acquisition, licensed rent-source vintage
+protection, and other missing construction producers still require work. These
+checks do not complete items 1--5 or authorize starting the full construction
+and paper rebuilds.
+
+\noindent\begin{minipage}{\linewidth}
+\textbf{Reproduction note.}
+Land decisions are committed as \texttt{79d35a3}; Lenox exclusions as
+\texttt{4e62bf8}. The construction cleaning task reads
+\path{adjudication/density_denominator_decisions.csv}.
+Separate exporter comparisons apply the three land exclusions and the three
+Lenox exclusions with other inputs fixed. Stage hashes and comparison limits
+are in the release audit's \path{restored_stage_checks.csv}.
+\end{minipage}

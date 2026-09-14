@@ -1,5 +1,11 @@
 all: paper.pdf online_appendix.pdf working_paper.pdf word_count.pdf
 
+jpube: ../journals/jpube/submission/main_paper.pdf \
+	../journals/jpube/submission/working_paper.pdf \
+	../journals/jpube/submission/online_appendix.pdf \
+	../journals/jpube/submission/word_count.pdf \
+	../journals/jpube/submission/cover_letter.pdf
+
 paper.pdf: Makefile paper.tex sections/intro.tex sections/data.tex sections/model.tex \
 	sections/empirics_results.tex sections/discussion.tex sections/conclusion.tex \
 	sections/aldermanic_privilege.bib \
@@ -70,18 +76,17 @@ working_paper.pdf: Makefile working_paper.tex paper.tex sections/intro.tex \
 
 word_count.pdf: Makefile word_count.tex paper.pdf
 
-.SECONDEXPANSION:
-paper.pdf: | osm-check $$(addprefix task-check/,$$(patsubst ../tasks/%,%,$$(filter ../tasks/%,$$^)))
+paper.pdf: | osm-check
 	pdflatex -interaction=nonstopmode paper.tex
 	bibtex paper
 	pdflatex -interaction=nonstopmode paper.tex
 	pdflatex -interaction=nonstopmode paper.tex
 
-online_appendix.pdf: | osm-check $$(addprefix task-check/,$$(patsubst ../tasks/%,%,$$(filter ../tasks/%,$$^)))
+online_appendix.pdf: | osm-check
 	pdflatex -interaction=nonstopmode online_appendix.tex
 	pdflatex -interaction=nonstopmode online_appendix.tex
 
-working_paper.pdf: | osm-check $$(addprefix task-check/,$$(patsubst ../tasks/%,%,$$(filter ../tasks/%,$$^)))
+working_paper.pdf: | osm-check
 	pdflatex -interaction=nonstopmode working_paper.tex
 	bibtex working_paper
 	pdflatex -interaction=nonstopmode working_paper.tex
@@ -91,16 +96,40 @@ working_paper.pdf: | osm-check $$(addprefix task-check/,$$(patsubst ../tasks/%,%
 word_count.pdf:
 	pdflatex -interaction=nonstopmode word_count.tex
 
+../journals/jpube/submission/main_paper.pdf: paper.pdf ../journals/jpube/ai_disclosure.tex Makefile
+	mkdir -p tmp/jpube ../journals/jpube/submission
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=main_paper '\def\jpubesubmission{1}\input{paper.tex}'
+	bibtex tmp/jpube/main_paper
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=main_paper '\def\jpubesubmission{1}\input{paper.tex}'
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=main_paper '\def\jpubesubmission{1}\input{paper.tex}'
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=main_paper '\def\jpubesubmission{1}\input{paper.tex}'
+	cp tmp/jpube/main_paper.pdf $@
+
+../journals/jpube/submission/working_paper.pdf: working_paper.pdf ../journals/jpube/ai_disclosure.tex Makefile
+	mkdir -p tmp/jpube ../journals/jpube/submission
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=working_paper '\def\jpubesubmission{1}\input{working_paper.tex}'
+	bibtex tmp/jpube/working_paper
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=working_paper '\def\jpubesubmission{1}\input{working_paper.tex}'
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=working_paper '\def\jpubesubmission{1}\input{working_paper.tex}'
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=working_paper '\def\jpubesubmission{1}\input{working_paper.tex}'
+	cp tmp/jpube/working_paper.pdf $@
+
+../journals/jpube/submission/online_appendix.pdf: online_appendix.pdf
+	cp $< $@
+
+../journals/jpube/submission/word_count.pdf: word_count.pdf
+	cp $< $@
+
+../journals/jpube/submission/cover_letter.pdf: ../journals/jpube/submission/cover_letter.tex Makefile
+	mkdir -p tmp/jpube ../journals/jpube/submission
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube ../journals/jpube/submission/cover_letter.tex
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube ../journals/jpube/submission/cover_letter.tex
+	cp tmp/jpube/cover_letter.pdf $@
+
 osm-check:
 	@cd .. && shasum -a 256 -c data_raw/illinois-250919-free.sha256
 
-../tasks/%: | task-check/%
-	@test -e "$@" || { echo "Task check did not produce $@"; false; }
+.PHONY: jpube osm-check
+.DELETE_ON_ERROR:
 
-task-check/%: FORCE
-	@task=$$(printf '%s\n' "$*" | sed 's#/output/.*##'); \
-	output=$$(printf '%s\n' "$*" | sed 's#^.*/output/#../output/#'); \
-	$(MAKE) -C "../tasks/$$task/code" "$$output"
-
-.PHONY: FORCE osm-check
-FORCE:
+include ../tasks/shared/code/generic.make

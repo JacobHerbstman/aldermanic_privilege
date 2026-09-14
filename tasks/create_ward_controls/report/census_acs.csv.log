@@ -1,0 +1,16 @@
+File: census_acs.csv
+Rows: 559398
+Columns: 6
+SHA-256 (saved bytes): 54c5e31295a61532e2b0cfcc9574b62fc73fdc9d1aaa79b61ac9d956adfbe267
+Key: source_year, GEOID, variable
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+     column inferred_type non_missing distinct          min          max               mean                 sd
+      GEOID        BIGINT      559398     4531 170310101001 170319900000 170315868652.83472 2925278.0475135325
+       NAME       VARCHAR      559398     9886            -            -                  -                  -
+   variable       VARCHAR      559398       12            -            -                  -                  -
+   estimate        BIGINT      557613    22726            0       250001  5143.060332165857  20337.43390840685
+        moe        BIGINT      557423    31557            1       217916  1776.378515059479  7759.026329997735
+source_year        BIGINT      559398       11         2013         2022 2017.5023650424207 2.8728317998217405

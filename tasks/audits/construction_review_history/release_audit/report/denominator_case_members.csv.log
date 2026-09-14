@@ -1,0 +1,36 @@
+File: denominator_case_members.csv
+Rows: 105
+Columns: 26
+SHA-256 (saved bytes): a97ef00b2c970690afe5cef95d3497fcd80d62bdb1098c9de02ddac8c6411ef1
+Key: project_id, current_pin
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                            column inferred_type  non_missing  distinct                min                max               mean                 sd
+                        project_id       VARCHAR          105         4                  -                  -                  -                  -
+                       project_pin        BIGINT          105         4     13252030410000     19111200130000 17763291962761.906 1342288579680.5996
+                 construction_year        BIGINT          105         2               2006               2007 2006.5809523809523 0.4957696499257408
+                      within_500ft       BOOLEAN          105         1                  -                  -                  -                  -
+            search_geometry_source       VARCHAR          105         1                  -                  -                  -                  -
+                       current_pin        BIGINT          105       105     13252030510000     19111270020000 17763299287047.617 1342295653071.5637
+                     current_pin10        BIGINT          105       105         1325203051         1911127002  1776329928.704762 134229565.30715674
+                  current_tax_year        BIGINT          105         1               2025               2025             2025.0                0.0
+                     current_class        BIGINT          105         5                100                913 227.11428571428573 114.01588235229087
+                    current_x_3435        DOUBLE          105       105 1152721.2809598956 1179182.7408480567 1168358.6121182723 12667.350433378153
+                    current_y_3435        DOUBLE          105       105 1870628.5233506851 1920977.3486516536 1882995.8491520288 11718.268815370675
+                   current_address       VARCHAR          105       103                  -                  -                  -                  -
+              latest_assessor_year        BIGINT           67         1               2025               2025             2025.0                0.0
+             latest_assessor_cards        BIGINT           67         1                  1                  1                1.0                0.0
+           latest_assessor_classes        BIGINT           67         3                204                295 287.07462686567163 25.463172118342953
+        latest_assessor_year_built        BIGINT           67         5               2005               2009 2005.8955223880596 1.2202127032439154
+             latest_assessor_units        BIGINT           67         1                  1                  1                1.0                0.0
+     latest_assessor_building_sqft        BIGINT           67        30               1603               2797 1945.2388059701493 276.04062555379136
+         latest_assessor_land_sqft        BIGINT           67        55                708               6761 1144.2537313432836  892.2747121361696
+             component_project_ids       VARCHAR           27        27                  -                  -                  -                  -
+represented_by_other_final_project       BOOLEAN          105         2                  -                  -                  -                  -
+                 same_original_pin       BOOLEAN          105         1                  -                  -                  -                  -
+                        card_match       BOOLEAN          105         2                  -                  -                  -                  -
+             individual_project_id       VARCHAR          105       105                  -                  -                  -                  -
+             retained_individually       BOOLEAN          105         2                  -                  -                  -                  -
+     inside_assessment_year_parent       BOOLEAN          105         2                  -                  -                  -                  -

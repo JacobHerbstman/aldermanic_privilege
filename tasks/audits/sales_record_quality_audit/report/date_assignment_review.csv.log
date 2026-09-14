@@ -1,0 +1,29 @@
+File: date_assignment_review.csv
+Rows: 50
+Columns: 19
+SHA-256 (saved bytes): 029405adb6ed5734b1d85adbebc1ecb0dbfeba8fddc96fd6e8f4a656f3051c06
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                         column inferred_type non_missing distinct             min              max              mean                sd
+                         row_id        BIGINT          50       50        96161789         98387388       97180650.04 674610.0407418811
+                     in_main_rd       BOOLEAN          50        1               -                -                 -                 -
+             in_current_main_rd       BOOLEAN          50        1               -                -                 -                 -
+                      sale_date          DATE          50        5               -                -                 -                 -
+                            pin        BIGINT          50       50  13263220010000   20214110390000  15527025913800.0 2076224553483.069
+           own_alderman_changes       BOOLEAN          50        1               -                -                 -                 -
+      neighbor_alderman_changes       BOOLEAN          50        1               -                -                 -                 -
+                  map_ambiguous       BOOLEAN          50        1               -                -                 -                 -
+        ward_assignment_changes       BOOLEAN          50        1               -                -                 -                 -
+      score_eligibility_changes       BOOLEAN          50        1               -                -                 -                 -
+sign_changes_with_both_eligible       BOOLEAN          50        1               -                -                 -                 -
+               any_missing_term       BOOLEAN          50        1               -                -                 -                 -
+          possible_own_aldermen       VARCHAR          33        9               -                -                 -                 -
+     possible_neighbor_aldermen       VARCHAR          17        8               -                -                 -                 -
+                 possible_signs       VARCHAR           0        0               -                -                 -                 -
+       min_boundary_distance_ft        DOUBLE          50       50 95.721746235562 2591.29041529463 798.1889515189791 574.1854413099613
+       max_boundary_distance_ft        DOUBLE          50       50 95.721746235562 2591.29041529463 798.1889515189791 574.1854413099613
+          affects_rd_assignment       BOOLEAN          50        1               -                -                 -                 -
+              any_person_change       BOOLEAN          50        1               -                -                 -                 -

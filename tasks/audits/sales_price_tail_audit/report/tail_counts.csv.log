@@ -1,0 +1,15 @@
+File: tail_counts.csv
+Rows: 4
+Columns: 5
+SHA-256 (saved bytes): ee8aa387e2e25908f0f294cf4209f57eab846c3b7dc3d5640050036882144761
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column inferred_type non_missing distinct min    max     mean                 sd
+          selection       VARCHAR           4        4   -      -        -                  -
+     citywide_sales        BIGINT           4        4  33 233423 58424.75 116665.52551739525
+      main_rd_sales        BIGINT           4        4   7  58393  14617.0  29184.00935443929
+more_stringent_main        BIGINT           4        4   3  29619  7413.75 14803.504345818481
+less_stringent_main        BIGINT           4        4   4  28774  7203.25 14380.505029958675

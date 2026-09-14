@@ -1,0 +1,14 @@
+File: quality_summary.csv
+Rows: 16
+Columns: 4
+SHA-256 (saved bytes): 30c673e5786a3a096d0d967d036d33582bac94ef15d4d597be4dcd11735ac24d
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+               column inferred_type non_missing distinct min    max     mean                 sd
+                issue       VARCHAR          16       16   -      -        -                  -
+          panel_sales        BIGINT          16       12   0 233744 20753.25  61095.39378109176
+        main_rd_sales        BIGINT          16        9   0  58478 5114.125 15176.330232196013
+current_main_rd_sales        BIGINT          16        9   0  58468  5112.75 15174.153294335732

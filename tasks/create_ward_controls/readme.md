@@ -24,3 +24,9 @@ intersections are scaled to the block group's area within the union of all ward
 polygons so that no area is counted twice.
 
 The output is `output/ward_controls_2006_2022.csv`.
+
+The Makefile restores the recorded Census inputs from [`sources/`](sources/README.md).
+`create_ward_controls.R` reads those counts and polygons, allocates the counts,
+and calculates ward-year controls. It writes a report when saving the data.
+`make download-current` runs `download_census_controls.R` with `CENSUS_API_KEY`
+and saves separate current responses for review before adoption.

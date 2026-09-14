@@ -1,0 +1,15 @@
+File: census_2000.gpkg
+Rows: 76356
+Columns: 5
+SHA-256 (saved bytes): 9c33b8f9a21b4af1ec4a150db57ece0f40bce596ab6a84c757c436e37d4e2290
+Key: GEOID, variable
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+  column inferred_type non_missing distinct min      max               mean                 sd
+     fid        BIGINT       76356    76356   1    76356            38178.5  22042.22291421625
+   GEOID       VARCHAR       76356     4242   -        -                  -                  -
+    NAME       VARCHAR       76356     4242   -        -                  -                  -
+variable       VARCHAR       76356       18   -        -                  -                  -
+   value        DOUBLE       76356     6030 0.0 200001.0 2943.7858976373827 12457.663026357004

@@ -1,0 +1,48 @@
+File: multicard_parent_coverage.csv
+Rows: 248
+Columns: 38
+SHA-256 (saved bytes): cf32519740c0019a572eacdd0a078db22d4699c1b1a5627512989288e3c09cbd
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                column inferred_type non_missing distinct                 min                max               mean                 sd
+                            project_id       VARCHAR         248      248                   -                  -                  -                  -
+                     construction_year        BIGINT         248       17                2006               2022 2012.3467741935483  5.478030253930368
+                        dwelling_units        BIGINT         248       24                   1                 43   4.69758064516129 6.0156067430806335
+                         building_sqft        BIGINT         248      241                 941              83226  8900.862903225807 10461.989386557807
+                             land_sqft        BIGINT         247      188                1936             307739            12707.0 29973.374687724627
+               distance_to_boundary_ft        DOUBLE         248      248   49.22455487328994  1473.294112609551  612.1151720654096  371.6718829887733
+                          within_500ft       BOOLEAN         248        2                   -                  -                  -                  -
+                  external_multifamily       BOOLEAN         248        2                   -                  -                  -                  -
+                         matched_cards        BIGINT         103       20                   1                 42  5.718446601941747  6.996382084276097
+                    matched_card_units        BIGINT         103       21                   1                 42  6.135922330097087   7.03778115614228
+            matched_card_building_sqft        BIGINT         103       99                1476              83226 11890.252427184467  13308.34607490282
+               matched_successor_units        BIGINT         103       21                   1                 42  6.135922330097087   7.03778115614228
+       matched_successor_building_sqft        BIGINT         103      100                1435              81134 11812.242718446601 13139.844728143704
+           matched_successor_land_sqft        BIGINT         103      102                1217              52375  9748.126213592233  8277.178796960661
+                matched_successor_pins       VARCHAR         103      103                   -                  -                  -                  -
+                          target_cards        BIGINT         248       23                   1                 43 3.9516129032258065  5.712199940236839
+                     final_disposition       VARCHAR         248        1                   -                  -                  -                  -
+                   adjudication_reason       VARCHAR         248        5                   -                  -                  -                  -
+                 adjudication_evidence       VARCHAR         248      246                   -                  -                  -                  -
+                         review_status       VARCHAR         248        1                   -                  -                  -                  -
+                  supports_final_units       BOOLEAN         248        2                   -                  -                  -                  -
+                        reviewer_notes       VARCHAR         248      244                   -                  -                  -                  -
+              all_target_cards_matched       BOOLEAN         248        2                   -                  -                  -                  -
+   matched_cards_reproduce_final_units       BOOLEAN         248        2                   -                  -                  -                  -
+matched_cards_reproduce_final_building       BOOLEAN         248        2                   -                  -                  -                  -
+parent_to_matched_successor_land_ratio        DOUBLE         103       97 0.13741700013192032 14.606246143623332 1.8070500292889007 2.0172855637199554
+                   geometry_project_id       VARCHAR         243      243                   -                  -                  -                  -
+                 query_geometry_source       VARCHAR         243        2                   -                  -                  -                  -
+                     polygon_area_sqft        DOUBLE         243      239  1935.0012000348652 318783.81716135703 16565.089224724376   41998.2559152494
+                 current_points_inside        BIGINT         239       32                   0                 73  6.121338912133891 11.809318563002313
+                 matched_points_inside        BIGINT         239       21                   0                 42 2.4644351464435146  5.388069492115779
+                matched_points_outside        BIGINT         239        1                   0                  0                0.0                0.0
+      other_individual_projects_inside        BIGINT         239       15                   0                 28 0.6610878661087866  2.920190592630749
+          other_individual_project_ids       VARCHAR          27       27                   -                  -                  -                  -
+             geometry_review_available       BOOLEAN         248        2                   -                  -                  -                  -
+           parent_land_ratio_above_two       BOOLEAN         248        2                   -                  -                  -                  -
+        matched_land_comparison_status       VARCHAR         248        4                   -                  -                  -                  -
+    additional_retained_project_inside       BOOLEAN         248        2                   -                  -                  -                  -

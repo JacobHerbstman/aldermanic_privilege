@@ -1,10 +1,16 @@
-# Download Parcel Sales
+# Parcel sales
 
-This task downloads 2006--2022 parcel sales for the eight Chicago townships
-from the Cook County Assessor's parcel-sales dataset `wvhk-k5uv`. It keeps the
-sale and transaction fields needed by the home-price analysis and writes
-`output/parcel_sales_city.csv`.
+This task supplies Cook County Assessor parcel sales, Chicago township codes 70–77, years 2006–2022.
+An ordinary `make` in `code/` verifies the recorded source checksum and writes
+`output/parcel_sales_city.csv` and its keyed data report. It does not refresh the source.
 
-The script downloads ordered batches and verifies the source row count before
-keeping the file. `START_YEAR` and `END_YEAR` in the Makefile define the
-requested period.
+The preserved file, source URL, and limits of its recorded vintage are described
+in [`data_raw/replication_sources/README.md`](../../data_raw/replication_sources/README.md).
+The checksum is in `code/source_snapshot.sha256`. These preserved files still
+need inclusion in the distributed replication data bundle.
+
+To request a deliberate candidate refresh, run `make download-current`
+in `code/`. The existing source-specific download script writes a separate
+`_current.csv`; the normal pipeline continues to use the recorded snapshot.
+Query choices belong to that refresh recipe. Compare the candidate with the
+recorded input before adopting it; a new download is a source-vintage change.

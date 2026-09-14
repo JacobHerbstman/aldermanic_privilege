@@ -1,0 +1,15 @@
+File: residential_class297_component_overrides.csv
+Rows: 15
+Columns: 5
+SHA-256 (saved bytes): 2870591f523ecd4d6410bcf2d62131ae5e9c3d617dd8d4b6ec7026465a1fd404
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                  column inferred_type non_missing distinct       min       max        mean sd
+        final_project_id       VARCHAR          15       15         -         -           -  -
+          component_pins       VARCHAR          15       15         -         -           -  -
+         decision_reason       VARCHAR          15       13         -         -           -  -
+            evidence_ids       VARCHAR          15       13         -         -           -  -
+supporting_permit_number        BIGINT           1        1 100490842 100490842 100490842.0  -

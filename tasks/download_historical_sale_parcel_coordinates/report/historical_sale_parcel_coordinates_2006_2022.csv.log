@@ -1,0 +1,16 @@
+File: historical_sale_parcel_coordinates_2006_2022.csv
+Rows: 231800
+Columns: 6
+SHA-256 (saved bytes): 2a79fcb033f8f86685aca821b7d6e963f7ade68f9c6aa65bfca2fa3c2b7f70b0
+Key: pin, year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column inferred_type non_missing distinct               min               max               mean                  sd
+                pin       VARCHAR      231800   174840                 -                 -                  -                   -
+               year        BIGINT      231800       19              2006              2022 2014.2677782571182   5.330338772067141
+          longitude        DOUBLE      231800   215150 -87.8461794943848 -87.5248067824485 -87.69409467742685 0.06393294612067622
+           latitude        DOUBLE      231800   156126  41.6448644623124  42.0226431371196 41.853128209173974 0.09912105514447832
+centroid_x_crs_3435        DOUBLE      231800   208210  1116739.05064503  1205074.99544737 1158417.8564108862   17578.59919716175
+centroid_y_crs_3435        DOUBLE      231800   225043  1813998.15962768        1951539.72 1889725.0045426171   36043.68632789029

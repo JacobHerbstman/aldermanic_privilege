@@ -7,10 +7,10 @@
 # end_year <- 2022
 
 source("../../setup_environment/code/packages.R")
-library(tigris) # Required for the geometry fix
 
+source("../../shared/code/save_data.R")
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(start_year, end_year)
 }
 if (length(cli_args) != 2) {
@@ -22,84 +22,15 @@ if (!is.finite(start_year) || !is.finite(end_year) || start_year > end_year) {
   stop("start_year and end_year must be valid integers with start_year <= end_year.", call. = FALSE)
 }
 
-# 1. SETUP & INPUTS
-# -----------------------------------------------------------------------------
-if (Sys.getenv("CENSUS_API_KEY") == "") {
-  stop("Error: CENSUS_API_KEY not found in .Renviron")
-}
-census_api_key(Sys.getenv("CENSUS_API_KEY"))
-
-# Set tigris cache to avoid re-downloading good files
-options(tigris_use_cache = TRUE)
-
-# Load Ward Panel (CRS 3435)
 ward_panel <- st_read("../input/ward_panel.gpkg") %>% st_transform(3435)
-
-# 2. VARIABLE DICTIONARIES
-# -----------------------------------------------------------------------------
-
-# A. ACS Variables (2013+) & 2013 Proxy for 2010-2012 Economics
-vars_acs <- c(
-  tot_pop       = "B01003_001",
-  tot_hhs       = "B11001_001",
-  tot_units     = "B25003_001",
-  owner_occ     = "B25003_002",
-  renter_occ    = "B25003_003",
-  pop_white     = "B03002_003",
-  pop_black     = "B03002_004",
-  pop_hisp      = "B03002_012",
-  median_income = "B19013_001",
-  pop_25plus    = "B15003_001",
-  educ_bach     = "B15003_022",
-  educ_mast     = "B15003_023",
-  educ_prof     = "B15003_024",
-  educ_doc      = "B15003_025"
-)
-
-# B. 2000 Decennial (SF3) - Has Econ Data
-vars_2000 <- c(
-  tot_pop       = "P001001",
-  tot_hhs       = "P010001",
-  tot_units     = "H007001",
-  owner_occ     = "H007002",
-  renter_occ    = "H007003",
-  pop_white     = "P007003",
-  pop_black     = "P007004",
-  pop_hisp      = "P007010",
-  median_income = "P053001",
-  pop_25plus    = "P037001",
-  educ_bach_m   = "P037015",
-  educ_mast_m   = "P037016",
-  educ_prof_m   = "P037017",
-  educ_doc_m    = "P037018",
-  educ_bach_f   = "P037032",
-  educ_mast_f   = "P037033",
-  educ_prof_f   = "P037034",
-  educ_doc_f    = "P037035"
-)
-
-# C. 2010 Decennial (SF1) - Counts Only (No Econ)
-vars_2010_sf1 <- c(
-  tot_pop       = "P001001",
-  tot_hhs       = "P018001",
-  tot_units     = "H004001",
-  owner_mortgage = "H004002",
-  owner_free_clear = "H004003",
-  renter_occ    = "H004004",
-  pop_white     = "P005003",
-  pop_black     = "P005004",
-  pop_hisp      = "P005010"
-)
+acs <- read_csv("../output/census_acs.csv", show_col_types = FALSE,
+  col_types = cols(GEOID = col_character(), .default = col_guess()))
 
 # 3. PRE-FETCH STATIC DATASETS (Regimes 1 & 2)
 # -----------------------------------------------------------------------------
 
 # --- REGIME 1: 2000 DECENNIAL (2000-2009) ---
-message("Fetching 2000 Decennial Data...")
-data_2000_raw <- get_decennial(
-  geography = "block group", variables = vars_2000,
-  state = "IL", county = "Cook", year = 2000, sumfile = "sf3", geometry = TRUE
-)
+data_2000_raw <- st_read("../output/census_2000.gpkg", quiet = TRUE) %>% rename(geometry = geom)
 data_2000 <- data_2000_raw %>%
   st_transform(3435) %>%
   select(GEOID, variable, value, geometry) %>%
@@ -121,16 +52,12 @@ if (any(data_2000$owner_occ + data_2000$renter_occ != data_2000$tot_units, na.rm
 # --- REGIME 2: 2010 HYBRID (2010-2012) ---
 message("Building 2010 Hybrid Dataset...")
 
-# A. Get Geometry using tigris (Avoids 'zip file' error)
-geo_2010 <- tigris::block_groups(state = "IL", county = "Cook", year = 2010, cb = FALSE) %>%
-  st_transform(3435) %>%
-  select(GEOID = GEOID10, geometry)
+# Read the recorded block-group geometry.
+geo_2010 <- st_read("../output/census_block_groups.gpkg", layer = "year2010", quiet = TRUE) %>% rename(geometry = geom)
 
 # B. Get 2010 Demographics (SF1)
-data_2010_sf1_raw <- get_decennial(
-  geography = "block group", variables = vars_2010_sf1,
-  state = "IL", county = "Cook", year = 2010, geometry = FALSE
-)
+data_2010_sf1_raw <- read_csv("../output/census_2010.csv", show_col_types = FALSE,
+  col_types = cols(GEOID = col_character(), .default = col_guess()))
 data_2010_sf1 <- data_2010_sf1_raw %>%
   select(GEOID, variable, value) %>%
   pivot_wider(names_from = variable, values_from = value) %>%
@@ -141,10 +68,7 @@ if (any(data_2010_sf1$owner_occ + data_2010_sf1$renter_occ != data_2010_sf1$tot_
 }
 
 # C. Get 2013 ACS Economics (Proxy for 2010-2012 Econ)
-data_2013_econ_raw <- get_acs(
-  geography = "block group", variables = vars_acs,
-  state = "IL", county = "Cook", year = 2013, survey = "acs5", geometry = FALSE
-)
+data_2013_econ_raw <- acs %>% filter(source_year == 2013L) %>% select(-source_year)
 data_2013_econ <- data_2013_econ_raw %>%
   select(GEOID, variable, estimate) %>%
   pivot_wider(names_from = variable, values_from = estimate) %>%
@@ -159,10 +83,7 @@ data_2010_hybrid <- geo_2010 %>%
   left_join(data_2013_econ, by = "GEOID", relationship = "one-to-one")
 
 # --- REGIME 3 PREP: 2020 GEOMETRY ---
-message("Fetching 2020 Geometry...")
-geo_2020 <- tigris::block_groups(state = "IL", county = "Cook", year = 2020, cb = FALSE) %>%
-  st_transform(3435) %>%
-  select(GEOID, geometry)
+geo_2020 <- st_read("../output/census_block_groups.gpkg", layer = "year2020", quiet = TRUE) %>% rename(geometry = geom)
 
 
 # 4. THE PANEL CONSTRUCTION LOOP
@@ -269,10 +190,7 @@ for (y in years) {
     current_bgs <- data_2010_hybrid
   } else {
     # Regime 3: Annual ACS (2013+)
-    current_data_raw <- get_acs(
-      geography = "block group", variables = vars_acs,
-      state = "IL", county = "Cook", year = y, survey = "acs5", geometry = FALSE
-    )
+    current_data_raw <- acs %>% filter(source_year == y) %>% select(-source_year)
     current_data <- current_data_raw %>%
       select(GEOID, variable, estimate) %>%
       pivot_wider(names_from = variable, values_from = estimate) %>%
@@ -343,9 +261,6 @@ if (any(ward_controls$homeownership_rate < 0 | ward_controls$homeownership_rate 
   stop("Ward controls contain invalid demographic shares.", call. = FALSE)
 }
 
-write_csv(
-  ward_controls,
-  sprintf("../output/ward_controls_%d_%d.csv", start_year, end_year)
-)
+SaveData(ward_controls, c("ward", "year"), sprintf("../output/ward_controls_%d_%d.csv", start_year, end_year))
 
 message("Done! Ward Panel Created.")

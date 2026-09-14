@@ -1,0 +1,13 @@
+SHELL_FUNCTIONS_MAKE := $(lastword $(MAKEFILE_LIST))
+SHARED_CODE := $(patsubst %/,%,$(dir $(SHELL_FUNCTIONS_MAKE)))
+
+FUNCTIONS = $(shell cat $(SHARED_CODE)/shell_functions.sh)
+STATA = @$(FUNCTIONS); stata_with_flag
+R = @$(FUNCTIONS); R_pc_and_slurm
+PYTHON = @$(FUNCTIONS); python_pc_and_slurm
+
+ifneq (,$(findstring n,$(MAKEFLAGS)))
+STATA := STATA
+R := R
+PYTHON := PYTHON
+endif

@@ -1,0 +1,33 @@
+File: multicard_successor_building_candidates.csv
+Rows: 1082
+Columns: 23
+SHA-256 (saved bytes): 85f5f9f8171d4a287adf65936181a4cb3a5528068df21980648dcab801e5a027
+Key: project_id, successor_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type  non_missing  distinct                min                max                mean                 sd
+             project_id       VARCHAR         1082       259                  -                  -                   -                  -
+            project_pin        BIGINT         1082       259     11303200330000     25221030430000  16514886101452.879  2388358536619.245
+      construction_year        BIGINT         1082        17               2006               2022  2010.5674676524955  5.139638891825115
+           within_500ft       BOOLEAN         1082         2                  -                  -                   -                  -
+           successor_id       VARCHAR         1082       954                  -                  -                   -                  -
+         successor_type       VARCHAR         1082         2                  -                  -                   -                  -
+          successor_pin       VARCHAR         1082       954                  -                  -                   -                  -
+        successor_pin10        BIGINT         1082       954         1130320033         2522103043  1651481895.8853974 238833829.35227597
+      successor_address       VARCHAR         1077       927                  -                  -                   -                  -
+         successor_year        BIGINT         1082        38               1878               2023  2009.0665434380776 15.892364857112431
+               year_gap        BIGINT         1082        37               -143                 14 -1.5009242144177448 15.721103591270595
+        successor_class        BIGINT         1082        15                202                396  278.88170055452866  32.07485546455566
+        successor_units        BIGINT         1082        16                  1                 45  1.4343807763401109  2.670952640273997
+successor_building_sqft        BIGINT         1078       373                941              30720   2471.199443413729 2147.5291764522567
+    successor_land_sqft        BIGINT         1082       611                571              50521   2260.372458410351  3304.069678058354
+       successor_x_3435        DOUBLE         1082       952 1126801.7935877538  1194754.014725387  1165572.9226877645 10828.098645618526
+       successor_y_3435        DOUBLE         1082       951 1827741.6732648425 1947967.2295264064  1894157.1813041228  20382.94479610553
+represented_project_ids       VARCHAR          927       834                  -                  -                   -                  -
+ search_geometry_source       VARCHAR         1082         2                  -                  -                   -                  -
+projects_per_condo_base        BIGINT           27         2                  1                  2  1.0740740740740742 0.2668802563418119
+        within_one_year       BOOLEAN         1082         2                  -                  -                   -                  -
+       within_two_years       BOOLEAN         1082         2                  -                  -                   -                  -
+    automatic_candidate       BOOLEAN         1082         2                  -                  -                   -                  -

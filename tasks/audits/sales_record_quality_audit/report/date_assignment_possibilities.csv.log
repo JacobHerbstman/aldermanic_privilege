@@ -1,0 +1,27 @@
+File: date_assignment_possibilities.csv
+Rows: 100
+Columns: 17
+SHA-256 (saved bytes): 61cf183cd0e3441c6e12b6b92b0e020e64c94ba540b6a1a12981b51b727641d9
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct               min              max               mean                 sd
+            row_id        BIGINT         100       50          96161789         98387388        97180650.04  671194.2717519952
+               pin        BIGINT         100       50    13263220010000   20214110390000   15527025913800.0 2065711956549.2563
+         sale_date          DATE         100        5                 -                -                  -                  -
+        in_main_rd       BOOLEAN         100        1                 -                -                  -                  -
+in_current_main_rd       BOOLEAN         100        1                 -                -                  -                  -
+    interval_start          DATE         100       10                 -                -                  -                  -
+      interval_end          DATE         100       10                 -                -                  -                  -
+              ward        BIGINT         100       10                 1               35              22.72  11.96972612194379
+     neighbor_ward        BIGINT         100       10                 1               35              17.62 12.736474307192621
+      own_alderman       VARCHAR          66        9                 -                -                  -                  -
+ neighbor_alderman       VARCHAR          34        8                 -                -                  -                  -
+         own_score        DOUBLE          66        9 -1.67533207809642 1.06097486375088 0.5602286014707425  0.594624646018682
+    neighbor_score        DOUBLE          34        8 -1.67533207809642 1.06097486375088  0.161271309572444 0.7176570075070335
+     possible_sign       VARCHAR           0        0                 -                -                  -                  -
+    score_eligible       BOOLEAN         100        1                 -                -                  -                  -
+            dist_m        DOUBLE         100       50  29.1759882525993 789.825318581804 243.28799242298473 174.12558151348918
+     map_ambiguous       BOOLEAN         100        1                 -                -                  -                  -

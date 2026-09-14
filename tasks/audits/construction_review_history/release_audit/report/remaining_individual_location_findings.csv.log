@@ -1,0 +1,37 @@
+File: remaining_individual_location_findings.csv
+Rows: 69
+Columns: 27
+SHA-256 (saved bytes): 48d26eb44a728330675db28c1b66fd24f25e68288af3742e0bfaa31a7c6fe9ec
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                           column inferred_type non_missing distinct                min               max               mean                 sd
+                       project_id       VARCHAR          69       69                  -                 -                  -                  -
+                              pin        BIGINT          69       69     10253100450000    21311010230000 16528287883623.188 2488532904576.8696
+                      rule_result       VARCHAR          69        4                  -                 -                  -                  -
+                 candidate_status       VARCHAR          69        6                  -                 -                  -                  -
+                construction_year        DOUBLE          69       13             2006.0            2022.0 2009.1304347826087  4.083370304476236
+                   dwelling_units        DOUBLE          69        4                1.0               6.0 1.8405797101449275 1.3679438026575967
+                    building_sqft        DOUBLE          69       47             1619.0           13929.0  3691.014492753623  2504.720510959689
+                        land_sqft        DOUBLE          69       66              430.0           19509.0 2990.4202898550725   2725.36240118953
+                    reported_year        DOUBLE           9        3             2005.0            2012.0  2005.888888888889 2.3154073315749653
+                    matching_year        DOUBLE          69       14             2005.0            2022.0 2008.8840579710145  4.213201353323642
+                prop_address_full       VARCHAR          69       69                  -                 -                  -                  -
+             last_assessment_year        BIGINT          69       11               2007              2026 2019.6666666666667  7.222649560006865
+latest_reported_construction_year        BIGINT          69       15               1886              2022  2005.159420289855 20.774435072948837
+                latest_floor_sqft        DOUBLE          69       48             1619.0           13929.0 3830.4927536231885  2510.828282736176
+                 latest_land_sqft        DOUBLE          69       66              430.0           19509.0 2990.4202898550725   2725.36240118953
+                     latest_units        DOUBLE          69        5                0.0               6.0  1.826086956521739  1.382203289499716
+        matching_assessment_years       VARCHAR          69       32                  -                 -                  -                  -
+            available_point_years       VARCHAR          63       26                  -                 -                  -                  -
+             matching_point_years       VARCHAR          59       28                  -                 -                  -                  -
+                floor_change_sqft        DOUBLE          69       13             -521.0            1663.0 139.47826086956522 381.07339144516396
+                     year_changed       BOOLEAN          69        2                  -                 -                  -                  -
+          distance_to_boundary_ft        DOUBLE          69       62 52.125954780977104 4918.086150724251  1212.973977872303  888.2220238342259
+                  location_source       VARCHAR          69        5                  -                 -                  -                  -
+                location_resolved       BOOLEAN          69        2                  -                 -                  -                  -
+                          finding       VARCHAR          69        4                  -                 -                  -                  -
+                   building_check       VARCHAR          69        5                  -                 -                  -                  -
+                         excluded       BOOLEAN          69        2                  -                 -                  -                  -

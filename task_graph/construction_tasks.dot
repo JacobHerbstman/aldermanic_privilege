@@ -1,0 +1,38 @@
+digraph construction {
+rankdir=LR;
+graph [bgcolor=white];
+node [shape=box, fontname="Helvetica", fontsize=9];
+"border_segment_creation" [label="border_segment_creation"];
+"construction_zoning_history" [label="construction_zoning_history"];
+"cook_parcel_addresses_download" [label="cook_parcel_addresses_download"];
+"create_alderman_data" [label="create_alderman_data"];
+"create_alderman_uncertainty_index" [label="create_alderman_uncertainty_index"];
+"create_ward_controls" [label="create_ward_controls"];
+"data_raw" [label="data_raw"];
+"download_construction_address_geocodes" [label="download_construction_address_geocodes"];
+"download_construction_assessor_history" [label="download_construction_assessor_history"];
+"download_construction_historical_parcels" [label="download_construction_historical_parcels"];
+"download_parcel_universe_data" [label="download_parcel_universe_data"];
+"new_construction_analysis_data" [label="new_construction_analysis_data"];
+"new_construction_cleaning" [label="new_construction_cleaning"];
+"prepare_construction_assessor_history" [label="prepare_construction_assessor_history"];
+"prepare_new_construction" [label="prepare_new_construction"];
+"ward_panel_create" [label="ward_panel_create"];
+"border_segment_creation" -> "new_construction_analysis_data";
+"border_segment_creation" -> "prepare_new_construction";
+"construction_zoning_history" -> "new_construction_analysis_data";
+"cook_parcel_addresses_download" -> "prepare_new_construction";
+"create_alderman_data" -> "new_construction_analysis_data";
+"create_alderman_uncertainty_index" -> "new_construction_analysis_data";
+"create_ward_controls" -> "new_construction_analysis_data";
+"data_raw" -> "new_construction_analysis_data";
+"data_raw" -> "prepare_new_construction";
+"download_construction_address_geocodes" -> "prepare_new_construction";
+"download_construction_assessor_history" -> "prepare_new_construction";
+"download_construction_historical_parcels" -> "prepare_new_construction";
+"download_parcel_universe_data" -> "prepare_new_construction";
+"new_construction_cleaning" -> "prepare_new_construction";
+"prepare_construction_assessor_history" -> "prepare_new_construction";
+"prepare_new_construction" -> "new_construction_analysis_data";
+"ward_panel_create" -> "prepare_new_construction";
+}

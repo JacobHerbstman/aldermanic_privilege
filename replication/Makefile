@@ -1,0 +1,329 @@
+.DELETE_ON_ERROR:
+.NOTPARALLEL:
+
+all: \
+	../data_raw/Chicago_Wards_1998.geojson \
+	../data_raw/Wards_2014.geojson \
+	../data_raw/Wards_2015.geojson \
+	../data_raw/Wards_2024.geojson \
+	../data_raw/construction_review/O2017-7056.pdf \
+	../data_raw/construction_review/O2020-2959.pdf \
+	../data_raw/construction_review/O2022-2464.pdf \
+	../data_raw/construction_review/O2023-1331.pdf \
+	../data_raw/construction_review/O2024-0008982.pdf \
+	../data_raw/construction_review/O2024-0010153.pdf \
+	../data_raw/construction_review/SO2017-7051.pdf \
+	../data_raw/construction_review/SO2018-4452.pdf \
+	../data_raw/construction_review/SO2018-7749.pdf \
+	../data_raw/construction_review/SO2018-863.pdf \
+	../data_raw/construction_review/SO2019-4107.pdf \
+	../data_raw/construction_review/SO2023-43.pdf \
+	../data_raw/construction_review/address_geocodes_census_2026-09-07.csv \
+	../data_raw/construction_review/address_geocodes_census_additional_2026-09-07.csv \
+	../data_raw/construction_review/address_geocodes_chicago_2026-09-07.csv \
+	../data_raw/construction_review/address_geocodes_chicago_additional_2026-09-07.csv \
+	../data_raw/construction_review/building_permits_full.csv \
+	../data_raw/construction_review/campbell_parcels_2026-09-08.gpkg \
+	../data_raw/construction_review/campbell_predecessor_parcels_2026-09-08.gpkg \
+	../data_raw/construction_review/campbell_predecessor_queries_2026-09-08.csv \
+	../data_raw/construction_review/campbell_queries_2026-09-08.csv \
+	../data_raw/construction_review/commercial_valuation_data.csv \
+	../data_raw/construction_review/density_historical_address_records_2026-09-04.csv \
+	../data_raw/construction_review/density_historical_parcel_records_2026-09-04.csv \
+	../data_raw/construction_review/east_64th_parcels_2026-09-08.gpkg \
+	../data_raw/construction_review/east_64th_queries_2026-09-08.csv \
+	../data_raw/construction_review/geneva_maud_parcels_2026-09-08.gpkg \
+	../data_raw/construction_review/geneva_maud_queries_2026-09-08.csv \
+	../data_raw/construction_review/geocoding_history_queries_2026-09-07.csv \
+	../data_raw/construction_review/geocoding_parcel_history_2026-09-07.csv \
+	../data_raw/construction_review/historical_parcel_requests_2026-09-04.csv \
+	../data_raw/construction_review/historical_predecessor_parcels_2026-07-27.gpkg \
+	../data_raw/construction_review/historical_predecessor_parcels_2026-09-07.gpkg \
+	../data_raw/construction_review/historical_predecessor_queries_2026-07-27.csv \
+	../data_raw/construction_review/historical_predecessor_queries_2026-09-07.csv \
+	../data_raw/construction_review/historical_project_parcel_layers_2026-07-27.csv \
+	../data_raw/construction_review/historical_project_parcel_queries_2026-07-27.csv \
+	../data_raw/construction_review/historical_project_parcel_queries_2026-09-07.csv \
+	../data_raw/construction_review/historical_project_parcel_queries_2026-09-08.csv \
+	../data_raw/construction_review/historical_project_parcel_source_2026-07-27.gpkg \
+	../data_raw/construction_review/historical_project_parcel_source_2026-09-07.gpkg \
+	../data_raw/construction_review/historical_project_parcel_source_2026-09-08.gpkg \
+	../data_raw/construction_review/history_reference_parcels_complete_2026-09-08.gpkg \
+	../data_raw/construction_review/history_reference_queries_complete_2026-09-08.csv \
+	../data_raw/construction_review/lake_park_direct_parcels_2026-09-08.gpkg \
+	../data_raw/construction_review/lake_park_direct_queries_2026-09-08.csv \
+	../data_raw/construction_review/lake_park_predecessor_parcels_2026-09-08.gpkg \
+	../data_raw/construction_review/lake_park_predecessor_queries_2026-09-08.csv \
+	../data_raw/construction_review/matters_20101101_20260212.csv \
+	../data_raw/construction_review/official_building_footprints_2008.gpkg \
+	../data_raw/construction_review/official_building_footprints_2022.gpkg \
+	../data_raw/construction_review/parcel_addresses_2025_chicago_20260710.csv \
+	../data_raw/construction_review/parcel_sales_city.csv \
+	../data_raw/construction_review/parcel_universe_2025_city_native.csv \
+	../data_raw/construction_review/predecessor_history_queries_2026-09-07.csv \
+	../data_raw/construction_review/predecessor_parcel_history_2026-09-07.csv \
+	../data_raw/construction_review/preferred_historical_parcel_source.gpkg \
+	../data_raw/construction_review/preferred_historical_parcel_source_queries.csv \
+	../data_raw/construction_review/preferred_parcel_evidence_2026-09-08.gpkg \
+	../data_raw/construction_review/preferred_parcel_evidence_queries_2026-09-08.csv \
+	../data_raw/construction_review/preferred_parcel_supplement_2026-09-07.gpkg \
+	../data_raw/construction_review/preferred_parcel_supplement_2026-09-08.gpkg \
+	../data_raw/construction_review/preferred_parcel_supplement_queries_2026-09-07.csv \
+	../data_raw/construction_review/preferred_parcel_supplement_queries_2026-09-08.csv \
+	../data_raw/construction_review/preferred_predecessor_parcel_source.gpkg \
+	../data_raw/construction_review/preferred_predecessor_parcels_2026-09-07.gpkg \
+	../data_raw/construction_review/preferred_predecessor_queries_2026-09-07.csv \
+	../data_raw/construction_review/preferred_predecessor_source_queries.csv \
+	../data_raw/construction_review/preferred_predecessor_troy_parcels_2026-09-07.gpkg \
+	../data_raw/construction_review/preferred_predecessor_troy_queries_2026-09-07.csv \
+	../data_raw/construction_review/residential_improvement_characteristics_full.csv \
+	../data_raw/construction_review/zoning_jan2016.zip \
+	../data_raw/construction_review/zoning_map_index.geojson \
+	../data_raw/construction_review/zoning_nov2012.zip \
+	../data_raw/construction_review/zoning_sep2014.zip \
+	../data_raw/construction_review/zoning_sep2025.geojson \
+	../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.cpg \
+	../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.dbf \
+	../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.prj \
+	../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.shp \
+	../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.shx \
+	../data_raw/illinois-250919-free/gis_osm_roads_free_1.cpg \
+	../data_raw/illinois-250919-free/gis_osm_roads_free_1.dbf \
+	../data_raw/illinois-250919-free/gis_osm_roads_free_1.prj \
+	../data_raw/illinois-250919-free/gis_osm_roads_free_1.shp \
+	../data_raw/illinois-250919-free/gis_osm_roads_free_1.shx \
+	../data_raw/illinois-250919-free/gis_osm_water_a_free_1.cpg \
+	../data_raw/illinois-250919-free/gis_osm_water_a_free_1.dbf \
+	../data_raw/illinois-250919-free/gis_osm_water_a_free_1.prj \
+	../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shp \
+	../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shx \
+	../data_raw/illinois-250919-free/gis_osm_waterways_free_1.cpg \
+	../data_raw/illinois-250919-free/gis_osm_waterways_free_1.dbf \
+	../data_raw/illinois-250919-free/gis_osm_waterways_free_1.prj \
+	../data_raw/illinois-250919-free/gis_osm_waterways_free_1.shp \
+	../data_raw/illinois-250919-free/gis_osm_waterways_free_1.shx \
+	../data_raw/replication_sources/fred_cpi_cuura207sa0_20260731.csv \
+	../data_raw/replication_sources/parcel_sales_city_2006_2022_20260826.csv \
+	../data_raw/replication_sources/residential_improvements_2006_2022_20260731.csv
+
+sources-2026-09-10.tar.gz: sources-2026-09-10.tar.gz.sha256
+	wget -O $@.tmp --no-use-server-timestamps https://github.com/JacobHerbstman/aldermanic_privilege/releases/download/recorded-sources-2026-09-10/sources-2026-09-10.tar.gz
+	sed 's/  sources-2026-09-10.tar.gz$$/  sources-2026-09-10.tar.gz.tmp/' sources-2026-09-10.tar.gz.sha256 | shasum -a 256 -c -
+	mv $@.tmp $@
+
+../data_raw/Chicago_Wards_1998.geojson \
+../data_raw/Wards_2014.geojson \
+../data_raw/Wards_2015.geojson \
+../data_raw/Wards_2024.geojson \
+../data_raw/construction_review/O2017-7056.pdf \
+../data_raw/construction_review/O2020-2959.pdf \
+../data_raw/construction_review/O2022-2464.pdf \
+../data_raw/construction_review/O2023-1331.pdf \
+../data_raw/construction_review/O2024-0008982.pdf \
+../data_raw/construction_review/O2024-0010153.pdf \
+../data_raw/construction_review/SO2017-7051.pdf \
+../data_raw/construction_review/SO2018-4452.pdf \
+../data_raw/construction_review/SO2018-7749.pdf \
+../data_raw/construction_review/SO2018-863.pdf \
+../data_raw/construction_review/SO2019-4107.pdf \
+../data_raw/construction_review/SO2023-43.pdf \
+../data_raw/construction_review/address_geocodes_census_2026-09-07.csv \
+../data_raw/construction_review/address_geocodes_census_additional_2026-09-07.csv \
+../data_raw/construction_review/address_geocodes_chicago_2026-09-07.csv \
+../data_raw/construction_review/address_geocodes_chicago_additional_2026-09-07.csv \
+../data_raw/construction_review/building_permits_full.csv \
+../data_raw/construction_review/campbell_parcels_2026-09-08.gpkg \
+../data_raw/construction_review/campbell_predecessor_parcels_2026-09-08.gpkg \
+../data_raw/construction_review/campbell_predecessor_queries_2026-09-08.csv \
+../data_raw/construction_review/campbell_queries_2026-09-08.csv \
+../data_raw/construction_review/commercial_valuation_data.csv \
+../data_raw/construction_review/density_historical_address_records_2026-09-04.csv \
+../data_raw/construction_review/density_historical_parcel_records_2026-09-04.csv \
+../data_raw/construction_review/east_64th_parcels_2026-09-08.gpkg \
+../data_raw/construction_review/east_64th_queries_2026-09-08.csv \
+../data_raw/construction_review/geneva_maud_parcels_2026-09-08.gpkg \
+../data_raw/construction_review/geneva_maud_queries_2026-09-08.csv \
+../data_raw/construction_review/geocoding_history_queries_2026-09-07.csv \
+../data_raw/construction_review/geocoding_parcel_history_2026-09-07.csv \
+../data_raw/construction_review/historical_parcel_requests_2026-09-04.csv \
+../data_raw/construction_review/historical_predecessor_parcels_2026-07-27.gpkg \
+../data_raw/construction_review/historical_predecessor_parcels_2026-09-07.gpkg \
+../data_raw/construction_review/historical_predecessor_queries_2026-07-27.csv \
+../data_raw/construction_review/historical_predecessor_queries_2026-09-07.csv \
+../data_raw/construction_review/historical_project_parcel_layers_2026-07-27.csv \
+../data_raw/construction_review/historical_project_parcel_queries_2026-07-27.csv \
+../data_raw/construction_review/historical_project_parcel_queries_2026-09-07.csv \
+../data_raw/construction_review/historical_project_parcel_queries_2026-09-08.csv \
+../data_raw/construction_review/historical_project_parcel_source_2026-07-27.gpkg \
+../data_raw/construction_review/historical_project_parcel_source_2026-09-07.gpkg \
+../data_raw/construction_review/historical_project_parcel_source_2026-09-08.gpkg \
+../data_raw/construction_review/history_reference_parcels_complete_2026-09-08.gpkg \
+../data_raw/construction_review/history_reference_queries_complete_2026-09-08.csv \
+../data_raw/construction_review/lake_park_direct_parcels_2026-09-08.gpkg \
+../data_raw/construction_review/lake_park_direct_queries_2026-09-08.csv \
+../data_raw/construction_review/lake_park_predecessor_parcels_2026-09-08.gpkg \
+../data_raw/construction_review/lake_park_predecessor_queries_2026-09-08.csv \
+../data_raw/construction_review/matters_20101101_20260212.csv \
+../data_raw/construction_review/official_building_footprints_2008.gpkg \
+../data_raw/construction_review/official_building_footprints_2022.gpkg \
+../data_raw/construction_review/parcel_addresses_2025_chicago_20260710.csv \
+../data_raw/construction_review/parcel_sales_city.csv \
+../data_raw/construction_review/parcel_universe_2025_city_native.csv \
+../data_raw/construction_review/predecessor_history_queries_2026-09-07.csv \
+../data_raw/construction_review/predecessor_parcel_history_2026-09-07.csv \
+../data_raw/construction_review/preferred_historical_parcel_source.gpkg \
+../data_raw/construction_review/preferred_historical_parcel_source_queries.csv \
+../data_raw/construction_review/preferred_parcel_evidence_2026-09-08.gpkg \
+../data_raw/construction_review/preferred_parcel_evidence_queries_2026-09-08.csv \
+../data_raw/construction_review/preferred_parcel_supplement_2026-09-07.gpkg \
+../data_raw/construction_review/preferred_parcel_supplement_2026-09-08.gpkg \
+../data_raw/construction_review/preferred_parcel_supplement_queries_2026-09-07.csv \
+../data_raw/construction_review/preferred_parcel_supplement_queries_2026-09-08.csv \
+../data_raw/construction_review/preferred_predecessor_parcel_source.gpkg \
+../data_raw/construction_review/preferred_predecessor_parcels_2026-09-07.gpkg \
+../data_raw/construction_review/preferred_predecessor_queries_2026-09-07.csv \
+../data_raw/construction_review/preferred_predecessor_source_queries.csv \
+../data_raw/construction_review/preferred_predecessor_troy_parcels_2026-09-07.gpkg \
+../data_raw/construction_review/preferred_predecessor_troy_queries_2026-09-07.csv \
+../data_raw/construction_review/residential_improvement_characteristics_full.csv \
+../data_raw/construction_review/zoning_jan2016.zip \
+../data_raw/construction_review/zoning_map_index.geojson \
+../data_raw/construction_review/zoning_nov2012.zip \
+../data_raw/construction_review/zoning_sep2014.zip \
+../data_raw/construction_review/zoning_sep2025.geojson \
+../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.cpg \
+../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.dbf \
+../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.prj \
+../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.shp \
+../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.shx \
+../data_raw/illinois-250919-free/gis_osm_roads_free_1.cpg \
+../data_raw/illinois-250919-free/gis_osm_roads_free_1.dbf \
+../data_raw/illinois-250919-free/gis_osm_roads_free_1.prj \
+../data_raw/illinois-250919-free/gis_osm_roads_free_1.shp \
+../data_raw/illinois-250919-free/gis_osm_roads_free_1.shx \
+../data_raw/illinois-250919-free/gis_osm_water_a_free_1.cpg \
+../data_raw/illinois-250919-free/gis_osm_water_a_free_1.dbf \
+../data_raw/illinois-250919-free/gis_osm_water_a_free_1.prj \
+../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shp \
+../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shx \
+../data_raw/illinois-250919-free/gis_osm_waterways_free_1.cpg \
+../data_raw/illinois-250919-free/gis_osm_waterways_free_1.dbf \
+../data_raw/illinois-250919-free/gis_osm_waterways_free_1.prj \
+../data_raw/illinois-250919-free/gis_osm_waterways_free_1.shp \
+../data_raw/illinois-250919-free/gis_osm_waterways_free_1.shx \
+../data_raw/replication_sources/fred_cpi_cuura207sa0_20260731.csv \
+../data_raw/replication_sources/parcel_sales_city_2006_2022_20260826.csv \
+../data_raw/replication_sources/residential_improvements_2006_2022_20260731.csv: sources-2026-09-10.tar.gz sources-2026-09-10.tar.gz.sha256
+	shasum -a 256 -c sources-2026-09-10.tar.gz.sha256
+	tar -xmzf sources-2026-09-10.tar.gz -C ..
+
+build-source-archive: source-archive-current.tar.gz
+
+source-archive-current.tar.gz: Makefile source_files.txt \
+	../data_raw/Chicago_Wards_1998.geojson \
+	../data_raw/Wards_2014.geojson \
+	../data_raw/Wards_2015.geojson \
+	../data_raw/Wards_2024.geojson \
+	../data_raw/construction_review/O2017-7056.pdf \
+	../data_raw/construction_review/O2020-2959.pdf \
+	../data_raw/construction_review/O2022-2464.pdf \
+	../data_raw/construction_review/O2023-1331.pdf \
+	../data_raw/construction_review/O2024-0008982.pdf \
+	../data_raw/construction_review/O2024-0010153.pdf \
+	../data_raw/construction_review/SO2017-7051.pdf \
+	../data_raw/construction_review/SO2018-4452.pdf \
+	../data_raw/construction_review/SO2018-7749.pdf \
+	../data_raw/construction_review/SO2018-863.pdf \
+	../data_raw/construction_review/SO2019-4107.pdf \
+	../data_raw/construction_review/SO2023-43.pdf \
+	../data_raw/construction_review/address_geocodes_census_2026-09-07.csv \
+	../data_raw/construction_review/address_geocodes_census_additional_2026-09-07.csv \
+	../data_raw/construction_review/address_geocodes_chicago_2026-09-07.csv \
+	../data_raw/construction_review/address_geocodes_chicago_additional_2026-09-07.csv \
+	../data_raw/construction_review/building_permits_full.csv \
+	../data_raw/construction_review/campbell_parcels_2026-09-08.gpkg \
+	../data_raw/construction_review/campbell_predecessor_parcels_2026-09-08.gpkg \
+	../data_raw/construction_review/campbell_predecessor_queries_2026-09-08.csv \
+	../data_raw/construction_review/campbell_queries_2026-09-08.csv \
+	../data_raw/construction_review/commercial_valuation_data.csv \
+	../data_raw/construction_review/density_historical_address_records_2026-09-04.csv \
+	../data_raw/construction_review/density_historical_parcel_records_2026-09-04.csv \
+	../data_raw/construction_review/east_64th_parcels_2026-09-08.gpkg \
+	../data_raw/construction_review/east_64th_queries_2026-09-08.csv \
+	../data_raw/construction_review/geneva_maud_parcels_2026-09-08.gpkg \
+	../data_raw/construction_review/geneva_maud_queries_2026-09-08.csv \
+	../data_raw/construction_review/geocoding_history_queries_2026-09-07.csv \
+	../data_raw/construction_review/geocoding_parcel_history_2026-09-07.csv \
+	../data_raw/construction_review/historical_parcel_requests_2026-09-04.csv \
+	../data_raw/construction_review/historical_predecessor_parcels_2026-07-27.gpkg \
+	../data_raw/construction_review/historical_predecessor_parcels_2026-09-07.gpkg \
+	../data_raw/construction_review/historical_predecessor_queries_2026-07-27.csv \
+	../data_raw/construction_review/historical_predecessor_queries_2026-09-07.csv \
+	../data_raw/construction_review/historical_project_parcel_layers_2026-07-27.csv \
+	../data_raw/construction_review/historical_project_parcel_queries_2026-07-27.csv \
+	../data_raw/construction_review/historical_project_parcel_queries_2026-09-07.csv \
+	../data_raw/construction_review/historical_project_parcel_queries_2026-09-08.csv \
+	../data_raw/construction_review/historical_project_parcel_source_2026-07-27.gpkg \
+	../data_raw/construction_review/historical_project_parcel_source_2026-09-07.gpkg \
+	../data_raw/construction_review/historical_project_parcel_source_2026-09-08.gpkg \
+	../data_raw/construction_review/history_reference_parcels_complete_2026-09-08.gpkg \
+	../data_raw/construction_review/history_reference_queries_complete_2026-09-08.csv \
+	../data_raw/construction_review/lake_park_direct_parcels_2026-09-08.gpkg \
+	../data_raw/construction_review/lake_park_direct_queries_2026-09-08.csv \
+	../data_raw/construction_review/lake_park_predecessor_parcels_2026-09-08.gpkg \
+	../data_raw/construction_review/lake_park_predecessor_queries_2026-09-08.csv \
+	../data_raw/construction_review/matters_20101101_20260212.csv \
+	../data_raw/construction_review/official_building_footprints_2008.gpkg \
+	../data_raw/construction_review/official_building_footprints_2022.gpkg \
+	../data_raw/construction_review/parcel_addresses_2025_chicago_20260710.csv \
+	../data_raw/construction_review/parcel_sales_city.csv \
+	../data_raw/construction_review/parcel_universe_2025_city_native.csv \
+	../data_raw/construction_review/predecessor_history_queries_2026-09-07.csv \
+	../data_raw/construction_review/predecessor_parcel_history_2026-09-07.csv \
+	../data_raw/construction_review/preferred_historical_parcel_source.gpkg \
+	../data_raw/construction_review/preferred_historical_parcel_source_queries.csv \
+	../data_raw/construction_review/preferred_parcel_evidence_2026-09-08.gpkg \
+	../data_raw/construction_review/preferred_parcel_evidence_queries_2026-09-08.csv \
+	../data_raw/construction_review/preferred_parcel_supplement_2026-09-07.gpkg \
+	../data_raw/construction_review/preferred_parcel_supplement_2026-09-08.gpkg \
+	../data_raw/construction_review/preferred_parcel_supplement_queries_2026-09-07.csv \
+	../data_raw/construction_review/preferred_parcel_supplement_queries_2026-09-08.csv \
+	../data_raw/construction_review/preferred_predecessor_parcel_source.gpkg \
+	../data_raw/construction_review/preferred_predecessor_parcels_2026-09-07.gpkg \
+	../data_raw/construction_review/preferred_predecessor_queries_2026-09-07.csv \
+	../data_raw/construction_review/preferred_predecessor_source_queries.csv \
+	../data_raw/construction_review/preferred_predecessor_troy_parcels_2026-09-07.gpkg \
+	../data_raw/construction_review/preferred_predecessor_troy_queries_2026-09-07.csv \
+	../data_raw/construction_review/residential_improvement_characteristics_full.csv \
+	../data_raw/construction_review/zoning_jan2016.zip \
+	../data_raw/construction_review/zoning_map_index.geojson \
+	../data_raw/construction_review/zoning_nov2012.zip \
+	../data_raw/construction_review/zoning_sep2014.zip \
+	../data_raw/construction_review/zoning_sep2025.geojson \
+	../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.cpg \
+	../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.dbf \
+	../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.prj \
+	../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.shp \
+	../data_raw/illinois-250919-free/gis_osm_landuse_a_free_1.shx \
+	../data_raw/illinois-250919-free/gis_osm_roads_free_1.cpg \
+	../data_raw/illinois-250919-free/gis_osm_roads_free_1.dbf \
+	../data_raw/illinois-250919-free/gis_osm_roads_free_1.prj \
+	../data_raw/illinois-250919-free/gis_osm_roads_free_1.shp \
+	../data_raw/illinois-250919-free/gis_osm_roads_free_1.shx \
+	../data_raw/illinois-250919-free/gis_osm_water_a_free_1.cpg \
+	../data_raw/illinois-250919-free/gis_osm_water_a_free_1.dbf \
+	../data_raw/illinois-250919-free/gis_osm_water_a_free_1.prj \
+	../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shp \
+	../data_raw/illinois-250919-free/gis_osm_water_a_free_1.shx \
+	../data_raw/illinois-250919-free/gis_osm_waterways_free_1.cpg \
+	../data_raw/illinois-250919-free/gis_osm_waterways_free_1.dbf \
+	../data_raw/illinois-250919-free/gis_osm_waterways_free_1.prj \
+	../data_raw/illinois-250919-free/gis_osm_waterways_free_1.shp \
+	../data_raw/illinois-250919-free/gis_osm_waterways_free_1.shx \
+	../data_raw/replication_sources/fred_cpi_cuura207sa0_20260731.csv \
+	../data_raw/replication_sources/parcel_sales_city_2006_2022_20260826.csv \
+	../data_raw/replication_sources/residential_improvements_2006_2022_20260731.csv
+	COPYFILE_DISABLE=1 tar -C .. -czf $@.tmp -T source_files.txt
+	mv $@.tmp $@
+
+.PHONY: build-source-archive

@@ -1,0 +1,13 @@
+File: address_geocodes_chicago.csv
+Rows: 197
+Columns: 3
+SHA-256 (saved bytes): 067525407eef23ed07e28f4431269c383720e35f652d85913ed9e99ef8223a04
+Key: selected_address
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+          column inferred_type non_missing distinct min max mean sd
+selected_address       VARCHAR         197      197   -   -    -  -
+   address_query       VARCHAR         197      197   -   -    -  -
+   response_json       VARCHAR         197      195   -   -    -  -

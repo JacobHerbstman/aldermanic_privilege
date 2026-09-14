@@ -1,0 +1,13 @@
+File: score_covariate_comparison.csv
+Rows: 10
+Columns: 3
+SHA-256 (saved bytes): 188463b08367fc1987712071edd75990f087ff53aaad017d37c9c13f398b07c7
+Key: term
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct                   min                max               mean                 sd
+                  term       VARCHAR          10       10                     -                  -                  -                  -
+sequential_coefficient        DOUBLE          10       10 -0.016815648692271954 0.5297938890080728 0.1323260483232543 0.2023238947213625
+     joint_coefficient        DOUBLE          10       10  -0.06258938535343662  2.240362039789883 0.7308466339206421 0.9913745508022566

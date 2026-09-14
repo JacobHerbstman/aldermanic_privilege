@@ -1,0 +1,18 @@
+File: boundary_feature_measurements.csv
+Rows: 2435
+Columns: 8
+SHA-256 (saved bytes): a3857cbf58efba05f50528648966714f72b0c6cc549b4b81af695f7ea335ada1
+Key: segment_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                   column inferred_type non_missing distinct                min                max                 mean                   sd
+               segment_id       VARCHAR        2435     2435                  -                  -                    -                    -
+        segment_length_ft        DOUBLE        2435     2427 10.013376054993406 1965.2452099191446   1249.6084088662874   282.96004376675137
+    expressway_overlap_ft        DOUBLE        2435      287                0.0 1640.9627645306955     81.8869904412719   279.91473750387485
+major_overlap_arterial_ft        DOUBLE        2435     1162                0.0  1597.147928871321   344.19838673316156   508.21089452807206
+      waterway_overlap_ft        DOUBLE        2435      123                0.0 1390.5065701265019    39.21111403438057   211.27791469094825
+         water_area_share        DOUBLE        2435      166                0.0                1.0    0.027007285156249  0.13877469529701505
+          park_area_share        DOUBLE        2435     1142                0.0                1.0  0.08446218637223767   0.1695735720204722
+      cemetery_area_share        DOUBLE        2435       33                0.0 0.6341376702455331 0.002580235962097687 0.027903239598222815

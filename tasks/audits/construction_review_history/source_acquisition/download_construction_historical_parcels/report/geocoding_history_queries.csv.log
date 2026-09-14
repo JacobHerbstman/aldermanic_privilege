@@ -1,0 +1,11 @@
+File: geocoding_history_queries.csv
+Rows: 219
+Columns: 1
+SHA-256 (saved bytes): 0d9eb8ae8ff36e90e6ea425199f660d5065a3983ef1bbe559abb293a0e096587
+Key: pin
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+column inferred_type non_missing distinct            min            max              mean                 sd
+   pin        BIGINT         219      219 10253280110000 26071050350000 16956975329360.73 2425801264857.1343

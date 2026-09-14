@@ -16,6 +16,13 @@ tasks/*/code/run.sbatch
 # --- Raw & Intermediate Data ---
 # Ignore raw data by default, except static files required for replication.
 data_raw/*
+!data_raw/replication_sources/
+data_raw/replication_sources/*
+!data_raw/replication_sources/README.md
+!data_raw/construction_review/
+data_raw/construction_review/*
+!data_raw/construction_review/README.md
+!data_raw/construction_review/SHA256SUMS
 !data_raw/Wards_2014.geojson
 !data_raw/Wards_2015.geojson
 !data_raw/illinois-250919-free.sha256
@@ -45,7 +52,23 @@ CLAUDE.md
 
 
 # Local remnants from the research-archive branch.
-tasks/audits/
+tasks/audits/*
+!tasks/audits/construction_review_history/
+!tasks/audits/commercial_construction_review/
+tasks/audits/commercial_construction_review/input/
+tasks/audits/commercial_construction_review/output/
+tasks/audits/commercial_construction_review/temp/
+!tasks/audits/commercial_construction_review/report/*.csv.log
+!tasks/audits/density_common_sample/
+tasks/audits/density_common_sample/input/
+tasks/audits/density_common_sample/output/
+tasks/audits/density_common_sample/temp/
+!tasks/audits/density_common_sample/report/*.csv.log
+!tasks/audits/density_window_comparison/
+tasks/audits/density_window_comparison/input/
+tasks/audits/density_window_comparison/output/
+tasks/audits/density_window_comparison/temp/
+!tasks/audits/density_window_comparison/report/*.csv.log
 tasks/archive/
 tasks/_deprecated/
 
@@ -82,3 +105,56 @@ tasks/create_event_study_permit_data/code/manual_permit_block_review.csv
 # Ignore auto-generated R graphics in any code/ folder
 Rplots.pdf
 **/code/Rplots.pdf
+
+# Historical ward maps used by construction discovery.
+!/data_raw/Chicago_Wards_1998.geojson
+!/data_raw/Wards_2024.geojson
+
+# Compiled research logbook.
+/logbook/*.pdf
+/logbook/*.aux
+/logbook/*.log
+/logbook/*.out
+/logbook/*.toc
+
+# Standard data reports remain versioned.
+!tasks/*/report/
+!tasks/*/report/*.csv.log
+
+# Versioned source archive is distributed separately from Git.
+/replication/*.tar.gz
+/replication/*.tmp
+!data_raw/construction_review/construction_condominium_history_20260909.csv
+
+# Final construction decisions and preserved zoning history are replication inputs.
+!tasks/new_construction_cleaning/output/
+!tasks/construction_zoning_history/output/
+!tasks/construction_*/report/*.gpkg.log
+
+!tasks/audits/construction_review_history/report/*.log
+
+# Historical review code retains documents and decisions, not disposable caches.
+tasks/audits/construction_review_history/**/input/
+tasks/audits/construction_review_history/**/output/
+tasks/audits/construction_review_history/**/temp/
+!tasks/audits/construction_review_history/**/report/*.log
+!tasks/audits/construction_review_history/report/**/*.log
+!tasks/prepare_new_construction/report/*.gpkg.log
+
+# Reusable sales audits.
+!tasks/audits/sales_price_tail_audit/
+tasks/audits/sales_price_tail_audit/input/
+tasks/audits/sales_price_tail_audit/output/
+tasks/audits/sales_price_tail_audit/temp/
+!tasks/audits/sales_price_tail_audit/report/*.log
+!tasks/audits/sales_record_quality_audit/
+tasks/audits/sales_record_quality_audit/input/
+tasks/audits/sales_record_quality_audit/output/
+tasks/audits/sales_record_quality_audit/temp/
+!tasks/audits/sales_record_quality_audit/report/*.log
+!tasks/audits/sales_sample_definition_audit/
+tasks/audits/sales_sample_definition_audit/input/
+tasks/audits/sales_sample_definition_audit/output/
+tasks/audits/sales_sample_definition_audit/temp/
+!tasks/audits/sales_sample_definition_audit/report/*.log
+!tasks/download_construction_historical_parcels/report/*.gpkg.log

@@ -1,0 +1,15 @@
+File: preferred_new_construction_project_centroids.gpkg
+Rows: 13675
+Columns: 5
+SHA-256 (saved bytes): e664414c1bc730bd91d4ea4a8f7af5fa7cc618929eca8bac3dac6a71a81f262c
+Key: project_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct min   max   mean                 sd
+              fid        BIGINT       13675    13675   1 13675 6838.0 3947.7768005127477
+       project_id       VARCHAR       13675    13675   -     -      -                  -
+      parcel_pins       VARCHAR       13588    11214   -     -      -                  -
+geometry_evidence       VARCHAR       13675    11429   -     -      -                  -
+  geometry_source       VARCHAR       13675        9   -     -      -                  -

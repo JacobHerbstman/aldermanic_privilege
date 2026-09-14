@@ -137,8 +137,8 @@ Processing time is negatively associated with ward-month permit volume for high-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.78\textwidth]{../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf}
-    \caption{Alderman-Level Mean Processing Time for High- and Low-Discretion Permits}
-\figurenotes{The figure plots the distribution of alderman-level mean permit processing times separately for high- and low-discretion permit groups, using permit records through December 2022.
+    \caption{Permit Processing Times Across Aldermen}
+\figurenotes{The curves show how mean processing times vary across aldermen, separately for high- and low-discretion permits, using records through December 2022.
 The high- and low-discretion permit groups are defined in Section~\ref{subsec:permit_pipeline}.
 Processing time is days from application to issuance.}
     \label{fig:permit_high_low_processing}
@@ -167,9 +167,9 @@ Ward-months are weighted by the number of permits observed:
 %
 Here $a(w,m)$ denotes the alderman serving ward $w$ in month $m$.
 The raw alderman fixed effects $\hat{\alpha}_a$ can be noisy for aldermen with few permits.
-I therefore apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to pull imprecise estimates toward the grand mean, then standardize the final scores, denoted $S_a$, to have mean zero and unit standard deviation.
+I therefore apply empirical Bayes shrinkage \citep{kline_systemic_2022, kline_discrimination_2024} to pull imprecise estimates toward the grand mean, then standardize the scores, denoted $S_a$, to have mean zero and unit standard deviation.
 
-\onlineappendixlink{Figure B.1}{fig:stringency_diagnostics} maps the final stringency scores in 2014 and 2022, shows their distribution, and reports a low within-ward correlation between predecessor and successor aldermen ($\rho \approx 0.16$).
+\onlineappendixlink{Figure B.1}{fig:stringency_diagnostics} maps the stringency scores in 2014 and 2022, shows their distribution, and reports a low within-ward correlation between predecessor and successor aldermen ($\rho \approx 0.16$).
 The scores vary across wealthy and poor neighborhoods and across the North and South Sides, supporting an alderman-specific rather than ward-level interpretation.
 
 \subsection{New Construction Data}
@@ -182,15 +182,16 @@ I locate each project using Assessor parcel records, assign it to a ward using C
 For the boundary-discontinuity analyses, I divide ward boundaries into approximately 1,320-foot segments and assign each project to the nearest segment.
 Because some ward boundaries are several miles long, the segments ensure that compared projects are near both the same boundary and each other.
 I keep projects with positive lot area, positive building area, and at least one dwelling unit.
+The FAR and DUPAC analyses use the same projects with both measures available.
 
 Because zoning measured today may reflect subsequent changes, I assign each project the broad zoning group in force on its assigned construction date.
 \onlineappendixlink{A.4}{subsec:new_construction_sample} describes the historical zoning reconstruction.
 
 For each project I compute two standard density measures: Floor Area Ratio (FAR), defined as total building area divided by lot area, and Dwelling Units Per Acre (DUPAC), defined as dwelling units divided by lot acreage.
-Distance to the nearest ward boundary is computed after projecting project locations and boundaries to the Illinois East State Plane coordinate system and is reported in feet.
+I measure each project's distance to its nearest ward boundary.
 
 Table~\ref{tab:summary_stats} presents summary statistics.
-The estimation sample contains 3,692 new residential projects within 500~ft of a ward boundary, including 822 classified as multifamily.
+The descriptive sample contains 13,635 new residential projects throughout Chicago with both density measures available, including 2,582 classified as multifamily.
 I report the multifamily sample separately because aldermanic discretion is likely to matter most for larger projects.
 
 \input{../tasks/density_main_results/output/density_sample_summary.tex}
@@ -206,8 +207,9 @@ Rents are expressed in 2022 dollars using the monthly Chicago CPI-U.
 \label{subsec:home_sales}
 
 Home sales come from Cook County Assessor records.
-I use valid market transactions of single-family homes and small multifamily buildings (2--6 units) from 2006 through 2022.
-Prices are expressed in 2022 dollars using the monthly Chicago CPI-U and winsorized at the 1st and 99th percentiles.
+I use filtered transactions of single-family homes, townhouses, and small multifamily buildings (2--6 units) from 2006 through 2022.
+Prices are expressed in 2022 dollars using the monthly Chicago CPI-U.
 Full 14-digit property index numbers (PINs) determine location and date-specific ward assignments, and same-year Assessor records provide property characteristics.
+I exclude transactions whose exact day is unavailable when an adjoining ward changes aldermen or the ward map changes during the reported month.
 
 \onlineappendixlink{A}{app:data_sources} provides additional detail on the rental and home sales data.

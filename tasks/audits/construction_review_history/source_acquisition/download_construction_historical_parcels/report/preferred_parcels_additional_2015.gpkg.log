@@ -1,0 +1,17 @@
+File: preferred_parcels_additional_2015.gpkg
+Rows: 0
+Columns: 7
+SHA-256 (saved bytes): c70b7a4b01e821daaaefa4dfa11f9182f877fe4793583f725dfdd13b8700afe0
+Key: target_year, object_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct min max mean sd
+           fid       INTEGER           0        0   -   -    -  -
+   target_year       INTEGER           0        0   -   -    -  -
+      layer_id       INTEGER           0        0   -   -    -  -
+     object_id       INTEGER           0        0   -   -    -  -
+         pin14       INTEGER           0        0   -   -    -  -
+         pin10       INTEGER           0        0   -   -    -  -
+geometry_valid       INTEGER           0        0   -   -    -  -

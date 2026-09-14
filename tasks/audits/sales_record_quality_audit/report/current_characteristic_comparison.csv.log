@@ -1,0 +1,26 @@
+File: current_characteristic_comparison.csv
+Rows: 69
+Columns: 16
+SHA-256 (saved bytes): 0edfa711a2b69dae03ca42e8d9716331b7d81161476c6be2cf4a1d27cc77d5af
+Key: row_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                    column inferred_type non_missing distinct            min            max               mean                 sd
+                    row_id        BIGINT          69       69        7164863       98458530  80325145.49275362 35439215.510861605
+                       pin        BIGINT          69       62 11311030280000 25281140210000 17607168646666.668 3914652090989.6606
+                 sale_year        BIGINT          69       17           2006           2022             2014.0 5.8359937910705915
+                in_main_rd       BOOLEAN          69        2              -              -                  -                  -
+             nominal_price        BIGINT          69       66          23500      225000001  11458668.11594203 40544489.797685064
+             original_sqft        BIGINT          69       62            680           8910  2401.855072463768 1608.9938605827583
+       original_year_built        BIGINT          69       39           1881           2007 1928.2028985507247 33.219227117715754
+            original_rooms        BIGINT          69       14              2             24  6.028985507246377 3.8193432392492093
+         original_bedrooms        BIGINT          69       14              2             42  6.463768115942029  5.797006606214785
+  current_exact_year_found       BOOLEAN          69        1              -              -                  -                  -
+current_exact_year_changed       BOOLEAN          69        1              -              -                  -                  -
+   first_later_change_year        BIGINT          39       13           2008           2024 2019.1538461538462  5.431576593540682
+                later_sqft        BIGINT          39       37           1008           8910  3124.358974358974 1650.3937885304747
+          later_year_built        BIGINT          39       25           1888           2022 1944.2051282051282  45.90389244313058
+               later_rooms        BIGINT          39       16              4             32 10.948717948717949  6.320179535877283
+            later_bedrooms        BIGINT          39       12              2             20  6.589743589743589    4.3208061426078

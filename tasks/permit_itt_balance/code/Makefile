@@ -1,19 +1,20 @@
+include ../../shared/code/shell_functions.make
+
 BANDWIDTH_M ?= 152.4
 BANDWIDTH_LABEL ?= 500ft
 BASELINE_YEAR ?= 2014
 
 all: ../output/permit_itt_balance_$(BANDWIDTH_LABEL).tex
 
-../output/permit_itt_balance_$(BANDWIDTH_LABEL).tex: build_permit_itt_balance.R ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv Makefile | ../output
+../output/permit_itt_balance_$(BANDWIDTH_LABEL).tex: build_permit_itt_balance.R ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv Makefile ../../setup_environment/code/packages.R | ../output
 	$(R) $< $(BANDWIDTH_M) $(BANDWIDTH_LABEL) $(BASELINE_YEAR)
 
 ../input/permit_block_year_panel_2015.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 ../input/block_group_controls.csv: ../../create_block_group_controls/output/block_group_controls.csv | ../input
-	@test "$$(readlink "$@" 2>/dev/null)" = "$<" || ln -sf "$<" "$@"
+	ln -sf $< $@
 
 link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/block_group_controls.csv
 
-include ../../shell_functions.make
-include ../../generic.make
+include ../../shared/code/generic.make

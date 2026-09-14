@@ -1,0 +1,23 @@
+File: block_group_controls.csv
+Rows: 3993
+Columns: 13
+SHA-256 (saved bytes): 1119ed906c823c389ddcd5d01a4b0ecc576758c229173e3defa124ad74b6554d
+Key: GEOID
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct          min                max                mean                  sd
+             GEOID        BIGINT        3993     3993 170310101001       170319900000  170315867988.41574  2925293.9336269884
+              year        BIGINT        3993        1         2014               2014              2014.0                 0.0
+     percent_white        DOUBLE        3984     3593          0.0                1.0  0.4268723724550836  0.3325940960735494
+     percent_black        DOUBLE        3984     2839          0.0                1.0 0.27114645402468635  0.3710691402875751
+  percent_hispanic        DOUBLE        3984     3423          0.0                1.0  0.2268658612975339 0.27388838393102904
+homeownership_rate        DOUBLE        3983     3636          0.0                1.0   0.588997759193422  0.2701642306986246
+       median_rent        BIGINT        3248     1032          200               2001  1035.4316502463055   316.2570173520888
+ median_home_value        BIGINT        3883     2385         9999            1000001    243320.244141128  146613.23602530267
+     median_income        BIGINT        3979     3489         4042             250001  60072.613470721284   33052.45625727975
+   share_bach_plus        DOUBLE        3984     3847          0.0 0.9876425855513308 0.33382586390876673  0.2440725824737951
+avg_household_size        DOUBLE        3981      363         1.02               5.99   2.779487565938206  0.6920986500242982
+        median_age        DOUBLE        3982      436         14.0               84.9    37.6009291813159   8.602585244373866
+population_density        DOUBLE        3992     3985          0.0 123096.33436348212  5786.8437540559535  6865.7017153030865

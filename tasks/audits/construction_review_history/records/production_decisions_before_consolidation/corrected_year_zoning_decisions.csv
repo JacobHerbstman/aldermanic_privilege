@@ -1,0 +1,13 @@
+project_id,construction_year,construction_zone_group,decision_source,decision_note
+commercial_13143310300000,2019,Planned Development,ordinance_history,"Ordinance 19273 was adopted in 2017, before the corrected 2019 construction year."
+commercial_14194140460000,2015,Planned Development,ordinance_history,"Ordinance 18029 was adopted July 30, 2014, before the corrected 2015 construction year."
+commercial_17064080140000,2013,Multi-Family Residential,official_snapshot_and_ordinance_date,"The November 2012 map applies because the October 16, 2013 rezoning followed the June 15 construction-date proxy."
+commercial_17073270380000,2007,Neighborhood Mixed-Use,official_snapshot_and_ordinance_date,"The 2006 reconstruction and the January 13, 2011 ordinance place the corrected 2007 project in the earlier neighborhood mixed-use district."
+residential_16013130430000,2009,Neighborhood Mixed-Use,ordinance_history,"Ordinance 15507 was adopted June 28, 2006, before the corrected 2009 construction year."
+residential_16013130440000,2007,Neighborhood Mixed-Use,ordinance_history,"Ordinance 15507 was adopted June 28, 2006, before the corrected 2007 construction year."
+residential_16013130450000,2009,Neighborhood Mixed-Use,ordinance_history,"Ordinance 15507 was adopted June 28, 2006, before the corrected 2009 construction year."
+residential_16364290100000,2016,Planned Development,ordinance_history,"Ordinance 18352 was adopted July 29, 2015, before the corrected 2016 construction year."
+residential_16364290120000,2016,Planned Development,ordinance_history,"Ordinance 18352 was adopted July 29, 2015, before the corrected 2016 construction year."
+residential_17072080540000,2014,Multi-Family Residential,ordinance_history,"Ordinance 17860 was adopted December 11, 2013, before the corrected 2014 construction year."
+residential_17091190240000,2006,Planned Development,validated_historical_zoning,"The reviewed 2006 historical zoning assignment identifies this parcel as planned development."
+residential_17211280030000,2009,Downtown,ordinance_history,"The September 13, 2006 downtown rezoning predates the corrected 2009 construction year."

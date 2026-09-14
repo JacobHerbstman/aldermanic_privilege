@@ -1,0 +1,15 @@
+File: sales_sample_definition_deed_composition.csv
+Rows: 33
+Columns: 5
+SHA-256 (saved bytes): 454f9a7f4ffc44ae3f66e1592cda9781b2fef6425f120b5944fc0cf7a7f53049
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct                  min               max               mean                  sd
+        sample       VARCHAR          33        6                    -                 -                  -                   -
+sale_deed_type       VARCHAR          32        3                    -                 -                  -                   -
+   mydec_group       VARCHAR          33        4                    -                 -                  -                   -
+             N        BIGINT          33       24                    1            126348 47455.545454545456    45956.1068018243
+         share        DOUBLE          33       33 3.36951064596889e-06 0.528753063404621 0.1818181818181818 0.18018603394957705

@@ -1,0 +1,22 @@
+File: prior_construction_decision_review.csv
+Rows: 10
+Columns: 12
+SHA-256 (saved bytes): 02b1685c8d5f80866f438ceb2694f96a37eff9be9671996f0cc5512270d085ee
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                       column inferred_type non_missing distinct min max              mean                 sd
+                   project_id       VARCHAR          10       10   -   -                 -                  -
+                         site       VARCHAR          10       10   -   -                 -                  -
+                review_result       VARCHAR          10        1   -   -                 -                  -
+            verified_findings       VARCHAR          10       10   -   -                 -                  -
+           remaining_question       VARCHAR           0        0   -   -                 -                  -
+expected_retained_project_ids       VARCHAR           1        1   -   -                 -                  -
+             candidate_status       VARCHAR          10        2   -   -                 -                  -
+              decision_reason       VARCHAR          10        8   -   -                 -                  -
+      replacement_project_ids       VARCHAR           5        5   -   -                 -                  -
+            retained_projects        BIGINT           6        4   1   8               3.0 2.6832815729997472
+               retained_units        BIGINT           6        5   1  12 4.833333333333333    4.3089055068157
+        retained_measurements       VARCHAR           6        6   -   -                 -                  -

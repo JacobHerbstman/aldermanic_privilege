@@ -1,0 +1,80 @@
+File: rent_pre_scores_full.parquet
+Rows: 1434871
+Columns: 70
+SHA-256 (saved bytes): ce6a70d874736b09d444dda265c612e45facc9e12f9ac74d3f4baaec5a723568
+Key: rent_panel_id
+Types: Stored Parquet schema.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                        column inferred_type non_missing distinct                  min                max                 mean                   sd
+                                 rent_panel_id       VARCHAR     1434871  1569088                    -                  -                    -                    -
+                                  analysis_key       VARCHAR     1434871   512432                    -                  -                    -                    -
+                                    key_source       VARCHAR     1434871        1                    -                  -                    -                    -
+                                   property_id       VARCHAR           0        0                    -                  -                    -                    -
+                                       unit_id       VARCHAR           0        0                    -                  -                    -                    -
+                                  property_key       VARCHAR     1434871   215292                    -                  -                    -                    -
+                                 floorplan_key       VARCHAR     1434871   512432                    -                  -                    -                    -
+                                  address_norm       VARCHAR     1320204   189676                    -                  -                    -                    -
+                               address_missing       INTEGER     1434871        2                    0                  1   0.0799145010248308   0.2711608835997017
+                                   month_start          DATE     1434871       96                    -                  -                    -                    -
+                           first_observed_date          DATE     1434871     2622                    -                  -                    -                    -
+                           first_observed_rent        DOUBLE     1434871    10952                490.0            16713.0   1971.0895160679947   1024.1539762509656
+                                   active_days       INTEGER     1434871       29                    1                 31   3.4943677863724334      4.3184844292123
+                          distinct_daily_rents       INTEGER     1434871       26                    1                 25   1.5503818810192693   1.6181001335380765
+                               multi_rent_days        DOUBLE     1434871       32                  0.0               31.0   0.6155403517110597   2.3615780248978457
+                         same_rent_repeat_days        DOUBLE     1434871       32                  0.0               31.0   0.3179770167492409   1.7996957032464993
+                                raw_rows_month        DOUBLE     1434871      553                  1.0             1795.0   5.7940135384992795   15.806166492912364
+                                            id       VARCHAR     1434871  1327405                    -                  -                    -                    -
+                                    rent_price        DOUBLE     1434871   350134    581.1620284598174  19336.59893573796    2262.053017827282   1161.2084676372906
+                                 building_type       VARCHAR     1396011       17                    -                  -                    -                    -
+                           building_type_clean       VARCHAR     1434871        6                    -                  -                    -                    -
+                                          beds        DOUBLE     1434871       10                  0.0                8.0   1.6208871738295638   1.0477770335659695
+                                         baths        DOUBLE     1431091       18                  0.0                8.0   1.3189397809084118    0.545969505998513
+                                          sqft        DOUBLE      922281     2761                233.0             6000.0    983.3199176823549   440.15880368166677
+                                       laundry       INTEGER     1434871        2                    0                  1  0.48570498672006057   0.4997957849809609
+                                           gym       INTEGER     1434871        2                    0                  1  0.19186393759439002    0.393766777553978
+                                       doorman       INTEGER     1434871        2                    0                  1  0.13200768570833196  0.33849924147232613
+                                     furnished       INTEGER     1434871        2                    0                  1 0.043216428515176625  0.20334403762749478
+                                          pool       INTEGER     1434871        2                    0                  1  0.17577608021905802  0.38062967673566866
+                                    year_built        DOUBLE        9865       67               1866.0             2017.0   1993.6003041054232   31.301649934694968
+                                available_date          DATE       43087      849                    -                  -                    -                    -
+                                     file_date          DATE     1434871       96                    -                  -                    -                    -
+                                      latitude        DOUBLE     1434871   135968           41.6449348           42.02293    41.89777029496656  0.06366782933388059
+                                     longitude        DOUBLE     1434871   102341             -87.9264           -87.5249   -87.64896243034842  0.03908890855610819
+                                modal_latitude        DOUBLE     1320204    72730             41.63051          42.038322    41.89647948050831   0.0634593304526166
+                               modal_longitude        DOUBLE     1320204    45215             -87.9264         -87.525406    -87.6483116128567  0.03904682607125253
+flag_geometry_uses_address_location_correction       BOOLEAN     1434871        2                    -                  -                    -                    -
+                    flag_location_questionable       BOOLEAN     1434871        2                    -                  -                    -                    -
+                       location_quality_status       VARCHAR     1434871        5                    -                  -                    -                    -
+                               assignment_date          DATE     1434871     2622                    -                  -                    -                    -
+                              renthub_latitude        DOUBLE     1434871   144760            41.573035          42.043514   41.897759850843116  0.06370813560179549
+                             renthub_longitude        DOUBLE     1434871    89354            -88.09281           -87.5249   -87.64899861226667 0.039135565127982844
+                                 boundary_year       INTEGER     1434871        2                 2003               2015    2012.230518980452    5.056062196327887
+                                           era       VARCHAR     1434871        2                    -                  -                    -                    -
+                                          ward        DOUBLE     1434871       54                  1.0               50.0   29.498708246246526   17.324056210337563
+                                 neighbor_ward        DOUBLE     1434871       54                  1.0               50.0     24.9838013312695   17.710957978063934
+                                  ward_pair_id       VARCHAR     1434871      149                    -                  -                    -                    -
+                                        dist_m        DOUBLE     1434871   152769 0.005171906871675538  8572.922632431482    366.1286927948089     343.208367617688
+                flag_modal_sensitivity_checked       BOOLEAN     1434871        2                    -                  -                    -                    -
+                                    modal_ward       INTEGER      914805       45                    1                 50   26.383296986789535   17.614813785056793
+                           modal_neighbor_ward       INTEGER      914805       45                    1                 50   24.970801427626654   17.053872872470272
+                            modal_ward_pair_id       VARCHAR      914805      149                    -                  -                    -                    -
+                                  modal_dist_m        DOUBLE      914805    99992 0.005171906871675538 2475.2666806011334   184.96034334990816   128.43672395847048
+                                 modal_dist_ft        DOUBLE      914805    91165  0.01696819839788562  8120.953676512904    606.8252734577205    421.3803279477341
+                 flag_modal_assignment_missing       BOOLEAN     1434871        2                    -                  -                    -                    -
+                       flag_modal_changes_ward       BOOLEAN     1434871        2                    -                  -                    -                    -
+              flag_modal_changes_neighbor_ward       BOOLEAN     1434871        2                    -                  -                    -                    -
+                       flag_modal_changes_pair       BOOLEAN     1434871        2                    -                  -                    -                    -
+                  flag_modal_dist_diff_gt100ft       BOOLEAN     1434871        2                    -                  -                    -                    -
+                 flag_rd_location_questionable       BOOLEAN     1434871        2                    -                  -                    -                    -
+                                    month_join        DOUBLE     1434871      118               2014.0 2022.9166666666667    2017.631336719662     2.66013844506415
+                                  alderman_own       VARCHAR     1433440       82                    -                  -                    -                    -
+                             alderman_neighbor       VARCHAR     1432729       82                    -                  -                    -                    -
+                     flag_missing_own_alderman       BOOLEAN     1434871        2                    -                  -                    -                    -
+                flag_missing_neighbor_alderman       BOOLEAN     1434871        2                    -                  -                    -                    -
+                  flag_missing_alderman_lookup       BOOLEAN     1434871        2                    -                  -                    -                    -
+                               rent_year_month       VARCHAR     1434871      118                    -                  -                    -                    -
+                  rent_price_cpi_chi_all_items        DOUBLE     1434871      104              225.027            278.415    237.8671596084355   14.292207436942643
+                   rent_price_deflator_to_2022        DOUBLE     1434871      108    0.981829582936743  1.214770153507505   1.1530004418015485  0.06341535145584246
+                            rent_price_nominal        DOUBLE     1434871    16287                490.0            16713.0   1969.1534202917892   1022.1224612719114

@@ -1,0 +1,56 @@
+\section*{September 7, 2026: Put analytical assignment after construction cleaning}
+\textit{Agent-drafted entry; the remaining design recommendations are not new research decisions.}
+
+The restored construction pipeline follows successive rounds of correction more
+closely than the order of the underlying research questions. Three intermediate
+scripts assigned aldermen, treatment scores, and ward controls before project
+verification was complete. The final exporter discarded those assignments and
+recomputed them. The intermediate assignments have been removed, along with
+their source dependencies; the final exporter now owns them within construction
+cleaning. Geographic evidence used for matching and review remains available.
+
+A controlled ten-script replay held upstream project evidence and recorded
+judgments fixed. Before and after this change, the final export contained the
+same 8,648 projects and all 41 columns were byte-identical. The intermediate
+project memberships, measurements, eligibility decisions, and classifications
+also agreed. The replay used the original episode inventory and its recorded
+judgments; it does not resolve the pending duplicate groups under the updated
+matching rules or establish a complete rebuild from raw sources. The frozen
+paper input was not replaced.
+
+Inspection of import warnings also found that sparse review columns were guessed
+as Boolean values. Explicit types restored 22 unit-count cells and 13 floor-area
+cells in the classification evidence, and 248 classification-source labels in
+the provisional sample. These are evidence and provenance fields; restoring them
+left the final export unchanged. The affected readers now reject parsing failures.
+
+A second replay simplified the construction-year rule at its source. The temporal
+producer now summarizes numeric year evidence before export. The candidate producer
+uses those summaries directly rather than parsing a display string twice, and it
+constructs the parcel-membership table once instead of repeating the same operation
+for five project types. All 27,947 candidates, 29,125 project/parcel memberships,
+and 270 review-queue records were byte-identical. The temporal output adds three
+summary fields, with its assessment snapshots unchanged.
+
+The larger recommendation is to organize the remaining work around source history,
+project identity, measurements, eligibility, construction-year geography, and
+finally estimation. This is not yet the implemented architecture. In particular,
+card totals are aggregated, replaced with an earlier selected card, and later
+reconstructed; external development totals can describe a larger object than the
+project being measured; and related permit applications can describe distinct
+buildings. Consolidating those decisions requires examining their evidence and
+scope before changing the rules. The construction README now gives that
+chronological reading guide and identifies the remaining judgment calls.
+
+\small
+\textit{Reproduction and limits.} The two comparisons used Make with the actual
+producer rules in disposable fixtures and identical saved inputs on both sides.
+Standard data reports were inspected. GNU Make 3.81 regenerated a deleted multicard
+companion output in a parallel build; unchanged builds ran no producer. A dry run
+with the score input marked changed scheduled only final assignment and its report.
+Hashes and comparison scopes are recorded in the release audit's
+\texttt{restored\_stage\_checks.csv}. The declared construction chain still has
+38 internal output paths without producers, and the original residential source
+vintage is not fully recovered. These checks establish the stated simplifications,
+not release-ready replication or new paper estimates.
+\normalsize

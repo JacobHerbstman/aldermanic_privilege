@@ -1,0 +1,44 @@
+\section*{Score construction and boundary ordering}
+\textit{September 11, 2026. Agent-drafted robustness checks requested by Jacob.}
+
+The paper's sequential score remains the main specification. This check
+reproduces the through-2022 and frozen through-2014 scores and the original
+main density, price and permit estimates before changing assignments.
+Joint estimation uses the same complete permit observations, covariates and
+fixed effects, with alderman effects included simultaneously. Both unshrunk
+variants omit shrinkage, allowing its contribution to be separated from the
+sequential versus joint adjustment choice.
+
+Among 4,034 eligible construction projects, removing shrinkage changes the
+ordering of four of 256 distinct unordered alderman pairs, affecting 129
+projects. Joint estimation changes 85 pair orderings and affects 1,389 projects.
+All-construction FAR changes from -0.097 ($p=0.034$) to -0.029 ($p=0.611$),
+and DUPAC from -0.148 ($p=0.044$) to -0.012 ($p=0.876$), in log coefficients.
+The joint specification changes the assignments of 75,907 of 240,713 rental
+observations and 19,509 of 58,468 sale observations. The sale coefficient
+remains positive and significant (0.037, $p=0.009$), while rent remains
+insignificant. The pooled permit coefficient changes from -0.126
+($p=0.010$) to -0.069 ($p=0.232$). These are substantive specification
+sensitivities, not evidence that the preferred construction contains a coding bug.
+
+The full own-project exclusion removes recorded matched permits before
+recomputing permit-volume controls, the neighborhood adjustment, the second
+stage and shrinkage. It required separate score fits for 2,855 matched projects.
+Only two of 4,034 project assignments reverse: residential parcels
+25171240210000 and 25171240250000, both comparing Howard Brookins with Carrie
+Austin. All-construction coefficients become -0.09713 for FAR and -0.14829
+for DUPAC; sample sizes and substantive conclusions are unchanged.
+Multifamily coefficients are unchanged. Projects without permits in the recorded
+score-source matches retain the baseline score; this check does not establish
+that the matching file identifies every possible own-project permit.
+
+Jacob approved reporting score-only uncertainty separately from combined
+score and outcome uncertainty. The bootstrap has not yet been run. A proposed
+shared calendar-block positive-weight bootstrap, with annual and two-year
+blocks, awaits a decision on its temporal-dependence assumption. No bootstrap
+confidence interval is claimed here. The manuscript and main score remain
+unchanged.
+
+\begin{center}
+\includegraphics[width=\textwidth]{../tasks/audits/score_construction_checks/output/score_stability.png}
+\end{center}

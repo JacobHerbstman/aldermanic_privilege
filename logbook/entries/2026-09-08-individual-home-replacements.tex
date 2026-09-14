@@ -1,0 +1,40 @@
+\section*{September 8, 2026: Prefer individual homes to duplicate combined records}
+\textit{Agent-drafted entry; Jacob approved programmatic replacement when coverage is complete.}
+
+The residential building producer now marks 84 old combined records as duplicates
+of 311 individually recorded homes. The individual homes keep their measurements
+and Assessor years. Of the old records, 83 previously passed the initial mechanical
+checks and one needed review. These are changes to the reconstructed candidates,
+not a count of errors in the paper's frozen sample. All other preexisting project
+fields are unchanged.
+
+The rule requires the old PIN to be absent from the current parcel source, a
+single assessment containing its measured study-period house cards, and an exact
+historical polygon for that PIN. Individually accepted one-unit homes inside that
+polygon must match the card count. Homes outside the existing two-year window are
+not possible replacements. Each sorted building area and its associated year
+must match within the existing 2\% and two-year tolerances. Conflicting polygons,
+incomplete coverage, or an individual claimed by multiple old parcels block
+replacement. Replacement identifiers and unsuccessful-check reasons remain in
+the project table; no case-specific identifiers enter the rule.
+
+The eight-townhome record on West 15th Street, previously missing Assessor land
+area, is fully represented by eight individually accepted homes. The difficult
+Eddy, Fletcher, Bell, 32nd Place, and Cullerton/Prairie groups do not all pass
+these stricter checks. In particular, Cullerton's matching locations and 3/3/6
+counts do not establish matching individual floor areas. The prior conversational
+claim of verified duplication was too strong. Jacob's choices to keep individual
+homes and their agreed years remain documented in the task README, but incomplete
+duplicate matching is not silently cleared. This rule does not allocate shared
+land or certify final density denominators.
+
+\textit{Validation and reproduction:} Run the Assessor-project report target
+through Make in the construction-cleaning code folder. Its build and unchanged
+second build passed. A disposable fixture also verified that removing one
+replacement home prevents suppression of its old record. The downstream ordinary
+build stops at a missing pinned historical-map request for PIN 13362280330000 in
+2008, arising after the empty-assessment correction. That failure was preserved;
+no coverage check was bypassed. The preferred-candidate consumer was checked
+separately against local inputs. Final geography and the dataset are not rebuilt.
+The paper input retains its recorded checksum. Older logbook dependencies are
+held at existing outputs solely for compilation of this entry.

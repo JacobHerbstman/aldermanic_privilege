@@ -1,0 +1,109 @@
+File: multicard_adjudication_evidence.csv
+Rows: 273
+Columns: 99
+SHA-256 (saved bytes): e8c973d1f78ec6affdcd673d1e4f185b545be73cd768117f9bdaca137659e076
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                      column inferred_type non_missing distinct                 min                max                mean                  sd
+                                  project_id       VARCHAR         273      273                   -                  -                   -                   -
+                           construction_year        BIGINT         273       17                2006               2022  2012.5934065934066   5.673036111299156
+                                within_500ft       BOOLEAN         273        2                   -                  -                   -                   -
+                               within_1500ft       BOOLEAN         273        1                   -                  -                   -                   -
+                     distance_to_boundary_ft        DOUBLE         273      273   49.22455487329204  1473.294112609551   616.3159100554708   377.2430931151204
+                                   ward_pair       VARCHAR         273       63                   -                  -                   -                   -
+                              dwelling_units        BIGINT         273        5                   1                  6  1.3919413919413919  1.0308874515333564
+                               building_sqft        BIGINT         273      246                 315              12406   2828.974358974359   1483.701854886305
+                                   land_sqft        BIGINT         272      203                1936             307739             12007.5  28669.052103816848
+                                 density_far        DOUBLE         272      272 0.00759006168842234  2.578706727629001   0.575537753358223 0.46829014860281915
+                               density_dupac        DOUBLE         272      210 0.14154852001208815  93.14326443335707  11.913671381815293  11.749013180879109
+                              component_pins        BIGINT         273      273      11303200330000     25221030430000  15992532936102.572   2796670320508.738
+                          source_project_ids       VARCHAR         273      273                   -                  -                   -                   -
+                                         pin        BIGINT         273      273      11303200330000     25221030430000  15992532936102.572   2796670320508.738
+                           permit_project_id       VARCHAR         273      273                   -                  -                   -                   -
+                         geometry_project_id       VARCHAR         273      273                   -                  -                   -                   -
+                                target_cards        BIGINT         273       23                   1                 43    3.73992673992674   5.522858514490826
+                         target_card_numbers       VARCHAR         273       28                   -                  -                   -                   -
+                              target_classes       VARCHAR         273       14                   -                  -                   -                   -
+                      target_card_signatures        BIGINT         273        9                   1                 12  1.5238095238095237  1.3285541097030875
+                identical_target_card_fields       BOOLEAN         273        2                   -                  -                   -                   -
+                           summed_card_units        BIGINT         273       24                   1                 43   4.468864468864469  5.8460599313156525
+                   summed_card_building_sqft        BIGINT         273      260                 315              83226   8407.021978021978  10241.345276527134
+                   distinct_card_unit_values        BIGINT         273        5                   1                  6  1.3663003663003663  0.9914523722838219
+               distinct_card_building_values       VARCHAR         273      256                   -                  -                   -                   -
+              all_target_card_units_observed       BOOLEAN         273        1                   -                  -                   -                   -
+      all_target_card_building_sqft_observed       BOOLEAN         273        1                   -                  -                   -                   -
+                          history_first_year        BIGINT         273       20                1999               2023  2005.3663003663003   7.503766202266403
+                           history_last_year        BIGINT         273       20                2007               2026  2019.4029304029305  7.1608816967803754
+                        history_card_numbers        BIGINT         273       22                   2                 43   4.172161172161172   5.332650684872318
+                    maximum_concurrent_cards        BIGINT         273       22                   2                 43   4.142857142857143   5.341096415940245
+                   years_with_multiple_cards        BIGINT         273       25                   1                 28   6.970695970695971   7.074125795025417
+  card_numbers_with_multiple_building_values        BIGINT         273        5                   0                 10  0.6117216117216118  0.8463643936986727
+card_numbers_with_multiple_year_built_values        BIGINT         273        4                   0                  3  0.5238095238095238  0.6304038099388634
+                 inventory_observation_years       VARCHAR         271       74                   -                  -                   -                   -
+                inventory_same_year_observed       BOOLEAN         273        2                   -                  -                   -                   -
+                               permit_chains        BIGINT         273       11                   0                 17  0.9963369963369964   1.811925707188042
+                     exact_pin_permit_chains        BIGINT         273        9                   0                 12    0.73992673992674   1.213488527501573
+                  polygon_only_permit_chains        BIGINT         273        6                   0                 17  0.2564102564102564  1.4803259801616269
+                   distinct_permit_addresses        BIGINT         153       10                   1                 17  1.7254901960784315   1.994186597527552
+         exact_pin_distinct_permit_addresses        BIGINT         153        9                   0                 12  1.2941176470588236  1.3566713955640828
+                            permit_addresses       VARCHAR         153      152                   -                  -                   -                   -
+                  exact_pin_permit_addresses       VARCHAR         127      127                   -                  -                   -                   -
+                          permit_unit_values        BIGINT          31        7                   1                  9  3.6774193548387095   2.039396916969876
+                exact_pin_permit_unit_values        BIGINT          27        7                   1                  9  3.7037037037037037  2.1088606988830363
+                    permit_chains_with_units        BIGINT         273        6                   0                  7 0.18681318681318682  0.6737530079397208
+          exact_pin_permit_chains_with_units        BIGINT         273        6                   0                  7  0.1684981684981685  0.6593476172153165
+                all_permit_chains_have_units       BOOLEAN         153        2                   -                  -                   -                   -
+      all_exact_pin_permit_chains_have_units       BOOLEAN         153        2                   -                  -                   -                   -
+                   summed_permit_chain_units        BIGINT          28        9                   1                 24   5.464285714285714   4.533677624647875
+         summed_exact_pin_permit_chain_units        BIGINT          25        9                   1                 24                5.52   4.779469984562444
+                             permit_evidence       VARCHAR         153      152                   -                  -                   -                   -
+                   exact_pin_permit_evidence       VARCHAR         153      128                   -                  -                   -                   -
+                           current_addresses       VARCHAR         127      127                   -                  -                   -                   -
+                       current_address_count        BIGINT         127        1                   1                  1                 1.0                 0.0
+                              manual_address       VARCHAR           7        7                   -                  -                   -                   -
+                   manual_physical_buildings       VARCHAR           7        5                   -                  -                   -                   -
+                       manual_verified_units        BIGINT           7        5                   2                 24   9.428571428571429   6.972736021035617
+                        manual_verified_sqft        BIGINT           7        7                2832              30720  13472.857142857143   8863.817451274806
+                       manual_classification       VARCHAR           7        5                   -                  -                   -                   -
+                           manual_confidence       VARCHAR           7        2                   -                  -                   -                   -
+                             manual_evidence       VARCHAR           7        7                   -                  -                   -                   -
+                     selected_and_sum_differ       BOOLEAN         273        2                   -                  -                   -                   -
+             summed_cards_change_multifamily       BOOLEAN         273        2                   -                  -                   -                   -
+       exact_pin_permit_units_match_selected       BOOLEAN         273        2                   -                  -                   -                   -
+       exact_pin_permit_units_match_card_sum       BOOLEAN         273        2                   -                  -                   -                   -
+                             review_priority       VARCHAR         273        6                   -                  -                   -                   -
+                       query_geometry_source       VARCHAR         273        2                   -                  -                   -                   -
+                          current_footprints        BIGINT         273       12                   0                 35  1.8095238095238095  2.8128481732824433
+        current_footprints_near_construction        BIGINT         273        9                   0                 13  0.5567765567765568   1.619470187703423
+           current_footprints_with_exact_pin        BIGINT         202        1                   0                  0                 0.0                 0.0
+                    current_city_year_values       VARCHAR         202       72                   -                  -                   -                   -
+                    current_city_unit_values       VARCHAR         130       15                   -                  -                   -                   -
+                      current_city_units_sum        BIGINT         130       14                   1                 34  3.6307692307692307   4.902362128857555
+              current_city_building_sqft_sum        BIGINT          88       87                 450              29376  3063.3636363636365   3590.189180113956
+                  current_footprint_area_sum        DOUBLE         202      199   501.8566461037845 52638.124998770654   4232.722706972215   6705.534709597949
+                  current_footprint_evidence       VARCHAR         202      199                   -                  -                   -                   -
+                  historical_2008_footprints        BIGINT         273        9                   0                 13 0.37362637362637363  1.3254995033644943
+historical_2008_footprints_near_construction        BIGINT         273        9                   0                 13 0.37362637362637363  1.3254995033644943
+                 historical_2008_year_values       VARCHAR          41        4                   -                  -                   -                   -
+          historical_2008_footprint_area_sum        DOUBLE          41       38   839.0049531920813  26814.99069923302    4954.97648055764   5546.220345771615
+                    historical_2008_evidence       VARCHAR          41       38                   -                  -                   -                   -
+                        historical_addresses       VARCHAR         145      144                   -                  -                   -                   -
+                    historical_address_count        BIGINT         145        1                   1                  1                 1.0                 0.0
+                              review_address       VARCHAR         272      271                   -                  -                   -                   -
+                   city_units_match_selected       BOOLEAN         273        2                   -                  -                   -                   -
+                        city_units_match_sum       BOOLEAN         273        2                   -                  -                   -                   -
+                    city_sqft_match_selected       BOOLEAN         273        2                   -                  -                   -                   -
+                         city_sqft_match_sum       BOOLEAN         273        2                   -                  -                   -                   -
+                 current_count_matches_cards       BOOLEAN         273        2                   -                  -                   -                   -
+              historical_count_matches_cards       BOOLEAN         273        2                   -                  -                   -                   -
+            permit_chain_count_matches_cards       BOOLEAN         273        2                   -                  -                   -                   -
+                           selected_evidence       BOOLEAN         273        2                   -                  -                   -                   -
+                                sum_evidence       BOOLEAN         273        2                   -                  -                   -                   -
+                           evidence_conflict       BOOLEAN         273        2                   -                  -                   -                   -
+                     preliminary_disposition       VARCHAR         273        5                   -                  -                   -                   -
+                           preliminary_units        BIGINT         168       11                   1                 24   2.357142857142857  2.6543055392394623
+                   preliminary_building_sqft        BIGINT         168      165                 315              30720   4597.898809523809  3641.6290962602316
+                       adjudication_priority       VARCHAR         273        8                   -                  -                   -                   -

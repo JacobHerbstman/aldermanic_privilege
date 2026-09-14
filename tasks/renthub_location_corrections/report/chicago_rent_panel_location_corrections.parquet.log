@@ -1,0 +1,23 @@
+File: chicago_rent_panel_location_corrections.parquet
+Rows: 1436620
+Columns: 13
+SHA-256 (saved bytes): c7a2ee9e847cad7fd4c6b5141763afc4570a3ff668c9bf01f3da46c895b239db
+Key: rent_panel_id
+Types: Stored Parquet schema.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                        column inferred_type non_missing distinct        min        max               mean                  sd
+                                 rent_panel_id       VARCHAR     1436620  1569088          -          -                  -                   -
+                                          year       INTEGER     1436620       10       2014       2022 2017.1452513538723   2.645934977147897
+                             geometry_latitude        DOUBLE     1436620   106900 41.5605147   42.08648  41.89778895226164 0.06386001733811048
+                            geometry_longitude        DOUBLE     1436620    90778  -88.09321   -87.5249 -87.64906150136525 0.03934881473867631
+                                modal_latitude        DOUBLE     1321581    79412 41.5605147   42.08648 41.896509977800335 0.06360736961349481
+                               modal_longitude        DOUBLE     1321581    45215  -88.06559 -87.525406 -87.64838429822571  0.0392133812996783
+flag_geometry_uses_address_location_correction       BOOLEAN     1436620        2          -          -                  -                   -
+                 flag_manual_location_verified       BOOLEAN     1436620        2          -          -                  -                   -
+                  flag_manual_location_exclude       BOOLEAN     1436620        1          -          -                  -                   -
+                flag_address_location_unstable       BOOLEAN     1436620        2          -          -                  -                   -
+             flag_coordinate_only_generic_pile       BOOLEAN     1436620        2          -          -                  -                   -
+                    flag_location_questionable       BOOLEAN     1436620        2          -          -                  -                   -
+                       location_quality_status       VARCHAR     1436620        5          -          -                  -                   -

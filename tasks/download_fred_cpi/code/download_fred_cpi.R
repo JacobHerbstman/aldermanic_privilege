@@ -5,7 +5,7 @@
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(series_id)
 }
 if (length(cli_args) != 1) {
@@ -13,13 +13,11 @@ if (length(cli_args) != 1) {
 }
 
 series_id <- cli_args[1]
-output_csv <- "../output/fred_cpi_cuura207sa0.csv"
 
 fred_url <- sprintf("https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s", series_id)
 message(sprintf("Downloading FRED series %s", series_id))
 
 old_http_ua <- getOption("HTTPUserAgent")
-on.exit(options(HTTPUserAgent = old_http_ua), add = TRUE)
 options(HTTPUserAgent = "curl/8.0.0")
 
 cpi_raw <- readr::read_csv(fred_url, col_types = readr::cols(.default = "c"), show_col_types = FALSE)
@@ -41,4 +39,6 @@ if (nrow(cpi) == 0 || !any(is.finite(cpi$value))) {
 
 names(cpi)[names(cpi) == "value"] <- series_id
 
-readr::write_csv(cpi, output_csv)
+readr::write_csv(cpi, "../output/fred_cpi_cuura207sa0_current.csv.tmp")
+stopifnot(file.rename("../output/fred_cpi_cuura207sa0_current.csv.tmp", "../output/fred_cpi_cuura207sa0_current.csv"))
+options(HTTPUserAgent = old_http_ua)

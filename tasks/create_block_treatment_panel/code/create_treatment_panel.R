@@ -2,7 +2,8 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_block_treatment_panel/code")
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/save_data.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 
 suppressMessages(sf_use_s2(FALSE))
 
@@ -24,8 +25,15 @@ blocks_2010 <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALS
   st_as_sf(wkt = "geometry", crs = 4269) %>%
   st_transform(st_crs(ward_panel)) %>%
   rename(block_id = GEOID10) %>%
-  mutate(block_id = as.character(block_id)) %>%
-  distinct(block_id, .keep_all = TRUE)
+  mutate(block_id = as.character(block_id))
+
+# The source repeats some identical block polygons. Conflicting shapes must stop the build.
+block_shapes <- blocks_2010 %>%
+  mutate(geometry_wkt = st_as_text(geometry)) %>%
+  st_drop_geometry() %>%
+  distinct(block_id, geometry_wkt)
+stopifnot(!anyNA(block_shapes$block_id), !anyDuplicated(block_shapes$block_id))
+blocks_2010 <- blocks_2010 %>% distinct(block_id, .keep_all = TRUE)
 
 ward_map_2014 <- aggregate_ward_map(
   ward_panel,
@@ -128,4 +136,4 @@ block_treatment_pre_scores <- tibble(block_id = blocks_2010$block_id) %>%
     min_assignment_share
   )
 
-write_csv(block_treatment_pre_scores, "../output/block_treatment_pre_scores.csv")
+SaveData(block_treatment_pre_scores, c("block_id"), "../output/block_treatment_pre_scores.csv")

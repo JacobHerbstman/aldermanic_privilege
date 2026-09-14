@@ -1,0 +1,18 @@
+File: geocoding_parcel_history.csv
+Rows: 501
+Columns: 8
+SHA-256 (saved bytes): 8f9b65bd7c272aae4b21ebb0d0d5110e36883592cf20be9dee000a91b482119f
+Key: pin, year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+column inferred_type non_missing distinct                min                max                   mean                     sd
+   pin        BIGINT         501      209     10253280110000     26071050350000     17101540603013.973     2731843910655.4404
+ pin10        BIGINT         501      209         1025328011         2607105035     1710154060.3013973      273184391.0655446
+  year        BIGINT         501       19               2007               2025      2014.367265469062      5.077090338706273
+   lon        DOUBLE         485      245 -87.79298991097514 -87.55838511821166     -87.66457710188973    0.05697223228412351
+   lat        DOUBLE         485      245 41.688160469988794 42.013586922145585     41.853687968986925    0.05947118111859887
+x_3435        DOUBLE         485      242 1131640.7472867416 1195807.2396244789     1166450.4379413668     15616.496292462078
+y_3435        DOUBLE         485      242  1829588.863511676 1948175.2204289897      1889988.697991522     21604.753757541628
+row_id        BIGINT         501      501 102532801100002013 260710503500002014 1.7101540603014173e+17 2.7318439106554444e+16

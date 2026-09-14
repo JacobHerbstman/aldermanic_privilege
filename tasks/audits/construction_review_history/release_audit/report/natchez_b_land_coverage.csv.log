@@ -1,0 +1,16 @@
+File: natchez_b_land_coverage.csv
+Rows: 18
+Columns: 6
+SHA-256 (saved bytes): 5bd1f836605e21fcfda006f8c2b7aa42b19235427bda3d0efe60c6960a292d86
+Key: footprint_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct                min              max               mean                 sd
+        footprint_id        BIGINT          18       18             748031           752727  750994.1666666666 1395.0643354340355
+      footprint_sqft        DOUBLE          18       18   2072.42643973231 4436.74685540292 3616.5281794500233  452.5074467460295
+           height_ft        DOUBLE          18       18             12.697           39.228  34.45483333333333  9.213162982768667
+         in_c_review       BOOLEAN          18        2                  -                -                  -                  -
+        overlap_sqft        DOUBLE          18       18   142.809404595639  3723.7899732776 3131.2671523334316 1149.9300889215722
+fraction_in_b_parcel        DOUBLE          18       18 0.0321878640476705 1.00000000001438 0.8731471497173462  0.303835455181097

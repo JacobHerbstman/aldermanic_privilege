@@ -1,0 +1,12 @@
+File: block_group_geometry.gpkg
+Rows: 3993
+Columns: 2
+SHA-256 (saved bytes): cc01a5ca66f21ddfc0069560a8d1e7be169a12b15a04d6276333168227f1573b
+Key: GEOID
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+column inferred_type non_missing distinct min  max   mean                sd
+   fid        BIGINT        3993     3993   1 3993 1997.0 1152.824140968604
+ GEOID       VARCHAR        3993     3993   -    -      -                 -

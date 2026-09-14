@@ -1,0 +1,13 @@
+File: ward_panel.gpkg
+Rows: 1000
+Columns: 3
+SHA-256 (saved bytes): acd1176147fff8de3084eb48fe5f91902e539edb6e42e61d792f0d078ef4f489
+Key: ward, year
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+column inferred_type non_missing distinct  min  max   mean                 sd
+   fid        BIGINT        1000     1000    1 1000  500.5  288.8194360957494
+  year        BIGINT        1000       20 2003 2022 2012.5 5.7691666021430885
+  ward        DOUBLE        1000       50  1.0 50.0   25.5 14.438090540596383

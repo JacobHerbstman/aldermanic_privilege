@@ -1,0 +1,89 @@
+include ../tasks/shared/code/shell_functions.make
+
+all: logbook.pdf
+
+logbook.pdf: logbook.tex \
+	entries/2026-09-06-construction-replication.tex \
+	entries/2026-09-07-density-decisions.tex \
+	entries/2026-09-07-manual-dependence.tex \
+	entries/2026-09-07-general-construction-rules.tex \
+	entries/2026-09-07-construction-chronology.tex \
+	entries/2026-09-07-residential-assessor-branch.tex \
+	entries/2026-09-07-complete-assessor-snapshots.tex \
+	entries/2026-09-07-construction-definition.tex \
+	entries/2026-09-07-phased-project-evidence.tex \
+	entries/2026-09-07-construction-completion-followup.tex \
+	entries/2026-09-07-final-group-decisions.tex \
+	entries/2026-09-07-natchez-land-resolution.tex \
+	entries/2026-09-07-natchez-b-review.tex \
+	entries/2026-09-07-city-footprint-reconstruction.tex \
+	entries/2026-09-07-historical-parcel-coverage.tex \
+	entries/2026-09-07-predecessor-recovery.tex \
+	entries/2026-09-07-address-geocode-replay.tex \
+	entries/2026-09-07-geocode-address-review.tex \
+	entries/2026-09-07-troy-address-correction.tex \
+	entries/2026-09-08-candidate-geography.tex \
+	entries/2026-09-08-geography-review.tex \
+	entries/2026-09-08-empty-assessment-records.tex \
+	entries/2026-09-08-individual-home-replacements.tex \
+	entries/2026-09-08-armitage-and-remaining-cards.tex \
+	entries/2026-09-08-accepted-card-decisions.tex \
+	entries/2026-09-08-final-townhome-decisions.tex \
+	entries/2026-09-08-remaining-land-location-verdicts.tex \
+	entries/2026-09-08-parcel-identities-and-home-locations.tex \
+	entries/2026-09-08-lake-park-year.tex \
+	entries/2026-09-08-huron-floor-area.tex \
+	entries/2026-09-08-deming-and-64th-locations.tex \
+	entries/2026-09-08-prior-construction-decisions.tex \
+	entries/2026-09-08-construction-code-reading.tex \
+	entries/2026-09-08-remaining-construction-verdicts.tex \
+	entries/2026-09-08-retentions-and-commercial-land.tex \
+	entries/2026-09-08-source-reported-commercial-land.tex \
+	entries/2026-09-08-individual-lot-locations.tex \
+	entries/2026-09-08-current-construction-questions.tex \
+	entries/2026-09-09-one-chicago.tex \
+	entries/2026-09-09-construction-reconciliation.tex \
+	entries/2026-09-09-completed-permit-counts.tex \
+	entries/2026-09-09-peoria-and-independent-lots.tex \
+	entries/2026-09-09-townhome-sites-and-paired-buildings.tex \
+	entries/2026-09-09-eddy-and-estimation-handoff.tex \
+	entries/2026-09-09-ten-construction-cases.tex \
+	entries/2026-09-09-second-ten-case-review.tex \
+	entries/2026-09-09-sheffield-ashland-applied.tex \
+	entries/2026-09-09-oakley-sheffield-walton.tex \
+	entries/2026-09-09-diversey-and-duplicate-sites.tex \
+	entries/2026-09-09-milwaukee-site.tex \
+	entries/2026-09-09-halsted-ten-record-review.tex \
+	entries/2026-09-09-halsted-batch-applied.tex \
+	entries/2026-09-09-honore-and-next-ten.tex \
+	entries/2026-09-09-three-site-followup.tex \
+	entries/2026-09-09-next-ten-homes.tex \
+	entries/2026-09-09-last-fifteen.tex \
+	entries/2026-09-09-linear-construction-cleaning.tex \
+	entries/2026-09-10-estimation-handoff.tex \
+	entries/2026-09-10-density-windows.tex \
+	entries/2026-09-10-main-levels.tex \
+	entries/2026-09-11-score-construction.tex \
+	entries/2026-09-11-numbers-only.tex \
+	entries/2026-09-11-common-table.tex \
+	entries/2026-09-11-citywide-table.tex \
+	entries/2026-09-11-construction-reporting.tex \
+	entries/2026-09-11-common-density-adopted.tex \
+	entries/2026-09-11-code-cleanup.tex \
+	entries/2026-09-12-data-reports.tex \
+	entries/2026-09-12-construction-task.tex \
+	entries/2026-09-12-source-and-build-cleanup.tex \
+	entries/2026-09-12-single-construction-correction.tex \
+	entries/2026-09-12-permit-text-update.tex \
+	../tasks/audits/construction_review_history/records/natchez_parcel_coverage.pdf \
+	../tasks/audits/density_window_comparison/output/density_windows.pdf \
+	../tasks/audits/density_window_comparison/output/density_windows_levels.pdf \
+	../tasks/audits/main_results_levels/output/density_levels.pdf \
+	../tasks/audits/main_results_levels/output/price_levels.pdf \
+	../tasks/audits/main_results_levels/output/permit_levels.pdf \
+	../tasks/audits/score_construction_checks/output/score_stability.png \
+	Makefile
+	pdflatex -halt-on-error -interaction=nonstopmode logbook.tex
+	pdflatex -halt-on-error -interaction=nonstopmode logbook.tex
+
+include ../tasks/shared/code/generic.make

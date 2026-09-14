@@ -1,0 +1,16 @@
+File: eligibility_manual_exceptions.csv
+Rows: 4
+Columns: 6
+SHA-256 (saved bytes): 88dd3d74cc0d5fce0559062beceda28e2450b19494fed7551932cde0718df4c3
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+       column inferred_type non_missing distinct min max mean sd
+   project_id       VARCHAR           4        4   -   -    -  -
+manual_action       VARCHAR           4        2   -   -    -  -
+     evidence       VARCHAR           4        4   -   -    -  -
+       reason       VARCHAR           4        4   -   -    -  -
+ source_1_url       VARCHAR           4        4   -   -    -  -
+ source_2_url       VARCHAR           1        1   -   -    -  -

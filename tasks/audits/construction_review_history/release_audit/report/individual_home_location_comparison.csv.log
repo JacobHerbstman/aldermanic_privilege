@@ -1,0 +1,52 @@
+File: individual_home_location_comparison.csv
+Rows: 0
+Columns: 42
+SHA-256 (saved bytes): 98a2165a5e8ddd27940197b66c6c5555c7b1e99e11ee2e8697e91a68aea16643
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                           column inferred_type non_missing distinct min max mean sd
+                       project_id       VARCHAR           0        0   -   -    -  -
+                      target_year       VARCHAR           0        0   -   -    -  -
+                    boundary_year       VARCHAR           0        0   -   -    -  -
+                              era       VARCHAR           0        0   -   -    -  -
+                         old_ward       VARCHAR           0        0   -   -    -  -
+                    old_ward_pair       VARCHAR           0        0   -   -    -  -
+                  old_distance_ft       VARCHAR           0        0   -   -    -  -
+             historical_land_sqft       VARCHAR           0        0   -   -    -  -
+                              pin       VARCHAR           0        0   -   -    -  -
+                construction_year       VARCHAR           0        0   -   -    -  -
+                   dwelling_units       VARCHAR           0        0   -   -    -  -
+                    building_sqft       VARCHAR           0        0   -   -    -  -
+                        land_sqft       VARCHAR           0        0   -   -    -  -
+                        longitude       VARCHAR           0        0   -   -    -  -
+                         latitude       VARCHAR           0        0   -   -    -  -
+                           row_id       VARCHAR           0        0   -   -    -  -
+                has_current_point       VARCHAR           0        0   -   -    -  -
+historical_to_reported_land_ratio       VARCHAR           0        0   -   -    -  -
+              occupied_cards_2025       VARCHAR           0        0   -   -    -  -
+              assessment_row_2025       VARCHAR           0        0   -   -    -  -
+                        year_2025       VARCHAR           0        0   -   -    -  -
+               building_sqft_2025       VARCHAR           0        0   -   -    -  -
+                   land_sqft_2025       VARCHAR           0        0   -   -    -  -
+                       units_2025       VARCHAR           0        0   -   -    -  -
+       same_building_measurements       VARCHAR           0        0   -   -    -  -
+           same_construction_year       VARCHAR           0        0   -   -    -  -
+           inside_historical_site       VARCHAR           0        0   -   -    -  -
+                  outside_site_ft       VARCHAR           0        0   -   -    -  -
+                   point_shift_ft       VARCHAR           0        0   -   -    -  -
+                         new_ward       VARCHAR           0        0   -   -    -  -
+                    new_ward_pair       VARCHAR           0        0   -   -    -  -
+                  new_distance_ft       VARCHAR           0        0   -   -    -  -
+           conservative_rule_pass       VARCHAR           0        0   -   -    -  -
+               distance_change_ft       VARCHAR           0        0   -   -    -  -
+                     enters_500ft       VARCHAR           0        0   -   -    -  -
+                     leaves_500ft       VARCHAR           0        0   -   -    -  -
+                     ward_changes       VARCHAR           0        0   -   -    -  -
+                     pair_changes       VARCHAR           0        0   -   -    -  -
+                      rule_result       VARCHAR           0        0   -   -    -  -
+                paper_distance_ft       VARCHAR           0        0   -   -    -  -
+               paper_within_500ft       VARCHAR           0        0   -   -    -  -
+                exact_id_in_paper       VARCHAR           0        0   -   -    -  -

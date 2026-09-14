@@ -1,0 +1,13 @@
+File: preferred_predecessor_spatial_queries_download.csv
+Rows: 20
+Columns: 3
+SHA-256 (saved bytes): 873a1a103418c902beddf190e2fe7c4792e31d3259bc89f09dd1b28e501bc620
+Key: target_year, reference_x_3435, reference_y_3435
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+          column inferred_type non_missing distinct                min                max               mean                 sd
+     target_year        BIGINT          20        1               2017               2017             2017.0                0.0
+reference_x_3435        DOUBLE          20       20 1185965.8081296396 1186169.9069446789 1186068.0781813967 61.082890266218016
+reference_y_3435        DOUBLE          20       20  1874444.888775608 1874639.0682415331  1874542.195915339 56.333514274119125

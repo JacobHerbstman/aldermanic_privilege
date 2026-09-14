@@ -1,10 +1,11 @@
-# Density Boundary Checks
+# Density and location checks at ward boundaries
 
-This task produces the two density tables in the appendix. One reports the main
-estimates after restricting the sample to projects near straight boundary
-segments or boundaries with limited overlap with physical features and major
-arterials. The other tests whether four fixed location characteristics change
-at the ward boundary.
+This task produces the appendix tables for alternative boundary types and
+continuity in location characteristics. It reads the construction analysis
+data, through-2022 alderman scores and recorded boundary characteristics.
 
-Both tables use the same 100-foot distance bands and common FAR-DUPAC samples
-as the main density figure. Standard errors are clustered by ward pair.
+All checks retain the analysis-data producer's common `density_eligible` sample,
+with usable, positive FAR and DUPAC. The existing 500-foot window, boundary
+restrictions, distance bands, controls, fixed effects and clustering apply.
+
+Run Make in code/ to rebuild both tables.

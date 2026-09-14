@@ -5,7 +5,8 @@
 # segment_buffer_m <- 457.2
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/save_data.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 
 library(arrow)
 library(data.table)
@@ -14,7 +15,7 @@ library(sf)
 suppressMessages(sf_use_s2(FALSE))
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(dataset_name, segment_length_ft, segment_buffer_m)
 }
 if (length(cli_args) != 3) {
@@ -35,10 +36,8 @@ if (!is.finite(segment_buffer_m) || segment_buffer_m <= 0) {
   stop("segment_buffer_m must be positive.", call. = FALSE)
 }
 
-segment_gpkg <- sprintf("../input/boundary_segments_%sft.gpkg", segment_length_ft)
-
 segments_by_era <- load_segment_line_layers(
-  segment_gpkg,
+  sprintf("../input/boundary_segments_%sft.gpkg", segment_length_ft),
   c("2003_2014", "2015_2023")
 )
 segment_metadata <- segment_metadata_from_layers(segments_by_era)
@@ -56,7 +55,6 @@ if (any(duplicated(segment_pair_lookup, by = c("era", "segment_id")))) {
   stop("Segment lookup has duplicate era/segment_id rows.", call. = FALSE)
 }
 
-segment_outputs <- list()
 if (dataset_name == "sales") {
   sales_dt <- fread(
     "../input/sales_pre_scores.csv",
@@ -71,17 +69,10 @@ if (dataset_name == "sales") {
     stop("Sales input contains an invalid full PIN.", call. = FALSE)
   }
   sales_dt[, sale_date := as.Date(sale_date)]
-  dataset_specs <- list(
-    sales = list(
-      dt = sales_dt,
-      date_col = "sale_date",
-      pair_col = "ward_pair_id",
-      lon_col = "longitude",
-      lat_col = "latitude",
-      allow_pre_2003 = TRUE,
-      chunk_n = 50000L
-    )
-  )
+  dt <- sales_dt
+  dt[, obs_date := sale_date]
+  allow_pre_2003 <- TRUE
+  chunk_n <- 50000L
 } else {
   rent_dt <- as.data.table(read_parquet("../input/rent_pre_scores_full.parquet"))
   if (!all(c("id", "assignment_date", "ward_pair_id", "dist_m", "longitude", "latitude") %in% names(rent_dt))) {
@@ -89,125 +80,111 @@ if (dataset_name == "sales") {
   }
   rent_dt[, id := as.character(id)]
   rent_dt[, assignment_date := as.Date(assignment_date)]
-  dataset_specs <- list(
-    rental = list(
-      dt = rent_dt,
-      date_col = "assignment_date",
-      pair_col = "ward_pair_id",
-      lon_col = "longitude",
-      lat_col = "latitude",
-      allow_pre_2003 = FALSE,
-      chunk_n = 80000L
-    )
-  )
+  dt <- rent_dt
+  dt[, obs_date := assignment_date]
+  allow_pre_2003 <- FALSE
+  chunk_n <- 80000L
 }
 
-for (dataset_name in names(dataset_specs)) {
-  spec <- dataset_specs[[dataset_name]]
-  dt <- copy(spec$dt)
-  dt[, assignment_row_id := .I]
-  dt[, pair_dash := normalize_pair_dash(get(spec$pair_col))]
-  dt[, obs_date := as.Date(get(spec$date_col))]
-  dt[, era := canonical_era_from_date(obs_date, allow_pre_2003 = spec$allow_pre_2003)]
-  dt[, segment_id := NA_character_]
-  dt[, segment_reason := fifelse(
-    !is.finite(get(spec$lon_col)) | !is.finite(get(spec$lat_col)),
-    "missing_coords",
+dt[, assignment_row_id := .I]
+dt[, pair_dash := normalize_pair_dash(ward_pair_id)]
+dt[, era := canonical_era_from_date(obs_date, allow_pre_2003 = allow_pre_2003)]
+dt[, segment_id := NA_character_]
+dt[, segment_reason := fifelse(
+  !is.finite(longitude) | !is.finite(latitude),
+  "missing_coords",
+  fifelse(
+    is.na(obs_date) | is.na(era),
+    "missing_date_or_era",
     fifelse(
-      is.na(obs_date) | is.na(era),
-      "missing_date_or_era",
-      fifelse(
-        is.na(pair_dash),
-        "missing_or_invalid_ward_pair",
-        "pending"
-      )
+      is.na(pair_dash),
+      "missing_or_invalid_ward_pair",
+      "pending"
     )
-  )]
+  )
+)]
 
-  assignable_idx <- which(
-    !is.na(dt$era) &
-      !is.na(dt$pair_dash) &
-      is.finite(dt[[spec$lon_col]]) &
-      is.finite(dt[[spec$lat_col]])
+assignable_idx <- which(
+  !is.na(dt$era) &
+    !is.na(dt$pair_dash) &
+    is.finite(dt$longitude) &
+    is.finite(dt$latitude)
+)
+
+if (length(assignable_idx) > 0) {
+  pts <- st_as_sf(
+    data.table(
+      assignment_row_id = assignable_idx,
+      lon = dt$longitude[assignable_idx],
+      lat = dt$latitude[assignable_idx]
+    ),
+    coords = c("lon", "lat"),
+    crs = 4326,
+    remove = FALSE
   )
 
-  if (length(assignable_idx) > 0) {
-    pts <- st_as_sf(
-      data.table(
-        assignment_row_id = assignable_idx,
-        lon = dt[[spec$lon_col]][assignable_idx],
-        lat = dt[[spec$lat_col]][assignable_idx]
-      ),
-      coords = c("lon", "lat"),
-      crs = 4326,
-      remove = FALSE
-    )
+  seg_ids <- assign_points_to_nearest_segments(
+    points_sf = pts,
+    era_values = dt$era[assignable_idx],
+    pair_values = dt$pair_dash[assignable_idx],
+    segment_layers = segments_by_era,
+    max_distance = units::set_units(segment_buffer_m, "m"),
+    chunk_n = chunk_n
+  )
 
-    seg_ids <- assign_points_to_nearest_segments(
-      points_sf = pts,
-      era_values = dt$era[assignable_idx],
-      pair_values = dt$pair_dash[assignable_idx],
-      segment_layers = segments_by_era,
-      max_distance = units::set_units(segment_buffer_m, "m"),
-      chunk_n = spec$chunk_n
-    )
-
-    set(dt, i = assignable_idx, j = "segment_id", value = seg_ids)
-  }
-
-  assigned_segments <- dt[!is.na(segment_id) & segment_id != "", .(assignment_row_id, era, pair_dash, segment_id)]
-  if (nrow(assigned_segments) > 0) {
-    assigned_segments <- merge(
-      assigned_segments,
-      segment_pair_lookup,
-      by = c("era", "segment_id"),
-      all.x = TRUE,
-      sort = FALSE
-    )
-    missing_segment <- is.na(assigned_segments$segment_pair_dash)
-    if (any(missing_segment)) {
-      stop(sprintf(
-        "%s segment assignment has %d segment IDs missing from the segment lookup.",
-        dataset_name,
-        sum(missing_segment)
-      ), call. = FALSE)
-    }
-    pair_mismatch <- assigned_segments$pair_dash != assigned_segments$segment_pair_dash
-    if (any(pair_mismatch, na.rm = TRUE)) {
-      stop(sprintf(
-        "%s segment assignment is not in the input ward pair for %d rows.",
-        dataset_name,
-        sum(pair_mismatch, na.rm = TRUE)
-      ), call. = FALSE)
-    }
-  }
-
-  segment_idx <- match(paste(dt$era, dt$segment_id, sep = "\r"), segment_metadata_key)
-  dt[, analysis_segment_id := segment_metadata$analysis_segment_id[segment_idx]]
-  dt[, valid_segment := segment_metadata$valid_segment[segment_idx]]
-  dt[, invalid_reason := segment_metadata$invalid_reason[segment_idx]]
-  dt[, segment_length_ft := segment_metadata$segment_length_ft[segment_idx]]
-  dt[, segment_lt500ft := segment_metadata$segment_lt500ft[segment_idx]]
-  dt[, segment_lt1000ft := segment_metadata$segment_lt1000ft[segment_idx]]
-
-  pending_idx <- which(dt$segment_reason == "pending")
-  if (length(pending_idx) > 0) {
-    dt[pending_idx, segment_reason := fifelse(
-      !is.na(segment_id) & segment_id != "",
-      "matched",
-      "no_nearest_segment_within_radius"
-    )]
-  }
-
-  dt[, c("assignment_row_id", "pair_dash", "obs_date", "era") := NULL]
-  segment_outputs[[dataset_name]] <- dt
+  set(dt, i = assignable_idx, j = "segment_id", value = seg_ids)
 }
+
+assigned_segments <- dt[!is.na(segment_id) & segment_id != "", .(assignment_row_id, era, pair_dash, segment_id)]
+if (nrow(assigned_segments) > 0) {
+  assigned_segments <- merge(
+    assigned_segments,
+    segment_pair_lookup,
+    by = c("era", "segment_id"),
+    all.x = TRUE,
+    sort = FALSE
+  )
+  missing_segment <- is.na(assigned_segments$segment_pair_dash)
+  if (any(missing_segment)) {
+    stop(sprintf(
+      "%s segment assignment has %d segment IDs missing from the segment lookup.",
+      dataset_name,
+      sum(missing_segment)
+    ), call. = FALSE)
+  }
+  pair_mismatch <- assigned_segments$pair_dash != assigned_segments$segment_pair_dash
+  if (any(pair_mismatch, na.rm = TRUE)) {
+    stop(sprintf(
+      "%s segment assignment is not in the input ward pair for %d rows.",
+      dataset_name,
+      sum(pair_mismatch, na.rm = TRUE)
+    ), call. = FALSE)
+  }
+}
+
+segment_idx <- match(paste(dt$era, dt$segment_id, sep = "\r"), segment_metadata_key)
+dt[, analysis_segment_id := segment_metadata$analysis_segment_id[segment_idx]]
+dt[, valid_segment := segment_metadata$valid_segment[segment_idx]]
+dt[, invalid_reason := segment_metadata$invalid_reason[segment_idx]]
+dt[, segment_length_ft := segment_metadata$segment_length_ft[segment_idx]]
+dt[, segment_lt500ft := segment_metadata$segment_lt500ft[segment_idx]]
+dt[, segment_lt1000ft := segment_metadata$segment_lt1000ft[segment_idx]]
+
+pending_idx <- which(dt$segment_reason == "pending")
+if (length(pending_idx) > 0) {
+  dt[pending_idx, segment_reason := fifelse(
+    !is.na(segment_id) & segment_id != "",
+    "matched",
+    "no_nearest_segment_within_radius"
+  )]
+}
+
+dt[, c("assignment_row_id", "pair_dash", "obs_date", "era") := NULL]
 
 if (dataset_name == "sales") {
-  fwrite(segment_outputs[["sales"]], "../output/sales_pre_scores_with_segments.csv")
+  fwrite(dt, "../output/sales_pre_scores_with_segments.csv")
 } else {
-  write_parquet(
-    as.data.frame(segment_outputs[["rental"]]),
-    "../output/rent_pre_scores_full_with_segments.parquet"
-  )
+  SaveData(as.data.frame(dt), c("rent_panel_id"), "../output/rent_pre_scores_full_with_segments.parquet")
 }
+
+ReportData("../output/sales_pre_scores_with_segments.csv", "row_id")

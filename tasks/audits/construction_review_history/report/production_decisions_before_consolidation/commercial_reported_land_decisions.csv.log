@@ -1,0 +1,18 @@
+File: commercial_reported_land_decisions.csv
+Rows: 5
+Columns: 8
+SHA-256 (saved bytes): 14d1fa93a4977f561a25e665e43f2c66348f7f87a07e59de27a91f7e8c31dd9b
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+         column inferred_type non_missing distinct    min      max     mean                sd
+     project_id       VARCHAR           5        5      -        -        -                 -
+      land_sqft        DOUBLE           5        5 8880.0 152677.0 47967.28 59562.84825033135
+    land_source       VARCHAR           5        5      -        -        -                 -
+   evidence_url       VARCHAR           5        5      -        -        -                 -
+decision_reason       VARCHAR           5        5      -        -        -                 -
+    exclude_far       BOOLEAN           5        2      -        -        -                 -
+       reviewer       VARCHAR           5        1      -        -        -                 -
+    review_date          DATE           5        1      -        -        -                 -

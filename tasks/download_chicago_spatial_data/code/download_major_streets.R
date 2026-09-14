@@ -30,7 +30,7 @@ if (!all(c("STREET_NAM", "CLASS") %in% names(major_streets))) {
 
 st_write(
   major_streets,
-  "../output/major_streets.geojson",
+  "../output/major_streets_current.geojson",
   delete_dsn = TRUE,
   quiet = TRUE
 )

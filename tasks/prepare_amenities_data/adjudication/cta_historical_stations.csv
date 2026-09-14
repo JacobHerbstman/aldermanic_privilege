@@ -1,0 +1,4 @@
+station_id,longname,lines,longitude,latitude,legend,active_from_date,active_to_date,active_date_source
+historical_washington_state,Washington/State,Red Line,-87.6278,41.8837,Red Line,1900-01-01,2006-10-22,"CTA closure effective October 23, 2006"
+historical_madison_wabash,Madison/Wabash,"Brown, Orange, Pink, Purple (Express), Green",-87.626098,41.882023,Multiple Lines,1900-01-01,2015-03-15,"CTA closure effective March 16, 2015"
+historical_randolph_wabash,Randolph/Wabash,"Brown, Orange, Pink, Purple (Express), Green",-87.626149,41.884431,Multiple Lines,1900-01-01,2017-09-02,"CTA closure effective September 3, 2017"

@@ -1,0 +1,27 @@
+File: census_block_groups.gpkg
+Layer: year2010
+Rows: 3993
+Columns: 2
+SHA-256 (saved bytes): c95bb74d5fb93849dc790ef7c660b28a32e11ea56c82766b8cb4cc4099b9c943
+Key: GEOID
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+column inferred_type non_missing distinct min  max   mean                sd
+   fid        BIGINT        3993     3993   1 3993 1997.0 1152.824140968604
+ GEOID       VARCHAR        3993     3993   -    -      -                 -
+
+File: census_block_groups.gpkg
+Layer: year2020
+Rows: 4002
+Columns: 2
+SHA-256 (saved bytes): c95bb74d5fb93849dc790ef7c660b28a32e11ea56c82766b8cb4cc4099b9c943
+Key: GEOID
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+column inferred_type non_missing distinct min  max   mean                 sd
+   fid        BIGINT        4002     4002   1 4002 2001.5 1155.4222172002753
+ GEOID       VARCHAR        4002     4002   -    -      -                  -

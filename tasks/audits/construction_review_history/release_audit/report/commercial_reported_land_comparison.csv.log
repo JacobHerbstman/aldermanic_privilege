@@ -1,0 +1,55 @@
+File: commercial_reported_land_comparison.csv
+Rows: 56
+Columns: 45
+SHA-256 (saved bytes): d9430efbcfcdfbf027e5319b5a34d89ea47416d692c6fcea0f844b5396f96240
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                           column inferred_type non_missing distinct                 min                max               mean                 sd
+                       project_id       VARCHAR          56       56                   -                  -                  -                  -
+               source_project_ids       VARCHAR          56       56                   -                  -                  -                  -
+                   source_row_ids       VARCHAR          56       56                   -                  -                  -                  -
+        selected_source_addresses       VARCHAR          56       56                   -                  -                  -                  -
+                   component_pins       VARCHAR          56       56                   -                  -                  -                  -
+                  component_count        BIGINT          56        8                   1                  9 2.6607142857142856 1.8904235765302175
+                construction_year        BIGINT          56       15                2006               2022 2015.9464285714287  5.844716784046466
+                   dwelling_units        DOUBLE          55       38                 2.0              409.0  70.34545454545454  97.40469571573409
+                    building_sqft        DOUBLE          46       46              2700.0           566698.0  96617.26086956522 144335.49845172605
+                        allow_far       BOOLEAN          56        2                   -                  -                  -                  -
+                      allow_dupac       BOOLEAN          56        2                   -                  -                  -                  -
+                membership_source       VARCHAR          56        9                   -                  -                  -                  -
+                      year_source       VARCHAR          56       41                   -                  -                  -                  -
+                     units_source       VARCHAR          56       39                   -                  -                  -                  -
+                  building_source       VARCHAR          47       14                   -                  -                  -                  -
+                  decision_source       VARCHAR          56        5                   -                  -                  -                  -
+                  decision_action       VARCHAR          56       12                   -                  -                  -                  -
+                      decision_id       VARCHAR          56       56                   -                  -                  -                  -
+                       confidence       VARCHAR          56        2                   -                  -                  -                  -
+                     evidence_ids       VARCHAR          56       47                   -                  -                  -                  -
+                    evidence_urls       VARCHAR          22       22                   -                  -                  -                  -
+                  decision_reason       VARCHAR          56       48                   -                  -                  -                  -
+                unresolved_caveat       VARCHAR          14        8                   -                  -                  -                  -
+              land_source_row_ids       VARCHAR          46       46                   -                  -                  -                  -
+                        land_sqft        DOUBLE          56       56              2638.0           338806.0  37758.60249235835 60117.259773216705
+                      land_source       VARCHAR          56        3                   -                  -                  -                  -
+                current_land_sqft        DOUBLE          51       50              2650.0           338807.0  32770.47843137255  53895.35463323092
+              current_land_source       VARCHAR          56       46                   -                  -                  -                  -
+                current_allow_far       BOOLEAN          56        2                   -                  -                  -                  -
+              current_allow_dupac       BOOLEAN          56        2                   -                  -                  -                  -
+            current_building_sqft        DOUBLE          46       46              2700.0           566698.0  96617.26086956522 144335.49845172605
+              land_sqft_candidate        DOUBLE          55       42                 0.0           341355.0 22424.272727272728  50820.67281226124
+          building_sqft_candidate        DOUBLE          46       46              2700.0          1309000.0 116447.26086956522   226715.242074618
+         dwelling_units_candidate        DOUBLE          56       40                 2.0              858.0  84.98214285714286 142.68369226705985
+         component_pins_candidate       VARCHAR          56       56                   -                  -                  -                  -
+            land_source_candidate       VARCHAR          56       56                   -                  -                  -                  -
+          map_minus_assessor_sqft        DOUBLE          55       47             -4832.0 239421.25976997617 15910.629580269364 42904.212913923286
+       map_minus_assessor_percent        DOUBLE          41       38 -10.715394509247345   71.9204927211646  1.925621351050707 13.000757952714839
+        same_candidate_components       BOOLEAN          56        2                   -                  -                  -                  -
+          assessor_land_available       BOOLEAN          56        2                   -                  -                  -                  -
+              earlier_source_rows       VARCHAR          36       36                   -                  -                  -                  -
+earlier_exact_disjoint_components       BOOLEAN          56        2                   -                  -                  -                  -
+       earlier_reported_land_sqft        DOUBLE          23       23              1980.0           338807.0  40067.47826086957  73717.24553372197
+   earlier_reported_building_sqft        DOUBLE          24       24              2700.0           542503.0  78526.33333333333 138556.85143013275
+           earlier_reported_units        DOUBLE          24       20                 2.0              349.0  64.04166666666667   99.1851492945376

@@ -1,0 +1,42 @@
+\section*{Source preservation and build cleanup}
+\textit{September 12, 2026. Agent-drafted record.}
+
+The cleanup reproduces all 13,677 construction records byte for byte, including
+their years, measurements and boundary distances. The analysis file retains
+9,493 projects. The sales and rental input files retain 233,699 sales and
+989,256 rental observations. These three files change only in their attached
+scores, by at most $7.4\times10^{-12}$ after refitting the same models;
+boundary-side assignments are unchanged. No adjudications, samples or research
+definitions were changed.
+
+Production R scripts outside shared code and environment setup fall from 73
+to 54: eleven sales-review scripts move into audits, and nine parcel-source
+scripts become one. Source filenames and priorities remain visible in that
+script. Original requests, responses and review evidence are preserved.
+The density scripts use scores already attached upstream. The density and
+price Makefiles expose their years, windows, controls, fixed effects and
+clustering. The property-type comparison moves to the sales audit, sharing
+the paper's distance-bin estimator.
+
+The paper Makefile rebuilds all four PDFs with unchanged text and rendered
+pages, including all 56 working-paper pages. An unchanged build requests no
+analysis or LaTeX work. The five changed audit tasks also build successfully
+and pass their unchanged-build checks; 43 sales-audit tables and figures match
+the previous versions within numerical rounding. Existing County query
+responses are retained and receive standard reports. The logbook retains its
+earlier exhibits.
+
+GNU Make 3.81 checks cover fresh builds, missing outputs, changed inputs,
+parallel requests and failed downloads. Source failures preserve usable saved
+files. The paper Makefile now removes a PDF if its compilation fails.
+Shared execution preserves arguments containing spaces and commas in local
+and simulated-scheduler tests; actual cluster execution remains untested.
+
+The unchanged City permit extract has 721,958 records and 116 columns for
+application years 2006--2022. September 12 is its preservation date, not a
+verified download date; its checksum is recorded in the task README. The
+additional asset was uploaded with approval; its public download reproduces
+the compressed file and original CSV exactly. The larger permit
+file already archived contains the same identifiers, but 7,136 records differ
+in at least one field, so it cannot substitute for this extract while
+preserving the source data.

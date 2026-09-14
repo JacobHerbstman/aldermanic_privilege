@@ -303,25 +303,19 @@ pooled_stars <- dplyr::case_when(
 
 event_results <- event_results |>
   dplyr::mutate(
-    estimate = expm1(estimate_log),
-    ci_low = expm1(estimate_log - critical_value * se),
-    ci_high = expm1(estimate_log + critical_value * se)
+    estimate = estimate_log,
+    ci_low = estimate_log - critical_value * se,
+    ci_high = estimate_log + critical_value * se
   )
-
-outcome_label <- dplyr::if_else(
-  outcome_family == "high_discretion",
-  "High-discretion permits by application year",
-  "Low-discretion permits (excluding signs) by application year"
-)
 
 if (direction_rule == "signed") {
   plot_title <- if (
     outcome_family == "high_discretion" &&
       sample_rule == "stable"
   ) {
-    "Panel A: Combined estimate"
+    "Panel A: Both reassignment directions"
   } else {
-    outcome_label
+    NULL
   }
   plot <- ggplot2::ggplot(
     event_results,
@@ -349,13 +343,13 @@ if (direction_rule == "signed") {
     ggplot2::labs(
       title = plot_title,
       subtitle = sprintf(
-        "Pooled estimate = %.3f%s (SE %.3f)",
+        "Pooled Estimate = %.3f%s (SE %.3f)",
         pooled_estimate,
         pooled_stars,
         pooled_se
       ),
-      x = "Years relative to the 2015 ward remap",
-      y = "Effect of assignment toward greater stringency"
+      x = "Years since 2015 redistricting",
+      y = "Effect on annual permits (log points)"
     ) +
     ggplot2::theme_minimal(base_size = 11) +
     ggplot2::theme(
@@ -383,9 +377,9 @@ if (direction_rule == "signed") {
     )
   direction_labels <- tibble::tribble(
     ~direction, ~title, ~color, ~fill,
-    "stricter", "Panel B: Assigned toward more stringent",
+    "stricter", "Panel B: Assigned to more stringent aldermen",
     "#D92D27", "#D92D27",
-    "lenient", "Panel C: Assigned toward more lenient",
+    "lenient", "Panel C: Assigned to more lenient aldermen",
     "#2478B5", "#2478B5"
   )
   direction_limits <- range(
@@ -432,13 +426,13 @@ if (direction_rule == "signed") {
         ggplot2::labs(
           title = direction_labels$title[i],
           subtitle = sprintf(
-            "Pooled estimate = %.3f%s (SE %.3f)",
+            "Pooled Estimate = %.3f%s (SE %.3f)",
             pooled_i$estimate,
             pooled_i$stars,
             pooled_i$se
           ),
-          x = "Years relative to the 2015 ward remap",
-          y = "Effect relative to unchanged blocks"
+          x = "Years since 2015 redistricting",
+          y = "Effect on annual permits (log points)"
         ) +
         ggplot2::theme_minimal(base_size = 10.5) +
         ggplot2::theme(

@@ -1,0 +1,21 @@
+File: manual_episode_increment.csv
+Rows: 42
+Columns: 11
+SHA-256 (saved bytes): 43a03ec077ebd8c8c8cdd683b7a4316e039c78d66f6c69b39693f95bd59e1101
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                 column inferred_type non_missing distinct    min     max               mean                 sd
+                             project_id       VARCHAR          42       42      -       -                  -                  -
+                            disposition       VARCHAR          42        2      -       -                  -                  -
+                         successor_rule       VARCHAR          42        2      -       -                  -                  -
+                       rule_disposition       VARCHAR          42        1      -       -                  -                  -
+                      final_disposition       VARCHAR          42        1      -       -                  -                  -
+                             rule_units        DOUBLE          42       17    2.0    43.0  8.547619047619047  8.112629061553355
+                            final_units        DOUBLE          42       18    1.0    43.0  8.476190476190476  8.151726123472391
+                     rule_building_sqft        DOUBLE          42       41 2952.0 73666.0 16143.142857142857 14753.703945973552
+                    final_building_sqft        DOUBLE          42       41 1775.0 73666.0 16007.452380952382 14816.865520869482
+disposition_and_values_already_computed       BOOLEAN          42        2      -       -                  -                  -
+                               evidence       VARCHAR          42       41      -       -                  -                  -

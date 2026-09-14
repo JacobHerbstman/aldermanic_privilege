@@ -16,7 +16,7 @@ if ! [[ "$start_year" =~ ^[0-9]{4}$ && "$end_year" =~ ^[0-9]{4}$ && "$start_year
     exit 1
 fi
 
-output_file="../output/parcel_sales_city.csv"
+output_file="../output/parcel_sales_city_current.csv"
 api_csv="https://datacatalog.cookcountyil.gov/resource/wvhk-k5uv.csv"
 api_json="https://datacatalog.cookcountyil.gov/resource/wvhk-k5uv.json"
 batch_size=1000000

@@ -1,0 +1,36 @@
+File: sales_with_ward_distances_through2022.csv
+Rows: 237416
+Columns: 26
+SHA-256 (saved bytes): 9be1dcfa8637a7687d2f2bf1e85b0f1876a224424513a67fb2eae520a9596a36
+Key: row_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                      column inferred_type non_missing distinct                min               max                 mean                  sd
+                      row_id        BIGINT      237416   216837            7087411          98484848    81126080.24262054   34559830.52768722
+           sale_document_num        BIGINT      237416   173411          600632144        7901008166   1450389870.9067712   536196741.3345511
+                         pin       VARCHAR      237416   174840                  -                 -                    -                   -
+                        year        BIGINT      237416       19               2006              2022   2014.2406324763285   5.348178606961919
+                   sale_date          DATE      237416     3739                  -                 -                    -                   -
+                  sale_price        DOUBLE      237416   113970   10815.0808066276  285864232.870982    421881.2677659268  1024544.0276230738
+          sale_price_nominal        BIGINT      237416    10781              10074         225000001   353628.07537823904   797316.1805585289
+    sale_price_real_2022_raw        DOUBLE      237416   113970   10815.0808066276  285864232.870982    421881.2677659268  1024544.0276230738
+sale_price_cpi_chi_all_items        DOUBLE      237416      212              197.2           278.415    228.8492634657535  20.312431134903758
+ sale_price_deflator_to_2022        DOUBLE      237416      199  0.981829582936743  1.38618703515889   1.2037278074137818  0.1047790902842587
+                       class        BIGINT      237416       13                202               295    214.0264767328234  23.909168087342778
+                    latitude        DOUBLE      237416   156126   41.6448644623124  42.0226431371196    41.85260295383382 0.09911725435517783
+                   longitude        DOUBLE      237416   215150  -87.8461794943848 -87.5248067824485   -87.69388476579897 0.06383541323414427
+           coordinate_source       VARCHAR      237416        1                  -                 -                    -                   -
+             coordinate_year        BIGINT      237416       19               2006              2022   2014.2406324763285   5.348178606961919
+                        ward        BIGINT      237416       45                  1                50   25.157740000673922  13.459059804762985
+               neighbor_ward        BIGINT      237416       45                  1                50     24.4933113185295  13.863404589403112
+                ward_pair_id       VARCHAR      237416      138                  -                 -                    -                   -
+                  segment_id       VARCHAR      145669     2360                  -                 -                    -                   -
+                      dist_m        DOUBLE      237416   162106  0.311350136612877    8682.014549416    565.7926824696689   749.9213065770194
+               signed_dist_m        DOUBLE      236941   194462  -8634.58691687031    8682.014549416   128.52553785858873   930.8727713349646
+                        sign        BIGINT      236941        2                 -1                 1  0.07095015214758105  0.9974819673269398
+                alderman_own       VARCHAR      237192      111                  -                 -                    -                   -
+           alderman_neighbor       VARCHAR      237182      111                  -                 -                    -                   -
+              strictness_own        DOUBLE      237186      102 -3.445576092831627 3.335724428970233   0.1313748944388496  0.9337632894330972
+         strictness_neighbor        DOUBLE      237171      102 -3.445576092831627 3.335724428970233 0.055513767231691366  0.9331128280986654

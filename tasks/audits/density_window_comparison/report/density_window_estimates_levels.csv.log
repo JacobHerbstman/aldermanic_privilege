@@ -1,0 +1,26 @@
+File: density_window_estimates_levels.csv
+Rows: 20
+Columns: 16
+SHA-256 (saved bytes): ed5702c721eaad68804aca8983355a8d735c4fcd3fd0a73fbc7c973e78048532
+Key: sample, outcome, window_ft
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct                   min                   max                mean                  sd
+            sample       VARCHAR          20        2                     -                     -                   -                   -
+           outcome       VARCHAR          20        2                     -                     -                   -                   -
+         window_ft        BIGINT          20        5                   100                   500               300.0  145.09525002200235
+          estimate        DOUBLE          20       20    -25.29046679996514    11.081646744813028 -2.6718967798802202   6.823893682409499
+         std_error        DOUBLE          20       20  0.039498656455110394    13.815375699840608   3.089140078666258   4.248868297692216
+           p_value        DOUBLE          20       20 4.952759608413069e-05    0.9983409573782211 0.39892421534575406 0.33067227128914445
+            ci_low        DOUBLE          20       20   -49.431394312720656 -0.061202443837946305    -8.8304731490927  12.566588755406459
+           ci_high        DOUBLE          20       20    -2.409539832770818     38.64256715519399   3.486679589332259   8.906086090923418
+                 n        BIGINT          20       10                   193                  4023              1417.6  1262.4086584987572
+  n_more_stringent        BIGINT          20       10                    92                  1908               670.2   593.5424074770768
+  n_less_stringent        BIGINT          20       10                   101                  2115               747.4   669.0463283463142
+        ward_pairs        BIGINT          20       10                    51                   122                89.1  22.107155307489784
+          segments        BIGINT          20       10                   132                   873               455.2  232.10696263848521
+percent_difference       VARCHAR           0        0                     -                     -                   -                   -
+    percent_ci_low       VARCHAR           0        0                     -                     -                   -                   -
+   percent_ci_high       VARCHAR           0        0                     -                     -                   -                   -

@@ -3,10 +3,10 @@
 # max_application_ym <- "2022-12"
 
 source("../../setup_environment/code/packages.R")
-source("../../_lib/canonical_geometry_helpers.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(max_application_ym)
 }
 
@@ -21,8 +21,8 @@ alderman_row_levels <- c(
   "Total permits in sample",
   "Mean processing time (days)",
   "Median processing time (days)",
-  "Alderman-level mean of processing time",
-  "Alderman-level IQR of mean processing time",
+  "Alderman-level mean processing time (days)",
+  "Alderman-level IQR of mean processing time (days)",
   "Number of unique wards",
   "Number of unique aldermen"
 )
@@ -183,12 +183,12 @@ alderman_summary_table <- bind_rows(
   tibble(row = "Mean processing time (days)", group = summary_stats$group, value = summary_stats$mean_processing_time),
   tibble(row = "Median processing time (days)", group = summary_stats$group, value = summary_stats$median_processing_time),
   tibble(
-    row = "Alderman-level mean of processing time",
+    row = "Alderman-level mean processing time (days)",
     group = alderman_distribution$group,
     value = alderman_distribution$entity_level_mean_processing_time
   ),
   tibble(
-    row = "Alderman-level IQR of mean processing time",
+    row = "Alderman-level IQR of mean processing time (days)",
     group = alderman_distribution$group,
     value = alderman_distribution$entity_level_iqr_mean_processing_time
   ),
@@ -235,7 +235,7 @@ writeLines(alderman_summary_tex_lines, "../output/permit_processing_time_high_vs
 correlation_tex_lines <- c(
   "\\begin{tabular}{lr}",
   "\\toprule",
-  "Permit group & Corr. of mean processing time and ward-month permit volume \\\\",
+  "Permit group & Correlation with ward-month permit volume \\\\",
   "\\midrule"
 )
 
@@ -264,10 +264,8 @@ p_density <- ggplot(
   scale_fill_manual(values = c("High-Discretion" = "#b74d2c", "Low-Discretion" = "#1f3c4a")) +
   theme_bw(base_size = 12) +
   labs(
-    title = "Alderman-Level Mean Permit Processing Times",
-    subtitle = NULL,
-    x = "Alderman-level mean processing time (days)",
-    y = "Density",
+    x = "Mean processing time per alderman (days)",
+    y = "Probability density",
     color = NULL,
     fill = NULL
   ) +

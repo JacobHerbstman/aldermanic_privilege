@@ -1,0 +1,35 @@
+File: entering_home_assignments.csv
+Rows: 368
+Columns: 25
+SHA-256 (saved bytes): 48a196d3821b10ae134aeb14c128160d231f67e29817664fea81c4cf3450230a
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct                 min                max                mean                 sd
+             project_id       VARCHAR         368      368                   -                  -                   -                  -
+     source_project_ids       VARCHAR         368      368                   -                  -                   -                  -
+         component_pins       VARCHAR         368      368                   -                  -                   -                  -
+           project_kind       VARCHAR         368        4                   -                  -                   -                  -
+      construction_year        BIGINT         368       16                2006               2022  2010.4429347826087  5.022239811675609
+      construction_date          DATE         368       16                   -                  -                   -                  -
+          boundary_year        BIGINT         368        2                2003               2015  2005.7065217391305  5.022104910542571
+                   ward        BIGINT         368       35                   1                 48  17.247282608695652  15.59802416071599
+           alderman_own       VARCHAR         368       54                   -                  -                   -                  -
+          neighbor_ward        BIGINT         368       35                   1                 50   19.88586956521739 14.589870559656037
+      alderman_neighbor       VARCHAR         368       56                   -                  -                   -                  -
+              ward_pair       VARCHAR         368       55                   -                  -                   -                  -
+             segment_id       VARCHAR         368      131                   -                  -                   -                  -
+distance_to_boundary_ft        DOUBLE         368      363   40.65713237822101 497.12723149248694   277.6744190634718  128.4889349636999
+         dwelling_units        BIGINT         368        6                   1                  9  1.0978260869565217 0.6895053332275421
+          building_sqft        BIGINT         368      200                 315              19407  2360.2853260869565 1794.0944502920768
+              land_sqft        BIGINT         368      276                 708              33047   2857.415760869565  2853.634761113036
+            density_far        DOUBLE         368      319 0.05900686900475081 2.5875706214689265  1.1775768052570066 0.6268210195559508
+          density_dupac        DOUBLE         368      274  1.3181226737676643  61.52542372881356  26.444368501183703  16.29119003845792
+   external_multifamily       BOOLEAN         368        1                   -                  -                   -                  -
+     multifamily_source       VARCHAR         368        2                   -                  -                   -                  -
+              own_score        DOUBLE         368       54  -2.044668513053852 3.3357244289701837 0.40471662997215746  0.583702449044032
+         neighbor_score        DOUBLE         368       56   -3.44557609283157 3.3357244289701837  0.3020706354110208 0.7736101319764414
+          boundary_side       VARCHAR         368        2                   -                  -                   -                  -
+    present_in_old_data       BOOLEAN         368        2                   -                  -                   -                  -

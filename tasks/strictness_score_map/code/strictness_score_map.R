@@ -7,7 +7,7 @@
 source("../../setup_environment/code/packages.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(early_date, late_date, uncertainty_spec)
 }
 
@@ -99,7 +99,7 @@ p <- ggplot(map_data) +
     high = "#d7191c",
     midpoint = 0,
     limits = c(-score_limit, score_limit),
-    name = "Regulatory stringency"
+    name = "Stringency score (standard deviations)"
   ) +
   theme_void() +
   theme(

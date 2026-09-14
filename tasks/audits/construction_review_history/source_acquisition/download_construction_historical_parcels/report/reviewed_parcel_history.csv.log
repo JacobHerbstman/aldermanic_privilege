@@ -1,0 +1,18 @@
+File: reviewed_parcel_history.csv
+Rows: 54
+Columns: 8
+SHA-256 (saved bytes): ffea115017b23ff75c0dee5e68c2893066f34db38282242619c4665804e81ba6
+Key: pin, year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+column inferred_type non_missing distinct                min                max                  mean                     sd
+   pin        BIGINT          54        3     16231160420000     20041260750000    17895028352407.406     1656151315176.9614
+ pin10        BIGINT          54        3         1623116042         2004126075    1789502835.2407408     165615131.51769623
+  year        BIGINT          54       19               2007               2025    2016.4444444444443      5.329401066092741
+   lon        DOUBLE          54       14 -87.72170799497565     -87.6417818106    -87.67249446315405    0.03677116403571317
+   lat        DOUBLE          54       14 41.818140403846506 41.860940882801444     41.83742726459401    0.01841640023111503
+x_3435        DOUBLE          54       11 1150859.3782686505  1172757.301089085    1164334.1019618378      10069.19272847218
+y_3435        DOUBLE          54       11 1877079.2522068138  1892510.361399183    1884043.5274052876      6636.830745371824
+row_id        BIGINT          54       54 162311604200002007 200412607500002025 1.789502835240761e+17 1.6561513151769638e+16

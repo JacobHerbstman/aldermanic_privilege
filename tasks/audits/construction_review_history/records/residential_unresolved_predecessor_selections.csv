@@ -1,0 +1,23 @@
+episode_id,object_id,accept_predecessor,selection_reason,fallback_geometry
+residential_297_group_17104000490000|2022,731033,FALSE,"The reference point intersects overlapping Harbor air-right and parcel polygons; the final tower is identified from the completed permit and successor condominium base instead.",successor_condo_base
+residential_297_group_17104000490000|2022,738375,FALSE,"The reference point intersects overlapping Harbor air-right and parcel polygons; the final tower is identified from the completed permit and successor condominium base instead.",successor_condo_base
+residential_297_group_17104000490000|2022,757617,FALSE,"The reference point intersects overlapping Harbor air-right and parcel polygons; the final tower is identified from the completed permit and successor condominium base instead.",successor_condo_base
+residential_297_group_17104000540000|2021,1304066,FALSE,"The reference point intersects overlapping Harbor air-right and parcel polygons; the final tower is identified from the completed permit and successor condominium base instead.",successor_condo_base
+residential_297_group_17104000540000|2021,1304392,FALSE,"The reference point intersects overlapping Harbor air-right and parcel polygons; the final tower is identified from the completed permit and successor condominium base instead.",successor_condo_base
+residential_297_group_17104000540000|2021,1306092,FALSE,"The reference point intersects overlapping Harbor air-right and parcel polygons; the final tower is identified from the completed permit and successor condominium base instead.",successor_condo_base
+residential_multicard_16362010710000|2007,407609,TRUE,"Three independent project and permit address points fall in the same construction-year parcel.",historical_parcel
+residential_multicard_17044240600000|2007,1573607,FALSE,"The accepted 1011 N Dearborn point lies on the shared edge of two historical parcels, neither of which matches the assessor land denominator.",accepted_address_point
+residential_multicard_17044240600000|2007,1573609,FALSE,"The accepted 1011 N Dearborn point lies on the shared edge of two historical parcels, neither of which matches the assessor land denominator.",accepted_address_point
+residential_multicard_17293090540000|2006,97500,TRUE,"The permit and project address points identify one unique construction-year site parcel.",historical_parcel
+residential_multicard_17293090540000|2007,97500,TRUE,"The permit and project address points identify one unique construction-year site parcel.",historical_parcel
+residential_multicard_17293090540000|2018,1428995,TRUE,"The permit and project address points identify one unique construction-year site parcel.",historical_parcel
+residential_multicard_17293090680000|2006,97500,TRUE,"Three independent source and permit reference points identify one unique construction-year site parcel.",historical_parcel
+residential_multicard_17293090680000|2007,97500,TRUE,"Three independent source and permit reference points identify one unique construction-year site parcel.",historical_parcel
+residential_multicard_17293090680000|2022,752570,FALSE,"The source episode spans a large successor site and a small adjacent parcel; these candidates do not establish a unique project polygon.",accepted_project_points
+residential_multicard_17293090680000|2022,781733,FALSE,"The source episode spans a large successor site and a small adjacent parcel; these candidates do not establish a unique project polygon.",accepted_project_points
+residential_tieback_13362320330000|2018,1303840,FALSE,"This adjacent parcel is identified only by a different permit reference and is not the completed 1716 N California project.",exact_successor_parcel
+residential_tieback_13362320330000|2018,1303878,FALSE,"The exact successor parcel is already present in the episode geometry, so no predecessor recovery is required.",exact_successor_parcel
+residential_tieback_13362320330000|2018,1303916,FALSE,"The source lineage and neighboring address do not identify the completed 1716 N California building as this parcel.",exact_successor_parcel
+residential_tieback_16231160090000|2006,35965,TRUE,"The accepted project address falls in the original source PIN's unique construction-year parcel.",historical_parcel
+residential_tieback_17344230080000|2006,1544409,TRUE,"The accepted 729 E 38th address and the current 3021 component identify this parcel as that component's predecessor.",historical_parcel
+residential_tieback_17344230080000|2006,1544412,FALSE,"The 3008 component already has an exact construction-year polygon and must not be added a second time.",exact_component_parcel

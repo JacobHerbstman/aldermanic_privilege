@@ -1,0 +1,40 @@
+File: multicard_component_successor_matches.csv
+Rows: 604
+Columns: 30
+SHA-256 (saved bytes): 9d5259ef406370385c57148c0cf4c54298b28d7d43c41706f1c1a02d2df6e32d
+Key: card_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct                min                max                mean                   sd
+           component_id       VARCHAR         604      104                  -                  -                   -                    -
+                card_id       VARCHAR         604      604                  -                  -                   -                    -
+           successor_id       VARCHAR         604      604                  -                  -                   -                    -
+             project_id       VARCHAR         604      107                  -                  -                   -                    -
+               card_num        BIGINT         604       43                  1                 43   7.685430463576159    8.512037305176063
+             card_units        BIGINT         604        4                  1                  4  1.0711920529801324   0.4030125810698566
+     card_building_sqft        BIGINT         604      175               1302               7562  2072.0745033112585    649.5397421986131
+            project_pin        BIGINT         604      107     12252050380000     25194030030000   16799377228195.38   2573879892016.2095
+      construction_year        BIGINT         604       16               2006               2022  2010.5529801324503   5.1548660994975455
+           within_500ft       BOOLEAN         604        2                  -                  -                   -                    -
+         successor_type       VARCHAR         604        1                  -                  -                   -                    -
+          successor_pin        BIGINT         604      604     12252050430000     25194030440000  16799310823493.377   2573868855744.8735
+        successor_pin10        BIGINT         604      604         1225205043         2519403044  1679931082.3493378   257386885.57448784
+      successor_address       VARCHAR         600      579                  -                  -                   -                    -
+         successor_year        BIGINT         604       19               2005               2023  2010.6655629139073    5.190954581482454
+               year_gap        BIGINT         604        5                 -2                  2 0.11258278145695365    1.035316962114182
+        successor_class        BIGINT         604        7                204                295   284.5430463576159   25.633851245494157
+        successor_units        BIGINT         604        4                  1                  4  1.0711920529801324   0.4030125810698566
+successor_building_sqft        BIGINT         604      193               1302               7175   2060.021523178808    641.1689013564711
+    successor_land_sqft        BIGINT         604      424                576               6761  1700.0115894039734   1069.6594170679653
+       successor_x_3435        DOUBLE         604      603 1126801.7935877538  1194754.014725387  1166682.3167872154   11982.443247296915
+       successor_y_3435        DOUBLE         604      602 1828206.5831250015 1939043.5797221088  1891958.5968118638   20396.983022488126
+represented_project_ids       VARCHAR         541      541                  -                  -                   -                    -
+ search_geometry_source       VARCHAR         604        2                  -                  -                   -                    -
+projects_per_condo_base       VARCHAR           0        0                  -                  -                   -                    -
+        within_one_year       BOOLEAN         604        2                  -                  -                   -                    -
+       within_two_years       BOOLEAN         604        1                  -                  -                   -                    -
+    automatic_candidate       BOOLEAN         604        1                  -                  -                   -                    -
+         building_ratio        DOUBLE         604       92 0.7708615245827695 1.3040355677154583  0.9952569974960043 0.052166883162271485
+          match_quality       VARCHAR         604        4                  -                  -                   -                    -

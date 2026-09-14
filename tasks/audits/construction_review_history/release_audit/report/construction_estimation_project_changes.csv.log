@@ -1,0 +1,94 @@
+File: construction_estimation_project_changes.csv
+Rows: 9686
+Columns: 84
+SHA-256 (saved bytes): afe3a3bb413f4e8d2aa526ee02dd0d6a4d599aac6c960844cc95a08cdba49d82
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                         column inferred_type non_missing distinct                 min                max                mean                  sd
+                     project_id       VARCHAR        9686     9686                   -                  -                   -                   -
+       construction_year_before        BIGINT        8648       17                2006               2022   2012.806544865865   5.342283826208676
+          dwelling_units_before        BIGINT        8646      176                   1                848   6.256650474207726  34.988157118240466
+           building_sqft_before        BIGINT        8632     3503                 246            1284706   9239.467099165895   46756.70641750943
+               land_sqft_before        DOUBLE        8647     3009               465.0          1540260.0    5180.52550478602   20506.97740399216
+             density_far_before        DOUBLE        8630     7312 0.01152840609970465 32.509535794909056  1.2012984265505269  1.3302675532183867
+           density_dupac_before        DOUBLE        8645     3240  0.1943410873464143  905.9747899159664  28.365556102371237  46.309403936202415
+            within_500ft_before       BOOLEAN        8648        2                   -                  -                   -                   -
+ distance_to_boundary_ft_before        DOUBLE        8648     8591   1.021476084863696 1498.6502188056677   646.6343758884838    398.867806828807
+               allow_far_before       BOOLEAN        8647        2                   -                  -                   -                   -
+             allow_dupac_before       BOOLEAN        8647        2                   -                  -                   -                   -
+    external_multifamily_before       BOOLEAN        8648        2                   -                  -                   -                   -
+               ward_pair_before       VARCHAR        8648      134                   -                  -                   -                   -
+              segment_id_before       VARCHAR        8648     1236                   -                  -                   -                   -
+              zone_group_before       VARCHAR        8648        8                   -                  -                   -                   -
+            alderman_own_before       VARCHAR        8647      101                   -                  -                   -                   -
+       alderman_neighbor_before       VARCHAR        8643      103                   -                  -                   -                   -
+          strictness_own_before        DOUBLE        8647      101 -3.4399763217894574  3.336560147956221   0.276805752440118   0.822310663102014
+     strictness_neighbor_before        DOUBLE        8643      103 -3.4399763217894574  3.336560147956221  0.2681860233737821  0.8400680902725305
+       signed_distance_m_before        DOUBLE        8642     8586 -456.78858669196745 456.08834712138304   4.904612113681681   231.5570388704685
+     complete_covariates_before       BOOLEAN        8648        1                   -                  -                   -                   -
+       score_pair_usable_before       BOOLEAN        8648        2                   -                  -                   -                   -
+              far_sample_before       BOOLEAN        8648        2                   -                  -                   -                   -
+            dupac_sample_before       BOOLEAN        8648        2                   -                  -                   -                   -
+         share_white_own_before        DOUBLE        8648      420 0.00358238087470588  0.872029224787542 0.40344078813430495  0.2630076369971883
+         share_black_own_before        DOUBLE        8648      420 0.00606358527153015 0.9760814204807162 0.23341227945135534 0.30616906335139393
+    median_hh_income_own_before        DOUBLE        8648      420   17794.77018835824 156816.80301053703  60626.526228986055  28841.681929653772
+     share_bach_plus_own_before        DOUBLE        8648      393 0.05282434878746028 0.8917022350312006  0.4099405611428194   0.242347075171885
+  homeownership_rate_own_before        DOUBLE        8648      420 0.18817021270261344 0.8254221558463539   0.404102642317017 0.11055240599959383
+                 present_before       BOOLEAN        9686        2                   -                  -                   -                   -
+        construction_year_after        BIGINT        9530       17                2006               2022  2012.6333683105981   5.356696322880364
+           dwelling_units_after        BIGINT        9528      175                   1                848   5.743597816960538    33.4338332216141
+            building_sqft_after        BIGINT        9514     3578                 246            1252885   8387.220306916124   42426.34052756046
+                land_sqft_after        BIGINT        9528     3214                 176            1540260   4751.304785894206   18911.28773744985
+              density_far_after        DOUBLE        9503     7995 0.02537027717286499 32.509535794909056  1.2133299739077856  1.2839071417732184
+            density_dupac_after        DOUBLE        9520     3454  0.3027417729436703  905.9747899159664  28.572715757236995   44.62011089022412
+             within_500ft_after       BOOLEAN        9530        2                   -                  -                   -                   -
+  distance_to_boundary_ft_after        DOUBLE        9530     9488  1.0214899430226334 1498.6502188053703   648.1255322080708  399.33952858315143
+                allow_far_after       BOOLEAN        9530        2                   -                  -                   -                   -
+              allow_dupac_after       BOOLEAN        9530        2                   -                  -                   -                   -
+     external_multifamily_after       BOOLEAN        9530        2                   -                  -                   -                   -
+                ward_pair_after       VARCHAR        9530      133                   -                  -                   -                   -
+               segment_id_after       VARCHAR        9530     1254                   -                  -                   -                   -
+               zone_group_after       VARCHAR        9530        8                   -                  -                   -                   -
+             alderman_own_after       VARCHAR        9515      103                   -                  -                   -                   -
+        alderman_neighbor_after       VARCHAR        9526      103                   -                  -                   -                   -
+           strictness_own_after        DOUBLE        9515      103   -3.44557609283157 3.3357244289701837  0.2785220440686177  0.8107764240163374
+      strictness_neighbor_after        DOUBLE        9526      103   -3.44557609283157 3.3357244289701837  0.2760584802933476  0.8379708065367463
+        signed_distance_m_after        DOUBLE        9511     9469  -456.7885866918769  456.7582004518269  1.2283519885644056  232.11972037628072
+      complete_covariates_after       BOOLEAN        9530        1                   -                  -                   -                   -
+        score_pair_usable_after       BOOLEAN        9530        2                   -                  -                   -                   -
+               far_sample_after       BOOLEAN        9530        2                   -                  -                   -                   -
+             dupac_sample_after       BOOLEAN        9530        2                   -                  -                   -                   -
+          share_white_own_after        DOUBLE        9530      428 0.00358238087470588  0.872029224787542 0.39608092680997153 0.26128236389786863
+          share_black_own_after        DOUBLE        9530      428 0.00606358527153015 0.9760814204807162  0.2392364091383231  0.3071490647460098
+     median_hh_income_own_after        DOUBLE        9530      428   17794.77018835824 156816.80301053703   59702.69206219454  28536.657841169847
+      share_bach_plus_own_after        DOUBLE        9530      402 0.05282434878746028 0.8917022350312006 0.40411510541976364 0.24097462478222656
+   homeownership_rate_own_after        DOUBLE        9530      428 0.18817021270261344 0.8254221558463539  0.4021316915799812 0.11121147712432422
+                  present_after       BOOLEAN        9686        2                   -                  -                   -                   -
+             source_project_ids       VARCHAR        9532     9491                   -                  -                   -                   -
+                 component_pins       VARCHAR        9532     9532                   -                  -                   -                   -
+                decision_reason       VARCHAR        9532      178                   -                  -                   -                   -
+                    year_source       VARCHAR        9532     9234                   -                  -                   -                   -
+                   units_source       VARCHAR        9532     9197                   -                  -                   -                   -
+                building_source       VARCHAR        9524     9198                   -                  -                   -                   -
+                    land_source       VARCHAR        9532     9228                   -                  -                   -                   -
+      construction_year_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+         dwelling_units_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+          building_sqft_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+              land_sqft_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+distance_to_boundary_ft_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+              ward_pair_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+             segment_id_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+             zone_group_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+   external_multifamily_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+           alderman_own_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+      alderman_neighbor_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+        share_white_own_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+        share_black_own_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+   median_hh_income_own_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+    share_bach_plus_own_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+ homeownership_rate_own_changed       BOOLEAN        9686        2                   -                  -                   -                   -
+                 far_transition       VARCHAR        9686        4                   -                  -                   -                   -
+               dupac_transition       VARCHAR        9686        4                   -                  -                   -                   -

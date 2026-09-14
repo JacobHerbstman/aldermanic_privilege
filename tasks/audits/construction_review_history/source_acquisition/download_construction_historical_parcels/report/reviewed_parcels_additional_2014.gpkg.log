@@ -1,0 +1,17 @@
+File: reviewed_parcels_additional_2014.gpkg
+Rows: 10
+Columns: 7
+SHA-256 (saved bytes): f639286a41cdee3a8f4d4bd1dc125f20e3f2602af4b19f5720b64113239701d1
+Key: target_year, object_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct   min     max      mean                 sd
+           fid        BIGINT          10       10     1      10       5.5 3.0276503540974917
+   target_year        BIGINT          10        1  2014    2014    2014.0                0.0
+      layer_id        DOUBLE          10        1  15.0    15.0      15.0                0.0
+     object_id        BIGINT          10       10 23364 1413207 1013147.8  537750.7279066927
+         pin14       VARCHAR          10       10     -       -         -                  -
+         pin10       VARCHAR          10       10     -       -         -                  -
+geometry_valid        BIGINT          10        1     1       1       1.0                0.0

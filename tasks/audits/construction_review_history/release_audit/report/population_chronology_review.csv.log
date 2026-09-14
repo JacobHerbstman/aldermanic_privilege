@@ -1,0 +1,22 @@
+File: population_chronology_review.csv
+Rows: 13714
+Columns: 12
+SHA-256 (saved bytes): bb14c8f06a1fe854f13117584ff78951c2d4c652d02e9bbe7bf45f551855c5df
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct  min  max               mean                 sd
+                      project_id       VARCHAR       13714    13714    -    -                  -                  -
+                   source_family       VARCHAR       13714        2    -    -                  -                  -
+                    project_kind       VARCHAR       13714        7    -    -                  -                  -
+               construction_year        BIGINT       13714       17 2006 2022 2012.4924894268631  5.388039767652919
+                     year_source       VARCHAR       13714    13280    -    -                  -                  -
+             within_500ft_before       BOOLEAN       13714        2    -    -                  -                  -
+                      draft_year        BIGINT         869       35 1879 2021 2009.4798619102417 14.796737153698958
+               draft_year_change        BIGINT         869       21 -132   -1 -3.760644418872267 14.039699064248513
+            draft_outside_period       BOOLEAN         869        2    -    -                  -                  -
+                   review_status       VARCHAR       13714        4    -    -                  -                  -
+first_matching_source_assessment        BIGINT       12882       22 2005 2026 2014.0690886508305   5.47141481016564
+        source_chronology_screen       VARCHAR       13714        3    -    -                  -                  -

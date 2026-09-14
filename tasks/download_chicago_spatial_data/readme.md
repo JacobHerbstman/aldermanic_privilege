@@ -3,6 +3,9 @@
 This task downloads the public Chicago spatial files used in the analysis from
 official machine-readable sources.
 
+Major streets use the recorded response in [`sources/`](sources/README.md).
+`make download-current` retrieves a separate current version for comparison.
+
 Sources:
 - Major Streets: Chicago Data Portal file dataset `ueqs-5wr6`
 - CTA rail stations: Chicago Data Portal dataset `3tzw-cg4m`

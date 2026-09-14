@@ -1,0 +1,35 @@
+File: multicard_permit_adjudication_links.csv
+Rows: 10960
+Columns: 25
+SHA-256 (saved bytes): 2886a97861b92711ab058d555eb33b0c6eb3c5f5c213107793d8cc827fc64c49
+Key: project_id, permit_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                    column inferred_type non_missing distinct     min               max               mean                 sd
+                project_id       VARCHAR       10960      899       -                 -                  -                  -
+                 permit_id        BIGINT       10960     2075 1562659           3446717  2402592.037317518  527042.3845076943
+         construction_year        BIGINT       10960       17    2006              2022 2011.4493613138686  4.931096501241426
+              within_500ft       BOOLEAN        2876        2       -                 -                  -                  -
+            review_address       VARCHAR        2875      266       -                 -                  -                  -
+              target_cards        BIGINT        2876       23       1                43  3.855354659248957   5.46444086127272
+         summed_card_units        BIGINT       10960       24       1                43 1.9574817518248175 3.3125667545243713
+ summed_card_building_sqft        BIGINT       10960      448     315             83226   3747.68549270073  6116.620779430918
+     project_street_number        BIGINT        2861      255       8             11613 2575.1142957008037  1414.888694085934
+  project_street_direction       VARCHAR        2861        4       -                 -                  -                  -
+       project_street_name       VARCHAR        2861      158       -                 -                  -                  -
+                       pin       VARCHAR        7216     1161       -                 -                  -                  -
+    application_start_date          DATE       10960     1404       -                 -                  -                  -
+                issue_date          DATE       10960     1394       -                 -                  -                  -
+               permit_year        BIGINT       10960       21    2006              2026  2013.041697080292   5.39571892188901
+             street_number        BIGINT       10960     1268       4             11613  2791.473813868613  1266.053911218745
+          street_direction       VARCHAR       10960        4       -                 -                  -                  -
+               street_name       VARCHAR       10960      259       -                 -                  -                  -
+          work_description       VARCHAR       10960     1890       -                 -                  -                  -
+    distance_to_project_ft        DOUBLE       10960     2465     0.0 249.6520306376694  96.66284982980883  80.69580905050914
+intersects_project_polygon       BOOLEAN       10960        2       -                 -                  -                  -
+       exact_address_match       BOOLEAN        2861        2       -                 -                  -                  -
+           permit_year_gap        BIGINT       10960       37     -16                20 1.5923357664233577 5.7933396740813246
+      permit_unit_mentions       VARCHAR        6957      120       -                 -                  -                  -
+            permit_address       VARCHAR       10960     1901       -                 -                  -                  -

@@ -1,0 +1,22 @@
+File: apartment_count_evidence.csv
+Rows: 7419
+Columns: 12
+SHA-256 (saved bytes): 25b8884d649c3de4c03770c88b03624a39a293eff4a6d805dbe6052c537d75d4
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct               min              max               mean                 sd
+                 row_id        BIGINT        7419     7419           7087413         98484810  87738642.45369996 27732574.547897797
+                    pin        BIGINT        7419     5557    10314100040000   26314050180000 18520893507917.508 3157489303061.2334
+                   year        BIGINT        7419       17              2006             2022  2011.291953093409 5.4437939068495895
+             in_main_rd       BOOLEAN        7419        2                 -                -                  -                  -
+         signed_dist_ft        DOUBLE        7394     6222 -27061.5239583631 26198.0493326347 26.331084745375506 2305.6182137362744
+    raw_apartment_label       VARCHAR         162        1                 -                -                  -                  -
+               evidence       VARCHAR        7419        3                 -                -                  -                  -
+             prior_year        BIGINT          26        8              2008             2020 2014.3461538461538  4.799519206689752
+            prior_count        BIGINT          26        3                 2                4                2.5 0.6480740698407859
+        subsequent_year        BIGINT        3387       16              2007             2022 2011.6448184233834 3.4970967860906543
+       subsequent_count        BIGINT        3387        5                 2                6 2.2707410687924416 0.6353279427018081
+available_history_years        BIGINT        7419       17                 1               17 16.328885294514084  2.572997887496701

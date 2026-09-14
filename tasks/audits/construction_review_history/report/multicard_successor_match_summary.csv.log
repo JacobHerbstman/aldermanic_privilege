@@ -1,0 +1,17 @@
+File: multicard_successor_match_summary.csv
+Rows: 110
+Columns: 7
+SHA-256 (saved bytes): eae47557debffdb3f40011b15e0e9d1cc61b821dbfcac770f3240605efd75aee
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                  column inferred_type non_missing distinct min max              mean                sd
+                            component_id       VARCHAR         110      106   -   -                 -                 -
+                              project_id       VARCHAR         110      110   -   -                 -                 -
+                         matchable_cards        BIGINT         109       20   2  43 5.825688073394495 6.905236923949457
+              close_candidate_successors        BIGINT         110       22   0  41 5.163636363636364 7.819673228968066
+                           matched_cards        BIGINT         110       21   0  42 5.490909090909091 6.845269517141157
+                       all_matches_close       BOOLEAN         107        2   -   -                 -                 -
+complete_unambiguous_successor_inventory       BOOLEAN         110        2   -   -                 -                 -

@@ -1,0 +1,14 @@
+File: residential_reviewed_source_duplicates.csv
+Rows: 12
+Columns: 4
+SHA-256 (saved bytes): da2c451b1a233a42df57125e50e382df4c6682cb65b855e6ec4b65ace30ab2e7
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct min max mean sd
+            project_id       VARCHAR          12       12   -   -    -  -
+replacement_project_id       VARCHAR          12        8   -   -    -  -
+                reason       VARCHAR          12        7   -   -    -  -
+              evidence       VARCHAR          12        8   -   -    -  -

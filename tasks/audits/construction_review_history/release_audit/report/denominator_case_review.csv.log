@@ -1,0 +1,30 @@
+File: denominator_case_review.csv
+Rows: 4
+Columns: 20
+SHA-256 (saved bytes): 1070a2989fbc3fc0851f379b4669e7d0c5cbcf9cdc5977c5105b5e2417b023ac
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                              column inferred_type  non_missing  distinct               min                max               mean                 sd
+                          project_id       VARCHAR            4         4                 -                  -                  -                  -
+                               label       VARCHAR            4         4                 -                  -                  -                  -
+                     assessment_year        BIGINT            4         2              2007               2008            2007.75  0.499999999999981
+                                 pin        BIGINT            4         4    13252030410000     19111200130000   16726452707500.0 2473346332204.5234
+                      dwelling_units        BIGINT            4         4                 2                 29              12.75 11.729592206608606
+                       building_sqft        BIGINT            4         4              3738              55997            24893.0 22660.618717649053
+                           land_sqft        BIGINT            4         4              6552             307739          104055.25  138696.4192312957
+                        source_cards        BIGINT            4         4                 2                 29              12.75 11.729592206608606
+                source_building_sqft        BIGINT            4         4              3738              55997            24893.0 22660.618717649053
+                  source_land_values        BIGINT            4         1                 1                  1                1.0                0.0
+                    source_land_sqft        BIGINT            4         4              6552             307739          104055.25  138696.4192312957
+                  source_built_years        BIGINT            4         2              2006               2007             2006.5 0.5773502691896586
+                           object_id        BIGINT            4         4              4172            1413222          819629.75  708953.6853891915
+                 parent_polygon_sqft        DOUBLE            4         4 6794.671000011003 313308.69800055027 105508.35627435433  141367.4533895455
+               current_parcel_points        BIGINT            4         4                 5                 42               26.0  17.60681686165901
+                  matched_successors        BIGINT            4         4                 2                 29              12.75 11.729592206608606
+         matched_successor_land_sqft        BIGINT            4         4              1527              25792            14954.0 10763.711782342249
+                other_reported_units        BIGINT            4         4                 0                  7                4.0 3.1622776601683795
+other_individually_retained_projects        BIGINT            4         2                 0                  3               0.75                1.5
+             parcels_with_ca_address        BIGINT            4         3                 0                  4                1.5 1.9148542155126764

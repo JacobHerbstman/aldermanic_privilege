@@ -1,0 +1,57 @@
+\section*{September 7, 2026: Replacing copied decisions with producer rules}
+\textit{Agent-drafted implementation update; partial replays, not a new paper build.}
+
+The candidate producer now excludes tiebacks when every possible construction
+year is outside 2006--2022. This replaces 17 manual exclusions whose years
+are all before 2006. The source-disposition ledger falls from 44 to 27 entries.
+The same 13,088 residential projects remain in the preferred ledger, and the
+boundary table is byte-identical. Single-family unit normalization also moves
+into the candidate producer, using the final classifier's existing class list.
+This corrects 28 early candidate values; 11 reach the preferred ledger, and
+all 11 already receive one unit in the preserved later classification.
+
+Web reviews now contain 22 classification or suppression exceptions to the
+card rule and one existing pending lineage. We removed 208 unit
+entries and 147 area entries that merely copied preceding calculations.
+On identical upstream inputs, the resulting 8,995 records retain exactly the
+same numerical values and classifications. All 273 web-review records remain
+available as evidence: among the 30 agreeing records that reach the later
+verification queue, 12 rely on external corroboration. Later classification also preserves all 13,707 project IDs
+and classifications; its review metadata changes.
+
+The selected card values coexist in at least one assessment year for 271 of
+273 multicard parents, including all 42 parents with episode decisions.
+This establishes contemporaneous reporting, not completion in the reported
+construction year. A complete-inventory rule additionally requires exact
+unit matches, close area matches, and no extra compatible successors.
+Together with the approved two-year window and earlier single-family unit
+correction, it replaces five episode entries, leaving 37. Drexel's explicit
+choice to retain 27,816 square feet remains necessary; the alternative
+successor total is 29,274. The code now applies that decision to the value
+itself. Matched card/successor sets for all 42 original decisions are unchanged.
+The matcher also uses parent IDs to keep dates and location flags attached
+to the correct parent.
+
+Permit extraction now recognizes counts such as ``(7) 3-STORY ROWHOMES,''
+while rejecting a story count alone and a count of townhouse buildings.
+It recovers 38 additional mentions across 24 permits without losing an old
+mention. The permit-evidence producer now follows all reviewed duplicate
+episodes instead of a numbered component that changes when the graph changes.
+Cleveland's six rowhome permits list 39 homes, matching its historical card
+count. Permit references still group some related applications for different
+buildings into one chain; that grouping needs separate review. Permit issuance
+and a matching unit total do not establish a completion date.
+
+Using the existing 75--135 percent matching band would resolve Finsbury,
+Cleveland, and four other cases. The trial passes adjudication and removes
+eight intermediate duplicates, six within 500 feet. Adoption remains pending;
+Jacob requested investigation before exclusions. No additional exclusions
+have been applied. Development-wide values and two noncontemporaneous card
+inventories still need work.
+
+\textit{Reproduction scope.} Isolated GNU Make replays used preserved project
+inputs and pinned sources. Standard reports and
+\path{restored_stage_checks.csv} record the outputs and hashes. The original-graph
+adjudication reproduces all 273 rows exactly. Current-graph final adjudication,
+source-vintage reconciliation, zoning reconstruction, and the paper rebuild
+remain unfinished. The frozen 8,648-row analysis input is unchanged.

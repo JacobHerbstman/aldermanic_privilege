@@ -1,0 +1,28 @@
+File: residential_tieback_construction_episode_evidence.csv
+Rows: 596
+Columns: 18
+SHA-256 (saved bytes): c6435ff47e933d60cd0afbe4255edcd564279efe157c6a472c210c4e258a34ba
+Key: project_id, tax_year, construction_year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                    column inferred_type  non_missing  distinct  min    max                mean                 sd
+                project_id       VARCHAR          596       106    -      -                   -                  -
+                  tax_year        BIGINT          596        20 2007   2026  2018.3926174496644  5.462496661426728
+         construction_year        BIGINT          596        16 2006   2022  2010.5620805369128   5.14539902498104
+            physical_cards        BIGINT          596        10    1     18  1.8741610738255035 1.9905499770129884
+      repeated_across_pins        BIGINT          596         8    0      9  0.9194630872483222 1.7964176435048913
+     card_number_conflicts        BIGINT          596         5    0      6 0.28523489932885904  0.779474146286822
+cards_with_complete_fields        BIGINT          596        11    0     18   1.837248322147651 2.0038673060483005
+     episode_building_sqft        BIGINT          596        97    0  44811    6757.96644295302  5267.550548600865
+    episode_dwelling_units        BIGINT          596        14    0     18   3.565436241610738  3.065790639679788
+    episode_component_pins       VARCHAR          596       114    -      -                   -                  -
+       episode_source_rows       VARCHAR          596       596    -      -                   -                  -
+     episode_card_evidence       VARCHAR          596       147    -      -                   -                  -
+                 site_pins        BIGINT          596         5    1      5  1.7986577181208054  0.798989830894677
+            pins_with_land        BIGINT          596         5    1      5  1.7953020134228188  0.800238247756511
+      conflicting_pin_land        BIGINT          596         1    0      0                 0.0                0.0
+            site_land_sqft        BIGINT          596        99 1000 224142  17091.228187919463 32539.237139982924
+        site_land_complete       BOOLEAN          596         2    -      -                   -                  -
+   episode_fields_complete       BOOLEAN          596         2    -      -                   -                  -

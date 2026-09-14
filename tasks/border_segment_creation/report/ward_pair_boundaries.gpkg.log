@@ -1,0 +1,37 @@
+File: ward_pair_boundaries.gpkg
+Layer: 2003_2014
+Rows: 117
+Columns: 7
+SHA-256 (saved bytes): 94b7c3d9bd57a089cb5502ee9ba065dbecbc7383b2f6aa525dc9886f329ac081
+Key: ward_pair_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+          column inferred_type non_missing distinct               min               max               mean                 sd
+             fid        BIGINT         117      117                 1               117               59.0  33.91902121229326
+        map_year        BIGINT         117        1              2003              2003             2003.0                0.0
+             era       VARCHAR         117        1                 -                 -                  -                  -
+          ward_a        BIGINT         117       43                 1                49  20.54700854700855 14.182003972066836
+          ward_b        BIGINT         117       46                 3                50  28.88034188034188 13.016675242352363
+    ward_pair_id       VARCHAR         117      117                 -                 -                  -                  -
+shared_length_ft        DOUBLE         117      117 32.25218015893175 44371.14036105134 11444.358332117929  9480.208667649942
+
+File: ward_pair_boundaries.gpkg
+Layer: 2015_2023
+Rows: 122
+Columns: 7
+SHA-256 (saved bytes): 94b7c3d9bd57a089cb5502ee9ba065dbecbc7383b2f6aa525dc9886f329ac081
+Key: ward_pair_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+          column inferred_type non_missing distinct                min                max               mean                 sd
+             fid        BIGINT         122      122                  1                122               61.5  35.36240942017385
+        map_year        BIGINT         122        1               2015               2015             2015.0                0.0
+             era       VARCHAR         122        1                  -                  -                  -                  -
+          ward_a        BIGINT         122       42                  1                 49  21.19672131147541 13.699031361221875
+          ward_b        BIGINT         122       46                  2                 50 29.221311475409838 12.877369665637744
+    ward_pair_id       VARCHAR         122      122                  -                  -                  -                  -
+shared_length_ft        DOUBLE         122      122 331.03424090270585 63249.409534828206 13965.627465013185 11239.446946820293

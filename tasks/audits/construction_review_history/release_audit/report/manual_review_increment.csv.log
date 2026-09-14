@@ -1,0 +1,29 @@
+File: manual_review_increment.csv
+Rows: 273
+Columns: 19
+SHA-256 (saved bytes): b8ea19e5ebf78958bb93e70f1a52c4b42a6f469bbe1699f522dcc76b0d165901
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                        column inferred_type non_missing distinct   min     max              mean                 sd
+                    project_id       VARCHAR         273      273     -       -                 -                  -
+                 review_status       VARCHAR         273        2     -       -                 -                  -
+            building_type_rule       VARCHAR         273        3     -       -                 -                  -
+        prior_type_disposition       VARCHAR         273        3     -       -                 -                  -
+     reviewed_type_disposition       VARCHAR         273        4     -       -                 -                  -
+present_before_external_review       BOOLEAN         273        2     -       -                 -                  -
+                   prior_units        DOUBLE         271       24   1.0    43.0 4.450184501845018   5.85917371584933
+                reviewed_units        DOUBLE         252       22   0.0    70.0 4.305555555555555  7.095667333609426
+           prior_building_sqft        DOUBLE         271      262 315.0 83226.0 8344.309963099631 10203.701355293157
+        reviewed_building_sqft        DOUBLE         175      155   0.0 34272.0           5535.84   5322.94997586087
+             internal_evidence       VARCHAR         273        7     -       -                 -                  -
+            google_visual_type       VARCHAR         273       40     -       -                 -                  -
+                reviewer_notes       VARCHAR         273      269     -       -                 -                  -
+                  source_1_url       VARCHAR         273      259     -       -                 -                  -
+                  source_2_url       VARCHAR         214      202     -       -                 -                  -
+                  type_differs       BOOLEAN         273        2     -       -                 -                  -
+                  units_differ       BOOLEAN         273        2     -       -                 -                  -
+         building_sqft_differs       BOOLEAN         273        2     -       -                 -                  -
+             comparison_status       VARCHAR         273        2     -       -                 -                  -

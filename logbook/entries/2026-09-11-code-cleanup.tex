@@ -1,0 +1,140 @@
+\section*{Simplify construction code and recorded decisions}
+\textit{September 11, 2026. Agent-drafted record of code cleanup.}
+
+The construction folder contained 110 R scripts, of which 60 were reached by
+its default build. Fifty superseded R scripts and an old Python zoning script
+were removed; their unchanged source remains at commit \texttt{1b5dae29}.
+Residential location and distance calculations were combined, as were the
+construction-discovery maps. Four commercial review scripts were replaced by
+one direct implementation of the existing Assessor-count and parcel-coverage
+rules. Those rules reproduce all 1,128 source decisions and 810 commercial
+buildings. Automatically selected buildings remain selected by code.
+That initial pass left 55 R scripts. Its broader consolidation remained
+unfinished.
+
+Recorded decisions now have a separate source task,
+\texttt{new\_construction\_corrections}, with CSV inputs, a Makefile, reports,
+and documentation, and no R scripts. Four year and measurement tables were
+consolidated into 308 instructions in \texttt{construction\_modifications.csv}.
+Every original field and its evidence was preserved. The instructions retain
+their existing application stages: years needed to identify construction
+episodes enter before matching; remaining measurements enter after assessment
+selection. Two building-type review spreadsheets were reduced to their 56
+applicable instructions, preserving the existing priority. Twenty-three other
+active decision tables were moved without changing their bytes. Production
+reads these inputs through explicit Make links. Original tables, superseded
+reviews, and research notes are preserved in the audit archive, which has no
+Makefile.
+
+Historical zoning has a separate source task containing the unchanged
+9,609-row history and 2006 polygon file. These are preserved sources, not
+9,609 additional manual corrections. Moving them does not reconstruct the
+original ordinance research. Building-type classification and its recorded
+exceptions now enter once, before density calculation, and are carried to
+regressions and Table 1. No geographical or regression stage may reapply a
+measurement correction.
+
+Task-specific Make includes were folded into their owning Makefiles. Shared
+rules check concrete upstream products, and input links use those prerequisites
+directly. Jointly written files use GNU Make 3.81 multiple-target pattern rules.
+The logbook Makefile lists only entry files and figures actually read by LaTeX.
+The obsolete footprint reconstruction depended on 21 missing intermediates and
+was not used by the paper; the acquisition task now reads the recorded extracts.
+
+For the source separation, all 16 edited producers were run through their Make
+rules against preserved inputs. All 35 resulting datasets matched their saved
+versions: CSVs were byte-identical, and GeoPackage attributes, geometries, and
+coordinate-system definitions agreed. The 13,677-row measurement file,
+12,867-row residential file, 810-row commercial file, and 9,493-row regression
+and analysis files were unchanged. The 500-foot common sample retains 4,023
+projects, including 863 multifamily projects. Table 1 remained byte-identical;
+the rebuilt main density figure was pixel-identical. Thirteen older reports
+predated their saved data. Recomputing baseline reports confirmed that the
+refreshed summaries describe unchanged data.
+
+This comparison held recorded external inputs fixed. The unchanged spatial
+permit matcher was not recalculated after verifying equality of its code and
+all input data. Source-task checks passed for fresh reports, unchanged builds,
+missing-report recovery, and failure on a missing source CSV. Changing a
+correction source invokes its producer once; an unchanged source does not.
+Earlier checks covered multiple-output recovery on Make 3.81. These checks do
+not constitute a new unattended clone-and-rebuild. The broader paper build
+stopped at a Census request for ward controls; a network-enabled retry was
+stopped before further code edits. No new ward controls are claimed from it.
+The manuscript text was unchanged throughout this cleanup.
+
+\subsection*{Review of the production tasks}
+
+The subsequent review followed all 55 tasks reached by the paper Makefile.
+Seven groups of jointly produced files used existence tests or wildcard-based
+recovery. Their rules now name the jointly written outputs, so requesting a
+missing member invokes its producer. All production input links are direct;
+task-specific Make includes and routine file-size guards are absent. Missing
+dependencies on shared code and task settings were added. Eight source-file
+dependencies were also missing from the residential-project and project-geography
+rules. Changes to each of those sources now invoke the correct producer.
+Substantive checks on identifiers, measurement agreement, and source fingerprints
+remain in place.
+
+The recorded alderman terms, five CTA opening dates, and three historical CTA
+stations moved from R tables to CSV sources without changing their values.
+Analysis scripts no longer install packages. The two Census-control tasks now
+save their requested counts and polygons before calculating controls. The
+network-enabled downloads and subsequent local calculations completed; both
+final control datasets are byte-identical to their earlier saved versions.
+The raw 2010 block file contains 46 repeated rows with identical geometries.
+The existing deduplication is retained, with an assertion that repeated block
+identifiers cannot carry conflicting shapes.
+
+RentHub acquisition now uses the recorded list of 2,545 source files and their
+checksums. A missing file triggers retrieval, while a changed provider file fails
+verification. Files move from temporary storage into the source output only after
+their recorded size and checksum agree. The current files passed verification
+without downloading replacements. Disposable acquisition checks rejected corrupt
+bytes and missing credentials, and tested successful missing-file recovery using
+a simulated provider response. The licensed data were not removed for these tests.
+
+Five connected historical-parcel scripts were combined into one chronological
+producer. Two geocoder-response readers were combined, as were the Table 1
+calculation and formatting scripts. This leaves 50 R scripts in construction
+cleaning and two in the main density-results task. The construction identity
+and historical-evidence stages still require further consolidation; this review
+does not establish that the entire task has reached the desired simplicity.
+The task and script diagrams were regenerated from the Make rules.
+
+The comparisons preserve construction measurements, locations, and the common
+500-foot sample of 4,023 projects, including 863 multifamily projects. Table 1
+is byte-identical. Nine rebuilt plots are pixel-identical. Make 3.81 checks in
+disposable directories cover fresh builds, unchanged builds, changed inputs,
+missing members of joint-output groups, and parallel requests. Dataset reports
+were added where absent and inspected. These are local rebuild and dependency
+checks using preserved inputs, rather than a new clone-and-rebuild.
+
+Recompiling the paper exposed inconsistent saved exhibits in the Desktop
+checkout. Some density appendix files predated the common sample even though
+the existing PDF already displayed that sample. Conversely, the PDF contained
+older permit results than the saved task outputs: the high-discretion pooled
+coefficient was printed as $-0.126$, while the saved result was $-0.127$, with
+the same reported standard error of $0.049$. The score-construction table had
+120,518 observations in the PDF and 120,505 in its saved TeX output. These
+saved permit outputs were unchanged by this cleanup. The score-robustness table
+also required rebuilding from the current construction data. The manuscript
+source was preserved; its two written references to $-0.126$ require a separate
+numerical correction before distributing the rebuilt paper.
+
+Rebuilding the score-robustness table restores its 4,023-project full sample
+and the same reported density coefficients as the main results. The permit
+table and balance-table rebuilds reproduce their saved numerical results.
+Re-estimated stringency scores differ from the saved CSVs only by numerical
+precision (maximum absolute difference below $2\times10^{-11}$). The paper's
+1,500-foot rental-characteristics file is byte-identical. An older 500-foot
+extract, unused by the paper's price producer, contained older scores; rebuilding
+it retains all 462,590 observations and updates those scores, reversing the
+more-stringent side for four records. This change reflects the older saved
+extract, not a new rental-cleaning rule.
+
+The rental-distance rebuild after removing an unused compatibility branch
+preserves every field for all 1,434,871 record identifiers. The Parquet row order
+differs, so the byte fingerprint changes, but the keyed data are identical.
+The commercial source-column simplification likewise reproduces all seven
+affected CSVs byte for byte.

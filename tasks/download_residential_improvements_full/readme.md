@@ -1,6 +1,16 @@
-# Download Residential Characteristics
+# Residential characteristics
 
-This task downloads Cook County Assessor single- and multifamily improvement
-characteristics for the eight Chicago townships and tax years 2006--2022 from
-Socrata dataset `x54s-btds`. It writes
-`output/residential_improvement_characteristics_full.csv`.
+This task supplies Cook County Assessor residential improvement characteristics, Chicago township codes 70–77, years 2006–2022.
+An ordinary `make` in `code/` verifies the recorded source checksum and writes
+`output/residential_improvement_characteristics_full.csv` and its keyed data report. It does not refresh the source.
+
+The preserved file, source URL, and limits of its recorded vintage are described
+in [`data_raw/replication_sources/README.md`](../../data_raw/replication_sources/README.md).
+The checksum is in `code/source_snapshot.sha256`. These preserved files still
+need inclusion in the distributed replication data bundle.
+
+To request a deliberate candidate refresh, run `make download-current`
+in `code/`. The existing source-specific download script writes a separate
+`_current.csv`; the normal pipeline continues to use the recorded snapshot.
+Query choices belong to that refresh recipe. Compare the candidate with the
+recorded input before adopting it; a new download is a source-vintage change.

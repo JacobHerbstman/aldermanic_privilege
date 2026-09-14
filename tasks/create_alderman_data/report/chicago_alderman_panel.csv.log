@@ -1,0 +1,13 @@
+File: chicago_alderman_panel.csv
+Rows: 15000
+Columns: 3
+SHA-256 (saved bytes): 9272d69e12cbb4f23c2958fd5eb86428072cb960859321e98469abef7a8d7ff0
+Key: ward, month
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+  column inferred_type non_missing distinct min max mean                 sd
+   month       VARCHAR       15000      300   -   -    -                  -
+    ward        BIGINT       15000       50   1  50 25.5 14.431350742704279
+alderman       VARCHAR       14983      132   -   -    -                  -

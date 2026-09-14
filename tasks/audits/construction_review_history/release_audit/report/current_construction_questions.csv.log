@@ -1,0 +1,22 @@
+File: current_construction_questions.csv
+Rows: 0
+Columns: 12
+SHA-256 (saved bytes): 63040e3568c3de258a6a2240dca49f8be6573b1a76ecb7ac727089ee69d66568
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct min max mean sd
+             project_id       VARCHAR           0        0   -   -    -  -
+          source_family       VARCHAR           0        0   -   -    -  -
+                address       VARCHAR           0        0   -   -    -  -
+      construction_year       VARCHAR           0        0   -   -    -  -
+                  issue       VARCHAR           0        0   -   -    -  -
+               question       VARCHAR           0        0   -   -    -  -
+      recorded_decision       VARCHAR           0        0   -   -    -  -
+         component_pins       VARCHAR           0        0   -   -    -  -
+         dwelling_units       VARCHAR           0        0   -   -    -  -
+          building_sqft       VARCHAR           0        0   -   -    -  -
+              land_sqft       VARCHAR           0        0   -   -    -  -
+distance_to_boundary_ft       VARCHAR           0        0   -   -    -  -

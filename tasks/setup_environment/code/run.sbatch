@@ -8,4 +8,4 @@
 #SBATCH --mail-type=FAIL
 
 $command1
-$command2
+bash -c "$command2"

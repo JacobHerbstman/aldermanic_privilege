@@ -1,0 +1,25 @@
+File: assessor_measurement_records.csv
+Rows: 567031
+Columns: 15
+SHA-256 (saved bytes): 105a01b172c7aee6831abb9edb241f311d11912d8c6fc54ade07bdea283eec53
+Key: source_family, source_row_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct  min       max               mean                  sd
+     source_family       VARCHAR      567031        1    -         -                  -                   -
+     source_row_id       VARCHAR      567031   592610    -         -                  -                   -
+ source_project_id       VARCHAR      567031    28746    -         -                  -                   -
+               pin       VARCHAR      567031    32970    -         -                  -                   -
+          tax_year        BIGINT      567031       29 1999      2026 2014.3215362123058   7.640235667736145
+          card_num        BIGINT      564932       56    1        60  1.098841984522031   0.984145639870004
+             class       VARCHAR      564932       24    -         -                  -                   -
+     pin_num_cards        BIGINT      564932       37    1        60 1.1856435818824211  1.6688423262591605
+ proration_key_pin       VARCHAR       24230     1177    -         -                  -                   -
+pin_proration_rate        DOUBLE      564932       71  0.0       1.0  0.976884732144768 0.11583236683637424
+ construction_year        BIGINT      567028      201 1850      2026  1983.783569770805   43.08900057649404
+    dwelling_units        BIGINT      565864      319    1      1732  1.582544569013049   9.693168207665094
+     building_sqft        BIGINT      565705     7487    0   1380640  2707.743875341388  11589.474310481022
+         land_sqft        BIGINT      493821     6290    0 228167280  4444.204551851784  395926.96727423964
+    component_pins       VARCHAR      567031    32970    -         -                  -                   -

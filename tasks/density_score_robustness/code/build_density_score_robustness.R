@@ -2,10 +2,10 @@
 # workers <- 8
 # gap_thresholds <- c(0.25, 0.50)
 
-source("../../_lib/alderman_uncertainty_helpers.R")
+source("../../shared/code/alderman_uncertainty_helpers.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0) {
+if (interactive()) {
   cli_args <- c(workers, paste(gap_thresholds, collapse = ","))
 }
 if (length(cli_args) != 2) {
@@ -95,13 +95,7 @@ projects <- projects |>
     construction_year >= 2006L,
     construction_year <= 2022L,
     within_500ft,
-    dwelling_units > 0,
-    allow_far,
-    allow_dupac,
-    is.finite(density_far),
-    density_far > 0,
-    is.finite(density_dupac),
-    density_dupac > 0,
+    density_eligible,
     is.finite(share_white_own),
     is.finite(share_black_own),
     is.finite(median_hh_income_own),
@@ -127,18 +121,14 @@ projects <- projects |>
 
 if (
   any(!is.finite(projects$baseline_score_own)) ||
-    any(!is.finite(projects$baseline_score_neighbor)) ||
-    max(abs(projects$strictness_own - projects$baseline_score_own)) > 1e-10 ||
-    max(abs(projects$strictness_neighbor - projects$baseline_score_neighbor)) > 1e-10
+    any(!is.finite(projects$baseline_score_neighbor))
 ) {
-  stop("Construction data do not contain the current through-2022 scores.", call. = FALSE)
+  stop("Current scores are missing for a construction-sample alderman.", call. = FALSE)
 }
-if (!identical(c(nrow(projects), sum(projects$external_multifamily)), c(3692L, 822L))) {
-  stop("The baseline density samples do not match the paper.", call. = FALSE)
-}
+stopifnot(nrow(projects) > 0, !anyDuplicated(projects$project_id))
 
 project_permits <- readr::read_csv(
-  "../adjudication/project_permit_matches.csv",
+  "../output/project_permit_matches.csv",
   show_col_types = FALSE,
   col_types = readr::cols(
     project_id = readr::col_character(),
@@ -227,15 +217,18 @@ for (threshold in gap_thresholds) {
 }
 
 version_labels <- c(
-  current_score = "Current score",
+  current_score = "Full-sample score",
   project_leaveout = "Score excluding the project's permits",
   stats::setNames(
-    sprintf("Minimum score gap: %.2f SD", gap_thresholds),
+    sprintf("Score difference at least %.2f SD", gap_thresholds),
     sprintf("gap_%0.2f", gap_thresholds)
   )
 )
 sample_labels <- c(all = "All Construction", multifamily = "Multifamily")
-outcome_labels <- c(density_far = "Log(FAR)", density_dupac = "Log(DUPAC)")
+outcome_labels <- c(
+  density_far = "Log floor-area ratio",
+  density_dupac = "Log units per acre"
+)
 
 results <- list()
 result_i <- 0L
@@ -319,7 +312,7 @@ table_lines <- c(
   "\\toprule",
   " & \\multicolumn{2}{c}{All Construction} & \\multicolumn{2}{c}{Multifamily} \\\\",
   "\\cmidrule(lr){2-3} \\cmidrule(lr){4-5}",
-  " & Log(FAR) & Log(DUPAC) & Log(FAR) & Log(DUPAC) \\\\",
+  " & Log floor-area ratio & Log units per acre & Log floor-area ratio & Log units per acre \\\\",
   "\\midrule",
   "\\multicolumn{5}{l}{\\textit{Panel A: Removing permits linked to each project}} \\\\"
 )

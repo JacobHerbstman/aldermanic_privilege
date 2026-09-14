@@ -1,0 +1,20 @@
+File: manual_verified_address_locations.csv
+Rows: 18
+Columns: 10
+SHA-256 (saved bytes): ab4255ec88511496169cba9deb02f43391f0cf29b7b5f46cc24d79de1d99848f
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column inferred_type non_missing distinct        min        max               mean                   sd
+       address_stem       VARCHAR          18       18          -          -                  -                    -
+verification_status       VARCHAR          18        1          -          -                  -                    -
+  verified_latitude        DOUBLE          18       18  41.802078   41.90315  41.87789443844534 0.022813961159626018
+ verified_longitude        DOUBLE          18       18 -87.646671 -87.588263 -87.62638927821935 0.013615053184107906
+        source_name       VARCHAR          18       13          -          -                  -                    -
+         source_url       VARCHAR          18       18          -          -                  -                    -
+               note       VARCHAR          18       18          -          -                  -                    -
+      building_name       VARCHAR          18       18          -          -                  -                    -
+    coordinate_rule       VARCHAR          18        2          -          -                  -                    -
+         confidence       VARCHAR          18        2          -          -                  -                    -

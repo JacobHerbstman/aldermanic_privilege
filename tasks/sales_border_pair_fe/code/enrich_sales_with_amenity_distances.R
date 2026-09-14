@@ -1,7 +1,8 @@
 # setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/sales_border_pair_fe/code")
 
-source("../../setup_environment/code/packages.R")
-source("../../_lib/amenity_distance_helpers.R")
+source("../input/packages.R")
+source("../input/save_data.R")
+source("../input/amenity_distance_helpers.R")
 
 chunk_n <- 100000L
 
@@ -99,4 +100,4 @@ if (any(!is.finite(sales_out$nearest_cta_stop_dist_ft))) {
   stop("Sales have missing CTA distances.", call. = FALSE)
 }
 
-write_parquet(as.data.frame(sales_out), "../output/sales_with_hedonics_amenities.parquet")
+SaveData(as.data.frame(sales_out), c("row_id"), "../output/sales_with_hedonics_amenities.parquet")

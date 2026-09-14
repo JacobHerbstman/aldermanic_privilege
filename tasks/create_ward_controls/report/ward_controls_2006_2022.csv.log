@@ -1,0 +1,21 @@
+File: ward_controls_2006_2022.csv
+Rows: 850
+Columns: 11
+SHA-256 (saved bytes): 6c6c76ec4659f24a7675b0df0e2a4a19475160ef390389e6ba842a22535c0145
+Key: ward, year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct                   min                max                mean                  sd
+              ward        BIGINT         850       50                     1                 50                25.5  14.439365933959627
+              year        BIGINT         850       17                  2006               2022              2014.0   4.901863783423278
+         pop_total        DOUBLE         850      600     38014.39904833495  77798.29844689366    54577.2359607523   5833.087333491453
+          hh_total        DOUBLE         850      600    11233.358943858691 49823.332752057235   20906.68597380316   5911.457023298031
+          hu_total        DOUBLE         850      600    11233.358943858691 49823.332752057235   20906.49087586847  5910.5846535788705
+       share_black        DOUBLE         850      600  0.006063585271530153 0.9760814204807162  0.3378106010777747  0.3533083993129276
+        share_hisp        DOUBLE         850      600  0.005537370715979299 0.9275669878878907  0.2830198184118411  0.2561973726449014
+       share_white        DOUBLE         850      600 0.0035823808747058824  0.872029224787542 0.30566104197505145  0.2653268811271722
+homeownership_rate        DOUBLE         850      600   0.18817021270261344 0.8331291977771729  0.4550304503526366 0.15281879494517356
+   share_bach_plus        DOUBLE         850      550   0.05282434878746028 0.8956085911763237 0.31326029082651247  0.2201696214579334
+  median_hh_income        DOUBLE         850      600     17794.77018835824 156816.80301053703   53037.83174855621  23084.425231271933

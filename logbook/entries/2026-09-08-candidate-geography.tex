@@ -1,0 +1,57 @@
+\section*{September 8, 2026: Candidate geography and boundary distances}
+\textit{Agent-drafted reconstruction and independent spatial checks.}
+
+The candidate geography now builds through construction-year boundary assignment.
+It accounts for 14,017 candidate project-years: 13,903 have complete parcel shapes
+and distances, and 114 remain geographically unresolved. Another 23 candidates in
+the review queue have no selected construction year. The located candidates include
+4,214 within 500 feet of a ward boundary. These are preliminary groups from the
+Assessor and commercial records, not the paper's final estimation sample; duplicate
+identity, measurements, and eligibility still require downstream reconciliation.
+
+The production scripts combine a project's component parcels only when every
+component has an accepted match. They calculate the centroid of the combined
+shape and assign the ward map using June 15 of the recorded construction year,
+following the convention already stated in the paper. Incomplete projects retain
+missing wards and distances. Additional assertions prevent duplicate parcel keys,
+accepted components absent from the request table, nonpositive areas, and ambiguous
+ward membership from passing silently.
+
+An independent calculation compares each centroid with every shared boundary of
+its assigned ward, rather than using the production nearest-feature helper. All
+13,903 saved distances and chosen ward pairs agree within 0.000001 feet. This
+verifies the distance calculation for the supplied project shapes; it does not
+establish that every source parcel belongs to the claimed project.
+
+That distinction matters for 41 centroids outside their assembled parcel shapes,
+including nine within 500 feet of a ward boundary. Most gaps are small and can
+arise from irregular or disconnected parcels. The largest instead reflects an
+Assessor tieback linking parcels 20174140320000 and 29174140310000 about 12.6 miles
+apart. The candidate was already marked for review because no complete measurement
+snapshot could be reconciled. Its calculated center should not be interpreted as
+a verified building location. These flags remain review items, without automatic
+exclusions or replacement coordinates.
+
+One consolidated list contains 194 review items across 188 project identifiers.
+It combines unresolved component locations, the 23 missing years, the centroid
+flags, and all 30 earlier predecessor checkpoints, accounting for overlap. The
+one-year-ahead exact-parcel coordinates for 763 W 15th and 3609 W 50th remain
+recorded evidence; they have not been adopted. The list is generated from the
+current outputs, without case-specific conditions in the code.
+
+The annual timing assumption is also consequential. Among 754 located candidates
+dated 2015, using the old map instead changes 179 ward assignments and 189
+indicators for being within 500 feet. This sensitivity calculation does not change
+the paper's June 15 convention or establish that an individual date is wrong.
+
+\textit{Reproduction and limits.} Work follows \path{a5b89993} on
+\path{sales_sample_exploration}. Build the six preferred geography and boundary
+report targets in \path{tasks/new_construction_cleaning/code/}, then the
+\path{candidate_geography_checks.csv} and \path{candidate_geography_review_queue.csv}
+reports in the release audit. The pinned parcel inputs and existing ward maps feed
+these targets through Make. All six outputs reproduce their pre-assertion contents; each missing output also
+regenerates once under parallel Make, and an unchanged build runs no producers.
+The paper input and estimates remain unchanged.
+Logbook compilation retains the documented holds on unrelated unfinished stages.
+This completes the candidate-geography milestone, not the full replication or
+the final density dataset.

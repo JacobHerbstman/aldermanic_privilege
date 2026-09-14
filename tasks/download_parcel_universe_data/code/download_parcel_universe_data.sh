@@ -6,7 +6,7 @@ set -euo pipefail
 
 parcel_year="${1:-2025}"
 triad_name="${2:-City}"
-native_csv="../temp/parcel_universe_2025_city_native.csv"
+native_csv="../output/parcel_universe_2025_city_native_current.csv"
 api_csv="https://datacatalog.cookcountyil.gov/resource/nj4t-kc8j.csv"
 api_json="https://datacatalog.cookcountyil.gov/resource/nj4t-kc8j.json"
 where_clause="year=${parcel_year} and triad_name='${triad_name}'"

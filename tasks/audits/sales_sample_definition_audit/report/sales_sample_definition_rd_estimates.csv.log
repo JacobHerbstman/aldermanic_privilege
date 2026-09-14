@@ -1,0 +1,22 @@
+File: sales_sample_definition_rd_estimates.csv
+Rows: 6
+Columns: 12
+SHA-256 (saved bytes): c44a30d7253f361919fea5f512a721bc21b46a14965f02a23debe81443180f02
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column inferred_type non_missing distinct                 min                  max                  mean                    sd
+             sample       VARCHAR           6        6                   -                    -                     -                     -
+           estimate        DOUBLE           6        6 0.00563782205047246   0.0228231979958527  0.015940243563817392  0.007450979802741829
+          std_error        DOUBLE           6        6  0.0131948834003182   0.0136451735303133  0.013457862747622451 0.0001637717825574031
+            p_value        DOUBLE           6        6  0.0946950324242775    0.669832013994051   0.29641295596540956    0.2567115283302509
+                  n        BIGINT           6        6               58600                74714     65619.33333333333     7220.866365379342
+ ward_pair_clusters        BIGINT           6        2                 141                  142                 141.5    0.5477225575051649
+           segments        BIGINT           6        4                2075                 2084    2079.1666666666665    4.1190613817551816
+lower_winsor_cutoff        DOUBLE           6        6    17725.1605580548     22976.8919335407     20574.46587920495     2606.994404630444
+upper_winsor_cutoff        DOUBLE           6        6    1973949.35996282     2038598.81202786    2010516.4815431715    28834.328490879347
+     confidence_low        DOUBLE           6        6 -0.0202241494141512 -0.00376382240860243 -0.010437167421522614  0.007156698774747849
+    confidence_high        DOUBLE           6        6  0.0314997935150961   0.0494102184003078   0.04231765454915739  0.007747382481084672
+     percent_effect        DOUBLE           6        6   0.565374447774936     2.30856399644244    1.6091438771762505    0.7555256365355345

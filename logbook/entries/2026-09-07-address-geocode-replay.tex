@@ -1,0 +1,65 @@
+\section*{September 7, 2026: Preserve address-geocoding evidence}
+\textit{Agent-drafted reconstruction; location acceptance remains under review.}
+
+Jacob requested a required checkpoint before the full rerun: return to all 30
+unresolved initial predecessor requests, comprising 24 with multiple candidate
+polygons and six with none. Each must be traced through the later construction
+pipeline and recorded as resolved, ineligible under an established rule, or needing
+judgment. A successful build does not complete this review. The checkpoint is
+recorded in the construction-cleaning README, with the request identifiers and
+status filters needed to recover the cases.
+
+Address geocoding can now be replayed from complete, preserved service responses.
+The old exports saved selected matches but omitted the other candidates. September 7
+queries to the Census and Chicago services returned full responses for 196 distinct
+historical addresses. Applying the original rules reproduces all fields of both
+old 211-row chosen-match tables, including coordinates. Request selection and
+candidate acceptance now run locally in construction cleaning; a separate
+acquisition task preserves the responses and exact queries. Ordinary builds verify
+the pinned source hashes and make no geocoder calls.
+
+This exact replay also preserves a weakness in the old Census rule. It requires a
+unique match, matching house number, and coordinates within Chicago's broad bounds,
+but does not compare the street. Four accepted responses differ from the requested
+address: 1236 N Troy Street becomes S Troy Street; 763 W 15th Place becomes Street;
+and 3609 and 3623 W 50th Street become Place. The old reference-point calculation
+used three of these Census responses; a City point match supplied the correct
+requested street for 3623. All four projects survive in the frozen paper input.
+Of the three using Census, one lies within 500 feet in that input. This establishes
+a reason to investigate, not the correct physical location: a historical source
+address can itself be wrong. No effect on estimates has been calculated.
+
+The proposed general rule requires agreement on house number, direction, street
+name, and street type after standard abbreviation normalization, while allowing an
+omitted trailing unit label. Jacob's decision remains pending. The restored code
+therefore retains the old rules as a comparison baseline. This step does not
+approve their matches for the full rerun or introduce density exclusions.
+
+The current request set has 216 rows. Its original 211 requests are unchanged;
+five new requests lack a selected historical address. Census still accepts 194
+requests and Chicago 114 under the old rules. The later parcel lookup also needed
+17 additional year/parcel queries: six were available in the initial source, and
+11 newly queried pairs returned six polygons. Combining sources preserves all
+11,794 original preferred-source polygons, including their exact geometry, and
+does not refresh previously queried empty results. Current preferred coverage has
+15,691 component-year requests, 17 more than before.
+
+\textit{Reproduction and limits.} Work follows \path{2ca07cf} on
+\path{sales_sample_exploration}. Run the address-request and two geocode report
+targets in \path{tasks/new_construction_cleaning/code/}. Source snapshots and
+download recipes belong to \path{download_construction_address_geocodes} and
+\path{download_construction_historical_parcels}. The original-coverage comparison
+uses preserved address history and current exact-PIN coordinate availability;
+it reproduces the original request set exactly. Missing queries, duplicate keys,
+API errors, empty requests, no-address and no-match responses, independent report
+recovery, and unchanged builds were checked. Later physical-location review and
+the full pipeline remain unfinished. Shared Make rules now check upstream report
+targets as well as data outputs; tests verified missing-report recovery and
+changed-input propagation from document, ordinary-task, and nested-task paths.
+The paper input is unchanged; estimates were
+not rerun. Logbook compilation retains earlier holds on unfinished audit products
+and previously verified development documents. Earlier commercial-footprint,
+ground-up-evidence, and commercial-ledger reports are also held at their recorded
+baselines: refreshing those downstream stages stops at preferred predecessor
+points outside the pinned spatial-query scope. The new geocoding reports build
+through their actual dependencies without those holds.

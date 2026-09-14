@@ -1,0 +1,12 @@
+\clearpage
+\section*{September 9, 2026: Count One Chicago once}
+\addcontentsline{toc}{section}{September 9, 2026: Count One Chicago once}
+\textit{Agent-drafted entry; grouping and density treatment approved by Jacob.}
+
+One Chicago is retained as one completed project containing 735 rental apartments and 77 condominiums, or 812 homes, completed in 2022. Completed permit 100785446 covers both towers and their shared base. The City's PD1401 plan reports a single 96,218-square-foot site without separate tower lots. We use the Assessor's reported 95,780 square feet, as approved, rather than calculating land from a map. The resulting density is approximately 369.3 homes per acre.
+
+The two residential source records are explicitly replaced by the combined commercial-source project. They remain in the decision record but cannot contribute additional observations. Floor area is left missing and floor-area-ratio eligibility is false: the developer and builder report different gross areas, and their treatment of parking, commercial space and the shared base has not been reconciled. This uncertainty does not prevent using the agreed dwelling count and site area for homes-per-acre density. Condominium buildings belong in the construction sample; the separate condominium exclusion concerns the home-sales analysis.
+
+The saved preferred commercial output contains one record with the approved year, units, land and density flags. Both residential predecessors are marked as replaced by that record. Its final commercial geography uses the completed permit's location and the ward map applicable in 2022. These checks establish that this decision reaches the reconstructed inputs; they do not certify the unfinished full construction assembly or the remaining case reviews. The frozen paper input and regressions are unchanged.
+
+\paragraph{Reproduction.} Run the concrete preferred commercial project, commercial boundary-scope and residential candidate targets through Make in \texttt{tasks/new\_construction\_cleaning/code}. The measurements and replacement instructions are stored in the existing adjudication tables. The City plan is preserved as \texttt{one\_chicago\_pd1401.pdf} in the development-record acquisition task, with its retrieval rule and checksum documented there. This entry records work on the \texttt{sales\_sample\_exploration} branch following commit \texttt{44702ac0}.

@@ -1,0 +1,25 @@
+File: remaining_project_successor_evidence.csv
+Rows: 43
+Columns: 15
+SHA-256 (saved bytes): fa575259ad56885cb8e8090e8ccf8c175d4d25bddc1adf89c127ee695c7d757d
+Key: case_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                            column inferred_type non_missing distinct                   min                max               mean                  sd
+                           case_id       VARCHAR          43       43                     -                  -                  -                   -
+                        project_id       VARCHAR          43       43                     -                  -                  -                   -
+                       target_year        BIGINT          43        5                  2006               2022 2014.4418604651162  2.2918315152629365
+                      history_year        BIGINT          43        5                  2008               2023  2017.906976744186  1.9858302028834787
+                    history_x_3435        DOUBLE          43       42     1149039.401752993 1186169.9069446786  1173840.436510216   8072.929452887974
+                    history_y_3435        DOUBLE          43       42    1874536.7561659827 1914576.4118794925 1883366.9124806824  10950.470114812268
+        nearest_current_project_id       VARCHAR          43       42                     -                  -                  -                   -
+               nearest_current_pin        BIGINT          43       42        14322160600000     20024051190000  17738305062558.14   1430902733331.655
+              nearest_current_year        BIGINT          43        5                  2006               2017 2015.7209302325582  2.6932506593453542
+     nearest_current_building_sqft        BIGINT          43       16                  1559               5658 2272.4418604651164  1042.1224291097467
+         nearest_current_land_sqft        BIGINT          43       31                   850               5088 1201.6046511627908   839.5485220820967
+               point_difference_ft        DOUBLE          43       42 5.073034047019914e-06 6557.4930073759715  325.2072452018381    1396.27329853296
+current_candidates_within_one_foot        BIGINT          43        2                     0                  1 0.8837209302325582 0.32435300622428803
+                 old_building_sqft        BIGINT          43       18                     1             652094  21928.86046511628  102313.26844469983
+                     old_land_sqft        BIGINT          43       33                   850             466245 14338.511627906977   71196.81582412173

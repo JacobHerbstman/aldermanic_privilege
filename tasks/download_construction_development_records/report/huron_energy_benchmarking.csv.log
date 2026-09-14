@@ -1,0 +1,40 @@
+File: huron_energy_benchmarking.csv
+Rows: 8
+Columns: 30
+SHA-256 (saved bytes): 45b2f5621e471b976451dc6ba0b44e5dd966f67fca38ac0a37cfdb7aa5738140
+Key: row_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                  column inferred_type non_missing distinct                min                max               mean                    sd
+                               data_year        BIGINT           8        8               2016               2023             2019.5     2.449489742783178
+                                      id        BIGINT           8        1             251926             251926           251926.0                   0.0
+                           property_name       VARCHAR           8        1                  -                  -                  -                     -
+                        reporting_status       VARCHAR           8        3                  -                  -                  -                     -
+                                 address       VARCHAR           8        1                  -                  -                  -                     -
+                                zip_code        BIGINT           8        1              60642              60642            60642.0                   0.0
+                   chicago_energy_rating        DOUBLE           6        5                0.0                4.0 2.0833333333333335    1.4972196454317137
+       exempt_from_chicago_energy_rating       BOOLEAN           5        1                  -                  -                  -                     -
+                          community_area       VARCHAR           8        2                  -                  -                  -                     -
+                   primary_property_type       VARCHAR           8        2                  -                  -                  -                     -
+        gross_floor_area_buildings_sq_ft        BIGINT           7        3             171344             300047 209005.14285714287     62234.91240568156
+                              year_built        BIGINT           7        1               2009               2009             2009.0                   0.0
+                            of_buildings        BIGINT           7        1                  1                  1                1.0                   0.0
+                          water_use_kgal        BIGINT           1        1               4572               4572             4572.0                     -
+                       energy_star_score        BIGINT           7        6                 16                 66 44.142857142857146    15.279927698657167
+                    electricity_use_kbtu        DOUBLE           7        7          4581486.9          5713527.0  5285563.985714286    371148.57733726356
+                    natural_gas_use_kbtu        DOUBLE           7        7          9962272.0         13815986.2  11429587.72857143    1173079.6551605177
+                 district_steam_use_kbtu        BIGINT           2        1                  0                  0                0.0                   0.0
+         district_chilled_water_use_kbtu        BIGINT           2        1                  0                  0                0.0                   0.0
+                 all_other_fuel_use_kbtu       VARCHAR           0        0                  -                  -                  -                     -
+                     site_eui_kbtu_sq_ft        DOUBLE           7        7               91.5              108.5  96.99999999999999     5.788782255362518
+                   source_eui_kbtu_sq_ft        DOUBLE           6        6              143.7              170.9 159.96666666666667    10.227740056662903
+  weather_normalized_site_eui_kbtu_sq_ft        DOUBLE           6        6               91.3              111.7 101.03333333333332     7.072953178599919
+weather_normalized_source_eui_kbtu_sq_ft        DOUBLE           6        6              142.6              175.3 163.11666666666665    11.842874088103212
+    total_ghg_emissions_metric_tons_co2e        DOUBLE           6        6             1334.9             1624.2 1467.8166666666666    116.93853798755416
+             ghg_intensity_kg_co2e_sq_ft        DOUBLE           6        6                7.8                9.5  8.533333333333333    0.7174027227901129
+                                latitude        DOUBLE           8        3          41.876775 41.895158258981965 41.892789657372745  0.006470982820765004
+                               longitude        DOUBLE           8        3 -87.65063617241867         -87.647613 -87.65023264655234 0.0010585645941389526
+                                location       VARCHAR           8        3                  -                  -                  -                     -
+                                  row_id       VARCHAR           8        8                  -                  -                  -                     -

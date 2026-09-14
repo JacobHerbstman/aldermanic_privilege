@@ -1,0 +1,64 @@
+File: multicard_external_review_queue.csv
+Rows: 273
+Columns: 54
+SHA-256 (saved bytes): 93ea713b573e91db12a98d33e3b82368ca93425c2aa96abead71abf1ac8c33a7
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                                 column inferred_type non_missing distinct               min                max               mean                 sd
+                        review_priority        BIGINT         273        5                 1                  5 3.2637362637362637 1.0863643309678501
+                             project_id       VARCHAR         273      273                 -                  -                  -                  -
+                                    pin        BIGINT         273      273    11303200330000     25221030430000 15992532936102.572 2796670320508.7383
+                      construction_year        BIGINT         273       17              2006               2022 2012.5531135531135  5.625401898544344
+                              ward_pair       VARCHAR         273       63                 -                  -                  -                  -
+                distance_to_boundary_ft        DOUBLE         273      273 49.22455487329204  1473.294112609551  616.3159100554709 377.24309311512025
+                           within_500ft       BOOLEAN         273        2                 -                  -                  -                  -
+                         review_address       VARCHAR         272      271                 -                  -                  -                  -
+                           target_cards        BIGINT         273       23                 1                 43   3.73992673992674  5.522858514490826
+                    target_card_numbers       VARCHAR         273       28                 -                  -                  -                  -
+                         target_classes       VARCHAR         273       14                 -                  -                  -                  -
+                         card_units_min        BIGINT         273        5                 1                  6 1.3663003663003663 0.9914523722838218
+                         card_units_max        BIGINT         273        5                 1                  6 1.3663003663003663 0.9914523722838218
+                  all_cards_single_unit       BOOLEAN         273        2                 -                  -                  -                  -
+                   any_card_multifamily       BOOLEAN         273        2                 -                  -                  -                  -
+                            final_units        BIGINT         271       24                 1                 43  4.450184501845018 5.8591737158493284
+                    final_building_sqft        BIGINT         271      262               315              83226  8344.309963099631 10203.701355293157
+                              land_sqft        BIGINT         272      203              1936             307739            12007.5  28669.05210381685
+                  site_units_exceed_one       BOOLEAN         271        2                 -                  -                  -                  -
+                     building_type_rule       VARCHAR         273        3                 -                  -                  -                  -
+                     current_footprints        BIGINT         273       12                 0                 35 1.8095238095238095 2.8128481732824433
+   current_footprints_near_construction        BIGINT         273        9                 0                 13 0.5567765567765568 1.6194701877034217
+             current_footprint_area_sum        DOUBLE         202      199 501.8566461037845 52638.124998770654  4232.722706972215   6705.53470959795
+                       permit_addresses       VARCHAR         153      152                 -                  -                  -                  -
+                     permit_unit_values        BIGINT          31        7                 1                  9 3.6774193548387095  2.039396916969876
+                        current_parcels        BIGINT         263       32                 1                 95  6.342205323193916 13.024522015949033
+               current_noncondo_parcels        BIGINT         263       28                 0                 70   5.08745247148289 10.478073906892666
+                     current_condo_pins        BIGINT         263       13                 0                 68 1.2547528517110267  6.637831534232584
+             distinct_current_addresses        BIGINT         263       32                 0                 90 6.0494296577946765 12.494328089428924
+                    successor_addresses       VARCHAR         262      257                 -                  -                  -                  -
+        current_noncondo_assessor_units        BIGINT         263       28                 0                 69  5.182509505703422  8.440008217798868
+current_noncondo_assessor_building_sqft        BIGINT         263      238                 0             112190  9764.216730038022 14719.019018176079
+                   successor_sqft_ratio        DOUBLE         263       83               0.0 18.425765017000376 1.4627717369060775 1.9157037237022383
+                      internal_evidence       VARCHAR         273        7                 -                  -                  -                  -
+                    adjudication_reason       VARCHAR         273        6                 -                  -                  -                  -
+                adjudication_confidence       VARCHAR         273        2                 -                  -                  -                  -
+                        google_maps_url       VARCHAR         273      272                 -                  -                  -                  -
+                    google_search_query       VARCHAR         273      273                 -                  -                  -                  -
+                          review_status       VARCHAR         273        2                 -                  -                  -                  -
+                     google_visual_type       VARCHAR         273       40                 -                  -                  -                  -
+               external_structure_class       VARCHAR         272        5                 -                  -                  -                  -
+                multifamily_disposition       VARCHAR         273        4                 -                  -                  -                  -
+                  classification_source       VARCHAR         273        2                 -                  -                  -                  -
+                classification_override       VARCHAR          22        3                 -                  -                  -                  -
+                   reviewed_disposition       VARCHAR         272        3                 -                  -                  -                  -
+                external_building_count        BIGINT         272       23                 0                 70  4.569852941176471  9.546675547039088
+                    external_unit_count        BIGINT          44       16                 0                 70 6.7272727272727275 13.609783820649772
+                 external_building_sqft        BIGINT          28       14                 0              19350 2602.4285714285716  4294.122584706539
+                           source_1_url       VARCHAR         273      259                 -                  -                  -                  -
+                           source_2_url       VARCHAR         214      202                 -                  -                  -                  -
+                 supports_building_type       BOOLEAN         273        2                 -                  -                  -                  -
+                   supports_final_units       BOOLEAN         273        2                 -                  -                  -                  -
+                         reviewer_notes       VARCHAR         273      269                 -                  -                  -                  -
+                            review_date          DATE         273        1                 -                  -                  -                  -
