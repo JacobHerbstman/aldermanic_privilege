@@ -1,0 +1,25 @@
+\clearpage
+\section*{Campaign donations and permit stringency}
+\textit{September 14, 2026. Agent-drafted exploratory findings; no change to submitted scores or manuscript.}
+
+Donation composition does not closely reproduce the submitted permit-score ranking in this first comparison. Among 104 aldermen with recorded personal-campaign contributions while in office during 2006--2022, the Spearman correlation with stringency is $-0.003$ for construction-trade organizations, $-0.054$ for real estate including documented company names, $0.163$ for the narrower developer category, and $-0.162$ for union organizations and PACs. A negative correlation means larger sector funding shares accompany less stringency. These definitions were not selected or weighted to maximize agreement with the permit score.
+
+The disagreement is visible for individual aldermen. Marty Quinn receives 20.8\% of eligible contribution dollars from construction-trade organizations and ranks near the stringent end of the permit measure. Carlos Ramirez-Rosa has no identified real-estate contributions under the narrower definition and ranks near the lenient end. These comparisons reveal different rankings; they do not establish which measure better captures behavior. Unidentified donors can still have real-estate interests.
+
+Donation rankings themselves have some persistence. For the same 46 aldermen observed in both 2006--2013 and 2014--2022, rank correlations across periods are 0.267 for construction trades, 0.429 for real estate, 0.465 for developers, and 0.318 for union organizations. Union funding shares have a higher Pearson correlation of 0.711, illustrating the distinction between stable large funding shares and stable rankings throughout the distribution. Construction-trade and real-estate funding ranks are negatively correlated with one another ($-0.39$) in the main sample; combining them is not automatically a coherent measure of regulatory preferences.
+
+The saved ISBE receipt export contains 6,521,945 physical data rows. After matching the recorded committees, removing superseded amendments, and applying the declared receipt and date restrictions, the audit retains 237,229 receipts for 1994--2026. The primary in-office comparison uses 120,748 cash contributions and transfers totaling approximately \$99.0 million. These are eligible recorded itemized receipts, not all campaign resources. The raw snapshot was preserved from the earlier extraction and has an August 17, 2026 file date; no current receipts download was used. The current roster ends in 2022, so earlier and later history comparisons follow recorded people and committees, not a newly established list of officeholders. The 2026 data are explicitly incomplete.
+
+The old donor table mixes union organizations with some union-linked individuals and includes preliminary classifications. The new cleaning keeps these separate, explicitly treats blank category cells as unclassified, and preserves the 27 auto-seeded names pending review as a distinct sensitivity check. Two documented name rules recover Teamsters and police-organization gifts missed by the older vocabulary, identifying \$485,880 in eligible main-sample receipts. Ten documented company families identify additional real-estate developers and a contractor; the real-estate company rules add \$566,138 beyond literal occupational or industry wording. These company-sector classifications are agent-reviewed exploratory judgments with primary-source URLs. A person's employment is taken from the dated receipt, not inferred from a current website.
+
+Recognizable transfers between the same person's committees are excluded in the baseline, while a separate comparison retains them. The report also varies personal versus broader recorded committees, actual office months versus calendar dates, in-kind gifts, the old election-cycle assignment, donor counts, real dollars, and removal of the largest donor. It reports available samples and a common group observed under every recipient definition. Ordinary variation among these choices does not produce strong agreement for construction trades or real estate. Wider historical coverage and vague employer or LLC names remain limitations; the recorded donation data should not yet be treated as a replacement or validation standard for permit-based stringency.
+
+\textit{Reproduction.} On branch \texttt{score\_robustness}, run \texttt{make} in
+\path{tasks/audits/donation_score_robustness/code/} and open
+\path{../output/donation_review.html}. Three linear scripts clean receipts,
+compare the declared measures, and render the report. The README and small
+source tables document definitions, committee provenance, preliminary donor
+judgments, and named-company evidence. Pinned submitted-score files match
+the existing production outputs byte for byte. The approximately 1.05 GB
+raw receipt snapshot has a recorded hash and is preserved locally; it has
+not yet been added to a public source archive for this exploratory audit.

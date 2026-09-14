@@ -1,0 +1,21 @@
+File: committee_coverage.csv
+Rows: 1537
+Columns: 11
+SHA-256 (saved bytes): e6b77e3e73c2a616cc2a0e98e463eeb0542b3f9b3534e96b172322313be9fcd6
+Key: alderman_id, year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+               column inferred_type non_missing distinct   min                max               mean                 sd
+          alderman_id       VARCHAR        1537      124     -                  -                  -                  -
+            full_name       VARCHAR        1537      124     -                  -                  -                  -
+                 year        BIGINT        1537       32  1994               2026 2012.9915419648667  7.771847986380881
+             receipts        BIGINT        1537      427     1               1020 154.34547820429407 140.85267114310196
+              dollars        DOUBLE        1537     1490 200.0  8800627.919999998 130888.84099629149  278081.5621650061
+           first_date          DATE        1537      999     -                  -                  -                  -
+            last_date          DATE        1537      813     -                  -                  -                  -
+   in_office_receipts        BIGINT        1537      395     0               1020 120.00910865322057 145.56592567995352
+ own_transfer_dollars        DOUBLE        1537       12   0.0          171399.54 230.55706571242678  4768.702428076559
+pending_union_dollars        DOUBLE        1537       58   0.0           45205.39  208.2960442420299 1688.1644981330276
+  missing_job_dollars        DOUBLE        1537     1458   0.0 1018108.4800000003   97215.0842745608  103401.3988503157

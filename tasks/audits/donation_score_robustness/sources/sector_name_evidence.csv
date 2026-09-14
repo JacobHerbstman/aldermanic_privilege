@@ -1,0 +1,13 @@
+rule_id,category,pattern,source_url,reason,review_date
+teamsters,union_generic,\bteamsters?\b,https://teamster.org/about-drive/,Union family; all name spelling variants retaining Teamsters; do not classify all Teamsters as construction trades.,2026-09-14
+fraternal_order_police,union_service,\bfraternal order of police\b,https://www.chicagofop.org/images/documents/newsletters/2022/December2022.pdf,Police organization/PAC; full name required rather than ambiguous FOP initials.,2026-09-14
+sterling_bay,developer,\bsterling bay\b,https://sterlingbay.com/our-approach/,Named real-estate developer.,2026-09-14
+draper_kramer,developer,\bdraper (and )?kramer\b,https://draperandkramer.com/,Property services and development; firm association does not imply employee works in development.,2026-09-14
+fifield,developer,\bfifield (and )?(companies|company|co|properties|properites)\b,https://www.fifieldco.com/about/,Company name required; surname alone insufficient; include observed properties misspelling.,2026-09-14
+golub,developer,\bgolub (and )?(company|co)\b,https://golubandcompany.com/,Company name required; surname alone insufficient.,2026-09-14
+related_midwest,developer,\brelated midwest\b,https://www.relatedmidwest.com/our-company/contact-us,Exact regional firm name; bare Related insufficient.,2026-09-14
+walsh,construction,\bwalsh (group|construction)\b,https://www.walshgroup.com/media/companyoverview.html,Contractor separately from developers; not classifying an individual Walsh without company evidence.,2026-09-14
+mccaffery,developer,\bmccaffery (interests|inc)\b,https://mccafferyinc.com/company/about,Company name required; surname alone insufficient.,2026-09-14
+magellan,developer,\bmagellan (development|realty|property management|investment partners)\b,https://www.magellandevelopment.com/,Bare Magellan insufficient because unrelated firms share the name.,2026-09-14
+jdl,developer,\bjdl (development|corp|corporation)\b,https://jdlcorp.com/about,Company expansion required; bare initials insufficient.,2026-09-14
+habitat,developer,\bhabitat (company|co)\b,https://www.habitat.com/aboutus,Company name required; Habitat for Humanity not matched.,2026-09-14

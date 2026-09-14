@@ -157,4 +157,9 @@ tasks/audits/sales_sample_definition_audit/input/
 tasks/audits/sales_sample_definition_audit/output/
 tasks/audits/sales_sample_definition_audit/temp/
 !tasks/audits/sales_sample_definition_audit/report/*.log
+!tasks/audits/donation_score_robustness/
+tasks/audits/donation_score_robustness/input/
+tasks/audits/donation_score_robustness/output/
+tasks/audits/donation_score_robustness/temp/
+!tasks/audits/donation_score_robustness/report/*.log
 !tasks/download_construction_historical_parcels/report/*.gpkg.log
