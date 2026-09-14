@@ -1,6 +1,7 @@
 include ../../../shared/code/shell_functions.make
 
 SECTOR := developer_verified
+DONATION_DIRECTION := -1
 START_YEAR := 2006
 END_YEAR := 2022
 RENT_START_YEAR := 2014
@@ -20,14 +21,14 @@ PERMIT_CLUSTER := ward_pair_id
 
 all: ../output/developer_results.html ../output/developer_scores.csv
 
-../output/developer_results.html: render_developer_results.R Makefile ../output/developer_estimates.csv ../output/developer_profiles.csv ../output/developer_coverage.csv ../output/permit_pair_comparisons.csv ../output/permit_ordering_results.csv ../output/permit_reassignment_flows.csv | ../output
+../output/developer_results.html: render_developer_results.R Makefile ../output/developer_estimates.csv ../output/developer_profiles.csv ../output/developer_coverage.csv ../output/permit_pair_comparisons.csv ../output/permit_ordering_results.csv ../output/permit_reassignment_flows.csv ../output/permit_developer_donors.csv | ../output
 	$(R) $<
 
 ../output/permit_pair_comparisons.csv ../output/permit_ordering_results.csv ../output/permit_reassignment_flows.csv: compare_permit_pairs.R Makefile ../input/permit_block_year_panel_2015.parquet ../output/permit_comparison_panel.parquet ../output/developer_scores.csv ../output/developer_estimates.csv ../../../shared/code/save_data.R ../../../shared/code/report.py | ../output ../report
 	$(R) $< "$(PERMIT_FE)" $(PERMIT_CLUSTER)
 
-../output/developer_estimates.csv ../output/developer_profiles.csv ../output/developer_coverage.csv ../output/developer_scores.csv ../output/permit_comparison_panel.parquet: estimate_developer_results.R Makefile ../input/donation_receipts.parquet ../input/new_construction_analysis_data.csv ../input/rental_rd_characteristics_panel_bw1500.parquet ../input/sales_with_hedonics_amenities.parquet ../input/permit_block_year_panel_2015.parquet ../../../shared/code/save_data.R ../../../shared/code/report.py | ../output ../report
-	$(R) $< $(SECTOR) $(START_YEAR) $(END_YEAR) $(RENT_START_YEAR) $(REMAP_YEAR) $(BANDWIDTH_FT) $(BIN_WIDTH_FT) $(EVENT_WINDOW) "$(DENSITY_CONTROLS)" "$(DENSITY_FE)" "$(RENT_CONTROLS)" "$(RENT_FE)" "$(SALES_CONTROLS)" "$(SALES_FE)" $(BOUNDARY_CLUSTER) "$(PERMIT_FE)" $(PERMIT_CLUSTER)
+../output/developer_estimates.csv ../output/developer_profiles.csv ../output/developer_coverage.csv ../output/developer_scores.csv ../output/permit_comparison_panel.parquet ../output/permit_developer_donors.csv: estimate_developer_results.R Makefile ../input/donation_receipts.parquet ../input/new_construction_analysis_data.csv ../input/rental_rd_characteristics_panel_bw1500.parquet ../input/sales_with_hedonics_amenities.parquet ../input/permit_block_year_panel_2015.parquet ../../../shared/code/save_data.R ../../../shared/code/report.py | ../output ../report
+	$(R) $< $(SECTOR) $(START_YEAR) $(END_YEAR) $(RENT_START_YEAR) $(REMAP_YEAR) $(BANDWIDTH_FT) $(BIN_WIDTH_FT) $(EVENT_WINDOW) "$(DENSITY_CONTROLS)" "$(DENSITY_FE)" "$(RENT_CONTROLS)" "$(RENT_FE)" "$(SALES_CONTROLS)" "$(SALES_FE)" $(BOUNDARY_CLUSTER) "$(PERMIT_FE)" $(PERMIT_CLUSTER) $(DONATION_DIRECTION)
 
 ../input/donation_receipts.parquet: ../../donation_score_robustness/output/donation_receipts.parquet | ../input
 	ln -sf $< $@

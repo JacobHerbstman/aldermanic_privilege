@@ -78,6 +78,7 @@ logbook.pdf: logbook.tex \
 	entries/2026-09-14-donation-score-comparison.tex \
 	entries/2026-09-14-developer-ranking-results.tex \
 	entries/2026-09-14-developer-pairs.tex \
+	entries/2026-09-14-donation-stringency-switches.tex \
 	../tasks/audits/construction_review_history/records/natchez_parcel_coverage.pdf \
 	../tasks/audits/density_window_comparison/output/density_windows.pdf \
 	../tasks/audits/density_window_comparison/output/density_windows_levels.pdf \

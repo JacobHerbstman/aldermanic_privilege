@@ -16,13 +16,14 @@
 # boundary_cluster <- "ward_pair"
 # permit_fe <- "block_id + ward_pair_id^year"
 # permit_cluster <- "ward_pair_id"
+# donation_direction <- -1
 library(data.table)
 library(fixest)
 source("../../../shared/code/save_data.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (!interactive()) {
-  stopifnot(length(args) == 17L)
+  stopifnot(length(args) == 18L)
   sector <- args[1]
   start_year <- as.integer(args[2])
   end_year <- as.integer(args[3])
@@ -40,8 +41,10 @@ if (!interactive()) {
   boundary_cluster <- args[15]
   permit_fe <- args[16]
   permit_cluster <- args[17]
+  donation_direction <- as.integer(args[18])
 }
 stopifnot(start_year < remap_year, remap_year <= end_year, bandwidth_ft %% bin_width_ft == 0)
+stopifnot(donation_direction == -1L)
 setFixest_nthreads(1)
 
 # The score is the eligible cash share from the previously documented developer definition.
@@ -57,9 +60,18 @@ for (period in c("main", "pre_remap")) {
     receipt_count = .N, first_year = min(year), last_year = max(year)), by = .(alderman = full_name)][, period := period]
 }
 scores <- rbindlist(score_parts)
+scores[, donation_stringency := donation_direction * developer_share]
 stopifnot(!anyDuplicated(scores[, .(period, alderman)]), all(is.finite(scores$developer_share)))
 main_scores <- scores[period == "main"]
 pre_scores <- scores[period == "pre_remap"]
+developer_donors <- receipts[year < remap_year & get(sector),
+  .(donor_name = paste(sort(unique(donor_name)), collapse = "; "),
+    employers = paste(sort(unique(Employer[!is.na(Employer)])), collapse = "; "),
+    occupations = paste(sort(unique(Occupation[!is.na(Occupation)])), collapse = "; "),
+    developer_dollars = sum(amount), developer_receipts = .N,
+    first_receipt = min(received_date), last_receipt = max(received_date)),
+  by = .(alderman = full_name, donor_norm)]
+SaveData(developer_donors, c("alderman", "donor_norm"), "../output/permit_developer_donors.csv")
 rm(receipts)
 
 # Reuse this extraction for the six boundary specifications and the permit models.
@@ -127,11 +139,12 @@ for (market in c("density", "rent", "sales")) {
                developer_neighbor = main_scores$developer_share[match(alderman_neighbor, main_scores$alderman)])]
   data[, missing_developer := !is.finite(developer_own) | !is.finite(developer_neighbor)]
   data[, developer_tie := !missing_developer & developer_own == developer_neighbor]
-  data[, developer_sign := sign(developer_own - developer_neighbor)]
+  # Higher developer funding means lower donation-based stringency.
+  data[, donation_sign := donation_direction * sign(developer_own - developer_neighbor)]
   coverage[[market]] <- data[, .(market, input_rows = .N, missing_score_rows = sum(missing_developer),
     tied_score_rows = sum(developer_tie), common_rows = sum(!missing_developer & !developer_tie),
     common_ordered_rows = sum(!missing_developer & !developer_tie),
-    reversed_rows = sum(!missing_developer & !developer_tie & developer_sign != sign(paper_distance), na.rm = TRUE))]
+    reversed_rows = sum(!missing_developer & !developer_tie & donation_sign != sign(paper_distance), na.rm = TRUE))]
   specs <- if (market == "density") CJ(sample = c("all", "multifamily"), outcome = c("density_far", "density_dupac")) else
     data.table(sample = "all", outcome = if (market == "rent") "rent_price" else "sale_price")
   for (j in seq_len(nrow(specs))) for (version in versions) {
@@ -139,7 +152,7 @@ for (market in c("density", "rent", "sales")) {
     d <- copy(data)
     if (market == "density" && sample_name == "multifamily") d <- d[external_multifamily == TRUE]
     if (version != "paper_full") d <- d[missing_developer == FALSE & developer_tie == FALSE]
-    d[, running_distance := if (version == "developer_common") abs(paper_distance) * developer_sign else paper_distance]
+    d[, running_distance := if (version == "developer_common") abs(paper_distance) * donation_sign else paper_distance]
     d[, distance_bin := cut(running_distance, bin_edges, bin_labels, include.lowest = TRUE, right = FALSE)]
     stopifnot(all(is.finite(d[[outcome]]) & d[[outcome]] > 0), !anyNA(d$distance_bin))
     model <- feols(as.formula(sprintf("log(%s) ~ i(distance_bin, ref = '%s') + %s | %s", outcome, reference_bin, controls, fixed_effects)),
@@ -183,19 +196,19 @@ pairs[, `:=`(score_a = ward_names$developer_share[match(as.numeric(ward_a), ward
                score_b = ward_names$developer_share[match(as.numeric(ward_b), ward_names$ward)])]
 pairs[, status := fcase(!is.finite(score_a) | !is.finite(score_b), "missing", score_a == score_b, "tie", default = "common")]
 data[, pair_status := pairs$status[match(ward_pair_id, pairs$ward_pair_id)]]
-data[, developer_sign := sign(developer_dest - developer_origin)]
-stopifnot(!anyNA(data$pair_status), all(data[pair_status == "common", is.finite(developer_sign)]))
+data[, donation_sign := donation_direction * sign(developer_dest - developer_origin)]
+stopifnot(!anyNA(data$pair_status), all(data[pair_status == "common", is.finite(donation_sign)]))
 SaveData(data, c("block_id", "year"), "../output/permit_comparison_panel.parquet")
-coverage[["permits"]] <- unique(data[, .(block_id, pair_status, paper_sign, developer_sign)])[,
+coverage[["permits"]] <- unique(data[, .(block_id, pair_status, paper_sign, donation_sign)])[,
   .(market = "permits", input_rows = .N, missing_score_rows = sum(pair_status == "missing"),
     tied_score_rows = sum(pair_status == "tie"), common_rows = sum(pair_status == "common"),
     common_ordered_rows = sum(pair_status == "common" & paper_sign != 0),
-    reversed_rows = sum(pair_status == "common" & developer_sign != paper_sign, na.rm = TRUE))]
+    reversed_rows = sum(pair_status == "common" & donation_sign != paper_sign, na.rm = TRUE))]
 common_permit_obs <- list()
 for (version in versions) {
   d <- copy(data)
   if (version != "paper_full") d <- d[pair_status == "common"]
-  d[, direction := if (version == "developer_common") developer_sign else paper_sign]
+  d[, direction := if (version == "developer_common") donation_sign else paper_sign]
   d[, `:=`(post_signed = post * direction, post_higher = post * as.integer(direction > 0), post_lower = post * as.integer(direction < 0))]
   for (specification in c("signed", "separate")) {
     rhs <- if (specification == "signed") "post_signed" else "post_higher + post_lower"

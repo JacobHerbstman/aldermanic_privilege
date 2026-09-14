@@ -2,6 +2,8 @@
 \section*{Developer funding in the main specifications}
 \textit{September 14, 2026. Agent-drafted exploratory results on score\_robustness; submitted scores and manuscript unchanged.}
 
+\textit{Historical orientation: higher raw funding. See the later donation-based stringency entry.}
+
 Ordering aldermen by developer funding produces imprecise density and price differences, but the permitting result remains negative and statistically significant. The signed permit estimate is $-10.7\%$ ($p=0.038$, 95\% interval $[-19.8,-0.7]\%$). Higher funding means a larger share of eligible campaign dollars identified as developer-linked. It is not labelled greater stringency or leniency, and the direction is held fixed throughout this comparison.
 
 For all construction, the boundary estimates are $-2.5\%$ for FAR ($p=0.620$) and $-1.2\%$ for DUPAC ($p=0.868$). For multifamily construction they are $+2.9\%$ for FAR ($p=0.748$) and $+17.6\%$ for DUPAC ($p=0.245$). Rents differ by $-2.3\%$ ($p=0.168$), and sale prices by $+3.0\%$ ($p=0.143$). These estimates compare the nearest 100 feet on either side using the paper's ten-bin specification within 500 feet. The wide intervals do not establish zero effects. In particular, the sale-price magnitude remains near the original estimate while becoming less precise.
@@ -14,4 +16,6 @@ The pattern does not establish that campaign donations measure regulatory behavi
 
 \textit{Reproduction.} Run \texttt{make} in
 \path{tasks/audits/developer_score_results/code/} and open
-\path{../output/developer_results.html}. Two scripts estimate and display the comparisons. Four production analysis files were copied unchanged to \path{data_raw/score_robustness/}; \path{sources/benchmark_sources.csv} records their producers and hashes. Donation receipts come from the preceding audit at \texttt{bc100d9b}. These benchmark files are preserved locally.
+\path{../output/developer_results.html}. Benchmark producers and hashes are in
+\path{sources/benchmark_sources.csv}; local copies are in \path{data_raw/score_robustness/}.
+Donation receipts come from the preceding audit at \texttt{bc100d9b}.

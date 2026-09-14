@@ -28,11 +28,12 @@ wards <- unique(rbind(
 wards <- wards[!is.na(ward)]
 stopifnot(!anyDuplicated(wards$ward))
 wards[, `:=`(developer_share = scores$developer_share[match(alderman, scores$alderman)],
+  donation_stringency = scores$donation_stringency[match(alderman, scores$alderman)],
   developer_dollars = scores$developer_dollars[match(alderman, scores$alderman)],
   eligible_dollars = scores$eligible_dollars[match(alderman, scores$alderman)])]
 
 # One row per boundary pair, including pairs excluded for tied or missing donations.
-blocks <- unique(data[, .(block_id, ward_pair_id, ward_origin, ward_dest, paper_sign, developer_sign, pair_status)])
+blocks <- unique(data[, .(block_id, ward_pair_id, ward_origin, ward_dest, paper_sign, donation_sign, pair_status)])
 stopifnot(!anyDuplicated(blocks$block_id), all((blocks$paper_sign != 0) == (blocks$ward_origin != blocks$ward_dest)))
 pairs <- blocks[, .(status = unique(pair_status), blocks = .N,
   switched_blocks = sum(paper_sign != 0), unchanged_blocks = sum(paper_sign == 0)), by = ward_pair_id]
@@ -41,18 +42,19 @@ pairs[, `:=`(ward_a = as.integer(ward_a), ward_b = as.integer(ward_b))]
 for (side in c("a", "b")) {
   index <- match(pairs[[paste0("ward_", side)]], wards$ward)
   stopifnot(!anyNA(index))
-  for (column in c("alderman", "permit_score", "developer_share", "developer_dollars", "eligible_dollars")) {
+  for (column in c("alderman", "permit_score", "developer_share", "donation_stringency", "developer_dollars", "eligible_dollars")) {
     set(pairs, j = paste0(column, "_", side), value = wards[[column]][index])
   }
 }
 pairs[, `:=`(paper_higher = fifelse(permit_score_a > permit_score_b, alderman_a, alderman_b),
-  developer_higher = fifelse(developer_share_a > developer_share_b, alderman_a, alderman_b))]
-pairs[status != "common", developer_higher := NA_character_]
+  developer_higher = fifelse(developer_share_a > developer_share_b, alderman_a, alderman_b),
+  donation_higher = fifelse(donation_stringency_a > donation_stringency_b, alderman_a, alderman_b))]
+pairs[status != "common", `:=`(developer_higher = NA_character_, donation_higher = NA_character_)]
 pairs[, ordering := fcase(status != "common", status,
-  sign(permit_score_a - permit_score_b) == sign(developer_share_a - developer_share_b), "same", default = "reversed")]
+  paper_higher == donation_higher, "same", default = "reversed")]
 data[, ordering := pairs$ordering[match(ward_pair_id, pairs$ward_pair_id)]]
 stopifnot(all(data[pair_status == "common" & paper_sign != 0,
-  (paper_sign == developer_sign) == (ordering == "same")]))
+  (paper_sign == donation_sign) == (ordering == "same")]))
 stopifnot(all(data[paper_sign != 0, (pmin(ward_origin, ward_dest) == as.numeric(sub("-.*", "", ward_pair_id))) &
   (pmax(ward_origin, ward_dest) == as.numeric(sub(".*-", "", ward_pair_id)))]))
 
@@ -61,7 +63,7 @@ flows <- data[, .(blocks = uniqueN(block_id), pre_block_years = sum(post == 0), 
   permits_pre = sum(outcome[post == 0]), permits_post = sum(outcome[post == 1]),
   permits_per_block_year_pre = mean(outcome[post == 0]), permits_per_block_year_post = mean(outcome[post == 1])),
   by = .(ward_pair_id, ward_origin, ward_dest, alderman_origin_2014, alderman_dest_2014,
-    pair_status, ordering, paper_sign, developer_sign)]
+    pair_status, ordering, paper_sign, donation_sign)]
 
 # Fit separate slopes for pairs that agree and disagree. Each pair keeps its own controls.
 # The two ranking versions must fit identical observations and give opposite slopes only
@@ -70,7 +72,7 @@ common <- copy(data[pair_status == "common"])
 group_results <- list()
 pair_results <- list()
 for (ranking in c("paper", "developer")) {
-  common[, post_signed := post * if (ranking == "paper") paper_sign else developer_sign]
+  common[, post_signed := post * if (ranking == "paper") paper_sign else donation_sign]
   common[, `:=`(post_same = post_signed * as.integer(ordering == "same"),
     post_reversed = post_signed * as.integer(ordering == "reversed"))]
   pooled <- fepois(as.formula(paste("outcome ~ post_signed |", permit_fe)), data = common,

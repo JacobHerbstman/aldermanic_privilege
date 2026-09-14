@@ -1,7 +1,7 @@
 File: permit_comparison_panel.parquet
 Rows: 37169
 Columns: 36
-SHA-256 (saved bytes): c652ace13f0cf8cc5cef9bd28bc3d5a772a06293fc3360df25130e457aaff561
+SHA-256 (saved bytes): 7710ecd6fabd28f7dac814b0593395f0167c4f51cc09f881593bf7f2f00da676
 Key: block_id, year
 Types: Stored Parquet schema.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -43,4 +43,4 @@ n_low_discretion_nosigns_application       INTEGER       37169       47         
                     developer_origin        DOUBLE       37169       23                 0.0 0.020767369258835957 0.005065231180742073 0.005077766427657509
                       developer_dest        DOUBLE       37169       23                 0.0 0.020767369258835957 0.004835334846709868 0.005010441999103228
                          pair_status       VARCHAR       37169        3                   -                    -                    -                    -
-                      developer_sign        DOUBLE       37169        3                -1.0                  1.0 -0.00976620301864457   0.4152655946576053
+                       donation_sign        DOUBLE       37169        3                -1.0                  1.0  0.00976620301864457   0.4152655946576053

@@ -1,23 +1,23 @@
 File: developer_profiles.csv
 Rows: 213
 Columns: 13
-SHA-256 (saved bytes): b0b35d482ebc9c3d54eb2c6326a89b491b72e036a20653f3dabf2685f9725b6f
+SHA-256 (saved bytes): f28e3ca057025d2372ca80f222d1a715e31f51e2b52284197e69b05a0d06d29e
 Key: market, sample, outcome, version, term
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-          column inferred_type non_missing distinct                  min                  max                  mean                   sd
-            term       VARCHAR         213       21                    -                    -                     -                    -
-        estimate        DOUBLE         213      193  -0.3954627546828642   0.1623129833286497 -0.062463443346970245  0.09196037121607505
-       std_error        DOUBLE         213      193                  0.0  0.21264572304459362   0.06225774808786341 0.046852611529310716
-         p_value        DOUBLE         192      192 2.37389222329636e-05   0.9906958318020678    0.2677996906268092   0.2673238524968059
-          ci_low        DOUBLE         213      193  -0.8188078691015359 0.023262635174969265  -0.18620096028784527  0.16687491319745115
-         ci_high        DOUBLE         213      193 -0.12371905607710557  0.43808299587971256   0.06127407359390504  0.08041427102582115
-               n        BIGINT         213       10                  794               240713     46028.42253521127    78160.17417922174
-               x        BIGINT         213       21                 -450                  450                   0.0   264.66719935627526
-          market       VARCHAR         213        4                    -                    -                     -                    -
-          sample       VARCHAR         213        3                    -                    -                     -                    -
-         outcome       VARCHAR         213        5                    -                    -                     -                    -
-         version       VARCHAR         213        3                    -                    -                     -                    -
-pretrend_p_value        DOUBLE          33        3   0.3170217887438628   0.4997939609899432   0.40565273950375585  0.07587657722596725
+          column inferred_type non_missing distinct                    min                  max                 mean                   sd
+            term       VARCHAR         213       21                      -                    -                    -                    -
+        estimate        DOUBLE         213      193   -0.39546275468286507  0.20224614672618801 -0.07018188537686175  0.09740388665725642
+       std_error        DOUBLE         213      193                    0.0  0.23231272633038855  0.06585473075840687 0.052309303117214885
+         p_value        DOUBLE         192      192 2.9165545317452394e-05   0.9885030870945642  0.27568791805062615   0.2660827432626682
+          ci_low        DOUBLE         213      193    -0.8328773307456221 0.023262635174969265   -0.201080265275868  0.18747503757166178
+         ci_high        DOUBLE         213      193    -0.1237190560771054   0.3813837945555876  0.06071649452214449  0.07431716172769344
+               n        BIGINT         213       10                    794               240713    46028.42253521127    78160.17417922174
+               x        BIGINT         213       21                   -450                  450                  0.0   264.66719935627526
+          market       VARCHAR         213        4                      -                    -                    -                    -
+          sample       VARCHAR         213        3                      -                    -                    -                    -
+         outcome       VARCHAR         213        5                      -                    -                    -                    -
+         version       VARCHAR         213        3                      -                    -                    -                    -
+pretrend_p_value        DOUBLE          33        3     0.3170217887438621   0.4997939609899422   0.4056527395037553  0.07587657722596705
