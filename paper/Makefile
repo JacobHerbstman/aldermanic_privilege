@@ -1,5 +1,11 @@
 all: paper.pdf online_appendix.pdf working_paper.pdf word_count.pdf
 
+jpube: ../journals/jpube/submission/main_paper.pdf \
+	../journals/jpube/submission/working_paper.pdf \
+	../journals/jpube/submission/online_appendix.pdf \
+	../journals/jpube/submission/word_count.pdf \
+	../journals/jpube/submission/cover_letter.pdf
+
 paper.pdf: Makefile paper.tex sections/intro.tex sections/data.tex sections/model.tex \
 	sections/empirics_results.tex sections/discussion.tex sections/conclusion.tex \
 	sections/aldermanic_privilege.bib \
@@ -90,10 +96,40 @@ working_paper.pdf: | osm-check
 word_count.pdf:
 	pdflatex -interaction=nonstopmode word_count.tex
 
+../journals/jpube/submission/main_paper.pdf: paper.pdf ../journals/jpube/ai_disclosure.tex Makefile
+	mkdir -p tmp/jpube ../journals/jpube/submission
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=main_paper '\def\jpubesubmission{1}\input{paper.tex}'
+	bibtex tmp/jpube/main_paper
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=main_paper '\def\jpubesubmission{1}\input{paper.tex}'
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=main_paper '\def\jpubesubmission{1}\input{paper.tex}'
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=main_paper '\def\jpubesubmission{1}\input{paper.tex}'
+	cp tmp/jpube/main_paper.pdf $@
+
+../journals/jpube/submission/working_paper.pdf: working_paper.pdf ../journals/jpube/ai_disclosure.tex Makefile
+	mkdir -p tmp/jpube ../journals/jpube/submission
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=working_paper '\def\jpubesubmission{1}\input{working_paper.tex}'
+	bibtex tmp/jpube/working_paper
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=working_paper '\def\jpubesubmission{1}\input{working_paper.tex}'
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=working_paper '\def\jpubesubmission{1}\input{working_paper.tex}'
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube -jobname=working_paper '\def\jpubesubmission{1}\input{working_paper.tex}'
+	cp tmp/jpube/working_paper.pdf $@
+
+../journals/jpube/submission/online_appendix.pdf: online_appendix.pdf
+	cp $< $@
+
+../journals/jpube/submission/word_count.pdf: word_count.pdf
+	cp $< $@
+
+../journals/jpube/submission/cover_letter.pdf: ../journals/jpube/submission/cover_letter.tex Makefile
+	mkdir -p tmp/jpube ../journals/jpube/submission
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube ../journals/jpube/submission/cover_letter.tex
+	pdflatex -interaction=nonstopmode -output-directory=tmp/jpube ../journals/jpube/submission/cover_letter.tex
+	cp tmp/jpube/cover_letter.pdf $@
+
 osm-check:
 	@cd .. && shasum -a 256 -c data_raw/illinois-250919-free.sha256
 
-.PHONY: osm-check
+.PHONY: jpube osm-check
 .DELETE_ON_ERROR:
 
 include ../tasks/shared/code/generic.make
