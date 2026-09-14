@@ -2,7 +2,7 @@
 
 This exploratory audit replaces the permit-based ordering with the existing `developer_verified` donation share. It compares the original full sample, the original ordering on a common sample, and the developer ordering on that same sample. It does not change the manuscript or production datasets.
 
-Run `make` in `code/` and open `output/developer_results.html`. There are two scripts: `estimate_developer_results.R` computes the scores and models; `render_developer_results.R` displays the saved results. Analytical periods, controls, fixed effects, bandwidths, and clustering are explicit in the Makefile. SaveData reports are side effects of saving the four datasets.
+Run `make` in `code/` and open `output/developer_results.html`. Three scripts compute the scores and main models, examine the permit ward pairs, and display the results. Analytical periods, controls, fixed effects, bandwidths, and clustering are explicit in the Makefile. SaveData writes reports when saving datasets.
 
 ## Score definition and direction
 
@@ -29,6 +29,16 @@ The estimator verifies identical fitted observations in the two common-sample ve
 All seven original main coefficients and standard errors reproduce the paper's displayed three-decimal values. With developer funding used for ordering, FAR and DUPAC differences are imprecise, for both all construction and multifamily construction. Rent and sale-price estimates are also insignificant at 10%; the sale-price estimate remains about +3%, so its change is principally precision, not magnitude.
 
 The signed permit effect remains negative: −10.7% (p=0.038; 95% interval −19.8% to −0.7%). The original permit ranking on the same observations gives −8.0%; its full-sample estimate is −11.9%. Developer ordering reverses 166 of 583 supported reassigned blocks. Its pretrend test has p=0.500. These results do not establish that donations measure regulatory behavior, and neither the donor definition nor the ordering direction was chosen to strengthen the result.
+
+## Which permit comparisons explain the result?
+
+`estimate_developer_results.R` saves the actual permit comparison panel before estimation. `compare_permit_pairs.R` reads that panel, without repeating its sample cleaning. It describes every observed boundary pair, fits separate signed effects for pairs where the rankings agree or reverse, and omits each of the 37 pairs with reassignments in turn. The other pairs retain their original comparison blocks. Group effects are estimated jointly, with the same fixed effects and ward-pair clustering as the pooled model. The code verifies common fitted observations and that reversing an entire group's ranking reverses only that group's coefficient. Pair omission effects are sensitivity measures, not additive contributions to a nonlinear estimate.
+
+Twenty pairs account for 417 reassigned blocks whose ordering stays the same; their estimate is −12.9% under either measure. Seventeen pairs account for 166 reversed blocks; the original-ranking estimate is +5.5% and the developer-ranking estimate is −5.2% (both p=0.635). The negative pooled result primarily reflects comparisons where more developer funding accompanies higher measured permit stringency.
+
+Moreno–Maldonado (wards 1–26) and Dowell–Cochran (3–20) provide the strongest support by the omission check. Removing the first pair gives −8.0% (p=0.158), and removing the second gives −8.6% (p=0.089). Waguespack–Smith (32–43) is the most consequential reversal; omitting it strengthens the negative developer estimate to −13.2%. Thus the pooled estimate's significance at 5% is sensitive to individual pairs, even though its sign remains negative in every one-pair omission.
+
+`permit_pair_comparisons.csv` records names, both permit scores, developer dollars and total eligible dollars, sample counts, and both sets of omission results. `permit_reassignment_flows.csv` records origin and destination aldermen with raw pre/post permit counts and rates per block-year. Those raw rates are descriptive, not estimated treatment effects. The report displays every informative pair and lists pairs dropped for missing or tied funding.
 
 ## Recorded benchmark inputs
 

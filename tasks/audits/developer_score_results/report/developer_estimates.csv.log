@@ -1,25 +1,25 @@
 File: developer_estimates.csv
 Rows: 27
 Columns: 15
-SHA-256 (saved bytes): 5dfb0cc035710474db75b94c012bc60b1b46bd3eb60545bbfc809aace315306c
+SHA-256 (saved bytes): 0dfd9aafced8a51235910bdb70894e9fcdbaff36eb77c681114aa1f18e4d1e99
 Key: market, sample, outcome, version, specification, term
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-        column inferred_type non_missing distinct                  min                  max                  mean                  sd
-          term       VARCHAR          27        4                    -                    -                     -                   -
-      estimate        DOUBLE          27       27 -0.23147121637251578  0.16231298332865027 -0.060879775025581735 0.10326066170109581
-     std_error        DOUBLE          27       27 0.013388133368538292   0.1385189334084159   0.06414161270475527 0.03507698064125664
-       p_value        DOUBLE          27       27  0.01102352465758035    0.868155651855319   0.20158751859095647 0.23325555081396535
-        ci_low        DOUBLE          27       27 -0.47896139697138806 0.003491604546532922   -0.1883862128266987 0.14455945559272163
-       ci_high        DOUBLE          27       27 -0.04032010156059879   0.4380829958797168   0.06662666277553522 0.10095747494169223
-             n        BIGINT          27       10                  794               240713    43334.555555555555   70786.62880762664
-        market       VARCHAR          27        4                    -                    -                     -                   -
-        sample       VARCHAR          27        3                    -                    -                     -                   -
-       outcome       VARCHAR          27        5                    -                    -                     -                   -
-       version       VARCHAR          27        3                    -                    -                     -                   -
- specification       VARCHAR          27        3                    -                    -                     -                   -
-percent_effect        DOUBLE          27       27  -20.663446888761683    17.62283235721552    -5.420055684134063    9.83580414285698
-   percent_low        DOUBLE          27       27    -38.0573604033841    0.349770729841919   -16.347467428408883  11.794962480342814
-  percent_high        DOUBLE          27       27  -3.9518061828158735    54.97335235792453     7.453627191040048  12.087522941208906
+        column inferred_type non_missing distinct                  min                  max                 mean                  sd
+          term       VARCHAR          27        4                    -                    -                    -                   -
+      estimate        DOUBLE          27       27  -0.2314712163725158   0.1623129833286497  -0.0608797750255818 0.10326066170109584
+     std_error        DOUBLE          27       27 0.013388133368538292    0.138518933408414  0.06414161270475398 0.03507698064125591
+       p_value        DOUBLE          27       27 0.011023524657580394   0.8681556518552971  0.20158751859095128 0.23325555081396268
+        ci_low        DOUBLE          27       27  -0.4789613969713862 0.003491604546532922 -0.18838621282669624 0.14455945559272065
+       ci_high        DOUBLE          27       27 -0.04032010156059884  0.43808299587971256  0.06662666277553257 0.10095747494169167
+             n        BIGINT          27       10                  794               240713   43334.555555555555   70786.62880762664
+        market       VARCHAR          27        4                    -                    -                    -                   -
+        sample       VARCHAR          27        3                    -                    -                    -                   -
+       outcome       VARCHAR          27        5                    -                    -                    -                   -
+       version       VARCHAR          27        3                    -                    -                    -                   -
+ specification       VARCHAR          27        3                    -                    -                    -                   -
+percent_effect        DOUBLE          27       27  -20.663446888761687    17.62283235721545    -5.42005568413407    9.83580414285698
+   percent_low        DOUBLE          27       27   -38.05736040338399    0.349770729841919  -16.347467428408684  11.794962480342738
+  percent_high        DOUBLE          27       27  -3.9518061828158793   54.973352357923886    7.453627191039759  12.087522941208814

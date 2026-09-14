@@ -4,6 +4,8 @@ library(ggplot2)
 results <- fread("../output/developer_estimates.csv")
 curves <- fread("../output/developer_profiles.csv")
 coverage <- fread("../output/developer_coverage.csv")
+pairs <- fread("../output/permit_pair_comparisons.csv")
+groups <- fread("../output/permit_ordering_results.csv")
 labels <- c("density_all_density_far" = "FAR: all construction", "density_multifamily_density_far" = "FAR: multifamily",
   "density_all_density_dupac" = "DUPAC: all construction", "density_multifamily_density_dupac" = "DUPAC: multifamily",
   "rent_all_rent_price" = "Rents", "sales_all_sale_price" = "Sale prices", "permits_stable_high_discretion" = "Permits")
@@ -19,6 +21,18 @@ setnames(comparison, c("Outcome", unname(versions)))
 dev <- main[version == "developer_common", .(Outcome = label, `Effect (%)` = percent_effect,
   `Lower 95%` = percent_low, `Upper 95%` = percent_high, `p-value` = p_value, N = n)]
 pretrends <- unique(curves[market == "permits", .(Ranking = versions[version], `Pretrend p-value` = pretrend_p_value)])
+groups[, cell := sprintf("%+.1f%% (p=%.3f)", percent_effect, p_value)]
+group_table <- dcast(groups, ordering + pairs_with_switches + switched_blocks ~ ranking, value.var = "cell")
+setnames(group_table, c("Ordering", "Pairs with reassignments", "Reassigned blocks", "Developer effect", "Permit-score effect"))
+pair_table <- pairs[status == "common" & switched_blocks > 0][order(ordering, -abs(change_percentage_points_developer)),
+  .(Wards = ward_pair_id, Ordering = ordering, `Higher permit stringency` = paper_higher,
+    `Higher developer share` = developer_higher, `Reassigned blocks` = switched_blocks,
+    `Effect omitting pair (%)` = percent_without_developer)]
+funding_table <- pairs[status == "common" & switched_blocks > 0][order(ward_a, ward_b),
+  .(Wards = ward_pair_id, `First alderman` = alderman_a, `Developer share A (%)` = 100 * developer_share_a,
+    `Second alderman` = alderman_b, `Developer share B (%)` = 100 * developer_share_b)]
+excluded_table <- pairs[status != "common", .(Wards = ward_pair_id, `First alderman` = alderman_a,
+  `Second alderman` = alderman_b, Reason = status, `Reassigned blocks` = switched_blocks)]
 
 # Both helpers are reused to present the saved tables and plots without external assets.
 table_html <- function(x) {
@@ -48,6 +62,17 @@ p_event <- ggplot(events, aes(x, estimate)) + geom_hline(yintercept = 0, color =
   geom_line(color = "#185c83") + geom_point(color = "#185c83") + facet_wrap(~ranking, ncol = 1) +
   scale_x_continuous(breaks = -5:5) + labs(x = "Years since the 2015 remap", y = "Permit effect (log points)",
     title = "Permit reassignment comparison", subtitle = "Developer ranking uses donations received in 2006–2014")
+influential <- pairs[status == "common" & switched_blocks > 0][order(-abs(change_percentage_points_developer))][1:12]
+influential[, pair_label := paste0(ward_pair_id, ": ", alderman_a, " / ", alderman_b)]
+influential[, pair_label := reorder(pair_label, change_percentage_points_developer)]
+p_pairs <- ggplot(influential, aes(change_percentage_points_developer, pair_label, color = ordering)) +
+  geom_vline(xintercept = 0, color = "grey60") + geom_point(size = 3) +
+  scale_color_manual(values = c(same = "#185c83", reversed = "#ae581b"),
+    labels = c(same = "Same ordering", reversed = "Reversed ordering")) +
+  labs(x = "Change in developer estimate when pair is omitted (percentage points)", y = NULL, color = NULL,
+    title = "Which pairs move the permitting estimate?",
+    subtitle = "Positive: omitting this pair moves the estimate toward zero") +
+  theme(legend.position = "bottom")
 coverage_table <- coverage[, .(Market = market, `Original observations` = input_rows,
   `Missing funding` = missing_score_rows, `Equal shares` = tied_score_rows, `Common observations` = common_rows,
   `Changed direction` = reversed_rows, `Changed direction (%)` = 100 * reversed_rows / common_ordered_rows)]
@@ -56,7 +81,7 @@ permit_reversal <- coverage[market == "permits", sprintf(
   common_ordered_rows, reversed_rows)]
 html <- c("<!doctype html><html lang='en'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>",
   "<title>Developer donations in the main specifications</title><style>body{font:17px/1.55 system-ui,sans-serif;color:#25353d;max-width:1150px;margin:36px auto;padding:0 24px}h1{line-height:1.2}h2{margin-top:36px}table{border-collapse:collapse;width:100%;font-size:14px;margin:24px 0}td,th{padding:10px;border-bottom:1px solid #d4dfe3;text-align:left}th{background:#eef4f6}.plot svg{width:100%;height:auto}.note{padding:18px;background:#eef4f6;border-left:4px solid #185c83}a{color:#185c83}</style>",
-  "<h1>Developer donations in the main specifications</h1><p>Exploratory comparison · September 14, 2026 · score_robustness</p>",
+  "<h1>Developer donations in the main specifications</h1><p>Exploratory comparison · September 14, 2026 · score_robustness · <a href='#permit-pairs'>Which ward pairs drive permits?</a></p>",
   "<p class='note'>The developer score is the share of eligible campaign contribution dollars identified as developer-linked. Higher means <b>more developer funding</b>; it is not labelled more or less stringent. All results below keep that direction. Reversing the comparison reverses its interpretation.</p>",
   "<p>The original models are reestimated on their full samples, then on exactly the observations usable under the developer ranking. Controls, fixed effects, clustering, the 500-foot window, and 100-foot distance bins match the paper. Boundary effects compare the nearest 100 feet on either side. Permit estimates summarize 2015–2020 and impose equal-and-opposite reassignment effects.</p>",
   "<h2>Main estimates</h2>", table_html(comparison),
@@ -64,6 +89,15 @@ html <- c("<!doctype html><html lang='en'><meta charset='utf-8'><meta name='view
   "<h2>Developer estimates and uncertainty</h2>", table_html(dev), plot_html(p, 10),
   "<h2>Permit dynamics</h2>", plot_html(p_event, 10), table_html(pretrends),
   "<p>The pretrend test jointly compares the four pre-remap coefficients with zero. It uses the same clustered F test as the paper. It does not test every identifying assumption.</p>",
+  "<h2 id='permit-pairs'>Which ward pairs drive permits?</h2>",
+  "<p>Same ordering means the alderman with higher permit stringency also receives a larger developer share. Reversed ordering means the two measures point to different aldermen. The table estimates separate slopes for these two groups, with each pair's original controls and fixed effects. Effects for reversed pairs necessarily change sign when their ordering is flipped.</p>",
+  table_html(group_table), plot_html(p_pairs, 7),
+  "<p>The omission check removes every observation in one ward pair and reestimates the pooled model on the others. The resulting changes are sensitivity checks, not additive shares of the Poisson estimate. A pair can have many reassignments yet have little influence on the result.</p>",
+  "<h3>All pairs with reassignments under both rankings</h3>", table_html(pair_table),
+  "<h3>Developer funding behind these comparisons</h3>", table_html(funding_table),
+  "<p>Shares use eligible in-office campaign receipts during 2006–2014. Zero means no contributions identified as developer-linked under the current classification. It does not establish that no developer contributed. Full dollar denominators and numerator totals are in the downloadable pair table.</p>",
+  "<h3>Pairs lost because developer funding cannot order them</h3>", table_html(excluded_table),
+  "<p><a href='permit_pair_comparisons.csv'>Every pair, scores, funding totals, and both omission checks</a> · <a href='permit_ordering_results.csv'>Group estimates and uncertainty</a> · <a href='permit_reassignment_flows.csv'>Actual reassignment directions and raw pre/post permit counts</a></p>",
   "<h2>Coverage and changed ordering</h2>", table_html(coverage_table),
   paste0("<p>Density and price counts are observations; permit counts are census blocks before Poisson's automatic removals. ",
     permit_reversal, " Unchanged blocks remain comparison observations. Boundaries with missing or equal developer shares cannot be ordered. In the permit check, the entire such ward pair is removed, including its unchanged comparison blocks. The two common-sample versions use identical fitted observations, verified for every specification.</p>"),

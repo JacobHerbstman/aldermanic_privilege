@@ -185,6 +185,7 @@ pairs[, status := fcase(!is.finite(score_a) | !is.finite(score_b), "missing", sc
 data[, pair_status := pairs$status[match(ward_pair_id, pairs$ward_pair_id)]]
 data[, developer_sign := sign(developer_dest - developer_origin)]
 stopifnot(!anyNA(data$pair_status), all(data[pair_status == "common", is.finite(developer_sign)]))
+SaveData(data, c("block_id", "year"), "../output/permit_comparison_panel.parquet")
 coverage[["permits"]] <- unique(data[, .(block_id, pair_status, paper_sign, developer_sign)])[,
   .(market = "permits", input_rows = .N, missing_score_rows = sum(pair_status == "missing"),
     tied_score_rows = sum(pair_status == "tie"), common_rows = sum(pair_status == "common"),

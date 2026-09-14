@@ -1,0 +1,26 @@
+File: permit_reassignment_flows.csv
+Rows: 192
+Columns: 16
+SHA-256 (saved bytes): 7e9b0126b59c1331c6c8168806dc2160082a6248772c8a52a2871a327f9b9c23
+Key: ward_pair_id, ward_origin, ward_dest
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                     column inferred_type non_missing distinct min               max                  mean                 sd
+               ward_pair_id       VARCHAR         192       95   -                 -                     -                  -
+                ward_origin        BIGINT         192       35   1                50    26.255208333333332 14.922223279402736
+                  ward_dest        BIGINT         192       35   1                50    26.510416666666668 14.985154812244888
+       alderman_origin_2014       VARCHAR         192       35   -                 -                     -                  -
+         alderman_dest_2014       VARCHAR         192       35   -                 -                     -                  -
+                pair_status       VARCHAR         192        3   -                 -                     -                  -
+                   ordering       VARCHAR         192        4   -                 -                     -                  -
+                 paper_sign        BIGINT         192        3  -1                 1 -0.052083333333333336 0.5291461395477196
+             developer_sign        BIGINT         192        3  -1                 1 -0.026041666666666668  0.484685852092002
+                     blocks        BIGINT         192       52   1                93    17.598958333333332 16.425959500318637
+            pre_block_years        BIGINT         192       52   5               465     87.99479166666667   82.1297975015932
+           post_block_years        BIGINT         192       52   6               558             105.59375  98.55575700191181
+                permits_pre        BIGINT         192       95   1               432    46.932291666666664  56.84156910190676
+               permits_post        BIGINT         192       91   0               479    46.755208333333336 61.286277633205806
+ permits_per_block_year_pre        DOUBLE         192      129 0.2  5.08235294117647    0.5217047879160588 0.4474119024086652
+permits_per_block_year_post        DOUBLE         192      146 0.0 4.696078431372549   0.43204007083544954 0.4433134184242567
