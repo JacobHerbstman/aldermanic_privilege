@@ -1,0 +1,18 @@
+File: developer_scores.csv
+Rows: 178
+Columns: 8
+SHA-256 (saved bytes): 48d99e981250b1c9638788bdeab02bde45e7f8e7de902465d8f21211f3e27a53
+Key: period, alderman
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct    min                  max                 mean                   sd
+         alderman       VARCHAR         178      104      -                    -                    -                    -
+ eligible_dollars        DOUBLE         178      149 2000.0           7744003.34    817543.8226404495    1061515.933444599
+developer_dollars        DOUBLE         178       50    0.0             294300.0     6094.03129213483   24654.371425128556
+  developer_share        DOUBLE         178       80    0.0 0.049599093520678095 0.004651824768184819 0.008168825629848213
+    receipt_count        BIGINT         178      143      3                 8021   1043.7808988764045   1170.7235785983783
+       first_year        BIGINT         178       12   2006                 2022   2009.2696629213483    4.340751698665122
+        last_year        BIGINT         178       15   2006                 2022   2015.3033707865168    5.223598115683319
+           period       VARCHAR         178        2      -                    -                    -                    -
