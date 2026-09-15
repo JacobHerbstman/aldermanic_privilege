@@ -1,0 +1,44 @@
+File: permit_pair_influence.csv
+Rows: 88
+Columns: 34
+SHA-256 (saved bytes): 93c022e471d3fdb91212c3f25e651fbd2987e66288ecea9459568508264ec1ae
+Key: scenario, pair
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                    column inferred_type non_missing distinct                   min                   max                  mean                   sd
+                      pair       VARCHAR          88       44                     -                     -                     -                    -
+             specification       VARCHAR          88        1                     -                     -                     -                    -
+                      term       VARCHAR          88        1                     -                     -                     -                    -
+                  estimate        DOUBLE          88       88  -0.14906595036799453 -0.043049480313381426  -0.12359955999195646 0.014644937949445032
+                 std_error        DOUBLE          88       88   0.04638535532890052   0.06789253061080476   0.04963170753158872 0.002628385792621834
+                   p_value        DOUBLE          88       88 0.0017961073224403486    0.5275668949833934  0.024016252179741068  0.05885410568039943
+                    ci_low        DOUBLE          88       88  -0.24379728334208084   -0.1778516913687803  -0.22215134807921774   0.0104646629584368
+                   ci_high        DOUBLE          88       88  -0.05696674000315054   0.09175273074201742 -0.025047771904695173  0.01933639140256004
+                         n        BIGINT          88       38                 34300                 36830     36538.13636363636   438.52498799871034
+                    blocks        BIGINT          88       37                  3149                  3379     3352.409090909091     39.8539391795789
+                ward_pairs        BIGINT          88        2                    94                    95                  94.5   0.5028653529707439
+         reassigned_blocks        BIGINT          88       25                   629                   687     679.1931818181819   12.665327776678364
+          pretrend_p_value        DOUBLE          88       88   0.13436987606812098    0.8237559606290875    0.4041745309393469    0.128853195751836
+                  scenario       VARCHAR          88        2                     -                     -                     -                    -
+                    method       VARCHAR          88        1                     -                     -                     -                    -
+                 threshold        BIGINT          88        1                     0                     0                   0.0                  0.0
+            selected_pairs        BIGINT          88        1                     1                     1                   1.0                  0.0
+           selected_blocks        BIGINT          88       36                    12                   230     53.18181818181818    41.78834063166629
+selected_reassigned_blocks        BIGINT          88       24                     1                    58    15.613636363636363    14.05443589170568
+            percent_effect        DOUBLE          88       88   -13.848770402758689    -4.213600651613292   -11.617151755856229   1.3181557541972693
+               percent_low        DOUBLE          88       88   -21.635352364297344    -16.29334415210769   -19.916227519803375   0.8444308604235007
+              percent_high        DOUBLE          88       88    -5.537451291523179     9.609375827903651   -2.4552831154418557   1.9434246892110396
+    change_log_coefficient        DOUBLE          88       88 -0.022547186558448503   0.08346928349616459  0.002919203817589608 0.014644937949445028
+              ward_pair_id       VARCHAR          88       44                     -                     -                     -                    -
+                alderman_a       VARCHAR          88       26                     -                     -                     -                    -
+                alderman_b       VARCHAR          88       20                     -                     -                     -                    -
+               blocks_pair        BIGINT          88       36                    12                   230     53.18181818181818    41.78834063166629
+    reassigned_blocks_pair        BIGINT          88       24                     1                    58    15.613636363636363    14.05443589170568
+              baseline_gap        DOUBLE          88       44   -1.8376458685917756    2.3057446675504147   0.07457795203967818   1.0205459336818428
+         baseline_stricter       VARCHAR          88       23                     -                     -                     -                    -
+        property_retention        DOUBLE          88       31   0.48296593186372744                   1.0    0.8743395882674441  0.16315904633755166
+         quarter_retention        DOUBLE          88       34    0.4909819639278557                   1.0     0.865868099836036  0.16521752157865624
+            year_retention        DOUBLE          88       31   0.45490981963927857                   1.0    0.8633175441792674  0.17021371600109705
+  change_percentage_points        DOUBLE          88       88   -1.9645319542304645     7.670637796914932   0.26708669267199364   1.3181557541972693

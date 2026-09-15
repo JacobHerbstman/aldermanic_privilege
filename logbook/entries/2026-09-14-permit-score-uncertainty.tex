@@ -1,0 +1,79 @@
+\clearpage
+\section*{Permit event-study sensitivity to uncertain score orderings}
+\textit{September 14, 2026. Agent-drafted exploratory checks requested by Jacob.}
+
+The main permit result is more stable under score resampling than the
+multifamily density results, although some deliberate pair reversals weaken
+it substantially. The original high-discretion signed Poisson estimate is
+$-11.9\%$ ($p=0.011$). The fitted panel contains 36,830 block-years, 3,379
+blocks and 95 geographic boundary pairs; 687 blocks were reassigned across
+44 informative alderman pairs. The audit reproduces the recorded pooled
+estimate, every annual coefficient, standard errors, and the joint pretrend
+test to numerical precision. It preserves the stable-incumbent sample,
+2010--2020 period, 500-foot limit, positive pre-remap permit-volume rule,
+block and boundary-pair-by-year fixed effects, and boundary-pair clustering.
+The scores use permits through 2014 only.
+
+Using the same thresholds as the multifamily audit, 11 informative pairs
+retain their ordering in fewer than 75\% of annual draws. They contain 191
+reassigned blocks. Dropping their reassigned and unchanged comparison blocks
+makes the pooled estimate $-16.7\%$ ($p=0.0002$); reversing their treatment
+directions while keeping every block gives $-12.2\%$ ($p=0.021$). At the
+broader 95\% threshold, 21 pairs and 293 reassigned blocks are affected:
+dropping gives $-19.9\%$ and reversing gives $-13.4\%$. All four annual
+stress tests retain negative post-remap point estimates in every event year.
+Their joint pretrend $p$-values range from 0.283 to 0.768, compared with
+0.400 originally. These tests do not establish parallel trends.
+
+All three methods' complete score draws produce predominantly negative
+pooled estimates. Across 499 draws per method, median effects are $-11.3\%$
+for property weights, $-11.0\%$ for quarter weights and $-11.4\%$ for annual
+weights. Their middle 95\% ranges are respectively $[-16.0,-5.2]\%$,
+$[-16.6,-3.2]\%$ and $[-16.8,-5.5]\%$. All property and annual draws and
+99.4\% of quarter draws are negative. These are score-only perturbation
+ranges, not full confidence intervals; negative shares are not probabilities
+that the causal effect is negative. Each draw supplies one coherent citywide
+ranking, and observed permit outcomes remain fixed. The annual exercise has
+only nine pre-remap time blocks.
+
+Individual comparisons still matter. Dropping each of the 44 informative
+pairs in turn yields effects between $-13.1\%$ and $-9.7\%$. Moreno--Maldonado,
+with 58 reassigned blocks, has the largest influence: dropping it gives
+$-9.7\%$ ($p=0.060$), and reversing it gives $-4.2\%$ ($p=0.528$). Its
+ordering survives 97.4\% of annual draws and 94.4\% of quarter draws.
+Dowell--Cochran, with 43 reassigned blocks and only 55.7\% annual retention,
+gives $-10.1\%$ when dropped and $-7.5\%$ when reversed. Moreno--Waguespack,
+with 56 reassigned blocks and 51.7\% annual retention, gives $-10.5\%$ when
+reversed. No individual deletion or reversal changes the pooled sign.
+
+One broader stress test nearly eliminates the result: reversing all 26 pairs
+with less than 95\% quarter retention gives $-0.9\%$ ($p=0.894$). This set
+contains 425 reassigned blocks, including Moreno--Maldonado. Dropping those
+pairs instead gives $-16.9\%$ ($p=0.009$). The full report retains this
+unfavorable case alongside every other test. Flipping a selected set is a
+deliberate stress test that may conflict with a single citywide ranking;
+it is different from using the coherent resampled score vectors. Dropping
+changes the population represented. Conditional p-values treat each tested
+sample and ordering as fixed.
+
+\clearpage
+\begin{center}
+\includegraphics[width=\textwidth]{../tasks/audits/permit_score_uncertainty/output/permit_score_events.pdf}
+
+\medskip
+\includegraphics[width=\textwidth]{../tasks/audits/permit_score_uncertainty/output/permit_fragile_events.pdf}
+\end{center}
+
+\textit{Reproduction and scope.} Run \texttt{make} in
+\path{tasks/audits/permit_score_uncertainty/code/}. The two-script audit reads
+the preserved block panel and pre-remap score vectors from the existing
+score-reliability audit (upstream implementation \texttt{7dd04922}). Saved
+tables retain 16,467 draw coefficients, 1,111 baseline and stress-test
+coefficients, all 44 pair definitions, and the pooled influence comparison.
+The Poisson estimator omits the same 339 all-zero fixed-effect block-years
+as production; every score reversal retains the original fitted sample.
+Convergence, expected coefficients, pooled/event sample agreement and
+all-boundary sign reversal are checked. Figures distinguish pointwise score
+ranges from full confidence bands. Production scores, data, results and
+manuscript are unchanged. Combined outcome-and-score uncertainty and the
+interpretation of the sequential score estimator remain separate questions.
