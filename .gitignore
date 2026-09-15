@@ -183,3 +183,8 @@ tasks/audits/permit_score_uncertainty/input/
 tasks/audits/permit_score_uncertainty/output/
 tasks/audits/permit_score_uncertainty/temp/
 !tasks/audits/permit_score_uncertainty/report/*.log
+!tasks/audits/price_score_uncertainty/
+tasks/audits/price_score_uncertainty/input/
+tasks/audits/price_score_uncertainty/output/
+tasks/audits/price_score_uncertainty/temp/
+!tasks/audits/price_score_uncertainty/report/*.log

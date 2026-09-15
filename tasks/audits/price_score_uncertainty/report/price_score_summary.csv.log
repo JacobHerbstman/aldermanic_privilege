@@ -1,0 +1,24 @@
+File: price_score_summary.csv
+Rows: 6
+Columns: 14
+SHA-256 (saved bytes): e95c65ecf339676967aa03e190319241db322b77f5d2fc7c8701c1d5dc9a5fd4
+Key: market, method
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct                  min                  max                 mean                    sd
+                 market       VARCHAR           6        2                    -                    -                    -                     -
+                 method       VARCHAR           6        3                    -                    -                    -                     -
+                  draws        BIGINT           6        1                  499                  499                499.0                   0.0
+        median_estimate        DOUBLE           6        6 0.017897265758343044  0.02266242643624741   0.0201084876400647 0.0019163423251266386
+          mean_estimate        DOUBLE           6        6 0.017733774243184997 0.022635761139328282  0.02009005409254766 0.0019920254307785414
+          score_only_sd        DOUBLE           6        6 0.004553074402406893 0.009216452847999226 0.007055739766576481  0.002206724789791769
+                    low        DOUBLE           6        6 0.003439903260971062 0.008610979048124806 0.005876735484811335  0.002281064888673937
+                   high        DOUBLE           6        6 0.026801002457408428  0.04007380951795756  0.03343044691917336  0.006538936273333494
+         positive_share        DOUBLE           6        4   0.9859719438877755                  1.0   0.9916499665998665 0.0052894677073691745
+median_reversed_records        BIGINT           6        6                 8151                26863              16023.5      8738.34974694879
+  median_reversed_pairs        BIGINT           6        5                   33                   50   41.333333333333336     7.763160868271807
+         percent_median        DOUBLE           6        6    1.805838156135835   2.2921170111869027   2.0313586756938062   0.19557501097183888
+            percent_low        DOUBLE           6        6   0.3445826518056559   0.8648160173546778    0.589621823414633   0.22946066458705602
+           percent_high        DOUBLE           6        6   2.7163379435946267    4.088759876907401   3.4013945088604713    0.6761287244951337
