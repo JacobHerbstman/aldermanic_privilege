@@ -188,3 +188,8 @@ tasks/audits/price_score_uncertainty/input/
 tasks/audits/price_score_uncertainty/output/
 tasks/audits/price_score_uncertainty/temp/
 !tasks/audits/price_score_uncertainty/report/*.log
+!tasks/audits/score_robustness_review/
+tasks/audits/score_robustness_review/input/
+tasks/audits/score_robustness_review/output/
+tasks/audits/score_robustness_review/temp/
+!tasks/audits/score_robustness_review/report/*.log
